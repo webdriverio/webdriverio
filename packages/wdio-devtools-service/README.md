@@ -5,21 +5,13 @@ WebdriverIO DevTools Service
 
 With Chrome v63 and up the browser [started to support](https://developers.google.com/web/updates/2017/10/devtools-release-notes#multi-client) multi clients allowing arbitrary clients to access the [Chrome DevTools Protocol](https://chromedevtools.github.io/devtools-protocol/). This provides interesting opportunities to automate Chrome beyond the [WebDriver protocol](https://www.w3.org/TR/webdriver/). With this service you can enhance the wdio browser object to leverage that access and call Chrome DevTools commands within your tests to e.g. intercept requests, throttle network capabilities or take CSS/JS coverage.
 
-_**Note:** this service currently only supports Chrome v63 and up, and Chromium (Microsoft Edge is not yet supported)!_
+Since Firefox 86, [a subset of Chrome DevTools Protocol](https://firefox-source-docs.mozilla.org/remote/index.html) has been implemented by passing the capability `"moz:debuggerAddress": true`.
+
+_**Note:** this service currently only supports Chrome v63 and up, Chromium, and Firefox 86 and up (Microsoft Edge is not yet supported)!_
 
 ## Installation
 
-The easiest way is to keep `@wdio/devtools-service` as a devDependency in your `package.json`.
-
-```json
-{
-    "devDependencies": {
-        "@wdio/devtools-service": "^6.3.7"
-    }
-}
-```
-
-You can simple do it by:
+The easiest way is to keep `@wdio/devtools-service` as a devDependency in your `package.json`, via:
 
 ```bash
 npm install @wdio/devtools-service --save-dev
@@ -103,8 +95,7 @@ Get most common used performance metrics.
 ```js
 console.log(browser.getMetrics())
 /**
- * { estimatedInputLatency: 16,
- *   timeToFirstByte: 566,
+ * { timeToFirstByte: 566,
  *   serverResponseTime: 566,
  *   domContentLoaded: 3397,
  *   firstVisualChange: 2610,
@@ -113,11 +104,11 @@ console.log(browser.getMetrics())
  *   firstMeaningfulPaint: 2822,
  *   largestContentfulPaint: 2822,
  *   lastVisualChange: 15572,
- *   firstCPUIdle: 6135,
- *   firstInteractive: 6135,
+ *   interactive: 6135,
  *   load: 8429,
  *   speedIndex: 3259,
  *   totalBlockingTime: 31,
+ *   maxPotentialFID: 161,
  *   cumulativeLayoutShift: 2822 }
  */
 ```
@@ -167,7 +158,7 @@ console.log(browser.getMainThreadWorkBreakdown())
 
 #### getPerformanceScore
 
-Returns the [Lighthouse Performance Score](https://developers.google.com/web/tools/lighthouse/scoring) which is a weighted mean of the following metrics: `firstContentfulPaint`, `speedIndex`, `largestContentfulPaint`, `cumulativeLayoutShift`, `totalBlockingTime`, `firstInteractive`.
+Returns the [Lighthouse Performance Score](https://developers.google.com/web/tools/lighthouse/scoring) which is a weighted mean of the following metrics: `firstContentfulPaint`, `speedIndex`, `largestContentfulPaint`, `cumulativeLayoutShift`, `totalBlockingTime`, `interactive`, `maxPotentialFID` or `cumulativeLayoutShift`.
 
 ```js
 console.log(browser.getPerformanceScore())

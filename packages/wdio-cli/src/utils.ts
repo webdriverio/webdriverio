@@ -31,10 +31,10 @@ export async function runServiceHook(
             if (typeof service[hookName] === 'function') {
                 await (service[hookName] as Function)(...args)
             }
-        } catch (e) {
-            const message = `A service failed in the '${hookName}' hook\n${e.stack}\n\n`
+        } catch (err: any) {
+            const message = `A service failed in the '${hookName}' hook\n${err.stack}\n\n`
 
-            if (e instanceof SevereServiceError) {
+            if (err instanceof SevereServiceError) {
                 return { status: 'rejected', reason: message }
             }
 
@@ -68,8 +68,8 @@ export async function runLauncherHook(hook: Function | Function[], ...args: any[
     return Promise.all(hook.map((hook) => {
         try {
             return hook(...args)
-        } catch (e) {
-            return catchFn(e)
+        } catch (err: any) {
+            return catchFn(err)
         }
     })).catch(catchFn)
 }
@@ -97,8 +97,8 @@ export async function runOnCompleteHook(
         try {
             await hook(exitCode, config, capabilities, results)
             return 0
-        } catch (e) {
-            log.error(`Error in onCompleteHook: ${e.stack}`)
+        } catch (err: any) {
+            log.error(`Error in onCompleteHook: ${err.stack}`)
             return 1
         }
     }))
@@ -113,7 +113,11 @@ export function getRunnerName (caps: Capabilities.DesiredCapabilities = {}) {
         caps.appPackage ||
         caps.appWaitActivity ||
         caps.app ||
-        caps.platformName
+        caps.platformName ||
+        caps['appium:platformName'] ||
+        caps['appium:appPackage'] ||
+        caps['appium:appWaitActivity'] ||
+        caps['appium:app']
 
     // MultiRemote
     if (!runner) {
@@ -274,12 +278,34 @@ export function hasFile (filename: string) {
 }
 
 /**
+ * Check if package is installed
+ * @param {string} package to check existance for
+ */
+export function hasPackage (pkg: string) {
+    try {
+        /**
+         * this is only for testing purposes as we want to check whether
+         * we add `@babel/register` to the packages to install when resolving fails
+         */
+        if (process.env.JEST_WORKER_ID && process.env.WDIO_TEST_THROW_RESOLVE) {
+            throw new Error('resolve error')
+        }
+        require.resolve(pkg)
+        return true
+    } catch (err: any) {
+        return false
+    }
+}
+
+/**
  * generate test files based on CLI answers
  */
 export async function generateTestFiles (answers: ParsedAnswers) {
     const testFiles = answers.framework === 'cucumber'
         ? [path.join(TEMPLATE_ROOT_DIR, 'cucumber')]
-        : [path.join(TEMPLATE_ROOT_DIR, 'mochaJasmine')]
+        : (answers.framework === 'mocha'
+            ? [path.join(TEMPLATE_ROOT_DIR, 'mocha')]
+            : [path.join(TEMPLATE_ROOT_DIR, 'jasmine')])
 
     if (answers.usePageObjects) {
         testFiles.push(path.join(TEMPLATE_ROOT_DIR, 'pageobjects'))

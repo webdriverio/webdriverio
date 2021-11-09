@@ -278,3 +278,12 @@ div[role="tabpanel"] .margin-vert--md {
     margin-top: 0!important;
     margin-bottom: 0!important;
 }
+
+.tabs.runtime li:last-child:after {
+    content: "*";
+    color: red;
+    padding: 0 3px;
+    line-height: 15px;
+    display: block;
+    height: 15px;
+}

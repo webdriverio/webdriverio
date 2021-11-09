@@ -192,16 +192,16 @@ describe('wdio-testingbot-service', () => {
 
         expect(tbService['_failures']).toBe(0)
 
-        tbService.afterScenario({ pickle: {}, result: { status: 2 } })
+        tbService.afterScenario({} as any, { passed: true })
         expect(tbService['_failures']).toBe(0)
 
-        tbService.afterScenario({ pickle: {}, result: { status: 6 } })
+        tbService.afterScenario({} as any, { passed: false })
         expect(tbService['_failures']).toBe(1)
 
-        tbService.afterScenario({ pickle: {}, result: { status: 2 } })
+        tbService.afterScenario({} as any, { passed: true })
         expect(tbService['_failures']).toBe(1)
 
-        tbService.afterScenario({ pickle: {}, result: { status: 6 } })
+        tbService.afterScenario({} as any, { passed: false })
         expect(tbService['_failures']).toBe(2)
     })
 

@@ -1,3 +1,4 @@
+import { runnerEnd } from '../../wdio-allure-reporter/tests/__fixtures__/runner'
 import SpecReporter from '../src'
 import {
     RUNNER,
@@ -23,7 +24,7 @@ const getRunnerConfig = (config: any = {}) => {
 }
 
 describe('SpecReporter', () => {
-    let tmpReporter:SpecReporter
+    let tmpReporter: SpecReporter
 
     beforeEach(() => {
         tmpReporter = new SpecReporter({})
@@ -35,9 +36,9 @@ describe('SpecReporter', () => {
             expect(reporter['_indents']).toBe(0)
             expect(reporter['_suiteIndents']).toEqual({})
             expect(reporter['_stateCounts']).toEqual({
-                passed : 0,
-                skipped : 0,
-                failed : 0,
+                passed: 0,
+                skipped: 0,
+                failed: 0,
             })
         })
     })
@@ -70,15 +71,15 @@ describe('SpecReporter', () => {
     describe('getEventsToReport', () => {
         it('should return all tests and hook errors to report', () => {
             expect(tmpReporter.getEventsToReport({
-                tests: [{ type: 'test',  title: '1' }, { type: 'test',  title: '2' }],
+                tests: [{ type: 'test', title: '1' }, { type: 'test', title: '2' }],
                 hooks: [{}],
-                hooksAndTests: [{}, { type: 'test',  title: '11' }, {}, { type: 'test',  title: '22' }, {}]
-            })).toEqual([{ type: 'test',  title: '11' }, { type: 'test',  title: '22' }])
+                hooksAndTests: [{}, { type: 'test', title: '11' }, {}, { type: 'test', title: '22' }, {}]
+            })).toEqual([{ type: 'test', title: '11' }, { type: 'test', title: '22' }])
             expect(tmpReporter.getEventsToReport({
-                tests: [{ type: 'test',  title: '1' }, { type: 'test',  title: '2' }],
+                tests: [{ type: 'test', title: '1' }, { type: 'test', title: '2' }],
                 hooks: [{ error: 1 }, {}, { error: 2 }],
-                hooksAndTests: [{}, { error: 11 }, {}, { type: 'test',  title: '33' }, {}, { error: 22 }, {}]
-            })).toEqual([{ error: 11 }, { type: 'test',  title: '33' }, { error: 22 }])
+                hooksAndTests: [{}, { error: 11 }, {}, { type: 'test', title: '33' }, {}, { error: 22 }, {}]
+            })).toEqual([{ error: 11 }, { type: 'test', title: '33' }, { error: 22 }])
         })
     })
 
@@ -150,9 +151,9 @@ describe('SpecReporter', () => {
                 printReporter['_suiteUids'] = SUITE_UIDS
                 printReporter.suites = SUITES
                 printReporter['_stateCounts'] = {
-                    passed : 4,
-                    failed : 1,
-                    skipped : 1,
+                    passed: 4,
+                    failed: 1,
+                    skipped: 1,
                 }
             })
 
@@ -227,7 +228,7 @@ describe('SpecReporter', () => {
                 expect(printReporter.write.mock.calls).toMatchSnapshot()
             })
 
-            it('should print link to Sauce Labs EU job details page', () => {
+            it('should print link to Sauce Labs for many regions', () => {
                 printReporter.runnerStat.instanceOptions[fakeSessionId] = {
                     hostname: 'ondemand.eu-central-1.saucelabs.com',
                     user: 'foobar',
@@ -239,12 +240,15 @@ describe('SpecReporter', () => {
                 printReporter.write.mockClear()
 
                 printReporter.runnerStat.instanceOptions[fakeSessionId] = {
-                    hostname: 'ondemand.eu-central-1.saucelabs.com',
+                    hostname: 'ondemand.saucelabs.com',
                     user: 'foobar',
-                    key: '123'
+                    key: '123',
+                    region: 'apac'
                 }
                 printReporter.printReport(getRunnerConfig({}))
                 expect(printReporter.write.mock.calls).toMatchSnapshot()
+
+                printReporter.write.mockClear()
 
                 printReporter.runnerStat.instanceOptions[fakeSessionId] = {
                     hostname: 'ondemand.us-east-1.saucelabs.com',
@@ -256,16 +260,16 @@ describe('SpecReporter', () => {
             })
         })
 
-        describe('with disabled sharable Sauce report links', ()=>{
+        describe('with disabled sharable Sauce report links', () => {
             const options = { sauceLabsSharableLinks: false }
             beforeEach(() => {
                 tmpReporter = new SpecReporter(options)
                 tmpReporter.suiteUids = SUITE_UIDS
                 tmpReporter.suites = SUITES
                 tmpReporter.stateCounts = {
-                    passed : 4,
-                    failed : 1,
-                    skipped : 1,
+                    passed: 4,
+                    failed: 1,
+                    skipped: 1,
                 }
                 tmpReporter.write = jest.fn()
             })
@@ -459,17 +463,17 @@ describe('SpecReporter', () => {
         it('should return the suites in order based on uids', () => {
             tmpReporter.foo = 'hellooo'
             tmpReporter['_suiteUids'] = new Set(['5', '3', '8'])
-            tmpReporter.suites = { '3': { uid : 3 }, '5': { uid : 5 } }
+            tmpReporter.suites = { '3': { uid: 3 }, '5': { uid: 5 } }
 
             const result = tmpReporter.getOrderedSuites()
 
             expect(result.length).toBe(2)
-            expect(result[0]).toEqual({ uid : 5 })
-            expect(result[1]).toEqual({ uid : 3 })
+            expect(result[0]).toEqual({ uid: 5 })
+            expect(result[1]).toEqual({ uid: 3 })
 
             expect(tmpReporter._orderedSuites.length).toBe(2)
-            expect(tmpReporter._orderedSuites[0]).toEqual({ uid : 5 })
-            expect(tmpReporter._orderedSuites[1]).toEqual({ uid : 3 })
+            expect(tmpReporter._orderedSuites[0]).toEqual({ uid: 5 })
+            expect(tmpReporter._orderedSuites[1]).toEqual({ uid: 3 })
         })
 
         it('should return the cached ordered suites', () => {
@@ -539,6 +543,111 @@ describe('SpecReporter', () => {
 
         it('should get the skipped symbol that is not set', () => {
             expect(tmpReporter.getSymbol('skipped')).toBe('-')
+        })
+    })
+
+    describe('add console logs', () => {
+        const options = { addConsoleLogs: true }
+
+        it('should add console log to report for passing test', () => {
+            tmpReporter = new SpecReporter(options)
+            tmpReporter.onSuiteStart(Object.values(SUITES)[0] as any)
+            tmpReporter.onTestStart()
+            tmpReporter['_orderedSuites'] = Object.values(SUITES) as any
+            tmpReporter['_consoleOutput']='Printing to console spec'
+            tmpReporter.onTestPass()
+            expect(tmpReporter.getResultDisplay().toString()).toContain('Printing to console spec')
+            tmpReporter.onSuiteEnd()
+            tmpReporter.onRunnerEnd(runnerEnd())
+        })
+
+        it('should add console logs to report for failing test', () => {
+            tmpReporter = new SpecReporter(options)
+            tmpReporter.onSuiteStart(Object.values(SUITES)[0] as any)
+            tmpReporter.onTestStart()
+            tmpReporter['_orderedSuites'] = Object.values(SUITES) as any
+            tmpReporter['_consoleOutput']='Printing to console spec'
+            tmpReporter.onTestFail()
+            expect(tmpReporter.getResultDisplay().toString()).toContain('Printing to console spec')
+            tmpReporter.onSuiteEnd()
+            tmpReporter.onRunnerEnd(runnerEnd())
+        })
+
+        it('should add console logs to report for skipping test', () => {
+            tmpReporter = new SpecReporter(options)
+            tmpReporter.onSuiteStart(Object.values(SUITES)[0] as any)
+            tmpReporter.onTestStart()
+            tmpReporter['_orderedSuites'] = Object.values(SUITES) as any
+            tmpReporter['_consoleOutput']='Printing to console spec'
+            tmpReporter.onTestSkip()
+            expect(tmpReporter.getResultDisplay().toString()).toContain('Printing to console spec')
+            tmpReporter.onSuiteEnd()
+            tmpReporter.onRunnerEnd(runnerEnd())
+        })
+
+        it('should not add webdriver logs to report', () => {
+            tmpReporter = new SpecReporter(options)
+            tmpReporter.onSuiteStart(Object.values(SUITES)[0] as any)
+            tmpReporter['_orderedSuites'] = Object.values(SUITES) as any
+            tmpReporter['_consoleOutput']='mwebdriver test log'
+            expect(tmpReporter.getResultDisplay().toString()).not.toContain('mwebdriver test log')
+            tmpReporter.onSuiteEnd()
+            tmpReporter.onRunnerEnd(runnerEnd())
+        })
+    })
+
+    describe('onlyFailures', () => {
+        let printReporter = null
+        const runner = getRunnerConfig({ hostname: 'localhost' })
+
+        describe('false', () => {
+            beforeEach(() => {
+                printReporter = new SpecReporter({ onlyFailures: false })
+                printReporter.write = jest.fn()
+                printReporter['_suiteUids'] = SUITE_UIDS
+                printReporter.suites = SUITES
+            })
+
+            it('1 failure', () => {
+                runner.failures = 1
+                printReporter.printReport(runner)
+
+                expect(printReporter['_onlyFailures']).toBe(false)
+                expect(printReporter.write.mock.calls).toMatchSnapshot()
+            })
+
+            it('0 failures', () => {
+                runner.failures = 0
+                printReporter.printReport(runner)
+
+                expect(printReporter['_onlyFailures']).toBe(false)
+                expect(printReporter.write.mock.calls).toMatchSnapshot()
+            })
+        })
+
+        describe('true', () => {
+            beforeEach(() => {
+                printReporter = new SpecReporter({ onlyFailures: true })
+                printReporter.write = jest.fn()
+                printReporter['_suiteUids'] = SUITE_UIDS
+                printReporter.suites = SUITES
+            })
+
+            it('1 failure', () => {
+                runner.failures = 1
+                printReporter.printReport(runner)
+
+                expect(printReporter['_onlyFailures']).toBe(true)
+                expect(printReporter.write.mock.calls).toMatchSnapshot()
+            })
+
+            it('0 failures', () => {
+                runner.failures = 0
+                printReporter.printReport(runner)
+
+                expect(printReporter['_onlyFailures']).toBe(true)
+                expect(printReporter.write.mock.calls).toMatchSnapshot()
+            })
         })
     })
 

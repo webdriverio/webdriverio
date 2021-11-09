@@ -10,11 +10,12 @@ import isObject from 'lodash.isobject'
 import isPlainObject from 'lodash.isplainobject'
 import { URL } from 'url'
 import { SUPPORTED_BROWSER } from 'devtools'
+import { UNICODE_CHARACTERS } from '@wdio/utils'
 import type { ElementReference } from '@wdio/protocols'
 import type { Options, Capabilities } from '@wdio/types'
 import { locatorStrategy } from 'query-selector-shadow-dom/plugins/webdriverio'
 
-import { ELEMENT_KEY, UNICODE_CHARACTERS, DRIVER_DEFAULT_ENDPOINT, FF_REMOTE_DEBUG_ARG, DEEP_SELECTOR } from '../constants'
+import { ELEMENT_KEY, DRIVER_DEFAULT_ENDPOINT, FF_REMOTE_DEBUG_ARG, DEEP_SELECTOR } from '../constants'
 import { findStrategy } from './findStrategy'
 import type { ElementArray, ElementFunction, Selector, ParsedCSSValue, CustomLocatorReturnValue } from '../types'
 
@@ -120,7 +121,7 @@ export function transformToCharString (value: any, translateToUnicode = true) {
         } else if (val && typeof val === 'object') {
             try {
                 ret.push(...JSON.stringify(val).split(''))
-            } catch (e) { /* ignore */ }
+            } catch (err: any) { /* ignore */ }
         } else if (typeof val === 'boolean') {
             const entry = val ? 'true'.split('') : 'false'.split('')
             ret.push(...entry)
@@ -188,7 +189,7 @@ export function parseCSS (cssPropertyValue: string, cssProperty?: string) {
             if (parsedValue.parsed.type && parsedValue.parsed.type === 'number' && parsedValue.parsed.unit === '') {
                 parsedValue.value = parsedValue.parsed.value
             }
-        } catch (e) {
+        } catch (err: any) {
             // TODO improve css-parse lib to handle properties like
             // `-webkit-animation-timing-function :  cubic-bezier(0.25, 0.1, 0.25, 1)
         }
@@ -241,7 +242,10 @@ export async function findElement(
         const notFoundError = new Error(`shadow selector "${selector.slice(DEEP_SELECTOR.length)}" did not return an HTMLElement`)
         let elem: ElementReference | ElementReference[] = await this.execute(
             locatorStrategy,
-            selector.slice(DEEP_SELECTOR.length)
+            ...[
+                selector.slice(DEEP_SELECTOR.length),
+                (this as WebdriverIO.Element).elementId ? this : undefined
+            ].filter(Boolean)
         )
         elem = Array.isArray(elem) ? elem[0] : elem
         return getElementFromResponse(elem) ? elem : notFoundError
@@ -284,7 +288,10 @@ export async function findElements(
     if (!this.isDevTools && typeof selector === 'string' && selector.startsWith(DEEP_SELECTOR)) {
         const elems: ElementReference | ElementReference[] = await this.execute(
             locatorStrategy,
-            selector.slice(DEEP_SELECTOR.length)
+            ...[
+                selector.slice(DEEP_SELECTOR.length),
+                (this as WebdriverIO.Element).elementId ? this : undefined
+            ].filter(Boolean)
         )
         const elemArray = Array.isArray(elems) ? elems : [elems]
         return elemArray.filter((elem) => elem && getElementFromResponse(elem))
@@ -405,7 +412,7 @@ export function validateUrl (url: string, origError?: Error): string {
     try {
         const urlObject = new URL(url)
         return urlObject.href
-    } catch (e) {
+    } catch (err: any) {
         /**
          * if even adding http:// doesn't help, fail with original error
          */
@@ -413,7 +420,7 @@ export function validateUrl (url: string, origError?: Error): string {
             throw origError
         }
 
-        return validateUrl(`http://${url}`, e)
+        return validateUrl(`http://${url}`, new Error(`Invalid URL: ${url}`))
     }
 }
 
@@ -505,12 +512,22 @@ export const getAutomationProtocol = async (config: Options.WebdriverIO | Option
     /**
      * only run DevTools protocol if capabilities match supported platforms
      */
+    const caps = (
+        ((config as Options.WebdriverIO).capabilities as Capabilities.W3CCapabilities)?.alwaysMatch ||
+        config.capabilities as Capabilities.Capabilities
+    ) || {}
+    const desiredCaps = caps as Capabilities.DesiredCapabilities
+    if (!SUPPORTED_BROWSER.includes(caps.browserName?.toLowerCase() as string)) {
+        return 'webdriver'
+    }
+
+    /**
+     * check if we are on mobile and use WebDriver if so
+     */
     if (
-        config.capabilities &&
-        typeof (config.capabilities as Capabilities.Capabilities).browserName === 'string' &&
-        !SUPPORTED_BROWSER.includes(
-            (config.capabilities as Capabilities.Capabilities).browserName?.toLowerCase() as string
-        )
+        desiredCaps.deviceName || caps['appium:deviceName'] ||
+        desiredCaps.platformVersion || caps['appium:platformVersion'] ||
+        desiredCaps.app || caps['appium:app']
     ) {
         return 'webdriver'
     }

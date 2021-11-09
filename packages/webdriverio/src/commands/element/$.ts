@@ -1,10 +1,3 @@
-import type { ElementReference } from '@wdio/protocols'
-
-import { findElement } from '../../utils'
-import { getElement } from '../../utils/getElementObject'
-import { ELEMENT_KEY } from '../../constants'
-import type { Selector } from '../../types'
-
 /**
  * The `$` command is a short way to call the [`findElement`](/docs/api/webdriver#findelement) command in order
  * to fetch a single element on the page similar to the `$` command from the browser scope. The difference when calling
@@ -31,14 +24,14 @@ import type { Selector } from '../../types'
         <li><a href="/">Contribute</a></li>
     </ul>
     :$.js
-    it('should get text a menu link', () => {
-        const text = $('#menu');
-        console.log(text.$$('li')[2].$('a').getText()); // outputs: "API"
+    it('should get text a menu link', async () => {
+        const text = await $('#menu');
+        console.log(await text.$$('li')[2].$('a').getText()); // outputs: "API"
     });
 
-    it('should get text a menu link - JS Function', () => {
-        const text = $('#menu');
-        console.log(text.$$('li')[2].$(function() { // Arrow function is not allowed here.
+    it('should get text a menu link - JS Function', async () => {
+        const text = await $('#menu');
+        console.log(await text.$$('li')[2].$(function() { // Arrow function is not allowed here.
             // this is Element https://developer.mozilla.org/en-US/docs/Web/API/Element
             // in this particular example it is HTMLLIElement
             // TypeScript users may do something like this
@@ -47,9 +40,24 @@ import type { Selector } from '../../types'
         }).getText()); // outputs: "API"
     });
 
-    it('should allow to convert protocol result of an element into a WebdriverIO element', () => {
-        const activeElement = browser.getActiveElement();
-        console.log($(activeElement).getTagName()); // outputs active element
+    it('should allow to convert protocol result of an element into a WebdriverIO element', async () => {
+        const activeElement = await browser.getActiveElement();
+        console.log(await $(activeElement).getTagName()); // outputs active element
+    });
+
+    it('should use Androids DataMatcher or ViewMatcher selector', async () => {
+        const menuItem = await $({
+            "name": "hasEntry",
+            "args": ["title", "ViewTitle"],
+            "class": "androidx.test.espresso.matcher.ViewMatchers"
+        });
+        await menuItem.click();
+
+        const menuItem = await $({
+            "name": "hasEntry",
+            "args": ["title", "ViewTitle"]
+        });
+        await menuItem.click();
     });
  * </example>
  *
@@ -59,18 +67,5 @@ import type { Selector } from '../../types'
  * @type utility
  *
  */
-export default async function $ (
-    this: WebdriverIO.Element,
-    selector: Selector
-): Promise<WebdriverIO.Element> {
-    /**
-     * convert protocol result into WebdriverIO element
-     * e.g. when element was fetched with `getActiveElement`
-     */
-    if (selector && typeof (selector as ElementReference)[ELEMENT_KEY] === 'string') {
-        return getElement.call(this, undefined, selector as ElementReference)
-    }
-
-    const res = await findElement.call(this, selector)
-    return getElement.call(this, selector, res)
-}
+import $ from '../browser/$'
+export default $

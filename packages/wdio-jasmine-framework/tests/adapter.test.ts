@@ -26,7 +26,12 @@ const hookPayload = (type: string, error?: Error) => ({
     fullName: `"${type} all" hook`,
     properties: {},
     start: expect.any(Date),
-    type: 'hook'
+    type: 'hook',
+    passedExpectations: [],
+    failedExpectations: [],
+    deprecationWarnings: [],
+    status: '',
+    pendingReason: ''
 })
 
 const adapterFactory = (config = {}) => new JasmineAdapter(

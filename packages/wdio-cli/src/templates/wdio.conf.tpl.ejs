@@ -3,10 +3,7 @@
     // ====================
     // Runner Configuration
     // ====================
-    //
-    // WebdriverIO allows it to run your tests in arbitrary locations (e.g. locally or
-    // on a remote machine).
-    runner: '<%= answers.runner %>',<%
+    //<%
 
     if(answers.expEnvAccessKey){ %>
     hostname: '<%= answers.expEnvHostname %>',
@@ -47,7 +44,7 @@
     key: process.env.<%= answers.env_key %>,
     //
     // If you run your tests on Sauce Labs you can specify the region you want to run your tests
-    // in via the `region` property. Available short handles for regions are `us` (default) and `eu`.
+    // in via the `region` property. Available short handles for regions are `us` (default), `eu` and `apac`.
     // These regions are used for the Sauce Labs VM cloud and the Sauce Labs Real Device Cloud.
     // If you don't provide the region it will default for the `us`
     <% }
@@ -96,7 +93,7 @@
     //
     // If you have trouble getting all important capabilities together, check out the
     // Sauce Labs platform configurator - a great tool to configure your capabilities:
-    // https://docs.saucelabs.com/reference/platforms-configurator
+    // https://saucelabs.com/platform/platform-configurator
     //
     capabilities: [{
     <%if(answers.expEnvAccessKey){%> 'experitest:accessKey': '<%= answers.expEnvAccessKey %>',<%}%>
@@ -124,7 +121,7 @@
     // Set specific log levels per logger
     // loggers:
     // - webdriver, webdriverio
-    // - @wdio/applitools-service, @wdio/browserstack-service, @wdio/devtools-service, @wdio/sauce-service
+    // - @wdio/browserstack-service, @wdio/devtools-service, @wdio/sauce-service
     // - @wdio/mocha-framework, @wdio/jasmine-framework
     // - @wdio/local-runner
     // - @wdio/sumologic-reporter
@@ -132,7 +129,7 @@
     // Level of logging verbosity: trace | debug | info | warn | error | silent
     // logLevels: {
     //     webdriver: 'info',
-    //     '@wdio/applitools-service': 'info'
+    //     '@wdio/appium-service': 'info'
     // },
     //
     // If you only want to run your tests until a specific amount of tests have failed use
@@ -187,11 +184,7 @@
     // Options to be passed to Mocha.
     // See the full list at http://mochajs.org/
     mochaOpts: {
-        <% if(answers.isUsingBabel) {
-        %>// Babel setup
-        require: ['@babel/register'],
-        <% }
-        %>ui: 'bdd',
+        ui: 'bdd',
         timeout: 60000
     },<%
     }
@@ -199,11 +192,7 @@
     //
     // Options to be passed to Jasmine.
     jasmineOpts: {
-        <% if(answers.isUsingBabel) {
-        %>// Babel setup
-        helpers: [require.resolve('@babel/register')],
-        <% }
-        %>// Jasmine default timeout
+        // Jasmine default timeout
         defaultTimeoutInterval: 60000,
         //
         // The Jasmine framework allows interception of each assertion in order to log the state of the application
@@ -222,11 +211,8 @@
         // <boolean> show full backtrace for errors
         backtrace: false,
         // <string[]> ("extension:module") require files with the given EXTENSION after requiring MODULE (repeatable)
-        <% if(answers.isUsingBabel) {
-        %>requireModule: ['@babel/register'],
-        <% } else {
-        %>requireModule: [],
-        <% } %>// <boolean> invoke formatters without executing steps
+        requireModule: [],
+        // <boolean> invoke formatters without executing steps
         dryRun: false,
         // <boolean> abort the run on first failure
         failFast: false,
@@ -280,8 +266,9 @@
      * @param {Object} config wdio configuration object
      * @param {Array.<Object>} capabilities list of capabilities details
      * @param {Array.<String>} specs List of spec file paths that are to be run
+     * @param {String} cid worker id (e.g. 0-0)
      */
-    // beforeSession: function (config, capabilities, specs) {
+    // beforeSession: function (config, capabilities, specs, cid) {
     // },
     /**
      * Gets executed before test execution begins. At this point you can access to all global
@@ -332,32 +319,61 @@
     // },<% }
     if(answers.framework === 'cucumber') { %>
     /**
-     * Runs before a Cucumber feature
+     * Cucumber Hooks
+     *
+     * Runs before a Cucumber Feature.
+     * @param {String}                   uri      path to feature file
+     * @param {GherkinDocument.IFeature} feature  Cucumber feature object
      */
     // beforeFeature: function (uri, feature) {
     // },
     /**
-     * Runs before a Cucumber scenario
+     *
+     * Runs before a Cucumber Scenario.
+     * @param {ITestCaseHookParameter} world    world object containing information on pickle and test step
+     * @param {Object}                 context  Cucumber World object
      */
-    // beforeScenario: function (world) {
+    // beforeScenario: function (world, context) {
     // },
     /**
-     * Runs before a Cucumber step
+     *
+     * Runs before a Cucumber Step.
+     * @param {Pickle.IPickleStep} step     step data
+     * @param {IPickle}            scenario scenario pickle
+     * @param {Object}             context  Cucumber World object
      */
-    // beforeStep: function (step, context) {
+    // beforeStep: function (step, scenario, context) {
     // },
     /**
-     * Runs after a Cucumber step
+     *
+     * Runs after a Cucumber Step.
+     * @param {Pickle.IPickleStep} step             step data
+     * @param {IPickle}            scenario         scenario pickle
+     * @param {Object}             result           results object containing scenario results
+     * @param {boolean}            result.passed    true if scenario has passed
+     * @param {string}             result.error     error stack if scenario failed
+     * @param {number}             result.duration  duration of scenario in milliseconds
+     * @param {Object}             context          Cucumber World object
      */
-    // afterStep: function (step, context) {
+    // afterStep: function (step, scenario, result, context) {
     // },
     /**
-     * Runs after a Cucumber scenario
+     *
+     * Runs after a Cucumber Scenario.
+     * @param {ITestCaseHookParameter} world            world object containing information on pickle and test step
+     * @param {Object}                 result           results object containing scenario results
+     * @param {boolean}                result.passed    true if scenario has passed
+     * @param {string}                 result.error     error stack if scenario failed
+     * @param {number}                 result.duration  duration of scenario in milliseconds
+     * @param {Object}                 context          Cucumber World object
      */
-    // afterScenario: function (world) {
+    // afterScenario: function (world, result, context) {
     // },
     /**
-     * Runs after a Cucumber feature
+     *
+     * Runs after a Cucumber Feature.
+     * @param {String}                   uri      path to feature file
+     * @param {GherkinDocument.IFeature} feature  Cucumber feature object
      */
     // afterFeature: function (uri, feature) {
     // },

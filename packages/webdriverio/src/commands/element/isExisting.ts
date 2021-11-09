@@ -1,6 +1,13 @@
 /**
  *
- * Returns true if element exists in the DOM
+ * Returns true if element exists in the DOM.
+ *
+ * :::info
+ *
+ * As opposed to other element commands WebdriverIO will not wait for the element
+ * to exist to execute this command.
+ *
+ * :::
  *
  * <example>
     :index.html
@@ -9,25 +16,25 @@
     <div id="notInViewport" style="position:absolute; left: 9999999"></div>
     <div id="zeroOpacity" style="opacity: 0"></div>
     :isExisting.js
-    it('should detect if elements are existing', () => {
-        let elem = $('#someRandomNonExistingElement')
-        let isExisting = elem.isExisting()
+    it('should detect if elements are existing', async () => {
+        let elem = await $('#someRandomNonExistingElement')
+        let isExisting = await elem.isExisting()
         console.log(isExisting); // outputs: false
 
-        elem = $('#notDisplayed')
-        isExisting = elem.isExisting()
+        elem = await $('#notDisplayed')
+        isExisting = await elem.isExisting()
         console.log(isExisting); // outputs: true
 
-        elem = $('#notVisible')
-        isExisting = elem.isExisting()
+        elem = await $('#notVisible')
+        isExisting = await elem.isExisting()
         console.log(isExisting); // outputs: true
 
-        elem = $('#notInViewport')
-        isExisting = elem.isExisting()
+        elem = await $('#notInViewport')
+        isExisting = await elem.isExisting()
         console.log(isExisting); // outputs: true
 
-        elem = $('#zeroOpacity')
-        isExisting = elem.isExisting()
+        elem = await $('#zeroOpacity')
+        isExisting = await elem.isExisting()
         console.log(isExisting); // outputs: true
     });
  * </example>
@@ -38,7 +45,22 @@
  * @type state
  *
  */
-export default function isExisting (this: WebdriverIO.Element) {
+export default async function isExisting (this: WebdriverIO.Element) {
+    /**
+     * if an element was composed via `const elem = $({ 'element-6066-11e4-a52e-4f735466cecf': <elementId> })`
+     * we don't have any selector information. Therefore we can only check existance
+     * by calling a command with the element id to check if it is successful or not.
+     * Using `getElementTagName` to validate the element existance works as it is
+     * a command that should be available for desktop and mobile and fails with a
+     * stale element exeception if element is not existing.
+     */
+    if (!this.selector) {
+        return this.getElementTagName(this.elementId).then(
+            () => true,
+            () => false
+        )
+    }
+
     const command = this.isReactElement ? this.parent.react$$.bind(this.parent) : this.parent.$$.bind(this.parent)
     return command(this.selector as string).then((res) => res.length > 0)
 }

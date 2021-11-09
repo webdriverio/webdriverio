@@ -2,10 +2,10 @@
 import got from 'got'
 import { remote } from '../../../src'
 
-jest.useFakeTimers()
+jest.useFakeTimers('legacy')
 
 describe('pause test', () => {
-    let browser: WebdriverIO.BrowserObject
+    let browser: WebdriverIO.Browser
     beforeEach(async () => {
         browser = await remote({
             baseUrl: 'http://foobar.com',

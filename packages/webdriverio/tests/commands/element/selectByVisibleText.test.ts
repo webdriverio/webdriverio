@@ -8,7 +8,7 @@ const got = gotMock as any as jest.Mock
 
 describe('selectByVisibleText test', () => {
     const getElementFromResponseSpy = jest.spyOn(utils, 'getElementFromResponse')
-    let browser: WebdriverIO.BrowserObject
+    let browser: WebdriverIO.Browser
     let elem: WebdriverIO.Element
 
     beforeEach(async () => {
@@ -150,8 +150,8 @@ describe('selectByVisibleText test', () => {
         try {
             // @ts-ignore mock feature
             await mockElem.selectByVisibleText('non-existing-option')
-        } catch (e) {
-            expect(e.toString()).toBe('Error: Option with text "non-existing-option" not found.')
+        } catch (err: any) {
+            expect(err.toString()).toBe('Error: Option with text "non-existing-option" not found.')
         }
     })
 })

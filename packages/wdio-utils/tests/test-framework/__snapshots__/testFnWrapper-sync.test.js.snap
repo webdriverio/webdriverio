@@ -2,18 +2,7 @@
 
 exports[`testFnWrapper should propagate jasmine failed expecations as errors 1`] = `"afterFn"`;
 
-exports[`testFnWrapper should propagate jasmine failed expecations as errors 2`] = `
-Object {
-  "actual": true,
-  "expected": false,
-  "matcherName": "toEqual",
-  "message": "Expected true to equal false.",
-  "passed": false,
-  "stack": "Error: Expected true to equal false.
-    at <Jasmine>
-    at UserContext.it",
-}
-`;
+exports[`testFnWrapper should propagate jasmine failed expecations as errors 2`] = `"@wdio/sync: FooBar 0 0"`;
 
 exports[`testFnWrapper should run fn in sync mode with cucumber 1`] = `
 Array [

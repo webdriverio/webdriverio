@@ -7,7 +7,7 @@
  * interface that will allow you to try out certain commands, find elements and test actions on
  * them.
  *
- * [![WebdriverIO REPL](https://webdriver.io/images/repl.gif)](https://webdriver.io/images/repl.gif)
+ * [![WebdriverIO REPL](https://webdriver.io/img/repl.gif)](https://webdriver.io/img/repl.gif)
  *
  * If you run the WDIO testrunner make sure you increase the timeout property of the test framework
  * you are using (e.g. Mocha or Jasmine) in order to prevent test termination due to a test timeout.
@@ -86,7 +86,7 @@ export default class WDIORepl {
         try {
             const result = vm.runInContext(cmd, context)
             return this._handleResult(result, callback)
-        } catch (e) {
+        } catch (e: any) {
             this._isCommandRunning = false
             return callback(e, undefined)
         }

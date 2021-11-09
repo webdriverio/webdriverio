@@ -5,7 +5,7 @@ import { remote } from '../../../src'
 const got = gotMock as any as jest.Mock
 
 describe('isEqual test', () => {
-    let browser: WebdriverIO.BrowserObject
+    let browser: WebdriverIO.Browser
     let elem: WebdriverIO.Element
 
     describe('web', () => {

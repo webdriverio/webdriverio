@@ -1,5 +1,5 @@
 import { CucumberOptions } from './types'
-import { messages } from '@cucumber/messages'
+import { Pickle, PickleStep } from '@cucumber/messages'
 
 export const DEFAULT_TIMEOUT = 60000
 
@@ -19,6 +19,7 @@ export const DEFAULT_OPTS: CucumberOptions = {
     tagExpression: '', // <string> (expression) only execute the features or scenarios with tags matching the expression
     tagsInTitle: false, // <boolean> add cucumber tags to feature or scenario name
     timeout: DEFAULT_TIMEOUT, // <number> timeout for step definitions in milliseconds
+    retry: 0,
     scenarioLevelReporter: false,
     featureDefaultLanguage: 'en'
 }
@@ -37,6 +38,14 @@ export const CUCUMBER_HOOK_DEFINITION_TYPES = [
  * The pickle step needs to have a keyword for the reporters, otherwise reporters like
  * the allure or spec reporter won't show the `Given|When|Then` words
  */
-export interface ReporterStep extends messages.Pickle.IPickleStep {
+export interface ReporterStep extends PickleStep {
     keyword?: string
+}
+
+/**
+ * The pickle scenario needs to have a rule for the reporters, otherwise reporters like
+ * the allure or spec reporter won't show the rule
+ */
+export interface ReporterScenario extends Pickle {
+    rule?: string
 }

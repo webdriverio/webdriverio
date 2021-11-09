@@ -24,7 +24,7 @@ export interface ConfigWithSessionId extends Omit<Options.Testrunner, 'capabilit
 export function sanitizeCaps (
     caps: Capabilities.RemoteCapability,
     filterOut?: boolean
-): Omit<Capabilities.RemoteCapability, 'logLevel'> | Partial<Options.Testrunner> {
+): Omit<Capabilities.RemoteCapability, 'logLevel'> {
     const defaultConfigsKeys = [
         // WDIO config keys
         ...Object.keys(DEFAULT_CONFIGS()),

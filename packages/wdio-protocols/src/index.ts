@@ -1,6 +1,7 @@
 import { Protocol } from './types'
 import AppiumCommands from './commands/appium'
 import ChromiumCommands from './commands/chromium'
+import GeckoCommands from './commands/gecko'
 import JSONWPCommands from './commands/jsonwp'
 import MJSONWPCommands from './commands/mjsonwp'
 import SauceLabsCommands from './commands/saucelabs'
@@ -12,6 +13,7 @@ const MJsonWProtocol: Protocol = require('../protocols/mjsonwp.json')
 const JsonWProtocol: Protocol = require('../protocols/jsonwp.json')
 const AppiumProtocol: Protocol = require('../protocols/appium.json')
 const ChromiumProtocol: Protocol = require('../protocols/chromium.json')
+const GeckoProtocol: Protocol = require('../protocols/gecko.json')
 const SauceLabsProtocol: Protocol = require('../protocols/saucelabs.json')
 const SeleniumProtocol: Protocol = require('../protocols/selenium.json')
 
@@ -26,6 +28,10 @@ type AppiumCommandsAsync = {
 type ChromiumCommandsAsync = {
     [K in keyof ChromiumCommands]:
     (...args: Parameters<ChromiumCommands[K]>) => Promise<ReturnType<ChromiumCommands[K]>>
+}
+type GeckoCommandsAsync = {
+    [K in keyof GeckoCommands]:
+    (...args: Parameters<GeckoCommands[K]>) => Promise<ReturnType<GeckoCommands[K]>>
 }
 type JSONWPCommandsAsync = {
     [K in keyof JSONWPCommands]:
@@ -51,12 +57,12 @@ export * from './types'
 export {
     // protocols
     WebDriverProtocol, MJsonWProtocol, JsonWProtocol, AppiumProtocol,
-    ChromiumProtocol, SauceLabsProtocol, SeleniumProtocol,
+    ChromiumProtocol, SauceLabsProtocol, SeleniumProtocol, GeckoProtocol,
     // sync commands
     AppiumCommands, ChromiumCommands, JSONWPCommands, MJSONWPCommands,
-    SauceLabsCommands, SeleniumCommands, WebDriverCommands,
+    SauceLabsCommands, SeleniumCommands, WebDriverCommands, GeckoCommands,
     // async commands
     WebDriverCommandsAsync, AppiumCommandsAsync, ChromiumCommandsAsync,
     JSONWPCommandsAsync, MJSONWPCommandsAsync, SauceLabsCommandsAsync,
-    SeleniumCommandsAsync
+    SeleniumCommandsAsync, GeckoCommandsAsync
 }

@@ -3,8 +3,8 @@ import MockedModules from './MockedModules'
 import MockPathService, { FilePathsAndContents, MockSystemFolderPath } from './MockPathService'
 
 export default class ConfigParserBuilder {
-    private f : MockPathService;
-    private m : MockedModules;
+    private f : MockPathService
+    private m : MockedModules
 
     public constructor(baseDir: string, files: FilePathsAndContents = [], modules:[string, any][] = []) {
         this.f = MockPathService.inWorkingDirectoryWithFiles({ cwd: baseDir, files })

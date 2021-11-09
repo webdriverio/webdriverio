@@ -1,15 +1,21 @@
 import type { Browser, MultiRemoteBrowser } from 'webdriverio'
 import type { Capabilities } from '@wdio/types'
+import Driver from 'lighthouse/lighthouse-core/gather/driver'
+import type { CDPSession } from 'puppeteer-core/lib/cjs/puppeteer/common/Connection'
+import type { Target } from 'puppeteer-core/lib/cjs/puppeteer/common/Target'
 
+import ChromeProtocol from './lighthouse/cri'
 import { IGNORED_URLS, UNSUPPORTED_ERROR_MESSAGE } from './constants'
 import { RequestPayload } from './handler/network'
+import type { GathererDriver } from './types'
 
 const VERSION_PROPS = ['browserVersion', 'browser_version', 'version']
 const SUPPORTED_BROWSERS_AND_MIN_VERSIONS = {
     'chrome': 63,
     'chromium' : 63,
     'googlechrome': 63,
-    'google chrome': 63
+    'google chrome': 63,
+    'firefox': 86
 }
 
 export function setUnsupportedCommand (browser: Browser<'async'> | MultiRemoteBrowser<'async'>) {
@@ -81,4 +87,36 @@ export function isBrowserSupported(caps: Capabilities.Capabilities) {
     }
 
     return true
+}
+
+/**
+ * Either request the page list directly from the browser or if Selenium
+ * or Selenoid is used connect to a target manually
+ */
+export async function getLighthouseDriver (session: CDPSession, target: Target): Promise<GathererDriver> {
+    const c = session.connection().url()
+    const cUrl = new URL(c)
+    const connection = new ChromeProtocol(cUrl.port, cUrl.hostname)
+
+    /**
+     * only create a new DevTools session if our WebSocket url doesn't already indicate
+     * that we are using one
+     */
+    if (!cUrl.pathname.startsWith('/devtools/browser')) {
+        await connection._connectToSocket({
+            webSocketDebuggerUrl: c,
+            id: target._targetId
+        })
+        const { sessionId } = await connection.sendCommand(
+            'Target.attachToTarget',
+            undefined,
+            { targetId: target._targetId, flatten: true }
+        )
+        connection.setSessionId(sessionId)
+        return new Driver(connection)
+    }
+
+    const list = await connection._runJsonCommand('list')
+    await connection._connectToSocket(list[0])
+    return new Driver(connection)
 }

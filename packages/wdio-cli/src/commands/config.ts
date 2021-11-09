@@ -1,3 +1,5 @@
+import fs from 'fs'
+import path from 'path'
 import util from 'util'
 import inquirer from 'inquirer'
 import yarnInstall from 'yarn-install'
@@ -9,7 +11,8 @@ import {
 } from '../constants'
 import {
     addServiceDeps, convertPackageHashToObject, renderConfigurationFile,
-    hasFile, generateTestFiles, getAnswers, getPathForFileGeneration
+    hasFile, generateTestFiles, getAnswers, getPathForFileGeneration,
+    hasPackage
 } from '../utils'
 import { ConfigCommandArguments, ParsedAnswers } from '../types'
 import yargs from 'yargs'
@@ -59,17 +62,26 @@ const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) 
      * add ts-node if TypeScript is desired but not installed
      */
     if (answers.isUsingCompiler === COMPILER_OPTIONS.ts) {
-        try {
-            /**
-             * this is only for testing purposes as we want to check whether
-             * we add `ts-node` to the packages to install when resolving fails
-             */
-            if (process.env.JEST_WORKER_ID && process.env.WDIO_TEST_THROW_RESOLVE) {
-                throw new Error('resolve error')
-            }
-            require.resolve('ts-node')
-        } catch (e) {
+        if (!hasPackage('ts-node')) {
             packagesToInstall.push('ts-node', 'typescript')
+        }
+        if (!hasFile('tsconfig.json')){
+            const config = {
+                compilerOptions: {
+                    types: [
+                        'node',
+                        'webdriverio/async',
+                        frameworkPackage.package,
+                        'expect-webdriverio'
+                    ],
+                    target: 'ES5',
+                }
+            }
+
+            await fs.promises.writeFile(
+                path.join(process.cwd(), 'tsconfig.json'),
+                JSON.stringify(config, null, 4)
+            )
         }
     }
 
@@ -77,17 +89,32 @@ const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) 
      * add @babel/register package if not installed
      */
     if (answers.isUsingCompiler === COMPILER_OPTIONS.babel) {
-        try {
-            /**
-             * this is only for testing purposes as we want to check whether
-             * we add `@babel/register` to the packages to install when resolving fails
-             */
-            if (process.env.JEST_WORKER_ID && process.env.WDIO_TEST_THROW_RESOLVE) {
-                throw new Error('resolve error')
-            }
-            require.resolve('@babel/register')
-        } catch (e) {
+        if (!hasPackage('@babel/register')) {
             packagesToInstall.push('@babel/register')
+        }
+
+        /**
+         * setup Babel if no config file exists
+         */
+        if (!hasFile('babel.config.js')) {
+            if (!hasPackage('@babel/core')) {
+                packagesToInstall.push('@babel/core')
+            }
+            if (!hasPackage('@babel/preset-env')) {
+                packagesToInstall.push('@babel/preset-env')
+            }
+            await fs.promises.writeFile(
+                path.join(process.cwd(), 'babel.config.js'),
+                `module.exports = ${JSON.stringify({
+                    presets: [
+                        ['@babel/preset-env', {
+                            targets: {
+                                node: '14'
+                            }
+                        }]
+                    ]
+                }, null, 4)}`
+            )
         }
     }
 
@@ -115,8 +142,18 @@ const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) 
     if (result.status !== 0) {
         const customError = 'An unknown error happened! Please retry ' +
             `installing dependencies via "${useYarn ? 'yarn add --dev' : 'npm i --save-dev'} ` +
-            `${packagesToInstall.join(' ')}"`
-        throw new Error(result.stderr || customError)
+            `${packagesToInstall.join(' ')}"\n\nError: ${result.stderr || 'unknown'}`
+        console.log(customError)
+
+        /**
+         * don't exit if running unit tests
+         */
+        if (exit /* istanbul ignore next */ && !process.env.JEST_WORKER_ID) {
+            /* istanbul ignore next */
+            process.exit(1)
+        }
+
+        return { success: false }
     }
 
     console.log('\nPackages installed successfully, creating configuration file...')
@@ -151,8 +188,8 @@ const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) 
             console.log('\nConfig file installed successfully, creating test files...')
             await generateTestFiles(parsedAnswers)
         }
-    } catch (e) {
-        throw new Error(`Couldn't write config file: ${e.stack}`)
+    } catch (err: any) {
+        throw new Error(`Couldn't write config file: ${err.stack}`)
     }
 
     /**
@@ -174,7 +211,9 @@ const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) 
         console.log(util.format(TS_COMPILER_INSTRUCTIONS, tsPkgs))
     }
 
-    console.log(CONFIG_HELPER_SUCCESS_MESSAGE)
+    console.log(util.format(CONFIG_HELPER_SUCCESS_MESSAGE,
+        (answers.isUsingCompiler === COMPILER_OPTIONS.ts) ? 'ts' : 'js'
+    ))
 
     /**
      * don't exit if running unit tests

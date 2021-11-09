@@ -5,17 +5,7 @@ WDIO Jasmine Framework Adapter
 
 ## Installation
 
-The easiest way is to keep `@wdio/jasmine-framework` as a devDependency in your `package.json`.
-
-```json
-{
-  "devDependencies": {
-    "@wdio/jasmine-framework": "^6.3.6"
-  }
-}
-```
-
-You can simple do it by:
+The easiest way is to keep `@wdio/jasmine-framework` as a devDependency in your `package.json`, via:
 
 ```bash
 npm install @wdio/jasmine-framework --save-dev

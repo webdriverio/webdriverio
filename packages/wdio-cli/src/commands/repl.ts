@@ -44,20 +44,6 @@ export const builder = (yargs: yargs.Argv) => {
         .help()
 }
 
-/**
- * user types for globals are set in webdriverio
- * putting this here to make compiler happy
- */
-declare global {
-    namespace NodeJS {
-        interface Global {
-            $: any
-            $$: any
-            browser: any
-        }
-    }
-}
-
 export const handler = async (argv: ReplCommandArguments) => {
     const caps = getCapabilities(argv)
 
@@ -67,7 +53,9 @@ export const handler = async (argv: ReplCommandArguments) => {
     const execMode = hasWdioSyncSupport ? { runner: 'local' as const } : {}
     const client = await remote({ ...argv, ...caps, ...execMode })
 
+    // @ts-ignore
     global.$ = client.$.bind(client)
+    // @ts-ignore
     global.$$ = client.$$.bind(client)
     global.browser = client
 

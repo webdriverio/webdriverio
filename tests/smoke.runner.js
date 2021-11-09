@@ -112,6 +112,21 @@ const jasmineReporter = async () => {
 }
 
 /**
+ * Jasmine timeout test
+ */
+const jasmineTimeout = async () => {
+    const err = await launch(
+        path.resolve(__dirname, 'helpers', 'config.js'),
+        {
+            specs: [path.resolve(__dirname, 'jasmine', 'test-timeout.js')],
+            reporters: [['spec', { outputDir: __dirname }]],
+            framework: 'jasmine'
+        }
+    ).catch(err => err)
+    assert.strictEqual(err.message, 'Smoke test failed')
+}
+
+/**
  * Cucumber wdio testrunner tests
  */
 const cucumberTestrunner = async () => {
@@ -338,7 +353,7 @@ const jasmineSpecFiltering = async () => {
         path.resolve(__dirname, 'helpers', 'config.js'),
         {
             specs: [
-                path.resolve(__dirname, 'jasmine', 'test.js'),
+                path.resolve(__dirname, 'jasmine', 'test-empty.js'),
                 path.resolve(__dirname, 'jasmine', 'test-skipped.js'),
                 path.resolve(__dirname, 'jasmine', 'test-skipped-grep.js')
             ],
@@ -383,30 +398,41 @@ const standaloneTest = async () => {
 }
 
 (async () => {
-    const syncTests = [
-        mochaTestrunner,
-        jasmineTestrunner,
-        jasmineReporter,
+    const smokeTests = [
         cucumberTestrunner,
         cucumberFailAmbiguousDefinitions,
         cucumberReporter,
+        standaloneTest,
+        mochaAsyncTestrunner,
         customService,
-        customReporterString,
-        customReporterObject,
-        multiremote,
-        retryFail,
-        retryPass,
-        wdioHooks,
-        sharedStoreServiceTest,
         mochaSpecFiltering,
         jasmineSpecFiltering,
-        mochaSpecGrouping,
-        standaloneTest,
-        mochaAsyncTestrunner
+        jasmineReporter,
+        jasmineTimeout,
+        retryFail,
+        retryPass,
+        customReporterString,
+        customReporterObject
     ]
 
+    /**
+     * add smoke tests that run in sync mode and need Fibers and therefor
+     * aren't supported in Node.js v16 and above
+     */
+    const [major] = process.versions.node.split('.')
+    if (parseInt(major) < 16) {
+        smokeTests.push(
+            mochaTestrunner,
+            jasmineTestrunner,
+            multiremote,
+            wdioHooks,
+            sharedStoreServiceTest,
+            mochaSpecGrouping
+        )
+    }
+
     console.log('\nRunning smoke tests...\n')
-    await runTests(syncTests)
+    await runTests(smokeTests)
 
     console.log('\nAll smoke tests passed!\n')
 })().catch((e) => {

@@ -13,17 +13,17 @@ import type { Capabilities } from '@wdio/types'
  * only supported in Chrome and when running a [Selenium Grid](https://www.selenium.dev/documentation/en/grid/).
  *
  * <example>
-    :touchAction.js
+    :uploadFile.js
     const path = require('path');
 
-    it('should upload a file', function () {
-        browser.url('https://the-internet.herokuapp.com/upload')
+    it('should upload a file', async () => {
+        await browser.url('https://the-internet.herokuapp.com/upload')
 
         const filePath = '/path/to/some/file.png'
-        const remoteFilePath = browser.uploadFile(filePath)
+        const remoteFilePath = await browser.uploadFile(filePath)
 
-        $('#file-upload').setValue(remoteFilePath)
-        $('#file-submit').click()
+        await $('#file-upload').setValue(remoteFilePath)
+        await $('#file-submit').click()
     });
  * </example>
  *

@@ -68,7 +68,7 @@ export default class WDIOReporter extends EventEmitter {
         this.on('suite:start', /* istanbul ignore next */ (params: Suite) => {
             /**
              * the jasmine framework doesn't give us information about the file
-             * therefor we need to propagate these information into params
+             * therefore we need to propagate these information into params
              */
             if (!params.file) {
                 params.file = !params.parent
@@ -143,7 +143,7 @@ export default class WDIOReporter extends EventEmitter {
 
             /**
              * In Mocha: tests that are skipped don't have a start event but a test end.
-             * In Jasmine: tests have a start event, therefor we need to replace the
+             * In Jasmine: tests have a start event, therefore we need to replace the
              * test instance with the pending test here
              */
             if (test.uid in this.tests && this.tests[test.uid].state !== 'pending') {
@@ -273,5 +273,5 @@ export default class WDIOReporter extends EventEmitter {
 
 export {
     SuiteStats, Tag, HookStats, TestStats, RunnerStats, BeforeCommandArgs,
-    AfterCommandArgs, CommandArgs, Argument
+    AfterCommandArgs, CommandArgs, Argument, Test
 }

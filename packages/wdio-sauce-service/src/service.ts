@@ -6,7 +6,7 @@ import logger from '@wdio/logger'
 import type { Services, Capabilities, Options, Frameworks } from '@wdio/types'
 import type { Browser, MultiRemoteBrowser } from 'webdriverio'
 
-import { isUnifiedPlatform } from './utils'
+import { isUnifiedPlatform, ansiRegex } from './utils'
 import { SauceServiceConfig } from './types'
 import { DEFAULT_OPTIONS } from './constants'
 
@@ -19,14 +19,15 @@ export default class SauceService implements Services.ServiceInstance {
     private _maxErrorStackLength = 5
     private _failures = 0 // counts failures between reloads
     private _isServiceEnabled = true
-    private _isJobNameSet = false;
+    private _isJobNameSet = false
 
     private _options: SauceServiceConfig
     private _api: SauceLabs
-    private _isRDC: boolean
+    private _isLegacyRDC: boolean
     private _browser?: Browser<'async'> | MultiRemoteBrowser<'async'>
     private _isUP?: boolean
     private _suiteTitle?: string
+    private _cid = ''
 
     constructor (
         options: SauceServiceConfig,
@@ -35,24 +36,26 @@ export default class SauceService implements Services.ServiceInstance {
     ) {
         this._options = { ...DEFAULT_OPTIONS, ...options }
         this._api = new SauceLabs(this._config as unknown as SauceLabsOptions)
-        this._isRDC = 'testobject_api_key' in this._capabilities
+        this._isLegacyRDC = 'testobject_api_key' in this._capabilities
         this._maxErrorStackLength = this._options.maxErrorStackLength || this._maxErrorStackLength
     }
 
     /**
      * gather information about runner
      */
-    beforeSession () {
+    beforeSession (_: never, __: never, ___: never, cid: string) {
+        this._cid = cid
+
         /**
          * if no user and key is specified even though a sauce service was
          * provided set user and key with values so that the session request
          * will fail (not for RDC tho due to other auth mechansim)
          */
-        if (!this._isRDC && !this._config.user) {
+        if (!this._isLegacyRDC && !this._config.user) {
             this._isServiceEnabled = false
             this._config.user = 'unknown_user'
         }
-        if (!this._isRDC && !this._config.key) {
+        if (!this._isLegacyRDC && !this._config.key) {
             this._isServiceEnabled = false
             this._config.key = 'unknown_key'
         }
@@ -80,16 +83,11 @@ export default class SauceService implements Services.ServiceInstance {
          **/
         if (this._browser && !this._isUP && !this._isJobNameSet) {
             this._browser.execute('sauce:job-name=' + this._suiteTitle)
-            this._isJobNameSet = true
         }
     }
 
     beforeTest (test: Frameworks.Test) {
-        /**
-         * Date:    20200714
-         * Remark:  Sauce Unified Platform doesn't support updating the context yet.
-         */
-        if (!this._isServiceEnabled || this._isRDC || this._isUP || !this._browser) {
+        if (!this._isServiceEnabled || this._isLegacyRDC || !this._browser) {
             return
         }
 
@@ -101,6 +99,26 @@ export default class SauceService implements Services.ServiceInstance {
         /* istanbul ignore if */
         if (this._suiteTitle === 'Jasmine__TopLevel__Suite') {
             this._suiteTitle = test.fullName.slice(0, test.fullName.indexOf(test.description || '') - 1)
+        }
+
+        if (this._browser && !this._isJobNameSet) {
+            if (this._options.setJobName) {
+                jobName = this._options.setJobName(
+                    this._config,
+                    this._capabilities,
+                    this._suiteTitle!
+                )
+            }
+
+            this._isJobNameSet = true
+        }
+
+        /**
+         * Date:    20200714
+         * Remark:  Sauce Unified Platform doesn't support updating the context yet.
+         */
+        if (this._isUP) {
+            return
         }
 
         const fullTitle = (
@@ -122,16 +140,19 @@ export default class SauceService implements Services.ServiceInstance {
         }
     }
 
+    private _reportErrorLog (error: Error) {
+        const lines = (error.stack || '').split(/\r?\n/).slice(0, this._maxErrorStackLength)
+        lines.forEach((line:string) => this._browser!.execute(`sauce:context=${line.replace(ansiRegex(), '')}`))
+    }
+
     afterTest (test: Frameworks.Test, context: unknown, results: Frameworks.TestResult) {
         /**
          * If the test failed push the stack to Sauce Labs in separate lines
          * This should not be done for UP because it's not supported yet and
          * should be removed when UP supports `sauce:context`
          */
-        const { error } = results
-        if (error && !this._isUP){
-            const lines = error.stack.split(/\r?\n/).slice(0, this._maxErrorStackLength)
-            lines.forEach((line:string) => this._browser!.execute('sauce:context=' + line))
+        if (results.error && results.error.stack && !this._isUP){
+            this._reportErrorLog(results.error)
         }
 
         /**
@@ -159,6 +180,22 @@ export default class SauceService implements Services.ServiceInstance {
             return
         }
 
+        const isJasminePendingError = typeof results.error === 'string' && results.error.includes('marked Pending')
+        if (!results.passed && !isJasminePendingError) {
+            ++this._failures
+        }
+    }
+
+    afterHook (test: never, context: never, results: Frameworks.TestResult) {
+        /**
+         * If the test failed push the stack to Sauce Labs in separate lines
+         * This should not be done for UP because it's not supported yet and
+         * should be removed when UP supports `sauce:context`
+         */
+        if (results.error && !this._isUP){
+            this._reportErrorLog(results.error)
+        }
+
         if (!results.passed) {
             ++this._failures
         }
@@ -168,19 +205,23 @@ export default class SauceService implements Services.ServiceInstance {
      * For CucumberJS
      */
     beforeFeature (uri: unknown, feature: { name: string }) {
-        /**
-         * Date:    20200714
-         * Remark:  Sauce Unified Platform doesn't support updating the context yet.
-         */
-        if (!this._isServiceEnabled || this._isRDC || this._isUP || !this._browser) {
+        if (!this._isServiceEnabled || this._isLegacyRDC || !this._browser) {
             return
         }
 
         this._suiteTitle = feature.name
 
-        if (this._browser && !this._isUP && !this._isJobNameSet) {
+        if (this._browser && !this._isJobNameSet) {
             this._browser.execute('sauce:job-name=' + this._suiteTitle)
             this._isJobNameSet = true
+        }
+
+        /**
+         * Date:    20200714
+         * Remark:  Sauce Unified Platform doesn't support updating the context yet.
+         */
+        if (this._isUP) {
+            return
         }
 
         (this._browser as Browser<'async'>).execute('sauce:context=Feature: ' + this._suiteTitle)
@@ -191,7 +232,7 @@ export default class SauceService implements Services.ServiceInstance {
          * Date:    20200714
          * Remark:  Sauce Unified Platform doesn't support updating the context yet.
          */
-        if (!this._isServiceEnabled || this._isRDC || this._isUP || !this._browser) {
+        if (!this._isServiceEnabled || this._isLegacyRDC || this._isUP || !this._browser) {
             return
         }
 
@@ -199,9 +240,18 @@ export default class SauceService implements Services.ServiceInstance {
         ;(this._browser as Browser<'async'>).execute('sauce:context=Scenario: ' + scenarioName)
     }
 
-    afterScenario(world: Frameworks.World) {
+    /**
+     *
+     * Runs before a Cucumber Scenario.
+     * @param world world object containing information on pickle and test step
+     * @param result result object containing
+     * @param result.passed   true if scenario has passed
+     * @param result.error    error stack if scenario failed
+     * @param result.duration duration of scenario in milliseconds
+     */
+    afterScenario(world: Frameworks.World, result: Frameworks.PickleResult) {
         // check if scenario has failed
-        if (world.result && world.result.status === 6) {
+        if (!result.passed) {
             ++this._failures
         }
     }
@@ -210,7 +260,7 @@ export default class SauceService implements Services.ServiceInstance {
      * update Sauce Labs job
      */
     async after (result: number) {
-        if (!this._browser || (!this._isServiceEnabled && !this._isRDC)) {
+        if (!this._browser || (!this._isServiceEnabled && !this._isLegacyRDC)) {
             return
         }
 
@@ -250,7 +300,7 @@ export default class SauceService implements Services.ServiceInstance {
         }
 
         const files = (await fs.promises.readdir(this._config.outputDir))
-            .filter((file) => file.endsWith('.log'))
+            .filter((file) => file.startsWith(`wdio-${this._cid}`) && file.endsWith('.log'))
         log.info(`Uploading WebdriverIO logs (${files.join(', ')}) to Sauce Labs`)
 
         return this._api.uploadJobAssets(
@@ -260,7 +310,7 @@ export default class SauceService implements Services.ServiceInstance {
     }
 
     onReload (oldSessionId: string, newSessionId: string) {
-        if (!this._browser || (!this._isServiceEnabled && !this._isRDC)) {
+        if (!this._browser || (!this._isServiceEnabled && !this._isLegacyRDC)) {
             return
         }
 
@@ -279,7 +329,7 @@ export default class SauceService implements Services.ServiceInstance {
     }
 
     async updateJob (sessionId: string, failures: number, calledOnReload = false, browserName?: string) {
-        if (this._isRDC) {
+        if (this._isLegacyRDC) {
             await this._api.updateTest(sessionId, { passed: failures === 0 })
             this._failures = 0
             return
@@ -327,6 +377,14 @@ export default class SauceService implements Services.ServiceInstance {
             }
 
             body[prop] = caps[prop]
+        }
+
+        if (this._options.setJobName) {
+            body.name = this._options.setJobName(
+                this._config,
+                this._capabilities,
+                this._suiteTitle!
+            )
         }
 
         body.passed = failures === 0

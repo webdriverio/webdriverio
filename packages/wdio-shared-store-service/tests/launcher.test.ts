@@ -1,4 +1,5 @@
 import { writeFile, deleteFile } from '../src/utils'
+import { setPort } from '../src/client'
 import SharedStoreLauncher from '../src/launcher'
 import StoreServerType from '../src/server'
 const StoreServer: typeof StoreServerType = require('../src/server').default
@@ -16,6 +17,9 @@ jest.mock('../src/utils', () => ({
     deleteFile: jest.fn(),
     getPidPath: (pid: number) => pid,
 }))
+jest.mock('../src/client', () => ({
+    setPort: jest.fn()
+}))
 
 const storeLauncher = new SharedStoreLauncher()
 
@@ -23,6 +27,7 @@ describe('SharedStoreService', () => {
     it('onPrepare', async () => {
         await storeLauncher.onPrepare()
         expect(writeFile).toBeCalledWith(process.pid, '3000')
+        expect(setPort).toBeCalledWith(3000)
     })
 
     it('onComplete', async () => {

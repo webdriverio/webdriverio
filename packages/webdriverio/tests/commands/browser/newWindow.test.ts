@@ -47,7 +47,7 @@ describe('newWindow', () => {
         await browser.newWindow('https://webdriver.io')
         expect(got.mock.calls).toHaveLength(4)
         expect(got.mock.calls[1][1].json.args)
-            .toEqual(['https://webdriver.io', 'New Window', ''])
+            .toEqual(['https://webdriver.io', '', ''])
     })
 
     it('should fail if url is invalid', async () => {
@@ -62,8 +62,8 @@ describe('newWindow', () => {
 
         try {
             await browser.newWindow({})
-        } catch (e) {
-            expect(e.message).toContain('number or type')
+        } catch (err: any) {
+            expect(err.message).toContain('number or type')
         }
     })
 

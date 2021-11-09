@@ -3,7 +3,7 @@ import got from 'got'
 import { remote } from '../../../src'
 
 describe('url', () => {
-    let browser: WebdriverIO.BrowserObject
+    let browser: WebdriverIO.Browser
 
     beforeAll(async () => {
         browser = await remote({
@@ -35,8 +35,8 @@ describe('url', () => {
         try {
             // @ts-ignore test invalid parameter
             browser.url(true)
-        } catch (e) {
-            expect(e.message).toContain('command needs to be type of string')
+        } catch (err: any) {
+            expect(err.message).toContain('command needs to be type of string')
         }
     })
 

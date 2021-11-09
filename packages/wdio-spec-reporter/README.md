@@ -7,17 +7,7 @@ WDIO Spec Reporter
 
 ## Installation
 
-The easiest way is to keep `@wdio/spec-reporter` as a devDependency in your `package.json`.
-
-```json
-{
-  "devDependencies": {
-    "@wdio/spec-reporter": "^6.3.6"
-  }
-}
-```
-
-You can simple do it by:
+The easiest way is to keep `@wdio/spec-reporter` as a devDependency in your `package.json`, via:
 
 ```sh
 npm install @wdio/spec-reporter --save-dev
@@ -60,7 +50,7 @@ Default: `{passed: '✓', skipped: '-', failed: '✖'}`
 ```
 
 ### sauceLabsSharableLinks
-Be default the test results in Sauce Labs can only be viewed by a team member from the same team, not by a team member
+By default the test results in Sauce Labs can only be viewed by a team member from the same team, not by a team member
 from a different team. This options will enable [sharable links](https://wiki.saucelabs.com/display/DOCS/Building+Sharable+Links+to+Test+Results)
 by default, which means that all tests that are executed in Sauce Labs can be viewed by everybody.
 Just add `sauceLabsSharableLinks: false`, as shown below, in the reporter options to disable this feature.
@@ -74,6 +64,37 @@ Default: `true`
   "spec",
   {
     sauceLabsSharableLinks: false,
+  },
+]
+```
+
+### onlyFailures
+Print only failed specs results.
+
+Type: `boolean`
+Default: `false`
+
+#### Example
+```js
+[
+  "spec",
+  {
+    onlyFailures: true,
+  },
+]
+```
+
+### addConsoleLogs
+Set to true to show console logs from steps in final report
+
+Type: `boolean`
+Default: `false`
+
+```js
+[
+  "spec",
+  {
+    addConsoleLogs: true,
   },
 ]
 ```

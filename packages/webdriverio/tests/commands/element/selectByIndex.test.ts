@@ -8,7 +8,7 @@ const got = gotMock as any as jest.Mock
 
 describe('selectByIndex test', () => {
     const getElementFromResponseSpy = jest.spyOn(utils, 'getElementFromResponse')
-    let browser: WebdriverIO.BrowserObject
+    let browser: WebdriverIO.Browser
     let elem: WebdriverIO.Element
 
     beforeEach(async () => {
@@ -44,8 +44,8 @@ describe('selectByIndex test', () => {
         expect.hasAssertions()
         try {
             await elem.selectByIndex(-2)
-        } catch (e) {
-            expect(e.toString()).toBe('Error: Index needs to be 0 or any other positive number')
+        } catch (err: any) {
+            expect(err.toString()).toBe('Error: Index needs to be 0 or any other positive number')
         }
     })
 
@@ -63,8 +63,8 @@ describe('selectByIndex test', () => {
 
         try {
             await elem.selectByIndex.call(mockElem, 0)
-        } catch (e) {
-            expect(e.toString()).toBe('Error: Select element doesn\'t contain any option element')
+        } catch (err: any) {
+            expect(err.toString()).toBe('Error: Select element doesn\'t contain any option element')
         }
     })
 
@@ -81,8 +81,8 @@ describe('selectByIndex test', () => {
         try {
             // @ts-ignore mock feature
             await mockElem.selectByIndex(2)
-        } catch (e) {
-            expect(e.toString()).toBe('Error: Can\'t call selectByIndex on element with selector "foobar" because element wasn\'t found')
+        } catch (err: any) {
+            expect(err.toString()).toBe('Error: Can\'t call selectByIndex on element with selector "foobar" because element wasn\'t found')
         }
     })
 
@@ -91,8 +91,8 @@ describe('selectByIndex test', () => {
         expect.hasAssertions()
         try {
             await elem.selectByIndex(3)
-        } catch (e) {
-            expect(e.toString()).toBe('Error: Option with index "3" not found. Select element only contains 3 option elements')
+        } catch (err: any) {
+            expect(err.toString()).toBe('Error: Option with index "3" not found. Select element only contains 3 option elements')
         }
     })
 })

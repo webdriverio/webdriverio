@@ -9,26 +9,26 @@
  * <example>
     :index.html
     <div id="elem">
-        Lorem ipsum <strong>dolor</strong> sit amet,<br>
+        Lorem ipsum <strong>dolor</strong> sit amet,<br />
         consetetur sadipscing elitr
     </div>
     <span style="display: none">I am invisible</span>
     :getText.js
-    it('should demonstrate the getText function', () => {
-        const elem = $('#elem');
-        console.log(elem.getText());
+    it('should demonstrate the getText function', async () => {
+        const elem = await $('#elem');
+        console.log(await elem.getText());
         // outputs the following:
         // "Lorem ipsum dolor sit amet,consetetur sadipscing elitr"
 
-        const span = $('span');
-        console.log(span.getText());
+        const span = await $('span');
+        console.log(await span.getText());
         // outputs "" (empty string) since element is not interactable
     });
-    it('get content from table cell', () => {
-        browser.url('http://the-internet.herokuapp.com/tables');
-        const rows = $$('#table1 tr');
-        const columns = rows[1].$$('td'); // get columns of 2nd row
-        console.log(columns[2].getText()); // get text of 3rd column
+    it('get content from table cell', async () => {
+        await browser.url('http://the-internet.herokuapp.com/tables');
+        const rows = await $$('#table1 tr');
+        const columns = await rows[1].$$('td'); // get columns of 2nd row
+        console.log(await columns[2].getText()); // get text of 3rd column
     });
  * </example>
  *

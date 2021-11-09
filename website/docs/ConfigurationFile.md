@@ -156,7 +156,7 @@ exports.config = {
     // use 'silent' level to disable logger
     logLevels: {
         webdriver: 'info',
-        '@wdio/applitools-service': 'info'
+        '@wdio/appium-service': 'info'
     },
     //
     // Set directory to store all logs into
@@ -340,23 +340,21 @@ exports.config = {
     },
     /**
      * This hook gets executed _before_ every hook within the suite starts.
-     * (For example, this runs before calling `before`, `beforeEach`, `after`, `afterEach` in Mocha.)
-     *
-     * (`stepData` and `world` are Cucumber-specific.)
+     * (For example, this runs before calling `before`, `beforeEach`, `after`, `afterEach` in Mocha.). In Cucumber `context` is the World object.
      *
      */
-    beforeHook: function (test, context/*, stepData, world*/) {
+    beforeHook: function (test, context) {
     },
     /**
      * Hook that gets executed _after_ every hook within the suite ends.
-     * (For example, this runs after calling `before`, `beforeEach`, `after`, `afterEach` in Mocha.)
-     *
-     * (`stepData` and `world` are Cucumber-specific.)
+     * (For example, this runs after calling `before`, `beforeEach`, `after`, `afterEach` in Mocha.). In Cucumber `context` is the World object.
      */
-    afterHook: function (test, context, { error, result, duration, passed, retries }/*, stepData, world*/) {
+    afterHook: function (test, context, { error, result, duration, passed, retries }) {
     },
     /**
-     * Function to be executed before a test (in Mocha/Jasmine) starts.
+     * Function to be executed before a test (in Mocha/Jasmine only)
+     * @param {Object} test    test object
+     * @param {Object} context scope object the test was executed with
      */
     beforeTest: function (test, context) {
     },
@@ -377,7 +375,14 @@ exports.config = {
     afterCommand: function (commandName, args, result, error) {
     },
     /**
-     * Function to be executed after a test (in Mocha/Jasmine)
+     * Function to be executed after a test (in Mocha/Jasmine only)
+     * @param {Object}  test             test object
+     * @param {Object}  context          scope object the test was executed with
+     * @param {Error}   result.error     error object in case the test fails, otherwise `undefined`
+     * @param {Any}     result.result    return object of test function
+     * @param {Number}  result.duration  duration of test
+     * @param {Boolean} result.passed    true if test has passed, otherwise false
+     * @param {Object}  result.retries   informations to spec related retries, e.g. `{ attempts: 0, limit: 0 }`
      */
     afterTest: function (test, context, { error, result, duration, passed, retries }) {
     },
@@ -425,46 +430,58 @@ exports.config = {
      * Cucumber Hooks
      *
      * Runs before a Cucumber Feature.
-     * @param uri      path to feature file
-     * @param feature  Cucumber feature object
+     * @param {String}                   uri      path to feature file
+     * @param {GherkinDocument.IFeature} feature  Cucumber feature object
      */
     beforeFeature: function (uri, feature) {
     },
     /**
      *
      * Runs before a Cucumber Scenario.
-     * @param world world object containing information on pickle and test step
+     * @param {ITestCaseHookParameter} world    world object containing information on pickle and test step
+     * @param {Object}                 context  Cucumber World object
      */
-    beforeScenario: function (world) {
+    beforeScenario: function (world, context) {
     },
     /**
      *
      * Runs before a Cucumber Step.
-     * @param step    step data
-     * @param context Cucumber world
+     * @param {Pickle.IPickleStep} step     step data
+     * @param {IPickle}            scenario scenario pickle
+     * @param {Object}             context  Cucumber World object
      */
-    beforeStep: function (step, context) {
+    beforeStep: function (step, scenario, context) {
     },
     /**
      *
      * Runs after a Cucumber Step.
-     * @param step    step data
-     * @param context Cucumber world
+     * @param {Pickle.IPickleStep} step             step data
+     * @param {IPickle}            scenario         scenario pickle
+     * @param {Object}             result           results object containing scenario results
+     * @param {boolean}            result.passed    true if scenario has passed
+     * @param {string}             result.error     error stack if scenario failed
+     * @param {number}             result.duration  duration of scenario in milliseconds
+     * @param {Object}             context          Cucumber World object
      */
-    afterStep: function (step, context) {
+    afterStep: function (step, scenario, result, context) {
     },
     /**
      *
-     * Runs before a Cucumber Scenario.
-     * @param world world object containing information on pickle and test step
+     * Runs after a Cucumber Scenario.
+     * @param {ITestCaseHookParameter} world            world object containing information on pickle and test step
+     * @param {Object}                 result           results object containing scenario results `{passed: boolean, error: string, duration: number}`
+     * @param {boolean}                result.passed    true if scenario has passed
+     * @param {string}                 result.error     error stack if scenario failed
+     * @param {number}                 result.duration  duration of scenario in milliseconds
+     * @param {Object}                 context          Cucumber World object
      */
-    afterScenario: function (world) {
+    afterScenario: function (world, result, context) {
     },
     /**
      *
      * Runs after a Cucumber Feature.
-     * @param uri      path to feature file
-     * @param feature  Cucumber feature object
+     * @param {String}                   uri      path to feature file
+     * @param {GherkinDocument.IFeature} feature  Cucumber feature object
      */
     afterFeature: function (uri, feature) {
     }

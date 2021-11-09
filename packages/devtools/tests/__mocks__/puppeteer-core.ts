@@ -61,6 +61,7 @@ class PageMock2 extends PageMock {
 const page2 = new PageMock2()
 
 class PuppeteerMock {
+    on = jest.fn()
     waitForTarget = jest.fn().mockImplementation(() => target)
     getActivePage = jest.fn().mockImplementation(() => page)
     pages = jest.fn().mockReturnValue(Promise.resolve([page, page2]))

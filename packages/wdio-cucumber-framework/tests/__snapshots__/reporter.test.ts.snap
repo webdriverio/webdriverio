@@ -55,6 +55,7 @@ Array [
       "file": "/some/path/to/features/my-feature.feature",
       "fullTitle": "my-feature.feature:undefined:1: Get size of an element",
       "parent": "my-feature.feature:undefined:1",
+      "rule": "rule name",
       "specs": Array [
         "/foobar.js",
       ],
@@ -196,7 +197,7 @@ Array [
       "error": [Error],
       "featureName": "Example feature",
       "file": "/some/path/to/features/my-feature.feature",
-      "fullTitle": "0: should the element '.header-logged-out a' be 32px wide and 35px high",
+      "fullTitle": "0: Then should the element '.header-logged-out a' be 32px wide and 35px high",
       "parent": "0",
       "passed": false,
       "scenarioName": "Get size of an element",
@@ -226,7 +227,7 @@ Array [
           "name": "@scenario-tag2",
         },
       ],
-      "title": "should the element '.header-logged-out a' be 32px wide and 35px high",
+      "title": "Then should the element '.header-logged-out a' be 32px wide and 35px high",
       "type": "step",
       "uid": "12",
     },
@@ -237,7 +238,7 @@ Array [
 exports[`cucumber reporter emits messages for certain cucumber events step finished events passed step 1`] = `
 Array [
   Array [
-    "test:undefined",
+    "test:pass",
     Object {
       "argument": Object {
         "rows": Array [
@@ -265,14 +266,14 @@ Array [
       "error": undefined,
       "featureName": "Example feature",
       "file": "/some/path/to/features/my-feature.feature",
-      "fullTitle": "0: should the element '.header-logged-out a' be 32px wide and 35px high",
+      "fullTitle": "0: Then should the element '.header-logged-out a' be 32px wide and 35px high",
       "parent": "0",
-      "passed": false,
+      "passed": true,
       "scenarioName": "Get size of an element",
       "specs": Array [
         "/foobar.js",
       ],
-      "state": "undefined",
+      "state": "pass",
       "tags": Array [
         Object {
           "astNodeId": "9",
@@ -295,7 +296,7 @@ Array [
           "name": "@scenario-tag2",
         },
       ],
-      "title": "should the element '.header-logged-out a' be 32px wide and 35px high",
+      "title": "Then should the element '.header-logged-out a' be 32px wide and 35px high",
       "type": "step",
       "uid": "12",
     },
@@ -378,6 +379,7 @@ Array [
       "file": "/some/path/to/features/my-feature.feature",
       "fullTitle": "my-feature.feature:undefined:1: Get size of an element",
       "parent": "my-feature.feature:undefined:1",
+      "rule": "rule name",
       "specs": Array [
         "/foobar.js",
       ],
@@ -414,20 +416,21 @@ Array [
 exports[`cucumber reporter emits messages for certain cucumber events when executed in scenarioLeverReporter should send proper data on \`test-case-finished\` event 1`] = `
 Array [
   Array [
-    "test:undefined",
+    "test:pass",
     Object {
       "argument": undefined,
       "cid": "0-1",
       "error": undefined,
       "featureName": "Example feature",
       "file": "/some/path/to/features/my-feature.feature",
+      "fullTitle": "0: Undefined Step",
       "parent": "0",
-      "passed": false,
+      "passed": true,
       "scenarioName": "Get size of an element",
       "specs": Array [
         "/foobar.js",
       ],
-      "state": "undefined",
+      "state": "pass",
       "tags": Array [
         Object {
           "astNodeId": "9",
@@ -450,7 +453,7 @@ Array [
           "name": "@scenario-tag2",
         },
       ],
-      "title": undefined,
+      "title": "Undefined Step",
       "type": "step",
       "uid": "0",
     },

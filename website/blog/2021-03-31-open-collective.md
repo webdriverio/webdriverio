@@ -45,7 +45,7 @@ We understand that $1000 for fixing 10 bugs or implementing 10 features may seem
 If you are a member of the [Technical Steering Committee team](https://github.com/webdriverio/webdriverio/blob/main/AUTHORS.md#tsc-technical-steering-committee) you are eligible to expense flights and hotel accommodations for travel to conferences or meetups as part of a speaking engagement on WebdriverIO, not paid by the event itself or a company. You may expense up to $500. Reimbursement requirements for travel expenses include:
 
 - You must send out a post from your main social media account (e.g. Twitter, LinkedIn or personal blog) thanking all contributors of the collective after the event took place.
-- You must use the funds for qualified travel expenses such as ground or air transportation to the event and hotel accomodations.
+- You must use the funds for qualified travel expenses such as ground or air transportation to the event and hotel accommodations.
 - You must submit receipts with your reimbursement request.
 
 Even though currently there are no in-person events happening due to the COVID-19 pandemic, we hope that we come back to times where we can reconnect with the community on a personal level. For that we would like to support the core team with their travel expenses.

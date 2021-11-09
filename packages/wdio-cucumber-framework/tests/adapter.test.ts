@@ -5,11 +5,12 @@ import mockery from 'mockery'
 
 import CucumberAdapter from '../src'
 import { setUserHookNames } from '../src/utils'
+import * as packageExports from '../src'
 
 jest.mock('../src/reporter', () => class CucumberReporter {
     eventListener = {
         getPickleIds: jest.fn().mockReturnValue(['8']),
-        getHookParams: jest.fn().mockReturnValue({ uri: 'uri', feature: 'feature' })
+        getHookParams: jest.fn().mockReturnValue({ uri: 'uri', feature: 'feature', scenario: 'scenario', step: 'step', result: { 'duration': undefined, 'error': undefined, 'passed': false } })
     }
 })
 
@@ -17,8 +18,8 @@ jest.mock('../src/utils', () => ({
     setUserHookNames: jest.fn()
 }))
 
-jest.mock('@cucumber/gherkin/dist/src/stream/GherkinStreams', () => ({
-    fromPaths: jest.fn().mockReturnValue('GherkinStreams.fromPaths')
+jest.mock('@cucumber/gherkin-streams', () => ({
+    GherkinStreams: { fromPaths: jest.fn().mockReturnValue('GherkinStreams.fromPaths') }
 }))
 
 declare global {
@@ -41,9 +42,24 @@ describe('CucumberAdapter', () => {
         ;(Cucumber.AfterAll as jest.Mock).mockClear()
         ;(Cucumber.Before as jest.Mock).mockClear()
         ;(Cucumber.After as jest.Mock).mockClear()
+        ;(Cucumber.BeforeStep as jest.Mock).mockClear()
+        ;(Cucumber.AfterStep as jest.Mock).mockClear()
     })
 
-    it('can be initated with tests', async () => {
+    it('exports Cucumber exports', () => {
+        expect(Object.keys(packageExports))
+            .toContain('Given')
+        expect(Object.keys(packageExports))
+            .toContain('When')
+        expect(Object.keys(packageExports))
+            .toContain('Then')
+        expect(Object.keys(packageExports))
+            .toContain('Before')
+        expect(Object.keys(packageExports))
+            .toContain('After')
+    })
+
+    it('can be initiated with tests', async () => {
         const adapter = await CucumberAdapter.init('0-0', {
             waitforTimeout: 1,
             waitforInterval: 2
@@ -86,7 +102,6 @@ describe('CucumberAdapter', () => {
         adapter.registerRequiredModules = jest.fn()
         adapter.addWdioHooks = jest.fn()
         adapter.loadSpecFiles = jest.fn()
-        adapter.wrapSteps = jest.fn()
 
         const result = await adapter.run()
         expect(result).toBe(0)
@@ -94,7 +109,6 @@ describe('CucumberAdapter', () => {
         expect(adapter.registerRequiredModules).toBeCalledTimes(1)
         expect(adapter.addWdioHooks).toBeCalledTimes(1)
         expect(adapter.loadSpecFiles).toBeCalledTimes(1)
-        expect(adapter.wrapSteps).toBeCalledTimes(1)
         expect(setUserHookNames).toBeCalledTimes(1)
     })
 
@@ -107,7 +121,7 @@ describe('CucumberAdapter', () => {
         expect(executeHooksWithArgs).toBeCalledTimes(1)
     })
 
-    it('can take cucumber reporte failure count', async () => {
+    it('can take cucumber report failure count', async () => {
         const adapter = await CucumberAdapter.init('0-0', {
             cucumberOpts: {
                 shouldFail: 123,
@@ -176,31 +190,46 @@ describe('CucumberAdapter', () => {
     })
 
     it('addWdioHooks', async () => {
+        class CustomWorld {
+            public foo = 'bar'
+        }
+        const cukeWorld = new CustomWorld()
+
         const adapter = await CucumberAdapter.init('0-0', {}, ['/foo/bar'], {}, {})
         adapter.addWdioHooks({
             beforeFeature: 'beforeFeature',
             afterFeature: 'afterFeature',
             beforeScenario: 'beforeScenario',
-            afterScenario: 'afterScenario'
+            afterScenario: 'afterScenario',
+            beforeStep: 'beforeStep',
+            afterStep: 'afterStep'
         })
         expect(Cucumber.BeforeAll).toBeCalledTimes(1)
         expect(Cucumber.AfterAll).toBeCalledTimes(1)
         expect(Cucumber.Before).toBeCalledTimes(1)
         expect(Cucumber.After).toBeCalledTimes(1)
+        expect(Cucumber.BeforeStep).toBeCalledTimes(1)
+        expect(Cucumber.AfterStep).toBeCalledTimes(1)
         expect(executeHooksWithArgs).toBeCalledTimes(0)
 
+        ;(Cucumber.AfterStep as jest.Mock).mock.calls[0][0].bind(cukeWorld)('world')
+        expect(executeHooksWithArgs)
+            .toBeCalledWith('afterStep', 'afterStep', ['step', 'scenario', { 'duration': NaN, 'error': undefined, 'passed': false }, cukeWorld])
+        ;(Cucumber.BeforeStep as jest.Mock).mock.calls[0][0].bind(cukeWorld)()
+        expect(executeHooksWithArgs)
+            .toBeCalledWith('beforeStep', 'beforeStep', ['step', 'scenario', cukeWorld])
         ;(Cucumber.BeforeAll as jest.Mock).mock.calls[0][0]()
         expect(executeHooksWithArgs)
             .toBeCalledWith('beforeFeature', 'beforeFeature', ['uri', 'feature'])
         ;(Cucumber.AfterAll as jest.Mock).mock.calls[0][0]()
         expect(executeHooksWithArgs)
             .toBeCalledWith('afterFeature', 'afterFeature', ['uri', 'feature'])
-        ;(Cucumber.Before as jest.Mock).mock.calls[0][0]('world')
+        ;(Cucumber.Before as jest.Mock).mock.calls[0][0].bind(cukeWorld)('world')
         expect(executeHooksWithArgs)
-            .toBeCalledWith('beforeScenario', 'beforeScenario', ['world'])
-        ;(Cucumber.After as jest.Mock).mock.calls[0][0]('world')
+            .toBeCalledWith('beforeScenario', 'beforeScenario', ['world', cukeWorld])
+        ;(Cucumber.After as jest.Mock).mock.calls[0][0].bind(cukeWorld)('world')
         expect(executeHooksWithArgs)
-            .toBeCalledWith('afterScenario', 'afterScenario', ['world'])
+            .toBeCalledWith('afterScenario', 'afterScenario', ['world', { 'duration': NaN, 'error': undefined, 'passed': false }, cukeWorld])
     })
 
     it('wrapSteps', async () => {

@@ -357,6 +357,23 @@ describe('afterTest', () => {
         service.afterTest({ title: 'bar', parent: 'foo' } as any, undefined as never, {} as any)
         expect(service['_fullTitle']).toBe('foo - bar')
     })
+
+    describe('Jasmine only', () => {
+        it('should set suite name of first test as title', () => {
+            service.before(service['_config'], [], browser)
+            service.beforeSuite({ title: 'Jasmine__TopLevel__Suite' } as any)
+            service.afterTest({ fullName: 'foo bar baz', description: 'baz' } as any, undefined as never, {} as any)
+            expect(service['_fullTitle']).toBe('foo bar')
+        })
+
+        it('should set parent suite name as title', () => {
+            service.before(service['_config'], [], browser)
+            service.beforeSuite({ title: 'Jasmine__TopLevel__Suite' } as any)
+            service.afterTest({ fullName: 'foo bar baz', description: 'baz' } as any, undefined as never, {} as any)
+            service.afterTest({ fullName: 'foo xyz', description: 'xyz' } as any, undefined as never, {} as any)
+            expect(service['_fullTitle']).toBe('foo')
+        })
+    })
 })
 
 describe('afterScenario', () => {
@@ -366,36 +383,36 @@ describe('afterScenario', () => {
 
         expect(service['_failReasons']).toEqual([])
 
-        service.afterScenario({ pickle: {}, result: { status: 2 } })
+        service.afterScenario({ pickle: {}, result: { duration: { seconds: 0, nanos: 1000000 }, willBeRetried: false, status: 'SKIPPED' } })
         expect(service['_failReasons']).toEqual([])
 
-        service.afterScenario({ pickle: {}, result: { status: 6, message: 'I am Error, most likely' } })
+        service.afterScenario({ pickle: {}, result: { duration: { seconds: 0, nanos: 1000000 }, willBeRetried: false, status: 'FAILED', message: 'I am Error, most likely' } })
         expect(service['_failReasons']).toEqual(['I am Error, most likely'])
 
-        service.afterScenario({ pickle: {}, result: { status: 2 } })
+        service.afterScenario({ pickle: {}, result: { duration: { seconds: 0, nanos: 1000000 }, willBeRetried: false, status: 'SKIPPED' } })
         expect(service['_failReasons']).toEqual(['I am Error, most likely'])
 
-        service.afterScenario({ pickle: {}, result: { status: 6, message: 'I too am Error' } })
+        service.afterScenario({ pickle: {}, result: { duration: { seconds: 0, nanos: 1000000 }, willBeRetried: false, status: 'FAILED', message: 'I too am Error' } })
         expect(service['_failReasons']).toEqual(['I am Error, most likely', 'I too am Error'])
 
-        service.afterScenario({ pickle: {}, result: { status: 4, message: 'Step XYZ is undefined' } })
+        service.afterScenario({ pickle: {}, result: { duration: { seconds: 0, nanos: 1000000 }, willBeRetried: false, status: 'UNDEFINED', message: 'Step XYZ is undefined' } })
         expect(service['_failReasons']).toEqual(['I am Error, most likely', 'I too am Error', 'Step XYZ is undefined'])
 
-        service.afterScenario({ pickle: {}, result: { status: 5, message: 'Step XYZ2 is ambiguous' } })
+        service.afterScenario({ pickle: {}, result: { duration: { seconds: 0, nanos: 1000000 }, willBeRetried: false, status: 'AMBIGUOUS', message: 'Step XYZ2 is ambiguous' } })
         expect(service['_failReasons']).toEqual(
             ['I am Error, most likely',
                 'I too am Error',
                 'Step XYZ is undefined',
                 'Step XYZ2 is ambiguous'])
 
-        service.afterScenario({ pickle: { name: 'Can do something' }, result: { status: 3 } })
+        service.afterScenario({ pickle: { name: 'Can do something' }, result: { duration: { seconds: 0, nanos: 1000000 }, willBeRetried: false, status: 'PENDING' } })
         expect(service['_failReasons']).toEqual(
             ['I am Error, most likely',
                 'I too am Error',
                 'Step XYZ is undefined',
                 'Step XYZ2 is ambiguous'])
 
-        service.afterScenario({ pickle: {}, result: { status: 2 } })
+        service.afterScenario({ pickle: {}, result: { duration: { seconds: 0, nanos: 1000000 }, willBeRetried: false, status: 'SKIPPED' } })
         expect(service['_failReasons']).toEqual([
             'I am Error, most likely',
             'I too am Error',
@@ -409,29 +426,29 @@ describe('afterScenario', () => {
 
         expect(service['_failReasons']).toEqual([])
 
-        service.afterScenario({ pickle: {}, result: { status: 2 } })
+        service.afterScenario({ pickle: {}, result: { duration: { seconds: 0, nanos: 1000000 }, willBeRetried: false, status: 'SKIPPED' } })
         expect(service['_failReasons']).toEqual([])
 
-        service.afterScenario({ pickle: {}, result: { message: 'I am Error, most likely', status: 6 } })
+        service.afterScenario({ pickle: {}, result: { duration: { seconds: 0, nanos: 1000000 }, willBeRetried: false, message: 'I am Error, most likely', status: 'FAILED' } })
         expect(service['_failReasons']).toEqual(['I am Error, most likely'])
 
-        service.afterScenario({ pickle: {}, result: { status: 2 } })
+        service.afterScenario({ pickle: {}, result: { duration: { seconds: 0, nanos: 1000000 }, willBeRetried: false, status: 'SKIPPED' } })
         expect(service['_failReasons']).toEqual(['I am Error, most likely'])
 
-        service.afterScenario({ pickle: {}, result: { status: 6, message: 'I too am Error' } })
+        service.afterScenario({ pickle: {}, result: { duration: { seconds: 0, nanos: 1000000 }, willBeRetried: false, status: 'FAILED', message: 'I too am Error' } })
         expect(service['_failReasons']).toEqual(['I am Error, most likely', 'I too am Error'])
 
-        service.afterScenario({ pickle: {}, result: { status: 4, message: 'Step XYZ is undefined' } })
+        service.afterScenario({ pickle: {}, result: { duration: { seconds: 0, nanos: 1000000 }, willBeRetried: false, status: 'UNDEFINED', message: 'Step XYZ is undefined' } })
         expect(service['_failReasons']).toEqual(['I am Error, most likely', 'I too am Error', 'Step XYZ is undefined'])
 
-        service.afterScenario({ pickle: {}, result: { status: 5, message: 'Step XYZ2 is ambiguous' } })
+        service.afterScenario({ pickle: {}, result: { duration: { seconds: 0, nanos: 1000000 }, willBeRetried: false, status: 'AMBIGUOUS', message: 'Step XYZ2 is ambiguous' } })
         expect(service['_failReasons']).toEqual(
             ['I am Error, most likely',
                 'I too am Error',
                 'Step XYZ is undefined',
                 'Step XYZ2 is ambiguous'])
 
-        service.afterScenario({ pickle: { name: 'Can do something' }, result: { status: 3 } })
+        service.afterScenario({ pickle: { name: 'Can do something' }, result: { duration: { seconds: 0, nanos: 1000000 }, willBeRetried: false, status: 'PENDING' } })
         expect(service['_failReasons']).toEqual(
             ['I am Error, most likely',
                 'I too am Error',
@@ -439,7 +456,7 @@ describe('afterScenario', () => {
                 'Step XYZ2 is ambiguous',
                 'Some steps/hooks are pending for scenario "Can do something"'])
 
-        service.afterScenario({ pickle: {}, result: { status: 2 } })
+        service.afterScenario({ pickle: {}, result: { duration: { seconds: 0, nanos: 1000000 }, willBeRetried: false, status: 'SKIPPED' } })
         expect(service['_failReasons']).toEqual([
             'I am Error, most likely',
             'I too am Error',
@@ -507,9 +524,9 @@ describe('after', () => {
             await service.before(service['_config'], [], browser)
             await service.beforeFeature(null, { name: 'Feature1' })
 
-            await service.afterScenario({ pickle: { name: 'Can do something but pending 1' },  result: { status: 3 } })
-            await service.afterScenario({ pickle: { name: 'Can do something but pending 2' },  result: { status: 3 } })
-            await service.afterScenario({ pickle: { name: 'Can do something but pending 3' },  result: { status: 3 } })
+            await service.afterScenario({ pickle: { name: 'Can do something but pending 1' },  result: { status: 'PENDING' } })
+            await service.afterScenario({ pickle: { name: 'Can do something but pending 2' },  result: { status: 'PENDING' } })
+            await service.afterScenario({ pickle: { name: 'Can do something but pending 3' },  result: { status: 'PENDING' } })
 
             await service.after(1)
 
@@ -532,9 +549,9 @@ describe('after', () => {
             await service.before(service['_config'], [], browser)
             await service.beforeFeature(null, { name: 'Feature1' })
 
-            await service.afterScenario({ pickle: { name: 'Can do something' },  result: { status: 1 } })
-            await service.afterScenario({ pickle: { name: 'Can do something' },  result: { status: 3 } })
-            await service.afterScenario({ pickle: { name: 'Can do something' },  result: { status: 1 } })
+            await service.afterScenario({ pickle: { name: 'Can do something' },  result: { status: 'PASSED' } })
+            await service.afterScenario({ pickle: { name: 'Can do something' },  result: { status: 'PENDING' } })
+            await service.afterScenario({ pickle: { name: 'Can do something' },  result: { status: 'PASSED' } })
 
             await service.after(0)
 
@@ -555,9 +572,9 @@ describe('after', () => {
             await service.before(service['_config'], [], browser)
             await service.beforeFeature(null, { name: 'Feature1' })
 
-            await service.afterScenario({ pickle: { name: 'Can do something 1' },  result: { status: 1 } })
-            await service.afterScenario({ pickle: { name: 'Can do something but pending' },  result: { status: 3 } })
-            await service.afterScenario({ pickle: { name: 'Can do something 2' },  result: { status: 1 } })
+            await service.afterScenario({ pickle: { name: 'Can do something 1' },  result: { status: 'PASSED' } })
+            await service.afterScenario({ pickle: { name: 'Can do something but pending' },  result: { status: 'PENDING' } })
+            await service.afterScenario({ pickle: { name: 'Can do something 2' },  result: { status: 'PASSED' } })
 
             await service.after(1)
 
@@ -575,9 +592,9 @@ describe('after', () => {
             await service.before(service['_config'], [], browser)
             await service.beforeFeature(null, { name: 'Feature1' })
 
-            await service.afterScenario({ pickle: { name: 'Can do something skipped 1' },  result: { status: 2 } })
-            await service.afterScenario({ pickle: { name: 'Can do something skipped 2' },  result: { status: 2 } })
-            await service.afterScenario({ pickle: { name: 'Can do something skipped 3' },  result: { status: 2 } })
+            await service.afterScenario({ pickle: { name: 'Can do something skipped 1' },  result: { status: 'SKIPPED' } })
+            await service.afterScenario({ pickle: { name: 'Can do something skipped 2' },  result: { status: 'SKIPPED' } })
+            await service.afterScenario({ pickle: { name: 'Can do something skipped 3' },  result: { status: 'SKIPPED' } })
 
             await service.after(0)
 
@@ -603,9 +620,9 @@ describe('after', () => {
                 name: 'Feature1'
             })
 
-            await service.afterScenario({ pickle: { name: 'Can do something failed 1' },  result: { message: 'I am error, hear me roar', status: 6 } })
-            await service.afterScenario({ pickle: { name: 'Can do something but pending 2' },  result: { status: 3 } })
-            await service.afterScenario({ pickle: { name: 'Can do something but passed 3' },  result: { status: 2 } })
+            await service.afterScenario({ pickle: { name: 'Can do something failed 1' },  result: { message: 'I am error, hear me roar', status: 'FAILED' } })
+            await service.afterScenario({ pickle: { name: 'Can do something but pending 2' },  result: { status: 'PENDING' } })
+            await service.afterScenario({ pickle: { name: 'Can do something but passed 3' },  result: { status: 'SKIPPED' } })
 
             await service.after(1)
 
@@ -633,9 +650,9 @@ describe('after', () => {
                 name: 'Feature1'
             })
 
-            await service.afterScenario({ pickle: { name: 'Can do something failed 1' },  result: { message: 'I am error, hear me roar', status: 6 } })
-            await service.afterScenario({ pickle: { name: 'Can do something but pending 2' },  result: { status: 3 } })
-            await service.afterScenario({ pickle: { name: 'Can do something but passed 3' },  result: { status: 2 } })
+            await service.afterScenario({ pickle: { name: 'Can do something failed 1' },  result: { message: 'I am error, hear me roar', status: 'FAILED' } })
+            await service.afterScenario({ pickle: { name: 'Can do something but pending 2' },  result: { status: 'PENDING' } })
+            await service.afterScenario({ pickle: { name: 'Can do something but passed 3' },  result: { status: 'SKIPPED' } })
 
             await service.after(1)
 
@@ -652,12 +669,12 @@ describe('after', () => {
         describe('preferScenarioName', () => {
             describe('enabled', () => {
                 [
-                    { status: 6, body: {
+                    { status: 'FAILED', body: {
                         name: 'Feature1',
                         reason: 'Unknown Error',
                         status: 'failed',
                     } },
-                    { status: 2, body: {
+                    { status: 'SKIPPED', body: {
                         name: 'Can do something single',
                         reason: undefined,
                         status: 'failed',
@@ -688,7 +705,7 @@ describe('after', () => {
 
                     await service.beforeFeature(null, { name: 'Feature1' })
 
-                    await service.afterScenario({ pickle: { name: 'Can do something single' }, result: { status: 2 } })
+                    await service.afterScenario({ pickle: { name: 'Can do something single' }, result: { status: 'SKIPPED' } })
 
                     await service.after(0)
 
@@ -701,7 +718,7 @@ describe('after', () => {
             })
 
             describe('disabled', () => {
-                [6, 5, 4, 0].map(status =>
+                ['FAILED', 'AMBIGUOUS', 'UNDEFINED', 'UNKNOWN'].map(status =>
                     it(`should call _update /w status failed and name of Feature when single "${status}" Scenario ran`, async () => {
                         service = new BrowserstackService({ preferScenarioName : false }, [] as any,
                             { user: 'foo', key: 'bar', cucumberOpts: { strict: false } } as any)
@@ -734,7 +751,7 @@ describe('after', () => {
 
                     await service.afterScenario({
                         pickle: { name: 'Can do something single' },
-                        result: { status: 2 }
+                        result: { status: 'PASSED' }
                     })
                     await service.after(0)
 

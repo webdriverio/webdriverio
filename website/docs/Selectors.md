@@ -8,7 +8,7 @@ The [WebDriver Protocol](https://w3c.github.io/webdriver/) provides several sele
 ## CSS Query Selector
 
 ```js
-const elem = $('h2.subheading a')
+const elem = await $('h2.subheading a')
 elem.click()
 ```
 
@@ -25,9 +25,9 @@ For example:
 You can query this element by calling:
 
 ```js
-const link = $('=WebdriverIO')
-console.log(link.getText()) // outputs: "WebdriverIO"
-console.log(link.getAttribute('href')) // outputs: "https://webdriver.io"
+const link = await $('=WebdriverIO')
+console.log(await link.getText()) // outputs: "WebdriverIO"
+console.log(await link.getAttribute('href')) // outputs: "https://webdriver.io"
 ```
 
 ## Partial Link Text
@@ -42,16 +42,16 @@ query it by using `*=` in front of the query string (e.g. `*=driver`).
 You can query this element by calling:
 
 ```js
-const link = $('*=driver')
-console.log(link.getText()) // outputs: "WebdriverIO"
+const link = await $('*=driver')
+console.log(await link.getText()) // outputs: "WebdriverIO"
 ```
 
 __Note:__ You can't mix multiple selector strategies in one selector. Use multiple chained element queries to reach the same goal, e.g.:
 
 ```js
-const elem = $('header h1*=Welcome') // doesn't work!!!
+const elem = await $('header h1*=Welcome') // doesn't work!!!
 // use instead
-const elem = $('header').$('*=driver')
+const elem = await $('header').$('*=driver')
 ```
 
 ## Element with certain text
@@ -67,16 +67,16 @@ For example, here's a query for a level 1 heading with the text "Welcome to my P
 You can query this element by calling:
 
 ```js
-const header = $('h1=Welcome to my Page')
-console.log(header.getText()) // outputs: "Welcome to my Page"
-console.log(header.getTagName()) // outputs: "h1"
+const header = await $('h1=Welcome to my Page')
+console.log(await header.getText()) // outputs: "Welcome to my Page"
+console.log(await header.getTagName()) // outputs: "h1"
 ```
 
 Or using query partial text:
 
 ```js
-const header = $('h1*=Welcome')
-console.log(header.getText()) // outputs: "Welcome to my Page"
+const header = await $('h1*=Welcome')
+console.log(await header.getText()) // outputs: "Welcome to my Page"
 ```
 
 The same works for `id` and `class` names:
@@ -88,25 +88,25 @@ The same works for `id` and `class` names:
 You can query this element by calling:
 
 ```js
-const classNameAndText = $('.someElem=WebdriverIO is the best')
-console.log(classNameAndText.getText()) // outputs: "WebdriverIO is the best"
+const classNameAndText = await $('.someElem=WebdriverIO is the best')
+console.log(await classNameAndText.getText()) // outputs: "WebdriverIO is the best"
 
-const idAndText = $('#elem=WebdriverIO is the best')
-console.log(idAndText.getText()) // outputs: "WebdriverIO is the best"
+const idAndText = await $('#elem=WebdriverIO is the best')
+console.log(await idAndText.getText()) // outputs: "WebdriverIO is the best"
 
-const classNameAndPartialText = $('.someElem*=WebdriverIO')
-console.log(classNameAndPartialText.getText()) // outputs: "WebdriverIO is the best"
+const classNameAndPartialText = await $('.someElem*=WebdriverIO')
+console.log(await classNameAndPartialText.getText()) // outputs: "WebdriverIO is the best"
 
-const idAndPartialText = $('#elem*=WebdriverIO')
-console.log(idAndPartialText.getText()) // outputs: "WebdriverIO is the best"
+const idAndPartialText = await $('#elem*=WebdriverIO')
+console.log(await idAndPartialText.getText()) // outputs: "WebdriverIO is the best"
 ```
 
 __Note:__ You can't mix multiple selector strategies in one selector. Use multiple chained element queries to reach the same goal, e.g.:
 
 ```js
-const elem = $('header h1*=Welcome') // doesn't work!!!
+const elem = await $('header h1*=Welcome') // doesn't work!!!
 // use instead
-const elem = $('header').$('h1*=Welcome')
+const elem = await $('header').$('h1*=Welcome')
 ```
 
 ## Tag Name
@@ -120,8 +120,8 @@ To query an element with a specific tag name, use `<tag>` or `<tag />`.
 You can query this element by calling:
 
 ```js
-const classNameAndText = $('<my-element />')
-console.log(classNameAndText.getText()) // outputs: "WebdriverIO is the best"
+const classNameAndText = await $('<my-element />')
+console.log(await classNameAndText.getText()) // outputs: "WebdriverIO is the best"
 ```
 
 ## Name Attribute
@@ -133,8 +133,8 @@ For querying elements with a specific name attribute you can either use a normal
 ```
 
 ```js
-const classNameAndText = $('[name="username"]')
-console.log(classNameAndText.getValue()) // outputs: "foobar"
+const classNameAndText = await $('[name="username"]')
+console.log(await classNameAndText.getValue()) // outputs: "foobar"
 ```
 
 __Note:__ This selector strategy it deprecated and only works in old browser that are run by the JSONWireProtocol protocol or by using Appium.
@@ -157,15 +157,15 @@ An xPath selector has a format like `//body/div[6]/div[1]/span[1]`.
 You can query the second paragraph by calling:
 
 ```js
-const paragraph = $('//body/p[2]')
-console.log(paragraph.getText()) // outputs: "barfoo"
+const paragraph = await $('//body/p[2]')
+console.log(await paragraph.getText()) // outputs: "barfoo"
 ```
 
 You can use xPath to also traverse up and down the DOM tree:
 
 ```js
-const parent = paragraph.$('..')
-console.log(parent.getTagName()) // outputs: "body"
+const parent = await paragraph.$('..')
+console.log(await parent.getTagName()) // outputs: "body"
 ```
 
 ## ARIA - Role Attribute
@@ -177,19 +177,33 @@ For querying elements based on [ARIA roles](https://www.w3.org/TR/html-aria/#doc
 ```
 
 ```js
-const button = $('[role=button]')
-console.log(button.click()) // outputs: perform click on button element
+const button = await $('[role=button]')
+
+// perform click on button element
+console.log(await button.click())
 ```
 
-## id
+## ID Attribute
 
-Finding element by id has no specific syntax in WebDriver and one should use either CSS selectors (`#<my element ID>`) or xPath (`//*[@id="<my element ID>"]`).
+Locator strategy "id" is not supported in WebDriver protocol, one should use either CSS or xPath selector strategies instead to find elements using ID.
 
 However some drivers (e.g. [Appium You.i Engine Driver](https://github.com/YOU-i-Labs/appium-youiengine-driver#selector-strategies)) might still [support](https://github.com/YOU-i-Labs/appium-youiengine-driver#selector-strategies) this selector.
 
+Current supported selector syntaxes for ID are:
+
+```js
+//css locator
+const button = await $('#someid')
+//xpath locator
+const button = await $('//*[@id="someid"'])
+//id strategy 
+// Note: works only in Appium or similar frameworks which supports locator strategy "ID"
+const button = await $('id=resource-id/iosname')
+```
+
 ## JS Function
 
-You can also use Javascript functions to fetch elements using web native APIs. Of course, you can only do this inside a web context (e.g., `browser`, or web context in mobile).
+You can also use JavaScript functions to fetch elements using web native APIs. Of course, you can only do this inside a web context (e.g., `browser`, or web context in mobile).
 
 Given the following HTML structure:
 
@@ -205,8 +219,8 @@ Given the following HTML structure:
 You can query the sibling element of `#elem` as follows:
 
 ```js
-const elem = $('#elem') // or $(() => document.getElementById('elem'))
-elem.$(function () { return this.nextSibling.nextSibling }) // (first sibling is #text with value ("↵"))
+const elem = await $('#elem') // or $(() => document.getElementById('elem'))
+await elem.$(function () { return this.nextSibling.nextSibling }) // (first sibling is #text with value ("↵"))
 ```
 
 ## Deep Selectors
@@ -220,8 +234,8 @@ Given we have an application with the following structure:
 With this selector you can query the `<button />` element that is nested within another shadow DOM, e.g.:
 
 ```js
-const button = $('>>>.dropdown-item:not([hidden])')
-console.log(button.getText()) // outputs: "Open downloads folder"
+const button = await $('>>>.dropdown-item:not([hidden])')
+console.log(await button.getText()) // outputs: "Open downloads folder"
 ```
 
 ## Mobile Selectors
@@ -236,8 +250,8 @@ Android’s UI Automator framework provides a number of ways to find elements. Y
 
 ```js
 const selector = 'new UiSelector().text("Cancel").className("android.widget.Button")'
-const Button = $(`android=${selector}`)
-Button.click()
+const button = await $(`android=${selector}`)
+await button.click()
 ```
 
 ### Android DataMatcher and ViewMatcher (Espresso only)
@@ -245,22 +259,22 @@ Button.click()
 Android's DataMatcher strategy provides a way to find elements by [Data Matcher](https://developer.android.com/reference/android/support/test/espresso/DataInteraction)
 
 ```js
-const menuItem = $({
+const menuItem = await $({
   "name": "hasEntry",
   "args": ["title", "ViewTitle"]
 })
-menuItem.click()
+await menuItem.click()
 ```
 
 And similarly [View Matcher](https://developer.android.com/reference/android/support/test/espresso/ViewInteraction)
 
 ```js
-const menuItem = $({
+const menuItem = await $({
   "name": "hasEntry",
   "args": ["title", "ViewTitle"],
   "class": "androidx.test.espresso.matcher.ViewMatchers"
 })
-menuItem.click()
+await menuItem.click()
 ```
 
 ### Android View Tag (Espresso only)
@@ -268,8 +282,8 @@ menuItem.click()
 The view tag strategy provides a convenient way to find elements by their [tag](https://developer.android.com/reference/android/support/test/espresso/matcher/ViewMatchers.html#withTagValue%28org.hamcrest.Matcher%3Cjava.lang.Object%3E%29).
 
 ```js
-const elem = $('-android viewtag:tag_identifier')
-elem.click()
+const elem = await $('-android viewtag:tag_identifier')
+await elem.click()
 ```
 
 ### iOS UIAutomation
@@ -280,8 +294,8 @@ This JavaScript [API](https://developer.apple.com/library/ios/documentation/Deve
 
 ```js
 const selector = 'UIATarget.localTarget().frontMostApp().mainWindow().buttons()[0]'
-const Button = $(`ios=${selector}`)
-Button.click()
+const button = await $(`ios=${selector}`)
+await button.click()
 ```
 
 You can also use predicate searching within iOS UI Automation in Appium to refine element selection even further. See [here](https://github.com/appium/appium/blob/master/docs/en/writing-running-appium/ios/ios-predicate.md) for details.
@@ -292,16 +306,16 @@ With iOS 10 and above (using the `XCUITest` driver), you can use [predicate stri
 
 ```js
 const selector = `type == 'XCUIElementTypeSwitch' && name CONTAINS 'Allow'`
-const Switch = $(`-ios predicate string:${selector}`)
-Switch.click()
+const switch = await $(`-ios predicate string:${selector}`)
+await switch.click()
 ```
 
 And [class chains](https://github.com/facebook/WebDriverAgent/wiki/Class-Chain-Queries-Construction-Rules):
 
 ```js
 const selector = '**/XCUIElementTypeCell[`name BEGINSWITH "D"`]/**/XCUIElementTypeButton'
-const Button = $(`-ios class chain:${selector}`)
-Button.click()
+const button = await $(`-ios class chain:${selector}`)
+await button.click()
 ```
 
 ### Accessibility ID
@@ -314,8 +328,8 @@ The `accessibility id` locator strategy is designed to read a unique identifier 
 For both platforms, getting an element (or multiple elements) by their `accessibility id` is usually the best method. It is also the preferred way over the deprecated `name` strategy.
 
 ```js
-const elem = $('~my_accessibility_identifier')
-elem.click()
+const elem = await $('~my_accessibility_identifier')
+await elem.click()
 ```
 
 ### Class Name
@@ -328,11 +342,11 @@ The `class name` strategy is a `string` representing a UI element on the current
 
 ```js
 // iOS example
-$('UIATextField').click()
+await $('UIATextField').click()
 // Android example
-$('android.widget.DatePicker').click()
+await $('android.widget.DatePicker').click()
 // Youi.tv example
-$('CYIPushButtonView').click()
+await $('CYIPushButtonView').click()
 ```
 
 ## Chain Selectors
@@ -367,7 +381,7 @@ And you want to add product B to the cart, it would be difficult to do that just
 With selector chaining, it's way easier. Simply narrow down the desired element step by step:
 
 ```js
-$('.row .entry:nth-child(2)').$('button*=Add').click()
+await $('.row .entry:nth-child(2)').$('button*=Add').click()
 ```
 
 ### Appium Image Selector
@@ -379,8 +393,8 @@ Supported file formats `jpg,png,gif,bmp,svg`
 Full reference can be found [here](https://github.com/appium/appium/blob/master/docs/en/advanced-concepts/image-elements.md)
 
 ```js
-const elem = $('./file/path/of/image/test.jpg')
-elem.click()
+const elem = await $('./file/path/of/image/test.jpg')
+await elem.click()
 ```
 
 **Note**: The way how Appium works with this selector is that it will internally make a (app)screenshot and use the provided image selector
@@ -427,7 +441,7 @@ In the above code there is a simple `MyComponent` instance inside the applicatio
 With the `browser.react$` command, you can select an instance of `MyComponent`:
 
 ```js
-const myCmp = browser.react$('MyComponent')
+const myCmp = await browser.react$('MyComponent')
 ```
 
 Now that you have the WebdriverIO element stored in `myCmp` variable, you can execute element commands against it.
@@ -464,7 +478,7 @@ ReactDOM.render(<App />, document.querySelector('#root'))
 If you want to select the instance of `MyComponent` that has a prop `name` as `WebdriverIO`, you can execute the command like so:
 
 ```js
-const myCmp = browser.react$('MyComponent', {
+const myCmp = await browser.react$('MyComponent', {
     props: { name: 'WebdriverIO' }
 })
 ```
@@ -472,7 +486,7 @@ const myCmp = browser.react$('MyComponent', {
 If you wanted to filter our selection by state, the `browser` command would looks something like so:
 
 ```js
-const myCmp = browser.react$('MyComponent', {
+const myCmp = await browser.react$('MyComponent', {
     state: { myState: 'some value' }
 })
 ```
@@ -509,8 +523,8 @@ ReactDOM.render(<App />, document.querySelector('#root'))
 Given the above example, this is how the commands would work:
 
 ```js
-browser.react$('MyComponent') // returns the WebdriverIO Element for the first <div />
-browser.react$$('MyComponent') // returns the WebdriverIO Elements for the array [<div />, <div />]
+await browser.react$('MyComponent') // returns the WebdriverIO Element for the first <div />
+await browser.react$$('MyComponent') // returns the WebdriverIO Elements for the array [<div />, <div />]
 ```
 
 **Note:** If you have multiple instances of `MyComponent` and you use `react$$` to select these fragment components, you will be returned an one-dimensional array of all the nodes. In other words, if you have 3 `<MyComponent />` instances, you will be returned an array with six WebdriverIO elements.
@@ -543,10 +557,10 @@ Given the following HTML snippet:
 Then use it by calling:
 
 ```js
-const elem = browser.custom$('myCustomStrategy', '.foobar')
-console.log(elem.getAttribute('id')) // returns "first"
-const nestedElem = elem.custom$('myCustomStrategy', '.foobar')
-console.log(elem.getAttribute('id')) // returns "second"
+const elem = await browser.custom$('myCustomStrategy', '.foobar')
+console.log(await elem.getAttribute('id')) // returns "first"
+const nestedElem = await elem.custom$('myCustomStrategy', '.foobar')
+console.log(await elem.getAttribute('id')) // returns "second"
 ```
 
 **Note:** this only works in an web environment in which the [`execute`](/docs/api/browser/execute) command can be run.

@@ -264,12 +264,7 @@ describe('Appium launcher', () => {
             const launcher = new AppiumLauncher({}, [], {} as any)
             childProcessMock.spawn.mockReturnValue(new MockFailingProcess(1) as unknown as childProcess.ChildProcess)
 
-            let error
-            try {
-                await launcher.onPrepare()
-            } catch (e) {
-                error = e
-            }
+            const error = await launcher.onPrepare().catch((err) => err)
             const expectedError = new Error('Appium exited before timeout (exit code: 1)')
             expect(error).toEqual(expectedError)
         })
@@ -278,12 +273,7 @@ describe('Appium launcher', () => {
             const launcher = new AppiumLauncher({}, [], {} as any)
             childProcessMock.spawn.mockReturnValue(new MockFailingProcess(2) as unknown as childProcess.ChildProcess)
 
-            let error
-            try {
-                await launcher.onPrepare()
-            } catch (e) {
-                error = e
-            }
+            const error = await launcher.onPrepare().catch((err) => err)
             const expectedError = new Error('Appium exited before timeout (exit code: 2)\n' +
                 "Check that you don't already have a running Appium service.")
             expect(error).toEqual(expectedError)
@@ -293,12 +283,7 @@ describe('Appium launcher', () => {
             const launcher = new AppiumLauncher({}, [], {} as any)
             childProcessMock.spawn.mockReturnValue(new MockCustomFailingProcess(2) as unknown as childProcess.ChildProcess)
 
-            let error
-            try {
-                await launcher.onPrepare()
-            } catch (e) {
-                error = e
-            }
+            const error = await launcher.onPrepare().catch((err) => err)
             const expectedError = new Error('Appium exited before timeout (exit code: 2)\nError: Uups')
             expect(error).toEqual(expectedError)
         })

@@ -77,8 +77,8 @@ describe('waitForDisplayed', () => {
 
         try {
             await elem.waitForDisplayed({ timeout })
-        } catch (e) {
-            expect(e.message).toBe(`element ("#foo") still not displayed after ${timeout}ms`)
+        } catch (err: any) {
+            expect(err.message).toBe(`element ("#foo") still not displayed after ${timeout}ms`)
         }
     })
 
@@ -95,8 +95,8 @@ describe('waitForDisplayed', () => {
 
         try {
             await elem.waitForDisplayed({ timeout })
-        } catch (e) {
-            expect(e.message).toBe(`element ("#foo") still not displayed after ${timeout}ms`)
+        } catch (err: any) {
+            expect(err.message).toBe(`element ("#foo") still not displayed after ${timeout}ms`)
         }
     })
 
@@ -131,8 +131,8 @@ describe('waitForDisplayed', () => {
 
         try {
             await elem.waitForDisplayed({ timeout, timeoutMsg: 'Element foo never displayed' })
-        } catch (e) {
-            expect(e.message).toBe('Element foo never displayed')
+        } catch (err: any) {
+            expect(err.message).toBe('Element foo never displayed')
         }
     })
 })

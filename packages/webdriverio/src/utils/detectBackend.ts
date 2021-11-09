@@ -1,4 +1,4 @@
-import { Capabilities } from '@wdio/types'
+import { Capabilities, Options } from '@wdio/types'
 
 const DEFAULT_HOSTNAME = '127.0.0.1'
 const DEFAULT_PORT = 4444
@@ -10,7 +10,9 @@ const REGION_MAPPING = {
     'us': 'us-west-1.', // default endpoint
     'eu': 'eu-central-1.',
     'eu-central-1': 'eu-central-1.',
-    'us-east-1': 'us-east-1.'
+    'us-east-1': 'us-east-1.',
+    'apac': 'apac-southeast-1.',
+    'apac-southeast-1': 'apac-southeast-1',
 }
 
 interface BackendConfigurations {
@@ -19,7 +21,7 @@ interface BackendConfigurations {
     user?: string
     key?: string
     protocol?: string
-    region?: string
+    region?: Options.SauceRegions
     headless?: boolean
     path?: string
     capabilities?: Capabilities.RemoteCapabilities | Capabilities.RemoteCapability
@@ -95,6 +97,19 @@ export default function detectBackend(options: BackendConfigurations = {}) {
         }
     }
 
+    /**
+     * Lambdatest
+     * e.g. cYAjKrqGwyPjPQv41ICDF4C5OjlxzA9epZsnugVJJxqOReWRWU
+     */
+    if (typeof user === 'string' && typeof key === 'string' && key.length === 50) {
+        return {
+            protocol: protocol || DEFAULT_PROTOCOL,
+            hostname: hostname || 'hub.lambdatest.com',
+            port: port || 80,
+            path: path || LEGACY_PATH
+        }
+    }
+
     if (
         /**
          * user and key are set in config
@@ -107,7 +122,7 @@ export default function detectBackend(options: BackendConfigurations = {}) {
     ) {
         throw new Error(
             'A "user" or "key" was provided but could not be connected to a ' +
-            'known cloud service (Sauce Labs, Browerstack or Testingbot). ' +
+            'known cloud service (Sauce Labs, Browerstack, Testingbot or Lambdatest). ' +
             'Please check if given user and key properties are correct!'
         )
     }

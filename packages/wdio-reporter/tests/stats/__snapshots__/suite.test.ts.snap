@@ -9,6 +9,8 @@ Object {
   "fullTitle": "barfoo",
   "hooks": Array [],
   "hooksAndTests": Array [],
+  "parent": "foobar",
+  "rule": undefined,
   "suites": Array [],
   "tags": Array [
     "foo",

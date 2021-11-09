@@ -358,7 +358,10 @@ describe('selector strategies helper', () => {
 
     it('should not allow unsupported selector strategies if w3c is used', () => {
         expect(() => findStrategy('accessibility id:foobar accessibility id', true)).toThrow()
-        expect(() => findStrategy('android=foo', true)).toThrow()
+    })
+
+    it('should allow non w3c selector strategy if driver supports it', () => {
+        expect(() => findStrategy('android=foo', true)).not.toThrow()
     })
 
     it('should allow mobile selector strategies if isMobile is used', () => {
@@ -401,6 +404,10 @@ describe('selector strategies helper', () => {
 
         element = findStrategy('//xpath[@img="/test.png"]')
         expect(element.using).toBe('xpath')
+        expect(element.value).not.toBe('random string')
+
+        element = findStrategy('.png')
+        expect(element.using).toBe('css selector')
         expect(element.value).not.toBe('random string')
     })
 

@@ -11,14 +11,14 @@ import type { ElementArray } from '../../types'
  *
  * <example>
     :example.js
-    it('should get all the plugin wrapper buttons', () => {
-        browser.url('https://webdriver.io')
-        browser.addLocatorStrategy('myStrat', (selector) => {
+    it('should get all the plugin wrapper buttons', async () => {
+        await browser.url('https://webdriver.io')
+        await browser.addLocatorStrategy('myStrat', (selector) => {
             return document.querySelectorAll(selector)
         })
 
-        const pluginRowBlock = browser.custom$('myStrat', '.pluginRowBlock')
-        const pluginWrapper = pluginRowBlock.custom$$('myStrat', '.pluginWrapper')
+        const pluginRowBlock = await browser.custom$('myStrat', '.pluginRowBlock')
+        const pluginWrapper = await pluginRowBlock.custom$$('myStrat', '.pluginWrapper')
 
         console.log(pluginWrapper.length) // 4
     })
@@ -64,7 +64,7 @@ async function custom$$ (
     res = res.filter((el) => !!el && typeof el[ELEMENT_KEY] === 'string')
 
     const elements = res.length ? await getElements.call(this, strategy as any, res) : [] as any as ElementArray
-    return enhanceElementsArray(elements, this, strategyName, 'custom$$', [strategyArguments])
+    return enhanceElementsArray(elements, this, strategy as any, 'custom$$', [strategyArguments])
 }
 
 export default custom$$

@@ -132,7 +132,7 @@ export function initialiseLauncherService (config: Omit<Options.Testrunner, 'cap
                 ignoredWorkerServices.push(serviceName)
             }
         }
-    } catch (err) {
+    } catch (err: any) {
         /**
          * don't break if service can't be initiated
          */
@@ -176,7 +176,7 @@ export function initialiseWorkerService (
         }).filter<Services.ServiceInstance>(
             (service: Services.ServiceInstance | undefined): service is Services.ServiceInstance => Boolean(service)
         )
-    } catch (err) {
+    } catch (err: any) {
         /**
          * don't break if service can't be initiated
          */

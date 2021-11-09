@@ -1,12 +1,17 @@
 import { testFnWrapper } from '../../src/test-framework/testFnWrapper'
 import { runHook, runSpec, wrapTestFunction, runTestInFiberContext } from '../../src/test-framework/testInterfaceWrapper'
 
-function testFunction (specTitle, cb) { return cb.call(this, 'foo', 'bar') }
-function hookFunction (cb) { return cb.call(this, 'foo', 'bar') }
+const testFunction = jest.fn(function (specTitle, cb) { return cb.call(this, 'foo', 'bar') })
+const hookFunction = jest.fn(function (cb) { return cb.call(this, 'foo', 'bar') })
 
 jest.mock('../../src/test-framework/testFnWrapper', () => ({
     testFnWrapper: jest.fn()
 }))
+
+beforeEach(() => {
+    testFnWrapper.mockClear()
+    global.jasmine = {}
+})
 
 describe('runHook', () => {
     it('should call testFnWrapper with proper args', () => {
@@ -58,7 +63,7 @@ describe('wrapTestFunction', () => {
     it('should run hook', () => {
         const specFn = jest.fn()
         const fn = wrapTestFunction(hookFunction, false, 'beforeFn', () => [], 'afterFn', () => [], 'cid')
-        fn(specFn, 4)
+        fn(specFn, 123, 4)
         expect(testFnWrapper).toBeCalledWith(
             'Hook',
             { specFn, specFnArgs: ['foo', 'bar'] },
@@ -67,6 +72,7 @@ describe('wrapTestFunction', () => {
             'cid',
             4
         )
+        expect(hookFunction).toBeCalledWith(expect.any(Function), 123)
     })
 
     it('should run pending function', () => {
@@ -90,7 +96,7 @@ describe('runTestInFiberContext', () => {
         expect(global.foobar.only).toBe(onlyFn)
 
         const specFn = jest.fn()
-        global.foobar.only('test title', specFn, 3)
+        global.foobar.only('test title', specFn, 321, 3)
         expect(testFnWrapper).toBeCalledWith(
             'Test',
             { specFn, specFnArgs: ['foo', 'bar'] },
@@ -98,6 +104,12 @@ describe('runTestInFiberContext', () => {
             { afterFn: 'afterFn', afterFnArgs: expect.any(Function) },
             'cid',
             3
+        )
+
+        expect(testFunction).toBeCalledWith(
+            'test title',
+            expect.any(Function),
+            321
         )
     })
 
@@ -122,5 +134,6 @@ describe('runTestInFiberContext', () => {
 
 afterEach(() => {
     delete global.foobar
+    delete global.jasmine
     testFnWrapper.mockClear()
 })

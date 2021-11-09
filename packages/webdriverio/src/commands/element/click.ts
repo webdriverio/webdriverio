@@ -1,4 +1,8 @@
+import logger from '@wdio/logger'
+
 import { ClickOptions } from '../../types'
+
+const log = logger('webdriverio/click')
 
 /**
  *
@@ -22,18 +26,18 @@ import { ClickOptions } from '../../types'
     <button id="myButton" onclick="document.getElementById('someText').innerHTML='I was clicked'">Click me</button>
     <div id="someText">I was not clicked</div>
     :click.js
-    it('should demonstrate the click command', () => {
-        const myButton = $('#myButton')
-        myButton.click()
-        const myText = $('#someText')
-        const text = myText.getText()
+    it('should demonstrate the click command', async () => {
+        const myButton = await $('#myButton')
+        await myButton.click()
+        const myText = await $('#someText')
+        const text = await myText.getText()
         assert(text === 'I was clicked') // true
     })
     :example.js
-    it('should fetch menu links and visit each page', () => {
-        const links = $$('#menu a')
-        links.forEach((link) => {
-            link.click()
+    it('should fetch menu links and visit each page', async () => {
+        const links = await $$('#menu a')
+        await links.forEach(async (link) => {
+            await link.click()
         })
     })
  * </example>
@@ -42,9 +46,9 @@ import { ClickOptions } from '../../types'
     :example.html
     <button id="myButton">Click me</button>
     :example.js
-    it('should demonstrate a click using an offset', () => {
-        const myButton = $('#myButton')
-        myButton.click({ x: 30 }) // clicks 30 horizontal pixels away from location of the button
+    it('should demonstrate a click using an offset', async () => {
+        const myButton = await $('#myButton')
+        await myButton.click({ x: 30 }) // clicks 30 horizontal pixels away from location of the button (from center point of element)
     })
  * </example>
  *
@@ -52,13 +56,13 @@ import { ClickOptions } from '../../types'
     :example.html
     <button id="myButton">Click me</button>
     :example.js
-    it('should demonstrate a right click passed as string', () => {
-        const myButton = $('#myButton')
-        myButton.click({ button: 'right' }) // opens the contextmenu at the location of the button
+    it('should demonstrate a right click passed as string', async () => {
+        const myButton = await $('#myButton')
+        await myButton.click({ button: 'right' }) // opens the contextmenu at the location of the button
     })
-    it('should demonstrate a right click passed as number while adding an offset', () => {
-        const myButton = $('#myButton')
-        myButton.click({ button: 2, x: 30, y: 40 }) // opens the contextmenu 30 horizontal and 40 vertical pixels away from location of the button
+    it('should demonstrate a right click passed as number while adding an offset', async () => {
+        const myButton = await $('#myButton')
+        await myButton.click({ button: 2, x: 30, y: 40 }) // opens the contextmenu 30 horizontal and 40 vertical pixels away from location of the button (from the center of element)
     })
  * </example>
  *
@@ -129,8 +133,15 @@ export default async function click (
                 button
             }]
         }])
+        const err = await this.releaseActions().then(
+            () => null,
+            (err) => err)
 
-        return this.releaseActions()
+        if (err) {
+            log.warn(`Failed to call "releaseAction" command due to: ${err.message}, ignoring!`)
+        }
+
+        return
     }
 
     const { width, height } = await this.getElementSize(this.elementId)

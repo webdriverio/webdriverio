@@ -1,0 +1,32 @@
+{
+    "My awesome feature2": {
+        "type": "suite",
+        "start": "2018-04-17T09:10:10.255Z",
+        "_duration": 745,
+        "uid": "My awesome feature2",
+        "cid": "0-0",
+        "title": "My awesome feature",
+        "fullTitle": "My awesome feature",
+        "tests": [
+            {
+                "type": "test",
+                "start": "2018-04-17T09:10:10.256Z",
+                "_duration": 727,
+                "uid": "should can do something3",
+                "cid": "0-0",
+                "title": "should can do something",
+                "fullTitle": "My awesome feature should can do something",
+                "output": [],
+                "state": "failed",
+                "end": "2018-04-17T09:10:10.999Z",
+                "error": {
+                    "message": "Received: \u001b[31m\"5\"\u001b[39m",
+                    "type": "Error"
+                }
+            }
+        ],
+        "hooks": [],
+        "suites": [],
+        "end": "2018-04-17T09:10:11.000Z"
+    }
+}

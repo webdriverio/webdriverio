@@ -54,6 +54,15 @@ Default: `null`
 ### capabilities
 Defines the capabilities you want to run in your WebDriver session. Check out the [WebDriver Protocol](https://w3c.github.io/webdriver/#capabilities) for more details. If you run an older driver that doesn't support the WebDriver protocol, you’ll need to use the [JSONWireProtocol capabilities](https://github.com/SeleniumHQ/selenium/wiki/DesiredCapabilities) to successfully run a session.
 
+Next to the WebDriver based capabilities you can apply browser and vendor specific options that allow deeper configuration to the remote browser or device. These are documented in the corresponding vendor docs, e.g.:
+
+- `goog:chromeOptions`: for [Google Chrome](https://chromedriver.chromium.org/capabilities#h.p_ID_106)
+- `moz:firefoxOptions`: for [Mozilla Firefox](https://firefox-source-docs.mozilla.org/testing/geckodriver/Capabilities.html)
+- `ms:edgeOptions`: for [Microsoft Edge](https://docs.microsoft.com/en-us/microsoft-edge/webdriver-chromium/capabilities-edge-options#using-the-edgeoptions-class)
+- `sauce:options`: for [Sauce Labs](https://docs.saucelabs.com/dev/test-configuration-options/#desktop-and-mobile-capabilities-sauce-specific--optional)
+- `bstack:options`: for [BrowserStack](https://www.browserstack.com/automate/capabilities?tag=selenium-4#)
+- `selenoid:options`: for [Selenoid](https://github.com/aerokube/selenoid/blob/master/docs/special-capabilities.adoc)
+
 Additionally, a useful utility is the Sauce Labs [Automated Test Configurator](https://wiki.saucelabs.com/display/DOCS/Platform+Configurator#/), which helps you create this object by clicking together your desired capabilities.
 
 Type: `Object`<br />
@@ -112,7 +121,13 @@ Default:
 ```
 
 ### headers
-Specify custom `headers` to pass into every request.
+Specify custom `headers` to pass into every WebDriver request.
+
+:::caution
+
+These headers __aren't__ passed into browser request. If you are looking for modifying request headers of browser requests, please get involved in [#6361](https://github.com/webdriverio/webdriverio/issues/6361)!
+
+:::
 
 Type: `Object`<br />
 Default: `{}`
@@ -201,9 +216,9 @@ Default: `false`
 The following options (including the ones listed above) are defined only for running WebdriverIO with the WDIO testrunner:
 
 ### specs
-Define specs for test execution.
+Define specs for test execution. You can either specify a glob pattern to match multiple files at once or wrap a glob or set of paths into an array to run them within a single worker process.
 
-Type: `String[]`<br />
+Type: `(String | String[])[]`<br />
 Default: `[]`
 
 ### exclude
@@ -221,11 +236,15 @@ Default: `{}`
 ### capabilities
 The same as the `capabilities` section described above, except with the option to specify either a [`multiremote`](Multiremote.md) object, or multiple WebDriver sessions in an array for parallel execution.
 
+You can apply the same vendor and browser specific capabilities as defined [above](/docs/options#capabilities).
+
 Type: `Object`|`Object[]`<br />
 Default: `[{ maxInstances: 5, browserName: 'firefox' }]`
 
 ### maxInstances
 Maximum number of total parallel running workers.
+
+__Note:__ that it may be a number as high as `100`, when the tests are being performed on some external vendors such as Sauce Labs's machines. There, the tests are not tested on a single machine, but rather, on multiple VMs. If the tests are to be run on a local development machine, use a number that is more reasonable, such as `3`, `4`, or `5`. Essentially, this is the number of browsers that will be concurrently started and running your tests at the same time, so it depends on how much RAM there is on your machine, and how many other apps are running on your machine.
 
 Type: `Number`<br />
 Default: `100`
@@ -331,7 +350,7 @@ The WDIO testrunner allows you to set hooks to be triggered at specific times of
 
 Every hook has as parameter specific information about the lifecycle (e.g. information about the test suite or test). Read more about all hook properties in [our example config](https://github.com/webdriverio/webdriverio/blob/master/examples/wdio.conf.js#L183-L326).
 
-__Note:__ Some hooks (`onPrepare`, `onWorkerStart` and `onComplete`) are executed in a different process and therefor can not share any global data with the other hooks that live in the worker process.
+__Note:__ Some hooks (`onPrepare`, `onWorkerStart` and `onComplete`) are executed in a different process and therefore can not share any global data with the other hooks that live in the worker process.
 
 ### onPrepare
 
@@ -383,9 +402,7 @@ Hook that gets executed _before_ a hook within the suite starts (e.g. runs befor
 
 Parameters:
 - `test` (`object`): test details
-- `context` (`object`): test context
-- `stepData` (`object`): step data (Cucumber only)
-- `world` (`object`): world context (Cucumber only)
+- `context` (`object`): test context (represents World object in Cucumber)
 
 ### afterHook
 
@@ -393,18 +410,16 @@ Hook that gets executed _after_ a hook within the suite ends (e.g. runs after ca
 
 Parameters:
 - `test` (`object`): test details
-- `context` (`object`): test context
+- `context` (`object`): test context (represents World object in Cucumber)
 - `result` (`object`): hook result (contains `error`, `result`, `duration`, `passed`, `retries` properties)
-- `stepData` (`object`): step data (Cucumber only)
-- `world` (`object`): world context (Cucumber only)
 
 ### beforeTest
 
-Function to be executed before a test (in Mocha/Jasmine) starts.
+Function to be executed before a test (in Mocha/Jasmine only).
 
 Parameters:
 - `test` (`object`): test details
-- `context` (`object`): test context
+- `context` (`object`): scope object the test was executed with
 
 ### beforeCommand
 
@@ -430,7 +445,12 @@ Function to be executed after a test (in Mocha/Jasmine) ends.
 
 Parameters:
 - `test` (`object`): test details
-- `context` (`object`): test context
+- `context` (`object`): scope object the test was executed with
+- `result.error` (`Error`): error object in case the test fails, otherwise `undefined`
+- `result.result` (`Any`): return object of test function
+- `result.duration` (`Number`): duration of test
+- `result.passed` (`Boolean`): true if test has passed, otherwise false
+- `result.retries` (`Object`): informations to spec related retries, e.g. `{ attempts: 0, limit: 0 }`
 - `result` (`object`): hook result (contains `error`, `result`, `duration`, `passed`, `retries` properties)
 
 ### afterSuite
@@ -482,43 +502,56 @@ Parameters:
 Runs before a Cucumber Feature.
 
 Parameters:
-- `uri`: (`string`): path to feature file
-- `feature`: (`GherkinDocument.IFeature`): Cucumber feature object
+- `uri` (`string`): path to feature file
+- `feature` ([`GherkinDocument.IFeature`](https://github.com/cucumber/common/blob/b94ce625967581de78d0fc32d84c35b46aa5a075/json-to-messages/javascript/src/cucumber-generic/JSONSchema.ts#L8-L17)): Cucumber feature object
 
 ### afterFeature
 
 Runs after a Cucumber Feature.
 
 Parameters:
-- `uri`: (`string`): path to feature file
-- `feature`: (`GherkinDocument.IFeature`): Cucumber feature object
+- `uri` (`string`): path to feature file
+- `feature` ([`GherkinDocument.IFeature`](https://github.com/cucumber/common/blob/b94ce625967581de78d0fc32d84c35b46aa5a075/json-to-messages/javascript/src/cucumber-generic/JSONSchema.ts#L8-L17)): Cucumber feature object
 
 ### beforeScenario
 
 Runs before a Cucumber Scenario.
 
 Parameters:
-- `world`: (`ITestCaseHookParameter`): world object containing information on pickle and test step
+- `world` ([`ITestCaseHookParameter`](https://github.com/cucumber/cucumber-js/blob/ac124f7b2be5fa54d904c7feac077a2657b19440/src/support_code_library_builder/types.ts#L10-L15)): world object containing information on pickle and test step
+- `context` (`object`): Cucumber World object
 
 ### afterScenario
 
 Runs after a Cucumber Scenario.
 
 Parameters:
-- `world`: (`ITestCaseHookParameter`): world object containing information on pickle and test step
+- `world` ([`ITestCaseHookParameter`](https://github.com/cucumber/cucumber-js/blob/ac124f7b2be5fa54d904c7feac077a2657b19440/src/support_code_library_builder/types.ts#L10-L15)): world object containing information on pickle and test step
+- `result` (`object`): results object containing scenario results
+- `result.passed` (`boolean`): true if scenario has passed
+- `result.error` (`string`): error stack if scenario failed
+- `result.duration` (`number`): duration of scenario in milliseconds
+- `context` (`object`): Cucumber World object
 
 ### beforeStep
 
 Runs before a Cucumber Step.
 
 Parameters:
-- `step`: (`Pickle.IPickleStep`): Cucumber step object
-- `context`: (`object`): execution context
+- `step` ([`Pickle.IPickleStep`](https://github.com/cucumber/common/blob/b94ce625967581de78d0fc32d84c35b46aa5a075/messages/jsonschema/Pickle.json#L20-L49)): Cucumber step object
+- `scenario` ([`IPickle`](https://github.com/cucumber/common/blob/b94ce625967581de78d0fc32d84c35b46aa5a075/messages/jsonschema/Pickle.json#L137-L175)): Cucumber scenario object
+- `context` (`object`): Cucumber World object
 
 ### afterStep
 
 Runs after a Cucumber Step.
 
 Parameters:
-- `step`: (`Pickle.IPickleStep`): Cucumber step object
-- `context`: (`object`): execution context
+- `step` ([`Pickle.IPickleStep`](https://github.com/cucumber/common/blob/b94ce625967581de78d0fc32d84c35b46aa5a075/messages/jsonschema/Pickle.json#L20-L49)): Cucumber step object
+- `scenario` ([`IPickle`](https://github.com/cucumber/common/blob/b94ce625967581de78d0fc32d84c35b46aa5a075/messages/jsonschema/Pickle.json#L137-L175)): Cucumber scenario object
+- `result`: (`object`): results object containing step results
+- `result.passed` (`boolean`): true if scenario has passed
+- `result.error` (`string`): error stack if scenario failed
+- `result.duration` (`number`): duration of scenario in milliseconds
+- `context` (`object`): Cucumber World object
+

@@ -1,7 +1,6 @@
 import fse from 'fs-extra'
 import path from 'path'
 import atob from 'atob'
-import minimatch from 'minimatch'
 import type { CDPSession } from 'puppeteer-core/lib/cjs/puppeteer/common/Connection'
 import type Protocol from 'devtools-protocol'
 
@@ -62,7 +61,7 @@ export default class DevtoolsInterception extends Interception {
                 /**
                  * match mock url
                  */
-                if (!minimatch(request.url, mock.url)) {
+                if (!Interception.isMatchingRequest(mock.url, request.url)) {
                     continue
                 }
 

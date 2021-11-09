@@ -57,7 +57,24 @@ export default class CoverageGatherer extends EventEmitter {
         /**
          * continue with requests that aren't JS files
          */
+        let skipCoverageFlag = false
         if (!request.url.endsWith('.js')) {
+            skipCoverageFlag = true
+        }
+
+        /**
+         * continue with requests that are part of exclude patterns
+         */
+        if (this._options.exclude){
+            for (const excludeFile of this._options.exclude){
+                if (request.url.match(excludeFile)){
+                    skipCoverageFlag = true
+                    break
+                }
+            }
+        }
+
+        if (skipCoverageFlag){
             return this._client.send(
                 'Fetch.continueRequest',
                 { requestId }
@@ -84,35 +101,43 @@ export default class CoverageGatherer extends EventEmitter {
         }
 
         await fs.promises.writeFile(fullPath, inputCode, 'utf-8')
-
-        const result = await babelTransform(inputCode, {
-            auxiliaryCommentBefore: ' istanbul ignore next ',
-            babelrc: false,
-            caller: {
-                name: '@wdio/devtools-service'
-            },
-            configFile: false,
-            filename: path.join(url.hostname, url.pathname),
-            plugins: [
-                [
-                    babelPluginIstanbul,
-                    {
-                        compact: false,
-                        exclude: [],
-                        extension: false,
-                        useInlineSourceMaps: false,
-                    },
+        try {
+            const result = await babelTransform(inputCode, {
+                auxiliaryCommentBefore: ' istanbul ignore next ',
+                babelrc: false,
+                caller: {
+                    name: '@wdio/devtools-service'
+                },
+                configFile: false,
+                filename: path.join(url.hostname, url.pathname),
+                plugins: [
+                    [
+                        babelPluginIstanbul,
+                        {
+                            compact: false,
+                            exclude: [],
+                            extension: false,
+                            useInlineSourceMaps: false,
+                        },
+                    ],
                 ],
-            ],
-            sourceMaps: false
-        })
+                sourceMaps: false
+            })
 
-        return this._client.send('Fetch.fulfillRequest', {
-            requestId,
-            responseCode: responseStatusCode,
-            /** do not mock body if it's undefined */
-            body: !result ? undefined : Buffer.from(result.code!, 'utf8').toString('base64')
-        })
+            return this._client.send('Fetch.fulfillRequest', {
+                requestId,
+                responseCode: responseStatusCode,
+                /** do not mock body if it's undefined */
+                body: !result ? undefined : Buffer.from(result.code!, 'utf8').toString('base64')
+            })
+        } catch (err: any) {
+            log.warn(`Couldn't instrument file due to: ${err.stack}`)
+            return this._client.send('Fetch.fulfillRequest', {
+                requestId,
+                responseCode: responseStatusCode,
+                body: inputCode
+            })
+        }
     }
 
     private _clearCaptureInterval () {
@@ -139,8 +164,8 @@ export default class CoverageGatherer extends EventEmitter {
 
                 this._coverageMap = libCoverage.createCoverageMap(globalCoverageVar)
                 log.info(`Captured coverage data of ${this._coverageMap.files().length} files`)
-            } catch (e) {
-                log.warn(`Couldn't capture data: ${e.message}`)
+            } catch (err: any) {
+                log.warn(`Couldn't capture data: ${err.message}`)
                 this._clearCaptureInterval()
             }
         }, CAPTURE_INTERVAL)

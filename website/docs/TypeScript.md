@@ -37,15 +37,35 @@ export const config = {
 }
 ```
 
+If you don't want to use WebdriverIO's internal transpiler functionality you can create your own `entrypoint.js` file where `ts-node` is defined manually:
+
+```ts title="entrypoint.js"
+require('ts-node').register(
+    {
+        transpileOnly: false,
+        files: true,
+        project: "./tsconfig.json"
+    }
+)
+module.exports = require('./configs/wdio.conf')
+```
+
+In this case you have to pass `--no-autoCompileOpts.autoCompile` as parameter to the `wdio` command to disable auto compiling, e.g.:
+
+```sh
+npx wdio run ./entrypoint.js --no-autoCompileOpts.autoCompile
+```
+
 ## Framework Setup
 
 And your `tsconfig.json` needs the following:
 
 <Tabs
-  defaultValue="sync"
+  defaultValue="async"
+  className="runtime"
   values={[
-    {label: 'Sync Mode', value: 'sync'},
     {label: 'Async Mode', value: 'async'},
+    {label: 'Sync Mode', value: 'sync'},
   ]
 }>
 <TabItem value="sync">
@@ -57,6 +77,13 @@ And your `tsconfig.json` needs the following:
     }
 }
 ```
+
+:::caution
+Synchronous Mode will depcrecated with Node.js v16. With an update to the
+underlying Chromium version it became technically impossible to provide the
+same synchronous behavior. We recommend to start transition to asynchronous
+command execution. For more information, see our <a href="https://github.com/webdriverio/webdriverio/discussions/6702">RFC</a>.
+:::
 
 </TabItem>
 <TabItem value="async">
@@ -75,7 +102,7 @@ And your `tsconfig.json` needs the following:
 Please avoid importing `webdriverio` or `@wdio/sync` explicitly.
 `WebdriverIO` and `WebDriver` types are accessible from anywhere once added to `types` in `tsconfig.json`. If you use additional WebdriverIO services, plugins or the `devtools` automation package, please also add them to the `types` list as many provide additional typings.
 
-## Framework types
+## Framework Types
 
 Depending on the framework you use, you will need to add the types for that framework to your `tsconfig.json` types property, as well as install its type definitions. This is especially important if you want to have type support for the built-in assertion library [`expect-webdriverio`](https://www.npmjs.com/package/expect-webdriverio).
 
@@ -95,10 +122,7 @@ For instance, if you decide to use the Mocha framework, you need to install `@ty
 {
     "compilerOptions": {
         "types": ["node", "webdriverio/sync", "@wdio/mocha-framework"]
-    },
-    "include": [
-        "./test/**/*.ts"
-    ]
+    }
 }
 ```
 
@@ -109,10 +133,7 @@ For instance, if you decide to use the Mocha framework, you need to install `@ty
 {
     "compilerOptions": {
         "types": ["node", "webdriverio/sync", "@wdio/jasmine-framework"]
-    },
-    "include": [
-        "./test/**/*.ts"
-    ]
+    }
 }
 ```
 
@@ -123,10 +144,7 @@ For instance, if you decide to use the Mocha framework, you need to install `@ty
 {
     "compilerOptions": {
         "types": ["node", "webdriverio/sync", "@wdio/cucumber-framework"]
-    },
-    "include": [
-        "./test/**/*.ts"
-    ]
+    }
 }
 ```
 
@@ -146,31 +164,67 @@ If you use services that add commands to the browser scope you also need to incl
             "@wdio/mocha-framework",
             "@wdio/devtools-service"
         ]
-    },
-    "include": [
-        "./test/**/*.ts"
-    ]
+    }
 }
 ```
 
 Adding services and reporters to your TypeScript config also strengthen the type safety of your WebdriverIO config file.
 
-## Adding custom commands
+## Type Definitions
+
+When running WebdriverIO commands all properties are usually typed so that you don't have to deal with importing additional types. However there are cases where you want to define variables upfront. To ensure that these are type safe you can use all types defined in the [`@wdio/types`](https://www.npmjs.com/package/@wdio/types) package. For example if you like to define the remote option for `webdriverio` you can do:
+
+```ts
+import type { Capabilities } from '@wdio/types'
+
+const config: Capabilities.WebdriverIO = {
+    hostname: 'http://localhost',
+    port: '4444' // Error: Type 'string' is not assignable to type 'number'.ts(2322)
+    capabilities: {
+        browserName: 'chrome'
+    }
+}
+```
+
+## Adding Custom Commands
 
 With TypeScript, it's easy to extend WebdriverIO interfaces. Add types to your [custom commands](CustomCommands.md) like this:
 
 1. Create a type definition file (e.g., `./src/types/wdio.d.ts`)
-2. Make sure to include path in the `tsconfig.json`
+2. a. If using a module-style type definition file (using import/export and `declare global WebdriverIO` in the type definition file), make sure to include the file path in the `tsconfig.json` `include` property.
+
+   b.  If using ambient-style type definition files (no import/export in type definition files and `declare namespace WebdriverIO` for custom commands), make sure the `tsconfig.json` does *not* contain any `include` section, since this will cause all type definition files not listed in the `include` section to not be recognized by typescript.
+
+<Tabs
+  defaultValue="modules"
+  values={[
+    {label: 'Modules (using import/export)', value: 'modules'},
+    {label: 'Ambient Type Definitions (no tsconfig include)', value: 'ambient'},
+  ]
+}>
+<TabItem value="modules">
 
 ```json title="tsconfig.json"
 {
     "compilerOptions": { ... },
     "include": [
         "./test/**/*.ts",
-        "./src/**/*.ts"
+        "./src/types/**/*.ts"
     ]
 }
 ```
+
+</TabItem>
+<TabItem value="ambient">
+
+```json title="tsconfig.json"
+{
+    "compilerOptions": { ... }
+}
+```
+
+</TabItem>
+</Tabs>
 
 3. Add definitions for your commands according to your execution mode.
 
@@ -184,7 +238,7 @@ With TypeScript, it's easy to extend WebdriverIO interfaces. Add types to your [
 <TabItem value="modules">
 
 <Tabs
-  defaultValue="sync"
+  defaultValue="async"
   values={[
     {label: 'Sync', value: 'sync'},
     {label: 'Async', value: 'async'},
@@ -238,7 +292,7 @@ declare global {
 <TabItem value="ambient">
 
 <Tabs
-  defaultValue="sync"
+  defaultValue="async"
   values={[
     {label: 'Sync', value: 'sync'},
     {label: 'Async', value: 'async'},
@@ -290,6 +344,14 @@ declare namespace WebdriverIO {
 ## Tips and Hints
 
 ### tsconfig.json example
+<Tabs
+  defaultValue="modules"
+  values={[
+    {label: 'Modules (using import/export)', value: 'modules'},
+    {label: 'Ambient Type Definitions (no tsconfig include)', value: 'ambient'},
+  ]
+}>
+<TabItem value="modules">
 
 ```json
 {
@@ -306,13 +368,40 @@ declare namespace WebdriverIO {
       "node",
       "webdriverio/sync",
       "@wdio/mocha-framework"
-    ],
+    ]
   },
   "include": [
-    "./test/**/*.ts"
+    "./test/**/*.ts",
+    "./src/types/**/*.ts"
   ]
 }
 ```
+
+</TabItem>
+<TabItem value="ambient">
+
+```json
+{
+  "compilerOptions": {
+    "outDir": "./.tsbuild/",
+    "sourceMap": false,
+    "target": "es2019",
+    "module": "commonjs",
+    "removeComments": true,
+    "noImplicitAny": true,
+    "strictPropertyInitialization": true,
+    "strictNullChecks": true,
+    "types": [
+      "node",
+      "webdriverio/sync",
+      "@wdio/mocha-framework"
+    ]
+  }
+}
+```
+
+</TabItem>
+</Tabs>
 
 ### Compile & Lint
 

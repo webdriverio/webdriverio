@@ -1,4 +1,4 @@
-import { TestStats } from '@wdio/reporter'
+import TestStats from '@wdio/reporter/src/stats/test'
 
 import WDIOJunitReporter from '../src'
 
@@ -13,11 +13,14 @@ import featuresLog from './__fixtures__/cucumber-features.json'
 import featuresWithFailingThenSkipStepLog from './__fixtures__/cucumber-features-with-failed-then-skipped-steps.json'
 import featuresWithPendingStepLog from './__fixtures__/cucumber-features-with-pending-step.json'
 import featuresWithErrorStepAndNoErrorObjectLog from './__fixtures__/cucumber-features-with-error-step-and-no-error-object.json'
+import nestedSuites from './__fixtures__/nested-suites.json'
 import unorderedFeatureAndScenarioWithError from './__fixtures__/cucumber-features-with-error-step-and-no-error-object-unordered.json'
 import suitesWithFailedBeforeEachHookLog from './__fixtures__/suites-with-failed-before-each-hook.json'
 import suitesWithFailedAfterEachHookLog from './__fixtures__/suites-with-failed-after-each-hook.json'
 import suitesHooksLog from './__fixtures__/suites-hooks.json'
+import suiteTestRetry from './__fixtures__/suite-test-retry.json'
 import suitesMultipleLog from './__fixtures__/suites-multiple.json'
+import suitesErrorLog from './__fixtures__/suites-error.json'
 
 describe('wdio-junit-reporter', () => {
     let reporter: WDIOJunitReporter
@@ -82,6 +85,22 @@ describe('wdio-junit-reporter', () => {
         } as any as TestStats
         expect(reporter['_getStandardOutput'](teststats)).toContain('COMMAND: POST /sessionId/click - {"elementId":"foobar"}')
         expect(reporter['_getStandardOutput'](teststats)).toContain('RESULT: {"value":"foobar"}')
+    })
+
+    it('test is marked as skipped when is retried', () => {
+        const testStats = new TestStats({
+            'type': 'test:start',
+            'uid': 'test-00-0',
+            'cid': '0-0',
+            'title': 'test',
+            'fullTitle': 'suite test',
+            'retries': 0,
+            'parent': 'suite',
+            'state': 'failed'
+        })
+        reporter['onTestRetry'](testStats)
+
+        expect(testStats.state).toContain('skipped')
     })
 
     it('generates xml output', () => {
@@ -168,6 +187,13 @@ describe('wdio-junit-reporter', () => {
         expect(reporter['_buildJunitXml'](mochaRunnerLog as any).replace(/\s/g, '')).toMatchSnapshot()
     })
 
+    it('generates xml output when test is marked as skipped', () => {
+        reporter.suites = suiteTestRetry as any
+
+        // verifies the content of the report but omits format by stripping all whitespace and new lines
+        expect(reporter['_buildJunitXml'](mochaRunnerLog as any).replace(/\s/g, '')).toMatchSnapshot()
+    })
+
     it('generates xml output correctly when error options are set', () => {
         const errorOptions = {
             error: 'message',
@@ -233,6 +259,29 @@ describe('wdio-junit-reporter', () => {
         reporter.suites = featuresLog as any
 
         // verifies the content of the report but omits format by stripping all whitespace and new lines
+        expect(reporter['_buildJunitXml'](cucumberRunnerLog as any).replace(/\s/g, '')).toMatchSnapshot()
+    })
+
+    it('generates xml output without ansi', () => {
+        reporter.suites = suitesErrorLog as any
+        expect(reporter['_buildJunitXml'](mochaRunnerLog as any).replace(/\s/g, '')).toMatchSnapshot()
+    })
+
+    it('generates xml output correctly when having nested suites', () => {
+        reporter.suites = nestedSuites as any
+        expect(reporter['_buildJunitXml'](mochaRunnerLog as any).replace(/\s/g, '')).toMatchSnapshot()
+    })
+
+    it( 'generates xml output correctly when having classNameFormat override with mocha',  () => {
+        reporter = new WDIOJunitReporter({ stdout: true, classNameFormat: ({ packageName, suite }) => `foo-${packageName}-${suite.fullTitle}` })
+        reporter.suites = suitesErrorLog as any
+        expect(reporter['_buildJunitXml'](mochaRunnerLog as any).replace(/\s/g, '')).toMatchSnapshot()
+    })
+
+    it('generates xml output correctly when having classNameFormat override with cucumber', () => {
+        reporter = new WDIOJunitReporter({ stdout: true, classNameFormat: ({ packageName, activeFeatureName }) => `foo-${packageName}-${activeFeatureName}` })
+        reporter.suites = featuresLog as any
+
         expect(reporter['_buildJunitXml'](cucumberRunnerLog as any).replace(/\s/g, '')).toMatchSnapshot()
     })
 })

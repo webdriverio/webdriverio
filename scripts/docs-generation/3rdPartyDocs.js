@@ -1,8 +1,8 @@
 const fs = require('fs-extra')
 const path = require('path')
-const request = require('request')
 const urljoin = require('url-join')
 
+const { downloadFromGitHub } = require('../utils')
 const { buildPreface } = require('../utils/helpers')
 const reporters3rdParty = require('./3rd-party/reporters.json')
 const services3rdParty = require('./3rd-party/services.json')
@@ -15,8 +15,7 @@ const plugins = [{
 }, {
     category: 'api', namePlural: 'Testrunner', nameSingular: '', packages3rdParty: api3rdParty
 }]
-const githubHost = 'https://github.com/'
-const githubRawHost = 'https://raw.githubusercontent.com/'
+
 const githubReadme = '/README.md'
 
 const readmeHeaderLines = 9
@@ -35,11 +34,14 @@ exports.generate3rdPartyDocs = async (sidebars) => {
         const categoryDir = path.join(DOCS_ROOT_DIR, category === 'api' ? 'api' : '')
         await fs.ensureDir(categoryDir)
 
-        for (const { packageName, title, githubUrl, npmUrl, suppressBuildInfo, location = githubReadme, branch = 'master' } of packages3rdParty) {
-            const readme = await downloadReadme(githubUrl, branch, location)
+        for (const { packageName, title, githubUrl, npmUrl, suppressBuildInfo, locations, location = githubReadme, branch = 'master' } of packages3rdParty) {
+            const readme = locations
+                ? await Promise.all(locations.map((l) => downloadFromGitHub(githubUrl, branch, l)))
+                    .then((readmes) => readmes.join('\n'))
+                : await downloadFromGitHub(githubUrl, branch, location)
             const id = `${packageName}`.replace(/@/g, '').replace(/\//g, '-')
 
-            const doc = normalizeDoc(readme, githubUrl,
+            const doc = normalizeDoc(readme, githubUrl, branch,
                 buildPreface(id, title, nameSingular, `${githubUrl}/edit/${branch}/${location}`),
                 suppressBuildInfo ? [] : buildInfo(packageName, githubUrl, npmUrl))
             await fs.writeFile(path.join(categoryDir, `_${id}.md`), doc, { encoding: 'utf-8' })
@@ -63,37 +65,15 @@ exports.generate3rdPartyDocs = async (sidebars) => {
 }
 
 /**
- * Download README.md from github
- * @param {string}              githubUrl   github url to project
- * @param {string}              location    file location in repo
- * @return {Promise<string>}                readme content
- */
-function downloadReadme(githubUrl, branch, location = githubReadme) {
-    return new Promise((resolve, reject) => {
-        const url = `${githubUrl}/${branch}${location}`.replace(githubHost, githubRawHost)
-        // eslint-disable-next-line no-console
-        console.log(`Downloading: ${url}`)
-        request.get(url, (err, httpResponse, body) => {
-            if (err || httpResponse.statusCode !== 200 || !body) {
-                return reject({
-                    err,
-                    statusCode: httpResponse.statusCode,
-                    body
-                })
-            }
-            resolve(body)
-        })
-    })
-}
-
-/**
  * Removes header from README.md
  * @param {string}  readme      readme content
+ * @param {string}  githubUrl     repo url
+ * @param {string}  branch     repo branch
  * @param {string}  preface     docusaurus header
  * @param {string}  repoInfo    repoInfo
  * @return {string}             readme content without header
  */
-function normalizeDoc(readme, githubUrl, preface, repoInfo) {
+function normalizeDoc(readme, githubUrl, branch, preface, repoInfo) {
     /**
      * remove badges
      */
@@ -131,9 +111,9 @@ function normalizeDoc(readme, githubUrl, preface, repoInfo) {
         for (const mdLink of mdLinks) {
             const urlMatcher = mdLink.match(/\[([^[]+)\]\((.*)\)/)
             const stringInParentheses = urlMatcher[2]
-            const url = stringInParentheses.startsWith('http')
+            const url = ( stringInParentheses.startsWith('http') || stringInParentheses.startsWith('#') )
                 ? stringInParentheses
-                : urljoin(githubUrl, 'blob', 'master', stringInParentheses)
+                : urljoin(githubUrl, 'blob', branch, stringInParentheses)
             readmeArr[idx] = readmeArr[idx].replace(`](${stringInParentheses})`, `](${url})`)
         }
     })

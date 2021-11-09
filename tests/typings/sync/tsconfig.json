@@ -9,9 +9,7 @@
       "@wdio/shared-store-service",
       "@wdio/allure-reporter",
       "@wdio/appium-service",
-      "@wdio/applitools-service",
       "@wdio/browserstack-service",
-      "@wdio/jasmine-framework",
       "@wdio/selenium-standalone-service",
       "@wdio/crossbrowsertesting-service",
       "@wdio/firefox-profile-service",
@@ -21,8 +19,5 @@
       "@wdio/sumologic-reporter"
     ],
     "typeRoots": ["./node_modules"]
-  },
-  "include": [
-    "./ambient-definition.d.ts"
-  ]
+  }
 }

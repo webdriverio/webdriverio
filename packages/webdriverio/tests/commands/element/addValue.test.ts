@@ -4,7 +4,7 @@ import { remote } from '../../../src'
 
 const got = gotMock as jest.Mock
 
-let browser: WebdriverIO.BrowserObject
+let browser: WebdriverIO.Browser
 
 describe('addValue test', () => {
     afterEach(() => {

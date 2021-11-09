@@ -1,99 +1,89 @@
-// eslint-disable-next-line
-import assert from 'assert'
-import { Given, BeforeAll, Before, After, AfterAll } from '@cucumber/cucumber'
+import { Given, BeforeAll, Before, After, AfterAll } from '../../../packages/wdio-cucumber-framework'
 
 browser.addCommand('rootLevel', () => {
     return true
 })
 
-BeforeAll(() => {
+BeforeAll(async () => {
     // defined and modified in hooks
-    assert.equal(browser.Cucumber_Test, 0)
+    expect(browser.Cucumber_Test).toBe(0)
 
     // should resolve promises
-    assert.strictEqual(browser.pause(1), undefined)
+    expect(await browser.pause(1)).toBe(undefined)
 
-    assert.strictEqual(browser.rootLevel(), true)
+    expect(await browser.rootLevel()).toBe(true)
 })
-Before(function (scenario) {
+Before(async function (scenario) {
     // defined and modified in hooks
-    assert.equal(browser.Cucumber_Test, 1)
+    expect(browser.Cucumber_Test).toBe(1)
 
-    assert.strictEqual(Array.isArray(scenario.pickle.tags), true)
+    expect(Array.isArray(scenario.pickle.tags)).toBe(true)
 
     // World
-    assert.strictEqual(typeof this.attach, 'function')
+    expect(typeof this.attach).toBe('function')
 
     // should resolve promises
-    assert.strictEqual(browser.pause(1), undefined)
+    expect(await browser.pause(1)).toBe(undefined)
 })
-After(function (scenario) {
+After(async function (scenario) {
     // defined and modified in hooks
-    assert.equal(browser.Cucumber_Test, 1)
+    expect(browser.Cucumber_Test).toBe(1)
 
-    assert.strictEqual(typeof this.attach, 'function')
+    expect(typeof this.attach).toBe('function')
 
     // World
-    assert.strictEqual(Array.isArray(scenario.pickle.tags), true)
+    expect(Array.isArray(scenario.pickle.tags)).toBe(true)
 
     // should resolve promises
-    assert.strictEqual(browser.pause(1), undefined)
+    expect(await browser.pause(1)).toBe(undefined)
 })
-AfterAll(() => {
+AfterAll(async () => {
     // defined and modified in hooks
-    assert.equal(browser.Cucumber_Test, -1)
+    expect(browser.Cucumber_Test).toBe(-1)
 
     // should resolve promises
-    assert.strictEqual(browser.pause(1), undefined)
+    expect(await browser.pause(1)).toBe(undefined)
 })
 
-Given('I choose the {string} scenario', { retry: { wrapperOptions: { retry: 1 } } }, (scenario) => {
+Given('I choose the {string} scenario', { retry: { wrapperOptions: { retry: 1 } } }, async (scenario) => {
     if (typeof browser[scenario] !== 'function') {
         throw new Error(`Scenario with name "${scenario}" is not defined`)
     }
 
-    browser[scenario]()
+    await browser[scenario]()
 })
 
 const stepText = 'I go on the website'
-Given(`${stepText} {string}`, function (url) {
+Given(`${stepText} {string}`, async function (url) {
     // World
-    assert.strictEqual(typeof this.attach, 'function')
-    assert.strictEqual(browser.Cucumber_CurrentStepText.startsWith(stepText), true)
-    assert.strictEqual(browser.Cucumber_CurrentWorld, this)
+    expect(typeof this.attach).toBe('function')
+    expect(browser.Cucumber_CurrentStepText.startsWith(stepText)).toBe(true)
 
-    browser.url(url)
+    await browser.url(url)
 })
 
-Given('I click on link {string}', (selector) => {
-    const elem = browser.$(selector)
-
-    assert.equal(browser.Cucumber_Test, 3)
-
-    elem.click()
-})
-
-Given('I click on link {string} async', async (selector) => {
+Given('I click on link {string}', async (selector) => {
     const elem = await browser.$(selector)
-    await elem.click()
 
-    assert.equal(browser.Cucumber_Test, 3)
+    expect(browser.Cucumber_Test).toBe(3)
+
+    await elem.click()
 })
 
 let foobarCounter = 1
-Given(/^Foo (.*) and Bar (.*) are passed$/, function (foo, bar) {
-    assert.equal(foo, 'f' + foobarCounter)
-    assert.equal(bar, 'b' + foobarCounter)
+Given(/^Foo (.*) and Bar (.*) are passed$/, async function (foo, bar) {
+    expect(foo).toBe('f' + foobarCounter)
+    expect(bar).toBe('b' + foobarCounter)
     foobarCounter++
 })
 
-Given(/^a table step$/, function(table) {
+Given(/^a table step$/, async function (table) {
     const expected = [
         ['Apricot', '5'],
         ['Brocolli', '2'],
         ['Cucumber', '10']
     ]
-    assert.deepEqual(table.rows(), expected)
+    expect(table.rows()).toEqual(expected)
 })
 
 Given('this is ambiguous', () => {

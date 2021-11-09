@@ -35,12 +35,16 @@ describe('launcher', () => {
         it('should not run auto compile if cli param was provided', () => {
             const otherLauncher = new Launcher('./', {
                 autoCompileOpts: {
-                    // @ts-expect-error cli params are always strings
-                    autoCompile: 'false'
+                    autoCompile: false
                 }
             })
 
-            expect(otherLauncher['configParser'].autoCompile).toBeCalledTimes(0)
+            expect(otherLauncher['configParser'].merge).toBeCalledWith({
+                autoCompileOpts: {
+                    autoCompile: false
+                }
+            })
+            expect(otherLauncher['configParser'].autoCompile).toBeCalledTimes(1)
         })
     })
 
@@ -560,7 +564,7 @@ describe('launcher', () => {
                 caps,
                 ['/foo.test.js'],
                 { hostname: '127.0.0.2' },
-                []
+                ['--no-wasm-code-gc']
             )
         })
 
@@ -592,7 +596,7 @@ describe('launcher', () => {
                 caps,
                 ['/foo.test.js'],
                 { hostname: '127.0.0.3' },
-                []
+                ['--no-wasm-code-gc']
             )
         })
 
@@ -623,7 +627,7 @@ describe('launcher', () => {
                 caps,
                 ['/foo.test.js'],
                 { hostname: '127.0.0.4' },
-                []
+                ['--no-wasm-code-gc']
             )
         })
     })
@@ -697,7 +701,7 @@ describe('launcher', () => {
             let error
             try {
                 await launcher.run()
-            } catch (err) {
+            } catch (err: any) {
                 error = err
             }
             expect(launcher.runner.shutdown).toBeCalled()

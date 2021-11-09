@@ -115,7 +115,7 @@ describe('executeSync', () => {
                 }
                 return true
             }, repeatTest)
-        } catch (err) {
+        } catch (err: any) {
             error = err
         }
         expect(error.message).toEqual('foobar')
@@ -126,7 +126,7 @@ describe('executeSync', () => {
 
 describe('executeAsync', () => {
     it('should pass with default values and fn returning synchronous value', async () => {
-        const result = await executeAsync.call({}, () => 'foo', { limit: 0, attempts: 0 })
+        const result = await executeAsync.call({}, async () => 'foo', { limit: 0, attempts: 0 })
         expect(result).toEqual('foo')
     })
 
@@ -140,8 +140,8 @@ describe('executeAsync', () => {
         const fn = () => { throw new Error('foo') }
         try {
             await executeAsync.call({}, fn, { limit: 0, attempts: 0 })
-        } catch (e) {
-            error = e
+        } catch (err: any) {
+            error = err
         }
         expect(error.message).toEqual('foo')
     })
@@ -155,7 +155,7 @@ describe('executeAsync', () => {
                 counter--
                 throw new Error('foo')
             }
-            return true
+            return Promise.resolve(true)
         }, repeatTest)
         expect(result).toEqual(true)
         expect(counter).toEqual(0)
@@ -170,9 +170,9 @@ describe('executeAsync', () => {
         const result = await executeAsync.call(scope, () => {
             if (counter > 0) {
                 counter--
-                return Promise.reject('foo')
+                return Promise.reject(new Error('foo'))
             }
-            return true
+            return Promise.resolve(true)
         }, repeatTest)
         expect(result).toEqual(true)
         expect(counter).toEqual(0)
@@ -225,5 +225,151 @@ describe('wrapCommand', () => {
         expect(scope.options!.beforeCommand).toBeCalledTimes(1)
         expect(scope.options!.afterCommand).toBeCalledTimes(1)
         expect(rawCommand).toBeCalledTimes(2)
+    })
+
+    it('allows to chain element promises', async () => {
+        const rawCommand = jest.fn()
+        const scope: Partial<BrowserObject> = {
+            options: {
+                beforeCommand: jest.fn(),
+                afterCommand: jest.fn()
+            },
+            getTagName: jest.fn().mockResolvedValue('Yayy'),
+            $: rawCommand
+        }
+        rawCommand.mockReturnValue(Promise.resolve(scope))
+        const commandA = wrapCommand('$', rawCommand)
+        expect(await commandA.call(scope, 'bar').$('foo').getTagName()).toBe('Yayy')
+        expect(scope.$).toBeCalledTimes(2)
+        expect(scope.$).toBeCalledWith('bar')
+        expect(scope.$).toBeCalledWith('foo')
+        expect(scope.getTagName).toBeCalledTimes(1)
+    })
+
+    it('allows to access indexed element', async () => {
+        const rawCommand$ = jest.fn()
+        const rawCommand$$ = jest.fn()
+        const scope: (i: number) => Partial<BrowserObject> = (i) => ({
+            options: {
+                beforeCommand: jest.fn(),
+                afterCommand: jest.fn()
+            },
+            getTagName: jest.fn().mockResolvedValue('Yayy' + i),
+            $: rawCommand$,
+            $$: rawCommand$$
+        })
+        rawCommand$.mockResolvedValue(scope(0))
+        rawCommand$$.mockReturnValue([
+            Promise.resolve(scope(0)),
+            Promise.resolve(scope(1)),
+            Promise.resolve(scope(2))
+        ])
+        const commandA = wrapCommand('$', rawCommand$)
+        expect(await commandA.call(scope(0)).$('foo').$$('bar')[2].getTagName()).toBe('Yayy2')
+        expect(await commandA.call(scope(0)).$('foo').$$('bar')[2].$('barfoo').getTagName()).toBe('Yayy0')
+        expect(rawCommand$$).toBeCalledTimes(2)
+        expect(rawCommand$$).toBeCalledWith('bar')
+    })
+
+    it('offers array methods on elements', async () => {
+        const rawCommand$ = jest.fn()
+        const rawCommand$$ = jest.fn()
+        const scope: (i: number) => Partial<BrowserObject> = (i) => ({
+            options: {
+                beforeCommand: jest.fn(),
+                afterCommand: jest.fn()
+            },
+            getTagName: jest.fn().mockResolvedValue('Yayy' + i),
+            $: rawCommand$,
+            $$: rawCommand$$
+        })
+        rawCommand$.mockResolvedValue(scope(0))
+        rawCommand$$.mockReturnValue([
+            Promise.resolve(scope(0)),
+            Promise.resolve(scope(1)),
+            Promise.resolve(scope(2))
+        ])
+        const propertiesObject = {
+            '$': { value: rawCommand$ },
+            '$$': { value: rawCommand$$ },
+            getTagName: { value: jest.fn() }
+        }
+        const commandA = wrapCommand('$', rawCommand$, propertiesObject)
+        expect(await commandA.call(scope(0)).$('foo').$$('bar').map((el) => el.getTagName()))
+            .toEqual(['Yayy0', 'Yayy1', 'Yayy2'])
+    })
+
+    it('can access element properties', async () => {
+        const scope: Partial<BrowserObject> = {
+            options: {
+                beforeCommand: jest.fn(),
+                afterCommand: jest.fn()
+            },
+            selector: 'foobar'
+        }
+        const rawCommand = jest.fn().mockReturnValue(Promise.resolve(scope))
+        const propertiesObject = {
+            '$': { value: rawCommand },
+            getTagName: { value: jest.fn() }
+        }
+        const commandA = wrapCommand('$', rawCommand, propertiesObject)
+        expect(await commandA.call(scope).selector).toBe('foobar')
+    })
+
+    it('can iterate over elements asynchronously', async () => {
+        const options = {
+            beforeCommand: jest.fn(),
+            afterCommand: jest.fn()
+        }
+        const scope: Partial<BrowserObject> = [{
+            selector: 'foobarA',
+            options
+        }, {
+            selector: 'foobarB',
+            options
+        }, {
+            selector: 'foobarC',
+            options
+        }]
+        scope.options = options
+        const rawCommand = jest.fn().mockReturnValue(Promise.resolve(scope))
+        const propertiesObject = {
+            '$': { value: rawCommand },
+            getTagName: { value: jest.fn() }
+        }
+        const commandA = wrapCommand('$$', rawCommand, propertiesObject).bind(scope) as any as (sel: string) => Promise<any>[]
+
+        const expectedResults = ['foobarA', 'foobarB', 'foobarC']
+        let i = 0
+        for await (let elem of commandA('selector')) {
+            expect(expectedResults[i++]).toBe(elem.selector)
+        }
+    })
+
+    it('throws an error if iterating through a non array', async () => {
+        expect.assertions(1)
+        const options = {
+            beforeCommand: jest.fn(),
+            afterCommand: jest.fn()
+        }
+        const scope: Partial<BrowserObject> = {
+            selector: 'foobarA',
+            options
+        }
+        scope.options = options
+        const rawCommand = jest.fn().mockReturnValue(Promise.resolve(scope))
+        const propertiesObject = {
+            '$': { value: rawCommand },
+            getTagName: { value: jest.fn() }
+        }
+        const commandA = wrapCommand('$', rawCommand, propertiesObject).bind(scope) as any as (sel: string) => Promise<any>[]
+
+        try {
+            for await (let elem of commandA('selector')) {
+                console.log(elem)
+            }
+        } catch (err: any) {
+            expect(err.message).toBe('Can not iterate over non array')
+        }
     })
 })

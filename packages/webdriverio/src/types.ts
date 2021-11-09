@@ -11,23 +11,105 @@ import type DevtoolsInterception from './utils/interception/devtools'
 import type { Location } from './commands/element/getLocation'
 import type { Size } from './commands/element/getSize'
 
-export type BrowserCommandsType = typeof BrowserCommands
+type $BrowserCommands = typeof BrowserCommands
+type $ElementCommands = typeof ElementCommands
+
+type ElementQueryCommands = '$' | 'custom$' | 'shadow$' | 'react$'
+type ElementsQueryCommands = '$$' | 'custom$$' | 'shadow$$' | 'react$$'
+type ChainablePrototype = {
+    [K in ElementQueryCommands]: (...args: Parameters<$ElementCommands[K]>) => ChainablePromiseElement<ReturnType<$ElementCommands[K]>>
+} & {
+    [K in ElementsQueryCommands]: (...args: Parameters<$ElementCommands[K]>) => ChainablePromiseArray<ThenArg<ReturnType<$ElementCommands[K]>>>
+}
+
+type AsyncElementProto = {
+    [K in keyof Omit<$ElementCommands, keyof ChainablePrototype>]: OmitThisParameter<$ElementCommands[K]>
+} & ChainablePrototype
+
+export interface ChainablePromiseElement<T> extends AsyncElementProto, Promise<T> {
+    /**
+     * WebDriver element reference
+     */
+    elementId: Promise<string>
+    /**
+     * parent of the element if fetched via `$(parent).$(child)`
+     */
+    parent: Promise<WebdriverIO.Element | WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser>
+    /**
+     * selector used to fetch this element, can be
+     * - undefined if element was created via `$({ 'element-6066-11e4-a52e-4f735466cecf': 'ELEMENT-1' })`
+     * - a string if `findElement` was used and a reference was found
+     * - or a functin if element was found via e.g. `$(() => document.body)`
+     */
+    selector: Promise<Selector>
+    /**
+     * Error message in case element fetch was not successful
+     */
+    error?: Promise<Error>
+    /**
+     * index of the element if fetched with `$$`
+     */
+    index?: Promise<number>
+}
+export interface ChainablePromiseArray<T> extends Promise<T> {
+    /**
+     * Amount of element fetched.
+     */
+    length: Promise<number>
+    /**
+     * selector used to fetch this element, can be
+     * - undefined if element was created via `$({ 'element-6066-11e4-a52e-4f735466cecf': 'ELEMENT-1' })`
+     * - a string if `findElement` was used and a reference was found
+     * - or a functin if element was found via e.g. `$(() => document.body)`
+     */
+    selector: Promise<Selector>
+    /**
+     * parent of the element if fetched via `$(parent).$(child)`
+     */
+    parent: Promise<WebdriverIO.Element | WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser>
+    /**
+     * allow to access a specific index of the element set
+     */
+    [n: number]: WebdriverIO.Element | undefined
+
+    /**
+     * Unwrap the nth element of the element list.
+     */
+    forEach: <T>(callback: (currentValue: WebdriverIO.Element, index: number, array: T[]) => void, thisArg?: any) => Promise<void>
+    forEachSeries: <T>(callback: (currentValue: WebdriverIO.Element, index: number, array: T[]) => void, thisArg?: any) => Promise<void>
+    map: <U>(callback: (currentValue: WebdriverIO.Element, index: number, array: T[]) => U | Promise<U>, thisArg?: any) => Promise<U[]>
+    mapSeries: <T, U>(callback: (currentValue: WebdriverIO.Element, index: number, array: T[]) => U | Promise<U>, thisArg?: any) => Promise<U[]>;
+    find: <T>(callback: (currentValue: WebdriverIO.Element, index: number, array: T[]) => boolean | Promise<boolean>, thisArg?: any) => Promise<T>;
+    findSeries: <T>(callback: (currentValue: WebdriverIO.Element, index: number, array: T[]) => boolean | Promise<boolean>, thisArg?: any) => Promise<T>;
+    findIndex: <T>(callback: (currentValue: WebdriverIO.Element, index: number, array: T[]) => boolean | Promise<boolean>, thisArg?: any) => Promise<number>;
+    findIndexSeries: <T>(callback: (currentValue: WebdriverIO.Element, index: number, array: T[]) => boolean | Promise<boolean>, thisArg?: any) => Promise<number>;
+    some: <T>(callback: (currentValue: WebdriverIO.Element, index: number, array: T[]) => boolean | Promise<boolean>, thisArg?: any) => Promise<boolean>;
+    someSeries: <T>(callback: (currentValue: WebdriverIO.Element, index: number, array: T[]) => boolean | Promise<boolean>, thisArg?: any) => Promise<boolean>;
+    every: <T>(callback: (currentValue: WebdriverIO.Element, index: number, array: T[]) => boolean | Promise<boolean>, thisArg?: any) => Promise<boolean>;
+    everySeries: <T>(callback: (currentValue: WebdriverIO.Element, index: number, array: T[]) => boolean | Promise<boolean>, thisArg?: any) => Promise<boolean>;
+    filter: <T>(callback: (currentValue: WebdriverIO.Element, index: number, array: T[]) => boolean | Promise<boolean>, thisArg?: any) => Promise<WebdriverIO.Element[]>;
+    filterSeries: <T>(callback: (currentValue: WebdriverIO.Element, index: number, array: T[]) => boolean | Promise<boolean>, thisArg?: any) => Promise<WebdriverIO.Element[]>;
+    reduce: <T, U>(callback: (accumulator: U, currentValue: WebdriverIO.Element, currentIndex: number, array: T[]) => U | Promise<U>, initialValue?: U) => Promise<U>;
+}
+
+export type BrowserCommandsType = Omit<$BrowserCommands, keyof ChainablePrototype> & ChainablePrototype
+export type ElementCommandsType = Omit<$ElementCommands, keyof ChainablePrototype> & ChainablePrototype
+
 export type BrowserCommandsTypeSync = {
-    [K in keyof Omit<BrowserCommandsType, 'execute' | 'call'>]: (...args: Parameters<BrowserCommandsType[K]>) => ThenArg<ReturnType<BrowserCommandsType[K]>>
+    [K in keyof Omit<$BrowserCommands, 'execute' | 'call'>]: (...args: Parameters<$BrowserCommands[K]>) => ThenArg<ReturnType<$BrowserCommands[K]>>
 } & {
     /**
      * we need to copy type definitions for execute and executeAsync as we can't copy over
      * generics with method used above
      */
-    call: <T>(fn: () => Promise<T>) => T,
+    call: <T>(fn: () => T) => ThenArg<T>,
     execute: <ReturnValue, InnerArguments extends any[] = any[], OuterArguments extends InnerArguments = any>(
         script: string | ((...innerArgs: OuterArguments) => ReturnValue),
         ...args: InnerArguments
     ) => ReturnValue,
 }
-export type ElementCommandsType = typeof ElementCommands
 export type ElementCommandsTypeSync = {
-    [K in keyof Omit<ElementCommandsType, 'getLocation' | 'getSize'>]: (...args: Parameters<ElementCommandsType[K]>) => ThenArg<ReturnType<ElementCommandsType[K]>>
+    [K in keyof Omit<$ElementCommands, 'getLocation' | 'getSize'>]: (...args: Parameters<$ElementCommands[K]>) => ThenArg<ReturnType<$ElementCommands[K]>>
 } & {
     getLocation: ((
         this: WebdriverIO.Element,
@@ -104,8 +186,8 @@ type AddCommandFnScoped<
 type AddCommandFn = (...args: any[]) => any
 
 type OverwriteCommandFnScoped<
-    ElementKey extends keyof ElementCommandsType,
-    BrowserKey extends keyof BrowserCommandsType,
+    ElementKey extends keyof $ElementCommands,
+    BrowserKey extends keyof $BrowserCommands,
     IsElement extends boolean = false
 > = (
     this: IsElement extends true ? WebdriverIO.Element : WebdriverIO.Browser,
@@ -114,8 +196,8 @@ type OverwriteCommandFnScoped<
 ) => Promise<any>
 
 type OverwriteCommandFn<
-    ElementKey extends keyof ElementCommandsType,
-    BrowserKey extends keyof BrowserCommandsType,
+    ElementKey extends keyof $ElementCommands,
+    BrowserKey extends keyof $BrowserCommands,
     IsElement extends boolean = false
 > = (
     origCommand: (...args: any[]) => IsElement extends true ? WebdriverIO.Element[ElementKey] : WebdriverIO.Browser[BrowserKey],
@@ -138,7 +220,7 @@ export interface CustomInstanceCommands<T> {
     /**
      * overwrite `browser` or `element` command
      */
-    overwriteCommand<ElementKey extends keyof ElementCommandsType, BrowserKey extends keyof BrowserCommandsType, IsElement extends boolean = false>(
+    overwriteCommand<ElementKey extends keyof $ElementCommands, BrowserKey extends keyof $BrowserCommands, IsElement extends boolean = false>(
         name: IsElement extends true ? ElementKey : BrowserKey,
         func: OverwriteCommandFn<ElementKey, BrowserKey, IsElement> | OverwriteCommandFnScoped<ElementKey, BrowserKey, IsElement>,
         attachToElement?: IsElement,
@@ -149,11 +231,9 @@ export interface CustomInstanceCommands<T> {
     /**
      * create custom selector
      */
-    addLocatorStrategy<IsElement extends boolean = false>(
+    addLocatorStrategy(
         name: string,
-        func: IsElement extends true
-            ? (selector: string, root: HTMLElement) => CustomLocatorReturnValue
-            : (selector: string) => CustomLocatorReturnValue
+        func: ((selector: string, root: HTMLElement) => CustomLocatorReturnValue) | ((selector: string) => CustomLocatorReturnValue)
     ): void
 }
 
@@ -408,5 +488,6 @@ export interface AttachOptions extends Omit<DevToolsAttachOptions, 'capabilities
     options?: {
         automationProtocol?: Options.SupportedProtocols,
     }
-    capabilities: DevToolsAttachOptions['capabilities'] | WebDriverAttachOptions['capabilities']
+    capabilities: DevToolsAttachOptions['capabilities'] | WebDriverAttachOptions['capabilities'],
+    requestedCapabilities?: DevToolsAttachOptions['capabilities'] | WebDriverAttachOptions['capabilities'],
 }

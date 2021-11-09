@@ -14,7 +14,7 @@ The easiest way is to keep `@wdio/selenium-standalone-service` as a devDependenc
 ```json
 {
     "devDependencies": {
-        "@wdio/selenium-standalone-service": "^6.11.0"
+        "@wdio/selenium-standalone-service": "^7.7.4"
     }
 }
 ```
@@ -39,7 +39,7 @@ By default, ChromeDriver, geckodriver and some other browser drivers based on th
 export.config = {
     // ...
     services: [
-        ['selenium-standalone', { drivers: { firefox: '0.28.0', chrome: true, chromiumedge: 'latest' } }]
+        ['selenium-standalone', { drivers: { firefox: '0.29.1', chrome: true, chromiumedge: 'latest' } }]
     ],
     // ...
 };
@@ -49,8 +49,8 @@ Control browser driver installation/running separately.
 ```js
 // wdio.conf.js
 const drivers = {
-    chrome: { version: '86.0.4240.22' }, // https://chromedriver.chromium.org/
-    firefox: { version: '0.27.0' }, // https://github.com/mozilla/geckodriver/releases
+    chrome: { version: '91.0.4472.101' }, // https://chromedriver.chromium.org/
+    firefox: { version: '0.29.1' }, // https://github.com/mozilla/geckodriver/releases
     chromiumedge: { version: '85.0.564.70' } // https://developer.microsoft.com/en-us/microsoft-edge/tools/webdriver/
 }
 
@@ -114,7 +114,7 @@ Example:
 logPath : './',
 ```
 
-### [`args`](https://www.npmjs.com/package/selenium-standalone#seleniumstartopts-cb)
+### [`args`](https://github.com/vvo/selenium-standalone/blob/HEAD/docs/API.md#seleniumstartopts)
 Map of arguments for the Selenium server, passed directly to `Selenium.start()`.
 Please note that latest drivers have to be installed, see `installArgs`.
 
@@ -128,14 +128,14 @@ args: {
     version : "3.141.59",
     drivers : {
         chrome : {
-            version : "86.0.4240.22",
+            version : "91.0.4472.101",
             arch    : process.arch
         }
     }
 },
 ```
 
-### [`installArgs`](https://www.npmjs.com/package/selenium-standalone#seleniuminstallopts-cb)
+### [`installArgs`](https://github.com/vvo/selenium-standalone/blob/HEAD/docs/API.md#seleniuminstallopts)
 Map of arguments for the Selenium server, passed directly to `Selenium.install()`.
 
 By default, versions will be installed based on what is set in the selenium-standalone package. The defaults can be overridden by specifying the versions.
@@ -151,7 +151,7 @@ installArgs: {
     baseURL : "https://selenium-release.storage.googleapis.com",
     drivers : {
         chrome : {
-            version : "86.0.4240.22",
+            version : "91.0.4472.101",
             arch    : process.arch,
             baseURL : "https://chromedriver.storage.googleapis.com"
         }

@@ -45,12 +45,13 @@ exports.config = {
 - `disableWebdriverScreenshotsReporting` - optional parameter(`false` by default), in order to not attach screenshots to the reporter.
 - `useCucumberStepReporter` - optional parameter (`false` by default), set it to true in order to change the report hierarchy when using cucumber. Try it for yourself and see how it looks.
 - `disableMochaHooks` - optional parameter (`false` by default), set it to true in order to not fetch the `before/after` stacktrace/screenshot/result hooks into the Allure Reporter.
+- `addConsoleLogs` - optional parameter(`false` by default), set to true in order to attach console logs from step to the reporter.
 
 ## Supported Allure API
 * `addLabel(name, value)` - assign a custom label to test
 * `addFeature(featureName)` – assign feature to test
 * `addStory(storyName)` – assign user story to test
-* `addSeverity(value)` – assign severity to test
+* `addSeverity(value)` – assign severity to test, accepts one of these values: blocker, critical, normal, minor, trivial
 * `addIssue(value)` – assign issue id to test
 * `addTestId(value)` – assign TMS test id to test
 * `addEnvironment(name, value)` – save environment value
@@ -78,7 +79,7 @@ Allure Api can be accessed using:
 ES5
 
 ```js
-const { addFeature } = require('@wdio/allure-reporter').default
+const allureReporter = require('@wdio/allure-reporter').default
 ```
 
 ES6
@@ -122,6 +123,11 @@ npm i allure-commandline
 Then add or extend your `onComplete` hook or create a [custom service](/docs/customservices) for this:
 
 ```js
+// wdio.conf.js
+const allure = require('allure-commandline')
+
+exports.config = {
+    // ...
     onComplete: function() {
         const reportError = new Error('Could not generate Allure report')
         const generation = allure(['generate', 'allure-results', '--clean'])
@@ -142,6 +148,8 @@ Then add or extend your `onComplete` hook or create a [custom service](/docs/cus
             })
         })
     }
+    // ...
+}
 ```
 
 ### Jenkins
@@ -154,7 +162,7 @@ Screenshots can be attached to the report by using the `takeScreenshot` function
 First set `disableWebdriverScreenshotsReporting: false` in reporter options, then add in afterStep hook:
 
 ```js title="wdio.conf.js"
-afterStep: function (test, context, { error, result, duration, passed, retries }) {
+afterStep: function (test, scenario, { error, duration, passed }) {
   if (error) {
     browser.takeScreenshot();
   }

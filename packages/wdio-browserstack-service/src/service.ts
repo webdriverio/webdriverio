@@ -3,9 +3,8 @@ import got from 'got'
 import type { Services, Capabilities, Options, Frameworks } from '@wdio/types'
 import type { Browser, MultiRemoteBrowser } from 'webdriverio'
 
-import { getBrowserDescription, getBrowserCapabilities, isBrowserstackCapability } from './util'
+import { getBrowserDescription, getBrowserCapabilities, isBrowserstackCapability, getParentSuiteName } from './util'
 import { BrowserstackConfig, MultiRemoteAction, SessionResponse } from './types'
-import { CUCUMBER_STATUS_MAP } from './constants'
 
 const log = logger('@wdio/browserstack-service')
 
@@ -73,7 +72,6 @@ export default class BrowserstackService implements Services.ServiceInstance {
 
     beforeSuite (suite: Frameworks.Suite) {
         this._fullTitle = suite.title
-        return this._updateJob({ name: this._fullTitle })
     }
 
     beforeFeature(uri: unknown, feature: { name: string }) {
@@ -84,16 +82,18 @@ export default class BrowserstackService implements Services.ServiceInstance {
     afterTest(test: Frameworks.Test, context: never, results: Frameworks.TestResult) {
         const { error, passed } = results
 
-        this._fullTitle = (
-            /**
-             * Jasmine
-             */
-            test.fullName ||
-            /**
-             * Mocha
-             */
-            `${test.parent} - ${test.title}`
-        )
+        // Jasmine
+        if (test.fullName) {
+            const testSuiteName = test.fullName.slice(0, test.fullName.indexOf(test.description || '') - 1)
+            if (this._fullTitle === 'Jasmine__TopLevel__Suite') {
+                this._fullTitle = testSuiteName
+            } else if (this._fullTitle) {
+                this._fullTitle = getParentSuiteName(this._fullTitle, testSuiteName)
+            }
+        } else {
+            // Mocha
+            this._fullTitle = `${test.parent} - ${test.title}`
+        }
 
         if (!passed) {
             this._failReasons.push((error && error.message) || 'Unknown Error')
@@ -120,12 +120,12 @@ export default class BrowserstackService implements Services.ServiceInstance {
      * For CucumberJS
      */
     afterScenario (world: Frameworks.World) {
-        const status = CUCUMBER_STATUS_MAP[world.result?.status || 0].toLowerCase()
+        const status = world.result?.status.toLowerCase()
         if (status === 'skipped') {
             this._scenariosThatRan.push(world.pickle.name || 'unknown pickle name')
         }
 
-        if (this._failureStatuses.includes(status)) {
+        if (status && this._failureStatuses.includes(status)) {
             const exception = (
                 (world.result && world.result.message) ||
                 (status === 'pending'

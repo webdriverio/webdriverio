@@ -50,6 +50,24 @@ console.log(browser.requestedCapabilities)
  *   browserName: 'chrome'
  * }
  */
+console.log(browser.commandList)
+/**
+ * outputs all commands assigned to this instance (browser or element), e.g.:
+ * [
+ *   'newSession',
+ *   'deleteSession',
+ *   'status',
+ *   'getTimeouts',
+ *   'setTimeouts',
+ *   'getUrl',
+ *   'navigateTo',
+ *   'back',
+ *   'forward',
+ *   'refresh',
+ *   'getTitle',
+ *   ... 115 more items
+ * ]
+ */
 ```
 
 ## Custom Configurations

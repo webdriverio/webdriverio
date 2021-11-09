@@ -35,7 +35,7 @@ describe('executeSync', () => {
         let error
         try {
             await executeSync.call(browser, () => { throw new Error('foobar') }, {} as any)
-        } catch (err) {
+        } catch (err: any) {
             error = err
         }
         expect(error.stack).not.toContain('at new Promise (<anonymous>)')
@@ -50,7 +50,7 @@ describe('executeSync', () => {
                 err.stack = 'false'
                 throw err
             }, {} as any)
-        } catch (err) {
+        } catch (err: any) {
             error = err
         }
         expect(error.stack).toEqual('false')
@@ -88,7 +88,7 @@ describe('executeSync', () => {
                 }
                 return true
             }, repeatTest)
-        } catch (err) {
+        } catch (err: any) {
             error = err
         }
         expect(error.message).toEqual('foobar')

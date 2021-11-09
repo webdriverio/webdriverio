@@ -102,8 +102,13 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
 
         /* istanbul ignore if */
         if (!process.env.JEST_WORKER_ID) {
-            runnerTransformStream(childProcess.stdout, cid)?.pipe(stdOutStream)
-            runnerTransformStream(childProcess.stderr, cid)?.pipe(stdErrStream)
+            if (childProcess.stdout !== null) {
+                runnerTransformStream(cid, childProcess.stdout).pipe(stdOutStream)
+            }
+
+            if (childProcess.stderr !== null) {
+                runnerTransformStream(cid, childProcess.stderr).pipe(stdErrStream)
+            }
         }
 
         return childProcess

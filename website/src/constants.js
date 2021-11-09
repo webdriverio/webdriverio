@@ -111,23 +111,31 @@ export const logos = [{
     img: 'rabobank.png',
     alt: 'Rabobank',
     url: 'https://www.rabobank.com/'
+},
+/**
+ * Page 4
+ */
+{
+    img: 'bedrock.jpg',
+    alt: 'Bedrock Streaming',
+    url: 'https://www.bedrockstreaming.com/'
 }]
 
 export const LHIntregrationExample = `
-browser.emulateDevice('iPhone X')
-browser.enablePerformanceAudits({
+await browser.emulateDevice('iPhone X')
+await browser.enablePerformanceAudits({
     networkThrottling: 'Good 3G',
     cacheEnabled: true,
     formFactor: 'mobile'
 })
 
 // open application under test
-browser.url('https://localhost:3000')
+await browser.url('https://localhost:3000')
 
-expect(browser.getMetrics().firstMeaningfulPaint)
+expect(await browser.getMetrics().firstMeaningfulPaint)
     .toBeBelow(2500)
 
-const pwaCheckResult = browser.checkPWA()
+const pwaCheckResult = await browser.checkPWA()
 expect(pwaCheckResult.passed).toBe(true)
 `
 
@@ -138,21 +146,21 @@ $ npx wdio run
 `
 
 export const ReactIntegration = `
-browser.url('https://ahfarmer.github.io/calculator/');
-const appWrapper = browser.$('div#root')
+await browser.url('https://ahfarmer.github.io/calculator/');
+const appWrapper = await browser.$('div#root')
 
-browser.react$('t', {
+await browser.react$('t', {
     props: { name: '7' }
 }).click()
-browser.react$('t', {
+await browser.react$('t', {
     props: { name: 'x' }
 }).click()
-browser.react$('t', {
+await browser.react$('t', {
     props: { name: '6' }
 }).click()
-browser.react$('t', {
+await browser.react$('t', {
     props: { name: '=' }
 }).click()
 
 // prints "42"
-console.log($('.component-display').getText());`
+console.log(await $('.component-display').getText());`

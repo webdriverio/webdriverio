@@ -1,3 +1,4 @@
+import type { TraceStreamJson } from '@tracerbench/trace-event'
 import type { ReportOptions } from 'istanbul-reports'
 import type { Totals, CoverageSummaryData } from 'istanbul-lib-coverage'
 import type { Viewport } from 'puppeteer-core/lib/cjs/puppeteer/common/PuppeteerViewport'
@@ -26,6 +27,11 @@ export interface CoverageReporterOptions {
      * Options for coverage report
      */
     options?: any
+    /**
+     * Exclude code coverage files
+     * @default []
+     */
+    exclude?: (RegExp | string)[]
 }
 
 export type FormFactor = 'mobile' | 'desktop' | 'none'
@@ -100,7 +106,6 @@ export interface MetricsResult {
 export interface MetricsResults {
     details: {
         items: {
-            estimatedInputLatency: number
             observedDomContentLoaded: number
             observedFirstVisualChange: number
             observedFirstPaint: number
@@ -108,11 +113,11 @@ export interface MetricsResults {
             firstMeaningfulPaint: number
             largestContentfulPaint: number
             observedLastVisualChange: number
-            firstCPUIdle: number
             interactive: number
             observedLoad: number
             speedIndex: number
             totalBlockingTime: number
+            maxPotentialFID: number
         }[]
     }
 }
@@ -172,4 +177,10 @@ export interface PerformanceAuditOptions {
      * Enable or disable cache of resources. Defaults to true.
      */
     cacheEnabled?: boolean
+}
+
+export interface GathererDriver {
+    beginTrace (): Promise<void>
+    endTrace (): Promise<TraceStreamJson>
+    evaluate (script: Function, args: Object): Promise<any>
 }

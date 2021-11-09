@@ -6,7 +6,7 @@ title: Automation Protocols
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-With WebdriverIO, you can choose between multiple automation technologies when running your E2E tests locally or in the cloud.
+With WebdriverIO, you can choose between multiple automation technologies when running your E2E tests locally or in the cloud. By default WebdriverIO will always check for a browser driver that is compliant to the WebDriver protocol on `localhost:4444`. If it can't find such driver it falls back to use Chrome DevTools using Puppeteer under the hood.
 
 Nearly all modern browsers that support [WebDriver](https://w3c.github.io/webdriver/) also support another native interface called [DevTools](https://chromedevtools.github.io/devtools-protocol/) that can be used for automation purposes.
 
@@ -79,30 +79,28 @@ exports.config = {
 ```
 ```js title="devtools.e2e.js"
 describe('my test', () => {
-    it('can use Puppeteer as automation fallback', () => {
+    it('can use Puppeteer as automation fallback', async () => {
         // WebDriver command
-        browser.url('https://webdriver.io')
+        await browser.url('https://webdriver.io')
 
         // get <Puppeteer.Browser> instance (https://pptr.dev/#?product=Puppeteer&version=v5.2.1&show=api-class-browser)
-        const puppeteer = browser.getPuppeteer()
+        const puppeteer = await browser.getPuppeteer()
 
-        // switch to Puppeteer to intercept requests
-        browser.call(async () => {
-            const page = (await puppeteer.pages())[0]
-            await page.setRequestInterception(true)
-            page.on('request', interceptedRequest => {
-                if (interceptedRequest.url().endsWith('webdriverio.png')) {
-                    return interceptedRequest.continue({
-                        url: 'https://webdriver.io/img/puppeteer.png'
-                    })
-                }
+        // use Puppeteer interfaces
+        const page = (await puppeteer.pages())[0]
+        await page.setRequestInterception(true)
+        page.on('request', interceptedRequest => {
+            if (interceptedRequest.url().endsWith('webdriverio.png')) {
+                return interceptedRequest.continue({
+                    url: 'https://webdriver.io/img/puppeteer.png'
+                })
+            }
 
-                interceptedRequest.continue()
-            })
+            interceptedRequest.continue()
         })
 
         // continue with WebDriver commands
-        browser.url('https://webdriver.io')
+        await browser.url('https://webdriver.io')
 
         /**
          * WebdriverIO logo is no replaced with the Puppeteer logo
@@ -123,7 +121,7 @@ const { remote } = require('webdriverio')
 
 (async () => {
     const browser = await remote({
-        devtoolsProtocol: 'devtools',
+        automationProtocol: 'devtools',
         capabilities: {
             browserName: 'chrome'
         }

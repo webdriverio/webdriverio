@@ -1,8 +1,11 @@
 import puppeteer from 'puppeteer-core'
+import logger from '@wdio/logger'
 import { Capabilities } from '@wdio/types'
 import { Browser as PuppeteerBrowser } from 'puppeteer-core/lib/cjs/puppeteer/common/Browser'
 
 import { FF_REMOTE_DEBUG_ARG } from '../../constants'
+
+const log = logger('webdriverio')
 
 /**
  * Get the [Puppeteer Browser instance](https://pptr.dev/#?product=Puppeteer&version=v5.1.0&show=api-class-browser)
@@ -21,19 +24,19 @@ import { FF_REMOTE_DEBUG_ARG } from '../../constants'
  *
  * <example>
     :getPuppeteer.test.js
-    it('should allow me to use Puppeteer', () => {
+    it('should allow me to use Puppeteer', async () => {
         // WebDriver command
-        browser.url('https://webdriver.io')
+        await browser.url('https://webdriver.io')
 
-        const puppeteerBrowser = browser.getPuppeteer()
+        const puppeteerBrowser = await browser.getPuppeteer()
         // switch to Puppeteer
-        const metrics = browser.call(async () => {
+        const metrics = await browser.call(async () => {
             await pages = await puppeteerBrowser.pages()
             pages[0].setGeolocation({ latitude: 59.95, longitude: 30.31667 })
             return pages[0].metrics()
         })
 
-        console.log(metrics.LayoutCount) // returns 42
+        console.log(metrics.LayoutCount) // returns LayoutCount value
     })
  * </example>
  *
@@ -44,7 +47,8 @@ export default async function getPuppeteer (this: WebdriverIO.Browser) {
      * check if we already connected Puppeteer and if so return
      * that instance
      */
-    if (this.puppeteer) {
+    if (this.puppeteer?.isConnected()) {
+        log.debug('Reusing existing puppeteer session')
         return this.puppeteer
     }
 
@@ -56,7 +60,6 @@ export default async function getPuppeteer (this: WebdriverIO.Browser) {
     if (cdpEndpoint) {
         this.puppeteer = await puppeteer.connect({
             browserWSEndpoint: cdpEndpoint,
-            // @ts-ignore ToDo: remove once https://github.com/puppeteer/puppeteer/pull/6942 is released
             defaultViewport: null
         }) as any as PuppeteerBrowser
         return this.puppeteer
@@ -70,7 +73,6 @@ export default async function getPuppeteer (this: WebdriverIO.Browser) {
         const { hostname, port } = this.options
         this.puppeteer = await puppeteer.connect({
             browserWSEndpoint: `ws://${hostname}:${port}/devtools/${this.sessionId}`,
-            // @ts-ignore ToDo(@L0tso): remove comment once https://github.com/puppeteer/puppeteer/pull/6942 is released
             defaultViewport: null
         }) as any as PuppeteerBrowser
         return this.puppeteer
@@ -82,7 +84,6 @@ export default async function getPuppeteer (this: WebdriverIO.Browser) {
     if (chromiumOptions && chromiumOptions.debuggerAddress) {
         this.puppeteer = await puppeteer.connect({
             browserURL: `http://${chromiumOptions.debuggerAddress}`,
-            // @ts-ignore ToDo(@L0tso): remove comment once https://github.com/puppeteer/puppeteer/pull/6942 is released
             defaultViewport: null
         }) as any as PuppeteerBrowser
         return this.puppeteer
@@ -112,7 +113,6 @@ export default async function getPuppeteer (this: WebdriverIO.Browser) {
 
             this.puppeteer = await puppeteer.connect({
                 browserURL: `http://localhost:${rdPort}`,
-                // @ts-ignore ToDo(@L0tso): remove comment once https://github.com/puppeteer/puppeteer/pull/6942 is merged
                 defaultViewport: null
             }) as any as PuppeteerBrowser
             return this.puppeteer as any as PuppeteerBrowser

@@ -4,21 +4,22 @@
  *
  * <example>
     :switchWindow.js
-    it('should switch to another window', () => {
+    it('should switch to another window', async () => {
         // open url
-        browser.url('https://google.com')
+        await browser.url('https://google.com')
+
         // create new window
-        browser.newWindow('https://webdriver.io')
+        await browser.newWindow('https://webdriver.io')
 
         // switch back via url match
-        browser.switchWindow('google.com')
+        await browser.switchWindow('google.com')
 
         // switch back via title match
-        browser.switchWindow('Next-gen browser and mobile automation test framework for Node.js')
+        await browser.switchWindow('Next-gen browser and mobile automation test framework for Node.js')
     });
  * </example>
  *
- * @param {String|RegExp}  urlOrTitleToMatch  String or regular expression that matches the title or url of the page
+ * @param {String|RegExp}  matcher  String or regular expression that matches the title and url of the page or window name
  *
  * @uses protocol/getWindowHandles, protocol/switchToWindow, protocol/getUrl, protocol/getTitle
  * @alias browser.switchTab
@@ -27,22 +28,22 @@
  */
 export default async function switchWindow (
     this: WebdriverIO.Browser,
-    urlOrTitleToMatch: string | RegExp
+    matcher: string | RegExp
 ) {
     /**
      * parameter check
      */
-    if (typeof urlOrTitleToMatch !== 'string' && !(urlOrTitleToMatch instanceof RegExp)) {
+    if (typeof matcher !== 'string' && !(matcher instanceof RegExp)) {
         throw new Error('Unsupported parameter for switchWindow, required is "string" or an RegExp')
     }
 
     const tabs = await this.getWindowHandles()
 
     const matchesTarget = (target: string): boolean => {
-        if (typeof urlOrTitleToMatch ==='string') {
-            return target.includes(urlOrTitleToMatch)
+        if (typeof matcher ==='string') {
+            return target.includes(matcher)
         }
-        return !!target.match(urlOrTitleToMatch)
+        return !!target.match(matcher)
     }
 
     for (const tab of tabs) {
@@ -63,7 +64,17 @@ export default async function switchWindow (
         if (matchesTarget(title)) {
             return tab
         }
+
+        /**
+         * check window name
+         */
+        const windowName = await this.execute(
+            /* istanbul ignore next */
+            () => window.name)
+        if (windowName && matchesTarget(windowName)) {
+            return tab
+        }
     }
 
-    throw new Error(`No window found with title or url matching "${urlOrTitleToMatch}"`)
+    throw new Error(`No window found with title, url or name matching "${matcher}"`)
 }

@@ -4,6 +4,7 @@ import DevTools from '../src'
 jest.mock('../src/launcher', () => jest.fn().mockImplementation((capabilities) => {
     capabilities['goog:chromeOptions'] = capabilities['goog:chromeOptions'] || {}
     return {
+        on: jest.fn(),
         pages: jest.fn().mockReturnValue(Promise.resolve([{
             on: jest.fn(),
             setDefaultTimeout: jest.fn()

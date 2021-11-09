@@ -7,7 +7,7 @@ If your company uses WebdriverIO and benefits from it, please ask your manager o
 
 Please checkout our [OpenCollective page](https://opencollective.com/webdriverio) for further information on how to donate to the project.
 
-Thank you to everyone who will or has donated money to the collective and therefor has supported the project and everyone who contributed to it. It really means a lot ❤️
+Thank you to everyone who will or has donated money to the collective and therefore has supported the project and everyone who contributed to it. It really means a lot ❤️
 
 ## Expense Policies
 

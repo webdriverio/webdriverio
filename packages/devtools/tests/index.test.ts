@@ -74,4 +74,16 @@ describe('DevTools', () => {
             expect(process.env.WDIO_LOG_PATH).toBe(customPath)
         })
     })
+
+    describe('reloadSession', () => {
+        it('should update puppeteer property', async () => {
+            const client = await DevTools.newSession({
+                capabilities: { browserName: 'chrome' },
+            })
+
+            expect(client.puppeteer).toBe(undefined)
+            await DevTools.reloadSession(client)
+            expect(client.puppeteer).not.toBe(undefined)
+        })
+    })
 })

@@ -82,24 +82,24 @@ export default function wrapCommand (commandName: string, fn: Function) {
             const futureResult = future.wait()
             inFiber(this)
             return futureResult
-        } catch (e) {
+        } catch (err: any) {
             /**
              * in case some 3rd party lib rejects without bundling into an error
              */
-            if (typeof e === 'string') {
-                throw new Error(e)
+            if (typeof err === 'string') {
+                throw new Error(err)
             }
 
             /**
              * in case we run commands where no fiber function was used
              * e.g. when we call deleteSession
              */
-            if (e.message.includes('Can\'t wait without a fiber')) {
+            if (err.message.includes('Can\'t wait without a fiber')) {
                 return result
             }
 
             inFiber(this)
-            throw e
+            throw err
         }
     }
 }
@@ -123,7 +123,7 @@ async function runCommandWithHooks(
     let commandError
     try {
         commandResult = await fn.apply(this, args)
-    } catch (err) {
+    } catch (err: any) {
         commandError = sanitizeErrorMessage(err, stackError)
     }
 

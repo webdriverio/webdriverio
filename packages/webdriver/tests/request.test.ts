@@ -4,7 +4,7 @@ import http from 'http'
 import https from 'https'
 
 import { Options } from '@wdio/types'
-import WebDriverRequest from '../src/request'
+import WebDriverRequest from '../src/request/node'
 
 type LogMock = {
     warn: jest.Mock,

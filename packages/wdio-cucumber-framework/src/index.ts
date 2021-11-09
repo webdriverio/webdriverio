@@ -6,15 +6,32 @@ import isGlob from 'is-glob'
 import glob from 'glob'
 
 import * as Cucumber from '@cucumber/cucumber'
-import GherkinStreams from '@cucumber/gherkin/dist/src/stream/GherkinStreams'
+import {
+    After,
+    AfterAll,
+    AfterStep,
+    Before,
+    BeforeAll,
+    BeforeStep,
+    defineParameterType,
+    defineStep,
+    Given,
+    setDefaultTimeout,
+    setDefinitionFunctionWrapper,
+    setWorldConstructor,
+    Then,
+    When
+} from '@cucumber/cucumber'
+import { GherkinStreams } from '@cucumber/gherkin-streams'
 import EventDataCollector from '@cucumber/cucumber/lib/formatter/helpers/event_data_collector'
 import { ITestCaseHookParameter } from '@cucumber/cucumber/lib/support_code_library_builder/types'
 import { IRuntimeOptions } from '@cucumber/cucumber/lib/runtime'
-import { Long }  from 'long'
+import { Long } from 'long'
 import { IdGenerator } from '@cucumber/messages'
 
 import { executeHooksWithArgs, testFnWrapper } from '@wdio/utils'
-import type { Capabilities, Options } from '@wdio/types'
+import type { Capabilities, Options, Frameworks } from '@wdio/types'
+import type ExpectWebdriverIO from 'expect-webdriverio'
 
 import CucumberReporter from './reporter'
 import { DEFAULT_OPTS } from './constants'
@@ -22,6 +39,14 @@ import { CucumberOptions, StepDefinitionOptions, HookFunctionExtension as HookFu
 import { setUserHookNames } from './utils'
 
 const { incrementing } = IdGenerator
+
+function getResultObject (world: ITestCaseHookParameter): Frameworks.PickleResult {
+    return {
+        passed: world.result?.status === Cucumber.Status.PASSED,
+        error: world.result?.message as string,
+        duration: world.result?.duration?.nanos as number / 10e6 // convert into ms
+    }
+}
 
 class CucumberAdapter {
     private _cwd = process.cwd()
@@ -161,8 +186,8 @@ class CucumberAdapter {
             if (this._cucumberOpts.ignoreUndefinedDefinitions && result) {
                 result = this._cucumberReporter.failedCount
             }
-        } catch (e) {
-            runtimeError = e
+        } catch (err: any) {
+            runtimeError = err
             result = 1
         }
 
@@ -232,10 +257,10 @@ class CucumberAdapter {
     }
 
     /**
-     * set `beforeScenario`, `afterScenario`, `beforeFeature`, `afterFeature`
+     * set `beforeFeature`, `afterFeature`, `beforeScenario`, `afterScenario`, 'beforeStep', 'afterStep'
      * @param {object} config config
      */
-    addWdioHooks (config: Options.Testrunner) {
+    addWdioHooks(config: Options.Testrunner) {
         const eventListener = this._cucumberReporter?.eventListener
         Cucumber.BeforeAll(async function wdioHookBeforeFeature() {
             const params = eventListener?.getHookParams()
@@ -253,18 +278,34 @@ class CucumberAdapter {
                 [params?.uri, params?.feature]
             )
         })
-        Cucumber.Before(async function wdioHookBeforeScenario (world: ITestCaseHookParameter) {
+        Cucumber.Before(async function wdioHookBeforeScenario(world: ITestCaseHookParameter) {
             await executeHooksWithArgs(
                 'beforeScenario',
                 config.beforeScenario,
-                [world]
+                [world, this]
             )
         })
-        Cucumber.After(async function wdioHookAfterScenario (world: ITestCaseHookParameter) {
+        Cucumber.After(async function wdioHookAfterScenario(world: ITestCaseHookParameter) {
             await executeHooksWithArgs(
                 'afterScenario',
                 config.afterScenario,
-                [world]
+                [world, getResultObject(world), this]
+            )
+        })
+        Cucumber.BeforeStep(async function wdioHookBeforeStep() {
+            const params = eventListener?.getHookParams()
+            await executeHooksWithArgs(
+                'beforeStep',
+                config.beforeStep,
+                [params?.step, params?.scenario, this]
+            )
+        })
+        Cucumber.AfterStep(async function wdioHookAfterStep(world: ITestCaseHookParameter) {
+            const params = eventListener?.getHookParams()
+            await executeHooksWithArgs(
+                'afterStep',
+                config.afterStep,
+                [params?.step, params?.scenario, getResultObject(world), this]
             )
         })
     }
@@ -300,10 +341,10 @@ class CucumberAdapter {
     /**
      * wrap step definition to enable retry ability
      * @param   {Function}  code            step definition
-     * @param   {Number}    retryTest       amount of allowed repeats is case of a failure
      * @param   {boolean}   isStep
      * @param   {object}    config
      * @param   {string}    cid             cid
+     * @param   {StepDefinitionOptions} options
      * @param   {Function}  getHookParams  step definition
      * @return  {Function}                  wrapped step definition for sync WebdriverIO code
      */
@@ -322,8 +363,8 @@ class CucumberAdapter {
             /**
              * wrap user step/hook with wdio before/after hooks
              */
-            const beforeFn = isStep ? config.beforeStep : config.beforeHook
-            const afterFn = isStep ? config.afterStep : config.afterHook
+            const beforeFn = config.beforeHook
+            const afterFn = config.afterHook
             return testFnWrapper.call(this,
                 isStep ? 'Step' : 'Hook',
                 { specFn: code, specFnArgs: args },
@@ -350,11 +391,33 @@ adapterFactory.init = async function (...args: any[]) {
 }
 
 export default adapterFactory
-export { CucumberAdapter, adapterFactory }
+export {
+    CucumberAdapter,
+    adapterFactory,
+    After,
+    AfterAll,
+    AfterStep,
+    Before,
+    BeforeAll,
+    BeforeStep,
+    defineParameterType,
+    defineStep,
+    Given,
+    setDefaultTimeout,
+    setDefinitionFunctionWrapper,
+    setWorldConstructor,
+    Then,
+    When
+}
 
 declare global {
     namespace WebdriverIO {
         interface CucumberOpts extends CucumberOptions {}
         interface HookFunctionExtension extends HookFunctionExtensionImport {}
+    }
+    namespace NodeJS {
+        interface Global {
+            expect: ExpectWebdriverIO.Expect
+        }
     }
 }

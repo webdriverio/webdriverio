@@ -1,11 +1,12 @@
 import type { Options } from '@wdio/types'
+import type Mocha from 'mocha'
 
 export interface MochaOpts {
     /**
      * The `require` option is useful when you want to add or extend some
      * basic functionality (WebdriverIO framework option).
      */
-    require?: string | string[],
+    require?: string[],
     /**
      * Use the given module(s) to compile files. Compilers will be included
      * before requires (WebdriverIO framework option).

@@ -79,7 +79,7 @@ describe('FileSystemPathService', () => {
 
         it('should load files', function () {
             var svc = new FileSystemPathService()
-            const loaded = svc.loadFile(INDEX_PATH)
+            const loaded = svc.loadFile(INDEX_PATH) as any
             expect(loaded.ConfigParser).toBeDefined()
         })
 

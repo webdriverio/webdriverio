@@ -25,7 +25,7 @@ const cdpClient = {
     }))
 }
 
-const browserMock = {} as any as WebdriverIO.BrowserObject
+const browserMock = {} as any as WebdriverIO.Browser
 
 const fetchListener = async (mock: any, params: any, client = cdpClient) => {
     const reponseParams = Object.entries(params).reduce((acc, [key, val]) => {

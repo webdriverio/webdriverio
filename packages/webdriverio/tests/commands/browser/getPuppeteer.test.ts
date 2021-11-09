@@ -5,7 +5,7 @@ import { remote } from '../../../src'
 const puppeteerConnect = puppeteer.connect as jest.Mock
 
 describe('attach Puppeteer', () => {
-    let browser: WebdriverIO.BrowserObject
+    let browser: WebdriverIO.Browser
 
     beforeEach(() => {
         puppeteerConnect.mockClear()
@@ -114,9 +114,11 @@ describe('attach Puppeteer', () => {
                     debuggerAddress: 'localhost:1234'
                 }
             },
-            puppeteer: 'foobar'
+            puppeteer: {
+                isConnected: jest.fn().mockReturnValue(true)
+            }
         })
-        expect(pptr).toBe('foobar')
+        expect(typeof pptr).toBe('object')
         expect(puppeteerConnect).toHaveBeenCalledTimes(0)
     })
 

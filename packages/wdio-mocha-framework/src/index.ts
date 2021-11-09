@@ -10,6 +10,7 @@ import { loadModule } from './utils'
 import { INTERFACES, EVENTS, NOOP, MOCHA_TIMEOUT_MESSAGE, MOCHA_TIMEOUT_MESSAGE_REPLACEMENT } from './constants'
 import type { MochaConfig, MochaOpts as MochaOptsImport, FrameworkMessage, FormattedMessage, MochaContext, MochaError } from './types'
 import type { EventEmitter } from 'events'
+import type ExpectWebdriverIO from 'expect-webdriverio'
 
 const log = logger('@wdio/mocha-framework')
 
@@ -86,13 +87,13 @@ class MochaAdapter {
             /**
              * grep
              */
-            const mochaRunner = new Mocha.Runner(this._mocha!.suite, false)
+            const mochaRunner = new Mocha.Runner(this._mocha!.suite, { delay: false })
             if (mochaOpts.grep) {
                 mochaRunner.grep(this._mocha!.options.grep as RegExp, mochaOpts.invert!)
             }
 
             this._hasTests = mochaRunner.total > 0
-        } catch (err) {
+        } catch (err: any) {
             const error = '' +
                 'Unable to load spec files quite likely because they rely on `browser` object that is not fully initialised.\n' +
                 '`browser` object has only `capabilities` and some flags like `isMobile`.\n' +
@@ -115,8 +116,8 @@ class MochaAdapter {
         const result = await new Promise((resolve) => {
             try {
                 this._runner = mocha.run(resolve)
-            } catch (e) {
-                runtimeError = e
+            } catch (err: any) {
+                runtimeError = err
                 return resolve(1)
             }
 
@@ -251,7 +252,16 @@ class MochaAdapter {
             message.title = params.payload.title
             message.parent = params.payload.parent ? params.payload.parent.title : null
 
-            message.fullTitle = params.payload.fullTitle ? params.payload.fullTitle() : message.parent + ' ' + message.title
+            let fullTitle = message.title
+            if (params.payload.parent) {
+                let parent = params.payload.parent
+                while (parent && parent.title) {
+                    fullTitle = parent.title + '.' + fullTitle
+                    parent = parent.parent
+                }
+            }
+
+            message.fullTitle = fullTitle
             message.pending = params.payload.pending || false
             message.file = params.payload.file
             message.duration = params.payload.duration
@@ -385,5 +395,10 @@ export { MochaAdapter, adapterFactory }
 declare global {
     namespace WebdriverIO {
         interface MochaOpts extends MochaOptsImport {}
+    }
+    namespace NodeJS {
+        interface Global {
+            expect: ExpectWebdriverIO.Expect
+        }
     }
 }

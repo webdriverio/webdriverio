@@ -1,6 +1,8 @@
+import type { Capabilities } from '@wdio/types'
 
 import refetchElement from './utils/refetchElement'
 import implicitWait from './utils/implicitWait'
+import { getBrowserObject } from './utils'
 import { ELEMENT_KEY } from './constants'
 
 /**
@@ -23,22 +25,27 @@ export const elementErrorHandler = (fn: Function) => (commandName: string, comma
                  * assume Safari responses like { error: 'no such element', message: '', stacktrace: '' }
                  * as `stale element reference`
                  */
-                if (result && result.error === 'no such element') {
-                    const err = new Error()
-                    err.name = 'stale element reference'
+                const caps = getBrowserObject(this).capabilities as Capabilities.Capabilities
+                if (
+                    caps && caps.browserName === 'safari' &&
+                    result && result.error === 'no such element'
+                ) {
+                    const errorName = 'stale element reference'
+                    const err = new Error(errorName)
+                    err.name = errorName
                     throw err
                 }
 
                 return result
-            } catch (error) {
-                if (error.name === 'stale element reference') {
+            } catch (err: any) {
+                if (err.name === 'stale element reference') {
                     const element = await refetchElement(this, commandName)
                     this.elementId = element.elementId
                     this.parent = element.parent
 
                     return await fn(commandName, commandFn).apply(this, args)
                 }
-                throw error
+                throw err
             }
         }).apply(this)
 

@@ -56,7 +56,7 @@ export interface Timeouts {
     script?: number
 }
 
-export type SameSiteOptions = 'Lax' | 'Strict'
+export type SameSiteOptions = 'Lax' | 'Strict' | 'None'
 export interface Cookie {
     /**
      * The name of the cookie.

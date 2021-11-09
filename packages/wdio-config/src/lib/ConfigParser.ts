@@ -2,19 +2,17 @@ import merge from 'deepmerge'
 import logger from '@wdio/logger'
 import type { Capabilities, Options, Services } from '@wdio/types'
 
+import RequireLibrary from './RequireLibrary'
+import FileSystemPathService from './FileSystemPathService'
 import {
     removeLineNumbers, isCucumberFeatureWithLineNumber, validObjectOrArray,
-    loadAutoCompilers, ModuleRequireService
+    loadAutoCompilers
 } from '../utils'
-import {
-    SUPPORTED_HOOKS,
-    SUPPORTED_FILE_EXTENSIONS
-} from '../constants'
-import {
-    DEFAULT_CONFIGS
-} from '../'
-import FileSystemPathService from './FileSystemPathService'
-import RequireLibrary from './RequireLibrary'
+import { SUPPORTED_HOOKS, SUPPORTED_FILE_EXTENSIONS } from '../constants'
+import { DEFAULT_CONFIGS } from '../constants'
+
+import type { PathService, ModuleRequireService } from '../types'
+
 const log = logger('@wdio/config:ConfigParser')
 const MERGE_OPTIONS = { clone: false }
 
@@ -28,46 +26,18 @@ interface TestrunnerOptionsWithParameters extends Omit<Options.Testrunner, 'capa
 }
 
 interface MergeConfig extends Omit<Partial<TestrunnerOptionsWithParameters>, 'specs' | 'exclude'> {
-    specs?: Spec
-    exclude?: Spec
+    specs?: Spec[]
+    exclude?: string[]
 }
-
-// Get current working directory
-interface CurrentPathFinder {
-    getcwd(): string
-}
-
-// Require a .js/.json/dotfile config file
-interface LoadConfigFile {
-    loadFile<T>(path: string): T
-}
-
-// Detect if a file is present
-interface IsFileDetector {
-    isFile(path: string): boolean
-}
-
-interface DeterminesAbsolutePath {
-    ensureAbsolutePath(path: string): string
-}
-
-// Glob to find file paths matching a pattern
-interface Globber {
-    glob(pattern: string): string[];
-}
-
-export interface PathService extends CurrentPathFinder, LoadConfigFile, IsFileDetector, Globber, DeterminesAbsolutePath {}
 
 export default class ConfigParser {
     private _config: TestrunnerOptionsWithParameters = DEFAULT_CONFIGS()
-    private _capabilities: Capabilities.RemoteCapabilities = [];
-    private _pathService: PathService;
-    private _moduleRequireService: ModuleRequireService;
+    private _capabilities: Capabilities.RemoteCapabilities = []
 
-    constructor(pathService: PathService = new FileSystemPathService(), moduleRequireService: ModuleRequireService = new RequireLibrary()) {
-        this._pathService = pathService
-        this._moduleRequireService = moduleRequireService
-    }
+    constructor(
+        private _pathService: PathService = new FileSystemPathService(),
+        private _moduleRequireService: ModuleRequireService = new RequireLibrary()
+    ) {}
 
     autoCompile() {
         /**
@@ -123,7 +93,7 @@ export default class ConfigParser {
              * remove `watch` from config as far as it can be only passed as command line argument
              */
             delete this._config.watch
-        } catch (e) {
+        } catch (e: any) {
             log.error(`Failed loading configuration file: ${filePath}:`, e.message)
             throw e
         }
@@ -178,14 +148,17 @@ export default class ConfigParser {
      * @param {Object} service - an object that contains hook methods.
      */
     addService(service: Services.Hooks) {
-        const addHook = <T extends keyof Services.Hooks>(hookName: T, hook: Extract<Services.Hooks[T], Function>) => {
-            const existingHooks: Options.Testrunner[keyof Services.Hooks] = this._config[hookName]
+        const addHook = (hookName: string, hook: Function) => {
+            // @ts-ignore Expression produces a union type that is too complex to represent
+            const existingHooks = this._config[hookName]
             if (!existingHooks) {
                 // @ts-ignore Expression produces a union type that is too complex to represent
                 this._config[hookName] = hook.bind(service)
             } else if (typeof existingHooks === 'function') {
+                // @ts-ignore Expression produces a union type that is too complex to represent
                 this._config[hookName] = [existingHooks, hook.bind(service)]
             } else {
+                // @ts-ignore Expression produces a union type that is too complex to represent
                 this._config[hookName] = [...existingHooks, hook.bind(service)]
             }
         }
@@ -272,7 +245,7 @@ export default class ConfigParser {
      * cli argument
      * @return {String[]} List of files that should be included or excluded
      */
-    setFilePathToFilterOptions(cliArgFileList: string[], config: string[]) {
+    setFilePathToFilterOptions(cliArgFileList: string[], config: Spec[]) {
         const filesToFilter = new Set<string>()
         const fileList = ConfigParser.getFilePaths(config, undefined, this._pathService)
         cliArgFileList.forEach(filteredFile => {
@@ -336,7 +309,7 @@ export default class ConfigParser {
      * @param  {number} hierarchy depth to prevent recursive calling beyond a depth of 1
      * @return {String[] | String[][]} list of files
      */
-    static getFilePaths(patterns: Spec[], omitWarnings?: boolean, findAndGlob: CurrentPathFinder & Globber & DeterminesAbsolutePath = new FileSystemPathService(), hierarchyDepth?: number) {
+    static getFilePaths(patterns: Spec[], omitWarnings?: boolean, findAndGlob: PathService = new FileSystemPathService(), hierarchyDepth?: number) {
         let files: Spec[] = []
         let groupedFiles: string[] = []
 

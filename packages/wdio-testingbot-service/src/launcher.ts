@@ -10,9 +10,9 @@ import { TestingbotOptions, TestingbotTunnel, TunnelLauncherOptions } from './ty
 const log = logger('@wdio/testingbot-service')
 
 export default class TestingBotLauncher implements Services.ServiceInstance {
-    options: TestingbotOptions;
-    tbTunnelOpts!: TunnelLauncherOptions;
-    tunnel?: TestingbotTunnel;
+    options: TestingbotOptions
+    tbTunnelOpts!: TunnelLauncherOptions
+    tunnel?: TestingbotTunnel
     constructor (options: TestingbotOptions) {
         this.options = options
     }
@@ -49,7 +49,7 @@ export default class TestingBotLauncher implements Services.ServiceInstance {
             const entry = list.getEntries()[0]
             log.info(`TestingBot tunnel successfully started after ${entry.duration}ms`)
         })
-        obs.observe({ entryTypes: ['measure'], buffered: false })
+        obs.observe({ entryTypes: ['measure'] })
 
         performance.mark('tbTunnelStart')
         this.tunnel = await promisify(testingbotTunnel)(this.tbTunnelOpts)

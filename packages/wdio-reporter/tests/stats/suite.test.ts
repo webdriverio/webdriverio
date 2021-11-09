@@ -7,7 +7,8 @@ test('should get initialised', () => {
         fullTitle: 'barfoo',
         file: '/this/is/a/file.txt',
         description: 'some description',
-        tags: ['foo', 'bar']
+        tags: ['foo', 'bar'],
+        parent: 'foobar'
     })
 
     const { start, ...snapshot } = suite

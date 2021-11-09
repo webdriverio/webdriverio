@@ -24,7 +24,7 @@ It is easy to set up your tests to run remotely in [Sauce Labs](https://saucelab
 
 The only requirement is to set the `user` and `key` in your config (either exported by `wdio.conf.js` or passed into `webdriverio.remote(...)`) to your Sauce Labs username and access key.
 
-You can also pass in any optional [test configuration option](https://docs.saucelabs.com/reference/test-configuration/#webdriver-api) as a key/value in the capabilities for any browser.
+You can also pass in any optional [test configuration option](https://docs.saucelabs.com/dev/test-configuration-options/) as a key/value in the capabilities for any browser.
 
 ### Sauce Connect
 
@@ -59,7 +59,7 @@ build: process.env.TRAVIS_BUILD_NUMBER
 
 Since you are running your tests remotely, it might be necessary to increase some timeouts.
 
-You can change the [idle timeout](https://docs.saucelabs.com/reference/test-configuration/#idle-test-timeout) by passing `idle-timeout` as a test configuration option. This controls how long Sauce will wait between commands before closing the connection.
+You can change the [idle timeout](https://docs.saucelabs.com/dev/test-configuration-options/#idletimeout) by passing `idle-timeout` as a test configuration option. This controls how long Sauce will wait between commands before closing the connection.
 
 ## BrowserStack
 

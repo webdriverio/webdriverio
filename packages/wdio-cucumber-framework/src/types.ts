@@ -1,5 +1,5 @@
-import type { Capabilities } from '@wdio/types'
-import type { messages } from '@cucumber/messages'
+import type { Capabilities, Frameworks } from '@wdio/types'
+import type { Pickle, PickleStep, TestStep, Feature } from '@cucumber/messages'
 import type { ITestCaseHookParameter } from '@cucumber/cucumber/lib/support_code_library_builder/types'
 
 export interface CucumberOptions {
@@ -86,6 +86,16 @@ export interface CucumberOptions {
      */
     timeout?: number
     /**
+     * Specify the number of times to retry failing test cases.
+     * @default 0
+     */
+    retry: number
+    /**
+     * Only retries the features or scenarios with tags matching the expression (repeatable).
+     * This option requires 'retry' to be specified.
+     */
+    retryTagFilter?: RegExp | string
+    /**
      * Enable this to make webdriver.io behave as if scenarios
      * and not steps were the tests.
      * @default false
@@ -122,9 +132,9 @@ export interface TestHookDefinitionConfig {
 
 export interface HookParams {
     uri?: string | null,
-    feature?: messages.GherkinDocument.IFeature | null,
-    scenario?: messages.IPickle,
-    step?: messages.Pickle.IPickleStep
+    feature?: Feature | null,
+    scenario?: Pickle,
+    step?: PickleStep | TestStep
 }
 
 export interface StepDefinitionOptions {
@@ -138,37 +148,49 @@ export interface HookFunctionExtension {
      * @param uri      path to feature file
      * @param feature  Cucumber feature object
      */
-    beforeFeature?(uri: string, feature: messages.GherkinDocument.IFeature): void;
+    beforeFeature?(uri: string, feature: Feature): void;
 
     /**
      *
      * Runs before a Cucumber Scenario.
-     * @param world world object containing information on pickle and test step
+     * @param world     world object containing information on pickle and test step
+     * @param context   Cucumber World object
      */
-    beforeScenario?(world: ITestCaseHookParameter): void;
+    beforeScenario?(world: ITestCaseHookParameter, context: Object): void;
 
     /**
      *
      * Runs before a Cucumber Step.
-     * @param step    step data
-     * @param context Cucumber world
+     * @param step     step data
+     * @param scenario scenario data
+     * @param context  Cucumber World object
      */
-    beforeStep?(step: messages.Pickle.IPickleStep, context: unknown): void;
+    beforeStep?(step: PickleStep, scenario: Pickle, context: Object): void;
 
     /**
      *
      * Runs after a Cucumber Step.
-     * @param step    step data
-     * @param context Cucumber world
+     * @param step            step data
+     * @param scenario        scenario data
+     * @param result          result object containing
+     * @param result.passed   true if scenario has passed
+     * @param result.error    error stack if scenario failed
+     * @param result.duration duration of scenario in milliseconds
+     * @param context         Cucumber World object
      */
-    afterStep?(step: messages.Pickle.IPickleStep, context: unknown): void;
+    afterStep?(step: PickleStep, scenario: Pickle, result: Frameworks.PickleResult, context: Object): void;
 
     /**
      *
-     * Runs before a Cucumber Scenario.
-     * @param world world object containing information on pickle and test step
+     * Runs after a Cucumber Scenario.
+     * @param world             world object containing information on pickle and test step
+     * @param result            result object containing
+     * @param result.passed     true if scenario has passed
+     * @param result.error      error stack if scenario failed
+     * @param result.duration   duration of scenario in milliseconds
+     * @param context           Cucumber World object
      */
-    afterScenario?(world: ITestCaseHookParameter): void;
+    afterScenario?(world: ITestCaseHookParameter, result: Frameworks.PickleResult, context: Object): void;
 
     /**
      *
@@ -176,5 +198,5 @@ export interface HookFunctionExtension {
      * @param uri      path to feature file
      * @param feature  Cucumber feature object
      */
-    afterFeature?(uri: string, feature: messages.GherkinDocument.IFeature): void;
+    afterFeature?(uri: string, feature: Feature): void;
 }

@@ -4,11 +4,18 @@ import { ELEMENT_KEY } from '../../constants'
 import { getBrowserObject, hasElementId } from '../../utils'
 import isElementDisplayedScript from '../../scripts/isElementDisplayed'
 
-const noW3CEndpoint = ['microsoftedge', 'safari', 'chrome', 'safari technology preview']
+const noW3CEndpoint = ['microsoftedge', 'msedge', 'safari', 'chrome', 'safari technology preview']
 
 /**
  *
  * Return true if the selected DOM-element is displayed.
+ *
+ * :::info
+ *
+ * As opposed to other element commands WebdriverIO will not wait for the element
+ * to exist to execute this command.
+ *
+ * :::
  *
  * <example>
     :index.html
@@ -17,26 +24,26 @@ const noW3CEndpoint = ['microsoftedge', 'safari', 'chrome', 'safari technology p
     <div id="notInViewport" style="position:absolute; left: 9999999"></div>
     <div id="zeroOpacity" style="opacity: 0"></div>
     :isDisplayed.js
-    it('should detect if an element is displayed', () => {
-        let elem = $('#notDisplayed');
-        let isDisplayed = elem.isDisplayed();
+    it('should detect if an element is displayed', async () => {
+        let elem = await $('#notDisplayed');
+        let isDisplayed = await elem.isDisplayed();
         console.log(isDisplayed); // outputs: false
 
-        elem = $('#notVisible');
+        elem = await $('#notVisible');
 
-        isDisplayed = elem.isDisplayed();
+        isDisplayed = await elem.isDisplayed();
         console.log(isDisplayed); // outputs: false
 
-        elem = $('#notExisting');
-        isDisplayed = elem.isDisplayed();
+        elem = await $('#notExisting');
+        isDisplayed = await elem.isDisplayed();
         console.log(isDisplayed); // outputs: false
 
-        elem = $('#notInViewport');
-        isDisplayed = elem.isDisplayed();
+        elem = await $('#notInViewport');
+        isDisplayed = await elem.isDisplayed();
         console.log(isDisplayed); // outputs: true
 
-        elem = $('#zeroOpacity');
-        isDisplayed = elem.isDisplayed();
+        elem = await $('#zeroOpacity');
+        isDisplayed = await elem.isDisplayed();
         console.log(isDisplayed); // outputs: true
     });
  * </example>
@@ -65,9 +72,9 @@ export default async function isDisplayed (this: WebdriverIO.Element) {
      * - Safari and Chrome work in jsonwp mode and Appium just rewrites W3C requests from upstream to jsonwp if needed
      */
     const useAtom = (
-        browser.isDevTools ||
+        await browser.isDevTools ||
         (
-            browser.isW3C &&
+            await browser.isW3C &&
             !browser.isMobile &&
             noW3CEndpoint.includes((browser.capabilities as Capabilities.Capabilities).browserName?.toLowerCase()!)
         )

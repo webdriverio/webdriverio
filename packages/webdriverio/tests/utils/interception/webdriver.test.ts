@@ -6,7 +6,7 @@ const browserMock = {
     clearMockCalls: jest.fn().mockReturnValue({}),
     respondMock: jest.fn().mockReturnValue({}),
     call: jest.fn((cb) => cb())
-} as any as WebdriverIO.BrowserObject
+} as any as WebdriverIO.Browser
 
 beforeEach(() => {
     (browserMock.mockRequest as jest.Mock).mockClear()
@@ -21,6 +21,11 @@ test('init', async () => {
     await mock.init()
     expect(browserMock.mockRequest).toBeCalledWith('**/foobar/**', { headers: { foo: 'bar' } })
     expect(mock.mockId).toBe(123)
+})
+
+test('init does not support regexp urls', async () => {
+    const mock = new NetworkInterception(/foo/, { headers: { foo: 'bar' } }, browserMock)
+    await expect(() => mock.init()).rejects.toEqual(new Error('Regular Expressions as mock url are not supported'))
 })
 
 test('calls', async () => {
@@ -119,7 +124,7 @@ test('abort fails if invalid error reason was provided', async () => {
 
     try {
         await mock.abort('foo')
-    } catch (err) {
+    } catch (err: any) {
         expect(err.message).toContain('Invalid value for errorReason')
     }
 })

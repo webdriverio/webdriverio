@@ -27,7 +27,7 @@ exports.config = {
     //
     // If you have trouble getting all important capabilities together, check out the
     // Sauce Labs platform configurator - a great tool to configure your capabilities:
-    // https://docs.saucelabs.com/reference/platforms-configurator
+    // https://saucelabs.com/platform/platform-configurator
     //
     capabilities: [{
         browserName: 'chrome'
@@ -112,15 +112,13 @@ exports.config = {
     // },
     //
     // Hook that gets executed _before_ a hook within the suite starts (e.g. runs before calling
-    // beforeEach in Mocha)
-    // stepData and world are Cucumber framework specific
-    // beforeHook: function (test, context, stepData, world) {
+    // beforeEach in Mocha). In Cucumber `context` is the World object.
+    // beforeHook: function (test, context) {
     // },
     //
     // Hook that gets executed _after_ a hook within the suite ends (e.g. runs after calling
-    // afterEach in Mocha)
-    // stepData and world are Cucumber framework specific
-    // afterHook: function (test, context, { error, result, duration, passed, retries }, stepData, world) {
+    // afterEach in Mocha). In Cucumber `context` is the World object.
+    // afterHook: function (test, context, { error, result, duration, passed, retries }) {
     // },
     //
     // Function to be executed before a test (in Mocha/Jasmine) starts.
@@ -143,37 +141,62 @@ exports.config = {
     // afterSuite: function (suite) {
     // },
     //
-    // Runs before a Cucumber Feature
+    // Cucumber Hooks
+    //
+    // Runs before a Cucumber Feature.
+    // @param {String}                   uri      path to feature file
+    // @param {GherkinDocument.IFeature} feature  Cucumber feature object
+    //
     // beforeFeature: function (uri, feature) {
     // },
     //
-    // Runs after a Cucumber Feature
+    //
+    // Runs before a Cucumber Scenario.
+    // @param {ITestCaseHookParameter} world    world object containing information on pickle and test step
+    // @param {Object}                 context  Cucumber World object
+    //
+    // beforeScenario: function (world, context) {
+    // },
+    //
+    //
+    // Runs before a Cucumber Step.
+    // @param {Pickle.IPickleStep} step     step data
+    // @param {IPickle}            scenario scenario pickle
+    // @param {Object}             context  Cucumber World object
+    //
+    // beforeStep: function (step, scenario, context) {
+    // },
+    //
+    //
+    // Runs after a Cucumber Step.
+    // @param {Pickle.IPickleStep} step     step data
+    // @param {IPickle}            scenario scenario pickle
+    // @param {Object}             result   results object containing scenario results
+    // @param {boolean}            result.passed   true if scenario has passed
+    // @param {string}             result.error    error stack if scenario failed
+    // @param {number}             result.duration duration of scenario in milliseconds
+    // @param {Object}             context  Cucumber World object
+    //
+    // afterStep: function (step, scenario, result, context) {
+    // },
+    //
+    //
+    // Runs after a Cucumber Scenario.
+    // @param {ITestCaseHookParameter} world  world object containing information on pickle and test step
+    // @param {Object}                 result results object containing scenario results
+    // @param {boolean}                result.passed   true if scenario has passed
+    // @param {string}                 result.error    error stack if scenario failed
+    // @param {number}                 result.duration duration of scenario in milliseconds
+    // @param {Object}                 context  Cucumber World object
+    //
+    // afterScenario: function (world, result) {
+    // },
+    //
+    //
+    // Runs after a Cucumber Feature.
+    // @param {String}                   uri      path to feature file
+    // @param {GherkinDocument.IFeature} feature  Cucumber feature object
+    //
     // afterFeature: function (uri, feature) {
-    // }
-    //
-    // Runs before a Cucumber Scenario
-    // beforeScenario: function (world) {
-    // },
-    //
-    // Runs after a Cucumber Scenario
-    // afterScenario: function (world) {
-    // },
-    //
-    // Runs before a Cucumber Step
-    // beforeStep: function (step, context) {
-    // },
-    //
-    // Runs after a Cucumber Step
-    // afterStep: function (step, context) {
-    // },
-    //
-    // Gets executed after all tests are done. You still have access to all global variables from
-    // the test.
-    // after: function (result, capabilities, specs) {
-    // },
-    //
-    // Gets executed after all workers got shut down and the process is about to exit. An error
-    // thrown in the onComplete hook will result in the test run failing.
-    // onComplete: function(exitCode, config, capabilities, results) {
     // }
 }

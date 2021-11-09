@@ -1,0 +1,49 @@
+name: 📖  Documentation
+description: Suggest improvements or report missing/unclear documentation.
+title: "[📖 Docs]: <title>"
+labels: [Docs 📖, Needs Triaging ⏳]
+body:
+
+  - type: markdown
+    attributes:
+      value: |
+        Please let us know where we are not doing well with out documentation.
+
+  - type: checkboxes
+    id: awareness
+    attributes:
+      label: Pre-check
+      description: I'm aware that I can [edit the docs](https://github.com/webdriverio/webdriverio/blob/main/CONTRIBUTING.md) and submit a pull request.
+      options:
+        - label: I know I can edit the docs but prefer to file this issue
+          required: true
+
+  - type: dropdown
+    id: type
+    attributes:
+      label: Describe the improvement
+      multiple: true
+      options:
+        - Unclear documentation
+        - A typo
+        - Missing documentation
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: report
+    attributes:
+      label: Description of the improvement / report
+      description: A clear and concise description.
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Code of Conduct
+      description: By submitting this issue, you agree to follow our [Code of Conduct](https://github.com/webdriverio/webdriverio/blob/main/CODE_OF_CONDUCT.md)
+      options:
+        - label: I agree to follow this project's Code of Conduct
+          required: true

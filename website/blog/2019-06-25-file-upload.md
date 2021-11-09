@@ -9,7 +9,7 @@ Testing an upload scenario in the browser is a rare but not uncommon case in the
 
 ## Find and expose file inputs
 
-Let's say our frontend app does a lot of things on top of just uploading a file (e.g. validation or some other frontend side manipulation of the file that is about to be uploaded). Now the first thing we should do is to find the input elements from type `file`. Be aware that apps build in React, Angular or other frameworks often hide these elements as there are hard to style using pure CSS. Therefor they hide the elements and mimic the input with a `div` or other more styleable HTML tags.
+Let's say our frontend app does a lot of things on top of just uploading a file (e.g. validation or some other frontend side manipulation of the file that is about to be uploaded). Now the first thing we should do is to find the input elements from type `file`. Be aware that apps build in React, Angular or other frameworks often hide these elements as there are hard to style using pure CSS. Therefore they hide the elements and mimic the input with a `div` or other more styleable HTML tags.
 
 ```js
 // Two hidden input elements, 1 for single file upload 1 for multiple.
@@ -60,6 +60,6 @@ const remoteFilePath = browser.uploadFile(filePath);
 $('.upload-data-file-input').setValue(remoteFilePath);
 ```
 
-Note that the remote file name is different from your local filename. Therefor you need to set the value based on the remote file name you get from the `uploadFile` command.
+Note that the remote file name is different from your local filename. Therefore you need to set the value based on the remote file name you get from the `uploadFile` command.
 
 That was it!!! Happy Uploading 😉🙌🏻 ❤️

@@ -156,7 +156,6 @@ testingbot
 firefox-profile
 selenium-standalone
 devtools
-applitools
 browserstack
 appium
 chromedriver
@@ -191,35 +190,16 @@ jasmine
 cucumber
 ```
 
-## Run the test runner programmatically
+### `wdio repl`
+The repl command allows to start an interactive command line interface to run WebdriverIO commands. It can be used for testing purposes or to just quickly spin up WebdriverIO session.
 
-Instead of calling the `wdio` command, you can also include the test runner as module and run it in an arbitrary environment.
-For that, you'll need to require the `@wdio/cli` package as module, like this:
+Example:
 
-<!--DOCUSAURUS_CODE_TABS-->
-<!--Using EcmaScript Modules-->
-```js
-import Launcher from '@wdio/cli'
-```
-<!--Using CommonJS-->
-```js
-const Launcher = require('@wdio/cli').default
-```
-<!--END_DOCUSAURUS_CODE_TABS-->
-
-After that, create an instance of the launcher, and run the test.
-
-The `Launcher` class constructor expects the URL to the config file, and an `opts` object with settings that will overwrite those in the config.
-
-```js
-const wdio = new Launcher('/path/to/my/wdio.conf.js', opts)
-wdio.run().then((code) => {
-    process.exit(code)
-}, (error) => {
-    console.error('Launcher failed to start the test', error.stacktrace)
-    process.exit(1)
-})
+```bash
+# run tests in local chrome
+wdio repl chrome
+# run tests on Sauce Labs
+wdio repl chrome -u $SAUCE_USERNAME -k $SAUCE_ACCESS_KEY
 ```
 
-The `run` command returns a [Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise).
-It is resolved if tests ran successfully or failed, and it is rejected if the launcher was unable to start run the tests.
+You can apply the same arguments as you can in the [run command](#wdio-run).

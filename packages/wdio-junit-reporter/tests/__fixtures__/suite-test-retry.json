@@ -1,0 +1,106 @@
+{
+  "My awesome hooks": {
+    "type": "suite",
+    "start": "2021-07-19T12:19:01.029Z",
+    "_duration": 14,
+    "tests": [
+      {
+        "type": "test",
+        "start": "2021-07-19T12:19:01.030Z",
+        "_duration": 10,
+        "uid": "test-00-0",
+        "cid": "0-0",
+        "title": "test",
+        "fullTitle": "testsuite test",
+        "output": [],
+        "retries": 0,
+        "parent": "testsuite",
+        "state": "skipped",
+        "end": "2021-07-19T12:19:01.040Z",
+        "errors": [
+          {
+            "name": "Error",
+            "message": "Assertion failed",
+            "stack": "Stacktrace",
+            "type": "Error"
+          }
+        ],
+        "error":  {
+          "name": "Error",
+          "message": "Assertion failed",
+          "stack": "Stacktrace",
+          "type": "Error"
+        },
+        "pendingReason": "Retry"
+      },
+      {
+        "type": "test",
+        "start": "2021-07-19T12:19:01.040Z",
+        "_duration": 2,
+        "uid": "test-00-1",
+        "cid": "0-0",
+        "title": "test",
+        "fullTitle": "testsuite test",
+        "output": [],
+        "retries": 1,
+        "parent": "testsuite",
+        "state": "passed",
+        "end": "2021-07-19T12:19:01.042Z"
+      }
+    ],
+    "hooks": [],
+    "suites": [],
+    "hooksAndTests": [
+      {
+        "type": "test",
+        "start": "2021-07-19T12:19:01.030Z",
+        "_duration": 10,
+        "uid": "test-00-0",
+        "cid": "0-0",
+        "title": "test",
+        "fullTitle": "testsuite test",
+        "output": [],
+        "retries": 0,
+        "parent": "testsuite",
+        "state": "skipped",
+        "end": "2021-07-19T12:19:01.040Z",
+        "errors": [
+          {
+            "name": "Error",
+            "message": "Assertion failed",
+            "stack": "Stacktrace",
+            "type": "Error"
+          }
+        ],
+        "error": {
+          "name": "Error",
+          "message": "Assertion failed",
+          "stack": "Stacktrace",
+          "type": "Error"
+        },
+        "pendingReason": "Retry"
+      },
+      {
+        "type": "test",
+        "start": "2021-07-19T12:19:01.040Z",
+        "_duration": 2,
+        "uid": "test-00-1",
+        "cid": "0-0",
+        "title": "test",
+        "fullTitle": "testsuite test",
+        "output": [],
+        "retries": 1,
+        "parent": "testsuite",
+        "state": "passed",
+        "end": "2021-07-19T12:19:01.042Z"
+      }
+    ],
+    "uid": "suite-0-0",
+    "cid": "0-0",
+    "file": "test.js",
+    "title": "testsuite",
+    "fullTitle": "testsuite",
+    "parent": "",
+    "end": "2021-07-19T12:19:01.043Z"
+  }
+}

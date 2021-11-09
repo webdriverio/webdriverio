@@ -1,4 +1,6 @@
 import fs from 'fs'
+import path from 'path'
+
 import got from 'got'
 import logger from '@wdio/logger'
 import type { MultiRemoteBrowser } from 'webdriverio'
@@ -17,9 +19,13 @@ jest.createMockFromModule('fs')
 fs.createReadStream = jest.fn()
 fs.promises.stat = jest.fn().mockReturnValue(Promise.resolve({ size: 123 }))
 fs.promises.readdir = jest.fn().mockReturnValue(Promise.resolve([
-    'fileA.log',
-    'fileB.log',
-    'fileC.log'
+    'wdio-0-0-browser.log',
+    'wdio-0-0-driver.log',
+    'wdio-0-0.log',
+    'wdio-1-0-browser.log',
+    'wdio-1-0-driver.log',
+    'wdio-1-0.log',
+    'wdio.log'
 ]))
 
 jest.mock('form-data', () => jest.fn().mockReturnValue({
@@ -29,6 +35,7 @@ jest.mock('form-data', () => jest.fn().mockReturnValue({
 jest.mock('../src/utils', () => {
     return {
         isUnifiedPlatform: jest.fn().mockReturnValue(true),
+        ansiRegex: jest.requireActual('../src/utils').ansiRegex
     }
 })
 
@@ -68,20 +75,43 @@ test('beforeSession should set to unknown creds if no sauce user and key are fou
 })
 
 test('beforeTest should set job-name', () => {
-    const service = new SauceService({}, {}, { user: 'foobar', key: '123' })
+    const service = new SauceService({}, {}, { user: 'foobar', key: '123', capabilities: {} })
     service['_browser'] = browser
     service['_suiteTitle'] = 'Suite Title'
     expect(service['_isJobNameSet']).toBe(false)
     service.beforeTest({
         fullName: 'my test can do something',
         description: 'foobar'
-    })
+    } as any)
     expect(service['_isJobNameSet']).toBe(true)
     expect(browser.execute).toBeCalledWith('sauce:job-name=Suite Title')
 })
 
+test('beforeTest should set job-name via custom setJobName method', () => {
+    const service = new SauceService({
+        setJobName: (config, caps, title) => {
+            return `${config.region}-${(caps as any).browserName}-${title}`
+        }
+    }, {
+        browserName: 'foobar'
+    }, {
+        user: 'foobar',
+        key: '123',
+        region: 'barfoo' as any
+    } as any)
+    service['_browser'] = browser
+    service['_suiteTitle'] = 'Suite Title'
+    expect(service['_isJobNameSet']).toBe(false)
+    service.beforeTest({
+        fullName: 'my test can do something',
+        description: 'foobar'
+    } as any)
+    expect(service['_isJobNameSet']).toBe(true)
+    expect(browser.execute).toBeCalledWith('sauce:job-name=barfoo-foobar-Suite Title')
+})
+
 test('beforeTest not should set job-name when it has already been set', () => {
-    const service = new SauceService({}, {}, { user: 'foobar', key: '123' })
+    const service = new SauceService({}, {}, { user: 'foobar', key: '123', capabilities: {} })
     service['_browser'] = browser
     service['_suiteTitle'] = 'Suite Title'
     service['_isJobNameSet'] = true
@@ -89,7 +119,7 @@ test('beforeTest not should set job-name when it has already been set', () => {
     service.beforeTest({
         fullName: 'my test can do something',
         description: 'foobar'
-    })
+    } as any)
     expect(service['_isJobNameSet']).toBe(true)
     expect(browser.execute).not.toBeCalledWith('sauce:job-name=Suite Title')
 })
@@ -116,9 +146,8 @@ test('beforeTest should set context for mocha test', () => {
     expect(browser.execute).toBeCalledWith('sauce:context=foo - bar')
 })
 
-test('beforeTest should not set context for RDC test', () => {
-
-    // not for RDC since sauce:context is not available there
+test('beforeTest should not set context for LegacyRDC test', () => {
+    // not for LegacyRDC since sauce:context is not available there
     const rdcService = new SauceService({}, { testobject_api_key: 'foobar' }, {} as any)
     rdcService['_browser'] = browser
     rdcService.beforeSession()
@@ -126,6 +155,18 @@ test('beforeTest should not set context for RDC test', () => {
         fullTitle: 'my test can do something'
     } as any)
     expect(browser.execute).not.toBeCalled()
+})
+
+test('beforeTest should not set context for UP test', () => {
+    // not for UP since sauce:context is not available there
+    const upService = new SauceService({}, {}, {} as any)
+    upService['_browser'] = browser
+    upService['_isUP'] = true
+    upService.beforeTest({
+        title: 'update up job name'
+    } as any)
+    expect(browser.execute).toBeCalledTimes(1)
+    expect(browser.execute).not.toBeCalledWith('sauce:job-name==update up job name')
 })
 
 test('beforeTest should not set context if user does not use sauce', () => {
@@ -188,7 +229,7 @@ test('afterTest', () => {
         '    at UserContext.executeSync (/Users/node_modules/@wdio/sync/build/index.js:25:22)\n' +
         '    at /Users/node_modules/@wdio/sync/build/index.js:46:68'
     service['_isUP'] = true
-    service.afterTest({}, {}, {
+    service.afterTest({} as any, {}, {
         error: {
             matcherName: 'toEqual',
             message: 'Expected true to equal false.',
@@ -197,11 +238,11 @@ test('afterTest', () => {
             expected: [false, 'LoginPage page was not shown'],
             actual: true
         }
-    })
+    } as any)
     expect(browser.execute).toBeCalledTimes(0)
-    browser.execute.mockClear()
+    ;(browser.execute as jest.Mock).mockClear()
     service['_isUP'] = false
-    service.afterTest({}, {}, {
+    service.afterTest({} as any, {}, {
         error: {
             matcherName: 'toEqual',
             message: 'Expected true to equal false.',
@@ -210,13 +251,13 @@ test('afterTest', () => {
             expected: [false, 'LoginPage page was not shown'],
             actual: true
         }
-    })
+    } as any)
     expect(browser.execute).toBeCalledTimes(5)
     stack.split(/\r?\n/).forEach((line:string) => expect(browser.execute).toBeCalledWith(`sauce:context=${line}`))
-    browser.execute.mockClear()
+    ;(browser.execute as jest.Mock).mockClear()
     const maxErrorStackLength = 3
     service['_maxErrorStackLength'] = maxErrorStackLength
-    service.afterTest({}, {}, {
+    service.afterTest({} as any, {}, {
         error: {
             matcherName: 'toEqual',
             message: 'Expected true to equal false.',
@@ -225,11 +266,25 @@ test('afterTest', () => {
             expected: [false, 'LoginPage page was not shown'],
             actual: true
         }
-    })
+    } as any)
     expect(browser.execute).toBeCalledTimes(maxErrorStackLength)
     stack.split(/\r?\n/)
         .slice(0, maxErrorStackLength)
         .forEach((line:string) => expect(browser.execute).toBeCalledWith(`sauce:context=${line}`))
+})
+
+test('afterTest should not mark test as fail if pending was called in Jasmine', () => {
+    const service = new SauceService({}, {}, {} as any)
+    service['_reportErrorLog'] = jest.fn()
+    expect(service['_failures']).toBe(0)
+    service.afterTest({} as any, {}, {
+        retries: { attempts: 0, limit: 0 },
+        error: '=> marked Pendingfoobar',
+        result: undefined,
+        duration: 0,
+        passed: false,
+    } as any)
+    expect(service['_failures']).toBe(0)
 })
 
 test('beforeFeature should set job-name', () => {
@@ -248,11 +303,20 @@ test('beforeFeature should set context', () => {
     expect(browser.execute).toBeCalledWith('sauce:context=Feature: Create a feature')
 })
 
-test('beforeFeature should not set context if RDC test', () => {
+test('beforeFeature should not set context if LegacyRDC test', () => {
     const rdcService = new SauceService({}, { testobject_api_key: 'foobar' }, {} as any)
     rdcService['_browser'] = browser
     rdcService.beforeSession()
     rdcService.beforeFeature(uri, featureObject)
+    expect(browser.execute).not.toBeCalledWith('sauce:context=Feature: Create a feature')
+})
+
+test('beforeFeature should not set context if UP test', () => {
+    const upService = new SauceService({}, {}, {} as any)
+    upService['_browser'] = browser
+    upService['_isUP'] = true
+    upService['_isServiceEnabled'] = true
+    upService.beforeFeature(uri, featureObject)
     expect(browser.execute).not.toBeCalledWith('sauce:context=Feature: Create a feature')
 })
 
@@ -271,16 +335,16 @@ test('afterScenario', () => {
 
     expect(service['_failures']).toBe(0)
 
-    service.afterScenario({ result: { status: 1 } })
+    service.afterScenario({} as any, { passed: true })
     expect(service['_failures']).toBe(0)
 
-    service.afterScenario({ result: { status: 6 } })
+    service.afterScenario({} as any, { passed: false })
     expect(service['_failures']).toBe(1)
 
-    service.afterScenario({ result: { status: 1 } })
+    service.afterScenario({} as any, { passed: true })
     expect(service['_failures']).toBe(1)
 
-    service.afterScenario({ result: { status: 6 } })
+    service.afterScenario({} as any, { passed: false })
     expect(service['_failures']).toBe(2)
 })
 
@@ -292,7 +356,7 @@ test('beforeScenario should set context', () => {
     expect(browser.execute).toBeCalledWith('sauce:context=Scenario: foobar')
 })
 
-test('beforeScenario should not set context if RDC test', () => {
+test('beforeScenario should not set context if LegacyRDC test', () => {
     const rdcService = new SauceService({}, { testobject_api_key: 'foobar' }, {} as any)
     rdcService['_browser'] = browser
     rdcService.beforeSession()
@@ -326,7 +390,7 @@ test('after', async () => {
     expect(service['_uploadLogs']).toBeCalledWith('foobar')
 })
 
-test('after for RDC', async () => {
+test('after for LegacyRDC', async () => {
     const service = new SauceService({}, { testobject_api_key: '1' }, {} as any)
     service['_browser'] = browser
     service.beforeSession()
@@ -406,12 +470,15 @@ test('_uploadLogs should upload', async () => {
         {},
         { outputDir: '/foo/bar' } as any
     )
+    const api = { uploadJobAssets: jest.fn().mockResolvedValue({}) }
+    service['_api'] = api as any
+    await service.beforeSession(null as never, null as never, null as never, '1-0')
     await service['_uploadLogs']('123')
-    expect((got as any as jest.Mock).mock.calls).toHaveLength(1)
-    expect((got as any as jest.Mock)).toHaveBeenCalledWith(
-        'https://api.us-west-1.saucelabs.com/v1/testcomposer/jobs/123/assets',
-        expect.any(Object)
-    )
+    expect(api.uploadJobAssets).toBeCalledTimes(1)
+    expect(api.uploadJobAssets.mock.calls[0][1].files).toHaveLength(3)
+    expect(api.uploadJobAssets.mock.calls[0][1].files).toContain(path.sep + path.join('foo', 'bar', 'wdio-1-0-browser.log'))
+    expect(api.uploadJobAssets.mock.calls[0][1].files).toContain(path.sep + path.join('foo', 'bar', 'wdio-1-0-driver.log'))
+    expect(api.uploadJobAssets.mock.calls[0][1].files).toContain(path.sep + path.join('foo', 'bar', 'wdio-1-0.log'))
 })
 
 test('_uploadLogs should not fail in case of a platform error', async () => {
@@ -496,7 +563,7 @@ test('onReload', () => {
     expect(service.updateJob).toBeCalledWith('oldbar', 5, true)
 })
 
-test('onReload with RDC', () => {
+test('onReload with LegacyRDC', () => {
     const service = new SauceService({}, { testobject_api_key: '1' }, {} as any)
     service['_browser'] = browser
     service.beforeSession()
@@ -563,7 +630,7 @@ test('updateJob for VMs', () => {
     expect(service['_failures']).toBe(0)
 })
 
-test('updateJob for RDC', () => {
+test('updateJob for LegacyRDC', () => {
     const service = new SauceService({}, { testobject_api_key: '1' }, {} as any)
     service['_browser'] = browser
     service.beforeSession()
@@ -732,6 +799,24 @@ test('getBody with name Capability (W3C)', () => {
     })
 })
 
+test('getBody with custom setJobName method', () => {
+    const service = new SauceService({
+        setJobName: () => 'foobarloo'
+    }, {
+        'sauce:options': {
+            name: 'bizarre'
+        }
+    }, {} as any)
+    service['_browser'] = browser
+    service['_suiteTitle'] = 'jojo'
+    service.beforeSession()
+
+    expect(service.getBody(1)).toEqual({
+        name: 'foobarloo',
+        passed: false
+    })
+})
+
 test('getBody without multiremote', () => {
     const service = new SauceService({}, {
         tags: ['jobTag'],
@@ -763,15 +848,43 @@ test('updateUP should set job status to false', () => {
     expect(browser.execute).toBeCalledWith('sauce:job-result=false')
 })
 
-test('updateUP should set job status to false', () => {
+test('updateUP should set job status to true', () => {
     const service = new SauceService({}, {}, {} as any)
     service['_browser'] = browser
     service.updateUP(0)
     expect(browser.execute).toBeCalledWith('sauce:job-result=true')
 })
 
-afterEach(() => {
+test('afterHook', () => {
+    const service = new SauceService({}, {}, {} as any)
+    service['_reportErrorLog'] = jest.fn()
+    expect(service['_failures']).toBe(0)
+    expect(service['_reportErrorLog']).toHaveBeenCalledTimes(0)
+
     // @ts-expect-error
+    service.afterHook(undefined, undefined, { passed: true })
+    expect(service['_failures']).toBe(0)
+    expect(service['_reportErrorLog']).toHaveBeenCalledTimes(0)
+
+    // @ts-expect-error
+    service.afterHook(undefined, undefined, {
+        error: new Error('foo'),
+        passed: false
+    })
+    expect(service['_failures']).toBe(1)
+    expect(service['_reportErrorLog']).toHaveBeenCalledTimes(1)
+})
+
+test('strip ansi from _reportErrorLog', () => {
+    const service = new SauceService({}, {}, {} as any)
+    service['_browser'] = { execute: jest.fn() } as any
+    const error = new Error('Received: [31m""[39m')
+    service['_reportErrorLog'](error)
+    expect(service['_browser']!.execute).toBeCalledWith('sauce:context=Error: Received: ""')
+})
+
+afterEach(() => {
+    // @ts-ignore
     browser = undefined
     ;(got.put as jest.Mock).mockClear()
 })

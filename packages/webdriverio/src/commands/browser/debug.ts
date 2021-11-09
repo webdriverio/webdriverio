@@ -19,10 +19,10 @@ import WDIORepl from '@wdio/repl'
  *
  * <example>
     :debug.js
-    it('should demonstrate the debug command', () => {
-        $('#input').setValue('FOO')
-        browser.debug() // jumping into the browser and change value of #input to 'BAR'
-        const value = $('#input').getValue()
+    it('should demonstrate the debug command', async () => {
+        await $('#input').setValue('FOO')
+        await browser.debug() // jumping into the browser and change value of #input to 'BAR'
+        const value = await $('#input').getValue()
         console.log(value) // outputs: "BAR"
     })
  * </example>
@@ -68,7 +68,7 @@ export default function debug(
     })
 
     let commandResolve = /* istanbul ignore next */ () => { }
-    process.on('message', (m) => {
+    process.on('message', (m: any) => {
         if (m.origin !== 'debugger') {
             return
         }

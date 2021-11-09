@@ -1,4 +1,4 @@
-import { directory } from 'tempy'
+import tempy from 'tempy'
 
 /**
  * this is not a real package and only used to utilize helper
@@ -27,7 +27,7 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
 
     describe('reporter option "disableWebdriverStepsReporting" set to true', () => {
         describe('Passing tests', () => {
-            const outputDir = directory()
+            const outputDir = tempy.directory()
             let allureXml: any
 
             beforeAll(() => {
@@ -107,11 +107,12 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
     })
 
     describe('Passing tests', () => {
-        const outputDir = directory()
+        const outputDir = tempy.directory()
         let allureXml: any
+        let reporter: any
 
         beforeAll(() => {
-            const reporter = new AllureReporter({ outputDir, useCucumberStepReporter: true })
+            reporter = new AllureReporter({ outputDir, useCucumberStepReporter: true })
 
             reporter.onRunnerStart(runnerStart())
             reporter.onSuiteStart(cucumberHelper.featureStart())
@@ -137,6 +138,7 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
 
         afterAll(() => {
             clean(outputDir)
+            jest.resetAllMocks()
         })
 
         it('should report one suite', () => {
@@ -196,14 +198,25 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
         it('should move attachments from successful hook to test-case', () => {
             expect(allureXml('test-case > attachments > attachment').length).toEqual(1)
         })
+
+        it('should not call endStep if currentStep is not `Step` instance', () => {
+            reporter._allure.getCurrentSuite = jest.fn()
+            reporter._allure.endStep = jest.fn()
+            reporter._allure.endCase = jest.fn()
+
+            reporter.onTestPass()
+            expect(reporter._allure.endStep).not.toHaveBeenCalled()
+            expect(reporter._allure.endCase).toHaveBeenCalled()
+        })
     })
 
     describe('Skipped test', () => {
-        const outputDir = directory()
+        const outputDir = tempy.directory()
         let allureXml: any
+        let reporter: any
 
         beforeAll(() => {
-            const reporter = new AllureReporter({ outputDir, useCucumberStepReporter: true })
+            reporter = new AllureReporter({ outputDir, useCucumberStepReporter: true })
 
             reporter.onRunnerStart(runnerStart())
             reporter.onSuiteStart(cucumberHelper.featureStart())
@@ -222,6 +235,7 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
 
         afterAll(() => {
             clean(outputDir)
+            jest.resetAllMocks()
         })
 
         it('should report one suite', () => {
@@ -239,10 +253,18 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
             expect(allureXml('step').eq(0).attr('status')).toEqual('canceled')
             expect(allureXml('step').length).toEqual(1)
         })
+
+        it('should not call endStep if currentStep is not `Step` instance', () => {
+            reporter._allure.getCurrentSuite = jest.fn()
+            reporter._allure.endStep = jest.fn()
+
+            reporter.onTestSkip(cucumberHelper.testSkipped())
+            expect(reporter._allure.endStep).not.toHaveBeenCalled()
+        })
     })
 
     describe('Skipped test after several steps passed', () => {
-        const outputDir = directory()
+        const outputDir = tempy.directory()
         let allureXml: any
 
         beforeAll(() => {
@@ -294,17 +316,19 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
     describe('Failed tests', () => {
         let outputDir: any
         let allureXml
+        let reporter: any
 
         beforeEach(() => {
-            outputDir = directory()
+            outputDir = tempy.directory()
         })
 
         afterEach(() => {
             clean(outputDir)
+            jest.resetAllMocks()
         })
 
         it('should handle failed test', () => {
-            const reporter = new AllureReporter({ outputDir, useCucumberStepReporter: true })
+            reporter = new AllureReporter({ outputDir, useCucumberStepReporter: true })
 
             reporter.onRunnerStart(runnerStart())
             reporter.onSuiteStart(cucumberHelper.featureStart())
@@ -357,5 +381,53 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
             expect(allureXml('test-case parameter[name="browser"]').eq(0).attr('value')).toEqual('chrome-68')
         })
 
+        it('should not call endStep if currentStep is not `Step` instance', () => {
+            reporter._allure.getCurrentSuite = jest.fn()
+            reporter._allure.endStep = jest.fn()
+            reporter._allure.endCase = jest.fn()
+
+            reporter.onTestFail(cucumberHelper.testSkipped())
+            expect(reporter._allure.endStep).not.toHaveBeenCalled()
+            expect(reporter._allure.endCase).toHaveBeenCalled()
+        })
     })
+
+    describe('Data Table', () => {
+        const outputDir = tempy.directory()
+        let allureXml: any
+
+        beforeAll(() => {
+            const reporter = new AllureReporter({ outputDir, useCucumberStepReporter: true })
+
+            reporter.onRunnerStart(runnerStart())
+            reporter.onSuiteStart(cucumberHelper.featureStart())
+            reporter.onSuiteStart(cucumberHelper.scenarioStart())
+            reporter.onHookStart(cucumberHelper.hookStart())
+            reporter.onHookEnd(cucumberHelper.hookEnd())
+            reporter.onTestStart(cucumberHelper.test3Start())
+            reporter.onBeforeCommand(commandStart())
+            reporter.onAfterCommand(commandEnd())
+            reporter.onTestPass()
+            reporter.onHookStart(cucumberHelper.hookStart())
+            reporter.addAttachment(attachmentHelper.xmlAttachment())
+            reporter.onHookEnd(cucumberHelper.hookEnd())
+            const suiteResults: any = { tests: [cucumberHelper.testPass()], hooks: new Array(2).fill(cucumberHelper.hookEnd()) }
+            reporter.onSuiteEnd(cucumberHelper.scenarioEnd(suiteResults))
+            reporter.onSuiteEnd(cucumberHelper.featureEnd(suiteResults))
+            reporter.onRunnerEnd(runnerEnd())
+
+            const results = getResults(outputDir)
+            expect(results).toHaveLength(2) // one for report, one for attachment
+            allureXml = results.find((xml: any) => xml('ns2\\:test-suite').length >= 1)
+        })
+
+        afterAll(() => {
+            clean(outputDir)
+        })
+
+        it('should add data table as attachment to test-case', () => {
+            expect(allureXml('test-case > attachments > attachment').length).toEqual(1)
+        })
+    })
+
 })

@@ -58,6 +58,13 @@ function Home() {
                             )}
                         >Read the Book</Link>
                         <Link
+                            to="https://learn.webdriver.io"
+                            className={clsx(
+                                'button button--outline button--secondary button--lg',
+                                styles.getStarted,
+                            )}
+                        >Take The Course</Link>
+                        <Link
                             to="https://gitter.im/webdriverio/webdriverio"
                             className={clsx(
                                 'button button--outline button--secondary button--lg',

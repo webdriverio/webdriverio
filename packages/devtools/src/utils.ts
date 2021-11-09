@@ -117,7 +117,7 @@ export async function findElement (
         element = using === 'xpath'
             ? (await context.$x(value))[0]
             : await context.$(value)
-    } catch (err) {
+    } catch (err: any) {
         /**
          * throw if method failed for other reasons
          */
@@ -190,7 +190,7 @@ export function sanitizeError (err: Error) {
  */
 export async function transformExecuteArgs (this: DevToolsDriver, args: any[] = []): Promise<ElementHandle | any> {
     return Promise.all(args.map(async (arg) => {
-        if (arg[ELEMENT_KEY]) {
+        if (arg && arg[ELEMENT_KEY]) {
             const elementHandle = await this.elementStore.get(arg[ELEMENT_KEY])
 
             if (!elementHandle) {
@@ -309,7 +309,7 @@ export function findByWhich (executables: string[], priorities: Priorities[]) {
             if (canAccess(browserPath)) {
                 installations.push(browserPath)
             }
-        } catch (e) {
+        } catch (err: any) {
             // Not installed.
         }
     })
@@ -349,3 +349,6 @@ export function patchDebug (scoppedLogger: Logger) {
         scoppedLogger.debug(msg)
     }
 }
+
+export const sleep = (time = 0) => new Promise(
+    (resolve) => setTimeout(resolve, time))

@@ -6,6 +6,7 @@ import logger from '@wdio/logger'
 import type { Browser } from 'puppeteer-core/lib/cjs/puppeteer/common/Browser'
 import type { Dialog } from 'puppeteer-core/lib/cjs/puppeteer/common/Dialog'
 import type { Page } from 'puppeteer-core/lib/cjs/puppeteer/common/Page'
+import type { Target } from 'puppeteer-core/lib/cjs/puppeteer/common/Target'
 import type { CommandEndpoint } from '@wdio/protocols'
 import type { Frame } from 'puppeteer-core/lib/cjs/puppeteer/common/FrameManager'
 
@@ -29,6 +30,8 @@ export default class DevToolsDriver {
 
     constructor(browser: Browser, pages: Page[]) {
         this.browser = browser
+        this.browser.on('targetcreated', this._targetCreatedHandler.bind(this))
+        this.browser.on('targetdestroyed', this._targetDestroyedHandler.bind(this))
 
         const dir = path.resolve(__dirname, 'commands')
         const files = fs.readdirSync(dir).filter(
@@ -53,10 +56,7 @@ export default class DevToolsDriver {
         }
 
         for (const page of pages) {
-            const pageId = uuidv4()
-            this.windows.set(pageId, page)
-            this.currentFrame = page
-            this.currentWindowHandle = pageId
+            this._createWindowHandle(page)
         }
 
         /**
@@ -69,6 +69,41 @@ export default class DevToolsDriver {
             page.on('dialog', this.dialogHandler.bind(this))
             page.on('framenavigated', this.framenavigatedHandler.bind(this))
         }
+    }
+
+    private _createWindowHandle (page: Page) {
+        const pageId = uuidv4()
+        this.windows.set(pageId, page)
+        this.currentFrame = page
+        this.currentWindowHandle = pageId
+    }
+
+    private async _targetCreatedHandler (target: Target) {
+        const page = await target.page()
+
+        if (!page) {
+            return
+        }
+
+        this._createWindowHandle(page)
+    }
+
+    private async _targetDestroyedHandler (target: Target) {
+        const page = await target.page()
+        for (const [pageId, p] of this.windows.entries()) {
+            if (page !== p) {
+                continue
+            }
+
+            log.trace(`Target destroyed, removing window handle ${pageId}`)
+            this.windows.delete(pageId)
+            break
+        }
+
+        const pageIds = [...this.windows.keys()]
+        this.currentFrame = this.windows.get(pageIds[0])
+        this.currentWindowHandle = pageIds[0]
+        log.trace(`Switching to window handle with id ${pageIds[0]}`)
     }
 
     /**
@@ -102,7 +137,7 @@ export default class DevToolsDriver {
             try {
                 this.emit('command', { command, params, retries })
                 result = await self.commands[command].call(self, params)
-            } catch (err) {
+            } catch (err: any) {
                 /**
                  * if though we check for an execution context before executing a command we
                  * can technically still run into the situation (especially if the command
@@ -237,7 +272,7 @@ export default class DevToolsDriver {
             if (readyState === 'complete' || pageloadTimeoutReached) {
                 return
             }
-        } catch (err) {
+        } catch (err: any) {
             /**
              * throw original error if a context could not be established
              */

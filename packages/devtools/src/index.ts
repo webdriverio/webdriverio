@@ -15,6 +15,7 @@ import launch from './launcher'
 import { DEFAULTS, SUPPORTED_BROWSER, VENDOR_PREFIX } from './constants'
 import { getPrototype, patchDebug } from './utils'
 import type {
+    Client,
     AttachOptions,
     ExtendedCapabilities,
     WDIODevtoolsOptions as WDIODevtoolsOptionsExtension
@@ -30,7 +31,12 @@ patchDebug(log)
 export const sessionMap = new Map()
 
 export default class DevTools {
-    static async newSession (options: Options.WebDriver, modifier?: Function, userPrototype = {}, customCommandWrapper?: Function) {
+    static async newSession (
+        options: Options.WebDriver,
+        modifier?: Function,
+        userPrototype = {},
+        customCommandWrapper?: Function
+    ): Promise<Client> {
         const params = validateConfig(DEFAULTS, options)
 
         if (params.logLevel && (!options.logLevels || !(options.logLevels as any)['devtools'])) {
@@ -83,7 +89,7 @@ export default class DevTools {
         }
 
         sessionMap.set(sessionId, { browser, session: driver })
-        const environmentPrototype: Record<string, { value: Browser | boolean }> = { puppeteer: { value: browser } }
+        const environmentPrototype: Record<string, { value: any }> = {}
         Object.entries(devtoolsEnvironmentDetector({
             browserName: userAgent?.browser?.name?.toLowerCase()
         })).forEach(([name, value]) => {
@@ -109,7 +115,7 @@ export default class DevTools {
         return monad(sessionId, customCommandWrapper)
     }
 
-    static async reloadSession (instance: any) {
+    static async reloadSession (instance: any): Promise<string> {
         const { session } = sessionMap.get(instance.sessionId)
         const browser = await launch(instance.requestedCapabilities)
         const pages = await browser.pages()
@@ -117,6 +123,7 @@ export default class DevTools {
         session.elementStore.clear()
         session.windows = new Map()
         session.browser = browser
+        instance.puppeteer = browser
 
         for (const page of pages) {
             const pageId = uuidv4()
@@ -136,7 +143,7 @@ export default class DevTools {
         modifier?: Function,
         userPrototype = {},
         customCommandWrapper?: Function
-    ) {
+    ): Promise<Client> {
         const browser = await launch(options.capabilities as ExtendedCapabilities)
         const pages = await browser.pages()
         const driver = new DevToolsDriver(browser, pages)

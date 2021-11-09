@@ -11,7 +11,7 @@ export type FilePathAndContent = [MockSystemFilePath, MockFileContent];
  * Record builder for virtual file system for tests
  */
 export default class MockFileContentBuilder {
-    private fileContents : MockFileContent;
+    private fileContents : MockFileContent
     private constructor(fileContents) {
         this.fileContents = fileContents
     }

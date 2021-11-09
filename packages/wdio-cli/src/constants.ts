@@ -21,7 +21,7 @@ WDIO Configuration Helper
 export const CONFIG_HELPER_SUCCESS_MESSAGE = `
 Configuration file was created successfully!
 To run your tests, execute:
-$ npx wdio run wdio.conf.js
+$ npx wdio run wdio.conf.%s
 `
 
 export const ANDROID_CONFIG = {
@@ -98,12 +98,13 @@ export const SUPPORTED_PACKAGES = {
         { name: 'testingbot', value: '@wdio/testingbot-service$--$testingbot' },
         { name: 'selenium-standalone', value: '@wdio/selenium-standalone-service$--$selenium-standalone' },
         { name: 'devtools', value: '@wdio/devtools-service$--$devtools' },
-        { name: 'applitools', value: '@wdio/applitools-service$--$applitools' },
         { name: 'browserstack', value: '@wdio/browserstack-service$--$browserstack' },
         { name: 'appium', value: '@wdio/appium-service$--$appium' },
         { name: 'firefox-profile', value: '@wdio/firefox-profile-service$--$firefox-profile' },
         { name: 'crossbrowsertesting', value: '@wdio/crossbrowsertesting-service$--$crossbrowsertesting' },
         // external
+        { name: 'eslinter-service', value: 'wdio-eslinter-service$--$eslinter' },
+        { name: 'wait-for', value: 'wdio-wait-for$--$wait-for' },
         { name: 'lambdatest', value: 'wdio-lambdatest-service$--$lambdatest' },
         { name: 'zafira-listener', value: 'wdio-zafira-listener-service$--$zafira-listener' },
         { name: 'reportportal', value: 'wdio-reportportal-service$--$reportportal' },
@@ -114,15 +115,16 @@ export const SUPPORTED_PACKAGES = {
         { name: 'slack', value: 'wdio-slack-service$--$slack' },
         { name: 'intercept', value: 'wdio-intercept-service$--$intercept' },
         { name: 'docker', value: 'wdio-docker-service$--$docker' },
-        { name: 'visual-regression-testing', value: 'wdio-image-comparison-service$--$visual-regression-testing' },
+        { name: 'image-comparison', value: 'wdio-image-comparison-service$--$image-comparison' },
         { name: 'novus-visual-regression', value: 'wdio-novus-visual-regression-service$--$novus-visual-regression' },
         { name: 'rerun', value: 'wdio-rerun-service$--$rerun' },
         { name: 'winappdriver', value: 'wdio-winappdriver-service$--$winappdriver' },
         { name: 'ywinappdriver', value: 'wdio-ywinappdriver-service$--$ywinappdriver' },
         { name: 'performancetotal', value: 'wdio-performancetotal-service$--$performancetotal' },
+        { name: 'cleanuptotal', value: 'wdio-cleanuptotal-service$--$cleanuptotal' },
         { name: 'aws-device-farm', value: 'wdio-aws-device-farm-service$--$aws-device-farm' },
         { name: 'ocr-native-apps', value: 'wdio-ocr-service$--$ocr-native-apps' },
-        { name: 'wait-for', value: 'wdio-wait-for-service$--$wait-for' }
+        { name: 'ms-teams', value: 'wdio-ms-teams-service$--$ms-teams' },
     ]
 } as const
 
@@ -141,7 +143,8 @@ export const PROTOCOL_OPTIONS = [
 
 export const REGION_OPTION = [
     'us',
-    'eu'
+    'eu',
+    'apac'
 ] as const
 
 export const QUESTIONNAIRE = [{
@@ -274,7 +277,7 @@ export const QUESTIONNAIRE = [{
 }, {
     type: 'list',
     name: 'isUsingCompiler',
-    message: 'Are you using a compiler?',
+    message: 'Do you want to use a compiler?',
     choices: COMPILER_OPTION_ANSWERS,
     default: /* istanbul ignore next */ () => hasFile('babel.config.js')
         ? COMPILER_OPTIONS.babel // default to Babel

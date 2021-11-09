@@ -48,7 +48,30 @@ export interface World {
         name?: string
     }
     result?: {
-        status?: number
+        duration: {
+            seconds: number
+            nanos: number
+        }
+        status: 'UNKNOWN' | 'PASSED' | 'SKIPPED' | 'PENDING' | 'UNDEFINED' | 'AMBIGUOUS' | 'FAILED'
         message?: string
+        willBeRetried: boolean
     }
+}
+
+/**
+ * Result of a pick (scenario or step)
+ */
+export interface PickleResult {
+    /**
+     * true if scenario has passed
+     */
+    passed: boolean
+    /**
+     * error stack if scenario failed
+     */
+    error?: string
+    /**
+     * duration of scenario in milliseconds
+     */
+    duration?: number
 }

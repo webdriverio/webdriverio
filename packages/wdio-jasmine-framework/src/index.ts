@@ -1,4 +1,4 @@
-/// <reference types="jasmine" />
+/// <reference types="expect-webdriverio/jasmine" />
 
 import Jasmine from 'jasmine'
 import { runTestInFiberContext, executeHooksWithArgs } from '@wdio/utils'
@@ -28,16 +28,15 @@ interface WebdriverIOJasmineConfig extends Omit<Options.Testrunner, keyof HooksA
 }
 
 /**
- * Jasmine 2.x runner
+ * Jasmine runner
  */
 class JasmineAdapter {
     private _jasmineOpts: jasmineNodeOpts
     private _reporter: JasmineReporter
     private _totalTests = 0
-    private _hookIds = 0
     private _hasTests = true
-    private _lastTest?: jasmine.NestedResults
-    private _lastSpec?: jasmine.NestedResults
+    private _lastTest?: any
+    private _lastSpec?: any
 
     private _jrunner?: Jasmine
 
@@ -122,6 +121,11 @@ class JasmineAdapter {
                 fullName: title,
                 duration: null,
                 properties: {},
+                passedExpectations: [],
+                pendingReason: '',
+                failedExpectations: [],
+                deprecationWarnings: [],
+                status: '',
                 ...(error ? { error } : {})
             }
 
@@ -129,7 +133,7 @@ class JasmineAdapter {
         }
 
         /**
-         * wrap commands with wdio-sync
+         * wrap commands
          */
         INTERFACES['bdd'].forEach((fnName) => {
             const isTest = TEST_INTERFACES.includes(fnName)
@@ -215,7 +219,7 @@ class JasmineAdapter {
             // @ts-ignore outdated types
             this._grep(this._jrunner.env.topSuite())
             this._hasTests = this._totalTests > 0
-        } catch (err) {
+        } catch (err: any) {
             log.warn(
                 'Unable to load spec files quite likely because they rely on `browser` object that is not fully initialised.\n' +
                 '`browser` object has only `capabilities` and some flags like `isMobile`.\n' +
@@ -229,8 +233,8 @@ class JasmineAdapter {
     _grep (suite: jasmine.Suite) {
         // @ts-ignore outdated types
         suite.children.forEach((child) => {
-            if (Array.isArray(child.children)) {
-                return this._grep(child)
+            if (Array.isArray((child as jasmine.Suite).children)) {
+                return this._grep(child as jasmine.Suite)
             }
             if (this.customSpecFilter(child)) {
                 this._totalTests++
@@ -248,7 +252,9 @@ class JasmineAdapter {
                 return reject(new Error('Jasmine not initiate yet'))
             }
 
+            // @ts-expect-error
             this._jrunner.env.beforeAll(this.wrapHook('beforeSuite'))
+            // @ts-expect-error
             this._jrunner.env.afterAll(this.wrapHook('afterSuite'))
 
             this._jrunner.onComplete(() => resolve(this._reporter.getFailedCount()))
@@ -351,7 +357,7 @@ class JasmineAdapter {
         return function (this: jasmine.Spec, passed: boolean, data: ResultHandlerPayload) {
             try {
                 expectationResultHandler!.call(this, passed, data)
-            } catch (e) {
+            } catch (e: any) {
                 /**
                  * propagate expectationResultHandler error if actual assertion passed
                  * but the custom handler decides to throw
@@ -383,8 +389,77 @@ export default adapterFactory
 export { JasmineAdapter, adapterFactory }
 export * from './types'
 
+type jasmine = typeof Jasmine
 declare global {
+    /**
+     * Define a single spec. A spec should contain one or more expectations that test the state of the code.
+     * A spec whose expectations all succeed will be passing and a spec with any failures will fail.
+     * @param expectation Textual description of what this spec is checking
+     * @param assertion Function that contains the code of your test. If not provided the test will be pending.
+     * @param timeout Custom timeout for an async spec.
+     * @param retries Custom retry count for this single spec (WebdriverIO specific)
+     */
+    function it(expectation: string, assertion?: jasmine.ImplementationCallback, timeout?: number, retries?: number): void;
+
+    /**
+     * A focused `it`. If suites or specs are focused, only those that are focused will be executed.
+     * @param expectation Textual description of what this spec is checking
+     * @param assertion Function that contains the code of your test. If not provided the test will be pending.
+     * @param timeout Custom timeout for an async spec.
+     * @param retries Custom retry count for this single spec (WebdriverIO specific)
+     */
+    function fit(expectation: string, assertion?: jasmine.ImplementationCallback, timeout?: number, retries?: number): void;
+
+    /**
+     * A temporarily disabled `it`. The spec will report as pending and will not be executed.
+     * @param expectation Textual description of what this spec is checking
+     * @param assertion Function that contains the code of your test. If not provided the test will be pending.
+     * @param timeout Custom timeout for an async spec.
+     * @param retries Custom retry count for this single spec (WebdriverIO specific)
+     */
+    function xit(expectation: string, assertion?: jasmine.ImplementationCallback, timeout?: number, retries?: number): void;
+
+    /**
+     * Run some shared setup before each of the specs in the describe in which it is called.
+     * @param action Function that contains the code to setup your specs.
+     * @param timeout Custom timeout for an async beforeEach.
+     * @param retries Custom retry count for this single hook (WebdriverIO specific)
+     */
+    function beforeEach(action: jasmine.ImplementationCallback, timeout?: number, retries?: number): void;
+
+    /**
+     * Run some shared teardown after each of the specs in the describe in which it is called.
+     * @param action Function that contains the code to teardown your specs.
+     * @param timeout Custom timeout for an async afterEach.
+     * @param retries Custom retry count for this single hook (WebdriverIO specific)
+     */
+    function afterEach(action: jasmine.ImplementationCallback, timeout?: number, retries?: number): void;
+
+    /**
+     * Run some shared setup once before all of the specs in the describe are run.
+     * Note: Be careful, sharing the setup from a beforeAll makes it easy to accidentally leak state between your specs so that they erroneously pass or fail.
+     * @param action Function that contains the code to setup your specs.
+     * @param timeout Custom timeout for an async beforeAll.
+     * @param retries Custom retry count for this single hook (WebdriverIO specific)
+     */
+    function beforeAll(action: jasmine.ImplementationCallback, timeout?: number, retries?: number): void;
+
+    /**
+     * Run some shared teardown once before all of the specs in the describe are run.
+     * Note: Be careful, sharing the teardown from a afterAll makes it easy to accidentally leak state between your specs so that they erroneously pass or fail.
+     * @param action Function that contains the code to teardown your specs.
+     * @param timeout Custom timeout for an async afterAll
+     * @param retries Custom retry count for this single hook (WebdriverIO specific)
+     */
+    function afterAll(action: jasmine.ImplementationCallback, timeout?: number, retries?: number): void;
+
     namespace WebdriverIO {
         interface JasmineOpts extends jasmineNodeOpts {}
+    }
+
+    namespace jasmine {
+        interface Matchers<T> extends ExpectWebdriverIO.Matchers<any, T> {}
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        interface AsyncMatchers<T, U> extends ExpectWebdriverIO.Matchers<Promise<void>, T> {}
     }
 }

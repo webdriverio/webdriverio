@@ -9,9 +9,12 @@ import type { Matches, MockResponseParams, MockOverwrite } from './types'
  * compliant backend.
  */
 export default class WebDriverInterception extends Interception {
-    mockId?: string;
+    mockId?: string
 
     async init () {
+        if (this.url instanceof RegExp) {
+            throw new Error('Regular Expressions as mock url are not supported')
+        }
         const { mockId } = await this.browser.mockRequest(this.url, this.filterOptions)
         this.mockId = mockId
     }
@@ -20,7 +23,7 @@ export default class WebDriverInterception extends Interception {
      * allows access to all requests made with given pattern
      */
     get calls () {
-        return this.browser.call(async () => (
+        return this.browser.call(() => (
             this.browser.getMockCalls(this.mockId as string) as any as Matches[]
         ))
     }

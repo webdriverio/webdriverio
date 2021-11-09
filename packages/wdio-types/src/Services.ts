@@ -152,12 +152,10 @@ export interface HookFunctions {
     /**
      * Hook that gets executed _before_ a hook within the suite starts (e.g. runs before calling
      * beforeEach in Mocha). `stepData` and `world` are Cucumber framework specific properties.
-     * @param test      details to current running test (or step in Cucumber)
-     * @param context   context to current running test
-     * @param stepData  Cucumber step data
-     * @param world     Cucumber world
+     * @param test      details to current running test (represents step in Cucumber)
+     * @param context   context to current running test (represents World object in Cucumber)
      */
-    beforeHook?(test: any, context: any, stepData?: any, world?: any): void;
+    beforeHook?(test: any, context: any): void;
 
     /**
      * Gets executed just before initialising the webdriver session and test framework. It allows you
@@ -165,11 +163,13 @@ export interface HookFunctions {
      * @param config        wdio configuration object
      * @param capabilities  list of capabilities details
      * @param specs         list of spec file paths that are to be run
+     * @param cid           worker id (e.g. 0-0)
      */
     beforeSession?(
         config: Omit<TestrunnerOptions, 'capabilities'>,
         capabilities: RemoteCapability,
-        specs: string[]
+        specs: string[],
+        cid: string
     ): void;
 
     /**
@@ -179,17 +179,21 @@ export interface HookFunctions {
     beforeSuite?(suite: Suite): void;
 
     /**
-     * Function to be executed before a test (in Mocha/Jasmine) starts.
-     * @param test      details to current running test (or step in Cucumber)
-     * @param context   context to current running test
+     * Function to be executed before a test (in Mocha/Jasmine only)
+     * @param {Object} test    test object
+     * @param {Object} context scope object the test was executed with
      */
     beforeTest?(test: Test, context: any): void;
 
     /**
-     * Function to be executed after a test (in Mocha/Jasmine) ends.
-     * @param test      details to current running test (or step in Cucumber)
-     * @param context   context to current running test
-     * @param result    test result
+     * Function to be executed after a test (in Mocha/Jasmine only)
+     * @param {Object}  test             test object
+     * @param {Object}  context          scope object the test was executed with
+     * @param {Error}   result.error     error object in case the test fails, otherwise `undefined`
+     * @param {Any}     result.result    return object of test function
+     * @param {Number}  result.duration  duration of test
+     * @param {Boolean} result.passed    true if test has passed, otherwise false
+     * @param {Object}  result.retries   informations to spec related retries, e.g. `{ attempts: 0, limit: 0 }`
      */
     afterTest?(test: Test, context: any, result: TestResult): void;
 
@@ -202,11 +206,9 @@ export interface HookFunctions {
     /**
      * Hook that gets executed _after_ a hook within the suite ends (e.g. runs after calling
      * afterEach in Mocha). `stepData` and `world` are Cucumber framework specific.
-     * @param test      details to current running test (or step in Cucumber)
-     * @param context   context to current running test
+     * @param test      details to current running test (represents step in Cucumber)
+     * @param context   context to current running test (represents World object in Cucumber)
      * @param result    test result
-     * @param stepData  Cucumber step data
-     * @param world     Cucumber world
      */
     afterHook?(test: Test, context: any, result: TestResult): void;
 

@@ -16,6 +16,7 @@ export interface Suite {
     uid?: string
     tags?: string[] | Tag[]
     description?: string
+    rule?: string
 }
 
 /**
@@ -31,11 +32,13 @@ export default class SuiteStats extends RunnableStats {
     tests: TestStats[] = []
     hooks: HookStats[] = []
     suites: SuiteStats[] = []
+    parent?: string
     /**
      * an array of hooks and tests stored in order as they happen
      */
     hooksAndTests: (HookStats | TestStats)[] = []
     description?: string
+    rule?: string
 
     constructor (suite: Suite) {
         super(suite.type || 'suite')
@@ -45,9 +48,11 @@ export default class SuiteStats extends RunnableStats {
         this.title = suite.title
         this.fullTitle = suite.fullTitle
         this.tags = suite.tags
+        this.parent= suite.parent
         /**
          * only Cucumber
          */
         this.description = suite.description
+        this.rule = suite.rule
     }
 }

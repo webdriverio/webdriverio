@@ -35,14 +35,14 @@ export default async function executeHooksWithArgs (hookName?: string, hooks: Fu
 
             try {
                 result = hook.apply(null, args)
-            } catch (e) {
-                log.error(e.stack)
-                return resolve(e)
+            } catch (err: any) {
+                log.error(err.stack)
+                return resolve(err)
             }
             if (result && typeof result.then === 'function') {
-                return result.then(resolve, (e: Error) => {
-                    log.error(e.stack)
-                    resolve(e)
+                return result.then(resolve, (err: Error) => {
+                    log.error(err.stack)
+                    resolve(err)
                 })
             }
 

@@ -5,7 +5,7 @@ import logger from '@wdio/logger'
 
 const got = gotMock as any as jest.Mock
 
-jest.useFakeTimers()
+jest.useFakeTimers('legacy')
 
 describe('wdio-sumologic-reporter', () => {
     let reporter: SumoLogicReporter

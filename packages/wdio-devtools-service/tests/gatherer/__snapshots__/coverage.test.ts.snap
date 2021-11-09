@@ -19,6 +19,25 @@ Array [
 ]
 `;
 
+exports[`CoverageGatherer _handleRequests should transform if file is not part of exclude 1`] = `
+Array [
+  Array [
+    "Fetch.getResponseBody",
+    Object {
+      "requestId": "123",
+    },
+  ],
+  Array [
+    "Fetch.fulfillRequest",
+    Object {
+      "body": "dHJhbnNwaWxlZCBjb2Rl",
+      "requestId": "123",
+      "responseCode": 444,
+    },
+  ],
+]
+`;
+
 exports[`CoverageGatherer getCoverageReport 1`] = `
 Object {
   "files": Object {
@@ -31,4 +50,23 @@ Object {
   },
   "some": "coverageData",
 }
+`;
+
+exports[`CoverageGatherer should return untransformed file if transformation fails 1`] = `
+Array [
+  Array [
+    "Fetch.getResponseBody",
+    Object {
+      "requestId": "123",
+    },
+  ],
+  Array [
+    "Fetch.fulfillRequest",
+    Object {
+      "body": undefined,
+      "requestId": "123",
+      "responseCode": 444,
+    },
+  ],
+]
 `;

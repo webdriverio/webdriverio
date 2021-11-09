@@ -1,6 +1,8 @@
+import { expectType } from 'tsd'
+
 import allure from '@wdio/allure-reporter'
 import { remote, multiremote, SevereServiceError } from 'webdriverio'
-import type { MockOverwriteFunction, ClickOptions, TouchAction } from 'webdriverio'
+import type { MockOverwriteFunction, ClickOptions, TouchAction, Selector } from 'webdriverio'
 
 declare global {
     namespace WebdriverIO {
@@ -27,14 +29,14 @@ async function bar() {
     })
 
     const rect = await mr.getWindowRect()
-    rect[0].x.toFixed(2)
+    expectType<number>(rect[0].x)
 
     const mElem = await mr.$('foobar')
     const location = await mElem.getLocation('x')
-    ;(location[0] as number).toFixed()
+    expectType<number[]>(location)
 
     const url = await multiremotebrowser.getUrl()
-    url.pop()
+    expectType<string[]>(url)
 
     multiremote({
         myBrowserInstance: {
@@ -51,10 +53,10 @@ async function bar() {
     await mrElem.click()
 
     // instances array
-    mr.instances[0].substr(0, 1)
+    expectType<string[]>(mr.instances)
 
     const nsElems: WebdriverIO.ElementArray = {} as any
-    nsElems.foundWith.toUpperCase()
+    expectType<string>(nsElems.foundWith)
 
     ////////////////////////////////////////////////////////////////////////////////
 
@@ -114,7 +116,7 @@ async function bar() {
     await browser.createWindow('tab')
     await browser.createWindow('window')
 
-    const waitUntil: true | void = await browser.waitUntil(
+    const waitUntil = await browser.waitUntil(
         () => Promise.resolve(true),
         {
             timeout: 1,
@@ -122,6 +124,8 @@ async function bar() {
             interval: 1
         }
     )
+    expectType<true | void>(waitUntil)
+
     await browser.getCookies()
     await browser.getCookies('foobar')
     await browser.getCookies(['foobar'])
@@ -145,16 +149,25 @@ async function bar() {
     const executeResult = await browser.execute(function (x: number) {
         return x
     }, 4)
-    executeResult.toFixed(2)
-    await browser.executeAsync((arg: number, cb: (arg: number) => void) => {
-        arg.toFixed()
-        cb(123)
-    }, 456)
+    expectType<number>(executeResult)
 
-    const callResult = <number>await browser.call(() =>
+    expectType<number>(
+        await browser.executeAsync((arg: number, cb: (arg: number) => void) => {
+            arg.toFixed()
+            cb(123)
+        }, 456)
+    )
+
+    expectType<undefined>(
+        await browser.executeAsync((done) => {
+            done()
+        })
+    )
+
+    const callResult = <number> await browser.call(() =>
         new Promise(resolve => setTimeout(() => resolve(4), 1))
     )
-    callResult.toFixed(2)
+    expectType<number>(callResult)
 
     // printPage
     await browser.savePDF('./packages/bar.pdf', {
@@ -177,17 +190,24 @@ async function bar() {
 
     // protocol command return mapped object value
     const { x, y, width, height } = await browser.getWindowRect()
+    expectType<number>(x)
+    expectType<number>(y)
+    expectType<number>(width)
+    expectType<number>(height)
 
     // protocol command return unmapped object
     const { foo, bar } = await browser.takeHeapSnapshot()
+    expectType<any>(foo)
 
     // browser command return mapped object value
     const { width: w, height: h }  =  await browser.getWindowSize()
+    expectType<number>(w)
+    expectType<number>(h)
 
     // browser custom command
     await browser.browserCustomCommand(14)
     const ambientResult = await browser.ambientCommand(123)
-    ambientResult.toFixed()
+    expectType<number>(ambientResult)
 
     // $
     const el1 = await $('')
@@ -205,42 +225,46 @@ async function bar() {
         interval: 1,
         reverse: true
     })
+    expectType<true | void>(elementExists)
     const elementDisplayed: true | void = await el2.waitForDisplayed({
         timeout: 1,
         timeoutMsg: '',
         interval: 1,
         reverse: true
     })
+    expectType<true | void>(elementDisplayed)
     const elementEnabled: true | void = await el2.waitForEnabled({
         timeout: 1,
         timeoutMsg: '',
         interval: 1,
         reverse: true
     })
+    expectType<true | void>(elementEnabled)
     const elementClickable: true | void = await el2.waitForClickable({
         timeout: 1,
         timeoutMsg: '',
         interval: 1,
         reverse: true
-    });
+    })
+    expectType<true | void>(elementClickable)
 
-    (await el1.getLocation('x')).toFixed(); // as number
-    (await el1.getLocation()).y; // as Location
+    expectType<number>(await el1.getLocation('x')) // as number
+    expectType<number>((await el1.getLocation()).y) // as Location
 
-    (await el1.getSize('y')).toFixed(); // as number
-    (await el1.getSize('width')).toFixed(); // as number
-    (await el1.getSize()).height; // as Size
+    expectType<number>(await el1.getSize('y')) // as number
+    expectType<number>(await el1.getSize('width')) // as number
+    expectType<number>((await el1.getSize()).height) // as Size
 
     // element custom command
     const el2result = await el3.elementCustomCommand(4)
-    el2result.toFixed(2)
+    expectType<number>(el2result)
 
     // $$
     const elems = await $$('')
     const el4 = elems[0]
     const el5 = await el4.$('')
-    await el4.getAttribute('class')
-    await el5.scrollIntoView(false)
+    expectType<string>(await el4.getAttribute('class'))
+    expectType<void>(await el5.scrollIntoView(false))
 
     // An examples of addValue command with enabled/disabled translation to Unicode
     const elem = await $('')
@@ -268,8 +292,15 @@ async function bar() {
     // @ts-expect-error
     ;(elems.parent as WebdriverIO.Browser).click()
 
-    const isDevTools: boolean = browser.isDevTools
-    const isMobile: boolean = browser.isMobile
+    // test access to base client properties
+    expectType<string>(browser.sessionId)
+    expectType<string>((browser.capabilities as WebDriver.Capabilities).browserName)
+    expectType<string>((browser.requestedCapabilities as WebDriver.Capabilities).browserName)
+    expectType<boolean>(browser.isMobile)
+    expectType<boolean>(browser.isAndroid)
+    expectType<boolean>(browser.isIOS)
+    expectType<boolean>(browser.isDevTools)
+    expectType<boolean>(browser.isMobile)
 
     // shadow$ shadow$$
     const el6 = await $('')
@@ -300,7 +331,7 @@ async function bar() {
     // touchAction
     const ele = await $('')
     const touchAction: TouchAction = {
-        action: "longPress",
+        action: 'longPress',
         element: await $(''),
         ms: 0,
         x: 0,
@@ -308,6 +339,11 @@ async function bar() {
     }
     await ele.touchAction(touchAction)
     await browser.touchAction(touchAction)
+    await browser.touchAction([
+        { action: 'press', x: 200, y: 200 },
+        { action: 'moveTo', x: 200, y: 300 },
+        'release'
+    ])
 
     // dragAndDrop
     await ele.dragAndDrop(ele, { duration: 0 })
@@ -316,14 +352,12 @@ async function bar() {
     // addLocatorStrategy
     browser.addLocatorStrategy('myStrat', () => document.body)
     browser.addLocatorStrategy('myStrat', () => document.querySelectorAll('div'))
-
-    // test access to base client properties
-    browser.sessionId
-    ;(browser.capabilities as WebDriver.Capabilities).browserName
-    ;(browser.requestedCapabilities as WebDriver.Capabilities).browserName
-    browser.isMobile
-    browser.isAndroid
-    browser.isIOS
+    browser.addLocatorStrategy('myStrat', (selector, root) => {
+        expectType<String>(selector)
+        expectType<HTMLElement>(root)
+        const scope = root ? root : document
+        return scope.querySelectorAll(selector)
+    })
 
     // network mocking
     browser.throttle('Regular2G')
@@ -366,14 +400,73 @@ async function bar() {
     const match = mock.calls[0]
     match.body
     match.headers
+
+    // async chain API
+    expectType<WebdriverIO.Element>(
+        await browser.$('foo').$('bar').$$('loo')[2].$('foo').$('bar'))
+    expectType<Selector>(
+        await browser.$('foo').$('bar').selector)
+    expectType<Error>(
+        await browser.$('foo').$('bar').error)
+    expectType<string>(
+        await browser.$('foo').$('bar').elementId)
+    expectType<WebdriverIO.Browser | WebdriverIO.Element | WebdriverIO.MultiRemoteBrowser>(
+        await browser.$('foo').$('bar').parent)
+    expectType<number>(
+        await browser.$('foo').$('bar').$$('loo').length)
+    expectType<Selector>(
+        await browser.$('foo').$('bar').$$('loo').selector)
+    expectType<WebdriverIO.Browser | WebdriverIO.Element | WebdriverIO.MultiRemoteBrowser>(
+        await browser.$('foo').$('bar').$$('loo').parent)
+
+    expectType<void>(
+        await browser.$$('foo').forEach(() => true)
+    )
+    expectType<string[]>(
+        await browser.$('foo').$$('bar').map((el) => {
+            expectType<WebdriverIO.Element>(el)
+            return browser.call(async () => true).then(() => el.getText())
+        })
+    )
+    expectType<WebdriverIO.Element>(
+        await browser.$$('foo').find(() => true)
+    )
+    expectType<WebdriverIO.Element>(
+        await browser.$$('foo').find(async () => true)
+    )
+    expectType<number>(
+        await browser.$$('foo').findIndex(() => true)
+    )
+    expectType<boolean>(
+        await browser.$$('foo').some(async () => true)
+    )
+    expectType<boolean>(
+        await browser.$$('foo').every(async () => true)
+    )
+    expectType<WebdriverIO.Element[]>(
+        await browser.$$('foo').filter(async () => true)
+    )
+    type Random = {
+        foo: WebdriverIO.Element
+        bar: WebdriverIO.Browser
+    }
+    expectType<Random>(
+        await browser.$$('foo').reduce((acc, curr) => {
+            acc = {
+                foo: curr,
+                bar: browser
+            }
+            return browser.call(async () => {}).then(() => acc)
+        }, {} as Random)
+    )
 }
 
 function testSevereServiceError_noParameters() {
-    throw new SevereServiceError();
+    throw new SevereServiceError()
 }
 
 function testSevereServiceError_stringParameter() {
-    throw new SevereServiceError("Something happened.");
+    throw new SevereServiceError('Something happened.')
 }
 
 // allure-reporter

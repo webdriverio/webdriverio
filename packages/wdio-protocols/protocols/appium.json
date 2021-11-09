@@ -382,13 +382,8 @@
       "parameters": [{
         "name": "appId",
         "type": "string",
-        "description": "REQUIRED for Android",
-        "required": false
-      }, {
-        "name": "bundleId",
-        "type": "string",
-        "description": "REQUIRED for iOS",
-        "required": false
+        "description": "App ID (package ID for Android, bundle ID for iOS)",
+        "required": true
       }],
       "support": {
         "ios": {
@@ -408,13 +403,8 @@
       "parameters": [{
         "name": "appId",
         "type": "string",
-        "description": "REQUIRED for Android",
-        "required": false
-      }, {
-        "name": "bundleId",
-        "type": "string",
-        "description": "REQUIRED for iOS",
-        "required": false
+        "description": "App ID (package ID for Android, bundle ID for iOS)",
+        "required": true
       }],
       "support": {
         "ios": {
@@ -435,13 +425,8 @@
       "parameters": [{
         "name": "appId",
         "type": "string",
-        "description": "REQUIRED for Android",
-        "required": false
-      }, {
-        "name": "bundleId",
-        "type": "string",
-        "description": "REQUIRED for iOS",
-        "required": false
+        "description": "App ID (package ID for Android, bundle ID for iOS)",
+        "required": true
       }],
       "support": {
         "ios": {
@@ -461,13 +446,8 @@
       "parameters": [{
         "name": "appId",
         "type": "string",
-        "description": "REQUIRED for Android",
-        "required": false
-      }, {
-        "name": "bundleId",
-        "type": "string",
-        "description": "REQUIRED for iOS",
-        "required": false
+        "description": "App ID (package ID for Android, bundle ID for iOS)",
+        "required": true
       }],
       "returns": {
         "type": "boolean",
@@ -493,13 +473,8 @@
       "parameters": [{
         "name": "appId",
         "type": "string",
-        "description": "REQUIRED for Android",
-        "required": false
-      }, {
-        "name": "bundleId",
-        "type": "string",
-        "description": "REQUIRED for iOS",
-        "required": false
+        "description": "App ID (package ID for Android, bundle ID for iOS)",
+        "required": true
       }],
       "returns": {
         "type": "number",
@@ -927,6 +902,23 @@
   "/session/:sessionId/appium/app/reset": {
     "POST": {
       "command": "reset",
+      "description": "<b>Deprecated</b> use 'resetApp' instead. This command will be removed with the upcoming major version release.",
+      "ref": "http://appium.io/docs/en/commands/device/app/reset-app/",
+      "parameters": [],
+      "support": {
+        "ios": {
+          "XCUITest": "9.3+",
+          "UIAutomation": "8.0 to 9.3"
+        },
+        "android": {
+          "UiAutomator": "4.2+"
+        }
+      }
+    }
+  },
+  "/session/:sessionId/appium/app/resetApp": {
+    "POST": {
+      "command": "resetApp",
       "description": "Reset the currently running app for this session.",
       "ref": "http://appium.io/docs/en/commands/device/app/reset-app/",
       "parameters": [],

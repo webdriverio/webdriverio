@@ -16,19 +16,21 @@ import isElementClickableScript from '../../scripts/isElementClickable'
  *
  * :::info
  *
- * Please note that `isClickable` works only in web browser and in mobile webviews, it doesn't work in mobile app native context.
+ * Please note that `isClickable` works only in web browser and in mobile webviews,
+ * it doesn't work in mobile app native context. Also, As opposed to other element
+ * commands WebdriverIO will not wait for the element to exist to execute this command.
  *
  * :::
  *
  * <example>
     :isClickable.js
-    it('should detect if an element is clickable', () => {
-        const el = $('#el')
-        let clickable = el.isClickable();
+    it('should detect if an element is clickable', async () => {
+        const el = await $('#el')
+        let clickable = await el.isClickable();
         console.log(clickable); // outputs: true or false
 
         // wait for element to be clickable
-        browser.waitUntil(() => el.isClickable())
+        await browser.waitUntil(() => el.isClickable())
     });
  * </example>
  *

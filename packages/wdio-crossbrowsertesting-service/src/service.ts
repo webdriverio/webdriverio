@@ -8,12 +8,12 @@ const jobDataProperties = ['name', 'tags', 'public', 'build', 'extra']
 
 export default class CrossBrowserTestingService implements Services.ServiceInstance {
     private _browser?: Browser<'async'> | MultiRemoteBrowser<'async'>
-    private _testCnt = 0;
-    private _failures = 0;
-    private _isServiceEnabled: boolean;
-    private _suiteTitle?: string;
-    private _cbtUsername: string;
-    private _cbtAuthkey: string;
+    private _testCnt = 0
+    private _failures = 0
+    private _isServiceEnabled: boolean
+    private _suiteTitle?: string
+    private _cbtUsername: string
+    private _cbtAuthkey: string
 
     constructor(
         private _config: Options.Testrunner,
@@ -91,12 +91,17 @@ export default class CrossBrowserTestingService implements Services.ServiceInsta
         this._suiteTitle = feature.name
     }
     /**
-     * After step
-     * @param {world} world
+     *
+     * Runs before a Cucumber Scenario.
+     * @param {ITestCaseHookParameter} world  world object containing information on pickle and test step
+     * @param {Object}                 result results object containing scenario results
+     * @param {boolean}                result.passed   true if scenario has passed
+     * @param {string}                 result.error    error stack if scenario failed
+     * @param {number}                 result.duration duration of scenario in milliseconds
      */
-    afterScenario(world: Frameworks.World) {
+    afterScenario(world: Frameworks.World, result: Frameworks.PickleResult) {
         // check if scenario has failed
-        if (world.result && world.result.status === 6) {
+        if (!result.passed) {
             ++this._failures
         }
     }
@@ -145,7 +150,7 @@ export default class CrossBrowserTestingService implements Services.ServiceInsta
         }
 
         const browserName = this._browser.instances.filter(
-            (browserName) => (this._browser as MultiRemoteBrowser<'async'>)[browserName].sessionId === newSessionId)[0]
+            (browserName: string) => (this._browser as MultiRemoteBrowser<'async'>)[browserName].sessionId === newSessionId)[0]
         log.info(`Update (reloaded) multiremote job for browser "${browserName}" and sessionId ${oldSessionId}, ${status}`)
         return this.updateJob(oldSessionId, this._failures, true, browserName)
     }

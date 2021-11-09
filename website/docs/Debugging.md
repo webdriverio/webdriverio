@@ -109,3 +109,8 @@ Example: [.vscode/launch.json](https://github.com/mgrybyk/webdriverio-devtools/b
 ## Dynamic Repl with Atom
 
 If you are an [Atom](https://atom.io/) hacker you can try [`wdio-repl`](https://github.com/kurtharriger/wdio-repl) by [@kurtharriger](https://github.com/kurtharriger) which is a dynamic repl that allows you to execute single code lines in Atom. Watch [this](https://www.youtube.com/watch?v=kdM05ChhLQE) YouTube video to see a demo.
+
+## Debugging with WebStorm / Intellij
+You can create a node.js debug configuration like this:
+![Screenshot from 2021-05-29 17-33-33](https://user-images.githubusercontent.com/18728354/120088460-81844c00-c0a5-11eb-916b-50f21c8472a8.png)  
+Watch this [YouTube Video](https://www.youtube.com/watch?v=Qcqnmle6Wu8) for more information about how to make a configuration.

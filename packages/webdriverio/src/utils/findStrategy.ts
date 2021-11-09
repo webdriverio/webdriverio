@@ -45,7 +45,10 @@ const defineStrategy = function (selector: SelectorStrategy) {
         return 'directly'
     }
     // Use appium image strategy if selector ends with certain text(.jpg,.gif..)
-    if (IMAGEPATH_MOBILE_SELECTORS_ENDSWITH.some(path => stringSelector.toLowerCase().endsWith(path))) {
+    if (IMAGEPATH_MOBILE_SELECTORS_ENDSWITH.some(path => {
+        const selector = stringSelector.toLowerCase()
+        return selector.endsWith(path) && selector !== path
+    })) {
         return '-image'
     }
     // Use xPath strategy if selector starts with //
@@ -239,13 +242,6 @@ export const findStrategy = function (selector: SelectorStrategy, isW3C?: boolea
         value = createRoleBaseXpathSelector(match[1] as ARIARoleDefintionKey)
         break
     }
-    }
-
-    /**
-     * ensure selector strategy is supported
-     */
-    if (!isMobile && isW3C && (using !== 'shadow') && !W3C_SELECTOR_STRATEGIES.includes(using)) {
-        throw new Error('InvalidSelectorStrategy') // ToDo: move error to wdio-error package
     }
 
     return { using, value }

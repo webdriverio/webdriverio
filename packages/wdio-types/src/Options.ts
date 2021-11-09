@@ -1,7 +1,7 @@
-import * as got from 'got'
 import * as http from 'http'
 import * as https from 'https'
 import type { RegisterOptions } from 'ts-node'
+import type { URL } from 'url'
 
 import { W3CCapabilities, DesiredCapabilities, RemoteCapabilities, RemoteCapability, MultiRemoteCapabilities, Capabilities } from './Capabilities'
 import { Hooks, ServiceEntry } from './Services'
@@ -9,6 +9,32 @@ import { ReporterEntry } from './Reporters'
 
 export type WebDriverLogTypes = 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'silent'
 export type SupportedProtocols = 'webdriver' | 'devtools' | './protocol-stub'
+export type Agents = {http?: any, https?: any}
+
+export interface RequestLibOptions {
+    agent?: Agents | null
+    followRedirect?: boolean
+    headers?: Record<string, unknown>
+    https?: Record<string, unknown>
+    json?: Record<string, unknown>
+    method?: string
+    responseType?: string
+    retry?: number
+    searchParams?: Record<string, unknown>
+    throwHttpErrors?: boolean
+    timeout?: number
+    url?: URL
+    path?: string
+    username?: string
+    password?: string
+    body?: any
+}
+
+export interface RequestLibResponse {
+    statusCode: number
+    body?: any
+    rawBody?: Buffer
+}
 
 /**
  * WebdriverIO allows to connect to different WebDriver endpoints by capability
@@ -148,11 +174,11 @@ export interface WebDriver extends Connection {
     /**
      * Function intercepting [HTTP request options](https://github.com/sindresorhus/got#options) before a WebDriver request is made.
      */
-    transformRequest?: (requestOptions: got.Options) => got.Options
+    transformRequest?: (requestOptions: RequestLibOptions) => RequestLibOptions
     /**
      * Function intercepting HTTP response objects after a WebDriver response has arrived.
      */
-    transformResponse?: (response: got.Response, requestOptions: got.Options) => got.Response
+    transformResponse?: (response: RequestLibResponse, requestOptions: RequestLibOptions) => RequestLibResponse
 
     /**
      * Appium direct connect options (see: https://appiumpro.com/editions/86-connecting-directly-to-appium-hosts-in-distributed-environments)
@@ -186,6 +212,8 @@ export interface MultiRemoteBrowserOptions {
     sessionId?: string
     capabilities: DesiredCapabilities
 }
+
+export type SauceRegions = 'us' | 'eu' | 'apac' | 'us-west-1' | 'us-east-1' | 'eu-central-1' | 'apac-southeast-1' | 'staging'
 
 export interface WebdriverIO extends Omit<WebDriver, 'capabilities'> {
     /**
@@ -240,7 +268,7 @@ export interface WebdriverIO extends Omit<WebDriver, 'capabilities'> {
      * If running on Sauce Labs, you can choose to run tests between different datacenters:
      * US or EU. To change your region to EU, add region: 'eu' to your config.
      */
-    region?: string
+    region?: SauceRegions
     /**
      * Sauce Labs provides a headless offering that allows you to run Chrome and Firefox tests headless.
      */
@@ -312,9 +340,11 @@ export interface Testrunner extends Hooks, Omit<WebdriverIO, 'capabilities'>, We
      */
     runner?: 'local'
     /**
-     * Define specs for test execution.
+     * Define specs for test execution. You can either specify a glob
+     * pattern to match multiple files at once or wrap a glob or set of
+     * paths into an array to run them within a single worker process.
      */
-    specs?: string[]
+    specs?: (string | string[])[]
     /**
      * Exclude specs from test execution.
      */

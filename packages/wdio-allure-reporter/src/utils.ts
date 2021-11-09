@@ -6,6 +6,7 @@ import type { Options } from '@wdio/types'
 import CompoundError from './compoundError'
 import { mochaEachHooks, mochaAllHooks, linkPlaceholder } from './constants'
 import type { Status } from './types'
+import AllureReporter from './index.js'
 
 /**
  * Get allure test status by TestStat object
@@ -104,4 +105,21 @@ export const getLinkByTemplate = (template: string | undefined, id: string) => {
         throw Error(`The link template "${template}" must contain ${linkPlaceholder} substring.`)
     }
     return template.replace(linkPlaceholder, id)
+}
+
+/**
+ *
+ * @param {string} logs - logs to be attached
+ * @param {string} allure - allure report object
+ * @private
+ */
+export const attachConsoleLogs = (logs: string | undefined, allure: AllureReporter['_allure']) => {
+    if (logs) {
+        allure?.addAttachment(
+            'Console Logs',
+            '<pre style="display: inline-block; background-color: #4d4d4d; color: white; padding: 20px; text-shadow: 1px 1px 0 #444; min-width: 100%; height: auto; min-height: 100%;">'
+                + '.........Console Logs.........\n\n' + logs + '</pre>',
+            'text/html'
+        )
+    }
 }

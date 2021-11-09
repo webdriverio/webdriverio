@@ -2,7 +2,29 @@ const assert = require('assert')
 
 describe('Jasmine smoke test', () => {
     it('should return sync value', () => {
+        browser.isEventuallyDisplayedScenario()
         expect(browser).toHaveTitle('Mock Page Title')
+        expect($('foo')).toBeDisplayed()
+    })
+
+    it('should allow sync matchers', () => {
+        const test = 123
+        expect(test).toBe(123)
+    })
+
+    it('should return async value', async () => {
+        browser.isEventuallyDisplayedScenario()
+        await expect(browser).toHaveTitle('Mock Page Title')
+        await expect($('foo')).toBeDisplayed()
+
+        browser.isEventuallyDisplayedScenario()
+        const elem = $('foo')
+        await expect(elem).toBeDisplayed()
+    })
+
+    it('should allow sync assertion in async context', async () => {
+        const test = 123
+        expect(test).toBe(123)
     })
 
     let hasRun = false
@@ -14,5 +36,5 @@ describe('Jasmine smoke test', () => {
         }
 
         expect(this.wdioRetries).toBe(1)
-    }, 1)
+    }, jasmine.DEFAULT_TIMEOUT_INTERVAL, 1)
 })

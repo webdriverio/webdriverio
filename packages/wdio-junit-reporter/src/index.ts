@@ -4,6 +4,11 @@ import type { Capabilities } from '@wdio/types'
 import { limit } from './utils'
 import type { JUnitReporterOptions } from './types'
 
+const ansiRegex = new RegExp([
+    '[\\u001B\\u009B][[\\]()#;?]*(?:(?:(?:[a-zA-Z\\d]*(?:;[-a-zA-Z\\d\\/#&.:=?%@~_]*)*)?\\u0007)',
+    '(?:(?:\\d{1,4}(?:;\\d{0,4})*)?[\\dA-PR-TZcf-ntqry=><~]))'
+].join('|'), 'g')
+
 /**
  * Reporter that converts test results from a single instance/runner into an XML JUnit report. This class
  * uses junit-report-builder (https://github.com/davidparsson/junit-report-builder) to build report.The report
@@ -23,6 +28,10 @@ class JunitReporter extends WDIOReporter {
         this._suiteNameRegEx = this.options.suiteNameFormat instanceof RegExp
             ? this.options.suiteNameFormat
             : /[^a-zA-Z0-9@]+/ // Reason for ignoring @ is; reporters like wdio-report-portal will fetch the tags from testcase name given as @foo @bar
+    }
+
+    onTestRetry (testStats: TestStats) {
+        testStats.skip('Retry')
     }
 
     onRunnerEnd (runner: RunnerStats) {
@@ -78,8 +87,9 @@ class JunitReporter extends WDIOReporter {
             let scenario = suite
             const testName = this._prepareName(suite.title)
 
+            const classNameFormat = this.options.classNameFormat ? this.options.classNameFormat({ packageName: this._packageName, activeFeatureName: this._activeFeatureName }): `${this._packageName}.${this._activeFeatureName}`
             const testCase = this._activeFeature.testCase()
-                .className(`${this._packageName}.${this._activeFeatureName}`)
+                .className(classNameFormat)
                 .name(`${testName}`)
                 .time(scenario._duration / 1000)
 
@@ -160,8 +170,9 @@ class JunitReporter extends WDIOReporter {
 
             const test = suite.tests[testKey as any]
             const testName = this._prepareName(test.title)
+            const classNameFormat = this.options.classNameFormat ? this.options.classNameFormat({ packageName: this._packageName, suite }) : `${this._packageName}.${suite.fullTitle.replace(/\s/g, '_')}`
             const testCase = testSuite.testCase()
-                .className(`${this._packageName}.${suiteName}`)
+                .className(classNameFormat)
                 .name(testName)
                 .time(test._duration / 1000)
 
@@ -171,8 +182,15 @@ class JunitReporter extends WDIOReporter {
 
             if (test.state === 'pending' || test.state === 'skipped') {
                 testCase.skipped()
+                if (test.error) {
+                    testCase.standardError(`\n${test.error.stack}\n`)
+                }
             } else if (test.state === 'failed') {
                 if (test.error) {
+                    if (test.error.message){
+                        test.error.message = test.error.message.replace(ansiRegex, '')
+                    }
+
                     if (this.options.errorOptions) {
                         const errorOptions = this.options.errorOptions
                         for (const key of Object.keys(errorOptions)) {

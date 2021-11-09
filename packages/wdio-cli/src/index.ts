@@ -56,7 +56,7 @@ export const run = async () => {
         .readdirSync(path.join(__dirname, 'commands'))
         .map((file) => file.slice(0, -3))
 
-    if (!params._.find((param: string) => supportedCommands.includes(param))) {
+    if (params._ && !params._.find((param: string) => supportedCommands.includes(param))) {
         const args: RunCommandArguments = {
             ...argv.argv,
             configPath: path.resolve(process.cwd(), argv.argv._[0] && argv.argv._[0].toString() || DEFAULT_CONFIG_FILENAME)

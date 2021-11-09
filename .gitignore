@@ -65,13 +65,13 @@ tests/typings/**/dist
 
 **/build
 /*.js
+/*.ts
 devtools.d.ts
 !.eslintrc.js
 !jest.config.js
 packages/**/package-lock.json
 .DS_Store
 
-website/.sass-cache/
 website/translated_docs
 website/build/
 website/sidebars.json
@@ -93,6 +93,6 @@ website/docs/_*.md
 wallaby.conf.js
 tags
 tests/.retry_succeeded
-.sass-cache
 *.tsbuildinfo
 website/docs/Contribute.md
+website/community/Resources.md

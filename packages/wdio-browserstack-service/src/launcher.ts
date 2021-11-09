@@ -62,7 +62,8 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             const entry = list.getEntries()[0]
             log.info(`Browserstack Local successfully started after ${entry.duration}ms`)
         })
-        obs.observe({ entryTypes: ['measure'], buffered: false })
+
+        obs.observe({ entryTypes: ['measure'] })
 
         let timer: NodeJS.Timeout
         performance.mark('tbTunnelStart')

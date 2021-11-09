@@ -12,10 +12,10 @@ const getWebElement = (el: WebdriverIO.Element) => ({
  *
  * <example>
     :isEqual.js
-    it('should detect if an element is clickable', () => {
-        const el = $('#el')
-        const sameEl = $('#el')
-        const anotherEl = $('#anotherEl')
+    it('should detect if an element is clickable', async () => {
+        const el = await $('#el')
+        const sameEl = await $('#el')
+        const anotherEl = await $('#anotherEl')
 
         el.isEqual(sameEl) // outputs: true
 
@@ -49,7 +49,7 @@ export default async function isEqual (
             /* istanbul ignore next */
             (el1: WebdriverIO.Element, el2: WebdriverIO.Element) => el1 === el2,
             getWebElement(this), getWebElement(el))
-    } catch (err) {
+    } catch (err: any) {
         result = false
     }
 

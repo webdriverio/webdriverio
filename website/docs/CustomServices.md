@@ -47,21 +47,21 @@ export default class CustomWorkerService {
     /**
      * this browser object is passed in here for the first time
      */
-    before(config, capabilities, browser) {
+    async before(config, capabilities, browser) {
         this.browser = browser
 
         // TODO: something before all tests are run, e.g.:
-        this.browser.setWindowSize(1024, 768)
+        await this.browser.setWindowSize(1024, 768)
     }
 
     after(exitCode, config, capabilities) {
         // TODO: something after all tests are run
     }
-    
+
     beforeTest(test, context) {
         // TODO: something before each Mocha/Jasmine test run
     }
-    
+
     beforeScenario(test, context) {
         // TODO: something before each Cucumber scenario run
     }
@@ -78,6 +78,24 @@ import CustomWorkerService from './service'
 
 export default CustomWorkerService
 export const launcher = CustomLauncherService
+```
+
+If you are using TypeScript and want to make sure that hook methods parameter are type safe, you can define your service class as follows:
+
+```ts
+import { Capabilities, Options, Services } from '@wdio/types'
+
+export default class CustomWorkerService implements Services.ServiceInstance {
+    constructor (
+        private _options: MyServiceOptions,
+        private _capabilities: Capabilities.RemoteCapability,
+        private _config: Omit<Options.Testrunner, 'capabilities'>
+    ) {
+        // ...
+    }
+
+    // ...
+}
 ```
 
 ## Service Error Handling

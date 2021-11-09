@@ -12,6 +12,9 @@
     <a href="https://github.com/webdriverio/webdriverio/actions/workflows/test.yml">
         <img alt="Build Status" src="https://github.com/webdriverio/webdriverio/actions/workflows/test.yml/badge.svg">
     </a>
+    <a href="https://snyk.io/advisor/npm-package/webdriverio">
+        <img alt="Package Health" src="https://snyk.io/advisor/npm-package/webdriverio/badge.svg">
+    </a>
     <a href="https://gitter.im/webdriverio/webdriverio">
         <img alt="Gitter" src="https://badges.gitter.im/webdriverio/webdriverio.svg">
     </a>
@@ -38,19 +41,19 @@
 
 WebdriverIO is a test automation framework that allows you to run tests based on the [Webdriver](https://w3c.github.io/webdriver/webdriver-spec.html) protocol and [Appium](http://appium.io/) automation technology. It provides support for your favorite BDD/TDD test framework and will run your tests locally or in the cloud using Sauce Labs, BrowserStack, TestingBot or LambdaTest.
 
-## Contributing
+## :woman_technologist: :man_technologist: Contributing
 
-You like WebdriverIO and want to help making it better? Awesome! Have a look into our [Contributor Guide](website/docs/Contribute.md) and check out our [Contributor Documentation](CONTRIBUTING.md) to get started with setting up the repo.
+You like WebdriverIO and want to help making it better? Awesome! Have a look into our [Contributor Documentation](CONTRIBUTING.md) to get started with setting up the repo.
 
 If you're looking for issues to help out with, check out [the issues labelled "good first pick"](https://github.com/webdriverio/webdriverio/issues?q=is%3Aopen+is%3Aissue+label%3A"good+first+pick"). You can also reach out in our [Gitter Channel](https://gitter.im/webdriverio/webdriverio) if you have question on where to start contributing.
 
-## WebdriverIO for Enterprise
+## :office: WebdriverIO for Enterprise
 
 Available as part of the Tidelift Subscription.
 
 The maintainers of WebdriverIO and thousands of other packages are working with Tidelift to deliver commercial support and maintenance for the open source dependencies you use to build your applications. Save time, reduce risk, and improve code health, while paying the maintainers of the exact dependencies you use. [Learn more.](https://tidelift.com/subscription/pkg/npm-webdriverio?utm_source=npm-webdriverio&utm_medium=referral&utm_campaign=enterprise&utm_term=repo)
 
-## Packages
+## :package: Packages
 
 ### Core
 
@@ -82,7 +85,6 @@ The maintainers of WebdriverIO and thousands of other packages are working with 
 ### Services
 
 - [@wdio/appium-service](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-appium-service) - A WebdriverIO service to start & stop Appium Server
-- [@wdio/applitools-service](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-applitools-service) - A WebdriverIO service for visual regression testing using Applitools
 - [@wdio/browserstack-service](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-browserstack-service) - A WebdriverIO service that provides a better integration into Browserstack
 - [@wdio/crossbrowsertesting-service](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-crossbrowsertesting-service) - A WebdriverIO service that provides a better integration into CrossBrowserTesting
 - [@wdio/devtools-service](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-devtools-service) - A WebdriverIO service that allows you to run Chrome DevTools commands in your tests
@@ -109,29 +111,29 @@ The maintainers of WebdriverIO and thousands of other packages are working with 
 - [@wdio/smoke-test-service](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-smoke-test-service) - A WebdriverIO utility to smoke test services for internal testing purposes
 - [@wdio/webdriver-mock-service](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-webdriver-mock-service) - A WebdriverIO service to stub all endpoints for internal testing purposes
 
-## Project Governance
+## :handshake: Project Governance
 
 This project is maintained by [awesome people](/AUTHORS.md) following a common [set of rules](/GOVERNANCE.md) and treating each other with [respect and appreciation](/CODE_OF_CONDUCT.md).
 
-## Backers
+## :man_cook: :woman_cook: Backers
 
 [Become a backer](https://opencollective.com/webdriverio) and show your support to our open source project.
 
 <a href="https://opencollective.com/webdriverio"><img src="https://opencollective.com/webdriverio/tiers/baker.svg?avatarHeight=36&width=600"></a>
 
-## Sponsors
+## :money_with_wings: Sponsors
 
 Does your company use WebdriverIO? Ask your manager or marketing team if your company would be interested in supporting our project. Support will allow the maintainers to dedicate more time for maintenance and new features for everyone. Also, your company's logo will show [on GitHub](https://github.com/webdriverio/webdriverio#readme) - who doesn't want a little extra exposure? [Here's the info](https://opencollective.com/webdriverio).
 
 <a href="https://opencollective.com/webdriverio"><img src="https://opencollective.com/webdriverio/tiers/gold-sponsor.svg?avatarHeight=36&width=600"></a>
 
-## License
+## :page_facing_up: License
 
 [MIT](/LICENSE-MIT)
 
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fwebdriverio%2Fwebdriverio.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fwebdriverio%2Fwebdriverio?ref=badge_large)
 
-## Badge
+## :beginner: Badge
 
 Show the world you're using webdriver.io → [![tested with webdriverio](https://img.shields.io/badge/tested%20with-webdriver.io-%23ea5906)](https://webdriver.io/)
 
@@ -145,3 +147,10 @@ Show the world you're using webdriver.io → [![tested with webdriverio](https:/
     <img alt="WebdriverIO" src="https://img.shields.io/badge/tested%20with-webdriver.io-%23ea5906">
 </a>
 ```
+
+## :clap:  Supporters
+[![Stargazers repo roster for WebdriverIO](https://reporoster.com/stars/webdriverio/webdriverio)](https://github.com/webdriverio/webdriverio/stargazers)
+[![Forkers repo roster for WebdriverIO](https://reporoster.com/forks/webdriverio/webdriverio)](https://github.com/webdriverio/webdriverio/network/members)
+<p align="center"><a href="https://github.com/webdriverio/webdriverio#nastyox"><img src="http://randojs.com/images/barsSmall.gif" alt="Animated footer bars" width="100%"/></a></p>
+<br/>
+<p align="center"><a href="https://github.com/webdriverio/webdriverio#"><img src="http://randojs.com/images/backToTopButton.png" alt="Back to top" height="29"/></a></p>

@@ -4,7 +4,7 @@ describe('my feature', () => {
     beforeEach(() => {})
     afterEach(() => {})
 
-    it('should do stuff', () => {
-        assert.equal(browser.getTitle(), 'Mock Page Title')
+    it('should do stuff', async () => {
+        assert.equal(await browser.getTitle(), 'Mock Page Title')
     })
 })

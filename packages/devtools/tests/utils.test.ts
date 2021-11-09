@@ -8,7 +8,7 @@ import { canAccess } from '@wdio/utils'
 import {
     validate, getPrototype, findElement, findElements, getStaleElementError,
     sanitizeError, transformExecuteArgs, transformExecuteResult, getPages,
-    uniq, findByWhich, patchDebug
+    uniq, findByWhich, patchDebug, sleep
 } from '../src/utils'
 
 const debug = jest.requireActual('debug')
@@ -315,6 +315,11 @@ test('transformExecuteArgs throws stale element if element is not in store', asy
     ])).rejects.toThrow()
 })
 
+test('transformExecuteArgs should allow undefined params', async () => {
+    const scope = { elementStore: new Map() }
+    expect(await transformExecuteArgs.call(scope as any, undefined)).toEqual([])
+})
+
 describe('transformExecuteResult', () => {
     test('multiple results', async () => {
         const scope = {
@@ -399,4 +404,10 @@ test('patchDebug with debug not install in puppeteer', () => {
     patchDebug(logMock as any)
     pptrDebugLog('something something - puppeteer:protocol barfoo')
     expect(logMock.debug).toBeCalledWith('barfoo')
+})
+
+test('sleep', async () => {
+    const start = Date.now()
+    await sleep(100)
+    expect(Date.now() - start).toBeGreaterThanOrEqual(90)
 })

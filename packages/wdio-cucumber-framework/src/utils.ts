@@ -5,7 +5,7 @@ import logger from '@wdio/logger'
 
 import * as Cucumber from '@cucumber/cucumber'
 import { supportCodeLibraryBuilder } from '@cucumber/cucumber'
-import { messages } from '@cucumber/messages'
+import { TableRow, TableCell, PickleStep, TestStep, Feature, Pickle, TestStepResultStatus } from '@cucumber/messages'
 import { Capabilities } from '@wdio/types'
 
 import { CUCUMBER_HOOK_DEFINITION_TYPES, ReporterStep } from './constants'
@@ -13,22 +13,19 @@ import { TestHookDefinitionConfig } from './types'
 
 const log = logger('@wdio/cucumber-framework:utils')
 
-type IPickleTableRow = messages.PickleStepArgument.PickleTable.IPickleTableRow
-type IPickleTableCell = messages.PickleStepArgument.PickleTable.PickleTableRow.IPickleTableCell
-
 /**
  * NOTE: this function is exported for testing only
  */
-export function createStepArgument ({ argument }: messages.Pickle.IPickleStep) {
+export function createStepArgument ({ argument }: PickleStep) {
     if (!argument) {
         return undefined
     }
 
     if (argument.dataTable) {
         return {
-            rows: argument.dataTable.rows?.map((row: IPickleTableRow) => (
+            rows: argument.dataTable.rows?.map((row: TableRow) => (
                 {
-                    cells: row.cells?.map((cell: IPickleTableCell) => cell.value)
+                    cells: row.cells?.map((cell: TableCell) => cell.value)
                 }
             ))
         }
@@ -72,11 +69,11 @@ enum StepType {
  * Get step type
  * @param {string} type `Step` or `Hook`
  */
-export function getStepType (step: messages.TestCase.ITestStep) {
+export function getStepType (step: TestStep) {
     return step.hookId ? StepType.hook : StepType.test
 }
 
-export function getFeatureId (uri: string, feature: messages.GherkinDocument.IFeature) {
+export function getFeatureId (uri: string, feature: Feature) {
     return `${path.basename(uri)}:${feature.location?.line}:${feature.location?.column}`
 }
 
@@ -96,12 +93,12 @@ export function getTestStepTitle (keyword:string = '', text:string = '', type:st
  */
 export function buildStepPayload(
     uri: string,
-    feature: messages.GherkinDocument.IFeature,
-    scenario: messages.IPickle,
+    feature: Feature,
+    scenario: Pickle,
     step: ReporterStep,
     params: {
         type: string
-        state?: messages.TestStepFinished.TestStepResult.Status | string | null
+        state?: TestStepResultStatus | string | null
         error?: Error
         duration?: number
         title?: string | null
@@ -110,6 +107,7 @@ export function buildStepPayload(
     }
 ) {
     return {
+        ...params,
         uid: step.id,
         // @ts-ignore
         title: getTestStepTitle(step.keyword, step.text, params.type),
@@ -119,7 +117,6 @@ export function buildStepPayload(
         tags: scenario.tags,
         featureName: feature.name,
         scenarioName: scenario.name,
-        ...params
     }
 }
 
@@ -151,7 +148,7 @@ export function setUserHookNames (options: typeof supportCodeLibraryBuilder) {
  * For example "@skip(browserName=firefox)" or "@skip(browserName=chrome,platform=/.+n?x/)"
  * @param {*} testCase
  */
-export function filterPickles (capabilities: Capabilities.RemoteCapability, pickle?: messages.IPickle) {
+export function filterPickles (capabilities: Capabilities.RemoteCapability, pickle?: Pickle) {
     const skipTag = /^@skip\((.*)\)$/
 
     const match = (value: string, expr: RegExp) => {
@@ -169,7 +166,7 @@ export function filterPickles (capabilities: Capabilities.RemoteCapability, pick
             if (pos > 0) {
                 try {
                     acc[splitItem.substring(0, pos)] = eval(splitItem.substring(pos + 1))
-                } catch (e) {
+                } catch (err: any) {
                     log.error(`Couldn't use tag "${splitItem}" for filtering because it is malformed`)
                 }
             }
@@ -185,11 +182,27 @@ export function filterPickles (capabilities: Capabilities.RemoteCapability, pick
 }
 
 /**
+ * The reporters need to have the rule.
+ * They are NOT available on the scenario, they ARE on the feature.
+ * This will add them to it
+ */
+export function getRule(feature: Feature, scenarioId: string){
+    const rules = feature.children?.filter((child) => Object.keys(child)[0] === 'rule')
+    const rule = rules.find((rule) => {
+        let scenarioRule = rule.rule?.children?.find((child) => child.scenario?.id === scenarioId)
+        if (scenarioRule) {
+            return rule
+        }
+    })
+    return rule?.rule?.name
+}
+
+/**
  * The reporters need to have the keywords, like `Given|When|Then`. They are NOT available
  * on the scenario, they ARE on the feature.
  * This will aad them
  */
-export function addKeywordToStep(steps:ReporterStep[], feature:messages.GherkinDocument.IFeature){
+export function addKeywordToStep(steps: ReporterStep[], feature: Feature){
     return steps.map(step => {
         // Steps without a astNodeIds are hooks
         if (step.astNodeIds && step.astNodeIds.length > 0 && feature.children) {
@@ -198,7 +211,13 @@ export function addKeywordToStep(steps:ReporterStep[], feature:messages.GherkinD
             // the second from the TableRow AST node.
             // See https://github.com/cucumber/cucumber/blob/master/messages/messages.md
             const astNodeId = step.astNodeIds[0]
-            feature.children.find((child) =>
+
+            const rules  = feature.children.filter((child)=> Object.keys(child)[0]=== 'rule')
+            let featureChildren = feature.children.filter((child)=> Object.keys(child)[0]!== 'rule')
+            const rulesChildrens:any = rules.map((child)=>child.rule?.children).flat()
+            featureChildren = featureChildren.concat(rulesChildrens)
+
+            featureChildren.find((child) =>
                 // @ts-ignore
                 child[Object.keys(child)[0]].steps.find((featureScenarioStep:ReporterStep) => {
                     if (featureScenarioStep.id === astNodeId.toString()) {

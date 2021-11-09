@@ -126,15 +126,17 @@ export default class TestingBotService implements Services.ServiceInstance {
     }
 
     /**
-     * After scenario
-     * @param {string} uri
-     * @param {Object} feature
-     * @param {Object} pickle
-     * @param {Object} result
+     *
+     * Runs before a Cucumber Scenario.
+     * @param world world object containing information on pickle and test step
+     * @param result result object containing
+     * @param result.passed   true if scenario has passed
+     * @param result.error    error stack if scenario failed
+     * @param result.duration duration of scenario in milliseconds
      */
-    afterScenario(world: Frameworks.World) {
+    afterScenario(world: Frameworks.World, result: Frameworks.PickleResult) {
         // check if scenario has failed
-        if (world.result && world.result.status === 6) {
+        if (!result.passed) {
             ++this._failures
         }
     }

@@ -27,12 +27,12 @@ const isValidType = (value: unknown) => (
  *
  * <example>
     :addValue.js
-    it('should demonstrate the addValue command', () => {
-        let input = $('.input')
-        input.addValue('test')
-        input.addValue(123)
+    it('should demonstrate the addValue command', async () => {
+        let input = await $('.input')
+        await input.addValue('test')
+        await input.addValue(123)
 
-        value = input.getValue()
+        value = await input.getValue()
         assert(value === 'test123') // true
     })
  * </example>

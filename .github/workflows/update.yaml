@@ -1,0 +1,32 @@
+# this workflow merges requests from Dependabot if tests are passing
+name: Merge me!
+
+on:
+    workflow_run:
+        types:
+            - completed
+        workflows:
+            - 'Test'
+
+jobs:
+    merge-me:
+        name: Merge me!
+
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Merge me!
+              if: ${{ github.event.workflow_run.conclusion == 'success' }}
+              uses: ridedott/merge-me-action@v2
+              with:
+                # Depending on branch prodtection rules, a  manually populated
+                # `GITHUB_TOKEN_WORKAROUND` secret with permissions to push to
+                # a protected branch must be used.
+                #
+                # When using a custom token, it is recommended to leave the following
+                # comment for other developers to be aware of the reasoning behind it:
+                #
+                # This must be used as GitHub Actions token does not support pushing
+                # to protected branches.
+                GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                PRESET: DEPENDABOT_MINOR

@@ -11,5 +11,5 @@ export default function newWindow (
     windowName: string,
     windowFeatures: string
 ) {
-    window.open(url, windowName || 'new window', windowFeatures || '')
+    window.open(url, windowName || '', windowFeatures || '')
 }

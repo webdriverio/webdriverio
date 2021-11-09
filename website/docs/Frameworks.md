@@ -21,9 +21,9 @@ By default WebdriverIO provides an [assertion library](Assertion.md) that is bui
 
 ```js
 describe('my awesome website', () => {
-    it('should do some assertions', () => {
-        browser.url('https://webdriver.io')
-        expect(browser).toHaveTitle('WebdriverIO · Next-gen browser and mobile automation test framework for Node.js | WebdriverIO')
+    it('should do some assertions', async () => {
+        await browser.url('https://webdriver.io')
+        await expect(browser).toHaveTitle('WebdriverIO · Next-gen browser and mobile automation test framework for Node.js | WebdriverIO')
     })
 })
 ```
@@ -34,9 +34,9 @@ If you like to write your specs in TDD style, set the `ui` property in your `moc
 
 ```js
 suite('my awesome website', () => {
-    test('should do some assertions', () => {
-        browser.url('https://webdriver.io')
-        expect(browser).toHaveTitle('WebdriverIO · Next-gen browser and mobile automation test framework for Node.js | WebdriverIO')
+    test('should do some assertions', async () => {
+        await browser.url('https://webdriver.io')
+        await expect(browser).toHaveTitle('WebdriverIO · Next-gen browser and mobile automation test framework for Node.js | WebdriverIO')
     })
 })
 ```
@@ -219,12 +219,6 @@ Seed to use as the basis of randomization. Null causes the seed to be determined
 Type: `Function`<br />
 Default: `null`
 
-#### failFast
-Whether to stop execution of the suite after the first spec failure.
-
-Type: `boolean`<br />
-Default: `false`
-
 #### failSpecWithNoExpectations
 Whether to fail the spec if it ran no expectations. By default a spec that ran no expectations is reported as passed. Setting this to true will report such spec as a failure.
 
@@ -401,3 +395,19 @@ Here you have some examples of this syntax:
 - `@skip(browserName="firefox";platformName="linux")`: will skip the test in firefox over linux executions.
 - `@skip(browserName=["chrome","firefox"])`: tagged items will be skipped for both chrome and firefox browsers.
 - `@skip(browserName=/i.*explorer/`: capabilities with browsers matching the regexp will be skipped (like `iexplorer`, `internet explorer`, `internet-explorer`, ...).
+
+### Import Step Definition Helper
+
+In order to use step definition helper like `Given`, `When` or `Then` or hooks, you are suppose to import then from `@cucumber/cucumber`, e.g. like this:
+
+```js
+import { Given, When, Then } from '@cucumber/cucumber'
+```
+
+Now, if you use Cucumber already for other types of tests unrelated to WebdriverIO for which you use a specific version you need to import these helpers in your e2e tests from the WebdriverIO Cucumber package, e.g.:
+
+```js
+import { Given, When, Then } from '@wdio/cucumber-framework'
+```
+
+This ensures that you use the right helpers within the WebdriverIO framework and allows you to use an independant Cucumber version for other types of testing.

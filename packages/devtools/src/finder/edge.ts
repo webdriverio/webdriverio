@@ -117,7 +117,7 @@ function findEdgeExecutables(folder: string) {
         try {
             execPaths = execSync(
                 `grep -ER "${edgeExecRegex}" ${folder} | awk -F '=' '{print $2}'`, { stdio: 'pipe' })
-        } catch (e) {
+        } catch (err: any) {
             execPaths = execSync(
                 `grep -Er "${edgeExecRegex}" ${folder} | awk -F '=' '{print $2}'`, { stdio: 'pipe' })
         }
