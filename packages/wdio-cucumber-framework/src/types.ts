@@ -153,40 +153,44 @@ export interface HookFunctionExtension {
     /**
      *
      * Runs before a Cucumber Scenario.
-     * @param world world object containing information on pickle and test step
+     * @param world     world object containing information on pickle and test step
+     * @param context   Cucumber World object
      */
-    beforeScenario?(world: ITestCaseHookParameter): void;
+    beforeScenario?(world: ITestCaseHookParameter, context: Object): void;
 
     /**
      *
      * Runs before a Cucumber Step.
      * @param step     step data
      * @param scenario scenario data
+     * @param context  Cucumber World object
      */
-    beforeStep?(step: PickleStep, scenario: Pickle): void;
+    beforeStep?(step: PickleStep, scenario: Pickle, context: Object): void;
 
     /**
      *
      * Runs after a Cucumber Step.
-     * @param step     step data
-     * @param scenario scenario data
-     * @param result result object containing
+     * @param step            step data
+     * @param scenario        scenario data
+     * @param result          result object containing
      * @param result.passed   true if scenario has passed
      * @param result.error    error stack if scenario failed
      * @param result.duration duration of scenario in milliseconds
+     * @param context         Cucumber World object
      */
-    afterStep?(step: PickleStep, scenario: Pickle, result: Frameworks.PickleResult): void;
+    afterStep?(step: PickleStep, scenario: Pickle, result: Frameworks.PickleResult, context: Object): void;
 
     /**
      *
-     * Runs before a Cucumber Scenario.
-     * @param world world object containing information on pickle and test step
-     * @param result result object containing
-     * @param result.passed   true if scenario has passed
-     * @param result.error    error stack if scenario failed
-     * @param result.duration duration of scenario in milliseconds
+     * Runs after a Cucumber Scenario.
+     * @param world             world object containing information on pickle and test step
+     * @param result            result object containing
+     * @param result.passed     true if scenario has passed
+     * @param result.error      error stack if scenario failed
+     * @param result.duration   duration of scenario in milliseconds
+     * @param context           Cucumber World object
      */
-    afterScenario?(world: ITestCaseHookParameter, result: Frameworks.PickleResult): void;
+    afterScenario?(world: ITestCaseHookParameter, result: Frameworks.PickleResult, context: Object): void;
 
     /**
      *
