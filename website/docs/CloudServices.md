@@ -85,7 +85,7 @@ If you want to add Local Testing in Travis, you have to start it by yourself.
 
 The following script will download and start it in the background. You should run this in Travis before starting the tests.
 
-```bash
+```sh
 wget https://www.browserstack.com/browserstack-local/BrowserStackLocal-linux-x64.zip
 unzip BrowserStackLocal-linux-x64.zip
 ./BrowserStackLocal -v -onlyAutomate -forcelocal $BROWSERSTACK_ACCESS_KEY &
@@ -155,7 +155,7 @@ If you want to add Local Testing in Travis, you have to start it by yourself.
 
 The following script will download and start it in the background. You should run this in Travis before starting the tests.
 
-```bash
+```sh
 wget http://downloads.lambdatest.com/tunnel/linux/64bit/LT_Linux.zip
 unzip LT_Linux.zip
 ./LT -user $LT_USERNAME -key $LT_ACCESS_KEY -cui &

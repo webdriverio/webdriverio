@@ -52,13 +52,13 @@ As mentioned in [Automation Protocols](/docs/automationProtocols) you can run We
 
 To build the Docker container you can run:
 
-```bash
-$ docker build -t mytest -f Dockerfile .
+```sh
+docker build -t mytest -f Dockerfile .
 ```
 
 Then to run the tests, execute:
 
-```bash
+```sh
 docker run -it mytest
 ```
 

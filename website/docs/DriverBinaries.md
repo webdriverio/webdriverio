@@ -15,7 +15,7 @@ npm install -g chromedriver
 
 You can then start it via:
 
-```bash
+```sh
 chromedriver --port=4444 --verbose
 ```
 
@@ -34,31 +34,36 @@ To automate Firefox download the latest version of `geckodriver` for your enviro
 }>
 <TabItem value="curl">
 
-```bash
-# linux
+Linux:
+
+```sh
 curl -L https://github.com/mozilla/geckodriver/releases/download/v0.24.0/geckodriver-v0.24.0-linux64.tar.gz | tar xz
-# MacOS (64 bit)
+```
+
+MacOS (64 bit):
+
+```sh
 curl -L https://github.com/mozilla/geckodriver/releases/download/v0.24.0/geckodriver-v0.24.0-macos.tar.gz | tar xz
 ```
 
 </TabItem>
 <TabItem value="brew">
 
-```bash
-$ brew install geckodriver
+```sh
+brew install geckodriver
 ```
 
 </TabItem>
 <TabItem value="chocolatey">
 
-```bash
-$ choco install selenium-gecko-driver
+```sh
+choco install selenium-gecko-driver
 ```
 
 </TabItem>
 <TabItem value="powershell">
 
-```bash
+```sh
 # Run as privileged session. Right-click and set 'Run as Administrator'
 # Use geckodriver-v0.24.0-win32.zip for 32 bit Windows
 $url = "https://github.com/mozilla/geckodriver/releases/download/v0.24.0/geckodriver-v0.24.0-win64.zip"
@@ -84,7 +89,7 @@ cd $unzipped_file
 
 **Note:** Other `geckodriver` releases are available [here](https://github.com/mozilla/geckodriver/releases). After download you can start the driver via:
 
-```bash
+```sh
 /path/to/binary/geckodriver --port 4444
 ```
 
@@ -92,7 +97,7 @@ cd $unzipped_file
 
 You can download the driver for Microsoft Edge on the [project website](https://developer.microsoft.com/en-us/microsoft-edge/tools/webdriver/). After download you can start Edgedriver as follows:
 
-```bash
+```sh
 ./path/to/edgedriver --port=4444 --verbose
 ```
 
@@ -100,6 +105,6 @@ You can download the driver for Microsoft Edge on the [project website](https://
 
 Safaridriver comes pre-installed on your MacOS and can be started directly via:
 
-```bash
+```sh
 safaridriver -p 4444
 ```

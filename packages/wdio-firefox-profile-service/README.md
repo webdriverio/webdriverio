@@ -9,7 +9,7 @@ To find all possible options just open [about:config](about:config) in your Fire
 
 The easiest way is to keep `@wdio/firefox-profile-service` as a devDependency in your `package.json`, via:
 
-```bash
+```sh
 npm install @wdio/firefox-profile-service --save-dev
 ```
 

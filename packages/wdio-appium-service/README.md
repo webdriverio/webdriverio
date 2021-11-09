@@ -7,7 +7,7 @@ Handling the Appium server is out of scope of the actual WebdriverIO project. Th
 
 The easiest way is to keep `@wdio/appium-service` as a devDependency in your `package.json`, via:
 
-```bash
+```sh
 npm install @wdio/appium-service --save-dev
 ```
 

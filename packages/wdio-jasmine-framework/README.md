@@ -7,7 +7,7 @@ WDIO Jasmine Framework Adapter
 
 The easiest way is to keep `@wdio/jasmine-framework` as a devDependency in your `package.json`, via:
 
-```bash
+```sh
 npm install @wdio/jasmine-framework --save-dev
 ```
 

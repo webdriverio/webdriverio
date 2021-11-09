@@ -7,7 +7,7 @@ WebdriverIO CrossBrowserTesting Service
 
 The easiest way is to keep `@wdio/crossbrowsertesting-service` as a devDependency in your `package.json`, via:
 
-```bash
+```sh
 npm install  @wdio/crossbrowsertesting-service --save-dev
 ```
 

@@ -13,7 +13,7 @@ _**Note:** this service currently only supports Chrome v63 and up, Chromium, and
 
 The easiest way is to keep `@wdio/devtools-service` as a devDependency in your `package.json`, via:
 
-```bash
+```sh
 npm install @wdio/devtools-service --save-dev
 ```
 

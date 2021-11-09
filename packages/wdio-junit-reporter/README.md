@@ -7,7 +7,7 @@ WebdriverIO XML Reporter
 
 The easiest way is to keep `@wdio/junit-reporter` as a devDependency in your `package.json`, via:
 
-```bash
+```sh
 npm install @wdio/junit-reporter --save-dev
 ```
 

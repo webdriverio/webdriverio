@@ -34,33 +34,33 @@ exports.config = {
 
 Before you start the test, make sure you've exported the variable in the terminal, like so:
 
-```bash
+```sh
 export GLOBAL_AGENT_HTTP_PROXY=http://my.corp.proxy.com:9090
-$ wdio wdio.conf.js
+wdio wdio.conf.js
 ```
 
 You can exclude URLs from the proxy by exporting the variable, like so:
 
-```bash
+```sh
 export GLOBAL_AGENT_HTTP_PROXY=http://my.corp.proxy.com:9090
 export GLOBAL_AGENT_NO_PROXY='.foo.com'
-$ wdio wdio.conf.js
+wdio wdio.conf.js
 ```
 
 If necessary, you can specify `GLOBAL_AGENT_HTTPS_PROXY` to route HTTPS traffic through a different proxy than HTTP traffic.
 
-```bash
+```sh
 export GLOBAL_AGENT_HTTP_PROXY=http://my.corp.proxy.com:9090
 export GLOBAL_AGENT_HTTPS_PROXY=http://my.corp.proxy.com:9091
-$ wdio.wdio.conf.js
+wdio wdio.wdio.conf.js
 ```
 
 `GLOBAL_AGENT_HTTP_PROXY` is used for both HTTP and HTTPS requests if `GLOBAL_AGENT_HTTPS_PROXY` is not set.
 
 If you use [Sauce Connect Proxy](https://wiki.saucelabs.com/display/DOCS/Sauce+Connect+Proxy), start it via:
 
-```bash
-$ sc -u $SAUCE_USERNAME -k $SAUCE_ACCESS_KEY --no-autodetect -p http://my.corp.proxy.com:9090
+```sh
+sc -u $SAUCE_USERNAME -k $SAUCE_ACCESS_KEY --no-autodetect -p http://my.corp.proxy.com:9090
 ```
 
 ## Proxy Between Browser And Internet
