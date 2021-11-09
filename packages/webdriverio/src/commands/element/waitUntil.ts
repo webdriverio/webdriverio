@@ -4,6 +4,13 @@
  * and waits until that condition is fulfilled with a truthy value. If you use the WDIO testrunner the
  * commands within the condition are getting executed synchronously like in your test.
  *
+ * :::info
+ *
+ * As oppose to other element commands WebdriverIO will not wait for the element to exist to execute
+ * this command.
+ *
+ * :::
+ *
  * A common example is to wait until a certain element contains a certain text (see example).
  *
  * <example>
@@ -26,7 +33,6 @@
         });
     });
  * </example>
- *
  *
  * @alias element.waitUntil
  * @param {Function#Boolean}  condition  condition to wait on
