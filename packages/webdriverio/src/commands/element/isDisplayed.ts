@@ -12,7 +12,7 @@ const noW3CEndpoint = ['microsoftedge', 'msedge', 'safari', 'chrome', 'safari te
  *
  * :::info
  *
- * As oppose to other element commands WebdriverIO will not wait for the element
+ * As opposed to other element commands WebdriverIO will not wait for the element
  * to exist to execute this command.
  *
  * :::

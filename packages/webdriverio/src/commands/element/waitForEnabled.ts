@@ -8,7 +8,7 @@ import type { WaitForOptions } from '../../types'
  *
  * :::info
  *
- * As oppose to other element commands WebdriverIO will not wait for the element
+ * As opposed to other element commands WebdriverIO will not wait for the element
  * to exist to execute this command.
  *
  * :::
