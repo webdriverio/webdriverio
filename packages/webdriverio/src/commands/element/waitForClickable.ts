@@ -1,8 +1,14 @@
 import type { WaitForOptions } from '../../types'
 
 /**
- * Wait for an element for the provided amount of
- * milliseconds to be clickable or not clickable.
+ * Wait for an element for the provided amount of milliseconds to be clickable or not clickable.
+ *
+ * :::info
+ *
+ * As oppose to other element commands WebdriverIO will not wait for the element to exist to execute
+ * this command.
+ *
+ * :::
  *
  * <example>
     :waitForClickable.js

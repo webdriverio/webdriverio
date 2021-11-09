@@ -16,7 +16,9 @@ import isElementClickableScript from '../../scripts/isElementClickable'
  *
  * :::info
  *
- * Please note that `isClickable` works only in web browser and in mobile webviews, it doesn't work in mobile app native context.
+ * Please note that `isClickable` works only in web browser and in mobile webviews,
+ * it doesn't work in mobile app native context. Also, as oppose to other element
+ * commands WebdriverIO will not wait for the element to exist to execute this command.
  *
  * :::
  *

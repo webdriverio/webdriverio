@@ -2,8 +2,14 @@ import type { WaitForOptions } from '../../types'
 
 /**
  *
- * Wait for an element for the provided amount of
- * milliseconds to be displayed or not displayed.
+ * Wait for an element for the provided amount of milliseconds to be displayed or not displayed.
+ *
+ * :::info
+ *
+ * As oppose to other element commands WebdriverIO will not wait for the element to exist to execute
+ * this command.
+ *
+ * :::
  *
  * <example>
     :index.html
