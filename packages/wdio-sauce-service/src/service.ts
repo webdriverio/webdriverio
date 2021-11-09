@@ -73,6 +73,15 @@ export default class SauceService implements Services.ServiceInstance {
 
     beforeSuite (suite: Frameworks.Suite) {
         this._suiteTitle = suite.title
+        
+        /**
+         * Make sure we account for the cases where there is a long running `before` function for a 
+         * suite or one that can fail so we set the default job name at the suite level
+         **/
+        if (this._browser && !this._isUP && !this._isJobNameSet) {
+            this._browser.execute('sauce:job-name=' + this._suiteTitle)
+            this._isJobNameSet = true
+        }
     }
 
     beforeTest (test: Frameworks.Test) {
@@ -92,11 +101,6 @@ export default class SauceService implements Services.ServiceInstance {
         /* istanbul ignore if */
         if (this._suiteTitle === 'Jasmine__TopLevel__Suite') {
             this._suiteTitle = test.fullName.slice(0, test.fullName.indexOf(test.description || '') - 1)
-        }
-
-        if (this._browser && !this._isUP && !this._isJobNameSet) {
-            this._browser.execute('sauce:job-name=' + this._suiteTitle)
-            this._isJobNameSet = true
         }
 
         const fullTitle = (
