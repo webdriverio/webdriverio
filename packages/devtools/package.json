@@ -29,7 +29,7 @@
     "@wdio/protocols": "7.16.1",
     "@wdio/types": "7.16.3",
     "@wdio/utils": "7.16.3",
-    "chrome-launcher": "^0.14.0",
+    "chrome-launcher": "^0.15.0",
     "edge-paths": "^2.1.0",
     "puppeteer-core": "^11.0.0",
     "query-selector-shadow-dom": "^1.0.0",
