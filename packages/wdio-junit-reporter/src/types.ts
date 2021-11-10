@@ -1,6 +1,8 @@
 import { Reporters } from '@wdio/types'
 import { SuiteStats } from '@wdio/reporter'
 
+type TestSuiteNameFunction = (options: TestSuiteNameFormatOptions) => string
+
 interface ClassNameFormatOptions {
     /**
      * Configured package name
@@ -13,7 +15,12 @@ interface ClassNameFormatOptions {
     /**
      * Context of the current suite
      */
-    suite?: SuiteStats,
+    suite?: SuiteStats
+}
+
+interface TestSuiteNameFormatOptions {
+    name?: any
+    suite: SuiteStats
 }
 
 export interface JUnitReporterOptions extends Reporters.Options {
@@ -35,11 +42,19 @@ export interface JUnitReporterOptions extends Reporters.Options {
      */
     outputFileFormat?: (opts: any) => string
     /**
-     * Gives the ability to provide custom regex for formatting test suite name (e.g. in output xml ).
+     * Gives the ability to provide custom regex for formatting test suite name (e.g. in output xml ) or
+     * override the generated name of a test suite.
      *
-     * @default /[^a-z0-9]+/
+     *
+     * @example regex
+     * /[^a-z0-9]+/
+     *
+     * @example suiteName
+     * suiteNameFormat: function (options) {
+     *     return `${options.suite.title}`
+     * }
      */
-    suiteNameFormat?: RegExp
+    suiteNameFormat?: RegExp | TestSuiteNameFunction
     /**
      * Give the ability to override the generated classname of a test case.
      *
