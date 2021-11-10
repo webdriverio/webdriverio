@@ -42,9 +42,17 @@ jobs:
       - name: Lint / Dependencies / Unit / Smoke Tests
         run: npm run test
       - name: E2E Protocol Tests
-        run: npm run test:e2e
+        uses: nick-invision/retry@v2
+        with:
+          timeout_minutes: 20
+          max_attempts: 3
+          command: npm run test:e2e
       - name: E2E Edge Launch Tests
-        run: npm run test:e2e:edge
+        uses: nick-invision/retry@v2
+        with:
+          timeout_minutes: 20
+          max_attempts: 3
+          command: npm run test:e2e:edge
   e2e-mac:
     runs-on: macos-latest
     steps:
@@ -57,7 +65,11 @@ jobs:
       - name: Bootstrap Packages
         run: npm run setup-full
       - name: E2E Protocol Tests
-        run: npm run test:e2e
+        uses: nick-invision/retry@v2
+        with:
+          timeout_minutes: 20
+          max_attempts: 3
+          command: npm run test:e2e
       - name: E2E Firefox Launch Tests
         if: ${{ matrix.node-version == '16.x' }}
         run: |
