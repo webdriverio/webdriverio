@@ -77,7 +77,7 @@ jobs:
       - run: |
           export FIREFOX_BINARY=$(which hub)
           echo "FIREFOX_BINARY=$FIREFOX_BINARY" >> $GITHUB_ENV
-      - run: Run Firefox tests using $FIREFOX_BINARY
+      - run: echo "Run Firefox tests using $FIREFOX_BINARY"
       - name: E2E Firefox Launch Tests
         run: npm run test:e2e:firefox
       - name: E2E Connection Test
