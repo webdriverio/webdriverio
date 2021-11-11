@@ -81,7 +81,7 @@ Object {
   "findElementsFromElement": Object {
     "value": 30,
   },
-  "findElementsFromShadowRoots": Object {
+  "findElementsFromShadowRoot": Object {
     "value": 28,
   },
   "forward": Object {
