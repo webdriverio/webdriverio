@@ -75,7 +75,7 @@ jobs:
         with:
           firefox-version: latest
       - run: |
-          export FIREFOX_BINARY=$(which hub)
+          export FIREFOX_BINARY=$(which firefox)
           echo "FIREFOX_BINARY=$FIREFOX_BINARY" >> $GITHUB_ENV
       - run: echo "Run Firefox tests using $FIREFOX_BINARY"
       - name: E2E Firefox Launch Tests
