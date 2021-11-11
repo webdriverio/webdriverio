@@ -398,7 +398,49 @@
       "returns": {
         "type": "object",
         "name": "element",
-        "description": "A JSON representation of an element object."
+        "description": "A JSON representation of an element object, e.g. `{ 'element-6066-11e4-a52e-4f735466cecf': 'ELEMENT_1' }`."
+      }
+    }
+  },
+  "/session/:sessionId/shadow/:shadowId/element": {
+    "POST": {
+      "command": "findElementFromShadowRoot",
+      "description": "The Find Element From Shadow Root command is used to find an element within the shadow root of an element that can be used for future commands. This command returns JSON representation of the element that can be passed to $ command to transform the reference to an extended WebdriverIO element.",
+      "ref": "https://w3c.github.io/webdriver/#find-element-from-shadow-root",
+      "examples": [
+        [
+          "// get shadow root",
+          "const element = await browser.findElement('xpath', '//div')",
+          "const shadowRoot = await browser.getElementShadowRoot(",
+          "    element['element-6066-11e4-a52e-4f735466cecf']",
+          ")",
+          "// fetch element within that shadow root",
+          "const elementRef = await browser.findElementFromShadowRoot(",
+          "    shadowRoot['shadow-6066-11e4-a52e-4f735466cecf'],",
+          "    'xpath',",
+          "    '//div'",
+          ")"
+        ]
+      ],
+      "variables": [{
+        "name": "shadowId",
+        "description": "element id of a shadow root element"
+      }],
+      "parameters": [{
+        "name": "using",
+        "type": "string",
+        "description": "a valid element location strategy",
+        "required": true
+      }, {
+        "name": "value",
+        "type": "string",
+        "description": "the actual selector that will be used to find an element",
+        "required": true
+      }],
+      "returns": {
+        "type": "object",
+        "name": "element",
+        "description": "A JSON representation of an element shadow object, e.g. `{ 'element-6066-11e4-a52e-4f735466cecf': 'ELEMENT_1' }`."
       }
     }
   },
@@ -421,7 +463,49 @@
       "returns": {
         "type": "object[]",
         "name": "elements",
-        "description": "A (possibly empty) JSON list of representations of an element object."
+        "description": "A (possibly empty) JSON list of representations of an element object, e.g. `[{ 'element-6066-11e4-a52e-4f735466cecf': 'ELEMENT_1' }]`."
+      }
+    }
+  },
+  "/session/:sessionId/shadow/:shadowId/elements": {
+    "POST": {
+      "command": "findElementsFromShadowRoots",
+      "description": "The Find Elements command is used to find elements within the shadow root of an element that can be used for future commands. This command returns array of JSON representation of the elements that can be passed to $ command to transform the reference to an extended WebdriverIO element (See findElement).",
+      "ref": "https://w3c.github.io/webdriver/#find-elements-from-shadow-root",
+      "variables": [{
+        "name": "shadowId",
+        "description": "element id of a shadow root element"
+      }],
+      "parameters": [{
+        "name": "using",
+        "type": "string",
+        "description": "a valid element location strategy",
+        "required": true
+      }, {
+        "name": "value",
+        "type": "string",
+        "description": "the actual selector that will be used to find an element",
+        "required": true
+      }],
+      "examples": [
+        [
+          "// get shadow root",
+          "const element = await browser.findElement('xpath', '//div')",
+          "const shadowRoot = await browser.getElementShadowRoot(",
+          "    element['element-6066-11e4-a52e-4f735466cecf']",
+          ")",
+          "// fetch elements within that shadow root",
+          "const elementRef = await browser.findElementsFromShadowRoot(",
+          "    shadowRoot['shadow-6066-11e4-a52e-4f735466cecf'],",
+          "    'xpath',",
+          "    '//div'",
+          ")"
+        ]
+      ],
+      "returns": {
+        "type": "object[]",
+        "name": "elements",
+        "description": "A (possibly empty) JSON list of representations of an element object, e.g. `{ 'element-6066-11e4-a52e-4f735466cecf': 'ELEMENT_1' }`."
       }
     }
   },
@@ -448,7 +532,7 @@
       "returns": {
         "type": "object",
         "name": "element",
-        "description": "A JSON representation of an element object."
+        "description": "A JSON representation of an element object, e.g. `{ 'element-6066-11e4-a52e-4f735466cecf': 'ELEMENT_1' }`."
       }
     }
   },
@@ -475,7 +559,24 @@
       "returns": {
         "type": "object[]",
         "name": "elements",
-        "description": "A (possibly empty) JSON list of representations of an element object."
+        "description": "A (possibly empty) JSON list of representations of an element object, e.g. `[{ 'element-6066-11e4-a52e-4f735466cecf': 'ELEMENT_1' }]`."
+      }
+    }
+  },
+  "/session/:sessionId/element/:elementId/shadow": {
+    "GET": {
+      "command": "getElementShadowRoot",
+      "description": "Get the shadow root object of an element. The result object can be used to fetch elements within this shadow root using e.g. findElementFromShadowRoots or findElementsFromShadowRoots.",
+      "ref": "https://w3c.github.io/webdriver/#dfn-get-active-element",
+      "variables": [{
+        "name": "elementId",
+        "description": "the id of an element returned in a previous call to Find Element(s)"
+      }],
+      "parameters": [],
+      "returns": {
+        "type": "string",
+        "name": "element",
+        "description": "A JSON representation of an element shadow root, e.g. `{ 'shadow-6066-11e4-a52e-4f735466cecf': 'ELEMENT_1' }`."
       }
     }
   },
@@ -488,7 +589,7 @@
       "returns": {
         "type": "string",
         "name": "element",
-        "description": "A JSON representation of an element object."
+        "description": "A JSON representation of an element object, e.g. `{ 'element-6066-11e4-a52e-4f735466cecf': 'ELEMENT_1' }`."
       }
     }
   },
