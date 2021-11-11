@@ -1,5 +1,5 @@
-<%= isUsingTypeScript ? "import { ChainablePromiseElement } from 'webdriverio';" : "" %>
-    
+<%- isUsingTypeScript ? "import { ChainablePromiseElement } from 'webdriverio';" : "" %>
+
 <%- isUsingTypeScript || isUsingBabel
     ? "import Page from './page';"
     : "const Page = require('./page');" %>
@@ -11,15 +11,15 @@ class LoginPage extends Page {
     /**
      * define selectors using getter methods
      */
-    <%= isUsingTypeScript ? "public " : "" %>get inputUsername()<%= isUsingTypeScript ? ": ChainablePromiseElement<Promise<WebdriverIO.Element>>" : "" %> {
+    <%- isUsingTypeScript ? "public " : "" %>get inputUsername()<%- isUsingTypeScript ? ": ChainablePromiseElement<Promise<WebdriverIO.Element>>" : "" %> {
         return $('#username');
     }
-    
-    <%= isUsingTypeScript ? "public " : "" %>get inputPassword()<%= isUsingTypeScript ? ": ChainablePromiseElement<Promise<WebdriverIO.Element>>" : "" %> {
+
+    <%- isUsingTypeScript ? "public " : "" %>get inputPassword()<%- isUsingTypeScript ? ": ChainablePromiseElement<Promise<WebdriverIO.Element>>" : "" %> {
         return $('#password');
     }
-    
-    <%= isUsingTypeScript ? "public " : "" %>get btnSubmit()<%= isUsingTypeScript ? ": ChainablePromiseElement<Promise<WebdriverIO.Element>>" : "" %> {
+
+    <%- isUsingTypeScript ? "public " : "" %>get btnSubmit()<%- isUsingTypeScript ? ": ChainablePromiseElement<Promise<WebdriverIO.Element>>" : "" %> {
         return $('button[type="submit"]');
     }
 
@@ -27,7 +27,7 @@ class LoginPage extends Page {
      * a method to encapsule automation code to interact with the page
      * e.g. to login using username and password
      */
-    <%= isUsingTypeScript ? "public " : "" %>async login (username<%= isUsingTypeScript ? ": string": "" %>, password<%= isUsingTypeScript ? ": string": "" %>)<%= isUsingTypeScript ? ": Promise<void>" : "" %> {
+    <%- isUsingTypeScript ? "public " : "" %>async login (username<%- isUsingTypeScript ? ": string": "" %>, password<%- isUsingTypeScript ? ": string": "" %>)<%- isUsingTypeScript ? ": Promise<void>" : "" %> {
         await this.inputUsername.setValue(username);
         await this.inputPassword.setValue(password);
         await this.btnSubmit.click();
@@ -36,9 +36,9 @@ class LoginPage extends Page {
     /**
      * overwrite specific options to adapt it to page object
      */
-    <%= isUsingTypeScript ? "public " : "" %>open()<%= isUsingTypeScript ? ": Promise<string>" : "" %> {
+    <%- isUsingTypeScript ? "public " : "" %>open()<%- isUsingTypeScript ? ": Promise<string>" : "" %> {
         return super.open('login');
     }
 }
 
-<%= isUsingTypeScript || isUsingBabel ? "export default": "module.exports =" %> new LoginPage();
+<%- isUsingTypeScript || isUsingBabel ? "export default": "module.exports =" %> new LoginPage();
