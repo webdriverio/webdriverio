@@ -71,20 +71,14 @@ jobs:
           max_attempts: 3
           command: npm run test:e2e
       - name: E2E Firefox Launch Tests
-        run: |
-          sudo add-apt-repository ppa:ubuntu-mozilla-daily/ppa
-          sudo apt-get update
-          sudo apt-get install firefox-trunk
-          npm run test:e2e:firefox
+        run: npm run test:e2e:firefox
       - name: E2E Connection Test
-        run: |
-          npm run test:e2e:cloud
+        run: npm run test:e2e:cloud
         env:
           SAUCE_USERNAME: ${{secrets.SAUCE_USERNAME}}
           SAUCE_ACCESS_KEY: ${{secrets.SAUCE_ACCESS_KEY}}
       - name: E2E Connection Test w/ Params
-        run: |
-          npm run test:e2e:cloud -- --user $SAUCE_USERNAME_PARAM --key $SAUCE_ACCESS_KEY_PARAM
+        run: npm run test:e2e:cloud -- --user $SAUCE_USERNAME_PARAM --key $SAUCE_ACCESS_KEY_PARAM
         env:
           SAUCE_USERNAME_PARAM: ${{secrets.SAUCE_USERNAME}}
           SAUCE_ACCESS_KEY_PARAM: ${{secrets.SAUCE_ACCESS_KEY}}
