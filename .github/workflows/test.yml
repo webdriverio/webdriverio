@@ -70,6 +70,10 @@ jobs:
           timeout_minutes: 20
           max_attempts: 3
           command: npm run test:e2e
+      - name: Setup Firefox
+        uses: browser-actions/setup-firefox@latest
+        with:
+          firefox-version: latest
       - name: E2E Firefox Launch Tests
         run: npm run test:e2e:firefox
       - name: E2E Connection Test
