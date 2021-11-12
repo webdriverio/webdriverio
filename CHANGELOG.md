@@ -19,6 +19,22 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.16.7 (2021-11-12)
+
+#### :rocket: New Feature
+* `devtools`, `wdio-protocols`
+  * [#7689](https://github.com/webdriverio/webdriverio/pull/7689) Implement WebDriver shadow commands in DevTools bridge ([@christian-bromann](https://github.com/christian-bromann))
+  * [#7682](https://github.com/webdriverio/webdriverio/pull/7682) Add WebDriver protocol commands to fetch shadow elements ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :bug: Bug Fix
+* `wdio-cli`
+  * [#7688](https://github.com/webdriverio/webdriverio/pull/7688) Don't escape characters in templates ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 2
+- Abhi Singh ([@abhi2810](https://github.com/abhi2810))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
 ## v7.16.6 (2021-11-10)
 
 #### :bug: Bug Fix
