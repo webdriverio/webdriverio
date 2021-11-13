@@ -7,7 +7,7 @@ Some projects are front-end assets only, and don't run on more than a static ser
 
 The easiest way is to add `@wdio/static-server-service` as a `devDependency` in your `package.json`, via:
 
-```bash
+```sh
 npm install @wdio/static-server-service --save-dev
 ```
 

@@ -9,7 +9,7 @@ WebdriverIO Dot Reporter
 
 The easiest way is to keep `@wdio/dot-reporter` as a devDependency in your `package.json`, via:
 
-```bash
+```sh
 npm install @wdio/dot-reporter --save-dev
 ```
 

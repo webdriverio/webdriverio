@@ -18,7 +18,7 @@ What else will this service do for you:
 
 The easiest way is to keep `@wdio/sauce-service` as a devDependency in your `package.json`, via:
 
-```bash
+```sh
 npm install @wdio/sauce-service --save-dev
 ```
 

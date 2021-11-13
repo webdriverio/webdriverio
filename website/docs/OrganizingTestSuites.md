@@ -92,13 +92,13 @@ exports.config = {
 
 Now, if you want to only run a single suite, you can pass the suite name as a CLI argument:
 
-```bash
+```sh
 wdio wdio.conf.js --suite login
 ```
 
 Or, run multiple suites at once:
 
-```bash
+```sh
 wdio wdio.conf.js --suite login --suite otherFeature
 ```
 
@@ -144,13 +144,13 @@ With the `--spec` parameter, you can specify which _suite_ (Mocha, Jasmine) or _
 
 For example, to run only your login test:
 
-```bash
+```sh
 wdio wdio.conf.js --spec ./test/specs/e2e/login.js
 ```
 
 Or run multiple specs at once:
 
-```bash
+```sh
 wdio wdio.conf.js --spec ./test/specs/signup.js --spec ./test/specs/forgot-password.js
 ```
 
@@ -158,7 +158,7 @@ If the `--spec` value does not point to a particular spec file, it is instead us
 
 To run all specs with the word “dialog” in the spec file names, you could use:
 
-```bash
+```sh
 wdio wdio.conf.js --spec dialog
 ```
 
@@ -172,19 +172,19 @@ When needed, if you need to exclude particular spec file(s) from a run, you can 
 
 For example, to exclude your login test from the test run:
 
-```bash
+```sh
 wdio wdio.conf.js --exclude ./test/specs/e2e/login.js
 ```
 
 Or, exclude multiple spec files:
 
- ```bash
+ ```sh
 wdio wdio.conf.js --exclude ./test/specs/signup.js --exclude ./test/specs/forgot-password.js
 ```
 
 Or, exclude a spec file when filtering using a suite:
 
-```bash
+```sh
 wdio wdio.conf.js --suite login --exclude ./test/specs/e2e/login.js
 ```
 
@@ -192,7 +192,7 @@ wdio wdio.conf.js --suite login --exclude ./test/specs/e2e/login.js
 
 Run an entire suite along with individual specs.
 
-```bash
+```sh
 wdio wdio.conf.js --suite login --spec ./test/specs/signup.js
 ```
 
@@ -202,7 +202,7 @@ It is sometimes necessary&mdash;in the context of continuous integration and oth
 
 Piped-in filenames override the list of globs or filenames specified in the configuration's `spec` list.
 
-```bash
+```sh
 grep -r -l --include "*.js" "myText" | wdio wdio.conf.js
 ```
 
@@ -212,7 +212,7 @@ _**Note:** This will_ not _override the `--spec` flag for running a single spec.
 
 You can also filter which specific `suite|describe` and/or `it|test` you want to run by passing a mocha specific argument: `--mochaOpts.grep` to the wdio CLI.
 
-```bash
+```sh
 wdio wdio.conf.js --mochaOpts.grep myText
 wdio wdio.conf.js --mochaOpts.grep "Text with spaces"
 ```

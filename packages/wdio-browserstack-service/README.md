@@ -18,7 +18,7 @@ The easiest way is to keep `@wdio/browserstack-service` as a devDependency in yo
 
 You can simple do it by:
 
-```bash
+```sh
 npm install @wdio/browserstack-service --save-dev
 ```
 

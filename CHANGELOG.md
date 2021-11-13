@@ -19,6 +19,40 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.16.7 (2021-11-12)
+
+#### :rocket: New Feature
+* `devtools`, `wdio-protocols`
+  * [#7689](https://github.com/webdriverio/webdriverio/pull/7689) Implement WebDriver shadow commands in DevTools bridge ([@christian-bromann](https://github.com/christian-bromann))
+  * [#7682](https://github.com/webdriverio/webdriverio/pull/7682) Add WebDriver protocol commands to fetch shadow elements ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :bug: Bug Fix
+* `wdio-cli`
+  * [#7688](https://github.com/webdriverio/webdriverio/pull/7688) Don't escape characters in templates ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 2
+- Abhi Singh ([@abhi2810](https://github.com/abhi2810))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
+## v7.16.6 (2021-11-10)
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#7677](https://github.com/webdriverio/webdriverio/pull/7677) Explicitly wait for window handle to be picked up in DevTools ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :nail_care: Polish
+* `wdio-junit-reporter`
+  * [#7680](https://github.com/webdriverio/webdriverio/pull/7680) Adding ability to override Suite Name ([@facusantillo](https://github.com/facusantillo))
+* `wdio-cli`
+  * [#7671](https://github.com/webdriverio/webdriverio/pull/7671) Stricter typing examples ([@Badisi](https://github.com/Badisi))
+
+#### Committers: 3
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Facundo Santillo Alarcon ([@facusantillo](https://github.com/facusantillo))
+- [@Badisi](https://github.com/Badisi)
+
+
 ## v7.16.5 (2021-11-09)
 
 #### :nail_care: Polish

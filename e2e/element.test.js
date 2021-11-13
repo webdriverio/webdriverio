@@ -289,6 +289,22 @@ describe('elements', () => {
             await browser.getElementProperty(headerSlot[ELEMENT_KEY], 'name')
         ).toBe('header')
     })
+
+    it('can fetch shadow elements', async () => {
+        await browser.navigateTo('https://www.chromestatus.com/feature/5191745052606464')
+        const element = await browser.findElement('tag name', 'chromedash-toast')
+        const shadowRoot = await browser.getElementShadowRoot(
+            element['element-6066-11e4-a52e-4f735466cecf']
+        )
+        console.log(shadowRoot['shadow-6066-11e4-a52e-4f735466cecf'])
+        const elementRef = await browser.findElementFromShadowRoot(
+            shadowRoot['shadow-6066-11e4-a52e-4f735466cecf'],
+            'css selector',
+            '#msg'
+        )
+        expect(await browser.getElementText(elementRef[ELEMENT_KEY]))
+            .toBe('Welcome to chromestatus.com!')
+    })
 })
 
 afterAll(async () => {

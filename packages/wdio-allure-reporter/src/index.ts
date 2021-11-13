@@ -222,6 +222,7 @@ class AllureReporter extends WDIOReporter {
 
     onTestFail(test: TestStats | HookStats) {
         if (this._options.useCucumberStepReporter) {
+            attachConsoleLogs(this._consoleOutput, this._allure)
             const testStatus = getTestStatus(test, this._config)
             const stepStatus: Status = Object.values(stepStatuses).indexOf(testStatus) >= 0 ?
                 testStatus : 'failed'

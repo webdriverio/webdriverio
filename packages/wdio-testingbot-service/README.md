@@ -7,7 +7,7 @@ WebdriverIO TestingBot Service
 
 The easiest way is to keep `@wdio/testingbot-service` as a devDependency in your `package.json`, via:
 
-```bash
+```sh
 npm install @wdio/testingbot-service --save-dev
 ```
 

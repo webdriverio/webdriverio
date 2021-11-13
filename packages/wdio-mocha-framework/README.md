@@ -7,7 +7,7 @@ WDIO Mocha Framework Adapter
 
 The easiest way is to keep `@wdio/mocha-framework` as a devDependency in your `package.json`, via:
 
-```bash
+```sh
 npm install @wdio/mocha-framework --save-dev
 ```
 
