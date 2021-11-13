@@ -74,7 +74,31 @@ test('beforeSession should set to unknown creds if no sauce user and key are fou
     expect(config.key).toBe('unknown_key')
 })
 
-test('beforeTest should set job-name as set as the suite name', () => {
+test('beforeSuite should send request to set the job name as suite name', () => {
+    const service = new SauceService({}, {}, {} as any)
+    service['_browser'] = browser
+    expect(service['_suiteTitle']).toBeUndefined()
+    service.beforeSuite({ title: 'foobar' } as any)
+    expect(service['_suiteTitle']).toBe('foobar')
+    expect(browser.execute).toBeCalledWith('sauce:job-name=foobar')
+})
+
+test('beforeTest should send the job-name as suite name by default', () => {
+    const service = new SauceService({}, {}, { user: 'foobar', key: '123', capabilities: {} })
+    service['_browser'] = browser
+    service['_suiteTitle'] = 'Suite Title'
+    expect(service['_isJobNameSet']).toBe(false)
+    service.beforeSuite({ title: 'foobar suite' } as any)
+    service.beforeTest({
+        fullName: 'my test can do something',
+        description: 'foobar'
+    } as any)
+    expect(browser.execute).toBeCalledTimes(2)
+    expect(browser.execute).toBeCalledWith('sauce:job-name=foobar suite')
+    expect(browser.execute).toBeCalledWith('sauce:context=my test can do something')
+})
+
+test('beforeTest should mark job-name as set', () => {
     const service = new SauceService({}, {}, { user: 'foobar', key: '123', capabilities: {} })
     service['_browser'] = browser
     service['_suiteTitle'] = 'Suite Title'
@@ -84,7 +108,6 @@ test('beforeTest should set job-name as set as the suite name', () => {
         description: 'foobar'
     } as any)
     expect(service['_isJobNameSet']).toBe(true)
-    expect(browser.execute).toBeCalledWith('sauce:job-name=Suite Title')
 })
 
 test('beforeTest should set job-name via custom setJobName method', () => {
@@ -484,7 +507,7 @@ test('_uploadLogs should not fail in case of a platform error', async () => {
     const service = new SauceService(
         {},
         {},
-        { outputDir: '/foo/bar' } as any
+            { outputDir: '/foo/bar' } as any
     )
     ;(got as any as jest.Mock).mockRejectedValueOnce(new Error('upps'))
     expect(log.error).toHaveBeenCalledTimes(0)
