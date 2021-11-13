@@ -74,7 +74,7 @@ test('beforeSession should set to unknown creds if no sauce user and key are fou
     expect(config.key).toBe('unknown_key')
 })
 
-test('beforeTest should set job-name', () => {
+test('beforeTest should set job-name as set as the suite name', () => {
     const service = new SauceService({}, {}, { user: 'foobar', key: '123', capabilities: {} })
     service['_browser'] = browser
     service['_suiteTitle'] = 'Suite Title'
@@ -165,8 +165,7 @@ test('beforeTest should not set context for UP test', () => {
     upService.beforeTest({
         title: 'update up job name'
     } as any)
-    expect(browser.execute).toBeCalledTimes(1)
-    expect(browser.execute).not.toBeCalledWith('sauce:job-name==update up job name')
+    expect(browser.execute).toBeCalledTimes(0)
 })
 
 test('beforeTest should not set context if user does not use sauce', () => {
