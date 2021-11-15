@@ -507,7 +507,7 @@ test('_uploadLogs should not fail in case of a platform error', async () => {
     const service = new SauceService(
         {},
         {},
-            { outputDir: '/foo/bar' } as any
+        { outputDir: '/foo/bar' } as any
     )
     ;(got as any as jest.Mock).mockRejectedValueOnce(new Error('upps'))
     expect(log.error).toHaveBeenCalledTimes(0)
