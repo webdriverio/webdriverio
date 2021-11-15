@@ -19,6 +19,23 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.16.8 (2021-11-15)
+
+#### :nail_care: Polish
+* `wdio-sauce-service`
+  * [#7672](https://github.com/webdriverio/webdriverio/pull/7672) Set the job name before a suite is run ([@gabriel-kohen-by](https://github.com/gabriel-kohen-by))
+* `wdio-allure-reporter`
+  * [#7691](https://github.com/webdriverio/webdriverio/pull/7691) Fix for Console log note added to failed cucumber step ([@praveendvd](https://github.com/praveendvd))
+
+#### :house: Internal
+* [#7699](https://github.com/webdriverio/webdriverio/pull/7699) doc(README): replace broken logo ([@Badisi](https://github.com/Badisi))
+
+#### Committers: 3
+- Gabriel Kohen ([@gabriel-kohen-by](https://github.com/gabriel-kohen-by))
+- [@Badisi](https://github.com/Badisi)
+- praveendvd ([@praveendvd](https://github.com/praveendvd))
+
+
 ## v7.16.7 (2021-11-12)
 
 #### :rocket: New Feature
