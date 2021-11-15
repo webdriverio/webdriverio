@@ -76,6 +76,14 @@ export default class SauceService implements Services.ServiceInstance {
 
     beforeSuite (suite: Frameworks.Suite) {
         this._suiteTitle = suite.title
+
+        /**
+         * Make sure we account for the cases where there is a long running `before` function for a
+         * suite or one that can fail so we set the default job name at the suite level
+         **/
+        if (this._browser && !this._isUP && !this._isJobNameSet) {
+            this._browser.execute('sauce:job-name=' + this._suiteTitle)
+        }
     }
 
     beforeTest (test: Frameworks.Test) {
@@ -94,16 +102,15 @@ export default class SauceService implements Services.ServiceInstance {
         }
 
         if (this._browser && !this._isJobNameSet) {
-            let jobName = this._suiteTitle
             if (this._options.setJobName) {
-                jobName = this._options.setJobName(
+                let jobName = this._options.setJobName(
                     this._config,
                     this._capabilities,
                     this._suiteTitle!
                 )
+                this._browser.execute(`sauce:job-name=${jobName}`)
             }
 
-            this._browser.execute(`sauce:job-name=${jobName}`)
             this._isJobNameSet = true
         }
 
