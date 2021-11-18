@@ -89,10 +89,7 @@ describe('suite async', () => {
 
         console.log(browser.capabilities) // static properties should not be awaited
 
-        // this WON'T WORK! You can't chain functions like this.
         await $('body').click()
-        // instead you need to:
-        await (await $('body')).click()
     })
 })
 ```
@@ -101,23 +98,19 @@ describe('suite async', () => {
 
 There can be quite some confusion when handling asynchronous commands manually. The usual problems are:
 
-- chaining of element commands:
-
-    ```js
-    await $('body').click()` // throws `$(...).click is not a function`
-    ```
-
-    You can't chain element calls as you have to await multiple asynchronous functions. To fix this, first await element then trigger the click, like so:
-
-    ```js
-    const el = await $('body')
-    await el.click()
-    ```
-
 - previous command was not awaited:
 
     ```js
     const el = await $('body')
     el.waitForExist() // ERROR: await is missing here, you'll get `Unhandled promise rejection`.
     await el.click()
+    ```
+
+- Array loops (e.g., `forEach` & `map`) need `Promise.all`
+
+    ```js
+    const links = await $$('a')
+    const linksText = await links.map((link) => {
+        return link.getText();
+    })
     ```
