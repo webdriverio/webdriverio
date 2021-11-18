@@ -31,7 +31,6 @@
     "@types/node": "^16.11.1",
     "@wdio/logger": "7.16.0",
     "@wdio/types": "7.16.3",
-    "atob": "^2.1.2",
     "babel-plugin-istanbul": "^6.0.0",
     "core-js": "~3.19.0",
     "devtools-protocol": "^0.0.940865",
@@ -43,9 +42,6 @@
     "speedline": "^1.4.1",
     "stable": "^0.1.8",
     "webdriverio": "7.16.8"
-  },
-  "devDependencies": {
-    "@types/atob": "^2.1.2"
   },
   "peerDependencies": {
     "@wdio/cli": "^7.0.0"
