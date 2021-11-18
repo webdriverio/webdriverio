@@ -1,4 +1,4 @@
-import fs from 'fs'
+import fs from 'fs-extra'
 import path from 'path'
 import util from 'util'
 import inquirer from 'inquirer'
@@ -65,7 +65,7 @@ const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) 
         if (!hasPackage('ts-node')) {
             packagesToInstall.push('ts-node', 'typescript')
         }
-        if (!hasFile('tsconfig.json')){
+        if (answers.generateTSConfigFile) {
             const config = {
                 compilerOptions: {
                     types: [
@@ -77,11 +77,18 @@ const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) 
                     target: 'ES5',
                 }
             }
-
-            await fs.promises.writeFile(
-                path.join(process.cwd(), 'tsconfig.json'),
-                JSON.stringify(config, null, 4)
-            )
+            if (!hasFile('tsconfig.json')) {
+                await fs.promises.writeFile(
+                    path.join(process.cwd(), 'tsconfig.json'),
+                    JSON.stringify(config, null, 4)
+                )
+            } else {
+                fs.ensureDirSync(path.join(process.cwd(), 'test'))
+                await fs.promises.writeFile(
+                    path.join(process.cwd(), 'test/tsconfig.json'),
+                    JSON.stringify(config, null, 4)
+                )
+            }
         }
     }
 
@@ -182,7 +189,9 @@ const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) 
     }
 
     try {
-        await renderConfigurationFile(parsedAnswers)
+        const configPath = hasFile('test/tsconfig.json') ? 'test' : undefined
+        answers.generateTSConfigFile ? await renderConfigurationFile(parsedAnswers, configPath) :
+            await renderConfigurationFile(parsedAnswers)
 
         if (answers.generateTestFiles) {
             console.log('\nConfig file installed successfully, creating test files...')

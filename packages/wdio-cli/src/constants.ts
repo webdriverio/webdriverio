@@ -285,6 +285,12 @@ export const QUESTIONNAIRE = [{
             ? COMPILER_OPTIONS.ts // default to TypeScript
             : COMPILER_OPTIONS.nil // default to no compiler
 }, {
+    type: 'confirm',
+    name: 'generateTSConfigFile',
+    message: 'Do you want WebdriverIO to autogenerate tsconfig file?',
+    default: true,
+    when: /* istanbul ignore next */ (answers: Questionnair) => answers.isUsingCompiler === exports.COMPILER_OPTION_ANSWERS[1]
+}, {
     type: 'input',
     name: 'specs',
     message: 'Where are your test specs located?',

@@ -26,6 +26,7 @@ export interface Questionnair {
     usePageObjects: boolean
     pages: string
     isUsingCompiler: ValueOf<typeof COMPILER_OPTION_ANSWERS>
+    generateTSConfigFile: boolean
     reporters: string[]
     services: string[]
     outputDir: string
