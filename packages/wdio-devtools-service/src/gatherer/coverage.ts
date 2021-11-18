@@ -1,6 +1,5 @@
 import fs from 'fs'
 import path from 'path'
-import atob from 'atob'
 import { EventEmitter } from 'events'
 import { transformAsync as babelTransform } from '@babel/core'
 import babelPluginIstanbul from 'babel-plugin-istanbul'
@@ -87,7 +86,7 @@ export default class CoverageGatherer extends EventEmitter {
         const { body, base64Encoded } = await this._client.send(
             'Fetch.getResponseBody',
             { requestId })
-        const inputCode = base64Encoded ? atob(body) : body
+        const inputCode = base64Encoded ? Buffer.from(body, 'base64').toString('utf8') : body
 
         const url = new URL(request.url)
         const fullPath = path.join(this._coverageLogDir, 'files', url.hostname, url.pathname)
