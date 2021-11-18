@@ -48,7 +48,6 @@
   "typeScriptVersion": "3.8.3",
   "devDependencies": {
     "@types/archiver": "^5.1.0",
-    "@types/atob": "^2.1.2",
     "@types/fs-extra": "^9.0.2",
     "@types/lodash.clonedeep": "^4.5.6",
     "@types/lodash.isobject": "^3.0.6",
@@ -66,7 +65,6 @@
     "@wdio/utils": "7.16.3",
     "archiver": "^5.0.0",
     "aria-query": "^5.0.0",
-    "atob": "^2.1.2",
     "css-shorthand-properties": "^1.1.1",
     "css-value": "^0.0.1",
     "devtools": "7.16.7",
