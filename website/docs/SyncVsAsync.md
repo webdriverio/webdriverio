@@ -110,9 +110,7 @@ There can be quite some confusion when handling asynchronous commands manually. 
 
     ```js
     const links = await $$('a')
-    const linksText = await Promise.all(
-        links.map(async function (link) {
-            return link.getText();
-        })
-    )
+    const linksText = await links.map((link) => {
+        return link.getText();
+    })
     ```
