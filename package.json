@@ -63,7 +63,6 @@
     "@octokit/rest": "^18.12.0",
     "@tsconfig/node12": "^1.0.9",
     "@types/archiver": "^5.1.1",
-    "@types/atob": "^2.1.2",
     "@types/cheerio": "^0.22.30",
     "@types/fs-extra": "^9.0.13",
     "@types/jest": "^27.0.2",
