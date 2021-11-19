@@ -77,18 +77,12 @@ const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) 
                     target: 'ES5',
                 }
             }
-            if (!hasFile('tsconfig.json')) {
-                await fs.promises.writeFile(
-                    path.join(process.cwd(), 'tsconfig.json'),
-                    JSON.stringify(config, null, 4)
-                )
-            } else {
-                fs.ensureDirSync(path.join(process.cwd(), 'test'))
-                await fs.promises.writeFile(
-                    path.join(process.cwd(), 'test/tsconfig.json'),
-                    JSON.stringify(config, null, 4)
-                )
-            }
+
+            fs.ensureDirSync(path.join(process.cwd(), 'test'))
+            await fs.promises.writeFile(
+                path.join(process.cwd(), (hasFile('tsconfig.json') ? 'test' : ''), 'tsconfig.json'),
+                JSON.stringify(config, null, 4)
+            )
         }
     }
 
@@ -189,9 +183,10 @@ const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) 
     }
 
     try {
-        const configPath = hasFile('test/tsconfig.json') ? 'test' : undefined
-        answers.generateTSConfigFile ? await renderConfigurationFile(parsedAnswers, configPath) :
-            await renderConfigurationFile(parsedAnswers)
+        await renderConfigurationFile(
+            parsedAnswers,
+            answers.generateTSConfigFile && hasFile('test/tsconfig.json') ? 'test' : undefined
+        )
 
         if (answers.generateTestFiles) {
             console.log('\nConfig file installed successfully, creating test files...')
@@ -221,6 +216,7 @@ const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) 
     }
 
     console.log(util.format(CONFIG_HELPER_SUCCESS_MESSAGE,
+        hasFile('test/wdio.conf.ts') ? 'test/' : '',
         (answers.isUsingCompiler === COMPILER_OPTIONS.ts) ? 'ts' : 'js'
     ))
 
