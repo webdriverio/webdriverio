@@ -111,6 +111,12 @@ The maintainers of WebdriverIO and thousands of other packages are working with 
 - [@wdio/smoke-test-service](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-smoke-test-service) - A WebdriverIO utility to smoke test services for internal testing purposes
 - [@wdio/webdriver-mock-service](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-webdriver-mock-service) - A WebdriverIO service to stub all endpoints for internal testing purposes
 
+## :package: Community
+
+There are many wonderful curated resources the WebdriverIO community has put together.  
+
+- [awesome-webdriverio](https://github.com/webdriverio-community/awesome-webdriverio) - A curated list of awesome WebdriverIO resources, libraries, tools and applications
+
 ## :handshake: Project Governance
 
 This project is maintained by [awesome people](/AUTHORS.md) following a common [set of rules](/GOVERNANCE.md) and treating each other with [respect and appreciation](/CODE_OF_CONDUCT.md).
