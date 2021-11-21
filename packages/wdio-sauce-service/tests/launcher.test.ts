@@ -39,7 +39,7 @@ test('onPrepare sauceConnectOpts for JWP', async () => {
     expect(service['_sauceConnectProcess']).toBeUndefined()
     await service.onPrepare(config, caps)
 
-    expect(caps).toEqual([{tunnelIdentifier: 'my-tunnel'}])
+    expect(caps).toEqual([{ tunnelIdentifier: 'my-tunnel' }])
 
     // @ts-ignore mock feature
     expect(SauceLabs.instances).toHaveLength(1)
