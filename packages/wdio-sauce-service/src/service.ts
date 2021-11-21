@@ -23,7 +23,6 @@ export default class SauceService implements Services.ServiceInstance {
 
     private _options: SauceServiceConfig
     private _api: SauceLabs
-    private _isLegacyRDC: boolean
     private _browser?: Browser<'async'> | MultiRemoteBrowser<'async'>
     private _isUP?: boolean
     private _suiteTitle?: string
@@ -36,7 +35,6 @@ export default class SauceService implements Services.ServiceInstance {
     ) {
         this._options = { ...DEFAULT_OPTIONS, ...options }
         this._api = new SauceLabs(this._config as unknown as SauceLabsOptions)
-        this._isLegacyRDC = 'testobject_api_key' in this._capabilities
         this._maxErrorStackLength = this._options.maxErrorStackLength || this._maxErrorStackLength
     }
 
@@ -49,13 +47,13 @@ export default class SauceService implements Services.ServiceInstance {
         /**
          * if no user and key is specified even though a sauce service was
          * provided set user and key with values so that the session request
-         * will fail (not for RDC tho due to other auth mechansim)
+         * will fail
          */
-        if (!this._isLegacyRDC && !this._config.user) {
+        if (!this._config.user) {
             this._isServiceEnabled = false
             this._config.user = 'unknown_user'
         }
-        if (!this._isLegacyRDC && !this._config.key) {
+        if (!this._config.key) {
             this._isServiceEnabled = false
             this._config.key = 'unknown_key'
         }
@@ -80,14 +78,17 @@ export default class SauceService implements Services.ServiceInstance {
         /**
          * Make sure we account for the cases where there is a long running `before` function for a
          * suite or one that can fail so we set the default job name at the suite level
+         * Don't do this for Jasmine because the `suiteTitle` is `Jasmine__TopLevel__Suite` and the
+         * `fullName` is `null`, so no alternative
          **/
-        if (this._browser && !this._isUP && !this._isJobNameSet) {
+        if (this._browser && !this._isUP && !this._isJobNameSet && this._suiteTitle !== 'Jasmine__TopLevel__Suite') {
             this._browser.execute('sauce:job-name=' + this._suiteTitle)
+            this._isJobNameSet = true
         }
     }
 
     beforeTest (test: Frameworks.Test) {
-        if (!this._isServiceEnabled || this._isLegacyRDC || !this._browser) {
+        if (!this._isServiceEnabled || !this._browser) {
             return
         }
 
@@ -102,15 +103,18 @@ export default class SauceService implements Services.ServiceInstance {
         }
 
         if (this._browser && !this._isJobNameSet) {
+            let jobName = this._suiteTitle
             if (this._options.setJobName) {
-                let jobName = this._options.setJobName(
+                jobName = this._options.setJobName(
                     this._config,
                     this._capabilities,
                     this._suiteTitle!
                 )
-                this._browser.execute(`sauce:job-name=${jobName}`)
             }
 
+            if (!this._isJobNameSet){
+                this._browser.execute(`sauce:job-name=${jobName}`)
+            }
             this._isJobNameSet = true
         }
 
@@ -206,7 +210,7 @@ export default class SauceService implements Services.ServiceInstance {
      * For CucumberJS
      */
     beforeFeature (uri: unknown, feature: { name: string }) {
-        if (!this._isServiceEnabled || this._isLegacyRDC || !this._browser) {
+        if (!this._isServiceEnabled || !this._browser) {
             return
         }
 
@@ -233,7 +237,7 @@ export default class SauceService implements Services.ServiceInstance {
          * Date:    20200714
          * Remark:  Sauce Unified Platform doesn't support updating the context yet.
          */
-        if (!this._isServiceEnabled || this._isLegacyRDC || this._isUP || !this._browser) {
+        if (!this._isServiceEnabled || this._isUP || !this._browser) {
             return
         }
 
@@ -261,7 +265,7 @@ export default class SauceService implements Services.ServiceInstance {
      * update Sauce Labs job
      */
     async after (result: number) {
-        if (!this._browser || (!this._isServiceEnabled && !this._isLegacyRDC)) {
+        if (!this._browser || !this._isServiceEnabled) {
             return
         }
 
@@ -311,7 +315,7 @@ export default class SauceService implements Services.ServiceInstance {
     }
 
     onReload (oldSessionId: string, newSessionId: string) {
-        if (!this._browser || (!this._isServiceEnabled && !this._isLegacyRDC)) {
+        if (!this._browser || !this._isServiceEnabled) {
             return
         }
 
@@ -330,12 +334,6 @@ export default class SauceService implements Services.ServiceInstance {
     }
 
     async updateJob (sessionId: string, failures: number, calledOnReload = false, browserName?: string) {
-        if (this._isLegacyRDC) {
-            await this._api.updateTest(sessionId, { passed: failures === 0 })
-            this._failures = 0
-            return
-        }
-
         const body = this.getBody(failures, calledOnReload, browserName)
         await this._api.updateJob(this._config.user as string, sessionId, body as Job)
         this._failures = 0

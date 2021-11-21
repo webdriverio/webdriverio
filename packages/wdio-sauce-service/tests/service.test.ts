@@ -14,6 +14,7 @@ const uri = '/some/uri'
 const featureObject = {
     name: 'Create a feature'
 }
+const jasmineSuiteTitle = 'Jasmine__TopLevel__Suite'
 
 jest.createMockFromModule('fs')
 fs.createReadStream = jest.fn()
@@ -83,10 +84,34 @@ test('beforeSuite should send request to set the job name as suite name', () => 
     expect(browser.execute).toBeCalledWith('sauce:job-name=foobar')
 })
 
+test('beforeSuite should not send request to set the job name as suite name for Jasmine tests', () => {
+    const service = new SauceService({}, {}, {} as any)
+    service['_browser'] = browser
+    expect(service['_suiteTitle']).toBeUndefined()
+    service.beforeSuite({ title: jasmineSuiteTitle } as any)
+    expect(service['_suiteTitle']).toBe(jasmineSuiteTitle)
+    expect(browser.execute).not.toBeCalled()
+})
+
 test('beforeTest should send the job-name as suite name by default', () => {
     const service = new SauceService({}, {}, { user: 'foobar', key: '123', capabilities: {} })
     service['_browser'] = browser
     service['_suiteTitle'] = 'Suite Title'
+    expect(service['_isJobNameSet']).toBe(false)
+    service.beforeSuite({ title: 'foobar suite' } as any)
+    service.beforeTest({
+        fullName: 'my test can do something',
+        description: 'foobar'
+    } as any)
+    expect(browser.execute).toBeCalledTimes(2)
+    expect(browser.execute).toBeCalledWith('sauce:job-name=foobar suite')
+    expect(browser.execute).toBeCalledWith('sauce:context=my test can do something')
+})
+
+test('beforeTest should send the job-name as suite name for Jasmine tests', () => {
+    const service = new SauceService({}, {}, { user: 'foobar', key: '123', capabilities: {} })
+    service['_browser'] = browser
+    service['_suiteTitle'] = jasmineSuiteTitle
     expect(service['_isJobNameSet']).toBe(false)
     service.beforeSuite({ title: 'foobar suite' } as any)
     service.beforeTest({
@@ -133,7 +158,7 @@ test('beforeTest should set job-name via custom setJobName method', () => {
     expect(browser.execute).toBeCalledWith('sauce:job-name=barfoo-foobar-Suite Title')
 })
 
-test('beforeTest not should set job-name when it has already been set', () => {
+test('beforeTest should not set job-name when it has already been set', () => {
     const service = new SauceService({}, {}, { user: 'foobar', key: '123', capabilities: {} })
     service['_browser'] = browser
     service['_suiteTitle'] = 'Suite Title'
@@ -169,26 +194,17 @@ test('beforeTest should set context for mocha test', () => {
     expect(browser.execute).toBeCalledWith('sauce:context=foo - bar')
 })
 
-test('beforeTest should not set context for LegacyRDC test', () => {
-    // not for LegacyRDC since sauce:context is not available there
-    const rdcService = new SauceService({}, { testobject_api_key: 'foobar' }, {} as any)
-    rdcService['_browser'] = browser
-    rdcService.beforeSession()
-    rdcService.beforeTest({
-        fullTitle: 'my test can do something'
-    } as any)
-    expect(browser.execute).not.toBeCalled()
-})
-
 test('beforeTest should not set context for UP test', () => {
     // not for UP since sauce:context is not available there
     const upService = new SauceService({}, {}, {} as any)
     upService['_browser'] = browser
+    upService['_suiteTitle'] = 'Suite Title'
     upService['_isUP'] = true
     upService.beforeTest({
         title: 'update up job name'
     } as any)
-    expect(browser.execute).toBeCalledTimes(0)
+    expect(browser.execute).toBeCalledTimes(1)
+    expect(browser.execute).toBeCalledWith('sauce:job-name=Suite Title')
 })
 
 test('beforeTest should not set context if user does not use sauce', () => {
@@ -325,14 +341,6 @@ test('beforeFeature should set context', () => {
     expect(browser.execute).toBeCalledWith('sauce:context=Feature: Create a feature')
 })
 
-test('beforeFeature should not set context if LegacyRDC test', () => {
-    const rdcService = new SauceService({}, { testobject_api_key: 'foobar' }, {} as any)
-    rdcService['_browser'] = browser
-    rdcService.beforeSession()
-    rdcService.beforeFeature(uri, featureObject)
-    expect(browser.execute).not.toBeCalledWith('sauce:context=Feature: Create a feature')
-})
-
 test('beforeFeature should not set context if UP test', () => {
     const upService = new SauceService({}, {}, {} as any)
     upService['_browser'] = browser
@@ -378,14 +386,6 @@ test('beforeScenario should set context', () => {
     expect(browser.execute).toBeCalledWith('sauce:context=Scenario: foobar')
 })
 
-test('beforeScenario should not set context if LegacyRDC test', () => {
-    const rdcService = new SauceService({}, { testobject_api_key: 'foobar' }, {} as any)
-    rdcService['_browser'] = browser
-    rdcService.beforeSession()
-    rdcService.beforeScenario({ pickle: { name: 'foobar' } })
-    expect(browser.execute).not.toBeCalledWith('sauce:context=Scenario: foobar')
-})
-
 test('beforeScenario should not set context if no sauce user was applied', () => {
     const service = new SauceService({}, {}, {} as any)
     service['_browser'] = browser
@@ -410,22 +410,6 @@ test('after', async () => {
 
     expect(service.updateJob).toBeCalledWith('foobar', 5)
     expect(service['_uploadLogs']).toBeCalledWith('foobar')
-})
-
-test('after for LegacyRDC', async () => {
-    const service = new SauceService({}, { testobject_api_key: '1' }, {} as any)
-    service['_browser'] = browser
-    service.beforeSession()
-    service['_failures'] = 5
-    service.updateJob = jest.fn()
-
-    // @ts-expect-error
-    browser.isMultiremote = false
-    // @ts-expect-error
-    browser.sessionId = 'foobar'
-    await service.after(1)
-
-    expect(service.updateJob).toBeCalledWith('foobar', 5)
 })
 
 test('after for UP', async () => {
@@ -585,22 +569,6 @@ test('onReload', () => {
     expect(service.updateJob).toBeCalledWith('oldbar', 5, true)
 })
 
-test('onReload with LegacyRDC', () => {
-    const service = new SauceService({}, { testobject_api_key: '1' }, {} as any)
-    service['_browser'] = browser
-    service.beforeSession()
-    service['_failures'] = 0
-    service.updateJob = jest.fn()
-
-    // @ts-expect-error
-    browser.isMultiremote = false
-    // @ts-expect-error
-    browser.sessionId = 'foobar'
-    service.onReload('oldbar', 'newbar')
-
-    expect(service.updateJob).toBeCalledWith('oldbar', 0, true)
-})
-
 test('onReload should not set context if no sauce user was applied', () => {
     const service = new SauceService({}, {}, {} as any)
     service['_browser'] = browser
@@ -649,19 +617,6 @@ test('updateJob for VMs', () => {
     const [reqUri, reqCall] = (got.put as jest.Mock).mock.calls[0]
     expect(reqUri).toBe('https://api.us-west-1.saucelabs.com/rest/v1/foobar/jobs/12345')
     expect(reqCall.json).toEqual({ name: 'my test (1)', passed: false })
-    expect(service['_failures']).toBe(0)
-})
-
-test('updateJob for LegacyRDC', () => {
-    const service = new SauceService({}, { testobject_api_key: '1' }, {} as any)
-    service['_browser'] = browser
-    service.beforeSession()
-
-    service.updateJob('12345', 23)
-
-    const [reqUri, reqCall] = (got.put as jest.Mock).mock.calls[0]
-    expect(reqUri).toBe('https://app.testobject.com/api/rest/v2/appium/session/12345/test')
-    expect(reqCall.json).toEqual({ passed: false })
     expect(service['_failures']).toBe(0)
 })
 

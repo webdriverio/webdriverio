@@ -3,7 +3,7 @@ import type { Capabilities } from '@wdio/types'
 const MOBILE_BROWSER_NAMES = ['ipad', 'iphone', 'android']
 const MOBILE_CAPABILITIES = [
     'appium-version', 'appiumVersion', 'device-type', 'deviceType',
-    'device-orientation', 'deviceOrientation', 'deviceName', 'automationName'
+    'device-orientation', 'deviceOrientation', 'deviceName', 'automationName', 'app'
 ]
 
 /**
@@ -20,30 +20,31 @@ export function isW3C (capabilities?: Capabilities.DesiredCapabilities) {
         return false
     }
 
-    /**
-     * assume session to be a WebDriver session when
-     * - capabilities are returned
-     *   (https://w3c.github.io/webdriver/#dfn-new-sessions)
-     * - it is an Appium session (since Appium is full W3C compliant)
-     */
-    const isAppium = Boolean(
-        capabilities.automationName ||
-        capabilities.deviceName ||
-        capabilities.appiumVersion
-    )
     const hasW3CCaps = Boolean(
         /**
-         * safari docker image may not provide a platformName therefore
-         * check one of the available "platformName" or "browserVersion"
+         * Appium can be JWP (Appium 1.x) or W3C (Appium 1.x and 2.x).
+         * JWP for Appium has `platformName` and `platformVersion` as valid
+         * caps which are W3C valid caps for Desktop.
          */
-        (capabilities.platformName || capabilities.browserVersion) &&
-        /**
-         * local safari and BrowserStack don't provide platformVersion therefore
-         * check also if setWindowRect is provided
-         */
-        (capabilities.platformVersion || Object.prototype.hasOwnProperty.call(capabilities, 'setWindowRect'))
+        isMobile(capabilities) ?
+            /**
+             * The check `isMobile` is not enough to determine if Appium is running with W3C caps
+             */
+            Object.keys(capabilities).find((cap) => cap.startsWith('appium:')) :
+            (
+            /**
+             * safari docker image may not provide a platformName therefore
+             * check one of the available "platformName" or "browserVersion"
+             */
+                ((capabilities.platformName || capabilities.browserVersion) &&
+            /**
+             * local safari and BrowserStack don't provide platformVersion therefore
+             * check also if setWindowRect is provided
+             */
+            (capabilities.platformVersion || Object.prototype.hasOwnProperty.call(capabilities, 'setWindowRect')))
+            )
     )
-    return Boolean(hasW3CCaps || isAppium)
+    return Boolean(hasW3CCaps)
 }
 
 /**

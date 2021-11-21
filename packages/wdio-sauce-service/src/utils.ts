@@ -53,19 +53,6 @@ export function isUnifiedPlatform (caps: Capabilities.DesiredCapabilities){
     return !name.match(/(simulator)|(emulator)/gi) && !!platformName.match(/(ios)|(android)/gi)
 }
 
-/**
- * Determine if this is an EMUSIM session
- * @param {object} caps
- * @returns {boolean}
- */
-export function isEmuSim (caps: Capabilities.DesiredCapabilities){
-    const { 'appium:deviceName': appiumDeviceName = '', deviceName = '', platformName = '' } = caps
-    const name = appiumDeviceName || deviceName
-
-    // If the string contains `simulator` or `emulator` it's an EMU/SIM session
-    return !!name.match(/(simulator)|(emulator)/gi) && !!platformName.match(/(ios)|(android)/gi)
-}
-
 /** Ensure capabilities are in the correct format for Sauce Labs
  * @param {string} tunnelIdentifier - The default Sauce Connect tunnel identifier
  * @param {object} options - Additional options to set on the capability
@@ -75,27 +62,23 @@ export function makeCapabilityFactory(tunnelIdentifier: string, options: any) {
     return (capability: Capabilities.DesiredCapabilities) => {
         // If the capability appears to be using the legacy JSON Wire Protocol
         // we need to make sure the key 'sauce:options' is not present
-        const isLegacy = Boolean(
-            (capability.platform || capability.version) &&
-            !isW3C(capability) &&
-            !capability['sauce:options']
-        )
+        const isLegacy = Boolean(!isW3C(capability) && !capability['sauce:options'])
 
-        // Unified Platform and EMUSIM is currently not W3C ready, so the tunnel needs to be on the cap level
-        if (!capability['sauce:options'] && !isLegacy && !isUnifiedPlatform(capability) && !isEmuSim(capability)) {
+        // Unified Platform is not W3C ready, so the tunnel needs to be on the cap level
+        if (!capability['sauce:options'] && !isLegacy && !isUnifiedPlatform(capability)) {
             capability['sauce:options'] = {}
         }
 
         Object.assign(capability, options)
 
-        const sauceOptions = (!isLegacy && !isUnifiedPlatform(capability) && !isEmuSim(capability) ? capability['sauce:options'] : capability) as SauceServiceConfig
+        const sauceOptions = (!isLegacy && !isUnifiedPlatform(capability)? capability['sauce:options'] : capability) as SauceServiceConfig
         sauceOptions.tunnelIdentifier = (
             capability.tunnelIdentifier ||
             sauceOptions.tunnelIdentifier ||
             tunnelIdentifier
         )
 
-        if (!isLegacy && !isUnifiedPlatform(capability) && !isEmuSim(capability)) {
+        if (!isLegacy && !isUnifiedPlatform(capability)) {
             delete capability.tunnelIdentifier
         }
     }

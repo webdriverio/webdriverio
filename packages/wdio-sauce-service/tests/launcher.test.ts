@@ -22,7 +22,7 @@ jest.mock('saucelabs', () => {
 
 const log = logger('')
 
-test('onPrepare', async () => {
+test('onPrepare sauceConnectOpts for JWP', async () => {
     const options: SauceServiceConfig = {
         sauceConnect: true,
         sauceConnectOpts: {
@@ -39,7 +39,35 @@ test('onPrepare', async () => {
     expect(service['_sauceConnectProcess']).toBeUndefined()
     await service.onPrepare(config, caps)
 
+    expect(caps).toEqual([{tunnelIdentifier: 'my-tunnel'}])
+
+    // @ts-ignore mock feature
+    expect(SauceLabs.instances).toHaveLength(1)
+    // @ts-ignore mock feature
+    expect(SauceLabs.instances[0].startSauceConnect).toBeCalledTimes(1)
+    expect(service['_sauceConnectProcess']).not.toBeUndefined()
+})
+
+test('onPrepare sauceConnectOpts for W3C', async () => {
+    const options: SauceServiceConfig = {
+        sauceConnect: true,
+        sauceConnectOpts: {
+            sePort: 4446,
+            tunnelIdentifier: 'my-tunnel'
+        }
+    }
+    const w3cCap = { platformName: 'platformName', platformVersion: '1' }
+    const caps = [w3cCap] as Capabilities.DesiredCapabilities[]
+    const config = {
+        user: 'foobaruser',
+        key: '12345'
+    } as Options.Testrunner
+    const service = new SauceServiceLauncher(options, caps, config)
+    expect(service['_sauceConnectProcess']).toBeUndefined()
+    await service.onPrepare(config, caps)
+
     expect(caps).toEqual([{
+        ...w3cCap,
         'sauce:options': { tunnelIdentifier: 'my-tunnel' }
     }])
 
@@ -50,11 +78,36 @@ test('onPrepare', async () => {
     expect(service['_sauceConnectProcess']).not.toBeUndefined()
 })
 
-test('onPrepare w/o identifier', async () => {
+test('onPrepare w/o identifier for JWP', async () => {
     const options: SauceServiceConfig = {
         sauceConnect: true
     }
     const caps = [{}] as Capabilities.DesiredCapabilities[]
+    const config = {
+        user: 'foobaruser',
+        key: '12345'
+    } as Options.Testrunner
+    const service = new SauceServiceLauncher(options, caps, config)
+    expect(service['_sauceConnectProcess']).toBeUndefined()
+    await service.onPrepare(config, caps)
+
+    expect(caps[0]?.tunnelIdentifier).toContain('SC-tunnel-')
+    expect(service['_sauceConnectProcess']).not.toBeUndefined()
+
+    // @ts-ignore mock feature
+    expect(SauceLabs.instances).toHaveLength(1)
+    // @ts-ignore mock feature
+    expect(SauceLabs.instances[0].startSauceConnect).toBeCalledTimes(1)
+    await new Promise((resolve) => setTimeout(resolve, 100))
+    expect((log.info as jest.Mock).mock.calls[0][0]).toContain('Sauce Connect successfully started after')
+})
+
+test('onPrepare w/o identifier for W3C', async () => {
+    const options: SauceServiceConfig = {
+        sauceConnect: true
+    }
+    const w3cCap = { platformName: 'platformName', platformVersion: '1' }
+    const caps = [w3cCap] as Capabilities.DesiredCapabilities[]
     const config = {
         user: 'foobaruser',
         key: '12345'
@@ -139,7 +192,7 @@ test('onPrepare w/ SauceConnect w/ region EU', async () => {
     expect(SauceLabs.instances[0].options.region).toBe('eu')
 })
 
-test('onPrepare multiremote', async () => {
+test('onPrepare multiremote JWP', async () => {
     const options: SauceServiceConfig = {
         sauceConnect: true,
         scRelay: true,
@@ -171,6 +224,56 @@ test('onPrepare multiremote', async () => {
                 protocol: 'http',
                 hostname: 'localhost',
                 port: 4446,
+                tunnelIdentifier: 'my-tunnel'
+            }
+        },
+        browserB: {
+            capabilities: {
+                browserName: 'firefox',
+                protocol: 'http',
+                hostname: 'localhost',
+                port: 4446,
+                tunnelIdentifier: 'fish'
+            },
+        }
+    })
+    expect(service['_sauceConnectProcess']).not.toBeUndefined()
+})
+
+test('onPrepare multiremote W3C', async () => {
+    const options: SauceServiceConfig = {
+        sauceConnect: true,
+        scRelay: true,
+        sauceConnectOpts: {
+            sePort: 4446,
+            tunnelIdentifier: 'my-tunnel'
+        }
+    }
+    const w3cCap = { platformName: 'platformName', platformVersion: '1' }
+    const caps: Capabilities.MultiRemoteCapabilities = {
+        browserA: {
+            capabilities: { browserName: 'chrome', ...w3cCap }
+        },
+        browserB: {
+            capabilities: { browserName: 'firefox', ...w3cCap, 'sauce:options': { tunnelIdentifier: 'fish' } }
+        }
+    }
+    const config = {
+        user: 'foobaruser',
+        key: '12345'
+    } as Options.Testrunner
+    const service = new SauceServiceLauncher(options, caps, config)
+    expect(service['_sauceConnectProcess']).toBeUndefined()
+    await service.onPrepare(config, caps)
+
+    expect(caps).toEqual({
+        browserA: {
+            capabilities: {
+                browserName: 'chrome',
+                protocol: 'http',
+                hostname: 'localhost',
+                port: 4446,
+                ...w3cCap,
                 'sauce:options': { tunnelIdentifier: 'my-tunnel' }
             }
         },
@@ -180,6 +283,7 @@ test('onPrepare multiremote', async () => {
                 protocol: 'http',
                 hostname: 'localhost',
                 port: 4446,
+                ...w3cCap,
                 'sauce:options': { tunnelIdentifier: 'fish' }
             },
         }
