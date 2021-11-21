@@ -101,5 +101,6 @@
     "ts-node": "^10.3.0",
     "typescript": "^4.4.4",
     "url-join": "^4.0.1"
-  }
+  },
+  "dependencies": {}
 }
