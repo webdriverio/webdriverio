@@ -184,9 +184,7 @@ const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) 
     console.log('\nPackages installed successfully, creating configuration file...')
 
     try {
-        await renderConfigurationFile(
-            parsedAnswers
-        )
+        await renderConfigurationFile(parsedAnswers)
 
         if (answers.generateTestFiles) {
             console.log('\nConfig file installed successfully, creating test files...')
