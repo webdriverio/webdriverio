@@ -28,13 +28,16 @@ export default class BrowserRequest extends WebDriverRequest {
         const kyOptions: KyOptions = {}
 
         for (const opt of Object.keys(options) as Array<keyof RequestLibOptions>) {
-            if (typeof options[opt] !== undefined &&
+            if (
+                typeof options[opt] !== undefined &&
                 UNSUPPORTED_OPTS.includes(opt) &&
-                options[opt] !== this.defaultOptions[opt]) {
+                options[opt] !== this.defaultOptions[opt]
+            ) {
                 log.info(`Browser-based webdriver does not support the '${String(opt)}' option; behavior may be unexpected`)
                 continue
             }
-            kyOptions[opt as keyof KyOptions] = options[opt]
+            // @ts-expect-error
+            kyOptions[opt] = options[opt]
         }
 
         if (options.username && options.password) {
