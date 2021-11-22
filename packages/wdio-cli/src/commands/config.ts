@@ -88,25 +88,25 @@ const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) 
         if (!hasPackage('ts-node')) {
             packagesToInstall.push('ts-node', 'typescript')
         }
-        if (parsedAnswers.isUsingTypeScript) {
-            const config = {
-                compilerOptions: {
-                    types: [
-                        'node',
-                        'webdriverio/async',
-                        frameworkPackage.package,
-                        'expect-webdriverio'
-                    ],
-                    target: 'ES5',
-                }
-            }
 
-            fs.ensureDirSync(path.join(process.cwd(), 'test'))
-            await fs.promises.writeFile(
-                path.join(process.cwd(), 'test', 'tsconfig.json'),
-                JSON.stringify(config, null, 4)
-            )
+        const config = {
+            compilerOptions: {
+                types: [
+                    'node',
+                    'webdriverio/async',
+                    frameworkPackage.package,
+                    'expect-webdriverio'
+                ],
+                target: 'ES5',
+            }
         }
+
+        fs.ensureDirSync(path.join(process.cwd(), 'test'))
+        await fs.promises.writeFile(
+            path.join(process.cwd(), 'test', 'tsconfig.json'),
+            JSON.stringify(config, null, 4)
+        )
+
     }
 
     /**
