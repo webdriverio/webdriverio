@@ -55,6 +55,10 @@ The maintainers of WebdriverIO and thousands of other packages are working with 
 
 ## :package: Packages
 
+This repository contains some of the core packages of the WebdriverIO project. There are many wonderful [curated resources](https://github.com/webdriverio-community/awesome-webdriverio) the WebdriverIO community has put together.
+
+__Did you build a WebdriverIO service or reporter?__ That's awesome! Please add it to our configuration wizard and docs (e.g. like in [this example commit](https://github.com/webdriverio/webdriverio/commit/3cb5937b968dfe93cf78871589019736a6c98d9e)) as well as to our [awesome-webdriverio](https://github.com/webdriverio-community/awesome-webdriverio) list. Thank you! 🙏 ❤️
+
 ### Core
 
 - [webdriver](https://github.com/webdriverio/webdriverio/tree/main/packages/webdriver) - A Node.js bindings implementation for the W3C WebDriver and Mobile JSONWire Protocol
@@ -110,12 +114,6 @@ The maintainers of WebdriverIO and thousands of other packages are working with 
 - [@wdio/smoke-test-reporter](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-smoke-test-reporter) - A WebdriverIO utility to smoke test reporters for internal testing purposes
 - [@wdio/smoke-test-service](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-smoke-test-service) - A WebdriverIO utility to smoke test services for internal testing purposes
 - [@wdio/webdriver-mock-service](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-webdriver-mock-service) - A WebdriverIO service to stub all endpoints for internal testing purposes
-
-## :package: Community
-
-There are many wonderful curated resources the WebdriverIO community has put together.  
-
-- [awesome-webdriverio](https://github.com/webdriverio-community/awesome-webdriverio) - A curated list of awesome WebdriverIO resources, libraries, tools and applications
 
 ## :handshake: Project Governance
 
