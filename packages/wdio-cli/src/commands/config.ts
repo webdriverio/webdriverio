@@ -59,13 +59,36 @@ const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) 
     ]
 
     /**
+     * find relative paths between tests and pages
+     */
+
+    const parsedPaths = getPathForFileGeneration(answers)
+
+    const parsedAnswers: ParsedAnswers = {
+        ...answers,
+        runner: runnerPackage.short as 'local',
+        framework: frameworkPackage.short,
+        reporters: reporterPackages.map(({ short }) => short),
+        services: servicePackages.map(({ short }) => short),
+        packagesToInstall,
+        isUsingTypeScript: answers.isUsingCompiler === COMPILER_OPTIONS.ts,
+        isUsingBabel: answers.isUsingCompiler === COMPILER_OPTIONS.babel,
+        isSync: false,
+        _async: 'async ',
+        _await: 'await ',
+        destSpecRootPath: parsedPaths.destSpecRootPath,
+        destPageObjectRootPath: parsedPaths.destPageObjectRootPath,
+        relativePath : parsedPaths.relativePath
+    }
+
+    /**
      * add ts-node if TypeScript is desired but not installed
      */
-    if (answers.isUsingCompiler === COMPILER_OPTIONS.ts) {
+    if (parsedAnswers.isUsingTypeScript) {
         if (!hasPackage('ts-node')) {
             packagesToInstall.push('ts-node', 'typescript')
         }
-        if (answers.generateTSConfigFile) {
+        if (parsedAnswers.isUsingTypeScript) {
             const config = {
                 compilerOptions: {
                     types: [
@@ -80,7 +103,7 @@ const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) 
 
             fs.ensureDirSync(path.join(process.cwd(), 'test'))
             await fs.promises.writeFile(
-                path.join(process.cwd(), (hasFile('tsconfig.json') ? 'test' : ''), 'tsconfig.json'),
+                path.join(process.cwd(), 'test', 'tsconfig.json'),
                 JSON.stringify(config, null, 4)
             )
         }
@@ -89,7 +112,7 @@ const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) 
     /**
      * add @babel/register package if not installed
      */
-    if (answers.isUsingCompiler === COMPILER_OPTIONS.babel) {
+    if (parsedAnswers.isUsingBabel) {
         if (!hasPackage('@babel/register')) {
             packagesToInstall.push('@babel/register')
         }
@@ -159,33 +182,10 @@ const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) 
 
     console.log('\nPackages installed successfully, creating configuration file...')
 
-    /**
-     * find relative paths between tests and pages
-     */
-
-    const parsedPaths = getPathForFileGeneration(answers)
-
-    const parsedAnswers: ParsedAnswers = {
-        ...answers,
-        runner: runnerPackage.short as 'local',
-        framework: frameworkPackage.short,
-        reporters: reporterPackages.map(({ short }) => short),
-        services: servicePackages.map(({ short }) => short),
-        packagesToInstall,
-        isUsingTypeScript: answers.isUsingCompiler === COMPILER_OPTIONS.ts,
-        isUsingBabel: answers.isUsingCompiler === COMPILER_OPTIONS.babel,
-        isSync: false,
-        _async: 'async ',
-        _await: 'await ',
-        destSpecRootPath: parsedPaths.destSpecRootPath,
-        destPageObjectRootPath: parsedPaths.destPageObjectRootPath,
-        relativePath : parsedPaths.relativePath
-    }
-
     try {
         await renderConfigurationFile(
             parsedAnswers,
-            answers.generateTSConfigFile && hasFile('test/tsconfig.json') ? 'test' : undefined
+            parsedAnswers.isUsingTypeScript ? 'test' : undefined
         )
 
         if (answers.generateTestFiles) {
@@ -216,8 +216,8 @@ const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) 
     }
 
     console.log(util.format(CONFIG_HELPER_SUCCESS_MESSAGE,
-        hasFile('test/wdio.conf.ts') ? 'test/' : '',
-        (answers.isUsingCompiler === COMPILER_OPTIONS.ts) ? 'ts' : 'js'
+        parsedAnswers.isUsingTypeScript ? 'test/' : '',
+        parsedAnswers.isUsingTypeScript ? 'ts' : 'js'
     ))
 
     /**

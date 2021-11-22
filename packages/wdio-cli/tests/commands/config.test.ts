@@ -177,8 +177,7 @@ test('prints TypeScript setup message with ts-node installed', async () => {
             'wdio-lambdatest-service$--$lambdatest'
         ],
         generateTestFiles: false,
-        isUsingCompiler: 'TypeScript (https://www.typescriptlang.org/)',
-        generateTSConfigFile: true,
+        isUsingCompiler: 'TypeScript (https://www.typescriptlang.org/)'
     }))
 
     const config = {

@@ -221,7 +221,7 @@ export function convertPackageHashToObject(pkg: string, hash = '$--$'): Supporte
 export async function renderConfigurationFile (answers: ParsedAnswers, configPath = '') {
     const tplPath = path.join(__dirname, 'templates/wdio.conf.tpl.ejs')
     const filename = `wdio.conf.${answers.isUsingTypeScript ? 'ts' : 'js'}`
-    const renderedTpl = await renderFile(tplPath, { answers, hasFile })
+    const renderedTpl = await renderFile(tplPath, { answers })
     return fs.promises.writeFile(path.join(process.cwd(), configPath, filename), renderedTpl)
 }
 
