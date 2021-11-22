@@ -299,7 +299,7 @@ Object {
     "services": Array [
       undefined,
     ],
-    "tsConfigFilePath": "/home/runner/work/webdriverio/webdriverio/test/tsconfig.json",
+    "tsConfigFilePath": "test/tsconfig.json",
   },
   "success": true,
 }
