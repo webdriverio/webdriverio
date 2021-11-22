@@ -218,11 +218,17 @@ export function convertPackageHashToObject(pkg: string, hash = '$--$'): Supporte
     }
 }
 
-export async function renderConfigurationFile (answers: ParsedAnswers, configPath = '') {
+export async function renderConfigurationFile (answers: ParsedAnswers) {
     const tplPath = path.join(__dirname, 'templates/wdio.conf.tpl.ejs')
     const filename = `wdio.conf.${answers.isUsingTypeScript ? 'ts' : 'js'}`
     const renderedTpl = await renderFile(tplPath, { answers })
-    return fs.promises.writeFile(path.join(process.cwd(), configPath, filename), renderedTpl)
+    return fs.promises.writeFile(
+        path.join(
+            process.cwd(),
+            answers.isUsingTypeScript ? 'test' : '', filename
+        ),
+        renderedTpl
+    )
 }
 
 export const validateServiceAnswers = (answers: string[]): Boolean | string => {

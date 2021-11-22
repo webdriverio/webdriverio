@@ -78,7 +78,8 @@ const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) 
         _await: 'await ',
         destSpecRootPath: parsedPaths.destSpecRootPath,
         destPageObjectRootPath: parsedPaths.destPageObjectRootPath,
-        relativePath : parsedPaths.relativePath
+        relativePath : parsedPaths.relativePath,
+        tsConfigFilePath : path.join(process.cwd(), 'test', 'tsconfig.json')
     }
 
     /**
@@ -103,7 +104,7 @@ const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) 
 
         fs.ensureDirSync(path.join(process.cwd(), 'test'))
         await fs.promises.writeFile(
-            path.join(process.cwd(), 'test', 'tsconfig.json'),
+            parsedAnswers.tsConfigFilePath,
             JSON.stringify(config, null, 4)
         )
 
@@ -184,8 +185,7 @@ const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) 
 
     try {
         await renderConfigurationFile(
-            parsedAnswers,
-            parsedAnswers.isUsingTypeScript ? 'test' : undefined
+            parsedAnswers
         )
 
         if (answers.generateTestFiles) {
