@@ -163,13 +163,34 @@ describe('SpecReporter', () => {
                 expect(printReporter.write.mock.calls).toMatchSnapshot()
             })
 
-            it('should print link to Sauce Labs job details page', () => {
+            it('should print link to Sauce Labs job details page for VDC', () => {
                 const options = {
                     hostname: 'ondemand.saucelabs.com',
                     user: 'foobar',
                     key: '123'
                 }
                 const runner = getRunnerConfig({})
+                printReporter.runnerStat.instanceOptions[fakeSessionId] = options
+                printReporter.printReport(runner)
+                expect(printReporter.write.mock.calls).toMatchSnapshot()
+            })
+
+            it('should print link to Sauce Labs job details page for RDC', () => {
+                const options = {
+                    hostname: 'ondemand.saucelabs.com',
+                    user: 'foobar',
+                    key: '123'
+                }
+                const runner = getRunnerConfig({
+                    capabilities: {
+                        browserName: 'safari',
+                        deviceName: 'udid-serial-of-device',
+                        platformVersion: '14.3',
+                        platformName: 'iOS',
+                        testobject_test_report_url: ' https://app.eu-central-1.saucelabs.com/tests/c752c683e0874da4b1dad593ce6645b2'
+                    },
+                    sessionId: 'c752c683e0874da4b1dad593ce6645b2',
+                })
                 printReporter.runnerStat.instanceOptions[fakeSessionId] = options
                 printReporter.printReport(runner)
                 expect(printReporter.write.mock.calls).toMatchSnapshot()
