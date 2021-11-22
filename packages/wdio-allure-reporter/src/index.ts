@@ -14,7 +14,7 @@ import {
     AddFeatureEventArgs, AddIssueEventArgs, AddLabelEventArgs, AddSeverityEventArgs,
     AddStoryEventArgs, AddTestIdEventArgs, AllureReporterOptions, Status
 } from './types'
-import stringify = require('csv-stringify/lib/sync')
+import { stringify } from 'csv-stringify/sync'
 
 /**
  * Allure v1 has no proper TS support
