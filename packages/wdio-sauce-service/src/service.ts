@@ -111,11 +111,12 @@ export default class SauceService implements Services.ServiceInstance {
                     this._suiteTitle!
                 )
                 await this.setAnnotation(`sauce:job-name=${jobName}`)
+                this._isJobNameSet = true
             }
             if (!this._isJobNameSet){
                 await this.setAnnotation(`sauce:job-name=${jobName}`)
+                this._isJobNameSet = true
             }
-            this._isJobNameSet = true
         }
 
         /**
