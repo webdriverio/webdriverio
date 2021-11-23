@@ -1,1 +1,1 @@
-export const stringify = jest.requireActual('csv-stringify').stringify
+export const stringify = jest.requireActual('csv-stringify/sync').stringify
