@@ -162,3 +162,32 @@ export default class SumoLogicReporter extends WDIOReporter {
 ```
 
 This way the runner will wait until all log information are uploaded.
+
+## Publish Reporter on NPM
+
+To make reporter easier to consume and discover by the WebdriverIO community, please follow these recommendations:
+
+* Services should use this naming convention: `wdio-*-reporter`
+* Use NPM keywords: `wdio-plugin`, `wdio-reporter`
+* The `main` entry should `export` an instance of the reporter
+* Example reporter: [`@wdio/dot-service`](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-dot-reporter)
+
+Following the recommended naming pattern allows services to be added by name:
+
+```js
+// Add wdio-custom-reporter
+exports.config = {
+    // ...
+    reporter: ['custom'],
+    // ...
+}
+```
+
+### Add Published Service to WDIO CLI and Docs
+
+We really appreciate every new plugin that could help other people run better tests! If you have created such a plugin, please consider adding it to our CLI and docs to make it easier to be found.
+
+Please raise a pull request with the following changes:
+
+- add your service to the list of [supported reporters](https://github.com/webdriverio/webdriverio/blob/main/packages/wdio-cli/src/constants.ts#L74-L91)) in the CLI module
+- enhance the [reporter list](https://github.com/webdriverio/webdriverio/blob/main/scripts/docs-generation/3rd-party/reporters.json) for adding your docs to the official Webdriver.io page

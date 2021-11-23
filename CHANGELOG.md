@@ -19,6 +19,27 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.16.9 (2021-11-22)
+
+#### :bug: Bug Fix
+* `wdio-spec-reporter`
+  * [#7727](https://github.com/webdriverio/webdriverio/pull/7727) fix: fix 6357 ([@wswebcreation](https://github.com/wswebcreation))
+
+#### :nail_care: Polish
+* `wdio-devtools-service`, `webdriver`, `webdriverio`
+  * [#7711](https://github.com/webdriverio/webdriverio/pull/7711) Use buffer instead of atob/btoa ([@Nio-o](https://github.com/Nio-o))
+
+#### :memo: Documentation
+* [#7721](https://github.com/webdriverio/webdriverio/pull/7721) doc(README): add a community section ([@Badisi](https://github.com/Badisi))
+* [#7707](https://github.com/webdriverio/webdriverio/pull/7707) Remove outdated double-await issue in docs ([@klamping](https://github.com/klamping))
+
+#### Committers: 4
+- Eugene ([@Nio-o](https://github.com/Nio-o))
+- Kevin Lamping ([@klamping](https://github.com/klamping))
+- Wim Selles ([@wswebcreation](https://github.com/wswebcreation))
+- [@Badisi](https://github.com/Badisi)
+
+
 ## v7.16.8 (2021-11-15)
 
 #### :nail_care: Polish
