@@ -4,9 +4,9 @@ import type { Capabilities } from '@wdio/types'
 import type { SauceServiceConfig } from './types'
 
 /**
- * Determine if the current instance is a Unified Platform instance. UP tests are Real Device tests
+ * Determine if the current instance is a RDC instance. RDC tests are Real Device tests
  * that can be started with different sets of capabilities. A deviceName is not mandatory, the only mandatory cap for
- * UP is the platformName. Downside of the platformName is that is can also be EMUSIM. EMUSIM can be distinguished by
+ * RDC is the platformName. Downside of the platformName is that is can also be EMUSIM. EMUSIM can be distinguished by
  * the `Emulator|Simulator` postfix
  *
  * @param {object} caps
@@ -45,7 +45,7 @@ import type { SauceServiceConfig } from './types'
  *  deviceContextId: ''
  * }
  */
-export function isUnifiedPlatform (caps: Capabilities.DesiredCapabilities){
+export function isRDC (caps: Capabilities.DesiredCapabilities){
     const { 'appium:deviceName': appiumDeviceName = '', deviceName = '', platformName = '' } = caps
     const name = appiumDeviceName || deviceName
 
@@ -82,20 +82,20 @@ export function makeCapabilityFactory(tunnelIdentifier: string, options: any) {
         )
 
         // Unified Platform and EMUSIM is currently not W3C ready, so the tunnel needs to be on the cap level
-        if (!capability['sauce:options'] && !isLegacy && !isUnifiedPlatform(capability) && !isEmuSim(capability)) {
+        if (!capability['sauce:options'] && !isLegacy && !isRDC(capability) && !isEmuSim(capability)) {
             capability['sauce:options'] = {}
         }
 
         Object.assign(capability, options)
 
-        const sauceOptions = (!isLegacy && !isUnifiedPlatform(capability) && !isEmuSim(capability) ? capability['sauce:options'] : capability) as SauceServiceConfig
+        const sauceOptions = (!isLegacy && !isRDC(capability) && !isEmuSim(capability) ? capability['sauce:options'] : capability) as SauceServiceConfig
         sauceOptions.tunnelIdentifier = (
             capability.tunnelIdentifier ||
             sauceOptions.tunnelIdentifier ||
             tunnelIdentifier
         )
 
-        if (!isLegacy && !isUnifiedPlatform(capability) && !isEmuSim(capability)) {
+        if (!isLegacy && !isRDC(capability) && !isEmuSim(capability)) {
             delete capability.tunnelIdentifier
         }
     }
