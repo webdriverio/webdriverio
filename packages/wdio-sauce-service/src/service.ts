@@ -6,7 +6,7 @@ import logger from '@wdio/logger'
 import type { Services, Capabilities, Options, Frameworks } from '@wdio/types'
 import type { Browser, MultiRemoteBrowser } from 'webdriverio'
 
-import { isUnifiedPlatform, ansiRegex } from './utils'
+import { isRDC, ansiRegex } from './utils'
 import { SauceServiceConfig } from './types'
 import { DEFAULT_OPTIONS } from './constants'
 
@@ -69,7 +69,7 @@ export default class SauceService implements Services.ServiceInstance {
         // `this._browser.capabilities` returns the process data from Sauce which is without
         // the postfix
         const capabilities = (this._browser as Browser<'async'>).requestedCapabilities || {}
-        this._isRDC = isUnifiedPlatform(capabilities as Capabilities.Capabilities)
+        this._isRDC = isRDC(capabilities as Capabilities.Capabilities)
     }
 
     async beforeSuite (suite: Frameworks.Suite) {
@@ -290,11 +290,11 @@ export default class SauceService implements Services.ServiceInstance {
 
         const multiRemoteBrowser = this._browser as MultiRemoteBrowser<'async'>
         return Promise.all(Object.keys(this._capabilities).map(async (browserName) => {
-            const isRDC = isUnifiedPlatform(multiRemoteBrowser[browserName].capabilities as Capabilities.Capabilities)
+            const isMultiRemoteRDC = isRDC(multiRemoteBrowser[browserName].capabilities as Capabilities.Capabilities)
             log.info(`Update multiRemote job for browser "${browserName}" and sessionId ${multiRemoteBrowser[browserName].sessionId}, ${status}`)
             // Sauce Unified Platform (RDC) can not be updated with an API.
             // The logs can also not be uploaded
-            if (isRDC) {
+            if (isMultiRemoteRDC) {
                 return this.setAnnotation(`sauce:job-result=${failures === 0}`)
             }
             await this._uploadLogs(multiRemoteBrowser[browserName].sessionId)
@@ -410,8 +410,8 @@ export default class SauceService implements Services.ServiceInstance {
             const multiRemoteBrowser = this._browser as MultiRemoteBrowser<'async'>
 
             return Promise.all(Object.keys(this._capabilities).map(async (browserName) => {
-                const isRDC = isUnifiedPlatform(multiRemoteBrowser[browserName].capabilities as Capabilities.Capabilities)
-                if ((isRDC && !annotation.includes('sauce:context')) || !isRDC) {
+                const isMultiRemoteRDC = isRDC(multiRemoteBrowser[browserName].capabilities as Capabilities.Capabilities)
+                if ((isMultiRemoteRDC && !annotation.includes('sauce:context')) || !isMultiRemoteRDC) {
                     return (this._browser as Browser<'async'>).execute(annotation)
                 }
             }))
