@@ -50,7 +50,7 @@ describe('my flaky app', () => {
     /**
      * spec that runs max 4 times (1 actual run + 3 reruns)
      */
-    it('should rerun a test at least 3 times', function () {
+    it('should rerun a test at least 3 times', async function () {
         console.log(this.wdioRetries) // returns number of retries
         // ...
     }, 3)
@@ -64,7 +64,7 @@ describe('my flaky app', () => {
     /**
      * hook that runs max 2 times (1 actual run + 1 rerun)
      */
-    beforeEach(() => {
+    beforeEach(async () => {
         // ...
     }, 1)
 
@@ -80,7 +80,7 @@ describe('my flaky app', () => {
     /**
      * spec that runs max 4 times (1 actual run + 3 reruns)
      */
-    it('should rerun a test at least 3 times', function () {
+    it('should rerun a test at least 3 times', async function () {
         console.log(this.wdioRetries) // returns number of retries
         // ...
     }, jasmine.DEFAULT_TIMEOUT_INTERVAL, 3)
@@ -94,7 +94,7 @@ describe('my flaky app', () => {
     /**
      * hook that runs max 2 times (1 actual run + 1 rerun)
      */
-    beforeEach(() => {
+    beforeEach(async () => {
         // ...
     }, jasmine.DEFAULT_TIMEOUT_INTERVAL, 1)
 
@@ -124,7 +124,7 @@ module.exports = function () {
     /**
      * step definition that runs max 3 times (1 actual run + 2 reruns)
      */
-    this.Given(/^some step definition$/, { wrapperOptions: { retry: 2 } }, () => {
+    this.Given(/^some step definition$/, { wrapperOptions: { retry: 2 } }, async () => {
         // ...
     })
     // ...
