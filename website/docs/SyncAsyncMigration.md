@@ -54,13 +54,15 @@ elems.forEach((elem) => {
 })
 ```
 
-The function we pass into `forEach` is an iterator function. In a synchronous world it would click on all elements before it moves on. If we transform this into asynchronous code, we have to ensure that we wait for every iterator function to finish execution. By adding `async`/`await` these iterator functions will return a promise that we need to resolve. Now, `forEach` is then not ideal to iterate over the elements anymore because it doesn't return the result of the iterator function, the promise we need to wait for. Therefore we need to replace `forEach` with `map` which returns that promise. Lastly in order to wait for all iterator functions to be resolved we have to pass these into [`Promise.all`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/all). The above example looks transformed like this:
+The function we pass into `forEach` is an iterator function. In a synchronous world it would click on all elements before it moves on. If we transform this into asynchronous code, we have to ensure that we wait for every iterator function to finish execution. By adding `async`/`await` these iterator functions will return a promise that we need to resolve. Now, `forEach` is then not ideal to iterate over the elements anymore because it doesn't return the result of the iterator function, the promise we need to wait for. Therefore we need to replace `forEach` with `reduce` which will sequentially go through array of elements while awaiting for each promise in sequence. The above example looks transformed like this:
 
 ```js
-const elems = await $$('div')
-await Promise.all(elems.map(async (elem) => {
-    await elem.click()
-}))
+const elems = await $$('div');
+
+elems.reduce(async (prevPromise, nextEl) => {
+    await prevPromise;
+    return nextEl.click();
+}, Promise.resolve());
 ```
 
 If this looks too complicated you might want to consider using simple for loops, e.g.:
