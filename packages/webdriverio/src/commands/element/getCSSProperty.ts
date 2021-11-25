@@ -19,6 +19,12 @@ import { parseCSS } from '../../utils'
  * <example>
     :example.html
     <label id="myLabel" for="input" style="color: #0088cc; font-family: helvetica, arial, freesans, clean, sans-serif, width: 100px">Some Label</label>
+    <style>
+        #myLabel::after {
+            content: "";
+            height: 1px;
+        }
+    </style>
     :getCSSProperty.js
     it('should demonstrate the getCSSProperty command', async () => {
         const elem = await $('#myLabel')
@@ -62,17 +68,33 @@ import { parseCSS } from '../../utils'
         //         value: 100
         //     }
         // }
+
+        var height = await elem.getCSSProperty('height', '::after');
+        console.log(height);
+        // outputs the following:
+        // {
+        //     property: 'height',
+        //     value: '1px',
+        //     parsed: {
+        //         type: 'number',
+        //         string: '1px',
+        //         unit: 'px',
+        //         value: 1
+        //     }
+        // }
     })
  * </example>
  *
  * @alias element.getCSSProperty
  * @param  {String}      cssProperty css property name
+ * @param  {?String}      [pseudoElement] the pseudo-element to match. Omitted (or null) for real elements
  * @return {CSSProperty}             The specified css of the element
  *
  */
 export default async function getCSSProperty (
     this: WebdriverIO.Element,
-    cssProperty: string
+    cssProperty: string,
+    pseudoElement?: string | null
 ) {
     /**
      * Getting the css value of a shorthand property results in different results
@@ -81,13 +103,13 @@ export default async function getCSSProperty (
      * otherwise expand it and run the command for each longhand property.
      */
     if (!cssShorthandProps.isShorthand(cssProperty)) {
-        const cssValue = await this.getElementCSSValue(this.elementId, cssProperty)
+        const cssValue = await this.getElementCSSValue(this.elementId, cssProperty, pseudoElement)
         return parseCSS(cssValue, cssProperty)
     }
 
     const properties = cssShorthandProps.expand(cssProperty)
     let cssValues = await Promise.all(
-        properties.map((prop) => this.getElementCSSValue(this.elementId, prop))
+        properties.map((prop) => this.getElementCSSValue(this.elementId, prop, pseudoElement))
     )
 
     /**

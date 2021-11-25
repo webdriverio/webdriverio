@@ -679,7 +679,14 @@
         "name": "propertyName",
         "description": "name of the CSS property to retrieve"
       }],
-      "parameters": [],
+      "parameters": [
+        {
+          "type": "String|Null",
+          "required": false,
+          "name": "pseudoElement",
+          "description": "the pseudo-element to match. Omitted (or null) for real elements"
+        }
+      ],
       "returns": {
         "type": "string",
         "name": "cssValue",
