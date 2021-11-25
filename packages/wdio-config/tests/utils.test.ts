@@ -1,12 +1,11 @@
 import path from 'path'
-import { isCloudCapability, removeLineNumbers, validObjectOrArray,ensureAbsolutePathForSpecs } from '../src/utils'
+import { isCloudCapability, removeLineNumbers, validObjectOrArray, ensureAbsolutePathForSpecs } from '../src/utils'
 
 const FIXTURES_PATH = path.resolve(__dirname, '__fixtures__')
 const FIXTURES_CUCUMBER_FEATURE_A_LINE_2 = path.resolve(FIXTURES_PATH, 'test-a.feature:2')
-const FIXTURES_CUCUMBER_FEATURE_A_LINE_2_RELATIVE_PATH = path.join("packages","wdio-config","tests",'__fixtures__', 'test-a.feature:2')
+const FIXTURES_CUCUMBER_FEATURE_A_LINE_2_RELATIVE_PATH = path.join('packages', 'wdio-config', 'tests', '__fixtures__', 'test-a.feature:2')
 const FIXTURES_CUCUMBER_FEATURE_A_LINE_2_AND_12 = path.resolve(FIXTURES_PATH, 'test-a.feature:2:12')
-const FIXTURES_CUCUMBER_FEATURE_A_LINE_2_AND_12_RELATIVE_PATH = path.join("packages","wdio-config","tests",'__fixtures__', 'test-a.feature:2:12')
-
+const FIXTURES_CUCUMBER_FEATURE_A_LINE_2_AND_12_RELATIVE_PATH = path.join('packages', 'wdio-config', 'tests', '__fixtures__', 'test-a.feature:2:12')
 
 describe('utils', () => {
     describe('removeLineNumbers', () => {

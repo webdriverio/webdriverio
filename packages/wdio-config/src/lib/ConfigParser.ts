@@ -6,7 +6,7 @@ import RequireLibrary from './RequireLibrary'
 import FileSystemPathService from './FileSystemPathService'
 import {
     removeLineNumbers, isCucumberFeatureWithLineNumber, validObjectOrArray,
-    loadAutoCompilers,ensureAbsolutePathForSpecs
+    loadAutoCompilers, ensureAbsolutePathForSpecs
 } from '../utils'
 import { SUPPORTED_HOOKS, SUPPORTED_FILE_EXTENSIONS } from '../constants'
 import { DEFAULT_CONFIGS } from '../constants'
@@ -130,7 +130,7 @@ export default class ConfigParser {
              * `this._config.spec` is string instead of Array in watch mode
              */
             this._config.cucumberFeaturesWithLineNumbers = Array.isArray(this._config.spec) ? [...this._config.spec] : [this._config.spec]
-            this._config.cucumberFeaturesWithLineNumbers = ensureAbsolutePathForSpecs(this._config.cucumberFeaturesWithLineNumbers);
+            this._config.cucumberFeaturesWithLineNumbers = ensureAbsolutePathForSpecs(this._config.cucumberFeaturesWithLineNumbers)
         }
 
         /**

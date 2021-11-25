@@ -1,6 +1,6 @@
 import logger from '@wdio/logger'
 import type { Capabilities, Options } from '@wdio/types'
-import FileSystemPathService from "./lib/FileSystemPathService";
+import FileSystemPathService from './lib/FileSystemPathService'
 import type { ModuleRequireService } from './types'
 
 const log = logger('@wdio/config:utils')
@@ -151,6 +151,6 @@ export function loadBabelCompiler (babelOpts: Record<string, any> = {}, requireS
 }
 export function ensureAbsolutePathForSpecs(specFileList: string[]) {
     return specFileList.map((specFile) => {
-        return new FileSystemPathService().ensureAbsolutePath(specFile);
-    });
+        return new FileSystemPathService().ensureAbsolutePath(specFile)
+    })
 }
