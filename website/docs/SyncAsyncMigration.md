@@ -54,13 +54,35 @@ elems.forEach((elem) => {
 })
 ```
 
-The function we pass into `forEach` is an iterator function. In a synchronous world it would click on all elements before it moves on. If we transform this into asynchronous code, we have to ensure that we wait for every iterator function to finish execution. By adding `async`/`await` these iterator functions will return a promise that we need to resolve. Now, `forEach` is then not ideal to iterate over the elements anymore because it doesn't return the result of the iterator function, the promise we need to wait for. Therefore we need to replace `forEach` with `map` which returns that promise. Lastly in order to wait for all iterator functions to be resolved we have to pass these into [`Promise.all`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/all). The above example looks transformed like this:
+The function we pass into `forEach` is an iterator function. In a synchronous world it would click on all elements before it moves on. If we transform this into asynchronous code, we have to ensure that we wait for every iterator function to finish execution. By adding `async`/`await` these iterator functions will return a promise that we need to resolve. Now, `forEach` is then not ideal to iterate over the elements anymore because it doesn't return the result of the iterator function, the promise we need to wait for. Therefore we need to replace `forEach` with `map` which returns that promise. The `map` as well as all other iterator methods of Arrays like `find`, `every`, `reduce` and more are implemented via the [p-iteration](https://www.npmjs.com/package/p-iteration) package and are therefor simplified for using them in an async context. The above example looks transformed like this:
 
 ```js
 const elems = await $$('div')
-await Promise.all(elems.map(async (elem) => {
-    await elem.click()
-}))
+await elems.forEach((elem) => {
+    return elem.click()
+})
+```
+
+For example in order to fetch all `<h3 />` elements and get their text content, you can run:
+
+```js
+await browser.url('https://webdriver.io')
+
+const h3Texts = await browser.$$('h3').map((img) => img.getText())
+console.log(h3Texts);
+/**
+ * returns:
+ * [
+ *   'Extendable',
+ *   'Compatible',
+ *   'Feature Rich',
+ *   'Who is using WebdriverIO?',
+ *   'Support for Modern Web and Mobile Frameworks',
+ *   'Google Lighthouse Integration',
+ *   'Watch Talks about WebdriverIO',
+ *   'Get Started With WebdriverIO within Minutes'
+ * ]
+ */
 ```
 
 If this looks too complicated you might want to consider using simple for loops, e.g.:

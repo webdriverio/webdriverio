@@ -11,13 +11,34 @@ These are the docs for the latest version (__>=7.x__) of WebdriverIO. If you are
 
 ## Initiate a WebdriverIO Setup
 
-To add a full WebdriverIO setup to an existing or new project, run:
+To add a full WebdriverIO setup to an existing or new project using the [WebdriverIO Starter Toolkit](https://www.npmjs.com/package/create-wdio), run:
 
-```bash npm2yarn
-# if you in the root directory of an existing project
-$ npx wdio .
-# or if you want to create a new project
-$ npx wdio ./path/to/new/project
+### Using NPM
+
+If you're in the root directory of an existing project, run:
+
+```sh
+npm init wdio .
+```
+
+or if you want to create a new project:
+
+```sh
+npm init wdio ./path/to/new/project
+```
+
+### Using Yarn
+
+If you're in the root directory of an existing project, run:
+
+```sh
+yarn create wdio .
+```
+
+or if you want to create a new project:
+
+```sh
+yarn create wdio ./path/to/new/project
 ```
 
 This single command downloads the WebdriverIO CLI tool and runs a configuration wizard that helps you to configure your test suite.
@@ -30,19 +51,19 @@ The wizard will prompt a set questions that guides you through the setup. You ca
 
 You can start your test suite by using the `run` command and pointing to the WebdriverIO config that you just created:
 
-```bash
+```sh
 npx wdio run ./wdio.conf.js
 ```
 
 If you like to run specific test files you can add a `--spec` parameter:
 
-```bash
+```sh
 npx wdio run ./wdio.conf.js --spec example.e2e.js
 ```
 
 or define suites in your config file and run just the test files defined by in a suite:
 
-```bash
+```sh
 npx wdio run ./wdio.conf.js --suite exampleSuiteName
 ```
 

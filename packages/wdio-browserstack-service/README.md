@@ -11,14 +11,14 @@ The easiest way is to keep `@wdio/browserstack-service` as a devDependency in yo
 ```json
 {
     "devDependencies": {
-        "@wdio/browserstack-service": "^6.1.15"
+        "@wdio/browserstack-service": "^7.16.3"
     }
 }
 ```
 
 You can simple do it by:
 
-```bash
+```sh
 npm install @wdio/browserstack-service --save-dev
 ```
 

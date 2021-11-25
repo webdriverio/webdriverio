@@ -42,9 +42,17 @@ jobs:
       - name: Lint / Dependencies / Unit / Smoke Tests
         run: npm run test
       - name: E2E Protocol Tests
-        run: npm run test:e2e
+        uses: nick-invision/retry@v2
+        with:
+          timeout_minutes: 20
+          max_attempts: 3
+          command: npm run test:e2e
       - name: E2E Edge Launch Tests
-        run: npm run test:e2e:edge
+        uses: nick-invision/retry@v2
+        with:
+          timeout_minutes: 20
+          max_attempts: 3
+          command: npm run test:e2e:edge
   e2e-mac:
     runs-on: macos-latest
     steps:
@@ -57,25 +65,31 @@ jobs:
       - name: Bootstrap Packages
         run: npm run setup-full
       - name: E2E Protocol Tests
-        run: npm run test:e2e
-      - name: E2E Firefox Launch Tests
-        if: ${{ matrix.node-version == '16.x' }}
-        run: |
-          sudo add-apt-repository ppa:ubuntu-mozilla-daily/ppa
-          sudo apt-get update
-          sudo apt-get install firefox-trunk
-          npm run test:e2e:firefox
+        uses: nick-invision/retry@v2
+        with:
+          timeout_minutes: 20
+          max_attempts: 3
+          command: npm run test:e2e
+      # Setting up Firefox is currently not possible
+      # see https://github.com/browser-actions/setup-firefox/issues/233
+      #
+      # - name: Setup Firefox
+      #   uses: browser-actions/setup-firefox@latest
+      #   with:
+      #     firefox-version: latest-devedition
+      # - run: |
+      #     export FIREFOX_BINARY=$(which firefox)
+      #     echo "FIREFOX_BINARY=$FIREFOX_BINARY" >> $GITHUB_ENV
+      # - run: echo "Run Firefox tests using $FIREFOX_BINARY"
+      # - name: E2E Firefox Launch Tests
+      #   run: npm run test:e2e:firefox
       - name: E2E Connection Test
-        if: ${{ matrix.node-version == '14.x' && github.event_name == 'push'}}
-        run: |
-          npm run test:e2e:cloud
+        run: npm run test:e2e:cloud
         env:
           SAUCE_USERNAME: ${{secrets.SAUCE_USERNAME}}
           SAUCE_ACCESS_KEY: ${{secrets.SAUCE_ACCESS_KEY}}
       - name: E2E Connection Test w/ Params
-        if: ${{ matrix.node-version == '16.x' && github.event_name == 'push'}}
-        run: |
-          npm run test:e2e:cloud -- --user $SAUCE_USERNAME_PARAM --key $SAUCE_ACCESS_KEY_PARAM
+        run: npm run test:e2e:cloud -- --user $SAUCE_USERNAME_PARAM --key $SAUCE_ACCESS_KEY_PARAM
         env:
           SAUCE_USERNAME_PARAM: ${{secrets.SAUCE_USERNAME}}
           SAUCE_ACCESS_KEY_PARAM: ${{secrets.SAUCE_ACCESS_KEY}}

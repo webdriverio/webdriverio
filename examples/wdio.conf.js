@@ -75,7 +75,7 @@ exports.config = {
     //
     // If you have trouble getting all important capabilities together, check out the
     // Sauce Labs platform configurator - a great tool to configure your capabilities:
-    // https://docs.saucelabs.com/reference/platforms-configurator
+    // https://saucelabs.com/platform/platform-configurator
     //
     capabilities: [{
         browserName: 'chrome'
@@ -274,7 +274,9 @@ exports.config = {
     afterHook: function (test, context, { error, result, duration, passed, retries }) {
     },
     /**
-     * Function to be executed before a test (in Mocha/Jasmine) starts.
+     * Function to be executed before a test (in Mocha/Jasmine only)
+     * @param {Object} test    test object
+     * @param {Object} context scope object the test was executed with
      */
     beforeTest: function (test, context) {
     },
@@ -296,7 +298,14 @@ exports.config = {
     afterCommand: function (commandName, args, result, error) {
     },
     /**
-     * Function to be executed after a test (in Mocha/Jasmine) ends.
+     * Function to be executed after a test (in Mocha/Jasmine only)
+     * @param {Object}  test             test object
+     * @param {Object}  context          scope object the test was executed with
+     * @param {Error}   result.error     error object in case the test fails, otherwise `undefined`
+     * @param {Any}     result.result    return object of test function
+     * @param {Number}  result.duration  duration of test
+     * @param {Boolean} result.passed    true if test has passed, otherwise false
+     * @param {Object}  result.retries   informations to spec related retries, e.g. `{ attempts: 0, limit: 0 }`
      */
     afterTest: function (test, context, { error, result, duration, passed, retries }) {
     },
@@ -352,17 +361,19 @@ exports.config = {
     /**
      *
      * Runs before a Cucumber Scenario.
-     * @param {ITestCaseHookParameter} world world object containing information on pickle and test step
+     * @param {ITestCaseHookParameter} world    world object containing information on pickle and test step
+     * @param {Object}                 context  Cucumber World object
      */
-    beforeScenario: function (world) {
+    beforeScenario: function (world, context) {
     },
     /**
      *
      * Runs before a Cucumber Step.
      * @param {Pickle.IPickleStep} step     step data
      * @param {IPickle}            scenario scenario pickle
+     * @param {Object}             context  Cucumber World object
      */
-    beforeStep: function (step, scenario) {
+    beforeStep: function (step, scenario, context) {
     },
     /**
      *
@@ -373,19 +384,21 @@ exports.config = {
      * @param {boolean}            result.passed   true if scenario has passed
      * @param {string}             result.error    error stack if scenario failed
      * @param {number}             result.duration duration of scenario in milliseconds
+     * @param {Object}             context Cucumber World object
      */
-    afterStep: function (step, scenario, result) {
+    afterStep: function (step, scenario, result, context) {
     },
     /**
      *
-     * Runs before a Cucumber Scenario.
+     * Runs after a Cucumber Scenario.
      * @param {ITestCaseHookParameter} world  world object containing information on pickle and test step
      * @param {Object}                 result results object containing scenario results
      * @param {boolean}                result.passed   true if scenario has passed
      * @param {string}                 result.error    error stack if scenario failed
      * @param {number}                 result.duration duration of scenario in milliseconds
+     * @param {Object}                 context Cucumber World object
      */
-    afterScenario: function (world, result) {
+    afterScenario: function (world, result, context) {
     },
     /**
      *

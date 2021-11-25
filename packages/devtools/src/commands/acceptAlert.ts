@@ -11,7 +11,7 @@ export default async function acceptAlert(this: DevToolsDriver) {
         throw new Error('no such alert')
     }
 
-    await this.activeDialog.accept()
+    await this.activeDialog.accept(this.activeDialog.defaultValue())
     delete this.activeDialog
     return null
 }

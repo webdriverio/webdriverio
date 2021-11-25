@@ -356,7 +356,46 @@ Array [
 ]
 `;
 
-exports[`SpecReporter printReport with normal setup should print link to Sauce Labs job details page 1`] = `
+exports[`SpecReporter printReport with normal setup should print link to Sauce Labs job details page for RDC 1`] = `
+Array [
+  Array [
+    "------------------------------------------------------------------
+[udid-serial-of-device iOS 14.3 #0-0] Running: udid-serial-of-device on iOS 14.3 executing safari
+[udid-serial-of-device iOS 14.3 #0-0]
+[udid-serial-of-device iOS 14.3 #0-0] » /foo/bar/loo.e2e.js
+[udid-serial-of-device iOS 14.3 #0-0] Foo test
+[udid-serial-of-device iOS 14.3 #0-0]    green ✓ foo
+[udid-serial-of-device iOS 14.3 #0-0]    green ✓ bar
+[udid-serial-of-device iOS 14.3 #0-0]
+[udid-serial-of-device iOS 14.3 #0-0] » /bar/foo/loo.e2e.js
+[udid-serial-of-device iOS 14.3 #0-0] Bar test
+[udid-serial-of-device iOS 14.3 #0-0]    green ✓ some test
+[udid-serial-of-device iOS 14.3 #0-0]    red ✖ a failed test
+[udid-serial-of-device iOS 14.3 #0-0]    red ✖ a failed test with no stack
+[udid-serial-of-device iOS 14.3 #0-0]
+[udid-serial-of-device iOS 14.3 #0-0] » /bar/loo/foo.e2e.js
+[udid-serial-of-device iOS 14.3 #0-0] Baz test
+[udid-serial-of-device iOS 14.3 #0-0]    green ✓ foo bar baz
+[udid-serial-of-device iOS 14.3 #0-0]    cyan - a skipped test
+[udid-serial-of-device iOS 14.3 #0-0]
+[udid-serial-of-device iOS 14.3 #0-0] green 4 passing (5s)
+[udid-serial-of-device iOS 14.3 #0-0] red 1 failing
+[udid-serial-of-device iOS 14.3 #0-0] cyan 1 skipped
+[udid-serial-of-device iOS 14.3 #0-0]
+[udid-serial-of-device iOS 14.3 #0-0] 1) Bar test a failed test
+[udid-serial-of-device iOS 14.3 #0-0] red expected foo to equal bar
+[udid-serial-of-device iOS 14.3 #0-0] gray Failed test stack trace
+[udid-serial-of-device iOS 14.3 #0-0]
+[udid-serial-of-device iOS 14.3 #0-0] 2) Bar test a failed test with no stack
+[udid-serial-of-device iOS 14.3 #0-0] red expected foo to equal bar
+[udid-serial-of-device iOS 14.3 #0-0]
+[udid-serial-of-device iOS 14.3 #0-0] Check out job at  https://app.eu-central-1.saucelabs.com/tests/c752c683e0874da4b1dad593ce6645b2
+",
+  ],
+]
+`;
+
+exports[`SpecReporter printReport with normal setup should print link to Sauce Labs job details page for VDC 1`] = `
 Array [
   Array [
     "------------------------------------------------------------------

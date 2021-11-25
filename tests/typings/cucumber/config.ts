@@ -17,3 +17,8 @@ const configB: WebdriverIO.Config = {
         expectType<string>(feature.children[0].scenario.name)
     }
 }
+
+/**
+ * check import of assertion lib
+ */
+expect($('foo')).toHaveTextContaining('foobar')

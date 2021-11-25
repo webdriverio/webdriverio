@@ -135,7 +135,7 @@ exports.config = {
 }
 ```
 
-```bash
+```sh
 # testrunner invocation
 $ npm wdio wdio.conf.js --baseUrl foobar.com
 ```

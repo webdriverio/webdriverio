@@ -197,7 +197,7 @@ async function bar() {
 
     // protocol command return unmapped object
     const { foo, bar } = await browser.takeHeapSnapshot()
-    expect<any>(foo)
+    expectType<any>(foo)
 
     // browser command return mapped object value
     const { width: w, height: h }  =  await browser.getWindowSize()
@@ -450,7 +450,7 @@ async function bar() {
         foo: WebdriverIO.Element
         bar: WebdriverIO.Browser
     }
-    expect<Random>(
+    expectType<Random>(
         await browser.$$('foo').reduce((acc, curr) => {
             acc = {
                 foo: curr,

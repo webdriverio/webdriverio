@@ -7,19 +7,9 @@ To find all possible options just open [about:config](about:config) in your Fire
 
 ## Installation
 
-The easiest way is to keep `@wdio/firefox-profile-service` as a devDependency in your `package.json`.
+The easiest way is to keep `@wdio/firefox-profile-service` as a devDependency in your `package.json`, via:
 
-```json
-{
-    "devDependencies": {
-        "@wdio/firefox-profile-service": "^6.1.14"
-    }
-}
-```
-
-You can simple do it by:
-
-```bash
+```sh
 npm install @wdio/firefox-profile-service --save-dev
 ```
 

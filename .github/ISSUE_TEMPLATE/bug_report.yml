@@ -3,10 +3,19 @@ description: Create a report to help us improve.
 title: "[🐛 Bug]: <title>"
 labels: [Bug 🐛, Needs Triaging ⏳]
 body:
+
+  - type: checkboxes
+    attributes:
+      label: Have you read the Contributing Guidelines on issues?
+      options:
+        - label: I have read the [Contributing Guidelines on issues](https://github.com/webdriverio/webdriverio/blob/main/CONTRIBUTING.md#reporting-new-issues).
+          required: true
+
   - type: markdown
     attributes:
       value: |
         Thanks for taking the time to fill out this bug report! First, let's get some information about the environment you are using:
+
   - type: input
     id: wdio-version
     attributes:
@@ -15,6 +24,7 @@ body:
       placeholder: latest
     validations:
       required: true
+
   - type: input
     id: node-version
     attributes:
@@ -23,6 +33,7 @@ body:
       placeholder: latest
     validations:
       required: true
+
   - type: dropdown
     id: mode
     attributes:
@@ -34,6 +45,7 @@ body:
         - WDIO Testrunner
     validations:
       required: true
+
   - type: textarea
     id: capabilities
     attributes:
@@ -45,9 +57,10 @@ body:
           browserVersion: 'latest',
           platformName: 'Windows 10'
         }
-      render: shell
+      render: typescript
     validations:
       required: false
+
   - type: textarea
     id: what-happened
     attributes:
@@ -57,26 +70,37 @@ body:
       placeholder: |
         Please add as many details as possible to avoid assumptions from our side. How do you
         trigger this bug? What did you expect to happen? Please walk us through it step by step.
-      render: markdown
     validations:
       required: true
+
   - type: textarea
     id: what-is-expected
     attributes:
       label: What is your expected behavior?
       description: |
         What did you expect to happen instead?
-      render: markdown
     validations:
       required: false
+
   - type: textarea
     id: reproducible-example
     attributes:
       label: How to reproduce the bug.
       description: |
-        Please understand that it is essential for us to be able to reproduce
-        the bug on our own machines. Please either create a [new repository](https://github.com/new),
-        a [gist](https://gist.github.com/) or copy and paste all necessary files in here.
+        It is essential for us to be able to reproduce the bug on our own machines.
+        Please either create a [minimal reproducible example](https://stackoverflow.com/help/minimal-reproducible-example)
+        in a [new repository](https://github.com/new), a [gist](https://gist.github.com/)
+        or copy and paste all necessary files in here.
+
+        > **What happens if you skip this step?** Someone will read your bug report, and maybe will be able to help you, but it’s unlikely that it will get much attention from the team. Eventually, the issue will likely get closed in favor of issues that have reproducible demos.
+
+        Please remember that:
+
+        - Issues without reproducible demos have a very low priority.
+        - The person fixing the bug would have to do that anyway. Please be respectful of their time.
+        - You might figure out the issues yourself as you work on extracting it.
+
+        Thanks for helping us help you!
       placeholder: |
         To reproduce the bug, create a file with the following code:
         ```js
@@ -86,9 +110,9 @@ body:
         ```sh
         $ node reproducibleExample.js
         ````
-      render: markdown
     validations:
       required: true
+
   - type: textarea
     id: logs
     attributes:
@@ -96,9 +120,10 @@ body:
       description: |
         Please copy and paste any relevant log output. Either paste the terminal
         output or set [`outputDir`](https://webdriver.io/docs/options#outputdir) in your WDIO config and copy the files content in here.
-      render: shell
+      render: typescript
     validations:
       required: true
+
   - type: checkboxes
     id: terms
     attributes:
@@ -107,6 +132,7 @@ body:
       options:
         - label: I agree to follow this project's Code of Conduct
           required: true
+
   - type: checkboxes
     attributes:
       label: Is there an existing issue for this?

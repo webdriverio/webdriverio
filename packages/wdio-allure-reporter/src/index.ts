@@ -14,7 +14,7 @@ import {
     AddFeatureEventArgs, AddIssueEventArgs, AddLabelEventArgs, AddSeverityEventArgs,
     AddStoryEventArgs, AddTestIdEventArgs, AllureReporterOptions, Status
 } from './types'
-import stringify = require('csv-stringify/lib/sync')
+import { stringify } from 'csv-stringify/sync'
 
 /**
  * Allure v1 has no proper TS support
@@ -222,6 +222,7 @@ class AllureReporter extends WDIOReporter {
 
     onTestFail(test: TestStats | HookStats) {
         if (this._options.useCucumberStepReporter) {
+            attachConsoleLogs(this._consoleOutput, this._allure)
             const testStatus = getTestStatus(test, this._config)
             const stepStatus: Status = Object.values(stepStatuses).indexOf(testStatus) >= 0 ?
                 testStatus : 'failed'

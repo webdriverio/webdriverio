@@ -10,6 +10,13 @@ const noW3CEndpoint = ['microsoftedge', 'msedge', 'safari', 'chrome', 'safari te
  *
  * Return true if the selected DOM-element is displayed.
  *
+ * :::info
+ *
+ * As opposed to other element commands WebdriverIO will not wait for the element
+ * to exist to execute this command.
+ *
+ * :::
+ *
  * <example>
     :index.html
     <div id="notDisplayed" style="display: none"></div>

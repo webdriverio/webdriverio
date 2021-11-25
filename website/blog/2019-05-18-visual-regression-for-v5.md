@@ -114,7 +114,7 @@ describe('Example', () => {
 
 **If you run for the first time without having a baseline the `check`-methods will reject the promise with the following warning:**
 
-```bash
+```sh
 #####################################################################################
  Baseline image not found, save the actual image manually to the baseline.
  The image can be found here:

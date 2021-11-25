@@ -6,11 +6,11 @@
     //<%
 
     if(answers.expEnvAccessKey){ %>
-    hostname: '<%= answers.expEnvHostname %>',
+    hostname: '<%- answers.expEnvHostname %>',
     <% if (answers.expEnvPort === '443'){%>protocol: 'https',
     <%} else if (answers.expEnvPort === '80'){%>protocol: 'http',
-    <%} else { %>protocol: '<%= answers.expEnvProtocol %>',<%}%>
-    port: <%= answers.expEnvPort %>,
+    <%} else { %>protocol: '<%- answers.expEnvProtocol %>',<%}%>
+    port: <%- answers.expEnvPort %>,
     path: '/wd/hub',
     <% } else if(answers.hostname && answers.port) { %>
     //
@@ -24,9 +24,9 @@
     // according to your user and key information. However, if you are using a private Selenium
     // backend you should define the host address, port, and path here.
     //
-    hostname: '<%= answers.hostname %>',
-    port: <%= answers.port %>,
-    path: '<%= answers.path %>',<% } else if (answers.services.includes('appium')) { %>
+    hostname: '<%- answers.hostname %>',
+    port: <%- answers.port %>,
+    path: '<%- answers.path %>',<% } else if (answers.services.includes('appium')) { %>
     port: 4723,<% }
 
     // Protocol: http | https
@@ -40,8 +40,8 @@
     // should work too though). These services define specific user and key (or access key)
     // values you need to put in here in order to connect to these services.
     //
-    user: process.env.<%= answers.env_user %>,
-    key: process.env.<%= answers.env_key %>,
+    user: process.env.<%- answers.env_user %>,
+    key: process.env.<%- answers.env_key %>,
     //
     // If you run your tests on Sauce Labs you can specify the region you want to run your tests
     // in via the `region` property. Available short handles for regions are `us` (default), `eu` and `apac`.
@@ -49,7 +49,7 @@
     // If you don't provide the region it will default for the `us`
     <% }
     if(answers.headless) { %>headless: true,<% }
-    if(answers.region) { %>region: '<%= answers.region %>',<% } %>
+    if(answers.region) { %>region: '<%- answers.region %>',<% } %>
     //
     // ==================
     // Specify Test Files
@@ -67,7 +67,7 @@
     // will be called from there.
     //
     specs: [
-        '<%= answers.specs %>'
+        '<%- answers.specs %>'
     ],
     // Patterns to exclude.
     exclude: [
@@ -93,10 +93,10 @@
     //
     // If you have trouble getting all important capabilities together, check out the
     // Sauce Labs platform configurator - a great tool to configure your capabilities:
-    // https://docs.saucelabs.com/reference/platforms-configurator
+    // https://saucelabs.com/platform/platform-configurator
     //
     capabilities: [{
-    <%if(answers.expEnvAccessKey){%> 'experitest:accessKey': '<%= answers.expEnvAccessKey %>',<%}%>
+    <%if(answers.expEnvAccessKey){%> 'experitest:accessKey': '<%- answers.expEnvAccessKey %>',<%}%>
         // maxInstances can get overwritten per capability. So if you have an in-house Selenium
         // grid with only 5 firefox instances available you can make sure that not more than
         // 5 instances get started at a time.
@@ -140,7 +140,7 @@
     // with `/`, the base url gets prepended, not including the path portion of your baseUrl.
     // If your `url` parameter starts without a scheme or `/` (like `some/path`), the base url
     // gets prepended directly.
-    baseUrl: '<%= answers.baseUrl %>',
+    baseUrl: '<%- answers.baseUrl %>',
     //
     // Default timeout for all waitFor* commands.
     waitforTimeout: 10000,
@@ -167,7 +167,7 @@
     //
     // Make sure you have the wdio adapter package for the specific framework installed
     // before running any tests.
-    framework: '<%= answers.framework %>',
+    framework: '<%- answers.framework %>',
     //
     // The number of times to retry the entire specfile when it fails as a whole
     // specFileRetries: 1,
@@ -207,7 +207,7 @@
     // If you are using Cucumber you need to specify the location of your step definitions.
     cucumberOpts: {
         // <string[]> (file/dir) require files before executing features
-        require: ['<%= answers.stepDefinitions %>'],
+        require: ['<%- answers.stepDefinitions %>'],
         // <boolean> show full backtrace for errors
         backtrace: false,
         // <string[]> ("extension:module") require files with the given EXTENSION after requiring MODULE (repeatable)
@@ -330,40 +330,44 @@
     /**
      *
      * Runs before a Cucumber Scenario.
-     * @param {ITestCaseHookParameter} world world object containing information on pickle and test step
+     * @param {ITestCaseHookParameter} world    world object containing information on pickle and test step
+     * @param {Object}                 context  Cucumber World object
      */
-    // beforeScenario: function (world) {
+    // beforeScenario: function (world, context) {
     // },
     /**
      *
      * Runs before a Cucumber Step.
      * @param {Pickle.IPickleStep} step     step data
      * @param {IPickle}            scenario scenario pickle
+     * @param {Object}             context  Cucumber World object
      */
-    // beforeStep: function (step, scenario) {
+    // beforeStep: function (step, scenario, context) {
     // },
     /**
      *
      * Runs after a Cucumber Step.
-     * @param {Pickle.IPickleStep} step     step data
-     * @param {IPickle}            scenario scenario pickle
-     * @param {Object}             result   results object containing scenario results
-     * @param {boolean}            result.passed   true if scenario has passed
-     * @param {string}             result.error    error stack if scenario failed
-     * @param {number}             result.duration duration of scenario in milliseconds
+     * @param {Pickle.IPickleStep} step             step data
+     * @param {IPickle}            scenario         scenario pickle
+     * @param {Object}             result           results object containing scenario results
+     * @param {boolean}            result.passed    true if scenario has passed
+     * @param {string}             result.error     error stack if scenario failed
+     * @param {number}             result.duration  duration of scenario in milliseconds
+     * @param {Object}             context          Cucumber World object
      */
-    // afterStep: function (step, scenario, result) {
+    // afterStep: function (step, scenario, result, context) {
     // },
     /**
      *
-     * Runs before a Cucumber Scenario.
-     * @param {ITestCaseHookParameter} world  world object containing information on pickle and test step
-     * @param {Object}                 result results object containing scenario results
-     * @param {boolean}                result.passed   true if scenario has passed
-     * @param {string}                 result.error    error stack if scenario failed
-     * @param {number}                 result.duration duration of scenario in milliseconds
+     * Runs after a Cucumber Scenario.
+     * @param {ITestCaseHookParameter} world            world object containing information on pickle and test step
+     * @param {Object}                 result           results object containing scenario results
+     * @param {boolean}                result.passed    true if scenario has passed
+     * @param {string}                 result.error     error stack if scenario failed
+     * @param {number}                 result.duration  duration of scenario in milliseconds
+     * @param {Object}                 context          Cucumber World object
      */
-    // afterScenario: function (world, result) {
+    // afterScenario: function (world, result, context) {
     // },
     /**
      *

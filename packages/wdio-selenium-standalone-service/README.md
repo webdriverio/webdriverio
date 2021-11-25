@@ -21,7 +21,7 @@ The easiest way is to keep `@wdio/selenium-standalone-service` as a devDependenc
 
 You can simple do it by:
 
-```bash
+```sh
 npm install @wdio/selenium-standalone-service --save-dev
 ```
 

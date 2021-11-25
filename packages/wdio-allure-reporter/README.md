@@ -19,7 +19,7 @@ The easiest way is to keep `@wdio/allure-reporter` as a devDependency in your `p
 
 You can simple do it by:
 
-```bash
+```sh
 npm install @wdio/allure-reporter --save-dev
 ```
 

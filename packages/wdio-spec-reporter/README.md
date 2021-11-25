@@ -7,17 +7,7 @@ WDIO Spec Reporter
 
 ## Installation
 
-The easiest way is to keep `@wdio/spec-reporter` as a devDependency in your `package.json`.
-
-```json
-{
-  "devDependencies": {
-    "@wdio/spec-reporter": "^6.3.6"
-  }
-}
-```
-
-You can simple do it by:
+The easiest way is to keep `@wdio/spec-reporter` as a devDependency in your `package.json`, via:
 
 ```sh
 npm install @wdio/spec-reporter --save-dev

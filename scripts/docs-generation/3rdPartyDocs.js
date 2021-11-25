@@ -34,8 +34,11 @@ exports.generate3rdPartyDocs = async (sidebars) => {
         const categoryDir = path.join(DOCS_ROOT_DIR, category === 'api' ? 'api' : '')
         await fs.ensureDir(categoryDir)
 
-        for (const { packageName, title, githubUrl, npmUrl, suppressBuildInfo, location = githubReadme, branch = 'master' } of packages3rdParty) {
-            const readme = await downloadFromGitHub(githubUrl, branch, location)
+        for (const { packageName, title, githubUrl, npmUrl, suppressBuildInfo, locations, location = githubReadme, branch = 'master' } of packages3rdParty) {
+            const readme = locations
+                ? await Promise.all(locations.map((l) => downloadFromGitHub(githubUrl, branch, l)))
+                    .then((readmes) => readmes.join('\n'))
+                : await downloadFromGitHub(githubUrl, branch, location)
             const id = `${packageName}`.replace(/@/g, '').replace(/\//g, '-')
 
             const doc = normalizeDoc(readme, githubUrl, branch,
