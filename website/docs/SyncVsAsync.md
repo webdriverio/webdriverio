@@ -106,7 +106,7 @@ There can be quite some confusion when handling asynchronous commands manually. 
     await el.click()
     ```
 
-- Array loops (e.g., `forEach` & `map`) need `Promise.all`
+- Array loops (e.g., `forEach` & `map`) don't need `Promise.all`
 
     ```js
     const links = await $$('a')
