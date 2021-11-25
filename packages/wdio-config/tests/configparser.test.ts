@@ -535,7 +535,7 @@ describe('ConfigParser', () => {
             expect(specs).toContain(featureFileWithoutLine)
         })
 
-        it('should allow specifying a spec file which is Cucumber feature files with line number', () => {
+        it('should allow specifying a spec file which are Cucumber feature files with line number', () => {
             const configParser = ConfigParserForTest()
             configParser.addConfigFile(FIXTURES_CONF)
             configParser.merge({ spec: [FIXTURES_CUCUMBER_FEATURE_A_LINE_2, FIXTURES_CUCUMBER_FEATURE_B_LINE_7] })
@@ -555,7 +555,7 @@ describe('ConfigParser', () => {
             expect(specs).toContain(featureFileB)
         })
 
-        it('should allow specifying mutliple single spec file', () => {
+        it('should allow specifying multiple single spec file', () => {
             const configParser = ConfigParserForTestWithAllFiles()
             configParser.addConfigFile(FIXTURES_CONF)
             configParser.merge({ spec : [INDEX_PATH, FIXTURES_CONF] })
