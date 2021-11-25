@@ -15,5 +15,7 @@ export default async function sendAlertText (
     }
 
     await this.activeDialog.accept(text)
+    delete this.activeDialog
+
     return null
 }
