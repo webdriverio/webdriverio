@@ -3,6 +3,7 @@ import * as gotOrig from 'got'
 import http from 'http'
 import https from 'https'
 
+import * as utils from '../src/utils'
 import { Options } from '@wdio/types'
 import WebDriverRequest from '../src/request/node'
 
@@ -399,24 +400,49 @@ describe('webdriver request', () => {
             expect(result.message).toBe('Command can only be called to a Selenium Hub')
         })
 
-        it('should throw if timeout happens too often', async () => {
-            const retryCnt = 3
-            const req = new WebDriverRequest('POST', '/timeout', {}, true)
-            const reqRetryCnt = jest.fn()
-            req.on('retry', reqRetryCnt)
-            const result = await req.makeRequest({
-                protocol: 'https',
-                hostname: 'localhost',
-                port: 4445,
-                path: '/timeout',
-                connectionRetryCount: retryCnt,
-                logLevel: 'warn'
-            }, 'foobar').then(
-                (res) => res,
-                (e) => e
-            )
-            expect(result.code).toBe('ETIMEDOUT')
-            expect(reqRetryCnt).toBeCalledTimes(retryCnt)
+        describe('"ETIMEDOUT" error', () => {
+            it('should throw if timeout happens too often', async () => {
+                const retryCnt = 3
+                const req = new WebDriverRequest('POST', '/timeout', {}, true)
+                const reqRetryCnt = jest.fn()
+                req.on('retry', reqRetryCnt)
+                const result = await req.makeRequest({
+                    protocol: 'https',
+                    hostname: 'localhost',
+                    port: 4445,
+                    path: '/',
+                    connectionRetryCount: retryCnt,
+                    logLevel: 'warn'
+                }, 'foobar').then(
+                    (res) => res,
+                    (e) => e
+                )
+                expect(result.code).toBe('ETIMEDOUT')
+                expect(reqRetryCnt).toBeCalledTimes(retryCnt)
+            })
+
+            it('should use error from "getTimeoutError" helper', async () => {
+                const timeoutErr = new Error('Timeout')
+                const spy = jest.spyOn(utils, 'getTimeoutError').mockReturnValue(timeoutErr)
+
+                const req = new WebDriverRequest('GET', '/timeout', {}, true)
+                req.emit = jest.fn()
+                const reqOpts = {
+                    protocol: 'https',
+                    hostname: 'localhost',
+                    port: 4445,
+                    path: '/',
+                } as Options.WebDriver
+                await req.makeRequest(reqOpts, 'foobar')
+                    // ignore error
+                    .catch((e) => e)
+
+                expect(spy).toBeCalledTimes(1)
+                expect(spy).toBeCalledWith(expect.any(Error), expect.objectContaining({ method: 'GET' }))
+                expect(req.emit).toBeCalledWith('response', { error: timeoutErr })
+
+                spy.mockRestore()
+            })
         })
 
         it('should return proper response if retry passes', async () => {
