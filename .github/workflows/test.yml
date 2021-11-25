@@ -40,9 +40,7 @@ jobs:
       - name: Bootstrap Packages
         run: npm run setup-full
       - name: Lint / Dependencies / Unit / Smoke Tests
-        # ToDo(Christian): fix type tests on Windows
-        # (https://github.com/webdriverio/webdriverio/issues/7751)
-        run: npx run-s test:depcheck test:eslint test:coverage test:smoke
+        run: npm run test
       - name: E2E Protocol Tests
         uses: nick-invision/retry@v2
         with:
