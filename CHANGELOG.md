@@ -19,6 +19,22 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.16.10 (2021-11-25)
+
+#### :bug: Bug Fix
+* `devtools`
+  * [#7746](https://github.com/webdriverio/webdriverio/pull/7746) fix(devtools): accepting a prompt preserves the default value. Closes [#7744](https://github.com/webdriverio/webdriverio/issues/7744) ([@jan-molak](https://github.com/jan-molak))
+
+#### :nail_care: Polish
+* `wdio-sauce-service`
+  * [#7732](https://github.com/webdriverio/webdriverio/pull/7732) feat: properly update Multi Remote jobs on Sauce ([@wswebcreation](https://github.com/wswebcreation))
+
+#### Committers: 3
+- Jan Molak ([@jan-molak](https://github.com/jan-molak))
+- Wim Selles ([@wswebcreation](https://github.com/wswebcreation))
+- [@LilyAita](https://github.com/LilyAita)
+
+
 ## v7.16.9 (2021-11-22)
 
 #### :bug: Bug Fix
