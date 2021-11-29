@@ -42,7 +42,7 @@
     "@wdio/types": "7.16.3",
     "@wdio/utils": "7.16.3",
     "async-exit-hook": "^2.0.1",
-    "chalk": "^4.0.0",
+    "chalk": "^5.0.0",
     "chokidar": "^3.0.0",
     "cli-spinners": "^2.1.0",
     "ejs": "^3.0.1",

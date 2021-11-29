@@ -24,7 +24,7 @@
   "dependencies": {
     "@wdio/reporter": "7.16.3",
     "@wdio/types": "7.16.3",
-    "chalk": "^4.0.0"
+    "chalk": "^5.0.0"
   },
   "devDependencies": {
     "@types/tmp": "^0.2.0",
