@@ -19,6 +19,7 @@ import {
     setDefaultTimeout,
     setDefinitionFunctionWrapper,
     setWorldConstructor,
+    World,
     Then,
     When
 } from '@cucumber/cucumber'
@@ -407,7 +408,8 @@ export {
     setDefinitionFunctionWrapper,
     setWorldConstructor,
     Then,
-    When
+    When,
+    World
 }
 
 declare global {

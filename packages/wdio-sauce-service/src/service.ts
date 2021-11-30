@@ -47,7 +47,7 @@ export default class SauceService implements Services.ServiceInstance {
         /**
          * if no user and key is specified even though a sauce service was
          * provided set user and key with values so that the session request
-         * will fail (not for RDC tho due to other auth mechansim)
+         * will fail
          */
         if (!this._config.user) {
             this._isServiceEnabled = false
@@ -266,7 +266,7 @@ export default class SauceService implements Services.ServiceInstance {
      * update Sauce Labs job
      */
     async after (result: number) {
-        if (!this._browser || (!this._isServiceEnabled)) {
+        if (!this._browser || !this._isServiceEnabled) {
             return
         }
 
