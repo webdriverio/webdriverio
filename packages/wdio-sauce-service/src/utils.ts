@@ -1,4 +1,3 @@
-import { isW3C } from '@wdio/utils'
 import type { Capabilities } from '@wdio/types'
 
 import type { SauceServiceConfig } from './types'
@@ -73,29 +72,29 @@ export function isEmuSim (caps: Capabilities.DesiredCapabilities){
  */
 export function makeCapabilityFactory(tunnelIdentifier: string, options: any) {
     return (capability: Capabilities.DesiredCapabilities) => {
-        // If the capability appears to be using the legacy JSON Wire Protocol
-        // we need to make sure the key 'sauce:options' is not present
-        const isLegacy = Boolean(
-            (capability.platform || capability.version) &&
-            !isW3C(capability) &&
-            !capability['sauce:options']
+        // Check if this is a 'valid' W3C request, this is done with a simple check
+        // where we assume that if only one cap has `:` it's W3C, even if the request
+        // is a mix of JWP and W3C. This is hard to check
+        const isW3CRequest = Boolean(
+            Object.keys(capability).find((cap) => cap.includes(':'))
         )
 
-        // Unified Platform and EMUSIM is currently not W3C ready, so the tunnel needs to be on the cap level
-        if (!capability['sauce:options'] && !isLegacy && !isRDC(capability) && !isEmuSim(capability)) {
+        // If the `sauce:options` are not provided and it is a W3C session
+        // then add it
+        if (!capability['sauce:options'] && isW3CRequest) {
             capability['sauce:options'] = {}
         }
 
         Object.assign(capability, options)
 
-        const sauceOptions = (!isLegacy && !isRDC(capability) && !isEmuSim(capability) ? capability['sauce:options'] : capability) as SauceServiceConfig
+        const sauceOptions = (isW3CRequest ? capability['sauce:options'] : capability) as SauceServiceConfig
         sauceOptions.tunnelIdentifier = (
             capability.tunnelIdentifier ||
             sauceOptions.tunnelIdentifier ||
             tunnelIdentifier
         )
 
-        if (!isLegacy && !isRDC(capability) && !isEmuSim(capability)) {
+        if (isW3CRequest) {
             delete capability.tunnelIdentifier
         }
     }
