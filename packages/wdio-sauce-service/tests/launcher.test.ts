@@ -22,7 +22,7 @@ jest.mock('saucelabs', () => {
 
 const log = logger('')
 
-test('onPrepare', async () => {
+test('onPrepare w/ SauceConnect w/ tunnelIdentifier w/ JWP', async () => {
     const options: SauceServiceConfig = {
         sauceConnect: true,
         sauceConnectOpts: {
@@ -39,9 +39,7 @@ test('onPrepare', async () => {
     expect(service['_sauceConnectProcess']).toBeUndefined()
     await service.onPrepare(config, caps)
 
-    expect(caps).toEqual([{
-        'sauce:options': { tunnelIdentifier: 'my-tunnel' }
-    }])
+    expect(caps).toEqual([{tunnelIdentifier: 'my-tunnel'}])
 
     // @ts-ignore mock feature
     expect(SauceLabs.instances).toHaveLength(1)
@@ -50,11 +48,63 @@ test('onPrepare', async () => {
     expect(service['_sauceConnectProcess']).not.toBeUndefined()
 })
 
-test('onPrepare w/o identifier', async () => {
+test('onPrepare w/ SauceConnect w/o tunnelIdentifier w/ JWP', async () => {
+    const options: SauceServiceConfig = {
+        sauceConnect: true,
+        sauceConnectOpts: {
+            sePort: 4446,
+        }
+    }
+    const caps = [{}] as Capabilities.DesiredCapabilities[]
+    const config = {
+        user: 'foobaruser',
+        key: '12345'
+    } as Options.Testrunner
+    const service = new SauceServiceLauncher(options, caps, config)
+    expect(service['_sauceConnectProcess']).toBeUndefined()
+    await service.onPrepare(config, caps)
+
+    expect(caps[0]?.tunnelIdentifier).toContain('SC-tunnel-')
+
+    // @ts-ignore mock feature
+    expect(SauceLabs.instances).toHaveLength(1)
+    // @ts-ignore mock feature
+    expect(SauceLabs.instances[0].startSauceConnect).toBeCalledTimes(1)
+    expect(service['_sauceConnectProcess']).not.toBeUndefined()
+})
+
+test('onPrepare w/ SauceConnect w/ tunnelIdentifier w/ W3C', async () => {
+    const options: SauceServiceConfig = {
+        sauceConnect: true,
+        sauceConnectOpts: {
+            tunnelIdentifier: 'my-tunnel'
+        }
+    }
+    const caps = [{ 'sauce:options': { extendedDebugging: false } }] as Capabilities.DesiredCapabilities[]
+    const config = {
+        user: 'foobaruser',
+        key: '12345'
+    } as Options.Testrunner
+    const service = new SauceServiceLauncher(options, caps, config)
+    expect(service['_sauceConnectProcess']).toBeUndefined()
+    await service.onPrepare(config, caps)
+
+    expect(caps[0]['sauce:options']?.tunnelIdentifier).toContain('my-tunnel')
+    expect(service['_sauceConnectProcess']).not.toBeUndefined()
+
+    // @ts-ignore mock feature
+    expect(SauceLabs.instances).toHaveLength(1)
+    // @ts-ignore mock feature
+    expect(SauceLabs.instances[0].startSauceConnect).toBeCalledTimes(1)
+    await new Promise((resolve) => setTimeout(resolve, 100))
+    expect((log.info as jest.Mock).mock.calls[0][0]).toContain('Sauce Connect successfully started after')
+})
+
+test('onPrepare w/ SauceConnect w/o identifier w/ W3C', async () => {
     const options: SauceServiceConfig = {
         sauceConnect: true
     }
-    const caps = [{}] as Capabilities.DesiredCapabilities[]
+    const caps = [{ 'appium:deviceName': 'Samsung Galaxy S10' }] as Capabilities.DesiredCapabilities[]
     const config = {
         user: 'foobaruser',
         key: '12345'
@@ -171,7 +221,7 @@ test('onPrepare multiremote', async () => {
                 protocol: 'http',
                 hostname: 'localhost',
                 port: 4446,
-                'sauce:options': { tunnelIdentifier: 'my-tunnel' }
+                tunnelIdentifier: 'my-tunnel'
             }
         },
         browserB: {
@@ -180,7 +230,7 @@ test('onPrepare multiremote', async () => {
                 protocol: 'http',
                 hostname: 'localhost',
                 port: 4446,
-                'sauce:options': { tunnelIdentifier: 'fish' }
+                tunnelIdentifier: 'fish'
             },
         }
     })
