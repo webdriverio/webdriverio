@@ -144,7 +144,7 @@ class CucumberReporter {
             state = 'pending'
             break
         case Status.SKIPPED:
-            state = 'skipp'
+            state = 'skip'
             break
         case Status.AMBIGUOUS:
             state = 'pending'
