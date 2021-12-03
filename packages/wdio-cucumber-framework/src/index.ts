@@ -43,7 +43,11 @@ const { incrementing } = IdGenerator
 
 function getResultObject (world: ITestCaseHookParameter): Frameworks.PickleResult {
     return {
-        passed: (world.result?.status === Cucumber.Status.PASSED || world.result?.status === Cucumber.Status.SKIPPED),
+        passed: (
+            world.result?.status === Cucumber.Status.PASSED
+            || world.result?.status === Cucumber.Status.SKIPPED
+            || world.result?.status === Cucumber.Status.PENDING
+        ),
         error: world.result?.message as string,
         duration: world.result?.duration?.nanos as number / 10e6 // convert into ms
     }
