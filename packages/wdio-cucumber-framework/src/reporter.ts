@@ -199,7 +199,7 @@ class CucumberReporter {
             state,
             error,
             duration: Date.now() - this._testStart!?.getTime(),
-            passed: state === 'pass',
+            passed: ['pass', 'pending'].includes(state),
             file: uri
         }
 
@@ -215,6 +215,7 @@ class CucumberReporter {
                 tags: scenario.tags,
                 ...common
             }
+
         this.emit('test:' + state, payload)
     }
 
