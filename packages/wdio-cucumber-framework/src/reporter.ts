@@ -204,7 +204,7 @@ class CucumberReporter {
             state,
             error,
             duration: Date.now() - this._testStart!?.getTime(),
-            passed: ['pass', 'pending', 'skip'].includes(state),
+            passed: ['pass', 'skip'].includes(state),
             file: uri
         }
 
