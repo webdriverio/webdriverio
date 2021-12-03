@@ -243,7 +243,7 @@ export default class SauceService implements Services.ServiceInstance {
         }
 
         const scenarioName = world.pickle.name || 'unknown scenario'
-        return this.setAnnotation(`sauce:context=Scenario: ${scenarioName}`)
+        return this.setAnnotation(`sauce:context=-Scenario: ${scenarioName}`)
     }
 
     async beforeStep (step: Frameworks.PickleStep) {
