@@ -477,16 +477,16 @@ export default class SpecReporter extends WDIOReporter {
         let color: keyof Chalk = 'gray'
 
         switch (state) {
-            case 'passed':
-                color = 'green'
-                break
-            case 'pending':
-            case 'skipped':
-                color = 'cyan'
-                break
-            case 'failed':
-                color = 'red'
-                break
+        case 'passed':
+            color = 'green'
+            break
+        case 'pending':
+        case 'skipped':
+            color = 'cyan'
+            break
+        case 'failed':
+            color = 'red'
+            break
         }
 
         return color
