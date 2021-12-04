@@ -23,38 +23,53 @@ const port = '3000'
 const baseUrl = `http://localhost:${port}`
 
 describe('client', () => {
-    beforeAll(() => {
-        setPort(port)
+    describe('when used in launcher process', () => {
+        it('should not post before server has started', async () => {
+            await setValue('foo', 'bar')
+            await setValue('bar', 'foo')
+            expect(got.post).toBeCalledTimes(0)
+            setPort(port)
+            await new Promise((resolve) => setTimeout(resolve, 300))
+            expect(got.post).toBeCalledTimes(2)
+            await setValue('another', 'item')
+            expect(got.post).toBeCalledTimes(3)
+        })
     })
 
-    it('should set value', async () => {
-        await setValue('foo', 'bar')
-        expect(got.post).toBeCalledWith(`${baseUrl}/set`, { json: { key: 'foo', value: 'bar' } })
-    })
+    describe('when used in worker process', () => {
+        beforeAll(() => {
+            setPort(port)
+        })
 
-    it('should get value', async () => {
-        const result = await getValue('foo')
-        expect(got.post).toBeCalledWith(`${baseUrl}/get`, { json: { key: 'foo' }, responseType: 'json' })
-        expect(result).toBe('store value')
-    })
+        it('should set value', async () => {
+            await setValue('foo', 'bar')
+            expect(got.post).toBeCalledWith(`${baseUrl}/set`, { json: { key: 'foo', value: 'bar' } })
+        })
 
-    it('should not fail if key is not in store', async () => {
-        const result = await getValue('not-present')
-        expect(got.post).toBeCalledWith(`${baseUrl}/get`, { json: { key: 'not-present' }, responseType: 'json' })
-        expect(result).toBeUndefined()
-    })
+        it('should get value', async () => {
+            const result = await getValue('foo')
+            expect(got.post).toBeCalledWith(`${baseUrl}/get`, { json: { key: 'foo' }, responseType: 'json' })
+            expect(result).toBe('store value')
+        })
 
-    it('should not fail on get error', async () => {
-        const result = await getValue('fail')
-        expect(result).toBeUndefined()
-    })
+        it('should not fail if key is not in store', async () => {
+            const result = await getValue('not-present')
+            expect(got.post).toBeCalledWith(`${baseUrl}/get`, { json: { key: 'not-present' }, responseType: 'json' })
+            expect(result).toBeUndefined()
+        })
 
-    it('should not fail on set error', async () => {
-        const result = await setValue('fail', 'fail')
-        expect(result).toBeUndefined()
-    })
+        it('should not fail on get error', async () => {
+            const result = await getValue('fail')
+            expect(result).toBeUndefined()
+        })
 
-    afterEach(() => {
-        (got.post as jest.Mock).mockClear()
+        it('should not fail on set error', async () => {
+            const result = await setValue('fail', 'fail')
+            expect(result).toBeUndefined()
+        })
+
+        afterEach(() => {
+            (got.post as jest.Mock).mockClear()
+        })
     })
 })

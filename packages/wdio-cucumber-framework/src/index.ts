@@ -19,6 +19,7 @@ import {
     setDefaultTimeout,
     setDefinitionFunctionWrapper,
     setWorldConstructor,
+    World,
     Then,
     When
 } from '@cucumber/cucumber'
@@ -31,6 +32,7 @@ import { IdGenerator } from '@cucumber/messages'
 
 import { executeHooksWithArgs, testFnWrapper } from '@wdio/utils'
 import type { Capabilities, Options, Frameworks } from '@wdio/types'
+import type ExpectWebdriverIO from 'expect-webdriverio'
 
 import CucumberReporter from './reporter'
 import { DEFAULT_OPTS } from './constants'
@@ -256,7 +258,7 @@ class CucumberAdapter {
     }
 
     /**
-     * set `beforeScenario`, `afterScenario`, `beforeFeature`, `afterFeature`
+     * set `beforeFeature`, `afterFeature`, `beforeScenario`, `afterScenario`, 'beforeStep', 'afterStep'
      * @param {object} config config
      */
     addWdioHooks(config: Options.Testrunner) {
@@ -281,14 +283,14 @@ class CucumberAdapter {
             await executeHooksWithArgs(
                 'beforeScenario',
                 config.beforeScenario,
-                [world]
+                [world, this]
             )
         })
         Cucumber.After(async function wdioHookAfterScenario(world: ITestCaseHookParameter) {
             await executeHooksWithArgs(
                 'afterScenario',
                 config.afterScenario,
-                [world, getResultObject(world)]
+                [world, getResultObject(world), this]
             )
         })
         Cucumber.BeforeStep(async function wdioHookBeforeStep() {
@@ -296,7 +298,7 @@ class CucumberAdapter {
             await executeHooksWithArgs(
                 'beforeStep',
                 config.beforeStep,
-                [params?.step, params?.scenario]
+                [params?.step, params?.scenario, this]
             )
         })
         Cucumber.AfterStep(async function wdioHookAfterStep(world: ITestCaseHookParameter) {
@@ -304,7 +306,7 @@ class CucumberAdapter {
             await executeHooksWithArgs(
                 'afterStep',
                 config.afterStep,
-                [params?.step, params?.scenario, getResultObject(world)]
+                [params?.step, params?.scenario, getResultObject(world), this]
             )
         })
     }
@@ -406,12 +408,18 @@ export {
     setDefinitionFunctionWrapper,
     setWorldConstructor,
     Then,
-    When
+    When,
+    World
 }
 
 declare global {
     namespace WebdriverIO {
         interface CucumberOpts extends CucumberOptions {}
         interface HookFunctionExtension extends HookFunctionExtensionImport {}
+    }
+    namespace NodeJS {
+        interface Global {
+            expect: ExpectWebdriverIO.Expect
+        }
     }
 }

@@ -1,3 +1,4 @@
+import { format } from 'util'
 import WDIOReporter, { SuiteStats, HookStats, RunnerStats, TestStats, Argument } from '@wdio/reporter'
 import { Capabilities } from '@wdio/types'
 import chalk, { Chalk } from 'chalk'
@@ -224,15 +225,24 @@ export default class SpecReporter extends WDIOReporter {
         )
 
         if (isSauceJob && config && config.user && config.key && sessionId) {
+            const multiremoteNote = isMultiremote ? ` ${instanceName}` : ''
+            const note = 'Check out%s job at %s'
+            // The report url of RDC is in the caps that are returned
+            if ('testobject_test_report_url' in capabilities){
+                return [format(note, multiremoteNote, capabilities.testobject_test_report_url)]
+            }
+
+            // VDC urls can be constructed / be made shared
             const isUSEast = config.headless || (config.hostname?.includes('us-east-1'))
             const isEUCentral = ['eu', 'eu-central-1'].includes(config?.region || '') || (config.hostname?.includes('eu-central'))
             const isAPAC = ['apac', 'apac-southeast-1'].includes(config?.region || '') || (config.hostname?.includes('apac'))
             const dc = isUSEast ? '.us-east-1' : isEUCentral ? '.eu-central-1' : isAPAC ? '.apac-southeast-1' : ''
-            const multiremoteNote = isMultiremote ? ` ${instanceName}` : ''
             const sauceLabsSharableLinks = this._sauceLabsSharableLinks
                 ? sauceAuthenticationToken(config.user, config.key, sessionId)
                 : ''
-            return [`Check out${multiremoteNote} job at https://app${dc}.saucelabs.com/tests/${sessionId}${sauceLabsSharableLinks}`]
+            const sauceUrl = `https://app${dc}.saucelabs.com/tests/${sessionId}${sauceLabsSharableLinks}`
+
+            return [format(note, multiremoteNote, sauceUrl)]
         }
 
         return []

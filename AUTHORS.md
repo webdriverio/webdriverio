@@ -12,7 +12,7 @@ For information about the governance of the WebdriverIO project, see [GOVERNANCE
 [WillBrock](https://github.com/WillBrock) - __Will Brock__ <[wpbrock@gmail.com](wpbrock@gmail.com)><br />
 [wswebcreation](https://github.com/wswebcreation) - __Wim Selles__ <[wim.selles@saucelabs.com](wim.selles@saucelabs.com)>
 
-## Project Collaborators
+## Project Committers
 
 [andriilazebnyi](https://github.com/andriilazebnyi) - __Andrii Lazebnyi__ <_tbd_><br />
 [baruchvlz](https://github.com/baruchvlz) - __Baruch Velez__ <[baruchvelez@gmail.com](baruchvelez@gmail.com)><br />
@@ -24,9 +24,14 @@ For information about the governance of the WebdriverIO project, see [GOVERNANCE
 [georgecrawford](https://github.com/georgecrawford) - __George Crawford__ <_tbd_><br />
 [jankcat](https://github.com/jankcat) - __Tim Watkins__ <[timothy.watkins@gmail.com](timothy.watkins@gmail.com)><br />
 [lgandecki](https://github.com/lgandecki) - __Łukasz Gandecki__ <_tbd_><br />
+[Praveen](https://github.com/praveendvd) - __Praveen Mathew__<br />
 [tborys](https://github.com/tborys) - __Tomasz Borys__ <[tboryss@gmail.com](tboryss@gmail.com)><br />
 [TheSavior](https://github.com/TheSavior) - __Eli White__ <_tbd_><br />
 [ThomasFett](https://github.com/ThomasFett) - __Thomas Fett__ <[thomas.fett@saucelabs.com](thomas.fett@saucelabs.com)><br />
 [TuHuynhVan](https://github.com/TuHuynhVan) - __Tu Huynh__ <_tbd_><br />
 [wvankuipers](https://github.com/wvankuipers) - __W. van Kuipers__ <[github@pwnd.nl](github@pwnd.nl)><br />
 [zinserjan](https://github.com/zinserjan) - __Jan-André Zinser__ <_tbd_><br />
+
+## Project Contributors
+
+[All these wonderful humans](https://github.com/webdriverio/webdriverio/graphs/contributors).

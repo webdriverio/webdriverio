@@ -5,19 +5,9 @@ WebdriverIO Shared Store Service
 
 ## Installation
 
-The easiest way is to keep `@wdio/shared-store-service` as a devDependency in your `package.json`.
+The easiest way is to keep `@wdio/shared-store-service` as a devDependency in your `package.json`, via:
 
-```json
-{
-    "devDependencies": {
-        "@wdio/shared-store-service": "^6.1.4"
-    }
-}
-```
-
-You can simple do it by:
-
-```bash
+```sh
 npm install @wdio/shared-store-service --save-dev
 ```
 

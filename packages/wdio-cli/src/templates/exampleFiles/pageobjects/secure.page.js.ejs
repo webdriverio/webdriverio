@@ -1,3 +1,5 @@
+<%- isUsingTypeScript ? "import { ChainablePromiseElement } from 'webdriverio';" : "" %>
+
 <%- isUsingTypeScript || isUsingBabel
     ? "import Page from './page';"
     : "const Page = require('./page');" %>
@@ -9,7 +11,9 @@ class SecurePage extends Page {
     /**
      * define selectors using getter methods
      */
-    get flashAlert () { return $('#flash') }
+    <%- isUsingTypeScript ? "public " : "" %>get flashAlert()<%- isUsingTypeScript ? ": ChainablePromiseElement<Promise<WebdriverIO.Element>>" : "" %> {
+        return $('#flash');
+    }
 }
 
-<%= isUsingTypeScript || isUsingBabel ? "export default": "module.exports =" %> new SecurePage();
+<%- isUsingTypeScript || isUsingBabel ? "export default": "module.exports =" %> new SecurePage();

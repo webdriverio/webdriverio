@@ -10,7 +10,6 @@
       "@wdio/allure-reporter",
       "@wdio/appium-service",
       "@wdio/browserstack-service",
-      "@wdio/jasmine-framework",
       "@wdio/selenium-standalone-service",
       "@wdio/crossbrowsertesting-service",
       "@wdio/firefox-profile-service",

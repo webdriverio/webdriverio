@@ -165,6 +165,12 @@ module.exports = {
                     remarkPlugins: [
                         [require('@docusaurus/remark-plugin-npm2yarn'), { sync: true }],
                     ],
+                    include: ['**/*.{md,mdx}', '**/_*.{md,mdx}'],
+                    exclude: [
+                        '**/_*/**',
+                        '**/*.test.{js,jsx,ts,tsx}',
+                        '**/__tests__/**'
+                    ]
                 },
                 blog: {
                     showReadingTime: true,

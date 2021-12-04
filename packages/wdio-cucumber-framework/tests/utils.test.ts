@@ -236,7 +236,7 @@ describe('utils', () => {
         expect(addKeywordToStep(steps, feature)).toMatchSnapshot()
     })
 
-    it('getRule should get the rule for an specific scenrio id', ()=>{
+    it('getRule should get the rule for an specific scenario id', ()=>{
         const feature = featureWithRules
 
         expect(getRule(feature, '1')).toBe(undefined)

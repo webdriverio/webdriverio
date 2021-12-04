@@ -244,6 +244,8 @@ Default: `[{ maxInstances: 5, browserName: 'firefox' }]`
 ### maxInstances
 Maximum number of total parallel running workers.
 
+__Note:__ that it may be a number as high as `100`, when the tests are being performed on some external vendors such as Sauce Labs's machines. There, the tests are not tested on a single machine, but rather, on multiple VMs. If the tests are to be run on a local development machine, use a number that is more reasonable, such as `3`, `4`, or `5`. Essentially, this is the number of browsers that will be concurrently started and running your tests at the same time, so it depends on how much RAM there is on your machine, and how many other apps are running on your machine.
+
 Type: `Number`<br />
 Default: `100`
 
@@ -413,11 +415,11 @@ Parameters:
 
 ### beforeTest
 
-Function to be executed before a test (in Mocha/Jasmine) starts.
+Function to be executed before a test (in Mocha/Jasmine only).
 
 Parameters:
 - `test` (`object`): test details
-- `context` (`object`): test context
+- `context` (`object`): scope object the test was executed with
 
 ### beforeCommand
 
@@ -443,7 +445,12 @@ Function to be executed after a test (in Mocha/Jasmine) ends.
 
 Parameters:
 - `test` (`object`): test details
-- `context` (`object`): test context
+- `context` (`object`): scope object the test was executed with
+- `result.error` (`Error`): error object in case the test fails, otherwise `undefined`
+- `result.result` (`Any`): return object of test function
+- `result.duration` (`Number`): duration of test
+- `result.passed` (`Boolean`): true if test has passed, otherwise false
+- `result.retries` (`Object`): informations to spec related retries, e.g. `{ attempts: 0, limit: 0 }`
 - `result` (`object`): hook result (contains `error`, `result`, `duration`, `passed`, `retries` properties)
 
 ### afterSuite
@@ -512,6 +519,7 @@ Runs before a Cucumber Scenario.
 
 Parameters:
 - `world` ([`ITestCaseHookParameter`](https://github.com/cucumber/cucumber-js/blob/ac124f7b2be5fa54d904c7feac077a2657b19440/src/support_code_library_builder/types.ts#L10-L15)): world object containing information on pickle and test step
+- `context` (`object`): Cucumber World object
 
 ### afterScenario
 
@@ -523,6 +531,7 @@ Parameters:
 - `result.passed` (`boolean`): true if scenario has passed
 - `result.error` (`string`): error stack if scenario failed
 - `result.duration` (`number`): duration of scenario in milliseconds
+- `context` (`object`): Cucumber World object
 
 ### beforeStep
 
@@ -531,6 +540,7 @@ Runs before a Cucumber Step.
 Parameters:
 - `step` ([`Pickle.IPickleStep`](https://github.com/cucumber/common/blob/b94ce625967581de78d0fc32d84c35b46aa5a075/messages/jsonschema/Pickle.json#L20-L49)): Cucumber step object
 - `scenario` ([`IPickle`](https://github.com/cucumber/common/blob/b94ce625967581de78d0fc32d84c35b46aa5a075/messages/jsonschema/Pickle.json#L137-L175)): Cucumber scenario object
+- `context` (`object`): Cucumber World object
 
 ### afterStep
 
@@ -543,4 +553,5 @@ Parameters:
 - `result.passed` (`boolean`): true if scenario has passed
 - `result.error` (`string`): error stack if scenario failed
 - `result.duration` (`number`): duration of scenario in milliseconds
+- `context` (`object`): Cucumber World object
 

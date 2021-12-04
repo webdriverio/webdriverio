@@ -19,6 +19,149 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.16.10 (2021-11-25)
+
+#### :bug: Bug Fix
+* `devtools`
+  * [#7746](https://github.com/webdriverio/webdriverio/pull/7746) fix(devtools): accepting a prompt preserves the default value. Closes [#7744](https://github.com/webdriverio/webdriverio/issues/7744) ([@jan-molak](https://github.com/jan-molak))
+
+#### :nail_care: Polish
+* `wdio-sauce-service`
+  * [#7732](https://github.com/webdriverio/webdriverio/pull/7732) feat: properly update Multi Remote jobs on Sauce ([@wswebcreation](https://github.com/wswebcreation))
+
+#### Committers: 3
+- Jan Molak ([@jan-molak](https://github.com/jan-molak))
+- Wim Selles ([@wswebcreation](https://github.com/wswebcreation))
+- [@LilyAita](https://github.com/LilyAita)
+
+
+## v7.16.9 (2021-11-22)
+
+#### :bug: Bug Fix
+* `wdio-spec-reporter`
+  * [#7727](https://github.com/webdriverio/webdriverio/pull/7727) fix: fix 6357 ([@wswebcreation](https://github.com/wswebcreation))
+
+#### :nail_care: Polish
+* `wdio-devtools-service`, `webdriver`, `webdriverio`
+  * [#7711](https://github.com/webdriverio/webdriverio/pull/7711) Use buffer instead of atob/btoa ([@Nio-o](https://github.com/Nio-o))
+
+#### :memo: Documentation
+* [#7721](https://github.com/webdriverio/webdriverio/pull/7721) doc(README): add a community section ([@Badisi](https://github.com/Badisi))
+* [#7707](https://github.com/webdriverio/webdriverio/pull/7707) Remove outdated double-await issue in docs ([@klamping](https://github.com/klamping))
+
+#### Committers: 4
+- Eugene ([@Nio-o](https://github.com/Nio-o))
+- Kevin Lamping ([@klamping](https://github.com/klamping))
+- Wim Selles ([@wswebcreation](https://github.com/wswebcreation))
+- [@Badisi](https://github.com/Badisi)
+
+
+## v7.16.8 (2021-11-15)
+
+#### :nail_care: Polish
+* `wdio-sauce-service`
+  * [#7672](https://github.com/webdriverio/webdriverio/pull/7672) Set the job name before a suite is run ([@gabriel-kohen-by](https://github.com/gabriel-kohen-by))
+* `wdio-allure-reporter`
+  * [#7691](https://github.com/webdriverio/webdriverio/pull/7691) Fix for Console log note added to failed cucumber step ([@praveendvd](https://github.com/praveendvd))
+
+#### :house: Internal
+* [#7699](https://github.com/webdriverio/webdriverio/pull/7699) doc(README): replace broken logo ([@Badisi](https://github.com/Badisi))
+
+#### Committers: 3
+- Gabriel Kohen ([@gabriel-kohen-by](https://github.com/gabriel-kohen-by))
+- [@Badisi](https://github.com/Badisi)
+- praveendvd ([@praveendvd](https://github.com/praveendvd))
+
+
+## v7.16.7 (2021-11-12)
+
+#### :rocket: New Feature
+* `devtools`, `wdio-protocols`
+  * [#7689](https://github.com/webdriverio/webdriverio/pull/7689) Implement WebDriver shadow commands in DevTools bridge ([@christian-bromann](https://github.com/christian-bromann))
+  * [#7682](https://github.com/webdriverio/webdriverio/pull/7682) Add WebDriver protocol commands to fetch shadow elements ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :bug: Bug Fix
+* `wdio-cli`
+  * [#7688](https://github.com/webdriverio/webdriverio/pull/7688) Don't escape characters in templates ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 2
+- Abhi Singh ([@abhi2810](https://github.com/abhi2810))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
+## v7.16.6 (2021-11-10)
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#7677](https://github.com/webdriverio/webdriverio/pull/7677) Explicitly wait for window handle to be picked up in DevTools ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :nail_care: Polish
+* `wdio-junit-reporter`
+  * [#7680](https://github.com/webdriverio/webdriverio/pull/7680) Adding ability to override Suite Name ([@facusantillo](https://github.com/facusantillo))
+* `wdio-cli`
+  * [#7671](https://github.com/webdriverio/webdriverio/pull/7671) Stricter typing examples ([@Badisi](https://github.com/Badisi))
+
+#### Committers: 3
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Facundo Santillo Alarcon ([@facusantillo](https://github.com/facusantillo))
+- [@Badisi](https://github.com/Badisi)
+
+
+## v7.16.5 (2021-11-09)
+
+#### :nail_care: Polish
+* `wdio-cli`, `wdio-cucumber-framework`
+  * [#7662](https://github.com/webdriverio/webdriverio/pull/7662) Issue 7651: add Cucumber World object back to step/scenario hooks ([@jvisco](https://github.com/jvisco))
+
+#### :memo: Documentation
+* `webdriverio`
+  * [#7663](https://github.com/webdriverio/webdriverio/pull/7663) Better clarify which commands wait on elements to exist ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 2
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- [@jvisco](https://github.com/jvisco)
+
+
+## v7.16.4 (2021-11-03)
+
+#### :bug: Bug Fix
+* `wdio-devtools-service`
+  * [#7618](https://github.com/webdriverio/webdriverio/pull/7618) Connect to target manually if going through remote server ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* Other
+  * [#7615](https://github.com/webdriverio/webdriverio/pull/7615) add comments for maxInstances default value ([@KennethKinLum](https://github.com/KennethKinLum))
+  * [#7611](https://github.com/webdriverio/webdriverio/pull/7611) Fix typo in Auto-waiting doc ([@lojzatran](https://github.com/lojzatran))
+* `wdio-cli`
+  * [#7610](https://github.com/webdriverio/webdriverio/pull/7610) fix typo in login.page.js.ejs ([@hgsgtk](https://github.com/hgsgtk))
+
+#### Committers: 5
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Kazuki Higashiguchi ([@hgsgtk](https://github.com/hgsgtk))
+- Kenneth Lum ([@KennethKinLum](https://github.com/KennethKinLum))
+- Lam Tran ([@lojzatran](https://github.com/lojzatran))
+- Mikita Lisavets ([@MikitaLisavets](https://github.com/MikitaLisavets))
+
+
+## v7.16.3 (2021-10-26)
+
+#### :bug: Bug Fix
+* `wdio-shared-store-service`
+  * [#7593](https://github.com/webdriverio/webdriverio/pull/7593) Fix running setValue in onPrepare hook ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :nail_care: Polish
+* `wdio-cucumber-framework`, `wdio-jasmine-framework`, `wdio-mocha-framework`
+  * [#7604](https://github.com/webdriverio/webdriverio/pull/7604) Automatically export expect-webdriverio types ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* `wdio-cli`
+  * [#7602](https://github.com/webdriverio/webdriverio/pull/7602) update links to test-configuration-options ([@walkerlj0](https://github.com/walkerlj0))
+
+#### Committers: 2
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Lindsay Walker ([@walkerlj0](https://github.com/walkerlj0))
+
+
 ## v7.16.1 (2021-10-22)
 
 #### :bug: Bug Fix

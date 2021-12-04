@@ -1,5 +1,9 @@
+import { sleep } from '@wdio/utils'
+
 import newWindowHelper from '../../scripts/newWindow'
 import type { NewWindowOptions } from '../../types'
+
+const WAIT_FOR_NEW_HANDLE_TIMEOUT = 3000
 
 /**
  *
@@ -58,10 +62,24 @@ export default async function newWindow (
         throw new Error('newWindow command is not supported on mobile platforms')
     }
 
+    const tabsBefore = await this.getWindowHandles()
     await this.execute(newWindowHelper, url, windowName, windowFeatures)
 
-    const tabs = await this.getWindowHandles()
-    const newTab = tabs.pop()
+    /**
+     * if tests are run in DevTools there might be a delay until
+     * a new window handle got registered, this little procedure
+     * waits for it to exist and avoid race conditions
+     */
+    let tabsAfter = await this.getWindowHandles()
+    const now = Date.now()
+    while ((Date.now() - now) < WAIT_FOR_NEW_HANDLE_TIMEOUT) {
+        tabsAfter = await this.getWindowHandles()
+        if (tabsAfter.length > tabsBefore.length) {
+            break
+        }
+        await sleep(100)
+    }
+    const newTab = tabsAfter.pop()
 
     if (!newTab) {
         throw new Error('No window handle was found to switch to')

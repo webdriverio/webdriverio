@@ -16,6 +16,9 @@ import findElement from './commands/findElement'
 import findElementFromElement from './commands/findElementFromElement'
 import findElements from './commands/findElements'
 import findElementsFromElement from './commands/findElementsFromElement'
+import getElementShadowRoot from './commands/getElementShadowRoot'
+import findElementFromShadowRoot from './commands/findElementFromShadowRoot'
+import findElementsFromShadowRoot from './commands/findElementsFromShadowRoot'
 import forward from './commands/forward'
 import getActiveElement from './commands/getActiveElement'
 import getAlertText from './commands/getAlertText'
@@ -62,5 +65,5 @@ export {
     getTimeouts, getTitle, getUrl, getWindowHandle, getWindowHandles, getWindowRect, isElementEnabled,
     isElementSelected, navigateTo, newSession, performActions, refresh, releaseActions, sendAlertText,
     setTimeouts, setWindowRect, status, switchToFrame, switchToParentFrame, switchToWindow, takeElementScreenshot,
-    takeScreenshot
+    takeScreenshot, getElementShadowRoot, findElementFromShadowRoot, findElementsFromShadowRoot
 }

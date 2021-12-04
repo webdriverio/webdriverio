@@ -1,6 +1,5 @@
 import fse from 'fs-extra'
 import path from 'path'
-import atob from 'atob'
 import type { CDPSession } from 'puppeteer-core/lib/cjs/puppeteer/common/Connection'
 import type Protocol from 'devtools-protocol'
 
@@ -89,7 +88,7 @@ export default class DevtoolsInterception extends Interception {
                     { requestId }
                 ).catch(/* istanbul ignore next */() => ({} as any))
 
-                request.body = base64Encoded ? atob(body) : body
+                request.body = base64Encoded ? Buffer.from(body, 'base64').toString('utf8') : body
 
                 const contentTypeHeader = Object.keys(responseHeaders).find(h => h.toLowerCase() === 'content-type') || ''
                 const responseContentType = responseHeaders[contentTypeHeader]

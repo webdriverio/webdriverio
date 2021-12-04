@@ -94,14 +94,14 @@ Now Chai and expect-webdriverio can be used alongside each other. In your code y
 ```js
 // myfile.js
 describe('Element', () => {
-    it('should be displayed', asybc () => {
+    it('should be displayed', async () => {
         const isDisplayed = await $("#element").isDisplayed()
         expect(isDisplayed).to.equal(true); // Chai assertion
     });
 });
 
 describe('Other element', () => {
-    it('should not be displayed', () => {
+    it('should not be displayed', async () => {
         await expectWdio($("#element")).not.toBeDisplayed(); // expect-webdriverio assertion
     });
 });

@@ -284,4 +284,17 @@ describe('wdio-junit-reporter', () => {
 
         expect(reporter['_buildJunitXml'](cucumberRunnerLog as any).replace(/\s/g, '')).toMatchSnapshot()
     })
+
+    it( 'generates xml output correctly when having testSuiteNameFormat override with mocha',  () => {
+        reporter = new WDIOJunitReporter({ stdout: true, suiteNameFormat: ({ name, suite }) => `foo ${name} ${suite.title}` })
+        reporter.suites = suitesErrorLog as any
+        expect(reporter['_buildJunitXml'](mochaRunnerLog as any).replace(/\s/g, '')).toMatchSnapshot()
+    })
+
+    it('generates xml output correctly when having testSuiteNameFormat override with cucumber', () => {
+        reporter = new WDIOJunitReporter({ stdout: true, suiteNameFormat: ({ name, suite }) => `foo-${name}-${suite.title}` })
+        reporter.suites = featuresLog as any
+
+        expect(reporter['_buildJunitXml'](cucumberRunnerLog as any).replace(/\s/g, '')).toMatchSnapshot()
+    })
 })

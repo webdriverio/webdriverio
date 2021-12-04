@@ -122,6 +122,7 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
             reporter.onTestStart(cucumberHelper.testStart())
             reporter.onBeforeCommand(commandStart())
             reporter.onAfterCommand(commandEnd())
+            reporter._consoleOutput = 'some console output'
             reporter.onTestPass()
             reporter.onHookStart(cucumberHelper.hookStart())
             reporter.addAttachment(attachmentHelper.xmlAttachment())
@@ -139,6 +140,11 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
         afterAll(() => {
             clean(outputDir)
             jest.resetAllMocks()
+        })
+
+        it('should have the console log add', () => {
+            expect(allureXml('test-case > steps > step > attachments > attachment')).toHaveLength(1)
+            expect(allureXml('test-case > steps > step > attachments > attachment').eq(0).attr('title')).toBe('Console Logs')
         })
 
         it('should report one suite', () => {
@@ -203,6 +209,7 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
             reporter._allure.getCurrentSuite = jest.fn()
             reporter._allure.endStep = jest.fn()
             reporter._allure.endCase = jest.fn()
+            reporter._allure.addAttachment = jest.fn()
 
             reporter.onTestPass()
             expect(reporter._allure.endStep).not.toHaveBeenCalled()
@@ -222,6 +229,7 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
             reporter.onSuiteStart(cucumberHelper.featureStart())
             reporter.onSuiteStart(cucumberHelper.scenarioStart())
             reporter.onTestStart(cucumberHelper.testStart())
+            reporter._consoleOutput = 'some console output'
             reporter.onTestSkip(cucumberHelper.testSkipped())
             const suiteResults: any = { tests: [cucumberHelper.testSkipped()] }
             reporter.onSuiteEnd(cucumberHelper.scenarioEnd(suiteResults))
@@ -254,10 +262,15 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
             expect(allureXml('step').length).toEqual(1)
         })
 
+        it('should have the console log add', () => {
+            expect(allureXml('test-case > steps > step > attachments > attachment')).toHaveLength(1)
+            expect(allureXml('test-case > steps > step > attachments > attachment').eq(0).attr('title')).toBe('Console Logs')
+        })
+
         it('should not call endStep if currentStep is not `Step` instance', () => {
             reporter._allure.getCurrentSuite = jest.fn()
             reporter._allure.endStep = jest.fn()
-
+            reporter._allure.addAttachment = jest.fn()
             reporter.onTestSkip(cucumberHelper.testSkipped())
             expect(reporter._allure.endStep).not.toHaveBeenCalled()
         })
@@ -336,6 +349,7 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
             reporter.onTestStart(cucumberHelper.testStart())
             reporter.onBeforeCommand(commandStart())
             reporter.onAfterCommand(commandEnd())
+            reporter._consoleOutput = 'some console output'
             reporter.onTestFail(cucumberHelper.testFail())
             const suiteResults: any = { tests: ['failed'] }
             reporter.onSuiteEnd(cucumberHelper.scenarioEnd(suiteResults))
@@ -351,6 +365,8 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
             expect(allureXml('step').attr('status')).toEqual('failed')
             expect(allureXml('test-case parameter[kind="argument"]')).toHaveLength(1)
             expect(allureXml('test-case parameter[name="browser"]').eq(0).attr('value')).toEqual('chrome-68')
+            expect(allureXml('test-case > steps > step > attachments > attachment')).toHaveLength(1)
+            expect(allureXml('test-case > steps > step > attachments > attachment').eq(0).attr('title')).toBe('Console Logs')
         })
 
         it('should handle failed hook', () => {
@@ -385,6 +401,7 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
             reporter._allure.getCurrentSuite = jest.fn()
             reporter._allure.endStep = jest.fn()
             reporter._allure.endCase = jest.fn()
+            reporter._allure.addAttachment = jest.fn()
 
             reporter.onTestFail(cucumberHelper.testSkipped())
             expect(reporter._allure.endStep).not.toHaveBeenCalled()

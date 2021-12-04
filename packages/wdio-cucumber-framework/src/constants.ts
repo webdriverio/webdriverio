@@ -19,6 +19,7 @@ export const DEFAULT_OPTS: CucumberOptions = {
     tagExpression: '', // <string> (expression) only execute the features or scenarios with tags matching the expression
     tagsInTitle: false, // <boolean> add cucumber tags to feature or scenario name
     timeout: DEFAULT_TIMEOUT, // <number> timeout for step definitions in milliseconds
+    retry: 0,
     scenarioLevelReporter: false,
     featureDefaultLanguage: 'en'
 }

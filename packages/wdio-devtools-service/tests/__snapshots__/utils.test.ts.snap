@@ -1,0 +1,18 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`getLighthouseDriver should create a new session 1`] = `
+Array [
+  Array [
+    "Target.attachToTarget",
+    undefined,
+    Object {
+      "flatten": true,
+      "targetId": "foobar321",
+    },
+  ],
+  Array [
+    "foobar",
+    "session 321",
+  ],
+]
+`;

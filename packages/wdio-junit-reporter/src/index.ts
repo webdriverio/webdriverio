@@ -69,7 +69,10 @@ class JunitReporter extends WDIOReporter {
         specFileName: string,
         suite: SuiteStats
     ) {
-        const featureName = this._prepareName(suite.title)
+        const featureName = !this.options.suiteNameFormat || this.options.suiteNameFormat instanceof RegExp
+            ? this._prepareName(suite.title)
+            : this.options.suiteNameFormat({ name: this.options.suiteNameFormat.name, suite })
+
         const filePath = specFileName.replace(process.cwd(), '.')
 
         if (suite.type === 'feature') {
@@ -149,8 +152,11 @@ class JunitReporter extends WDIOReporter {
         specFileName: string,
         suite: SuiteStats
     ) {
-        const suiteName = this._prepareName(suite.title)
+
         const filePath = specFileName.replace(process.cwd(), '.')
+        const suiteName = !this.options.suiteNameFormat || this.options.suiteNameFormat instanceof RegExp
+            ? this._prepareName(suite.title)
+            : this.options.suiteNameFormat({ name: this.options.suiteNameFormat.name, suite })
 
         let testSuite = builder.testSuite()
             .name(suiteName)

@@ -6,3 +6,8 @@ const config: WebdriverIO.Config = {
     },
     capabilities: {}
 }
+
+/**
+ * check import of assertion lib
+ */
+expect($('foo')).toHaveTextContaining('foobar')

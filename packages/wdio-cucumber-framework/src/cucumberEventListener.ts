@@ -42,16 +42,15 @@ export default class CucumberEventListener extends EventEmitter {
             } else if (envelope.testStepStarted) {
                 this.onTestStepStarted(envelope.testStepStarted)
             } else if (envelope.testStepFinished) {
+                results.push(envelope.testStepFinished.testStepResult!)
+                this.onTestStepFinished(envelope.testStepFinished)
+            } else if (envelope.testCaseFinished) {
                 /**
                  * only store result if step isn't retried
                  */
-                // @ts-expect-error https://github.com/cucumber/messages-javascript/issues/2
-                if (!envelope.testStepFinished.testStepResult?.willBeRetried) {
-                    results.push(envelope.testStepFinished.testStepResult!)
+                if (envelope.testCaseFinished.willBeRetried) {
+                    return log.debug(`test case with id ${envelope.testCaseFinished.testCaseStartedId} will be retried, ignoring result`)
                 }
-
-                this.onTestStepFinished(envelope.testStepFinished)
-            } else if (envelope.testCaseFinished) {
                 this.onTestCaseFinished(results)
             } else if (envelope.testRunFinished) {
                 this.onTestRunFinished()

@@ -1,6 +1,13 @@
 /**
  *
- * Returns true if element exists in the DOM
+ * Returns true if element exists in the DOM.
+ *
+ * :::info
+ *
+ * As opposed to other element commands WebdriverIO will not wait for the element
+ * to exist to execute this command.
+ *
+ * :::
  *
  * <example>
     :index.html

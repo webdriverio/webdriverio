@@ -11,13 +11,13 @@ Starting with v5, WebdriverIO's testrunner is bundled separately in the NPM pack
 
 Install it like this:
 
-```bash npm2yarn
+```sh npm2yarn
 npm install @wdio/cli
 ```
 
 To see the command line interface help, just type the following command in your terminal:
 
-```bash
+```sh
 $ npx wdio --help
 
 wdio <command>
@@ -41,7 +41,7 @@ Switch over to the [Configuration File](ConfigurationFile.md) section to see wha
 
 With the `wdio` configuration helper, it is super easy to generate your config file. Just run:
 
-```bash
+```sh
 $ npx wdio config
 ```
 
@@ -53,13 +53,15 @@ It will ask you questions and generate a config file for you in less than a minu
 
 Once you have your configuration file set up, you can start your tests by running:
 
-```bash
-$ npx wdio run wdio.conf.js
-
-# you can also initialize your configuration without the `run` command
-$ npx wdio wdio.conf.js
+```sh
+npx wdio run wdio.conf.js
 ```
 
+You can also initialize your test run without the `run` command:
+
+```sh
+npx wdio wdio.conf.js
+```
 
 That's it! Now, you can access to the selenium instance via the global variable `browser`.
 
@@ -71,11 +73,12 @@ The `config` command runs the WebdriverIO configuration helper. This helper will
 
 Example:
 
-```bash
-$ wdio config
+```sh
+wdio config
 ```
 
 Options:
+
 ```
 --help            prints WebdriverIO help menu                                [boolean]
 --npm             Wether to install the packages using NPM instead of yarn    [boolean]
@@ -89,7 +92,7 @@ The `run` command initializes your WebdriverIO configuration file and runs your 
 
 Example:
 
-```bash
+```sh
 wdio run ./wdio.conf.js --watch
 ```
 
@@ -131,7 +134,7 @@ The `install` command allows you to add reporters and services to your Webdriver
 
 Example:
 
-```bash
+```sh
 wdio install service sauce # installs @wdio/sauce-service
 wdio install reporter dot # installs @wdio/dot-reporter
 wdio install framework mocha # installs @wdio/mocha-framework
@@ -139,17 +142,18 @@ wdio install framework mocha # installs @wdio/mocha-framework
 
 If you want to install the packages using `yarn` instead, you can pass the `--yarn` flag to the command:
 
-```bash
+```sh
 wdio install service sauce --yarn
 ```
 
 You could also pass a custom configuration path if your WDIO config file is not in the same folder you're working on:
 
-```bash
+```sh
 wdio install service sauce --config="./path/to/wdio.conf.js"
 ```
 
 #### List of supported services
+
 ```
 sauce
 testingbot
@@ -168,6 +172,7 @@ lambdatest
 ```
 
 #### List of supported reporters
+
 ```
 dot
 spec
@@ -184,6 +189,7 @@ timeline
 ```
 
 #### List of supported frameworks
+
 ```
 mocha
 jasmine
@@ -191,14 +197,18 @@ cucumber
 ```
 
 ### `wdio repl`
+
 The repl command allows to start an interactive command line interface to run WebdriverIO commands. It can be used for testing purposes or to just quickly spin up WebdriverIO session.
 
-Example:
+Run tests in local chrome:
 
-```bash
-# run tests in local chrome
+```sh
 wdio repl chrome
-# run tests on Sauce Labs
+```
+
+or run tests on Sauce Labs:
+
+```sh
 wdio repl chrome -u $SAUCE_USERNAME -k $SAUCE_ACCESS_KEY
 ```
 

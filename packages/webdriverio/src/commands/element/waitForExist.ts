@@ -8,6 +8,13 @@ import type { WaitForOptions } from '../../types'
  * error. If the reverse flag is true, the command will instead return true
  * if the selector does not match any elements.
  *
+ * :::info
+ *
+ * As opposed to other element commands WebdriverIO will not wait for the
+ * element to exist to execute this command.
+ *
+ * :::
+ *
  * <example>
     :waitForExistSyncExample.js
     it('should display a notification message after successful form submit', async () => {
