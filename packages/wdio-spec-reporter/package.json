@@ -25,7 +25,6 @@
     "@types/easy-table": "^0.0.33",
     "@wdio/reporter": "7.16.1",
     "@wdio/types": "7.16.1",
-    "@wdio/logger": "7.16.0",
     "chalk": "^4.0.0",
     "easy-table": "^1.1.1",
     "pretty-ms": "^7.0.0"
