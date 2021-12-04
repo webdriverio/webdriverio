@@ -120,32 +120,38 @@ export default class SpecReporter extends WDIOReporter {
         this.printReport(runner)
     }
 
+    /**
+     * Print the report to the stdout realtime
+     */
+
     printCurrentStats (stat: TestStats | HookStats | SuiteStats) {
-        if (!this._realTimeReporting) return
-        if (stat.type !== 'suite') {
-            const testTitle = stat.title
-            const state = (stat as TestStats | HookStats).state
-            const testIndent = `${DEFAULT_INDENT}${this._suiteIndent}`
-            // Print status of single test to screen
-            process.send!({
-                name: 'reporterRealTime',
-                content: `${this._preface} ${testIndent}`+
-                `${chalk[this.getColor(state)](this.getSymbol(state))} ${testTitle}`+
-                ` » ${chalk[this.getColor(state)]('[')} ${this._suiteName} ${chalk[this.getColor(state)](']')}`
-            })
-        } else {
-            // Print status of suite to screen
-            this._suiteIndent = this.indent(stat.uid)
-            const suiteTitle = stat.title
-            const divider = '------------------------------------------------------------------'
-            process.send!({
-                name: 'reporterRealTime',
-                content: `${this._preface} ${divider}\n`+
-                `${this._preface} Suite started : \n`+
-                `${this._preface}   » ${this._suiteName}\n`+
-                `${this._preface}   ${suiteTitle}`
-            })
-        }
+        if (!this._realTimeReporting)
+            return
+
+        const title = stat.title, state = (stat as TestStats).state
+        const divider = '------------------------------------------------------------------'
+
+        const indent = (stat.type==='test') ?
+            `${DEFAULT_INDENT}${this._suiteIndent}` :
+            this.indent(stat.uid)
+
+        const suiteStartBanner = (stat.type === 'feature' || stat.type === 'suite' || stat.type === 'suite:start') ?
+            `${this._preface} ${divider}\n`+
+            `${this._preface} Suite started : \n`+
+            `${this._preface}   » ${this._suiteName}\n` : '\n'
+
+        const contentNonTest = stat.type!=='hook' ?
+            `${suiteStartBanner}${this._preface} ${title}` :
+            `${this._preface} Hook executed : ${title}`
+
+        const contentTest = `${this._preface} ${indent}` +
+            `${chalk[this.getColor(state)](this.getSymbol(state))} ${title}` +
+            ` » ${chalk[this.getColor(state)]('[')} ${this._suiteName} ${chalk[this.getColor(state)](']')}`
+
+        process.send!({
+            name: 'reporterRealTime',
+            content: stat.type === 'test' ? contentTest : contentNonTest
+        })
     }
 
     /**
