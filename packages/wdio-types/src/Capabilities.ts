@@ -391,6 +391,9 @@ export interface AppiumW3CCapabilities {
      * It should be an absolute path, eg: 'D:\example.apk'.
      */
     'appium:app'?: string;
+    /**
+     * The id of the app to be tested. eg: 'com.android.chrome'.
+     */
     'appium:appPackage'?: string;
     'appium:appWaitActivity'?: string;
     'appium:newCommandTimeout'?: number;
