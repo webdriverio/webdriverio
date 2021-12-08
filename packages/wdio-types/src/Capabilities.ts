@@ -385,6 +385,11 @@ export interface AppiumW3CCapabilities {
      *   connect to some of them, then you should use serial number.
      */
     'appium:deviceName'?: string;
+    /**
+     * The path to your application package.
+     *
+     * It should be an absolute path, eg: 'D:\example.apk'.
+     */
     'appium:app'?: string;
     'appium:appPackage'?: string;
     'appium:appWaitActivity'?: string;
