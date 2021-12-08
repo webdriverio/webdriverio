@@ -8,6 +8,7 @@ export type LoggingPreferenceType =
     'OFF' | 'SEVERE' | 'WARNING' |
     'INFO' | 'CONFIG' | 'FINE' |
     'FINER' | 'FINEST' | 'ALL';
+
 export interface LoggingPreferences {
     browser?: LoggingPreferenceType;
     driver?: LoggingPreferenceType;
@@ -18,6 +19,7 @@ export interface LoggingPreferences {
 export type Timeouts = Record<'script' | 'pageLoad' | 'implicit', number>;
 
 export type ProxyTypes = 'pac' | 'noproxy' | 'autodetect' | 'system' | 'manual';
+
 export interface ProxyObject {
     proxyType?: ProxyTypes;
     proxyAutoconfigUrl?: string;
@@ -83,13 +85,18 @@ export interface W3CCapabilities {
 }
 
 export type RemoteCapabilities = (DesiredCapabilities | W3CCapabilities)[] | MultiRemoteCapabilities;
+
 export interface MultiRemoteCapabilities {
     [instanceName: string]: WebDriverIOOptions;
 }
 
 export type RemoteCapability = DesiredCapabilities | W3CCapabilities | MultiRemoteCapabilities;
 
-export interface DesiredCapabilities extends Capabilities, SauceLabsCapabilities, SauceLabsVisualCapabilities, TestingbotCapabilities, SeleniumRCCapabilities, AppiumIOSCapabilities, GeckodriverCapabilities, IECapabilities, AppiumAndroidCapabilities, AppiumCapabilities, AppiumW3CCapabilities, VendorExtensions, GridCapabilities, ChromeCapabilities, BrowserStackCapabilities {
+export interface DesiredCapabilities extends Capabilities, SauceLabsCapabilities, SauceLabsVisualCapabilities,
+    TestingbotCapabilities, SeleniumRCCapabilities, AppiumIOSCapabilities, GeckodriverCapabilities, IECapabilities,
+    AppiumAndroidCapabilities, AppiumCapabilities, AppiumW3CCapabilities, VendorExtensions, GridCapabilities,
+    ChromeCapabilities, BrowserStackCapabilities {
+
     // Read-only capabilities
     cssSelectorsEnabled?: boolean;
     handlesAlerts?: boolean;
@@ -257,7 +264,8 @@ export interface ChromeOptions {
 /**
  * Chromium Edge
  */
-interface MicrosoftEdgeOptions extends ChromeOptions {}
+interface MicrosoftEdgeOptions extends ChromeOptions {
+}
 
 export type FirefoxLogLevels =
     'trace' | 'debug' | 'config' |
@@ -288,6 +296,7 @@ export interface FirefoxOptions {
         [name: string]: string | number | boolean
     }
 }
+
 // Aerokube Selenoid specific
 export interface SelenoidOptions {
     enableVNC?: boolean,
@@ -317,7 +326,7 @@ export type MoonMobileDeviceOrientation =
     'portait' | 'vertical' | 'landscape' | 'horizontal'
 
 export interface MoonOptions extends SelenoidOptions {
-    mobileDevice?: {deviceName: string, orientation: MoonMobileDeviceOrientation}
+    mobileDevice?: { deviceName: string, orientation: MoonMobileDeviceOrientation }
 }
 
 // Selenium Grid specific
@@ -365,8 +374,26 @@ export interface AppiumW3CCapabilities {
     'appium:automationName'?: string;
     'appium:platformName'?: string;
     'appium:platformVersion'?: string;
+    /**
+     * The desired device's name, for each platform, it accept different kind of values.
+     *
+     * ### For Android, it could be:
+     *   + [Serial number](https://developer.android.com/studio/command-line/adb#devicestatus), which you can get from
+     *  the first part of 'adb devices' command's result. eg: 'ac2e7e3d', 'emulator-5554'.
+     *   + Model of the device, eg: 'Nexus 6P', 'Google Pixel', 'Samsung Galaxy S10'.
+     *   + 'emulator'. The only one connected emulator. If you are connected with multi emulators but only want to
+     *   connect to some of them, then you should use serial number.
+     */
     'appium:deviceName'?: string;
+    /**
+     * The path to your application package.
+     *
+     * It should be an absolute path, eg: 'D:\example.apk'.
+     */
     'appium:app'?: string;
+    /**
+     * The id of the app to be tested. eg: 'com.android.chrome'.
+     */
     'appium:appPackage'?: string;
     'appium:appWaitActivity'?: string;
     'appium:newCommandTimeout'?: number;
@@ -798,7 +825,7 @@ export interface BrowserStackCapabilities {
     ie?: {
         noFlash?: boolean,
         compatibility?: number
-        arch?:string
+        arch?: string
         driver?: string
         enablePopups?: boolean
     }
