@@ -374,6 +374,16 @@ export interface AppiumW3CCapabilities {
     'appium:automationName'?: string;
     'appium:platformName'?: string;
     'appium:platformVersion'?: string;
+    /**
+     * The desired device's name, for each platform, it accept different kind of values.
+     *
+     * ### For Android, it could be:
+     *   + [Serial number](https://developer.android.com/studio/command-line/adb#devicestatus), which you can get from
+     *  the first part of 'adb devices' command's result. eg: 'ac2e7e3d', 'emulator-5554'.
+     *   + Model of the device, eg: 'Nexus 6P', 'Google Pixel', 'Samsung Galaxy S10'.
+     *   + 'emulator'. The only one connected emulator. If you are connected with multi emulators but only want to
+     *   connect to some of them, then you should use serial number.
+     */
     'appium:deviceName'?: string;
     'appium:app'?: string;
     'appium:appPackage'?: string;
