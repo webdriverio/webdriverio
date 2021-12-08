@@ -92,7 +92,11 @@ export interface MultiRemoteCapabilities {
 
 export type RemoteCapability = DesiredCapabilities | W3CCapabilities | MultiRemoteCapabilities;
 
-export interface DesiredCapabilities extends Capabilities, SauceLabsCapabilities, SauceLabsVisualCapabilities, TestingbotCapabilities, SeleniumRCCapabilities, AppiumIOSCapabilities, GeckodriverCapabilities, IECapabilities, AppiumAndroidCapabilities, AppiumCapabilities, AppiumW3CCapabilities, VendorExtensions, GridCapabilities, ChromeCapabilities, BrowserStackCapabilities {
+export interface DesiredCapabilities extends Capabilities, SauceLabsCapabilities, SauceLabsVisualCapabilities,
+    TestingbotCapabilities, SeleniumRCCapabilities, AppiumIOSCapabilities, GeckodriverCapabilities, IECapabilities,
+    AppiumAndroidCapabilities, AppiumCapabilities, AppiumW3CCapabilities, VendorExtensions, GridCapabilities,
+    ChromeCapabilities, BrowserStackCapabilities {
+
     // Read-only capabilities
     cssSelectorsEnabled?: boolean;
     handlesAlerts?: boolean;
