@@ -8,6 +8,7 @@ export type LoggingPreferenceType =
     'OFF' | 'SEVERE' | 'WARNING' |
     'INFO' | 'CONFIG' | 'FINE' |
     'FINER' | 'FINEST' | 'ALL';
+
 export interface LoggingPreferences {
     browser?: LoggingPreferenceType;
     driver?: LoggingPreferenceType;
@@ -18,6 +19,7 @@ export interface LoggingPreferences {
 export type Timeouts = Record<'script' | 'pageLoad' | 'implicit', number>;
 
 export type ProxyTypes = 'pac' | 'noproxy' | 'autodetect' | 'system' | 'manual';
+
 export interface ProxyObject {
     proxyType?: ProxyTypes;
     proxyAutoconfigUrl?: string;
@@ -83,6 +85,7 @@ export interface W3CCapabilities {
 }
 
 export type RemoteCapabilities = (DesiredCapabilities | W3CCapabilities)[] | MultiRemoteCapabilities;
+
 export interface MultiRemoteCapabilities {
     [instanceName: string]: WebDriverIOOptions;
 }
@@ -257,7 +260,8 @@ export interface ChromeOptions {
 /**
  * Chromium Edge
  */
-interface MicrosoftEdgeOptions extends ChromeOptions {}
+interface MicrosoftEdgeOptions extends ChromeOptions {
+}
 
 export type FirefoxLogLevels =
     'trace' | 'debug' | 'config' |
@@ -288,6 +292,7 @@ export interface FirefoxOptions {
         [name: string]: string | number | boolean
     }
 }
+
 // Aerokube Selenoid specific
 export interface SelenoidOptions {
     enableVNC?: boolean,
@@ -317,7 +322,7 @@ export type MoonMobileDeviceOrientation =
     'portait' | 'vertical' | 'landscape' | 'horizontal'
 
 export interface MoonOptions extends SelenoidOptions {
-    mobileDevice?: {deviceName: string, orientation: MoonMobileDeviceOrientation}
+    mobileDevice?: { deviceName: string, orientation: MoonMobileDeviceOrientation }
 }
 
 // Selenium Grid specific
@@ -798,7 +803,7 @@ export interface BrowserStackCapabilities {
     ie?: {
         noFlash?: boolean,
         compatibility?: number
-        arch?:string
+        arch?: string
         driver?: string
         enablePopups?: boolean
     }
