@@ -401,6 +401,9 @@ export interface AppiumW3CCapabilities {
     'appium:newCommandTimeout'?: number;
     'appium:language'?: string;
     'appium:locale'?: string;
+    /**
+     * iOS Unique Device Identifier
+     */
     'appium:udid'?: string;
     'appium:orientation'?: string;
     'appium:autoWebview'?: boolean;
