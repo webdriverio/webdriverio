@@ -396,6 +396,9 @@ export interface AppiumW3CCapabilities {
      * + 'FirefoxOS'
      */
     'appium:platformName'?: string;
+    /**
+     * Expected mobile OS version, eg: '7.1', '4.4' etc.
+     */
     'appium:platformVersion'?: string;
     /**
      * The desired device's name, for each platform, it accept different kind of values.
