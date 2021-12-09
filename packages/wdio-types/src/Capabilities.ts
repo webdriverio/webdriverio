@@ -388,7 +388,9 @@ export interface AppiumW3CCapabilities {
     /**
      * The path to your application package.
      *
-     * It should be an absolute path, eg: 'D:\example.apk'.
+     * Acceptable values:
+     * + Local file path, eg: 'D:\example.apk'. Note: A relative path is also acceptable, but it's better to use an absolute path.
+     * + Http/Https URL, eg: 'http://localhost/example.apk'.
      */
     'appium:app'?: string;
     /**
