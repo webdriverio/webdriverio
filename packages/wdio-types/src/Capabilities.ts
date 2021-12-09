@@ -414,11 +414,13 @@ export interface AppiumW3CCapabilities {
      */
     'appium:deviceName'?: string;
     /**
-     * The path to your application package.
+     * The absolute local path or remote http URL to a .ipa file (IOS), .app folder (IOS Simulator), .apk file (Android)
+     * or [.apks file (Android App Bundle)](https://appium.io/docs/en/writing-running-appium/android/android-appbundle/index.html),
+     * or a .zip file containing one of these.
      *
-     * Acceptable values:
-     * + Local file path, eg: 'D:\example.apk'. Note: A relative path is also acceptable, but it's better to use an absolute path.
-     * + Http/Https URL, eg: 'http://localhost/example.apk'.
+     * Appium will attempt to install this app binary on the appropriate device first.
+     * Note that this capability is not required for Android if you specify appPackage and appActivity capabilities.
+     * UiAutomator2 and XCUITest allow to start the session without app or appPackage.
      */
     'appium:app'?: string;
     /**
