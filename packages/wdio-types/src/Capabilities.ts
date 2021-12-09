@@ -369,7 +369,11 @@ export interface AppiumCapabilities {
     printPageSourceOnFindFailure?: boolean;
 }
 
-// Appium General W3C Capabilities
+/**
+ * Appium General W3C Capabilities
+ *
+ * @see https://appium.io/docs/en/writing-running-appium/caps/
+ */
 export interface AppiumW3CCapabilities {
     'appium:automationName'?: string;
     'appium:platformName'?: string;
