@@ -387,6 +387,14 @@ export interface AppiumW3CCapabilities {
      * + 'YouiEngine' for application built with You.i Engine
      */
     'appium:automationName'?: string;
+    /**
+     * Which mobile OS platform to use.
+     *
+     * Acceptable values:
+     * + 'iOS'
+     * + 'Android'
+     * + 'FirefoxOS'
+     */
     'appium:platformName'?: string;
     'appium:platformVersion'?: string;
     /**
