@@ -369,26 +369,58 @@ export interface AppiumCapabilities {
     printPageSourceOnFindFailure?: boolean;
 }
 
-// Appium General W3C Capabilities
+/**
+ * Appium General W3C Capabilities
+ *
+ * @see https://appium.io/docs/en/writing-running-appium/caps/
+ */
 export interface AppiumW3CCapabilities {
+    /**
+     * Which automation engine to use.
+     *
+     * Acceptable values:
+     * + 'Appium' (default)
+     * + 'UiAutomator2' for Android
+     * + 'Espresso' for Android
+     * + 'UiAutomator1' for Android
+     * + 'XCUITest' or 'Instruments' for iOS
+     * + 'YouiEngine' for application built with You.i Engine
+     */
     'appium:automationName'?: string;
+    /**
+     * Which mobile OS platform to use.
+     *
+     * Acceptable values:
+     * + 'iOS'
+     * + 'Android'
+     * + 'FirefoxOS'
+     */
     'appium:platformName'?: string;
+    /**
+     * Expected mobile OS version, eg: '7.1', '4.4' etc.
+     */
     'appium:platformVersion'?: string;
     /**
-     * The desired device's name, for each platform, it accept different kind of values.
+     * The kind of mobile device or emulator to use, for each platform, it accept different kind of values.
      *
-     * ### For Android, it could be:
-     *   + [Serial number](https://developer.android.com/studio/command-line/adb#devicestatus), which you can get from
-     *  the first part of 'adb devices' command's result. eg: 'ac2e7e3d', 'emulator-5554'.
-     *   + Model of the device, eg: 'Nexus 6P', 'Google Pixel', 'Samsung Galaxy S10'.
-     *   + 'emulator'. The only one connected emulator. If you are connected with multi emulators but only want to
-     *   connect to some of them, then you should use serial number.
+     * ### For iOS, it could be:
+     *
+     * + Simulator name, eg: 'iPhone Simulator', 'iPad Simulator', 'iPhone Retina 4-inch'.
+     * + Instruments name, which comes from 'instruments -s devices' command.
+     * + xctrace device name, which comes from 'xcrun xctrace list devices' command. (since Xcode 12)
+     *
+     * ### For Android, this capability is currently ignored, though it remains required.
+     * Note: This document is written with appium 1.22.1 release, this behavior may changed later.
      */
     'appium:deviceName'?: string;
     /**
-     * The path to your application package.
+     * The absolute local path or remote http URL to a .ipa file (IOS), .app folder (IOS Simulator), .apk file (Android)
+     * or [.apks file (Android App Bundle)](https://appium.io/docs/en/writing-running-appium/android/android-appbundle/index.html),
+     * or a .zip file containing one of these.
      *
-     * It should be an absolute path, eg: 'D:\example.apk'.
+     * Appium will attempt to install this app binary on the appropriate device first.
+     * Note that this capability is not required for Android if you specify appPackage and appActivity capabilities.
+     * UiAutomator2 and XCUITest allow to start the session without app or appPackage.
      */
     'appium:app'?: string;
     /**
@@ -399,6 +431,9 @@ export interface AppiumW3CCapabilities {
     'appium:newCommandTimeout'?: number;
     'appium:language'?: string;
     'appium:locale'?: string;
+    /**
+     * iOS Unique Device Identifier
+     */
     'appium:udid'?: string;
     'appium:orientation'?: string;
     'appium:autoWebview'?: boolean;
@@ -411,8 +446,12 @@ export interface AppiumW3CCapabilities {
     'appium:options'?: AppiumCapabilities
 }
 
+/**
+ * Appium Android Only Capabilities
+ *
+ * @see https://appium.io/docs/en/writing-running-appium/caps/#android-only
+ */
 export interface AppiumAndroidCapabilities {
-    // Appium Android Only
     appiumVersion?: string;
     appActivity?: string;
     appPackage?: string;
@@ -482,7 +521,11 @@ export interface AppiumAndroidCapabilities {
     espressoServerLaunchTimeout?: number;
 }
 
-// Appium iOS Only
+/**
+ * Appium iOS Only Capabilities
+ *
+ * @see https://appium.io/docs/en/writing-running-appium/caps/#ios-only
+ */
 export interface AppiumIOSCapabilities {
     calendarFormat?: string;
     bundleId?: string;
