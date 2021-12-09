@@ -401,14 +401,16 @@ export interface AppiumW3CCapabilities {
      */
     'appium:platformVersion'?: string;
     /**
-     * The desired device's name, for each platform, it accept different kind of values.
+     * The kind of mobile device or emulator to use, for each platform, it accept different kind of values.
      *
-     * ### For Android, it could be:
-     *   + [Serial number](https://developer.android.com/studio/command-line/adb#devicestatus), which you can get from
-     *  the first part of 'adb devices' command's result. eg: 'ac2e7e3d', 'emulator-5554'.
-     *   + Model of the device, eg: 'Nexus 6P', 'Google Pixel', 'Samsung Galaxy S10'.
-     *   + 'emulator'. The only one connected emulator. If you are connected with multi emulators but only want to
-     *   connect to some of them, then you should use serial number.
+     * ### For iOS, it could be:
+     *
+     * + Simulator name, eg: 'iPhone Simulator', 'iPad Simulator', 'iPhone Retina 4-inch'.
+     * + Instruments name, which comes from 'instruments -s devices' command.
+     * + xctrace device name, which comes from 'xcrun xctrace list devices' command. (since Xcode 12)
+     *
+     * ### For Android, this capability is currently ignored, though it remains required.
+     * Note: This document is written with appium 1.22.1 release, this behavior may changed later.
      */
     'appium:deviceName'?: string;
     /**
