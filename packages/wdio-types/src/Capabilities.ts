@@ -521,7 +521,11 @@ export interface AppiumAndroidCapabilities {
     espressoServerLaunchTimeout?: number;
 }
 
-// Appium iOS Only
+/**
+ * Appium iOS Only Capabilities
+ *
+ * @see https://appium.io/docs/en/writing-running-appium/caps/#ios-only
+ */
 export interface AppiumIOSCapabilities {
     calendarFormat?: string;
     bundleId?: string;
