@@ -446,8 +446,12 @@ export interface AppiumW3CCapabilities {
     'appium:options'?: AppiumCapabilities
 }
 
+/**
+ * Appium Android Only Capabilities
+ *
+ * @see https://appium.io/docs/en/writing-running-appium/caps/#android-only
+ */
 export interface AppiumAndroidCapabilities {
-    // Appium Android Only
     appiumVersion?: string;
     appActivity?: string;
     appPackage?: string;
