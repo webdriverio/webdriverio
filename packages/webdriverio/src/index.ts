@@ -21,11 +21,17 @@ import type { AttachOptions } from './types'
 export type RemoteOptions = Options.WebdriverIO & Omit<Options.Testrunner, 'capabilities'>
 
 /**
- * A method to create a new session with WebdriverIO
+ * A method to create a new session with WebdriverIO.
+ *
+ * <b>
+ * NOTE: If you hit "error TS2694: Namespace 'global.WebdriverIO' has no exported member 'Browser'" when using typescript,
+ * add "webdriverio/async" into tsconfig.json's "types" array will solve it: <code> { "compilerOptions": { "types": ["webdriverio/async"] } } </code>
+ * </b>
  *
  * @param  {Object} [params={}]       Options to create the session with
  * @param  {function} remoteModifier  Modifier function to change the monad object
  * @return {object}                   browser object with sessionId
+ * @see <a href="https://webdriver.io/docs/typescript">Typescript setup</a>
  */
 export const remote = async function (params: RemoteOptions, remoteModifier?: Function): Promise<WebdriverIO.Browser> {
     logger.setLogLevelsConfig(params.logLevels as any, params.logLevel)
