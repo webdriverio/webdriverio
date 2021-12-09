@@ -375,6 +375,17 @@ export interface AppiumCapabilities {
  * @see https://appium.io/docs/en/writing-running-appium/caps/
  */
 export interface AppiumW3CCapabilities {
+    /**
+     * Which automation engine to use.
+     *
+     * Acceptable values:
+     * + 'Appium' (default)
+     * + 'UiAutomator2' for Android
+     * + 'Espresso' for Android
+     * + 'UiAutomator1' for Android
+     * + 'XCUITest' or 'Instruments' for iOS
+     * + 'YouiEngine' for application built with You.i Engine
+     */
     'appium:automationName'?: string;
     'appium:platformName'?: string;
     'appium:platformVersion'?: string;
