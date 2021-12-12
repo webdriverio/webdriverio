@@ -157,7 +157,8 @@ browser.overwriteCommand('click', async function (origClickFunction, { force = f
     if (!force) {
         try {
             // attempt to click
-            return origClickFunction()
+            await origClickFunction()
+            return null
         } catch (err) {
             if (err.message.includes('not clickable at point')) {
                 console.warn('WARN: Element', this.selector, 'is not clickable.',
