@@ -67,7 +67,7 @@ export function expectAsyncShim (actual?: any, syncMatcher = expectSync) {
     return expectAsync(actual)
 }
 
-const ELEMENT_QUERY_COMMANDS = ['$', '$$', 'custom$', 'custom$$', 'shadow$', 'shadow$$', 'react$', 'react$$']
+const ELEMENT_QUERY_COMMANDS = ['$', '$$', 'custom$', 'custom$$', 'shadow$', 'shadow$$', 'react$', 'react$$', 'nextElement', 'previousElement', 'parentElement']
 const ELEMENT_PROPS = ['elementId', 'error', 'selector', 'parent', 'index', 'isReactElement', 'length']
 const PROMISE_METHODS = ['then', 'catch', 'finally']
 
