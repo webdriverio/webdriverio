@@ -20,7 +20,7 @@ describe('isExisting test', () => {
         const elem = await browser.$('#foo')
         await elem.isExisting()
         expect(got.mock.calls[2][0].pathname)
-            .toBe('/session/foobar-123/elements')
+            .toBe('/session/foobar-123/element')
     })
 
     it('should allow to check an react element', async () => {
