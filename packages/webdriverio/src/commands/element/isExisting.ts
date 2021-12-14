@@ -61,6 +61,13 @@ export default async function isExisting (this: WebdriverIO.Element) {
         )
     }
 
-    const command = this.isReactElement ? this.parent.react$.bind(this.parent) : this.parent.$.bind(this.parent)
-    return command(this.selector as string).then((res: WebdriverIO.Element) => Boolean(res.elementId), () => false)
+    const command = this.isReactElement
+        ? this.parent.react$.bind(this.parent)
+        : this.parent.$.bind(this.parent)
+    this.elementId = (await command(this.selector as string)).elementId
+
+    if (!this.elementId) {
+        return false
+    }
+    return true
 }
