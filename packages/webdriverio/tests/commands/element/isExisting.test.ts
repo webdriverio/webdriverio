@@ -37,6 +37,16 @@ describe('isExisting test', () => {
 
     })
 
+    it('should return false if react element can\'t be found', async () => {
+        const elem = await browser.react$('myNonExistingComp')
+        expect(await elem.isExisting()).toBe(false)
+    })
+
+    it('should return false if element can\'t be found', async () => {
+        const elem = await browser.$('#nonexisting')
+        expect(await elem.isExisting()).toBe(false)
+    })
+
     afterEach(() => {
         got.mockClear()
     })

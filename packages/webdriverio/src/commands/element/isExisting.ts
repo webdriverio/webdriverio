@@ -45,7 +45,7 @@
  * @type state
  *
  */
-export default async function isExisting (this: WebdriverIO.Element) {
+export default async function isExisting(this: WebdriverIO.Element) {
     /**
      * if an element was composed via `const elem = $({ 'element-6066-11e4-a52e-4f735466cecf': <elementId> })`
      * we don't have any selector information. Therefore we can only check existance
@@ -64,10 +64,5 @@ export default async function isExisting (this: WebdriverIO.Element) {
     const command = this.isReactElement
         ? this.parent.react$.bind(this.parent)
         : this.parent.$.bind(this.parent)
-    this.elementId = (await command(this.selector as string)).elementId
-
-    if (!this.elementId) {
-        return false
-    }
-    return true
+    return command(this.selector as string).then(async (res: Promise<WebdriverIO.Element>) => Boolean((await res).elementId), () => false)
 }
