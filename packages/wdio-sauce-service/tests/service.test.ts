@@ -336,7 +336,7 @@ test('beforeFeature should set context', async () => {
     service.setAnnotation = jest.fn()
     service.beforeSession()
     await service.beforeFeature( uri, featureObject)
-    expect(service.setAnnotation).toBeCalledWith('sauce:context=Feature:Create a feature')
+    expect(service.setAnnotation).toBeCalledWith('sauce:context=Feature: Create a feature')
 })
 
 test('beforeFeature should not set context if RDC test', async () => {
@@ -346,7 +346,7 @@ test('beforeFeature should not set context if RDC test', async () => {
     upService['_isServiceEnabled'] = true
     upService.setAnnotation = jest.fn()
     await upService.beforeFeature(uri, featureObject)
-    expect(upService.setAnnotation).not.toBeCalledWith('sauce:context=Feature:Create a feature')
+    expect(upService.setAnnotation).not.toBeCalledWith('sauce:context=Feature: Create a feature')
 })
 
 test('beforeFeature should not set context if no sauce user was applied', async () => {
@@ -355,7 +355,7 @@ test('beforeFeature should not set context if no sauce user was applied', async 
     service.setAnnotation = jest.fn()
     service.beforeSession()
     await service.beforeFeature(uri, featureObject)
-    expect(service.setAnnotation).not.toBeCalledWith('sauce:context=Feature:Create a feature')
+    expect(service.setAnnotation).not.toBeCalledWith('sauce:context=Feature: Create a feature')
 })
 
 test('afterScenario', () => {
@@ -384,7 +384,7 @@ test('beforeScenario should set context', () => {
     service.setAnnotation = jest.fn()
     service.beforeSession()
     service.beforeScenario({ pickle: { name: 'foobar' } })
-    expect(service.setAnnotation).toBeCalledWith('sauce:context=Scenario: foobar')
+    expect(service.setAnnotation).toBeCalledWith('sauce:context=-Scenario: foobar')
 })
 
 test('beforeScenario should set context when no pickle name is provided', () => {
@@ -393,7 +393,7 @@ test('beforeScenario should set context when no pickle name is provided', () => 
     service.setAnnotation = jest.fn()
     service.beforeSession()
     service.beforeScenario({ pickle: { } })
-    expect(service.setAnnotation).toBeCalledWith('sauce:context=Scenario: unknown scenario')
+    expect(service.setAnnotation).toBeCalledWith('sauce:context=-Scenario: unknown scenario')
 })
 
 test('beforeScenario should not set context if no sauce user was applied', () => {
@@ -402,7 +402,22 @@ test('beforeScenario should not set context if no sauce user was applied', () =>
     service.setAnnotation = jest.fn()
     service.beforeSession()
     service.beforeScenario({ pickle: { name: 'foobar' } })
-    expect(service.setAnnotation).not.toBeCalledWith('sauce:context=Scenario: foobar')
+    expect(service.setAnnotation).not.toBeCalledWith('sauce:context=-Scenario: foobar')
+})
+
+test('beforeStep should set context', async () => {
+    const service = new SauceService({}, {}, { user: 'foobar', key: '123' } as any)
+    const step = {
+        id: '5',
+        text: 'I am a step',
+        astNodeIds: ['0'],
+        keyword: 'Given ',
+    }
+    service['_browser'] = browser
+    service.setAnnotation = jest.fn()
+    service.beforeSession()
+    await service.beforeStep(step)
+    expect(service.setAnnotation).toBeCalledWith('sauce:context=--Step: Given I am a step')
 })
 
 test('after', async () => {

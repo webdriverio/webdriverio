@@ -1,7 +1,10 @@
+import { URL } from 'url'
 import { Options } from '@wdio/types'
+import { transformCommandLogResult } from '@wdio/utils'
 import {
     isSuccessfulResponse, getPrototype, getSessionError,
-    getErrorFromResponseBody, CustomRequestError, startWebDriverSession
+    getErrorFromResponseBody, CustomRequestError, startWebDriverSession,
+    getTimeoutError
 } from '../src/utils'
 
 describe('utils', () => {
@@ -268,6 +271,98 @@ describe('utils', () => {
                 'Invalid or unsupported WebDriver capabilities found ' +
                 '("platform", "foo").'
             )
+        })
+    })
+
+    describe('getTimeoutError', () => {
+        const mkReqOpts = (opts: Options.RequestLibOptions = {}): Options.RequestLibOptions => {
+            return {
+                url: new URL('https://localhost:4445/default/method'),
+                method: 'GET',
+                json: {},
+                ...opts
+            }
+        }
+
+        describe('should return error with', () => {
+            it('command name as full endpoint', async () => {
+                const err = new Error('Timeout')
+                const reqOpts = mkReqOpts({ url: new URL('https://localhost:4445/wd/hub/session') })
+
+                const timeoutErr = getTimeoutError(err, reqOpts)
+
+                expect(timeoutErr.message).toEqual(expect.stringMatching('when running "https://localhost:4445/wd/hub/session"'))
+            })
+
+            it('command name in shortened form', async () => {
+                const err = new Error('Timeout')
+                const reqOpts = mkReqOpts({ url: new URL('https://localhost:4445/wd/hub/session/abc123/url') })
+
+                const timeoutErr = getTimeoutError(err, reqOpts)
+
+                expect(timeoutErr.message).toEqual(expect.stringMatching('when running "url"'))
+            })
+
+            it('command method', async () => {
+                const err = new Error('Timeout')
+                const reqOpts = mkReqOpts({ method: 'GET' })
+
+                const timeoutErr = getTimeoutError(err, reqOpts)
+
+                expect(timeoutErr.message).toEqual(expect.stringMatching(/when running .+ with method "GET"/))
+            })
+
+            it('command args as stringified object', async () => {
+                const err = new Error('Timeout')
+                const cmdArgs = { foo: 'bar' }
+                const reqOpts = mkReqOpts({ json: cmdArgs })
+
+                const timeoutErr = getTimeoutError(err, reqOpts)
+
+                expect(timeoutErr.message).toEqual(
+                    expect.stringMatching(new RegExp(`when running .+ with method .+ and args "${JSON.stringify(cmdArgs)}"`))
+                )
+            })
+
+            it('command args with base64 script', async () => {
+                (transformCommandLogResult as jest.Mock).mockReturnValueOnce('"<Script[base64]>"')
+
+                const err = new Error('Timeout')
+                const cmdArgs = { script: Buffer.from('script').toString('base64') }
+                const reqOpts = mkReqOpts({ json: cmdArgs })
+
+                const timeoutErr = getTimeoutError(err, reqOpts)
+
+                expect(timeoutErr.message).toEqual(
+                    expect.stringMatching(/when running .+ with method .+ and args "<Script\[base64\]>"/)
+                )
+            })
+
+            it('command args with function script without extra wrapper', async () => {
+                const err = new Error('Timeout')
+                const cmdArgs = { script: 'return (function() {\nconsole.log("hi")\n}).apply(null, arguments)' }
+                const reqOpts = mkReqOpts({ json: cmdArgs })
+
+                const timeoutErr = getTimeoutError(err, reqOpts)
+
+                expect(timeoutErr.message).toEqual(
+                    expect.stringMatching(/when running .+ with method .+ and args "function\(\) {\nconsole\.log\("hi"\)\n}/)
+                )
+            })
+
+            it('command args with base64 screenshot', async () => {
+                (transformCommandLogResult as jest.Mock).mockReturnValueOnce('"<Screenshot[base64]>"')
+
+                const err = new Error('Timeout')
+                const cmdArgs = { file: Buffer.from('screen').toString('base64') }
+                const reqOpts = mkReqOpts({ json: cmdArgs })
+
+                const timeoutErr = getTimeoutError(err, reqOpts)
+
+                expect(timeoutErr.message).toEqual(
+                    expect.stringMatching(/when running .+ with method .+ and args "<Screenshot\[base64\]>"/)
+                )
+            })
         })
     })
 })

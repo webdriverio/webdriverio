@@ -230,7 +230,7 @@ export default class SauceService implements Services.ServiceInstance {
             return
         }
 
-        return this.setAnnotation(`sauce:context=Feature:${this._suiteTitle}`)
+        return this.setAnnotation(`sauce:context=Feature: ${this._suiteTitle}`)
     }
 
     beforeScenario (world: Frameworks.World) {
@@ -243,7 +243,12 @@ export default class SauceService implements Services.ServiceInstance {
         }
 
         const scenarioName = world.pickle.name || 'unknown scenario'
-        return this.setAnnotation(`sauce:context=Scenario: ${scenarioName}`)
+        return this.setAnnotation(`sauce:context=-Scenario: ${scenarioName}`)
+    }
+
+    async beforeStep (step: Frameworks.PickleStep) {
+        const { keyword, text } = step
+        return this.setAnnotation(`sauce:context=--Step: ${keyword}${text}`)
     }
 
     /**

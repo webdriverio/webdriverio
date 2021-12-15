@@ -75,3 +75,25 @@ export interface PickleResult {
      */
     duration?: number
 }
+
+/**
+ * Info on of a pick (step)
+ */
+export interface PickleStep {
+    /**
+     * line number in the feature file
+     */
+    id: string
+    /**
+     * text of the step
+     */
+    text: string
+    /**
+     * Array of line numbers
+     */
+    astNodeIds: string[]
+    /**
+     * 'Given|When|Then|And' followed by a space
+     */
+    keyword: string
+}

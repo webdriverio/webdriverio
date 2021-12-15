@@ -152,3 +152,8 @@ export const VALID_CAPS = [
     'pageLoadStrategy', 'proxy', 'setWindowRect', 'timeouts', 'strictFileInteractability',
     'unhandledPromptBehavior'
 ]
+
+export const REG_EXPS = {
+    commandName: /.*\/session\/[0-9a-f-]+\/(.*)/,
+    execFn: /return \(([\s\S]*)\)\.apply\(null, arguments\)/
+}
