@@ -40,11 +40,6 @@ export interface CucumberOptions {
      */
     names?: (string|RegExp)[]
     /**
-     * Specify the profile to use.
-     * @default []
-     */
-    profile?: string[]
-    /**
      * Require files containing your step definitions before executing features.
      * You can also specify a glob to your step definitions.
      * @default []
@@ -89,7 +84,7 @@ export interface CucumberOptions {
      * Specify the number of times to retry failing test cases.
      * @default 0
      */
-    retry: number
+    retry?: number
     /**
      * Only retries the features or scenarios with tags matching the expression (repeatable).
      * This option requires 'retry' to be specified.
