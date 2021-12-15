@@ -10,7 +10,8 @@ import { Options, Capabilities } from '@wdio/types'
 import RequestFactory from './request/factory'
 import { WebDriverResponse } from './request'
 import command from './command'
-import { VALID_CAPS } from './constants'
+import { transformCommandLogResult } from '@wdio/utils'
+import { VALID_CAPS, REG_EXPS } from './constants'
 import type { JSONWPCommandError, SessionFlags } from './types'
 
 const log = logger('webdriver')
@@ -322,4 +323,47 @@ export const getSessionError = (err: JSONWPCommandError, params: Partial<Options
     }
 
     return err.message
+}
+
+/**
+ * return timeout error with information about the executing command on which the test hangs
+ */
+export const getTimeoutError = (error: Error, requestOptions: Options.RequestLibOptions): Error => {
+    const cmdName = getExecCmdName(requestOptions)
+    const cmdArgs = getExecCmdArgs(requestOptions)
+
+    const cmdInfoMsg = `when running "${cmdName}" with method "${requestOptions.method}"`
+    const cmdArgsMsg = cmdArgs ? ` and args ${cmdArgs}` : ''
+
+    const timeoutErr = new Error(`${error.message} ${cmdInfoMsg}${cmdArgsMsg}`)
+    return Object.assign(timeoutErr, error)
+}
+
+function getExecCmdName(requestOptions: Options.RequestLibOptions): string {
+    const { href } = requestOptions.url as URL
+    const res = href.match(REG_EXPS.commandName) || []
+
+    return res[1] || href
+}
+
+function getExecCmdArgs(requestOptions: Options.RequestLibOptions): string {
+    const { json: cmdJson } = requestOptions
+
+    if (typeof cmdJson !== 'object') {
+        return ''
+    }
+
+    const transformedRes = transformCommandLogResult(cmdJson)
+
+    if (typeof transformedRes === 'string') {
+        return transformedRes
+    }
+
+    if (typeof cmdJson.script === 'string') {
+        const scriptRes = cmdJson.script.match(REG_EXPS.execFn) || []
+
+        return `"${scriptRes[1] || cmdJson.script}"`
+    }
+
+    return Object.keys(cmdJson).length ? `"${JSON.stringify(cmdJson)}"` : ''
 }

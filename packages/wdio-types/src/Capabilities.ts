@@ -8,6 +8,7 @@ export type LoggingPreferenceType =
     'OFF' | 'SEVERE' | 'WARNING' |
     'INFO' | 'CONFIG' | 'FINE' |
     'FINER' | 'FINEST' | 'ALL';
+
 export interface LoggingPreferences {
     browser?: LoggingPreferenceType;
     driver?: LoggingPreferenceType;
@@ -18,6 +19,7 @@ export interface LoggingPreferences {
 export type Timeouts = Record<'script' | 'pageLoad' | 'implicit', number>;
 
 export type ProxyTypes = 'pac' | 'noproxy' | 'autodetect' | 'system' | 'manual';
+
 export interface ProxyObject {
     proxyType?: ProxyTypes;
     proxyAutoconfigUrl?: string;
@@ -83,13 +85,18 @@ export interface W3CCapabilities {
 }
 
 export type RemoteCapabilities = (DesiredCapabilities | W3CCapabilities)[] | MultiRemoteCapabilities;
+
 export interface MultiRemoteCapabilities {
     [instanceName: string]: WebDriverIOOptions;
 }
 
 export type RemoteCapability = DesiredCapabilities | W3CCapabilities | MultiRemoteCapabilities;
 
-export interface DesiredCapabilities extends Capabilities, SauceLabsCapabilities, SauceLabsVisualCapabilities, TestingbotCapabilities, SeleniumRCCapabilities, AppiumIOSCapabilities, GeckodriverCapabilities, IECapabilities, AppiumAndroidCapabilities, AppiumCapabilities, AppiumW3CCapabilities, VendorExtensions, GridCapabilities, ChromeCapabilities, BrowserStackCapabilities {
+export interface DesiredCapabilities extends Capabilities, SauceLabsCapabilities, SauceLabsVisualCapabilities,
+    TestingbotCapabilities, SeleniumRCCapabilities, AppiumIOSCapabilities, GeckodriverCapabilities, IECapabilities,
+    AppiumAndroidCapabilities, AppiumCapabilities, AppiumW3CCapabilities, VendorExtensions, GridCapabilities,
+    ChromeCapabilities, BrowserStackCapabilities {
+
     // Read-only capabilities
     cssSelectorsEnabled?: boolean;
     handlesAlerts?: boolean;
@@ -257,7 +264,8 @@ export interface ChromeOptions {
 /**
  * Chromium Edge
  */
-interface MicrosoftEdgeOptions extends ChromeOptions {}
+interface MicrosoftEdgeOptions extends ChromeOptions {
+}
 
 export type FirefoxLogLevels =
     'trace' | 'debug' | 'config' |
@@ -288,6 +296,7 @@ export interface FirefoxOptions {
         [name: string]: string | number | boolean
     }
 }
+
 // Aerokube Selenoid specific
 export interface SelenoidOptions {
     enableVNC?: boolean,
@@ -317,7 +326,7 @@ export type MoonMobileDeviceOrientation =
     'portait' | 'vertical' | 'landscape' | 'horizontal'
 
 export interface MoonOptions extends SelenoidOptions {
-    mobileDevice?: {deviceName: string, orientation: MoonMobileDeviceOrientation}
+    mobileDevice?: { deviceName: string, orientation: MoonMobileDeviceOrientation }
 }
 
 // Selenium Grid specific
@@ -360,18 +369,71 @@ export interface AppiumCapabilities {
     printPageSourceOnFindFailure?: boolean;
 }
 
-// Appium General W3C Capabilities
+/**
+ * Appium General W3C Capabilities
+ *
+ * @see https://appium.io/docs/en/writing-running-appium/caps/
+ */
 export interface AppiumW3CCapabilities {
+    /**
+     * Which automation engine to use.
+     *
+     * Acceptable values:
+     * + 'Appium' (default)
+     * + 'UiAutomator2' for Android
+     * + 'Espresso' for Android
+     * + 'UiAutomator1' for Android
+     * + 'XCUITest' or 'Instruments' for iOS
+     * + 'YouiEngine' for application built with You.i Engine
+     */
     'appium:automationName'?: string;
+    /**
+     * Which mobile OS platform to use.
+     *
+     * Acceptable values:
+     * + 'iOS'
+     * + 'Android'
+     * + 'FirefoxOS'
+     */
     'appium:platformName'?: string;
+    /**
+     * Expected mobile OS version, eg: '7.1', '4.4' etc.
+     */
     'appium:platformVersion'?: string;
+    /**
+     * The kind of mobile device or emulator to use, for each platform, it accept different kind of values.
+     *
+     * ### For iOS, it could be:
+     *
+     * + Simulator name, eg: 'iPhone Simulator', 'iPad Simulator', 'iPhone Retina 4-inch'.
+     * + Instruments name, which comes from 'instruments -s devices' command.
+     * + xctrace device name, which comes from 'xcrun xctrace list devices' command. (since Xcode 12)
+     *
+     * ### For Android, this capability is currently ignored, though it remains required.
+     * Note: This document is written with appium 1.22.1 release, this behavior may changed later.
+     */
     'appium:deviceName'?: string;
+    /**
+     * The absolute local path or remote http URL to a .ipa file (IOS), .app folder (IOS Simulator), .apk file (Android)
+     * or [.apks file (Android App Bundle)](https://appium.io/docs/en/writing-running-appium/android/android-appbundle/index.html),
+     * or a .zip file containing one of these.
+     *
+     * Appium will attempt to install this app binary on the appropriate device first.
+     * Note that this capability is not required for Android if you specify appPackage and appActivity capabilities.
+     * UiAutomator2 and XCUITest allow to start the session without app or appPackage.
+     */
     'appium:app'?: string;
+    /**
+     * The id of the app to be tested. eg: 'com.android.chrome'.
+     */
     'appium:appPackage'?: string;
     'appium:appWaitActivity'?: string;
     'appium:newCommandTimeout'?: number;
     'appium:language'?: string;
     'appium:locale'?: string;
+    /**
+     * iOS Unique Device Identifier
+     */
     'appium:udid'?: string;
     'appium:orientation'?: string;
     'appium:autoWebview'?: boolean;
@@ -384,8 +446,12 @@ export interface AppiumW3CCapabilities {
     'appium:options'?: AppiumCapabilities
 }
 
+/**
+ * Appium Android Only Capabilities
+ *
+ * @see https://appium.io/docs/en/writing-running-appium/caps/#android-only
+ */
 export interface AppiumAndroidCapabilities {
-    // Appium Android Only
     appiumVersion?: string;
     appActivity?: string;
     appPackage?: string;
@@ -455,7 +521,11 @@ export interface AppiumAndroidCapabilities {
     espressoServerLaunchTimeout?: number;
 }
 
-// Appium iOS Only
+/**
+ * Appium iOS Only Capabilities
+ *
+ * @see https://appium.io/docs/en/writing-running-appium/caps/#ios-only
+ */
 export interface AppiumIOSCapabilities {
     calendarFormat?: string;
     bundleId?: string;
@@ -798,7 +868,7 @@ export interface BrowserStackCapabilities {
     ie?: {
         noFlash?: boolean,
         compatibility?: number
-        arch?:string
+        arch?: string
         driver?: string
         enablePopups?: boolean
     }

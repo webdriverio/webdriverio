@@ -141,9 +141,14 @@ class CucumberReporter {
             state = 'pass'
             break
         case Status.PENDING:
+            state = 'pending'
+            break
         case Status.SKIPPED:
+            state = 'skip'
+            break
         case Status.AMBIGUOUS:
             state = 'pending'
+            break
         }
         let error = result.message ? new Error(result.message) : undefined
         let title = step
@@ -199,7 +204,7 @@ class CucumberReporter {
             state,
             error,
             duration: Date.now() - this._testStart!?.getTime(),
-            passed: state === 'pass',
+            passed: ['pass', 'skip'].includes(state),
             file: uri
         }
 
@@ -215,6 +220,7 @@ class CucumberReporter {
                 tags: scenario.tags,
                 ...common
             }
+
         this.emit('test:' + state, payload)
     }
 

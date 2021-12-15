@@ -7,7 +7,7 @@ import logger from '@wdio/logger'
 import { transformCommandLogResult } from '@wdio/utils'
 import type { Options } from '@wdio/types'
 
-import { isSuccessfulResponse, getErrorFromResponseBody } from '../utils'
+import { isSuccessfulResponse, getErrorFromResponseBody, getTimeoutError } from '../utils'
 
 const pkg = require('../../package.json')
 
@@ -203,7 +203,9 @@ export default abstract class WebDriverRequest extends EventEmitter {
              * handle timeouts
              */
             if ((response as RequestLibError).code === 'ETIMEDOUT') {
-                return retry(response, 'Request timed out! Consider increasing the "connectionRetryTimeout" option.')
+                const error = getTimeoutError(response, fullRequestOptions)
+
+                return retry(error, 'Request timed out! Consider increasing the "connectionRetryTimeout" option.')
             }
 
             /**

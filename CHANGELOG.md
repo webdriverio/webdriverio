@@ -19,6 +19,32 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.16.11 (2021-12-10)
+
+#### :bug: Bug Fix
+* `wdio-sauce-service`
+  * [#7769](https://github.com/webdriverio/webdriverio/pull/7769) Fix sauce w3c support ([@wswebcreation](https://github.com/wswebcreation))
+
+#### :nail_care: Polish
+* `wdio-sauce-service`, `wdio-types`
+  * [#7779](https://github.com/webdriverio/webdriverio/pull/7779) feat: add cucumber step name in Sauce ([@wswebcreation](https://github.com/wswebcreation))
+* `wdio-cucumber-framework`
+  * [#7777](https://github.com/webdriverio/webdriverio/pull/7777) fix: update state for a skipped test ([@wswebcreation](https://github.com/wswebcreation))
+  * [#7757](https://github.com/webdriverio/webdriverio/pull/7757) Make @wdio/cucumber-framework export World class ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* `wdio-types`, `webdriverio`
+  * [#7799](https://github.com/webdriverio/webdriverio/pull/7799) docs: port descriptions from Appium's official document ([@DevDengChao](https://github.com/DevDengChao))
+* `wdio-types`
+  * [#7795](https://github.com/webdriverio/webdriverio/pull/7795) Docs ([@DevDengChao](https://github.com/DevDengChao))
+
+#### Committers: 4
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Dmitriy Dudkevich ([@DudaGod](https://github.com/DudaGod))
+- Wim Selles ([@wswebcreation](https://github.com/wswebcreation))
+- 邓超 ([@DevDengChao](https://github.com/DevDengChao))
+
+
 ## v7.16.10 (2021-11-25)
 
 #### :bug: Bug Fix

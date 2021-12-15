@@ -1,6 +1,6 @@
 {
   "name": "@wdio/concise-reporter",
-  "version": "7.16.4",
+  "version": "7.16.11",
   "description": "A concise reporter for WebdriverIO",
   "author": "Christian Bromann <christian@saucelabs.com>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-concise-reporter",
@@ -22,8 +22,8 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "dependencies": {
-    "@wdio/reporter": "7.16.3",
-    "@wdio/types": "7.16.3",
+    "@wdio/reporter": "7.16.11",
+    "@wdio/types": "7.16.11",
     "chalk": "^4.0.0",
     "pretty-ms": "^7.0.0"
   },
