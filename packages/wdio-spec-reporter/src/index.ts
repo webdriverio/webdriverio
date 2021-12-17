@@ -24,7 +24,7 @@ export default class SpecReporter extends WDIOReporter {
     private _originalStdoutWrite = process.stdout.write.bind(process.stdout)
 
     private _addConsoleLogs = false
-    private _realTimeReporting = false
+    private _realtimeReporting = false
     private _suiteName = ''
     // Keep track of the order that suites were called
     private _stateCounts: StateCount = {
