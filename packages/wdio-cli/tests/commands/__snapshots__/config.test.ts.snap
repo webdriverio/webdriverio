@@ -39,7 +39,7 @@ For for information on TypeScript integration check out: https://webdriver.io/do
     "
 Configuration file was created successfully!
 To run your tests, execute:
-$ npx wdio run wdio.conf.ts
+$ npx wdio run test/wdio.conf.ts
 ",
   ],
 ]
@@ -84,7 +84,7 @@ For for information on TypeScript integration check out: https://webdriver.io/do
     "
 Configuration file was created successfully!
 To run your tests, execute:
-$ npx wdio run wdio.conf.ts
+$ npx wdio run test/wdio.conf.ts
 ",
   ],
 ]
@@ -129,7 +129,7 @@ For for information on TypeScript integration check out: https://webdriver.io/do
     "
 Configuration file was created successfully!
 To run your tests, execute:
-$ npx wdio run wdio.conf.ts
+$ npx wdio run test/wdio.conf.ts
 ",
   ],
 ]
@@ -174,7 +174,7 @@ For for information on TypeScript integration check out: https://webdriver.io/do
     "
 Configuration file was created successfully!
 To run your tests, execute:
-$ npx wdio run wdio.conf.ts
+$ npx wdio run test/wdio.conf.ts
 ",
   ],
 ]
@@ -219,7 +219,7 @@ For for information on TypeScript integration check out: https://webdriver.io/do
     "
 Configuration file was created successfully!
 To run your tests, execute:
-$ npx wdio run wdio.conf.ts
+$ npx wdio run test/wdio.conf.ts
 ",
   ],
 ]
@@ -264,7 +264,7 @@ For for information on TypeScript integration check out: https://webdriver.io/do
     "
 Configuration file was created successfully!
 To run your tests, execute:
-$ npx wdio run wdio.conf.ts
+$ npx wdio run test/wdio.conf.ts
 ",
   ],
 ]
@@ -299,6 +299,7 @@ Object {
     "services": Array [
       undefined,
     ],
+    "tsConfigFilePath": "test/tsconfig.json",
   },
   "success": true,
 }
