@@ -109,7 +109,7 @@ Default: `false`
 [
   "spec",
   {
-    realTimeReporting: true,
+    realtimeReporting: true,
   },
 ]
 ```
