@@ -62,7 +62,6 @@
             "dryRun": false,
             "failFast": false,
             "failAmbiguousDefinitions": true,
-            "format": ["pretty"],
             "colors": true,
             "snippets": true,
             "source": true,

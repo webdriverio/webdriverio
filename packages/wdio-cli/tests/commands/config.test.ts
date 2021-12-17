@@ -1,4 +1,4 @@
-import fs from 'fs'
+import fs from 'fs-extra'
 import yargs from 'yargs'
 import yarnInstall from 'yarn-install'
 import inquirer from 'inquirer'
@@ -51,6 +51,8 @@ test('should create config file', async () => {
     const result = await handler({} as any)
     delete result.parsedAnswers.destPageObjectRootPath
     delete result.parsedAnswers.destSpecRootPath
+    const fileName = `${path.basename(path.dirname(result.parsedAnswers.tsConfigFilePath))}/${path.basename(result.parsedAnswers.tsConfigFilePath)}`
+    result.parsedAnswers.tsConfigFilePath = fileName
     expect(result).toMatchSnapshot()
     expect(addServiceDeps).toBeCalledTimes(1)
     expect(convertPackageHashToObject).toBeCalledTimes(4)
@@ -193,7 +195,7 @@ test('prints TypeScript setup message with ts-node installed', async () => {
     }
 
     expect(fs.promises.writeFile).toBeCalledWith(
-        path.join(process.cwd(), 'tsconfig.json'),
+        path.join(process.cwd(), 'test', 'tsconfig.json'),
         JSON.stringify(config, null, 4))
 
     // @ts-expect-error

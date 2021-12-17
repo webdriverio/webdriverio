@@ -1,4 +1,4 @@
-import fs from 'fs'
+import fs from 'fs-extra'
 import path from 'path'
 import util from 'util'
 import inquirer from 'inquirer'
@@ -59,36 +59,61 @@ const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) 
     ]
 
     /**
+     * find relative paths between tests and pages
+     */
+
+    const parsedPaths = getPathForFileGeneration(answers)
+
+    const parsedAnswers: ParsedAnswers = {
+        ...answers,
+        runner: runnerPackage.short as 'local',
+        framework: frameworkPackage.short,
+        reporters: reporterPackages.map(({ short }) => short),
+        services: servicePackages.map(({ short }) => short),
+        packagesToInstall,
+        isUsingTypeScript: answers.isUsingCompiler === COMPILER_OPTIONS.ts,
+        isUsingBabel: answers.isUsingCompiler === COMPILER_OPTIONS.babel,
+        isSync: false,
+        _async: 'async ',
+        _await: 'await ',
+        destSpecRootPath: parsedPaths.destSpecRootPath,
+        destPageObjectRootPath: parsedPaths.destPageObjectRootPath,
+        relativePath : parsedPaths.relativePath,
+        tsConfigFilePath : path.join(process.cwd(), 'test', 'tsconfig.json')
+    }
+
+    /**
      * add ts-node if TypeScript is desired but not installed
      */
-    if (answers.isUsingCompiler === COMPILER_OPTIONS.ts) {
+    if (parsedAnswers.isUsingTypeScript) {
         if (!hasPackage('ts-node')) {
             packagesToInstall.push('ts-node', 'typescript')
         }
-        if (!hasFile('tsconfig.json')){
-            const config = {
-                compilerOptions: {
-                    types: [
-                        'node',
-                        'webdriverio/async',
-                        frameworkPackage.package,
-                        'expect-webdriverio'
-                    ],
-                    target: 'ES5',
-                }
-            }
 
-            await fs.promises.writeFile(
-                path.join(process.cwd(), 'tsconfig.json'),
-                JSON.stringify(config, null, 4)
-            )
+        const config = {
+            compilerOptions: {
+                types: [
+                    'node',
+                    'webdriverio/async',
+                    frameworkPackage.package,
+                    'expect-webdriverio'
+                ],
+                target: 'ES5',
+            }
         }
+
+        fs.ensureDirSync(path.join(process.cwd(), 'test'))
+        await fs.promises.writeFile(
+            parsedAnswers.tsConfigFilePath,
+            JSON.stringify(config, null, 4)
+        )
+
     }
 
     /**
      * add @babel/register package if not installed
      */
-    if (answers.isUsingCompiler === COMPILER_OPTIONS.babel) {
+    if (parsedAnswers.isUsingBabel) {
         if (!hasPackage('@babel/register')) {
             packagesToInstall.push('@babel/register')
         }
@@ -158,29 +183,6 @@ const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) 
 
     console.log('\nPackages installed successfully, creating configuration file...')
 
-    /**
-     * find relative paths between tests and pages
-     */
-
-    const parsedPaths = getPathForFileGeneration(answers)
-
-    const parsedAnswers: ParsedAnswers = {
-        ...answers,
-        runner: runnerPackage.short as 'local',
-        framework: frameworkPackage.short,
-        reporters: reporterPackages.map(({ short }) => short),
-        services: servicePackages.map(({ short }) => short),
-        packagesToInstall,
-        isUsingTypeScript: answers.isUsingCompiler === COMPILER_OPTIONS.ts,
-        isUsingBabel: answers.isUsingCompiler === COMPILER_OPTIONS.babel,
-        isSync: false,
-        _async: 'async ',
-        _await: 'await ',
-        destSpecRootPath: parsedPaths.destSpecRootPath,
-        destPageObjectRootPath: parsedPaths.destPageObjectRootPath,
-        relativePath : parsedPaths.relativePath
-    }
-
     try {
         await renderConfigurationFile(parsedAnswers)
 
@@ -212,7 +214,8 @@ const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) 
     }
 
     console.log(util.format(CONFIG_HELPER_SUCCESS_MESSAGE,
-        (answers.isUsingCompiler === COMPILER_OPTIONS.ts) ? 'ts' : 'js'
+        parsedAnswers.isUsingTypeScript ? 'test/' : '',
+        parsedAnswers.isUsingTypeScript ? 'ts' : 'js'
     ))
 
     /**

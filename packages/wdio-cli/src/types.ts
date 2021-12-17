@@ -46,6 +46,7 @@ export interface ParsedAnswers extends Omit<Questionnair, 'runner' | 'framework'
     destSpecRootPath: string
     destPageObjectRootPath: string
     relativePath: string
+    tsConfigFilePath: string
 }
 
 export interface RunCommandArguments {

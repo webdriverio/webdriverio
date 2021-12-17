@@ -19,6 +19,19 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.16.12 (2021-12-15)
+
+#### :memo: Documentation
+* `wdio-cli`, `wdio-cucumber-framework`, `wdio-junit-reporter`
+  * [#7818](https://github.com/webdriverio/webdriverio/pull/7818) Removed cucumberopts profile and format that has no support yet.  ([@praveendvd](https://github.com/praveendvd))
+* Other
+  * [#7802](https://github.com/webdriverio/webdriverio/pull/7802) Update Overwriting element commands example ([@alexmi256](https://github.com/alexmi256))
+
+#### Committers: 2
+- Alex Mi ([@alexmi256](https://github.com/alexmi256))
+- praveendvd ([@praveendvd](https://github.com/praveendvd))
+
+
 ## v7.16.11 (2021-12-10)
 
 #### :bug: Bug Fix
