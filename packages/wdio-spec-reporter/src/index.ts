@@ -124,8 +124,9 @@ export default class SpecReporter extends WDIOReporter {
      * Print the report to the stdout realtime
      */
     printCurrentStats (stat: TestStats | HookStats | SuiteStats) {
-        if (!this._realTimeReporting)
+        if (!this._realTimeReporting) {
             return
+        }
 
         const title = stat.title, state = (stat as TestStats).state
         const divider = '------------------------------------------------------------------'
