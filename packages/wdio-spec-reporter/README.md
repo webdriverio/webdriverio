@@ -99,7 +99,7 @@ Default: `false`
 ]
 ```
 
-### realTimeReporting
+### realtimeReporting
 Set to true to display test status realtime than just at the end of the run
 
 Type: `boolean`
