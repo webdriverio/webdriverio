@@ -45,7 +45,7 @@ export interface SpecReporterOptions {
     /**
      * Ability to show test status realtime
      *
-     * @default: false
+     * @default: `false`
      */
      realtimeReporting?: boolean
 }
