@@ -851,7 +851,7 @@ describe('SpecReporter', () => {
     })
 
     describe('add real time report', () => {
-        const options = { realTimeReporting: true }
+        const options = { realtimeReporting: true }
 
         it('should call printCurrentStats for passing test', () => {
             tmpReporter = new SpecReporter(options)
