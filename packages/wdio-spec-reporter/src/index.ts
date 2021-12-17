@@ -51,7 +51,7 @@ export default class SpecReporter extends WDIOReporter {
 
         this._symbols = { ...this._symbols, ...this.options.symbols || {} }
         this._onlyFailures = options.onlyFailures || false
-        this._realTimeReporting = options.realTimeReporting || false
+        this._realtimeReporting = options.realtimeReporting || false
         this._sauceLabsSharableLinks = 'sauceLabsSharableLinks' in options
             ? options.sauceLabsSharableLinks as boolean
             : this._sauceLabsSharableLinks
