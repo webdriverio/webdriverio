@@ -47,7 +47,7 @@ export interface SpecReporterOptions {
      *
      * @default: false
      */
-     realTimeReporting?: boolean
+     realtimeReporting?: boolean
 }
 
 export interface TestLink {
