@@ -42,6 +42,12 @@ export interface SpecReporterOptions {
      * @default: false
      */
     addConsoleLogs?: boolean
+    /**
+     * Ability to show test status realtime
+     *
+     * @default: `false`
+     */
+     realtimeReporting?: boolean
 }
 
 export interface TestLink {

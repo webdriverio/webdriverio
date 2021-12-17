@@ -210,6 +210,10 @@ export default class WDIOCLInterface extends EventEmitter {
      * event handler that is triggered when runner sends up events
      */
     onMessage (event: CLIInterfaceEvent) {
+        if (event.name === 'reporterRealTime') {
+            this.log(event.content)
+            return
+        }
         if (event.origin === 'debugger' && event.name === 'start') {
             this.log(chalk.yellow(event.params.introMessage))
             this._inDebugMode = true

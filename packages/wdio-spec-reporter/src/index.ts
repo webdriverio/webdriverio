@@ -18,11 +18,14 @@ export default class SpecReporter extends WDIOReporter {
     private _suiteIndents: Record<string, number> = {}
     private _orderedSuites: SuiteStats[] = []
     private _consoleOutput = ''
+    private _suiteIndent = ''
+    private _preface = ''
     private _consoleLogs: string[] = []
     private _originalStdoutWrite = process.stdout.write.bind(process.stdout)
 
     private _addConsoleLogs = false
-
+    private _realtimeReporting = false
+    private _suiteName = ''
     // Keep track of the order that suites were called
     private _stateCounts: StateCount = {
         passed: 0,
@@ -48,6 +51,7 @@ export default class SpecReporter extends WDIOReporter {
 
         this._symbols = { ...this._symbols, ...this.options.symbols || {} }
         this._onlyFailures = options.onlyFailures || false
+        this._realtimeReporting = options.realtimeReporting || false
         this._sauceLabsSharableLinks = 'sauceLabsSharableLinks' in options
             ? options.sauceLabsSharableLinks as boolean
             : this._sauceLabsSharableLinks
@@ -63,7 +67,13 @@ export default class SpecReporter extends WDIOReporter {
 
     }
 
+    onRunnerStart (runner: RunnerStats) {
+        this._preface = `[${this.getEnviromentCombo(runner.capabilities, false, runner.isMultiremote).trim()} #${runner.cid}]`
+    }
+
     onSuiteStart (suite: SuiteStats) {
+        this._suiteName = suite.file.replace(process.cwd(), '')
+        this.printCurrentStats(suite)
         this._suiteUids.add(suite.uid)
         if (suite.type === 'feature') {
             this._indents = 0
@@ -78,6 +88,7 @@ export default class SpecReporter extends WDIOReporter {
     }
 
     onHookEnd (hook: HookStats) {
+        this.printCurrentStats(hook)
         if (hook.error) {
             this._stateCounts.failed++
         }
@@ -87,23 +98,60 @@ export default class SpecReporter extends WDIOReporter {
         this._consoleOutput = ''
     }
 
-    onTestPass () {
+    onTestPass (testStat: TestStats) {
+        this.printCurrentStats(testStat)
         this._consoleLogs.push(this._consoleOutput)
         this._stateCounts.passed++
     }
 
-    onTestFail () {
+    onTestFail (testStat: TestStats) {
+        this.printCurrentStats(testStat)
         this._consoleLogs.push(this._consoleOutput)
         this._stateCounts.failed++
     }
 
-    onTestSkip () {
+    onTestSkip (testStat: TestStats) {
+        this.printCurrentStats(testStat)
         this._consoleLogs.push(this._consoleOutput)
         this._stateCounts.skipped++
     }
 
     onRunnerEnd (runner: RunnerStats) {
         this.printReport(runner)
+    }
+
+    /**
+     * Print the report to the stdout realtime
+     */
+    printCurrentStats (stat: TestStats | HookStats | SuiteStats) {
+        if (!this._realtimeReporting) {
+            return
+        }
+
+        const title = stat.title, state = (stat as TestStats).state
+        const divider = '------------------------------------------------------------------'
+
+        const indent = (stat.type==='test') ?
+            `${DEFAULT_INDENT}${this._suiteIndent}` :
+            this.indent(stat.uid)
+
+        const suiteStartBanner = (stat.type === 'feature' || stat.type === 'suite' || stat.type === 'suite:start') ?
+            `${this._preface} ${divider}\n`+
+            `${this._preface} Suite started : \n`+
+            `${this._preface}   » ${this._suiteName}\n` : '\n'
+
+        const contentNonTest = stat.type!=='hook' ?
+            `${suiteStartBanner}${this._preface} ${title}` :
+            `${this._preface} Hook executed : ${title}`
+
+        const contentTest = `${this._preface} ${indent}` +
+            `${chalk[this.getColor(state)](this.getSymbol(state))} ${title}` +
+            ` » ${chalk[this.getColor(state)]('[')} ${this._suiteName} ${chalk[this.getColor(state)](']')}`
+
+        process.send!({
+            name: 'reporterRealTime',
+            content: stat.type === 'test' ? contentTest : contentNonTest
+        })
     }
 
     /**
