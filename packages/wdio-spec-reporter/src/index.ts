@@ -124,7 +124,7 @@ export default class SpecReporter extends WDIOReporter {
      * Print the report to the stdout realtime
      */
     printCurrentStats (stat: TestStats | HookStats | SuiteStats) {
-        if (!this._realTimeReporting) {
+        if (!this._realtimeReporting) {
             return
         }
 
