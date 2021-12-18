@@ -35,6 +35,10 @@ export default class AppiumLauncher implements Services.ServiceInstance {
             basePath: DEFAULT_CONNECTION.path,
             ...(this._options.args || {})
         }
+        if (_config.hasOwnProperty('args') && typeof this._config['args'] === 'object') {
+            this._args = { ...this.args, ...this._config['args']}
+        }
+        
         this._logPath = _options.logPath || this._config?.outputDir
         this._command = this._getCommand(_options.command)
     }
