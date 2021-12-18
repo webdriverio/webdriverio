@@ -5,6 +5,7 @@ import RunnableStats from './runnable'
 import { Argument } from '../types'
 import { pad, color, colorLines } from '../utils'
 import { AssertionError } from 'assert'
+import { types as nodeUtilTypes } from 'util'
 
 const maxStringLength = 2048
 
@@ -103,7 +104,7 @@ export default class TestStats extends RunnableStats {
             /**
              * only format if error object has either an "expected" or "actual" property set
              */
-            ((err as AssertionError).expected || (err as AssertionError).actual) &&
+            (((err as AssertionError).expected || (err as AssertionError).actual) && nodeUtilTypes.isProxy((err as AssertionError).actual)) &&
             /**
              * and if they aren't already formated, e.g. in Jasmine
              */
