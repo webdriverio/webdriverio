@@ -97,4 +97,49 @@ describe('TestStats', () => {
         stat.fail([new AssertionError({ message: 'foobar\nExpected: foo\nReceived: bar42', actual: 'true', expected: 'false' })])
         expect(stat.error?.message).toContain('bar42')
     })
+
+    it('should not call stringifyDiffObjs if actual is a Proxy', () => {
+        const TestStatsSpy = jest.spyOn(TestStats.prototype as any, '_stringifyDiffObjs')
+        const orderBuilder = new TestStats({
+            type: 'test:start',
+            title: 'should can do something',
+            parent: 'My awesome feature',
+            fullTitle: 'My awesome feature should can do something',
+            pending: false,
+            cid: '0-0',
+            specs: ['/path/to/test/specs/sync.spec.js'],
+            uid: 'should can do something3',
+            argument: { rows: [{ cells: ['hello'] }] }
+        })
+        orderBuilder.complete = jest.fn()
+        stat.fail([new AssertionError({
+            message: 'Expect $(`#flash`) to be existing\n\nExpected \u001b[32m"existing"\u001b[39m\nReceived \u001b[31m"\u001b[7mnot \u001b[27mexisting"\u001b[39m',
+            expected: 'hi',
+            actual: new Proxy(new Promise(()=>{}), {})
+        })])
+        expect(TestStatsSpy).not.toHaveBeenCalled()
+    })
+
+    it('should call stringifyDiffObjs if actual is not a Proxy', () => {
+        const TestStatsSpy = jest.spyOn(TestStats.prototype as any, '_stringifyDiffObjs')
+        const orderBuilder = new TestStats({
+            type: 'test:start',
+            title: 'should can do something',
+            parent: 'My awesome feature',
+            fullTitle: 'My awesome feature should can do something',
+            pending: false,
+            cid: '0-0',
+            specs: ['/path/to/test/specs/sync.spec.js'],
+            uid: 'should can do something3',
+            argument: { rows: [{ cells: ['hello'] }] }
+        })
+        orderBuilder.complete = jest.fn()
+        stat.fail([new AssertionError({
+            message: 'Expect $(`#flash`) to be existing\n\nExpected \u001b[32m"existing"\u001b[39m\nReceived \u001b[31m"\u001b[7mnot \u001b[27mexisting"\u001b[39m',
+            expected: 'hi',
+            actual: 'false'
+        })])
+        expect(TestStatsSpy).toHaveBeenCalled()
+    })
+
 })
