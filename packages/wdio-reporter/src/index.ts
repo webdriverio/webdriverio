@@ -1,31 +1,20 @@
 import fs from 'fs'
-import { WriteStream } from 'fs'
+import type { WriteStream } from 'fs'
 import { createWriteStream, ensureDirSync } from 'fs-extra'
 import { EventEmitter } from 'events'
+import type { Reporters, Options } from '@wdio/types'
+
 import { getErrorsFromEvent } from './utils'
 import SuiteStats, { Suite } from './stats/suite'
 import HookStats, { Hook } from './stats/hook'
 import TestStats, { Test } from './stats/test'
-import RunnerStats, { Runner } from './stats/runner'
-import { AfterCommandArgs, BeforeCommandArgs } from './types'
+import RunnerStats from './stats/runner'
+import { AfterCommandArgs, BeforeCommandArgs, CommandArgs, Tag, Argument } from './types'
 
-interface WDIOReporterBaseOptions {
-    outputDir?: string
-}
-
-export interface WDIOReporterOptionsFromStdout extends WDIOReporterBaseOptions {
-    stdout: boolean
-    writeStream: WriteStream
-}
-
-export interface WDIOReporterOptionsFromLogFile extends WDIOReporterBaseOptions {
-    logFile: string
-}
-
-export type WDIOReporterOptions = WDIOReporterOptionsFromLogFile & WDIOReporterOptionsFromStdout
+type CustomWriteStream = { write: (content: any) => boolean }
 
 export default class WDIOReporter extends EventEmitter {
-    outputStream: WriteStream
+    outputStream: WriteStream | CustomWriteStream
     failures = 0
     suites: Record<string, SuiteStats> = {}
     hooks: Record<string, HookStats> = {}
@@ -42,8 +31,10 @@ export default class WDIOReporter extends EventEmitter {
     retries = 0
     runnerStat?: RunnerStats
     isContentPresent = false
+    specs: string[] = []
+    currentSpec?: string
 
-    constructor(public options: Partial<WDIOReporterOptions>) {
+    constructor(public options: Partial<Reporters.Options>) {
         super()
 
         // ensure the report directory exists
@@ -51,28 +42,41 @@ export default class WDIOReporter extends EventEmitter {
             ensureDirSync(this.options.outputDir)
         }
 
-        this.outputStream = (this.options as WDIOReporterOptionsFromStdout).stdout || !(this.options as WDIOReporterOptionsFromLogFile).logFile
-            ? (this.options as WDIOReporterOptionsFromStdout).writeStream
-            : createWriteStream((this.options as WDIOReporterOptionsFromLogFile).logFile)
+        this.outputStream = (this.options.stdout || !this.options.logFile) && this.options.writeStream
+            ? this.options.writeStream as CustomWriteStream
+            : createWriteStream(this.options.logFile!)
 
         let currentTest: TestStats
 
         const rootSuite = new SuiteStats({
             title: '(root)',
             fullTitle: '(root)',
+            file: ''
         })
         this.currentSuites.push(rootSuite)
 
         this.on('client:beforeCommand', this.onBeforeCommand.bind(this))
         this.on('client:afterCommand', this.onAfterCommand.bind(this))
 
-        this.on('runner:start',  /* istanbul ignore next */(runner: Runner) => {
+        this.on('runner:start', /* istanbul ignore next */ (runner: Options.RunnerStart) => {
             rootSuite.cid = runner.cid
+            this.specs.push(...runner.specs)
             this.runnerStat = new RunnerStats(runner)
             this.onRunnerStart(this.runnerStat)
         })
 
-        this.on('suite:start',  /* istanbul ignore next */(params: Suite) => {
+        this.on('suite:start', /* istanbul ignore next */ (params: Suite) => {
+            /**
+             * the jasmine framework doesn't give us information about the file
+             * therefore we need to propagate these information into params
+             */
+            if (!params.file) {
+                params.file = !params.parent
+                    ? this.specs.shift() || 'unknown spec file'
+                    : this.currentSpec!
+                this.currentSpec = params.file
+            }
+
             const suite = new SuiteStats(params)
             const currentSuite = this.currentSuites[this.currentSuites.length - 1]
             currentSuite.suites.push(suite)
@@ -81,7 +85,7 @@ export default class WDIOReporter extends EventEmitter {
             this.onSuiteStart(suite)
         })
 
-        this.on('hook:start',  /* istanbul ignore next */(hook: Hook) => {
+        this.on('hook:start', /* istanbul ignore next */ (hook: Hook) => {
             const hookStats = new HookStats(hook)
             const currentSuite = this.currentSuites[this.currentSuites.length - 1]
             currentSuite.hooks.push(hookStats)
@@ -97,7 +101,7 @@ export default class WDIOReporter extends EventEmitter {
             this.onHookEnd(hookStats)
         })
 
-        this.on('test:start',  /* istanbul ignore next */(test: Test) => {
+        this.on('test:start', /* istanbul ignore next */ (test: Test) => {
             test.retries = this.retries
             currentTest = new TestStats(test)
             const currentSuite = this.currentSuites[this.currentSuites.length - 1]
@@ -139,7 +143,7 @@ export default class WDIOReporter extends EventEmitter {
 
             /**
              * In Mocha: tests that are skipped don't have a start event but a test end.
-             * In Jasmine: tests have a start event, therefor we need to replace the
+             * In Jasmine: tests have a start event, therefore we need to replace the
              * test instance with the pending test here
              */
             if (test.uid in this.tests && this.tests[test.uid].state !== 'pending') {
@@ -174,7 +178,7 @@ export default class WDIOReporter extends EventEmitter {
             this.onSuiteEnd(suiteStat)
         })
 
-        this.on('runner:end',  /* istanbul ignore next */(runner: Runner) => {
+        this.on('runner:end',  /* istanbul ignore next */(runner: Options.RunnerEnd) => {
             rootSuite.complete()
             if (this.runnerStat) {
                 this.runnerStat.failures = runner.failures
@@ -182,7 +186,7 @@ export default class WDIOReporter extends EventEmitter {
                 this.runnerStat.complete()
                 this.onRunnerEnd(this.runnerStat)
             }
-            const logFile = (this.options as WDIOReporterOptionsFromLogFile).logFile
+            const logFile = (this.options as Reporters.Options).logFile
             if (!this.isContentPresent && logFile && fs.existsSync(logFile)) {
                 fs.unlinkSync(logFile)
             }
@@ -267,4 +271,7 @@ export default class WDIOReporter extends EventEmitter {
     onRunnerEnd(runnerStats: RunnerStats) { }
 }
 
-export { SuiteStats, HookStats, TestStats, RunnerStats }
+export {
+    SuiteStats, Tag, HookStats, TestStats, RunnerStats, BeforeCommandArgs,
+    AfterCommandArgs, CommandArgs, Argument, Test
+}

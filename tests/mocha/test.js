@@ -50,6 +50,52 @@ describe('Mocha smoke test', () => {
         assert.equal(el.$('.selector-2').isExisting(), true)
     })
 
+    it('should chain properly asynchronous', async () => {
+        await browser.isExistingScenario()
+
+        const el = await browser.$('body')
+        assert.equal(await el.$('.selector-1').isExisting(), true)
+        assert.equal(await el.$('.selector-2').isExisting(), true)
+    })
+
+    it('should allow to use then/catch/finally', async () => {
+        await browser.isExistingScenario()
+        const val = await browser.$('body').$('.selector-1').then(() => 123)
+        expect(val).toBe(123)
+
+        await browser.isExistingScenario()
+        let anotherVal
+        const elem = await browser.$('body').$('.selector-1').finally(() => {
+            anotherVal = 321
+        })
+        expect(elem.selector).toBe('.selector-1')
+        expect(anotherVal).toBe(321)
+
+        await browser.isNotExistingScenario()
+        const errorVal = await browser.$('body').$('.fooobar').catch(() => 42)
+        expect(errorVal).toBe(42)
+    })
+
+    it('should allow chaining of custom$', async () => {
+        browser.addLocatorStrategy('someSelector', () => global.document.body)
+        await browser.customSelectorScenario()
+        const el = await browser.$('body').custom$('someSelector', 'foo').$('div#foobar')
+        expect(el.selector).toBe('div#foobar')
+    })
+
+    it('should allow to chain custom commands', async () => {
+        await browser.isExistingScenario()
+        browser.addCommand(
+            'foo',
+            function () {
+                return Promise.resolve('foo').then((r) => `${r}_${this.selector}_bar`)
+            },
+            true
+        )
+        expect(typeof browser.foo).toBe('undefined')
+        expect(await browser.$('body').$('.selector-1').foo()).toBe('foo_.selector-1_bar')
+    })
+
     it('should allow to reload a session', () => {
         const sessionIdBefore = browser.sessionId
         browser.reloadSession()
@@ -60,6 +106,16 @@ describe('Mocha smoke test', () => {
         const results = []
         const result = browser.waitUntil(() => {
             results.push(browser.getUrl())
+            return results.length > 1
+        })
+        assert.strictEqual(result, true)
+        assert.deepEqual(results, ['https://mymockpage.com', 'https://mymockpage.com'])
+    })
+
+    it('should handle promises in waitUntil callback funciton using async code', async () => {
+        const results = []
+        const result = await browser.waitUntil(async () => {
+            results.push(await browser.getUrl())
             return results.length > 1
         })
         assert.strictEqual(result, true)
@@ -78,6 +134,20 @@ describe('Mocha smoke test', () => {
             // ignored
         }
         assert.equal(JSON.stringify(elem.getSize()), JSON.stringify({ width: 1, height: 2 }))
+    })
+
+    it('should handle waitUntil timeout (using asynchronous execution)', async () => {
+        await browser.staleElementRefetchScenario()
+        const elem = await $('elem')
+        try {
+            await browser.waitUntil(async () => {
+                await elem.click()
+                return false
+            }, { timeout: 1000 })
+        } catch (err) {
+            // ignored
+        }
+        assert.equal(JSON.stringify(await elem.getSize()), JSON.stringify({ width: 1, height: 2 }))
     })
 
     it('should allow to run standalone mode synchronously', () => {
@@ -268,12 +338,29 @@ describe('Mocha smoke test', () => {
             browser.customCommandScenario()
             browser.overwriteCommand('deleteCookies', (origCommand, fail) => {
                 const result = origCommand()
-                return fail ? Promise.reject(result) : result
+                return fail ? Promise.reject(new Error(result)) : result
             })
 
             let err = null
             try {
                 browser.deleteCookies(true)
+            } catch (e) {
+                err = e
+            }
+            assert.equal(err.message, 'deleteAllCookies')
+            assert.equal(err.stack.includes(testJs), true)
+        })
+
+        it('should throw if promise rejects (async execution)', async () => {
+            await browser.customCommandScenario()
+            browser.overwriteCommand('deleteCookies', async (origCommand, fail) => {
+                const result = await origCommand()
+                return fail ? Promise.reject(new Error(result)) : result
+            })
+
+            let err = null
+            try {
+                await browser.deleteCookies(true)
             } catch (e) {
                 err = e
             }

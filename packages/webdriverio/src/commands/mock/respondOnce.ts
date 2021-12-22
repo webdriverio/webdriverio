@@ -4,17 +4,15 @@
  * only use `respondOnce` and the resource is called more times a mock has been
  * defined than it defaults back to the original resource.
  *
- * > This is a __beta__ feature. Please give us feedback and file [an issue](https://github.com/webdriverio/webdriverio/issues/new/choose) if certain scenarios don't work as expected!
- *
  * <example>
     :respondOnce.js
-    function getToDos () {
-        $('#todo-list li').waitForExist()
+    async function getToDos () {
+        await $('#todo-list li').waitForExist()
         return $$('#todo-list li').map(el => el.getText())
     }
 
-    it('should demonstrate the respondOnce command', () => {
-        const mock = browser.mock('https://todo-backend-express-knex.herokuapp.com/', {
+    it('should demonstrate the respondOnce command', async () => {
+        const mock = await browser.mock('https://todo-backend-express-knex.herokuapp.com/', {
             method: 'get'
         })
 
@@ -36,14 +34,14 @@
             title: '1'
         }])
 
-        browser.url('https://todobackend.com/client/index.html?https://todo-backend-express-knex.herokuapp.com/')
-        console.log(getToDos()) // outputs [ '3', '2', '1' ]
-        browser.url('https://todobackend.com/client/index.html?https://todo-backend-express-knex.herokuapp.com/')
-        console.log(getToDos()) // outputs [ '2', '1' ]
-        browser.url('https://todobackend.com/client/index.html?https://todo-backend-express-knex.herokuapp.com/')
-        console.log(getToDos()) // outputs [ '1' ]
-        browser.url('https://todobackend.com/client/index.html?https://todo-backend-express-knex.herokuapp.com/')
-        console.log(getToDos()) // outputs actual resource response
+        await browser.url('https://todobackend.com/client/index.html?https://todo-backend-express-knex.herokuapp.com/')
+        console.log(await getToDos()) // outputs [ '3', '2', '1' ]
+        await browser.url('https://todobackend.com/client/index.html?https://todo-backend-express-knex.herokuapp.com/')
+        console.log(await getToDos()) // outputs [ '2', '1' ]
+        await browser.url('https://todobackend.com/client/index.html?https://todo-backend-express-knex.herokuapp.com/')
+        console.log(await getToDos()) // outputs [ '1' ]
+        await browser.url('https://todobackend.com/client/index.html?https://todo-backend-express-knex.herokuapp.com/')
+        console.log(await getToDos()) // outputs actual resource response
     })
  * </example>
  *

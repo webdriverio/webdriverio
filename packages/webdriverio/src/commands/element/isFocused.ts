@@ -1,3 +1,7 @@
+import { ELEMENT_KEY } from '../../constants'
+import { getBrowserObject } from '../../utils'
+import isFocusedScript from '../../scripts/isFocused'
+
 /**
  *
  * Return true or false if the selected DOM-element currently has focus. If the selector matches
@@ -7,13 +11,13 @@
     :index.html
     <input name="login" autofocus="" />
     :hasFocus.js
-    it('should detect the focus of an element', () => {
-        browser.url('/');
-        const loginInput = $('[name="login"]');
-        console.log(loginInput.isFocused()); // outputs: false
+    it('should detect the focus of an element', async () => {
+        await browser.url('/');
+        const loginInput = await $('[name="login"]');
+        console.log(await loginInput.isFocused()); // outputs: false
 
-        loginInput.click();
-        console.log(loginInput.isFocused()); // outputs: true
+        await loginInput.click();
+        console.log(await loginInput.isFocused()); // outputs: true
     })
  * </example>
  *
@@ -24,15 +28,10 @@
  * @type state
  *
  */
-
-import { ELEMENT_KEY } from '../../constants'
-import { getBrowserObject } from '../../utils'
-import isFocusedScript from '../../scripts/isFocused'
-
 export default async function isFocused (this: WebdriverIO.Element) {
-    const browser: WebdriverIO.BrowserObject = await getBrowserObject(this)
+    const browser = await getBrowserObject(this)
     return browser.execute(isFocusedScript, {
         [ELEMENT_KEY]: this.elementId, // w3c compatible
         ELEMENT: this.elementId // jsonwp compatible
-    })
+    } as any as HTMLElement)
 }

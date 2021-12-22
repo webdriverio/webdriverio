@@ -1,6 +1,8 @@
 import logger from '@wdio/logger'
+import type { Capabilities } from '@wdio/types'
 
 import TestingBotLauncher from '../src/launcher'
+import type { TestingbotOptions } from '../src/types'
 
 const log = logger('')
 
@@ -15,7 +17,7 @@ describe('wdio-testingbot-service', () => {
         const options = { tbTunnel: undefined } as any
         const tbLauncher = new TestingBotLauncher(options)
         const caps = {} as any
-        await tbLauncher.onPrepare({}, caps)
+        await tbLauncher.onPrepare({} as any, caps)
         expect(tbLauncher.tbTunnelOpts).toBeUndefined()
         expect(tbLauncher.tunnel).toBeUndefined()
         expect(options.protocol).toBeUndefined()
@@ -42,6 +44,7 @@ describe('wdio-testingbot-service', () => {
 
         await tbLauncher.onPrepare(config, caps)
         expect(tbLauncher.tbTunnelOpts).toMatchObject({ apiKey: 'user', apiSecret: 'key', tunnelIdentifier: 'some options' })
+        await new Promise((resolve) => setTimeout(resolve, 100))
         expect((log.info as jest.Mock).mock.calls[0][0]).toContain('TestingBot tunnel successfully started after')
     })
 
@@ -87,15 +90,19 @@ describe('wdio-testingbot-service', () => {
             user: 'user',
             key: 'key'
         }
-        const caps = {
+        const caps: Capabilities.MultiRemoteCapabilities = {
             browserA: {
-                'tb:options': {
-                    build: 'unit-test',
+                capabilities: {
+                    'tb:options': {
+                        build: 'unit-test',
+                    }
                 }
             } as any,
             browserB: {
-                'tb:options': {
-                    build: 'other-unit-test',
+                capabilities: {
+                    'tb:options': {
+                        build: 'other-unit-test',
+                    }
                 }
             } as any
         }
@@ -104,15 +111,19 @@ describe('wdio-testingbot-service', () => {
         await tbLauncher.onPrepare(config, caps as any)
         expect(caps).toEqual({
             browserA: {
-                'tb:options': {
-                    'tunnel-identifier': 'my-tunnel',
-                    build: 'unit-test',
+                capabilities: {
+                    'tb:options': {
+                        'tunnel-identifier': 'my-tunnel',
+                        build: 'unit-test',
+                    }
                 }
             },
             browserB: {
-                'tb:options': {
-                    'tunnel-identifier': 'my-tunnel',
-                    build: 'other-unit-test',
+                capabilities: {
+                    'tb:options': {
+                        'tunnel-identifier': 'my-tunnel',
+                        build: 'other-unit-test',
+                    }
                 }
             }
         })
@@ -154,19 +165,23 @@ describe('wdio-testingbot-service', () => {
             user: 'user',
             key: 'key'
         }
-        const caps = {
-            browserA: {},
+        const caps: Capabilities.MultiRemoteCapabilities = {
+            browserA: {
+                capabilities: {}
+            },
             browserB: {
-                'tb:options': {
-                    build: 'other-unit-test',
+                capabilities: {
+                    'tb:options': {
+                        build: 'other-unit-test',
+                    }
                 }
             }
         }
         const tbLauncher = new TestingBotLauncher(options)
 
         await tbLauncher.onPrepare(config, caps as any)
-        expect(Object.keys(caps.browserA['tb:options'])).toContain('tunnel-identifier')
-        expect(Object.keys(caps.browserB['tb:options'])).toContain('build')
+        expect(Object.keys((caps.browserA.capabilities as Capabilities.DesiredCapabilities)['tb:options'] as any)).toContain('tunnel-identifier')
+        expect(Object.keys((caps.browserB.capabilities as Capabilities.DesiredCapabilities)['tb:options'] as any)).toContain('build')
     })
 
     it('onComplete', () => {

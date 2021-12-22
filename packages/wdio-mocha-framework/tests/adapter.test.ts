@@ -250,16 +250,20 @@ describe('formatMessage', () => {
         expect(message.parent).toEqual('')
     })
 
-    test('should use fullTitle function if given', () => {
+    test('should format fullTitle', () => {
         // @ts-ignore params not needed for test scenario
         const adapter = adapterFactory()
         const params = { type: 'foobar', payload: {
             title: 'barfoo',
-            parent: {},
-            fullTitle: () => 'full title'
+            parent: {
+                title: 'Parent 2',
+                parent: {
+                    title: 'Parent 1'
+                }
+            }
         } }
         const message = adapter.formatMessage(params as any)
-        expect(message.fullTitle).toEqual('full title')
+        expect(message.fullTitle).toEqual('Parent 1.Parent 2.barfoo')
     })
 
     test('should format test status', () => {

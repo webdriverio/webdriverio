@@ -5,23 +5,13 @@ WebdriverIO TestingBot Service
 
 ## Installation
 
-The easiest way is to keep `@wdio/testingbot-service` as a devDependency in your `package.json`.
+The easiest way is to keep `@wdio/testingbot-service` as a devDependency in your `package.json`, via:
 
-```json
-{
-    "devDependencies": {
-        "@wdio/testingbot-service": "^6.1.14"
-    }
-}
-```
-
-You can simple do it by:
-
-```bash
+```sh
 npm install @wdio/testingbot-service --save-dev
 ```
 
-Instructions on how to install `WebdriverIO` can be found [here.](https://webdriver.io/docs/gettingstarted.html)
+Instructions on how to install `WebdriverIO` can be found [here.](https://webdriver.io/docs/gettingstarted)
 
 ## Configuration
 
@@ -45,16 +35,16 @@ export.config = {
 
 ## Options
 
-In order to authorize to the TestingBot service your config needs to contain a [`user`](https://webdriver.io/docs/options.html#user) and [`key`](https://webdriver.io/docs/options.html#key) option.
+In order to authorize to the TestingBot service your config needs to contain a [`user`](https://webdriver.io/docs/options#user) and [`key`](https://webdriver.io/docs/options#key) option.
 
 ### tbTunnel
 If true it runs the TestingBot Tunnel and opens a secure connection between a TestingBot Virtual Machine running your browser tests.
 
-Type: `Boolean`<br>
+Type: `Boolean`<br />
 Default: `false`
 
 ### tbTunnelOpts
 Apply TestingBot Tunnel options (e.g. to change port number or logFile settings). See [this list](https://github.com/testingbot/testingbot-tunnel-launcher) for more information.
 
-Type: `Object`<br>
+Type: `Object`<br />
 Default: `{}`

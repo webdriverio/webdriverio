@@ -1,12 +1,12 @@
 {
-    "extends": "../../tsconfig",
-    "compilerOptions": {
-        "baseUrl": ".",
-        "outDir": "./build",
-        "rootDir": "./src",
-        "types": ["webdriverio", "@wdio/protocols"],
-    },
-    "include": [
-        "src/**/*"
-    ]
+  "extends": "../../tsconfig",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "outDir": "./build",
+    "rootDir": "./src"
+  },
+  "include": [
+    "src/**/*",
+    "../../@types"
+  ]
 }

@@ -1,11 +1,16 @@
+jest.unmock('@wdio/config')
+
 import path from 'path'
 import gotMock from 'got'
-import logger from '@wdio/logger'
+// @ts-ignore mock feature
+import logger, { logMock } from '@wdio/logger'
 import * as wdioUtils from '@wdio/utils'
+import { Capabilities } from '@wdio/types'
 
-import WebDriver, { getPrototype, DEFAULTS } from '../src'
-import { DesiredCapabilities, Client } from '../src/types'
+import WebDriver, { getPrototype, DEFAULTS, command } from '../src'
+import { Client } from '../src/types'
 
+const expect = global.expect as unknown as jest.Expect
 const got = gotMock as unknown as jest.Mock
 const sessionEnvironmentDetector = wdioUtils.sessionEnvironmentDetector as jest.Mock
 
@@ -17,6 +22,27 @@ const sessionOptions = {
     sessionId: 'foobar'
 }
 
+const OUTPUT_DIR = path.join('some', 'output', 'dir')
+const OUTPUT_FILE = path.join(OUTPUT_DIR, 'wdio.log')
+
+const setUpLogCheck = (conditionFunction: () => boolean) => {
+    const logCheck = (...args: string[]) => {
+        if (!conditionFunction()) {
+            throw new Error(
+                'Log function was called before setting ' +
+                'process.env.WDIO_LOG_PATH.\n' +
+                'Passed arguments to log function:\n' +
+                args.map((arg, index) => `  [${index}]: ${arg}`).join('\n')
+            )
+        }
+    }
+
+    logMock.error.mockImplementation(logCheck)
+    logMock.warn.mockImplementation(logCheck)
+    logMock.info.mockImplementation(logCheck)
+    logMock.debug.mockImplementation(logCheck)
+}
+
 interface TestClient extends Client {
     getUrl (): string
     getApplicationCacheStatus (): void
@@ -24,12 +50,27 @@ interface TestClient extends Client {
     getDeviceTime (): void
 }
 
+beforeEach(() => {
+    sessionEnvironmentDetector.mockClear()
+})
+
 describe('WebDriver', () => {
     test('exports getPrototype, DEFAULTS', () => {
         expect(typeof getPrototype).toBe('function')
         expect(typeof DEFAULTS).toBe('object')
+        expect(typeof command).toBe('function')
     })
+
     describe('newSession', () => {
+        afterEach(() => {
+            delete process.env.WDIO_LOG_PATH
+
+            logMock.error.mockRestore()
+            logMock.warn.mockRestore()
+            logMock.info.mockRestore()
+            logMock.debug.mockRestore()
+        })
+
         it('should allow to create a new session using jsonwire caps', async () => {
             const testDirPath = './logs'
             await WebDriver.newSession({
@@ -76,6 +117,8 @@ describe('WebDriver', () => {
         })
 
         it('should allow to use Appium direct connect functionality', async () => {
+            setUpLogCheck(() => process.env.WDIO_LOG_PATH === OUTPUT_FILE)
+
             await WebDriver.newSession({
                 directConnectProtocol: 'https',
                 directConnectHost: 'foobar',
@@ -85,7 +128,8 @@ describe('WebDriver', () => {
                 capabilities: {
                     alwaysMatch: { browserName: 'firefox' },
                     firstMatch: [{}]
-                }
+                },
+                outputDir: OUTPUT_DIR,
             })
 
             const url = got.mock.calls[0][0]
@@ -111,19 +155,56 @@ describe('WebDriver', () => {
             expect(logger.setLevel).toBeCalled()
         })
 
+        it('should be possible to skip setting outputDir', async () => {
+            setUpLogCheck(() => !('WDIO_LOG_PATH' in process.env))
+
+            await WebDriver.newSession({
+                capabilities: { browserName: 'chrome' },
+            })
+
+            expect('WDIO_LOG_PATH' in process.env).toBe(false)
+        })
+
+        it('should be possible to set outputDir', async () => {
+            setUpLogCheck(() => process.env.WDIO_LOG_PATH === OUTPUT_FILE)
+
+            await WebDriver.newSession({
+                capabilities: { browserName: 'chrome' },
+                outputDir: OUTPUT_DIR,
+            })
+
+            expect(process.env.WDIO_LOG_PATH).toBe(OUTPUT_FILE)
+        })
+
+        it('should be possible to override outputDir with env var', async () => {
+            const customPath = '/some/custom/path'
+
+            setUpLogCheck(() => process.env.WDIO_LOG_PATH === customPath)
+
+            process.env.WDIO_LOG_PATH = customPath
+
+            await WebDriver.newSession({
+                capabilities: { browserName: 'chrome' },
+                outputDir: OUTPUT_DIR,
+            })
+
+            expect(process.env.WDIO_LOG_PATH).not.toBe(OUTPUT_DIR)
+            expect(process.env.WDIO_LOG_PATH).toBe(customPath)
+        })
+
         it('propagates capabilities and requestedCapabilities', async () => {
             const browser = await WebDriver.newSession({
                 path: '/',
                 capabilities: { browserName: 'firefox' }
             })
-            expect((browser.capabilities as DesiredCapabilities).browserName).toBe('mockBrowser')
-            expect((browser.requestedCapabilities as DesiredCapabilities).browserName).toBe('firefox')
+            expect((browser.capabilities as Capabilities.DesiredCapabilities).browserName).toBe('mockBrowser')
+            expect((browser.requestedCapabilities as Capabilities.DesiredCapabilities).browserName).toBe('firefox')
         })
     })
 
     describe('attachToSession', () => {
         it('should allow to attach to existing session', async () => {
-            const client = WebDriver.attachToSession({ ...sessionOptions, logLevel: 'info' }) as TestClient
+            const client = WebDriver.attachToSession({ ...sessionOptions, logLevel: 'error' }) as TestClient
             await client.getUrl()
             const url = got.mock.calls[0][0]
             expect(url.href).toBe('http://localhost:4444/session/foobar/url')
@@ -209,6 +290,14 @@ describe('WebDriver', () => {
             expect(anotherClient.isAndroid).toBe(true)
             expect(anotherClient.isChrome).toBe(true)
             expect(anotherClient.isSauce).toBe(true)
+        })
+
+        it('should apply default connection details', () => {
+            const client = WebDriver.attachToSession({ sessionId: '123' })
+            expect(client.options.protocol).toBe('http')
+            expect(client.options.hostname).toBe('localhost')
+            expect(client.options.port).toBe(4444)
+            expect(client.options.path).toBe('/')
         })
 
         it('should fail attaching to session if sessionId is not given', () => {

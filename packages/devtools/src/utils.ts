@@ -3,7 +3,7 @@ import path from 'path'
 import { execFileSync } from 'child_process'
 import logger from '@wdio/logger'
 import { commandCallStructure, isValidParameter, getArgumentType, canAccess } from '@wdio/utils'
-import { WebDriverProtocol } from '@wdio/protocols'
+import { WebDriverProtocol, CommandParameters, CommandPathVariables, ElementReference } from '@wdio/protocols'
 import type { Logger } from '@wdio/logger'
 import type { ElementHandle } from 'puppeteer-core/lib/cjs/puppeteer/common/JSHandle'
 import type { Browser } from 'puppeteer-core/lib/cjs/puppeteer/common/Browser'
@@ -19,8 +19,8 @@ const log = logger('devtools')
 
 export const validate = function (
     command: string,
-    parameters: WDIOProtocols.CommandParameters[],
-    variables: WDIOProtocols.CommandPathVariables[],
+    parameters: CommandParameters[],
+    variables: CommandPathVariables[],
     ref: string,
     args: any[]
 ) {
@@ -100,8 +100,9 @@ export function getPrototype (commandWrapper: Function) {
 export async function findElement (
     this: DevToolsDriver,
     context: Frame | Page | ElementHandle,
-    using: string, value: string
-): Promise<WebDriver.ElementReference | Error>  {
+    using: string,
+    value: string
+): Promise<ElementReference | Error>  {
     /**
      * implicitly wait for the element if timeout is set
      */
@@ -116,7 +117,7 @@ export async function findElement (
         element = using === 'xpath'
             ? (await context.$x(value))[0]
             : await context.$(value)
-    } catch (err) {
+    } catch (err: any) {
         /**
          * throw if method failed for other reasons
          */
@@ -127,7 +128,7 @@ export async function findElement (
 
     /**
      * if an element is not found we only return an error to allow
-     * refetching it at a later stage
+     * refetch it at a later stage
      */
     if (!element) {
         return new Error(`Element with selector "${value}" not found`)
@@ -141,7 +142,7 @@ export async function findElements (
     this: DevToolsDriver, context: Page | Frame | ElementHandle,
     using: string,
     value: string
-): Promise<WebDriver.ElementReference[]> {
+): Promise<ElementReference[]> {
     /**
      * implicitly wait for the element if timeout is set
      */
@@ -189,7 +190,7 @@ export function sanitizeError (err: Error) {
  */
 export async function transformExecuteArgs (this: DevToolsDriver, args: any[] = []): Promise<ElementHandle | any> {
     return Promise.all(args.map(async (arg) => {
-        if (arg[ELEMENT_KEY]) {
+        if (arg && arg[ELEMENT_KEY]) {
             const elementHandle = await this.elementStore.get(arg[ELEMENT_KEY])
 
             if (!elementHandle) {
@@ -206,7 +207,11 @@ export async function transformExecuteArgs (this: DevToolsDriver, args: any[] = 
 /**
  * fetch marked elements from execute script
  */
-export async function transformExecuteResult (this: DevToolsDriver, page: Page, result: any | any[]) {
+export async function transformExecuteResult (
+    this: DevToolsDriver,
+    page: Page,
+    result: any | any[]
+) {
     const isResultArray = Array.isArray(result)
     let tmpResult = isResultArray ? result : [result]
 
@@ -216,7 +221,7 @@ export async function transformExecuteResult (this: DevToolsDriver, page: Page, 
                 return findElement.call(this, page, 'css selector', `[${SERIALIZE_PROPERTY}="${r}"]`)
             }
 
-            return result
+            return r
         }))
 
         await page.$$eval(`[${SERIALIZE_PROPERTY}]`, cleanUp, SERIALIZE_PROPERTY)
@@ -280,7 +285,7 @@ export function sort(installations: string[], priorities: Priorities[]) {
 }
 
 /**
- * helper utitlity to clone a list
+ * helper utility to clone a list
  * @param  {Any[]} arr  list of things
  * @return {Any[]}      new list of same things
  */
@@ -304,7 +309,7 @@ export function findByWhich (executables: string[], priorities: Priorities[]) {
             if (canAccess(browserPath)) {
                 installations.push(browserPath)
             }
-        } catch (e) {
+        } catch (err: any) {
             // Not installed.
         }
     })
@@ -344,3 +349,6 @@ export function patchDebug (scoppedLogger: Logger) {
         scoppedLogger.debug(msg)
     }
 }
+
+export const sleep = (time = 0) => new Promise(
+    (resolve) => setTimeout(resolve, time))

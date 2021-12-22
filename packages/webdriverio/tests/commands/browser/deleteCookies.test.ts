@@ -3,7 +3,7 @@ import got from 'got'
 import { remote } from '../../../src'
 
 describe('deleteCookies', () => {
-    let browser: WebdriverIO.BrowserObject
+    let browser: WebdriverIO.Browser
 
     beforeAll(async () => {
         browser = await remote({
@@ -53,7 +53,7 @@ describe('deleteCookies', () => {
         // @ts-ignore test invalid input
         await expect(browser.deleteCookies([2]))
             .rejects
-            .toEqual(new Error('Invalid input (see https://webdriver.io/docs/api/browser/deleteCookies.html for documentation.'))
+            .toEqual(new Error('Invalid input (see https://webdriver.io/docs/api/browser/deleteCookies for documentation)'))
     })
 
     afterEach(() => {

@@ -1,38 +1,42 @@
-import RunnerTransformStream from '../src/transformStream'
+import { Readable } from 'stream'
+import runnerTransformStream from '../src/transformStream'
 import { DEBUGGER_MESSAGES } from '../src/constants'
 
-test('should add cid to message', () => {
-    const stream = new RunnerTransformStream('0-5')
-    const cb = jest.fn()
-    const pushSpy = jest.spyOn(stream, 'push')
+const expect = global.expect as unknown as jest.Expect
 
-    stream._transform('foobar', 'utf8', cb)
-    expect(pushSpy).toBeCalledWith('[0-5] foobar')
-    expect(cb).toBeCalled()
-})
+function read(stream: Readable): Promise<string> {
+    return new Promise((resolve, reject) => {
+        const chunks: Buffer[] = []
 
-test('should ignore debugger messages', () => {
-    const stream = new RunnerTransformStream('0-5')
-    const cb = jest.fn()
-    const pushSpy = jest.spyOn(stream, 'push')
-
-    DEBUGGER_MESSAGES.forEach(m => stream._transform(`${m} foobar`, 'utf8', cb))
-    expect(pushSpy).toBeCalledTimes(0)
-})
-
-test('should unpipe in the end', (done) => {
-    const stream = new RunnerTransformStream('0-5')
-    const stream2 = new RunnerTransformStream('0-6')
-
-    stream2.pipe(stream)
-    const cb = jest.fn()
-    stream.on('unpipe', cb)
-
-    const finalSpy = jest.spyOn(stream, '_final')
-
-    stream.end(() => {
-        expect(cb).toBeCalled()
-        expect(finalSpy).toBeCalled()
-        done()
+        stream.on('data',   chunk => chunks.push(Buffer.from(chunk)))
+        stream.on('error',  err => reject(err))
+        stream.on('unpipe', () => resolve(Buffer.concat(chunks).toString('utf8')))
     })
+}
+
+test('should add cid to message', async () => {
+
+    const input = Readable.from(['foobar'])
+
+    const output = await read(runnerTransformStream('0-5', input))
+
+    expect(output).toEqual('[0-5] foobar\n')
+})
+
+test('should add cid at the beginning of each line for multi-line message', async () => {
+
+    const input = Readable.from(['line 1\nline ', '2\nline 3\n'])
+
+    const output = await read(runnerTransformStream('0-5', input))
+
+    expect(output).toEqual('[0-5] line 1\n[0-5] line 2\n[0-5] line 3\n')
+})
+
+test('should ignore debugger messages', async () => {
+
+    const input = Readable.from(DEBUGGER_MESSAGES.map(m => `${m} foobar`))
+
+    const output = await read(runnerTransformStream('0-5', input))
+
+    expect(output).toEqual('')
 })

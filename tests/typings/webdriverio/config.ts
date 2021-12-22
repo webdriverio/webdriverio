@@ -4,8 +4,49 @@ class CustomService {
     }
 }
 
+const configA: WebdriverIO.Config = {
+    // @ts-expect-error should not be available
+    beforeFeature () {
+
+    },
+
+    async beforeCommand (name) {
+        name.toLowerCase()
+        const title = await browser.getTitle()
+        title.slice(0, 1)
+    }
+}
+
 const config: WebdriverIO.Config = {
     services: [
+        ['sauce', {
+            sauceConnect: true,
+            sauceConnectOpts: {
+                directDomains: 'some.domain'
+            },
+            scRelay: true,
+            // @ts-expect-error test wrong parameter
+            parentTunnel: 123
+        }],
+        ['appium', {
+            args: {
+                basePath: 'some/path',
+                // @ts-expect-error test wrong parameter
+                port: true
+            }
+        }],
+        ['browserstack', {
+            browserstackLocal: true,
+            // @ts-expect-error test wrong parameter
+            forcedStop: 'no'
+        }],
+        ['devtools', {
+            coverageReporter: {
+                enable: true,
+                // @ts-expect-error test wrong parameter
+                type: 'foo'
+            }
+        }],
         ['selenium-standalone', {
             logs: 'string',
             installArgs: {
@@ -14,10 +55,16 @@ const config: WebdriverIO.Config = {
             args: {
                 basePath: ''
             },
-            skipSeleniumInstall: true
+            skipSeleniumInstall: true,
+            drivers: {
+                chrome: 'yes',
+                // @ts-expect-error test wrong parameter
+                brave: 'no'
+            }
         }],
         ['crossbrowsertesting', {
-            cbtTunnel: true,
+            // @ts-expect-error test wrong parameter
+            cbtTunnel: 'true',
             cbtTunnelOpts: {
                 foo: 'bar'
             }
@@ -25,24 +72,45 @@ const config: WebdriverIO.Config = {
         ['firefox-profile', {
             extensions: [],
             profileDirectory: '/foo/bar',
-            proxy: {},
+            proxy: { proxyType: 'direct' },
             legay: false
         }],
         ['static-server', {
-            folders: [{}],
+            folders: [{
+                mount: '',
+                path: ''
+            }],
             port: 1234,
-            middleware: [{}]
+            middleware: [{
+                mount: '',
+                middleware: ''
+            }]
         }],
         ['testingbot', {
             tbTunnel: true,
             tbTunnelOpts: {
                 tunnelIdentifier: 'identifier',
+                // @ts-expect-error
+                tunnelVersion: 0,
                 apiKey: 'key',
                 apiSecret: 'secret',
             }
         }],
         [CustomService, {
             someOption: true
+        }]
+    ],
+
+    reporters: [
+        ['allure', {
+            issueLinkTemplate: 'foo',
+            // @ts-expect-error
+            useCucumberStepReporter: 'wrong-param'
+        }],
+        ['sumologic', {
+            // @ts-expect-error
+            syncInterval: 'wrong param',
+            sourceAddress: 'http://foo'
         }]
     ],
 
@@ -81,9 +149,13 @@ const config: WebdriverIO.Config = {
             logName: 'test.log',
             videoName: 'test.mp4'
         }
+    }, {
+        'wdio:devtoolsOptions': {
+            ignoreDefaultArgs: false
+        }
     }] as WebDriver.DesiredCapabilities[],
 
     filesToWatch: [
         '/foo/page-objects/**/*.page.js',
-    ],
+    ]
 }

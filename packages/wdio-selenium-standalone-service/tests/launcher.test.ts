@@ -3,6 +3,8 @@ import fs from 'fs-extra'
 import Selenium from 'selenium-standalone'
 import SeleniumStandaloneLauncher from '../src/launcher'
 
+const expect = global.expect as any as jest.Expect
+
 jest.mock('fs-extra', () => ({
     createWriteStream: jest.fn(),
     ensureFileSync: jest.fn(),
@@ -21,12 +23,11 @@ describe('Selenium standalone launcher', () => {
                 args: { drivers: { chrome: {} } },
                 installArgs: { drivers: { chrome: {} } },
             }
-            const capabilities: any = [{ port: 1234 }]
-            const launcher = new SeleniumStandaloneLauncher(options, capabilities, {})
+            const capabilities: any = [{ port: 1234, browserName: 'firefox' }]
+            const launcher = new SeleniumStandaloneLauncher(options, capabilities, {} as any)
             launcher._redirectLogStream = jest.fn()
             await launcher.onPrepare({ watch: true } as never)
 
-            expect(launcher.logPath).toBe(options.logPath)
             expect(launcher.installArgs).toBe(options.installArgs)
             expect(launcher.args).toBe(options.args)
             expect(launcher.skipSeleniumInstall).toBe(false)
@@ -44,10 +45,10 @@ describe('Selenium standalone launcher', () => {
                 installArgs: { drivers: { chrome: {} } },
             }
             const capabilities: any = {
-                browserA: { port: 1234 },
-                browserB: { port: 4321 }
+                browserA: { port: 1234, browserName: 'safari' },
+                browserB: { port: 4321, browserName: 'edge' }
             }
-            const launcher = new SeleniumStandaloneLauncher(options, capabilities, {})
+            const launcher = new SeleniumStandaloneLauncher(options, capabilities, {} as any)
             launcher._redirectLogStream = jest.fn()
             await launcher.onPrepare({ watch: true } as never)
             expect(capabilities.browserA.protocol).toBe('http')
@@ -67,19 +68,55 @@ describe('Selenium standalone launcher', () => {
                 installArgs: { drivers: { chrome: {} } },
             }
             const capabilities: any = {
-                browserA: { port: 1234 },
+                browserA: {
+                    port: 1234,
+                    capabilities: {
+                        browserName: 'chrome',
+                        acceptInsecureCerts: true
+                    }
+                },
                 browserB: { port: 4321, capabilities: { 'bstack:options': {} } }
             }
-            const launcher = new SeleniumStandaloneLauncher(options, capabilities, {})
+            const launcher = new SeleniumStandaloneLauncher(options, capabilities, {} as any)
             launcher._redirectLogStream = jest.fn()
             await launcher.onPrepare({ watch: true } as never)
             expect(capabilities.browserA.protocol).toBe('http')
             expect(capabilities.browserA.hostname).toBe('localhost')
-            expect(capabilities.browserA.port).toBe(1234)
             expect(capabilities.browserA.path).toBe('/wd/hub')
+            expect(capabilities.browserA.port).toBe(1234)
             expect(capabilities.browserB.protocol).toBeUndefined()
             expect(capabilities.browserB.hostname).toBeUndefined()
             expect(capabilities.browserB.port).toBe(4321)
+            expect(capabilities.browserB.path).toBeUndefined()
+        })
+
+        test('should not override if capabilities do not match supported set of browser', async () => {
+            const options = {
+                logPath: './',
+                args: { drivers: { chrome: {} } },
+                installArgs: { drivers: { chrome: {} } },
+            }
+            const capabilities: any = {
+                browserA: {
+                    capabilities: {
+                        browserName: 'chrome',
+                        acceptInsecureCerts: true
+                    }
+                },
+                browserB: {
+                    capabilities: {
+                        platformName: 'Android',
+                        'appium:deviceName': 'pixel2',
+                        'appium:avd': 'pixel2',
+                    }
+                }
+            }
+            const launcher = new SeleniumStandaloneLauncher(options, capabilities, {} as any)
+            launcher._redirectLogStream = jest.fn()
+            await launcher.onPrepare({ watch: true } as never)
+            expect(capabilities.browserB.protocol).toBeUndefined()
+            expect(capabilities.browserB.hostname).toBeUndefined()
+            expect(capabilities.browserB.port).toBeUndefined()
             expect(capabilities.browserB.path).toBeUndefined()
         })
 
@@ -106,9 +143,9 @@ describe('Selenium standalone launcher', () => {
                     }
                 }
             }
-            const launcher = new SeleniumStandaloneLauncher(options, [], {})
+            const launcher = new SeleniumStandaloneLauncher(options, [], { outputDir: '/foo/bar' })
             launcher._redirectLogStream = jest.fn()
-            await launcher.onPrepare({})
+            await launcher.onPrepare({} as any)
 
             expect((Selenium.install as jest.Mock).mock.calls[0][0]).toBe(options.installArgs)
             expect((Selenium.start as jest.Mock).mock.calls[0][0]).toBe(options.args)
@@ -128,9 +165,9 @@ describe('Selenium standalone launcher', () => {
                 },
                 skipSeleniumInstall: true
             }
-            const launcher = new SeleniumStandaloneLauncher(options, [], {})
+            const launcher = new SeleniumStandaloneLauncher(options, [], { outputDir: '/foo/bar' })
             launcher._redirectLogStream = jest.fn()
-            await launcher.onPrepare({})
+            await launcher.onPrepare({} as any)
 
             expect(Selenium.install).not.toBeCalled()
             expect((Selenium.start as jest.Mock).mock.calls[0][0]).toBe(options.args)
@@ -141,9 +178,9 @@ describe('Selenium standalone launcher', () => {
             const launcher = new SeleniumStandaloneLauncher({
                 installArgs: {},
                 args: {},
-            }, [], {})
+            }, [], {} as any)
             launcher._redirectLogStream = jest.fn()
-            await launcher.onPrepare({})
+            await launcher.onPrepare({} as any)
 
             expect(launcher._redirectLogStream).not.toBeCalled()
         })
@@ -154,7 +191,7 @@ describe('Selenium standalone launcher', () => {
             const launcher = new SeleniumStandaloneLauncher({
                 installArgs: {},
                 args: {}
-            }, [], {})
+            }, [], {} as any)
             launcher._redirectLogStream = jest.fn()
             await launcher.onPrepare({ watch: true } as never)
 
@@ -169,7 +206,7 @@ describe('Selenium standalone launcher', () => {
                 drivers: { chrome: 'latest', firefox: '0.28.0', ie: true, chromiumedge: '87.0.637.0', edge: false },
             }
             const capabilities: any = [{ port: 1234 }]
-            const launcher = new SeleniumStandaloneLauncher(options, capabilities, {})
+            const launcher = new SeleniumStandaloneLauncher(options, capabilities, {} as any)
 
             const seleniumArgs = { drivers: { chrome: { version: 'latest' }, firefox: { version: '0.28.0' }, ie: {}, chromiumedge: { version: '87.0.637.0' } } }
             expect(launcher.args).toEqual(seleniumArgs)
@@ -182,7 +219,7 @@ describe('Selenium standalone launcher', () => {
                 drivers: { chrome: 'latest' },
             }
             const capabilities: any = [{ port: 1234 }]
-            const launcher = new SeleniumStandaloneLauncher(options, capabilities, {})
+            const launcher = new SeleniumStandaloneLauncher(options, capabilities, {} as any)
 
             const seleniumArgs = { drivers: { chrome: { version: 'latest' } } }
             expect(launcher.args).toEqual(seleniumArgs)
@@ -195,7 +232,7 @@ describe('Selenium standalone launcher', () => {
                 drivers: {},
             }
             const capabilities: any = [{ port: 1234 }]
-            const launcher = new SeleniumStandaloneLauncher(options, capabilities, {})
+            const launcher = new SeleniumStandaloneLauncher(options, capabilities, {} as any)
 
             const seleniumArgs = {}
             expect(launcher.args).toEqual(seleniumArgs)
@@ -208,16 +245,16 @@ describe('Selenium standalone launcher', () => {
             const launcher = new SeleniumStandaloneLauncher({
                 installArgs: {},
                 args: {},
-            }, [], {})
+            }, [], {} as any)
             launcher._redirectLogStream = jest.fn()
-            await launcher.onPrepare({})
+            await launcher.onPrepare({} as any)
             launcher.onComplete()
 
             expect(launcher.process.kill).toBeCalled()
         })
 
         test('should not call process.kill', () => {
-            const launcher = new SeleniumStandaloneLauncher({}, [], {})
+            const launcher = new SeleniumStandaloneLauncher({}, [], {} as any)
             launcher.onComplete()
 
             expect(launcher.process).toBeFalsy()
@@ -227,7 +264,7 @@ describe('Selenium standalone launcher', () => {
             const launcher = new SeleniumStandaloneLauncher({
                 installArgs: {},
                 args: {}
-            }, [], {})
+            }, [], {} as any)
             launcher._redirectLogStream = jest.fn()
             await launcher.onPrepare({ watch: true } as never)
             launcher.onComplete()
@@ -239,11 +276,10 @@ describe('Selenium standalone launcher', () => {
     describe('_redirectLogStream', () => {
         test('should write output to file', async () => {
             const launcher = new SeleniumStandaloneLauncher({
-                logPath: './',
                 installArgs: {},
                 args: {},
-            }, [], {})
-            await launcher.onPrepare({})
+            }, [], { outputDir: './' } as any)
+            await launcher.onPrepare({} as any)
 
             expect((fs.createWriteStream as jest.Mock).mock.calls[0][0])
                 .toBe(path.join(process.cwd(), 'wdio-selenium-standalone.log'))

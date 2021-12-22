@@ -1,9 +1,10 @@
-import { BACKEND_CHOICES, MODE_OPTIONS, REGION_OPTION, COMPILER_OPTION_ANSWERS } from './constants'
+import { Options, Reporters } from '@wdio/types'
+import { BACKEND_CHOICES, REGION_OPTION, COMPILER_OPTION_ANSWERS } from './constants'
 
 type ValueOf<T> = T[keyof T]
 
 export interface Questionnair {
-    runner: string
+    runner: 'local'
     backend: ValueOf<typeof BACKEND_CHOICES>
     hostname: string
     port: string
@@ -19,7 +20,6 @@ export interface Questionnair {
     headless: boolean
     region: ValueOf<typeof REGION_OPTION>
     framework: string
-    executionMode: ValueOf<typeof MODE_OPTIONS>
     specs: string
     stepDefinitions: string
     generateTestFiles: boolean
@@ -33,7 +33,7 @@ export interface Questionnair {
 }
 
 export interface ParsedAnswers extends Omit<Questionnair, 'runner' | 'framework' | 'reporters' | 'services'> {
-    runner: string
+    runner: 'local'
     framework: string
     reporters: string[]
     services: string[]
@@ -46,6 +46,7 @@ export interface ParsedAnswers extends Omit<Questionnair, 'runner' | 'framework'
     destSpecRootPath: string
     destPageObjectRootPath: string
     relativePath: string
+    tsConfigFilePath: string
 }
 
 export interface RunCommandArguments {
@@ -60,13 +61,14 @@ export interface RunCommandArguments {
     baseUrl?: string
     waitforTimeout?: number
     framework?: string
-    reporters?: any
+    reporters?: Reporters.ReporterEntry[]
     suite?: string[]
     spec?: string[]
     exclude?: string[]
-    mochaOpts?: any
-    jasmineNodeOpts?: any
-    cucumberOpts?: any
+    mochaOpts?: WebdriverIO.MochaOpts
+    jasmineOpts?: WebdriverIO.JasmineOpts
+    cucumberOpts?: WebdriverIO.CucumberOpts
+    autoCompileOpts?: Options.AutoCompileConfig
     configPath: string
 
     /**
@@ -105,3 +107,17 @@ export interface OnCompleteResult {
     retries: number
     failed: number
 }
+
+/** Extracted from @types/lodash@4.14.168 */
+export type ValueKeyIteratee<T> =
+    | ((value: T, key: string) => NotVoid)
+    | IterateeShorthand<T>;
+type IterateeShorthand<T> =
+    | PropertyName
+    | [PropertyName, any]
+    | PartialShallow<T>;
+type PropertyName = string | number | symbol;
+type PartialShallow<T> = {
+    [P in keyof T]?: T[P] extends object ? object : T[P];
+};
+type NotVoid = unknown;

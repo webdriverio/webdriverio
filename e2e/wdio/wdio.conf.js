@@ -1,10 +1,12 @@
 const path = require('path')
 
+const DevtoolsService = require('../../packages/wdio-devtools-service').default
+
 exports.config = {
     /**
      * specify test files
      */
-    specs: [path.resolve(__dirname, '*.e2e.js')],
+    specs: [path.resolve(__dirname, 'headless', '*.e2e.js')],
 
     /**
      * capabilities
@@ -13,6 +15,8 @@ exports.config = {
         browserName: 'chrome',
         'wdio:devtoolsOptions': { headless: true, dumpio: true }
     }],
+
+    services: [[DevtoolsService, {}]],
 
     /**
      * test configurations

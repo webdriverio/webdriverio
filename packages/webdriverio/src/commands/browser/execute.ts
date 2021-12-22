@@ -1,4 +1,5 @@
 import { verifyArgsAndStripIfElement } from '../../utils'
+
 /**
  *
  * Inject a snippet of JavaScript into the page for execution in the context of the currently selected frame.
@@ -15,8 +16,8 @@ import { verifyArgsAndStripIfElement } from '../../utils'
  *
  * <example>
     :execute.js
-    it('should inject javascript on the page', () => {
-        const result = browser.execute((a, b, c, d) => {
+    it('should inject javascript on the page', async () => {
+        const result = await browser.execute((a, b, c, d) => {
             // browser context - you may not access client or console
             return a + b + c + d
         }, 1, 2, 3, 4)
@@ -34,12 +35,11 @@ import { verifyArgsAndStripIfElement } from '../../utils'
  * @type protocol
  *
  */
-
-export default function execute (
-    this: WebdriverIO.BrowserObject,
-    script: string | Function,
-    ...args: any[]
-) {
+export default function execute<ReturnValue, InnerArguments extends any[]> (
+    this: WebdriverIO.Browser | WebdriverIO.Element,
+    script: string | ((...innerArgs: InnerArguments) => ReturnValue),
+    ...args: InnerArguments
+): Promise<ReturnValue> {
     /**
      * parameter check
      */
@@ -49,7 +49,7 @@ export default function execute (
 
     /**
      * instances started as multibrowserinstance can't getting called with
-     * a function parameter, therefor we need to check if it starts with "function () {"
+     * a function parameter, therefore we need to check if it starts with "function () {"
      */
     if (typeof script === 'function') {
         script = `return (${script}).apply(null, arguments)`

@@ -30,6 +30,11 @@ devices['Nexus 6P landscape'] = devices[0]
 class CDPSessionMock {
     send = sendMock
     on = listenerMock
+    _connection = {
+        _transport: {
+            _ws: { addEventListener: jest.fn() }
+        }
+    }
 }
 const cdpSession = new CDPSessionMock()
 
@@ -45,6 +50,7 @@ class PageMock {
     url = jest.fn().mockReturnValue('about:blank')
     emulate = jest.fn()
     setViewport = jest.fn()
+    setDefaultTimeout = jest.fn()
     target = jest.fn().mockReturnValue(target)
 }
 const page = new PageMock()
@@ -55,9 +61,11 @@ class PageMock2 extends PageMock {
 const page2 = new PageMock2()
 
 class PuppeteerMock {
+    on = jest.fn()
     waitForTarget = jest.fn().mockImplementation(() => target)
     getActivePage = jest.fn().mockImplementation(() => page)
     pages = jest.fn().mockReturnValue(Promise.resolve([page, page2]))
+    userAgent = jest.fn().mockImplementation(() => 'MOCK USER AGENT')
     _connection = { _transport: { _ws: { addEventListener: jest.fn() } } }
 }
 
@@ -69,6 +77,8 @@ export default {
     sendMock,
     listenerMock,
     devices,
+    registerCustomQueryHandler: jest.fn(),
+    unregisterCustomQueryHandler: jest.fn(),
     launch: jest.fn().mockImplementation(
         () => Promise.resolve(new PuppeteerMock())),
     connect: jest.fn().mockImplementation(

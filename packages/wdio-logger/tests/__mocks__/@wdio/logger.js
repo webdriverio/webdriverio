@@ -6,7 +6,8 @@ export const logMock = {
     error: jest.fn(),
     debug: jest.fn(),
     warn: jest.fn(),
-    info: jest.fn()
+    info: jest.fn(),
+    trace: jest.fn()
 }
 
 export default mock

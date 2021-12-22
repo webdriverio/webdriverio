@@ -8,7 +8,7 @@ const got = gotMock as any as jest.Mock
 
 describe('selectByAttribute test', () => {
     const getElementFromResponseSpy = jest.spyOn(utils, 'getElementFromResponse')
-    let browser: WebdriverIO.BrowserObject
+    let browser: WebdriverIO.Browser
     let elem: WebdriverIO.Element
 
     beforeEach(async () => {
@@ -74,8 +74,8 @@ describe('selectByAttribute test', () => {
         try {
             // @ts-ignore mock feature
             await mockElem.selectByAttribute('value', 'non-existing-value')
-        } catch (e) {
-            expect(e.toString()).toBe('Error: Option with attribute "value=non-existing-value" not found.')
+        } catch (err: any) {
+            expect(err.toString()).toBe('Error: Option with attribute "value=non-existing-value" not found.')
         }
     })
 })

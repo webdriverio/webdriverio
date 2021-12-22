@@ -1,43 +1,37 @@
 import fse from 'fs-extra'
 import path from 'path'
-import atob from 'atob'
-import minimatch from 'minimatch'
+import type { CDPSession } from 'puppeteer-core/lib/cjs/puppeteer/common/Connection'
+import type Protocol from 'devtools-protocol'
 
 import logger from '@wdio/logger'
 import Interception from '.'
+import type { Matches, MockOverwrite, MockResponseParams } from './types'
 import { containsHeaderObject } from '..'
 import { ERROR_REASON } from '../../constants'
 
 const log = logger('webdriverio')
 
-type RequestOptions = {
-    requestId: string;
-    responseCode?: number;
-    responseHeaders?: Record<string, string>[];
-    body?: string | WebdriverIO.JsonCompatible;
-    errorReason?: string;
-}
-
 type ClientResponse = {
-    body: string;
+    body: string
     base64Encoded?: boolean
 }
 
-type Client = {
-    send: (requestName: string, requestOptions: RequestOptions) => Promise<ClientResponse>;
+interface HeaderEntry {
+    name: string;
+    value: string;
 }
 
 type Event = {
-    requestId: string;
-    request: WebdriverIO.Matches & { mockedResponse: string | Buffer; };
-    responseStatusCode?: number;
-    responseHeaders: Record<string, string>[],
+    requestId: string
+    request: Matches & { mockedResponse: string | Buffer }
+    responseStatusCode?: number
+    responseHeaders: HeaderEntry[]
 }
 
 type ExpectParameter<T> = ((param: T) => boolean) | T;
 
 export default class DevtoolsInterception extends Interception {
-    static handleRequestInterception (client: Client, mocks: Set<Interception>): (event: Event) => Promise<void | ClientResponse> {
+    static handleRequestInterception (client: CDPSession, mocks: Set<Interception>): (event: Event) => Promise<void | ClientResponse> {
         return async (event) => {
             // responseHeaders and responseStatusCode are only present in Response stage
             // https://chromedevtools.github.io/devtools-protocol/tot/Fetch/#event-requestPaused
@@ -46,7 +40,7 @@ export default class DevtoolsInterception extends Interception {
             const responseHeaders = eventResponseHeaders.reduce((headers, { name, value }) => {
                 headers[name] = value
                 return headers
-            }, {})
+            }, {} as Record<string, string>)
             const { requestId, request, responseStatusCode = 200 } = event
 
             for (const mock of mocks) {
@@ -66,7 +60,7 @@ export default class DevtoolsInterception extends Interception {
                 /**
                  * match mock url
                  */
-                if (!minimatch(request.url, mock.url)) {
+                if (!Interception.isMatchingRequest(mock.url, request.url)) {
                     continue
                 }
 
@@ -94,7 +88,7 @@ export default class DevtoolsInterception extends Interception {
                     { requestId }
                 ).catch(/* istanbul ignore next */() => ({} as any))
 
-                request.body = base64Encoded ? atob(body) : body
+                request.body = base64Encoded ? Buffer.from(body, 'base64').toString('utf8') : body
 
                 const contentTypeHeader = Object.keys(responseHeaders).find(h => h.toLowerCase() === 'content-type') || ''
                 const responseContentType = responseHeaders[contentTypeHeader]
@@ -133,7 +127,7 @@ export default class DevtoolsInterception extends Interception {
                     }
 
                     let responseCode = typeof params.statusCode === 'function' ? params.statusCode(request) : params.statusCode || responseStatusCode
-                    let responseHeaders = [
+                    let responseHeaders: HeaderEntry[] = [
                         ...eventResponseHeaders,
                         ...Object.entries(typeof params.headers === 'function' ? params.headers(request) : params.headers || {}).map(([name, value]) => ({ name, value }))
                     ]
@@ -207,7 +201,7 @@ export default class DevtoolsInterception extends Interception {
      * @param {*} overwrites  payload to overwrite the response
      * @param {*} params      additional respond parameters to overwrite
      */
-    respond (overwrite: WebdriverIO.MockOverwrite, params: WebdriverIO.MockResponseParams = {}) {
+    respond (overwrite: MockOverwrite, params: MockResponseParams = {}) {
         this.respondOverwrites.push({ overwrite, params, sticky: true })
     }
 
@@ -216,7 +210,7 @@ export default class DevtoolsInterception extends Interception {
      * @param {*} overwrites  payload to overwrite the response
      * @param {*} params      additional respond parameters to overwrite
      */
-    respondOnce (overwrite: WebdriverIO.MockOverwrite, params: WebdriverIO.MockResponseParams = {}) {
+    respondOnce (overwrite: MockOverwrite, params: MockResponseParams = {}) {
         this.respondOverwrites.push({ overwrite, params })
     }
 
@@ -224,7 +218,7 @@ export default class DevtoolsInterception extends Interception {
      * Abort the request with an error code
      * @param {string} errorCode  error code of the response
      */
-    abort (errorReason: string, sticky: boolean = true) {
+    abort (errorReason: Protocol.Network.ErrorReason, sticky: boolean = true) {
         if (typeof errorReason !== 'string' || !ERROR_REASON.includes(errorReason)) {
             throw new Error(`Invalid value for errorReason, allowed are: ${ERROR_REASON.join(', ')}`)
         }
@@ -235,7 +229,7 @@ export default class DevtoolsInterception extends Interception {
      * Abort the request once with an error code
      * @param {string} errorReason  error code of the response
      */
-    abortOnce (errorReason: string) {
+    abortOnce (errorReason: Protocol.Network.ErrorReason) {
         this.abort(errorReason, false)
     }
 }

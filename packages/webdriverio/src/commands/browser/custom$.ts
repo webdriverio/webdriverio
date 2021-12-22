@@ -1,18 +1,23 @@
+import type { ElementReference } from '@wdio/protocols'
+
+import { getElement } from '../../utils/getElementObject'
+import { ELEMENT_KEY } from '../../constants'
+
 /**
  *
  * The `custom$` allows you to use a custom strategy declared by using `browser.addLocatorStrategy`
  *
  * <example>
     :example.js
-    it('should fetch the project title', () => {
-        browser.url('https://webdriver.io')
-        browser.addLocatorStrategy('myStrat', (selector) => {
+    it('should fetch the project title', async () => {
+        await browser.url('https://webdriver.io')
+        await browser.addLocatorStrategy('myStrat', (selector) => {
             return document.querySelectorAll(selector)
         })
 
-        const projectTitle = browser.custom$('myStrat', '.projectTitle')
+        const projectTitle = await browser.custom$('myStrat', '.projectTitle')
 
-        console.log(projectTitle.getText()) // WEBDRIVER I/O
+        console.log(await projectTitle.getText()) // WEBDRIVER I/O
     })
  * </example>
  *
@@ -21,12 +26,8 @@
  * @param {Any} strategyArguments
  * @return {Element}
  */
-import { getElement } from '../../utils/getElementObject'
-import { ELEMENT_KEY } from '../../constants'
-import type { ElementReference } from '../../types'
-
 export default async function custom$ (
-    this: WebdriverIO.BrowserObject,
+    this: WebdriverIO.Browser,
     strategyName: string,
     ...strategyArguments: any[]
 ) {
@@ -51,7 +52,7 @@ export default async function custom$ (
     }
 
     if (res && typeof res[ELEMENT_KEY] === 'string') {
-        return await getElement.call(this, strategy.toString(), res)
+        return await getElement.call(this, strategy, res)
     }
 
     throw Error('Your locator strategy script must return an element')

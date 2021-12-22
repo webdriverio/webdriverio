@@ -5,23 +5,13 @@ WebdriverIO Shared Store Service
 
 ## Installation
 
-The easiest way is to keep `@wdio/shared-store-service` as a devDependency in your `package.json`.
+The easiest way is to keep `@wdio/shared-store-service` as a devDependency in your `package.json`, via:
 
-```json
-{
-    "devDependencies": {
-        "@wdio/shared-store-service": "^6.1.4"
-    }
-}
-```
-
-You can simple do it by:
-
-```bash
+```sh
 npm install @wdio/shared-store-service --save-dev
 ```
 
-Instructions on how to install `WebdriverIO` can be found [here.](https://webdriver.io/docs/gettingstarted.html)
+Instructions on how to install `WebdriverIO` can be found [here.](https://webdriver.io/docs/gettingstarted)
 
 ## Usage
 
@@ -30,6 +20,18 @@ Get/set a value (plain object) to/from the store by key (string).
 `browser.sharedStore.set('key', 'value')` set value to store
 
 `browser.sharedStore.get('key')` get value from store (returns `'value'`)
+
+You could also directly access to `setValue` and `getValue` async handlers.
+Make sure you properly call them with the `await` keyword.
+
+```js
+import { setValue } from '@wdio/shared-store-service'
+
+// ...
+onPrepare: [async function (config, capabilities) {
+    await setValue('foo', 'bar')
+}],
+```
 
 IMPORTANT! Every spec file should be atomic and isolated from others specs.
 The idea of the service is to deal with very specific environment setup issues.

@@ -16,7 +16,7 @@ This package stores the definition for various automation protocols such as [Web
 To install the package, run:
 
 ```sh
-$ npm install @wdio/protocols
+npm install @wdio/protocols
 ```
 
 ## Usage
@@ -30,6 +30,24 @@ import { WebDriverProtocol, MJsonWProtocol, JsonWProtocol, AppiumProtocol, Chrom
  * get description of session command
  */
 console.log(WebDriverProtocol['/session'].POST.description)
+```
+
+## TypeScript Interfaces
+
+The package exposes TypeScript interfaces for all protocols. You can use them for your own project as follows:
+
+```ts
+import type { WebDriverCommands } from '@wdio/protocol'
+
+import { WebDriverCommands, WebDriverCommandsAsync } from './src'
+
+const browser = {} as WebDriverCommands
+browser.sendAlertText(true)
+// fails with "Argument of type 'boolean' is not assignable to parameter of type 'string'.ts(2345)"
+
+const asyncBrowser = {} as WebDriverCommandsAsync
+const a = await asyncBrowser.getTitle()
+type foo = typeof a // string
 ```
 
 ----

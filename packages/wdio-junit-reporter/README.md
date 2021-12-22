@@ -5,23 +5,13 @@ WebdriverIO XML Reporter
 
 ## Installation
 
-The easiest way is to keep `@wdio/junit-reporter` as a devDependency in your `package.json`.
+The easiest way is to keep `@wdio/junit-reporter` as a devDependency in your `package.json`, via:
 
-```json
-{
-  "devDependencies": {
-    "@wdio/junit-reporter": "^6.3.6"
-  }
-}
-```
-
-You can simple do it by:
-
-```bash
+```sh
 npm install @wdio/junit-reporter --save-dev
 ```
 
-Instructions on how to install `WebdriverIO` can be found [here](https://webdriver.io/docs/gettingstarted.html).
+Instructions on how to install `WebdriverIO` can be found [here](https://webdriver.io/docs/gettingstarted).
 
 ## Output
 
@@ -81,7 +71,7 @@ becomes
       <property name="capabilities" value="chrome"/>
       <property name="file" value=".\test\specs\asuite.spec.js"/>
     </properties>
-    <testcase classname="chrome.a_test_case" name="a_nested_test_suite_a_test_case" time="11.706"/>
+    <testcase classname="chrome.a_test_case" name="a nested test suite a test case" time="11.706"/>
   </testsuite>
 </testsuites>
 ```
@@ -110,7 +100,7 @@ becomes
       <property name="suiteName" value="a test suite"/>
       <property name="capabilities" value="chrome"/>
       <property name="file" value=".\test\specs\asuite.spec.js"/>
-      <testcase classname="chrome.a_test_case" name="a_nested_test_suite_a_test_case" time="11.706"/>
+      <testcase classname="chrome.a_test_case" name="a nested test suite a test case" time="11.706"/>
     </properties>
   </testsuite>
   <testsuite name="a second test suite" timestamp="2019-04-18T13:45:21" time="11.735" tests="0" failures="0" errors="0" skipped="0">
@@ -143,7 +133,7 @@ Error: some assertion failure
 ## Configuration
 
 Following code shows the default wdio test runner configuration. Just add `'junit'` as reporter
-to the array. To get some output during the test you can run the [WDIO Dot Reporter](https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-dot-reporter) and the WDIO JUnit Reporter at the same time:
+to the array. To get some output during the test you can run the [WDIO Dot Reporter](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-dot-reporter) and the WDIO JUnit Reporter at the same time:
 
 ```js
 // wdio.conf.js
@@ -167,34 +157,35 @@ The following options are supported:
 ### outputDir
 Define a directory where your xml files should get stored.
 
-Type: `String`<br>
+Type: `String`<br />
 Required
 
 ### outputFileFormat
 Define the xml files created after the test execution.
 
-Type: `Object`<br>
-Default: ``function(opts){return `wdio-${this.cid}-${name}-reporter.log`}``
+Type: `Object`<br />
+Default: ``function (opts) { return `wdio-${this.cid}-${name}-reporter.log` }``
 
 ```
 outputFileFormat: function (options) {
     return 'mycustomfilename.xml';
 }
 ```
+
 > Note: `options.capabilities` is your capabilities object for that runner, so specifying `${options.capabilities}` in your string will return [Object object]. You must specify which properties of capabilities you want in your filename.
 
 ### suiteNameFormat
 
 Gives the ability to provide custom regex for formatting test suite name (e.g. in output xml ).
 
-Type: `Regex`,<br>
+Type: `Regex`,<br />
 Default: `/[^a-z0-9]+/`
 
 ### addFileAttribute
 
 Adds a file attribute to each testcase. This config is primarily for CircleCI. This setting provides richer details but may break on other CI platforms.
 
-Type: `Boolean`,<br>
+Type: `Boolean`,<br />
 Default: `false`
 
 
@@ -202,7 +193,7 @@ Default: `false`
 
 You can break out packages by an additional level by setting `'packageName'`. For example, if you wanted to iterate over a test suite with different environment variable set:
 
-Type: `String`<br>
+Type: `String`<br />
 Example:
 
 ```js
@@ -222,7 +213,7 @@ module.exports = {
 
 ### errorOptions
 
-Allows to set various combinations of error notifications inside xml.<br>
+Allows to set various combinations of error notifications inside xml.<br />
 Given a Jasmine test like `expect(true).toBe(false, 'my custom message')` you will get this test error:
 
 ```
@@ -238,8 +229,8 @@ Given a Jasmine test like `expect(true).toBe(false, 'my custom message')` you wi
 
 Therefore you can choose *which* key will be used *where*, see the example below.
 
-Type: `Object`,<br>
-Default: `errorOptions: { error: "message" }`<br>
+Type: `Object`,<br />
+Default: `errorOptions: { error: "message" }`<br />
 Example:
 
 ```js

@@ -1,3 +1,7 @@
+import command from '../scripts/getElementAttribute'
+import { getStaleElementError } from '../utils'
+import type DevToolsDriver from '../devtoolsdriver'
+
 /**
  * The Get Element Attribute command will return the attribute of a web element.
  *
@@ -7,11 +11,6 @@
  * @param {string} name       name of the attribute value to retrieve
  * @return {string}           The named attribute of the element.
  */
-
-import command from '../scripts/getElementAttribute'
-import { getStaleElementError } from '../utils'
-import type DevToolsDriver from '../devtoolsdriver'
-
 export default async function getElementAttribute (
     this: DevToolsDriver,
     { elementId, name }: { elementId: string, name: string }

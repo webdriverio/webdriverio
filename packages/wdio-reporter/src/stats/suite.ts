@@ -1,3 +1,4 @@
+import { Tag } from '../types'
 import HookStats from './hook'
 import RunnableStats from './runnable'
 import TestStats from './test'
@@ -8,13 +9,14 @@ export interface Suite {
     parent?: string
     fullTitle: string
     pending?: boolean
-    fil?: string
+    file: string
     duration?: number
     cid?: string
     specs?: string[]
     uid?: string
-    tags?: string[]
+    tags?: string[] | Tag[]
     description?: string
+    rule?: string
 }
 
 /**
@@ -23,28 +25,34 @@ export interface Suite {
 export default class SuiteStats extends RunnableStats {
     uid: string
     cid?: string
+    file: string
     title: string
     fullTitle: string
-    tags?: string[]
+    tags?: string[] | Tag[]
     tests: TestStats[] = []
     hooks: HookStats[] = []
     suites: SuiteStats[] = []
+    parent?: string
     /**
      * an array of hooks and tests stored in order as they happen
      */
     hooksAndTests: (HookStats | TestStats)[] = []
     description?: string
+    rule?: string
 
     constructor (suite: Suite) {
         super(suite.type || 'suite')
         this.uid = RunnableStats.getIdentifier(suite)
         this.cid = suite.cid
+        this.file = suite.file
         this.title = suite.title
         this.fullTitle = suite.fullTitle
         this.tags = suite.tags
+        this.parent= suite.parent
         /**
          * only Cucumber
          */
         this.description = suite.description
+        this.rule = suite.rule
     }
 }

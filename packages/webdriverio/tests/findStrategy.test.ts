@@ -358,7 +358,10 @@ describe('selector strategies helper', () => {
 
     it('should not allow unsupported selector strategies if w3c is used', () => {
         expect(() => findStrategy('accessibility id:foobar accessibility id', true)).toThrow()
-        expect(() => findStrategy('android=foo', true)).toThrow()
+    })
+
+    it('should allow non w3c selector strategy if driver supports it', () => {
+        expect(() => findStrategy('android=foo', true)).not.toThrow()
     })
 
     it('should allow mobile selector strategies if isMobile is used', () => {
@@ -402,5 +405,45 @@ describe('selector strategies helper', () => {
         element = findStrategy('//xpath[@img="/test.png"]')
         expect(element.using).toBe('xpath')
         expect(element.value).not.toBe('random string')
+
+        element = findStrategy('.png')
+        expect(element.using).toBe('css selector')
+        expect(element.value).not.toBe('random string')
+    })
+
+    it('should find an element using "css selector" method with implicit & explicit ARIA roles of button in case of role selector', () => {
+        const element = findStrategy('[role=button]')
+        expect(element.using).toBe('css selector')
+        expect(element.value).toBe('[role="button"],input[type="checkbox"],summary[aria-expanded="false"],summary[aria-expanded="true"],input[type="button"],input[type="image"],input[type="reset"],input[type="submit"],button')
+    })
+
+    it('should find an element using "css selector" method with implicit & explicit ARIA roles of checkbox in case of role selector', () => {
+        const element = findStrategy('[role=checkbox]')
+        expect(element.using).toBe('css selector')
+        expect(element.value).toBe('[role="checkbox"],input[type="checkbox"]')
+    })
+
+    it('should find an element using "css selector" method with implicit & explicit ARIA roles of listbox in case of role selector', () => {
+        const element = findStrategy('[role=listbox]')
+        expect(element.using).toBe('css selector')
+        expect(element.value).toBe('[role="listbox"],select[multiple],select[size],select[multiple],datalist')
+    })
+
+    it('should find an element using "css selector" method with implicit & explicit ARIA roles of rowgroup in case of role selector', () => {
+        const element = findStrategy('[role=rowgroup]')
+        expect(element.using).toBe('css selector')
+        expect(element.value).toBe('[role="rowgroup"],tbody,tfoot,thead')
+    })
+
+    it('should find an element using "css selector" method with implicit & explicit ARIA roles of not matching roles in case of role selector', () => {
+        const element = findStrategy('[role=abcd]')
+        expect(element.using).toBe('css selector')
+        expect(element.value).toBe('[role="abcd"]')
+    })
+
+    it('should use shadow selector strategy if selector is prefixed with >>>', () => {
+        const element = findStrategy('>>>.foobar')
+        expect(element.using).toBe('shadow')
+        expect(element.value).toBe('.foobar')
     })
 })

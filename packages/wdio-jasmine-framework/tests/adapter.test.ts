@@ -21,17 +21,24 @@ const wdioReporter: EventEmitter = {
 const hookPayload = (type: string, error?: Error) => ({
     id: '',
     description: `"${type} all" hook`,
+    duration: null,
     ...(error ? { error } : {}),
     fullName: `"${type} all" hook`,
+    properties: {},
     start: expect.any(Date),
-    type: 'hook'
+    type: 'hook',
+    passedExpectations: [],
+    failedExpectations: [],
+    deprecationWarnings: [],
+    status: '',
+    pendingReason: ''
 })
 
 const adapterFactory = (config = {}) => new JasmineAdapter(
     '0-2',
     { beforeHook: [], afterHook: [], beforeTest: 'beforeTest', afterTest: 'afterTest', ...config } as any,
     ['/foo/bar.test.js'],
-    { browserName: 'chrome' },
+    { browserName: 'chrome' } as any,
     wdioReporter
 )
 
@@ -142,7 +149,7 @@ test('should properly configure the jasmine environment', async () => {
     const seed = false
 
     const adapter = adapterFactory({
-        jasmineNodeOpts: {
+        jasmineOpts: {
             stopOnSpecFailure,
             stopSpecOnExpectationFailure,
             random,
@@ -165,7 +172,7 @@ test('should properly configure the jasmine environment', async () => {
 
 test('set custom ', async () => {
     const config = {
-        jasmineNodeOpts: { expectationResultHandler: jest.fn() },
+        jasmineOpts: { expectationResultHandler: jest.fn() },
         beforeHook: [],
         afterHook: []
     }
@@ -173,7 +180,7 @@ test('set custom ', async () => {
     await adapter.init()
     await adapter.run()
     adapter['_jrunner']!.jasmine.Spec.prototype.addExpectationResult('foobar')
-    expect(config.jasmineNodeOpts.expectationResultHandler).toBeCalledWith('foobar', undefined)
+    expect(config.jasmineOpts.expectationResultHandler).toBeCalledWith('foobar', undefined)
 })
 
 test('get data from beforeAll hook', async () => {
@@ -217,23 +224,23 @@ test('customSpecFilter', () => {
         pend: jest.fn()
     } as any
     const config = {
-        jasmineNodeOpts: { grepMatch: '@smoke' }
+        jasmineOpts: { grepMatch: '@smoke' }
     }
     const adapter = adapterFactory(config)
 
     expect(adapter.customSpecFilter(specMock)).toBe(true)
     expect(specMock.pend.mock.calls).toHaveLength(0)
 
-    adapter['_jasmineNodeOpts'].grep = '@random'
+    adapter['_jasmineOpts'].grep = '@random'
     expect(adapter.customSpecFilter(specMock)).toBe(false)
     expect(specMock.pend.mock.calls).toHaveLength(1)
 
-    adapter['_jasmineNodeOpts'].invertGrep = true
+    adapter['_jasmineOpts'].invertGrep = true
     expect(adapter.customSpecFilter(specMock)).toBe(true)
     expect(specMock.pend.mock.calls).toHaveLength(1)
 
-    adapter['_jasmineNodeOpts'].grep = '@smoke'
-    adapter['_jasmineNodeOpts'].invertGrep = true
+    adapter['_jasmineOpts'].grep = '@smoke'
+    adapter['_jasmineOpts'].invertGrep = true
     expect(adapter.customSpecFilter(specMock)).toBe(false)
     expect(specMock.pend.mock.calls).toHaveLength(2)
 })
@@ -243,14 +250,12 @@ test('wrapHook if successful', async () => {
     const config = { beforeAll: 'somehook' }
     const adapter = adapterFactory(config)
     const wrappedHook = adapter.wrapHook('beforeAll' as any)
-    const doneCallback = jest.fn()
 
     ;(executeHooksWithArgs as jest.Mock).mockImplementation((...args) => Promise.resolve(args))
-    await wrappedHook(doneCallback)
+    await wrappedHook()
     expect((executeHooksWithArgs as jest.Mock).mock.calls[0][0]).toBe('beforeAll')
     expect((executeHooksWithArgs as jest.Mock).mock.calls[0][1]).toBe('somehook')
     expect((executeHooksWithArgs as jest.Mock).mock.calls[0][2][0].type).toBe('beforeAll')
-    expect(doneCallback.mock.calls).toHaveLength(1)
 })
 
 test('wrapHook if failing', async () => {
@@ -258,14 +263,12 @@ test('wrapHook if failing', async () => {
     const config = { beforeAll: 'somehook' }
     const adapter = adapterFactory(config)
     const wrappedHook = adapter.wrapHook('beforeAll' as any)
-    const doneCallback = jest.fn()
 
     ;(executeHooksWithArgs as jest.Mock).mockImplementation(() => Promise.reject(new Error('uuuups')))
-    await wrappedHook(doneCallback)
+    await wrappedHook()
     expect((executeHooksWithArgs as jest.Mock).mock.calls[0][0]).toBe('beforeAll')
     expect((executeHooksWithArgs as jest.Mock).mock.calls[0][1]).toBe('somehook')
     expect((executeHooksWithArgs as jest.Mock).mock.calls[0][2][0].type).toBe('beforeAll')
-    expect(doneCallback.mock.calls).toHaveLength(1)
     expect((logger('').info as jest.Mock).mock.calls[0][0].startsWith('Error in beforeAll hook: uuuups')).toBe(true)
 })
 
@@ -329,7 +332,7 @@ test('formatMessage should pass all failedExpectations as errors', () => {
 
 test('getExpectationResultHandler returns origHandler if none is given', () => {
     const jasmine = { Spec: { prototype: { addExpectationResult: 'foobar' } } }
-    const config = { jasmineNodeOpts: {} }
+    const config = { jasmineOpts: {} }
     const adapter = adapterFactory(config)
 
     adapter.expectationResultHandler = jest.fn().mockImplementation(() => 'barfoo')
@@ -339,7 +342,7 @@ test('getExpectationResultHandler returns origHandler if none is given', () => {
 
 test('getExpectationResultHandler returns modified origHandler if expectationResultHandler is given', () => {
     const jasmine = { Spec: { prototype: { addExpectationResult: 'foobar' } } }
-    const config = { jasmineNodeOpts: { expectationResultHandler: jest.fn() } }
+    const config = { jasmineOpts: { expectationResultHandler: jest.fn() } }
     const adapter = adapterFactory(config)
 
     adapter.expectationResultHandler = jest.fn().mockImplementation(() => 'barfoo')
@@ -350,20 +353,20 @@ test('getExpectationResultHandler returns modified origHandler if expectationRes
 
 test('expectationResultHandler', () => {
     const origHandler = jest.fn()
-    const config = { jasmineNodeOpts: { expectationResultHandler: jest.fn() } }
+    const config = { jasmineOpts: { expectationResultHandler: jest.fn() } }
     const adapter = adapterFactory(config)
 
     const resultHandler = adapter.expectationResultHandler(origHandler)
     // @ts-ignore mock feature
     resultHandler(true, 'foobar')
-    expect(config.jasmineNodeOpts.expectationResultHandler).toBeCalledWith(true, 'foobar')
+    expect(config.jasmineOpts.expectationResultHandler).toBeCalledWith(true, 'foobar')
     expect(origHandler).toBeCalledWith(true, 'foobar')
 })
 
 test('expectationResultHandler failing', () => {
     const origHandler = jest.fn()
     const err = new Error('uuups')
-    const config = { jasmineNodeOpts: { expectationResultHandler: () => {
+    const config = { jasmineOpts: { expectationResultHandler: () => {
         throw err
     } } }
     const adapter = adapterFactory(config)
@@ -383,7 +386,7 @@ test('expectationResultHandler failing', () => {
 
 test('expectationResultHandler failing with failing test', () => {
     const origHandler = jest.fn()
-    const config = { jasmineNodeOpts: { expectationResultHandler: () => {
+    const config = { jasmineOpts: { expectationResultHandler: () => {
         throw new Error('uuups')
     } } }
     const adapter = adapterFactory(config)
@@ -465,8 +468,8 @@ describe('loadFiles', () => {
         // @ts-ignore test scenario
         delete adapter['_hasTests']
         adapter['_jrunner'] = {} as any
-        adapter['_jasmineNodeOpts'].requires = ['r']
-        adapter['_jasmineNodeOpts'].helpers = ['h']
+        adapter['_jasmineOpts'].requires = ['r']
+        adapter['_jasmineOpts'].helpers = ['h']
         // @ts-ignore outdated types
         adapter['_jrunner']!.addRequires = jest.fn()
         // @ts-ignore outdated types
@@ -481,9 +484,9 @@ describe('loadFiles', () => {
         adapter._loadFiles()
 
         // @ts-ignore outdated types
-        expect(adapter['_jrunner']!.addRequires).toHaveBeenCalledWith(adapter['_jasmineNodeOpts'].requires)
+        expect(adapter['_jrunner']!.addRequires).toHaveBeenCalledWith(adapter['_jasmineOpts'].requires)
         // @ts-ignore outdated types
-        expect(adapter['_jrunner']!.addHelperFiles).toHaveBeenCalledWith(adapter['_jasmineNodeOpts'].helpers)
+        expect(adapter['_jrunner']!.addHelperFiles).toHaveBeenCalledWith(adapter['_jasmineOpts'].helpers)
         expect(adapter['_hasTests']).toBe(false)
     })
 

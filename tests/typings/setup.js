@@ -10,11 +10,7 @@ const ROOT = path.resolve(__dirname, '..', '..')
 
 // TypeScript project root for testing particular typings
 const outDirs = [
-    'sync', 'sync-applitools', 'sync-browserstack', 'sync-mocha', 'sync-jasmine',
-    'webdriverio', 'webdriverio-applitools', 'webdriverio-browserstack',
-    'webdriverio-mocha', 'webdriverio-jasmine', 'webdriverio-cucumber',
-    'sync-cucumber', 'devtools', 'sync-devtools', 'webdriverio-saucelabs',
-    'sync-saucelabs', 'webdriverio-devtools-service', 'sync-devtools-service'
+    'devtools', 'sync-devtools', 'webdriverio', 'webdriver', 'mocha', 'jasmine', 'cucumber', 'sync'
 ]
 
 const packages = {
@@ -25,7 +21,6 @@ const packages = {
     '@wdio/reporter': 'packages/wdio-reporter',
     '@wdio/allure-reporter': 'packages/wdio-allure-reporter',
     '@wdio/appium-service': 'packages/wdio-appium-service',
-    '@wdio/applitools-service': 'packages/wdio-applitools-service',
     '@wdio/browserstack-service': 'packages/wdio-browserstack-service',
     '@wdio/crossbrowsertesting-service': 'packages/wdio-crossbrowsertesting-service',
     '@wdio/cucumber-framework': 'packages/wdio-cucumber-framework',
@@ -35,6 +30,7 @@ const packages = {
     '@wdio/mocha-framework': 'packages/wdio-mocha-framework',
     '@wdio/protocols': 'packages/wdio-protocols',
     '@wdio/sauce-service': 'packages/wdio-sauce-service',
+    '@wdio/sumologic-reporter': 'packages/wdio-sumologic-reporter',
     '@wdio/selenium-standalone-service': 'packages/wdio-selenium-standalone-service',
     '@wdio/shared-store-service': 'packages/wdio-shared-store-service',
     '@wdio/static-server-service': 'packages/wdio-static-server-service',

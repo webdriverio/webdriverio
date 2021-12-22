@@ -25,10 +25,10 @@ Array [
 exports[`getPrototype 1`] = `
 Object {
   "acceptAlert": Object {
-    "value": 53,
+    "value": 56,
   },
   "addCookie": Object {
-    "value": 46,
+    "value": 49,
   },
   "back": Object {
     "value": 8,
@@ -40,42 +40,48 @@ Object {
     "value": 15,
   },
   "deleteAllCookies": Object {
-    "value": 47,
+    "value": 50,
   },
   "deleteCookie": Object {
-    "value": 49,
+    "value": 52,
   },
   "deleteSession": Object {
     "value": 2,
   },
   "dismissAlert": Object {
-    "value": 52,
+    "value": 55,
   },
   "elementClear": Object {
-    "value": 40,
+    "value": 43,
   },
   "elementClick": Object {
-    "value": 39,
+    "value": 42,
   },
   "elementSendKeys": Object {
-    "value": 41,
-  },
-  "executeAsyncScript": Object {
     "value": 44,
   },
+  "executeAsyncScript": Object {
+    "value": 47,
+  },
   "executeScript": Object {
-    "value": 43,
+    "value": 46,
   },
   "findElement": Object {
     "value": 25,
   },
   "findElementFromElement": Object {
-    "value": 27,
+    "value": 29,
   },
-  "findElements": Object {
+  "findElementFromShadowRoot": Object {
     "value": 26,
   },
+  "findElements": Object {
+    "value": 27,
+  },
   "findElementsFromElement": Object {
+    "value": 30,
+  },
+  "findElementsFromShadowRoot": Object {
     "value": 28,
   },
   "forward": Object {
@@ -85,43 +91,46 @@ Object {
     "value": 24,
   },
   "getActiveElement": Object {
-    "value": 29,
-  },
-  "getAlertText": Object {
-    "value": 54,
-  },
-  "getAllCookies": Object {
-    "value": 45,
-  },
-  "getElementAttribute": Object {
     "value": 32,
   },
-  "getElementCSSValue": Object {
-    "value": 34,
+  "getAlertText": Object {
+    "value": 57,
   },
-  "getElementComputedLabel": Object {
-    "value": 59,
-  },
-  "getElementComputedRole": Object {
-    "value": 58,
-  },
-  "getElementProperty": Object {
-    "value": 33,
-  },
-  "getElementRect": Object {
-    "value": 37,
-  },
-  "getElementTagName": Object {
-    "value": 36,
-  },
-  "getElementText": Object {
-    "value": 35,
-  },
-  "getNamedCookie": Object {
+  "getAllCookies": Object {
     "value": 48,
   },
+  "getElementAttribute": Object {
+    "value": 35,
+  },
+  "getElementCSSValue": Object {
+    "value": 37,
+  },
+  "getElementComputedLabel": Object {
+    "value": 62,
+  },
+  "getElementComputedRole": Object {
+    "value": 61,
+  },
+  "getElementProperty": Object {
+    "value": 36,
+  },
+  "getElementRect": Object {
+    "value": 40,
+  },
+  "getElementShadowRoot": Object {
+    "value": 31,
+  },
+  "getElementTagName": Object {
+    "value": 39,
+  },
+  "getElementText": Object {
+    "value": 38,
+  },
+  "getNamedCookie": Object {
+    "value": 51,
+  },
   "getPageSource": Object {
-    "value": 42,
+    "value": 45,
   },
   "getTimeouts": Object {
     "value": 4,
@@ -142,13 +151,13 @@ Object {
     "value": 20,
   },
   "isElementDisplayed": Object {
-    "value": 31,
+    "value": 34,
   },
   "isElementEnabled": Object {
-    "value": 38,
+    "value": 41,
   },
   "isElementSelected": Object {
-    "value": 30,
+    "value": 33,
   },
   "maximizeWindow": Object {
     "value": 22,
@@ -163,7 +172,7 @@ Object {
     "value": 1,
   },
   "performActions": Object {
-    "value": 50,
+    "value": 53,
   },
   "printPage": Object {
     "value": 17,
@@ -172,10 +181,10 @@ Object {
     "value": 10,
   },
   "releaseActions": Object {
-    "value": 51,
+    "value": 54,
   },
   "sendAlertText": Object {
-    "value": 55,
+    "value": 58,
   },
   "setTimeouts": Object {
     "value": 5,
@@ -196,29 +205,21 @@ Object {
     "value": 14,
   },
   "takeElementScreenshot": Object {
-    "value": 57,
+    "value": 60,
   },
   "takeScreenshot": Object {
-    "value": 56,
+    "value": 59,
   },
 }
 `;
 
 exports[`transformExecuteResult multiple results 1`] = `
 Array [
-  Array [
-    "foobar",
-    "__executeElement",
-    42,
-  ],
+  "foobar",
   Object {
     "element-6066-11e4-a52e-4f735466cecf": "foobar",
   },
-  Array [
-    "foobar",
-    "__executeElement",
-    42,
-  ],
+  42,
 ]
 `;
 

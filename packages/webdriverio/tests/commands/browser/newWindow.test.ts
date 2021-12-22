@@ -5,6 +5,8 @@
 import got from 'got'
 import { remote } from '../../../src'
 
+import type { Capabilities } from '@wdio/types'
+
 describe('newWindow', () => {
     beforeEach(() => {
         global.window.open = jest.fn()
@@ -23,17 +25,26 @@ describe('newWindow', () => {
             }
         })
 
-        await browser.newWindow('https://webdriver.io', {
+        got.setMockResponse([
+            [],
+            null,
+            [],
+            [],
+            [],
+            ['new-window-handle'],
+            null
+        ])
+
+        const newHandle = await browser.newWindow('https://webdriver.io', {
             windowName: 'some name',
             windowFeatures: 'some params'
         })
-        expect(got.mock.calls).toHaveLength(4)
-        expect(got.mock.calls[1][1].json.args)
+        expect(newHandle).toBe('new-window-handle')
+        expect(got.mock.calls).toHaveLength(8)
+        expect(got.mock.calls[2][1].json.args)
             .toEqual(['https://webdriver.io', 'some name', 'some params'])
-        expect(got.mock.calls[2][0].pathname)
+        expect(got.mock.calls[3][0].pathname)
             .toContain('/window/handles')
-        expect(got.mock.calls[3][1].json.handle)
-            .toBe('window-handle-3')
     })
 
     it('should apply default args', async () => {
@@ -44,10 +55,18 @@ describe('newWindow', () => {
             }
         })
 
+        got.setMockResponse([
+            [],
+            null,
+            [],
+            ['new-window-handle'],
+            null
+        ])
+
         await browser.newWindow('https://webdriver.io')
-        expect(got.mock.calls).toHaveLength(4)
-        expect(got.mock.calls[1][1].json.args)
-            .toEqual(['https://webdriver.io', 'New Window', ''])
+        expect(got.mock.calls).toHaveLength(6)
+        expect(got.mock.calls[2][1].json.args)
+            .toEqual(['https://webdriver.io', '', ''])
     })
 
     it('should fail if url is invalid', async () => {
@@ -61,9 +80,10 @@ describe('newWindow', () => {
         expect.hasAssertions()
 
         try {
+            // @ts-expect-error
             await browser.newWindow({})
-        } catch (e) {
-            expect(e.message).toContain('number or type')
+        } catch (err: any) {
+            expect(err.message).toContain('number or type')
         }
     })
 
@@ -74,11 +94,13 @@ describe('newWindow', () => {
                 browserName: 'ipad',
                 // @ts-ignore mock feature
                 mobileMode: true
-            }
+            } as Capabilities.DesiredCapabilities
         })
 
-        const error = await browser.newWindow('https://webdriver.io', 'some name', 'some params')
-            .catch((err: Error) => err)
+        const error = await browser.newWindow('https://webdriver.io', {
+            windowName: 'some name',
+            windowFeatures: 'some params'
+        }).catch((err: Error) => err) as Error
         expect(error.message).toContain('not supported on mobile')
     })
 })

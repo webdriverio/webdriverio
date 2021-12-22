@@ -1,11 +1,13 @@
 // @ts-ignore mocked (original defined in webdriver package)
 import gotMock from 'got'
+import { Capabilities } from '@wdio/types'
+
 import { multiremote } from '../src'
-import type { MultiRemoteOptions } from '../src/types'
+import { MultiRemoteBrowser } from '../build'
 
 const got = gotMock as any as jest.Mock
 
-const caps = (): MultiRemoteOptions => ({
+const caps = (): Capabilities.MultiRemoteCapabilities => ({
     browserA: {
         logLevel: 'debug',
         capabilities: {
@@ -94,7 +96,7 @@ test('should be able to fetch multiple elements', async () => {
 test('should be able to add a command to and element in multiremote', async () => {
     const browser = await multiremote(caps())
 
-    browser.addCommand('myCustomElementCommand', async function () {
+    browser.addCommand('myCustomElementCommand', async function (this: MultiRemoteBrowser) {
         return this.execute(() => 1)
     }, true)
 
@@ -108,7 +110,7 @@ test('should be able to add a command to and element in multiremote', async () =
 test('should be able to overwrite command to and element in multiremote', async () => {
     const browser = await multiremote(caps())
 
-    browser.overwriteCommand('getSize', async function (origCmd) {
+    browser.overwriteCommand('getSize', async function (this: MultiRemoteBrowser, origCmd: () => { width: number, height: number }) {
         let size = await origCmd()
         size = { width: size.width / 10, height: size.height / 10 }
         return size

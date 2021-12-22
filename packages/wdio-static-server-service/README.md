@@ -5,23 +5,13 @@ Some projects are front-end assets only, and don't run on more than a static ser
 
 ## Installation
 
-The easiest way is to add `@wdio/static-server-service` as a `devDependency` in your `package.json`:
+The easiest way is to add `@wdio/static-server-service` as a `devDependency` in your `package.json`, via:
 
-```bash
+```sh
 npm install @wdio/static-server-service --save-dev
 ```
 
-After that, your `package.json` should include the following:
-
-```json
-{
-    "devDependencies": {
-        "@wdio/static-server-service": "^6.1.14"
-    }
-}
-```
-
-Instructions on how to install `WebdriverIO` can be found [here](https://webdriver.io/docs/gettingstarted.html).
+Instructions on how to install `WebdriverIO` can be found [here](https://webdriver.io/docs/gettingstarted).
 
 ## Configuration
 

@@ -1,7 +1,8 @@
 import fs from 'fs'
 import isPlainObject from 'lodash.isplainobject'
+import { roleElements, ARIARoleDefintionKey, ARIARoleRelationConcept, ARIARoleRelationConceptAttribute } from 'aria-query'
 
-import { W3C_SELECTOR_STRATEGIES } from '../constants'
+import { W3C_SELECTOR_STRATEGIES, DEEP_SELECTOR } from '../constants'
 
 const DEFAULT_STRATEGY = 'css selector'
 const DIRECT_SELECTOR_REGEXP = /^(id|css selector|xpath|link text|partial link text|name|tag name|class name|-android uiautomator|-android datamatcher|-android viewmatcher|-android viewtag|-ios uiautomation|-ios predicate string|-ios class chain|accessibility id):(.+)/
@@ -9,7 +10,7 @@ const XPATH_SELECTORS_START = [
     '/', '(', '../', './', '*/'
 ]
 const NAME_MOBILE_SELECTORS_START = [
-    'uia', 'xcuielementtype', 'android.widget', 'cyi'
+    'uia', 'xcuielementtype', 'android.widget', 'cyi', 'android.view'
 ]
 const XPATH_SELECTOR_REGEXP = [
     // HTML tag
@@ -44,7 +45,10 @@ const defineStrategy = function (selector: SelectorStrategy) {
         return 'directly'
     }
     // Use appium image strategy if selector ends with certain text(.jpg,.gif..)
-    if (IMAGEPATH_MOBILE_SELECTORS_ENDSWITH.some(path => stringSelector.toLowerCase().endsWith(path))) {
+    if (IMAGEPATH_MOBILE_SELECTORS_ENDSWITH.some(path => {
+        const selector = stringSelector.toLowerCase()
+        return selector.endsWith(path) && selector !== path
+    })) {
         return '-image'
     }
     // Use xPath strategy if selector starts with //
@@ -62,6 +66,10 @@ const defineStrategy = function (selector: SelectorStrategy) {
     // Use id strategy if the selector starts with id=
     if (stringSelector.startsWith('id=')) {
         return 'id'
+    }
+    // use shadow dom selector
+    if (stringSelector.startsWith(DEEP_SELECTOR)) {
+        return 'shadow'
     }
     // Recursive element search using the UiAutomator library (Android only)
     if (stringSelector.startsWith('android=')) {
@@ -101,6 +109,9 @@ const defineStrategy = function (selector: SelectorStrategy) {
     if (stringSelector.match(new RegExp(XPATH_SELECTOR_REGEXP.map(rx => rx.source).join('')))) {
         return 'xpath extended'
     }
+    if (stringSelector.match(/^\[role=[A-Za-z]+]$/)){
+        return 'role'
+    }
 }
 export const findStrategy = function (selector: SelectorStrategy, isW3C?: boolean, isMobile?: boolean) {
     const stringSelector = selector as string
@@ -137,6 +148,10 @@ export const findStrategy = function (selector: SelectorStrategy, isW3C?: boolea
         value = stringSelector.slice(2)
         break
     }
+    case 'shadow':
+        using = 'shadow'
+        value = stringSelector.slice(DEEP_SELECTOR.length)
+        break
     case '-android uiautomator': {
         using = '-android uiautomator'
         value = stringSelector.slice(8)
@@ -218,14 +233,44 @@ export const findStrategy = function (selector: SelectorStrategy, isW3C?: boolea
         value = fs.readFileSync(stringSelector, { encoding: 'base64' })
         break
     }
+    case 'role': {
+        const match = stringSelector.match(/^\[role=(.+)\]/)
+        if (!match) {
+            throw new Error(`InvalidSelectorMatch. Strategy 'role' has failed to match '${stringSelector}'`)
+        }
+        using = 'css selector'
+        value = createRoleBaseXpathSelector(match[1] as ARIARoleDefintionKey)
+        break
     }
-
-    /**
-     * ensure selector strategy is supported
-     */
-    if (!isMobile && isW3C && !W3C_SELECTOR_STRATEGIES.includes(using)) {
-        throw new Error('InvalidSelectorStrategy') // ToDo: move error to wdio-error package
     }
 
     return { using, value }
+}
+
+const createRoleBaseXpathSelector = (role: ARIARoleDefintionKey) => {
+    const locatorArr: string[] = []
+    roleElements.get(role)?.forEach((value: ARIARoleRelationConcept) => {
+        let locator: string
+        let tagname: string, tagAttribute: string | undefined, tagAttributevalue: string | number | undefined
+        tagname = value.name
+        if (value.attributes instanceof Array) {
+            value.attributes.forEach((val: ARIARoleRelationConceptAttribute) => {
+                tagAttribute = val.name
+                tagAttributevalue = val.value
+            })
+        }
+        if (!tagAttribute) {
+            locator = tagname
+        } else if (!tagAttributevalue){
+            locator = `${tagname}[${tagAttribute}]`
+        } else {
+            locator = `${tagname}[${tagAttribute}="${tagAttributevalue}"]`
+        }
+        locatorArr.push(locator)
+    })
+    let xpathLocator: string = `[role="${role}"]`
+    locatorArr.forEach((loc) => {
+        xpathLocator += ',' + loc
+    })
+    return xpathLocator
 }

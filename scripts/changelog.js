@@ -20,7 +20,7 @@ if (!process.env.GITHUB_AUTH) {
     shell.exec('git checkout -- .')
     throw new Error(
         'Please export a "GITHUB_AUTH" access token to generate the changelog.\n' +
-        'See also https://github.com/webdriverio/webdriverio/blob/master/CONTRIBUTING.md#release-new-version'
+        'See also https://github.com/webdriverio/webdriverio/blob/main/CONTRIBUTING.md#release-new-version'
     )
 }
 

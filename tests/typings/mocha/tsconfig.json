@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "outDir": "dist",
+    "noImplicitAny": true,
+    "lib": ["es2018", "dom"],
+    "esModuleInterop": true,
+    "types": [
+      "webdriverio/async",
+      "@wdio/mocha-framework"
+    ],
+    "typeRoots": ["./node_modules"]
+  }
+}

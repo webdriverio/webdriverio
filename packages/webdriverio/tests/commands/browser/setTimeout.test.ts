@@ -130,7 +130,7 @@ describe('setTimeout', () => {
             .rejects
             .toEqual(invalidTimeoutParameterError)
 
-        const invalidTimeoutValueError = new Error('Specified timeout values are not valid integer (see https://webdriver.io/docs/api/browser/setTimeout.html for documentation).')
+        const invalidTimeoutValueError = new Error('Specified timeout values are not valid integer (see https://webdriver.io/docs/api/browser/setTimeout for documentation).')
         await expect(browser.setTimeout({ implicit: Number.MAX_SAFE_INTEGER + 1 }))
             .rejects
             .toEqual(invalidTimeoutValueError)

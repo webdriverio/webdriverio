@@ -1,17 +1,23 @@
+import type { ElementReference } from '@wdio/protocols'
+
+import { getElement } from '../../utils/getElementObject'
+import { getBrowserObject } from '../../utils'
+import { ELEMENT_KEY } from '../../constants'
+
 /**
  *
  * The `custom$` allows you to use a custom strategy declared by using `browser.addLocatorStrategy`
  *
  * <example>
     :example.js
-    it('should fetch the project title', () => {
-        browser.url('https://webdriver.io')
-        browser.addLocatorStrategy('myStrat', (selector) => {
+    it('should fetch the project title', async () => {
+        await browser.url('https://webdriver.io')
+        await browser.addLocatorStrategy('myStrat', (selector) => {
             return document.querySelectorAll(selector)
         })
 
-        const header = browser.custom$('myStrat', 'header')
-        const projectTitle = header.custom$('myStrat', '.projectTitle')
+        const header = await browser.custom$('myStrat', 'header')
+        const projectTitle = await header.custom$('myStrat', '.projectTitle')
 
         console.log(projectTitle.getText()) // WEBDRIVER I/O
     })
@@ -22,17 +28,13 @@
  * @param {Any} strategyArguments
  * @return {Element}
  */
-import { getElement } from '../../utils/getElementObject'
-import { getBrowserObject } from '../../utils'
-import { ELEMENT_KEY } from '../../constants'
-
 async function custom$ (
     this: WebdriverIO.Element,
     strategyName: string,
     strategyArguments: string
 ) {
-    const browserObject: WebdriverIO.BrowserObject = getBrowserObject(this)
-    const strategy = browserObject.strategies.get(strategyName) as () => WebDriver.ElementReference
+    const browserObject = getBrowserObject(this)
+    const strategy = browserObject.strategies.get(strategyName) as (arg: string, context: any) => HTMLElement
 
     if (!strategy) {
         throw Error('No strategy found for ' + strategyName)
@@ -46,7 +48,7 @@ async function custom$ (
         throw Error(`Can't call custom$ on element with selector "${this.selector}" because element wasn't found`)
     }
 
-    let res = await this.execute(strategy, strategyArguments, this)
+    let res = await this.execute(strategy, strategyArguments, this) as any as ElementReference | undefined
 
     /**
      * if the user's script returns multiple elements
@@ -58,7 +60,7 @@ async function custom$ (
     }
 
     if (res && typeof res[ELEMENT_KEY] === 'string') {
-        return await getElement.call(this, strategy, res)
+        return await getElement.call(this, strategy as any, res)
     }
 
     throw Error('Your locator strategy script must return an element')

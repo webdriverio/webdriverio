@@ -1,3 +1,5 @@
+import type { Cookie } from '@wdio/protocols'
+
 /**
  *
  * Sets one or more [cookies](https://w3c.github.io/webdriver/#cookies) for the current page. Make sure you are
@@ -6,11 +8,11 @@
  *
  * <example>
     :setCookies.js
-    it('should set a cookie for the page', () => {
-        browser.url('/')
+    it('should set a cookie for the page', async () => {
+        await browser.url('/')
 
         // set a single cookie
-        browser.setCookies({
+        await browser.setCookies({
             name: 'test1',
             value: 'one'
             // The below options are optional
@@ -22,12 +24,12 @@
         })
 
         // set multiple cookies
-        browser.setCookies([
+        await browser.setCookies([
             {name: 'test2', value: 'two'},
             {name: 'test3', value: 'three'}
         ])
 
-        const cookies = browser.getCookies()
+        const cookies = await browser.getCookies()
         console.log(cookies);
         // outputs:
         // [
@@ -53,13 +55,13 @@
  *
  */
 export default async function setCookies(
-    this: WebdriverIO.BrowserObject,
-    cookieObjs: WebDriver.Cookie | WebDriver.Cookie[]
+    this: WebdriverIO.Browser,
+    cookieObjs: Cookie | Cookie[]
 ) {
     const cookieObjsList = !Array.isArray(cookieObjs) ? [cookieObjs] : cookieObjs
 
     if (cookieObjsList.some(obj => (typeof obj !== 'object'))) {
-        throw new Error('Invalid input (see https://webdriver.io/docs/api/browser/setCookies.html for documentation.')
+        throw new Error('Invalid input (see https://webdriver.io/docs/api/browser/setCookies for documentation)')
     }
 
     await Promise.all(cookieObjsList

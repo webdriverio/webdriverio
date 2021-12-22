@@ -62,7 +62,6 @@
             "dryRun": false,
             "failFast": false,
             "failAmbiguousDefinitions": true,
-            "format": ["pretty"],
             "colors": true,
             "snippets": true,
             "source": true,
@@ -73,7 +72,7 @@
             "tagExpression": "@run",
             "ignoreUndefinedDefinitions": false
         },
-        "jasmineNodeOpts": {
+        "jasmineOpts": {
             "defaultTimeoutInterval": 10000
         },
         "before": [],

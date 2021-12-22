@@ -59,16 +59,15 @@ exports[`getMetrics 1`] = `
 Object {
   "cumulativeLayoutShift": 24347,
   "domContentLoaded": undefined,
-  "estimatedInputLatency": 16,
-  "firstCPUIdle": 23117,
   "firstContentfulPaint": 18090,
-  "firstInteractive": 24117,
   "firstMeaningfulPaint": 23117,
   "firstPaint": undefined,
   "firstVisualChange": undefined,
+  "interactive": 24117,
   "largestContentfulPaint": 23117,
   "lastVisualChange": undefined,
   "load": undefined,
+  "maxPotentialFID": 1234,
   "serverResponseTime": 105,
   "speedIndex": 20411,
   "timeToFirstByte": 105,
@@ -76,4 +75,70 @@ Object {
 }
 `;
 
-exports[`getPerformanceScore 1`] = `0.8`;
+exports[`getPerformanceScore 1`] = `0.77`;
+
+exports[`should allow to audit PWA results 1`] = `
+Object {
+  "details": Object {
+    "appleTouchIcon": Object {
+      "details": Object {},
+      "displayValue": "apple-touch-icon",
+      "score": 1,
+    },
+    "contentWith": Object {
+      "details": Object {},
+      "displayValue": "content-width",
+      "score": 1,
+    },
+    "isInstallable": Object {
+      "details": Object {},
+      "displayValue": "installable-manifest",
+      "score": 1,
+    },
+    "maskableIcon": Object {
+      "details": Object {},
+      "displayValue": "maskable-icon",
+      "score": 1,
+    },
+    "serviceWorker": Object {
+      "details": Object {},
+      "displayValue": "service-worker",
+      "score": 1,
+    },
+    "splashScreen": Object {
+      "details": Object {},
+      "displayValue": "splash-screen",
+      "score": 0,
+    },
+    "themedOmnibox": Object {
+      "details": Object {},
+      "displayValue": "themed-omnibox",
+      "score": 1,
+    },
+    "viewport": Object {
+      "details": Object {},
+      "displayValue": "viewport",
+      "score": 1,
+    },
+  },
+  "passed": false,
+}
+`;
+
+exports[`should allow to audit PWA results 2`] = `
+Object {
+  "details": Object {
+    "maskableIcon": Object {
+      "details": Object {},
+      "displayValue": "maskable-icon",
+      "score": 1,
+    },
+    "serviceWorker": Object {
+      "details": Object {},
+      "displayValue": "service-worker",
+      "score": 1,
+    },
+  },
+  "passed": true,
+}
+`;

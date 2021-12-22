@@ -1,7 +1,9 @@
+import type { Capabilities } from '@wdio/types'
+
 const MOBILE_BROWSER_NAMES = ['ipad', 'iphone', 'android']
 const MOBILE_CAPABILITIES = [
     'appium-version', 'appiumVersion', 'device-type', 'deviceType',
-    'device-orientation', 'deviceOrientation', 'deviceName'
+    'device-orientation', 'deviceOrientation', 'deviceName', 'automationName'
 ]
 
 /**
@@ -9,7 +11,7 @@ const MOBILE_CAPABILITIES = [
  * @param  {Object}  capabilities  caps of session response
  * @return {Boolean}               true if W3C (browser)
  */
-export function isW3C (capabilities?: WebDriver.DesiredCapabilities) {
+export function isW3C (capabilities?: Capabilities.DesiredCapabilities) {
     /**
      * JSONWire protocol doesn't return a property `capabilities`.
      * Also check for Appium response as it is using JSONWire protocol for most of the part.
@@ -30,10 +32,13 @@ export function isW3C (capabilities?: WebDriver.DesiredCapabilities) {
         capabilities.appiumVersion
     )
     const hasW3CCaps = Boolean(
-        capabilities.platformName &&
-        capabilities.browserVersion &&
         /**
-         * local safari and BrowserStack don't provide platformVersion therefor
+         * safari docker image may not provide a platformName therefore
+         * check one of the available "platformName" or "browserVersion"
+         */
+        (capabilities.platformName || capabilities.browserVersion) &&
+        /**
+         * local safari and BrowserStack don't provide platformVersion therefore
          * check also if setWindowRect is provided
          */
         (capabilities.platformVersion || Object.prototype.hasOwnProperty.call(capabilities, 'setWindowRect'))
@@ -46,11 +51,26 @@ export function isW3C (capabilities?: WebDriver.DesiredCapabilities) {
  * @param  {Object}  capabilities  caps of session response
  * @return {Boolean}               true if run by Chromedriver
  */
-function isChrome (capabilities?: WebDriver.DesiredCapabilities) {
+function isChrome (capabilities?: Capabilities.DesiredCapabilities) {
     if (!capabilities) {
         return false
     }
     return Boolean(capabilities.chrome || capabilities['goog:chromeOptions'])
+}
+
+/**
+ * check if session is run by Chromedriver
+ * @param  {Object}  capabilities  caps of session response
+ * @return {Boolean}               true if run by Chromedriver
+ */
+function isFirefox (capabilities?: Capabilities.DesiredCapabilities) {
+    if (!capabilities) {
+        return false
+    }
+    return (
+        capabilities.browserName === 'firefox' ||
+        Boolean(Object.keys(capabilities).find((cap) => cap.startsWith('moz:')))
+    )
 }
 
 /**
@@ -59,16 +79,17 @@ function isChrome (capabilities?: WebDriver.DesiredCapabilities) {
  * @param  {Object}  caps  capabilities
  * @return {Boolean}       true if platform is mobile device
  */
-function isMobile (capabilities?: WebDriver.Capabilities) {
-    if (!capabilities) {
-        return false
-    }
+function isMobile (capabilities: Capabilities.Capabilities) {
     const browserName = (capabilities.browserName || '').toLowerCase()
 
     /**
      * we have mobile capabilities if
      */
     return Boolean(
+        /**
+         * there are any Appium vendor capabilties
+         */
+        Object.keys(capabilities).find((cap) => cap.startsWith('appium:')) ||
         /**
          * capabilities contain mobile only specific capabilities
          */
@@ -89,7 +110,7 @@ function isMobile (capabilities?: WebDriver.Capabilities) {
  * @param  {Object}  capabilities  of session response
  * @return {Boolean}               true if run on iOS device
  */
-function isIOS (capabilities?: WebDriver.DesiredCapabilities) {
+function isIOS (capabilities?: Capabilities.DesiredCapabilities) {
     if (!capabilities) {
         return false
     }
@@ -105,7 +126,7 @@ function isIOS (capabilities?: WebDriver.DesiredCapabilities) {
  * @param  {Object}  capabilities  caps of session response
  * @return {Boolean}               true if run on Android device
  */
-function isAndroid (capabilities?: WebDriver.Capabilities) {
+function isAndroid (capabilities?: Capabilities.Capabilities) {
     if (!capabilities) {
         return false
     }
@@ -122,14 +143,14 @@ function isAndroid (capabilities?: WebDriver.Capabilities) {
  * @param  {object}  capabilities session capabilities
  * @return {Boolean}              true if session is running on Sauce with extended debugging enabled
  */
-function isSauce (capabilities?: WebDriver.DesiredCapabilities | WebDriver.W3CCapabilities) {
+function isSauce (capabilities?: Capabilities.RemoteCapability) {
     if (!capabilities) {
         return false
     }
 
-    const caps: WebDriver.DesiredCapabilities = (capabilities as WebDriver.W3CCapabilities).alwaysMatch
-        ? (capabilities as WebDriver.W3CCapabilities).alwaysMatch
-        : capabilities as WebDriver.DesiredCapabilities
+    const caps: Capabilities.DesiredCapabilities = (capabilities as Capabilities.W3CCapabilities).alwaysMatch
+        ? (capabilities as Capabilities.W3CCapabilities).alwaysMatch
+        : capabilities as Capabilities.DesiredCapabilities
 
     return Boolean(
         caps.extendedDebugging ||
@@ -145,11 +166,20 @@ function isSauce (capabilities?: WebDriver.DesiredCapabilities | WebDriver.W3CCa
  * @param  {object}  capabilities session capabilities
  * @return {Boolean}              true if session is run with Selenium Standalone Server
  */
-function isSeleniumStandalone (capabilities?: WebDriver.DesiredCapabilities) {
+function isSeleniumStandalone (capabilities?: Capabilities.DesiredCapabilities) {
     if (!capabilities) {
         return false
     }
-    return Boolean(capabilities['webdriver.remote.sessionid'])
+    return (
+        /**
+         * Selenium v3 and below
+         */
+        Boolean(capabilities['webdriver.remote.sessionid']) ||
+        /**
+         * Selenium v4 and up
+         */
+        Boolean(capabilities['se:cdp'])
+    )
 }
 
 /**
@@ -158,7 +188,7 @@ function isSeleniumStandalone (capabilities?: WebDriver.DesiredCapabilities) {
  * @param  {string=} automationProtocol     `devtools`
  * @return {Object}                         object with environment flags
  */
-export function capabilitiesEnvironmentDetector (capabilities: WebDriver.Capabilities, automationProtocol: string) {
+export function capabilitiesEnvironmentDetector (capabilities: Capabilities.Capabilities, automationProtocol: string) {
     return automationProtocol === 'devtools'
         ? devtoolsEnvironmentDetector(capabilities)
         : webdriverEnvironmentDetector(capabilities)
@@ -170,10 +200,11 @@ export function capabilitiesEnvironmentDetector (capabilities: WebDriver.Capabil
  * @param  {Object}  requestedCapabilities
  * @return {Object}                         object with environment flags
  */
-export function sessionEnvironmentDetector ({ capabilities, requestedCapabilities }: { capabilities?: WebDriver.DesiredCapabilities, requestedCapabilities?: WebDriver.DesiredCapabilities | WebDriver.W3CCapabilities }) {
+export function sessionEnvironmentDetector ({ capabilities, requestedCapabilities }: { capabilities: Capabilities.DesiredCapabilities, requestedCapabilities: Capabilities.DesiredCapabilities | Capabilities.W3CCapabilities }) {
     return {
         isW3C: isW3C(capabilities),
         isChrome: isChrome(capabilities),
+        isFirefox: isFirefox(capabilities),
         isMobile: isMobile(capabilities),
         isIOS: isIOS(capabilities),
         isAndroid: isAndroid(capabilities),
@@ -187,13 +218,14 @@ export function sessionEnvironmentDetector ({ capabilities, requestedCapabilitie
  * @param  {Object}  capabilities           caps of session response
  * @return {Object}                         object with environment flags
  */
-export function devtoolsEnvironmentDetector ({ browserName }: WebDriver.Capabilities) {
+export function devtoolsEnvironmentDetector ({ browserName }: Capabilities.Capabilities) {
     return {
         isDevTools: true,
         isW3C: true,
         isMobile: false,
         isIOS: false,
         isAndroid: false,
+        isFirefox: false,
         isChrome: browserName === 'chrome',
         isSauce: false,
         isSeleniumStandalone: false,
@@ -206,9 +238,10 @@ export function devtoolsEnvironmentDetector ({ browserName }: WebDriver.Capabili
  * @param  {Object}  capabilities           caps provided by user
  * @return {Object}                         object with environment flags
  */
-export function webdriverEnvironmentDetector (capabilities: WebDriver.Capabilities) {
+export function webdriverEnvironmentDetector (capabilities: Capabilities.Capabilities) {
     return {
         isChrome: isChrome(capabilities),
+        isFirefox: isFirefox(capabilities),
         isMobile: isMobile(capabilities),
         isIOS: isIOS(capabilities),
         isAndroid: isAndroid(capabilities),

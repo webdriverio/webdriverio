@@ -1,8 +1,9 @@
 import logger from '@wdio/logger'
 import { commandCallStructure, isValidParameter, getArgumentType } from '@wdio/utils'
-import Protocols from '@wdio/protocols'
+import type { CommandEndpoint } from '@wdio/protocols'
 
-import WebDriverRequest, { WebDriverResponse } from './request'
+import RequestFactory from './request/factory'
+import { WebDriverResponse } from './request'
 import { BaseClient } from './types'
 
 const log = logger('webdriver')
@@ -10,7 +11,7 @@ const log = logger('webdriver')
 export default function (
     method: string,
     endpointUri: string,
-    commandInfo: Protocols.CommandEndpoint,
+    commandInfo: CommandEndpoint,
     doubleEncodeVariables = false
 ) {
     const { command, ref, parameters, variables = [], isHubCommand = false } = commandInfo
@@ -87,7 +88,7 @@ export default function (
             body[commandParams[i].name] = arg
         }
 
-        const request = new WebDriverRequest(method, endpoint, body, isHubCommand)
+        const request = RequestFactory.getInstance(method, endpoint, body, isHubCommand)
         this.emit('command', { method, endpoint, body })
         log.info('COMMAND', commandCallStructure(command, args))
         return request.makeRequest(this.options, this.sessionId).then((result) => {

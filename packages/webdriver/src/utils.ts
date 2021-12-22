@@ -2,13 +2,17 @@ import merge from 'lodash.merge'
 import logger from '@wdio/logger'
 import {
     WebDriverProtocol, MJsonWProtocol, JsonWProtocol, AppiumProtocol, ChromiumProtocol,
-    SauceLabsProtocol, SeleniumProtocol
+    SauceLabsProtocol, SeleniumProtocol, GeckoProtocol
 } from '@wdio/protocols'
 import Protocols from '@wdio/protocols'
+import { Options, Capabilities } from '@wdio/types'
 
-import WebDriverRequest, { WebDriverResponse } from './request'
+import RequestFactory from './request/factory'
+import { WebDriverResponse } from './request'
 import command from './command'
-import { Options, JSONWPCommandError, W3CCapabilities, SessionFlags, DesiredCapabilities } from './types'
+import { transformCommandLogResult } from '@wdio/utils'
+import { VALID_CAPS, REG_EXPS } from './constants'
+import type { JSONWPCommandError, SessionFlags } from './types'
 
 const log = logger('webdriver')
 
@@ -22,24 +26,49 @@ const BROWSER_DRIVER_ERRORS = [
 /**
  * start browser session with WebDriver protocol
  */
-export async function startWebDriverSession (params: Options): Promise<{ sessionId: string, capabilities: DesiredCapabilities }> {
+export async function startWebDriverSession (params: Options.WebDriver): Promise<{ sessionId: string, capabilities: Capabilities.DesiredCapabilities }> {
+    /**
+     * validate capabilities to check if there are no obvious mix between
+     * JSONWireProtocol and WebDriver protoocol, e.g.
+     */
+    if (params.capabilities) {
+        const extensionCaps = Object.keys(params.capabilities).filter((cap) => cap.includes(':'))
+        const invalidWebDriverCaps = Object.keys(params.capabilities)
+            .filter((cap) => !VALID_CAPS.includes(cap) && !cap.includes(':'))
+
+        /**
+         * if there are vendor extensions, e.g. sauce:options or appium:app
+         * used (only WebDriver compatible) and caps that aren't defined
+         * in the WebDriver spec
+         */
+        if (extensionCaps.length && invalidWebDriverCaps.length) {
+            throw new Error(
+                `Invalid or unsupported WebDriver capabilities found ("${invalidWebDriverCaps.join('", "')}"). ` +
+                'Ensure to only use valid W3C WebDriver capabilities (see https://w3c.github.io/webdriver/#capabilities).' +
+                'If you run your tests on a remote vendor, like Sauce Labs or BrowserStack, make sure that you put them ' +
+                'into vendor specific capabilities, e.g. "sauce:options" or "bstack:options". Please reach out to ' +
+                'to your vendor support team if you have further questions.'
+            )
+        }
+    }
+
     /**
      * the user could have passed in either w3c style or jsonwp style caps
      * and we want to pass both styles to the server, which means we need
      * to check what style the user sent in so we know how to construct the
      * object for the other style
      */
-    const [w3cCaps, jsonwpCaps] = params.capabilities && (params.capabilities as W3CCapabilities).alwaysMatch
+    const [w3cCaps, jsonwpCaps] = params.capabilities && (params.capabilities as Capabilities.W3CCapabilities).alwaysMatch
         /**
          * in case W3C compliant capabilities are provided
          */
-        ? [params.capabilities, (params.capabilities as W3CCapabilities).alwaysMatch]
+        ? [params.capabilities, (params.capabilities as Capabilities.W3CCapabilities).alwaysMatch]
         /**
          * otherwise assume they passed in jsonwp-style caps (flat object)
          */
         : [{ alwaysMatch: params.capabilities, firstMatch: [{}] }, params.capabilities]
 
-    const sessionRequest = new WebDriverRequest(
+    const sessionRequest = RequestFactory.getInstance(
         'POST',
         '/session',
         {
@@ -51,7 +80,7 @@ export async function startWebDriverSession (params: Options): Promise<{ session
     let response
     try {
         response = await sessionRequest.makeRequest(params)
-    } catch (err) {
+    } catch (err: any) {
         log.error(err)
         const message = getSessionError(err, params)
         throw new Error('Failed to create session.\n' + message)
@@ -59,17 +88,11 @@ export async function startWebDriverSession (params: Options): Promise<{ session
     const sessionId = response.value.sessionId || response.sessionId
 
     /**
-     * save original set of capabilities to allow to request the same session again
-     * (e.g. for reloadSession command in WebdriverIO)
-     */
-    params.requestedCapabilities = params.capabilities
-
-    /**
      * save actual receveived session details
      */
     params.capabilities = response.value.capabilities || response.value
 
-    return { sessionId, capabilities: params.capabilities as DesiredCapabilities }
+    return { sessionId, capabilities: params.capabilities as Capabilities.DesiredCapabilities }
 }
 
 /**
@@ -143,7 +166,7 @@ export function isSuccessfulResponse (statusCode?: number, body?: WebDriverRespo
 /**
  * creates the base prototype for the webdriver monad
  */
-export function getPrototype ({ isW3C, isChrome, isMobile, isSauce, isSeleniumStandalone }: Partial<SessionFlags>) {
+export function getPrototype ({ isW3C, isChrome, isFirefox, isMobile, isSauce, isSeleniumStandalone }: Partial<SessionFlags>) {
     const prototype: Record<string, PropertyDescriptor> = {}
     const ProtocolCommands: Protocols.Protocol = merge(
         /**
@@ -162,6 +185,10 @@ export function getPrototype ({ isW3C, isChrome, isMobile, isSauce, isSeleniumSt
          * only apply special Chrome commands if session is using Chrome
          */
         isChrome ? ChromiumProtocol : {},
+        /**
+         * only apply special Firefox commands if session is using Firefox
+         */
+        isFirefox ? GeckoProtocol : {},
         /**
          * only Sauce Labs specific vendor commands
          */
@@ -196,8 +223,8 @@ export function getErrorFromResponseBody (body: any) {
         return new Error(body)
     }
 
-    if (typeof body !== 'object' || (!body.value && !body.error)) {
-        return new Error('unknown error')
+    if (typeof body !== 'object') {
+        return new Error('Unknown error')
     }
 
     return new CustomRequestError(body)
@@ -212,6 +239,12 @@ export class CustomRequestError extends Error {
             this.name = errorObj.error
         } else if (errorObj.message && errorObj.message.includes('stale element reference')) {
             this.name = 'stale element reference'
+        } else {
+            this.name = errorObj.name || 'WebDriver Error'
+        }
+
+        if (errorObj.stacktrace) {
+            this.stack = errorObj.stacktrace
         }
     }
 }
@@ -222,12 +255,13 @@ export class CustomRequestError extends Error {
  * @param  {Object} options   driver instance or option object containing these flags
  * @return {Object}           prototype object
  */
-export function getEnvironmentVars({ isW3C, isMobile, isIOS, isAndroid, isChrome, isSauce, isSeleniumStandalone }: Partial<SessionFlags>) {
+export function getEnvironmentVars({ isW3C, isMobile, isIOS, isAndroid, isChrome, isFirefox, isSauce, isSeleniumStandalone }: Partial<SessionFlags>) {
     return {
         isW3C: { value: isW3C },
         isMobile: { value: isMobile },
         isIOS: { value: isIOS },
         isAndroid: { value: isAndroid },
+        isFirefox: { value: isFirefox },
         isChrome: { value: isChrome },
         isSauce: { value: isSauce },
         isSeleniumStandalone: { value: isSeleniumStandalone }
@@ -238,7 +272,7 @@ export function getEnvironmentVars({ isW3C, isMobile, isIOS, isAndroid, isChrome
  * get human readable message from response error
  * @param {Error} err response error
  */
-export const getSessionError = (err: JSONWPCommandError, params: Partial<Options> = {}) => {
+export const getSessionError = (err: JSONWPCommandError, params: Partial<Options.WebDriver> = {}) => {
     // browser driver / service is not started
     if (err.code === 'ECONNREFUSED') {
         return `Unable to connect to "${params.protocol}://${params.hostname}:${params.port}${params.path}", make sure browser driver is running on that address.` +
@@ -282,5 +316,54 @@ export const getSessionError = (err: JSONWPCommandError, params: Partial<Options
             '\nIf you use a grid server ' + w3cCapMessage
     }
 
+    if (err.message.includes('failed serving request POST /wd/hub/session: Unauthorized') && params.hostname?.endsWith('saucelabs.com')) {
+        return 'Session request was not authorized because you either did provide a wrong access key or tried to run ' +
+            'in a region that has not been enabled for your user. If have registered a free trial account it is connected ' +
+            'to a specific region. Ensure this region is set in your configuration (https://webdriver.io/docs/options.html#region).'
+    }
+
     return err.message
+}
+
+/**
+ * return timeout error with information about the executing command on which the test hangs
+ */
+export const getTimeoutError = (error: Error, requestOptions: Options.RequestLibOptions): Error => {
+    const cmdName = getExecCmdName(requestOptions)
+    const cmdArgs = getExecCmdArgs(requestOptions)
+
+    const cmdInfoMsg = `when running "${cmdName}" with method "${requestOptions.method}"`
+    const cmdArgsMsg = cmdArgs ? ` and args ${cmdArgs}` : ''
+
+    const timeoutErr = new Error(`${error.message} ${cmdInfoMsg}${cmdArgsMsg}`)
+    return Object.assign(timeoutErr, error)
+}
+
+function getExecCmdName(requestOptions: Options.RequestLibOptions): string {
+    const { href } = requestOptions.url as URL
+    const res = href.match(REG_EXPS.commandName) || []
+
+    return res[1] || href
+}
+
+function getExecCmdArgs(requestOptions: Options.RequestLibOptions): string {
+    const { json: cmdJson } = requestOptions
+
+    if (typeof cmdJson !== 'object') {
+        return ''
+    }
+
+    const transformedRes = transformCommandLogResult(cmdJson)
+
+    if (typeof transformedRes === 'string') {
+        return transformedRes
+    }
+
+    if (typeof cmdJson.script === 'string') {
+        const scriptRes = cmdJson.script.match(REG_EXPS.execFn) || []
+
+        return `"${scriptRes[1] || cmdJson.script}"`
+    }
+
+    return Object.keys(cmdJson).length ? `"${JSON.stringify(cmdJson)}"` : ''
 }

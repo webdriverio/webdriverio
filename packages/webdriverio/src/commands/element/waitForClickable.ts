@@ -1,17 +1,24 @@
+import type { WaitForOptions } from '../../types'
 
 /**
- * Wait for an element for the provided amount of
- * milliseconds to be clickable or not clickable.
+ * Wait for an element for the provided amount of milliseconds to be clickable or not clickable.
+ *
+ * :::info
+ *
+ * As opposed to other element commands WebdriverIO will not wait for the element to exist to execute
+ * this command.
+ *
+ * :::
  *
  * <example>
     :waitForClickable.js
-    it('should detect when element is clickable', () => {
-        const elem = $('#elem')
-        elem.waitForClickable({ timeout: 3000 });
+    it('should detect when element is clickable', async () => {
+        const elem = await $('#elem')
+        await elem.waitForClickable({ timeout: 3000 });
     });
-    it('should detect when element is no longer clickable', () => {
-        const elem = $('#elem')
-        elem.waitForClickable({ reverse: true });
+    it('should detect when element is no longer clickable', async () => {
+        const elem = await $('#elem')
+        await elem.waitForClickable({ reverse: true });
     });
  * </example>
  *
@@ -24,8 +31,6 @@
  * @return {Boolean} `true` if element is clickable (or doesn't if flag is set)
  *
  */
-import type { WaitForOptions } from '../../types'
-
 export default async function waitForClickable (
     this: WebdriverIO.Element,
     {

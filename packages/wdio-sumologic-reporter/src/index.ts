@@ -2,7 +2,7 @@ import got from 'got'
 import dateFormat from 'dateformat'
 import stringify from 'json-stringify-safe'
 
-import WDIOReporter, { RunnerStats, SuiteStats, TestStats, WDIOReporterOptions } from '@wdio/reporter'
+import WDIOReporter, { RunnerStats, SuiteStats, TestStats } from '@wdio/reporter'
 import logger from '@wdio/logger'
 
 import type { Options } from './types'
@@ -17,13 +17,13 @@ const DATE_FORMAT = 'yyyy-mm-dd HH:mm:ss,l o'
  */
 export default class SumoLogicReporter extends WDIOReporter {
     private _options: Options
-    private _interval: number
+    private _interval: NodeJS.Timeout
 
     private _unsynced: string[] = []
     private _isSynchronising = false
     private _hasRunnerEnd = false
 
-    constructor(options: WDIOReporterOptions) {
+    constructor(options: Options) {
         super(options)
         this._options = Object.assign({
             // don't create a log file
@@ -38,7 +38,7 @@ export default class SumoLogicReporter extends WDIOReporter {
             log.error('Sumo Logic requires "sourceAddress" paramater')
         }
 
-        this._interval = setInterval(this.sync.bind(this), this._options.syncInterval)
+        this._interval = global.setInterval(this.sync.bind(this), this._options.syncInterval)
     }
 
     // @ts-ignore
@@ -161,8 +161,16 @@ export default class SumoLogicReporter extends WDIOReporter {
              */
             this._isSynchronising = false
             return log.debug(`synchronised collector data, server status: ${resp.statusCode}`)
-        } catch (err) {
+        } catch (err: any) {
             return log.error('failed send data to Sumo Logic:\n', err.stack)
         }
+    }
+}
+
+export * from './types'
+
+declare global {
+    namespace WebdriverIO {
+        interface ReporterOption extends Options {}
     }
 }

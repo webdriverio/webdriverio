@@ -9,18 +9,26 @@
  *
  * You can see the values for these presets [in the source code](https://github.com/webdriverio/webdriverio/blob/6824e4eb118a8d20685f12f4bc42f13fd56f8a25/packages/webdriverio/src/commands/browser/throttle.js#L29).
  *
+ * :::info
+ *
+ * Note that using the `throttle` command requires support for Chrome DevTools protocol and e.g.
+ * can not be used when running automated tests in the cloud. Find out more in the
+ * [Automation Protocols](/docs/automationProtocols) section.
+ *
+ * :::
+ *
  * <example>
     :throttle.js
-    it('should throttle the network', () => {
+    it('should throttle the network', async () => {
         // via static string preset
-        browser.throttle('Regular 3G')
+        await browser.throttle('Regular 3G')
 
         // via custom values
-        browser.throttle({
-            'offline': false,
-            'downloadThroughput': 200 * 1024 / 8,
-            'uploadThroughput': 200 * 1024 / 8,
-            'latency': 20
+        await browser.throttle({
+            offline: false,
+            downloadThroughput: 200 * 1024 / 8,
+            uploadThroughput: 200 * 1024 / 8,
+            latency: 20
         })
     });
  * </example>
@@ -35,6 +43,7 @@
  *
  */
 import { getBrowserObject } from '../../utils'
+import type { ThrottleOptions } from '../../utils/interception/types'
 
 const NETWORK_PRESETS = {
     'offline': {
@@ -97,12 +106,13 @@ const NETWORK_PRESETS = {
         downloadThroughput: -1,
         uploadThroughput: -1
     }
-}
+} as const
+
 const NETWORK_PRESET_TYPES = Object.keys(NETWORK_PRESETS)
 
 export default async function throttle (
-    this: WebdriverIO.BrowserObject,
-    params: WebdriverIO.ThrottleOptions
+    this: WebdriverIO.Browser,
+    params: ThrottleOptions
 ) {
     if (
         /**
@@ -128,6 +138,10 @@ export default async function throttle (
 
     // Connect to Chrome DevTools
     await this.getPuppeteer()
+    if (!this.puppeteer) {
+        throw new Error('No Puppeteer connection could be established which is required to use this command')
+    }
+
     const pages = await this.puppeteer.pages()
     const client = await pages[0].target().createCDPSession()
 

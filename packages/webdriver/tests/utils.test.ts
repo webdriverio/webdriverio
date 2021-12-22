@@ -1,7 +1,10 @@
-import { Options, DesiredCapabilities } from '../src/types'
+import { URL } from 'url'
+import { Options } from '@wdio/types'
+import { transformCommandLogResult } from '@wdio/utils'
 import {
     isSuccessfulResponse, getPrototype, getSessionError,
-    getErrorFromResponseBody, CustomRequestError, startWebDriverSession
+    getErrorFromResponseBody, CustomRequestError, startWebDriverSession,
+    getTimeoutError
 } from '../src/utils'
 
 describe('utils', () => {
@@ -60,6 +63,15 @@ describe('utils', () => {
         expect(typeof chromiumPrototype.elementSendKeys.value).toBe('function')
         expect(typeof chromiumPrototype.lock).toBe('undefined')
 
+        const geckoPrototype = getPrototype({
+            isW3C: true, isChrome: false, isFirefox: true, isMobile, isSauce, isSeleniumStandalone, isIOS, isAndroid
+        })
+        expect(geckoPrototype instanceof Object).toBe(true)
+        expect(typeof geckoPrototype.setMozContext.value).toBe('function')
+        expect(typeof geckoPrototype.installAddOn.value).toBe('function')
+        expect(typeof geckoPrototype.elementSendKeys.value).toBe('function')
+        expect(typeof geckoPrototype.lock).toBe('undefined')
+
         const mobilePrototype = getPrototype({
             isW3C: true, isChrome: false, isMobile: true, isSauce, isSeleniumStandalone, isIOS, isAndroid
         })
@@ -94,8 +106,9 @@ describe('utils', () => {
         const unknownError = new Error('unknown error')
         expect(getErrorFromResponseBody({})).toEqual(unknownError)
 
+        const nonWebDriverError = new Error('expected')
         const expectedError = new Error('expected')
-        expect(getErrorFromResponseBody('expected')).toEqual(expectedError)
+        expect(getErrorFromResponseBody('expected')).toEqual(nonWebDriverError)
         expect(getErrorFromResponseBody({ value: { message: 'expected' } }))
             .toEqual(expectedError)
         expect(getErrorFromResponseBody({ value: { class: 'expected' } }))
@@ -105,7 +118,8 @@ describe('utils', () => {
         ieError.name = 'unknown method'
         expect(getErrorFromResponseBody({
             message: 'Command not found: POST /some/command',
-            error: 'unknown method'
+            error: 'unknown method',
+            name: 'Protocol Error'
         })).toEqual(ieError)
     })
 
@@ -126,15 +140,19 @@ describe('utils', () => {
         expect(error.message).toBe('stale element reference')
 
         error = new CustomRequestError({ value: { message: 'message' } } )
-        expect(error.name).toBe('Error')
+        expect(error.name).toBe('WebDriver Error')
         expect(error.message).toBe('message')
 
         error = new CustomRequestError({ value: { class: 'class' } } )
-        expect(error.name).toBe('Error')
+        expect(error.name).toBe('WebDriver Error')
         expect(error.message).toBe('class')
 
+        error = new CustomRequestError({ value: { name: 'Protocol Error' } } )
+        expect(error.name).toBe('Protocol Error')
+        expect(error.message).toBe('unknown error')
+
         error = new CustomRequestError({ value: { } } )
-        expect(error.name).toBe('Error')
+        expect(error.name).toBe('WebDriver Error')
         expect(error.message).toBe('unknown error')
     })
 
@@ -197,11 +215,18 @@ describe('utils', () => {
             expect(message).toContain('valid hostname:port or the port is not in use')
             expect(message).toContain('add vendor prefix')
         })
+
+        it('should hint for region issues for free-trial users', () => {
+            const message = getSessionError(
+                new Error('unknown error: failed serving request POST /wd/hub/session: Unauthorized'),
+                { hostname: 'https://ondemand.eu-central-1.saucelabs.com' })
+            expect(message).toContain('Ensure this region is set in your configuration')
+        })
     })
 
     describe('startWebDriverSession', () => {
         it('attaches capabilities to the params object', async () => {
-            const params: Options = {
+            const params: Options.WebDriver = {
                 hostname: 'localhost',
                 port: 4444,
                 path: '/',
@@ -209,22 +234,135 @@ describe('utils', () => {
                 logLevel: 'warn',
                 capabilities: {
                     browserName: 'chrome',
+                    platform: 'Windows'
                 }
             }
             const { sessionId, capabilities } = await startWebDriverSession(params)
             expect(sessionId).toBe('foobar-123')
             expect(capabilities.browserName)
                 .toBe('mockBrowser')
-            expect((params.requestedCapabilities as DesiredCapabilities).browserName)
-                .toBe('chrome')
-
         })
 
         it('should handle sessionRequest error', async () => {
             let error = await startWebDriverSession({
-                logLevel: 'warn'
+                logLevel: 'warn',
+                capabilities: {}
             }).catch((err) => err)
             expect(error.message).toContain('Failed to create session')
+        })
+
+        it('should break if JSONWire and WebDriver caps are mixed together', async () => {
+            const params: Options.WebDriver = {
+                hostname: 'localhost',
+                port: 4444,
+                path: '/',
+                protocol: 'http',
+                logLevel: 'warn',
+                capabilities: {
+                    browserName: 'chrome',
+                    'sauce:options': {},
+                    platform: 'Windows',
+                    // @ts-ignore test invalid cap
+                    foo: 'bar'
+                }
+            }
+            const err: Error = await startWebDriverSession(params).catch((err) => err)
+            expect(err.message).toContain(
+                'Invalid or unsupported WebDriver capabilities found ' +
+                '("platform", "foo").'
+            )
+        })
+    })
+
+    describe('getTimeoutError', () => {
+        const mkReqOpts = (opts: Options.RequestLibOptions = {}): Options.RequestLibOptions => {
+            return {
+                url: new URL('https://localhost:4445/default/method'),
+                method: 'GET',
+                json: {},
+                ...opts
+            }
+        }
+
+        describe('should return error with', () => {
+            it('command name as full endpoint', async () => {
+                const err = new Error('Timeout')
+                const reqOpts = mkReqOpts({ url: new URL('https://localhost:4445/wd/hub/session') })
+
+                const timeoutErr = getTimeoutError(err, reqOpts)
+
+                expect(timeoutErr.message).toEqual(expect.stringMatching('when running "https://localhost:4445/wd/hub/session"'))
+            })
+
+            it('command name in shortened form', async () => {
+                const err = new Error('Timeout')
+                const reqOpts = mkReqOpts({ url: new URL('https://localhost:4445/wd/hub/session/abc123/url') })
+
+                const timeoutErr = getTimeoutError(err, reqOpts)
+
+                expect(timeoutErr.message).toEqual(expect.stringMatching('when running "url"'))
+            })
+
+            it('command method', async () => {
+                const err = new Error('Timeout')
+                const reqOpts = mkReqOpts({ method: 'GET' })
+
+                const timeoutErr = getTimeoutError(err, reqOpts)
+
+                expect(timeoutErr.message).toEqual(expect.stringMatching(/when running .+ with method "GET"/))
+            })
+
+            it('command args as stringified object', async () => {
+                const err = new Error('Timeout')
+                const cmdArgs = { foo: 'bar' }
+                const reqOpts = mkReqOpts({ json: cmdArgs })
+
+                const timeoutErr = getTimeoutError(err, reqOpts)
+
+                expect(timeoutErr.message).toEqual(
+                    expect.stringMatching(new RegExp(`when running .+ with method .+ and args "${JSON.stringify(cmdArgs)}"`))
+                )
+            })
+
+            it('command args with base64 script', async () => {
+                (transformCommandLogResult as jest.Mock).mockReturnValueOnce('"<Script[base64]>"')
+
+                const err = new Error('Timeout')
+                const cmdArgs = { script: Buffer.from('script').toString('base64') }
+                const reqOpts = mkReqOpts({ json: cmdArgs })
+
+                const timeoutErr = getTimeoutError(err, reqOpts)
+
+                expect(timeoutErr.message).toEqual(
+                    expect.stringMatching(/when running .+ with method .+ and args "<Script\[base64\]>"/)
+                )
+            })
+
+            it('command args with function script without extra wrapper', async () => {
+                const err = new Error('Timeout')
+                const cmdArgs = { script: 'return (function() {\nconsole.log("hi")\n}).apply(null, arguments)' }
+                const reqOpts = mkReqOpts({ json: cmdArgs })
+
+                const timeoutErr = getTimeoutError(err, reqOpts)
+
+                expect(timeoutErr.message).toEqual(
+                    expect.stringMatching(/when running .+ with method .+ and args "function\(\) {\nconsole\.log\("hi"\)\n}/)
+                )
+            })
+
+            it('command args with base64 screenshot', async () => {
+                (transformCommandLogResult as jest.Mock).mockReturnValueOnce('"<Screenshot[base64]>"')
+
+                const err = new Error('Timeout')
+                const cmdArgs = { file: Buffer.from('screen').toString('base64') }
+                const reqOpts = mkReqOpts({ json: cmdArgs })
+
+                const timeoutErr = getTimeoutError(err, reqOpts)
+
+                expect(timeoutErr.message).toEqual(
+                    expect.stringMatching(/when running .+ with method .+ and args "<Screenshot\[base64\]>"/)
+                )
+            })
         })
     })
 })

@@ -1,0 +1,11 @@
+{
+  "value": {
+    "sessionId": "867A8C76-537F-4F2B-897C-85F87DF2C995",
+    "capabilities": {
+      "acceptInsecureCerts": false,
+      "setWindowRect": true,
+      "browserName": "Safari",
+      "platformName": "macOS"
+    }
+  }
+}

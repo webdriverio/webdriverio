@@ -1,3 +1,6 @@
+import Timer from '../../utils/Timer'
+import type { WaitUntilOptions } from '../../types'
+
 /**
  *
  * This wait command is your universal weapon if you want to wait on something. It expects a condition
@@ -11,14 +14,14 @@
     <div id="someText">I am some text</div>
     <script>
       setTimeout(() => {
-        $('#someText').html('I am now different');
+        await $('#someText').html('I am now different');
       }, 1000);
     </script>
 
     :waitUntil.js
-    it('should wait until text has changed', () => {
-        browser.waitUntil(
-            () => $('#someText').getText() === 'I am now different',
+    it('should wait until text has changed', async () => {
+        await browser.waitUntil(
+            async () => (await $('#someText').getText()) === 'I am now different',
             {
                 timeout: 5000,
                 timeoutMsg: 'expected text to be different after 5s'
@@ -39,18 +42,15 @@
  * @type utility
  *
  */
-
-import Timer from '../../utils/Timer'
-
 export default function waitUntil(
-    this: WebdriverIO.BrowserObject,
+    this: WebdriverIO.Browser | WebdriverIO.Element,
     condition: () => boolean | Promise<boolean>,
     {
         timeout = this.options.waitforTimeout,
         interval = this.options.waitforInterval,
         timeoutMsg
-    }: Partial<WebdriverIO.WaitUntilOptions> = {}
-) {
+    }: Partial<WaitUntilOptions> = {}
+): Promise<true | void> {
     if (typeof condition !== 'function') {
         throw new Error('Condition is not a function')
     }

@@ -20,10 +20,18 @@ describe('utils', () => {
                 // @ts-ignore test invalid params
                 foo: 'bar'
             }
-            initialiseInstance(config, { browserName: 'chrome', maxInstances: 2 })
+            initialiseInstance(
+                config,
+                {
+                    browserName: 'chrome',
+                    maxInstances: 2,
+                    hostname: 'foobar'
+                }
+            )
             expect(attach).toBeCalledWith({
                 sessionId: '123',
                 foo: 'bar',
+                hostname: 'foobar',
                 capabilities: { browserName: 'chrome' }
             })
             expect(config.capabilities).toEqual({ browserName: 'chrome' })
@@ -179,7 +187,7 @@ describe('utils', () => {
         })
 
         it('isMultiremote = false', () => {
-            expect(getInstancesData({} as WebdriverIO.BrowserObject, false))
+            expect(getInstancesData({} as WebdriverIO.Browser, false))
                 .toEqual(undefined)
         })
     })

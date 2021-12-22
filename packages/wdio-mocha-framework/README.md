@@ -5,23 +5,13 @@ WDIO Mocha Framework Adapter
 
 ## Installation
 
-The easiest way is to keep `@wdio/mocha-framework` as a devDependency in your `package.json`.
+The easiest way is to keep `@wdio/mocha-framework` as a devDependency in your `package.json`, via:
 
-```json
-{
-  "devDependencies": {
-    "@wdio/mocha-framework": "^6.3.6"
-  }
-}
-```
-
-You can simple do it by:
-
-```bash
+```sh
 npm install @wdio/mocha-framework --save-dev
 ```
 
-Instructions on how to install `WebdriverIO` can be found [here.](https://webdriver.io/docs/gettingstarted.html)
+Instructions on how to install `WebdriverIO` can be found [here.](https://webdriver.io/docs/gettingstarted)
 
 ## Configuration
 

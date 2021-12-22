@@ -1,32 +1,41 @@
+import minimatch from 'minimatch'
+
 import Timer from '../Timer'
 
-export default class Interception {
-    url: string
-    filterOptions: WebdriverIO.MockFilterOptions
-    browser: WebdriverIO.BrowserObject
+import { WaitForOptions } from '../../types'
+import { MockFilterOptions, MockOverwrite, MockResponseParams, Matches } from './types'
+
+import type Protocol from 'devtools-protocol'
+
+export default abstract class Interception {
+    abstract calls: Matches[] | Promise<Matches[]>
+    abstract clear (): void
+    abstract restore (): void
+    abstract respond (overwrite: MockOverwrite, params: MockResponseParams): void
+    abstract respondOnce (overwrite: MockOverwrite, params: MockResponseParams): void
+    abstract abort (errorReason: Protocol.Network.ErrorReason, sticky: boolean): void
+    abstract abortOnce (errorReason: Protocol.Network.ErrorReason): void
+
     respondOverwrites: {
-        overwrite?: WebdriverIO.MockOverwrite
-        params?: WebdriverIO.MockResponseParams
+        overwrite?: MockOverwrite
+        params?: MockResponseParams
         sticky?: boolean
-        errorReason?: string
+        errorReason?: Protocol.Network.ErrorReason
     }[] = []
-    matches: WebdriverIO.Matches[] = []
+    matches: Matches[] = []
 
-    constructor (url: string, filterOptions: WebdriverIO.MockFilterOptions = {}, browser: WebdriverIO.BrowserObject) {
-        this.url = url
-        this.filterOptions = filterOptions
-        this.browser = browser
-    }
-
-    get calls (): WebdriverIO.Matches[] | Promise<WebdriverIO.Matches[]> {
-        throw new Error('Implement me')
+    constructor (
+        public url: string | RegExp,
+        public filterOptions: MockFilterOptions = {},
+        public browser: WebdriverIO.Browser
+    ) {
     }
 
     waitForResponse ({
         timeout = this.browser.options.waitforTimeout,
         interval = this.browser.options.waitforInterval,
         timeoutMsg,
-    }: WebdriverIO.WaitForOptions = {}) {
+    }: WaitForOptions = {}) {
         /*!
          * ensure that timeout and interval are set properly
          */
@@ -52,5 +61,16 @@ export default class Interception {
 
             throw new Error(`waitForResponse failed with the following reason: ${(e && e.message) || e}`)
         }))
+    }
+
+    static isMatchingRequest (expectedUrl: string | RegExp, actualUrl: string) {
+        if (typeof expectedUrl === 'string') {
+            return minimatch(actualUrl, expectedUrl)
+        }
+        if (expectedUrl instanceof RegExp) {
+            return Boolean(actualUrl.match(expectedUrl))
+        }
+
+        throw new Error(`Unexpected type for mock url: ${expectedUrl}`)
     }
 }

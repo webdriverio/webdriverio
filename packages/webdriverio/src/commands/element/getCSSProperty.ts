@@ -1,21 +1,28 @@
+import cssShorthandProps from 'css-shorthand-properties'
+import { parseCSS } from '../../utils'
+
 /**
  *
  * Get a css property from a DOM-element selected by given selector. The return value
  * is formatted to be testable. Colors gets parsed via [rgb2hex](https://www.npmjs.org/package/rgb2hex)
  * and all other properties get parsed via [css-value](https://www.npmjs.org/package/css-value).
  *
- * __Note:__ that shorthand CSS properties (e.g. background, font, border, margin,
- * padding, list-style, outline, pause, cue) will be expanded to fetch all longhand
+ * :::info
+ *
+ * Note that shorthand CSS properties (e.g. `background`, `font`, `border`, `margin`,
+ * `padding`, `list-style`, `outline`, `pause`, `cue`) will be expanded to fetch all longhand
  * properties resulting in multiple WebDriver calls. If you are interested in a specific
  * longhand property it is recommended to query for that instead.
+ *
+ * :::
  *
  * <example>
     :example.html
     <label id="myLabel" for="input" style="color: #0088cc; font-family: helvetica, arial, freesans, clean, sans-serif, width: 100px">Some Label</label>
     :getCSSProperty.js
-    it('should demonstrate the getCSSProperty command', () => {
-        const elem = $('#myLabel')
-        const color = elem.getCSSProperty('color')
+    it('should demonstrate the getCSSProperty command', async () => {
+        const elem = await $('#myLabel')
+        const color = await elem.getCSSProperty('color')
         console.log(color)
         // outputs the following:
         // {
@@ -29,7 +36,7 @@
         //     }
         // }
 
-        const font = elem.getCSSProperty('font-family')
+        const font = await elem.getCSSProperty('font-family')
         console.log(font)
         // outputs the following:
         // {
@@ -42,7 +49,7 @@
         //      }
         // }
 
-        var width = elem.getCSSProperty('width')
+        var width = await elem.getCSSProperty('width')
         console.log(width)
         // outputs the following:
         // {
@@ -63,10 +70,6 @@
  * @return {CSSProperty}             The specified css of the element
  *
  */
-
-import cssShorthandProps from 'css-shorthand-properties'
-import { parseCSS } from '../../utils'
-
 export default async function getCSSProperty (
     this: WebdriverIO.Element,
     cssProperty: string
@@ -74,7 +77,7 @@ export default async function getCSSProperty (
     /**
      * Getting the css value of a shorthand property results in different results
      * given that the behavior of `getComputedStyle` is not defined in this case.
-     * Therefor if we don't deal with a shorthand property run `getElementCSSValue`
+     * Therefore if we don't deal with a shorthand property run `getElementCSSValue`
      * otherwise expand it and run the command for each longhand property.
      */
     if (!cssShorthandProps.isShorthand(cssProperty)) {

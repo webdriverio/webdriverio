@@ -10,10 +10,18 @@ export interface ParentSuite {
     tests: number
 }
 
-export interface TestEvent extends jasmine.CustomReporterResult {
-    type: 'suite' | 'test' | 'hook'
+export interface SuiteEvent extends jasmine.SuiteResult {
+    type: 'suite'
     start: Date,
-    duration?: number,
+    duration: number | null,
+    errors?: jasmine.FailedExpectation[],
+    error?: jasmine.FailedExpectation
+}
+
+export interface TestEvent extends jasmine.SpecResult {
+    type: 'test' | 'hook'
+    start: Date,
+    duration: number | null,
     errors?: jasmine.FailedExpectation[],
     error?: jasmine.FailedExpectation
 }
@@ -53,7 +61,7 @@ export interface FormattedMessage {
     errors?: jasmine.FailedExpectation[]
 }
 
-export interface JasmineNodeOpts {
+export interface JasmineOpts {
     /**
      * Default Timeout Interval for Jasmine operations.
      * @default 60000
@@ -83,6 +91,7 @@ export interface JasmineNodeOpts {
      * Whether to stop execution of the suite after the first spec failure.
      * @default false
      * @since v3.3.0
+     * @deprecated Use the `stopOnSpecFailure` config property instead.
      */
     failFast?: boolean
     /**
@@ -117,21 +126,21 @@ export interface JasmineNodeOpts {
      * Clean up stack trace and remove all traces of node module packages.
      * @default false
      */
-    cleanStack: boolean
+    cleanStack?: boolean
     /**
      * Stops test suite (`describe`) execution on first spec (`it`) failure (other suites continue running)
      * @default false
      */
-    stopOnSpecFailure: boolean
+    stopOnSpecFailure?: boolean
     /**
      * Stops a spec (`it`) execution on a first expectation failure (other specs continue running)
      * @default false
      */
-    stopSpecOnExpectationFailure: boolean
+    stopSpecOnExpectationFailure?: boolean
     /**
      * The Jasmine framework allows it to intercept each assertion in order to log the state of the application
      * or website depending on the result. For example it is pretty handy to take a screenshot every time
      * an assertion fails.
      */
-    expectationResultHandler: (passed: boolean, data: ResultHandlerPayload) => void
+    expectationResultHandler?: (passed: boolean, data: ResultHandlerPayload) => void
 }

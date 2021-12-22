@@ -72,8 +72,8 @@ describe('waitForClickable', () => {
 
         try {
             await elem.waitForClickable({ timeout: duration })
-        } catch (e) {
-            expect(e.message).toBe(`element ("#foo") still not clickable after ${duration}ms`)
+        } catch (err: any) {
+            expect(err.message).toBe(`element ("#foo") still not clickable after ${duration}ms`)
         }
     })
 
@@ -91,8 +91,8 @@ describe('waitForClickable', () => {
 
         try {
             await elem.waitForClickable({ timeout: duration })
-        } catch (e) {
-            expect(e.message).toBe(`element ("#foo") still not clickable after ${duration}ms`)
+        } catch (err: any) {
+            expect(err.message).toBe(`element ("#foo") still not clickable after ${duration}ms`)
         }
     })
 
@@ -128,8 +128,8 @@ describe('waitForClickable', () => {
 
         try {
             await elem.waitForClickable({ timeout: duration, timeoutMsg: 'Element foo never clickable' })
-        } catch (e) {
-            expect(e.message).toBe('Element foo never clickable')
+        } catch (err: any) {
+            expect(err.message).toBe('Element foo never clickable')
         }
     })
 })

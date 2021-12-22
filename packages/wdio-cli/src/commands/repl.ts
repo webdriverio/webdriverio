@@ -9,7 +9,7 @@ import yargs from 'yargs'
 
 const IGNORED_ARGS = [
     'bail', 'framework', 'reporters', 'suite', 'spec', 'exclude',
-    'mochaOpts', 'jasmineNodeOpts', 'cucumberOpts'
+    'mochaOpts', 'jasmineOpts', 'cucumberOpts', 'autoCompileOpts'
 ]
 
 export const command = 'repl <option> [capabilities]'
@@ -50,10 +50,12 @@ export const handler = async (argv: ReplCommandArguments) => {
     /**
      * runner option required to wrap commands within Fibers context
      */
-    const execMode = hasWdioSyncSupport ? { runner: 'repl' } : {}
+    const execMode = hasWdioSyncSupport ? { runner: 'local' as const } : {}
     const client = await remote({ ...argv, ...caps, ...execMode })
 
+    // @ts-ignore
     global.$ = client.$.bind(client)
+    // @ts-ignore
     global.$$ = client.$$.bind(client)
     global.browser = client
 

@@ -13,7 +13,7 @@ const maintenanceLTSVersion = 'v5'
 if (!process.env.GITHUB_AUTH) {
     throw new Error(
         'Please export a "GITHUB_AUTH" access token to generate the changelog.\n' +
-        'See also https://github.com/webdriverio/webdriverio/blob/master/CONTRIBUTING.md#release-new-version'
+        'See also https://github.com/webdriverio/webdriverio/blob/main/CONTRIBUTING.md#release-new-version'
     )
 }
 
@@ -125,7 +125,7 @@ const api = new Octokit({ auth: process.env.GITHUB_AUTH })
     (amount) => console.log(amount
         ? (
             `\nSuccessfully backported ${amount} PRs 👏!\n` +
-            `Please now push them to master and make a new ${maintenanceLTSVersion}.x release!`
+            `Please now push them to v6 and make a new ${maintenanceLTSVersion}.x release!`
         )
         : 'Bye!'
     ),

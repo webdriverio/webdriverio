@@ -1,3 +1,4 @@
+import type { WaitForOptions } from '../../types'
 
 /**
  *
@@ -7,20 +8,27 @@
  * error. If the reverse flag is true, the command will instead return true
  * if the selector does not match any elements.
  *
+ * :::info
+ *
+ * As opposed to other element commands WebdriverIO will not wait for the
+ * element to exist to execute this command.
+ *
+ * :::
+ *
  * <example>
     :waitForExistSyncExample.js
-    it('should display a notification message after successful form submit', function () {
-        const form = $('form');
-        const notification = $('.notification');
-        form.$(".send").click();
-        notification.waitForExist({ timeout: 5000 });
-        expect(notification.getText()).to.be.equal('Data transmitted successfully!')
+    it('should display a notification message after successful form submit', async () => {
+        const form = await $('form');
+        const notification = await $('.notification');
+        await form.$(".send").click();
+        await notification.waitForExist({ timeout: 5000 });
+        expect(await notification.getText()).to.be.equal('Data transmitted successfully!')
     });
-    it('should remove a message after successful form submit', function () {
-        const form = $('form');
-        const message = $('.message');
-        form.$(".send").click();
-        message.waitForExist({ reverse: true });
+    it('should remove a message after successful form submit', async () => {
+        const form = await $('form');
+        const message = await $('.message');
+        await form.$(".send").click();
+        await message.waitForExist({ reverse: true });
     });
  * </example>
  *
@@ -35,8 +43,6 @@
  * @type utility
  *
  */
-import type { WaitForOptions } from '../../types'
-
 export default function waitForExist (
     this: WebdriverIO.Element,
     {

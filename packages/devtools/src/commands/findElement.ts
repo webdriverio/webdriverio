@@ -1,3 +1,7 @@
+import { SUPPORTED_SELECTOR_STRATEGIES } from '../constants'
+import { findElement as findElementUtil } from '../utils'
+import type DevToolsDriver from '../devtoolsdriver'
+
 /**
  * The Find Element command is used to find an element in the current browsing context
  * that can be used for future commands.
@@ -8,11 +12,6 @@
  * @param {string} value  the actual selector that will be used to find an element
  * @return {Object}       A JSON representation of an element object.
  */
-
-import { SUPPORTED_SELECTOR_STRATEGIES } from '../constants'
-import { findElement as findElementUtil } from '../utils'
-import type DevToolsDriver from '../devtoolsdriver'
-
 export default function findElement (
     this: DevToolsDriver,
     { using, value }: { using: string, value: string }
@@ -27,6 +26,13 @@ export default function findElement (
     } else if (using === 'partial link text') {
         using = 'xpath'
         value = `//a[contains(., "${value}")]`
+    } else if (using === 'shadow') {
+        /**
+         * `shadow/<selector>` is the way query-selector-shadow-dom
+         * understands to query for shadow elements
+         */
+        using = 'css'
+        value = `shadow/${value}`
     }
 
     const page = this.getPageHandle(true)

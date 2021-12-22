@@ -1,10 +1,6 @@
-import type { DefaultOptions } from '@wdio/config'
-import type { Options } from './types'
+import type { Options } from '@wdio/types'
 
-declare type HTTPRequestOptions = import('got').Options;
-declare type HTTPResponse = import('got').Response;
-
-export const DEFAULTS: DefaultOptions<Options> = {
+export const DEFAULTS: Options.Definition<Required<Options.WebDriver>> = {
     /**
      * protocol of automation driver
      */
@@ -48,6 +44,18 @@ export const DEFAULTS: DefaultOptions<Options> = {
         type: 'object'
     },
     /**
+     * cloud user if applicable
+     */
+    user: {
+        type: 'string'
+    },
+    /**
+     * access key to user
+     */
+    key: {
+        type: 'string'
+    },
+    /**
      * capability of WebDriver session
      */
     capabilities: {
@@ -63,6 +71,12 @@ export const DEFAULTS: DefaultOptions<Options> = {
         match: /(trace|debug|info|warn|error|silent)/
     },
     /**
+     * directory for log files
+     */
+    outputDir: {
+        type: 'string'
+    },
+    /**
      * Timeout for any WebDriver request to a driver or grid
      */
     connectionRetryTimeout: {
@@ -75,18 +89,6 @@ export const DEFAULTS: DefaultOptions<Options> = {
     connectionRetryCount: {
         type: 'number',
         default: 3
-    },
-    /**
-     * cloud user if applicable
-     */
-    user: {
-        type: 'string'
-    },
-    /**
-     * access key to user
-     */
-    key: {
-        type: 'string'
     },
     /**
      * Override default agent
@@ -111,14 +113,14 @@ export const DEFAULTS: DefaultOptions<Options> = {
      */
     transformRequest: {
         type: 'function',
-        default: (requestOptions: HTTPRequestOptions) => requestOptions
+        default: (requestOptions: Options.RequestLibOptions) => requestOptions
     },
     /**
      * Function transforming the response object after it is received
      */
     transformResponse: {
         type: 'function',
-        default: (response: HTTPResponse) => response
+        default: (response: Options.RequestLibResponse) => response
     },
     /**
      * Appium direct connect options server (https://appiumpro.com/editions/86-connecting-directly-to-appium-hosts-in-distributed-environments)
@@ -143,4 +145,15 @@ export const DEFAULTS: DefaultOptions<Options> = {
         type: 'boolean',
         default: true
     }
+}
+
+export const VALID_CAPS = [
+    'browserName', 'browserVersion', 'platformName', 'acceptInsecureCerts',
+    'pageLoadStrategy', 'proxy', 'setWindowRect', 'timeouts', 'strictFileInteractability',
+    'unhandledPromptBehavior'
+]
+
+export const REG_EXPS = {
+    commandName: /.*\/session\/[0-9a-f-]+\/(.*)/,
+    execFn: /return \(([\s\S]*)\)\.apply\(null, arguments\)/
 }

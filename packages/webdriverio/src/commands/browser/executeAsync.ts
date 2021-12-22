@@ -1,4 +1,5 @@
 import { verifyArgsAndStripIfElement } from '../../utils'
+
 /**
  *
  * Inject a snippet of JavaScript into the page for execution in the context of the currently selected
@@ -20,9 +21,9 @@ import { verifyArgsAndStripIfElement } from '../../utils'
  *
  * <example>
     :executeAsync.js
-    it('should execute async JavaScript on the page', () => {
-        browser.setTimeout({ script: 5000 })
-        const result = browser.executeAsync(function(a, b, c, d, done) {
+    it('should execute async JavaScript on the page', async () => {
+        await browser.setTimeout({ script: 5000 })
+        const result = await browser.executeAsync(function(a, b, c, d, done) {
             // browser context - you may not access client or console
             setTimeout(() => {
                 done(a + b + c + d)
@@ -42,12 +43,13 @@ import { verifyArgsAndStripIfElement } from '../../utils'
  * @type protocol
  *
  */
-
-export default function executeAsync (
-    this: WebdriverIO.BrowserObject,
-    script: string | Function,
-    ...args: any[]
-) {
+export default function executeAsync<ReturnValue, InnerArguments extends any[]>(
+    this: WebdriverIO.Browser | WebdriverIO.Element,
+    script:
+        string |
+        ((...args: [...innerArgs: InnerArguments, callback: (result?: ReturnValue) => void]) => void),
+    ...args: InnerArguments
+): Promise<ReturnValue> {
     /**
      * parameter check
      */
@@ -57,7 +59,7 @@ export default function executeAsync (
 
     /**
      * instances started as multibrowserinstance can't getting called with
-     * a function parameter, therefor we need to check if it starts with "function () {"
+     * a function parameter, therefore we need to check if it starts with "function () {"
      */
     if (typeof script === 'function') {
         script = `return (${script}).apply(null, arguments)`

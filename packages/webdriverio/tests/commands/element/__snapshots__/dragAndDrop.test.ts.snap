@@ -6,9 +6,12 @@ Array [
     "actions": Array [
       Object {
         "duration": 0,
+        "origin": Object {
+          "element-6066-11e4-a52e-4f735466cecf": "some-elem-123",
+        },
         "type": "pointerMove",
-        "x": NaN,
-        "y": NaN,
+        "x": 0,
+        "y": 0,
       },
       Object {
         "button": 0,
@@ -45,9 +48,12 @@ Array [
     "actions": Array [
       Object {
         "duration": 0,
+        "origin": Object {
+          "element-6066-11e4-a52e-4f735466cecf": "some-elem-123",
+        },
         "type": "pointerMove",
-        "x": 40,
-        "y": 15,
+        "x": 0,
+        "y": 0,
       },
       Object {
         "button": 0,
@@ -59,10 +65,12 @@ Array [
       },
       Object {
         "duration": 10,
-        "origin": "pointer",
+        "origin": Object {
+          "element-6066-11e4-a52e-4f735466cecf": "some-sub-elem-321",
+        },
         "type": "pointerMove",
-        "x": 135,
-        "y": 225,
+        "x": 0,
+        "y": 0,
       },
       Object {
         "button": 0,
@@ -84,9 +92,12 @@ Array [
     "actions": Array [
       Object {
         "duration": 0,
+        "origin": Object {
+          "element-6066-11e4-a52e-4f735466cecf": "some-elem-123",
+        },
         "type": "pointerMove",
-        "x": 40,
-        "y": 15,
+        "x": 0,
+        "y": 0,
       },
       Object {
         "button": 0,

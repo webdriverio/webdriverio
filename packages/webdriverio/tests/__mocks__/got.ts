@@ -214,6 +214,12 @@ const requestMock: any = jest.fn().mockImplementation((uri, params) => {
         //false and 0 are valid results
         value = Boolean(result) || result === false || result === 0 || result === null ? result : {}
         break
+    } case `/session/${sessionId}/execute/async`: {
+        const script = Function(params.json.script)
+        let result
+        script.call(this, ...params.json.args, (_result: any) => result = _result)
+        value = result ?? {}
+        break
     } case `${path}/${sessionId}/element/${genericElementId}/elements`:
         value = [
             { [ELEMENT_KEY]: genericSubElementId },
@@ -238,7 +244,7 @@ const requestMock: any = jest.fn().mockImplementation((uri, params) => {
         value = 'https://webdriver.io/?foo=bar'
         break
     case `${path}/${sessionId}/title`:
-        value = 'WebdriverIO · Next-gen browser and mobile automation test framework for Node.js'
+        value = 'WebdriverIO · Next-gen browser and mobile automation test framework for Node.js | WebdriverIO'
         break
     case `${path}/${sessionId}/screenshot`:
     case `${path}/${sessionId}/appium/stop_recording_screen`:
@@ -256,6 +262,18 @@ const requestMock: any = jest.fn().mockImplementation((uri, params) => {
     case '/grid/api/testsession':
         value = '<!DOCTYPE html><html lang="en"></html>'
         break
+    case '/connectionRefused':
+        if (requestMock.retryCnt < 5) {
+            ++requestMock.retryCnt
+            value = {
+                stacktrace: 'java.lang.RuntimeException: java.net.ConnectException: Connection refused',
+                stackTrace: [],
+                message: 'java.net.ConnectException: Connection refused: connect',
+                error: 'unknown error'
+            }
+        } else {
+            value = { foo: 'bar' }
+        }
     }
 
     if (uri.pathname.endsWith('timeout') && requestMock.retryCnt < 5) {

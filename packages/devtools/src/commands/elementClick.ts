@@ -1,3 +1,8 @@
+import getElementTagName from './getElementTagName'
+import selectOptionScript from '../scripts/selectOption'
+import { getStaleElementError } from '../utils'
+import type DevToolsDriver from '../devtoolsdriver'
+
 /**
  * The Element Click command scrolls into view the element if it is not already pointer-interactable,
  * and clicks its in-view center point. If the element's center point is obscured by another element,
@@ -9,12 +14,6 @@
  * @see https://w3c.github.io/webdriver/#dfn-element-click
  * @param {string} elementId  the id of an element returned in a previous call to Find Element(s)
  */
-
-import getElementTagName from './getElementTagName'
-import selectOptionScript from '../scripts/selectOption'
-import { getStaleElementError } from '../utils'
-import type DevToolsDriver from '../devtoolsdriver'
-
 export default async function elementClick (
     this: DevToolsDriver,
     { elementId }: { elementId: string }

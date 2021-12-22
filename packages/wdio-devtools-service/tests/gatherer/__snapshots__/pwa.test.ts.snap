@@ -1,0 +1,33 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`PWAGatherer gatherData 1`] = `
+Object {
+  "InstallabilityErrors": "getInstallabilityErrorsResult",
+  "LinkElements": "barfoo",
+  "MetaElements": Object {
+    "some": "result",
+  },
+  "ServiceWorker": Object {
+    "registrations": 42,
+    "versions": "1.2.1",
+  },
+  "URL": Object {
+    "finalUrl": "http://json.org",
+    "requestedUrl": "http://json.org",
+  },
+  "ViewportDimensions": "foobar",
+  "WebAppManifest": "getWebAppManifestResult",
+}
+`;
+
+exports[`PWAGatherer initiates properly 1`] = `
+Array [
+  "Network.requestWillBeSent",
+  "Network.requestServedFromCache",
+  "Network.responseReceived",
+  "Network.dataReceived",
+  "Network.loadingFinished",
+  "Network.loadingFailed",
+  "Network.resourceChangedPriority",
+]
+`;

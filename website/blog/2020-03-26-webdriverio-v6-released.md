@@ -66,11 +66,11 @@ describe('my e2e tests', () => {
 })
 ```
 
-We have integrated Puppeteer so you can run "cross browser" tests on Chrome, Firefox (Nightly) and Chromium Edge. Note that the term cross browser is used with quotation marks here. A lot of automation tools today advertise their cross browser support while not being really honest about what it actually means. All Chromium based browser like Google Chrome, Chromium Edge or Electron based apps use the identical engine under the hood. It is questionable that there is much value testing on multiple Chromium based browser. In addition to that the support for Firefox is and will be experimental as it was implemented in an ad-hoc effort by a team at Mozilla which hasn't committed to bring it out of its experimental state and continue support for it.
+We have integrated Puppeteer so you can run "cross-browser" tests on Chrome, Firefox (Nightly) and Chromium Edge. Note that the term cross-browser is used with quotation marks here. A lot of automation tools today advertise their cross-browser support while not being really honest about what it actually means. All Chromium based browser like Google Chrome, Chromium Edge or Electron based apps use the identical engine under the hood. It is questionable that there is much value testing on multiple Chromium based browser. In addition to that the support for Firefox is and will be experimental as it was implemented in an ad-hoc effort by a team at Mozilla which hasn't committed to bring it out of its experimental state and continue support for it.
 
-We have not planned to integrate [Playwright](https://github.com/microsoft/playwright) as we can not affort to download their custom build browsers every time someone installs WebdriverIO. We will observe its development and might consider an integration at some point.
+We have not planned to integrate [Playwright](https://github.com/microsoft/playwright) as we can not afford to download their custom build browsers every time someone installs WebdriverIO. We will observe its development and might consider an integration at some point.
 
-The WebdriverIO team wants to emphasize that it continues to be invested in WebDriver as an automation standard which is till today the only true cross browser automation protocol. We will always prefer a standards based solution that has been developed by a diverse group of people representing the industry at large.
+The WebdriverIO team wants to emphasize that it continues to be invested in WebDriver as an automation standard which is till today the only true cross-browser automation protocol. We will always prefer a standards based solution that has been developed by a diverse group of people representing the industry at large.
 
 ### How to Update?
 
@@ -78,13 +78,13 @@ If you are running your tests on WebDriver already, nothing needs to be changed.
 
 ## Performance Improvements
 
-A big goal with the new release was to make WebdriverIO more performant and faster. Running tests on Puppeteer can already speed up your local execution. But we also looked into other areas to improve. With v6 we replaced our heavy dependency to [`request`](https://github.com/request/request) which has been fully depcrecated as off February 11th 2020. With that we were able to reduce the bundle size of the `webdriver` and `webdriverio` package by 4x:
+A big goal with the new release was to make WebdriverIO more performant and faster. Running tests on Puppeteer can already speed up your local execution. But we also looked into other areas to improve. With v6 we replaced our heavy dependency to [`request`](https://github.com/request/request) which has been fully deprecated as off February 11th 2020. With that we were able to reduce the bundle size of the `webdriver` and `webdriverio` package by 4x:
 
 ![bundle size comparison](./assets/bundlesize.png)
 
-By using [`got`](https://github.com/sindresorhus/got) as new dependency to make requests in WebDriver we are now technically also able to run WebdriverIO in the browser which creates interesting possibilities and was a requirement for our [roadmap item](https://github.com/webdriverio/webdriverio/blob/master/ROADMAP.md#upcoming-projects-in-no-particular-order) to build a fiddle platform for WebdriverIO scripts.
+By using [`got`](https://github.com/sindresorhus/got) as new dependency to make requests in WebDriver we are now technically also able to run WebdriverIO in the browser which creates interesting possibilities and was a requirement for our [roadmap item](https://github.com/webdriverio/webdriverio/blob/main/ROADMAP.md#upcoming-projects-in-no-particular-order) to build a fiddle platform for WebdriverIO scripts.
 
-The new version v6 will also come with a lot of internal improvements that will speed up test execution and lower CPU and memory usage. Especially when it comes to fetching elements we were able to reduce a lot of overhead and spead things up:
+The new version v6 will also come with a lot of internal improvements that will speed up test execution and lower CPU and memory usage. Especially when it comes to fetching elements we were able to reduce a lot of overhead and speed things up:
 
 ![improved flamechart](./assets/flamechart.jpg)
 
@@ -94,7 +94,7 @@ These improvements come for free and you don't need to do anything to better per
 
 ## Service Configurations
 
-We are very proud about the amount of different [services](https://www.npmjs.com/search?q=wdio-service) and [reporters](https://www.npmjs.com/search?q=wdio-reporter) that the community built. All these additional plugins require specific configurations in your `wdio.conf.js` and we want to make sure that all these settings are being made standardised structure. Until v5 of WebdriverIO specific options to services and reporters could be defined anywhere in the `wdio.conf.js`, e.g. the Sauce service:
+We are very proud about the amount of different [services](https://www.npmjs.com/search?q=wdio-service) and [reporters](https://www.npmjs.com/search?q=wdio-reporter) that the community built. All these additional plugins require specific configurations in your `wdio.conf.js` and we want to make sure that all these settings are being made standardized structure. Until v5 of WebdriverIO specific options to services and reporters could be defined anywhere in the `wdio.conf.js`, e.g. the Sauce service:
 
 ```js
 // wdio.conf.js
@@ -179,7 +179,7 @@ With the update to v6 you will now automatically get access to our new native em
 - support for Mocha, Cucumber, Jest and Jasmine
 - builtin types for TypeScript and JS autocompletion
 
-This will not only simplify the setup of your WebdriverIO framework but also gets you better error messages if an assertion fails, e.g. when checking the visibity of an element like:
+This will not only simplify the setup of your WebdriverIO framework but also gets you better error messages if an assertion fails, e.g. when checking the visibility of an element like:
 
 ```js
 const elem = $('#someElem')
@@ -205,12 +205,12 @@ If you are using the `@wdio/appium-service` you don't need to do anything.
 - __Command Renaming:__ we renamed command `launchApp` to `launchChromeApp` for Chrome WebDriver sessions
 - __Spec Filtering:__ the [Spec Filtering](https://webdriver.io/blog/2019/11/01/spec-filtering.html) feature is now enabled by default so that browser sessions aren't started if the framework can't find a test to run in the file (this can not be disabled anymore)
 - __New Hook:__ we added a new hook to the testrunner called `onWorkerStart` which will be executed right before we launch the worker process
-- __Modified Hook Signature:__ we modified the signature of our before/after test/hook hooks to allow you to access the frameworks native event objects - please have a look into the config file [documentation](/docs/configurationfile.html) and update your hooks accordingly
+- __Modified Hook Signature:__ we modified the signature of our before/after test/hook hooks to allow you to access the frameworks native event objects - please have a look into the config file [documentation](/docs/configurationfile) and update your hooks accordingly
 - __Cucumber Update:__ we have updated the `@wdio/cucumber-framework` adapter to use v6 of Cucumber
 - __Overwrite Capabilities:__ By default the launcher will overwrite the capabilities instead of merging them when using the launcher
 
 ## LTS Support
 
-With the release of v6 we will continue to support v5 until we decide to release a new major version v7. We created a [backporting process](https://github.com/webdriverio/webdriverio/blob/master/CONTRIBUTING.md#back-porting-bug-fixes) that allows us to seamlessly backport bug fixes and features from v6 to v5. Please note that as the code between both versions diverge we won't be able to backport every feature and bug fix. We might ask code contributors to provide a similar PR that has been made to the `master` branch also to the `v5` branch.
+With the release of v6 we will continue to support v5 until we decide to release a new major version v7. We created a [backporting process](https://github.com/webdriverio/webdriverio/blob/main/CONTRIBUTING.md#back-porting-bug-fixes) that allows us to seamlessly backport bug fixes and features from v6 to v5. Please note that as the code between both versions diverge we won't be able to backport every feature and bug fix. We might ask code contributors to provide a similar PR that has been made to the `master` branch also to the `v5` branch.
 
 That said, we generally recommend to update to the latest version as soon as possible to make sure that you leverage bug fixes that have been made to the project.

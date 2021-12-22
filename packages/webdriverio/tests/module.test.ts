@@ -1,9 +1,12 @@
 import http from 'http'
 import logger from '@wdio/logger'
-import { detectBackend, validateConfig } from '@wdio/config'
+import { validateConfig } from '@wdio/config'
 import { runFnInFiberContext } from '@wdio/utils'
 
-import { remote, multiremote, attach } from '../src'
+import detectBackend from '../src/utils/detectBackend'
+import { remote, multiremote, attach, RemoteOptions } from '../src'
+
+jest.mock('../src/utils/detectBackend', () => jest.fn())
 
 jest.mock('webdriver', () => {
     const WebDriverModule = jest.requireActual('webdriver')
@@ -39,7 +42,7 @@ jest.mock('webdriver', () => {
 
 jest.mock('devtools', () => {
     const DevTools = jest.requireActual('devtools').default
-    const client = { sessionId: 'foobar-123', isDevtools: true }
+    const client = { sessionId: 'foobar-123', isDevTools: true }
     const newSessionMock = jest.fn()
     newSessionMock.mockReturnValue(new Promise((resolve) => resolve(client)))
     newSessionMock.mockImplementation((params, cb) => {
@@ -90,6 +93,7 @@ const WebDriver = require('webdriver').default
 describe('WebdriverIO module interface', () => {
     beforeEach(() => {
         WebDriver.newSession.mockClear()
+        ;(detectBackend as jest.Mock).mockClear()
     })
 
     it('should provide remote and multiremote access', () => {
@@ -100,12 +104,14 @@ describe('WebdriverIO module interface', () => {
 
     describe('remote function', () => {
         it('creates a webdriver session', async () => {
-            const browser = await remote({
+            const options: RemoteOptions = {
                 automationProtocol: 'webdriver',
                 capabilities: {},
                 logLevel: 'trace'
-            })
+            }
+            const browser = await remote(options)
             expect(browser.sessionId).toBe('foobar-123')
+            expect(detectBackend).toBeCalledWith(options)
             expect(logger.setLogLevelsConfig).toBeCalledWith(undefined, 'trace')
         })
 
@@ -118,6 +124,7 @@ describe('WebdriverIO module interface', () => {
                 return client
             })
             expect(browser.sessionId).toBe('foobar-123')
+            // @ts-ignore mock feature
             expect(browser.foobar).toBe('barfoo')
         })
 
@@ -132,11 +139,12 @@ describe('WebdriverIO module interface', () => {
 
         it('should properly detect automation protocol', async () => {
             const devtoolsBrowser = await remote({ capabilities: { browserName: 'chrome' } })
-            expect(devtoolsBrowser.isDevtools).toBe(true)
+            expect(devtoolsBrowser.isDevTools).toBe(true)
 
             // @ts-ignore mock feature
             http.setResonse({ statusCode: 200 })
             const webdriverBrowser = await remote({ capabilities: { browserName: 'chrome' } })
+            // @ts-ignore mock feature
             expect(webdriverBrowser.isWebDriver).toBe(true)
 
             const anotherWebdriverBrowser = await remote({
@@ -144,6 +152,7 @@ describe('WebdriverIO module interface', () => {
                 capabilities: { browserName: 'chrome' }
             })
 
+            // @ts-ignore mock feature
             expect(anotherWebdriverBrowser.isWebDriver).toBe(true)
         })
 
@@ -156,7 +165,7 @@ describe('WebdriverIO module interface', () => {
             browser.addCommand('someCommand', customCommand)
             expect(runFnInFiberContext).toBeCalledTimes(0)
 
-            browser.overwriteCommand('someCommand', customCommand)
+            browser.overwriteCommand('deleteCookies', customCommand)
             expect(runFnInFiberContext).toBeCalledTimes(0)
         })
 
@@ -164,13 +173,13 @@ describe('WebdriverIO module interface', () => {
             const browser = await remote({
                 automationProtocol: 'webdriver',
                 capabilities: {},
-                runner: 'local'
+                framework: 'mocha'
             })
             const customCommand = jest.fn()
             browser.addCommand('someCommand', customCommand)
             expect(runFnInFiberContext).toBeCalledTimes(1)
 
-            browser.overwriteCommand('someCommand', customCommand)
+            browser.overwriteCommand('deleteCookies', customCommand)
             expect(runFnInFiberContext).toBeCalledTimes(2)
         })
 
@@ -179,7 +188,7 @@ describe('WebdriverIO module interface', () => {
                 automationProtocol: 'webdriver',
                 capabilities: {}
             })
-            const fakeFn = () => { return 'test'}
+            const fakeFn = () => { return 'test' as any as HTMLElement }
 
             browser.addLocatorStrategy('test-strat', fakeFn)
             expect(browser.strategies.get('test-strat').toString()).toBe(fakeFn.toString())
@@ -194,7 +203,7 @@ describe('WebdriverIO module interface', () => {
             })
 
             try {
-                const fakeFn = () => { return 'test'}
+                const fakeFn = () => { return 'test' as any as HTMLElement }
                 browser.addLocatorStrategy('test-strat', fakeFn)
             } catch (error) {
                 browser.strategies.delete('test-strat')
@@ -210,7 +219,9 @@ describe('WebdriverIO module interface', () => {
 
             expect(browser.sessionId).toBeUndefined()
             expect(browser.capabilities).toEqual({ browserName: 'chrome', chrome: true })
+            // @ts-ignore test types
             expect(() => browser.addCommand()).toThrow()
+            // @ts-ignore test types
             expect(() => browser.overwriteCommand()).toThrow()
 
             const flags = {}
@@ -222,6 +233,7 @@ describe('WebdriverIO module interface', () => {
             expect(flags).toEqual({
                 isAndroid: false,
                 isChrome: true,
+                isFirefox: false,
                 isIOS: false,
                 isMobile: false,
                 isSauce: false
@@ -263,7 +275,7 @@ describe('WebdriverIO module interface', () => {
                 }
             })
 
-            const fakeFn = () => { return 'test'}
+            const fakeFn = () => { return 'test' as any as HTMLElement }
             driver.addLocatorStrategy('test-strat', fakeFn)
             expect(driver.strategies.get('test-strat').toString()).toBe(fakeFn.toString())
         })
@@ -279,7 +291,7 @@ describe('WebdriverIO module interface', () => {
             })
 
             try {
-                const fakeFn = () => { return 'test'}
+                const fakeFn = () => { return 'test' as any as HTMLElement }
                 driver.addLocatorStrategy('test-strat', fakeFn)
             } catch (error) {
                 driver.strategies.delete('test-strat')
@@ -289,9 +301,20 @@ describe('WebdriverIO module interface', () => {
     })
 
     describe('attach', () => {
-        it('attaches', () => {
-            attach({ sessionId: 'foobar' })
-            expect(WebDriver.attachToSession).toBeCalled()
+        it('attaches', async () => {
+            const browser = {
+                sessionId: 'foobar',
+                capabilities: {
+                    browserName: 'chrome',
+                    platformName: 'MacOS'
+                },
+                requestedCapabilities: {
+                    browserName: 'chrome'
+                }
+            }
+            await attach(browser)
+            expect(WebDriver.attachToSession).toBeCalledTimes(1)
+            expect(WebDriver.attachToSession.mock.calls[0][0]).toMatchSnapshot()
         })
     })
 

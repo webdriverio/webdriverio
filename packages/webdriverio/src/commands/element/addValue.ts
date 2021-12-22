@@ -1,3 +1,21 @@
+import { transformToCharString } from '../../utils'
+import logger from '@wdio/logger'
+
+const log = logger('addValue')
+
+export type CommandOptions = {
+    translateToUnicode?: boolean
+}
+
+export type Value = string | number
+
+const isNumberOrString = (input: unknown) => typeof input === 'string' || typeof input === 'number'
+
+const isValidType = (value: unknown) => (
+    isNumberOrString(value) ||
+    Array.isArray(value) && value.every((item) => isNumberOrString(item))
+)
+
 /**
  *
  * Add a value to an object found by given selector. You can also use unicode
@@ -9,38 +27,34 @@
  *
  * <example>
     :addValue.js
-    it('should demonstrate the addValue command', () => {
-        let input = $('.input')
-        input.addValue('test')
-        input.addValue(123)
+    it('should demonstrate the addValue command', async () => {
+        let input = await $('.input')
+        await input.addValue('test')
+        await input.addValue(123)
 
-        value = input.getValue()
+        value = await input.getValue()
         assert(value === 'test123') // true
     })
  * </example>
  *
  * @alias element.addValue
- * @param {string | number | boolean | object | Array<any>}      value     value to be added
- * @param {AddValueOptions=} options                    command options (optional)
- * @param {boolean}         options.translateToUnicode enable translation string to unicode value automatically
+ * @param {string | number | Array<string | number>}        value                       value to be added
+ * @param {CommandOptions=}                                 options                     command options (optional)
+ * @param {boolean}                                         options.translateToUnicode  enable translation string to unicode value automatically
  *
  */
-
-import { transformToCharString } from '../../utils'
-
-export type AddValueOptions = {
-    translateToUnicode?: boolean
-}
-
 export default function addValue (
     this: WebdriverIO.Element,
-    value: string | number | boolean | object | Array<any>,
-    { translateToUnicode = true }: AddValueOptions = {}
+    value: Value | Value[],
+    { translateToUnicode = true }: CommandOptions = {}
 ) {
-    if (!this.isW3C) {
-        return this.elementSendKeys(this.elementId, transformToCharString(value as string[], translateToUnicode))
+    if (!isValidType(value)) {
+        log.warn('@deprecated: support for type "string", "number" or "Array<string | number>" is deprecated')
     }
 
-    // @ts-ignore TS takes `elementSendKeys` from JSONWP
+    if (!this.isW3C) {
+        return this.elementSendKeys(this.elementId, transformToCharString(value, translateToUnicode) as any as string)
+    }
+
     return this.elementSendKeys(this.elementId, transformToCharString(value, translateToUnicode).join(''))
 }

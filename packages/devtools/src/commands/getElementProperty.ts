@@ -1,3 +1,6 @@
+import { getStaleElementError } from '../utils'
+import type DevToolsDriver from '../devtoolsdriver'
+
 /**
  * The Get Element Property command will return the result of getting a property of an element.
  *
@@ -7,10 +10,6 @@
  * @param {string} name       name of the attribute property to retrieve
  * @return {string}           The named property of the element, accessed by calling GetOwnProperty on the element object.
  */
-
-import { getStaleElementError } from '../utils'
-import type DevToolsDriver from '../devtoolsdriver'
-
 export default async function getElementProperty (
     this: DevToolsDriver,
     { elementId, name }: { elementId: string, name: string }

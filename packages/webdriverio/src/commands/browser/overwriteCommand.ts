@@ -1,21 +1,25 @@
 /**
  * The browser method `overwriteCommand` helps you to overwrite the browser's and element's native commands like `pause` and `click`.
  *
- * > You can view more info on `overwriteCommand` [here](https://webdriver.io/docs/customcommands.html#overwriting-native-commands)
+ * :::info
+ *
+ * You can view more information on this in the [custom command](/docs/customcommands#overwriting-native-commands) section.
+ *
+ * :::
+ *
  * <example>
     :execute.js
-    //print milliseconds before pause and return its value.
-    //pause           - name of command to be overwritten
-    //origPauseFunction  - original pause function
-    browser.overwriteCommand('pause', function (origPauseFunction, ms) {
+    // print milliseconds before pause and return its value.
+    await browser.overwriteCommand('pause', function (origPauseFunction, ms) {
         console.log(`Sleeping for ${ms}`)
         origPauseFunction(ms)
         return ms
     })
-    //usage
-    it('should use my overwrite command', () => {
-        browser.url('https://webdriver.io')
-        browser.pause(1000) //outputs "Sleeping for 1000"
+
+    // usage
+    it('should use my overwrite command', async () => {
+        await browser.url('https://webdriver.io')
+        await browser.pause(1000) // outputs "Sleeping for 1000"
     })
  * </example>
  * @alias browser.overwriteCommand

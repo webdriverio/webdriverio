@@ -1,19 +1,44 @@
-exports.config = {
+<% if(!answers.isUsingTypeScript) { %>exports.config = {<% } else { %>export const config: WebdriverIO.Config = {<% } %>
     //
     // ====================
     // Runner Configuration
     // ====================
+    //<%
+    if(answers.isUsingTypeScript){ %> 
     //
-    // WebdriverIO allows it to run your tests in arbitrary locations (e.g. locally or
-    // on a remote machine).
-    runner: '<%= answers.runner %>',<%
+    // =====================
+    // ts-node Configurations
+    // =====================
+    // 
+    // You can write tests using TypeScript to get autocompletion and type safety.
+    // You will need typescript and ts-node installed as devDependencies. 
+    // WebdriverIO will automatically detect if these dependencies are installed 
+    // and will compile your config and tests for you. 
+    // If you need to configure how ts-node runs please use the
+    // environment variables for ts-node or use wdio config's autoCompileOpts section.
+    //
+    
+    autoCompileOpts: {
+        autoCompile: true,
+        // see https://github.com/TypeStrong/ts-node#cli-and-programmatic-options
+        // for all available options
+        tsNodeOpts: {
+            transpileOnly: true,
+            project: 'test/tsconfig.json'
+        }
+        // tsconfig-paths is only used if "tsConfigPathsOpts" are provided, if you
+        // do please make sure "tsconfig-paths" is installed as dependency
+        //tsConfigPathsOpts: {
+        //    baseUrl: './'
+        //}
+    },<% }
 
     if(answers.expEnvAccessKey){ %>
-    hostname: '<%= answers.expEnvHostname %>',
+    hostname: '<%- answers.expEnvHostname %>',
     <% if (answers.expEnvPort === '443'){%>protocol: 'https',
     <%} else if (answers.expEnvPort === '80'){%>protocol: 'http',
-    <%} else { %>protocol: '<%= answers.expEnvProtocol %>',<%}%>
-    port: <%= answers.expEnvPort %>,
+    <%} else { %>protocol: '<%- answers.expEnvProtocol %>',<%}%>
+    port: <%- answers.expEnvPort %>,
     path: '/wd/hub',
     <% } else if(answers.hostname && answers.port) { %>
     //
@@ -27,9 +52,9 @@ exports.config = {
     // according to your user and key information. However, if you are using a private Selenium
     // backend you should define the host address, port, and path here.
     //
-    hostname: '<%= answers.hostname %>',
-    port: <%= answers.port %>,
-    path: '<%= answers.path %>',<% } else if (answers.services.includes('appium')) { %>
+    hostname: '<%- answers.hostname %>',
+    port: <%- answers.port %>,
+    path: '<%- answers.path %>',<% } else if (answers.services.includes('appium')) { %>
     port: 4723,<% }
 
     // Protocol: http | https
@@ -43,27 +68,34 @@ exports.config = {
     // should work too though). These services define specific user and key (or access key)
     // values you need to put in here in order to connect to these services.
     //
-    user: process.env.<%= answers.env_user %>,
-    key: process.env.<%= answers.env_key %>,
+    user: process.env.<%- answers.env_user %>,
+    key: process.env.<%- answers.env_key %>,
     //
     // If you run your tests on Sauce Labs you can specify the region you want to run your tests
-    // in via the `region` property. Available short handles for regions are `us` (default) and `eu`.
+    // in via the `region` property. Available short handles for regions are `us` (default), `eu` and `apac`.
     // These regions are used for the Sauce Labs VM cloud and the Sauce Labs Real Device Cloud.
     // If you don't provide the region it will default for the `us`
     <% }
     if(answers.headless) { %>headless: true,<% }
-    if(answers.region) { %>region: '<%= answers.region %>',<% } %>
+    if(answers.region) { %>region: '<%- answers.region %>',<% } %>
     //
     // ==================
     // Specify Test Files
     // ==================
     // Define which test specs should run. The pattern is relative to the directory
-    // from which `wdio` was called. Notice that, if you are calling `wdio` from an
-    // NPM script (see https://docs.npmjs.com/cli/run-script) then the current working
-    // directory is where your package.json resides, so `wdio` will be called from there.
+    // from which `wdio` was called.
+    //
+    // The specs are defined as an array of spec files (optionally using wildcards
+    // that will be expanded). The test for each spec file will be run in a separate
+    // worker process. In order to have a group of spec files run in the same worker
+    // process simply enclose them in an array within the specs array.
+    //
+    // If you are calling `wdio` from an NPM script (see https://docs.npmjs.com/cli/run-script),
+    // then the current working directory is where your `package.json` resides, so `wdio`
+    // will be called from there.
     //
     specs: [
-        '<%= answers.specs %>'
+        '<%- answers.specs %>'
     ],
     // Patterns to exclude.
     exclude: [
@@ -89,10 +121,10 @@ exports.config = {
     //
     // If you have trouble getting all important capabilities together, check out the
     // Sauce Labs platform configurator - a great tool to configure your capabilities:
-    // https://docs.saucelabs.com/reference/platforms-configurator
+    // https://saucelabs.com/platform/platform-configurator
     //
     capabilities: [{
-    <%if(answers.expEnvAccessKey){%> 'experitest:accessKey': '<%= answers.expEnvAccessKey %>',<%}%>
+    <%if(answers.expEnvAccessKey){%> 'experitest:accessKey': '<%- answers.expEnvAccessKey %>',<%}%>
         // maxInstances can get overwritten per capability. So if you have an in-house Selenium
         // grid with only 5 firefox instances available you can make sure that not more than
         // 5 instances get started at a time.
@@ -117,15 +149,15 @@ exports.config = {
     // Set specific log levels per logger
     // loggers:
     // - webdriver, webdriverio
-    // - @wdio/applitools-service, @wdio/browserstack-service, @wdio/devtools-service, @wdio/sauce-service
+    // - @wdio/browserstack-service, @wdio/devtools-service, @wdio/sauce-service
     // - @wdio/mocha-framework, @wdio/jasmine-framework
     // - @wdio/local-runner
     // - @wdio/sumologic-reporter
-    // - @wdio/cli, @wdio/config, @wdio/sync, @wdio/utils
+    // - @wdio/cli, @wdio/config, @wdio/utils
     // Level of logging verbosity: trace | debug | info | warn | error | silent
     // logLevels: {
     //     webdriver: 'info',
-    //     '@wdio/applitools-service': 'info'
+    //     '@wdio/appium-service': 'info'
     // },
     //
     // If you only want to run your tests until a specific amount of tests have failed use
@@ -136,7 +168,7 @@ exports.config = {
     // with `/`, the base url gets prepended, not including the path portion of your baseUrl.
     // If your `url` parameter starts without a scheme or `/` (like `some/path`), the base url
     // gets prepended directly.
-    baseUrl: '<%= answers.baseUrl %>',
+    baseUrl: '<%- answers.baseUrl %>',
     //
     // Default timeout for all waitFor* commands.
     waitforTimeout: 10000,
@@ -159,11 +191,11 @@ exports.config = {
     //<% } %>
     // Framework you want to run your specs with.
     // The following are supported: Mocha, Jasmine, and Cucumber
-    // see also: https://webdriver.io/docs/frameworks.html
+    // see also: https://webdriver.io/docs/frameworks
     //
     // Make sure you have the wdio adapter package for the specific framework installed
     // before running any tests.
-    framework: '<%= answers.framework %>',
+    framework: '<%- answers.framework %>',
     //
     // The number of times to retry the entire specfile when it fails as a whole
     // specFileRetries: 1,
@@ -180,29 +212,15 @@ exports.config = {
     // Options to be passed to Mocha.
     // See the full list at http://mochajs.org/
     mochaOpts: {
-        <% if(answers.isUsingTypeScript) {
-        %>// TypeScript setup
-        require: ['ts-node/register'],
-        <% } else if(answers.isUsingBabel) {
-        %>// Babel setup
-        require: ['@babel/register'],
-        <% }
-        %>ui: 'bdd',
+        ui: 'bdd',
         timeout: 60000
     },<%
     }
     if(answers.framework === 'jasmine') { %>
     //
     // Options to be passed to Jasmine.
-    jasmineNodeOpts: {
-        <% if(answers.isUsingTypeScript) {
-        %>// TypeScript setup
-        requires: ['ts-node/register'],
-        <% } else if(answers.isUsingBabel) {
-        %>// Babel setup
-        helpers: [require.resolve('@babel/register')],
-        <% }
-        %>// Jasmine default timeout
+    jasmineOpts: {
+        // Jasmine default timeout
         defaultTimeoutInterval: 60000,
         //
         // The Jasmine framework allows interception of each assertion in order to log the state of the application
@@ -217,30 +235,19 @@ exports.config = {
     // If you are using Cucumber you need to specify the location of your step definitions.
     cucumberOpts: {
         // <string[]> (file/dir) require files before executing features
-        require: ['<%= answers.stepDefinitions %>'],
+        require: ['<%- answers.stepDefinitions %>'],
         // <boolean> show full backtrace for errors
         backtrace: false,
         // <string[]> ("extension:module") require files with the given EXTENSION after requiring MODULE (repeatable)
-        <% if(answers.isUsingTypeScript) {
-        %>requireModule: [
-            () => { require('ts-node').register({ files: true }) },
-        ],
-        <% } else if(answers.isUsingBabel) {
-        %>requireModule: ['@babel/register'],
-        <% } else {
-        %>requireModule: [],
-        <% } %>// <boolean> invoke formatters without executing steps
+        requireModule: [],
+        // <boolean> invoke formatters without executing steps
         dryRun: false,
         // <boolean> abort the run on first failure
         failFast: false,
-        // <string[]> (type[:path]) specify the output format, optionally supply PATH to redirect formatter output (repeatable)
-        format: ['pretty'],
         // <boolean> hide step definition snippets for pending steps
         snippets: true,
         // <boolean> hide source uris
         source: true,
-        // <string[]> (name) specify the profile to use
-        profile: [],
         // <boolean> fail if there are any undefined or pending steps
         strict: false,
         // <string> (expression) only execute the features or scenarios with tags matching the expression
@@ -283,8 +290,9 @@ exports.config = {
      * @param {Object} config wdio configuration object
      * @param {Array.<Object>} capabilities list of capabilities details
      * @param {Array.<String>} specs List of spec file paths that are to be run
+     * @param {String} cid worker id (e.g. 0-0)
      */
-    // beforeSession: function (config, capabilities, specs) {
+    // beforeSession: function (config, capabilities, specs, cid) {
     // },
     /**
      * Gets executed before test execution begins. At this point you can access to all global
@@ -335,34 +343,63 @@ exports.config = {
     // },<% }
     if(answers.framework === 'cucumber') { %>
     /**
-     * Runs before a Cucumber feature
+     * Cucumber Hooks
+     *
+     * Runs before a Cucumber Feature.
+     * @param {String}                   uri      path to feature file
+     * @param {GherkinDocument.IFeature} feature  Cucumber feature object
      */
-    // beforeFeature: function (uri, feature, scenarios) {
+    // beforeFeature: function (uri, feature) {
     // },
     /**
-     * Runs before a Cucumber scenario
+     *
+     * Runs before a Cucumber Scenario.
+     * @param {ITestCaseHookParameter} world    world object containing information on pickle and test step
+     * @param {Object}                 context  Cucumber World object
      */
-    // beforeScenario: function (uri, feature, scenario, sourceLocation, context) {
+    // beforeScenario: function (world, context) {
     // },
     /**
-     * Runs before a Cucumber step
+     *
+     * Runs before a Cucumber Step.
+     * @param {Pickle.IPickleStep} step     step data
+     * @param {IPickle}            scenario scenario pickle
+     * @param {Object}             context  Cucumber World object
      */
-    // beforeStep: function ({ uri, feature, step }, context) {
+    // beforeStep: function (step, scenario, context) {
     // },
     /**
-     * Runs after a Cucumber step
+     *
+     * Runs after a Cucumber Step.
+     * @param {Pickle.IPickleStep} step             step data
+     * @param {IPickle}            scenario         scenario pickle
+     * @param {Object}             result           results object containing scenario results
+     * @param {boolean}            result.passed    true if scenario has passed
+     * @param {string}             result.error     error stack if scenario failed
+     * @param {number}             result.duration  duration of scenario in milliseconds
+     * @param {Object}             context          Cucumber World object
      */
-    // afterStep: function ({ uri, feature, step }, context, { error, result, duration, passed, retries }) {
+    // afterStep: function (step, scenario, result, context) {
     // },
     /**
-     * Runs after a Cucumber scenario
+     *
+     * Runs after a Cucumber Scenario.
+     * @param {ITestCaseHookParameter} world            world object containing information on pickle and test step
+     * @param {Object}                 result           results object containing scenario results
+     * @param {boolean}                result.passed    true if scenario has passed
+     * @param {string}                 result.error     error stack if scenario failed
+     * @param {number}                 result.duration  duration of scenario in milliseconds
+     * @param {Object}                 context          Cucumber World object
      */
-    // afterScenario: function (uri, feature, scenario, result, sourceLocation, context) {
+    // afterScenario: function (world, result, context) {
     // },
     /**
-     * Runs after a Cucumber feature
+     *
+     * Runs after a Cucumber Feature.
+     * @param {String}                   uri      path to feature file
+     * @param {GherkinDocument.IFeature} feature  Cucumber feature object
      */
-    // afterFeature: function (uri, feature, scenarios) {
+    // afterFeature: function (uri, feature) {
     // },
     <% } %>
     /**

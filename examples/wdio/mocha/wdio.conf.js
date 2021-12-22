@@ -2,12 +2,6 @@ const path = require('path')
 
 exports.config = {
     /**
-     * server configurations
-     */
-    hostname: 'localhost',
-    port: 4444,
-
-    /**
      * specify test files
      */
     specs: [
@@ -33,7 +27,7 @@ exports.config = {
 
     mochaOpts: {
         ui: 'bdd',
-        timeout: 5000
+        timeout: 15000
     },
 
     /**

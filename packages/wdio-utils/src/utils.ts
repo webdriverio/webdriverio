@@ -1,7 +1,10 @@
 import fs from 'fs'
 import path from 'path'
 
+import type { Services, Clients } from '@wdio/types'
+
 const SCREENSHOT_REPLACEMENT = '"<Screenshot[base64]>"'
+const SCRIPT_PLACEHOLDER = '"<Script[base64]>"'
 
 /**
  * overwrite native element commands with user defined
@@ -26,10 +29,10 @@ export function overwriteElementCommands(propertiesObject: { '__elementOverrides
         const origCommand = propertiesObject[commandName].value
         delete propertiesObject[commandName]
 
-        const newCommand = function (this: WebDriver.Client, ...args: any[]) {
+        const newCommand = function (this: Clients.Browser, ...args: any[]) {
             const element = this
             return userDefinedCommand.apply(element, [
-                function origCommandFunction (this: WebDriver.Client) {
+                function origCommandFunction (this: Clients.Browser) {
                     const context = this || element // respect explicite context binding, use element as default
                     return origCommand.apply(context, arguments)
                 },
@@ -89,9 +92,11 @@ export function commandCallStructure (commandName: string, args: any[]) {
  * result strings e.g. if it contains a screenshot
  * @param {Object} result WebDriver response body
  */
-export function transformCommandLogResult (result: { file?: string }) {
+export function transformCommandLogResult (result: { file?: string, script?: string }) {
     if (typeof result.file === 'string' && isBase64(result.file)) {
         return SCREENSHOT_REPLACEMENT
+    } else if (typeof result.script === 'string' && isBase64(result.script)) {
+        return SCRIPT_PLACEHOLDER
     }
 
     return result
@@ -149,7 +154,7 @@ export function getArgumentType (arg: any) {
  * @param  {string} name  of package
  * @return {object}       package content
  */
-export function safeRequire (name: string): WebdriverIO.ServicePlugin | null {
+export function safeRequire (name: string): Services.ServicePlugin | null {
     let requirePath
     try {
         /**
@@ -176,13 +181,13 @@ export function safeRequire (name: string): WebdriverIO.ServicePlugin | null {
         } else {
             requirePath = require.resolve(name)
         }
-    } catch (e) {
+    } catch (err: any) {
         return null
     }
 
     try {
         return require(requirePath)
-    } catch (e) {
+    } catch (e: any) {
         throw new Error(`Couldn't initialise "${name}".\n${e.stack}`)
     }
 }
@@ -237,7 +242,7 @@ export const canAccess = (file: string) => {
     try {
         fs.accessSync(file)
         return true
-    } catch (e) {
+    } catch (err: any) {
         return false
     }
 }

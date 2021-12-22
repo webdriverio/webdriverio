@@ -1,6 +1,11 @@
+import fs from 'fs'
+import path from 'path'
+import archiver from 'archiver'
+import type { Capabilities } from '@wdio/types'
+
 /**
  * Uploads a file to the Selenium Standalone server or other browser driver
- * (e.g. Chromedriver) by using the [`file`](/docs/api/selenium.html#file) command.
+ * (e.g. Chromedriver) by using the [`file`](https://webdriver.io/docs/api/selenium#file) command.
  * _Note:_ that this command is only supported if you use a Selenium Hub or
  * Chromedriver directly.
  *
@@ -8,17 +13,17 @@
  * only supported in Chrome and when running a [Selenium Grid](https://www.selenium.dev/documentation/en/grid/).
  *
  * <example>
-    :touchAction.js
+    :uploadFile.js
     const path = require('path');
 
-    it('should upload a file', function () {
-        browser.url('https://the-internet.herokuapp.com/upload')
+    it('should upload a file', async () => {
+        await browser.url('https://the-internet.herokuapp.com/upload')
 
         const filePath = '/path/to/some/file.png'
-        const remoteFilePath = browser.uploadFile(filePath)
+        const remoteFilePath = await browser.uploadFile(filePath)
 
-        $('#file-upload').setValue(remoteFilePath)
-        $('#file-submit').click()
+        await $('#file-upload').setValue(remoteFilePath)
+        await $('#file-submit').click()
     });
  * </example>
  *
@@ -28,12 +33,8 @@
  * @uses protocol/file
  * @return {String} remote URL
  */
-import fs from 'fs'
-import path from 'path'
-import archiver from 'archiver'
-
 export default async function uploadFile (
-    this: WebdriverIO.BrowserObject,
+    this: WebdriverIO.Browser,
     localPath: string
 ): Promise<string> {
     /**
@@ -47,7 +48,7 @@ export default async function uploadFile (
      * check if command is available
      */
     if (typeof this.file !== 'function') {
-        throw new Error(`The uploadFile command is not available in ${this.capabilities.browserName}`)
+        throw new Error(`The uploadFile command is not available in ${(this.capabilities as Capabilities.Capabilities).browserName}`)
     }
 
     let zipData: Uint8Array[] = []

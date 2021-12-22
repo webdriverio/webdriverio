@@ -2,7 +2,9 @@ import type { AddressInfo } from 'net'
 import polka from 'polka'
 import { json } from '@polka/parse'
 
-const store: WebdriverIO.JsonObject = {}
+import type { JsonCompatible, JsonPrimitive, JsonObject } from '@wdio/types'
+
+const store: JsonObject = {}
 
 const validateBody: NextFn = (req, res, next) => {
     if (!req.path.endsWith('/get') && !req.path.endsWith('/set')) {
@@ -26,7 +28,7 @@ const app = polka()
         res.end(JSON.stringify({ value: store[req.body.key as string] }))
     })
     .post('/set', (req, res) => {
-        store[req.body.key as string] = req.body.value as WebdriverIO.JsonCompatible | WebdriverIO.JsonPrimitive
+        store[req.body.key as string] = req.body.value as JsonCompatible | JsonPrimitive
         return res.end()
     })
 

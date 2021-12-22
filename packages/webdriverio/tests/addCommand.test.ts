@@ -55,7 +55,7 @@ describe('addCommand', () => {
             const browser = await remote(remoteConfig)
             await browser.$('#foo')
 
-            browser.addCommand('myCustomElementCommand', async function (this: WebdriverIO.BrowserObject) {
+            browser.addCommand('myCustomElementCommand', async function (this: WebdriverIO.Browser) {
                 return this.execute(function () { return 1 })
             })
 
@@ -65,7 +65,7 @@ describe('addCommand', () => {
         test('should be able to add a command to and element from the browser', async () => {
             const browser = await remote(remoteConfig)
 
-            browser.addCommand('myCustomElementCommand', async function (this: WebdriverIO.BrowserObject) {
+            browser.addCommand('myCustomElementCommand', async function (this: WebdriverIO.Browser) {
                 return this.execute(function () {return 1})
             }, true)
 
@@ -275,7 +275,7 @@ describe('addCommand', () => {
             const browser = await multiremote(multiremoteConfig)
 
             expect(typeof browser.myCustomCommand).toBe('undefined')
-            browser.addCommand('myCustomCommand', async function (this: WebdriverIO.BrowserObject, param: any) {
+            browser.addCommand('myCustomCommand', async function (this: WebdriverIO.Browser, param: any) {
                 const commandResult = await this.execute(() => 'foobar')
                 return { param, commandResult }
             })
@@ -290,7 +290,7 @@ describe('addCommand', () => {
             const browser = await multiremote(multiremoteConfig)
 
             expect(typeof browser.myOtherCustomCommand).toBe('undefined')
-            browser.browserA.addCommand('myOtherCustomCommand', async function (this: WebdriverIO.BrowserObject, param: any) {
+            browser.browserA.addCommand('myOtherCustomCommand', async function (this: WebdriverIO.Browser, param: any) {
                 const commandResult = await this.execute(() => 'foobar')
                 return { param, commandResult }
             })
@@ -305,7 +305,7 @@ describe('addCommand', () => {
 
         test('should not allow to call custom multi browser commands on elements', async () => {
             const browser = await multiremote(multiremoteConfig)
-            browser.addCommand('myCustomOtherOtherCommand', async function (this: WebdriverIO.BrowserObject, param: any) {
+            browser.addCommand('myCustomOtherOtherCommand', async function (this: WebdriverIO.Browser, param: any) {
                 const commandResult = await this.execute(() => 'foobar')
                 return { param, commandResult }
             })

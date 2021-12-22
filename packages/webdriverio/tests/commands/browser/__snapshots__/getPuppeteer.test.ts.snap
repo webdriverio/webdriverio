@@ -43,3 +43,35 @@ Array [
   ],
 ]
 `;
+
+exports[`attach Puppeteer should pass for Selenium CDP 1`] = `
+Array [
+  Array [
+    Object {
+      "browserWSEndpoint": "http://my.grid:1234/session/mytestsession/se/cdp",
+      "defaultViewport": null,
+    },
+  ],
+]
+`;
+exports[`attach Puppeteer should pass for Aerokube Moon CDP 1`] = `
+Array [
+  Array [
+    Object {
+      "browserWSEndpoint": "ws://my.grid:4444/devtools/foobar-123",
+      "defaultViewport": null,
+    },
+  ],
+]
+`;
+
+exports[`attach Puppeteer should pass for Aerokube Selenoid CDP 1`] = `
+Array [
+  Array [
+    Object {
+      "browserWSEndpoint": "ws://my.grid:4444/devtools/foobar-123",
+      "defaultViewport": null,
+    },
+  ],
+]
+`;

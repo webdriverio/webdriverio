@@ -1,48 +1,23 @@
-class CustomService {
-  onPrepare() {
-      // TODO: something before all workers launch
-  }
-}
+import { expectType } from 'tsd'
 
-const conf: WebdriverIO.Config = {
-    // can be both array and function
-    onComplete: (config, caps) => { },
-    onPrepare: [
-        () => { }
+const config: WebdriverIO.Config = {
+    capabilities: [{}],
+
+    specs: [
+        'foobar.js',
+        [
+            'foo.js',
+            'bar.js'
+        ]
     ],
 
-    // can be function only
-    afterSuite: () => {},
-
-    services: [
-        ['appium', {
-            logPath: '/foobar',
-            command: 'appium',
-            args: []
-        }],
-        [CustomService, {
-            someOption: true
-        }]
-    ],
-
-    automationProtocol: 'webdriver',
-    logLevels: {
-        webdriver: 'info',
+    beforeTest () {
+        const size = browser.getWindowSize()
+        expectType<number>(size.height)
     },
 
-    transformRequest: (requestOptions) => {
-        requestOptions.headers['X-Custom-Auth'] = 'custom_header_value'
-        return requestOptions
-    },
-    transformResponse: (response, requestOptions) => {
-        if (requestOptions.method === 'DELETE' && response.statusCode === 200) {
-            console.log(response.body)
-        }
-
-        return response
-    },
-
-    filesToWatch: [
-        '/foo/page-objects/**/*.page.js',
-    ],
+    async afterTest () {
+        const size = await browser.getWindowSize()
+        expectType<number>(size.height)
+    }
 }

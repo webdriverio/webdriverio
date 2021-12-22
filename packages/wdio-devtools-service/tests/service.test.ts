@@ -41,7 +41,20 @@ jest.mock('../src/utils', () => {
             throw new Error('boom')
         }),
         isBrowserSupported,
-        setUnsupportedCommand: jest.fn()
+        setUnsupportedCommand: jest.fn(),
+        getLighthouseDriver: jest.fn()
+    }
+})
+
+jest.mock('../src/gatherer/coverage', () => {
+    const instances = []
+    return class {
+        getCoverageReport = jest.fn()
+        init = jest.fn()
+
+        constructor () {
+            instances.push(this)
+        }
     }
 })
 
@@ -65,14 +78,17 @@ beforeEach(() => {
 })
 
 test('beforeSession', () => {
-    const service = new DevToolsService()
+    const service = new DevToolsService({})
     service['_browser'] = browser
     expect(service['_isSupported']).toBe(false)
 
     service.beforeSession({}, {})
     expect(service['_isSupported']).toBe(false)
 
-    service.beforeSession({}, { browserName: 'firefox' })
+    service.beforeSession({}, { browserName: 'firefox', version: 85 })
+    expect(service['_isSupported']).toBe(false)
+
+    service.beforeSession({}, { browserName: 'firefox', browserVersion: '85' })
     expect(service['_isSupported']).toBe(false)
 
     // @ts-ignore test with outdated version capability
@@ -88,10 +104,19 @@ test('beforeSession', () => {
 
     service.beforeSession({}, { browserName: 'chrome', browserVersion: '65' })
     expect(service['_isSupported']).toBe(true)
+
+    service.beforeSession({}, { browserName: 'firefox' })
+    expect(service['_isSupported']).toBe(true)
+
+    service.beforeSession({}, { browserName: 'firefox', version: 86 })
+    expect(service['_isSupported']).toBe(true)
+
+    service.beforeSession({}, { browserName: 'firefox', browserVersion: '86' })
+    expect(service['_isSupported']).toBe(true)
 })
 
 test('if not supported by browser', async () => {
-    const service = new DevToolsService()
+    const service = new DevToolsService({})
     service['_browser'] = browser
     service['_isSupported'] = false
 
@@ -100,12 +125,16 @@ test('if not supported by browser', async () => {
 })
 
 test('if supported by browser', async () => {
-    const service = new DevToolsService()
+    const service = new DevToolsService({
+        coverageReporter: {
+            enable: true
+        }
+    })
     service['_browser'] = browser
     service['_isSupported'] = true
     await service._setupHandler()
     expect(service['_session']?.send).toBeCalledWith('Network.enable')
-    expect(service['_session']?.send).toBeCalledWith('Console.enable')
+    expect(service['_session']?.send).toBeCalledWith('Runtime.enable')
     expect(service['_session']?.send).toBeCalledWith('Page.enable')
     expect(service['_browser']?.addCommand).toBeCalledWith(
         'enablePerformanceAudits', expect.any(Function))
@@ -113,6 +142,8 @@ test('if supported by browser', async () => {
         'disablePerformanceAudits', expect.any(Function))
     expect(service['_browser']?.addCommand).toBeCalledWith(
         'emulateDevice', expect.any(Function))
+    expect(service['_browser']?.addCommand).toBeCalledWith(
+        'checkPWA', expect.any(Function))
 
     // @ts-ignore access private property
     const rawEventListener = service['_puppeteer']['_connection']._transport._ws.addEventListener
@@ -126,10 +157,11 @@ test('if supported by browser', async () => {
     expect(service['_devtoolsGatherer']?.onMessage).toBeCalledWith({ method:'foo', params: 'bar' })
     expect((service['_browser'] as any).emit).toBeCalledTimes(1)
     expect((service['_browser'] as any).emit).toBeCalledWith('foo', 'bar')
+    expect(service['_coverageGatherer'].init).toBeCalledTimes(1)
 })
 
 test('beforeCommand', () => {
-    const service = new DevToolsService()
+    const service = new DevToolsService({})
     service['_browser'] = browser
     service['_traceGatherer'] = { startTracing: jest.fn() } as any
     service._setThrottlingProfile = jest.fn()
@@ -167,7 +199,7 @@ test('beforeCommand', () => {
 })
 
 test('afterCommand', () => {
-    const service = new DevToolsService()
+    const service = new DevToolsService({})
     service['_browser'] = browser
     service['_traceGatherer'] = { once: jest.fn() } as any
 
@@ -195,7 +227,7 @@ test('afterCommand', () => {
 })
 
 test('afterCommand: should create a new auditor instance and should update the browser commands', () => {
-    const service = new DevToolsService()
+    const service = new DevToolsService({})
     service['_browser'] = browser
     service['_traceGatherer'] = new EventEmitter() as any
 
@@ -211,7 +243,7 @@ test('afterCommand: should create a new auditor instance and should update the b
 })
 
 test('afterCommand: should update browser commands even if failed', () => {
-    const service = new DevToolsService()
+    const service = new DevToolsService({})
     service['_browser'] = browser
     service['_traceGatherer'] = new EventEmitter() as any
 
@@ -227,7 +259,7 @@ test('afterCommand: should update browser commands even if failed', () => {
 })
 
 test('afterCommand: should continue with command after tracingFinished was emitted', async () => {
-    const service = new DevToolsService()
+    const service = new DevToolsService({})
     service['_browser'] = browser
     service['_traceGatherer'] = new EventEmitter() as any
 
@@ -244,7 +276,7 @@ test('afterCommand: should continue with command after tracingFinished was emitt
 })
 
 test('_enablePerformanceAudits: throws if network or cpu properties have wrong types', () => {
-    const service = new DevToolsService()
+    const service = new DevToolsService({})
     service['_browser'] = browser
     expect(
         () => service._enablePerformanceAudits({ networkThrottling: 'super fast 3g' } as any)
@@ -255,43 +287,47 @@ test('_enablePerformanceAudits: throws if network or cpu properties have wrong t
 })
 
 test('_enablePerformanceAudits: applies some default values', () => {
-    const service = new DevToolsService()
+    const service = new DevToolsService({})
     service['_browser'] = browser
     service._enablePerformanceAudits()
 
-    expect(service['_networkThrottling']).toBe('Good 3G')
-    expect(service['_cpuThrottling']).toBe(4)
+    expect(service['_networkThrottling']).toBe('online')
+    expect(service['_cpuThrottling']).toBe(0)
     expect(service['_cacheEnabled']).toBe(false)
+    expect(service['_formFactor']).toBe('desktop')
 })
 
 test('_enablePerformanceAudits: applies some custom values', () => {
-    const service = new DevToolsService()
+    const service = new DevToolsService({})
     service['_browser'] = browser
     service._enablePerformanceAudits({
         networkThrottling: 'Regular 2G',
         cpuThrottling: 42,
         cacheEnabled: true,
+        formFactor: 'mobile'
     })
 
     expect(service['_networkThrottling']).toBe('Regular 2G')
     expect(service['_cpuThrottling']).toBe(42)
     expect(service['_cacheEnabled']).toBe(true)
+    expect(service['_formFactor']).toBe('mobile')
 })
 
 test('_disablePerformanceAudits', () => {
-    const service = new DevToolsService()
+    const service = new DevToolsService({})
     service['_browser'] = browser
     service._enablePerformanceAudits({
         networkThrottling: 'Regular 2G',
         cpuThrottling: 42,
         cacheEnabled: true,
+        formFactor: 'mobile'
     })
     service._disablePerformanceAudits()
     expect(service['_shouldRunPerformanceAudits']).toBe(false)
 })
 
 test('_setThrottlingProfile', async () => {
-    const service = new DevToolsService()
+    const service = new DevToolsService({})
     service['_browser'] = browser
     const err = await service._setThrottlingProfile('Good 3G', 4, true)
         .catch((err: Error) => err) as Error
@@ -314,17 +350,17 @@ test('_setThrottlingProfile', async () => {
     sessionMock.send.mockClear()
     await service._setThrottlingProfile()
     expect(pageMock.setCacheEnabled).toBeCalledWith(false)
-    expect(sessionMock.send).toBeCalledWith('Emulation.setCPUThrottlingRate', { rate: 4 })
+    expect(sessionMock.send).toBeCalledWith('Emulation.setCPUThrottlingRate', { rate: 0 })
     expect(sessionMock.send).toBeCalledWith('Network.emulateNetworkConditions', {
-        downloadThroughput: 188743,
-        latency: 562.5,
+        downloadThroughput: -1,
+        latency: 0,
         offline: false,
-        uploadThroughput: 86400
+        uploadThroughput: -1
     })
 })
 
 test('_emulateDevice', async () => {
-    const service = new DevToolsService()
+    const service = new DevToolsService({})
     service['_browser'] = browser
     const err = await service._emulateDevice('Nexus 6P')
         .catch((err: Error) => err) as Error
@@ -346,21 +382,26 @@ test('_emulateDevice', async () => {
 })
 
 test('before hook', async () => {
-    const service = new DevToolsService()
+    const service = new DevToolsService({})
     service._setupHandler = jest.fn()
     service.before({}, [], browser)
     expect(service._setupHandler).toBeCalledTimes(1)
 })
 
 test('onReload hook', async () => {
-    const service = new DevToolsService()
+    const service = new DevToolsService({})
     service['_browser'] = browser
     service._setupHandler = jest.fn()
     ;(service['_browser'] as any).puppeteer = 'suppose to be reset after reload' as any
     service.onReload()
     expect(service._setupHandler).toBeCalledTimes(1)
-    expect((service['_browser'] as any).puppeteer).toBeNull()
 })
 
-afterEach(() => {
+test('after hook', async () => {
+    const service = new DevToolsService({})
+    await service.after()
+
+    service['_coverageGatherer'] = { logCoverage: jest.fn() } as any
+    await service.after()
+    expect(service['_coverageGatherer'].logCoverage).toHaveBeenCalledTimes(1)
 })

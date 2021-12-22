@@ -1,10 +1,10 @@
-import type { ConfigOptions, Hooks } from './types'
+import { Options, Services } from '@wdio/types'
 
 const DEFAULT_TIMEOUT = 10000
 
 /* istanbul ignore next */
 
-export const DEFAULT_CONFIGS: () => ConfigOptions = () => ({
+export const DEFAULT_CONFIGS: () => Omit<Options.Testrunner, 'capabilities'> = () => ({
     specs: [],
     suites: {},
     exclude: [],
@@ -26,6 +26,19 @@ export const DEFAULT_CONFIGS: () => ConfigOptions = () => ({
     execArgv: [],
     runnerEnv: {},
     runner: 'local' as const,
+    specFileRetries: 0,
+    specFileRetriesDelay: 0,
+    specFileRetriesDeferred: false,
+    reporterSyncInterval: 100,
+    reporterSyncTimeout: 5000,
+    cucumberFeaturesWithLineNumbers: [],
+    autoCompileOpts: {
+        autoCompile: true,
+        tsNodeOpts: {
+            transpileOnly: true
+        },
+        babelOpts: {}
+    },
 
     /**
      * framework defaults
@@ -33,7 +46,7 @@ export const DEFAULT_CONFIGS: () => ConfigOptions = () => ({
     mochaOpts: {
         timeout: DEFAULT_TIMEOUT
     },
-    jasmineNodeOpts: {
+    jasmineOpts: {
         defaultTimeoutInterval: DEFAULT_TIMEOUT
     },
     cucumberOpts: {
@@ -68,12 +81,13 @@ export const DEFAULT_CONFIGS: () => ConfigOptions = () => ({
     beforeStep: [],
     afterStep: [],
     afterScenario: [],
-    afterFeature: [],
+    afterFeature: []
 })
 
-export const SUPPORTED_HOOKS: (keyof Hooks)[] = [
+export const SUPPORTED_HOOKS: (keyof Services.Hooks)[] = [
     'before', 'beforeSession', 'beforeSuite', 'beforeHook', 'beforeTest', 'beforeCommand',
     'afterCommand', 'afterTest', 'afterHook', 'afterSuite', 'afterSession', 'after',
+    // @ts-ignore not defined in core hooks but added with cucumber
     'beforeFeature', 'beforeScenario', 'beforeStep', 'afterStep', 'afterScenario', 'afterFeature',
     'onReload', 'onPrepare', 'onWorkerStart', 'onComplete'
 ]

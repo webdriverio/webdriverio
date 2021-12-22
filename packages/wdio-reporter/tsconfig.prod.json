@@ -3,10 +3,10 @@
   "compilerOptions": {
     "baseUrl": ".",
     "outDir": "./build",
-    "rootDir": "./src",
-    "types": ["webdriverio"]
+    "rootDir": "./src"
   },
   "include": [
-    "src/**/*"
+    "src/**/*",
+    "../../@types"
   ]
 }

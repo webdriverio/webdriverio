@@ -1,3 +1,5 @@
+import type DevToolsDriver from '../devtoolsdriver'
+
 /**
  * Get the computed WAI-ARIA label of an element.
  *
@@ -6,9 +8,6 @@
  * @param {string} elementId  the id of an element returned in a previous call to Find Element(s)
  * @return {string}           The result of computing the WAI-ARIA label of element.
  */
-
-import type DevToolsDriver from '../devtoolsdriver'
-
 export default async function getElementComputedLabel (
     this: DevToolsDriver,
     { elementId }: { elementId: string }

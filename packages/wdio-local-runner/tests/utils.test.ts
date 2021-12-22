@@ -1,6 +1,8 @@
 import RunnerStream from '../src/stdStream'
 import { removeLastListener } from '../src/utils'
 
+const expect = global.expect as unknown as jest.Expect
+
 describe('removeLastListener', () => {
     it('should remove only last listener', () => {
         const stream = new RunnerStream()

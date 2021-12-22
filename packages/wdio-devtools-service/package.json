@@ -1,13 +1,13 @@
 {
   "name": "@wdio/devtools-service",
-  "version": "6.10.11",
+  "version": "7.16.12",
   "description": "A WebdriverIO service that allows you to run Chrome DevTools commands in your tests",
   "author": "Christian Bromann <christian@saucelabs.com>",
-  "homepage": "https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-devtools-service",
+  "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-devtools-service",
   "license": "MIT",
   "main": "./build/index",
   "engines": {
-    "node": ">=10.0.0"
+    "node": ">=12.0.0"
   },
   "repository": {
     "type": "git",
@@ -26,21 +26,28 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "dependencies": {
-    "@tracerbench/trace-event": "^4.5.2",
-    "@types/puppeteer-core": "^2.0.0",
-    "@wdio/logger": "6.10.10",
-    "core-js": "~3.7.0",
-    "devtools-protocol": "^0.0.831461",
-    "lighthouse": "^6.4.1",
-    "puppeteer-core": "^5.1.0",
+    "@babel/core": "^7.12.10",
+    "@tracerbench/trace-event": "^6.0.0",
+    "@types/node": "^16.11.1",
+    "@wdio/logger": "7.16.0",
+    "@wdio/types": "7.16.11",
+    "babel-plugin-istanbul": "^6.0.0",
+    "core-js": "~3.20.0",
+    "devtools-protocol": "^0.0.948846",
+    "istanbul-lib-coverage": "^3.0.0",
+    "istanbul-lib-report": "^3.0.0",
+    "istanbul-reports": "^3.0.2",
+    "lighthouse": "8.6.0",
+    "puppeteer-core": "^13.0.0",
     "speedline": "^1.4.1",
-    "stable": "^0.1.8"
+    "stable": "^0.1.8",
+    "webdriverio": "7.16.12"
   },
   "peerDependencies": {
-    "@wdio/cli": "^6.0.1"
+    "@wdio/cli": "^7.0.0"
   },
   "publishConfig": {
     "access": "public"
   },
-  "types": "devtools-service.d.ts"
+  "types": "./build/index.d.ts"
 }

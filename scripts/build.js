@@ -19,9 +19,11 @@ if (HAS_WATCH_FLAG) {
 // 2. core packages (e.g. wdio-cli)
 // 3. plugins (e.g. wdio-allure-reporter)
 const ROOT_PACKAGES = [
+    'wdio-types',
+    'wdio-protocols',
     'wdio-logger',
-    'wdio-config',
     'wdio-utils',
+    'wdio-config',
     'wdio-repl',
     'webdriver',
     'devtools',
@@ -60,6 +62,7 @@ const packages = getSubPackages()
     .filter((pkg) => args.length === 0 || args.includes(pkg))
 
 shell.cd(path.join(__dirname, '..'))
+
 const cmd = `npx tsc -b ${packages.map((pkg) => `packages/${pkg}/${TSCONFIG_FILE}`).join(' ')}${HAS_WATCH_FLAG ? ' --watch' : ''}`
 
 console.log(cmd)

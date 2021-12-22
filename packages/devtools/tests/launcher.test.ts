@@ -30,6 +30,13 @@ test('launch chrome with default values', async () => {
     })
     expect(launchChromeBrowser.mock.calls).toMatchSnapshot()
     expect((puppeteer.connect as jest.Mock).mock.calls).toMatchSnapshot()
+    expect(puppeteer.registerCustomQueryHandler).toBeCalledWith(
+        'shadow',
+        {
+            queryAll: expect.any(Function),
+            queryOne: expect.any(Function)
+        }
+    )
 
     const pages = await browser.pages()
     expect(pages[0].close).toBeCalledTimes(1)
@@ -37,10 +44,11 @@ test('launch chrome with default values', async () => {
 })
 
 test('launch chrome with chrome arguments', async () => {
-    const browser = await launch({
+    await launch({
         browserName: 'chrome',
         'wdio:devtoolsOptions': {
-            headless: true
+            headless: true,
+            env: { foo: 'bar' }
         },
         'goog:chromeOptions': {
             binary: '/foo/bar',
@@ -52,13 +60,22 @@ test('launch chrome with chrome arguments', async () => {
     })
     expect(launchChromeBrowser.mock.calls).toMatchSnapshot()
     expect(puppeteer.launch).toBeCalledTimes(0)
+})
 
-    const pages = await browser.pages()
-    expect(pages[0].setViewport).toBeCalledWith({
-        height: 732,
-        pixelRatio: 3.5,
-        width: 412
+test('launch chrome with defaultViewport in wdio:devtoolsOptions', async () => {
+    await launch({
+        browserName: 'chrome',
+        'wdio:devtoolsOptions': {
+            defaultViewport: {
+                width: 222,
+                height: 333,
+                deviceScaleFactor: 1.42,
+                isMobile: true
+            }
+        }
     })
+    expect(launchChromeBrowser.mock.calls).toMatchSnapshot()
+    expect(puppeteer.launch).toBeCalledTimes(0)
 })
 
 test('launch chrome without default flags and without puppeteer default args', async () => {
@@ -115,6 +132,31 @@ test('overriding chrome default flags (backwards compat)', async () => {
     expect(pages[1].close).toBeCalledTimes(0)
 })
 
+test('launch chrome with custom user data dir', async () => {
+    await launch({
+        browserName: 'chrome',
+        'goog:chromeOptions': {
+            args: ['enable-features=NetworkService', 'someOtherFlag', 'user-data-dir=/foo/bar', 'anotherFlag']
+        }
+    })
+    expect(launchChromeBrowser.mock.calls).toMatchSnapshot()
+})
+
+test('launch chrome with chrome port', async () => {
+    const browser = await launch({
+        browserName: 'chrome',
+        'goog:chromeOptions': {},
+        'wdio:devtoolsOptions': {
+            customPort: 8041
+        }
+    })
+    expect(launchChromeBrowser.mock.calls).toMatchSnapshot()
+    expect(puppeteer.launch).toBeCalledTimes(0)
+
+    const pages = await browser.pages()
+    expect(pages[1].close).toBeCalledTimes(0)
+})
+
 test('throws an error if an unknown deviceName is picked', async () => {
     const err = await launch({
         browserName: 'chrome',
@@ -132,7 +174,7 @@ test('launch Firefox with default values', async () => {
 
     try {
         await launch({ browserName: 'firefox' })
-    } catch (err) {
+    } catch (err: any) {
         expect(err.message).toContain('Only Nightly release channel is supported')
     }
 })
@@ -155,7 +197,7 @@ test('launch Firefox with custom arguments', async () => {
                 }
             }
         })
-    } catch (err) {
+    } catch (err: any) {
         expect(err.message).toContain('Only Nightly release channel is supported')
     }
 })
@@ -207,8 +249,8 @@ test('throws if browser is unknown', async () => {
 
     try {
         await launch({ browserName: 'foobar' })
-    } catch (e) {
-        expect(e.message).toContain('Couldn\'t identify browserName')
+    } catch (err: any) {
+        expect(err.message).toContain('Couldn\'t identify browserName')
     }
 })
 
@@ -254,7 +296,7 @@ test('launch Firefox without Puppeteer default args', async () => {
                 ignoreDefaultArgs: true
             }
         })
-    } catch (err) {
+    } catch (err: any) {
         expect(err.message).toContain('Only Nightly release channel is supported')
     }
 })
@@ -277,7 +319,7 @@ test('launch Firefox without Puppeteer default args (backwards compat)', async (
             // @ts-ignore
             ignoreDefaultArgs: true
         })
-    } catch (err) {
+    } catch (err: any) {
         expect(err.message).toContain('Only Nightly release channel is supported')
     }
 })
@@ -308,4 +350,44 @@ test('launch Edge without Puppeteer default args (backwards compat)', async () =
         }
     })
     expect((puppeteer.launch as jest.Mock).mock.calls).toMatchSnapshot()
+})
+
+test('connect to existing browser session', async () => {
+    await launch({
+        browserName: 'edge',
+        'ms:edgeOptions': {
+            debuggerAddress: 'localhost:12345'
+        }
+    })
+    expect(puppeteer.launch).not.toBeCalled()
+    expect(puppeteer.connect as jest.Mock)
+        .toBeCalledWith({ browserURL: 'http://localhost:12345' })
+})
+
+test('connect to an existing devtools websocket', async () => {
+    await launch({
+        browserName: 'edge',
+        'ms:edgeOptions': {},
+        'wdio:devtoolsOptions': {
+            browserWSEndpoint: 'wss://cloud.vendor.com'
+        }
+    })
+    expect(puppeteer.launch).not.toBeCalled()
+    expect(puppeteer.connect as jest.Mock)
+        .toBeCalledWith({ browserWSEndpoint: 'wss://cloud.vendor.com' })
+})
+
+test('connect to an existing devtools browser url', async () => {
+    const devtoolsOptions = {
+        browserURL: 'http://localhost:1234',
+        ignoreHTTPSErrors: true
+    }
+    await launch({
+        browserName: 'edge',
+        'ms:edgeOptions': {},
+        'wdio:devtoolsOptions': devtoolsOptions
+    })
+    expect(puppeteer.launch).not.toBeCalled()
+    expect(puppeteer.connect as jest.Mock)
+        .toBeCalledWith(devtoolsOptions)
 })

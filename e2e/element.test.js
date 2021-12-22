@@ -8,15 +8,15 @@ beforeAll(async () => {
         outputDir: __dirname,
         capabilities: {
             browserName: 'chrome',
-            'wdio:devtoolsOptions': {
-                headless: true
-            }
+            // 'wdio:devtoolsOptions': {
+            //     headless: true
+            // }
         }
     })
 })
 
 describe('elements', () => {
-    beforeAll(async () => {
+    beforeEach(async () => {
         await browser.navigateTo('http://guinea-pig.webdriver.io')
     })
 
@@ -118,6 +118,23 @@ describe('elements', () => {
         expect(await browser.getElementProperty(fileInput[ELEMENT_KEY], 'value')).toBe('C:\\fakepath\\README.md')
     })
 
+    it('elementSendKeys can use special characters', async () => {
+        await browser.navigateTo('https://todomvc.com/examples/vue/')
+        const todoInput = await browser.findElement('css selector', '.new-todo')
+        await browser.elementSendKeys(todoInput[ELEMENT_KEY], 'ToDo #1\uE007ToDo #2\uE007ToDo #3\uE007')
+        const todoCountElem = await browser.findElement('css selector', '.todo-count strong')
+        const todoCount = await browser.getElementText(todoCountElem[ELEMENT_KEY])
+        expect(todoCount).toBe('3')
+    })
+
+    it('elementSendKeys can send unicode backspace', async () => {
+        const textarea = await browser.findElement('css selector', 'textarea')
+        await browser.elementSendKeys(textarea[ELEMENT_KEY], 'foobar')
+        expect(await browser.getElementProperty(textarea[ELEMENT_KEY], 'value')).toBe('foobar')
+        await browser.elementSendKeys(textarea[ELEMENT_KEY], '\uE003')
+        expect(await browser.getElementProperty(textarea[ELEMENT_KEY], 'value')).toBe('fooba')
+    })
+
     it('elementClear', async () => {
         const textarea = await browser.findElement('css selector', 'textarea')
         await browser.elementClear(textarea[ELEMENT_KEY])
@@ -135,6 +152,19 @@ describe('elements', () => {
     })
 
     it('should be able to do a drag&drop', async () => {
+        const drag = await browser.findElement('css selector', '.ui-draggable')
+        const dragPosition = await browser.getElementRect(drag[ELEMENT_KEY])
+        const drop = await browser.findElement('css selector', '.ui-droppable')
+        const dropPosition = await browser.getElementRect(drop[ELEMENT_KEY])
+        const dragStart = {
+            x: dragPosition.x + (dragPosition.width / 2),
+            y: dragPosition.y + (dragPosition.height / 2)
+        }
+        const dropEnd = {
+            x: (dropPosition.x + (dropPosition.width / 2) - dragStart.x),
+            y: (dropPosition.y + (dropPosition.height / 2) - dragStart.y)
+        }
+
         await browser.executeScript('window.scrollTo(0, 0)', [])
         await browser.performActions([{
             type: 'pointer',
@@ -145,8 +175,7 @@ describe('elements', () => {
             actions: [{
                 type: 'pointerMove',
                 duration: 0,
-                x: 65,
-                y: 544
+                ...dragStart
             }, {
                 type: 'pointerDown',
                 button: 0
@@ -157,8 +186,7 @@ describe('elements', () => {
                 type: 'pointerMove',
                 duration: 100,
                 origin: 'pointer',
-                x: 1,
-                y: -251
+                ...dropEnd
             }, {
                 type: 'pointerUp',
                 button: 0
@@ -198,6 +226,7 @@ describe('elements', () => {
     })
 
     it('should allow to click relative to the center of an element', async () => {
+        await browser.executeScript('window.scrollTo(0, 0)', [])
         const message = await browser.findElement('css selector', '.btn1_right_clicked')
         const btn2 = await browser.findElement('css selector', '.btn2')
 
@@ -225,6 +254,56 @@ describe('elements', () => {
         await new Promise((r) => setTimeout(r, 3000))
         expect(await browser.getElementCSSValue(message[ELEMENT_KEY], 'display'))
             .toBe('block')
+    })
+
+    it('should allow to double click on an element', async () => {
+        await browser.navigateTo('http://guinea-pig.webdriver.io/')
+        const elem = await browser.findElement('css selector', '.btn1')
+        const notifier = await browser.findElement('css selector', '.btn1_dblclicked')
+
+        expect(await browser.getElementAttribute(notifier[ELEMENT_KEY], 'style'))
+            .toBe(null)
+
+        await browser.performActions([{
+            type: 'pointer',
+            id: 'pointer1',
+            parameters: { pointerType: 'mouse' },
+            actions: [
+                { type: 'pointerMove', origin: elem, x: 0, y: 0 },
+                { type: 'pointerDown', button: 0 },
+                { type: 'pointerUp', button: 0 },
+                { type: 'pause', duration: 10 },
+                { type: 'pointerDown', button: 0 },
+                { type: 'pointerUp', button: 0 }
+            ]
+        }])
+
+        expect(await browser.getElementAttribute(notifier[ELEMENT_KEY], 'style'))
+            .toBe('display: block;')
+    })
+
+    it('should support deep selectors', async () => {
+        await browser.navigateTo('https://www.chromestatus.com/feature/5191745052606464')
+        const headerSlot = await browser.findElement('shadow', '#headerSlot')
+        expect(
+            await browser.getElementProperty(headerSlot[ELEMENT_KEY], 'name')
+        ).toBe('header')
+    })
+
+    it('can fetch shadow elements', async () => {
+        await browser.navigateTo('https://www.chromestatus.com/feature/5191745052606464')
+        const element = await browser.findElement('tag name', 'chromedash-toast')
+        const shadowRoot = await browser.getElementShadowRoot(
+            element['element-6066-11e4-a52e-4f735466cecf']
+        )
+        console.log(shadowRoot['shadow-6066-11e4-a52e-4f735466cecf'])
+        const elementRef = await browser.findElementFromShadowRoot(
+            shadowRoot['shadow-6066-11e4-a52e-4f735466cecf'],
+            'css selector',
+            '#msg'
+        )
+        expect(await browser.getElementText(elementRef[ELEMENT_KEY]))
+            .toBe('Welcome to chromestatus.com!')
     })
 })
 

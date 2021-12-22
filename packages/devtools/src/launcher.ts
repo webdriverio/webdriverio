@@ -2,6 +2,8 @@ import { launch as launchChromeBrowser } from 'chrome-launcher'
 import puppeteer from 'puppeteer-core'
 import logger from '@wdio/logger'
 import type { Browser } from 'puppeteer-core/lib/cjs/puppeteer/common/Browser'
+import type { Capabilities } from '@wdio/types'
+import { QueryHandler } from 'query-selector-shadow-dom/plugins/puppeteer'
 
 import browserFinder from './finder'
 import { getPages } from './utils'
@@ -20,23 +22,11 @@ import {
     CHANNEL_FIREFOX_TRUNK,
     BROWSER_ERROR_MESSAGES
 } from './constants'
+import type { ExtendedCapabilities, DevToolsOptions } from './types'
 
 const log = logger('devtools')
 
 const DEVICE_NAMES = Object.values(puppeteer.devices).map((device) => device.name)
-
-interface DevToolsOptions {
-    ignoreDefaultArgs?: string[] | boolean
-    headless?: boolean,
-    defaultViewport?: {
-        width: number,
-        height: number
-    }
-}
-
-interface ExtendedCapabilities extends WebDriver.Capabilities {
-    'wdio:devtoolsOptions'?: DevToolsOptions
-}
 
 /**
  * launches Chrome and returns a Puppeteer browser instance
@@ -44,9 +34,12 @@ interface ExtendedCapabilities extends WebDriver.Capabilities {
  * @return {object}               puppeteer browser instance
  */
 async function launchChrome (capabilities: ExtendedCapabilities) {
-    const chromeOptions: WebDriver.ChromeOptions = capabilities[VENDOR_PREFIX.chrome] || {}
+    const chromeOptions: Capabilities.ChromeOptions = capabilities[VENDOR_PREFIX.chrome] || {}
     const mobileEmulation = chromeOptions.mobileEmulation || {}
-    const devtoolsOptions = capabilities['wdio:devtoolsOptions']
+    const devtoolsOptions: DevToolsOptions = capabilities['wdio:devtoolsOptions'] || {}
+    const chromeOptionsArgs = (chromeOptions.args || []).map((arg) => (
+        arg.startsWith('--') ? arg : `--${arg}`
+    ))
 
     /**
      * `ignoreDefaultArgs` and `headless` are currently expected to be part of the capabilities
@@ -54,13 +47,8 @@ async function launchChrome (capabilities: ExtendedCapabilities) {
      * This should be cleaned up for v7 release
      * ToDo(Christian): v7 cleanup
      */
-    let ignoreDefaultArgs = (capabilities as any).ignoreDefaultArgs
-    let headless = (chromeOptions as any).headless
-
-    if (devtoolsOptions) {
-        ignoreDefaultArgs = devtoolsOptions.ignoreDefaultArgs
-        headless = devtoolsOptions.headless
-    }
+    let ignoreDefaultArgs = (capabilities as any).ignoreDefaultArgs || devtoolsOptions.ignoreDefaultArgs
+    let headless = (chromeOptions as any).headless || devtoolsOptions.headless
 
     if (typeof mobileEmulation.deviceName === 'string') {
         const deviceProperties = Object.values(puppeteer.devices).find(device => device.name === mobileEmulation.deviceName)
@@ -77,19 +65,31 @@ async function launchChrome (capabilities: ExtendedCapabilities) {
         }
     }
 
+    let userDataDir: string | boolean | undefined
+    const userDataDirIndex = chromeOptionsArgs.findIndex((arg) => arg.includes('user-data-dir'))
+    if (userDataDirIndex > -1) {
+        userDataDir = chromeOptionsArgs[userDataDirIndex].split('=').pop() as string
+        chromeOptionsArgs.splice(userDataDirIndex, 1)
+    }
+
     const defaultFlags = Array.isArray(ignoreDefaultArgs) ? DEFAULT_FLAGS.filter(flag => !ignoreDefaultArgs.includes(flag)) : (!ignoreDefaultArgs) ? DEFAULT_FLAGS : []
-    const deviceMetrics = mobileEmulation.deviceMetrics || {}
+    const deviceMetrics = mobileEmulation.deviceMetrics || (devtoolsOptions.defaultViewport && {
+        width: devtoolsOptions.defaultViewport.width,
+        height: devtoolsOptions.defaultViewport.height,
+        pixelRatio: devtoolsOptions.defaultViewport.deviceScaleFactor,
+        touch: devtoolsOptions.defaultViewport.isMobile
+    }) || {}
     const chromeFlags = [
         ...defaultFlags,
         ...[
             `--window-position=${DEFAULT_X_POSITION},${DEFAULT_Y_POSITION}`,
-            `--window-size=${DEFAULT_WIDTH},${DEFAULT_HEIGHT}`
+            `--window-size=${deviceMetrics?.width || DEFAULT_WIDTH},${deviceMetrics?.height || DEFAULT_HEIGHT}`
         ],
         ...(headless ? [
             '--headless',
             '--no-sandbox'
         ] : []),
-        ...(chromeOptions.args || [])
+        ...chromeOptionsArgs
     ]
 
     if (typeof deviceMetrics.pixelRatio === 'number') {
@@ -100,19 +100,30 @@ async function launchChrome (capabilities: ExtendedCapabilities) {
         chromeFlags.push(`--user-agent=${mobileEmulation.userAgent}`)
     }
 
-    log.info(`Launch Google Chrome with flags: ${chromeFlags.join(' ')}`)
+    if (deviceMetrics?.touch) {
+        chromeFlags.push(
+            '--enable-touch-drag-drop',
+            '--touch-events',
+            '--enable-viewport'
+        )
+    }
 
+    log.info(`Launch Google Chrome with flags: ${chromeFlags.join(' ')}`)
     const chrome = await launchChromeBrowser({
         chromePath: chromeOptions.binary,
         ignoreDefaultFlags: true,
-        chromeFlags
+        chromeFlags,
+        userDataDir,
+        envVars: devtoolsOptions.env,
+        ...(devtoolsOptions.customPort ? { port: devtoolsOptions.customPort } : {})
     })
 
     log.info(`Connect Puppeteer with browser on port ${chrome.port}`)
     const browser = await puppeteer.connect({
         ...chromeOptions,
-        browserURL: `http://localhost:${chrome.port}`,
-        defaultViewport: null
+        ...devtoolsOptions,
+        defaultViewport: null,
+        browserURL: `http://localhost:${chrome.port}`
     }) as unknown as Browser // casting from @types/puppeteer to built in type
 
     /**
@@ -124,10 +135,6 @@ async function launchChrome (capabilities: ExtendedCapabilities) {
         if (page.url() === 'about:blank') {
             await page.close()
         }
-    }
-
-    if (deviceMetrics.width && deviceMetrics.height) {
-        await pages[0].setViewport(deviceMetrics)
     }
 
     return browser
@@ -187,8 +194,35 @@ function launchBrowser (capabilities: ExtendedCapabilities, browserType: 'edge' 
     return puppeteer.launch(puppeteerOptions) as unknown as Promise<Browser>
 }
 
-export default function launch (capabilities: ExtendedCapabilities) {
+function connectBrowser (connectionUrl: string, capabilities: ExtendedCapabilities) {
+    const connectionProp = connectionUrl.startsWith('http') ? 'browserURL' : 'browserWSEndpoint'
+    const devtoolsOptions = capabilities['wdio:devtoolsOptions']
+    const options: puppeteer.ConnectOptions = {
+        [connectionProp]: connectionUrl,
+        ...devtoolsOptions
+    }
+    return puppeteer.connect(options) as unknown as Promise<Browser>
+}
+
+export default async function launch (capabilities: ExtendedCapabilities) {
+    puppeteer.unregisterCustomQueryHandler('shadow')
+    puppeteer.registerCustomQueryHandler('shadow', QueryHandler)
     const browserName = capabilities.browserName?.toLowerCase()
+
+    /**
+     * check if capabilities already contains connection details and connect
+     * to that rather than starting a new browser
+     */
+    const browserOptions = capabilities['goog:chromeOptions'] || capabilities['ms:edgeOptions']
+    const devtoolsOptions = capabilities['wdio:devtoolsOptions'] || {}
+    const connectionUrl = (
+        (browserOptions?.debuggerAddress && `http://${browserOptions?.debuggerAddress}`) ||
+        devtoolsOptions.browserURL ||
+        devtoolsOptions.browserWSEndpoint
+    )
+    if (connectionUrl) {
+        return connectBrowser(connectionUrl, capabilities)
+    }
 
     if (browserName && CHROME_NAMES.includes(browserName)) {
         return launchChrome(capabilities)

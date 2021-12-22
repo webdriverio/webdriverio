@@ -14,10 +14,6 @@ Feature: Example feature
         Mock Page Title
         """
 
-    Scenario: Async Execution
-        When  I click on link "=foo" async
-        Then  the title of the page should be "Mock Page Title" async
-
     Scenario: Retry Check
         Then  I should fail once but pass on the second run
 

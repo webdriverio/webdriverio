@@ -4,7 +4,7 @@ import { remote } from '../../../src'
 
 describe('isEnabled test', () => {
     it('should allow to check if an element is enabled', async () => {
-        const browser: WebdriverIO.BrowserObject = await remote({
+        const browser: WebdriverIO.Browser = await remote({
             baseUrl: 'http://foobar.com',
             capabilities: {
                 browserName: 'foobar'
@@ -20,8 +20,22 @@ describe('isEnabled test', () => {
             .toEqual([1, 2, 3])
     })
 
+    it('should return correct value', async () => {
+        const browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                browserName: 'foobar'
+            }
+        })
+
+        const result: string = await browser.executeAsync((foo, bar, done) => {
+            done(foo + bar)
+        }, 'foo', 1)
+        expect(result).toEqual('foo1')
+    })
+
     it('should throw if script is wrong type', async () => {
-        const browser: WebdriverIO.BrowserObject = await remote({
+        const browser: WebdriverIO.Browser = await remote({
             baseUrl: 'http://foobar.com',
             capabilities: {
                 browserName: 'foobar'

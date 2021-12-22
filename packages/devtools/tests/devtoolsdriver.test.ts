@@ -1,6 +1,6 @@
 import DevToolsDriver from '../src/devtoolsdriver'
 import type { Dialog } from 'puppeteer-core/lib/cjs/puppeteer/common/Dialog'
-import type { Page } from 'puppeteer-core/lib/cjs/puppeteer/common/Page'
+import type { Frame } from 'puppeteer-core/lib/cjs/puppeteer/common/FrameManager'
 
 const expect = global.expect as unknown as jest.Expect
 
@@ -47,6 +47,7 @@ const page = {
 }
 
 const browser = {
+    on: jest.fn(),
     pages: jest.fn().mockImplementation(async () => {
         page.mainFrame = jest.fn().mockImplementation(() => frame)
         ++evaluateCommandCalls
@@ -93,6 +94,8 @@ beforeEach(() => {
 test('can be initiated', () => {
     expect(driver.commands).toEqual({ click: 'clickCommand', getAttribute: 'getAttributeCommand' })
     expect(driver.browser).toEqual(browser)
+    expect(browser.on).toBeCalledWith('targetcreated', expect.any(Function))
+    expect(browser.on).toBeCalledWith('targetdestroyed', expect.any(Function))
     expect(page.on).toBeCalledWith('dialog', expect.any(Function))
     expect(page.on).toBeCalledWith('framenavigated', expect.any(Function))
 })
@@ -268,7 +271,7 @@ test('should throw if execution context can not be established', async () => {
     try {
         const emit = jest.fn()
         await command.call({ emit } as any, '123', 'some text', ['some value'])
-    } catch (err) {
+    } catch (err: any) {
         expect(err.message).toBe('ups')
     }
 })
@@ -279,13 +282,23 @@ test('dialogHandler', () => {
     expect(driver.activeDialog).toBe('foobar')
 })
 
-test('framenavigatedHandler', () => {
+test('framenavigatedHandler for main frame', () => {
     driver.elementStore.clear = jest.fn()
 
-    const frameMock = { url: jest.fn().mockReturnValue('foobar') }
-    driver.framenavigatedHandler(frameMock as unknown as Page)
+    const frameMock = { url: jest.fn().mockReturnValue('foobar'), parentFrame:jest.fn().mockReturnValue(null) }
+    driver.framenavigatedHandler(frameMock as unknown as Frame)
     expect(driver.currentFrameUrl).toBe('foobar')
     expect(driver.elementStore.clear).toBeCalledTimes(1)
+})
+
+test('framenavigatedHandler for child frame', () => {
+    driver.elementStore.clear = jest.fn()
+
+    const frameMock = { url: jest.fn().mockReturnValue('foobar'), parentFrame:jest.fn().mockReturnValue({}) }
+    driver.framenavigatedHandler(frameMock as unknown as Frame)
+    expect(driver.currentFrameUrl).toBe('foobar')
+    expect(driver.elementStore.clear).toBeCalledTimes(1)
+    expect(driver.elementStore.clear).toBeCalledWith(frameMock)
 })
 
 test('setTimeouts with not value', () => {
@@ -326,9 +339,25 @@ test('getPageHandle', () => {
 
     expect(driver.getPageHandle(true)).toBe('barfoo')
 
-    driver.windows = { get: jest.fn().mockReturnValue(undefined) }
+    driver.windows = { get: jest.fn().mockReturnValue(undefined) } as any
     expect(() => driver.getPageHandle()).toThrow(/find page handle/)
 
     delete driver.currentWindowHandle
     expect(() => driver.getPageHandle()).toThrow(/no current window/)
+})
+
+test('_targetCreatedHandler', async () => {
+    expect(driver.windows.size).toBe(1)
+    await driver['_targetCreatedHandler']({ page: jest.fn().mockReturnValue(Promise.resolve(null)) } as any)
+    expect(driver.windows.size).toBe(1)
+    await driver['_targetCreatedHandler']({ page: jest.fn().mockReturnValue(Promise.resolve('foobar')) } as any)
+    expect(driver.windows.size).toBe(2)
+})
+
+test('_targetDestroyedHandler', async () => {
+    const target = { page: jest.fn().mockReturnValue(Promise.resolve('foobar')) } as any
+    await driver['_targetCreatedHandler'](target)
+    expect(driver.windows.size).toBe(2)
+    await driver['_targetDestroyedHandler'](target)
+    expect(driver.windows.size).toBe(1)
 })

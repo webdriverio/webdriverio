@@ -5,23 +5,13 @@ WDIO Jasmine Framework Adapter
 
 ## Installation
 
-The easiest way is to keep `@wdio/jasmine-framework` as a devDependency in your `package.json`.
+The easiest way is to keep `@wdio/jasmine-framework` as a devDependency in your `package.json`, via:
 
-```json
-{
-  "devDependencies": {
-    "@wdio/jasmine-framework": "^6.3.6"
-  }
-}
-```
-
-You can simple do it by:
-
-```bash
+```sh
 npm install @wdio/jasmine-framework --save-dev
 ```
 
-Instructions on how to install `WebdriverIO` can be found [here.](https://webdriver.io/docs/gettingstarted.html)
+Instructions on how to install `WebdriverIO` can be found [here.](https://webdriver.io/docs/gettingstarted)
 
 ## Configuration
 
@@ -32,19 +22,19 @@ Following code shows the default wdio test runner configuration...
 module.exports = {
   // ...
   framework: 'jasmine'
-  jasmineNodeOpts: {
+  jasmineOpts: {
     defaultTimeoutInterval: 10000
   }
   // ...
 };
 ```
 
-## `jasmineNodeOpts` Options
+## `jasmineOpts` Options
 
 ### defaultTimeoutInterval
 Timeout until specs will be marked as failed.
 
-Type: `Number`<br>
+Type: `Number`<br />
 Default: 10000
 
 ### expectationResultHandler
@@ -52,55 +42,55 @@ The Jasmine framework allows it to intercept each assertion in order to log the 
 or website depending on the result. For example it is pretty handy to take a screenshot every time
 an assertion fails.
 
-Type: `Function`<br>
+Type: `Function`<br />
 Default: null
 
 ### grep
 Optional pattern to selectively select it/describe cases to run from spec files.
 
-Type: `RegExp | string`<br>
+Type: `RegExp | string`<br />
 Default: undefined
 
 ### invertGrep
 Inverts 'grep' matches.
 
-Type: `Boolean`<br>
+Type: `Boolean`<br />
 Default: false
 
 ### cleanStack
 Clean up stack trace and remove all traces of node module packages.
 
-Type: `Boolean`<br>
+Type: `Boolean`<br />
 Default: true
 
 ### random
 Run specs in semi-random order.
 
-Type: `Boolean`<br>
+Type: `Boolean`<br />
 Default: `false`
 
 ### stopOnSpecFailure
 Stops test suite (`describe`) execution on first spec (`it`) failure (other suites continue running)
 
-Type: `Boolean`<br>
+Type: `Boolean`<br />
 Default: `false`
 
 ### stopSpecOnExpectationFailure
 Stops a spec (`it`) execution on a first expectation failure (other specs continue running)
 
-Type: `Boolean`<br>
+Type: `Boolean`<br />
 Default: `false`
 
 ### requires
 Require modules prior to requiring any helper or spec files.
 
-Type: `String[]`<br>
+Type: `String[]`<br />
 Default: `[]`
 
 ### helpers
 Require helper files prior to requiring any spec files.
 
-Type: `String[]`<br>
+Type: `String[]`<br />
 Default: `[]`
 
 ----

@@ -7,7 +7,9 @@ import ansiStrip from 'strip-ansi'
 
 prefix.reg(log)
 
-const DEFAULT_LEVEL = 'trace'
+const DEFAULT_LEVEL = process.env.WDIO_DEBUG
+    ? 'trace'
+    : 'info'
 const COLORS: Record<string, typeof Color> = {
     error: 'red',
     warn: 'yellow',

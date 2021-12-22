@@ -37,9 +37,16 @@ exports.config = {
     // Specify Test Files
     // ==================
     // Define which test specs should run. The pattern is relative to the directory
-    // from which `wdio` was called. Notice that, if you are calling `wdio` from an
-    // NPM script (see https://docs.npmjs.com/cli/run-script) then the current working
-    // directory is where your package.json resides, so `wdio` will be called from there.
+    // from which `wdio` was called.
+    //
+    // The specs are defined as an array of spec files (optionally using wildcards
+    // that will be expanded). The test for each spec file will be run in a separate
+    // worker process. In order to have a group of spec files run in the same worker
+    // process simply enclose them in an array within the specs array.
+    //
+    // If you are calling `wdio` from an NPM script (see https://docs.npmjs.com/cli/run-script),
+    // then the current working directory is where your `package.json` resides, so `wdio`
+    // will be called from there.
     //
     specs: [
         'test/spec/**'
@@ -68,7 +75,7 @@ exports.config = {
     //
     // If you have trouble getting all important capabilities together, check out the
     // Sauce Labs platform configurator - a great tool to configure your capabilities:
-    // https://docs.saucelabs.com/reference/platforms-configurator
+    // https://saucelabs.com/platform/platform-configurator
     //
     capabilities: [{
         browserName: 'chrome'
@@ -146,8 +153,8 @@ exports.config = {
     },
     //
     // Options to be passed to Jasmine.
-    // See also: https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-jasmine-framework#jasminenodeopts-options
-    jasmineNodeOpts: {
+    // See also: https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-jasmine-framework#jasmineopts-options
+    jasmineOpts: {
         //
         // Jasmine default timeout
         defaultTimeoutInterval: 5000,
@@ -165,21 +172,40 @@ exports.config = {
     },
     //
     // If you are using Cucumber you need to specify the location of your step definitions.
-    // See also: https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-cucumber-framework#cucumberopts-options
+    // See also: https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-cucumber-framework#cucumberopts-options
     cucumberOpts: {
         require: [],        // <string[]> (file/dir) require files before executing features
         backtrace: false,   // <boolean> show full backtrace for errors
         requireModule: [],  // <string[]> ("module") require MODULE files (repeatable)
         dryRun: false,      // <boolean> invoke formatters without executing steps
         failFast: false,    // <boolean> abort the run on first failure
-        format: ['pretty'], // <string[]> (type[:path]) specify the output format, optionally supply PATH to redirect formatter output (repeatable)
         snippets: true,     // <boolean> hide step definition snippets for pending steps
         source: true,       // <boolean> hide source uris
-        profile: [],        // <string[]> (name) specify the profile to use
         strict: false,      // <boolean> fail if there are any undefined or pending steps
         tagExpression: '',  // <string> (expression) only execute the features or scenarios with tags matching the expression
         timeout: 20000,     // <number> timeout for step definitions
         ignoreUndefinedDefinitions: false, // <boolean> Enable this config to treat undefined definitions as warnings.
+    },
+    //
+    // Auto-compilation configuration
+    autoCompileOpts: {
+        // Enable/disable auto-compilation (enabled by default)
+        autoCompile: true,
+
+        // Configure how ts-node is automatically included when present
+        tsNodeOpts: {
+            transpileOnly: true,
+            project: 'tsconfig.json'
+        },
+
+        // If you have tsconfig-paths installed and provide a tsConfigPathsOpts
+        // option, it will be automatically registered during bootstrap.
+        tsConfigPathsOpts: {
+            baseUrl: './'
+        },
+
+        // Configure how @babel/register is automatically included when present (and ts-node isn't)
+        babelOpts: {}
     },
     //
     // =====
@@ -214,8 +240,9 @@ exports.config = {
      * @param {Object} config wdio configuration object
      * @param {Array.<Object>} capabilities list of capabilities details
      * @param {Array.<String>} specs List of spec file paths that are to be run
+     * @param {String} cid worker id (e.g. 0-0)
      */
-    beforeSession: function (config, capabilities, specs) {
+    beforeSession: function (config, capabilities, specs, cid) {
     },
     /**
      * Gets executed before test execution begins. At this point you can access to all global
@@ -234,20 +261,20 @@ exports.config = {
     },
     /**
      * Hook that gets executed _before_ a hook within the suite starts (e.g. runs before calling
-     * beforeEach in Mocha)
-     * stepData and world are Cucumber framework specific
+     * beforeEach in Mocha). In Cucumber `context` is the World object.
      */
-    beforeHook: function (test, context/*, stepData, world*/) {
+    beforeHook: function (test, context) {
     },
     /**
      * Hook that gets executed _after_ a hook within the suite ends (e.g. runs after calling
-     * afterEach in Mocha)
-     * stepData and world are Cucumber framework specific
+     * afterEach in Mocha). In Cucumber `context` is the World object.
      */
-    afterHook: function (test, context, { error, result, duration, passed, retries }/*, stepData, world*/) {
+    afterHook: function (test, context, { error, result, duration, passed, retries }) {
     },
     /**
-     * Function to be executed before a test (in Mocha/Jasmine) starts.
+     * Function to be executed before a test (in Mocha/Jasmine only)
+     * @param {Object} test    test object
+     * @param {Object} context scope object the test was executed with
      */
     beforeTest: function (test, context) {
     },
@@ -269,7 +296,14 @@ exports.config = {
     afterCommand: function (commandName, args, result, error) {
     },
     /**
-     * Function to be executed after a test (in Mocha/Jasmine) ends.
+     * Function to be executed after a test (in Mocha/Jasmine only)
+     * @param {Object}  test             test object
+     * @param {Object}  context          scope object the test was executed with
+     * @param {Error}   result.error     error object in case the test fails, otherwise `undefined`
+     * @param {Any}     result.result    return object of test function
+     * @param {Number}  result.duration  duration of test
+     * @param {Boolean} result.passed    true if test has passed, otherwise false
+     * @param {Object}  result.retries   informations to spec related retries, e.g. `{ attempts: 0, limit: 0 }`
      */
     afterTest: function (test, context, { error, result, duration, passed, retries }) {
     },
@@ -313,18 +347,63 @@ exports.config = {
     */
     onReload: function(oldSessionId, newSessionId) {
     },
-    //
-    // Cucumber specific hooks
-    beforeFeature: function (uri, feature, scenarios) {
+    /**
+     * Cucumber Hooks
+     *
+     * Runs before a Cucumber Feature.
+     * @param {String}                   uri      path to feature file
+     * @param {GherkinDocument.IFeature} feature  Cucumber feature object
+     */
+    beforeFeature: function (uri, feature) {
     },
-    beforeScenario: function (uri, feature, scenario, sourceLocation) {
+    /**
+     *
+     * Runs before a Cucumber Scenario.
+     * @param {ITestCaseHookParameter} world    world object containing information on pickle and test step
+     * @param {Object}                 context  Cucumber World object
+     */
+    beforeScenario: function (world, context) {
     },
-    beforeStep: function ({ uri, feature, step }, context) {
+    /**
+     *
+     * Runs before a Cucumber Step.
+     * @param {Pickle.IPickleStep} step     step data
+     * @param {IPickle}            scenario scenario pickle
+     * @param {Object}             context  Cucumber World object
+     */
+    beforeStep: function (step, scenario, context) {
     },
-    afterStep: function ({ uri, feature, step }, context, { error, result, duration, passed, retries }) {
+    /**
+     *
+     * Runs after a Cucumber Step.
+     * @param {Pickle.IPickleStep} step     step data
+     * @param {IPickle}            scenario scenario pickle
+     * @param {Object}             result   results object containing scenario results
+     * @param {boolean}            result.passed   true if scenario has passed
+     * @param {string}             result.error    error stack if scenario failed
+     * @param {number}             result.duration duration of scenario in milliseconds
+     * @param {Object}             context Cucumber World object
+     */
+    afterStep: function (step, scenario, result, context) {
     },
-    afterScenario: function (uri, feature, scenario, result, sourceLocation) {
+    /**
+     *
+     * Runs after a Cucumber Scenario.
+     * @param {ITestCaseHookParameter} world  world object containing information on pickle and test step
+     * @param {Object}                 result results object containing scenario results
+     * @param {boolean}                result.passed   true if scenario has passed
+     * @param {string}                 result.error    error stack if scenario failed
+     * @param {number}                 result.duration duration of scenario in milliseconds
+     * @param {Object}                 context Cucumber World object
+     */
+    afterScenario: function (world, result, context) {
     },
-    afterFeature: function (uri, feature, scenarios) {
+    /**
+     *
+     * Runs after a Cucumber Feature.
+     * @param {String}                   uri      path to feature file
+     * @param {GherkinDocument.IFeature} feature  Cucumber feature object
+     */
+    afterFeature: function (uri, feature) {
     }
 }

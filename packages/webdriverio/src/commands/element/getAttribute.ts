@@ -10,9 +10,9 @@
         <input type="submit" name="submit" value="submit"></input>
     </form>
     :getAttribute.js
-    it('should demonstrate the getAttribute command', () => {
-        const form = $('form')
-        const attr = form.getAttribute('method')
+    it('should demonstrate the getAttribute command', async () => {
+        const form = await $('form')
+        const attr = await form.getAttribute('method')
         console.log(attr) // outputs: "post"
     })
  * </example>
@@ -24,7 +24,6 @@
  * @type property
  *
  */
-
 export default function getAttribute (
     this: WebdriverIO.Element,
     attributeName: string

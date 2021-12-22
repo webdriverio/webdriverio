@@ -1,3 +1,7 @@
+import getElementProperty from './getElementProperty'
+import getElementTagName from './getElementTagName'
+import type DevToolsDriver from '../devtoolsdriver'
+
 /**
  * Is Element Selected determines if the referenced element is selected or not.
  * This operation only makes sense on input elements of the Checkbox- and Radio Button states,
@@ -8,11 +12,6 @@
  * @param {string} elementId  the id of an element returned in a previous call to Find Element(s)
  * @return {boolean}          `true` or `false` based on the selected state.
  */
-
-import getElementProperty from './getElementProperty'
-import getElementTagName from './getElementTagName'
-import type DevToolsDriver from '../devtoolsdriver'
-
 export default async function isElementSelected (
     this: DevToolsDriver,
     { elementId }: { elementId: string }

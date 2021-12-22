@@ -1,13 +1,13 @@
 {
   "name": "@wdio/appium-service",
-  "version": "6.10.11",
+  "version": "7.16.11",
   "description": "A WebdriverIO service to start & stop Appium Server",
   "author": "Morten Bjerg Gregersen <morten@mogee.dk>",
-  "homepage": "https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-appium-service",
+  "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-appium-service",
   "license": "MIT",
   "main": "./build/index",
   "engines": {
-    "node": ">=10.0.0"
+    "node": ">=12.0.0"
   },
   "repository": {
     "type": "git",
@@ -27,16 +27,17 @@
   },
   "dependencies": {
     "@types/fs-extra": "^9.0.4",
-    "@wdio/config": "6.10.11",
-    "@wdio/logger": "6.10.10",
-    "fs-extra": "^9.0.0",
+    "@wdio/config": "7.16.11",
+    "@wdio/logger": "7.16.0",
+    "@wdio/types": "7.16.11",
+    "fs-extra": "^10.0.0",
     "param-case": "^3.0.0"
   },
   "peerDependencies": {
-    "@wdio/cli": "^6.0.1"
+    "@wdio/cli": "^7.0.0"
   },
   "publishConfig": {
     "access": "public"
   },
-  "types": "appium-service.d.ts"
+  "types": "./build/index.d.ts"
 }

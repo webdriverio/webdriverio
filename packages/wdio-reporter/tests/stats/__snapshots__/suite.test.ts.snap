@@ -5,9 +5,12 @@ Object {
   "_duration": 0,
   "cid": "0-0",
   "description": "some description",
+  "file": "/this/is/a/file.txt",
   "fullTitle": "barfoo",
   "hooks": Array [],
   "hooksAndTests": Array [],
+  "parent": "foobar",
+  "rule": undefined,
   "suites": Array [],
   "tags": Array [
     "foo",

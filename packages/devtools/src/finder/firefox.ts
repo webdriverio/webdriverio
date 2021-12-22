@@ -54,13 +54,13 @@ function darwin() {
 
 /**
  * Look for linux executables in 3 ways
- * 1. Look into the directories where .desktop are saved on gnome based distro's
+ * 1. Look into the directories where .desktop are saved on gnome based distros
  * 2. Look for edge by using the which command
  */
 function linux() {
     let installations: string[] = []
 
-    // 1. Look into the directories where .desktop are saved on gnome based distro's
+    // 1. Look into the directories where .desktop are saved on gnome based distros
     const desktopInstallationFolders = [
         path.join(require('os').homedir(), '.local/share/applications/'),
         '/usr/share/applications/',
@@ -109,7 +109,7 @@ function findFirefoxExecutables(folder: string) {
         try {
             execPaths = execSync(
                 `grep -ER "${edgeExecRegex}" ${folder} | awk -F '=' '{print $2}'`, { stdio: 'pipe' })
-        } catch (e) {
+        } catch (err: any) {
             execPaths = execSync(
                 `grep -Er "${edgeExecRegex}" ${folder} | awk -F '=' '{print $2}'`, { stdio: 'pipe' })
         }

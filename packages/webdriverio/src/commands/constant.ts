@@ -1,3 +1,5 @@
+import { TouchAction, TouchActions } from '../types'
+
 /**
  * Constants around commands
  */
@@ -5,7 +7,7 @@ const TOUCH_ACTIONS = ['press', 'longPress', 'tap', 'moveTo', 'wait', 'release']
 const POS_ACTIONS = TOUCH_ACTIONS.slice(0, 4)
 const ACCEPTED_OPTIONS = ['x', 'y', 'element']
 
-interface FormattedTouchAction extends Omit<WebdriverIO.TouchAction, 'element'> {
+interface FormattedTouchAction extends Omit<TouchAction, 'element'> {
     element?: string
 }
 
@@ -15,10 +17,10 @@ interface FormattedActions {
 }
 
 export const formatArgs = function (
-    scope: WebdriverIO.BrowserObject | WebdriverIO.Element,
-    actions: WebdriverIO.TouchActions[]
+    scope: WebdriverIO.Browser | WebdriverIO.Element,
+    actions: TouchActions[]
 ): FormattedActions[] {
-    return actions.map((action: WebdriverIO.TouchAction) => {
+    return actions.map((action: TouchAction) => {
         if (Array.isArray(action)) {
             return formatArgs(scope, action) as any
         }
@@ -96,20 +98,20 @@ export const validateParameters = (params: FormattedActions) => {
 }
 
 export const touchAction = function (
-    this: WebdriverIO.Element,
-    actions: WebdriverIO.TouchActions
+    this: WebdriverIO.Browser | WebdriverIO.Element,
+    actions: TouchActions
 ) {
     if (!this.multiTouchPerform || !this.touchPerform) {
         throw new Error('touchAction can be used with Appium only.')
     }
     if (!Array.isArray(actions)) {
-        actions = [actions as WebdriverIO.TouchAction]
+        actions = [actions as TouchAction]
     }
 
     const formattedAction = formatArgs(this, actions)
     const protocolCommand = Array.isArray(actions[0])
         // cast old JSONWP
-        ? this.multiTouchPerform.bind(this) as unknown as (actions: object[]) => void
+        ? this.multiTouchPerform.bind(this) as unknown as (actions: object[]) => Promise<void>
         : this.touchPerform.bind(this)
     formattedAction.forEach((params) => validateParameters(params))
     return protocolCommand(formattedAction)

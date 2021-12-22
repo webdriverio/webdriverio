@@ -33,7 +33,8 @@ module.exports = {
         'unicode-bom': ['error', 'never'],
         'object-curly-spacing': ['error', 'always'],
         'keyword-spacing':['error'],
-        'require-atomic-updates': 0
+        'require-atomic-updates': 0,
+        'linebreak-style': ['error', 'unix']
     },
     overrides: [{
         files: ['*.ts'],
@@ -41,7 +42,9 @@ module.exports = {
             // see https://stackoverflow.com/questions/55280555/typescript-eslint-eslint-plugin-error-route-is-defined-but-never-used-no-un
             'no-unused-vars': 'off',
             '@typescript-eslint/no-unused-vars': 'error',
-            'no-undef': 'off'
+            'no-undef': 'off',
+            // allow overloads
+            'no-redeclare': 'off'
         }
     }]
 }

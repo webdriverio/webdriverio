@@ -1,18 +1,20 @@
 const PROTOCOLS = {
     webdriver: require('../packages/wdio-protocols/protocols/webdriver.json'),
     appium: require('../packages/wdio-protocols/protocols/appium.json'),
-    jsonwp: require('../packages/wdio-protocols/protocols/jsonwp.json'),
     mjsonwp: require('../packages/wdio-protocols/protocols/mjsonwp.json'),
     chromium: require('../packages/wdio-protocols/protocols/chromium.json'),
+    gecko: require('../packages/wdio-protocols/protocols/gecko.json'),
     saucelabs: require('../packages/wdio-protocols/protocols/saucelabs.json'),
-    selenium: require('../packages/wdio-protocols/protocols/selenium.json')
+    selenium: require('../packages/wdio-protocols/protocols/selenium.json'),
+    jsonwp: require('../packages/wdio-protocols/protocols/jsonwp.json')
 }
 const PROTOCOL_NAMES = {
     appium: 'Appium',
     jsonwp: 'JSON Wire Protocol',
     mjsonwp: 'Mobile JSON Wire Protocol',
-    webdriver: 'Webdriver Protocol',
+    webdriver: 'WebDriver Protocol',
     chromium: 'Chromium',
+    gecko: 'Firefox',
     saucelabs: 'Sauce Labs',
     selenium: 'Selenium Standalone'
 }
@@ -48,8 +50,18 @@ capabilities. You can enable these by setting the following Sauce options:\n\n
 \`\`\`
 `
 
+const JSONWP_API_DESCRIPTION = `
+:::caution depcrecated
+
+The JSONWireProtocol is decrecated and replaced by the [WebDriver](/docs/api/webdriver)
+protocol.
+
+:::
+`
+
 const PROTOCOL_API_DESCRIPTION = {
-    'saucelabs': SAUCE_API_DESCRIPTION
+    'saucelabs': SAUCE_API_DESCRIPTION,
+    'jsonwp': JSONWP_API_DESCRIPTION
 }
 
 module.exports = {

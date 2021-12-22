@@ -127,12 +127,25 @@ test('should not throw if no args passed', () => {
 })
 
 test('should throw if something fails', () => {
+    const error = new Error('uups')
     const Audit = {
         defaultOptions: {},
         audit: jest.fn().mockImplementation(() => {
-            throw new Error('uups')
+            throw error
         })
     }
-    expect(auditor._audit(Audit)).toEqual({})
+    expect(auditor._audit(Audit)).toEqual({
+        score: 0,
+        error
+    })
     expect(logger('').error).toBeCalledTimes(1)
+})
+
+test('should allow to audit PWA results', async () => {
+    const auditor = new Auditor()
+    expect(await auditor._auditPWA({ foo: 'bar' })).toMatchSnapshot()
+    expect(await auditor._auditPWA(
+        { foo: 'bar' },
+        ['maskableIcon', 'serviceWorker']
+    )).toMatchSnapshot()
 })

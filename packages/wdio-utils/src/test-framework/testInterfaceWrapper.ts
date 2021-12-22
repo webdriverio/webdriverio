@@ -42,7 +42,8 @@ export const runHook = function (
     afterFn: Function | Function[],
     afterFnArgs: HookFnArgs<unknown>,
     cid: string,
-    repeatTest: number
+    repeatTest: number,
+    timeout: number
 ) {
     return origFn(function (
         this: unknown,
@@ -73,7 +74,7 @@ export const runHook = function (
             cid,
             repeatTest
         )
-    })
+    }, timeout)
 }
 
 /**
@@ -100,7 +101,8 @@ export const runSpec = function (
     afterFn: Function | Function[],
     afterFnArgs: HookFnArgs<unknown>,
     cid: string,
-    repeatTest: number
+    repeatTest: number,
+    timeout: number
 ) {
     return origFn(specTitle, function (
         this: unknown,
@@ -131,7 +133,7 @@ export const runSpec = function (
             cid,
             repeatTest
         )
-    })
+    }, timeout)
 }
 
 /**
@@ -163,9 +165,28 @@ export const wrapTestFunction = function (
          * [title, fn], [title], [fn]
          * [title, fn, retryCnt], [title, retryCnt], [fn, retryCnt]
          */
-        let retryCnt = typeof specArguments[specArguments.length - 1] === 'number' ? specArguments.pop() : 0
+        let retryCnt = typeof specArguments[specArguments.length - 1] === 'number'
+            ? specArguments.pop() :
+            0
+
+        /**
+         * Jasmine uses a timeout value as last parameter, in this case the arguments
+         * should be [title, fn, timeout, retryCnt]
+         */
+        let timeout = global.jasmine?.DEFAULT_TIMEOUT_INTERVAL
+        if (global.jasmine) {
+            // if we have [title, fn, timeout, retryCnt]
+            if (typeof specArguments[specArguments.length - 1] === 'number') {
+                timeout = specArguments.pop() as number
+            // if we have [title, fn, timeout]
+            } else {
+                timeout = retryCnt as number
+                retryCnt = 0
+            }
+        }
+
         const specFn = typeof specArguments[0] === 'function' ? specArguments.shift()
-            : (typeof specArguments[1] === 'function' ? specArguments.pop() : undefined)
+            : (typeof specArguments[1] === 'function' ? specArguments[1] : undefined)
         const specTitle = specArguments[0]
 
         if (isSpec) {
@@ -179,7 +200,8 @@ export const wrapTestFunction = function (
                     afterFn,
                     afterArgsFn,
                     cid,
-                    retryCnt as number
+                    retryCnt as number,
+                    timeout
                 )
             }
 
@@ -189,7 +211,17 @@ export const wrapTestFunction = function (
             return origFn(specTitle)
         }
 
-        return runHook(specFn as Function, origFn, beforeFn, beforeArgsFn, afterFn, afterArgsFn, cid, retryCnt as number)
+        return runHook(
+            specFn as Function,
+            origFn,
+            beforeFn,
+            beforeArgsFn,
+            afterFn,
+            afterArgsFn,
+            cid,
+            retryCnt as number,
+            timeout
+        )
     }
 }
 
@@ -216,7 +248,8 @@ export const runTestInFiberContext = function (
     afterArgsFn: HookFnArgs<unknown>,
     fnName: string,
     cid: string,
-    scope = global) {
+    scope = global
+) {
     const origFn = (scope as any)[fnName];
     (scope as any)[fnName] = wrapTestFunction(
         origFn,

@@ -1,6 +1,21 @@
+import { Capabilities } from '@wdio/types'
+
+import { ELEMENT_KEY } from '../../constants'
+import { getBrowserObject, hasElementId } from '../../utils'
+import isElementDisplayedScript from '../../scripts/isElementDisplayed'
+
+const noW3CEndpoint = ['microsoftedge', 'msedge', 'safari', 'chrome', 'safari technology preview']
+
 /**
  *
  * Return true if the selected DOM-element is displayed.
+ *
+ * :::info
+ *
+ * As opposed to other element commands WebdriverIO will not wait for the element
+ * to exist to execute this command.
+ *
+ * :::
  *
  * <example>
     :index.html
@@ -9,26 +24,26 @@
     <div id="notInViewport" style="position:absolute; left: 9999999"></div>
     <div id="zeroOpacity" style="opacity: 0"></div>
     :isDisplayed.js
-    it('should detect if an element is displayed', () => {
-        let elem = $('#notDisplayed');
-        let isDisplayed = elem.isDisplayed();
+    it('should detect if an element is displayed', async () => {
+        let elem = await $('#notDisplayed');
+        let isDisplayed = await elem.isDisplayed();
         console.log(isDisplayed); // outputs: false
 
-        elem = $('#notVisible');
+        elem = await $('#notVisible');
 
-        isDisplayed = elem.isDisplayed();
+        isDisplayed = await elem.isDisplayed();
         console.log(isDisplayed); // outputs: false
 
-        elem = $('#notExisting');
-        isDisplayed = elem.isDisplayed();
+        elem = await $('#notExisting');
+        isDisplayed = await elem.isDisplayed();
         console.log(isDisplayed); // outputs: false
 
-        elem = $('#notInViewport');
-        isDisplayed = elem.isDisplayed();
+        elem = await $('#notInViewport');
+        isDisplayed = await elem.isDisplayed();
         console.log(isDisplayed); // outputs: true
 
-        elem = $('#zeroOpacity');
-        isDisplayed = elem.isDisplayed();
+        elem = await $('#zeroOpacity');
+        isDisplayed = await elem.isDisplayed();
         console.log(isDisplayed); // outputs: true
     });
  * </example>
@@ -39,15 +54,8 @@
  * @type state
  *
  */
-
-import { ELEMENT_KEY } from '../../constants'
-import { getBrowserObject, hasElementId } from '../../utils'
-import isElementDisplayedScript from '../../scripts/isElementDisplayed'
-
-const noW3CEndpoint = ['microsoftedge', 'safari', 'chrome', 'safari technology preview']
-
 export default async function isDisplayed (this: WebdriverIO.Element) {
-    const browser: WebdriverIO.BrowserObject = getBrowserObject(this)
+    const browser = getBrowserObject(this)
 
     if (!await hasElementId(this)) {
         return false
@@ -64,11 +72,11 @@ export default async function isDisplayed (this: WebdriverIO.Element) {
      * - Safari and Chrome work in jsonwp mode and Appium just rewrites W3C requests from upstream to jsonwp if needed
      */
     const useAtom = (
-        browser.isDevTools ||
+        await browser.isDevTools ||
         (
-            browser.isW3C &&
+            await browser.isW3C &&
             !browser.isMobile &&
-            noW3CEndpoint.includes(browser.capabilities.browserName?.toLowerCase()!)
+            noW3CEndpoint.includes((browser.capabilities as Capabilities.Capabilities).browserName?.toLowerCase()!)
         )
     )
 
@@ -76,6 +84,6 @@ export default async function isDisplayed (this: WebdriverIO.Element) {
         ? await browser.execute(isElementDisplayedScript, {
             [ELEMENT_KEY]: this.elementId, // w3c compatible
             ELEMENT: this.elementId // jsonwp compatible
-        }) :
+        } as any as HTMLElement) :
         await this.isElementDisplayed(this.elementId)
 }

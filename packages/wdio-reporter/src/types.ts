@@ -1,4 +1,9 @@
-interface CommandArgs {
+export interface Tag {
+    name: string;
+    line: number;
+}
+
+export interface CommandArgs {
     sessionId: string
     method?: string
     endpoint?: string
@@ -7,7 +12,7 @@ interface CommandArgs {
      * DevTools params
      */
     retries?: number
-    command?: object
+    command?: string
     params?: any
 }
 
@@ -22,4 +27,10 @@ export interface AfterCommandArgs extends CommandArgs {
      * custom commands also send along the command name
      */
     name?: string
+}
+
+export interface Argument {
+    rows?: {
+        cells: string[]
+    }[]
 }

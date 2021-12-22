@@ -29,7 +29,7 @@ console.log($$('#todo-list li').map(el => el.getText()))
 // outputs: "[ 'Injected (non) completed Todo', 'Injected completed Todo' ]"
 ```
 
-In addition to that you can als modify JavaScript of CSS files as well as abort requests or modify responses dynamically based on the original reponse. You can find more information on all features in the [Mocks and Spies](/docs/mocksandspies.html) section of the docs.
+In addition to that you can als modify JavaScript of CSS files as well as abort requests or modify responses dynamically based on the original response. You can find more information on all features in the [Mocks and Spies](/docs/mocksandspies) section of the docs.
 
 ## Throttling
 
@@ -53,13 +53,13 @@ This can open up interesting use case where you want to ensure that your progres
 
 ## Support
 
-This feature uses Chrome DevTools capabilities to enable such behavior. Therefor it can only be supported where such an interface is available which is __Chrome__, __Firefox Nightly__ and __Chromium Edge__ right now. The Firefox team at Mozilla is working hard to ship this into the stable build of Firefox, therefor support for it can be expected soon.
+This feature uses Chrome DevTools capabilities to enable such behavior. Therefore it can only be supported where such an interface is available which is __Chrome__, __Firefox Nightly__ and __Chromium Edge__ right now. The Firefox team at Mozilla is working hard to ship this into the stable build of Firefox, therefore support for it can be expected soon.
 
 On top of that the folks at [Sauce Labs](https://saucelabs.com/) working on various of WebDriver extensions that even allow this functionality to be support in the cloud. More updates on this will follow soon.
 
 ## Implementation
 
-With this feature WebdriverIO now always incorperates [Puppeteer](https://pptr.dev/) as second automation driver allowing these extra features whenever possible. Moving forward the team is looking into more opportunities to enable Chrome DevTools features into the built in API.
+With this feature WebdriverIO now always incorporates [Puppeteer](https://pptr.dev/) as second automation driver allowing these extra features whenever possible. Moving forward the team is looking into more opportunities to enable Chrome DevTools features into the built in API.
 
 Please let us know what you think! We are expecting some bugs here and there but will make sure to fix them immediately. While we are pretty confident with the current interface design it might be still possible that some tweaks will be applied to make it even more user friendly.
 

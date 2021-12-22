@@ -1,13 +1,15 @@
+import { ELEMENT_KEY } from '../../constants'
+
 /**
  *
  * Scroll element into viewport ([MDN Reference](https://developer.mozilla.org/en-US/docs/Web/API/Element/scrollIntoView)).
  *
  * <example>
     :scrollIntoView.js
-    it('should demonstrate the scrollIntoView command', () => {
-        const elem = $('#myElement');
+    it('should demonstrate the scrollIntoView command', async () => {
+        const elem = await $('#myElement');
         // scroll to specific element
-        elem.scrollIntoView();
+        await elem.scrollIntoView();
     });
  * </example>
  *
@@ -17,17 +19,14 @@
  * @type utility
  *
  */
-
-import { ELEMENT_KEY } from '../../constants'
-
 export default function scrollIntoView (
     this: WebdriverIO.Element,
-    scrollIntoViewOptions = true
+    scrollIntoViewOptions: boolean | ScrollIntoViewOptions = true
 ) {
-    return this.parent.execute(/* istanbul ignore next */function (elem: HTMLElement, options) {
+    return this.parent.execute(/* istanbul ignore next */function (elem: HTMLElement, options: boolean | ScrollIntoViewOptions) {
         elem.scrollIntoView(options)
     }, {
         [ELEMENT_KEY]: this.elementId, // w3c compatible
         ELEMENT: this.elementId // jsonwp compatible
-    }, scrollIntoViewOptions)
+    } as any as HTMLElement, scrollIntoViewOptions)
 }

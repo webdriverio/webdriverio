@@ -1,13 +1,15 @@
 import WDIOReporter, { SuiteStats, RunnerStats } from '@wdio/reporter'
 import chalk from 'chalk'
 
+import type { Capabilities, Reporters } from '@wdio/types'
+
 export default class ConciseReporter extends WDIOReporter {
     // keep track of the order that suites were called
     private _suiteUids: string[] = []
     private _suites: SuiteStats[] = []
     private _stateCounts = { failed: 0 }
 
-    constructor(options: WDIOReporter) {
+    constructor(options: Reporters.Options) {
         /**
         * make Concise reporter to write to output stream by default
         */
@@ -38,7 +40,7 @@ export default class ConciseReporter extends WDIOReporter {
         const header = chalk.yellow('========= Your concise report ==========')
 
         const output = [
-            this.getEnviromentCombo(runner.capabilities),
+            this.getEnviromentCombo(runner.capabilities as Capabilities.DesiredCapabilities),
             this.getCountDisplay(),
             ...this.getFailureDisplay()
         ]
@@ -95,13 +97,12 @@ export default class ConciseReporter extends WDIOReporter {
     }
 
     /**
-        * Get information about the enviroment
-        * @param  {Object}  caps    Enviroment details
-        * @param  {Boolean} verbose
-        * @return {String}          Enviroment string
-        */
-
-    getEnviromentCombo (caps: WebDriver.DesiredCapabilities) {
+     * Get information about the enviroment
+     * @param  {Object}  caps    Enviroment details
+     * @param  {Boolean} verbose
+     * @return {String}          Enviroment string
+     */
+    getEnviromentCombo (caps: Capabilities.DesiredCapabilities) {
         const device = caps.deviceName
         const browser = caps.browserName || caps.browser
         const version = caps.version || caps.platformVersion || caps.browser_version

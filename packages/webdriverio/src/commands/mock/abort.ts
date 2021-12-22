@@ -5,12 +5,10 @@
  * `ConnectionFailed`, `NameNotResolved`, `InternetDisconnected`,
  * `AddressUnreachable`, `BlockedByClient`, `BlockedByResponse`.
  *
- * > This is a __beta__ feature. Please give us feedback and file [an issue](https://github.com/webdriverio/webdriverio/issues/new/choose) if certain scenarios don't work as expected!
- *
  * <example>
     :abort.js
-    it('should block Google Analytics from page', () => {
-        const mock = browser.mock('https://www.google-analytics.com/**')
+    it('should block Google Analytics from page', async () => {
+        const mock = await browser.mock('https://www.google-analytics.com/**')
         mock.abort('Failed')
     })
  * </example>

@@ -1,3 +1,12 @@
+import type { RectReturn } from '@wdio/protocols'
+import { getElementRect } from '../../utils'
+
+export type Location = Pick<RectReturn, 'x' | 'y'>;
+
+function getLocation (this: WebdriverIO.Element): Promise<Location>
+
+function getLocation (this: WebdriverIO.Element, prop: keyof Location): Promise<number>
+
 /**
  *
  * Determine an element’s location on the page. The point (0, 0) refers to
@@ -5,16 +14,16 @@
  *
  * <example>
     :getLocation.js
-    it('should demonstrate the getLocation function', () => {
-        browser.url('http://github.com');
-        const logo = $('.octicon-mark-github')
-        const location = logo.getLocation();
+    it('should demonstrate the getLocation function', async () => {
+        await browser.url('http://github.com');
+        const logo = await $('.octicon-mark-github')
+        const location = await logo.getLocation();
         console.log(location); // outputs: { x: 150, y: 20 }
 
-        const xLocation = logo.getLocation('x')
+        const xLocation = await logo.getLocation('x')
         console.log(xLocation); // outputs: 150
 
-        const yLocation = logo.getLocation('.octicon-mark-github', 'y')
+        const yLocation = await logo.getLocation('y')
         console.log(yLocation); // outputs: 20
     });
  * </example>
@@ -25,19 +34,11 @@
  * @uses protocol/elementIdLocation
  * @type property
  */
-
-import { getElementRect } from '../../utils'
-
-export default async function getLocation (
+async function getLocation (
     this: WebdriverIO.Element,
-    prop: string
-) {
-    let location: {
-        x?: number,
-        y?: number,
-        width?: number
-        height?: number
-    } = {}
+    prop?: keyof Location
+): Promise<Location | number> {
+    let location: Partial<RectReturn> = {}
 
     if (this.isW3C) {
         location = await getElementRect(this)
@@ -51,8 +52,7 @@ export default async function getLocation (
         return location[prop] as number
     }
 
-    return location as {
-        x: number
-        y: number
-    }
+    return location as Location
 }
+
+export default getLocation

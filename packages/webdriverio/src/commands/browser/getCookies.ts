@@ -6,15 +6,15 @@
  *
  * <example>
     :getCookies.js
-    it('should return a cookie for me', () => {
-        browser.setCookies([
+    it('should return a cookie for me', async () => {
+        await browser.setCookies([
             {name: 'test', value: '123'},
             {name: 'test2', value: '456'}
         ])
-        const testCookie = browser.getCookies(['test'])
+        const testCookie = await browser.getCookies(['test'])
         console.log(testCookie); // outputs: [{ name: 'test', value: '123' }]
 
-        const allCookies = browser.getCookies()
+        const allCookies = await browser.getCookies()
         console.log(allCookies);
         // outputs:
         // [
@@ -31,19 +31,19 @@
  *
  */
 export default async function getCookies(
-    this: WebdriverIO.BrowserObject,
+    this: WebdriverIO.Browser,
     names?: string | string[]
 ) {
     if (names === undefined) {
-        return this.getAllCookies() as Promise<WebDriver.Cookie[]>
+        return this.getAllCookies()
     }
 
     const namesList = Array.isArray(names) ? names : [names]
 
     if (namesList.every(obj => typeof obj !== 'string')) {
-        throw new Error('Invalid input (see https://webdriver.io/docs/api/browser/getCookies.html for documentation.')
+        throw new Error('Invalid input (see https://webdriver.io/docs/api/browser/getCookies for documentation)')
     }
 
-    const allCookies: WebDriver.Cookie[] = await this.getAllCookies() as WebDriver.Cookie[]
+    const allCookies = await this.getAllCookies()
     return allCookies.filter(cookie => namesList.includes(cookie.name))
 }

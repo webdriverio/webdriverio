@@ -1,8 +1,15 @@
+import type { WaitForOptions } from '../../types'
 
 /**
  *
- * Wait for an element for the provided amount of
- * milliseconds to be displayed or not displayed.
+ * Wait for an element for the provided amount of milliseconds to be displayed or not displayed.
+ *
+ * :::info
+ *
+ * As opposed to other element commands WebdriverIO will not wait for the element to exist to execute
+ * this command.
+ *
+ * :::
  *
  * <example>
     :index.html
@@ -13,13 +20,13 @@
         }, 2000);
     </script>
     :waitForDisplayedExample.js
-    it('should detect when element is visible', () => {
-        const elem = $('#elem')
-        elem.waitForDisplayed({ timeout: 3000 });
+    it('should detect when element is visible', async () => {
+        const elem = await $('#elem')
+        await elem.waitForDisplayed({ timeout: 3000 });
     });
-    it('should detect when element is no longer visible', () => {
-        const elem = $('#elem')
-        elem.waitForDisplayed({ reverse: true });
+    it('should detect when element is no longer visible', async () => {
+        const elem = await $('#elem')
+        await elem.waitForDisplayed({ reverse: true });
     });
  * </example>
  *
@@ -34,8 +41,6 @@
  * @type utility
  *
  */
-import type { WaitForOptions } from '../../types'
-
 export default async function waitForDisplayed (
     this: WebdriverIO.Element,
     {

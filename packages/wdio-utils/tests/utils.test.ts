@@ -42,6 +42,10 @@ describe('utils', () => {
         expect(transformCommandLogResult({ file: 'bar' })).toEqual({ file: 'bar' })
         expect(transformCommandLogResult({ file: (Buffer.from('some screenshot')).toString('base64') }))
             .toBe('"<Screenshot[base64]>"')
+
+        expect(transformCommandLogResult({ script: 'foo' })).toEqual({ script: 'foo' })
+        expect(transformCommandLogResult({ script: (Buffer.from('some script payload')).toString('base64') }))
+            .toBe('"<Script[base64]>"')
     })
 
     describe('overwriteElementCommands', () => {

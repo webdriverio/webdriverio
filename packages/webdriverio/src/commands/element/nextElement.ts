@@ -1,4 +1,3 @@
-
 /**
  *
  * Returns the next sibling element of the selected DOM-element.
@@ -11,9 +10,10 @@
         <p>Sibling Three</p>
     </div>
     :nextElement.js
-    it('should get text from next sibling element', () => {
-        const elem = $$('p');
-        console.log(elem[1].nextElement().getText()); // outputs: "Sibling Three"
+    it('should get text from next sibling element', async () => {
+        const elem = await $$('p');
+        const nextElement = await elem[1].nextElement()
+        console.log(await nextElement.getText()); // outputs: "Sibling Three"
     });
  * </example>
  *
@@ -24,6 +24,6 @@
 
 export default function nextElement (this: WebdriverIO.Element) {
     return this.$(/* istanbul ignore next */ function (this: HTMLElement) {
-        return this.nextElementSibling
+        return this.nextElementSibling as HTMLElement
     })
 }

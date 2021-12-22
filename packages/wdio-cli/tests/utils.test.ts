@@ -20,9 +20,11 @@ import {
     getCapabilities,
     hasFile,
     generateTestFiles,
-    getPathForFileGeneration
-
+    getPathForFileGeneration,
+    getDefaultFiles,
+    hasPackage
 } from '../src/utils'
+import { COMPILER_OPTION_ANSWERS } from '../src/constants'
 
 jest.mock('child_process', function () {
     const m = {
@@ -37,9 +39,11 @@ jest.mock('../src/commands/config', () => ({
 }))
 
 jest.mock('fs-extra', () => ({
-    writeFileSync: jest.fn(),
     existsSync: jest.fn(),
-    ensureDirSync: jest.fn()
+    ensureDirSync: jest.fn(),
+    promises: {
+        writeFile: jest.fn().mockReturnValue(Promise.resolve())
+    }
 }))
 
 beforeEach(() => {
@@ -49,7 +53,7 @@ beforeEach(() => {
 describe('runServiceHook', () => {
     const hookSuccess = jest.fn()
     const slowSetupFn = jest.fn()
-    const asyncHookSuccess = jest.fn().mockImplementation(() => new Promise(resolve => {
+    const asyncHookSuccess = jest.fn().mockImplementation(() => new Promise<void>(resolve => {
         setTimeout(() => {
             slowSetupFn()
             resolve()
@@ -102,7 +106,7 @@ describe('runServiceHook', () => {
                 { onPrepare: asyncHookSuccess },
                 { onPrepare: hookFailing },
             ], 'onPrepare', 1, true, 'abc')
-        } catch (err) {
+        } catch (err: any) {
             expect(err.message).toEqual(expect.stringContaining('SevereServiceError'))
             expect(err.message).toEqual(expect.stringContaining('Stopping runner...'))
             expect(hookSuccess).toBeCalledTimes(1)
@@ -144,7 +148,7 @@ test('runOnCompleteHook handles array of functions', () => {
     const hookSuccess = jest.fn()
     const secondHook = jest.fn()
 
-    runOnCompleteHook([hookSuccess, secondHook], {}, {}, 0, {} as any)
+    runOnCompleteHook([hookSuccess, secondHook], { capabilities: {} }, {}, 0, {} as any)
     expect(hookSuccess).toBeCalledTimes(1)
     expect(secondHook).toBeCalledTimes(1)
 })
@@ -153,14 +157,14 @@ test('runOnCompleteHook handles async functions', async () => {
     const hookSuccess = () => new Promise(resolve => setTimeout(resolve, 31))
 
     const start = Date.now()
-    await runOnCompleteHook([hookSuccess], {}, {}, 0, {} as any)
+    await runOnCompleteHook([hookSuccess], { capabilities: {} }, {}, 0, {} as any)
     expect(Date.now() - start).toBeGreaterThanOrEqual(30)
 })
 
 test('runOnCompleteHook handles a single function', () => {
     const hookSuccess = jest.fn()
 
-    runOnCompleteHook(hookSuccess, {}, {}, 0, {} as any)
+    runOnCompleteHook(hookSuccess, { capabilities: {} }, {}, 0, {} as any)
     expect(hookSuccess).toBeCalledTimes(1)
 })
 
@@ -168,7 +172,7 @@ test('runOnCompleteHook with no failure returns 0', async () => {
     const hookSuccess = jest.fn()
     const hookFailing = jest.fn()
 
-    const result = await runOnCompleteHook([hookSuccess, hookFailing], {}, {}, 0, {} as any)
+    const result = await runOnCompleteHook([hookSuccess, hookFailing], { capabilities: {} }, {}, 0, {} as any)
 
     expect(result).not.toContain(1)
     expect(hookSuccess).toBeCalledTimes(1)
@@ -179,7 +183,7 @@ test('runOnCompleteHook with failure returns 1', async () => {
     const hookSuccess = jest.fn()
     const hookFailing = jest.fn().mockImplementation(() => { throw new Error('buhh') })
 
-    const result = await runOnCompleteHook([hookSuccess, hookFailing], {}, {}, 0, {} as any)
+    const result = await runOnCompleteHook([hookSuccess, hookFailing], { capabilities: {} }, {}, 0, {} as any)
 
     expect(result).toContain(1)
     expect(hookSuccess).toBeCalledTimes(1)
@@ -187,6 +191,10 @@ test('runOnCompleteHook with failure returns 1', async () => {
 })
 
 test('getRunnerName', () => {
+    expect(getRunnerName({ 'appium:appPackage': 'foobar' })).toBe('foobar')
+    expect(getRunnerName({ 'appium:appWaitActivity': 'foobar' })).toBe('foobar')
+    expect(getRunnerName({ 'appium:app': 'foobar' })).toBe('foobar')
+    expect(getRunnerName({ 'appium:platformName': 'foobar' })).toBe('foobar')
     expect(getRunnerName({ browserName: 'foobar' })).toBe('foobar')
     expect(getRunnerName({ appPackage: 'foobar' })).toBe('foobar')
     expect(getRunnerName({ appWaitActivity: 'foobar' })).toBe('foobar')
@@ -228,7 +236,19 @@ describe('renderConfigurationFile', () => {
         await renderConfigurationFile({ foo: 'bar' } as any)
 
         expect(ejs.renderFile).toHaveBeenCalled()
-        expect(fs.writeFileSync).toHaveBeenCalled()
+        expect(fs.promises.writeFile).toHaveBeenCalled()
+        expect((fs.promises.writeFile as jest.Mock).mock.calls[0][0].endsWith('wdio.conf.js')).toBe(true)
+    })
+
+    it('should write TS file', async () => {
+        // @ts-ignore mock feature
+        jest.spyOn(ejs, 'renderFile').mockImplementation((a, b, c) => c(null, true))
+
+        await renderConfigurationFile({ isUsingTypeScript: true } as any)
+
+        expect(ejs.renderFile).toHaveBeenCalled()
+        expect(fs.promises.writeFile).toHaveBeenCalled()
+        expect((fs.promises.writeFile as jest.Mock).mock.calls[0][0].endsWith('wdio.conf.ts')).toBe(true)
     })
 
     it('should throw error', async () => {
@@ -375,6 +395,11 @@ test('hasFile', () => {
     expect(hasFile('xyz')).toBe(false)
 })
 
+test('hasPackage', () => {
+    expect(hasPackage('yargs')).toBe(true)
+    expect(hasPackage('foobar')).toBe(false)
+})
+
 describe('generateTestFiles', () => {
     it('Mocha with page objects', async () => {
         readDir.mockReturnValue(Promise.resolve([
@@ -392,7 +417,7 @@ describe('generateTestFiles', () => {
         await generateTestFiles(answers as any)
 
         expect(readDir).toBeCalledTimes(2)
-        expect(readDir.mock.calls[0][0]).toContain('mochaJasmine')
+        expect(readDir.mock.calls[0][0]).toContain('mocha')
         expect(readDir.mock.calls[1][0]).toContain('pageobjects')
 
         /**
@@ -420,9 +445,59 @@ describe('generateTestFiles', () => {
             expect.any(Function)
         )
         expect(fs.ensureDirSync).toBeCalledTimes(4)
-        expect((fs.writeFileSync as jest.Mock).mock.calls[0][0].endsWith('/page/objects/model/page.js'))
+        expect((fs.promises.writeFile as jest.Mock).mock.calls[0][0].endsWith('/page/objects/model/page.js'))
             .toBe(true)
-        expect((fs.writeFileSync as jest.Mock).mock.calls[1][0].endsWith('/example.e2e.js'))
+        expect((fs.promises.writeFile as jest.Mock).mock.calls[1][0].endsWith('/example.e2e.js'))
+            .toBe(true)
+    })
+
+    it('jasmine with page objects', async () => {
+        readDir.mockReturnValue(Promise.resolve([
+            '/foo/bar/loo/page.js.ejs',
+            '/foo/bar/example.e2e.js'
+        ]))
+        const answers = {
+            framework: 'jasmine',
+            usePageObjects: true,
+            generateTestFiles: true,
+            destPageObjectRootPath: '/tests/page/objects/model',
+            destSpecRootPath: '/tests/specs'
+        }
+
+        await generateTestFiles(answers as any)
+
+        expect(readDir).toBeCalledTimes(2)
+        expect(readDir.mock.calls[0][0]).toContain('jasmine')
+        expect(readDir.mock.calls[1][0]).toContain('pageobjects')
+
+        /**
+         * test readDir callback
+         */
+        const readDirCb = readDir.mock.calls[0][1][0]
+        const stats = { isDirectory: jest.fn().mockReturnValue(false) }
+        expect(readDirCb('/foo/bar.lala', stats)).toBe(true)
+        expect(readDirCb('/foo/bar.js.ejs', stats)).toBe(false)
+        expect(readDirCb('/foo/bar.feature', stats)).toBe(false)
+        stats.isDirectory.mockReturnValue(true)
+        expect(readDirCb('/foo/bar.lala', stats)).toBe(false)
+        expect(readDirCb('/foo/bar.js.ejs', stats)).toBe(false)
+        expect(readDirCb('/foo/bar.feature', stats)).toBe(false)
+
+        expect(ejs.renderFile).toBeCalledTimes(4)
+        expect(ejs.renderFile).toBeCalledWith(
+            '/foo/bar/loo/page.js.ejs',
+            answers,
+            expect.any(Function)
+        )
+        expect(ejs.renderFile).toBeCalledWith(
+            '/foo/bar/example.e2e.js',
+            answers,
+            expect.any(Function)
+        )
+        expect(fs.ensureDirSync).toBeCalledTimes(4)
+        expect((fs.promises.writeFile as jest.Mock).mock.calls[0][0].endsWith('/page/objects/model/page.js'))
+            .toBe(true)
+        expect((fs.promises.writeFile as jest.Mock).mock.calls[1][0].endsWith('/example.e2e.js'))
             .toBe(true)
     })
 
@@ -517,19 +592,11 @@ describe('generateTestFiles', () => {
             expect.any(Function)
         )
         expect(fs.ensureDirSync).toBeCalledTimes(6)
-        expect((fs.writeFileSync as jest.Mock).mock.calls[0][0].endsWith('/some/page/objects/page.ts'))
+        expect((fs.promises.writeFile as jest.Mock).mock.calls[0][0].endsWith('/some/page/objects/page.ts'))
             .toBe(true)
-        expect((fs.writeFileSync as jest.Mock).mock.calls[2][0].endsWith('/example.feature'))
+        expect((fs.promises.writeFile as jest.Mock).mock.calls[2][0].endsWith('/example.feature'))
             .toBe(true)
     })
-})
-
-afterEach(() => {
-    (console.log as jest.Mock).mockRestore()
-    readDir.mockClear()
-    ;(fs.writeFileSync as jest.Mock).mockClear()
-    ;(fs.ensureDirSync as jest.Mock).mockClear()
-    ;(ejs.renderFile as jest.Mock).mockClear()
 })
 
 describe('getPathForFileGeneration', () => {
@@ -598,4 +665,22 @@ describe('getPathForFileGeneration', () => {
         } as any)
         expect(generatedPaths.relativePath).toEqual('')
     })
+})
+
+test('getDefaultFiles', () => {
+    const files = '/foo/bar'
+    expect(getDefaultFiles({ isUsingCompiler: COMPILER_OPTION_ANSWERS[0] }, files))
+        .toBe('/foo/bar.js')
+    expect(getDefaultFiles({ isUsingCompiler: COMPILER_OPTION_ANSWERS[1] }, files))
+        .toBe('/foo/bar.ts')
+    expect(getDefaultFiles({ isUsingCompiler: COMPILER_OPTION_ANSWERS[2] }, files))
+        .toBe('/foo/bar.js')
+})
+
+afterEach(() => {
+    (console.log as jest.Mock).mockRestore()
+    readDir.mockClear()
+    ;(fs.promises.writeFile as jest.Mock).mockClear()
+    ;(fs.ensureDirSync as jest.Mock).mockClear()
+    ;(ejs.renderFile as jest.Mock).mockClear()
 })

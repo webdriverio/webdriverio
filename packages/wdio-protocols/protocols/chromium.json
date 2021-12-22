@@ -111,8 +111,6 @@
           "            // Network emulation requires device mode, which is only enabled when mobile emulation is on",
           "            mobileEmulation: { deviceName: 'iPad' },",
           "        },",
-          "        // Allow control over the state of network connectivity for testing",
-          "        networkConnectionEnabled: true",
           "    }",
           "});",
           "console.log(browser.getNetworkConnection()); // outputs: 6 (Both Wi-Fi and data)"
@@ -138,8 +136,6 @@
           "            // Network emulation requires device mode, which is only enabled when mobile emulation is on",
           "            mobileEmulation: { deviceName: 'iPad' },",
           "        },",
-          "        // Allow control over the state of network connectivity for testing",
-          "        networkConnectionEnabled: true",
           "    }",
           "});",
           "console.log(browser.setNetworkConnection({ type: 1 })); // outputs: 1 (Airplane Mode)"
@@ -214,7 +210,7 @@
   "/session/:sessionId/chromium/send_command": {
     "POST": {
       "command": "sendCommand",
-      "description": "Send a command to the DevTools debugger.<br>For a list of available commands and their parameters refer to the [Chrome DevTools Protocol Viewer](https://chromedevtools.github.io/devtools-protocol/).",
+      "description": "Send a command to the DevTools debugger.<br />For a list of available commands and their parameters refer to the [Chrome DevTools Protocol Viewer](https://chromedevtools.github.io/devtools-protocol/).",
       "ref": "https://github.com/bayandin/chromedriver/blob/v2.45/window_commands.cc#L1290-L1304",
       "parameters": [{
         "name": "cmd",
@@ -232,7 +228,7 @@
   "/session/:sessionId/chromium/send_command_and_get_result": {
     "POST": {
       "command": "sendCommandAndGetResult",
-      "description": "Send a command to the DevTools debugger and wait for the result.<br>For a list of available commands and their parameters refer to the [Chrome DevTools Protocol Viewer](https://chromedevtools.github.io/devtools-protocol/).",
+      "description": "Send a command to the DevTools debugger and wait for the result.<br />For a list of available commands and their parameters refer to the [Chrome DevTools Protocol Viewer](https://chromedevtools.github.io/devtools-protocol/).",
       "ref": "https://github.com/bayandin/chromedriver/blob/v2.45/window_commands.cc#L1306-L1320",
       "parameters": [{
         "name": "cmd",
@@ -250,23 +246,6 @@
         "name": "result",
         "description": "Either the return value of your command, or the error which was the reason for your command's failure."
       }
-    }
-  },
-  "/session/:sessionId/reporting/generate_test_report": {
-    "POST": {
-      "command": "generateTestReport",
-      "description": "Generates a report for testing. Extension for [Reporting API](https://developers.google.com/web/updates/2018/09/reportingapi).",
-      "ref": "https://w3c.github.io/reporting/#generate-test-report-command",
-      "parameters": [{
-        "name": "message",
-        "type": "string",
-        "description": "Message to be displayed in the report.",
-        "required": true
-      }, {
-        "name": "group",
-        "type": "string",
-        "description": "Specifies the endpoint group to deliver the report to."
-      }]
     }
   },
   "/session/:sessionId/file": {
@@ -383,6 +362,71 @@
       "description": "Resume the current page. Extension for [Page Lifecycle API](https://developers.google.com/web/updates/2018/07/page-lifecycle-api).",
       "ref": "https://github.com/bayandin/chromedriver/blob/v2.45/window_commands.cc#L635-L645",
       "parameters": []
+    }
+  },
+  "/session/:sessionId/goog/cast/get_sinks": {
+    "GET": {
+      "command": "getCastSinks",
+      "description": "Returns the list of cast sinks (Cast devices) available to the Chrome media router.",
+      "ref": "https://chromium.googlesource.com/chromium/src/+/refs/tags/73.0.3683.121/chrome/test/chromedriver/server/http_handler.cc#748",
+      "parameters": [],
+      "returns": {
+        "type": "string[]",
+        "name": "sinks",
+        "description": "List of available sinks."
+      }
+    }
+  },
+  "/session/:sessionId/goog/cast/set_sink_to_use": {
+    "POST": {
+      "command": "selectCastSink",
+      "description": "Selects a cast sink (Cast device) as the recipient of media router intents (connect or play).",
+      "ref": "https://chromium.googlesource.com/chromium/src/+/refs/tags/73.0.3683.121/chrome/test/chromedriver/server/http_handler.cc#737",
+      "parameters": [{
+        "name": "sinkName",
+        "type": "string",
+        "description": "The name of the target device.",
+        "required": true
+      }]
+    }
+  },
+  "/session/:sessionId/goog/cast/start_tab_mirroring": {
+    "POST": {
+      "command": "startCastTabMirroring",
+      "description": "Initiates tab mirroring for the current browser tab on the specified device.",
+      "ref": "https://chromium.googlesource.com/chromium/src/+/refs/tags/73.0.3683.121/chrome/test/chromedriver/server/http_handler.cc#741",
+      "parameters": [{
+        "name": "sinkName",
+        "type": "string",
+        "description": "The name of the target device.",
+        "required": true
+      }]
+    }
+  },
+  "/session/:sessionId/goog/cast/get_issue_message": {
+    "GET": {
+      "command": "getCastIssueMessage",
+      "description": "Returns error message if there is any issue in a Cast session.",
+      "ref": "https://chromium.googlesource.com/chromium/src/+/refs/tags/73.0.3683.121/chrome/test/chromedriver/server/http_handler.cc#751",
+      "parameters": [],
+      "returns": {
+        "type": "String",
+        "name": "message",
+        "description": "Error message, if any."
+      }
+    }
+  },
+  "/session/:sessionId/goog/cast/stop_casting": {
+    "POST": {
+      "command": "stopCasting",
+      "description": "Stops casting from media router to the specified device, if connected.",
+      "ref": "https://chromium.googlesource.com/chromium/src/+/refs/tags/73.0.3683.121/chrome/test/chromedriver/server/http_handler.cc#744",
+      "parameters": [{
+        "name": "sinkName",
+        "type": "string",
+        "description": "The name of the target device.",
+        "required": true
+      }]
     }
   },
   "/shutdown": {

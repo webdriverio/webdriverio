@@ -1,12 +1,15 @@
+import fs from 'fs'
+import { getAbsoluteFilepath, assertDirectoryExists } from '../../utils'
+
 /**
  *
  * Save a screenshot of an element to a PNG file on your OS.
  *
  * <example>
     :saveScreenshot.js
-    it('should save a screenshot of the browser view', function () {
-        const elem = $('#someElem');
-        elem.saveScreenshot('./some/path/elemScreenshot.png');
+    it('should save a screenshot of the browser view', async () => {
+        const elem = await $('#someElem');
+        await elem.saveScreenshot('./some/path/elemScreenshot.png');
     });
  * </example>
  *
@@ -16,10 +19,6 @@
  * @type utility
  *
  */
-
-import fs from 'fs'
-import { getAbsoluteFilepath, assertDirectoryExists } from '../../utils'
-
 export default async function saveScreenshot (
     this: WebdriverIO.Element,
     filepath: string

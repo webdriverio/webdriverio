@@ -1,13 +1,15 @@
 import got from 'got'
 import logger from '@wdio/logger'
+import { Capabilities, Options, Services, Frameworks } from '@wdio/types'
+import type { Browser, MultiRemoteBrowser } from 'webdriverio'
+
+import { TestingbotOptions } from './types'
 
 const log = logger('@wdio/testingbot-service')
 const jobDataProperties = ['name', 'tags', 'public', 'build', 'extra']
 
-export default class TestingBotService implements WebdriverIO.ServiceInstance {
-    private _browser?: WebdriverIO.BrowserObject | WebdriverIO.MultiRemoteBrowserObject
-    private _capabilities!: WebDriver.DesiredCapabilities
-    private _config?: WebdriverIO.Options
+export default class TestingBotService implements Services.ServiceInstance {
+    private _browser?: Browser<'async'> | MultiRemoteBrowser<'async'>
     private _isServiceEnabled?: boolean
     private _suiteTitle?: string
     private _tbSecret?: string
@@ -15,14 +17,11 @@ export default class TestingBotService implements WebdriverIO.ServiceInstance {
     private _failures = 0
     private _testCnt = 0
 
-    /**
-     * gather information about runner
-     */
-    beforeSession (config: WebdriverIO.Options, capabilities: WebDriver.DesiredCapabilities) {
-        this._config = config
-        this._capabilities = capabilities
-        this._config.user = config.user
-        this._config.key = config.key
+    constructor (
+        private _options: TestingbotOptions,
+        private _capabilities: Capabilities.RemoteCapability,
+        private _config: Omit<Options.Testrunner, 'capabilities'>
+    ) {
         this._tbUser = this._config.user
         this._tbSecret = this._config.key
 
@@ -30,9 +29,9 @@ export default class TestingBotService implements WebdriverIO.ServiceInstance {
     }
 
     before (
-        caps: WebDriver.Capabilities,
-        specs: string[],
-        browser: WebdriverIO.BrowserObject | WebdriverIO.MultiRemoteBrowserObject
+        caps: unknown,
+        specs: unknown,
+        browser: Browser<'async'> | MultiRemoteBrowser<'async'>
     ) {
         this._browser = browser
     }
@@ -41,7 +40,7 @@ export default class TestingBotService implements WebdriverIO.ServiceInstance {
      * Before suite
      * @param {Object} suite Suite
     */
-    beforeSuite (suite: WebdriverIO.Suite) {
+    beforeSuite (suite: Frameworks.Suite) {
         this._suiteTitle = suite.title
     }
 
@@ -49,7 +48,7 @@ export default class TestingBotService implements WebdriverIO.ServiceInstance {
      * Before test
      * @param {Object} test Test
     */
-    beforeTest (test: WebdriverIO.Test) {
+    beforeTest (test: Frameworks.Test) {
         if (!this._isServiceEnabled || !this._browser) {
             return
         }
@@ -74,10 +73,11 @@ export default class TestingBotService implements WebdriverIO.ServiceInstance {
              */
             `${test.parent} - ${test.title}`
         )
+
         this._browser.execute('tb:test-context=' + context)
     }
 
-    afterSuite (suite: WebdriverIO.Suite) {
+    afterSuite (suite: Frameworks.Suite) {
         if (Object.prototype.hasOwnProperty.call(suite, 'error')) {
             ++this._failures
         }
@@ -87,7 +87,7 @@ export default class TestingBotService implements WebdriverIO.ServiceInstance {
      * After test
      * @param {Object} test Test
      */
-    afterTest (test: WebdriverIO.Test, context: any, results: WebdriverIO.TestResult) {
+    afterTest (test: Frameworks.Test, context: any, results: Frameworks.TestResult) {
         if (!results.passed) {
             ++this._failures
         }
@@ -102,12 +102,12 @@ export default class TestingBotService implements WebdriverIO.ServiceInstance {
      * @param {string} uri
      * @param {Object} feature
      */
-    beforeFeature (uri: string, feature: any) {
+    beforeFeature (uri: unknown, feature: { name: string }) {
         if (!this._isServiceEnabled || !this._browser) {
             return
         }
 
-        this._suiteTitle = feature.document.feature.name
+        this._suiteTitle = feature.name
         this._browser.execute('tb:test-context=Feature: ' + this._suiteTitle)
     }
 
@@ -117,23 +117,26 @@ export default class TestingBotService implements WebdriverIO.ServiceInstance {
      * @param {Object} feature
      * @param {Object} scenario
      */
-    beforeScenario (uri: string, feature: any, scenario: any) {
+    beforeScenario (world: Frameworks.World) {
         if (!this._isServiceEnabled || !this._browser) {
             return
         }
-        const scenarioName = scenario.name
+        const scenarioName = world.pickle.name
         this._browser.execute('tb:test-context=Scenario: ' + scenarioName)
     }
 
     /**
-     * After scenario
-     * @param {string} uri
-     * @param {Object} feature
-     * @param {Object} pickle
-     * @param {Object} result
+     *
+     * Runs before a Cucumber Scenario.
+     * @param world world object containing information on pickle and test step
+     * @param result result object containing
+     * @param result.passed   true if scenario has passed
+     * @param result.error    error stack if scenario failed
+     * @param result.duration duration of scenario in milliseconds
      */
-    afterScenario(uri: string, feature: any, pickle: any, result: any) {
-        if (result.status === 'failed') {
+    afterScenario(world: Frameworks.World, result: Frameworks.PickleResult) {
+        // check if scenario has failed
+        if (!result.passed) {
             ++this._failures
         }
     }
@@ -153,7 +156,7 @@ export default class TestingBotService implements WebdriverIO.ServiceInstance {
          * set failures if user has bail option set in which case afterTest and
          * afterSuite aren't executed before after hook
          */
-        if (this._browser.config.mochaOpts?.bail && Boolean(result)) {
+        if (this._config.mochaOpts?.bail && Boolean(result)) {
             failures = 1
         }
 
@@ -164,7 +167,7 @@ export default class TestingBotService implements WebdriverIO.ServiceInstance {
             return this.updateJob(this._browser.sessionId, failures)
         }
 
-        const browser = this._browser as WebdriverIO.MultiRemoteBrowserObject
+        const browser = this._browser as MultiRemoteBrowser<'async'>
         return Promise.all(Object.keys(this._capabilities).map((browserName) => {
             log.info(`Update multiremote job for browser "${browserName}" and sessionId ${browser[browserName].sessionId}, ${status}`)
             return this.updateJob(browser[browserName].sessionId, failures, false, browserName)
@@ -182,7 +185,7 @@ export default class TestingBotService implements WebdriverIO.ServiceInstance {
             return this.updateJob(oldSessionId, this._failures, true)
         }
 
-        const browser = this._browser as WebdriverIO.MultiRemoteBrowserObject
+        const browser = this._browser as MultiRemoteBrowser<'async'>
         const browserName = browser.instances.filter(
             (browserName: string) => browser[browserName].sessionId === newSessionId)[0]
         log.info(`Update (reloaded) multiremote job for browser "${browserName}" and sessionId ${oldSessionId}, ${status}`)
@@ -203,7 +206,6 @@ export default class TestingBotService implements WebdriverIO.ServiceInstance {
             password: this._tbSecret
         })
 
-        this._browser.jobData = response.body
         return response.body
     }
 
@@ -230,7 +232,7 @@ export default class TestingBotService implements WebdriverIO.ServiceInstance {
         if ((calledOnReload || this._testCnt) && this._browser) {
             let testCnt = ++this._testCnt
             if (this._browser.isMultiremote) {
-                testCnt = Math.ceil(testCnt / (this._browser as WebdriverIO.MultiRemoteBrowserObject).instances.length)
+                testCnt = Math.ceil(testCnt / (this._browser as MultiRemoteBrowser<'async'>).instances.length)
             }
 
             body.test['name'] += ` (${testCnt})`

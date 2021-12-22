@@ -1,24 +1,13 @@
-/**
- * The Perform Actions command is used to execute complex user actions.
- * See [spec](https://github.com/jlipps/simple-wd-spec#perform-actions) for more details.
- *
- * @alias browser.performActions
- * @see https://w3c.github.io/webdriver/#dfn-perform-actions
- * @param {object[]} actions  A list of objects, each of which represents an input source and its associated actions.
- */
-
 import { keyDefinitions, KeyInput } from 'puppeteer-core/lib/cjs/puppeteer/common/USKeyboardLayout'
 import type { Keyboard, Mouse } from 'puppeteer-core/lib/cjs/puppeteer/common/Input'
 
 import getElementRect from './getElementRect'
 import { ELEMENT_KEY } from '../constants'
+import { sleep } from '../utils'
 import type DevToolsDriver from '../devtoolsdriver'
 
 const KEY = 'key'
 const POINTER = 'pointer'
-
-const sleep = (time = 0) => new Promise(
-    (resolve) => setTimeout(resolve, time))
 
 interface Action {
     duration?: number
@@ -38,6 +27,14 @@ interface ActionsParameter {
     }
 }
 
+/**
+ * The Perform Actions command is used to execute complex user actions.
+ * See [spec](https://github.com/jlipps/simple-wd-spec#perform-actions) for more details.
+ *
+ * @alias browser.performActions
+ * @see https://w3c.github.io/webdriver/#dfn-perform-actions
+ * @param {object[]} actions  A list of objects, each of which represents an input source and its associated actions.
+ */
 export default async function performActions(
     this: DevToolsDriver,
     { actions }: { actions: ActionsParameter[] }
@@ -81,7 +78,7 @@ export default async function performActions(
                 }
 
                 /**
-                 * for special characters like emojies 😉 we need to
+                 * for special characters like emojis 😉 we need to
                  * send in the value as text because it is not unicode
                  */
                 if (!keyDefinitions[singleAction.value as unknown as KeyInput]) {
@@ -99,6 +96,30 @@ export default async function performActions(
         if (action.type === 'pointer') {
             if (action.parameters && action.parameters.pointerType && action.parameters.pointerType !== 'mouse') {
                 throw new Error('Currently only "mouse" is supported as pointer type')
+            }
+
+            /**
+             * detect double click
+             */
+            if (
+                action.actions.length === 6 &&
+                action.actions[0].type === 'pointerMove' &&
+                action.actions[1].type === 'pointerDown' &&
+                action.actions[2].type === 'pointerUp' &&
+                action.actions[3].type === 'pause' &&
+                action.actions[4].type === 'pointerDown' &&
+                action.actions[5].type === 'pointerUp'
+            ) {
+                let x = action.actions[0].x || 0
+                let y = action.actions[0].y || 0
+                if (action.actions[0].origin) {
+                    const location = await getElementRect.call(this, { elementId: action.actions[0].origin[ELEMENT_KEY] })
+                    x += location.x + (location.width / 2)
+                    y += location.y + (location.height / 2)
+                }
+
+                await page.mouse.click(x, y, { clickCount: 2 })
+                continue
             }
 
             for (const singleAction of action.actions) {

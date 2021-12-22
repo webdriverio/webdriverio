@@ -1,3 +1,6 @@
+import fs from 'fs'
+import { getAbsoluteFilepath, assertDirectoryExists } from '../../utils'
+
 /**
  *
  * Save a screenshot of the current browsing context to a PNG file on your OS. Be aware that
@@ -6,8 +9,8 @@
  *
  * <example>
     :saveScreenshot.js
-    it('should save a screenshot of the browser view', function () {
-        browser.saveScreenshot('./some/path/screenshot.png');
+    it('should save a screenshot of the browser view', async () => {
+        await browser.saveScreenshot('./some/path/screenshot.png');
     });
  * </example>
  *
@@ -17,12 +20,8 @@
  * @type utility
  *
  */
-
-import fs from 'fs'
-import { getAbsoluteFilepath, assertDirectoryExists } from '../../utils'
-
 export default async function saveScreenshot (
-    this: WebdriverIO.BrowserObject,
+    this: WebdriverIO.Browser,
     filepath: string
 ) {
     /**

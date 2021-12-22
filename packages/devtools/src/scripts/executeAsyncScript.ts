@@ -3,7 +3,7 @@
  * According to the WebDriver spec we need to ensure to serialize all elements
  * being returned from the script. In order to do so we attach a data attribute
  * to them and fetch them using Puppeteer after the script execution. Instead
- * of the element we return the dataFlag string instead to signalise that this
+ * of the element we return the dataFlag string instead to signalize that this
  * is suppose to be an element handle
  *
  * @param  {HTMLElement} _            $eval fetched element
@@ -40,7 +40,7 @@ export default (
                         return dataPropertyValue
                     }
 
-                    return result
+                    return r
                 })
             }
 

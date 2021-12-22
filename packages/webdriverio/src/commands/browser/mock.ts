@@ -1,10 +1,17 @@
+import type Interception from '../../utils/interception/index'
+import DevtoolsNetworkInterception from '../../utils/interception/devtools'
+import WebDriverNetworkInterception from '../../utils/interception/webdriver'
+import { getBrowserObject } from '../../utils'
+import type { Mock } from '../../types'
+import type { MockFilterOptions } from '../../utils/interception/types'
+
+export const SESSION_MOCKS: Record<string, Set<Interception>> = {}
+
 /**
  * Mock the response of a request. You can define a mock based on a matching
  * glob and corresponding header and status code. Calling the mock method
  * returns a stub object that you can use to modify the response of the
  * web resource.
- *
- * > This is a __beta__ feature. Please give us feedback and file [an issue](https://github.com/webdriverio/webdriverio/issues/new/choose) if certain scenarios don't work as expected!
  *
  * With the stub object you can then either return a custom response or
  * have the request fail.
@@ -14,15 +21,25 @@
  * - replace web resource with a local file (service a modified JavaScript file) or
  * - redirect resource to a different url
  *
+ * :::info
+ *
+ * Note that using the `mock` command requires support for Chrome DevTools protocol and e.g.
+ * can not be used when running automated tests in the cloud. Find out more in the
+ * [Automation Protocols](/docs/automationProtocols) section.
+ *
+ * :::
+ *
  * <example>
     :mock.js
-    it('should mock network resources', () => {
+    it('should mock network resources', async () => {
         // via static string
-        const userListMock = browser.mock('**' + '/users/list')
+        const userListMock = await browser.mock('**' + '/users/list')
+        // or as regular expression
+        const userListMock = await browser.mock(/https:\/\/(domainA|domainB)\.com\/.+/)
         // you can also specifying the mock even more by filtering resources
         // by request or response headers, status code, postData, e.g. mock only responses with specific
         // header set and statusCode
-        const strictMock = browser.mock('**', {
+        const strictMock = await browser.mock('**', {
             // mock all json responses
             statusCode: 200,
             headers: { 'Content-Type': 'application/json' },
@@ -31,7 +48,7 @@
         })
 
         // comparator function
-        const apiV1Mock = browser.mock('**' + '/api/v1', {
+        const apiV1Mock = await browser.mock('**' + '/api/v1', {
             statusCode: (statusCode) => statusCode >= 200 && statusCode <= 203,
             headers: (headers) => headers['Authorization'] && headers['Authorization'].startsWith('Bearer '),
             responseHeaders: (headers) => headers['Impersonation'],
@@ -39,9 +56,9 @@
         })
     })
 
-    it('should modify API responses', () => {
+    it('should modify API responses', async () => {
         // filter by method
-        const todoMock = browser.mock('**' + '/todos', {
+        const todoMock = await browser.mock('**' + '/todos', {
             method: 'get'
         })
 
@@ -67,24 +84,24 @@
         })
     })
 
-    it('should modify text assets', () => {
-        const scriptMock = browser.mock('**' + '/script.min.js')
+    it('should modify text assets', async () => {
+        const scriptMock = await browser.mock('**' + '/script.min.js')
         scriptMock.respond('./tests/fixtures/script.js')
     })
 
-    it('should redirect web resources', () => {
-        const headerMock = browser.mock('**' + '/header.png')
+    it('should redirect web resources', async () => {
+        const headerMock = await browser.mock('**' + '/header.png')
         headerMock.respond('https://media.giphy.com/media/F9hQLAVhWnL56/giphy.gif')
 
-        const pageMock = browser.mock('https://google.com/')
+        const pageMock = await browser.mock('https://google.com/')
         pageMock.respond('https://webdriver.io')
-        browser.url('https://google.com')
-        console.log(browser.getTitle()) // returns "WebdriverIO · Next-gen browser and mobile automation test framework for Node.js"
+        await browser.url('https://google.com')
+        console.log(await browser.getTitle()) // returns "WebdriverIO · Next-gen browser and mobile automation test framework for Node.js"
     })
  * </example>
  *
  * @alias browser.mock
- * @param {String}              url                             url to mock
+ * @param {String|RegExp}       url                             url to mock
  * @param {MockFilterOptions=}  filterOptions                   filter mock resource by additional options
  * @param {String|Function=}    filterOptions.method            filter resource by HTTP method
  * @param {Object|Function=}    filterOptions.headers           filter resource by specific request headers
@@ -95,22 +112,19 @@
  * @type utility
  *
  */
-import type Interception from '../../utils/interception/index'
-import DevtoolsNetworkInterception from '../../utils/interception/devtools'
-import WebDriverNetworkInterception from '../../utils/interception/webdriver'
-import { getBrowserObject } from '../../utils'
-
-const SESSION_MOCKS: Record<string, Set<Interception>> = {}
-
 export default async function mock (
-    this: WebdriverIO.BrowserObject,
-    url: string,
-    filterOptions?: WebdriverIO.MockFilterOptions
-): Promise<Interception> {
+    this: WebdriverIO.Browser,
+    url: string | RegExp,
+    filterOptions?: MockFilterOptions
+) {
     const NetworkInterception = this.isSauce ? WebDriverNetworkInterception : DevtoolsNetworkInterception
 
     if (!this.isSauce) {
         await this.getPuppeteer()
+    }
+
+    if (!this.puppeteer) {
+        throw new Error('No Puppeteer connection could be established which is required to use this command')
     }
 
     const browser = getBrowserObject(this)
@@ -161,5 +175,5 @@ export default async function mock (
         await (networkInterception as WebDriverNetworkInterception).init()
     }
 
-    return networkInterception
+    return networkInterception as Mock
 }

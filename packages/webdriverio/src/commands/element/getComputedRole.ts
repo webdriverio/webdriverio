@@ -4,10 +4,10 @@
  *
  * <example>
     :getComputedRole.js
-    it('should demonstrate the getComputedRole command', () => {
-        browser.url('https://www.google.com/ncr')
-        const elem = $('*[name="q"]');
-        console.log(elem.getComputedRole()); // outputs: "combobox"
+    it('should demonstrate the getComputedRole command', async () => {
+        await browser.url('https://www.google.com/ncr')
+        const elem = await $('*[name="q"]');
+        console.log(await elem.getComputedRole()); // outputs: "combobox"
     })
  * </example>
  *
@@ -16,7 +16,6 @@
  * @type property
  *
  */
-
 export default function getComputedRole (this: WebdriverIO.Element) {
     return this.getElementComputedRole(this.elementId)
 }

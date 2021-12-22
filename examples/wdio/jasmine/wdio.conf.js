@@ -3,15 +3,9 @@ const path = require('path')
 exports.config = {
 
     /**
-     * server configurations
-     */
-    hostname: 'localhost',
-    port: 4444,
-
-    /**
      * specify test files
      */
-    specs: [path.resolve(__dirname, 'jasmine.spec.js')],
+    specs: [[path.resolve(__dirname, '*.spec.js')]],
 
     /**
      * capabilities
@@ -30,7 +24,7 @@ exports.config = {
 
     reporters: ['spec'],
 
-    jasmineNodeOpts: {
+    jasmineOpts: {
         defaultTimeoutInterval: 1000 * 60 * 3
     },
 

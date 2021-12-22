@@ -1,3 +1,7 @@
+import command from '../scripts/getElementText'
+import { getStaleElementError } from '../utils'
+import type DevToolsDriver from '../devtoolsdriver'
+
 /**
  * The Get Element Text command intends to return an element’s text \"as rendered\".
  * An element's rendered text is also used for locating a elements
@@ -8,11 +12,6 @@
  * @param {string} elementId  the id of an element returned in a previous call to Find Element(s)
  * @return {string}           The visible text of the element (including child elements).
  */
-
-import command from '../scripts/getElementText'
-import { getStaleElementError } from '../utils'
-import type DevToolsDriver from '../devtoolsdriver'
-
 export default async function getElementText (
     this: DevToolsDriver,
     { elementId }: { elementId: string }

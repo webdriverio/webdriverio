@@ -7,7 +7,7 @@ import readDir from 'recursive-readdir'
 import { SevereServiceError } from 'webdriverio'
 import { execSync } from 'child_process'
 import { promisify } from 'util'
-import type { ConfigOptions, Capabilities } from '@wdio/config'
+import type { Options, Capabilities, Services } from '@wdio/types'
 
 import { ReplCommandArguments, Questionnair, SupportedPackage, OnCompleteResult, ParsedAnswers } from './types'
 import { EXCLUSIVE_SERVICES, ANDROID_CONFIG, IOS_CONFIG, QUESTIONNAIRE } from './constants'
@@ -21,20 +21,20 @@ const renderFile = promisify(ejs.renderFile) as (path: string, data: Record<stri
  * run service launch sequences
  */
 export async function runServiceHook(
-    launcher: WebdriverIO.ServiceInstance[],
-    hookName: keyof WebdriverIO.HookFunctions,
+    launcher: Services.ServiceInstance[],
+    hookName: keyof Services.HookFunctions,
     ...args: any[]
 ) {
     const start = Date.now()
-    return Promise.all(launcher.map(async (service: WebdriverIO.ServiceInstance) => {
+    return Promise.all(launcher.map(async (service: Services.ServiceInstance) => {
         try {
             if (typeof service[hookName] === 'function') {
                 await (service[hookName] as Function)(...args)
             }
-        } catch (e) {
-            const message = `A service failed in the '${hookName}' hook\n${e.stack}\n\n`
+        } catch (err: any) {
+            const message = `A service failed in the '${hookName}' hook\n${err.stack}\n\n`
 
-            if (e instanceof SevereServiceError) {
+            if (err instanceof SevereServiceError) {
                 return { status: 'rejected', reason: message }
             }
 
@@ -68,8 +68,8 @@ export async function runLauncherHook(hook: Function | Function[], ...args: any[
     return Promise.all(hook.map((hook) => {
         try {
             return hook(...args)
-        } catch (e) {
-            return catchFn(e)
+        } catch (err: any) {
+            return catchFn(err)
         }
     })).catch(catchFn)
 }
@@ -84,8 +84,8 @@ export async function runLauncherHook(hook: Function | Function[], ...args: any[
  */
 export async function runOnCompleteHook(
     onCompleteHook: Function | Function[],
-    config: ConfigOptions,
-    capabilities: Capabilities,
+    config: Options.Testrunner,
+    capabilities: Capabilities.RemoteCapabilities,
     exitCode: number,
     results: OnCompleteResult
 ) {
@@ -97,8 +97,8 @@ export async function runOnCompleteHook(
         try {
             await hook(exitCode, config, capabilities, results)
             return 0
-        } catch (e) {
-            log.error(`Error in onCompleteHook: ${e.stack}`)
+        } catch (err: any) {
+            log.error(`Error in onCompleteHook: ${err.stack}`)
             return 1
         }
     }))
@@ -107,13 +107,17 @@ export async function runOnCompleteHook(
 /**
  * get runner identification by caps
  */
-export function getRunnerName (caps: WebDriver.DesiredCapabilities = {}) {
+export function getRunnerName (caps: Capabilities.DesiredCapabilities = {}) {
     let runner =
         caps.browserName ||
         caps.appPackage ||
         caps.appWaitActivity ||
         caps.app ||
-        caps.platformName
+        caps.platformName ||
+        caps['appium:platformName'] ||
+        caps['appium:appPackage'] ||
+        caps['appium:appWaitActivity'] ||
+        caps['appium:app']
 
     // MultiRemote
     if (!runner) {
@@ -126,7 +130,7 @@ export function getRunnerName (caps: WebDriver.DesiredCapabilities = {}) {
 function buildNewConfigArray (str: string, type: string, change: string) {
     const newStr = str
         .split(`${type}s: `)[1]
-        .replace('\'', '')
+        .replace(/'/g, '')
 
     let newArray = newStr.match(/(\w*)/gmi)?.filter(e => !!e).concat([change]) || []
 
@@ -202,6 +206,7 @@ export function addServiceDeps(names: SupportedPackage[], packages: string[], up
         }
     }
 }
+
 /**
  * @todo add JSComments
  */
@@ -215,10 +220,15 @@ export function convertPackageHashToObject(pkg: string, hash = '$--$'): Supporte
 
 export async function renderConfigurationFile (answers: ParsedAnswers) {
     const tplPath = path.join(__dirname, 'templates/wdio.conf.tpl.ejs')
-
+    const filename = `wdio.conf.${answers.isUsingTypeScript ? 'ts' : 'js'}`
     const renderedTpl = await renderFile(tplPath, { answers })
-
-    fs.writeFileSync(path.join(process.cwd(), 'wdio.conf.js'), renderedTpl)
+    return fs.promises.writeFile(
+        path.join(
+            process.cwd(),
+            answers.isUsingTypeScript ? 'test' : '', filename
+        ),
+        renderedTpl
+    )
 }
 
 export const validateServiceAnswers = (answers: string[]): Boolean | string => {
@@ -274,12 +284,34 @@ export function hasFile (filename: string) {
 }
 
 /**
+ * Check if package is installed
+ * @param {string} package to check existance for
+ */
+export function hasPackage (pkg: string) {
+    try {
+        /**
+         * this is only for testing purposes as we want to check whether
+         * we add `@babel/register` to the packages to install when resolving fails
+         */
+        if (process.env.JEST_WORKER_ID && process.env.WDIO_TEST_THROW_RESOLVE) {
+            throw new Error('resolve error')
+        }
+        require.resolve(pkg)
+        return true
+    } catch (err: any) {
+        return false
+    }
+}
+
+/**
  * generate test files based on CLI answers
  */
 export async function generateTestFiles (answers: ParsedAnswers) {
     const testFiles = answers.framework === 'cucumber'
         ? [path.join(TEMPLATE_ROOT_DIR, 'cucumber')]
-        : [path.join(TEMPLATE_ROOT_DIR, 'mochaJasmine')]
+        : (answers.framework === 'mocha'
+            ? [path.join(TEMPLATE_ROOT_DIR, 'mocha')]
+            : [path.join(TEMPLATE_ROOT_DIR, 'jasmine')])
 
     if (answers.usePageObjects) {
         testFiles.push(path.join(TEMPLATE_ROOT_DIR, 'pageobjects'))
@@ -301,7 +333,7 @@ export async function generateTestFiles (answers: ParsedAnswers) {
         ).replace(/\.ejs$/, '').replace(/\.js$/, answers.isUsingTypeScript ? '.ts' : '.js')
 
         fs.ensureDirSync(path.dirname(destPath))
-        fs.writeFileSync(destPath, renderedTpl)
+        await fs.promises.writeFile(destPath, renderedTpl)
     }
 }
 
@@ -330,12 +362,11 @@ export async function getAnswers(yes: boolean): Promise<Questionnair> {
                             : question.choices[0]
                         : {}
                 }
-        ), {})
+        ), {} as Questionnair)
         : await inquirer.prompt(QUESTIONNAIRE)
 }
 
 export function getPathForFileGeneration (answers: Questionnair) {
-
     const destSpecRootPath = path.join(
         process.cwd(),
         path.dirname(answers.specs || '').replace(/\*\*$/, ''))
@@ -366,4 +397,10 @@ export function getPathForFileGeneration (answers: Questionnair) {
         destPageObjectRootPath : destPageObjectRootPath,
         relativePath : relativePath
     }
+}
+
+export function getDefaultFiles (answers: Partial<Questionnair>, filePath: string) {
+    return answers?.isUsingCompiler?.toString().includes('TypeScript')
+        ? `${filePath}.ts`
+        : `${filePath}.js`
 }

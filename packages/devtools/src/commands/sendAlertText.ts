@@ -1,3 +1,5 @@
+import type DevToolsDriver from '../devtoolsdriver'
+
 /**
  * The Send Alert Text command sets the text field of a window.prompt user prompt to the given value.
  *
@@ -5,8 +7,6 @@
  * @see https://w3c.github.io/webdriver/#dfn-send-alert-text
  * @param {string} text  string to set the prompt to
  */
-import type DevToolsDriver from '../devtoolsdriver'
-
 export default async function sendAlertText (
     this: DevToolsDriver,
     { text }: { text: string }) {
@@ -15,5 +15,7 @@ export default async function sendAlertText (
     }
 
     await this.activeDialog.accept(text)
+    delete this.activeDialog
+
     return null
 }

@@ -23,7 +23,7 @@ export default class HookStats extends RunnableStats {
     parent: string
     errors?: Error[]
     error?: Error
-    state?: 'failed'
+    state?: 'failed' | 'passed'
     currentTest?: string
 
     constructor (runner: Hook) {

@@ -1,28 +1,5 @@
-/**
- *
- * Drag an item to a destination element or position.
- *
- * <example>
-    :example.test.js
-    it('should demonstrate the dragAndDrop command', () => {
-        const elem = $('#someElem')
-        const target = $('#someTarget')
-
-        // drag and drop to other element
-        elem.dragAndDrop(target)
-
-        // drag and drop relative from current position
-        elem.dragAndDrop({ x: 100, y: 200 })
-    })
- * </example>
- *
- * @alias element.dragAndDrop
- * @param {Element|DragAndDropCoordinate} target  destination element or object with x and y properties
- * @param {DragAndDropOptions=} options           dragAndDrop command options
- * @param {Number=}             options.duration  how long the drag should take place
- */
-
-import { getElementRect, getScrollPosition } from '../../utils'
+import { ELEMENT_KEY } from '../../constants'
+import type { ElementReference } from '@wdio/protocols'
 
 const ACTION_BUTTON = 0
 
@@ -37,6 +14,37 @@ type ElementCoordinates = {
     y?: number
 }
 
+/**
+ *
+ * Drag an item to a destination element or position.
+ *
+ * :::info
+ *
+ * The functionality of this command highly depends on the way drag and drop is
+ * implemented in your app. If you experience issues please post your example
+ * in [#4134](https://github.com/webdriverio/webdriverio/issues/4134).
+ *
+ * :::
+ *
+ * <example>
+    :example.test.js
+    it('should demonstrate the dragAndDrop command', async () => {
+        const elem = await $('#someElem')
+        const target = await $('#someTarget')
+
+        // drag and drop to other element
+        await elem.dragAndDrop(target)
+
+        // drag and drop relative from current position
+        await elem.dragAndDrop({ x: 100, y: 200 })
+    })
+ * </example>
+ *
+ * @alias element.dragAndDrop
+ * @param {Element|DragAndDropCoordinate} target  destination element or object with x and y properties
+ * @param {DragAndDropOptions=} options           dragAndDrop command options
+ * @param {Number=}             options.duration  how long the drag should take place
+ */
 export default async function dragAndDrop (
     this: WebdriverIO.Element,
     target: WebdriverIO.Element | ElementCoordinates,
@@ -89,23 +97,14 @@ export default async function dragAndDrop (
         return this.buttonUp(ACTION_BUTTON)
     }
 
-    /**
-     * get coordinates to drag and drop
-     */
-    const { scrollX, scrollY } = await getScrollPosition(this)
-    const sourceRect = await getElementRect(this)
-    const sourceX = Math.floor(sourceRect.x - scrollX + (sourceRect.width / 2))
-    const sourceY = Math.floor(sourceRect.y - scrollY + (sourceRect.height / 2))
+    const sourceRef: ElementReference = { [ELEMENT_KEY]: this[ELEMENT_KEY] }
+    const targetRef: ElementReference = { [ELEMENT_KEY]: moveToElement[ELEMENT_KEY] }
 
-    let targetX, targetY
-    if (isMovingToElement) {
-        const targetRect = await getElementRect(moveToElement)
-        targetX = Math.floor(targetRect.x - scrollX + (targetRect.width / 2) - sourceX)
-        targetY = Math.floor(targetRect.y - scrollY + (targetRect.height / 2) - sourceY)
-    } else {
-        targetX = moveToCoordinates.x
-        targetY = moveToCoordinates.y
-    }
+    const origin = sourceRef
+    const targetOrigin = isMovingToElement ? targetRef : 'pointer'
+
+    const targetX = isMovingToElement ? 0 : moveToCoordinates.x
+    const targetY = isMovingToElement ? 0 : moveToCoordinates.y
 
     /**
      * W3C way of handle the drag and drop action
@@ -115,10 +114,10 @@ export default async function dragAndDrop (
         id: 'finger1',
         parameters: { pointerType: 'mouse' },
         actions: [
-            { type: 'pointerMove', duration: 0, x: sourceX, y: sourceY },
+            { type: 'pointerMove', duration: 0, origin, x: 0, y: 0 },
             { type: 'pointerDown', button: ACTION_BUTTON },
             { type: 'pause', duration: 10 }, // emulate human pause
-            { type: 'pointerMove', duration, origin: 'pointer', x: targetX, y: targetY },
+            { type: 'pointerMove', duration, origin: targetOrigin, x: targetX, y: targetY },
             { type: 'pointerUp', button: ACTION_BUTTON }
         ]
     }]).then(() => this.releaseActions())

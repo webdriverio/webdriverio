@@ -37,8 +37,9 @@ node_modules/
 jspm_packages/
 
 # Typescript v1 declaration files
-typings/
+/packages/wdio-protocols/src/commands
 !tests/typings
+!typings/types.ts
 tests/typings/**/dist
 
 # Optional npm cache directory
@@ -64,24 +65,23 @@ tests/typings/**/dist
 
 **/build
 /*.js
-allure-reporter.d.ts
+/*.ts
 devtools.d.ts
 !.eslintrc.js
 !jest.config.js
 packages/**/package-lock.json
 .DS_Store
 
-website/.sass-cache/
 website/translated_docs
-website/static/css
 website/build/
+website/sidebars.json
 website/yarn.lock
 website/sidebars.json
 website/node_modules
 website/i18n/*
-docs/api/**/*.md
-docs/docs/**/*.md
-docs/_*.md
+website/docs/api/**/*.md
+website/docs/docs/**/*.md
+website/docs/_*.md
 
 # Editor files
 .idea
@@ -93,5 +93,6 @@ docs/_*.md
 wallaby.conf.js
 tags
 tests/.retry_succeeded
-.sass-cache
 *.tsbuildinfo
+website/docs/Contribute.md
+website/community/Resources.md

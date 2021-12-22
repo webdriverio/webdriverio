@@ -9,7 +9,11 @@ beforeAll(async () => {
             browserName: 'firefox',
             'wdio:devtoolsOptions': {
                 headless: true
-            }
+            },
+            ...(process.env.FIREFOX_BINARY
+                ? { 'moz:firefoxOptions': { binary: process.env.FIREFOX_BINARY } }
+                : {}
+            )
         }
     })
 })

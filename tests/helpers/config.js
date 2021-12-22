@@ -24,7 +24,7 @@ exports.config = {
         invert: true
     },
 
-    jasmineNodeOpts: {
+    jasmineOpts: {
         defaultTimeoutInterval: 1000 * 60 * 3,
         grep: 'SKIPPED_GREP',
         invertGrep: true,

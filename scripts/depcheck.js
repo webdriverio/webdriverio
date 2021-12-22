@@ -15,7 +15,10 @@ require('events').EventEmitter.defaultMaxListeners = packages.length + 3
 const ROOT_DIR = path.join(__dirname, '..')
 const EXEC_OPTIONS = { silent: true, async: true }
 const IGNORE_PACKAGES = {
-    'wdio-reporter': ['cucumber']
+    'wdio-reporter': ['cucumber'],
+    'wdio-cli': ['ts-node', '@babel/register'],
+    'wdio-config': ['ts-node', '@babel/register'],
+    'wdio-types': ['ts-node']
 }
 
 ;(async () => {
@@ -28,12 +31,11 @@ const IGNORE_PACKAGES = {
         if (IGNORE_PACKAGES[pkg]) {
             shellScript += ` --ignores="${IGNORE_PACKAGES[pkg].join(',')}"`
         }
-
         const shellResult = await new Promise((resolve, reject) => shell.exec(shellScript, EXEC_OPTIONS, (code, stdout, stderr) => {
             if (stderr) {
-                return reject(stderr)
+                console.error('Error :', stderr)
+                return reject(new Error(stderr))
             }
-
             return resolve(stdout)
         }))
 
@@ -65,4 +67,3 @@ const IGNORE_PACKAGES = {
     console.error('Depcheck failed:', err.stack)
     process.exit(1)
 })
-

@@ -5,7 +5,7 @@ import { remote } from '../../../src'
 jest.setTimeout(10 * 1000)
 
 describe('waitUntil', () => {
-    let browser: WebdriverIO.BrowserObject
+    let browser: WebdriverIO.Browser
 
     beforeAll(async () => {
         browser = await remote({
@@ -18,28 +18,31 @@ describe('waitUntil', () => {
 
     it('Should throw an error if an invalid condition is used', async () => {
         let error
+        let val
         // @ts-ignore uses expect-webdriverio
-        expect.assertions(1)
+        expect.assertions(2)
         try {
             // @ts-ignore test invalid condition parameter
-            await browser.waitUntil('foo', {
+            val = await browser.waitUntil('foo', {
                 timeout: 500,
                 timeoutMsg: 'Timed Out',
                 interval: 200
             })
-        } catch (e) {
-            error = e
+        } catch (err: any) {
+            error = err
         } finally {
             expect(error.message).toContain('Condition is not a function')
+            expect(val).toBeUndefined()
         }
     })
 
-    it('Should throw an error when the waitUntil times out', async () => {
+    it.each([false, '', 0])('Should throw an error when the waitUntil times out e.g. doesnt resolve to a truthy value: %i', async () => {
         let error
+        let val
         // @ts-ignore uses expect-webdriverio
-        expect.assertions(1)
+        expect.assertions(2)
         try {
-            await browser.waitUntil(
+            val = await browser.waitUntil(
                 () => new Promise<boolean>(
                     (resolve) => setTimeout(
                         () => resolve(false),
@@ -51,19 +54,21 @@ describe('waitUntil', () => {
                     interval: 200
                 }
             )
-        } catch (e) {
-            error = e
+        } catch (err: any) {
+            error = err
         } finally {
             expect(error.message).toContain('Timed Out')
+            expect(val).toBeUndefined()
         }
     })
 
     it('Should throw an error when the promise is rejected', async () => {
         let error
+        let val
         // @ts-ignore uses expect-webdriverio
-        expect.assertions(1)
+        expect.assertions(2)
         try {
-            await browser.waitUntil(
+            val = await browser.waitUntil(
                 () => new Promise<boolean>(
                     (resolve, reject) => setTimeout(
                         () => reject(new Error('foobar')),
@@ -75,18 +80,20 @@ describe('waitUntil', () => {
                     interval: 200
                 }
             )
-        } catch (e) {
-            error = e
+        } catch (err: any) {
+            error = err
         } finally {
             expect(error.message).toContain('waitUntil condition failed with the following reason: foobar')
+            expect(val).toBeUndefined()
         }
     })
 
     it('Should throw an error when the promise is rejected without error message', async () => {
+        let val
         // @ts-ignore uses expect-webdriverio
-        expect.assertions(1)
+        expect.assertions(2)
         try {
-            await browser.waitUntil(
+            val = await browser.waitUntil(
                 () => new Promise<boolean>(
                     (resolve, reject) => setTimeout(
                         () => reject(new Error()),
@@ -96,18 +103,20 @@ describe('waitUntil', () => {
                     timeout: 500
                 }
             )
-        } catch (e) {
-            expect(e.message).toContain('waitUntil condition failed with the following reason: Error')
+        } catch (err: any) {
+            expect(err.message).toContain('waitUntil condition failed with the following reason: Error')
+            expect(val).toBeUndefined()
         }
     })
 
     it('Should use default timeout setting from config if passed in value is not a number', async () => {
         let error
+        let val
         // @ts-ignore uses expect-webdriverio
-        expect.assertions(1)
+        expect.assertions(2)
         try {
             // @ts-ignore test invalid timeout parameter
-            await browser.waitUntil(
+            val = await browser.waitUntil(
                 () => new Promise<boolean>(
                     (resolve) => setTimeout(
                         () => resolve(false),
@@ -118,20 +127,22 @@ describe('waitUntil', () => {
                     interval: 200
                 }
             )
-        } catch (e) {
-            error = e
+        } catch (err: any) {
+            error = err
         } finally {
             expect(error.message).toMatch(/waitUntil condition timed out after \d+ms/)
+            expect(val).toBeUndefined()
         }
     })
 
     it('Should use default interval setting from config if passed in value is not a number', async () => {
         let error
+        let val
         // @ts-ignore uses expect-webdriverio
-        expect.assertions(1)
+        expect.assertions(2)
         try {
             // @ts-ignore test invalid interval parameter
-            await browser.waitUntil(
+            val = await browser.waitUntil(
                 () => new Promise<boolean>(
                     (resolve) => setTimeout(
                         () => resolve(false),
@@ -143,22 +154,24 @@ describe('waitUntil', () => {
                     interval: 'blah'
                 }
             )
-        } catch (e) {
-            error = e
+        } catch (err: any) {
+            error = err
         } finally {
             expect(error.message).toContain('Timed Out')
+            expect(val).toBeUndefined()
         }
     })
 
-    it('Should pass', async() => {
+    it.each([true, 'false', 123])('Should pass for a truthy resolved value: %i', async(n) => {
         let error
+        let val
         // @ts-ignore uses expect-webdriverio
-        expect.assertions(1)
+        expect.assertions(2)
         try {
-            await browser.waitUntil(
-                () => new Promise<boolean>(
+            val = await browser.waitUntil(
+                () => new Promise<any>(
                     (resolve) => setTimeout(
-                        () => resolve(true),
+                        () => resolve(n),
                         200
                     )
                 ), {
@@ -167,10 +180,11 @@ describe('waitUntil', () => {
                     interval: 200
                 }
             )
-        } catch (e) {
-            error = e
+        } catch (err: any) {
+            error = err
         } finally {
             expect(error).toBeUndefined()
+            expect(val).toBe(n)
         }
     })
 

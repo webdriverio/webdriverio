@@ -1,32 +1,44 @@
 import logger from '@wdio/logger'
-import WebDriver, { DEFAULTS } from 'webdriver'
-import { validateConfig, detectBackend } from '@wdio/config'
+
+import WebDriver from 'webdriver'
+import { DEFAULTS } from 'webdriver'
+import { validateConfig } from '@wdio/config'
 import { wrapCommand, runFnInFiberContext } from '@wdio/utils'
+import { Options, Capabilities } from '@wdio/types'
+import type * as WebDriverTypes from 'webdriver'
 
 import MultiRemote from './multiremote'
+import type ElementCommands from './commands/element'
 import SevereServiceErrorImport from './utils/SevereServiceError'
+import detectBackend from './utils/detectBackend'
 import { WDIO_DEFAULTS } from './constants'
 import {
     getPrototype, addLocatorStrategyHandler, isStub, getAutomationProtocol,
     updateCapabilities
 } from './utils'
-import type { Options, MultiRemoteOptions } from './types'
+import type { AttachOptions } from './types'
 
-const log = logger('webdriverio')
+export type RemoteOptions = Options.WebdriverIO & Omit<Options.Testrunner, 'capabilities'>
 
 /**
- * A method to create a new session with WebdriverIO
+ * A method to create a new session with WebdriverIO.
+ *
+ * <b>
+ * NOTE: If you hit "error TS2694: Namespace 'global.WebdriverIO' has no exported member 'Browser'" when using typescript,
+ * add "webdriverio/async" into tsconfig.json's "types" array will solve it: <code> { "compilerOptions": { "types": ["webdriverio/async"] } } </code>
+ * </b>
  *
  * @param  {Object} [params={}]       Options to create the session with
  * @param  {function} remoteModifier  Modifier function to change the monad object
  * @return {object}                   browser object with sessionId
+ * @see <a href="https://webdriver.io/docs/typescript">Typescript setup</a>
  */
-export const remote = async function (params: Options = {}, remoteModifier?: Function) {
+export const remote = async function (params: RemoteOptions, remoteModifier?: Function): Promise<WebdriverIO.Browser> {
     logger.setLogLevelsConfig(params.logLevels as any, params.logLevel)
 
-    const config = validateConfig(WDIO_DEFAULTS, params, Object.keys(DEFAULTS) as any)
+    const config = validateConfig<RemoteOptions>(WDIO_DEFAULTS, params, Object.keys(DEFAULTS) as any)
     const automationProtocol = await getAutomationProtocol(config)
-    const modifier = (client: WebDriver.Client, options: WebdriverIO.Config) => {
+    const modifier = (client: WebDriverTypes.Client, options: Options.WebdriverIO) => {
         /**
          * overwrite instance options with default values of the protocol
          * package (without undefined properties)
@@ -42,31 +54,27 @@ export const remote = async function (params: Options = {}, remoteModifier?: Fun
         return client
     }
 
-    if (params.user && params.key) {
-        params = Object.assign({}, detectBackend(params), params)
-    }
-
     const prototype = getPrototype('browser')
-    log.info(`Initiate new session using the ${automationProtocol} protocol`)
-    const ProtocolDriver = require(automationProtocol).default
+    const ProtocolDriver = (await import(automationProtocol)).default
 
+    params = Object.assign({}, detectBackend(params), params)
     await updateCapabilities(params, automationProtocol)
-    const instance = await ProtocolDriver.newSession(params, modifier, prototype, wrapCommand)
+    const instance: WebdriverIO.Browser = await ProtocolDriver.newSession(params, modifier, prototype, wrapCommand)
 
     /**
      * we need to overwrite the original addCommand and overwriteCommand
      * in order to wrap the function within Fibers (only if webdriverio
      * is used with @wdio/cli)
      */
-    if (params.runner && !isStub(automationProtocol)) {
+    if ((params as Options.Testrunner).framework && !isStub(automationProtocol)) {
         const origAddCommand = instance.addCommand.bind(instance)
-        instance.addCommand = (name: string, fn: Function, attachToElement: boolean) => (
+        instance.addCommand = (name: string, fn: Function, attachToElement) => (
             origAddCommand(name, runFnInFiberContext(fn), attachToElement)
         )
 
         const origOverwriteCommand = instance.overwriteCommand.bind(instance)
-        instance.overwriteCommand = (name: string, fn: Function, attachToElement: boolean) => (
-            origOverwriteCommand(name, runFnInFiberContext(fn), attachToElement)
+        instance.overwriteCommand = (name: string, fn: Function, attachToElement) => (
+            origOverwriteCommand<keyof typeof ElementCommands, any, any>(name, runFnInFiberContext(fn), attachToElement)
         )
     }
 
@@ -74,15 +82,50 @@ export const remote = async function (params: Options = {}, remoteModifier?: Fun
     return instance
 }
 
-export const attach = function (params: WebDriver.AttachSessionOptions) {
+export const attach = async function (attachOptions: AttachOptions): Promise<WebdriverIO.Browser> {
+    /**
+     * copy instances properties into new object
+     */
+    const params = {
+        ...attachOptions,
+        options: { ...attachOptions.options },
+        ...detectBackend(attachOptions),
+        requestedCapabilities: attachOptions.requestedCapabilities
+    }
+
     const prototype = getPrototype('browser')
-    return WebDriver.attachToSession(params, undefined, prototype, wrapCommand)
+
+    let automationProtocol = 'webdriver'
+    if (params.options?.automationProtocol) {
+        automationProtocol = params.options?.automationProtocol
+    }
+    const ProtocolDriver = (await import(automationProtocol)).default
+    return ProtocolDriver.attachToSession(params, undefined, prototype, wrapCommand) as WebdriverIO.Browser
 }
 
+/**
+ * WebdriverIO allows you to run multiple automated sessions in a single test.
+ * This is handy when you’re testing features that require multiple users (for example, chat or WebRTC applications).
+ *
+ * Instead of creating a couple of remote instances where you need to execute common commands like newSession() or url() on each instance,
+ * you can simply create a multiremote instance and control all browsers at the same time.
+ *
+ * <b>
+ * NOTE: Multiremote is not meant to execute all your tests in parallel.
+ * It is intended to help coordinate multiple browsers and/or mobile devices for special integration tests (e.g. chat applications).
+ * </b>
+ *
+ * @param params capabilities to choose desired devices.
+ * @param automationProtocol
+ * @return All remote instances, the first result represents the capability defined first in the capability object,
+ * the second result the second capability and so on.
+ *
+ * @see <a href="https://webdriver.io/docs/multiremote">External document and example usage</a>.
+ */
 export const multiremote = async function (
-    params: MultiRemoteOptions,
+    params: Capabilities.MultiRemoteCapabilities,
     { automationProtocol }: { automationProtocol?: string } = {}
-) {
+): Promise<WebdriverIO.MultiRemoteBrowser> {
     const multibrowser = new MultiRemote()
     const browserNames = Object.keys(params)
 
@@ -114,7 +157,7 @@ export const multiremote = async function (
         multibrowser.modifier.bind(multibrowser),
         prototype,
         wrapCommand
-    )
+    ) as WebdriverIO.MultiRemoteBrowser
 
     /**
      * in order to get custom command overwritten or added to multiremote instance
@@ -122,19 +165,32 @@ export const multiremote = async function (
      */
     if (!isStub(automationProtocol)) {
         const origAddCommand = driver.addCommand.bind(driver)
-        driver.addCommand = (name: string, fn: Function, attachToElement: boolean) => {
-            origAddCommand(name, runFnInFiberContext(fn), attachToElement, Object.getPrototypeOf(multibrowser.baseInstance), multibrowser.instances)
+        driver.addCommand = (name: string, fn: Function, attachToElement) => {
+            return origAddCommand(
+                name,
+                runFnInFiberContext(fn),
+                attachToElement,
+                Object.getPrototypeOf(multibrowser.baseInstance),
+                multibrowser.instances
+            )
         }
 
         const origOverwriteCommand = driver.overwriteCommand.bind(driver)
-        driver.overwriteCommand = (name: string, fn: Function, attachToElement: boolean) => {
-            origOverwriteCommand(name, runFnInFiberContext(fn), attachToElement, Object.getPrototypeOf(multibrowser.baseInstance), multibrowser.instances)
+        driver.overwriteCommand = (name: string, fn: Function, attachToElement) => {
+            return origOverwriteCommand<keyof typeof ElementCommands, any, any>(
+                name,
+                runFnInFiberContext(fn),
+                attachToElement,
+                Object.getPrototypeOf(multibrowser.baseInstance),
+                multibrowser.instances
+            )
         }
     }
 
     driver.addLocatorStrategy = addLocatorStrategyHandler(driver)
-
     return driver
 }
 
 export const SevereServiceError = SevereServiceErrorImport
+export * from './types'
+export * from './utils/interception/types'

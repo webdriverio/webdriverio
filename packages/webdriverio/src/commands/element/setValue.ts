@@ -1,3 +1,5 @@
+import type { CommandOptions, Value } from './addValue'
+
 /**
  *
  * Send a sequence of key strokes to an element (clears value before). If the element
@@ -10,27 +12,24 @@
  *
  * <example>
     :setValue.js
-    it('should set value for a certain element', () => {
-        const input = $('.input');
-        input.setValue('test123');
+    it('should set value for a certain element', async () => {
+        const input = await $('.input');
+        await input.setValue('test123');
 
-        console.log(input.getValue()); // outputs: 'test123'
+        console.log(await input.getValue()); // outputs: 'test123'
     });
  * </example>
  *
  * @alias element.setValue
- * @param {string | number | boolean | object | Array<any>}      value    Value to be added
- * @param {AddValueOptions=} options                    command options (optional)
- * @param {boolean}         options.translateToUnicode enable translation string to unicode value automatically
+ * @param {string | number | Array<string | number>}        value                       value to be added
+ * @param {CommandOptions=}                                 options                     command options (optional)
+ * @param {boolean}                                         options.translateToUnicode  enable translation string to unicode value automatically
  *
  */
-
-import type { AddValueOptions } from './addValue'
-
 export default async function setValue (
     this: WebdriverIO.Element,
-    value: string,
-    { translateToUnicode = true }: AddValueOptions = {}
+    value: Value | Value[],
+    { translateToUnicode = true }: CommandOptions = {}
 ) {
     await this.clearValue()
     return this.addValue(value, { translateToUnicode })

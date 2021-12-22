@@ -5,7 +5,7 @@ import { remote } from '../../../src'
 const puppeteerConnect = puppeteer.connect as jest.Mock
 
 describe('attach Puppeteer', () => {
-    let browser: WebdriverIO.BrowserObject
+    let browser: WebdriverIO.Browser
 
     beforeEach(() => {
         puppeteerConnect.mockClear()
@@ -28,7 +28,8 @@ describe('attach Puppeteer', () => {
                 'goog:chromeOptions': {
                     debuggerAddress: 'localhost:1234'
                 }
-            }
+            },
+            requestedCapabilities: {}
         })
         expect(typeof pptr).toBe('object')
         expect(puppeteerConnect.mock.calls).toMatchSnapshot()
@@ -80,9 +81,7 @@ describe('attach Puppeteer', () => {
                     debuggerAddress: 'localhost:1234'
                 }
             },
-            options: {
-                requestedCapabilities: {}
-            }
+            requestedCapabilities: {}
         })
         expect(typeof pptr).toBe('object')
         expect(puppeteerConnect.mock.calls).toMatchSnapshot()
@@ -115,9 +114,69 @@ describe('attach Puppeteer', () => {
                     debuggerAddress: 'localhost:1234'
                 }
             },
-            puppeteer: 'foobar'
+            puppeteer: {
+                isConnected: jest.fn().mockReturnValue(true)
+            }
         })
-        expect(pptr).toBe('foobar')
+        expect(typeof pptr).toBe('object')
         expect(puppeteerConnect).toHaveBeenCalledTimes(0)
     })
+
+    it('should pass for Selenium CDP', async () => {
+        const pptr = await browser.getPuppeteer.call({
+            ...browser,
+            capabilities: {
+                'se:cdp': 'http://my.grid:1234/session/mytestsession/se/cdp'
+            }
+        })
+        expect(typeof pptr).toBe('object')
+        expect(puppeteerConnect.mock.calls).toMatchSnapshot()
+    })
+
+    it('should pass for Aerokube Selenoid CDP', async () => {
+        const pptr = await browser.getPuppeteer.call({
+            ...browser,
+            capabilities: {
+                'selenoid:options': {
+                    foo: 'bar'
+                }
+            },
+            requestedCapabilities: {
+                'selenoid:options': {
+                    foo: 'bar'
+                }
+            },
+            options: {
+                hostname: 'my.grid',
+                port: 4444,
+                path: '/wd/hub'
+            }
+        })
+        expect(typeof pptr).toBe('object')
+        expect(puppeteerConnect.mock.calls).toMatchSnapshot()
+    })
+
+    it('should pass for Aerokube Moon CDP', async () => {
+        const pptr = await browser.getPuppeteer.call({
+            ...browser,
+            capabilities: {
+                'moon:options': {
+                    foo: 'bar'
+                }
+            },
+            requestedCapabilities: {
+                'moon:options': {
+                    foo: 'bar'
+                }
+            },
+            options: {
+                hostname: 'my.grid',
+                port: 4444,
+                path: '/wd/hub'
+            }
+        })
+        expect(typeof pptr).toBe('object')
+        expect(puppeteerConnect.mock.calls).toMatchSnapshot()
+    })
+
 })

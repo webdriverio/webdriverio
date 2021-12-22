@@ -9,7 +9,7 @@ test('add', () => {
     expect(queue['_repls']).toEqual([
         { childProcess: 1, options: 2, onStart: 3, onEnd: 4 },
         { childProcess: 5, options: 6, onStart: 7, onEnd: 8 }
-    ])
+    ] as any)
 })
 
 test('isRunning', () => {
@@ -31,21 +31,21 @@ test('next', async () => {
     queue.add(childProcess2, { some: 'option' }, startFn2, endFn2)
     queue.next()
 
-    expect(startFn).toBeCalledTimes(1)
+    expect(startFn).toHaveBeenCalledTimes(1)
     expect(queue.isRunning).toBe(true)
 
     queue.next()
-    expect(startFn2).toBeCalledTimes(0)
+    expect(startFn2).toHaveBeenCalledTimes(0)
 
     // wait 100ms to let repl finish (see mock)
     await new Promise((resolve) => setTimeout(resolve, 100))
-    expect(childProcess.send).toBeCalledWith({
+    expect(childProcess.send).toHaveBeenCalledWith({
         origin: 'debugger',
         name: 'stop'
     })
-    expect(endFn).toBeCalledTimes(1)
-    expect(startFn2).toBeCalledTimes(1)
-    expect(endFn2).toBeCalledTimes(0)
+    expect(endFn).toHaveBeenCalledTimes(1)
+    expect(startFn2).toHaveBeenCalledTimes(1)
+    expect(endFn2).toHaveBeenCalledTimes(0)
 
     await new Promise((resolve) => setTimeout(resolve, 100))
     expect(queue.isRunning).toBe(false)

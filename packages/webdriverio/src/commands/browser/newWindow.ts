@@ -1,3 +1,9 @@
+import { sleep } from '@wdio/utils'
+
+import newWindowHelper from '../../scripts/newWindow'
+import type { NewWindowOptions } from '../../types'
+
+const WAIT_FOR_NEW_HANDLE_TIMEOUT = 3000
 
 /**
  *
@@ -8,15 +14,21 @@
  *
  * <example>
     :newWindowSync.js
-    it('should open a new tab', () => {
-        browser.url('http://google.com')
-        console.log(browser.getTitle()) // outputs: "Google"
+    it('should open a new tab', async () => {
+        await browser.url('https://google.com')
+        console.log(await browser.getTitle()) // outputs: "Google"
 
-        browser.newWindow('https://webdriver.io', 'WebdriverIO window', 'width=420,height=230,resizable,scrollbars=yes,status=1')
-        console.log(browser.getTitle()) // outputs: "WebdriverIO · Next-gen browser and mobile automation test framework for Node.js"
+        await browser.newWindow('https://webdriver.io', {
+            windowName: 'WebdriverIO window',
+            windowFeature: 'width=420,height=230,resizable,scrollbars=yes,status=1',
+        })
+        console.log(await browser.getTitle()) // outputs: "WebdriverIO · Next-gen browser and mobile automation test framework for Node.js"
 
-        browser.closeWindow()
-        console.log(browser.getTitle()) // outputs: "Google"
+        const handles = await browser.getWindowHandles()
+        await browser.switchToWindow(handles[1])
+        await browser.closeWindow()
+        await browser.switchToWindow(handles[0])
+        console.log(await browser.getTitle()) // outputs: "Google"
     });
  * </example>
  *
@@ -31,15 +43,10 @@
  * @alias browser.newWindow
  * @type window
  */
-
-/* istanbul ignore file */
-
-import newWindowHelper from '../../scripts/newWindow'
-
 export default async function newWindow (
-    this: WebdriverIO.BrowserObject,
+    this: WebdriverIO.Browser,
     url: string,
-    { windowName = 'New Window', windowFeatures = '' }: WebdriverIO.NewWindowOptions = {}
+    { windowName = '', windowFeatures = '' }: NewWindowOptions = {}
 ) {
     /**
      * parameter check
@@ -55,10 +62,24 @@ export default async function newWindow (
         throw new Error('newWindow command is not supported on mobile platforms')
     }
 
+    const tabsBefore = await this.getWindowHandles()
     await this.execute(newWindowHelper, url, windowName, windowFeatures)
 
-    const tabs = await this.getWindowHandles()
-    const newTab = tabs.pop()
+    /**
+     * if tests are run in DevTools there might be a delay until
+     * a new window handle got registered, this little procedure
+     * waits for it to exist and avoid race conditions
+     */
+    let tabsAfter = await this.getWindowHandles()
+    const now = Date.now()
+    while ((Date.now() - now) < WAIT_FOR_NEW_HANDLE_TIMEOUT) {
+        tabsAfter = await this.getWindowHandles()
+        if (tabsAfter.length > tabsBefore.length) {
+            break
+        }
+        await sleep(100)
+    }
+    const newTab = tabsAfter.pop()
 
     if (!newTab) {
         throw new Error('No window handle was found to switch to')

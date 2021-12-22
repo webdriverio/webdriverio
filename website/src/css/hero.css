@@ -1,0 +1,38 @@
+.hero--primary {
+    --ifm-hero-background-color: #fff;
+    --ifm-hero-text-color: #000;
+}
+
+html[data-theme=dark] .hero--primary {
+    --ifm-hero-background-color: var(--ifm-footer-background-color);
+    --ifm-hero-text-color: #fff;
+}
+
+.hero__title {
+    background-size: 110%;
+    color: transparent;
+    width: 100%;
+    max-width: 300px;
+    margin: 0 auto;
+    height: 280px;
+}
+
+.hero__subtitle {
+    font-size: 2em;
+    max-width: 600px;
+    width: 100%;
+    margin: 0 auto;
+}
+
+@media (max-width: 400px) {
+    .hero__subtitle {
+        font-size: 1.3em;
+    }
+}
+
+#fblike {
+    height: 20px;
+}
+#fblike, #twitter-widget-1 {
+    margin-right: 20px;
+}

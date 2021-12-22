@@ -1,8 +1,14 @@
+import logger from '@wdio/logger'
+
+import { ClickOptions } from '../../types'
+
+const log = logger('webdriverio/click')
+
 /**
  *
  * Click on an element.
  *
- * Note: This issues a Webdriver `click` command for the selected element, which generally scrolls to and then clicks the
+ * Note: This issues a WebDriver `click` command for the selected element, which generally scrolls to and then clicks the
  * selected element. However, if you have fixed-position elements (such as a fixed header or footer) that cover up the
  * selected element after it is scrolled within the viewport, the click will be issued at the given coordinates, but will
  * be received by your fixed (overlaying) element. In these cased the following error is thrown:
@@ -20,18 +26,18 @@
     <button id="myButton" onclick="document.getElementById('someText').innerHTML='I was clicked'">Click me</button>
     <div id="someText">I was not clicked</div>
     :click.js
-    it('should demonstrate the click command', () => {
-        const myButton = $('#myButton')
-        myButton.click()
-        const myText = $('#someText')
-        const text = myText.getText()
+    it('should demonstrate the click command', async () => {
+        const myButton = await $('#myButton')
+        await myButton.click()
+        const myText = await $('#someText')
+        const text = await myText.getText()
         assert(text === 'I was clicked') // true
     })
     :example.js
-    it('should fetch menu links and visit each page', () => {
-        const links = $$('#menu a')
-        links.forEach((link) => {
-            link.click()
+    it('should fetch menu links and visit each page', async () => {
+        const links = await $$('#menu a')
+        await links.forEach(async (link) => {
+            await link.click()
         })
     })
  * </example>
@@ -40,9 +46,9 @@
     :example.html
     <button id="myButton">Click me</button>
     :example.js
-    it('should demonstrate a click using an offset', () => {
-        const myButton = $('#myButton')
-        myButton.click({ x: 30 }) // clicks 30 horizontal pixels away from location of the button
+    it('should demonstrate a click using an offset', async () => {
+        const myButton = await $('#myButton')
+        await myButton.click({ x: 30 }) // clicks 30 horizontal pixels away from location of the button (from center point of element)
     })
  * </example>
  *
@@ -50,13 +56,13 @@
     :example.html
     <button id="myButton">Click me</button>
     :example.js
-    it('should demonstrate a right click passed as string', () => {
-        const myButton = $('#myButton')
-        myButton.click({ button: 'right' }) // opens the contextmenu at the location of the button
+    it('should demonstrate a right click passed as string', async () => {
+        const myButton = await $('#myButton')
+        await myButton.click({ button: 'right' }) // opens the contextmenu at the location of the button
     })
-    it('should demonstrate a right click passed as number while adding an offset', () => {
-        const myButton = $('#myButton')
-        myButton.click({ button: 2, x: 30, y: 40 }) // opens the contextmenu 30 horizontal and 40 vertical pixels away from location of the button
+    it('should demonstrate a right click passed as number while adding an offset', async () => {
+        const myButton = await $('#myButton')
+        await myButton.click({ button: 2, x: 30, y: 40 }) // opens the contextmenu 30 horizontal and 40 vertical pixels away from location of the button (from the center of element)
     })
  * </example>
  *
@@ -68,13 +74,6 @@
  * @param {number=}           options.x      Number (optional)
  * @param {number=}           options.y      Number (optional)
  */
-
-type ClickOptions = {
-    button?: number | string,
-    x?: number,
-    y?: number
-}
-
 export default async function click (
     this: WebdriverIO.Element,
     options?: ClickOptions
@@ -98,7 +97,7 @@ export default async function click (
         || typeof yoffset !== 'number'
         || !Number.isInteger(xoffset)
         || !Number.isInteger(yoffset)) {
-        throw new TypeError('Coördinates must be integers')
+        throw new TypeError('Coordinates must be integers')
     }
 
     if (button === 'left') {
@@ -134,8 +133,15 @@ export default async function click (
                 button
             }]
         }])
+        const err = await this.releaseActions().then(
+            () => null,
+            (err) => err)
 
-        return this.releaseActions()
+        if (err) {
+            log.warn(`Failed to call "releaseAction" command due to: ${err.message}, ignoring!`)
+        }
+
+        return
     }
 
     const { width, height } = await this.getElementSize(this.elementId)

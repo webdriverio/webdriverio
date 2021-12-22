@@ -1,3 +1,7 @@
+import { UNICODE_CHARACTERS } from '@wdio/utils'
+
+import { checkUnicode } from '../../utils'
+
 /**
  *
  * Send a sequence of key strokes to the active element. You can also use characters like
@@ -6,17 +10,17 @@
  * To do that, the value has to correspond to a key from the table.
  *
  * Modifier like Ctrl, Shift, Alt and Meta will stay pressed so you need to trigger them again to release them.
- * Modifiying a click however requires you to use the Webdriver Actions API through the [performActions](https://webdriver.io/docs/api/webdriver.html#performactions) method.
+ * Modifiying a click however requires you to use the WebDriver Actions API through the [performActions](https://webdriver.io/docs/api/webdriver#performactions) method.
  *
  * <example>
     :keys.js
-    it('copies text out of active element', () => {
+    it('copies text out of active element', async () => {
         // copies text from an input element
-        const input = $('#username')
-        input.setValue('anonymous')
+        const input = await $('#username')
+        await input.setValue('anonymous')
 
-        browser.keys(['Meta', 'a'])
-        browser.keys(['Meta', 'c'])
+        await browser.keys(['Meta', 'a'])
+        await browser.keys(['Meta', 'c'])
     });
  * </example>
  *
@@ -24,12 +28,8 @@
  * @see https://w3c.github.io/webdriver/#dispatching-actions
  *
  */
-
-import { checkUnicode } from '../../utils'
-import { UNICODE_CHARACTERS } from '../../constants'
-
 export default function keys (
-    this: WebdriverIO.BrowserObject,
+    this: WebdriverIO.Browser,
     value: string | string[]
 ) {
     let keySequence: string[] = []

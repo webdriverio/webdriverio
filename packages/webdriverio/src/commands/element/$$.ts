@@ -1,9 +1,13 @@
 /**
- * The `$$` command is a short way to call the [`findElements`](/docs/api/webdriver.html#findelements) command in order
+ * The `$$` command is a short way to call the [`findElements`](/docs/api/webdriver#findelements) command in order
  * to fetch multiple elements on the page similar to the `$$` command from the browser scope. The difference when calling
  * it from an element scope is that the driver will look within the children of that element.
  *
- * For more information on how to select specific elements, see [`Selectors`](/docs/selectors.html).
+ * :::info
+ *
+ * For more information on how to select specific elements, check out the [Selectors](/docs/selectors) guide.
+ *
+ * :::
  *
  * <example>
     :index.html
@@ -14,14 +18,14 @@
         <li><a href="/">Contribute</a></li>
     </ul>
     :$.js
-    it('should get text a menu link', () => {
-        const text = $('#menu');
-        console.log(text.$$('li')[2].$('a').getText()); // outputs: "API"
+    it('should get text a menu link', async () => {
+        const text = await $('#menu');
+        console.log(await text.$$('li')[2].$('a').getText()); // outputs: "API"
     });
 
-    it('should get text a menu link - JS Function', () => {
-        const text = $('#menu');
-        console.log(text.$$(function() { // Arrow function is not allowed here.
+    it('should get text a menu link - JS Function', async () => {
+        const text = await $('#menu');
+        console.log(await text.$$(function() { // Arrow function is not allowed here.
             // this is Element https://developer.mozilla.org/en-US/docs/Web/API/Element
             // in this particular example it is HTMLUListElement
             // TypeScript users may do something like this

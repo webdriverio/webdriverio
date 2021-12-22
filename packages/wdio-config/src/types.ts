@@ -1,33 +1,16 @@
-
-export type Hooks = {
-    [k in keyof WebdriverIO.HookFunctions]: WebdriverIO.HookFunctions[k] | NonNullable<WebdriverIO.HookFunctions[k]>[];
+export interface PathService {
+    // Get current working directory
+    getcwd(): string
+    // Require a .js/.json/dotfile config file
+    loadFile<T>(path: string): T
+    // Detect if a file is present
+    isFile(path: string): boolean
+    ensureAbsolutePath(path: string): string
+    // Glob to find file paths matching a pattern
+    glob(pattern: string): string[];
 }
 
-export type Capabilities = (WebDriver.DesiredCapabilities | WebDriver.W3CCapabilities)[] | WebdriverIO.MultiRemoteCapabilities;
-export type Capability = WebDriver.DesiredCapabilities | WebDriver.W3CCapabilities | WebdriverIO.MultiRemoteCapabilities;
-
-export interface ConfigOptions extends Omit<WebdriverIO.Config, 'capabilities' | keyof WebdriverIO.Hooks>, Hooks {
-    automationProtocol?: 'webdriver' | 'devtools' | './protocol-stub'
-    spec?: string[]
-    suite?: string[]
-    capabilities?: Capabilities
-    specFileRetryAttempts?: number
-    cucumberFeaturesWithLineNumbers?: string[]
-    specFileRetriesDeferred?: boolean
-    specFileRetries?: number
-    maxInstances?: number
-}
-
-export interface SingleConfigOption extends Omit<ConfigOptions, 'capabilities'> {
-    capabilities: Capability
-}
-
-export type DefaultOptions<T> = {
-    [k in keyof T]?: {
-        type: 'string' | 'number' | 'object' | 'boolean' | 'function'
-        default?: T[k]
-        required?: boolean
-        validate?: (option: T[k]) => void
-        match?: RegExp
-    }
+export interface ModuleRequireService {
+    resolve(request: string, options?: { paths?: string[]; }): string
+    require<T>(module: string): T;
 }

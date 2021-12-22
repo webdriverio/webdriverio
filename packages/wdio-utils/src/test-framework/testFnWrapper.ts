@@ -76,7 +76,7 @@ export const testFrameworkFnWrapper = async function (
     const testStart = Date.now()
     try {
         result = await promise
-    } catch (err) {
+    } catch (err: any) {
         error = err
     }
     const duration = Date.now() - testStart
@@ -101,7 +101,7 @@ export const testFrameworkFnWrapper = async function (
 
     await logHookError(`After${type}`, await executeHooksWithArgs(`after${type}`, afterFn, [...afterArgs]), cid)
 
-    if (error) {
+    if (error && !error.matcherName) {
         throw error
     }
     return result

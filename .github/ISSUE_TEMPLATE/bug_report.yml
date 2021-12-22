@@ -1,0 +1,142 @@
+name: 🐛 Bug Report
+description: Create a report to help us improve.
+title: "[🐛 Bug]: <title>"
+labels: [Bug 🐛, Needs Triaging ⏳]
+body:
+
+  - type: checkboxes
+    attributes:
+      label: Have you read the Contributing Guidelines on issues?
+      options:
+        - label: I have read the [Contributing Guidelines on issues](https://github.com/webdriverio/webdriverio/blob/main/CONTRIBUTING.md#reporting-new-issues).
+          required: true
+
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this bug report! First, let's get some information about the environment you are using:
+
+  - type: input
+    id: wdio-version
+    attributes:
+      label: WebdriverIO Version
+      description: What version of WebdriverIO are you running?
+      placeholder: latest
+    validations:
+      required: true
+
+  - type: input
+    id: node-version
+    attributes:
+      label: Node.js Version
+      description: What version of Node.js are you using?
+      placeholder: latest
+    validations:
+      required: true
+
+  - type: dropdown
+    id: mode
+    attributes:
+      label: Mode
+      description: |
+        [Standalone mode](https://webdriver.io/docs/setuptypes#standalone-mode) or [WDIO Testrunner](https://webdriver.io/docs/setuptypes#the-wdio-testrunner)?
+      options:
+        - Standalone Mode
+        - WDIO Testrunner
+    validations:
+      required: true
+
+  - type: textarea
+    id: capabilities
+    attributes:
+      label: Which capabilities are you using?
+      description: If you think the bug is related to the capabilities you are using, please share them with us here.
+      placeholder: |
+        {
+          browserName: 'chrome',
+          browserVersion: 'latest',
+          platformName: 'Windows 10'
+        }
+      render: typescript
+    validations:
+      required: false
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: |
+        Describe clearly and concisely the bug including instructions showing how to reproduce it.
+      placeholder: |
+        Please add as many details as possible to avoid assumptions from our side. How do you
+        trigger this bug? What did you expect to happen? Please walk us through it step by step.
+    validations:
+      required: true
+
+  - type: textarea
+    id: what-is-expected
+    attributes:
+      label: What is your expected behavior?
+      description: |
+        What did you expect to happen instead?
+    validations:
+      required: false
+
+  - type: textarea
+    id: reproducible-example
+    attributes:
+      label: How to reproduce the bug.
+      description: |
+        It is essential for us to be able to reproduce the bug on our own machines.
+        Please either create a [minimal reproducible example](https://stackoverflow.com/help/minimal-reproducible-example)
+        in a [new repository](https://github.com/new), a [gist](https://gist.github.com/)
+        or copy and paste all necessary files in here.
+
+        > **What happens if you skip this step?** Someone will read your bug report, and maybe will be able to help you, but it’s unlikely that it will get much attention from the team. Eventually, the issue will likely get closed in favor of issues that have reproducible demos.
+
+        Please remember that:
+
+        - Issues without reproducible demos have a very low priority.
+        - The person fixing the bug would have to do that anyway. Please be respectful of their time.
+        - You might figure out the issues yourself as you work on extracting it.
+
+        Thanks for helping us help you!
+      placeholder: |
+        To reproduce the bug, create a file with the following code:
+        ```js
+        ...
+        ```
+        Then run:
+        ```sh
+        $ node reproducibleExample.js
+        ````
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant log output
+      description: |
+        Please copy and paste any relevant log output. Either paste the terminal
+        output or set [`outputDir`](https://webdriver.io/docs/options#outputdir) in your WDIO config and copy the files content in here.
+      render: typescript
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Code of Conduct
+      description: By submitting this issue, you agree to follow our [Code of Conduct](https://github.com/webdriverio/webdriverio/blob/main/CODE_OF_CONDUCT.md)
+      options:
+        - label: I agree to follow this project's Code of Conduct
+          required: true
+
+  - type: checkboxes
+    attributes:
+      label: Is there an existing issue for this?
+      description: Please search to see if an issue already exists for the bug you encountered.
+      options:
+      - label: I have searched the existing issues
+        required: true

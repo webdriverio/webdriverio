@@ -1,3 +1,7 @@
+import { ELEMENT_KEY } from '../../constants'
+import { getBrowserObject } from '../../utils'
+import getHTMLScript from '../../scripts/getHTML'
+
 /**
  *
  * Get source code of specified DOM element by selector.
@@ -8,13 +12,13 @@
         <span>Lorem ipsum dolor amet</span>
     </div>
     :getHTML.js
-    it('should get html for certain elements', () => {
-        var outerHTML = $('#test').getHTML();
+    it('should get html for certain elements', async () => {
+        var outerHTML = await $('#test').getHTML();
         console.log(outerHTML);
         // outputs:
         // "<div id="test"><span>Lorem ipsum dolor amet</span></div>"
 
-        var innerHTML = $('#test').getHTML(false);
+        var innerHTML = await $('#test').getHTML(false);
         console.log(innerHTML);
         // outputs:
         // "<span>Lorem ipsum dolor amet</span>"
@@ -28,18 +32,13 @@
  * @type property
  *
  */
-
-import { ELEMENT_KEY } from '../../constants'
-import { getBrowserObject } from '../../utils'
-import getHTMLScript from '../../scripts/getHTML'
-
 export default function getHTML (
     this: WebdriverIO.Element,
     includeSelectorTag = true
 ) {
-    const browser: WebdriverIO.BrowserObject = getBrowserObject(this)
+    const browser = getBrowserObject(this)
     return browser.execute(getHTMLScript, {
         [ELEMENT_KEY]: this.elementId, // w3c compatible
         ELEMENT: this.elementId // jsonwp compatible
-    }, includeSelectorTag)
+    } as any as HTMLElement, includeSelectorTag)
 }

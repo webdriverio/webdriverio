@@ -1,3 +1,6 @@
+import { serializeError } from 'serialize-error'
+import WDIORepl from '@wdio/repl'
+
 /**
  *
  * This command helps you to debug your integration tests. It stops the running browser and gives
@@ -12,14 +15,14 @@
  * you are using (e.g. Mocha or Jasmine) in order to prevent test termination due to a test timeout.
  * Also avoid executing the command with multiple capabilities running at the same time.
  *
- * <iframe width="560" height="315" src="https://www.youtube.com/embed/xWwP-3B_YyE" frameborder="0" allowfullscreen></iframe>
+ * <iframe width="560" height="315" src="https://www.youtube.com/embed/xWwP-3B_YyE" frameborder="0" allowFullScreen></iframe>
  *
  * <example>
     :debug.js
-    it('should demonstrate the debug command', () => {
-        $('#input').setValue('FOO')
-        browser.debug() // jumping into the browser and change value of #input to 'BAR'
-        const value = $('#input').getValue()
+    it('should demonstrate the debug command', async () => {
+        await $('#input').setValue('FOO')
+        await browser.debug() // jumping into the browser and change value of #input to 'BAR'
+        const value = await $('#input').getValue()
         console.log(value) // outputs: "BAR"
     })
  * </example>
@@ -28,12 +31,8 @@
  * @type utility
  *
  */
-
-import { serializeError } from 'serialize-error'
-import WDIORepl from '@wdio/repl'
-
 export default function debug(
-    this: WebdriverIO.BrowserObject,
+    this: WebdriverIO.Browser,
     commandTimeout = 5000
 ) {
     const repl = new WDIORepl()
@@ -69,7 +68,7 @@ export default function debug(
     })
 
     let commandResolve = /* istanbul ignore next */ () => { }
-    process.on('message', (m) => {
+    process.on('message', (m: any) => {
         if (m.origin !== 'debugger') {
             return
         }

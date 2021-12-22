@@ -1,5 +1,6 @@
 import Interception from '.'
 import { ERROR_REASON } from '../../constants'
+import type { Matches, MockResponseParams, MockOverwrite } from './types'
 
 /**
  * Network interception class based on a WebDriver compliant endpoint.
@@ -8,9 +9,12 @@ import { ERROR_REASON } from '../../constants'
  * compliant backend.
  */
 export default class WebDriverInterception extends Interception {
-    mockId?: string;
+    mockId?: string
 
     async init () {
+        if (this.url instanceof RegExp) {
+            throw new Error('Regular Expressions as mock url are not supported')
+        }
         const { mockId } = await this.browser.mockRequest(this.url, this.filterOptions)
         this.mockId = mockId
     }
@@ -19,8 +23,8 @@ export default class WebDriverInterception extends Interception {
      * allows access to all requests made with given pattern
      */
     get calls () {
-        return this.browser.call(async () => (
-            this.browser.getMockCalls(this.mockId as string) as any as WebdriverIO.Matches[]
+        return this.browser.call(() => (
+            this.browser.getMockCalls(this.mockId as string) as any as Matches[]
         ))
     }
 
@@ -46,7 +50,7 @@ export default class WebDriverInterception extends Interception {
      * @param {*} overwrites  payload to overwrite the response
      * @param {*} params      additional respond parameters to overwrite
      */
-    respond (overwrite: WebdriverIO.MockOverwrite, params: WebdriverIO.MockResponseParams = {}) {
+    respond (overwrite: MockOverwrite, params: MockResponseParams = {}) {
         return this.browser.call(
             async () => this.browser.respondMock(
                 this.mockId as string,
@@ -60,7 +64,7 @@ export default class WebDriverInterception extends Interception {
      * @param {*} overwrites  payload to overwrite the response
      * @param {*} params      additional respond parameters to overwrite
      */
-    respondOnce (overwrite: WebdriverIO.MockOverwrite, params: WebdriverIO.MockResponseParams = {}) {
+    respondOnce (overwrite: MockOverwrite, params: MockResponseParams = {}) {
         return this.browser.call(
             async () => this.browser.respondMock(
                 this.mockId as string,

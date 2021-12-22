@@ -1,3 +1,7 @@
+import command from '../scripts/getElementCSSValue'
+import { getStaleElementError } from '../utils'
+import type DevToolsDriver from '../devtoolsdriver'
+
 /**
  * The Get Element CSS Value command retrieves the computed value
  * of the given CSS property of the given web element.
@@ -8,11 +12,6 @@
  * @param {string} propertyName  name of the CSS property to retrieve
  * @return {string}              The computed value of the parameter corresponding to property name from the element's style declarations (unless the document type is xml, in which case the return value is simply the empty string).
  */
-
-import command from '../scripts/getElementCSSValue'
-import { getStaleElementError } from '../utils'
-import type DevToolsDriver from '../devtoolsdriver'
-
 export default async function getElementCSSValue (
     this: DevToolsDriver,
     { elementId, propertyName }: { elementId: string, propertyName: string }

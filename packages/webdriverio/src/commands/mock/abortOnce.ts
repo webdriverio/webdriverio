@@ -5,21 +5,19 @@
  * `ConnectionFailed`, `NameNotResolved`, `InternetDisconnected`,
  * `AddressUnreachable`, `BlockedByClient`, `BlockedByResponse`.
  *
- * > This is a __beta__ feature. Please give us feedback and file [an issue](https://github.com/webdriverio/webdriverio/issues/new/choose) if certain scenarios don't work as expected!
- *
  * <example>
     :abortOnce.js
-    it('should block mock only once', () => {
-        const mock = browser.mock('https://webdriver.io')
+    it('should block mock only once', async () => {
+        const mock = await browser.mock('https://webdriver.io')
         mock.abortOnce('Failed')
 
-        browser.url('https://webdriver.io')
+        await browser.url('https://webdriver.io')
             // catch failing command as page can't be loaded
             .catch(() => {})
-        console.log(browser.getTitle()) // outputs: ""
+        console.log(await browser.getTitle()) // outputs: ""
 
-        browser.url('https://webdriver.io')
-        console.log(browser.getTitle()) // outputs: "WebdriverIO · Next-gen browser and mobile automation test framework for Node.js"
+        await browser.url('https://webdriver.io')
+        console.log(await browser.getTitle()) // outputs: "WebdriverIO · Next-gen browser and mobile automation test framework for Node.js"
     })
  * </example>
  *

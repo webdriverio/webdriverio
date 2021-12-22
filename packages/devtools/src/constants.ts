@@ -1,4 +1,4 @@
-import type { DefaultOptions } from '@wdio/config'
+import type { Options } from '@wdio/types'
 
 export const DEFAULT_WIDTH = 1200
 export const DEFAULT_HEIGHT = 900
@@ -6,6 +6,7 @@ export const DEFAULT_X_POSITION = 0
 export const DEFAULT_Y_POSITION = 0
 
 export const ELEMENT_KEY = 'element-6066-11e4-a52e-4f735466cecf'
+export const SHADOW_ELEMENT_KEY = 'shadow-6066-11e4-a52e-4f735466cecf'
 
 // https://github.com/puppeteer/puppeteer/blob/083ea41e943e2a20014279fcfceb23c98a1e4491/src/node/Launcher.ts#L168
 export const DEFAULT_FLAGS = [
@@ -66,7 +67,7 @@ export const BROWSER_TYPE: {
     edge: 'edge'
 }
 
-export const DEFAULTS: DefaultOptions<WebDriver.Options> = {
+export const DEFAULTS: Options.Definition<Options.WebDriver> = {
     capabilities: {
         type: 'object',
         required: true
@@ -78,6 +79,12 @@ export const DEFAULTS: DefaultOptions<WebDriver.Options> = {
         type: 'string',
         default: 'info',
         match: /(trace|debug|info|warn|error|silent)/
+    },
+    /**
+     * directory for log files
+     */
+    outputDir: {
+        type: 'string'
     },
     /**
      * maxConnectionRetries in chrome-launcher
@@ -92,7 +99,7 @@ export const DEFAULT_IMPLICIT_TIMEOUT = 0
 export const DEFAULT_PAGELOAD_TIMEOUT = 5 * 60 * 1000 // 5 min
 export const DEFAULT_SCRIPT_TIMEOUT = 30 * 1000 // 30s
 
-export const SUPPORTED_SELECTOR_STRATEGIES = ['css selector', 'tag name', 'xpath', 'link text', 'partial link text']
+export const SUPPORTED_SELECTOR_STRATEGIES = ['css selector', 'tag name', 'xpath', 'link text', 'partial link text', 'shadow']
 export const SERIALIZE_PROPERTY = 'data-devtoolsdriver-fetchedElement'
 export const SERIALIZE_FLAG = '__executeElement'
 
@@ -123,10 +130,12 @@ export const BROWSER_ERROR_MESSAGES = {
 
 export const VENDOR_PREFIX: {
     chrome: 'goog:chromeOptions',
+    'chrome headless': 'goog:chromeOptions',
     firefox: 'moz:firefoxOptions',
     edge: 'ms:edgeOptions'
 } = {
     chrome: 'goog:chromeOptions',
+    'chrome headless': 'goog:chromeOptions',
     firefox: 'moz:firefoxOptions',
     edge: 'ms:edgeOptions'
 }

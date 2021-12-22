@@ -1,14 +1,15 @@
 {
-  "extends": "@tsconfig/node10/tsconfig.json",
+  "extends": "@tsconfig/node12/tsconfig.json",
 
   "compilerOptions": {
     "allowJs": true,
     "declaration": true,
     "declarationMap": true,
     "resolveJsonModule": true,
-    "removeComments": true,
+    "removeComments": false,
     "strictFunctionTypes": false,
-    "lib": ["dom"],
+    "esModuleInterop": true,
+    "lib": ["dom", "es2019"],
     "types": [
       "node",
       "jest"

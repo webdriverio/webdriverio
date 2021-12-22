@@ -1,0 +1,4 @@
+contact_links:
+  - name: ❓ Questions / Help
+    url: https://gitter.im/webdriverio/webdriverio
+    about: Please ask and answer questions about using WebdriverIO here - do not raise issues for questions.

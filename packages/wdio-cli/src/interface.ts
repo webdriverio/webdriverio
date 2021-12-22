@@ -1,7 +1,7 @@
 import chalk from 'chalk'
 import { EventEmitter } from 'events'
 import logger from '@wdio/logger'
-import type { ConfigOptions } from '@wdio/config'
+import type { Options, Capabilities, Workers } from '@wdio/types'
 
 import { getRunnerName } from './utils'
 
@@ -23,12 +23,6 @@ interface CLIInterfaceEvent {
     error?: TestError
 }
 
-interface Job {
-    caps: WebDriver.Capabilities | WebDriver.W3CCapabilities | WebdriverIO.MultiRemoteCapabilities
-    specs: string[],
-    hasTests: boolean
-}
-
 export default class WDIOCLInterface extends EventEmitter {
     public hasAnsiSupport: boolean
     public result = {
@@ -38,7 +32,7 @@ export default class WDIOCLInterface extends EventEmitter {
         failed: 0
     }
 
-    private _jobs: Map<string, Job> = new Map()
+    private _jobs: Map<string, Workers.Job> = new Map()
     private _specFileRetries: number
     private _specFileRetriesDelay: number
 
@@ -49,12 +43,12 @@ export default class WDIOCLInterface extends EventEmitter {
         reporter: Record<string, string[]>
         debugger: Record<string, string[]>
     } = {
-        reporter: {},
-        debugger: {}
-    }
+            reporter: {},
+            debugger: {}
+        }
 
     constructor(
-        private _config: ConfigOptions,
+        private _config: Options.Testrunner,
         public totalWorkerCnt: number,
         private _isWatchMode = false
     ) {
@@ -101,7 +95,7 @@ export default class WDIOCLInterface extends EventEmitter {
     }
 
     onStart() {
-        this.log(chalk.bold(`\nExecution of ${chalk.blue(this.totalWorkerCnt)} spec files started at`), this._start.toISOString())
+        this.log(chalk.bold(`\nExecution of ${chalk.blue(this.totalWorkerCnt)} workers started at`), this._start.toISOString())
         if (this._inDebugMode) {
             this.log(chalk.bgYellow.black('DEBUG mode enabled!'))
         }
@@ -115,27 +109,27 @@ export default class WDIOCLInterface extends EventEmitter {
         this.onJobComplete(rid, this._jobs.get(rid), 0, chalk.bold.cyan('RUNNING'))
     }
 
-    onSpecRetry (rid: string, job: Job, retries: number) {
+    onSpecRetry (rid: string, job?: Workers.Job, retries = 0) {
         const delayMsg = this._specFileRetriesDelay > 0 ? ` after ${this._specFileRetriesDelay}s` : ''
         this.onJobComplete(rid, job, retries, chalk.bold(chalk.yellow('RETRYING') + delayMsg))
     }
 
-    onSpecPass (rid: string, job: Job, retries: number) {
+    onSpecPass (rid: string, job?: Workers.Job, retries = 0) {
         this.onJobComplete(rid, job, retries, chalk.bold.green('PASSED'))
     }
 
-    onSpecFailure (rid: string, job: Job, retries: number) {
+    onSpecFailure (rid: string, job?: Workers.Job, retries = 0) {
         this.onJobComplete(rid, job, retries, chalk.bold.red('FAILED'))
     }
 
-    onSpecSkip (rid: string, job: Job) {
+    onSpecSkip (rid: string, job?: Workers.Job) {
         this.onJobComplete(rid, job, 0, 'SKIPPED', log.info)
     }
 
-    onJobComplete(cid: string, job?: Job, retries = 0, message = '', _logger: Function = this.log) {
+    onJobComplete(cid: string, job?: Workers.Job, retries = 0, message = '', _logger: Function = this.log) {
         const details = [`[${cid}]`, message]
         if (job) {
-            details.push('in', getRunnerName(job.caps as WebDriver.DesiredCapabilities), this.getFilenames(job.specs))
+            details.push('in', getRunnerName(job.caps as Capabilities.DesiredCapabilities), this.getFilenames(job.specs))
         }
         if (retries > 0) {
             details.push(`(${retries} retries)`)
@@ -164,7 +158,7 @@ export default class WDIOCLInterface extends EventEmitter {
     /**
      * add job to interface
      */
-    addJob ({ cid, caps, specs, hasTests }: Job & { cid: string }) {
+    addJob ({ cid, caps, specs, hasTests }: Workers.Job & { cid: string }) {
         this._jobs.set(cid, { caps, specs, hasTests })
         if (hasTests) {
             this.onSpecRunning(cid)
@@ -188,10 +182,6 @@ export default class WDIOCLInterface extends EventEmitter {
 
         if (job && job.hasTests === false) {
             return this.onSpecSkip(cid, job)
-        }
-
-        if (!job) {
-            throw new Error('Could not find job')
         }
 
         if (passed) {
@@ -220,6 +210,10 @@ export default class WDIOCLInterface extends EventEmitter {
      * event handler that is triggered when runner sends up events
      */
     onMessage (event: CLIInterfaceEvent) {
+        if (event.name === 'reporterRealTime') {
+            this.log(event.content)
+            return
+        }
         if (event.origin === 'debugger' && event.name === 'start') {
             this.log(chalk.yellow(event.params.introMessage))
             this._inDebugMode = true

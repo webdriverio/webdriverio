@@ -1,13 +1,13 @@
 {
   "name": "@wdio/spec-reporter",
-  "version": "6.10.6",
+  "version": "7.16.11",
   "description": "A WebdriverIO plugin to report in spec style",
   "author": "Christian Bromann <christian@saucelabs.com>",
-  "homepage": "https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-spec-reporter",
+  "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-spec-reporter",
   "license": "MIT",
   "main": "./build/index",
   "engines": {
-    "node": ">=10.0.0"
+    "node": ">=12.0.0"
   },
   "repository": {
     "type": "git",
@@ -22,13 +22,15 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "dependencies": {
-    "@wdio/reporter": "6.10.6",
+    "@types/easy-table": "^0.0.33",
+    "@wdio/reporter": "7.16.11",
+    "@wdio/types": "7.16.11",
     "chalk": "^4.0.0",
     "easy-table": "^1.1.1",
     "pretty-ms": "^7.0.0"
   },
   "peerDependencies": {
-    "@wdio/cli": "^6.0.1"
+    "@wdio/cli": "^7.0.0"
   },
   "publishConfig": {
     "access": "public"

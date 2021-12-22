@@ -1,19 +1,20 @@
 import logger from '@wdio/logger'
-import type { Config } from 'webdriverio'
+import type { Capabilities } from 'webdriver'
+import type { Config, ServiceInstance } from 'webdriverio'
 
 import { initialiseLauncherService, initialiseWorkerService } from '../src/initialiseServices'
 
 const log = logger('test')
 
-interface TestLauncherService extends WebdriverIO.ServiceInstance {
+interface TestLauncherService extends ServiceInstance {
     isLauncher: boolean
 }
 
 class CustomService {
     options: Record<string, any>
     config: Config
-    caps: WebDriver.Capabilities
-    constructor (options: Record<string, any>, caps: WebDriver.Capabilities, config: Config) {
+    caps: Capabilities
+    constructor (options: Record<string, any>, caps: Capabilities, config: Config) {
         this.options = options
         this.config = config
         this.caps = caps

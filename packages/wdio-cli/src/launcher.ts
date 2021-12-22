@@ -3,8 +3,9 @@ import fs from 'fs-extra'
 import exitHook from 'async-exit-hook'
 
 import logger from '@wdio/logger'
-import { ConfigParser, ConfigOptions, Capabilities } from '@wdio/config'
+import { ConfigParser } from '@wdio/config'
 import { initialisePlugin, initialiseLauncherService, sleep } from '@wdio/utils'
+import type { Options, Capabilities, Services } from '@wdio/types'
 
 import CLInterface from './interface'
 import { RunCommandArguments } from './types'
@@ -14,7 +15,7 @@ const log = logger('@wdio/cli:launcher')
 
 interface Schedule {
     cid: number
-    caps: Capabilities
+    caps: Capabilities.Capabilities
     specs: WorkerSpecs[]
     availableInstances: number
     runningInstances: number
@@ -36,7 +37,7 @@ interface EndMessage {
 class Launcher {
     configParser: ConfigParser
     isMultiremote: boolean
-    runner: WebdriverIO.RunnerInstance
+    runner: Services.RunnerInstance
     interface: CLInterface
 
     private _exitCode = 0
@@ -46,7 +47,7 @@ class Launcher {
     private _runnerStarted = 0
     private _runnerFailed = 0
 
-    private _launcher?: WebdriverIO.ServiceInstance[]
+    private _launcher?: Services.ServiceInstance[]
     private _resolve?: Function
 
     constructor(
@@ -55,11 +56,27 @@ class Launcher {
         private _isWatchMode = false
     ) {
         this.configParser = new ConfigParser()
+
+        /**
+         * merge auto compile opts to understand how to parse the config
+         */
+        if (_args.autoCompileOpts) {
+            this.configParser.merge({ autoCompileOpts: _args.autoCompileOpts })
+        }
+
+        this.configParser.autoCompile()
+
         this.configParser.addConfigFile(_configFilePath)
         this.configParser.merge(_args)
-
         const config = this.configParser.getConfig()
-        const capabilities = this.configParser.getCapabilities() as (WebDriver.Capabilities | WebDriver.W3CCapabilities | WebdriverIO.MultiRemoteCapabilities)
+
+        /**
+         * assign parsed autocompile options into args so it can be used within the worker
+         * without having to read the config again
+         */
+        this._args.autoCompileOpts = config.autoCompileOpts
+
+        const capabilities = this.configParser.getCapabilities() as (Capabilities.Capabilities | Capabilities.W3CCapabilities | Capabilities.MultiRemoteCapabilities)
         this.isMultiremote = !Array.isArray(capabilities)
 
         if (config.outputDir) {
@@ -71,11 +88,11 @@ class Launcher {
 
         const totalWorkerCnt = Array.isArray(capabilities)
             ? capabilities
-                .map((c: WebDriver.DesiredCapabilities) => this.configParser.getSpecs(c.specs, c.exclude).length)
+                .map((c: Capabilities.DesiredCapabilities) => this.configParser.getSpecs(c.specs, c.exclude).length)
                 .reduce((a, b) => a + b, 0)
             : 1
 
-        const Runner = (initialisePlugin(config.runner!, 'runner') as WebdriverIO.RunnerPlugin).default
+        const Runner = (initialisePlugin(config.runner!, 'runner') as Services.RunnerPlugin).default
         this.runner = new Runner(_configFilePath, config)
 
         this.interface = new CLInterface(config, totalWorkerCnt, this._isWatchMode)
@@ -96,8 +113,8 @@ class Launcher {
 
         try {
             const config = this.configParser.getConfig()
-            const caps = this.configParser.getCapabilities() as Capabilities
-            const { ignoredWorkerServices, launcherServices } = initialiseLauncherService(config, caps as WebDriver.DesiredCapabilities)
+            const caps = this.configParser.getCapabilities() as Capabilities.RemoteCapabilities
+            const { ignoredWorkerServices, launcherServices } = initialiseLauncherService(config, caps as Capabilities.DesiredCapabilities)
             this._launcher = launcherServices
             this._args.ignoredWorkerServices = ignoredWorkerServices
 
@@ -130,7 +147,7 @@ class Launcher {
             await logger.waitForBuffer()
 
             this.interface.finalise()
-        } catch (err) {
+        } catch (err: any) {
             error = err
         } finally {
             if (!this._hasTriggeredExitRoutine) {
@@ -148,11 +165,11 @@ class Launcher {
     /**
      * run without triggering onPrepare/onComplete hooks
      */
-    runMode (config: Required<ConfigOptions>, caps: Capabilities): Promise<number> {
+    runMode (config: Required<Options.Testrunner>, caps: Capabilities.RemoteCapabilities): Promise<number> {
         /**
          * fail if no caps were found
          */
-        if (!caps || (!this.isMultiremote && !caps.length)) {
+        if (!caps) {
             return new Promise((resolve) => {
                 log.error('Missing capabilities, exiting with failure')
                 return resolve(1)
@@ -174,8 +191,8 @@ class Launcher {
              */
             this._schedule.push({
                 cid: cid++,
-                caps,
-                specs: this.configParser.getSpecs((caps as WebDriver.DesiredCapabilities).specs, (caps as WebDriver.DesiredCapabilities).exclude).map(s => ({ files: [s], retries: specFileRetries })),
+                caps: caps as Capabilities.MultiRemoteCapabilities,
+                specs: this.formatSpecs(caps, specFileRetries),
                 availableInstances: config.maxInstances || 1,
                 runningInstances: 0
             })
@@ -183,12 +200,12 @@ class Launcher {
             /**
              * Regular mode
              */
-            for (let capabilities of caps as (WebDriver.DesiredCapabilities | WebDriver.W3CCapabilities)[]) {
+            for (let capabilities of caps as (Capabilities.DesiredCapabilities | Capabilities.W3CCapabilities)[]) {
                 this._schedule.push({
                     cid: cid++,
-                    caps: capabilities as Capabilities,
-                    specs: this.configParser.getSpecs((capabilities as WebDriver.DesiredCapabilities).specs, (capabilities as WebDriver.DesiredCapabilities).exclude).map(s => ({ files: [s], retries: specFileRetries })),
-                    availableInstances: (capabilities as WebDriver.DesiredCapabilities).maxInstances || config.maxInstancesPerCapability,
+                    caps: capabilities as Capabilities.Capabilities,
+                    specs: this.formatSpecs(capabilities, specFileRetries),
+                    availableInstances: (capabilities as Capabilities.DesiredCapabilities).maxInstances || config.maxInstancesPerCapability,
                     runningInstances: 0
                 })
             }
@@ -211,6 +228,25 @@ class Launcher {
             if (this.runSpecs()) {
                 resolve(0)
             }
+        })
+    }
+
+    /**
+     * Format the specs into an array of objects with files and retries
+     */
+    formatSpecs(capabilities: (Capabilities.DesiredCapabilities | Capabilities.W3CCapabilities | Capabilities.RemoteCapabilities), specFileRetries: number) {
+        let files: (string | string[])[] = []
+
+        files = this.configParser.getSpecs((capabilities as Capabilities.DesiredCapabilities).specs, (capabilities as Capabilities.DesiredCapabilities).exclude)
+        return files.map(file => {
+            if (typeof file === 'string') {
+                return { files: [file], retries: specFileRetries }
+            } else if (Array.isArray(file)) {
+                return { files: file, retries: specFileRetries }
+            }
+            log.warn('Unexpected entry in specs that is neither string nor array: ', file)
+            // Returning an empty structure to avoid undefined
+            return { files: [], retries: specFileRetries }
         })
     }
 
@@ -273,7 +309,7 @@ class Launcher {
             let specs = schedulableCaps[0].specs.shift() as NonNullable<WorkerSpecs>
             this.startInstance(
                 specs.files,
-                schedulableCaps[0].caps as WebDriver.DesiredCapabilities,
+                schedulableCaps[0].caps as Capabilities.DesiredCapabilities,
                 schedulableCaps[0].cid,
                 specs.rid,
                 specs.retries
@@ -310,7 +346,7 @@ class Launcher {
      */
     async startInstance(
         specs: string[],
-        caps: WebDriver.DesiredCapabilities | WebDriver.W3CCapabilities | WebdriverIO.MultiRemoteCapabilities,
+        caps: Capabilities.DesiredCapabilities | Capabilities.W3CCapabilities | Capabilities.MultiRemoteCapabilities,
         cid: number,
         rid: string | undefined,
         retries: number
@@ -360,6 +396,12 @@ class Launcher {
         // If an arg appears multiple times the last occurrence is used
         let execArgv = [...defaultArgs, ...debugArgs, ...capExecArgs]
 
+        // set '--no-wasm-code-gc' deliberatively as it causes problems with
+        // @wdio/sync and recent TypeScript compiles
+        if (!execArgv.includes('--no-wasm-code-gc')) {
+            execArgv.push('--no-wasm-code-gc')
+        }
+
         // bump up worker count
         this._runnerStarted++
 
@@ -373,7 +415,7 @@ class Launcher {
             cid: runnerId,
             command: 'run',
             configFile: this._configFilePath,
-            args: this._args,
+            args: { ...this._args, ...(config?.autoCompileOpts ? { autoCompileOpts: config.autoCompileOpts } : {}) },
             caps,
             specs,
             execArgv,

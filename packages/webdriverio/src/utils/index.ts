@@ -10,16 +10,17 @@ import isObject from 'lodash.isobject'
 import isPlainObject from 'lodash.isplainobject'
 import { URL } from 'url'
 import { SUPPORTED_BROWSER } from 'devtools'
+import { UNICODE_CHARACTERS } from '@wdio/utils'
+import type { ElementReference } from '@wdio/protocols'
+import type { Options, Capabilities } from '@wdio/types'
+import { locatorStrategy } from 'query-selector-shadow-dom/plugins/webdriverio'
 
-import { ELEMENT_KEY, UNICODE_CHARACTERS, DRIVER_DEFAULT_ENDPOINT, FF_REMOTE_DEBUG_ARG } from '../constants'
+import { ELEMENT_KEY, DRIVER_DEFAULT_ENDPOINT, FF_REMOTE_DEBUG_ARG, DEEP_SELECTOR } from '../constants'
 import { findStrategy } from './findStrategy'
-import type {
-    ElementReference, ElementObject, ElementFunction, Selector, ParsedCSSValue,
-    Options
-} from '../types'
+import type { ElementArray, ElementFunction, Selector, ParsedCSSValue, CustomLocatorReturnValue } from '../types'
 
-const browserCommands = require('../commands/browser')
-const elementCommands = require('../commands/element')
+const browserCommands = require('../commands/browser').default
+const elementCommands = require('../commands/element').default
 
 const log = logger('webdriverio')
 const INVALID_SELECTOR_ERROR = 'selector needs to be typeof `string` or `function`'
@@ -94,9 +95,9 @@ export const getElementFromResponse = (res: ElementReference) => {
 /**
  * traverse up the scope chain until browser element was reached
  */
-export function getBrowserObject (elem: WebdriverIO.Element | WebdriverIO.BrowserObject): WebdriverIO.BrowserObject {
+export function getBrowserObject (elem: WebdriverIO.Element | WebdriverIO.Browser): WebdriverIO.Browser {
     const elemObject = elem as WebdriverIO.Element
-    return elemObject.parent ? getBrowserObject(elemObject.parent) : elem
+    return (elemObject as WebdriverIO.Element).parent ? getBrowserObject(elemObject.parent) : elem as WebdriverIO.Browser
 }
 
 /**
@@ -120,7 +121,7 @@ export function transformToCharString (value: any, translateToUnicode = true) {
         } else if (val && typeof val === 'object') {
             try {
                 ret.push(...JSON.stringify(val).split(''))
-            } catch (e) { /* ignore */ }
+            } catch (err: any) { /* ignore */ }
         } else if (typeof val === 'boolean') {
             const entry = val ? 'true'.split('') : 'false'.split('')
             ret.push(...entry)
@@ -188,7 +189,7 @@ export function parseCSS (cssPropertyValue: string, cssProperty?: string) {
             if (parsedValue.parsed.type && parsedValue.parsed.type === 'number' && parsedValue.parsed.unit === '') {
                 parsedValue.value = parsedValue.parsed.value
             }
-        } catch (e) {
+        } catch (err: any) {
             // TODO improve css-parse lib to handle properties like
             // `-webkit-animation-timing-function :  cubic-bezier(0.25, 0.1, 0.25, 1)
         }
@@ -213,9 +214,9 @@ export function checkUnicode (
 
 function fetchElementByJSFunction (
     selector: ElementFunction,
-    scope: WebdriverIO.Element
-): Promise<WebDriver.ElementReference | WebDriver.ElementReference[]> {
-    if (!scope.elementId) {
+    scope: WebdriverIO.Browser | WebdriverIO.Element
+): Promise<ElementReference | ElementReference[]> {
+    if (!(scope as WebdriverIO.Element).elementId) {
         return scope.execute(selector as any)
     }
     /**
@@ -231,17 +232,33 @@ function fetchElementByJSFunction (
  * logic to find an element
  */
 export async function findElement(
-    this: WebdriverIO.Element,
+    this: WebdriverIO.Browser | WebdriverIO.Element,
     selector: Selector
 ) {
+    /**
+     * check if shadow DOM integration is used
+     */
+    if (!this.isDevTools && typeof selector === 'string' && selector.startsWith(DEEP_SELECTOR)) {
+        const notFoundError = new Error(`shadow selector "${selector.slice(DEEP_SELECTOR.length)}" did not return an HTMLElement`)
+        let elem: ElementReference | ElementReference[] = await this.execute(
+            locatorStrategy,
+            ...[
+                selector.slice(DEEP_SELECTOR.length),
+                (this as WebdriverIO.Element).elementId ? this : undefined
+            ].filter(Boolean)
+        )
+        elem = Array.isArray(elem) ? elem[0] : elem
+        return getElementFromResponse(elem) ? elem : notFoundError
+    }
+
     /**
      * fetch element using regular protocol command
      */
     if (typeof selector === 'string' || isPlainObject(selector)) {
         const { using, value } = findStrategy(selector as string, this.isW3C, this.isMobile)
-        return this.elementId
+        return (this as WebdriverIO.Element).elementId
             // casting to any necessary given weak type support of protocol commands
-            ? this.findElementFromElement(this.elementId, using, value) as any as ElementReference
+            ? this.findElementFromElement((this as WebdriverIO.Element).elementId, using, value) as any as ElementReference
             : this.findElement(using, value) as any as ElementReference
     }
 
@@ -262,17 +279,32 @@ export async function findElement(
  * logic to find a elements
  */
 export async function findElements(
-    this: WebdriverIO.Element,
+    this: WebdriverIO.Browser | WebdriverIO.Element,
     selector: Selector
 ) {
+    /**
+     * check if shadow DOM integration is used
+     */
+    if (!this.isDevTools && typeof selector === 'string' && selector.startsWith(DEEP_SELECTOR)) {
+        const elems: ElementReference | ElementReference[] = await this.execute(
+            locatorStrategy,
+            ...[
+                selector.slice(DEEP_SELECTOR.length),
+                (this as WebdriverIO.Element).elementId ? this : undefined
+            ].filter(Boolean)
+        )
+        const elemArray = Array.isArray(elems) ? elems : [elems]
+        return elemArray.filter((elem) => elem && getElementFromResponse(elem))
+    }
+
     /**
      * fetch element using regular protocol command
      */
     if (typeof selector === 'string' || isPlainObject(selector)) {
         const { using, value } = findStrategy(selector as string, this.isW3C, this.isMobile)
-        return this.elementId
+        return (this as WebdriverIO.Element).elementId
             // casting to any necessary given weak type support of protocol commands
-            ? this.findElementsFromElement(this.elementId, using, value) as any as ElementReference[]
+            ? this.findElementsFromElement((this as WebdriverIO.Element).elementId, using, value) as any as ElementReference[]
             : this.findElements(using, value) as any as ElementReference[]
     }
 
@@ -294,9 +326,9 @@ export async function findElements(
 export function verifyArgsAndStripIfElement(args: any) {
     function verify (arg: any) {
         if (isObject(arg) && arg.constructor.name === 'Element') {
-            const elem = arg as ElementObject
+            const elem = arg as WebdriverIO.Element
             if (!elem.elementId) {
-                throw new Error(`The element with selector "${elem.selector}" you trying to pass into the execute method wasn't found`)
+                throw new Error(`The element with selector "${elem.selector}" you are trying to pass into the execute method wasn't found`)
             }
 
             return {
@@ -336,7 +368,7 @@ export async function getElementRect(scope: WebdriverIO.Element) {
                 width,
                 height
             }
-        }, scope)
+        }, scope as any as HTMLElement)
 
         // try set proper value
         Object.keys(defaults).forEach((key: keyof typeof defaults) => {
@@ -380,7 +412,7 @@ export function validateUrl (url: string, origError?: Error): string {
     try {
         const urlObject = new URL(url)
         return urlObject.href
-    } catch (e) {
+    } catch (err: any) {
         /**
          * if even adding http:// doesn't help, fail with original error
          */
@@ -388,7 +420,7 @@ export function validateUrl (url: string, origError?: Error): string {
             throw origError
         }
 
-        return validateUrl(`http://${url}`, e)
+        return validateUrl(`http://${url}`, new Error(`Invalid URL: ${url}`))
     }
 }
 
@@ -408,9 +440,10 @@ export async function hasElementId (element: WebdriverIO.Element) {
      * This is only necessary as isDisplayed is on the exclusion list for the middleware
      */
     if (!element.elementId) {
-        const method = element.isReactElement ? 'react$' : '$'
-
-        element.elementId = (await element.parent[method](element.selector as string)).elementId
+        const command = element.isReactElement
+            ? element.parent.react$.bind(element.parent)
+            : element.parent.$.bind(element.parent)
+        element.elementId = (await command(element.selector as string)).elementId
     }
 
     /*
@@ -422,13 +455,13 @@ export async function hasElementId (element: WebdriverIO.Element) {
     return true
 }
 
-export function addLocatorStrategyHandler(scope: WebdriverIO.BrowserObject) {
-    return (name: string, script: () => ElementReference | ElementReference[]) => {
+export function addLocatorStrategyHandler(scope: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser) {
+    return (name: string, func: (selector: string, root?: HTMLElement) => CustomLocatorReturnValue) => {
         if (scope.strategies.get(name)) {
             throw new Error(`Strategy ${name} already exists`)
         }
 
-        scope.strategies.set(name, script)
+        scope.strategies.set(name, func)
     }
 }
 
@@ -442,9 +475,9 @@ export function addLocatorStrategyHandler(scope: WebdriverIO.BrowserObject) {
  * @returns {object[]}  elements
  */
 export const enhanceElementsArray = (
-    elements: WebdriverIO.ElementArray,
-    parent: WebdriverIO.BrowserObject | WebdriverIO.Element,
-    selector: string,
+    elements: ElementArray,
+    parent: WebdriverIO.Browser | WebdriverIO.Element,
+    selector: Selector,
     foundWith = '$$',
     props: any[] = []
 ) => {
@@ -461,7 +494,7 @@ export const enhanceElementsArray = (
  */
 export const isStub = (automationProtocol?: string) => automationProtocol === './protocol-stub'
 
-export const getAutomationProtocol = async (config: Options) => {
+export const getAutomationProtocol = async (config: Options.WebdriverIO | Options.Testrunner) => {
     /**
      * if automation protocol is set by user prefer this
      */
@@ -479,12 +512,22 @@ export const getAutomationProtocol = async (config: Options) => {
     /**
      * only run DevTools protocol if capabilities match supported platforms
      */
+    const caps = (
+        ((config as Options.WebdriverIO).capabilities as Capabilities.W3CCapabilities)?.alwaysMatch ||
+        config.capabilities as Capabilities.Capabilities
+    ) || {}
+    const desiredCaps = caps as Capabilities.DesiredCapabilities
+    if (!SUPPORTED_BROWSER.includes(caps.browserName?.toLowerCase() as string)) {
+        return 'webdriver'
+    }
+
+    /**
+     * check if we are on mobile and use WebDriver if so
+     */
     if (
-        config.capabilities &&
-        typeof (config.capabilities as WebDriver.DesiredCapabilities).browserName === 'string' &&
-        !SUPPORTED_BROWSER.includes(
-            (config.capabilities as WebDriver.DesiredCapabilities).browserName?.toLowerCase() as string
-        )
+        desiredCaps.deviceName || caps['appium:deviceName'] ||
+        desiredCaps.platformVersion || caps['appium:platformVersion'] ||
+        desiredCaps.app || caps['appium:app']
     ) {
         return 'webdriver'
     }
@@ -492,7 +535,7 @@ export const getAutomationProtocol = async (config: Options) => {
     /**
      * run WebDriver if capabilities clearly identify it as it
      */
-    if (config.capabilities && (config.capabilities as WebDriver.W3CCapabilities).alwaysMatch) {
+    if (config.capabilities && ((config as Options.WebdriverIO).capabilities as Capabilities.W3CCapabilities).alwaysMatch) {
         return 'webdriver'
     }
 
@@ -526,8 +569,13 @@ export const getAutomationProtocol = async (config: Options) => {
  *
  * NOTE: this method is executed twice when running the WDIO testrunner
  */
-export const updateCapabilities = async (params: Options, automationProtocol?: string) => {
-    const caps = params.capabilities as WebDriver.DesiredCapabilities
+export const updateCapabilities = async (params: Options.WebdriverIO | Options.Testrunner, automationProtocol?: Options.SupportedProtocols) => {
+    const caps = params.capabilities as Capabilities.Capabilities
+
+    if (automationProtocol && !params.automationProtocol) {
+        params.automationProtocol = automationProtocol
+    }
+
     /**
      * attach remote debugging port options to Firefox sessions
      * (this will be ignored if not supported)

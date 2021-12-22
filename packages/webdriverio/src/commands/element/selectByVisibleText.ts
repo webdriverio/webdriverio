@@ -1,3 +1,5 @@
+import { getElementFromResponse } from '../../utils'
+
 /**
  *
  * Select option with displayed text matching the argument.
@@ -13,11 +15,11 @@
         <option value="someValue5">seis</option>
     </select>
     :selectByVisibleText.js
-    it('demonstrate the selectByVisibleText command', () => {
-        const selectBox = $('#selectbox');
-        console.log(selectBox.getText('option:checked')); // returns "uno"
-        selectBox.selectByVisibleText('cuatro');
-        console.log(selectBox.getText('option:checked')); // returns "cuatro"
+    it('demonstrate the selectByVisibleText command', async () => {
+        const selectBox = await $('#selectbox');
+        console.log(await selectBox.getText('option:checked')); // returns "uno"
+        await selectBox.selectByVisibleText('cuatro');
+        console.log(await selectBox.getText('option:checked')); // returns "cuatro"
     })
  * </example>
  *
@@ -27,9 +29,6 @@
  * @type action
  *
  */
-
-import { getElementFromResponse } from '../../utils'
-
 export default async function selectByVisibleText (
     this: WebdriverIO.Element,
     text: string | number

@@ -1,8 +1,17 @@
+import type { WaitForOptions } from '../../types'
+
 /**
  *
  * Wait for an element (selected by css selector) for the provided amount of
  * milliseconds to be (dis/en)abled. If multiple elements get queried by given
  * selector, it returns true if at least one element is (dis/en)abled.
+ *
+ * :::info
+ *
+ * As opposed to other element commands WebdriverIO will not wait for the element
+ * to exist to execute this command.
+ *
+ * :::
  *
  * <example>
     :index.html
@@ -13,13 +22,13 @@
         }, 2000);
     </script>
     :waitForEnabledExample.js
-    it('should detect when element is enabled', () => {
-        $('#username').waitForEnabled({ timeout: 3000 });
+    it('should detect when element is enabled', async () => {
+        await $('#username').waitForEnabled({ timeout: 3000 });
     });
 
-    it('should detect when element is disabled', () => {
-        elem = $('#username');
-        elem.waitForEnabled({ reverse: true })
+    it('should detect when element is disabled', async () => {
+        elem = await $('#username');
+        await elem.waitForEnabled({ reverse: true })
     });
  * </example>
  *
@@ -34,8 +43,6 @@
  * @type utility
  *
  */
-import type { WaitForOptions } from '../../types'
-
 export default async function waitForEnabled(
     this: WebdriverIO.Element,
     {

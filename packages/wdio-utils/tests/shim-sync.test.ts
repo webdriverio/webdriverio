@@ -1,28 +1,40 @@
 import { executeHooksWithArgs, runFnInFiberContext, wrapCommand, hasWdioSyncSupport, executeSync, runSync } from '../src/shim'
+import { wrapCommand as wrapCommandSync } from '@wdio/sync'
 
 jest.mock('@wdio/sync', () => ({
-    executeHooksWithArgs: 'executeHooksWithArgs',
-    runFnInFiberContext: 'runFnInFiberContext',
-    wrapCommand: 'wrapCommand',
-    executeSync: 'executeSync',
-    runSync: 'runSync'
+    executeHooksWithArgs: jest.fn().mockReturnValue('executeHooksWithArgs'),
+    wrapCommand: jest.fn().mockReturnValue(jest.fn()),
+    executeSync: jest.fn().mockReturnValue('executeSync'),
+    runSync: jest.fn().mockReturnValue('runSync'),
+    runFnInFiberContext: jest.fn().mockReturnValue(() => {})
 }))
+
+const command = jest.fn().mockReturnValue({})
 
 describe('executeHooksWithArgs', () => {
     it('should match @wdio/sync', async () => {
-        expect(executeHooksWithArgs).toBe('executeHooksWithArgs')
+        expect(executeHooksWithArgs.call({}, 'before', command)).toBe('executeHooksWithArgs')
     })
 })
 
 describe('runFnInFiberContext', () => {
     it('should match @wdio/sync', async () => {
-        expect(runFnInFiberContext).toBe('runFnInFiberContext')
+        expect(typeof runFnInFiberContext.call({}, command)).toBe('function')
     })
 })
 
 describe('wrapCommand', () => {
     it('should match @wdio/sync', async () => {
-        expect(wrapCommand).toBe('wrapCommand')
+        global._HAS_FIBER_CONTEXT = true
+
+        expect(wrapCommandSync).toBeCalledTimes(0)
+        wrapCommand('foo', jest.fn()).call({ options: {} }, 'foo')
+        expect(wrapCommandSync).toBeCalledTimes(0)
+
+        // @ts-ignore
+        global.browser = {}
+        wrapCommand('foo', jest.fn()).call({ options: {} }, 'foo')
+        expect(wrapCommandSync).toBeCalledTimes(1)
     })
 })
 
@@ -34,12 +46,12 @@ describe('hasWdioSyncSupport', () => {
 
 describe('executeSync', () => {
     it('should match @wdio/sync', async () => {
-        expect(executeSync).toBe('executeSync')
+        expect(executeSync.call({}, command)).toBe('executeSync')
     })
 })
 
 describe('runSync', () => {
     it('should match @wdio/sync', async () => {
-        expect(runSync).toBe('runSync')
+        expect(runSync.call({}, command)).toBe('runSync')
     })
 })

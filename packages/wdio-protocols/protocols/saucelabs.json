@@ -254,7 +254,8 @@
       "parameters": [{
         "type": "boolean",
         "name": "restore",
-        "description": "Set to true if mock should be restored as well."
+        "description": "Set to true if mock should be restored as well.",
+        "required": false
       }]
     },
     "POST": {

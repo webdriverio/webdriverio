@@ -8,10 +8,22 @@ import { canAccess } from '@wdio/utils'
 import {
     validate, getPrototype, findElement, findElements, getStaleElementError,
     sanitizeError, transformExecuteArgs, transformExecuteResult, getPages,
-    uniq, findByWhich, patchDebug
+    uniq, findByWhich, patchDebug, sleep
 } from '../src/utils'
 
 const debug = jest.requireActual('debug')
+
+/**
+ * some WebDriver commands are either not part of a recommended standard
+ * or not used enough by end users that it would make sense to implement
+ * parity to the devtools protocol
+ */
+const IGNORE_MISSING_COMMANDS = [
+    'addCredential', 'addVirtualAuthenticator', 'createMockSensor', 'deleteMockSensor',
+    'generateTestReport', 'getCredentials', 'getMockSensor', 'removeAllCredentials',
+    'removeCredential', 'removeVirtualAuthenticator', 'setPermissions', 'setTimeZone',
+    'setUserVerified', 'updateMockSensor'
+]
 
 const command = {
     endpoint: '/session/:sessionId/element/:elementId/element',
@@ -104,7 +116,16 @@ describe('validate', () => {
 
 test('getPrototype', () => {
     let i = 0
-    expect(getPrototype(() => ++i)).toMatchSnapshot()
+    const commands = getPrototype(() => ++i)
+    const filteredCommands = Object.entries(commands)
+        .reduce((cmds, [name, description]) => {
+            if (IGNORE_MISSING_COMMANDS.includes(name)) {
+                return cmds
+            }
+            cmds[name] = description
+            return cmds
+        }, {} as Record<string, { value: Function }>)
+    expect(filteredCommands).toMatchSnapshot()
 })
 
 describe('findElement utils', () => {
@@ -220,7 +241,7 @@ describe('findElement utils', () => {
             expect(pageMock.$x).toBeCalledWith('barfoo')
         })
 
-        it('should return immiadiatelly if no elements were found', async () => {
+        it('should return immediately if no elements were found', async () => {
             const scope = {
                 timeouts: { get: jest.fn() },
                 elementStore: { set: jest.fn() }
@@ -292,6 +313,11 @@ test('transformExecuteArgs throws stale element if element is not in store', asy
         true,
         42
     ])).rejects.toThrow()
+})
+
+test('transformExecuteArgs should allow undefined params', async () => {
+    const scope = { elementStore: new Map() }
+    expect(await transformExecuteArgs.call(scope as any, undefined)).toEqual([])
 })
 
 describe('transformExecuteResult', () => {
@@ -378,4 +404,10 @@ test('patchDebug with debug not install in puppeteer', () => {
     patchDebug(logMock as any)
     pptrDebugLog('something something - puppeteer:protocol barfoo')
     expect(logMock.debug).toBeCalledWith('barfoo')
+})
+
+test('sleep', async () => {
+    const start = Date.now()
+    await sleep(100)
+    expect(Date.now() - start).toBeGreaterThanOrEqual(90)
 })

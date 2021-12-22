@@ -6,6 +6,8 @@ import logger from '@wdio/logger'
 import Worker from '../src/worker'
 import type { WorkerMessage } from '../src/types'
 
+const expect = global.expect as unknown as jest.Expect
+
 const workerConfig = {
     cid: '0-3',
     configFile: '/foobar',
@@ -17,7 +19,7 @@ const workerConfig = {
 
 describe('handleMessage', () => {
     it('should emit payload with cid', () => {
-        const worker = new Worker({}, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer())
+        const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer())
         worker.emit = jest.fn()
 
         worker['_handleMessage']({ foo: 'bar' } as unknown as WorkerMessage)
@@ -28,14 +30,14 @@ describe('handleMessage', () => {
     })
 
     it('should un mark worker as busy if command is finished', () => {
-        const worker = new Worker({}, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer())
+        const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer())
         worker.isBusy = true
         worker['_handleMessage']({ name: 'finisedCommand' } as unknown as WorkerMessage)
         expect(worker.isBusy).toBe(false)
     })
 
     it('stores sessionId and connection data to worker instance', () => {
-        const worker = new Worker({}, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer())
+        const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer())
         worker.emit = jest.fn()
         const payload = {
             name: 'sessionStarted',
@@ -51,7 +53,7 @@ describe('handleMessage', () => {
     })
 
     it('stores instances to worker instance in Multiremote mode', () => {
-        const worker = new Worker({}, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer())
+        const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer())
         const payload = {
             name: 'sessionStarted',
             content: {
@@ -65,7 +67,7 @@ describe('handleMessage', () => {
     })
 
     it('handle debug command called within worker process', async () => {
-        const worker = new Worker({}, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer())
+        const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer())
         worker.emit = jest.fn()
         worker.childProcess = { send: jest.fn() } as unknown as ChildProcess
         worker['_handleMessage']({
@@ -87,7 +89,7 @@ describe('handleMessage', () => {
 
 describe('handleError', () => {
     it('should emit error', () => {
-        const worker = new Worker({}, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer())
+        const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer())
         worker.emit = jest.fn()
         worker['_handleError']({ foo: 'bar' } as unknown as Error)
         expect(worker.emit).toBeCalledWith('error', {
@@ -99,7 +101,7 @@ describe('handleError', () => {
 
 describe('handleExit', () => {
     it('should handle it', () => {
-        const worker = new Worker({}, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer())
+        const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer())
         const childProcess = { kill: jest.fn() }
         worker.childProcess = childProcess as unknown as ChildProcess
         worker.isBusy = true
@@ -119,7 +121,7 @@ describe('handleExit', () => {
 
 describe('postMessage', () => {
     it('should log if the cid is busy and exit', () => {
-        const worker = new Worker({}, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer())
+        const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer())
         const log = logger('webdriver')
         jest.spyOn(log, 'info').mockImplementation((string) => string)
 
@@ -131,7 +133,7 @@ describe('postMessage', () => {
     })
 
     it('should create a process if it does not have one', () => {
-        const worker = new Worker({}, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer())
+        const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer())
         worker.childProcess = undefined
         jest.spyOn(worker, 'startProcess').mockImplementation(
             () => ({ send: jest.fn() }) as unknown as ChildProcess)

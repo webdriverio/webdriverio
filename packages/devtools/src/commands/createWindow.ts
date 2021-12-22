@@ -1,13 +1,3 @@
-/**
- * Create a new top-level browsing context.
- *
- * @alias browser.createWindow
- * @see https://w3c.github.io/webdriver/#new-window
- * @param {string} type  Set to 'tab' if the newly created window shares an OS-level window with the current browsing context, or 'window' otherwise.
- * @return {object}      New window object containing 'handle' with the value of the handle and 'type' with the value of the created window type
- */
-
-import { v4 as uuidv4 } from 'uuid'
 import type DevToolsDriver from '../devtoolsdriver'
 
 import command from '../scripts/createWindow'
@@ -16,6 +6,14 @@ const WINDOW_FEATURES = 'menubar=1,toolbar=1,location=1,resizable=1,scrollbars=1
 const NEW_PAGE_URL = 'about:blank'
 const DEFAULT_WINDOW_TYPE = 'tab'
 
+/**
+ * Create a new top-level browsing context.
+ *
+ * @alias browser.createWindow
+ * @see https://w3c.github.io/webdriver/#new-window
+ * @param {string} type  Set to 'tab' if the newly created window shares an OS-level window with the current browsing context, or 'window' otherwise.
+ * @return {object}      New window object containing 'handle' with the value of the handle and 'type' with the value of the created window type
+ */
 export default async function createWindow (
     this: DevToolsDriver,
     { type }: { type: 'window' | 'tab' }
@@ -38,11 +36,7 @@ export default async function createWindow (
         newPage = await this.browser.newPage()
     }
 
-    const handle = uuidv4()
     await newPage.bringToFront()
-
-    this.currentWindowHandle = handle
-    this.windows.set(handle, newPage)
     return {
         handle: this.currentWindowHandle,
         type

@@ -5,25 +5,26 @@ import flattenDeep from 'lodash.flattendeep'
 import union from 'lodash.union'
 
 import Launcher from './launcher'
-import { ConfigOptions } from '@wdio/config'
-import { RunCommandArguments } from './types.js'
-import { EventEmitter } from 'events'
+import type { Capabilities, Workers } from '@wdio/types'
+import { RunCommandArguments, ValueKeyIteratee } from './types.js'
 
 const log = logger('@wdio/cli:watch')
 
+type Spec = string | string[]
 export default class Watcher {
     private _launcher: Launcher
-    private _args: ConfigOptions
-    private _specs: string[]
+    private _specs: Spec[]
 
-    constructor (configFile: string, args: ConfigOptions) {
+    constructor (
+        private _configFile: string,
+        private _args: Omit<RunCommandArguments, 'configPath'>
+    ) {
         log.info('Starting launcher in watch mode')
-        this._launcher = new Launcher(configFile, args, true)
-        this._args = args
+        this._launcher = new Launcher(this._configFile, this._args, true)
 
         const specs = this._launcher.configParser.getSpecs()
         const capSpecs = this._launcher.isMultiremote ? [] : union(flattenDeep(
-            (this._launcher.configParser.getCapabilities() as WebDriver.DesiredCapabilities[]).map(cap => cap.specs || [])
+            (this._launcher.configParser.getCapabilities() as Capabilities.DesiredCapabilities[]).map(cap => cap.specs || [])
         ))
         this._specs = [...specs, ...capSpecs]
     }
@@ -32,7 +33,8 @@ export default class Watcher {
         /**
          * listen on spec changes and rerun specific spec file
          */
-        chokidar.watch(this._specs, { ignoreInitial: true })
+        let flattenedSpecs = flattenDeep(this._specs)
+        chokidar.watch(flattenedSpecs, { ignoreInitial: true })
             .on('add', this.getFileListener())
             .on('change', this.getFileListener())
 
@@ -73,41 +75,70 @@ export default class Watcher {
      * @return {Function}                    chokidar event callback
      */
     getFileListener (passOnFile = true) {
-        return (spec: string) => this.run(
-            Object.assign({}, this._args, passOnFile ? { spec } : {})
-        )
+        return (spec: string) => {
+            const runSpecs: Spec[] = []
+            let singleSpecFound: boolean = false
+            for (let index = 0, length = this._specs.length; index < length; index += 1) {
+                const value = this._specs[index]
+                if (Array.isArray(value) && value.indexOf(spec) > -1) {
+                    runSpecs.push(value)
+                } else if ( !singleSpecFound && spec === value) {
+                    // Only need to run a singleFile once  - so avoid duplicates
+                    singleSpecFound = true
+                    runSpecs.push(value)
+                }
+            }
+
+            // If the runSpecs array is empty, then this must be a new file/array
+            // so add the spec directly to the runSpecs
+            if (runSpecs.length === 0) {
+                runSpecs.push(spec)
+            }
+
+            // Do not pass the `spec` command line option to `this.run()`
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const { spec: _specArg, ...args } = this._args
+            return runSpecs.map((spec) => {
+                return this.run({ ...args, ...(passOnFile ? { spec } : {}) })
+            })
+        }
     }
 
     /**
      * helper method to get workers from worker pool of wdio runner
-     * @param  {Function} pickBy             filter by property value (see lodash.pickBy)
-     * @param  {Boolean}  includeBusyWorker  don't filter out busy worker (default: false)
-     * @return {Object}                      Object with workers, e.g. {'0-0': { ... }}
+     * @param  predicate         filter by property value (see lodash.pickBy)
+     * @param  includeBusyWorker don't filter out busy worker (default: false)
+     * @return                   Object with workers, e.g. {'0-0': { ... }}
      */
-    getWorkers (pickByFn?: (value: any, key: string) => any, includeBusyWorker?: boolean) {
+    getWorkers (predicate?: ValueKeyIteratee<Workers.Worker> | null | undefined, includeBusyWorker?: boolean): Workers.WorkerPool {
         let workers = this._launcher.runner.workerPool
 
-        if (typeof pickByFn === 'function') {
-            workers = pickBy(workers, pickByFn)
+        if (typeof predicate === 'function') {
+            workers = pickBy(workers, predicate)
         }
 
         /**
-         * filter out busy workers, only skip if explicitely desired
+         * filter out busy workers, only skip if explicitly desired
          */
         if (!includeBusyWorker) {
             workers = pickBy(workers, (worker) => !worker.isBusy)
         }
 
-        return workers as EventEmitter
+        return workers
     }
 
     /**
      * run workers with params
-     * @param  {Object} [params={}]  parameters to run the worker with
+     * @param  params parameters to run the worker with
      */
-    run (params: Partial<RunCommandArguments> = {}) {
+    run (params: Omit<Partial<RunCommandArguments>, 'spec'> & { spec?: Spec } = {}) {
         const workers = this.getWorkers(
-            (params.spec ? (worker) => worker.specs.includes(params.spec) : undefined)
+            (params.spec ? (worker) => {
+                if (Array.isArray(params.spec)) {
+                    return params.spec === worker.specs
+                }
+                return worker.specs.includes(params.spec!)
+            } : undefined)
         )
 
         /**

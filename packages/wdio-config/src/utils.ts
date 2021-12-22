@@ -1,29 +1,13 @@
-import type { DefaultOptions } from './types'
+import logger from '@wdio/logger'
+import type { Capabilities, Options } from '@wdio/types'
+// import type { RegisterOptions } from 'ts-node'
 
-const DEFAULT_HOSTNAME = '127.0.0.1'
-const DEFAULT_PORT = 4444
-const DEFAULT_PROTOCOL = 'http'
-const DEFAULT_PATH = '/'
-const LEGACY_PATH = '/wd/hub'
+import type { ModuleRequireService } from './types'
 
-const REGION_MAPPING = {
-    'us': 'us-west-1.', // default endpoint
-    'eu': 'eu-central-1.',
-    'eu-central-1': 'eu-central-1.',
-    'us-east-1': 'us-east-1.'
-}
+const log = logger('@wdio/config:utils')
 
 export const validObjectOrArray = (object: any): object is object | Array<any> => (Array.isArray(object) && object.length > 0) ||
     (typeof object === 'object' && Object.keys(object).length > 0)
-
-export function getSauceEndpoint (region: keyof typeof REGION_MAPPING, isRDC?: boolean) {
-    const shortRegion = REGION_MAPPING[region] ? region : 'us'
-    if (isRDC){
-        return `${shortRegion}1.appium.testobject.com`
-    }
-
-    return `ondemand.${REGION_MAPPING[shortRegion]}saucelabs.com`
-}
 
 /**
  * remove line numbers from file path, ex:
@@ -49,109 +33,8 @@ export function isCucumberFeatureWithLineNumber(spec: string | string[]) {
     return specs.some((s) => s.match(/:\d+(:\d+$|$)/))
 }
 
-export function isCloudCapability(capabilities: WebDriver.DesiredCapabilities | WebdriverIO.MultiRemoteBrowserOptions) {
-    const caps = (capabilities as WebdriverIO.MultiRemoteBrowserOptions).capabilities || capabilities
+export function isCloudCapability(caps: Capabilities.Capabilities) {
     return Boolean(caps && (caps['bstack:options'] || caps['sauce:options'] || caps['tb:options']))
-}
-
-interface BackendConfigurations {
-    port?: number
-    hostname?: string
-    user?: string
-    key?: string
-    protocol?: string
-    region?: string
-    headless?: boolean
-    path?: string
-}
-
-/**
- * helper to detect the Selenium backend according to given capabilities
- */
-export function detectBackend(options: BackendConfigurations = {}, isRDC = false) {
-    let { port, hostname, user, key, protocol, region, headless, path } = options
-
-    /**
-     * browserstack
-     * e.g. zHcv9sZ39ip8ZPsxBVJ2
-     */
-    if (typeof user === 'string' && typeof key === 'string' && key.length === 20) {
-        return {
-            protocol: protocol || 'https',
-            hostname: hostname || 'hub-cloud.browserstack.com',
-            port: port || 443,
-            path: path || LEGACY_PATH
-        }
-    }
-
-    /**
-     * testingbot
-     * e.g. ec337d7b677720a4dde7bd72be0bfc67
-     */
-    if (typeof user === 'string' && typeof key === 'string' && key.length === 32) {
-        return {
-            protocol: protocol || 'https',
-            hostname: hostname || 'hub.testingbot.com',
-            port: port || 443,
-            path: path || LEGACY_PATH
-        }
-    }
-
-    /**
-     * Sauce Labs
-     * e.g. 50aa152c-1932-B2f0-9707-18z46q2n1mb0
-     */
-    if ((typeof user === 'string' && typeof key === 'string' && key.length === 36) ||
-        // When SC is used a user needs to be provided and `isRDC` needs to be true
-        (typeof user === 'string' && isRDC) ||
-        // Or only RDC
-        isRDC
-    ) {
-        // Sauce headless is currently only in us-east-1
-        const sauceRegion = headless ? 'us-east-1' : region as keyof typeof REGION_MAPPING
-
-        return {
-            protocol: protocol || 'https',
-            hostname: hostname || getSauceEndpoint(sauceRegion, isRDC),
-            port: port || 443,
-            path: path || LEGACY_PATH
-        }
-    }
-
-    if (
-        /**
-         * user and key are set in config
-         */
-        (typeof user === 'string' || typeof key === 'string') &&
-        /**
-         * but no custom WebDriver endpoint was configured
-         */
-        !hostname
-    ) {
-        throw new Error(
-            'A "user" or "key" was provided but could not be connected to a ' +
-            'known cloud service (Sauce Labs, Browerstack or Testingbot). ' +
-            'Please check if given user and key properties are correct!'
-        )
-    }
-
-    /**
-     * default values if on of the WebDriver criticial options is set
-     */
-    if (hostname || port || protocol || path) {
-        return {
-            hostname: hostname || DEFAULT_HOSTNAME,
-            port: port || DEFAULT_PORT,
-            protocol: protocol || DEFAULT_PROTOCOL,
-            path: path || DEFAULT_PATH
-        }
-    }
-
-    /**
-     * no cloud provider detected, pass on provided params and eventually
-     * fallback to DevTools protocol
-     */
-    return { hostname, port, protocol, path }
 }
 
 /**
@@ -160,10 +43,10 @@ export function detectBackend(options: BackendConfigurations = {}, isRDC = false
  * @param  {Object} options   option to check against
  * @return {Object}           validated config enriched with default values
  */
-export function validateConfig<T>(defaults: DefaultOptions<T>, options: T, keysToKeep = [] as (keyof T)[]) {
+export function validateConfig<T>(defaults: Options.Definition<T>, options: T, keysToKeep = [] as (keyof T)[]) {
     const params = {} as T
 
-    for (const [name, expectedOption] of Object.entries(defaults) as [keyof DefaultOptions<T>, NonNullable<DefaultOptions<T>[keyof DefaultOptions<T>]>][]) {
+    for (const [name, expectedOption] of Object.entries(defaults) as [keyof Options.Definition<T>, NonNullable<Options.Definition<T>[keyof Options.Definition<T>]>][]) {
         /**
          * check if options is given
          */
@@ -184,7 +67,7 @@ export function validateConfig<T>(defaults: DefaultOptions<T>, options: T, keysT
             if (typeof expectedOption.validate === 'function') {
                 try {
                     expectedOption.validate(optValue)
-                } catch (e) {
+                } catch (e: any) {
                     throw new Error(`Type check for option "${name}" failed: ${e.message}`)
                 }
             }
@@ -207,4 +90,63 @@ export function validateConfig<T>(defaults: DefaultOptions<T>, options: T, keysT
     }
 
     return params
+}
+
+export function loadAutoCompilers(autoCompileConfig: Options.AutoCompileConfig, requireService: ModuleRequireService) {
+    return (
+        autoCompileConfig.autoCompile &&
+        (
+            loadTypeScriptCompiler(
+                autoCompileConfig.tsNodeOpts,
+                autoCompileConfig.tsConfigPathsOpts,
+                requireService
+            )
+            ||
+            loadBabelCompiler(
+                autoCompileConfig.babelOpts,
+                requireService
+            )
+        )
+    )
+}
+
+export function loadTypeScriptCompiler (
+    tsNodeOpts: any = {},
+    tsConfigPathsOpts: Options.TSConfigPathsOptions | undefined,
+    requireService: ModuleRequireService
+) {
+    try {
+        requireService.resolve('ts-node') as any
+        (requireService.require('ts-node') as any).register(tsNodeOpts)
+        log.debug('Found \'ts-node\' package, auto-compiling TypeScript files')
+
+        if (tsConfigPathsOpts) {
+            log.debug('Found \'tsconfig-paths\' options, register paths')
+            const tsConfigPaths = require('tsconfig-paths')
+            tsConfigPaths.register(tsConfigPathsOpts)
+        }
+
+        return true
+    } catch (err: any) {
+        return false
+    }
+}
+
+export function loadBabelCompiler (babelOpts: Record<string, any> = {}, requireService: ModuleRequireService) {
+    try {
+        requireService.resolve('@babel/register') as any
+
+        /**
+         * only for testing purposes
+         */
+        if (process.env.JEST_WORKER_ID && process.env.THROW_BABEL_REGISTER) {
+            throw new Error('test fail')
+        }
+
+        (requireService.require('@babel/register') as any)(babelOpts)
+        log.debug('Found \'@babel/register\' package, auto-compiling files with Babel')
+        return true
+    } catch (err: any) {
+        return false
+    }
 }

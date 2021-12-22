@@ -5,27 +5,19 @@ WebdriverIO DevTools Service
 
 With Chrome v63 and up the browser [started to support](https://developers.google.com/web/updates/2017/10/devtools-release-notes#multi-client) multi clients allowing arbitrary clients to access the [Chrome DevTools Protocol](https://chromedevtools.github.io/devtools-protocol/). This provides interesting opportunities to automate Chrome beyond the [WebDriver protocol](https://www.w3.org/TR/webdriver/). With this service you can enhance the wdio browser object to leverage that access and call Chrome DevTools commands within your tests to e.g. intercept requests, throttle network capabilities or take CSS/JS coverage.
 
-_**Note:** this service currently only supports Chrome v63 and up, and Chromium (Microsoft Edge is not yet supported)!_
+Since Firefox 86, [a subset of Chrome DevTools Protocol](https://firefox-source-docs.mozilla.org/remote/index.html) has been implemented by passing the capability `"moz:debuggerAddress": true`.
+
+_**Note:** this service currently only supports Chrome v63 and up, Chromium, and Firefox 86 and up (Microsoft Edge is not yet supported)!_
 
 ## Installation
 
-The easiest way is to keep `@wdio/devtools-service` as a devDependency in your `package.json`.
+The easiest way is to keep `@wdio/devtools-service` as a devDependency in your `package.json`, via:
 
-```json
-{
-    "devDependencies": {
-        "@wdio/devtools-service": "^6.3.7"
-    }
-}
-```
-
-You can simple do it by:
-
-```bash
+```sh
 npm install @wdio/devtools-service --save-dev
 ```
 
-Instructions on how to install `WebdriverIO` can be found [here.](https://webdriver.io/docs/gettingstarted.html)
+Instructions on how to install `WebdriverIO` can be found [here.](https://webdriver.io/docs/gettingstarted)
 
 ## Configuration
 
@@ -57,7 +49,10 @@ describe('JSON.org page', () => {
     })
 
     it('should load within performance budget', () => {
-
+        /**
+         * this page load will take a bit longer as the DevTools service will
+         * capture all metrics in the background
+         */
         browser.url('http://json.org')
 
         let metrics = browser.getMetrics()
@@ -80,6 +75,17 @@ describe('JSON.org page', () => {
 })
 ```
 
+You can emulate a mobile device by using the `emulateDevice` command, throttling CPU and network as well as setting `mobile` as form factor:
+
+```js
+browser.emulateDevice('iPhone X')
+browser.enablePerformanceAudits({
+    networkThrottling: 'Good 3G',
+    cpuThrottling: 4,
+    formFactor: 'mobile'
+})
+```
+
 The following commands with their results are available:
 
 #### getMetrics
@@ -89,8 +95,7 @@ Get most common used performance metrics.
 ```js
 console.log(browser.getMetrics())
 /**
- * { estimatedInputLatency: 16,
- *   timeToFirstByte: 566,
+ * { timeToFirstByte: 566,
  *   serverResponseTime: 566,
  *   domContentLoaded: 3397,
  *   firstVisualChange: 2610,
@@ -99,11 +104,11 @@ console.log(browser.getMetrics())
  *   firstMeaningfulPaint: 2822,
  *   largestContentfulPaint: 2822,
  *   lastVisualChange: 15572,
- *   firstCPUIdle: 6135,
- *   firstInteractive: 6135,
+ *   interactive: 6135,
  *   load: 8429,
  *   speedIndex: 3259,
  *   totalBlockingTime: 31,
+ *   maxPotentialFID: 161,
  *   cumulativeLayoutShift: 2822 }
  */
 ```
@@ -153,7 +158,7 @@ console.log(browser.getMainThreadWorkBreakdown())
 
 #### getPerformanceScore
 
-Returns the [Lighthouse Performance Score](https://developers.google.com/web/tools/lighthouse/scoring) which is a weighted mean of the following metrics: `firstContentfulPaint`, `speedIndex`, `largestContentfulPaint`, `cumulativeLayoutShift`, `totalBlockingTime`, `firstInteractive`.
+Returns the [Lighthouse Performance Score](https://developers.google.com/web/tools/lighthouse/scoring) which is a weighted mean of the following metrics: `firstContentfulPaint`, `speedIndex`, `largestContentfulPaint`, `cumulativeLayoutShift`, `totalBlockingTime`, `interactive`, `maxPotentialFID` or `cumulativeLayoutShift`.
 
 ```js
 console.log(browser.getPerformanceScore())
@@ -170,7 +175,8 @@ Enables auto performance audits for all page loads that are cause by calling the
 browser.enablePerformanceAudits({
     networkThrottling: 'Good 3G',
     cpuThrottling: 4,
-    cacheEnabled: true
+    cacheEnabled: true,
+    formFactor: 'mobile'
 })
 ```
 
@@ -208,6 +214,53 @@ browser.emulateDevice({
 
 This only works if you don't use `mobileEmulation` within `capabilities['goog:chromeOptions']`.
 If `mobileEmulation` is present the call to `browser.emulateDevice()` won't do anything.
+
+### PWA Testing
+
+With the `checkPWA` command you can validate if your webapp is compliant to latest web standards when it comes to progressive web apps. It checks:
+
+- whether your app is installable
+- provides a service worker
+- has a splash screen
+- provides apple touch and maskable icons
+- can be served on mobile devices
+
+If you are not interested in one of these checks you can pass in a list of checks you like to run. The `passed` property will return `true` if all checks pass. If they fail you can use the `details` property to enrich your failure message with details of the failure.
+
+```js
+// open page first
+browser.url('https://webdriver.io')
+// validate PWA
+const result = browser.checkPWA()
+expect(result.passed).toBe(true)
+```
+
+### Capture Code Coverage
+
+The service offers you to capture the code coverage of your application under test. To do so you need to enable this feature as part of the service settings:
+
+```js
+// wdio.conf.js
+services: [
+    ['devtools', {
+        coverageReporter: {
+            enable: true,
+            type: 'html',
+            logDir: __dirname + '/coverage'
+        }
+    }]
+]
+```
+
+Then you have access to a command that calculates the ratio of covered code lines and branches for you to assert within your test:
+
+```js
+const coverage = browser.getCoverageReport()
+expect(coverage.lines.total).toBeAbove(0.9)
+expect(coverage.statements.total).toBeAbove(0.9)
+expect(coverage.functions.total).toBeAbove(0.9)
+expect(coverage.branches.total).toBeAbove(0.9)
+```
 
 ### Chrome DevTools Access
 
@@ -263,7 +316,7 @@ console.log(nodeId) // outputs: [ 40, 41, 42, 43, 44, 45 ]
 
 ### `startTracing(categories, samplingFrequency)` Command
 
-Start tracing the browser. You can optionally pass in custom tracing categories (defaults to [this list](https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-devtools-service/src/constants.js#L1-L9)) and the sampling frequency (defaults to `10000`).
+Start tracing the browser. You can optionally pass in custom tracing categories (defaults to [this list](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-devtools-service/src/constants.js#L1-L9)) and the sampling frequency (defaults to `10000`).
 
 ```js
 browser.startTracing()
@@ -327,7 +380,7 @@ browser.cdp('Page', 'setDownloadBehavior', {
 
 ### Access Puppeteer Instance
 
-The service uses Puppeteer for its automation under the hood. You can get access to the used instance by calling the [`getPuppeteer`](/docs/api/browser/getPuppeteer.html) command. __Note:__ Puppeteer commands are async and either needs to be called within the `call` command or handled via `async/await`:
+The service uses Puppeteer for its automation under the hood. You can get access to the used instance by calling the [`getPuppeteer`](https://webdriver.io/docs/api/browser/getPuppeteer) command. __Note:__ Puppeteer commands are async and either needs to be called within the `call` command or handled via `async/await`:
 
 ```js
 describe('use Puppeteer', () => {

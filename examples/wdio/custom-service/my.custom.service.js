@@ -14,7 +14,7 @@ module.exports = class CustomService {
         console.log('execute onWorkerStart(cid, caps, specs, args, execArgv)')
     }
     beforeSession () {
-        console.log('execute beforeSession(config, capabilities, specs)')
+        console.log('execute beforeSession(config, capabilities, specs, cid)')
     }
     before () {
         console.log('execute before(capabilities, specs)')
@@ -53,7 +53,7 @@ module.exports = class CustomService {
         console.log('execute onComplete(exitCode, config, capabilities, results)')
     }
     onReload() {
-        console.log('execute onReloadoldSessionId, newSessionId)')
+        console.log('execute onReloadedSessionId, newSessionId)')
     }
     beforeFeature () {
         console.log('execute beforeFeature(uri, feature, scenarios)')

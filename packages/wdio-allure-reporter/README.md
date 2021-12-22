@@ -19,7 +19,7 @@ The easiest way is to keep `@wdio/allure-reporter` as a devDependency in your `p
 
 You can simple do it by:
 
-```bash
+```sh
 npm install @wdio/allure-reporter --save-dev
 ```
 
@@ -45,12 +45,13 @@ exports.config = {
 - `disableWebdriverScreenshotsReporting` - optional parameter(`false` by default), in order to not attach screenshots to the reporter.
 - `useCucumberStepReporter` - optional parameter (`false` by default), set it to true in order to change the report hierarchy when using cucumber. Try it for yourself and see how it looks.
 - `disableMochaHooks` - optional parameter (`false` by default), set it to true in order to not fetch the `before/after` stacktrace/screenshot/result hooks into the Allure Reporter.
+- `addConsoleLogs` - optional parameter(`false` by default), set to true in order to attach console logs from step to the reporter.
 
 ## Supported Allure API
 * `addLabel(name, value)` - assign a custom label to test
 * `addFeature(featureName)` – assign feature to test
 * `addStory(storyName)` – assign user story to test
-* `addSeverity(value)` – assign severity to test
+* `addSeverity(value)` – assign severity to test, accepts one of these values: blocker, critical, normal, minor, trivial
 * `addIssue(value)` – assign issue id to test
 * `addTestId(value)` – assign TMS test id to test
 * `addEnvironment(name, value)` – save environment value
@@ -78,7 +79,7 @@ Allure Api can be accessed using:
 ES5
 
 ```js
-const { addFeature } = require('@wdio/allure-reporter').default
+const allureReporter = require('@wdio/allure-reporter').default
 ```
 
 ES6
@@ -113,15 +114,20 @@ This will generate a report (by default in `./allure-report`), and open it in yo
 
 ### Autogenerate Report
 
-You can also autogenerate the report by using the Allure command line tool programatically. To do so install the package in your project by:
+You can also auto generate the report by using the Allure command line tool programmatically. To do so install the package in your project by:
 
 ```sh
-$ npm i allure-commandline
+npm i allure-commandline
 ```
 
-Then add or extend your `onComplete` hook or create a [custom service](/docs/customservices.html) for this:
+Then add or extend your `onComplete` hook or create a [custom service](/docs/customservices) for this:
 
 ```js
+// wdio.conf.js
+const allure = require('allure-commandline')
+
+exports.config = {
+    // ...
     onComplete: function() {
         const reportError = new Error('Could not generate Allure report')
         const generation = allure(['generate', 'allure-results', '--clean'])
@@ -142,6 +148,8 @@ Then add or extend your `onComplete` hook or create a [custom service](/docs/cus
             })
         })
     }
+    // ...
+}
 ```
 
 ### Jenkins
@@ -150,10 +158,11 @@ Install and configure the [Allure Jenkins plugin](https://docs.qameta.io/allure#
 
 ## Add Screenshots
 
-Screenshots can be attached to the report by using the `takeScreenshot` function from WebDriverIO in afterStep hook.
-First set `disableWebdriverScreenshotsReporting: false` in reporter options, then add in afterStep hook
-```js
-afterStep: function (test, context, { error, result, duration, passed, retries }) {
+Screenshots can be attached to the report by using the `takeScreenshot` function from WebDriverIO in the `afterStep` hook.
+First set `disableWebdriverScreenshotsReporting: false` in reporter options, then add in afterStep hook:
+
+```js title="wdio.conf.js"
+afterStep: function (test, scenario, { error, duration, passed }) {
   if (error) {
     browser.takeScreenshot();
   }

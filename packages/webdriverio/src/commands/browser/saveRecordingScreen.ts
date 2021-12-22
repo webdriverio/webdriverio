@@ -1,14 +1,22 @@
+import fs from 'fs'
+import { getAbsoluteFilepath, assertDirectoryExists } from '../../utils'
+
 /**
  *
- * Appium only. Save a video started by startRecordingScreen command to file.
- * See [Appium docs](http://appium.io/docs/en/commands/device/recording-screen/start-recording-screen/)
+ * Save a video started by [`startRecordingScreen`](/docs/api/appium#startrecordingscreen) command to file.
+ *
+ * :::info
+ *
+ * This command is only supported for mobile sessions running on [Appium](http://appium.io/docs/en/commands/device/recording-screen/start-recording-screen/).
+ *
+ * :::
  *
  * <example>
     :saveRecordingScreen.js
-    it('should save a video', () => {
-        browser.startRecordingScreen();
-        $('~BUTTON').click();
-        browser.saveRecordingScreen('./some/path/video.mp4');
+    it('should save a video', async () => {
+        await browser.startRecordingScreen();
+        await $('~BUTTON').click();
+        await browser.saveRecordingScreen('./some/path/video.mp4');
     });
  * </example>
  *
@@ -18,12 +26,8 @@
  * @type utility
  *
  */
-
-import fs from 'fs'
-import { getAbsoluteFilepath, assertDirectoryExists } from '../../utils'
-
 export default async function saveRecordingScreen (
-    this: WebdriverIO.BrowserObject,
+    this: WebdriverIO.Browser,
     filepath: string
 ) {
     /**

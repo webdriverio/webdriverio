@@ -1,11 +1,12 @@
 import logger from '@wdio/logger'
 import { isCloudCapability } from '@wdio/config'
+import type { Capabilities, Options, Services } from '@wdio/types'
 
-import { promisify } from 'util'
 import fs from 'fs-extra'
-import SeleniumStandalone from 'selenium-standalone'
+import * as SeleniumStandalone from 'selenium-standalone'
 
-import { getFilePath } from './utils'
+import { getFilePath, hasCapsWithSupportedBrowser } from './utils'
+import type { SeleniumStandaloneOptions } from './types'
 
 const DEFAULT_LOG_FILENAME = 'wdio-selenium-standalone.log'
 const log = logger('@wdio/selenium-standalone-service')
@@ -28,8 +29,6 @@ type BrowserDrivers = {
 }
 
 export default class SeleniumStandaloneLauncher {
-    capabilities: WebDriver.DesiredCapabilities[] | WebdriverIO.MultiRemoteCapabilities
-    logPath?: string
     args: SeleniumStartArgs
     installArgs: SeleniumInstallArgs
     skipSeleniumInstall: boolean
@@ -44,56 +43,86 @@ export default class SeleniumStandaloneLauncher {
     }
 
     constructor(
-        options: WebdriverIO.ServiceOption,
-        capabilities: WebDriver.DesiredCapabilities[] | WebdriverIO.MultiRemoteCapabilities,
-        config: WebdriverIO.Config
+        private _options: SeleniumStandaloneOptions,
+        private _capabilities: Capabilities.RemoteCapabilities,
+        private _config: Omit<Options.Testrunner, 'capabilities'>
     ) {
-        this.capabilities = capabilities
-        this.logPath = options.logPath || config.outputDir
-        this.skipSeleniumInstall = Boolean(options.skipSeleniumInstall)
+        this.skipSeleniumInstall = Boolean(this._options.skipSeleniumInstall)
 
+        this.args = this._options.args || {}
         // simplified mode
-        if (this.isSimplifiedMode(options)) {
-            this.args = Object.entries(options.drivers as BrowserDrivers).reduce((acc, [browserDriver, version]) => {
+        if (this.isSimplifiedMode(this._options)) {
+            this.args.drivers = {}
+            Object.entries(this._options.drivers as BrowserDrivers).forEach(([browserDriver, version]) => {
                 if (typeof version === 'string') {
-                    acc.drivers![browserDriver] = { version }
+                    this.args.drivers![browserDriver] = { version }
                 } else if (version === true) {
-                    acc.drivers![browserDriver] = {}
+                    this.args.drivers![browserDriver] = {}
                 }
-                return acc
-            }, { drivers: {} } as SeleniumStartArgs)
+            })
             this.installArgs = { ...this.args } as SeleniumInstallArgs
         } else {
-            this.args = options.args || {}
-            this.installArgs = options.installArgs || {}
+            this.installArgs = this._options.installArgs || {}
         }
     }
 
-    async onPrepare(config: WebdriverIO.Config): Promise<void> {
+    async onPrepare(config: Options.Testrunner): Promise<void> {
         this.watchMode = Boolean(config.watch)
 
         if (!this.skipSeleniumInstall) {
-            const install: (opts: SeleniumStandalone.InstallOpts) => Promise<unknown> = promisify(SeleniumStandalone.install)
-            await install(this.installArgs)
+            await SeleniumStandalone.install(this.installArgs).catch(this.handleSeleniumError)
         }
 
         /**
          * update capability connection options to connect
          * to standalone server
          */
-        const capabilities = Array.isArray(this.capabilities) ? this.capabilities : Object.values(this.capabilities)
-        capabilities.forEach(
-            (cap: WebDriver.DesiredCapabilities | WebdriverIO.MultiRemoteBrowserOptions) =>
-                !isCloudCapability(cap) && Object.assign(cap, DEFAULT_CONNECTION, { ...cap })
-        )
+        const isMultiremote = !Array.isArray(this._capabilities)
+        const capabilities = isMultiremote
+            ? Object.values(this._capabilities) as Options.WebdriverIO[]
+            : this._capabilities as (Capabilities.DesiredCapabilities | Capabilities.W3CCapabilities)[]
+        for (const capability of capabilities) {
+            const cap = (capability as Options.WebdriverIO).capabilities || capability
+
+            /**
+             * handle standard mode vs multiremote mode, e.g.
+             * ```js
+             * capabilities: [{
+             *   browserName: 'chrome',
+             *   hostname: 'localhost'
+             * }]
+             * ```
+             * vs.
+             * ```js
+             * capabilities: {
+             *   myBrowser: {
+             *     hostname: 'localhost',
+             *     capabilities: { browserName: 'chrome' }
+             *   }
+             * }
+             */
+            const remoteCapabilities = (cap as Capabilities.W3CCapabilities).alwaysMatch || cap
+            const objectToApplyConnectionDetails = !isMultiremote
+                ? remoteCapabilities
+                : capability
+
+            if (!isCloudCapability(remoteCapabilities) && hasCapsWithSupportedBrowser(remoteCapabilities)) {
+                Object.assign(
+                    objectToApplyConnectionDetails,
+                    DEFAULT_CONNECTION,
+                    { ...objectToApplyConnectionDetails }
+                )
+            }
+        }
 
         /**
          * start Selenium Standalone server
          */
-        const start: (opts: SeleniumStandalone.StartOpts) => Promise<SeleniumStandalone.ChildProcess> = promisify(SeleniumStandalone.start)
-        this.process = await start(this.args)
+        const start = SeleniumStandalone.start(this.args)
+        start.catch(this.handleSeleniumError)
+        this.process = await start
 
-        if (typeof this.logPath === 'string') {
+        if (typeof this._config.outputDir === 'string') {
             this._redirectLogStream()
         }
 
@@ -112,7 +141,7 @@ export default class SeleniumStandaloneLauncher {
     }
 
     _redirectLogStream(): void {
-        const logFile = getFilePath(this.logPath!, DEFAULT_LOG_FILENAME)
+        const logFile = getFilePath(this._config.outputDir!, DEFAULT_LOG_FILENAME)
 
         // ensure file & directory exists
         fs.ensureFileSync(logFile)
@@ -129,7 +158,12 @@ export default class SeleniumStandaloneLauncher {
         }
     }
 
-    private isSimplifiedMode(options: WebdriverIO.ServiceOption) {
+    private isSimplifiedMode(options: Services.ServiceOption) {
         return options.drivers && Object.keys(options.drivers).length > 0
+    }
+
+    private handleSeleniumError(error: Error) {
+        log.error(error)
+        process.exit(1)
     }
 }
