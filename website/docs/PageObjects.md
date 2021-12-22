@@ -57,7 +57,7 @@ class LoginPage extends Page {
     }
 
     async submit () {
-        await this.submitBtn.click()
+        await (await this.submitBtn).click()
     }
 
 }
@@ -72,7 +72,7 @@ Defining selectors in getter functions might look a little weird, but it’s rea
 WebdriverIO internally remembers the last result of a command. If you chain an element command with an action command, it finds the element from the previous command and uses the result to execute the action. With that you can remove the selector (first parameter) and the command looks as simple as:
 
 ```js
-await LoginPage.username.setValue('Max Mustermann')
+await (await LoginPage.username).setValue('Max Mustermann')
 ```
 
 Which is basically the same thing as:
@@ -85,7 +85,7 @@ await elem.setValue('Max Mustermann')
 or
 
 ```js
-await $('#username').setValue('Max Mustermann')
+await (await $('#username')).setValue('Max Mustermann')
 ```
 
 ## Using Page Objects In Your Tests
@@ -103,8 +103,8 @@ import LoginPage from '../pageobjects/login.page'
 describe('login form', () => {
     it('should deny access with wrong creds', async () => {
         await LoginPage.open()
-        await LoginPage.username.setValue('foo')
-        await LoginPage.password.setValue('bar')
+        await (await LoginPage.username).setValue('foo')
+        await (await LoginPage.password).setValue('bar')
         await LoginPage.submit()
 
         await expect(LoginPage.flash).toHaveText('Your username is invalid!')
@@ -112,8 +112,8 @@ describe('login form', () => {
 
     it('should allow access with correct creds', async () => {
         await LoginPage.open()
-        await LoginPage.username.setValue('tomsmith')
-        await LoginPage.password.setValue('SuperSecretPassword!')
+        await (await LoginPage.username).setValue('tomsmith')
+        await (await LoginPage.password).setValue('SuperSecretPassword!')
         await LoginPage.submit()
 
         await expect(LoginPage.flash).toHaveText('You logged into a secure area!')
