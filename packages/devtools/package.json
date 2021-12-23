@@ -22,7 +22,7 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "dependencies": {
-    "@types/node": "^16.11.1",
+    "@types/node": "^17.0.4",
     "@types/ua-parser-js": "^0.7.33",
     "@wdio/config": "7.16.11",
     "@wdio/logger": "7.16.0",

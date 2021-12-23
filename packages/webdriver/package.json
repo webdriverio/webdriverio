@@ -25,7 +25,7 @@
     "@types/lodash.merge": "^4.6.6"
   },
   "dependencies": {
-    "@types/node": "^16.11.1",
+    "@types/node": "^17.0.4",
     "@wdio/config": "7.16.11",
     "@wdio/logger": "7.16.0",
     "@wdio/protocols": "7.16.7",
