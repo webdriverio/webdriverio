@@ -563,7 +563,7 @@ export interface AppiumIOSCapabilities {
  *
  * @see https://github.com/appium/appium-xcuitest-driver
  */
- export interface AppiumXCUITestCapabilities {
+export interface AppiumXCUITestCapabilities {
     'appium:platformName': string
     'appium:browserName': string
     'appium:app': string
