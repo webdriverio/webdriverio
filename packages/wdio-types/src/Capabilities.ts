@@ -564,15 +564,11 @@ export interface AppiumIOSCapabilities {
  * @see https://github.com/appium/appium-xcuitest-driver
  */
 export interface AppiumXCUITestCapabilities {
-    'appium:platformName': string
     'appium:browserName': string
-    'appium:app': string
     'appium:calendarFormat': string
     'appium:bundleId': string
-    'appium:udid': string
     'appium:autoAcceptAlerts': boolean
     'appium:autoDismissAlerts': boolean
-    'appium:nativeWebTap': boolean
     'appium:safariInitialUrl': string
     'appium:safariAllowPopups': boolean
     'appium:safariIgnoreFraudWarning': boolean
@@ -591,12 +587,10 @@ export interface AppiumXCUITestCapabilities {
     'appium:webkitResponseTimeout': number
     'appium:webkitDebugProxyPort': number
     'appium:remoteDebugProxy': string
-    'appium:enablePerformanceLogging': boolean
     'appium:enableAsyncExecuteFromHttps': boolean
     'appium:fullContextList': boolean
     'appium:ignoreAboutBlankUrl': boolean
     'appium:skipLogCapture': boolean
-    'appium:deviceName': string
     'appium:showXcodeLog': boolean
     'appium:wdaLocalPort': number
     'appium:wdaBaseUrl': string
