@@ -583,7 +583,7 @@ export interface AppiumXCUITestCapabilities {
     'appium:locationServicesAuthorized'?: boolean;
     'appium:resetLocationService'?: boolean;
     'appium:localizableStringsDir'?: string;
-    'appium:processArguments'?: string|AppiumXCUIprocessArguments;
+    'appium:processArguments'?: string|AppiumXCUIProcessArguments;
     'appium:showIOSLog'?: boolean;
     'appium:webviewConnectRetries'?: number;
     'appium:clearSystemFiles'?: boolean;
@@ -682,7 +682,7 @@ export interface AppiumXCUISafariGlobalPreferences {
     [key: string]: any;
 }
 
-export interface AppiumXCUIprocessArguments {
+export interface AppiumXCUIProcessArguments {
     args?: Array<string>
     env?: { [key: string]: any;}
 }
