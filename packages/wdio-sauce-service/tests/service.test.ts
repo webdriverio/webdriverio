@@ -420,6 +420,23 @@ test('beforeStep should set context', async () => {
     expect(service.setAnnotation).toBeCalledWith('sauce:context=--Step: Given I am a step')
 })
 
+test('beforeStep should not set context for RDC', async () => {
+    const service = new SauceService({}, {}, {} as any)
+    service['_browser'] = browser
+    service['_isRDC'] = true
+    service['_isServiceEnabled'] = true
+    const step = {
+        id: '5',
+        text: 'I am a step',
+        astNodeIds: ['0'],
+        keyword: 'Given ',
+    }
+    service.setAnnotation = jest.fn()
+    service.beforeSession()
+    await service.beforeStep(step)
+    expect(service.setAnnotation).not.toBeCalledWith('sauce:context=--Step: Given I am a step')
+})
+
 test('after', async () => {
     const service = new SauceService({}, {}, { user: 'foobar', key: '123' } as any)
     service['_browser'] = browser

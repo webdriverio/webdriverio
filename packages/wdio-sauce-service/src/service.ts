@@ -247,6 +247,13 @@ export default class SauceService implements Services.ServiceInstance {
     }
 
     async beforeStep (step: Frameworks.PickleStep) {
+        /**
+         * Remark:  Sauce Unified Platform doesn't support updating the context yet.
+         */
+        if (!this._isServiceEnabled || this._isRDC || !this._browser) {
+            return
+        }
+
         const { keyword, text } = step
         return this.setAnnotation(`sauce:context=--Step: ${keyword}${text}`)
     }
