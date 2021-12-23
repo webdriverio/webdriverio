@@ -95,7 +95,7 @@ export type RemoteCapability = DesiredCapabilities | W3CCapabilities | MultiRemo
 export interface DesiredCapabilities extends Capabilities, SauceLabsCapabilities, SauceLabsVisualCapabilities,
     TestingbotCapabilities, SeleniumRCCapabilities, AppiumIOSCapabilities, GeckodriverCapabilities, IECapabilities,
     AppiumAndroidCapabilities, AppiumCapabilities, AppiumW3CCapabilities, VendorExtensions, GridCapabilities,
-    ChromeCapabilities, BrowserStackCapabilities {
+    ChromeCapabilities, BrowserStackCapabilities, AppiumXCUITestCapabilities {
 
     // Read-only capabilities
     cssSelectorsEnabled?: boolean;
@@ -556,6 +556,139 @@ export interface AppiumIOSCapabilities {
     enableAsyncExecuteFromHttps?: boolean;
     skipLogCapture?: boolean;
     webkitDebugProxyPort?: number;
+}
+
+/**
+ * Appium xcuitest Capabilities
+ *
+ * @see https://github.com/appium/appium-xcuitest-driver
+ */
+export interface AppiumXCUITestCapabilities {
+    'appium:platformName'?: string;
+    'appium:browserName'?: string;
+    'appium:app'?: string;
+    'appium:calendarFormat'?: string;
+    'appium:bundleId'?: string;
+    'appium:udid'?: string;
+    'appium:autoAcceptAlerts'?: boolean;
+    'appium:autoDismissAlerts'?: boolean;
+    'appium:nativeWebTap'?: boolean;
+    'appium:safariInitialUrl'?: string;
+    'appium:safariAllowPopups'?: boolean;
+    'appium:safariIgnoreFraudWarning'?: boolean;
+    'appium:safariOpenLinksInBackground'?: boolean;
+    'appium:safariShowFullResponse'?: boolean;
+    'appium:keepKeyChains'?: boolean;
+    'appium:locationServicesEnabled'?: boolean;
+    'appium:locationServicesAuthorized'?: boolean;
+    'appium:resetLocationService'?: boolean;
+    'appium:localizableStringsDir'?: string;
+    'appium:processArguments'?: string|AppiumXCUIProcessArguments;
+    'appium:showIOSLog'?: boolean;
+    'appium:webviewConnectRetries'?: number;
+    'appium:clearSystemFiles'?: boolean;
+    'appium:customSSLCert'?: string;
+    'appium:webkitResponseTimeout'?: number;
+    'appium:webkitDebugProxyPort'?: number;
+    'appium:remoteDebugProxy'?: string;
+    'appium:enablePerformanceLogging'?: boolean;
+    'appium:enableAsyncExecuteFromHttps'?: boolean;
+    'appium:fullContextList'?: boolean;
+    'appium:ignoreAboutBlankUrl'?: boolean;
+    'appium:skipLogCapture'?: boolean;
+    'appium:deviceName'?: string;
+    'appium:showXcodeLog'?: boolean;
+    'appium:wdaLocalPort'?: number;
+    'appium:wdaBaseUrl'?: string;
+    'appium:iosInstallPause'?: number;
+    'appium:xcodeConfigFile'?: string;
+    'appium:xcodeOrgId'?: string;
+    'appium:xcodeSigningId'?: string;
+    'appium:keychainPath'?: string;
+    'appium:keychainPassword'?: string;
+    'appium:bootstrapPath'?: string;
+    'appium:agentPath'?: string;
+    'appium:tapWithShortPressDuration'?: number;
+    'appium:scaleFactor'?: string;
+    'appium:usePrebuiltWDA'?: boolean;
+    'appium:webDriverAgentUrl'?: string;
+    'appium:derivedDataPath'?: string;
+    'appium:launchWithIDB'?: boolean;
+    'appium:useNewWDA'?: boolean;
+    'appium:wdaLaunchTimeout'?: number;
+    'appium:wdaConnectionTimeout'?: number;
+    'appium:updatedWDABundleId'?: string;
+    'appium:resetOnSessionStartOnly'?: boolean;
+    'appium:commandTimeouts'?: string|AppiumXCUICommandTimeouts;
+    'appium:wdaStartupRetries'?: number;
+    'appium:wdaStartupRetryInterval'?: number;
+    'appium:prebuildWDA'?: boolean;
+    'appium:connectHardwareKeyboard'?: boolean;
+    'appium:forceTurnOnSoftwareKeyboardSimulator'?: boolean;
+    'appium:simulatorPasteboardAutomaticSync'?: string;
+    'appium:simulatorDevicesSetPath'?: string;
+    'appium:calendarAccessAuthorized'?: boolean;
+    'appium:useSimpleBuildTest'?: boolean;
+    'appium:waitForQuiescence'?: boolean;
+    'appium:maxTypingFrequency'?: number;
+    'appium:nativeTyping'?: boolean;
+    'appium:simpleIsVisibleCheck'?: boolean;
+    'appium:shouldUseSingletonTestManager'?: boolean;
+    'appium:isHeadless'?: boolean;
+    'appium:useXctestrunFile'?: boolean;
+    'appium:absoluteWebLocations'?: boolean;
+    'appium:simulatorWindowCenter'?: string;
+    'appium:simulatorStartupTimeout'?: number;
+    'appium:simulatorTracePointer'?: boolean;
+    'appium:useJSONSource'?: boolean;
+    'appium:enforceFreshSimulatorCreation'?: boolean;
+    'appium:shutdownOtherSimulators'?: boolean;
+    'appium:keychainsExcludePatterns'?: string;
+    'appium:showSafariConsoleLog'?: boolean;
+    'appium:showSafariNetworkLog'?: boolean;
+    'appium:safariGarbageCollect'?: boolean;
+    'appium:safariGlobalPreferences'?: AppiumXCUISafariGlobalPreferences;
+    'appium:safariLogAllCommunication'?: boolean;
+    'appium:safariLogAllCommunicationHexDump'?: boolean;
+    'appium:safariSocketChunkSize'?: number;
+    'appium:mjpegServerPort'?: number;
+    'appium:reduceMotion'?: boolean;
+    'appium:mjpegScreenshotUrl'?: string;
+    'appium:permissions'?: string;
+    'appium:screenshotQuality'?: number;
+    'appium:wdaEventloopIdleDelay'?: number;
+    'appium:otherApps'?: string;
+    'appium:includeSafariInWebviews'?: boolean;
+    'appium:additionalWebviewBundleIds'?: Array<string>;
+    'appium:webviewConnectTimeout'?: number;
+    'appium:iosSimulatorLogsPredicate'?: string;
+    'appium:appPushTimeout'?: number;
+    'appium:nativeWebTapStrict'?: boolean;
+    'appium:safariWebInspectorMaxFrameLength'?: number;
+    'appium:allowProvisioningDeviceRegistration'?: boolean;
+    'appium:waitForIdleTimeout'?: number;
+    'appium:resultBundlePath'?: string;
+    'appium:resultBundleVersion'?: number;
+    'appium:safariIgnoreWebHostnames'?: string;
+    'appium:includeDeviceCapsToSessionInfo'?: boolean;
+    'appium:disableAutomaticScreenshots'?: boolean;
+    'appium:shouldTerminateApp'?: boolean;
+    'appium:forceAppLaunch'?: boolean;
+    'appium:useNativeCachingStrategy'?: boolean;
+    'appium:appInstallStrategy'?: string;
+}
+
+export interface AppiumXCUISafariGlobalPreferences {
+    [key: string]: any;
+}
+
+export interface AppiumXCUIProcessArguments {
+    args?: Array<string>
+    env?: { [key: string]: any;}
+}
+
+export interface AppiumXCUICommandTimeouts {
+    [key: string]: any;
 }
 
 // IE specific
