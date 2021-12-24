@@ -15,6 +15,7 @@ import { SUPPORTED_PACKAGES, CLI_EPILOGUE } from '../constants'
 import yargs from 'yargs'
 
 const supportedInstallations = {
+    plugin: SUPPORTED_PACKAGES.plugin.map(({ value }) => convertPackageHashToObject(value)),
     service: SUPPORTED_PACKAGES.service.map(({ value }) => convertPackageHashToObject(value)),
     reporter: SUPPORTED_PACKAGES.reporter.map(({ value }) => convertPackageHashToObject(value)),
     framework: SUPPORTED_PACKAGES.framework.map(({ value }) => convertPackageHashToObject(value))
