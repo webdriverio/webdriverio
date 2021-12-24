@@ -89,6 +89,9 @@ export const SUPPORTED_PACKAGES = {
         { name: 'markdown', value: 'carmenmitru/wdio-markdown-reporter' },
         { name: 'delta', value: '@delta-reporter/wdio-delta-reporter-service' }
     ],
+    plugin: [
+        { name: 'wait-for', value: 'wdio-wait-for$--$wait-for' },
+    ],
     service: [
         // inquirerjs shows list as its orderer in array
         // put chromedriver first as it is the default option
@@ -104,7 +107,6 @@ export const SUPPORTED_PACKAGES = {
         { name: 'crossbrowsertesting', value: '@wdio/crossbrowsertesting-service$--$crossbrowsertesting' },
         // external
         { name: 'eslinter-service', value: 'wdio-eslinter-service$--$eslinter' },
-        { name: 'wait-for', value: 'wdio-wait-for$--$wait-for' },
         { name: 'lambdatest', value: 'wdio-lambdatest-service$--$lambdatest' },
         { name: 'zafira-listener', value: 'wdio-zafira-listener-service$--$zafira-listener' },
         { name: 'reportportal', value: 'wdio-reportportal-service$--$reportportal' },
@@ -333,6 +335,11 @@ export const QUESTIONNAIRE = [{
         /* istanbul ignore next */
         ({ name }) => name === 'spec').value
     ]
+}, {
+    type: 'checkbox',
+    name: 'plugins',
+    message: 'Do you want to add a plugin to your test setup?',
+    choices: SUPPORTED_PACKAGES.plugin
 }, {
     type: 'checkbox',
     name: 'services',

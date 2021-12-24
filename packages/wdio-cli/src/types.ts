@@ -28,14 +28,16 @@ export interface Questionnair {
     isUsingCompiler: ValueOf<typeof COMPILER_OPTION_ANSWERS>
     reporters: string[]
     services: string[]
+    plugins: string[]
     outputDir: string
     baseUrl: string
 }
 
-export interface ParsedAnswers extends Omit<Questionnair, 'runner' | 'framework' | 'reporters' | 'services'> {
+export interface ParsedAnswers extends Omit<Questionnair, 'runner' | 'framework' | 'reporters' | 'services' | 'plugins'> {
     runner: 'local'
     framework: string
     reporters: string[]
+    plugins: string[]
     services: string[]
     packagesToInstall: string[]
     isUsingTypeScript: boolean
@@ -87,7 +89,7 @@ export interface ReplCommandArguments {
 export interface InstallCommandArguments {
     yarn: boolean
     config: string
-    type: 'service' | 'reporter' | 'framework'
+    type: 'service' | 'reporter' | 'framework' | 'plugin'
     name: string
 }
 
