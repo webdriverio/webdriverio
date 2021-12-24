@@ -1,7 +1,10 @@
-
-# Adventures in WDIO with Paul Grossman the DarkArtsWizard 
-http://github.com/darkartswizard
-
+---
+title: Adventures in WebdriverIO (Blog post #1)
+author: Paul Grossman DarkArtsWizard
+authorURL: http://github.com/darkartswizard
+authorImageURL: https://testguild.com/wp-content/uploads/2016/05/PaulGrossmanHeadShot.jpg
+---
+ 
 ## The beginning...
  
 **What makes you so special?**
@@ -30,7 +33,7 @@ I was able to pull off a demo for the Dev and managers with a single end-to-end 
 Any mild wind would cause it to break.
 
 The next day I began to learn of the advantage of **Modular Code Design** and other best practices.
-If you want to hear the whole story of perfectly timed magic trick listen to my first podcast with Joe Colantonio: www.testguild.com/103
+If you want to hear the whole story of a perfectly timed magic trick listen to my first podcast with Joe Colantonio: www.testguild.com/103
 
 I was able to show a $2 million ROI on my first outing. This allowed me to move from part-time automator to full-time framework architect.
 
