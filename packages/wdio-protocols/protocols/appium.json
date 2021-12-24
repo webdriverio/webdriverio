@@ -594,6 +594,11 @@
         "description": "path on the device to pull file from",
         "required": true
       }],
+      "returns": {
+        "type": "string",
+        "name": "response",
+        "description": "Contents of file in base64"
+      },
       "support": {
         "ios": {
           "XCUITest": "9.3+",

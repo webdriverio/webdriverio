@@ -123,10 +123,7 @@ export const SUPPORTED_PACKAGES = {
         { name: 'winappdriver', value: 'wdio-winappdriver-service$--$winappdriver' },
         { name: 'ywinappdriver', value: 'wdio-ywinappdriver-service$--$ywinappdriver' },
         { name: 'performancetotal', value: 'wdio-performancetotal-service$--$performancetotal' },
-        { name: 'cleanuptotal', value: 'wdio-cleanuptotal-service$--$cleanuptotal' },
-        { name: 'aws-device-farm', value: 'wdio-aws-device-farm-service$--$aws-device-farm' },
-        { name: 'ocr-native-apps', value: 'wdio-ocr-service$--$ocr-native-apps' },
-        { name: 'ms-teams', value: 'wdio-ms-teams-service$--$ms-teams' },
+        { name: 'aws-device-farm', value: 'wdio-aws-device-farm-service$--$aws-device-farm' }
     ]
 } as const
 

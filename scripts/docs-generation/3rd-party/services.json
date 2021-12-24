@@ -100,40 +100,10 @@
     "npmUrl": "https://www.npmjs.com/package/wdio-performancetotal-service"
   },
   {
-    "packageName": "wdio-cleanuptotal-service",
-    "title": "CleanupTotal",
-    "githubUrl": "https://github.com/tzurp/cleanup-total",
-    "npmUrl": "https://www.npmjs.com/package/wdio-cleanuptotal-service"
-  },
-  {
     "packageName": "wdio-aws-device-farm-service",
     "title": "AWS Device Farm",
     "githubUrl": "https://github.com/awslabs/wdio-aws-device-farm-service",
     "branch": "main",
     "npmUrl": "https://www.npmjs.com/package/wdio-aws-device-farm-service"
-  },
-  {
-    "packageName": "wdio-ocr-service",
-    "title": "OCR service for Appium Native Apps",
-    "githubUrl": "https://github.com/wswebcreation/wdio-ocr-service",
-    "npmUrl": "https://www.npmjs.com/package/wdio-ocr-service"
-  },
-  {
-    "packageName": "wdio-wait-for",
-    "title": "Library of useful expected conditions",
-    "githubUrl": "https://github.com/webdriverio/wdio-wait-for",
-    "npmUrl": "https://www.npmjs.com/package/wdio-wait-for"
-  },
-  {
-    "packageName": "wdio-eslinter-service",
-    "title": "Auto-detect missing imports w/eslint",
-    "githubUrl": "https://github.com/jamesmortensen/wdio-eslinter-service",
-    "npmUrl": "https://www.npmjs.com/package/wdio-eslinter-service"
-  },
-  {
-    "packageName": "wdio-ms-teams-service",
-    "title": "Microsoft Teams",
-    "githubUrl": "https://github.com/marcelblijleven/wdio-ms-teams-service",
-    "npmUrl": "https://www.npmjs.com/package/wdio-ms-teams-service"
   }
 ]
