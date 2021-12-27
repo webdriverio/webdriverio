@@ -55,7 +55,7 @@ test('should create config file', async () => {
     result.parsedAnswers.tsConfigFilePath = fileName
     expect(result).toMatchSnapshot()
     expect(addServiceDeps).toBeCalledTimes(1)
-    expect(convertPackageHashToObject).toBeCalledTimes(4)
+    expect(convertPackageHashToObject).toBeCalledTimes(5)
     expect(renderConfigurationFile).toBeCalledTimes(1)
     expect(generateTestFiles).toBeCalledTimes(0)
     expect(getPathForFileGeneration).toBeCalledTimes(1)
