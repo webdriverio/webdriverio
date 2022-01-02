@@ -55,7 +55,7 @@ test('should create config file', async () => {
     result.parsedAnswers.tsConfigFilePath = fileName
     expect(result).toMatchSnapshot()
     expect(addServiceDeps).toBeCalledTimes(1)
-    expect(convertPackageHashToObject).toBeCalledTimes(4)
+    expect(convertPackageHashToObject).toBeCalledTimes(5)
     expect(renderConfigurationFile).toBeCalledTimes(1)
     expect(generateTestFiles).toBeCalledTimes(0)
     expect(getPathForFileGeneration).toBeCalledTimes(1)
@@ -96,6 +96,7 @@ describe('install compliant NPM tag packages', () => {
     const args = {
         framework: '@wdio/mocha-framework$--$mocha',
         reporters: [],
+        plugins: [],
         services: [
             '@wdio/crossbrowsertesting-service$--$crossbrowsertesting',
             'wdio-lambdatest-service$--$lambdatest'
@@ -158,6 +159,7 @@ test('prints TypeScript setup message', async () => {
     (inquirer.prompt as any as jest.Mock).mockReturnValue(Promise.resolve({
         framework: '@wdio/mocha-framework$--$mocha',
         reporters: [],
+        plugins: [],
         services: [
             '@wdio/crossbrowsertesting-service$--$crossbrowsertesting',
             'wdio-lambdatest-service$--$lambdatest'
@@ -174,6 +176,7 @@ test('prints TypeScript setup message with ts-node installed', async () => {
     ;(inquirer.prompt as any as jest.Mock).mockReturnValue(Promise.resolve({
         framework: '@wdio/mocha-framework$--$mocha',
         reporters: [],
+        plugins: [],
         services: [
             '@wdio/crossbrowsertesting-service$--$crossbrowsertesting',
             'wdio-lambdatest-service$--$lambdatest'
@@ -210,6 +213,7 @@ test('should setup Babel if not existing', async () => {
     ;(inquirer.prompt as any as jest.Mock).mockReturnValue(Promise.resolve({
         framework: '@wdio/mocha-framework$--$mocha',
         reporters: [],
+        plugins: [],
         services: [
             '@wdio/crossbrowsertesting-service$--$crossbrowsertesting',
             'wdio-lambdatest-service$--$lambdatest'
@@ -229,6 +233,7 @@ test('should not install @babel/register if existing', async () => {
     ;(inquirer.prompt as any as jest.Mock).mockReturnValue(Promise.resolve({
         framework: '@wdio/mocha-framework$--$mocha',
         reporters: [],
+        plugins: [],
         services: [
             '@wdio/crossbrowsertesting-service$--$crossbrowsertesting',
             'wdio-lambdatest-service$--$lambdatest'

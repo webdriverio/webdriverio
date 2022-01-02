@@ -49,12 +49,14 @@ const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) 
     const frameworkPackage = convertPackageHashToObject(answers.framework)
     const runnerPackage = convertPackageHashToObject(answers.runner || SUPPORTED_PACKAGES.runner[0].value)
     const servicePackages = answers.services.map((service) => convertPackageHashToObject(service))
+    const pluginPackages = answers.plugins.map((plugin)=> convertPackageHashToObject(plugin))
     const reporterPackages = answers.reporters.map((reporter) => convertPackageHashToObject(reporter))
 
     let packagesToInstall: string[] = [
         runnerPackage.package,
         frameworkPackage.package,
         ...reporterPackages.map(reporter => reporter.package),
+        ...pluginPackages.map(plugin => plugin.package),
         ...servicePackages.map(service => service.package)
     ]
 
@@ -69,6 +71,7 @@ const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) 
         runner: runnerPackage.short as 'local',
         framework: frameworkPackage.short,
         reporters: reporterPackages.map(({ short }) => short),
+        plugins: pluginPackages.map(({ short }) => short),
         services: servicePackages.map(({ short }) => short),
         packagesToInstall,
         isUsingTypeScript: answers.isUsingCompiler === COMPILER_OPTIONS.ts,

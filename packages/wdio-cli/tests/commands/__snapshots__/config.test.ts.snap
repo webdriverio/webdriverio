@@ -276,6 +276,7 @@ Object {
     "@wdio/local-runner",
     "@wdio/mocha-framework",
     "@wdio/spec-reporter",
+    "wdio-wait-for",
     "@wdio/sauce-service",
   ],
   "parsedAnswers": Object {
@@ -289,7 +290,11 @@ Object {
       "@wdio/local-runner--$local",
       "@wdio/mocha-framework",
       "@wdio/spec-reporter",
+      "wdio-wait-for",
       "@wdio/sauce-service--$sauce",
+    ],
+    "plugins": Array [
+      "wait-for",
     ],
     "relativePath": "",
     "reporters": Array [
