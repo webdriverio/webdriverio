@@ -75,7 +75,7 @@ Default: `{}`
 
 ## Known Issues
 
-- It's more of how webdriverio desigend the multi-process model. It is extremely hard if not impossible to reliable transfer localIdentifier to child-processes. We recommend to use it without the identifier at this moment, which will create an account-wide local tunnel.
+- At the moment, it is challenging, if not impossible, to transfer localIdentifier to child-processes reliably because of how webdriverio designed their multi-process model. We recommend using this service without an identifier, which will create an account-wide local tunnel.
 
 ----
 
