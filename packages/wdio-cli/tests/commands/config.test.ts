@@ -102,7 +102,8 @@ describe('install compliant NPM tag packages', () => {
             'wdio-lambdatest-service$--$lambdatest'
         ],
         generateTestFiles: false,
-        isUsingCompiler: 'TypeScript (https://www.typescriptlang.org/)'
+        isUsingCompiler: 'TypeScript (https://www.typescriptlang.org/)',
+        npmInstall: true
     }
 
     test('it should install tagged version if cli is tagged with beta', async () => {
@@ -165,7 +166,8 @@ test('prints TypeScript setup message', async () => {
             'wdio-lambdatest-service$--$lambdatest'
         ],
         generateTestFiles: false,
-        isUsingCompiler: 'TypeScript (https://www.typescriptlang.org/)'
+        isUsingCompiler: 'TypeScript (https://www.typescriptlang.org/)',
+        npmInstall: true
     }))
     await handler({} as any)
     expect(consoleLogSpy.mock.calls).toMatchSnapshot()
@@ -182,7 +184,8 @@ test('prints TypeScript setup message with ts-node installed', async () => {
             'wdio-lambdatest-service$--$lambdatest'
         ],
         generateTestFiles: false,
-        isUsingCompiler: 'TypeScript (https://www.typescriptlang.org/)'
+        isUsingCompiler: 'TypeScript (https://www.typescriptlang.org/)',
+        npmInstall: true
     }))
 
     const config = {
@@ -219,7 +222,8 @@ test('should setup Babel if not existing', async () => {
             'wdio-lambdatest-service$--$lambdatest'
         ],
         generateTestFiles: false,
-        isUsingCompiler: 'Babel (https://babeljs.io/)'
+        isUsingCompiler: 'Babel (https://babeljs.io/)',
+        npmInstall: true
     }))
     // @ts-expect-error
     fs.promises = { writeFile: jest.fn()
@@ -239,7 +243,8 @@ test('should not install @babel/register if existing', async () => {
             'wdio-lambdatest-service$--$lambdatest'
         ],
         generateTestFiles: false,
-        isUsingCompiler: 'Babel (https://babeljs.io/)'
+        isUsingCompiler: 'Babel (https://babeljs.io/)',
+        npmInstall: true
     }))
     await handler({} as any)
     expect(consoleLogSpy.mock.calls).toMatchSnapshot()

@@ -164,31 +164,34 @@ const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) 
         )
     }
 
-    console.log('\nInstalling wdio packages:\n-', packagesToInstall.join('\n- '))
-    const result = yarnInstall({ deps: packagesToInstall, dev: true, respectNpm5: !useYarn })
-
-    if (result.status !== 0) {
-        const customError = 'An unknown error happened! Please retry ' +
-            `installing dependencies via "${useYarn ? 'yarn add --dev' : 'npm i --save-dev'} ` +
-            `${packagesToInstall.join(' ')}"\n\nError: ${result.stderr || 'unknown'}`
-        console.log(customError)
-
-        /**
-         * don't exit if running unit tests
-         */
-        if (exit /* istanbul ignore next */ && !process.env.JEST_WORKER_ID) {
-            /* istanbul ignore next */
-            process.exit(1)
+    /**
+     * run npm install only if required by the user
+     */
+    if(parsedAnswers.npmInstall){
+        console.log('\nInstalling wdio packages:\n-', packagesToInstall.join('\n- '))
+        const result = yarnInstall({ deps: packagesToInstall, dev: true, respectNpm5: !useYarn })
+        if (result.status !== 0) {
+            const customError = 'An unknown error happened! Please retry ' +
+                `installing dependencies via "${useYarn ? 'yarn add --dev' : 'npm i --save-dev'} ` +
+                `${packagesToInstall.join(' ')}"\n\nError: ${result.stderr || 'unknown'}`
+            console.log(customError)
+    
+            /**
+             * don't exit if running unit tests
+             */
+            if (exit /* istanbul ignore next */ && !process.env.JEST_WORKER_ID) {
+                /* istanbul ignore next */
+                process.exit(1)
+            }
+    
+            return { success: false }
         }
-
-        return { success: false }
+    
+        console.log('\nPackages installed successfully, creating configuration file...')
     }
-
-    console.log('\nPackages installed successfully, creating configuration file...')
 
     try {
         await renderConfigurationFile(parsedAnswers)
-
         if (answers.generateTestFiles) {
             console.log('\nConfig file installed successfully, creating test files...')
             await generateTestFiles(parsedAnswers)
@@ -224,7 +227,7 @@ const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) 
     /**
      * don't exit if running unit tests
      */
-    if (exit /* istanbul ignore next */ && !process.env.JEST_WORKER_ID) {
+     if (exit /* istanbul ignore next */ && !process.env.JEST_WORKER_ID) {
         /* istanbul ignore next */
         process.exit(0)
     }

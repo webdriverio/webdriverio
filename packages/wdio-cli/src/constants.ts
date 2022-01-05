@@ -374,4 +374,9 @@ export const QUESTIONNAIRE = [{
     name: 'baseUrl',
     message: 'What is the base url?',
     default: 'http://localhost'
+}, {
+    type: 'confirm',
+    name: 'npmInstall',
+    message: 'Do you want me to run `npm install`',
+    default: true
 }]

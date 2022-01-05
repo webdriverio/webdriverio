@@ -31,6 +31,7 @@ export interface Questionnair {
     plugins: string[]
     outputDir: string
     baseUrl: string
+    npmInstall: boolean
 }
 
 export interface ParsedAnswers extends Omit<Questionnair, 'runner' | 'framework' | 'reporters' | 'services' | 'plugins'> {
