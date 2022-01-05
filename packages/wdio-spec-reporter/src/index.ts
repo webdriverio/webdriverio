@@ -25,6 +25,7 @@ export default class SpecReporter extends WDIOReporter {
 
     private _addConsoleLogs = false
     private _realtimeReporting = false
+    private _showPreface = true
     private _suiteName = ''
     // Keep track of the order that suites were called
     private _stateCounts: StateCount = {
@@ -52,6 +53,7 @@ export default class SpecReporter extends WDIOReporter {
         this._symbols = { ...this._symbols, ...this.options.symbols || {} }
         this._onlyFailures = options.onlyFailures || false
         this._realtimeReporting = options.realtimeReporting || false
+        this._showPreface = options.showPreface !== false;
         this._sauceLabsSharableLinks = 'sauceLabsSharableLinks' in options
             ? options.sauceLabsSharableLinks as boolean
             : this._sauceLabsSharableLinks
@@ -68,7 +70,7 @@ export default class SpecReporter extends WDIOReporter {
     }
 
     onRunnerStart (runner: RunnerStats) {
-        this._preface = `[${this.getEnviromentCombo(runner.capabilities, false, runner.isMultiremote).trim()} #${runner.cid}]`
+        this._preface = this._showPreface ? `[${this.getEnviromentCombo(runner.capabilities, false, runner.isMultiremote).trim()} #${runner.cid}]` : ''
     }
 
     onSuiteStart (suite: SuiteStats) {
@@ -168,7 +170,7 @@ export default class SpecReporter extends WDIOReporter {
         const divider = '------------------------------------------------------------------'
 
         // Get the results
-        const results = this.getResultDisplay(preface)
+        const results = this.getResultDisplay(this._showPreface ? preface : null)
 
         // If there are no test results then return nothing
         if (results.length === 0) {
@@ -199,9 +201,9 @@ export default class SpecReporter extends WDIOReporter {
         ]
 
         // Prefix all values with the browser information
-        const prefacedOutput = output.map((value) => {
+        const prefacedOutput = this.showPreface ? output.map((value) => {
             return value ? `${preface} ${value}` : preface
-        })
+        }) : output;
 
         // Output the results
         this.write(`${divider}\n${prefacedOutput.join('\n')}\n`)
