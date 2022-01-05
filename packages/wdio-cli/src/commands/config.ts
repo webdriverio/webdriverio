@@ -167,7 +167,7 @@ const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) 
     /**
      * run npm install only if required by the user
      */
-    if(parsedAnswers.npmInstall){
+    if (parsedAnswers.npmInstall){
         console.log('\nInstalling wdio packages:\n-', packagesToInstall.join('\n- '))
         const result = yarnInstall({ deps: packagesToInstall, dev: true, respectNpm5: !useYarn })
         if (result.status !== 0) {
@@ -175,7 +175,7 @@ const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) 
                 `installing dependencies via "${useYarn ? 'yarn add --dev' : 'npm i --save-dev'} ` +
                 `${packagesToInstall.join(' ')}"\n\nError: ${result.stderr || 'unknown'}`
             console.log(customError)
-    
+
             /**
              * don't exit if running unit tests
              */
@@ -183,10 +183,10 @@ const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) 
                 /* istanbul ignore next */
                 process.exit(1)
             }
-    
+
             return { success: false }
         }
-    
+
         console.log('\nPackages installed successfully, creating configuration file...')
     }
 
@@ -227,7 +227,7 @@ const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) 
     /**
      * don't exit if running unit tests
      */
-     if (exit /* istanbul ignore next */ && !process.env.JEST_WORKER_ID) {
+    if (exit /* istanbul ignore next */ && !process.env.JEST_WORKER_ID) {
         /* istanbul ignore next */
         process.exit(0)
     }
