@@ -113,3 +113,18 @@ Default: `false`
   },
 ]
 ```
+
+### showPreface
+Set to false to disable `[ MutliRemoteBrowser (unknown) #0-0 ]` preface in the reports.
+
+Type: `boolean`
+Default: `true`
+
+```js
+[
+  "spec",
+  {
+    showPreface: false,
+  },
+]
+```
