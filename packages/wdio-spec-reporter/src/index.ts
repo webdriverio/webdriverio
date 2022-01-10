@@ -53,7 +53,7 @@ export default class SpecReporter extends WDIOReporter {
         this._symbols = { ...this._symbols, ...this.options.symbols || {} }
         this._onlyFailures = options.onlyFailures || false
         this._realtimeReporting = options.realtimeReporting || false
-        this._showPreface = options.showPreface !== false;
+        this._showPreface = options.showPreface !== false
         this._sauceLabsSharableLinks = 'sauceLabsSharableLinks' in options
             ? options.sauceLabsSharableLinks as boolean
             : this._sauceLabsSharableLinks
@@ -170,7 +170,7 @@ export default class SpecReporter extends WDIOReporter {
         const divider = '------------------------------------------------------------------'
 
         // Get the results
-        const results = this.getResultDisplay(this._showPreface ? preface : null)
+        const results = this.getResultDisplay(preface)
 
         // If there are no test results then return nothing
         if (results.length === 0) {
@@ -201,9 +201,9 @@ export default class SpecReporter extends WDIOReporter {
         ]
 
         // Prefix all values with the browser information
-        const prefacedOutput = this.showPreface ? output.map((value) => {
+        const prefacedOutput = this._showPreface ? output.map((value) => {
             return value ? `${preface} ${value}` : preface
-        }) : output;
+        }) : output
 
         // Output the results
         this.write(`${divider}\n${prefacedOutput.join('\n')}\n`)
@@ -300,8 +300,9 @@ export default class SpecReporter extends WDIOReporter {
      * @param  {Array} suites Runner suites
      * @return {Array}        Display output list
      */
-    getResultDisplay (preface?: string) {
+    getResultDisplay (prefaceString?: string) {
         const output = []
+        const preface = this._showPreface ? prefaceString : ''
         const suites = this.getOrderedSuites()
         const specFileReferences: string[] = []
 
