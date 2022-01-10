@@ -183,10 +183,7 @@ export interface WebDriver extends Connection {
     /**
      * Appium direct connect options (see: https://appiumpro.com/editions/86-connecting-directly-to-appium-hosts-in-distributed-environments)
      */
-    directConnectProtocol?: string
-    directConnectHost?: string
-    directConnectPort?: number
-    directConnectPath?: string
+    enableDirectConnect?: boolean;
 
     /**
      * Whether it requires SSL certificates to be valid in HTTP/s requests

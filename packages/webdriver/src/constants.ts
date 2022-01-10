@@ -124,18 +124,11 @@ export const DEFAULTS: Options.Definition<Required<Options.WebDriver>> = {
     },
     /**
      * Appium direct connect options server (https://appiumpro.com/editions/86-connecting-directly-to-appium-hosts-in-distributed-environments)
+     * Whether to allow direct connect caps to adjust endpoint details (Appium only)
      */
-    directConnectProtocol: {
-        type: 'string'
-    },
-    directConnectHost: {
-        type: 'string'
-    },
-    directConnectPort: {
-        type: 'number'
-    },
-    directConnectPath: {
-        type: 'string'
+    enableDirectConnect: {
+        type: 'boolean',
+        default: true
     },
     /**
      * Whether it requires SSL certificates to be valid in HTTP/s requests

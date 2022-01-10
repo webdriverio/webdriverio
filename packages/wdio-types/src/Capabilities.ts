@@ -367,6 +367,13 @@ export interface AppiumCapabilities {
     eventTimings?: boolean;
     enablePerformanceLogging?: boolean;
     printPageSourceOnFindFailure?: boolean;
+
+    // Users as directConnect feature by the server
+    // https://appiumpro.com/editions/86-connecting-directly-to-appium-hosts-in-distributed-environments
+    directConnectProtocol?: string;
+    directConnectHost?: string;
+    directConnectPort?: number;
+    directConnectPath?: string;
 }
 
 /**

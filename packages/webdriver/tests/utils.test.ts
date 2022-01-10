@@ -4,7 +4,8 @@ import { transformCommandLogResult } from '@wdio/utils'
 import {
     isSuccessfulResponse, getPrototype, getSessionError,
     getErrorFromResponseBody, CustomRequestError, startWebDriverSession,
-    getTimeoutError
+    getTimeoutError,
+    setupDirectConnect
 } from '../src/utils'
 
 describe('utils', () => {
@@ -154,6 +155,62 @@ describe('utils', () => {
         error = new CustomRequestError({ value: { } } )
         expect(error.name).toBe('WebDriver Error')
         expect(error.message).toBe('unknown error')
+    })
+
+    describe('setupDirectConnect', () => {
+        it('should do nothing if params contain no direct connect caps', function () {
+            const params = { hostname: 'bar', capabilities: { platformName: 'baz' } }
+            const paramsCopy = JSON.parse(JSON.stringify(params))
+            setupDirectConnect(params)
+            expect(params).toEqual(paramsCopy)
+        })
+
+        it('should do nothing if params contain incomplete direct connect caps', function () {
+            const params = { hostname: 'bar', capabilities: { directConnectHost: 'baz' } }
+            const paramsCopy = JSON.parse(JSON.stringify(params))
+            setupDirectConnect(params)
+            expect(params).toEqual(paramsCopy)
+        })
+
+        it('should update connection params if caps contain all direct connect fields', function () {
+            const params = {
+                protocol: 'http',
+                hostname: 'foo',
+                port: 1234,
+                path: '',
+                capabilities: {
+                    directConnectProtocol: 'https',
+                    directConnectHost: 'bar',
+                    directConnectPort: 4321,
+                    directConnectPath: '/'
+                }
+            }
+            setupDirectConnect(params)
+            expect(params.protocol).toBe('https')
+            expect(params.hostname).toBe('bar')
+            expect(params.port).toBe(4321)
+            expect(params.path).toBe('/')
+        })
+
+        it('should update connection params even if path is empty string', function () {
+            const params = {
+                protocol: 'http',
+                hostname: 'foo',
+                port: 1234,
+                path: '/',
+                capabilities: {
+                    directConnectProtocol: 'https',
+                    directConnectHost: 'bar',
+                    directConnectPort: 4321,
+                    directConnectPath: ''
+                }
+            }
+            setupDirectConnect(params)
+            expect(params.protocol).toBe('https')
+            expect(params.hostname).toBe('bar')
+            expect(params.port).toBe(4321)
+            expect(params.path).toBe('')
+        })
     })
 
     describe('getSessionError', () => {

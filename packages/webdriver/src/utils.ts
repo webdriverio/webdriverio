@@ -269,6 +269,27 @@ export function getEnvironmentVars({ isW3C, isMobile, isIOS, isAndroid, isChrome
 }
 
 /**
+ * Decorate the params object with host updates based on the presence of
+ * directConnect capabilities in the new session response. Note that this
+ * mutates the object.
+ * @param  {Options} params    post-new-session params used to build driver
+ */
+export function setupDirectConnect(params: Partial<Options>) {
+    const { directConnectProtocol, directConnectHost, directConnectPort,
+        directConnectPath } = params.capabilities as Capabilities
+    if (directConnectProtocol && directConnectHost && directConnectPort &&
+        (directConnectPath || directConnectPath === '')) {
+        log.info('Found direct connect information in new session response. ' +
+            `Will connect to server at ${directConnectProtocol}://` +
+            `${directConnectHost}:${directConnectPort}/${directConnectPath}`)
+        params.protocol = directConnectProtocol
+        params.hostname = directConnectHost
+        params.port = directConnectPort
+        params.path = directConnectPath
+    }
+}
+
+/**
  * get human readable message from response error
  * @param {Error} err response error
  */

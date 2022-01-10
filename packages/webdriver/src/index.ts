@@ -7,7 +7,7 @@ import type { Options, Capabilities } from '@wdio/types'
 
 import command from './command'
 import { DEFAULTS } from './constants'
-import { startWebDriverSession, getPrototype, getEnvironmentVars } from './utils'
+import { startWebDriverSession, getPrototype, getEnvironmentVars, setupDirectConnect } from './utils'
 import type { Client, AttachOptions, SessionFlags } from './types'
 
 const log = logger('webdriver')
@@ -41,14 +41,8 @@ export default class WebDriver {
          * for example). But only do this if the user has enabled this
          * behavior in the first place.
          */
-        const { directConnectProtocol, directConnectHost, directConnectPort, directConnectPath } = params
-        if (directConnectProtocol && directConnectHost && directConnectPort && (directConnectPath || directConnectPath === '')) {
-            log.info('Found direct connect information in new session response. ' +
-                `Will connect to server at ${directConnectProtocol}://${directConnectHost}:${directConnectPort}/${directConnectPath}`)
-            params.protocol = directConnectProtocol
-            params.hostname = directConnectHost
-            params.port = directConnectPort
-            params.path = directConnectPath
+        if (params.enableDirectConnect) {
+            setupDirectConnect(params)
         }
 
         const requestedCapabilities = { ...params.capabilities }
