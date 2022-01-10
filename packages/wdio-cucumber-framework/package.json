@@ -32,11 +32,16 @@
     "@wdio/logger": "7.16.0",
     "@wdio/types": "7.16.11",
     "@wdio/utils": "7.16.11",
+    "colors": "1.4.0",
     "expect-webdriverio": "^3.0.0",
     "glob": "^7.1.2",
     "is-glob": "^4.0.0",
     "long": "^4.0.0",
-    "mockery": "^2.1.0"
+    "mockery": "^2.1.0",
+    "rimraf": "^3.0.2"
+  },
+  "scripts": {
+    "postinstall": "rimraf ./node_modules/@cucumber/cucumber/node_modules/colors"
   },
   "peerDependencies": {
     "@wdio/cli": "^7.0.0"
