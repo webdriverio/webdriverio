@@ -79,7 +79,6 @@
     "aws-sdk": "^2.1008.0",
     "camelcase": "^6.2.0",
     "cheerio": "^1.0.0-rc.10",
-    "colors": "1.4.0",
     "copyfiles": "^2.4.1",
     "del": "^6.0.0",
     "depcheck": "^1.4.2",
