@@ -451,6 +451,13 @@ export interface AppiumW3CCapabilities {
     'appium:printPageSourceOnFindFailure'?: boolean;
     'appium:nativeWebTap'?: boolean;
     'appium:options'?: AppiumCapabilities
+
+    // Users as directConnect feature by the server
+    // https://appiumpro.com/editions/86-connecting-directly-to-appium-hosts-in-distributed-environments
+    'appium:directConnectProtocol'?: string;
+    'appium:directConnectHost'?: string;
+    'appium:directConnectPort'?: number;
+    'appium:directConnectPath'?: string;
 }
 
 /**

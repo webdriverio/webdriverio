@@ -272,11 +272,13 @@ export function getEnvironmentVars({ isW3C, isMobile, isIOS, isAndroid, isChrome
  * Decorate the params object with host updates based on the presence of
  * directConnect capabilities in the new session response. Note that this
  * mutates the object.
- * @param  {Options} params    post-new-session params used to build driver
+ * @param  {Options.WebDriver} params    post-new-session params used to build driver
  */
-export function setupDirectConnect(params: Partial<Options>) {
-    const { directConnectProtocol, directConnectHost, directConnectPort,
-        directConnectPath } = params.capabilities as Capabilities
+export function setupDirectConnect(params: Partial<Options.WebDriver>) {
+    const directConnectProtocol = params.capabilities.directConnectProtocol || params.capabilities['appium:directConnectProtocol']
+    const directConnectHost = params.capabilities.directConnectHost || params.capabilities['appium:directConnectHost']
+    const directConnectPath = params.capabilities.directConnectPath || params.capabilities['appium:directConnectPath']
+    const directConnectPort = params.capabilities.directConnectPort || params.capabilities['appium:directConnectPort']
     if (directConnectProtocol && directConnectHost && directConnectPort &&
         (directConnectPath || directConnectPath === '')) {
         log.info('Found direct connect information in new session response. ' +
