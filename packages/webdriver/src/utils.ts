@@ -275,11 +275,14 @@ export function getEnvironmentVars({ isW3C, isMobile, isIOS, isAndroid, isChrome
  * @param  {Options.WebDriver} params    post-new-session params used to build driver
  */
 export function setupDirectConnect(params: Partial<Options.WebDriver>) {
-    const capabilities: Capabilities.AppiumCapabilities|Capabilities.AppiumW3CCapabilities = params.capabilities
-    const directConnectProtocol: string|null = capabilities.directConnectProtocol || capabilities['appium:directConnectProtocol']
-    const directConnectHost: string|null = capabilities.directConnectHost || capabilities['appium:directConnectHost']
-    const directConnectPath: string|null = capabilities.directConnectPath || capabilities['appium:directConnectPath']
-    const directConnectPort: number|null = capabilities.directConnectPort || capabilities['appium:directConnectPort']
+    const capabilities = params.capabilities
+    if (typeof capabilities === 'undefined') {
+        return
+    }
+    const directConnectProtocol: string|undefined = (capabilities as Capabilities.AppiumCapabilities).directConnectProtocol //|| capabilities['appium:directConnectProtocol']
+    const directConnectHost: string|undefined = (capabilities as Capabilities.AppiumCapabilities).directConnectHost //|| capabilities['appium:directConnectHost']
+    const directConnectPath: string|undefined = (capabilities as Capabilities.AppiumCapabilities).directConnectPath //|| capabilities['appium:directConnectPath']
+    const directConnectPort: number|undefined = (capabilities as Capabilities.AppiumCapabilities).directConnectPort //|| capabilities['appium:directConnectPort']
     if (directConnectProtocol && directConnectHost && directConnectPort &&
         (directConnectPath || directConnectPath === '')) {
         log.info('Found direct connect information in new session response. ' +
