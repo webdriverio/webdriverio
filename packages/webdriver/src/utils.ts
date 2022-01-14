@@ -289,6 +289,8 @@ export function setupDirectConnect(params: any) {
         params.port = directConnectPort
         params.path = directConnectPath
     }
+
+    return params
 }
 
 /**

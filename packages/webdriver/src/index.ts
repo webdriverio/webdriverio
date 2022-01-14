@@ -19,7 +19,7 @@ export default class WebDriver {
         userPrototype = {},
         customCommandWrapper?: (...args: any[]) => any
     ): Promise<Client> {
-        const params = validateConfig(DEFAULTS, options)
+        let params = validateConfig(DEFAULTS, options)
 
         if (!options.logLevels || !options.logLevels.webdriver) {
             logger.setLevel('webdriver', params.logLevel!)
@@ -42,7 +42,7 @@ export default class WebDriver {
          * behavior in the first place.
          */
         if (params.enableDirectConnect) {
-            setupDirectConnect(params)
+            params = setupDirectConnect(params)
         }
 
         const requestedCapabilities = { ...params.capabilities }
