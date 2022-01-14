@@ -272,17 +272,13 @@ export function getEnvironmentVars({ isW3C, isMobile, isIOS, isAndroid, isChrome
  * Decorate the params object with host updates based on the presence of
  * directConnect capabilities in the new session response. Note that this
  * mutates the object.
- * @param  {Options.WebDriver} params    post-new-session params used to build driver
+ * @param  {Object} params    post-new-session params used to build driver
  */
-export function setupDirectConnect(params: Partial<Options.WebDriver>) {
-    const capabilities = params.capabilities
-    if (typeof capabilities === 'undefined') {
-        return
-    }
-    const directConnectProtocol: string|undefined = (capabilities as Capabilities.AppiumCapabilities).directConnectProtocol //|| capabilities['appium:directConnectProtocol']
-    const directConnectHost: string|undefined = (capabilities as Capabilities.AppiumCapabilities).directConnectHost //|| capabilities['appium:directConnectHost']
-    const directConnectPath: string|undefined = (capabilities as Capabilities.AppiumCapabilities).directConnectPath //|| capabilities['appium:directConnectPath']
-    const directConnectPort: number|undefined = (capabilities as Capabilities.AppiumCapabilities).directConnectPort //|| capabilities['appium:directConnectPort']
+export function setupDirectConnect(params: any) {
+    const directConnectProtocol = params.capabilities.directConnectProtocol || params.capabilities['appium:directConnectProtocol']
+    const directConnectHost = params.capabilities.directConnectHost || params.capabilities['appium:directConnectHost']
+    const directConnectPath = params.capabilities.directConnectPath || params.capabilities['appium:directConnectPath']
+    const directConnectPort = params.capabilities.directConnectPort || params.capabilities['appium:directConnectPort']
     if (directConnectProtocol && directConnectHost && directConnectPort &&
         (directConnectPath || directConnectPath === '')) {
         log.info('Found direct connect information in new session response. ' +
