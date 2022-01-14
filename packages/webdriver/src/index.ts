@@ -42,7 +42,7 @@ export default class WebDriver {
          * behavior in the first place.
          */
         if (params.enableDirectConnect) {
-            params = setupDirectConnect(params)
+            setupDirectConnect(params)
         }
 
         const requestedCapabilities = { ...params.capabilities }

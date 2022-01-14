@@ -277,7 +277,10 @@ export function getEnvironmentVars({ isW3C, isMobile, isIOS, isAndroid, isChrome
 export function setupDirectConnect(params: any) {
     const directConnectProtocol = params.capabilities.directConnectProtocol || params.capabilities['appium:directConnectProtocol']
     const directConnectHost = params.capabilities.directConnectHost || params.capabilities['appium:directConnectHost']
-    const directConnectPath = params.capabilities.directConnectPath || params.capabilities['appium:directConnectPath']
+    let directConnectPath = params.capabilities.directConnectPath
+    if (!(directConnectPath && directConnectPath === '')) {
+        directConnectPath = params.capabilities['appium:directConnectPath']
+    }
     const directConnectPort = params.capabilities.directConnectPort || params.capabilities['appium:directConnectPort']
     if (directConnectProtocol && directConnectHost && directConnectPort &&
         (directConnectPath || directConnectPath === '')) {
@@ -289,8 +292,6 @@ export function setupDirectConnect(params: any) {
         params.port = directConnectPort
         params.path = directConnectPath
     }
-
-    return params
 }
 
 /**

@@ -159,21 +159,21 @@ describe('utils', () => {
 
     describe('setupDirectConnect', () => {
         it('should do nothing if params contain no direct connect caps', function () {
-            let params = { hostname: 'bar', capabilities: { platformName: 'baz' } }
+            const params = { hostname: 'bar', capabilities: { platformName: 'baz' } }
             const paramsCopy = JSON.parse(JSON.stringify(params))
-            params = setupDirectConnect(params)
+            setupDirectConnect(params)
             expect(params).toEqual(paramsCopy)
         })
 
         it('should do nothing if params contain incomplete direct connect caps', function () {
-            let params = { hostname: 'bar', capabilities: { directConnectHost: 'baz' } }
+            const params = { hostname: 'bar', capabilities: { directConnectHost: 'baz' } }
             const paramsCopy = JSON.parse(JSON.stringify(params))
-            params = setupDirectConnect(params)
+            setupDirectConnect(params)
             expect(params).toEqual(paramsCopy)
         })
 
         it('should update connection params if caps contain all direct connect fields', function () {
-            let params = {
+            const params = {
                 protocol: 'http',
                 hostname: 'foo',
                 port: 1234,
@@ -185,7 +185,7 @@ describe('utils', () => {
                     directConnectPath: '/'
                 }
             }
-            params = setupDirectConnect(params)
+            setupDirectConnect(params)
             expect(params.protocol).toBe('https')
             expect(params.hostname).toBe('bar')
             expect(params.port).toBe(4321)
@@ -193,7 +193,7 @@ describe('utils', () => {
         })
 
         it('should update connection params even if path is empty string', function () {
-            let params = {
+            const params = {
                 protocol: 'http',
                 hostname: 'foo',
                 port: 1234,
@@ -205,7 +205,7 @@ describe('utils', () => {
                     directConnectPath: ''
                 }
             }
-            params = setupDirectConnect(params)
+            setupDirectConnect(params)
             expect(params.protocol).toBe('https')
             expect(params.hostname).toBe('bar')
             expect(params.port).toBe(4321)
