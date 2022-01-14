@@ -278,7 +278,7 @@ export function setupDirectConnect(params: any) {
     const directConnectProtocol = params.capabilities.directConnectProtocol || params.capabilities['appium:directConnectProtocol']
     const directConnectHost = params.capabilities.directConnectHost || params.capabilities['appium:directConnectHost']
     let directConnectPath = params.capabilities.directConnectPath
-    if (!(directConnectPath && directConnectPath === '')) {
+    if (!(directConnectPath || directConnectPath === '')) {
         directConnectPath = params.capabilities['appium:directConnectPath']
     }
     const directConnectPort = params.capabilities.directConnectPort || params.capabilities['appium:directConnectPort']
