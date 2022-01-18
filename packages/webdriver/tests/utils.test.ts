@@ -1,11 +1,13 @@
 import { URL } from 'url'
-import { Options } from '@wdio/types'
+import { Capabilities, Options } from '@wdio/types'
 import { transformCommandLogResult } from '@wdio/utils'
 import {
     isSuccessfulResponse, getPrototype, getSessionError,
     getErrorFromResponseBody, CustomRequestError, startWebDriverSession,
-    getTimeoutError
+    getTimeoutError,
+    setupDirectConnect
 } from '../src/utils'
+import type { Client } from '../src/types'
 
 describe('utils', () => {
     it('isSuccessfulResponse', () => {
@@ -154,6 +156,73 @@ describe('utils', () => {
         error = new CustomRequestError({ value: { } } )
         expect(error.name).toBe('WebDriver Error')
         expect(error.message).toBe('unknown error')
+    })
+
+    describe('setupDirectConnect', () => {
+
+        class TestClient implements Client {
+            sessionId: string
+            capabilities: Capabilities.DesiredCapabilities | Capabilities.W3CCapabilities
+            requestedCapabilities: Capabilities.DesiredCapabilities | Capabilities.W3CCapabilities
+            options: Options.WebDriver
+
+            constructor(capabilities, options) {
+                this.capabilities = capabilities
+                this.options = options
+            }
+        }
+
+        it('should do nothing if params contain no direct connect caps', function () {
+            const client = new TestClient({ platformName: 'baz' }, { hostname: 'bar' }) as Client
+            setupDirectConnect(client)
+            expect(client.options.hostname).toEqual('bar')
+        })
+
+        it('should do nothing if params contain incomplete direct connect caps', function () {
+            const client = new TestClient({ platformName: 'baz', directConnectHost: 'baz' }, { hostname: 'bar' }) as Client
+            setupDirectConnect(client)
+            expect(client.options.hostname).toEqual('bar')
+        })
+
+        it('should update connection params if caps contain all direct connect fields', function () {
+            const client = new TestClient({
+                platformName: 'baz',
+                directConnectProtocol: 'https',
+                directConnectHost: 'bar',
+                directConnectPort: 4321,
+                directConnectPath: '/'
+            }, {
+                protocol: 'http',
+                hostname: 'foo',
+                port: 1234,
+                path: ''
+            }) as Client
+            setupDirectConnect(client)
+            expect(client.options.protocol).toBe('https')
+            expect(client.options.hostname).toBe('bar')
+            expect(client.options.port).toBe(4321)
+            expect(client.options.path).toBe('/')
+        })
+
+        it('should update connection params even if path is empty string', function () {
+            const client = new TestClient({
+                platformName: 'baz',
+                directConnectProtocol: 'https',
+                directConnectHost: 'bar',
+                directConnectPort: 4321,
+                directConnectPath: ''
+            }, {
+                protocol: 'http',
+                hostname: 'foo',
+                port: 1234,
+                path: ''
+            }) as Client
+            setupDirectConnect(client)
+            expect(client.options.protocol).toBe('https')
+            expect(client.options.hostname).toBe('bar')
+            expect(client.options.port).toBe(4321)
+            expect(client.options.path).toBe('')
+        })
     })
 
     describe('getSessionError', () => {

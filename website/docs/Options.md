@@ -151,6 +151,13 @@ It can be set via an environment variables as `STRICT_SSL` or `strict_ssl`.
 Type: `Boolean`<br />
 Default: `true`
 
+### enableDirectConnect
+Whether enable [Appium direct connection feature](https://appiumpro.com/editions/86-connecting-directly-to-appium-hosts-in-distributed-environments).
+It does nothing if the response did not have proper keys while the flag is enabled.
+
+Type: `Boolean`<br />
+Default: `true`
+
 ---
 
 ## WebdriverIO
