@@ -275,7 +275,7 @@ export function getEnvironmentVars({ isW3C, isMobile, isIOS, isAndroid, isChrome
  * @param  {Client} params post-new-session client
  */
 export function setupDirectConnect(client: Client) {
-    const capabilities = client.capabilities as any
+    const capabilities = client.capabilities as Capabilities.DesiredCapabilities
     const directConnectProtocol = capabilities.directConnectProtocol || capabilities['appium:directConnectProtocol']
     const directConnectHost = capabilities.directConnectHost || capabilities['appium:directConnectHost']
     let directConnectPath = capabilities.directConnectPath
