@@ -19,7 +19,7 @@ export default class WebDriver {
         userPrototype = {},
         customCommandWrapper?: (...args: any[]) => any
     ): Promise<Client> {
-        let params = validateConfig(DEFAULTS, options)
+        const params = validateConfig(DEFAULTS, options)
 
         if (!options.logLevels || !options.logLevels.webdriver) {
             logger.setLevel('webdriver', params.logLevel!)
