@@ -34,17 +34,6 @@ export default class WebDriver {
 
         log.info('Initiate new session using the WebDriver protocol')
 
-        /**
-         * if the server responded with direct connect information, update the
-         * params to speak directly to the appium host instead of a load
-         * balancer (see https://github.com/appium/python-client#direct-connect-urls
-         * for example). But only do this if the user has enabled this
-         * behavior in the first place.
-         */
-        if (params.enableDirectConnect) {
-            setupDirectConnect(params)
-        }
-
         const requestedCapabilities = { ...params.capabilities }
         const { sessionId, capabilities } = await startWebDriverSession(params)
         const environment = sessionEnvironmentDetector({ capabilities, requestedCapabilities })
@@ -57,7 +46,20 @@ export default class WebDriver {
             modifier,
             prototype
         )
-        return monad(sessionId, customCommandWrapper)
+        const client = monad(sessionId, customCommandWrapper)
+
+        /**
+         * if the server responded with direct connect information, update the
+         * client options to speak directly to the appium host instead of a load
+         * balancer (see https://github.com/appium/python-client#direct-connect-urls
+         * for example). But only do this if the user has enabled this
+         * behavior in the first place.
+         */
+        if (params.enableDirectConnect) {
+            setupDirectConnect(client)
+        }
+
+        return client
     }
 
     /**

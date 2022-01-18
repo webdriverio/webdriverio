@@ -12,7 +12,7 @@ import { WebDriverResponse } from './request'
 import command from './command'
 import { transformCommandLogResult } from '@wdio/utils'
 import { VALID_CAPS, REG_EXPS } from './constants'
-import type { JSONWPCommandError, SessionFlags } from './types'
+import type { Client, JSONWPCommandError, SessionFlags } from './types'
 
 const log = logger('webdriver')
 
@@ -272,25 +272,25 @@ export function getEnvironmentVars({ isW3C, isMobile, isIOS, isAndroid, isChrome
  * Decorate the params object with host updates based on the presence of
  * directConnect capabilities in the new session response. Note that this
  * mutates the object.
- * @param  {Object} params    post-new-session params used to build driver
+ * @param  {Client} params    post-new-session params used to build driver
  */
-export function setupDirectConnect(params: any) {
-    const directConnectProtocol = params.capabilities.directConnectProtocol || params.capabilities['appium:directConnectProtocol']
-    const directConnectHost = params.capabilities.directConnectHost || params.capabilities['appium:directConnectHost']
-    let directConnectPath = params.capabilities.directConnectPath
+export function setupDirectConnect(client: any) {
+    const directConnectProtocol = client.capabilities.directConnectProtocol || client.capabilities['appium:directConnectProtocol']
+    const directConnectHost = client.capabilities.directConnectHost || client.capabilities['appium:directConnectHost']
+    let directConnectPath = client.capabilities.directConnectPath
     if (!(directConnectPath || directConnectPath === '')) {
-        directConnectPath = params.capabilities['appium:directConnectPath']
+        directConnectPath = client.capabilities['appium:directConnectPath']
     }
-    const directConnectPort = params.capabilities.directConnectPort || params.capabilities['appium:directConnectPort']
+    const directConnectPort = client.capabilities.directConnectPort || client.capabilities['appium:directConnectPort']
     if (directConnectProtocol && directConnectHost && directConnectPort &&
         (directConnectPath || directConnectPath === '')) {
         log.info('Found direct connect information in new session response. ' +
             `Will connect to server at ${directConnectProtocol}://` +
-            `${directConnectHost}:${directConnectPort}/${directConnectPath}`)
-        params.protocol = directConnectProtocol
-        params.hostname = directConnectHost
-        params.port = directConnectPort
-        params.path = directConnectPath
+            `${directConnectHost}:${directConnectPort}${directConnectPath}`)
+        client.options.protocol = directConnectProtocol
+        client.options.hostname = directConnectHost
+        client.options.port = directConnectPort
+        client.options.path = directConnectPath
     }
 }
 
