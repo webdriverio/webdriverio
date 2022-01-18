@@ -269,19 +269,20 @@ export function getEnvironmentVars({ isW3C, isMobile, isIOS, isAndroid, isChrome
 }
 
 /**
- * Decorate the params object with host updates based on the presence of
+ * Decorate the client's options object with host updates based on the presence of
  * directConnect capabilities in the new session response. Note that this
  * mutates the object.
- * @param  {Client} params    post-new-session params used to build driver
+ * @param  {Client} params post-new-session client
  */
 export function setupDirectConnect(client: Client) {
-    const directConnectProtocol = client.capabilities.directConnectProtocol || client.capabilities['appium:directConnectProtocol']
-    const directConnectHost = client.capabilities.directConnectHost || client.capabilities['appium:directConnectHost']
-    let directConnectPath = client.capabilities.directConnectPath
+    const capabilities = client.capabilities as any
+    const directConnectProtocol = capabilities.directConnectProtocol || capabilities['appium:directConnectProtocol']
+    const directConnectHost = capabilities.directConnectHost || capabilities['appium:directConnectHost']
+    let directConnectPath = capabilities.directConnectPath
     if (!(directConnectPath || directConnectPath === '')) {
-        directConnectPath = client.capabilities['appium:directConnectPath']
+        directConnectPath = capabilities['appium:directConnectPath']
     }
-    const directConnectPort = client.capabilities.directConnectPort || client.capabilities['appium:directConnectPort']
+    const directConnectPort = capabilities.directConnectPort || capabilities['appium:directConnectPort']
     if (directConnectProtocol && directConnectHost && directConnectPort &&
         (directConnectPath || directConnectPath === '')) {
         log.info('Found direct connect information in new session response. ' +
