@@ -92,6 +92,7 @@ export const SUPPORTED_PACKAGES = {
     ],
     plugin: [
         { name: 'wait-for', value: 'wdio-wait-for$--$wait-for' },
+        { name: 'angular-component-harnesses', value: '@badisi/wdio-harness$--$harness' }
     ],
     service: [
         // inquirerjs shows list as its orderer in array
