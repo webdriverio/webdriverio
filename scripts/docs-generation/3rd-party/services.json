@@ -125,6 +125,12 @@
     "npmUrl": "https://www.npmjs.com/package/wdio-wait-for"
   },
   {
+    "packageName": "@badisi/wdio-harness",
+    "title": "Support for Angular component test harnesses",
+    "githubUrl": "https://github.com/Badisi/wdio-harness",
+    "npmUrl": "https://www.npmjs.com/package/@badisi/wdio-harness"
+  },
+  {
     "packageName": "wdio-eslinter-service",
     "title": "Auto-detect missing imports w/eslint",
     "githubUrl": "https://github.com/jamesmortensen/wdio-eslinter-service",
