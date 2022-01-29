@@ -63,12 +63,7 @@ class JunitReporter extends WDIOReporter {
         return suite
     }
 
-    private _addCucumberFeatureToBuilder(
-        builder: any,
-        runner: RunnerStats,
-        specFileName: string,
-        suite: SuiteStats
-    ) {
+    private _addCucumberFeatureToBuilder(builder: any, runner: RunnerStats, specFileName: string, suite: SuiteStats) {
         const featureName = !this.options.suiteNameFormat || this.options.suiteNameFormat instanceof RegExp
             ? this._prepareName(suite.title)
             : this.options.suiteNameFormat({ name: this.options.suiteNameFormat.name, suite })
@@ -89,7 +84,6 @@ class JunitReporter extends WDIOReporter {
         } else if (this._activeFeature) {
             let scenario = suite
             const testName = this._prepareName(suite.title)
-
             const classNameFormat = this.options.classNameFormat ? this.options.classNameFormat({ packageName: this._packageName, activeFeatureName: this._activeFeatureName }): `${this._packageName}.${this._activeFeatureName}`
             const testCase = this._activeFeature.testCase()
                 .className(classNameFormat)
@@ -237,7 +231,6 @@ class JunitReporter extends WDIOReporter {
         } else {
             this._packageName = this.options.packageName || runner.sanitizedCapabilities
         }
-
         const isCucumberFrameworkRunner = runner.config.framework === 'cucumber'
         if (isCucumberFrameworkRunner) {
             this._packageName = `CucumberJUnitReport-${this._packageName}`
@@ -248,15 +241,14 @@ class JunitReporter extends WDIOReporter {
             this._fileNameLabel = 'file'
         }
 
-        // there should only be one spec file per runner so we can safely take the first element of the array
-        const specFileName = runner.specs[0]
-        if (isCucumberFrameworkRunner) {
-            this._buildOrderedReport(builder, runner, specFileName, 'feature', isCucumberFrameworkRunner)
-            this._buildOrderedReport(builder, runner, specFileName, 'scenario', isCucumberFrameworkRunner)
-        } else {
-            this._buildOrderedReport(builder, runner, specFileName, '', isCucumberFrameworkRunner)
-        }
-
+        runner.specs.forEach((specFileName) => {
+            if (isCucumberFrameworkRunner) {
+                this._buildOrderedReport(builder, runner, specFileName, 'feature', isCucumberFrameworkRunner)
+                this._buildOrderedReport(builder, runner, specFileName, 'scenario', isCucumberFrameworkRunner)
+            } else {
+                this._buildOrderedReport(builder, runner, specFileName, '', isCucumberFrameworkRunner)
+            }
+        })
         return builder.build()
     }
 
@@ -270,7 +262,7 @@ class JunitReporter extends WDIOReporter {
                 continue
             }
             const suite = this.suites[suiteKey]
-            if (isCucumberFrameworkRunner && suite.type === type) {
+            if (isCucumberFrameworkRunner && suite.type === type && specFileName === suite.file) {
                 builder = this._addCucumberFeatureToBuilder(builder, runner, specFileName, suite)
             } else if (!isCucumberFrameworkRunner) {
                 builder = this._addSuiteToBuilder(builder, runner, specFileName, suite)
