@@ -16,4 +16,28 @@ describe('Mocha smoke test', () => {
             assert.equal(expectedResults[i++], elem.elementId)
         }
     })
+
+    it('should allow to fetch parent elements with chaining', async () => {
+        await browser.parentElementChaining()
+        assert.equal(
+            await $('foo').parentElement().getText(),
+            'some element text'
+        )
+    })
+
+    it('should allow to fetch parent elements with chaining', async () => {
+        await browser.parentElementChaining()
+        assert.equal(
+            await $('foo').nextElement().getText(),
+            'some element text'
+        )
+    })
+
+    it('should allow to fetch parent elements with chaining', async () => {
+        await browser.parentElementChaining()
+        assert.equal(
+            await $('foo').previousElement().getText(),
+            'some element text'
+        )
+    })
 })
