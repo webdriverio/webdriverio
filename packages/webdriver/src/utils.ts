@@ -12,7 +12,7 @@ import { WebDriverResponse } from './request'
 import command from './command'
 import { transformCommandLogResult } from '@wdio/utils'
 import { VALID_CAPS, REG_EXPS } from './constants'
-import type { JSONWPCommandError, SessionFlags } from './types'
+import type { Client, JSONWPCommandError, SessionFlags } from './types'
 
 const log = logger('webdriver')
 
@@ -265,6 +265,33 @@ export function getEnvironmentVars({ isW3C, isMobile, isIOS, isAndroid, isChrome
         isChrome: { value: isChrome },
         isSauce: { value: isSauce },
         isSeleniumStandalone: { value: isSeleniumStandalone }
+    }
+}
+
+/**
+ * Decorate the client's options object with host updates based on the presence of
+ * directConnect capabilities in the new session response. Note that this
+ * mutates the object.
+ * @param  {Client} params post-new-session client
+ */
+export function setupDirectConnect(client: Client) {
+    const capabilities = client.capabilities as Capabilities.DesiredCapabilities
+    const directConnectProtocol = capabilities.directConnectProtocol || capabilities['appium:directConnectProtocol']
+    const directConnectHost = capabilities.directConnectHost || capabilities['appium:directConnectHost']
+    let directConnectPath = capabilities.directConnectPath
+    if (!(directConnectPath || directConnectPath === '')) {
+        directConnectPath = capabilities['appium:directConnectPath']
+    }
+    const directConnectPort = capabilities.directConnectPort || capabilities['appium:directConnectPort']
+    if (directConnectProtocol && directConnectHost && directConnectPort &&
+        (directConnectPath || directConnectPath === '')) {
+        log.info('Found direct connect information in new session response. ' +
+            `Will connect to server at ${directConnectProtocol}://` +
+            `${directConnectHost}:${directConnectPort}${directConnectPath}`)
+        client.options.protocol = directConnectProtocol
+        client.options.hostname = directConnectHost
+        client.options.port = directConnectPort
+        client.options.path = directConnectPath
     }
 }
 

@@ -7,7 +7,7 @@ import type { Options, Capabilities } from '@wdio/types'
 
 import command from './command'
 import { DEFAULTS } from './constants'
-import { startWebDriverSession, getPrototype, getEnvironmentVars } from './utils'
+import { startWebDriverSession, getPrototype, getEnvironmentVars, setupDirectConnect } from './utils'
 import type { Client, AttachOptions, SessionFlags } from './types'
 
 const log = logger('webdriver')
@@ -34,23 +34,6 @@ export default class WebDriver {
 
         log.info('Initiate new session using the WebDriver protocol')
 
-        /**
-         * if the server responded with direct connect information, update the
-         * params to speak directly to the appium host instead of a load
-         * balancer (see https://github.com/appium/python-client#direct-connect-urls
-         * for example). But only do this if the user has enabled this
-         * behavior in the first place.
-         */
-        const { directConnectProtocol, directConnectHost, directConnectPort, directConnectPath } = params
-        if (directConnectProtocol && directConnectHost && directConnectPort && (directConnectPath || directConnectPath === '')) {
-            log.info('Found direct connect information in new session response. ' +
-                `Will connect to server at ${directConnectProtocol}://${directConnectHost}:${directConnectPort}/${directConnectPath}`)
-            params.protocol = directConnectProtocol
-            params.hostname = directConnectHost
-            params.port = directConnectPort
-            params.path = directConnectPath
-        }
-
         const requestedCapabilities = { ...params.capabilities }
         const { sessionId, capabilities } = await startWebDriverSession(params)
         const environment = sessionEnvironmentDetector({ capabilities, requestedCapabilities })
@@ -63,7 +46,20 @@ export default class WebDriver {
             modifier,
             prototype
         )
-        return monad(sessionId, customCommandWrapper)
+        const client = monad(sessionId, customCommandWrapper)
+
+        /**
+         * if the server responded with direct connect information, update the
+         * client options to speak directly to the appium host instead of a load
+         * balancer (see https://github.com/appium/python-client#direct-connect-urls
+         * for example). But only do this if the user has enabled this
+         * behavior in the first place.
+         */
+        if (params.enableDirectConnect) {
+            setupDirectConnect(client)
+        }
+
+        return client
     }
 
     /**

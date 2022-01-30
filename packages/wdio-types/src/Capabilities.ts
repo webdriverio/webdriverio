@@ -367,6 +367,13 @@ export interface AppiumCapabilities {
     eventTimings?: boolean;
     enablePerformanceLogging?: boolean;
     printPageSourceOnFindFailure?: boolean;
+
+    // Users as directConnect feature by the server
+    // https://appiumpro.com/editions/86-connecting-directly-to-appium-hosts-in-distributed-environments
+    directConnectProtocol?: string;
+    directConnectHost?: string;
+    directConnectPort?: number;
+    directConnectPath?: string;
 }
 
 /**
@@ -444,6 +451,13 @@ export interface AppiumW3CCapabilities {
     'appium:printPageSourceOnFindFailure'?: boolean;
     'appium:nativeWebTap'?: boolean;
     'appium:options'?: AppiumCapabilities
+
+    // Users as directConnect feature by the server
+    // https://appiumpro.com/editions/86-connecting-directly-to-appium-hosts-in-distributed-environments
+    'appium:directConnectProtocol'?: string;
+    'appium:directConnectHost'?: string;
+    'appium:directConnectPort'?: number;
+    'appium:directConnectPath'?: string;
 }
 
 /**
@@ -717,7 +731,7 @@ export interface IECapabilities {
 }
 
 /**
- * see also https://wiki.saucelabs.com/display/DOCS/Test+Configuration+Options
+ * see also https://docs.saucelabs.com/dev/test-configuration-options
  */
 export interface SauceLabsCapabilities {
     /**
@@ -979,6 +993,24 @@ export interface SauceLabsCapabilities {
      * @default 90
      */
     idleTimeout?: number
+    /**
+     * Enables the interception of biometric input, allowing the test to
+     * simulate Touch ID interactions (not a Sauce Labs-specific capability).
+     *
+     * @default false
+     */
+    allowTouchIdEnroll?: boolean
+    /**
+     * Keeps a device allocated to you between test sessions, bypassing the
+     * device cleaning process and session exit that occurs by default after
+     * each test completes. Normally, you'd need to start over and reopen
+     * another device. You'll need to launch your next test within 10 seconds
+     * of your previous test ending to ensure that the same device will be
+     * allocated for the test (not cleaned or reset).
+     *
+     * @default *randomized string*
+     */
+    cacheId?: string
 }
 
 export interface BrowserStackCapabilities {

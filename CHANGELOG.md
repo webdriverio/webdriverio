@@ -19,6 +19,70 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.16.14 (2022-01-29)
+
+#### :bug: Bug Fix
+* `wdio-types`, `webdriver`
+  * [#7894](https://github.com/webdriverio/webdriverio/pull/7894) Fix directConnect ([@KazuCocoa](https://github.com/KazuCocoa))
+
+#### :nail_care: Polish
+* `wdio-junit-reporter`
+  * [#7942](https://github.com/webdriverio/webdriverio/pull/7942) Ensure correct reporting when a thread runs more then 1 Cucumber feature (spec) ([@mikesalvia](https://github.com/mikesalvia))
+
+#### :memo: Documentation
+* Other
+  * [#7936](https://github.com/webdriverio/webdriverio/pull/7936) Adding Tesults reporter to CLI and reporter list ([@ajeetd](https://github.com/ajeetd))
+* `wdio-cli`
+  * [#7941](https://github.com/webdriverio/webdriverio/pull/7941) Add @badisi/wdio-harness as an external plugins ([@Badisi](https://github.com/Badisi))
+  * [#7924](https://github.com/webdriverio/webdriverio/pull/7924) Adding Tesults reporter to CLI and reporter list ([@ajeetd](https://github.com/ajeetd))
+
+#### Committers: 5
+- Ajeet Dhaliwal ([@ajeetd](https://github.com/ajeetd))
+- Christopher Hiller ([@boneskull](https://github.com/boneskull))
+- Kazuaki Matsuo ([@KazuCocoa](https://github.com/KazuCocoa))
+- Mike Salvia ([@mikesalvia](https://github.com/mikesalvia))
+- [@Badisi](https://github.com/Badisi)
+
+
+## v7.16.13 (2022-01-10)
+
+#### :rocket: New Feature
+* `wdio-cli`, `wdio-spec-reporter`
+  * [#7572](https://github.com/webdriverio/webdriverio/pull/7572) Added real time reporting to spec reporter  ([@praveendvd](https://github.com/praveendvd))
+
+#### :bug: Bug Fix
+* `wdio-sauce-service`
+  * [#7839](https://github.com/webdriverio/webdriverio/pull/7839) Sauce service before step RDC fix ([@denis-a1qa](https://github.com/denis-a1qa))
+* `wdio-reporter`
+  * [#7823](https://github.com/webdriverio/webdriverio/pull/7823) Fix for Jasmine webdriverio exception not failing suite  ([@praveendvd](https://github.com/praveendvd))
+* `wdio-cli`
+  * [#7720](https://github.com/webdriverio/webdriverio/pull/7720) Fix for bug #7640  run is not working when project already has a misconfigured tsconfig.json ([@praveendvd](https://github.com/praveendvd))
+
+#### :nail_care: Polish
+* `wdio-cli`
+  * [#7852](https://github.com/webdriverio/webdriverio/pull/7852) Moves wait-for from services to a new section called Plugins ([@gpt14](https://github.com/gpt14))
+
+#### :memo: Documentation
+* `wdio-browserstack-service`
+  * [#7853](https://github.com/webdriverio/webdriverio/pull/7853) Update README.md for BrowserStack service ([@hang-up](https://github.com/hang-up))
+* Other
+  * [#7846](https://github.com/webdriverio/webdriverio/pull/7846) Fix a typo in GOVERNANCE.md ([@fishmandev](https://github.com/fishmandev))
+* `wdio-types`
+  * [#7844](https://github.com/webdriverio/webdriverio/pull/7844) Added new capabilities for XCUI  ([@praveendvd](https://github.com/praveendvd))
+
+#### :house: Internal
+* `webdriverio`
+  * [#7819](https://github.com/webdriverio/webdriverio/pull/7819) test(na): add missing unit test to getCSSProperty ([@tmjpedro](https://github.com/tmjpedro))
+
+#### Committers: 6
+- Denis Lukashevich ([@denis-a1qa](https://github.com/denis-a1qa))
+- Dmitriy Fishman ([@fishmandev](https://github.com/fishmandev))
+- GPT14 ([@gpt14](https://github.com/gpt14))
+- Rob ([@hang-up](https://github.com/hang-up))
+- TP ([@tmjpedro](https://github.com/tmjpedro))
+- praveendvd ([@praveendvd](https://github.com/praveendvd))
+
+
 ## v7.16.12 (2021-12-15)
 
 #### :memo: Documentation

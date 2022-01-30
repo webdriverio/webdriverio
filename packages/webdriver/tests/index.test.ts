@@ -116,26 +116,6 @@ describe('WebDriver', () => {
                 .toMatchSnapshot()
         })
 
-        it('should allow to use Appium direct connect functionality', async () => {
-            setUpLogCheck(() => process.env.WDIO_LOG_PATH === OUTPUT_FILE)
-
-            await WebDriver.newSession({
-                directConnectProtocol: 'https',
-                directConnectHost: 'foobar',
-                directConnectPort: 1234,
-                directConnectPath: '/foo/bar',
-                path: '/',
-                capabilities: {
-                    alwaysMatch: { browserName: 'firefox' },
-                    firstMatch: [{}]
-                },
-                outputDir: OUTPUT_DIR,
-            })
-
-            const url = got.mock.calls[0][0]
-            expect(url.href).toEqual('https://foobar:1234/foo/bar/session')
-        })
-
         it('should be possible to skip setting logLevel', async () => {
             await WebDriver.newSession({
                 capabilities: { browserName: 'chrome' },
