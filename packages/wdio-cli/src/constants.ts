@@ -25,7 +25,7 @@ $ npx wdio run %swdio.conf.%s
 `
 
 export const DEPENDENCIES_INSTALLATION_MESSAGE = `
-To install dependencies, execute \n
+To install dependencies, execute:
 %s
 `
 
