@@ -358,8 +358,7 @@ WDIO Configuration Helper
     ],
     Array [
       "
-To install dependencies, execute 
-
+To install dependencies, execute:
 npm i --save-dev @wdio/local-runner @wdio/mocha-framework @wdio/spec-reporter wdio-wait-for @wdio/sauce-service
 ",
     ],
