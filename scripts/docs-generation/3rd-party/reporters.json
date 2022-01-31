@@ -56,7 +56,7 @@
   {
     "packageName": "wdio-tesults-reporter",
     "title": "Tesults",
-    "githubUrl": "https://github.com/tesults/wdio-tesults-reporter.git",
+    "githubUrl": "https://github.com/tesults/wdio-tesults-reporter",
     "npmUrl": "https://www.npmjs.com/package/wdio-tesults-reporter"
   }
 ]
