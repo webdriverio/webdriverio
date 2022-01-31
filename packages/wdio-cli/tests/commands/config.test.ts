@@ -38,13 +38,13 @@ const consoleLogSpy = jest.spyOn(console, 'log')
 const args = {
     framework: '@wdio/mocha-framework$--$mocha',
     reporters: [
-        "@wdio/spec-reporter$--$spec"
+        '@wdio/spec-reporter$--$spec'
     ],
     plugins: [
-        "wdio-wait-for$--$wait-for"
+        'wdio-wait-for$--$wait-for'
     ],
     services: [
-        "@wdio/sauce-service$--$sauce"
+        '@wdio/sauce-service$--$sauce'
     ],
     isUsingTypeScript: false,
     npmInstall: true
@@ -64,11 +64,11 @@ afterEach(() => {
 })
 
 test('should create config file', async () => {
-    
+
     (inquirer.prompt as any as jest.Mock).mockReturnValue(Promise.resolve(args))
-        // @ts-expect-error
-        fs.promises = { writeFile: jest.fn()
-            .mockReturnValue(Promise.resolve('')) }
+    // @ts-expect-error
+    fs.promises = { writeFile: jest.fn()
+        .mockReturnValue(Promise.resolve('')) }
     const result = await handler({} as any)
     delete result.parsedAnswers.destPageObjectRootPath
     delete result.parsedAnswers.destSpecRootPath
