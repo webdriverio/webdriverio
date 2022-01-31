@@ -7,7 +7,8 @@ import yarnInstall from 'yarn-install'
 import {
     CONFIG_HELPER_INTRO, CLI_EPILOGUE, COMPILER_OPTIONS,
     TS_COMPILER_INSTRUCTIONS, SUPPORTED_PACKAGES,
-    CONFIG_HELPER_SUCCESS_MESSAGE
+    CONFIG_HELPER_SUCCESS_MESSAGE,
+    DEPENDENCIES_INSTALLATION_MESSAGE
 } from '../constants'
 import {
     addServiceDeps, convertPackageHashToObject, renderConfigurationFile,
@@ -188,6 +189,11 @@ const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) 
         }
 
         console.log('\nPackages installed successfully, creating configuration file...')
+    } else {
+        const installationCommand = `${useYarn ? 'yarn add --dev' : 'npm i --save-dev'} ${packagesToInstall.join(' ')}`
+        console.log(util.format(DEPENDENCIES_INSTALLATION_MESSAGE,
+            installationCommand
+        ))
     }
 
     try {

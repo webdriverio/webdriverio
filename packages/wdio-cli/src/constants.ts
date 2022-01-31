@@ -24,6 +24,13 @@ To run your tests, execute:
 $ npx wdio run %swdio.conf.%s
 `
 
+export const DEPENDENCIES_INSTALLATION_MESSAGE = `
+To install dependencies, execute \n
+%s
+`
+
+export const NPM_INSTALL = ''
+
 export const ANDROID_CONFIG = {
     platformName: 'Android',
     automationName: 'UiAutomator2',

@@ -358,6 +358,13 @@ WDIO Configuration Helper
     ],
     Array [
       "
+To install dependencies, execute 
+
+npm i --save-dev @wdio/local-runner @wdio/mocha-framework @wdio/spec-reporter wdio-wait-for @wdio/sauce-service
+",
+    ],
+    Array [
+      "
 Configuration file was created successfully!
 To run your tests, execute:
 $ npx wdio run wdio.conf.js
@@ -365,6 +372,10 @@ $ npx wdio run wdio.conf.js
     ],
   ],
   "results": Array [
+    Object {
+      "type": "return",
+      "value": undefined,
+    },
     Object {
       "type": "return",
       "value": undefined,
