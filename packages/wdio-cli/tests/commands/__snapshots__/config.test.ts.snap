@@ -346,6 +346,37 @@ $ npx wdio run wdio.conf.js
 ]
 `;
 
+exports[`should not install npm packages when npmInstall is false 1`] = `
+[MockFunction] {
+  "calls": Array [
+    Array [
+      "
+=========================
+WDIO Configuration Helper
+=========================
+",
+    ],
+    Array [
+      "
+Configuration file was created successfully!
+To run your tests, execute:
+$ npx wdio run wdio.conf.js
+",
+    ],
+  ],
+  "results": Array [
+    Object {
+      "type": "return",
+      "value": undefined,
+    },
+    Object {
+      "type": "return",
+      "value": undefined,
+    },
+  ],
+}
+`;
+
 exports[`should setup Babel if not existing 1`] = `
 Array [
   Array [

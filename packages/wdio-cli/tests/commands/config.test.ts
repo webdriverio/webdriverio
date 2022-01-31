@@ -271,6 +271,14 @@ test('should not install @babel/register if existing', async () => {
     expect(consoleLogSpy.mock.calls).toMatchSnapshot()
 })
 
+test('should not install npm packages when npmInstall is false', async () => {
+    const ans = {...args, npmInstall: false};
+    (inquirer.prompt as any as jest.Mock).mockReturnValue(Promise.resolve(ans))
+    await handler({} as any)
+    expect(consoleLogSpy).toMatchSnapshot()
+    expect(yarnInstall).not.toHaveBeenCalled()
+})
+
 describe('missingConfigurationPromp', () => {
     it('should prompt user', async () => {
         (inquirer.prompt as any as jest.Mock).mockImplementation(() => ({ config: true }))
