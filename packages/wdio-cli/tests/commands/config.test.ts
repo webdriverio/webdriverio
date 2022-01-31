@@ -272,7 +272,7 @@ test('should not install @babel/register if existing', async () => {
 })
 
 test('should not install npm packages when npmInstall is false', async () => {
-    const ans = {...args, npmInstall: false};
+    const ans = { ...args, npmInstall: false };
     (inquirer.prompt as any as jest.Mock).mockReturnValue(Promise.resolve(ans))
     await handler({} as any)
     expect(consoleLogSpy).toMatchSnapshot()
