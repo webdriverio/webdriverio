@@ -286,12 +286,13 @@ Object {
     "isSync": false,
     "isUsingBabel": false,
     "isUsingTypeScript": false,
+    "npmInstall": true,
     "packagesToInstall": Array [
-      "@wdio/local-runner--$local",
+      "@wdio/local-runner",
       "@wdio/mocha-framework",
       "@wdio/spec-reporter",
       "wdio-wait-for",
-      "@wdio/sauce-service--$sauce",
+      "@wdio/sauce-service",
     ],
     "plugins": Array [
       "wait-for",
@@ -300,9 +301,9 @@ Object {
     "reporters": Array [
       "spec",
     ],
-    "runner": undefined,
+    "runner": "local",
     "services": Array [
-      undefined,
+      "sauce",
     ],
     "tsConfigFilePath": "test/tsconfig.json",
   },
@@ -343,6 +344,47 @@ $ npx wdio run wdio.conf.js
 ",
   ],
 ]
+`;
+
+exports[`should not install npm packages when npmInstall is false 1`] = `
+[MockFunction] {
+  "calls": Array [
+    Array [
+      "
+=========================
+WDIO Configuration Helper
+=========================
+",
+    ],
+    Array [
+      "
+To install dependencies, execute:
+npm i --save-dev @wdio/local-runner @wdio/mocha-framework @wdio/spec-reporter wdio-wait-for @wdio/sauce-service
+",
+    ],
+    Array [
+      "
+Configuration file was created successfully!
+To run your tests, execute:
+$ npx wdio run wdio.conf.js
+",
+    ],
+  ],
+  "results": Array [
+    Object {
+      "type": "return",
+      "value": undefined,
+    },
+    Object {
+      "type": "return",
+      "value": undefined,
+    },
+    Object {
+      "type": "return",
+      "value": undefined,
+    },
+  ],
+}
 `;
 
 exports[`should setup Babel if not existing 1`] = `

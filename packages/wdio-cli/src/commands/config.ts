@@ -7,7 +7,8 @@ import yarnInstall from 'yarn-install'
 import {
     CONFIG_HELPER_INTRO, CLI_EPILOGUE, COMPILER_OPTIONS,
     TS_COMPILER_INSTRUCTIONS, SUPPORTED_PACKAGES,
-    CONFIG_HELPER_SUCCESS_MESSAGE
+    CONFIG_HELPER_SUCCESS_MESSAGE,
+    DEPENDENCIES_INSTALLATION_MESSAGE
 } from '../constants'
 import {
     addServiceDeps, convertPackageHashToObject, renderConfigurationFile,
@@ -164,31 +165,39 @@ const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) 
         )
     }
 
-    console.log('\nInstalling wdio packages:\n-', packagesToInstall.join('\n- '))
-    const result = yarnInstall({ deps: packagesToInstall, dev: true, respectNpm5: !useYarn })
+    /**
+     * run npm install only if required by the user
+     */
+    if (parsedAnswers.npmInstall){
+        console.log('\nInstalling wdio packages:\n-', packagesToInstall.join('\n- '))
+        const result = yarnInstall({ deps: packagesToInstall, dev: true, respectNpm5: !useYarn })
+        if (result.status !== 0) {
+            const customError = 'An unknown error happened! Please retry ' +
+                `installing dependencies via "${useYarn ? 'yarn add --dev' : 'npm i --save-dev'} ` +
+                `${packagesToInstall.join(' ')}"\n\nError: ${result.stderr || 'unknown'}`
+            console.log(customError)
 
-    if (result.status !== 0) {
-        const customError = 'An unknown error happened! Please retry ' +
-            `installing dependencies via "${useYarn ? 'yarn add --dev' : 'npm i --save-dev'} ` +
-            `${packagesToInstall.join(' ')}"\n\nError: ${result.stderr || 'unknown'}`
-        console.log(customError)
+            /**
+             * don't exit if running unit tests
+             */
+            if (exit /* istanbul ignore next */ && !process.env.JEST_WORKER_ID) {
+                /* istanbul ignore next */
+                process.exit(1)
+            }
 
-        /**
-         * don't exit if running unit tests
-         */
-        if (exit /* istanbul ignore next */ && !process.env.JEST_WORKER_ID) {
-            /* istanbul ignore next */
-            process.exit(1)
+            return { success: false }
         }
 
-        return { success: false }
+        console.log('\nPackages installed successfully, creating configuration file...')
+    } else {
+        const installationCommand = `${useYarn ? 'yarn add --dev' : 'npm i --save-dev'} ${packagesToInstall.join(' ')}`
+        console.log(util.format(DEPENDENCIES_INSTALLATION_MESSAGE,
+            installationCommand
+        ))
     }
-
-    console.log('\nPackages installed successfully, creating configuration file...')
 
     try {
         await renderConfigurationFile(parsedAnswers)
-
         if (answers.generateTestFiles) {
             console.log('\nConfig file installed successfully, creating test files...')
             await generateTestFiles(parsedAnswers)

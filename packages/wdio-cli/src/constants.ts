@@ -24,6 +24,13 @@ To run your tests, execute:
 $ npx wdio run %swdio.conf.%s
 `
 
+export const DEPENDENCIES_INSTALLATION_MESSAGE = `
+To install dependencies, execute:
+%s
+`
+
+export const NPM_INSTALL = ''
+
 export const ANDROID_CONFIG = {
     platformName: 'Android',
     automationName: 'UiAutomator2',
@@ -376,4 +383,9 @@ export const QUESTIONNAIRE = [{
     name: 'baseUrl',
     message: 'What is the base url?',
     default: 'http://localhost'
+}, {
+    type: 'confirm',
+    name: 'npmInstall',
+    message: 'Do you want me to run `npm install`',
+    default: true
 }]
