@@ -179,7 +179,25 @@ outputFileFormat: function (options) {
 Gives the ability to provide custom regex for formatting test suite name (e.g. in output xml ).
 
 Type: `Regex`,<br />
-Default: `/[^a-z0-9]+/`
+Default: `/[^a-zA-Z0-9@]+/`
+
+```js
+// wdio.conf.js
+module.exports = {
+    // ...
+    reporters: [
+        'dot',
+        ['junit', {
+            outputDir: './',
+            suiteNameFormat: /[^a-zA-Z0-9@]+/
+            outputFileFormat: function(options) { // optional
+                return `results-${options.cid}.${options.capabilities}.xml`
+            }
+        }]
+    ],
+    // ...
+};
+```
 
 ### addFileAttribute
 
