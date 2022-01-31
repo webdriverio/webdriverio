@@ -286,12 +286,13 @@ Object {
     "isSync": false,
     "isUsingBabel": false,
     "isUsingTypeScript": false,
+    "npmInstall": true,
     "packagesToInstall": Array [
-      "@wdio/local-runner--$local",
+      "@wdio/local-runner",
       "@wdio/mocha-framework",
       "@wdio/spec-reporter",
       "wdio-wait-for",
-      "@wdio/sauce-service--$sauce",
+      "@wdio/sauce-service",
     ],
     "plugins": Array [
       "wait-for",
@@ -300,9 +301,9 @@ Object {
     "reporters": Array [
       "spec",
     ],
-    "runner": undefined,
+    "runner": "local",
     "services": Array [
-      undefined,
+      "sauce",
     ],
     "tsConfigFilePath": "test/tsconfig.json",
   },
