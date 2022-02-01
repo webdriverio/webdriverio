@@ -15,6 +15,9 @@
     <a href="https://snyk.io/advisor/npm-package/webdriverio">
         <img alt="Package Health" src="https://snyk.io/advisor/npm-package/webdriverio/badge.svg">
     </a>
+    <a href="https://bestpractices.coreinfrastructure.org/en/projects/5589">
+        <img alt="OpenSSF Best Practices" src="https://bestpractices.coreinfrastructure.org/projects/5589/badge">
+    </a>
     <a href="https://gitter.im/webdriverio/webdriverio">
         <img alt="Gitter" src="https://badges.gitter.im/webdriverio/webdriverio.svg">
     </a>
