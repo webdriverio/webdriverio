@@ -17,7 +17,7 @@ type $ElementCommands = typeof ElementCommands
 type ElementQueryCommands = '$' | 'custom$' | 'shadow$' | 'react$'
 type ElementsQueryCommands = '$$' | 'custom$$' | 'shadow$$' | 'react$$'
 type ChainablePrototype = {
-    [K in ElementQueryCommands]: (...args: Parameters<$ElementCommands[K]>) => ChainablePromiseElement<ReturnType<$ElementCommands[K]>>
+    [K in ElementQueryCommands]: (...args: Parameters<$ElementCommands[K]>) => ChainablePromiseElement<ThenArg<ReturnType<$ElementCommands[K]>>>
 } & {
     [K in ElementsQueryCommands]: (...args: Parameters<$ElementCommands[K]>) => ChainablePromiseArray<ThenArg<ReturnType<$ElementCommands[K]>>>
 }

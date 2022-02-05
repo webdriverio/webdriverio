@@ -419,6 +419,10 @@ async function bar() {
     expectType<WebdriverIO.Browser | WebdriverIO.Element | WebdriverIO.MultiRemoteBrowser>(
         await browser.$('foo').$('bar').$$('loo').parent)
 
+    // promise chain API
+    expectType<string>(
+        await browser.$('foo').then(_ => _.getText()))
+  
     expectType<void>(
         await browser.$$('foo').forEach(() => true)
     )
