@@ -203,7 +203,7 @@ class MochaAdapter {
 
         switch (hookName) {
         case 'beforeSuite':
-            this._suiteStartDate = new Date()
+            this._suiteStartDate = Date.now()
             break
         case 'afterSuite':
             params.payload = this._runner?.suite.suites[0]
