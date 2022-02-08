@@ -204,7 +204,8 @@ class MochaAdapter {
         switch (hookName) {
         case 'beforeSuite':
             this._suiteStartDate = Date.now()
-            break
+        // eslint-disable-next-line no-fallthrough
+        case 'afterSuite':
         case 'afterSuite':
             params.payload = this._runner?.suite.suites[0]
             params.payload.duration = params.payload.duration || (Date.now() - this._suiteStartDate)
