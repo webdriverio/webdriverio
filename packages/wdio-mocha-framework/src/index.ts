@@ -43,6 +43,7 @@ class MochaAdapter {
     private _suiteCnt: Map<string, number> = new Map()
     private _hookCnt: Map<string, number> = new Map()
     private _testCnt: Map<string, number> = new Map()
+    private _suiteStartDate!: Date
 
     constructor(
         private _cid: string,
@@ -202,8 +203,11 @@ class MochaAdapter {
 
         switch (hookName) {
         case 'beforeSuite':
+            this._suiteStartDate = new Date()
+            break
         case 'afterSuite':
             params.payload = this._runner?.suite.suites[0]
+            params.payload.duration = params.payload.duration || (new Date() as any) - (this._suiteStartDate as any)
             break
         case 'beforeTest':
         case 'afterTest':
