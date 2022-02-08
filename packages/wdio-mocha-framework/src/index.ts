@@ -207,7 +207,7 @@ class MochaAdapter {
             break
         case 'afterSuite':
             params.payload = this._runner?.suite.suites[0]
-            params.payload.duration = params.payload.duration || (new Date() as any) - (this._suiteStartDate as any)
+            params.payload.duration = params.payload.duration || (Date.now() - this._suiteStartDate)
             break
         case 'beforeTest':
         case 'afterTest':
