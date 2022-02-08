@@ -43,7 +43,7 @@ class MochaAdapter {
     private _suiteCnt: Map<string, number> = new Map()
     private _hookCnt: Map<string, number> = new Map()
     private _testCnt: Map<string, number> = new Map()
-    private _suiteStartDate!: Date
+    private _suiteStartDate: number = Date.now()
 
     constructor(
         private _cid: string,
