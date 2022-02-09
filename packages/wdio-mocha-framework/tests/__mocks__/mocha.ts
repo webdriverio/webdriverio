@@ -11,7 +11,7 @@ export default class MochaMock {
     runner: {
         on: jest.Mock
         suite: any
-        test: string
+        test: any
     }
 
     constructor (private mochaOpts) {
@@ -26,9 +26,9 @@ export default class MochaMock {
                 beforeEach: jest.fn(),
                 afterEach: jest.fn(),
                 afterAll: jest.fn(),
-                suites: ['first suite']
+                suites: [{ 'title': 'first suite' }]
             },
-            test: 'some test'
+            test: { 'title': 'first test' }
         }
 
         this.mockFailureCount = mochaOpts.mockFailureCount || 0
