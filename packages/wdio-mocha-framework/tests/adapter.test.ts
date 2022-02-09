@@ -181,7 +181,14 @@ test('prepareMessage', async () => {
     expect(result.type).toBe('afterTest')
     expect(result.title).toBe('foobar')
     expect(result.file).toBe('/foo/bar.test.js')
-})
+
+    await new Promise((r) => setTimeout(r, 5000))
+    result = adapter.prepareMessage('afterSuite')
+    expect(result.type).toBe('afterSuite')
+    expect(result.title).toBe('first suite')
+    expect(result.duration).toBeDefined()
+    expect(result.duration >= 5000 && result.duration <= 5020).toBeTruthy()
+}, 6000)
 
 describe('formatMessage', () => {
     test('should do nothing if no error or params are given', () => {
