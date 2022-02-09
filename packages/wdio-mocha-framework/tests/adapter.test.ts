@@ -181,8 +181,7 @@ test('prepareMessage', async () => {
     expect(result.type).toBe('afterTest')
     expect(result.title).toBe('foobar')
     expect(result.file).toBe('/foo/bar.test.js')
-    // @ts-ignore
-    adapter._suiteStartDate = Date.now() - 5000
+    adapter['_suiteStartDate'] = Date.now() - 5000
     result = adapter.prepareMessage('afterSuite')
     expect(result.type).toBe('afterSuite')
     expect(result.title).toBe('first suite')
