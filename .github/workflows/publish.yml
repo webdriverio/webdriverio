@@ -4,9 +4,14 @@ on:
   workflow_dispatch:
     inputs:
       releaseType:
-        description: 'Release type - major, minor or patch'
+        description: "Release Type"
         required: true
-        default: 'patch'
+        type: choice
+        default: "patch"
+        options:
+          - patch
+          - minor
+          - major
       distTag:
         description: 'NPM tag (e.g. use "next" to release a test version)'
         required: true
