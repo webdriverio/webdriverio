@@ -21,7 +21,7 @@
     :throttle.js
     it('should throttle the network', async () => {
         // via static string preset
-        await browser.throttle('Regular 3G')
+        await browser.throttle('Regular3G')
 
         // via custom values
         await browser.throttle({
