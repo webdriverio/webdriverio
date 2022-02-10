@@ -19,6 +19,57 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.16.15 (2022-02-10)
+
+#### :nail_care: Polish
+* `wdio-mocha-framework`
+  * [#7989](https://github.com/webdriverio/webdriverio/pull/7989) #Fix for https://github.com/webdriverio/webdriverio/issues/7873#issuecomment-1032964198 duration missing in mocha hook ([@praveendvd](https://github.com/praveendvd))
+* `webdriverio`
+  * [#7978](https://github.com/webdriverio/webdriverio/pull/7978) fix(packages/webdriverio): compile errors with promise chaining of `# Changelog
+
+> **Tags:**
+> - :boom:       [Breaking Change]
+> - :eyeglasses: [Spec Compliancy]
+> - :rocket:     [New Feature]
+> - :bug:        [Bug Fix]
+> - :memo:       [Documentation]
+> - :house:      [Internal]
+> - :nail_care:  [Polish]
+
+_Note: Gaps between patch versions are faulty, broken or test releases._
+
+See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHANGELOG.md).
+
+See [CHANGELOG - v5](https://github.com/webdriverio/webdriverio/blob/v5/CHANGELOG.md).
+
+See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELOG.md)
+
+ ([@starpit](https://github.com/starpit))
+* `wdio-cli`
+  * [#7878](https://github.com/webdriverio/webdriverio/pull/7878) Make npm install step optional in CLI wizard ([@gpt14](https://github.com/gpt14))
+
+#### :memo: Documentation
+* `webdriverio`
+  * [#8000](https://github.com/webdriverio/webdriverio/pull/8000) Update throttle docs example to use correct preset id ([@klamping](https://github.com/klamping))
+* Other
+  * [#7990](https://github.com/webdriverio/webdriverio/pull/7990) Update API.md ([@Yahshemi](https://github.com/Yahshemi))
+* `wdio-junit-reporter`
+  * [#7957](https://github.com/webdriverio/webdriverio/pull/7957) Update wdio-junit-reporter documentation ([@OtherwiseJunk](https://github.com/OtherwiseJunk))
+
+#### :house: Internal
+* `devtools`, `wdio-devtools-service`, `webdriverio`
+  * [#7964](https://github.com/webdriverio/webdriverio/pull/7964) bump puppeteer-core (CVE-2022-0235) ([@nathanKramer](https://github.com/nathanKramer))
+
+#### Committers: 7
+- Bobby ([@OtherwiseJunk](https://github.com/OtherwiseJunk))
+- GPT14 ([@gpt14](https://github.com/gpt14))
+- Kevin Lamping ([@klamping](https://github.com/klamping))
+- Nathan Kramer ([@nathanKramer](https://github.com/nathanKramer))
+- Nick Mitchell ([@starpit](https://github.com/starpit))
+- Yahshemi ([@Yahshemi](https://github.com/Yahshemi))
+- praveendvd ([@praveendvd](https://github.com/praveendvd))
+
+
 ## v7.16.14 (2022-01-29)
 
 #### :bug: Bug Fix
