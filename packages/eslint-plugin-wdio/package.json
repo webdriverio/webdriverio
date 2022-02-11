@@ -22,5 +22,8 @@
   ],
   "bugs": {
     "url": "https://github.com/webdriverio/webdriverio/issues"
+  },
+  "devDependencies": {
+    "eslint": "^8.8.0"
   }
 }
