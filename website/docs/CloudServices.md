@@ -18,6 +18,39 @@ if (process.env.CI) {
 exports.config = config
 ```
 
+
+## Perfecto
+
+When using wdio with Perfecto, you need to create a security token for each user and add this in the capabilities structure (in addition to other capabilities), as follows:
+  
+exports.config = {
+  capabilities: [
+    {
+    .
+    .
+    .
+    
+    securityToken:"your security token"
+    .
+       },
+  ],
+
+In addition, you need to add the cloud configuration, as follows.
+
+  //
+  // ====================
+  // Runner Configuration
+  // ====================
+  //
+  // WebdriverIO allows it to run your tests in arbitrary locations (for example locally or
+  // on a remote machine).
+  
+  hostname: "your_cloud_name.perfectomobile.com",
+  path: "/nexperience/perfectomobile/wd/hub",
+  port: 443,
+  protocol: "https",
+  
+  
 ## Sauce Labs
 
 It is easy to set up your tests to run remotely in [Sauce Labs](https://saucelabs.com).
