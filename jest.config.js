@@ -37,7 +37,7 @@ module.exports = {
     },
     testMatch: [
         '**/tests/**/*.test.(js|ts)',
-        '**/tests/lib/rules/*.js',
+        '**/tests/lib/rules/*.ts',
     ],
     transform: {
         '^.+\\.(ts|js)$': 'ts-jest'
