@@ -24,16 +24,10 @@ exports.config = config
 When using wdio with Perfecto, you need to create a security token for each user and add this in the capabilities structure (in addition to other capabilities), as follows:
   
 exports.config = {
-  capabilities: [
-    {
-    .
-    .
-    .
-    
-    securityToken:"your security token"
-    .
-       },
-  ],
+  capabilities: [{
+    // ...
+    securityToken: "your security token"
+  }],
 
 In addition, you need to add the cloud configuration, as follows.
 
