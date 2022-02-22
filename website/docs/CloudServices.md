@@ -3,7 +3,7 @@ id: cloudservices
 title: Using Cloud Services
 ---
 
-Using on-demand services like Sauce Labs, Browserstack, TestingBot, CrossBrowserTesting or LambdaTest with WebdriverIO is pretty simple. All you need to do is to set your service's `user` and `key` in your options.
+Using on-demand services like Sauce Labs, Browserstack, TestingBot, CrossBrowserTestin, LambdaTest or Perfecto with WebdriverIO is pretty simple. All you need to do is to set your service's `user` and `key` in your options.
 
 Optionally, you can also parametrize your test by setting cloud-specific capabilities like `build`. If you only want to run cloud services in Travis, you can use the `CI` environment variable to check if you are in Travis and modify the config accordingly.
 
@@ -148,7 +148,6 @@ It is out of the scope of WebdriverIO to support this, so you must start it by y
 If you do use local, you should set `tunnel` to `true` in your capabilities.
 
 If you are using the WDIO testrunner, download and configure the [`wdio-lambdatest-service`](https://github.com/LambdaTest/wdio-lambdatest-service) in your `wdio.conf.js`. It helps get LambdaTest running, and comes with additional features that better integrate your tests into the LambdaTest service.
-
 ### With Travis CI
 
 If you want to add Local Testing in Travis, you have to start it by yourself.
@@ -174,3 +173,26 @@ build: `myApp #${process.env.TRAVIS_BUILD_NUMBER}.${process.env.TRAVIS_JOB_NUMBE
 'tunnel': 'true',
 'visual': 'true'
 ```
+
+## Perfecto
+
+When using wdio with [`Perfecto`](https://www.perfecto.io), you need to create a security token for each user and add this in the capabilities structure (in addition to other capabilities), as follows:
+  
+```js
+exports.config = {
+  capabilities: [{
+    // ...
+    securityToken: "your security token"
+  }],
+```
+
+In addition, you need to add cloud configuration, as follows:
+
+```js
+  
+  hostname: "your_cloud_name.perfectomobile.com",
+  path: "/nexperience/perfectomobile/wd/hub",
+  port: 443,
+  protocol: "https",
+```
+  
