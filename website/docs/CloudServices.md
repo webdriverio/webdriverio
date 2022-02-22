@@ -3,7 +3,7 @@ id: cloudservices
 title: Using Cloud Services
 ---
 
-Using on-demand services like Sauce Labs, Browserstack, TestingBot, CrossBrowserTesting or LambdaTest with WebdriverIO is pretty simple. All you need to do is to set your service's `user` and `key` in your options.
+Using on-demand services like Sauce Labs, Browserstack, TestingBot, CrossBrowserTestin, LambdaTest or Perfecto with WebdriverIO is pretty simple. All you need to do is to set your service's `user` and `key` in your options.
 
 Optionally, you can also parametrize your test by setting cloud-specific capabilities like `build`. If you only want to run cloud services in Travis, you can use the `CI` environment variable to check if you are in Travis and modify the config accordingly.
 
@@ -176,7 +176,7 @@ build: `myApp #${process.env.TRAVIS_BUILD_NUMBER}.${process.env.TRAVIS_JOB_NUMBE
 ```
 ## Perfecto
 
-When using wdio with Perfecto, you need to create a security token for each user and add this in the capabilities structure (in addition to other capabilities), as follows:
+When using wdio with [`Perfecto`](https://www.perfecto.io), you need to create a security token for each user and add this in the capabilities structure (in addition to other capabilities), as follows:
   
 ```js
 exports.config = {
