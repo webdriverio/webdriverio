@@ -182,6 +182,7 @@ exports.config = {
     securityToken: "your security token"
   }],
 ```
+
 In addition, you need to add cloud configuration, as follows:
 
 ```js
