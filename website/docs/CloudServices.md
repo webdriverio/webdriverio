@@ -146,9 +146,6 @@ If you want to run tests against a server that is not accessible to the Internet
 It is out of the scope of WebdriverIO to support this, so you must start it by yourself.
 
 If you do use local, you should set `tunnel` to `true` in your capabilities.
-
-If you are using the WDIO testrunner, download and configure the [`wdio-lambdatest-service`](https://github.com/LambdaTest/wdio-lambdatest-service) in your `wdio.conf.js`. It helps get LambdaTest running, and comes with additional features that better integrate your tests into the LambdaTest service.
-  
 ### With Travis CI
 
 If you want to add Local Testing in Travis, you have to start it by yourself.
