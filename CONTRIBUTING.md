@@ -81,7 +81,7 @@ In order to set up this project and start contributing follow this step by step 
 
 * If you need to update your fork you can do so following the steps [here](https://help.github.com/en/github/collaborating-with-issues-and-pull-requests/syncing-a-fork)
 
-* Switch to Node v14 LTS (you should be able to use older/newer versions of Node but we recommend to use v14 LTS so all developers are on the same side). We recommend to use [`nvm`](https://github.com/nvm-sh/nvm) to switch between Node.js versions.
+* Switch to the most recent Node LTS (you should be able to use older/newer versions of Node but we recommend to use v14 LTS so all developers are on the same side) or to the one denoted in `.nvmrc`. We recommend to use [`nvm`](https://github.com/nvm-sh/nvm) to switch between Node.js versions.
 
 * Set up the project:
 

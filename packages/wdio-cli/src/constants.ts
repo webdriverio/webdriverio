@@ -120,7 +120,7 @@ export const SUPPORTED_PACKAGES = {
         { name: 'zafira-listener', value: 'wdio-zafira-listener-service$--$zafira-listener' },
         { name: 'reportportal', value: 'wdio-reportportal-service$--$reportportal' },
         { name: 'docker', value: 'wdio-docker-service$--$docker' },
-        { name: 'wdio-ui5', value: 'wdio-ui5-service$--$wdio-ui5' },
+        { name: 'ui5', value: 'wdio-ui5-service$--$ui5' },
         { name: 'wiremock', value: 'wdio-wiremock-service$--$wiremock' },
         { name: 'ng-apimock', value: 'wdio-ng-apimock-service$--ng-apimock' },
         { name: 'slack', value: 'wdio-slack-service$--$slack' },
