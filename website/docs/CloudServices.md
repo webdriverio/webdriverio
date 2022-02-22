@@ -148,36 +148,6 @@ It is out of the scope of WebdriverIO to support this, so you must start it by y
 If you do use local, you should set `tunnel` to `true` in your capabilities.
 
 If you are using the WDIO testrunner, download and configure the [`wdio-lambdatest-service`](https://github.com/LambdaTest/wdio-lambdatest-service) in your `wdio.conf.js`. It helps get LambdaTest running, and comes with additional features that better integrate your tests into the LambdaTest service.
-
-
-
-## Perfecto
-
-When using wdio with Perfecto, you need to create a security token for each user and add this in the capabilities structure (in addition to other capabilities), as follows:
-  
-```js
-exports.config = {
-  capabilities: [{
-    // ...
-    securityToken: "your security token"
-  }],
-```
-In addition, you need to add the cloud configuration, as follows.
-```js
-  // ====================
-  // Runner Configuration
-  // ====================
-  //
-  // WebdriverIO allows it to run your tests in arbitrary locations (for example locally or
-  // on a remote machine).
-  
-  hostname: "your_cloud_name.perfectomobile.com",
-  path: "/nexperience/perfectomobile/wd/hub",
-  port: 443,
-  protocol: "https",
-```
-  
-  
   
 ### With Travis CI
 
@@ -204,3 +174,24 @@ build: `myApp #${process.env.TRAVIS_BUILD_NUMBER}.${process.env.TRAVIS_JOB_NUMBE
 'tunnel': 'true',
 'visual': 'true'
 ```
+## Perfecto
+
+When using wdio with Perfecto, you need to create a security token for each user and add this in the capabilities structure (in addition to other capabilities), as follows:
+  
+```js
+exports.config = {
+  capabilities: [{
+    // ...
+    securityToken: "your security token"
+  }],
+```
+In addition, you need to add cloud configuration, as follows:
+
+```js
+  
+  hostname: "your_cloud_name.perfectomobile.com",
+  path: "/nexperience/perfectomobile/wd/hub",
+  port: 443,
+  protocol: "https",
+```
+  
