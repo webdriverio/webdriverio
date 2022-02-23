@@ -43,7 +43,8 @@ jobs:
         run: |
           cd "C:\hostedtoolcache\windows\node\${{ steps.node_version.outputs.version }}\x64"
           cd node_modules\npm\node_modules\@npmcli\run-script
-          npm install node-gyp@>=8.4.0
+          npm install node-gyp@latest
+          npx node-gyp --version
       - name: Install Dependencies
         run: npm ci
       - name: Bootstrap Packages
