@@ -29,22 +29,12 @@ jobs:
       - name: Lint / Typings / Unit / Smoke Tests
         run: ./node_modules/.bin/run-s test:eslint test:typings test:coverage test:smoke
   e2e-windows:
-    runs-on: windows-latest
+    runs-on: windows-2019
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v1
         with:
           node-version: 16.x
-      - name: Get Node Version
-        id: node_version
-        run: echo "::set-output name=version::$(node --version | sed 's/^.//')"
-      # https://github.com/nodejs/node-gyp/blob/master/docs/Updating-npm-bundled-node-gyp.md#windows
-      - name: Upgrade node-gyp in npm
-        run: |
-          cd "C:\hostedtoolcache\windows\node\${{ steps.node_version.outputs.version }}\x64"
-          cd node_modules\npm\node_modules\@npmcli\run-script
-          npm install node-gyp@latest
-          npx node-gyp --version
       - name: Install Dependencies
         run: npm ci
       - name: Bootstrap Packages
