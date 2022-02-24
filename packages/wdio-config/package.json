@@ -1,6 +1,6 @@
 {
   "name": "@wdio/config",
-  "version": "7.16.14",
+  "version": "7.16.16",
   "description": "A helper utility to parse and validate WebdriverIO options",
   "author": "Christian Bromann <christian@saucelabs.com>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-config",
@@ -32,7 +32,7 @@
     "access": "public"
   },
   "devDependencies": {
-    "minimatch": "^3.0.4",
+    "minimatch": "^5.0.0",
     "tsconfig-paths": "^3.9.0"
   }
 }

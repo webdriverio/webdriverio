@@ -29,7 +29,7 @@ jobs:
       - name: Lint / Typings / Unit / Smoke Tests
         run: ./node_modules/.bin/run-s test:eslint test:typings test:coverage test:smoke
   e2e-windows:
-    runs-on: windows-latest
+    runs-on: windows-2019
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v1

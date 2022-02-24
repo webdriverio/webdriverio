@@ -19,6 +19,23 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.16.16 (2022-02-22)
+
+#### :bug: Bug Fix
+* `webdriver`
+  * [#8020](https://github.com/webdriverio/webdriverio/pull/8020) Webdriver: Fix stacktrace not being displayed on some errors ([@WillBrock](https://github.com/WillBrock))
+
+#### :memo: Documentation
+* `wdio-cli`
+  * [#8024](https://github.com/webdriverio/webdriverio/pull/8024) fix(ui5-service): name of service ([@vobu](https://github.com/vobu))
+* Other
+  * [#8003](https://github.com/webdriverio/webdriverio/pull/8003) Docs: Add a couple missing words to CONTRIBUTING ([@WillBrock](https://github.com/WillBrock))
+
+#### Committers: 2
+- Volker Buzek ([@vobu](https://github.com/vobu))
+- Will Brock ([@WillBrock](https://github.com/WillBrock))
+
+
 ## v7.16.15 (2022-02-10)
 
 #### :nail_care: Polish

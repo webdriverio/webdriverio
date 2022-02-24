@@ -245,8 +245,9 @@ services: [
     ['devtools', {
         coverageReporter: {
             enable: true,
-            type: 'html',
-            logDir: __dirname + '/coverage'
+            type: 'html', // lcov, json, text
+            logDir: __dirname + '/coverage',
+            exclude: [/resources/]
         }
     }]
 ]
