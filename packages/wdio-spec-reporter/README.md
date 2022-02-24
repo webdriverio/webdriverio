@@ -115,7 +115,7 @@ Default: `false`
 ```
 
 ### showPreface
-Set to false to disable `[ MutliRemoteBrowser #0-0 ]` preface in the reports.
+Set to false to disable `[ MutliRemoteBrowser ... ]` preface in the reports.
 
 Type: `boolean`
 Default: `true`
@@ -128,3 +128,39 @@ Default: `true`
   },
 ]
 ```
+
+With it set to `false` you will see output as:
+```
+Running: loremipsum (v50) on Windows 10
+Session ID: foobar
+
+» /foo/bar/loo.e2e.js
+Foo test
+   green ✓ foo
+   green ✓ bar
+
+» /bar/foo/loo.e2e.js
+Bar test
+   green ✓ some test
+   red ✖ a failed test
+   red ✖ a failed test with no stack
+```
+
+and with `true` (default) each line will be prefixed with the preface:
+```
+[loremipsum 50 Windows 10 #0-0] Running: loremipsum (v50) on Windows 10
+[loremipsum 50 Windows 10 #0-0] Session ID: foobar
+[loremipsum 50 Windows 10 #0-0]
+[loremipsum 50 Windows 10 #0-0] » /foo/bar/loo.e2e.js
+[loremipsum 50 Windows 10 #0-0] Foo test
+[loremipsum 50 Windows 10 #0-0]    green ✓ foo
+[loremipsum 50 Windows 10 #0-0]    green ✓ bar
+[loremipsum 50 Windows 10 #0-0]
+[loremipsum 50 Windows 10 #0-0] » /bar/foo/loo.e2e.js
+[loremipsum 50 Windows 10 #0-0] Bar test
+[loremipsum 50 Windows 10 #0-0]    green ✓ some test
+[loremipsum 50 Windows 10 #0-0]    red ✖ a failed test
+[loremipsum 50 Windows 10 #0-0]    red ✖ a failed test with no stack
+[loremipsum 50 Windows 10 #0-0]
+```
+
