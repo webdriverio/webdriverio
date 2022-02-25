@@ -43,7 +43,7 @@ import type { WaitForOptions } from '../../types'
  * @type utility
  *
  */
-export default function waitForExist (
+export default async function waitForExist (
     this: WebdriverIO.Element,
     {
         timeout = this.options.waitforTimeout,

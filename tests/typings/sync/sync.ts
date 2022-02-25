@@ -128,7 +128,7 @@ const el3 = el2.$('')
 el1.getCSSProperty('style')
 el2.click()
 el1.moveTo({ xOffset: 0, yOffset: 0 })
-expectType<Promise<boolean>>(
+expectType<boolean>(
     el2.waitForExist({
         timeout: 1,
         timeoutMsg: '',
