@@ -124,7 +124,7 @@ async function bar() {
             interval: 1
         }
     )
-    expectType<true | void>(waitUntil)
+    expectType<true>(waitUntil)
 
     await browser.getCookies()
     await browser.getCookies('foobar')
@@ -422,7 +422,7 @@ async function bar() {
     // promise chain API
     expectType<string>(
         await browser.$('foo').then(_ => _.getText()))
-  
+
     expectType<void>(
         await browser.$$('foo').forEach(() => true)
     )
