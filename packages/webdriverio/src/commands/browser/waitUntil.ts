@@ -42,15 +42,15 @@ import type { WaitUntilOptions } from '../../types'
  * @type utility
  *
  */
-export default function waitUntil(
+export default function waitUntil<T>(
     this: WebdriverIO.Browser | WebdriverIO.Element,
-    condition: () => boolean | Promise<boolean>,
+    condition: () => T,
     {
         timeout = this.options.waitforTimeout,
         interval = this.options.waitforInterval,
         timeoutMsg
     }: Partial<WaitUntilOptions> = {}
-): Promise<true | void> {
+): Promise<T> {
     if (typeof condition !== 'function') {
         throw new Error('Condition is not a function')
     }
