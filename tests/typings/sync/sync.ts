@@ -34,7 +34,7 @@ browser.newWindow('https://webdriver.io', {
     windowName: 'some name',
     windowFeatures: 'some features'
 })
-expectType<true | void>(
+expectType<unknown>(
     browser.waitUntil(
         () => true,
         {
@@ -128,7 +128,7 @@ const el3 = el2.$('')
 el1.getCSSProperty('style')
 el2.click()
 el1.moveTo({ xOffset: 0, yOffset: 0 })
-expectType<true | void>(
+expectType<Promise<boolean>>(
     el2.waitForExist({
         timeout: 1,
         timeoutMsg: '',
@@ -136,7 +136,7 @@ expectType<true | void>(
         reverse: true
     })
 )
-expectType<true | void>(
+expectType<boolean>(
     el2.waitForDisplayed({
         timeout: 1,
         timeoutMsg: '',
@@ -144,7 +144,7 @@ expectType<true | void>(
         reverse: true
     })
 )
-expectType<true | void>(
+expectType<boolean>(
     el2.waitForEnabled({
         timeout: 1,
         timeoutMsg: '',
@@ -152,7 +152,7 @@ expectType<true | void>(
         reverse: true
     })
 )
-expectType<true | void>(
+expectType<boolean>(
     el2.waitForClickable({
         timeout: 1,
         timeoutMsg: '',

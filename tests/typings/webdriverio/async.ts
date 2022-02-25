@@ -124,7 +124,7 @@ async function bar() {
             interval: 1
         }
     )
-    expectType<true>(waitUntil)
+    expectType<boolean>(waitUntil)
 
     await browser.getCookies()
     await browser.getCookies('foobar')
@@ -219,34 +219,34 @@ async function bar() {
     await el1.getCSSProperty('style')
     await el2.click()
     await el1.moveTo({ xOffset: 0, yOffset: 0 })
-    const elementExists: true | void = await el2.waitForExist({
+    const elementExists = await el2.waitForExist({
         timeout: 1,
         timeoutMsg: '',
         interval: 1,
         reverse: true
     })
-    expectType<true | void>(elementExists)
-    const elementDisplayed: true | void = await el2.waitForDisplayed({
+    expectType<boolean>(elementExists)
+    const elementDisplayed= await el2.waitForDisplayed({
         timeout: 1,
         timeoutMsg: '',
         interval: 1,
         reverse: true
     })
-    expectType<true | void>(elementDisplayed)
-    const elementEnabled: true | void = await el2.waitForEnabled({
+    expectType<boolean>(elementDisplayed)
+    const elementEnabled= await el2.waitForEnabled({
         timeout: 1,
         timeoutMsg: '',
         interval: 1,
         reverse: true
     })
-    expectType<true | void>(elementEnabled)
-    const elementClickable: true | void = await el2.waitForClickable({
+    expectType<boolean>(elementEnabled)
+    const elementClickable = await el2.waitForClickable({
         timeout: 1,
         timeoutMsg: '',
         interval: 1,
         reverse: true
     })
-    expectType<true | void>(elementClickable)
+    expectType<boolean>(elementClickable)
 
     expectType<number>(await el1.getLocation('x')) // as number
     expectType<number>((await el1.getLocation()).y) // as Location
