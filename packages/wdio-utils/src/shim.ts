@@ -119,11 +119,16 @@ let executeHooksWithArgs = async function executeHooksWithArgsShim<T> (hookName:
         args = [args]
     }
 
+    /**
+     * save `this` pointing to caller browser object
+     */
+    const thisBrowser = this;
+
     const hooksPromises = hooks.map((hook) => new Promise<T | Error>((resolve) => {
         let result
 
         try {
-            result = hook.apply(null, args)
+            result = hook.apply(thisBrowser, args)
         } catch (e: any) {
             log.error(e.stack)
             return resolve(e)
