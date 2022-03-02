@@ -82,7 +82,7 @@ export interface HookFunctions {
     onPrepare?(
         config: TestrunnerOptions,
         capabilities: RemoteCapabilities
-    ): void;
+    ): Promise<void>;
 
     /**
      * Gets executed before a worker process is spawned and can be used to initialise specific service
@@ -99,7 +99,7 @@ export interface HookFunctions {
         specs: string[],
         args: TestrunnerOptions,
         execArgv: string[]
-    ): void;
+    ): Promise<void>;
 
     /**
      * Gets executed after all workers got shut down and the process is about to exit. An error
@@ -114,7 +114,7 @@ export interface HookFunctions {
         config: Omit<TestrunnerOptions, 'capabilities'>,
         capabilities: RemoteCapabilities,
         results: any // Results
-    ): void;
+    ): Promise<void>;
 
     /**
      * Gets executed when a refresh happens.
@@ -124,7 +124,7 @@ export interface HookFunctions {
     onReload?(
         oldSessionId: string,
         newSessionId: string
-    ): void;
+    ): Promise<void>;
 
     /**
      * Gets executed before test execution begins. At this point you can access to all global
@@ -137,7 +137,7 @@ export interface HookFunctions {
         capabilities: RemoteCapability,
         specs: string[],
         browser: any // BrowserObject
-    ): void;
+    ): Promise<void>;
 
     /**
      * Runs before a WebdriverIO command gets executed.
@@ -147,7 +147,7 @@ export interface HookFunctions {
     beforeCommand?(
         commandName: string,
         args: any[]
-    ): void;
+    ): Promise<void>;
 
     /**
      * Hook that gets executed _before_ a hook within the suite starts (e.g. runs before calling
@@ -155,7 +155,7 @@ export interface HookFunctions {
      * @param test      details to current running test (represents step in Cucumber)
      * @param context   context to current running test (represents World object in Cucumber)
      */
-    beforeHook?(test: any, context: any): void;
+    beforeHook?(test: any, context: any): Promise<void>;
 
     /**
      * Gets executed just before initialising the webdriver session and test framework. It allows you
@@ -170,20 +170,20 @@ export interface HookFunctions {
         capabilities: RemoteCapability,
         specs: string[],
         cid: string
-    ): void;
+    ): Promise<void>;
 
     /**
      * Hook that gets executed before the suite starts.
      * @param suite suite details
      */
-    beforeSuite?(suite: Suite): void;
+    beforeSuite?(suite: Suite): Promise<void>;
 
     /**
      * Function to be executed before a test (in Mocha/Jasmine only)
      * @param {Object} test    test object
      * @param {Object} context scope object the test was executed with
      */
-    beforeTest?(test: Test, context: any): void;
+    beforeTest?(test: Test, context: any): Promise<void>;
 
     /**
      * Function to be executed after a test (in Mocha/Jasmine only)
@@ -195,7 +195,7 @@ export interface HookFunctions {
      * @param {Boolean} result.passed    true if test has passed, otherwise false
      * @param {Object}  result.retries   informations to spec related retries, e.g. `{ attempts: 0, limit: 0 }`
      */
-    afterTest?(test: Test, context: any, result: TestResult): void;
+    afterTest?(test: Test, context: any, result: TestResult): Promise<void>;
 
     /**
      * Hook that gets executed after the suite has ended
@@ -210,7 +210,7 @@ export interface HookFunctions {
      * @param context   context to current running test (represents World object in Cucumber)
      * @param result    test result
      */
-    afterHook?(test: Test, context: any, result: TestResult): void;
+    afterHook?(test: Test, context: any, result: TestResult): Promise<void>;
 
     /**
      * Gets executed after all tests are done. You still have access to all global variables from
@@ -223,7 +223,7 @@ export interface HookFunctions {
         result: number,
         capabilities: RemoteCapability,
         specs: string[]
-    ): void;
+    ): Promise<void>;
 
     /**
      * Runs after a WebdriverIO command gets executed
@@ -237,7 +237,7 @@ export interface HookFunctions {
         args: any[],
         result: any,
         error?: Error
-    ): void;
+    ): Promise<void>;
 
     /**
      * Gets executed right after terminating the webdriver session.
@@ -249,5 +249,5 @@ export interface HookFunctions {
         config: TestrunnerOptions,
         capabilities: RemoteCapability,
         specs: string[]
-    ): void;
+    ): Promise<void>;
 }
