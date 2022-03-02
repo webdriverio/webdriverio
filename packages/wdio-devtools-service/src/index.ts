@@ -47,14 +47,14 @@ export default class DevToolsService implements Services.ServiceInstance {
 
     constructor (private _options: DevtoolsConfig) {}
 
-    beforeSession (_: unknown, caps: Capabilities.Capabilities) {
+    async beforeSession (_: unknown, caps: Capabilities.Capabilities) {
         if (!isBrowserSupported(caps)) {
             return log.error(UNSUPPORTED_ERROR_MESSAGE)
         }
         this._isSupported = true
     }
 
-    before (
+    async before (
         caps: Capabilities.RemoteCapability,
         specs: string[],
         browser: Browser<'async'> | MultiRemoteBrowser<'async'>

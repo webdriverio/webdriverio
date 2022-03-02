@@ -22,7 +22,7 @@ export default class SharedStoreService implements Services.ServiceInstance {
         setPort(port.toString())
     }
 
-    before (
+    async before (
         caps: unknown,
         specs: unknown,
         browser: ServiceBrowser

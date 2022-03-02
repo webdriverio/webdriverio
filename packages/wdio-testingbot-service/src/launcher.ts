@@ -61,7 +61,7 @@ export default class TestingBotLauncher implements Services.ServiceInstance {
      * Shut down the tunnel
      * @returns {Promise} Resolved promise when tunnel is closed
      */
-    onComplete () {
+    async onComplete () {
         if (!this.tunnel) {
             return
         }

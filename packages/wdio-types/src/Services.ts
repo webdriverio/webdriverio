@@ -82,7 +82,7 @@ export interface HookFunctions {
     onPrepare?(
         config: TestrunnerOptions,
         capabilities: RemoteCapabilities
-    ): Promise<void>;
+    ): Promise<void|unknown>;
 
     /**
      * Gets executed before a worker process is spawned and can be used to initialise specific service
@@ -114,7 +114,7 @@ export interface HookFunctions {
         config: Omit<TestrunnerOptions, 'capabilities'>,
         capabilities: RemoteCapabilities,
         results: any // Results
-    ): Promise<void>;
+    ): Promise<void|unknown>;
 
     /**
      * Gets executed when a refresh happens.
@@ -124,7 +124,7 @@ export interface HookFunctions {
     onReload?(
         oldSessionId: string,
         newSessionId: string
-    ): Promise<void>;
+    ): Promise<void|unknown>;
 
     /**
      * Gets executed before test execution begins. At this point you can access to all global
@@ -183,7 +183,7 @@ export interface HookFunctions {
      * @param {Object} test    test object
      * @param {Object} context scope object the test was executed with
      */
-    beforeTest?(test: Test, context: any): Promise<void>;
+    beforeTest?(test: Test, context: any): Promise<void|unknown>;
 
     /**
      * Function to be executed after a test (in Mocha/Jasmine only)
@@ -223,7 +223,7 @@ export interface HookFunctions {
         result: number,
         capabilities: RemoteCapability,
         specs: string[]
-    ): Promise<void>;
+    ): Promise<void|unknown>;
 
     /**
      * Runs after a WebdriverIO command gets executed

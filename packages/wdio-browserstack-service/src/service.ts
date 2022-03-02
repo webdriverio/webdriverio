@@ -44,7 +44,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
      * provided set user and key with values so that the session request
      * will fail
      */
-    beforeSession (config: Options.Testrunner) {
+    async beforeSession (config: Options.Testrunner) {
         if (!config.user) {
             config.user = 'NotSetUser'
         }
@@ -56,7 +56,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
         this._config.key = config.key
     }
 
-    before(caps: Capabilities.RemoteCapability, specs: string[], browser: Browser<'async'> | MultiRemoteBrowser<'async'>) {
+    async before(caps: Capabilities.RemoteCapability, specs: string[], browser: Browser<'async'> | MultiRemoteBrowser<'async'>) {
         this._browser = browser
 
         // Ensure capabilities are not null in case of multiremote
@@ -70,16 +70,16 @@ export default class BrowserstackService implements Services.ServiceInstance {
         return this._printSessionURL()
     }
 
-    beforeSuite (suite: Frameworks.Suite) {
+    async beforeSuite (suite: Frameworks.Suite) {
         this._fullTitle = suite.title
     }
 
-    beforeFeature(uri: unknown, feature: { name: string }) {
+    async beforeFeature(uri: unknown, feature: { name: string }) {
         this._fullTitle = feature.name
         return this._updateJob({ name: this._fullTitle })
     }
 
-    afterTest(test: Frameworks.Test, context: never, results: Frameworks.TestResult) {
+    async afterTest(test: Frameworks.Test, context: never, results: Frameworks.TestResult) {
         const { error, passed } = results
 
         // Jasmine
@@ -100,7 +100,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
         }
     }
 
-    after (result: number) {
+    async after (result: number) {
         // For Cucumber: Checks scenarios that ran (i.e. not skipped) on the session
         // Only 1 Scenario ran and option enabled => Redefine session name to Scenario's name
         if (this._options.preferScenarioName && this._scenariosThatRan.length === 1){
@@ -119,7 +119,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
     /**
      * For CucumberJS
      */
-    afterScenario (world: Frameworks.World) {
+    async afterScenario (world: Frameworks.World) {
         const status = world.result?.status.toLowerCase()
         if (status === 'skipped') {
             this._scenariosThatRan.push(world.pickle.name || 'unknown pickle name')

@@ -28,7 +28,7 @@ export default class TestingBotService implements Services.ServiceInstance {
         this._isServiceEnabled = Boolean(this._tbUser && this._tbSecret)
     }
 
-    before (
+    async before (
         caps: unknown,
         specs: unknown,
         browser: Browser<'async'> | MultiRemoteBrowser<'async'>
@@ -40,7 +40,7 @@ export default class TestingBotService implements Services.ServiceInstance {
      * Before suite
      * @param {Object} suite Suite
     */
-    beforeSuite (suite: Frameworks.Suite) {
+    async beforeSuite (suite: Frameworks.Suite) {
         this._suiteTitle = suite.title
     }
 
@@ -48,7 +48,7 @@ export default class TestingBotService implements Services.ServiceInstance {
      * Before test
      * @param {Object} test Test
     */
-    beforeTest (test: Frameworks.Test) {
+    async beforeTest (test: Frameworks.Test) {
         if (!this._isServiceEnabled || !this._browser) {
             return
         }
@@ -77,7 +77,7 @@ export default class TestingBotService implements Services.ServiceInstance {
         this._browser.execute('tb:test-context=' + context)
     }
 
-    afterSuite (suite: Frameworks.Suite) {
+    async afterSuite (suite: Frameworks.Suite) {
         if (Object.prototype.hasOwnProperty.call(suite, 'error')) {
             ++this._failures
         }
@@ -87,7 +87,7 @@ export default class TestingBotService implements Services.ServiceInstance {
      * After test
      * @param {Object} test Test
      */
-    afterTest (test: Frameworks.Test, context: any, results: Frameworks.TestResult) {
+    async afterTest (test: Frameworks.Test, context: any, results: Frameworks.TestResult) {
         if (!results.passed) {
             ++this._failures
         }
@@ -102,7 +102,7 @@ export default class TestingBotService implements Services.ServiceInstance {
      * @param {string} uri
      * @param {Object} feature
      */
-    beforeFeature (uri: unknown, feature: { name: string }) {
+    async beforeFeature (uri: unknown, feature: { name: string }) {
         if (!this._isServiceEnabled || !this._browser) {
             return
         }
@@ -117,7 +117,7 @@ export default class TestingBotService implements Services.ServiceInstance {
      * @param {Object} feature
      * @param {Object} scenario
      */
-    beforeScenario (world: Frameworks.World) {
+    async beforeScenario (world: Frameworks.World) {
         if (!this._isServiceEnabled || !this._browser) {
             return
         }
@@ -134,7 +134,7 @@ export default class TestingBotService implements Services.ServiceInstance {
      * @param result.error    error stack if scenario failed
      * @param result.duration duration of scenario in milliseconds
      */
-    afterScenario(world: Frameworks.World, result: Frameworks.PickleResult) {
+    async afterScenario(world: Frameworks.World, result: Frameworks.PickleResult) {
         // check if scenario has failed
         if (!result.passed) {
             ++this._failures
@@ -145,7 +145,7 @@ export default class TestingBotService implements Services.ServiceInstance {
      * Update TestingBot info
      * @return {Promise} Promise with result of updateJob method call
      */
-    after (result?: number) {
+    async after (result?: number) {
         if (!this._isServiceEnabled || !this._browser) {
             return
         }
@@ -174,7 +174,7 @@ export default class TestingBotService implements Services.ServiceInstance {
         }))
     }
 
-    onReload (oldSessionId: string, newSessionId: string) {
+    async onReload (oldSessionId: string, newSessionId: string) {
         if (!this._isServiceEnabled || !this._browser) {
             return
         }

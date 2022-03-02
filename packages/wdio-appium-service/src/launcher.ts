@@ -111,7 +111,7 @@ export default class AppiumLauncher implements Services.ServiceInstance {
         }
     }
 
-    onComplete() {
+    async onComplete() {
         if (this._process) {
             log.debug(`Appium (pid: ${this._process.pid}) killed`)
             this._process.kill()

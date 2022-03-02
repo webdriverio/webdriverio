@@ -123,7 +123,7 @@ export default class SauceLauncher implements Services.ServiceInstance {
     /**
      * shut down sauce connect
      */
-    onComplete () {
+    async onComplete () {
         if (!this._sauceConnectProcess) {
             return
         }

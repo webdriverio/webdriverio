@@ -23,7 +23,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         private _config: Options.Testrunner
     ) {}
 
-    onPrepare (config?: Options.Testrunner, capabilities?: Capabilities.RemoteCapabilities) {
+    async onPrepare (config?: Options.Testrunner, capabilities?: Capabilities.RemoteCapabilities) {
         if (!this._options.browserstackLocal) {
             return log.info('browserstackLocal is not enabled - skipping...')
         }
@@ -86,7 +86,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         })
     }
 
-    onComplete () {
+    async onComplete () {
         if (!this.browserstackLocal || !this.browserstackLocal.isRunning()) {
             return
         }

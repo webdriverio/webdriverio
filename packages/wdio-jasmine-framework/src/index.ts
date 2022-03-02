@@ -107,7 +107,7 @@ class JasmineAdapter {
         const emitHookEvent = (
             fnName: string,
             eventType: string
-        ) => (
+        ) => async (
             _test: never,
             _context: never,
             { error }: { error?: jasmine.FailedExpectation } = {}

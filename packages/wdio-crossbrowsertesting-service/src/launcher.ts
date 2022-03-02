@@ -46,7 +46,7 @@ export default class CrossBrowserTestingLauncher implements Services.ServiceInst
         performance.measure('bootTime', 'tbTunnelStart', 'tbTunnelEnd')
     }
 
-    onComplete () {
+    async onComplete () {
         if (!this._isUsingTunnel){
             return
         }

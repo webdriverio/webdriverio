@@ -41,7 +41,7 @@ export default class SauceService implements Services.ServiceInstance {
     /**
      * gather information about runner
      */
-    beforeSession (_: never, __: never, ___: never, cid: string) {
+    async beforeSession (_: never, __: never, ___: never, cid: string) {
         this._cid = cid
 
         /**
@@ -59,7 +59,7 @@ export default class SauceService implements Services.ServiceInstance {
         }
     }
 
-    before (caps: unknown, specs: string[], browser: Browser<'async'> | MultiRemoteBrowser<'async'>) {
+    async before (caps: unknown, specs: string[], browser: Browser<'async'> | MultiRemoteBrowser<'async'>) {
         this._browser = browser
 
         // Ensure capabilities are not null in case of multiremote
@@ -151,7 +151,7 @@ export default class SauceService implements Services.ServiceInstance {
         lines.forEach((line:string) => this.setAnnotation(`sauce:context=${line.replace(ansiRegex(), '')}`))
     }
 
-    afterTest (test: Frameworks.Test, context: unknown, results: Frameworks.TestResult) {
+    async afterTest (test: Frameworks.Test, context: unknown, results: Frameworks.TestResult) {
         /**
          * If the test failed push the stack to Sauce Labs in separate lines
          * This should not be done for UP because it's not supported yet and
@@ -192,7 +192,7 @@ export default class SauceService implements Services.ServiceInstance {
         }
     }
 
-    afterHook (test: never, context: never, results: Frameworks.TestResult) {
+    async afterHook (test: never, context: never, results: Frameworks.TestResult) {
         /**
          * If the test failed push the stack to Sauce Labs in separate lines
          * This should not be done for UP because it's not supported yet and
@@ -335,7 +335,7 @@ export default class SauceService implements Services.ServiceInstance {
         ).catch((err) => log.error(`Couldn't upload log files to Sauce Labs: ${err.message}`))
     }
 
-    onReload (oldSessionId: string, newSessionId: string) {
+    async onReload (oldSessionId: string, newSessionId: string) {
         if (!this._browser || !this._isServiceEnabled) {
             return
         }

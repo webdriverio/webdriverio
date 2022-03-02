@@ -38,7 +38,7 @@ export default class WebdriverMockService implements Services.ServiceInstance {
         this._mock.command.getLogTypes().reply(200, { value: [] })
     }
 
-    before (
+    async before (
         caps: unknown,
         specs: unknown,
         browser: Browser<'async'> | MultiRemoteBrowser<'async'>
