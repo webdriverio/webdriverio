@@ -1,7 +1,7 @@
-import type { TSESTree, TSESLint } from '@typescript-eslint/utils'
+import { Rule } from 'eslint'
 import { isCommand } from '../utils/helpers'
 
-const rule: any = {
+const rule: Rule.RuleModule = {
     meta : {
         type : 'problem',
         docs : {
@@ -17,9 +17,9 @@ const rule: any = {
         schema : [],
     },
 
-    create : function(context: TSESLint.RuleContext<string, unknown[]>) {
+    create : function(context: Rule.RuleContext): Rule.RuleListener {
         return {
-            CallExpression(node: TSESTree.CallExpression): void {
+            CallExpression(node): void {
                 if (isCommand(node, 'debug')) {
                     context.report({
                         node,
