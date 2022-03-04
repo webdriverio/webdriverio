@@ -18,3 +18,5 @@
             however, it may be used for any task that involves automating browser interaction.
             - Web frameworks is a software framework that helps developers create web applications such as web services, web resources, and web APIs.
             - A race condition occurs in software when the proper operation of a computer program is dependent on the order or timing of the program's processes or threads.
+            - From a developer's perspective, Test-Driven Development(TDD) is a testing methodology or a programming discipline.
+            - The testing strategy Behavioral-Driven Development (BDD) is derived from the (TDD) methodology that is more focused on on systems behavior testing.
