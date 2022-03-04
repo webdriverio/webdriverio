@@ -17,3 +17,4 @@
             - Selenium is a library for automating browsers. Selenium is most commonly used for web application testing, 
             however, it may be used for any task that involves automating browser interaction.
             - Web frameworks is a software framework that helps developers create web applications such as web services, web resources, and web APIs.
+            - A race condition occurs in software when the proper operation of a computer program is dependent on the order or timing of the program's processes or threads.
