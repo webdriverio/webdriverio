@@ -54,7 +54,7 @@ module.exports = {
         announcementBar: {
             id: 'supportus',
             content:
-              `🇺🇦  &nbsp;Ukraine needs your support <a target="_blank" rel="noopener noreferrer" href="https://helpukrainewin.org/">Stand with Ukraine</a>! 🇺🇦`,
+              `🇺🇦  &nbsp;We stand with the people of Ukraine. We encourage compassion, and hope for peace. Please support humanitarian efforts for the Ukraine crisis through the <a target="_blank" rel="noopener noreferrer" href="https://www.icrc.org/en/donate/ukraine">International Committee of the Red Cross</a>! #StandWithUkraine 🇺🇦`,
         },
         navbar: {
             // title: 'I/O',
