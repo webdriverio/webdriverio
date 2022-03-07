@@ -59,6 +59,8 @@ describe('CucumberAdapter', () => {
             .toContain('After')
         expect(Object.keys(packageExports))
             .toContain('World')
+        expect(Object.keys(packageExports))
+            .toContain('DataTable')
     })
 
     it('can be initiated with tests', async () => {
