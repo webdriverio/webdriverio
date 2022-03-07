@@ -21,7 +21,7 @@ module.exports = {
     },
     themeConfig: {
         image: 'img/logo-webdriver-io.png',
-        metadatas: [{ name: 'twitter:card', content: 'summary' }],
+        metadata: [{ name: 'twitter:card', content: 'summary' }],
         colorMode: {
             defaultMode: 'light',
             disableSwitch: false,
