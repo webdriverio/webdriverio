@@ -26,3 +26,14 @@
             discipline.
             - The testing strategy Behavioral-Driven Development (BDD) is derived from the (TDD) methodology
             that is more focused on on systems behavior testing.
+            - Node.js is a runtime software that is mostly used to create server-side JavaScript apps.
+            - LTS stands for "Long Term Support" and refers to software that is supported for a longer length of time 
+            than the standard edition.
+            
+2. Overall Description
+
+           2.1 User Needs
+           Before downloading and working with WebdriverIO the programmer is required to have install Node.js. Because 
+           WebdriverIO specifically require LTS version, the programmer need to install version 12.16.1 or above.
+
+           2.2 Assumptions and Dependencies
