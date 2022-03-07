@@ -38,7 +38,7 @@ module.exports = {
         },
         announcementBar: {
             id: 'supportus',
-            content: '🇺🇦  &nbsp;We stand with the people of Ukraine. We encourage compassion, and hope for peace.<br>Please support humanitarian efforts for the Ukraine crisis through the <a target="_blank" rel="noopener noreferrer" href="https://www.icrc.org/en/donate/ukraine">International Committee of the Red Cross</a>! #StandWithUkraine &nbsp;🇺🇦',
+            content: '🇺🇦  &nbsp;We stand with the people of Ukraine. We encourage compassion, and hope for peace. &nbsp; 🇺🇦<br>Please support humanitarian efforts for the Ukraine crisis through the <a target="_blank" rel="noopener noreferrer" href="https://www.icrc.org/en/donate/ukraine">International Committee of the Red Cross</a>! #StandWithUkraine',
         },
         navbar: {
             // title: 'I/O',
