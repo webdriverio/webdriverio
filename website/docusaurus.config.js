@@ -25,19 +25,7 @@ module.exports = {
         colorMode: {
             defaultMode: 'light',
             disableSwitch: false,
-            respectPrefersColorScheme: true,
-            switchConfig: {
-                darkIcon: '🌜',
-                lightIcon: '☀️',
-                // React inline style object
-                // see https://reactjs.org/docs/dom-elements.html#style
-                darkIconStyle: {
-                    marginLeft: '2px',
-                },
-                lightIconStyle: {
-                    marginLeft: '1px',
-                },
-            },
+            respectPrefersColorScheme: true
         },
         prism: {
             theme: require('prism-react-renderer/themes/github'),
@@ -50,7 +38,7 @@ module.exports = {
         },
         announcementBar: {
             id: 'supportus',
-            content: '🇺🇦  &nbsp;We stand with the people of Ukraine. We encourage compassion, and hope for peace. Please support humanitarian efforts for the Ukraine crisis through the <a target="_blank" rel="noopener noreferrer" href="https://www.icrc.org/en/donate/ukraine">International Committee of the Red Cross</a>! #StandWithUkraine &nbsp;🇺🇦',
+            content: '🇺🇦  &nbsp;We stand with the people of Ukraine. We encourage compassion, and hope for peace.<br>Please support humanitarian efforts for the Ukraine crisis through the <a target="_blank" rel="noopener noreferrer" href="https://www.icrc.org/en/donate/ukraine">International Committee of the Red Cross</a>! #StandWithUkraine &nbsp;🇺🇦',
         },
         navbar: {
             // title: 'I/O',
@@ -163,7 +151,6 @@ module.exports = {
                     ],
                     include: ['**/*.{md,mdx}', '**/_*.{md,mdx}'],
                     exclude: [
-                        '**/_*/**',
                         '**/*.test.{js,jsx,ts,tsx}',
                         '**/__tests__/**'
                     ]
