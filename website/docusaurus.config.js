@@ -43,9 +43,6 @@ module.exports = {
             theme: require('prism-react-renderer/themes/github'),
             darkTheme: require('prism-react-renderer/themes/dracula')
         },
-        googleAnalytics: {
-            trackingID: 'UA-47063382-1'
-        },
         algolia: {
             apiKey: '1b22fa823f22b7916528edc0e36d9d4a',
             indexName: 'webdriver',
@@ -53,8 +50,7 @@ module.exports = {
         },
         announcementBar: {
             id: 'supportus',
-            content:
-              `🇺🇦  &nbsp;We stand with the people of Ukraine. We encourage compassion, and hope for peace. Please support humanitarian efforts for the Ukraine crisis through the <a target="_blank" rel="noopener noreferrer" href="https://www.icrc.org/en/donate/ukraine">International Committee of the Red Cross</a>! #StandWithUkraine 🇺🇦`,
+            content: '🇺🇦  &nbsp;We stand with the people of Ukraine. We encourage compassion, and hope for peace. Please support humanitarian efforts for the Ukraine crisis through the <a target="_blank" rel="noopener noreferrer" href="https://www.icrc.org/en/donate/ukraine">International Committee of the Red Cross</a>! #StandWithUkraine &nbsp;🇺🇦',
         },
         navbar: {
             // title: 'I/O',
@@ -184,8 +180,12 @@ module.exports = {
                 pages: {
                     remarkPlugins: [require('@docusaurus/remark-plugin-npm2yarn')],
                 },
+                googleAnalytics: {
+                    trackingID: 'UA-47063382-1',
+                    anonymizeIP: true,
+                },
             },
-        ],
+        ]
     ],
     plugins: [
         [
