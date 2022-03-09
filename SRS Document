@@ -34,8 +34,8 @@
 2. Overall Description
 
            2.1 User Needs
-           Before downloading and working with WebdriverIO the programmer is required to have install Node.js. Because 
-           WebdriverIO specifically requires LTS (Long Term Support) version, so the programmer need to install version 
-           12.16.1 or above.
+           The basic understanding of WebdriverIO use. First, before downloading and working with WebdriverIO the programmer 
+           is required to have install Node.js. Because  WebdriverIO specifically requires LTS (Long Term Support) version, 
+           so the programmer need to install version 12.16.1 or above.
 
            2.2 Assumptions and Dependencies
