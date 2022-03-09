@@ -2,15 +2,16 @@
 
            1.1 Purpose
            In general, the WebdriverIO is considered to be a JavaScript-based custom implementation of the Selenium 
-           webdriver API. It is intended to make better the user-application interactions and help user to write easy 
-           test suite. The WebdriverIO is focused to work with application created with current web frameworks 
-           like Angular, Vue.js, React or Polymer. It is also support working with the native iOS, Android mobile 
-           applications.
+           webdriver API. It is intended to make simple but at the same time powerful software which improve the 
+           user-application interactions and help user to write quick test suite. The WebdriverIO is focused to work 
+           with application created with current web frameworks (eg. Angular, Vue.js, React or Polymer). It is also 
+           support working with the native iOS, Android mobile applications.
 
            1.2 Intended Audience
-           WebdriverIO is for anyone who wants to create simple web and mobile platform tests and have them run on 
-           a range of browsers. There are even a simple tutorial with documentation that helps user to understand 
-           which allign with their politics that the "software should be attainable for everyone who is curious".
+           WebdriverIO is described as a software for anyone who wants to create simple web and mobile platform tests 
+           and have them run on a range of browsers. There are even a simple tutorial with documentation that helps 
+           user to understand which allign with their politics that the "software should be attainable for everyone 
+           who is curious".
            
            1.3 Intended Usage
            WebdriverIO lets you to write in an asynchronous manner, which can be useful in eliminating race situations 
