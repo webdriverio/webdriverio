@@ -11,7 +11,7 @@ const SCOPE_TYPES: Record<string, Function> = {
 }
 
 interface PropertiesObject {
-    [key: string]: PropertyDescriptor
+    [key: string | symbol]: PropertyDescriptor
 }
 
 export default function WebDriver (options: Record<string, any>, modifier?: Function, propertiesObject: PropertiesObject = {}) {
