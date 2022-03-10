@@ -55,7 +55,8 @@ jobs:
         run: npm ci
       - name: Release
         run: |
-          npx run-s setup-full generate:typings
+          npm run setup-full
+          npm run generate:typings
           npx lerna publish ${{github.event.inputs.releaseType}} --exact --yes --dist-tag ${{github.event.inputs.distTag}}
           npm run pushReleaseTag
         env:
