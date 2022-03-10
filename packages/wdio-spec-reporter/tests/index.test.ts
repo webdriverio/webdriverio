@@ -690,6 +690,32 @@ describe('SpecReporter', () => {
         })
     })
 
+    describe('showPreface', () => {
+        let printReporter = null
+        const runner = getRunnerConfig({ hostname: 'localhost' })
+        it('false', () => {
+            printReporter = new SpecReporter({ showPreface: false })
+            printReporter.write = jest.fn()
+            printReporter['_suiteUids'] = SUITE_UIDS
+            printReporter.suites = SUITES
+            printReporter.printReport(runner)
+
+            expect(printReporter['_showPreface']).toBe(false)
+            expect(printReporter.write.mock.calls).toMatchSnapshot()
+        })
+
+        it('true', () => {
+            printReporter = new SpecReporter({ showPreface: true })
+            printReporter.write = jest.fn()
+            printReporter['_suiteUids'] = SUITE_UIDS
+            printReporter.suites = SUITES
+            printReporter.printReport(runner)
+
+            expect(printReporter['_showPreface']).toBe(true)
+            expect(printReporter.write.mock.calls).toMatchSnapshot()
+        })
+    })
+
     describe('getColor', () => {
         it('should get green', () => {
             expect(tmpReporter.getColor('passed')).toBe('green')

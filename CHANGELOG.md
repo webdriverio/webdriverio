@@ -19,6 +19,41 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.17.4 (2022-03-10)
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#8094](https://github.com/webdriverio/webdriverio/pull/8094) Fix isEqual.js: avoid syntax error on IE11 ([@FujiHaruka](https://github.com/FujiHaruka))
+
+#### :nail_care: Polish
+* `eslint-plugin-wdio`
+  * [#8095](https://github.com/webdriverio/webdriverio/pull/8095) Improve implementation of the new eslint rules ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 2
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Fuji Haruka ([@FujiHaruka](https://github.com/FujiHaruka))
+
+
+## v7.17.0 (2022-03-10)
+
+#### :nail_care: Polish
+* `wdio-spec-reporter`
+  * [#7877](https://github.com/webdriverio/webdriverio/pull/7877) Allow option to disable the preface in spec reporter ([@zmilonas](https://github.com/zmilonas))
+
+#### :memo: Documentation
+* `wdio-devtools-service`
+  * [#8049](https://github.com/webdriverio/webdriverio/pull/8049) Update Readme. Add 'exclude' for coverageReporter ([@bkrrrr](https://github.com/bkrrrr))
+* Other
+  * [#8023](https://github.com/webdriverio/webdriverio/pull/8023) update cloud services with perfecto.io integration ([@JefZevikw](https://github.com/JefZevikw))
+
+#### Committers: 5
+- Will Brock ([@WillBrock](https://github.com/WillBrock))
+- Zachary Milonas ([@zmilonas](https://github.com/zmilonas))
+- [@JefZevikw](https://github.com/JefZevikw)
+- [@SomeTrashBin](https://github.com/SomeTrashBin)
+- bkr ([@bkrrrr](https://github.com/bkrrrr))
+
+
 ## v7.16.16 (2022-02-22)
 
 #### :bug: Bug Fix

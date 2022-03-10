@@ -25,6 +25,7 @@
     --ifm-table-border-color: #efefef;
     --ifm-navbar-height: 85px;
     --ifm-button-border-width: 0;
+    --docusaurus-announcement-bar-height: auto!important;
 
     --wdio-spacing-vertical: 60px;
     --wdio-link-background-color: #eee0d7;
