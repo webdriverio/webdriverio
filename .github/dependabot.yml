@@ -12,3 +12,6 @@ updates:
     - dependency-name: "tempy"
     # requires manual upgrade as we use internal interfaces
     - dependency-name: "lighthouse"
+    # Chalk v5 is ESM only
+    - dependency-name: "aws-sdk"
+      update-types: ["version-update:semver-major"]
