@@ -24,6 +24,7 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "devDependencies": {
+    "@types/estree": "^0.0.51",
     "eslint": "^8.10.0"
   }
 }
