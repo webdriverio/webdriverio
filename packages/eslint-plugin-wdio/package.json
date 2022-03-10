@@ -23,7 +23,7 @@
   "bugs": {
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
-  "devDependencies": {
+  "dependencies": {
     "expect-webdriverio": "^3.1.4",
     "glob": "^7.2.0"
   }

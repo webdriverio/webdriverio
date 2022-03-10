@@ -6,14 +6,14 @@ ESLint rules for [WebdriverIO](https://webdriver.io)
 
 You'll first need to install [ESLint](https://eslint.org):
 
-```
-$ npm i eslint --save-dev
+```sh
+npm i eslint --save-dev
 ```
 
 Next, install `eslint-plugin-wdio`:
 
-```
-$ npm install eslint-plugin-wdio --save-dev
+```sh
+npm install eslint-plugin-wdio --save-dev
 ```
 
 **Note:** If you installed ESLint globally (using the `-g` flag) then you must also install `eslint-plugin-wdio` globally.
@@ -23,7 +23,8 @@ $ npm install eslint-plugin-wdio --save-dev
 This plugin export a recommended configuration that enforce good practices.
 
 To enable this configuration use the extends property in your .eslintrc config file:
-```
+
+```json
 {
   "plugins": [
     "wdio"
