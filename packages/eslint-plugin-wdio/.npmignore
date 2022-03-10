@@ -1,0 +1,5 @@
+lib
+docs
+tests
+tsconfig.json
+tsconfig.prod.json

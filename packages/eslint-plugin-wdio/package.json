@@ -5,7 +5,7 @@
   "author": "Christian Bromann <christian@saucelabs.com>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/eslint-plugin-wdio",
   "license": "MIT",
-  "main": "index.js",
+  "main": "build/index.js",
   "engines": {
     "node": ">=12.0.0"
   },
@@ -22,5 +22,12 @@
   ],
   "bugs": {
     "url": "https://github.com/webdriverio/webdriverio/issues"
+  },
+  "devDependencies": {
+    "@types/eslint": "^8.4.1",
+    "@typescript-eslint/utils": "^5.11.0",
+    "eslint": "^8.8.0",
+    "expect-webdriverio": "^3.1.4",
+    "glob": "^7.2.0"
   }
 }
