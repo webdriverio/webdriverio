@@ -19,6 +19,21 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.17.4 (2022-03-10)
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#8094](https://github.com/webdriverio/webdriverio/pull/8094) Fix isEqual.js: avoid syntax error on IE11 ([@FujiHaruka](https://github.com/FujiHaruka))
+
+#### :nail_care: Polish
+* `eslint-plugin-wdio`
+  * [#8095](https://github.com/webdriverio/webdriverio/pull/8095) Improve implementation of the new eslint rules ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 2
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Fuji Haruka ([@FujiHaruka](https://github.com/FujiHaruka))
+
+
 ## v7.17.0 (2022-03-10)
 
 #### :nail_care: Polish
