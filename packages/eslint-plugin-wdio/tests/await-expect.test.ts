@@ -1,4 +1,4 @@
-import rule from '../../../lib/rules/await-expect'
+import rule from '../src/rules/await-expect'
 import { RuleTester } from 'eslint'
 
 const ruleTester = new RuleTester({

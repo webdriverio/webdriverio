@@ -18,7 +18,7 @@ const configs = {
             expect             : false,
             multiremotebrowser : false,
         },
-        rules : {}
+        rules
     }
 }
 
