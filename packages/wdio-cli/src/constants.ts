@@ -236,7 +236,7 @@ export const QUESTIONNAIRE = [{
     type: 'input',
     name: 'env_key',
     message: 'Environment variable for access key',
-    default: 'BROWSERSTACK_ACCESSKEY',
+    default: 'BROWSERSTACK_ACCESS_KEY',
     when: /* istanbul ignore next */ (answers: Questionnair) => answers.backend.toString().startsWith('In the cloud using Browserstack')
 }, {
     type: 'input',
