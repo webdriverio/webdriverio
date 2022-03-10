@@ -15,7 +15,8 @@ const coveragePathIgnorePatterns = [
     'packages/wdio-logger/build',
     'packages/wdio-webdriver-mock-service',
     'packages/wdio-smoke-test-reporter',
-    'packages/wdio-smoke-test-service'
+    'packages/wdio-smoke-test-service',
+    'packages/eslint-plugin-wdio',
 ]
 
 /**
@@ -35,7 +36,8 @@ module.exports = {
         }
     },
     testMatch: [
-        '**/tests/**/*.test.(js|ts)'
+        '**/tests/**/*.test.(js|ts)',
+        '**/tests/lib/rules/*.ts',
     ],
     transform: {
         '^.+\\.(ts|js)$': 'ts-jest'
