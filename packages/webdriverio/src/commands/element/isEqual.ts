@@ -47,7 +47,7 @@ export default async function isEqual (
     try {
         result = await browser.execute(
             /* istanbul ignore next */
-            (el1: WebdriverIO.Element, el2: WebdriverIO.Element) => el1 === el2,
+            function (el1: WebdriverIO.Element, el2: WebdriverIO.Element) { return el1 === el2 },
             getWebElement(this), getWebElement(el))
     } catch (err: any) {
         result = false
