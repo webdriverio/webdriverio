@@ -1,4 +1,5 @@
 import type { Rule } from 'eslint'
+import type { Identifier } from 'estree'
 
 import { MATCHERS } from '../constants'
 
@@ -19,12 +20,30 @@ const rule: Rule.RuleModule = {
 
     create: function (context: Rule.RuleContext): Rule.RuleListener {
         return {
-            MemberExpression(node: any): void {
-                const object = node.object?.callee?.name
-                const property = node.property?.name
-                const parentType = node?.parent?.parent?.type ?? false
+            CallExpression(node): void {
+                /**
+                 * validate we have an expect statement that
+                 * calls some of the WebdriverIO matchers
+                 */
+                if (
+                    node.callee.type !== 'MemberExpression' ||
+                    node.callee.object.type !== 'CallExpression' ||
+                    (node.callee.object.callee as Identifier).name !== 'expect' ||
+                    !MATCHERS.includes((node.callee.property as Identifier).name)
+                ) {
+                    return
+                }
 
-                if (object === 'expect' && MATCHERS.includes(property) && parentType !== 'AwaitExpression') {
+                /**
+                 * fail rule if:
+                 */
+                if (
+                    /**
+                     * expect is called without an `await` and as part of an
+                     * expression
+                     */
+                    node.parent.type === 'ExpressionStatement'
+                ) {
                     context.report({ node, messageId: 'missingAwait' })
                 }
             }

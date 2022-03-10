@@ -17,7 +17,9 @@ ruleTester.run('await-expect-check', rule, {
         'it(`bar`, async () => { await expect($(`.foo`)).toHaveChildren(); });',
         'it(`bar`, async () => { await expect($(`.foo`)).toHaveTitle(); });',
         'it(`bar`, async () => { await expect($(`.foo`)).toBeElementsArrayOfSize(); });',
-        'it(`bar`, async () => { expect(1).toBe(1); });',
+        'it(`bar`, async () => { expect(1).toBe(1) });',
+        'it(`bar`, async () => expect(1).toHaveTitle() );',
+        'it(`bar`, async () => { await Promise.all([ expect(1).toBe(1) ]) });',
         'bar()',
     ],
     invalid : [
@@ -44,6 +46,6 @@ ruleTester.run('await-expect-check', rule, {
         {
             code : 'expect($(`.foo`)).toBeElementsArrayOfSize()',
             errors,
-        },
+        }
     ],
 })
