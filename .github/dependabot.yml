@@ -10,3 +10,5 @@ updates:
   ignore:
     # moved to ESM only
     - dependency-name: "tempy"
+    # requires manual upgrade as we use internal interfaces
+    - dependency-name: "lighthouse"
