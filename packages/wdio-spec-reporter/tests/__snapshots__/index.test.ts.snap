@@ -552,3 +552,73 @@ Array [
   ],
 ]
 `;
+
+exports[`SpecReporter showPreface false 1`] = `
+Array [
+  Array [
+    "------------------------------------------------------------------
+Running: loremipsum (v50) on Windows 10
+Session ID: foobar
+
+» /foo/bar/loo.e2e.js
+Foo test
+   green ✓ foo
+   green ✓ bar
+
+» /bar/foo/loo.e2e.js
+Bar test
+   green ✓ some test
+   red ✖ a failed test
+   red ✖ a failed test with no stack
+
+» /bar/loo/foo.e2e.js
+Baz test
+   green ✓ foo bar baz
+   cyan - a skipped test
+
+
+1) Bar test a failed test
+red expected foo to equal bar
+gray Failed test stack trace
+
+2) Bar test a failed test with no stack
+red expected foo to equal bar
+",
+  ],
+]
+`;
+
+exports[`SpecReporter showPreface true 1`] = `
+Array [
+  Array [
+    "------------------------------------------------------------------
+[loremipsum 50 Windows 10 #0-0] Running: loremipsum (v50) on Windows 10
+[loremipsum 50 Windows 10 #0-0] Session ID: foobar
+[loremipsum 50 Windows 10 #0-0]
+[loremipsum 50 Windows 10 #0-0] » /foo/bar/loo.e2e.js
+[loremipsum 50 Windows 10 #0-0] Foo test
+[loremipsum 50 Windows 10 #0-0]    green ✓ foo
+[loremipsum 50 Windows 10 #0-0]    green ✓ bar
+[loremipsum 50 Windows 10 #0-0]
+[loremipsum 50 Windows 10 #0-0] » /bar/foo/loo.e2e.js
+[loremipsum 50 Windows 10 #0-0] Bar test
+[loremipsum 50 Windows 10 #0-0]    green ✓ some test
+[loremipsum 50 Windows 10 #0-0]    red ✖ a failed test
+[loremipsum 50 Windows 10 #0-0]    red ✖ a failed test with no stack
+[loremipsum 50 Windows 10 #0-0]
+[loremipsum 50 Windows 10 #0-0] » /bar/loo/foo.e2e.js
+[loremipsum 50 Windows 10 #0-0] Baz test
+[loremipsum 50 Windows 10 #0-0]    green ✓ foo bar baz
+[loremipsum 50 Windows 10 #0-0]    cyan - a skipped test
+[loremipsum 50 Windows 10 #0-0]
+[loremipsum 50 Windows 10 #0-0]
+[loremipsum 50 Windows 10 #0-0] 1) Bar test a failed test
+[loremipsum 50 Windows 10 #0-0] red expected foo to equal bar
+[loremipsum 50 Windows 10 #0-0] gray Failed test stack trace
+[loremipsum 50 Windows 10 #0-0]
+[loremipsum 50 Windows 10 #0-0] 2) Bar test a failed test with no stack
+[loremipsum 50 Windows 10 #0-0] red expected foo to equal bar
+",
+  ],
+]
+`;
