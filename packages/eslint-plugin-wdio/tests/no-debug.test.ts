@@ -1,4 +1,4 @@
-import rule from '../../../lib/rules/no-debug'
+import rule from '../src/rules/no-debug'
 import { RuleTester } from 'eslint'
 
 const ruleTester = new RuleTester({
