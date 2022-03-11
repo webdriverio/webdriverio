@@ -641,7 +641,7 @@ describe('launcher', () => {
     })
 
     describe('config options', () => {
-        let ensureDirSyncSpy
+        let ensureDirSyncSpy: any
         beforeEach(() => {
             ensureDirSyncSpy = jest.spyOn(fs, 'ensureDirSync')
         })

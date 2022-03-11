@@ -190,6 +190,18 @@ test('runOnCompleteHook with failure returns 1', async () => {
     expect(hookFailing).toBeCalledTimes(1)
 })
 
+test('runOnCompleteHook fails with SevereServiceError', async () => {
+    const hookSuccess = jest.fn()
+    const hookFailing = jest.fn().mockImplementation(() => { throw new SevereServiceError('buhh') })
+
+    const result = await runOnCompleteHook([hookSuccess, hookFailing], { capabilities: {} }, {}, 0, {} as any)
+        .catch(() => 'some error')
+
+    expect(result).toBe('some error')
+    expect(hookSuccess).toBeCalledTimes(1)
+    expect(hookFailing).toBeCalledTimes(1)
+})
+
 test('getRunnerName', () => {
     expect(getRunnerName({ 'appium:appPackage': 'foobar' })).toBe('foobar')
     expect(getRunnerName({ 'appium:appWaitActivity': 'foobar' })).toBe('foobar')
@@ -308,7 +320,7 @@ describe('replaceConfig', () => {
 
 describe('addServiceDeps', () => {
     it('should add appium', () => {
-        const packages = []
+        const packages: any = []
         addServiceDeps([{ package: '@wdio/appium-service', short: 'appium' }], packages)
         expect(packages).toEqual(['appium'])
         expect(global.console.log).not.toBeCalled()
@@ -317,28 +329,28 @@ describe('addServiceDeps', () => {
     it('should not add appium if globally installed', () => {
         // @ts-ignore mock feature
         childProcess.execSyncRes = '1.13.0'
-        const packages = []
+        const packages: any = []
         addServiceDeps([{ package: '@wdio/appium-service', short: 'appium' }], packages)
         expect(packages).toEqual([])
         expect(global.console.log).not.toBeCalled()
     })
 
     it('should add appium and print message if update and appium globally installed', () => {
-        const packages = []
+        const packages: any = []
         addServiceDeps([{ package: '@wdio/appium-service', short: 'appium' }], packages, true)
         expect(packages).toEqual([])
         expect(global.console.log).toBeCalled()
     })
 
     it('should add chromedriver', () => {
-        const packages = []
+        const packages: any = []
         addServiceDeps([{ package: 'wdio-chromedriver-service', short: 'chromedriver' }], packages)
         expect(packages).toEqual(['chromedriver'])
         expect(global.console.log).not.toBeCalled()
     })
 
     it('should add chromedriver and print message if update', () => {
-        const packages = []
+        const packages: any = []
         addServiceDeps([{ package: 'wdio-chromedriver-service', short: 'chromedriver' }], packages, true)
         expect(packages).toEqual(['chromedriver'])
         expect(global.console.log).toBeCalled()

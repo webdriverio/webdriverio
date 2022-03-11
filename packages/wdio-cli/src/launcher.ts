@@ -408,11 +408,10 @@ class Launcher {
 
         // run worker hook to allow modify runtime and capabilities of a specific worker
         log.info('Run onWorkerStart hook')
-        await runLauncherHook(config.onWorkerStart, runnerId, caps, specs, this._args, execArgv).catch((error) => {
-            this.interface.logHookError(error)
-            throw error
-        })
+        await runLauncherHook(config.onWorkerStart, runnerId, caps, specs, this._args, execArgv)
+            .catch((error) => this._workerHookError(error))
         await runServiceHook(this._launcher!, 'onWorkerStart', runnerId, caps, specs, this._args, execArgv)
+            .catch((error) => this._workerHookError(error))
 
         // prefer launcher settings in capabilities over general launcher
         const worker = this.runner.run({
@@ -428,6 +427,13 @@ class Launcher {
         worker.on('message', this.interface.onMessage.bind(this.interface))
         worker.on('error', this.interface.onMessage.bind(this.interface))
         worker.on('exit', this.endHandler.bind(this))
+    }
+
+    private _workerHookError (error: HookError) {
+        this.interface.logHookError(error)
+        if (this._resolve) {
+            this._resolve(1)
+        }
     }
 
     /**
@@ -480,7 +486,9 @@ class Launcher {
         log.info('Run onWorkerEnd hook')
         const config = this.configParser.getConfig()
         await runLauncherHook(config.onWorkerEnd, rid, exitCode, specs, retries)
+            .catch((error) => this._workerHookError(error))
         await runServiceHook(this._launcher!, 'onWorkerEnd', rid, exitCode, specs, retries)
+            .catch((error) => this._workerHookError(error))
 
         /**
          * do nothing if

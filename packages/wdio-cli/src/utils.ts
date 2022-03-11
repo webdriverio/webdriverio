@@ -112,6 +112,9 @@ export async function runOnCompleteHook(
             return 0
         } catch (err: any) {
             log.error(`Error in onCompleteHook: ${err.stack}`)
+            if (err instanceof SevereServiceError) {
+                throw new HookError(err.message, 'onComplete')
+            }
             return 1
         }
     }))

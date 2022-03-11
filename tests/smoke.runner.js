@@ -4,6 +4,7 @@ import assert from 'assert'
 import { promisify } from 'util'
 
 import { sleep } from '../packages/wdio-utils/src/utils'
+import { SevereServiceError } from '../packages/node_modules/webdriverio'
 
 const fs = {
     readFile: promisify(readFile),
@@ -64,11 +65,8 @@ const mochaTestrunner = async () => {
 const mochaAsyncTestrunner = async () => {
     const { skippedSpecs } = await launch(
         path.resolve(__dirname, 'helpers', 'command.hook.config.js'),
-        {
-            specs: [
-                path.resolve(__dirname, 'mocha', 'test-async.js')
-            ]
-        })
+        { specs: [path.resolve(__dirname, 'mocha', 'test-async.js')] }
+    )
     assert.strictEqual(skippedSpecs, 0)
 }
 
@@ -397,6 +395,41 @@ const standaloneTest = async () => {
     assert.strictEqual(skippedSpecs, 0)
 }
 
+const severeErrorTest = async () => {
+    const onPrepareFailed = await launch(
+        path.resolve(__dirname, 'helpers', 'config.js'),
+        {
+            specs: [path.resolve(__dirname, 'mocha', 'test-empty.js')],
+            onPrepare: () => { throw new SevereServiceError('ups') }
+        }
+    ).then(() => false, () => true)
+    assert.equal(onPrepareFailed, true, 'Expected onPrepare to fail testrun')
+    const onWorkerStartFailed = await launch(
+        path.resolve(__dirname, 'helpers', 'config.js'),
+        {
+            specs: [path.resolve(__dirname, 'mocha', 'test-empty.js')],
+            onWorkerStart: () => { throw new SevereServiceError('ups') }
+        }
+    ).then(() => false, () => true)
+    assert.equal(onWorkerStartFailed, true, 'Expected onWorkerStart to fail testrun')
+    const onWorkerEndFailed = await launch(
+        path.resolve(__dirname, 'helpers', 'config.js'),
+        {
+            specs: [path.resolve(__dirname, 'mocha', 'test-empty.js')],
+            onWorkerEnd: () => { throw new SevereServiceError('ups') }
+        }
+    ).then(() => false, () => true)
+    assert.equal(onWorkerEndFailed, true, 'Expected onWorkerStart to fail testrun')
+    const onCompleteFailed = await launch(
+        path.resolve(__dirname, 'helpers', 'config.js'),
+        {
+            specs: [path.resolve(__dirname, 'mocha', 'test-empty.js')],
+            onComplete: () => { throw new SevereServiceError('ups') }
+        }
+    ).then(() => false, () => true)
+    assert.equal(onCompleteFailed, true, 'Expected onWorkerStart to fail testrun')
+}
+
 (async () => {
     const smokeTests = [
         cucumberTestrunner,
@@ -412,7 +445,8 @@ const standaloneTest = async () => {
         retryFail,
         retryPass,
         customReporterString,
-        customReporterObject
+        customReporterObject,
+        severeErrorTest
     ]
 
     /**
