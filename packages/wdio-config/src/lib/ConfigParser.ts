@@ -340,6 +340,7 @@ export default class ConfigParser {
             } else if (Array.isArray(pattern) && hierarchyDepth) {
                 log.error('Unexpected depth of hierarchical arrays')
             } else {
+                pattern = pattern.toString().replace(/\\/g, '/')
                 let filenames = findAndGlob.glob(<string>pattern)
                 filenames = filenames.filter(
                     (filename) => SUPPORTED_FILE_EXTENSIONS.find(

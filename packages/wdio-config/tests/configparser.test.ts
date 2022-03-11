@@ -685,7 +685,7 @@ describe('ConfigParser', () => {
             const configParser = ConfigParserForTest()
             configParser.addConfigFile(FIXTURES_CONF)
             configParser.merge({ spec: [INDEX_PATH, FIXTURES_CONF] })
-            configParser.merge({ exclude: [path.resolve(__dirname) + '/*'] })
+            configParser.merge({ exclude: [path.resolve(__dirname).replace(/\\/g, '/') + '/*'] })
             const specs = configParser.getSpecs()
             expect(specs).toHaveLength(2)
         })
