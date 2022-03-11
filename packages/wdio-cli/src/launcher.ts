@@ -470,8 +470,8 @@ class Launcher {
 
         /**
          * Update schedule now this process has ended
+         * get cid (capability id) from rid (runner id)
          */
-        // get cid (capability id) from rid (runner id)
         const cid = parseInt(rid, 10)
 
         this._schedule[cid].availableInstances++
@@ -479,8 +479,8 @@ class Launcher {
 
         log.info('Run onWorkerEnd hook')
         const config = this.configParser.getConfig()
-        await runLauncherHook(config.onWorkerEnd, cid, exitCode, specs, retries)
-        await runServiceHook(this._launcher!, 'onWorkerEnd', cid, exitCode, specs, retries)
+        await runLauncherHook(config.onWorkerEnd, rid, exitCode, specs, retries)
+        await runServiceHook(this._launcher!, 'onWorkerEnd', rid, exitCode, specs, retries)
 
         /**
          * do nothing if

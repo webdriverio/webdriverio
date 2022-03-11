@@ -169,75 +169,83 @@ describe('launcher', () => {
     })
 
     describe('endHandler', () => {
-        it('should emit and resolve failed status', () => {
-            launcher.getNumberOfRunningInstances = jest.fn().mockReturnValue(1)
-            launcher.runSpecs = jest.fn().mockReturnValue(1)
-            launcher['_schedule'] = [{ cid: 1 } as any, { cid: 2 }]
-            launcher['_resolve'] = jest.fn()
-            launcher.endHandler({ cid: '0-1', exitCode: 1 } as any)
-            expect(launcher.interface.emit).toBeCalledWith('job:end', { cid: '0-1', passed: false })
-            expect(launcher['_resolve']).toBeCalledWith(1)
+        const config = { onWorkerEnd: jest.fn() }
+
+        beforeEach(() => {
+            launcher['_launcher'] = []
+            launcher.configParser.getConfig = jest.fn().mockReturnValue(config)
         })
 
-        it('should emit and resolve passed status', () => {
+        it('should emit and resolve failed status', async () => {
             launcher.getNumberOfRunningInstances = jest.fn().mockReturnValue(1)
             launcher.runSpecs = jest.fn().mockReturnValue(1)
             launcher['_schedule'] = [{ cid: 1 } as any, { cid: 2 }]
             launcher['_resolve'] = jest.fn()
-            launcher.endHandler({ cid: '0-1', exitCode: 0 } as any)
+            await launcher.endHandler({ cid: '0-1', exitCode: 1, specs: [], retries: 0 } as any)
+            expect(launcher.interface.emit).toBeCalledWith('job:end', { cid: '0-1', passed: false, retries: 0 })
+            expect(launcher['_resolve']).toBeCalledWith(1)
+            expect(config.onWorkerEnd).toBeCalledWith('0-1', 1, [], 0)
+        })
+
+        it('should emit and resolve passed status', async () => {
+            launcher.getNumberOfRunningInstances = jest.fn().mockReturnValue(1)
+            launcher.runSpecs = jest.fn().mockReturnValue(1)
+            launcher['_schedule'] = [{ cid: 1 } as any, { cid: 2 }]
+            launcher['_resolve'] = jest.fn()
+            await launcher.endHandler({ cid: '0-1', exitCode: 0 } as any)
             expect(launcher.interface.emit).toBeCalledWith('job:end', { cid: '0-1', passed: true })
             expect(launcher['_resolve']).toBeCalledWith(0)
         })
 
-        it('should do nothing if not all specs are run', () => {
+        it('should do nothing if not all specs are run', async () => {
             launcher.getNumberOfRunningInstances = jest.fn().mockReturnValue(1)
             launcher.runSpecs = jest.fn().mockReturnValue(0)
             launcher['_schedule'] = [{ cid: 1 } as any, { cid: 2 }]
             launcher['_resolve'] = jest.fn()
-            launcher.endHandler({ cid: '0-1', exitCode: 0 } as any)
+            await launcher.endHandler({ cid: '0-1', exitCode: 0 } as any)
             expect(launcher.interface.emit).toBeCalledWith('job:end', { cid: '0-1', passed: true })
             expect(launcher['_resolve']).toBeCalledTimes(0)
         })
 
-        it('should do nothing if watch mode is still running', () => {
+        it('should do nothing if watch mode is still running', async () => {
             launcher.getNumberOfRunningInstances = jest.fn().mockReturnValue(1)
             launcher['_isWatchMode'] = true
             launcher.runSpecs = jest.fn().mockReturnValue(1)
             launcher['_schedule'] = [{ cid: 1 } as any, { cid: 2 }]
             launcher['_resolve'] = jest.fn()
-            launcher.endHandler({ cid: '0-1', exitCode: 1 } as any)
+            await launcher.endHandler({ cid: '0-1', exitCode: 1 } as any)
             expect(launcher.interface.emit).toBeCalledWith('job:end', { cid: '0-1', passed: false })
             expect(launcher['_resolve']).toBeCalledTimes(0)
         })
 
-        it('should resolve and not emit on watch mode stop', () => {
+        it('should resolve and not emit on watch mode stop', async () => {
             launcher.getNumberOfRunningInstances = jest.fn().mockReturnValue(1)
             launcher['_isWatchMode'] = true
             launcher['_hasTriggeredExitRoutine'] = true
             launcher.runSpecs = jest.fn().mockReturnValue(1)
             launcher['_schedule'] = [{ cid: 1 } as any, { cid: 2 }]
             launcher['_resolve'] = jest.fn()
-            launcher.endHandler({ cid: '0-1', exitCode: 1 } as any)
+            await launcher.endHandler({ cid: '0-1', exitCode: 1 } as any)
             expect(launcher.interface.emit).not.toBeCalled()
             expect(launcher['_resolve']).toBeCalledWith(0)
         })
 
-        it('should reschedule when runner failed and retries remain', () => {
+        it('should reschedule when runner failed and retries remain', async () => {
             launcher['_schedule'] = [{ cid: 0, specs: [] }] as any
-            launcher.endHandler({ cid: '0-5', exitCode: 1, retries: 1, specs: ['a.js'] })
+            await launcher.endHandler({ cid: '0-5', exitCode: 1, retries: 1, specs: ['a.js'] })
             expect(launcher['_schedule']).toMatchObject([{ cid: 0, specs: [{ rid: '0-5', files: ['a.js'], retries: 0 }] }])
         })
 
-        it('should requeue retried specfiles at beginning of queue', () => {
-            launcher.configParser.getConfig = jest.fn().mockReturnValue({ specFileRetriesDeferred: false })
+        it('should requeue retried specfiles at beginning of queue', async () => {
+            launcher.configParser.getConfig = jest.fn().mockReturnValue({ specFileRetriesDeferred: false, onWorkerEnd: jest.fn() })
             launcher['_schedule'] = [{ cid: 0, specs: [{ files: ['b.js'] }] }] as any
-            launcher.endHandler({ cid: '0-5', exitCode: 1, retries: 1, specs: ['a.js'] })
+            await launcher.endHandler({ cid: '0-5', exitCode: 1, retries: 1, specs: ['a.js'] })
             expect(launcher['_schedule']).toMatchObject([{ cid: 0, specs: [{ rid: '0-5', files: ['a.js'], retries: 0 }, { files: ['b.js'] }] }])
         })
 
-        it('should requeue retried specfiles at end of queue', () => {
+        it('should requeue retried specfiles at end of queue', async () => {
             launcher['_schedule'] = [{ cid: 0, specs: [{ files: ['b.js'] }] }] as any
-            launcher.endHandler({ cid: '0-5', exitCode: 1, retries: 1, specs: ['a.js'] })
+            await launcher.endHandler({ cid: '0-5', exitCode: 1, retries: 1, specs: ['a.js'] })
             expect(launcher['_schedule']).toMatchObject([{ cid: 0, specs: [{ files: ['b.js'] }, { rid: '0-5', files: ['a.js'], retries: 0 }] }])
         })
     })
@@ -320,7 +328,7 @@ describe('launcher', () => {
             launcher.configParser = { getSpecs: jest.fn().mockReturnValue(
                 ['/a.js', ['/b.js', '/c.js', '/d.js'], '/e.js']
             ) } as any
-            expect(launcher.formatSpecs(capabilities, specFileRetries)).toStrictEqual(expected)
+            expect(launcher.formatSpecs(capabilities as any, specFileRetries)).toStrictEqual(expected)
         })
     })
 
