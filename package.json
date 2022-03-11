@@ -56,7 +56,7 @@
     "version": "npm run changelog && git add CHANGELOG.md",
     "postinstall": "run-s postinstall:*",
     "postinstall:husky": "husky install",
-    "postinstall:vulnerabilities": "cat ./.husky/postinstall.txt"
+    "postinstall:vulnerabilities": "node ./.husky/postinstall.js"
   },
   "devDependencies": {
     "@cucumber/cucumber": "^8.0.0-rc.1",
