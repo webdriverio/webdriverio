@@ -102,6 +102,10 @@ exports.config = {
     // onWorkerStart: function (cid, caps, specs, args, execArgv) {
     // },
     //
+    // Gets executed just after a worker process has exited.
+    // onWorkerEnd: function (cid, exitCode, specs, retries) {
+    // },
+    //
     // Gets executed before test execution begins. At this point you can access to all global
     // variables like `browser`. It is the perfect place to define custom commands.
     // before: function (capabilities, specs, browser) {

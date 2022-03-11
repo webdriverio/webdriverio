@@ -9,7 +9,7 @@ import type { Options, Capabilities, Services } from '@wdio/types'
 
 import CLInterface from './interface'
 import { RunCommandArguments } from './types'
-import { runLauncherHook, runOnCompleteHook, runServiceHook } from './utils'
+import { runLauncherHook, runOnCompleteHook, runServiceHook, HookError } from './utils'
 
 const log = logger('@wdio/cli:launcher')
 
@@ -109,7 +109,7 @@ class Launcher {
          */
         exitHook(this.exitHandler.bind(this))
         let exitCode = 0
-        let error: Error | undefined = undefined
+        let error: HookError | undefined = undefined
 
         try {
             const config = this.configParser.getConfig()
@@ -147,8 +147,8 @@ class Launcher {
             await logger.waitForBuffer()
 
             this.interface.finalise()
-        } catch (err: any) {
-            error = err
+        } catch (err) {
+            error = err as HookError
         } finally {
             if (!this._hasTriggeredExitRoutine) {
                 this._hasTriggeredExitRoutine = true
@@ -157,6 +157,7 @@ class Launcher {
         }
 
         if (error) {
+            this.interface.logHookError(error)
             throw error
         }
         return exitCode
@@ -407,7 +408,10 @@ class Launcher {
 
         // run worker hook to allow modify runtime and capabilities of a specific worker
         log.info('Run onWorkerStart hook')
-        await runLauncherHook(config.onWorkerStart, runnerId, caps, specs, this._args, execArgv)
+        await runLauncherHook(config.onWorkerStart, runnerId, caps, specs, this._args, execArgv).catch((error) => {
+            this.interface.logHookError(error)
+            throw error
+        })
         await runServiceHook(this._launcher!, 'onWorkerStart', runnerId, caps, specs, this._args, execArgv)
 
         // prefer launcher settings in capabilities over general launcher
@@ -445,7 +449,7 @@ class Launcher {
      * @param  {Array} specs      Specs that were run
      * @param  {Number} retries   Number or retries remaining
      */
-    endHandler({ cid: rid, exitCode, specs, retries }: EndMessage) {
+    async endHandler({ cid: rid, exitCode, specs, retries }: EndMessage) {
         const passed = this._isWatchModeHalted() || exitCode === 0
 
         if (!passed && retries > 0) {
@@ -472,6 +476,11 @@ class Launcher {
 
         this._schedule[cid].availableInstances++
         this._schedule[cid].runningInstances--
+
+        log.info('Run onWorkerEnd hook')
+        const config = this.configParser.getConfig()
+        await runLauncherHook(config.onWorkerEnd, cid, exitCode, specs, retries)
+        await runServiceHook(this._launcher!, 'onWorkerEnd', cid, exitCode, specs, retries)
 
         /**
          * do nothing if
