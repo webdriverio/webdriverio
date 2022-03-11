@@ -36,7 +36,7 @@
     "test:typings": "run-s test:typings:*",
     "test:typings:setup": "node tests/typings/setup && npm i --no-save tsd",
     "test:typings:test": "npm run ts && npm run clean:tests && node tests/typings/setup --ts=3.9 && npm run ts && npm run clean:tests",
-    "test:typings:recover": "rm ./node_modules/.bin/tsc && ln -s ../typescript/bin/tsc node_modules/.bin && npx rimraf @tsd/typescript",
+    "test:typings:recover": "rimraf ./node_modules/.bin/tsc && ln -s ../typescript/bin/tsc node_modules/.bin && npx rimraf @tsd/typescript",
     "test:coverage": "node --max-old-space-size=8192 ./node_modules/jest/bin/jest.js --coverage --logHeapUsage",
     "test:smoke": "ts-node ./tests/smoke.runner.js",
     "test:e2e": "jest --config e2e/jest.config.js",
