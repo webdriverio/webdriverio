@@ -58,6 +58,7 @@ export const DEFAULT_CONFIGS: () => Omit<Options.Testrunner, 'capabilities'> = (
      */
     onPrepare: [],
     onWorkerStart: [],
+    onWorkerEnd: [],
     before: [],
     beforeSession: [],
     beforeSuite: [],
@@ -89,7 +90,7 @@ export const SUPPORTED_HOOKS: (keyof Services.Hooks)[] = [
     'afterCommand', 'afterTest', 'afterHook', 'afterSuite', 'afterSession', 'after',
     // @ts-ignore not defined in core hooks but added with cucumber
     'beforeFeature', 'beforeScenario', 'beforeStep', 'afterStep', 'afterScenario', 'afterFeature',
-    'onReload', 'onPrepare', 'onWorkerStart', 'onComplete'
+    'onReload', 'onPrepare', 'onWorkerStart', 'onWorkerEnd', 'onComplete'
 ]
 
 export const SUPPORTED_FILE_EXTENSIONS = [

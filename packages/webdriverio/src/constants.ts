@@ -276,6 +276,7 @@ export const WDIO_DEFAULTS: Options.Definition<Options.WebdriverIO & Options.Tes
      */
     onPrepare: HOOK_DEFINITION,
     onWorkerStart: HOOK_DEFINITION,
+    onWorkerEnd: HOOK_DEFINITION,
     before: HOOK_DEFINITION,
     beforeSession: HOOK_DEFINITION,
     beforeSuite: HOOK_DEFINITION,
