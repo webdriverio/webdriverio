@@ -135,11 +135,14 @@ class Launcher {
 
             /**
              * run onComplete hook
-             * even if it fails we still want to see result and end logger stream
+             * Even if it fails we still want to see result and end logger stream.
+             * Also ensure that user hooks are run before service hooks so that e.g.
+             * a user can use plugin service, e.g. shared store service is still
+             * available running hooks in this order
              */
             log.info('Run onComplete hook')
-            await runServiceHook(this._launcher, 'onComplete', exitCode, config, caps)
             const onCompleteResults = await runOnCompleteHook(config.onComplete!, config, caps, exitCode, this.interface.result)
+            await runServiceHook(this._launcher, 'onComplete', exitCode, config, caps)
 
             // if any of the onComplete hooks failed, update the exit code
             exitCode = onCompleteResults.includes(1) ? 1 : exitCode
