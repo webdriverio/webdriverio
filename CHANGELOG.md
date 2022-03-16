@@ -19,6 +19,27 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.18.0 (2022-03-16)
+
+#### :rocket: New Feature
+* `wdio-cli`, `wdio-config`, `wdio-smoke-test-service`, `wdio-types`, `webdriverio`
+  * [#8100](https://github.com/webdriverio/webdriverio/pull/8100) user hook improvements ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :bug: Bug Fix
+* `wdio-cli`, `wdio-shared-store-service`
+  * [#8099](https://github.com/webdriverio/webdriverio/pull/8099) Run user hooks before service hooks ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :house: Internal
+* Other
+  * [#8104](https://github.com/webdriverio/webdriverio/pull/8104) replace rm -> rimraf ([@harsha509](https://github.com/harsha509))
+* `wdio-config`, `wdio-shared-store-service`
+  * [#8097](https://github.com/webdriverio/webdriverio/pull/8097) fix: unit tests in windows (resolves file path and build issues in windows) ([@harsha509](https://github.com/harsha509))
+
+#### Committers: 2
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Sri Harsha ([@harsha509](https://github.com/harsha509))
+
+
 ## v7.17.4 (2022-03-10)
 
 #### :bug: Bug Fix
