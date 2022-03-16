@@ -25,7 +25,7 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "dependencies": {
-    "@types/jasmine": "3.10.3",
+    "@types/jasmine": "4.0.0",
     "@types/node": "^17.0.4",
     "@wdio/logger": "7.17.3",
     "@wdio/types": "7.18.0",
