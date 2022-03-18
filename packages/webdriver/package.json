@@ -1,6 +1,6 @@
 {
   "name": "webdriver",
-  "version": "7.18.0",
+  "version": "7.18.1",
   "description": "A Node.js bindings implementation for the W3C WebDriver and Mobile JSONWire Protocol",
   "author": "Christian Bromann <christian@saucelabs.com>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/webdriver",
