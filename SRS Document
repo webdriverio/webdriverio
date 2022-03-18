@@ -8,10 +8,10 @@
            support working with the native iOS, Android mobile applications.
 
            1.2 Intended Audience
-           WebdriverIO is described as a software for anyone who wants to create simple web and mobile platform tests 
-           and have them run on a range of browsers. There are even a simple tutorial with documentation that helps 
-           user to understand which allign with their politics that the "software should be attainable for everyone 
-           who is curious".
+           WebdriverIO is touted as a tool for creating basic online and mobile platform tests that can be performed 
+           across a variety of browsers. There's also a brief lesson with documentation to assist users understand 
+           what they're doing, which aligns with their philosophy that "software should be accessible to everyone 
+           who is inquisitive."
            
            1.3 Intended Usage
            WebdriverIO lets you to write in an asynchronous manner, which can be useful in eliminating race situations 
@@ -46,3 +46,28 @@
            Current WebdriverIO project have already sattisfied its main objectives such as building toolkit which hepls to make tests 
            fast and in an organized way, making them much easier to change and manage. The project is headed toward the maintaing 
            and bag fixing phase. As it stated there is still room for an imporvement.
+           
+ 3. System Features and Requirements
+
+            3.1 Functional Requirements
+            There is one possibliy option to build test files which is using Babel. Babel is a compiler for JavaScript. if you want 
+            to develop tests that employ next-generation JavaScript capabilities.
+            In order to install Babel, first install the its dependencies you'll need:
+            npm install --save-dev @babel/core @babel/cli @babel/preset-env @babel/register
+            
+            It is important to make sure babel.config.js file is set up correctly.
+            
+            The basic setup is following:
+            module.exports = {
+                presets: [
+                    ['@babel/preset-env', {
+                        targets: {
+                            node: '14'
+                        }
+                    }]
+                ]
+            }
+            
+            The WebdriverIO will then take care of everything else.
+
+           3.2 Nonfunctional Requirements
