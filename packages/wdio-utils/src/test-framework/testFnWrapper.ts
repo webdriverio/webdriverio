@@ -10,6 +10,11 @@ import type {
     JasmineContext
 } from './types'
 
+const STACKTRACE_FILTER = [
+    'node_modules',
+    '(internal/process/task',
+]
+
 /**
  * wraps test framework spec/hook function with WebdriverIO before/after hooks
  *
@@ -77,6 +82,10 @@ export const testFrameworkFnWrapper = async function (
     try {
         result = await promise
     } catch (err: any) {
+        if (err.stack) {
+            err.stack = filterStackTrace(err.stack)
+        }
+
         error = err
     }
     const duration = Date.now() - testStart
@@ -105,4 +114,16 @@ export const testFrameworkFnWrapper = async function (
         throw error
     }
     return result
+}
+
+/**
+ * Filter out internal stacktraces. exporting to allow testing of the function
+ * @param   {string} stack Stacktrace
+ * @returns {string}
+ */
+export const filterStackTrace = (stack: string): string => {
+    return stack
+        .split('\n')
+        .filter(line => !STACKTRACE_FILTER.some(l => line.includes(l)))
+        .join('\n')
 }
