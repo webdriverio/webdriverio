@@ -217,7 +217,7 @@ test('prints TypeScript setup message with ts-node installed', async () => {
                 '@wdio/mocha-framework',
                 'expect-webdriverio'
             ],
-            target: 'ES5',
+            target: 'es2019',
         }
     }
 
