@@ -55,7 +55,7 @@ describe('getSize test', () => {
         const height = await elem.getSize('height')
         expect(height).toBe(30)
         const invalid = await elem.getSize('foobar')
-        expect(invalid).toEqual({ width: 30, height: 30 })
+        expect(invalid).toEqual({ width: 50, height: 30 })
     })
 
     afterEach(() => {
