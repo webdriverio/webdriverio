@@ -121,7 +121,7 @@ For instance, if you decide to use the Mocha framework, you need to install `@ty
 ```json title="tsconfig.json"
 {
     "compilerOptions": {
-        "types": ["node", "webdriverio/sync", "@wdio/mocha-framework"]
+        "types": ["node", "webdriverio/async", "@wdio/mocha-framework"]
     }
 }
 ```
@@ -132,7 +132,7 @@ For instance, if you decide to use the Mocha framework, you need to install `@ty
 ```json title="tsconfig.json"
 {
     "compilerOptions": {
-        "types": ["node", "webdriverio/sync", "@wdio/jasmine-framework"]
+        "types": ["node", "webdriverio/async", "@wdio/jasmine-framework"]
     }
 }
 ```
@@ -143,7 +143,7 @@ For instance, if you decide to use the Mocha framework, you need to install `@ty
 ```json title="tsconfig.json"
 {
     "compilerOptions": {
-        "types": ["node", "webdriverio/sync", "@wdio/cucumber-framework"]
+        "types": ["node", "webdriverio/async", "@wdio/cucumber-framework"]
     }
 }
 ```
@@ -160,7 +160,7 @@ If you use services that add commands to the browser scope you also need to incl
     "compilerOptions": {
         "types": [
             "node",
-            "webdriverio/sync",
+            "webdriverio/async",
             "@wdio/mocha-framework",
             "@wdio/devtools-service"
         ]
@@ -240,8 +240,8 @@ With TypeScript, it's easy to extend WebdriverIO interfaces. Add types to your [
 <Tabs
   defaultValue="async"
   values={[
-    {label: 'Sync', value: 'sync'},
     {label: 'Async', value: 'async'},
+    {label: 'Sync', value: 'sync'},
   ]
 }>
 <TabItem value="sync">
@@ -294,8 +294,8 @@ declare global {
 <Tabs
   defaultValue="async"
   values={[
-    {label: 'Sync', value: 'sync'},
     {label: 'Async', value: 'async'},
+    {label: 'Sync', value: 'sync'},
   ]
 }>
 <TabItem value="sync">
@@ -366,7 +366,7 @@ declare namespace WebdriverIO {
     "strictNullChecks": true,
     "types": [
       "node",
-      "webdriverio/sync",
+      "webdriverio/async",
       "@wdio/mocha-framework"
     ]
   },
@@ -393,7 +393,7 @@ declare namespace WebdriverIO {
     "strictNullChecks": true,
     "types": [
       "node",
-      "webdriverio/sync",
+      "webdriverio/async",
       "@wdio/mocha-framework"
     ]
   }
