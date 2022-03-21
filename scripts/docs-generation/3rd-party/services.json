@@ -139,5 +139,11 @@
     "title": "Microsoft Teams",
     "githubUrl": "https://github.com/marcelblijleven/wdio-ms-teams-service",
     "npmUrl": "https://www.npmjs.com/package/wdio-ms-teams-service"
+  },
+  {
+    "packageName": "wdio-tesults-service",
+    "title": "Tesults",
+    "githubUrl": "https://github.com/tesults/wdio-tesults-service",
+    "npmUrl": "https://www.npmjs.com/package/wdio-tesults-service"
   }
 ]
