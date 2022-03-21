@@ -251,7 +251,7 @@ let wrapCommand = function wrapCommand<T>(commandName: string, fn: Function): (.
                      * await $('foo').$('bar')
                      * ```
                      */
-                    if (ELEMENT_QUERY_COMMANDS.includes(prop)) {
+                    if (ELEMENT_QUERY_COMMANDS.includes(prop) || prop.endsWith('$')) {
                         // this: WebdriverIO.Element
                         return wrapCommand(prop, function (this: any, ...args: any) {
                             return this[prop].apply(this, args)
@@ -336,7 +336,7 @@ let wrapCommand = function wrapCommand<T>(commandName: string, fn: Function): (.
          */
         const command = hasWdioSyncSupport && wdioSync && Boolean(global.browser) && !runAsync && !asyncSpec
             ? wdioSync!.wrapCommand(commandName, fn)
-            : ELEMENT_QUERY_COMMANDS.includes(commandName)
+            : ELEMENT_QUERY_COMMANDS.includes(commandName) || commandName.endsWith('$')
                 ? chainElementQuery
                 : wrapCommandFn
 
