@@ -66,7 +66,7 @@ inquirer.prompt(questions).then(answers => {
   "name": "${fullScopedPackageName}",
   "version": "0.0.0",
   "description": "A WebdriverIO ${packageType} that <provide ${packageType} description>",
-  "author": "Christian Bromann <christian@saucelabs.com>",
+  "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/${fullPackageName}",
   "license": "MIT",
   "main": "./build/index",

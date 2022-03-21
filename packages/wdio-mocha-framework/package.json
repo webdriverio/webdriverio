@@ -2,7 +2,7 @@
   "name": "@wdio/mocha-framework",
   "version": "7.18.0",
   "description": "A WebdriverIO plugin. Adapter for Mocha testing framework.",
-  "author": "Christian Bromann <christian@saucelabs.com>",
+  "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-mocha-framework",
   "license": "MIT",
   "main": "./build/index",

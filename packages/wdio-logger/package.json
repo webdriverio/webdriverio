@@ -2,7 +2,7 @@
   "name": "@wdio/logger",
   "version": "7.17.3",
   "description": "A helper utility for logging of WebdriverIO packages",
-  "author": "Christian Bromann <christian@saucelabs.com>",
+  "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-logger",
   "license": "MIT",
   "main": "./build/node",

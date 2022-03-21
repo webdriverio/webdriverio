@@ -2,7 +2,7 @@
   "name": "eslint-plugin-wdio",
   "version": "7.18.1",
   "description": "Eslint rules for WebdriverIO",
-  "author": "Christian Bromann <christian@saucelabs.com>",
+  "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/eslint-plugin-wdio",
   "license": "MIT",
   "main": "build/index.js",

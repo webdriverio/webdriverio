@@ -3,7 +3,7 @@
   "description": "Next-gen browser and mobile automation test framework for Node.js",
   "version": "7.18.1",
   "homepage": "https://webdriver.io",
-  "author": "Christian Bromann <christian@saucelabs.com>",
+  "author": "Christian Bromann <mail@bromann.dev>",
   "license": "MIT",
   "main": "./build/index.js",
   "repository": {

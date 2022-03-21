@@ -2,7 +2,7 @@
   "name": "@wdio/types",
   "version": "7.18.0",
   "description": "Utility package providing type information for a variety of WebdriverIO interfaces",
-  "author": "Christian Bromann <christian@saucelabs.com>",
+  "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-types",
   "license": "MIT",
   "main": "./build/index.js",

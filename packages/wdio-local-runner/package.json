@@ -2,7 +2,7 @@
   "name": "@wdio/local-runner",
   "version": "7.18.1",
   "description": "A WebdriverIO runner to run tests locally",
-  "author": "Christian Bromann <christian@saucelabs.com>",
+  "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-local-runner",
   "license": "MIT",
   "main": "./build/index",

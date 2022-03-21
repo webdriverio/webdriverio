@@ -2,7 +2,7 @@
   "name": "@wdio/repl",
   "version": "7.18.0",
   "description": "A WDIO helper utility to provide a repl interface for WebdriverIO",
-  "author": "Christian Bromann <christian@saucelabs.com>",
+  "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-repl",
   "license": "MIT",
   "main": "./build/index",

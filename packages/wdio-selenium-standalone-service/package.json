@@ -2,7 +2,7 @@
   "name": "@wdio/selenium-standalone-service",
   "version": "7.18.0",
   "description": "A WebdriverIO service to start & stop Selenium Standalone",
-  "author": "Christian Bromann <christian@saucelabs.com>",
+  "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-selenium-standalone-service",
   "license": "MIT",
   "main": "./build",

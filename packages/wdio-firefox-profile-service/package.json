@@ -2,7 +2,7 @@
   "name": "@wdio/firefox-profile-service",
   "version": "7.18.0",
   "description": "WebdriverIO service that lets you define your Firefox profile in your wdio.conf.js",
-  "author": "Christian Bromann <christian@saucelabs.com>",
+  "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-firefox-profile-service",
   "license": "MIT",
   "main": "./build/index",
