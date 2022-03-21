@@ -84,6 +84,13 @@ console.log(typeof browser.myCustomElementCommand2) // outputs "undefined"
 console.log(elem3.myCustomElementCommand2('foobar')) // outputs "function"
 ```
 
+__Note:__ If you need to chain a custom command, the command should end with `$`, 
+```js
+browser.addCommand("user$", (locator) => { return ele })
+browser.addCommand("user$", (locator) => { return ele }, true)
+await browser.user$('foo').user$('bar').click()
+```
+
 Be careful to not overload the `browser` scope with too many custom commands.
 
 We recommend defining custom logic in [page objects](PageObjects.md), so they are bound to a specific page.
