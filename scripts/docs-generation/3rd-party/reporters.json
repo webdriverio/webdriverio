@@ -52,11 +52,5 @@
     "title": "Delta Reporter",
     "githubUrl": "https://github.com/delta-reporter/delta-reporter-wdio",
     "npmUrl": "https://www.npmjs.com/package/@delta-reporter/wdio-delta-reporter-service"
-  },
-  {
-    "packageName": "wdio-tesults-reporter",
-    "title": "Tesults",
-    "githubUrl": "https://github.com/tesults/wdio-tesults-reporter",
-    "npmUrl": "https://www.npmjs.com/package/wdio-tesults-reporter"
   }
 ]
