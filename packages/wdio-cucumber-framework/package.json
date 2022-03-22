@@ -22,7 +22,7 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "dependencies": {
-    "@cucumber/cucumber": "8.0.0-rc.1",
+    "@cucumber/cucumber": "8.0.0-rc.3",
     "@cucumber/gherkin": "22.0.0",
     "@cucumber/gherkin-streams": "^5.0.0",
     "@cucumber/messages": "17.1.1",
