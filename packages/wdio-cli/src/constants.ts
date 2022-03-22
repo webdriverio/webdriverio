@@ -104,10 +104,14 @@ export const SUPPORTED_PACKAGES = {
         // inquirerjs shows list as its orderer in array
         // put chromedriver first as it is the default option
         { name: 'chromedriver', value: 'wdio-chromedriver-service$--$chromedriver' },
+        { name: 'geckodriver', value: 'wdio-geckodriver-service$--$geckodriver' },
+        { name: 'edgedriver', value: 'wdio-edgedriver-service$--$edgedriver' },
         // internal
         { name: 'sauce', value: '@wdio/sauce-service$--$sauce' },
         { name: 'testingbot', value: '@wdio/testingbot-service$--$testingbot' },
         { name: 'selenium-standalone', value: '@wdio/selenium-standalone-service$--$selenium-standalone' },
+        { name: 'vscode', value: 'wdio-vscode-service$--$vscode' },
+        { name: 'electron', value: 'wdio-electron-service$--$electron' },
         { name: 'devtools', value: '@wdio/devtools-service$--$devtools' },
         { name: 'browserstack', value: '@wdio/browserstack-service$--$browserstack' },
         { name: 'appium', value: '@wdio/appium-service$--$appium' },
