@@ -7,7 +7,7 @@
   },
   {
     "packageName": "wdio-vscode-service",
-    "title": "Tesults",
+    "title": "VSCode Extension Testing",
     "githubUrl": "https://github.com/webdriverio-community/wdio-vscode-service",
     "npmUrl": "https://www.npmjs.com/package/wdio-vscode-service"
   },
