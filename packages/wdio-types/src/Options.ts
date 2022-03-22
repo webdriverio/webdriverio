@@ -223,7 +223,7 @@ export interface WebdriverIO extends Omit<WebDriver, 'capabilities'> {
      * @example
      * ```js
      * // wdio.conf.js
-     * export.config = {
+     * exports.config
      *   // ...
      *   capabilities: {
      *     browserName: 'safari',
@@ -236,7 +236,7 @@ export interface WebdriverIO extends Omit<WebDriver, 'capabilities'> {
      * @example
      * ```
      * // wdio.conf.js
-     * export.config = {
+     * exports.config
      *   // ...
      *   capabilities: {
      *     browserA: {
@@ -297,7 +297,7 @@ export interface Testrunner extends Hooks, Omit<WebdriverIO, 'capabilities'>, We
      * @example
      * ```js
      * // wdio.conf.js
-     * export.config = {
+     * exports.config
      *   // ...
      *   capabilities: [{
      *     browserName: 'safari',
@@ -314,7 +314,7 @@ export interface Testrunner extends Hooks, Omit<WebdriverIO, 'capabilities'>, We
      * @example
      * ```
      * // wdio.conf.js
-     * export.config = {
+     * exports.config
      *   // ...
      *   capabilities: {
      *     browserA: {

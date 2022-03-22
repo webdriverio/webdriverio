@@ -32,7 +32,7 @@ Reporting of session status on BrowserStack will respect `strict` setting of Cuc
 
 ```js
 // wdio.conf.js
-export.config = {
+exports.config
     // ...
     user: process.env.BROWSERSTACK_USERNAME,
     key: process.env.BROWSERSTACK_ACCESS_KEY,

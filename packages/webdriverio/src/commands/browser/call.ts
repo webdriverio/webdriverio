@@ -4,7 +4,7 @@
  * the promise has resolved.
  *
  * This command helps to run asynchronous code within a synchronous context. With
- * WebdriverIO depcrecating synchronous usage (see [RFC](https://github.com/webdriverio/webdriverio/discussions/6702))
+ * WebdriverIO deprecating synchronous usage (see [RFC](https://github.com/webdriverio/webdriverio/discussions/6702))
  * this command is not very useful anymore.
  *
  * <example>

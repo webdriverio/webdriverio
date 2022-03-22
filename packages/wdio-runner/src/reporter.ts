@@ -141,7 +141,7 @@ export default class BaseReporter {
          *
          * ```js
          * const MyCustomReporter = require('/some/path/MyCustomReporter.js')
-         * export.config = {
+         * exports.config
          *     //...
          *     reporters: [
          *         MyCustomReporter, // or
@@ -164,7 +164,7 @@ export default class BaseReporter {
          * check if reporter is a node package, e.g. wdio-dot reporter
          *
          * ```js
-         * export.config = {
+         * exports.config
          *     //...
          *     reporters: [
          *         'dot', // or

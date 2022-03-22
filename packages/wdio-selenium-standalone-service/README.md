@@ -36,7 +36,7 @@ By default, ChromeDriver, geckodriver and some other browser drivers based on th
  * simplified mode (available since v6.11.0)
  * set `true` to use the version provided by `selenium-standalone`, 'latest' by default
 */
-export.config = {
+exports.config
     // ...
     services: [
         ['selenium-standalone', { drivers: { firefox: '0.29.1', chrome: true, chromiumedge: 'latest' } }]
@@ -54,7 +54,7 @@ const drivers = {
     chromiumedge: { version: '85.0.564.70' } // https://developer.microsoft.com/en-us/microsoft-edge/tools/webdriver/
 }
 
-export.config = {
+exports.config
     // ...
     services: [
         ['selenium-standalone', {
@@ -73,7 +73,7 @@ By default the service starts on `localhost:4444` and ensures that all capabilit
 
 ```js
 // wdio.conf.js
-export.config = {
+exports.config
     // ...
     services: [
         ['selenium-standalone', {
