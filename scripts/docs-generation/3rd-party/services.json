@@ -8,8 +8,8 @@
   {
     "packageName": "wdio-vscode-service",
     "title": "Tesults",
-    "githubUrl": "https://github.com/tesults/wdio-tesults-service",
-    "npmUrl": "https://www.npmjs.com/package/wdio-tesults-service"
+    "githubUrl": "https://github.com/webdriverio-community/wdio-vscode-service",
+    "npmUrl": "https://www.npmjs.com/package/wdio-vscode-service"
   },
   {
     "packageName": "wdio-intercept-service",
