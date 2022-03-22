@@ -1,6 +1,6 @@
 {
   "name": "@wdio/protocols",
-  "version": "7.17.3",
+  "version": "7.19.0",
   "description": "Utility package providing information about automation protocols",
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-protocols",

@@ -19,6 +19,29 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.19.0 (2022-03-22)
+
+#### :rocket: New Feature
+* `wdio-utils`
+  * [#8134](https://github.com/webdriverio/webdriverio/pull/8134) Chain custom commands end with $ ([@jayrepo](https://github.com/jayrepo))
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#8136](https://github.com/webdriverio/webdriverio/pull/8136) Fix getSize if prop is 0 ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* `wdio-cli`
+  * [#8133](https://github.com/webdriverio/webdriverio/pull/8133) Replacement of wdio-tesults-reporter with wdio-tesults-service ([@ajeetd](https://github.com/ajeetd))
+* Other
+  * [#8131](https://github.com/webdriverio/webdriverio/pull/8131) Docs: Typescript updates for async/sync ([@WillBrock](https://github.com/WillBrock))
+
+#### Committers: 4
+- Ajeet Dhaliwal ([@ajeetd](https://github.com/ajeetd))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Jay Chen ([@jayrepo](https://github.com/jayrepo))
+- Will Brock ([@WillBrock](https://github.com/WillBrock))
+
+
 ## v7.18.0 (2022-03-16)
 
 #### :rocket: New Feature
