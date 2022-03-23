@@ -11,7 +11,9 @@ import type {
 } from './types'
 
 const STACKTRACE_FILTER = [
-    'node_modules',
+    'node_modules/webdriver/',
+    'node_modules/webdriverio/',
+    'node_modules/@wdio/',
     '(internal/process/task',
 ]
 
