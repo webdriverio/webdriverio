@@ -31,5 +31,8 @@
   "dependencies": {
     "@types/node": "^17.0.4",
     "got": "^11.8.1"
+  },
+  "peerDependencies": {
+    "typescript": "^4.6.2"
   }
 }
