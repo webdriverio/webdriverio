@@ -19,6 +19,19 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.19.1 (2022-03-24)
+
+#### :nail_care: Polish
+* `wdio-types`
+  * [#8151](https://github.com/webdriverio/webdriverio/pull/8151) chore(wdio-types): remove implicit dependency on ts-node ([@boneskull](https://github.com/boneskull))
+* `wdio-utils`
+  * [#8130](https://github.com/webdriverio/webdriverio/pull/8130) wdio-utils: Filter out internal stacktraces ([@WillBrock](https://github.com/WillBrock))
+
+#### Committers: 2
+- Christopher Hiller ([@boneskull](https://github.com/boneskull))
+- Will Brock ([@WillBrock](https://github.com/WillBrock))
+
+
 ## v7.19.0 (2022-03-22)
 
 #### :rocket: New Feature
