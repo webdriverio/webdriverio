@@ -38,7 +38,7 @@
     "diff": "^5.0.0",
     "fs-extra": "^10.0.0",
     "object-inspect": "^1.10.3",
-    "supports-color": "8.1.1"
+    "supports-color": "9.2.2"
   },
   "types": "./build/index.d.ts"
 }
