@@ -1,4 +1,11 @@
-<% if(!answers.isUsingTypeScript) { %>exports.config = {<% } else { %>export const config: WebdriverIO.Config = {<% } %>
+<%
+if(!answers.isUsingTypeScript) {
+    %>exports.config = {<%
+} else {
+    %>import type { Options } from '@wdio/types'
+
+export const config: Options.Testrunner = {<%
+} %>
     //
     // ====================
     // Runner Configuration
