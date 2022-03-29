@@ -19,6 +19,18 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.19.2 (2022-03-29)
+
+#### :nail_care: Polish
+* `wdio-cli`
+  * [#8166](https://github.com/webdriverio/webdriverio/pull/8166) Import config types rather than using namespaces ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-utils`
+  * [#8165](https://github.com/webdriverio/webdriverio/pull/8165) Sanitize script command logs ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
 ## v7.19.1 (2022-03-24)
 
 #### :nail_care: Polish
