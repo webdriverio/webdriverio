@@ -46,6 +46,10 @@ describe('utils', () => {
         expect(transformCommandLogResult({ script: 'foo' })).toEqual({ script: 'foo' })
         expect(transformCommandLogResult({ script: (Buffer.from('some script payload')).toString('base64') }))
             .toBe('"<Script[base64]>"')
+
+        expect(transformCommandLogResult({ script: 'return foobar' })).toEqual({ script: 'return foobar' })
+        expect(transformCommandLogResult({ script: 'return (function isElementDisplayed(element) {\n...' }))
+            .toEqual({ script: 'isElementDisplayed(...) [50 bytes]' })
     })
 
     describe('overwriteElementCommands', () => {
