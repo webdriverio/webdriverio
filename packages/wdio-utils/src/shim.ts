@@ -411,6 +411,15 @@ async function executeAsync(this: any, fn: Function, retries: Retries, args: any
             asyncSpec = asyncSpecBefore
         }
 
+        /**
+         * if test fail in jasmine (e.g. timeout) the finally statement
+         * would not be executed
+         */
+        if (isJasmine) {
+            // @ts-ignore
+            global.expect = expectSync
+        }
+
         return await result
     } catch (err: any) {
         if (retries.limit > retries.attempts) {

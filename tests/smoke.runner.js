@@ -29,8 +29,16 @@ async function runTests (tests) {
     const testFilter = process.argv[2]
 
     if (process.env.CI || testFilter) {
-        // sequential
         const testsFiltered = testFilter ? tests.filter(test => test.name === testFilter) : tests
+
+        if (testsFiltered.length === 0) {
+            throw new Error(
+                `No test was selected! Smoke test "${testFilter}" ` +
+                `picked but only ${tests.map(test => test.name).join(', ')} available`
+            )
+        }
+
+        // sequential
         for (let test of testsFiltered) {
             await test()
         }
@@ -113,15 +121,32 @@ const jasmineReporter = async () => {
  * Jasmine timeout test
  */
 const jasmineTimeout = async () => {
+    const logFile = path.join(__dirname, 'jasmineTimeout.spec.log')
     const err = await launch(
         path.resolve(__dirname, 'helpers', 'config.js'),
         {
             specs: [path.resolve(__dirname, 'jasmine', 'test-timeout.js')],
-            reporters: [['spec', { outputDir: __dirname }]],
+            reporters: [
+                ['spec', {
+                    outputDir: __dirname,
+                    stdout: false,
+                    logFile
+                }]
+            ],
             framework: 'jasmine'
         }
     ).catch(err => err)
     assert.strictEqual(err.message, 'Smoke test failed')
+
+    const specLogs = (await fs.readFile(logFile)).toString()
+    assert.ok(
+        specLogs.includes('Error: Timeout - Async function did not complete within 1000ms (custom timeout)'),
+        'spec was not failing due to timeout error'
+    )
+    assert.ok(
+        !specLogs.includes('RangeError: Maximum call stack size exceeded'),
+        'spec was failing due to unexpected "Maximum call stack size exceeded"'
+    )
 }
 
 /**
