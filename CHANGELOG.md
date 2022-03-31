@@ -19,6 +19,18 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.19.3 (2022-03-31)
+
+#### :bug: Bug Fix
+* `wdio-runner`, `wdio-utils`
+  * [#8175](https://github.com/webdriverio/webdriverio/pull/8175) Fix maximum call stack size exceeded in Jasmine ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-cli`
+  * [#8172](https://github.com/webdriverio/webdriverio/pull/8172) Set empty array as default for plugins when setting up a project ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
 ## v7.19.2 (2022-03-29)
 
 #### :nail_care: Polish
