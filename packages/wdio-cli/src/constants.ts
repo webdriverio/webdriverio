@@ -352,7 +352,8 @@ export const QUESTIONNAIRE = [{
     type: 'checkbox',
     name: 'plugins',
     message: 'Do you want to add a plugin to your test setup?',
-    choices: SUPPORTED_PACKAGES.plugin
+    choices: SUPPORTED_PACKAGES.plugin,
+    default: []
 }, {
     type: 'checkbox',
     name: 'services',
