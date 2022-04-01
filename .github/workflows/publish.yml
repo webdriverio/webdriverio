@@ -49,7 +49,7 @@ jobs:
           npm whoami
       - name: Git Setup
         run: |
-          git config --global user.email "christian+webdriverio-release@saucelabs.com"
+          git config --global user.email "bot@webdriver.io"
           git config --global user.name "WebdriverIO Release Bot"
       - name: Install Dependencies
         run: npm ci
