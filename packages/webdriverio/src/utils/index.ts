@@ -18,6 +18,7 @@ import { locatorStrategy } from 'query-selector-shadow-dom/plugins/webdriverio'
 import { ELEMENT_KEY, DRIVER_DEFAULT_ENDPOINT, FF_REMOTE_DEBUG_ARG, DEEP_SELECTOR } from '../constants'
 import { findStrategy } from './findStrategy'
 import type { ElementArray, ElementFunction, Selector, ParsedCSSValue, CustomLocatorReturnValue } from '../types'
+import { CustomStrategyReference } from '../types'
 
 const browserCommands = require('../commands/browser').default
 const elementCommands = require('../commands/element').default
@@ -247,6 +248,17 @@ export async function findElement(
                 (this as WebdriverIO.Element).elementId ? this : undefined
             ].filter(Boolean)
         )
+        elem = Array.isArray(elem) ? elem[0] : elem
+        return getElementFromResponse(elem) ? elem : notFoundError
+    }
+
+    /**
+     * fetch element using custom strategy function
+     */
+    if (isPlainObject(selector) && typeof (selector as CustomStrategyReference).strategy === 'function') {
+        const { strategy, strategyName, strategyArguments } = selector as CustomStrategyReference
+        const notFoundError = new Error(`Custom Strategy "${strategyName}" did not return an HTMLElement`)
+        let elem = await this.execute(strategy, ...strategyArguments)
         elem = Array.isArray(elem) ? elem[0] : elem
         return getElementFromResponse(elem) ? elem : notFoundError
     }

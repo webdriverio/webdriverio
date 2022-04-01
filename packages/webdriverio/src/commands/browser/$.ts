@@ -2,6 +2,7 @@ import { findElement } from '../../utils'
 import { getElement } from '../../utils/getElementObject'
 import { ELEMENT_KEY } from '../../constants'
 import type { Selector } from '../../types'
+import type { ElementReference } from '@wdio/protocols'
 
 /**
  * The `$` command is a short way to call the [`findElement`](/docs/api/webdriver#findelement) command in order
@@ -85,8 +86,11 @@ export default async function $ (
      * convert protocol result into WebdriverIO element
      * e.g. when element was fetched with `getActiveElement`
      */
-    if (typeof selector === 'object' && typeof selector[ELEMENT_KEY] === 'string') {
-        return getElement.call(this, undefined, selector)
+    if (typeof selector === 'object') {
+        const elementRef = selector as ElementReference
+        if (typeof elementRef[ELEMENT_KEY] === 'string') {
+            return getElement.call(this, undefined, elementRef)
+        }
     }
 
     const res = await findElement.call(this, selector)
