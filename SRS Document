@@ -68,6 +68,8 @@
                 ]
             }
             
-            The WebdriverIO will then take care of everything else.
+           The WebdriverIO will then take care of everything else.
 
-           3.2 Nonfunctional Requirements
+           3.2 System Requirements
+           There are no strict rules regarding system requirements. Nevertheless, in order to work with little problem as possible, it is 
+           adviced for users to have Ubuntu version 16.04 or higher for Linux, or Windows 7 or higher with 2GB RAM (4GB preferable).
