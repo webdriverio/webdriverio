@@ -195,7 +195,7 @@ Current supported selector syntaxes for ID are:
 //css locator
 const button = await $('#someid')
 //xpath locator
-const button = await $('//*[@id="someid"'])
+const button = await $('//*[@id="someid"]')
 //id strategy 
 // Note: works only in Appium or similar frameworks which supports locator strategy "ID"
 const button = await $('id=resource-id/iosname')
