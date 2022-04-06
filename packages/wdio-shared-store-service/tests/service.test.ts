@@ -1,28 +1,23 @@
-import { getPidPath } from '../src/utils'
 import { getValue, setValue, setPort } from '../src/client'
 import SharedStoreService from '../src/service'
+import type { SharedStoreServiceCapabilities } from '../build/types'
 
 jest.mock('../src/client', () => ({
     getValue: jest.fn(),
     setValue: jest.fn(),
     setPort: jest.fn(),
 }))
-jest.mock('../src/utils', () => ({
-    readFile: () => 44444,
-    getPidPath: jest.fn(),
-}))
 
 describe('SharedStoreService', () => {
     let storeService: SharedStoreService
 
     beforeEach(() => {
-        storeService = new SharedStoreService()
+        const capabilities = { browserName: 'chrome', acceptInsecureCerts: true, 'wdio:sharedStoreServicePort': '65209' } as SharedStoreServiceCapabilities
+        storeService = new SharedStoreService(null as never, capabilities)
     })
 
-    it('beforeSession', async () => {
-        await storeService.beforeSession()
-        expect(getPidPath).toBeCalledWith(process.ppid)
-        expect(setPort).toBeCalledWith('44444')
+    it('constructor', async () => {
+        expect(setPort).toBeCalledWith('65209')
     })
 
     it('beforeSession', () => {
@@ -35,8 +30,7 @@ describe('SharedStoreService', () => {
     })
 
     afterEach(() => {
-        (getPidPath as jest.Mock).mockClear()
-        ;(setPort as jest.Mock).mockClear()
+        (setPort as jest.Mock).mockClear()
         ;(getValue as jest.Mock).mockClear()
         ;(setValue as jest.Mock).mockClear()
     })
