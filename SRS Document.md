@@ -1,24 +1,24 @@
 # 1. Introduction
 
 ## 1.1 Purpose
-           In general, the WebdriverIO is considered to be an open source JavaScript-based custom implementation 
-           of the Selenium webdriver API. It is intended to be a simple but at the same time powerful software 
-           which improve the user-application interactions and help user to write quick frontend tests. 
-           WebdriverIO is a tool that may be used to automate both web and mobile apps. Furthermore, it supports 
-           programming languages such as Angular, Vue.js, React. It is also support working with the native iOS, 
-           Android mobile applications. By using Webdriver Protocol a user can do the cross browser testing
-           for his project. 
+In general, the WebdriverIO is considered to be an open source JavaScript-based custom implementation 
+of the Selenium webdriver API. It is intended to be a simple but at the same time powerful software 
+which improve the user-application interactions and help user to write quick frontend tests. 
+WebdriverIO is a tool that may be used to automate both web and mobile apps. Furthermore, it supports 
+programming languages such as Angular, Vue.js, React. It is also support working with the native iOS, 
+Android mobile applications. By using Webdriver Protocol a user can do the cross browser testing
+for his project. 
            
 ## 1.2 Intended Audience
-           WebdriverIO is touted as a tool for creating basic online and mobile platform tests that can be performed 
-           across a variety of browsers. There's also a brief lesson with documentation to assist users understand 
-           what they're doing, which aligns with their philosophy that "software should be accessible to everyone 
-           who is inquisitive."
+WebdriverIO is touted as a tool for creating basic online and mobile platform tests that can be performed 
+across a variety of browsers. There's also a brief lesson with documentation to assist users understand 
+what they're doing, which aligns with their philosophy that "software should be accessible to everyone 
+who is inquisitive."
            
 ## 1.3 Intended Usage
-           There are options to work in usual synchronous and asynchronous modes. The one of the great features of 
-           WebdriverIO that it lets you to write in an asynchronous manner, which can be useful in eliminating race 
-           situations for the user.           
+There are options to work in usual synchronous and asynchronous modes. The one of the great features of 
+WebdriverIO that it lets you to write in an asynchronous manner, which can be useful in eliminating race 
+situations for the user.           
            
 ## 1.4 Acronyms and Definitions 
 - Selenium is a library for automating browsers. Selenium is most commonly used for web application testing, 
@@ -40,29 +40,29 @@
 # 2. Overall Description
 
 ## 2.1 User Needs
-           First of all, the user need to have the basic understanding of WebdriverIO use. Before downloading and working with 
-           WebdriverIO the programmer is required to have install Node.js. Because  WebdriverIO specifically requires 
-           LTS (Long Term Support) version, so the programmer need to install version 12.16.1 or above.
-           It is advised to download NVM first if you don't already installed Node.js. NVM facilitate working numerous active 
-           Node versions. Furthermore, it is advised to install Python v3 (or above versions) in order to work with WDIO Testrunner 
-           in synchronous mode.
-            
-           2.2 Assumptions and Dependencies
-           Current WebdriverIO project have already sattisfied its main objectives such as building toolkit which hepls to make tests 
-           fast and in an organized way, making them much easier to change and manage. The project is headed toward the maintaing 
-           and bag fixing phase. As it stated there is still room for an imporvement.
+First of all, the user need to have the basic understanding of WebdriverIO use. Before downloading and working with 
+WebdriverIO the programmer is required to have install Node.js. Because  WebdriverIO specifically requires 
+LTS (Long Term Support) version, so the programmer need to install version 12.16.1 or above.
+It is advised to download NVM first if you don't already installed Node.js. NVM facilitate working numerous active 
+Node versions. Furthermore, it is advised to install Python v3 (or above versions) in order to work with WDIO Testrunner 
+in synchronous mode.
            
- # 3. System Features and Requirements
+## 2.2 Assumptions and Dependencies
+Current WebdriverIO project have already sattisfied its main objectives such as building toolkit which hepls to make tests 
+fast and in an organized way, making them much easier to change and manage. The project is headed toward the maintaing 
+and bag fixing phase. As it stated there is still room for an imporvement.
+           
+# 3. System Features and Requirements
 
- ## 3.1 Functional Requirements
-            There is one possibliy option to build test files which is using Babel. Babel is a compiler for JavaScript. if you want 
-            to develop tests that employ next-generation JavaScript capabilities.
-            In order to install Babel, first install the its dependencies you'll need:
-            npm install --save-dev @babel/core @babel/cli @babel/preset-env @babel/register
+## 3.1 Functional Requirements
+There is one possibliy option to build test files which is using Babel. Babel is a compiler for JavaScript. if you want 
+to develop tests that employ next-generation JavaScript capabilities.
+In order to install Babel, first install the its dependencies you'll need:
+npm install --save-dev @babel/core @babel/cli @babel/preset-env @babel/register
+           
+It is important to make sure babel.config.js file is set up correctly.
             
-            It is important to make sure babel.config.js file is set up correctly.
-            
-            The basic setup is following:
+The basic setup is following:
             module.exports = {
                 presets: [
                     ['@babel/preset-env', {
@@ -73,11 +73,11 @@
                 ]
             }
             
-           The WebdriverIO will then take care of everything else.
+ The WebdriverIO will then take care of everything else.
 
 ## 3.2 System Requirements
-           Node.js must be installed by the user. Because it is the oldest current LTS version, the user must install at least 
-           12.16.1 or above. Installing only officially supported releases that are or will become LTS releases is also required.
-           There are no other strict rules regarding system requirements. Nevertheless, in order to work with little problem 
-           as possible, it is adviced for users to have Ubuntu version 16.04 or higher for Linux, or Windows 7 or higher with 
-           2GB RAM (4GB preferable).
+Node.js must be installed by the user. Because it is the oldest current LTS version, the user must install at least 
+12.16.1 or above. Installing only officially supported releases that are or will become LTS releases is also required.
+There are no other strict rules regarding system requirements. Nevertheless, in order to work with little problem 
+as possible, it is adviced for users to have Ubuntu version 16.04 or higher for Linux, or Windows 7 or higher with 
+2GB RAM (4GB preferable).
