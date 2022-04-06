@@ -2,8 +2,7 @@ A software requirements specification (SRS) is a document that explains what the
 | name | date | reason to change | version |
 | --- | --- | --- | --- |
 | first version | 06.04.22 | - | 0.1 |
-| --- | --- | --- | --- |
-|  |  | - | 0.2 |
+| | | |  |
 
 
 # 1. Introduction
