@@ -1,6 +1,6 @@
 # 1. Introduction
 
-           #1.1 Purpose
+           1.1 Purpose
            In general, the WebdriverIO is considered to be an open source JavaScript-based custom implementation 
            of the Selenium webdriver API. It is intended to be a simple but at the same time powerful software 
            which improve the user-application interactions and help user to write quick frontend tests. 
@@ -37,7 +37,7 @@
             - LTS stands for "Long Term Support" and refers to software that is supported for a longer length of time 
             than the standard edition.
             
-2. Overall Description
+# 2. Overall Description
 
            2.1 User Needs
            First of all, the user need to have the basic understanding of WebdriverIO use. Before downloading and working with 
@@ -52,7 +52,7 @@
            fast and in an organized way, making them much easier to change and manage. The project is headed toward the maintaing 
            and bag fixing phase. As it stated there is still room for an imporvement.
            
- 3. System Features and Requirements
+ # 3. System Features and Requirements
 
             3.1 Functional Requirements
             There is one possibliy option to build test files which is using Babel. Babel is a compiler for JavaScript. if you want 
