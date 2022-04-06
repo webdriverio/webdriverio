@@ -9,18 +9,18 @@
            Android mobile applications. By using Webdriver Protocol a user can do the cross browser testing
            for his project. 
            
-           1.2 Intended Audience
+## 1.2 Intended Audience
            WebdriverIO is touted as a tool for creating basic online and mobile platform tests that can be performed 
            across a variety of browsers. There's also a brief lesson with documentation to assist users understand 
            what they're doing, which aligns with their philosophy that "software should be accessible to everyone 
            who is inquisitive."
            
-           1.3 Intended Usage
+## 1.3 Intended Usage
            There are options to work in usual synchronous and asynchronous modes. The one of the great features of 
            WebdriverIO that it lets you to write in an asynchronous manner, which can be useful in eliminating race 
            situations for the user.           
            
-           1.4 Acronyms and Definitions 
+## 1.4 Acronyms and Definitions 
             - Selenium is a library for automating browsers. Selenium is most commonly used for web application testing, 
             however, it may be used for any task that involves automating browser interaction.
             - Cross browser testing is a kind of testing that allows you to see if your website works as 
@@ -39,7 +39,7 @@
             
 # 2. Overall Description
 
-           2.1 User Needs
+## 2.1 User Needs
            First of all, the user need to have the basic understanding of WebdriverIO use. Before downloading and working with 
            WebdriverIO the programmer is required to have install Node.js. Because  WebdriverIO specifically requires 
            LTS (Long Term Support) version, so the programmer need to install version 12.16.1 or above.
@@ -54,7 +54,7 @@
            
  # 3. System Features and Requirements
 
-            3.1 Functional Requirements
+ ## 3.1 Functional Requirements
             There is one possibliy option to build test files which is using Babel. Babel is a compiler for JavaScript. if you want 
             to develop tests that employ next-generation JavaScript capabilities.
             In order to install Babel, first install the its dependencies you'll need:
@@ -75,7 +75,7 @@
             
            The WebdriverIO will then take care of everything else.
 
-           3.2 System Requirements
+## 3.2 System Requirements
            Node.js must be installed by the user. Because it is the oldest current LTS version, the user must install at least 
            12.16.1 or above. Installing only officially supported releases that are or will become LTS releases is also required.
            There are no other strict rules regarding system requirements. Nevertheless, in order to work with little problem 
