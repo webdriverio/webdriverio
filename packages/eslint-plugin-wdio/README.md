@@ -26,6 +26,7 @@ To enable this configuration use the extends property in your `.eslintrc` config
 
 ```json
 {
+    "plugins": ["wdio"],
     "extends": [
         "eslint:recommended",
         "plugin:wdio/recommended"
