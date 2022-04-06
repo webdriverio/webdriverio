@@ -63,7 +63,7 @@ npm install --save-dev @babel/core @babel/cli @babel/preset-env @babel/register
 It is important to make sure babel.config.js file is set up correctly.
             
 The basic setup is following:
-            module.exports = {
+            `module.exports = {
                 presets: [
                     ['@babel/preset-env', {
                         targets: {
@@ -71,7 +71,7 @@ The basic setup is following:
                         }
                     }]
                 ]
-            }
+            }`
             
  The WebdriverIO will then take care of everything else.
 
