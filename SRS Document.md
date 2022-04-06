@@ -21,7 +21,7 @@ for his project.
 WebdriverIO is characterized as a simple and accessible tool for creating web and mobile app tests. It is accessible to anyone who wants to learn how to write frontend tests and needs some assistance. There are also a brief lessons with documentation to assist new users to get more familiar with the software. Futhermore, there is an active community on the GitHub where anyone can ask some questions regarding WebdriverIO.
            
 ## 1.3 Intended Usage
-There are options to work in usual synchronous and asynchronous modes. The one of the great features of 
+WebdriverIO has numerous community plugins that can be smoothly integrated and customized to meet certain needs. There are also options to work in usual synchronous and asynchronous modes. The one of the great features of 
 WebdriverIO that it lets you to write in an asynchronous manner, which can be useful in eliminating race 
 situations for the user.
            
