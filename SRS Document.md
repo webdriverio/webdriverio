@@ -1,6 +1,6 @@
 # 1. Introduction
 
-           1.1 Purpose
+           ## 1.1 Purpose
            In general, the WebdriverIO is considered to be an open source JavaScript-based custom implementation 
            of the Selenium webdriver API. It is intended to be a simple but at the same time powerful software 
            which improve the user-application interactions and help user to write quick frontend tests. 
