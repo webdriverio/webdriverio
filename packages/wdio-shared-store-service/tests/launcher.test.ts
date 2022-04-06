@@ -1,4 +1,4 @@
-import type { SharedStoreServiceCapabilities } from '../build/types'
+import type { SharedStoreServiceCapabilities } from '../src/types'
 import { setPort } from '../src/client'
 import SharedStoreLauncher from '../src/launcher'
 import StoreServerType from '../src/server'
