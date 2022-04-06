@@ -1,3 +1,5 @@
+A software requirements specification (SRS) is a document that explains what the program will accomplish and how it will function. It also specifies the features that the product must have in order to satisfy the requirements of all stakeholders.
+
 # 1. Introduction
 
 ## 1.1 Purpose
