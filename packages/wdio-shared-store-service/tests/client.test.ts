@@ -28,6 +28,7 @@ describe('client', () => {
             await setValue('foo', 'bar')
             await setValue('bar', 'foo')
             expect(got.post).toBeCalledTimes(0)
+            await new Promise((resolve) => setTimeout(resolve, 300))
             setPort(port)
             await new Promise((resolve) => setTimeout(resolve, 300))
             expect(got.post).toBeCalledTimes(2)
