@@ -80,4 +80,4 @@ Node.js must be installed by the user. Because it is the oldest current LTS vers
 12.16.1 or above. Installing only officially supported releases that are or will become LTS releases is also required.
 There are no other strict rules regarding system requirements. Nevertheless, in order to work with little problem 
 as possible, it is adviced for users to have Ubuntu version 16.04 or higher for Linux, or Windows 7 or higher with 
-2GB RAM (4GB preferable).
+2GB RAM (4GB preferable). 
