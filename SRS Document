@@ -7,7 +7,7 @@
            WebdriverIO is a tool that may be used to automate both web and mobile apps. Furthermore, it supports 
            programming languages such as Angular, Vue.js, React. It is also support working with the native iOS, 
            Android mobile applications. By using Webdriver Protocol a user can do the cross browser testing
-           for his project.
+           for his project. 
            
            1.2 Intended Audience
            WebdriverIO is touted as a tool for creating basic online and mobile platform tests that can be performed 
