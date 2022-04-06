@@ -64,13 +64,21 @@ It is important to make sure babel.config.js file is set up correctly.
             
 The basic setup is following:
             `module.exports = {
+            
                 presets: [
+                
                     ['@babel/preset-env', {
+                    
                         targets: {
+                        
                             node: '14'
+                            
                         }
+                        
                     }]
+                    
                 ]
+                
             }`
             
  The WebdriverIO will then take care of everything else.
