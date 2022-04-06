@@ -1,12 +1,14 @@
 1. Introduction
 
            1.1 Purpose
-           In general, the WebdriverIO is considered to be a JavaScript-based custom implementation of the Selenium 
-           webdriver API. It is intended to make simple but at the same time powerful software which improve the 
-           user-application interactions and help user to write quick test suite. The WebdriverIO is focused to work 
-           with application created with current web frameworks (eg. Angular, Vue.js, React or Polymer). It is also 
-           support working with the native iOS, Android mobile applications.
-
+           In general, the WebdriverIO is considered to be an open source JavaScript-based custom implementation 
+           of the Selenium webdriver API. It is intended to be a simple but at the same time powerful software 
+           which improve the user-application interactions and help user to write quick frontend tests. 
+           WebdriverIO is a tool that may be used to automate both web and mobile apps. Furthermore, it supports 
+           programming languages such as Angular, Vue.js, React. It is also support working with the native iOS, 
+           Android mobile applications. By using Webdriver Protocol a user can do the cross browser testing
+           for his project.
+           
            1.2 Intended Audience
            WebdriverIO is touted as a tool for creating basic online and mobile platform tests that can be performed 
            across a variety of browsers. There's also a brief lesson with documentation to assist users understand 
@@ -21,6 +23,8 @@
            1.4 Acronyms and Definitions 
             - Selenium is a library for automating browsers. Selenium is most commonly used for web application testing, 
             however, it may be used for any task that involves automating browser interaction.
+            - Cross browser testing is a kind of testing that allows you to see if your website works as 
+            expected when viewed through various combinations of browsers and/or operating systems.
             - Web frameworks is a software framework that helps developers create web applications such as web services, 
             web resources, and web APIs.
             - A race condition occurs in software when the proper operation of a computer program is dependent on the order
