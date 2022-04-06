@@ -21,20 +21,20 @@
            situations for the user.           
            
 ## 1.4 Acronyms and Definitions 
-            - Selenium is a library for automating browsers. Selenium is most commonly used for web application testing, 
+- Selenium is a library for automating browsers. Selenium is most commonly used for web application testing, 
             however, it may be used for any task that involves automating browser interaction.
-            - Cross browser testing is a kind of testing that allows you to see if your website works as 
+- Cross browser testing is a kind of testing that allows you to see if your website works as 
             expected when viewed through various combinations of browsers and/or operating systems.
-            - Web frameworks is a software framework that helps developers create web applications such as web services, 
+- Web frameworks is a software framework that helps developers create web applications such as web services, 
             web resources, and web APIs.
-            - A race condition occurs in software when the proper operation of a computer program is dependent on the order
+- A race condition occurs in software when the proper operation of a computer program is dependent on the order
             or timing of the program's processes or threads.
-            - From a developer's perspective, Test-Driven Development(TDD) is a testing methodology or a programming 
+- From a developer's perspective, Test-Driven Development(TDD) is a testing methodology or a programming 
             discipline.
-            - The testing strategy Behavioral-Driven Development (BDD) is derived from the (TDD) methodology
+- The testing strategy Behavioral-Driven Development (BDD) is derived from the (TDD) methodology
             that is more focused on on systems behavior testing.
-            - Node.js is a runtime software that is mostly used to create server-side JavaScript apps.
-            - LTS stands for "Long Term Support" and refers to software that is supported for a longer length of time 
+- Node.js is a runtime software that is mostly used to create server-side JavaScript apps.
+- LTS stands for "Long Term Support" and refers to software that is supported for a longer length of time 
             than the standard edition.
             
 # 2. Overall Description
