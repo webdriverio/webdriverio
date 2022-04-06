@@ -18,10 +18,7 @@ Android mobile applications. By using Webdriver Protocol a user can do the cross
 for his project. 
            
 ## 1.2 Intended Audience
-WebdriverIO is touted as a tool for creating basic online and mobile platform tests that can be performed 
-across a variety of browsers. There's also a brief lesson with documentation to assist users understand 
-what they're doing, which aligns with their philosophy that "software should be accessible to everyone 
-who is inquisitive."
+WebdriverIO is characterized as a simple and accessible tool for creating web and mobile app tests. It is accessible to anyone who wants to learn how to write Frontend tests and needs some assistance. There are also a brief lessons with documentation to assist new users to get more familiar with the software.
            
 ## 1.3 Intended Usage
 There are options to work in usual synchronous and asynchronous modes. The one of the great features of 
