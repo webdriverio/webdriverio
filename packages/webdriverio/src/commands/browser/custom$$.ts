@@ -37,8 +37,7 @@ export default async function custom$$ (
         throw Error('No strategy found for ' + strategyName)
     }
 
-    const strategyRef = { strategy, strategyName, strategyArguments }
-
+    const strategyRef: CustomStrategyReference = { strategy, strategyName, strategyArguments }
     let res = await this.execute(strategy, ...strategyArguments)
 
     /**
