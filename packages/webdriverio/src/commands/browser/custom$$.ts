@@ -1,7 +1,7 @@
 import { enhanceElementsArray } from '../../utils'
 import { getElements } from '../../utils/getElementObject'
 import { ELEMENT_KEY } from '../../constants'
-import type { ElementArray, CustomStrategyFunction } from '../../types'
+import type { ElementArray, CustomStrategyFunction, CustomStrategyReference } from '../../types'
 
 /**
  *
