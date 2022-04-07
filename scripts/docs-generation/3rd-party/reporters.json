@@ -12,10 +12,10 @@
     "npmUrl": "https://www.npmjs.com/package/wdio-video-reporter"
   },
   {
-    "packageName": "@rpii/wdio-html-reporter",
+    "packageName": "wdio-html-nice-reporter",
     "title": "HTML",
     "githubUrl": "https://github.com/rpii/wdio-html-reporter",
-    "npmUrl": "https://www.npmjs.com/package/@rpii/wdio-html-reporter"
+    "npmUrl": "https://www.npmjs.com/package/wdio-html-nice-reporter"
   },
   {
     "packageName": "wdio-json-reporter",
@@ -52,5 +52,11 @@
     "title": "Delta Reporter",
     "githubUrl": "https://github.com/delta-reporter/delta-reporter-wdio",
     "npmUrl": "https://www.npmjs.com/package/@delta-reporter/wdio-delta-reporter-service"
+  },
+  {
+    "packageName": "wdio-teamcity-reporter",
+    "title": "Teamcity Reporter",
+    "githubUrl": "https://github.com/webdriverio-community/wdio-teamcity-reporter",
+    "npmUrl": "https://www.npmjs.com/package/wdio-teamcity-reporter"
   }
 ]
