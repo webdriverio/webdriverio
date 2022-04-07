@@ -89,11 +89,12 @@ export const SUPPORTED_PACKAGES = {
         { name: 'reportportal', value: 'wdio-reportportal-reporter$--$reportportal' },
         { name: 'video', value: 'wdio-video-reporter$--$video' },
         { name: 'json', value: 'wdio-json-reporter$--$json' },
-        { name: 'cucumber', value: 'wdio-cucumber-reporter$--$cucumber' },
+        { name: 'cucumber-json', value: 'wdio-cucumberjs-json-reporter$--$cucumberjs-json' },
         { name: 'mochawesome', value: 'wdio-mochawesome-reporter$--$mochawesome' },
         { name: 'timeline', value: 'wdio-timeline-reporter$--$timeline' },
-        { name: 'html', value: '@rpii/wdio-html-reporter$--$html' },
-        { name: 'markdown', value: 'carmenmitru/wdio-markdown-reporter' },
+        { name: 'html-nice', value: 'wdio-html-nice-reporter$--$html-nice' },
+        { name: 'teamcity', value: 'wdio-teamcity-reporter$--$teamcity' },
+        { name: 'markdown', value: 'wdio-markdown-reporter$--$markdown' },
         { name: 'delta', value: '@delta-reporter/wdio-delta-reporter-service' }
     ],
     plugin: [
