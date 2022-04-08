@@ -13,13 +13,17 @@ describe('custom$', () => {
     })
 
     it('should fetch element', async () => {
-        browser.addLocatorStrategy('test', (selector) => (
+        browser.addLocatorStrategy('test', (selector: string) => (
             { 'element-6066-11e4-a52e-4f735466cecf': `${selector}-foobar` }
         ))
 
         const elem = await browser.custom$('test', '.test')
         expect(elem.elementId).toBe('.test-foobar')
-        expect(typeof elem.selector).toBe('function')
+        expect(typeof elem.selector).toBe('object')
+        expect(typeof elem.selector.strategy).toBe('function')
+        expect(elem.selector.strategyName).toBe('test')
+        expect(elem.selector.strategyArguments).toHaveLength(1)
+        expect(elem.selector.strategyArguments[0]).toBe('.test')
     })
 
     it('should error if no strategy found', async () => {
