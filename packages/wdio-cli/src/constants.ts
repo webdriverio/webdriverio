@@ -93,6 +93,7 @@ export const SUPPORTED_PACKAGES = {
         { name: 'mochawesome', value: 'wdio-mochawesome-reporter$--$mochawesome' },
         { name: 'timeline', value: 'wdio-timeline-reporter$--$timeline' },
         { name: 'html-nice', value: 'wdio-html-nice-reporter$--$html-nice' },
+        { name: 'slack', value: 'wdio-slack-reporter$--$slack' },
         { name: 'teamcity', value: 'wdio-teamcity-reporter$--$teamcity' },
         { name: 'markdown', value: 'wdio-markdown-reporter$--$markdown' },
         { name: 'delta', value: '@delta-reporter/wdio-delta-reporter-service' }

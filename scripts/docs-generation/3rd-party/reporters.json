@@ -58,5 +58,11 @@
     "title": "Teamcity Reporter",
     "githubUrl": "https://github.com/webdriverio-community/wdio-teamcity-reporter",
     "npmUrl": "https://www.npmjs.com/package/wdio-teamcity-reporter"
+  },
+  {
+    "packageName": "wdio-slack-reporter",
+    "title": "Teamcity Reporter",
+    "githubUrl": "https://github.com/morooLee/wdio-slack-reporter",
+    "npmUrl": "https://www.npmjs.com/package/wdio-slack-reporter"
   }
 ]
