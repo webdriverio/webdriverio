@@ -51,7 +51,7 @@ exports.config = {
     // Sauce Labs provides a [headless offering](https://saucelabs.com/products/web-testing/sauce-headless-testing)
     // that allows you to run Chrome and Firefox tests headless.
     //
-    headless: false
+    headless: false,
     //
     // ==================
     // Specify Test Files
