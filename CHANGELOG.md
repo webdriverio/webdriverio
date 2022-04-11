@@ -19,6 +19,21 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.19.4 (2022-04-11)
+
+#### :memo: Documentation
+* `wdio-cli`
+  * [#8196](https://github.com/webdriverio/webdriverio/pull/8196) Update reporters in docs and wizard ([@christian-bromann](https://github.com/christian-bromann))
+* Other
+  * [#8186](https://github.com/webdriverio/webdriverio/pull/8186) Fix typo on selectors documentation page ([@georgemunyoro](https://github.com/georgemunyoro))
+
+#### Committers: 4
+- Chris Bottin ([@chrisbottin](https://github.com/chrisbottin))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- George Munyoro ([@georgemunyoro](https://github.com/georgemunyoro))
+- [@Staicul](https://github.com/Staicul)
+
+
 ## v7.19.3 (2022-03-31)
 
 #### :bug: Bug Fix
