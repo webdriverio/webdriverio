@@ -55,8 +55,8 @@
   },
   {
     "packageName": "wdio-slack-reporter",
-    "title": "Teamcity Reporter",
+    "title": "Slack Reporter",
     "githubUrl": "https://github.com/morooLee/wdio-slack-reporter",
-    "npmUrl": "https://www.npmjs.com/package/wdio-slack-reporter"
+    "npmUrl": "https://www.npmjs.com/package/@moroo/wdio-slack-reporter"
   }
 ]
