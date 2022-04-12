@@ -60,8 +60,8 @@ export const config: Options.Testrunner = {<%
     // backend you should define the host address, port, and path here.
     //
     hostname: '<%- answers.hostname %>',
-    port: <%- answers.port %>,
-    path: '<%- answers.path %>',<% } else if (answers.services.includes('appium')) { %>
+    port: <%- answers.port %>, <% if(answers.path) { %>
+    path: '<%- answers.path %>',<% } } else if (answers.services.includes('appium')) { %>
     port: 4723,<% }
 
     // Protocol: http | https
