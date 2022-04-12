@@ -114,7 +114,7 @@ export const SUPPORTED_PACKAGES = {
         { name: 'vscode', value: 'wdio-vscode-service$--$vscode' },
         { name: 'electron', value: 'wdio-electron-service$--$electron' },
         { name: 'devtools', value: '@wdio/devtools-service$--$devtools' },
-        { name: 'browserstack', value: '@wdio/browserstack-service$--$browserstack' },
+        { name: 'browserstack', value: '@browserstack/wdio-browserstack-service$--$browserstack' },
         { name: 'appium', value: '@wdio/appium-service$--$appium' },
         { name: 'firefox-profile', value: '@wdio/firefox-profile-service$--$firefox-profile' },
         { name: 'crossbrowsertesting', value: '@wdio/crossbrowsertesting-service$--$crossbrowsertesting' },
@@ -235,7 +235,7 @@ export const QUESTIONNAIRE = [{
     type: 'input',
     name: 'env_user',
     message: 'Environment variable for username',
-    default: 'BROWSERSTACK_USER',
+    default: 'BROWSERSTACK_USERNAME',
     when: /* istanbul ignore next */ (answers: Questionnair) => answers.backend.toString().startsWith('In the cloud using Browserstack')
 }, {
     type: 'input',
