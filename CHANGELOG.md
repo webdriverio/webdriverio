@@ -19,6 +19,17 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.19.5 (2022-04-13)
+
+#### :bug: Bug Fix
+* `wdio-types`, `webdriverio`
+  * [#8211](https://github.com/webdriverio/webdriverio/pull/8211) Fix running Firefox ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 2
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- [@morooLee](https://github.com/morooLee)
+
+
 ## v7.19.4 (2022-04-11)
 
 #### :memo: Documentation
