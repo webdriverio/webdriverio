@@ -3,7 +3,6 @@ import http from 'http'
 import path from 'path'
 import cssValue from 'css-value'
 import rgb2hex from 'rgb2hex'
-import getPort from 'get-port'
 import GraphemeSplitter from 'grapheme-splitter'
 import logger from '@wdio/logger'
 import isObject from 'lodash.isobject'
@@ -15,7 +14,7 @@ import type { ElementReference } from '@wdio/protocols'
 import type { Options, Capabilities } from '@wdio/types'
 import { locatorStrategy } from 'query-selector-shadow-dom/plugins/webdriverio'
 
-import { ELEMENT_KEY, DRIVER_DEFAULT_ENDPOINT, FF_REMOTE_DEBUG_ARG, DEEP_SELECTOR } from '../constants'
+import { ELEMENT_KEY, DRIVER_DEFAULT_ENDPOINT, DEEP_SELECTOR } from '../constants'
 import { findStrategy } from './findStrategy'
 import type { ElementArray, ElementFunction, Selector, ParsedCSSValue, CustomLocatorReturnValue } from '../types'
 import { CustomStrategyReference } from '../types'
@@ -582,31 +581,8 @@ export const getAutomationProtocol = async (config: Options.WebdriverIO | Option
  * NOTE: this method is executed twice when running the WDIO testrunner
  */
 export const updateCapabilities = async (params: Options.WebdriverIO | Options.Testrunner, automationProtocol?: Options.SupportedProtocols) => {
-    const caps = params.capabilities as Capabilities.Capabilities
-
     if (automationProtocol && !params.automationProtocol) {
         params.automationProtocol = automationProtocol
-    }
-
-    /**
-     * attach remote debugging port options to Firefox sessions
-     * (this will be ignored if not supported)
-     */
-    if (automationProtocol === 'webdriver' && caps.browserName === 'firefox') {
-        if (!caps['moz:firefoxOptions']) {
-            caps['moz:firefoxOptions'] = {}
-        }
-
-        if (!caps['moz:firefoxOptions'].args) {
-            caps['moz:firefoxOptions'].args = []
-        }
-
-        if (!caps['moz:firefoxOptions'].args.includes(FF_REMOTE_DEBUG_ARG)) {
-            caps['moz:firefoxOptions'].args.push(
-                FF_REMOTE_DEBUG_ARG,
-                (await getPort()).toString()
-            )
-        }
     }
 }
 
