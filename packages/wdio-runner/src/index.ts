@@ -102,8 +102,8 @@ export default class Runner extends EventEmitter {
          * autocompile after parsing configs so we support ES6 features in tests with config driven by users
          */
         if (args.autoCompileOpts?.autoCompile) {
-            if(!fs.existsSync(args.autoCompileOpts.tsNodeOpts.project))
-                log.error(`Path to 'tsconfig.json' is incorrect. Is it correclty set in config -> tsNodeOpts ? `)
+            if (!fs.existsSync(args.autoCompileOpts.tsNodeOpts.project))
+                log.error('Path to "tsconfig.json" is incorrect. Is it correclty set in config -> tsNodeOpts ? ')
 
             this._configParser.merge({ autoCompileOpts: args.autoCompileOpts })
             this._configParser.autoCompile()
