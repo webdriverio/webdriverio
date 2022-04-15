@@ -26,7 +26,20 @@ WebdriverIO that it lets you to write in an asynchronous manner, which can be us
 situations for the user.
 
 ## 1.4 Scope
-## 1.4.1 Completed Roadmap Projects
+## 1.4.1 Upcoming Projects (in no particular order)
+
+| Project | Description |
+|---------|-------------|
+|[Better Debugging Capabilities](https://github.com/webdriverio/webdriverio/projects/4)|With WebdriverIO, there are already a few ways to debug test code. However, using native Node.js debugging features, which necessitates particular management of workers and sub processes, is still not straightforward. The goal must be for developers to be able to create breakpoints in their IDEs in order to debug.|
+|[Parallelize tests on test block level vs. file level](https://github.com/webdriverio/webdriverio/projects/6)|We received multiple requests to allow parallelization of tests on a block level rather than a file level. Ava as a framework, which comes with that form of parallelization, may be a viable choice.|
+|[Improve DevTools Service](https://github.com/webdriverio/webdriverio/projects/7)|The @wdio/devtools-service extends WebDriver's automation features (e.g. get network logs, tracing, performance etc). A number of features may be introduced to aid in the testing of apps (for example, improved mocking/stubbing of browser requests and answers). It would also be desirable if the service worked in the same way on Firefox and Edge.|
+|[WebdriverIO Fiddle Platform](https://github.com/webdriverio/webdriverio/projects/8)|One of the community members has already begun working on a WebdriverIO fiddle (try.webdriver.io). It is currently ineffective and requires more development. Sharing test code snippets would be extremely beneficial in identifying flaws in someone's automation script. It's also feasible to integrate Sauce Labs here.|
+|[More videos as documentation material](https://github.com/webdriverio/webdriverio/projects/9)|In the documentation, include videos for setting up WebdriverIO, installing plugins, and other use cases.|
+|[Network Recording](https://github.com/webdriverio/webdriverio/projects/15)|We aim to make asserting the browser's network behavior as smooth as possible. We may implement similar behavior in WebdriverIO, inspired by Jest and their Snapshot capability.|
+|[Improved Frontend Framework Support](https://github.com/webdriverio/webdriverio/projects/16)|Almost all current online apps are created in either React, Angular, Vue, Svelte, or another frontend framework. When it comes to picking elements or introspection of app states and crucial portions, these frameworks might be challenging to work with. WebdriverIO offers the ability to assist the user in better testing these apps.|
+|[Support for Multiple Environments](https://github.com/webdriverio/webdriverio/projects/17)|WebdriverIO can currently only run on Node.js, which is the environment in which most users utilize it. However, it would be wonderful if WebdriverIO could be used in other environments as well, such as the browser or Deno. All packages must be ESM compatible in order for this to happen.|
+
+## 1.4.2 Completed Projects
 | Project | Description | Date |
 |---------|-------------|-----------|
 |Make CLI tool more powerful|If the user is unfamiliar with the project or WebDriver in general, adding basic add-ons to the configuration becomes tough. Installing some easy commands to the CLI interface that allow for the addition of services and reporters as well as configuration changes will greatly simplify the process of adding plugins.| 6th June 2019|
