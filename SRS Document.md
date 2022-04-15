@@ -25,7 +25,7 @@ WebdriverIO has numerous community plugins that can be smoothly integrated and c
 WebdriverIO that it lets you to write in an asynchronous manner, which can be useful in eliminating race 
 situations for the user.
 
-## 1.4 Scope
+## 1.4 Objectives
 ## 1.4.1 Upcoming Projects (in no particular order)
 
 | Project | Description |
