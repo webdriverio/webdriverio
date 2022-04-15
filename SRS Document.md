@@ -26,6 +26,7 @@ WebdriverIO that it lets you to write in an asynchronous manner, which can be us
 situations for the user.
 
 ## 1.4 Scope
+## 1.4.1 Completed Roadmap Projects
 | Project | Description | Date |
 |---------|-------------|-----------|
 |Make CLI tool more powerful|If the user is unfamiliar with the project or WebDriver in general, adding basic add-ons to the configuration becomes tough. Installing some easy commands to the CLI interface that allow for the addition of services and reporters as well as configuration changes will greatly simplify the process of adding plugins.| 6th June 2019|
