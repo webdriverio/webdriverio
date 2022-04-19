@@ -4,6 +4,9 @@ name: Docs Deploy
 
 on: [workflow_dispatch]
 
+permissions:
+  contents: read
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
