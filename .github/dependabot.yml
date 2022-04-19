@@ -15,3 +15,9 @@ updates:
     # Chalk v5 is ESM only
     - dependency-name: "chalk"
       update-types: ["version-update:semver-major"]
+- package-ecosystem: github-actions
+  directory: "/"
+  schedule:
+    interval: weekly
+    time: "11:00"
+  open-pull-requests-limit: 10
