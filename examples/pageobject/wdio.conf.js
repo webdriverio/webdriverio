@@ -15,7 +15,7 @@ exports.config = {
     // then the current working directory is where your `package.json` resides, so `wdio`
     // will be called from there.
     //
-    specs: [__dirname + '/specs/dynamic.spec.js'],
+    specs: [__dirname + '/specs/*.spec.js'],
     //
     // ============
     // Capabilities
@@ -81,8 +81,7 @@ exports.config = {
     // See the full list at http://mochajs.org/
     mochaOpts: {
         ui: 'bdd',
-        timeout: 30000,
-        require: ['@babel/register']
+        timeout: 30000
     },
     //
     // =====
