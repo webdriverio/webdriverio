@@ -11,7 +11,7 @@ class CheckboxPage extends Page {
      * define or overwrite page methods
      */
     open () {
-        super.open('checkboxes')
+        return super.open('checkboxes')
     }
 }
 

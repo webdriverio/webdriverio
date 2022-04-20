@@ -11,7 +11,7 @@ class DynamicPage extends Page {
      * define or overwrite page methods
      */
     open () {
-        super.open('dynamic_loading/2')
+        return super.open('dynamic_loading/2')
     }
 }
 
