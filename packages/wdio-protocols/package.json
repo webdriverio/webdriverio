@@ -1,8 +1,8 @@
 {
   "name": "@wdio/protocols",
-  "version": "7.16.7",
+  "version": "7.19.0",
   "description": "Utility package providing information about automation protocols",
-  "author": "Christian Bromann <christian@saucelabs.com>",
+  "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-protocols",
   "license": "MIT",
   "main": "./build/index",

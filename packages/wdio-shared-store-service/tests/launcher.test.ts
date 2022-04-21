@@ -1,4 +1,4 @@
-import { writeFile, deleteFile } from '../src/utils'
+import type { SharedStoreServiceCapabilities } from '../src/types'
 import { setPort } from '../src/client'
 import SharedStoreLauncher from '../src/launcher'
 import StoreServerType from '../src/server'
@@ -12,11 +12,6 @@ jest.mock('../src/server', () => ({
         stopServer: jest.fn(),
     }
 }))
-jest.mock('../src/utils', () => ({
-    writeFile: jest.fn(),
-    deleteFile: jest.fn(),
-    getPidPath: (pid: number) => pid,
-}))
 jest.mock('../src/client', () => ({
     setPort: jest.fn()
 }))
@@ -25,20 +20,17 @@ const storeLauncher = new SharedStoreLauncher()
 
 describe('SharedStoreService', () => {
     it('onPrepare', async () => {
-        await storeLauncher.onPrepare()
-        expect(writeFile).toBeCalledWith(process.pid, '3000')
+        const capabilities = [{ browserName: 'chrome', acceptInsecureCerts: true }] as SharedStoreServiceCapabilities[]
+        await storeLauncher.onPrepare(null as never, capabilities)
         expect(setPort).toBeCalledWith(3000)
     })
 
     it('onComplete', async () => {
         await storeLauncher.onComplete()
         expect(stopServer).toBeCalled()
-        expect(deleteFile).toBeCalledWith(process.pid)
     })
 
     afterEach(() => {
-        (writeFile as jest.Mock).mockClear()
-        ;(deleteFile as jest.Mock).mockClear()
-        ;(stopServer as jest.Mock).mockClear()
+        (stopServer as jest.Mock).mockClear()
     })
 })

@@ -110,6 +110,11 @@ function normalizeDoc(readme, githubUrl, branch, preface, repoInfo) {
         const mdLinks = row.match(/\[([^\]]+)\]\(([^)"]+)(?: "([^"]+)")?\)/g) || []
         for (const mdLink of mdLinks) {
             const urlMatcher = mdLink.match(/\[([^[]+)\]\((.*)\)/)
+
+            if (!urlMatcher) {
+                continue
+            }
+
             const stringInParentheses = urlMatcher[2]
             const url = ( stringInParentheses.startsWith('http') || stringInParentheses.startsWith('#') )
                 ? stringInParentheses

@@ -25,7 +25,7 @@ In order to use the service you just need to add the service to your service lis
 
 ```js
 // wdio.conf.js
-export.config = {
+exports.config
     // ...
     services: ['devtools'],
     // ...

@@ -47,7 +47,7 @@ async function getSize (
         rect = await this.getElementSize(this.elementId) as RectReturn
     }
 
-    if (prop && rect[prop]) {
+    if (prop && typeof rect[prop] === 'number') {
         return rect[prop] as number
     }
 

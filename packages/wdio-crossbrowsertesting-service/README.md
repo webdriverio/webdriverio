@@ -21,7 +21,7 @@ you just need to set `cbtTunnel: true`.
 
 ```js
 // wdio.conf.js
-export.config = {
+exports.config
     // ...
     user: process.env.CBT_USERNAME,
     key: process.env.CBT_AUTHKEY,

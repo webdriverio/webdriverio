@@ -12,10 +12,10 @@
     "npmUrl": "https://www.npmjs.com/package/wdio-video-reporter"
   },
   {
-    "packageName": "@rpii/wdio-html-reporter",
+    "packageName": "wdio-html-nice-reporter",
     "title": "HTML",
     "githubUrl": "https://github.com/rpii/wdio-html-reporter",
-    "npmUrl": "https://www.npmjs.com/package/@rpii/wdio-html-reporter"
+    "npmUrl": "https://www.npmjs.com/package/wdio-html-nice-reporter"
   },
   {
     "packageName": "wdio-json-reporter",
@@ -42,21 +42,21 @@
     "npmUrl": "https://nodei.co/npm/wdio-cucumberjs-json-reporter"
   },
   {
-    "packageName": "wdio-markdown-reporter",
-    "title": "Markdown",
-    "githubUrl": "https://github.com/carmenmitru/wdio-markdown-reporter",
-    "npmUrl": "https://www.npmjs.com/package/wdio-markdown-reporter"
-  },
-  {
     "packageName": "wdio-delta-reporter-service",
     "title": "Delta Reporter",
     "githubUrl": "https://github.com/delta-reporter/delta-reporter-wdio",
     "npmUrl": "https://www.npmjs.com/package/@delta-reporter/wdio-delta-reporter-service"
   },
   {
-    "packageName": "wdio-tesults-reporter",
-    "title": "Tesults",
-    "githubUrl": "https://github.com/tesults/wdio-tesults-reporter",
-    "npmUrl": "https://www.npmjs.com/package/wdio-tesults-reporter"
+    "packageName": "wdio-teamcity-reporter",
+    "title": "Teamcity Reporter",
+    "githubUrl": "https://github.com/webdriverio-community/wdio-teamcity-reporter",
+    "npmUrl": "https://www.npmjs.com/package/wdio-teamcity-reporter"
+  },
+  {
+    "packageName": "wdio-slack-reporter",
+    "title": "Slack Reporter",
+    "githubUrl": "https://github.com/morooLee/wdio-slack-reporter",
+    "npmUrl": "https://www.npmjs.com/package/@moroo/wdio-slack-reporter"
   }
 ]

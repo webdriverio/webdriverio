@@ -43,7 +43,7 @@ Just add `shared-store` to services list and the `sharedStore` object will be ac
 
 ```js
 // wdio.conf.js
-export.config = {
+exports.config
     // ...
     services: ['shared-store'],
     // ...

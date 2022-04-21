@@ -13,5 +13,11 @@ updates:
     # requires manual upgrade as we use internal interfaces
     - dependency-name: "lighthouse"
     # Chalk v5 is ESM only
-    - dependency-name: "aws-sdk"
+    - dependency-name: "chalk"
       update-types: ["version-update:semver-major"]
+- package-ecosystem: github-actions
+  directory: "/"
+  schedule:
+    interval: weekly
+    time: "11:00"
+  open-pull-requests-limit: 10

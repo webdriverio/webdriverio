@@ -1,4 +1,4 @@
-import type { Capability } from '@wdio/config'
+import type { Options, Capabilities } from '@wdio/types'
 
 import BaseReporter from '../src/reporter'
 
@@ -14,7 +14,7 @@ class CustomReporter {
     }
 }
 
-const capability: Capability = { browserName: 'foo' }
+const capability: Capabilities.Capabilities = { browserName: 'foo' }
 
 process.send = jest.fn()
 
@@ -26,7 +26,7 @@ describe('BaseReporter', () => {
                 'dot',
                 ['dot', { foo: 'bar' }]
             ]
-        }, '0-0', capability)
+        } as Options.Testrunner, '0-0', capability)
 
         expect(reporter['_reporters']).toHaveLength(2)
     })
@@ -38,10 +38,28 @@ describe('BaseReporter', () => {
                 'dot',
                 ['dot', { foo: 'bar' }]
             ]
-        }, '0-0', capability)
+        } as Options.Testrunner, '0-0', capability)
 
         expect(reporter.getLogFile('foobar'))
             .toMatch(/(\\|\/)foo(\\|\/)bar(\\|\/)wdio-0-0-foobar-reporter.log/)
+    })
+
+    it('can set custom logFile property', () => {
+        const reporter = new BaseReporter({
+            outputDir: '/foo/bar',
+            reporters: [
+                [CustomReporter, { foo: 'bar', logFile: '/barfoo.log' }],
+                ['dot', { foo: 'bar', logFile: '/foobar.log' }]
+            ],
+            capabilities: [capability]
+        } as Options.Testrunner, '0-0', capability)
+
+        // @ts-expect-error
+        expect(reporter['_reporters'][0].options.logFile)
+            .toBe('/barfoo.log')
+        // @ts-expect-error
+        expect(reporter['_reporters'][1].options.logFile)
+            .toBe('/foobar.log')
     })
 
     it('should output log file to custom outputDir', () => {
@@ -52,8 +70,9 @@ describe('BaseReporter', () => {
                     foo: 'bar',
                     outputDir: '/foo/bar/baz'
                 }]
-            ]
-        }, '0-0', capability)
+            ],
+            capabilities: [capability]
+        } as Options.Testrunner, '0-0', capability)
         expect(reporter.getLogFile('dot'))
             .toMatch(/(\\|\/)foo(\\|\/)bar(\\|\/)baz(\\|\/)wdio-0-0-dot-reporter.log/)
     })
@@ -70,7 +89,7 @@ describe('BaseReporter', () => {
                     }
                 }]
             ]
-        }, '0-0', capability)
+        } as Options.Testrunner, '0-0', capability)
 
         expect(reporter.getLogFile('dot'))
             .toMatch(/(\\|\/)foo(\\|\/)bar(\\|\/)wdio-results-0-0.xml/)
@@ -87,7 +106,7 @@ describe('BaseReporter', () => {
                         outputFileFormat: 'foo'
                     }]
                 ]
-            }, '0-0', capability)
+            } as Options.Testrunner, '0-0', capability)
         }).toThrow('outputFileFormat must be a function')
     })
 
@@ -97,7 +116,7 @@ describe('BaseReporter', () => {
                 'dot',
                 ['dot', { foo: 'bar' }]
             ]
-        }, '0-0', capability)
+        } as Options.Testrunner, '0-0', capability)
 
         expect(reporter.getLogFile('foobar')).toBe(undefined)
     })
@@ -109,7 +128,7 @@ describe('BaseReporter', () => {
                 'dot',
                 ['dot', { foo: 'bar' }]
             ]
-        }, '0-0', capability)
+        } as Options.Testrunner, '0-0', capability)
 
         const payload = { foo: [1, 2, 3] }
         reporter.emit('runner:start', payload)
@@ -127,7 +146,7 @@ describe('BaseReporter', () => {
                 'dot',
                 ['dot', { foo: 'bar' }]
             ]
-        }, '0-0', capability)
+        } as Options.Testrunner, '0-0', capability)
 
         const payload = { foo: [1, 2, 3] }
         reporter.emit('test:fail', payload)
@@ -142,8 +161,9 @@ describe('BaseReporter', () => {
     it('should allow to load custom reporters', () => {
         const reporter = new BaseReporter({
             outputDir: '/foo/bar',
-            reporters: [CustomReporter]
-        }, '0-0', capability)
+            reporters: [CustomReporter] as any,
+            capabilities: [capability]
+        } as Options.Testrunner, '0-0', capability)
         expect(reporter['_reporters']).toHaveLength(1)
         // @ts-ignore
         expect(reporter['_reporters'][0].isCustom).toBe(true)
@@ -154,8 +174,9 @@ describe('BaseReporter', () => {
             outputDir: '/foo/bar',
             reporters: [[CustomReporter, {
                 outputDir: '/foo/baz/bar'
-            }]]
-        }, '0-0', capability)
+            }]] as any,
+            capabilities: [capability]
+        } as Options.Testrunner, '0-0', capability)
 
         expect(reporter.getLogFile('CustomReporter')).toMatch(/(\\|\/)foo(\\|\/)baz(\\|\/)bar(\\|\/)wdio-0-0-CustomReporter-reporter.log/)
     })
@@ -165,8 +186,9 @@ describe('BaseReporter', () => {
         try {
             new BaseReporter({
                 outputDir: '/foo/bar',
-                reporters: [{ foo: 'bar' }]
-            }, '0-0', capability)
+                reporters: [{ foo: 'bar' } as any],
+                capabilities: [capability]
+            } as Options.Testrunner, '0-0', capability)
         } catch (err: any) {
             expect(err.message).toBe('Invalid reporters config')
         }
@@ -178,8 +200,9 @@ describe('BaseReporter', () => {
         const start = Date.now()
         const reporter = new BaseReporter({
             outputDir: '/foo/bar',
-            reporters: [CustomReporter, CustomReporter]
-        }, '0-0', capability)
+            reporters: [CustomReporter, CustomReporter] as any,
+            capabilities: [capability]
+        } as Options.Testrunner, '0-0', capability)
 
         // @ts-ignore test reporter param
         setTimeout(() => (reporter['_reporters'][0].inSync = true), 100)
@@ -194,10 +217,11 @@ describe('BaseReporter', () => {
 
         const reporter = new BaseReporter({
             outputDir: '/foo/bar',
-            reporters: [CustomReporter],
+            reporters: [CustomReporter] as any,
             reporterSyncInterval: 10,
-            reporterSyncTimeout: 100
-        }, '0-0', capability)
+            reporterSyncTimeout: 100,
+            capabilities: [capability]
+        } as Options.Testrunner, '0-0', capability)
 
         // @ts-ignore test reporter param
         setTimeout(() => (reporter['_reporters'][0].inSync = true), 112)

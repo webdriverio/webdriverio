@@ -13,8 +13,7 @@ describe('custom$', () => {
     })
 
     it('should fetch element', async () => {
-        // @ts-ignore mock feature
-        browser.addLocatorStrategy('test', (selector, parent) => [
+        browser.addLocatorStrategy('test', (selector: string, parent: string) => [
             { 'element-6066-11e4-a52e-4f735466cecf': `${selector}-${parent}` },
             { 'element-6066-11e4-a52e-4f735466cecf': `${selector}-other-${parent}` }
         ] as any as HTMLElement[])
@@ -24,7 +23,12 @@ describe('custom$', () => {
 
         expect(elems).toHaveLength(2)
         expect(typeof elems.selector).toBe('function')
-        expect(typeof elems[0].selector).toBe('function')
+        expect(typeof elems[0].selector).toBe('object')
+        expect(typeof elems[0].selector.strategy).toBe('function')
+        expect(elems[0].selector.strategyName).toBe('test')
+        expect(elems[0].selector.strategyArguments).toHaveLength(2)
+        expect(elems[0].selector.strategyArguments[0]).toBe('.test')
+        expect(elems[0].selector.strategyArguments[1]).toBe(elem)
         expect(elems[0].elementId).toBe('.test-some-elem-123')
         expect(elems[1].elementId).toBe('.test-other-some-elem-123')
         expect(elems.foundWith).toBe('custom$$')
@@ -51,7 +55,7 @@ describe('custom$', () => {
 
     it('should return array even if the script returns one element', async () => {
         // @ts-ignore mock feature
-        browser.addLocatorStrategy('test', (selector, parent) => (
+        browser.addLocatorStrategy('test', (selector: string, parent: string) => (
             { 'element-6066-11e4-a52e-4f735466cecf': `${selector}-${parent}` }
         ))
 

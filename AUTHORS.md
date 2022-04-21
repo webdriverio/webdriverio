@@ -5,7 +5,7 @@ For information about the governance of the WebdriverIO project, see [GOVERNANCE
 ## TSC (Technical Steering Committee)
 
 [abjerstedt](https://github.com/abjerstedt) - __Adam Bjerstedt__ <[abjerstedt@gmail.com](abjerstedt@gmail.com)><br />
-[christian-bromann](https://github.com/christian-bromann) - __Christian Bromann__ <[christian@saucelabs.com](christian@saucelabs.com)> (he/him)<br />
+[christian-bromann](https://github.com/christian-bromann) - __Christian Bromann__ <[mail@bromann.dev](mail@bromann.dev)> (he/him)<br />
 [erwinheitzman](https://github.com/erwinheitzman) - __Erwin Heitzman__ <[erwin.heitzman@gmail.com](erwin.heitzman@gmail.com)><br />
 [klamping](https://github.com/klamping) - __Kevin Lamping__ <[klamping@pm.me](klamping@pm.me)><br />
 [mgrybyk](https://github.com/mgrybyk) - __Mykola Grybyk__ <[mykola.grybyk@gmail.com](mykola.grybyk@gmail.com)><br />
@@ -25,6 +25,7 @@ For information about the governance of the WebdriverIO project, see [GOVERNANCE
 [jankcat](https://github.com/jankcat) - __Tim Watkins__ <[timothy.watkins@gmail.com](timothy.watkins@gmail.com)><br />
 [lgandecki](https://github.com/lgandecki) - __Łukasz Gandecki__ <_tbd_><br />
 [Praveen](https://github.com/praveendvd) - __Praveen Mathew__<br />
+[Sri Harsha](https://github.com/harsha509) - __Sri Harsha__<br />
 [tborys](https://github.com/tborys) - __Tomasz Borys__ <[tboryss@gmail.com](tboryss@gmail.com)><br />
 [TheSavior](https://github.com/TheSavior) - __Eli White__ <_tbd_><br />
 [ThomasFett](https://github.com/ThomasFett) - __Thomas Fett__ <[thomas.fett@saucelabs.com](thomas.fett@saucelabs.com)><br />

@@ -2,14 +2,38 @@
   {
     "packageName": "wdio-chromedriver-service",
     "title": "ChromeDriver",
-    "githubUrl": "https://github.com/atti187/wdio-chromedriver-service",
+    "githubUrl": "https://github.com/webdriverio-community/wdio-chromedriver-service",
     "npmUrl": "https://www.npmjs.com/package/wdio-chromedriver-service"
+  },
+  {
+    "packageName": "wdio-vscode-service",
+    "title": "VSCode Extension Testing",
+    "githubUrl": "https://github.com/webdriverio-community/wdio-vscode-service",
+    "npmUrl": "https://www.npmjs.com/package/wdio-vscode-service"
   },
   {
     "packageName": "wdio-intercept-service",
     "title": "Intercept",
-    "githubUrl": "https://github.com/chmanie/wdio-intercept-service",
+    "githubUrl": "https://github.com/webdriverio-community/wdio-intercept-service",
     "npmUrl": "https://www.npmjs.com/package/wdio-intercept-service"
+  },
+  {
+    "packageName": "wdio-electron-service",
+    "title": "Electron",
+    "githubUrl": "https://github.com/webdriverio-community/wdio-electron-service",
+    "npmUrl": "https://www.npmjs.com/package/wdio-electron-service"
+  },
+  {
+    "packageName": "wdio-geckodriver-service",
+    "title": "Geckodriver",
+    "githubUrl": "https://github.com/webdriverio-community/wdio-geckodriver-service",
+    "npmUrl": "https://www.npmjs.com/package/wdio-geckodriver-service"
+  },
+  {
+    "packageName": "wdio-edgedriver-service",
+    "title": "EdgeDriver",
+    "githubUrl": "https://github.com/webdriverio-community/wdio-edgedriver-service",
+    "npmUrl": "https://www.npmjs.com/package/wdio-edgedriver-service"
   },
   {
     "packageName": "wdio-zafira-listener-service",
@@ -139,5 +163,11 @@
     "title": "Microsoft Teams",
     "githubUrl": "https://github.com/marcelblijleven/wdio-ms-teams-service",
     "npmUrl": "https://www.npmjs.com/package/wdio-ms-teams-service"
+  },
+  {
+    "packageName": "wdio-tesults-service",
+    "title": "Tesults",
+    "githubUrl": "https://github.com/tesults/wdio-tesults-service",
+    "npmUrl": "https://www.npmjs.com/package/wdio-tesults-service"
   }
 ]

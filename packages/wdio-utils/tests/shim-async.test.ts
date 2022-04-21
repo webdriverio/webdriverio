@@ -246,6 +246,25 @@ describe('wrapCommand', () => {
         expect(scope.getTagName).toBeCalledTimes(1)
     })
 
+    it('allows to chain element promises for custom command', async () => {
+        const rawCommand = jest.fn()
+        const scope: Partial<BrowserObject> = {
+            options: {
+                beforeCommand: jest.fn(),
+                afterCommand: jest.fn()
+            },
+            getTagName: jest.fn().mockResolvedValue('Yayy'),
+            user$: rawCommand
+        }
+        rawCommand.mockReturnValue(Promise.resolve(scope))
+        const commandB = wrapCommand('user$', rawCommand)
+        expect(await commandB.call(scope, 'bar').user$('foo').getTagName()).toBe('Yayy')
+        expect(scope.user$).toBeCalledTimes(2)
+        expect(scope.user$).toBeCalledWith('bar')
+        expect(scope.user$).toBeCalledWith('foo')
+        expect(scope.getTagName).toBeCalledTimes(1)
+    })
+
     it('allows to access indexed element', async () => {
         const rawCommand$ = jest.fn()
         const rawCommand$$ = jest.fn()

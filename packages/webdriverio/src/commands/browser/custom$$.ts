@@ -1,8 +1,7 @@
-import { ElementReference } from '@wdio/protocols'
 import { enhanceElementsArray } from '../../utils'
 import { getElements } from '../../utils/getElementObject'
 import { ELEMENT_KEY } from '../../constants'
-import type { ElementArray } from '../../types'
+import type { ElementArray, CustomStrategyFunction, CustomStrategyReference } from '../../types'
 
 /**
  *
@@ -32,16 +31,14 @@ export default async function custom$$ (
     strategyName: string,
     ...strategyArguments: any[]
 ): Promise<ElementArray> {
-    const strategy = this.strategies.get(strategyName)
+    const strategy = this.strategies.get(strategyName) as CustomStrategyFunction
 
     if (!strategy) {
         throw Error('No strategy found for ' + strategyName)
     }
 
-    let res: ElementReference | ElementReference[] = await this.execute(
-        strategy,
-        ...strategyArguments
-    )
+    const strategyRef: CustomStrategyReference = { strategy, strategyName, strategyArguments }
+    let res = await this.execute(strategy, ...strategyArguments)
 
     /**
      * if the user's script return just one element
@@ -54,6 +51,6 @@ export default async function custom$$ (
 
     res = res.filter(el => !!el && typeof el[ELEMENT_KEY] === 'string')
 
-    const elements = res.length ? await getElements.call(this, strategy, res) : [] as any as ElementArray
-    return enhanceElementsArray(elements, this, strategy, 'custom$$', [strategyArguments])
+    const elements = res.length ? await getElements.call(this, strategyRef, res) : [] as any as ElementArray
+    return enhanceElementsArray(elements, this, strategy as any, 'custom$$', [strategyArguments])
 }

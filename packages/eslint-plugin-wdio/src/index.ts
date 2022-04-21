@@ -18,7 +18,11 @@ const configs = {
             expect             : false,
             multiremotebrowser : false,
         },
-        rules : {}
+        rules : {
+            'wdio/await-expect' : 'error',
+            'wdio/no-debug'     : 'error',
+            'wdio/no-pause'     : 'error',
+        }
     }
 }
 

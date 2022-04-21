@@ -34,7 +34,7 @@ If you want WebdriverIO to automatically spin up a [Sauce Connect](https://wiki.
 
 ```js
 // wdio.conf.js
-export.config = {
+exports.config
     // ...
     user: process.env.SAUCE_USERNAME,
     key: process.env.SAUCE_ACCESS_KEY,
@@ -56,7 +56,7 @@ If you want to use an existing Sauce Connect tunnel you only need to provide, or
 <!--DOCUSAURUS_CODE_TABS-->
 <!--Tunnel Identifier-->
 ```js
-export.config = {
+exports.config
     // ...
     {
         browserName: 'chrome',
@@ -77,7 +77,7 @@ export.config = {
 ```
 <!--Parent Tunnel-->
 ```js
-export.config = {
+exports.config
     // ...
     {
         browserName: 'chrome',

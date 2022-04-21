@@ -21,7 +21,7 @@ Setup your profile by adding the `firefox-profile` service to your service list.
 
 ```js
 // wdio.conf.js
-export.config = {
+exports.config
     // ...
     services: [
         ['firefox-profile', {
@@ -76,7 +76,7 @@ Example:
 - Automatic Proxy:
     ```js
     // wdio.conf.js
-    export.config = {
+    exports.config
         // ...
         services: [
             ['firefox-profile', {
@@ -93,7 +93,7 @@ Example:
 - Manual HTTP Proxy:
     ```js
     // wdio.conf.js
-    export.config = {
+    exports.config
         // ...
         services: [
             ['firefox-profile', {
@@ -110,7 +110,7 @@ Example:
 - Manual HTTP and HTTPS Proxy:
     ```js
     // wdio.conf.js
-    export.config = {
+    exports.config
         // ...
         services: [
             ['firefox-profile', {

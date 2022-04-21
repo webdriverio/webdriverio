@@ -48,6 +48,12 @@ export interface SpecReporterOptions {
      * @default: `false`
      */
      realtimeReporting?: boolean
+    /**
+     * Ability to show or hide preface on each line of the report ('[MultiRemote ...]')
+     *
+     * @default: `true`
+     */
+     showPreface?: boolean
 }
 
 export interface TestLink {

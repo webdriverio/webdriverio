@@ -3,7 +3,7 @@ import { EventEmitter } from 'events'
 import logger from '@wdio/logger'
 import type { Options, Capabilities, Workers } from '@wdio/types'
 
-import { getRunnerName } from './utils'
+import { getRunnerName, HookError } from './utils'
 
 const log = logger('@wdio/cli')
 
@@ -204,6 +204,10 @@ export default class WDIOCLInterface extends EventEmitter {
         // eslint-disable-next-line no-console
         console.log(...args)
         return args
+    }
+
+    logHookError (error: HookError) {
+        return this.log(`${chalk.red(error.name)} in "${error.origin}"\n${chalk.red(error.stack || error.message)}`)
     }
 
     /**

@@ -364,7 +364,13 @@ export type MultiRemoteBrowser<Mode extends 'sync' | 'async'> = Mode extends 'sy
 export type MultiRemoteElement<Mode extends 'sync' | 'async'> = Mode extends 'sync' ? MultiRemoteElementReferenceSync & MultiRemoteElementSync : MultiRemoteElementReferenceAsync & MultiRemoteElementAsync
 
 export type ElementFunction = ((elem: HTMLElement) => HTMLElement) | ((elem: HTMLElement) => HTMLElement[])
-export type Selector = string | ElementReference | ElementFunction
+export type CustomStrategyFunction = (...args: any) => ElementReference | ElementReference[]
+export type CustomStrategyReference = {
+    strategy: CustomStrategyFunction
+    strategyName: string
+    strategyArguments: any[]
+}
+export type Selector = string | ElementReference | ElementFunction | CustomStrategyReference
 
 interface CSSValue {
     type: string

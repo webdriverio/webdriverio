@@ -619,30 +619,5 @@ describe('utils', () => {
             await updateCapabilities(params)
             expect(params).toMatchSnapshot()
         })
-
-        describe('setting devtools port in Firefox', () => {
-            it('should set firefox options if there aren\'t any', async () => {
-                const params = { capabilities: { browserName: 'firefox' } }
-                await updateCapabilities(params, 'webdriver')
-                expect(params).toMatchSnapshot()
-
-                const params2 = { capabilities: { browserName: 'firefox' } }
-                await updateCapabilities(params2, 'devtools')
-                expect(params2).toMatchSnapshot()
-            })
-
-            it('should not overwrite if already set', async () => {
-                const params: Options.WebdriverIO = {
-                    capabilities: {
-                        browserName: 'firefox',
-                        'moz:firefoxOptions': {
-                            args: ['foo', 'bar', '-remote-debugging-port', '1234', 'barfoo']
-                        }
-                    }
-                }
-                await updateCapabilities(params)
-                expect(params).toMatchSnapshot()
-            })
-        })
     })
 })

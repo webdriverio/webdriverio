@@ -13,6 +13,12 @@ The reason why synchronous execution was popular in WebdriverIO is because it re
 
 The WebdriverIO testrunner can handle async and sync execution within the same test suite. This means that you can slowly migrate your tests and PageObjects step by step at your pace. For example, the Cucumber Boilerplate has defined [a large set of step definition](https://github.com/webdriverio/cucumber-boilerplate/tree/main/src/support/action) for you to copy into your project. We can go ahead and migrate one step definition or one file at a time.
 
+:::tip
+
+WebdriverIO offers a [codemod](https://github.com/webdriverio/codemod) that allows to transform your sync code into async code almost full automatically. Run the codemod as described in the docs first and use this guide for manual migration if needed.
+
+:::
+
 In many cases, everything that is necessary to do is to make the function in which you call WebdriverIO commands `async` and add an `await` in front of every command. Looking at the first file `clearInputField.ts` to transform in the boilerplate project, we transform from:
 
 ```ts

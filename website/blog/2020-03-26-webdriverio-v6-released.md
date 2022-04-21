@@ -98,7 +98,7 @@ We are very proud about the amount of different [services](https://www.npmjs.com
 
 ```js
 // wdio.conf.js
-export.config = {
+exports.config
   // ...
   services: ['sauce'],
   user: process.env.SAUCE_USERNAME,
@@ -113,7 +113,7 @@ With v6 we moved all configurations into the services list close to where the se
 
 ```js
 // wdio.conf.js
-export.config = {
+exports.config
     // ...
     user: process.env.SAUCE_USERNAME,
     key: process.env.SAUCE_ACCESS_KEY,

@@ -19,7 +19,7 @@ In order to use the service you need to add `appium` to your service array:
 
 ```js
 // wdio.conf.js
-export.config = {
+exports.config
     // ...
     port: 4723, // default appium port
     services: ['appium'],
@@ -33,7 +33,7 @@ The following options can be added to the wdio.conf.js file. To define options f
 
 ```js
 // wdio.conf.js
-export.config = {
+exports.config
     // ...
     port: 4723, // default appium port
     services: [
@@ -53,7 +53,7 @@ Type: `String`
 
 Example:
 ```js
-export.config = {
+exports.config
     // ...
     services: [
         ['appium', {
@@ -71,7 +71,7 @@ Type: `String`
 
 Example:
 ```js
-export.config = {
+exports.config
     // ...
     services: [
         ['appium', {
@@ -94,7 +94,7 @@ Default: `{}`
 
 Example:
 ```js
-export.config = {
+exports.config
     // ...
     services: [
         ['appium', {

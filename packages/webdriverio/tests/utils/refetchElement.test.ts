@@ -12,7 +12,7 @@ jest.mock('../../src/commands/element/waitForExist', () => ({
 const waitForExist = require('../../src/commands/element/waitForExist')
 
 describe('refetchElement', () => {
-    let browser
+    let browser: WebdriverIO.Browser
 
     beforeAll(async () => {
         browser = await remote({
@@ -62,5 +62,53 @@ describe('refetchElement', () => {
         const refetchedElement = await refetchElement(notFound, 'click')
         expect(waitForExist.default.mock.calls).toHaveLength(1)
         expect(refetchedElement.elementId).toBe(elem.elementId)
+    })
+
+    it('should successfully refetch an element using custom locator', async () => {
+        browser.addLocatorStrategy('myLocator1', (id: string) => (
+            { 'element-6066-11e4-a52e-4f735466cecf': id }
+        ))
+
+        const elem = await browser.custom$('myLocator1', 'foo')
+        const refetchedElement = await refetchElement(elem, '$')
+        expect(elem.elementId).toEqual('foo')
+        expect(refetchedElement.elementId).toEqual(elem.elementId)
+    })
+
+    it('should successfully refetch an element from a list using custom locator', async () => {
+        browser.addLocatorStrategy('myLocator2', (id: string) => (
+            [{ 'element-6066-11e4-a52e-4f735466cecf': id }]
+        ))
+
+        const elems = await browser.custom$$('myLocator2', 'foo')
+        const refetchedElement = await refetchElement(elems[0], '$')
+        expect(elems[0].elementId).toEqual('foo')
+        expect(refetchedElement.elementId).toEqual(elems[0].elementId)
+    })
+
+    it('should successfully refetch a sub element using custom locator', async () => {
+        browser.addLocatorStrategy('myLocator3', (id: string, root: any) => (
+            { 'element-6066-11e4-a52e-4f735466cecf': root + id }
+        ))
+
+        const elem = await browser.$('#foo')
+        expect(elem.elementId).toEqual('some-elem-123')
+        const subElem = await elem.custom$('myLocator3', 'bar')
+        const refetchedElement = await refetchElement(subElem, '$')
+        expect(subElem.elementId).toEqual('some-elem-123bar')
+        expect(refetchedElement.elementId).toEqual(subElem.elementId)
+    })
+
+    it('should successfully refetch a sub element from a list using custom locator', async () => {
+        browser.addLocatorStrategy('myLocator4', (id: string, root: any) => (
+            [{ 'element-6066-11e4-a52e-4f735466cecf': root + id }]
+        ))
+
+        const elem = await browser.$('#foo')
+        expect(elem.elementId).toEqual('some-elem-123')
+        const subElems = await elem.custom$$('myLocator4', 'bar')
+        const refetchedElement = await refetchElement(subElems[0], '$')
+        expect(subElems[0].elementId).toEqual('some-elem-123bar')
+        expect(refetchedElement.elementId).toEqual(subElems[0].elementId)
     })
 })

@@ -1,4 +1,4 @@
-import rule from '../../../lib/rules/no-pause'
+import rule from '../src/rules/no-pause'
 import { RuleTester } from 'eslint'
 
 const ruleTester = new RuleTester({

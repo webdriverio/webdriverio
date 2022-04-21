@@ -36,7 +36,7 @@
     "test:typings": "run-s test:typings:*",
     "test:typings:setup": "node tests/typings/setup && npm i --no-save tsd",
     "test:typings:test": "npm run ts && npm run clean:tests && node tests/typings/setup --ts=3.9 && npm run ts && npm run clean:tests",
-    "test:typings:recover": "rm ./node_modules/.bin/tsc && ln -s ../typescript/bin/tsc node_modules/.bin && npx rimraf @tsd/typescript",
+    "test:typings:recover": "rimraf ./node_modules/.bin/tsc && ln -s ../typescript/bin/tsc node_modules/.bin && npx rimraf @tsd/typescript",
     "test:coverage": "node --max-old-space-size=8192 ./node_modules/jest/bin/jest.js --coverage --logHeapUsage",
     "test:smoke": "ts-node ./tests/smoke.runner.js",
     "test:e2e": "jest --config e2e/jest.config.js",
@@ -56,7 +56,7 @@
     "version": "npm run changelog && git add CHANGELOG.md",
     "postinstall": "run-s postinstall:*",
     "postinstall:husky": "husky install",
-    "postinstall:vulnerabilities": "cat ./.husky/postinstall.txt"
+    "postinstall:vulnerabilities": "node ./.husky/postinstall.js"
   },
   "devDependencies": {
     "@cucumber/cucumber": "^8.0.0-rc.1",
@@ -64,6 +64,7 @@
     "@tsconfig/node12": "^1.0.9",
     "@types/archiver": "^5.3.1",
     "@types/cheerio": "^0.22.31",
+    "@types/eslint": "^8.4.1",
     "@types/fs-extra": "^9.0.13",
     "@types/jest": "^27.4.1",
     "@types/lodash.clonedeep": "^4.5.6",
@@ -76,6 +77,7 @@
     "@types/uuid": "^8.3.4",
     "@typescript-eslint/eslint-plugin": "^5.14.0",
     "@typescript-eslint/parser": "^5.14.0",
+    "@typescript-eslint/utils": "^5.14.0",
     "aws-sdk": "^2.1090.0",
     "camelcase": "^6.3.0",
     "cheerio": "^1.0.0-rc.10",
