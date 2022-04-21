@@ -98,6 +98,16 @@ export default class Runner extends EventEmitter {
         this._specs = specs
         this._caps = caps
 
+        /*
+        * Checks tsconfig.json path, throws error if it doesn't exist
+        */
+
+        if (args.autoCompileOpts?.tsNodeOpts?.project) {
+            if (!fs.existsSync(args.autoCompileOpts.tsNodeOpts.project)) {
+                throw new Error('Path to tsconfig.json is incorrect in config file')
+            }
+        }
+
         /**
          * autocompile after parsing configs so we support ES6 features in tests with config driven by users
          */
