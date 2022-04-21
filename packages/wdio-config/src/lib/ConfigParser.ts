@@ -1,5 +1,7 @@
 import merge from 'deepmerge'
 import logger from '@wdio/logger'
+import fs from 'fs'
+import path from 'path'
 import type { Capabilities, Options, Services } from '@wdio/types'
 
 import RequireLibrary from './RequireLibrary'
@@ -40,6 +42,16 @@ export default class ConfigParser {
     ) {}
 
     autoCompile() {
+        /**
+         * Checks tsconfig.json path, throws error if it doesn't exist
+         */
+        if (this._config.autoCompileOpts?.tsNodeOpts?.project) {
+            const tsconfigPath = path.resolve(this._config.autoCompileOpts.tsNodeOpts.project)
+            if (!fs.existsSync(tsconfigPath)) {
+                throw new Error(`Provided tsconfig file path '${tsconfigPath}' in wdio config is incorrect. Is it correctly set in wdio config ?`)
+            }
+        }
+
         /**
          * on launcher compile files if Babel or TypeScript are installed using our defaults
          */
