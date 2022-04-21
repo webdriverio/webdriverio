@@ -10,7 +10,7 @@ import { types as nodeUtilTypes } from 'util'
 const maxStringLength = 2048
 
 export interface Test {
-    type: 'test:start' | 'test:pass' | 'test:fail' | 'test:retry' | 'test:pending' | 'test:end'
+    type: 'test:start' | 'test:pass' | 'test:fail' | 'test:retry' | 'test:pending' | 'test:end' | 'test:skip'
     title: string
     parent: string
     fullTitle: string
