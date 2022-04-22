@@ -9,6 +9,10 @@ A software requirements specification (SRS) is a document that explains what the
 # 1. Introduction
 
 ## 1.1 Purpose
+This documentation is intended to offer a overview of the WebDriverIO's requirements and specifications.
+
+The aim of WebDriverIO is to simplify the interation between users and apps, offering a collection of plugins to assist a user in building scalable, robust, and secure tests for modern online and mobile apps.
+
 In general, the WebdriverIO is considered to be an open source JavaScript-based custom implementation 
 of the Selenium webdriver API. It is intended to be a simple but at the same time powerful software 
 which improve the user-application interactions and help user to write quick frontend tests. 
