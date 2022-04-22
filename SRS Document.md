@@ -18,6 +18,10 @@ Android mobile applications. By using Webdriver Protocol a user can do the cross
 for his project. 
            
 ## 1.2 Intended Audience
+* Anyone with some basic knowledge of programming can understand this document. The document is intended for Developers, Software architects, Testers, Project managers and Documentation Writers. But anyone with programming background and some experience with UML can understand this document.
+
+
+
 WebdriverIO is characterized as a simple and accessible tool for creating web and mobile app tests. It is accessible to anyone who wants to learn how to write frontend tests and needs some assistance. There are also a brief lessons with documentation to assist new users to get more familiar with the software. Futhermore, there is an active community on the GitHub where anyone can ask some questions regarding WebdriverIO.
            
 ## 1.3 Intended Usage
