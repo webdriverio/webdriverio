@@ -62,7 +62,7 @@
   {
     "packageName": "wdio-light-reporter",
     "title": "Light Reporter",
-    "githubUrl": "https://github.com/sarfrajadstreaks/wdio-light-reporter.git",
+    "githubUrl": "https://github.com/sarfrajadstreaks/wdio-light-reporter",
     "npmUrl": "https://www.npmjs.com/package/wdio-light-reporter"
   }
 ]
