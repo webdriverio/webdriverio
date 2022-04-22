@@ -153,6 +153,10 @@ export default abstract class WebDriverRequest extends EventEmitter {
         throw new Error('This function must be implemented')
     }
 
+    protected _libPerformanceNow(): number {
+        throw new Error('This function must be implemented')
+    }
+
     private async _request (
         fullRequestOptions: RequestLibOptions,
         transformResponse?: (response: RequestLibResponse, requestOptions: RequestLibOptions) => RequestLibResponse,
@@ -166,11 +170,13 @@ export default abstract class WebDriverRequest extends EventEmitter {
         }
 
         const { url, ...requestLibOptions } = fullRequestOptions
+        const startTime = this._libPerformanceNow()
         let response = await this._libRequest(url!, requestLibOptions)
             // @ts-ignore
             .catch((err: RequestLibError) => {
                 return err
             })
+        const durationMillisecond = this._libPerformanceNow() - startTime
 
         /**
          * handle retries for requests
@@ -185,11 +191,13 @@ export default abstract class WebDriverRequest extends EventEmitter {
             if (retryCount >= totalRetryCount || error.message.includes('invalid session id')) {
                 log.error(`Request failed with status ${response.statusCode} due to ${error}`)
                 this.emit('response', { error })
+                this.emit('performance', { request: fullRequestOptions, durationMillisecond, success: false, error, retryCount })
                 throw error
             }
 
             ++retryCount
             this.emit('retry', { error, retryCount })
+            this.emit('performance', { request: fullRequestOptions, durationMillisecond, success: false, error, retryCount })
             log.warn(msg)
             log.info(`Retrying ${retryCount}/${totalRetryCount}`)
             return this._request(fullRequestOptions, transformResponse, totalRetryCount, retryCount)
@@ -211,6 +219,7 @@ export default abstract class WebDriverRequest extends EventEmitter {
             /**
              * throw if request error is unknown
              */
+            this.emit('performance', { request: fullRequestOptions, durationMillisecond, success: false, error: response, retryCount })
             throw response
         }
 
@@ -237,6 +246,7 @@ export default abstract class WebDriverRequest extends EventEmitter {
              * directly without using a hub, therefore throw
              */
             if (typeof response.body === 'string' && response.body.startsWith('<!DOCTYPE html>')) {
+                this.emit('performance', { request: fullRequestOptions, durationMillisecond, success: false, error, retryCount })
                 return Promise.reject(new Error('Command can only be called to a Selenium Hub'))
             }
 
@@ -248,6 +258,7 @@ export default abstract class WebDriverRequest extends EventEmitter {
          */
         if (isSuccessfulResponse(response.statusCode, response.body)) {
             this.emit('response', { result: response.body })
+            this.emit('performance', { request: fullRequestOptions, durationMillisecond, success: true, retryCount })
             return response.body
         }
 
@@ -258,6 +269,7 @@ export default abstract class WebDriverRequest extends EventEmitter {
         if (error.name === 'stale element reference') {
             log.warn('Request encountered a stale element - terminating request')
             this.emit('response', { error })
+            this.emit('performance', { request: fullRequestOptions, durationMillisecond, success: false, error, retryCount })
             throw error
         }
 
