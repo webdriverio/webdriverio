@@ -95,7 +95,8 @@ export const SUPPORTED_PACKAGES = {
         { name: 'html-nice', value: 'wdio-html-nice-reporter$--$html-nice' },
         { name: 'slack', value: '@moroo/wdio-slack-reporter$--$slack' },
         { name: 'teamcity', value: 'wdio-teamcity-reporter$--$teamcity' },
-        { name: 'delta', value: '@delta-reporter/wdio-delta-reporter-service' }
+        { name: 'delta', value: '@delta-reporter/wdio-delta-reporter-service' },
+        { name: 'light', value: '@wdio-light-reporter--$light' }
     ],
     plugin: [
         { name: 'wait-for', value: 'wdio-wait-for$--$wait-for' },
