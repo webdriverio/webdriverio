@@ -19,6 +19,24 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.19.6 (2022-04-22)
+
+#### :memo: Documentation
+* `wdio-cli`
+  * [#8263](https://github.com/webdriverio/webdriverio/pull/8263) Wdio light reporter ([@sarfrajadstreaks](https://github.com/sarfrajadstreaks))
+
+#### :house: Internal
+* [#8254](https://github.com/webdriverio/webdriverio/pull/8254) Update repo examples to use async/await ([@christian-bromann](https://github.com/christian-bromann))
+* [#8244](https://github.com/webdriverio/webdriverio/pull/8244) Bump actions/setup-node from 1 to 3 ([@dependabot[bot]](https://github.com/apps/dependabot))
+* [#8241](https://github.com/webdriverio/webdriverio/pull/8241) chore: Included githubactions in the dependabot config ([@naveensrinivasan](https://github.com/naveensrinivasan))
+* [#8238](https://github.com/webdriverio/webdriverio/pull/8238) chore: Set permissions for GitHub actions ([@naveensrinivasan](https://github.com/naveensrinivasan))
+
+#### Committers: 3
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Md Sarfraj Akhtar ([@sarfrajadstreaks](https://github.com/sarfrajadstreaks))
+- Naveen ([@naveensrinivasan](https://github.com/naveensrinivasan))
+
+
 ## v7.19.5 (2022-04-13)
 
 #### :bug: Bug Fix
