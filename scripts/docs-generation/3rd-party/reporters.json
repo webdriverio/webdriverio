@@ -58,5 +58,11 @@
     "title": "Slack Reporter",
     "githubUrl": "https://github.com/morooLee/wdio-slack-reporter",
     "npmUrl": "https://www.npmjs.com/package/@moroo/wdio-slack-reporter"
+  },
+  {
+    "packageName": "wdio-light-reporter",
+    "title": "Light Reporter",
+    "githubUrl": "https://github.com/sarfrajadstreaks/wdio-light-reporter.git",
+    "npmUrl": "https://www.npmjs.com/package/wdio-light-reporter"
   }
 ]
