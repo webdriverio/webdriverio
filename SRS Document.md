@@ -31,13 +31,8 @@ for his project.
 This documentation may be understood by anybody with a basic understanding of programming. But the focus is on Software Architects, Project Managers, Developers, Documentation Writers and Testers.
 
 WebdriverIO is characterized as a simple and accessible tool for creating web and mobile app tests. It is accessible to anyone who wants to learn how to write frontend tests and needs some assistance. There are also a brief lessons with documentation to assist new users to get more familiar with the software. Futhermore, there is an active community on the GitHub where anyone can ask some questions regarding WebdriverIO.
-           
-## 1.3 Intended Usage
-WebdriverIO has numerous community plugins that can be smoothly integrated and customized to meet certain needs. There are also options to work in usual synchronous and asynchronous modes. The one of the great features of 
-WebdriverIO that it lets you to write in an asynchronous manner, which can be useful in eliminating race 
-situations for the user.
-
-## 1.4 Product Scope
+       
+## 1.3 Product Scope
 Browser automation is the process of automatically executing instructions in a web browser to reach levels of efficiency and speed that would be difficult to achieve manually. There are many various web browser automation software are available for developers. One of the popular examples is Selenium. Selenium supports most programming languages except JavaScript. While WebdriverIO is considered Webdriver/Selenium 2.0 JavaScript bindings for Node.js. However, it would be a mistake to think that WebdriverIO is a just JavaScript version of Selenium. WebDriverIO is a full test framework with various additional features which lets the developer to control online and mobile apps with just a few lines of code.
 
 ### Advantages
@@ -48,7 +43,7 @@ Browser automation is the process of automatically executing instructions in a w
 * Integration with CI tools (e.g. Jenkins, Bamboo, Github)
 * Readable syntax (WebDriverIO allows the user to run all instruction in sync mode which can improve the readibility.)
 
-## 1.5 Acronyms and Definitions 
+## 1.4 Acronyms and Definitions 
 - Cross browser testing is a kind of testing that allows you to see if your website works as 
             expected when viewed through various combinations of browsers and/or operating systems.
 - Web frameworks is a software framework that helps developers create web applications such as web services, 
