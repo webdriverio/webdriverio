@@ -38,8 +38,7 @@ WebdriverIO that it lets you to write in an asynchronous manner, which can be us
 situations for the user.
 
 ## 1.4 Product Scope
-Browser automation is the process of automatically executing instructions in a web browser to reach levels of efficiency and speed that would be difficult to achieve manually. There are many various web browser automation softwares are available for developers. One of the popular example is Selenium. Selenium supports most programming languages except JavaScript. 
-While WebdriverIO is considered Webdriver/Selenium 2.0 JavaScript bindings for Node.js. However, it would be a mistake to think that WebdriverIO is a just JavaScript version of Selenium. WebDriverIO is a full test framework with various additional features which lets developer to control online and mobile apps with just a few lines of code.
+Browser automation is the process of automatically executing instructions in a web browser to reach levels of efficiency and speed that would be difficult to achieve manually. There are many various web browser automation software are available for developers. One of the popular examples is Selenium. Selenium supports most programming languages except JavaScript. While WebdriverIO is considered Webdriver/Selenium 2.0 JavaScript bindings for Node.js. However, it would be a mistake to think that WebdriverIO is a just JavaScript version of Selenium. WebDriverIO is a full test framework with various additional features which lets the developer to control online and mobile apps with just a few lines of code.
 
 ### Advantages
 * It would be easy to start and get used to for beginners.
@@ -49,36 +48,7 @@ While WebdriverIO is considered Webdriver/Selenium 2.0 JavaScript bindings for N
 * Integration with CI tools (e.g. Jenkins, Bamboo, Github)
 * Readable syntax (WebDriverIO allows the user to run all instruction in sync mode which can improve the readibility.)
 
-## 1.4 Objectives
-## 1.4.1 Upcoming Projects (in no particular order)
-
-| Project | Description |
-|---------|-------------|
-|[Better Debugging Capabilities](https://github.com/webdriverio/webdriverio/projects/4)|With WebdriverIO, there are already a few ways to debug test code. However, using native Node.js debugging features, which necessitates particular management of workers and sub processes, is still not straightforward. The goal must be for developers to be able to create breakpoints in their IDEs in order to debug.|
-|[Parallelize tests on test block level vs. file level](https://github.com/webdriverio/webdriverio/projects/6)|We received multiple requests to allow parallelization of tests on a block level rather than a file level. Ava as a framework, which comes with that form of parallelization, may be a viable choice.|
-|[Improve DevTools Service](https://github.com/webdriverio/webdriverio/projects/7)|The @wdio/devtools-service extends WebDriver's automation features (e.g. get network logs, tracing, performance etc). A number of features may be introduced to aid in the testing of apps (for example, improved mocking/stubbing of browser requests and answers). It would also be desirable if the service worked in the same way on Firefox and Edge.|
-|[WebdriverIO Fiddle Platform](https://github.com/webdriverio/webdriverio/projects/8)|One of the community members has already begun working on a WebdriverIO fiddle (try.webdriver.io). It is currently ineffective and requires more development. Sharing test code snippets would be extremely beneficial in identifying flaws in someone's automation script. It's also feasible to integrate Sauce Labs here.|
-|[More videos as documentation material](https://github.com/webdriverio/webdriverio/projects/9)|In the documentation, include videos for setting up WebdriverIO, installing plugins, and other use cases.|
-|[Network Recording](https://github.com/webdriverio/webdriverio/projects/15)|We aim to make asserting the browser's network behavior as smooth as possible. We may implement similar behavior in WebdriverIO, inspired by Jest and their Snapshot capability.|
-|[Improved Frontend Framework Support](https://github.com/webdriverio/webdriverio/projects/16)|Almost all current online apps are created in either React, Angular, Vue, Svelte, or another frontend framework. When it comes to picking elements or introspection of app states and crucial portions, these frameworks might be challenging to work with. WebdriverIO offers the ability to assist the user in better testing these apps.|
-|[Support for Multiple Environments](https://github.com/webdriverio/webdriverio/projects/17)|WebdriverIO can currently only run on Node.js, which is the environment in which most users utilize it. However, it would be wonderful if WebdriverIO could be used in other environments as well, such as the browser or Deno. All packages must be ESM compatible in order for this to happen.|
-
-## 1.4.2 Completed Projects
-| Project | Description | Date |
-|---------|-------------|-----------|
-|Make CLI tool more powerful|If the user is unfamiliar with the project or WebDriver in general, adding basic add-ons to the configuration becomes tough. Installing some easy commands to the CLI interface that allow for the addition of services and reporters as well as configuration changes will greatly simplify the process of adding plugins.| 6th June 2019|
-|Cucumber Framework Support|Cucumber is a popular framework, and many people ask for help with it. The community has already done some preliminary work on this. The code would subsequently be ready to use if it received adequate unit tests.| 9th July 2019|
-|Jest Framework Support|JIn the JS environment, Jest has become one of the most popular unit test frameworks. Even while the most of their features aren't useful in the e2e area, some of them (such as snapshot testing) might help users write better e2e tests. On this, some preliminary work has been done.|20th December 2019|
-|Custom Assertion Library|It would be wonderful if WebdriverIO came with a native assertion library (similar to what Jest or Jasmine provide) included in the testrunner to make assertion on components or other objects easier across all frameworks|20th December 2019|
-|Autogenerate Sample Files| Allow users to pre-configure an existing boilerplate so they don't have to manually set up these files. We want to allow the configuration wizard or a new 'wdio' command to operate as a baseline for the test setup because the community has amassed a number of helpful boilerplate projects.|13 June 2020|
-|Integrating WebdriverIO is common use setup build tools|There are a number of initiatives that can assist you in starting a project from the ground up. WebdriverIO should be added as an e2e testing option, which will aid driver adoption.|18 July 2020|
-|Network Primitives| We should move forward and provide improved network primitives for WebdriverIO to let users access the network layer now that Puppeteer has greater cross browser compatibility. Furthermore, once WebDriver adopts the BiDi protocol, these functionalities are expected to be implemented.|16th July 2020|
-|TypeScript Rewrite|We are more impacted by type errors that are difficult to discover as our code base grows. We aim to rebuild the code base in TypeScript to eliminate similar issues and make it easier to work with.|08th February 2021|
-
-
 ## 1.5 Acronyms and Definitions 
-- Selenium is a library for automating browsers. Selenium is most commonly used for web application testing, 
-            however, it may be used for any task that involves automating browser interaction.
 - Cross browser testing is a kind of testing that allows you to see if your website works as 
             expected when viewed through various combinations of browsers and/or operating systems.
 - Web frameworks is a software framework that helps developers create web applications such as web services, 
