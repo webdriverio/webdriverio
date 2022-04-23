@@ -5,6 +5,11 @@ A software requirements specification (SRS) is a document that explains what the
 | creation | 15.04.22 | - | 0.1 |
 | | | |  |
 
+## Document Conventions
+* General terms are written in italic.
+* Key terms are written in bold.
+* IEEE. IEEE Std 830-1998 IEEE Recommended Practice for Software Requirements Specifications. IEEE Computer Society, 1998.
+
 
 # 1. Introduction
 
@@ -32,6 +37,12 @@ WebdriverIO has numerous community plugins that can be smoothly integrated and c
 WebdriverIO that it lets you to write in an asynchronous manner, which can be useful in eliminating race 
 situations for the user.
 
+## 1.4 Product Scope
+Browser automation is the process of automatically executing instructions in a web browser to reach levels of efficiency and speed that would be difficult to achieve manually. There are many various web browser automation softwares are available for developers. One of the popular example is Selenium. Selenium supports most programming languages except JavaScript. 
+While WebdriverIO is considered Webdriver/Selenium 2.0 JavaScript bindings for Node.js. However, it would be a mistake to think that WebdriverIO is a just JavaScript version of Selenium. WebdriverIO is a full test framework with various additional features which lets developer to control online and mobile apps with just a few lines of code.
+
+###
+
 ## 1.4 Objectives
 ## 1.4.1 Upcoming Projects (in no particular order)
 
@@ -58,6 +69,7 @@ situations for the user.
 |Network Primitives| We should move forward and provide improved network primitives for WebdriverIO to let users access the network layer now that Puppeteer has greater cross browser compatibility. Furthermore, once WebDriver adopts the BiDi protocol, these functionalities are expected to be implemented.|16th July 2020|
 |TypeScript Rewrite|We are more impacted by type errors that are difficult to discover as our code base grows. We aim to rebuild the code base in TypeScript to eliminate similar issues and make it easier to work with.|08th February 2021|
 
+
 ## 1.5 Acronyms and Definitions 
 - Selenium is a library for automating browsers. Selenium is most commonly used for web application testing, 
             however, it may be used for any task that involves automating browser interaction.
@@ -74,7 +86,8 @@ situations for the user.
 - Node.js is a runtime software that is mostly used to create server-side JavaScript apps.
 - LTS stands for "Long Term Support" and refers to software that is supported for a longer length of time 
             than the standard edition.
-            
+
+
 # 2. Overall Description
 
 ## 2.1 User Needs
