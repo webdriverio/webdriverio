@@ -41,7 +41,10 @@ situations for the user.
 Browser automation is the process of automatically executing instructions in a web browser to reach levels of efficiency and speed that would be difficult to achieve manually. There are many various web browser automation softwares are available for developers. One of the popular example is Selenium. Selenium supports most programming languages except JavaScript. 
 While WebdriverIO is considered Webdriver/Selenium 2.0 JavaScript bindings for Node.js. However, it would be a mistake to think that WebdriverIO is a just JavaScript version of Selenium. WebdriverIO is a full test framework with various additional features which lets developer to control online and mobile apps with just a few lines of code.
 
-###
+### Advantages
+* it would be easy to start and get used to for beginners
+(The installation process is straightforward and described in the [documentation page](https://webdriver.io/docs/gettingstarted)
+* 
 
 ## 1.4 Objectives
 ## 1.4.1 Upcoming Projects (in no particular order)
