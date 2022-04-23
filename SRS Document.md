@@ -6,8 +6,8 @@ A software requirements specification (SRS) is a document that explains what the
 | | | |  |
 
 ## Document Conventions
-* General terms are written in italic.
-* Key terms are written in bold.
+* General terms are written in *italic*.
+* Key terms are written in **bold**.
 * IEEE. IEEE Std 830-1998 IEEE Recommended Practice for Software Requirements Specifications. IEEE Computer Society, 1998.
 
 
