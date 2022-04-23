@@ -42,8 +42,8 @@ Browser automation is the process of automatically executing instructions in a w
 While WebdriverIO is considered Webdriver/Selenium 2.0 JavaScript bindings for Node.js. However, it would be a mistake to think that WebdriverIO is a just JavaScript version of Selenium. WebdriverIO is a full test framework with various additional features which lets developer to control online and mobile apps with just a few lines of code.
 
 ### Advantages
-* it would be easy to start and get used to for beginners
-(The installation process is straightforward and described in the [documentation page](https://webdriver.io/docs/gettingstarted)
+* it would be easy to start and get used to for beginners.
+(The installation process is straightforward and quick. The proccess itself described in the [documentation page](https://webdriver.io/docs/gettingstarted)
 * 
 
 ## 1.4 Objectives
