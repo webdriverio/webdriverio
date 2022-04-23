@@ -39,12 +39,15 @@ situations for the user.
 
 ## 1.4 Product Scope
 Browser automation is the process of automatically executing instructions in a web browser to reach levels of efficiency and speed that would be difficult to achieve manually. There are many various web browser automation softwares are available for developers. One of the popular example is Selenium. Selenium supports most programming languages except JavaScript. 
-While WebdriverIO is considered Webdriver/Selenium 2.0 JavaScript bindings for Node.js. However, it would be a mistake to think that WebdriverIO is a just JavaScript version of Selenium. WebdriverIO is a full test framework with various additional features which lets developer to control online and mobile apps with just a few lines of code.
+While WebdriverIO is considered Webdriver/Selenium 2.0 JavaScript bindings for Node.js. However, it would be a mistake to think that WebdriverIO is a just JavaScript version of Selenium. WebDriverIO is a full test framework with various additional features which lets developer to control online and mobile apps with just a few lines of code.
 
 ### Advantages
-* it would be easy to start and get used to for beginners.
-(The installation process is straightforward and quick. The proccess itself described in the [documentation page](https://webdriver.io/docs/gettingstarted)
-* 
+* It would be easy to start and get used to for beginners.
+(The installation process is straightforward and quick. The proccess itself described in the [documentation page](https://webdriver.io/docs/gettingstarted) )
+* Built in wait testing (WebDriverIO supports automatic and explicit waiting instuctions)
+* Extendable (It's easy to add assistance functions, as well as more complex sets and variations of existing instructions.)
+* Integration with CI tools (e.g. Jenkins, Bamboo, Github)
+* Readable syntax (WebDriverIO allows the user to run all instruction in sync mode which can improve the readibility.)
 
 ## 1.4 Objectives
 ## 1.4.1 Upcoming Projects (in no particular order)
