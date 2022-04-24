@@ -45,11 +45,9 @@ This documentation may be understood by anybody with a basic understanding of pr
 | --- | --- |
 | User | a person who uses WebDriverIO |
 | Browser automation |  a process of automatically executing instructions in a web browser to reach levels of efficiency and speed that would be difficult to achieve manually |
-| Cross browser testing | a type of testing that allows a user to see if their website works as 
-            expected when viewed through various combinations of browsers and/or operating systems |
+| Cross browser testing | a type of testing that allows a user to see if their website works as expected when viewed through various combinations of browsers and/or operating systems |
 | Race condition | a condition when two or more threads access a shared variable at the same time |
-| LTS | stands for "Long Term Support" and refers to software that is supported for a longer length of time 
-            than the standard edition. |
+| LTS | stands for "Long Term Support" and refers to software that is supported for a longer length of time than the standard edition. |
 |RESTful|A web API that obeys the REST constraints is informally described as RESTful.|
 |Sync mode| A mode where an operation waits for a response out the server in the format of an output parameter|
 
