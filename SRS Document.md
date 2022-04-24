@@ -75,6 +75,13 @@ With the support of the WebdriverIO library, the user builds the script in JavaS
 
 Then the browser executes the user actions after getting the instruction, ensuring that the application functionalities are legitimate.
 
+## 2.2 Product Functions
+Using this WebdriverIO, user can automate modern web written in  React, Angular, Polymeror Vue.js as well as native mobile applications for Android and iOS.
+
+* WebDriver Protocol (for cross browser testing)
+* Chrome Dev Tools Protocol (for chromium based automation)
+* Appium (for mobile automation)
+
 ## 2.1 User Needs
 First of all, the user need to have the basic understanding of WebdriverIO use. Before downloading and working with 
 WebdriverIO the programmer is required to have install Node.js. Because  WebdriverIO specifically requires 
