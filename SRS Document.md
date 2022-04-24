@@ -16,30 +16,24 @@
 ## 1.1 Purpose
 This documentation is intended to offer a overview of the WebDriverIO's requirements and specifications.
 
-The aim of WebdriverIO is to simplify the interation between *users* and apps, offering a collection of plugins to assist a user in building scalable, robust, and secure tests for modern online and mobile apps.
+WebdriverIO aims to simplify the interaction between users and apps, offering a collection of plugins to assist a user in building scalable, robust, and secure tests for modern online and mobile apps.
 
-In general, the WebdriverIO is considered to be an open source JavaScript-based custom implementation 
-of the Selenium webdriver API. It is intended to be a simple but at the same time powerful software 
-which improve the user-application interactions and help user to write quick frontend tests. 
-WebdriverIO is a tool that may be used to automate both web and mobile apps. Furthermore, it supports 
-programming languages such as Angular, Vue.js, React. It is also support working with the native iOS, 
-Android mobile applications. By using Webdriver Protocol a user can do the cross browser testing
-for his project. 
-           
+In general, the WebdriverIO is considered to be an open source JavaScript-based custom implementation of the Selenium webdriver API. It is intended to be a simple but at the same time powerful software which improves the user-application interactions and helps the user to write quick frontend tests. WebdriverIO is a tool that may be used to automate both web and mobile apps. Furthermore, it supports programming languages such as Angular, Vue.js, and React. It also supports working with the native iOS, and Android mobile applications. By using Webdriver Protocol a user can do the cross browser testing for his project.
+       
 ## 1.2 Intended Audience
-This documentation may be understood by anybody with a basic understanding of programming. But the main focus is on Software Architects, Project Managers, Developers, Documentation Writers and Testers.
+This documentation may be understood by anybody with a basic understanding of programming. But the main focus is on Software Architects, Project Managers, Developers, Documentation Writers, and Testers.
        
 ## 1.3 Product Scope
 *Browser automation* is the process of automatically executing instructions in a web browser to reach levels of efficiency and speed that would be difficult to achieve manually. There are many various web browser automation software are available. One of the popular examples is Selenium. Selenium is the most widely used web browser automation tool that has been around the longest (since 2004). Selenium supports most programming languages except JavaScript. While WebdriverIO is considered Webdriver/Selenium 2.0 JavaScript bindings for Node.js. <br /> <br /> However, it would be a mistake to think that WebdriverIO is a just JavaScript version of Selenium. WebdriverIO is a full test framework with various additional features which lets the users to control online and mobile apps with just a few lines of code.
 
 ### Advantages
 * It would be easy to start and get used to for beginners.
-(The installation process is straightforward and quick. The proccess itself described in the [documentation page](https://webdriver.io/docs/gettingstarted) )
-* Built in wait testing (WebdriverIO supports automatic and explicit waiting instuctions)
+(The installation process is straightforward and quick. The process itself is described in the [documentation page](https://webdriver.io/docs/gettingstarted) )
+* Built in wait testing (WebdriverIO supports automatic and explicit waiting instructions)
 * Extendable (It's easy to add assistance functions, as well as more complex sets and variations of existing instructions.)
 * Integration with *CI* tools (e.g. Jenkins, Bamboo, Github)
-* Readable syntax (WebdriverIO allows the user to run all instruction in *sync mode* which can improve the readibility.)
-* Open Sourcec project (WebdriverIO is a true open source project with transparent administration and ownership by the OpenJS Foundation, a non-profit organization.)
+* Readable syntax (WebdriverIO allows the user to run all instructions in *sync mode* which can improve the readability.)
+* Open Source project (WebdriverIO is a true open source project with transparent administration and ownership by the OpenJS Foundation, a non-profit organization.)
 
 ## 1.4 Acronyms and Definitions 
 | Term | Description |
@@ -66,12 +60,12 @@ This documentation may be understood by anybody with a basic understanding of pr
 
 WebdriverIO is based on NodeJS, which is considered to be a JSON Wire Protocol implementation. It performs automated testing using a RESTful architecture.
 
-With the support of the WebdriverIO library, the user builds the script in JavaScript. In that case the Service request is transmitted through NodeJS as an HTTP instruction. It apllies the JSON Wire protocol and the service module redirects the request to the webbrowser.
+With the support of the WebdriverIO library, the user builds the script in JavaScript. In that case, the Service request is transmitted through NodeJS as an HTTP instruction. It appllies the JSON Wire protocol and the service module redirects the request to the webbrowser.
 
 Then the browser executes the user actions after getting the instruction, ensuring that the application functionalities are legitimate.
 
 ## 2.2 Product Functions
-Using this WebdriverIO, user can automate modern web written in  React, Angular, Polymeror Vue.js as well as native mobile applications for Android and iOS.
+Using this WebdriverIO, a user can automate modern web written in  React, Angular, Polymeror Vue.js as well as native mobile applications for Android and iOS.
 
 * WebDriver Protocol (for cross browser testing)
 * Chrome Dev Tools Protocol (for chromium based automation)
@@ -83,35 +77,34 @@ In general, WebdriverIO is characterized as a simple and accessible tool for cre
 WebdriverIO is easy to start and get used to for beginners. The installation process is straightforward and quick. Users do not need to install any browser drivers and configure themselves. After installation, the user only needs to write a config command that will perform all the necessary configuration. Further details are described in the [documentation page](https://webdriver.io/docs/gettingstarted) 
 
 ## 2.4 Operating Environment
-User have to install Node.js. It is suggested to choose *LTS* version, so it is suggested to choose least 
-12.16.1 or above. 
+A user has to install Node.js. It is suggested to choose the *LTS* version, so it is suggested to choose 12.16.1 or above. 
 There are no other strict rules regarding system requirements. Nevertheless, in order to work with little problem 
-as possible with Node.js and WebdriverIO, it is adviced for users to have:
+as possible with Node.js and WebdriverIO, it is advised for users to have:
 * Ubuntu version 16.04 or higher for Linux 
-* or Windows 7 or newer versions with atleast 2GB RAM (4GB preferable). 
+* or Windows 7 or newer versions with at least 2GB RAM (4GB preferable). 
 
 ## 2.5 Assumptions and Dependencies
-The WebdriverIO community have build full test framework with various additional features (e.g. making CLI tool more powerful, Jest Framework Support). Still, the WebdriverIO community is active and working on continuous improvements. 
+The WebdriverIO community has to build a full test framework with various additional features (e.g. making the CLI tool more powerful, Jest Framework Support). Still, the WebdriverIO community is active and working on continuous improvements. 
 
-There are various projects that are planned in the future such as improving DevTools Service; making more videos as documentation material; making a support for Multiple Environments and etc. A complete list of planned projects, as well as completed projects, can be found at [RoadMap.md](https://github.com/webdriverio/webdriverio/blob/main/ROADMAP.md) file. 
-This is not an exhaustive list, and it may be updated if someone recommends something that everyone agrees on. New contributors are welcome to join in discussions and providing new ideas.
+There are various projects that are planned in the future such as improving DevTools Service; making more videos as documentation material; making support for Multiple Environments and etc. A complete list of planned projects, as well as completed projects, can be found at [RoadMap.md](https://github.com/webdriverio/webdriverio/blob/main/ROADMAP.md) file. 
+This is not an exhaustive list, and it may be updated if someone recommends something that everyone agrees on. New contributors are welcome to join in discussions and provide new ideas.
            
 # 3. System Features and Requirements
 ## 3.1 External Interface Requirements
 ### 3.1.1 User Interfaces
-Webdriverio is a plugin, so the user needs an IDE to work with it. Hence, the UI which interacts with user would depend on the IDE. 
-The interaction can be illustrated with following high-level diagram:
+Webdriverio is a plugin, so the user needs an IDE to work with it. Hence, the UI which interacts with the user would depend on the IDE. 
+The interaction can be illustrated with the following high-level diagram:
 
 ![](https://github.com/TemirlanAidarov/Images/blob/main/User%20Diagram.drawio.svg)
 
 ### 3.1.2 Packages
-There are various packages in WebdriverIO. The list and details about them can be found in the project [repository](https://github.com/webdriverio/webdriverio/tree/main/packages). Over the years the WebdriverIO community has collected a many great curated resources.
+There are various packages in WebdriverIO. The list and details about them can be found in the project [repository](https://github.com/webdriverio/webdriverio/tree/main/packages). Over the years the WebdriverIO community has collected many great curated resources.
 
 ## 3.2 Software quality attributes
 * Software should be user friendly
 * Software should be open source, where everyone can offer a new idea and contribute in accordance with the rules.
 * Software should have accessible product support
-* Software should have good documentations and tutorials
+* Software should have good documentation and tutorials
 * Software should support a variety of community plugins
 * Software should be integrable and extensible to be customized according to the user's need.
 
