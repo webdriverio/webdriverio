@@ -14,7 +14,7 @@
 # 1. Introduction
 
 ## 1.1 Purpose
-This documentation is intended to offer a overview of the WebDriverIO's requirements and specifications.
+This documentation is intended to offer an overview of WebDriverIO's requirements and specifications.
 
 WebdriverIO aims to simplify the interaction between users and apps, offering a collection of plugins to assist a user in building scalable, robust, and secure tests for modern online and mobile apps.
 
