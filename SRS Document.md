@@ -26,10 +26,7 @@ Android mobile applications. By using Webdriver Protocol a user can do the cross
 for his project. 
            
 ## 1.2 Intended Audience
-
 This documentation may be understood by anybody with a basic understanding of programming. But the focus is on Software Architects, Project Managers, Developers, Documentation Writers and Testers.
-
-In general, WebdriverIO is characterized as a simple and accessible tool for creating web and mobile app tests. It is accessible to anyone who wants to learn how to write frontend tests and needs some assistance.
        
 ## 1.3 Product Scope
 Browser automation is the process of automatically executing instructions in a web browser to reach levels of efficiency and speed that would be difficult to achieve manually. There are many various web browser automation software are available. One of the popular examples is Selenium. Selenium is the most widely used web browser automation tool that has been around the longest (since 2004). Selenium supports most programming languages except JavaScript. While WebdriverIO is considered Webdriver/Selenium 2.0 JavaScript bindings for Node.js. However, it would be a mistake to think that WebdriverIO is a just JavaScript version of Selenium. WebdriverIO is a full test framework with various additional features which lets the users to control online and mobile apps with just a few lines of code.
@@ -82,7 +79,11 @@ Using this WebdriverIO, user can automate modern web written in  React, Angular,
 * Chrome Dev Tools Protocol (for chromium based automation)
 * Appium (for mobile automation)
 
-## 2.1 User Needs
+## 2.3 User Classes and Characteristics
+In general, WebdriverIO is characterized as a simple and accessible tool for creating web and mobile app tests. It is accessible to anyone who wants to learn how to write frontend tests and needs some assistance.
+
+WebdriverIO is easy to start and get used to for beginners. The installation process is straightforward and quick. All necessary details are described in the [documentation page](https://webdriver.io/docs/gettingstarted) 
+
 First of all, the user need to have the basic understanding of WebdriverIO use. Before downloading and working with 
 WebdriverIO the programmer is required to have install Node.js. Because  WebdriverIO specifically requires 
 LTS (Long Term Support) version, so the programmer need to install version 12.16.1 or above.
