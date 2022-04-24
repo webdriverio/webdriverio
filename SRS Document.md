@@ -99,14 +99,20 @@ There are various projects that are planned in the future such as improving DevT
 This is not an exhaustive list, and it may be updated if someone recommends something that everyone agrees on. New contributors are welcome to join in discussions and providing new ideas.
            
 # 3. System Features and Requirements
-## 3.1 User Interfaces
+## 3.1 External Interface Requirements
+### 3.1.1 User Interfaces
 Webdriverio is a plugin, so the user needs an IDE to work with it. Hence, the UI which interacts with user would depend on the IDE. 
 The interaction can be illustrated with following high-level diagram:
 
 ![](https://github.com/TemirlanAidarov/Images/blob/main/User%20Diagram.drawio.svg)
 
-## 3.2 Software interfaces
+### 3.1.2 Software interfaces
 There are various packages in WebdriverIO. The list and details about them can be found in the project [repository](https://github.com/webdriverio/webdriverio/tree/main/packages). Over the years the WebdriverIO community has collected a many great curated resources.
 
-
-
+## 3.2 Software quality attributes
+* Software should be user friendly
+* Software should be open source, where everyone can offer a new idea and contribute in accordance with the rules.
+* Software should have accessible product support
+* Software should have good documentations and tutorials
+* Software should support a variety of community plugins
+* Software should be integrable and extensible to be customized according to the user's need.
