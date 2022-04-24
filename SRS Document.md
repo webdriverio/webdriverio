@@ -7,6 +7,7 @@
 ## Document Conventions
 * General terms are written in *italic*.
 * Key terms are written in **bold**.
+* TBD stands for "To be Decided", these are parts that will be written or changed in the future
 * IEEE. IEEE Std 830-1998 IEEE Recommended Practice for Software Requirements Specifications. IEEE Computer Society, 1998.
 
 
@@ -15,7 +16,7 @@
 ## 1.1 Purpose
 This documentation is intended to offer a overview of the WebDriverIO's requirements and specifications.
 
-The aim of WebdriverIO is to simplify the interation between users and apps, offering a collection of plugins to assist a user in building scalable, robust, and secure tests for modern online and mobile apps.
+The aim of WebdriverIO is to simplify the interation between *users* and apps, offering a collection of plugins to assist a user in building scalable, robust, and secure tests for modern online and mobile apps.
 
 In general, the WebdriverIO is considered to be an open source JavaScript-based custom implementation 
 of the Selenium webdriver API. It is intended to be a simple but at the same time powerful software 
@@ -29,7 +30,7 @@ for his project.
 This documentation may be understood by anybody with a basic understanding of programming. But the focus is on Software Architects, Project Managers, Developers, Documentation Writers and Testers.
        
 ## 1.3 Product Scope
-Browser automation is the process of automatically executing instructions in a web browser to reach levels of efficiency and speed that would be difficult to achieve manually. There are many various web browser automation software are available. One of the popular examples is Selenium. Selenium is the most widely used web browser automation tool that has been around the longest (since 2004). Selenium supports most programming languages except JavaScript. While WebdriverIO is considered Webdriver/Selenium 2.0 JavaScript bindings for Node.js. However, it would be a mistake to think that WebdriverIO is a just JavaScript version of Selenium. WebdriverIO is a full test framework with various additional features which lets the users to control online and mobile apps with just a few lines of code.
+*Browser automation* is the process of automatically executing instructions in a web browser to reach levels of efficiency and speed that would be difficult to achieve manually. There are many various web browser automation software are available. One of the popular examples is Selenium. Selenium is the most widely used web browser automation tool that has been around the longest (since 2004). Selenium supports most programming languages except JavaScript. While WebdriverIO is considered Webdriver/Selenium 2.0 JavaScript bindings for Node.js. However, it would be a mistake to think that WebdriverIO is a just JavaScript version of Selenium. WebdriverIO is a full test framework with various additional features which lets the users to control online and mobile apps with just a few lines of code.
 
 ### Advantages
 * It would be easy to start and get used to for beginners.
@@ -40,20 +41,17 @@ Browser automation is the process of automatically executing instructions in a w
 * Readable syntax (WebdriverIO allows the user to run all instruction in sync mode which can improve the readibility.)
 
 ## 1.4 Acronyms and Definitions 
-- User
-- Cross browser testing is a kind of testing that allows you to see if your website works as 
-            expected when viewed through various combinations of browsers and/or operating systems.
-- Web frameworks is a software framework that helps developers create web applications such as web services, 
-            web resources, and web APIs.
-- A race condition occurs in software when the proper operation of a computer program is dependent on the order
-            or timing of the program's processes or threads.
-- From a developer's perspective, Test-Driven Development(TDD) is a testing methodology or a programming 
-            discipline.
-- The testing strategy Behavioral-Driven Development (BDD) is derived from the (TDD) methodology
-            that is more focused on on systems behavior testing.
-- Node.js is a runtime software that is mostly used to create server-side JavaScript apps.
-- LTS stands for "Long Term Support" and refers to software that is supported for a longer length of time 
-            than the standard edition.
+| Term | Description |
+| --- | --- |
+| User | a person who uses WebDriverIO |
+| Browser automation |  a process of automatically executing instructions in a web browser to reach levels of efficiency and speed that would be difficult to achieve manually |
+| Cross browser testing | a type of testing that allows a user to see if their website works as 
+            expected when viewed through various combinations of browsers and/or operating systems |
+| Race condition | a condition when two or more threads access a shared variable at the same time |
+| LTS | stands for "Long Term Support" and refers to software that is supported for a longer length of time 
+            than the standard edition. |
+|RESTful|A web API that obeys the REST constraints is informally described as RESTful.|
+|Sync mode| A mode where an operation waits for a response out the server in the format of an output parameter|
 
 
 # 2. Overall Description
@@ -116,3 +114,6 @@ There are various packages in WebdriverIO. The list and details about them can b
 * Software should have good documentations and tutorials
 * Software should support a variety of community plugins
 * Software should be integrable and extensible to be customized according to the user's need.
+
+## 3.3 Software quality attributes
+TBD
