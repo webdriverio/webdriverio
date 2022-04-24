@@ -90,14 +90,12 @@ User have to install Node.js. It is suggested to choose LTS version, so it is su
 There are no other strict rules regarding system requirements. Nevertheless, in order to work with little problem 
 as possible with Node.js and WebdriverIO, it is adviced for users to have:
 * Ubuntu version 16.04 or higher for Linux 
-* or Windows 7 or higher with 2GB RAM (4GB preferable). 
+* or Windows 7 or newer versions with atleast 2GB RAM (4GB preferable). 
 
+## 2.5 Assumptions and Dependencies
+The WebdriverIO community have build full test framework with various additional features (e.g. making CLI tool more powerful, Jest Framework Support). Still, the WebdriverIO community is active and working on continuous improvements. 
 
-
-## 2.2 Assumptions and Dependencies
-Current WebdriverIO project have already sattisfied its main objectives such as building toolkit which hepls to make tests 
-fast and in an organized way, making them much easier to change and manage. The project is headed toward the maintaing 
-and bag fixing phase. As it stated there is still room for an imporvement.
+There are various projects that are planned in the future such as improving DevTools Service; making more videos as documentation material; making a support for Multiple Environments and etc. The full roadmap can be found in the [RoadMap.md](https://github.com/webdriverio/webdriverio/blob/main/ROADMAP.md) file
            
 # 3. System Features and Requirements
 
