@@ -95,7 +95,7 @@ as possible with Node.js and WebdriverIO, it is adviced for users to have:
 ## 2.5 Assumptions and Dependencies
 The WebdriverIO community have build full test framework with various additional features (e.g. making CLI tool more powerful, Jest Framework Support). Still, the WebdriverIO community is active and working on continuous improvements. 
 
-There are various projects that are planned in the future such as improving DevTools Service; making more videos as documentation material; making a support for Multiple Environments and etc. The full roadmap can be found in the [RoadMap.md](https://github.com/webdriverio/webdriverio/blob/main/ROADMAP.md) file
+There are various projects that are planned in the future such as improving DevTools Service; making more videos as documentation material; making a support for Multiple Environments and etc. A complete list of planned projects, as well as completed projects, can be found at [RoadMap.md](https://github.com/webdriverio/webdriverio/blob/main/ROADMAP.md) file
            
 # 3. System Features and Requirements
 
