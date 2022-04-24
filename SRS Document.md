@@ -100,6 +100,9 @@ This is not an exhaustive list, and it may be updated if someone recommends some
            
 # 3. System Features and Requirements
 
+![](https://github.com/TemirlanAidarov/Images/blob/main/User%20Diagram.drawio.svg)
+
+
 ## 3.1 Functional Requirements
 There is one possibliy option to build test files which is using Babel. Babel is a compiler for JavaScript. if you want 
 to develop tests that employ next-generation JavaScript capabilities.
