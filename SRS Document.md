@@ -27,7 +27,7 @@ Android mobile applications. By using Webdriver Protocol a user can do the cross
 for his project. 
            
 ## 1.2 Intended Audience
-This documentation may be understood by anybody with a basic understanding of programming. But the focus is on Software Architects, Project Managers, Developers, Documentation Writers and Testers.
+This documentation may be understood by anybody with a basic understanding of programming. But the main focus is on Software Architects, Project Managers, Developers, Documentation Writers and Testers.
        
 ## 1.3 Product Scope
 *Browser automation* is the process of automatically executing instructions in a web browser to reach levels of efficiency and speed that would be difficult to achieve manually. There are many various web browser automation software are available. One of the popular examples is Selenium. Selenium is the most widely used web browser automation tool that has been around the longest (since 2004). Selenium supports most programming languages except JavaScript. While WebdriverIO is considered Webdriver/Selenium 2.0 JavaScript bindings for Node.js. However, it would be a mistake to think that WebdriverIO is a just JavaScript version of Selenium. WebdriverIO is a full test framework with various additional features which lets the users to control online and mobile apps with just a few lines of code.
