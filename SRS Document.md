@@ -63,16 +63,16 @@ Browser automation is the process of automatically executing instructions in a w
 # 2. Overall Description
 
 ## 2.1 Product Perspective
-* **JavaScript**: The script is written by the user with the help of the WebdriverIO library.
-* **NodeJS**: NodeJS is an open-source project which helps to run the Javascript runtime environment.
-* **WebdriverIO**: WebdriverIO built on top of NodeJS which communicates with NodeJS.
+* **JavaScript**: With the support of the WebdriverIO library, the user builds the script.
+* **NodeJS**: NodeJS is an open-source project that makes the Javascript runtime environment easier to use.
+* **WebdriverIO**: WebdriverIO is a NodeJS-based application that interacts with NodeJS.
 
 ![](https://github.com/TemirlanAidarov/Images/blob/main/webdriverio.png)
 
 
-WebdriverIO is based on NodeJS, which is considered to be a JSON Wire Protocol implementation. It uses NodeJS, which is open-source and actively used for application development, and is packaged into npm. It performs automated testing using a RESTful architecture.
+WebdriverIO is based on NodeJS, which is considered to be a JSON Wire Protocol implementation. It performs automated testing using a RESTful architecture.
 
-The user writes the tests using JavaScript in the WebdriverIO library. In that case the Service request is transmitted through NodeJS as an HTTP instruction. It apllies the JSON Wire protocol and the service module redirects the request to the webbrowser.
+With the support of the WebdriverIO library, the user builds the script in JavaScript. In that case the Service request is transmitted through NodeJS as an HTTP instruction. It apllies the JSON Wire protocol and the service module redirects the request to the webbrowser.
 
 Then the browser executes the user actions after getting the instruction, ensuring that the application functionalities are legitimate.
 
