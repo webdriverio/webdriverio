@@ -99,7 +99,9 @@ There are various projects that are planned in the future such as improving DevT
 This is not an exhaustive list, and it may be updated if someone recommends something that everyone agrees on. New contributors are welcome to join in discussions and providing new ideas.
            
 # 3. System Features and Requirements
-
+## 3.1 User Interfaces
+Webdriverio is a plugin, so the user needs an IDE to work with it. Hence, the UI which interacts with user would depend on the IDE. 
+The following diagram shows a general overview of the webdriverio commands:
 ![](https://github.com/TemirlanAidarov/Images/blob/main/User%20Diagram.drawio.svg)
 
 
