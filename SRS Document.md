@@ -38,7 +38,8 @@ This documentation may be understood by anybody with a basic understanding of pr
 * Built in wait testing (WebdriverIO supports automatic and explicit waiting instuctions)
 * Extendable (It's easy to add assistance functions, as well as more complex sets and variations of existing instructions.)
 * Integration with CI tools (e.g. Jenkins, Bamboo, Github)
-* Readable syntax (WebdriverIO allows the user to run all instruction in sync mode which can improve the readibility.)
+* Readable syntax (WebdriverIO allows the user to run all instruction in *sync mode* which can improve the readibility.)
+* Open Sourcec project (WebdriverIO is a true open source project with transparent administration and ownership by the OpenJS Foundation, a non-profit organization.)
 
 ## 1.4 Acronyms and Definitions 
 | Term | Description |
@@ -81,7 +82,7 @@ In general, WebdriverIO is characterized as a simple and accessible tool for cre
 WebdriverIO is easy to start and get used to for beginners. The installation process is straightforward and quick. Users do not need to install any browser drivers and configure themselves. After installation, the user only needs to write a config command that will perform all the necessary configuration. Further details are described in the [documentation page](https://webdriver.io/docs/gettingstarted) 
 
 ## 2.4 Operating Environment
-User have to install Node.js. It is suggested to choose LTS version, so it is suggested to choose least 
+User have to install Node.js. It is suggested to choose *LTS* version, so it is suggested to choose least 
 12.16.1 or above. 
 There are no other strict rules regarding system requirements. Nevertheless, in order to work with little problem 
 as possible with Node.js and WebdriverIO, it is adviced for users to have:
