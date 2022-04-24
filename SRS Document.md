@@ -104,7 +104,7 @@ The interaction can be illustrated with following high-level diagram:
 
 ![](https://github.com/TemirlanAidarov/Images/blob/main/User%20Diagram.drawio.svg)
 
-### 3.1.2 Software interfaces
+### 3.1.2 Packages
 There are various packages in WebdriverIO. The list and details about them can be found in the project [repository](https://github.com/webdriverio/webdriverio/tree/main/packages). Over the years the WebdriverIO community has collected a many great curated resources.
 
 ## 3.2 Software quality attributes
