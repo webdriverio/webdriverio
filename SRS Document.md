@@ -52,7 +52,7 @@ This documentation may be understood by anybody with a basic understanding of pr
 
 ## 2.1 Product Perspective
 * **JavaScript**: With the support of the WebdriverIO library, the user builds the script.
-* **NodeJS**: NodeJS is an open-source project that makes the Javascript runtime environment easier to use.
+* **NodeJS**: NodeJS is an open-source project that makes the JavaScript runtime environment easier to use.
 * **WebdriverIO**: WebdriverIO is a NodeJS-based application that interacts with NodeJS.
 
 ![](https://github.com/TemirlanAidarov/Images/blob/main/Diagram.drawio.svg)
