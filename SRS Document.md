@@ -63,9 +63,9 @@ Browser automation is the process of automatically executing instructions in a w
 # 2. Overall Description
 
 ## 2.1 Product Perspective
-**JavaScript**: The script is written by the user with the help of the WebdriverIO library.
-**NodeJS**: NodeJS is an open-source project which helps to run the Javascript runtime environment.
-**WebdriverIO**: WebdriverIO built on top of NodeJS which communicates with NodeJS.
+* **JavaScript**: The script is written by the user with the help of the WebdriverIO library.
+* **NodeJS**: NodeJS is an open-source project which helps to run the Javascript runtime environment.
+* **WebdriverIO**: WebdriverIO built on top of NodeJS which communicates with NodeJS.
 
 ![](https://github.com/TemirlanAidarov/Images/blob/main/webdriverio.png)
 
