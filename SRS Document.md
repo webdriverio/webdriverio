@@ -37,7 +37,7 @@ This documentation may be understood by anybody with a basic understanding of pr
 (The installation process is straightforward and quick. The proccess itself described in the [documentation page](https://webdriver.io/docs/gettingstarted) )
 * Built in wait testing (WebdriverIO supports automatic and explicit waiting instuctions)
 * Extendable (It's easy to add assistance functions, as well as more complex sets and variations of existing instructions.)
-* Integration with CI tools (e.g. Jenkins, Bamboo, Github)
+* Integration with *CI* tools (e.g. Jenkins, Bamboo, Github)
 * Readable syntax (WebdriverIO allows the user to run all instruction in *sync mode* which can improve the readibility.)
 * Open Sourcec project (WebdriverIO is a true open source project with transparent administration and ownership by the OpenJS Foundation, a non-profit organization.)
 
