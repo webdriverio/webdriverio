@@ -83,7 +83,17 @@ Using this WebdriverIO, user can automate modern web written in  React, Angular,
 In general, WebdriverIO is characterized as a simple and accessible tool for creating web and mobile app tests. It is accessible to anyone who wants to learn and write frontend tests in JavaScript (TypeScript) and needs some assistance.
 
 WebdriverIO is easy to start and get used to for beginners. The installation process is straightforward and quick. Users do not need to install any browser drivers and configure themselves. After installation, the user only needs to write a config command that will perform all the necessary configuration. Further details are described in the [documentation page](https://webdriver.io/docs/gettingstarted) 
-           
+
+## 2.4 Operating Environment
+User have to install Node.js. It is suggested to choose LTS version, so it is suggested to choose least 
+12.16.1 or above. 
+There are no other strict rules regarding system requirements. Nevertheless, in order to work with little problem 
+as possible with Node.js and WebdriverIO, it is adviced for users to have:
+* Ubuntu version 16.04 or higher for Linux 
+* or Windows 7 or higher with 2GB RAM (4GB preferable). 
+
+
+
 ## 2.2 Assumptions and Dependencies
 Current WebdriverIO project have already sattisfied its main objectives such as building toolkit which hepls to make tests 
 fast and in an organized way, making them much easier to change and manage. The project is headed toward the maintaing 
