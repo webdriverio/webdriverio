@@ -80,16 +80,9 @@ Using this WebdriverIO, user can automate modern web written in  React, Angular,
 * Appium (for mobile automation)
 
 ## 2.3 User Classes and Characteristics
-In general, WebdriverIO is characterized as a simple and accessible tool for creating web and mobile app tests. It is accessible to anyone who wants to learn how to write frontend tests and needs some assistance.
+In general, WebdriverIO is characterized as a simple and accessible tool for creating web and mobile app tests. It is accessible to anyone who wants to learn and write frontend tests in JavaScript (TypeScript) and needs some assistance.
 
-WebdriverIO is easy to start and get used to for beginners. The installation process is straightforward and quick. All necessary details are described in the [documentation page](https://webdriver.io/docs/gettingstarted) 
-
-First of all, the user need to have the basic understanding of WebdriverIO use. Before downloading and working with 
-WebdriverIO the programmer is required to have install Node.js. Because  WebdriverIO specifically requires 
-LTS (Long Term Support) version, so the programmer need to install version 12.16.1 or above.
-It is advised to download NVM first if you don't already installed Node.js. NVM facilitate working numerous active 
-Node versions. Furthermore, it is advised to install Python v3 (or above versions) in order to work with WDIO Testrunner 
-in synchronous mode.
+WebdriverIO is easy to start and get used to for beginners. The installation process is straightforward and quick. Users do not need to install any browser drivers and configure themselves. After installation, the user only needs to write a config command that will perform all the necessary configuration. Further details are described in the [documentation page](https://webdriver.io/docs/gettingstarted) 
            
 ## 2.2 Assumptions and Dependencies
 Current WebdriverIO project have already sattisfied its main objectives such as building toolkit which hepls to make tests 
