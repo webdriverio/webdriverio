@@ -16,7 +16,7 @@ A software requirements specification (SRS) is a document that explains what the
 ## 1.1 Purpose
 This documentation is intended to offer a overview of the WebDriverIO's requirements and specifications.
 
-The aim of WebDriverIO is to simplify the interation between users and apps, offering a collection of plugins to assist a user in building scalable, robust, and secure tests for modern online and mobile apps.
+The aim of WebdriverIO is to simplify the interation between users and apps, offering a collection of plugins to assist a user in building scalable, robust, and secure tests for modern online and mobile apps.
 
 In general, the WebdriverIO is considered to be an open source JavaScript-based custom implementation 
 of the Selenium webdriver API. It is intended to be a simple but at the same time powerful software 
@@ -30,20 +30,21 @@ for his project.
 
 This documentation may be understood by anybody with a basic understanding of programming. But the focus is on Software Architects, Project Managers, Developers, Documentation Writers and Testers.
 
-WebdriverIO is characterized as a simple and accessible tool for creating web and mobile app tests. It is accessible to anyone who wants to learn how to write frontend tests and needs some assistance. There are also a brief lessons with documentation to assist new users to get more familiar with the software. Futhermore, there is an active community on the GitHub where anyone can ask some questions regarding WebdriverIO.
+In general, WebdriverIO is characterized as a simple and accessible tool for creating web and mobile app tests. It is accessible to anyone who wants to learn how to write frontend tests and needs some assistance.
        
 ## 1.3 Product Scope
-Browser automation is the process of automatically executing instructions in a web browser to reach levels of efficiency and speed that would be difficult to achieve manually. There are many various web browser automation software are available for developers. One of the popular examples is Selenium. Selenium supports most programming languages except JavaScript. While WebdriverIO is considered Webdriver/Selenium 2.0 JavaScript bindings for Node.js. However, it would be a mistake to think that WebdriverIO is a just JavaScript version of Selenium. WebDriverIO is a full test framework with various additional features which lets the developer to control online and mobile apps with just a few lines of code.
+Browser automation is the process of automatically executing instructions in a web browser to reach levels of efficiency and speed that would be difficult to achieve manually. There are many various web browser automation software are available. One of the popular examples is Selenium. Selenium is the most widely used web browser automation tool that has been around the longest (since 2004). Selenium supports most programming languages except JavaScript. While WebdriverIO is considered Webdriver/Selenium 2.0 JavaScript bindings for Node.js. However, it would be a mistake to think that WebdriverIO is a just JavaScript version of Selenium. WebdriverIO is a full test framework with various additional features which lets the users to control online and mobile apps with just a few lines of code.
 
 ### Advantages
 * It would be easy to start and get used to for beginners.
 (The installation process is straightforward and quick. The proccess itself described in the [documentation page](https://webdriver.io/docs/gettingstarted) )
-* Built in wait testing (WebDriverIO supports automatic and explicit waiting instuctions)
+* Built in wait testing (WebdriverIO supports automatic and explicit waiting instuctions)
 * Extendable (It's easy to add assistance functions, as well as more complex sets and variations of existing instructions.)
 * Integration with CI tools (e.g. Jenkins, Bamboo, Github)
-* Readable syntax (WebDriverIO allows the user to run all instruction in sync mode which can improve the readibility.)
+* Readable syntax (WebdriverIO allows the user to run all instruction in sync mode which can improve the readibility.)
 
 ## 1.4 Acronyms and Definitions 
+- User
 - Cross browser testing is a kind of testing that allows you to see if your website works as 
             expected when viewed through various combinations of browsers and/or operating systems.
 - Web frameworks is a software framework that helps developers create web applications such as web services, 
@@ -60,6 +61,20 @@ Browser automation is the process of automatically executing instructions in a w
 
 
 # 2. Overall Description
+
+## 2.1 Product Perspective
+**JavaScript**: The script is written by the user with the help of the WebdriverIO library.
+**NodeJS**: NodeJS is an open-source project which helps to run the Javascript runtime environment.
+**WebdriverIO**: WebdriverIO built on top of NodeJS which communicates with NodeJS.
+
+![alt text](https://github.com/[TemirlanAidarov]/[Images]/webdriverio.png?raw=true)
+
+
+WebdriverIO is based on NodeJS, which is considered to be a JSON Wire Protocol implementation. It uses NodeJS, which is open-source and actively used for application development, and is packaged into npm. It performs automated testing using a RESTful architecture.
+
+The user writes the tests using JavaScript in the WebdriverIO library. In that case the Service request is transmitted through NodeJS as an HTTP instruction. It apllies the JSON Wire protocol and the service module redirects the request to the webbrowser.
+
+Then the browser executes the user actions after getting the instruction, ensuring that the application functionalities are legitimate.
 
 ## 2.1 User Needs
 First of all, the user need to have the basic understanding of WebdriverIO use. Before downloading and working with 
