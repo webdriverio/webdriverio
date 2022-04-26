@@ -89,7 +89,7 @@
     "husky": "^7.0.4",
     "inquirer": "^8.2.1",
     "jest": "^27.5.1",
-    "jest-circus": "^27.5.1",
+    "jest-circus": "^28.0.0",
     "lerna": "^4.0.0",
     "lerna-changelog": "^2.2.0",
     "markdox": "^0.1.10",
