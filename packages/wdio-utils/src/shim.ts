@@ -411,16 +411,6 @@ async function executeAsync(this: any, fn: Function, retries: Retries, args: any
             asyncSpec = asyncSpecBefore
         }
 
-        /**
-         * if test fail in jasmine (e.g. timeout) the finally statement
-         * would not be executed in async mode where fibers is not supported
-         */
-        const nodeVersion = parseInt(process.version.slice(1).split('.').shift() || '0', 10)
-        if (isJasmine && nodeVersion >= 16) {
-            // @ts-ignore
-            global.expect = expectSync
-        }
-
         return await result
     } catch (err: any) {
         if (retries.limit > retries.attempts) {
