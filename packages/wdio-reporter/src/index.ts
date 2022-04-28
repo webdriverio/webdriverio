@@ -119,6 +119,14 @@ export default class WDIOReporter extends EventEmitter {
             this.onTestPass(testStat)
         })
 
+        this.on('test:skip', (test: Test) => {
+            const testStat = this.tests[test.uid]
+            currentTest.skip(test.pendingReason!)
+            this.counts.skipping++
+            this.counts.tests++
+            this.onTestSkip(testStat)
+        })
+
         this.on('test:fail',  /* istanbul ignore next */(test: Test) => {
             const testStat = this.tests[test.uid]
 
