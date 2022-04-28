@@ -1,12 +1,8 @@
 import merge from 'deepmerge'
 import logger from '@wdio/logger'
-import { exists } from 'fs'
-import { promisify } from 'util'
-const fs = {
-    exists: promisify(exists)
-}
 import path from 'path'
 import type { Capabilities, Options, Services } from '@wdio/types'
+import { canAccess } from '@wdio/utils'
 
 import RequireLibrary from './RequireLibrary'
 import FileSystemPathService from './FileSystemPathService'
@@ -51,7 +47,7 @@ export default class ConfigParser {
          */
         if (this._config.autoCompileOpts?.tsNodeOpts?.project) {
             const tsconfigPath = path.resolve(this._config.autoCompileOpts.tsNodeOpts.project)
-            if (!await fs.exists(tsconfigPath)) {
+            if (!canAccess(tsconfigPath)) {
                 throw new Error(`Provided tsconfig file path '${tsconfigPath}' in wdio config is incorrect. Is it correctly set in wdio config ?`)
             }
         }
