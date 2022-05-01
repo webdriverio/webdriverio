@@ -54,4 +54,8 @@ export default class BrowserRequest extends WebDriverRequest {
             body: await res.json(),
         }
     }
+
+    protected _libPerformanceNow(): number {
+        return performance.now()
+    }
 }

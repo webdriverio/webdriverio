@@ -50,7 +50,8 @@ jest.mock('../src/request/node', () => jest.fn().mockImplementation(
         makeRequest: jest.fn().mockReturnValue({
             then: jest.fn().mockImplementation(
                 (then) => then)
-        })
+        }),
+        on: jest.fn(),
     })
 ))
 
