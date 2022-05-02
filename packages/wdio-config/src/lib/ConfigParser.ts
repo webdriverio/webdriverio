@@ -3,9 +3,7 @@ import merge from 'deepmerge'
 import logger from '@wdio/logger'
 import { canAccess } from '@wdio/utils'
 
-
 import type { Capabilities, Options, Services } from '@wdio/types'
-
 
 import RequireLibrary from './RequireLibrary'
 import FileSystemPathService from './FileSystemPathService'
