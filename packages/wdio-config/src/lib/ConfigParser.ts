@@ -1,8 +1,11 @@
+import path from 'path'
 import merge from 'deepmerge'
 import logger from '@wdio/logger'
-import path from 'path'
-import type { Capabilities, Options, Services } from '@wdio/types'
 import { canAccess } from '@wdio/utils'
+
+
+import type { Capabilities, Options, Services } from '@wdio/types'
+
 
 import RequireLibrary from './RequireLibrary'
 import FileSystemPathService from './FileSystemPathService'
