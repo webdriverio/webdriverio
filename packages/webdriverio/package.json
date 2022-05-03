@@ -68,7 +68,7 @@
     "css-shorthand-properties": "^1.1.1",
     "css-value": "^0.0.1",
     "devtools": "7.19.5",
-    "devtools-protocol": "^0.0.995510",
+    "devtools-protocol": "^0.0.998277",
     "fs-extra": "^10.0.0",
     "grapheme-splitter": "^1.0.2",
     "lodash.clonedeep": "^4.5.0",
