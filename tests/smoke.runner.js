@@ -138,14 +138,27 @@ const jasmineTimeout = async () => {
     ).catch(err => err)
     assert.strictEqual(err.message, 'Smoke test failed')
 
-    const specLogs = (await fs.readFile(logFile)).toString()
+    // eslint-disable-next-line no-control-regex
+    const specLogs = (await fs.readFile(logFile)).toString().replace(/[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g, '')
     assert.ok(
         specLogs.includes('Error: Timeout - Async function did not complete within 1000ms (custom timeout)'),
         'spec was not failing due to timeout error'
     )
     assert.ok(
+        specLogs.includes('Expected true to be false.'),
+        'spec was not failing a sync assertion error'
+    )
+    assert.ok(
         !specLogs.includes('RangeError: Maximum call stack size exceeded'),
         'spec was failing due to unexpected "Maximum call stack size exceeded"'
+    )
+    assert.ok(
+        specLogs.includes('✓ should allow also async assertions afterwards'),
+        'spec should also allow async assertions afterwards'
+    )
+    assert.ok(
+        specLogs.includes('✓ should allow also sync assertions afterwards'),
+        'spec should also allow sync assertions afterwards'
     )
 }
 

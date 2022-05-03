@@ -7,4 +7,12 @@ describe('Jasmine timeout test', () => {
     it('do not run into max callstack errors', () => {
         expect(true).toBe(false)
     })
+
+    it('should allow also async assertions afterwards', async () => {
+        await expect(browser).toHaveTitle('Mock Page Title')
+    })
+
+    it('should allow also sync assertions afterwards', () => {
+        expect(browser).toHaveTitle('Mock Page Title')
+    })
 })
