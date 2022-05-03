@@ -27,7 +27,7 @@
     "@wdio/types": "7.19.5",
     "@wdio/utils": "7.19.5",
     "expect-webdriverio": "^3.0.0",
-    "mocha": "^9.0.0"
+    "mocha": "^10.0.0"
   },
   "devDependencies": {
     "@types/node": "^17.0.5"
