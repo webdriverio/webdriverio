@@ -391,8 +391,10 @@ async function executeAsync(this: any, fn: Function, retries: Retries, args: any
     const asyncSpecBefore = asyncSpec
     this.wdioRetries = retries.attempts
 
-    // @ts-ignore
-    expectSync = global.expect
+    if (!expectSync) {
+        // @ts-ignore
+        expectSync = global.expect.bind({})
+    }
     if (isJasmine) {
         // @ts-ignore
         global.expect = expectAsyncShim
@@ -409,16 +411,6 @@ async function executeAsync(this: any, fn: Function, retries: Retries, args: any
                 .catch((err: any) => err)
         } else {
             asyncSpec = asyncSpecBefore
-        }
-
-        /**
-         * if test fail in jasmine (e.g. timeout) the finally statement
-         * would not be executed in async mode where fibers is not supported
-         */
-        const nodeVersion = parseInt(process.version.slice(1).split('.').shift() || '0', 10)
-        if (isJasmine && nodeVersion >= 16) {
-            // @ts-ignore
-            global.expect = expectSync
         }
 
         return await result
