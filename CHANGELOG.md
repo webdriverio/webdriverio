@@ -19,6 +19,20 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.19.7 (2022-05-03)
+
+#### :bug: Bug Fix
+* `wdio-utils`
+  * [#8300](https://github.com/webdriverio/webdriverio/pull/8300) Fix Jasmine in testrunner ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-reporter`
+  * [#8262](https://github.com/webdriverio/webdriverio/pull/8262) Closes [#8007](https://github.com/webdriverio/webdriverio/issues/8007) Cucumber skipped steps not appearing in report ([@kaksjonovs](https://github.com/kaksjonovs))
+
+#### Committers: 3
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Kristaps Aksjonovs ([@kaksjonovs](https://github.com/kaksjonovs))
+- Ryosuke Iwanaga ([@riywo](https://github.com/riywo))
+
+
 ## v7.19.6 (2022-04-22)
 
 #### :memo: Documentation
