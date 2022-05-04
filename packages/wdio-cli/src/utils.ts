@@ -11,6 +11,9 @@ import type { Options, Capabilities, Services } from '@wdio/types'
 
 import { ReplCommandArguments, Questionnair, SupportedPackage, OnCompleteResult, ParsedAnswers } from './types'
 import { EXCLUSIVE_SERVICES, ANDROID_CONFIG, IOS_CONFIG, QUESTIONNAIRE } from './constants'
+import { ConfigParser } from '@wdio/config'
+import { DesiredCapabilities, MultiRemoteCapabilities, W3CCapabilities } from '@wdio/types/build/Capabilities'
+import pickBy from 'lodash.pickby'
 
 const log = logger('@wdio/cli:utils')
 
@@ -107,7 +110,7 @@ export async function runOnCompleteHook(
 /**
  * get runner identification by caps
  */
-export function getRunnerName (caps: Capabilities.DesiredCapabilities = {}) {
+export function getRunnerName(caps: Capabilities.DesiredCapabilities = {}) {
     let runner =
         caps.browserName ||
         caps.appPackage ||
@@ -127,7 +130,7 @@ export function getRunnerName (caps: Capabilities.DesiredCapabilities = {}) {
     return runner
 }
 
-function buildNewConfigArray (str: string, type: string, change: string) {
+function buildNewConfigArray(str: string, type: string, change: string) {
     const newStr = str
         .split(`${type}s: `)[1]
         .replace(/'/g, '')
@@ -141,11 +144,11 @@ function buildNewConfigArray (str: string, type: string, change: string) {
         )
 }
 
-function buildNewConfigString (str: string, type: string, change: string) {
+function buildNewConfigString(str: string, type: string, change: string) {
     return str.replace(new RegExp(`(${type}: )('\\w*')`), `$1'${change}'`)
 }
 
-export function findInConfig (config: string, type: string) {
+export function findInConfig(config: string, type: string) {
     let regexStr = `[\\/\\/]*[\\s]*${type}s: [\\s]*\\[([\\s]*['|"]\\w*['|"],*)*[\\s]*\\]`
 
     if (type === 'framework') {
@@ -156,7 +159,7 @@ export function findInConfig (config: string, type: string) {
     return config.match(regex)
 }
 
-export function replaceConfig (config: string, type: string, name: string) {
+export function replaceConfig(config: string, type: string, name: string) {
     if (type === 'framework') {
         return buildNewConfigString(config, type, name)
     }
@@ -218,7 +221,7 @@ export function convertPackageHashToObject(pkg: string, hash = '$--$'): Supporte
     }
 }
 
-export async function renderConfigurationFile (answers: ParsedAnswers) {
+export async function renderConfigurationFile(answers: ParsedAnswers) {
     const tplPath = path.join(__dirname, 'templates/wdio.conf.tpl.ejs')
     const filename = `wdio.conf.${answers.isUsingTypeScript ? 'ts' : 'js'}`
     const renderedTpl = await renderFile(tplPath, { answers })
@@ -250,6 +253,11 @@ export const validateServiceAnswers = (answers: string[]): Boolean | string => {
 }
 
 export function getCapabilities(arg: ReplCommandArguments) {
+    let finalCapabilities
+    const IGNORED_CAPABILITIES = [
+        'bail', 'framework', 'reporters', 'suite', 'spec', 'specs', 'excludeDriverLogs', 'exclude',
+        'mochaOpts', 'jasmineOpts', 'cucumberOpts', 'autoCompileOpts', 'maxInstances'
+    ]
     const optionalCapabilites = {
         platformVersion: arg.platformVersion,
         udid: arg.udid,
@@ -271,15 +279,25 @@ export function getCapabilities(arg: ReplCommandArguments) {
         return { capabilities: { browserName: 'Chrome', ...ANDROID_CONFIG, ...optionalCapabilites } }
     } else if (/ios/.test(arg.option)) {
         return { capabilities: { browserName: 'Safari', ...IOS_CONFIG, ...optionalCapabilites } }
+    } else if (/(js|ts)$/.test(arg.option)) {
+        const config = new ConfigParser()
+        config.addConfigFile(arg.option)
+        let requiredCaps = config.getCapabilities()
+        if (Object.prototype.hasOwnProperty.call(arg, 'capabilities')) {
+            requiredCaps = (requiredCaps as (DesiredCapabilities | W3CCapabilities)[])[Number(arg.capabilities)] ||
+                (requiredCaps as MultiRemoteCapabilities)[arg.capabilities]
+        }
+        const requiredW3CCaps = pickBy(requiredCaps, (_, key) => !IGNORED_CAPABILITIES.includes(key))
+        finalCapabilities = { capabilities: { ...(requiredW3CCaps as W3CCapabilities) } }
     }
-    return { capabilities: { browserName: arg.option } }
+    return finalCapabilities || { capabilities: { browserName: arg.option } }
 }
 
 /**
  * Check if file exists in current work directory
  * @param {string} filename to check existance for
  */
-export function hasFile (filename: string) {
+export function hasFile(filename: string) {
     return fs.existsSync(path.join(process.cwd(), filename))
 }
 
@@ -287,7 +305,7 @@ export function hasFile (filename: string) {
  * Check if package is installed
  * @param {string} package to check existance for
  */
-export function hasPackage (pkg: string) {
+export function hasPackage(pkg: string) {
     try {
         /**
          * this is only for testing purposes as we want to check whether
@@ -306,7 +324,7 @@ export function hasPackage (pkg: string) {
 /**
  * generate test files based on CLI answers
  */
-export async function generateTestFiles (answers: ParsedAnswers) {
+export async function generateTestFiles(answers: ParsedAnswers) {
     const testFiles = answers.framework === 'cucumber'
         ? [path.join(TEMPLATE_ROOT_DIR, 'cucumber')]
         : (answers.framework === 'mocha'
@@ -346,27 +364,28 @@ export async function getAnswers(yes: boolean): Promise<Questionnair> {
                  * set nothing if question doesn't apply
                  */
                 ? {}
-                : { [question.name]: typeof question.default !== 'undefined'
-                    /**
-                     * set default value if existing
-                     */
-                    ? typeof question.default === 'function'
-                        ? question.default(answers)
-                        : question.default
-                    : question.choices && question.choices.length
-                    /**
-                     * pick first choice, select value if it exists
-                     */
-                        ? (question.choices[0] as { value: any }).value
+                : {
+                    [question.name]: typeof question.default !== 'undefined'
+                        /**
+                         * set default value if existing
+                         */
+                        ? typeof question.default === 'function'
+                            ? question.default(answers)
+                            : question.default
+                        : question.choices && question.choices.length
+                            /**
+                             * pick first choice, select value if it exists
+                             */
                             ? (question.choices[0] as { value: any }).value
-                            : question.choices[0]
-                        : {}
+                                ? (question.choices[0] as { value: any }).value
+                                : question.choices[0]
+                            : {}
                 }
         ), {} as Questionnair)
         : await inquirer.prompt(QUESTIONNAIRE)
 }
 
-export function getPathForFileGeneration (answers: Questionnair) {
+export function getPathForFileGeneration(answers: Questionnair) {
     const destSpecRootPath = path.join(
         process.cwd(),
         path.dirname(answers.specs || '').replace(/\*\*$/, ''))
@@ -374,7 +393,7 @@ export function getPathForFileGeneration (answers: Questionnair) {
     const destStepRootPath = path.join(process.cwd(), path.dirname(answers.stepDefinitions || ''))
 
     const destPageObjectRootPath = answers.usePageObjects
-        ?  path.join(
+        ? path.join(
             process.cwd(),
             path.dirname(answers.pages || '').replace(/\*\*$/, ''))
         : ''
@@ -392,14 +411,14 @@ export function getPathForFileGeneration (answers: Questionnair) {
     }
 
     return {
-        destSpecRootPath : destSpecRootPath,
-        destStepRootPath : destStepRootPath,
-        destPageObjectRootPath : destPageObjectRootPath,
-        relativePath : relativePath
+        destSpecRootPath: destSpecRootPath,
+        destStepRootPath: destStepRootPath,
+        destPageObjectRootPath: destPageObjectRootPath,
+        relativePath: relativePath
     }
 }
 
-export function getDefaultFiles (answers: Partial<Questionnair>, filePath: string) {
+export function getDefaultFiles(answers: Partial<Questionnair>, filePath: string) {
     return answers?.isUsingCompiler?.toString().includes('TypeScript')
         ? `${filePath}.ts`
         : `${filePath}.js`
