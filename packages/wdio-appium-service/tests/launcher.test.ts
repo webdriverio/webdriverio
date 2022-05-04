@@ -1,21 +1,16 @@
 import AppiumLauncher from '../src/launcher'
 import childProcess from 'child_process'
 import fs from 'fs-extra'
-import { mocked } from 'ts-jest/utils'
 import path from 'path'
 import type { Capabilities, Options } from '@wdio/types'
 
 jest.mock('child_process', () => ({
     spawn: jest.fn(),
 }))
-const childProcessMock = mocked(childProcess, true)
-
 jest.mock('fs-extra', () => ({
     createWriteStream: jest.fn(),
     ensureFileSync: jest.fn(),
 }))
-
-const fsMocked = mocked(fs, true)
 
 class MockProcess {
     removeListener() {}
@@ -71,8 +66,8 @@ describe('Appium launcher', () => {
 
     beforeEach(() => {
         getAppiumCommandSpy.mockReturnValue('/appium/command/path')
-        childProcessMock.spawn.mockClear()
-        childProcessMock.spawn.mockReturnValue(new MockProcess() as unknown as childProcess.ChildProcess)
+        ;(childProcess.spawn as jest.Mock).mockClear()
+        ;(childProcess.spawn as jest.Mock).mockReturnValue(new MockProcess() as unknown as childProcess.ChildProcess)
     })
 
     describe('onPrepare', () => {
@@ -262,7 +257,7 @@ describe('Appium launcher', () => {
 
         test('should fail if Appium exits', async () => {
             const launcher = new AppiumLauncher({}, [], {} as any)
-            childProcessMock.spawn.mockReturnValue(new MockFailingProcess(1) as unknown as childProcess.ChildProcess)
+            ;(childProcess.spawn as jest.Mock).mockReturnValue(new MockFailingProcess(1) as unknown as childProcess.ChildProcess)
 
             const error = await launcher.onPrepare().catch((err) => err)
             const expectedError = new Error('Appium exited before timeout (exit code: 1)')
@@ -271,7 +266,7 @@ describe('Appium launcher', () => {
 
         test('should fail and error message if Appium already runs', async () => {
             const launcher = new AppiumLauncher({}, [], {} as any)
-            childProcessMock.spawn.mockReturnValue(new MockFailingProcess(2) as unknown as childProcess.ChildProcess)
+            ;(childProcess.spawn as jest.Mock).mockReturnValue(new MockFailingProcess(2) as unknown as childProcess.ChildProcess)
 
             const error = await launcher.onPrepare().catch((err) => err)
             const expectedError = new Error('Appium exited before timeout (exit code: 2)\n' +
@@ -281,7 +276,7 @@ describe('Appium launcher', () => {
 
         test('should fail with Appium error message', async () => {
             const launcher = new AppiumLauncher({}, [], {} as any)
-            childProcessMock.spawn.mockReturnValue(new MockCustomFailingProcess(2) as unknown as childProcess.ChildProcess)
+            ;(childProcess.spawn as jest.Mock).mockReturnValue(new MockCustomFailingProcess(2) as unknown as childProcess.ChildProcess)
 
             const error = await launcher.onPrepare().catch((err) => err)
             const expectedError = new Error('Appium exited before timeout (exit code: 2)\nError: Uups')
@@ -318,7 +313,7 @@ describe('Appium launcher', () => {
             const launcher = new AppiumLauncher({ logPath: './' }, [], {} as any)
             await launcher.onPrepare()
 
-            expect(fsMocked.createWriteStream.mock.calls[0][0]).toBe('/some/file/path')
+            expect((fs.createWriteStream as jest.Mock).mock.calls[0][0]).toBe('/some/file/path')
             expect(launcher['_process']!.stdout.pipe).toBeCalled()
             expect(launcher['_process']!.stderr.pipe).toBeCalled()
         })
