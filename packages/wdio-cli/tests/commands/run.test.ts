@@ -1,5 +1,6 @@
+// @ts-expect-error mock
+import { yargs } from 'yargs/yargs'
 import fs from 'fs-extra'
-import yargs from 'yargs'
 import * as runCmd from '../../src/commands/run'
 import * as configCmd from '../../src/commands/config'
 

@@ -25,13 +25,13 @@ const DESCRIPTION = [
 export const run = async () => {
     const argv = yargs(hideBin(process.argv))
         .commandDir('commands')
-        .example('$0 run wdio.conf.js --suite foobar', 'Run suite on testsuite "foobar"')
-        .example('$0 run wdio.conf.js --spec ./tests/e2e/a.js --spec ./tests/e2e/b.js', 'Run suite on specific specs')
-        .example('$0 run wdio.conf.js --spec ./tests/e2e/a.feature:5', 'Run scenario by line number')
-        .example('$0 run wdio.conf.js --spec ./tests/e2e/a.feature:5:10', 'Run scenarios by line number')
-        .example('$0 run wdio.conf.js --spec ./tests/e2e/a.feature:5:10 --spec ./test/e2e/b.feature', 'Run scenarios by line number in single feature and another complete feature')
-        .example('$0 install reporter spec', 'Install @wdio/spec-reporter')
-        .example('$0 repl chrome -u <SAUCE_USERNAME> -k <SAUCE_ACCESS_KEY>', 'Run repl in Sauce Labs cloud')
+        .example('wdio run wdio.conf.js --suite foobar', 'Run suite on testsuite "foobar"')
+        .example('wdio run wdio.conf.js --spec ./tests/e2e/a.js --spec ./tests/e2e/b.js', 'Run suite on specific specs')
+        .example('wdio run wdio.conf.js --spec ./tests/e2e/a.feature:5', 'Run scenario by line number')
+        .example('wdio run wdio.conf.js --spec ./tests/e2e/a.feature:5:10', 'Run scenarios by line number')
+        .example('wdio run wdio.conf.js --spec ./tests/e2e/a.feature:5:10 --spec ./test/e2e/b.feature', 'Run scenarios by line number in single feature and another complete feature')
+        .example('wdio install reporter spec', 'Install @wdio/spec-reporter')
+        .example('wdio repl chrome -u <SAUCE_USERNAME> -k <SAUCE_ACCESS_KEY>', 'Run repl in Sauce Labs cloud')
         .updateStrings({ 'Commands:': `${DESCRIPTION.join('\n')}\n\nCommands:` })
         .epilogue(CLI_EPILOGUE)
 
@@ -59,7 +59,7 @@ export const run = async () => {
 
     if (params._ && !params._.find((param: string) => supportedCommands.includes(param))) {
         const args: RunCommandArguments = {
-            ...argv.argv,
+            ...params,
             configPath: path.resolve(process.cwd(), params._[0] && params._[0].toString() || DEFAULT_CONFIG_FILENAME)
         }
 
