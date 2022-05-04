@@ -21,6 +21,10 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ## v7.19.7 (2022-05-03)
 
+#### :rocket: New Feature
+* `webdriver`
+  * [#8267](https://github.com/webdriverio/webdriverio/pull/8267) Add request.performance event ([@riywo](https://github.com/riywo))
+
 #### :bug: Bug Fix
 * `wdio-utils`
   * [#8300](https://github.com/webdriverio/webdriverio/pull/8300) Fix Jasmine in testrunner ([@christian-bromann](https://github.com/christian-bromann))
