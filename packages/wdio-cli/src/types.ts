@@ -85,6 +85,7 @@ export interface ReplCommandArguments {
     deviceName: string
     udid: string
     option: string
+    capabilities: string
 }
 
 export interface InstallCommandArguments {
