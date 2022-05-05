@@ -89,6 +89,7 @@ export default function (
         }
 
         const request = RequestFactory.getInstance(method, endpoint, body, isHubCommand)
+        request.on('performance', (...args) => this.emit('request.performance', ...args))
         this.emit('command', { method, endpoint, body })
         log.info('COMMAND', commandCallStructure(command, args))
         return request.makeRequest(this.options, this.sessionId).then((result) => {

@@ -140,22 +140,32 @@ describe('utils', () => {
         error = new CustomRequestError({ value: { message: 'stale element reference' } })
         expect(error.name).toBe('stale element reference')
         expect(error.message).toBe('stale element reference')
+        expect(error.stack).toMatch('stale element reference')
+        expect(error.stack).toMatch('stale element reference')
 
         error = new CustomRequestError({ value: { message: 'message' } } )
         expect(error.name).toBe('WebDriver Error')
         expect(error.message).toBe('message')
+        expect(error.stack).toMatch('WebDriver Error')
+        expect(error.stack).toMatch('message')
 
         error = new CustomRequestError({ value: { class: 'class' } } )
         expect(error.name).toBe('WebDriver Error')
         expect(error.message).toBe('class')
+        expect(error.stack).toMatch('WebDriver Error')
+        expect(error.stack).toMatch('class')
 
         error = new CustomRequestError({ value: { name: 'Protocol Error' } } )
         expect(error.name).toBe('Protocol Error')
         expect(error.message).toBe('unknown error')
+        expect(error.stack).toMatch('Protocol Error')
+        expect(error.stack).toMatch('unknown error')
 
         error = new CustomRequestError({ value: { } } )
         expect(error.name).toBe('WebDriver Error')
         expect(error.message).toBe('unknown error')
+        expect(error.stack).toMatch('WebDriver Error')
+        expect(error.stack).toMatch('unknown error')
     })
 
     describe('setupDirectConnect', () => {

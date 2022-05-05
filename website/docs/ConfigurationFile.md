@@ -51,7 +51,7 @@ exports.config = {
     // Sauce Labs provides a [headless offering](https://saucelabs.com/products/web-testing/sauce-headless-testing)
     // that allows you to run Chrome and Firefox tests headless.
     //
-    headless: false
+    headless: false,
     //
     // ==================
     // Specify Test Files
@@ -311,6 +311,15 @@ exports.config = {
      * @param  {[type]} execArgv list of string arguments passed to the worker process
      */
     onWorkerStart: function (cid, caps, specs, args, execArgv) {
+    },
+    /**
+     * Gets executed just after a worker process has exited.
+     * @param  {String} cid      capability id (e.g 0-0)
+     * @param  {Number} exitCode 0 - success, 1 - fail
+     * @param  {[type]} specs    specs to be run in the worker process
+     * @param  {Number} retries  number of retries used
+     */
+    onWorkerEnd: function (cid, exitCode, specs, retries) {
     },
     /**
      * Gets executed just before initializing the webdriver session and test framework. It allows you

@@ -141,7 +141,7 @@ export default class BaseReporter {
          *
          * ```js
          * const MyCustomReporter = require('/some/path/MyCustomReporter.js')
-         * export.config = {
+         * exports.config
          *     //...
          *     reporters: [
          *         MyCustomReporter, // or
@@ -155,7 +155,9 @@ export default class BaseReporter {
             ReporterClass = reporter as Reporters.ReporterClass
             options.logFile = options.setLogFile
                 ? options.setLogFile(this._cid, ReporterClass.name)
-                : this.getLogFile(ReporterClass.name)
+                : typeof options.logFile === 'string'
+                    ? options.logFile
+                    : this.getLogFile(ReporterClass.name)
             options.writeStream = this.getWriteStreamObject(ReporterClass.name)
             return new ReporterClass(options)
         }
@@ -164,7 +166,7 @@ export default class BaseReporter {
          * check if reporter is a node package, e.g. wdio-dot reporter
          *
          * ```js
-         * export.config = {
+         * exports.config
          *     //...
          *     reporters: [
          *         'dot', // or
@@ -178,7 +180,9 @@ export default class BaseReporter {
             ReporterClass = initialisePlugin(reporter, 'reporter').default as Reporters.ReporterClass
             options.logFile = options.setLogFile
                 ? options.setLogFile(this._cid, reporter)
-                : this.getLogFile(reporter)
+                : typeof options.logFile === 'string'
+                    ? options.logFile
+                    : this.getLogFile(reporter)
             options.writeStream = this.getWriteStreamObject(reporter)
             return new ReporterClass(options)
         }

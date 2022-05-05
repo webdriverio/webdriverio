@@ -299,7 +299,14 @@ describe('webdriver request', () => {
             const res = await req['_request'](opts)
 
             expect(res).toEqual(expectedResponse)
-            expect(req.emit).toBeCalledWith('response', { result: expectedResponse })
+            expect((req.emit as jest.Mock).mock.calls).toHaveLength(2)
+            expect(req.emit).toHaveBeenNthCalledWith(1, 'response', { result: expectedResponse })
+            expect(req.emit).toHaveBeenNthCalledWith(2, 'performance', expect.objectContaining({
+                request: opts,
+                durationMillisecond: expect.any(Number),
+                retryCount: 0,
+                success: true,
+            }))
         })
 
         it('should short circuit if request throws a stale element exception', async () => {
@@ -313,7 +320,9 @@ describe('webdriver request', () => {
 
             const error = await req['_request'](opts).catch(err => err)
             expect(error.message).toBe('element is not attached to the page document')
-            expect((req.emit as jest.Mock).mock.calls).toHaveLength(1)
+            expect((req.emit as jest.Mock).mock.calls).toHaveLength(2)
+            expect(req.emit).toHaveBeenNthCalledWith(1, 'response', expect.anything())
+            expect(req.emit).toHaveBeenNthCalledWith(2, 'performance', expect.objectContaining({ success: false }))
             expect(warn.mock.calls).toHaveLength(1)
             expect(warn.mock.calls).toEqual([['Request encountered a stale element - terminating request']])
         })
@@ -324,7 +333,9 @@ describe('webdriver request', () => {
 
             const opts = Object.assign(req.defaultOptions, { url: { pathname: '/empty' } })
             await expect(req['_request'](opts)).rejects.toEqual(new Error('Response has empty body'))
-            expect((req.emit as jest.Mock).mock.calls).toHaveLength(1)
+            expect((req.emit as jest.Mock).mock.calls).toHaveLength(2)
+            expect(req.emit).toHaveBeenNthCalledWith(1, 'response', expect.anything())
+            expect(req.emit).toHaveBeenNthCalledWith(2, 'performance', expect.objectContaining({ success: false }))
             expect(warn.mock.calls).toHaveLength(0)
             expect(error.mock.calls).toHaveLength(1)
         })
@@ -335,7 +346,13 @@ describe('webdriver request', () => {
 
             const opts = Object.assign(req.defaultOptions, { url: { pathname: '/failing' } })
             await expect(req['_request'](opts, undefined, 2)).rejects.toEqual(new Error('unknown error'))
-            expect((req.emit as jest.Mock).mock.calls).toHaveLength(3)
+            expect((req.emit as jest.Mock).mock.calls).toHaveLength(6)
+            expect(req.emit).toHaveBeenNthCalledWith(1, 'retry', expect.anything())
+            expect(req.emit).toHaveBeenNthCalledWith(2, 'performance', expect.objectContaining({ success: false }))
+            expect(req.emit).toHaveBeenNthCalledWith(3, 'retry', expect.anything())
+            expect(req.emit).toHaveBeenNthCalledWith(4, 'performance', expect.objectContaining({ success: false }))
+            expect(req.emit).toHaveBeenNthCalledWith(5, 'response', expect.anything())
+            expect(req.emit).toHaveBeenNthCalledWith(6, 'performance', expect.objectContaining({ success: false }))
             expect(warn.mock.calls).toHaveLength(2)
             expect(error.mock.calls).toHaveLength(1)
         })
@@ -346,7 +363,15 @@ describe('webdriver request', () => {
 
             const opts = Object.assign(req.defaultOptions, { url: { pathname: '/failing' }, json: { foo: 'bar' } })
             expect(await req['_request'](opts, undefined, 3)).toEqual({ value: 'caught' })
-            expect((req.emit as jest.Mock).mock.calls).toHaveLength(4)
+            expect((req.emit as jest.Mock).mock.calls).toHaveLength(8)
+            expect(req.emit).toHaveBeenNthCalledWith(1, 'retry', expect.anything())
+            expect(req.emit).toHaveBeenNthCalledWith(2, 'performance', expect.objectContaining({ success: false }))
+            expect(req.emit).toHaveBeenNthCalledWith(3, 'retry', expect.anything())
+            expect(req.emit).toHaveBeenNthCalledWith(4, 'performance', expect.objectContaining({ success: false }))
+            expect(req.emit).toHaveBeenNthCalledWith(5, 'retry', expect.anything())
+            expect(req.emit).toHaveBeenNthCalledWith(6, 'performance', expect.objectContaining({ success: false }))
+            expect(req.emit).toHaveBeenNthCalledWith(7, 'response', expect.anything())
+            expect(req.emit).toHaveBeenNthCalledWith(8, 'performance', expect.objectContaining({ success: true }))
             expect(warn.mock.calls).toHaveLength(3)
             expect(error.mock.calls).toHaveLength(0)
         })

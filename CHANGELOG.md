@@ -19,6 +19,252 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.19.7 (2022-05-03)
+
+#### :rocket: New Feature
+* `webdriver`
+  * [#8267](https://github.com/webdriverio/webdriverio/pull/8267) Add request.performance event ([@riywo](https://github.com/riywo))
+
+#### :bug: Bug Fix
+* `wdio-utils`
+  * [#8300](https://github.com/webdriverio/webdriverio/pull/8300) Fix Jasmine in testrunner ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-reporter`
+  * [#8262](https://github.com/webdriverio/webdriverio/pull/8262) Closes [#8007](https://github.com/webdriverio/webdriverio/issues/8007) Cucumber skipped steps not appearing in report ([@kaksjonovs](https://github.com/kaksjonovs))
+
+#### Committers: 3
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Kristaps Aksjonovs ([@kaksjonovs](https://github.com/kaksjonovs))
+- Ryosuke Iwanaga ([@riywo](https://github.com/riywo))
+
+
+## v7.19.6 (2022-04-22)
+
+#### :memo: Documentation
+* `wdio-cli`
+  * [#8263](https://github.com/webdriverio/webdriverio/pull/8263) Wdio light reporter ([@sarfrajadstreaks](https://github.com/sarfrajadstreaks))
+
+#### :house: Internal
+* [#8254](https://github.com/webdriverio/webdriverio/pull/8254) Update repo examples to use async/await ([@christian-bromann](https://github.com/christian-bromann))
+* [#8244](https://github.com/webdriverio/webdriverio/pull/8244) Bump actions/setup-node from 1 to 3 ([@dependabot[bot]](https://github.com/apps/dependabot))
+* [#8241](https://github.com/webdriverio/webdriverio/pull/8241) chore: Included githubactions in the dependabot config ([@naveensrinivasan](https://github.com/naveensrinivasan))
+* [#8238](https://github.com/webdriverio/webdriverio/pull/8238) chore: Set permissions for GitHub actions ([@naveensrinivasan](https://github.com/naveensrinivasan))
+
+#### Committers: 3
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Md Sarfraj Akhtar ([@sarfrajadstreaks](https://github.com/sarfrajadstreaks))
+- Naveen ([@naveensrinivasan](https://github.com/naveensrinivasan))
+
+
+## v7.19.5 (2022-04-13)
+
+#### :bug: Bug Fix
+* `wdio-types`, `webdriverio`
+  * [#8211](https://github.com/webdriverio/webdriverio/pull/8211) Fix running Firefox ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 2
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- [@morooLee](https://github.com/morooLee)
+
+
+## v7.19.4 (2022-04-11)
+
+#### :memo: Documentation
+* `wdio-cli`
+  * [#8196](https://github.com/webdriverio/webdriverio/pull/8196) Update reporters in docs and wizard ([@christian-bromann](https://github.com/christian-bromann))
+* Other
+  * [#8186](https://github.com/webdriverio/webdriverio/pull/8186) Fix typo on selectors documentation page ([@georgemunyoro](https://github.com/georgemunyoro))
+
+#### Committers: 4
+- Chris Bottin ([@chrisbottin](https://github.com/chrisbottin))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- George Munyoro ([@georgemunyoro](https://github.com/georgemunyoro))
+- [@Staicul](https://github.com/Staicul)
+
+
+## v7.19.3 (2022-03-31)
+
+#### :bug: Bug Fix
+* `wdio-runner`, `wdio-utils`
+  * [#8175](https://github.com/webdriverio/webdriverio/pull/8175) Fix maximum call stack size exceeded in Jasmine ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-cli`
+  * [#8172](https://github.com/webdriverio/webdriverio/pull/8172) Set empty array as default for plugins when setting up a project ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
+## v7.19.2 (2022-03-29)
+
+#### :nail_care: Polish
+* `wdio-cli`
+  * [#8166](https://github.com/webdriverio/webdriverio/pull/8166) Import config types rather than using namespaces ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-utils`
+  * [#8165](https://github.com/webdriverio/webdriverio/pull/8165) Sanitize script command logs ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
+## v7.19.1 (2022-03-24)
+
+#### :nail_care: Polish
+* `wdio-types`
+  * [#8151](https://github.com/webdriverio/webdriverio/pull/8151) chore(wdio-types): remove implicit dependency on ts-node ([@boneskull](https://github.com/boneskull))
+* `wdio-utils`
+  * [#8130](https://github.com/webdriverio/webdriverio/pull/8130) wdio-utils: Filter out internal stacktraces ([@WillBrock](https://github.com/WillBrock))
+
+#### Committers: 2
+- Christopher Hiller ([@boneskull](https://github.com/boneskull))
+- Will Brock ([@WillBrock](https://github.com/WillBrock))
+
+
+## v7.19.0 (2022-03-22)
+
+#### :rocket: New Feature
+* `wdio-utils`
+  * [#8134](https://github.com/webdriverio/webdriverio/pull/8134) Chain custom commands end with $ ([@jayrepo](https://github.com/jayrepo))
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#8136](https://github.com/webdriverio/webdriverio/pull/8136) Fix getSize if prop is 0 ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* `wdio-cli`
+  * [#8133](https://github.com/webdriverio/webdriverio/pull/8133) Replacement of wdio-tesults-reporter with wdio-tesults-service ([@ajeetd](https://github.com/ajeetd))
+* Other
+  * [#8131](https://github.com/webdriverio/webdriverio/pull/8131) Docs: Typescript updates for async/sync ([@WillBrock](https://github.com/WillBrock))
+
+#### Committers: 4
+- Ajeet Dhaliwal ([@ajeetd](https://github.com/ajeetd))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Jay Chen ([@jayrepo](https://github.com/jayrepo))
+- Will Brock ([@WillBrock](https://github.com/WillBrock))
+
+
+## v7.18.0 (2022-03-16)
+
+#### :rocket: New Feature
+* `wdio-cli`, `wdio-config`, `wdio-smoke-test-service`, `wdio-types`, `webdriverio`
+  * [#8100](https://github.com/webdriverio/webdriverio/pull/8100) user hook improvements ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :bug: Bug Fix
+* `wdio-cli`, `wdio-shared-store-service`
+  * [#8099](https://github.com/webdriverio/webdriverio/pull/8099) Run user hooks before service hooks ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :house: Internal
+* Other
+  * [#8104](https://github.com/webdriverio/webdriverio/pull/8104) replace rm -> rimraf ([@harsha509](https://github.com/harsha509))
+* `wdio-config`, `wdio-shared-store-service`
+  * [#8097](https://github.com/webdriverio/webdriverio/pull/8097) fix: unit tests in windows (resolves file path and build issues in windows) ([@harsha509](https://github.com/harsha509))
+
+#### Committers: 2
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Sri Harsha ([@harsha509](https://github.com/harsha509))
+
+
+## v7.17.4 (2022-03-10)
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#8094](https://github.com/webdriverio/webdriverio/pull/8094) Fix isEqual.js: avoid syntax error on IE11 ([@FujiHaruka](https://github.com/FujiHaruka))
+
+#### :nail_care: Polish
+* `eslint-plugin-wdio`
+  * [#8095](https://github.com/webdriverio/webdriverio/pull/8095) Improve implementation of the new eslint rules ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 2
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Fuji Haruka ([@FujiHaruka](https://github.com/FujiHaruka))
+
+
+## v7.17.0 (2022-03-10)
+
+#### :nail_care: Polish
+* `wdio-spec-reporter`
+  * [#7877](https://github.com/webdriverio/webdriverio/pull/7877) Allow option to disable the preface in spec reporter ([@zmilonas](https://github.com/zmilonas))
+
+#### :memo: Documentation
+* `wdio-devtools-service`
+  * [#8049](https://github.com/webdriverio/webdriverio/pull/8049) Update Readme. Add 'exclude' for coverageReporter ([@bkrrrr](https://github.com/bkrrrr))
+* Other
+  * [#8023](https://github.com/webdriverio/webdriverio/pull/8023) update cloud services with perfecto.io integration ([@JefZevikw](https://github.com/JefZevikw))
+
+#### Committers: 5
+- Will Brock ([@WillBrock](https://github.com/WillBrock))
+- Zachary Milonas ([@zmilonas](https://github.com/zmilonas))
+- [@JefZevikw](https://github.com/JefZevikw)
+- [@SomeTrashBin](https://github.com/SomeTrashBin)
+- bkr ([@bkrrrr](https://github.com/bkrrrr))
+
+
+## v7.16.16 (2022-02-22)
+
+#### :bug: Bug Fix
+* `webdriver`
+  * [#8020](https://github.com/webdriverio/webdriverio/pull/8020) Webdriver: Fix stacktrace not being displayed on some errors ([@WillBrock](https://github.com/WillBrock))
+
+#### :memo: Documentation
+* `wdio-cli`
+  * [#8024](https://github.com/webdriverio/webdriverio/pull/8024) fix(ui5-service): name of service ([@vobu](https://github.com/vobu))
+* Other
+  * [#8003](https://github.com/webdriverio/webdriverio/pull/8003) Docs: Add a couple missing words to CONTRIBUTING ([@WillBrock](https://github.com/WillBrock))
+
+#### Committers: 2
+- Volker Buzek ([@vobu](https://github.com/vobu))
+- Will Brock ([@WillBrock](https://github.com/WillBrock))
+
+
+## v7.16.15 (2022-02-10)
+
+#### :nail_care: Polish
+* `wdio-mocha-framework`
+  * [#7989](https://github.com/webdriverio/webdriverio/pull/7989) #Fix for https://github.com/webdriverio/webdriverio/issues/7873#issuecomment-1032964198 duration missing in mocha hook ([@praveendvd](https://github.com/praveendvd))
+* `webdriverio`
+  * [#7978](https://github.com/webdriverio/webdriverio/pull/7978) fix(packages/webdriverio): compile errors with promise chaining of `# Changelog
+
+> **Tags:**
+> - :boom:       [Breaking Change]
+> - :eyeglasses: [Spec Compliancy]
+> - :rocket:     [New Feature]
+> - :bug:        [Bug Fix]
+> - :memo:       [Documentation]
+> - :house:      [Internal]
+> - :nail_care:  [Polish]
+
+_Note: Gaps between patch versions are faulty, broken or test releases._
+
+See [CHANGELOG - v4](https://github.com/webdriverio-boneyard/v4/blob/master/CHANGELOG.md).
+
+See [CHANGELOG - v5](https://github.com/webdriverio/webdriverio/blob/v5/CHANGELOG.md).
+
+See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELOG.md)
+
+ ([@starpit](https://github.com/starpit))
+* `wdio-cli`
+  * [#7878](https://github.com/webdriverio/webdriverio/pull/7878) Make npm install step optional in CLI wizard ([@gpt14](https://github.com/gpt14))
+
+#### :memo: Documentation
+* `webdriverio`
+  * [#8000](https://github.com/webdriverio/webdriverio/pull/8000) Update throttle docs example to use correct preset id ([@klamping](https://github.com/klamping))
+* Other
+  * [#7990](https://github.com/webdriverio/webdriverio/pull/7990) Update API.md ([@Yahshemi](https://github.com/Yahshemi))
+* `wdio-junit-reporter`
+  * [#7957](https://github.com/webdriverio/webdriverio/pull/7957) Update wdio-junit-reporter documentation ([@OtherwiseJunk](https://github.com/OtherwiseJunk))
+
+#### :house: Internal
+* `devtools`, `wdio-devtools-service`, `webdriverio`
+  * [#7964](https://github.com/webdriverio/webdriverio/pull/7964) bump puppeteer-core (CVE-2022-0235) ([@nathanKramer](https://github.com/nathanKramer))
+
+#### Committers: 7
+- Bobby ([@OtherwiseJunk](https://github.com/OtherwiseJunk))
+- GPT14 ([@gpt14](https://github.com/gpt14))
+- Kevin Lamping ([@klamping](https://github.com/klamping))
+- Nathan Kramer ([@nathanKramer](https://github.com/nathanKramer))
+- Nick Mitchell ([@starpit](https://github.com/starpit))
+- Yahshemi ([@Yahshemi](https://github.com/Yahshemi))
+- praveendvd ([@praveendvd](https://github.com/praveendvd))
+
+
 ## v7.16.14 (2022-01-29)
 
 #### :bug: Bug Fix

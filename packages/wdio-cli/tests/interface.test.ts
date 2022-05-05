@@ -1,4 +1,5 @@
 import WDIOCLInterface from '../src/interface'
+import { HookError } from '../src/utils'
 import chalk from 'chalk'
 
 const config = {}
@@ -12,7 +13,7 @@ describe('cli interface', () => {
 
     beforeEach(() => {
         global.console.log = jest.fn()
-        wdioClInterface = new WDIOCLInterface(config, 5)
+        wdioClInterface = new WDIOCLInterface(config as any, 5)
         wdioClInterface.log = jest.fn().mockImplementation((...args) => args)
     })
 
@@ -420,6 +421,12 @@ describe('cli interface', () => {
             wdioClInterface.totalWorkerCnt = 0
             expect(wdioClInterface.printSummary().some(x => x.includes(0))).toBe(true)
         })
+    })
+
+    test('logHookError', () => {
+        const err = new HookError('foobar', 'somewhere')
+        expect(wdioClInterface.logHookError(err)[0])
+            .toContain('red SevereServiceError in "somewhere"')
     })
 
     describe('onTestError', () => {

@@ -11,7 +11,7 @@ class SecurePage extends Page {
     /**
      * define selectors using getter methods
      */
-    <%- isUsingTypeScript ? "public " : "" %>get flashAlert()<%- isUsingTypeScript ? ": ChainablePromiseElement<Promise<WebdriverIO.Element>>" : "" %> {
+    <%- isUsingTypeScript ? "public " : "" %>get flashAlert () {
         return $('#flash');
     }
 }

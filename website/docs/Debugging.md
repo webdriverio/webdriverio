@@ -5,8 +5,9 @@ title: Debugging
 
 Debugging is significantly more difficult when several processes spawn dozens of tests in multiple browsers.
 
-For starters, it is extremely helpful to limit parallelism by setting `maxInstances` to `1`, and targeting only those specs and browsers that need to be debugged.
+<iframe width="560" height="315" src="https://www.youtube.com/embed/_bw_VWn5IzU" frameborder="0" allowFullScreen></iframe>
 
+For starters, it is extremely helpful to limit parallelism by setting `maxInstances` to `1`, and targeting only those specs and browsers that need to be debugged.
 
 In `wdio.conf`:
 
@@ -112,5 +113,5 @@ If you are an [Atom](https://atom.io/) hacker you can try [`wdio-repl`](https://
 
 ## Debugging with WebStorm / Intellij
 You can create a node.js debug configuration like this:
-![Screenshot from 2021-05-29 17-33-33](https://user-images.githubusercontent.com/18728354/120088460-81844c00-c0a5-11eb-916b-50f21c8472a8.png)  
+![Screenshot from 2021-05-29 17-33-33](https://user-images.githubusercontent.com/18728354/120088460-81844c00-c0a5-11eb-916b-50f21c8472a8.png)
 Watch this [YouTube Video](https://www.youtube.com/watch?v=Qcqnmle6Wu8) for more information about how to make a configuration.

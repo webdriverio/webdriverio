@@ -89,13 +89,14 @@ export const SUPPORTED_PACKAGES = {
         { name: 'reportportal', value: 'wdio-reportportal-reporter$--$reportportal' },
         { name: 'video', value: 'wdio-video-reporter$--$video' },
         { name: 'json', value: 'wdio-json-reporter$--$json' },
-        { name: 'cucumber', value: 'wdio-cucumber-reporter$--$cucumber' },
+        { name: 'cucumber-json', value: 'wdio-cucumberjs-json-reporter$--$cucumberjs-json' },
         { name: 'mochawesome', value: 'wdio-mochawesome-reporter$--$mochawesome' },
         { name: 'timeline', value: 'wdio-timeline-reporter$--$timeline' },
-        { name: 'html', value: '@rpii/wdio-html-reporter$--$html' },
-        { name: 'markdown', value: 'carmenmitru/wdio-markdown-reporter' },
+        { name: 'html-nice', value: 'wdio-html-nice-reporter$--$html-nice' },
+        { name: 'slack', value: '@moroo/wdio-slack-reporter$--$slack' },
+        { name: 'teamcity', value: 'wdio-teamcity-reporter$--$teamcity' },
         { name: 'delta', value: '@delta-reporter/wdio-delta-reporter-service' },
-        { name: 'tesults', value: 'wdio-tesults-reporter$--$tesults' }
+        { name: 'light', value: '@wdio-light-reporter--$light' }
     ],
     plugin: [
         { name: 'wait-for', value: 'wdio-wait-for$--$wait-for' },
@@ -105,10 +106,14 @@ export const SUPPORTED_PACKAGES = {
         // inquirerjs shows list as its orderer in array
         // put chromedriver first as it is the default option
         { name: 'chromedriver', value: 'wdio-chromedriver-service$--$chromedriver' },
+        { name: 'geckodriver', value: 'wdio-geckodriver-service$--$geckodriver' },
+        { name: 'edgedriver', value: 'wdio-edgedriver-service$--$edgedriver' },
         // internal
         { name: 'sauce', value: '@wdio/sauce-service$--$sauce' },
         { name: 'testingbot', value: '@wdio/testingbot-service$--$testingbot' },
         { name: 'selenium-standalone', value: '@wdio/selenium-standalone-service$--$selenium-standalone' },
+        { name: 'vscode', value: 'wdio-vscode-service$--$vscode' },
+        { name: 'electron', value: 'wdio-electron-service$--$electron' },
         { name: 'devtools', value: '@wdio/devtools-service$--$devtools' },
         { name: 'browserstack', value: '@wdio/browserstack-service$--$browserstack' },
         { name: 'appium', value: '@wdio/appium-service$--$appium' },
@@ -120,7 +125,7 @@ export const SUPPORTED_PACKAGES = {
         { name: 'zafira-listener', value: 'wdio-zafira-listener-service$--$zafira-listener' },
         { name: 'reportportal', value: 'wdio-reportportal-service$--$reportportal' },
         { name: 'docker', value: 'wdio-docker-service$--$docker' },
-        { name: 'wdio-ui5', value: 'wdio-ui5-service$--$wdio-ui5' },
+        { name: 'ui5', value: 'wdio-ui5-service$--$ui5' },
         { name: 'wiremock', value: 'wdio-wiremock-service$--$wiremock' },
         { name: 'ng-apimock', value: 'wdio-ng-apimock-service$--ng-apimock' },
         { name: 'slack', value: 'wdio-slack-service$--$slack' },
@@ -136,6 +141,7 @@ export const SUPPORTED_PACKAGES = {
         { name: 'aws-device-farm', value: 'wdio-aws-device-farm-service$--$aws-device-farm' },
         { name: 'ocr-native-apps', value: 'wdio-ocr-service$--$ocr-native-apps' },
         { name: 'ms-teams', value: 'wdio-ms-teams-service$--$ms-teams' },
+        { name: 'tesults', value: 'wdio-tesults-service$--$tesults' }
     ]
 } as const
 
@@ -236,7 +242,7 @@ export const QUESTIONNAIRE = [{
     type: 'input',
     name: 'env_key',
     message: 'Environment variable for access key',
-    default: 'BROWSERSTACK_ACCESSKEY',
+    default: 'BROWSERSTACK_ACCESS_KEY',
     when: /* istanbul ignore next */ (answers: Questionnair) => answers.backend.toString().startsWith('In the cloud using Browserstack')
 }, {
     type: 'input',
@@ -348,7 +354,8 @@ export const QUESTIONNAIRE = [{
     type: 'checkbox',
     name: 'plugins',
     message: 'Do you want to add a plugin to your test setup?',
-    choices: SUPPORTED_PACKAGES.plugin
+    choices: SUPPORTED_PACKAGES.plugin,
+    default: []
 }, {
     type: 'checkbox',
     name: 'services',

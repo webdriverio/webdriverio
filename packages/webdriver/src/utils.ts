@@ -243,9 +243,7 @@ export class CustomRequestError extends Error {
             this.name = errorObj.name || 'WebDriver Error'
         }
 
-        if (errorObj.stacktrace) {
-            this.stack = errorObj.stacktrace
-        }
+        Error.captureStackTrace(this, CustomRequestError)
     }
 }
 

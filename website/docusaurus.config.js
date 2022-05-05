@@ -21,30 +21,15 @@ module.exports = {
     },
     themeConfig: {
         image: 'img/logo-webdriver-io.png',
-        metadatas: [{ name: 'twitter:card', content: 'summary' }],
+        metadata: [{ name: 'twitter:card', content: 'summary' }],
         colorMode: {
             defaultMode: 'light',
             disableSwitch: false,
-            respectPrefersColorScheme: true,
-            switchConfig: {
-                darkIcon: '🌜',
-                lightIcon: '☀️',
-                // React inline style object
-                // see https://reactjs.org/docs/dom-elements.html#style
-                darkIconStyle: {
-                    marginLeft: '2px',
-                },
-                lightIconStyle: {
-                    marginLeft: '1px',
-                },
-            },
+            respectPrefersColorScheme: true
         },
         prism: {
             theme: require('prism-react-renderer/themes/github'),
             darkTheme: require('prism-react-renderer/themes/dracula')
-        },
-        googleAnalytics: {
-            trackingID: 'UA-47063382-1'
         },
         algolia: {
             apiKey: '1b22fa823f22b7916528edc0e36d9d4a',
@@ -53,8 +38,7 @@ module.exports = {
         },
         announcementBar: {
             id: 'supportus',
-            content:
-              `⭐️  &nbsp; If you like WebdriverIO, give it a star on <a target="_blank" rel="noopener noreferrer" href="https://github.com/${organizationName}/${projectName}">GitHub</a>! ⭐️`,
+            content: '🇺🇦  &nbsp;We stand with the people of Ukraine. We encourage compassion, and hope for peace. &nbsp; 🇺🇦<br>Please support humanitarian efforts for the Ukraine crisis through the <a target="_blank" rel="noopener noreferrer" href="https://www.icrc.org/en/donate/ukraine">International Committee of the Red Cross</a>! #StandWithUkraine',
         },
         navbar: {
             // title: 'I/O',
@@ -167,7 +151,6 @@ module.exports = {
                     ],
                     include: ['**/*.{md,mdx}', '**/_*.{md,mdx}'],
                     exclude: [
-                        '**/_*/**',
                         '**/*.test.{js,jsx,ts,tsx}',
                         '**/__tests__/**'
                     ]
@@ -184,8 +167,12 @@ module.exports = {
                 pages: {
                     remarkPlugins: [require('@docusaurus/remark-plugin-npm2yarn')],
                 },
+                googleAnalytics: {
+                    trackingID: 'UA-47063382-1',
+                    anonymizeIP: true,
+                },
             },
-        ],
+        ]
     ],
     plugins: [
         [

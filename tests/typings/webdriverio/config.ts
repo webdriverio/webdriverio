@@ -1,3 +1,5 @@
+import { expectType } from 'tsd'
+
 class CustomService {
     onPrepare() {
         // TODO: something before all workers launch
@@ -8,6 +10,13 @@ const configA: WebdriverIO.Config = {
     // @ts-expect-error should not be available
     beforeFeature () {
 
+    },
+
+    async onWorkerEnd (cid, exitCode, specs, retries) {
+        expectType<string>(cid)
+        expectType<number>(exitCode)
+        expectType<string[]>(specs)
+        expectType<number>(retries)
     },
 
     async beforeCommand (name) {

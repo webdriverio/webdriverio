@@ -102,7 +102,7 @@ const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) 
                     frameworkPackage.package,
                     'expect-webdriverio'
                 ],
-                target: 'ES5',
+                target: 'es2019',
             }
         }
 

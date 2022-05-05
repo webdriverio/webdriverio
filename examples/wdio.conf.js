@@ -226,13 +226,22 @@ exports.config = {
     /**
      * Gets executed before a worker process is spawned and can be used to initialise specific service
      * for that worker as well as modify runtime environments in an async fashion.
-     * @param  {String} cid      capability id (e.g 0-0)
-     * @param  {[type]} caps     object containing capabilities for session that will be spawn in the worker
-     * @param  {[type]} specs    specs to be run in the worker process
-     * @param  {[type]} args     object that will be merged with the main configuration once worker is initialised
-     * @param  {[type]} execArgv list of string arguments passed to the worker process
+     * @param  {String}   cid      capability id (e.g 0-0)
+     * @param  {[type]}   caps     object containing capabilities for session that will be spawn in the worker
+     * @param  {String[]} specs    specs to be run in the worker process
+     * @param  {[type]}   args     object that will be merged with the main configuration once worker is initialised
+     * @param  {[type]}   execArgv list of string arguments passed to the worker process
      */
     onWorkerStart: function (cid, caps, specs, args, execArgv) {
+    },
+    /**
+     * Gets executed just after a worker process has exited.
+     * @param  {String}   cid      capability id (e.g 0-0)
+     * @param  {Number}   exitCode exit code returned from worker process
+     * @param  {String[]} specs    specs to be run in the worker process
+     * @param  {Number}   retries  number of retries used
+     */
+    onWorkerEnd: function (cid, exitCode, specs, retries) {
     },
     /**
      * Gets executed just before initialising the webdriver session and test framework. It allows you

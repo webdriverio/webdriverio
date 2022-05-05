@@ -4,6 +4,7 @@ import assert from 'assert'
 import { promisify } from 'util'
 
 import { sleep } from '../packages/wdio-utils/src/utils'
+import { SevereServiceError } from '../packages/node_modules/webdriverio'
 
 const fs = {
     readFile: promisify(readFile),
@@ -28,8 +29,16 @@ async function runTests (tests) {
     const testFilter = process.argv[2]
 
     if (process.env.CI || testFilter) {
-        // sequential
         const testsFiltered = testFilter ? tests.filter(test => test.name === testFilter) : tests
+
+        if (testsFiltered.length === 0) {
+            throw new Error(
+                `No test was selected! Smoke test "${testFilter}" ` +
+                `picked but only ${tests.map(test => test.name).join(', ')} available`
+            )
+        }
+
+        // sequential
         for (let test of testsFiltered) {
             await test()
         }
@@ -64,11 +73,8 @@ const mochaTestrunner = async () => {
 const mochaAsyncTestrunner = async () => {
     const { skippedSpecs } = await launch(
         path.resolve(__dirname, 'helpers', 'command.hook.config.js'),
-        {
-            specs: [
-                path.resolve(__dirname, 'mocha', 'test-async.js')
-            ]
-        })
+        { specs: [path.resolve(__dirname, 'mocha', 'test-async.js')] }
+    )
     assert.strictEqual(skippedSpecs, 0)
 }
 
@@ -115,15 +121,45 @@ const jasmineReporter = async () => {
  * Jasmine timeout test
  */
 const jasmineTimeout = async () => {
+    const logFile = path.join(__dirname, 'jasmineTimeout.spec.log')
     const err = await launch(
         path.resolve(__dirname, 'helpers', 'config.js'),
         {
             specs: [path.resolve(__dirname, 'jasmine', 'test-timeout.js')],
-            reporters: [['spec', { outputDir: __dirname }]],
+            reporters: [
+                ['spec', {
+                    outputDir: __dirname,
+                    stdout: false,
+                    logFile
+                }]
+            ],
             framework: 'jasmine'
         }
     ).catch(err => err)
     assert.strictEqual(err.message, 'Smoke test failed')
+
+    // eslint-disable-next-line no-control-regex
+    const specLogs = (await fs.readFile(logFile)).toString().replace(/[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g, '')
+    assert.ok(
+        specLogs.includes('Error: Timeout - Async function did not complete within 1000ms (custom timeout)'),
+        'spec was not failing due to timeout error'
+    )
+    assert.ok(
+        specLogs.includes('Expected true to be false.'),
+        'spec was not failing a sync assertion error'
+    )
+    assert.ok(
+        !specLogs.includes('RangeError: Maximum call stack size exceeded'),
+        'spec was failing due to unexpected "Maximum call stack size exceeded"'
+    )
+    assert.ok(
+        specLogs.includes('✓ should allow also async assertions afterwards'),
+        'spec should also allow async assertions afterwards'
+    )
+    assert.ok(
+        specLogs.includes('✓ should allow also sync assertions afterwards'),
+        'spec should also allow sync assertions afterwards'
+    )
 }
 
 /**
@@ -397,6 +433,41 @@ const standaloneTest = async () => {
     assert.strictEqual(skippedSpecs, 0)
 }
 
+const severeErrorTest = async () => {
+    const onPrepareFailed = await launch(
+        path.resolve(__dirname, 'helpers', 'config.js'),
+        {
+            specs: [path.resolve(__dirname, 'mocha', 'test-empty.js')],
+            onPrepare: () => { throw new SevereServiceError('ups') }
+        }
+    ).then(() => false, () => true)
+    assert.equal(onPrepareFailed, true, 'Expected onPrepare to fail testrun')
+    const onWorkerStartFailed = await launch(
+        path.resolve(__dirname, 'helpers', 'config.js'),
+        {
+            specs: [path.resolve(__dirname, 'mocha', 'test-empty.js')],
+            onWorkerStart: () => { throw new SevereServiceError('ups') }
+        }
+    ).then(() => false, () => true)
+    assert.equal(onWorkerStartFailed, true, 'Expected onWorkerStart to fail testrun')
+    const onWorkerEndFailed = await launch(
+        path.resolve(__dirname, 'helpers', 'config.js'),
+        {
+            specs: [path.resolve(__dirname, 'mocha', 'test-empty.js')],
+            onWorkerEnd: () => { throw new SevereServiceError('ups') }
+        }
+    ).then(() => false, () => true)
+    assert.equal(onWorkerEndFailed, true, 'Expected onWorkerStart to fail testrun')
+    const onCompleteFailed = await launch(
+        path.resolve(__dirname, 'helpers', 'config.js'),
+        {
+            specs: [path.resolve(__dirname, 'mocha', 'test-empty.js')],
+            onComplete: () => { throw new SevereServiceError('ups') }
+        }
+    ).then(() => false, () => true)
+    assert.equal(onCompleteFailed, true, 'Expected onWorkerStart to fail testrun')
+}
+
 (async () => {
     const smokeTests = [
         cucumberTestrunner,
@@ -412,7 +483,8 @@ const standaloneTest = async () => {
         retryFail,
         retryPass,
         customReporterString,
-        customReporterObject
+        customReporterObject,
+        severeErrorTest
     ]
 
     /**

@@ -25,7 +25,7 @@ In order to use the service you just need to add the service to your service lis
 
 ```js
 // wdio.conf.js
-export.config = {
+exports.config
     // ...
     services: ['devtools'],
     // ...
@@ -245,8 +245,9 @@ services: [
     ['devtools', {
         coverageReporter: {
             enable: true,
-            type: 'html',
-            logDir: __dirname + '/coverage'
+            type: 'html', // lcov, json, text
+            logDir: __dirname + '/coverage',
+            exclude: [/resources/]
         }
     }]
 ]

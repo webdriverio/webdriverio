@@ -20,6 +20,14 @@ const log = logger('@wdio/cli:utils')
 const TEMPLATE_ROOT_DIR = path.join(__dirname, 'templates', 'exampleFiles')
 const renderFile = promisify(ejs.renderFile) as (path: string, data: Record<string, any>) => Promise<string>
 
+export class HookError extends SevereServiceError {
+    public origin: string
+    constructor(message: string, origin: string) {
+        super(message)
+        this.origin = origin
+    }
+}
+
 /**
  * run service launch sequences
  */
@@ -38,7 +46,7 @@ export async function runServiceHook(
             const message = `A service failed in the '${hookName}' hook\n${err.stack}\n\n`
 
             if (err instanceof SevereServiceError) {
-                return { status: 'rejected', reason: message }
+                return { status: 'rejected', reason: message, origin: hookName }
             }
 
             log.error(`${message}Continue...`)
@@ -50,7 +58,7 @@ export async function runServiceHook(
 
         const rejectedHooks = results.filter(p => p && p.status === 'rejected')
         if (rejectedHooks.length) {
-            return Promise.reject(new Error(`\n${rejectedHooks.map(p => p && p.reason).join()}\n\nStopping runner...`))
+            return Promise.reject(new HookError(`\n${rejectedHooks.map(p => p && p.reason).join()}\n\nStopping runner...`, hookName))
         }
     })
 }
@@ -62,10 +70,15 @@ export async function runServiceHook(
  * @param {Object} capabilities
  */
 export async function runLauncherHook(hook: Function | Function[], ...args: any[]) {
-    const catchFn = (e: Error) => log.error(`Error in hook: ${e.stack}`)
-
     if (typeof hook === 'function') {
         hook = [hook]
+    }
+
+    const catchFn = (e: Error) => {
+        log.error(`Error in hook: ${e.stack}`)
+        if (e instanceof SevereServiceError) {
+            throw new HookError(e.message, (hook as Function[])[0].name)
+        }
     }
 
     return Promise.all(hook.map((hook) => {
@@ -102,6 +115,9 @@ export async function runOnCompleteHook(
             return 0
         } catch (err: any) {
             log.error(`Error in onCompleteHook: ${err.stack}`)
+            if (err instanceof SevereServiceError) {
+                throw new HookError(err.message, 'onComplete')
+            }
             return 1
         }
     }))

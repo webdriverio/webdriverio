@@ -20,7 +20,7 @@ you just need to set `tbTunnel: true`.
 
 ```js
 // wdio.conf.js
-export.config = {
+exports.config
     // ...
     user: process.env.TB_KEY,
     key: process.env.TB_SECRET,

@@ -13,10 +13,10 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [12.x, 14.x, 16.x]
+        node-version: [14.x, 16.x]
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v1
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
       - name: Install Dependencies
@@ -29,10 +29,10 @@ jobs:
       - name: Lint / Typings / Unit / Smoke Tests
         run: ./node_modules/.bin/run-s test:eslint test:typings test:coverage test:smoke
   e2e-windows:
-    runs-on: windows-latest
+    runs-on: windows-2019
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v1
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
         with:
           node-version: 16.x
       - name: Install Dependencies
@@ -56,8 +56,8 @@ jobs:
   e2e-mac:
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v1
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
         with:
           node-version: 16.x
       - name: Install Dependencies
@@ -85,11 +85,13 @@ jobs:
       #   run: npm run test:e2e:firefox
       - name: E2E Connection Test
         run: npm run test:e2e:cloud
+        if: github.ref == 'refs/heads/main'
         env:
           SAUCE_USERNAME: ${{secrets.SAUCE_USERNAME}}
           SAUCE_ACCESS_KEY: ${{secrets.SAUCE_ACCESS_KEY}}
       - name: E2E Connection Test w/ Params
         run: npm run test:e2e:cloud -- --user $SAUCE_USERNAME_PARAM --key $SAUCE_ACCESS_KEY_PARAM
+        if: github.ref == 'refs/heads/main'
         env:
           SAUCE_USERNAME_PARAM: ${{secrets.SAUCE_USERNAME}}
           SAUCE_ACCESS_KEY_PARAM: ${{secrets.SAUCE_ACCESS_KEY}}

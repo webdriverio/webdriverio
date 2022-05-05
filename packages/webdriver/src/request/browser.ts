@@ -29,7 +29,7 @@ export default class BrowserRequest extends WebDriverRequest {
 
         for (const opt of Object.keys(options) as Array<keyof RequestLibOptions>) {
             if (
-                typeof options[opt] !== undefined &&
+                typeof options[opt] !== 'undefined' &&
                 UNSUPPORTED_OPTS.includes(opt) &&
                 options[opt] !== this.defaultOptions[opt]
             ) {
@@ -53,5 +53,9 @@ export default class BrowserRequest extends WebDriverRequest {
             statusCode: res.status,
             body: await res.json(),
         }
+    }
+
+    protected _libPerformanceNow(): number {
+        return performance.now()
     }
 }

@@ -285,7 +285,7 @@ async function bar() {
     elem1.setValue('Delete', { translateToUnicode: true })
     elem1.setValue('Delete', { translateToUnicode: false })
 
-    const selector$$: string | Function | Record<'element-6066-11e4-a52e-4f735466cecf', string> = elems.selector
+    const selector$$: string | Function | Record<'element-6066-11e4-a52e-4f735466cecf', string> | {strategy: Function; strategyName: string; strategyArguments: any[]} = elems.selector
     ;(elems.parent as WebdriverIO.Element).click()
     ;(elems.parent as WebdriverIO.Browser).url('')
     ;(elems.parent as WebdriverIO.MultiRemoteBrowser).url('')
@@ -422,7 +422,7 @@ async function bar() {
     // promise chain API
     expectType<string>(
         await browser.$('foo').then(_ => _.getText()))
-  
+
     expectType<void>(
         await browser.$$('foo').forEach(() => true)
     )

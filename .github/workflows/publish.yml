@@ -4,9 +4,14 @@ on:
   workflow_dispatch:
     inputs:
       releaseType:
-        description: 'Release type - major, minor or patch'
+        description: "Release Type"
         required: true
-        default: 'patch'
+        type: choice
+        default: "patch"
+        options:
+          - patch
+          - minor
+          - major
       distTag:
         description: 'NPM tag (e.g. use "next" to release a test version)'
         required: true
@@ -19,7 +24,7 @@ jobs:
   authorize:
     runs-on: ubuntu-latest
     steps:
-      - uses: octokit/request-action@v2.0.0
+      - uses: octokit/request-action@v2.1.4
         with:
           route: GET /orgs/:organisation/teams/:team/memberships/${{ github.actor }}
           team: technical-steering-committee
@@ -30,13 +35,13 @@ jobs:
     needs: [authorize]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           ref: 'main'
           fetch-depth: 0
-      - uses: actions/setup-node@v1
+      - uses: actions/setup-node@v3
         with:
-          node-version: 14.x
+          node-version: 16.x
       - name: NPM Setup
         run: |
           npm set registry "https://registry.npmjs.org/"
@@ -44,13 +49,14 @@ jobs:
           npm whoami
       - name: Git Setup
         run: |
-          git config --global user.email "christian+webdriverio-release@saucelabs.com"
+          git config --global user.email "bot@webdriver.io"
           git config --global user.name "WebdriverIO Release Bot"
       - name: Install Dependencies
         run: npm ci
       - name: Release
         run: |
-          npx run-s setup-full generate:typings
+          npm run setup-full
+          npm run generate:typings
           npx lerna publish ${{github.event.inputs.releaseType}} --exact --yes --dist-tag ${{github.event.inputs.distTag}}
           npm run pushReleaseTag
         env:
