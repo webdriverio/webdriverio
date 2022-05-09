@@ -33,6 +33,6 @@
   },
   "devDependencies": {
     "minimatch": "^5.0.0",
-    "tsconfig-paths": "^3.9.0"
+    "tsconfig-paths": "^4.0.0"
   }
 }
