@@ -1,5 +1,6 @@
+// @ts-expect-error mock
+import { yargs } from 'yargs/yargs'
 import fs from 'fs-extra'
-import yargs from 'yargs'
 import yarnInstall from 'yarn-install'
 import inquirer from 'inquirer'
 import pkg from '../../package.json'
