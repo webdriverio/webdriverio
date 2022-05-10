@@ -39,7 +39,8 @@ const driver = {
     endTrace: jest.fn().mockReturnValue(Promise.resolve(TRACELOG))
 } as any as GathererDriver
 
-jest.useFakeTimers('legacy')
+jest.useFakeTimers()
+jest.spyOn(global, 'setTimeout')
 
 beforeEach(() => {
     pageMock.on.mockClear()
@@ -93,7 +94,6 @@ test('finishTracing', async () => {
     traceGatherer['_pageUrl'] = 'http://some.url'
 
     traceGatherer.finishTracing()
-    await new Promise((resolve) => process.nextTick(resolve))
 
     expect(traceGatherer['_pageLoadDetected']).toBe(false)
     expect(traceGatherer['_networkStatusMonitor']).toBe(undefined)
@@ -179,7 +179,6 @@ test('startTracing: registers timeout for click events', async () => {
     await traceGatherer.startTracing(CLICK_TRANSITION)
     jest.advanceTimersByTime(FRAME_LOAD_START_TIMEOUT + 10)
     expect((traceGatherer['_driver'] as any).beginTrace).toHaveBeenCalledTimes(1)
-    await new Promise((resolve) => process.nextTick(resolve))
     expect(traceGatherer.finishTracing).toHaveBeenCalledTimes(1)
 })
 
@@ -218,7 +217,7 @@ test('onLoadEventFired', async () => {
         cancel: jest.fn()
     }
 
-    process.nextTick(() => jest.advanceTimersByTime(15000))
+    jest.advanceTimersByTime(15000)
     await traceGatherer.onLoadEventFired()
     expect(traceGatherer.completeTracing).toHaveBeenCalledTimes(1)
 })
@@ -239,8 +238,9 @@ test('onLoadEventFired: using min trace time', async () => {
 
 test('waitForMaxTimeout', async () => {
     traceGatherer.completeTracing = jest.fn()
-    process.nextTick(() => jest.advanceTimersByTime(200))
-    const done = await traceGatherer.waitForMaxTimeout(200)
-    done()
+    const done = traceGatherer.waitForMaxTimeout(200)
+    jest.advanceTimersByTime(200)
+
+    ;(await done)()
     expect(traceGatherer.completeTracing).toHaveBeenCalledTimes(1)
 })

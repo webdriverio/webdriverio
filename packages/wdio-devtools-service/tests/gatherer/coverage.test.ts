@@ -7,7 +7,9 @@ import reports from 'istanbul-reports'
 import { transformAsync as babelTransform } from '@babel/core'
 import type { Page } from 'puppeteer-core/lib/cjs/puppeteer/common/Page'
 
-jest.useFakeTimers('legacy')
+jest.useFakeTimers()
+jest.spyOn(global, 'setInterval')
+jest.spyOn(global, 'clearInterval')
 
 jest.mock('@babel/core', () => ({
     transformAsync: jest.fn().mockResolvedValue({ code: 'transpiled code' })
