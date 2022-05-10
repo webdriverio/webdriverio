@@ -5,6 +5,7 @@ import * as got from 'got'
 import type { URL } from 'url'
 import { Options } from '@wdio/types'
 import WebDriverRequest, { RequestLibError } from './index'
+import { performance } from 'perf_hooks'
 
 const agents: Options.Agents = {
     http: new http.Agent({ keepAlive: true }),
@@ -26,5 +27,9 @@ export default class NodeJSRequest extends WebDriverRequest {
             }
             throw err
         }
+    }
+
+    protected _libPerformanceNow(): number {
+        return performance.now()
     }
 }

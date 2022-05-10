@@ -210,3 +210,30 @@ describe('my test', () => {
     // ...
 })
 ```
+
+## Events
+The browser object is an EventEmitter and a couple of events are emitted for your use cases.
+
+Here is a list of events. Keep in mind that this is not the full list of available events yet.
+Feel free to contribute to update the document by adding descriptions of more events here.
+
+### `request.performance`
+This is an event to measure WebDriver level operations. Whenever WebDriverIO requests to your WebDriver endoints,
+this event will be emitted with some useful information:
+
+- `durationMillisecond`: Time duration of the request in millisecond.
+- `error`: Error object if the request failed.
+- `request`: Request object. You can find url, method, headers, etc.
+- `retryCount`: If it's `0`, the request was the first attempt. It will increase when WebDriverIO retries under the hood.
+- `success`: Boolean to represent the request was succeeded or not. If it's `false`, `error` property will be provided as well.
+
+An example event:
+```js
+Object {
+  "durationMillisecond": 0.01770925521850586,
+  "error": [Error: Timeout],
+  "request": Object { ... },
+  "retryCount": 0,
+  "success": false,
+},
+```

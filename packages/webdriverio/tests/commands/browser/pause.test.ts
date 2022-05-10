@@ -2,7 +2,8 @@
 import got from 'got'
 import { remote } from '../../../src'
 
-jest.useFakeTimers('legacy')
+jest.useFakeTimers()
+jest.spyOn(global, 'setTimeout')
 
 describe('pause test', () => {
     let browser: WebdriverIO.Browser

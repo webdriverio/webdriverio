@@ -1,3 +1,5 @@
+import { expect } from 'expect'
+
 import DevTools from '../packages/devtools/src/index'
 import { ELEMENT_KEY } from '../packages/devtools/src/constants'
 
