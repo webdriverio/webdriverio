@@ -107,7 +107,6 @@ Given('I include feature and story name', () => {
 })
 ```
 
-
 ## Displaying the report
 
 The results can be consumed by any of the [reporting tools](https://docs.qameta.io/allure#_reporting) offered by Allure. For example:
