@@ -1,4 +1,5 @@
-import yargs from 'yargs'
+// @ts-expect-error mock
+import { yargs } from 'yargs/yargs'
 import fs from 'fs-extra'
 import * as installCmd from '../../src/commands/install'
 import * as configCmd from '../../src/commands/config'
@@ -66,7 +67,7 @@ You can create one by running 'wdio config'`, undefined)
         findInConfigMock.mockReturnValue([''])
         ;(fs.existsSync as jest.Mock).mockReturnValue(true)
         ;(fs.readFileSync as jest.Mock).mockReturnValue('module.config = {}')
-        ;(yarnInstall as jest.Mock).mockImplementation(() => ({ status: 0 }))
+        ;(yarnInstall as any as jest.Mock).mockImplementation(() => ({ status: 0 }))
 
         await installCmd.handler({ type: 'service', name: 'chromedriver', config: './wdio.conf.js' } as any)
 
@@ -81,7 +82,7 @@ You can create one by running 'wdio config'`, undefined)
     it('should fail if config could not be updated', async () => {
         findInConfigMock.mockReturnValue([''])
         ;(fs.readFileSync as jest.Mock).mockReturnValue('module.config = {}')
-        ;(yarnInstall as jest.Mock).mockImplementation(() => ({ status: 0 }))
+        ;(yarnInstall as any as jest.Mock).mockImplementation(() => ({ status: 0 }))
         ;(utils.replaceConfig as jest.Mock).mockRestore()
         jest.spyOn(utils, 'replaceConfig').mockReturnValue('')
 
@@ -95,7 +96,7 @@ You can create one by running 'wdio config'`, undefined)
         findInConfigMock.mockReturnValue([''])
         ;(fs.existsSync as jest.Mock).mockReturnValue(true)
         ;(fs.readFileSync as jest.Mock).mockReturnValue('module.config = {}')
-        ;(yarnInstall as jest.Mock).mockImplementation(() => ({ status: 0 }))
+        ;(yarnInstall as any as jest.Mock).mockImplementation(() => ({ status: 0 }))
 
         await installCmd.handler({ type: 'service', name: 'chromedriver', config: './path/to/wdio.conf.js' } as any)
 
@@ -110,7 +111,7 @@ You can create one by running 'wdio config'`, undefined)
     it('should exit if there is an error while installing', async () => {
         findInConfigMock.mockReturnValue([''])
         ;(fs.existsSync as jest.Mock).mockReturnValue(true)
-        ;(yarnInstall as jest.Mock).mockImplementation(() => ({ status: 1, stderr: 'test error' }))
+        ;(yarnInstall as any as jest.Mock).mockImplementation(() => ({ status: 1, stderr: 'test error' }))
         jest.spyOn(console, 'error')
 
         await installCmd.handler({ type: 'service', name: 'chromedriver', config: './wdio.conf.js' } as any)

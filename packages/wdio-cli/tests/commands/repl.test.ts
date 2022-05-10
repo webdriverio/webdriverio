@@ -1,4 +1,5 @@
-import yargs from 'yargs'
+// @ts-expect-error mock
+import { yargs } from 'yargs/yargs'
 import { remote } from 'webdriverio'
 
 import { handler, builder } from '../../src/commands/repl'
