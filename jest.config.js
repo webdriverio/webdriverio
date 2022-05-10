@@ -60,5 +60,6 @@ module.exports = {
         }
     },
     testEnvironment: 'node',
-    coveragePathIgnorePatterns
+    coveragePathIgnorePatterns,
+    resolver: `${__dirname}/tests/resolver.js`,
 }
