@@ -7,17 +7,17 @@ WDIO Allure Reporter
 
 ## Installation
 
-The easiest way is to keep `@wdio/allure-reporter` as a devDependency in your `package.json`.
+The easiest way is to include `@wdio/allure-reporter` as a devDependency in your `package.json`.
 
 ```json
 {
   "devDependencies": {
-    "@wdio/allure-reporter": "^5.0.0"
+    "@wdio/allure-reporter": "^7.0.0"
   }
 }
 ```
 
-You can simple do it by:
+You can simply do it by:
 
 ```sh
 npm install @wdio/allure-reporter --save-dev
@@ -98,6 +98,16 @@ describe('Suite', () => {
 })
 ```
 
+Cucumber example
+
+```js
+Given('I include feature and story name', () => {
+    allureReporter.addFeature('Feature_name');
+    allureReporter.addStory('Story_name');
+})
+```
+
+
 ## Displaying the report
 
 The results can be consumed by any of the [reporting tools](https://docs.qameta.io/allure#_reporting) offered by Allure. For example:
@@ -162,8 +172,8 @@ Screenshots can be attached to the report by using the `takeScreenshot` function
 First set `disableWebdriverScreenshotsReporting: false` in reporter options, then add in afterStep hook:
 
 ```js title="wdio.conf.js"
-afterStep: function (test, scenario, { error, duration, passed }) {
-  if (error) {
+afterStep: function (step, scenario, result, context) {
+  if (result.error) {
     browser.takeScreenshot();
   }
 }
