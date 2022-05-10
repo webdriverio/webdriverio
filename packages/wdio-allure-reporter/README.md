@@ -98,7 +98,7 @@ describe('Suite', () => {
 })
 ```
 
-Cucumber example
+Cucumber example:
 
 ```js
 Given('I include feature and story name', () => {
