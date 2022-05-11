@@ -299,7 +299,7 @@ export function getCapabilities(arg: ReplCommandArguments) {
         config.autoCompile()
         config.addConfigFile(arg.option)
         let requiredCaps = config.getCapabilities()
-        if (Object.prototype.hasOwnProperty.call(arg, 'capabilities')) {
+        if (typeof arg.capabilities !== 'undefined') {
             requiredCaps = (requiredCaps as (DesiredCapabilities | W3CCapabilities)[])[Number(arg.capabilities)] ||
                 (requiredCaps as MultiRemoteCapabilities)[arg.capabilities]
         }
