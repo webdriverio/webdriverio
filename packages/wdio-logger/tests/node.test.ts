@@ -1,10 +1,13 @@
-import fs from 'fs'
+import fs from 'node:fs'
+import { it, describe, expect, vi, afterEach, beforeEach, afterAll } from 'vitest'
+
 import nodeLogger from '../src/node'
 import nodeLogger2 from '../build/node'
 
 import type log from 'loglevel'
 
-jest.useFakeTimers('legacy')
+vi.useFakeTimers()
+vi.mock('chalk', () => import('./__mocks__/chalk'))
 
 describe('wdio-logger node', () => {
     describe('log level', () => {
@@ -134,10 +137,10 @@ describe('wdio-logger node', () => {
     })
 
     describe('logFile', () => {
-        const write = jest.fn(logText => logText)
-        const logInfoSpy = jest.spyOn(fs, 'createWriteStream')
-        const logCacheAddSpy = jest.spyOn(Set.prototype, 'add')
-        const logCacheForEachSpy = jest.spyOn(Set.prototype, 'forEach')
+        const write = vi.fn(logText => logText)
+        const logInfoSpy = vi.spyOn(fs, 'createWriteStream')
+        const logCacheAddSpy = vi.spyOn(Set.prototype, 'add')
+        const logCacheForEachSpy = vi.spyOn(Set.prototype, 'forEach')
         let writableBuffer: any = null
         logInfoSpy.mockImplementation((path: fs.PathLike): fs.WriteStream => ({
             path: path as string,
@@ -148,8 +151,13 @@ describe('wdio-logger node', () => {
                 // @ts-ignore
                 return writableBuffer
             },
-            end: () => {}
+            // @ts-expect-error
+            end: vi.fn()
         }))
+
+        beforeEach(() => {
+            logCacheAddSpy.mockClear()
+        })
 
         it('should be possible to add to cache', () => {
             const log = nodeLogger('test-logFile1')
@@ -271,9 +279,9 @@ describe('wdio-logger node', () => {
                 writableBuffer = ['bar']
 
                 const waitPromise = nodeLogger.waitForBuffer()
-                jest.advanceTimersByTime(30)
+                vi.advanceTimersByTime(30)
                 writableBuffer = []
-                jest.advanceTimersByTime(30)
+                vi.advanceTimersByTime(30)
                 expect(await waitPromise).toBe(undefined)
             })
         })
