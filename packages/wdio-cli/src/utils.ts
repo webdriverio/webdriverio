@@ -300,10 +300,9 @@ export function getCapabilities(arg: ReplCommandArguments) {
         config.autoCompile()
         config.addConfigFile(arg.option)
         let requiredCaps = config.getCapabilities()
-        if (Object.prototype.hasOwnProperty.call(arg, 'capabilities')) {
-            requiredCaps = (requiredCaps as (DesiredCapabilities | W3CCapabilities)[])[Number(arg.capabilities)] ||
+        if (typeof arg.capabilities !== 'undefined') throw ('Please provide index/namedProperty of capability to use from the capabilities array/object')
+        requiredCaps = (requiredCaps as (DesiredCapabilities | W3CCapabilities)[])[Number(arg.capabilities)] ||
                 (requiredCaps as MultiRemoteCapabilities)[arg.capabilities]
-        }
         const requiredW3CCaps = pickBy(requiredCaps, (_, key) => !IGNORED_CAPABILITIES.includes(key))
         if (_.isEmpty(requiredW3CCaps))
             throw (`Error!!! : No capability found in config file with the provided capability index/namedProperty: ${arg.capabilities}. Please check the capability in your wdio config file.`)
