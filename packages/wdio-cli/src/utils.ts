@@ -14,6 +14,7 @@ import { EXCLUSIVE_SERVICES, ANDROID_CONFIG, IOS_CONFIG, QUESTIONNAIRE } from '.
 import { ConfigParser } from '@wdio/config'
 import { DesiredCapabilities, MultiRemoteCapabilities, W3CCapabilities } from '@wdio/types/build/Capabilities'
 import pickBy from 'lodash.pickby'
+import _ from 'lodash'
 
 const log = logger('@wdio/cli:utils')
 
@@ -304,6 +305,8 @@ export function getCapabilities(arg: ReplCommandArguments) {
                 (requiredCaps as MultiRemoteCapabilities)[arg.capabilities]
         }
         const requiredW3CCaps = pickBy(requiredCaps, (_, key) => !IGNORED_CAPABILITIES.includes(key))
+        if (_.isEmpty(requiredW3CCaps))
+            throw (`Error!!! : No capability found in config file with the provided capability index/namedProperty: ${arg.capabilities}. Please check the capability in your wdio config file.`)
         return { capabilities: { ...(requiredW3CCaps as W3CCapabilities) } }
     }
     return { capabilities: { browserName: arg.option } }
