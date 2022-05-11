@@ -51,11 +51,11 @@ wdio with multi capability array:
 ```ts title="wdio.conf.ts example"
 export const config = {
     // ...
-   capabilities:{
+   capabilities:[{
             browserName: 'chrome', // options: `firefox`, `chrome`, `opera`, `safari`
             browserVersion: '27.0', // browser version
             platformName: 'Windows 10' // OS platform
-     }
+     }]
 }
 ```
 
@@ -84,7 +84,7 @@ export const config = {
 ```
 
 ```sh
-wdio repl "./path/to/wdio.config.ts" "myChromeBrowser" -p 9515
+wdio repl "./path/to/wdio.config.js" "myChromeBrowser" -p 9515
 ```
 
 Or if you want to run local mobile tests using Appium:
