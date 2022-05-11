@@ -29,23 +29,6 @@ If the config file uses capabilities object then just pass the path to config fi
 
 ### Example: 
 
-wdio with desired capability object:
-
-```ts title="wdio.conf.ts example"
-export const config = {
-    // ...
-   capabilities:{
-            browserName: 'chrome', // options: `firefox`, `chrome`, `opera`, `safari`
-            browserVersion: '27.0', // browser version
-            platformName: 'Windows 10' // OS platform
-     }
-}
-```
-
-```sh
-wdio repl "./path/to/wdio.config.js" 
-```
-
 wdio with multi capability array:
 
 ```ts title="wdio.conf.ts example"
