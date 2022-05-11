@@ -1,5 +1,5 @@
 {
-  "extends": "@tsconfig/node12/tsconfig.json",
+  "extends": "@tsconfig/node16/tsconfig.json",
 
   "compilerOptions": {
     "allowJs": true,
@@ -9,11 +9,10 @@
     "removeComments": false,
     "strictFunctionTypes": false,
     "esModuleInterop": true,
+    "moduleResolution": "Node",
+    "module": "ESNext",
     "lib": ["dom", "es2019"],
-    "types": [
-      "node",
-      "jest"
-    ]
+    "types": ["node"]
   },
 
   "exclude": [

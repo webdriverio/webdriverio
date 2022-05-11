@@ -1,13 +1,16 @@
-import { Protocol } from './types'
-import AppiumCommands from './commands/appium'
-import ChromiumCommands from './commands/chromium'
-import GeckoCommands from './commands/gecko'
-import JSONWPCommands from './commands/jsonwp'
-import MJSONWPCommands from './commands/mjsonwp'
-import SauceLabsCommands from './commands/saucelabs'
-import SeleniumCommands from './commands/selenium'
-import WebDriverCommands from './commands/webdriver'
+import { createRequire } from 'node:module'
 
+import { Protocol } from './types'
+import type AppiumCommands from './commands/appium'
+import type ChromiumCommands from './commands/chromium'
+import type GeckoCommands from './commands/gecko'
+import type JSONWPCommands from './commands/jsonwp'
+import type MJSONWPCommands from './commands/mjsonwp'
+import type SauceLabsCommands from './commands/saucelabs'
+import type SeleniumCommands from './commands/selenium'
+import type WebDriverCommands from './commands/webdriver'
+
+const require = createRequire(import.meta.url)
 const WebDriverProtocol: Protocol = require('../protocols/webdriver.json')
 const MJsonWProtocol: Protocol = require('../protocols/mjsonwp.json')
 const JsonWProtocol: Protocol = require('../protocols/jsonwp.json')
@@ -53,7 +56,7 @@ type SeleniumCommandsAsync = {
 export interface ProtocolCommands extends WebDriverCommands, Omit<JSONWPCommands, keyof WebDriverCommands>, AppiumCommands, ChromiumCommands, Omit<MJSONWPCommands, keyof AppiumCommands | keyof ChromiumCommands>, SauceLabsCommands, SeleniumCommands {}
 export interface ProtocolCommandsAsync extends WebDriverCommandsAsync, Omit<JSONWPCommandsAsync, keyof WebDriverCommandsAsync>, AppiumCommandsAsync, ChromiumCommandsAsync, Omit<MJSONWPCommandsAsync, keyof AppiumCommandsAsync | keyof ChromiumCommandsAsync>, SauceLabsCommandsAsync, SeleniumCommandsAsync {}
 
-export * from './types'
+export * from './types.js'
 export {
     // protocols
     WebDriverProtocol, MJsonWProtocol, JsonWProtocol, AppiumProtocol,
