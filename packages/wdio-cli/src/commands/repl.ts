@@ -14,7 +14,7 @@ const IGNORED_ARGS = [
 
 export const command = 'repl <option> [capabilities]'
 export const desc = 'Run WebDriver session in command line'
-export const cmdArgs = {
+export const cmdArgs: { [k in keyof ReplCommandArguments]?: yargs.Options } = {
     platformVersion: {
         alias: 'v',
         desc: 'Version of OS for mobile devices',
@@ -41,7 +41,7 @@ export const builder = (yargs: yargs.Argv) => {
         .example('$0 repl "./path/to/your_app.app"', 'Run repl native app on iOS simulator')
         .example('$0 repl ios -v 11.3 -d "iPhone 7" -u 123432abc', 'Run repl browser on iOS device with capabilities')
         .example('$0 repl "./path/to/wdio.config.js"', 'Run repl using capabilities from wdio.config.js')
-        .example('$0 repl "./path/to/wdio.config.js" 0 -p 9515', 'Run repl using capabilities from multiremotecapabilty in wdio.config.js')
+        .example('$0 repl "./path/to/wdio.config.js" 0 -p 9515', 'Run repl using the first capability from the capabilty array in wdio.config.js')
         .example('$0 repl "./path/to/wdio.config.js" "myChromeBrowser" -p 9515', 'Run repl using a named multiremote capabilities in wdio.config.js')
         .epilogue(CLI_EPILOGUE)
         .help()

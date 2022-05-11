@@ -27,10 +27,64 @@ Repl could also be ran using the capabilities from the webdriverIO config file. 
 
 If the config file uses capabilities object then just pass the path to config file, else if its a multiremote capability then, specify which capability to use from list or multiremote using the positional argument . Note: for list we consider zero based index. 
 
+### Example: 
+
+wdio with desired capability object:
+
+```ts title="wdio.conf.ts example"
+export const config = {
+    // ...
+   capabilities:{
+            browserName: 'chrome', // options: `firefox`, `chrome`, `opera`, `safari`
+            browserVersion: '27.0', // browser version
+            platformName: 'Windows 10' // OS platform
+     }
+}
+```
+
 ```sh
 wdio repl "./path/to/wdio.config.js" 
+```
+
+wdio with multi capability array:
+
+```ts title="wdio.conf.ts example"
+export const config = {
+    // ...
+   capabilities:{
+            browserName: 'chrome', // options: `firefox`, `chrome`, `opera`, `safari`
+            browserVersion: '27.0', // browser version
+            platformName: 'Windows 10' // OS platform
+     }
+}
+```
+
+```sh
 wdio repl "./path/to/wdio.config.js" 0 -p 9515
-wdio repl "./path/to/wdio.config.js" "capabilityPropertyName" -p 9515
+```
+
+wdio with multi remote capability object:
+
+```ts title="wdio.conf.ts example"
+export const config = {
+    // ...
+   capabilities:{
+        myChromeBrowser: {
+            capabilities: {
+                browserName: 'chrome'
+            }
+        },
+        myFirefoxBrowser: {
+            capabilities: {
+                browserName: 'firefox'
+            }
+        }
+     }
+}
+```
+
+```sh
+wdio repl "./path/to/wdio.config.ts" "myChromeBrowser" -p 9515
 ```
 
 Or if you want to run local mobile tests using Appium:

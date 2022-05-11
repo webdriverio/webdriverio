@@ -269,7 +269,6 @@ export const validateServiceAnswers = (answers: string[]): Boolean | string => {
 }
 
 export function getCapabilities(arg: ReplCommandArguments) {
-    let finalCapabilities
     const IGNORED_CAPABILITIES = [
         'bail', 'framework', 'reporters', 'suite', 'spec', 'specs', 'excludeDriverLogs', 'exclude',
         'mochaOpts', 'jasmineOpts', 'cucumberOpts', 'autoCompileOpts', 'maxInstances'
@@ -304,9 +303,9 @@ export function getCapabilities(arg: ReplCommandArguments) {
                 (requiredCaps as MultiRemoteCapabilities)[arg.capabilities]
         }
         const requiredW3CCaps = pickBy(requiredCaps, (_, key) => !IGNORED_CAPABILITIES.includes(key))
-        finalCapabilities = { capabilities: { ...(requiredW3CCaps as W3CCapabilities) } }
+        return { capabilities: { ...(requiredW3CCaps as W3CCapabilities) } }
     }
-    return finalCapabilities || { capabilities: { browserName: arg.option } }
+    return { capabilities: { browserName: arg.option } }
 }
 
 /**
