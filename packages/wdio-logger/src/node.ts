@@ -1,4 +1,5 @@
-import fs from 'fs'
+import fs from 'node:fs'
+
 import log from 'loglevel'
 import util from 'util'
 import chalk, { Color } from 'chalk'
