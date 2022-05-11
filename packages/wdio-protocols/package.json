@@ -8,7 +8,7 @@
   "main": "./build/index",
   "types": "./build/index.d.ts",
   "engines": {
-    "node": ">=12.0.0"
+     "node": "^16.13 || >=18"
   },
   "repository": {
     "type": "git",
