@@ -296,6 +296,7 @@ export function getCapabilities(arg: ReplCommandArguments) {
         return { capabilities: { browserName: 'Safari', ...IOS_CONFIG, ...optionalCapabilites } }
     } else if (/(js|ts)$/.test(arg.option)) {
         const config = new ConfigParser()
+        config.autoCompile()
         config.addConfigFile(arg.option)
         let requiredCaps = config.getCapabilities()
         if (Object.prototype.hasOwnProperty.call(arg, 'capabilities')) {
