@@ -13,6 +13,7 @@ import { ReplCommandArguments, Questionnair, SupportedPackage, OnCompleteResult,
 import { EXCLUSIVE_SERVICES, ANDROID_CONFIG, IOS_CONFIG, QUESTIONNAIRE } from './constants'
 import { ConfigParser } from '@wdio/config'
 import pickBy from 'lodash.pickby'
+import { WEBDRIVERIO_SPECIFIC_CAPABILITIES } from '@wdio/protocols'
 
 const log = logger('@wdio/cli:utils')
 
@@ -268,10 +269,6 @@ export const validateServiceAnswers = (answers: string[]): Boolean | string => {
 }
 
 export function getCapabilities(arg: ReplCommandArguments) {
-    const IGNORED_CAPABILITIES = [
-        'bail', 'framework', 'reporters', 'suite', 'spec', 'specs', 'excludeDriverLogs', 'exclude',
-        'mochaOpts', 'jasmineOpts', 'cucumberOpts', 'autoCompileOpts', 'maxInstances'
-    ]
     const optionalCapabilites = {
         platformVersion: arg.platformVersion,
         udid: arg.udid,
@@ -301,7 +298,7 @@ export function getCapabilities(arg: ReplCommandArguments) {
         if (typeof arg.capabilities !== 'undefined') throw ('Error!!!: Please provide index/namedProperty of capability to use from the capabilities array/object in wdio config file')
         requiredCaps = (requiredCaps as (Capabilities.DesiredCapabilities | Capabilities.W3CCapabilities)[])[Number(arg.capabilities)] ||
                 (requiredCaps as Capabilities.MultiRemoteCapabilities)[arg.capabilities]
-        const requiredW3CCaps = pickBy(requiredCaps, (_, key) => !IGNORED_CAPABILITIES.includes(key))
+        const requiredW3CCaps = pickBy(requiredCaps, (_, key) => !WEBDRIVERIO_SPECIFIC_CAPABILITIES.includes(key))
         if (!Object.keys(requiredW3CCaps).length)
             throw (`Error!!! : No capability found in config file with the provided capability index/namedProperty: ${arg.capabilities}. Please check the capability in your wdio config file.`)
         return { capabilities: { ...(requiredW3CCaps as Capabilities.W3CCapabilities) }

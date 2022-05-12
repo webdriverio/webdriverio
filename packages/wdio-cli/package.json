@@ -28,6 +28,9 @@
   "bugs": {
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
+  "peerDependencies": {
+    "@wdio/protocols": "7.19.0"
+  },
   "dependencies": {
     "@types/ejs": "^3.0.5",
     "@types/fs-extra": "^9.0.4",
