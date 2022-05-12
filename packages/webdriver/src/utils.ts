@@ -11,7 +11,8 @@ import RequestFactory from './request/factory'
 import { WebDriverResponse } from './request'
 import command from './command'
 import { transformCommandLogResult } from '@wdio/utils'
-import { VALID_CAPS, REG_EXPS } from './constants'
+import { VALID_CAPS } from '@wdio/protocols'
+import { REG_EXPS } from './constants'
 import type { Client, JSONWPCommandError, SessionFlags } from './types'
 
 const log = logger('webdriver')

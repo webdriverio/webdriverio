@@ -67,7 +67,8 @@ export {
     SeleniumCommandsAsync, GeckoCommandsAsync
 }
 
-export const WEBDRIVERIO_SPECIFIC_CAPABILITIES = [
-    'bail', 'framework', 'reporters', 'suite', 'spec', 'specs', 'excludeDriverLogs', 'exclude',
-    'mochaOpts', 'jasmineOpts', 'cucumberOpts', 'autoCompileOpts', 'maxInstances'
+export const VALID_CAPS = [
+    'browserName', 'browserVersion', 'platformName', 'acceptInsecureCerts',
+    'pageLoadStrategy', 'proxy', 'setWindowRect', 'timeouts', 'strictFileInteractability',
+    'unhandledPromptBehavior'
 ]
