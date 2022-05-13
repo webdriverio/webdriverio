@@ -304,8 +304,7 @@ export function getCapabilities(arg: ReplCommandArguments) {
         if (!Object.keys(requiredW3CCaps).length) {
             throw (`No capability found in given config file with the provided capability indexed/named property: ${arg.capabilities}. Please check the capability in your wdio config file.`)
         }
-        return { capabilities: { ...(requiredW3CCaps as Capabilities.W3CCapabilities) }
-        }
+        return { capabilities: { ...(requiredW3CCaps as Capabilities.W3CCapabilities) } }
     }
     return { capabilities: { browserName: arg.option } }
 }
