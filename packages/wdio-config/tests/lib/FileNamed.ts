@@ -22,8 +22,11 @@ export type RealSystemPath = string;
  *
  * @param f
  */
-export function realRequiredFilePair(f: RealSystemPath) : FilePathAndContent {
-    return FileNamed(f).withContents(MockFileContentBuilder.FromRealConfigFile(f).build())
+export async function realRequiredFilePair(f: RealSystemPath) : Promise<FilePathAndContent> {
+    return FileNamed(f)
+        .withContents(
+            (await MockFileContentBuilder.FromRealConfigFile(f)).build()
+        )
 }
 
 /**
