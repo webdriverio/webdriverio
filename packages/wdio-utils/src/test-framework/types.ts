@@ -1,11 +1,10 @@
-import type { executeHooksWithArgs, executeAsync, runSync } from '../shim'
+import type { executeHooksWithArgs, executeAsync } from '../shim'
 
 export type HookFnArgs<T> = (ctx: T) => [unknown, T]
 
 export interface WrapperMethods {
     executeHooksWithArgs: typeof executeHooksWithArgs
     executeAsync: typeof executeAsync
-    runSync: typeof runSync
 }
 
 export interface SpecFunction {

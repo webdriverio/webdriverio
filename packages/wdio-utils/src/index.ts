@@ -1,22 +1,22 @@
 /* istanbul ignore file */
 
-import initialisePlugin from './initialisePlugin'
-import { initialiseWorkerService, initialiseLauncherService } from './initialiseServices'
-import webdriverMonad from './monad'
+import initialisePlugin from './initialisePlugin.js'
+import { initialiseWorkerService, initialiseLauncherService } from './initialiseServices.js'
+import webdriverMonad from './monad.js'
 import {
-    commandCallStructure, isValidParameter, getArgumentType, safeRequire,
+    commandCallStructure, isValidParameter, getArgumentType, safeImport,
     isFunctionAsync, transformCommandLogResult, canAccess, sleep
-} from './utils'
+} from './utils.js'
 import {
-    wrapCommand, runFnInFiberContext, executeHooksWithArgs,
+    wrapCommand, executeHooksWithArgs,
     hasWdioSyncSupport, executeSync, executeAsync
-} from './shim'
-import { testFnWrapper, runTestInFiberContext } from './test-framework'
+} from './shim.js'
+import { testFnWrapper, runTestInFiberContext } from './test-framework/index.js'
 import {
     isW3C, capabilitiesEnvironmentDetector,
     sessionEnvironmentDetector, devtoolsEnvironmentDetector
-} from './envDetector'
-import { UNICODE_CHARACTERS } from './constants'
+} from './envDetector.js'
+import { UNICODE_CHARACTERS } from './constants.js'
 
 export {
     initialisePlugin,
@@ -28,7 +28,7 @@ export {
     commandCallStructure,
     isValidParameter,
     getArgumentType,
-    safeRequire,
+    safeImport,
     canAccess,
     sleep,
 
@@ -38,7 +38,6 @@ export {
     wrapCommand,
     executeSync,
     executeAsync,
-    runFnInFiberContext,
     runTestInFiberContext,
     testFnWrapper,
     executeHooksWithArgs,

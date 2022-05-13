@@ -1,11 +1,12 @@
+import { vi, describe, it, expect, beforeEach } from 'vitest'
 import webdriverMonad from '../src/monad'
 
-let prototype
+let prototype: any
 
 beforeEach(() => {
     prototype = {
         scope: { value: '' },
-        someFunc: { value: jest.fn().mockImplementation((arg) => `result-${arg.toString()}`) }
+        someFunc: { value: vi.fn().mockImplementation((arg) => `result-${arg.toString()}`) }
     }
 })
 
@@ -13,7 +14,7 @@ const sessionId = 'c5fa4320-07d5-48f5-b7c2-922d4405e17f'
 
 describe('monad', () => {
     it('should be able to initialize client with prototype with commands', () => {
-        const modifier = jest.fn()
+        const modifier = vi.fn()
         const monad = webdriverMonad({ baseUrl: 'option' }, (client: any) => {
             modifier()
             return client
@@ -40,7 +41,7 @@ describe('monad', () => {
 
     it('should allow to extend base prototype', () => {
         const monad = webdriverMonad({}, (client: any) => client, prototype)
-        const commandWrapperMock = jest.fn().mockImplementation((name, fn) => fn)
+        const commandWrapperMock = vi.fn().mockImplementation((name, fn) => fn)
         const client = monad(sessionId, commandWrapperMock)
         const fn = () => 'bar'
 
@@ -50,7 +51,7 @@ describe('monad', () => {
 
     it('should allow to overwrite command in base prototype', () => {
         const monad = webdriverMonad({}, (client: any) => client, { ...prototype })
-        const commandWrapperMock = jest.fn().mockImplementation((name, fn) => fn)
+        const commandWrapperMock = vi.fn().mockImplementation((name, fn) => fn)
         const client = monad(sessionId, commandWrapperMock)
         const fn = () => 'bar'
 
@@ -60,7 +61,7 @@ describe('monad', () => {
 
     it('should throw if there is no command to be overwritten', () => {
         const monad = webdriverMonad({}, (client: any) => client, { ...prototype })
-        const commandWrapperMock = jest.fn().mockImplementation((name, fn) => fn)
+        const commandWrapperMock = vi.fn().mockImplementation((name, fn) => fn)
         const client = monad(sessionId, commandWrapperMock)
         const fn = () => 'bar'
 

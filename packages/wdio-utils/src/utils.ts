@@ -1,5 +1,4 @@
-import fs from 'fs'
-import path from 'path'
+import fs from 'node:fs'
 
 import type { Services, Clients } from '@wdio/types'
 
@@ -158,8 +157,8 @@ export function getArgumentType (arg: any) {
  * @param  {string} name  of package
  * @return {object}       package content
  */
-export function safeRequire (name: string): Services.ServicePlugin | null {
-    let requirePath
+export async function safeImport (name: string): Promise<Services.ServicePlugin | null> {
+    let requirePath = name
     try {
         /**
          * Check if cli command was called from local directory, if not require
@@ -169,28 +168,16 @@ export function safeRequire (name: string): Services.ServicePlugin | null {
          * also allows to link the package to a random place and have plugins
          * imported correctly (for dev purposes).
          */
-        const localNodeModules = path.join(process.cwd(), '/node_modules')
         /* istanbul ignore if */
-        if (!require?.main?.paths.includes(localNodeModules)) {
-            require?.main?.paths.push(localNodeModules)
-
-            /**
-             * don't set requireOpts when running unit tests as it
-             * confuses Jest require magic
-             */
-            const requireOpts = process.env.JEST_WORKER_ID
-                ? {}
-                : { paths: require?.main?.paths }
-            requirePath = require.resolve(name, requireOpts)
-        } else {
-            requirePath = require.resolve(name)
+        if (import.meta.resolve) {
+            requirePath = await import.meta.resolve(name)
         }
     } catch (err: any) {
         return null
     }
 
     try {
-        return require(requirePath)
+        return import(requirePath)
     } catch (e: any) {
         throw new Error(`Couldn't initialise "${name}".\n${e.stack}`)
     }
