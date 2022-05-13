@@ -1,3 +1,4 @@
+import { describe, it, expect } from 'vitest'
 import { validateConfig } from '../src/utils'
 
 describe('validateConfig', () => {
@@ -31,7 +32,7 @@ describe('validateConfig', () => {
     })
 
     it('should check for types as function', () => {
-        const errorCheck = (type) => {
+        const errorCheck = (type: any) => {
             if (type instanceof Error) {
                 return
             }

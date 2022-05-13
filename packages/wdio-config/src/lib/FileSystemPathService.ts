@@ -1,10 +1,15 @@
-import fs from 'fs'
-import path from 'path'
+import fs from 'node:fs'
+import path from 'node:path'
 import glob from 'glob'
 
-import { PathService } from '../types'
+import RequireLibrary from './RequireLibrary.js'
+import type { PathService, ModuleImportService } from '../types'
 
 export default class FileSystemPathService implements PathService {
+    constructor(
+        private _moduleRequireService: ModuleImportService = new RequireLibrary()
+    ) {}
+
     getcwd(): string {
         const cwd = process.cwd()
         if ( typeof cwd === 'undefined' ) {
@@ -13,11 +18,11 @@ export default class FileSystemPathService implements PathService {
         return cwd
     }
 
-    loadFile<T>(path: string): T {
-        if ( !path) {
+    loadFile<T>(path: string): Promise<T> {
+        if (!path) {
             throw new Error('A path is required')
         }
-        return require(path)
+        return this._moduleRequireService.import<T>(path)
     }
 
     isFile(filepath: string): boolean {

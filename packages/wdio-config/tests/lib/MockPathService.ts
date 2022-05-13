@@ -1,7 +1,9 @@
-import { PathService } from '../../src/lib/ConfigParser'
-import path from 'path'
+import path from 'node:path'
+import { vi } from 'vitest'
+import { Minimatch } from 'minimatch'
+
 import { FilePathAndContent } from './MockFileContentBuilder'
-var Minimatch = require('minimatch').Minimatch
+import type { PathService } from '../../src/types'
 
 export type MockSystemFolderPath = string;
 export type MockSystemFilePath = string;
@@ -17,18 +19,14 @@ export default class MockPathService implements PathService {
     private cwd : MockSystemFolderPath
     private files : FilePathsAndContents
 
-    getcwdMock: jest.SpyInstance
-    loadFileMock: jest.SpyInstance
-    isFileMock: jest.SpyInstance
-    globMock: jest.SpyInstance
+    getcwdMock = vi.spyOn(this, 'getcwd' as any)
+    loadFileMock = vi.spyOn(this, 'loadFile' as any)
+    isFileMock = vi.spyOn(this, 'isFile' as any)
+    globMock = vi.spyOn(this, 'glob' as any)
 
     private constructor({ cwd, files } : {cwd: MockSystemFolderPath, files: FilePathsAndContents}) {
         this.cwd = cwd
         this.files = files
-        this.getcwdMock = jest.spyOn(this, 'getcwd')
-        this.loadFileMock = jest.spyOn(this, 'loadFile')
-        this.isFileMock = jest.spyOn(this, 'isFile')
-        this.globMock = jest.spyOn(this, 'glob')
     }
 
     /**
@@ -38,10 +36,10 @@ export default class MockPathService implements PathService {
      */
     getMocks() {
         return {
-            getcwdMock : this.getcwdMock,
-            loadFileMock : this.loadFileMock,
-            isFileMock : this.isFileMock,
-            globMock : this.globMock
+            getcwdMock: this.getcwdMock as any as Function,
+            loadFileMock: this.loadFileMock as any as Function,
+            isFileMock: this.isFileMock as any as Function,
+            globMock: this.globMock as any as Function
         }
     }
 
@@ -76,9 +74,9 @@ export default class MockPathService implements PathService {
             try {
                 // JS's require on JS files auto-parses so let's emulate
                 // so that test file values don't matter if they are stringed json or objects
-                return JSON.parse(found[1])
+                return JSON.parse(found[1] as string) as T
             } catch (err: any) {
-                return found[1]
+                return found[1] as T
             }
         }
         throw new Error(`File "${filePathKey}" does not exist in fake file system!`)

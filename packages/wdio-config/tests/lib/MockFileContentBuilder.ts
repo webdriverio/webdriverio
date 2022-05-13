@@ -1,10 +1,11 @@
-import fs from 'fs'
+import fs from 'node:fs'
 import merge from 'deepmerge'
+
 import { MockSystemFilePath } from './MockPathService'
 
 const MERGE_OPTIONS = { clone: false }
 
-export type MockFileContent = string|object;
+export type MockFileContent = string | object;
 export type FilePathAndContent = [MockSystemFilePath, MockFileContent];
 
 /**
@@ -12,7 +13,7 @@ export type FilePathAndContent = [MockSystemFilePath, MockFileContent];
  */
 export default class MockFileContentBuilder {
     private fileContents : MockFileContent
-    private constructor(fileContents) {
+    private constructor(fileContents: MockFileContent) {
         this.fileContents = fileContents
     }
 
@@ -22,8 +23,9 @@ export default class MockFileContentBuilder {
      * @param realConfigFilepath
      * @constructor
      */
-    static FromRealConfigFile(realConfigFilepath) : MockFileContentBuilder {
-        return new MockFileContentBuilder(require(realConfigFilepath))
+    static async FromRealConfigFile(realConfigFilepath: string): Promise<MockFileContentBuilder> {
+        const pkg = await import(realConfigFilepath)
+        return new MockFileContentBuilder({ ...pkg })
     }
 
     /**
@@ -36,7 +38,7 @@ export default class MockFileContentBuilder {
      * @param realConfigFilepath
      * @constructor
      */
-    static FromRealDataFile(realConfigFilepath) : MockFileContent {
+    static FromRealDataFile(realConfigFilepath: string) : MockFileContent {
         return new MockFileContentBuilder(fs.readFileSync(realConfigFilepath).toString()).build()
     }
 

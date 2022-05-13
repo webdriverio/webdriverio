@@ -4,7 +4,8 @@ export default defineConfig({
     test: {
         include: [
             'packages/wdio-logger/**/*.test.ts',
-            'packages/wdio-utils/**/*.test.ts'
+            'packages/wdio-utils/**/*.test.ts',
+            'packages/wdio-config/**/*.test.ts'
         ],
         coverage: {
             enabled: false,
