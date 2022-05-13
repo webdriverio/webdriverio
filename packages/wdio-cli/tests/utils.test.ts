@@ -398,6 +398,15 @@ describe('getCapabilities', () => {
     it('should return driver with capabilities for desktop', () => {
         expect(getCapabilities({ option: 'chrome' } as any)).toMatchSnapshot()
     })
+
+    it.only('should return driver with capabilities for wdio.config.js', () => {
+        jest.mock('@wdio/config', () => {
+            return {
+                configMock: jest.resetAllMocks()
+            }
+        })
+        expect(getCapabilities({ option: './nonexists.js', capabilities: 3 } as any)).toMatchSnapshot()
+    })
 })
 
 test('hasFile', () => {
