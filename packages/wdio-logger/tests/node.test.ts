@@ -7,7 +7,7 @@ import nodeLogger2 from '../build/node'
 import type log from 'loglevel'
 
 vi.useFakeTimers()
-vi.mock('chalk', () => import('./__mocks__/chalk'))
+vi.mock('chalk')
 
 describe('wdio-logger node', () => {
     describe('log level', () => {

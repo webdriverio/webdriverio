@@ -1,17 +1,19 @@
+import { vi, MockedFunction, describe, it, expect, afterEach } from 'vitest'
+
 import * as shim from '../../src/shim'
 import { testFnWrapper, filterStackTrace } from '../../src/test-framework/testFnWrapper'
 
-jest.mock('../../src/shim', () => ({
-    executeHooksWithArgs: jest.fn(),
-    executeAsync: async (fn, { limit, attempts }, args = []) => fn('async', limit, attempts, ...args),
+vi.mock('../../src/shim', () => ({
+    executeHooksWithArgs: vi.fn(),
+    executeAsync: async (fn: Function, { limit, attempts }: any, args = []) => fn('async', limit, attempts, ...args),
     runSync: null,
 }))
 
-const executeHooksWithArgs = shim.executeHooksWithArgs
+const executeHooksWithArgs = shim.executeHooksWithArgs as MockedFunction<any>
 
 describe('testFnWrapper', () => {
-    const origFn = (mode, limit, attempts, arg) => `${mode}: Foo${arg} ${limit} ${attempts}`
-    const buildArgs = (specFn, retries, beforeFnArgs, afterFnArgs) => [
+    const origFn = (mode: string, limit: number, attempts: number, arg: any) => `${mode}: Foo${arg} ${limit} ${attempts}`
+    const buildArgs = (specFn: Function, retries?: number, beforeFnArgs?: Function, afterFnArgs?: Function) => [
         'Foo',
         { specFn, specFnArgs: ['Bar'] },
         { beforeFn: 'beforeFn', beforeFnArgs },
@@ -21,7 +23,8 @@ describe('testFnWrapper', () => {
     ]
 
     it('should run fn in async mode if not runSync', async () => {
-        const args = buildArgs(origFn, undefined, () => [], () => [])
+        const args = buildArgs(origFn, undefined, () => [], () => []) as any[]
+        // @ts-expect-error
         const result = await testFnWrapper(...args)
 
         expect(result).toBe('async: FooBar 0 0')
@@ -40,7 +43,9 @@ describe('testFnWrapper', () => {
     })
 
     it('should run fn in async mode if specFn is async', async () => {
-        const args = buildArgs(async (...args) => origFn(...args), 11, () => ['beforeFnArgs'], () => ['afterFnArgs'])
+        // @ts-expect-error
+        const args = buildArgs(async (...args: any[]) => origFn(...args), 11, () => ['beforeFnArgs'], () => ['afterFnArgs'])
+        // @ts-expect-error
         const result = await testFnWrapper(...args)
 
         expect(result).toBe('async: FooBar 11 0')
@@ -60,13 +65,14 @@ describe('testFnWrapper', () => {
 
     it('should throw on error', async () => {
         let expectedError
-        const args = buildArgs((mode, repeatTest, arg) => {
+        const args = buildArgs((mode: string, repeatTest: boolean, arg: any) => {
             expectedError = new Error(`${mode}: Foo${arg} ${repeatTest}`)
             throw expectedError
         }, undefined, () => ['beforeFnArgs'], () => ['afterFnArgs'])
 
         let error
         try {
+            // @ts-expect-error
             await testFnWrapper(...args)
         } catch (err) {
             error = err

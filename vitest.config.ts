@@ -2,9 +2,12 @@ import { defineConfig } from 'vite'
 
 export default defineConfig({
     test: {
-        include: ['packages/wdio-logger/**/*.test.ts'],
+        include: [
+            'packages/wdio-logger/**/*.test.ts',
+            'packages/wdio-utils/**/*.test.ts'
+        ],
         coverage: {
-            enabled: true,
+            enabled: false,
             exclude: ['**/build/**', '**/*.test.ts'],
             lines: 90,
             functions: 90,

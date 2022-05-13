@@ -1,9 +1,5 @@
 import { vi } from 'vitest'
 
-const mock = () => logMock
-mock.setLevel = vi.fn()
-mock.setLogLevelsConfig = vi.fn()
-mock.waitForBuffer = vi.fn()
 export const logMock = {
     error: vi.fn(),
     debug: vi.fn(),
@@ -11,5 +7,8 @@ export const logMock = {
     info: vi.fn(),
     trace: vi.fn()
 }
-
+const mock = () => logMock
+mock.setLevel = vi.fn()
+mock.setLogLevelsConfig = vi.fn()
+mock.waitForBuffer = vi.fn()
 export default mock

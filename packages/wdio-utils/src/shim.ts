@@ -6,19 +6,10 @@ const log = logger('@wdio/utils:shim')
 
 let inCommandHook = false
 let hasWdioSyncSupport = false
-let runSync: (this: unknown, fn: Function, repeatTest: any, args: unknown[]) => (resolve: Function, reject: Function) => unknown
 
 interface Retries {
     limit: number
     attempts: number
-}
-
-interface WDIOSync {
-    runFnInFiberContext: any
-    wrapCommand: any
-    executeHooksWithArgs: any
-    executeSync: any
-    runSync: any
 }
 
 declare global {
@@ -80,27 +71,8 @@ const PROMISE_METHODS = ['then', 'catch', 'finally']
 /**
  * shim to make sure that we only wrap commands if wdio-sync is installed as dependency
  */
-let wdioSync: WDIOSync | undefined
-export let runAsync = false
-export let asyncSpec = false
-try {
-    const packageName = '@wdio/sync'
-    wdioSync = require(packageName)
-    hasWdioSyncSupport = true
-
-    /**
-     * only print within worker process
-     */
-    if (process.send) {
-        log.warn(
-            'You are running tests with @wdio/sync which will be discontinued starting Node.js v16.' +
-            'Read more on https://github.com/webdriverio/webdriverio/discussions/6702'
-        )
-    }
-} catch (err: any) {
-    runAsync = true
-    asyncSpec = true
-}
+export let runAsync = true
+export let asyncSpec = true
 
 let executeHooksWithArgs = async function executeHooksWithArgsShim<T> (hookName: string, hooks: Function | Function[] = [], args: any[] = []): Promise<(T | Error)[]> {
     runAsync = true
@@ -149,13 +121,6 @@ let executeHooksWithArgs = async function executeHooksWithArgsShim<T> (hookName:
         log.debug(`Finished to run "${hookName}" hook in ${Date.now() - start}ms`)
     }
     return result
-}
-
-let runFnInFiberContext = function (fn: Function) {
-    return function (this: any, ...args: any[]) {
-        runAsync = true
-        return Promise.resolve(fn.apply(this, args))
-    }
 }
 
 /**
@@ -334,11 +299,9 @@ let wrapCommand = function wrapCommand<T>(commandName: string, fn: Function): (.
          * also if we run command asynchronous and the command suppose to return an element, we
          * apply `chainElementQuery` to allow chaining of these promises.
          */
-        const command = hasWdioSyncSupport && wdioSync && Boolean(global.browser) && !runAsync && !asyncSpec
-            ? wdioSync!.wrapCommand(commandName, fn)
-            : ELEMENT_QUERY_COMMANDS.includes(commandName) || commandName.endsWith('$')
-                ? chainElementQuery
-                : wrapCommandFn
+        const command = ELEMENT_QUERY_COMMANDS.includes(commandName) || commandName.endsWith('$')
+            ? chainElementQuery
+            : wrapCommandFn
 
         return command.apply(this, args)
     }
@@ -387,11 +350,13 @@ async function executeSyncFn (this: any, fn: Function, retries: Retries, args: a
  * @return {Promise}             that gets resolved once test/hook is done or was retried enough
  */
 async function executeAsync(this: any, fn: Function, retries: Retries, args: any[] = []): Promise<unknown> {
+    // @ts-expect-error
     const isJasmine = global.jasmine && global.expectAsync
     const asyncSpecBefore = asyncSpec
     this.wdioRetries = retries.attempts
 
-    if (!expectSync) {
+    // @ts-ignore
+    if (!expectSync && typeof global.expect === 'function') {
         // @ts-ignore
         expectSync = global.expect.bind({})
     }
@@ -467,25 +432,10 @@ export function switchSyncFlag (fn: Function) {
     }
 }
 
-/**
- * only require `@wdio/sync` if `WDIO_NO_SYNC_SUPPORT` which allows us to
- * create a smoke test scenario to test actual absence of the package
- * (internal use only)
- */
-/* istanbul ignore if */
-if (!process.env.WDIO_NO_SYNC_SUPPORT && hasWdioSyncSupport && wdioSync) {
-    runFnInFiberContext = switchSyncFlag(wdioSync.runFnInFiberContext)
-    executeHooksWithArgs = switchSyncFlag(wdioSync.executeHooksWithArgs)
-    executeSync = switchSyncFlag(wdioSync.executeSync)
-    runSync = switchSyncFlag(wdioSync.runSync)
-}
-
 export {
     executeHooksWithArgs,
-    runFnInFiberContext,
     wrapCommand,
     hasWdioSyncSupport,
     executeSync,
     executeAsync,
-    runSync
 }

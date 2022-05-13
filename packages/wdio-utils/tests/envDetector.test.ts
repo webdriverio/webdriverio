@@ -1,3 +1,4 @@
+import { describe, it, expect } from 'vitest'
 import { Capabilities } from '@wdio/types'
 import { sessionEnvironmentDetector, capabilitiesEnvironmentDetector } from '../src/envDetector'
 

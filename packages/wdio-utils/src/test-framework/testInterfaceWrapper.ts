@@ -6,8 +6,8 @@
  * NOTE: not used by cucumber test framework. `testFnWrapper` is called directly there
  */
 
-import { filterSpecArgs } from '../utils'
-import { testFnWrapper } from './testFnWrapper'
+import { filterSpecArgs } from '../utils.js'
+import { testFnWrapper } from './testFnWrapper.js'
 
 import type {
     HookFnArgs,
@@ -173,7 +173,9 @@ export const wrapTestFunction = function (
          * Jasmine uses a timeout value as last parameter, in this case the arguments
          * should be [title, fn, timeout, retryCnt]
          */
+        // @ts-expect-error
         let timeout = global.jasmine?.DEFAULT_TIMEOUT_INTERVAL
+        // @ts-expect-error
         if (global.jasmine) {
             // if we have [title, fn, timeout, retryCnt]
             if (typeof specArguments[specArguments.length - 1] === 'number') {

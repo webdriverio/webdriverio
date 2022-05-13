@@ -35,6 +35,10 @@ module.exports = {
             isolatedModules: true
         }
     },
+    exclude: [
+        'packages/wdio-logger/**/*.test.ts',
+        'packages/wdio-utils/**/*.test.ts'
+    ],
     testMatch: [
         '**/tests/**/*.test.(js|ts)'
     ],
