@@ -414,6 +414,7 @@ export default class Runner extends EventEmitter {
         this._reporter!.emit('runner:end', {
             failures,
             cid: this._cid,
+            specs: this._specs,
             retries
         } as Options.RunnerEnd)
         try {
