@@ -1,4 +1,4 @@
-import { EventEmitter } from 'events'
+import { EventEmitter } from 'node:events'
 import type { Options, Capabilities } from '@wdio/types'
 import type { ProtocolCommands, ProtocolCommandsAsync } from '@wdio/protocols'
 

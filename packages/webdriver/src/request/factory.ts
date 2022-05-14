@@ -1,5 +1,6 @@
-import WebDriverRequest from './index'
-import type { URL as URLType } from 'url'
+import type { URL as URLType } from 'node:url'
+
+import WebDriverRequest from './index.js'
 
 export default class RequestFactory {
     static getInstance (
@@ -22,9 +23,9 @@ export default class RequestFactory {
 }
 
 export class URLFactory {
-    static getInstance (uri: string): URLType {
+    static async getInstance (uri: string): Promise<URLType> {
         if (process?.versions?.node) {
-            const { URL } = require('url')
+            const { URL } = await import('url')
             return new URL(uri)
         }
         return new window.URL(uri) as URLType
