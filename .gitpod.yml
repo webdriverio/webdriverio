@@ -1,4 +1,14 @@
 # List the start up tasks. Learn more https://www.gitpod.io/docs/config-start-tasks/
 tasks:
-  - init: npm install && npm run setup-full
-    command: npm run watch
+    - init: npm install && npm run setup-full
+      command: npm run watch
+
+github:
+    prebuilds:
+        master: true
+        branches: true
+        pullRequests: true
+        pullRequestsFromForks: true
+        addCheck: prevent-merge-on-error
+        addComment: false
+        addBadge: true
