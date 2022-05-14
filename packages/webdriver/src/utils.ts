@@ -1,18 +1,18 @@
 import merge from 'lodash.merge'
 import logger from '@wdio/logger'
+import Protocols from '@wdio/protocols'
 import {
     WebDriverProtocol, MJsonWProtocol, JsonWProtocol, AppiumProtocol, ChromiumProtocol,
     SauceLabsProtocol, SeleniumProtocol, GeckoProtocol
 } from '@wdio/protocols'
-import Protocols from '@wdio/protocols'
-import { Options, Capabilities } from '@wdio/types'
-
-import RequestFactory from './request/factory'
-import { WebDriverResponse } from './request'
-import command from './command'
 import { transformCommandLogResult } from '@wdio/utils'
 import { CAPABILITY_KEYS } from '@wdio/protocols'
-import { REG_EXPS } from './constants'
+import { Options, Capabilities } from '@wdio/types'
+
+import RequestFactory from './request/factory.js'
+import { WebDriverResponse } from './request/index.js'
+import command from './command.js'
+import { REG_EXPS } from './constants.js'
 import type { Client, JSONWPCommandError, SessionFlags } from './types'
 
 const log = logger('webdriver')

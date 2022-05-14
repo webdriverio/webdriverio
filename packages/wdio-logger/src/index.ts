@@ -1,6 +1,6 @@
 /* istanbul ignore file */
 
-import type log from 'loglevel'
+import type loggerType from './node'
 
 /**
  * environment check to allow to use this package in a web context
@@ -21,4 +21,4 @@ if (typeof process !== 'undefined' && typeof process.release !== 'undefined' && 
 // files but will use the correct one, and in the web context, we'll have only
 // required the web file, thus ensuring that the Node file and related
 // dependencies will not be bundled inadvertently.
-export default mode.default as (name: string) => log.Logger
+export default mode.default as typeof loggerType

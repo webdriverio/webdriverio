@@ -2,9 +2,9 @@ import logger from '@wdio/logger'
 import { commandCallStructure, isValidParameter, getArgumentType } from '@wdio/utils'
 import type { CommandEndpoint } from '@wdio/protocols'
 
-import RequestFactory from './request/factory'
+import RequestFactory from './request/factory.js'
 import { WebDriverResponse } from './request'
-import { BaseClient } from './types'
+import type { BaseClient } from './types'
 
 const log = logger('webdriver')
 

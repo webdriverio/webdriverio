@@ -1,11 +1,12 @@
-import http from 'http'
-import https from 'https'
+import http from 'node:http'
+import https from 'node:https'
+import { performance } from 'node:perf_hooks'
+import type { URL } from 'node:url'
 
-import * as got from 'got'
-import type { URL } from 'url'
+import got, { Options as GotOptions } from 'got'
 import { Options } from '@wdio/types'
-import WebDriverRequest, { RequestLibError } from './index'
-import { performance } from 'perf_hooks'
+
+import WebDriverRequest, { RequestLibError } from './index.js'
 
 const agents: Options.Agents = {
     http: new http.Agent({ keepAlive: true }),
@@ -20,7 +21,7 @@ export default class NodeJSRequest extends WebDriverRequest {
 
     protected async _libRequest (url: URL, opts: Options.RequestLibOptions) {
         try {
-            return (await got.default(url, opts as got.Options)) as Options.RequestLibResponse
+            return (await got(url, opts as GotOptions)) as Options.RequestLibResponse
         } catch (err: any) {
             if (!(err instanceof Error)) {
                 throw new RequestLibError(err.message || err)
