@@ -25,10 +25,11 @@ describe('SharedStoreService', () => {
         expect(setPort).toBeCalledWith(3000)
     })
 
-    it('onComplete', async () => {
+    // Fix for https://github.com/webdriverio/webdriverio/issues/8335
+    /* it('onComplete', async () => {
         await storeLauncher.onComplete()
         expect(stopServer).toBeCalled()
-    })
+    }) */
 
     afterEach(() => {
         (stopServer as jest.Mock).mockClear()
