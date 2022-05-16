@@ -4,18 +4,20 @@ image:
 tasks:
     - name: Unit Test Coverage
       init: |
-        npm i -g http-server
+          npm i -g http-server
       command: |
-        npm run test:coverage
-        cd coverage/lcov-report/
-        http-server -p 8000 &
-        cd ../../
-        npx jest --watch
-    - init: |
-        cd ./website
-        npm install
-      command: npm start
-      name: Run Documentation Page
+          npm run test:coverage
+          cd coverage/lcov-report/
+          http-server -p 8000 &
+          cd ../../
+          npx jest --watch
+    - name: Run Documentation Page
+      init: |
+          cd /workspace/webdriverio/website
+          npm install
+      command: |
+          cd /workspace/webdriverio/website
+          npm start
     - init: |
           npm install
           npm run setup-full
@@ -24,12 +26,12 @@ tasks:
       name: Setup WebdriverIO Development Environment
 
 ports:
-  - port: 3000
-    onOpen: notify
-    visibility: public
-  - port: 8000
-    onOpen: notify
-    visibility: public
+    - port: 3000
+      onOpen: notify
+      visibility: public
+    - port: 8000
+      onOpen: notify
+      visibility: public
 
 github:
     prebuilds:
