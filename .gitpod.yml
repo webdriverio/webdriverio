@@ -15,7 +15,8 @@ tasks:
 
 ports:
   - port: 3000
-    onOpen: ignore
+    onOpen: notify
+    visibility: public
 
 github:
     prebuilds:
