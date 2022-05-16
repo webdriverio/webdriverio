@@ -1,5 +1,5 @@
 image:
-    file: .gitpod/env.dockerfile
+    file: .gitpod/dev.dockerfile
 
 tasks:
     - init: |
