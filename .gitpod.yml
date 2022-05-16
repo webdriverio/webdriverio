@@ -1,7 +1,13 @@
 # List the start up tasks. Learn more https://www.gitpod.io/docs/config-start-tasks/
 tasks:
-    - init: npm install && npm run setup-full
+    - init: |
+          npm install
+          npm run setup-full
       command: npm run watch
+    - init: |
+        wget -P /tmp https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+        sudo dpkg -i /tmp/google-chrome-stable_current_amd64.deb
+      command: google-chrome-stable --version
 
 github:
     prebuilds:
