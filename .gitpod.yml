@@ -5,11 +5,12 @@ tasks:
     - name: Unit Test Coverage
       init: |
         npm i -g http-server
-        gp sync-await installation
+      command: |
         npm run test:coverage
         cd coverage/lcov-report/
         http-server -p 8000 &
-      command: npx jest --watch
+        cd ../../
+        npx jest --watch
     - init: |
         cd ./website
         npm install
