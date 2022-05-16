@@ -1,4 +1,4 @@
-FROM gitpod/workspace-full
+FROM gitpod/workspace-node-lts
 
 RUN \
     sudo apt-get update && \
