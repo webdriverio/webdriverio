@@ -17,12 +17,15 @@ tasks:
       command: |
           cd /workspace/webdriverio/website
           npm start
-    - init: |
+    - name: Setup WebdriverIO Development Environment
+      init: |
           npm install
           npm run setup-full
           gp sync-done installation
       command: npm run watch
-      name: Setup WebdriverIO Development Environment
+    - name: Welcome Bash
+      init: gp sync-await installation
+      command: node .gitpod/welcome.mjs
 
 ports:
     - port: 3000
