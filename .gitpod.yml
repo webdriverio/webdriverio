@@ -1,4 +1,6 @@
-# List the start up tasks. Learn more https://www.gitpod.io/docs/config-start-tasks/
+image:
+    file: .gitpod/env.dockerfile
+
 tasks:
     - init: |
           npm install
@@ -6,13 +8,10 @@ tasks:
       command: npm run watch
       name: Setup WebdriverIO Development Environment
     - init: |
-        sudo apt update --yes
-        sudo apt upgrade --yes
-        wget -P /tmp https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
-        sudo dpkg -i /tmp/google-chrome-stable_current_amd64.deb
-        sudo apt-get install -f --yes
-      command: google-chrome-stable --version
-      name: Install Google Chrome
+        cd ./website
+        npm install
+      command: npm start
+      name: Run Documentation Page
 
 github:
     prebuilds:
