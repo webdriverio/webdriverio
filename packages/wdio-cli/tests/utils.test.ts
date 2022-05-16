@@ -385,6 +385,11 @@ test('validateServiceAnswers', () => {
 })
 
 describe('getCapabilities', () => {
+    afterEach(() => {
+        jest.mock('@wdio/config')
+        jest.resetModules()
+    })
+
     it('should return driver with capabilities for android', () => {
         expect(getCapabilities({ option: 'foo.apk' } as any)).toMatchSnapshot()
         expect(getCapabilities({ option: 'android' } as any)).toMatchSnapshot()
