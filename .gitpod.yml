@@ -4,6 +4,7 @@ tasks:
           npm install
           npm run setup-full
       command: npm run watch
+      name: Setup WebdriverIO Development Environment
     - init: |
         sudo apt update --yes
         sudo apt upgrade --yes
@@ -11,6 +12,7 @@ tasks:
         sudo dpkg -i /tmp/google-chrome-stable_current_amd64.deb
         sudo apt-get install -f
       command: google-chrome-stable --version
+      name: Install Google Chrome
 
 github:
     prebuilds:
