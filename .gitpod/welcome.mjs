@@ -59,7 +59,7 @@ ${chalk.bold('$ npm run test:wdio')}
 
 The following environments are available for you:
     - Preview of the documentation page
-      ${chalk.blue.bold(await sh.exec('echo "gp url 3000"'))}
+      ${chalk.blue.bold(await sh.exec('gp url 3000'))}
     - Code Coverage Overview
-      ${chalk.blue.bold(await sh.exec('echo "gp url 8000"'))}
+      ${chalk.blue.bold(await sh.exec('gp url 8000'))}
 For more information, go to: ${chalk.blue.bold('https://webdriver.io/docs/contribute')}!`)

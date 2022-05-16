@@ -4,7 +4,6 @@ image:
 tasks:
     - name: Unit Test Coverage
       command: |
-          gp sync-await installation
           npm run test:coverage
           cd coverage/lcov-report/
           http-server -p 8000 &
@@ -21,10 +20,8 @@ tasks:
       init: |
           npm install
           npm run setup-full
-          gp sync-done installation
       command: npm run watch
     - name: Welcome Bash
-      init: gp sync-await installation
       command: node .gitpod/welcome.mjs
 
 ports:
