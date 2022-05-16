@@ -296,18 +296,18 @@ export function getCapabilities(arg: ReplCommandArguments) {
         try {
             config.addConfigFile(arg.option)
         } catch (e) {
-            throw new Error( (e as any).code === 'MODULE_NOT_FOUND' ? `Config File not found: ${arg.option}`:
+            throw Error( (e as any).code === 'MODULE_NOT_FOUND' ? `Config File not found: ${arg.option}`:
                 `Could not parse ${arg.option}, failed with error : ${(e as any).message}`)
         }
         let requiredCaps = config.getCapabilities()
         if (typeof arg.capabilities === 'undefined') {
-            throw ('Please provide index/named property of capability to use from the capabilities array/object in wdio config file')
+            throw Error('Please provide index/named property of capability to use from the capabilities array/object in wdio config file')
         }
         requiredCaps = (requiredCaps as (Capabilities.DesiredCapabilities | Capabilities.W3CCapabilities)[])[Number(arg.capabilities)] ||
-                (requiredCaps as Capabilities.MultiRemoteCapabilities)[arg.capabilities]?.capabilities
+                (requiredCaps as Capabilities.MultiRemoteCapabilities)[arg.capabilities]
         const requiredW3CCaps = pickBy(requiredCaps, (_, key) => VALID_CAPS.includes(key) || key.includes(':'))
         if (!Object.keys(requiredW3CCaps).length) {
-            throw (`No capability found in given config file with the provided capability indexed/named property: ${arg.capabilities}. Please check the capability in your wdio config file.`)
+            throw Error(`No capability found in given config file with the provided capability indexed/named property: ${arg.capabilities}. Please check the capability in your wdio config file.`)
         }
         return { capabilities: { ...(requiredW3CCaps as Capabilities.W3CCapabilities) } }
     }

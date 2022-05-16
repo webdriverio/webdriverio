@@ -1,5 +1,33 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`getCapabilities should get capability from wdio.conf.js 1`] = `
+Object {
+  "capabilities": Object {
+    "acceptInsecureCerts": true,
+    "browserName": "chrome",
+    "goog:chromeOptions": Object {
+      "args": Array [
+        "window-size=8000,1200",
+      ],
+    },
+  },
+}
+`;
+
+exports[`getCapabilities should get capability from wdio.conf.ts 1`] = `
+Object {
+  "capabilities": Object {
+    "acceptInsecureCerts": true,
+    "browserName": "chrome",
+    "goog:chromeOptions": Object {
+      "args": Array [
+        "window-size=8000,1200",
+      ],
+    },
+  },
+}
+`;
+
 exports[`getCapabilities should return driver with capabilities for android 1`] = `
 Object {
   "capabilities": Object {
@@ -59,3 +87,9 @@ Object {
   },
 }
 `;
+
+exports[`getCapabilities should through capability not found 1`] = `"No capability found in given config file with the provided capability indexed/named property: 5. Please check the capability in your wdio config file."`;
+
+exports[`getCapabilities should throw capability not provided 1`] = `"Please provide index/named property of capability to use from the capabilities array/object in wdio config file"`;
+
+exports[`getCapabilities should throw config not found error 1`] = `"Config File not found: ./test.js"`;
