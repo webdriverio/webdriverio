@@ -13,6 +13,10 @@ tasks:
       command: npm start
       name: Run Documentation Page
 
+ports:
+  - port: 3000
+    onOpen: ignore
+
 github:
     prebuilds:
         master: true
