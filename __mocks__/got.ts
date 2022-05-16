@@ -1,4 +1,5 @@
-import { ELEMENT_KEY } from '../../src/constants'
+import { vi } from 'vitest'
+import { ELEMENT_KEY } from '../packages/webdriverio/src/constants'
 
 let manualMockResponse: any
 
@@ -9,7 +10,7 @@ let sessionId = defaultSessionId
 const genericElementId = 'some-elem-123'
 const genericSubElementId = 'some-sub-elem-321'
 const genericSubSubElementId = 'some-sub-sub-elem-231'
-const requestMock: any = jest.fn().mockImplementation((uri, params) => {
+const requestMock: any = vi.fn().mockImplementation((uri, params) => {
     let value: any = {}
     let jsonwpMode = false
     let sessionResponse: any = {
@@ -405,8 +406,8 @@ const requestMock: any = jest.fn().mockImplementation((uri, params) => {
     })
 })
 
-requestMock.extend = jest.fn().mockReturnValue(requestMock)
-requestMock.put = jest.fn().mockReturnValue(Promise.resolve({}))
+requestMock.extend = vi.fn().mockReturnValue(requestMock)
+requestMock.put = vi.fn().mockReturnValue(Promise.resolve({}))
 requestMock.retryCnt = 0
 requestMock.setMockResponse = (value: any) => {
     manualMockResponse = value

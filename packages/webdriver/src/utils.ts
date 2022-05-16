@@ -69,7 +69,7 @@ export async function startWebDriverSession (params: Options.WebDriver): Promise
          */
         : [{ alwaysMatch: params.capabilities, firstMatch: [{}] }, params.capabilities]
 
-    const sessionRequest = RequestFactory.getInstance(
+    const sessionRequest = await RequestFactory.getInstance(
         'POST',
         '/session',
         {
