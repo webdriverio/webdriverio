@@ -13,7 +13,7 @@ tasks:
     - init: |
         cd ./website
         npm install
-      command: cd ./website && npm start
+      command: npm start
       name: Run Documentation Page
     - init: |
           npm install
