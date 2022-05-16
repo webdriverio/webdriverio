@@ -4,6 +4,7 @@ image:
 tasks:
     - name: Unit Test Coverage
       command: |
+          gp sync-await installation
           npm run test:coverage
           cd coverage/lcov-report/
           http-server -p 8000 &
