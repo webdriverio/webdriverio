@@ -1,5 +1,5 @@
-import type { Page } from 'puppeteer-core/lib/cjs/puppeteer/common/Page'
-import type { Frame } from 'puppeteer-core/lib/cjs/puppeteer/common/FrameManager'
+import type { Page } from 'puppeteer-core/lib/cjs/puppeteer/common/Page.js'
+import type { Frame } from 'puppeteer-core/lib/cjs/puppeteer/common/FrameManager.js'
 import type DevToolsDriver from '../devtoolsdriver'
 
 /**

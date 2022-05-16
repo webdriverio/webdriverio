@@ -1,7 +1,7 @@
-import findElement from './findElement'
-import command from '../scripts/getActiveElement'
-import cleanUp from '../scripts/cleanUpSerializationSelector'
-import { SERIALIZE_PROPERTY } from '../constants'
+import findElement from './findElement.js'
+import command from '../scripts/getActiveElement.js'
+import cleanUp from '../scripts/cleanUpSerializationSelector.js'
+import { SERIALIZE_PROPERTY } from '../constants.js'
 import type DevToolsDriver from '../devtoolsdriver'
 
 /**

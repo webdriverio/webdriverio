@@ -1,6 +1,6 @@
-import command from '../scripts/executeAsyncScript'
-import { transformExecuteArgs, transformExecuteResult } from '../utils'
-import { SERIALIZE_PROPERTY, SERIALIZE_FLAG } from '../constants'
+import command from '../scripts/executeAsyncScript.js'
+import { transformExecuteArgs, transformExecuteResult } from '../utils.js'
+import { SERIALIZE_PROPERTY, SERIALIZE_FLAG } from '../constants.js'
 import type DevToolsDriver from '../devtoolsdriver'
 
 /**

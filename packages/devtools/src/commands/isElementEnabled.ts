@@ -1,4 +1,4 @@
-import getElementAttribute from './getElementAttribute'
+import getElementAttribute from './getElementAttribute.js'
 import type DevToolsDriver from '../devtoolsdriver'
 
 /**

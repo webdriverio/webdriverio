@@ -1,6 +1,6 @@
-import getElementTagName from './getElementTagName'
-import selectOptionScript from '../scripts/selectOption'
-import { getStaleElementError } from '../utils'
+import getElementTagName from './getElementTagName.js'
+import selectOptionScript from '../scripts/selectOption.js'
+import { getStaleElementError } from '../utils.js'
 import type DevToolsDriver from '../devtoolsdriver'
 
 /**

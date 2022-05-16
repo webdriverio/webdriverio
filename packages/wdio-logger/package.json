@@ -15,6 +15,13 @@
         "require": "./build/index.cjs.js"
       },
       "./build/index.cjs.js"
+    ],
+    "./node": [
+      {
+        "import": "./build/node.js",
+        "require": "./build/node.cjs.js"
+      },
+      "./build/node.cjs.js"
     ]
   },
   "types": "./build/index.d.ts",

@@ -1,8 +1,8 @@
-import path from 'path'
+import path from 'node:path'
 import { UNICODE_CHARACTERS } from '@wdio/utils'
 import type { KeyInput } from 'puppeteer-core'
 
-import { getStaleElementError } from '../utils'
+import { getStaleElementError } from '../utils.js'
 import type DevToolsDriver from '../devtoolsdriver'
 
 /**

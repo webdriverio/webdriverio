@@ -1,9 +1,9 @@
-import type { Page } from 'puppeteer-core/lib/cjs/puppeteer/common/Page'
-import type { Frame } from 'puppeteer-core/lib/cjs/puppeteer/common/FrameManager'
+import type { Page } from 'puppeteer-core/lib/cjs/puppeteer/common/Page.js'
+import type { Frame } from 'puppeteer-core/lib/cjs/puppeteer/common/FrameManager.js'
 import type { ElementReference } from '@wdio/protocols'
 
-import { ELEMENT_KEY } from '../constants'
-import { getStaleElementError } from '../utils'
+import { ELEMENT_KEY } from '../constants.js'
+import { getStaleElementError } from '../utils.js'
 import type DevToolsDriver from '../devtoolsdriver'
 
 /**

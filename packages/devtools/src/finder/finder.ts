@@ -1,5 +1,5 @@
-import path from 'path'
-import { execSync } from 'child_process'
+import path from 'node:path'
+import { execSync } from 'node:child_process'
 
 import { canAccess } from '@wdio/utils'
 

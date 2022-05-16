@@ -1,5 +1,5 @@
-import command from '../scripts/getElementCSSValue'
-import { getStaleElementError } from '../utils'
+import command from '../scripts/getElementCSSValue.js'
+import { getStaleElementError } from '../utils.js'
 import type DevToolsDriver from '../devtoolsdriver'
 
 /**

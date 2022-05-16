@@ -21,7 +21,7 @@ declare const querySelectorShadowDom: {
     locatorStrategy: ExecuteMethod
 }
 
-declare module "query-selector-shadow-dom/plugins/puppeteer" {
+declare module "query-selector-shadow-dom/plugins/puppeteer/index.js" {
     export = querySelectorShadowDom
 }
 

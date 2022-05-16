@@ -1,5 +1,5 @@
-import edgeFinder from './edge'
-import firefoxFinder from './firefox'
+import edgeFinder from './edge.js'
+import firefoxFinder from './firefox.js'
 
 export default (browserName: 'firefox' | 'edge', platform: NodeJS.Platform) => {
     const finder = {

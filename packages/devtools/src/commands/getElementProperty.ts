@@ -1,4 +1,4 @@
-import { getStaleElementError } from '../utils'
+import { getStaleElementError } from '../utils.js'
 import type DevToolsDriver from '../devtoolsdriver'
 
 /**

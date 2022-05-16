@@ -1,5 +1,5 @@
-import getElementProperty from './getElementProperty'
-import getElementTagName from './getElementTagName'
+import getElementProperty from './getElementProperty.js'
+import getElementTagName from './getElementTagName.js'
 import type DevToolsDriver from '../devtoolsdriver'
 
 /**
