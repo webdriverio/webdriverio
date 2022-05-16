@@ -8,7 +8,8 @@ tasks:
         sudo apt update --yes
         sudo apt upgrade --yes
         wget -P /tmp https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
-        sudo apt --fix-broken install fonts-liberation --yes
+        sudo apt install fonts-liberation --yes || echo 1
+        sudo apt --fix-broken install --yes
         sudo dpkg -i /tmp/google-chrome-stable_current_amd64.deb
       command: google-chrome-stable --version
 
