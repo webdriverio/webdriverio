@@ -3,8 +3,6 @@ image:
 
 tasks:
     - name: Unit Test Coverage
-      init: |
-          npm i -g http-server
       command: |
           npm run test:coverage
           cd coverage/lcov-report/
