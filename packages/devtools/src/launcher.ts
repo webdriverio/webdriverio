@@ -3,10 +3,10 @@ import puppeteer from 'puppeteer-core'
 import logger from '@wdio/logger'
 import type { Browser } from 'puppeteer-core/lib/cjs/puppeteer/common/Browser'
 import type { Capabilities } from '@wdio/types'
-import { QueryHandler } from 'query-selector-shadow-dom/plugins/puppeteer'
+import { QueryHandler } from 'query-selector-shadow-dom/plugins/puppeteer/index.js'
 
-import browserFinder from './finder'
-import { getPages } from './utils'
+import browserFinder from './finder/index.js'
+import { getPages } from './utils.js'
 import {
     CHROME_NAMES,
     FIREFOX_NAMES,
@@ -21,7 +21,7 @@ import {
     CHANNEL_FIREFOX_NIGHTLY,
     CHANNEL_FIREFOX_TRUNK,
     BROWSER_ERROR_MESSAGES
-} from './constants'
+} from './constants.js'
 import type { ExtendedCapabilities, DevToolsOptions } from './types'
 
 const log = logger('devtools')

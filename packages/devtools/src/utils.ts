@@ -1,20 +1,23 @@
-import fs from 'fs'
-import path from 'path'
-import { execFileSync } from 'child_process'
+import fs from 'node:fs'
+import path from 'node:path'
+import { createRequire } from 'node:module'
+import { execFileSync } from 'node:child_process'
+
 import logger from '@wdio/logger'
 import { commandCallStructure, isValidParameter, getArgumentType, canAccess } from '@wdio/utils'
 import { WebDriverProtocol, CommandParameters, CommandPathVariables, ElementReference } from '@wdio/protocols'
-import type { Logger } from '@wdio/logger'
+import type { Logger } from '@wdio/logger/build/node'
 import type { ElementHandle } from 'puppeteer-core/lib/cjs/puppeteer/common/JSHandle'
 import type { Browser } from 'puppeteer-core/lib/cjs/puppeteer/common/Browser'
 import type { Frame } from 'puppeteer-core/lib/cjs/puppeteer/common/FrameManager'
 import type { Page } from 'puppeteer-core/lib/cjs/puppeteer/common/Page'
 
-import cleanUp from './scripts/cleanUpSerializationSelector'
-import { ELEMENT_KEY, SERIALIZE_PROPERTY, SERIALIZE_FLAG, ERROR_MESSAGES, PPTR_LOG_PREFIX } from './constants'
+import cleanUp from './scripts/cleanUpSerializationSelector.js'
+import { ELEMENT_KEY, SERIALIZE_PROPERTY, SERIALIZE_FLAG, ERROR_MESSAGES, PPTR_LOG_PREFIX } from './constants.js'
 import type { Priorities } from './finder/firefox'
 import type DevToolsDriver from './devtoolsdriver'
 
+const require = createRequire(import.meta.url)
 const log = logger('devtools')
 
 export const validate = function (
@@ -108,7 +111,7 @@ export async function findElement (
      */
     const implicitTimeout = this.timeouts.get('implicit')
     const waitForFn = using === 'xpath' ? (context as Page | Frame).waitForXPath : (context as Page | Frame).waitForSelector
-    if (implicitTimeout && waitForFn) {
+    if (implicitTimeout) {
         await waitForFn.call(context, value, { timeout: implicitTimeout })
     }
 
@@ -148,7 +151,7 @@ export async function findElements (
      */
     const implicitTimeout = this.timeouts.get('implicit')
     const waitForFn = using === 'xpath' ? (context as Page | Frame).waitForXPath : (context as Page | Frame).waitForSelector
-    if (implicitTimeout && waitForFn) {
+    if (implicitTimeout) {
         await waitForFn.call(context, value, { timeout: implicitTimeout })
     }
 
@@ -320,7 +323,7 @@ export function findByWhich (executables: string[], priorities: Priorities[]) {
 /**
  * monkey patch debug package to log CDP messages from Puppeteer
  */
-export function patchDebug (scoppedLogger: Logger) {
+export async function patchDebug (scoppedLogger: Logger) {
     /**
      * log puppeteer messages
      */

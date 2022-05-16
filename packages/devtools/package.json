@@ -5,12 +5,9 @@
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/devtools",
   "license": "MIT",
-  "main": "./build/index",
   "engines": {
      "node": "^16.13 || >=18"
   },
-  "types": "./build/index.d.ts",
-  "typeScriptVersion": "3.8.3",
   "repository": {
     "type": "git",
     "url": "git://github.com/webdriverio/webdriverio.git"
@@ -21,6 +18,20 @@
   "bugs": {
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
+  "main": "./build/index.cjs.js",
+  "type": "module",
+  "module": "./build/index.js",
+  "exports": {
+    ".": [
+      {
+        "import": "./build/index.js",
+        "require": "./build/index.cjs.js"
+      },
+      "./build/index.cjs.js"
+    ]
+  },
+  "types": "./build/index.d.ts",
+  "typeScriptVersion": "3.8.3",
   "dependencies": {
     "@types/node": "^18.0.0",
     "@types/ua-parser-js": "^0.7.33",

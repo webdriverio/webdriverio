@@ -1,5 +1,7 @@
-import path from 'path'
+import path from 'node:path'
+import { createRequire } from 'node:module'
 
+const require = createRequire(import.meta.url)
 const puppeteerPath = require.resolve('puppeteer-core')
 const puppeteerPkg = require(`${path.dirname(puppeteerPath)}/package.json`)
 

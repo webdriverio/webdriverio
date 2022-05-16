@@ -1,9 +1,9 @@
-import { keyDefinitions, KeyInput } from 'puppeteer-core/lib/cjs/puppeteer/common/USKeyboardLayout'
-import type { Keyboard, Mouse } from 'puppeteer-core/lib/cjs/puppeteer/common/Input'
+import { keyDefinitions, KeyInput } from 'puppeteer-core/lib/cjs/puppeteer/common/USKeyboardLayout.js'
+import type { Keyboard, Mouse } from 'puppeteer-core/lib/cjs/puppeteer/common/Input.js'
 
-import getElementRect from './getElementRect'
-import { ELEMENT_KEY } from '../constants'
-import { sleep } from '../utils'
+import getElementRect from './getElementRect.js'
+import { ELEMENT_KEY } from '../constants.js'
+import { sleep } from '../utils.js'
 import type DevToolsDriver from '../devtoolsdriver'
 
 const KEY = 'key'

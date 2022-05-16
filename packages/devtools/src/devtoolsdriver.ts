@@ -1,5 +1,6 @@
-import fs from 'fs'
-import path from 'path'
+import fs from 'node:fs'
+import path from 'node:path'
+import { createRequire } from 'node:module'
 import { v4 as uuidv4 } from 'uuid'
 
 import logger from '@wdio/logger'
@@ -10,11 +11,12 @@ import type { Target } from 'puppeteer-core/lib/cjs/puppeteer/common/Target'
 import type { CommandEndpoint } from '@wdio/protocols'
 import type { Frame } from 'puppeteer-core/lib/cjs/puppeteer/common/FrameManager'
 
-import ElementStore from './elementstore'
-import { validate, sanitizeError } from './utils'
-import { DEFAULT_IMPLICIT_TIMEOUT, DEFAULT_PAGELOAD_TIMEOUT, DEFAULT_SCRIPT_TIMEOUT } from './constants'
+import ElementStore from './elementstore.js'
+import { validate, sanitizeError } from './utils.js'
+import { DEFAULT_IMPLICIT_TIMEOUT, DEFAULT_PAGELOAD_TIMEOUT, DEFAULT_SCRIPT_TIMEOUT } from './constants.js'
 
 const log = logger('devtools')
+const require = createRequire(import.meta.url)
 
 export default class DevToolsDriver {
     commands: Record<string, Function> = {}

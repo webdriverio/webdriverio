@@ -1,5 +1,5 @@
 import command from '../scripts/elementClear'
-import { getStaleElementError } from '../utils'
+import { getStaleElementError } from '../utils.js'
 import type DevToolsDriver from '../devtoolsdriver'
 
 /**
