@@ -10,7 +10,7 @@ tasks:
     - init: |
         cd ./website
         npm install
-      command: npm start
+      command: cd ./website && npm start
       name: Run Documentation Page
 
 ports:
