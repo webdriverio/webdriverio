@@ -30,8 +30,6 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
 
         const opts = {
             key: this._config.key,
-            forcelocal: true,
-            onlyAutomate: true,
             ...this._options.opts
         }
 
