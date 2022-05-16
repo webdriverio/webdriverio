@@ -391,7 +391,7 @@ describe('getCapabilities', () => {
     })
 
     it('should return driver with capabilities for ios', () => {
-        expect(getCapabilities({ option: 'foo.app', deviceName: 'fooName', udid: 'num', platformVersion: 'fooNum' })).toMatchSnapshot()
+        expect(getCapabilities({ option: 'foo.app', deviceName: 'fooName', udid: 'num', platformVersion: 'fooNum' } as any)).toMatchSnapshot()
         expect(getCapabilities({ option: 'ios' } as any)).toMatchSnapshot()
     })
 
@@ -399,20 +399,46 @@ describe('getCapabilities', () => {
         expect(getCapabilities({ option: 'chrome' } as any)).toMatchSnapshot()
     })
 
-    it.only('should return driver with capabilities for wdio.config.js', () => {
-        jest.mock('@wdio/config', () => {
-            return {
-                configMock: jest.resetAllMocks()
-            }
-        })
-        expect(getCapabilities({ option: './nonexists.js', capabilities: 3 } as any)).toMatchSnapshot()
+    it('should throw config not found error', () => {
+        jest.unmock('@wdio/config')
+        jest.resetModules()
+        const getCapabilities = require('../src/utils').getCapabilities
+        expect(()=>getCapabilities({ option: './test.js', capabilities: 2 } as any)).toThrowErrorMatchingSnapshot()
+    })
+
+    it('should throw capability not provided', () => {
+        jest.unmock('@wdio/config')
+        jest.resetModules()
+        const getCapabilities = require('../src/utils').getCapabilities
+        expect(()=>getCapabilities({ option: './packages/wdio-cli/tests/__testData__/wdio.conf.js' } as any)).toThrowErrorMatchingSnapshot()
+    })
+
+    it('should through capability not found', () => {
+        jest.unmock('@wdio/config')
+        jest.resetModules()
+        const getCapabilities = require('../src/utils').getCapabilities
+        expect(()=>getCapabilities({ option: 'packages/wdio-cli/tests/__testData__/wdio.conf.js', capabilities: 5 } as any)).toThrowErrorMatchingSnapshot()
+    })
+
+    it('should get capability from wdio.conf.js', () => {
+        jest.unmock('@wdio/config')
+        jest.resetModules()
+        const getCapabilities = require('../src/utils').getCapabilities
+        expect(getCapabilities({ option: 'packages/wdio-cli/tests/__testData__/wdio.conf.js', capabilities: 2 } as any)).toMatchSnapshot()
+    })
+
+    it('should get capability from wdio.conf.ts', () => {
+        jest.unmock('@wdio/config')
+        jest.resetModules()
+        const getCapabilities = require('../src/utils').getCapabilities
+        expect(getCapabilities({ option: './packages/wdio-cli/tests/__testData__/wdio.conf.ts', capabilities: 'myCapabilities' } as any)).toMatchSnapshot()
     })
 })
 
 test('hasFile', () => {
     (fs.existsSync as jest.Mock).mockReturnValue(true)
     expect(hasFile('package.json')).toBe(true)
-    ;(fs.existsSync as jest.Mock).mockReturnValue(false)
+    ; (fs.existsSync as jest.Mock).mockReturnValue(false)
     expect(hasFile('xyz')).toBe(false)
 })
 
@@ -595,7 +621,7 @@ describe('generateTestFiles', () => {
             isUsingTypeScript: true,
             stepDefinitions: '/some/step',
             destPageObjectRootPath: '/some/page/objects',
-            relativePath : '../page/object'
+            relativePath: '../page/object'
         }
         await generateTestFiles(answers as any)
 
@@ -701,7 +727,7 @@ test('getDefaultFiles', () => {
 afterEach(() => {
     (console.log as jest.Mock).mockRestore()
     readDir.mockClear()
-    ;(fs.promises.writeFile as jest.Mock).mockClear()
-    ;(fs.ensureDirSync as jest.Mock).mockClear()
-    ;(ejs.renderFile as jest.Mock).mockClear()
+    ; (fs.promises.writeFile as jest.Mock).mockClear()
+    ; (fs.ensureDirSync as jest.Mock).mockClear()
+    ; (ejs.renderFile as jest.Mock).mockClear()
 })
