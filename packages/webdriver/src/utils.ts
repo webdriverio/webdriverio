@@ -10,9 +10,9 @@ import { CAPABILITY_KEYS } from '@wdio/protocols'
 import { Options, Capabilities } from '@wdio/types'
 
 import RequestFactory from './request/factory.js'
-import { WebDriverResponse } from './request/index.js'
 import command from './command.js'
 import { REG_EXPS } from './constants.js'
+import type { WebDriverResponse } from './request/index.js'
 import type { Client, JSONWPCommandError, SessionFlags } from './types'
 
 const log = logger('webdriver')

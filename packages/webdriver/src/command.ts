@@ -3,7 +3,7 @@ import { commandCallStructure, isValidParameter, getArgumentType } from '@wdio/u
 import type { CommandEndpoint } from '@wdio/protocols'
 
 import RequestFactory from './request/factory.js'
-import { WebDriverResponse } from './request'
+import type { WebDriverResponse } from './request'
 import type { BaseClient } from './types'
 
 const log = logger('webdriver')

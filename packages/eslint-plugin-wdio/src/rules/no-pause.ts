@@ -1,5 +1,5 @@
 import { Rule } from 'eslint'
-import { isCommand } from '../utils/helpers'
+import { isCommand } from '../utils/helpers.js'
 
 const rule: Rule.RuleModule = {
     meta: {

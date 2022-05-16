@@ -1,7 +1,7 @@
 import type { Rule } from 'eslint'
 import type { Identifier } from 'estree'
 
-import { MATCHERS } from '../constants'
+import { MATCHERS } from '../constants.js'
 
 const rule: Rule.RuleModule = {
     meta: {
