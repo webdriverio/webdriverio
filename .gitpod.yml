@@ -8,6 +8,7 @@ tasks:
         sudo apt update
         sudo apt upgrade
         wget -P /tmp https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+        sudo apt --fix-broken install
         sudo dpkg -i /tmp/google-chrome-stable_current_amd64.deb
       command: google-chrome-stable --version
 
