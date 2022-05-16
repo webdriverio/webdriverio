@@ -16,9 +16,4 @@ export default class SharedStoreLauncher {
 
         log.info(`Started shared server on port ${result.port}`)
     }
-
-    // Fix for https://github.com/webdriverio/webdriverio/issues/8335
-    /* async onComplete () {s
-        await server.stopServer()
-    } */
 }
