@@ -5,7 +5,8 @@ tasks:
           npm run setup-full
       command: npm run watch
     - init: |
-        sudo apt install fonts-liberation --yes
+        sudo apt update
+        sudo apt upgrade
         wget -P /tmp https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
         sudo dpkg -i /tmp/google-chrome-stable_current_amd64.deb
       command: google-chrome-stable --version
