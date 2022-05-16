@@ -2,19 +2,29 @@ image:
     file: .gitpod/dev.dockerfile
 
 tasks:
-    - init: |
-          npm install
-          npm run setup-full
-      command: npm run watch
-      name: Setup WebdriverIO Development Environment
+    - name: Unit Test Coverage
+      init: |
+        npm i -g http-server
+        npm run test:coverage
+        cd coverage/lcov-report/
+        http-server -p 8000 &
+      command: npx jest --watch
     - init: |
         cd ./website
         npm install
       command: cd ./website && npm start
       name: Run Documentation Page
+    - init: |
+          npm install
+          npm run setup-full
+      command: npm run watch
+      name: Setup WebdriverIO Development Environment
 
 ports:
   - port: 3000
+    onOpen: notify
+    visibility: public
+  - port: 8000
     onOpen: notify
     visibility: public
 
