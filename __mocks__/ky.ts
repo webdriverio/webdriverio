@@ -1,3 +1,5 @@
+import { vi } from 'vitest'
+
 function res(status: number, value: any, fullValue: boolean = false) {
     return { status, json: () => fullValue ? value : { value } }
 }
@@ -6,7 +8,7 @@ function err(status: number, name: string, message: string) {
     return { status, json: () => ({ value: { error: name, message } }) }
 }
 
-const kyMock: any = jest.fn().mockImplementation((url, opts) => {
+const kyMock: any = vi.fn().mockImplementation((url, opts) => {
     switch (url.pathname) {
     case '/sumoerror':
         throw new Error('ups')

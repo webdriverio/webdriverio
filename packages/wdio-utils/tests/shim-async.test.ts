@@ -5,10 +5,6 @@ import {
     executeAsync, wrapCommand
 } from '../src/shim'
 
-vi.mock('@wdio/sync', () => {
-    throw new Error('Does not exist')
-})
-
 const globalAny: any = global
 
 beforeEach(() => {

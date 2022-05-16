@@ -1,4 +1,5 @@
 import { vi, describe, it, expect, MockedFunction } from 'vitest'
+import path from 'path'
 import fs from 'node:fs'
 
 import {
@@ -6,7 +7,7 @@ import {
     getArgumentType, isFunctionAsync, filterSpecArgs, isBase64, transformCommandLogResult
 } from '../src/utils'
 
-vi.mock('fs')
+vi.mock('fs', () => import(path.join(process.cwd(), '__mocks__', 'fs')))
 
 describe('utils', () => {
     it('commandCallStructure', () => {

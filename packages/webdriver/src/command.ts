@@ -16,7 +16,7 @@ export default function (
 ) {
     const { command, ref, parameters, variables = [], isHubCommand = false } = commandInfo
 
-    return function protocolCommand (this: BaseClient, ...args: any[]): Promise<WebDriverResponse> {
+    return async function protocolCommand (this: BaseClient, ...args: any[]): Promise<WebDriverResponse> {
         let endpoint = endpointUri // clone endpointUri in case we change it
         const commandParams = [...variables.map((v) => Object.assign(v, {
             /**
@@ -88,7 +88,7 @@ export default function (
             body[commandParams[i].name] = arg
         }
 
-        const request = RequestFactory.getInstance(method, endpoint, body, isHubCommand)
+        const request = await RequestFactory.getInstance(method, endpoint, body, isHubCommand)
         request.on('performance', (...args) => this.emit('request.performance', ...args))
         this.emit('command', { method, endpoint, body })
         log.info('COMMAND', commandCallStructure(command, args))
@@ -96,7 +96,8 @@ export default function (
             if (result.value != null) {
                 log.info('RESULT', /screenshot|recording/i.test(command)
                     && typeof result.value === 'string' && result.value.length > 64
-                    ? `${result.value.substr(0, 61)}...` : result.value)
+                    ? `${result.value.slice(0, 61)}...`
+                    : result.value)
             }
 
             this.emit('result', { method, endpoint, body, result })
