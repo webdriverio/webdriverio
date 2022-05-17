@@ -5,7 +5,6 @@
   "author": "Adam Bjerstedt <abjerstedt@gmail.com>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-browserstack-service",
   "license": "MIT",
-  "main": "./build",
   "engines": {
      "node": "^16.13 || >=18"
   },
@@ -22,12 +21,26 @@
   "bugs": {
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
+  "main": "./build/index.cjs.js",
+  "type": "module",
+  "module": "./build/index.js",
+  "exports": {
+    ".": [
+      {
+        "import": "./build/index.js",
+        "require": "./build/index.cjs.js"
+      },
+      "./build/index.cjs.js"
+    ]
+  },
+  "types": "./build/index.d.ts",
+  "typeScriptVersion": "3.8.3",
   "dependencies": {
     "@types/node": "^18.0.0",
     "@wdio/logger": "7.19.0",
     "@wdio/types": "7.20.3",
-    "browserstack-local": "^1.4.5",
-    "got": "^11.0.2",
+    "browserstack-local": "^1.5.1",
+    "got": "^12.0.4",
     "webdriverio": "7.20.5"
   },
   "peerDependencies": {
@@ -35,6 +48,5 @@
   },
   "publishConfig": {
     "access": "public"
-  },
-  "types": "./build/index.d.ts"
+  }
 }

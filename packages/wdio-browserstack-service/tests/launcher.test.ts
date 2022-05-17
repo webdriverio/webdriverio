@@ -1,4 +1,7 @@
-import Browserstack from 'browserstack-local'
+import path from 'node:path'
+import { describe, expect, it, vi, beforeEach } from 'vitest'
+// @ts-expect-error mock feature
+import Browserstack, { mockStart } from 'browserstack-local'
 import logger from '@wdio/logger'
 
 import BrowserstackLauncher from '../src/launcher'
@@ -6,14 +9,15 @@ import { BrowserstackConfig } from '../src/types'
 // @ts-ignore
 import { version as bstackServiceVersion } from '../package.json'
 
-const expect = global.expect as unknown as jest.Expect
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock('browserstack-local')
 
 const log = logger('test')
 const error = new Error('I\'m an error!')
 const sleep = (ms: number = 100) => new Promise((resolve) => setTimeout(resolve, ms))
 
 beforeEach(() => {
-    jest.clearAllMocks()
+    vi.clearAllMocks()
 })
 
 describe('onPrepare', () => {
@@ -24,7 +28,7 @@ describe('onPrepare', () => {
         key: '12345',
         capabilities: []
     }
-    const logInfoSpy = jest.spyOn(log, 'info').mockImplementation((string) => string)
+    const logInfoSpy = vi.spyOn(log, 'info').mockImplementation((string) => string)
 
     it('should not call local if browserstackLocal is undefined', () => {
         const service = new BrowserstackLauncher({}, caps, {
@@ -88,15 +92,14 @@ describe('onPrepare', () => {
 
     it('should reject if local.start throws an error', () => {
         const service = new BrowserstackLauncher(options, caps, config)
-        const BrowserstackLocalStartSpy = jest.spyOn(new Browserstack.Local(), 'start')
-        BrowserstackLocalStartSpy.mockImplementationOnce((options, cb) => cb(error))
+        mockStart.mockImplementationOnce((_: never, cb: Function) => cb(error))
 
         return expect(service.onPrepare(config, caps)).rejects.toThrow(error)
             .then(() => expect(service.browserstackLocal?.start).toHaveBeenCalled())
     })
 
     it('should successfully resolve if local.start is successful', async () => {
-        const logInfoMock = jest.spyOn(log, 'info')
+        const logInfoMock = vi.spyOn(log, 'info')
         const service = new BrowserstackLauncher(options, caps, config)
 
         await service.onPrepare(config, caps)
@@ -108,10 +111,9 @@ describe('onPrepare', () => {
 
     it('should correctly set up this-binding for local.start', async () => {
         const service = new BrowserstackLauncher(options, caps, config)
-        const BrowserstackLocalStartSpy = jest.spyOn(new Browserstack.Local(), 'start')
         await service.onPrepare(config, caps)
-        expect(BrowserstackLocalStartSpy).toHaveBeenCalled()
-        jest.clearAllMocks()
+        expect(mockStart).toHaveBeenCalled()
+        vi.clearAllMocks()
     })
 })
 
@@ -119,7 +121,7 @@ describe('onComplete', () => {
     it('should do nothing if browserstack local is turned on, but not running', () => {
         const service = new BrowserstackLauncher({}, [{}] as any, {} as any)
         service.browserstackLocal = new Browserstack.Local()
-        const BrowserstackLocalIsRunningSpy = jest.spyOn(service.browserstackLocal, 'isRunning')
+        const BrowserstackLocalIsRunningSpy = vi.spyOn(service.browserstackLocal, 'isRunning')
         BrowserstackLocalIsRunningSpy.mockImplementationOnce(() => false)
         service.onComplete()
         expect(service.browserstackLocal.stop).not.toHaveBeenCalled()
@@ -130,7 +132,7 @@ describe('onComplete', () => {
         service.browserstackLocal = new Browserstack.Local()
         service.browserstackLocal.pid = 102
 
-        const killSpy = jest.spyOn(process, 'kill').mockImplementationOnce((pid) => pid as any)
+        const killSpy = vi.spyOn(process, 'kill').mockImplementationOnce((pid) => pid as any)
         expect(service.onComplete()).toEqual(102)
         expect(killSpy).toHaveBeenCalled()
         expect(service.browserstackLocal.stop).not.toHaveBeenCalled()
@@ -139,7 +141,7 @@ describe('onComplete', () => {
     it('should reject with an error, if local.stop throws an error', () => {
         const service = new BrowserstackLauncher({}, [{ browserName: '' }] as any, {} as any)
         service.browserstackLocal = new Browserstack.Local()
-        const BrowserstackLocalStopSpy = jest.spyOn(service.browserstackLocal, 'stop')
+        const BrowserstackLocalStopSpy = vi.spyOn(service.browserstackLocal, 'stop')
         BrowserstackLocalStopSpy.mockImplementationOnce((cb) => cb(error))
         return expect(service.onComplete()).rejects.toThrow(error)
             .then(() => expect(service.browserstackLocal?.stop).toHaveBeenCalled())

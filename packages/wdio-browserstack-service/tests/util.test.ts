@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest'
 import type { Browser, MultiRemoteBrowser } from 'webdriverio'
 
 import {
