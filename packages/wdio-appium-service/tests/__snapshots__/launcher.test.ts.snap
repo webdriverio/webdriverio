@@ -1,7 +1,7 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Vitest Snapshot v1
 
-exports[`Appium launcher onPrepare should set correct config properties for Windows 1`] = `
-Array [
+exports[`Appium launcher > onPrepare > should set correct config properties for Windows 1`] = `
+[
   "/c",
   "path/to/my_custom_appium",
   "--base-path",
@@ -11,8 +11,8 @@ Array [
 ]
 `;
 
-exports[`Appium launcher onPrepare should set correct config properties for linux 1`] = `
-Array [
+exports[`Appium launcher > onPrepare > should set correct config properties for linux 1`] = `
+[
   "--base-path",
   "/",
   "--foo",
@@ -20,8 +20,8 @@ Array [
 ]
 `;
 
-exports[`Appium launcher onPrepare should set correct config properties for mac 1`] = `
-Array [
+exports[`Appium launcher > onPrepare > should set correct config properties for mac 1`] = `
+[
   "--base-path",
   "/",
   "--foo",

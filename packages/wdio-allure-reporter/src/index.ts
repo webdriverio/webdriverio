@@ -1,3 +1,4 @@
+import { createRequire } from 'node:module'
 import { stringify } from 'csv-stringify/sync'
 import WDIOReporter, {
     SuiteStats, Tag, HookStats, RunnerStats, TestStats, BeforeCommandArgs,
@@ -16,14 +17,14 @@ import {
     AddStoryEventArgs, AddTestIdEventArgs, AllureReporterOptions, Status
 } from './types.js'
 
+const require = createRequire(import.meta.url)
+
 /**
  * Allure v1 has no proper TS support
  * ToDo(Christian): update to Allure v2 (https://github.com/webdriverio/webdriverio/issues/6313)
  */
-// @ts-expect-error
-import Allure from 'allure-js-commons'
-// @ts-expect-error
-import Step from 'allure-js-commons/beans/step'
+const Allure = require('allure-js-commons')
+const Step = require('allure-js-commons/beans/step')
 
 class AllureReporter extends WDIOReporter {
     private _allure: any
