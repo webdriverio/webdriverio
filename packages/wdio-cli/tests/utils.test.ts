@@ -443,7 +443,7 @@ describe('getCapabilities', () => {
 test('hasFile', () => {
     (fs.existsSync as jest.Mock).mockReturnValue(true)
     expect(hasFile('package.json')).toBe(true)
-    ; (fs.existsSync as jest.Mock).mockReturnValue(false)
+    ;(fs.existsSync as jest.Mock).mockReturnValue(false)
     expect(hasFile('xyz')).toBe(false)
 })
 
