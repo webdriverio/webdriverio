@@ -5,7 +5,6 @@
   "author": "Morten Bjerg Gregersen <morten@mogee.dk>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-appium-service",
   "license": "MIT",
-  "main": "./build/index",
   "engines": {
      "node": "^16.13 || >=18"
   },
@@ -25,19 +24,32 @@
   "bugs": {
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
+  "main": "./build/index.cjs.js",
+  "type": "module",
+  "module": "./build/index.js",
+  "exports": {
+    ".": [
+      {
+        "import": "./build/index.js",
+        "require": "./build/index.cjs.js"
+      },
+      "./build/index.cjs.js"
+    ]
+  },
+  "types": "./build/index.d.ts",
+  "typeScriptVersion": "3.8.3",
   "dependencies": {
-    "@types/fs-extra": "^9.0.4",
+    "@types/fs-extra": "^9.0.13",
     "@wdio/config": "7.20.3",
     "@wdio/logger": "7.19.0",
     "@wdio/types": "7.20.3",
-    "fs-extra": "^10.0.0",
-    "param-case": "^3.0.0"
+    "fs-extra": "^10.1.0",
+    "param-case": "^3.0.4"
   },
   "peerDependencies": {
     "@wdio/cli": "^7.0.0"
   },
   "publishConfig": {
     "access": "public"
-  },
-  "types": "./build/index.d.ts"
+  }
 }

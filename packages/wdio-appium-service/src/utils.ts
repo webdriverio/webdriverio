@@ -1,7 +1,7 @@
-import { basename, join, resolve } from 'path'
+import { basename, join, resolve } from 'node:path'
 import { paramCase } from 'param-case'
 
-import { ArgValue, KeyValueArgs } from './types'
+import type { ArgValue, KeyValueArgs } from './types'
 
 const FILE_EXTENSION_REGEX = /\.[0-9a-z]+$/i
 
