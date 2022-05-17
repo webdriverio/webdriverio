@@ -3,8 +3,8 @@ import got from 'got'
 import type { Services, Capabilities, Options, Frameworks } from '@wdio/types'
 import type { Browser, MultiRemoteBrowser } from 'webdriverio'
 
-import { getBrowserDescription, getBrowserCapabilities, isBrowserstackCapability, getParentSuiteName } from './util'
-import { BrowserstackConfig, MultiRemoteAction, SessionResponse } from './types'
+import { getBrowserDescription, getBrowserCapabilities, isBrowserstackCapability, getParentSuiteName } from './util.js'
+import type { BrowserstackConfig, MultiRemoteAction, SessionResponse } from './types'
 
 const log = logger('@wdio/browserstack-service')
 

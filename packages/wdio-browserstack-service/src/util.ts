@@ -1,7 +1,7 @@
 import type { Browser, MultiRemoteBrowser } from 'webdriverio'
 import type { Capabilities } from '@wdio/types'
 
-import { BROWSER_DESCRIPTION } from './constants'
+import { BROWSER_DESCRIPTION } from './constants.js'
 
 /**
  * get browser description for Browserstack service

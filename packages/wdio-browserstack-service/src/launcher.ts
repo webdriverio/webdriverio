@@ -1,13 +1,16 @@
-import { promisify } from 'util'
-import { performance, PerformanceObserver } from 'perf_hooks'
+import { createRequire } from 'node:module'
+import { promisify } from 'node:util'
+import { performance, PerformanceObserver } from 'node:perf_hooks'
 
 import * as BrowserstackLocalLauncher from 'browserstack-local'
+
 import logger from '@wdio/logger'
 import type { Capabilities, Services, Options } from '@wdio/types'
 
-// @ts-ignore
-import { version as bstackServiceVersion } from '../package.json'
-import { BrowserstackConfig } from './types'
+import type { BrowserstackConfig } from './types'
+
+const require = createRequire(import.meta.url)
+const { version: bstackServiceVersion } = require('../package.json')
 
 const log = logger('@wdio/browserstack-service')
 
