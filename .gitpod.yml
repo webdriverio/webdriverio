@@ -44,3 +44,9 @@ github:
         addCheck: prevent-merge-on-error
         addComment: false
         addBadge: true
+
+vscode:
+  extensions:
+    - EditorConfig.EditorConfig
+    - DigitalBrainstem.javascript-ejs-support
+    - dbaeumer.vscode-eslint
