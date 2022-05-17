@@ -9,6 +9,8 @@ const expect = global.expect as unknown as jest.Expect
 const log = logger('test')
 const error = new Error('I\'m an error!')
 const sleep = (ms: number = 100) => new Promise((resolve) => setTimeout(resolve, ms))
+// @ts-ignore
+import { version as bstackServiceVersion } from '../package.json'
 
 beforeEach(() => {
     jest.clearAllMocks()
@@ -148,5 +150,24 @@ describe('onComplete', () => {
         service.browserstackLocal = new Browserstack.Local()
         return expect(service.onComplete()).resolves.toBe(undefined)
             .then(() => expect(service.browserstackLocal?.stop).toHaveBeenCalled())
+    })
+})
+
+describe('constructor', () => {
+    const options: BrowserstackConfig = { }
+    const config = {
+        user: 'foobaruser',
+        key: '12345',
+        capabilities: []
+    }
+
+    it('should add the wdioService property to an array of capabilities', async () => {
+        const caps: any = [{}, {}]
+        new BrowserstackLauncher(options, caps, config)
+
+        expect(caps).toEqual([
+            { 'bstack:options': { wdioService: bstackServiceVersion } },
+            { 'bstack:options': { wdioService: bstackServiceVersion } }
+        ])
     })
 })
