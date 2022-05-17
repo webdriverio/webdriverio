@@ -6,7 +6,8 @@ export default defineConfig({
             'packages/wdio-logger/**/*.test.ts',
             'packages/wdio-utils/**/*.test.ts',
             'packages/wdio-config/**/*.test.ts',
-            'packages/webdriver/**/*.test.ts'
+            'packages/webdriver/**/*.test.ts',
+            'packages/devtools/**/*.test.ts'
         ],
         coverage: {
             enabled: false,

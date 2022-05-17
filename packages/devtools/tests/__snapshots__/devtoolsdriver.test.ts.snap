@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Vitest Snapshot v1
 
 exports[`setTimeouts with all timeouts 1`] = `
 Map {
@@ -25,47 +25,47 @@ Map {
 `;
 
 exports[`should rerun command if it was executed within navigation 1`] = `
-Array [
-  Array [
+[
+  [
     "command",
-    Object {
+    {
       "command": "elementClick",
-      "params": Object {
+      "params": {
         "elementId": "123",
         "text": "some text",
-        "value": Array [
+        "value": [
           "some value",
         ],
       },
       "retries": 0,
     },
   ],
-  Array [
+  [
     "command",
-    Object {
+    {
       "command": "elementClick",
-      "params": Object {
+      "params": {
         "elementId": "123",
         "text": "some text",
-        "value": Array [
+        "value": [
           "some value",
         ],
       },
       "retries": 1,
     },
   ],
-  Array [
+  [
     "result",
-    Object {
+    {
       "command": "elementClick",
-      "params": Object {
+      "params": {
         "elementId": "123",
         "text": "some text",
-        "value": Array [
+        "value": [
           "some value",
         ],
       },
-      "result": Object {
+      "result": {
         "value": null,
       },
       "retries": 1,
@@ -75,37 +75,37 @@ Array [
 `;
 
 exports[`should return proper result 1`] = `
-Array [
-  Array [
+[
+  [
     "command",
-    Object {
+    {
       "command": "elementClick",
-      "params": Object {
+      "params": {
         "elementId": "123",
         "text": "some text",
-        "value": Array [
+        "value": [
           "some value",
         ],
       },
       "retries": 0,
     },
   ],
-  Array [
+  [
     "result",
-    Object {
+    {
       "command": "elementClick",
-      "params": Object {
+      "params": {
         "elementId": "123",
         "text": "some text",
-        "value": Array [
+        "value": [
           "some value",
         ],
       },
-      "result": Object {
-        "value": Object {
+      "result": {
+        "value": {
           "elementId": "123",
           "text": "some text",
-          "value": Array [
+          "value": [
             "some value",
           ],
         },

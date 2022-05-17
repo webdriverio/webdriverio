@@ -1,3 +1,4 @@
+import { expect, test } from 'vitest'
 import ElementStore from '../src/elementstore'
 import type { ElementHandle } from 'puppeteer-core/lib/cjs/puppeteer/common/JSHandle'
 import type { Frame } from 'puppeteer-core/lib/cjs/puppeteer/common/FrameManager'
