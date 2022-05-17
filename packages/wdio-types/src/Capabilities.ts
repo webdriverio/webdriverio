@@ -1082,6 +1082,7 @@ export interface BrowserStackCapabilities {
     browserName?: string
     browserVersion?: string
     acceptSslCerts?: boolean
+    wdioService?: string
 }
 
 export interface SauceLabsVisualCapabilities {
