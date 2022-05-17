@@ -1,11 +1,12 @@
+import { types as nodeUtilTypes } from 'node:util'
+import type { AssertionError } from 'node:assert'
+
 import { diffWordsWithSpace } from 'diff'
 import objectInspect from 'object-inspect'
 
-import RunnableStats from './runnable'
-import { Argument } from '../types'
-import { pad, color, colorLines } from '../utils'
-import { AssertionError } from 'assert'
-import { types as nodeUtilTypes } from 'util'
+import RunnableStats from './runnable.js'
+import { pad, color, colorLines } from '../utils.js'
+import type { Argument } from '../types'
 
 const maxStringLength = 2048
 

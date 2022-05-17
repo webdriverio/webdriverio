@@ -1,7 +1,9 @@
+import { describe, expect, vi, it, afterEach, beforeEach } from 'vitest'
+
 import WDIOReporter from '../src'
 import tmp from 'tmp'
 import TestStats, { Test } from '../src/stats/test'
-import { Runner } from '../src/stats/runner'
+import RunnerStats from '../src/stats/runner'
 import { Suite } from '../src/stats/suite'
 import { Hook } from '../src/stats/hook'
 
@@ -10,7 +12,7 @@ const runnerSpecs = ['/path/to/fileA.js', '/path/to/fileA.js']
 describe('WDIOReporter Listeners', () => {
     let reporter: WDIOReporter
     let testStartEvent: Test
-    let runnerStartEvent: Runner
+    let runnerStartEvent: RunnerStats
     let suiteStartEvent: Suite
     let hookStartEvent: Hook
     let hookEndEvent: Hook
@@ -27,12 +29,12 @@ describe('WDIOReporter Listeners', () => {
     })
 
     describe('Pending Listener', () => {
-        let spy: jest.SpyInstance
-        let spy2: jest.SpyInstance
+        let spy: any
+        let spy2: any
 
         beforeEach(() => {
-            spy = jest.spyOn(WDIOReporter.prototype, 'onTestSkip')
-            spy2 = jest.spyOn(TestStats.prototype, 'skip')
+            spy = vi.spyOn(WDIOReporter.prototype, 'onTestSkip')
+            spy2 = vi.spyOn(TestStats.prototype, 'skip')
             stat = {
                 type: 'test:start',
                 title: 'should can do something',
@@ -165,8 +167,8 @@ describe('WDIOReporter Listeners', () => {
                     browserName: 'Chrome'
                 },
                 specs: runnerSpecs
-            } as Runner
-            reporter.onRunnerStart = jest.fn()
+            } as RunnerStats
+            reporter.onRunnerStart = vi.fn()
         })
 
         it('should set the root suite id', () => {
@@ -195,12 +197,12 @@ describe('WDIOReporter Listeners', () => {
                     browserName: 'Chrome'
                 },
                 specs: runnerSpecs
-            } as Runner
+            } as RunnerStats
             suiteStartEvent = {
                 uid: 'suiteid',
                 title: 'the software'
             } as Suite
-            reporter.onSuiteStart = jest.fn()
+            reporter.onSuiteStart = vi.fn()
         })
 
         it('should set the suite as sub suite of the current suite', () => {
@@ -250,7 +252,7 @@ describe('WDIOReporter Listeners', () => {
                     browserName: 'Chrome'
                 },
                 specs: runnerSpecs
-            } as Runner
+            } as RunnerStats
             suiteStartEvent = {
                 uid: 'suiteid',
                 title: 'the software'
@@ -273,7 +275,7 @@ describe('WDIOReporter Listeners', () => {
         })
 
         it('should call on hook start with the hook stat', () => {
-            reporter.onHookStart = jest.fn()
+            reporter.onHookStart = vi.fn()
             emitEvents()
             expect(reporter.onHookStart).toBeCalledWith(reporter.hooks[hookStartEvent.uid!])
         })
@@ -295,7 +297,7 @@ describe('WDIOReporter Listeners', () => {
                     browserName: 'Chrome'
                 },
                 specs: runnerSpecs
-            } as Runner
+            } as RunnerStats
             suiteStartEvent = {
                 uid: 'suiteid',
                 title: 'the software'
@@ -354,7 +356,7 @@ describe('WDIOReporter Listeners', () => {
         })
 
         it('should call onHookEnd with the hook stats', () => {
-            reporter.onHookEnd = jest.fn()
+            reporter.onHookEnd = vi.fn()
             emitEvents()
 
             expect(reporter.onHookEnd).toHaveBeenCalledWith(reporter.hooks[hookStartEvent.uid!])
@@ -381,7 +383,7 @@ describe('WDIOReporter Listeners', () => {
                     browserName: 'Chrome'
                 },
                 specs: runnerSpecs
-            } as Runner
+            } as RunnerStats
             suiteStartEvent = {
                 uid: 'suiteid',
                 title: 'the software'
@@ -404,7 +406,7 @@ describe('WDIOReporter Listeners', () => {
         })
 
         it('should call onTestStart with the test stat', () => {
-            reporter.onTestStart = jest.fn()
+            reporter.onTestStart = vi.fn()
             emitEvents()
             expect(reporter.onTestStart).toHaveBeenCalledWith(reporter.tests[testStartEvent.uid])
         })
@@ -426,7 +428,7 @@ describe('WDIOReporter Listeners', () => {
                     browserName: 'Chrome'
                 },
                 specs: runnerSpecs
-            } as Runner
+            } as RunnerStats
             suiteStartEvent = {
                 uid: 'suiteid',
                 title: 'the software'
@@ -455,7 +457,7 @@ describe('WDIOReporter Listeners', () => {
         })
 
         it('should call onTestPass with the test stat', () => {
-            reporter.onTestPass = jest.fn()
+            reporter.onTestPass = vi.fn()
             emitEvents()
 
             expect(reporter.onTestPass).toHaveBeenCalledWith(reporter.tests[testStartEvent.uid])
@@ -478,7 +480,7 @@ describe('WDIOReporter Listeners', () => {
                     browserName: 'Chrome'
                 },
                 specs: runnerSpecs
-            } as Runner
+            } as RunnerStats
             suiteStartEvent = {
                 uid: 'suiteid',
                 title: 'the softare'
@@ -522,7 +524,7 @@ describe('WDIOReporter Listeners', () => {
         })
 
         it('should call onTestFail with the test stat', () => {
-            reporter.onTestFail = jest.fn()
+            reporter.onTestFail = vi.fn()
             emitEvents()
 
             expect(reporter.onTestFail).toBeCalledWith(reporter.tests[testStartEvent.uid])
@@ -563,7 +565,7 @@ describe('WDIOReporter Listeners', () => {
                     browserName: 'Chrome'
                 },
                 specs: runnerSpecs
-            } as Runner
+            } as RunnerStats
             suiteStartEvent = {
                 uid: 'suite-id',
                 title: 'the software'
@@ -591,10 +593,10 @@ describe('WDIOReporter Listeners', () => {
         })
 
         it('should call test retry with the test stat', () => {
-            reporter.onTestStart = jest.fn()
-            reporter.onTestRetry = jest.fn()
-            reporter.onTestFail = jest.fn()
-            reporter.onTestEnd = jest.fn()
+            reporter.onTestStart = vi.fn()
+            reporter.onTestRetry = vi.fn()
+            reporter.onTestFail = vi.fn()
+            reporter.onTestEnd = vi.fn()
 
             emitEventsFirstTry()
             expect(reporter.onTestStart).toHaveBeenCalledWith(reporter.tests[testStartFirstEvent.uid])
@@ -656,7 +658,7 @@ describe('WDIOReporter Listeners', () => {
                     browserName: 'Chrome'
                 },
                 specs: runnerSpecs
-            } as Runner
+            } as RunnerStats
             suiteStartEvent = {
                 uid: 'suiteid',
                 title: 'the software'
@@ -674,7 +676,7 @@ describe('WDIOReporter Listeners', () => {
         })
 
         it('should call test end with the test stat', () => {
-            reporter.onTestEnd = jest.fn()
+            reporter.onTestEnd = vi.fn()
             emitEvents()
             expect(reporter.onTestEnd).toHaveBeenCalledWith(reporter.tests[testStartEvent.uid])
         })

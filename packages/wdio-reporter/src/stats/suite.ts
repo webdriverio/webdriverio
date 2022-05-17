@@ -1,7 +1,7 @@
-import { Tag } from '../types'
-import HookStats from './hook'
-import RunnableStats from './runnable'
-import TestStats from './test'
+import HookStats from './hook.js'
+import RunnableStats from './runnable.js'
+import TestStats from './test.js'
+import type { Tag } from '../types'
 
 export interface Suite {
     type?: string

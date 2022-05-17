@@ -1,3 +1,4 @@
+import { test, expect } from 'vitest'
 import HookStats from '../../src/stats/hook'
 
 test('should get initialised', () => {

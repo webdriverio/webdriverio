@@ -1,4 +1,6 @@
-import { AssertionError } from 'assert'
+import { describe, expect, vi, it, beforeEach } from 'vitest'
+
+import { AssertionError } from 'node:assert'
 import TestStats from '../../src/stats/test'
 
 describe('TestStats', () => {
@@ -19,7 +21,7 @@ describe('TestStats', () => {
     })
 
     beforeEach(() => {
-        jest.resetAllMocks()
+        vi.resetAllMocks()
     })
 
     it('defines a start date', () => {
@@ -28,7 +30,7 @@ describe('TestStats', () => {
     })
 
     it('should be initialised with correct values', () => {
-        stat.complete = jest.fn()
+        stat.complete = vi.fn()
 
         expect(stat.type).toBe('test')
         expect(stat.cid).toBe('0-0')
@@ -38,24 +40,24 @@ describe('TestStats', () => {
     })
 
     it('can get skipped', () => {
-        stat.complete = jest.fn()
+        stat.complete = vi.fn()
         stat.skip('for no reason')
 
         expect(stat.state).toBe('skipped')
         expect(stat.pendingReason).toBe('for no reason')
-        expect((stat.complete as jest.Mock).mock.calls).toHaveLength(0)
+        expect(vi.mocked(stat.complete).mock.calls).toHaveLength(0)
     })
 
     it('can pass', () => {
-        stat.complete = jest.fn()
+        stat.complete = vi.fn()
         stat.pass()
 
         expect(stat.state).toBe('passed')
-        expect((stat.complete as jest.Mock).mock.calls).toHaveLength(1)
+        expect(vi.mocked(stat.complete).mock.calls).toHaveLength(1)
     })
 
     it('can fail', () => {
-        stat.complete = jest.fn()
+        stat.complete = vi.fn()
         stat.fail([new Error('oh oh')])
 
         expect(stat.state).toBe('failed')
@@ -63,11 +65,11 @@ describe('TestStats', () => {
         expect(stat.errors![0].message).toBe('oh oh')
 
         expect(stat.error!.message).toBe('oh oh')
-        expect((stat.complete as jest.Mock).mock.calls).toHaveLength(1)
+        expect(vi.mocked(stat.complete).mock.calls).toHaveLength(1)
     })
 
     it('should not throw if it fails with no errors somehow', () => {
-        stat.complete = jest.fn()
+        stat.complete = vi.fn()
         stat.fail([])
 
         expect(stat.errors!.length).toBe(0)
@@ -75,7 +77,7 @@ describe('TestStats', () => {
     })
 
     it('should not throw if it fails with undefined errors somehow', () => {
-        stat.complete = jest.fn()
+        stat.complete = vi.fn()
         stat.fail(undefined)
 
         expect(stat.state).toBe('failed')
@@ -99,7 +101,7 @@ describe('TestStats', () => {
     })
 
     it('should not call stringifyDiffObjs if actual is a Proxy', () => {
-        const TestStatsSpy = jest.spyOn(TestStats.prototype as any, '_stringifyDiffObjs')
+        const TestStatsSpy = vi.spyOn(TestStats.prototype as any, '_stringifyDiffObjs')
         stat.fail([new AssertionError({
             message: 'Expect $(`#flash`) to be existing\n\nExpected \u001b[32m"existing"\u001b[39m\nReceived \u001b[31m"\u001b[7mnot \u001b[27mexisting"\u001b[39m',
             expected: 'hi',
@@ -109,7 +111,7 @@ describe('TestStats', () => {
     })
 
     it('should call stringifyDiffObjs if actual is not a Proxy', () => {
-        const TestStatsSpy = jest.spyOn(TestStats.prototype as any, '_stringifyDiffObjs')
+        const TestStatsSpy = vi.spyOn(TestStats.prototype as any, '_stringifyDiffObjs')
         stat.fail([new AssertionError({
             message: 'Expect $(`#flash`) to be existing\n\nExpected \u001b[32m"existing"\u001b[39m\nReceived \u001b[31m"\u001b[7mnot \u001b[27mexisting"\u001b[39m',
             expected: 'hi',

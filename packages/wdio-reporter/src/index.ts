@@ -1,15 +1,22 @@
-import fs from 'fs'
-import type { WriteStream } from 'fs'
-import { createWriteStream, ensureDirSync } from 'fs-extra'
-import { EventEmitter } from 'events'
+import fs from 'node:fs'
+import type { WriteStream } from 'node:fs'
+import { EventEmitter } from 'node:events'
+import { createRequire } from 'node:module'
 import type { Reporters, Options } from '@wdio/types'
 
-import { getErrorsFromEvent } from './utils'
-import SuiteStats, { Suite } from './stats/suite'
-import HookStats, { Hook } from './stats/hook'
-import TestStats, { Test } from './stats/test'
-import RunnerStats from './stats/runner'
-import { AfterCommandArgs, BeforeCommandArgs, CommandArgs, Tag, Argument } from './types'
+import { getErrorsFromEvent } from './utils.js'
+import SuiteStats, { Suite } from './stats/suite.js'
+import HookStats, { Hook } from './stats/hook.js'
+import TestStats, { Test } from './stats/test.js'
+import RunnerStats from './stats/runner.js'
+import type { AfterCommandArgs, BeforeCommandArgs, CommandArgs, Tag, Argument } from './types'
+
+const require = createRequire(import.meta.url)
+/**
+ * 'fs-extra' has no support for ESM
+ * https://github.com/jprichardson/node-fs-extra/issues/746
+ */
+const { createWriteStream, ensureDirSync } = require('fs-extra')
 
 type CustomWriteStream = { write: (content: any) => boolean }
 

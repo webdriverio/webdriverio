@@ -1,22 +1,22 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Vitest Snapshot v1
 
 exports[`should get initialised 1`] = `
-Object {
+{
   "_duration": 0,
   "cid": "0-0",
   "description": "some description",
   "file": "/this/is/a/file.txt",
   "fullTitle": "barfoo",
-  "hooks": Array [],
-  "hooksAndTests": Array [],
+  "hooks": [],
+  "hooksAndTests": [],
   "parent": "foobar",
   "rule": undefined,
-  "suites": Array [],
-  "tags": Array [
+  "suites": [],
+  "tags": [
     "foo",
     "bar",
   ],
-  "tests": Array [],
+  "tests": [],
   "title": "foobar",
   "type": "suite",
   "uid": "foobar",
