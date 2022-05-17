@@ -1,7 +1,7 @@
-import * as supportsColor from 'supports-color'
+import supportsColor from 'supports-color'
 import { Capabilities } from '@wdio/types'
 
-import { COLORS } from './constants'
+import { COLORS } from './constants.js'
 
 /**
  * replaces whitespaces with underscore and removes dots
