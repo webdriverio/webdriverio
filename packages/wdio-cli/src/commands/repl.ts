@@ -14,7 +14,7 @@ const IGNORED_ARGS = [
 
 export const command = 'repl <option> [capabilities]'
 export const desc = 'Run WebDriver session in command line'
-export const cmdArgs: { [k in keyof ReplCommandArguments]?:yargs.Options } = {
+export const cmdArgs: { [k in keyof ReplCommandArguments]?: yargs.Options } = {
     platformVersion: {
         alias: 'v',
         desc: 'Version of OS for mobile devices',
