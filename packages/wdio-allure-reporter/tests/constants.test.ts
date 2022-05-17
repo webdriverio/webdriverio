@@ -1,7 +1,7 @@
+import { describe, it, expect } from 'vitest'
 import { testStatuses, stepStatuses, events } from '../src/constants'
 
 describe('Important constants', () => {
-
     it('should have correct step statuses', () => {
         expect(Object.values(stepStatuses)).toHaveLength(5)
         expect(stepStatuses.BROKEN).toEqual('broken')

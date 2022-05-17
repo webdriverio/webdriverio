@@ -1,4 +1,5 @@
-import process from 'process'
+import { describe, it, expect, afterEach, beforeAll, afterAll, vi } from 'vitest'
+import process from 'node:process'
 import CompoundError from '../src/compoundError'
 import { getTestStatus, isEmpty, tellReporter, isMochaEachHooks, getErrorFromFailedTest, isMochaAllHooks, getLinkByTemplate } from '../src/utils'
 import { linkPlaceholder, testStatuses } from '../src/constants'
@@ -7,7 +8,7 @@ describe('utils', () => {
     let processEmit: any
     beforeAll(() => {
         processEmit = process.emit.bind(process)
-        process.emit = jest.fn()
+        process.emit = vi.fn() as any
     })
 
     afterAll(() => {
@@ -16,40 +17,41 @@ describe('utils', () => {
 
     describe('getTestStatus', () => {
         it('return  status for jasmine', () => {
-            expect(getTestStatus({} as any, { framework: 'jasmine' })).toEqual(testStatuses.FAILED)
+            const config: any = { framework: 'jasmine' }
+            expect(getTestStatus({} as any, config)).toEqual(testStatuses.FAILED)
         })
 
         it('broken for test with no error', () => {
-            const config = { framework: 'mocha' }
+            const config: any = { framework: 'mocha' }
             expect(getTestStatus({} as any, config)).toEqual(testStatuses.BROKEN)
         })
 
         it('failed for AssertionError', () => {
-            const config = { framework: 'mocha' }
+            const config: any = { framework: 'mocha' }
             const test = { error: { name: 'Error', message: 'AssertionError' } }
             expect(getTestStatus(test as any, config)).toEqual(testStatuses.FAILED)
         })
 
         it('failed for AssertionError stacktrace', () => {
-            const config = { framework: 'mocha' }
+            const config: any = { framework: 'mocha' }
             const test = { error: { stack: 'AssertionError' } }
             expect(getTestStatus(test as any, config)).toEqual(testStatuses.FAILED)
         })
 
         it('broken for not AssertionError', () => {
-            const config = { framework: 'mocha' }
+            const config: any = { framework: 'mocha' }
             const test = { error: { name: 'MyError' } }
             expect(getTestStatus(test as any, config)).toEqual(testStatuses.BROKEN)
         })
 
         it('broken for error without stacktrace', () => {
-            const config = { framework: 'mocha' }
+            const config: any = { framework: 'mocha' }
             const test = { error: {} }
             expect(getTestStatus(test as any, config)).toEqual(testStatuses.BROKEN)
         })
 
         it('failed status for not AssertionError stacktrace', () => {
-            const config = { framework: 'mocha' }
+            const config: any = { framework: 'mocha' }
             const test = { error: { stack: 'MyError stack trace' } }
             expect(getTestStatus(test as any, config)).toEqual(testStatuses.BROKEN)
         })
@@ -88,7 +90,7 @@ describe('utils', () => {
 
     describe('tellReporter', () => {
         afterEach(() => {
-            (process.emit as jest.Mock).mockClear()
+            vi.mocked(process.emit).mockClear()
         })
 
         it('should accept message', () => {

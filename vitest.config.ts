@@ -7,7 +7,8 @@ export default defineConfig({
             'packages/wdio-utils/**/*.test.ts',
             'packages/wdio-config/**/*.test.ts',
             'packages/webdriver/**/*.test.ts',
-            'packages/devtools/**/*.test.ts'
+            'packages/devtools/**/*.test.ts',
+            'packages/wdio-allure-reporter/**/*.test.ts'
         ],
         coverage: {
             enabled: false,

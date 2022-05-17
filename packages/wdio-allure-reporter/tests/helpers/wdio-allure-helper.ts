@@ -1,12 +1,12 @@
-import fs from 'fs'
-import path from 'path'
+import fs from 'node:fs'
+import path from 'node:path'
 import del from 'del'
-import cheerio from 'cheerio'
+import { load } from 'cheerio'
 
 export function getResults (resultsDir: any) {
     return getResultFiles(resultsDir, 'xml').map((file) => {
         const fileContent = fs.readFileSync(path.join(resultsDir, file), 'utf-8')
-        return cheerio.load(fileContent)
+        return load(fileContent)
     })
 }
 
