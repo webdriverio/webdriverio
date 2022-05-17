@@ -1,12 +1,13 @@
-import { EventEmitter } from 'events'
-import { WDIOReporterOptions } from '../../../src'
-import HookStats from '../../../src/stats/hook'
-import RunnerStats from '../../../src/stats/runner'
-import SuiteStats from '../../../src/stats/suite'
-import TestStats from '../../../src/stats/test'
+import { vi } from 'vitest'
+
+import { EventEmitter } from 'node:events'
+import HookStats from '../../packages/wdio-reporter/src/stats/hook'
+import RunnerStats from '../../packages/wdio-reporter/src/stats/runner'
+import SuiteStats from '../../packages/wdio-reporter/src/stats/suite'
+import TestStats from '../../packages/wdio-reporter/src/stats/test'
 
 export default class WDIOReporter extends EventEmitter {
-    outputStream: { write: jest.Mock<any, any> }
+    outputStream: { write: Function }
     failures: number
     suites: Record<string, SuiteStats>
     hooks: Record<string, HookStats>
@@ -22,10 +23,10 @@ export default class WDIOReporter extends EventEmitter {
     }
     retries: number
     runnerStat?: RunnerStats
-    constructor (public options: WDIOReporterOptions) {
+    constructor (public options: any) {
         super()
         this.options = options
-        this.outputStream = { write: jest.fn() }
+        this.outputStream = { write: vi.fn() }
         this.failures = 0
         this.suites = {}
         this.hooks = {}
