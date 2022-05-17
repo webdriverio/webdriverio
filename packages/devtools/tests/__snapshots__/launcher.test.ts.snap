@@ -1,13 +1,13 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Vitest Snapshot v1
 
 exports[`launch Edge with custom arguments 1`] = `
-Array [
-  Array [
-    Object {
-      "args": Array [
+[
+  [
+    {
+      "args": [
         "foobar",
       ],
-      "defaultViewport": Object {
+      "defaultViewport": {
         "height": 456,
         "width": 123,
       },
@@ -21,10 +21,10 @@ Array [
 `;
 
 exports[`launch Edge with default values 1`] = `
-Array [
-  Array [
-    Object {
-      "defaultViewport": Object {
+[
+  [
+    {
+      "defaultViewport": {
         "height": 900,
         "width": 1200,
       },
@@ -38,10 +38,10 @@ Array [
 `;
 
 exports[`launch Edge without Puppeteer default args (backwards compat) 1`] = `
-Array [
-  Array [
-    Object {
-      "defaultViewport": Object {
+[
+  [
+    {
+      "defaultViewport": {
         "height": 900,
         "width": 1200,
       },
@@ -55,10 +55,10 @@ Array [
 `;
 
 exports[`launch Edge without Puppeteer default args 1`] = `
-Array [
-  Array [
-    Object {
-      "defaultViewport": Object {
+[
+  [
+    {
+      "defaultViewport": {
         "height": 900,
         "width": 1200,
       },
@@ -72,11 +72,11 @@ Array [
 `;
 
 exports[`launch Firefox Nightly binary without Puppeteer default args 1`] = `
-Array [
-  Array [
-    Object {
+[
+  [
+    {
       "binary": "firefox",
-      "defaultViewport": Object {
+      "defaultViewport": {
         "height": 900,
         "width": 1200,
       },
@@ -90,14 +90,14 @@ Array [
 `;
 
 exports[`launch Firefox Nightly with custom arguments 1`] = `
-Array [
-  Array [
-    Object {
-      "args": Array [
+[
+  [
+    {
+      "args": [
         "foobar",
       ],
       "binary": "/foo/firefox-nightly",
-      "defaultViewport": Object {
+      "defaultViewport": {
         "height": 456,
         "width": 123,
       },
@@ -111,11 +111,11 @@ Array [
 `;
 
 exports[`launch Firefox Nightly without Puppeteer default args 1`] = `
-Array [
-  Array [
-    Object {
+[
+  [
+    {
       "binary": "/foo/firefox-nightly",
-      "defaultViewport": Object {
+      "defaultViewport": {
         "height": 900,
         "width": 1200,
       },
@@ -129,10 +129,10 @@ Array [
 `;
 
 exports[`launch chrome with chrome arguments 1`] = `
-Array [
-  Array [
-    Object {
-      "chromeFlags": Array [
+[
+  [
+    {
+      "chromeFlags": [
         "--enable-automation",
         "--disable-popup-blocking",
         "--disable-extensions",
@@ -167,7 +167,7 @@ Array [
         "--user-agent=Mozilla/5.0 (Linux; Android 8.0.0; Nexus 6P Build/OPP3.170518.006) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3765.0 Mobile Safari/537.36",
       ],
       "chromePath": "/foo/bar",
-      "envVars": Object {
+      "envVars": {
         "foo": "bar",
       },
       "ignoreDefaultFlags": true,
@@ -178,10 +178,10 @@ Array [
 `;
 
 exports[`launch chrome with chrome port 1`] = `
-Array [
-  Array [
-    Object {
-      "chromeFlags": Array [
+[
+  [
+    {
+      "chromeFlags": [
         "--enable-automation",
         "--disable-popup-blocking",
         "--disable-extensions",
@@ -221,10 +221,10 @@ Array [
 `;
 
 exports[`launch chrome with custom user data dir 1`] = `
-Array [
-  Array [
-    Object {
-      "chromeFlags": Array [
+[
+  [
+    {
+      "chromeFlags": [
         "--enable-automation",
         "--disable-popup-blocking",
         "--disable-extensions",
@@ -266,10 +266,10 @@ Array [
 `;
 
 exports[`launch chrome with default values 1`] = `
-Array [
-  Array [
-    Object {
-      "chromeFlags": Array [
+[
+  [
+    {
+      "chromeFlags": [
         "--enable-automation",
         "--disable-popup-blocking",
         "--disable-extensions",
@@ -308,9 +308,9 @@ Array [
 `;
 
 exports[`launch chrome with default values 2`] = `
-Array [
-  Array [
-    Object {
+[
+  [
+    {
       "browserURL": "http://localhost:1234",
       "defaultViewport": null,
     },
@@ -319,10 +319,10 @@ Array [
 `;
 
 exports[`launch chrome with defaultViewport in wdio:devtoolsOptions 1`] = `
-Array [
-  Array [
-    Object {
-      "chromeFlags": Array [
+[
+  [
+    {
+      "chromeFlags": [
         "--enable-automation",
         "--disable-popup-blocking",
         "--disable-extensions",
@@ -365,10 +365,10 @@ Array [
 `;
 
 exports[`launch chrome without default flags and without puppeteer default args 1`] = `
-Array [
-  Array [
-    Object {
-      "chromeFlags": Array [
+[
+  [
+    {
+      "chromeFlags": [
         "--window-position=0,0",
         "--window-size=1200,900",
       ],
@@ -382,9 +382,9 @@ Array [
 `;
 
 exports[`launch chrome without default flags and without puppeteer default args 2`] = `
-Array [
-  Array [
-    Object {
+[
+  [
+    {
       "browserURL": "http://localhost:1234",
       "defaultViewport": null,
       "ignoreDefaultArgs": true,
@@ -394,10 +394,10 @@ Array [
 `;
 
 exports[`overriding chrome default flags (backwards compat) 1`] = `
-Array [
-  Array [
-    Object {
-      "chromeFlags": Array [
+[
+  [
+    {
+      "chromeFlags": [
         "--enable-automation",
         "--disable-popup-blocking",
         "--disable-extensions",
@@ -437,10 +437,10 @@ Array [
 `;
 
 exports[`overriding chrome default flags 1`] = `
-Array [
-  Array [
-    Object {
-      "chromeFlags": Array [
+[
+  [
+    {
+      "chromeFlags": [
         "--enable-automation",
         "--disable-popup-blocking",
         "--disable-extensions",

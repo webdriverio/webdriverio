@@ -1,33 +1,33 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Vitest Snapshot v1
 
 exports[`attachSession 1`] = `
-Object {
+{
   "browserName": "Chrome",
   "browserVersion": "80.0.3987.149",
-  "goog:chromeOptions": Object {
+  "goog:chromeOptions": {
     "debuggerAddress": "localhost:49375",
   },
 }
 `;
 
 exports[`attachSession 2`] = `
-Object {
+{
   "browserName": "chrome",
 }
 `;
 
 exports[`newSession 1`] = `
-Object {
+{
   "browserName": "Chrome",
   "browserVersion": "80.0.3987.149",
-  "goog:chromeOptions": Object {
+  "goog:chromeOptions": {
     "debuggerAddress": "localhost:49375",
   },
 }
 `;
 
 exports[`newSession 2`] = `
-Object {
+{
   "browserName": "chrome",
 }
 `;

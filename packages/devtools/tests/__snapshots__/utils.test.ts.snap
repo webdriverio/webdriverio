@@ -1,238 +1,238 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Vitest Snapshot v1
 
-exports[`findElement utils findElements should find elements 1`] = `
-Array [
-  Object {
+exports[`findElement utils > findElements > should find elements 1`] = `
+[
+  {
     "element-6066-11e4-a52e-4f735466cecf": "foobar",
   },
-  Object {
+  {
     "element-6066-11e4-a52e-4f735466cecf": "foobar",
   },
 ]
 `;
 
-exports[`findElement utils findElements should find elements with xpath 1`] = `
-Array [
-  Object {
+exports[`findElement utils > findElements > should find elements with xpath 1`] = `
+[
+  {
     "element-6066-11e4-a52e-4f735466cecf": "foobar",
   },
-  Object {
+  {
     "element-6066-11e4-a52e-4f735466cecf": "foobar",
   },
 ]
 `;
 
 exports[`getPrototype 1`] = `
-Object {
-  "acceptAlert": Object {
+{
+  "acceptAlert": {
     "value": 56,
   },
-  "addCookie": Object {
+  "addCookie": {
     "value": 49,
   },
-  "back": Object {
+  "back": {
     "value": 8,
   },
-  "closeWindow": Object {
+  "closeWindow": {
     "value": 13,
   },
-  "createWindow": Object {
+  "createWindow": {
     "value": 15,
   },
-  "deleteAllCookies": Object {
+  "deleteAllCookies": {
     "value": 50,
   },
-  "deleteCookie": Object {
+  "deleteCookie": {
     "value": 52,
   },
-  "deleteSession": Object {
+  "deleteSession": {
     "value": 2,
   },
-  "dismissAlert": Object {
+  "dismissAlert": {
     "value": 55,
   },
-  "elementClear": Object {
+  "elementClear": {
     "value": 43,
   },
-  "elementClick": Object {
+  "elementClick": {
     "value": 42,
   },
-  "elementSendKeys": Object {
+  "elementSendKeys": {
     "value": 44,
   },
-  "executeAsyncScript": Object {
+  "executeAsyncScript": {
     "value": 47,
   },
-  "executeScript": Object {
+  "executeScript": {
     "value": 46,
   },
-  "findElement": Object {
+  "findElement": {
     "value": 25,
   },
-  "findElementFromElement": Object {
+  "findElementFromElement": {
     "value": 29,
   },
-  "findElementFromShadowRoot": Object {
+  "findElementFromShadowRoot": {
     "value": 26,
   },
-  "findElements": Object {
+  "findElements": {
     "value": 27,
   },
-  "findElementsFromElement": Object {
+  "findElementsFromElement": {
     "value": 30,
   },
-  "findElementsFromShadowRoot": Object {
+  "findElementsFromShadowRoot": {
     "value": 28,
   },
-  "forward": Object {
+  "forward": {
     "value": 9,
   },
-  "fullscreenWindow": Object {
+  "fullscreenWindow": {
     "value": 24,
   },
-  "getActiveElement": Object {
+  "getActiveElement": {
     "value": 32,
   },
-  "getAlertText": Object {
+  "getAlertText": {
     "value": 57,
   },
-  "getAllCookies": Object {
+  "getAllCookies": {
     "value": 48,
   },
-  "getElementAttribute": Object {
+  "getElementAttribute": {
     "value": 35,
   },
-  "getElementCSSValue": Object {
+  "getElementCSSValue": {
     "value": 37,
   },
-  "getElementComputedLabel": Object {
+  "getElementComputedLabel": {
     "value": 62,
   },
-  "getElementComputedRole": Object {
+  "getElementComputedRole": {
     "value": 61,
   },
-  "getElementProperty": Object {
+  "getElementProperty": {
     "value": 36,
   },
-  "getElementRect": Object {
+  "getElementRect": {
     "value": 40,
   },
-  "getElementShadowRoot": Object {
+  "getElementShadowRoot": {
     "value": 31,
   },
-  "getElementTagName": Object {
+  "getElementTagName": {
     "value": 39,
   },
-  "getElementText": Object {
+  "getElementText": {
     "value": 38,
   },
-  "getNamedCookie": Object {
+  "getNamedCookie": {
     "value": 51,
   },
-  "getPageSource": Object {
+  "getPageSource": {
     "value": 45,
   },
-  "getTimeouts": Object {
+  "getTimeouts": {
     "value": 4,
   },
-  "getTitle": Object {
+  "getTitle": {
     "value": 11,
   },
-  "getUrl": Object {
+  "getUrl": {
     "value": 6,
   },
-  "getWindowHandle": Object {
+  "getWindowHandle": {
     "value": 12,
   },
-  "getWindowHandles": Object {
+  "getWindowHandles": {
     "value": 16,
   },
-  "getWindowRect": Object {
+  "getWindowRect": {
     "value": 20,
   },
-  "isElementDisplayed": Object {
+  "isElementDisplayed": {
     "value": 34,
   },
-  "isElementEnabled": Object {
+  "isElementEnabled": {
     "value": 41,
   },
-  "isElementSelected": Object {
+  "isElementSelected": {
     "value": 33,
   },
-  "maximizeWindow": Object {
+  "maximizeWindow": {
     "value": 22,
   },
-  "minimizeWindow": Object {
+  "minimizeWindow": {
     "value": 23,
   },
-  "navigateTo": Object {
+  "navigateTo": {
     "value": 7,
   },
-  "newSession": Object {
+  "newSession": {
     "value": 1,
   },
-  "performActions": Object {
+  "performActions": {
     "value": 53,
   },
-  "printPage": Object {
+  "printPage": {
     "value": 17,
   },
-  "refresh": Object {
+  "refresh": {
     "value": 10,
   },
-  "releaseActions": Object {
+  "releaseActions": {
     "value": 54,
   },
-  "sendAlertText": Object {
+  "sendAlertText": {
     "value": 58,
   },
-  "setTimeouts": Object {
+  "setTimeouts": {
     "value": 5,
   },
-  "setWindowRect": Object {
+  "setWindowRect": {
     "value": 21,
   },
-  "status": Object {
+  "status": {
     "value": 3,
   },
-  "switchToFrame": Object {
+  "switchToFrame": {
     "value": 18,
   },
-  "switchToParentFrame": Object {
+  "switchToParentFrame": {
     "value": 19,
   },
-  "switchToWindow": Object {
+  "switchToWindow": {
     "value": 14,
   },
-  "takeElementScreenshot": Object {
+  "takeElementScreenshot": {
     "value": 60,
   },
-  "takeScreenshot": Object {
+  "takeScreenshot": {
     "value": 59,
   },
 }
 `;
 
-exports[`transformExecuteResult multiple results 1`] = `
-Array [
+exports[`transformExecuteResult > multiple results 1`] = `
+[
   "foobar",
-  Object {
+  {
     "element-6066-11e4-a52e-4f735466cecf": "foobar",
   },
   42,
 ]
 `;
 
-exports[`validate should do a proper request 1`] = `
-Object {
+exports[`validate > should do a proper request 1`] = `
+{
   "elementId": "123",
   "using": "css selector",
   "value": "#body",
 }
 `;
 
-exports[`validate should do a proper request with non required params 1`] = `
-Object {
+exports[`validate > should do a proper request with non required params 1`] = `
+{
   "customParam": 123,
   "elementId": "123",
   "using": "css selector",

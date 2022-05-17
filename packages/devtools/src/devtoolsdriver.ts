@@ -1,6 +1,5 @@
 import fs from 'node:fs'
 import path from 'node:path'
-import { createRequire } from 'node:module'
 import { v4 as uuidv4 } from 'uuid'
 
 import logger from '@wdio/logger'
@@ -11,12 +10,12 @@ import type { Target } from 'puppeteer-core/lib/cjs/puppeteer/common/Target'
 import type { CommandEndpoint } from '@wdio/protocols'
 import type { Frame } from 'puppeteer-core/lib/cjs/puppeteer/common/FrameManager'
 
+import * as commands from './commands/index.js'
 import ElementStore from './elementstore.js'
 import { validate, sanitizeError } from './utils.js'
 import { DEFAULT_IMPLICIT_TIMEOUT, DEFAULT_PAGELOAD_TIMEOUT, DEFAULT_SCRIPT_TIMEOUT } from './constants.js'
 
 const log = logger('devtools')
-const require = createRequire(import.meta.url)
 
 export default class DevToolsDriver {
     commands: Record<string, Function> = {}
@@ -45,6 +44,7 @@ export default class DevToolsDriver {
                 )
             )
         )
+
         for (let filename of files) {
             const commandName = path.basename(filename, path.extname(filename))
 
@@ -52,9 +52,7 @@ export default class DevToolsDriver {
                 throw new Error('Couldn\'t determine command name')
             }
 
-            this.commands[commandName] = DevToolsDriver.requireCommand(
-                path.join(dir, commandName)
-            )
+            this.commands[commandName] = commands[commandName as keyof typeof commands]
         }
 
         for (const page of pages) {
@@ -106,14 +104,6 @@ export default class DevToolsDriver {
         this.currentFrame = this.windows.get(pageIds[0])
         this.currentWindowHandle = pageIds[0]
         log.trace(`Switching to window handle with id ${pageIds[0]}`)
-    }
-
-    /**
-     * moved into an extra method for testing purposes
-     */
-    /* istanbul ignore next */
-    static requireCommand(filePath: string) {
-        return require(filePath).default
     }
 
     register(commandInfo: CommandEndpoint) {
