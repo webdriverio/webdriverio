@@ -9,7 +9,7 @@ import { BrowserstackConfig } from './types'
 
 const log = logger('@wdio/browserstack-service')
 // @ts-ignore
-import { bstackServiceVersion } from '../package.json'
+import { version as bstackServiceVersion } from '../package.json'
 
 type BrowserstackLocal = BrowserstackLocalLauncher.Local & {
     pid?: number;
