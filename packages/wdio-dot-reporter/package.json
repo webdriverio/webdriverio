@@ -5,7 +5,6 @@
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-dot-reporter",
   "license": "MIT",
-  "main": "./build/index",
   "engines": {
      "node": "^16.13 || >=18"
   },
@@ -21,20 +20,33 @@
   "bugs": {
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
+  "main": "./build/index.cjs.js",
+  "type": "module",
+  "module": "./build/index.js",
+  "exports": {
+    ".": [
+      {
+        "import": "./build/index.js",
+        "require": "./build/index.cjs.js"
+      },
+      "./build/index.cjs.js"
+    ]
+  },
+  "types": "./build/index.d.ts",
+  "typeScriptVersion": "3.8.3",
   "dependencies": {
     "@wdio/reporter": "7.20.3",
     "@wdio/types": "7.20.3",
-    "chalk": "^4.0.0"
+    "chalk": "^5.0.1"
   },
   "devDependencies": {
-    "@types/tmp": "^0.2.0",
-    "tmp": "^0.2.0"
+    "@types/tmp": "^0.2.3",
+    "tmp": "^0.2.1"
   },
   "peerDependencies": {
     "@wdio/cli": "^7.0.0"
   },
   "publishConfig": {
     "access": "public"
-  },
-  "types": "./build/index.d.ts"
+  }
 }
