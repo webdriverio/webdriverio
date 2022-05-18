@@ -1,7 +1,8 @@
 import junit from 'junit-report-builder'
 import WDIOReporter, { SuiteStats, RunnerStats, TestStats } from '@wdio/reporter'
 import type { Capabilities } from '@wdio/types'
-import { limit } from './utils'
+
+import { limit } from './utils.js'
 import type { JUnitReporterOptions } from './types'
 
 const ansiRegex = new RegExp([
@@ -249,7 +250,7 @@ class JunitReporter extends WDIOReporter {
                 this._buildOrderedReport(builder, runner, specFileName, '', isCucumberFrameworkRunner)
             }
         })
-        return builder.build()
+        return builder.build() as any as string
     }
 
     private _buildOrderedReport(builder: any, runner: RunnerStats, specFileName: string, type: string, isCucumberFrameworkRunner: boolean) {

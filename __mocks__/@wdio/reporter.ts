@@ -78,3 +78,5 @@ export default class WDIOReporter extends EventEmitter {
     /* istanbul ignore next */
     onRunnerEnd () {}
 }
+
+export { HookStats, RunnerStats, SuiteStats, TestStats }

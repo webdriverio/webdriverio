@@ -1,4 +1,6 @@
-import TestStats from '@wdio/reporter/src/stats/test'
+import path from 'node:path'
+import { describe, expect, it, vi, beforeEach } from 'vitest'
+import { TestStats } from '@wdio/reporter'
 
 import WDIOJunitReporter from '../src'
 
@@ -22,6 +24,8 @@ import suiteTestRetry from './__fixtures__/suite-test-retry.json'
 import suitesMultipleLog from './__fixtures__/suites-multiple.json'
 import suitesErrorLog from './__fixtures__/suites-error.json'
 
+vi.mock('@wdio/reporter', () => import(path.join(process.cwd(), '__mocks__', '@wdio/reporter')))
+
 describe('wdio-junit-reporter', () => {
     let reporter: WDIOJunitReporter
 
@@ -30,10 +34,10 @@ describe('wdio-junit-reporter', () => {
     })
 
     it('should write to output stream on runnerEnd', () => {
-        reporter['_buildJunitXml'] = jest.fn().mockReturnValue(undefined)
-        reporter.write = jest.fn()
+        reporter['_buildJunitXml'] = vi.fn().mockReturnValue(undefined)
+        reporter.write = vi.fn()
         reporter.onRunnerEnd({} as any)
-        expect((reporter.write as jest.Mock).mock.calls[0][0]).toMatchSnapshot()
+        expect(vi.mocked(reporter.write).mock.calls[0][0]).toMatchSnapshot()
     })
 
     it('should prepare name', () => {
@@ -89,14 +93,15 @@ describe('wdio-junit-reporter', () => {
 
     it('test is marked as skipped when is retried', () => {
         const testStats = new TestStats({
-            'type': 'test:start',
-            'uid': 'test-00-0',
-            'cid': '0-0',
-            'title': 'test',
-            'fullTitle': 'suite test',
-            'retries': 0,
-            'parent': 'suite',
-            'state': 'failed'
+            type: 'test:start',
+            uid: 'test-00-0',
+            cid: '0-0',
+            title: 'test',
+            fullTitle: 'suite test',
+            retries: 0,
+            parent: 'suite',
+            pending: false,
+            specs: []
         })
         reporter['onTestRetry'](testStats)
 
@@ -273,7 +278,7 @@ describe('wdio-junit-reporter', () => {
     })
 
     it( 'generates xml output correctly when having classNameFormat override with mocha',  () => {
-        reporter = new WDIOJunitReporter({ stdout: true, classNameFormat: ({ packageName, suite }) => `foo-${packageName}-${suite.fullTitle}` })
+        reporter = new WDIOJunitReporter({ stdout: true, classNameFormat: ({ packageName, suite }) => `foo-${packageName}-${suite!.fullTitle}` })
         reporter.suites = suitesErrorLog as any
         expect(reporter['_buildJunitXml'](mochaRunnerLog as any).replace(/\s/g, '')).toMatchSnapshot()
     })
