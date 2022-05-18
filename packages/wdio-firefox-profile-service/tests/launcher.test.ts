@@ -192,7 +192,7 @@ describe('Firefox profile service', () => {
                 browserName : 'firefox',
             }]
 
-            vi.mocked(FirefoxProfile.copy).mockImplementationOnce((profileDirectory: string, cb: Function) => cb())
+            vi.mocked(FirefoxProfile.copy).mockImplementationOnce(((_: string, cb: Function) => cb()) as any)
             const service = new Launcher(options)
             await service.onPrepare({} as never, capabilities)
             // no assertion needed as we return early and no failure due to
