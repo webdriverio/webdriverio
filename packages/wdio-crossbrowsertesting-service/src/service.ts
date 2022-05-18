@@ -1,6 +1,7 @@
 import got from 'got'
 import logger from '@wdio/logger'
 import type { Capabilities, Services, Options, Frameworks } from '@wdio/types'
+// @ts-expect-error
 import type { Browser, MultiRemoteBrowser } from 'webdriverio'
 
 const log = logger('@wdio/crossbrowsertesting-service')

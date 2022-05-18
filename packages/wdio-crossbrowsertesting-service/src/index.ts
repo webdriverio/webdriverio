@@ -1,12 +1,12 @@
 /* istanbul ignore file */
 
-import CrossBrowserTestingLauncher from './launcher'
-import CrossBrowserTestingService from './service'
-import { CrossBrowserTestingConfig } from './types'
+import CrossBrowserTestingLauncher from './launcher.js'
+import CrossBrowserTestingService from './service.js'
+import type { CrossBrowserTestingConfig } from './types'
 
 export default CrossBrowserTestingService
 export const launcher = CrossBrowserTestingLauncher
-export * from './types'
+export * from './types.js'
 
 declare global {
     namespace WebdriverIO {
