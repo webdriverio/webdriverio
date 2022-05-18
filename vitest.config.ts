@@ -14,7 +14,8 @@ export default defineConfig({
             'packages/wdio-browserstack-service/**/*.test.ts',
             'packages/wdio-concise-reporter/**/*.test.ts',
             'packages/wdio-crossbrowsertesting-service/**/*.test.ts',
-            'packages/wdio-cucumber-framework/**/*.test.ts'
+            'packages/wdio-cucumber-framework/**/*.test.ts',
+            'packages/wdio-dot-reporter/**/*.test.ts'
         ],
         coverage: {
             enabled: false,
