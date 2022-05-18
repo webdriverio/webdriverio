@@ -1,13 +1,13 @@
-import { EventEmitter } from 'events'
+import { EventEmitter } from 'node:events'
 import { Status, PickleFilter } from '@cucumber/cucumber'
 import { Feature, Pickle, PickleStep, TestStep, TestStepResult, TestCaseFinished, PickleTag, Tag } from '@cucumber/messages'
 
-import CucumberEventListener from './cucumberEventListener'
-import { getFeatureId, formatMessage, getStepType, buildStepPayload } from './utils'
+import CucumberEventListener from './cucumberEventListener.js'
+import { getFeatureId, formatMessage, getStepType, buildStepPayload } from './utils.js'
+import { ReporterScenario } from './constants.js'
 import type { ReporterOptions } from './types'
-import { ReporterScenario } from './constants'
 
-class CucumberReporter {
+export default class CucumberReporter {
     public eventListener: CucumberEventListener
     public failedCount = 0
 
@@ -273,5 +273,3 @@ class CucumberReporter {
         return `${tags.map((tag: PickleTag | Tag) => tag.name).join(', ')}: ${name}`
     }
 }
-
-export default CucumberReporter

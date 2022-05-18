@@ -1,4 +1,5 @@
-import { EventEmitter } from 'events'
+import { EventEmitter } from 'node:events'
+import { describe, expect, it, vi, afterEach, beforeEach, beforeAll } from 'vitest'
 import { TestStepFinished, TestStepResultStatus, TestStepStarted } from '@cucumber/messages'
 
 import CucumberReporter from '../src/reporter'
@@ -15,14 +16,15 @@ import {
 } from './fixtures/envelopes'
 
 const wdioReporter = {
-    write: jest.fn(),
-    emit: jest.fn(),
-    on: jest.fn()
+    write: vi.fn(),
+    emit: vi.fn(),
+    on: vi.fn()
 }
 
 const buildGherkinDocEvent = () => gherkinDocument
 const gherkinDocEvent = buildGherkinDocEvent()
 const gherkinDocEventNoLine = buildGherkinDocEvent()
+// @ts-expect-error
 delete gherkinDocEventNoLine.feature?.location?.line
 
 const loadGherkin = (eventBroadcaster: EventEmitter) =>

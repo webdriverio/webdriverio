@@ -1,23 +1,23 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Vitest Snapshot v1
 
-exports[`CucumberAdapter wrapStep 1`] = `
-Array [
-  Array [
+exports[`CucumberAdapter > wrapStep 1`] = `
+[
+  [
     "Step",
-    Object {
+    {
       "specFn": "code",
-      "specFnArgs": Array [
+      "specFnArgs": [
         "someWorld",
         1,
         2,
         3,
       ],
     },
-    Object {
+    {
       "beforeFn": undefined,
       "beforeFnArgs": [Function],
     },
-    Object {
+    {
       "afterFn": undefined,
       "afterFnArgs": [Function],
     },

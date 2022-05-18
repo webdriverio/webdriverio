@@ -13,7 +13,8 @@ export default defineConfig({
             'packages/wdio-appium-service/**/*.test.ts',
             'packages/wdio-browserstack-service/**/*.test.ts',
             'packages/wdio-concise-reporter/**/*.test.ts',
-            'packages/wdio-crossbrowsertesting-service/**/*.test.ts'
+            'packages/wdio-crossbrowsertesting-service/**/*.test.ts',
+            'packages/wdio-cucumber-framework/**/*.test.ts'
         ],
         coverage: {
             enabled: false,
