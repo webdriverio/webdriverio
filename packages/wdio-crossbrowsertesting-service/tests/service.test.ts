@@ -1,8 +1,11 @@
+import { describe, expect, it, beforeEach, afterEach, test, vi } from 'vitest'
+
 import got from 'got'
 import CrossBrowserTestingService from '../src/service'
 import { Frameworks } from '@wdio/types'
 
-(got.put as jest.Mock).mockReturnValue(Promise.resolve({ body: '{}' }))
+vi.mock('got')
+vi.mocked(got.put).mockResolvedValue({ body: '{}' })
 
 const uri = 'some/uri'
 const featureObject = {
@@ -21,7 +24,7 @@ const testArgumens = {
 }
 
 describe('wdio-crossbrowsertesting-service', () => {
-    const execute = jest.fn()
+    const execute = vi.fn()
     let browser: any
 
     beforeEach(() => {
@@ -46,7 +49,7 @@ describe('wdio-crossbrowsertesting-service', () => {
     afterEach(() => {
         browser = undefined
         execute.mockReset();
-        (got.put as jest.Mock).mockClear()
+        vi.mocked(got.put).mockClear()
     })
 
     it('constructor', () => {
@@ -230,7 +233,7 @@ describe('wdio-crossbrowsertesting-service', () => {
             key: ''
         } as any, {} as any)
         cbtService['_browser'] = browser
-        const updateJobSpy = jest.spyOn(cbtService, 'updateJob')
+        const updateJobSpy = vi.spyOn(cbtService, 'updateJob')
         await cbtService.after()
         expect(updateJobSpy).toHaveBeenCalledTimes(0)
     })
@@ -240,7 +243,7 @@ describe('wdio-crossbrowsertesting-service', () => {
             ...testArgumens.beforeSession
         } as any, {})
         cbtService['_browser'] = browser
-        const updateJobSpy = jest.spyOn(cbtService, 'updateJob')
+        const updateJobSpy = vi.spyOn(cbtService, 'updateJob')
 
         cbtService['_config'] = { mochaOpts: { bail:<any> 1 } } as any
         cbtService['_browser'].sessionId = 'test'
@@ -255,7 +258,7 @@ describe('wdio-crossbrowsertesting-service', () => {
         const cbtService = new CrossBrowserTestingService({ ...testArgumens.beforeSession } as any, {})
         cbtService['_browser'] = browser
         cbtService['_failures'] = 5
-        cbtService.updateJob = jest.fn()
+        cbtService.updateJob = vi.fn()
 
         cbtService['_browser'].isMultiremote = false
         cbtService['_browser'].sessionId = 'test'
@@ -270,7 +273,7 @@ describe('wdio-crossbrowsertesting-service', () => {
             ...testArgumens.beforeSession
         } as any, { chromeA: {}, chromeB: {}, chromeC: {} } as any)
         cbtService['_browser'] = browser
-        const updateJobSpy = jest.spyOn(cbtService, 'updateJob')
+        const updateJobSpy = vi.spyOn(cbtService, 'updateJob')
         cbtService['_browser'].isMultiremote = true
         cbtService['_browser'].sessionId = 'sessionId'
         cbtService['_failures'] = 2
@@ -288,7 +291,7 @@ describe('wdio-crossbrowsertesting-service', () => {
         } as any, {})
         cbtService['_browser'] = browser
         const cbtService2 = new CrossBrowserTestingService({} as any, {} as any)
-        const updateJobSpy = jest.spyOn(cbtService2, 'updateJob')
+        const updateJobSpy = vi.spyOn(cbtService2, 'updateJob')
 
         cbtService['_browser'].sessionId = 'sessionId'
         cbtService.onReload('oldSessionId', 'newSessionId')
@@ -301,7 +304,7 @@ describe('wdio-crossbrowsertesting-service', () => {
             ...testArgumens.beforeSession
         } as any, {})
         cbtService['_browser'] = browser
-        const updateJobSpy = jest.spyOn(cbtService, 'updateJob')
+        const updateJobSpy = vi.spyOn(cbtService, 'updateJob')
 
         cbtService['_browser'].sessionId = 'sessionId'
         cbtService['_failures'] = 2
@@ -316,7 +319,7 @@ describe('wdio-crossbrowsertesting-service', () => {
             ...testArgumens.beforeSession
         } as any, {})
         cbtService['_browser'] = browser
-        const updateJobSpy = jest.spyOn(cbtService, 'updateJob')
+        const updateJobSpy = vi.spyOn(cbtService, 'updateJob')
 
         cbtService['_browser'].isMultiremote = true
         cbtService['_browser'].sessionId = 'sessionId'
@@ -389,14 +392,16 @@ describe('wdio-crossbrowsertesting-service', () => {
         await service.updateJob('12345', 23, true)
         expect(service['_failures']).toBe(0)
         expect(got.put).toHaveBeenCalled()
-        expect((got.put as jest.Mock).mock.calls[0][1].username).toBe('test')
-        expect((got.put as jest.Mock).mock.calls[0][1].password).toBe('testy')
+        // @ts-expect-error
+        expect(vi.mocked(got.put).mock.calls[0][1]?.username).toBe('test')
+        // @ts-expect-error
+        expect(vi.mocked(got.put).mock.calls[0][1]?.password).toBe('testy')
     })
 
     it('updateJob failure', async () => {
         const response: any = new Error('Failure')
         response.statusCode = 500;
-        (got.put as jest.Mock).mockReturnValue(Promise.reject(response))
+        vi.mocked(got.put).mockRejectedValue(response)
 
         const service = new CrossBrowserTestingService({ user: 'test', key: 'testy' } as any, {})
         service['_browser'] = browser

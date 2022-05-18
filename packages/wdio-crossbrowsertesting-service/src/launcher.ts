@@ -5,7 +5,7 @@ import type { Capabilities, Services, Options } from '@wdio/types'
 import cbt from 'cbt_tunnels'
 import logger from '@wdio/logger'
 
-import { CrossBrowserTestingConfig } from './types'
+import type { CrossBrowserTestingConfig } from './types'
 
 const log = logger('@wdio/crossbrowsertesting-service')
 

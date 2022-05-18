@@ -12,7 +12,8 @@ export default defineConfig({
             'packages/wdio-allure-reporter/**/*.test.ts',
             'packages/wdio-appium-service/**/*.test.ts',
             'packages/wdio-browserstack-service/**/*.test.ts',
-            'packages/wdio-concise-reporter/**/*.test.ts'
+            'packages/wdio-concise-reporter/**/*.test.ts',
+            'packages/wdio-crossbrowsertesting-service/**/*.test.ts'
         ],
         coverage: {
             enabled: false,
