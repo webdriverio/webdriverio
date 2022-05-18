@@ -3,14 +3,14 @@ import logger from '@wdio/logger'
 
 import BrowserstackLauncher from '../src/launcher'
 import { BrowserstackConfig } from '../src/types'
+// @ts-ignore
+import { version as bstackServiceVersion } from '../package.json'
 
 const expect = global.expect as unknown as jest.Expect
 
 const log = logger('test')
 const error = new Error('I\'m an error!')
 const sleep = (ms: number = 100) => new Promise((resolve) => setTimeout(resolve, ms))
-// @ts-ignore
-import { version as bstackServiceVersion } from '../package.json'
 
 beforeEach(() => {
     jest.clearAllMocks()

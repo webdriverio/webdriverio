@@ -5,11 +5,11 @@ import * as BrowserstackLocalLauncher from 'browserstack-local'
 import logger from '@wdio/logger'
 import type { Capabilities, Services, Options } from '@wdio/types'
 
+// @ts-ignore
+import { version as bstackServiceVersion } from '../package.json'
 import { BrowserstackConfig } from './types'
 
 const log = logger('@wdio/browserstack-service')
-// @ts-ignore
-import { version as bstackServiceVersion } from '../package.json'
 
 type BrowserstackLocal = BrowserstackLocalLauncher.Local & {
     pid?: number;
