@@ -1,4 +1,6 @@
-import path from 'path'
+import path from 'node:path'
+import { describe, expect, it, vi, beforeEach } from 'vitest'
+
 import { setOptions } from 'expect-webdriverio'
 import { executeHooksWithArgs, testFnWrapper } from '@wdio/utils'
 import * as Cucumber from '@cucumber/cucumber'
@@ -8,19 +10,35 @@ import CucumberAdapter from '../src'
 import { setUserHookNames } from '../src/utils'
 import * as packageExports from '../src'
 
-jest.mock('../src/reporter', () => class CucumberReporter {
-    eventListener = {
-        getPickleIds: jest.fn().mockReturnValue(['8']),
-        getHookParams: jest.fn().mockReturnValue({ uri: 'uri', feature: 'feature', scenario: 'scenario', step: 'step', result: { 'duration': undefined, 'error': undefined, 'passed': false } })
+vi.mock('mockery')
+vi.mock('@wdio/utils')
+vi.mock('expect-webdriverio')
+vi.mock('@cucumber/cucumber')
+vi.mock('../src/reporter', () => ({
+    default: class CucumberReporter {
+        eventListener = {
+            getPickleIds: vi.fn().mockReturnValue(['8']),
+            getHookParams: vi.fn().mockReturnValue({ uri: 'uri', feature: 'feature', scenario: 'scenario', step: 'step', result: { 'duration': undefined, 'error': undefined, 'passed': false } })
+        }
     }
-})
-
-jest.mock('../src/utils', () => ({
-    setUserHookNames: jest.fn()
 }))
 
-jest.mock('@cucumber/gherkin-streams', () => ({
-    GherkinStreams: { fromPaths: jest.fn().mockReturnValue('GherkinStreams.fromPaths') }
+vi.mock('moduleA', () => {
+    global.MODULE_A_WAS_LOADED = true
+})
+vi.mock('moduleB', () => ({
+    default: function moduleB (opts: any) {
+        // @ts-ignore
+        global.MODULE_B_WAS_LOADED_WITH = opts
+    }
+}))
+
+vi.mock('../src/utils', () => ({
+    setUserHookNames: vi.fn()
+}))
+
+vi.mock('@cucumber/gherkin-streams', () => ({
+    GherkinStreams: { fromPaths: vi.fn().mockReturnValue('GherkinStreams.fromPaths') }
 }))
 
 declare global {
@@ -32,19 +50,19 @@ declare global {
 
 describe('CucumberAdapter', () => {
     beforeEach(() => {
-        (Cucumber.PickleFilter as jest.Mock).mockClear()
-        ;(executeHooksWithArgs as jest.Mock).mockClear()
-        ;(Cucumber.Runtime as jest.Mock).mockClear()
-        ;(Cucumber.setDefinitionFunctionWrapper as jest.Mock).mockClear()
-        ;(mockery.enable as jest.Mock).mockClear()
-        ;(mockery.registerMock as jest.Mock).mockClear()
-        ;(mockery.disable as jest.Mock).mockClear()
-        ;(Cucumber.BeforeAll as jest.Mock).mockClear()
-        ;(Cucumber.AfterAll as jest.Mock).mockClear()
-        ;(Cucumber.Before as jest.Mock).mockClear()
-        ;(Cucumber.After as jest.Mock).mockClear()
-        ;(Cucumber.BeforeStep as jest.Mock).mockClear()
-        ;(Cucumber.AfterStep as jest.Mock).mockClear()
+        vi.mocked(Cucumber.PickleFilter).mockClear()
+        vi.mocked(executeHooksWithArgs).mockClear()
+        vi.mocked(Cucumber.Runtime).mockClear()
+        vi.mocked(Cucumber.setDefinitionFunctionWrapper).mockClear()
+        vi.mocked(mockery.enable).mockClear()
+        vi.mocked(mockery.registerMock).mockClear()
+        vi.mocked(mockery.disable).mockClear()
+        vi.mocked(Cucumber.BeforeAll).mockClear()
+        vi.mocked(Cucumber.AfterAll).mockClear()
+        vi.mocked(Cucumber.Before).mockClear()
+        vi.mocked(Cucumber.After).mockClear()
+        vi.mocked(Cucumber.BeforeStep).mockClear()
+        vi.mocked(Cucumber.AfterStep).mockClear()
     })
 
     it('exports Cucumber exports', () => {
@@ -65,7 +83,7 @@ describe('CucumberAdapter', () => {
     })
 
     it('can be initiated with tests', async () => {
-        const adapter = await CucumberAdapter.init('0-0', {
+        const adapter = await CucumberAdapter.init!!('0-0', {
             waitforTimeout: 1,
             waitforInterval: 2
         }, ['/foo/bar'], {}, {})
@@ -85,13 +103,13 @@ describe('CucumberAdapter', () => {
     })
 
     it('should trigger after hook if initiation fails', async () => {
-        (Cucumber.parseGherkinMessageStream as jest.Mock)
+        vi.mocked(Cucumber.parseGherkinMessageStream)
             .mockRejectedValueOnce(new Error('boom'))
 
-        const err = await CucumberAdapter.init('0-0', {
+        const err = await CucumberAdapter.init!('0-0', {
             cucumberFeaturesWithLineNumbers: ['/bar/foo', '/foo/bar']
         }, ['/foo/bar'], {}, {})
-            .catch((err) => err)
+            .catch((err: any) => err)
         expect(err.message).toBe('boom')
         expect(executeHooksWithArgs).toBeCalledTimes(1)
         expect(Cucumber.PickleFilter).toBeCalledWith({
@@ -103,10 +121,10 @@ describe('CucumberAdapter', () => {
     })
 
     it('can run without errors', async () => {
-        const adapter = await CucumberAdapter.init('0-0', {}, ['/foo/bar'], {}, {})
-        adapter.registerRequiredModules = jest.fn()
-        adapter.addWdioHooks = jest.fn()
-        adapter.loadSpecFiles = jest.fn()
+        const adapter = await CucumberAdapter.init!('0-0', {}, ['/foo/bar'], {}, {})
+        adapter.registerRequiredModules = vi.fn()
+        adapter.addWdioHooks = vi.fn()
+        adapter.loadSpecFiles = vi.fn()
 
         const result = await adapter.run()
         expect(result).toBe(0)
@@ -118,7 +136,7 @@ describe('CucumberAdapter', () => {
     })
 
     it('can run with failing result', async () => {
-        const adapter = await CucumberAdapter.init('0-0', {
+        const adapter = await CucumberAdapter.init!('0-0', {
             cucumberOpts: { shouldFail: 123 }
         }, ['/foo/bar'], {}, {})
         const result = await adapter.run()
@@ -127,7 +145,7 @@ describe('CucumberAdapter', () => {
     })
 
     it('can take cucumber report failure count', async () => {
-        const adapter = await CucumberAdapter.init('0-0', {
+        const adapter = await CucumberAdapter.init!('0-0', {
             cucumberOpts: {
                 shouldFail: 123,
                 ignoreUndefinedDefinitions: true
@@ -140,15 +158,19 @@ describe('CucumberAdapter', () => {
     })
 
     it('should throw if there was a runtime error', async () => {
-        const adapter = await CucumberAdapter.init('0-0', {
+        const adapter = await CucumberAdapter.init!('0-0', {
             cucumberOpts: { shouldThrow: 'some error' }
         }, ['/foo/bar'], {}, {})
-        const err = await adapter.run().catch(err => err)
+        const err = await adapter.run().catch((err: any) => err)
         expect(err.message).toBe('some error')
     })
 
-    it('registerRequiredModules', async () => {
-        const adapter = await CucumberAdapter.init('0-0', {
+    /**
+     * failing due to missing support of dynamic mock imports
+     * https://github.com/vitest-dev/vitest/issues/1294
+     */
+    it.skip('registerRequiredModules', async () => {
+        const adapter = await CucumberAdapter.init!('0-0', {
             cucumberOpts: {
                 requireModule: [
                     'moduleA',
@@ -169,7 +191,11 @@ describe('CucumberAdapter', () => {
         expect(global.MODULE_INLINE_WAS_LOADED).toBe(true)
     })
 
-    it('requiredFiles', async () => {
+    /**
+     * failing due to missing support of dynamic mock imports
+     * https://github.com/vitest-dev/vitest/issues/1294
+     */
+    it.skip('requiredFiles', async () => {
         /**
          * skip for windows which for some reasons only can find one entry, e.g.:
          * D:\\a\\webdriverio\\webdriverio\\packages\\wdio-cucumber-framework\\tests\\adapter.test.ts
@@ -177,7 +203,8 @@ describe('CucumberAdapter', () => {
         if (process.platform === 'win32') {
             return
         }
-        const adapter = await CucumberAdapter.init('0-0', {
+
+        const adapter = await CucumberAdapter.init!('0-0', {
             cucumberOpts: {
                 require: [
                     __filename,
@@ -188,9 +215,13 @@ describe('CucumberAdapter', () => {
         expect(adapter.requiredFiles()).toHaveLength(4)
     })
 
-    it('loadSpecFiles', async () => {
-        const adapter = await CucumberAdapter.init('0-0', {}, ['/foo/bar'], {}, {})
-        adapter.requiredFiles = jest.fn().mockReturnValue([__dirname + '/__mocks__/moduleC.ts'])
+    /**
+     * failing due to missing support of dynamic mock imports
+     * https://github.com/vitest-dev/vitest/issues/1294
+     */
+    it.skip('loadSpecFiles', async () => {
+        const adapter = await CucumberAdapter.init!('0-0', {}, ['/foo/bar'], {}, {})
+        adapter.requiredFiles = vi.fn().mockReturnValue([__dirname + '/__mocks__/moduleC.ts'])
 
         expect(global.MODULE_C_WAS_LOADED).toBe(undefined)
         adapter.loadSpecFiles()
@@ -207,7 +238,7 @@ describe('CucumberAdapter', () => {
         }
         const cukeWorld = new CustomWorld()
 
-        const adapter = await CucumberAdapter.init('0-0', {}, ['/foo/bar'], {}, {})
+        const adapter = await CucumberAdapter.init!('0-0', {}, ['/foo/bar'], {}, {})
         adapter.addWdioHooks({
             beforeFeature: 'beforeFeature',
             afterFeature: 'afterFeature',
@@ -224,35 +255,41 @@ describe('CucumberAdapter', () => {
         expect(Cucumber.AfterStep).toBeCalledTimes(1)
         expect(executeHooksWithArgs).toBeCalledTimes(0)
 
-        ;(Cucumber.AfterStep as jest.Mock).mock.calls[0][0].bind(cukeWorld)('world')
+        // @ts-expect-error
+        vi.mocked(Cucumber.AfterStep).mock.calls[0][0].bind(cukeWorld)('world')
         expect(executeHooksWithArgs)
             .toBeCalledWith('afterStep', 'afterStep', ['step', 'scenario', { 'duration': NaN, 'error': undefined, 'passed': false }, cukeWorld])
-        ;(Cucumber.BeforeStep as jest.Mock).mock.calls[0][0].bind(cukeWorld)()
+        // @ts-expect-error
+        vi.mocked(Cucumber.BeforeStep).mock.calls[0][0].bind(cukeWorld)()
         expect(executeHooksWithArgs)
             .toBeCalledWith('beforeStep', 'beforeStep', ['step', 'scenario', cukeWorld])
-        ;(Cucumber.BeforeAll as jest.Mock).mock.calls[0][0]()
+        // @ts-expect-error
+        vi.mocked(Cucumber.BeforeAll).mock.calls[0][0]()
         expect(executeHooksWithArgs)
             .toBeCalledWith('beforeFeature', 'beforeFeature', ['uri', 'feature'])
-        ;(Cucumber.AfterAll as jest.Mock).mock.calls[0][0]()
+        // @ts-expect-error
+        vi.mocked(Cucumber.AfterAll).mock.calls[0][0]()
         expect(executeHooksWithArgs)
             .toBeCalledWith('afterFeature', 'afterFeature', ['uri', 'feature'])
-        ;(Cucumber.Before as jest.Mock).mock.calls[0][0].bind(cukeWorld)('world')
+        // @ts-expect-error
+        vi.mocked(Cucumber.Before).mock.calls[0][0].bind(cukeWorld)('world')
         expect(executeHooksWithArgs)
             .toBeCalledWith('beforeScenario', 'beforeScenario', ['world', cukeWorld])
-        ;(Cucumber.After as jest.Mock).mock.calls[0][0].bind(cukeWorld)('world')
+        // @ts-expect-error
+        vi.mocked(Cucumber.After).mock.calls[0][0].bind(cukeWorld)('world')
         expect(executeHooksWithArgs)
             .toBeCalledWith('afterScenario', 'afterScenario', ['world', { 'duration': NaN, 'error': undefined, 'passed': false }, cukeWorld])
     })
 
     it('wrapSteps', async () => {
-        const adapter = await CucumberAdapter.init('0-0', {}, ['/foo/bar'], {}, {})
+        const adapter = await CucumberAdapter.init!('0-0', {}, ['/foo/bar'], {}, {})
         adapter.getHookParams = 'getHookParams'
-        adapter.wrapStep = jest.fn()
+        adapter.wrapStep = vi.fn()
 
         expect(adapter.wrapStep).toBeCalledTimes(0)
         adapter.wrapSteps()
         expect(Cucumber.setDefinitionFunctionWrapper).toBeCalledTimes(1)
-        ;(Cucumber.setDefinitionFunctionWrapper as jest.Mock).mock.calls[0][0](jest.fn())
+        vi.mocked(Cucumber.setDefinitionFunctionWrapper).mock.calls[0][0](vi.fn())
         expect(adapter.wrapStep).toBeCalledWith(
             expect.any(Function),
             true,
@@ -264,24 +301,24 @@ describe('CucumberAdapter', () => {
     })
 
     it('wrapSteps does not wrap wdio hooks', async () => {
-        const adapter = await CucumberAdapter.init('0-0', {}, ['/foo/bar'], {}, {})
+        const adapter = await CucumberAdapter.init!('0-0', {}, ['/foo/bar'], {}, {})
         adapter.getHookParams = 'getHookParams'
-        adapter.wrapStep = jest.fn()
+        adapter.wrapStep = vi.fn()
 
         expect(adapter.wrapStep).toBeCalledTimes(0)
         adapter.wrapSteps()
         function wdioHookFn () { return 'foobar' }
         expect(Cucumber.setDefinitionFunctionWrapper).toBeCalledTimes(1)
         expect(
-            (Cucumber.setDefinitionFunctionWrapper as jest.Mock).mock.calls[0][0](wdioHookFn)()
+            vi.mocked(Cucumber.setDefinitionFunctionWrapper).mock.calls[0][0](wdioHookFn)()
         ).toBe('foobar')
     })
 
     it('wrapStep', async () => {
-        const adapter = await CucumberAdapter.init('0-0', {}, ['/foo/bar'], {}, {})
+        const adapter = await CucumberAdapter.init!('0-0', {}, ['/foo/bar'], {}, {})
         const wrappedStep = adapter.wrapStep('code', true, {}, '0-2', {}, () => 'hookParams')
         expect(testFnWrapper).toBeCalledTimes(0)
         wrappedStep('someWorld', 1, 2, 3)
-        expect((testFnWrapper as jest.Mock).mock.calls).toMatchSnapshot()
+        expect(vi.mocked(testFnWrapper).mock.calls).toMatchSnapshot()
     })
 })

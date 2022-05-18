@@ -66,7 +66,7 @@ describe('wdio-crossbrowsertesting-service', () => {
         const cbtLauncher = new CrossBrowserTestingLauncher(options, [{}] as Capabilities.DesiredCapabilities, {
             user: 'test',
             key: 'testy'
-        } as any);
+        } as any)
         vi.mocked(cbtTunnels.start).mockImplementationOnce((options: never, cb: any) => cb(error))
         expect(cbtLauncher.onPrepare()).rejects.toThrow(error)
             .then(() => expect(cbtTunnels.start).toHaveBeenCalled())
@@ -81,7 +81,7 @@ describe('wdio-crossbrowsertesting-service', () => {
 
     it('onComplete: cbtTunnel.stop throws an error', () => {
         const cbtLauncher = new CrossBrowserTestingLauncher({} as any, [{}] as Capabilities.DesiredCapabilities, {} as any)
-        cbtLauncher['_isUsingTunnel'] = true;
+        cbtLauncher['_isUsingTunnel'] = true
         vi.mocked(cbtTunnels.stop).mockImplementationOnce((cb: any) => cb(error))
         expect(cbtLauncher.onComplete()).rejects.toThrow(error)
             .then(() => expect(cbtTunnels.stop).toHaveBeenCalled())

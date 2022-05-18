@@ -1,39 +1,39 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Vitest Snapshot v1
 
-exports[`utils addKeywordToStep should add keywords to the steps 1`] = `
-Array [
-  Object {
-    "astNodeIds": Array [
+exports[`utils > addKeywordToStep should add keywords to the steps 1`] = `
+[
+  {
+    "astNodeIds": [
       "0",
     ],
     "id": "20",
     "keyword": "Given ",
     "text": "I have a background",
   },
-  Object {
-    "astNodeIds": Array [
+  {
+    "astNodeIds": [
       "2",
     ],
     "id": "21",
     "keyword": "Given ",
     "text": "I have 42 cukes in my belly",
   },
-  Object {
+  {
     "hookId": "47",
     "id": "77",
   },
 ]
 `;
 
-exports[`utils buildStepPayload 1`] = `
-Object {
+exports[`utils > buildStepPayload 1`] = `
+{
   "argument": undefined,
   "featureName": "some feature",
   "file": "uri",
   "parent": "321",
   "scenarioName": undefined,
-  "tags": Array [
-    Object {
+  "tags": [
+    {
       "name": "some tag",
     },
   ],
@@ -43,23 +43,23 @@ Object {
 }
 `;
 
-exports[`utils createStepArgument Works with DataTable 1`] = `
-Object {
-  "rows": Array [
-    Object {
-      "cells": Array [
+exports[`utils > createStepArgument > Works with DataTable 1`] = `
+{
+  "rows": [
+    {
+      "cells": [
         "1",
         "2",
       ],
     },
-    Object {
-      "cells": Array [
+    {
+      "cells": [
         "3",
         "4",
       ],
     },
-    Object {
-      "cells": Array [
+    {
+      "cells": [
         "5",
         "6",
       ],
@@ -68,8 +68,8 @@ Object {
 }
 `;
 
-exports[`utils formatMessage should set passed state for test hooks 1`] = `
-Object {
+exports[`utils > formatMessage > should set passed state for test hooks 1`] = `
+{
   "state": "passed",
 }
 `;

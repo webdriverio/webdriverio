@@ -48,7 +48,7 @@ describe('wdio-crossbrowsertesting-service', () => {
 
     afterEach(() => {
         browser = undefined
-        execute.mockReset();
+        execute.mockReset()
         vi.mocked(got.put).mockClear()
     })
 
@@ -400,7 +400,7 @@ describe('wdio-crossbrowsertesting-service', () => {
 
     it('updateJob failure', async () => {
         const response: any = new Error('Failure')
-        response.statusCode = 500;
+        response.statusCode = 500
         vi.mocked(got.put).mockRejectedValue(response)
 
         const service = new CrossBrowserTestingService({ user: 'test', key: 'testy' } as any, {})

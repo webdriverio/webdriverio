@@ -1,5 +1,5 @@
-import { promisify } from 'util'
-import { performance, PerformanceObserver } from 'perf_hooks'
+import { promisify } from 'node:util'
+import { performance, PerformanceObserver } from 'node:perf_hooks'
 import type { Capabilities, Services, Options } from '@wdio/types'
 
 import cbt from 'cbt_tunnels'
