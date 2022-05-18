@@ -1,3 +1,5 @@
+import path from 'node:path'
+import { describe, expect, it, beforeAll, beforeEach, vi } from 'vitest'
 import ConciseReporter from '../src'
 import {
     RUNNER,
@@ -6,16 +8,17 @@ import {
     SUITES_NO_TESTS,
     REPORT,
 } from './fixtures'
-// @ts-ignore
 const reporter = new ConciseReporter({})
 
+vi.mock('chalk')
+vi.mock('@wdio/reporter', () => import(path.join(process.cwd(), '__mocks__', '@wdio/reporter')))
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+
 describe('ConciseReporter', () => {
-    let tmpReporter = null
+    let tmpReporter: ConciseReporter
 
     beforeEach(() => {
-        // @ts-ignore
         tmpReporter = new ConciseReporter({})
-        // tmpReporter.chalk.level = 0
     })
 
     describe('on create', () => {
@@ -64,42 +67,40 @@ describe('ConciseReporter', () => {
 
     describe('onRunnerEnd', () => {
         it('should call printReport method', () => {
-            reporter.printReport = jest.fn()
+            reporter.printReport = vi.fn()
             reporter.onRunnerEnd(RUNNER as any)
-            expect((reporter.printReport as jest.Mock).mock.calls.length).toBe(1)
-            expect((reporter.printReport as jest.Mock).mock.calls[0][0]).toEqual(RUNNER)
+            expect(vi.mocked(reporter.printReport).mock.calls.length).toBe(1)
+            expect(vi.mocked(reporter.printReport).mock.calls[0][0]).toEqual(RUNNER)
         })
     })
 
     describe('printReport', () => {
-        let printReporter = null
+        let printReporter: ConciseReporter
 
         beforeEach(() => {
-            // @ts-ignore
             printReporter = new ConciseReporter({})
-            // printReporter.chalk.level = 0
-            printReporter.write = jest.fn()
+            printReporter.write = vi.fn()
         })
 
         it('should print the report to the console', () => {
             printReporter['_suiteUids'] = SUITE_UIDS
-            printReporter['_suites'] = SUITES
+            printReporter['_suites'] = SUITES as any
             printReporter['_stateCounts'] = {
                 failed : 1
             }
 
-            printReporter.printReport(RUNNER)
+            printReporter.printReport(RUNNER as any)
 
             expect(printReporter.write).toBeCalledWith(REPORT)
         })
 
         it('should print default report because there are no failed tests', () => {
             printReporter['_suiteUids'] = SUITE_UIDS
-            printReporter['_suites'] = SUITES_NO_TESTS
+            printReporter['_suites'] = SUITES_NO_TESTS as any
 
-            printReporter.printReport(RUNNER)
+            printReporter.printReport(RUNNER as any)
 
-            expect(printReporter.write.mock.calls.length).toBe(1)
+            expect(vi.mocked(printReporter.write).mock.calls.length).toBe(1)
         })
     })
 
@@ -121,8 +122,8 @@ describe('ConciseReporter', () => {
 
     describe('getFailureDisplay', () => {
         it('should return failing results', () => {
-            tmpReporter.getOrderedSuites = jest.fn(() => SUITES)
-            tmpReporter['_suites'] = SUITES
+            tmpReporter.getOrderedSuites = vi.fn(() => SUITES) as any
+            tmpReporter['_suites'] = SUITES as any
 
             const result = tmpReporter.getFailureDisplay()
 
@@ -132,8 +133,8 @@ describe('ConciseReporter', () => {
         })
 
         it('should return no results', () => {
-            tmpReporter.getOrderedSuites = jest.fn(() => SUITES_NO_TESTS)
-            tmpReporter['_suites'] = SUITES_NO_TESTS
+            tmpReporter.getOrderedSuites = vi.fn(() => SUITES_NO_TESTS) as any
+            tmpReporter['_suites'] = SUITES_NO_TESTS as any
 
             const result = tmpReporter.getFailureDisplay()
 
@@ -143,15 +144,16 @@ describe('ConciseReporter', () => {
 
     describe('getOrderedSuites', () => {
         it('should return the suites in order based on uids', () => {
+            // @ts-expect-error
             tmpReporter.foo = 'hellooo'
-            tmpReporter['_suiteUids'] = [5, 3, 8]
-            tmpReporter['_suites'] = [{ uid : 3 }, { uid : 5 }]
+            tmpReporter['_suiteUids'] = ['5', '3', '8']
+            tmpReporter['_suites'] = [{ uid : '3' }, { uid : '5' }] as any
 
             const result = tmpReporter.getOrderedSuites()
 
             expect(result.length).toBe(2)
-            expect(result[0]).toEqual({ uid : 5 })
-            expect(result[1]).toEqual({ uid : 3 })
+            expect(result[0]).toEqual({ uid : '5' })
+            expect(result[1]).toEqual({ uid : '3' })
         })
 
         it('should return no suites', () => {
@@ -163,8 +165,8 @@ describe('ConciseReporter', () => {
         it('should return desktop combo', () => {
             expect(tmpReporter.getEnviromentCombo({
                 browserName: 'chrome',
-                version: 50,
-                platform: 'Windows 8.1'
+                browserVersion: '50',
+                platformName: 'Windows 8.1'
             })).toBe('chrome (v50) on Windows 8.1')
         })
 
@@ -197,7 +199,7 @@ describe('ConciseReporter', () => {
         it('should return desktop combo when using BrowserStack capabilities', () => {
             expect(tmpReporter.getEnviromentCombo({
                 browser: 'Chrome',
-                browser_version: 50,
+                browser_version: '50',
                 os: 'Windows',
                 os_version: '10'
             })).toBe('Chrome (v50) on Windows 10')
