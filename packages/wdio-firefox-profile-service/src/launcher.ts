@@ -1,8 +1,8 @@
 import Profile from 'firefox-profile'
-import { promisify } from 'util'
+import { promisify } from 'node:util'
 import type { Capabilities } from '@wdio/types'
 
-import { FirefoxProfileOptions } from './types'
+import type { FirefoxProfileOptions } from './types'
 
 export default class FirefoxProfileLauncher {
     private _profile?: Profile

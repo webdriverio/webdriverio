@@ -1,10 +1,10 @@
 /* istanbul ignore file */
 
-import FirefoxProfileLauncher from './launcher'
+import FirefoxProfileLauncher from './launcher.js'
 import type { FirefoxProfileOptions } from './types'
 
 export const launcher = FirefoxProfileLauncher
-export * from './types'
+export * from './types.js'
 
 declare global {
     namespace WebdriverIO {
