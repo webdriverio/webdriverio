@@ -158,6 +158,7 @@ export interface VendorExtensions extends EdgeCapabilities, AppiumW3CCapabilitie
 
     'goog:chromeOptions'?: ChromeOptions;
     'moz:firefoxOptions'?: FirefoxOptions;
+    'moz:debuggerAddress'?: boolean;
     // eslint-disable-next-line
     firefox_profile?: string;
     'ms:edgeOptions'?: MicrosoftEdgeOptions;
