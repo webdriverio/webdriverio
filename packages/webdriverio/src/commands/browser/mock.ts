@@ -1,7 +1,7 @@
-import type Interception from '../../utils/interception/index'
-import DevtoolsNetworkInterception from '../../utils/interception/devtools'
-import WebDriverNetworkInterception from '../../utils/interception/webdriver'
-import { getBrowserObject } from '../../utils'
+import type Interception from '../../utils/interception/index.js'
+import DevtoolsNetworkInterception from '../../utils/interception/devtools.js'
+import WebDriverNetworkInterception from '../../utils/interception/webdriver.js'
+import { getBrowserObject } from '../../utils/index.js'
 import type { Mock } from '../../types'
 import type { MockFilterOptions } from '../../utils/interception/types'
 

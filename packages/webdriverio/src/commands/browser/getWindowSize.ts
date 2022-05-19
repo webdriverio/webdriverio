@@ -1,4 +1,4 @@
-import { getBrowserObject } from '../../utils'
+import { getBrowserObject } from '../../utils/index.js'
 
 interface BrowserSize {
     width: number

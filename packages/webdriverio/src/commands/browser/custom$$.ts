@@ -1,6 +1,6 @@
-import { enhanceElementsArray } from '../../utils'
-import { getElements } from '../../utils/getElementObject'
-import { ELEMENT_KEY } from '../../constants'
+import { enhanceElementsArray } from '../../utils/index.js'
+import { getElements } from '../../utils/getElementObject.js'
+import { ELEMENT_KEY } from '../../constants.js'
 import type { ElementArray, CustomStrategyFunction, CustomStrategyReference } from '../../types'
 
 /**

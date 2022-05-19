@@ -1,26 +1,26 @@
-import fs from 'fs'
-import http from 'http'
-import path from 'path'
+import fs from 'node:fs'
+import http from 'node:http'
+import path from 'node:path'
+import { URL } from 'node:url'
+
 import cssValue from 'css-value'
 import rgb2hex from 'rgb2hex'
 import GraphemeSplitter from 'grapheme-splitter'
 import logger from '@wdio/logger'
 import isObject from 'lodash.isobject'
 import isPlainObject from 'lodash.isplainobject'
-import { URL } from 'url'
+import { locatorStrategy } from 'query-selector-shadow-dom/plugins/webdriverio'
 import { SUPPORTED_BROWSER } from 'devtools'
 import { UNICODE_CHARACTERS } from '@wdio/utils'
 import type { ElementReference } from '@wdio/protocols'
 import type { Options, Capabilities } from '@wdio/types'
-import { locatorStrategy } from 'query-selector-shadow-dom/plugins/webdriverio'
 
-import { ELEMENT_KEY, DRIVER_DEFAULT_ENDPOINT, DEEP_SELECTOR } from '../constants'
-import { findStrategy } from './findStrategy'
+import browserCommands from '../commands/browser.js'
+import elementCommands from '../commands/element.js'
+import { ELEMENT_KEY, DRIVER_DEFAULT_ENDPOINT, DEEP_SELECTOR } from '../constants.js'
+import { findStrategy } from './findStrategy.js'
 import type { ElementArray, ElementFunction, Selector, ParsedCSSValue, CustomLocatorReturnValue } from '../types'
-import { CustomStrategyReference } from '../types'
-
-const browserCommands = require('../commands/browser').default
-const elementCommands = require('../commands/element').default
+import type { CustomStrategyReference } from '../types'
 
 const log = logger('webdriverio')
 const INVALID_SELECTOR_ERROR = 'selector needs to be typeof `string` or `function`'

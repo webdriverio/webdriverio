@@ -1,6 +1,6 @@
-import { getElements } from '../../utils/getElementObject'
-import { getBrowserObject, enhanceElementsArray } from '../../utils'
-import { ELEMENT_KEY } from '../../constants'
+import { getElements } from '../../utils/getElementObject.js'
+import { getBrowserObject, enhanceElementsArray } from '../../utils/index.js'
+import { ELEMENT_KEY } from '../../constants.js'
 import type { ElementArray, CustomStrategyFunction } from '../../types'
 
 /**

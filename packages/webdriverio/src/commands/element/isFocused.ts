@@ -1,6 +1,6 @@
-import { ELEMENT_KEY } from '../../constants'
-import { getBrowserObject } from '../../utils'
-import isFocusedScript from '../../scripts/isFocused'
+import { ELEMENT_KEY } from '../../constants.js'
+import { getBrowserObject } from '../../utils/index.js'
+import isFocusedScript from '../../scripts/isFocused.js'
 
 /**
  *

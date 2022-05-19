@@ -1,4 +1,4 @@
-import { ELEMENT_KEY } from '../../constants'
+import { ELEMENT_KEY } from '../../constants.js'
 import type { ElementReference } from '@wdio/protocols'
 
 const ACTION_BUTTON = 0

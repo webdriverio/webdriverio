@@ -1,7 +1,6 @@
 import { UNICODE_CHARACTERS } from '@wdio/utils'
 
-import { checkUnicode } from '../../utils'
-
+import { checkUnicode } from '../../utils/index.js'
 /**
  *
  * Send a sequence of key strokes to the active element. You can also use characters like

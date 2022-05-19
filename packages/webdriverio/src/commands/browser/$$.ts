@@ -1,5 +1,5 @@
-import { findElements, enhanceElementsArray } from '../../utils'
-import { getElements } from '../../utils/getElementObject'
+import { findElements, enhanceElementsArray } from '../../utils/index.js'
+import { getElements } from '../../utils/getElementObject.js'
 import type { Selector, ElementArray } from '../../types'
 
 /**

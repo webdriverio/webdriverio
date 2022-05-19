@@ -1,6 +1,6 @@
 import logger from '@wdio/logger'
 
-import { ClickOptions } from '../../types'
+import type { ClickOptions } from '../../types'
 
 const log = logger('webdriverio/click')
 

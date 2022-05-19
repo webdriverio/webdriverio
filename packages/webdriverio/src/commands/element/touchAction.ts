@@ -1,4 +1,4 @@
-import { touchAction as touchActionCommand } from '../constant'
+import { touchAction as touchActionCommand } from '../constant.js'
 import type { TouchActions } from '../../types'
 
 /**

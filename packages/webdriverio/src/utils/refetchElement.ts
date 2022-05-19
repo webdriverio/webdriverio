@@ -1,5 +1,5 @@
-import implicitWait from './implicitWait'
-import { Selector } from '../types'
+import implicitWait from './implicitWait.js'
+import { Selector } from '../types.js'
 
 /**
  * helper utility to refetch an element and all its parent elements when running

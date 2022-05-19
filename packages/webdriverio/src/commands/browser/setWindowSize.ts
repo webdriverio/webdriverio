@@ -1,4 +1,4 @@
-import { getBrowserObject } from '../../utils'
+import { getBrowserObject } from '../../utils/index.js'
 
 const minWindowSize = 0
 const maxWindowSize = Number.MAX_SAFE_INTEGER

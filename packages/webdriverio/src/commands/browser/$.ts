@@ -1,6 +1,6 @@
-import { findElement } from '../../utils'
-import { getElement } from '../../utils/getElementObject'
-import { ELEMENT_KEY } from '../../constants'
+import { findElement } from '../../utils/index.js'
+import { getElement } from '../../utils/getElementObject.js'
+import { ELEMENT_KEY } from '../../constants.js'
 import type { Selector } from '../../types'
 import type { ElementReference } from '@wdio/protocols'
 

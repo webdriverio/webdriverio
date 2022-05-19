@@ -4,8 +4,8 @@ import { webdriverMonad, wrapCommand } from '@wdio/utils'
 import type { Options } from '@wdio/types'
 import type { ProtocolCommands } from '@wdio/protocols'
 
-import { multiremoteHandler } from './middlewares'
-import { getPrototype } from './utils'
+import { multiremoteHandler } from './middlewares.js'
+import { getPrototype } from './utils/index.js'
 import type { BrowserCommandsType, MultiRemoteBrowser } from './types'
 
 type EventEmitter = (args: any) => void

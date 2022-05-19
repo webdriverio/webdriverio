@@ -1,3 +1,5 @@
+import { describe, expect, it, vi } from 'vitest'
+
 import ProtocolStub from '../src/protocol-stub'
 import Multiremote from '../src/multiremote'
 
@@ -36,7 +38,7 @@ describe('newSession', () => {
 
 describe('attachToSession', () => {
     it('should return newSession if not multiremote', async () => {
-        const modifier = jest.fn()
+        const modifier = vi.fn()
         const session = await ProtocolStub.attachToSession({
             sessionId: '1234',
             capabilities: { browserName: 'chrome' }
@@ -56,6 +58,7 @@ describe('attachToSession', () => {
         multiremote.instances['instanceName'] = 'instance'
 
         const session = await ProtocolStub.attachToSession(
+            // @ts-expect-error
             undefined,
             multiremote.modifier.bind(multiremote)
         )

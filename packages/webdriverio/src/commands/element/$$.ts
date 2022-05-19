@@ -41,5 +41,5 @@
  * @type utility
  *
  */
-import $$ from '../browser/$$'
+import $$ from '../browser/$$.js'
 export default $$

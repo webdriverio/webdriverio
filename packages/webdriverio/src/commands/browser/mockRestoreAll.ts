@@ -1,6 +1,6 @@
 import logger from '@wdio/logger'
 
-import { SESSION_MOCKS } from './mock'
+import { SESSION_MOCKS } from './mock.js'
 
 const log = logger('webdriverio:mockRestoreAll')
 

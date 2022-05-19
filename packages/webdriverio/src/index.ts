@@ -3,19 +3,19 @@ import logger from '@wdio/logger'
 import WebDriver from 'webdriver'
 import { DEFAULTS } from 'webdriver'
 import { validateConfig } from '@wdio/config'
-import { wrapCommand, runFnInFiberContext } from '@wdio/utils'
+import { wrapCommand } from '@wdio/utils'
 import { Options, Capabilities } from '@wdio/types'
 import type * as WebDriverTypes from 'webdriver'
 
-import MultiRemote from './multiremote'
-import type ElementCommands from './commands/element'
-import SevereServiceErrorImport from './utils/SevereServiceError'
-import detectBackend from './utils/detectBackend'
-import { WDIO_DEFAULTS } from './constants'
+import MultiRemote from './multiremote.js'
+import type ElementCommands from './commands/element.js'
+import SevereServiceErrorImport from './utils/SevereServiceError.js'
+import detectBackend from './utils/detectBackend.js'
+import { WDIO_DEFAULTS } from './constants.js'
 import {
     getPrototype, addLocatorStrategyHandler, isStub, getAutomationProtocol,
     updateCapabilities
-} from './utils'
+} from './utils/index.js'
 import type { AttachOptions } from './types'
 
 export type RemoteOptions = Options.WebdriverIO & Omit<Options.Testrunner, 'capabilities'>
@@ -68,13 +68,13 @@ export const remote = async function (params: RemoteOptions, remoteModifier?: Fu
      */
     if ((params as Options.Testrunner).framework && !isStub(automationProtocol)) {
         const origAddCommand = instance.addCommand.bind(instance)
-        instance.addCommand = (name: string, fn: Function, attachToElement) => (
-            origAddCommand(name, runFnInFiberContext(fn), attachToElement)
+        instance.addCommand = (name: string, fn: (...args: any[]) => any, attachToElement) => (
+            origAddCommand(name, fn, attachToElement)
         )
 
         const origOverwriteCommand = instance.overwriteCommand.bind(instance)
-        instance.overwriteCommand = (name: string, fn: Function, attachToElement) => (
-            origOverwriteCommand<keyof typeof ElementCommands, any, any>(name, runFnInFiberContext(fn), attachToElement)
+        instance.overwriteCommand = (name: string, fn: (...args: any[]) => any, attachToElement) => (
+            origOverwriteCommand<keyof typeof ElementCommands, any, any>(name, fn, attachToElement)
         )
     }
 
@@ -165,10 +165,10 @@ export const multiremote = async function (
      */
     if (!isStub(automationProtocol)) {
         const origAddCommand = driver.addCommand.bind(driver)
-        driver.addCommand = (name: string, fn: Function, attachToElement) => {
+        driver.addCommand = (name: string, fn: (...args: any[]) => any, attachToElement) => {
             return origAddCommand(
                 name,
-                runFnInFiberContext(fn),
+                fn,
                 attachToElement,
                 Object.getPrototypeOf(multibrowser.baseInstance),
                 multibrowser.instances
@@ -176,10 +176,10 @@ export const multiremote = async function (
         }
 
         const origOverwriteCommand = driver.overwriteCommand.bind(driver)
-        driver.overwriteCommand = (name: string, fn: Function, attachToElement) => {
+        driver.overwriteCommand = (name: string, fn: (...args: any[]) => any, attachToElement) => {
             return origOverwriteCommand<keyof typeof ElementCommands, any, any>(
                 name,
-                runFnInFiberContext(fn),
+                fn,
                 attachToElement,
                 Object.getPrototypeOf(multibrowser.baseInstance),
                 multibrowser.instances
@@ -192,5 +192,5 @@ export const multiremote = async function (
 }
 
 export const SevereServiceError = SevereServiceErrorImport
-export * from './types'
-export * from './utils/interception/types'
+export * from './types.js'
+export * from './utils/interception/types.js'
