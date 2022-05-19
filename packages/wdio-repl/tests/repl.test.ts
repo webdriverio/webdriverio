@@ -1,17 +1,18 @@
-import vm from 'vm'
-import replMock from 'repl'
+import vm from 'node:vm'
+import replMock from 'node:repl'
 
+import { describe, expect, it, vi } from 'vitest'
 import WDIORepl, { ReplConfig } from '../src/index'
 
 let runInContextFail = false
-jest.mock('vm', () => {
+vi.mock('vm', () => {
     class VMMock {
         createContext: () => any
         runInContext: () => any
 
         constructor () {
-            this.createContext = jest.fn(),
-            this.runInContext = jest.fn().mockImplementation(() => {
+            this.createContext = vi.fn(),
+            this.runInContext = vi.fn().mockImplementation(() => {
                 if (runInContextFail) {
                     throw new Error('boom!')
                 }
@@ -21,12 +22,12 @@ jest.mock('vm', () => {
         }
     }
 
-    return new VMMock()
+    return { default: new VMMock() }
 })
 
-jest.mock('repl', () => {
+vi.mock('repl', () => {
     const replInstance = {
-        on: jest.fn().mockImplementation(
+        on: vi.fn().mockImplementation(
             (name, callback) => setTimeout(
                 () => callback(name),
                 100
@@ -34,7 +35,7 @@ jest.mock('repl', () => {
         )
     }
 
-    return { start: jest.fn().mockReturnValue(replInstance) }
+    return { default: { start: vi.fn().mockReturnValue(replInstance) } }
 })
 
 const defaultArgs: ReplConfig = {
@@ -52,8 +53,8 @@ interface SomeContext {
 describe('eval', () => {
     it('should return predefined responses', () => {
         const repl = new WDIORepl(defaultArgs)
-        const callback = jest.fn()
-        repl['_runCmd'] = jest.fn()
+        const callback = vi.fn()
+        repl['_runCmd'] = vi.fn()
 
         repl.eval('browser', {}, '/some/filname.js', callback)
         expect(callback).toBeCalledWith(null, '[WebdriverIO REPL client]')
@@ -76,8 +77,8 @@ describe('eval', () => {
 
     it('should call _runCmd', () => {
         const repl = new WDIORepl(defaultArgs)
-        repl['_runCmd'] = jest.fn()
-        repl.eval('1+1', {}, '/some/filename', jest.fn())
+        repl['_runCmd'] = vi.fn()
+        repl.eval('1+1', {}, '/some/filename', vi.fn())
         expect(repl['_runCmd'])
             .toBeCalledWith('1+1', expect.any(Object), expect.any(Function))
         expect(repl['_isCommandRunning']).toBe(true)
@@ -85,9 +86,9 @@ describe('eval', () => {
 
     it('should not be able to call a command twice', () => {
         const repl = new WDIORepl(defaultArgs)
-        repl['_runCmd'] = jest.fn()
-        repl.eval('1+1', {}, '/some/filename', jest.fn())
-        repl.eval('2+2', {}, '/some/filename', jest.fn())
+        repl['_runCmd'] = vi.fn()
+        repl.eval('1+1', {}, '/some/filename', vi.fn())
+        repl.eval('2+2', {}, '/some/filename', vi.fn())
         expect(repl['_runCmd']).toBeCalledTimes(1)
     })
 })
@@ -95,8 +96,8 @@ describe('eval', () => {
 describe('runCmd', () => {
     it('should call result handler', () => {
         const repl = new WDIORepl(defaultArgs)
-        repl['_handleResult'] = jest.fn()
-        repl['_runCmd']('1+1', {}, jest.fn())
+        repl['_handleResult'] = vi.fn()
+        repl['_runCmd']('1+1', {}, vi.fn())
         expect(vm.runInContext).toBeCalledWith('1+1', {})
         expect(repl['_handleResult'])
             .toBeCalledWith('someResult', expect.any(Function))
@@ -104,7 +105,7 @@ describe('runCmd', () => {
 
     it('should call back if failed', () => {
         const repl = new WDIORepl(defaultArgs)
-        const callback = jest.fn()
+        const callback = vi.fn()
 
         runInContextFail = true
         repl['_runCmd']('1+1', {}, callback)
@@ -116,7 +117,7 @@ describe('runCmd', () => {
 describe('handleResult', () => {
     it('should return basic result types directly', () => {
         const repl = new WDIORepl(defaultArgs)
-        const callback = jest.fn()
+        const callback = vi.fn()
         repl['_isCommandRunning'] = true
 
         repl['_handleResult'](null, callback)
@@ -130,7 +131,7 @@ describe('handleResult', () => {
 
     it('should handle resolved promises', async () => {
         const repl = new WDIORepl(defaultArgs)
-        const callback = jest.fn()
+        const callback = vi.fn()
         const result = Promise.resolve('some result')
         repl['_isCommandRunning'] = true
 
@@ -142,7 +143,7 @@ describe('handleResult', () => {
 
     it('should handle rejected promises', async () => {
         const repl = new WDIORepl(defaultArgs)
-        const callback = jest.fn()
+        const callback = vi.fn()
         const result = Promise.reject(new Error('boom'))
         repl['_isCommandRunning'] = true
 
@@ -154,7 +155,7 @@ describe('handleResult', () => {
 
     it('should timeout if successful command takes too long', async () => {
         const repl = new WDIORepl({ ...defaultArgs, commandTimeout: 100 })
-        const callback = jest.fn()
+        const callback = vi.fn()
         const result = new Promise((resolve) => setTimeout(resolve, 200))
         repl['_isCommandRunning'] = true
 
@@ -167,7 +168,7 @@ describe('handleResult', () => {
 
     it('should timeout if failing command takes too long', async () => {
         const repl = new WDIORepl({ ...defaultArgs, commandTimeout: 100 })
-        const callback = jest.fn()
+        const callback = vi.fn()
         const result = new Promise((resolve, reject) => setTimeout(reject, 200))
         repl['_isCommandRunning'] = true
 
@@ -197,7 +198,7 @@ describe('start', () => {
     it('should allow run eval with own context', async () => {
         const config = {
             ...defaultArgs,
-            eval: jest.fn().mockImplementation(function (this: SomeContext) {
+            eval: vi.fn().mockImplementation(function (this: SomeContext) {
                 this.foo = 'foobar'
             })
         }
@@ -205,7 +206,7 @@ describe('start', () => {
         await repl.start({})
 
         const context = { foo: 'bar' } as SomeContext
-        repl['_config'].eval.call(context as unknown as replMock.REPLServer, '1+1', {}, '/some/filename', jest.fn())
+        repl['_config'].eval.call(context as unknown as replMock.REPLServer, '1+1', {}, '/some/filename', vi.fn())
         expect(config.eval).toBeCalledWith(
             '1+1',
             expect.any(Object),

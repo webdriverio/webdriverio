@@ -1,6 +1,7 @@
-import repl from 'repl'
+import { vi } from 'vitest'
+import repl from 'node:repl'
 
-import { ReplConfig } from '../../../src'
+import { ReplConfig } from '../../packages/wdio-repl/src'
 
 export default class WDIORepl {
     static introMessage = 'some intro from mock'
@@ -20,8 +21,8 @@ export default class WDIORepl {
         }, config)
 
         this._isCommandRunning = false
-        this._evalFn = jest.fn()
-        this._startFn = jest.fn().mockImplementation(
+        this._evalFn = vi.fn()
+        this._startFn = vi.fn().mockImplementation(
             () => new Promise(
                 (resolve) => setTimeout(() => resolve(this), 100)))
     }
