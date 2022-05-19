@@ -7,6 +7,7 @@ export default defineConfig({
             'packages/wdio-utils/**/*.test.ts',
             'packages/wdio-config/**/*.test.ts',
             'packages/wdio-reporter/**/*.test.ts',
+            'packages/wdio-repl/**/*.test.ts',
             'packages/webdriver/**/*.test.ts',
             'packages/devtools/**/*.test.ts',
             'packages/wdio-allure-reporter/**/*.test.ts',
