@@ -5,7 +5,7 @@ import type { Capabilities, Options, Services } from '@wdio/types'
 import fs from 'fs-extra'
 import * as SeleniumStandalone from 'selenium-standalone'
 
-import { getFilePath, hasCapsWithSupportedBrowser } from './utils'
+import { getFilePath, hasCapsWithSupportedBrowser } from './utils.js'
 import type { SeleniumStandaloneOptions } from './types'
 
 const DEFAULT_LOG_FILENAME = 'wdio-selenium-standalone.log'
@@ -123,7 +123,7 @@ export default class SeleniumStandaloneLauncher {
         this.process = await start
 
         if (typeof this._config.outputDir === 'string') {
-            this._redirectLogStream()
+            await this._redirectLogStream()
         }
 
         if (this.watchMode) {
@@ -140,11 +140,11 @@ export default class SeleniumStandaloneLauncher {
         }
     }
 
-    _redirectLogStream(): void {
+    async _redirectLogStream() {
         const logFile = getFilePath(this._config.outputDir!, DEFAULT_LOG_FILENAME)
 
         // ensure file & directory exists
-        fs.ensureFileSync(logFile)
+        await fs.ensureFile(logFile)
 
         const logStream = fs.createWriteStream(logFile, { flags: 'w' })
         this.process.stdout?.pipe(logStream)
