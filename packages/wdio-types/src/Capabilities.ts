@@ -1074,7 +1074,6 @@ export interface BrowserStackCapabilities {
     safari?: {
         enablePopups?: boolean
         allowAllCookies?: boolean
-        driver?: string
     }
     firefox?: {
         driver?: string
@@ -1082,6 +1081,10 @@ export interface BrowserStackCapabilities {
     browserName?: string
     browserVersion?: string
     acceptSslCerts?: boolean
+    /**
+     * @private
+     */
+    wdioService?: string
 }
 
 export interface SauceLabsVisualCapabilities {
