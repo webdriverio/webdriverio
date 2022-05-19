@@ -1,4 +1,4 @@
-import { getElementFromResponse } from '../../utils'
+import { getElementFromResponse } from '../../utils/index.js'
 
 /**
  *

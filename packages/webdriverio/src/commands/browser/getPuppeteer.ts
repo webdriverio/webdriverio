@@ -1,9 +1,9 @@
 import puppeteer from 'puppeteer-core'
 import logger from '@wdio/logger'
 import { Capabilities } from '@wdio/types'
-import { Browser as PuppeteerBrowser } from 'puppeteer-core/lib/cjs/puppeteer/common/Browser'
+import { Browser as PuppeteerBrowser } from 'puppeteer-core/lib/cjs/puppeteer/common/Browser.js'
 
-import { FF_REMOTE_DEBUG_ARG } from '../../constants'
+import { FF_REMOTE_DEBUG_ARG } from '../../constants.js'
 
 const log = logger('webdriverio')
 

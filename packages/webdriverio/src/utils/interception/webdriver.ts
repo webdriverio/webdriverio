@@ -1,5 +1,5 @@
-import Interception from '.'
-import { ERROR_REASON } from '../../constants'
+import Interception from './index.js'
+import { ERROR_REASON } from '../../constants.js'
 import type { Matches, MockResponseParams, MockOverwrite } from './types'
 
 /**

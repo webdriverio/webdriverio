@@ -1,6 +1,6 @@
-import { ELEMENT_KEY } from '../../constants'
-import { getBrowserObject } from '../../utils'
-import getHTMLScript from '../../scripts/getHTML'
+import { ELEMENT_KEY } from '../../constants.js'
+import { getBrowserObject } from '../../utils/index.js'
+import getHTMLScript from '../../scripts/getHTML.js'
 
 /**
  *

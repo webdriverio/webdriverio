@@ -21,6 +21,8 @@ export default class NodeJSRequest extends WebDriverRequest {
 
     protected async _libRequest (url: URL, opts: Options.RequestLibOptions) {
         try {
+            console.log('DO IT', got);
+            
             return (await got(url, opts as GotOptions)) as Options.RequestLibResponse
         } catch (err: any) {
             if (!(err instanceof Error)) {

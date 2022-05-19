@@ -1,5 +1,5 @@
-import { touchAction as touchActionCommand } from '../constant'
-import { TouchActions } from '../../types'
+import { touchAction as touchActionCommand } from '../constant.js'
+import type { TouchActions } from '../../types'
 
 /**
  *

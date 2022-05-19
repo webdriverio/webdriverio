@@ -1,4 +1,4 @@
-import { shadowFnFactory } from '../../scripts/shadowFnFactory'
+import { shadowFnFactory } from '../../scripts/shadowFnFactory.js'
 
 /**
  *

@@ -1,11 +1,13 @@
-import fs from 'fs'
-import http from 'http'
-import path from 'path'
+import fs from 'node:fs'
+import http from 'node:http'
+import path from 'node:path'
+import { describe, expect, it, vi, beforeEach } from 'vitest'
+
 import type { Element } from '../src/types'
 import type { Capabilities, Options } from '@wdio/types'
 import type { ElementReference } from '@wdio/protocols'
 
-import { ELEMENT_KEY } from '../src/constants'
+import { ELEMENT_KEY } from '../src/constants.js'
 import {
     getElementFromResponse,
     getBrowserObject,
@@ -23,25 +25,28 @@ import {
     updateCapabilities
 } from '../src/utils'
 
-jest.mock('http', () => {
-    const req = { on: jest.fn(), end: jest.fn() }
+vi.mock('http', () => {
+    const req = { on: vi.fn(), end: vi.fn() }
     let response = { statusCode: 200 }
     return {
-        setResponse: (data: any) => {
-            response = data
-        },
-        request: jest.fn((url, cb) => {
-            cb(response)
-            return req
-        })
+        default: {
+            setResponse: (data: any) => {
+                response = data
+            },
+            request: vi.fn((url, cb) => {
+                cb(response)
+                return req
+            })
+        }
     }
 })
 
-jest.mock('fs')
+vi.mock('fs')
 
 describe('utils', () => {
     describe('getElementFromResponse', () => {
         it('should return null if response is null', () => {
+            // @ts-expect-error invalid param
             expect(getElementFromResponse(null)).toBe(null)
         })
 
@@ -243,31 +248,31 @@ describe('utils', () => {
 
         beforeEach(() => {
             scope = {
-                findElementsFromElement: jest.fn(),
-                findElementFromElement: jest.fn(),
-                findElements: jest.fn(),
-                findElement: jest.fn(),
-                execute: jest.fn()
+                findElementsFromElement: vi.fn(),
+                findElementFromElement: vi.fn(),
+                findElements: vi.fn(),
+                findElement: vi.fn(),
+                execute: vi.fn()
             } as any as Element<'sync'>
         })
 
         it('fetches element using a selector string with browser scope', async () => {
-            await findElement.call(scope, '.elem')
+            await findElement.call(scope as any, '.elem')
             expect(scope.findElement).toBeCalledWith('css selector', '.elem')
             expect(scope.findElementFromElement).not.toBeCalled()
         })
 
         it('fetches element using a selector string with element scope', async () => {
             scope.elementId = 'foobar'
-            await findElement.call(scope, '.elem')
+            await findElement.call(scope as any, '.elem')
             expect(scope.findElement).not.toBeCalled()
             expect(scope.findElementFromElement)
                 .toBeCalledWith('foobar', 'css selector', '.elem')
         })
 
         it('fetches element using a function with browser scope', async () => {
-            (scope.execute as jest.Mock).mockReturnValue(elementResponse)
-            const elem = await findElement.call(scope, () => { return global.document.body }) as Element<'sync'>
+            vi.mocked(scope.execute).mockReturnValue(elementResponse)
+            const elem = await findElement.call(scope as any, () => { return global.document.body }) as Element<'sync'>
             expect(scope.findElement).not.toBeCalled()
             expect(scope.findElementFromElement).not.toBeCalled()
             expect(scope.execute).toBeCalled()
@@ -276,20 +281,20 @@ describe('utils', () => {
 
         it('fetches element using a function with element scope', async () => {
             scope.elementId = 'foobar'
-            ;(scope.execute as jest.Mock).mockReturnValue(elementResponse)
-            const elem = await findElement.call(scope, () => { return global.document.body }) as Element<'sync'>
+            vi.mocked(scope.execute).mockReturnValue(elementResponse)
+            const elem = await findElement.call(scope as any, () => { return global.document.body }) as Element<'sync'>
             expect(scope.findElement).not.toBeCalled()
             expect(scope.findElementFromElement).not.toBeCalled()
             expect(scope.execute).toBeCalled()
             expect(elem[ELEMENT_KEY]).toBe('foobar')
-            expect((scope.execute as jest.Mock).mock.calls[0][1]).toEqual(scope)
+            expect(vi.mocked(scope.execute).mock.calls[0][1]).toEqual(scope)
         })
 
         it('should return only one element if multiple are returned', async () => {
-            (scope.execute as jest.Mock).mockReturnValue(elementsResponse)
+            vi.mocked(scope.execute).mockReturnValue(elementsResponse)
             const elem = await findElement.call(
-                scope,
-                () => { return global.document.body as any as ElementReference }
+                scope as any,
+                (() => { return global.document.body as any as ElementReference }) as any
             ) as Element<'sync'>
             expect(scope.findElement).not.toBeCalled()
             expect(scope.findElementFromElement).not.toBeCalled()
@@ -298,23 +303,27 @@ describe('utils', () => {
         })
 
         it('throws if element response is malformed', async () => {
-            (scope.execute as jest.Mock).mockReturnValue(malformedElementResponse)
-            const res = await findElement.call(scope, () => { return global.document.body }) as Error
+            vi.mocked(scope.execute).mockReturnValue(malformedElementResponse)
+            const res = await findElement.call(scope as any, () => { return global.document.body }) as Error
             expect(res instanceof Error)
             expect(res.message).toMatch('did not return an HTMLElement')
         })
 
         it('throws if selector is neither string nor function', async () => {
             const expectedMatch = 'selector needs to be typeof `string` or `function`'
-            await expect(findElement.call(scope, null)).rejects.toEqual(new Error(expectedMatch))
-            await expect(findElement.call(scope, 123)).rejects.toEqual(new Error(expectedMatch))
-            await expect(findElement.call(scope, false)).rejects.toEqual(new Error(expectedMatch))
-            await expect(findElement.call(scope)).rejects.toEqual(new Error(expectedMatch))
+            // @ts-expect-error invalid param
+            await expect(findElement.call(scope as any, null)).rejects.toEqual(new Error(expectedMatch))
+            // @ts-expect-error invalid param
+            await expect(findElement.call(scope as any, 123)).rejects.toEqual(new Error(expectedMatch))
+            // @ts-expect-error invalid param
+            await expect(findElement.call(scope as any, false)).rejects.toEqual(new Error(expectedMatch))
+            // @ts-expect-error invalid param
+            await expect(findElement.call(scope as any)).rejects.toEqual(new Error(expectedMatch))
         })
 
         it('should use execute if shadow selector is used', async () => {
-            (scope.execute as jest.Mock).mockReturnValue(elementResponse)
-            const elem = await findElement.call(scope, '>>>.foobar') as Element<'sync'>
+            vi.mocked(scope.execute).mockReturnValue(elementResponse)
+            const elem = await findElement.call(scope as any, '>>>.foobar') as Element<'sync'>
             expect(scope.findElement).not.toBeCalled()
             expect(scope.findElementFromElement).not.toBeCalled()
             expect(scope.execute).toBeCalledWith(
@@ -325,9 +334,9 @@ describe('utils', () => {
         })
 
         it('should use execute if shadow selector is used with element scope', async () => {
-            (scope.execute as jest.Mock).mockReturnValue(elementResponse)
+            vi.mocked(scope.execute).mockReturnValue(elementResponse)
             scope.elementId = 'foobar'
-            const elem = await findElement.call(scope, '>>>.foobar') as Element<'sync'>
+            const elem = await findElement.call(scope as any, '>>>.foobar') as Element<'sync'>
             expect(scope.findElement).not.toBeCalled()
             expect(scope.findElementFromElement).not.toBeCalled()
             expect(scope.execute).toBeCalledWith(
@@ -350,31 +359,31 @@ describe('utils', () => {
 
         beforeEach(() => {
             scope = {
-                findElementsFromElement: jest.fn(),
-                findElementFromElement: jest.fn(),
-                findElements: jest.fn(),
-                findElement: jest.fn(),
-                execute: jest.fn()
+                findElementsFromElement: vi.fn(),
+                findElementFromElement: vi.fn(),
+                findElements: vi.fn(),
+                findElement: vi.fn(),
+                execute: vi.fn()
             } as any as Element<'sync'>
         })
 
         it('fetches element using a selector string with browser scope', async () => {
-            await findElements.call(scope, '.elem')
+            await findElements.call(scope as any, '.elem')
             expect(scope.findElements).toBeCalledWith('css selector', '.elem')
             expect(scope.findElementsFromElement).not.toBeCalled()
         })
 
         it('fetches element using a selector string with element scope', async () => {
             scope.elementId = 'foobar'
-            await findElements.call(scope, '.elem')
+            await findElements.call(scope as any, '.elem')
             expect(scope.findElements).not.toBeCalled()
             expect(scope.findElementsFromElement)
                 .toBeCalledWith('foobar', 'css selector', '.elem')
         })
 
         it('fetches element using a function with browser scope', async () => {
-            (scope.execute as jest.Mock).mockReturnValue(elementResponse)
-            const elem = await findElements.call(scope, () => { return global.document.body })
+            vi.mocked(scope.execute).mockReturnValue(elementResponse)
+            const elem = await findElements.call(scope as any, () => { return global.document.body })
             expect(scope.findElements).not.toBeCalled()
             expect(scope.findElementsFromElement).not.toBeCalled()
             expect(scope.execute).toBeCalled()
@@ -384,19 +393,19 @@ describe('utils', () => {
 
         it('fetches element using a function with element scope', async () => {
             scope.elementId = 'foobar'
-            ;(scope.execute as jest.Mock).mockReturnValue(elementResponse)
-            const elem = await findElements.call(scope, () => { return global.document.body })
+            vi.mocked(scope.execute).mockReturnValue(elementResponse)
+            const elem = await findElements.call(scope as any, () => { return global.document.body })
             expect(scope.findElements).not.toBeCalled()
             expect(scope.findElementsFromElement).not.toBeCalled()
             expect(scope.execute).toBeCalled()
             expect(elem).toHaveLength(1)
             expect(elem[0][ELEMENT_KEY]).toBe('foobar')
-            expect((scope.execute as jest.Mock).mock.calls[0][1]).toEqual(scope)
+            expect(vi.mocked(scope.execute).mock.calls[0][1]).toEqual(scope)
         })
 
         it('should return multiple elements if multiple are returned', async () => {
-            (scope.execute as jest.Mock).mockReturnValue(elementsResponse)
-            const elem = await findElements.call(scope, () => { return global.document.body })
+            vi.mocked(scope.execute).mockReturnValue(elementsResponse)
+            const elem = await findElements.call(scope as any, () => { return global.document.body })
             expect(scope.findElement).not.toBeCalled()
             expect(scope.findElementFromElement).not.toBeCalled()
             expect(scope.execute).toBeCalled()
@@ -404,8 +413,8 @@ describe('utils', () => {
         })
 
         it('should filter out malformed responses', async () => {
-            (scope.execute as jest.Mock).mockReturnValue([...elementsResponse, 'foobar'])
-            const elem = await findElements.call(scope, () => { return global.document.body })
+            vi.mocked(scope.execute).mockReturnValue([...elementsResponse, 'foobar'])
+            const elem = await findElements.call(scope as any, () => { return global.document.body })
             expect(scope.findElement).not.toBeCalled()
             expect(scope.findElementFromElement).not.toBeCalled()
             expect(scope.execute).toBeCalled()
@@ -413,22 +422,26 @@ describe('utils', () => {
         })
 
         it('throws if element response is malformed', async () => {
-            (scope.execute as jest.Mock).mockReturnValue(malformedElementResponse)
-            const res = await findElements.call(scope, () => { return global.document.body })
+            vi.mocked(scope.execute).mockReturnValue(malformedElementResponse)
+            const res = await findElements.call(scope as any, () => { return global.document.body })
             expect(res).toHaveLength(0)
         })
 
         it('throws if selector is neither string nor function', async () => {
             const expectedMatch = 'selector needs to be typeof `string` or `function`'
+            // @ts-expect-error invalid param
             await expect(findElements.call(scope, null)).rejects.toEqual(new Error(expectedMatch))
+            // @ts-expect-error invalid param
             await expect(findElements.call(scope, 123)).rejects.toEqual(new Error(expectedMatch))
+            // @ts-expect-error invalid param
             await expect(findElements.call(scope, false)).rejects.toEqual(new Error(expectedMatch))
+            // @ts-expect-error invalid param
             await expect(findElements.call(scope)).rejects.toEqual(new Error(expectedMatch))
         })
 
         it('fetches element using a function with browser scope', async () => {
-            (scope.execute as jest.Mock).mockReturnValue(elementResponse)
-            const elem = await findElements.call(scope, '>>>.foobar')
+            vi.mocked(scope.execute).mockReturnValue(elementResponse)
+            const elem = await findElements.call(scope as any, '>>>.foobar')
             expect(scope.findElements).not.toBeCalled()
             expect(scope.findElementsFromElement).not.toBeCalled()
             expect(scope.execute).toBeCalledWith(
@@ -440,9 +453,9 @@ describe('utils', () => {
         })
 
         it('fetches element using a function with element scope', async () => {
-            (scope.execute as jest.Mock).mockReturnValue(elementResponse)
+            vi.mocked(scope.execute).mockReturnValue(elementResponse)
             scope.elementId = 'foobar'
-            const elem = await findElements.call(scope, '>>>.foobar')
+            const elem = await findElements.call(scope as any, '>>>.foobar')
             expect(scope.findElements).not.toBeCalled()
             expect(scope.findElementsFromElement).not.toBeCalled()
             expect(scope.execute).toBeCalledWith(
@@ -457,9 +470,10 @@ describe('utils', () => {
     describe('verifyArgsAndStripIfElement', () => {
         class Element {
             elementId: string
-            constructor({ elementId, ...otherProps }) {
+            constructor({ elementId, ...otherProps }: any) {
                 this.elementId = elementId
-                Object.keys(otherProps).forEach(key => this[key] = otherProps[key])
+                // @ts-expect-error
+                Object.keys(otherProps).forEach((key) => this[key] = otherProps[key])
             }
         }
 
@@ -510,10 +524,10 @@ describe('utils', () => {
         it('uses getBoundingClientRect if a key is missing', async () => {
             const fakeScope = {
                 elementId: 123,
-                getElementRect: jest.fn(() => Promise.resolve({ x: 10, width: 300, height: 400 })),
-                execute: jest.fn(() => Promise.resolve({ x: 11, y: 22, width: 333, height: 444 }))
+                getElementRect: vi.fn(() => Promise.resolve({ x: 10, width: 300, height: 400 })),
+                execute: vi.fn(() => Promise.resolve({ x: 11, y: 22, width: 333, height: 444 }))
             } as any as Element<'sync'>
-            expect(await getElementRect(fakeScope)).toEqual({ x: 10, y: 22, width: 300, height: 400 })
+            expect(await getElementRect(fakeScope as any)).toEqual({ x: 10, y: 22, width: 300, height: 400 })
             expect(fakeScope.getElementRect).toHaveBeenCalled()
             expect(fakeScope.execute).toHaveBeenCalled()
         })
@@ -542,9 +556,9 @@ describe('utils', () => {
     })
 
     describe('assertDirectoryExists', () => {
-        beforeEach(() => {
-            const fsOrig = jest.requireActual('fs')
-            ;(fs.existsSync as jest.Mock).mockImplementation(fsOrig.existsSync.bind(fsOrig))
+        beforeEach(async () => {
+            const fsOrig = await vi.importActual('fs') as typeof fs
+            vi.mocked(fs.existsSync).mockImplementation(fsOrig.existsSync.bind(fsOrig))
         })
 
         it('should fail if not existing directory', () => {

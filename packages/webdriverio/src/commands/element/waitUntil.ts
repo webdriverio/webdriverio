@@ -44,5 +44,5 @@
  * @type utility
  *
  */
-import waitUntil from '../browser/waitUntil'
+import waitUntil from '../browser/waitUntil.js'
 export default waitUntil

@@ -1,5 +1,5 @@
-import fs from 'fs'
-import { getAbsoluteFilepath, assertDirectoryExists } from '../../utils'
+import fs from 'node:fs'
+import { getAbsoluteFilepath, assertDirectoryExists } from '../../utils/index.js'
 
 /**
  *

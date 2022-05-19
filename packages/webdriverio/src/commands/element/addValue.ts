@@ -1,5 +1,5 @@
-import { transformToCharString } from '../../utils'
 import logger from '@wdio/logger'
+import { transformToCharString } from '../../utils/index.js'
 
 const log = logger('addValue')
 

@@ -1,4 +1,4 @@
-import { ELEMENT_KEY } from '../../constants'
+import { ELEMENT_KEY } from '../../constants.js'
 
 /**
  *

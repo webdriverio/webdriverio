@@ -1,5 +1,5 @@
-import { getElement } from '../../utils/getElementObject'
-import { ELEMENT_KEY } from '../../constants'
+import { getElement } from '../../utils/getElementObject.js'
+import { ELEMENT_KEY } from '../../constants.js'
 import type { CustomStrategyFunction } from '../../types'
 
 /**

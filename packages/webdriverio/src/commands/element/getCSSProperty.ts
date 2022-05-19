@@ -1,5 +1,5 @@
 import cssShorthandProps from 'css-shorthand-properties'
-import { parseCSS } from '../../utils'
+import { parseCSS } from '../../utils/index.js'
 
 /**
  *

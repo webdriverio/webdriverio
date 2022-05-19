@@ -1,11 +1,14 @@
-import fs from 'fs'
-import { ElementReference } from '@wdio/protocols'
+import fs from 'node:fs/promises'
+import { createRequire } from 'node:module'
 
-import { getElement } from '../../utils/getElementObject'
-import { waitToLoadReact, react$ as react$Script } from '../../scripts/resq'
+import type { ElementReference } from '@wdio/protocols'
+
+import { getElement } from '../../utils/getElementObject.js'
+import { waitToLoadReact, react$ as react$Script } from '../../scripts/resq.js'
 import type { ReactSelectorOptions } from '../../types'
 
-const resqScript = fs.readFileSync(require.resolve('resq'))
+const require = createRequire(import.meta.url)
+const resqScript = await fs.readFile(require.resolve('resq'))
 
 /**
  *
