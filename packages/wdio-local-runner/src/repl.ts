@@ -1,7 +1,8 @@
-import vm from 'vm'
+import vm from 'node:vm'
 
+// @ts-expect-error
 import WDIORepl, { ReplConfig, ReplCallback } from '@wdio/repl'
-import type { ChildProcess } from 'child_process'
+import type { ChildProcess } from 'node:child_process'
 
 export default class WDIORunnerRepl extends WDIORepl {
     childProcess: ChildProcess

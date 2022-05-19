@@ -1,4 +1,5 @@
-import type { ChildProcess } from 'child_process'
+import type { ChildProcess } from 'node:child_process'
+import { expect, test, vi } from 'vitest'
 
 import WDIORunnerRepl from '../src/repl'
 
@@ -11,7 +12,7 @@ const replConfig = {
 }
 
 test('should parse error object', () => {
-    const childProcess = { send: jest.fn() }
+    const childProcess = { send: vi.fn() }
     const repl = new WDIORunnerRepl(childProcess as unknown as ChildProcess, replConfig)
     const err = repl['_getError']({
         error: true,
@@ -23,7 +24,7 @@ test('should parse error object', () => {
 })
 
 test('should send child process message that debugger has started', () => {
-    const childProcess = { send: jest.fn() }
+    const childProcess = { send: vi.fn() }
     const repl = new WDIORunnerRepl(childProcess as unknown as ChildProcess, replConfig)
     repl.start({})
     expect(childProcess.send)
@@ -31,8 +32,8 @@ test('should send child process message that debugger has started', () => {
 })
 
 test('should send command to child process', () => {
-    const childProcess = { send: jest.fn() }
-    const callback = jest.fn()
+    const childProcess = { send: vi.fn() }
+    const callback = vi.fn()
     const repl = new WDIORunnerRepl(childProcess as unknown as ChildProcess, replConfig)
 
     expect(repl.commandIsRunning).toBe(false)
@@ -51,8 +52,8 @@ test('should send command to child process', () => {
 })
 
 test('should not send command if command is already running', () => {
-    const childProcess = { send: jest.fn() }
-    const callback = jest.fn()
+    const childProcess = { send: vi.fn() }
+    const callback = vi.fn()
     const repl = new WDIORunnerRepl(childProcess as unknown as ChildProcess, replConfig)
     repl.commandIsRunning = true
 
@@ -61,9 +62,9 @@ test('should not send command if command is already running', () => {
 })
 
 test('should pass in result to callback', () => {
-    const childProcess = { send: jest.fn() }
+    const childProcess = { send: vi.fn() }
     const repl = new WDIORunnerRepl(childProcess as unknown as ChildProcess, replConfig)
-    repl.callback = jest.fn()
+    repl.callback = vi.fn()
     repl.commandIsRunning = true
 
     repl.onResult({ result: 'foobar' })
@@ -71,7 +72,7 @@ test('should pass in result to callback', () => {
 })
 
 test('should switch flag even if no callback is set', () => {
-    const childProcess = { send: jest.fn() }
+    const childProcess = { send: vi.fn() }
     const repl = new WDIORunnerRepl(childProcess as unknown as ChildProcess, replConfig)
     repl.commandIsRunning = true
 

@@ -2,8 +2,8 @@ import logger from '@wdio/logger'
 import { WritableStreamBuffer } from 'stream-buffers'
 import type { Options, Workers } from '@wdio/types'
 
-import WorkerInstance from './worker'
-import { SHUTDOWN_TIMEOUT, BUFFER_OPTIONS } from './constants'
+import WorkerInstance from './worker.js'
+import { SHUTDOWN_TIMEOUT, BUFFER_OPTIONS } from './constants.js'
 
 const log = logger('@wdio/local-runner')
 
