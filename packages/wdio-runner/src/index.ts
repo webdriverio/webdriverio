@@ -1,16 +1,16 @@
-import fs from 'fs'
-import path from 'path'
-import util from 'util'
-import { EventEmitter } from 'events'
+import fs from 'node:fs/promises'
+import path from 'node:path'
+import { EventEmitter } from 'node:events'
 
 import logger from '@wdio/logger'
 import { initialiseWorkerService, initialisePlugin, executeHooksWithArgs } from '@wdio/utils'
 import { ConfigParser } from '@wdio/config'
 import type { Options, Capabilities, Services } from '@wdio/types'
+// @ts-expect-error
 import type { Selector, Browser, MultiRemoteBrowser } from 'webdriverio'
 
-import BaseReporter from './reporter'
-import { initialiseInstance, filterLogTypes, getInstancesData } from './utils'
+import BaseReporter from './reporter.js'
+import { initialiseInstance, filterLogTypes, getInstancesData } from './utils.js'
 
 const log = logger('@wdio/runner')
 
@@ -138,20 +138,22 @@ export default class Runner extends EventEmitter {
         /**
          * run `beforeSession` command before framework and browser are initiated
          */
-        initialiseWorkerService(
+        ;(await initialiseWorkerService(
             this._config as Options.Testrunner,
             caps as Capabilities.Capabilities,
             args.ignoredWorkerServices
-        ).map(this._configParser.addService.bind(this._configParser))
+        )).map(this._configParser.addService.bind(this._configParser))
 
         const beforeSessionParams: BeforeSessionArgs = [this._config, this._caps, this._specs, this._cid]
         await executeHooksWithArgs('beforeSession', this._config.beforeSession, beforeSessionParams)
 
         this._reporter = new BaseReporter(this._config, this._cid, { ...caps })
+        await this._reporter.initReporters()
+
         /**
          * initialise framework
          */
-        this._framework = initialisePlugin(this._config.framework as string, 'framework').default as unknown as TestFramework
+        this._framework = (await initialisePlugin(this._config.framework as string, 'framework')).default as unknown as TestFramework
         this._framework = await this._framework.init(cid, this._config, specs, caps, this._reporter)
         process.send!({ name: 'testFrameworkInit', content: { cid, caps, specs, hasTests: this._framework.hasTests() } })
         if (!this._framework.hasTests()) {
@@ -194,7 +196,7 @@ export default class Runner extends EventEmitter {
             config: browser.options,
             isMultiremote,
             instanceOptions: isMultiremote
-                ? multiRemoteBrowser.instances.reduce((prev, browserName) => {
+                ? multiRemoteBrowser.instances.reduce((prev: any, browserName: string) => {
                     prev[multiRemoteBrowser[browserName].sessionId] = multiRemoteBrowser[browserName].options as Options.WebdriverIO
                     return prev
                 }, {} as Record<string, Options.WebdriverIO>)
@@ -203,7 +205,7 @@ export default class Runner extends EventEmitter {
                 },
             sessionId: browser.sessionId,
             capabilities: isMultiremote
-                ? multiRemoteBrowser.instances.reduce((caps, browserName) => {
+                ? multiRemoteBrowser.instances.reduce((caps: any, browserName: string) => {
                     caps[browserName] = multiRemoteBrowser[browserName].capabilities
                     caps[browserName].sessionId = multiRemoteBrowser[browserName].sessionId
                     return caps
@@ -285,7 +287,7 @@ export default class Runner extends EventEmitter {
         /**
          * register command event
          */
-        browser.on('command', (command) => this._reporter?.emit(
+        browser.on('command', (command: any) => this._reporter?.emit(
             'client:beforeCommand',
             Object.assign(command, { sessionId: browser.sessionId })
         ))
@@ -293,7 +295,7 @@ export default class Runner extends EventEmitter {
         /**
          * register result event
          */
-        browser.on('result', (result) => this._reporter?.emit(
+        browser.on('result', (result: any) => this._reporter?.emit(
             'client:afterCommand',
             Object.assign(result, { sessionId: browser.sessionId })
         ))
@@ -396,7 +398,7 @@ export default class Runner extends EventEmitter {
             }
 
             const stringLogs = logs.map((log: any) => JSON.stringify(log)).join('\n')
-            return util.promisify(fs.writeFile)(
+            return fs.writeFile(
                 path.join(config.outputDir!, `wdio-${this._cid}-${logType}.log`),
                 stringLogs,
                 'utf-8'
@@ -438,7 +440,11 @@ export default class Runner extends EventEmitter {
             /**
              * every multiremote instance should exist and should have `sessionId`
              */
-            ? !multiremoteBrowser.instances.some(i => multiremoteBrowser[i] && !multiremoteBrowser[i].sessionId)
+            ? !multiremoteBrowser.instances.some((i: number) => (
+                multiremoteBrowser[i] &&
+                !multiremoteBrowser[i].sessionId)
+            )
+
             /**
              * browser object should have `sessionId` in regular mode
              */
@@ -457,7 +463,7 @@ export default class Runner extends EventEmitter {
          */
         const capabilities: Capabilities.Capabilities | Capabilities.W3CCapabilities | MultiRemoteCaps = global.browser.capabilities || {}
         if (this._isMultiremote) {
-            multiremoteBrowser.instances.forEach((browserName) => {
+            multiremoteBrowser.instances.forEach((browserName: string) => {
                 (capabilities as MultiRemoteCaps)[browserName] = multiremoteBrowser[browserName].capabilities
             })
         }
@@ -468,7 +474,7 @@ export default class Runner extends EventEmitter {
          * delete session(s)
          */
         if (this._isMultiremote) {
-            multiremoteBrowser.instances.forEach(i => {
+            multiremoteBrowser.instances.forEach((i: number) => {
                 // @ts-ignore sessionId is usually required
                 delete multiremoteBrowser[i].sessionId
             })

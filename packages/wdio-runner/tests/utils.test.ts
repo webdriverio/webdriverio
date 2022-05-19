@@ -1,12 +1,17 @@
+import path from 'node:path'
 // @ts-ignore mock feature
 import { logMock } from '@wdio/logger'
 import { attach, remote, multiremote } from 'webdriverio'
+import { describe, expect, it, vi, afterEach, beforeEach } from 'vitest'
 
 import {
     initialiseInstance, sanitizeCaps, sendFailureMessage, getInstancesData, ConfigWithSessionId
 } from '../src/utils'
 
-process.send = jest.fn()
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock('webdriverio', () => import(path.join(process.cwd(), '__mocks__', 'webdriverio')))
+
+process.send = vi.fn()
 
 describe('utils', () => {
     beforeEach(() => {
@@ -86,7 +91,7 @@ describe('utils', () => {
                 hostname: 'foobar',
                 port: 1234,
                 path: '/some/path'
-            }, caps)
+            } as any, caps)
             expect(remote).toBeCalledWith({
                 hostname: 'barfoo',
                 port: 4321,
@@ -96,9 +101,9 @@ describe('utils', () => {
         })
 
         afterEach(() => {
-            (attach as jest.Mock).mockClear()
-            ;(multiremote as jest.Mock).mockClear()
-            ;(remote as jest.Mock).mockClear()
+            vi.mocked(attach).mockClear()
+            vi.mocked(multiremote).mockClear()
+            vi.mocked(remote).mockClear()
         })
     })
 
@@ -159,7 +164,7 @@ describe('utils', () => {
         })
 
         afterEach(() => {
-            (process.send as jest.Mock).mockClear()
+            vi.mocked(process.send)!.mockClear()
         })
     })
 
@@ -182,6 +187,7 @@ describe('utils', () => {
                     sessionId,
                     options: { protocol, hostname, port, path, queryParams }
                 }
+            // @ts-expect-error
             } as any as WebdriverIO.MultiRemoteBrowserObject, true))
                 .toEqual({ foo: { sessionId, isW3C, protocol, hostname, port, path, queryParams } })
         })
