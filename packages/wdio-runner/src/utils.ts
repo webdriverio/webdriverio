@@ -1,9 +1,11 @@
 import merge from 'deepmerge'
 import logger from '@wdio/logger'
+// @ts-expect-error
 import { remote, multiremote, attach } from 'webdriverio'
 import { DEFAULTS } from 'webdriver'
 import { DEFAULT_CONFIGS } from '@wdio/config'
 import type { Options, Capabilities } from '@wdio/types'
+// @ts-expect-error
 import type { Browser, MultiRemoteBrowser } from 'webdriverio'
 
 const log = logger('@wdio/local-runner:utils')
@@ -178,7 +180,7 @@ export function getInstancesData (
 
     const multiRemoteBrowser = browser as MultiRemoteBrowser<'async'>
     const instances: Record<string, Partial<BrowserData>> = {}
-    multiRemoteBrowser.instances.forEach((browserName) => {
+    multiRemoteBrowser.instances.forEach((browserName: string) => {
         const { protocol, hostname, port, path, queryParams } = multiRemoteBrowser[browserName].options
         const { isW3C, sessionId } = multiRemoteBrowser[browserName]
 

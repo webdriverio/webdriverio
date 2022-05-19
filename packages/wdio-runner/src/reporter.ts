@@ -1,9 +1,9 @@
-import path from 'path'
+import path from 'node:path'
 import logger from '@wdio/logger'
 import { initialisePlugin } from '@wdio/utils'
 import type { Options, Capabilities, Reporters } from '@wdio/types'
 
-import { sendFailureMessage } from './utils'
+import { sendFailureMessage } from './utils.js'
 
 const log = logger('@wdio/runner')
 
@@ -13,15 +13,18 @@ const log = logger('@wdio/runner')
  * to all these reporters
  */
 export default class BaseReporter {
-    private _reporters: Reporters.ReporterInstance[]
+    private _reporters: Reporters.ReporterInstance[] = []
 
     constructor(
         private _config: Options.Testrunner,
         private _cid: string,
         public caps: Capabilities.RemoteCapability
-    ) {
-        // ensure all properties are set before initializing the reporters
-        this._reporters = this._config.reporters!.map(this.initReporter.bind(this))
+    ) {}
+
+    async initReporters () {
+        this._reporters = await Promise.all(
+            this._config.reporters!.map(this._loadReporter.bind(this))
+        )
     }
 
     /**
@@ -124,7 +127,7 @@ export default class BaseReporter {
     /**
      * initialise reporters
      */
-    initReporter (reporter: Reporters.ReporterEntry) {
+    private async _loadReporter (reporter: Reporters.ReporterEntry) {
         let ReporterClass: Reporters.ReporterClass
         let options: Partial<Reporters.Options> = {}
 
@@ -177,7 +180,7 @@ export default class BaseReporter {
          * ```
          */
         if (typeof reporter === 'string') {
-            ReporterClass = initialisePlugin(reporter, 'reporter').default as Reporters.ReporterClass
+            ReporterClass = (await initialisePlugin(reporter, 'reporter')).default as Reporters.ReporterClass
             options.logFile = options.setLogFile
                 ? options.setLogFile(this._cid, reporter)
                 : typeof options.logFile === 'string'
