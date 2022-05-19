@@ -1,3 +1,4 @@
+import { expect, test } from 'vitest'
 import { isEmuSim, isRDC } from '../src/utils'
 
 test('isRDC should be false for no provided deviceName and platformName', () => {

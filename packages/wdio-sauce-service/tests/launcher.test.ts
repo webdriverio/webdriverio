@@ -1,24 +1,27 @@
+import path from 'node:path'
 import logger from '@wdio/logger'
 import SauceLabs from 'saucelabs'
 import type { Capabilities, Options } from '@wdio/types'
+import { expect, test, vi, afterEach } from 'vitest'
 
 import SauceServiceLauncher from '../src/launcher'
 import type { SauceServiceConfig } from '../src/types'
 
-jest.mock('saucelabs', () => {
-    return class SauceLabsMock {
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock('saucelabs', () => ({
+    default: class SauceLabsMock {
         static instances: SauceLabsMock[] = []
 
         stop: Function
         startSauceConnect: Function
 
         constructor (public options: SauceServiceConfig) {
-            this.stop = jest.fn()
-            this.startSauceConnect = jest.fn().mockReturnValue(this)
+            this.stop = vi.fn()
+            this.startSauceConnect = vi.fn().mockReturnValue(this)
             SauceLabsMock.instances.push(this)
         }
     }
-})
+}))
 
 const log = logger('')
 
@@ -97,7 +100,7 @@ test('onPrepare w/ SauceConnect w/ tunnelIdentifier w/ W3C', async () => {
     // @ts-ignore mock feature
     expect(SauceLabs.instances[0].startSauceConnect).toBeCalledTimes(1)
     await new Promise((resolve) => setTimeout(resolve, 100))
-    expect((log.info as jest.Mock).mock.calls[0][0]).toContain('Sauce Connect successfully started after')
+    expect(vi.mocked(log.info).mock.calls[0][0]).toContain('Sauce Connect successfully started after')
 })
 
 test('onPrepare w/ SauceConnect w/o identifier w/ W3C', async () => {
@@ -121,7 +124,7 @@ test('onPrepare w/ SauceConnect w/o identifier w/ W3C', async () => {
     // @ts-ignore mock feature
     expect(SauceLabs.instances[0].startSauceConnect).toBeCalledTimes(1)
     await new Promise((resolve) => setTimeout(resolve, 100))
-    expect((log.info as jest.Mock).mock.calls[0][0]).toContain('Sauce Connect successfully started after')
+    expect(vi.mocked(log.info).mock.calls[0][0]).toContain('Sauce Connect successfully started after')
 })
 
 test('onPrepare w/ SauceConnect w/o scRelay', async () => {
@@ -528,7 +531,7 @@ test('startTunnel fail twice and recover', async ()=> {
         }
     }
     const service = new SauceServiceLauncher(options, [{}], {} as Options.Testrunner)
-    ;(service['_api'].startSauceConnect as jest.Mock)
+    vi.mocked(service['_api'].startSauceConnect)
         .mockRejectedValueOnce(new Error('ENOENT'))
         .mockRejectedValueOnce(new Error('ENOENT'))
     await service.startTunnel({})
@@ -545,7 +548,7 @@ test('startTunnel fail three and throws error', async ()=> {
         }
     }
     const service = new SauceServiceLauncher(options, [{}], {} as Options.Testrunner)
-    ;(service['_api'].startSauceConnect as jest.Mock)
+    vi.mocked(service['_api'].startSauceConnect)
         .mockRejectedValueOnce(new Error('ENOENT'))
         .mockRejectedValueOnce(new Error('ENOENT'))
         .mockRejectedValueOnce(new Error('ENOENT'))
@@ -560,7 +563,7 @@ test('onComplete', async () => {
     const service = new SauceServiceLauncher({}, [], {} as Options.Testrunner)
     expect(service.onComplete()).toBeUndefined()
 
-    service['_sauceConnectProcess'] = { close: jest.fn() } as any
+    service['_sauceConnectProcess'] = { close: vi.fn() } as any
     service.onComplete()
     expect(service['_sauceConnectProcess']?.close).toBeCalled()
 })

@@ -1,10 +1,10 @@
-import { performance, PerformanceObserver } from 'perf_hooks'
-import SauceLabs, { SauceLabsOptions, SauceConnectOptions, SauceConnectInstance } from 'saucelabs'
+import { performance, PerformanceObserver } from 'node:perf_hooks'
 
+import SauceLabs, { SauceLabsOptions, SauceConnectOptions, SauceConnectInstance } from 'saucelabs'
 import logger from '@wdio/logger'
 import type { Services, Capabilities, Options } from '@wdio/types'
 
-import { makeCapabilityFactory } from './utils'
+import { makeCapabilityFactory } from './utils.js'
 import type { SauceServiceConfig } from './types'
 
 const SC_RELAY_DEPCRECATION_WARNING = [

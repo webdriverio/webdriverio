@@ -20,7 +20,8 @@ export default defineConfig({
             'packages/wdio-dot-reporter/**/*.test.ts',
             'packages/wdio-firefox-profile-service/**/*.test.ts',
             'packages/wdio-junit-reporter/**/*.test.ts',
-            'packages/wdio-local-runner/**/*.test.ts'
+            'packages/wdio-local-runner/**/*.test.ts',
+            'packages/wdio-sauce-service/**/*.test.ts'
         ],
         coverage: {
             enabled: false,

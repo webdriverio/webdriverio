@@ -1,14 +1,14 @@
-import fs from 'fs'
-import path from 'path'
+import fs from 'node:fs/promises'
+import path from 'node:path'
 
 import SauceLabs, { SauceLabsOptions, Job } from 'saucelabs'
 import logger from '@wdio/logger'
 import type { Services, Capabilities, Options, Frameworks } from '@wdio/types'
 import type { Browser, MultiRemoteBrowser } from 'webdriverio'
 
-import { isRDC, ansiRegex } from './utils'
-import { SauceServiceConfig } from './types'
-import { DEFAULT_OPTIONS } from './constants'
+import { isRDC, ansiRegex } from './utils.js'
+import { DEFAULT_OPTIONS } from './constants.js'
+import type { SauceServiceConfig } from './types'
 
 const jobDataProperties = ['name', 'tags', 'public', 'build', 'custom-data'] as const
 
@@ -325,7 +325,7 @@ export default class SauceService implements Services.ServiceInstance {
             return
         }
 
-        const files = (await fs.promises.readdir(this._config.outputDir))
+        const files = (await fs.readdir(this._config.outputDir))
             .filter((file) => file.startsWith(`wdio-${this._cid}`) && file.endsWith('.log'))
         log.info(`Uploading WebdriverIO logs (${files.join(', ')}) to Sauce Labs`)
 
