@@ -1,5 +1,5 @@
+import path from 'node:path'
 import { Capabilities } from '@wdio/types'
-import path from 'path'
 
 const FILE_EXTENSION_REGEX = /\.[0-9a-z]+$/i
 const SUPPORTED_CAPABILITIES = [
