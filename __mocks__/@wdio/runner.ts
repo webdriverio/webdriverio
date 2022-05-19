@@ -1,8 +1,10 @@
+import { vi } from 'vitest'
+
 const instances: RunnerMock[] = []
 
 export default class RunnerMock {
-    public run = jest.fn().mockReturnValue(Promise.resolve({ foo: 'bar' }))
-    public on = jest.fn()
+    public run = vi.fn().mockReturnValue(Promise.resolve({ foo: 'bar' }))
+    public on = vi.fn()
     constructor () {
         instances.push(this)
     }

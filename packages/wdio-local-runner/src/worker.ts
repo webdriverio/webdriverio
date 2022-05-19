@@ -1,15 +1,15 @@
-import path from 'path'
-import child from 'child_process'
-import { EventEmitter } from 'events'
+import path from 'node:path'
+import child from 'node:child_process'
+import { EventEmitter } from 'node:events'
+import type { ChildProcess } from 'node:child_process'
 import type { WritableStreamBuffer } from 'stream-buffers'
-import type { ChildProcess } from 'child_process'
 import type { Capabilities, Options, Workers } from '@wdio/types'
 
 import logger from '@wdio/logger'
 
-import runnerTransformStream from './transformStream'
-import ReplQueue from './replQueue'
-import RunnerStream from './stdStream'
+import runnerTransformStream from './transformStream.js'
+import ReplQueue from './replQueue.js'
+import RunnerStream from './stdStream.js'
 
 const log = logger('@wdio/local-runner')
 const replQueue = new ReplQueue()
@@ -101,7 +101,7 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
         childProcess.on('exit', this._handleExit.bind(this))
 
         /* istanbul ignore if */
-        if (!process.env.JEST_WORKER_ID) {
+        if (!process.env.VITEST_WORKER_ID) {
             if (childProcess.stdout !== null) {
                 runnerTransformStream(cid, childProcess.stdout).pipe(stdOutStream)
             }

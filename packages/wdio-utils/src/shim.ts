@@ -5,7 +5,6 @@ import { Clients } from '@wdio/types'
 const log = logger('@wdio/utils:shim')
 
 let inCommandHook = false
-let hasWdioSyncSupport = false
 
 interface Retries {
     limit: number
@@ -435,7 +434,6 @@ export function switchSyncFlag (fn: Function) {
 export {
     executeHooksWithArgs,
     wrapCommand,
-    hasWdioSyncSupport,
     executeSync,
     executeAsync,
 }

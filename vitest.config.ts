@@ -8,6 +8,7 @@ export default defineConfig({
             'packages/wdio-config/**/*.test.ts',
             'packages/wdio-reporter/**/*.test.ts',
             'packages/wdio-repl/**/*.test.ts',
+            'packages/wdio-runner/**/*.test.ts',
             'packages/webdriver/**/*.test.ts',
             'packages/devtools/**/*.test.ts',
             'packages/wdio-allure-reporter/**/*.test.ts',
@@ -18,7 +19,8 @@ export default defineConfig({
             'packages/wdio-cucumber-framework/**/*.test.ts',
             'packages/wdio-dot-reporter/**/*.test.ts',
             'packages/wdio-firefox-profile-service/**/*.test.ts',
-            'packages/wdio-junit-reporter/**/*.test.ts'
+            'packages/wdio-junit-reporter/**/*.test.ts',
+            'packages/wdio-local-runner/**/*.test.ts'
         ],
         coverage: {
             enabled: false,

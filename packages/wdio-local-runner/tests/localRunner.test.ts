@@ -1,15 +1,21 @@
-import child from 'child_process'
+import path from 'node:path'
+import child from 'node:child_process'
+import { expect, test, vi } from 'vitest'
 
 import LocalRunner from '../src'
 
-jest.mock('child_process', () => {
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+
+vi.mock('child_process', () => {
     const childProcessMock = {
-        on: jest.fn(),
-        send: jest.fn(),
-        kill: jest.fn()
+        on: vi.fn(),
+        send: vi.fn(),
+        kill: vi.fn()
     }
 
-    return { fork: jest.fn().mockReturnValue(childProcessMock) }
+    return {
+        default: { fork: vi.fn().mockReturnValue(childProcessMock) }
+    }
 })
 
 test('should fork a new process', () => {
@@ -28,12 +34,12 @@ test('should fork a new process', () => {
         retries: 0
     })
     const childProcess = worker.childProcess
-    worker.emit = jest.fn()
+    worker.emit = vi.fn()
 
     expect(worker.isBusy).toBe(true)
-    expect((child.fork as jest.Mock).mock.calls[0][0].endsWith('run.js')).toBe(true)
+    expect(vi.mocked(child.fork).mock.calls[0][0].endsWith('run.js')).toBe(true)
 
-    const { env } = (child.fork as jest.Mock).mock.calls[0][2]
+    const { env } = vi.mocked(child.fork).mock.calls[0][2]! as any
     expect(env.WDIO_LOG_PATH).toMatch(/(\\|\/)foo(\\|\/)bar(\\|\/)wdio-0-5\.log/)
     expect(env.FORCE_COLOR).toBe(1)
     expect(childProcess?.on).toHaveBeenCalled()
@@ -88,10 +94,10 @@ test('should shut down worker processes', async () => {
     const after = Date.now()
 
     expect(after - before).toBeGreaterThanOrEqual(750)
-    const call1 = (worker1.childProcess?.send as jest.Mock).mock.calls.pop()[0]
+    const call1: any = vi.mocked(worker1.childProcess?.send)!.mock.calls.pop()![0]
     expect(call1.cid).toBe('0-5')
     expect(call1.command).toBe('endSession')
-    const call2 = (worker1.childProcess?.send as jest.Mock).mock.calls.pop()[0]
+    const call2: any = vi.mocked(worker1.childProcess?.send)!.mock.calls.pop()![0]
     expect(call2.cid).toBe('0-4')
     expect(call2.command).toBe('endSession')
 })
@@ -150,14 +156,14 @@ test('should shut down worker processes in watch mode - regular', async () => {
 
     expect(after - before).toBeGreaterThanOrEqual(300)
 
-    const call2 = (worker.childProcess?.send as jest.Mock).mock.calls.pop()[0]
-    expect(call2.cid).toBe('0-6')
-    expect(call2.command).toBe('endSession')
-    expect(call2.args.watch).toBe(true)
-    expect(call2.args.isMultiremote).toBeFalsy()
-    expect(call2.args.config.sessionId).toBe('abc')
-    expect(call2.args.config.host).toEqual('foo')
-    expect(call2.args.caps).toEqual({ browser: 'chrome' })
+    const call: any = vi.mocked(worker.childProcess?.send)!.mock.calls.pop()![0]
+    expect(call.cid).toBe('0-6')
+    expect(call.command).toBe('endSession')
+    expect(call.args.watch).toBe(true)
+    expect(call.args.isMultiremote).toBeFalsy()
+    expect(call.args.config.sessionId).toBe('abc')
+    expect(call.args.config.host).toEqual('foo')
+    expect(call.args.caps).toEqual({ browser: 'chrome' })
 })
 
 test('should shut down worker processes in watch mode - mutliremote', async () => {
@@ -195,13 +201,13 @@ test('should shut down worker processes in watch mode - mutliremote', async () =
 
     expect(after - before).toBeGreaterThanOrEqual(300)
 
-    const call1 = (worker.childProcess?.send as jest.Mock).mock.calls.pop()[0]
-    expect(call1.cid).toBe('0-7')
-    expect(call1.command).toBe('endSession')
-    expect(call1.args.watch).toBe(true)
-    expect(call1.args.isMultiremote).toBe(true)
-    expect(call1.args.instances).toEqual({ foo: { sessionId: '123' } })
-    expect(call1.args.caps).toEqual({ foo: { capabilities: { browser: 'chrome' } } })
+    const call: any = vi.mocked(worker.childProcess?.send)!.mock.calls.pop()![0]
+    expect(call.cid).toBe('0-7')
+    expect(call.command).toBe('endSession')
+    expect(call.args.watch).toBe(true)
+    expect(call.args.isMultiremote).toBe(true)
+    expect(call.args.instances).toEqual({ foo: { sessionId: '123' } })
+    expect(call.args.caps).toEqual({ foo: { capabilities: { browser: 'chrome' } } })
 })
 
 test('should avoid shutting down if worker is not busy', async () => {

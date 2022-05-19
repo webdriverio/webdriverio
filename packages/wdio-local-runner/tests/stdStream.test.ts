@@ -1,15 +1,14 @@
+import { describe, expect, test, beforeEach, vi, SpyInstance, afterEach } from 'vitest'
 import RunnerStream from '../src/stdStream'
-
-const expect = global.expect as unknown as jest.Expect
 
 describe('RunnerStream', () => {
     let stream: RunnerStream
-    let pushSpy: jest.SpyInstance
+    let pushSpy: SpyInstance
 
-    const cb = jest.fn()
+    const cb = vi.fn()
     beforeEach(() => {
         stream = new RunnerStream()
-        pushSpy = jest.spyOn(stream, 'push')
+        pushSpy = vi.spyOn(stream, 'push')
     })
 
     test('should have pipe listener', () => {
@@ -31,9 +30,9 @@ describe('RunnerStream', () => {
         expect(stream.listeners('unpipe')).toHaveLength(0)
     })
 
-    afterEach((done) => {
+    afterEach(() => {
         cb.mockClear()
         pushSpy.mockClear()
-        stream.end(() => done())
+        return new Promise((resolve) => stream.end(() => resolve()))
     })
 })

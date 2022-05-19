@@ -1,7 +1,7 @@
 import fs from 'node:fs'
+import util from 'node:util'
 
 import log from 'loglevel'
-import util from 'util'
 import chalk, { Color } from 'chalk'
 import prefix from 'loglevel-plugin-prefix'
 import ansiStrip from 'strip-ansi'
