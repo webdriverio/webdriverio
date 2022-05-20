@@ -1,4 +1,4 @@
-import { Reporters } from '@wdio/types'
+import type { Reporters } from '@wdio/types'
 
 export interface Options extends Partial<Reporters.Options> {
     /**
