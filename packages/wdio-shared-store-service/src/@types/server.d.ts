@@ -1,5 +1,5 @@
 interface SharedStoreServer {
     __store: WebdriverIO.JsonObject
-    startServer: () => Promise<{ port: string }>
+    startServer: () => Promise<{ port: number }>
     stopServer: () => Promise<void>
 }

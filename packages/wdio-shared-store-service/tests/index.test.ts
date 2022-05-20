@@ -1,3 +1,5 @@
+import { describe, expect, it } from 'vitest'
+
 import * as WdioSharedStoreService from '../src'
 import SharedStoreLauncher from '../src/launcher'
 import SharedStoreService from '../src/service'

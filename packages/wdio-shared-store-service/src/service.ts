@@ -1,8 +1,8 @@
-import { Browser } from 'webdriverio'
-import { BrowserExtension } from './index'
-import { getValue, setValue, setPort } from './client'
-
+import type { Browser } from 'webdriverio'
 import type { JsonCompatible, JsonPrimitive, Services } from '@wdio/types'
+
+import { BrowserExtension } from './index.js'
+import { getValue, setValue, setPort } from './client.js'
 import type { SharedStoreServiceCapabilities } from './types'
 
 /**
@@ -18,8 +18,8 @@ export default class SharedStoreService implements Services.ServiceInstance {
     }
 
     before (
-        caps: unknown,
-        specs: unknown,
+        caps: never,
+        specs: never,
         browser: ServiceBrowser
     ) {
         this._browser = browser
