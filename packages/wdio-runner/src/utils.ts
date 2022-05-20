@@ -1,11 +1,9 @@
 import merge from 'deepmerge'
 import logger from '@wdio/logger'
-// @ts-expect-error
 import { remote, multiremote, attach } from 'webdriverio'
 import { DEFAULTS } from 'webdriver'
 import { DEFAULT_CONFIGS } from '@wdio/config'
 import type { Options, Capabilities } from '@wdio/types'
-// @ts-expect-error
 import type { Browser, MultiRemoteBrowser } from 'webdriverio'
 
 const log = logger('@wdio/local-runner:utils')

@@ -1,5 +1,5 @@
 const shell = require('shelljs')
-const path = require('path')
+const path = require('node:path')
 
 /**
  * fetch all sub package names from the package directory

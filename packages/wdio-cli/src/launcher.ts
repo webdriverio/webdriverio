@@ -1,4 +1,4 @@
-import path from 'path'
+import path from 'node:path'
 import fs from 'fs-extra'
 import exitHook from 'async-exit-hook'
 
@@ -37,7 +37,7 @@ interface EndMessage {
 class Launcher {
     configParser: ConfigParser
     isMultiremote: boolean
-    runner: Services.RunnerInstance
+    runner?: Services.RunnerInstance
     interface: CLInterface
 
     private _exitCode = 0
@@ -92,9 +92,6 @@ class Launcher {
                 .reduce((a, b) => a + b, 0)
             : 1
 
-        const Runner = (initialisePlugin(config.runner!, 'runner') as Services.RunnerPlugin).default
-        this.runner = new Runner(_configFilePath, config)
-
         this.interface = new CLInterface(config, totalWorkerCnt, this._isWatchMode)
         config.runnerEnv!.FORCE_COLOR = Number(this.interface.hasAnsiSupport)
     }
@@ -104,6 +101,10 @@ class Launcher {
      * @return  {Promise}               that only gets resolves with either an exitCode or an error
      */
     async run() {
+        const config = this.configParser.getConfig()
+        const Runner = (await initialisePlugin(config.runner!, 'runner') as Services.RunnerPlugin).default
+        this.runner = new Runner(this._configFilePath, config)
+
         /**
          * catches ctrl+c event
          */
@@ -112,9 +113,8 @@ class Launcher {
         let error: HookError | undefined = undefined
 
         try {
-            const config = this.configParser.getConfig()
             const caps = this.configParser.getCapabilities() as Capabilities.RemoteCapabilities
-            const { ignoredWorkerServices, launcherServices } = initialiseLauncherService(config, caps as Capabilities.DesiredCapabilities)
+            const { ignoredWorkerServices, launcherServices } = await initialiseLauncherService(config, caps as Capabilities.DesiredCapabilities)
             this._launcher = launcherServices
             this._args.ignoredWorkerServices = ignoredWorkerServices
 
@@ -355,6 +355,10 @@ class Launcher {
         rid: string | undefined,
         retries: number
     ) {
+        if (!this.runner) {
+            throw new Error('Internal Error: no runner initialised, call run() first')
+        }
+
         let config = this.configParser.getConfig()
 
         // wait before retrying the spec file
@@ -509,7 +513,7 @@ class Launcher {
      * session first before killing
      */
     exitHandler (callback?: (value: void) => void) {
-        if (!callback) {
+        if (!callback || !this.runner) {
             return
         }
 

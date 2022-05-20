@@ -1,6 +1,5 @@
 import exitHook from 'async-exit-hook'
 
-// @ts-expect-error
 import Runner from '@wdio/runner'
 import logger from '@wdio/logger'
 import type { Workers } from '@wdio/types'

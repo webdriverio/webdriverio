@@ -111,6 +111,10 @@ export default class Watcher {
      * @return                   Object with workers, e.g. {'0-0': { ... }}
      */
     getWorkers (predicate?: ValueKeyIteratee<Workers.Worker> | null | undefined, includeBusyWorker?: boolean): Workers.WorkerPool {
+        if (!this._launcher.runner) {
+            throw new Error('Internal Error: no runner initialised, call run() first')
+        }
+
         let workers = this._launcher.runner.workerPool
 
         if (typeof predicate === 'function') {
