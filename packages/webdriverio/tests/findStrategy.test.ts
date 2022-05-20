@@ -1,5 +1,5 @@
 import { findStrategy } from '../src/utils/findStrategy'
-import fs from 'fs'
+import fs from 'node:fs'
 
 jest.mock('fs')
 

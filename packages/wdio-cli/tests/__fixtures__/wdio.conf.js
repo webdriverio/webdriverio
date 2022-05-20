@@ -1,4 +1,4 @@
-import path from 'path'
+import path from 'node:path'
 
 const TEST_ROOT = path.join(__dirname, 'guineapig')
 

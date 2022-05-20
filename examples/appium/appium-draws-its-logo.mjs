@@ -1,5 +1,5 @@
-import { circleAction, arcAction, innerArcAction } from './helpers/drawHelper'
-import { remote } from '../../packages/webdriverio/build'
+import { circleAction, arcAction, innerArcAction } from './helpers/drawHelper.js'
+import { remote } from '../../packages/webdriverio/build/index.js'
 
 /**
  * in order to test this you need to compile the app from the old v4 repository

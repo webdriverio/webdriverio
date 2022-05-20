@@ -1,5 +1,5 @@
-const fs = require('fs')
-const path = require('path')
+const fs = require('node:fs')
+const path = require('node:path')
 
 const { IGNORED_SUBPACKAGES_FOR_DOCS } = require('../constants')
 const { getSubPackages, buildPreface } = require('../utils/helpers')

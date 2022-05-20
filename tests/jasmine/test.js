@@ -1,4 +1,4 @@
-const assert = require('assert')
+const assert = require('node:assert')
 
 describe('Jasmine smoke test', () => {
     it('should return sync value', () => {

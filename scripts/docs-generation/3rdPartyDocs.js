@@ -1,5 +1,5 @@
 const fs = require('fs-extra')
-const path = require('path')
+const path = require('node:path')
 const urljoin = require('url-join')
 
 const { downloadFromGitHub } = require('../utils')

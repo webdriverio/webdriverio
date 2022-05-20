@@ -1,6 +1,6 @@
+import path from 'node:path'
+import util from 'node:util'
 import fs from 'fs-extra'
-import path from 'path'
-import util from 'util'
 import inquirer from 'inquirer'
 import yarnInstall from 'yarn-install'
 

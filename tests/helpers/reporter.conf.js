@@ -1,4 +1,4 @@
-const path = require('path')
+const path = require('node:path')
 
 const { config } = require('./config')
 const reporter = require('../../packages/wdio-smoke-test-reporter')

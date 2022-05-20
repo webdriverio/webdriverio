@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
-const fs = require('fs')
-const path = require('path')
-const { promisify } = require('util')
+const fs = require('node:fs')
+const path = require('node:path')
+const { promisify } = require('node:util')
 
 const mime = require('mime-types')
 const readDir = require('recursive-readdir')

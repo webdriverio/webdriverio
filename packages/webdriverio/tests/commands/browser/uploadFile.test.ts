@@ -1,4 +1,4 @@
-import path from 'path'
+import path from 'node:path'
 import archiver from 'archiver'
 import { remote } from '../../../src'
 

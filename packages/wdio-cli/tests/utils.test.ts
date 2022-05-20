@@ -1,7 +1,7 @@
 import fs from 'fs-extra'
 import ejs from 'ejs'
 import readDirMock from 'recursive-readdir'
-import childProcess from 'child_process'
+import childProcess from 'node:child_process'
 import { SevereServiceError } from 'webdriverio'
 import { ConfigParser } from '@wdio/config'
 

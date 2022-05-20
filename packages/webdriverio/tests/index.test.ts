@@ -1,4 +1,4 @@
-import path from 'path'
+import path from 'node:path'
 // @ts-ignore mock feature
 import { logMock } from '@wdio/logger'
 import * as webdriverio from '../src'

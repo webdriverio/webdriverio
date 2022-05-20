@@ -1,5 +1,5 @@
 import { vi, describe, it, expect, MockedFunction } from 'vitest'
-import path from 'path'
+import path from 'node:path'
 import fs from 'node:fs'
 
 import {

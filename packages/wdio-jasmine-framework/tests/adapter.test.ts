@@ -1,7 +1,7 @@
 import logger from '@wdio/logger'
 import { runTestInFiberContext, executeHooksWithArgs } from '@wdio/utils'
 import { setOptions } from 'expect-webdriverio'
-import { EventEmitter } from 'events'
+import { EventEmitter } from 'node:events'
 
 import JasmineAdapterFactory, { JasmineAdapter } from '../src'
 

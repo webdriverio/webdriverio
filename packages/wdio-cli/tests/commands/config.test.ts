@@ -1,3 +1,4 @@
+import path from 'node:path'
 // @ts-expect-error mock
 import { yargs } from 'yargs/yargs'
 import fs from 'fs-extra'
@@ -7,7 +8,6 @@ import pkg from '../../package.json'
 
 import { handler, builder, missingConfigurationPrompt } from '../../src/commands/config'
 import { addServiceDeps, convertPackageHashToObject, renderConfigurationFile, generateTestFiles, getPathForFileGeneration } from '../../src/utils'
-import path from 'path'
 
 jest.mock('../../src/utils', () => ({
     addServiceDeps: jest.fn(),

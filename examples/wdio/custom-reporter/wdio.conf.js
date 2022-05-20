@@ -1,4 +1,4 @@
-const path = require('path')
+const path = require('node:path')
 const CustomReporter = require('./reporter/my.custom.reporter')
 
 exports.config = {

@@ -1,6 +1,6 @@
-import path from 'path'
+import path from 'node:path'
 import Mocha, { Runner } from 'mocha'
-import { format } from 'util'
+import { format } from 'node:util'
 
 import logger from '@wdio/logger'
 import { runTestInFiberContext, executeHooksWithArgs } from '@wdio/utils'
@@ -9,7 +9,7 @@ import type { Capabilities, Services } from '@wdio/types'
 import { loadModule } from './utils'
 import { INTERFACES, EVENTS, NOOP, MOCHA_TIMEOUT_MESSAGE, MOCHA_TIMEOUT_MESSAGE_REPLACEMENT } from './constants'
 import type { MochaConfig, MochaOpts as MochaOptsImport, FrameworkMessage, FormattedMessage, MochaContext, MochaError } from './types'
-import type { EventEmitter } from 'events'
+import type { EventEmitter } from 'node:events'
 import type ExpectWebdriverIO from 'expect-webdriverio'
 
 const log = logger('@wdio/mocha-framework')

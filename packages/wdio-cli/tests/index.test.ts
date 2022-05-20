@@ -1,9 +1,9 @@
+import { join, resolve } from 'node:path'
 // @ts-expect-error mock
 import { yargs as yargsMock } from 'yargs/yargs'
 
 import { run } from '../src/index'
 import { handler } from '../src/commands/run'
-import { join, resolve } from 'path'
 
 jest.mock('./../src/commands/run', () => ({
     ...jest.requireActual('./../src/commands/run') as object,

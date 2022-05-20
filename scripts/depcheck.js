@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 
-const path = require('path')
-const shell = require('shelljs')
+const path = require('node:path')
+const shell = require('node:shelljs')
+const { EventEmitter } = require('node:events')
 
 const { getSubPackages } = require('./utils/helpers')
 
@@ -10,7 +11,7 @@ const packages = getSubPackages()
 /**
  * set proper size of max listener
  */
-require('events').EventEmitter.defaultMaxListeners = packages.length + 3
+EventEmitter.defaultMaxListeners = packages.length + 3
 
 const ROOT_DIR = path.join(__dirname, '..')
 const EXEC_OPTIONS = { silent: true, async: true }
