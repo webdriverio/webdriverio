@@ -1,4 +1,4 @@
-import http from 'http'
+import http from 'node:http'
 import logger from '@wdio/logger'
 import { validateConfig } from '@wdio/config'
 import { runFnInFiberContext } from '@wdio/utils'

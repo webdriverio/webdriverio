@@ -3,7 +3,7 @@
  * This script initialises the playground by linking all package into the /test directory
  */
 
-const path = require('path')
+const path = require('node:path')
 const shell = require('shelljs')
 
 const packagesDir = path.join(__dirname, '..', 'packages')

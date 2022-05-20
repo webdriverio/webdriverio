@@ -1,6 +1,5 @@
 import assert from 'node:assert'
 import os from 'node:os'
-import { remote } from '../../packages/webdriverio'
 
 describe('Mocha smoke test', () => {
     let testJs = 'tests/mocha/test.js:'

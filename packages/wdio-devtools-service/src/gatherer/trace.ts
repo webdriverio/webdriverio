@@ -1,4 +1,4 @@
-import { EventEmitter } from 'events'
+import { EventEmitter } from 'node:events'
 import NetworkRecorder from 'lighthouse/lighthouse-core/lib/network-recorder'
 import NetworkMonitor from 'lighthouse/lighthouse-core/gather/driver/network-monitor'
 import ProtocolSession from 'lighthouse/lighthouse-core/fraggle-rock/gather/session'

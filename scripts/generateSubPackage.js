@@ -3,8 +3,8 @@
  * This script generates new sub package with initial structure and files
  */
 
-const fs = require('fs')
-const path = require('path')
+const fs = require('node:fs')
+const path = require('node:path')
 const shell = require('shelljs')
 const inquirer = require('inquirer')
 const packageType = ['reporter', 'service', 'runner', 'framework']

@@ -1,4 +1,4 @@
-import assert from 'assert'
+import assert from 'node:assert'
 import { remote, attach, multiremote } from '../../packages/webdriverio'
 
 function sleep (ms) {

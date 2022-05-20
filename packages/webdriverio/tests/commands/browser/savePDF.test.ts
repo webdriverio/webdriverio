@@ -1,4 +1,4 @@
-import fs from 'fs'
+import fs from 'node:fs'
 // @ts-ignore mocked (original defined in webdriver package)
 import got from 'got'
 import { remote } from '../../../src'

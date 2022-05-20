@@ -1,7 +1,7 @@
-const fs = require('fs')
-const path = require('path')
+const fs = require('node:fs')
+const path = require('node:path')
 const markdox = require('markdox')
-const { promisify } = require('util')
+const { promisify } = require('node:util')
 
 const formatter = require('../utils/formatter')
 const compiler = require('../utils/compiler')

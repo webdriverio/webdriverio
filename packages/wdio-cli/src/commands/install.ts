@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
+import path from 'node:path'
 import fs from 'fs-extra'
-import path from 'path'
 import yarnInstall from 'yarn-install'
 
 import {

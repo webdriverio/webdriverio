@@ -1,4 +1,4 @@
-import { EventEmitter } from 'events'
+import { EventEmitter } from 'node:events'
 import { Testrunner as TestrunnerOptions } from './Options'
 import {
     DesiredCapabilities,

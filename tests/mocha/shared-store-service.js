@@ -1,4 +1,4 @@
-import assert from 'assert'
+import assert from 'node:assert'
 
 describe('Shared store service', () => {
     it('should get from shared store', () => {

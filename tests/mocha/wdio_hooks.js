@@ -1,4 +1,4 @@
-import assert from 'assert'
+import assert from 'node:assert'
 
 before(async () => {
     await browser.pause(10)

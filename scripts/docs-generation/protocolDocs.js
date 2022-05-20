@@ -1,5 +1,5 @@
 const fs = require('fs-extra')
-const path = require('path')
+const path = require('node:path')
 const ejs = require('ejs')
 
 const { repoUrl } = require('../../website/docusaurus.config.js')

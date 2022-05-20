@@ -1,4 +1,4 @@
-const path = require('path')
+const path = require('node:path')
 const { config } = require('../../helpers/config')
 
 const reporterConfig = Object.assign({}, config, {

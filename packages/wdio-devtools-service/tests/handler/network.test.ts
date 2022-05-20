@@ -1,4 +1,4 @@
-import { EventEmitter } from 'events'
+import { EventEmitter } from 'node:events'
 import type { CDPSession } from 'puppeteer-core/lib/cjs/puppeteer/common/Connection'
 
 import NetworkHandler from '../../src/handler/network'

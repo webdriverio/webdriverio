@@ -1,7 +1,7 @@
-import { readFile, unlink, exists, rename } from 'fs'
-import path from 'path'
-import assert from 'assert'
-import { promisify } from 'util'
+import { readFile, unlink, exists, rename } from 'node:fs'
+import path from 'node:path'
+import assert from 'node:assert'
+import { promisify } from 'node:util'
 
 import { sleep } from '../packages/wdio-utils/src/utils'
 import { SevereServiceError } from '../packages/node_modules/webdriverio'

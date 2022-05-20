@@ -1,4 +1,4 @@
-import assert from 'assert'
+import assert from 'node:assert'
 
 describe('smoke test multiremote', () => {
     it('should return sync value', () => {

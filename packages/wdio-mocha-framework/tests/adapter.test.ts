@@ -1,4 +1,4 @@
-import path from 'path'
+import path from 'node:path'
 import Mocha from 'mocha'
 import logger from '@wdio/logger'
 import { runTestInFiberContext, executeHooksWithArgs } from '@wdio/utils'

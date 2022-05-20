@@ -1,6 +1,6 @@
-import path from 'path'
+import path from 'node:path'
 import chokidar from 'chokidar'
-import EventEmitter from 'events'
+import EventEmitter from 'node:events'
 import type { Workers } from '@wdio/types'
 
 import { RunCommandArguments } from '../src/types'

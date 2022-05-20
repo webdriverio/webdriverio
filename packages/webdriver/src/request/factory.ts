@@ -29,7 +29,7 @@ export default class RequestFactory {
 export class URLFactory {
     static async getInstance (uri: string): Promise<URLType> {
         if (process?.versions?.node) {
-            const { URL } = await import('url')
+            const { URL } = await import('node:url')
             return new URL(uri)
         }
         return new window.URL(uri) as URLType

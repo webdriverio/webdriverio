@@ -1,7 +1,7 @@
-import * as http from 'http'
-import * as https from 'https'
+import * as http from 'node:http'
+import * as https from 'node:https'
 import type { RegisterOptions } from './Compiler'
-import type { URL } from 'url'
+import type { URL } from 'node:url'
 
 import { W3CCapabilities, DesiredCapabilities, RemoteCapabilities, RemoteCapability, MultiRemoteCapabilities, Capabilities } from './Capabilities'
 import { Hooks, ServiceEntry } from './Services'

@@ -1,5 +1,5 @@
 import logger from '@wdio/logger'
-import { EventEmitter } from 'events'
+import { EventEmitter } from 'node:events'
 
 import JasmineReporter from '../src/reporter'
 

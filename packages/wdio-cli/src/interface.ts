@@ -1,5 +1,5 @@
 import chalk from 'chalk'
-import { EventEmitter } from 'events'
+import { EventEmitter } from 'node:events'
 import logger from '@wdio/logger'
 import type { Options, Capabilities, Workers } from '@wdio/types'
 

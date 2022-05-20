@@ -1,9 +1,7 @@
-/// <reference types="expect-webdriverio/jasmine" />
-
 import Jasmine from 'jasmine'
 import { runTestInFiberContext, executeHooksWithArgs } from '@wdio/utils'
 import logger from '@wdio/logger'
-import { EventEmitter } from 'events'
+import { EventEmitter } from 'node:events'
 import type { Options, Services, Capabilities } from '@wdio/types'
 
 import JasmineReporter from './reporter'
