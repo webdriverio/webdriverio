@@ -1,9 +1,10 @@
-import { format } from 'util'
+import { format } from 'node:util'
 import WDIOReporter, { SuiteStats, HookStats, RunnerStats, TestStats, Argument } from '@wdio/reporter'
 import { Capabilities } from '@wdio/types'
 import chalk, { Chalk } from 'chalk'
 import prettyMs from 'pretty-ms'
-import { buildTableData, printTable, getFormattedRows, sauceAuthenticationToken } from './utils'
+
+import { buildTableData, printTable, getFormattedRows, sauceAuthenticationToken } from './utils.js'
 import type { StateCount, Symbols, SpecReporterOptions, TestLink } from './types'
 
 const DEFAULT_INDENT = '   '
@@ -150,10 +151,12 @@ export default class SpecReporter extends WDIOReporter {
             `${chalk[this.getColor(state)](this.getSymbol(state))} ${title}` +
             ` » ${chalk[this.getColor(state)]('[')} ${this._suiteName} ${chalk[this.getColor(state)](']')}`
 
-        process.send!({
-            name: 'reporterRealTime',
-            content: stat.type === 'test' ? contentTest : contentNonTest
-        })
+        if (process.send) {
+            process.send({
+                name: 'reporterRealTime',
+                content: stat.type === 'test' ? contentTest : contentNonTest
+            })
+        }
     }
 
     /**

@@ -23,7 +23,8 @@ export default defineConfig({
             'packages/wdio-local-runner/**/*.test.ts',
             'packages/wdio-sauce-service/**/*.test.ts',
             'packages/wdio-selenium-standalone-service/**/*.test.ts',
-            'packages/wdio-shared-store-service/**/*.test.ts'
+            'packages/wdio-shared-store-service/**/*.test.ts',
+            'packages/wdio-spec-reporter/**/*.test.ts'
         ],
         coverage: {
             enabled: false,
