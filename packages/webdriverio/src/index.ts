@@ -63,8 +63,6 @@ export const remote = async function (params: RemoteOptions, remoteModifier?: Fu
 
     /**
      * we need to overwrite the original addCommand and overwriteCommand
-     * in order to wrap the function within Fibers (only if webdriverio
-     * is used with @wdio/cli)
      */
     if ((params as Options.Testrunner).framework && !isStub(automationProtocol)) {
         const origAddCommand = instance.addCommand.bind(instance)

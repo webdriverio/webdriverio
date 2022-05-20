@@ -46,11 +46,7 @@ export const getPrototype = (scope: 'browser' | 'element') => {
         /**
          * used to store the puppeteer instance in the browser scope
          */
-        puppeteer: { value: null, writable: true },
-        /**
-         * for handling sync execution in @wdio/sync
-         */
-        _NOT_FIBER: { value: false, writable: true, configurable: true }
+        puppeteer: { value: null, writable: true }
     }
 
     /**

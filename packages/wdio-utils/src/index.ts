@@ -7,9 +7,7 @@ import {
     commandCallStructure, isValidParameter, getArgumentType, safeImport,
     isFunctionAsync, transformCommandLogResult, canAccess, sleep
 } from './utils.js'
-import {
-    wrapCommand, executeHooksWithArgs, executeSync, executeAsync
-} from './shim.js'
+import { wrapCommand, executeHooksWithArgs, executeAsync } from './shim.js'
 import { testFnWrapper, runTestInFiberContext } from './test-framework/index.js'
 import {
     isW3C, capabilitiesEnvironmentDetector,
@@ -32,10 +30,9 @@ export {
     sleep,
 
     /**
-     * wdio-sync shim
+     * runner shim
      */
     wrapCommand,
-    executeSync,
     executeAsync,
     runTestInFiberContext,
     testFnWrapper,

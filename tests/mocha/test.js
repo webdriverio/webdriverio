@@ -1,6 +1,5 @@
-import assert from 'assert'
-import os from 'os'
-import sync from '../../packages/wdio-sync'
+import assert from 'node:assert'
+import os from 'node:os'
 import { remote } from '../../packages/webdriverio'
 
 describe('Mocha smoke test', () => {
@@ -148,22 +147,6 @@ describe('Mocha smoke test', () => {
             // ignored
         }
         assert.equal(JSON.stringify(await elem.getSize()), JSON.stringify({ width: 1, height: 2 }))
-    })
-
-    it('should allow to run standalone mode synchronously', () => {
-        browser.clickScenario()
-
-        return remote({
-            runner: 'local',
-            hostname: 'localhost',
-            port: 4444,
-            path: '/',
-            capabilities: {
-                browserName: 'chrome'
-            }
-        }).then((remoteBrowser) => sync(() => {
-            assert.equal(remoteBrowser.getTitle(), 'Mock Page Title')
-        }))
     })
 
     describe('isDisplayed', () => {

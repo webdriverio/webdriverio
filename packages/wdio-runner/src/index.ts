@@ -65,11 +65,6 @@ type SingleCapability = { capabilities: Capabilities.RemoteCapability }
 interface SingleConfigOption extends Omit<Options.Testrunner, 'capabilities'>, SingleCapability {}
 type MultiRemoteCaps = Record<string, (Capabilities.DesiredCapabilities | Capabilities.W3CCapabilities) & { sessionId?: string }>
 
-// Todo(Christian): move to a central place
-declare global {
-    var _HAS_FIBER_CONTEXT: boolean
-}
-
 export default class Runner extends EventEmitter {
     private _configParser = new ConfigParser()
     private _sigintWasCalled = false
@@ -361,12 +356,6 @@ export default class Runner extends EventEmitter {
         ) {
             return
         }
-
-        /**
-         * suppress @wdio/sync warnings of not running commands inside of
-         * a Fibers context
-         */
-        global._HAS_FIBER_CONTEXT = true
 
         let logTypes
         try {
