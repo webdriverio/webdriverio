@@ -6,7 +6,6 @@ import logger from '@wdio/logger'
 import { initialiseWorkerService, initialisePlugin, executeHooksWithArgs } from '@wdio/utils'
 import { ConfigParser } from '@wdio/config'
 import type { Options, Capabilities, Services } from '@wdio/types'
-// @ts-expect-error
 import type { Selector, Browser, MultiRemoteBrowser } from 'webdriverio'
 
 import BaseReporter from './reporter.js'
@@ -429,9 +428,9 @@ export default class Runner extends EventEmitter {
             /**
              * every multiremote instance should exist and should have `sessionId`
              */
-            ? !multiremoteBrowser.instances.some((i: number) => (
-                multiremoteBrowser[i] &&
-                !multiremoteBrowser[i].sessionId)
+            ? !multiremoteBrowser.instances.some((browserName: string) => (
+                multiremoteBrowser[browserName] &&
+                !multiremoteBrowser[browserName].sessionId)
             )
 
             /**
@@ -463,9 +462,9 @@ export default class Runner extends EventEmitter {
          * delete session(s)
          */
         if (this._isMultiremote) {
-            multiremoteBrowser.instances.forEach((i: number) => {
+            multiremoteBrowser.instances.forEach((browserName: string) => {
                 // @ts-ignore sessionId is usually required
-                delete multiremoteBrowser[i].sessionId
+                delete multiremoteBrowser[browserName].sessionId
             })
         } else {
             // @ts-ignore sessionId is usually required

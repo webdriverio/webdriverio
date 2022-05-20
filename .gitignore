@@ -94,6 +94,5 @@ wallaby.conf.js
 tags
 tests/.retry_succeeded
 *.tsbuildinfo
-*.mjs
 website/docs/Contribute.md
 website/community/Resources.md

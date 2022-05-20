@@ -1,11 +1,14 @@
 #!/usr/bin/env node
+import fs from 'node:fs'
+import url from 'node:url'
+import path from 'node:path'
+import { createRequire } from 'node:module'
+import shell from 'shelljs'
 
-const path = require('path')
-const shell = require('shelljs')
+const require = createRequire(import.meta.url)
+const { getSubPackages } = require('./utils/helpers.js')
+const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 
-const { getSubPackages } = require('./utils/helpers')
-
-const IGNORE_COMPILING_FOR_PACKAGES = ['wdio-protocols']
 const args = process.argv.slice(2)
 const HAS_WATCH_FLAG = args[0] === '--watch'
 const TSCONFIG_FILE = process.env.NODE_ENV === 'production' ? 'tsconfig.prod.json' : 'tsconfig.json'
@@ -34,7 +37,14 @@ const packages = getSubPackages()
     /**
      * Filter out packages that don't need compiling
      */
-    .filter((pkg) => !IGNORE_COMPILING_FOR_PACKAGES.includes(pkg))
+    .filter((pkg) => {
+        try {
+            fs.accessSync(`packages/${pkg}/${TSCONFIG_FILE}`)
+            return true
+        } catch (err) {
+            return false
+        }
+    })
 
     /**
      * Deduplicate root packages

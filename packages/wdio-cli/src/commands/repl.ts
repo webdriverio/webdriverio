@@ -1,6 +1,5 @@
 import pickBy from 'lodash.pickby'
 import { remote } from 'webdriverio'
-import { hasWdioSyncSupport } from '@wdio/utils'
 import { cmdArgs as runCmdArgs } from './run'
 import { getCapabilities } from '../utils'
 import { ReplCommandArguments } from '../types'

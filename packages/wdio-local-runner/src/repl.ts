@@ -1,6 +1,5 @@
 import vm from 'node:vm'
 
-// @ts-expect-error
 import WDIORepl, { ReplConfig, ReplCallback } from '@wdio/repl'
 import type { ChildProcess } from 'node:child_process'
 
