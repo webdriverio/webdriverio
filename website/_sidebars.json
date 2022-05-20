@@ -7,7 +7,6 @@
     ],
     "Core Concepts": [
       "setuptypes",
-      "sync-vs-async",
       "automationProtocols",
       "multiremote",
       "autowait"

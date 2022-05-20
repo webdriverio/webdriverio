@@ -17,7 +17,6 @@ const packages = {
     'devtools': 'packages/devtools',
     'webdriver': 'packages/webdriver',
     'webdriverio': 'packages/webdriverio',
-    '@wdio/sync': 'packages/wdio-sync',
     '@wdio/reporter': 'packages/wdio-reporter',
     '@wdio/allure-reporter': 'packages/wdio-allure-reporter',
     '@wdio/appium-service': 'packages/wdio-appium-service',

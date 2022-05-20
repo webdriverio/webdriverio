@@ -12,7 +12,6 @@ interface Retries {
 }
 
 declare global {
-    var _HAS_FIBER_CONTEXT: boolean
     var browser: any
     var expectAsync: any
 }
@@ -67,15 +66,7 @@ const ELEMENT_PROPS = [
 ]
 const PROMISE_METHODS = ['then', 'catch', 'finally']
 
-/**
- * shim to make sure that we only wrap commands if wdio-sync is installed as dependency
- */
-export let runAsync = true
-export let asyncSpec = true
-
 let executeHooksWithArgs = async function executeHooksWithArgsShim<T> (hookName: string, hooks: Function | Function[] = [], args: any[] = []): Promise<(T | Error)[]> {
-    runAsync = true
-
     /**
      * make sure hooks are an array of functions
      */
@@ -290,53 +281,14 @@ let wrapCommand = function wrapCommand<T>(commandName: string, fn: Function): (.
 
     return function (this: Clients.Browser, ...args: any[]) {
         /**
-         * use sync mode if:
-         * - @wdio/sync package is installed and can be resolved
-         * - if a global.browser is define so we run with wdio testrunner
-         * - we are in a fiber context (flag is set when outer function is wrapped into fibers context)
-         *
-         * also if we run command asynchronous and the command suppose to return an element, we
-         * apply `chainElementQuery` to allow chaining of these promises.
+         * if the command suppose to return an element, we apply `chainElementQuery` to allow
+         * chaining of these promises.
          */
         const command = ELEMENT_QUERY_COMMANDS.includes(commandName) || commandName.endsWith('$')
             ? chainElementQuery
             : wrapCommandFn
 
         return command.apply(this, args)
-    }
-}
-
-/**
- * execute test or hook synchronously
- *
- * @param  {Function} fn         spec or hook method
- * @param  {Number}   retries    { limit: number, attempts: number }
- * @param  {Array}    args       arguments passed to hook
- * @return {Promise}             that gets resolved once test/hook is done or was retried enough
- */
-async function executeSyncFn (this: any, fn: Function, retries: Retries, args: any[] = []): Promise<unknown> {
-    this.wdioRetries = retries.attempts
-
-    try {
-        runAsync = true
-        let res = fn.apply(this, args)
-
-        /**
-         * sometimes function result is Promise,
-         * we need to await result before proceeding
-         */
-        if (res instanceof Promise) {
-            return await res
-        }
-
-        return res
-    } catch (err: any) {
-        if (retries.limit > retries.attempts) {
-            retries.attempts++
-            return await executeSyncFn.call(this, fn, retries, args)
-        }
-
-        return Promise.reject(err)
     }
 }
 
@@ -351,7 +303,6 @@ async function executeSyncFn (this: any, fn: Function, retries: Retries, args: a
 async function executeAsync(this: any, fn: Function, retries: Retries, args: any[] = []): Promise<unknown> {
     // @ts-expect-error
     const isJasmine = global.jasmine && global.expectAsync
-    const asyncSpecBefore = asyncSpec
     this.wdioRetries = retries.attempts
 
     // @ts-ignore
@@ -365,16 +316,10 @@ async function executeAsync(this: any, fn: Function, retries: Retries, args: any
     }
 
     try {
-        runAsync = true
-        asyncSpec = true
         const result = fn.apply(this, args)
 
         if (result && typeof result.finally === 'function') {
-            result
-                .finally(() => (asyncSpec = asyncSpecBefore))
-                .catch((err: any) => err)
-        } else {
-            asyncSpec = asyncSpecBefore
+            result.catch((err: any) => err)
         }
 
         return await result
@@ -393,47 +338,8 @@ async function executeAsync(this: any, fn: Function, retries: Retries, args: any
     }
 }
 
-let executeSync = executeSyncFn
-
-/**
- * Method to switch between sync and async execution. It allows to have async
- * tests in between synchronous tests. `fn` can either return a promise (e.g. for `executeSync`)
- * or a function (e.g. for `runSync`). In both cases we need to make sure that
- * we flip `runAsync` flag to true to that commands are wrapped with the @wdio/sync
- * wrapper.
- */
-export function switchSyncFlag (fn: Function) {
-    return function (this: unknown, ...args: any[]) {
-        const switchFlag = runAsync
-        runAsync = false
-        const result = fn.apply(this, args)
-
-        if (typeof result.finally === 'function') {
-            runAsync = switchFlag
-            return result
-        }
-
-        if (typeof result === 'function') {
-            return function (this: any, ...args: any[]) {
-                const switchFlagWithinFn = runAsync
-                const res = result.apply(this, args)
-                if (typeof result.finally === 'function') {
-                    return result.finally(() => (runAsync = switchFlagWithinFn))
-                }
-
-                runAsync = switchFlagWithinFn
-                return res
-            }
-        }
-
-        runAsync = switchFlag
-        return result
-    }
-}
-
 export {
     executeHooksWithArgs,
     wrapCommand,
-    executeSync,
     executeAsync,
 }

@@ -48,12 +48,7 @@ export const builder = (yargs: yargs.Argv) => {
 
 export const handler = async (argv: ReplCommandArguments) => {
     const caps = getCapabilities(argv)
-
-    /**
-     * runner option required to wrap commands within Fibers context
-     */
-    const execMode = hasWdioSyncSupport ? { runner: 'local' as const } : {}
-    const client = await remote({ ...argv, ...caps, ...execMode })
+    const client = await remote({ ...argv, ...caps })
 
     // @ts-ignore
     global.$ = client.$.bind(client)

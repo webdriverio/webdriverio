@@ -19,16 +19,6 @@ const coveragePathIgnorePatterns = [
     'packages/eslint-plugin-wdio',
 ]
 
-/**
- * check Node.js version and ignore `@wdio/sync` test if we
- * are on v16 or higher
- */
-const [major] = process.versions.node.split('.')
-if (parseInt(major) >= 16) {
-    testPathIgnorePatterns.push('<rootDir>/packages/wdio-sync')
-    coveragePathIgnorePatterns.push('/packages/wdio-sync')
-}
-
 module.exports = {
     globals: {
         'ts-jest': {

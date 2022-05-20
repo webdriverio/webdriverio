@@ -470,6 +470,12 @@ const severeErrorTest = async () => {
 
 (async () => {
     const smokeTests = [
+        mochaTestrunner,
+        jasmineTestrunner,
+        multiremote,
+        wdioHooks,
+        sharedStoreServiceTest,
+        mochaSpecGrouping,
         cucumberTestrunner,
         cucumberFailAmbiguousDefinitions,
         cucumberReporter,
@@ -486,22 +492,6 @@ const severeErrorTest = async () => {
         customReporterObject,
         severeErrorTest
     ]
-
-    /**
-     * add smoke tests that run in sync mode and need Fibers and therefor
-     * aren't supported in Node.js v16 and above
-     */
-    const [major] = process.versions.node.split('.')
-    if (parseInt(major) < 16) {
-        smokeTests.push(
-            mochaTestrunner,
-            jasmineTestrunner,
-            multiremote,
-            wdioHooks,
-            sharedStoreServiceTest,
-            mochaSpecGrouping
-        )
-    }
 
     console.log('\nRunning smoke tests...\n')
     await runTests(smokeTests)
