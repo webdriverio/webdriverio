@@ -8,8 +8,7 @@ import {
     isFunctionAsync, transformCommandLogResult, canAccess, sleep
 } from './utils.js'
 import {
-    wrapCommand, executeHooksWithArgs,
-    hasWdioSyncSupport, executeSync, executeAsync
+    wrapCommand, executeHooksWithArgs, executeSync, executeAsync
 } from './shim.js'
 import { testFnWrapper, runTestInFiberContext } from './test-framework/index.js'
 import {
@@ -41,7 +40,6 @@ export {
     runTestInFiberContext,
     testFnWrapper,
     executeHooksWithArgs,
-    hasWdioSyncSupport,
 
     /**
      * environmentDetector

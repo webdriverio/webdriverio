@@ -1,12 +1,15 @@
-const { post } = jest.requireActual('got')
-import StoreServer from '../src/server'
+import { describe, expect, vi, beforeAll, afterAll, afterEach, it } from 'vitest'
+import { startServer, stopServer, __store } from '../src/server'
 
-const { startServer, stopServer, __store } = StoreServer
-const errHandler = jest.fn()
+vi.mock('got')
+
+const { post } = await vi.importActual('got')
+const errHandler = vi.fn()
 
 describe('WdioSharedStoreService exports', () => {
     let setUrl: string
     let getUrl: string
+
     beforeAll(async () => {
         const result = await startServer()
         const baseUrl = `http://localhost:${result.port}`
