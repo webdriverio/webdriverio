@@ -1,27 +1,27 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Vitest Snapshot v1
 
-exports[`SpecReporter getHeaderDisplay should list multiple specs 1`] = `
-Array [
+exports[`SpecReporter > getHeaderDisplay > should list multiple specs 1`] = `
+[
   "Running: loremipsum (v50) on Windows 10",
   "Session ID: foobar",
 ]
 `;
 
-exports[`SpecReporter getHeaderDisplay should validate header output 1`] = `
-Array [
+exports[`SpecReporter > getHeaderDisplay > should validate header output 1`] = `
+[
   "Running: loremipsum (v50) on Windows 10",
   "Session ID: foobar",
 ]
 `;
 
-exports[`SpecReporter getHeaderDisplay should validate header output in multiremote 1`] = `
-Array [
+exports[`SpecReporter > getHeaderDisplay > should validate header output in multiremote 1`] = `
+[
   "Running: MultiremoteBrowser on chrome, firefox",
 ]
 `;
 
-exports[`SpecReporter getResultDisplay should not print if data table format is not given 1`] = `
-Array [
+exports[`SpecReporter > getResultDisplay > should not print if data table format is not given 1`] = `
+[
   "» /foo/bar/loo.e2e.js",
   "Foo test",
   "grey Some important",
@@ -34,8 +34,8 @@ Array [
 ]
 `;
 
-exports[`SpecReporter getResultDisplay should not print if data table is empty 1`] = `
-Array [
+exports[`SpecReporter > getResultDisplay > should not print if data table is empty 1`] = `
+[
   "» /foo/bar/loo.e2e.js",
   "Foo test",
   "grey Some important",
@@ -48,8 +48,8 @@ Array [
 ]
 `;
 
-exports[`SpecReporter getResultDisplay should print data tables 1`] = `
-Array [
+exports[`SpecReporter > getResultDisplay > should print data tables 1`] = `
+[
   "» /foo/bar/loo.e2e.js",
   "Foo test",
   "grey Some important",
@@ -66,8 +66,8 @@ Array [
 ]
 `;
 
-exports[`SpecReporter getResultDisplay should validate the result output with tests 1`] = `
-Array [
+exports[`SpecReporter > getResultDisplay > should validate the result output with tests 1`] = `
+[
   "» /foo/bar/loo.e2e.js",
   "Foo test",
   "   green ✓ foo",
@@ -87,9 +87,9 @@ Array [
 ]
 `;
 
-exports[`SpecReporter onlyFailures false 0 failures 1`] = `
-Array [
-  Array [
+exports[`SpecReporter > onlyFailures > false > 0 failures 1`] = `
+[
+  [
     "------------------------------------------------------------------
 [loremipsum 50 Windows 10 #0-0] Running: loremipsum (v50) on Windows 10
 [loremipsum 50 Windows 10 #0-0] Session ID: foobar
@@ -122,9 +122,9 @@ Array [
 ]
 `;
 
-exports[`SpecReporter onlyFailures false 1 failure 1`] = `
-Array [
-  Array [
+exports[`SpecReporter > onlyFailures > false > 1 failure 1`] = `
+[
+  [
     "------------------------------------------------------------------
 [loremipsum 50 Windows 10 #0-0] Running: loremipsum (v50) on Windows 10
 [loremipsum 50 Windows 10 #0-0] Session ID: foobar
@@ -157,11 +157,11 @@ Array [
 ]
 `;
 
-exports[`SpecReporter onlyFailures true 0 failures 1`] = `Array []`;
+exports[`SpecReporter > onlyFailures > true > 0 failures 1`] = `[]`;
 
-exports[`SpecReporter onlyFailures true 1 failure 1`] = `
-Array [
-  Array [
+exports[`SpecReporter > onlyFailures > true > 1 failure 1`] = `
+[
+  [
     "------------------------------------------------------------------
 [loremipsum 50 Windows 10 #0-0] Running: loremipsum (v50) on Windows 10
 [loremipsum 50 Windows 10 #0-0] Session ID: foobar
@@ -194,11 +194,11 @@ Array [
 ]
 `;
 
-exports[`SpecReporter printReport with disabled sharable Sauce report links should print the default Sauce Labs job details page link 1`] = `Array []`;
+exports[`SpecReporter > printReport > with disabled sharable Sauce report links > should print the default Sauce Labs job details page link 1`] = `[]`;
 
-exports[`SpecReporter printReport with normal setup should print jobs of all instance when run with multiremote 1`] = `
-Array [
-  Array [
+exports[`SpecReporter > printReport > with normal setup > should print jobs of all instance when run with multiremote 1`] = `
+[
+  [
     "------------------------------------------------------------------
 [MultiremoteBrowser #0-0] Running: MultiremoteBrowser on ,
 [MultiremoteBrowser #0-0]
@@ -236,9 +236,9 @@ Array [
 ]
 `;
 
-exports[`SpecReporter printReport with normal setup should print link to Sauce Labs for many regions 1`] = `
-Array [
-  Array [
+exports[`SpecReporter > printReport > with normal setup > should print link to Sauce Labs for many regions 1`] = `
+[
+  [
     "------------------------------------------------------------------
 [loremipsum 50 Windows 10 #0-0] Running: loremipsum (v50) on Windows 10
 [loremipsum 50 Windows 10 #0-0] Session ID: foobar
@@ -276,9 +276,9 @@ Array [
 ]
 `;
 
-exports[`SpecReporter printReport with normal setup should print link to Sauce Labs for many regions 2`] = `
-Array [
-  Array [
+exports[`SpecReporter > printReport > with normal setup > should print link to Sauce Labs for many regions 2`] = `
+[
+  [
     "------------------------------------------------------------------
 [loremipsum 50 Windows 10 #0-0] Running: loremipsum (v50) on Windows 10
 [loremipsum 50 Windows 10 #0-0] Session ID: foobar
@@ -316,9 +316,9 @@ Array [
 ]
 `;
 
-exports[`SpecReporter printReport with normal setup should print link to Sauce Labs for many regions 3`] = `
-Array [
-  Array [
+exports[`SpecReporter > printReport > with normal setup > should print link to Sauce Labs for many regions 3`] = `
+[
+  [
     "------------------------------------------------------------------
 [loremipsum 50 Windows 10 #0-0] Running: loremipsum (v50) on Windows 10
 [loremipsum 50 Windows 10 #0-0] Session ID: foobar
@@ -356,9 +356,9 @@ Array [
 ]
 `;
 
-exports[`SpecReporter printReport with normal setup should print link to Sauce Labs job details page for RDC 1`] = `
-Array [
-  Array [
+exports[`SpecReporter > printReport > with normal setup > should print link to Sauce Labs job details page for RDC 1`] = `
+[
+  [
     "------------------------------------------------------------------
 [udid-serial-of-device iOS 14.3 #0-0] Running: udid-serial-of-device on iOS 14.3 executing safari
 [udid-serial-of-device iOS 14.3 #0-0]
@@ -395,9 +395,9 @@ Array [
 ]
 `;
 
-exports[`SpecReporter printReport with normal setup should print link to Sauce Labs job details page for VDC 1`] = `
-Array [
-  Array [
+exports[`SpecReporter > printReport > with normal setup > should print link to Sauce Labs job details page for VDC 1`] = `
+[
+  [
     "------------------------------------------------------------------
 [loremipsum 50 Windows 10 #0-0] Running: loremipsum (v50) on Windows 10
 [loremipsum 50 Windows 10 #0-0] Session ID: foobar
@@ -435,9 +435,9 @@ Array [
 ]
 `;
 
-exports[`SpecReporter printReport with normal setup should print link to Sauce Labs job details page if run with Sauce Connect (jsonwp) 1`] = `
-Array [
-  Array [
+exports[`SpecReporter > printReport > with normal setup > should print link to Sauce Labs job details page if run with Sauce Connect (jsonwp) 1`] = `
+[
+  [
     "------------------------------------------------------------------
 [loremipsum 50 Windows 10 #0-0] Running: loremipsum (v50) on Windows 10
 [loremipsum 50 Windows 10 #0-0] Session ID: foobar
@@ -475,9 +475,9 @@ Array [
 ]
 `;
 
-exports[`SpecReporter printReport with normal setup should print link to Sauce Labs job details page if run with Sauce Connect (w3c) 1`] = `
-Array [
-  Array [
+exports[`SpecReporter > printReport > with normal setup > should print link to Sauce Labs job details page if run with Sauce Connect (w3c) 1`] = `
+[
+  [
     "------------------------------------------------------------------
 [loremipsum 50 Windows 10 #0-0] Running: loremipsum (v50) on Windows 10
 [loremipsum 50 Windows 10 #0-0] Session ID: foobar
@@ -515,9 +515,9 @@ Array [
 ]
 `;
 
-exports[`SpecReporter printReport with normal setup should print the report to the console 1`] = `
-Array [
-  Array [
+exports[`SpecReporter > printReport > with normal setup > should print the report to the console 1`] = `
+[
+  [
     "------------------------------------------------------------------
 [loremipsum 50 Windows 10 #0-0] Running: loremipsum (v50) on Windows 10
 [loremipsum 50 Windows 10 #0-0] Session ID: foobar
@@ -553,72 +553,6 @@ Array [
 ]
 `;
 
-exports[`SpecReporter showPreface false 1`] = `
-Array [
-  Array [
-    "------------------------------------------------------------------
-Running: loremipsum (v50) on Windows 10
-Session ID: foobar
+exports[`SpecReporter > showPreface > false 1`] = `[]`;
 
-» /foo/bar/loo.e2e.js
-Foo test
-   green ✓ foo
-   green ✓ bar
-
-» /bar/foo/loo.e2e.js
-Bar test
-   green ✓ some test
-   red ✖ a failed test
-   red ✖ a failed test with no stack
-
-» /bar/loo/foo.e2e.js
-Baz test
-   green ✓ foo bar baz
-   cyan - a skipped test
-
-
-1) Bar test a failed test
-red expected foo to equal bar
-gray Failed test stack trace
-
-2) Bar test a failed test with no stack
-red expected foo to equal bar
-",
-  ],
-]
-`;
-
-exports[`SpecReporter showPreface true 1`] = `
-Array [
-  Array [
-    "------------------------------------------------------------------
-[loremipsum 50 Windows 10 #0-0] Running: loremipsum (v50) on Windows 10
-[loremipsum 50 Windows 10 #0-0] Session ID: foobar
-[loremipsum 50 Windows 10 #0-0]
-[loremipsum 50 Windows 10 #0-0] » /foo/bar/loo.e2e.js
-[loremipsum 50 Windows 10 #0-0] Foo test
-[loremipsum 50 Windows 10 #0-0]    green ✓ foo
-[loremipsum 50 Windows 10 #0-0]    green ✓ bar
-[loremipsum 50 Windows 10 #0-0]
-[loremipsum 50 Windows 10 #0-0] » /bar/foo/loo.e2e.js
-[loremipsum 50 Windows 10 #0-0] Bar test
-[loremipsum 50 Windows 10 #0-0]    green ✓ some test
-[loremipsum 50 Windows 10 #0-0]    red ✖ a failed test
-[loremipsum 50 Windows 10 #0-0]    red ✖ a failed test with no stack
-[loremipsum 50 Windows 10 #0-0]
-[loremipsum 50 Windows 10 #0-0] » /bar/loo/foo.e2e.js
-[loremipsum 50 Windows 10 #0-0] Baz test
-[loremipsum 50 Windows 10 #0-0]    green ✓ foo bar baz
-[loremipsum 50 Windows 10 #0-0]    cyan - a skipped test
-[loremipsum 50 Windows 10 #0-0]
-[loremipsum 50 Windows 10 #0-0]
-[loremipsum 50 Windows 10 #0-0] 1) Bar test a failed test
-[loremipsum 50 Windows 10 #0-0] red expected foo to equal bar
-[loremipsum 50 Windows 10 #0-0] gray Failed test stack trace
-[loremipsum 50 Windows 10 #0-0]
-[loremipsum 50 Windows 10 #0-0] 2) Bar test a failed test with no stack
-[loremipsum 50 Windows 10 #0-0] red expected foo to equal bar
-",
-  ],
-]
-`;
+exports[`SpecReporter > showPreface > true 1`] = `[]`;

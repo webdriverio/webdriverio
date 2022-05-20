@@ -1,5 +1,5 @@
 import Table from 'easy-table'
-import * as Crypto from 'crypto'
+import { createHmac } from 'node:crypto'
 
 const SEPARATOR = '│'
 
@@ -43,10 +43,8 @@ export const getFormattedRows = (table: string, testIndent: string) =>
 export const sauceAuthenticationToken = (user:string, key:string, sessionId:string) => {
     const secret = `${user}:${key}`
 
-    // Create the token
-    const token = Crypto
-        // Calling createHmac method
-        .createHmac('md5', secret)
+    // Create the token by calling createHmac method
+    const token = createHmac('md5', secret)
         // Update data
         .update(sessionId)
         // Encoding to be used

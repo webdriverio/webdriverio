@@ -1,3 +1,5 @@
+import path from 'node:path'
+import { describe, expect, it, vi, beforeEach, beforeAll } from 'vitest'
 import { runnerEnd } from '../../wdio-allure-reporter/tests/__fixtures__/runner'
 import SpecReporter from '../src'
 import {
@@ -9,6 +11,9 @@ import {
     SUITES_NO_TESTS_WITH_HOOK_ERROR,
     SUITES_MULTIPLE_ERRORS
 } from './__fixtures__/testdata'
+
+vi.mock('chalk')
+vi.mock('@wdio/reporter', () => import(path.join(process.cwd(), '__mocks__', '@wdio/reporter')))
 
 const reporter = new SpecReporter({})
 
@@ -61,9 +66,9 @@ describe('SpecReporter', () => {
     describe('onHookEnd', () => {
         it('should increase stateCount failures if hook failed', () => {
             expect(tmpReporter['_stateCounts'].failed).toBe(0)
-            tmpReporter.onHookEnd({})
+            tmpReporter.onHookEnd({} as any)
             expect(tmpReporter['_stateCounts'].failed).toBe(0)
-            tmpReporter.onHookEnd({ error: new Error('boom!') })
+            tmpReporter.onHookEnd({ error: new Error('boom!') } as any)
             expect(tmpReporter['_stateCounts'].failed).toBe(1)
         })
     })
@@ -74,12 +79,12 @@ describe('SpecReporter', () => {
                 tests: [{ type: 'test', title: '1' }, { type: 'test', title: '2' }],
                 hooks: [{}],
                 hooksAndTests: [{}, { type: 'test', title: '11' }, {}, { type: 'test', title: '22' }, {}]
-            })).toEqual([{ type: 'test', title: '11' }, { type: 'test', title: '22' }])
+            } as any)).toEqual([{ type: 'test', title: '11' }, { type: 'test', title: '22' }])
             expect(tmpReporter.getEventsToReport({
                 tests: [{ type: 'test', title: '1' }, { type: 'test', title: '2' }],
                 hooks: [{ error: 1 }, {}, { error: 2 }],
                 hooksAndTests: [{}, { error: 11 }, {}, { type: 'test', title: '33' }, {}, { error: 22 }, {}]
-            })).toEqual([{ error: 11 }, { type: 'test', title: '33' }, { error: 22 }])
+            } as any)).toEqual([{ error: 11 }, { type: 'test', title: '33' }, { error: 22 }])
         })
     })
 
@@ -88,7 +93,7 @@ describe('SpecReporter', () => {
             reporter.onTestPass({
                 title:'test1',
                 state:'passed'
-            })
+            } as any)
         })
 
         it('should increase stateCounts.passed by 1', () => {
@@ -101,7 +106,7 @@ describe('SpecReporter', () => {
             reporter.onTestFail({
                 title:'test1',
                 state:'failed'
-            })
+            } as any)
         })
 
         it('should increase stateCounts.failed by 1', () => {
@@ -114,7 +119,7 @@ describe('SpecReporter', () => {
             reporter.onTestSkip({
                 title:'test1',
                 state:'skipped'
-            })
+            } as any)
         })
 
         it('should increase stateCounts.skipped by 1', () => {
@@ -134,25 +139,25 @@ describe('SpecReporter', () => {
 
     describe('onRunnerEnd', () => {
         it('should call printReport method', () => {
-            reporter.printReport = jest.fn()
+            reporter.printReport = vi.fn()
             reporter.onRunnerEnd(RUNNER as any)
 
-            expect((reporter.printReport as jest.Mock).mock.calls.length).toBe(1)
-            expect((reporter.printReport as jest.Mock).mock.calls[0][0]).toEqual(RUNNER)
+            expect(vi.mocked(reporter.printReport).mock.calls.length).toBe(1)
+            expect(vi.mocked(reporter.printReport).mock.calls[0][0]).toEqual(RUNNER)
         })
     })
 
     describe('printReport', () => {
-        let printReporter = null
+        let printReporter: any = null
 
         beforeEach(() => {
             printReporter = new SpecReporter({})
-            printReporter.write = jest.fn()
+            printReporter.write = vi.fn()
             printReporter.runnerStat = {
                 instanceOptions: {
                     [fakeSessionId]: {}
                 }
-            }
+            } as any
         })
 
         describe('with normal setup', () => {
@@ -294,14 +299,14 @@ describe('SpecReporter', () => {
             const options = { sauceLabsSharableLinks: false }
             beforeEach(() => {
                 tmpReporter = new SpecReporter(options)
-                tmpReporter.suiteUids = SUITE_UIDS
-                tmpReporter.suites = SUITES
-                tmpReporter.stateCounts = {
-                    passed: 4,
-                    failed: 1,
-                    skipped: 1,
-                }
-                tmpReporter.write = jest.fn()
+                // tmpReporter.suiteUids = SUITE_UIDS
+                // tmpReporter.suites = SUITES
+                // tmpReporter.stateCounts = {
+                //     passed: 4,
+                //     failed: 1,
+                //     skipped: 1,
+                // }
+                tmpReporter.write = vi.fn()
             })
 
             it('should print the default Sauce Labs job details page link', () => {
@@ -311,7 +316,7 @@ describe('SpecReporter', () => {
                     key: '123',
                 })
                 tmpReporter.printReport(runner)
-                expect(tmpReporter.write.mock.calls).toMatchSnapshot()
+                expect(vi.mocked(tmpReporter.write).mock.calls).toMatchSnapshot()
             })
         })
 
@@ -368,31 +373,25 @@ describe('SpecReporter', () => {
 
     describe('getResultDisplay', () => {
         it('should validate the result output with tests', () => {
-            tmpReporter.getOrderedSuites = jest.fn(() => Object.values(SUITES))
-            tmpReporter.suites = SUITES
-
+            tmpReporter.getOrderedSuites = vi.fn(() => Object.values(SUITES)) as any
             const result = tmpReporter.getResultDisplay()
             expect(result).toMatchSnapshot()
         })
 
         it('should validate the result output with no tests', () => {
-            tmpReporter.getOrderedSuites = jest.fn(() => Object.values(SUITES_NO_TESTS))
-            tmpReporter.suites = SUITES_NO_TESTS
-
+            tmpReporter.getOrderedSuites = vi.fn(() => Object.values(SUITES_NO_TESTS)) as any
             const result = tmpReporter.getResultDisplay()
             expect(result.length).toBe(0)
         })
 
         it('should print data tables', () => {
-            tmpReporter.getOrderedSuites = jest.fn(() => Object.values(SUITES_WITH_DATA_TABLE))
-            tmpReporter.suites = SUITES_WITH_DATA_TABLE
-
+            tmpReporter.getOrderedSuites = vi.fn(() => Object.values(SUITES_WITH_DATA_TABLE)) as any
             const result = tmpReporter.getResultDisplay()
             expect(result).toMatchSnapshot()
         })
 
         it('should not print if data table format is not given', () => {
-            tmpReporter.getOrderedSuites = jest.fn(() => {
+            tmpReporter.getOrderedSuites = vi.fn(() => {
                 const suites = Object.values(JSON.parse(JSON.stringify(SUITES_WITH_DATA_TABLE))) as any[]
                 suites[0].hooksAndTests[0].argument = 'some different format'
                 return suites
@@ -402,7 +401,7 @@ describe('SpecReporter', () => {
         })
 
         it('should not print if data table is empty', () => {
-            tmpReporter.getOrderedSuites = jest.fn(() => {
+            tmpReporter.getOrderedSuites = vi.fn(() => {
                 const suites = Object.values(JSON.parse(JSON.stringify(SUITES_WITH_DATA_TABLE))) as any[]
                 suites[0].hooksAndTests[0].argument.rows = []
                 return suites
@@ -416,7 +415,7 @@ describe('SpecReporter', () => {
     describe('getCountDisplay', () => {
         it('should return only passing counts', () => {
             tmpReporter['_stateCounts'].passed = 2
-            const result = tmpReporter.getCountDisplay(5)
+            const result = tmpReporter.getCountDisplay('5')
 
             expect(result.length).toBe(1)
             expect(result[0]).toBe('green 2 passing 5')
@@ -425,7 +424,7 @@ describe('SpecReporter', () => {
         it('should return passing and failing counts', () => {
             tmpReporter['_stateCounts'].passed = 2
             tmpReporter['_stateCounts'].failed = 1
-            const result = tmpReporter.getCountDisplay(5)
+            const result = tmpReporter.getCountDisplay('5')
 
             expect(result.length).toBe(2)
             expect(result[0]).toBe('green 2 passing 5')
@@ -435,7 +434,7 @@ describe('SpecReporter', () => {
         it('should return failing and skipped counts', () => {
             tmpReporter['_stateCounts'].failed = 1
             tmpReporter['_stateCounts'].skipped = 2
-            const result = tmpReporter.getCountDisplay(5)
+            const result = tmpReporter.getCountDisplay('5')
 
             expect(result.length).toBe(2)
             expect(result[0]).toBe('red 1 failing 5')
@@ -444,7 +443,7 @@ describe('SpecReporter', () => {
 
         it('should only display skipped with duration', () => {
             tmpReporter['_stateCounts'].skipped = 2
-            const result = tmpReporter.getCountDisplay(5)
+            const result = tmpReporter.getCountDisplay('5')
 
             expect(result.length).toBe(1)
             expect(result[0]).toBe('cyan 2 skipped 5')
@@ -453,9 +452,7 @@ describe('SpecReporter', () => {
 
     describe('getFailureDisplay', () => {
         it('should return failing results', () => {
-            tmpReporter.getOrderedSuites = jest.fn(() => Object.values(SUITES))
-            tmpReporter.suites = SUITES
-
+            tmpReporter.getOrderedSuites = vi.fn(() => Object.values(SUITES)) as any
             const result = tmpReporter.getFailureDisplay()
 
             expect(result.length).toBe(7)
@@ -466,18 +463,14 @@ describe('SpecReporter', () => {
         })
 
         it('should return no results', () => {
-            tmpReporter.getOrderedSuites = jest.fn(() => Object.values(SUITES_NO_TESTS))
-            tmpReporter.suites = SUITES_NO_TESTS
-
+            tmpReporter.getOrderedSuites = vi.fn(() => Object.values(SUITES_NO_TESTS)) as any
             const result = tmpReporter.getFailureDisplay()
 
             expect(result.length).toBe(0)
         })
 
         it('should return mutliple failing results if they exist', () => {
-            tmpReporter.getOrderedSuites = jest.fn(() => Object.values(SUITES_MULTIPLE_ERRORS))
-            tmpReporter.suites = SUITES_MULTIPLE_ERRORS
-
+            tmpReporter.getOrderedSuites = vi.fn(() => Object.values(SUITES_MULTIPLE_ERRORS)) as any
             const result = tmpReporter.getFailureDisplay()
             expect(result.length).toBe(6)
             expect(result[0]).toBe('')
@@ -491,9 +484,8 @@ describe('SpecReporter', () => {
 
     describe('getOrderedSuites', () => {
         it('should return the suites in order based on uids', () => {
-            tmpReporter.foo = 'hellooo'
             tmpReporter['_suiteUids'] = new Set(['5', '3', '8'])
-            tmpReporter.suites = { '3': { uid: 3 }, '5': { uid: 5 } }
+            tmpReporter.suites = { '3': { uid: 3 }, '5': { uid: 5 } } as any
 
             const result = tmpReporter.getOrderedSuites()
 
@@ -501,14 +493,13 @@ describe('SpecReporter', () => {
             expect(result[0]).toEqual({ uid: 5 })
             expect(result[1]).toEqual({ uid: 3 })
 
-            expect(tmpReporter._orderedSuites.length).toBe(2)
-            expect(tmpReporter._orderedSuites[0]).toEqual({ uid: 5 })
-            expect(tmpReporter._orderedSuites[1]).toEqual({ uid: 3 })
+            expect(tmpReporter['_orderedSuites'].length).toBe(2)
+            expect(tmpReporter['_orderedSuites'][0]).toEqual({ uid: 5 })
+            expect(tmpReporter['_orderedSuites'][1]).toEqual({ uid: 3 })
         })
 
         it('should return the cached ordered suites', () => {
-            tmpReporter.foo = 'hellooo boo'
-            tmpReporter._orderedSuites = ['foo', 'bar']
+            tmpReporter['_orderedSuites'] = ['foo', 'bar'] as any
             const result = tmpReporter.getOrderedSuites()
 
             expect(result.length).toBe(2)
@@ -522,7 +513,7 @@ describe('SpecReporter', () => {
     })
 
     describe('indent', () => {
-        const uid = 123
+        const uid = '123'
 
         it('should not indent', () => {
             tmpReporter['_suiteIndents'][uid] = 0
@@ -588,7 +579,7 @@ describe('SpecReporter', () => {
             tmpReporter.onTestPass({
                 title:'test1',
                 state:'passed'
-            })
+            } as any)
             expect(tmpReporter.getResultDisplay().toString()).toContain('Printing to console spec')
             tmpReporter.onSuiteEnd()
             tmpReporter.onRunnerEnd(runnerEnd())
@@ -603,7 +594,7 @@ describe('SpecReporter', () => {
             tmpReporter.onTestFail({
                 title:'test1',
                 state:'failed'
-            })
+            } as any)
             expect(tmpReporter.getResultDisplay().toString()).toContain('Printing to console spec')
             tmpReporter.onSuiteEnd()
             tmpReporter.onRunnerEnd(runnerEnd())
@@ -618,7 +609,7 @@ describe('SpecReporter', () => {
             tmpReporter.onTestSkip({
                 title:'test1',
                 state:'skipped'
-            })
+            } as any)
             expect(tmpReporter.getResultDisplay().toString()).toContain('Printing to console spec')
             tmpReporter.onSuiteEnd()
             tmpReporter.onRunnerEnd(runnerEnd())
@@ -636,13 +627,13 @@ describe('SpecReporter', () => {
     })
 
     describe('onlyFailures', () => {
-        let printReporter = null
+        let printReporter: any = null
         const runner = getRunnerConfig({ hostname: 'localhost' })
 
         describe('false', () => {
             beforeEach(() => {
                 printReporter = new SpecReporter({ onlyFailures: false })
-                printReporter.write = jest.fn()
+                printReporter.write = vi.fn()
                 printReporter['_suiteUids'] = SUITE_UIDS
                 printReporter.suites = SUITES
             })
@@ -667,7 +658,7 @@ describe('SpecReporter', () => {
         describe('true', () => {
             beforeEach(() => {
                 printReporter = new SpecReporter({ onlyFailures: true })
-                printReporter.write = jest.fn()
+                printReporter.write = vi.fn()
                 printReporter['_suiteUids'] = SUITE_UIDS
                 printReporter.suites = SUITES
             })
@@ -695,24 +686,22 @@ describe('SpecReporter', () => {
         const runner = getRunnerConfig({ hostname: 'localhost' })
         it('false', () => {
             printReporter = new SpecReporter({ showPreface: false })
-            printReporter.write = jest.fn()
+            printReporter.write = vi.fn()
             printReporter['_suiteUids'] = SUITE_UIDS
-            printReporter.suites = SUITES
             printReporter.printReport(runner)
 
             expect(printReporter['_showPreface']).toBe(false)
-            expect(printReporter.write.mock.calls).toMatchSnapshot()
+            expect(vi.mocked(printReporter.write).mock.calls).toMatchSnapshot()
         })
 
         it('true', () => {
             printReporter = new SpecReporter({ showPreface: true })
-            printReporter.write = jest.fn()
+            printReporter.write = vi.fn()
             printReporter['_suiteUids'] = SUITE_UIDS
-            printReporter.suites = SUITES
             printReporter.printReport(runner)
 
             expect(printReporter['_showPreface']).toBe(true)
-            expect(printReporter.write.mock.calls).toMatchSnapshot()
+            expect(vi.mocked(printReporter.write).mock.calls).toMatchSnapshot()
         })
     })
 
@@ -742,7 +731,7 @@ describe('SpecReporter', () => {
                     browserName: 'chrome',
                     platform: 'Windows 8.1'
                 }
-            }, true, true)).toBe('MultiremoteBrowser on chrome')
+            } as any, true, true)).toBe('MultiremoteBrowser on chrome')
         })
 
         it('should return verbose desktop combo', () => {
@@ -750,7 +739,7 @@ describe('SpecReporter', () => {
                 browserName: 'chrome',
                 version: 50,
                 platform: 'Windows 8.1'
-            })).toBe('chrome (v50) on Windows 8.1')
+            } as any)).toBe('chrome (v50) on Windows 8.1')
         })
 
         it('should return preface desktop combo', () => {
@@ -758,7 +747,7 @@ describe('SpecReporter', () => {
                 browserName: 'chrome',
                 version: 50,
                 platform: 'Windows 8.1'
-            }, false)).toBe('chrome 50 Windows 8.1')
+            } as any, false)).toBe('chrome 50 Windows 8.1')
         })
 
         it('should return verbose mobile combo', () => {
@@ -819,7 +808,7 @@ describe('SpecReporter', () => {
                 browser_version: 50,
                 os: 'Windows',
                 os_version: '10'
-            })).toBe('Chrome (v50) on Windows 10')
+            } as any)).toBe('Chrome (v50) on Windows 10')
         })
 
         it('should return preface desktop combo when using BrowserStack capabilities', () => {
@@ -828,21 +817,21 @@ describe('SpecReporter', () => {
                 browser_version: 50,
                 os: 'Windows',
                 os_version: '10'
-            }, false)).toBe('Chrome 50 Windows 10')
+            } as any, false)).toBe('Chrome 50 Windows 10')
         })
 
         it('should return verbose desktop combo when using BrowserStack capabilities without os', () => {
             expect(tmpReporter.getEnviromentCombo({
                 browser: 'Chrome',
                 browser_version: 50,
-            })).toBe('Chrome (v50) on (unknown)')
+            } as any)).toBe('Chrome (v50) on (unknown)')
         })
 
         it('should return preface desktop combo when using BrowserStack capabilities without os', () => {
             expect(tmpReporter.getEnviromentCombo({
                 browser: 'Chrome',
                 browser_version: 50,
-            }, false)).toBe('Chrome 50 (unknown)')
+            } as any, false)).toBe('Chrome 50 (unknown)')
         })
 
         it('should return verbose desktop combo when using BrowserStack capabilities without os_version', () => {
@@ -850,7 +839,7 @@ describe('SpecReporter', () => {
                 browser: 'Chrome',
                 browser_version: 50,
                 os: 'Windows',
-            })).toBe('Chrome (v50) on Windows')
+            } as any)).toBe('Chrome (v50) on Windows')
         })
 
         it('should return preface desktop combo when using BrowserStack capabilities without os_version', () => {
@@ -858,21 +847,21 @@ describe('SpecReporter', () => {
                 browser: 'Chrome',
                 browser_version: 50,
                 os: 'Windows',
-            }, false)).toBe('Chrome 50 Windows')
+            } as any, false)).toBe('Chrome 50 Windows')
         })
 
         it('should return verbose desktop combo without platform', () => {
             expect(tmpReporter.getEnviromentCombo({
                 browserName: 'chrome',
                 version: 50,
-            })).toBe('chrome (v50) on (unknown)')
+            } as any)).toBe('chrome (v50) on (unknown)')
         })
 
         it('should return preface desktop combo without platform', () => {
             expect(tmpReporter.getEnviromentCombo({
                 browserName: 'chrome',
                 version: 50,
-            }, false)).toBe('chrome 50 (unknown)')
+            } as any, false)).toBe('chrome 50 (unknown)')
         })
     })
 
@@ -881,7 +870,7 @@ describe('SpecReporter', () => {
 
         it('should call printCurrentStats for passing test', () => {
             tmpReporter = new SpecReporter(options)
-            jest.spyOn(tmpReporter, 'printCurrentStats')
+            vi.spyOn(tmpReporter, 'printCurrentStats')
             tmpReporter.onSuiteStart(Object.values(SUITES)[0] as any)
             tmpReporter.onTestStart()
             tmpReporter['_orderedSuites'] = Object.values(SUITES) as any
@@ -889,7 +878,7 @@ describe('SpecReporter', () => {
             tmpReporter.onTestPass({
                 title:'test1',
                 state:'passed'
-            })
+            } as any)
             expect(tmpReporter.printCurrentStats).toBeCalledWith({
                 title:'test1',
                 state:'passed'
@@ -900,7 +889,7 @@ describe('SpecReporter', () => {
 
         it('should call printCurrentStats for falling test', () => {
             tmpReporter = new SpecReporter(options)
-            jest.spyOn(tmpReporter, 'printCurrentStats')
+            vi.spyOn(tmpReporter, 'printCurrentStats')
             tmpReporter.onSuiteStart(Object.values(SUITES)[0] as any)
             tmpReporter.onTestStart()
             tmpReporter['_orderedSuites'] = Object.values(SUITES) as any
@@ -908,7 +897,7 @@ describe('SpecReporter', () => {
             tmpReporter.onTestPass({
                 title:'test1',
                 state:'failed'
-            })
+            } as any)
             expect(tmpReporter.printCurrentStats).toBeCalledWith({
                 title:'test1',
                 state:'failed'
@@ -919,7 +908,7 @@ describe('SpecReporter', () => {
 
         it('should call printCurrentStats skipped test', () => {
             tmpReporter = new SpecReporter(options)
-            jest.spyOn(tmpReporter, 'printCurrentStats')
+            vi.spyOn(tmpReporter, 'printCurrentStats')
             tmpReporter.onSuiteStart(Object.values(SUITES)[0] as any)
             tmpReporter.onTestStart()
             tmpReporter['_orderedSuites'] = Object.values(SUITES) as any
@@ -927,7 +916,7 @@ describe('SpecReporter', () => {
             tmpReporter.onTestPass({
                 title:'test1',
                 state:'skipped'
-            })
+            } as any)
             expect(tmpReporter.printCurrentStats).toBeCalledWith({
                 title:'test1',
                 state:'skipped'
@@ -939,7 +928,7 @@ describe('SpecReporter', () => {
 
     it('should call printCurrentStats on Hook complete', () => {
         tmpReporter = new SpecReporter({ realtimeReporting : false })
-        jest.spyOn(tmpReporter, 'printCurrentStats')
+        vi.spyOn(tmpReporter, 'printCurrentStats')
         tmpReporter.onSuiteStart(Object.values(SUITES)[0] as any)
         tmpReporter.onTestStart()
         tmpReporter['_orderedSuites'] = Object.values(SUITES) as any
@@ -947,7 +936,7 @@ describe('SpecReporter', () => {
         tmpReporter.onHookEnd({
             title:'test1',
             state:'failed'
-        })
+        } as any)
         expect(tmpReporter.printCurrentStats).toBeCalledWith({
             title:'test1',
             state:'failed'
