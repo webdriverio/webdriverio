@@ -1,6 +1,8 @@
-const expressMock = jest.fn().mockReturnValue({
-    use: jest.fn(),
-    listen: jest.fn().mockImplementation(function (this: unknown, port, cb) {
+import { vi } from 'vitest'
+
+const expressMock = vi.fn().mockReturnValue({
+    use: vi.fn(),
+    listen: vi.fn().mockImplementation(function (this: unknown, port, cb) {
         if (this === undefined) {
             return cb(
                 new Error('This value missing when invoking server.listen()')
@@ -11,6 +13,6 @@ const expressMock = jest.fn().mockReturnValue({
     })
 }) as any
 
-expressMock.static = jest.fn()
+expressMock.static = vi.fn()
 
 export default expressMock

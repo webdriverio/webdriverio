@@ -1,11 +1,11 @@
 /* istanbul ignore file */
 
-import StaticServerLauncher from './launcher'
-import { StaticServerOptions } from './types'
+import StaticServerLauncher from './launcher.js'
+import type { StaticServerOptions } from './types'
 
 export default class StaticServerService { }
 export const launcher = StaticServerLauncher
-export * from './types'
+export * from './types.js'
 
 declare global {
     namespace WebdriverIO {

@@ -1,10 +1,14 @@
+import path from 'node:path'
+import os from 'node:os'
 import express from 'express'
 import fs from 'fs-extra'
-import os from 'os'
+import { test, expect, vi, afterEach } from 'vitest'
 
 import StaticServerLauncher from '../src/launcher'
 
-jest.mock('fs-extra')
+vi.mock('fs-extra')
+vi.mock('express')
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 test('should not start server when no mount folder is defined', async () => {
     const service = new StaticServerLauncher({})
@@ -16,8 +20,7 @@ test('should be able to start server', async () => {
     const service = new StaticServerLauncher({
         folders: { mount: 'foo', path: 'bar' }
     })
-    await service.onPrepare({});
-    (service['_server']!.listen as jest.Mock).mock.calls[0][1]
+    await service.onPrepare({})
     expect(express).toBeCalledTimes(1)
     expect(service['_server']!.use).toBeCalledWith('foo', undefined)
     expect(express.static).toBeCalledWith('bar')
@@ -30,8 +33,7 @@ test('should be able to mount multiple folder', async () => {
             { mount: 'foo2', path: 'bar2' }
         ]
     })
-    await service.onPrepare({});
-    (service['_server']!.listen as jest.Mock).mock.calls[0][1]
+    await service.onPrepare({})
     expect(express).toBeCalledTimes(1)
     expect(service['_server']!.use).toBeCalledWith('foo', undefined)
     expect(express.static).toBeCalledWith('bar')
@@ -64,5 +66,5 @@ test('should register middlewares', async () => {
 })
 
 afterEach(() => {
-    (express as unknown as jest.Mock).mockClear()
+    vi.mocked(express).mockClear()
 })
