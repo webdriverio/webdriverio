@@ -5,7 +5,6 @@
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-sumologic-reporter",
   "license": "MIT",
-  "main": "./build/index",
   "engines": {
      "node": "^16.13 || >=18"
   },
@@ -21,6 +20,20 @@
   "bugs": {
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
+  "main": "./build/index.cjs.js",
+  "type": "module",
+  "module": "./build/index.js",
+  "exports": {
+    ".": [
+      {
+        "import": "./build/index.js",
+        "require": "./build/index.cjs.js"
+      },
+      "./build/index.cjs.js"
+    ]
+  },
+  "types": "./build/index.d.ts",
+  "typeScriptVersion": "3.8.3",
   "dependencies": {
     "@types/dateformat": "^5.0.0",
     "@types/json-stringify-safe": "^5.0.0",
@@ -36,6 +49,5 @@
   },
   "publishConfig": {
     "access": "public"
-  },
-  "types": "./build/index.d.ts"
+  }
 }
