@@ -1,19 +1,24 @@
-import TestingBotService from '../src/service'
+import path from 'node:path'
 import got from 'got'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import type { Capabilities, Frameworks } from '@wdio/types'
 import type { Browser, MultiRemoteBrowser } from 'webdriverio'
+
+import TestingBotService from '../src/service'
 
 const uri = '/some/uri'
 const featureObject = {
     name: 'Create a feature'
 } as any
 
-(got.put as jest.Mock).mockReturnValue(Promise.resolve({ body: '{}' }))
+vi.mock('got')
+vi.mocked(got.put).mockResolvedValue({ body: '{}' })
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 describe('wdio-testingbot-service', () => {
-    const execute = jest.fn()
+    const execute = vi.fn()
 
-    let browser: Browser | MultiRemoteBrowser
+    let browser: Browser<'async'> | MultiRemoteBrowser<'async'>
     beforeEach(() => {
         browser = {
             execute,
@@ -33,8 +38,8 @@ describe('wdio-testingbot-service', () => {
     })
 
     afterEach(() => {
-        execute.mockReset();
-        (got.put as jest.Mock).mockClear()
+        execute.mockReset()
+        vi.mocked(got.put).mockClear()
     })
 
     it('before', () => {
@@ -233,7 +238,7 @@ describe('wdio-testingbot-service', () => {
             key: undefined
         })
         tbService['_browser'] = browser
-        const updateJobSpy = jest.spyOn(tbService, 'updateJob')
+        const updateJobSpy = vi.spyOn(tbService, 'updateJob')
         await tbService.after()
 
         expect(updateJobSpy).not.toBeCalled()
@@ -246,7 +251,7 @@ describe('wdio-testingbot-service', () => {
             mochaOpts: { bail: true }
         })
         tbService['_browser'] = browser
-        const updateJobSpy = jest.spyOn(tbService, 'updateJob')
+        const updateJobSpy = vi.spyOn(tbService, 'updateJob')
         tbService['_browser'].sessionId = 'sessionId'
 
         tbService['_failures'] = 2
@@ -262,7 +267,7 @@ describe('wdio-testingbot-service', () => {
             mochaOpts: { bail: true }
         })
         tbService['_browser'] = browser
-        const updateJobSpy = jest.spyOn(tbService, 'updateJob')
+        const updateJobSpy = vi.spyOn(tbService, 'updateJob')
         tbService['_browser'].sessionId = 'sessionId'
         await tbService.after(10)
 
@@ -276,7 +281,7 @@ describe('wdio-testingbot-service', () => {
             mochaOpts: { bail: true }
         })
         tbService['_browser'] = browser
-        const updateJobSpy = jest.spyOn(tbService, 'updateJob')
+        const updateJobSpy = vi.spyOn(tbService, 'updateJob')
         tbService['_browser'].sessionId = 'sessionId'
 
         tbService['_failures'] = 0
@@ -296,7 +301,7 @@ describe('wdio-testingbot-service', () => {
             key: 'secret'
         })
         tbService['_browser'] = browser
-        const updateJobSpy = jest.spyOn(tbService, 'updateJob')
+        const updateJobSpy = vi.spyOn(tbService, 'updateJob')
 
         tbService['_browser'].isMultiremote = true
         tbService['_browser'].sessionId = 'sessionId'
@@ -316,7 +321,7 @@ describe('wdio-testingbot-service', () => {
         tbService['_browser'] = browser
         const tbService2 = new TestingBotService({}, {}, {})
         tbService2['_browser'] = browser
-        const updateJobSpy = jest.spyOn(tbService2, 'updateJob')
+        const updateJobSpy = vi.spyOn(tbService2, 'updateJob')
 
         tbService['_browser'].sessionId = 'sessionId'
         await tbService.onReload('oldSessionId', 'newSessionId')
@@ -330,7 +335,7 @@ describe('wdio-testingbot-service', () => {
             key: 'secret'
         })
         tbService['_browser'] = browser
-        const updateJobSpy = jest.spyOn(tbService, 'updateJob')
+        const updateJobSpy = vi.spyOn(tbService, 'updateJob')
 
         tbService['_browser'].sessionId = 'sessionId'
         tbService['_failures'] = 2
@@ -346,7 +351,7 @@ describe('wdio-testingbot-service', () => {
             key: 'secret'
         })
         tbService['_browser'] = browser
-        const updateJobSpy = jest.spyOn(tbService, 'updateJob')
+        const updateJobSpy = vi.spyOn(tbService, 'updateJob')
 
         tbService['_browser'].isMultiremote = true
         tbService['_browser'].sessionId = 'sessionId'
@@ -427,14 +432,14 @@ describe('wdio-testingbot-service', () => {
 
         expect(service['_failures']).toBe(0)
         expect(got.put).toHaveBeenCalled()
-        expect((got.put as jest.Mock).mock.calls[0][1].username).toBe('foobar')
-        expect((got.put as jest.Mock).mock.calls[0][1].password).toBe('123')
+        expect((vi.mocked(got.put).mock.calls[0][1 as any] as any).username).toBe('foobar')
+        expect((vi.mocked(got.put).mock.calls[0][1 as any] as any).password).toBe('123')
     })
 
     it('updateJob failure', async () => {
         const response: any = new Error('Failure')
-        response.statusCode = 500;
-        (got.put as jest.Mock).mockReturnValue(Promise.reject(response))
+        response.statusCode = 500
+        vi.mocked(got.put).mockRejectedValue(response)
 
         const service = new TestingBotService({}, {}, { user: 'foobar', key: '123' })
         service['_browser'] = browser

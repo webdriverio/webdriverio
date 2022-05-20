@@ -1,5 +1,7 @@
+import { vi } from 'vitest'
+
 export default (opts: any, cb: any) => {
     cb(null, {
-        close: jest.fn()
+        close: vi.fn()
     })
 }
