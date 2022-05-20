@@ -26,7 +26,8 @@ export default defineConfig({
             'packages/wdio-shared-store-service/**/*.test.ts',
             'packages/wdio-spec-reporter/**/*.test.ts',
             'packages/wdio-static-server-service/**/*.test.ts',
-            'packages/wdio-sumologic-reporter/**/*.test.ts'
+            'packages/wdio-sumologic-reporter/**/*.test.ts',
+            'packages/wdio-testingbot-service/**/*.test.ts'
         ],
         coverage: {
             enabled: false,
