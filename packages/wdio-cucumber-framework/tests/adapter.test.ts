@@ -1,3 +1,4 @@
+import path from 'path'
 import { setOptions } from 'expect-webdriverio'
 import { executeHooksWithArgs, testFnWrapper } from '@wdio/utils'
 import * as Cucumber from '@cucumber/cucumber'
@@ -172,8 +173,8 @@ describe('CucumberAdapter', () => {
         const adapter = await CucumberAdapter.init('0-0', {
             cucumberOpts: {
                 require: [
-                    __dirname + '/' + __filename,
-                    __dirname + '/__mocks__/module*.ts'
+                    path.join(__dirname, __filename),
+                    path.join(__dirname, '__mocks__', 'module*.ts')
                 ]
             }
         }, ['/foo/bar'], {}, {})
