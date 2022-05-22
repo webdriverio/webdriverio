@@ -141,7 +141,8 @@ export const SUPPORTED_PACKAGES = {
         { name: 'aws-device-farm', value: 'wdio-aws-device-farm-service$--$aws-device-farm' },
         { name: 'ocr-native-apps', value: 'wdio-ocr-service$--$ocr-native-apps' },
         { name: 'ms-teams', value: 'wdio-ms-teams-service$--$ms-teams' },
-        { name: 'tesults', value: 'wdio-tesults-service$--$tesults' }
+        { name: 'tesults', value: 'wdio-tesults-service$--$tesults' },
+        { name: 'html', value: 'wdio-reporter-html--$wdio-reporter-html' }
     ]
 } as const
 
