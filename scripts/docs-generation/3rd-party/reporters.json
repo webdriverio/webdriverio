@@ -66,9 +66,9 @@
     "npmUrl": "https://www.npmjs.com/package/wdio-light-reporter"
   },
   {
-    "packageName": "wdio-reporter-html",
+    "packageName": "wdio-cucumber-html-reporter",
     "title": "Html Reporter",
-    "githubUrl": "https://github.com/yon-cuadrado-projects/wdio-reporter-html",
-    "npmUrl": "https://www.npmjs.com/package/wdio-reporter-html"
+    "githubUrl": "https://github.com/yon-cuadrado-projects/wdio-cucumber-html-reporter",
+    "npmUrl": "https://www.npmjs.com/package/wdio-cucumber-html-reporter"
   }
 ]
