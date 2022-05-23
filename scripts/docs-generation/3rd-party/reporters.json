@@ -64,11 +64,5 @@
     "title": "Light Reporter",
     "githubUrl": "https://github.com/sarfrajadstreaks/wdio-light-reporter",
     "npmUrl": "https://www.npmjs.com/package/wdio-light-reporter"
-  },
-  {
-    "packageName": "wdio-cucumber-html-reporter",
-    "title": "Html Reporter",
-    "githubUrl": "https://github.com/yon-cuadrado-projects/wdio-cucumber-html-reporter",
-    "npmUrl": "https://www.npmjs.com/package/wdio-cucumber-html-reporter"
   }
 ]
