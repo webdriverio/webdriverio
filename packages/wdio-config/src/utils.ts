@@ -1,3 +1,5 @@
+import path from 'path'
+import { canAccess } from '@wdio/utils'
 import logger from '@wdio/logger'
 import type { Capabilities, Options } from '@wdio/types'
 // import type { RegisterOptions } from 'ts-node'
@@ -110,12 +112,25 @@ export function loadAutoCompilers(autoCompileConfig: Options.AutoCompileConfig, 
     )
 }
 
+export function validateTsConfigPaths(tsNodeOpts: any = {}) {
+    /**
+    * Checks tsconfig.json path, throws error if it doesn't exist
+    */
+    if (tsNodeOpts?.project) {
+        const tsconfigPath = path.resolve(tsNodeOpts.project)
+        if (!canAccess(tsconfigPath)) {
+            throw new Error('Provided tsconfig file path in wdio config is incorrect. Is it correctly set in wdio config ?')
+        }
+    }
+}
+
 export function loadTypeScriptCompiler (
     tsNodeOpts: any = {},
     tsConfigPathsOpts: Options.TSConfigPathsOptions | undefined,
     requireService: ModuleRequireService
 ) {
     try {
+        validateTsConfigPaths(tsNodeOpts)
         requireService.resolve('ts-node') as any
         (requireService.require('ts-node') as any).register(tsNodeOpts)
         log.debug('Found \'ts-node\' package, auto-compiling TypeScript files')
@@ -128,6 +143,7 @@ export function loadTypeScriptCompiler (
 
         return true
     } catch (err: any) {
+        log.error(`${err.message}`)
         return false
     }
 }
