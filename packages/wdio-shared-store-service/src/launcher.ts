@@ -16,8 +16,4 @@ export default class SharedStoreLauncher {
 
         log.info(`Started shared server on port ${result.port}`)
     }
-
-    async onComplete () {
-        await server.stopServer()
-    }
 }

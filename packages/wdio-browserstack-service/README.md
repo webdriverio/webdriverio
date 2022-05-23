@@ -50,7 +50,7 @@ exports.config
 In order to authorize to the BrowserStack service your config needs to contain a [`user`](https://webdriver.io/docs/options#user) and [`key`](https://webdriver.io/docs/options#key) option.
 
 ### browserstackLocal
-Set this to true to enable routing connections from Browserstack cloud through your computer. You will also need to set `browserstack.local` to true in browser capabilities.
+Set this to true to enable routing connections from Browserstack cloud through your computer.
 
 Type: `Boolean`<br />
 Default: `false`
@@ -68,14 +68,126 @@ Type: `Boolean`<br />
 Default: `false`
 
 ### opts
-Specified optional will be passed down to BrowserstackLocal. See [this list](https://www.browserstack.com/local-testing#modifiers) for details.
+Specified optional will be passed down to BrowserstackLocal.
 
 Type: `Object`<br />
 Default: `{}`
 
-## Known Issues
+List of available local testing modifiers to be passed as opts:
 
-- At the moment, it is challenging, if not impossible, to transfer localIdentifier to child-processes reliably because of how webdriverio designed their multi-process model. We recommend using this service without an identifier, which will create an account-wide local tunnel.
+#### Local Identifier
+
+If doing simultaneous multiple local testing connections, set this uniquely for different processes -
+
+```js
+opts = { localIdentifier: "randomstring" };
+```
+
+#### Verbose Logging
+
+To enable verbose logging -
+
+```js
+opts = { verbose: "true" };
+```
+
+Note - Possible values for 'verbose' modifier are '1', '2', '3' and 'true'
+
+#### Force Local
+
+To route all traffic via local(your) machine -
+
+```js
+opts = { forceLocal: "true" };
+```
+
+#### Folder Testing
+
+To test local folder rather internal server, provide path to folder as value of this option -
+
+```js
+opts = { f: "/my/awesome/folder" };
+```
+
+#### Force Start
+
+To kill other running Browserstack Local instances -
+
+```js
+opts = { force: "true" };
+```
+
+#### Only Automate
+
+To disable local testing for Live and Screenshots, and enable only Automate -
+
+```js
+opts = { onlyAutomate: "true" };
+```
+
+#### Proxy
+
+To use a proxy for local testing -
+
+- proxyHost: Hostname/IP of proxy, remaining proxy options are ignored if this option is absent
+- proxyPort: Port for the proxy, defaults to 3128 when -proxyHost is used
+- proxyUser: Username for connecting to proxy (Basic Auth Only)
+- proxyPass: Password for USERNAME, will be ignored if USERNAME is empty or not specified
+
+```js
+opts = {
+  proxyHost: "127.0.0.1",
+  proxyPort: "8000",
+  proxyUser: "user",
+  proxyPass: "password",
+};
+```
+
+#### Local Proxy
+
+To use local proxy in local testing -
+
+- localProxyHost: Hostname/IP of proxy, remaining proxy options are ignored if this option is absent
+- localProxyPort: Port for the proxy, defaults to 8081 when -localProxyHost is used
+- localProxyUser: Username for connecting to proxy (Basic Auth Only)
+- localProxyPass: Password for USERNAME, will be ignored if USERNAME is empty or not specified
+
+```js
+opts = {
+  localProxyHost: "127.0.0.1",
+  localProxyPort: "8000",
+  localProxyUser: "user",
+  localProxyPass: "password",
+};
+```
+
+#### PAC (Proxy Auto-Configuration)
+
+To use PAC (Proxy Auto-Configuration) in local testing -
+
+- pac-file: PAC (Proxy Auto-Configuration) file’s absolute path
+
+```js
+opts = { "pac-file": "<pac_file_abs_path>" };
+```
+
+#### Binary Path
+
+By default, BrowserStack local wrappers try downloading and executing the latest version of BrowserStack binary in ~/.browserstack or the present working directory or the tmp folder by order. But you can override these by passing the -binarypath argument.
+Path to specify local Binary path -
+
+```js
+opts = { binarypath: "/path/to/binary" };
+```
+
+#### Logfile
+
+To save the logs to the file while running with the '-v' argument, you can specify the path of the file. By default the logs are saved in the local.log file in the present woring directory.
+To specify the path to file where the logs will be saved -
+
+```js
+opts = { verbose: "true", logFile: "./local.log" };
+```
 
 ----
 
