@@ -25,6 +25,7 @@
   "dependencies": {
     "@wdio/logger": "7.19.0",
     "@wdio/types": "7.19.5",
+    "@wdio/utils": "7.19.7",
     "deepmerge": "^4.0.0",
     "glob": "^8.0.3"
   },
