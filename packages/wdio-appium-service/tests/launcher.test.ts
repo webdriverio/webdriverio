@@ -1,3 +1,4 @@
+import path from 'path'
 import { spawn, ChildProcess } from 'node:child_process'
 // @ts-expect-error mock feature
 import { mocks } from 'node:module'
@@ -8,6 +9,7 @@ import type { Capabilities, Options } from '@wdio/types'
 
 import AppiumLauncher from '../src/launcher'
 
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 vi.mock('child_process', () => ({
     spawn: vi.fn()
 }))

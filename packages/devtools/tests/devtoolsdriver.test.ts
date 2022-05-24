@@ -4,6 +4,7 @@ import DevToolsDriver from '../src/devtoolsdriver'
 import type { Dialog } from 'puppeteer-core/lib/cjs/puppeteer/common/Dialog'
 import type { Frame } from 'puppeteer-core/lib/cjs/puppeteer/common/FrameManager'
 
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 vi.mock('puppeteer-core', () => import(path.join(process.cwd(), '__mocks__', 'puppeteer-core')))
 vi.mock('chrome-launcher', () => import(path.join(process.cwd(), '__mocks__', 'chrome-launcher')))
 

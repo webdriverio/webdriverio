@@ -1,11 +1,11 @@
+import path from 'path'
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest'
 
-import {
-    executeHooksWithArgs, hasWdioSyncSupport, executeSync,
-    executeAsync, wrapCommand
-} from '../src/shim'
+import { executeHooksWithArgs, executeAsync, wrapCommand } from '../src/shim'
 
 const globalAny: any = global
+
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 beforeEach(() => {
     globalAny.browser = {}
@@ -57,55 +57,6 @@ describe('executeHooksWithArgs', () => {
         const hookFuga = async () => new Promise(resolve => setTimeout(resolve, 10, 'fuga'))
         const res = await executeHooksWithArgs('hookName', [hookHoge, hookFuga], [])
         expect(res).toEqual([new Error('Hoge'), 'fuga'])
-    })
-})
-
-describe('hasWdioSyncSupport', () => {
-    it('should be false', () => {
-        expect(hasWdioSyncSupport).toBe(false)
-    })
-})
-
-describe('executeSync', () => {
-    it('should pass with args and async fn', async () => {
-        expect(await executeSync.call({}, async (arg: any) => arg, { limit: 1, attempts: 0 }, [2])).toEqual(2)
-    })
-
-    it('should repeat step on failure', async () => {
-        let counter = 3
-        const scope = { wdioRetries: undefined }
-        const repeatTest = { limit: counter, attempts: 0 }
-        expect(await executeSync.call(scope, () => {
-            if (counter > 0) {
-                counter--
-                throw new Error('foobar')
-            }
-            return true
-        }, repeatTest)).toEqual(true)
-        expect(counter).toEqual(0)
-        expect(repeatTest).toEqual({ limit: 3, attempts: 3 })
-        expect(scope.wdioRetries).toEqual(3)
-    })
-
-    it('should throw if repeatTest attempts exceeded', async () => {
-        let counter = 3
-        const scope = { wdioRetries: undefined }
-        const repeatTest = { limit: counter - 1, attempts: 0 }
-        let error
-        try {
-            await executeSync.call(scope, () => {
-                if (counter > 0) {
-                    counter--
-                    throw new Error('foobar')
-                }
-                return true
-            }, repeatTest)
-        } catch (err: any) {
-            error = err
-        }
-        expect(error.message).toEqual('foobar')
-        expect(repeatTest).toEqual({ limit: 2, attempts: 2 })
-        expect(scope.wdioRetries).toEqual(2)
     })
 })
 

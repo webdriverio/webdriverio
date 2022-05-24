@@ -1,3 +1,4 @@
+import path from 'node:path'
 import { URL } from 'node:url'
 import { describe, it, expect, MockedFunction, vi } from 'vitest'
 import { Capabilities, Options } from '@wdio/types'
@@ -10,6 +11,7 @@ import {
 } from '../src/utils'
 import type { Client } from '../src/types'
 
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 vi.mock('@wdio/utils')
 vi.mock('got')
 

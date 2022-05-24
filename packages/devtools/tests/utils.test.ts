@@ -14,6 +14,10 @@ import {
     uniq, findByWhich, patchDebug, sleep
 } from '../src/utils'
 
+vi.mock('@wdio/logger', async () => {
+    const pathModule = await vi.importActual('node:path') as typeof path
+    return import(pathModule.join(process.cwd(), '__mocks__', '@wdio/logger'))
+})
 vi.mock('@wdio/utils', async () => {
     const pathModule = await vi.importActual('node:path') as typeof path
     return import(pathModule.join(process.cwd(), '__mocks__', '@wdio/utils'))
