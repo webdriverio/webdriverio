@@ -91,7 +91,7 @@ const { remote } = require('webdriverio');
 })()
 ```
 
-__Note:__ using WebdriverIO as a package requires handling asynchronous commands via `async/await`. Read more about this in our section on [Sync vs. Async](./SyncVsAsync.md).
+__Note:__ all WebdriverIO commands are asynchronous and need to be properly handled using [`async/await`](https://javascript.info/async-await).
 
 ## System Requirements
 

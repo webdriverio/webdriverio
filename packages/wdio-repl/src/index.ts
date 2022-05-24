@@ -33,7 +33,7 @@
 import vm from 'node:vm'
 import repl from 'node:repl'
 
-import { STATIC_RETURNS, INTRO_MESSAGE, DEFAULT_CONFIG } from './constants'
+import { STATIC_RETURNS, INTRO_MESSAGE, DEFAULT_CONFIG } from './constants.js'
 
 export interface ReplConfig {
     commandTimeout: number
