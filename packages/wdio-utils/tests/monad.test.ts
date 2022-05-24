@@ -1,7 +1,10 @@
+import path from 'path'
 import { vi, describe, it, expect, beforeEach } from 'vitest'
 import webdriverMonad from '../src/monad'
 
 let prototype: any
+
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 beforeEach(() => {
     prototype = {

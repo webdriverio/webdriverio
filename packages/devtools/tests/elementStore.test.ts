@@ -1,7 +1,10 @@
-import { expect, test } from 'vitest'
+import path from 'node:path'
+import { expect, test, vi } from 'vitest'
 import ElementStore from '../src/elementstore'
 import type { ElementHandle } from 'puppeteer-core/lib/cjs/puppeteer/common/JSHandle'
 import type { Frame } from 'puppeteer-core/lib/cjs/puppeteer/common/FrameManager'
+
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 const elementHandleFactory = (
     { isConnected = true, frame = Symbol() }: { isConnected?: boolean, frame?: symbol } = {}

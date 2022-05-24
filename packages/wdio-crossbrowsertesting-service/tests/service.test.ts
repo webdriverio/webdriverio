@@ -1,3 +1,4 @@
+import path from 'node:path'
 import { describe, expect, it, beforeEach, afterEach, test, vi } from 'vitest'
 
 import got from 'got'
@@ -6,6 +7,7 @@ import { Frameworks } from '@wdio/types'
 
 vi.mock('got')
 vi.mocked(got.put).mockResolvedValue({ body: '{}' })
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 const uri = 'some/uri'
 const featureObject = {
@@ -246,7 +248,7 @@ describe('wdio-crossbrowsertesting-service', () => {
         const updateJobSpy = vi.spyOn(cbtService, 'updateJob')
 
         cbtService['_config'] = { mochaOpts: { bail:<any> 1 } } as any
-        cbtService['_browser'].sessionId = 'test'
+        cbtService['_browser']!.sessionId = 'test'
 
         cbtService['_failures'] = 2
         await cbtService.after()
@@ -260,8 +262,8 @@ describe('wdio-crossbrowsertesting-service', () => {
         cbtService['_failures'] = 5
         cbtService.updateJob = vi.fn()
 
-        cbtService['_browser'].isMultiremote = false
-        cbtService['_browser'].sessionId = 'test'
+        cbtService['_browser']!.isMultiremote = false
+        cbtService['_browser']!.sessionId = 'test'
         cbtService['_config'] = { mochaOpts: { bail:<any> 1 } } as any
         await cbtService.after(1)
 
@@ -274,8 +276,8 @@ describe('wdio-crossbrowsertesting-service', () => {
         } as any, { chromeA: {}, chromeB: {}, chromeC: {} } as any)
         cbtService['_browser'] = browser
         const updateJobSpy = vi.spyOn(cbtService, 'updateJob')
-        cbtService['_browser'].isMultiremote = true
-        cbtService['_browser'].sessionId = 'sessionId'
+        cbtService['_browser']!.isMultiremote = true
+        cbtService['_browser']!.sessionId = 'sessionId'
         cbtService['_failures'] = 2
         await cbtService.after()
 
@@ -293,7 +295,7 @@ describe('wdio-crossbrowsertesting-service', () => {
         const cbtService2 = new CrossBrowserTestingService({} as any, {} as any)
         const updateJobSpy = vi.spyOn(cbtService2, 'updateJob')
 
-        cbtService['_browser'].sessionId = 'sessionId'
+        cbtService['_browser']!.sessionId = 'sessionId'
         cbtService.onReload('oldSessionId', 'newSessionId')
 
         expect(updateJobSpy).toHaveBeenCalledTimes(0)
@@ -306,7 +308,7 @@ describe('wdio-crossbrowsertesting-service', () => {
         cbtService['_browser'] = browser
         const updateJobSpy = vi.spyOn(cbtService, 'updateJob')
 
-        cbtService['_browser'].sessionId = 'sessionId'
+        cbtService['_browser']!.sessionId = 'sessionId'
         cbtService['_failures'] = 2
         cbtService.onReload('oldSessionId', 'newSessionId')
 
@@ -321,8 +323,8 @@ describe('wdio-crossbrowsertesting-service', () => {
         cbtService['_browser'] = browser
         const updateJobSpy = vi.spyOn(cbtService, 'updateJob')
 
-        cbtService['_browser'].isMultiremote = true
-        cbtService['_browser'].sessionId = 'sessionId'
+        cbtService['_browser']!.isMultiremote = true
+        cbtService['_browser']!.sessionId = 'sessionId'
         cbtService['_failures'] = 2
         cbtService.onReload('oldSessionId', 'sessionChromeA')
 
@@ -353,7 +355,7 @@ describe('wdio-crossbrowsertesting-service', () => {
         })
 
         cbtService['_testCnt'] = 2
-        cbtService['_browser'].isMultiremote = true
+        cbtService['_browser']!.isMultiremote = true
         expect(cbtService.getBody(2, true)).toEqual({
             test: {
                 build: 344,

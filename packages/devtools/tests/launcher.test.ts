@@ -5,6 +5,7 @@ import { launch as launchChromeBrowser } from 'chrome-launcher'
 
 import launch from '../src/launcher'
 
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 vi.mock('puppeteer-core', () => import(path.join(process.cwd(), '__mocks__', 'puppeteer-core')))
 vi.mock('chrome-launcher', () => import(path.join(process.cwd(), '__mocks__', 'chrome-launcher')))
 

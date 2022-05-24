@@ -1,4 +1,5 @@
-import { describe, expect, it } from 'vitest'
+import path from 'node:path'
+import { describe, expect, it, vi } from 'vitest'
 import {
     createStepArgument,
     formatMessage,
@@ -12,6 +13,8 @@ import {
     getRule,
 } from '../src/utils'
 import { featureWithRules } from './fixtures/features'
+
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 describe('utils', () => {
     describe('createStepArgument', () => {

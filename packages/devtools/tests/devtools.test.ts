@@ -1,8 +1,10 @@
+import path from 'path'
 import { expect, test, vi, beforeEach } from 'vitest'
 import type { Capabilities } from '@wdio/types'
 import launch from '../src/launcher'
 import DevTools from '../src'
 
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 vi.mock('../src/launcher', () => ({
     default: vi.fn().mockImplementation((capabilities) => {
         capabilities['goog:chromeOptions'] = capabilities['goog:chromeOptions'] || {}
