@@ -2,7 +2,6 @@ import path from 'path'
 import { canAccess } from '@wdio/utils'
 import logger from '@wdio/logger'
 import type { Capabilities, Options } from '@wdio/types'
-// import type { RegisterOptions } from 'ts-node'
 
 import type { ModuleRequireService } from './types'
 
