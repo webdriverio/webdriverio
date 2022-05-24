@@ -67,7 +67,8 @@ describe('utils', () => {
 
     describe('validateTsConfigPaths', () => {
         it('should throw error if valid Tsconfig not provided', ()  => {
-            expect(() => validateTsConfigPaths({ project: './test/tsconfig.json' })).toThrow('Provided tsconfig file path in wdio config is incorrect. Is it correctly set in wdio config ?')
+            expect(() => validateTsConfigPaths({ project: './test/tsconfig.json' }))
+                .toThrow(/Is it correctly set in wdio config/)
         })
     })
 })
