@@ -1,4 +1,4 @@
-import command from '../scripts/elementClear'
+import command from '../scripts/elementClear.js'
 import { getStaleElementError } from '../utils.js'
 import type DevToolsDriver from '../devtoolsdriver'
 

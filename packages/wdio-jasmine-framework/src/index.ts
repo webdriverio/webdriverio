@@ -3,6 +3,7 @@ import { runTestInFiberContext, executeHooksWithArgs } from '@wdio/utils'
 import logger from '@wdio/logger'
 import { EventEmitter } from 'node:events'
 import type { Options, Services, Capabilities } from '@wdio/types'
+import type ExpectWebdriverIO from 'expect-webdriverio'
 
 import JasmineReporter from './reporter'
 import type { JasmineOpts as jasmineNodeOpts, ResultHandlerPayload, FrameworkMessage, FormattedMessage } from './types'
