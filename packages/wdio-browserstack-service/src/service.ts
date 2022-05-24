@@ -17,10 +17,11 @@ export default class BrowserstackService implements Services.ServiceInstance {
     private _fullTitle?: string
 
     constructor (
-        private _options: BrowserstackConfig,
+        private _options: BrowserstackConfig | any,
         private _caps: Capabilities.RemoteCapability,
-        private _config: Options.Testrunner
+        private _config: Options.Testrunner | any
     ) {
+        this._config || (this._config = _options)
         // Cucumber specific
         const strict = Boolean(this._config.cucumberOpts && this._config.cucumberOpts.strict)
         // See https://github.com/cucumber/cucumber-js/blob/master/src/runtime/index.ts#L136
@@ -57,7 +58,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
     }
 
     before(caps: Capabilities.RemoteCapability, specs: string[], browser: Browser<'async'> | MultiRemoteBrowser<'async'>) {
-        this._browser = browser
+        this._browser = browser ? browser : (global as any).browser
 
         // Ensure capabilities are not null in case of multiremote
 
