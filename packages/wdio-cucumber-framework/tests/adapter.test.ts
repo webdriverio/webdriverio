@@ -173,7 +173,7 @@ describe('CucumberAdapter', () => {
         const adapter = await CucumberAdapter.init('0-0', {
             cucumberOpts: {
                 require: [
-                    path.join(__dirname, __filename),
+                    __filename,
                     path.join(__dirname, '__mocks__', 'module*.ts')
                 ]
             }

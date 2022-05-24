@@ -103,5 +103,5 @@ export const capabilitiesEnvironmentDetector = capabilitiesEnvDetector
 export const devtoolsEnvironmentDetector = devtoolsEnvDetector
 export const transformCommandLogResult = jest.fn().mockImplementation((data) => data)
 export const canAccess = jest.fn()
-export const sleep = jest.fn().mockImplementation(jest.requireActual('@wdio/utils/src/utils').sleep)
+export const sleep = jest.fn().mockImplementation(jest.requireActual('../../../src/utils').sleep)
 export const UNICODE_CHARACTERS = jest.requireActual('../../../src/constants').UNICODE_CHARACTERS
