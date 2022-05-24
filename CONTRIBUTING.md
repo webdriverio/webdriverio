@@ -106,7 +106,7 @@ In order to set up this project and start contributing follow this step by step 
     $ npm run test
 
     # run test for a specific sub project (e.g. webdriver)
-    $ npx jest ./packages/webdriver/tests --collectCoverage=false
+    $ npx vitest ./packages/webdriver/tests
     ```
 
     It should give you a passing result. Now you can move on to set up your development environment and start working on some code. If tests do not pass please create an issue and provide logs to the error.
@@ -126,10 +126,10 @@ If you only work on a single package, you can watch only for that one by calling
 $ npm run watch <package-name>
 ```
 
-It is also a good idea to run jest in watch mode while developing on a single package to see if changes affect any tests:
+It is also a good idea to run vitest in watch mode while developing on a single package to see if changes affect any tests:
 
 ```sh
-npx jest ./packages/<package-name>/tests --watch --collectCoverage=false
+npx vitest ./packages/<package-name>/tests
 ```
 
 #### TypeScript Definitions
@@ -188,7 +188,7 @@ When a PR gets submitted, WebdriverIO runs the following checks:
   ```
 - *Unit Tests*
   Like every project we unit-test our code and ensure that new patches are properly tested. The coverage threshold is pretty high so ensure that
-  your changes cover all necessary code paths. We are using [Jest](https://jestjs.io/) as a unit test framework here.
+  your changes cover all necessary code paths. We are using [Vitest](https://vitest.dev/) as a unit test framework here.
   You can manually trigger this check by calling:
   ```sh
   $ npm run test:coverage
@@ -225,12 +225,12 @@ are located in
 packages/webdriverio/tests/commands/element/getCSSProperty.test.ts
 ```
 
-If that is not the case the functionality of that file might be tested through a different file. We recommend to write unit tests for every new function being written in the code base. We advise to mock out every dependency to either other packages or modules using [Jests mock capabilities](https://jestjs.io/docs/manual-mocks).
+If that is not the case the functionality of that file might be tested through a different file. We recommend to write unit tests for every new function being written in the code base. We advise to mock out every dependency to either other packages or modules using [Vitests mock capabilities](https://vitest.dev/guide/mocking.html).
 
 During development it makes sense to focus running unit tests for a single file rather the whole code base. For example if you work on the `getCSSProperty` command it makes sense to run only the unit test for that specific command by calling:
 
 ```sh
-npx jest packages/webdriverio/tests/commands/element/getCSSProperty.test.ts --watch --collectCoverage=false
+npx vitest packages/webdriverio/tests/commands/element/getCSSProperty.test.ts
 ```
 
 With the `--watch` flag the unit tests will be re-run as soon as you change something within the file.

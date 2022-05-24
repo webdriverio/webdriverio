@@ -9,7 +9,7 @@ tasks:
       cd coverage/lcov-report/
       http-server -p 8000 &
       cd ../../
-      npx jest --watch
+      npx vitest
   - name: Run Documentation Page
     init: |
       cd /workspace/webdriverio/website
