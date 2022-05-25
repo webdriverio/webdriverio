@@ -1,5 +1,6 @@
+import { vi } from 'vitest'
 export default {
-    audit: jest.fn().mockReturnValue({
+    audit: vi.fn().mockReturnValue({
         score: 0.99,
         numericValue: 1785.7373000000002,
         numericUnit: 'millisecond',

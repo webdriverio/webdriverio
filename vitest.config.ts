@@ -12,7 +12,6 @@ export default defineConfig({
             'packages/eslint-plugin-wdio/**/*',
             'packages/wdio-cli/**/*.test.ts',
             'packages/webdriverio/**/*.test.ts',
-            'packages/wdio-devtools-service/**/*.test.ts',
             'packages/wdio-jasmine-framework/**/*.test.ts',
             'packages/wdio-mocha-framework/**/*.test.ts'
         ],

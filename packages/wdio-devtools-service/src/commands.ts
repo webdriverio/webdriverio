@@ -1,16 +1,15 @@
-import 'core-js/modules/web.url'
 import logger from '@wdio/logger'
 import type { Browser, MultiRemoteBrowser } from 'webdriverio'
 
 import type { TraceEvent } from '@tracerbench/trace-event'
-import type { CDPSession } from 'puppeteer-core/lib/cjs/puppeteer/common/Connection'
-import type { Page } from 'puppeteer-core/lib/cjs/puppeteer/common/Page'
-import type { TracingOptions } from 'puppeteer-core/lib/cjs/puppeteer/common/Tracing'
+import type { CDPSession } from 'puppeteer-core/lib/cjs/puppeteer/common/Connection.js'
+import type { Page } from 'puppeteer-core/lib/cjs/puppeteer/common/Page.js'
+import type { TracingOptions } from 'puppeteer-core/lib/cjs/puppeteer/common/Tracing.js'
 
-import NetworkHandler, { RequestPayload } from './handler/network'
+import NetworkHandler, { RequestPayload } from './handler/network.js'
 
-import { DEFAULT_TRACING_CATEGORIES } from './constants'
-import { sumByKey } from './utils'
+import { DEFAULT_TRACING_CATEGORIES } from './constants.js'
+import { sumByKey } from './utils.js'
 
 const log = logger('@wdio/devtools-service:CommandHandler')
 

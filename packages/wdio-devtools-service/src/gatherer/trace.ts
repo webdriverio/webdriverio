@@ -1,8 +1,8 @@
 import { EventEmitter } from 'node:events'
-import NetworkRecorder from 'lighthouse/lighthouse-core/lib/network-recorder'
-import NetworkMonitor from 'lighthouse/lighthouse-core/gather/driver/network-monitor'
-import ProtocolSession from 'lighthouse/lighthouse-core/fraggle-rock/gather/session'
-import { waitForFullyLoaded } from 'lighthouse/lighthouse-core/gather/driver/wait-for-condition'
+import NetworkRecorder from 'lighthouse/lighthouse-core/lib/network-recorder.js'
+import NetworkMonitor from 'lighthouse/lighthouse-core/gather/driver/network-monitor.js'
+import ProtocolSession from 'lighthouse/lighthouse-core/fraggle-rock/gather/session.js'
+import { waitForFullyLoaded } from 'lighthouse/lighthouse-core/gather/driver/wait-for-condition.js'
 import logger from '@wdio/logger'
 
 import type Protocol from 'devtools-protocol'
@@ -11,13 +11,13 @@ import type { HTTPRequest } from 'puppeteer-core/lib/cjs/puppeteer/common/HTTPRe
 import type { CDPSession } from 'puppeteer-core/lib/cjs/puppeteer/common/Connection'
 import type { Page } from 'puppeteer-core/lib/cjs/puppeteer/common/Page'
 
-import registerPerformanceObserverInPage from '../scripts/registerPerformanceObserverInPage'
+import registerPerformanceObserverInPage from '../scripts/registerPerformanceObserverInPage.js'
 
 import {
     FRAME_LOAD_START_TIMEOUT, TRACING_TIMEOUT, MAX_TRACE_WAIT_TIME,
     CLICK_TRANSITION, NETWORK_RECORDER_EVENTS
-} from '../constants'
-import { isSupportedUrl } from '../utils'
+} from '../constants.js'
+import { isSupportedUrl } from '../utils.js'
 import type { GathererDriver } from '../types'
 
 const log = logger('@wdio/devtools-service:TraceGatherer')

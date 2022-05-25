@@ -1,4 +1,6 @@
+import path from 'node:path'
 import { EventEmitter } from 'node:events'
+import { expect, test, vi, beforeEach } from 'vitest'
 import puppeteer from 'puppeteer-core'
 
 import DevToolsService from '../src'
@@ -6,34 +8,40 @@ import Auditor from '../src/auditor'
 
 import logger from '@wdio/logger'
 
-jest.mock('../src/commands', () => {
+vi.mock('puppeteer-core')
+vi.mock('lighthouse/lighthouse-core/fraggle-rock/gather/session')
+
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock('../src/commands', () => {
     class CommandHandlerMock {
-        cdp = jest.fn()
+        cdp = vi.fn()
     }
 
-    return CommandHandlerMock
+    return { default: CommandHandlerMock }
 })
 
-jest.mock('../src/auditor', () => {
-    const updateCommandsMock = jest.fn()
-    return class {
-        traceEvents: any
-        logs: any
-        updateCommands = updateCommandsMock
+vi.mock('../src/auditor', () => {
+    const updateCommandsMock = vi.fn()
+    return {
+        default: class {
+            traceEvents: any
+            logs: any
+            updateCommands = updateCommandsMock
 
-        constructor (traceEvents: any, logs: any) {
-            this.traceEvents = traceEvents
-            this.logs = logs
+            constructor (traceEvents: any, logs: any) {
+                this.traceEvents = traceEvents
+                this.logs = logs
+            }
         }
     }
 })
 
-jest.mock('../src/utils', () => {
-    const { isBrowserSupported } = jest.requireActual('../src/utils')
+vi.mock('../src/utils', async () => {
+    const { isBrowserSupported } = await vi.importActual('../src/utils')
     let wasCalled = false
 
     return {
-        findCDPInterface: jest.fn().mockImplementation(() => {
+        findCDPInterface: vi.fn().mockImplementation(() => {
             if (!wasCalled) {
                 wasCalled = true
                 return 42
@@ -41,40 +49,42 @@ jest.mock('../src/utils', () => {
             throw new Error('boom')
         }),
         isBrowserSupported,
-        setUnsupportedCommand: jest.fn(),
-        getLighthouseDriver: jest.fn()
+        setUnsupportedCommand: vi.fn(),
+        getLighthouseDriver: vi.fn()
     }
 })
 
-jest.mock('../src/gatherer/coverage', () => {
+vi.mock('../src/gatherer/coverage', () => {
     const instances = []
-    return class {
-        getCoverageReport = jest.fn()
-        init = jest.fn()
+    return {
+        default: class {
+            getCoverageReport = vi.fn()
+            init = vi.fn()
 
-        constructor () {
-            instances.push(this)
+            constructor () {
+                instances.push(this)
+            }
         }
     }
 })
 
 const pageMock = {
-    setCacheEnabled: jest.fn(),
-    emulate: jest.fn()
+    setCacheEnabled: vi.fn(),
+    emulate: vi.fn()
 }
-const sessionMock = { send: jest.fn() }
+const sessionMock = { send: vi.fn() }
 const log = logger('')
 
 let browser: any
 beforeEach(() => {
     browser = {
-        getPuppeteer: jest.fn(() => puppeteer.connect({})),
-        addCommand: jest.fn(),
-        emit: jest.fn()
+        getPuppeteer: vi.fn(() => puppeteer.connect({})),
+        addCommand: vi.fn(),
+        emit: vi.fn()
     } as any
 
     sessionMock.send.mockClear()
-    ;(log.error as jest.Mock).mockClear()
+    vi.mocked(log.error).mockClear()
 })
 
 test('beforeSession', () => {
@@ -85,6 +95,7 @@ test('beforeSession', () => {
     service.beforeSession({}, {})
     expect(service['_isSupported']).toBe(false)
 
+    // @ts-expect-error invalid param
     service.beforeSession({}, { browserName: 'firefox', version: 85 })
     expect(service['_isSupported']).toBe(false)
 
@@ -108,6 +119,7 @@ test('beforeSession', () => {
     service.beforeSession({}, { browserName: 'firefox' })
     expect(service['_isSupported']).toBe(true)
 
+    // @ts-expect-error invalid param
     service.beforeSession({}, { browserName: 'firefox', version: 86 })
     expect(service['_isSupported']).toBe(true)
 
@@ -121,7 +133,7 @@ test('if not supported by browser', async () => {
     service['_isSupported'] = false
 
     await service._setupHandler()
-    expect((service['_browser']?.addCommand as jest.Mock).mock.calls).toHaveLength(0)
+    expect(vi.mocked(service['_browser']?.addCommand!).mock.calls).toHaveLength(0)
 })
 
 test('if supported by browser', async () => {
@@ -151,20 +163,20 @@ test('if supported by browser', async () => {
     expect(rawEventListener).toBeCalledWith('message', expect.any(Function))
 
     const rawWsEvent = rawEventListener.mock.calls.pop().pop()
-    service['_devtoolsGatherer'] = { onMessage: jest.fn() } as any
+    service['_devtoolsGatherer'] = { onMessage: vi.fn() } as any
     rawWsEvent({ data: '{"method": "foo", "params": "bar"}' })
     expect(service['_devtoolsGatherer']?.onMessage).toBeCalledTimes(1)
     expect(service['_devtoolsGatherer']?.onMessage).toBeCalledWith({ method:'foo', params: 'bar' })
     expect((service['_browser'] as any).emit).toBeCalledTimes(1)
     expect((service['_browser'] as any).emit).toBeCalledWith('foo', 'bar')
-    expect(service['_coverageGatherer'].init).toBeCalledTimes(1)
+    expect(service['_coverageGatherer']!.init).toBeCalledTimes(1)
 })
 
 test('beforeCommand', () => {
     const service = new DevToolsService({})
     service['_browser'] = browser
-    service['_traceGatherer'] = { startTracing: jest.fn() } as any
-    service._setThrottlingProfile = jest.fn()
+    service['_traceGatherer'] = { startTracing: vi.fn() } as any
+    service._setThrottlingProfile = vi.fn()
 
     service['_networkThrottling'] = 'offline'
     service['_cpuThrottling'] = 2
@@ -201,7 +213,7 @@ test('beforeCommand', () => {
 test('afterCommand', () => {
     const service = new DevToolsService({})
     service['_browser'] = browser
-    service['_traceGatherer'] = { once: jest.fn() } as any
+    service['_traceGatherer'] = { once: vi.fn() } as any
 
     // @ts-ignore test without paramater
     service.afterCommand()
@@ -233,7 +245,7 @@ test('afterCommand: should create a new auditor instance and should update the b
 
     // @ts-ignore access mock
     service['_traceGatherer']['isTracing'] = true
-    service['_devtoolsGatherer'] = { getLogs: jest.fn() } as any
+    service['_devtoolsGatherer'] = { getLogs: vi.fn() } as any
     service['_browser'] = 'some browser' as any
     service.afterCommand('url')
     service['_traceGatherer']?.emit('tracingComplete', { some: 'events' })
@@ -249,7 +261,7 @@ test('afterCommand: should update browser commands even if failed', () => {
 
     // @ts-ignore access mock
     service['_traceGatherer']['isTracing'] = true
-    service['_devtoolsGatherer'] = { getLogs: jest.fn() } as any
+    service['_devtoolsGatherer'] = { getLogs: vi.fn() } as any
     service['_browser'] = 'some browser' as any
     service.afterCommand('url')
     service['_traceGatherer']?.emit('tracingError', new Error('boom'))
@@ -265,7 +277,7 @@ test('afterCommand: should continue with command after tracingFinished was emitt
 
     // @ts-ignore access mock
     service['_traceGatherer']['isTracing'] = true
-    service._setThrottlingProfile = jest.fn()
+    service._setThrottlingProfile = vi.fn()
 
     const start = Date.now()
     setTimeout(() => service['_traceGatherer']?.emit('tracingFinished'), 100)
@@ -383,7 +395,7 @@ test('_emulateDevice', async () => {
 
 test('before hook', async () => {
     const service = new DevToolsService({})
-    service._setupHandler = jest.fn()
+    service._setupHandler = vi.fn()
     service.before({}, [], browser)
     expect(service._setupHandler).toBeCalledTimes(1)
 })
@@ -391,7 +403,7 @@ test('before hook', async () => {
 test('onReload hook', async () => {
     const service = new DevToolsService({})
     service['_browser'] = browser
-    service._setupHandler = jest.fn()
+    service._setupHandler = vi.fn()
     ;(service['_browser'] as any).puppeteer = 'suppose to be reset after reload' as any
     service.onReload()
     expect(service._setupHandler).toBeCalledTimes(1)
@@ -401,7 +413,7 @@ test('after hook', async () => {
     const service = new DevToolsService({})
     await service.after()
 
-    service['_coverageGatherer'] = { logCoverage: jest.fn() } as any
+    service['_coverageGatherer'] = { logCoverage: vi.fn() } as any
     await service.after()
-    expect(service['_coverageGatherer'].logCoverage).toHaveBeenCalledTimes(1)
+    expect(service['_coverageGatherer']!.logCoverage).toHaveBeenCalledTimes(1)
 })

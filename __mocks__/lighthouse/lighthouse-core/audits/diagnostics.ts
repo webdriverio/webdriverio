@@ -1,5 +1,6 @@
+import { vi } from 'vitest'
 export default {
-    audit: jest.fn().mockImplementation((params) => {
+    audit: vi.fn().mockImplementation((params: any) => {
         if (params.error) {
             throw params.error
         }

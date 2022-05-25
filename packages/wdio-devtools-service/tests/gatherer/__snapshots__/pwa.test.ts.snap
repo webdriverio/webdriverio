@@ -1,17 +1,17 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Vitest Snapshot v1
 
-exports[`PWAGatherer gatherData 1`] = `
-Object {
+exports[`PWAGatherer > gatherData 1`] = `
+{
   "InstallabilityErrors": "getInstallabilityErrorsResult",
   "LinkElements": "barfoo",
-  "MetaElements": Object {
+  "MetaElements": {
     "some": "result",
   },
-  "ServiceWorker": Object {
+  "ServiceWorker": {
     "registrations": 42,
     "versions": "1.2.1",
   },
-  "URL": Object {
+  "URL": {
     "finalUrl": "http://json.org",
     "requestedUrl": "http://json.org",
   },
@@ -20,8 +20,8 @@ Object {
 }
 `;
 
-exports[`PWAGatherer initiates properly 1`] = `
-Array [
+exports[`PWAGatherer > initiates properly 1`] = `
+[
   "Network.requestWillBeSent",
   "Network.requestServedFromCache",
   "Network.responseReceived",
