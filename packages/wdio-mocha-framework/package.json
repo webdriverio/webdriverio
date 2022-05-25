@@ -5,7 +5,6 @@
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-mocha-framework",
   "license": "MIT",
-  "main": "./build/index",
   "engines": {
      "node": "^16.13 || >=18"
   },
@@ -21,6 +20,27 @@
   "bugs": {
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
+  "main": "./build/index.cjs.js",
+  "type": "module",
+  "module": "./build/index.js",
+  "exports": {
+    ".": [
+      {
+        "import": "./build/index.js",
+        "require": "./build/index.cjs.js"
+      },
+      "./build/index.cjs.js"
+    ],
+    "./node": [
+      {
+        "import": "./build/node.js",
+        "require": "./build/node.cjs.js"
+      },
+      "./build/node.cjs.js"
+    ]
+  },
+  "types": "./build/index.d.ts",
+  "typeScriptVersion": "3.8.3",
   "dependencies": {
     "@types/mocha": "^9.1.1",
     "@wdio/logger": "7.19.0",
@@ -34,6 +54,5 @@
   },
   "publishConfig": {
     "access": "public"
-  },
-  "types": "./build/index.d.ts"
+  }
 }
