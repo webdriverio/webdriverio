@@ -1,14 +1,5 @@
-import { describe, expect, test, vi } from 'vitest'
+import { describe, expect, test } from 'vitest'
 import { remote, multiremote } from '../src'
-
-vi.mock('got', () => ({ default: 'foo' }))
-vi.mock('@sindresorhus/is', () => ({
-    default: {
-        string: () => {
-            throw new Error('upps');
-        },
-    },
-}));
 
 const remoteConfig = {
     baseUrl: 'http://foobar.com',
