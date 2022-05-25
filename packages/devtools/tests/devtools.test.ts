@@ -1,4 +1,4 @@
-import path from 'path'
+import path from 'node:path'
 import { expect, test, vi, beforeEach } from 'vitest'
 import type { Capabilities } from '@wdio/types'
 import launch from '../src/launcher'

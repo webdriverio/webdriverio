@@ -1,4 +1,4 @@
-import path from 'path'
+import path from 'node:path'
 import { vi, describe, it, expect, beforeEach } from 'vitest'
 import webdriverMonad from '../src/monad'
 
