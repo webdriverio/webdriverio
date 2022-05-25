@@ -17,9 +17,9 @@ export default class BrowserstackService implements Services.ServiceInstance {
     private _fullTitle?: string
 
     constructor (
-        private _options: BrowserstackConfig | any,
+        private _options: BrowserstackConfig & Options.Testrunner,
         private _caps: Capabilities.RemoteCapability,
-        private _config: Options.Testrunner | any
+        private _config: Options.Testrunner
     ) {
         this._config || (this._config = _options)
         // Cucumber specific
