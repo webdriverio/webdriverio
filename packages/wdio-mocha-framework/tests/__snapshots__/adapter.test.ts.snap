@@ -1,14 +1,14 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Vitest Snapshot v1
 
-exports[`formatMessage should do nothing if no error or params are given 1`] = `
-Object {
+exports[`formatMessage > should do nothing if no error or params are given 1`] = `
+{
   "type": "foobar",
 }
 `;
 
-exports[`formatMessage should format an error message 1`] = `
-Object {
-  "error": Object {
+exports[`formatMessage > should format an error message 1`] = `
+{
+  "error": {
     "actual": undefined,
     "expected": undefined,
     "message": "uups",
@@ -19,10 +19,10 @@ Object {
 }
 `;
 
-exports[`formatMessage should format an error message with timeout error 1`] = `
-Object {
+exports[`formatMessage > should format an error message with timeout error 1`] = `
+{
   "duration": undefined,
-  "error": Object {
+  "error": {
     "actual": undefined,
     "expected": undefined,
     "message": "The execution in the test \\"parentfoo barfoo\\" took too long. Try to reduce the run time or increase your timeout for test specs (https://webdriver.io/docs/timeouts).",
@@ -38,8 +38,8 @@ Object {
 }
 `;
 
-exports[`formatMessage should format payload 1`] = `
-Object {
+exports[`formatMessage > should format payload 1`] = `
+{
   "context": "some context",
   "currentTest": "current test",
   "duration": undefined,

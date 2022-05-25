@@ -1,13 +1,14 @@
 import path from 'node:path'
-import Mocha, { Runner } from 'mocha'
 import { format } from 'node:util'
+import Mocha, { Runner } from 'mocha'
 
 import logger from '@wdio/logger'
 import { runTestInFiberContext, executeHooksWithArgs } from '@wdio/utils'
+import { setOptions } from 'expect-webdriverio'
 import type { Capabilities, Services } from '@wdio/types'
 
-import { loadModule } from './utils'
-import { INTERFACES, EVENTS, NOOP, MOCHA_TIMEOUT_MESSAGE, MOCHA_TIMEOUT_MESSAGE_REPLACEMENT } from './constants'
+import { loadModule } from './utils.js'
+import { INTERFACES, EVENTS, NOOP, MOCHA_TIMEOUT_MESSAGE, MOCHA_TIMEOUT_MESSAGE_REPLACEMENT } from './constants.js'
 import type { MochaConfig, MochaOpts as MochaOptsImport, FrameworkMessage, FormattedMessage, MochaContext, MochaError } from './types'
 import type { EventEmitter } from 'node:events'
 import type ExpectWebdriverIO from 'expect-webdriverio'
@@ -68,11 +69,6 @@ class MochaAdapter {
         mocha.suite.on('pre-require', this.preRequire.bind(this))
         await this._loadFiles(mochaOpts)
 
-        /**
-         * import and set options for `expect-webdriverio` assertion lib once
-         * the framework was initiated so that it can detect the environment
-         */
-        const { setOptions } = require('expect-webdriverio')
         setOptions({
             wait: this._config.waitforTimeout, // ms to wait for expectation to succeed
             interval: this._config.waitforInterval, // interval between attempts
@@ -150,7 +146,7 @@ class MochaAdapter {
             require = [require]
         }
 
-        this.requireExternalModules([...compilers, ...require], context)
+        return this.requireExternalModules([...compilers, ...require], context)
     }
 
     preRequire (
@@ -182,7 +178,7 @@ class MochaAdapter {
                 this._cid
             )
         })
-        this.options(options, { context, file, mocha, options })
+        return this.options(options, { context, file, mocha, options })
     }
 
     /**
@@ -295,9 +291,9 @@ class MochaAdapter {
     }
 
     requireExternalModules (modules: string[], context: MochaContext) {
-        modules.forEach(module => {
+        return modules.map((module) => {
             if (!module) {
-                return
+                return Promise.resolve()
             }
 
             module = module.replace(/.*:/, '')
@@ -306,7 +302,7 @@ class MochaAdapter {
                 module = path.join(process.cwd(), module)
             }
 
-            loadModule(module, context)
+            return loadModule(module, context)
         })
     }
 
