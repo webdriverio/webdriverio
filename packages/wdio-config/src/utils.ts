@@ -1,4 +1,4 @@
-import path from 'path'
+import path from 'node:path'
 import { canAccess } from '@wdio/utils'
 import logger from '@wdio/logger'
 import type { Capabilities, Options } from '@wdio/types'
