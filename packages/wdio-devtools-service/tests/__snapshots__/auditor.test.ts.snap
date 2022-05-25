@@ -1,7 +1,7 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Vitest Snapshot v1
 
 exports[`getDiagnostics 1`] = `
-Object {
+{
   "mainDocumentTransferSize": 50074,
   "maxRtt": 145.65800000000002,
   "maxServerLatency": 4980.4710000000005,
@@ -23,32 +23,32 @@ Object {
 `;
 
 exports[`getMainThreadWorkBreakdown 1`] = `
-Array [
-  Object {
+[
+  {
     "duration": 25.485,
     "group": "styleLayout",
   },
-  Object {
+  {
     "duration": 22.353,
     "group": "other",
   },
-  Object {
+  {
     "duration": 4.353999999999999,
     "group": "scriptEvaluation",
   },
-  Object {
+  {
     "duration": 1.678,
     "group": "parseHTML",
   },
-  Object {
+  {
     "duration": 1.411,
     "group": "garbageCollection",
   },
-  Object {
+  {
     "duration": 0.8830000000000001,
     "group": "scriptParseCompile",
   },
-  Object {
+  {
     "duration": 0.718,
     "group": "paintCompositeRender",
   },
@@ -56,7 +56,7 @@ Array [
 `;
 
 exports[`getMetrics 1`] = `
-Object {
+{
   "cumulativeLayoutShift": 24347,
   "domContentLoaded": undefined,
   "firstContentfulPaint": 18090,
@@ -75,48 +75,48 @@ Object {
 }
 `;
 
-exports[`getPerformanceScore 1`] = `0.77`;
+exports[`getPerformanceScore 1`] = `0`;
 
 exports[`should allow to audit PWA results 1`] = `
-Object {
-  "details": Object {
-    "appleTouchIcon": Object {
-      "details": Object {},
+{
+  "details": {
+    "appleTouchIcon": {
+      "details": {},
       "displayValue": "apple-touch-icon",
       "score": 1,
     },
-    "contentWith": Object {
-      "details": Object {},
+    "contentWith": {
+      "details": {},
       "displayValue": "content-width",
       "score": 1,
     },
-    "isInstallable": Object {
-      "details": Object {},
+    "isInstallable": {
+      "details": {},
       "displayValue": "installable-manifest",
       "score": 1,
     },
-    "maskableIcon": Object {
-      "details": Object {},
+    "maskableIcon": {
+      "details": {},
       "displayValue": "maskable-icon",
       "score": 1,
     },
-    "serviceWorker": Object {
-      "details": Object {},
+    "serviceWorker": {
+      "details": {},
       "displayValue": "service-worker",
       "score": 1,
     },
-    "splashScreen": Object {
-      "details": Object {},
+    "splashScreen": {
+      "details": {},
       "displayValue": "splash-screen",
       "score": 0,
     },
-    "themedOmnibox": Object {
-      "details": Object {},
+    "themedOmnibox": {
+      "details": {},
       "displayValue": "themed-omnibox",
       "score": 1,
     },
-    "viewport": Object {
-      "details": Object {},
+    "viewport": {
+      "details": {},
       "displayValue": "viewport",
       "score": 1,
     },
@@ -126,15 +126,15 @@ Object {
 `;
 
 exports[`should allow to audit PWA results 2`] = `
-Object {
-  "details": Object {
-    "maskableIcon": Object {
-      "details": Object {},
+{
+  "details": {
+    "maskableIcon": {
+      "details": {},
       "displayValue": "maskable-icon",
       "score": 1,
     },
-    "serviceWorker": Object {
-      "details": Object {},
+    "serviceWorker": {
+      "details": {},
       "displayValue": "service-worker",
       "score": 1,
     },

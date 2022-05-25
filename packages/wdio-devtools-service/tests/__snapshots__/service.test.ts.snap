@@ -1,12 +1,12 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Vitest Snapshot v1
 
 exports[`_emulateDevice 1`] = `
-Array [
-  Array [
-    Object {
+[
+  [
+    {
       "name": "Nexus 6P",
       "userAgent": "Mozilla/5.0 (Linux; Android 8.0.0; Nexus 6P Build/OPP3.170518.006) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3765.0 Mobile Safari/537.36",
-      "viewport": Object {
+      "viewport": {
         "deviceScaleFactor": 3.5,
         "hasTouch": true,
         "height": 732,

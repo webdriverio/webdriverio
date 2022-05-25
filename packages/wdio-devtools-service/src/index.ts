@@ -8,18 +8,18 @@ import type { CDPSession } from 'puppeteer-core/lib/cjs/puppeteer/common/Connect
 import type { Browser as PuppeteerBrowser } from 'puppeteer-core/lib/cjs/puppeteer/common/Browser'
 import type { Target } from 'puppeteer-core/lib/cjs/puppeteer/common/Target'
 
-import CommandHandler from './commands'
-import Auditor from './auditor'
-import PWAGatherer from './gatherer/pwa'
-import TraceGatherer from './gatherer/trace'
-import CoverageGatherer from './gatherer/coverage'
-import DevtoolsGatherer, { CDPSessionOnMessageObject } from './gatherer/devtools'
-import { isBrowserSupported, setUnsupportedCommand, getLighthouseDriver } from './utils'
-import { NETWORK_STATES, UNSUPPORTED_ERROR_MESSAGE, CLICK_TRANSITION, DEFAULT_THROTTLE_STATE } from './constants'
-import {
+import CommandHandler from './commands.js'
+import Auditor from './auditor.js'
+import PWAGatherer from './gatherer/pwa.js'
+import TraceGatherer from './gatherer/trace.js'
+import CoverageGatherer from './gatherer/coverage.js'
+import DevtoolsGatherer, { CDPSessionOnMessageObject } from './gatherer/devtools.js'
+import { isBrowserSupported, setUnsupportedCommand, getLighthouseDriver } from './utils.js'
+import { NETWORK_STATES, UNSUPPORTED_ERROR_MESSAGE, CLICK_TRANSITION, DEFAULT_THROTTLE_STATE } from './constants.js'
+import type {
     DevtoolsConfig, FormFactor, EnablePerformanceAuditsOptions,
     DeviceDescription, Device, PWAAudits, GathererDriver
-} from './types'
+} from './types.js'
 
 const log = logger('@wdio/devtools-service')
 const TRACE_COMMANDS = ['click', 'navigateTo', 'url']
@@ -216,7 +216,7 @@ export default class DevToolsService implements Services.ServiceInstance {
         /**
          * casting is required as types differ between core and definitely typed types
          */
-        this._puppeteer = await (this._browser as Browser<'async'>).getPuppeteer()
+        this._puppeteer = await (this._browser as Browser<'async'>).getPuppeteer() as any as PuppeteerBrowser
 
         /* istanbul ignore next */
         if (!this._puppeteer) {
@@ -287,7 +287,7 @@ export default class DevToolsService implements Services.ServiceInstance {
     }
 }
 
-export * from './types'
+export * from './types.js'
 
 type ServiceCommands = Omit<FunctionProperties<DevToolsService>, keyof Services.HookFunctions | '_setupHandler'>
 type CommandHandlerCommands = FunctionProperties<CommandHandler>

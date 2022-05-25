@@ -1,4 +1,4 @@
-import CriConnection from 'lighthouse/lighthouse-core/gather/connections/cri'
+import CriConnection from 'lighthouse/lighthouse-core/gather/connections/cri.js'
 
 const DEFAULT_HOSTNAME = 'localhost'
 const DEFAULT_PORT = '9222'

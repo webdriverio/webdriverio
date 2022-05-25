@@ -1,63 +1,72 @@
 import fs from 'node:fs'
 import path from 'node:path'
-import CoverageGatherer from '../../src/gatherer/coverage'
+import { describe, expect, it, vi, beforeEach } from 'vitest'
 
 import libReport from 'istanbul-lib-report'
 import reports from 'istanbul-reports'
 import { transformAsync as babelTransform } from '@babel/core'
 import type { Page } from 'puppeteer-core/lib/cjs/puppeteer/common/Page'
 
-jest.useFakeTimers()
-jest.spyOn(global, 'setInterval')
-jest.spyOn(global, 'clearInterval')
+import CoverageGatherer from '../../src/gatherer/coverage'
 
-jest.mock('@babel/core', () => ({
-    transformAsync: jest.fn().mockResolvedValue({ code: 'transpiled code' })
+vi.useFakeTimers()
+vi.spyOn(global, 'setInterval')
+vi.spyOn(global, 'clearInterval')
+
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock('@babel/core', () => ({
+    transformAsync: vi.fn().mockResolvedValue({ code: 'transpiled code' })
 }))
 
-jest.mock('babel-plugin-istanbul', () => jest.fn())
-jest.mock('istanbul-lib-coverage', () => ({
-    createCoverageMap: jest.fn().mockReturnValue({
-        files: jest.fn().mockReturnValue(['/foo/bar.js'])
-    }),
-    createCoverageSummary: jest.fn().mockReturnValue({
-        merge: jest.fn(),
-        data: { some: 'coverageData' }
-    })
+vi.mock('babel-plugin-istanbul', () => ({ default: vi.fn() }))
+vi.mock('istanbul-lib-coverage', () => ({
+    default: {
+        createCoverageMap: vi.fn().mockReturnValue({
+            files: vi.fn().mockReturnValue(['/foo/bar.js'])
+        }),
+        createCoverageSummary: vi.fn().mockReturnValue({
+            merge: vi.fn(),
+            data: { some: 'coverageData' }
+        })
+    }
 }))
-jest.mock('istanbul-lib-report', () => ({
-    createContext: jest.fn().mockReturnValue('someContext')
+vi.mock('istanbul-lib-report', () => ({
+    default: { createContext: vi.fn().mockReturnValue('someContext') }
 }))
-jest.mock('istanbul-reports', () => {
-    const reportInstance = { execute: jest.fn() }
+vi.mock('istanbul-reports', () => {
+    const reportInstance = { execute: vi.fn() }
     return {
-        create: jest.fn().mockReturnValue(reportInstance),
-        reportInstance
+        default: {
+            create: vi.fn().mockReturnValue(reportInstance),
+            reportInstance
+        }
     }
 })
-jest.mock('fs', () => ({
-    existsSync: jest.fn(),
-    readFileSync: jest.fn().mockReturnValue({ toString: () => 'barfoo' }),
-    promises: {
-        mkdir: jest.fn(),
-        writeFile: jest.fn()
+vi.mock('fs', () => ({
+    default: {
+        existsSync: vi.fn(),
+        readFileSync: vi.fn().mockReturnValue({ toString: () => 'barfoo' }),
+        promises: {
+            mkdir: vi.fn(),
+            writeFile: vi.fn()
+        }
     }
 }))
 
 const sessionMock = {
-    on: jest.fn(),
-    send: jest.fn().mockResolvedValue({})
+    on: vi.fn(),
+    send: vi.fn().mockResolvedValue({})
 }
 
 const targetMock = {
-    createCDPSession: jest.fn().mockResolvedValue(sessionMock)
+    createCDPSession: vi.fn().mockResolvedValue(sessionMock)
 }
 
 let i = 0
 const pageMock = {
-    on: jest.fn(),
-    target: jest.fn().mockReturnValue(targetMock),
-    evaluate: jest.fn()
+    on: vi.fn(),
+    target: vi.fn().mockReturnValue(targetMock),
+    evaluate: vi.fn()
         .mockResolvedValueOnce(++i)
         .mockResolvedValueOnce(++i)
         .mockRejectedValueOnce(new Error('foo'))
@@ -67,10 +76,10 @@ describe('CoverageGatherer', () => {
     beforeEach(() => {
         i = 0
 
-        ;(pageMock.on as jest.Mock).mockClear()
-        ;(sessionMock.on as jest.Mock).mockClear()
-        ;(sessionMock.send as jest.Mock).mockClear()
-        ;(clearInterval as jest.Mock).mockClear()
+        vi.mocked(pageMock.on).mockClear()
+        vi.mocked(sessionMock.on).mockClear()
+        vi.mocked(sessionMock.send).mockClear()
+        vi.mocked(clearInterval).mockClear()
     })
 
     it('initiates properly', async () => {
@@ -122,12 +131,16 @@ describe('CoverageGatherer', () => {
 
         expect(sessionMock.send.mock.calls.slice(1))
             .toMatchSnapshot()
-        expect((fs.promises.mkdir as jest.Mock).mock.calls[0][0].endsWith(
-            path.join('foo', 'bar', 'files', 'json.org')
-        )).toBe(true)
-        expect((fs.promises.writeFile as jest.Mock).mock.calls[0][0].endsWith(
-            path.join('foo', 'bar', 'files', 'json.org', 'foo.js')
-        )).toBe(true)
+        expect(
+            (vi.mocked(fs.promises.mkdir).mock.calls[0][0] as any).endsWith(
+                path.join('foo', 'bar', 'files', 'json.org')
+            )
+        ).toBe(true)
+        expect(
+            (vi.mocked(fs.promises.writeFile).mock.calls[0][0] as any).endsWith(
+                path.join('foo', 'bar', 'files', 'json.org', 'foo.js')
+            )
+        ).toBe(true)
     })
 
     it('_handleRequests should return if file is part of exclude', async () => {
@@ -170,12 +183,16 @@ describe('CoverageGatherer', () => {
 
         expect(sessionMock.send.mock.calls.slice(1))
             .toMatchSnapshot()
-        expect((fs.promises.mkdir as jest.Mock).mock.calls[0][0].endsWith(
-            path.join('foo', 'bar', 'files', 'json.org')
-        )).toBe(true)
-        expect((fs.promises.writeFile as jest.Mock).mock.calls[0][0].endsWith(
-            path.join('foo', 'bar', 'files', 'json.org', 'foo.js')
-        )).toBe(true)
+        expect(
+            (vi.mocked(fs.promises.mkdir).mock.calls[0][0] as any).endsWith(
+                path.join('foo', 'bar', 'files', 'json.org')
+            )
+        ).toBe(true)
+        expect(
+            (vi.mocked(fs.promises.writeFile).mock.calls[0][0] as any).endsWith(
+                path.join('foo', 'bar', 'files', 'json.org', 'foo.js')
+            )
+        ).toBe(true)
     })
 
     it('should return untransformed file if transformation fails', async () => {
@@ -190,7 +207,7 @@ describe('CoverageGatherer', () => {
             logDir: '/foo/bar'
         })
 
-        ;(babelTransform as jest.Mock).mockReturnValueOnce(Promise.reject(new Error('upps')))
+        vi.mocked(babelTransform).mockReturnValueOnce(Promise.reject(new Error('upps')))
         await gatherer.init()
         await gatherer['_handleRequests'](params)
 
@@ -210,7 +227,7 @@ describe('CoverageGatherer', () => {
 
     it('_captureCoverage', async () => {
         const gatherer = new CoverageGatherer(pageMock, {})
-        gatherer['_clearCaptureInterval'] = jest.fn()
+        gatherer['_clearCaptureInterval'] = vi.fn()
         gatherer['_captureCoverage']()
         expect(gatherer['_captureInterval']).not.toBe(undefined)
         expect(gatherer['_clearCaptureInterval']).toBeCalledTimes(0)
@@ -221,9 +238,9 @@ describe('CoverageGatherer', () => {
     it('_getCoverageMap', async () => {
         const gatherer = new CoverageGatherer(pageMock, {})
         let map = gatherer['_getCoverageMap']()
-        jest.advanceTimersByTime(1000)
+        vi.advanceTimersByTime(1000)
         gatherer['_coverageMap'] = 'foobar' as any
-        jest.advanceTimersByTime(1000)
+        vi.advanceTimersByTime(1000)
         expect(await map).toEqual('foobar')
     })
 
@@ -233,18 +250,20 @@ describe('CoverageGatherer', () => {
             logDir: '/foo/bar',
             options: { foo: 'bar' }
         })
-        gatherer['_clearCaptureInterval'] = jest.fn()
-        gatherer['_getCoverageMap'] = jest.fn().mockResolvedValue({ bar: 'foo' })
+        gatherer['_clearCaptureInterval'] = vi.fn()
+        gatherer['_getCoverageMap'] = vi.fn().mockResolvedValue({ bar: 'foo' })
         await gatherer.logCoverage()
 
         expect(gatherer['_clearCaptureInterval']).toBeCalledTimes(1)
         expect(libReport.createContext).toBeCalledTimes(1)
         expect(
-            (libReport.createContext as jest.Mock).mock.calls[0][0].sourceFinder('/to/a/file.js')
+            (vi.mocked(libReport.createContext).mock.calls[0][0] as any).sourceFinder('/to/a/file.js')
         ).toBe('barfoo')
-        expect((fs.readFileSync as jest.Mock).mock.calls[0][0].endsWith(
-            path.join('foo', 'bar', 'files', 'to', 'a', 'file.js')
-        )).toBe(true)
+        expect(
+            (vi.mocked(fs.readFileSync).mock.calls[0][0] as any).endsWith(
+                path.join('foo', 'bar', 'files', 'to', 'a', 'file.js')
+            )
+        ).toBe(true)
         expect(reports.create).toBeCalledWith('json-summary', { foo: 'bar' })
         // @ts-ignore mock feature
         expect(reports.reportInstance.execute).toBeCalledWith('someContext')
@@ -252,14 +271,14 @@ describe('CoverageGatherer', () => {
 
     it('getCoverageReport', async () => {
         const coverage = {
-            toSummary: jest.fn().mockReturnValue({ data: { some: 'coverage' } })
+            toSummary: vi.fn().mockReturnValue({ data: { some: 'coverage' } })
         }
         const coverageMap = {
-            files: jest.fn().mockReturnValue(['/foo/bar.js', '/bar/foo.js']),
-            fileCoverageFor: jest.fn().mockReturnValue(coverage)
+            files: vi.fn().mockReturnValue(['/foo/bar.js', '/bar/foo.js']),
+            fileCoverageFor: vi.fn().mockReturnValue(coverage)
         }
         const gatherer = new CoverageGatherer(pageMock, {})
-        gatherer['_getCoverageMap'] = jest.fn().mockResolvedValue(coverageMap)
+        gatherer['_getCoverageMap'] = vi.fn().mockResolvedValue(coverageMap)
         expect(await gatherer.getCoverageReport()).toMatchSnapshot()
     })
 })

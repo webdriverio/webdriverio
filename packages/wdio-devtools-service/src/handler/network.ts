@@ -1,7 +1,7 @@
 import type { CDPSession } from 'puppeteer-core/lib/cjs/puppeteer/common/Connection'
 import type Protocol from 'devtools-protocol'
 
-import { IGNORED_URLS } from '../constants'
+import { IGNORED_URLS } from '../constants.js'
 
 interface RequestLog {
     id?: string

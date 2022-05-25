@@ -1,59 +1,59 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Vitest Snapshot v1
 
 exports[`should register eventlisteners for network monitor 1`] = `
-Array [
-  Array [
-    Object {
+[
+  [
+    {
       "method": "Network.requestWillBeSent",
-      "params": Object {
+      "params": {
         "some": "params",
       },
     },
   ],
-  Array [
-    Object {
+  [
+    {
       "method": "Network.requestServedFromCache",
-      "params": Object {
+      "params": {
         "some": "params",
       },
     },
   ],
-  Array [
-    Object {
+  [
+    {
       "method": "Network.responseReceived",
-      "params": Object {
+      "params": {
         "some": "params",
       },
     },
   ],
-  Array [
-    Object {
+  [
+    {
       "method": "Network.dataReceived",
-      "params": Object {
+      "params": {
         "some": "params",
       },
     },
   ],
-  Array [
-    Object {
+  [
+    {
       "method": "Network.loadingFinished",
-      "params": Object {
+      "params": {
         "some": "params",
       },
     },
   ],
-  Array [
-    Object {
+  [
+    {
       "method": "Network.loadingFailed",
-      "params": Object {
+      "params": {
         "some": "params",
       },
     },
   ],
-  Array [
-    Object {
+  [
+    {
       "method": "Network.resourceChangedPriority",
-      "params": Object {
+      "params": {
         "some": "params",
       },
     },
