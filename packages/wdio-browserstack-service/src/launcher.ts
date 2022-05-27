@@ -20,10 +20,12 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
     browserstackLocal?: BrowserstackLocal
 
     constructor (
-        private _options: BrowserstackConfig,
+        private _options: BrowserstackConfig & Options.Testrunner,
         capabilities: Capabilities.RemoteCapability,
         private _config: Options.Testrunner
     ) {
+        // added to maintain backward compatibility with webdriverIO v5
+        this._config || (this._config = _options)
         if (Array.isArray(capabilities)) {
             capabilities.forEach((capability: Capabilities.DesiredCapabilities) => {
                 if (!capability['bstack:options']) {
