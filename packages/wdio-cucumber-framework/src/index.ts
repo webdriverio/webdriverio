@@ -46,7 +46,7 @@ function getResultObject (world: ITestCaseHookParameter): Frameworks.PickleResul
     return {
         passed: (world.result?.status === Cucumber.Status.PASSED || world.result?.status === Cucumber.Status.SKIPPED),
         error: world.result?.message as string,
-        duration: world.result?.duration?.nanos as number / 10e6 // convert into ms
+        duration: world.result?.duration?.nanos as number / 1e6 // convert into ms
     }
 }
 
