@@ -1210,7 +1210,7 @@
         "required": false
       }, {
         "name": "extensions",
-        "type": "object[]",
+        "type": "string[]",
         "description": "",
         "required": false
       }, {
