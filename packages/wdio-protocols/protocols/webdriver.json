@@ -1173,7 +1173,7 @@
       }]
     }
   },
-  "/session/:sessionId/authenticator": {
+  "/session/:sessionId/webauthn/authenticator": {
     "POST": {
       "command": "addVirtualAuthenticator",
       "description": "Creates a software [Virtual Authenticator](https://www.w3.org/TR/webauthn-2/#virtual-authenticators).",
