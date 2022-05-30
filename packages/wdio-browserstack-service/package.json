@@ -27,7 +27,7 @@
     "@wdio/logger": "7.19.0",
     "@wdio/types": "7.19.5",
     "browserstack-local": "^1.4.5",
-    "got": "^11.0.2",
+    "got": "^12.1.0",
     "webdriverio": "7.19.7"
   },
   "peerDependencies": {

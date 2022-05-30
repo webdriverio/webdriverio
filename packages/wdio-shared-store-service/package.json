@@ -26,7 +26,7 @@
     "@polka/parse": "^1.0.0-next.0",
     "@wdio/logger": "7.19.0",
     "@wdio/types": "7.19.5",
-    "got": "^11.0.2",
+    "got": "^12.1.0",
     "polka": "^0.5.2",
     "webdriverio": "7.19.7"
   },
