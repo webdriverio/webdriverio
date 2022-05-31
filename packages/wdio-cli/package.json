@@ -5,12 +5,11 @@
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-cli",
   "license": "MIT",
-  "main": "./build/index",
   "bin": {
     "wdio": "./bin/wdio.js"
   },
   "engines": {
-     "node": "^16.13 || >=18"
+    "node": "^16.13 || >=18"
   },
   "scripts": {
     "copy": "copyfiles -u 1 -V \"src/templates/**/*\" ./build/"
@@ -28,6 +27,20 @@
   "bugs": {
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
+  "main": "./build/index.cjs.js",
+  "type": "module",
+  "module": "./build/index.js",
+  "exports": {
+    ".": [
+      {
+        "import": "./build/index.js",
+        "require": "./build/index.cjs.js"
+      },
+      "./build/index.cjs.js"
+    ]
+  },
+  "types": "./build/index.d.ts",
+  "typeScriptVersion": "3.8.3",
   "dependencies": {
     "@types/ejs": "^3.0.5",
     "@types/fs-extra": "^9.0.4",
@@ -61,5 +74,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "types": "./build/index.d.ts"
+  "devDependencies": {
+    "@types/yargs": "^17.0.10"
+  }
 }

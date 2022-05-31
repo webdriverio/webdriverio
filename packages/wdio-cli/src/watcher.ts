@@ -3,10 +3,10 @@ import logger from '@wdio/logger'
 import pickBy from 'lodash.pickby'
 import flattenDeep from 'lodash.flattendeep'
 import union from 'lodash.union'
-
-import Launcher from './launcher'
 import type { Capabilities, Workers } from '@wdio/types'
-import { RunCommandArguments, ValueKeyIteratee } from './types.js'
+
+import Launcher from './launcher.js'
+import type { RunCommandArguments, ValueKeyIteratee } from './types'
 
 const log = logger('@wdio/cli:watch')
 

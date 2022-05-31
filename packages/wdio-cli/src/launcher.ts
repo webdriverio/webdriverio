@@ -7,9 +7,9 @@ import { ConfigParser } from '@wdio/config'
 import { initialisePlugin, initialiseLauncherService, sleep } from '@wdio/utils'
 import type { Options, Capabilities, Services } from '@wdio/types'
 
-import CLInterface from './interface'
-import { RunCommandArguments } from './types'
-import { runLauncherHook, runOnCompleteHook, runServiceHook, HookError } from './utils'
+import CLInterface from './interface.js'
+import { runLauncherHook, runOnCompleteHook, runServiceHook, HookError } from './utils.js'
+import type { RunCommandArguments } from './types'
 
 const log = logger('@wdio/cli:launcher')
 

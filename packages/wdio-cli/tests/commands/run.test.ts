@@ -1,54 +1,59 @@
+import { vi, describe, it, expect, afterEach, beforeEach } from 'vitest'
 // @ts-expect-error mock
 import { yargs } from 'yargs/yargs'
 import fs from 'fs-extra'
 import * as runCmd from '../../src/commands/run'
 import * as configCmd from '../../src/commands/config'
 
-jest.mock('./../../src/launcher', () => class {
-    run() {
-        return {
-            then: jest.fn().mockReturnValue({
-                catch: jest.fn().mockReturnValue('launcher-mock')
-            })
+vi.mock('yargs/yargs')
+vi.mock('fs-extra')
+vi.mock('./../../src/launcher', () => ({
+    default: class {
+        run() {
+            return {
+                then: vi.fn().mockReturnValue({
+                    catch: vi.fn().mockReturnValue('launcher-mock')
+                })
+            }
         }
     }
-})
-jest.mock('./../../src/watcher', () => class {
-    watch() {
-        return 'watching-test'
+}))
+vi.mock('./../../src/watcher', () => ({
+    default: class {
+        watch() {
+            return 'watching-test'
+        }
     }
-})
-
-jest.mock('fs-extra')
+}))
 
 describe('Command: run', () => {
-    const setEncodingMock = jest.fn()
-    const onMock = jest.fn((s, c) => c())
+    const setEncodingMock = vi.fn()
+    const onMock = vi.fn((s, c) => c())
 
     beforeEach(() => {
-        (fs.existsSync as jest.Mock).mockImplementation(() => true)
-        ;(fs.existsSync as jest.Mock).mockClear()
-        jest.spyOn(configCmd, 'missingConfigurationPrompt').mockImplementation((): Promise<never> => {
+        vi.mocked(fs.existsSync).mockImplementation(() => true)
+        vi.mocked(fs.existsSync).mockClear()
+        vi.spyOn(configCmd, 'missingConfigurationPrompt').mockImplementation((): Promise<never> => {
             return undefined as never
         })
-        jest.spyOn(console, 'error')
-        jest.spyOn(process, 'openStdin').mockImplementation(
+        vi.spyOn(console, 'error')
+        vi.spyOn(process, 'openStdin').mockImplementation(
             () => ({ setEncoding: setEncodingMock, on: onMock }) as any)
     })
 
     it('should call missingConfigurationPrompt if no config found', async () => {
-        (fs.existsSync as jest.Mock).mockImplementation(() => false)
+        vi.mocked(fs.existsSync).mockImplementation(() => false)
         await runCmd.handler({} as any)
 
         expect(configCmd.missingConfigurationPrompt).toHaveBeenCalledTimes(1)
-        expect((configCmd.missingConfigurationPrompt as jest.Mock).mock.calls[0][1])
+        expect(vi.mocked(configCmd.missingConfigurationPrompt).mock.calls[0][1])
             .toContain('No WebdriverIO configuration found in "')
 
-        ;(fs.existsSync as jest.Mock).mockClear()
+        vi.mocked(fs.existsSync).mockClear()
     })
 
     it('should use local conf if nothing defined', async () => {
-        (fs.existsSync as jest.Mock).mockImplementation(() => true)
+        vi.mocked(fs.existsSync).mockImplementation(() => true)
         await runCmd.handler({ argv: {} } as any)
         expect(fs.existsSync).toBeCalledTimes(2)
     })
@@ -90,9 +95,9 @@ describe('Command: run', () => {
     })
 
     afterEach(() => {
-        (process.openStdin as jest.Mock).mockReset()
-        ;(console.error as any as jest.Mock).mockReset()
-        ;(fs.existsSync as jest.Mock).mockClear()
-        ;(configCmd.missingConfigurationPrompt as jest.Mock).mockClear()
+        vi.mocked(process.openStdin).mockReset()
+        vi.mocked(console.error).mockReset()
+        vi.mocked(fs.existsSync).mockClear()
+        vi.mocked(configCmd.missingConfigurationPrompt).mockClear()
     })
 })

@@ -1,5 +1,5 @@
-import { Options, Reporters } from '@wdio/types'
-import { BACKEND_CHOICES, REGION_OPTION, COMPILER_OPTION_ANSWERS } from './constants'
+import type { Options, Reporters } from '@wdio/types'
+import type { BACKEND_CHOICES, REGION_OPTION, COMPILER_OPTION_ANSWERS } from './constants'
 
 type ValueOf<T> = T[keyof T]
 

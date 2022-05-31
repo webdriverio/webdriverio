@@ -1,9 +1,9 @@
-import chalk from 'chalk'
 import { EventEmitter } from 'node:events'
+import chalk from 'chalk'
 import logger from '@wdio/logger'
 import type { Options, Capabilities, Workers } from '@wdio/types'
 
-import { getRunnerName, HookError } from './utils'
+import { getRunnerName, HookError } from './utils.js'
 
 const log = logger('@wdio/cli')
 
