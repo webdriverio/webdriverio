@@ -1,150 +1,15 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Vitest Snapshot v1
 
-exports[`install compliant NPM tag packages it should install tagged version if cli is tagged with beta 1`] = `
-Array [
-  Array [
+exports[`install compliant NPM tag packages > it should install tagged version if cli is tagged with beta 1`] = `
+[
+  [
     "
 =========================
 WDIO Configuration Helper
 =========================
 ",
   ],
-  Array [
-    "
-Installing wdio packages:
--",
-    "@wdio/local-runner@beta
-- @wdio/mocha-framework@beta
-- @wdio/crossbrowsertesting-service@beta
-- wdio-lambdatest-service
-- ts-node
-- typescript",
-  ],
-  Array [
-    "
-Packages installed successfully, creating configuration file...",
-  ],
-  Array [
-    "To have TypeScript support please add the following packages to your \\"types\\" list:
-{
-  \\"compilerOptions\\": {
-    \\"types\\": [\\"node\\", \\"webdriverio/async\\", \\"@wdio/mocha-framework\\", \\"expect-webdriverio\\", \\"@wdio/crossbrowsertesting-service\\"]
-  }
-}
-
-For for information on TypeScript integration check out: https://webdriver.io/docs/typescript
-",
-  ],
-  Array [
-    "
-Configuration file was created successfully!
-To run your tests, execute:
-$ npx wdio run test/wdio.conf.ts
-",
-  ],
-]
-`;
-
-exports[`install compliant NPM tag packages it should install tagged version if cli is tagged with latest 1`] = `
-Array [
-  Array [
-    "
-=========================
-WDIO Configuration Helper
-=========================
-",
-  ],
-  Array [
-    "
-Installing wdio packages:
--",
-    "@wdio/local-runner@latest
-- @wdio/mocha-framework@latest
-- @wdio/crossbrowsertesting-service@latest
-- wdio-lambdatest-service
-- ts-node
-- typescript",
-  ],
-  Array [
-    "
-Packages installed successfully, creating configuration file...",
-  ],
-  Array [
-    "To have TypeScript support please add the following packages to your \\"types\\" list:
-{
-  \\"compilerOptions\\": {
-    \\"types\\": [\\"node\\", \\"webdriverio/async\\", \\"@wdio/mocha-framework\\", \\"expect-webdriverio\\", \\"@wdio/crossbrowsertesting-service\\"]
-  }
-}
-
-For for information on TypeScript integration check out: https://webdriver.io/docs/typescript
-",
-  ],
-  Array [
-    "
-Configuration file was created successfully!
-To run your tests, execute:
-$ npx wdio run test/wdio.conf.ts
-",
-  ],
-]
-`;
-
-exports[`install compliant NPM tag packages it should install tagged version if cli is tagged with next 1`] = `
-Array [
-  Array [
-    "
-=========================
-WDIO Configuration Helper
-=========================
-",
-  ],
-  Array [
-    "
-Installing wdio packages:
--",
-    "@wdio/local-runner@next
-- @wdio/mocha-framework@next
-- @wdio/crossbrowsertesting-service@next
-- wdio-lambdatest-service
-- ts-node
-- typescript",
-  ],
-  Array [
-    "
-Packages installed successfully, creating configuration file...",
-  ],
-  Array [
-    "To have TypeScript support please add the following packages to your \\"types\\" list:
-{
-  \\"compilerOptions\\": {
-    \\"types\\": [\\"node\\", \\"webdriverio/async\\", \\"@wdio/mocha-framework\\", \\"expect-webdriverio\\", \\"@wdio/crossbrowsertesting-service\\"]
-  }
-}
-
-For for information on TypeScript integration check out: https://webdriver.io/docs/typescript
-",
-  ],
-  Array [
-    "
-Configuration file was created successfully!
-To run your tests, execute:
-$ npx wdio run test/wdio.conf.ts
-",
-  ],
-]
-`;
-
-exports[`install compliant NPM tag packages it should not install tagged version if cli is tagged with a specific version 1`] = `
-Array [
-  Array [
-    "
-=========================
-WDIO Configuration Helper
-=========================
-",
-  ],
-  Array [
+  [
     "
 Installing wdio packages:
 -",
@@ -155,11 +20,11 @@ Installing wdio packages:
 - ts-node
 - typescript",
   ],
-  Array [
+  [
     "
 Packages installed successfully, creating configuration file...",
   ],
-  Array [
+  [
     "To have TypeScript support please add the following packages to your \\"types\\" list:
 {
   \\"compilerOptions\\": {
@@ -170,7 +35,142 @@ Packages installed successfully, creating configuration file...",
 For for information on TypeScript integration check out: https://webdriver.io/docs/typescript
 ",
   ],
-  Array [
+  [
+    "
+Configuration file was created successfully!
+To run your tests, execute:
+$ npx wdio run test/wdio.conf.ts
+",
+  ],
+]
+`;
+
+exports[`install compliant NPM tag packages > it should install tagged version if cli is tagged with latest 1`] = `
+[
+  [
+    "
+=========================
+WDIO Configuration Helper
+=========================
+",
+  ],
+  [
+    "
+Installing wdio packages:
+-",
+    "@wdio/local-runner
+- @wdio/mocha-framework
+- @wdio/crossbrowsertesting-service
+- wdio-lambdatest-service
+- ts-node
+- typescript",
+  ],
+  [
+    "
+Packages installed successfully, creating configuration file...",
+  ],
+  [
+    "To have TypeScript support please add the following packages to your \\"types\\" list:
+{
+  \\"compilerOptions\\": {
+    \\"types\\": [\\"node\\", \\"webdriverio/async\\", \\"@wdio/mocha-framework\\", \\"expect-webdriverio\\", \\"@wdio/crossbrowsertesting-service\\"]
+  }
+}
+
+For for information on TypeScript integration check out: https://webdriver.io/docs/typescript
+",
+  ],
+  [
+    "
+Configuration file was created successfully!
+To run your tests, execute:
+$ npx wdio run test/wdio.conf.ts
+",
+  ],
+]
+`;
+
+exports[`install compliant NPM tag packages > it should install tagged version if cli is tagged with next 1`] = `
+[
+  [
+    "
+=========================
+WDIO Configuration Helper
+=========================
+",
+  ],
+  [
+    "
+Installing wdio packages:
+-",
+    "@wdio/local-runner
+- @wdio/mocha-framework
+- @wdio/crossbrowsertesting-service
+- wdio-lambdatest-service
+- ts-node
+- typescript",
+  ],
+  [
+    "
+Packages installed successfully, creating configuration file...",
+  ],
+  [
+    "To have TypeScript support please add the following packages to your \\"types\\" list:
+{
+  \\"compilerOptions\\": {
+    \\"types\\": [\\"node\\", \\"webdriverio/async\\", \\"@wdio/mocha-framework\\", \\"expect-webdriverio\\", \\"@wdio/crossbrowsertesting-service\\"]
+  }
+}
+
+For for information on TypeScript integration check out: https://webdriver.io/docs/typescript
+",
+  ],
+  [
+    "
+Configuration file was created successfully!
+To run your tests, execute:
+$ npx wdio run test/wdio.conf.ts
+",
+  ],
+]
+`;
+
+exports[`install compliant NPM tag packages > it should not install tagged version if cli is tagged with a specific version 1`] = `
+[
+  [
+    "
+=========================
+WDIO Configuration Helper
+=========================
+",
+  ],
+  [
+    "
+Installing wdio packages:
+-",
+    "@wdio/local-runner
+- @wdio/mocha-framework
+- @wdio/crossbrowsertesting-service
+- wdio-lambdatest-service
+- ts-node
+- typescript",
+  ],
+  [
+    "
+Packages installed successfully, creating configuration file...",
+  ],
+  [
+    "To have TypeScript support please add the following packages to your \\"types\\" list:
+{
+  \\"compilerOptions\\": {
+    \\"types\\": [\\"node\\", \\"webdriverio/async\\", \\"@wdio/mocha-framework\\", \\"expect-webdriverio\\", \\"@wdio/crossbrowsertesting-service\\"]
+  }
+}
+
+For for information on TypeScript integration check out: https://webdriver.io/docs/typescript
+",
+  ],
+  [
     "
 Configuration file was created successfully!
 To run your tests, execute:
@@ -181,15 +181,15 @@ $ npx wdio run test/wdio.conf.ts
 `;
 
 exports[`prints TypeScript setup message 1`] = `
-Array [
-  Array [
+[
+  [
     "
 =========================
 WDIO Configuration Helper
 =========================
 ",
   ],
-  Array [
+  [
     "
 Installing wdio packages:
 -",
@@ -200,11 +200,11 @@ Installing wdio packages:
 - ts-node
 - typescript",
   ],
-  Array [
+  [
     "
 Packages installed successfully, creating configuration file...",
   ],
-  Array [
+  [
     "To have TypeScript support please add the following packages to your \\"types\\" list:
 {
   \\"compilerOptions\\": {
@@ -215,7 +215,7 @@ Packages installed successfully, creating configuration file...",
 For for information on TypeScript integration check out: https://webdriver.io/docs/typescript
 ",
   ],
-  Array [
+  [
     "
 Configuration file was created successfully!
 To run your tests, execute:
@@ -226,15 +226,15 @@ $ npx wdio run test/wdio.conf.ts
 `;
 
 exports[`prints TypeScript setup message with ts-node installed 1`] = `
-Array [
-  Array [
+[
+  [
     "
 =========================
 WDIO Configuration Helper
 =========================
 ",
   ],
-  Array [
+  [
     "
 Installing wdio packages:
 -",
@@ -245,11 +245,11 @@ Installing wdio packages:
 - ts-node
 - typescript",
   ],
-  Array [
+  [
     "
 Packages installed successfully, creating configuration file...",
   ],
-  Array [
+  [
     "To have TypeScript support please add the following packages to your \\"types\\" list:
 {
   \\"compilerOptions\\": {
@@ -260,7 +260,7 @@ Packages installed successfully, creating configuration file...",
 For for information on TypeScript integration check out: https://webdriver.io/docs/typescript
 ",
   ],
-  Array [
+  [
     "
 Configuration file was created successfully!
 To run your tests, execute:
@@ -271,15 +271,15 @@ $ npx wdio run test/wdio.conf.ts
 `;
 
 exports[`should create config file 1`] = `
-Object {
-  "installedPackages": Array [
+{
+  "installedPackages": [
     "@wdio/local-runner",
     "@wdio/mocha-framework",
     "@wdio/spec-reporter",
     "wdio-wait-for",
     "@wdio/sauce-service",
   ],
-  "parsedAnswers": Object {
+  "parsedAnswers": {
     "_async": "async ",
     "_await": "await ",
     "framework": "mocha",
@@ -287,22 +287,22 @@ Object {
     "isUsingBabel": false,
     "isUsingTypeScript": false,
     "npmInstall": true,
-    "packagesToInstall": Array [
+    "packagesToInstall": [
       "@wdio/local-runner",
       "@wdio/mocha-framework",
       "@wdio/spec-reporter",
       "wdio-wait-for",
       "@wdio/sauce-service",
     ],
-    "plugins": Array [
+    "plugins": [
       "wait-for",
     ],
     "relativePath": "",
-    "reporters": Array [
+    "reporters": [
       "spec",
     ],
     "runner": "local",
-    "services": Array [
+    "services": [
       "sauce",
     ],
     "tsConfigFilePath": "test/tsconfig.json",
@@ -312,15 +312,15 @@ Object {
 `;
 
 exports[`should not install @babel/register if existing 1`] = `
-Array [
-  Array [
+[
+  [
     "
 =========================
 WDIO Configuration Helper
 =========================
 ",
   ],
-  Array [
+  [
     "
 Installing wdio packages:
 -",
@@ -332,11 +332,11 @@ Installing wdio packages:
 - @babel/core
 - @babel/preset-env",
   ],
-  Array [
+  [
     "
 Packages installed successfully, creating configuration file...",
   ],
-  Array [
+  [
     "
 Configuration file was created successfully!
 To run your tests, execute:
@@ -346,57 +346,18 @@ $ npx wdio run wdio.conf.js
 ]
 `;
 
-exports[`should not install npm packages when npmInstall is false 1`] = `
-[MockFunction] {
-  "calls": Array [
-    Array [
-      "
-=========================
-WDIO Configuration Helper
-=========================
-",
-    ],
-    Array [
-      "
-To install dependencies, execute:
-npm i --save-dev @wdio/local-runner @wdio/mocha-framework @wdio/spec-reporter wdio-wait-for @wdio/sauce-service
-",
-    ],
-    Array [
-      "
-Configuration file was created successfully!
-To run your tests, execute:
-$ npx wdio run wdio.conf.js
-",
-    ],
-  ],
-  "results": Array [
-    Object {
-      "type": "return",
-      "value": undefined,
-    },
-    Object {
-      "type": "return",
-      "value": undefined,
-    },
-    Object {
-      "type": "return",
-      "value": undefined,
-    },
-  ],
-}
-`;
+exports[`should not install npm packages when npmInstall is false 1`] = `[Function]`;
 
 exports[`should setup Babel if not existing 1`] = `
-Array [
-  Array [
+[
+  [
     "
 =========================
 WDIO Configuration Helper
 =========================
 ",
   ],
-  Array [
+  [
     "
 Installing wdio packages:
 -",
@@ -408,11 +369,11 @@ Installing wdio packages:
 - @babel/core
 - @babel/preset-env",
   ],
-  Array [
+  [
     "
 Packages installed successfully, creating configuration file...",
   ],
-  Array [
+  [
     "
 Configuration file was created successfully!
 To run your tests, execute:

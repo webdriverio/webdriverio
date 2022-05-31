@@ -4,10 +4,10 @@ import path from 'node:path'
 import yargs from 'yargs/yargs'
 import { hideBin } from 'yargs/helpers'
 
-import Launcher from './launcher'
-import { handler, cmdArgs } from './commands/run'
-import { CLI_EPILOGUE } from './constants'
-import { RunCommandArguments } from './types'
+import Launcher from './launcher.js'
+import { handler, cmdArgs } from './commands/run.js'
+import { CLI_EPILOGUE } from './constants.js'
+import type { RunCommandArguments } from './types'
 
 const DEFAULT_CONFIG_FILENAME = 'wdio.conf.js'
 const DESCRIPTION = [
@@ -82,4 +82,4 @@ export const run = async () => {
 }
 
 export default Launcher
-export * from './types'
+export * from './types.js'

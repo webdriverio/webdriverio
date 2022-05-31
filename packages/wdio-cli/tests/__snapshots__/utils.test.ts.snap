@@ -1,22 +1,8 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Vitest Snapshot v1
 
-exports[`getCapabilities should get capability from wdio.conf.js 1`] = `
-Object {
-  "capabilities": Object {
-    "acceptInsecureCerts": true,
-    "browserName": "chrome",
-    "goog:chromeOptions": Object {
-      "args": Array [
-        "window-size=8000,1200",
-      ],
-    },
-  },
-}
-`;
-
-exports[`getCapabilities should return driver with capabilities for android 1`] = `
-Object {
-  "capabilities": Object {
+exports[`getCapabilities > should return driver with capabilities for android 1`] = `
+{
+  "capabilities": {
     "app": "foo.apk",
     "automationName": "UiAutomator2",
     "deviceName": "Test",
@@ -27,9 +13,9 @@ Object {
 }
 `;
 
-exports[`getCapabilities should return driver with capabilities for android 2`] = `
-Object {
-  "capabilities": Object {
+exports[`getCapabilities > should return driver with capabilities for android 2`] = `
+{
+  "capabilities": {
     "automationName": "UiAutomator2",
     "browserName": "Chrome",
     "deviceName": "Test",
@@ -40,17 +26,17 @@ Object {
 }
 `;
 
-exports[`getCapabilities should return driver with capabilities for desktop 1`] = `
-Object {
-  "capabilities": Object {
+exports[`getCapabilities > should return driver with capabilities for desktop 1`] = `
+{
+  "capabilities": {
     "browserName": "chrome",
   },
 }
 `;
 
-exports[`getCapabilities should return driver with capabilities for ios 1`] = `
-Object {
-  "capabilities": Object {
+exports[`getCapabilities > should return driver with capabilities for ios 1`] = `
+{
+  "capabilities": {
     "app": "foo.app",
     "automationName": "XCUITest",
     "deviceName": "fooName",
@@ -61,9 +47,9 @@ Object {
 }
 `;
 
-exports[`getCapabilities should return driver with capabilities for ios 2`] = `
-Object {
-  "capabilities": Object {
+exports[`getCapabilities > should return driver with capabilities for ios 2`] = `
+{
+  "capabilities": {
     "automationName": "XCUITest",
     "browserName": "Safari",
     "deviceName": "iPhone Simulator",
@@ -74,10 +60,10 @@ Object {
 }
 `;
 
-exports[`getCapabilities should through capability not found 1`] = `"No capability found in given config file with the provided capability indexed/named property: 5. Please check the capability in your wdio config file."`;
+exports[`getCapabilities > should through capability not found 1`] = `"No capability found in given config file with the provided capability indexed/named property: 5. Please check the capability in your wdio config file."`;
 
-exports[`getCapabilities should throw capability not provided 1`] = `"Please provide index/named property of capability to use from the capabilities array/object in wdio config file"`;
+exports[`getCapabilities > should throw capability not provided 1`] = `"Please provide index/named property of capability to use from the capabilities array/object in wdio config file"`;
 
-exports[`getCapabilities should throw config not found error 1`] = `"Config File not found: ./test.js"`;
+exports[`getCapabilities > should throw config not found error 1`] = `"Config File not found: ./test.js"`;
 
-exports[`getCapabilities should throw config not found error 2`] = `"Could not parse ./test.js, failed with error : ups"`;
+exports[`getCapabilities > should throw config not found error 2`] = `"Could not parse ./test.js, failed with error : ups"`;

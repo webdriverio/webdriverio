@@ -10,7 +10,6 @@ export default defineConfig({
             'dist', '.idea', '.git', '.cache',
             '**/node_modules/**',
             'packages/eslint-plugin-wdio/**/*',
-            'packages/wdio-cli/**/*.test.ts',
             'packages/webdriverio/**/*.test.ts',
             'packages/wdio-jasmine-framework/**/*.test.ts'
         ],

@@ -24,7 +24,10 @@ class DotReporter {
     }
 }
 
-class RunnerMock {}
+class RunnerMock {
+    shutdown = vi.fn()
+    initialise = vi.fn()
+}
 class FoobarServiceMock {
     beforeSuite () {}
     afterCommand () {}
@@ -66,7 +69,7 @@ const pluginMocks = {
 }
 
 export const initialisePlugin = vi.fn().mockImplementation(
-    (name: keyof typeof frameworkMocks, type: keyof typeof pluginMocks) => (
+    async (name: keyof typeof frameworkMocks, type: keyof typeof pluginMocks) => (
         { default: (pluginMocks[type] as any)[name] }
     )
 )

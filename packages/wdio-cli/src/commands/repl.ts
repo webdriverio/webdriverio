@@ -1,10 +1,11 @@
+import yargs from 'yargs'
 import pickBy from 'lodash.pickby'
 import { remote } from 'webdriverio'
-import { cmdArgs as runCmdArgs } from './run'
-import { getCapabilities } from '../utils'
-import { ReplCommandArguments } from '../types'
-import { CLI_EPILOGUE } from '../constants'
-import yargs from 'yargs'
+
+import { cmdArgs as runCmdArgs } from './run.js'
+import { getCapabilities } from '../utils.js'
+import { CLI_EPILOGUE } from '../constants.js'
+import type { ReplCommandArguments } from '../types'
 
 const IGNORED_ARGS = [
     'bail', 'framework', 'reporters', 'suite', 'spec', 'exclude',

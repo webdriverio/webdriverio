@@ -3,22 +3,21 @@ import util from 'node:util'
 import fs from 'fs-extra'
 import inquirer from 'inquirer'
 import yarnInstall from 'yarn-install'
+import type yargs from 'yargs'
 
 import {
     CONFIG_HELPER_INTRO, CLI_EPILOGUE, COMPILER_OPTIONS,
     TS_COMPILER_INSTRUCTIONS, SUPPORTED_PACKAGES,
     CONFIG_HELPER_SUCCESS_MESSAGE,
-    DEPENDENCIES_INSTALLATION_MESSAGE
-} from '../constants'
+    DEPENDENCIES_INSTALLATION_MESSAGE,
+    pkg
+} from '../constants.js'
 import {
     addServiceDeps, convertPackageHashToObject, renderConfigurationFile,
     hasFile, generateTestFiles, getAnswers, getPathForFileGeneration,
     hasPackage
-} from '../utils'
-import { ConfigCommandArguments, ParsedAnswers } from '../types'
-import yargs from 'yargs'
-
-const pkg = require('../../package.json')
+} from '../utils.js'
+import type { ConfigCommandArguments, ParsedAnswers } from '../types'
 
 export const command = 'config'
 export const desc = 'Initialize WebdriverIO and setup configuration in your current project.'
@@ -45,6 +44,8 @@ export const builder = (yargs: yargs.Argv) => {
 }
 
 const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) {
+    console.info('1')
+
     console.log(CONFIG_HELPER_INTRO)
     const answers = await getAnswers(yes)
     const frameworkPackage = convertPackageHashToObject(answers.framework)
@@ -66,6 +67,7 @@ const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) 
      */
 
     const parsedPaths = getPathForFileGeneration(answers)
+    console.info('2')
 
     const parsedAnswers: ParsedAnswers = {
         ...answers,

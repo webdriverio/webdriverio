@@ -1,7 +1,10 @@
-import { validateServiceAnswers, hasFile, getDefaultFiles } from './utils'
-import { Questionnair } from './types'
+import { createRequire } from 'node:module'
 
-const pkg = require('../package.json')
+import { validateServiceAnswers, hasFile, getDefaultFiles } from './utils.js'
+import type { Questionnair } from './types'
+
+const require = createRequire(import.meta.url)
+export const pkg = require('../package.json')
 
 export const CLI_EPILOGUE = `Documentation: https://webdriver.io\n@wdio/cli (v${pkg.version})`
 

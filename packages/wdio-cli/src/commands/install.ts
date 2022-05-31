@@ -2,17 +2,17 @@
 import path from 'node:path'
 import fs from 'fs-extra'
 import yarnInstall from 'yarn-install'
+import type yargs from 'yargs'
 
 import {
     replaceConfig,
     findInConfig,
     addServiceDeps,
     convertPackageHashToObject
-} from '../utils'
-import { missingConfigurationPrompt } from './config'
-import { InstallCommandArguments, SupportedPackage } from '../types'
-import { SUPPORTED_PACKAGES, CLI_EPILOGUE } from '../constants'
-import yargs from 'yargs'
+} from '../utils.js'
+import { missingConfigurationPrompt } from './config.js'
+import { SUPPORTED_PACKAGES, CLI_EPILOGUE } from '../constants.js'
+import type { InstallCommandArguments, SupportedPackage } from '../types'
 
 const supportedInstallations = {
     plugin: SUPPORTED_PACKAGES.plugin.map(({ value }) => convertPackageHashToObject(value)),

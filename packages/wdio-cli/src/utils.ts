@@ -1,3 +1,9 @@
+import { dirname } from 'node:path'
+import { fileURLToPath } from 'node:url'
+import { createRequire } from 'node:module'
+import { execSync } from 'node:child_process'
+import { promisify } from 'node:util'
+
 import fs from 'fs-extra'
 import ejs from 'ejs'
 import path from 'node:path'
@@ -6,16 +12,16 @@ import pickBy from 'lodash.pickby'
 import logger from '@wdio/logger'
 import readDir from 'recursive-readdir'
 import { SevereServiceError } from 'webdriverio'
-import { execSync } from 'node:child_process'
-import { promisify } from 'node:util'
 import { ConfigParser } from '@wdio/config'
 import { CAPABILITY_KEYS } from '@wdio/protocols'
 import type { Options, Capabilities, Services } from '@wdio/types'
 
-import { ReplCommandArguments, Questionnair, SupportedPackage, OnCompleteResult, ParsedAnswers } from './types'
-import { EXCLUSIVE_SERVICES, ANDROID_CONFIG, IOS_CONFIG, QUESTIONNAIRE } from './constants'
+import { EXCLUSIVE_SERVICES, ANDROID_CONFIG, IOS_CONFIG, QUESTIONNAIRE } from './constants.js'
+import type { ReplCommandArguments, Questionnair, SupportedPackage, OnCompleteResult, ParsedAnswers } from './types'
 
+const require = createRequire(import.meta.url)
 const log = logger('@wdio/cli:utils')
+const __dirname = dirname(fileURLToPath(import.meta.url))
 
 const TEMPLATE_ROOT_DIR = path.join(__dirname, 'templates', 'exampleFiles')
 const renderFile = promisify(ejs.renderFile) as (path: string, data: Record<string, any>) => Promise<string>
