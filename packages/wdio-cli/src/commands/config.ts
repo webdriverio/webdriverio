@@ -3,7 +3,7 @@ import util from 'node:util'
 import fs from 'fs-extra'
 import inquirer from 'inquirer'
 import yarnInstall from 'yarn-install'
-import type yargs from 'yargs'
+import type { Argv } from 'yargs'
 
 import {
     CONFIG_HELPER_INTRO, CLI_EPILOGUE, COMPILER_OPTIONS,
@@ -36,7 +36,7 @@ export const cmdArgs = {
     }
 } as const
 
-export const builder = (yargs: yargs.Argv) => {
+export const builder = (yargs: Argv) => {
     return yargs
         .options(cmdArgs)
         .epilogue(CLI_EPILOGUE)

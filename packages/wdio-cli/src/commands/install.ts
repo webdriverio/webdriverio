@@ -2,7 +2,7 @@
 import path from 'node:path'
 import fs from 'fs-extra'
 import yarnInstall from 'yarn-install'
-import type yargs from 'yargs'
+import type { Argv } from 'yargs'
 
 import {
     replaceConfig,
@@ -40,7 +40,7 @@ export const cmdArgs = {
     },
 } as const
 
-export const builder = (yargs: yargs.Argv) => {
+export const builder = (yargs: Argv) => {
     yargs
         .options(cmdArgs)
         .epilogue(CLI_EPILOGUE)

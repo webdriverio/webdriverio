@@ -1,6 +1,6 @@
-import yargs from 'yargs'
 import pickBy from 'lodash.pickby'
 import { remote } from 'webdriverio'
+import type { Argv } from 'yargs'
 
 import { cmdArgs as runCmdArgs } from './run.js'
 import { getCapabilities } from '../utils.js'
@@ -32,7 +32,7 @@ export const cmdArgs: { [k in keyof ReplCommandArguments]?: yargs.Options } = {
     }
 } as const
 
-export const builder = (yargs: yargs.Argv) => {
+export const builder = (yargs: Argv) => {
     return yargs
         .options(pickBy({ ...cmdArgs, ...runCmdArgs }, (_, key) => !IGNORED_ARGS.includes(key)))
         .example('$0 repl firefox --path /', 'Run repl locally')
