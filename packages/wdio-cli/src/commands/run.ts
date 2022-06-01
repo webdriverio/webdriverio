@@ -1,6 +1,6 @@
 import path from 'node:path'
 import fs from 'fs-extra'
-import yargs from 'yargs'
+import type { Argv } from 'yargs'
 
 import Launcher from '../launcher.js'
 import Watcher from '../watcher.js'
@@ -95,7 +95,7 @@ export const cmdArgs = {
     }
 } as const
 
-export const builder = (yargs: yargs.Argv) => {
+export const builder = (yargs: Argv) => {
     return yargs
         .options(cmdArgs)
         .example('$0 run wdio.conf.js --suite foobar', 'Run suite on testsuite "foobar"')

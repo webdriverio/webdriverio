@@ -75,9 +75,13 @@ test('should properly set up jasmine', async () => {
     expect(vi.mocked(adapter['_jrunner']!.jasmine.addReporter).mock.calls).toHaveLength(1)
     expect(vi.mocked(executeHooksWithArgs).mock.calls).toHaveLength(1)
 
+    // @ts-expect-error
     expect(vi.mocked(adapter['_jrunner']!.env.beforeAll).mock.calls).toHaveLength(1)
+    // @ts-expect-error
     expect(vi.mocked(adapter['_jrunner']!.env.beforeEach).mock.calls).toHaveLength(0)
+    // @ts-expect-error
     expect(vi.mocked(adapter['_jrunner']!.env.afterEach).mock.calls).toHaveLength(0)
+    // @ts-expect-error
     expect(vi.mocked(adapter['_jrunner']!.env.afterAll).mock.calls).toHaveLength(1)
 
     expect(vi.mocked(adapter['_jrunner']!.execute).mock.calls).toHaveLength(1)
