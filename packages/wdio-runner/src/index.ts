@@ -411,10 +411,19 @@ export default class Runner extends EventEmitter {
         failures: number,
         retries: number
     ) {
+        this._reporter.emit('runner:start', {
+            cid: this._cid,
+            specs: this._specs,
+            config: this._config,
+            isMultiremote: this._isMultiremote,
+            instanceOptions: {},
+            capabilities: { ...this._configParser.getCapabilities() },
+            retry: this._specFileRetryAttempts
+        });
+
         this._reporter!.emit('runner:end', {
             failures,
             cid: this._cid,
-            specs: this._specs,
             retries
         } as Options.RunnerEnd)
         try {
