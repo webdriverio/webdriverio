@@ -189,10 +189,10 @@ export default class WDIOReporter extends EventEmitter {
         this.on('runner:end',  /* istanbul ignore next */(runner: Options.RunnerEnd) => {
             rootSuite.complete()
             if (this.runnerStat) {
-                this.runnerStat.failures = runner.failures;
-                this.runnerStat.retries = runner.retries;
-                this.runnerStat.complete();
-                this.onRunnerEnd(this.runnerStat);
+                this.runnerStat.failures = runner.failures
+                this.runnerStat.retries = runner.retries
+                this.runnerStat.complete()
+                this.onRunnerEnd(this.runnerStat)
             }
             const logFile = (this.options as Reporters.Options).logFile
             if (!this.isContentPresent && logFile && fs.existsSync(logFile)) {
