@@ -191,10 +191,6 @@ class JasmineAdapter {
     }
 
     _loadFiles() {
-        if (!this._jrunner) {
-            throw new Error('Jasmine not initiate yet')
-        }
-
         try {
             if (Array.isArray(this._jasmineOpts.requires)) {
                 // @ts-ignore outdated types
@@ -239,10 +235,6 @@ class JasmineAdapter {
     }
 
     async run() {
-        if (!this._jrunner) {
-            throw new Error('Jasmine not initiate yet')
-        }
-
         // @ts-expect-error
         this._jrunner.env.beforeAll(this.wrapHook('beforeSuite'))
         // @ts-expect-error
