@@ -8,4 +8,5 @@ if (process.env.NODE_ENV == null) {
     process.env.NODE_ENV = 'test'
 }
 
-require('../build').run()
+const cli = await import('../build/index.js')
+cli.run()

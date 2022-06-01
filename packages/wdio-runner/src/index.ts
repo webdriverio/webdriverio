@@ -126,7 +126,7 @@ export default class Runner extends EventEmitter {
             ...this._config,
             // @ts-ignore used in `/packages/webdriverio/src/protocol-stub.ts`
             _automationProtocol: this._config.automationProtocol,
-            automationProtocol: './protocol-stub'
+            automationProtocol: './protocol-stub.js'
         }, caps)
 
         /**

@@ -28,11 +28,7 @@ export default async function initialisePlugin (name: string, type?: string): Pr
     /**
      * check for scoped version of plugin first (e.g. @wdio/sauce-service)
      */
-    console.log('AHHHJ', `@wdio/${name.toLowerCase()}-${type}`)
-
     const scopedPlugin = await safeImport(`@wdio/${name.toLowerCase()}-${type}`)
-    console.log(scopedPlugin)
-
     if (scopedPlugin) {
         return scopedPlugin
     }

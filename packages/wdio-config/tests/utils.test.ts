@@ -1,5 +1,8 @@
-import { describe, it, expect } from 'vitest'
+import path from 'node:path'
+import { describe, it, expect, vi } from 'vitest'
 import { isCloudCapability, removeLineNumbers, validObjectOrArray, validateTsConfigPaths } from '../src/utils'
+
+vi.mock('@wdio/utils', () => import(path.join(process.cwd(), '__mocks__', '@wdio/utils')))
 
 describe('utils', () => {
     describe('removeLineNumbers', () => {

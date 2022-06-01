@@ -1,4 +1,5 @@
 import fs from 'node:fs'
+import url from 'node:url'
 import path from 'node:path'
 import { v4 as uuidv4 } from 'uuid'
 
@@ -15,6 +16,7 @@ import ElementStore from './elementstore.js'
 import { validate, sanitizeError } from './utils.js'
 import { DEFAULT_IMPLICIT_TIMEOUT, DEFAULT_PAGELOAD_TIMEOUT, DEFAULT_SCRIPT_TIMEOUT } from './constants.js'
 
+const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 const log = logger('devtools')
 
 export default class DevToolsDriver {

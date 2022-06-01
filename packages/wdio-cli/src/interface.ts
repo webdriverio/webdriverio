@@ -1,5 +1,5 @@
 import { EventEmitter } from 'node:events'
-import chalk from 'chalk'
+import chalk, { supportsColor } from 'chalk'
 import logger from '@wdio/logger'
 import type { Options, Capabilities, Workers } from '@wdio/types'
 
@@ -59,7 +59,7 @@ export default class WDIOCLInterface extends EventEmitter {
          * `FORCE_COLOR=1` - forcibly enable colors
          * `FORCE_COLOR=0` - forcibly disable colors
          */
-        this.hasAnsiSupport = (chalk.supportsColor as chalk.ColorSupport).hasBasic
+        this.hasAnsiSupport = supportsColor && supportsColor.hasBasic
 
         this.totalWorkerCnt = totalWorkerCnt
         this._isWatchMode = _isWatchMode

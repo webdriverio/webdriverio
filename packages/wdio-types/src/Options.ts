@@ -8,7 +8,7 @@ import { Hooks, ServiceEntry } from './Services'
 import { ReporterEntry } from './Reporters'
 
 export type WebDriverLogTypes = 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'silent'
-export type SupportedProtocols = 'webdriver' | 'devtools' | './protocol-stub'
+export type SupportedProtocols = 'webdriver' | 'devtools' | './protocol-stub.js'
 export type Agents = {http?: any, https?: any}
 
 export interface RequestLibOptions {

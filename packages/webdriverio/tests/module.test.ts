@@ -213,7 +213,7 @@ describe('WebdriverIO module interface', () => {
 
         it('should properly create stub instance', async () => {
             (validateConfig as jest.Mock).mockReturnValueOnce({
-                automationProtocol: './protocol-stub'
+                automationProtocol: './protocol-stub.js'
             })
             const browser = await remote({ capabilities: { browserName: 'chrome' } })
 
