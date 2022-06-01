@@ -44,8 +44,6 @@ export const builder = (yargs: yargs.Argv) => {
 }
 
 const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) {
-    console.info('1')
-
     console.log(CONFIG_HELPER_INTRO)
     const answers = await getAnswers(yes)
     const frameworkPackage = convertPackageHashToObject(answers.framework)
@@ -65,10 +63,7 @@ const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) 
     /**
      * find relative paths between tests and pages
      */
-
     const parsedPaths = getPathForFileGeneration(answers)
-    console.info('2')
-
     const parsedAnswers: ParsedAnswers = {
         ...answers,
         runner: runnerPackage.short as 'local',

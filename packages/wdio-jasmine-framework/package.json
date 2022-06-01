@@ -25,13 +25,13 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "dependencies": {
-    "@types/jasmine": "3.10.3",
+    "@types/jasmine": "4.0.3",
     "@types/node": "^18.0.0",
     "@wdio/logger": "7.19.0",
     "@wdio/types": "7.20.3",
     "@wdio/utils": "7.20.3",
-    "expect-webdriverio": "^3.0.0",
-    "jasmine": "3.10.0"
+    "expect-webdriverio": "^3.4.0",
+    "jasmine": "4.1.0"
   },
   "peerDependencies": {
     "@wdio/cli": "^7.0.0"

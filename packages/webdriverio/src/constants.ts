@@ -1,4 +1,7 @@
+import { createRequire } from 'node:module'
 import type { Options, Capabilities, Services, Reporters } from '@wdio/types'
+
+const require = createRequire(import.meta.url)
 
 /* istanbul ignore next */
 const HOOK_DEFINITION = {
@@ -35,7 +38,7 @@ export const WDIO_DEFAULTS: Options.Definition<Options.WebdriverIO & Options.Tes
     automationProtocol: {
         type: 'string',
         validate: (param: Options.SupportedProtocols) => {
-            if (!['webdriver', 'devtools', './protocol-stub'].includes(param.toLowerCase())) {
+            if (!['webdriver', 'devtools', './protocol-stub.js'].includes(param.toLowerCase())) {
                 throw new Error(`Currently only "webdriver" and "devtools" is supproted as automationProtocol, you set "${param}"`)
             }
 

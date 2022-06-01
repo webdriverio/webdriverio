@@ -46,8 +46,8 @@ test('should run command on all instances', async () => {
 
 test('should properly create stub instance', async () => {
     const params = caps()
-    Object.values(params).forEach(cap => { cap.automationProtocol = './protocol-stub' })
-    const browser = await multiremote(params, { automationProtocol: './protocol-stub' })
+    Object.values(params).forEach(cap => { cap.automationProtocol = './protocol-stub.js' })
+    const browser = await multiremote(params, { automationProtocol: './protocol-stub.js' })
     expect(browser.$).toBeUndefined()
     expect(browser.options).toBeUndefined()
     expect(browser.commandList).toHaveLength(0)

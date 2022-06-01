@@ -1,3 +1,4 @@
+import url from 'node:url'
 import path from 'node:path'
 import child from 'node:child_process'
 import { EventEmitter } from 'node:events'
@@ -13,6 +14,7 @@ import RunnerStream from './stdStream.js'
 
 const log = logger('@wdio/local-runner')
 const replQueue = new ReplQueue()
+const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 
 const stdOutStream = new RunnerStream()
 const stdErrStream = new RunnerStream()

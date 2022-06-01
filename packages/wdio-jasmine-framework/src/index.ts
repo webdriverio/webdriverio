@@ -3,10 +3,12 @@ import { runTestInFiberContext, executeHooksWithArgs } from '@wdio/utils'
 import logger from '@wdio/logger'
 import { EventEmitter } from 'node:events'
 import type { Options, Services, Capabilities } from '@wdio/types'
-import type ExpectWebdriverIO from 'expect-webdriverio'
+import { setOptions } from 'expect-webdriverio'
 
-import JasmineReporter from './reporter'
-import type { JasmineOpts as jasmineNodeOpts, ResultHandlerPayload, FrameworkMessage, FormattedMessage } from './types'
+import JasmineReporter from './reporter.js'
+import type {
+    JasmineOpts as jasmineNodeOpts, ResultHandlerPayload, FrameworkMessage, FormattedMessage
+} from './types'
 
 const INTERFACES = {
     bdd: ['beforeAll', 'beforeEach', 'it', 'xit', 'fit', 'afterEach', 'afterAll']
@@ -37,7 +39,7 @@ class JasmineAdapter {
     private _lastTest?: any
     private _lastSpec?: any
 
-    private _jrunner?: Jasmine
+    private _jrunner = new Jasmine({})
 
     constructor(
         private _cid: string,
@@ -65,15 +67,10 @@ class JasmineAdapter {
     async init() {
         const self = this
 
-        this._jrunner = new Jasmine({})
         const { jasmine } = this._jrunner
         // @ts-ignore outdated
         const jasmineEnv = jasmine.getEnv()
-
-        this._jrunner.projectBaseDir = ''
-        // @ts-ignore outdated
-        this._jrunner.specDir = ''
-        this._jrunner.addSpecFiles(this._specs)
+        this._specs.forEach((spec) => this._jrunner.addSpecFile(spec))
 
         // @ts-ignore only way to hack timeout into jasmine
         jasmine.DEFAULT_TIMEOUT_INTERVAL = this._jasmineOpts.defaultTimeoutInterval || DEFAULT_TIMEOUT_INTERVAL
@@ -125,6 +122,7 @@ class JasmineAdapter {
                 failedExpectations: [],
                 deprecationWarnings: [],
                 status: '',
+                debugLogs: null,
                 ...(error ? { error } : {})
             }
 
@@ -184,11 +182,6 @@ class JasmineAdapter {
 
         this._loadFiles()
 
-        /**
-         * import and set options for `expect-webdriverio` assertion lib once
-         * the framework was initiated so that it can detect the environment
-         */
-        const { setOptions } = require('expect-webdriverio')
         setOptions({
             wait: this._config.waitforTimeout, // ms to wait for expectation to succeed
             interval: this._config.waitforInterval, // interval between attempts
@@ -246,19 +239,18 @@ class JasmineAdapter {
     }
 
     async run() {
-        const result = await new Promise((resolve, reject) => {
-            if (!this._jrunner) {
-                return reject(new Error('Jasmine not initiate yet'))
-            }
+        if (!this._jrunner) {
+            throw new Error('Jasmine not initiate yet')
+        }
 
-            // @ts-expect-error
-            this._jrunner.env.beforeAll(this.wrapHook('beforeSuite'))
-            // @ts-expect-error
-            this._jrunner.env.afterAll(this.wrapHook('afterSuite'))
+        // @ts-expect-error
+        this._jrunner.env.beforeAll(this.wrapHook('beforeSuite'))
+        // @ts-expect-error
+        this._jrunner.env.afterAll(this.wrapHook('afterSuite'))
 
-            this._jrunner.onComplete(() => resolve(this._reporter.getFailedCount()))
-            this._jrunner.execute()
-        })
+        await this._jrunner.execute()
+
+        const result = this._reporter.getFailedCount()
         await executeHooksWithArgs('after', this._config.after, [result, this._capabilities, this._specs])
         return result
     }

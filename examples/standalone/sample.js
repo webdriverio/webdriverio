@@ -1,4 +1,4 @@
-const { remote } = require('../../packages/webdriverio')
+import { remote } from '../../packages/webdriverio/build/index.js'
 
 let browser
 

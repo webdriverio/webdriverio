@@ -510,7 +510,7 @@ export const enhanceElementsArray = (
  * is protocol stub
  * @param {string} automationProtocol
  */
-export const isStub = (automationProtocol?: string) => automationProtocol === './protocol-stub'
+export const isStub = (automationProtocol?: string) => automationProtocol === './protocol-stub.js'
 
 export const getAutomationProtocol = async (config: Options.WebdriverIO | Options.Testrunner) => {
     /**
