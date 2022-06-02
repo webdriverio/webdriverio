@@ -1,7 +1,7 @@
 import path from 'node:path'
 import { vi, describe, it, expect, afterEach, beforeEach } from 'vitest'
 // @ts-expect-error mock
-import { yargs } from 'yargs/yargs'
+import { yargs } from 'yargs'
 import { remote } from 'webdriverio'
 
 import { handler, builder } from '../../src/commands/repl'
@@ -20,7 +20,7 @@ vi.mock('@wdio/utils', () => {
 })
 
 vi.mock('repl')
-vi.mock('yargs/yargs')
+vi.mock('yargs')
 vi.mock('webdriverio', () => import(path.join(process.cwd(), '__mocks__', 'webdriverio')))
 
 describe('repl commandDir', () => {

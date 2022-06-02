@@ -1,7 +1,7 @@
 import { vi, describe, it, test, expect, afterEach, beforeEach } from 'vitest'
 import path from 'node:path'
 // @ts-expect-error mock
-import { yargs } from 'yargs/yargs'
+import { yargs } from 'yargs'
 import fs from 'fs-extra'
 import yarnInstall from 'yarn-install'
 import inquirer from 'inquirer'
@@ -13,7 +13,7 @@ import {
     generateTestFiles, getPathForFileGeneration
 } from '../../src/utils'
 
-vi.mock('yargs/yargs')
+vi.mock('yargs')
 vi.mock('yarn-install')
 vi.mock('inquirer')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))

@@ -1,6 +1,6 @@
 import { vi } from 'vitest'
 const yargs: any = {}
-yargs.commandDir = vi.fn(() => yargs)
+yargs.command = vi.fn(() => yargs)
 yargs.example = vi.fn(() => yargs)
 yargs.argv = { _: ['wdio.conf.js'] }
 yargs.epilogue = vi.fn().mockReturnValue(yargs)
