@@ -1,12 +1,12 @@
 import { join, resolve } from 'node:path'
 import { vi, describe, it, expect, afterEach, beforeEach } from 'vitest'
 // @ts-expect-error mock
-import { yargs as yargsMock } from 'yargs/yargs'
+import { yargs as yargsMock } from 'yargs'
 
 import { run } from '../src/index'
 import { handler } from '../src/commands/run'
 
-vi.mock('yargs/yargs')
+vi.mock('yargs')
 vi.mock('./../src/commands/run', async () => ({
     ...(await vi.importActual('./../src/commands/run')) as object,
     handler: vi.fn().mockReturnValue(Promise.resolve('success'))

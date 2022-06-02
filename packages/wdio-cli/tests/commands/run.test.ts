@@ -1,11 +1,11 @@
 import { vi, describe, it, expect, afterEach, beforeEach } from 'vitest'
 // @ts-expect-error mock
-import { yargs } from 'yargs/yargs'
+import { yargs } from 'yargs'
 import fs from 'fs-extra'
 import * as runCmd from '../../src/commands/run'
 import * as configCmd from '../../src/commands/config'
 
-vi.mock('yargs/yargs')
+vi.mock('yargs')
 vi.mock('fs-extra')
 vi.mock('./../../src/launcher', () => ({
     default: class {
