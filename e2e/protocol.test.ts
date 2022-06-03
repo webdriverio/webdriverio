@@ -270,6 +270,7 @@ describe('frames', () => {
         const iframe = await browser.findElement('css selector', 'iframe')
         await browser.switchToFrame(iframe)
 
+        await sleep(1000)
         expect(await getDocumentText())
             .toContain('Your content goes here.')
 
