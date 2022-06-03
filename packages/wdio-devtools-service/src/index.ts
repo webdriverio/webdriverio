@@ -231,7 +231,7 @@ export default class DevToolsService implements Services.ServiceInstance {
             throw new Error('No page target found')
         }
 
-        this._page = await this._target.page()
+        this._page = await this._target.page() || null
         /* istanbul ignore next */
         if (!this._page) {
             throw new Error('No page found')
