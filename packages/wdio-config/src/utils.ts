@@ -142,7 +142,6 @@ export function loadTypeScriptCompiler (
 
         return true
     } catch (err: any) {
-        log.error(`${err.message}`)
         return false
     }
 }
