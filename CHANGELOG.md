@@ -19,6 +19,47 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.20.0 (2022-06-03)
+
+#### :eyeglasses: Spec Compliancy
+* `wdio-protocols`
+  * [#8399](https://github.com/webdriverio/webdriverio/pull/8399) add:parameter to toggleNetworkSpeed endpoint ([@hammzj](https://github.com/hammzj))
+
+#### :bug: Bug Fix
+* `wdio-cucumber-framework`
+  * [#8378](https://github.com/webdriverio/webdriverio/pull/8378) The nano to milli second conversion was wrong so updated it ([@joshskumar](https://github.com/joshskumar))
+* `wdio-shared-store-service`
+  * [#8349](https://github.com/webdriverio/webdriverio/pull/8349) fix for https://github.com/webdriverio/webdriverio/issues/8335 ([@mighty98](https://github.com/mighty98))
+
+#### :nail_care: Polish
+* `wdio-browserstack-service`, `wdio-types`
+  * [#8350](https://github.com/webdriverio/webdriverio/pull/8350) add: service version to caps for browserstack ([@Ankit098](https://github.com/Ankit098))
+* `wdio-appium-service`, `wdio-cli`, `wdio-devtools-service`, `wdio-sumologic-reporter`, `webdriverio`
+  * [#8303](https://github.com/webdriverio/webdriverio/pull/8303) Update yargs interface usage ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* Other
+  * [#8397](https://github.com/webdriverio/webdriverio/pull/8397) change non maintained link ([@anabeatrizzz](https://github.com/anabeatrizzz))
+* `wdio-cli`
+  * [#8361](https://github.com/webdriverio/webdriverio/pull/8361) add cucumber html reporter ([@yon-cuadrado](https://github.com/yon-cuadrado))
+* `wdio-allure-reporter`
+  * [#8353](https://github.com/webdriverio/webdriverio/pull/8353) include asnyc await to screenshot example [Closes [#8323](https://github.com/webdriverio/webdriverio/issues/8323)] ([@anupamck](https://github.com/anupamck))
+  * [#8327](https://github.com/webdriverio/webdriverio/pull/8327) update documentation and include example for cucumber ([@anupamck](https://github.com/anupamck))
+* `wdio-browserstack-service`
+  * [#8337](https://github.com/webdriverio/webdriverio/pull/8337) fix: browserstack service with local ([@Ankit098](https://github.com/Ankit098))
+
+#### Committers: 9
+- Ana Beatriz ([@anabeatrizzz](https://github.com/anabeatrizzz))
+- Ankit Singh ([@Ankit098](https://github.com/Ankit098))
+- Anupam Krishnamurthy ([@anupamck](https://github.com/anupamck))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Sri Harsha ([@harsha509](https://github.com/harsha509))
+- Zachary Hamm ([@hammzj](https://github.com/hammzj))
+- [@joshskumar](https://github.com/joshskumar)
+- [@mighty98](https://github.com/mighty98)
+- [@yon-cuadrado](https://github.com/yon-cuadrado)
+
+
 ## v7.19.7 (2022-05-03)
 
 #### :rocket: New Feature
