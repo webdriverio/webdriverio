@@ -96,6 +96,7 @@ const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) 
 
         const config = {
             compilerOptions: {
+                moduleResolution: 'node',
                 types: [
                     'node',
                     'webdriverio/async',

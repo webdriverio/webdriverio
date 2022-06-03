@@ -52,7 +52,7 @@ export function validateConfig<T>(defaults: Options.Definition<T>, options: T, k
          * check if options is given
          */
         if (typeof options[name] === 'undefined' && !expectedOption.default && expectedOption.required) {
-            throw new Error(`Required option "${name}" is missing`)
+            throw new Error(`Required option "${name.toString()}" is missing`)
         }
 
         if (typeof options[name] === 'undefined' && expectedOption.default) {
@@ -62,26 +62,26 @@ export function validateConfig<T>(defaults: Options.Definition<T>, options: T, k
         if (typeof options[name] !== 'undefined') {
             const optValue = options[name]
             if (typeof optValue !== expectedOption.type) {
-                throw new Error(`Expected option "${name}" to be type of ${expectedOption.type} but was ${typeof options[name]}`)
+                throw new Error(`Expected option "${name.toString()}" to be type of ${expectedOption.type} but was ${typeof options[name]}`)
             }
 
             if (typeof expectedOption.validate === 'function') {
                 try {
                     expectedOption.validate(optValue)
                 } catch (e: any) {
-                    throw new Error(`Type check for option "${name}" failed: ${e.message}`)
+                    throw new Error(`Type check for option "${name.toString()}" failed: ${e.message}`)
                 }
             }
 
             if (typeof optValue === 'string' && expectedOption.match && !optValue.match(expectedOption.match)) {
-                throw new Error(`Option "${name}" doesn't match expected values: ${expectedOption.match}`)
+                throw new Error(`Option "${name.toString()}" doesn't match expected values: ${expectedOption.match}`)
             }
 
             params[name] = options[name]
         }
     }
 
-    for (const [name, option] of Object.entries(options) as [keyof T, T[keyof T]][]) {
+    for (const [name, option] of Object.entries(options as any) as [keyof T, T[keyof T]][]) {
         /**
          * keep keys from source object if desired
          */
@@ -142,7 +142,6 @@ export function loadTypeScriptCompiler (
 
         return true
     } catch (err: any) {
-        log.error(`${err.message}`)
         return false
     }
 }

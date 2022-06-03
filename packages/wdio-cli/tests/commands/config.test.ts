@@ -212,6 +212,7 @@ test('prints TypeScript setup message with ts-node installed', async () => {
 
     const config = {
         compilerOptions: {
+            moduleResolution: 'node',
             types: [
                 'node',
                 'webdriverio/async',
