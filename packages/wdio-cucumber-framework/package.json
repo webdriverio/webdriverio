@@ -25,7 +25,7 @@
     "@cucumber/cucumber": "8.2.2",
     "@cucumber/gherkin": "23.0.1",
     "@cucumber/gherkin-streams": "^5.0.0",
-    "@cucumber/messages": "18.0.0",
+    "@cucumber/messages": "19.0.0",
     "@types/is-glob": "^4.0.1",
     "@types/long": "^4.0.1",
     "@types/mockery": "^1.4.29",
