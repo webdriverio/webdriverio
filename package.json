@@ -66,7 +66,7 @@
     "@types/cheerio": "^0.22.31",
     "@types/eslint": "^8.4.2",
     "@types/fs-extra": "^9.0.13",
-    "@types/jest": "^27.5.0",
+    "@types/jest": "^28.1.1",
     "@types/lodash.clonedeep": "^4.5.6",
     "@types/lodash.isobject": "^3.0.6",
     "@types/lodash.isplainobject": "^4.0.6",
