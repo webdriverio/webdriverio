@@ -39,7 +39,7 @@
     "@types/recursive-readdir": "^2.2.0",
     "@wdio/config": "7.20.1",
     "@wdio/logger": "7.19.0",
-    "@wdio/protocols": "7.19.0",
+    "@wdio/protocols": "7.20.0",
     "@wdio/types": "7.20.0",
     "@wdio/utils": "7.20.0",
     "async-exit-hook": "^2.0.1",
