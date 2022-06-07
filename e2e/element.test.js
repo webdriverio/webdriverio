@@ -57,9 +57,7 @@ describe('elements', () => {
 
     /**
      * skip as this caused to throw an error:
-     * The element with reference ELEMENT-45 is stale; either the element is no
-     * longer attached to the DOM, it is not in the current frame context, or
-     * the document has been refreshed
+     * navigation times out for some reason even though the page navigation went back
      */
     it.skip('can click and go back and forward', async () => {
         const link = await browser.findElement('css selector', '#secondPageLink')
@@ -290,10 +288,10 @@ describe('elements', () => {
 
     it('should support deep selectors', async () => {
         await browser.navigateTo('https://www.chromestatus.com/feature/5191745052606464')
-        const headerSlot = await browser.findElement('shadow', '#headerSlot')
+        const headerSlot = await browser.findElement('shadow', '.details__header')
         expect(
-            await browser.getElementProperty(headerSlot[ELEMENT_KEY], 'name')
-        ).toBe('header')
+            await browser.getElementAttribute(headerSlot[ELEMENT_KEY], 'role')
+        ).toBe('button')
     })
 
     it('can fetch shadow elements', async () => {

@@ -3,6 +3,8 @@ import logger from '@wdio/logger'
 
 import BrowserstackLauncher from '../src/launcher'
 import { BrowserstackConfig } from '../src/types'
+// @ts-ignore
+import { version as bstackServiceVersion } from '../package.json'
 
 const expect = global.expect as unknown as jest.Expect
 
@@ -148,5 +150,24 @@ describe('onComplete', () => {
         service.browserstackLocal = new Browserstack.Local()
         return expect(service.onComplete()).resolves.toBe(undefined)
             .then(() => expect(service.browserstackLocal?.stop).toHaveBeenCalled())
+    })
+})
+
+describe('constructor', () => {
+    const options: BrowserstackConfig = { }
+    const config = {
+        user: 'foobaruser',
+        key: '12345',
+        capabilities: []
+    }
+
+    it('should add the wdioService property to an array of capabilities', async () => {
+        const caps: any = [{}, {}]
+        new BrowserstackLauncher(options, caps, config)
+
+        expect(caps).toEqual([
+            { 'bstack:options': { wdioService: bstackServiceVersion } },
+            { 'bstack:options': { wdioService: bstackServiceVersion } }
+        ])
     })
 })

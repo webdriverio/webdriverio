@@ -1,4 +1,4 @@
-import { isCloudCapability, removeLineNumbers, validObjectOrArray } from '../src/utils'
+import { isCloudCapability, removeLineNumbers, validObjectOrArray, validateTsConfigPaths } from '../src/utils'
 
 describe('utils', () => {
     describe('removeLineNumbers', () => {
@@ -62,6 +62,13 @@ describe('utils', () => {
 
         it('should handle null or empty capabilities', ()  => {
             expect(isCloudCapability({})).toBe(false)
+        })
+    })
+
+    describe('validateTsConfigPaths', () => {
+        it('should throw error if valid Tsconfig not provided', ()  => {
+            expect(() => validateTsConfigPaths({ project: './test/tsconfig.json' }))
+                .toThrow(/Is it correctly set in wdio config/)
         })
     })
 })

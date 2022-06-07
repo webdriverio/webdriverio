@@ -5,6 +5,8 @@ import * as BrowserstackLocalLauncher from 'browserstack-local'
 import logger from '@wdio/logger'
 import type { Capabilities, Services, Options } from '@wdio/types'
 
+// @ts-ignore
+import { version as bstackServiceVersion } from '../package.json'
 import { BrowserstackConfig } from './types'
 
 const log = logger('@wdio/browserstack-service')
@@ -18,10 +20,28 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
     browserstackLocal?: BrowserstackLocal
 
     constructor (
-        private _options: BrowserstackConfig,
+        private _options: BrowserstackConfig & Options.Testrunner,
         capabilities: Capabilities.RemoteCapability,
         private _config: Options.Testrunner
-    ) {}
+    ) {
+        // added to maintain backward compatibility with webdriverIO v5
+        this._config || (this._config = _options)
+        if (Array.isArray(capabilities)) {
+            capabilities.forEach((capability: Capabilities.DesiredCapabilities) => {
+                if (!capability['bstack:options']) {
+                    capability['bstack:options'] = {}
+                }
+                capability['bstack:options'].wdioService = bstackServiceVersion
+            })
+        } else if (typeof capabilities === 'object') {
+            Object.entries(capabilities as Capabilities.MultiRemoteCapabilities).forEach(([, caps]) => {
+                if (!(caps.capabilities as Capabilities.Capabilities)['bstack:options']) {
+                    (caps.capabilities as Capabilities.Capabilities)['bstack:options'] = {}
+                }
+                (caps.capabilities as Capabilities.Capabilities)['bstack:options']!.wdioService = bstackServiceVersion
+            })
+        }
+    }
 
     onPrepare (config?: Options.Testrunner, capabilities?: Capabilities.RemoteCapabilities) {
         if (!this._options.browserstackLocal) {
