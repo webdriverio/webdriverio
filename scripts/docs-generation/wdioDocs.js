@@ -1,10 +1,13 @@
-const fs = require('node:fs')
-const path = require('node:path')
-const markdox = require('markdox')
-const { promisify } = require('node:util')
+import fs from 'node:fs'
+import url from 'node:url'
+import path from 'node:path'
+import markdox from 'markdox'
+import { promisify } from 'node:util'
 
-const formatter = require('../utils/formatter')
-const compiler = require('../utils/compiler')
+import formatter from '../utils/formatter.js'
+import compiler from '../utils/compiler.js'
+
+const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 const TEMPLATE_PATH = path.join(__dirname, '..', 'templates', 'api.tpl.ejs')
 const MARKDOX_OPTIONS = {
     formatter: formatter,
@@ -18,7 +21,7 @@ const processDocs = promisify(markdox.process)
  * Generate WebdriverIO docs
  * @param {object} sidebars website/sidebars
  */
-exports.generateWdioDocs = async (sidebars) => {
+export async function generateWdioDocs (sidebars) {
     const COMMAND_DIR = path.join(__dirname, '..', '..', 'packages', 'webdriverio', 'src', 'commands')
     const COMMANDS = {
         browser: fs.readdirSync(path.join(COMMAND_DIR, 'browser')),

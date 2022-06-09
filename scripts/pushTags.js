@@ -4,9 +4,9 @@
  * after the release. This script is a little helper to ensure
  * this happens.
  */
-const shell = require('shelljs')
+import shell from 'shelljs'
 
-const { version } = require('../lerna.json')
+import pkg from '../lerna.json' assert { type: 'json' }
 
 console.log('\nPushing release tag...')
-shell.exec(`git push origin refs/tags/v${version} -f --no-verify`)
+shell.exec(`git push origin refs/tags/v${pkg.version} -f --no-verify`)

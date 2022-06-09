@@ -1,19 +1,31 @@
-const fs = require('fs-extra')
-const path = require('node:path')
-const urljoin = require('url-join')
+import fs from 'fs-extra'
+import url from 'node:url'
+import path from 'node:path'
+import urljoin from 'url-join'
 
-const { downloadFromGitHub } = require('../utils')
-const { buildPreface } = require('../utils/helpers')
-const reporters3rdParty = require('./3rd-party/reporters.json')
-const services3rdParty = require('./3rd-party/services.json')
-const api3rdParty = require('./3rd-party/api.json')
+import { downloadFromGitHub } from '../utils/index.js'
+import { buildPreface } from '../utils/helpers.js'
 
+import reporters3rdParty from './3rd-party/reporters.json' assert { type: 'json' }
+import services3rdParty from './3rd-party/services.json' assert { type: 'json' }
+import api3rdParty from './3rd-party/api.json' assert { type: 'json' }
+
+const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 const plugins = [{
-    category: 'docs', namePlural: 'Reporter', nameSingular: 'Reporter', packages3rdParty: reporters3rdParty
+    category: 'docs',
+    namePlural: 'Reporter',
+    nameSingular: 'Reporter',
+    packages3rdParty: reporters3rdParty
 }, {
-    category: 'docs', namePlural: 'Services', nameSingular: 'Service', packages3rdParty: services3rdParty
+    category: 'docs',
+    namePlural: 'Services',
+    nameSingular: 'Service',
+    packages3rdParty: services3rdParty
 }, {
-    category: 'api', namePlural: 'Testrunner', nameSingular: '', packages3rdParty: api3rdParty
+    category: 'api',
+    namePlural: 'Testrunner',
+    nameSingular: '',
+    packages3rdParty: api3rdParty
 }]
 
 const githubReadme = '/README.md'
@@ -29,7 +41,7 @@ const DOCS_ROOT_DIR = path.join(PROJECT_ROOT_DIR, 'website', 'docs')
  * Generate docs for 3rd party reporters and services
  * @param {object} sidebars website/sidebars
  */
-exports.generate3rdPartyDocs = async (sidebars) => {
+export async function generate3rdPartyDocs (sidebars) {
     for (const { category, namePlural, nameSingular, packages3rdParty } of plugins) {
         const categoryDir = path.join(DOCS_ROOT_DIR, category === 'api' ? 'api' : '')
         await fs.ensureDir(categoryDir)

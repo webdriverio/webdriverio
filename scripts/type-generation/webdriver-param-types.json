@@ -1,8 +1,0 @@
-{
-    "createWindow": [
-        {
-            "name": "type",
-            "type": "'tab' | 'window'"
-        }
-    ]
-}

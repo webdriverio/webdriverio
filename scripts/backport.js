@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
-const Octokit = require('@octokit/rest')
-const inquirer = require('inquirer')
-const shell = require('shelljs')
+import Octokit from '@octokit/rest'
+import inquirer from 'inquirer'
+import shell from 'shelljs'
 
 const activeLTSVersion = 'v6'
 const maintenanceLTSVersion = 'v5'

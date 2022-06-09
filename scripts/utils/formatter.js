@@ -1,8 +1,10 @@
-const path = require('node:path')
+import path from 'node:path'
+import { createRequire } from 'node:module'
 
+const require = createRequire(import.meta.url)
 const { customFields } = require('../../website/docusaurus.config.js')
 
-module.exports = function (docfile) {
+export default function (docfile) {
     const javadoc = docfile.javadoc[0]
 
     let type = (javadoc.ctx && javadoc.ctx.type)
