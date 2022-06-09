@@ -1,12 +1,20 @@
-const fs = require('fs-extra')
-const path = require('node:path')
-const ejs = require('ejs')
+import path from 'node:path'
+import url from 'node:url'
+import { createRequire } from 'node:module'
 
+import fs from 'fs-extra'
+import ejs from 'ejs'
+
+import {
+    PROTOCOLS, PROTOCOL_NAMES, MOBILE_PROTOCOLS, VENDOR_PROTOCOLS,
+    PROTOCOL_API_DESCRIPTION
+} from '../constants.js'
+
+const require = createRequire(import.meta.url)
 const { repoUrl } = require('../../website/docusaurus.config.js')
+
+const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 const TEMPLATE_PATH = path.join(__dirname, '..', 'templates', 'api.tpl.ejs')
-const {
-    PROTOCOLS, PROTOCOL_NAMES, MOBILE_PROTOCOLS, VENDOR_PROTOCOLS, PROTOCOL_API_DESCRIPTION
-} = require('../constants')
 
 const category = 'api'
 const PROJECT_ROOT_DIR = path.join(__dirname, '..', '..', 'website')
@@ -16,7 +24,7 @@ const API_DOCS_ROOT_DIR = path.join(PROJECT_ROOT_DIR, 'docs', category)
  * Generate Protocol docs
  * @param {object} sidebars website/sidebars
  */
-exports.generateProtocolDocs = (sidebars) => {
+export function generateProtocolDocs (sidebars) {
     fs.ensureDirSync(API_DOCS_ROOT_DIR)
     const template = fs.readFileSync(TEMPLATE_PATH, 'utf8')
     const protocolDocs = {}

@@ -1,9 +1,11 @@
-const fs = require('node:fs')
-const path = require('node:path')
+import fs from 'node:fs'
+import url from 'node:url'
+import path from 'node:path'
 
-const { IGNORED_SUBPACKAGES_FOR_DOCS } = require('../constants')
-const { getSubPackages, buildPreface } = require('../utils/helpers')
+import { IGNORED_SUBPACKAGES_FOR_DOCS } from '../constants.js'
+import { getSubPackages, buildPreface } from '../utils/helpers.js'
 
+const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 const plugins = {
     reporter: ['Reporter', 'Reporter'],
     service: ['Services', 'Service']
@@ -13,7 +15,7 @@ const plugins = {
  * Generate docs for reporter and services
  * @param {object} sidebars website/sidebars
  */
-exports.generateReportersAndServicesDocs = (sidebars) => {
+export function generateReportersAndServicesDocs (sidebars) {
     const packages = getSubPackages(IGNORED_SUBPACKAGES_FOR_DOCS)
 
     for (const [type, [namePlural, nameSingular]] of Object.entries(plugins)) {

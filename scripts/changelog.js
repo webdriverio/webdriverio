@@ -3,17 +3,19 @@
 /**
  * script to auto update CHANGELOG.md file
  */
-const fs = require('node:fs')
-const path = require('node:path')
-const chalk = require('chalk')
-const shell = require('shelljs')
-const { Octokit } = require('@octokit/rest')
-const { highlight } = require('cli-highlight')
-const { Changelog } = require('lerna-changelog')
-const { load } = require('lerna-changelog/lib/configuration')
+import fs from 'node:fs'
+import url from 'node:url'
+import path from 'node:path'
+import chalk from 'chalk'
+import shell from 'shelljs'
+import { Octokit } from '@octokit/rest'
+import { highlight } from 'cli-highlight'
+import { Changelog } from 'lerna-changelog'
+import { load } from 'lerna-changelog/lib/configuration'
 
+const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 const root = path.resolve(__dirname, '..')
-const { version } = require(path.join(root, 'lerna.json'))
+const { version } = await import(path.join(root, 'lerna.json'))
 const changelogPath = path.join(root, 'CHANGELOG.md')
 
 if (!process.env.GITHUB_AUTH) {
