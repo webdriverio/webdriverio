@@ -169,5 +169,11 @@
     "title": "Tesults",
     "githubUrl": "https://github.com/tesults/wdio-tesults-service",
     "npmUrl": "https://www.npmjs.com/package/wdio-tesults-service"
+  },
+  {
+    "packageName": "@gmangiapelo/wdio-azure-devops-service",
+    "title": "Azure DevOps Test Plans",
+    "githubUrl": "https://github.com/gianlucamangiapelo/wdio-azure-devops-service",
+    "npmUrl": "https://www.npmjs.com/package/@gmangiapelo/wdio-azure-devops-service"
   }
 ]
