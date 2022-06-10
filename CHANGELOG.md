@@ -19,6 +19,26 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.20.2 (2022-06-10)
+
+#### :eyeglasses: Spec Compliancy
+* `wdio-protocols`
+  * [#8402](https://github.com/webdriverio/webdriverio/pull/8402) Dev/issue 8398/main ([@hammzj](https://github.com/hammzj))
+
+#### :bug: Bug Fix
+* `devtools`
+  * [#8420](https://github.com/webdriverio/webdriverio/pull/8420) fix: Clear executeScript timeout in case of promise rejection ([@efyx](https://github.com/efyx))
+
+#### :memo: Documentation
+* `wdio-cli`
+  * [#8414](https://github.com/webdriverio/webdriverio/pull/8414) Add wdio-azure-devops-service to official docs ([@gianlucamangiapelo](https://github.com/gianlucamangiapelo))
+
+#### Committers: 3
+- Gianluca Mangiapelo ([@gianlucamangiapelo](https://github.com/gianlucamangiapelo))
+- Zachary Hamm ([@hammzj](https://github.com/hammzj))
+- [@efyx](https://github.com/efyx)
+
+
 ## v7.20.0 (2022-06-03)
 
 #### :eyeglasses: Spec Compliancy
