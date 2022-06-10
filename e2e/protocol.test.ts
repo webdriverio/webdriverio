@@ -332,6 +332,21 @@ describe('executeScript', () => {
         ).toBe('WebdriverJS Testpage Test!')
     })
 
+    it('sync error', async () => {
+        const spy = jest.spyOn(global, 'clearTimeout')
+
+        await expect(async () => {
+            await browser.executeScript(
+                'throw new Error(\'sync error\')',
+                []
+            )
+        }).rejects.toThrow('sync error');
+
+        expect(spy).toHaveBeenCalledTimes(1);
+
+        spy.mockClear()
+    })
+
     it('async', async () => {
         expect(await browser.executeAsyncScript(
             'return setTimeout(() => arguments[2](document.title + \' \' + arguments[0] + arguments[1]), 500)',
