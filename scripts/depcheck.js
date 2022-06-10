@@ -22,6 +22,10 @@ const IGNORE_PACKAGES = {
 }
 
 ;(async () => {
+    if (process.platform === 'win32') {
+        return console.log('Skip for windows')
+    }
+
     shell.cd(ROOT_DIR)
     const brokenPackages = (await Promise.all(packages.map(async (pkg) => {
         const packagePath = path.join(ROOT_DIR, 'packages', pkg)
