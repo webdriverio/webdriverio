@@ -405,36 +405,27 @@ describe('getCapabilities', () => {
     })
 
     it('should throw config not found error', () => {
-        jest.unmock('@wdio/config')
-        jest.resetModules()
+        jest.mock('@wdio/config', () => {
+            return { ...jest.requireActual('@wdio/config') }
+        })
         const getCapabilities = require('../src/utils').getCapabilities
-        expect(()=>getCapabilities({ option: './test.js', capabilities: 2 } as any)).toThrowErrorMatchingSnapshot()
+        expect(() => getCapabilities({ option: './test.js', capabilities: 2 } as any)).toThrowErrorMatchingSnapshot()
     })
 
     it('should throw capability not provided', () => {
-        jest.unmock('@wdio/config')
-        jest.resetModules()
-        const getCapabilities = require('../src/utils').getCapabilities
-        expect(()=>getCapabilities({ option: './packages/wdio-cli/tests/__testData__/wdio.conf.js' } as any)).toThrowErrorMatchingSnapshot()
+        expect(() => getCapabilities({ option: './packages/wdio-cli/tests/__testData__/wdio.conf.js' } as any)).toThrowErrorMatchingSnapshot()
     })
 
     it('should through capability not found', () => {
-        jest.unmock('@wdio/config')
-        jest.resetModules()
-        const getCapabilities = require('../src/utils').getCapabilities
-        expect(()=>getCapabilities({ option: 'packages/wdio-cli/tests/__testData__/wdio.conf.js', capabilities: 5 } as any)).toThrowErrorMatchingSnapshot()
+        expect(() => getCapabilities({ option: 'packages/wdio-cli/tests/__testData__/wdio.conf.js', capabilities: 5 } as any)).toThrowErrorMatchingSnapshot()
     })
 
     it('should get capability from wdio.conf.js', () => {
-        jest.unmock('@wdio/config')
-        jest.resetModules()
         const getCapabilities = require('../src/utils').getCapabilities
         expect(getCapabilities({ option: 'packages/wdio-cli/tests/__testData__/wdio.conf.js', capabilities: 2 } as any)).toMatchSnapshot()
     })
 
     it('should get capability from wdio.conf.ts', () => {
-        jest.unmock('@wdio/config')
-        jest.resetModules()
         const getCapabilities = require('../src/utils').getCapabilities
         expect(getCapabilities({ option: './packages/wdio-cli/tests/__testData__/wdio.conf.ts', capabilities: 'myCapabilities' } as any)).toMatchSnapshot()
     })
