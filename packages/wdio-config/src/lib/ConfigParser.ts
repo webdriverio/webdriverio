@@ -37,7 +37,8 @@ export default class ConfigParser {
     constructor(
         private _pathService: PathService = new FileSystemPathService(),
         private _moduleRequireService: ModuleRequireService = new RequireLibrary()
-    ) {}
+    ) {
+    }
 
     autoCompile() {
         /**
@@ -214,26 +215,33 @@ export default class ConfigParser {
             // Removing any duplicate tests that could be included
             let tmpSpecs = spec.length > 0 ? [...specs, ...suiteSpecs] : suiteSpecs
 
+            //Only merge capability specs if --spec is not defined
+            if (spec.length === 0) {
+                if (Array.isArray(capSpecs)) {
+                    tmpSpecs = ConfigParser.getFilePaths(capSpecs, undefined, this._pathService)
+                }
+
+                if (Array.isArray(capExclude)) {
+                    exclude = ConfigParser.getFilePaths(capExclude, undefined, this._pathService)
+                }
+            }
+
+            specs = [...new Set(tmpSpecs)]
+            return this.filterSpecs(specs, <string[]>exclude)
+        }
+
+        //Only merge capability specs if --spec is not defined
+        if (spec.length === 0) {
             if (Array.isArray(capSpecs)) {
-                tmpSpecs = ConfigParser.getFilePaths(capSpecs, undefined, this._pathService)
+                specs = ConfigParser.getFilePaths(capSpecs, undefined, this._pathService)
             }
 
             if (Array.isArray(capExclude)) {
                 exclude = ConfigParser.getFilePaths(capExclude, undefined, this._pathService)
             }
-
-            specs = [...new Set(tmpSpecs)]
-            return this.filterSpecs(specs, <string[]> exclude)
         }
 
-        if (Array.isArray(capSpecs)) {
-            specs = ConfigParser.getFilePaths(capSpecs, undefined, this._pathService)
-        }
-
-        if (Array.isArray(capExclude)) {
-            exclude = ConfigParser.getFilePaths(capExclude, undefined, this._pathService)
-        }
-        return this.filterSpecs(specs, <string[]> exclude)
+        return this.filterSpecs(specs, <string[]>exclude)
     }
 
     /**
