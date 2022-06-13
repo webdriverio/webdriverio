@@ -27,7 +27,7 @@
     "@wdio/types": "7.20.0",
     "chalk": "^4.0.0",
     "easy-table": "^1.1.1",
-    "pretty-ms": "^7.0.0"
+    "pretty-ms": "^8.0.0"
   },
   "peerDependencies": {
     "@wdio/cli": "^7.0.0"

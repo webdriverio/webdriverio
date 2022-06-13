@@ -25,7 +25,7 @@
     "@wdio/reporter": "7.20.0",
     "@wdio/types": "7.20.0",
     "chalk": "^4.0.0",
-    "pretty-ms": "^7.0.0"
+    "pretty-ms": "^8.0.0"
   },
   "peerDependencies": {
     "@wdio/cli": "^7.0.0"
