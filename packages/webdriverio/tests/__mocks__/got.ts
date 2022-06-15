@@ -222,9 +222,9 @@ const requestMock: any = jest.fn().mockImplementation((uri, params) => {
         break
     } case `${path}/${sessionId}/element/${genericElementId}/elements`:
         value = [
-            { [ELEMENT_KEY]: genericSubElementId },
-            { [ELEMENT_KEY]: 'some-elem-456' },
-            { [ELEMENT_KEY]: 'some-elem-789' },
+            { [ELEMENT_KEY]: genericSubElementId, index: 0 },
+            { [ELEMENT_KEY]: 'some-elem-456', index: 1 },
+            { [ELEMENT_KEY]: 'some-elem-789', index: 2 },
         ]
         break
     case `${path}/${sessionId}/cookie`:

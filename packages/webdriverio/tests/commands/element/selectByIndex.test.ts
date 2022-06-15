@@ -35,7 +35,8 @@ describe('selectByIndex test', () => {
         expect(got.mock.calls[3][0].pathname)
             .toBe('/session/foobar-123/element/some-elem-456/click')
         expect(getElementFromResponseSpy).toBeCalledWith({
-            [ELEMENT_KEY]: 'some-elem-456'
+            [ELEMENT_KEY]: 'some-elem-456',
+            index: 1
         })
     })
 
