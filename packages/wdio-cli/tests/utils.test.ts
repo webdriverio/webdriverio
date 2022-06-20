@@ -440,6 +440,7 @@ describe('getCapabilities', () => {
     })
 
     it('should get capability from wdio.conf.js', () => {
+        const autoCompileMock = jest.spyOn(ConfigParser.prototype, 'autoCompile')
         const getCapabilitiesMock = jest.spyOn(ConfigParser.prototype, 'getCapabilities')
         getCapabilitiesMock.mockReturnValue([
             { browserName: 'chrome' },
@@ -456,6 +457,7 @@ describe('getCapabilities', () => {
         ])
         expect(getCapabilities({ option: '/path/to/config.js', capabilities: 2 } as any))
             .toMatchSnapshot()
+        expect(autoCompileMock).toBeCalledTimes(1)
     })
 })
 
