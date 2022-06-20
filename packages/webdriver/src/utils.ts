@@ -214,7 +214,7 @@ export function getPrototype ({ isW3C, isChrome, isFirefox, isMobile, isSauce, i
  * @param  {Object} body body object
  * @return {Object} error
  */
-export function getErrorFromResponseBody (body: any) {
+export function getErrorFromResponseBody (body: any, requestOptions: any) {
     if (!body) {
         return new Error('Response has empty body')
     }
@@ -227,14 +227,26 @@ export function getErrorFromResponseBody (body: any) {
         return new Error('Unknown error')
     }
 
-    return new CustomRequestError(body)
+    return new CustomRequestError(body, requestOptions)
 }
 
 //Exporting for testability
 export class CustomRequestError extends Error {
-    constructor(body: WebDriverResponse) {
+    constructor (body: WebDriverResponse, requestOptions: any) {
         const errorObj = body.value || body
-        super(errorObj.message || errorObj.class || 'unknown error')
+        let errorMessage = errorObj.message || errorObj.class || 'unknown error'
+
+        /**
+         * improve error message for Chrome and Safari on invalid selectors
+         */
+        if (typeof errorObj.error === 'string' && errorObj.error.includes('invalid selector')) {
+            errorMessage = (
+                `The selector "${requestOptions.value}" used with strategy "${requestOptions.using}" is invalid! ` +
+                'For more information on selectors visit the WebdriverIO docs at: https://webdriver.io/docs/selectors'
+            )
+        }
+
+        super(errorMessage)
         if (errorObj.error) {
             this.name = errorObj.error
         } else if (errorObj.message && errorObj.message.includes('stale element reference')) {

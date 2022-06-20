@@ -102,18 +102,18 @@ describe('utils', () => {
 
     it('getErrorFromResponseBody', () => {
         const emptyBodyError = new Error('Response has empty body')
-        expect(getErrorFromResponseBody('')).toEqual(emptyBodyError)
-        expect(getErrorFromResponseBody(null)).toEqual(emptyBodyError)
+        expect(getErrorFromResponseBody('', {})).toEqual(emptyBodyError)
+        expect(getErrorFromResponseBody(null, {})).toEqual(emptyBodyError)
 
         const unknownError = new Error('unknown error')
-        expect(getErrorFromResponseBody({})).toEqual(unknownError)
+        expect(getErrorFromResponseBody({}, {})).toEqual(unknownError)
 
         const nonWebDriverError = new Error('expected')
         const expectedError = new Error('expected')
-        expect(getErrorFromResponseBody('expected')).toEqual(nonWebDriverError)
-        expect(getErrorFromResponseBody({ value: { message: 'expected' } }))
+        expect(getErrorFromResponseBody('expected', {})).toEqual(nonWebDriverError)
+        expect(getErrorFromResponseBody({ value: { message: 'expected' } }, {}))
             .toEqual(expectedError)
-        expect(getErrorFromResponseBody({ value: { class: 'expected' } }))
+        expect(getErrorFromResponseBody({ value: { class: 'expected' } }, {}))
             .toEqual(expectedError)
 
         const ieError = new Error('Command not found: POST /some/command')
@@ -122,7 +122,7 @@ describe('utils', () => {
             message: 'Command not found: POST /some/command',
             error: 'unknown method',
             name: 'Protocol Error'
-        })).toEqual(ieError)
+        }, {})).toEqual(ieError)
     })
 
     it('CustomRequestError', function () {
@@ -132,44 +132,49 @@ describe('utils', () => {
                 error: 'foo',
                 message: 'bar'
             }
-        })
+        }, {})
         expect(error.name).toBe('foo')
         expect(error.message).toBe('bar')
 
         //Chrome
-        error = new CustomRequestError({ value: { message: 'stale element reference' } })
+        error = new CustomRequestError({ value: { message: 'stale element reference' } }, {})
         expect(error.name).toBe('stale element reference')
         expect(error.message).toBe('stale element reference')
         expect(error.stack).toMatch('stale element reference')
         expect(error.stack).toMatch('stale element reference')
 
-        error = new CustomRequestError({ value: { message: 'message' } } )
+        error = new CustomRequestError({ value: { message: 'message' } }, {})
         expect(error.name).toBe('WebDriver Error')
         expect(error.message).toBe('message')
         expect(error.stack).toMatch('WebDriver Error')
         expect(error.stack).toMatch('message')
 
-        error = new CustomRequestError({ value: { class: 'class' } } )
+        error = new CustomRequestError({ value: { class: 'class' } }, {})
         expect(error.name).toBe('WebDriver Error')
         expect(error.message).toBe('class')
         expect(error.stack).toMatch('WebDriver Error')
         expect(error.stack).toMatch('class')
 
-        error = new CustomRequestError({ value: { name: 'Protocol Error' } } )
+        error = new CustomRequestError({ value: { name: 'Protocol Error' } }, {})
         expect(error.name).toBe('Protocol Error')
         expect(error.message).toBe('unknown error')
         expect(error.stack).toMatch('Protocol Error')
         expect(error.stack).toMatch('unknown error')
 
-        error = new CustomRequestError({ value: { } } )
+        error = new CustomRequestError({ value: { } }, {})
         expect(error.name).toBe('WebDriver Error')
         expect(error.message).toBe('unknown error')
         expect(error.stack).toMatch('WebDriver Error')
         expect(error.stack).toMatch('unknown error')
+
+        error = new CustomRequestError(
+            { value: { error: 'invalid selector' } },
+            { using: 'css selector', value: '!!' }
+        )
+        expect(error.message).toMatchSnapshot()
     })
 
     describe('setupDirectConnect', () => {
-
         class TestClient implements Client {
             sessionId: string
             capabilities: Capabilities.DesiredCapabilities | Capabilities.W3CCapabilities
