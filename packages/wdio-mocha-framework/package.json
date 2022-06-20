@@ -30,7 +30,7 @@
     "mocha": "^10.0.0"
   },
   "devDependencies": {
-    "@types/node": "^17.0.5"
+    "@types/node": "^18.0.0"
   },
   "publishConfig": {
     "access": "public"

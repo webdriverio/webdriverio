@@ -24,7 +24,7 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "dependencies": {
-    "@types/node": "^17.0.4",
+    "@types/node": "^18.0.0",
     "@wdio/reporter": "7.20.0",
     "@wdio/types": "7.20.0",
     "allure-js-commons": "^1.3.2",
