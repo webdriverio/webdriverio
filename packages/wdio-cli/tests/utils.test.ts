@@ -3,6 +3,7 @@ import ejs from 'ejs'
 import readDirMock from 'recursive-readdir'
 import childProcess from 'child_process'
 import { SevereServiceError } from 'webdriverio'
+import { ConfigParser } from '@wdio/config'
 
 const readDir = readDirMock as jest.Mock
 
@@ -43,6 +44,18 @@ jest.mock('fs-extra', () => ({
     ensureDirSync: jest.fn(),
     promises: {
         writeFile: jest.fn().mockReturnValue(Promise.resolve())
+    }
+}))
+
+/**
+ * it is necessary here to create a new mock for the ConfigParser because it
+ * doesn't seem to be possible to spy on jest mock instances
+ */
+jest.mock('@wdio/config', () => ({
+    ConfigParser: class ConfigParserMock {
+        addConfigFile () {}
+        autoCompile () {}
+        getCapabilities () {}
     }
 }))
 
@@ -385,11 +398,6 @@ test('validateServiceAnswers', () => {
 })
 
 describe('getCapabilities', () => {
-    afterEach(() => {
-        jest.mock('@wdio/config')
-        jest.resetModules()
-    })
-
     it('should return driver with capabilities for android', () => {
         expect(getCapabilities({ option: 'foo.apk' } as any)).toMatchSnapshot()
         expect(getCapabilities({ option: 'android' } as any)).toMatchSnapshot()
@@ -405,29 +413,49 @@ describe('getCapabilities', () => {
     })
 
     it('should throw config not found error', () => {
-        jest.mock('@wdio/config', () => {
-            return { ...jest.requireActual('@wdio/config') }
+        const addConfigFileMock = jest.spyOn(ConfigParser.prototype, 'addConfigFile')
+        addConfigFileMock.mockImplementationOnce(() => {
+            const error: any = new Error('ups')
+            error.code = 'MODULE_NOT_FOUND'
+            throw error
         })
-        const getCapabilities = require('../src/utils').getCapabilities
-        expect(() => getCapabilities({ option: './test.js', capabilities: 2 } as any)).toThrowErrorMatchingSnapshot()
+        expect(() => getCapabilities({ option: './test.js', capabilities: 2 } as any))
+            .toThrowErrorMatchingSnapshot()
+        addConfigFileMock.mockImplementationOnce(() => { throw new Error('ups') })
+        expect(() => getCapabilities({ option: './test.js', capabilities: 2 } as any))
+            .toThrowErrorMatchingSnapshot()
     })
 
     it('should throw capability not provided', () => {
-        expect(() => getCapabilities({ option: './packages/wdio-cli/tests/__testData__/wdio.conf.js' } as any)).toThrowErrorMatchingSnapshot()
+        expect(() => getCapabilities({ option: '/path/to/config.js' } as any))
+            .toThrowErrorMatchingSnapshot()
     })
 
     it('should through capability not found', () => {
-        expect(() => getCapabilities({ option: 'packages/wdio-cli/tests/__testData__/wdio.conf.js', capabilities: 5 } as any)).toThrowErrorMatchingSnapshot()
+        const cap = { browserName: 'chrome' }
+        const getCapabilitiesMock = jest.spyOn(ConfigParser.prototype, 'getCapabilities')
+        getCapabilitiesMock.mockReturnValue([cap, cap, cap, cap, cap])
+        expect(() => getCapabilities({ option: '/path/to/config.js', capabilities: 5 } as any))
+            .toThrowErrorMatchingSnapshot()
     })
 
     it('should get capability from wdio.conf.js', () => {
-        const getCapabilities = require('../src/utils').getCapabilities
-        expect(getCapabilities({ option: 'packages/wdio-cli/tests/__testData__/wdio.conf.js', capabilities: 2 } as any)).toMatchSnapshot()
-    })
-
-    it('should get capability from wdio.conf.ts', () => {
-        const getCapabilities = require('../src/utils').getCapabilities
-        expect(getCapabilities({ option: './packages/wdio-cli/tests/__testData__/wdio.conf.ts', capabilities: 'myCapabilities' } as any)).toMatchSnapshot()
+        const getCapabilitiesMock = jest.spyOn(ConfigParser.prototype, 'getCapabilities')
+        getCapabilitiesMock.mockReturnValue([
+            { browserName: 'chrome' },
+            {
+                browserName: 'firefox',
+                specs: ['/path/to/some/specs.js']
+            },
+            {
+                maxInstances: 5,
+                browserName: 'chrome',
+                acceptInsecureCerts: true,
+                'goog:chromeOptions' : { 'args' : ['window-size=8000,1200'] }
+            }
+        ])
+        expect(getCapabilities({ option: '/path/to/config.js', capabilities: 2 } as any))
+            .toMatchSnapshot()
     })
 })
 

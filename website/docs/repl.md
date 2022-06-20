@@ -23,22 +23,22 @@ If driver is running on different port eg : 9515, it could passed with the comma
 wdio repl chrome -u $SAUCE_USERNAME -k $SAUCE_ACCESS_KEY -p 9515
 ```
 
-Repl could also be ran using the capabilities from the webdriverIO config file. Wdio supports capabilities object; or ; multiremote capability list or object. 
+Repl could also be ran using the capabilities from the webdriverIO config file. Wdio supports capabilities object; or ; multiremote capability list or object.
 
-If the config file uses capabilities object then just pass the path to config file, else if its a multiremote capability then, specify which capability to use from list or multiremote using the positional argument . Note: for list we consider zero based index. 
+If the config file uses capabilities object then just pass the path to config file, else if its a multiremote capability then, specify which capability to use from list or multiremote using the positional argument . Note: for list we consider zero based index.
 
-### Example: 
+### Example
 
-wdio with multi capability array:
+WebdriverIO with capability array:
 
 ```ts title="wdio.conf.ts example"
 export const config = {
     // ...
-   capabilities:[{
-            browserName: 'chrome', // options: `firefox`, `chrome`, `opera`, `safari`
-            browserVersion: '27.0', // browser version
-            platformName: 'Windows 10' // OS platform
-     }]
+    capabilities:[{
+        browserName: 'chrome', // options: `firefox`, `chrome`, `opera`, `safari`
+        browserVersion: '27.0', // browser version
+        platformName: 'Windows 10' // OS platform
+    }]
 }
 ```
 
@@ -46,12 +46,12 @@ export const config = {
 wdio repl "./path/to/wdio.config.js" 0 -p 9515
 ```
 
-wdio with multi remote capability object:
+WebdriverIO with [multiremote](https://webdriver.io/docs/multiremote/) capability object:
 
 ```ts title="wdio.conf.ts example"
 export const config = {
     // ...
-   capabilities:{
+    capabilities: {
         myChromeBrowser: {
             capabilities: {
                 browserName: 'chrome'
@@ -62,7 +62,7 @@ export const config = {
                 browserName: 'firefox'
             }
         }
-     }
+    }
 }
 ```
 
@@ -92,6 +92,7 @@ wdio repl './path/to/your_app.apk'
 This would open App session on connected device/emulator/simulator. Make sure Appium running on port `4444` in order to initiate the session.
 
 Capabilities for iOS device can be passed with arguments:
+
 * `-v`      - `platformVersion`: version of Android/iOS platform
 * `-d`      - `deviceName`: name of mobile device
 * `-u`      - `udid`: udid for real devices

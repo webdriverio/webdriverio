@@ -299,12 +299,16 @@ export function getCapabilities(arg: ReplCommandArguments) {
             throw Error((e as any).code === 'MODULE_NOT_FOUND' ? `Config File not found: ${arg.option}`:
                 `Could not parse ${arg.option}, failed with error : ${(e as Error).message}`)
         }
-        let requiredCaps = config.getCapabilities()
         if (typeof arg.capabilities === 'undefined') {
             throw Error('Please provide index/named property of capability to use from the capabilities array/object in wdio config file')
         }
-        requiredCaps = (requiredCaps as (Capabilities.DesiredCapabilities | Capabilities.W3CCapabilities)[])[Number(arg.capabilities)] ||
-                (requiredCaps as Capabilities.MultiRemoteCapabilities)[arg.capabilities]
+        let requiredCaps = config.getCapabilities()
+        requiredCaps = (
+            // multi capabilities
+            (requiredCaps as (Capabilities.DesiredCapabilities | Capabilities.W3CCapabilities)[])[parseInt(arg.capabilities, 10)] ||
+            // multiremote
+            (requiredCaps as Capabilities.MultiRemoteCapabilities)[arg.capabilities]
+        )
         const requiredW3CCaps = pickBy(requiredCaps, (_, key) => CAPABILITY_KEYS.includes(key) || key.includes(':'))
         if (!Object.keys(requiredW3CCaps).length) {
             throw Error(`No capability found in given config file with the provided capability indexed/named property: ${arg.capabilities}. Please check the capability in your wdio config file.`)
