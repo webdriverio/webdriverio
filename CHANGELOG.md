@@ -19,6 +19,16 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.20.3 (2022-06-20)
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#8434](https://github.com/webdriverio/webdriverio/pull/8434) fix refetch elements with index > 0 ([@jayrepo](https://github.com/jayrepo))
+
+#### Committers: 1
+- Jay Chen ([@jayrepo](https://github.com/jayrepo))
+
+
 ## v7.20.2 (2022-06-10)
 
 #### :eyeglasses: Spec Compliancy
