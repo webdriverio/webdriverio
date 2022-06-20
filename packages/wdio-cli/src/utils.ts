@@ -1,12 +1,15 @@
 import fs from 'fs-extra'
 import ejs from 'ejs'
 import path from 'path'
+import pickBy from 'lodash.pickby'
 import inquirer from 'inquirer'
 import logger from '@wdio/logger'
 import readDir from 'recursive-readdir'
 import { SevereServiceError } from 'webdriverio'
 import { execSync } from 'child_process'
 import { promisify } from 'util'
+import { ConfigParser } from '@wdio/config'
+import { CAPABILITY_KEYS } from '@wdio/protocols'
 import type { Options, Capabilities, Services } from '@wdio/types'
 
 import { ReplCommandArguments, Questionnair, SupportedPackage, OnCompleteResult, ParsedAnswers } from './types'
@@ -287,6 +290,30 @@ export function getCapabilities(arg: ReplCommandArguments) {
         return { capabilities: { browserName: 'Chrome', ...ANDROID_CONFIG, ...optionalCapabilites } }
     } else if (/ios/.test(arg.option)) {
         return { capabilities: { browserName: 'Safari', ...IOS_CONFIG, ...optionalCapabilites } }
+    } else if (/(js|ts)$/.test(arg.option)) {
+        const config = new ConfigParser()
+        config.autoCompile()
+        try {
+            config.addConfigFile(arg.option)
+        } catch (e) {
+            throw Error((e as any).code === 'MODULE_NOT_FOUND' ? `Config File not found: ${arg.option}`:
+                `Could not parse ${arg.option}, failed with error : ${(e as Error).message}`)
+        }
+        if (typeof arg.capabilities === 'undefined') {
+            throw Error('Please provide index/named property of capability to use from the capabilities array/object in wdio config file')
+        }
+        let requiredCaps = config.getCapabilities()
+        requiredCaps = (
+            // multi capabilities
+            (requiredCaps as (Capabilities.DesiredCapabilities | Capabilities.W3CCapabilities)[])[parseInt(arg.capabilities, 10)] ||
+            // multiremote
+            (requiredCaps as Capabilities.MultiRemoteCapabilities)[arg.capabilities]
+        )
+        const requiredW3CCaps = pickBy(requiredCaps, (_, key) => CAPABILITY_KEYS.includes(key) || key.includes(':'))
+        if (!Object.keys(requiredW3CCaps).length) {
+            throw Error(`No capability found in given config file with the provided capability indexed/named property: ${arg.capabilities}. Please check the capability in your wdio config file.`)
+        }
+        return { capabilities: { ...(requiredW3CCaps as Capabilities.W3CCapabilities) } }
     }
     return { capabilities: { browserName: arg.option } }
 }

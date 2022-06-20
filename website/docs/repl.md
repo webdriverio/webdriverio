@@ -5,7 +5,7 @@ title: REPL interface
 
 With `v4.5.0`, WebdriverIO introduced a [REPL](https://en.wikipedia.org/wiki/Read%E2%80%93eval%E2%80%93print_loop) interface that helps you to not only learn the framework API, but also debug and inspect your tests. It can be used in multiple ways.
 
-First you can use it as CLI command and spawn a WebDriver session from the command line, e.g.
+First you can use it as CLI command by installing `npm install -g @wdio/cli` and spawn a WebDriver session from the command line, e.g.
 
 ```sh
 wdio repl chrome
@@ -15,6 +15,59 @@ This would open a Chrome browser that you can control with the REPL interface. M
 
 ```sh
 wdio repl chrome -u $SAUCE_USERNAME -k $SAUCE_ACCESS_KEY
+```
+
+If driver is running on different port eg : 9515, it could passed with the command line argument --port or alias -p
+
+```sh
+wdio repl chrome -u $SAUCE_USERNAME -k $SAUCE_ACCESS_KEY -p 9515
+```
+
+Repl could also be ran using the capabilities from the webdriverIO config file. Wdio supports capabilities object; or ; multiremote capability list or object.
+
+If the config file uses capabilities object then just pass the path to config file, else if its a multiremote capability then, specify which capability to use from list or multiremote using the positional argument . Note: for list we consider zero based index.
+
+### Example
+
+WebdriverIO with capability array:
+
+```ts title="wdio.conf.ts example"
+export const config = {
+    // ...
+    capabilities:[{
+        browserName: 'chrome', // options: `firefox`, `chrome`, `opera`, `safari`
+        browserVersion: '27.0', // browser version
+        platformName: 'Windows 10' // OS platform
+    }]
+}
+```
+
+```sh
+wdio repl "./path/to/wdio.config.js" 0 -p 9515
+```
+
+WebdriverIO with [multiremote](https://webdriver.io/docs/multiremote/) capability object:
+
+```ts title="wdio.conf.ts example"
+export const config = {
+    // ...
+    capabilities: {
+        myChromeBrowser: {
+            capabilities: {
+                browserName: 'chrome'
+            }
+        },
+        myFirefoxBrowser: {
+            capabilities: {
+                browserName: 'firefox'
+            }
+        }
+    }
+}
+```
+
+```sh
+wdio repl "./path/to/wdio.config.js" "myChromeBrowser" -p 9515
 ```
 
 Or if you want to run local mobile tests using Appium:
@@ -39,6 +92,7 @@ wdio repl './path/to/your_app.apk'
 This would open App session on connected device/emulator/simulator. Make sure Appium running on port `4444` in order to initiate the session.
 
 Capabilities for iOS device can be passed with arguments:
+
 * `-v`      - `platformVersion`: version of Android/iOS platform
 * `-d`      - `deviceName`: name of mobile device
 * `-u`      - `udid`: udid for real devices

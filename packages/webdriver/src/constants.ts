@@ -140,12 +140,6 @@ export const DEFAULTS: Options.Definition<Required<Options.WebDriver>> = {
     }
 }
 
-export const VALID_CAPS = [
-    'browserName', 'browserVersion', 'platformName', 'acceptInsecureCerts',
-    'pageLoadStrategy', 'proxy', 'setWindowRect', 'timeouts', 'strictFileInteractability',
-    'unhandledPromptBehavior'
-]
-
 export const REG_EXPS = {
     commandName: /.*\/session\/[0-9a-f-]+\/(.*)/,
     execFn: /return \(([\s\S]*)\)\.apply\(null, arguments\)/

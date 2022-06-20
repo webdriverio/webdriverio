@@ -66,3 +66,9 @@ export {
     JSONWPCommandsAsync, MJSONWPCommandsAsync, SauceLabsCommandsAsync,
     SeleniumCommandsAsync, GeckoCommandsAsync
 }
+
+export const CAPABILITY_KEYS = [
+    'browserName', 'browserVersion', 'platformName', 'acceptInsecureCerts',
+    'pageLoadStrategy', 'proxy', 'setWindowRect', 'timeouts', 'strictFileInteractability',
+    'unhandledPromptBehavior'
+]

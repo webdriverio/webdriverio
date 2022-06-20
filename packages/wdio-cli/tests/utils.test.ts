@@ -3,6 +3,7 @@ import ejs from 'ejs'
 import readDirMock from 'recursive-readdir'
 import childProcess from 'child_process'
 import { SevereServiceError } from 'webdriverio'
+import { ConfigParser } from '@wdio/config'
 
 const readDir = readDirMock as jest.Mock
 
@@ -43,6 +44,18 @@ jest.mock('fs-extra', () => ({
     ensureDirSync: jest.fn(),
     promises: {
         writeFile: jest.fn().mockReturnValue(Promise.resolve())
+    }
+}))
+
+/**
+ * it is necessary here to create a new mock for the ConfigParser because it
+ * doesn't seem to be possible to spy on jest mock instances
+ */
+jest.mock('@wdio/config', () => ({
+    ConfigParser: class ConfigParserMock {
+        addConfigFile () {}
+        autoCompile () {}
+        getCapabilities () {}
     }
 }))
 
@@ -391,19 +404,67 @@ describe('getCapabilities', () => {
     })
 
     it('should return driver with capabilities for ios', () => {
-        expect(getCapabilities({ option: 'foo.app', deviceName: 'fooName', udid: 'num', platformVersion: 'fooNum' })).toMatchSnapshot()
+        expect(getCapabilities({ option: 'foo.app', deviceName: 'fooName', udid: 'num', platformVersion: 'fooNum' } as any)).toMatchSnapshot()
         expect(getCapabilities({ option: 'ios' } as any)).toMatchSnapshot()
     })
 
     it('should return driver with capabilities for desktop', () => {
         expect(getCapabilities({ option: 'chrome' } as any)).toMatchSnapshot()
     })
+
+    it('should throw config not found error', () => {
+        const addConfigFileMock = jest.spyOn(ConfigParser.prototype, 'addConfigFile')
+        addConfigFileMock.mockImplementationOnce(() => {
+            const error: any = new Error('ups')
+            error.code = 'MODULE_NOT_FOUND'
+            throw error
+        })
+        expect(() => getCapabilities({ option: './test.js', capabilities: 2 } as any))
+            .toThrowErrorMatchingSnapshot()
+        addConfigFileMock.mockImplementationOnce(() => { throw new Error('ups') })
+        expect(() => getCapabilities({ option: './test.js', capabilities: 2 } as any))
+            .toThrowErrorMatchingSnapshot()
+    })
+
+    it('should throw capability not provided', () => {
+        expect(() => getCapabilities({ option: '/path/to/config.js' } as any))
+            .toThrowErrorMatchingSnapshot()
+    })
+
+    it('should through capability not found', () => {
+        const cap = { browserName: 'chrome' }
+        const getCapabilitiesMock = jest.spyOn(ConfigParser.prototype, 'getCapabilities')
+        getCapabilitiesMock.mockReturnValue([cap, cap, cap, cap, cap])
+        expect(() => getCapabilities({ option: '/path/to/config.js', capabilities: 5 } as any))
+            .toThrowErrorMatchingSnapshot()
+    })
+
+    it('should get capability from wdio.conf.js', () => {
+        const autoCompileMock = jest.spyOn(ConfigParser.prototype, 'autoCompile')
+        const getCapabilitiesMock = jest.spyOn(ConfigParser.prototype, 'getCapabilities')
+        getCapabilitiesMock.mockReturnValue([
+            { browserName: 'chrome' },
+            {
+                browserName: 'firefox',
+                specs: ['/path/to/some/specs.js']
+            },
+            {
+                maxInstances: 5,
+                browserName: 'chrome',
+                acceptInsecureCerts: true,
+                'goog:chromeOptions' : { 'args' : ['window-size=8000,1200'] }
+            }
+        ])
+        expect(getCapabilities({ option: '/path/to/config.js', capabilities: 2 } as any))
+            .toMatchSnapshot()
+        expect(autoCompileMock).toBeCalledTimes(1)
+    })
 })
 
 test('hasFile', () => {
     (fs.existsSync as jest.Mock).mockReturnValue(true)
     expect(hasFile('package.json')).toBe(true)
-    ;(fs.existsSync as jest.Mock).mockReturnValue(false)
+    ; (fs.existsSync as jest.Mock).mockReturnValue(false)
     expect(hasFile('xyz')).toBe(false)
 })
 
@@ -586,7 +647,7 @@ describe('generateTestFiles', () => {
             isUsingTypeScript: true,
             stepDefinitions: '/some/step',
             destPageObjectRootPath: '/some/page/objects',
-            relativePath : '../page/object'
+            relativePath: '../page/object'
         }
         await generateTestFiles(answers as any)
 
@@ -692,7 +753,7 @@ test('getDefaultFiles', () => {
 afterEach(() => {
     (console.log as jest.Mock).mockRestore()
     readDir.mockClear()
-    ;(fs.promises.writeFile as jest.Mock).mockClear()
-    ;(fs.ensureDirSync as jest.Mock).mockClear()
-    ;(ejs.renderFile as jest.Mock).mockClear()
+    ; (fs.promises.writeFile as jest.Mock).mockClear()
+    ; (fs.ensureDirSync as jest.Mock).mockClear()
+    ; (ejs.renderFile as jest.Mock).mockClear()
 })
