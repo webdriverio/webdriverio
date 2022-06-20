@@ -309,6 +309,16 @@ export async function findElements(
     }
 
     /**
+     * fetch elements using custom strategy function
+     */
+    if (isPlainObject(selector) && typeof (selector as CustomStrategyReference).strategy === 'function') {
+        const { strategy, strategyArguments } = selector as CustomStrategyReference
+        const elems = await this.execute(strategy, ...strategyArguments)
+        const elemArray = Array.isArray(elems) ? elems as ElementReference[] : [elems]
+        return elemArray.filter((elem) => elem && getElementFromResponse(elem))
+    }
+
+    /**
      * fetch element using regular protocol command
      */
     if (typeof selector === 'string' || isPlainObject(selector)) {
