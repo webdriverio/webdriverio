@@ -11,7 +11,7 @@ import RequestFactory from './request/factory'
 import { WebDriverResponse } from './request'
 import command from './command'
 import { transformCommandLogResult } from '@wdio/utils'
-import { VALID_CAPS } from '@wdio/protocols'
+import { CAPABILITY_KEYS } from '@wdio/protocols'
 import { REG_EXPS } from './constants'
 import type { Client, JSONWPCommandError, SessionFlags } from './types'
 
@@ -35,7 +35,7 @@ export async function startWebDriverSession (params: Options.WebDriver): Promise
     if (params.capabilities) {
         const extensionCaps = Object.keys(params.capabilities).filter((cap) => cap.includes(':'))
         const invalidWebDriverCaps = Object.keys(params.capabilities)
-            .filter((cap) => !VALID_CAPS.includes(cap) && !cap.includes(':'))
+            .filter((cap) => !CAPABILITY_KEYS.includes(cap) && !cap.includes(':'))
 
         /**
          * if there are vendor extensions, e.g. sauce:options or appium:app

@@ -1,19 +1,19 @@
 import fs from 'fs-extra'
 import ejs from 'ejs'
 import path from 'path'
+import pickBy from 'lodash.pickby'
 import inquirer from 'inquirer'
 import logger from '@wdio/logger'
 import readDir from 'recursive-readdir'
 import { SevereServiceError } from 'webdriverio'
 import { execSync } from 'child_process'
 import { promisify } from 'util'
+import { ConfigParser } from '@wdio/config'
+import { CAPABILITY_KEYS } from '@wdio/protocols'
 import type { Options, Capabilities, Services } from '@wdio/types'
 
 import { ReplCommandArguments, Questionnair, SupportedPackage, OnCompleteResult, ParsedAnswers } from './types'
 import { EXCLUSIVE_SERVICES, ANDROID_CONFIG, IOS_CONFIG, QUESTIONNAIRE } from './constants'
-import { ConfigParser } from '@wdio/config'
-import pickBy from 'lodash.pickby'
-import { VALID_CAPS } from '@wdio/protocols'
 
 const log = logger('@wdio/cli:utils')
 
@@ -296,8 +296,8 @@ export function getCapabilities(arg: ReplCommandArguments) {
         try {
             config.addConfigFile(arg.option)
         } catch (e) {
-            throw Error( (e as any).code === 'MODULE_NOT_FOUND' ? `Config File not found: ${arg.option}`:
-                `Could not parse ${arg.option}, failed with error : ${(e as any).message}`)
+            throw Error((e as any).code === 'MODULE_NOT_FOUND' ? `Config File not found: ${arg.option}`:
+                `Could not parse ${arg.option}, failed with error : ${(e as Error).message}`)
         }
         let requiredCaps = config.getCapabilities()
         if (typeof arg.capabilities === 'undefined') {
@@ -305,7 +305,7 @@ export function getCapabilities(arg: ReplCommandArguments) {
         }
         requiredCaps = (requiredCaps as (Capabilities.DesiredCapabilities | Capabilities.W3CCapabilities)[])[Number(arg.capabilities)] ||
                 (requiredCaps as Capabilities.MultiRemoteCapabilities)[arg.capabilities]
-        const requiredW3CCaps = pickBy(requiredCaps, (_, key) => VALID_CAPS.includes(key) || key.includes(':'))
+        const requiredW3CCaps = pickBy(requiredCaps, (_, key) => CAPABILITY_KEYS.includes(key) || key.includes(':'))
         if (!Object.keys(requiredW3CCaps).length) {
             throw Error(`No capability found in given config file with the provided capability indexed/named property: ${arg.capabilities}. Please check the capability in your wdio config file.`)
         }

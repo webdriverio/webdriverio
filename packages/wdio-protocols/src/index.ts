@@ -67,7 +67,7 @@ export {
     SeleniumCommandsAsync, GeckoCommandsAsync
 }
 
-export const VALID_CAPS = [
+export const CAPABILITY_KEYS = [
     'browserName', 'browserVersion', 'platformName', 'acceptInsecureCerts',
     'pageLoadStrategy', 'proxy', 'setWindowRect', 'timeouts', 'strictFileInteractability',
     'unhandledPromptBehavior'
