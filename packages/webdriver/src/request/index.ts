@@ -227,7 +227,7 @@ export default abstract class WebDriverRequest extends EventEmitter {
             response = transformResponse(response, fullRequestOptions) as RequestLibResponse
         }
 
-        const error = getErrorFromResponseBody(response.body)
+        const error = getErrorFromResponseBody(response.body, fullRequestOptions.json)
 
         /**
          * retry connection refused errors
