@@ -124,7 +124,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
      */
     afterScenario (world: Frameworks.World) {
         const status = world.result?.status.toLowerCase()
-        if (status === 'skipped') {
+        if (status !== 'skipped') {
             this._scenariosThatRan.push(world.pickle.name || 'unknown pickle name')
         }
 

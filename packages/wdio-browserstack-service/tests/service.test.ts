@@ -670,13 +670,8 @@ describe('after', () => {
             describe('enabled', () => {
                 [
                     { status: 'FAILED', body: {
-                        name: 'Feature1',
-                        reason: 'Unknown Error',
-                        status: 'failed',
-                    } },
-                    { status: 'SKIPPED', body: {
                         name: 'Can do something single',
-                        reason: undefined,
+                        reason: 'Unknown Error',
                         status: 'failed',
                     } }
                     /*, 5, 4, 0*/
@@ -705,7 +700,7 @@ describe('after', () => {
 
                     await service.beforeFeature(null, { name: 'Feature1' })
 
-                    await service.afterScenario({ pickle: { name: 'Can do something single' }, result: { status: 'SKIPPED' } })
+                    await service.afterScenario({ pickle: { name: 'Can do something single' }, result: { status: 'passed' } })
 
                     await service.after(0)
 
