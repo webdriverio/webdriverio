@@ -1,6 +1,6 @@
 {
   "name": "devtools",
-  "version": "7.20.3",
+  "version": "7.20.4",
   "description": "A Chrome DevTools protocol binding that maps WebDriver commands into Chrome DevTools commands using Puppeteer",
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/devtools",
@@ -26,7 +26,7 @@
     "@types/ua-parser-js": "^0.7.33",
     "@wdio/config": "7.20.3",
     "@wdio/logger": "7.19.0",
-    "@wdio/protocols": "7.20.2",
+    "@wdio/protocols": "7.20.4",
     "@wdio/types": "7.20.3",
     "@wdio/utils": "7.20.3",
     "chrome-launcher": "^0.15.0",

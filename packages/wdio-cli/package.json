@@ -1,6 +1,6 @@
 {
   "name": "@wdio/cli",
-  "version": "7.20.3",
+  "version": "7.20.4",
   "description": "WebdriverIO testrunner command line interface",
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-cli",
@@ -39,9 +39,9 @@
     "@types/recursive-readdir": "^2.2.0",
     "@wdio/config": "7.20.3",
     "@wdio/logger": "7.19.0",
+    "@wdio/protocols": "7.20.4",
     "@wdio/types": "7.20.3",
     "@wdio/utils": "7.20.3",
-    "@wdio/protocols": "7.20.2",
     "async-exit-hook": "^2.0.1",
     "chalk": "^4.0.0",
     "chokidar": "^3.0.0",
@@ -54,7 +54,7 @@
     "lodash.union": "^4.6.0",
     "mkdirp": "^1.0.4",
     "recursive-readdir": "^2.2.2",
-    "webdriverio": "7.20.3",
+    "webdriverio": "7.20.4",
     "yargs": "^17.0.0",
     "yarn-install": "^1.0.0"
   },

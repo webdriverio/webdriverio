@@ -19,6 +19,23 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.20.4 (2022-06-22)
+
+#### :rocket: New Feature
+* `webdriver`
+  * [#8457](https://github.com/webdriverio/webdriverio/pull/8457) Improve error message for invalid selectors ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-cli`, `wdio-protocols`, `webdriver`
+  * [#8456](https://github.com/webdriverio/webdriverio/pull/8456) Added ability to pass capability to repl through config file ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :bug: Bug Fix
+* `wdio-browserstack-service`
+  * [#7740](https://github.com/webdriverio/webdriverio/pull/7740) [Bug #7739] Fix preferScenarioName logic ([@denise-maia-ribeiro](https://github.com/denise-maia-ribeiro))
+
+#### Committers: 2
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- [@denise-maia-ribeiro](https://github.com/denise-maia-ribeiro)
+
+
 ## v7.20.3 (2022-06-20)
 
 #### :bug: Bug Fix
