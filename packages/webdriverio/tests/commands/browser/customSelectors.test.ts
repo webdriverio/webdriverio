@@ -21,7 +21,7 @@ describe('custom$', () => {
         const elems = await browser.custom$$('test', '.test')
 
         expect(elems).toHaveLength(2)
-        expect(typeof elems.selector).toBe('function')
+        expect(typeof elems.selector).toBe('string')
         expect(typeof elems[0].selector).toBe('object')
         expect(typeof elems[0].selector.strategy).toBe('function')
         expect(elems[0].selector.strategyName).toBe('test')
@@ -30,6 +30,8 @@ describe('custom$', () => {
         expect(elems[0].elementId).toBe('.test-foobar')
         expect(elems[1].elementId).toBe('.test-other-foobar')
         expect(elems.foundWith).toBe('custom$$')
+        expect(elems.selector).toBe('test')
+        expect(elems.props).toEqual(['.test'])
     })
 
     it('should error if no strategy found', async () => {

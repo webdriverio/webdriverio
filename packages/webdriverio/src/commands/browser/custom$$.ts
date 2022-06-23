@@ -52,5 +52,5 @@ export default async function custom$$ (
     res = res.filter(el => !!el && typeof el[ELEMENT_KEY] === 'string')
 
     const elements = res.length ? await getElements.call(this, strategyRef, res) : [] as any as ElementArray
-    return enhanceElementsArray(elements, this, strategy as any, 'custom$$', [strategyArguments])
+    return enhanceElementsArray(elements, this, strategyName, 'custom$$', strategyArguments)
 }
