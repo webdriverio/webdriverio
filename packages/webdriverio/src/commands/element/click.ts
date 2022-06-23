@@ -73,9 +73,8 @@ const log = logger('webdriverio/click')
  * @param {string= | number=} options.button can be one of [0, "left", 1, "middle", 2, "right"] (optional)
  * @param {number=}           options.x      Number (optional)
  * @param {number=}           options.y      Number (optional)
- * @param {number=}           options.skipRelease         Number (optional)
  */
-export default async function click(
+export default async function click (
     this: WebdriverIO.Element,
     options?: ClickOptions
 ) {
@@ -90,8 +89,7 @@ export default async function click(
     let {
         button = 0,
         x: xoffset = 0,
-        y: yoffset = 0,
-        skipRelease = false
+        y: yoffset = 0
     } = options || {}
 
     if (
@@ -135,9 +133,13 @@ export default async function click(
                 button
             }]
         }])
-        if (!skipRelease) await this.releaseActions().then(
+        const err = await this.releaseActions().then(
             () => null,
-            (err) => log.warn(`Failed to call "releaseAction" command due to: ${err.message}, ignoring!`))
+            (err) => err)
+
+        if (err) {
+            log.warn(`Failed to call "releaseAction" command due to: ${err.message}, ignoring!`)
+        }
 
         return
     }

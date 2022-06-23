@@ -462,8 +462,7 @@ export type NewWindowOptions = {
 export type ClickOptions = {
     button?: number | string,
     x?: number,
-    y?: number,
-    skipRelease?:boolean
+    y?: number
 }
 
 export type WaitForOptions = {
