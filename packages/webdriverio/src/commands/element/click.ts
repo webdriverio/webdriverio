@@ -73,7 +73,7 @@ const log = logger('webdriverio/click')
  * @param {string= | number=} options.button can be one of [0, "left", 1, "middle", 2, "right"] (optional)
  * @param {number=}           options.x      Number (optional)
  * @param {number=}           options.y      Number (optional)
- * @param {number=}           options.skipRelease         Number (optional)
+ * @param {number=}           options.skipRelease         Boolean (optional)
  */
 export default async function click (
     this: WebdriverIO.Element,
