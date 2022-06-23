@@ -19,6 +19,21 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.20.5 (2022-06-23)
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#8464](https://github.com/webdriverio/webdriverio/pull/8464) fix refetch elements error in wdio expect ([@jayrepo](https://github.com/jayrepo))
+
+#### :nail_care: Polish
+* `wdio-browserstack-service`
+  * [#8461](https://github.com/webdriverio/webdriverio/pull/8461) chore: remove peer dependency ([@Ankit098](https://github.com/Ankit098))
+
+#### Committers: 2
+- Ankit Singh ([@Ankit098](https://github.com/Ankit098))
+- Jay Chen ([@jayrepo](https://github.com/jayrepo))
+
+
 ## v7.20.4 (2022-06-22)
 
 #### :rocket: New Feature
