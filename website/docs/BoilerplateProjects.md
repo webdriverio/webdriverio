@@ -384,3 +384,22 @@ This project uses:
      - chromedriver
      - jasmine
      - appium
+     
+## [webdriverio-roku-appium-boilerplate](https://github.com/AntonKostenko/webdriverIO-roku-appium)
+
+Template project to run appium tests on real Roku devices using mocha with page object pattern.
+
+- Frameworks
+    - WebdriverIO Async v7
+    - Appium 2.0
+    - Mocha v7
+    - Allure Reporting
+
+- Features
+    - Page Object Model
+    - Typescript
+    - Screenshot on failure
+    - Example tests using a sample Roku channel
+
+
+
