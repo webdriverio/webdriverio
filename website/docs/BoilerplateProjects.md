@@ -401,5 +401,3 @@ Template project to run appium tests on real Roku devices using mocha with page 
     - Screenshot on failure
     - Example tests using a sample Roku channel
 
-
-
