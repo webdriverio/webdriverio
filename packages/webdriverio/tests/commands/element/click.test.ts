@@ -351,6 +351,30 @@ describe('click test', () => {
         }, {})
     })
 
+    it('should not call releaseAction when skipRelease is true', async () => {
+        const browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                browserName: 'foobar'
+            }
+        })
+        const elem = await browser.$('#foo')
+        await elem.click({ button: 'right' })
+
+        expect(got.mock.calls.length)
+            .toBe(4)
+        expect(got.mock.calls[3][0].pathname)
+            .toBe('/session/foobar-123/actions')
+        expect(got.mock.calls[3][1].method)
+            .toBe('DELETE')
+
+        await elem.click({ button: 'right', skipRelease: true })
+
+        // only post call should be made, delete call should be skipped so only one additional mock call
+        expect(got.mock.calls.length)
+            .toBe(5)
+    })
+
     afterEach(() => {
         got.mockClear()
     })
