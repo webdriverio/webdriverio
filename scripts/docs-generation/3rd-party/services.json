@@ -165,6 +165,12 @@
     "npmUrl": "https://www.npmjs.com/package/wdio-ms-teams-service"
   },
   {
+    "packageName": "wdio-cucumber-viewport-logger-service",
+    "title": "Cucumber Viewport Logger",
+    "githubUrl": "https://github.com/viktor-silakov/wdio-cucumber-viewport-logger-service",
+    "npmUrl": "https://www.npmjs.com/package/wdio-cucumber-viewport-logger-service"
+  },
+  {
     "packageName": "wdio-tesults-service",
     "title": "Tesults",
     "githubUrl": "https://github.com/tesults/wdio-tesults-service",

@@ -129,6 +129,7 @@ export const SUPPORTED_PACKAGES = {
         { name: 'wiremock', value: 'wdio-wiremock-service$--$wiremock' },
         { name: 'ng-apimock', value: 'wdio-ng-apimock-service$--ng-apimock' },
         { name: 'slack', value: 'wdio-slack-service$--$slack' },
+        { name: 'cucumber-viewport-logger', value: 'wdio-cucumber-viewport-logger-service$--$cucumber-viewport-logger' },
         { name: 'intercept', value: 'wdio-intercept-service$--$intercept' },
         { name: 'docker', value: 'wdio-docker-service$--$docker' },
         { name: 'image-comparison', value: 'wdio-image-comparison-service$--$image-comparison' },
