@@ -11,8 +11,7 @@ const log = logger('webdriverio/click')
  * This issues a WebDriver `click` command for the selected element , which generally scrolls to and then clicks the
  * selected element when no options are passed. When options object is passed it uses action class instead of webdriver click which
  * give added capabilities like passing button type, coordinates etc. By default, when using options a release action
- * command is send after performing the click action, this could cause some alerts to be closed unexpectedly
- * (issue: https://github.com/webdriverio/webdriverio/issues/6423) To fix this pass `option.skipRelease`.
+ * command is send after performing the click action, pass `option.skipRelease=true` to skip this action.
  *
  * Note: If you have fixed-position elements (such as a fixed header or footer) that cover up the
  * selected element after it is scrolled within the viewport, the click will be issued at the given coordinates, but will
