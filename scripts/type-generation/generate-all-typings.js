@@ -5,7 +5,7 @@ import path from 'node:path'
 import camelCase from 'camelcase'
 
 import { paramTypeMap, returnTypeMap } from './constants.js'
-import { PROTOCOLS } from '../constants'
+import { PROTOCOLS } from '../constants.js'
 
 const TYPINGS_PATH = path.join(__dirname, '..', '..', 'packages', 'wdio-protocols', 'src', 'commands')
 
