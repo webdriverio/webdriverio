@@ -1,15 +1,15 @@
-const path = require('path')
-const { config } = require('./wdio.conf')
+import path from 'node:path'
+import { config as baseConfig } from './wdio.conf.js'
 
-exports.config = {
-    ...config,
+export const config = {
+    ...baseConfig,
     user: process.env.SAUCE_USERNAME,
     key: process.env.SAUCE_ACCESS_KEY,
 
     /**
      * Sauce specific config
      */
-    specs: [path.resolve(__dirname, 'cloud', '*.e2e.js')],
+    specs: [path.resolve(__dirname, 'cloud', '*.e2e.ts')],
     capabilities: [{
         browserName: 'Chrome',
         browserVersion: 'latest',

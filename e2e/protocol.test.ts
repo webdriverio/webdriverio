@@ -1,15 +1,13 @@
-import { expect } from 'expect'
+import { beforeAll, afterAll, describe, it, expect, vi } from 'vitest'
 
-import DevTools from '../packages/devtools/src/index'
-import { ELEMENT_KEY } from '../packages/devtools/src/constants'
+import DevTools from '../packages/devtools/build/index.js'
+import { ELEMENT_KEY } from '../packages/devtools/build/constants.js'
 
-import type { Client } from '../packages/devtools/src/index'
+import type { Client } from '../packages/devtools/build/index.js'
 
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
 
 let browser: Client
-
-jest.retryTimes(0)
 
 async function waitForElement (browser: Client, selectorStrategy: string, selector: string, retries = 10): Promise<string> {
     const elem = await browser.findElement(selectorStrategy, selector)
@@ -333,17 +331,16 @@ describe('executeScript', () => {
     })
 
     it('sync error', async () => {
-        const spy = jest.spyOn(global, 'clearTimeout')
+        const spy = vi.spyOn(global, 'clearTimeout')
 
         await expect(async () => {
             await browser.executeScript(
                 'throw new Error(\'sync error\')',
                 []
             )
-        }).rejects.toThrow('sync error');
+        }).rejects.toThrow('sync error')
 
-        expect(spy).toHaveBeenCalledTimes(1);
-
+        expect(spy).toHaveBeenCalledTimes(1)
         spy.mockClear()
     })
 
