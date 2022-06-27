@@ -166,8 +166,7 @@ Note that each test file is running in a single test runner process. Since we do
 
 This feature will help you to accomplish the same goal.
 
-When the `--spec` option is provided, it will override any patterns defined by the config or capability level's `specs`
-parameter.
+When the `--spec` option is provided, it will override any patterns defined by the config or capability level's `specs` parameter.
 
 ## Exclude Selected Tests
 
