@@ -244,9 +244,7 @@ If only the config parameter is given, it will be used for all capabilities. How
 
 ### Using capability-defined spec patterns
 
-When you define a spec pattern at the capability level, it will override any patterns defined at the config level. This
-is useful when needing to separate tests based on differentiating device capabilities. In cases like this, it is more
-useful to use a generic spec pattern at the config level, and more specific patterns at the capability level.
+When you define a spec pattern at the capability level, it will override any patterns defined at the config level. This is useful when needing to separate tests based on differentiating device capabilities. In cases like this, it is more useful to use a generic spec pattern at the config level, and more specific patterns at the capability level.
 
 For example, let's say you had two directories, with one for Android tests, and one for iOS tests.
 
