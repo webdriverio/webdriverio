@@ -1,6 +1,6 @@
 import pickBy from 'lodash.pickby'
 import { remote } from 'webdriverio'
-import type { Argv } from 'yargs'
+import type { Argv, Options } from 'yargs'
 
 import { cmdArgs as runCmdArgs } from './run.js'
 import { getCapabilities } from '../utils.js'
@@ -14,7 +14,7 @@ const IGNORED_ARGS = [
 
 export const command = 'repl <option> [capabilities]'
 export const desc = 'Run WebDriver session in command line'
-export const cmdArgs: { [k in keyof ReplCommandArguments]?: yargs.Options } = {
+export const cmdArgs: { [k in keyof ReplCommandArguments]?: Options } = {
     platformVersion: {
         alias: 'v',
         desc: 'Version of OS for mobile devices',
