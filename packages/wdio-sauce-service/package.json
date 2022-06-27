@@ -36,12 +36,14 @@
   "types": "./build/index.d.ts",
   "typeScriptVersion": "3.8.3",
   "dependencies": {
-    "@types/node": "^18.0.0",
     "@wdio/logger": "7.19.0",
     "@wdio/types": "7.20.3",
     "@wdio/utils": "7.20.3",
     "saucelabs": "^7.1.3",
     "webdriverio": "7.20.5"
+  },
+  "devDependencies": {
+    "@types/node": "^18.0.0"
   },
   "peerDependencies": {
     "@wdio/cli": "^7.0.0"

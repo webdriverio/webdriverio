@@ -2,11 +2,9 @@
 import fs from 'node:fs'
 import url from 'node:url'
 import path from 'node:path'
-import { createRequire } from 'node:module'
 import shell from 'shelljs'
+import { getSubPackages } from './utils/helpers.js'
 
-const require = createRequire(import.meta.url)
-const { getSubPackages } = require('./utils/helpers.js')
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 
 const args = process.argv.slice(2)

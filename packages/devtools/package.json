@@ -33,7 +33,6 @@
   "types": "./build/index.d.ts",
   "typeScriptVersion": "3.8.3",
   "dependencies": {
-    "@types/node": "^18.0.0",
     "@types/ua-parser-js": "^0.7.33",
     "@wdio/config": "7.20.3",
     "@wdio/logger": "7.19.0",
@@ -48,6 +47,7 @@
     "uuid": "^8.0.0"
   },
   "devDependencies": {
+    "@types/node": "^18.0.0",
     "@types/uuid": "^8.3.0"
   }
 }

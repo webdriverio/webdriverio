@@ -41,13 +41,15 @@
   "typeScriptVersion": "3.8.3",
   "dependencies": {
     "@types/fs-extra": "^9.0.1",
-    "@types/node": "^18.0.0",
     "@types/selenium-standalone": "^7.0.0",
     "@wdio/config": "7.20.3",
     "@wdio/logger": "7.19.0",
     "@wdio/types": "7.20.3",
     "fs-extra": "^10.0.0",
     "selenium-standalone": "^8.0.3"
+  },
+  "devDependencies": {
+    "@types/node": "^18.0.0"
   },
   "peerDependencies": {
     "@wdio/cli": "^7.0.0"

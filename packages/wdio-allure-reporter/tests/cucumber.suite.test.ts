@@ -1,7 +1,7 @@
 import path from 'node:path'
 import { describe, it, expect, beforeEach, vi, beforeAll, afterAll, afterEach } from 'vitest'
 
-import tempy from 'tempy'
+import { temporaryDirectory } from 'tempy'
 
 /**
  * this is not a real package and only used to utilize helper
@@ -32,7 +32,7 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
 
     describe('reporter option "disableWebdriverStepsReporting" set to true', () => {
         describe('Passing tests', () => {
-            const outputDir = tempy.directory()
+            const outputDir = temporaryDirectory()
             let allureXml: any
 
             beforeAll(() => {
@@ -112,7 +112,7 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
     })
 
     describe('Passing tests', () => {
-        const outputDir = tempy.directory()
+        const outputDir = temporaryDirectory()
         let allureXml: any
         let reporter: any
 
@@ -223,7 +223,7 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
     })
 
     describe('Skipped test', () => {
-        const outputDir = tempy.directory()
+        const outputDir = temporaryDirectory()
         let allureXml: any
         let reporter: any
 
@@ -282,7 +282,7 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
     })
 
     describe('Skipped test after several steps passed', () => {
-        const outputDir = tempy.directory()
+        const outputDir = temporaryDirectory()
         let allureXml: any
 
         beforeAll(() => {
@@ -337,7 +337,7 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
         let reporter: any
 
         beforeEach(() => {
-            outputDir = tempy.directory()
+            outputDir = temporaryDirectory()
         })
 
         afterEach(() => {
@@ -415,7 +415,7 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
     })
 
     describe('Data Table', () => {
-        const outputDir = tempy.directory()
+        const outputDir = temporaryDirectory()
         let allureXml: any
 
         beforeAll(() => {

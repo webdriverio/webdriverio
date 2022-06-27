@@ -225,6 +225,7 @@ export default class DevToolsService implements Services.ServiceInstance {
 
         this._target = await this._puppeteer.waitForTarget(
             /* istanbul ignore next */
+            // @ts-expect-error
             (t) => t.type() === 'page' || t['_targetInfo'].browserContextId)
         /* istanbul ignore next */
         if (!this._target) {
@@ -267,6 +268,7 @@ export default class DevToolsService implements Services.ServiceInstance {
         }
 
         this._devtoolsGatherer = new DevtoolsGatherer()
+        // @ts-expect-error
         this._puppeteer['_connection']._transport._ws.addEventListener('message', (event: { data: string }) => {
             const data: CDPSessionOnMessageObject = JSON.parse(event.data)
             this._devtoolsGatherer?.onMessage(data)

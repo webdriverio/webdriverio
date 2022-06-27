@@ -5,7 +5,7 @@ export const paramTypeMap = {
     }]
 }
 
-export const foo = {
+export const returnTypeMap = {
     newSession: 'SessionReturn',
     status: 'StatusReturn',
     getTimeouts: 'Timeouts',
