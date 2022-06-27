@@ -70,7 +70,7 @@ const log = logger('webdriverio/click')
     })
     it('should skip sending releaseAction command that cause unexpected alert closure', async () => {
         const myButton = await $('#myButton')
-        await myButton.click({ button: 2, x: 30, y: 40, skipRelease:true }) //skips sending releaseActions
+        await myButton.click({ button: 2, x: 30, y: 40, skipRelease:true }) // skips sending releaseActions
     })
  * </example>
  *
