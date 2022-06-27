@@ -1,6 +1,6 @@
-import shell from 'shelljs'
 import path from 'node:path'
 import url from 'node:url'
+import shell from 'shelljs'
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 

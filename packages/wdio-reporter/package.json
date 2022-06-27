@@ -39,7 +39,6 @@
   "typeScriptVersion": "3.8.3",
   "dependencies": {
     "@types/diff": "^5.0.2",
-    "@types/node": "^18.0.0",
     "@types/object-inspect": "^1.8.1",
     "@types/supports-color": "^8.1.1",
     "@types/tmp": "^0.2.3",
@@ -51,6 +50,7 @@
   },
   "devDependencies": {
     "@types/fs-extra": "^9.0.13",
+    "@types/node": "^18.0.0",
     "tmp": "^0.2.1"
   }
 }

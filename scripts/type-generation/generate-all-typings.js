@@ -1,12 +1,14 @@
 #!/usr/bin/env node
 
 import fs from 'node:fs'
+import url from 'node:url'
 import path from 'node:path'
 import camelCase from 'camelcase'
 
 import { paramTypeMap, returnTypeMap } from './constants.js'
 import { PROTOCOLS } from '../constants.js'
 
+const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 const TYPINGS_PATH = path.join(__dirname, '..', '..', 'packages', 'wdio-protocols', 'src', 'commands')
 
 const INDENTATION = ' '.repeat(4)
