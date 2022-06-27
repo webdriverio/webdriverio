@@ -190,8 +190,7 @@ Or, exclude a spec file when filtering using a suite:
 wdio wdio.conf.js --suite login --exclude ./test/specs/e2e/login.js
 ```
 
-When the `--exclude` option is provided, it will override any patterns defined by the config or capability
-level's `exclude` parameter.
+When the `--exclude` option is provided, it will override any patterns defined by the config or capability level's `exclude` parameter.
 
 ## Run Suites and Test Specs
 
