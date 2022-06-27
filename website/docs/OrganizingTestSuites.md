@@ -236,13 +236,11 @@ Please see [Options Page](Options.md) for additional information on the bail con
 
 ## Hierarchy of spec patterns
 
-When declaring what specs to run, there is a certain hierarchy defining what pattern will take precedence when defined.
-Currently, this is how it works, from highest priority to lowest:
+When declaring what specs to run, there is a certain hierarchy defining what pattern will take precedence when defined. Currently, this is how it works, from highest priority to lowest:
+
 > CLI `--spec` argument > capability `specs` pattern > config `specs` pattern
 
-If only the config parameter is given, it will be used for all capabilities. However, if defining the pattern at the
-capability level, it will be used instead of the config pattern. Finally, any spec pattern defined on the command line
-will override all other patterns given.
+If only the config parameter is given, it will be used for all capabilities. However, if defining the pattern at the capability level, it will be used instead of the config pattern. Finally, any spec pattern defined on the command line will override all other patterns given.
 
 ### Using capability-defined spec patterns
 
