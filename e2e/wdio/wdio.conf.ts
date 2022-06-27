@@ -1,12 +1,12 @@
-const path = require('path')
+import path from 'node:path'
 
-const DevtoolsService = require('../../packages/wdio-devtools-service').default
+import DevtoolsService from '../../packages/wdio-devtools-service/build/index.js'
 
-exports.config = {
+export const config = {
     /**
      * specify test files
      */
-    specs: [path.resolve(__dirname, 'headless', '*.e2e.js')],
+    specs: [path.resolve(__dirname, 'headless', '*.e2e.ts')],
 
     /**
      * capabilities
