@@ -256,8 +256,7 @@ Your config file may define the pattern as such, for non-specific device tests:
 }
 ```
 
-but then, you will have different capabilities for your Android and iOS devices, where the patterns could look like
-such:
+but then, you will have different capabilities for your Android and iOS devices, where the patterns could look like such:
 
 ```json
 {
