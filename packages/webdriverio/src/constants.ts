@@ -1,6 +1,9 @@
+import { fileURLToPath } from 'node:url'
+import { dirname, resolve } from 'node:path'
 import { createRequire } from 'node:module'
 import type { Options, Capabilities, Services, Reporters } from '@wdio/types'
 
+const __dirname = dirname(fileURLToPath(import.meta.url))
 const require = createRequire(import.meta.url)
 
 /* istanbul ignore next */
@@ -43,7 +46,10 @@ export const WDIO_DEFAULTS: Options.Definition<Options.WebdriverIO & Options.Tes
             }
 
             try {
-                require.resolve(param)
+                const id = param === './protocol-stub.js'
+                    ? resolve(__dirname, '..', 'build', param)
+                    : param
+                require.resolve(id)
             } catch (err: any) {
                 /* istanbul ignore next */
                 throw new Error(

@@ -9,8 +9,7 @@ export default defineConfig({
         exclude: [
             'dist', '.idea', '.git', '.cache',
             '**/node_modules/**',
-            'packages/eslint-plugin-wdio/**/*',
-            'packages/webdriverio/**/*.test.ts'
+            'packages/eslint-plugin-wdio/**/*'
         ],
         coverage: {
             enabled: false,

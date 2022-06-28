@@ -1,5 +1,6 @@
 import { vi } from 'vitest'
-import { ELEMENT_KEY } from '../packages/webdriverio/src/constants'
+
+export const ELEMENT_KEY = 'element-6066-11e4-a52e-4f735466cecf'
 
 let manualMockResponse: any
 

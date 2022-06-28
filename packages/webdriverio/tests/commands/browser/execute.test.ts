@@ -1,6 +1,9 @@
-// @ts-ignore mocked (original defined in webdriver package)
+import { expect, describe, it, vi } from 'vitest'
 import got from 'got'
+
 import { remote } from '../../../src'
+
+vi.mock('got')
 
 describe('isEnabled test', () => {
     it('should allow to check if an element is enabled', async () => {
@@ -12,11 +15,11 @@ describe('isEnabled test', () => {
         })
 
         await browser.execute((a, b, c) => a + b + c, 1, 2, 3)
-        expect(got.mock.calls[1][0].pathname)
+        expect((vi.mocked(got).mock.calls[1][0] as any).pathname)
             .toBe('/session/foobar-123/execute/sync')
-        expect(got.mock.calls[1][1].json.script)
+        expect((vi.mocked(got).mock.calls[1][1] as any).json.script)
             .toBe('return ((a, b, c) => a + b + c).apply(null, arguments)')
-        expect(got.mock.calls[1][1].json.args)
+        expect((vi.mocked(got).mock.calls[1][1] as any).json.args)
             .toEqual([1, 2, 3])
     })
 
@@ -40,7 +43,9 @@ describe('isEnabled test', () => {
             }
         })
 
-        expect(() => browser.execute(null)).toThrow()
-        expect(() => browser.execute(1234)).toThrow()
+        // @ts-expect-error
+        await expect(() => browser.execute(null)).rejects.toThrow()
+        // @ts-expect-error
+        await expect(() => browser.execute(1234)).rejects.toThrow()
     })
 })
