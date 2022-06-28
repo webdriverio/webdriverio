@@ -1,7 +1,6 @@
 import logger from '@wdio/logger'
 
-import WebDriver from 'webdriver'
-import { DEFAULTS } from 'webdriver'
+import WebDriver, { DEFAULTS } from 'webdriver'
 import { validateConfig } from '@wdio/config'
 import { wrapCommand } from '@wdio/utils'
 import { Options, Capabilities } from '@wdio/types'
@@ -148,7 +147,7 @@ export const multiremote = async function (
     }
 
     const ProtocolDriver = automationProtocol && isStub(automationProtocol)
-        ? require(automationProtocol).default
+        ? (await import(automationProtocol)).default
         : WebDriver
     const driver = ProtocolDriver.attachToSession(
         sessionParams,
