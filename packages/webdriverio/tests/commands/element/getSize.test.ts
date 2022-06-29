@@ -1,10 +1,10 @@
+import { expect, describe, it, afterEach, vi } from 'vitest'
+
 // @ts-ignore mocked (original defined in webdriver package)
-import gotMock from 'got'
+import got from 'got'
 import { remote } from '../../../src'
 
-const got = gotMock as any as jest.Mock
-
-jest.setTimeout(3000)
+vi.mock('got')
 
 describe('getSize test', () => {
     it('should allow to get the width and height of an element', async () => {
@@ -30,7 +30,7 @@ describe('getSize test', () => {
                 // @ts-ignore mock feature
                 jsonwpMode: true,
                 browserName: 'foobar'
-            }
+            } as any
         })
         const elem = await browser.$('#foo')
         const size = await elem.getSize()

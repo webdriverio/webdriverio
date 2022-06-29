@@ -467,7 +467,7 @@ describe('ConfigParser', () => {
                 const configParser = configParserBuilder.build()
                 await configParser.addConfigFile(FIXTURES_CONF_RDC)
                 await configParser.autoCompile()
-                expect(requireMock).toHaveBeenCalledWith('@babel/register')
+                expect(requireMock).toHaveBeenCalledWith('ts-node')
                 expect(babelRegister).not.toHaveBeenCalled()
                 expect(log.debug).toBeCalledTimes(1)
                 expect((log.debug as MockedFunction<any>).mock.calls[0][0])

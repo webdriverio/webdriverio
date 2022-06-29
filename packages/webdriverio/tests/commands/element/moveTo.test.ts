@@ -1,8 +1,10 @@
+import { expect, describe, it, afterEach, vi } from 'vitest'
+
 // @ts-ignore mocked (original defined in webdriver package)
-import gotMock from 'got'
+import got from 'got'
 import { remote } from '../../../src'
 
-const got = gotMock as any as jest.Mock
+vi.mock('got')
 
 describe('moveTo', () => {
     it('should do a moveTo without params', async () => {

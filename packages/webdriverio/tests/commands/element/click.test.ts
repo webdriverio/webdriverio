@@ -1,8 +1,10 @@
+import { expect, describe, it, afterEach, vi } from 'vitest'
+
 // @ts-ignore mocked (original defined in webdriver package)
-import gotMock from 'got'
+import got from 'got'
 import { remote } from '../../../src'
 
-const got = gotMock as jest.Mock
+vi.mock('got')
 
 describe('click test', () => {
     it('should allow to left click on an element without passing a button type', async () => {
@@ -343,11 +345,12 @@ describe('click test', () => {
         const elem = await browser.$('#foo')
 
         await elem.click.call({
+            options: {},
             isW3C: true,
             selector: 'foobar',
             elementId: 'barfoo',
-            releaseActions: jest.fn().mockRejectedValue(new Error('some modal disturbs here')),
-            performActions: jest.fn().mockResolvedValue({})
+            releaseActions: vi.fn().mockRejectedValue(new Error('some modal disturbs here')),
+            performActions: vi.fn().mockResolvedValue({})
         }, {})
     })
 

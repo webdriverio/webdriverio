@@ -68,7 +68,6 @@ tests/typings/**/dist
 /*.ts
 devtools.d.ts
 !.eslintrc.js
-!jest.config.js
 !vitest.config.ts
 packages/**/package-lock.json
 .DS_Store

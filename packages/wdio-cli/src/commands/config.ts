@@ -178,7 +178,7 @@ const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) 
             /**
              * don't exit if running unit tests
              */
-            if (exit /* istanbul ignore next */ && !process.env.JEST_WORKER_ID) {
+            if (exit /* istanbul ignore next */ && !process.env.VITEST_WORKER_ID) {
                 /* istanbul ignore next */
                 process.exit(1)
             }
@@ -231,7 +231,7 @@ const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) 
     /**
      * don't exit if running unit tests
      */
-    if (exit /* istanbul ignore next */ && !process.env.JEST_WORKER_ID) {
+    if (exit /* istanbul ignore next */ && !process.env.VITEST_WORKER_ID) {
         /* istanbul ignore next */
         process.exit(0)
     }
@@ -267,7 +267,7 @@ export async function missingConfigurationPrompt(command: string, message: strin
     /**
      * don't exit if running unit tests
      */
-    if (!config && !process.env.JEST_WORKER_ID) {
+    if (!config && !process.env.VITEST_WORKER_ID) {
         /* istanbul ignore next */
         console.log(message)
         /* istanbul ignore next */

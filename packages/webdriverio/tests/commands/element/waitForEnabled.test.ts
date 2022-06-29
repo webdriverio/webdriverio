@@ -1,12 +1,14 @@
+import { expect, describe, it, vi, beforeAll } from 'vitest'
+
 // @ts-ignore mocked (original defined in webdriver package)
-import gotMock from 'got'
+import got from 'got'
 import { remote } from '../../../src'
 
-const got = gotMock as any as jest.Mock
+vi.mock('got')
 
 describe('waitForEnabled', () => {
     const timeout = 1000
-    let browser: WebdriverIO.Browser
+    let browser: any
 
     beforeAll(async () => {
         got.mockClear()
@@ -19,13 +21,13 @@ describe('waitForEnabled', () => {
         })
     })
 
-    test('should wait for the element to exist', async () => {
+    it('should wait for the element to exist', async () => {
         const tmpElem = await browser.$('#foo')
         const elem = {
             waitForEnabled : tmpElem.waitForEnabled,
-            waitForExist : jest.fn(),
+            waitForExist : vi.fn(),
             elementId : null,
-            waitUntil : jest.fn(),
+            waitUntil : vi.fn(),
             options : { waitforInterval: 5, waitforTimeout: timeout }
         }
 
@@ -33,14 +35,14 @@ describe('waitForEnabled', () => {
         expect(elem.waitForExist).toBeCalled()
     })
 
-    test('element should already exist on the page', async () => {
+    it('element should already exist on the page', async () => {
         const tmpElem = await browser.$('#foo')
         const elem = {
             waitForEnabled : tmpElem.waitForEnabled,
-            waitForExist : jest.fn(),
+            waitForExist : vi.fn(),
             elementId : 123,
-            waitUntil : jest.fn(),
-            isEnabled : jest.fn(() => Promise.resolve()),
+            waitUntil : vi.fn(),
+            isEnabled : vi.fn(() => Promise.resolve()),
             options : { waitforInterval: 5, waitforTimeout: timeout }
         }
 
@@ -48,16 +50,16 @@ describe('waitForEnabled', () => {
         expect(elem.waitForExist).not.toBeCalled()
     })
 
-    test('should call waitUntil', async () => {
-        const cb = jest.fn()
+    it('should call waitUntil', async () => {
+        const cb = vi.fn()
         const tmpElem = await browser.$('#foo')
         const elem = {
             selector : '#foo',
             waitForEnabled : tmpElem.waitForEnabled,
-            waitForExist : jest.fn(),
+            waitForExist : vi.fn(),
             elementId : 123,
-            waitUntil : jest.fn(((cb))),
-            isEnabled : jest.fn(() => Promise.resolve()),
+            waitUntil : vi.fn(((cb))),
+            isEnabled : vi.fn(() => Promise.resolve()),
             options : { waitforInterval: 5, waitforTimeout: timeout }
         }
 
@@ -67,15 +69,15 @@ describe('waitForEnabled', () => {
         expect(elem.waitUntil.mock.calls).toMatchSnapshot()
     })
 
-    test('should call isEnabled and return true', async () => {
+    it('should call isEnabled and return true', async () => {
         const tmpElem = await browser.$('#foo')
         const elem = {
             selector : '#foo',
             waitForEnabled : tmpElem.waitForEnabled,
-            waitForExist : jest.fn(),
+            waitForExist : vi.fn(),
             elementId : 123,
             waitUntil : tmpElem.waitUntil,
-            isEnabled : jest.fn(() => true),
+            isEnabled : vi.fn(() => true),
             options : { waitforInterval: 5, waitforTimeout: timeout }
         }
 
@@ -83,15 +85,15 @@ describe('waitForEnabled', () => {
         expect(result).toBe(true)
     })
 
-    test('should call isEnabled and return false', async () => {
+    it('should call isEnabled and return false', async () => {
         const tmpElem = await browser.$('#foo')
         const elem = {
             selector : '#foo',
             waitForEnabled : tmpElem.waitForEnabled,
-            waitForExist : jest.fn(),
+            waitForExist : vi.fn(),
             elementId : 123,
             waitUntil : tmpElem.waitUntil,
-            isEnabled : jest.fn(() => false),
+            isEnabled : vi.fn(() => false),
             options : { waitforInterval: 5, waitforTimeout: timeout }
         }
 
@@ -102,16 +104,16 @@ describe('waitForEnabled', () => {
         }
     })
 
-    test('should do reverse', async () => {
-        const cb = jest.fn()
+    it('should do reverse', async () => {
+        const cb = vi.fn()
         const tmpElem = await browser.$('#foo')
         const elem = {
             selector : '#foo',
             waitForEnabled : tmpElem.waitForEnabled,
-            waitForExist : jest.fn(),
+            waitForExist : vi.fn(),
             elementId : 123,
-            waitUntil : jest.fn(((cb))),
-            isEnabled : jest.fn(() => Promise.resolve()),
+            waitUntil : vi.fn(((cb))),
+            isEnabled : vi.fn(() => Promise.resolve()),
             options : { waitforInterval: 50, waitforTimeout: 500 }
         }
 
@@ -119,15 +121,15 @@ describe('waitForEnabled', () => {
         expect(elem.waitUntil.mock.calls).toMatchSnapshot()
     })
 
-    test('should call isEnabled and return false with custom error', async () => {
+    it('should call isEnabled and return false with custom error', async () => {
         const tmpElem = await browser.$('#foo')
         const elem = {
             selector : '#foo',
             waitForEnabled : tmpElem.waitForEnabled,
-            waitForExist : jest.fn(),
+            waitForExist : vi.fn(),
             elementId : 123,
             waitUntil : tmpElem.waitUntil,
-            isEnabled : jest.fn(() => false),
+            isEnabled : vi.fn(() => false),
             options : { waitforTimeout : 500 },
         }
 

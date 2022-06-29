@@ -1,12 +1,14 @@
+import { expect, describe, it, vi, beforeEach } from 'vitest'
+
 // @ts-ignore mocked (original defined in webdriver package)
-import gotMock from 'got'
+import got from 'got'
 import { remote } from '../../../src'
 
-const got = gotMock as any as jest.Mock
+vi.mock('got')
 
 describe('waitForExists', () => {
     const timeout = 1000
-    let browser: WebdriverIO.Browser
+    let browser: any
 
     beforeEach(async () => {
         got.mockClear()
@@ -19,11 +21,11 @@ describe('waitForExists', () => {
         })
     })
 
-    test('should use default waitFor options', async () => {
+    it('should use default waitFor options', async () => {
         const tmpElem = await browser.$('#foo')
         const elem = {
             waitForExist: tmpElem.waitForExist,
-            waitUntil: jest.fn(),
+            waitUntil: vi.fn(),
             options: { waitforInterval: 5, waitforTimeout: timeout }
         }
 
@@ -31,11 +33,11 @@ describe('waitForExists', () => {
         expect(elem.waitUntil.mock.calls).toMatchSnapshot()
     })
 
-    test('should allow to set custom error', async () => {
+    it('should allow to set custom error', async () => {
         const tmpElem = await browser.$('#foo')
         const elem = {
             waitForExist: tmpElem.waitForExist,
-            waitUntil: jest.fn(),
+            waitUntil: vi.fn(),
             options: { waitforInterval: 5, waitforTimeout: timeout }
         }
 

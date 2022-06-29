@@ -1,4 +1,8 @@
+import { expect, describe, it, vi } from 'vitest'
+
 import { remote } from '../../../src'
+
+vi.mock('got')
 
 describe('parent element test', () => {
     it('should return parent element of an element', async () => {

@@ -1,7 +1,10 @@
+import { expect, describe, it, beforeEach, vi } from 'vitest'
 import { remote } from '../../../src'
 
+vi.mock('got')
+
 describe('custom$', () => {
-    let browser: WebdriverIO.Browser
+    let browser: any
 
     beforeEach(async () => {
         browser = await remote({

@@ -39,7 +39,7 @@
     "test:typings:recover": "rimraf ./node_modules/.bin/tsc && ln -s ../typescript/bin/tsc node_modules/.bin && npx rimraf @tsd/typescript",
     "test:coverage": "vitest",
     "test:smoke": "ts-node ./tests/smoke.runner.js",
-    "test:e2e": "jest --config e2e/jest.config.js",
+    "test:e2e": "vitest --config e2e/vitest.config.js",
     "test:e2e:edge": "npm run test:e2e -- --testMatch **/edge.e2e.js",
     "test:e2e:firefox": "npm run test:e2e -- --testMatch <rootDir>/standalone/firefox.e2e.js",
     "test:e2e:cloud": "./packages/wdio-cli/bin/wdio.js ./e2e/wdio/wdio.sauce.conf.js",

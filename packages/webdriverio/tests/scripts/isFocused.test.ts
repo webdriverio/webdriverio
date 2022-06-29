@@ -1,5 +1,5 @@
 /**
- * @jest-environment jsdom
+ * @vitest-environment jsdom
  */
 import { it, expect, describe } from 'vitest'
 import isFocused from '../../src/scripts/isFocused'

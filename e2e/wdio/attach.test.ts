@@ -9,20 +9,8 @@ import { test, expect } from 'vitest'
 import { remote, attach } from '../../packages/webdriverio/build/index.js'
 import type { Browser } from '../../packages/webdriverio/build/index.js'
 
-let browser: Browser<'async'>
-let testWasRun = false
-
 test('allow to attach to an existing session', async () => {
-    /**
-     * don't retry passing tests - this is a bit weird behavior of jest
-     * even if test passes the test is being re-run which causes the attach
-     * command to fail with a weird error
-     */
-    if (testWasRun) {
-        return
-    }
-
-    browser = await remote({
+    const browser = await remote({
         capabilities: {
             browserName: 'chrome',
             'wdio:devtoolsOptions': { headless: true, dumpio: true }
@@ -36,5 +24,4 @@ test('allow to attach to an existing session', async () => {
     expect(await otherBrowser.getTitle()).toBe('WebdriverJS Testpage')
 
     await otherBrowser.deleteSession()
-    testWasRun = true
 })

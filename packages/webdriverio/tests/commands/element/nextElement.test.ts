@@ -1,4 +1,8 @@
+import { expect, describe, it, vi } from 'vitest'
+
 import { remote } from '../../../src'
+
+vi.mock('got')
 
 describe('next element sibling test', () => {
     it('should return next sibling of an element', async () => {

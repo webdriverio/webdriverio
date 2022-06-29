@@ -151,7 +151,7 @@ export async function loadBabelCompiler (babelOpts: Record<string, any> = {}, re
         /**
          * only for testing purposes
          */
-        if (process.env.JEST_WORKER_ID && process.env.THROW_BABEL_REGISTER) {
+        if (process.env.VITEST_WORKER_ID && process.env.THROW_BABEL_REGISTER) {
             throw new Error('test fail')
         }
 

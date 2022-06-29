@@ -1,9 +1,11 @@
+import { expect, describe, it, afterEach, vi } from 'vitest'
+
 // @ts-ignore mocked (original defined in webdriver package)
-import gotMock from 'got'
+import got from 'got'
 import { remote } from '../../../src'
 import { ELEMENT_KEY } from '../../../src/constants'
 
-const got = gotMock as jest.Mock
+vi.mock('got')
 
 describe('element', () => {
     it('should fetch an element', async () => {
@@ -73,7 +75,7 @@ describe('element', () => {
                 // @ts-ignore mock feature
                 mobileMode: true,
                 'appium-version': '1.9.2'
-            }
+            } as any
         })
 
         const elem = await browser.$('#foo')

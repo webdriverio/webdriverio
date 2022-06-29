@@ -53,10 +53,6 @@ vi.mock('fs-extra', () => ({
     }
 }))
 
-/**
- * it is necessary here to create a new mock for the ConfigParser because it
- * doesn't seem to be possible to spy on jest mock instances
- */
 vi.mock('@wdio/config', () => ({
     ConfigParser: class ConfigParserMock {
         addConfigFile () {}

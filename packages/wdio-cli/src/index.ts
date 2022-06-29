@@ -79,7 +79,7 @@ export const run = async () => {
 
             console.error(`${output}\n\n${err.stack}`)
             /* istanbul ignore if */
-            if (!process.env.JEST_WORKER_ID) {
+            if (!process.env.VITEST_WORKER_ID) {
                 process.exit(1)
             }
         })

@@ -1,20 +1,23 @@
 import fs from 'node:fs'
+import { expect, describe, it, vi, beforeEach, afterEach, SpyInstance } from 'vitest'
+
 // @ts-ignore mocked (original defined in webdriver package)
-import gotMock from 'got'
+import got from 'got'
 import { remote } from '../../../src'
 import * as utils from '../../../src/utils'
 
-const got = gotMock as any as jest.Mock
-
-jest.mock('fs')
+vi.mock('got')
+vi.mock('fs')
 
 describe('saveScreenshot', () => {
-    let getAbsoluteFilepathSpy, assertDirectoryExistsSpy, writeFileSyncSpy
+    let getAbsoluteFilepathSpy: SpyInstance
+    let assertDirectoryExistsSpy: SpyInstance
+    let writeFileSyncSpy: SpyInstance
 
     beforeEach(() => {
-        getAbsoluteFilepathSpy = jest.spyOn(utils, 'getAbsoluteFilepath')
-        assertDirectoryExistsSpy = jest.spyOn(utils, 'assertDirectoryExists')
-        writeFileSyncSpy = jest.spyOn(fs, 'writeFileSync')
+        getAbsoluteFilepathSpy = vi.spyOn(utils, 'getAbsoluteFilepath')
+        assertDirectoryExistsSpy = vi.spyOn(utils, 'assertDirectoryExists')
+        writeFileSyncSpy = vi.spyOn(fs, 'writeFileSync')
     })
 
     afterEach(() => {
@@ -64,14 +67,9 @@ describe('saveScreenshot', () => {
 
         const elem = await browser.$('#elem')
 
-        // no file
-        await expect(
-            elem.saveScreenshot()
-        ).rejects.toEqual(expectedError)
-
+        // @ts-expect-error wrong parameter
+        await expect(elem.saveScreenshot()).rejects.toEqual(expectedError)
         // wrong extension
-        await expect(
-            elem.saveScreenshot('./file.txt')
-        ).rejects.toEqual(expectedError)
+        await expect(elem.saveScreenshot('./file.txt')).rejects.toEqual(expectedError)
     })
 })

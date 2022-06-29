@@ -1,12 +1,14 @@
+import { expect, describe, it, vi, beforeAll, afterEach } from 'vitest'
+
 // @ts-ignore mocked (original defined in webdriver package)
-import gotMock from 'got'
+import got from 'got'
 import { remote } from '../../../src'
 
-const got = gotMock as any as jest.Mock
+vi.mock('got')
 
 describe('scrollIntoView test', () => {
-    let browser: WebdriverIO.Browser
-    let elem: WebdriverIO.Element
+    let browser: any
+    let elem: any
 
     beforeAll(async () => {
         browser = await remote({
@@ -20,7 +22,7 @@ describe('scrollIntoView test', () => {
 
     it('should allow to check if an element is enabled', async () => {
         // @ts-ignore mock feature
-        elem.elementId = { scrollIntoView: jest.fn() }
+        elem.elementId = { scrollIntoView: vi.fn() }
         await elem.scrollIntoView()
         const executeCallUrl = got.mock.calls[2][0]
         const executeCallOptions = got.mock.calls[2][1]
