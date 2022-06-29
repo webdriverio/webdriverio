@@ -1,16 +1,18 @@
+import { expect, describe, it, vi } from 'vitest'
 import { remote } from '../../../src'
 // @ts-expect-error mock feature
 import { getMockCalls } from '../../../src/commands/browser/mock'
 
-jest.mock('../../../src/commands/browser/mock', () => {
+vi.mock('got')
+vi.mock('../../../src/commands/browser/mock', () => {
     let clearedMocks = 0
     const bumpCall = () => ++clearedMocks
     const SESSION_MOCKS: Record<string, any> = {}
     SESSION_MOCKS['foobar'] = new Set()
-    SESSION_MOCKS['foobar'].add({ restore: jest.fn(bumpCall) })
-    SESSION_MOCKS['foobar'].add({ restore: jest.fn(bumpCall) })
+    SESSION_MOCKS['foobar'].add({ restore: vi.fn(bumpCall) })
+    SESSION_MOCKS['foobar'].add({ restore: vi.fn(bumpCall) })
     SESSION_MOCKS['barfoo'] = new Set()
-    SESSION_MOCKS['barfoo'].add({ restore: jest.fn(bumpCall) })
+    SESSION_MOCKS['barfoo'].add({ restore: vi.fn(bumpCall) })
     return { SESSION_MOCKS, getMockCalls: () => clearedMocks }
 })
 

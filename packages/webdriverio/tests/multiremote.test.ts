@@ -57,11 +57,8 @@ test('should properly create stub instance', async () => {
     expect(browser.browserA.$).toBeUndefined()
     expect(browser.browserA.$).toBeUndefined()
 
-    // @ts-expect-error
     expect(() => browser.addCommand()).toThrow()
-    // @ts-expect-error
     expect(() => browser.browserA.addCommand()).toThrow()
-    // @ts-expect-error
     expect(() => browser.browserB.overwriteCommand()).toThrow()
 })
 
@@ -106,11 +103,8 @@ test('should be able to add a command to and element in multiremote', async () =
 
     const elem = await browser.$('#foo')
 
-    // @ts-expect-error
     expect(await elem.browserA.myCustomElementCommand()).toBe(1)
-    // @ts-expect-error
     expect(await elem.browserB.myCustomElementCommand()).toBe(1)
-    // @ts-expect-error
     expect(await elem.myCustomElementCommand()).toEqual([1, 1])
 })
 

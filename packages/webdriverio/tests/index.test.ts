@@ -1,3 +1,4 @@
+import { describe, it, afterEach, expect, vi } from 'vitest'
 import path from 'node:path'
 // @ts-ignore mock feature
 import { logMock } from '@wdio/logger'
@@ -9,6 +10,9 @@ import * as webdriverio from '../src'
 const OUTPUT_DIR = path.join('some', 'output', 'dir')
 const OUTPUT_FILE = path.join(OUTPUT_DIR, 'wdio.log')
 
+vi.mock('got')
+vi.mock('devtools')
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 const setUpLogCheck = (conditionFunction: () => boolean) => {
     const logCheck = (...args: string[]) => {
         if (!conditionFunction()) {

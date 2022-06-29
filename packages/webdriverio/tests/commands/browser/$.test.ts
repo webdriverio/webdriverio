@@ -1,7 +1,10 @@
 // @ts-ignore mocked (original defined in webdriver package)
 import got from 'got'
+import { describe, it, afterEach, expect, vi } from 'vitest'
 import { remote } from '../../../src'
 import { ELEMENT_KEY } from '../../../src/constants'
+
+vi.mock('got')
 
 describe('element', () => {
     it('should fetch an element', async () => {
@@ -57,7 +60,7 @@ describe('element', () => {
                 // @ts-ignore mock feature
                 mobileMode: true,
                 'appium-version': '1.9.2'
-            }
+            } as any
         })
 
         expect(browser.isMobile).toBe(true)

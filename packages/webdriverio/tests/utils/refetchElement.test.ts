@@ -1,15 +1,15 @@
-// @ts-ignore mocked (original defined in webdriver package)
-import gotMock from 'got'
+import { describe, it, beforeAll, expect, vi } from 'vitest'
+// @ts-expect-error
+import got from 'got'
 import { remote } from '../../src'
 import refetchElement from '../../src/utils/refetchElement'
+import waitForExist from '../../src/commands/element/waitForExist'
 
-const got = gotMock as any as jest.Mock
-
-jest.mock('../../src/commands/element/waitForExist', () => ({
+vi.mock('got')
+vi.mock('../../src/commands/element/waitForExist', () => ({
     __esModule: true,
-    default: jest.fn().mockImplementation(() => { return true })
+    default: vi.fn().mockImplementation(() => { return true })
 }))
-const waitForExist = require('../../src/commands/element/waitForExist')
 
 describe('refetchElement', () => {
     let browser: WebdriverIO.Browser
@@ -63,14 +63,14 @@ describe('refetchElement', () => {
         got.retryCnt = 0
         const notFound = await browser.$('#slowRerender')
         const refetchedElement = await refetchElement(notFound, 'click')
-        expect(waitForExist.default.mock.calls).toHaveLength(1)
+        expect(vi.mocked(waitForExist).mock.calls).toHaveLength(1)
         expect(refetchedElement.elementId).toBe(elem.elementId)
     })
 
     it('should successfully refetch an element using custom locator', async () => {
         browser.addLocatorStrategy('myLocator1', (id: string) => (
             { 'element-6066-11e4-a52e-4f735466cecf': id }
-        ))
+        ) as any)
 
         const elem = await browser.custom$('myLocator1', 'foo')
         const refetchedElement = await refetchElement(elem, '$')
@@ -84,7 +84,7 @@ describe('refetchElement', () => {
                 { 'element-6066-11e4-a52e-4f735466cecf': id + '0', index: 0 },
                 { 'element-6066-11e4-a52e-4f735466cecf': id + '1', index: 1 }
             ]
-        ))
+        ) as any)
 
         const elems = await browser.custom$$('myLocator2', 'foo')
         const refetchedElement1 = await refetchElement(elems[0], '$')
@@ -98,7 +98,7 @@ describe('refetchElement', () => {
     it('should successfully refetch a sub element using custom locator', async () => {
         browser.addLocatorStrategy('myLocator3', (id: string, root: any) => (
             { 'element-6066-11e4-a52e-4f735466cecf': root + id }
-        ))
+        ) as any)
 
         const elem = await browser.$('#foo')
         expect(elem.elementId).toEqual('some-elem-123')
@@ -114,7 +114,7 @@ describe('refetchElement', () => {
                 { 'element-6066-11e4-a52e-4f735466cecf': root + id + '0', index: 0 },
                 { 'element-6066-11e4-a52e-4f735466cecf': root + id + '1', index: 1 }
             ]
-        ))
+        ) as any)
 
         const elem = await browser.$('#foo')
         expect(elem.elementId).toEqual('some-elem-123')

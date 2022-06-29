@@ -1,7 +1,9 @@
+import { expect, describe, beforeEach, it, vi, beforeAll, afterAll } from 'vitest'
 // @ts-ignore mocked (original defined in webdriver package)
 import got from 'got'
 import { remote } from '../../../src'
 
+vi.mock('got')
 const webdriverResponses = [null, null, 'foo', 'bar', 'loo', null, 'hello', 'world', 'yo', null, 'some', 'url', 'here']
 
 describe('switchWindow', () => {
@@ -76,6 +78,7 @@ describe('switchWindow', () => {
     })
 
     afterAll(() => {
+        // @ts-expect-error
         delete global.window
     })
 })

@@ -58,9 +58,10 @@ export default async function uploadFile (
         archiver('zip')
             .on('error', (err: Error) => reject(err))
             .on('data', (data: Uint8Array) => zipData.push(data))
-            .on('end', () => this.file(
-                Buffer.concat(zipData).toString('base64')
-            ).then((localPath) => resolve(localPath), reject))
+            .on('end', () => (
+                this.file(Buffer.concat(zipData).toString('base64'))
+                    .then((localPath) => resolve(localPath), reject)
+            ))
             .append(source, { name: path.basename(localPath) })
             .finalize()
     })

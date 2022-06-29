@@ -1,9 +1,11 @@
+import { expect, describe, beforeEach, afterEach, it, vi } from 'vitest'
 // @ts-ignore mocked (original defined in webdriver package)
 import got from 'got'
 import { remote } from '../../../src'
 
-jest.useFakeTimers()
-jest.spyOn(global, 'setTimeout')
+vi.mock('got')
+vi.useFakeTimers()
+vi.spyOn(global, 'setTimeout')
 
 describe('pause test', () => {
     let browser: WebdriverIO.Browser

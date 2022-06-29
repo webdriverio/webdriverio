@@ -1,5 +1,6 @@
 import fs from 'node:fs'
 import path from 'node:path'
+import { test, expect } from 'vitest'
 import { getPrototype } from '../../src/utils'
 
 const scope = 'browser'
@@ -10,7 +11,7 @@ const files = fs
 
 test(scope + ' commands list and strategies', () => {
     const prototype = Object.keys(getPrototype(scope))
-    const expected = ['puppeteer', '_NOT_FIBER', ...files, 'strategies']
+    const expected = ['puppeteer', ...files, 'strategies']
     /**
      * ignored commands that are just there for documentation purposes
      */

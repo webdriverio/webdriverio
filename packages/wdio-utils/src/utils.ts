@@ -100,6 +100,8 @@ export function transformCommandLogResult (result: { file?: string, script?: str
     } else if (typeof result.script === 'string' && result.script.match(REGEX_SCRIPT_NAME)) {
         const newScript = result.script.match(REGEX_SCRIPT_NAME)![1]
         return { ...result, script: `${newScript}(...) [${Buffer.byteLength(result.script, 'utf-8')} bytes]` }
+    } else if (typeof result.script === 'string' && result.script.startsWith('!function(')) {
+        return { ...result, script: `<minified function> [${Buffer.byteLength(result.script, 'utf-8')} bytes]` }
     }
 
     return result
