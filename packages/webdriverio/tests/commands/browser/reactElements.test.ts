@@ -1,7 +1,10 @@
+import { expect, describe, it, vi } from 'vitest'
 // @ts-ignore mocked (original defined in webdriver package)
 import got from 'got'
 import { ELEMENT_KEY } from '../../../src/constants'
 import { remote } from '../../../src'
+
+vi.mock('got')
 
 describe('react$', () => {
     it('should fetch an React component', async () => {

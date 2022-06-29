@@ -587,7 +587,10 @@ export const getAutomationProtocol = async (config: Options.WebdriverIO | Option
  *
  * NOTE: this method is executed twice when running the WDIO testrunner
  */
-export const updateCapabilities = async (params: Options.WebdriverIO | Options.Testrunner, automationProtocol?: Options.SupportedProtocols) => {
+export const updateCapabilities = (
+    params: Options.WebdriverIO | Options.Testrunner,
+    automationProtocol?: Options.SupportedProtocols
+) => {
     if (automationProtocol && !params.automationProtocol) {
         params.automationProtocol = automationProtocol
     }

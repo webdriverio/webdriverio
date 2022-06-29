@@ -57,7 +57,7 @@ export const remote = async function (params: RemoteOptions, remoteModifier?: Fu
     const ProtocolDriver = (await import(automationProtocol)).default
 
     params = Object.assign({}, detectBackend(params), params)
-    await updateCapabilities(params, automationProtocol)
+    updateCapabilities(params, automationProtocol)
     const instance: WebdriverIO.Browser = await ProtocolDriver.newSession(params, modifier, prototype, wrapCommand)
 
     /**

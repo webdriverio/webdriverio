@@ -1,7 +1,8 @@
-import { findStrategy } from '../src/utils/findStrategy'
 import fs from 'node:fs'
+import { describe, it, expect, vi } from 'vitest'
+import { findStrategy } from '../src/utils/findStrategy'
 
-jest.mock('fs')
+vi.mock('fs')
 
 describe('selector strategies helper', () => {
     it('should find an element using "css selector" method', () => {
@@ -385,7 +386,7 @@ describe('selector strategies helper', () => {
     })
 
     it('should find an mobile element using image string', () => {
-        fs.readFileSync = jest.fn(() => 'random string') as any
+        fs.readFileSync = vi.fn(() => 'random string') as any
         let element = findStrategy('/test.jpg')
         expect(element.using).toBe('-image')
         expect(element.value).toBe('random string')

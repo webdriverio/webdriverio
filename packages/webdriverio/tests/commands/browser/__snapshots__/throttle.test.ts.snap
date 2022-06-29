@@ -1,10 +1,10 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Vitest Snapshot v1
 
 exports[`should allow to send strings as param 1`] = `
-Array [
-  Array [
+[
+  [
     "Network.emulateNetworkConditions",
-    Object {
+    {
       "downloadThroughput": 96000,
       "latency": 100,
       "offline": false,

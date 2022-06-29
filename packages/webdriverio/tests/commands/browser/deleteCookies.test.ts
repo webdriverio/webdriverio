@@ -1,6 +1,9 @@
+import { expect, describe, it, beforeAll, afterEach, vi } from 'vitest'
 // @ts-ignore mocked (original defined in webdriver package)
 import got from 'got'
 import { remote } from '../../../src'
+
+vi.mock('got')
 
 describe('deleteCookies', () => {
     let browser: WebdriverIO.Browser

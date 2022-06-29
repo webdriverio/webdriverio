@@ -52,6 +52,9 @@ describe('utils', () => {
         expect(transformCommandLogResult({ script: 'return foobar' })).toEqual({ script: 'return foobar' })
         expect(transformCommandLogResult({ script: 'return (function isElementDisplayed(element) {\n...' }))
             .toEqual({ script: 'isElementDisplayed(...) [50 bytes]' })
+
+        expect(transformCommandLogResult({ script: '!function(t,e){"object"==typeof exports&&"object"==typeof mod...' }))
+            .toEqual({ script: '<minified function> [64 bytes]' })
     })
 
     describe('overwriteElementCommands', () => {

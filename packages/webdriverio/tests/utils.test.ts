@@ -628,9 +628,9 @@ describe('utils', () => {
     })
 
     describe('updateCapabilities', () => {
-        it('should do nothing if no browser specified', async () => {
+        it('should do nothing if no browser specified', () => {
             const params: Options.WebdriverIO = { capabilities: {} }
-            await updateCapabilities(params)
+            updateCapabilities(params)
             expect(params).toMatchSnapshot()
         })
     })

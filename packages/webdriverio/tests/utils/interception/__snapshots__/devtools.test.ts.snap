@@ -1,52 +1,52 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Vitest Snapshot v1
 
-exports[`stub request do not fetch request 1`] = `
-Array [
+exports[`stub request > do not fetch request 1`] = `
+[
   "Fetch.fulfillRequest",
-  Object {
+  {
     "body": "Zm9vYmFy",
     "requestId": 123,
     "responseCode": 200,
-    "responseHeaders": Array [],
+    "responseHeaders": [],
   },
 ]
 `;
 
-exports[`stub request with a different web resource 1`] = `
-Array [
-  Object {
+exports[`stub request > with a different web resource 1`] = `
+[
+  {
     "name": "Content-Type",
     "value": "application/json",
   },
-  Object {
+  {
     "name": "Location",
     "value": "http://json.org/image.svg",
   },
 ]
 `;
 
-exports[`stub request with a different web resource containing different location header 1`] = `
-Array [
-  Object {
+exports[`stub request > with a different web resource containing different location header 1`] = `
+[
+  {
     "name": "Content-Type",
     "value": "application/json",
   },
-  Object {
+  {
     "name": "Location",
     "value": "http://json.org/image.svg",
   },
 ]
 `;
 
-exports[`stub request with a function 1`] = `
-Array [
+exports[`stub request > with a function 1`] = `
+[
   "Fetch.fulfillRequest",
-  Object {
+  {
     "body": "Zm9vYmFy",
     "requestId": 123,
     "responseCode": 200,
-    "responseHeaders": Array [
-      Object {
+    "responseHeaders": [
+      {
         "name": "Content-Type",
         "value": "application/json",
       },
@@ -55,15 +55,15 @@ Array [
 ]
 `;
 
-exports[`stub request with a function returning empty body 1`] = `
-Array [
+exports[`stub request > with a function returning empty body 1`] = `
+[
   "Fetch.fulfillRequest",
-  Object {
+  {
     "body": "",
     "requestId": 123,
     "responseCode": 200,
-    "responseHeaders": Array [
-      Object {
+    "responseHeaders": [
+      {
         "name": "Content-Type",
         "value": "application/json",
       },
@@ -72,15 +72,15 @@ Array [
 ]
 `;
 
-exports[`stub request with a function returning undefined 1`] = `
-Array [
+exports[`stub request > with a function returning undefined 1`] = `
+[
   "Fetch.fulfillRequest",
-  Object {
+  {
     "body": undefined,
     "requestId": 123,
     "responseCode": 200,
-    "responseHeaders": Array [
-      Object {
+    "responseHeaders": [
+      {
         "name": "Content-Type",
         "value": "application/json",
       },
@@ -89,15 +89,15 @@ Array [
 ]
 `;
 
-exports[`stub request with a text 1`] = `
-Array [
+exports[`stub request > with a text 1`] = `
+[
   "Fetch.fulfillRequest",
-  Object {
+  {
     "body": "Zm9vYmFy",
     "requestId": 123,
     "responseCode": 200,
-    "responseHeaders": Array [
-      Object {
+    "responseHeaders": [
+      {
         "name": "Content-Type",
         "value": "application/json",
       },
@@ -106,15 +106,15 @@ Array [
 ]
 `;
 
-exports[`stub request with an object 1`] = `
-Array [
+exports[`stub request > with an object 1`] = `
+[
   "Fetch.fulfillRequest",
-  Object {
+  {
     "body": "eyJmb28iOiJiYXIifQ==",
     "requestId": 123,
     "responseCode": 200,
-    "responseHeaders": Array [
-      Object {
+    "responseHeaders": [
+      {
         "name": "Content-Type",
         "value": "application/json",
       },
@@ -123,23 +123,23 @@ Array [
 ]
 `;
 
-exports[`stub request with modified headers 1`] = `
-Array [
+exports[`stub request > with modified headers 1`] = `
+[
   "Fetch.fulfillRequest",
-  Object {
+  {
     "body": "eyJmb28iOiJiYXIifQ==",
     "requestId": 123,
     "responseCode": 200,
-    "responseHeaders": Array [
-      Object {
+    "responseHeaders": [
+      {
         "name": "Content-Type",
         "value": "application/json",
       },
-      Object {
+      {
         "name": "removed",
         "value": undefined,
       },
-      Object {
+      {
         "name": "added",
         "value": "string",
       },
@@ -148,19 +148,19 @@ Array [
 ]
 `;
 
-exports[`stub request with modified headers fn 1`] = `
-Array [
+exports[`stub request > with modified headers fn 1`] = `
+[
   "Fetch.fulfillRequest",
-  Object {
+  {
     "body": "eyJmb28iOiJiYXIifQ==",
     "requestId": 123,
     "responseCode": 200,
-    "responseHeaders": Array [
-      Object {
+    "responseHeaders": [
+      {
         "name": "Content-Type",
         "value": "application/json",
       },
-      Object {
+      {
         "name": "Content-Type",
         "value": "text/xml",
       },
@@ -169,15 +169,15 @@ Array [
 ]
 `;
 
-exports[`stub request with modified status code 1`] = `
-Array [
+exports[`stub request > with modified status code 1`] = `
+[
   "Fetch.fulfillRequest",
-  Object {
+  {
     "body": "eyJmb28iOiJiYXIifQ==",
     "requestId": 123,
     "responseCode": 1234,
-    "responseHeaders": Array [
-      Object {
+    "responseHeaders": [
+      {
         "name": "Content-Type",
         "value": "application/json",
       },
@@ -186,15 +186,15 @@ Array [
 ]
 `;
 
-exports[`stub request with modified status code fn 1`] = `
-Array [
+exports[`stub request > with modified status code fn 1`] = `
+[
   "Fetch.fulfillRequest",
-  Object {
+  {
     "body": "eyJmb28iOiJiYXIifQ==",
     "requestId": 123,
     "responseCode": 5678,
-    "responseHeaders": Array [
-      Object {
+    "responseHeaders": [
+      {
         "name": "Content-Type",
         "value": "application/json",
       },

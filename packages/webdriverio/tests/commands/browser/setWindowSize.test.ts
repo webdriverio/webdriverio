@@ -1,6 +1,9 @@
+import { expect, describe, afterEach, it, vi, beforeAll } from 'vitest'
 // @ts-ignore mocked (original defined in webdriver package)
 import got from 'got'
 import { remote } from '../../../src'
+
+vi.mock('got')
 
 describe('setWindowSize', () => {
     let browser: WebdriverIO.Browser
@@ -55,7 +58,7 @@ describe('setWindowSize', () => {
             const invalidValueError = 'setWindowSize expects width and height to be a number in the 0 to 2^31 − 1 range'
 
             // @ts-ignore test invalid parameter
-            let err = await browser.setWindowSize(-1, 500).catch((err: Error) => err)
+            let err: Error = await browser.setWindowSize(-1, 500).catch((err: Error) => err)
             expect(err.message).toBe(invalidValueError)
             // @ts-ignore test invalid parameter
             err = await browser.setWindowSize(Number.MAX_SAFE_INTEGER + 100, 500).catch((err: Error) => err)

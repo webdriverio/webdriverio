@@ -1,4 +1,9 @@
+import path from 'node:path'
+import { expect, describe, it, beforeEach, afterEach, vi } from 'vitest'
 import { remote } from '../../../src'
+
+vi.mock('got')
+vi.mock('@wdio/repl', () => import(path.join(process.cwd(), '__mocks__', '@wdio/repl')))
 
 describe('debug command', () => {
     let browser: WebdriverIO.Browser
@@ -26,10 +31,10 @@ describe('debug command', () => {
             realProcess = global.process
             global.process = {
                 env: { WDIO_WORKER: false } as any,
-                _debugProcess: jest.fn(),
-                _debugEnd: jest.fn(),
-                send: jest.fn(),
-                on: jest.fn()
+                _debugProcess: vi.fn(),
+                _debugEnd: vi.fn(),
+                send: vi.fn(),
+                on: vi.fn()
             } as any
         })
 
@@ -50,7 +55,7 @@ describe('debug command', () => {
             beforeEach(async () => {
                 global.process.env.WDIO_WORKER = 'true'
                 browser.debug()
-                messageHandlerCallback = (global.process.on as jest.Mock).mock.calls.pop().pop()
+                messageHandlerCallback = vi.mocked(global.process.on).mock.calls.pop()!.pop() as any
             })
 
             it('should do nothing if no debugger origin', () => {

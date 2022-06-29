@@ -273,10 +273,6 @@ interface InstanceBase extends EventEmitter, SessionFlags {
     /**
      * @private
      */
-    _NOT_FIBER?: boolean
-    /**
-     * @private
-     */
     wdioRetries?: number
 }
 
