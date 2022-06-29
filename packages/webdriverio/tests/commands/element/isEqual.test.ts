@@ -1,12 +1,14 @@
+import { expect, describe, it, beforeAll, afterEach, vi } from 'vitest'
+
 // @ts-ignore mocked (original defined in webdriver package)
-import gotMock from 'got'
+import got from 'got'
 import { remote } from '../../../src'
 
-const got = gotMock as any as jest.Mock
+vi.mock('got')
 
 describe('isEqual test', () => {
-    let browser: WebdriverIO.Browser
-    let elem: WebdriverIO.Element
+    let browser: any
+    let elem: any
 
     describe('web', () => {
         beforeAll(async () => {
@@ -46,7 +48,7 @@ describe('isEqual test', () => {
                     // @ts-ignore mock feature
                     mobileMode: true,
                     browserName: 'foobar'
-                }
+                } as any
             })
             elem = await browser.$('#foo')
             got.mockClear()
@@ -71,7 +73,7 @@ describe('isEqual test', () => {
             const execute = browser.execute
             // @ts-ignore remove command to make it fail
             delete browser.execute
-            browser.execute = jest.fn().mockReturnValue(true)
+            browser.execute = vi.fn().mockReturnValue(true)
 
             expect(await elem.isEqual(elem)).toBe(true)
             expect(browser.execute).toBeCalled()

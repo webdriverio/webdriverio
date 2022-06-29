@@ -1,9 +1,11 @@
+import { expect, describe, it, vi } from 'vitest'
+
 // @ts-ignore mocked (original defined in webdriver package)
-import gotMock from 'got'
+import got from 'got'
 import { remote } from '../../../src'
 import { ELEMENT_KEY } from '../../../src/constants'
 
-const got = gotMock as any as jest.Mock
+vi.mock('got')
 
 describe('elem.react$', () => {
     it('does request to get React component with correct params', async () => {

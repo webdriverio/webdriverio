@@ -1,10 +1,12 @@
+import { expect, describe, it, beforeEach, afterEach, vi } from 'vitest'
+
 // @ts-ignore mocked (original defined in webdriver package)
-import gotMock from 'got'
+import got from 'got'
 import { remote } from '../../../src'
 
-const got = gotMock as jest.Mock
+vi.mock('got')
 
-let browser: WebdriverIO.Browser
+let browser: any
 
 describe('addValue test', () => {
     afterEach(() => {
@@ -161,7 +163,7 @@ describe('addValue test', () => {
             })
         })
 
-        test('should not translate to unicode', async () => {
+        it('should not translate to unicode', async () => {
             const elem = await browser.$('#foo')
 
             await elem.setValue('Delete', { translateToUnicode: false })
@@ -169,7 +171,7 @@ describe('addValue test', () => {
             expect(got.mock.calls[3][0].pathname).toBe('/session/foobar-123/element/some-elem-123/value')
             expect(got.mock.calls[3][1].json.text).toEqual('Delete')
         })
-        test('should translate to unicode', async () => {
+        it('should translate to unicode', async () => {
             const elem = await browser.$('#foo')
 
             await elem.setValue('Delete', { translateToUnicode: true })
@@ -178,7 +180,7 @@ describe('addValue test', () => {
             expect(got.mock.calls[3][1].json.text).toEqual('\uE017')
         })
 
-        test('should translate to unicode by default', async () => {
+        it('should translate to unicode by default', async () => {
             const elem = await browser.$('#foo')
 
             await elem.setValue('Delete', { translateToUnicode: true })

@@ -1,15 +1,17 @@
+import { expect, describe, it, beforeEach, vi } from 'vitest'
+
 // @ts-ignore mocked (original defined in webdriver package)
-import gotMock from 'got'
+import got from 'got'
 import { remote } from '../../../src'
 
-const got = gotMock as any as jest.Mock
+vi.mock('got')
 
 describe('getValue', () => {
     beforeEach(() => {
         got.mockClear()
     })
 
-    test('should get the value using getElementProperty', async () => {
+    it('should get the value using getElementProperty', async () => {
         const browser = await remote({
             baseUrl: 'http://foobar.com',
             capabilities: {
@@ -24,7 +26,7 @@ describe('getValue', () => {
             .toBe('/session/foobar-123/element/some-elem-123/property/value')
     })
 
-    test('should get the value using getElementAttribute', async () => {
+    it('should get the value using getElementAttribute', async () => {
         const browser = await remote({
             baseUrl: 'http://foobar.com',
             capabilities: {
@@ -46,7 +48,7 @@ describe('getValue', () => {
                 browserName: 'foobar',
                 // @ts-ignore mock feature
                 mobileMode: true
-            }
+            } as any
         })
         const elem = await browser.$('#foo')
 

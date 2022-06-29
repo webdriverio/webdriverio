@@ -1,14 +1,16 @@
+import { expect, describe, it, vi, beforeAll, beforeEach } from 'vitest'
+
 // @ts-ignore mocked (original defined in webdriver package)
-import gotMock from 'got'
+import got from 'got'
 import { remote } from '../../../src'
 
-const got = gotMock as any as jest.Mock
+vi.mock('got')
 
 describe('touchAction element test', () => {
-    let browser: WebdriverIO.Browser
-    let elem: WebdriverIO.Element
-    let subElem: WebdriverIO.Element
-    let subSubElem: WebdriverIO.Element
+    let browser: any
+    let elem: any
+    let subElem: any
+    let subSubElem: any
 
     beforeAll(async () => {
         browser = await remote({
@@ -17,7 +19,7 @@ describe('touchAction element test', () => {
                 browserName: 'foobar',
                 // @ts-ignore mock feature
                 mobileMode: true
-            }
+            } as any
         })
         elem = await browser.$('#foo')
         subElem = await elem.$('#foo')

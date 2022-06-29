@@ -1,40 +1,40 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Vitest Snapshot v1
 
-exports[`dragAndDrop should allow drag and drop to 0 coordinates 1`] = `
-Array [
-  Object {
-    "actions": Array [
-      Object {
+exports[`dragAndDrop > should allow drag and drop to 0 coordinates 1`] = `
+[
+  {
+    "actions": [
+      {
         "duration": 0,
-        "origin": Object {
+        "origin": {
           "element-6066-11e4-a52e-4f735466cecf": "some-elem-123",
         },
         "type": "pointerMove",
         "x": 0,
         "y": 0,
       },
-      Object {
+      {
         "button": 0,
         "type": "pointerDown",
       },
-      Object {
+      {
         "duration": 10,
         "type": "pause",
       },
-      Object {
+      {
         "duration": 10,
         "origin": "pointer",
         "type": "pointerMove",
         "x": 0,
         "y": 0,
       },
-      Object {
+      {
         "button": 0,
         "type": "pointerUp",
       },
     ],
     "id": "finger1",
-    "parameters": Object {
+    "parameters": {
       "pointerType": "mouse",
     },
     "type": "pointer",
@@ -42,43 +42,43 @@ Array [
 ]
 `;
 
-exports[`dragAndDrop should do a dragAndDrop 1`] = `
-Array [
-  Object {
-    "actions": Array [
-      Object {
+exports[`dragAndDrop > should do a dragAndDrop 1`] = `
+[
+  {
+    "actions": [
+      {
         "duration": 0,
-        "origin": Object {
+        "origin": {
           "element-6066-11e4-a52e-4f735466cecf": "some-elem-123",
         },
         "type": "pointerMove",
         "x": 0,
         "y": 0,
       },
-      Object {
+      {
         "button": 0,
         "type": "pointerDown",
       },
-      Object {
+      {
         "duration": 10,
         "type": "pause",
       },
-      Object {
+      {
         "duration": 10,
-        "origin": Object {
+        "origin": {
           "element-6066-11e4-a52e-4f735466cecf": "some-sub-elem-321",
         },
         "type": "pointerMove",
         "x": 0,
         "y": 0,
       },
-      Object {
+      {
         "button": 0,
         "type": "pointerUp",
       },
     ],
     "id": "finger1",
-    "parameters": Object {
+    "parameters": {
       "pointerType": "mouse",
     },
     "type": "pointer",
@@ -86,41 +86,41 @@ Array [
 ]
 `;
 
-exports[`dragAndDrop should do a dragAndDrop with coordinates 1`] = `
-Array [
-  Object {
-    "actions": Array [
-      Object {
+exports[`dragAndDrop > should do a dragAndDrop with coordinates 1`] = `
+[
+  {
+    "actions": [
+      {
         "duration": 0,
-        "origin": Object {
+        "origin": {
           "element-6066-11e4-a52e-4f735466cecf": "some-elem-123",
         },
         "type": "pointerMove",
         "x": 0,
         "y": 0,
       },
-      Object {
+      {
         "button": 0,
         "type": "pointerDown",
       },
-      Object {
+      {
         "duration": 10,
         "type": "pause",
       },
-      Object {
+      {
         "duration": 10,
         "origin": "pointer",
         "type": "pointerMove",
         "x": 123,
         "y": 321,
       },
-      Object {
+      {
         "button": 0,
         "type": "pointerUp",
       },
     ],
     "id": "finger1",
-    "parameters": Object {
+    "parameters": {
       "pointerType": "mouse",
     },
     "type": "pointer",

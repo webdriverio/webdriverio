@@ -1,13 +1,13 @@
+import { expect, describe, it, vi, beforeAll, afterEach } from 'vitest'
+
 // @ts-ignore mocked (original defined in webdriver package)
-import gotMock from 'got'
+import got from 'got'
 import { remote } from '../../../src'
 
-const got = gotMock as any as jest.Mock
-
-jest.setTimeout(10 * 1000)
+vi.mock('got')
 
 describe('waitUntil', () => {
-    let browser: WebdriverIO.Browser
+    let browser: any
 
     beforeAll(async () => {
         browser = await remote({
