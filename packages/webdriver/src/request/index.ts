@@ -58,7 +58,7 @@ export default abstract class WebDriverRequest extends EventEmitter {
     requiresSessionId: boolean
     defaultAgents: Agents | null
     defaultOptions: RequestLibOptions = {
-        retry: 0, // we have our own retry mechanism
+        retry: { limit: 0 }, // we have our own retry mechanism
         followRedirect: true,
         responseType: 'json',
         throwHttpErrors: false
@@ -101,7 +101,7 @@ export default abstract class WebDriverRequest extends EventEmitter {
                 ...(typeof options.headers === 'object' ? options.headers : {})
             },
             searchParams,
-            timeout: options.connectionRetryTimeout
+            timeout: { response: options.connectionRetryTimeout as number }
         }
 
         /**
