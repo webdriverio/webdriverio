@@ -50,3 +50,4 @@ vscode:
     - EditorConfig.EditorConfig
     - DigitalBrainstem.javascript-ejs-support
     - dbaeumer.vscode-eslint
+    - eamodio.gitlens
