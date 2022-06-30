@@ -494,6 +494,7 @@ describe('wdio-runner', () => {
 
     describe('_shutdown', () => {
         it('should emit exit', async () => {
+            global.browser = {} as any as BrowserObject
             const runner = new WDIORunner()
             runner['_reporter'] = {
                 waitForSync: jest.fn().mockReturnValue(Promise.resolve()),
@@ -507,6 +508,7 @@ describe('wdio-runner', () => {
         })
 
         it('should emit exit when reporter unsync', async () => {
+            global.browser = {} as any as BrowserObject
             const log = logger('wdio-runner')
             jest.spyOn(log, 'error').mockImplementation((string) => string)
 
@@ -521,6 +523,37 @@ describe('wdio-runner', () => {
             expect(runner['_reporter']!.waitForSync).toBeCalledTimes(1)
             expect(runner.emit).toBeCalledWith('exit', 1)
             expect(log.error).toHaveBeenCalledWith('foo')
+        })
+
+        it('should emit runner:start if the initialisation failed', async () => {
+            global.browser = {} as any as BrowserObject
+
+            const runner = new WDIORunner()
+            runner['_reporter'] = {
+                waitForSync: jest.fn().mockReturnValue(Promise.resolve()),
+                emit: jest.fn()
+            } as any
+            const reporter = runner['_reporter'] as any
+            runner.emit = jest.fn()
+
+            const args = [
+                ['runner:start', {
+                    'capabilities': {
+                        '0': { 'browserName': 'chrome', 'specs': ['./tests/test2.js'] },
+                        '1': { 'browserName': 'firefox' }
+                    },
+                    'cid': undefined,
+                    'config': undefined,
+                    'instanceOptions': {},
+                    'isMultiremote': false,
+                    'retry': 0,
+                    'specs': undefined
+                }],
+                ['runner:end', { 'cid': undefined, 'failures': 123, 'retries': 123 }]
+            ]
+            expect(await runner['_shutdown'](123, 123)).toBe(123)
+            expect(reporter.emit.mock.calls).toEqual(args)
+            expect(runner.emit).toBeCalledWith('exit', 1)
         })
     })
 
