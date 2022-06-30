@@ -47,7 +47,7 @@ export const builder = (yargs: Argv) => {
 }
 
 export const handler = async (argv: ReplCommandArguments) => {
-    const caps = getCapabilities(argv)
+    const caps = await getCapabilities(argv)
     const client = await remote({ ...argv, ...caps })
 
     // @ts-ignore
