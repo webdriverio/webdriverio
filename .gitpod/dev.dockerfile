@@ -6,4 +6,4 @@ RUN \
         chromium-browser
 
 RUN \
-    npm i -g http-server diff-so-fancy
+    npm i -g http-server diff-so-fancy chromedriver@101
