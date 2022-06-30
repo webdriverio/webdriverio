@@ -18,8 +18,8 @@ export default class RequestFactory {
     ): Promise<WebDriverRequest> {
         if (!EnvRequestLib) {
             EnvRequestLib = process?.versions?.node
-                ? (await import('./node')).default
-                : (await import('./browser')).default
+                ? (await import('./node.js')).default
+                : (await import('./browser.js')).default
         }
 
         return new EnvRequestLib(method, endpoint, body, isHubCommand)

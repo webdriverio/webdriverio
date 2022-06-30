@@ -19,10 +19,10 @@ export interface RequestLibOptions {
     json?: Record<string, unknown>
     method?: string
     responseType?: string
-    retry?: number
+    retry?: { limit: number }
     searchParams?: Record<string, unknown>
     throwHttpErrors?: boolean
-    timeout?: number
+    timeout?: { response: number }
     url?: URL
     path?: string
     username?: string
