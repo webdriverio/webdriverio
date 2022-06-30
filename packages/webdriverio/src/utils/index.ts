@@ -18,7 +18,7 @@ import type { Options, Capabilities } from '@wdio/types'
 
 import browserCommands from '../commands/browser.js'
 import elementCommands from '../commands/element.js'
-import { ELEMENT_KEY, DRIVER_DEFAULT_ENDPOINT, DEEP_SELECTOR } from '../constants.js'
+import { ELEMENT_KEY, DRIVER_DEFAULT_ENDPOINT, DEEP_SELECTOR, Key } from '../constants.js'
 import { findStrategy } from './findStrategy.js'
 import type { ElementArray, ElementFunction, Selector, ParsedCSSValue, CustomLocatorReturnValue } from '../types'
 import type { CustomStrategyReference } from '../types'
@@ -97,37 +97,6 @@ export function getBrowserObject (elem: WebdriverIO.Element | WebdriverIO.Browse
     return (elemObject as WebdriverIO.Element).parent ? getBrowserObject(elemObject.parent) : elem as WebdriverIO.Browser
 }
 
-/**
- * transform whatever value is into an array of char strings
- */
-export function transformToCharString (value: any, translateToUnicode = true) {
-    const ret: string[] = []
-
-    if (!Array.isArray(value)) {
-        value = [value]
-    }
-
-    for (const val of value) {
-        if (typeof val === 'string') {
-            translateToUnicode
-                ? ret.push(...checkUnicode(val as keyof typeof UNICODE_CHARACTERS))
-                : ret.push(...`${val}`.split(''))
-        } else if (typeof val === 'number') {
-            const entry = `${val}`.split('')
-            ret.push(...entry)
-        } else if (val && typeof val === 'object') {
-            try {
-                ret.push(...JSON.stringify(val).split(''))
-            } catch (err: any) { /* ignore */ }
-        } else if (typeof val === 'boolean') {
-            const entry = val ? 'true'.split('') : 'false'.split('')
-            ret.push(...entry)
-        }
-    }
-
-    return ret
-}
-
 function sanitizeCSS (value?: string) {
     /* istanbul ignore next */
     if (!value) {
@@ -202,11 +171,26 @@ export function parseCSS (cssPropertyValue: string, cssProperty?: string) {
  */
 export function checkUnicode (
     value: string,
-    isDevTools = false
+    isDevTools = false,
+    platformName?: string
 ) {
-    return Object.prototype.hasOwnProperty.call(UNICODE_CHARACTERS, value)
-        ? isDevTools ? [value] : [UNICODE_CHARACTERS[value as keyof typeof UNICODE_CHARACTERS]]
-        : new GraphemeSplitter().splitGraphemes(value)
+    if (value === Key.Ctrl) {
+        return [platformName && platformName.match(/mac(\s)*os/i) ? Key.Command : Key.Control]
+    }
+
+    /**
+     * when sending emoji characters like 😄 or a value that is not a special character defined
+     * by the WebDriver protocol
+     */
+    if (!Object.prototype.hasOwnProperty.call(UNICODE_CHARACTERS, value)) {
+        return new GraphemeSplitter().splitGraphemes(value)
+    }
+
+    if (isDevTools) {
+        return [value]
+    }
+
+    return [UNICODE_CHARACTERS[value as keyof typeof UNICODE_CHARACTERS]]
 }
 
 function fetchElementByJSFunction (

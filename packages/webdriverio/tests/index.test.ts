@@ -61,6 +61,10 @@ describe('index.js', () => {
         expect(webdriverio.SevereServiceError).toBeDefined()
     })
 
+    it('exports key constant', () => {
+        expect(webdriverio.Key).toBeDefined()
+    })
+
     describe('remote method', () => {
         it('should be possible to skip setting outputDir', async () => {
             setUpLogCheck(() => !('WDIO_LOG_PATH' in process.env))

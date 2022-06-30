@@ -1,25 +1,36 @@
 import { UNICODE_CHARACTERS } from '@wdio/utils'
+import type { Capabilities } from '@wdio/types'
 
 import { checkUnicode } from '../../utils/index.js'
 /**
  *
- * Send a sequence of key strokes to the active element. You can also use characters like
- * "Left arrow" or "Back space". WebdriverIO will take care of translating them into unicode
- * characters. You’ll find all supported characters [here](https://w3c.github.io/webdriver/webdriver-spec.html#keyboard-actions).
- * To do that, the value has to correspond to a key from the table.
+ * Send a sequence of key strokes to the "active" element. You can make an input element active by just clicking
+ * on it. To use characters like "Left arrow" or "Back space", import the `Key` object from the WebdriverIO package.
  *
- * Modifier like Ctrl, Shift, Alt and Meta will stay pressed so you need to trigger them again to release them.
- * Modifiying a click however requires you to use the WebDriver Actions API through the [performActions](https://webdriver.io/docs/api/webdriver#performactions) method.
+ * Modifier like `Control`, `Shift`, `Alt` and `Command` will stay pressed so you need to trigger them again to release
+ * them. Modifiying a click however requires you to use the WebDriver Actions API through the
+ * [performActions](https://webdriver.io/docs/api/webdriver#performactions) method.
+ *
+ * :::info
+ *
+ * Control keys differ based on the operating system the browser is running on, e.g. MacOS: `Command` and Windows: `Control`.
+ * WebdriverIO provides a cross browser modifier control key called `Ctrl` (see example below).
+ *
+ * :::
  *
  * <example>
     :keys.js
-    it('copies text out of active element', async () => {
-        // copies text from an input element
-        const input = await $('#username')
-        await input.setValue('anonymous')
+    import { Key } from 'webdriverio'
 
-        await browser.keys(['Meta', 'a'])
-        await browser.keys(['Meta', 'c'])
+    it('copies text out of active element', async () => {
+        await $('#username').setValue('anonymous')
+
+        // copies text from an input element
+        await browser.keys([Key.Ctrl, 'a', 'c])
+
+        // inserts text from clipboard into input element
+        await $('#username').click() // make input active element
+        await browser.keys([Key.Ctrl, 'v'])
     });
  * </example>
  *
@@ -32,16 +43,17 @@ export default function keys (
     value: string | string[]
 ) {
     let keySequence: string[] = []
+    const platformName = (this.capabilities as Capabilities.Capabilities).platformName
 
     /**
      * replace key with corresponding unicode character
      */
     if (typeof value === 'string') {
-        keySequence = checkUnicode(value as keyof typeof UNICODE_CHARACTERS, this.isDevTools)
+        keySequence = checkUnicode(value as keyof typeof UNICODE_CHARACTERS, this.isDevTools, platformName)
     } else if (Array.isArray(value)) {
         const charArray: (keyof typeof UNICODE_CHARACTERS)[] = value as any
         for (const charSet of charArray) {
-            keySequence = keySequence.concat(checkUnicode(charSet, this.isDevTools))
+            keySequence = keySequence.concat(checkUnicode(charSet, this.isDevTools, platformName))
         }
     } else {
         throw new Error('"keys" command requires a string or array of strings as parameter')

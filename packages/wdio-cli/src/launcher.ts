@@ -415,7 +415,19 @@ class Launcher {
             cid: runnerId,
             command: 'run',
             configFile: this._configFilePath,
-            args: { ...this._args, ...(config?.autoCompileOpts ? { autoCompileOpts: config.autoCompileOpts } : {}) },
+            args: {
+                ...this._args,
+                ...(config?.autoCompileOpts
+                    ? { autoCompileOpts: config.autoCompileOpts }
+                    : {}
+                ),
+                /**
+                 * Pass on user and key values to ensure they are available in the worker process when using
+                 * environment variables that were locally exported but not part of the environment.
+                 */
+                user: config.user,
+                key: config.key
+            },
             caps,
             specs,
             execArgv,
