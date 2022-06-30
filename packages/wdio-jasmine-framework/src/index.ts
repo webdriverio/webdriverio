@@ -1,9 +1,9 @@
 import Jasmine from 'jasmine'
-import { runTestInFiberContext, executeHooksWithArgs } from '@wdio/utils'
 import logger from '@wdio/logger'
+import { runTestInFiberContext, executeHooksWithArgs } from '@wdio/utils'
 import { EventEmitter } from 'node:events'
-import type { Options, Services, Capabilities } from '@wdio/types'
 import { setOptions } from 'expect-webdriverio'
+import type { Options, Services, Capabilities } from '@wdio/types'
 
 import JasmineReporter from './reporter.js'
 import type {
@@ -370,7 +370,7 @@ adapterFactory.init = async function (...args: any[]) {
 
 export default adapterFactory
 export { JasmineAdapter, adapterFactory }
-export * from './types'
+export * from './types.js'
 
 type jasmine = typeof Jasmine
 declare global {

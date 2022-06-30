@@ -104,7 +104,7 @@ export default class Runner extends EventEmitter {
          * add config file
          */
         try {
-            this._configParser.addConfigFile(configFile)
+            await this._configParser.addConfigFile(configFile)
         } catch (err: any) {
             return this._shutdown(1, retries)
         }

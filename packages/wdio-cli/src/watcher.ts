@@ -65,7 +65,7 @@ export default class Watcher {
                 return
             }
 
-            this._launcher.interface.finalise()
+            this._launcher.interface?.finalise()
         }))
     }
 
@@ -148,7 +148,7 @@ export default class Watcher {
         /**
          * don't do anything if no worker was found
          */
-        if (Object.keys(workers).length === 0) {
+        if (Object.keys(workers).length === 0 || !this._launcher.interface) {
             return
         }
 
@@ -175,6 +175,6 @@ export default class Watcher {
     }
 
     cleanUp () {
-        this._launcher.interface.setup()
+        this._launcher.interface?.setup()
     }
 }

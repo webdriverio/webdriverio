@@ -35,10 +35,10 @@ interface EndMessage {
 }
 
 class Launcher {
-    configParser: ConfigParser
-    isMultiremote: boolean
-    runner?: Services.RunnerInstance
-    interface: CLInterface
+    public configParser = new ConfigParser()
+    public isMultiremote = false
+    public runner?: Services.RunnerInstance
+    public interface?: CLInterface
 
     private _exitCode = 0
     private _hasTriggeredExitRoutine = false
@@ -55,19 +55,22 @@ class Launcher {
         private _args: Partial<RunCommandArguments> = {},
         private _isWatchMode = false
     ) {
-        this.configParser = new ConfigParser()
-
         /**
          * merge auto compile opts to understand how to parse the config
          */
         if (_args.autoCompileOpts) {
             this.configParser.merge({ autoCompileOpts: _args.autoCompileOpts })
         }
+    }
 
-        this.configParser.autoCompile()
-
-        this.configParser.addConfigFile(_configFilePath)
-        this.configParser.merge(_args)
+    /**
+     * run sequence
+     * @return  {Promise}               that only gets resolves with either an exitCode or an error
+     */
+    async run() {
+        await this.configParser.autoCompile()
+        await this.configParser.addConfigFile(this._configFilePath)
+        this.configParser.merge(this._args)
         const config = this.configParser.getConfig()
 
         /**
@@ -94,14 +97,7 @@ class Launcher {
 
         this.interface = new CLInterface(config, totalWorkerCnt, this._isWatchMode)
         config.runnerEnv!.FORCE_COLOR = Number(this.interface.hasAnsiSupport)
-    }
 
-    /**
-     * run sequence
-     * @return  {Promise}               that only gets resolves with either an exitCode or an error
-     */
-    async run() {
-        const config = this.configParser.getConfig()
         const Runner = (await initialisePlugin(config.runner!, 'runner') as Services.RunnerPlugin).default
         this.runner = new Runner(this._configFilePath, config)
 
@@ -355,7 +351,7 @@ class Launcher {
         rid: string | undefined,
         retries: number
     ) {
-        if (!this.runner) {
+        if (!this.runner || !this.interface) {
             throw new Error('Internal Error: no runner initialised, call run() first')
         }
 
@@ -431,6 +427,10 @@ class Launcher {
     }
 
     private _workerHookError (error: HookError) {
+        if (!this.interface) {
+            throw new Error('Internal Error: no interface initialised, call run() first')
+        }
+
         this.interface.logHookError(error)
         if (this._resolve) {
             this._resolve(1)
@@ -471,7 +471,7 @@ class Launcher {
         /**
          * avoid emitting job:end if watch mode has been stopped by user
          */
-        if (!this._isWatchModeHalted()) {
+        if (!this._isWatchModeHalted() && this.interface) {
             this.interface.emit('job:end', { cid: rid, passed, retries })
         }
 
@@ -513,7 +513,7 @@ class Launcher {
      * session first before killing
      */
     exitHandler (callback?: (value: void) => void) {
-        if (!callback || !this.runner) {
+        if (!callback || !this.runner || !this.interface) {
             return
         }
 
