@@ -415,8 +415,8 @@ export default class Runner extends EventEmitter {
          * In case of initialisation failed, the sessionId is undefined and the runner:start is not triggered.
          * So, to be able to perform the runner:end into the reporters, we need to launch the runner:start just before the runner:end.
          */
-        if (!global.browser.sessionId) {
-            this._reporter!.emit('runner:start', {
+        if (!global.browser.sessionId && this._reporter) {
+            this._reporter.emit('runner:start', {
                 cid: this._cid,
                 specs: this._specs,
                 config: this._config,
