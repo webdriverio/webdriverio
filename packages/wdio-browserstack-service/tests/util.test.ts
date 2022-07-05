@@ -123,12 +123,20 @@ describe('getBrowserDescription', () => {
 })
 
 describe('isBrowserstackCapability', () => {
-    it('should detect browserstack W3C capabilities', () => {
+    it('should return false if browserstack W3C capabilities is absent or not valid', () => {
         expect(isBrowserstackCapability({})).toBe(false)
         expect(isBrowserstackCapability()).toBe(false)
         // @ts-expect-error test invalid params
         expect(isBrowserstackCapability({ 'bstack:options': null })).toBe(false)
-        expect(isBrowserstackCapability({ 'bstack:options': {} })).toBe(true)
+        expect(isBrowserstackCapability({ 'bstack:options': {} })).toBe(false)
+    })
+
+    it('should return false if only key in browserstack W3C capabilities is wdioService', () => {
+        expect(isBrowserstackCapability({ 'bstack:options': { wdioService: 'version' } })).toBe(false)
+    })
+
+    it('should detect browserstack W3C capabilities', () => {
+        expect(isBrowserstackCapability({ 'bstack:options': { os: 'some os' } })).toBe(true)
     })
 })
 
