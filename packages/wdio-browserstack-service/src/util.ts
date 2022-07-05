@@ -44,7 +44,7 @@ export function getBrowserCapabilities(browser: Browser<'async'> | MultiRemoteBr
  * @param cap browser capabilities
  */
 export function isBrowserstackCapability(cap?: Capabilities.Capabilities) {
-    return Boolean(cap && cap['bstack:options'])
+    return Boolean(cap && cap['bstack:options'] && Object.keys(cap['bstack:options']).length && !(Object.keys(cap['bstack:options']).length === 1 && cap['bstack:options'].wdioService))
 }
 
 export function getParentSuiteName(fullTitle: string, testSuiteTitle: string): string {
