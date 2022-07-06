@@ -75,8 +75,8 @@ export async function initialiseInstance (
     if (!isMultiremote) {
         log.debug('init remote session')
         const sessionConfig: Options.WebdriverIO = {
-            ...config,
             ...sanitizeCaps(capabilities, true),
+            ...config,
             capabilities: sanitizeCaps(capabilities)
         }
         return remote(sessionConfig)
