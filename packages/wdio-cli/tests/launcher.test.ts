@@ -17,6 +17,8 @@ vi.mock('../src/interface', () => ({
         on = vi.fn()
         sigintTrigger = vi.fn()
         onMessage = vi.fn()
+        logHookError = vi.fn()
+        finalise = vi.fn()
     }
 }))
 
@@ -28,15 +30,16 @@ describe('launcher', () => {
         global.console.log = vi.fn()
         emitSpy.mockClear()
         launcher = new Launcher('./')
+        launcher.interface = {
+            onMessage: vi.fn(),
+            emit: vi.fn(),
+            sigintTrigger: vi.fn()
+        } as any
     })
 
     describe('defaults', () => {
         it('should have default for the argv parameter', () => {
             expect(launcher['_args']).toEqual({})
-        })
-
-        it('should run autocompile by default', () => {
-            expect(launcher['configParser'].autoCompile).toBeCalledTimes(1)
         })
 
         it('should not run auto compile if cli param was provided', () => {
@@ -51,7 +54,6 @@ describe('launcher', () => {
                     autoCompile: false
                 }
             })
-            expect(otherLauncher['configParser'].autoCompile).toBeCalledTimes(1)
         })
     })
 
@@ -652,16 +654,6 @@ describe('launcher', () => {
         })
     })
 
-    describe('config options', () => {
-        it('should create directory when the config options have a outputDir option', () => {
-            expect(vi.mocked(fs.ensureDirSync)).toHaveBeenCalled()
-            expect(vi.mocked(fs.ensureDirSync)).toHaveBeenCalledWith('tempDir')
-        })
-        afterEach(() => {
-            vi.mocked(fs.ensureDirSync).mockClear()
-        })
-    })
-
     describe('run', () => {
         let config: WebdriverIO.Config = { capabilities: {} }
 
@@ -673,23 +665,29 @@ describe('launcher', () => {
                 onPrepare: [vi.fn()],
                 onComplete: [vi.fn()],
                 capabilities: {},
-                runner: 'local'
+                runner: 'local',
+                runnerEnv: {},
+                outputDir: 'tempDir'
             }
             launcher.configParser = {
                 getCapabilities: vi.fn().mockReturnValue(0),
                 getConfig: vi.fn().mockReturnValue(config),
-                autoCompile: vi.fn()
+                autoCompile: vi.fn(),
+                addConfigFile: vi.fn(),
+                merge: vi.fn()
             } as any
             launcher.runner = { initialise: vi.fn(), shutdown: vi.fn() } as any
             launcher.runMode = vi.fn().mockImplementation((config, caps) => caps)
-            launcher.interface = { finalise: vi.fn() } as any
         })
 
         it('exit code 0', async () => {
             expect(await launcher.run()).toEqual(0)
+            expect(launcher['configParser'].autoCompile).toBeCalledTimes(1)
             expect(launcher.runner!.shutdown).toBeCalled()
+            expect(vi.mocked(fs.ensureDirSync)).toHaveBeenCalled()
+            expect(vi.mocked(fs.ensureDirSync)).toHaveBeenCalledWith('tempDir')
 
-            expect(launcher.configParser.getCapabilities).toBeCalledTimes(1)
+            expect(launcher.configParser.getCapabilities).toBeCalledTimes(2)
             expect(launcher.configParser.getConfig).toBeCalledTimes(1)
             expect(launcher.runner!.initialise).toBeCalledTimes(1)
             // @ts-expect-error
@@ -697,7 +695,7 @@ describe('launcher', () => {
             expect(launcher.runMode).toBeCalledTimes(1)
             // @ts-expect-error
             expect(config.onPrepare[0]).toBeCalledTimes(1)
-            expect(launcher.interface.finalise).toBeCalledTimes(1)
+            expect(launcher.interface!.finalise).toBeCalledTimes(1)
         })
 
         it('should not shutdown runner if was called before', async () => {
@@ -730,6 +728,7 @@ describe('launcher', () => {
 
         afterEach(() => {
             vi.mocked(global.console.error).mockRestore()
+            vi.mocked(fs.ensureDirSync).mockClear()
         })
     })
 
