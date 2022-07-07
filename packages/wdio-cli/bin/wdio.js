@@ -8,5 +8,10 @@ if (process.env.NODE_ENV == null) {
     process.env.NODE_ENV = 'test'
 }
 
-const cli = await import('../build/index.js')
-cli.run()
+/**
+ * use IIFE to allow running this within CJS and ESM context
+ */
+(async () => {
+    const cli = await import('../build/index.js')
+    cli.run()
+})()
