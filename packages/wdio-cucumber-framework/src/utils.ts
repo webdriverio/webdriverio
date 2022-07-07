@@ -6,7 +6,7 @@ import { isFunctionAsync } from '@wdio/utils'
 import * as Cucumber from '@cucumber/cucumber'
 import { supportCodeLibraryBuilder } from '@cucumber/cucumber'
 import { TableRow, TableCell, PickleStep, TestStep, Feature, Pickle, TestStepResultStatus } from '@cucumber/messages'
-import { Capabilities } from '@wdio/types'
+import type { Capabilities } from '@wdio/types'
 
 import { CUCUMBER_HOOK_DEFINITION_TYPES, ReporterStep } from './constants.js'
 import type { TestHookDefinitionConfig } from './types'

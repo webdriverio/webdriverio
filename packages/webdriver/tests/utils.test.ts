@@ -1,8 +1,9 @@
 import path from 'node:path'
 import { URL } from 'node:url'
 import { describe, it, expect, MockedFunction, vi } from 'vitest'
-import { Capabilities, Options } from '@wdio/types'
 import { transformCommandLogResult } from '@wdio/utils'
+import type { Capabilities, Options } from '@wdio/types'
+
 import {
     isSuccessfulResponse, getPrototype, getSessionError,
     getErrorFromResponseBody, CustomRequestError, startWebDriverSession,

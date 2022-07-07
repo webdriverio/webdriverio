@@ -3,7 +3,7 @@ import { describe, expect, it, beforeEach, afterEach, test, vi } from 'vitest'
 
 import got from 'got'
 import CrossBrowserTestingService from '../src/service'
-import { Frameworks } from '@wdio/types'
+import type { Frameworks } from '@wdio/types'
 
 vi.mock('got')
 vi.mocked(got.put).mockResolvedValue({ body: '{}' })

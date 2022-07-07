@@ -1,4 +1,4 @@
-import { Capabilities, Options } from '@wdio/types'
+import type { Capabilities, Options } from '@wdio/types'
 
 const DEFAULT_HOSTNAME = '127.0.0.1'
 const DEFAULT_PORT = 4444

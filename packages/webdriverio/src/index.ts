@@ -3,7 +3,7 @@ import logger from '@wdio/logger'
 import WebDriver, { DEFAULTS } from 'webdriver'
 import { validateConfig } from '@wdio/config'
 import { wrapCommand } from '@wdio/utils'
-import { Options, Capabilities } from '@wdio/types'
+import type { Options, Capabilities } from '@wdio/types'
 import type * as WebDriverTypes from 'webdriver'
 
 import MultiRemote from './multiremote.js'

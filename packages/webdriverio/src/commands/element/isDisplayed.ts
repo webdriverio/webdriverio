@@ -1,4 +1,4 @@
-import { Capabilities } from '@wdio/types'
+import type { Capabilities } from '@wdio/types'
 
 import { ELEMENT_KEY } from '../../constants.js'
 import { getBrowserObject, hasElementId } from '../../utils/index.js'

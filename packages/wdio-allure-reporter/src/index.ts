@@ -4,7 +4,7 @@ import WDIOReporter, {
     SuiteStats, Tag, HookStats, RunnerStats, TestStats, BeforeCommandArgs,
     AfterCommandArgs, CommandArgs, Argument
 } from '@wdio/reporter'
-import { Capabilities, Options } from '@wdio/types'
+import type { Capabilities, Options } from '@wdio/types'
 
 import {
     getTestStatus, isEmpty, tellReporter, isMochaEachHooks, getErrorFromFailedTest,

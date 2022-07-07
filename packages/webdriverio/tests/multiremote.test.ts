@@ -1,6 +1,6 @@
 import { test, expect, vi, afterEach } from 'vitest'
 import got from 'got'
-import { Capabilities } from '@wdio/types'
+import type { Capabilities } from '@wdio/types'
 
 import { multiremote } from '../src'
 import { MultiRemoteBrowser } from '../build'

@@ -4,7 +4,7 @@ import { performance } from 'node:perf_hooks'
 import type { URL } from 'node:url'
 
 import got, { Options as GotOptions } from 'got'
-import { Options } from '@wdio/types'
+import type { Options } from '@wdio/types'
 
 import WebDriverRequest, { RequestLibError } from './index.js'
 

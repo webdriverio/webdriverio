@@ -1,5 +1,5 @@
 import path from 'node:path'
-import { Services } from '@wdio/types'
+import type { Services } from '@wdio/types'
 
 import { safeImport } from './utils.js'
 

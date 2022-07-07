@@ -1,6 +1,6 @@
 import iterators from 'p-iteration'
 import logger from '@wdio/logger'
-import { Clients } from '@wdio/types'
+import type { Clients } from '@wdio/types'
 
 const log = logger('@wdio/utils:shim')
 
