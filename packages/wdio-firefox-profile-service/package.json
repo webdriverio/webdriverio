@@ -27,18 +27,8 @@
   "bugs": {
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
-  "main": "./build/index.cjs.js",
   "type": "module",
-  "module": "./build/index.js",
-  "exports": {
-    ".": [
-      {
-        "import": "./build/index.js",
-        "require": "./build/index.cjs.js"
-      },
-      "./build/index.cjs.js"
-    ]
-  },
+  "exports": "./build/index.js",
   "types": "./build/index.d.ts",
   "typeScriptVersion": "3.8.3",
   "dependencies": {
