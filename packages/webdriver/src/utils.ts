@@ -7,7 +7,7 @@ import {
 } from '@wdio/protocols'
 import { transformCommandLogResult } from '@wdio/utils'
 import { CAPABILITY_KEYS } from '@wdio/protocols'
-import { Options, Capabilities } from '@wdio/types'
+import type { Options, Capabilities } from '@wdio/types'
 
 import RequestFactory from './request/factory.js'
 import command from './command.js'

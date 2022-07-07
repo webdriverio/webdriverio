@@ -2,7 +2,7 @@ import path from 'node:path'
 import { describe, expect, it, afterEach, vi } from 'vitest'
 import cbtTunnels from 'cbt_tunnels'
 import logger from '@wdio/logger'
-import { Capabilities, Options } from '@wdio/types'
+import type { Capabilities, Options } from '@wdio/types'
 
 import CrossBrowserTestingLauncher from '../src/launcher'
 import { CrossBrowserTestingConfig } from '../src/types'

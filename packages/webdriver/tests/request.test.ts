@@ -5,7 +5,7 @@ import http from 'node:http'
 import https from 'node:https'
 import got, { Agents } from 'got'
 import logger from '@wdio/logger'
-import { Options } from '@wdio/types'
+import type { Options } from '@wdio/types'
 
 import * as utils from '../src/utils'
 import WebDriverRequest from '../src/request/node'

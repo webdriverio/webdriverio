@@ -1,6 +1,6 @@
 import got from 'got'
 import logger from '@wdio/logger'
-import { Capabilities, Options, Services, Frameworks } from '@wdio/types'
+import type { Capabilities, Options, Services, Frameworks } from '@wdio/types'
 import type { Browser, MultiRemoteBrowser } from 'webdriverio'
 
 import type { TestingbotOptions } from './types'

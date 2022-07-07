@@ -1,8 +1,8 @@
-import { Options } from '@wdio/types'
+import ky, { Options as KyOptions } from 'ky'
 import logger from '@wdio/logger'
+import type { Options } from '@wdio/types'
 
 import WebDriverRequest from './index.js'
-import ky, { Options as KyOptions } from 'ky'
 
 type RequestLibOptions = Options.RequestLibOptions
 type RequestOptions = Omit<Options.WebDriver, 'capabilities'>

@@ -1,8 +1,8 @@
 import { format } from 'node:util'
-import WDIOReporter, { SuiteStats, HookStats, RunnerStats, TestStats, Argument } from '@wdio/reporter'
-import { Capabilities } from '@wdio/types'
 import chalk, { Chalk } from 'chalk'
 import prettyMs from 'pretty-ms'
+import WDIOReporter, { SuiteStats, HookStats, RunnerStats, TestStats, Argument } from '@wdio/reporter'
+import type { Capabilities } from '@wdio/types'
 
 import { buildTableData, printTable, getFormattedRows, sauceAuthenticationToken } from './utils.js'
 import type { StateCount, Symbols, SpecReporterOptions, TestLink } from './types'
