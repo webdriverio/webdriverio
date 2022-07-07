@@ -5,7 +5,7 @@
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-types",
   "license": "MIT",
-  "main": "./build/index.js",
+  "type": "module",
   "types": "./build/index.d.ts",
   "exports": {
     ".": "./build/index.js",

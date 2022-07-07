@@ -18,9 +18,7 @@
   "bugs": {
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
-  "main": "./build/index.cjs.js",
   "type": "module",
-  "module": "./build/index.js",
   "exports": {
     ".": [
       {
