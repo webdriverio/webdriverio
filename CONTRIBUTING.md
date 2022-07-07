@@ -191,7 +191,7 @@ When a PR gets submitted, WebdriverIO runs the following checks:
   your changes cover all necessary code paths. We are using [Vitest](https://vitest.dev/) as a unit test framework here.
   You can manually trigger this check by calling:
   ```sh
-  $ npm run test:coverage
+  $ npm run test:unit
   ```
 - *Smoke Tests*
   While unit tests already cover a lot of cases, we run in addition to that smoke tests that simulate test scenarios which are difficult to test
