@@ -50,7 +50,7 @@ describe('webdriver request', () => {
         )
     })
 
-    it.only('should pick up the fullRequestOptions returned by transformRequest', async () => {
+    it('should pick up the fullRequestOptions returned by transformRequest', async () => {
         const req = new WebDriverRequest('POST', '/foo/bar', { foo: 'bar' })
         const transformRequest = vi.fn().mockImplementation((requestOptions) => ({
             ...requestOptions,
@@ -96,9 +96,9 @@ describe('webdriver request', () => {
     })
 
     describe('createOptions', () => {
-        it('fails if command requires sessionId but none given', () => {
+        it('fails if command requires sessionId but none given', async () => {
             const req = new WebDriverRequest('POST', `${webdriverPath}/:sessionId/element`, {})
-            expect(() => req['_createOptions']({ logLevel: 'warn' })).toThrow()
+            await expect(() => req['_createOptions']({ logLevel: 'warn' })).rejects.toThrow()
         })
 
         it('creates proper options set', async () => {
@@ -121,7 +121,7 @@ describe('webdriver request', () => {
                 .toBe('https://localhost:4445/session/foobar12345/element')
             expect(Object.keys(options.headers as Record<string, string>))
                 .toEqual(['Content-Type', 'Connection', 'Accept', 'User-Agent', 'foo', 'Content-Length'])
-            expect(options.timeout).toBe(10 * 1000)
+            expect(options.timeout).toEqual({ response: 10 * 1000 })
         })
 
         it('passes a custom agent', async () => {

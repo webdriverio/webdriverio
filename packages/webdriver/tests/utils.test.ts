@@ -337,7 +337,7 @@ describe('utils', () => {
                 .toBe('mockBrowser')
         })
 
-        it.only('should handle sessionRequest error', async () => {
+        it('should handle sessionRequest error', async () => {
             let error = await startWebDriverSession({
                 logLevel: 'warn',
                 capabilities: {}

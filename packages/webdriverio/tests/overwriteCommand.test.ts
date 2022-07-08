@@ -2,6 +2,7 @@ import { describe, expect, test, vi } from 'vitest'
 import { remote, multiremote } from '../src'
 
 vi.mock('got')
+vi.mock('devtools')
 
 const remoteConfig = {
     baseUrl: 'http://foobar.com',
@@ -43,7 +44,7 @@ const customBrowserCommand = async (origCmd: Function, origCmdArg: number, arg =
 
 describe('overwriteCommand', () => {
     describe('remote', () => {
-        test.only('should be able to handle async', async () => {
+        test('should be able to handle async', async () => {
             const browser = await remote(remoteConfig)
             browser.overwriteCommand('pause', customBrowserCommand)
 
@@ -103,7 +104,7 @@ describe('overwriteCommand', () => {
             })
 
             // @ts-expect-error command overwritten
-            await expect(() => browser.waitUntil()).toThrow(error1)
+            await expect(() => browser.waitUntil()).rejects.toThrow(error1)
             // @ts-expect-error command overwritten
             await expect(browser.url()).rejects.toThrow(error2)
         })
@@ -119,7 +120,7 @@ describe('overwriteCommand', () => {
             }, true)
             const elem = await browser.$('#foo')
 
-            await expect(() => elem.click()).toThrow(error1)
+            await expect(() => elem.click()).rejects.toThrow(error1)
             await expect(elem.waitForDisplayed()).rejects.toThrow(error2)
         })
     })
