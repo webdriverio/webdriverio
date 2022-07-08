@@ -134,6 +134,10 @@ export interface WebDriver extends Connection {
      */
     logLevel?: WebDriverLogTypes
     /**
+     * Whether clear logger on session end or not
+     */
+    clearLoggerOnSessionEnd?: boolean
+    /**
      * Set specific log levels per logger
      * use 'silent' level to disable logger
      */
