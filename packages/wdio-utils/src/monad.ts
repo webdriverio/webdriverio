@@ -32,7 +32,11 @@ export default function WebDriver (options: Record<string, any>, modifier?: Func
     /**
      * WebDriver monad
      */
-    function unit (this: void, sessionId: string, commandWrapper?: Function) {
+    function unit (this: void, sessionId: string, commandWrapper?: Function, eventMiddleware?: { socket: Partial<EventEmitter> }) {
+        if (eventMiddleware) {
+            prototype.eventMiddleware = eventMiddleware
+        }
+
         /**
          * capabilities attached to the instance prototype not being shown if
          * logging the instance
@@ -182,6 +186,13 @@ export default function WebDriver (options: Record<string, any>, modifier?: Func
     for (let eventCommand in EVENTHANDLER_FUNCTIONS) {
         prototype[eventCommand] = function (...args: [any, any]) {
             eventHandler[eventCommand as keyof EventEmitter](...args as [never, any])
+
+            if (prototype.eventMiddleware) {
+                if (typeof prototype.eventMiddleware[eventCommand as keyof EventEmitter] === 'function') {
+                    prototype.eventMiddleware.socket[eventCommand as keyof EventEmitter]!(...args as [never, any])
+                }
+            }
+
             return this
         }
     }

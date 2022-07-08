@@ -176,3 +176,47 @@ export type Environments = 'XCUITest' | 'UIAutomation' | 'UiAutomator'
  * ```
  */
 export type SupportedEnvironments = Record<Platform, Record<Environments, string>>
+
+export type SupportedMethods = (
+    'session.status' |
+    'session.new' |
+    'session.subscribe' |
+    'session.unsubscribe' |
+    'browsingContext.captureScreenshot' |
+    'browsingContext.close' |
+    'browsingContext.create' |
+    'browsingContext.getTree' |
+    'browsingContext.handleUserPrompt' |
+    'browsingContext.navigate' |
+    'browsingContext.reload' |
+    'browsingContext.contextCreated' |
+    'browsingContext.contextDestroyed' |
+    'browsingContext.navigationStarted' |
+    'browsingContext.fragmentNavigated' |
+    'browsingContext.domContentLoaded' |
+    'browsingContext.load' |
+    'browsingContext.downloadWillBegin' |
+    'browsingContext.navigationAborted' |
+    'browsingContext.navigationFailed' |
+    'browsingContext.userPromptClosed' |
+    'browsingContext.userPromptOpened' |
+    'script.disown' |
+    'script.callFunction' |
+    'script.evaluate' |
+    'script.getRealms' |
+    'script.realmCreated' |
+    'script.realmDestoyed' |
+    'log.entryAdded'
+)
+
+export interface BidiRequest {
+    method: SupportedMethods
+    /**
+     * types will be more defined later
+     */
+    params: Record<string, any>
+}
+
+export interface BidiResponse {
+    id: number
+}

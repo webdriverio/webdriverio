@@ -1,12 +1,18 @@
 import logger from '@wdio/logger'
 import { commandCallStructure, isValidParameter, getArgumentType } from '@wdio/utils'
-import type { CommandEndpoint } from '@wdio/protocols'
+import type { CommandEndpoint, BidiResponse } from '@wdio/protocols'
 
 import RequestFactory from './request/factory.js'
+import { BidiHandler } from './bidi.js'
 import type { WebDriverResponse } from './request'
 import type { BaseClient } from './types'
 
 const log = logger('webdriver')
+const BIDI_COMMANDS = ['send', 'sendAsync'] as const
+
+interface BaseClientWithEventHandler extends BaseClient {
+    eventMiddleware: BidiHandler
+}
 
 export default function (
     method: string,
@@ -16,7 +22,7 @@ export default function (
 ) {
     const { command, ref, parameters, variables = [], isHubCommand = false } = commandInfo
 
-    return async function protocolCommand (this: BaseClient, ...args: any[]): Promise<WebDriverResponse> {
+    return async function protocolCommand (this: BaseClientWithEventHandler, ...args: any[]): Promise<WebDriverResponse | BidiResponse | void> {
         let endpoint = endpointUri // clone endpointUri in case we change it
         const commandParams = [...variables.map((v) => Object.assign(v, {
             /**
@@ -86,6 +92,17 @@ export default function (
              * rest of args are part of body payload
              */
             body[commandParams[i].name] = arg
+        }
+
+        /**
+         * Handle Bidi calls
+         */
+        if (this.sessionId && BIDI_COMMANDS.includes(command as typeof BIDI_COMMANDS[number])) {
+            if (!this.eventMiddleware) {
+                throw new Error('Your WebDriver session doesn\'t support WebDriver Bidi')
+            }
+
+            return this.eventMiddleware[command as typeof BIDI_COMMANDS[number]](body.params)
         }
 
         const request = await RequestFactory.getInstance(method, endpoint, body, isHubCommand)

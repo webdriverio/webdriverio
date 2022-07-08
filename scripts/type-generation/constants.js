@@ -24,5 +24,6 @@ export const returnTypeMap = {
     findElements: 'ElementReference[]',
     findElementFromElement: 'ElementReference',
     findElementsFromElement: 'ElementReference[]',
-    getAllCookies: 'Cookie[]'
+    getAllCookies: 'Cookie[]',
+    send: 'BidiResponse'
 }

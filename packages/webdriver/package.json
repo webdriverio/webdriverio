@@ -20,7 +20,7 @@
   "types": "./build/index.d.ts",
   "typeScriptVersion": "3.8.3",
   "engines": {
-     "node": "^16.13 || >=18"
+    "node": "^16.13 || >=18"
   },
   "repository": {
     "type": "git",
@@ -33,7 +33,8 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "devDependencies": {
-    "@types/lodash.merge": "^4.6.7"
+    "@types/lodash.merge": "^4.6.7",
+    "@types/ws": "^8.5.3"
   },
   "dependencies": {
     "@types/node": "^18.0.0",
@@ -43,7 +44,8 @@
     "@wdio/types": "7.20.7",
     "@wdio/utils": "7.20.7",
     "got": "^12.1.0",
-    "ky": "0.31.1",
-    "lodash.merge": "^4.6.2"
+    "ky": "^0.31.1",
+    "lodash.merge": "^4.6.2",
+    "ws": "^8.8.0"
   }
 }

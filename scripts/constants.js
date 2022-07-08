@@ -1,4 +1,5 @@
 import webdriver from '../packages/wdio-protocols/protocols/webdriver.json' assert { type: 'json' }
+import webdriverBidi from '../packages/wdio-protocols/protocols/webdriverBidi.json' assert { type: 'json' }
 import appium from '../packages/wdio-protocols/protocols/appium.json' assert { type: 'json' }
 import mjsonwp from '../packages/wdio-protocols/protocols/mjsonwp.json' assert { type: 'json' }
 import chromium from '../packages/wdio-protocols/protocols/chromium.json' assert { type: 'json' }
@@ -8,14 +9,15 @@ import selenium from '../packages/wdio-protocols/protocols/selenium.json' assert
 import jsonwp from '../packages/wdio-protocols/protocols/jsonwp.json' assert { type: 'json' }
 
 export const PROTOCOLS = {
-    webdriver, appium, mjsonwp, chromium,
-    gecko, saucelabs, selenium, jsonwp
+    webdriver, webdriverBidi, appium, mjsonwp,
+    chromium, gecko, saucelabs, selenium, jsonwp
 }
 export const PROTOCOL_NAMES = {
     appium: 'Appium',
     jsonwp: 'JSON Wire Protocol',
     mjsonwp: 'Mobile JSON Wire Protocol',
     webdriver: 'WebDriver Protocol',
+    webdriverBidi: 'WebDriver Bidi Protocol',
     chromium: 'Chromium',
     gecko: 'Firefox',
     saucelabs: 'Sauce Labs',
