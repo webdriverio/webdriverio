@@ -18,6 +18,9 @@ export default defineConfig({
             functions: 90,
             branches: 90,
             statements: 90
-        }
+        },
+        globalSetup: [
+            'scripts/test/globalSetup.ts'
+        ]
     }
 })
