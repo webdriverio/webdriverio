@@ -29,7 +29,7 @@
     "@wdio/logger": "7.19.0",
     "@wdio/types": "7.20.7",
     "cbt_tunnels": "^1.2.2",
-    "got": "^11.0.2",
+    "got": "^12.1.0",
     "webdriverio": "7.20.7"
   },
   "peerDependencies": {

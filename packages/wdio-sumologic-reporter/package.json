@@ -31,7 +31,7 @@
     "@wdio/reporter": "7.20.7",
     "@wdio/types": "7.20.7",
     "dateformat": "4.5.1",
-    "got": "^11.0.2",
+    "got": "^12.1.0",
     "json-stringify-safe": "^5.0.1"
   },
   "peerDependencies": {
