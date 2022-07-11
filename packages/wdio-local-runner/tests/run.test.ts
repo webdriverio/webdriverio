@@ -64,7 +64,7 @@ test('should exit process if failing to execute', async () => {
         command: 'errorMe',
         foo: 'bar'
     })
-    expect(instances[0].errorMe).toHaveBeenCalledTimes(1)
+    expect((await instances[0]).errorMe).toHaveBeenCalledTimes(1)
     await sleep()
     expect(process.exit).toBeCalledWith(1)
 

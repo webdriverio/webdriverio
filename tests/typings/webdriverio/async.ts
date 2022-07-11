@@ -403,7 +403,7 @@ async function bar() {
 
     // async chain API
     expectType<WebdriverIO.Element>(
-        await browser.$('foo').$('bar').$$('loo')[2].$('foo').$('bar'))
+        await (await browser.$('foo').$('bar').$$('loo')[2]).$('foo').$('bar'))
     expectType<Selector>(
         await browser.$('foo').$('bar').selector)
     expectType<Error>(
