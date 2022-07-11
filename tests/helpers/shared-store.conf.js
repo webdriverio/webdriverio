@@ -1,8 +1,8 @@
-const { config } = require('./config')
+import { config as baseConfig } from './config.js'
 
-exports.config = Object.assign({}, config, {
+export const config = Object.assign({}, baseConfig, {
     beforeSuite () {
         browser.sharedStore.set(browser.sessionId, browser.capabilities)
     },
-    services: [...config.services, 'shared-store']
+    services: [...baseConfig.services, 'shared-store']
 })

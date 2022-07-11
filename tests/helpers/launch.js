@@ -1,7 +1,10 @@
 import fs from 'node:fs'
+import url from 'node:url'
 import path from 'node:path'
 
-import Launcher from '../../packages/wdio-cli/build/launcher'
+import Launcher from '../../packages/wdio-cli/build/launcher.js'
+
+const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 
 export default function launch (...args) {
     const launcher = new Launcher(...args)

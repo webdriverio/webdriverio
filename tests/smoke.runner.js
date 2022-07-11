@@ -1,26 +1,30 @@
-import { readFile, unlink, exists, rename } from 'node:fs'
+import fs from 'node:fs/promises'
+import url from 'node:url'
 import path from 'node:path'
 import assert from 'node:assert'
-import { promisify } from 'node:util'
 
-import { sleep } from '../packages/wdio-utils/src/utils'
-import { SevereServiceError } from '../packages/node_modules/webdriverio'
+import { sleep } from '../packages/wdio-utils/build/utils.js'
+import { SevereServiceError } from '../packages/node_modules/webdriverio/build/index.js'
 
-const fs = {
-    readFile: promisify(readFile),
-    unlink: promisify(unlink),
-    exists: promisify(exists),
-    rename: promisify(rename)
-}
+const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 
-import launch from './helpers/launch'
+import launch from './helpers/launch.js'
 import {
     SERVICE_LOGS,
     LAUNCHER_LOGS,
     REPORTER_LOGS,
     JASMINE_REPORTER_LOGS,
     CUCUMBER_REPORTER_LOGS,
-} from './helpers/fixtures'
+} from './helpers/fixtures.js'
+
+async function fileExists (path) {
+    try {
+        await fs.access(path)
+        return true
+    } catch {
+        return false
+    }
+}
 
 async function runTests (tests) {
     /**
@@ -45,7 +49,7 @@ async function runTests (tests) {
     } else {
         // parallel
         await Promise.all(tests.map(test => test().catch((err) => {
-            throw new Error(`Smoke test failed with name ${test.name}, ${err}`)
+            throw new Error(`Smoke test failed with name ${test.name}, ${err.stack}`)
         })))
     }
 }
@@ -58,10 +62,10 @@ const mochaTestrunner = async () => {
         path.resolve(__dirname, 'helpers', 'config.js'),
         {
             specs: [
-                path.resolve(__dirname, 'mocha', 'test.js'),
-                path.resolve(__dirname, 'mocha', 'test-middleware.js'),
-                path.resolve(__dirname, 'mocha', 'test-waitForElement.js'),
-                path.resolve(__dirname, 'mocha', 'test-skipped.js')
+                path.resolve(__dirname, 'mocha', 'test.ts'),
+                path.resolve(__dirname, 'mocha', 'test-middleware.ts'),
+                path.resolve(__dirname, 'mocha', 'test-waitForElement.ts'),
+                path.resolve(__dirname, 'mocha', 'test-skipped.ts')
             ]
         })
     assert.strictEqual(skippedSpecs, 1)
@@ -73,7 +77,7 @@ const mochaTestrunner = async () => {
 const mochaAsyncTestrunner = async () => {
     const { skippedSpecs } = await launch(
         path.resolve(__dirname, 'helpers', 'command.hook.config.js'),
-        { specs: [path.resolve(__dirname, 'mocha', 'test-async.js')] }
+        { specs: [path.resolve(__dirname, 'mocha', 'test-async.ts')] }
     )
     assert.strictEqual(skippedSpecs, 0)
 }
@@ -327,7 +331,7 @@ const retryPass = async () => {
     let logfiles = ['wdio-0-0.log', 'wdio-0-1.log'].map(f => path.join(__dirname, f))
     let rmfiles = [retryFilename, ...logfiles]
     for (let filename of rmfiles) {
-        if (await fs.exists(filename)) {
+        if (await fileExists(filename)) {
             fs.unlink(filename, err => {
                 if (err) {
                     throw Error(`Unable to delete ${filename}`)
@@ -344,10 +348,10 @@ const retryPass = async () => {
             specFileRetriesDelay: 1,
             retryFilename
         })
-    if (!await fs.exists(logfiles[0])) {
+    if (!await fileExists(logfiles[0])) {
         throw Error(`Expected ${logfiles[0]} to exist but it does not`)
     }
-    if (await fs.exists(logfiles[1])) {
+    if (await fileExists(logfiles[1])) {
         throw Error(`Expected ${logfiles[1]} to not exist but it does`)
     }
 }

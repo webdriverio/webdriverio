@@ -9,7 +9,7 @@ import type { Capabilities, Services } from '@wdio/types'
 
 import { loadModule } from './utils.js'
 import { INTERFACES, EVENTS, NOOP, MOCHA_TIMEOUT_MESSAGE, MOCHA_TIMEOUT_MESSAGE_REPLACEMENT } from './constants.js'
-import type { MochaConfig, MochaOpts as MochaOptsImport, FrameworkMessage, FormattedMessage, MochaContext, MochaError } from './types'
+import type { MochaConfig, MochaOpts as MochaOptsImport, FrameworkMessage, FormattedMessage, MochaError } from './types'
 import type { EventEmitter } from 'node:events'
 import type ExpectWebdriverIO from 'expect-webdriverio'
 
@@ -136,24 +136,17 @@ class MochaAdapter {
         return result
     }
 
-    options (
-        options: MochaOptsImport,
-        context: MochaContext
-    ) {
+    options (options: MochaOptsImport) {
         let { require = [], compilers = [] } = options
 
         if (typeof require === 'string') {
             require = [require]
         }
 
-        return this.requireExternalModules([...compilers, ...require], context)
+        return this.requireExternalModules([...compilers, ...require])
     }
 
-    preRequire (
-        context: Mocha.MochaGlobals,
-        file: string,
-        mocha: Mocha
-    ) {
+    preRequire () {
         const options = this._config.mochaOpts
 
         const match = MOCHA_UI_TYPE_EXTRACTOR.exec(options.ui!) as any as [string, keyof typeof INTERFACES]
@@ -178,7 +171,7 @@ class MochaAdapter {
                 this._cid
             )
         })
-        return this.options(options, { context, file, mocha, options })
+        return this.options(options)
     }
 
     /**
@@ -290,7 +283,7 @@ class MochaAdapter {
         return message
     }
 
-    requireExternalModules (modules: string[], context: MochaContext) {
+    requireExternalModules (modules: string[]) {
         return modules.map((module) => {
             if (!module) {
                 return Promise.resolve()
@@ -302,7 +295,7 @@ class MochaAdapter {
                 module = path.join(process.cwd(), module)
             }
 
-            return loadModule(module, context)
+            return loadModule(module)
         })
     }
 

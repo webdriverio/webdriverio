@@ -393,12 +393,12 @@ class Launcher {
         // if you would like to add --debug-brk, use a different port, etc...
         let capExecArgs = [...(config.execArgv || [])]
 
-        // The default value for child.fork execArgs is process.execArgs,
-        // so continue to use this unless another value is specified in config.
-        let defaultArgs = (capExecArgs.length) ? process.execArgv : []
-
         // If an arg appears multiple times the last occurrence is used
-        let execArgv = [...defaultArgs, ...debugArgs, ...capExecArgs]
+        let execArgv = [...process.execArgv, ...debugArgs, ...capExecArgs]
+        // support ESM when using ts-node
+        if (typeof execArgv[0] === 'string' && execArgv[0].includes('node_modules/ts-node')) {
+            execArgv.push('--esm=1')
+        }
 
         // bump up worker count
         this._runnerStarted++

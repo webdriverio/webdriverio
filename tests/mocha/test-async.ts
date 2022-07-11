@@ -10,6 +10,7 @@ describe('Mocha smoke test', () => {
     })
 
     it('should allow to iterate over elements', async () => {
+        // @ts-expect-error custom command
         const expectedResults = await browser.asyncIterationScenario()
         let i = 0
         for await (let elem of browser.$$('elems')) {
@@ -18,6 +19,7 @@ describe('Mocha smoke test', () => {
     })
 
     it('should allow to fetch parent elements with chaining', async () => {
+        // @ts-expect-error custom command
         await browser.parentElementChaining()
         assert.equal(
             await $('foo').parentElement().getText(),
@@ -26,6 +28,7 @@ describe('Mocha smoke test', () => {
     })
 
     it('should allow to fetch parent elements with chaining', async () => {
+        // @ts-expect-error custom command
         await browser.parentElementChaining()
         assert.equal(
             await $('foo').nextElement().getText(),
@@ -34,6 +37,7 @@ describe('Mocha smoke test', () => {
     })
 
     it('should allow to fetch parent elements with chaining', async () => {
+        // @ts-expect-error custom command
         await browser.parentElementChaining()
         assert.equal(
             await $('foo').previousElement().getText(),

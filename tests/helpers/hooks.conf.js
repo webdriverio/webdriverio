@@ -1,6 +1,6 @@
-const { config } = require('./config')
+import { config as baseConfig } from './config.js'
 
-exports.config = Object.assign({}, config, {
+export const config = Object.assign({}, baseConfig, {
     before () {
         global.WDIO_SERVICE_TEST_IT_DURATION = 0
         global.WDIO_SERVICE_TEST_IT_PASSES = 0

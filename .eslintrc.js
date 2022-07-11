@@ -35,7 +35,7 @@ module.exports = {
         'keyword-spacing':['error'],
         'require-atomic-updates': 0,
         'linebreak-style': ['error', 'unix'],
-        'unicorn/prefer-node-protocol': ['error', { 'checkRequire': true }]
+        'unicorn/prefer-node-protocol': ['error']
     },
     overrides: [{
         files: ['*.ts'],
