@@ -3,7 +3,7 @@ import { createRequire } from 'node:module'
 
 const require = createRequire(import.meta.url)
 const puppeteerPath = require.resolve('puppeteer-core')
-const puppeteerPkg = require(`${path.dirname(puppeteerPath)}/package.json`)
+const puppeteerPkg = require(path.join(path.dirname(puppeteerPath), '..', '..', '..', 'package.json'))
 
 /**
  * The Status command returns information about whether a remote end is in a state

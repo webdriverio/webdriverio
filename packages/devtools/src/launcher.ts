@@ -206,7 +206,8 @@ function connectBrowser (connectionUrl: string, capabilities: ExtendedCapabiliti
 
 export default async function launch (capabilities: ExtendedCapabilities) {
     puppeteer.unregisterCustomQueryHandler('shadow')
-    puppeteer.registerCustomQueryHandler('shadow', QueryHandler)
+    // ToDo(Christian): fix types (https://github.com/Georgegriff/query-selector-shadow-dom/issues/77)
+    puppeteer.registerCustomQueryHandler('shadow', QueryHandler as any)
     const browserName = capabilities.browserName?.toLowerCase()
 
     /**

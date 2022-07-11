@@ -6,4 +6,5 @@ RUN \
         chromium-browser
 
 RUN \
+    nvm install && \
     npm i -g http-server diff-so-fancy chromedriver@101
