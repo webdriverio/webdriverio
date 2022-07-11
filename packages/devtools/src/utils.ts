@@ -7,7 +7,7 @@ import logger from '@wdio/logger'
 import { commandCallStructure, isValidParameter, getArgumentType, canAccess } from '@wdio/utils'
 import { WebDriverProtocol, CommandParameters, CommandPathVariables, ElementReference } from '@wdio/protocols'
 import type { Logger } from '@wdio/logger/build/node'
-import type { ElementHandle } from 'puppeteer-core/lib/cjs/puppeteer/common/JSHandle'
+import type { ElementHandle } from 'puppeteer-core/lib/cjs/puppeteer/common/ElementHandle'
 import type { Browser } from 'puppeteer-core/lib/cjs/puppeteer/common/Browser'
 import type { Frame } from 'puppeteer-core/lib/cjs/puppeteer/common/FrameManager'
 import type { Page } from 'puppeteer-core/lib/cjs/puppeteer/common/Page'
@@ -115,10 +115,10 @@ export async function findElement (
         await waitForFn.call(context, value, { timeout: implicitTimeout })
     }
 
-    let element
+    let element: ElementHandle<Element> | null = null
     try {
         element = using === 'xpath'
-            ? (await context.$x(value))[0]
+            ? (await context.$x(value))[0] as ElementHandle<Element>
             : await context.$(value)
     } catch (err: any) {
         /**
@@ -156,7 +156,7 @@ export async function findElements (
     }
 
     const elements = using === 'xpath'
-        ? await context.$x(value)
+        ? await context.$x(value) as ElementHandle<Element>[]
         : await context.$$(value)
 
     if (elements.length === 0) {

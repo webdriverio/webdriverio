@@ -1,4 +1,4 @@
-import { keyDefinitions, KeyInput } from 'puppeteer-core/lib/cjs/puppeteer/common/USKeyboardLayout.js'
+import { _keyDefinitions, KeyInput } from 'puppeteer-core/lib/cjs/puppeteer/common/USKeyboardLayout.js'
 import type { Keyboard, Mouse } from 'puppeteer-core/lib/cjs/puppeteer/common/Input.js'
 
 import getElementRect from './getElementRect.js'
@@ -81,7 +81,7 @@ export default async function performActions(
                  * for special characters like emojis 😉 we need to
                  * send in the value as text because it is not unicode
                  */
-                if (!keyDefinitions[singleAction.value as unknown as KeyInput]) {
+                if (!_keyDefinitions[singleAction.value as unknown as KeyInput]) {
                     await page.keyboard.sendCharacter(singleAction.value as unknown as KeyInput)
                     skipChars.push(singleAction.value)
                     continue
