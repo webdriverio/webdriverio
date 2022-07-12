@@ -20,33 +20,33 @@ const validateBody: NextFn = (req, res, next) => {
     next()
 }
 
-const app = polka()
-    /**
-     * middleware
-     * `json` middleware transforms body to json for every request or returns empty object
-     */
-    .use(json(), validateBody)
+export const startServer = () => new Promise<{ port: number, app: PolkaInstance }>((resolve, reject) => {
+    const app = polka()
+        /**
+         * middleware
+         * `json` middleware transforms body to json for every request or returns empty object
+         */
+        .use(json(), validateBody)
 
-    // routes
-    .post('/get', (req, res) => {
-        const key = req.body.key as string
-        const value = key === '*'
-            ? store
-            : store[key]
-        res.end(JSON.stringify({ value }))
-    })
-    .post('/set', (req, res) => {
-        const key = req.body.key as string
+        // routes
+        .post('/get', (req, res) => {
+            const key = req.body.key as string
+            const value = key === '*'
+                ? store
+                : store[key]
+            res.end(JSON.stringify({ value }))
+        })
+        .post('/set', (req, res) => {
+            const key = req.body.key as string
 
-        if (key === '*') {
-            throw new Error('You can\'t set a value with key "*" as this is a reserved key')
-        }
+            if (key === '*') {
+                throw new Error('You can\'t set a value with key "*" as this is a reserved key')
+            }
 
-        store[key] = req.body.value as JsonCompatible | JsonPrimitive
-        return res.end()
-    })
+            store[key] = req.body.value as JsonCompatible | JsonPrimitive
+            return res.end()
+        })
 
-export const startServer = () => new Promise<{ port: number }>((resolve, reject) => {
     /**
      * run server on a random port, `0` stands for random port
      * > If port is omitted or is 0, the operating system will assign
@@ -58,15 +58,6 @@ export const startServer = () => new Promise<{ port: number }>((resolve, reject)
         if (err) {
             return reject(err)
         }
-        resolve({
-            port: (app.server.address() as AddressInfo).port
-        })
+        resolve({ app, port: (app.server.address() as AddressInfo).port })
     })
-})
-
-export const stopServer = () => new Promise<void>((resolve) => {
-    if (app.server.close) {
-        return app.server.close(() => resolve())
-    }
-    resolve()
 })

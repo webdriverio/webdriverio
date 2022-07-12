@@ -1,5 +1,5 @@
 import { describe, expect, vi, beforeAll, afterAll, afterEach, it } from 'vitest'
-import { startServer, stopServer, __store } from '../src/server'
+import { startServer, __store } from '../src/server'
 
 vi.mock('got')
 
@@ -9,9 +9,13 @@ const errHandler = vi.fn()
 describe('WdioSharedStoreService exports', () => {
     let setUrl: string
     let getUrl: string
+    let result: {
+        port: number;
+        app: PolkaInstance;
+    } | undefined
 
     beforeAll(async () => {
-        const result = await startServer()
+        result = await startServer()
         const baseUrl = `http://localhost:${result.port}`
         setUrl = `${baseUrl}/set`
         getUrl = `${baseUrl}/get`
@@ -55,6 +59,11 @@ describe('WdioSharedStoreService exports', () => {
     })
 
     afterAll(async () => {
-        await stopServer()
+        return new Promise((resolve) => {
+            if (result?.app.server.close) {
+                return result?.app.server.close(() => resolve())
+            }
+            resolve()
+        })
     })
 })

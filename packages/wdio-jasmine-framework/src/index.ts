@@ -255,9 +255,13 @@ class JasmineAdapter {
     customSpecFilter (spec: jasmine.Spec) {
         const { grep, invertGrep } = this._jasmineOpts
         const grepMatch = !grep || spec.getFullName().match(new RegExp(grep)) !== null
+
         if (grepMatch === Boolean(invertGrep)) {
-            // @ts-ignore outdated types
-            spec.pend('grep')
+            // @ts-expect-error internal method
+            if (typeof spec.pend === 'function') {
+                // @ts-expect-error internal method
+                spec.pend('grep')
+            }
             return false
         }
         return true

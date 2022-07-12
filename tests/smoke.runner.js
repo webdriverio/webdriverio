@@ -2,6 +2,7 @@ import fs from 'node:fs/promises'
 import url from 'node:url'
 import path from 'node:path'
 import assert from 'node:assert'
+import { format } from 'node:util'
 
 import { sleep } from '../packages/wdio-utils/build/utils.js'
 import { SevereServiceError } from '../packages/node_modules/webdriverio/build/index.js'
@@ -16,6 +17,8 @@ import {
     JASMINE_REPORTER_LOGS,
     CUCUMBER_REPORTER_LOGS,
 } from './helpers/fixtures.js'
+
+const NO_ERROR_EXPECTED = 'Unexpected error in smoke test %s'
 
 async function fileExists (path) {
     try {
@@ -70,7 +73,7 @@ const mochaTestrunner = async () => {
             ]
         })
     assert.strictEqual(skippedSpecs, 1)
-    assert.strictEqual(typeof errors, 'undefined')
+    assert.strictEqual(typeof errors, 'undefined', format(NO_ERROR_EXPECTED, 'mochaTestrunner'))
 }
 
 /**
@@ -85,7 +88,7 @@ const mochaAsyncTestrunner = async () => {
         }
     )
     assert.strictEqual(skippedSpecs, 0)
-    assert.strictEqual(typeof errors, 'undefined')
+    assert.strictEqual(typeof errors, 'undefined', format(NO_ERROR_EXPECTED, 'mochaAsyncTestrunner'))
 }
 
 /**
@@ -100,7 +103,7 @@ const cjsTestrunner = async () => {
         }
     )
     assert.strictEqual(skippedSpecs, 0)
-    assert.strictEqual(typeof errors, 'undefined')
+    assert.strictEqual(typeof errors, 'undefined', format(NO_ERROR_EXPECTED, 'cjsTestrunner'))
 }
 
 /**
@@ -117,7 +120,7 @@ const jasmineTestrunner = async () => {
             framework: 'jasmine'
         })
     assert.strictEqual(skippedSpecs, 1)
-    assert.strictEqual(typeof errors, 'undefined')
+    assert.strictEqual(typeof errors, 'undefined', format(NO_ERROR_EXPECTED, 'jasmineTestrunner'))
 }
 
 /**
@@ -208,7 +211,7 @@ const cucumberTestrunner = async () => {
         }
     )
     assert.strictEqual(skippedSpecs, 1)
-    assert.strictEqual(typeof errors, 'undefined')
+    assert.strictEqual(typeof errors, 'undefined', format(NO_ERROR_EXPECTED, 'cucumberTestrunner'))
 }
 
 /**
@@ -242,7 +245,7 @@ const cucumberReporter = async () => {
             outputDir: basePath,
         })
 
-    assert.strictEqual(typeof errors, 'undefined')
+    assert.strictEqual(typeof errors, 'undefined', format(NO_ERROR_EXPECTED, ))
     await sleep(100)
     const reporterLogsPath = path.join(basePath, 'wdio-0-0-smoke-test-reporter.log')
     const reporterLogs = await fs.readFile(reporterLogsPath)
@@ -260,7 +263,7 @@ const customService = async () => {
             specs: [path.resolve(__dirname, 'mocha', 'service.js')],
             services: [['smoke-test', { foo: 'bar' }]]
         })
-    assert.strictEqual(typeof errors, 'undefined')
+    assert.strictEqual(typeof errors, 'undefined', format(NO_ERROR_EXPECTED, 'customService'))
     await sleep(100)
     const serviceLogs = await fs.readFile(path.join(__dirname, 'helpers', 'service.log'))
     assert.equal(serviceLogs.toString(), SERVICE_LOGS)
@@ -278,7 +281,7 @@ const customReporterString = async () => {
             specs: [path.resolve(__dirname, 'mocha', 'reporter.js')],
             reporters: [['smoke-test', { foo: 'bar' }]]
         })
-    assert.strictEqual(typeof errors, 'undefined')
+    assert.strictEqual(typeof errors, 'undefined', format(NO_ERROR_EXPECTED, 'customReporterString'))
     await sleep(100)
     const reporterLogsPath = path.join(__dirname, 'helpers', 'wdio-0-0-smoke-test-reporter.log')
     const reporterLogs = await fs.readFile(reporterLogsPath)
@@ -291,7 +294,7 @@ const customReporterString = async () => {
  */
 const customReporterObject = async () => {
     const { errors } = await launch(path.resolve(__dirname, 'helpers', 'reporter.conf.js'), {})
-    assert.strictEqual(typeof errors, 'undefined')
+    assert.strictEqual(typeof errors, 'undefined', format(NO_ERROR_EXPECTED, ))
     await sleep(100)
     const reporterLogsWithReporterAsObjectPath = path.join(__dirname, 'helpers', 'wdio-0-0-CustomSmokeTestReporter-reporter.log')
     const reporterLogsWithReporterAsObject = await fs.readFile(reporterLogsWithReporterAsObjectPath)
@@ -327,7 +330,7 @@ const multiremote = async () => {
             }
         }
     )
-    assert.equal(typeof errors, 'undefined')
+    assert.strictEqual(typeof errors, 'undefined', format(NO_ERROR_EXPECTED, 'multiremote'))
 }
 
 /**
@@ -373,7 +376,7 @@ const retryPass = async () => {
             specFileRetriesDelay: 1,
             retryFilename
         })
-    assert.equal(typeof errors, 'undefined')
+    assert.strictEqual(typeof errors, 'undefined', format(NO_ERROR_EXPECTED, 'retryPass'))
 
     if (!await fileExists(logfiles[0])) {
         throw Error(`Expected ${logfiles[0]} to exist but it does not`)
@@ -391,7 +394,7 @@ const sharedStoreServiceTest = async () => {
         path.resolve(__dirname, 'helpers', 'shared-store.conf.js'),
         { specs: [path.resolve(__dirname, 'mocha', 'shared-store-service.js')] }
     )
-    assert.equal(typeof errors, 'undefined')
+    assert.strictEqual(typeof errors, 'undefined', format(NO_ERROR_EXPECTED, 'sharedStoreServiceTest'))
 }
 
 /**
@@ -407,7 +410,7 @@ const mochaSpecFiltering = async () => {
                 path.resolve(__dirname, 'mocha', 'test-skipped-grep.js')
             ]
         })
-    assert.equal(typeof errors, 'undefined')
+    assert.strictEqual(typeof errors, 'undefined', format(NO_ERROR_EXPECTED, 'mochaSpecFiltering'))
     assert.strictEqual(skippedSpecs, 2)
 }
 
@@ -415,7 +418,7 @@ const mochaSpecFiltering = async () => {
  * Jasmine with specFiltering feature enabled
  */
 const jasmineSpecFiltering = async () => {
-    const { skippedSpecs } = await launch(
+    const { skippedSpecs, errors } = await launch(
         path.resolve(__dirname, 'helpers', 'config.js'),
         {
             specs: [
@@ -425,6 +428,7 @@ const jasmineSpecFiltering = async () => {
             ],
             framework: 'jasmine'
         })
+    assert.strictEqual(typeof errors, 'undefined', format(NO_ERROR_EXPECTED, 'jasmineSpecFiltering'))
     assert.strictEqual(skippedSpecs, 2)
 }
 
@@ -445,9 +449,9 @@ const mochaSpecGrouping = async () => {
                 ]
             ]
         })
+    assert.strictEqual(typeof errors, 'undefined', format(NO_ERROR_EXPECTED, 'mochaSpecGrouping'))
     // Specs will be treated as a group, so no specs will be skipped
     assert.strictEqual(skippedSpecs, 0)
-    assert.equal(typeof errors, 'undefined')
 }
 
 /**
@@ -472,32 +476,37 @@ const severeErrorTest = async () => {
             specs: [path.resolve(__dirname, 'mocha', 'test-empty.js')],
             onPrepare: () => { throw new SevereServiceError('ups') }
         }
-    ).then(() => false, () => true)
-    assert.equal(onPrepareFailed, true, 'Expected onPrepare to fail testrun')
+    ).catch((err) => err)
+    assert.ok(onPrepareFailed)
+    assert.equal(onPrepareFailed.name, 'SevereServiceError')
+
     const onWorkerStartFailed = await launch(
         path.resolve(__dirname, 'helpers', 'config.js'),
         {
             specs: [path.resolve(__dirname, 'mocha', 'test-empty.js')],
             onWorkerStart: () => { throw new SevereServiceError('ups') }
         }
-    ).then(() => false, () => true)
-    assert.equal(onWorkerStartFailed, true, 'Expected onWorkerStart to fail testrun')
+    )
+    assert.ok(onWorkerStartFailed.errors, 'Expected onWorkerStart to fail testrun')
+
     const onWorkerEndFailed = await launch(
         path.resolve(__dirname, 'helpers', 'config.js'),
         {
             specs: [path.resolve(__dirname, 'mocha', 'test-empty.js')],
             onWorkerEnd: () => { throw new SevereServiceError('ups') }
         }
-    ).then(() => false, () => true)
-    assert.equal(onWorkerEndFailed, true, 'Expected onWorkerStart to fail testrun')
+    )
+    assert.ok(onWorkerEndFailed.errors, 'Expected onWorkerStart to fail testrun')
+
     const onCompleteFailed = await launch(
         path.resolve(__dirname, 'helpers', 'config.js'),
         {
             specs: [path.resolve(__dirname, 'mocha', 'test-empty.js')],
             onComplete: () => { throw new SevereServiceError('ups') }
         }
-    ).then(() => false, () => true)
-    assert.equal(onCompleteFailed, true, 'Expected onWorkerStart to fail testrun')
+    ).catch((err) => err)
+    assert.ok(onCompleteFailed)
+    assert.equal(onCompleteFailed.name, 'SevereServiceError')
 }
 
 (async () => {
