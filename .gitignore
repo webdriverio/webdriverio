@@ -85,7 +85,6 @@ website/docs/_*.md
 
 # Editor files
 .idea
-.vscode
 !.vscode/extensions.json
 .*.swp
 .history
