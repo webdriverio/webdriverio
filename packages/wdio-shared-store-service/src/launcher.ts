@@ -12,7 +12,7 @@ export default class SharedStoreLauncher {
         /**
          * import during runtime to avoid unnecessary dependency loading
          */
-        server = (await import('./server')) as SharedStoreServer
+        server = (await import('./server.js')) as SharedStoreServer
         const result = await server.startServer()
         setPort(result.port)
         capabilities.forEach((capability) => {

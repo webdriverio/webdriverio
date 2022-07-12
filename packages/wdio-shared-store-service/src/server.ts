@@ -29,10 +29,20 @@ const app = polka()
 
     // routes
     .post('/get', (req, res) => {
-        res.end(JSON.stringify({ value: store[req.body.key as string] }))
+        const key = req.body.key as string
+        const value = key === '*'
+            ? store
+            : store[key]
+        res.end(JSON.stringify({ value }))
     })
     .post('/set', (req, res) => {
-        store[req.body.key as string] = req.body.value as JsonCompatible | JsonPrimitive
+        const key = req.body.key as string
+
+        if (key === '*') {
+            throw new Error('You can\'t set a value with key "*" as this is a reserved key')
+        }
+
+        store[key] = req.body.value as JsonCompatible | JsonPrimitive
         return res.end()
     })
 
