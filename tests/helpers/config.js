@@ -19,11 +19,7 @@ export const config = {
     outputDir: __dirname,
 
     reporters: ['spec'],
-    services: ['webdriver-mock'],
-    // execArgv: [
-    //     '--esm=1'
-    //     // '--extension=ts'
-    // ],
+    services: ['webdriver-mock', 'shared-store'],
 
     mochaOpts: {
         ui: 'bdd',
@@ -44,4 +40,23 @@ export const config = {
         requireModule: ['ts-node/esm'],
         require: ['./tests/cucumber/step-definitions/*.js']
     },
+
+    afterTest: async (test, context, { error }) => {
+        if (!error) {
+            return
+        }
+
+        const errorKey = `errors-${process.env.WDIO_WORKER_ID}`
+        const errors = await browser.sharedStore.get(errorKey) || []
+        await browser.sharedStore.set(errorKey, [...errors, JSON.parse(JSON.stringify(error, Object.getOwnPropertyNames(error)))])
+    },
+
+    afterScenario: async (world, { error }) => {
+        if (!error) {
+            return
+        }
+        const errorKey = `errors-${process.env.WDIO_WORKER_ID}`
+        const errors = await browser.sharedStore.get(errorKey) || []
+        await browser.sharedStore.set(errorKey, [...errors, JSON.parse(JSON.stringify(error, Object.getOwnPropertyNames(error)))])
+    }
 }

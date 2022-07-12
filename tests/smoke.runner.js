@@ -58,7 +58,7 @@ async function runTests (tests) {
  * Mocha wdio testrunner tests
  */
 const mochaTestrunner = async () => {
-    const { skippedSpecs } = await launch(
+    const { skippedSpecs, errors } = await launch(
         path.resolve(__dirname, 'helpers', 'config.js'),
         {
             specs: [
@@ -68,6 +68,7 @@ const mochaTestrunner = async () => {
                 path.resolve(__dirname, 'mocha', 'test-skipped.ts')
             ]
         })
+    console.log(errors)
     assert.strictEqual(skippedSpecs, 1)
 }
 
@@ -126,7 +127,7 @@ const jasmineReporter = async () => {
  */
 const jasmineTimeout = async () => {
     const logFile = path.join(__dirname, 'jasmineTimeout.spec.log')
-    const err = await launch(
+    const { errors } = await launch(
         path.resolve(__dirname, 'helpers', 'config.js'),
         {
             specs: [path.resolve(__dirname, 'jasmine', 'test-timeout.js')],
@@ -140,7 +141,7 @@ const jasmineTimeout = async () => {
             framework: 'jasmine'
         }
     ).catch(err => err)
-    assert.strictEqual(err.message, 'Smoke test failed')
+    assert.strictEqual(errors['errors-0-0'].length, 1)
 
     // eslint-disable-next-line no-control-regex
     const specLogs = (await fs.readFile(logFile)).toString().replace(/[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g, '')
@@ -193,7 +194,7 @@ const cucumberTestrunner = async () => {
  * Cucumber fail due to failAmbiguousDefinitions
  */
 const cucumberFailAmbiguousDefinitions = async () => {
-    const hasFailed = await launch(
+    const { errors } = await launch(
         path.resolve(__dirname, 'helpers', 'cucumber-hooks.conf.js'),
         {
             specs: [path.resolve(__dirname, 'cucumber', 'test.feature')],
@@ -203,11 +204,9 @@ const cucumberFailAmbiguousDefinitions = async () => {
                 names: ['failAmbiguousDefinitions']
             }
         }
-    ).then(
-        () => false,
-        () => true
     )
-    assert.equal(hasFailed, true)
+    assert.equal(errors['errors-0-0'].length, 1)
+    assert(errors['errors-0-0'][0].includes('Multiple step definitions match'))
 }
 
 /**
@@ -271,6 +270,7 @@ const customReporterString = async () => {
  */
 const customReporterObject = async () => {
     await launch(path.resolve(__dirname, 'helpers', 'reporter.conf.js'), {})
+    await sleep(100)
     const reporterLogsWithReporterAsObjectPath = path.join(__dirname, 'helpers', 'wdio-0-0-CustomSmokeTestReporter-reporter.log')
     const reporterLogsWithReporterAsObject = await fs.readFile(reporterLogsWithReporterAsObjectPath)
     assert.equal(reporterLogsWithReporterAsObject.toString(), REPORTER_LOGS)
@@ -281,16 +281,17 @@ const customReporterObject = async () => {
  * wdio test run with before/after Test/Hook
  */
 const wdioHooks = async () => {
-    await launch(
+    const { errors } = await launch(
         path.resolve(__dirname, 'helpers', 'hooks.conf.js'),
         { specs: [path.resolve(__dirname, 'mocha', 'wdio_hooks.js')] })
+    assert.equal(typeof errors, 'undefined')
 }
 
 /**
  * multiremote wdio testrunner tests
  */
 const multiremote = async () => {
-    await launch(
+    const { errors } = await launch(
         path.resolve(__dirname, 'helpers', 'config.js'),
         {
             specs: [path.resolve(__dirname, 'multiremote', 'test.js')],
@@ -304,23 +305,25 @@ const multiremote = async () => {
             }
         }
     )
+    assert.equal(typeof errors, 'undefined')
 }
 
 /**
  * specfile-level retries (fail)
  */
 const retryFail = async () => {
-    const retryFailed = await launch(
+    const { errors } = await launch(
         path.resolve(__dirname, 'helpers', 'config.js'),
         {
             specs: [path.resolve(__dirname, 'mocha', 'retry_and_fail.js')],
             specFileRetries: 1
         }
-    ).then(
-        () => false,
-        () => true
     )
-    assert.equal(retryFailed, true, 'Expected retries to fail but they passed')
+    assert.equal(errors['errors-0-0'].length, 2)
+    assert.strictEqual(
+        JSON.stringify(errors['errors-0-0'].map((e) => e.message)),
+        JSON.stringify(['Deliberate error.', 'Deliberate error.'])
+    )
 }
 
 /**
@@ -339,7 +342,7 @@ const retryPass = async () => {
             })
         }
     }
-    await launch(
+    const { errors } = await launch(
         path.resolve(__dirname, 'helpers', 'config.js'),
         {
             specs: [path.resolve(__dirname, 'mocha', 'retry_and_pass.js')],
@@ -348,6 +351,8 @@ const retryPass = async () => {
             specFileRetriesDelay: 1,
             retryFilename
         })
+    assert.equal(typeof errors, 'undefined')
+
     if (!await fileExists(logfiles[0])) {
         throw Error(`Expected ${logfiles[0]} to exist but it does not`)
     }
@@ -360,13 +365,11 @@ const retryPass = async () => {
  * wdio-shared-store-service tests
  */
 const sharedStoreServiceTest = async () => {
-    await launch(
+    const { errors } = await launch(
         path.resolve(__dirname, 'helpers', 'shared-store.conf.js'),
-        {
-            specs: [
-                path.resolve(__dirname, 'mocha', 'shared-store-service.js'),
-            ]
-        })
+        { specs: [path.resolve(__dirname, 'mocha', 'shared-store-service.js')] }
+    )
+    assert.equal(typeof errors, 'undefined')
 }
 
 /**

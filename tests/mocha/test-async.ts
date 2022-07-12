@@ -27,7 +27,7 @@ describe('Mocha smoke test', () => {
         )
     })
 
-    it('should allow to fetch parent elements with chaining', async () => {
+    it('should allow to fetch next elements with chaining', async () => {
         // @ts-expect-error custom command
         await browser.parentElementChaining()
         assert.equal(
@@ -36,7 +36,7 @@ describe('Mocha smoke test', () => {
         )
     })
 
-    it('should allow to fetch parent elements with chaining', async () => {
+    it('should allow to fetch previous elements with chaining', async () => {
         // @ts-expect-error custom command
         await browser.parentElementChaining()
         assert.equal(

@@ -1,6 +1,6 @@
 import url from 'node:url'
 import path from 'node:path'
-import { config as baseConfig } from '../../helpers/config'
+import { config as baseConfig } from '../../helpers/config.js'
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 

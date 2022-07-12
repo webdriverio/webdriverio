@@ -1,15 +1,11 @@
 beforeAll(() => { })
-afterAll(() => {
-    throw new Error('afterAll failure in root scope')
-})
+afterAll(() => { })
 
 // ignored in repoter: https://github.com/webdriverio/webdriverio/issues/4582
 it('root level test', () => {})
 
 describe('Jasmine reporter', () => {
-    beforeAll(() => {
-        throw new Error('beforeAll failure in suite scope')
-    })
+    beforeAll(() => { })
 
     // not shown in reporter
     beforeEach(() => {})
@@ -17,11 +13,12 @@ describe('Jasmine reporter', () => {
     // not shown in reporter
     afterEach(() => {})
 
-    it('should return sync value', async () => {
+    it('should pass', async () => {
         expect(await browser.getTitle()).toBe('Mock Page Title')
     })
 
     it('should fail', async () => {
+        console.log('ANDRUN HERE')
         expect(await browser.getTitle()).toBe('Oh, no!')
     })
 

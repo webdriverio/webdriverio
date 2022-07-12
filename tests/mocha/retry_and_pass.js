@@ -1,4 +1,4 @@
-const fs = require('node:fs')
+import fs from 'node:fs'
 const filename = browser.config.retryFilename
 
 describe('fail on first run and succeed on second', function () {

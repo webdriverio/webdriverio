@@ -2,7 +2,6 @@ import Jasmine from 'jasmine'
 import logger from '@wdio/logger'
 import { runTestInFiberContext, executeHooksWithArgs } from '@wdio/utils'
 import { EventEmitter } from 'node:events'
-import { setOptions } from 'expect-webdriverio'
 import type { Options, Services, Capabilities } from '@wdio/types'
 
 import JasmineReporter from './reporter.js'
@@ -62,6 +61,7 @@ class JasmineAdapter {
             cleanStack: this._jasmineOpts.cleanStack
         })
         this._hasTests = true
+        this._jrunner.exitOnCompletion = false
     }
 
     async init() {
@@ -180,8 +180,13 @@ class JasmineAdapter {
             executeMock.apply(this, args)
         }
 
-        this._loadFiles()
+        await this._loadFiles()
 
+        /**
+         * expect-webdriverio needs to be dynamically imported here so that it can
+         * attach its matchers to the jasmine expect library
+         */
+        const { setOptions } = await import('expect-webdriverio')
         setOptions({
             wait: this._config.waitforTimeout, // ms to wait for expectation to succeed
             interval: this._config.waitforInterval, // interval between attempts
@@ -190,7 +195,7 @@ class JasmineAdapter {
         return this
     }
 
-    _loadFiles() {
+    async _loadFiles() {
         try {
             if (Array.isArray(this._jasmineOpts.requires)) {
                 // @ts-ignore outdated types
@@ -201,9 +206,9 @@ class JasmineAdapter {
                 this._jrunner.addHelperFiles(this._jasmineOpts.helpers)
             }
             // @ts-ignore outdated types
-            this._jrunner.loadRequires()
-            this._jrunner.loadHelpers()
-            this._jrunner.loadSpecs()
+            await this._jrunner.loadRequires()
+            await this._jrunner.loadHelpers()
+            await this._jrunner.loadSpecs()
             // @ts-ignore outdated types
             this._grep(this._jrunner.env.topSuite())
             this._hasTests = this._totalTests > 0

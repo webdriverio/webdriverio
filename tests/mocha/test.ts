@@ -2,7 +2,7 @@ import assert from 'node:assert'
 import os from 'node:os'
 
 describe('Mocha smoke test', () => {
-    let testJs = 'tests/mocha/test.js:'
+    let testJs = 'tests/mocha/test.ts:'
 
     before(() => {
         if (os.platform() === 'win32') {
@@ -174,12 +174,12 @@ describe('Mocha smoke test', () => {
         it('should keep the scope', async () => {
             // @ts-expect-error custom command
             await browser.customCommandScenario()
-            browser.addCommand('customFn', function (this: WebdriverIO.Element, elem: WebdriverIO.Element) {
-                return this.execute('1+1') + '-' + elem.selector
+            browser.addCommand('customFn', async function (this: WebdriverIO.Element, elem: WebdriverIO.Element) {
+                return (await this.execute('1+1')) + '-' + elem.selector
             })
 
             // @ts-expect-error custom command
-            assert.equal(await browser.customFn($('body')), '2-body')
+            assert.equal(await browser.customFn(await $('body')), '2-body')
         })
 
         it('should respect promises', async () => {
@@ -193,7 +193,7 @@ describe('Mocha smoke test', () => {
 
         it('should throw if promise rejects', async () => {
             browser.addCommand('customFn', () => {
-                return Promise.reject('Boom!')
+                return Promise.reject(new Error('Boom!'))
             })
 
             let err: Error | null = null
@@ -229,7 +229,7 @@ describe('Mocha smoke test', () => {
             })
 
             // @ts-expect-error custom command
-            assert.equal(browser.getTitle('Foo '), 'Foo Mock Page Title')
+            assert.equal(await browser.getTitle('Foo '), 'Foo Mock Page Title')
         })
 
         it('should allow to overwrite element commands', async () => {
@@ -281,7 +281,7 @@ describe('Mocha smoke test', () => {
             }) as any)
 
             // @ts-expect-error custom command
-            assert.equal(browser.saveRecordingScreen(null, await $('body')), '2-body')
+            assert.equal(await browser.saveRecordingScreen(null, await $('body')), '2-body')
         })
 
         it('should respect promises - browser', async () => {

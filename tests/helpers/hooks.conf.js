@@ -13,14 +13,15 @@ export const config = Object.assign({}, baseConfig, {
             throw new Error('wdio beforeTest error: ' + test.title)
         }
     },
-    afterTest (test, context, { error, duration, passed }) {
+    async afterTest (test, context, { error, duration, passed }) {
+        baseConfig.afterTest(test, context, { error, duration, passed })
         let throwError = false
         if (global.WDIO_SERVICE_TEST_IT_DURATION === 0) {
             throwError = true
         }
 
         global.WDIO_SERVICE_TEST_IT_DURATION += duration
-        if (!error && passed === true && browser.pause(2) === undefined) {
+        if (!error && passed === true && await browser.pause(2) === undefined) {
             global.WDIO_SERVICE_TEST_IT_PASSES++
         }
 

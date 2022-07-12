@@ -131,7 +131,8 @@ export async function loadTypeScriptCompiler (
     try {
         validateTsConfigPaths(tsNodeOpts);
 
-        (await requireService.import('ts-node') as any).register(tsNodeOpts)
+        (await requireService.import('ts-node/esm') as any).register(tsNodeOpts)
+        process.env.NODE_OPTIONS = '--loader ts-node/esm/transpile-only'
         log.debug('Found \'ts-node\' package, auto-compiling TypeScript files')
 
         if (tsConfigPathsOpts) {
