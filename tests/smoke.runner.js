@@ -71,7 +71,8 @@ const mochaTestrunner = async () => {
                 path.resolve(__dirname, 'mocha', 'test-skipped.ts'),
                 path.resolve(__dirname, 'mocha', 'cjs', 'test-cjs.js')
             ]
-        })
+        }
+    )
     assert.strictEqual(skippedSpecs, 1)
     assert.strictEqual(typeof errors, 'undefined', format(NO_ERROR_EXPECTED, 'mochaTestrunner'))
 }
@@ -113,12 +114,14 @@ const jasmineTestrunner = async () => {
     const { skippedSpecs, errors } = await launch(
         path.resolve(__dirname, 'helpers', 'config.js'),
         {
+            autoCompileOpts: { autoCompile: false },
             specs: [
                 path.resolve(__dirname, 'jasmine', 'test.js'),
                 path.resolve(__dirname, 'jasmine', 'test-skipped.js')
             ],
             framework: 'jasmine'
-        })
+        }
+    )
     assert.strictEqual(skippedSpecs, 1)
     assert.strictEqual(typeof errors, 'undefined', format(NO_ERROR_EXPECTED, 'jasmineTestrunner'))
 }
@@ -130,11 +133,13 @@ const jasmineReporter = async () => {
     const { errors } = await launch(
         path.resolve(__dirname, 'helpers', 'config.js'),
         {
+            autoCompileOpts: { autoCompile: false },
             specs: [path.resolve(__dirname, 'jasmine', 'reporter.js')],
             reporters: [['smoke-test', { foo: 'bar' }]],
             framework: 'jasmine',
             outputDir: __dirname + '/jasmine'
-        })
+        }
+    )
 
     assert.ok(errors['errors-0-0'])
     assert.equal(errors['errors-0-0'][0].message, 'Expected \'Mock Page Title\' to be \'Oh, no!\'.')
@@ -153,6 +158,7 @@ const jasmineTimeout = async () => {
     const { errors } = await launch(
         path.resolve(__dirname, 'helpers', 'config.js'),
         {
+            autoCompileOpts: { autoCompile: false },
             specs: [path.resolve(__dirname, 'jasmine', 'test-timeout.js')],
             reporters: [
                 ['spec', {
@@ -164,6 +170,7 @@ const jasmineTimeout = async () => {
             framework: 'jasmine'
         }
     ).catch(err => err)
+    assert.ok(errors)
     assert.strictEqual(errors['errors-0-0'].length, 1)
 
     // eslint-disable-next-line no-control-regex
@@ -197,6 +204,7 @@ const cucumberTestrunner = async () => {
     const { skippedSpecs, errors } = await launch(
         path.resolve(__dirname, 'helpers', 'cucumber-hooks.conf.js'),
         {
+            autoCompileOpts: { autoCompile: false },
             specs: [
                 path.resolve(__dirname, 'cucumber', 'test.feature'),
                 path.resolve(__dirname, 'cucumber', 'test-skipped.feature')
@@ -221,6 +229,7 @@ const cucumberFailAmbiguousDefinitions = async () => {
     const { errors } = await launch(
         path.resolve(__dirname, 'helpers', 'cucumber-hooks.conf.js'),
         {
+            autoCompileOpts: { autoCompile: false },
             specs: [path.resolve(__dirname, 'cucumber', 'test.feature')],
             cucumberOpts: {
                 ignoreUndefinedDefinitions: true,
@@ -241,9 +250,11 @@ const cucumberReporter = async () => {
     const { errors } = await launch(
         path.resolve(basePath, 'reporter.config.js'),
         {
+            autoCompileOpts: { autoCompile: false },
             specs: [path.resolve(basePath, 'reporter.feature')],
             outputDir: basePath,
-        })
+        }
+    )
 
     assert.strictEqual(typeof errors, 'undefined', format(NO_ERROR_EXPECTED, ))
     await sleep(100)
@@ -260,9 +271,11 @@ const customService = async () => {
     const { errors } = await launch(
         path.resolve(__dirname, 'helpers', 'config.js'),
         {
+            autoCompileOpts: { autoCompile: false },
             specs: [path.resolve(__dirname, 'mocha', 'service.js')],
             services: [['smoke-test', { foo: 'bar' }]]
-        })
+        }
+    )
     assert.strictEqual(typeof errors, 'undefined', format(NO_ERROR_EXPECTED, 'customService'))
     await sleep(100)
     const serviceLogs = await fs.readFile(path.join(__dirname, 'helpers', 'service.log'))
@@ -278,9 +291,11 @@ const customReporterString = async () => {
     const { errors } = await launch(
         path.resolve(__dirname, 'helpers', 'config.js'),
         {
+            autoCompileOpts: { autoCompile: false },
             specs: [path.resolve(__dirname, 'mocha', 'reporter.js')],
             reporters: [['smoke-test', { foo: 'bar' }]]
-        })
+        }
+    )
     assert.strictEqual(typeof errors, 'undefined', format(NO_ERROR_EXPECTED, 'customReporterString'))
     await sleep(100)
     const reporterLogsPath = path.join(__dirname, 'helpers', 'wdio-0-0-smoke-test-reporter.log')
@@ -293,7 +308,10 @@ const customReporterString = async () => {
  * wdio test run with custom reporter as object
  */
 const customReporterObject = async () => {
-    const { errors } = await launch(path.resolve(__dirname, 'helpers', 'reporter.conf.js'), {})
+    const { errors } = await launch(
+        path.resolve(__dirname, 'helpers', 'reporter.conf.js'),
+        { autoCompileOpts: { autoCompile: false } }
+    )
     assert.strictEqual(typeof errors, 'undefined', format(NO_ERROR_EXPECTED, ))
     await sleep(100)
     const reporterLogsWithReporterAsObjectPath = path.join(__dirname, 'helpers', 'wdio-0-0-CustomSmokeTestReporter-reporter.log')
@@ -308,7 +326,11 @@ const customReporterObject = async () => {
 const wdioHooks = async () => {
     const { errors } = await launch(
         path.resolve(__dirname, 'helpers', 'hooks.conf.js'),
-        { specs: [path.resolve(__dirname, 'mocha', 'wdio_hooks.js')] })
+        {
+            autoCompileOpts: { autoCompile: false },
+            specs: [path.resolve(__dirname, 'mocha', 'wdio_hooks.js')]
+        }
+    )
     assert.equal(typeof errors, 'undefined')
 }
 
@@ -319,6 +341,7 @@ const multiremote = async () => {
     const { errors } = await launch(
         path.resolve(__dirname, 'helpers', 'config.js'),
         {
+            autoCompileOpts: { autoCompile: false },
             specs: [path.resolve(__dirname, 'multiremote', 'test.js')],
             capabilities: {
                 browserA: {
@@ -340,6 +363,7 @@ const retryFail = async () => {
     const { errors } = await launch(
         path.resolve(__dirname, 'helpers', 'config.js'),
         {
+            autoCompileOpts: { autoCompile: false },
             specs: [path.resolve(__dirname, 'mocha', 'retry_and_fail.js')],
             specFileRetries: 1
         }
@@ -370,12 +394,14 @@ const retryPass = async () => {
     const { errors } = await launch(
         path.resolve(__dirname, 'helpers', 'config.js'),
         {
+            autoCompileOpts: { autoCompile: false },
             specs: [path.resolve(__dirname, 'mocha', 'retry_and_pass.js')],
             outputDir: path.dirname(logfiles[0]),
             specFileRetries: 1,
             specFileRetriesDelay: 1,
             retryFilename
-        })
+        }
+    )
     assert.strictEqual(typeof errors, 'undefined', format(NO_ERROR_EXPECTED, 'retryPass'))
 
     if (!await fileExists(logfiles[0])) {
@@ -392,7 +418,10 @@ const retryPass = async () => {
 const sharedStoreServiceTest = async () => {
     const { errors } = await launch(
         path.resolve(__dirname, 'helpers', 'shared-store.conf.js'),
-        { specs: [path.resolve(__dirname, 'mocha', 'shared-store-service.js')] }
+        {
+            autoCompileOpts: { autoCompile: false },
+            specs: [path.resolve(__dirname, 'mocha', 'shared-store-service.js')]
+        }
     )
     assert.strictEqual(typeof errors, 'undefined', format(NO_ERROR_EXPECTED, 'sharedStoreServiceTest'))
 }
@@ -404,12 +433,14 @@ const mochaSpecFiltering = async () => {
     const { skippedSpecs, errors } = await launch(
         path.resolve(__dirname, 'helpers', 'config.js'),
         {
+            autoCompileOpts: { autoCompile: false },
             specs: [
                 path.resolve(__dirname, 'mocha', 'test-empty.js'),
                 path.resolve(__dirname, 'mocha', 'test-skipped.ts'),
                 path.resolve(__dirname, 'mocha', 'test-skipped-grep.js')
             ]
-        })
+        }
+    )
     assert.strictEqual(typeof errors, 'undefined', format(NO_ERROR_EXPECTED, 'mochaSpecFiltering'))
     assert.strictEqual(skippedSpecs, 2)
 }
@@ -421,13 +452,15 @@ const jasmineSpecFiltering = async () => {
     const { skippedSpecs, errors } = await launch(
         path.resolve(__dirname, 'helpers', 'config.js'),
         {
+            autoCompileOpts: { autoCompile: false },
             specs: [
                 path.resolve(__dirname, 'jasmine', 'test-empty.js'),
                 path.resolve(__dirname, 'jasmine', 'test-skipped.js'),
                 path.resolve(__dirname, 'jasmine', 'test-skipped-grep.js')
             ],
             framework: 'jasmine'
-        })
+        }
+    )
     assert.strictEqual(typeof errors, 'undefined', format(NO_ERROR_EXPECTED, 'jasmineSpecFiltering'))
     assert.strictEqual(skippedSpecs, 2)
 }
@@ -439,6 +472,7 @@ const mochaSpecGrouping = async () => {
     const { skippedSpecs, errors } = await launch(
         path.resolve(__dirname, 'helpers', 'config.js'),
         {
+            autoCompileOpts: { autoCompile: false },
             specs: [
                 [
                     path.resolve(__dirname, 'mocha', 'test-empty.js'),
@@ -448,7 +482,8 @@ const mochaSpecGrouping = async () => {
                     path.resolve(__dirname, 'mocha', 'test-skipped-grep.js')
                 ]
             ]
-        })
+        }
+    )
     assert.strictEqual(typeof errors, 'undefined', format(NO_ERROR_EXPECTED, 'mochaSpecGrouping'))
     // Specs will be treated as a group, so no specs will be skipped
     assert.strictEqual(skippedSpecs, 0)
@@ -461,10 +496,10 @@ const standaloneTest = async () => {
     const { skippedSpecs, errors } = await launch(
         path.resolve(__dirname, 'helpers', 'async.config.js'),
         {
-            specs: [
-                path.resolve(__dirname, 'mocha', 'standalone.js')
-            ]
-        })
+            autoCompileOpts: { autoCompile: false },
+            specs: [path.resolve(__dirname, 'mocha', 'standalone.js')]
+        }
+    )
     assert.strictEqual(skippedSpecs, 0)
     assert.equal(typeof errors, 'undefined')
 }
@@ -473,6 +508,7 @@ const severeErrorTest = async () => {
     const onPrepareFailed = await launch(
         path.resolve(__dirname, 'helpers', 'config.js'),
         {
+            autoCompileOpts: { autoCompile: false },
             specs: [path.resolve(__dirname, 'mocha', 'test-empty.js')],
             onPrepare: () => { throw new SevereServiceError('ups') }
         }
@@ -492,6 +528,7 @@ const severeErrorTest = async () => {
     const onWorkerEndFailed = await launch(
         path.resolve(__dirname, 'helpers', 'config.js'),
         {
+            autoCompileOpts: { autoCompile: false },
             specs: [path.resolve(__dirname, 'mocha', 'test-empty.js')],
             onWorkerEnd: () => { throw new SevereServiceError('ups') }
         }
@@ -501,6 +538,7 @@ const severeErrorTest = async () => {
     const onCompleteFailed = await launch(
         path.resolve(__dirname, 'helpers', 'config.js'),
         {
+            autoCompileOpts: { autoCompile: false },
             specs: [path.resolve(__dirname, 'mocha', 'test-empty.js')],
             onComplete: () => { throw new SevereServiceError('ups') }
         }

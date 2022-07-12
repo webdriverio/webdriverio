@@ -18,7 +18,6 @@ describe('Jasmine reporter', () => {
     })
 
     it('should fail', async () => {
-        console.log('ANDRUN HERE')
         expect(await browser.getTitle()).toBe('Oh, no!')
     })
 

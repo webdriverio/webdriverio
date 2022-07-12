@@ -38,7 +38,7 @@
     "test:typings:test": "npm run ts && npm run clean:tests && node tests/typings/setup --ts=3.9 && npm run ts && npm run clean:tests",
     "test:typings:recover": "rimraf ./node_modules/.bin/tsc && ln -s ../typescript/bin/tsc node_modules/.bin && npx rimraf @tsd/typescript",
     "test:unit": "vitest",
-    "test:smoke": "ts-node ./tests/smoke.runner.js",
+    "test:smoke": "node ./tests/smoke.runner.js",
     "test:e2e": "vitest --config e2e/vitest.config.js",
     "test:e2e:edge": "npm run test:e2e -- --testMatch **/edge.e2e.js",
     "test:e2e:firefox": "npm run test:e2e -- --testMatch <rootDir>/standalone/firefox.e2e.js",
