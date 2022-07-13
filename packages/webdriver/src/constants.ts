@@ -103,13 +103,6 @@ export const DEFAULTS: Options.Definition<Required<Options.WebDriver>> = {
         type: 'object'
     },
     /**
-     * Whether clear logger on session end or not
-     */
-    clearLoggerOnSessionEnd: {
-        type: 'boolean',
-        default: true
-    },
-    /**
      * Pass custom headers
      */
     headers: {
