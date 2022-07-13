@@ -75,6 +75,31 @@ const scope: BaseClient = new FakeClient()
 type mockResponse = (...args: any[]) => any
 
 describe('command wrapper', () => {
+    beforeEach(() => {
+        delete process.env.KEEP_WDIO_LOGGER
+    })
+    
+    function doProperRequest (additionalParams: number | undefined = undefined) {
+        const commandFn = commandWrapper(commandMethod, commandPath, commandEndpoint)
+        const requestMock = require('../src/request/node')
+        const resultFunction = commandFn.call(scope, '123', 'css selector', '#body', additionalParams) as unknown as mockResponse
+        expect(requestMock.mock.calls).toHaveLength(1)
+        expect(resultFunction({ value: 14 })).toBe(14)
+        if (additionalParams) {
+            expect(resultFunction({ value: 'foobarboo' })).toBe('foobarboo')
+        }
+
+        const [method, endpoint, { using, value, customParam }] = requestMock.mock.calls[0]
+        expect(method).toBe('POST')
+        expect(endpoint).toBe('/session/:sessionId/element/123/element')
+        expect(using).toBe('css selector')
+        expect(value).toBe('#body')
+        if (additionalParams) {
+            expect(customParam).toBe(additionalParams)
+        }
+        requestMock.mockClear()
+    }
+    
     it('should fail if wrong arguments are passed in', () => {
         const commandFn = commandWrapper(commandMethod, commandPath, commandEndpoint)
         expect(commandFn)
@@ -105,34 +130,21 @@ describe('command wrapper', () => {
     })
 
     it('should do a proper request', () => {
-        const commandFn = commandWrapper(commandMethod, commandPath, commandEndpoint)
-        const requestMock = require('../src/request/node')
-        const resultFunction = commandFn.call(scope, '123', 'css selector', '#body', undefined) as unknown as mockResponse
-        expect(requestMock.mock.calls).toHaveLength(1)
-        expect(resultFunction({ value: 14 })).toBe(14)
+        doProperRequest()
+    })
 
-        const [method, endpoint, { using, value }] = requestMock.mock.calls[0]
-        expect(method).toBe('POST')
-        expect(endpoint).toBe('/session/:sessionId/element/123/element')
-        expect(using).toBe('css selector')
-        expect(value).toBe('#body')
-        requestMock.mockClear()
+    it('should do a proper request with env var - KEEP_WDIO_LOGGER', () => {
+        process.env.KEEP_WDIO_LOGGER = 'true'
+        doProperRequest()
     })
 
     it('should do a proper request with non required params', () => {
-        const commandFn = commandWrapper(commandMethod, commandPath, commandEndpoint)
-        const requestMock = require('../src/request/node')
-        const resultFunction = commandFn.call(scope, '123', 'css selector', '#body', 123) as unknown as mockResponse
-        expect(requestMock.mock.calls).toHaveLength(1)
-        expect(resultFunction({ value: 'foobarboo' })).toBe('foobarboo')
+        doProperRequest(123)
+    })
 
-        const [method, endpoint, { using, value, customParam }] = requestMock.mock.calls[0]
-        expect(method).toBe('POST')
-        expect(endpoint).toBe('/session/:sessionId/element/123/element')
-        expect(using).toBe('css selector')
-        expect(value).toBe('#body')
-        expect(customParam).toBe(123)
-        requestMock.mockClear()
+    it('should do a proper request with non required params and env var - KEEP_WDIO_LOGGER', () => {
+        process.env.KEEP_WDIO_LOGGER = 'true'
+        doProperRequest(123)
     })
 
     it('should encode uri parameters', () => {
