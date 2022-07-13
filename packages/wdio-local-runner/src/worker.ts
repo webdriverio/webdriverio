@@ -91,6 +91,10 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
             runnerEnv.WDIO_LOG_PATH = path.join(this.config.outputDir, `wdio-${cid}.log`)
         }
 
+        if (this.config.autoCompileOpts?.autoCompile) {
+            runnerEnv.NODE_OPTIONS = (runnerEnv.NODE_OPTIONS || '') + ' --loader ts-node/esm/transpile-only'
+        }
+
         log.info(`Start worker ${cid} with arg: ${argv}`)
         const childProcess = this.childProcess = child.fork(path.join(__dirname, 'run.js'), argv, {
             cwd: process.cwd(),

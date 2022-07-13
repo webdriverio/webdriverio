@@ -28,8 +28,7 @@ export const config = Object.assign({}, baseConfig, {
         }
         browser.Cucumber_Test = 1
     },
-    afterScenario: async (...args) => {
-        baseConfig.afterScenario(...args)
+    afterScenario: async () => {
         await browser.pause(30)
         browser.Cucumber_Test = -1
     },

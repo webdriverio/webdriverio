@@ -2,7 +2,6 @@ import fs from 'node:fs/promises'
 import url from 'node:url'
 import path from 'node:path'
 import assert from 'node:assert'
-import { format } from 'node:util'
 
 import { sleep } from '../packages/wdio-utils/build/utils.js'
 import { SevereServiceError } from '../packages/node_modules/webdriverio/build/index.js'
@@ -17,8 +16,6 @@ import {
     JASMINE_REPORTER_LOGS,
     CUCUMBER_REPORTER_LOGS,
 } from './helpers/fixtures.js'
-
-const NO_ERROR_EXPECTED = 'Unexpected error in smoke test %s'
 
 async function fileExists (path) {
     try {
@@ -61,7 +58,8 @@ async function runTests (tests) {
  * Mocha wdio testrunner tests
  */
 const mochaTestrunner = async () => {
-    const { skippedSpecs, errors } = await launch(
+    const { skippedSpecs } = await launch(
+        'mochaTestrunner',
         path.resolve(__dirname, 'helpers', 'config.js'),
         {
             specs: [
@@ -74,29 +72,28 @@ const mochaTestrunner = async () => {
         }
     )
     assert.strictEqual(skippedSpecs, 1)
-    assert.strictEqual(typeof errors, 'undefined', format(NO_ERROR_EXPECTED, 'mochaTestrunner'))
 }
 
 /**
  * Mocha wdio testrunner tests with asynchronous execution
  */
 const mochaAsyncTestrunner = async () => {
-    const { skippedSpecs, errors } = await launch(
+    const { skippedSpecs } = await launch(
+        'mochaAsyncTestrunner',
         path.resolve(__dirname, 'helpers', 'command.hook.config.js'),
         {
-            autoCompileOpts: { autoCompile: false },
             specs: [path.resolve(__dirname, 'mocha', 'test-async.ts')]
         }
     )
     assert.strictEqual(skippedSpecs, 0)
-    assert.strictEqual(typeof errors, 'undefined', format(NO_ERROR_EXPECTED, 'mochaAsyncTestrunner'))
 }
 
 /**
  * Test if you can run CJS tests
  */
 const cjsTestrunner = async () => {
-    const { skippedSpecs, errors } = await launch(
+    const { skippedSpecs } = await launch(
+        'cjsTestrunner',
         path.resolve(__dirname, 'helpers', 'config.js'),
         {
             autoCompileOpts: { autoCompile: false },
@@ -104,14 +101,14 @@ const cjsTestrunner = async () => {
         }
     )
     assert.strictEqual(skippedSpecs, 0)
-    assert.strictEqual(typeof errors, 'undefined', format(NO_ERROR_EXPECTED, 'cjsTestrunner'))
 }
 
 /**
  * Jasmine wdio testrunner tests
  */
 const jasmineTestrunner = async () => {
-    const { skippedSpecs, errors } = await launch(
+    const { skippedSpecs } = await launch(
+        'jasmineTestrunner',
         path.resolve(__dirname, 'helpers', 'config.js'),
         {
             autoCompileOpts: { autoCompile: false },
@@ -123,14 +120,14 @@ const jasmineTestrunner = async () => {
         }
     )
     assert.strictEqual(skippedSpecs, 1)
-    assert.strictEqual(typeof errors, 'undefined', format(NO_ERROR_EXPECTED, 'jasmineTestrunner'))
 }
 
 /**
  * Jasmine reporter
  */
 const jasmineReporter = async () => {
-    const { errors } = await launch(
+    await launch(
+        'jasmineReporter',
         path.resolve(__dirname, 'helpers', 'config.js'),
         {
             autoCompileOpts: { autoCompile: false },
@@ -139,10 +136,7 @@ const jasmineReporter = async () => {
             framework: 'jasmine',
             outputDir: __dirname + '/jasmine'
         }
-    )
-
-    assert.ok(errors['errors-0-0'])
-    assert.equal(errors['errors-0-0'][0].message, 'Expected \'Mock Page Title\' to be \'Oh, no!\'.')
+    ).catch((err) => err) // error expected
     await sleep(100)
     const reporterLogsPath = path.join(__dirname, 'jasmine', 'wdio-0-0-smoke-test-reporter.log')
     const reporterLogs = await fs.readFile(reporterLogsPath)
@@ -155,7 +149,8 @@ const jasmineReporter = async () => {
  */
 const jasmineTimeout = async () => {
     const logFile = path.join(__dirname, 'jasmineTimeout.spec.log')
-    const { errors } = await launch(
+    await launch(
+        'jasmineTimeout',
         path.resolve(__dirname, 'helpers', 'config.js'),
         {
             autoCompileOpts: { autoCompile: false },
@@ -169,9 +164,7 @@ const jasmineTimeout = async () => {
             ],
             framework: 'jasmine'
         }
-    ).catch(err => err)
-    assert.ok(errors)
-    assert.strictEqual(errors['errors-0-0'].length, 1)
+    ).catch((err) => err) // error expected
 
     // eslint-disable-next-line no-control-regex
     const specLogs = (await fs.readFile(logFile)).toString().replace(/[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g, '')
@@ -201,7 +194,8 @@ const jasmineTimeout = async () => {
  * Cucumber wdio testrunner tests
  */
 const cucumberTestrunner = async () => {
-    const { skippedSpecs, errors } = await launch(
+    const { skippedSpecs } = await launch(
+        'cucumberTestrunner',
         path.resolve(__dirname, 'helpers', 'cucumber-hooks.conf.js'),
         {
             autoCompileOpts: { autoCompile: false },
@@ -219,14 +213,14 @@ const cucumberTestrunner = async () => {
         }
     )
     assert.strictEqual(skippedSpecs, 1)
-    assert.strictEqual(typeof errors, 'undefined', format(NO_ERROR_EXPECTED, 'cucumberTestrunner'))
 }
 
 /**
  * Cucumber fail due to failAmbiguousDefinitions
  */
 const cucumberFailAmbiguousDefinitions = async () => {
-    const { errors } = await launch(
+    const hasFailed = await launch(
+        'cucumberFailAmbiguousDefinitions',
         path.resolve(__dirname, 'helpers', 'cucumber-hooks.conf.js'),
         {
             autoCompileOpts: { autoCompile: false },
@@ -237,9 +231,11 @@ const cucumberFailAmbiguousDefinitions = async () => {
                 names: ['failAmbiguousDefinitions']
             }
         }
+    ).then(
+        () => false,
+        () => true
     )
-    assert.equal(errors['errors-0-0'].length, 1)
-    assert(errors['errors-0-0'][0].includes('Multiple step definitions match'))
+    assert.equal(hasFailed, true)
 }
 
 /**
@@ -247,16 +243,15 @@ const cucumberFailAmbiguousDefinitions = async () => {
  */
 const cucumberReporter = async () => {
     const basePath = path.resolve(__dirname, 'cucumber', 'reporter')
-    const { errors } = await launch(
+    await launch(
+        'cucumberReporter',
         path.resolve(basePath, 'reporter.config.js'),
         {
             autoCompileOpts: { autoCompile: false },
             specs: [path.resolve(basePath, 'reporter.feature')],
             outputDir: basePath,
         }
-    )
-
-    assert.strictEqual(typeof errors, 'undefined', format(NO_ERROR_EXPECTED, ))
+    ).catch((err) => err) // error expected
     await sleep(100)
     const reporterLogsPath = path.join(basePath, 'wdio-0-0-smoke-test-reporter.log')
     const reporterLogs = await fs.readFile(reporterLogsPath)
@@ -268,7 +263,8 @@ const cucumberReporter = async () => {
  * wdio test run with custom service
  */
 const customService = async () => {
-    const { errors } = await launch(
+    await launch(
+        'customService',
         path.resolve(__dirname, 'helpers', 'config.js'),
         {
             autoCompileOpts: { autoCompile: false },
@@ -276,7 +272,6 @@ const customService = async () => {
             services: [['smoke-test', { foo: 'bar' }]]
         }
     )
-    assert.strictEqual(typeof errors, 'undefined', format(NO_ERROR_EXPECTED, 'customService'))
     await sleep(100)
     const serviceLogs = await fs.readFile(path.join(__dirname, 'helpers', 'service.log'))
     assert.equal(serviceLogs.toString(), SERVICE_LOGS)
@@ -288,7 +283,8 @@ const customService = async () => {
  * wdio test run with custom reporter as string
  */
 const customReporterString = async () => {
-    const { errors } = await launch(
+    await launch(
+        'customReporterString',
         path.resolve(__dirname, 'helpers', 'config.js'),
         {
             autoCompileOpts: { autoCompile: false },
@@ -296,7 +292,6 @@ const customReporterString = async () => {
             reporters: [['smoke-test', { foo: 'bar' }]]
         }
     )
-    assert.strictEqual(typeof errors, 'undefined', format(NO_ERROR_EXPECTED, 'customReporterString'))
     await sleep(100)
     const reporterLogsPath = path.join(__dirname, 'helpers', 'wdio-0-0-smoke-test-reporter.log')
     const reporterLogs = await fs.readFile(reporterLogsPath)
@@ -308,11 +303,11 @@ const customReporterString = async () => {
  * wdio test run with custom reporter as object
  */
 const customReporterObject = async () => {
-    const { errors } = await launch(
+    await launch(
+        'customReporterObject',
         path.resolve(__dirname, 'helpers', 'reporter.conf.js'),
         { autoCompileOpts: { autoCompile: false } }
     )
-    assert.strictEqual(typeof errors, 'undefined', format(NO_ERROR_EXPECTED, ))
     await sleep(100)
     const reporterLogsWithReporterAsObjectPath = path.join(__dirname, 'helpers', 'wdio-0-0-CustomSmokeTestReporter-reporter.log')
     const reporterLogsWithReporterAsObject = await fs.readFile(reporterLogsWithReporterAsObjectPath)
@@ -324,21 +319,22 @@ const customReporterObject = async () => {
  * wdio test run with before/after Test/Hook
  */
 const wdioHooks = async () => {
-    const { errors } = await launch(
+    await launch(
+        'wdioHooks',
         path.resolve(__dirname, 'helpers', 'hooks.conf.js'),
         {
             autoCompileOpts: { autoCompile: false },
             specs: [path.resolve(__dirname, 'mocha', 'wdio_hooks.js')]
         }
     )
-    assert.equal(typeof errors, 'undefined')
 }
 
 /**
  * multiremote wdio testrunner tests
  */
 const multiremote = async () => {
-    const { errors } = await launch(
+    await launch(
+        'multiremote',
         path.resolve(__dirname, 'helpers', 'config.js'),
         {
             autoCompileOpts: { autoCompile: false },
@@ -353,26 +349,25 @@ const multiremote = async () => {
             }
         }
     )
-    assert.strictEqual(typeof errors, 'undefined', format(NO_ERROR_EXPECTED, 'multiremote'))
 }
 
 /**
  * specfile-level retries (fail)
  */
 const retryFail = async () => {
-    const { errors } = await launch(
+    const retryFailed = await launch(
+        'retryFailed',
         path.resolve(__dirname, 'helpers', 'config.js'),
         {
             autoCompileOpts: { autoCompile: false },
             specs: [path.resolve(__dirname, 'mocha', 'retry_and_fail.js')],
             specFileRetries: 1
         }
+    ).then(
+        () => false,
+        () => true
     )
-    assert.equal(errors['errors-0-0'].length, 2)
-    assert.strictEqual(
-        JSON.stringify(errors['errors-0-0'].map((e) => e.message)),
-        JSON.stringify(['Deliberate error.', 'Deliberate error.'])
-    )
+    assert.equal(retryFailed, true, 'Expected retries to fail but they passed')
 }
 
 /**
@@ -391,7 +386,8 @@ const retryPass = async () => {
             })
         }
     }
-    const { errors } = await launch(
+    await launch(
+        'retryPass',
         path.resolve(__dirname, 'helpers', 'config.js'),
         {
             autoCompileOpts: { autoCompile: false },
@@ -402,7 +398,6 @@ const retryPass = async () => {
             retryFilename
         }
     )
-    assert.strictEqual(typeof errors, 'undefined', format(NO_ERROR_EXPECTED, 'retryPass'))
 
     if (!await fileExists(logfiles[0])) {
         throw Error(`Expected ${logfiles[0]} to exist but it does not`)
@@ -416,21 +411,22 @@ const retryPass = async () => {
  * wdio-shared-store-service tests
  */
 const sharedStoreServiceTest = async () => {
-    const { errors } = await launch(
+    await launch(
+        'sharedStoreServiceTest',
         path.resolve(__dirname, 'helpers', 'shared-store.conf.js'),
         {
             autoCompileOpts: { autoCompile: false },
             specs: [path.resolve(__dirname, 'mocha', 'shared-store-service.js')]
         }
     )
-    assert.strictEqual(typeof errors, 'undefined', format(NO_ERROR_EXPECTED, 'sharedStoreServiceTest'))
 }
 
 /**
  * Mocha with specFiltering feature enabled
  */
 const mochaSpecFiltering = async () => {
-    const { skippedSpecs, errors } = await launch(
+    const { skippedSpecs } = await launch(
+        'mochaSpecFiltering',
         path.resolve(__dirname, 'helpers', 'config.js'),
         {
             autoCompileOpts: { autoCompile: false },
@@ -441,7 +437,6 @@ const mochaSpecFiltering = async () => {
             ]
         }
     )
-    assert.strictEqual(typeof errors, 'undefined', format(NO_ERROR_EXPECTED, 'mochaSpecFiltering'))
     assert.strictEqual(skippedSpecs, 2)
 }
 
@@ -449,7 +444,8 @@ const mochaSpecFiltering = async () => {
  * Jasmine with specFiltering feature enabled
  */
 const jasmineSpecFiltering = async () => {
-    const { skippedSpecs, errors } = await launch(
+    const { skippedSpecs } = await launch(
+        'jasmineSpecFiltering',
         path.resolve(__dirname, 'helpers', 'config.js'),
         {
             autoCompileOpts: { autoCompile: false },
@@ -461,7 +457,6 @@ const jasmineSpecFiltering = async () => {
             framework: 'jasmine'
         }
     )
-    assert.strictEqual(typeof errors, 'undefined', format(NO_ERROR_EXPECTED, 'jasmineSpecFiltering'))
     assert.strictEqual(skippedSpecs, 2)
 }
 
@@ -469,7 +464,8 @@ const jasmineSpecFiltering = async () => {
  * Mocha with spec grouping feature enabled
  */
 const mochaSpecGrouping = async () => {
-    const { skippedSpecs, errors } = await launch(
+    const { skippedSpecs } = await launch(
+        'mochaSpecGrouping',
         path.resolve(__dirname, 'helpers', 'config.js'),
         {
             autoCompileOpts: { autoCompile: false },
@@ -484,7 +480,6 @@ const mochaSpecGrouping = async () => {
             ]
         }
     )
-    assert.strictEqual(typeof errors, 'undefined', format(NO_ERROR_EXPECTED, 'mochaSpecGrouping'))
     // Specs will be treated as a group, so no specs will be skipped
     assert.strictEqual(skippedSpecs, 0)
 }
@@ -493,7 +488,8 @@ const mochaSpecGrouping = async () => {
  * Mocha wdio testrunner tests
  */
 const standaloneTest = async () => {
-    const { skippedSpecs, errors } = await launch(
+    const { skippedSpecs } = await launch(
+        'standaloneTest',
         path.resolve(__dirname, 'helpers', 'async.config.js'),
         {
             autoCompileOpts: { autoCompile: false },
@@ -501,50 +497,51 @@ const standaloneTest = async () => {
         }
     )
     assert.strictEqual(skippedSpecs, 0)
-    assert.equal(typeof errors, 'undefined')
 }
 
 const severeErrorTest = async () => {
     const onPrepareFailed = await launch(
+        'severeErrorTest - onPrepareFailed',
         path.resolve(__dirname, 'helpers', 'config.js'),
         {
             autoCompileOpts: { autoCompile: false },
             specs: [path.resolve(__dirname, 'mocha', 'test-empty.js')],
             onPrepare: () => { throw new SevereServiceError('ups') }
         }
-    ).catch((err) => err)
-    assert.ok(onPrepareFailed)
-    assert.equal(onPrepareFailed.name, 'SevereServiceError')
+    ).then(() => false, () => true)
+    assert.equal(onPrepareFailed, true, 'Expected onPrepare to fail testrun')
 
     const onWorkerStartFailed = await launch(
+        'severeErrorTest - onWorkerStartFailed',
         path.resolve(__dirname, 'helpers', 'config.js'),
         {
             specs: [path.resolve(__dirname, 'mocha', 'test-empty.js')],
             onWorkerStart: () => { throw new SevereServiceError('ups') }
         }
-    )
-    assert.ok(onWorkerStartFailed.errors, 'Expected onWorkerStart to fail testrun')
+    ).then(() => false, () => true)
+    assert.equal(onWorkerStartFailed, true, 'Expected onWorkerStart to fail testrun')
 
     const onWorkerEndFailed = await launch(
+        'severeErrorTest - onWorkerEndFailed',
         path.resolve(__dirname, 'helpers', 'config.js'),
         {
             autoCompileOpts: { autoCompile: false },
             specs: [path.resolve(__dirname, 'mocha', 'test-empty.js')],
             onWorkerEnd: () => { throw new SevereServiceError('ups') }
         }
-    )
-    assert.ok(onWorkerEndFailed.errors, 'Expected onWorkerStart to fail testrun')
+    ).then(() => false, () => true)
+    assert.equal(onWorkerEndFailed, true, 'Expected onWorkerStart to fail testrun')
 
     const onCompleteFailed = await launch(
+        'severeErrorTest - onCompleteFailed',
         path.resolve(__dirname, 'helpers', 'config.js'),
         {
             autoCompileOpts: { autoCompile: false },
             specs: [path.resolve(__dirname, 'mocha', 'test-empty.js')],
             onComplete: () => { throw new SevereServiceError('ups') }
         }
-    ).catch((err) => err)
-    assert.ok(onCompleteFailed)
-    assert.equal(onCompleteFailed.name, 'SevereServiceError')
+    ).then(() => false, () => true)
+    assert.equal(onCompleteFailed, true, 'Expected onWorkerStart to fail testrun')
 }
 
 (async () => {

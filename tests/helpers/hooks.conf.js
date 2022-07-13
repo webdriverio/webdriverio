@@ -14,7 +14,6 @@ export const config = Object.assign({}, baseConfig, {
         }
     },
     async afterTest (test, context, { error, duration, passed }) {
-        baseConfig.afterTest(test, context, { error, duration, passed })
         let throwError = false
         if (global.WDIO_SERVICE_TEST_IT_DURATION === 0) {
             throwError = true

@@ -128,11 +128,17 @@ export async function loadTypeScriptCompiler (
     tsConfigPathsOpts: Options.TSConfigPathsOptions | undefined,
     requireService: ModuleImportService
 ) {
+    /**
+     * don't auto compile within worker as it already was spawn with a loader
+     */
+    if (!process.env.WDIO_WORKER_ID) {
+        return true
+    }
+
     try {
         validateTsConfigPaths(tsNodeOpts);
 
         (await requireService.import('ts-node') as any).register({ ...tsNodeOpts, esm: 1 })
-        process.env.NODE_OPTIONS = '--loader ts-node/esm/transpile-only'
         log.debug('Found \'ts-node\' package, auto-compiling TypeScript files')
 
         if (tsConfigPathsOpts) {
