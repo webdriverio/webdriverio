@@ -1,9 +1,11 @@
+import path from 'node:path'
 import { describe, test, expect, vi } from 'vitest'
 import type { Options, Capabilities } from '@wdio/types'
 import { remote, multiremote } from '../src'
 
 vi.mock('got')
 vi.mock('devtools')
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 const remoteConfig: Options.WebdriverIO = {
     baseUrl: 'http://foobar.com',
@@ -43,9 +45,7 @@ describe('addCommand', () => {
             const browser = await remote(remoteConfig)
 
             browser.addCommand('mytest', customCommand)
-            // @ts-expect-error custom command was not added to browser interface
             expect(typeof browser.mytest).toBe('function')
-            // @ts-expect-error custom command was not added to browser interface
             expect(await browser.mytest()).toBe('foobar')
         })
 
@@ -54,7 +54,6 @@ describe('addCommand', () => {
 
             browser.addCommand('mytest', customCommand)
             const elem = await browser.$('#foo')
-            // @ts-expect-error custom command was not added to browser interface
             expect(typeof elem.mytest).toBe('undefined')
         })
 
@@ -66,7 +65,6 @@ describe('addCommand', () => {
                 return this.execute(function () { return 1 })
             })
 
-            // @ts-expect-error custom command was not added to browser interface
             expect(await browser.myCustomElementCommand()).toBe(1)
         })
 
@@ -79,7 +77,6 @@ describe('addCommand', () => {
 
             const elem = await browser.$('#foo')
 
-            // @ts-expect-error custom command was not added to browser interface
             expect(await elem.myCustomElementCommand()).toBe(1)
         })
 
@@ -92,17 +89,12 @@ describe('addCommand', () => {
                 return result + 'bar-' + this.selector
             })
 
-            // @ts-expect-error custom command was not added to browser interface
             expect(typeof browser.myCustomElementCommand).toBe('undefined')
-            // @ts-expect-error custom command was not added to browser interface
             expect(typeof elem.myCustomElementCommand).toBe('function')
-            // @ts-expect-error custom command was not added to browser interface
             expect(await elem.myCustomElementCommand()).toBe('foobar-#foo')
 
             const elem2 = await browser.$('#bar')
-            // @ts-expect-error custom command was not added to browser interface
             expect(typeof elem2.myCustomElementCommand).toBe('function')
-            // @ts-expect-error custom command was not added to browser interface
             expect(await elem2.myCustomElementCommand()).toBe('foobar-#bar')
         })
 
@@ -110,7 +102,6 @@ describe('addCommand', () => {
             const browser = await remote(remoteConfig)
             const elem = await browser.$('#foo')
 
-            // @ts-expect-error custom command was not added to browser interface
             expect(typeof elem.myCustomElementCommand).toBe('undefined')
             elem.addCommand('myCustomElementCommand', async function (this: WebdriverIO.Element) {
                 const result = await new Promise(
@@ -119,17 +110,11 @@ describe('addCommand', () => {
             })
 
             const elems = await browser.$$('.someRandomElement')
-            // @ts-expect-error custom command was not added to browser interface
             expect(typeof elems[0].myCustomElementCommand).toBe('function')
-            // @ts-expect-error custom command was not added to browser interface
             expect(typeof elems[1].myCustomElementCommand).toBe('function')
-            // @ts-expect-error custom command was not added to browser interface
             expect(typeof elems[2].myCustomElementCommand).toBe('function')
-            // @ts-expect-error custom command was not added to browser interface
             expect(await elems[0].myCustomElementCommand()).toBe('foobar-.someRandomElement0')
-            // @ts-expect-error custom command was not added to browser interface
             expect(await elems[1].myCustomElementCommand()).toBe('foobar-.someRandomElement1')
-            // @ts-expect-error custom command was not added to browser interface
             expect(await elems[2].myCustomElementCommand()).toBe('foobar-.someRandomElement2')
         })
 
@@ -137,7 +122,6 @@ describe('addCommand', () => {
             const browser = await remote(remoteConfig)
             const elem = await browser.$('#foo')
 
-            // @ts-expect-error custom command was not added to browser interface
             expect(typeof elem.myCustomElementCommand).toBe('undefined')
             elem.addCommand('myCustomElementCommand', async function (this: WebdriverIO.Element) {
                 const result = await new Promise(
@@ -146,9 +130,7 @@ describe('addCommand', () => {
             })
 
             const subElem = await elem.$('.subElem')
-            // @ts-expect-error custom command was not added to browser interface
             expect(typeof subElem.myCustomElementCommand).toBe('function')
-            // @ts-expect-error custom command was not added to browser interface
             expect(await subElem.myCustomElementCommand()).toBe('foobar-.subElem')
         })
 
@@ -157,7 +139,6 @@ describe('addCommand', () => {
             const elems = await browser.$$('.someRandomElement')
             const elem = elems[0]
 
-            // @ts-expect-error custom command was not added to browser interface
             expect(typeof elem.myCustomElementCommand).toBe('undefined')
             elem.addCommand('myCustomElementCommand', async function (this: WebdriverIO.Element) {
                 const result = await new Promise(
@@ -166,9 +147,7 @@ describe('addCommand', () => {
             })
 
             const subElem = await elem.$('.subElem')
-            // @ts-expect-error custom command was not added to browser interface
             expect(typeof subElem.myCustomElementCommand).toBe('function')
-            // @ts-expect-error custom command was not added to browser interface
             expect(await subElem.myCustomElementCommand()).toBe('foobar-.subElem')
         })
 
@@ -178,7 +157,6 @@ describe('addCommand', () => {
             const elems = await elem.$$('.someRandomElement')
             const subElem = elems[0]
 
-            // @ts-expect-error custom command was not added to browser interface
             expect(typeof subElem.myCustomElementCommand).toBe('undefined')
             subElem.addCommand('myCustomElementCommand', async function (this: WebdriverIO.Element) {
                 const result = await new Promise(
@@ -186,9 +164,7 @@ describe('addCommand', () => {
                 return result + 'bar-' + this.selector
             })
 
-            // @ts-expect-error custom command was not added to browser interface
             expect(typeof subElem.myCustomElementCommand).toBe('function')
-            // @ts-expect-error custom command was not added to browser interface
             expect(await subElem.myCustomElementCommand()).toBe('foobar-.someRandomElement')
         })
 
@@ -197,9 +173,7 @@ describe('addCommand', () => {
             const elem = await browser.$('#foo')
             const subElem = await elem.$('.subElem')
 
-            // @ts-expect-error custom command was not added to browser interface
             expect(typeof elem.myCustomElementCommand).toBe('undefined')
-            // @ts-expect-error custom command was not added to browser interface
             expect(typeof subElem.myCustomElementCommand).toBe('undefined')
             subElem.addCommand('myCustomElementCommand', async function (this: WebdriverIO.Element) {
                 const result = await new Promise(
@@ -207,22 +181,15 @@ describe('addCommand', () => {
                 return result + 'bar-' + this.selector
             })
 
-            // @ts-expect-error custom command was not added to browser interface
             expect(typeof elem.myCustomElementCommand).toBe('undefined')
-            // @ts-expect-error custom command was not added to browser interface
             expect(typeof subElem.myCustomElementCommand).toBe('function')
-            // @ts-expect-error custom command was not added to browser interface
             expect(await subElem.myCustomElementCommand()).toBe('foobar-.subElem')
 
             const otherElem = await browser.$('#otherFoo')
-            // @ts-expect-error custom command was not added to browser interface
             expect(typeof otherElem.myCustomElementCommand).toBe('function')
-            // @ts-expect-error custom command was not added to browser interface
             expect(await otherElem.myCustomElementCommand()).toBe('foobar-#otherFoo')
             const otherSubElem = await otherElem.$('.otherSubElem')
-            // @ts-expect-error custom command was not added to browser interface
             expect(typeof otherSubElem.myCustomElementCommand).toBe('function')
-            // @ts-expect-error custom command was not added to browser interface
             expect(await otherSubElem.myCustomElementCommand()).toBe('foobar-.otherSubElem')
         })
 
@@ -237,9 +204,7 @@ describe('addCommand', () => {
                 throw error2
             })
 
-            // @ts-expect-error custom command was not added to browser interface
             await expect(() => browser.function1()).rejects.toThrow(error1)
-            // @ts-expect-error custom command was not added to browser interface
             await expect(() => browser.function2()).rejects.toThrow(error2)
         })
 
@@ -255,14 +220,12 @@ describe('addCommand', () => {
             })
 
             try {
-                // @ts-expect-error custom command was not added to browser interface
                 await browser.function1()
             } catch (error) {
                 expect(error).toBe(error1)
             }
 
             try {
-                // @ts-expect-error custom command was not added to browser interface
                 await browser.function2()
             } catch (error) {
                 expect(error).toBe(error2)
@@ -282,9 +245,7 @@ describe('addCommand', () => {
             }, true)
             const elem = await browser.$('#foo')
 
-            // @ts-expect-error custom command was not added to browser interface
             await expect(elem.function1()).rejects.toThrow(error1)
-            // @ts-expect-error custom command was not added to browser interface
             await expect(elem.function2()).rejects.toThrow(error2)
         })
 
@@ -300,14 +261,12 @@ describe('addCommand', () => {
             const elem = await browser.$('#foo')
 
             try {
-                // @ts-expect-error custom command was not added to browser interface
                 await elem.function1()
             } catch (error) {
                 expect(error).toBe(error1)
             }
 
             try {
-                // @ts-expect-error custom command was not added to browser interface
                 await elem.function2()
             } catch (error) {
                 expect(error).toBe(error2)
@@ -328,7 +287,6 @@ describe('addCommand', () => {
             })
 
             expect(typeof browser.myCustomCommand).toBe('function')
-            // @ts-expect-error custom command was not added to browser interface
             const { param, commandResult } = await browser.myCustomCommand('barfoo')
             expect(param).toBe('barfoo')
             expect(commandResult).toEqual(['foobar', 'foobar'])
@@ -344,11 +302,8 @@ describe('addCommand', () => {
             })
 
             expect(typeof browser.myOtherCustomCommand).toBe('undefined')
-            // @ts-expect-error custom command was not added to browser interface
             expect(typeof browser.browserB.myOtherCustomCommand).toBe('undefined')
-            // @ts-expect-error custom command was not added to browser interface
             expect(typeof browser.browserA.myOtherCustomCommand).toBe('function')
-            // @ts-expect-error custom command was not added to browser interface
             const { param, commandResult } = await browser.browserA.myOtherCustomCommand('barfoo')
             expect(param).toBe('barfoo')
             expect(commandResult).toEqual('foobar')
@@ -363,9 +318,7 @@ describe('addCommand', () => {
 
             const elem = await browser.$('#foo')
             expect(typeof elem.myCustomOtherOtherCommand).toBe('undefined')
-            // @ts-expect-error custom command was not added to browser interface
             expect(typeof elem.browserA.myCustomOtherOtherCommand).toBe('undefined')
-            // @ts-expect-error custom command was not added to browser interface
             expect(typeof elem.browserB.myCustomOtherOtherCommand).toBe('undefined')
         })
     })

@@ -1,3 +1,4 @@
+import path from 'node:path'
 import { expect, describe, it, afterEach, vi } from 'vitest'
 
 // @ts-ignore mocked (original defined in webdriver package)
@@ -6,6 +7,7 @@ import { remote } from '../../../src'
 import { ELEMENT_KEY } from '../../../src/constants'
 
 vi.mock('got')
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 describe('element', () => {
     it('should fetch an element', async () => {

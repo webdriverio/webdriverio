@@ -1,8 +1,10 @@
+import path from 'node:path'
 import { expect, describe, it, vi } from 'vitest'
 
 import { remote } from '../../../src'
 
 vi.mock('got')
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 describe('previous element sibling test', () => {
     it('should return previous sibling of an element', async () => {

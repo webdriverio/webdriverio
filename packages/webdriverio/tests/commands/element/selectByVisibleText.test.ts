@@ -1,3 +1,4 @@
+import path from 'node:path'
 import { expect, describe, it, vi, beforeEach, afterEach } from 'vitest'
 
 // @ts-ignore mocked (original defined in webdriver package)
@@ -7,6 +8,7 @@ import { ELEMENT_KEY } from '../../../src/constants'
 import * as utils from '../../../src/utils'
 
 vi.mock('got')
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 describe('selectByVisibleText test', () => {
     const getElementFromResponseSpy = vi.spyOn(utils, 'getElementFromResponse')

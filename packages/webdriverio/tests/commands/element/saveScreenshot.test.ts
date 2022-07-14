@@ -1,4 +1,5 @@
 import fs from 'node:fs'
+import path from 'node:path'
 import { expect, describe, it, vi, beforeEach, afterEach, SpyInstance } from 'vitest'
 
 // @ts-ignore mocked (original defined in webdriver package)
@@ -8,6 +9,7 @@ import * as utils from '../../../src/utils'
 
 vi.mock('got')
 vi.mock('fs')
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 describe('saveScreenshot', () => {
     let getAbsoluteFilepathSpy: SpyInstance

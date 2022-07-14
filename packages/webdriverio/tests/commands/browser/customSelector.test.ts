@@ -1,8 +1,10 @@
+import path from 'node:path'
 import { expect, describe, it, beforeEach, vi } from 'vitest'
 import { remote } from '../../../src'
 import type { CustomStrategyReference } from '../../../src/types'
 
 vi.mock('got')
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 describe('custom$', () => {
     let browser: WebdriverIO.Browser

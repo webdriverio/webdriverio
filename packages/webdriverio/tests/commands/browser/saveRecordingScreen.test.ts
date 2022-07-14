@@ -1,5 +1,6 @@
 import { expect, describe, beforeEach, afterEach, it, vi, SpyInstance } from 'vitest'
 import fs from 'node:fs'
+import path from 'node:path'
 // @ts-ignore mocked (original defined in webdriver package)
 import got from 'got'
 import { remote } from '../../../src'
@@ -7,6 +8,7 @@ import * as utils from '../../../src/utils'
 
 vi.mock('fs')
 vi.mock('got')
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 describe('saveRecordingScreen', () => {
     let browser: WebdriverIO.Browser

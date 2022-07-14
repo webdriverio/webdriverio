@@ -4,6 +4,7 @@ import { remote } from '../../../src'
 
 vi.mock('got')
 vi.mock('@wdio/repl', () => import(path.join(process.cwd(), '__mocks__', '@wdio/repl')))
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 describe('debug command', () => {
     let browser: WebdriverIO.Browser

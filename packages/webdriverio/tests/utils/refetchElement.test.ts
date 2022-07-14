@@ -1,3 +1,4 @@
+import path from 'node:path'
 import { describe, it, beforeAll, expect, vi } from 'vitest'
 // @ts-expect-error
 import got from 'got'
@@ -6,6 +7,7 @@ import refetchElement from '../../src/utils/refetchElement'
 import waitForExist from '../../src/commands/element/waitForExist'
 
 vi.mock('got')
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 vi.mock('../../src/commands/element/waitForExist', () => ({
     __esModule: true,
     default: vi.fn().mockImplementation(() => { return true })
