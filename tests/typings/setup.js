@@ -1,11 +1,13 @@
-const fs = require('fs')
-const path = require('path')
-const { promisify } = require('util')
-const { spawnSync } = require('child_process')
+import fs from 'node:fs'
+import url from 'node:url'
+import path from 'node:path'
+import { promisify } from 'node:util'
+import { spawnSync } from 'node:child_process'
 
-const { ln, mkdir } = require('shelljs')
-const rimraf = require('rimraf')
+import rimraf from 'rimraf'
 
+const { ln, mkdir } = (await import('shelljs')).default
+const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 const ROOT = path.resolve(__dirname, '..', '..')
 
 // TypeScript project root for testing particular typings
@@ -81,7 +83,7 @@ async function copy() {
 /**
  * delete eventual artifacts from test folders
  */
-Promise.all(
+await Promise.all(
     artifactDirs.map(
         (dir) => Promise.all(
             outDirs.map(
@@ -89,16 +91,9 @@ Promise.all(
             )
         )
     )
-).then(
-    /**
-     * if successful, start test
-     */
-    () => copy(),
-    /**
-     * on failure, error out
-     */
-    (err) => {
-        console.error(err.stack)
-        process.exit(1)
-    }
 )
+
+/**
+ * if successful, start test
+ */
+await copy()
