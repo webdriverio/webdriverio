@@ -22,50 +22,46 @@ For basic interactions with the WebDriver and other automation protocols Webdriv
 <TabItem value="webdriver">
 
 ```js
-const WebDriver = require('webdriver');
+import WebDriver from 'webdriver'
 
-(async () => {
-    const client = await WebDriver.newSession({
-        capabilities: { browserName: 'firefox' }
-    })
+const client = await WebDriver.newSession({
+    capabilities: { browserName: 'firefox' }
+})
 
-    await client.navigateTo('https://www.google.com/ncr')
+await client.navigateTo('https://www.google.com/ncr')
 
-    const searchInput = await client.findElement('css selector', '#lst-ib')
-    await client.elementSendKeys(searchInput['element-6066-11e4-a52e-4f735466cecf'], 'WebDriver')
+const searchInput = await client.findElement('css selector', '#lst-ib')
+await client.elementSendKeys(searchInput['element-6066-11e4-a52e-4f735466cecf'], 'WebDriver')
 
-    const searchBtn = await client.findElement('css selector', 'input[value="Google Search"]')
-    await client.elementClick(searchBtn['element-6066-11e4-a52e-4f735466cecf'])
+const searchBtn = await client.findElement('css selector', 'input[value="Google Search"]')
+await client.elementClick(searchBtn['element-6066-11e4-a52e-4f735466cecf'])
 
-    console.log(await client.getTitle()) // outputs "WebDriver - Google Search"
+console.log(await client.getTitle()) // outputs "WebDriver - Google Search"
 
-    await client.deleteSession()
-})()
+await client.deleteSession()
 ```
 
 </TabItem>
 <TabItem value="devtools">
 
 ```js
-const DevTools = require('devtools');
+import DevTools from 'devtools'
 
-(async () => {
-    const client = await DevTools.newSession({
-        capabilities: { browserName: 'firefox' }
-    })
+const client = await DevTools.newSession({
+    capabilities: { browserName: 'firefox' }
+})
 
-    await client.navigateTo('https://www.google.com/ncr')
+await client.navigateTo('https://www.google.com/ncr')
 
-    const searchInput = await client.findElement('css selector', '#lst-ib')
-    await client.elementSendKeys(searchInput['element-6066-11e4-a52e-4f735466cecf'], 'WebDriver')
+const searchInput = await client.findElement('css selector', '#lst-ib')
+await client.elementSendKeys(searchInput['element-6066-11e4-a52e-4f735466cecf'], 'WebDriver')
 
-    const searchBtn = await client.findElement('css selector', 'input[value="Google Search"]')
-    await client.elementClick(searchBtn['element-6066-11e4-a52e-4f735466cecf'])
+const searchBtn = await client.findElement('css selector', 'input[value="Google Search"]')
+await client.elementClick(searchBtn['element-6066-11e4-a52e-4f735466cecf'])
 
-    console.log(await client.getTitle()) // outputs "WebDriver - Google Search"
+console.log(await client.getTitle()) // outputs "WebDriver - Google Search"
 
-    await client.deleteSession()
-})()
+await client.deleteSession()
 ```
 
 </TabItem>
@@ -134,28 +130,26 @@ await WebDriver.reloadSession(client)
 To simplify the interaction with the WebDriver protocol the `webdriverio` package implements a variety of commands on top of the protocol (e.g. the [`dragAndDrop`](./api/element/_dragAndDrop.md) command) and core concepts such as [smart selectors](./Selectors.md) or [auto-waits](./AutoWait.md). The example from above can be simplified like this:
 
 ```js
-const { remote } = require('webdriverio');
+import { remote } from 'webdriverio'
 
-(async () => {
-    const browser = await remote({
-        logLevel: 'trace',
-        capabilities: {
-            browserName: 'chrome'
-        }
-    })
+const browser = await remote({
+    logLevel: 'trace',
+    capabilities: {
+        browserName: 'chrome'
+    }
+})
 
-    await browser.url('https://duckduckgo.com')
+await browser.url('https://duckduckgo.com')
 
-    const inputElem = await browser.$('#search_form_input_homepage')
-    await inputElem.setValue('WebdriverIO')
+const inputElem = await browser.$('#search_form_input_homepage')
+await inputElem.setValue('WebdriverIO')
 
-    const submitBtn = await browser.$('#search_button_homepage')
-    await submitBtn.click()
+const submitBtn = await browser.$('#search_button_homepage')
+await submitBtn.click()
 
-    console.log(await browser.getTitle()) // outputs: "Title is: WebdriverIO (Software) at DuckDuckGo"
+console.log(await browser.getTitle()) // outputs: "Title is: WebdriverIO (Software) at DuckDuckGo"
 
-    await browser.deleteSession()
-})().catch((e) => console.error(e))
+await browser.deleteSession()
 ```
 
 Using WebdriverIO in standalone mode still gives you access to all protocol commands but provides a super set of additional commands that provide a higher level interaction with the browser. It allows you to integrate this automation tool in your own (test) project to create a new automation library. Popular examples include [Spectron](https://www.electronjs.org/spectron) or [CodeceptJS](http://codecept.io). You can also write plain Node scripts to scrape the web for content (or anything else that requires a running browser).

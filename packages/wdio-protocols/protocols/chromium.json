@@ -273,6 +273,7 @@
       "ref": "https://github.com/bayandin/chromedriver/blob/v2.45/session_commands.cc#L521-L539",
       "examples": [
         [
+          "import fs from 'fs'",
           "const browser = remote({",
           "    capabilities: {",
           "        browserName: 'chrome',",
@@ -280,7 +281,7 @@
           "            // Install upon starting browser in order to launch it",
           "            extensions: [",
           "              // Entry should be a base64-encoded packed Chrome app (.crx)",
-          "              require('fs').readFileSync('/absolute/path/app.crx').toString('base64')",
+          "              fs.readFileSync('/absolute/path/app.crx').toString('base64')",
           "            ]",
           "        }",
           "    }",

@@ -82,7 +82,8 @@ mock.response({ ... }, {
 It is recommend to store custom responses in fixture files so you can just require them in your test as follows:
 
 ```js
-const responseFixture = require('./__fixtures__/apiResponse.json')
+// requires Node.js v16.14.0 or higher to support JSON import assertions
+import responseFixture from './__fixtures__/apiResponse.json' assert { type: 'json' }
 mock.response(responseFixture)
 ```
 
