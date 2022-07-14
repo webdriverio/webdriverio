@@ -1,3 +1,4 @@
+import path from 'node:path'
 import { expect, describe, it, beforeEach, vi } from 'vitest'
 // @ts-ignore mocked (original defined in webdriver package)
 import got from 'got'
@@ -5,6 +6,7 @@ import { remote } from '../../../src'
 
 vi.mock('got')
 vi.mock('devtools')
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 const clientMock: any = {
     send: vi.fn(),

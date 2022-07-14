@@ -1,8 +1,10 @@
+import path from 'node:path'
 import { describe, expect, test, vi } from 'vitest'
 import { remote, multiremote } from '../src'
 
 vi.mock('got')
 vi.mock('devtools')
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 const remoteConfig = {
     baseUrl: 'http://foobar.com',
