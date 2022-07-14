@@ -345,11 +345,15 @@ export async function patchDebug (scoppedLogger: Logger) {
         puppeteerDebugPkg = require.resolve(pkgName)
     }
 
-    require(puppeteerDebugPkg).log = (msg: string) => {
-        if (msg.includes('puppeteer:protocol')) {
-            msg = msg.slice(msg.indexOf(PPTR_LOG_PREFIX) + PPTR_LOG_PREFIX.length).trim()
+    try {
+        require(puppeteerDebugPkg).log = (msg: string) => {
+            if (msg.includes('puppeteer:protocol')) {
+                msg = msg.slice(msg.indexOf(PPTR_LOG_PREFIX) + PPTR_LOG_PREFIX.length).trim()
+            }
+            scoppedLogger.debug(msg)
         }
-        scoppedLogger.debug(msg)
+    } catch (err) {
+        log.warn('Couldn\'t stub Puppeteer debug package, Puppeteer logs might get lost')
     }
 }
 

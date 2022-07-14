@@ -82,7 +82,7 @@ export default class DevTools {
         if (vendorCapPrefix) {
             Object.assign(params.capabilities, {
                 [vendorCapPrefix]: Object.assign(
-                    { debuggerAddress: (browser as any)._connection.url().split('/')[2] },
+                    { debuggerAddress: browser.wsEndpoint().split('/')[2] },
                     params.capabilities[vendorCapPrefix]
                 )
             })

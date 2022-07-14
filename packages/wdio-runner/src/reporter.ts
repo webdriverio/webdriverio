@@ -143,7 +143,7 @@ export default class BaseReporter {
          * check if reporter was passed in from a file, e.g.
          *
          * ```js
-         * const MyCustomReporter = require('/some/path/MyCustomReporter.js')
+         * import MyCustomReporter from '/some/path/MyCustomReporter.js'
          * exports.config
          *     //...
          *     reporters: [

@@ -14,7 +14,7 @@ import type { Capabilities } from '@wdio/types'
  *
  * <example>
     :uploadFile.js
-    const path = require('path');
+    import path from 'node:path'
 
     it('should upload a file', async () => {
         await browser.url('https://the-internet.herokuapp.com/upload')

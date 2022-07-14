@@ -18,14 +18,16 @@
   "bugs": {
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
+  "main": "./build/cjs/index.js",
   "type": "module",
+  "module": "./build/index.js",
   "exports": {
     ".": [
       {
         "import": "./build/index.js",
-        "require": "./build/index.cjs.js"
+        "require": "./build/cjs/index.js"
       },
-      "./build/index.cjs.js"
+      "./build/cjs/index.js"
     ]
   },
   "types": "./build/index.d.ts",

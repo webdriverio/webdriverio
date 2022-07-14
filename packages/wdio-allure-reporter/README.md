@@ -76,13 +76,13 @@ exports.config = {
 ### Usage
 Allure Api can be accessed using:
 
-ES5
+CJS
 
 ```js
 const allureReporter = require('@wdio/allure-reporter').default
 ```
 
-ES6
+ESM
 
 ```js
 import allureReporter from '@wdio/allure-reporter'
