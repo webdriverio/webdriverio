@@ -75,31 +75,6 @@ const scope: BaseClient = new FakeClient()
 type mockResponse = (...args: any[]) => any
 
 describe('command wrapper', () => {
-    beforeEach(() => {
-        delete process.env.KEEP_WDIO_LOGGER
-    })
-    
-    function doProperRequest (additionalParams: number | undefined = undefined) {
-        const commandFn = commandWrapper(commandMethod, commandPath, commandEndpoint)
-        const requestMock = require('../src/request/node')
-        const resultFunction = commandFn.call(scope, '123', 'css selector', '#body', additionalParams) as unknown as mockResponse
-        expect(requestMock.mock.calls).toHaveLength(1)
-        expect(resultFunction({ value: 14 })).toBe(14)
-        if (additionalParams) {
-            expect(resultFunction({ value: 'foobarboo' })).toBe('foobarboo')
-        }
-
-        const [method, endpoint, { using, value, customParam }] = requestMock.mock.calls[0]
-        expect(method).toBe('POST')
-        expect(endpoint).toBe('/session/:sessionId/element/123/element')
-        expect(using).toBe('css selector')
-        expect(value).toBe('#body')
-        if (additionalParams) {
-            expect(customParam).toBe(additionalParams)
-        }
-        requestMock.mockClear()
-    }
-    
     it('should fail if wrong arguments are passed in', () => {
         const commandFn = commandWrapper(commandMethod, commandPath, commandEndpoint)
         expect(commandFn)
@@ -130,21 +105,34 @@ describe('command wrapper', () => {
     })
 
     it('should do a proper request', () => {
-        doProperRequest()
-    })
+        const commandFn = commandWrapper(commandMethod, commandPath, commandEndpoint)
+        const requestMock = require('../src/request/node')
+        const resultFunction = commandFn.call(scope, '123', 'css selector', '#body', undefined) as unknown as mockResponse
+        expect(requestMock.mock.calls).toHaveLength(1)
+        expect(resultFunction({ value: 14 })).toBe(14)
 
-    it('should do a proper request with env var - KEEP_WDIO_LOGGER', () => {
-        process.env.KEEP_WDIO_LOGGER = 'true'
-        doProperRequest()
+        const [method, endpoint, { using, value }] = requestMock.mock.calls[0]
+        expect(method).toBe('POST')
+        expect(endpoint).toBe('/session/:sessionId/element/123/element')
+        expect(using).toBe('css selector')
+        expect(value).toBe('#body')
+        requestMock.mockClear()
     })
 
     it('should do a proper request with non required params', () => {
-        doProperRequest(123)
-    })
+        const commandFn = commandWrapper(commandMethod, commandPath, commandEndpoint)
+        const requestMock = require('../src/request/node')
+        const resultFunction = commandFn.call(scope, '123', 'css selector', '#body', 123) as unknown as mockResponse
+        expect(requestMock.mock.calls).toHaveLength(1)
+        expect(resultFunction({ value: 'foobarboo' })).toBe('foobarboo')
 
-    it('should do a proper request with non required params and env var - KEEP_WDIO_LOGGER', () => {
-        process.env.KEEP_WDIO_LOGGER = 'true'
-        doProperRequest(123)
+        const [method, endpoint, { using, value, customParam }] = requestMock.mock.calls[0]
+        expect(method).toBe('POST')
+        expect(endpoint).toBe('/session/:sessionId/element/123/element')
+        expect(using).toBe('css selector')
+        expect(value).toBe('#body')
+        expect(customParam).toBe(123)
+        requestMock.mockClear()
     })
 
     it('should encode uri parameters', () => {
@@ -171,7 +159,7 @@ describe('command wrapper', () => {
 describe('command wrapper result log', () => {
     const log = logger('webdriver')
     jest.spyOn(log, 'info').mockImplementation((string) => string)
-    const clearLoggerSpy = jest.spyOn(logger, 'clearLogger')    
+    const clearLoggerSpy = jest.spyOn(logger, 'clearLogger')
 
     function getRequestCallback (method: string, path: string, endpoint: Protocols.CommandEndpoint) {
         const commandFn = commandWrapper(method, path, endpoint)
@@ -195,7 +183,7 @@ describe('command wrapper result log', () => {
             description: ''
         }
     }
-    
+
     const deleteSessionCmd = {
         path: '/foobar',
         method: 'POST',
@@ -282,9 +270,9 @@ describe('command wrapper result log', () => {
         value: false,
         get log() { return this.value }
     }]
-    
+
     beforeEach(() => {
-        delete process.env.KEEP_WDIO_LOGGER
+        delete process.env.WDIO_WORKER_ID
     })
 
     for (const scenario of scenarios) {
@@ -298,27 +286,19 @@ describe('command wrapper result log', () => {
     }
 
     it('should be no result in log if there is value in response', () => {
-        const resultFunction = getRequestCallback(takeScreenshotCmd.method, takeScreenshotCmd.path, takeScreenshotCmd.endpoint) as unknown as mockResponse
+        const resultFunction = getRequestCallback(deleteSessionCmd.method, takeScreenshotCmd.path, takeScreenshotCmd.endpoint) as unknown as mockResponse
         resultFunction({})
         expect((log.info as jest.Mock).mock.calls).toHaveLength(0)
         expect(clearLoggerSpy).not.toHaveBeenCalled()
         clearLoggerSpy.mockClear()
     })
-    
+
     it('should call clearLogger on deleteSession cmd', () => {
+        process.env.WDIO_WORKER_ID = '0-0'
         const resultFunction = getRequestCallback(deleteSessionCmd.method, deleteSessionCmd.path, deleteSessionCmd.endpoint) as unknown as mockResponse
         resultFunction({})
         expect((log.info as jest.Mock).mock.calls).toHaveLength(0)
         expect(clearLoggerSpy).toHaveBeenCalledTimes(1)
-        clearLoggerSpy.mockClear()
-    })
-
-    it('should NOT call clearLogger on deleteSession cmd if env var - KEEP_WDIO_LOGGER set', () => {
-        const resultFunction = getRequestCallback(deleteSessionCmd.method, deleteSessionCmd.path, deleteSessionCmd.endpoint) as unknown as mockResponse
-        process.env.KEEP_WDIO_LOGGER = 'true'
-        resultFunction({})
-        expect((log.info as jest.Mock).mock.calls).toHaveLength(0)
-        expect(clearLoggerSpy).not.toHaveBeenCalled()
         clearLoggerSpy.mockClear()
     })
 })
