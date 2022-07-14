@@ -131,7 +131,7 @@ export async function loadTypeScriptCompiler (
     /**
      * don't auto compile within worker as it already was spawn with a loader
      */
-    if (!process.env.WDIO_WORKER_ID) {
+    if (process.env.WDIO_WORKER_ID) {
         return true
     }
 

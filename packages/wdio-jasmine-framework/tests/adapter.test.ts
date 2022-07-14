@@ -443,7 +443,7 @@ describe('_grep', () => {
 })
 
 describe('loadFiles', () => {
-    it('should set _hasTests to true if there are tests to run', () => {
+    it('should set _hasTests to true if there are tests to run', async () => {
         const adapter = adapterFactory({})
         // @ts-ignore test scenario
         delete adapter['_hasTests']
@@ -455,7 +455,7 @@ describe('loadFiles', () => {
         // @ts-ignore outdated types
         adapter['_jrunner']!.env = { topSuite () { return { children: [1] } } }
 
-        adapter._loadFiles()
+        await adapter._loadFiles()
 
         // @ts-ignore outdated types
         expect(adapter['_jrunner']!.loadRequires).toBeCalled()
@@ -464,7 +464,7 @@ describe('loadFiles', () => {
         expect(adapter['_hasTests']).toBe(true)
     })
 
-    it('should set _hasTests to false if there no tests to run', () => {
+    it('should set _hasTests to false if there no tests to run', async () => {
         const adapter = adapterFactory()
         // @ts-ignore test scenario
         delete adapter['_hasTests']
@@ -482,7 +482,7 @@ describe('loadFiles', () => {
         // @ts-ignore outdated types
         adapter['_jrunner']!.env = { topSuite() { return { children: [] } } }
 
-        adapter._loadFiles()
+        await adapter._loadFiles()
 
         // @ts-ignore outdated types
         expect(adapter['_jrunner']!.addRequires).toHaveBeenCalledWith(adapter['_jasmineOpts'].requires)

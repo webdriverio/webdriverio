@@ -105,14 +105,14 @@ test('options', () => {
     adapter.options({
         require: ['foo/bar.js'],
         compilers: ['the/compiler.js']
-    }, 'context' as any)
-    expect(adapter.requireExternalModules).toBeCalledWith(['the/compiler.js', 'foo/bar.js'], 'context')
+    })
+    expect(adapter.requireExternalModules).toBeCalledWith(['the/compiler.js', 'foo/bar.js'])
 })
 
 test('preRequire', () => {
     const mochaOpts = { foo: 'bar', ui: 'tdd' }
     const adapter = adapterFactory({ mochaOpts, beforeHook: 'beforeHook123', afterHook: 'afterHook123', beforeTest: 'beforeTest234', afterTest: 'afterTest234' })
-    adapter.preRequire('context' as any, 'file', 'mocha' as any)
+    adapter.preRequire()
     expect(runTestInFiberContext).toBeCalledWith(
         false, 'beforeHook123', expect.any(Function), 'afterHook123', expect.any(Function), 'suiteSetup', '0-2')
     expect(runTestInFiberContext).toBeCalledWith(
@@ -132,7 +132,7 @@ test('preRequire', () => {
 test('custom ui', () => {
     const mochaOpts = { ui: 'custom-qunit' }
     const adapter = adapterFactory({ mochaOpts })
-    adapter.preRequire('context' as any, 'file', 'mocha' as any)
+    adapter.preRequire()
     expect(runTestInFiberContext).toBeCalledWith(
         false, undefined, expect.any(Function), undefined, expect.any(Function), 'after', '0-2')
     expect(runTestInFiberContext).toBeCalledWith(
@@ -352,9 +352,9 @@ test('requireExternalModules', () => {
     // @ts-ignore params not needed for test scenario
     const adapter = adapterFactory()
     // @ts-ignore test invalid params
-    adapter.requireExternalModules(['/foo/bar.js', null, './bar/foo.js'], { myContext: 123 } as any)
-    expect(loadModule).toBeCalledWith('/foo/bar.js', { myContext: 123 })
-    expect(loadModule).toBeCalledWith(path.resolve(__dirname, '..', '..', '..', 'bar', 'foo.js'), { myContext: 123 })
+    adapter.requireExternalModules(['/foo/bar.js', null, './bar/foo.js'])
+    expect(loadModule).toBeCalledWith('/foo/bar.js')
+    expect(loadModule).toBeCalledWith(path.resolve(__dirname, '..', '..', '..', 'bar', 'foo.js'))
 })
 
 test('emit does not emit anything on root level', () => {

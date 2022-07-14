@@ -9,13 +9,13 @@ declare global {
 vi.mock('randomModule', () => import(path.join(process.cwd(), '__mocks__', 'randomModule')))
 
 test('loadModule with existing package', async () => {
-    await loadModule('randomModule', { foo: 'bar' } as any)
+    await loadModule('randomModule')
     expect(global.foo).toBe('bar')
 })
 
 test('loadModule with non existing package', async () => {
-    await expect(() => loadModule('nonExistingModule', { foo: 'bar' } as any))
-        .rejects.toThrow('Failed to load nonExistingModule')
+    await expect(() => loadModule('nonExistingModule'))
+        .rejects.toThrow('Module nonExistingModule can\'t get loaded')
 })
 
 afterAll(() => {

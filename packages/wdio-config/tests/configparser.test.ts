@@ -179,12 +179,13 @@ describe('ConfigParser', () => {
             expect(() => configParser.addConfigFile('test-a.feature')).rejects.toThrow()
         })
 
-        describe('TypeScript integration', () => {
+        describe.only('TypeScript integration', () => {
             beforeEach(() => {
                 (log.debug as MockedFunction<any>).mockClear()
                 ;(tsNode.register as MockedFunction<any>).mockClear()
                 ;(tsConfigPath.register as MockedFunction<any>).mockClear()
                 process.env.THROW_BABEL_REGISTER = '1'
+                delete process.env.WDIO_WORKER_ID
             })
 
             it('when ts-node exists should initiate TypeScript compiler with defaults', async function () {
@@ -202,13 +203,31 @@ describe('ConfigParser', () => {
                 await configParser.autoCompile()
                 expect(tsNodeRegister).toBeCalledTimes(1)
                 expect(tsNodeRegister).toHaveBeenCalledWith({
+                    'esm': 1,
                     'transpileOnly': true
                 })
             })
 
+            it('should not transpile via ts-node if we are within the worker', async function () {
+                process.env.WDIO_WORKER_ID = '0-0'
+                let configFileContents = (await MockFileContentBuilder.FromRealConfigFile(FIXTURES_CONF_RDC)).build()
+                const tsNodeRegister = vi.fn()
+                const configParser = ConfigParserBuilder
+                    .withBaseDir(path.join(FIXTURES_PATH, '/here'))
+                    .withTsNodeModule(tsNodeRegister)
+                    .withFiles([
+                        ...(await MockedFileSystem_LoadingAsMuchAsCanFromFileSystem()),
+                        FileNamed(path.join(FIXTURES_PATH, '/here/cool.conf')).withContents(configFileContents)
+                    ])
+                    .build()
+                await configParser.addConfigFile('cool.conf')
+                await configParser.autoCompile()
+                expect(tsNodeRegister).toBeCalledTimes(0)
+            })
+
             it('when ts-node exists should initiate TypeScript compiler with defaults if autoCompiled before config is read', async function () {
-                let configFileContents = (await MockFileContentBuilder.FromRealConfigFile(FIXTURES_CONF_RDC)).withTheseContentsMergedOn(
-                    {
+                let configFileContents = (await MockFileContentBuilder.FromRealConfigFile(FIXTURES_CONF_RDC))
+                    .withTheseContentsMergedOn({
                         config: {
                             autoCompileOpts: {
                                 tsNodeOpts: {
@@ -217,8 +236,7 @@ describe('ConfigParser', () => {
                                 }
                             }
                         }
-                    }
-                ).build()
+                    }).build()
                 const tsNodeRegister = vi.fn()
                 const configParser = ConfigParserBuilder
                     .withBaseDir(path.join(__dirname, '/tests/'))
@@ -233,8 +251,8 @@ describe('ConfigParser', () => {
             })
 
             it('when ts-node exists should initiate TypeScript compiler with defaults + config, preferring config, if it is present and autocompiled after config is read', async function () {
-                let configFileContents = (await MockFileContentBuilder.FromRealConfigFile(FIXTURES_CONF_RDC)).withTheseContentsMergedOn(
-                    {
+                let configFileContents = (await MockFileContentBuilder.FromRealConfigFile(FIXTURES_CONF_RDC))
+                    .withTheseContentsMergedOn({
                         config: {
                             autoCompileOpts: {
                                 tsNodeOpts: {
@@ -243,8 +261,7 @@ describe('ConfigParser', () => {
                                 }
                             }
                         }
-                    }
-                ).build()
+                    }).build()
                 const tsNodeRegister = vi.fn()
                 const configParser = ConfigParserBuilder
                     .withBaseDir(path.join(__dirname, '/tests/'))
@@ -259,13 +276,14 @@ describe('ConfigParser', () => {
                 expect(tsNodeRegister).toHaveBeenCalledWith({
                     'transpileOnly': true,
                     'ts-node': 'do this',
+                    'esm': 1,
                     'and': 'that'
                 })
             })
 
             it('config can overwrite defaults', async function () {
-                let configFileContents = (await MockFileContentBuilder.FromRealConfigFile(FIXTURES_CONF_RDC)).withTheseContentsMergedOn(
-                    {
+                let configFileContents = (await MockFileContentBuilder.FromRealConfigFile(FIXTURES_CONF_RDC))
+                    .withTheseContentsMergedOn({
                         config: {
                             autoCompileOpts: {
                                 tsNodeOpts: {
@@ -273,8 +291,7 @@ describe('ConfigParser', () => {
                                 }
                             }
                         }
-                    }
-                ).build()
+                    }).build()
                 const tsNodeRegister = vi.fn()
                 const configParser = ConfigParserBuilder
                     .withBaseDir(path.join(__dirname, '/tests/'))
@@ -288,13 +305,14 @@ describe('ConfigParser', () => {
                 expect(tsConfigPath.register).toBeCalledTimes(0)
                 expect(tsNodeRegister).toBeCalledTimes(1)
                 expect(tsNodeRegister).toHaveBeenCalledWith({
+                    'esm': 1,
                     'transpileOnly': false
                 })
             })
 
             it('bootstraps tsconfig-paths if options are given', async function () {
-                let configFileContents = (await MockFileContentBuilder.FromRealConfigFile(FIXTURES_CONF_RDC)).withTheseContentsMergedOn(
-                    {
+                let configFileContents = (await MockFileContentBuilder.FromRealConfigFile(FIXTURES_CONF_RDC))
+                    .withTheseContentsMergedOn({
                         config: {
                             autoCompileOpts: {
                                 tsConfigPathsOpts: {
@@ -302,8 +320,7 @@ describe('ConfigParser', () => {
                                 }
                             }
                         }
-                    }
-                ).build()
+                    }).build()
                 const tsNodeRegister = vi.fn()
                 const tsConfigPathRegister = vi.fn()
                 const configParser = ConfigParserBuilder
