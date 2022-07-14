@@ -1,9 +1,11 @@
+import path from 'node:path'
 import { expect, describe, it, vi } from 'vitest'
 import { remote } from '../../../src'
 // @ts-expect-error mock feature
 import { getMockCalls } from '../../../src/commands/browser/mock'
 
 vi.mock('got')
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 vi.mock('../../../src/commands/browser/mock', () => {
     let clearedMocks = 0
     const bumpCall = () => ++clearedMocks
