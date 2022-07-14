@@ -179,7 +179,7 @@ describe('ConfigParser', () => {
             expect(() => configParser.addConfigFile('test-a.feature')).rejects.toThrow()
         })
 
-        describe.only('TypeScript integration', () => {
+        describe('TypeScript integration', () => {
             beforeEach(() => {
                 (log.debug as MockedFunction<any>).mockClear()
                 ;(tsNode.register as MockedFunction<any>).mockClear()
