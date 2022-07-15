@@ -43,6 +43,7 @@ import type { CucumberOptions, StepDefinitionOptions, HookFunctionExtension as H
 
 const require = createRequire(import.meta.url)
 const EventDataCollector = require('@cucumber/cucumber/lib/formatter/helpers/event_data_collector').default
+const FILE_PROTOCOL = 'file://'
 
 const { incrementing } = IdGenerator
 
@@ -86,7 +87,14 @@ class CucumberAdapter {
         this._eventBroadcaster = new EventEmitter()
         this._eventDataCollector = new EventDataCollector(this._eventBroadcaster)
 
-        const featurePathsToRun = this._cucumberFeaturesWithLineNumbers.length > 0 ? this._cucumberFeaturesWithLineNumbers : this._specs
+        this._specs = this._specs.map((spec) => (
+            spec.startsWith(FILE_PROTOCOL)
+                ? spec.slice(FILE_PROTOCOL.length)
+                : spec
+        ))
+        const featurePathsToRun = this._cucumberFeaturesWithLineNumbers.length > 0
+            ? this._cucumberFeaturesWithLineNumbers
+            : this._specs
         this._pickleFilter = new Cucumber.PickleFilter({
             cwd: this._cwd,
             featurePaths: featurePathsToRun,

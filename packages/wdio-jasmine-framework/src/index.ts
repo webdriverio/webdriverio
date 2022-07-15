@@ -16,6 +16,7 @@ const INTERFACES = {
 const TEST_INTERFACES = ['it', 'fit', 'xit']
 const NOOP = function noop() { }
 const DEFAULT_TIMEOUT_INTERVAL = 60000
+const FILE_PROTOCOL = 'file://'
 
 const log = logger('@wdio/jasmine-framework')
 
@@ -70,7 +71,11 @@ class JasmineAdapter {
         const { jasmine } = this._jrunner
         // @ts-ignore outdated
         const jasmineEnv = jasmine.getEnv()
-        this._specs.forEach((spec) => this._jrunner.addSpecFile(spec))
+        this._specs.forEach((spec) => this._jrunner.addSpecFile(
+            spec.startsWith(FILE_PROTOCOL)
+                ? spec.slice(FILE_PROTOCOL.length)
+                : spec
+        ))
 
         // @ts-ignore only way to hack timeout into jasmine
         jasmine.DEFAULT_TIMEOUT_INTERVAL = this._jasmineOpts.defaultTimeoutInterval || DEFAULT_TIMEOUT_INTERVAL

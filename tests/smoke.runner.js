@@ -7,13 +7,7 @@ import { sleep } from '../packages/wdio-utils/build/utils.js'
 import { SevereServiceError } from '../packages/node_modules/webdriverio/build/index.js'
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
-const baseConfig = url.pathToFileURL(path.resolve(__dirname, 'helpers', 'config.js')).href
-const commandHookConfig = url.pathToFileURL(path.resolve(__dirname, 'helpers', 'command.hook.config.js')).href
-const cucumberHookConfig = url.pathToFileURL(path.resolve(__dirname, 'helpers', 'cucumber-hooks.conf.js')).href
-const reporterConfig = url.pathToFileURL(path.resolve(__dirname, 'helpers', 'reporter.conf.js')).href
-const hookConfig = url.pathToFileURL(path.resolve(__dirname, 'helpers', 'hooks.conf.js')).href
-const sharedStoreConfig = url.pathToFileURL(path.resolve(__dirname, 'helpers', 'shared-store.conf.js')).href
-const asyncConfig = url.pathToFileURL(path.resolve(__dirname, 'helpers', 'async.config.js')).href
+const baseConfig = path.resolve(__dirname, 'helpers', 'config.js')
 
 import launch from './helpers/launch.js'
 import {
@@ -81,9 +75,13 @@ const mochaTestrunner = async () => {
  * Mocha wdio testrunner tests with asynchronous execution
  */
 const mochaAsyncTestrunner = async () => {
-    const { skippedSpecs } = await launch('mochaAsyncTestrunner', commandHookConfig, {
-        specs: [path.resolve(__dirname, 'mocha', 'test-async.ts')]
-    })
+    const { skippedSpecs } = await launch(
+        'mochaAsyncTestrunner',
+        path.resolve(__dirname, 'helpers', 'command.hook.config.js'),
+        {
+            specs: [path.resolve(__dirname, 'mocha', 'test-async.ts')]
+        }
+    )
     assert.strictEqual(skippedSpecs, 0)
 }
 
@@ -177,20 +175,24 @@ const jasmineTimeout = async () => {
  * Cucumber wdio testrunner tests
  */
 const cucumberTestrunner = async () => {
-    const { skippedSpecs } = await launch('cucumberTestrunner', cucumberHookConfig, {
-        autoCompileOpts: { autoCompile: false },
-        specs: [
-            path.resolve(__dirname, 'cucumber', 'test.feature'),
-            path.resolve(__dirname, 'cucumber', 'test-skipped.feature')
-        ],
-        cucumberOpts: {
-            tagExpression: '(not @SKIPPED_TAG)',
-            ignoreUndefinedDefinitions: true,
-            retry: 1,
-            retryTagFilter: '@retry',
-            scenarioLevelReporter: true
+    const { skippedSpecs } = await launch(
+        'cucumberTestrunner',
+        path.resolve(__dirname, 'helpers', 'cucumber-hooks.conf.js'),
+        {
+            autoCompileOpts: { autoCompile: false },
+            specs: [
+                path.resolve(__dirname, 'cucumber', 'test.feature'),
+                path.resolve(__dirname, 'cucumber', 'test-skipped.feature')
+            ],
+            cucumberOpts: {
+                tagExpression: '(not @SKIPPED_TAG)',
+                ignoreUndefinedDefinitions: true,
+                retry: 1,
+                retryTagFilter: '@retry',
+                scenarioLevelReporter: true
+            }
         }
-    })
+    )
     assert.strictEqual(skippedSpecs, 1)
 }
 
@@ -198,15 +200,22 @@ const cucumberTestrunner = async () => {
  * Cucumber fail due to failAmbiguousDefinitions
  */
 const cucumberFailAmbiguousDefinitions = async () => {
-    const hasFailed = await launch('cucumberFailAmbiguousDefinitions', cucumberHookConfig, {
-        autoCompileOpts: { autoCompile: false },
-        specs: [path.resolve(__dirname, 'cucumber', 'test.feature')],
-        cucumberOpts: {
-            ignoreUndefinedDefinitions: true,
-            failAmbiguousDefinitions: true,
-            names: ['failAmbiguousDefinitions']
+    const hasFailed = await launch(
+        'cucumberFailAmbiguousDefinitions',
+        path.resolve(__dirname, 'helpers', 'cucumber-hooks.conf.js'),
+        {
+            autoCompileOpts: { autoCompile: false },
+            specs: [path.resolve(__dirname, 'cucumber', 'test.feature')],
+            cucumberOpts: {
+                ignoreUndefinedDefinitions: true,
+                failAmbiguousDefinitions: true,
+                names: ['failAmbiguousDefinitions']
+            }
         }
-    }).then(() => false, () => true)
+    ).then(
+        () => false,
+        () => true
+    )
     assert.equal(hasFailed, true)
 }
 
@@ -217,7 +226,7 @@ const cucumberReporter = async () => {
     const basePath = path.resolve(__dirname, 'cucumber', 'reporter')
     await launch(
         'cucumberReporter',
-        url.pathToFileURL(path.resolve(basePath, 'reporter.config.js')).href,
+        path.resolve(basePath, 'reporter.config.js'),
         {
             autoCompileOpts: { autoCompile: false },
             specs: [path.resolve(basePath, 'reporter.feature')],
@@ -267,9 +276,11 @@ const customReporterString = async () => {
  * wdio test run with custom reporter as object
  */
 const customReporterObject = async () => {
-    await launch('customReporterObject', reporterConfig, {
-        autoCompileOpts: { autoCompile: false }
-    })
+    await launch(
+        'customReporterObject',
+        path.resolve(__dirname, 'helpers', 'reporter.conf.js'),
+        { autoCompileOpts: { autoCompile: false } }
+    )
     await sleep(100)
     const reporterLogsWithReporterAsObjectPath = path.join(__dirname, 'helpers', 'wdio-0-0-CustomSmokeTestReporter-reporter.log')
     const reporterLogsWithReporterAsObject = await fs.readFile(reporterLogsWithReporterAsObjectPath)
@@ -281,10 +292,14 @@ const customReporterObject = async () => {
  * wdio test run with before/after Test/Hook
  */
 const wdioHooks = async () => {
-    await launch('wdioHooks', hookConfig, {
-        autoCompileOpts: { autoCompile: false },
-        specs: [path.resolve(__dirname, 'mocha', 'wdio_hooks.js')]
-    })
+    await launch(
+        'wdioHooks',
+        path.resolve(__dirname, 'helpers', 'hooks.conf.js'),
+        {
+            autoCompileOpts: { autoCompile: false },
+            specs: [path.resolve(__dirname, 'mocha', 'wdio_hooks.js')]
+        }
+    )
 }
 
 /**
@@ -313,7 +328,10 @@ const retryFail = async () => {
         autoCompileOpts: { autoCompile: false },
         specs: [path.resolve(__dirname, 'mocha', 'retry_and_fail.js')],
         specFileRetries: 1
-    }).then(() => false, () => true)
+    }).then(
+        () => false,
+        () => true
+    )
     assert.equal(retryFailed, true, 'Expected retries to fail but they passed')
 }
 
@@ -354,10 +372,14 @@ const retryPass = async () => {
  * wdio-shared-store-service tests
  */
 const sharedStoreServiceTest = async () => {
-    await launch('sharedStoreServiceTest', sharedStoreConfig, {
-        autoCompileOpts: { autoCompile: false },
-        specs: [path.resolve(__dirname, 'mocha', 'shared-store-service.js')]
-    })
+    await launch(
+        'sharedStoreServiceTest',
+        path.resolve(__dirname, 'helpers', 'shared-store.conf.js'),
+        {
+            autoCompileOpts: { autoCompile: false },
+            specs: [path.resolve(__dirname, 'mocha', 'shared-store-service.js')]
+        }
+    )
 }
 
 /**
@@ -415,10 +437,14 @@ const mochaSpecGrouping = async () => {
  * Mocha wdio testrunner tests
  */
 const standaloneTest = async () => {
-    const { skippedSpecs } = await launch('standaloneTest', asyncConfig, {
-        autoCompileOpts: { autoCompile: false },
-        specs: [path.resolve(__dirname, 'mocha', 'standalone.js')]
-    })
+    const { skippedSpecs } = await launch(
+        'standaloneTest',
+        path.resolve(__dirname, 'helpers', 'async.config.js'),
+        {
+            autoCompileOpts: { autoCompile: false },
+            specs: [path.resolve(__dirname, 'mocha', 'standalone.js')]
+        }
+    )
     assert.strictEqual(skippedSpecs, 0)
 }
 

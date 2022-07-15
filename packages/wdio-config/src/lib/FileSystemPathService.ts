@@ -1,4 +1,5 @@
 import fs from 'node:fs'
+import url from 'node:url'
 import path from 'node:path'
 import glob from 'glob'
 
@@ -34,6 +35,13 @@ export default class FileSystemPathService implements PathService {
     }
 
     ensureAbsolutePath(filepath: string): string {
-        return path.isAbsolute(filepath) ? path.normalize(filepath) : path.resolve(this.getcwd(), filepath)
+        if (filepath.startsWith('file://')) {
+            return filepath
+        }
+
+        const p = path.isAbsolute(filepath)
+            ? path.normalize(filepath)
+            : path.resolve(this.getcwd(), filepath)
+        return url.pathToFileURL(p).href
     }
 }

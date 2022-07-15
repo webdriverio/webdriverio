@@ -26,6 +26,7 @@ const log = logger('@wdio/mocha-framework')
 */
 const MOCHA_UI_TYPE_EXTRACTOR = /^(?:.*-)?([^-.]+)(?:.js)?$/
 const DEFAULT_INTERFACE_TYPE = 'bdd'
+const FILE_PROTOCOL = 'file://'
 
 type EventTypes = 'hook' | 'test' | 'suite'
 type EventTypeProps = '_hookCnt' | '_testCnt' | '_suiteCnt'
@@ -65,7 +66,11 @@ class MochaAdapter {
         mocha.reporter(NOOP as any)
         mocha.fullTrace()
 
-        this._specs.forEach((spec) => mocha.addFile(spec))
+        this._specs.forEach((spec) => mocha.addFile(
+            spec.startsWith(FILE_PROTOCOL)
+                ? spec.slice(FILE_PROTOCOL.length)
+                : spec
+        ))
         mocha.suite.on('pre-require', this.preRequire.bind(this))
         await this._loadFiles(mochaOpts)
 
