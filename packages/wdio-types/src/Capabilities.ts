@@ -1091,10 +1091,6 @@ export interface BrowserStackCapabilities {
      * @private
      */
     wdioService?: string
-    /**
-     * @private
-     */
-    'browserstack.wdioService'?: string
 }
 
 export interface SauceLabsVisualCapabilities {
