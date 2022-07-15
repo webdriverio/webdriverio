@@ -101,7 +101,7 @@ export default function (
 
             this.emit('result', { method, endpoint, body, result })
 
-            if (command === 'deleteSession' && process.env.WDIO_WORKER_ID) {
+            if (command === 'deleteSession' && !process.env.WDIO_WORKER_ID) {
                 logger.clearLogger()
             }
             return result.value

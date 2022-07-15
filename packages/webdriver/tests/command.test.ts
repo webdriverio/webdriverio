@@ -286,6 +286,7 @@ describe('command wrapper result log', () => {
     }
 
     it('should be no result in log if there is value in response', () => {
+        process.env.WDIO_WORKER_ID = '0-0'
         const resultFunction = getRequestCallback(deleteSessionCmd.method, takeScreenshotCmd.path, takeScreenshotCmd.endpoint) as unknown as mockResponse
         resultFunction({})
         expect((log.info as jest.Mock).mock.calls).toHaveLength(0)
@@ -294,7 +295,6 @@ describe('command wrapper result log', () => {
     })
 
     it('should call clearLogger on deleteSession cmd', () => {
-        process.env.WDIO_WORKER_ID = '0-0'
         const resultFunction = getRequestCallback(deleteSessionCmd.method, deleteSessionCmd.path, deleteSessionCmd.endpoint) as unknown as mockResponse
         resultFunction({})
         expect((log.info as jest.Mock).mock.calls).toHaveLength(0)
