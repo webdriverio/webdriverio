@@ -5,7 +5,7 @@ import path from 'node:path'
 import Launcher from '../packages/wdio-cli/build/launcher.js'
 
 test('should allow to run multiple browser at once', async () => {
-    const launcher = new Launcher(`${__dirname}/wdio/wdio.conf.js`)
+    const launcher = new Launcher(`${__dirname}/wdio/wdio.conf.ts`)
     const failures = await launcher.run()
     const hasPassed = failures === 0
 
