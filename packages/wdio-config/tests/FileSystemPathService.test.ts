@@ -1,3 +1,4 @@
+import url from 'node:url'
 import path from 'node:path'
 import process from 'node:process'
 import glob from 'glob'
@@ -54,12 +55,13 @@ describe('FileSystemPathService', () => {
         it('should return abs path given abs path', function () {
             var svc = new FileSystemPathService()
             expect(svc.ensureAbsolutePath(path.resolve(__dirname, 'absolutely')))
-                .toEqual(path.resolve(__dirname, 'absolutely'))
+                .toEqual(url.pathToFileURL(path.resolve(__dirname, 'absolutely')).href)
         })
 
         it('should return abs path given relative path', function () {
             var svc = new FileSystemPathService()
-            expect(svc.ensureAbsolutePath('all_relativity')).toEqual(path.resolve(process.cwd(), 'all_relativity'))
+            expect(svc.ensureAbsolutePath('all_relativity')).toBe(
+                url.pathToFileURL(path.resolve(process.cwd(), 'all_relativity')).href)
         })
     })
 
