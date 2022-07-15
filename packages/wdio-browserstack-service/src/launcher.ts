@@ -29,16 +29,28 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         if (Array.isArray(capabilities)) {
             capabilities.forEach((capability: Capabilities.DesiredCapabilities) => {
                 if (!capability['bstack:options']) {
-                    capability['bstack:options'] = {}
+                    const extensionCaps = Object.keys(capability).filter((cap) => cap.includes(':'))
+                    if (extensionCaps.length) {
+                        capability['bstack:options'] = { wdioService: bstackServiceVersion }
+                    } else {
+                        capability['browserstack.wdioService'] = bstackServiceVersion
+                    }
+                } else {
+                    capability['bstack:options'].wdioService = bstackServiceVersion
                 }
-                capability['bstack:options'].wdioService = bstackServiceVersion
             })
         } else if (typeof capabilities === 'object') {
             Object.entries(capabilities as Capabilities.MultiRemoteCapabilities).forEach(([, caps]) => {
                 if (!(caps.capabilities as Capabilities.Capabilities)['bstack:options']) {
-                    (caps.capabilities as Capabilities.Capabilities)['bstack:options'] = {}
+                    const extensionCaps = Object.keys(caps.capabilities).filter((cap) => cap.includes(':'))
+                    if (extensionCaps.length) {
+                        (caps.capabilities as Capabilities.Capabilities)['bstack:options'] = { wdioService: bstackServiceVersion }
+                    } else {
+                        (caps.capabilities as Capabilities.Capabilities)['browserstack.wdioService'] = bstackServiceVersion
+                    }
+                } else {
+                    (caps.capabilities as Capabilities.Capabilities)['bstack:options']!.wdioService = bstackServiceVersion
                 }
-                (caps.capabilities as Capabilities.Capabilities)['bstack:options']!.wdioService = bstackServiceVersion
             })
         }
     }
@@ -58,16 +70,28 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         if (Array.isArray(capabilities)) {
             capabilities.forEach((capability: Capabilities.DesiredCapabilities) => {
                 if (!capability['bstack:options']) {
-                    capability['bstack:options'] = {}
+                    const extensionCaps = Object.keys(capability).filter((cap) => cap.includes(':'))
+                    if (extensionCaps.length) {
+                        capability['bstack:options'] = { local: true }
+                    } else {
+                        capability['browserstack.local'] = true
+                    }
+                } else {
+                    capability['bstack:options'].local = true
                 }
-                capability['bstack:options'].local = true
             })
         } else if (typeof capabilities === 'object') {
             Object.entries(capabilities as Capabilities.MultiRemoteCapabilities).forEach(([, caps]) => {
                 if (!(caps.capabilities as Capabilities.Capabilities)['bstack:options']) {
-                    (caps.capabilities as Capabilities.Capabilities)['bstack:options'] = {}
+                    const extensionCaps = Object.keys(caps.capabilities).filter((cap) => cap.includes(':'))
+                    if (extensionCaps.length) {
+                        (caps.capabilities as Capabilities.Capabilities)['bstack:options'] = { local: true }
+                    } else {
+                        (caps.capabilities as Capabilities.Capabilities)['browserstack.local'] = true
+                    }
+                } else {
+                    (caps.capabilities as Capabilities.Capabilities)['bstack:options']!.local = true
                 }
-                (caps.capabilities as Capabilities.Capabilities)['bstack:options']!.local = true
             })
         } else {
             throw TypeError('Capabilities should be an object or Array!')

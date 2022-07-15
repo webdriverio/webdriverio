@@ -155,6 +155,10 @@ export interface VendorExtensions extends EdgeCapabilities, AppiumW3CCapabilitie
     // Browserstack w3c specific
     'bstack:options'?: BrowserStackCapabilities
     'browserstack.local'?: boolean
+    /**
+     * @private
+     */
+    'browserstack.wdioService'?: string
 
     'goog:chromeOptions'?: ChromeOptions;
     'moz:firefoxOptions'?: FirefoxOptions;
