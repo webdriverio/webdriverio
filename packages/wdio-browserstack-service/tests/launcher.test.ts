@@ -58,23 +58,63 @@ describe('onPrepare', () => {
         expect(service.browserstackLocal).toBeDefined()
     })
 
-    it('should add the "browserstack.local" property to a multiremote capability', async () => {
+    it('should add the "browserstack.local" property to a multiremote capability if no "bstack:options"', async () => {
         const service = new BrowserstackLauncher(options, caps, config)
         const capabilities = { chromeBrowser: { capabilities: {} } }
+
+        await service.onPrepare(config, capabilities)
+        expect(capabilities.chromeBrowser.capabilities).toEqual({ 'browserstack.local': true })
+    })
+
+    it('should add the "local" property to a multiremote capability inside "bstack:options" if "bstack:options" present', async () => {
+        const service = new BrowserstackLauncher(options, caps, config)
+        const capabilities = { chromeBrowser: { capabilities: { 'bstack:options': {} } } }
 
         await service.onPrepare(config, capabilities)
         expect(capabilities.chromeBrowser.capabilities).toEqual({ 'bstack:options': { local: true } })
     })
 
-    it('should add the "browserstack.local" property to an array of capabilities', async () => {
+    it('should add the "local" property to a multiremote capability inside "bstack:options" if any extension cap present', async () => {
+        const service = new BrowserstackLauncher(options, caps, config)
+        const capabilities = { chromeBrowser: { capabilities: { 'goog:chromeOptions': {} } } }
+
+        await service.onPrepare(config, capabilities)
+        expect(capabilities.chromeBrowser.capabilities).toEqual({ 'bstack:options': { local: true }, 'goog:chromeOptions': {} })
+    })
+
+    it('should add the "browserstack.local" property to an array of capabilities if no "bstack:options"', async () => {
         const service = new BrowserstackLauncher(options, caps, config)
         const capabilities = [{}, {}, {}]
+
+        await service.onPrepare(config, capabilities)
+        expect(capabilities).toEqual([
+            { 'browserstack.local': true },
+            { 'browserstack.local': true },
+            { 'browserstack.local': true }
+        ])
+    })
+
+    it('should add the "local" property to an array of capabilities inside "bstack:options" if "bstack:options" present', async () => {
+        const service = new BrowserstackLauncher(options, caps, config)
+        const capabilities = [{ 'bstack:options': {} }, { 'bstack:options': {} }, { 'bstack:options': {} }]
 
         await service.onPrepare(config, capabilities)
         expect(capabilities).toEqual([
             { 'bstack:options': { local: true } },
             { 'bstack:options': { local: true } },
             { 'bstack:options': { local: true } }
+        ])
+    })
+
+    it('should add the "local" property to an array of capabilities inside "bstack:options" if any extension cap present', async () => {
+        const service = new BrowserstackLauncher(options, caps, config)
+        const capabilities = [{ 'ms:edgeOptions': {} }, { 'goog:chromeOptions': {} }, { 'moz:firefoxOptions': {} }]
+
+        await service.onPrepare(config, capabilities)
+        expect(capabilities).toEqual([
+            { 'bstack:options': { local: true }, 'ms:edgeOptions': {} },
+            { 'bstack:options': { local: true }, 'goog:chromeOptions': {} },
+            { 'bstack:options': { local: true }, 'moz:firefoxOptions': {} }
         ])
     })
 
@@ -161,13 +201,33 @@ describe('constructor', () => {
         capabilities: []
     }
 
-    it('should add the wdioService property to an array of capabilities', async () => {
+    it('should add the "browserstack.wdioService" property to an array of capabilities if no "bstack:options"', async () => {
         const caps: any = [{}, {}]
+        new BrowserstackLauncher(options, caps, config)
+
+        expect(caps).toEqual([
+            { 'browserstack.wdioService': bstackServiceVersion },
+            { 'browserstack.wdioService': bstackServiceVersion }
+        ])
+    })
+
+    it('should add the "wdioService" property to an array of capabilities inside "bstack:options" if "bstack:options" present', async () => {
+        const caps: any = [{ 'bstack:options': {} }, { 'bstack:options': {} }]
         new BrowserstackLauncher(options, caps, config)
 
         expect(caps).toEqual([
             { 'bstack:options': { wdioService: bstackServiceVersion } },
             { 'bstack:options': { wdioService: bstackServiceVersion } }
+        ])
+    })
+
+    it('should add the "wdioService" property to an array of capabilities inside "bstack:options" if any extension cap present', async () => {
+        const caps: any = [{ 'moz:firefoxOptions': {} }, { 'goog:chromeOptions': {} }]
+        new BrowserstackLauncher(options, caps, config)
+
+        expect(caps).toEqual([
+            { 'bstack:options': { wdioService: bstackServiceVersion }, 'moz:firefoxOptions': {} },
+            { 'bstack:options': { wdioService: bstackServiceVersion }, 'goog:chromeOptions': {} }
         ])
     })
 })
