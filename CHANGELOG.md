@@ -19,6 +19,33 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.20.6 (2022-07-15)
+
+#### :rocket: New Feature
+* `webdriverio`
+  * [#8465](https://github.com/webdriverio/webdriverio/pull/8465) Allow to skip calling `releaseAction` command for click ([@praveendvd](https://github.com/praveendvd))
+
+#### :bug: Bug Fix
+* `wdio-local-runner`, `webdriverio`
+  * [#8486](https://github.com/webdriverio/webdriverio/pull/8486) The index should return a promise so changed it accordingly ([@joshskumar](https://github.com/joshskumar))
+* `wdio-config`
+  * [#8432](https://github.com/webdriverio/webdriverio/pull/8432) Fix for issue 8376 ([@hammzj](https://github.com/hammzj))
+
+#### :memo: Documentation
+* `wdio-cli`
+  * [#8468](https://github.com/webdriverio/webdriverio/pull/8468) add `cucumber-viewport-logger` service ([@viktor-silakov](https://github.com/viktor-silakov))
+* Other
+  * [#8466](https://github.com/webdriverio/webdriverio/pull/8466) Add info for a roku-appium boilerplate project ([@AntonKostenko](https://github.com/AntonKostenko))
+
+#### Committers: 6
+- Vitali Lebedzeu ([@VitaliLebedzeu](https://github.com/VitaliLebedzeu))
+- Zachary Hamm ([@hammzj](https://github.com/hammzj))
+- [@AntonKostenko](https://github.com/AntonKostenko)
+- [@joshskumar](https://github.com/joshskumar)
+- [@viktor-silakov](https://github.com/viktor-silakov)
+- praveendvd ([@praveendvd](https://github.com/praveendvd))
+
+
 ## v7.20.5 (2022-06-23)
 
 #### :bug: Bug Fix
