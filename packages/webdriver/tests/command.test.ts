@@ -159,6 +159,7 @@ describe('command wrapper', () => {
 describe('command wrapper result log', () => {
     const log = logger('webdriver')
     jest.spyOn(log, 'info').mockImplementation((string) => string)
+    logger.clearLogger = jest.fn()
     const clearLoggerSpy = jest.spyOn(logger, 'clearLogger')
 
     function getRequestCallback (method: string, path: string, endpoint: Protocols.CommandEndpoint) {
@@ -273,6 +274,7 @@ describe('command wrapper result log', () => {
 
     beforeEach(() => {
         delete process.env.WDIO_WORKER_ID
+        jest.clearAllMocks()
     })
 
     for (const scenario of scenarios) {
@@ -281,7 +283,6 @@ describe('command wrapper result log', () => {
             resultFunction({ value: scenario.value })
             expect((log.info as jest.Mock).mock.calls[0][1]).toBe(scenario.log)
             expect(clearLoggerSpy).not.toHaveBeenCalled()
-            clearLoggerSpy.mockClear()
         })
     }
 
@@ -291,7 +292,6 @@ describe('command wrapper result log', () => {
         resultFunction({})
         expect((log.info as jest.Mock).mock.calls).toHaveLength(0)
         expect(clearLoggerSpy).not.toHaveBeenCalled()
-        clearLoggerSpy.mockClear()
     })
 
     it('should call clearLogger on deleteSession cmd', () => {
@@ -299,6 +299,5 @@ describe('command wrapper result log', () => {
         resultFunction({})
         expect((log.info as jest.Mock).mock.calls).toHaveLength(0)
         expect(clearLoggerSpy).toHaveBeenCalledTimes(1)
-        clearLoggerSpy.mockClear()
     })
 })
