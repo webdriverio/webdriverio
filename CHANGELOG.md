@@ -19,6 +19,21 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.20.7 (2022-07-17)
+
+#### :bug: Bug Fix
+* `wdio-local-runner`, `webdriver`
+  * [#8506](https://github.com/webdriverio/webdriverio/pull/8506) patch for 6068, adding a flag about clearing logger on session end ([@wyhmichael](https://github.com/wyhmichael))
+
+#### :nail_care: Polish
+* `wdio-browserstack-service`, `wdio-types`
+  * [#8524](https://github.com/webdriverio/webdriverio/pull/8524) handle local and wdioService capabilities when jsonwp format caps are passed ([@Ankit098](https://github.com/Ankit098))
+
+#### Committers: 2
+- Ankit Singh ([@Ankit098](https://github.com/Ankit098))
+- [@wyhmichael](https://github.com/wyhmichael)
+
+
 ## v7.20.6 (2022-07-15)
 
 #### :rocket: New Feature
