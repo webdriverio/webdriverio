@@ -159,6 +159,8 @@ describe('command wrapper', () => {
 describe('command wrapper result log', () => {
     const log = logger('webdriver')
     jest.spyOn(log, 'info').mockImplementation((string) => string)
+    logger.clearLogger = jest.fn()
+    const clearLoggerSpy = jest.spyOn(logger, 'clearLogger')
 
     function getRequestCallback (method: string, path: string, endpoint: Protocols.CommandEndpoint) {
         const commandFn = commandWrapper(method, path, endpoint)
@@ -177,6 +179,17 @@ describe('command wrapper result log', () => {
         method: 'GET',
         endpoint: {
             command: 'takeScreenshot',
+            ref: 'https://foobar.com',
+            parameters: [],
+            description: ''
+        }
+    }
+
+    const deleteSessionCmd = {
+        path: '/foobar',
+        method: 'POST',
+        endpoint: {
+            command: 'deleteSession',
             ref: 'https://foobar.com',
             parameters: [],
             description: ''
@@ -259,17 +272,32 @@ describe('command wrapper result log', () => {
         get log() { return this.value }
     }]
 
+    beforeEach(() => {
+        delete process.env.WDIO_WORKER_ID
+        jest.clearAllMocks()
+    })
+
     for (const scenario of scenarios) {
         it(`should ${scenario.title} for ${scenario.command.endpoint.command}`, () => {
             const resultFunction = getRequestCallback(scenario.command.method, scenario.command.path, scenario.command.endpoint) as unknown as mockResponse
             resultFunction({ value: scenario.value })
             expect((log.info as jest.Mock).mock.calls[0][1]).toBe(scenario.log)
+            expect(clearLoggerSpy).not.toHaveBeenCalled()
         })
     }
 
     it('should be no result in log if there is value in response', () => {
-        const resultFunction = getRequestCallback(takeScreenshotCmd.method, takeScreenshotCmd.path, takeScreenshotCmd.endpoint) as unknown as mockResponse
+        process.env.WDIO_WORKER_ID = '0-0'
+        const resultFunction = getRequestCallback(deleteSessionCmd.method, takeScreenshotCmd.path, takeScreenshotCmd.endpoint) as unknown as mockResponse
         resultFunction({})
         expect((log.info as jest.Mock).mock.calls).toHaveLength(0)
+        expect(clearLoggerSpy).not.toHaveBeenCalled()
+    })
+
+    it('should call clearLogger on deleteSession cmd', () => {
+        const resultFunction = getRequestCallback(deleteSessionCmd.method, deleteSessionCmd.path, deleteSessionCmd.endpoint) as unknown as mockResponse
+        resultFunction({})
+        expect((log.info as jest.Mock).mock.calls).toHaveLength(0)
+        expect(clearLoggerSpy).toHaveBeenCalledTimes(1)
     })
 })
