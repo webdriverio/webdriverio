@@ -44,7 +44,16 @@ export function getBrowserCapabilities(browser: Browser<'async'> | MultiRemoteBr
  * @param cap browser capabilities
  */
 export function isBrowserstackCapability(cap?: Capabilities.Capabilities) {
-    return Boolean(cap && cap['bstack:options'])
+    return Boolean(
+        cap &&
+            cap['bstack:options'] &&
+            // return false if the only cap in bstack:options is wdioService,
+            // as that is added by the service and not present in user passed caps
+            !(
+                Object.keys(cap['bstack:options']).length === 1 &&
+                cap['bstack:options'].wdioService
+            )
+    )
 }
 
 export function getParentSuiteName(fullTitle: string, testSuiteTitle: string): string {
