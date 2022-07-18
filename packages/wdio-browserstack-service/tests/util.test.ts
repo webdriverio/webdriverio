@@ -128,7 +128,6 @@ describe('isBrowserstackCapability', () => {
         expect(isBrowserstackCapability()).toBe(false)
         // @ts-expect-error test invalid params
         expect(isBrowserstackCapability({ 'bstack:options': null })).toBe(false)
-        expect(isBrowserstackCapability({ 'bstack:options': {} })).toBe(false)
     })
 
     it('should return false if only key in browserstack W3C capabilities is wdioService', () => {
