@@ -106,6 +106,7 @@ export default class Runner extends EventEmitter {
         try {
             await this._configParser.addConfigFile(configFile)
         } catch (err: any) {
+            log.error(`Failed to read config file: ${err.stack}`)
             return this._shutdown(1, retries)
         }
 

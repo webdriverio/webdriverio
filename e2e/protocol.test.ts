@@ -308,9 +308,6 @@ describe('frames', () => {
     it('allows to switch to parent frame even if there isn\'t any', async () => {
         await browser.navigateTo('http://guinea-pig.webdriver.io/two.html')
         expect(await browser.getPageSource()).toContain('<title>two</title>')
-        const iframe = await browser.findElement('css selector', 'iframe')
-        await browser.switchToFrame(iframe)
-        expect(await browser.getPageSource()).toContain('<title>Light Bikes from Eric Corriel on Vimeo</title>')
         await browser.switchToFrame(null)
         expect(await browser.getPageSource()).toContain('<title>two</title>')
         await browser.switchToFrame(null)

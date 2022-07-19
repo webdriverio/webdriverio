@@ -1,5 +1,6 @@
 import logger from '@wdio/logger'
 import puppeteerCore from 'puppeteer-core'
+import WebSocket from 'ws'
 
 import type { Browser, MultiRemoteBrowser } from 'webdriverio'
 import type { Capabilities, Services, FunctionProperties, ThenArg } from '@wdio/types'
@@ -225,8 +226,8 @@ export default class DevToolsService implements Services.ServiceInstance {
 
         this._target = await this._puppeteer.waitForTarget(
             /* istanbul ignore next */
-            // @ts-expect-error
-            (t) => t.type() === 'page' || t['_targetInfo'].browserContextId)
+            (t) => t.type() === 'page' || Boolean(t._getTargetInfo().browserContextId))
+
         /* istanbul ignore next */
         if (!this._target) {
             throw new Error('No page target found')
@@ -268,8 +269,8 @@ export default class DevToolsService implements Services.ServiceInstance {
         }
 
         this._devtoolsGatherer = new DevtoolsGatherer()
-        // @ts-expect-error
-        this._puppeteer['_connection']._transport._ws.addEventListener('message', (event: { data: string }) => {
+        const cdpWS = new WebSocket(this._puppeteer.wsEndpoint())
+        cdpWS.on('message', (event: { data: string }) => {
             const data: CDPSessionOnMessageObject = JSON.parse(event.data)
             this._devtoolsGatherer?.onMessage(data)
             const method = data.method || 'event'

@@ -6,8 +6,8 @@ import { test, expect } from 'vitest'
  *   $ npm install webdriverio
  *
  */
-import { remote, attach } from '../../packages/webdriverio/build/index.js'
-import type { Browser } from '../../packages/webdriverio/build/index.js'
+import { remote, attach } from '../packages/webdriverio/build/index.js'
+import type { Browser } from '../packages/webdriverio/build/index.js'
 
 test('allow to attach to an existing session', async () => {
     const browser = await remote({

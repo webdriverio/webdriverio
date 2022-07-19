@@ -10,9 +10,9 @@ beforeAll(async () => {
         outputDir: __dirname,
         capabilities: {
             browserName: 'chrome',
-            // 'wdio:devtoolsOptions': {
-            //     headless: true
-            // }
+            'wdio:devtoolsOptions': {
+                headless: true
+            }
         }
     })
 })
@@ -22,22 +22,69 @@ describe('elements', () => {
         await browser.navigateTo('http://guinea-pig.webdriver.io')
     })
 
+    it('should be able to do a drag&drop', async () => {
+        const drag = await browser.findElement('css selector', '.ui-draggable')
+        const dragPosition = await browser.getElementRect(drag[ELEMENT_KEY])
+        const drop = await browser.findElement('css selector', '.ui-droppable')
+        const dropPosition = await browser.getElementRect(drop[ELEMENT_KEY])
+        const dragStart = {
+            x: dragPosition.x + (dragPosition.width / 2),
+            y: dragPosition.y + (dragPosition.height / 2)
+        }
+        const dropEnd = {
+            x: (dropPosition.x + (dropPosition.width / 2) - dragStart.x),
+            y: (dropPosition.y + (dropPosition.height / 2) - dragStart.y)
+        }
+
+        await browser.executeScript('window.scrollTo(0, 0)', [])
+        await browser.performActions([{
+            type: 'pointer',
+            id: 'finger1',
+            parameters: {
+                pointerType: 'mouse'
+            },
+            actions: [{
+                type: 'pointerMove',
+                duration: 0,
+                ...dragStart
+            }, {
+                type: 'pointerDown',
+                button: 0
+            }, {
+                type: 'pause',
+                duration: 10
+            }, {
+                type: 'pointerMove',
+                duration: 100,
+                origin: 'pointer',
+                ...dropEnd
+            }, {
+                type: 'pointerUp',
+                button: 0
+            }]
+        }])
+
+        const elem = await browser.findElement('css selector', '.searchinput')
+        expect(await browser.getElementProperty(elem[ELEMENT_KEY], 'value'))
+            .toBe('Dropped!')
+    })
+
     it('findElement with css selector', async () => {
         const yellowBox = await browser.findElement('css selector', '.yellow')
-        expect(yellowBox).toEqual({ [ELEMENT_KEY]: 'ELEMENT-1' })
+        expect(yellowBox).toEqual({ [ELEMENT_KEY]: 'ELEMENT-4' })
         const redBox = await browser.findElement('css selector', '.red')
-        expect(redBox).toEqual({ [ELEMENT_KEY]: 'ELEMENT-2' })
+        expect(redBox).toEqual({ [ELEMENT_KEY]: 'ELEMENT-5' })
     })
 
     it('find nested element with css selector', async () => {
         const nested = await browser.findElement('css selector', '.nested')
         const header = await browser.findElementFromElement(nested[ELEMENT_KEY], 'css selector', '.findme')
-        expect(header).toEqual({ [ELEMENT_KEY]: 'ELEMENT-4' })
+        expect(header).toEqual({ [ELEMENT_KEY]: 'ELEMENT-7' })
     })
 
     it('findElement with xPath', async () => {
         const xPathElement = await browser.findElement('xpath', '//*[@id="newWindow"]')
-        expect(xPathElement).toEqual({ [ELEMENT_KEY]: 'ELEMENT-5' })
+        expect(xPathElement).toEqual({ [ELEMENT_KEY]: 'ELEMENT-8' })
     })
 
     it('findElements with css selector', async () => {
@@ -57,11 +104,7 @@ describe('elements', () => {
         expect(spans).toHaveLength(1)
     })
 
-    /**
-     * skip as this caused to throw an error:
-     * navigation times out for some reason even though the page navigation went back
-     */
-    it.skip('can click and go back and forward', async () => {
+    it('can click and go back and forward', async () => {
         const link = await browser.findElement('css selector', '#secondPageLink')
         await browser.elementClick(link[ELEMENT_KEY])
         expect(await browser.getTitle()).toBe('two')
@@ -157,53 +200,6 @@ describe('elements', () => {
         expect(await browser.getElementText(link[ELEMENT_KEY])).toBe('open new tab')
     })
 
-    it('should be able to do a drag&drop', async () => {
-        const drag = await browser.findElement('css selector', '.ui-draggable')
-        const dragPosition = await browser.getElementRect(drag[ELEMENT_KEY])
-        const drop = await browser.findElement('css selector', '.ui-droppable')
-        const dropPosition = await browser.getElementRect(drop[ELEMENT_KEY])
-        const dragStart = {
-            x: dragPosition.x + (dragPosition.width / 2),
-            y: dragPosition.y + (dragPosition.height / 2)
-        }
-        const dropEnd = {
-            x: (dropPosition.x + (dropPosition.width / 2) - dragStart.x),
-            y: (dropPosition.y + (dropPosition.height / 2) - dragStart.y)
-        }
-
-        await browser.executeScript('window.scrollTo(0, 0)', [])
-        await browser.performActions([{
-            type: 'pointer',
-            id: 'finger1',
-            parameters: {
-                pointerType: 'mouse'
-            },
-            actions: [{
-                type: 'pointerMove',
-                duration: 0,
-                ...dragStart
-            }, {
-                type: 'pointerDown',
-                button: 0
-            }, {
-                type: 'pause',
-                duration: 10
-            }, {
-                type: 'pointerMove',
-                duration: 100,
-                origin: 'pointer',
-                ...dropEnd
-            }, {
-                type: 'pointerUp',
-                button: 0
-            }]
-        }])
-
-        const elem = await browser.findElement('css selector', '.searchinput')
-        expect(await browser.getElementProperty(elem[ELEMENT_KEY], 'value'))
-            .toBe('Dropped!')
-    })
-
     it('should be able to use keys command', async () => {
         const textarea = await browser.findElement('css selector', 'textarea')
         await browser.elementClick(textarea[ELEMENT_KEY])
@@ -290,6 +286,7 @@ describe('elements', () => {
 
     it('should support deep selectors', async () => {
         await browser.navigateTo('https://www.chromestatus.com/feature/5191745052606464')
+        await new Promise((resolve) => setTimeout(resolve, 100))
         const headerSlot = await browser.findElement('shadow', '.details__header')
         expect(
             await browser.getElementAttribute(headerSlot[ELEMENT_KEY], 'role')
@@ -298,11 +295,11 @@ describe('elements', () => {
 
     it('can fetch shadow elements', async () => {
         await browser.navigateTo('https://www.chromestatus.com/feature/5191745052606464')
+        await new Promise((resolve) => setTimeout(resolve, 100))
         const element = await browser.findElement('tag name', 'chromedash-toast')
         const shadowRoot = await browser.getElementShadowRoot(
             element['element-6066-11e4-a52e-4f735466cecf']
         )
-        console.log(shadowRoot['shadow-6066-11e4-a52e-4f735466cecf'])
         const elementRef = await browser.findElementFromShadowRoot(
             shadowRoot['shadow-6066-11e4-a52e-4f735466cecf'],
             'css selector',

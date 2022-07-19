@@ -1,6 +1,9 @@
+import url from 'node:url'
 import path from 'node:path'
 
 import DevtoolsService from '../../packages/wdio-devtools-service/build/index.js'
+
+const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 
 export const config = {
     /**

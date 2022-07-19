@@ -42,7 +42,8 @@
     "puppeteer-core": "^15.3.2",
     "speedline": "^1.4.3",
     "stable": "^0.1.8",
-    "webdriverio": "7.20.7"
+    "webdriverio": "7.20.7",
+    "ws": "^8.8.1"
   },
   "peerDependencies": {
     "@wdio/cli": "^7.0.0"
@@ -53,6 +54,7 @@
   "devDependencies": {
     "@types/babel__core": "^7.1.19",
     "@types/istanbul-reports": "^3.0.1",
-    "@types/node": "^18.0.0"
+    "@types/node": "^18.0.0",
+    "@types/ws": "^8.5.3"
   }
 }

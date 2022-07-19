@@ -16,7 +16,7 @@ describe('main suite 1', () => {
         expect((await browser.checkPWA()).passed).toBe(false)
     })
 
-    it('should allow to do performance tests', async () => {
+    it.skip('should allow to do performance tests', async () => {
         await browser.enablePerformanceAudits()
         await browser.url('http://json.org')
         const metrics = await browser.getMetrics()

@@ -40,7 +40,7 @@ jobs:
       - name: Bootstrap Packages
         run: npm run setup-full
       - name: Lint / Dependencies / Unit / Smoke Tests
-        run: npm run test
+        run: npx run-s test:eslint test:typings test:unit
       - name: E2E Protocol Tests
         uses: nick-invision/retry@v2
         with:
