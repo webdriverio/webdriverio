@@ -270,16 +270,7 @@ export default class DevToolsService implements Services.ServiceInstance {
 
         this._devtoolsGatherer = new DevtoolsGatherer()
         const cdpWS = new WebSocket(this._puppeteer.wsEndpoint())
-        cdpWS.on('message', (event: { data: string }) => {
-            const data: CDPSessionOnMessageObject = JSON.parse(event.data)
-            this._devtoolsGatherer?.onMessage(data)
-            const method = data.method || 'event'
-            log.debug(`cdp event: ${method} with params ${JSON.stringify(data.params)}`)
-
-            if (this._browser) {
-                this._browser.emit(method, data.params)
-            }
-        })
+        cdpWS.on('message', this._propagateWSEvents.bind(this))
 
         this._browser.addCommand('enablePerformanceAudits', this._enablePerformanceAudits.bind(this))
         this._browser.addCommand('disablePerformanceAudits', this._disablePerformanceAudits.bind(this))
@@ -287,6 +278,17 @@ export default class DevToolsService implements Services.ServiceInstance {
 
         this._pwaGatherer = new PWAGatherer(this._session, this._page, this._driver)
         this._browser.addCommand('checkPWA', this._checkPWA.bind(this))
+    }
+
+    private _propagateWSEvents (event: { data: string }) {
+        const data: CDPSessionOnMessageObject = JSON.parse(event.data)
+        this._devtoolsGatherer?.onMessage(data)
+        const method = data.method || 'event'
+        log.debug(`cdp event: ${method} with params ${JSON.stringify(data.params)}`)
+
+        if (this._browser) {
+            this._browser.emit(method, data.params)
+        }
     }
 }
 

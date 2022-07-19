@@ -68,7 +68,7 @@ class PuppeteerMock {
     getActivePage = vi.fn().mockImplementation(() => page)
     pages = vi.fn().mockReturnValue(Promise.resolve([page, page2]))
     userAgent = vi.fn().mockImplementation(() => 'MOCK USER AGENT')
-    _connection = { _transport: { _ws: { addEventListener: vi.fn() } } }
+    wsEndpoint = vi.fn().mockReturnValue('ws://some/path/to/cdp')
 }
 
 export default {
