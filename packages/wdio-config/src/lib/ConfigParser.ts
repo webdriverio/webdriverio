@@ -10,7 +10,7 @@ import {
 } from '../utils.js'
 import { SUPPORTED_HOOKS, SUPPORTED_FILE_EXTENSIONS, DEFAULT_CONFIGS } from '../constants.js'
 
-import type { PathService, ModuleImportService } from '../types'
+import type { PathService } from '../types'
 
 const log = logger('@wdio/config:ConfigParser')
 const MERGE_OPTIONS = { clone: false }

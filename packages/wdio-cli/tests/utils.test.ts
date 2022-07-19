@@ -3,8 +3,6 @@ import path from 'node:path'
 import fs from 'fs-extra'
 import ejs from 'ejs'
 import readDir from 'recursive-readdir'
-// @ts-ignore mock feature
-import { execSyncRes } from 'node:child_process'
 import { SevereServiceError } from 'webdriverio'
 import { ConfigParser } from '@wdio/config'
 
