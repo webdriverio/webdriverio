@@ -4,8 +4,6 @@ import path from 'node:path'
 import childProcess from 'node:child_process'
 // @ts-ignore no types needed
 import debug from 'debug'
-// @ts-ignore not a real package but needed for testing
-import { log as pptrDebugLog } from 'pptrDebug'
 import { canAccess } from '@wdio/utils'
 
 import {
@@ -26,6 +24,10 @@ vi.mock('pptrDebug', async () => {
     const pathModule = await vi.importActual('node:path') as typeof path
     return import(pathModule.join(process.cwd(), '__mocks__', 'pptrDebug'))
 })
+
+const PUPPETEER_LOG = `  puppeteer:protocol:RECV ◀ [
+    puppeteer:protocol:RECV ◀   '{"id":20,"result":{"result":{"type":"string","value":"complete"}},"sessionId":"B5BB76CBB624830A41E4159E01ABED39"}'
+    puppeteer:protocol:RECV ◀ ]`
 
 /**
  * some WebDriver commands are either not part of a recommended standard
@@ -101,14 +103,9 @@ vi.mock('node:child_process', () => {
     }
 })
 
-vi.mock('node:path', () => {
-    let resolveResult = 'debug'
-    const resolve = vi.fn(() => resolveResult)
-    const setResolveResult = (result: any) => (resolveResult = result)
-    return {
-        default: { resolve, setResolveResult, dirname: vi.fn() }
-    }
-})
+vi.mock('debug', () => ({
+    default: { log: vi.fn() }
+}))
 
 describe('validate', () => {
     it('should fail if wrong arguments are passed in', () => {
@@ -415,23 +412,11 @@ test('findByWhich', () => {
         .toEqual([])
 })
 
-test('patchDebug', () => {
+test('patchDebug', async () => {
     const logMock = { debug: vi.fn() }
-    patchDebug(logMock as any)
-    debug.log('something something - puppeteer:protocol foobar')
-    expect(logMock.debug).toBeCalledWith('foobar')
-})
-
-/**
- * can't be tested due to mock issues in vitest
- */
-test.skip('patchDebug with debug not install in puppeteer', () => {
-    const logMock = { debug: vi.fn() }
-    // @ts-expect-error mock feature
-    vi.mocked(path).setResolveResult('pptrDebug')
-    patchDebug(logMock as any)
-    pptrDebugLog('something something - puppeteer:protocol barfoo')
-    expect(logMock.debug).toBeCalledWith('barfoo')
+    await patchDebug(logMock as any)
+    debug.log(PUPPETEER_LOG)
+    expect(logMock.debug.mock.calls[0]).toMatchSnapshot('foobar')
 })
 
 test('sleep', async () => {

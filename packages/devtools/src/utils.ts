@@ -1,5 +1,4 @@
 import fs from 'node:fs'
-import path from 'node:path'
 import { createRequire } from 'node:module'
 import { execFileSync } from 'node:child_process'
 
@@ -13,7 +12,7 @@ import type { Frame } from 'puppeteer-core/lib/cjs/puppeteer/common/FrameManager
 import type { Page } from 'puppeteer-core/lib/cjs/puppeteer/common/Page'
 
 import cleanUp from './scripts/cleanUpSerializationSelector.js'
-import { ELEMENT_KEY, SERIALIZE_PROPERTY, SERIALIZE_FLAG, ERROR_MESSAGES, PPTR_LOG_PREFIX } from './constants.js'
+import { ELEMENT_KEY, SERIALIZE_PROPERTY, SERIALIZE_FLAG, ERROR_MESSAGES } from './constants.js'
 import type { Priorities } from './finder/firefox'
 import type DevToolsDriver from './devtoolsdriver'
 
@@ -325,12 +324,18 @@ export function findByWhich (executables: string[], priorities: Priorities[]) {
  */
 export async function patchDebug (scoppedLogger: Logger) {
     /**
-     * log puppeteer messages
+     * let's not get caught by our dep checker, therefore
+     * define package name in variable first
      */
-    let puppeteerDebugPkg = path.resolve(
-        path.dirname(require.resolve('puppeteer-core')),
-        'node_modules',
-        'debug')
+    const pkgName = 'debug'
+
+    /**
+     * log puppeteer messages
+     * resolve debug *from* puppeteer-core to make sure we monkey patch the version
+     * it will use
+     */
+    const puppeteerPkg = require.resolve('puppeteer-core')
+    let puppeteerDebugPkg = require.resolve(pkgName, { paths: [puppeteerPkg] })
 
     /**
      * check if Puppeteer has its own version of debug, if not use the
@@ -341,14 +346,24 @@ export async function patchDebug (scoppedLogger: Logger) {
          * let's not get caught by our dep checker, therefor
          * define package name in variable first
          */
-        const pkgName = 'debug'
         puppeteerDebugPkg = require.resolve(pkgName)
     }
 
     try {
-        require(puppeteerDebugPkg).log = (msg: string) => {
+        const debug = (await import(puppeteerDebugPkg)).default
+        debug.log = (msg: string) => {
             if (msg.includes('puppeteer:protocol')) {
-                msg = msg.slice(msg.indexOf(PPTR_LOG_PREFIX) + PPTR_LOG_PREFIX.length).trim()
+                msg = msg.split('\n')
+                    .map((l) => l.slice(Math.max(l.indexOf('◀ '), l.indexOf('► ')))
+                        .replace('\x1B[32m', '')
+                        .replace('\x1B[39m', '')
+                        .replace('◀ \x1B[0m', '')
+                        .replace('► \x1B[0m', '')
+                        .trim()
+                    )
+                    .join('')
+                    // remove [' and ']
+                    .slice(2, -2)
             }
             scoppedLogger.debug(msg)
         }
