@@ -52,7 +52,7 @@ test('should stream logs to log dir', async () => {
         filename = filename.split('/').join('\\')
     }
 
-    expect(fs.createFileSync).toBeCalledWith(filename)
+    expect(fs.createFile).toBeCalledWith(filename)
     expect(fs.createWriteStream).toBeCalledWith(filename)
 })
 

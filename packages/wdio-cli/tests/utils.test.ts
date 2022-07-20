@@ -1,5 +1,6 @@
 import { vi, describe, it, expect, afterEach, beforeEach, test } from 'vitest'
 import path from 'node:path'
+import * as childProcess from 'node:child_process'
 import fs from 'fs-extra'
 import ejs from 'ejs'
 import readDir from 'recursive-readdir'
@@ -343,7 +344,7 @@ describe('addServiceDeps', () => {
     it('should not add appium if globally installed', () => {
         // @ts-ignore
         // eslint-disable-next-line no-import-assign, @typescript-eslint/no-unused-vars
-        execSyncRes = '1.13.0'
+        childProcess.execSyncRes = '1.13.0'
         const packages: any = []
         addServiceDeps([{ package: '@wdio/appium-service', short: 'appium' }], packages)
         expect(packages).toEqual([])

@@ -1,6 +1,6 @@
 import fs from 'node:fs'
 import path from 'node:path'
-import del from 'del'
+import rimraf from 'rimraf'
 import { load } from 'cheerio'
 
 export function getResults (resultsDir: any) {
@@ -19,5 +19,5 @@ export function getResultFiles (resultsDir: any, patterns: any) {
 }
 
 export function clean (resultsDir: any) {
-    return del(resultsDir, { force: true })
+    return rimraf.sync(resultsDir)
 }

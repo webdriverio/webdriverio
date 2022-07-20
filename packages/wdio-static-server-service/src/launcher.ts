@@ -33,7 +33,7 @@ export default class StaticServerLauncher implements Services.ServiceInstance {
 
         if (outputDir) {
             const file = join(outputDir, DEFAULT_LOG_NAME)
-            fs.createFileSync(file)
+            await fs.createFile(file)
             const stream = fs.createWriteStream(file)
             this._server.use(morgan('tiny', { stream }))
         }

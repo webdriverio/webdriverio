@@ -10,7 +10,7 @@ import {
 } from '../utils.js'
 import { SUPPORTED_HOOKS, SUPPORTED_FILE_EXTENSIONS, DEFAULT_CONFIGS } from '../constants.js'
 
-import type { PathService } from '../types'
+import type { PathService, ModuleImportService } from '../types'
 
 const log = logger('@wdio/config:ConfigParser')
 const MERGE_OPTIONS = { clone: false }
@@ -35,7 +35,7 @@ export default class ConfigParser {
 
     constructor(
         private _pathService: PathService = new FileSystemPathService(),
-        private _moduleRequireService: ModuleRequireService = new RequireLibrary()
+        private _moduleRequireService: ModuleImportService = new RequireLibrary()
     ) {
     }
 

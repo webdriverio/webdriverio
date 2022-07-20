@@ -690,10 +690,8 @@ describe('launcher', () => {
             expect(launcher.configParser.getCapabilities).toBeCalledTimes(2)
             expect(launcher.configParser.getConfig).toBeCalledTimes(1)
             expect(launcher.runner!.initialise).toBeCalledTimes(1)
-            // @ts-expect-error
             expect(config.onPrepare[0]).toBeCalledTimes(1)
             expect(launcher.runMode).toBeCalledTimes(1)
-            // @ts-expect-error
             expect(config.onPrepare[0]).toBeCalledTimes(1)
             expect(launcher.interface!.finalise).toBeCalledTimes(1)
         })
@@ -713,7 +711,6 @@ describe('launcher', () => {
         })
 
         it('should shutdown runner on error', async () => {
-            // @ts-expect-error
             delete logger.waitForBuffer
 
             let error

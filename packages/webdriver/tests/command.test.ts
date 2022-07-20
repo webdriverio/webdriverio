@@ -1,7 +1,7 @@
 import path from 'node:path'
 import { EventEmitter } from 'node:events'
 
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import logger from '@wdio/logger'
 import type Protocols from '@wdio/protocols'
 import type { Options } from '@wdio/types'
@@ -218,7 +218,7 @@ describe('command wrapper result log', () => {
         title: 'truncate long string value',
         command: { ...takeScreenshotCmd },
         value: 'f'.repeat(65),
-        log: 'f'.repeat(65)
+        log: 'f'.repeat(61) + '...'
     }, {
         title: 'truncate long string value',
         command: {
@@ -256,7 +256,7 @@ describe('command wrapper result log', () => {
         title: 'do nothing to values with length less then 65',
         command: { ...takeScreenshotCmd },
         value: 'f'.repeat(64),
-        get log() { return this.value }
+        get log () { return this.value }
     }, {
         title: 'not truncate long string value',
         command: {
@@ -267,40 +267,44 @@ describe('command wrapper result log', () => {
             }
         },
         value: 'f'.repeat(66),
-        get log() { return this.value }
+        get log () { return this.value }
     }, {
         title: 'do nothing to non string value: array',
         command: { ...takeScreenshotCmd },
         value: [],
-        get log() { return this.value }
+        get log () { return this.value }
     }, {
         title: 'do nothing to non string value: object',
         command: { ...takeScreenshotCmd },
         value: {},
-        get log() { return this.value }
+        get log () { return this.value }
     }, {
         title: 'do nothing to non string value: number',
         command: { ...takeScreenshotCmd },
         value: 3,
-        get log() { return this.value }
+        get log () { return this.value }
     }, {
         title: 'do nothing to non string value: boolean',
         command: { ...takeScreenshotCmd },
         value: false,
-        get log() { return this.value }
+        get log () { return this.value }
     }]
 
-    logger.clearLogger = jest.fn()
-    const clearLoggerSpy = jest.spyOn(logger, 'clearLogger')
+    logger.clearLogger = vi.fn()
+    const clearLoggerSpy = vi.spyOn(logger, 'clearLogger')
 
     beforeEach(() => {
         delete process.env.WDIO_WORKER_ID
-        jest.clearAllMocks()
+        vi.clearAllMocks()
     })
 
     for (const scenario of scenarios) {
         it(`should ${scenario.title} for ${scenario.command.endpoint.command}`, async () => {
-            const resultFunction = await getRequestCallback(scenario.command.method, scenario.command.path, scenario.command.endpoint) as unknown as mockResponse
+            const resultFunction = await getRequestCallback(
+                scenario.command.method,
+                scenario.command.path,
+                scenario.command.endpoint
+            ) as unknown as mockResponse
 
             resultFunction({ value: scenario.value })
             expect(vi.mocked(log.info).mock.calls[0][1]).toBe(scenario.log)
@@ -308,16 +312,24 @@ describe('command wrapper result log', () => {
         })
     }
 
-    it('should be no result in log if there is value in response', () => {
+    it('should be no result in log if there is value in response', async () => {
         process.env.WDIO_WORKER_ID = '0-0'
-        const resultFunction = getRequestCallback(deleteSessionCmd.method, takeScreenshotCmd.path, takeScreenshotCmd.endpoint) as unknown as mockResponse
+        const resultFunction = await getRequestCallback(
+            deleteSessionCmd.method,
+            takeScreenshotCmd.path,
+            takeScreenshotCmd.endpoint
+        ) as unknown as mockResponse
         resultFunction({})
         expect(vi.mocked(log.info).mock.calls).toHaveLength(0)
         expect(clearLoggerSpy).not.toHaveBeenCalled()
     })
 
-    it('should call clearLogger on deleteSession cmd', () => {
-        const resultFunction = getRequestCallback(deleteSessionCmd.method, deleteSessionCmd.path, deleteSessionCmd.endpoint) as unknown as mockResponse
+    it('should call clearLogger on deleteSession cmd', async () => {
+        const resultFunction = await getRequestCallback(
+            deleteSessionCmd.method,
+            deleteSessionCmd.path,
+            deleteSessionCmd.endpoint
+        ) as unknown as mockResponse
         resultFunction({})
         expect(vi.mocked(log.info).mock.calls).toHaveLength(0)
         expect(clearLoggerSpy).toHaveBeenCalledTimes(1)
