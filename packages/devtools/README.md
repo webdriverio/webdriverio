@@ -49,7 +49,7 @@ await browser.call(async () => {
 })
 
 // continue with WebDriver commands
-await browser.refresh()
+await browser.url('https://v6.webdriver.io')
 await browser.pause(2000)
 
 /**

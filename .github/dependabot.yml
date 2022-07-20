@@ -27,11 +27,14 @@ updates:
     - dependency-name: "serialize-error"
     # moved to ESM only
     - dependency-name: "del"
+    - dependency-name: "got"
+    - dependency-name: "long"
     - dependency-name: "tempy"
     - dependency-name: "inquirer"
     - dependency-name: "url-join"
     - dependency-name: "camelcase"
     - dependency-name: "pretty-ms"
+    - dependency-name: "dateformat"
     - dependency-name: "strip-ansi"
     - dependency-name: "supports-color"
     # requires manual upgrade as we use internal interfaces
