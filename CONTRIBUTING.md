@@ -64,7 +64,7 @@ The WebdriverIO maintainer will review your pull request as soon as possible. Th
 
 #### Set Up Project
 
-In order to set up this project and start contributing follow this step by step guide:
+You can immediately start working on the code using [a pre-setup Gitpod environment](https://gitpod.io/#https://github.com/webdriverio/webdriverio) (read more on this [here](https://bromann.dev/post/development-environment-for-webdriverio/)). If you like to develop on the project locally follow this step by step guide:
 
 * Fork the project.
 * Clone the project somewhere on your computer
@@ -92,17 +92,22 @@ In order to set up this project and start contributing follow this step by step 
 
     The second command does two things:
 
+    * Cleans (possible) existing build artifacts via ```npm run clean```
+
+        If you have compiled the code this command will remove them as well as all dependencies of the subpackages.
+
     * Bootstraps sub-projects via ```npm run bootstrap```
 
         Many packages depend on each other, in order to properly set up the dependency tree you need to run the [Lerna Bootstrap](https://github.com/lerna/lerna#bootstrap) command to create all necessary links. As this project also does some other house keeping tasks, it is recommended to use the package bootstrap command.
 
     * Builds all subpackages via ```npm run build```
 
-        As the last step you need to build all sub-packages in order to resolve the internal dependencies. WebdriverIO uses [TypeScript](https://www.typescriptlang.org/) as a compiler. We are currently transitioning to TypeScript so you will see a mixture of normal JS files and TypeScript files.
+        As the last step you need to build all sub-packages in order to resolve the internal dependencies. WebdriverIO uses [TypeScript](https://www.typescriptlang.org/) as a compiler.
 
 * Run Tests to ensure that everything is set up correctly
 
     ```sh
+    # run the complete unit test suite
     $ npm run test
 
     # run test for a specific sub project (e.g. webdriver)
