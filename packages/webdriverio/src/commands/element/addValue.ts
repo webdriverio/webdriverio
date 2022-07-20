@@ -1,3 +1,5 @@
+const VALID_TYPES = ['string', 'number']
+
 /**
  *
  * Add a value to an input or textarea element found by given selector.
@@ -34,12 +36,17 @@ export default function addValue (
      * With the W3C protocol this was not possible anymore. This is a type check to ensure users are aware of
      * this transition.
      */
-    if (Array.isArray(value) || !value || typeof value === 'boolean') {
+    if (!VALID_TYPES.includes(typeof value)) {
         throw new Error(
             'The setValue/addValue command only take string or number values. ' +
             'If you like to use special characters, use the "keys" command.'
         )
     }
 
-    return this.elementSendKeys(this.elementId, value.toString())
+    if (this.isW3C) {
+        return this.elementSendKeys(this.elementId, value.toString())
+    }
+
+    // @ts-expect-error command is not typed as JWP command
+    return this.elementSendKeys(this.elementId, [value.toString()])
 }
