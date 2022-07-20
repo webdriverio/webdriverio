@@ -15,7 +15,7 @@ import { sort, findByWhich } from '../utils.js'
 import { darwinGetAppPaths, darwinGetInstallations } from './finder.js'
 
 const newLineRegex = /\r?\n/
-const EDGE_BINARY_NAMES = ['edge', 'msedge', 'microsoftedge']
+const EDGE_BINARY_NAMES = ['edge', 'msedge', 'microsoft-edge', 'microsoft-edge-dev']
 const EDGE_REGEX = /((ms|microsoft))?edge/g
 
 function darwin() {

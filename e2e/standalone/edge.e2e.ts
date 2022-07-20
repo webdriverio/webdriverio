@@ -1,6 +1,7 @@
-import DevTools from '../../packages/devtools/src/index'
+import { beforeAll, describe, it, afterAll, expect } from 'vitest'
+import DevTools, { Client } from '../../packages/devtools/src/index'
 
-let browser
+let browser: Client
 
 beforeAll(async () => {
     browser = await DevTools.newSession({
@@ -28,5 +29,8 @@ describe('Chromium Edge', () => {
 })
 
 afterAll(async () => {
+    if (!browser) {
+        return
+    }
     await browser.deleteSession()
 })

@@ -89,27 +89,6 @@ exports[`launch Firefox Nightly binary without Puppeteer default args 1`] = `
 ]
 `;
 
-exports[`launch Firefox Nightly with custom arguments 1`] = `
-[
-  [
-    {
-      "args": [
-        "foobar",
-      ],
-      "binary": "/foo/firefox-nightly",
-      "defaultViewport": {
-        "height": 456,
-        "width": 123,
-      },
-      "executablePath": "/foo/firefox-nightly",
-      "headless": true,
-      "ignoreDefaultArgs": undefined,
-      "product": "firefox",
-    },
-  ],
-]
-`;
-
 exports[`launch Firefox Nightly without Puppeteer default args 1`] = `
 [
   [
@@ -122,6 +101,23 @@ exports[`launch Firefox Nightly without Puppeteer default args 1`] = `
       "executablePath": "/foo/firefox-nightly",
       "headless": true,
       "ignoreDefaultArgs": true,
+      "product": "firefox",
+    },
+  ],
+]
+`;
+
+exports[`launch Firefox with custom arguments 1`] = `
+[
+  [
+    {
+      "defaultViewport": {
+        "height": 456,
+        "width": 123,
+      },
+      "executablePath": "/path/to/firefox",
+      "headless": true,
+      "ignoreDefaultArgs": undefined,
       "product": "firefox",
     },
   ],
