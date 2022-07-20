@@ -31,7 +31,7 @@
     "@wdio/protocols": "7.20.6",
     "@wdio/types": "7.20.7",
     "@wdio/utils": "7.20.7",
-    "got": "^11.0.2",
+    "got": "^12.1.0",
     "ky": "0.30.0",
     "lodash.merge": "^4.6.1"
   }
