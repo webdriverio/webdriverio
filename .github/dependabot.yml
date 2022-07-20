@@ -8,13 +8,8 @@ updates:
   open-pull-requests-limit: 10
   versioning-strategy: increase-if-necessary
   ignore:
-    # moved to ESM only
-    - dependency-name: "tempy"
     # requires manual upgrade as we use internal interfaces
     - dependency-name: "lighthouse"
-    # Chalk v5 is ESM only
-    - dependency-name: "chalk"
-      update-types: ["version-update:semver-major"]
 - package-ecosystem: npm
   directory: "/"
   target-branch: v7
@@ -24,8 +19,14 @@ updates:
   open-pull-requests-limit: 10
   versioning-strategy: increase-if-necessary
   ignore:
+    # packages we don't update for v7 anymore
+    - dependency-name: "@types/jasmine"
+    - dependency-name: "jasmine"
+    - dependency-name: "puppeteer-core"
+    - dependency-name: "serialize-error"
     # moved to ESM only
     - dependency-name: "tempy"
+    - dependency-name: "inquirer"
     # requires manual upgrade as we use internal interfaces
     - dependency-name: "lighthouse"
     # Chalk v5 is ESM only
