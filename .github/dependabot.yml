@@ -21,12 +21,19 @@ updates:
   ignore:
     # packages we don't update for v7 anymore
     - dependency-name: "@types/jasmine"
+    - dependency-name: "ky"
     - dependency-name: "jasmine"
     - dependency-name: "puppeteer-core"
     - dependency-name: "serialize-error"
     # moved to ESM only
+    - dependency-name: "del"
     - dependency-name: "tempy"
     - dependency-name: "inquirer"
+    - dependency-name: "url-join"
+    - dependency-name: "camelcase"
+    - dependency-name: "pretty-ms"
+    - dependency-name: "strip-ansi"
+    - dependency-name: "supports-color"
     # requires manual upgrade as we use internal interfaces
     - dependency-name: "lighthouse"
     # Chalk v5 is ESM only
