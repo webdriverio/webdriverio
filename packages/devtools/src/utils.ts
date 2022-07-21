@@ -1,5 +1,3 @@
-import fs from 'fs'
-import path from 'path'
 import { execFileSync } from 'child_process'
 import logger from '@wdio/logger'
 import { commandCallStructure, isValidParameter, getArgumentType, canAccess } from '@wdio/utils'
@@ -317,28 +315,28 @@ export function findByWhich (executables: string[], priorities: Priorities[]) {
     return sort(uniq(installations.filter(Boolean)), priorities)
 }
 
+const actualRequire = require
 /**
  * monkey patch debug package to log CDP messages from Puppeteer
  */
-export function patchDebug (scoppedLogger: Logger) {
+export function patchDebug (scoppedLogger: Logger, require = actualRequire) {
     /**
-     * log puppeteer messages
+     * let's not get caught by our dep checker, therefore
+     * define package name in variable first
      */
-    let puppeteerDebugPkg = path.resolve(
-        path.dirname(require.resolve('puppeteer-core')),
-        'node_modules',
-        'debug')
+    const pkgName = 'debug'
 
     /**
-     * check if Puppeteer has its own version of debug, if not use the
-     * one that is installed for all packages
+     * log puppeteer messages
+     * resolve debug *from* puppeteer-core to make sure we monkey patch the version
+     * it will use
      */
-    if (!fs.existsSync(puppeteerDebugPkg)) {
-        /**
-         * let's not get caught by our dep checker, therefor
-         * define package name in variable first
-         */
-        const pkgName = 'debug'
+    let puppeteerPkg = require.resolve('puppeteer-core')
+    let puppeteerDebugPkg
+    try {
+        puppeteerDebugPkg = require.resolve(pkgName, { paths: [puppeteerPkg] })
+    } catch {
+        // puppeteer-core doesn't have its own debug, import the hoisted version
         puppeteerDebugPkg = require.resolve(pkgName)
     }
 
