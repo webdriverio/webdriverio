@@ -353,6 +353,7 @@ export async function patchDebug (scoppedLogger: Logger) {
         const debug = (await import(puppeteerDebugPkg)).default
         debug.log = (msg: string) => {
             if (msg.includes('puppeteer:protocol')) {
+                console.log('DEBUG', msg)
                 msg = msg.split('\n')
                     .map((l) => l.slice(Math.max(l.indexOf('◀ '), l.indexOf('► ')))
                         .replace('\x1B[32m', '')
