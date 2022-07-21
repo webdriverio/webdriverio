@@ -7,34 +7,38 @@ const log = logger('webdriver:BidiHandler')
 const RESPONSE_TIMEOUT = 1000 * 60
 
 export class BidiHandler extends EventEmitter {
-    private _id = 0
-    private _ws: WebSocket
-    private _isConnected = false
+    #id = 0
+    #ws: WebSocket
+    #isConnected = false
 
     constructor (private _webSocketUrl: string) {
         super()
         log.info(`Connect to webSocketUrl ${this._webSocketUrl}`)
-        this._ws = new WebSocket(this._webSocketUrl)
+        this.#ws = new WebSocket(this._webSocketUrl)
     }
 
     public connect () {
-        return new Promise<void>((resolve) => this._ws.on('open', () => {
-            this._isConnected = true
+        return new Promise<void>((resolve) => this.#ws.on('open', () => {
+            this.#isConnected = true
             resolve()
         }))
     }
 
     get socket () {
-        return this._ws
+        return this.#ws
+    }
+
+    get isConnected () {
+        return this.#isConnected
     }
 
     public send (params: BidiRequest) {
-        if (!this._isConnected) {
+        if (!this.#isConnected) {
             throw new Error('No connection to WebDriver Bidi was established')
         }
 
-        const id = ++this._id
-        this._ws.send(JSON.stringify({ id, ...params }))
+        const id = ++this.#id
+        this.#ws.send(JSON.stringify({ id, ...params }))
         return new Promise<BidiResponse>((resolve, reject) => {
             const t = setTimeout(() => {
                 reject(new Error(`Request with id ${id} timed out`))
@@ -53,16 +57,16 @@ export class BidiHandler extends EventEmitter {
                     log.error(`Failed parse message: ${err.message}`)
                 }
             }
-            const h = this._ws.on('message', listener)
+            const h = this.#ws.on('message', listener)
         })
     }
 
     public sendAsync (params: BidiRequest) {
-        if (!this._isConnected) {
+        if (!this.#isConnected) {
             throw new Error('No connection to WebDriver Bidi was established')
         }
 
-        const id = ++this._id
-        this._ws.send(JSON.stringify({ id, ...params }))
+        const id = ++this.#id
+        this.#ws.send(JSON.stringify({ id, ...params }))
     }
 }

@@ -172,7 +172,7 @@ const requestMock: any = vi.fn().mockImplementation((uri, params) => {
         const script = Function(params.json.script)
         const args = params.json.args.map((arg: any) => arg.ELEMENT || arg[ELEMENT_KEY] || arg)
 
-        let result = null
+        let result: any = null
         if (params.json.script.includes('resq')) {
             if (params.json.script.includes('react$$')) {
                 result = [

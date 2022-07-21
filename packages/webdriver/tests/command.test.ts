@@ -176,6 +176,30 @@ describe('command wrapper', () => {
     })
 })
 
+describe.only('Bidi support', () => {
+    it('fails if bidi is not supported', async () => {
+        scope.sessionId = 'foo123'
+        const commandFn = commandWrapper('POST', 'sendCommand', {
+            command: 'send',
+            parameters: []
+        } as any)
+        await expect(async () => commandFn.call(scope))
+            .rejects.toThrow(/doesn't support WebDriver Bidi/)
+    })
+
+    it('it propagates command to middleware', async () => {
+        (scope as any).eventMiddleware = { send: vi.fn() }
+        const commandFn = commandWrapper('POST', 'sendCommand', {
+            command: 'send',
+            required: true,
+            parameters: [{ type: 'object', name: 'params' }]
+        } as any)
+        await commandFn.call(scope, { params: 'foobar' })
+        expect((scope as any).eventMiddleware.send).toHaveBeenCalledTimes(1)
+        expect((scope as any).eventMiddleware.send).toHaveBeenCalledWith({ params: 'foobar' })
+    })
+})
+
 describe('command wrapper result log', () => {
     async function getRequestCallback (method: string, path: string, endpoint: Protocols.CommandEndpoint) {
         const commandFn = commandWrapper(method, path, endpoint)
