@@ -10,7 +10,7 @@ import MultiRemote from './multiremote.js'
 import type ElementCommands from './commands/element.js'
 import SevereServiceErrorImport from './utils/SevereServiceError.js'
 import detectBackend from './utils/detectBackend.js'
-import { WDIO_DEFAULTS } from './constants.js'
+import { WDIO_DEFAULTS, Key as KeyConstant } from './constants.js'
 import {
     getPrototype, addLocatorStrategyHandler, isStub, getAutomationProtocol,
     updateCapabilities
@@ -18,6 +18,7 @@ import {
 import type { AttachOptions } from './types'
 
 export type RemoteOptions = Options.WebdriverIO & Omit<Options.Testrunner, 'capabilities'>
+export const Key = KeyConstant
 
 /**
  * A method to create a new session with WebdriverIO.

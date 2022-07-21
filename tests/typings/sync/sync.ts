@@ -182,7 +182,6 @@ el5.scrollIntoView(false)
 // An examples of addValue command with enabled/disabled translation to Unicode
 const el = $('')
 el.addValue('Delete')
-el.addValue('Delete', { translateToUnicode: false })
 
 // scroll into view
 el.scrollIntoView(true)
@@ -195,7 +194,6 @@ el.scrollIntoView(scrollOptions)
 
 // An examples of setValue command with enabled/disabled translation to Unicode
 const elem1 = $('')
-elem1.setValue('Delete', { translateToUnicode: true })
 elem1.setValue('Delete')
 
 expectType<Selector>(elems.selector)

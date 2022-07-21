@@ -11,7 +11,6 @@ import { ELEMENT_KEY } from '../src/constants.js'
 import {
     getElementFromResponse,
     getBrowserObject,
-    transformToCharString,
     parseCSS,
     checkUnicode,
     findElement,
@@ -81,63 +80,6 @@ describe('utils', () => {
                     }
                 }
             } as any)).toEqual({ foo: 'bar' })
-        })
-    })
-
-    describe('transformToCharString', () => {
-        it('should allow to pass non arrays to it', () => {
-            expect(transformToCharString('foobar')).toEqual(['f', 'o', 'o', 'b', 'a', 'r'])
-        })
-
-        it('should do nothing if all is good', () => {
-            expect(transformToCharString(['f'])).toEqual(['f'])
-        })
-
-        it('should be able to transform objects', () => {
-            expect(transformToCharString({ a: 1 })).toEqual(['{', '"', 'a', '"', ':', '1', '}'])
-        })
-
-        it('should be able to transform numbers', () => {
-            expect(transformToCharString(42)).toEqual(['4', '2'])
-        })
-
-        it('should be able to transform booleans', () => {
-            expect(transformToCharString(true)).toEqual(['t', 'r', 'u', 'e'])
-        })
-
-        it('ignore undefined/null', () => {
-            expect(transformToCharString([null])).toEqual([])
-            expect(transformToCharString([undefined])).toEqual([])
-        })
-
-        it('can do all of this together', () => {
-            expect(transformToCharString(['foo', undefined, { b: 1 }, null, 42, false])).toEqual(
-                ['f', 'o', 'o', '{', '"', 'b', '"', ':', '1', '}', '4', '2', 'f', 'a', 'l', 's', 'e'])
-        })
-
-        it('should convert string to unicode', () => {
-            expect(transformToCharString('Enter')).toEqual(['\uE007'])
-            expect(transformToCharString('Back space')).toEqual(['\uE003'])
-            expect(transformToCharString('Backspace')).toEqual(['\uE003'])
-            expect(transformToCharString('Pageup')).toEqual(['\uE00E'])
-        })
-
-        it('should transform string without converting to unicode', () => {
-            expect(transformToCharString('Delete', false)).toEqual(
-                ['D', 'e', 'l', 'e', 't', 'e'])
-            expect(transformToCharString('Back space', false)).toEqual(
-                ['B', 'a', 'c', 'k', ' ', 's', 'p', 'a', 'c', 'e'])
-            expect(transformToCharString('Backspace', false)).toEqual(
-                ['B', 'a', 'c', 'k', 's', 'p', 'a', 'c', 'e'])
-            expect(transformToCharString('Pageup', false)).toEqual(
-                ['P', 'a', 'g', 'e', 'u', 'p'])
-        })
-
-        it('should transform string with converting to unicode', () => {
-            expect(transformToCharString('Delete', true)).toEqual(['\uE017'])
-            expect(transformToCharString('Back space', true)).toEqual(['\uE003'])
-            expect(transformToCharString('Backspace', true)).toEqual(['\uE003'])
-            expect(transformToCharString('Pageup', true)).toEqual(['\uE00E'])
         })
     })
 
