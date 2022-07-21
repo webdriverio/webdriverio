@@ -9,9 +9,11 @@ import type MJSONWPCommands from './commands/mjsonwp'
 import type SauceLabsCommands from './commands/saucelabs'
 import type SeleniumCommands from './commands/selenium'
 import type WebDriverCommands from './commands/webdriver'
+import type WebDriverBidiCommands from './commands/webdriverBidi'
 
 const require = createRequire(import.meta.url)
 const WebDriverProtocol: Protocol = require('../protocols/webdriver.json')
+const WebDriverBidiProtocol: Protocol = require('../protocols/webdriverBidi.json')
 const MJsonWProtocol: Protocol = require('../protocols/mjsonwp.json')
 const JsonWProtocol: Protocol = require('../protocols/jsonwp.json')
 const AppiumProtocol: Protocol = require('../protocols/appium.json')
@@ -23,6 +25,10 @@ const SeleniumProtocol: Protocol = require('../protocols/selenium.json')
 type WebDriverCommandsAsync = {
     [K in keyof WebDriverCommands]:
     (...args: Parameters<WebDriverCommands[K]>) => Promise<ReturnType<WebDriverCommands[K]>>
+}
+type WebDriverBidiCommandsAsync = {
+    [K in keyof WebDriverBidiCommands]:
+    (...args: Parameters<WebDriverBidiCommands[K]>) => Promise<ReturnType<WebDriverBidiCommands[K]>>
 }
 type AppiumCommandsAsync = {
     [K in keyof AppiumCommands]:
@@ -61,17 +67,20 @@ export {
     // protocols
     WebDriverProtocol, MJsonWProtocol, JsonWProtocol, AppiumProtocol,
     ChromiumProtocol, SauceLabsProtocol, SeleniumProtocol, GeckoProtocol,
+    WebDriverBidiProtocol,
     // sync commands
     AppiumCommands, ChromiumCommands, JSONWPCommands, MJSONWPCommands,
     SauceLabsCommands, SeleniumCommands, WebDriverCommands, GeckoCommands,
+    WebDriverBidiCommands,
     // async commands
     WebDriverCommandsAsync, AppiumCommandsAsync, ChromiumCommandsAsync,
     JSONWPCommandsAsync, MJSONWPCommandsAsync, SauceLabsCommandsAsync,
-    SeleniumCommandsAsync, GeckoCommandsAsync
+    SeleniumCommandsAsync, GeckoCommandsAsync,
+    WebDriverBidiCommandsAsync
 }
 
 export const CAPABILITY_KEYS = [
     'browserName', 'browserVersion', 'platformName', 'acceptInsecureCerts',
     'pageLoadStrategy', 'proxy', 'setWindowRect', 'timeouts', 'strictFileInteractability',
-    'unhandledPromptBehavior'
+    'unhandledPromptBehavior', 'webSocketUrl'
 ]

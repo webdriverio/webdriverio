@@ -3,7 +3,7 @@ import logger from '@wdio/logger'
 import Protocols from '@wdio/protocols'
 import {
     WebDriverProtocol, MJsonWProtocol, JsonWProtocol, AppiumProtocol, ChromiumProtocol,
-    SauceLabsProtocol, SeleniumProtocol, GeckoProtocol
+    SauceLabsProtocol, SeleniumProtocol, GeckoProtocol, WebDriverBidiProtocol
 } from '@wdio/protocols'
 import { transformCommandLogResult } from '@wdio/utils'
 import { CAPABILITY_KEYS } from '@wdio/protocols'
@@ -178,6 +178,10 @@ export function getPrototype ({ isW3C, isChrome, isFirefox, isMobile, isSauce, i
         isMobile
             ? merge({}, JsonWProtocol, WebDriverProtocol)
             : isW3C ? WebDriverProtocol : JsonWProtocol,
+        /**
+         * enable Bidi protocol for W3C sessions
+         */
+        isW3C ? WebDriverBidiProtocol : {},
         /**
          * only apply mobile protocol if session is actually for mobile
          */

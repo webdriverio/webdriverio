@@ -6,6 +6,7 @@ import { validateConfig } from '@wdio/config'
 import type { Options, Capabilities } from '@wdio/types'
 
 import command from './command.js'
+import { BidiHandler } from './bidi.js'
 import { DEFAULTS } from './constants.js'
 import {
     startWebDriverSession, getPrototype, getEnvironmentVars, setupDirectConnect
@@ -48,7 +49,15 @@ export default class WebDriver {
             modifier,
             prototype
         )
-        const client = monad(sessionId, customCommandWrapper)
+
+        let handler: BidiHandler | undefined
+        if (capabilities.webSocketUrl) {
+            log.info(`Register BiDi handler for session with id ${sessionId}`)
+            const socketUrl = (capabilities.webSocketUrl as any as string).replace('localhost', '127.0.0.1')
+            handler = new BidiHandler(socketUrl)
+            await handler.connect()
+        }
+        const client = monad(sessionId, customCommandWrapper, handler)
 
         /**
          * if the server responded with direct connect information, update the

@@ -9,7 +9,7 @@ export const config = {
     /**
      * specify test files
      */
-    specs: [path.resolve(__dirname, 'headless', '*.e2e.ts')],
+    specs: ['./headless/*.e2e.ts'],
 
     /**
      * capabilities

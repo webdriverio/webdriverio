@@ -7,12 +7,28 @@ import { sessionEnvironmentDetector } from '@wdio/utils'
 import type { Capabilities } from '@wdio/types'
 
 import WebDriver, { getPrototype, DEFAULTS, command } from '../src'
+// @ts-expect-error mock feature
+import { initCount } from '../src/bidi'
 import { Client } from '../src/types'
 
 vi.mock('@wdio/utils', () => import(path.join(process.cwd(), '__mocks__', '@wdio/utils')))
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 vi.mock('fs')
+vi.mock('ws')
 vi.mock('got')
+
+vi.mock('../src/bidi', () => {
+    let initCount = 0
+    return {
+        BidiHandler: class BidiHandlerMock {
+            connect = vi.fn()
+            constructor () {
+                ++initCount
+            }
+        },
+        initCount: () => initCount
+    }
+})
 
 const sessionOptions = {
     protocol: 'http',
@@ -180,6 +196,17 @@ describe('WebDriver', () => {
             })
             expect((browser.capabilities as Capabilities.DesiredCapabilities).browserName).toBe('mockBrowser')
             expect((browser.requestedCapabilities as Capabilities.DesiredCapabilities).browserName).toBe('firefox')
+        })
+
+        it('attaches bidi handler if socket url is given', async () => {
+            vi.mocked(got).mockResolvedValue({
+                body: { value: { webSocketUrl: 'ws://foo/bar' } }
+            })
+            await WebDriver.newSession({
+                path: '/',
+                capabilities: { browserName: 'firefox' }
+            })
+            expect(initCount()).toBe(1)
         })
     })
 
