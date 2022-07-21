@@ -176,7 +176,7 @@ describe('command wrapper', () => {
     })
 })
 
-describe.only('Bidi support', () => {
+describe('Bidi support', () => {
     it('fails if bidi is not supported', async () => {
         scope.sessionId = 'foo123'
         const commandFn = commandWrapper('POST', 'sendCommand', {
