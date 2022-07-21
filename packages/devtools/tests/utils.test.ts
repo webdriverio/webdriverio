@@ -1,7 +1,3 @@
-import path from 'path'
-// not a real package but needed for testing
-// @ts-ignore
-import { log as pptrDebugLog } from 'pptrDebug'
 import childProcess from 'child_process'
 import { canAccess } from '@wdio/utils'
 
@@ -10,8 +6,6 @@ import {
     sanitizeError, transformExecuteArgs, transformExecuteResult, getPages,
     uniq, findByWhich, patchDebug, sleep
 } from '../src/utils'
-
-const debug = jest.requireActual('debug')
 
 /**
  * some WebDriver commands are either not part of a recommended standard
@@ -61,12 +55,6 @@ let pageMock = {
     $: jest.fn()
 }
 
-jest.mock('fs', () => {
-    return {
-        existsSync: (pkgName: string) => pkgName === 'pptrDebug'
-    }
-})
-
 jest.mock('child_process', () => {
     let returnValue = false
     return {
@@ -78,13 +66,6 @@ jest.mock('child_process', () => {
         }),
         shouldReturn: (value: any) => (returnValue = value)
     }
-})
-
-jest.mock('path', () => {
-    let resolveResult = 'debug'
-    const resolve = jest.fn(() => resolveResult)
-    const setResolveResult = (result: any) => (resolveResult = result)
-    return { resolve, setResolveResult, dirname: jest.fn() }
 })
 
 describe('validate', () => {
@@ -391,19 +372,71 @@ test('findByWhich', () => {
         .toEqual([])
 })
 
-test('patchDebug', () => {
-    const logMock = { debug: jest.fn() }
-    patchDebug(logMock as any)
-    debug.log('something something - puppeteer:protocol foobar')
-    expect(logMock.debug).toBeCalledWith('foobar')
-})
+describe('patchDebug', () => {
+    test('with debug installed in puppeteer', () => {
+        const logMock = { debug: jest.fn() }
+        const debugMock = { log: jest.fn() }
+        const requireMock = jest.fn().mockReturnValue(debugMock) as unknown as typeof require
+        ;(requireMock as any).resolve = jest.fn()
+            .mockReturnValue('/path/to/project/node_modules/puppeteer-core')
+            .mockReturnValue('/path/to/project/node_modules/puppeteer-core/node_modules/debug')
+        patchDebug(logMock as any, requireMock)
+        debugMock.log('something something - puppeteer:protocol foobar')
+        expect(logMock.debug).toBeCalledWith('foobar')
+    })
 
-test('patchDebug with debug not install in puppeteer', () => {
-    const logMock = { debug: jest.fn() }
-    ;(path as any).setResolveResult('pptrDebug')
-    patchDebug(logMock as any)
-    pptrDebugLog('something something - puppeteer:protocol barfoo')
-    expect(logMock.debug).toBeCalledWith('barfoo')
+    test('with debug *not* installed in puppeteer', () => {
+        const logMock = { debug: jest.fn() }
+        const debugMock = { log: jest.fn() }
+        const requireMock = jest.fn().mockReturnValue(debugMock) as unknown as typeof require
+        ;(requireMock as any).resolve = jest.fn()
+            .mockReturnValueOnce('/path/to/project/node_modules/puppeteer-core')
+            .mockImplementationOnce(() => { throw new Error('Failed to resolve debug from puppeteer-core.') })
+            .mockReturnValueOnce('/path/to/project/node_modules/debug')
+        patchDebug(logMock as any, requireMock)
+        debugMock.log('something something - puppeteer:protocol barfoo')
+        expect(logMock.debug).toBeCalledWith('barfoo')
+    })
+
+    test('with debug installed in puppeteer with pnpm layout', () => {
+        const logMock = { debug: jest.fn() }
+        const debugMock = { log: jest.fn() }
+        const requireMock = jest.fn().mockReturnValue(debugMock) as unknown as typeof require
+        ;(requireMock as any).resolve = jest.fn()
+            .mockReturnValueOnce('/path/to/project/node_modules/.pnpm/puppeteer-core@0.0.0')
+            // Puppeteer has a symlinked dependency on debug
+            .mockReturnValueOnce('/path/to/project/node_modules/.pnpm/debug@0.0.0')
+        patchDebug(logMock as any, requireMock)
+        debugMock.log('something something - puppeteer:protocol barfoo')
+        expect(logMock.debug).toBeCalledWith('barfoo')
+    })
+
+    test('with debug *not* installed in puppeteer, but hoisted with pnpm layout', () => {
+        const logMock = { debug: jest.fn() }
+        const debugMock = { log: jest.fn() }
+        const requireMock = jest.fn().mockReturnValue(debugMock) as unknown as typeof require
+        ;(requireMock as any).resolve = jest.fn()
+            .mockReturnValueOnce('/path/to/project/node_modules/.pnpm/puppeteer-core@0.0.0')
+            .mockImplementation(() => { throw new Error('Failed to resolve debug from puppeteer-core.') })
+            // When debug is hoisted, it is available to be resolved from any package, including devtools.
+            .mockReturnValueOnce('/path/to/project/node_modules/.pnpm/node_modules/debug')
+        patchDebug(logMock as any, requireMock)
+        debugMock.log('something something - puppeteer:protocol barfoo')
+        expect(logMock.debug).toBeCalledWith('barfoo')
+    })
+
+    test('with debug *not* installed in puppeteer and *not* hoisted with pnpm layout', () => {
+        const logMock = { debug: jest.fn() }
+        const debugMock = { log: jest.fn() }
+        const requireMock = jest.fn().mockReturnValue(debugMock) as unknown as typeof require
+        const debugResolveError = new Error('Failed to resolve debug from devtools.')
+        ;(requireMock as any).resolve = jest.fn()
+            .mockReturnValueOnce('/path/to/project/node_modules/.pnpm/puppeteer-core@0.0.0')
+            .mockImplementation(() => { throw new Error('Failed to resolve debug from puppeteer-core.') })
+            // When debug is *not* hoisted, it cannot be resolved from devtools directly.
+            .mockImplementation(() => { throw debugResolveError })
+        expect(() => patchDebug(logMock as any, requireMock)).toThrow(debugResolveError)
+    })
 })
 
 test('sleep', async () => {
