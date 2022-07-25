@@ -329,6 +329,7 @@ describe('executeScript', () => {
 
     it('sync error', async () => {
         const spy = vi.spyOn(global, 'clearTimeout')
+        spy.mockClear()
 
         await expect(async () => {
             await browser.executeScript(

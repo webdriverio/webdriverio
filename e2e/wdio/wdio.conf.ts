@@ -9,7 +9,7 @@ export const config = {
     /**
      * specify test files
      */
-    specs: ['./headless/*.e2e.ts'],
+    specs: [path.join(__dirname, 'headless', '*.e2e.ts')],
 
     /**
      * capabilities
@@ -24,7 +24,7 @@ export const config = {
     /**
      * test configurations
      */
-    logLevel: 'trace',
+    logLevel: 'info',
     framework: 'mocha',
     outputDir: __dirname,
 
