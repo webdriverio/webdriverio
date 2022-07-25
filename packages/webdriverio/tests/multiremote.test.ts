@@ -101,14 +101,15 @@ test('should be able to add a command to and element in multiremote', async () =
     const browser = await multiremote(caps())
 
     browser.addCommand('myCustomElementCommand', async function (this: MultiRemoteBrowser<'async'>) {
-        return this.execute(() => 1)
+        const size = await this.getSize()
+        return size.width
     }, true)
 
     const elem = await browser.$('#foo')
 
-    expect(await elem.browserA.myCustomElementCommand()).toBe(1)
-    expect(await elem.browserB.myCustomElementCommand()).toBe(1)
-    expect(await elem.myCustomElementCommand()).toEqual([1, 1])
+    expect(await elem.browserA.myCustomElementCommand()).toBe(50)
+    expect(await elem.browserB.myCustomElementCommand()).toBe(50)
+    expect(await elem.myCustomElementCommand()).toEqual([50, 50])
 })
 
 test('should be able to overwrite command to and element in multiremote', async () => {

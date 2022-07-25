@@ -3,6 +3,7 @@ import { createRequire } from 'node:module'
 
 import type { ElementReference } from '@wdio/protocols'
 
+import { getBrowserObject } from '../../utils/index.js'
 import { getElement } from '../../utils/getElementObject.js'
 import { waitToLoadReact, react$ as react$Script } from '../../scripts/resq.js'
 import type { ReactSelectorOptions } from '../../types'
@@ -58,9 +59,10 @@ export default async function react$(
     selector: string,
     { props = {}, state = {} }: ReactSelectorOptions = {}
 ) {
+    const browser = await getBrowserObject(this)
     await this.executeScript(resqScript.toString(), [])
-    await this.execute(waitToLoadReact)
-    const res = await this.execute(
+    await browser.execute(waitToLoadReact)
+    const res = await browser.execute(
         react$Script as any, selector, props, state, this
     ) as any as ElementReference
 
