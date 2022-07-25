@@ -41,6 +41,8 @@ jobs:
         run: npm run setup-full
       - name: Lint / Dependencies / Unit / Smoke Tests
         run: npm run test:eslint && npm run test:typings && npm run test:unit
+      - name: Setup Chrome Browser
+        uses: browser-actions/setup-chrome@latest
       - name: E2E Protocol Tests
         uses: nick-invision/retry@v2
         with:
