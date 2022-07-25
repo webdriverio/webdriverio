@@ -186,7 +186,7 @@ describe('utils', () => {
             { [ELEMENT_KEY]: 'foobar' },
             { [ELEMENT_KEY]: 'barfoo' }
         ]
-        let scope: Element<'sync'>
+        let scope: Element<'async'>
 
         beforeEach(() => {
             scope = {
@@ -195,7 +195,7 @@ describe('utils', () => {
                 findElements: vi.fn(),
                 findElement: vi.fn(),
                 execute: vi.fn()
-            } as any as Element<'sync'>
+            } as any as Element<'async'>
         })
 
         it('fetches element using a selector string with browser scope', async () => {
@@ -213,8 +213,8 @@ describe('utils', () => {
         })
 
         it('fetches element using a function with browser scope', async () => {
-            vi.mocked(scope.execute).mockReturnValue(elementResponse)
-            const elem = await findElement.call(scope as any, () => { return global.document.body }) as Element<'sync'>
+            vi.mocked(scope.execute).mockResolvedValue(elementResponse)
+            const elem = await findElement.call(scope as any, () => { return global.document.body }) as Element<'async'>
             expect(scope.findElement).not.toBeCalled()
             expect(scope.findElementFromElement).not.toBeCalled()
             expect(scope.execute).toBeCalled()
@@ -223,8 +223,8 @@ describe('utils', () => {
 
         it('fetches element using a function with element scope', async () => {
             scope.elementId = 'foobar'
-            vi.mocked(scope.execute).mockReturnValue(elementResponse)
-            const elem = await findElement.call(scope as any, () => { return global.document.body }) as Element<'sync'>
+            vi.mocked(scope.execute).mockResolvedValue(elementResponse)
+            const elem = await findElement.call(scope as any, () => { return global.document.body }) as Element<'async'>
             expect(scope.findElement).not.toBeCalled()
             expect(scope.findElementFromElement).not.toBeCalled()
             expect(scope.execute).toBeCalled()
@@ -233,11 +233,11 @@ describe('utils', () => {
         })
 
         it('should return only one element if multiple are returned', async () => {
-            vi.mocked(scope.execute).mockReturnValue(elementsResponse)
+            vi.mocked(scope.execute).mockResolvedValue(elementsResponse)
             const elem = await findElement.call(
                 scope as any,
                 (() => { return global.document.body as any as ElementReference }) as any
-            ) as Element<'sync'>
+            ) as Element<'async'>
             expect(scope.findElement).not.toBeCalled()
             expect(scope.findElementFromElement).not.toBeCalled()
             expect(scope.execute).toBeCalled()
@@ -245,7 +245,7 @@ describe('utils', () => {
         })
 
         it('throws if element response is malformed', async () => {
-            vi.mocked(scope.execute).mockReturnValue(malformedElementResponse)
+            vi.mocked(scope.execute).mockResolvedValue(malformedElementResponse)
             const res = await findElement.call(scope as any, () => { return global.document.body }) as Error
             expect(res instanceof Error)
             expect(res.message).toMatch('did not return an HTMLElement')
@@ -264,8 +264,8 @@ describe('utils', () => {
         })
 
         it('should use execute if shadow selector is used', async () => {
-            vi.mocked(scope.execute).mockReturnValue(elementResponse)
-            const elem = await findElement.call(scope as any, '>>>.foobar') as Element<'sync'>
+            vi.mocked(scope.execute).mockResolvedValue(elementResponse)
+            const elem = await findElement.call(scope as any, '>>>.foobar') as Element<'async'>
             expect(scope.findElement).not.toBeCalled()
             expect(scope.findElementFromElement).not.toBeCalled()
             expect(scope.execute).toBeCalledWith(
@@ -276,9 +276,9 @@ describe('utils', () => {
         })
 
         it('should use execute if shadow selector is used with element scope', async () => {
-            vi.mocked(scope.execute).mockReturnValue(elementResponse)
+            vi.mocked(scope.execute).mockResolvedValue(elementResponse)
             scope.elementId = 'foobar'
-            const elem = await findElement.call(scope as any, '>>>.foobar') as Element<'sync'>
+            const elem = await findElement.call(scope as any, '>>>.foobar') as Element<'async'>
             expect(scope.findElement).not.toBeCalled()
             expect(scope.findElementFromElement).not.toBeCalled()
             expect(scope.execute).toBeCalledWith(
@@ -297,7 +297,7 @@ describe('utils', () => {
             { [ELEMENT_KEY]: 'foobar' },
             { [ELEMENT_KEY]: 'barfoo' }
         ]
-        let scope: Element<'sync'>
+        let scope: Element<'async'>
 
         beforeEach(() => {
             scope = {
@@ -306,7 +306,7 @@ describe('utils', () => {
                 findElements: vi.fn(),
                 findElement: vi.fn(),
                 execute: vi.fn()
-            } as any as Element<'sync'>
+            } as any as Element<'async'>
         })
 
         it('fetches element using a selector string with browser scope', async () => {
@@ -324,7 +324,7 @@ describe('utils', () => {
         })
 
         it('fetches element using a function with browser scope', async () => {
-            vi.mocked(scope.execute).mockReturnValue(elementResponse)
+            vi.mocked(scope.execute).mockResolvedValue(elementResponse)
             const elem = await findElements.call(scope as any, () => { return global.document.body })
             expect(scope.findElements).not.toBeCalled()
             expect(scope.findElementsFromElement).not.toBeCalled()
@@ -335,7 +335,7 @@ describe('utils', () => {
 
         it('fetches element using a function with element scope', async () => {
             scope.elementId = 'foobar'
-            vi.mocked(scope.execute).mockReturnValue(elementResponse)
+            vi.mocked(scope.execute).mockResolvedValue(elementResponse)
             const elem = await findElements.call(scope as any, () => { return global.document.body })
             expect(scope.findElements).not.toBeCalled()
             expect(scope.findElementsFromElement).not.toBeCalled()
@@ -346,7 +346,7 @@ describe('utils', () => {
         })
 
         it('should return multiple elements if multiple are returned', async () => {
-            vi.mocked(scope.execute).mockReturnValue(elementsResponse)
+            vi.mocked(scope.execute).mockResolvedValue(elementsResponse)
             const elem = await findElements.call(scope as any, () => { return global.document.body })
             expect(scope.findElement).not.toBeCalled()
             expect(scope.findElementFromElement).not.toBeCalled()
@@ -355,7 +355,7 @@ describe('utils', () => {
         })
 
         it('should filter out malformed responses', async () => {
-            vi.mocked(scope.execute).mockReturnValue([...elementsResponse, 'foobar'])
+            vi.mocked(scope.execute).mockResolvedValue([...elementsResponse, 'foobar'])
             const elem = await findElements.call(scope as any, () => { return global.document.body })
             expect(scope.findElement).not.toBeCalled()
             expect(scope.findElementFromElement).not.toBeCalled()
@@ -364,7 +364,7 @@ describe('utils', () => {
         })
 
         it('throws if element response is malformed', async () => {
-            vi.mocked(scope.execute).mockReturnValue(malformedElementResponse)
+            vi.mocked(scope.execute).mockResolvedValue(malformedElementResponse)
             const res = await findElements.call(scope as any, () => { return global.document.body })
             expect(res).toHaveLength(0)
         })
@@ -382,7 +382,7 @@ describe('utils', () => {
         })
 
         it('fetches element using a function with browser scope', async () => {
-            vi.mocked(scope.execute).mockReturnValue(elementResponse)
+            vi.mocked(scope.execute).mockResolvedValue(elementResponse)
             const elem = await findElements.call(scope as any, '>>>.foobar')
             expect(scope.findElements).not.toBeCalled()
             expect(scope.findElementsFromElement).not.toBeCalled()
@@ -395,7 +395,7 @@ describe('utils', () => {
         })
 
         it('fetches element using a function with element scope', async () => {
-            vi.mocked(scope.execute).mockReturnValue(elementResponse)
+            vi.mocked(scope.execute).mockResolvedValue(elementResponse)
             scope.elementId = 'foobar'
             const elem = await findElements.call(scope as any, '>>>.foobar')
             expect(scope.findElements).not.toBeCalled()
@@ -468,7 +468,7 @@ describe('utils', () => {
                 elementId: 123,
                 getElementRect: vi.fn(() => Promise.resolve({ x: 10, width: 300, height: 400 })),
                 execute: vi.fn(() => Promise.resolve({ x: 11, y: 22, width: 333, height: 444 }))
-            } as any as Element<'sync'>
+            } as any as Element<'async'>
             expect(await getElementRect(fakeScope as any)).toEqual({ x: 10, y: 22, width: 300, height: 400 })
             expect(fakeScope.getElementRect).toHaveBeenCalled()
             expect(fakeScope.execute).toHaveBeenCalled()

@@ -216,12 +216,14 @@ export async function findElement(
     this: WebdriverIO.Browser | WebdriverIO.Element,
     selector: Selector
 ) {
+    const browserObject = getBrowserObject(this)
+
     /**
      * check if shadow DOM integration is used
      */
     if (!this.isDevTools && typeof selector === 'string' && selector.startsWith(DEEP_SELECTOR)) {
         const notFoundError = new Error(`shadow selector "${selector.slice(DEEP_SELECTOR.length)}" did not return an HTMLElement`)
-        let elem: ElementReference | ElementReference[] = await this.execute(
+        let elem: ElementReference | ElementReference[] = await browserObject.execute(
             locatorStrategy,
             ...[
                 selector.slice(DEEP_SELECTOR.length),
@@ -238,7 +240,7 @@ export async function findElement(
     if (isPlainObject(selector) && typeof (selector as CustomStrategyReference).strategy === 'function') {
         const { strategy, strategyName, strategyArguments } = selector as CustomStrategyReference
         const notFoundError = new Error(`Custom Strategy "${strategyName}" did not return an HTMLElement`)
-        let elem = await this.execute(strategy, ...strategyArguments)
+        let elem = await browserObject.execute(strategy, ...strategyArguments)
         elem = Array.isArray(elem) ? elem[0] : elem
         return getElementFromResponse(elem) ? elem : notFoundError
     }
@@ -274,11 +276,13 @@ export async function findElements(
     this: WebdriverIO.Browser | WebdriverIO.Element,
     selector: Selector
 ) {
+    const browserObject = getBrowserObject(this)
+
     /**
      * check if shadow DOM integration is used
      */
     if (!this.isDevTools && typeof selector === 'string' && selector.startsWith(DEEP_SELECTOR)) {
-        const elems: ElementReference | ElementReference[] = await this.execute(
+        const elems: ElementReference | ElementReference[] = await browserObject.execute(
             locatorStrategy,
             ...[
                 selector.slice(DEEP_SELECTOR.length),
@@ -294,7 +298,7 @@ export async function findElements(
      */
     if (isPlainObject(selector) && typeof (selector as CustomStrategyReference).strategy === 'function') {
         const { strategy, strategyArguments } = selector as CustomStrategyReference
-        const elems = await this.execute(strategy, ...strategyArguments)
+        const elems = await browserObject.execute(strategy, ...strategyArguments)
         const elemArray = Array.isArray(elems) ? elems as ElementReference[] : [elems]
         return elemArray.filter((elem) => elem && getElementFromResponse(elem))
     }

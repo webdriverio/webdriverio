@@ -49,7 +49,7 @@ async function custom$ (
 
     const strategyRef = { strategy, strategyName, strategyArguments: [...strategyArguments, this] }
 
-    let res = await this.execute(strategy, ...strategyArguments, this)
+    let res = await browserObject.execute(strategy, ...strategyArguments, this)
 
     /**
      * if the user's script returns multiple elements

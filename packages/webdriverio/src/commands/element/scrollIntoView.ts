@@ -1,4 +1,5 @@
 import { ELEMENT_KEY } from '../../constants.js'
+import { getBrowserObject } from '../../utils/index.js'
 
 /**
  *
@@ -23,7 +24,8 @@ export default function scrollIntoView (
     this: WebdriverIO.Element,
     scrollIntoViewOptions: boolean | ScrollIntoViewOptions = true
 ) {
-    return this.parent.execute(/* istanbul ignore next */function scrollIntoView (elem: HTMLElement, options: boolean | ScrollIntoViewOptions) {
+    const browser = getBrowserObject(this)
+    return browser.execute(/* istanbul ignore next */function scrollIntoView (elem: HTMLElement, options: boolean | ScrollIntoViewOptions) {
         elem.scrollIntoView(options)
     }, {
         [ELEMENT_KEY]: this.elementId, // w3c compatible

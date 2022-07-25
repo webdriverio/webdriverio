@@ -68,16 +68,17 @@ describe('addCommand', () => {
             expect(await browser.myCustomElementCommand()).toBe(1)
         })
 
-        test('should be able to add a command to and element from the browser', async () => {
+        test('should be able to add a command to an element from the browser', async () => {
             const browser = await remote(remoteConfig)
 
-            browser.addCommand('myCustomElementCommand', async function (this: WebdriverIO.Browser) {
-                return this.execute(function () {return 1})
+            browser.addCommand('myCustomElementCommand', async function (this: WebdriverIO.Element) {
+                const size = await this.getSize()
+                return size.width
             }, true)
 
             const elem = await browser.$('#foo')
 
-            expect(await elem.myCustomElementCommand()).toBe(1)
+            expect(await elem.myCustomElementCommand()).toBe(50)
         })
 
         test('should allow to add custom commands to elements', async () => {
