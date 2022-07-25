@@ -5,7 +5,7 @@ import path from 'node:path'
 export default defineConfig({
     test: {
         testTimeout: 1000 * 60,
-        include: ['./**/*.test.ts'],
+        include: ['./e2e/**/*.test.ts'],
         hookTimeout: 60 * 1000,
         threads: false
     }
