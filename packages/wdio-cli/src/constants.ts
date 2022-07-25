@@ -238,7 +238,7 @@ export const QUESTIONNAIRE = [{
     type: 'input',
     name: 'env_user',
     message: 'Environment variable for username',
-    default: 'BROWSERSTACK_USER',
+    default: 'BROWSERSTACK_USERNAME',
     when: /* istanbul ignore next */ (answers: Questionnair) => answers.backend.toString().startsWith('In the cloud using Browserstack')
 }, {
     type: 'input',
