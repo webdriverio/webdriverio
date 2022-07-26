@@ -69,12 +69,8 @@ export default function keys (
     /**
      * W3C way of handle it key actions
      */
-    const keyDownActions = keySequence.map((value) => ({ type: 'keyDown', value }))
-    const keyUpActions = keySequence.map((value) => ({ type: 'keyUp', value }))
-
-    return this.performActions([{
-        type: 'key',
-        id: 'keyboard',
-        actions: [...keyDownActions, ...keyUpActions]
-    }]).then(() => this.releaseActions())
+    const keyAction = this.action('key')
+    keySequence.forEach((value) => keyAction.down(value))
+    keySequence.forEach((value) => keyAction.up(value))
+    return keyAction.perform()
 }

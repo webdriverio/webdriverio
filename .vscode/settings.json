@@ -2,9 +2,4 @@
   "marquee.configuration.launchOnStartup": false,
   "marquee.configuration.background": "1",
   "marquee.widgets.npm-stats.from": 1626092776000,
-  "marquee.widgets.npm-stats.packageNames": [
-    "@wdio/mocha-framework",
-    "@wdio/jasmine-framework",
-    "@wdio/cucumber-framework"
-  ],
 }

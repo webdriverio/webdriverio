@@ -1,5 +1,7 @@
 import $$ from './browser/$$.js'
 import $ from './browser/$.js'
+import action from './browser/action.js'
+import actions from './browser/actions.js'
 import call from './browser/call.js'
 import custom$$ from './browser/custom$$.js'
 import custom$ from './browser/custom$.js'
@@ -33,8 +35,8 @@ import url from './browser/url.js'
 import waitUntil from './browser/waitUntil.js'
 
 export default {
-    $$, $, call, custom$$, custom$, debug, deleteCookies, execute, executeAsync, getCookies,
-    getPuppeteer, getWindowSize, keys, mock, mockClearAll, mockRestoreAll, newWindow, pause,
-    react$$, react$, reloadSession, savePDF, saveRecordingScreen, saveScreenshot, setCookies,
+    $$, $, action, actions, call, custom$$, custom$, debug, deleteCookies, execute, executeAsync,
+    getCookies, getPuppeteer, getWindowSize, keys, mock, mockClearAll, mockRestoreAll, newWindow,
+    pause, react$$, react$, reloadSession, savePDF, saveRecordingScreen, saveScreenshot, setCookies,
     setTimeout, setWindowSize, switchWindow, throttle, touchAction, uploadFile, url, waitUntil
 }

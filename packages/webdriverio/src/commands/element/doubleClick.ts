@@ -33,17 +33,12 @@ export default async function doubleClick (this: WebdriverIO.Element) {
     /**
      * W3C way of handle the double click actions
      */
-    return this.performActions([{
-        type: 'pointer',
-        id: 'pointer1',
-        parameters: { pointerType: 'mouse' },
-        actions: [
-            { type: 'pointerMove', origin: this, x: 0, y: 0 },
-            { type: 'pointerDown', button: 0 },
-            { type: 'pointerUp', button: 0 },
-            { type: 'pause', duration: 10 },
-            { type: 'pointerDown', button: 0 },
-            { type: 'pointerUp', button: 0 }
-        ]
-    }])
+    return this.action('pointer', { parameters: { pointerType: 'mouse' } })
+        .move({ origin: this })
+        .down()
+        .up()
+        .pause(10)
+        .down()
+        .up()
+        .perform()
 }
