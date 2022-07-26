@@ -167,7 +167,7 @@ export default class SumoLogicReporter extends WDIOReporter {
     }
 }
 
-export * from './types'
+export * from './types.js'
 
 declare global {
     namespace WebdriverIO {

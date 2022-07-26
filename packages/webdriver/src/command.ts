@@ -1,12 +1,18 @@
 import logger from '@wdio/logger'
 import { commandCallStructure, isValidParameter, getArgumentType } from '@wdio/utils'
-import type { CommandEndpoint } from '@wdio/protocols'
+import type { CommandEndpoint, BidiResponse } from '@wdio/protocols'
 
-import RequestFactory from './request/factory'
-import { WebDriverResponse } from './request'
-import { BaseClient } from './types'
+import RequestFactory from './request/factory.js'
+import { BidiHandler } from './bidi.js'
+import type { WebDriverResponse } from './request'
+import type { BaseClient } from './types'
 
 const log = logger('webdriver')
+const BIDI_COMMANDS = ['send', 'sendAsync'] as const
+
+interface BaseClientWithEventHandler extends BaseClient {
+    eventMiddleware: BidiHandler
+}
 
 export default function (
     method: string,
@@ -16,7 +22,7 @@ export default function (
 ) {
     const { command, ref, parameters, variables = [], isHubCommand = false } = commandInfo
 
-    return function protocolCommand (this: BaseClient, ...args: any[]): Promise<WebDriverResponse> {
+    return async function protocolCommand (this: BaseClientWithEventHandler, ...args: any[]): Promise<WebDriverResponse | BidiResponse | void> {
         let endpoint = endpointUri // clone endpointUri in case we change it
         const commandParams = [...variables.map((v) => Object.assign(v, {
             /**
@@ -88,7 +94,18 @@ export default function (
             body[commandParams[i].name] = arg
         }
 
-        const request = RequestFactory.getInstance(method, endpoint, body, isHubCommand)
+        /**
+         * Handle Bidi calls
+         */
+        if (this.sessionId && BIDI_COMMANDS.includes(command as typeof BIDI_COMMANDS[number])) {
+            if (!this.eventMiddleware) {
+                throw new Error('Your WebDriver session doesn\'t support WebDriver Bidi')
+            }
+
+            return this.eventMiddleware[command as typeof BIDI_COMMANDS[number]](body.params)
+        }
+
+        const request = await RequestFactory.getInstance(method, endpoint, body, isHubCommand)
         request.on('performance', (...args) => this.emit('request.performance', ...args))
         this.emit('command', { method, endpoint, body })
         log.info('COMMAND', commandCallStructure(command, args))
@@ -96,12 +113,13 @@ export default function (
             if (result.value != null) {
                 log.info('RESULT', /screenshot|recording/i.test(command)
                     && typeof result.value === 'string' && result.value.length > 64
-                    ? `${result.value.substr(0, 61)}...` : result.value)
+                    ? `${result.value.slice(0, 61)}...`
+                    : result.value)
             }
 
             this.emit('result', { method, endpoint, body, result })
 
-            if (command === 'deleteSession') {
+            if (command === 'deleteSession' && !process.env.WDIO_WORKER_ID) {
                 logger.clearLogger()
             }
             return result.value

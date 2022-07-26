@@ -41,7 +41,7 @@ The `@wdio/devtools-service` offers you a variety of features that helps you to 
 The DevTools service allows you to capture performance data from every page load or page transition that was caused by a click. To enable it call `browser.enablePerformanceAudits(<options>)`. After you are done capturing all necessary performance data disable it to revert the throttling settings, e.g.:
 
 ```js
-const assert = require('assert')
+import assert from 'node:assert'
 
 describe('JSON.org page', () => {
     before(() => {

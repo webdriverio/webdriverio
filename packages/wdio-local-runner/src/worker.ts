@@ -1,18 +1,20 @@
-import path from 'path'
-import child from 'child_process'
-import { EventEmitter } from 'events'
+import url from 'node:url'
+import path from 'node:path'
+import child from 'node:child_process'
+import { EventEmitter } from 'node:events'
+import type { ChildProcess } from 'node:child_process'
 import type { WritableStreamBuffer } from 'stream-buffers'
-import type { ChildProcess } from 'child_process'
 import type { Capabilities, Options, Workers } from '@wdio/types'
 
 import logger from '@wdio/logger'
 
-import runnerTransformStream from './transformStream'
-import ReplQueue from './replQueue'
-import RunnerStream from './stdStream'
+import runnerTransformStream from './transformStream.js'
+import ReplQueue from './replQueue.js'
+import RunnerStream from './stdStream.js'
 
 const log = logger('@wdio/local-runner')
 const replQueue = new ReplQueue()
+const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 
 const stdOutStream = new RunnerStream()
 const stdErrStream = new RunnerStream()
@@ -81,11 +83,16 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
         const argv = process.argv.slice(2)
 
         const runnerEnv = Object.assign({}, process.env, this.config.runnerEnv, {
-            WDIO_WORKER: true
+            WDIO_WORKER: true,
+            WDIO_WORKER_ID: cid
         })
 
         if (this.config.outputDir) {
             runnerEnv.WDIO_LOG_PATH = path.join(this.config.outputDir, `wdio-${cid}.log`)
+        }
+
+        if (this.config.autoCompileOpts?.autoCompile) {
+            runnerEnv.NODE_OPTIONS = (runnerEnv.NODE_OPTIONS || '') + ' --loader ts-node/esm/transpile-only'
         }
 
         log.info(`Start worker ${cid} with arg: ${argv}`)
@@ -101,7 +108,7 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
         childProcess.on('exit', this._handleExit.bind(this))
 
         /* istanbul ignore if */
-        if (!process.env.JEST_WORKER_ID) {
+        if (!process.env.VITEST_WORKER_ID) {
             if (childProcess.stdout !== null) {
                 runnerTransformStream(cid, childProcess.stdout).pipe(stdOutStream)
             }

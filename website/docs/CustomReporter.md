@@ -33,9 +33,9 @@ To use this reporter, all you need to do is assign it to the `reporter` property
 Your `wdio.conf.js` file should look like this:
 
 ```js
-const CustomReporter = require('./reporter/my.custom.reporter')
+import CustomReporter from './reporter/my.custom.reporter'
 
-exports.config = {
+export const config = {
     // ...
     reporters: [
         /**

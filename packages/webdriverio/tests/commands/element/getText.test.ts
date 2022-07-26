@@ -1,12 +1,16 @@
+import path from 'node:path'
+import { expect, describe, it, afterEach, beforeAll, vi } from 'vitest'
+
 // @ts-ignore mocked (original defined in webdriver package)
-import gotMock from 'got'
+import got from 'got'
 import { remote } from '../../../src'
 
-const got = gotMock as any as jest.Mock
+vi.mock('got')
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 describe('getText test', () => {
-    let browser: WebdriverIO.Browser
-    let elem: WebdriverIO.Element
+    let browser: any
+    let elem: any
 
     beforeAll(async () => {
         browser = await remote({

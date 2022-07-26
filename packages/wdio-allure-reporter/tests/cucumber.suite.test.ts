@@ -1,4 +1,7 @@
-import tempy from 'tempy'
+import path from 'node:path'
+import { describe, it, expect, beforeEach, vi, beforeAll, afterAll, afterEach } from 'vitest'
+
+import { temporaryDirectory } from 'tempy'
 
 /**
  * this is not a real package and only used to utilize helper
@@ -13,10 +16,12 @@ import * as cucumberHelper from './__fixtures__/cucumber'
 import * as attachmentHelper from './__fixtures__/attachment'
 import { commandStart, commandEnd } from './__fixtures__/command'
 
+vi.mock('@wdio/reporter', () => import(path.join(process.cwd(), '__mocks__', '@wdio/reporter')))
+
 let processOn: any
 beforeAll(() => {
     processOn = process.on.bind(process)
-    process.on = jest.fn()
+    process.on = vi.fn()
 })
 
 afterAll(() => {
@@ -27,7 +32,7 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
 
     describe('reporter option "disableWebdriverStepsReporting" set to true', () => {
         describe('Passing tests', () => {
-            const outputDir = tempy.directory()
+            const outputDir = temporaryDirectory()
             let allureXml: any
 
             beforeAll(() => {
@@ -107,7 +112,7 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
     })
 
     describe('Passing tests', () => {
-        const outputDir = tempy.directory()
+        const outputDir = temporaryDirectory()
         let allureXml: any
         let reporter: any
 
@@ -139,7 +144,7 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
 
         afterAll(() => {
             clean(outputDir)
-            jest.resetAllMocks()
+            vi.resetAllMocks()
         })
 
         it('should have the console log add', () => {
@@ -206,10 +211,10 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
         })
 
         it('should not call endStep if currentStep is not `Step` instance', () => {
-            reporter._allure.getCurrentSuite = jest.fn()
-            reporter._allure.endStep = jest.fn()
-            reporter._allure.endCase = jest.fn()
-            reporter._allure.addAttachment = jest.fn()
+            reporter._allure.getCurrentSuite = vi.fn()
+            reporter._allure.endStep = vi.fn()
+            reporter._allure.endCase = vi.fn()
+            reporter._allure.addAttachment = vi.fn()
 
             reporter.onTestPass()
             expect(reporter._allure.endStep).not.toHaveBeenCalled()
@@ -218,7 +223,7 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
     })
 
     describe('Skipped test', () => {
-        const outputDir = tempy.directory()
+        const outputDir = temporaryDirectory()
         let allureXml: any
         let reporter: any
 
@@ -243,7 +248,7 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
 
         afterAll(() => {
             clean(outputDir)
-            jest.resetAllMocks()
+            vi.resetAllMocks()
         })
 
         it('should report one suite', () => {
@@ -268,16 +273,16 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
         })
 
         it('should not call endStep if currentStep is not `Step` instance', () => {
-            reporter._allure.getCurrentSuite = jest.fn()
-            reporter._allure.endStep = jest.fn()
-            reporter._allure.addAttachment = jest.fn()
+            reporter._allure.getCurrentSuite = vi.fn()
+            reporter._allure.endStep = vi.fn()
+            reporter._allure.addAttachment = vi.fn()
             reporter.onTestSkip(cucumberHelper.testSkipped())
             expect(reporter._allure.endStep).not.toHaveBeenCalled()
         })
     })
 
     describe('Skipped test after several steps passed', () => {
-        const outputDir = tempy.directory()
+        const outputDir = temporaryDirectory()
         let allureXml: any
 
         beforeAll(() => {
@@ -332,12 +337,12 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
         let reporter: any
 
         beforeEach(() => {
-            outputDir = tempy.directory()
+            outputDir = temporaryDirectory()
         })
 
         afterEach(() => {
             clean(outputDir)
-            jest.resetAllMocks()
+            vi.resetAllMocks()
         })
 
         it('should handle failed test', () => {
@@ -398,10 +403,10 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
         })
 
         it('should not call endStep if currentStep is not `Step` instance', () => {
-            reporter._allure.getCurrentSuite = jest.fn()
-            reporter._allure.endStep = jest.fn()
-            reporter._allure.endCase = jest.fn()
-            reporter._allure.addAttachment = jest.fn()
+            reporter._allure.getCurrentSuite = vi.fn()
+            reporter._allure.endStep = vi.fn()
+            reporter._allure.endCase = vi.fn()
+            reporter._allure.addAttachment = vi.fn()
 
             reporter.onTestFail(cucumberHelper.testSkipped())
             expect(reporter._allure.endStep).not.toHaveBeenCalled()
@@ -410,7 +415,7 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
     })
 
     describe('Data Table', () => {
-        const outputDir = tempy.directory()
+        const outputDir = temporaryDirectory()
         let allureXml: any
 
         beforeAll(() => {

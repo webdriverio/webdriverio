@@ -1,3 +1,4 @@
+import { test, expect } from 'vitest'
 import SuiteStats from '../../src/stats/suite'
 
 test('should get initialised', () => {

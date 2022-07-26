@@ -1,14 +1,20 @@
+import path from 'node:path'
+import { describe, test, expect, vi } from 'vitest'
+import type { Options, Capabilities } from '@wdio/types'
 import { remote, multiremote } from '../src'
-import type { Options, MultiRemoteOptions } from '../src/types'
 
-const remoteConfig: Options = {
+vi.mock('got')
+vi.mock('devtools')
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+
+const remoteConfig: Options.WebdriverIO = {
     baseUrl: 'http://foobar.com',
     capabilities: {
         browserName: 'foobar-noW3C'
     }
 }
 
-const multiremoteConfig: MultiRemoteOptions = {
+const multiremoteConfig: Capabilities.MultiRemoteCapabilities = {
     browserA: {
         logLevel: 'debug',
         capabilities: {
@@ -62,16 +68,17 @@ describe('addCommand', () => {
             expect(await browser.myCustomElementCommand()).toBe(1)
         })
 
-        test('should be able to add a command to and element from the browser', async () => {
+        test('should be able to add a command to an element from the browser', async () => {
             const browser = await remote(remoteConfig)
 
-            browser.addCommand('myCustomElementCommand', async function (this: WebdriverIO.Browser) {
-                return this.execute(function () {return 1})
+            browser.addCommand('myCustomElementCommand', async function (this: WebdriverIO.Element) {
+                const size = await this.getSize()
+                return size.width
             }, true)
 
             const elem = await browser.$('#foo')
 
-            expect(await elem.myCustomElementCommand()).toBe(1)
+            expect(await elem.myCustomElementCommand()).toBe(50)
         })
 
         test('should allow to add custom commands to elements', async () => {
@@ -198,8 +205,8 @@ describe('addCommand', () => {
                 throw error2
             })
 
-            await expect(() => browser.function1()).toThrow(error1)
-            await expect(() => browser.function2()).toThrow(error2)
+            await expect(() => browser.function1()).rejects.toThrow(error1)
+            await expect(() => browser.function2()).rejects.toThrow(error2)
         })
 
         test('should be able to catch exceptions from the element scope', async () => {

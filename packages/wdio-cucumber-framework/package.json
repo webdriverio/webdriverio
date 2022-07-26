@@ -1,13 +1,12 @@
 {
   "name": "@wdio/cucumber-framework",
-  "version": "7.19.7",
+  "version": "7.20.7",
   "description": "A WebdriverIO plugin. Adapter for Cucumber.js testing framework.",
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-cucumber-framework",
   "license": "MIT",
-  "main": "./build/index",
   "engines": {
-    "node": ">=12.0.0"
+     "node": "^16.13 || >=18"
   },
   "repository": {
     "type": "git",
@@ -21,19 +20,23 @@
   "bugs": {
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
+  "type": "module",
+  "exports": "./build/index.js",
+  "types": "./build/index.d.ts",
+  "typeScriptVersion": "3.8.3",
   "dependencies": {
-    "@cucumber/cucumber": "8.2.0",
-    "@cucumber/gherkin": "23.0.1",
+    "@cucumber/cucumber": "8.4.0",
+    "@cucumber/gherkin": "24.0.0",
     "@cucumber/gherkin-streams": "^5.0.0",
-    "@cucumber/messages": "18.0.0",
+    "@cucumber/messages": "19.1.2",
     "@types/is-glob": "^4.0.1",
     "@types/long": "^4.0.1",
     "@types/mockery": "^1.4.29",
     "@wdio/logger": "7.19.0",
-    "@wdio/types": "7.19.5",
-    "@wdio/utils": "7.19.7",
+    "@wdio/types": "7.20.7",
+    "@wdio/utils": "7.20.7",
     "expect-webdriverio": "^3.0.0",
-    "glob": "^7.1.2",
+    "glob": "^8.0.3",
     "is-glob": "^4.0.0",
     "long": "^4.0.0",
     "mockery": "^2.1.0"
@@ -43,6 +46,5 @@
   },
   "publishConfig": {
     "access": "public"
-  },
-  "types": "./build/index.d.ts"
+  }
 }

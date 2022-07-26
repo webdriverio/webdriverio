@@ -1,20 +1,23 @@
+import { createRequire } from 'node:module'
+import { stringify } from 'csv-stringify/sync'
 import WDIOReporter, {
     SuiteStats, Tag, HookStats, RunnerStats, TestStats, BeforeCommandArgs,
     AfterCommandArgs, CommandArgs, Argument
 } from '@wdio/reporter'
-import { Capabilities, Options } from '@wdio/types'
+import type { Capabilities, Options } from '@wdio/types'
 
 import {
     getTestStatus, isEmpty, tellReporter, isMochaEachHooks, getErrorFromFailedTest,
     isMochaAllHooks, getLinkByTemplate, attachConsoleLogs
-} from './utils'
-import { events, PASSED, PENDING, SKIPPED, stepStatuses } from './constants'
+} from './utils.js'
+import { events, PASSED, PENDING, SKIPPED, stepStatuses } from './constants.js'
 import {
     AddAttachmentEventArgs, AddDescriptionEventArgs, AddEnvironmentEventArgs,
     AddFeatureEventArgs, AddIssueEventArgs, AddLabelEventArgs, AddSeverityEventArgs,
     AddStoryEventArgs, AddTestIdEventArgs, AllureReporterOptions, Status
-} from './types'
-import { stringify } from 'csv-stringify/sync'
+} from './types.js'
+
+const require = createRequire(import.meta.url)
 
 /**
  * Allure v1 has no proper TS support
@@ -707,7 +710,7 @@ class AllureReporter extends WDIOReporter {
 export default AllureReporter
 
 export { AllureReporterOptions }
-export * from './types'
+export * from './types.js'
 
 declare global {
     namespace WebdriverIO {

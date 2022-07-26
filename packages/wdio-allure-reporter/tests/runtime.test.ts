@@ -1,8 +1,12 @@
+import path from 'node:path'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
+
 import reporter from '../src/'
 import * as utils from '../src/utils'
 import { events, stepStatuses } from '../src/constants'
 
-jest.mock('../src/utils')
+vi.mock('@wdio/reporter', () => import(path.join(process.cwd(), '__mocks__', '@wdio/reporter')))
+vi.mock('../src/utils')
 
 describe('reporter reporter api', () => {
     it('should pass correct data from addLabel', () => {
@@ -101,11 +105,13 @@ describe('reporter reporter api', () => {
     })
 
     it('should throw exception for incorrect status for addStep', () => {
+        // @ts-expect-error invalid param
         const cb = () => { reporter.addStep('foo', { content: 'baz' }, 'invalid-status')}
         expect(cb).toThrowError('Step status must be passed or failed or broken or canceled or skipped. You tried to set "invalid-status"')
     })
 
     it('should throw exception for incorrect status for endStep', () => {
+        // @ts-expect-error invalid param
         const cb = () => { reporter.endStep('invalid-status') }
         expect(cb).toThrowError('Step status must be passed or failed or broken or canceled or skipped. You tried to set "invalid-status"')
     })
@@ -145,7 +151,7 @@ describe('reporter reporter api', () => {
 
         scenarios.forEach(({ title, actualType, content, name, type }) => {
             it(title, () => {
-                reporter.addAttachment(name, content, actualType)
+                reporter.addAttachment(name, content, actualType!)
                 expect(utils.tellReporter).toBeCalledWith(events.addAttachment, { name, content, type })
             })
         })
@@ -164,7 +170,7 @@ describe('event listeners', () => {
 
 describe('dumpJSON', () => {
     const reporterInstance = new reporter({})
-    reporterInstance['_allure'].addAttachment = jest.fn()
+    reporterInstance['_allure'].addAttachment = vi.fn()
 
     it('valid json', () => {
         reporterInstance.dumpJSON('foobar', { foo: 'bar' })
@@ -172,11 +178,12 @@ describe('dumpJSON', () => {
     })
 
     it('undefined value', () => {
+        // @ts-expect-error type test
         reporterInstance.dumpJSON('barfoo', undefined)
         expect(reporterInstance['_allure'].addAttachment).toBeCalledWith('barfoo', 'undefined', 'text/plain')
     })
 })
 
 beforeEach(() => {
-    jest.resetAllMocks()
+    vi.resetAllMocks()
 })

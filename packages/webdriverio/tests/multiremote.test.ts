@@ -1,11 +1,15 @@
-// @ts-ignore mocked (original defined in webdriver package)
-import gotMock from 'got'
-import { Capabilities } from '@wdio/types'
+import path from 'node:path'
+import { test, expect, vi, afterEach } from 'vitest'
+// @ts-expect-error mock is a webdriver dependency
+import got from 'got'
+import type { Capabilities } from '@wdio/types'
 
 import { multiremote } from '../src'
 import { MultiRemoteBrowser } from '../build'
 
-const got = gotMock as any as jest.Mock
+vi.mock('got')
+vi.mock('devtools')
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 const caps = (): Capabilities.MultiRemoteCapabilities => ({
     browserA: {
@@ -32,22 +36,22 @@ test('should run command on all instances', async () => {
     const result = await browser.execute(() => 'foobar')
     expect(result).toEqual(['foobar', 'foobar'])
 
-    expect(got.mock.calls[0][0].pathname).toBe('/session')
-    expect(got.mock.calls[0][1].method).toBe('POST')
-    expect(got.mock.calls[1][0].pathname).toBe('/session')
-    expect(got.mock.calls[1][1].method).toBe('POST')
-    expect(got.mock.calls[2][0].pathname)
+    expect((vi.mocked(got).mock.calls[0][0] as any).pathname).toBe('/session')
+    expect((vi.mocked(got).mock.calls[0][1] as any).method).toBe('POST')
+    expect((vi.mocked(got).mock.calls[1][0] as any).pathname).toBe('/session')
+    expect((vi.mocked(got).mock.calls[1][1] as any).method).toBe('POST')
+    expect((vi.mocked(got).mock.calls[2][0] as any).pathname)
         .toBe('/session/foobar-123/execute/sync')
-    expect(got.mock.calls[2][1].method).toBe('POST')
-    expect(got.mock.calls[3][0].pathname)
+    expect((vi.mocked(got).mock.calls[2][1] as any).method).toBe('POST')
+    expect((vi.mocked(got).mock.calls[3][0] as any).pathname)
         .toBe('/session/foobar-123/execute/sync')
-    expect(got.mock.calls[3][1].method).toBe('POST')
+    expect((vi.mocked(got).mock.calls[3][1] as any).method).toBe('POST')
 })
 
 test('should properly create stub instance', async () => {
     const params = caps()
-    Object.values(params).forEach(cap => { cap.automationProtocol = './protocol-stub' })
-    const browser = await multiremote(params, { automationProtocol: './protocol-stub' })
+    Object.values(params).forEach(cap => { cap.automationProtocol = './protocol-stub.js' })
+    const browser = await multiremote(params, { automationProtocol: './protocol-stub.js' })
     expect(browser.$).toBeUndefined()
     expect(browser.options).toBeUndefined()
     expect(browser.commandList).toHaveLength(0)
@@ -73,13 +77,13 @@ test('should allow to call on elements', async () => {
     const result = await elem.getSize()
     expect(result).toEqual([{ width: 50, height: 30 }, { width: 50, height: 30 }])
 
-    expect(got.mock.calls[2][0].pathname)
+    expect((vi.mocked(got).mock.calls[2][0] as any).pathname)
         .toEqual('/session/foobar-123/element')
-    expect(got.mock.calls[3][0].pathname)
+    expect((vi.mocked(got).mock.calls[3][0] as any).pathname)
         .toEqual('/session/foobar-123/element')
-    expect(got.mock.calls[4][0].pathname)
+    expect((vi.mocked(got).mock.calls[4][0] as any).pathname)
         .toEqual('/session/foobar-123/element/some-elem-123/rect')
-    expect(got.mock.calls[5][0].pathname)
+    expect((vi.mocked(got).mock.calls[5][0] as any).pathname)
         .toEqual('/session/foobar-123/element/some-elem-123/rect')
 })
 
@@ -96,21 +100,25 @@ test('should be able to fetch multiple elements', async () => {
 test('should be able to add a command to and element in multiremote', async () => {
     const browser = await multiremote(caps())
 
-    browser.addCommand('myCustomElementCommand', async function (this: MultiRemoteBrowser) {
-        return this.execute(() => 1)
+    browser.addCommand('myCustomElementCommand', async function (this: MultiRemoteBrowser<'async'>) {
+        const size = await this.getSize()
+        return size.width
     }, true)
 
     const elem = await browser.$('#foo')
 
-    expect(await elem.browserA.myCustomElementCommand()).toBe(1)
-    expect(await elem.browserB.myCustomElementCommand()).toBe(1)
-    expect(await elem.myCustomElementCommand()).toEqual([1, 1])
+    expect(await elem.browserA.myCustomElementCommand()).toBe(50)
+    expect(await elem.browserB.myCustomElementCommand()).toBe(50)
+    expect(await elem.myCustomElementCommand()).toEqual([50, 50])
 })
 
 test('should be able to overwrite command to and element in multiremote', async () => {
     const browser = await multiremote(caps())
 
-    browser.overwriteCommand('getSize', async function (this: MultiRemoteBrowser, origCmd: () => { width: number, height: number }) {
+    browser.overwriteCommand('getSize', async function (
+        this: MultiRemoteBrowser<'async'>,
+        origCmd: () => { width: number, height: number }
+    ) {
         let size = await origCmd()
         size = { width: size.width / 10, height: size.height / 10 }
         return size
@@ -129,5 +137,5 @@ test('should be able to overwrite command to and element in multiremote', async 
 })
 
 afterEach(() => {
-    got.mockClear()
+    vi.mocked(got).mockClear()
 })

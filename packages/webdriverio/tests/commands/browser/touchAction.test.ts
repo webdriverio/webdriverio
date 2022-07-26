@@ -1,6 +1,11 @@
+import path from 'node:path'
+import { expect, describe, it, beforeEach, vi, beforeAll } from 'vitest'
 // @ts-ignore mocked (original defined in webdriver package)
 import got from 'got'
 import { remote } from '../../../src'
+
+vi.mock('got')
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 describe('touchAction test', () => {
     let browser: WebdriverIO.Browser
@@ -13,15 +18,15 @@ describe('touchAction test', () => {
                 browserName: 'foobar',
                 // @ts-ignore mock feature
                 mobileMode: true
-            }
+            } as any
         })
         elem = await browser.$('#foo')
     })
 
     describe('single touch', () => {
-        it('should throw if element is not applied', () => {
-            expect(() => browser.touchAction('press'))
-                .toThrow(/Touch actions like "press" need at least some kind of position information/)
+        it('should throw if element is not applied', async () => {
+            await expect(() => browser.touchAction('press'))
+                .rejects.toThrow(/Touch actions like "press" need at least some kind of position information/)
         })
 
         it('should allow to pass in an element object', async () => {
@@ -102,8 +107,8 @@ describe('touchAction test', () => {
                 capabilities: { browserName: 'foobar' }
             })
 
-            expect(() => desktopBrowser.touchAction(['release']))
-                .toThrow('touchAction can be used with Appium only.')
+            await expect(() => desktopBrowser.touchAction(['release']))
+                .rejects.toThrow('touchAction can be used with Appium only.')
         })
     })
 

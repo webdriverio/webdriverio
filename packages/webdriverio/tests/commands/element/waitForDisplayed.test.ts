@@ -1,12 +1,16 @@
+import path from 'node:path'
+import { expect, describe, it, vi, beforeEach } from 'vitest'
+
 // @ts-ignore mocked (original defined in webdriver package)
-import gotMock from 'got'
+import got from 'got'
 import { remote } from '../../../src'
 
-const got = gotMock as any as jest.Mock
+vi.mock('got')
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 describe('waitForDisplayed', () => {
     const timeout = 1000
-    let browser
+    let browser: any
 
     beforeEach(async () => {
         got.mockClear()
@@ -19,14 +23,14 @@ describe('waitForDisplayed', () => {
         })
     })
 
-    test('should call waitUntil', async () => {
-        const cb = jest.fn()
+    it('should call waitUntil', async () => {
+        const cb = vi.fn()
         const tmpElem = await browser.$('#foo')
         const elem = {
             selector: '#foo',
             waitForDisplayed: tmpElem.waitForDisplayed,
             elementId: 123,
-            waitUntil: jest.fn().mockImplementation(cb),
+            waitUntil: vi.fn().mockImplementation(cb),
             options : { waitforInterval: 5, waitforTimeout: timeout }
         }
 
@@ -35,7 +39,7 @@ describe('waitForDisplayed', () => {
         expect(elem.waitUntil.mock.calls).toMatchSnapshot()
     })
 
-    test('should call isDisplayed and return true immediately if true', async () => {
+    it('should call isDisplayed and return true immediately if true', async () => {
         const elem = await browser.$('#foo')
         const result = await elem.waitForDisplayed({ timeout })
 
@@ -44,14 +48,14 @@ describe('waitForDisplayed', () => {
             .toBe('/session/foobar-123/element/some-elem-123/displayed')
     })
 
-    test('should call isDisplayed and return true if eventually true', async () => {
+    it('should call isDisplayed and return true if eventually true', async () => {
         const tmpElem = await browser.$('#foo')
         const elem = {
             selector: '#foo',
             waitForDisplayed: tmpElem.waitForDisplayed,
             elementId: 123,
             waitUntil: tmpElem.waitUntil,
-            isDisplayed: jest.fn()
+            isDisplayed: vi.fn()
                 .mockImplementationOnce(() => false)
                 .mockImplementationOnce(() => false)
                 .mockImplementationOnce(() => true),
@@ -62,7 +66,7 @@ describe('waitForDisplayed', () => {
         expect(result).toBe(true)
     })
 
-    test('should call isDisplayed and return false', async () => {
+    it('should call isDisplayed and return false', async () => {
         // @ts-ignore uses expect-webdriverio
         expect.assertions(1)
         const tmpElem = await browser.$('#foo')
@@ -71,7 +75,7 @@ describe('waitForDisplayed', () => {
             waitForDisplayed: tmpElem.waitForDisplayed,
             elementId: 123,
             waitUntil: tmpElem.waitUntil,
-            isDisplayed: jest.fn(() => false),
+            isDisplayed: vi.fn(() => false),
             options: { waitforTimeout: 500, waitforInterval: 50 },
         }
 
@@ -82,11 +86,11 @@ describe('waitForDisplayed', () => {
         }
     })
 
-    test('should not call isDisplayed and return false if never found', async () => {
+    it('should not call isDisplayed and return false if never found', async () => {
         const tmpElem = await browser.$('#foo')
-        const elem = {
+        const elem: any = {
             selector: '#foo',
-            parent: { $: jest.fn(() => { return elem}) },
+            parent: { $: vi.fn(() => { return elem}) },
             waitForDisplayed: tmpElem.waitForDisplayed,
             waitUntil: tmpElem.waitUntil,
             isDisplayed: tmpElem.isDisplayed,
@@ -100,15 +104,15 @@ describe('waitForDisplayed', () => {
         }
     })
 
-    test('should do reverse', async () => {
-        const cb = jest.fn()
+    it('should do reverse', async () => {
+        const cb = vi.fn()
         const tmpElem = await browser.$('#foo')
         const elem = {
             selector: '#foo',
             waitForDisplayed: tmpElem.waitForDisplayed,
             elementId: 123,
-            waitUntil: jest.fn().mockImplementation(cb),
-            isDisplayed: jest.fn(() => true),
+            waitUntil: vi.fn().mockImplementation(cb),
+            isDisplayed: vi.fn(() => true),
             options: { waitforTimeout: 500, waitforInterval: 50 },
         }
 
@@ -116,7 +120,7 @@ describe('waitForDisplayed', () => {
         expect(elem.waitUntil.mock.calls).toMatchSnapshot()
     })
 
-    test('should call isDisplayed and return false with custom error', async () => {
+    it('should call isDisplayed and return false with custom error', async () => {
         // @ts-ignore uses expect-webdriverio
         expect.assertions(1)
         const tmpElem = await browser.$('#foo')
@@ -125,7 +129,7 @@ describe('waitForDisplayed', () => {
             waitForDisplayed: tmpElem.waitForDisplayed,
             elementId: 123,
             waitUntil: tmpElem.waitUntil,
-            isDisplayed: jest.fn(() => false),
+            isDisplayed: vi.fn(() => false),
             options: { waitforTimeout: 500 },
         }
 

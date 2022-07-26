@@ -1,5 +1,5 @@
-import { ELEMENT_KEY } from '../../constants'
-import { getBrowserObject } from '../../utils'
+import { ELEMENT_KEY } from '../../constants.js'
+import { getBrowserObject } from '../../utils/index.js'
 
 const getWebElement = (el: WebdriverIO.Element) => ({
     [ELEMENT_KEY]: el.elementId, // w3c compatible

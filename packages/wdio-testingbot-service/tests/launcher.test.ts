@@ -1,13 +1,17 @@
+import path from 'node:path'
+import { describe, it, expect, vi, afterEach } from 'vitest'
 import logger from '@wdio/logger'
 import type { Capabilities } from '@wdio/types'
 
 import TestingBotLauncher from '../src/launcher'
 import type { TestingbotOptions } from '../src/types'
 
+vi.mock('testingbot-tunnel-launcher')
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 const log = logger('')
 
 describe('wdio-testingbot-service', () => {
-    const execute = jest.fn()
+    const execute = vi.fn()
 
     afterEach(() => {
         execute.mockReset()
@@ -43,9 +47,14 @@ describe('wdio-testingbot-service', () => {
         const tbLauncher = new TestingBotLauncher(options)
 
         await tbLauncher.onPrepare(config, caps)
-        expect(tbLauncher.tbTunnelOpts).toMatchObject({ apiKey: 'user', apiSecret: 'key', tunnelIdentifier: 'some options' })
+        expect(tbLauncher.tbTunnelOpts).toMatchObject({
+            apiKey: 'user',
+            apiSecret: 'key',
+            tunnelIdentifier: 'some options'
+        })
         await new Promise((resolve) => setTimeout(resolve, 100))
-        expect((log.info as jest.Mock).mock.calls[0][0]).toContain('TestingBot tunnel successfully started after')
+        expect(vi.mocked(log.info).mock.calls[0][0])
+            .toContain('TestingBot tunnel successfully started after')
     })
 
     it('should merge tunnelIdentifier in tb:options', async () => {
@@ -180,8 +189,10 @@ describe('wdio-testingbot-service', () => {
         const tbLauncher = new TestingBotLauncher(options)
 
         await tbLauncher.onPrepare(config, caps as any)
-        expect(Object.keys((caps.browserA.capabilities as Capabilities.DesiredCapabilities)['tb:options'] as any)).toContain('tunnel-identifier')
-        expect(Object.keys((caps.browserB.capabilities as Capabilities.DesiredCapabilities)['tb:options'] as any)).toContain('build')
+        expect(Object.keys((caps.browserA.capabilities as Capabilities.DesiredCapabilities)['tb:options'] as any))
+            .toContain('tunnel-identifier')
+        expect(Object.keys((caps.browserB.capabilities as Capabilities.DesiredCapabilities)['tb:options'] as any))
+            .toContain('build')
     })
 
     it('onComplete', () => {

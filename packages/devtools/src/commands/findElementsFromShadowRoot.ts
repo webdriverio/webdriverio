@@ -1,4 +1,4 @@
-import findElementsFromElement from './findElementsFromElement'
+import findElementsFromElement from './findElementsFromElement.js'
 import type DevToolsDriver from '../devtoolsdriver'
 
 /**

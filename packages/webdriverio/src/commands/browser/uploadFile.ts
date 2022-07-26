@@ -1,5 +1,5 @@
-import fs from 'fs'
-import path from 'path'
+import fs from 'node:fs'
+import path from 'node:path'
 import archiver from 'archiver'
 import type { Capabilities } from '@wdio/types'
 
@@ -14,7 +14,7 @@ import type { Capabilities } from '@wdio/types'
  *
  * <example>
     :uploadFile.js
-    const path = require('path');
+    import path from 'node:path'
 
     it('should upload a file', async () => {
         await browser.url('https://the-internet.herokuapp.com/upload')
@@ -58,9 +58,10 @@ export default async function uploadFile (
         archiver('zip')
             .on('error', (err: Error) => reject(err))
             .on('data', (data: Uint8Array) => zipData.push(data))
-            .on('end', () => this.file(
-                Buffer.concat(zipData).toString('base64')
-            ).then((localPath) => resolve(localPath), reject))
+            .on('end', () => (
+                this.file(Buffer.concat(zipData).toString('base64'))
+                    .then((localPath) => resolve(localPath), reject)
+            ))
             .append(source, { name: path.basename(localPath) })
             .finalize()
     })

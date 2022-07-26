@@ -1,26 +1,27 @@
-import fs from 'fs'
-import http from 'http'
-import path from 'path'
+import fs from 'node:fs'
+import http from 'node:http'
+import path from 'node:path'
+import { URL } from 'node:url'
+
 import cssValue from 'css-value'
 import rgb2hex from 'rgb2hex'
 import GraphemeSplitter from 'grapheme-splitter'
 import logger from '@wdio/logger'
 import isObject from 'lodash.isobject'
 import isPlainObject from 'lodash.isplainobject'
-import { URL } from 'url'
+// @ts-expect-error
+import { locatorStrategy } from 'query-selector-shadow-dom/plugins/webdriverio/index.js'
 import { SUPPORTED_BROWSER } from 'devtools'
 import { UNICODE_CHARACTERS } from '@wdio/utils'
 import type { ElementReference } from '@wdio/protocols'
 import type { Options, Capabilities } from '@wdio/types'
-import { locatorStrategy } from 'query-selector-shadow-dom/plugins/webdriverio'
 
-import { ELEMENT_KEY, DRIVER_DEFAULT_ENDPOINT, DEEP_SELECTOR } from '../constants'
-import { findStrategy } from './findStrategy'
+import browserCommands from '../commands/browser.js'
+import elementCommands from '../commands/element.js'
+import { ELEMENT_KEY, DRIVER_DEFAULT_ENDPOINT, DEEP_SELECTOR, Key } from '../constants.js'
+import { findStrategy } from './findStrategy.js'
 import type { ElementArray, ElementFunction, Selector, ParsedCSSValue, CustomLocatorReturnValue } from '../types'
-import { CustomStrategyReference } from '../types'
-
-const browserCommands = require('../commands/browser').default
-const elementCommands = require('../commands/element').default
+import type { CustomStrategyReference } from '../types'
 
 const log = logger('webdriverio')
 const INVALID_SELECTOR_ERROR = 'selector needs to be typeof `string` or `function`'
@@ -46,11 +47,7 @@ export const getPrototype = (scope: 'browser' | 'element') => {
         /**
          * used to store the puppeteer instance in the browser scope
          */
-        puppeteer: { value: null, writable: true },
-        /**
-         * for handling sync execution in @wdio/sync
-         */
-        _NOT_FIBER: { value: false, writable: true, configurable: true }
+        puppeteer: { value: null, writable: true }
     }
 
     /**
@@ -98,37 +95,6 @@ export const getElementFromResponse = (res: ElementReference) => {
 export function getBrowserObject (elem: WebdriverIO.Element | WebdriverIO.Browser): WebdriverIO.Browser {
     const elemObject = elem as WebdriverIO.Element
     return (elemObject as WebdriverIO.Element).parent ? getBrowserObject(elemObject.parent) : elem as WebdriverIO.Browser
-}
-
-/**
- * transform whatever value is into an array of char strings
- */
-export function transformToCharString (value: any, translateToUnicode = true) {
-    const ret: string[] = []
-
-    if (!Array.isArray(value)) {
-        value = [value]
-    }
-
-    for (const val of value) {
-        if (typeof val === 'string') {
-            translateToUnicode
-                ? ret.push(...checkUnicode(val as keyof typeof UNICODE_CHARACTERS))
-                : ret.push(...`${val}`.split(''))
-        } else if (typeof val === 'number') {
-            const entry = `${val}`.split('')
-            ret.push(...entry)
-        } else if (val && typeof val === 'object') {
-            try {
-                ret.push(...JSON.stringify(val).split(''))
-            } catch (err: any) { /* ignore */ }
-        } else if (typeof val === 'boolean') {
-            const entry = val ? 'true'.split('') : 'false'.split('')
-            ret.push(...entry)
-        }
-    }
-
-    return ret
 }
 
 function sanitizeCSS (value?: string) {
@@ -205,11 +171,26 @@ export function parseCSS (cssPropertyValue: string, cssProperty?: string) {
  */
 export function checkUnicode (
     value: string,
-    isDevTools = false
+    isDevTools = false,
+    platformName?: string
 ) {
-    return Object.prototype.hasOwnProperty.call(UNICODE_CHARACTERS, value)
-        ? isDevTools ? [value] : [UNICODE_CHARACTERS[value as keyof typeof UNICODE_CHARACTERS]]
-        : new GraphemeSplitter().splitGraphemes(value)
+    if (value === Key.Ctrl) {
+        return [platformName && platformName.match(/mac(\s)*os/i) ? Key.Command : Key.Control]
+    }
+
+    /**
+     * when sending emoji characters like 😄 or a value that is not a special character defined
+     * by the WebDriver protocol
+     */
+    if (!Object.prototype.hasOwnProperty.call(UNICODE_CHARACTERS, value)) {
+        return new GraphemeSplitter().splitGraphemes(value)
+    }
+
+    if (isDevTools) {
+        return [value]
+    }
+
+    return [UNICODE_CHARACTERS[value as keyof typeof UNICODE_CHARACTERS]]
 }
 
 function fetchElementByJSFunction (
@@ -235,12 +216,14 @@ export async function findElement(
     this: WebdriverIO.Browser | WebdriverIO.Element,
     selector: Selector
 ) {
+    const browserObject = getBrowserObject(this)
+
     /**
      * check if shadow DOM integration is used
      */
     if (!this.isDevTools && typeof selector === 'string' && selector.startsWith(DEEP_SELECTOR)) {
         const notFoundError = new Error(`shadow selector "${selector.slice(DEEP_SELECTOR.length)}" did not return an HTMLElement`)
-        let elem: ElementReference | ElementReference[] = await this.execute(
+        let elem: ElementReference | ElementReference[] = await browserObject.execute(
             locatorStrategy,
             ...[
                 selector.slice(DEEP_SELECTOR.length),
@@ -257,7 +240,7 @@ export async function findElement(
     if (isPlainObject(selector) && typeof (selector as CustomStrategyReference).strategy === 'function') {
         const { strategy, strategyName, strategyArguments } = selector as CustomStrategyReference
         const notFoundError = new Error(`Custom Strategy "${strategyName}" did not return an HTMLElement`)
-        let elem = await this.execute(strategy, ...strategyArguments)
+        let elem = await browserObject.execute(strategy, ...strategyArguments)
         elem = Array.isArray(elem) ? elem[0] : elem
         return getElementFromResponse(elem) ? elem : notFoundError
     }
@@ -293,11 +276,13 @@ export async function findElements(
     this: WebdriverIO.Browser | WebdriverIO.Element,
     selector: Selector
 ) {
+    const browserObject = getBrowserObject(this)
+
     /**
      * check if shadow DOM integration is used
      */
     if (!this.isDevTools && typeof selector === 'string' && selector.startsWith(DEEP_SELECTOR)) {
-        const elems: ElementReference | ElementReference[] = await this.execute(
+        const elems: ElementReference | ElementReference[] = await browserObject.execute(
             locatorStrategy,
             ...[
                 selector.slice(DEEP_SELECTOR.length),
@@ -305,6 +290,16 @@ export async function findElements(
             ].filter(Boolean)
         )
         const elemArray = Array.isArray(elems) ? elems : [elems]
+        return elemArray.filter((elem) => elem && getElementFromResponse(elem))
+    }
+
+    /**
+     * fetch elements using custom strategy function
+     */
+    if (isPlainObject(selector) && typeof (selector as CustomStrategyReference).strategy === 'function') {
+        const { strategy, strategyArguments } = selector as CustomStrategyReference
+        const elems = await browserObject.execute(strategy, ...strategyArguments)
+        const elemArray = Array.isArray(elems) ? elems as ElementReference[] : [elems]
         return elemArray.filter((elem) => elem && getElementFromResponse(elem))
     }
 
@@ -503,7 +498,7 @@ export const enhanceElementsArray = (
  * is protocol stub
  * @param {string} automationProtocol
  */
-export const isStub = (automationProtocol?: string) => automationProtocol === './protocol-stub'
+export const isStub = (automationProtocol?: string) => automationProtocol === './protocol-stub.js'
 
 export const getAutomationProtocol = async (config: Options.WebdriverIO | Options.Testrunner) => {
     /**
@@ -580,7 +575,10 @@ export const getAutomationProtocol = async (config: Options.WebdriverIO | Option
  *
  * NOTE: this method is executed twice when running the WDIO testrunner
  */
-export const updateCapabilities = async (params: Options.WebdriverIO | Options.Testrunner, automationProtocol?: Options.SupportedProtocols) => {
+export const updateCapabilities = (
+    params: Options.WebdriverIO | Options.Testrunner,
+    automationProtocol?: Options.SupportedProtocols
+) => {
     if (automationProtocol && !params.automationProtocol) {
         params.automationProtocol = automationProtocol
     }

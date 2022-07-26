@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeEach } from 'vitest'
 import CompoundError from '../src/compoundError'
 
 describe('CompoundError', () => {
@@ -48,12 +49,12 @@ describe('CompoundError', () => {
         // We do this rather than hard-coding strings, so we can use actual error stacks (which might be slightly)
         // different depending on how we run the tests.
 
-        const e1split = e1.stack.split('\n')
-        const e2split = e2.stack.split('\n')
+        const e1split = e1.stack?.split('\n')
+        const e2split = e2.stack?.split('\n')
         const startOfFirstStack = 2
-        const endOfFirstStack = e1split.length + startOfFirstStack
+        const endOfFirstStack = (e1split?.length || 0) + startOfFirstStack
         const startOfSecondStack = endOfFirstStack + startOfFirstStack
-        const endOfSecondStack = startOfSecondStack + e2split.length
+        const endOfSecondStack = startOfSecondStack + (e2split?.length || 0)
         expect(lines.slice(startOfFirstStack, endOfFirstStack)).toEqual(e1split)
         expect(lines.slice(startOfSecondStack, endOfSecondStack)).toEqual(e2split)
     })

@@ -1,20 +1,20 @@
-import Diagnostics from 'lighthouse/lighthouse-core/audits/diagnostics'
-import MainThreadWorkBreakdown from 'lighthouse/lighthouse-core/audits/mainthread-work-breakdown'
-import Metrics from 'lighthouse/lighthouse-core/audits/metrics'
-import ServerResponseTime from 'lighthouse/lighthouse-core/audits/server-response-time'
-import CumulativeLayoutShift from 'lighthouse/lighthouse-core/audits/metrics/cumulative-layout-shift'
-import FirstContentfulPaint from 'lighthouse/lighthouse-core/audits/metrics/first-contentful-paint'
-import LargestContentfulPaint from 'lighthouse/lighthouse-core/audits/metrics/largest-contentful-paint'
-import SpeedIndex from 'lighthouse/lighthouse-core/audits/metrics/speed-index'
-import InteractiveMetric from 'lighthouse/lighthouse-core/audits/metrics/interactive'
-import TotalBlockingTime from 'lighthouse/lighthouse-core/audits/metrics/total-blocking-time'
+import Diagnostics from 'lighthouse/lighthouse-core/audits/diagnostics.js'
+import MainThreadWorkBreakdown from 'lighthouse/lighthouse-core/audits/mainthread-work-breakdown.js'
+import Metrics from 'lighthouse/lighthouse-core/audits/metrics.js'
+import ServerResponseTime from 'lighthouse/lighthouse-core/audits/server-response-time.js'
+import CumulativeLayoutShift from 'lighthouse/lighthouse-core/audits/metrics/cumulative-layout-shift.js'
+import FirstContentfulPaint from 'lighthouse/lighthouse-core/audits/metrics/first-contentful-paint.js'
+import LargestContentfulPaint from 'lighthouse/lighthouse-core/audits/metrics/largest-contentful-paint.js'
+import SpeedIndex from 'lighthouse/lighthouse-core/audits/metrics/speed-index.js'
+import InteractiveMetric from 'lighthouse/lighthouse-core/audits/metrics/interactive.js'
+import TotalBlockingTime from 'lighthouse/lighthouse-core/audits/metrics/total-blocking-time.js'
 
-import ReportScoring from 'lighthouse/lighthouse-core/scoring'
-import defaultConfig from 'lighthouse/lighthouse-core/config/default-config'
+import ReportScoring from 'lighthouse/lighthouse-core/scoring.js'
+import defaultConfig from 'lighthouse/lighthouse-core/config/default-config.js'
 import logger from '@wdio/logger'
 import type { Browser, CustomInstanceCommands } from 'webdriverio'
 
-import { DEFAULT_FORM_FACTOR, PWA_AUDITS } from './constants'
+import { DEFAULT_FORM_FACTOR, PWA_AUDITS } from './constants.js'
 import type {
     FormFactor, Audit, AuditResults, AuditRef, MainThreadWorkBreakdownResult,
     DiagnosticsResults, ResponseTimeResult, MetricsResult, MetricsResults,

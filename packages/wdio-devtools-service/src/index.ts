@@ -1,5 +1,6 @@
 import logger from '@wdio/logger'
 import puppeteerCore from 'puppeteer-core'
+import WebSocket from 'ws'
 
 import type { Browser, MultiRemoteBrowser } from 'webdriverio'
 import type { Capabilities, Services, FunctionProperties, ThenArg } from '@wdio/types'
@@ -8,18 +9,18 @@ import type { CDPSession } from 'puppeteer-core/lib/cjs/puppeteer/common/Connect
 import type { Browser as PuppeteerBrowser } from 'puppeteer-core/lib/cjs/puppeteer/common/Browser'
 import type { Target } from 'puppeteer-core/lib/cjs/puppeteer/common/Target'
 
-import CommandHandler from './commands'
-import Auditor from './auditor'
-import PWAGatherer from './gatherer/pwa'
-import TraceGatherer from './gatherer/trace'
-import CoverageGatherer from './gatherer/coverage'
-import DevtoolsGatherer, { CDPSessionOnMessageObject } from './gatherer/devtools'
-import { isBrowserSupported, setUnsupportedCommand, getLighthouseDriver } from './utils'
-import { NETWORK_STATES, UNSUPPORTED_ERROR_MESSAGE, CLICK_TRANSITION, DEFAULT_THROTTLE_STATE } from './constants'
-import {
+import CommandHandler from './commands.js'
+import Auditor from './auditor.js'
+import PWAGatherer from './gatherer/pwa.js'
+import TraceGatherer from './gatherer/trace.js'
+import CoverageGatherer from './gatherer/coverage.js'
+import DevtoolsGatherer, { CDPSessionOnMessageObject } from './gatherer/devtools.js'
+import { isBrowserSupported, setUnsupportedCommand, getLighthouseDriver } from './utils.js'
+import { NETWORK_STATES, UNSUPPORTED_ERROR_MESSAGE, CLICK_TRANSITION, DEFAULT_THROTTLE_STATE } from './constants.js'
+import type {
     DevtoolsConfig, FormFactor, EnablePerformanceAuditsOptions,
     DeviceDescription, Device, PWAAudits, GathererDriver
-} from './types'
+} from './types.js'
 
 const log = logger('@wdio/devtools-service')
 const TRACE_COMMANDS = ['click', 'navigateTo', 'url']
@@ -216,7 +217,7 @@ export default class DevToolsService implements Services.ServiceInstance {
         /**
          * casting is required as types differ between core and definitely typed types
          */
-        this._puppeteer = await (this._browser as Browser<'async'>).getPuppeteer()
+        this._puppeteer = await (this._browser as Browser<'async'>).getPuppeteer() as any as PuppeteerBrowser
 
         /* istanbul ignore next */
         if (!this._puppeteer) {
@@ -225,13 +226,14 @@ export default class DevToolsService implements Services.ServiceInstance {
 
         this._target = await this._puppeteer.waitForTarget(
             /* istanbul ignore next */
-            (t) => t.type() === 'page' || t['_targetInfo'].browserContextId)
+            (t) => t.type() === 'page' || Boolean(t._getTargetInfo().browserContextId))
+
         /* istanbul ignore next */
         if (!this._target) {
             throw new Error('No page target found')
         }
 
-        this._page = await this._target.page()
+        this._page = await this._target.page() || null
         /* istanbul ignore next */
         if (!this._page) {
             throw new Error('No page found')
@@ -267,16 +269,8 @@ export default class DevToolsService implements Services.ServiceInstance {
         }
 
         this._devtoolsGatherer = new DevtoolsGatherer()
-        this._puppeteer['_connection']._transport._ws.addEventListener('message', (event: { data: string }) => {
-            const data: CDPSessionOnMessageObject = JSON.parse(event.data)
-            this._devtoolsGatherer?.onMessage(data)
-            const method = data.method || 'event'
-            log.debug(`cdp event: ${method} with params ${JSON.stringify(data.params)}`)
-
-            if (this._browser) {
-                this._browser.emit(method, data.params)
-            }
-        })
+        const cdpWS = new WebSocket(this._puppeteer.wsEndpoint())
+        cdpWS.on('message', this._propagateWSEvents.bind(this))
 
         this._browser.addCommand('enablePerformanceAudits', this._enablePerformanceAudits.bind(this))
         this._browser.addCommand('disablePerformanceAudits', this._disablePerformanceAudits.bind(this))
@@ -285,9 +279,20 @@ export default class DevToolsService implements Services.ServiceInstance {
         this._pwaGatherer = new PWAGatherer(this._session, this._page, this._driver)
         this._browser.addCommand('checkPWA', this._checkPWA.bind(this))
     }
+
+    private _propagateWSEvents (event: { data: string }) {
+        const data: CDPSessionOnMessageObject = JSON.parse(event.data)
+        this._devtoolsGatherer?.onMessage(data)
+        const method = data.method || 'event'
+        log.debug(`cdp event: ${method} with params ${JSON.stringify(data.params)}`)
+
+        if (this._browser) {
+            this._browser.emit(method, data.params)
+        }
+    }
 }
 
-export * from './types'
+export * from './types.js'
 
 type ServiceCommands = Omit<FunctionProperties<DevToolsService>, keyof Services.HookFunctions | '_setupHandler'>
 type CommandHandlerCommands = FunctionProperties<CommandHandler>

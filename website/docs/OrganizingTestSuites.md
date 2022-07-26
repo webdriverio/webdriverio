@@ -166,6 +166,8 @@ Note that each test file is running in a single test runner process. Since we do
 
 This feature will help you to accomplish the same goal.
 
+When the `--spec` option is provided, it will override any patterns defined by the config or capability level's `specs` parameter.
+
 ## Exclude Selected Tests
 
 When needed, if you need to exclude particular spec file(s) from a run, you can use the `--exclude` parameter (Mocha, Jasmine) or feature (Cucumber).
@@ -187,6 +189,8 @@ Or, exclude a spec file when filtering using a suite:
 ```sh
 wdio wdio.conf.js --suite login --exclude ./test/specs/e2e/login.js
 ```
+
+When the `--exclude` option is provided, it will override any patterns defined by the config or capability level's `exclude` parameter.
 
 ## Run Suites and Test Specs
 
@@ -228,3 +232,72 @@ This is helpful with large test suites when you already know that your build wil
 The `bail` option expects a number, which specifies how many test failures can occur before WebDriver stop the entire testing run. The default is `0`, meaning that it always runs all tests specs it can find.
 
 Please see [Options Page](Options.md) for additional information on the bail configuration.
+## Hierarchy of spec patterns
+
+When declaring what specs to run, there is a certain hierarchy defining what pattern will take precedence when defined. Currently, this is how it works, from highest priority to lowest:
+
+> CLI `--spec` argument > capability `specs` pattern > config `specs` pattern
+
+If only the config parameter is given, it will be used for all capabilities. However, if defining the pattern at the capability level, it will be used instead of the config pattern. Finally, any spec pattern defined on the command line will override all other patterns given.
+
+### Using capability-defined spec patterns
+
+When you define a spec pattern at the capability level, it will override any patterns defined at the config level. This is useful when needing to separate tests based on differentiating device capabilities. In cases like this, it is more useful to use a generic spec pattern at the config level, and more specific patterns at the capability level.
+
+For example, let's say you had two directories, with one for Android tests, and one for iOS tests.
+
+Your config file may define the pattern as such, for non-specific device tests:
+
+```js
+{
+    specs: ['tests/general/**/*.js']
+}
+```
+
+but then, you will have different capabilities for your Android and iOS devices, where the patterns could look like such:
+
+```json
+{
+  "platformName": "Android",
+  "specs": [
+    "tests/android/**/*.js"
+  ]
+}
+```
+
+```json
+{
+  "platformName": "iOS",
+  "specs": [
+    "tests/ios/**/*.js"
+  ]
+}
+```
+
+If you require both of these capabilities in your config file, then the Android device will only run the tests under the "android" namespace, and the iOS tests will run only tests under the "ios" namespace!
+
+```js
+//wdio.conf.js
+exports.config = {
+    "specs": [
+        "tests/general/**/*.js"
+    ],
+    "capabilities": [
+        {
+            platformName: "Android",
+            specs: ["tests/android/**/*.js"],
+            //...
+        },
+        {
+            platformName: "iOS",
+            specs: ["tests/ios/**/*.js"],
+            //...
+        },
+        {
+            platformName: "Chrome",
+            //config level specs will be used
+        }
+    ]
+}
+```
+

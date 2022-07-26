@@ -1,10 +1,11 @@
-import { webdriverMonad, wrapCommand, runFnInFiberContext } from '@wdio/utils'
+import { webdriverMonad, wrapCommand } from '@wdio/utils'
 import clone from 'lodash.clonedeep'
 import type { ElementReference } from '@wdio/protocols'
 
-import { getBrowserObject, getPrototype as getWDIOPrototype, getElementFromResponse } from '.'
-import { elementErrorHandler } from '../middlewares'
-import { ELEMENT_KEY } from '../constants'
+import { getBrowserObject, getPrototype as getWDIOPrototype, getElementFromResponse } from './index.js'
+import { elementErrorHandler } from '../middlewares.js'
+import { ELEMENT_KEY } from '../constants.js'
+import * as browserCommands from '../commands/browser.js'
 import type { Selector, ElementArray } from '../types'
 
 /**
@@ -20,8 +21,17 @@ export const getElement = function findElement(
     isReactElement = false
 ): WebdriverIO.Element {
     const browser = getBrowserObject(this)
+    const browserCommandKeys = Object.keys(browserCommands.default)
     const propertiesObject = {
-        ...clone(browser.__propertiesObject__),
+        /**
+         * filter out browser commands from object
+         */
+        ...(Object.entries(clone(browser.__propertiesObject__)).reduce((commands, [name, descriptor]) => {
+            if (!browserCommandKeys.includes(name)) {
+                commands[name] = descriptor
+            }
+            return commands
+        }, {} as Record<string, PropertyDescriptor>)),
         ...getWDIOPrototype('element'),
         scope: { value: 'element' }
     }
@@ -60,7 +70,7 @@ export const getElement = function findElement(
     const origAddCommand = elementInstance.addCommand.bind(elementInstance)
     elementInstance.addCommand = (name: string, fn: Function) => {
         browser.__propertiesObject__[name] = { value: fn }
-        origAddCommand(name, runFnInFiberContext(fn))
+        origAddCommand(name, fn)
     }
 
     return elementInstance
@@ -79,8 +89,17 @@ export const getElements = function getElements(
     isReactElement = false
 ): ElementArray {
     const browser = getBrowserObject(this as WebdriverIO.Element)
+    const browserCommandKeys = Object.keys(browserCommands.default)
     const propertiesObject = {
-        ...clone(browser.__propertiesObject__),
+        /**
+         * filter out browser commands from object
+         */
+        ...(Object.entries(clone(browser.__propertiesObject__)).reduce((commands, [name, descriptor]) => {
+            if (!browserCommandKeys.includes(name)) {
+                commands[name] = descriptor
+            }
+            return commands
+        }, {} as Record<string, PropertyDescriptor>)),
         ...getWDIOPrototype('element')
     }
 
@@ -118,7 +137,7 @@ export const getElements = function getElements(
         const origAddCommand = elementInstance.addCommand.bind(elementInstance)
         elementInstance.addCommand = (name: string, fn: Function) => {
             browser.__propertiesObject__[name] = { value: fn }
-            origAddCommand(name, runFnInFiberContext(fn))
+            origAddCommand(name, fn)
         }
         return elementInstance
     })

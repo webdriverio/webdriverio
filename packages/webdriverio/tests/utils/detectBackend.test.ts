@@ -1,3 +1,4 @@
+import { describe, it, expect } from 'vitest'
 import detectBackend from '../../src/utils/detectBackend'
 
 describe('detectBackend', () => {
@@ -124,6 +125,7 @@ describe('detectBackend', () => {
         const caps = detectBackend({
             user: 'foobar',
             key: '50aa152c-1932-B2f0-9707-18z46q2n1mb0',
+            // @ts-expect-error wrong param
             region: 'foobar'
         })
         expect(caps.hostname).toBe('ondemand.us-west-1.saucelabs.com')

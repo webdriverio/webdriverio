@@ -1,3 +1,4 @@
+import { test, expect } from 'vitest'
 import RunnerStats from '../../src/stats/runner'
 
 test('should get initialised', () => {

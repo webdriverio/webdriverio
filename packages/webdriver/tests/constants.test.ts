@@ -1,3 +1,4 @@
+import { test, expect } from 'vitest'
 import { DEFAULTS } from '../src/constants'
 
 test('should do correct type check for "path"', () => {

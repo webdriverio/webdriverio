@@ -1,6 +1,12 @@
+import path from 'node:path'
+import { expect, describe, it, beforeAll, afterEach, vi } from 'vitest'
+
 // @ts-ignore mocked (original defined in webdriver package)
 import got from 'got'
 import { remote } from '../../../src'
+
+vi.mock('got')
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 describe('url', () => {
     let browser: WebdriverIO.Browser
@@ -34,7 +40,7 @@ describe('url', () => {
 
         try {
             // @ts-ignore test invalid parameter
-            browser.url(true)
+            await browser.url(true)
         } catch (err: any) {
             expect(err.message).toContain('command needs to be type of string')
         }

@@ -71,7 +71,7 @@ To use DevTools as your automation protocol switch the `automationProtocol` flag
 <TabItem value="testrunner">
 
 ```js title="wdio.conf.js"
-exports.config = {
+export const config = {
     // ...
     automationProtocol: 'devtools'
     // ...
@@ -117,41 +117,39 @@ We recommend wrapping your Puppeteer calls within the `call` command, so that al
 <TabItem value="standalone">
 
 ```js
-const { remote } = require('webdriverio')
+import { remote } from 'webdriverio'
 
-(async () => {
-    const browser = await remote({
-        automationProtocol: 'devtools',
-        capabilities: {
-            browserName: 'chrome'
-        }
-    })
+const browser = await remote({
+    automationProtocol: 'devtools',
+    capabilities: {
+        browserName: 'chrome'
+    }
+})
 
-    // WebDriver command
-    await browser.url('https://webdriver.io')
+// WebDriver command
+await browser.url('https://webdriver.io')
 
-    // get <Puppeteer.Browser> instance (https://pptr.dev/#?product=Puppeteer&version=v5.2.1&show=api-class-browser)
-    const puppeteer = await browser.getPuppeteer()
+// get <Puppeteer.Browser> instance (https://pptr.dev/#?product=Puppeteer&version=v5.2.1&show=api-class-browser)
+const puppeteer = await browser.getPuppeteer()
 
-    // switch to Puppeteer to intercept requests
-    const page = (await puppeteer.pages())[0]
-    await page.setRequestInterception(true)
-    page.on('request', interceptedRequest => {
-        if (interceptedRequest.url().endsWith('webdriverio.png')) {
-            return interceptedRequest.continue({
-                url: 'https://user-images.githubusercontent.com/10379601/29446482-04f7036a-841f-11e7-9872-91d1fc2ea683.png'
-            })
-        }
+// switch to Puppeteer to intercept requests
+const page = (await puppeteer.pages())[0]
+await page.setRequestInterception(true)
+page.on('request', interceptedRequest => {
+    if (interceptedRequest.url().endsWith('webdriverio.png')) {
+        return interceptedRequest.continue({
+            url: 'https://user-images.githubusercontent.com/10379601/29446482-04f7036a-841f-11e7-9872-91d1fc2ea683.png'
+        })
+    }
 
-        interceptedRequest.continue()
-    })
+    interceptedRequest.continue()
+})
 
-    // continue with WebDriver commands
-    await browser.refresh()
-    await browser.pause(2000)
+// continue with WebDriver commands
+await browser.refresh()
+await browser.pause(2000)
 
-    await browser.deleteSession()
-})()
+await browser.deleteSession()
 ```
 
 </TabItem>

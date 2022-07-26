@@ -1,5 +1,5 @@
-import { SUPPORTED_SELECTOR_STRATEGIES } from '../constants'
-import { findElements as findElementsUtil } from '../utils'
+import { SUPPORTED_SELECTOR_STRATEGIES } from '../constants.js'
+import { findElements as findElementsUtil } from '../utils.js'
 import type DevToolsDriver from '../devtoolsdriver'
 
 /**

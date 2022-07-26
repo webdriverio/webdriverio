@@ -1,6 +1,11 @@
+import path from 'node:path'
+import { expect, describe, it, afterEach, vi } from 'vitest'
 // @ts-ignore mocked (original defined in webdriver package)
 import got from 'got'
 import { remote } from '../../../src'
+
+vi.mock('got')
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 describe('keys', () => {
     it('should send keys', async () => {
@@ -68,9 +73,12 @@ describe('keys', () => {
             }
         })
 
-        expect(() => browser.keys()).toThrow()
-        expect(() => browser.keys(1)).toThrow()
-        expect(() => browser.keys(true)).toThrow()
+        // @ts-expect-error wrong param
+        await expect(() => browser.keys()).rejects.toThrow()
+        // @ts-expect-error wrong param
+        await expect(() => browser.keys(1)).rejects.toThrow()
+        // @ts-expect-error wrong param
+        await expect(() => browser.keys(true)).rejects.toThrow()
     })
 
     afterEach(() => {

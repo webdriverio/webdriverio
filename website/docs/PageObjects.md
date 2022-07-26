@@ -121,7 +121,7 @@ describe('login form', () => {
 })
 ```
 
-From the structural side, it makes sense to separate spec files and page objects into different directories. Additionally you can give each page object the ending: `.page.js`. This makes it easy to figure out that you actually require a page object if you execute `const LoginPage = require('../pageobjects/form.page')`.
+From the structural side, it makes sense to separate spec files and page objects into different directories. Additionally you can give each page object the ending: `.page.js`. This makes it more clear that you import a page object.
 
 ## Going Further
 

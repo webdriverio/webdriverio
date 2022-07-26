@@ -1,4 +1,4 @@
-import { getElementRect, getScrollPosition } from '../../utils'
+import { getElementRect, getScrollPosition } from '../../utils/index.js'
 
 type MoveToOptions = {
     xOffset?: number,

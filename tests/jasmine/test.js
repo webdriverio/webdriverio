@@ -1,19 +1,13 @@
-const assert = require('assert')
+import assert from 'node:assert'
 
 describe('Jasmine smoke test', () => {
-    it('should return sync value', () => {
-        browser.isEventuallyDisplayedScenario()
-        expect(browser).toHaveTitle('Mock Page Title')
-        expect($('foo')).toBeDisplayed()
-    })
-
     it('should allow sync matchers', () => {
         const test = 123
         expect(test).toBe(123)
     })
 
     it('should return async value', async () => {
-        browser.isEventuallyDisplayedScenario()
+        await browser.isEventuallyDisplayedScenario()
         await expect(browser).toHaveTitle('Mock Page Title')
         await expect($('foo')).toBeDisplayed()
 

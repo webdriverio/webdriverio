@@ -19,6 +19,151 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.20.7 (2022-07-17)
+
+#### :bug: Bug Fix
+* `wdio-local-runner`, `webdriver`
+  * [#8506](https://github.com/webdriverio/webdriverio/pull/8506) patch for 6068, adding a flag about clearing logger on session end ([@wyhmichael](https://github.com/wyhmichael))
+
+#### :nail_care: Polish
+* `wdio-browserstack-service`, `wdio-types`
+  * [#8524](https://github.com/webdriverio/webdriverio/pull/8524) handle local and wdioService capabilities when jsonwp format caps are passed ([@Ankit098](https://github.com/Ankit098))
+
+#### Committers: 2
+- Ankit Singh ([@Ankit098](https://github.com/Ankit098))
+- [@wyhmichael](https://github.com/wyhmichael)
+
+
+## v7.20.6 (2022-07-15)
+
+#### :rocket: New Feature
+* `webdriverio`
+  * [#8465](https://github.com/webdriverio/webdriverio/pull/8465) Allow to skip calling `releaseAction` command for click ([@praveendvd](https://github.com/praveendvd))
+
+#### :bug: Bug Fix
+* `wdio-local-runner`, `webdriverio`
+  * [#8486](https://github.com/webdriverio/webdriverio/pull/8486) The index should return a promise so changed it accordingly ([@joshskumar](https://github.com/joshskumar))
+* `wdio-config`
+  * [#8432](https://github.com/webdriverio/webdriverio/pull/8432) Fix for issue 8376 ([@hammzj](https://github.com/hammzj))
+
+#### :memo: Documentation
+* `wdio-cli`
+  * [#8468](https://github.com/webdriverio/webdriverio/pull/8468) add `cucumber-viewport-logger` service ([@viktor-silakov](https://github.com/viktor-silakov))
+* Other
+  * [#8466](https://github.com/webdriverio/webdriverio/pull/8466) Add info for a roku-appium boilerplate project ([@AntonKostenko](https://github.com/AntonKostenko))
+
+#### Committers: 6
+- Vitali Lebedzeu ([@VitaliLebedzeu](https://github.com/VitaliLebedzeu))
+- Zachary Hamm ([@hammzj](https://github.com/hammzj))
+- [@AntonKostenko](https://github.com/AntonKostenko)
+- [@joshskumar](https://github.com/joshskumar)
+- [@viktor-silakov](https://github.com/viktor-silakov)
+- praveendvd ([@praveendvd](https://github.com/praveendvd))
+
+
+## v7.20.5 (2022-06-23)
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#8464](https://github.com/webdriverio/webdriverio/pull/8464) fix refetch elements error in wdio expect ([@jayrepo](https://github.com/jayrepo))
+
+#### :nail_care: Polish
+* `wdio-browserstack-service`
+  * [#8461](https://github.com/webdriverio/webdriverio/pull/8461) chore: remove peer dependency ([@Ankit098](https://github.com/Ankit098))
+
+#### Committers: 2
+- Ankit Singh ([@Ankit098](https://github.com/Ankit098))
+- Jay Chen ([@jayrepo](https://github.com/jayrepo))
+
+
+## v7.20.4 (2022-06-22)
+
+#### :rocket: New Feature
+* `webdriver`
+  * [#8457](https://github.com/webdriverio/webdriverio/pull/8457) Improve error message for invalid selectors ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-cli`, `wdio-protocols`, `webdriver`
+  * [#8456](https://github.com/webdriverio/webdriverio/pull/8456) Added ability to pass capability to repl through config file ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :bug: Bug Fix
+* `wdio-browserstack-service`
+  * [#7740](https://github.com/webdriverio/webdriverio/pull/7740) [Bug #7739] Fix preferScenarioName logic ([@denise-maia-ribeiro](https://github.com/denise-maia-ribeiro))
+
+#### Committers: 2
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- [@denise-maia-ribeiro](https://github.com/denise-maia-ribeiro)
+
+
+## v7.20.3 (2022-06-20)
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#8434](https://github.com/webdriverio/webdriverio/pull/8434) fix refetch elements with index > 0 ([@jayrepo](https://github.com/jayrepo))
+
+#### Committers: 1
+- Jay Chen ([@jayrepo](https://github.com/jayrepo))
+
+
+## v7.20.2 (2022-06-10)
+
+#### :eyeglasses: Spec Compliancy
+* `wdio-protocols`
+  * [#8402](https://github.com/webdriverio/webdriverio/pull/8402) Dev/issue 8398/main ([@hammzj](https://github.com/hammzj))
+
+#### :bug: Bug Fix
+* `devtools`
+  * [#8420](https://github.com/webdriverio/webdriverio/pull/8420) fix: Clear executeScript timeout in case of promise rejection ([@efyx](https://github.com/efyx))
+
+#### :memo: Documentation
+* `wdio-cli`
+  * [#8414](https://github.com/webdriverio/webdriverio/pull/8414) Add wdio-azure-devops-service to official docs ([@gianlucamangiapelo](https://github.com/gianlucamangiapelo))
+
+#### Committers: 3
+- Gianluca Mangiapelo ([@gianlucamangiapelo](https://github.com/gianlucamangiapelo))
+- Zachary Hamm ([@hammzj](https://github.com/hammzj))
+- [@efyx](https://github.com/efyx)
+
+
+## v7.20.0 (2022-06-03)
+
+#### :eyeglasses: Spec Compliancy
+* `wdio-protocols`
+  * [#8399](https://github.com/webdriverio/webdriverio/pull/8399) add:parameter to toggleNetworkSpeed endpoint ([@hammzj](https://github.com/hammzj))
+
+#### :bug: Bug Fix
+* `wdio-cucumber-framework`
+  * [#8378](https://github.com/webdriverio/webdriverio/pull/8378) The nano to milli second conversion was wrong so updated it ([@joshskumar](https://github.com/joshskumar))
+* `wdio-shared-store-service`
+  * [#8349](https://github.com/webdriverio/webdriverio/pull/8349) fix for https://github.com/webdriverio/webdriverio/issues/8335 ([@mighty98](https://github.com/mighty98))
+
+#### :nail_care: Polish
+* `wdio-browserstack-service`, `wdio-types`
+  * [#8350](https://github.com/webdriverio/webdriverio/pull/8350) add: service version to caps for browserstack ([@Ankit098](https://github.com/Ankit098))
+* `wdio-appium-service`, `wdio-cli`, `wdio-devtools-service`, `wdio-sumologic-reporter`, `webdriverio`
+  * [#8303](https://github.com/webdriverio/webdriverio/pull/8303) Update yargs interface usage ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* Other
+  * [#8397](https://github.com/webdriverio/webdriverio/pull/8397) change non maintained link ([@anabeatrizzz](https://github.com/anabeatrizzz))
+* `wdio-cli`
+  * [#8361](https://github.com/webdriverio/webdriverio/pull/8361) add cucumber html reporter ([@yon-cuadrado](https://github.com/yon-cuadrado))
+* `wdio-allure-reporter`
+  * [#8353](https://github.com/webdriverio/webdriverio/pull/8353) include asnyc await to screenshot example [Closes [#8323](https://github.com/webdriverio/webdriverio/issues/8323)] ([@anupamck](https://github.com/anupamck))
+  * [#8327](https://github.com/webdriverio/webdriverio/pull/8327) update documentation and include example for cucumber ([@anupamck](https://github.com/anupamck))
+* `wdio-browserstack-service`
+  * [#8337](https://github.com/webdriverio/webdriverio/pull/8337) fix: browserstack service with local ([@Ankit098](https://github.com/Ankit098))
+
+#### Committers: 9
+- Ana Beatriz ([@anabeatrizzz](https://github.com/anabeatrizzz))
+- Ankit Singh ([@Ankit098](https://github.com/Ankit098))
+- Anupam Krishnamurthy ([@anupamck](https://github.com/anupamck))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Sri Harsha ([@harsha509](https://github.com/harsha509))
+- Zachary Hamm ([@hammzj](https://github.com/hammzj))
+- [@joshskumar](https://github.com/joshskumar)
+- [@mighty98](https://github.com/mighty98)
+- [@yon-cuadrado](https://github.com/yon-cuadrado)
+
+
 ## v7.19.7 (2022-05-03)
 
 #### :rocket: New Feature

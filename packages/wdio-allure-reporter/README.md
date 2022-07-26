@@ -76,13 +76,13 @@ exports.config = {
 ### Usage
 Allure Api can be accessed using:
 
-ES5
+CJS
 
 ```js
 const allureReporter = require('@wdio/allure-reporter').default
 ```
 
-ES6
+ESM
 
 ```js
 import allureReporter from '@wdio/allure-reporter'
@@ -171,9 +171,9 @@ Screenshots can be attached to the report by using the `takeScreenshot` function
 First set `disableWebdriverScreenshotsReporting: false` in reporter options, then add in afterStep hook:
 
 ```js title="wdio.conf.js"
-afterStep: function (step, scenario, { error, duration, passed }, context) {
+afterStep: async function (step, scenario, { error, duration, passed }, context) {
   if (error) {
-    browser.takeScreenshot();
+    await browser.takeScreenshot();
   }
 }
 ```

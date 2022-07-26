@@ -1,15 +1,19 @@
+import path from 'node:path'
+import { expect, describe, it, vi, beforeEach, afterEach } from 'vitest'
+
 // @ts-ignore mocked (original defined in webdriver package)
-import gotMock from 'got'
+import got from 'got'
 import { remote } from '../../../src'
 import { ELEMENT_KEY } from '../../../src/constants'
 import * as utils from '../../../src/utils'
 
-const got = gotMock as any as jest.Mock
+vi.mock('got')
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 describe('selectByVisibleText test', () => {
-    const getElementFromResponseSpy = jest.spyOn(utils, 'getElementFromResponse')
-    let browser: WebdriverIO.Browser
-    let elem: WebdriverIO.Element
+    const getElementFromResponseSpy = vi.spyOn(utils, 'getElementFromResponse')
+    let browser: any
+    let elem: any
 
     beforeEach(async () => {
         browser = await remote({
@@ -139,10 +143,11 @@ describe('selectByVisibleText test', () => {
         expect.hasAssertions()
 
         const mockElem = {
+            options: {},
             selector: 'foobar2',
             elementId: 'some-elem-123',
             'element-6066-11e4-a52e-4f735466cecf': 'some-elem-123',
-            findElementFromElement: jest.fn().mockReturnValue(Promise.resolve({ error: 'no such element' }))
+            findElementFromElement: vi.fn().mockReturnValue(Promise.resolve({ error: 'no such element' }))
         }
         // @ts-ignore mock feature
         mockElem.selectByVisibleText = elem.selectByVisibleText.bind(mockElem)

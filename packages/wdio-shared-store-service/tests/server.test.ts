@@ -1,14 +1,21 @@
-const { post } = jest.requireActual('got')
-import StoreServer from '../src/server'
+import { describe, expect, vi, beforeAll, afterAll, afterEach, it } from 'vitest'
+import { startServer, __store } from '../src/server'
 
-const { startServer, stopServer, __store } = StoreServer
-const errHandler = jest.fn()
+vi.mock('got')
+
+const { post } = await vi.importActual('got')
+const errHandler = vi.fn()
 
 describe('WdioSharedStoreService exports', () => {
     let setUrl: string
     let getUrl: string
+    let result: {
+        port: number;
+        app: PolkaInstance;
+    } | undefined
+
     beforeAll(async () => {
-        const result = await startServer()
+        result = await startServer()
         const baseUrl = `http://localhost:${result.port}`
         setUrl = `${baseUrl}/set`
         getUrl = `${baseUrl}/get`
@@ -52,6 +59,11 @@ describe('WdioSharedStoreService exports', () => {
     })
 
     afterAll(async () => {
-        await stopServer()
+        return new Promise((resolve) => {
+            if (result?.app.server.close) {
+                return result?.app.server.close(() => resolve())
+            }
+            resolve()
+        })
     })
 })

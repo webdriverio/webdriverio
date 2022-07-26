@@ -1,13 +1,13 @@
-import InstallableManifest from 'lighthouse/lighthouse-core/audits/installable-manifest'
-import ServiceWorker from 'lighthouse/lighthouse-core/audits/service-worker'
-import SplashScreen from 'lighthouse/lighthouse-core/audits/splash-screen'
-import ThemedOmnibox from 'lighthouse/lighthouse-core/audits/themed-omnibox'
-import ContentWidth from 'lighthouse/lighthouse-core/audits/content-width'
-import Viewport from 'lighthouse/lighthouse-core/audits/viewport'
-import AppleTouchIcon from 'lighthouse/lighthouse-core/audits/apple-touch-icon'
-import MaskableIcon from 'lighthouse/lighthouse-core/audits/maskable-icon'
+import InstallableManifest from 'lighthouse/lighthouse-core/audits/installable-manifest.js'
+import ServiceWorker from 'lighthouse/lighthouse-core/audits/service-worker.js'
+import SplashScreen from 'lighthouse/lighthouse-core/audits/splash-screen.js'
+import ThemedOmnibox from 'lighthouse/lighthouse-core/audits/themed-omnibox.js'
+import ContentWidth from 'lighthouse/lighthouse-core/audits/content-width.js'
+import Viewport from 'lighthouse/lighthouse-core/audits/viewport.js'
+import AppleTouchIcon from 'lighthouse/lighthouse-core/audits/apple-touch-icon.js'
+import MaskableIcon from 'lighthouse/lighthouse-core/audits/maskable-icon.js'
 
-import { throttling } from 'lighthouse/lighthouse-core/config/constants'
+import { throttling } from 'lighthouse/lighthouse-core/config/constants.js'
 
 /**
  * performance tracing categories

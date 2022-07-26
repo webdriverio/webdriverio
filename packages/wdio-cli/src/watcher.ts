@@ -3,10 +3,10 @@ import logger from '@wdio/logger'
 import pickBy from 'lodash.pickby'
 import flattenDeep from 'lodash.flattendeep'
 import union from 'lodash.union'
-
-import Launcher from './launcher'
 import type { Capabilities, Workers } from '@wdio/types'
-import { RunCommandArguments, ValueKeyIteratee } from './types.js'
+
+import Launcher from './launcher.js'
+import type { RunCommandArguments, ValueKeyIteratee } from './types'
 
 const log = logger('@wdio/cli:watch')
 
@@ -65,7 +65,7 @@ export default class Watcher {
                 return
             }
 
-            this._launcher.interface.finalise()
+            this._launcher.interface?.finalise()
         }))
     }
 
@@ -111,6 +111,10 @@ export default class Watcher {
      * @return                   Object with workers, e.g. {'0-0': { ... }}
      */
     getWorkers (predicate?: ValueKeyIteratee<Workers.Worker> | null | undefined, includeBusyWorker?: boolean): Workers.WorkerPool {
+        if (!this._launcher.runner) {
+            throw new Error('Internal Error: no runner initialised, call run() first')
+        }
+
         let workers = this._launcher.runner.workerPool
 
         if (typeof predicate === 'function') {
@@ -144,7 +148,7 @@ export default class Watcher {
         /**
          * don't do anything if no worker was found
          */
-        if (Object.keys(workers).length === 0) {
+        if (Object.keys(workers).length === 0 || !this._launcher.interface) {
             return
         }
 
@@ -171,6 +175,6 @@ export default class Watcher {
     }
 
     cleanUp () {
-        this._launcher.interface.setup()
+        this._launcher.interface?.setup()
     }
 }

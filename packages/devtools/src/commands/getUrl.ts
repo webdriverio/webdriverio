@@ -1,4 +1,4 @@
-import command from '../scripts/getUrl'
+import command from '../scripts/getUrl.js'
 import type DevToolsDriver from '../devtoolsdriver'
 
 /**

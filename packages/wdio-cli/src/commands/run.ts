@@ -1,13 +1,12 @@
+import path from 'node:path'
 import fs from 'fs-extra'
-import path from 'path'
+import type { Argv } from 'yargs'
 
-import { missingConfigurationPrompt } from './config'
-import { RunCommandArguments } from '../types'
-
-import Launcher from '../launcher'
-import Watcher from '../watcher'
-import { CLI_EPILOGUE } from '../constants'
-import yargs from 'yargs'
+import Launcher from '../launcher.js'
+import Watcher from '../watcher.js'
+import { missingConfigurationPrompt } from './config.js'
+import { CLI_EPILOGUE } from '../constants.js'
+import type { RunCommandArguments } from '../types'
 
 export const command = 'run <configPath>'
 
@@ -96,7 +95,7 @@ export const cmdArgs = {
     }
 } as const
 
-export const builder = (yargs: yargs.Argv) => {
+export const builder = (yargs: Argv) => {
     return yargs
         .options(cmdArgs)
         .example('$0 run wdio.conf.js --suite foobar', 'Run suite on testsuite "foobar"')
@@ -129,14 +128,14 @@ export function launch (wdioConfPath: string, params: Partial<RunCommandArgument
     return launcher.run()
         .then((...args) => {
             /* istanbul ignore if */
-            if (!process.env.JEST_WORKER_ID) {
+            if (!process.env.VITEST_WORKER_ID) {
                 process.exit(...args)
             }
         })
         .catch(err => {
             console.error(err)
             /* istanbul ignore if */
-            if (!process.env.JEST_WORKER_ID) {
+            if (!process.env.VITEST_WORKER_ID) {
                 process.exit(1)
             }
         })

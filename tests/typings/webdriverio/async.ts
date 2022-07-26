@@ -268,8 +268,7 @@ async function bar() {
 
     // An examples of addValue command with enabled/disabled translation to Unicode
     const elem = await $('')
-    await elem.addValue('Delete', { translateToUnicode: true })
-    await elem.addValue('Delete', { translateToUnicode: false })
+    await elem.addValue('Delete')
 
     // scroll into view
     await elem.scrollIntoView(true)
@@ -282,8 +281,7 @@ async function bar() {
 
     // An examples of setValue command with enabled/disabled translation to Unicode
     const elem1 = await $('')
-    elem1.setValue('Delete', { translateToUnicode: true })
-    elem1.setValue('Delete', { translateToUnicode: false })
+    elem1.setValue('Delete')
 
     const selector$$: string | Function | Record<'element-6066-11e4-a52e-4f735466cecf', string> | {strategy: Function; strategyName: string; strategyArguments: any[]} = elems.selector
     ;(elems.parent as WebdriverIO.Element).click()
@@ -403,7 +401,7 @@ async function bar() {
 
     // async chain API
     expectType<WebdriverIO.Element>(
-        await browser.$('foo').$('bar').$$('loo')[2].$('foo').$('bar'))
+        await (await browser.$('foo').$('bar').$$('loo')[2]).$('foo').$('bar'))
     expectType<Selector>(
         await browser.$('foo').$('bar').selector)
     expectType<Error>(

@@ -48,7 +48,9 @@ WebdriverIO is a test automation framework that allows you to run tests based on
 
 ## :woman_technologist: :man_technologist: Contributing
 
-You like WebdriverIO and want to help making it better? Awesome! Have a look into our [Contributor Documentation](CONTRIBUTING.md) to get started with setting up the repo.
+You like WebdriverIO and want to help making it better? Awesome! Have a look into our [Contributor Documentation](CONTRIBUTING.md) to get started or just click on:
+
+[![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/webdriverio/webdriverio)
 
 If you're looking for issues to help out with, check out [the issues labelled "good first pick"](https://github.com/webdriverio/webdriverio/issues?q=is%3Aopen+is%3Aissue+label%3A"good+first+pick"). You can also reach out in our [Gitter Channel](https://gitter.im/webdriverio/webdriverio) if you have question on where to start contributing.
 
@@ -79,7 +81,6 @@ __Did you build a WebdriverIO service or reporter?__ That's awesome! Please add 
 - [@wdio/repl](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-repl) - A WDIO helper utility to provide a repl interface for WebdriverIO
 - [@wdio/reporter](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-reporter) - A WebdriverIO utility to help reporting all events
 - [@wdio/runner](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-runner) - A WebdriverIO service that runs tests in arbitrary environments
-- [@wdio/sync](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-sync) - A WebdriverIO plugin. Helper module to run WebdriverIO commands synchronously
 - [@wdio/utils](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-utils) - A WDIO helper utility to provide several utility functions used across the project
 
 ### Reporter

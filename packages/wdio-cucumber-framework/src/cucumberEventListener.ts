@@ -1,4 +1,4 @@
-import { EventEmitter } from 'events'
+import { EventEmitter } from 'node:events'
 import { Status, PickleFilter } from '@cucumber/cucumber'
 import {
     Pickle, TestCase, Envelope, TestStepResult, TestCaseStarted, GherkinDocument,
@@ -7,9 +7,9 @@ import {
 import logger from '@wdio/logger'
 import type { Capabilities } from '@wdio/types'
 
-import { HookParams } from './types'
-import { addKeywordToStep, filterPickles, getRule } from './utils'
-import { ReporterScenario } from './constants'
+import { addKeywordToStep, filterPickles, getRule } from './utils.js'
+import { ReporterScenario } from './constants.js'
+import type { HookParams } from './types'
 
 const log = logger('CucumberEventListener')
 

@@ -1,25 +1,30 @@
+import path from 'node:path'
+import { describe, expect, it, vi, beforeAll, afterEach } from 'vitest'
 import got from 'got'
 import { getValue, setValue, setPort } from '../src/client'
 
-jest.mock('got', () => ({
-    post: jest.fn().mockImplementation((url, options) => new Promise((resolve, reject) => {
-        if (options.json.key === 'fail') {
-            return reject({
-                message: 'Response code 404 (Not Found)',
-                statusCode: 404,
-                statusMessage: 'Not Found',
-                body: 'Not Found',
-                url
-            })
-        }
-        if (options.json.key === 'not-present') {
-            return resolve({})
-        }
-        return resolve({ body: { value: 'store value' } })
-    }))
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock('got', () => ({
+    default: {
+        post: vi.fn().mockImplementation((url, options) => new Promise((resolve, reject) => {
+            if (options.json.key === 'fail') {
+                return reject({
+                    message: 'Response code 404 (Not Found)',
+                    statusCode: 404,
+                    statusMessage: 'Not Found',
+                    body: 'Not Found',
+                    url
+                })
+            }
+            if (options.json.key === 'not-present') {
+                return resolve({})
+            }
+            return resolve({ body: { value: 'store value' } })
+        }))
+    }
 }))
 
-const port = '3000'
+const port = 3000
 const baseUrl = `http://localhost:${port}`
 
 describe('client', () => {
@@ -70,7 +75,7 @@ describe('client', () => {
         })
 
         afterEach(() => {
-            (got.post as jest.Mock).mockClear()
+            vi.mocked(got.post).mockClear()
         })
     })
 })

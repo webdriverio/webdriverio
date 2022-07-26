@@ -1,14 +1,14 @@
-import * as http from 'http'
-import * as https from 'https'
+import * as http from 'node:http'
+import * as https from 'node:https'
 import type { RegisterOptions } from './Compiler'
-import type { URL } from 'url'
+import type { URL } from 'node:url'
 
 import { W3CCapabilities, DesiredCapabilities, RemoteCapabilities, RemoteCapability, MultiRemoteCapabilities, Capabilities } from './Capabilities'
 import { Hooks, ServiceEntry } from './Services'
 import { ReporterEntry } from './Reporters'
 
 export type WebDriverLogTypes = 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'silent'
-export type SupportedProtocols = 'webdriver' | 'devtools' | './protocol-stub'
+export type SupportedProtocols = 'webdriver' | 'devtools' | './protocol-stub.js'
 export type Agents = {http?: any, https?: any}
 
 export interface RequestLibOptions {
@@ -19,10 +19,10 @@ export interface RequestLibOptions {
     json?: Record<string, unknown>
     method?: string
     responseType?: string
-    retry?: number
+    retry?: { limit: number }
     searchParams?: Record<string, unknown>
     throwHttpErrors?: boolean
-    timeout?: number
+    timeout?: { response: number }
     url?: URL
     path?: string
     username?: string

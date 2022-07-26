@@ -1,5 +1,4 @@
 import type { Options } from '@wdio/types'
-import type Mocha from 'mocha'
 
 export interface MochaOpts {
     /**
@@ -108,11 +107,4 @@ export interface FormattedMessage {
     currentTest?: string
     error?: MochaError
     context?: any
-}
-
-export interface MochaContext {
-    context: Mocha.MochaGlobals
-    file: string
-    mocha: Mocha
-    options: MochaOpts
 }

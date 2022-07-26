@@ -10,7 +10,7 @@ const pendingValues = new Map<string, any>()
 let waitTimeout: NodeJS.Timer
 
 let baseUrl: string | undefined
-export const setPort = (port: string) => { baseUrl = `http://localhost:${port}` }
+export const setPort = (port: number) => { baseUrl = `http://localhost:${port}` }
 
 /**
  * make a request to the server to get a value from the store

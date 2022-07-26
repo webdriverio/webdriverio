@@ -68,7 +68,7 @@ tests/typings/**/dist
 /*.ts
 devtools.d.ts
 !.eslintrc.js
-!jest.config.js
+!vitest.config.ts
 packages/**/package-lock.json
 .DS_Store
 
@@ -85,7 +85,6 @@ website/docs/_*.md
 
 # Editor files
 .idea
-.vscode
 !.vscode/extensions.json
 .*.swp
 .history

@@ -1,4 +1,4 @@
-import type { EventEmitter } from 'events'
+import type { EventEmitter } from 'node:events'
 import type { AttachOptions as DevToolsAttachOptions } from 'devtools'
 import type { SessionFlags, AttachOptions as WebDriverAttachOptions } from 'webdriver'
 import type { Options, Capabilities, FunctionProperties, ThenArg } from '@wdio/types'
@@ -70,7 +70,7 @@ export interface ChainablePromiseArray<T> extends Promise<T> {
     /**
      * allow to access a specific index of the element set
      */
-    [n: number]: WebdriverIO.Element | undefined
+    [n: number]: ChainablePromiseElement<WebdriverIO.Element | undefined>
 
     /**
      * Unwrap the nth element of the element list.
@@ -273,10 +273,6 @@ interface InstanceBase extends EventEmitter, SessionFlags {
     /**
      * @private
      */
-    _NOT_FIBER?: boolean
-    /**
-     * @private
-     */
     wdioRetries?: number
 }
 
@@ -462,7 +458,8 @@ export type NewWindowOptions = {
 export type ClickOptions = {
     button?: number | string,
     x?: number,
-    y?: number
+    y?: number,
+    skipRelease?:boolean
 }
 
 export type WaitForOptions = {

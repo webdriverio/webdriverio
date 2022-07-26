@@ -1,4 +1,4 @@
-import { verifyArgsAndStripIfElement } from '../../utils'
+import { verifyArgsAndStripIfElement } from '../../utils/index.js'
 
 /**
  *

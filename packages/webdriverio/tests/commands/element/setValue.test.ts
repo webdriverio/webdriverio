@@ -1,11 +1,15 @@
+import path from 'node:path'
+import { expect, describe, it, vi, beforeEach, afterEach } from 'vitest'
+
 // @ts-ignore mocked (original defined in webdriver package)
-import gotMock from 'got'
+import got from 'got'
 import { remote } from '../../../src'
 
-const got = gotMock as any as jest.Mock
+vi.mock('got')
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 describe('setValue', () => {
-    let browser: WebdriverIO.Browser
+    let browser: any
 
     beforeEach(async () => {
         browser = await remote({
@@ -20,7 +24,7 @@ describe('setValue', () => {
         got.mockClear()
     })
 
-    test('should set the value clearing the element first', async () => {
+    it('should set the value clearing the element first', async () => {
         const elem = await browser.$('#foo')
 
         await elem.setValue('foobar')

@@ -1,6 +1,6 @@
-import { getElements } from '../../utils/getElementObject'
-import { getBrowserObject, enhanceElementsArray } from '../../utils'
-import { ELEMENT_KEY } from '../../constants'
+import { getElements } from '../../utils/getElementObject.js'
+import { getBrowserObject, enhanceElementsArray } from '../../utils/index.js'
+import { ELEMENT_KEY } from '../../constants.js'
 import type { ElementArray, CustomStrategyFunction } from '../../types'
 
 /**
@@ -50,7 +50,7 @@ async function custom$$ (
 
     const strategyRef = { strategy, strategyName, strategyArguments: [...strategyArguments, this] }
 
-    let res = await this.execute(strategy, ...strategyArguments, this)
+    let res = await browserObject.execute(strategy, ...strategyArguments, this)
 
     /**
      * if the user's script return just one element
@@ -64,7 +64,7 @@ async function custom$$ (
     res = res.filter((el) => !!el && typeof el[ELEMENT_KEY] === 'string')
 
     const elements = res.length ? await getElements.call(this, strategyRef, res) : [] as any as ElementArray
-    return enhanceElementsArray(elements, this, strategy as any, 'custom$$', [strategyArguments])
+    return enhanceElementsArray(elements, this, strategyName, 'custom$$', strategyArguments)
 }
 
 export default custom$$

@@ -1,8 +1,8 @@
-import fs from 'fs'
+import fs from 'node:fs'
 import isPlainObject from 'lodash.isplainobject'
 import { roleElements, ARIARoleDefintionKey, ARIARoleRelationConcept, ARIARoleRelationConceptAttribute } from 'aria-query'
 
-import { W3C_SELECTOR_STRATEGIES, DEEP_SELECTOR } from '../constants'
+import { W3C_SELECTOR_STRATEGIES, DEEP_SELECTOR } from '../constants.js'
 
 const DEFAULT_STRATEGY = 'css selector'
 const DIRECT_SELECTOR_REGEXP = /^(id|css selector|xpath|link text|partial link text|name|tag name|class name|-android uiautomator|-android datamatcher|-android viewmatcher|-android viewtag|-ios uiautomation|-ios predicate string|-ios class chain|accessibility id):(.+)/

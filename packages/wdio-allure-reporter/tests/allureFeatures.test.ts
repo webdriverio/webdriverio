@@ -1,12 +1,16 @@
+import path from 'node:path'
+import { describe, it, expect, beforeEach, vi, beforeAll, afterAll } from 'vitest'
 import { CommandArgs, SuiteStats, TestStats } from '@wdio/reporter'
 import AllureReporter from '../src'
 import { linkPlaceholder } from '../src/constants'
 import { TYPE } from '../src/types'
 
+vi.mock('@wdio/reporter', () => import(path.join(process.cwd(), '__mocks__', '@wdio/reporter')))
+
 let processOn: any
 beforeAll(() => {
     processOn = process.on.bind(process)
-    process.on = jest.fn()
+    process.on = vi.fn()
 })
 
 afterAll(() => {
@@ -16,8 +20,8 @@ afterAll(() => {
 describe('reporter runtime implementation', () => {
     it('should correct add custom label', () => {
         const reporter = new AllureReporter()
-        const addLabel = jest.fn()
-        const mock = jest.fn(() => {
+        const addLabel = vi.fn()
+        const mock = vi.fn(() => {
             return { addLabel }
         })
         reporter['_allure'] = {
@@ -32,8 +36,8 @@ describe('reporter runtime implementation', () => {
 
     it('should correct add story label', () => {
         const reporter = new AllureReporter()
-        const addLabel = jest.fn()
-        const mock = jest.fn(() => {
+        const addLabel = vi.fn()
+        const mock = vi.fn(() => {
             return { addLabel }
         })
         reporter['_allure'] = {
@@ -48,8 +52,8 @@ describe('reporter runtime implementation', () => {
 
     it('should correct add feature label', () => {
         const reporter = new AllureReporter()
-        const addLabel = jest.fn()
-        const mock = jest.fn(() => {
+        const addLabel = vi.fn()
+        const mock = vi.fn(() => {
             return { addLabel }
         })
         reporter['_allure'] = {
@@ -64,8 +68,8 @@ describe('reporter runtime implementation', () => {
 
     it('should correct add severity label', () => {
         const reporter = new AllureReporter()
-        const addLabel = jest.fn()
-        const mock = jest.fn(() => {
+        const addLabel = vi.fn()
+        const mock = vi.fn(() => {
             return { addLabel }
         })
         reporter['_allure'] = {
@@ -80,8 +84,8 @@ describe('reporter runtime implementation', () => {
 
     it('should correctly add issue label', () => {
         const reporter = new AllureReporter()
-        const addLabel = jest.fn()
-        const mock = jest.fn(() => {
+        const addLabel = vi.fn()
+        const mock = vi.fn(() => {
             return { addLabel }
         })
         reporter['_allure'] = {
@@ -96,8 +100,8 @@ describe('reporter runtime implementation', () => {
 
     it('should correctly add issue label with link', () => {
         const reporter = new AllureReporter({ issueLinkTemplate: `http://example.com/${linkPlaceholder}` })
-        const addLabel = jest.fn()
-        const mock = jest.fn(() => {
+        const addLabel = vi.fn()
+        const mock = vi.fn(() => {
             return { addLabel }
         })
         reporter['_allure'] = {
@@ -112,8 +116,8 @@ describe('reporter runtime implementation', () => {
 
     it('should correctly add test id label', () => {
         const reporter = new AllureReporter()
-        const addLabel = jest.fn()
-        const mock = jest.fn(() => {
+        const addLabel = vi.fn()
+        const mock = vi.fn(() => {
             return { addLabel }
         })
         reporter['_allure'] = {
@@ -128,8 +132,8 @@ describe('reporter runtime implementation', () => {
 
     it('should correctly add test id label with link', () => {
         const reporter = new AllureReporter({ tmsLinkTemplate: `https://webdriver.io/${linkPlaceholder}` })
-        const addLabel = jest.fn()
-        const mock = jest.fn(() => {
+        const addLabel = vi.fn()
+        const mock = vi.fn(() => {
             return { addLabel }
         })
         reporter['_allure'] = {
@@ -144,8 +148,8 @@ describe('reporter runtime implementation', () => {
 
     it('should correct add environment', () => {
         const reporter = new AllureReporter()
-        const addParameter = jest.fn()
-        const mock = jest.fn(() => {
+        const addParameter = vi.fn()
+        const mock = vi.fn(() => {
             return { addParameter }
         })
         reporter['_allure'] = {
@@ -160,8 +164,8 @@ describe('reporter runtime implementation', () => {
 
     it('should correct add description', () => {
         const reporter = new AllureReporter()
-        const setDescription = jest.fn()
-        const mock = jest.fn(() => {
+        const setDescription = vi.fn()
+        const mock = vi.fn(() => {
             return { setDescription }
         })
         reporter['_allure'] = {
@@ -179,10 +183,10 @@ describe('reporter runtime implementation', () => {
 
     it('should correct add attachment', () => {
         const reporter = new AllureReporter()
-        const addAttachment = jest.fn()
+        const addAttachment = vi.fn()
         reporter['_allure'] = {
-            getCurrentSuite: jest.fn(() => true),
-            getCurrentTest: jest.fn(() => true),
+            getCurrentSuite: vi.fn(() => true),
+            getCurrentTest: vi.fn(() => true),
             addAttachment
         } as any
 
@@ -193,11 +197,11 @@ describe('reporter runtime implementation', () => {
 
     it('should correct add "application/json" attachment', () => {
         const reporter = new AllureReporter()
-        const dumpJSON = jest.fn()
+        const dumpJSON = vi.fn()
         reporter.dumpJSON = dumpJSON
         reporter['_allure'] = {
-            getCurrentSuite: jest.fn(() => true),
-            getCurrentTest: jest.fn(() => true),
+            getCurrentSuite: vi.fn(() => true),
+            getCurrentTest: vi.fn(() => true),
         } as any
 
         reporter.addAttachment({ name: 'foo', content: 'bar', type: 'application/json' })
@@ -206,11 +210,11 @@ describe('reporter runtime implementation', () => {
 
     it('should allow to start end step', () => {
         const reporter = new AllureReporter()
-        const startStep = jest.fn()
-        const endStep = jest.fn()
+        const startStep = vi.fn()
+        const endStep = vi.fn()
         reporter['_allure'] = {
-            getCurrentSuite: jest.fn(() => true),
-            getCurrentTest: jest.fn(() => true),
+            getCurrentSuite: vi.fn(() => true),
+            getCurrentTest: vi.fn(() => true),
             startStep,
             endStep
         } as any
@@ -226,13 +230,13 @@ describe('reporter runtime implementation', () => {
 
     it('should correct add step with attachment', () => {
         const reporter = new AllureReporter()
-        const startStep = jest.fn()
-        const endStep = jest.fn()
-        const addAttachment = jest.fn()
+        const startStep = vi.fn()
+        const endStep = vi.fn()
+        const addAttachment = vi.fn()
         reporter.addAttachment = addAttachment
         reporter['_allure'] = {
-            getCurrentSuite: jest.fn(() => true),
-            getCurrentTest: jest.fn(() => true),
+            getCurrentSuite: vi.fn(() => true),
+            getCurrentTest: vi.fn(() => true),
             startStep,
             endStep
         } as any
@@ -257,13 +261,13 @@ describe('reporter runtime implementation', () => {
 
     it('should correct add step without attachment', () => {
         const reporter = new AllureReporter()
-        const startStep = jest.fn()
-        const endStep = jest.fn()
-        const addAttachment = jest.fn()
+        const startStep = vi.fn()
+        const endStep = vi.fn()
+        const addAttachment = vi.fn()
         reporter.addAttachment = addAttachment
         reporter['_allure'] = {
-            getCurrentSuite: jest.fn(() => true),
-            getCurrentTest: jest.fn(() => true),
+            getCurrentSuite: vi.fn(() => true),
+            getCurrentTest: vi.fn(() => true),
             startStep,
             endStep
         } as any
@@ -281,8 +285,8 @@ describe('reporter runtime implementation', () => {
 
     it('should correctly add argument', () => {
         const reporter = new AllureReporter()
-        const addParameter = jest.fn()
-        const mock = jest.fn(() => {
+        const addParameter = vi.fn()
+        const mock = vi.fn(() => {
             return { addParameter }
         })
         reporter['_allure'] = {
@@ -326,10 +330,10 @@ describe('reporter runtime implementation', () => {
 
         beforeEach(() => {
             reporter = new AllureReporter()
-            addParameter = jest.fn()
-            addLabel = jest.fn()
+            addParameter = vi.fn()
+            addLabel = vi.fn()
 
-            mock = jest.fn(() => {
+            mock = vi.fn(() => {
                 return { addParameter, addLabel }
             })
 
@@ -390,7 +394,7 @@ describe('auxiliary methods', () => {
 
     it('dumpJSON', () => {
         const reporter = new AllureReporter()
-        const addAttachment = jest.fn()
+        const addAttachment = vi.fn()
         reporter['_allure'] = {
             addAttachment
         } as any
@@ -412,9 +416,9 @@ describe('auxiliary methods', () => {
             }
         }
         const reporter = new AllureReporter()
-        const currentTestMock = { addParameter: jest.fn(), addLabel: jest.fn() }
-        reporter['_allure'].getCurrentTest = jest.fn().mockReturnValue(currentTestMock)
-        reporter['_allure'].startCase = jest.fn()
+        const currentTestMock = { addParameter: vi.fn(), addLabel: vi.fn() }
+        reporter['_allure'].getCurrentTest = vi.fn().mockReturnValue(currentTestMock)
+        reporter['_allure'].startCase = vi.fn()
         reporter['_isMultiremote'] = false
         reporter['_capabilities'] = capabilities
         reporter.onTestStart({ cid: '0-0', title: 'SomeTest' } as TestStats)
@@ -426,8 +430,8 @@ describe('auxiliary methods', () => {
 describe('hooks handling disabled Mocha Hooks', () => {
     let reporter: any, startCase: any, endCase: any, startStep: any, endStep: any
     const allureInstance = ({ suite = {}, test = { steps: [1] } }: any = {}) => ({
-        getCurrentSuite: jest.fn(() => suite),
-        getCurrentTest: jest.fn(() => { return test }),
+        getCurrentSuite: vi.fn(() => suite),
+        getCurrentTest: vi.fn(() => { return test }),
         startCase,
         endCase,
         startStep,
@@ -436,11 +440,11 @@ describe('hooks handling disabled Mocha Hooks', () => {
 
     beforeEach(() => {
         reporter = new AllureReporter({ disableMochaHooks: true })
-        reporter.onTestStart = jest.fn(test => startCase(test.title))
-        startCase = jest.fn()
-        endCase = jest.fn(result => result)
-        startStep = jest.fn()
-        endStep = jest.fn(result => result)
+        reporter.onTestStart = vi.fn(test => startCase(test.title))
+        startCase = vi.fn()
+        endCase = vi.fn(result => result)
+        startStep = vi.fn()
+        endStep = vi.fn(result => result)
     })
 
     it('should add test on custom hook', () => {
@@ -594,8 +598,8 @@ describe('hooks handling disabled Mocha Hooks', () => {
 describe('hooks handling default', () => {
     let reporter: any, startCase: any, endCase: any, startStep: any, endStep: any
     const allureInstance = ({ suite = {}, test = { steps: [1] } }: any = {}) => ({
-        getCurrentSuite: jest.fn(() => suite),
-        getCurrentTest: jest.fn(() => { return test }),
+        getCurrentSuite: vi.fn(() => suite),
+        getCurrentTest: vi.fn(() => { return test }),
         startCase,
         endCase,
         startStep,
@@ -604,11 +608,11 @@ describe('hooks handling default', () => {
 
     beforeEach(() => {
         reporter = new AllureReporter({ disableMochaHooks: false })
-        reporter.onTestStart = jest.fn(test => startCase(test.title))
-        startCase = jest.fn()
-        endCase = jest.fn(result => result)
-        startStep = jest.fn()
-        endStep = jest.fn(result => result)
+        reporter.onTestStart = vi.fn(test => startCase(test.title))
+        startCase = vi.fn()
+        endCase = vi.fn(result => result)
+        startStep = vi.fn()
+        endStep = vi.fn(result => result)
     })
 
     it('should capture mocha each hooks', () => {
@@ -649,9 +653,9 @@ describe('hooks handling default', () => {
 describe('nested suite naming', () => {
     it('should not end test if no hook ignored', () => {
         const reporter = new AllureReporter()
-        const startSuite = jest.fn()
+        const startSuite = vi.fn()
         reporter['_allure'] = {
-            getCurrentSuite: jest.fn(() => { return { name: 'foo' } }),
+            getCurrentSuite: vi.fn(() => { return { name: 'foo' } }),
             startSuite
         } as any
         reporter.onSuiteStart({ title: 'bar' } as SuiteStats)

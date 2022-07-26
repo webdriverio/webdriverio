@@ -141,7 +141,7 @@ export interface DesiredCapabilities extends Capabilities, SauceLabsCapabilities
     excludeDriverLogs?: string[];
 }
 
-export interface VendorExtensions extends EdgeCapabilities, AppiumW3CCapabilities, WebdriverIO.WDIODevtoolsOptions {
+export interface VendorExtensions extends EdgeCapabilities, AppiumW3CCapabilities, WebdriverIO.WDIODevtoolsOptions, WebdriverIO.WDIOVSCodeServiceOptions {
     // Aerokube Selenoid specific
     'selenoid:options'?: SelenoidOptions
     // Aerokube Moon specific
@@ -155,9 +155,14 @@ export interface VendorExtensions extends EdgeCapabilities, AppiumW3CCapabilitie
     // Browserstack w3c specific
     'bstack:options'?: BrowserStackCapabilities
     'browserstack.local'?: boolean
+    /**
+     * @private
+     */
+    'browserstack.wdioService'?: string
 
     'goog:chromeOptions'?: ChromeOptions;
     'moz:firefoxOptions'?: FirefoxOptions;
+    'moz:debuggerAddress'?: boolean;
     // eslint-disable-next-line
     firefox_profile?: string;
     'ms:edgeOptions'?: MicrosoftEdgeOptions;
@@ -455,9 +460,10 @@ export interface AppiumW3CCapabilities {
     'appium:printPageSourceOnFindFailure'?: boolean;
     'appium:nativeWebTap'?: boolean;
     'appium:options'?: AppiumCapabilities
-
-    // Users as directConnect feature by the server
-    // https://appiumpro.com/editions/86-connecting-directly-to-appium-hosts-in-distributed-environments
+    /**
+     * Users as directConnect feature by the server
+     * https://appiumpro.com/editions/86-connecting-directly-to-appium-hosts-in-distributed-environments
+     */
     'appium:directConnectProtocol'?: string;
     'appium:directConnectHost'?: string;
     'appium:directConnectPort'?: number;
@@ -1074,7 +1080,6 @@ export interface BrowserStackCapabilities {
     safari?: {
         enablePopups?: boolean
         allowAllCookies?: boolean
-        driver?: string
     }
     firefox?: {
         driver?: string
@@ -1082,6 +1087,10 @@ export interface BrowserStackCapabilities {
     browserName?: string
     browserVersion?: string
     acceptSslCerts?: boolean
+    /**
+     * @private
+     */
+    wdioService?: string
 }
 
 export interface SauceLabsVisualCapabilities {

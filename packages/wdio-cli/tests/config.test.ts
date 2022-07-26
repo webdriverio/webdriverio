@@ -1,3 +1,4 @@
+import { test, expect } from 'vitest'
 import { getAnswers } from '../src/utils'
 
 test('runConfig with yes param', async () => {

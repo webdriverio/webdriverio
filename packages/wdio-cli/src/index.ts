@@ -1,13 +1,17 @@
-import fs from 'fs'
-import path from 'path'
+import fs from 'node:fs'
+import url from 'node:url'
+import path from 'node:path'
 
-import yargs from 'yargs/yargs'
+import yargs from 'yargs'
 import { hideBin } from 'yargs/helpers'
 
-import Launcher from './launcher'
-import { handler, cmdArgs } from './commands/run'
-import { CLI_EPILOGUE } from './constants'
-import { RunCommandArguments } from './types'
+import Launcher from './launcher.js'
+import { commands } from './commands/index.js'
+import { handler, cmdArgs } from './commands/run.js'
+import { CLI_EPILOGUE } from './constants.js'
+import type { RunCommandArguments } from './types'
+
+const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 
 const DEFAULT_CONFIG_FILENAME = 'wdio.conf.js'
 const DESCRIPTION = [
@@ -23,8 +27,9 @@ const DESCRIPTION = [
 ]
 
 export const run = async () => {
+    const commandDir = path.join(__dirname, 'commands')
     const argv = yargs(hideBin(process.argv))
-        .commandDir('commands')
+        .command(commands)
         .example('wdio run wdio.conf.js --suite foobar', 'Run suite on testsuite "foobar"')
         .example('wdio run wdio.conf.js --spec ./tests/e2e/a.js --spec ./tests/e2e/b.js', 'Run suite on specific specs')
         .example('wdio run wdio.conf.js --spec ./tests/e2e/a.feature:5', 'Run scenario by line number')
@@ -54,7 +59,7 @@ export const run = async () => {
      */
     const params = await argv.parse()
     const supportedCommands = fs
-        .readdirSync(path.join(__dirname, 'commands'))
+        .readdirSync(commandDir)
         .map((file) => file.slice(0, -3))
 
     if (params._ && !params._.find((param: string) => supportedCommands.includes(param))) {
@@ -74,7 +79,7 @@ export const run = async () => {
 
             console.error(`${output}\n\n${err.stack}`)
             /* istanbul ignore if */
-            if (!process.env.JEST_WORKER_ID) {
+            if (!process.env.VITEST_WORKER_ID) {
                 process.exit(1)
             }
         })
@@ -82,4 +87,4 @@ export const run = async () => {
 }
 
 export default Launcher
-export * from './types'
+export * from './types.js'

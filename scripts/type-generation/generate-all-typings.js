@@ -1,14 +1,15 @@
 #!/usr/bin/env node
 
-const fs = require('fs')
-const path = require('path')
-const camelCase = require('camelcase')
+import fs from 'node:fs'
+import url from 'node:url'
+import path from 'node:path'
+import camelCase from 'camelcase'
 
-const { PROTOCOLS } = require('../constants')
+import { paramTypeMap, returnTypeMap } from './constants.js'
+import { PROTOCOLS } from '../constants.js'
 
+const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 const TYPINGS_PATH = path.join(__dirname, '..', '..', 'packages', 'wdio-protocols', 'src', 'commands')
-const returnTypeMap = require('./webdriver-return-types.json')
-const paramTypeMap = require('./webdriver-param-types.json')
 
 const INDENTATION = ' '.repeat(4)
 const EXAMPLE_INDENTATION = `${INDENTATION} * `

@@ -1,16 +1,20 @@
-import fs from 'fs'
+import { expect, describe, beforeEach, afterEach, it, vi, SpyInstance } from 'vitest'
+import fs from 'node:fs'
+import path from 'node:path'
 // @ts-ignore mocked (original defined in webdriver package)
 import got from 'got'
 import { remote } from '../../../src'
 import * as utils from '../../../src/utils'
 
-jest.mock('fs')
+vi.mock('fs')
+vi.mock('got')
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 describe('saveScreenshot', () => {
     let browser: WebdriverIO.Browser
-    let getAbsoluteFilepathSpy: jest.SpyInstance
-    let assertDirectoryExistsSpy: jest.SpyInstance
-    let writeFileSyncSpy: jest.SpyInstance
+    let getAbsoluteFilepathSpy: SpyInstance
+    let assertDirectoryExistsSpy: SpyInstance
+    let writeFileSyncSpy: SpyInstance
 
     beforeEach(async () => {
         browser = await remote({
@@ -19,9 +23,9 @@ describe('saveScreenshot', () => {
                 browserName: 'foobar'
             }
         })
-        getAbsoluteFilepathSpy = jest.spyOn(utils, 'getAbsoluteFilepath')
-        assertDirectoryExistsSpy = jest.spyOn(utils, 'assertDirectoryExists')
-        writeFileSyncSpy = jest.spyOn(fs, 'writeFileSync')
+        getAbsoluteFilepathSpy = vi.spyOn(utils, 'getAbsoluteFilepath')
+        assertDirectoryExistsSpy = vi.spyOn(utils, 'assertDirectoryExists')
+        writeFileSyncSpy = vi.spyOn(fs, 'writeFileSync')
     })
 
     afterEach(() => {

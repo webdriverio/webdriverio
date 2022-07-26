@@ -1,8 +1,12 @@
+import path from 'node:path'
+import { expect, describe, it, afterEach, vi } from 'vitest'
+
 // @ts-ignore mocked (original defined in webdriver package)
-import gotMock from 'got'
+import got from 'got'
 import { remote } from '../../../src'
 
-const got = gotMock as any as jest.Mock
+vi.mock('got')
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 describe('getLocation test', () => {
     it('should allow to get the width and height of an element', async () => {
@@ -29,7 +33,7 @@ describe('getLocation test', () => {
                 jsonwpMode: true,
                 browserName: 'foobar'
             }
-        })
+        } as any)
         const elem = await browser.$('#foo')
         const size = await elem.getLocation()
 

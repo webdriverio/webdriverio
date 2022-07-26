@@ -1,15 +1,19 @@
+import path from 'node:path'
+import { expect, describe, it, vi, beforeEach, afterEach } from 'vitest'
+
 // @ts-ignore mocked (original defined in webdriver package)
-import gotMock from 'got'
+import got from 'got'
 import { remote } from '../../../src'
 import { ELEMENT_KEY } from '../../../src/constants'
 import * as utils from '../../../src/utils'
 
-const got = gotMock as any as jest.Mock
+vi.mock('got')
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 describe('selectByIndex test', () => {
-    const getElementFromResponseSpy = jest.spyOn(utils, 'getElementFromResponse')
-    let browser: WebdriverIO.Browser
-    let elem: WebdriverIO.Element
+    const getElementFromResponseSpy = vi.spyOn(utils, 'getElementFromResponse')
+    let browser: any
+    let elem: any
 
     beforeEach(async () => {
         browser = await remote({
@@ -35,7 +39,8 @@ describe('selectByIndex test', () => {
         expect(got.mock.calls[3][0].pathname)
             .toBe('/session/foobar-123/element/some-elem-456/click')
         expect(getElementFromResponseSpy).toBeCalledWith({
-            [ELEMENT_KEY]: 'some-elem-456'
+            [ELEMENT_KEY]: 'some-elem-456',
+            index: 1
         })
     })
 
@@ -53,10 +58,11 @@ describe('selectByIndex test', () => {
         // @ts-ignore uses expect-webdriverio
         expect.hasAssertions()
         const mockElem = {
+            options: {},
             selector: 'foobar2',
             elementId: 'some-elem-123',
             'element-6066-11e4-a52e-4f735466cecf': 'some-elem-123',
-            findElementsFromElement: jest.fn().mockReturnValue(Promise.resolve([]))
+            findElementsFromElement: vi.fn().mockReturnValue(Promise.resolve([]))
         }
         // @ts-ignore mock feature
         mockElem.selectByIndex = elem.selectByIndex.bind(mockElem)
@@ -72,8 +78,9 @@ describe('selectByIndex test', () => {
         // @ts-ignore uses expect-webdriverio
         expect.hasAssertions()
         const mockElem = {
+            options: {},
             selector: 'foobar',
-            findElementsFromElement: jest.fn().mockReturnValue(Promise.resolve([{ elem: 1 }]))
+            findElementsFromElement: vi.fn().mockReturnValue(Promise.resolve([{ elem: 1 }]))
         }
         // @ts-ignore mock feature
         mockElem.selectByIndex = elem.selectByIndex.bind(mockElem)

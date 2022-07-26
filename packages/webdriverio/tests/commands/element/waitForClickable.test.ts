@@ -1,8 +1,13 @@
+import path from 'node:path'
+import { expect, describe, it, vi, beforeEach } from 'vitest'
 import { remote } from '../../../src'
+
+vi.mock('got')
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 describe('waitForClickable', () => {
     const duration = 1000
-    let browser
+    let browser: any
 
     beforeEach(async () => {
         browser = await remote({
@@ -13,14 +18,14 @@ describe('waitForClickable', () => {
         })
     })
 
-    test('should call waitUntil', async () => {
-        const cb = jest.fn()
+    it('should call waitUntil', async () => {
+        const cb = vi.fn()
         const tmpElem = await browser.$('#foo')
         const elem = {
             selector : '#foo',
             waitForClickable : tmpElem.waitForClickable,
             elementId : 123,
-            waitUntil : jest.fn(((cb))),
+            waitUntil : vi.fn(((cb))),
             options : { waitforInterval: 5, waitforTimeout: duration }
         }
 
@@ -30,23 +35,23 @@ describe('waitForClickable', () => {
         expect(elem.waitUntil.mock.calls).toMatchSnapshot()
     })
 
-    test('should call isClickable and return true immediately if true', async () => {
+    it('should call isClickable and return true immediately if true', async () => {
         const elem = await browser.$('#foo')
         delete elem.isClickable
-        elem.isClickable = jest.fn().mockImplementationOnce(() => true)
+        elem.isClickable = vi.fn().mockImplementationOnce(() => true)
         const result = await elem.waitForClickable({ timeout: duration })
 
         expect(result).toBe(true)
     })
 
-    test('should call isClickable and return true if eventually true', async () => {
+    it('should call isClickable and return true if eventually true', async () => {
         const tmpElem = await browser.$('#foo')
         const elem = {
             selector : '#foo',
             waitForClickable : tmpElem.waitForClickable,
             elementId : 123,
             waitUntil : tmpElem.waitUntil,
-            isClickable : jest.fn()
+            isClickable : vi.fn()
                 .mockImplementationOnce(() => false)
                 .mockImplementationOnce(() => false)
                 .mockImplementationOnce(() => true),
@@ -57,7 +62,7 @@ describe('waitForClickable', () => {
         expect(result).toBe(true)
     })
 
-    test('should call isClickable and return false', async () => {
+    it('should call isClickable and return false', async () => {
         // @ts-ignore uses expect-webdriverio
         expect.assertions(1)
         const tmpElem = await browser.$('#foo')
@@ -66,7 +71,7 @@ describe('waitForClickable', () => {
             waitForClickable : tmpElem.waitForClickable,
             elementId : 123,
             waitUntil : tmpElem.waitUntil,
-            isClickable : jest.fn(() => false),
+            isClickable : vi.fn(() => false),
             options : { waitforTimeout : 500, waitforInterval: 50 },
         }
 
@@ -77,11 +82,11 @@ describe('waitForClickable', () => {
         }
     })
 
-    test('should not call isClickable and return false if never found', async () => {
+    it('should not call isClickable and return false if never found', async () => {
         const tmpElem = await browser.$('#foo')
-        const elem = {
+        const elem: any = {
             selector : '#foo',
-            parent: { $: jest.fn(() => { return elem}) },
+            parent: { $: vi.fn(() => { return elem}) },
             waitForClickable : tmpElem.waitForClickable,
             waitUntil : tmpElem.waitUntil,
             isDisplayed : tmpElem.isDisplayed,
@@ -96,15 +101,15 @@ describe('waitForClickable', () => {
         }
     })
 
-    test('should do reverse', async () => {
-        const cb = jest.fn()
+    it('should do reverse', async () => {
+        const cb = vi.fn()
         const tmpElem = await browser.$('#foo')
         const elem = {
             selector : '#foo',
             waitForClickable : tmpElem.waitForClickable,
             elementId : 123,
-            waitUntil : jest.fn(((cb))),
-            isClickable : jest.fn(() => true),
+            waitUntil : vi.fn(((cb))),
+            isClickable : vi.fn(() => true),
             options : { waitforTimeout : 500, waitforInterval: 50 },
         }
 
@@ -113,7 +118,7 @@ describe('waitForClickable', () => {
         expect(elem.waitUntil.mock.calls).toMatchSnapshot()
     })
 
-    test('should call isClickable and return false with custom error', async () => {
+    it('should call isClickable and return false with custom error', async () => {
         // @ts-ignore uses expect-webdriverio
         expect.assertions(1)
         const tmpElem = await browser.$('#foo')
@@ -122,7 +127,7 @@ describe('waitForClickable', () => {
             waitForClickable : tmpElem.waitForClickable,
             elementId : 123,
             waitUntil : tmpElem.waitUntil,
-            isClickable : jest.fn(() => false),
+            isClickable : vi.fn(() => false),
             options : { waitforTimeout : 500, waitforInterval: 50 },
         }
 

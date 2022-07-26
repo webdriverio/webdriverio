@@ -1,15 +1,16 @@
-import path from 'path'
+import path from 'node:path'
+import { format } from 'node:util'
 import Mocha, { Runner } from 'mocha'
-import { format } from 'util'
 
 import logger from '@wdio/logger'
 import { runTestInFiberContext, executeHooksWithArgs } from '@wdio/utils'
+import { setOptions } from 'expect-webdriverio'
 import type { Capabilities, Services } from '@wdio/types'
 
-import { loadModule } from './utils'
-import { INTERFACES, EVENTS, NOOP, MOCHA_TIMEOUT_MESSAGE, MOCHA_TIMEOUT_MESSAGE_REPLACEMENT } from './constants'
-import type { MochaConfig, MochaOpts as MochaOptsImport, FrameworkMessage, FormattedMessage, MochaContext, MochaError } from './types'
-import type { EventEmitter } from 'events'
+import { loadModule } from './utils.js'
+import { INTERFACES, EVENTS, NOOP, MOCHA_TIMEOUT_MESSAGE, MOCHA_TIMEOUT_MESSAGE_REPLACEMENT } from './constants.js'
+import type { MochaConfig, MochaOpts as MochaOptsImport, FrameworkMessage, FormattedMessage, MochaError } from './types'
+import type { EventEmitter } from 'node:events'
 import type ExpectWebdriverIO from 'expect-webdriverio'
 
 const log = logger('@wdio/mocha-framework')
@@ -25,6 +26,7 @@ const log = logger('@wdio/mocha-framework')
 */
 const MOCHA_UI_TYPE_EXTRACTOR = /^(?:.*-)?([^-.]+)(?:.js)?$/
 const DEFAULT_INTERFACE_TYPE = 'bdd'
+const FILE_PROTOCOL = 'file://'
 
 type EventTypes = 'hook' | 'test' | 'suite'
 type EventTypeProps = '_hookCnt' | '_testCnt' | '_suiteCnt'
@@ -64,15 +66,14 @@ class MochaAdapter {
         mocha.reporter(NOOP as any)
         mocha.fullTrace()
 
-        this._specs.forEach((spec) => mocha.addFile(spec))
+        this._specs.forEach((spec) => mocha.addFile(
+            spec.startsWith(FILE_PROTOCOL)
+                ? spec.slice(FILE_PROTOCOL.length)
+                : spec
+        ))
         mocha.suite.on('pre-require', this.preRequire.bind(this))
         await this._loadFiles(mochaOpts)
 
-        /**
-         * import and set options for `expect-webdriverio` assertion lib once
-         * the framework was initiated so that it can detect the environment
-         */
-        const { setOptions } = require('expect-webdriverio')
         setOptions({
             wait: this._config.waitforTimeout, // ms to wait for expectation to succeed
             interval: this._config.waitforInterval, // interval between attempts
@@ -140,24 +141,17 @@ class MochaAdapter {
         return result
     }
 
-    options (
-        options: MochaOptsImport,
-        context: MochaContext
-    ) {
+    options (options: MochaOptsImport) {
         let { require = [], compilers = [] } = options
 
         if (typeof require === 'string') {
             require = [require]
         }
 
-        this.requireExternalModules([...compilers, ...require], context)
+        return this.requireExternalModules([...compilers, ...require])
     }
 
-    preRequire (
-        context: Mocha.MochaGlobals,
-        file: string,
-        mocha: Mocha
-    ) {
+    preRequire () {
         const options = this._config.mochaOpts
 
         const match = MOCHA_UI_TYPE_EXTRACTOR.exec(options.ui!) as any as [string, keyof typeof INTERFACES]
@@ -182,7 +176,7 @@ class MochaAdapter {
                 this._cid
             )
         })
-        this.options(options, { context, file, mocha, options })
+        return this.options(options)
     }
 
     /**
@@ -294,10 +288,10 @@ class MochaAdapter {
         return message
     }
 
-    requireExternalModules (modules: string[], context: MochaContext) {
-        modules.forEach(module => {
+    requireExternalModules (modules: string[]) {
+        return modules.map((module) => {
             if (!module) {
-                return
+                return Promise.resolve()
             }
 
             module = module.replace(/.*:/, '')
@@ -306,7 +300,7 @@ class MochaAdapter {
                 module = path.join(process.cwd(), module)
             }
 
-            loadModule(module, context)
+            return loadModule(module)
         })
     }
 

@@ -1,14 +1,14 @@
-const { config } = require('./config')
+import { config as baseConfig } from './config.js'
 
-exports.config = Object.assign({}, config, {
+export const config = Object.assign({}, baseConfig, {
     framework: 'cucumber',
 
     async beforeFeature () {
         await browser.pause(30)
         browser.Cucumber_Test = 0
     },
-    beforeScenario: () => {
-        browser.pause(30)
+    beforeScenario: async () => {
+        await browser.pause(30)
         browser.Cucumber_Test = 1
     },
     beforeStep: async function (step, scenario) {
@@ -17,8 +17,8 @@ exports.config = Object.assign({}, config, {
         browser.Cucumber_CurrentStepText = step.text
         browser.Cucumber_CurrentScenario = scenario.name
     },
-    afterStep: function (step, scenario, result) {
-        browser.pause(25)
+    afterStep: async function (step, scenario, result) {
+        await browser.pause(25)
         if (
             browser.Cucumber_CurrentStepText !== step.text ||
             browser.Cucumber_CurrentScenario !== scenario.name ||
@@ -28,12 +28,12 @@ exports.config = Object.assign({}, config, {
         }
         browser.Cucumber_Test = 1
     },
-    afterScenario: () => {
-        browser.pause(30)
+    afterScenario: async () => {
+        await browser.pause(30)
         browser.Cucumber_Test = -1
     },
-    afterFeature: () => {
+    afterFeature: async () => {
         delete browser.Cucumber_Test
-        browser.pause(30)
+        await browser.pause(30)
     },
 })

@@ -1,17 +1,22 @@
+import path from 'node:path'
+import { expect, describe, it, beforeEach, vi } from 'vitest'
+
 // @ts-ignore mocked (original defined in webdriver package)
-import gotMock from 'got'
+import got from 'got'
 import { remote } from '../../../src'
 
-const got = gotMock as any as jest.Mock
+vi.mock('got')
+vi.mock('devtools')
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
-jest.mock('../../../src/scripts/isElementDisplayed', () => ({
+vi.mock('../../../src/scripts/isElementDisplayed', () => ({
     __esModule: true,
     default: function () { return true }
 }))
 
 describe('isDisplayed test', () => {
-    let browser: WebdriverIO.Browser
-    let elem: WebdriverIO.Element
+    let browser: any
+    let elem: any
 
     beforeEach(async () => {
         browser = await remote({
@@ -38,7 +43,7 @@ describe('isDisplayed test', () => {
                 // @ts-ignore mock feature
                 keepBrowserName: true,
                 mobileMode: true
-            }
+            } as any
         })
         elem = await browser.$('#foo')
         got.mockClear()
@@ -74,7 +79,7 @@ describe('isDisplayed test', () => {
                 browserName: 'safari',
                 // @ts-ignore mock feature
                 keepBrowserName: true
-            }
+            } as any
         })
         elem = await browser.$('#foo')
 
@@ -101,7 +106,7 @@ describe('isDisplayed test', () => {
                     browserName: 'safari',
                     // @ts-ignore mock feature
                     keepBrowserName: true
-                }
+                } as any
             })
             elem = await browser.$('#foo')
             got.mockClear()
@@ -122,7 +127,7 @@ describe('isDisplayed test', () => {
                     browserName: 'safari technology preview',
                     // @ts-ignore mock feature
                     keepBrowserName: true
-                }
+                } as any
             })
             elem = await browser.$('#foo')
             got.mockClear()
@@ -143,7 +148,7 @@ describe('isDisplayed test', () => {
                     browserName: 'MicrosoftEdge',
                     // @ts-ignore mock feature
                     keepBrowserName: true
-                }
+                } as any
             })
             elem = await browser.$('#foo')
             got.mockClear()
@@ -164,7 +169,7 @@ describe('isDisplayed test', () => {
                     browserName: 'chrome',
                     // @ts-ignore mock feature
                     keepBrowserName: true
-                }
+                } as any
             })
             elem = await browser.$('#foo')
             got.mockClear()

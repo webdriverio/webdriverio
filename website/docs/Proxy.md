@@ -23,9 +23,10 @@ npm install global-agent --save-dev
 Add the following require statement to the top of your config file.
 
 ```js title="wdio.conf.js"
-require('global-agent/bootstrap')
+import { bootstrap } from 'global-agent';
+bootstrap();
 
-exports.config = {
+export const config = {
     // ...
 }
 ```

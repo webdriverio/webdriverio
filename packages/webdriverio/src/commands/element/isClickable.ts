@@ -1,6 +1,6 @@
-import { ELEMENT_KEY } from '../../constants'
-import { getBrowserObject } from '../../utils'
-import isElementClickableScript from '../../scripts/isElementClickable'
+import { ELEMENT_KEY } from '../../constants.js'
+import { getBrowserObject } from '../../utils/index.js'
+import isElementClickableScript from '../../scripts/isElementClickable.js'
 
 /**
  *

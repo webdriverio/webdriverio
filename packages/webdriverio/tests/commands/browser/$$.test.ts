@@ -1,7 +1,12 @@
+import path from 'node:path'
 // @ts-ignore mocked (original defined in webdriver package)
 import got from 'got'
+import { describe, it, afterEach, expect, vi } from 'vitest'
 import { remote } from '../../../src'
 import { ELEMENT_KEY } from '../../../src/constants'
+
+vi.mock('got')
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 describe('elements', () => {
     it('should fetch elements', async () => {
@@ -70,7 +75,7 @@ describe('elements', () => {
                 // @ts-ignore mock feature
                 mobileMode: true,
                 'appium-version': '1.9.2'
-            }
+            } as any
         })
 
         const elems = await browser.$$('.foo')

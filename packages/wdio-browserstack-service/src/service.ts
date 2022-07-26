@@ -3,8 +3,8 @@ import got from 'got'
 import type { Services, Capabilities, Options, Frameworks } from '@wdio/types'
 import type { Browser, MultiRemoteBrowser } from 'webdriverio'
 
-import { getBrowserDescription, getBrowserCapabilities, isBrowserstackCapability, getParentSuiteName } from './util'
-import { BrowserstackConfig, MultiRemoteAction, SessionResponse } from './types'
+import { getBrowserDescription, getBrowserCapabilities, isBrowserstackCapability, getParentSuiteName } from './util.js'
+import type { BrowserstackConfig, MultiRemoteAction, SessionResponse } from './types'
 
 const log = logger('@wdio/browserstack-service')
 
@@ -17,10 +17,12 @@ export default class BrowserstackService implements Services.ServiceInstance {
     private _fullTitle?: string
 
     constructor (
-        private _options: BrowserstackConfig,
+        private _options: BrowserstackConfig & Options.Testrunner,
         private _caps: Capabilities.RemoteCapability,
         private _config: Options.Testrunner
     ) {
+        // added to maintain backward compatibility with webdriverIO v5
+        this._config || (this._config = _options)
         // Cucumber specific
         const strict = Boolean(this._config.cucumberOpts && this._config.cucumberOpts.strict)
         // See https://github.com/cucumber/cucumber-js/blob/master/src/runtime/index.ts#L136
@@ -57,7 +59,8 @@ export default class BrowserstackService implements Services.ServiceInstance {
     }
 
     before(caps: Capabilities.RemoteCapability, specs: string[], browser: Browser<'async'> | MultiRemoteBrowser<'async'>) {
-        this._browser = browser
+        // added to maintain backward compatibility with webdriverIO v5
+        this._browser = browser ? browser : (global as any).browser
 
         // Ensure capabilities are not null in case of multiremote
 
@@ -121,7 +124,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
      */
     afterScenario (world: Frameworks.World) {
         const status = world.result?.status.toLowerCase()
-        if (status === 'skipped') {
+        if (status !== 'skipped') {
             this._scenariosThatRan.push(world.pickle.name || 'unknown pickle name')
         }
 
@@ -150,7 +153,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
             log.info(`Update (reloaded) job with sessionId ${oldSessionId}, ${status}`)
         } else {
             const browserName = (this._browser as MultiRemoteBrowser<'async'>).instances.filter(
-                (browserName) => this._browser && (this._browser as MultiRemoteBrowser<'async'>)[browserName].sessionId === newSessionId)[0]
+                (browserName: string) => this._browser && (this._browser as MultiRemoteBrowser<'async'>)[browserName].sessionId === newSessionId)[0]
             log.info(`Update (reloaded) multiremote job for browser "${browserName}" and sessionId ${oldSessionId}, ${status}`)
         }
 
@@ -193,7 +196,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
         }
 
         return Promise.all(_browser.instances
-            .filter(browserName => {
+            .filter((browserName: string) => {
                 const cap = getBrowserCapabilities(_browser, (this._caps as Capabilities.MultiRemoteCapabilities), browserName)
                 return isBrowserstackCapability(cap)
             })
