@@ -557,11 +557,11 @@ describe('wdio-runner', () => {
 
             const runner = new WDIORunner()
             runner['_reporter'] = {
-                waitForSync: jest.fn().mockReturnValue(Promise.resolve()),
-                emit: jest.fn()
+                waitForSync: vi.fn().mockReturnValue(Promise.resolve()),
+                emit: vi.fn()
             } as any
             const reporter = runner['_reporter'] as any
-            runner.emit = jest.fn()
+            runner.emit = vi.fn()
 
             const args = [
                 ['runner:start', {
