@@ -36,6 +36,7 @@ onHookStart
 onHookEnd
 onBeforeCommand
 onAfterCommand
+onRunnerStart
 onRunnerEnd
 `
 
@@ -70,6 +71,7 @@ onHookStart
 onHookEnd
 onBeforeCommand
 onAfterCommand
+onRunnerStart
 onRunnerEnd
 `
 
@@ -90,5 +92,6 @@ onSuiteEnd
 onSuiteEnd
 onBeforeCommand
 onAfterCommand
+onRunnerStart
 onRunnerEnd
 `
