@@ -1,4 +1,4 @@
-import { getElementRect, getScrollPosition } from '../../utils/index.js'
+import { getElementRect, getScrollPosition, getBrowserObject } from '../../utils/index.js'
 
 type MoveToOptions = {
     xOffset?: number,
@@ -38,7 +38,8 @@ export default async function moveTo (
     /**
      * W3C way of handle the mouse move actions
      */
-    return this.action('pointer', { parameters: { pointerType: 'mouse' } })
+    const browser = getBrowserObject(this)
+    return browser.action('pointer', { parameters: { pointerType: 'mouse' } })
         .move({ x: newXOffset, y: newYOffset })
         .perform()
 }

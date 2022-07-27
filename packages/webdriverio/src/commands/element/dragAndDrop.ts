@@ -1,4 +1,5 @@
 import { ELEMENT_KEY } from '../../constants.js'
+import { getBrowserObject } from '../../utils/index.js'
 import type { ElementReference } from '@wdio/protocols'
 
 const ACTION_BUTTON = 0 as const
@@ -109,7 +110,8 @@ export default async function dragAndDrop (
     /**
      * W3C way of handle the drag and drop action
      */
-    return this.action('pointer')
+    const browser = getBrowserObject(this)
+    return browser.action('pointer')
         .move({ duration: 0, origin, x: 0, y: 0 })
         .down({ button: ACTION_BUTTON })
         .pause(10)

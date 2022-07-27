@@ -1,3 +1,4 @@
+import { getBrowserObject } from '../../utils/index.js'
 import type { ClickOptions } from '../../types'
 import type { Button } from '../../utils/actions'
 
@@ -121,7 +122,8 @@ export default async function click(
     }
 
     if (this.isW3C) {
-        await this.action('pointer', {
+        const browser = getBrowserObject(this)
+        await browser.action('pointer', {
             parameters: { pointerType: 'mouse' }
         })
             .move({
