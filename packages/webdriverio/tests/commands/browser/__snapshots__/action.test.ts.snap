@@ -1,5 +1,50 @@
 // Vitest Snapshot v1
 
+exports[`action command > resolves not resolved wdio elements in pointer action 1`] = `
+{
+  "actions": [
+    {
+      "actions": [
+        {
+          "origin": {
+            "element-6066-11e4-a52e-4f735466cecf": "some-elem-123",
+          },
+          "type": "pointerMove",
+        },
+      ],
+      "id": "action1",
+      "parameters": {},
+      "type": "pointer",
+    },
+  ],
+}
+`;
+
+exports[`action command > resolves not resolved wdio elements in wheel action 1`] = `
+{
+  "actions": [
+    {
+      "actions": [
+        {
+          "deltaX": 0,
+          "deltaY": 0,
+          "duration": 0,
+          "origin": {
+            "element-6066-11e4-a52e-4f735466cecf": "some-elem-123",
+          },
+          "type": "scroll",
+          "x": 0,
+          "y": 0,
+        },
+      ],
+      "id": "action2",
+      "parameters": {},
+      "type": "wheel",
+    },
+  ],
+}
+`;
+
 exports[`action command > should support key actions 1`] = `
 {
   "actions": [

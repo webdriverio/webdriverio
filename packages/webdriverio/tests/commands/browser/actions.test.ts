@@ -1,12 +1,14 @@
+import path from 'node:path'
 import { describe, it, expect, beforeAll, vi, beforeEach } from 'vitest'
 // @ts-expect-error
 import got from 'got'
-import { remote, Browser } from '../../../src'
+import { remote } from '../../../src/index.js'
 
 vi.mock('got')
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 describe('actions command', () => {
-    let browser: Browser<'async'>
+    let browser: WebdriverIO.Browser
 
     beforeAll(async () => {
         browser = await remote({

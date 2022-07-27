@@ -1,4 +1,3 @@
-import { ELEMENT_KEY } from '../../constants.js'
 import { getBrowserObject } from '../../utils/index.js'
 
 /**
@@ -15,20 +14,15 @@ import { getBrowserObject } from '../../utils/index.js'
  * </example>
  *
  * @alias element.scrollIntoView
- * @param {object|boolean=} scrollIntoViewOptions  options for `Element.scrollIntoView()` (default: `true`)
  * @uses protocol/execute
  * @type utility
  *
  */
 export default function scrollIntoView (
     this: WebdriverIO.Element,
-    scrollIntoViewOptions: boolean | ScrollIntoViewOptions = true
 ) {
     const browser = getBrowserObject(this)
-    return browser.execute(/* istanbul ignore next */function scrollIntoView (elem: HTMLElement, options: boolean | ScrollIntoViewOptions) {
-        elem.scrollIntoView(options)
-    }, {
-        [ELEMENT_KEY]: this.elementId, // w3c compatible
-        ELEMENT: this.elementId // jsonwp compatible
-    } as any as HTMLElement, scrollIntoViewOptions)
+    return browser.action('wheel')
+        .scroll({ origin: this, duration: 200 })
+        .perform()
 }

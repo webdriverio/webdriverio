@@ -1,7 +1,7 @@
 module.exports = {
     root: true,
     parser: '@typescript-eslint/parser',
-    plugins: ['@typescript-eslint', 'unicorn'],
+    plugins: ['@typescript-eslint', 'unicorn', 'import'],
     extends: [
         'eslint:recommended'
     ],
@@ -35,7 +35,8 @@ module.exports = {
         'keyword-spacing':['error'],
         'require-atomic-updates': 0,
         'linebreak-style': ['error', 'unix'],
-        'unicorn/prefer-node-protocol': ['error']
+        'unicorn/prefer-node-protocol': ['error'],
+        'import/extensions': ['error', 'always']
     },
     overrides: [{
         files: ['*.ts'],

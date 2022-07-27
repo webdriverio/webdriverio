@@ -24,6 +24,7 @@ import reloadSession from './browser/reloadSession.js'
 import savePDF from './browser/savePDF.js'
 import saveRecordingScreen from './browser/saveRecordingScreen.js'
 import saveScreenshot from './browser/saveScreenshot.js'
+import scroll from './browser/scroll.js'
 import setCookies from './browser/setCookies.js'
 import setTimeout from './browser/setTimeout.js'
 import setWindowSize from './browser/setWindowSize.js'
@@ -37,6 +38,7 @@ import waitUntil from './browser/waitUntil.js'
 export default {
     $$, $, action, actions, call, custom$$, custom$, debug, deleteCookies, execute, executeAsync,
     getCookies, getPuppeteer, getWindowSize, keys, mock, mockClearAll, mockRestoreAll, newWindow,
-    pause, react$$, react$, reloadSession, savePDF, saveRecordingScreen, saveScreenshot, setCookies,
-    setTimeout, setWindowSize, switchWindow, throttle, touchAction, uploadFile, url, waitUntil
+    pause, react$$, react$, reloadSession, savePDF, saveRecordingScreen, saveScreenshot, scroll,
+    setCookies, setTimeout, setWindowSize, switchWindow, throttle, touchAction, uploadFile, url,
+    waitUntil
 }
