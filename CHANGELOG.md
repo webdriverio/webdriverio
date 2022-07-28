@@ -19,6 +19,21 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.20.8 (2022-07-28)
+
+#### :bug: Bug Fix
+* `devtools`
+  * [#8542](https://github.com/webdriverio/webdriverio/pull/8542) Make WebDriverIO compatible with pnpm without hoisting ([@dgp1130](https://github.com/dgp1130))
+
+#### :nail_care: Polish
+* `wdio-browserstack-service`
+  * [#8498](https://github.com/webdriverio/webdriverio/pull/8498) Browserstack multiremote fix ([@Ankit098](https://github.com/Ankit098))
+
+#### Committers: 2
+- Ankit Singh ([@Ankit098](https://github.com/Ankit098))
+- Douglas Parker ([@dgp1130](https://github.com/dgp1130))
+
+
 ## v7.20.7 (2022-07-17)
 
 #### :bug: Bug Fix
