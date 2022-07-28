@@ -1,7 +1,7 @@
 import type { ChildProcess } from 'node:child_process'
 import { expect, test, vi } from 'vitest'
 
-import WDIORunnerRepl from '../src/repl'
+import WDIORunnerRepl from '../src/repl.js'
 
 const replConfig = {
     commandTimeout: 0,

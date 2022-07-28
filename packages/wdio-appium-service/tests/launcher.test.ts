@@ -7,7 +7,7 @@ import { describe, expect, beforeEach, afterEach, test, vi } from 'vitest'
 import {  } from 'fs-extra'
 import type { Capabilities, Options } from '@wdio/types'
 
-import AppiumLauncher from '../src/launcher'
+import AppiumLauncher from '../src/launcher.js'
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 vi.mock('child_process', () => ({
@@ -71,7 +71,7 @@ class MockCustomFailingProcess extends MockFailingProcess {
 }
 
 vi.mock('../src/utils', async () => {
-    const { formatCliArgs } = await vi.importActual('../src/utils')
+    const { formatCliArgs } = await vi.importActual('../src/utils.js') as any
     return {
         getFilePath: vi.fn().mockReturnValue('/some/file/path'),
         formatCliArgs

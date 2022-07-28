@@ -1,7 +1,7 @@
 import path from 'node:path'
 import { vi, describe, it, expect, afterEach, beforeEach } from 'vitest'
-import WDIOCLInterface from '../src/interface'
-import { HookError } from '../src/utils'
+import WDIOCLInterface from '../src/interface.js'
+import { HookError } from '../src/utils.js'
 import chalk from 'chalk'
 
 const config = {}
@@ -322,7 +322,6 @@ describe('cli interface', () => {
             it(scenario.method, () => {
                 wdioClInterface.onJobComplete = vi.fn()
                 wdioClInterface['_jobs'].set(scenario.cid, scenario.job)
-                // @ts-expect-error
                 wdioClInterface[scenario.method](scenario.cid, scenario.job, scenario.retries)
                 expect(wdioClInterface.onJobComplete).toBeCalledWith(scenario.cid, scenario.job, scenario.retries, scenario.message)
             })
@@ -351,12 +350,10 @@ describe('cli interface', () => {
                 specs: ['bar'],
                 hasTests: true
             })
-            // @ts-expect-error
             expect(wdioClInterface.sigintTrigger()[0]).toContain('Ending WebDriver sessions gracefully')
         })
 
         it('should print message without jobs', () => {
-            // @ts-expect-error
             expect(wdioClInterface.sigintTrigger()[0]).toContain('Ended WebDriver sessions gracefully')
         })
 

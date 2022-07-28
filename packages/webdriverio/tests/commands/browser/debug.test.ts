@@ -1,6 +1,6 @@
 import path from 'node:path'
 import { expect, describe, it, beforeEach, afterEach, vi } from 'vitest'
-import { remote } from '../../../src'
+import { remote } from '../../../src/index.js'
 
 vi.mock('got')
 vi.mock('@wdio/repl', () => import(path.join(process.cwd(), '__mocks__', '@wdio/repl')))
@@ -47,6 +47,7 @@ describe('debug command', () => {
                 name: 'start',
                 params: { commandTimeout: 5000, introMessage: 'some intro from mock' }
             })
+            // @ts-expect-error internal var
             expect(global.process._debugProcess).toBeCalledWith(process.pid)
         })
 
@@ -66,6 +67,7 @@ describe('debug command', () => {
 
             it('should stop debugging process on stop', () => {
                 messageHandlerCallback({ origin: 'debugger', name: 'stop' })
+                // @ts-expect-error internal var
                 expect(global.process._debugEnd).toBeCalledWith(process.pid)
             })
 

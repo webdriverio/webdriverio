@@ -1,7 +1,7 @@
 import path from 'node:path'
 import { describe, expect, it, vi, beforeAll, afterEach } from 'vitest'
 import got from 'got'
-import { getValue, setValue, setPort } from '../src/client'
+import { getValue, setValue, setPort } from '../src/client.js'
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 vi.mock('got', () => ({

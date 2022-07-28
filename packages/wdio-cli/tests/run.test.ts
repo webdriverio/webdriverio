@@ -1,6 +1,6 @@
 import { vi, describe, it, expect, afterEach, beforeEach } from 'vitest'
-import { launch, cmdArgs } from '../src/commands/run'
-import Launcher from '../src/launcher'
+import { launch, cmdArgs } from '../src/commands/run.js'
+import Launcher from '../src/launcher.js'
 
 vi.mock('../src/launcher', () => ({
     default: vi.fn().mockImplementation((conf, result) => ({

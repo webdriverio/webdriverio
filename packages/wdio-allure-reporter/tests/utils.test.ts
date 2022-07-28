@@ -1,8 +1,11 @@
 import { describe, it, expect, afterEach, beforeAll, afterAll, vi } from 'vitest'
 import process from 'node:process'
-import CompoundError from '../src/compoundError'
-import { getTestStatus, isEmpty, tellReporter, isMochaEachHooks, getErrorFromFailedTest, isMochaAllHooks, getLinkByTemplate } from '../src/utils'
-import { linkPlaceholder, testStatuses } from '../src/constants'
+import CompoundError from '../src/compoundError.js'
+import {
+    getTestStatus, isEmpty, tellReporter, isMochaEachHooks,
+    getErrorFromFailedTest, isMochaAllHooks, getLinkByTemplate
+} from '../src/utils.js'
+import { linkPlaceholder, testStatuses } from '../src/constants.js'
 
 describe('utils', () => {
     let processEmit: any

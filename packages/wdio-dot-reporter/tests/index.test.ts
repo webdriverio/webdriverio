@@ -2,7 +2,7 @@ import path from 'node:path'
 import tmp from 'tmp'
 import { describe, expect, it, vi } from 'vitest'
 
-import DotReporter from '../src'
+import DotReporter from '../src/index.js'
 
 vi.mock('chalk')
 vi.mock('@wdio/reporter', () => import(path.join(process.cwd(), '__mocks__', '@wdio/reporter')))

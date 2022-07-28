@@ -7,8 +7,8 @@ import got, { Agents } from 'got'
 import logger from '@wdio/logger'
 import type { Options } from '@wdio/types'
 
-import * as utils from '../src/utils'
-import WebDriverRequest from '../src/request/node'
+import * as utils from '../src/utils.js'
+import WebDriverRequest from '../src/request/node.js'
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 vi.mock('got')

@@ -3,7 +3,7 @@ import { expect, vi, beforeEach, test } from 'vitest'
 import puppeteer from 'puppeteer-core'
 import { launch as launchChromeBrowser } from 'chrome-launcher'
 
-import launch from '../src/launcher'
+import launch from '../src/launcher.js'
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 vi.mock('puppeteer-core', () => import(path.join(process.cwd(), '__mocks__', 'puppeteer-core')))

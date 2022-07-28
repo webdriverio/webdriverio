@@ -7,9 +7,9 @@ import type Protocols from '@wdio/protocols'
 import type { Options } from '@wdio/types'
 
 // @ts-expect-error mock feature
-import RequestMock, { thenMock } from '../src/request/node'
-import commandWrapper from '../src/command'
-import { BaseClient } from '../src/types'
+import RequestMock, { thenMock } from '../src/request/node.js'
+import commandWrapper from '../src/command.js'
+import type { BaseClient } from '../src/types'
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 vi.mock('got')

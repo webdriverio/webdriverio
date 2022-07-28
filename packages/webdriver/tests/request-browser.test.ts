@@ -5,7 +5,7 @@ import logger from '@wdio/logger'
 import ky from 'ky'
 
 import type { Options } from '@wdio/types'
-import BrowserRequest from '../src/request/browser'
+import BrowserRequest from '../src/request/browser.js'
 
 vi.mock('ky')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))

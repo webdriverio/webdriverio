@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import CompoundError from '../src/compoundError'
+import CompoundError from '../src/compoundError.js'
 
 describe('CompoundError', () => {
     let e1: Error

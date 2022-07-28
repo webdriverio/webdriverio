@@ -5,8 +5,8 @@ import WebDriver from 'webdriver'
 import logger from '@wdio/logger'
 import { validateConfig } from '@wdio/config'
 
-import detectBackend from '../src/utils/detectBackend'
-import { remote, multiremote, attach, RemoteOptions } from '../src'
+import detectBackend from '../src/utils/detectBackend.js'
+import { remote, multiremote, attach, RemoteOptions } from '../src/index.js'
 
 vi.mock('../src/utils/detectBackend', () => ({ default: vi.fn() }))
 

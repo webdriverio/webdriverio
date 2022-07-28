@@ -1,5 +1,5 @@
 import { test, expect } from 'vitest'
-import { getAnswers } from '../src/utils'
+import { getAnswers } from '../src/utils.js'
 
 test('runConfig with yes param', async () => {
     const answers = await getAnswers(true)

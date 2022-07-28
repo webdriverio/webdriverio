@@ -6,7 +6,7 @@ import { describe, expect, it, vi } from 'vitest'
 import logger from '@wdio/logger'
 import type { Workers } from '@wdio/types'
 
-import Worker from '../src/worker'
+import Worker from '../src/worker.js'
 
 const workerConfig = {
     cid: '0-3',

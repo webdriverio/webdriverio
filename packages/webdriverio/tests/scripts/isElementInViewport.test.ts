@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
-import isElementInViewport from '../../src/scripts/isElementInViewport'
+import isElementInViewport from '../../src/scripts/isElementInViewport.js'
 
 describe('isElementInViewport script', () => {
     beforeAll(() => {

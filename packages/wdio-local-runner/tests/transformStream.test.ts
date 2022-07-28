@@ -1,8 +1,8 @@
 import { Readable } from 'node:stream'
 import { test, expect } from 'vitest'
 
-import runnerTransformStream from '../src/transformStream'
-import { DEBUGGER_MESSAGES } from '../src/constants'
+import runnerTransformStream from '../src/transformStream.js'
+import { DEBUGGER_MESSAGES } from '../src/constants.js'
 
 function read(stream: Readable): Promise<string> {
     return new Promise((resolve, reject) => {

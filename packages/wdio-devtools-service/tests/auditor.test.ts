@@ -3,7 +3,7 @@ import { expect, test, vi, beforeEach } from 'vitest'
 import logger from '@wdio/logger'
 import type { Trace } from '../src/gatherer/trace'
 
-import Auditor from '../src/auditor'
+import Auditor from '../src/auditor.js'
 
 vi.mock('lighthouse/lighthouse-core/audits/diagnostics')
 vi.mock('lighthouse/lighthouse-core/audits/mainthread-work-breakdown')

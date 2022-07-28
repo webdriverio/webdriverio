@@ -1,6 +1,6 @@
 import path from 'node:path'
 import { expect, test, vi, beforeEach } from 'vitest'
-import DevToolsDriver from '../src/devtoolsdriver'
+import DevToolsDriver from '../src/devtoolsdriver.js'
 import type { Dialog } from 'puppeteer-core/lib/cjs/puppeteer/common/Dialog'
 import type { Frame } from 'puppeteer-core/lib/cjs/puppeteer/common/FrameManager'
 

@@ -1,7 +1,7 @@
 import { expect, describe, it, vi, beforeEach, beforeAll } from 'vitest'
 import puppeteer from 'puppeteer-core'
 
-import { remote } from '../../../src'
+import { remote } from '../../../src/index.js'
 
 vi.mock('got')
 vi.mock('puppeteer-core')

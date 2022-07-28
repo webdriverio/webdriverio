@@ -3,8 +3,8 @@ import { EventEmitter } from 'node:events'
 import { expect, test, vi, beforeEach } from 'vitest'
 import puppeteer from 'puppeteer-core'
 
-import DevToolsService from '../src'
-import Auditor from '../src/auditor'
+import DevToolsService from '../src/index.js'
+import Auditor from '../src/auditor.js'
 
 import logger from '@wdio/logger'
 
@@ -38,7 +38,7 @@ vi.mock('../src/auditor', () => {
 })
 
 vi.mock('../src/utils', async () => {
-    const { isBrowserSupported } = await vi.importActual('../src/utils')
+    const { isBrowserSupported } = await vi.importActual('../src/utils.js') as any
     let wasCalled = false
 
     return {
@@ -56,7 +56,7 @@ vi.mock('../src/utils', async () => {
 })
 
 vi.mock('../src/gatherer/coverage', () => {
-    const instances = []
+    const instances: any[] = []
     return {
         default: class {
             getCoverageReport = vi.fn()
@@ -76,7 +76,7 @@ const pageMock = {
 const sessionMock = { send: vi.fn() }
 const log = logger('')
 
-let browser: any
+let browser: WebdriverIO.Browser
 beforeEach(() => {
     browser = {
         getPuppeteer: vi.fn(() => puppeteer.connect({})),

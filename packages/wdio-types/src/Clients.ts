@@ -1,4 +1,4 @@
-import { DesiredCapabilities } from './Capabilities'
+import type { DesiredCapabilities } from './Capabilities'
 
 export interface Multiremote {
     sessionId?: string

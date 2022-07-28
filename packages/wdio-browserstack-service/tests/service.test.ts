@@ -1,17 +1,18 @@
+/// <reference path="../../webdriverio/async.d.ts" />
+
 import path from 'node:path'
 import { describe, expect, it, vi, beforeEach } from 'vitest'
 import got from 'got'
 import logger from '@wdio/logger'
-import type { Browser } from 'webdriverio'
 
-import BrowserstackService from '../src/service'
+import BrowserstackService from '../src/service.js'
 
 vi.mock('got')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 const log = logger('test')
 let service: BrowserstackService
-let browser: Browser
+let browser: WebdriverIO.Browser
 
 beforeEach(() => {
     vi.mocked(log.info).mockClear()
@@ -47,12 +48,12 @@ beforeEach(() => {
             } }
         },
         browserB: {}
-    } as any as Browser
-    service = new BrowserstackService({}, [] as any, { user: 'foo', key: 'bar' } as any)
+    } as any as WebdriverIO.Browser
+    service = new BrowserstackService({} as any, [] as any, { user: 'foo', key: 'bar' } as any)
 })
 
 it('should initialize correctly', () => {
-    service = new BrowserstackService({}, [] as any, {} as any)
+    service = new BrowserstackService({} as any, [] as any, {} as any)
     expect(service['_failReasons']).toEqual([])
 })
 
@@ -67,7 +68,7 @@ describe('onReload()', () => {
     })
 
     it('should update and get multiremote session', async () => {
-        browser.isMultiremote = true
+        browser.isMultiremote = true as any
         service['_browser'] = browser
         const updateSpy = vi.spyOn(service, '_update')
         await service.onReload('1', '2')
@@ -123,7 +124,7 @@ describe('_printSessionURL', () => {
     })
 
     it('should get and log multi remote session details', async () => {
-        browser.isMultiremote = true
+        browser.isMultiremote = true as any
         service['_browser'] = browser
         const logInfoSpy = vi.spyOn(log, 'info').mockImplementation((string) => string)
         await service._printSessionURL()
@@ -176,16 +177,16 @@ describe('_printSessionURL Appium', () => {
 
 describe('before', () => {
     it('should set auth to default values if not provided', async () => {
-        let service = new BrowserstackService({}, [{}] as any, { capabilities: {} })
+        let service = new BrowserstackService({} as any, [{}] as any, { capabilities: {} })
 
         await service.beforeSession({} as any as any)
-        await service.before(service['_config'] as any, [], browser as Browser)
+        await service.before(service['_config'] as any, [], browser as WebdriverIO.Browser)
 
         expect(service['_failReasons']).toEqual([])
         expect(service['_config'].user).toEqual('NotSetUser')
         expect(service['_config'].key).toEqual('NotSetKey')
 
-        service = new BrowserstackService({}, [{}] as any, { capabilities: {} })
+        service = new BrowserstackService({} as any, [{}] as any, { capabilities: {} })
         service.beforeSession({ user: 'blah' } as any as any)
         await service.before(service['_config'] as any, [], browser)
 
@@ -193,7 +194,7 @@ describe('before', () => {
 
         expect(service['_config'].user).toEqual('blah')
         expect(service['_config'].key).toEqual('NotSetKey')
-        service = new BrowserstackService({}, [{}] as any, { capabilities: {} })
+        service = new BrowserstackService({} as any, [{}] as any, { capabilities: {} })
         service.beforeSession({ key: 'blah' } as any as any)
         await service.before(service['_config'] as any, [], browser)
 
@@ -203,7 +204,7 @@ describe('before', () => {
     })
 
     it('should initialize correctly', () => {
-        const service = new BrowserstackService({}, [{}] as any, {
+        const service = new BrowserstackService({} as any, [{}] as any, {
             user: 'foo',
             key: 'bar',
             capabilities: {}
@@ -216,7 +217,7 @@ describe('before', () => {
 
     it('should initialize correctly for multiremote', () => {
         const service = new BrowserstackService(
-            {},
+            {} as any,
             [{}] as any,
             {
                 user: 'foo',
@@ -232,7 +233,7 @@ describe('before', () => {
 
     it('should initialize correctly for appium', () => {
         const service = new BrowserstackService(
-            {},
+            {} as any,
             [{ app: 'test-app' }] as any,
             {
                 user: 'foo',
@@ -256,7 +257,7 @@ describe('before', () => {
     })
 
     it('should initialize correctly for appium without global browser capabilities', () => {
-        const service = new BrowserstackService({}, {
+        const service = new BrowserstackService({} as any, {
             app: 'bs://BrowserStackMobileAppId'
         }, {
             user: 'foo',
@@ -272,7 +273,7 @@ describe('before', () => {
     })
 
     it('should initialize correctly for appium if using valid W3C Webdriver capabilities', () => {
-        const service = new BrowserstackService({}, {
+        const service = new BrowserstackService({} as any, {
             app: 'bs://BrowserStackMobileAppId'
         }, {
             user: 'foo',
@@ -288,7 +289,7 @@ describe('before', () => {
     })
 
     it('should log the url', async () => {
-        const service = new BrowserstackService({}, [{}] as any, { capabilities: {} })
+        const service = new BrowserstackService({} as any, [{}] as any, { capabilities: {} })
 
         await service.before(service['_config'] as any, [], browser)
         expect(log.info).toHaveBeenCalled()
@@ -374,7 +375,7 @@ describe('afterTest', () => {
 
 describe('afterScenario', () => {
     it('should increment failure reasons on non-passing statuses (strict mode off)', () => {
-        service = new BrowserstackService({}, [] as any,
+        service = new BrowserstackService({} as any, [] as any,
             { user: 'foo', key: 'bar', cucumberOpts: { strict: false } } as any)
 
         expect(service['_failReasons']).toEqual([])
@@ -417,7 +418,7 @@ describe('afterScenario', () => {
     })
 
     it('should increment failure reasons on non-passing statuses (strict mode on)', () => {
-        service = new BrowserstackService({}, [] as any,
+        service = new BrowserstackService({} as any, [] as any,
             { user: 'foo', key: 'bar', cucumberOpts: { strict: true }, capabilities: {} })
 
         expect(service['_failReasons']).toEqual([])
@@ -512,7 +513,7 @@ describe('after', () => {
 
     describe('Cucumber only', function () {
         it('should call _update with status "failed" if strict mode is "on" and all tests are pending', async () => {
-            service = new BrowserstackService({}, [] as any,
+            service = new BrowserstackService({} as any, [] as any,
                 { user: 'foo', key: 'bar', cucumberOpts: { strict: true } } as any)
 
             const updateSpy = vi.spyOn(service, '_update')
@@ -537,7 +538,7 @@ describe('after', () => {
         })
 
         it('should call _update with status "passed" when strict mode is "off" and only passed and pending tests ran', async () => {
-            service = new BrowserstackService({}, [] as any,
+            service = new BrowserstackService({} as any, [] as any,
                 { user: 'foo', key: 'bar', cucumberOpts: { strict: false } } as any)
 
             const updateSpy = vi.spyOn(service, '_update')
@@ -560,7 +561,7 @@ describe('after', () => {
         })
 
         it('should call _update with status is "failed" when strict mode is "on" and only passed and pending tests ran', async () => {
-            service = new BrowserstackService({}, [] as any,
+            service = new BrowserstackService({} as any, [] as any,
                 { user: 'foo', key: 'bar', cucumberOpts: { strict: true } } as any)
 
             const updateSpy = vi.spyOn(service, '_update')
@@ -602,7 +603,7 @@ describe('after', () => {
         })
 
         it('should call _update with status "failed" when strict mode is "on" and only failed and pending tests ran', async () => {
-            service = new BrowserstackService({}, [] as any,
+            service = new BrowserstackService({} as any, [] as any,
                 { user: 'foo', key: 'bar', cucumberOpts: { strict: true } } as any)
 
             const updateSpy = vi.spyOn(service, '_update')
@@ -673,7 +674,7 @@ describe('after', () => {
                     /*, 5, 4, 0*/
                 ].map(({ status, body }) =>
                     it(`should call _update /w status failed and name of Scenario when single "${status}" Scenario ran`, async () => {
-                        service = new BrowserstackService({ preferScenarioName : true }, [] as any,
+                        service = new BrowserstackService({ preferScenarioName : true } as any, [] as any,
                             { user: 'foo', key: 'bar', cucumberOpts: { strict: false } } as any)
                         service.before({}, [], browser)
 
@@ -688,7 +689,7 @@ describe('after', () => {
                 )
 
                 it('should call _update /w status passed and name of Scenario when single "passed" Scenario ran', async () => {
-                    service = new BrowserstackService({ preferScenarioName : true }, [] as any,
+                    service = new BrowserstackService({ preferScenarioName : true } as any, [] as any,
                         { user: 'foo', key: 'bar', cucumberOpts: { strict: false } } as any)
                     service.before({}, [], browser)
 
@@ -714,7 +715,7 @@ describe('after', () => {
             describe('disabled', () => {
                 ['FAILED', 'AMBIGUOUS', 'UNDEFINED', 'UNKNOWN'].map(status =>
                     it(`should call _update /w status failed and name of Feature when single "${status}" Scenario ran`, async () => {
-                        service = new BrowserstackService({ preferScenarioName : false }, [] as any,
+                        service = new BrowserstackService({ preferScenarioName : false } as any, [] as any,
                             { user: 'foo', key: 'bar', cucumberOpts: { strict: false } } as any)
                         service.before({}, [], browser)
 
@@ -735,7 +736,7 @@ describe('after', () => {
                 )
 
                 it('should call _update /w status passed and name of Feature when single "passed" Scenario ran', async () => {
-                    service = new BrowserstackService({ preferScenarioName : false }, [] as any,
+                    service = new BrowserstackService({ preferScenarioName : false } as any, [] as any,
                         { user: 'foo', key: 'bar', cucumberOpts: { strict: false } } as any)
                     service.before({}, [], browser)
 

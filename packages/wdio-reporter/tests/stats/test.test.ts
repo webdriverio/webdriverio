@@ -1,7 +1,7 @@
 import { describe, expect, vi, it, beforeEach } from 'vitest'
 
 import { AssertionError } from 'node:assert'
-import TestStats from '../../src/stats/test'
+import TestStats from '../../src/stats/test.js'
 
 describe('TestStats', () => {
     let stat: TestStats

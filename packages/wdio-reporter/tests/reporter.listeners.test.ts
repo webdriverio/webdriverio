@@ -1,11 +1,11 @@
 import { describe, expect, vi, it, afterEach, beforeEach } from 'vitest'
 
-import WDIOReporter from '../src'
+import WDIOReporter from '../src/index.js'
 import tmp from 'tmp'
-import TestStats, { Test } from '../src/stats/test'
-import RunnerStats from '../src/stats/runner'
-import { Suite } from '../src/stats/suite'
-import { Hook } from '../src/stats/hook'
+import TestStats, { Test } from '../src/stats/test.js'
+import RunnerStats from '../src/stats/runner.js'
+import { Suite } from '../src/stats/suite.js'
+import { Hook } from '../src/stats/hook.js'
 
 const runnerSpecs = ['/path/to/fileA.js', '/path/to/fileA.js']
 
@@ -62,7 +62,7 @@ describe('WDIOReporter Listeners', () => {
         })
 
         it('should allow Mocha pending tests with same UID to be added to other tests ', () => {
-            const stats = []
+            const stats: any = []
             stats.push({ ...stat, uid: '0-0-0' })
             stats.push({ ...stat, uid: '0-0-1' })
             stats.push({ ...stat, uid: '0-0-2' })
@@ -117,7 +117,7 @@ describe('WDIOReporter Listeners', () => {
         })
 
         it('should allow Jasmine pending tests to be added to the test list', () => {
-            const stats = []
+            const stats: any = []
             stats.push({ ...stat, uid: '0-0-0' })
             stats.push({ ...stat, uid: '0-0-1' })
             stats.push({ ...stat, uid: '0-0-2' })

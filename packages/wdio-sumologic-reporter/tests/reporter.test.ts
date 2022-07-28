@@ -2,7 +2,7 @@ import path from 'node:path'
 import got from 'got'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
-import SumoLogicReporter from '../src'
+import SumoLogicReporter from '../src/index.js'
 
 import logger from '@wdio/logger'
 

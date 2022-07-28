@@ -2,9 +2,9 @@ import path from 'node:path'
 import { expect, describe, beforeAll, test, vi } from 'vitest'
 import { canAccess } from '@wdio/utils'
 
-import getFinder from '../../src/finder'
-import edgeFinder from '../../src/finder/edge'
-import { darwinGetAppPaths, darwinGetInstallations } from '../../src/finder/finder'
+import getFinder from '../../src/finder/index.js'
+import edgeFinder from '../../src/finder/edge.js'
+import { darwinGetAppPaths, darwinGetInstallations } from '../../src/finder/finder.js'
 
 import systemProfiler from './systemProfiler.json'
 

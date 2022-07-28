@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { testStatuses, stepStatuses, events } from '../src/constants'
+import { testStatuses, stepStatuses, events } from '../src/constants.js'
 
 describe('Important constants', () => {
     it('should have correct step statuses', () => {

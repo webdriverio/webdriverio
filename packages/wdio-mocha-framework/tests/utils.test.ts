@@ -1,6 +1,6 @@
 import path from 'node:path'
 import { test, expect, vi, afterAll } from 'vitest'
-import { loadModule } from '../src/utils'
+import { loadModule } from '../src/utils.js'
 
 declare global {
     var foo: string | undefined

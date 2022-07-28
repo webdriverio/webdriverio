@@ -2,7 +2,7 @@ import { expect, describe, it, afterEach, vi } from 'vitest'
 
 import path from 'node:path'
 import archiver from 'archiver'
-import { remote } from '../../../src'
+import { remote } from '../../../src/index.js'
 
 vi.mock('node:fs')
 vi.mock('got')
@@ -66,7 +66,7 @@ describe('uploadFile', () => {
         })
         browser.file = vi.fn().mockReturnValue(Promise.resolve())
 
-        let commandError = null
+        let commandError: Error | null = null
         const archiverMock = archiver('zip')
         const command = browser.uploadFile(path.resolve(__dirname, '..', '__fixtures__', 'toUpload.jpg'))
             .catch((e: Error) => (commandError = e))

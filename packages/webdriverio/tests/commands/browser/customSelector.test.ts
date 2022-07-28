@@ -1,6 +1,6 @@
 import path from 'node:path'
 import { expect, describe, it, beforeEach, vi } from 'vitest'
-import { remote } from '../../../src'
+import { remote } from '../../../src/index.js'
 import type { CustomStrategyReference } from '../../../src/types'
 
 vi.mock('got')

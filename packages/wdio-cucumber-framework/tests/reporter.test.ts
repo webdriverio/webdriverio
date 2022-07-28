@@ -2,7 +2,7 @@ import { EventEmitter } from 'node:events'
 import { describe, expect, it, vi, afterEach, beforeEach, beforeAll } from 'vitest'
 import { TestStepFinished, TestStepResultStatus, TestStepStarted } from '@cucumber/messages'
 
-import CucumberReporter from '../src/reporter'
+import CucumberReporter from '../src/reporter.js'
 import {
     gherkinDocument,
     pickle,
@@ -13,7 +13,7 @@ import {
     testStepFinished,
     testCaseFinished,
     testRunFinished
-} from './fixtures/envelopes'
+} from './fixtures/envelopes.js'
 
 const wdioReporter = {
     write: vi.fn(),

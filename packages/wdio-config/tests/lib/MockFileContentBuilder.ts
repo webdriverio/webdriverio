@@ -1,7 +1,7 @@
 import fs from 'node:fs'
 import merge from 'deepmerge'
 
-import { MockSystemFilePath } from './MockPathService'
+import { MockSystemFilePath } from './MockPathService.js'
 
 const MERGE_OPTIONS = { clone: false }
 

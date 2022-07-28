@@ -4,7 +4,7 @@ import { vi, MockedFunction, describe, it, expect, beforeEach } from 'vitest'
 import logger from '@wdio/logger'
 import type { Capabilities, Options, Services } from '@wdio/types'
 
-import { initialiseLauncherService, initialiseWorkerService } from '../src/initialiseServices'
+import { initialiseLauncherService, initialiseWorkerService } from '../src/initialiseServices.js'
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 const log = logger('test')

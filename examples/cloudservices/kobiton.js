@@ -1,4 +1,4 @@
-import { remote } from '../../packages/webdriverio/build'
+import { remote } from '../../packages/webdriverio/build/index.js'
 
 (async () => {
     const browser = await remote({

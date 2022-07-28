@@ -2,7 +2,7 @@ import path from 'node:path'
 import { describe, expect, it, beforeEach, afterEach, test, vi } from 'vitest'
 
 import got from 'got'
-import CrossBrowserTestingService from '../src/service'
+import CrossBrowserTestingService from '../src/service.js'
 import type { Frameworks } from '@wdio/types'
 
 vi.mock('got')
@@ -27,7 +27,7 @@ const testArgumens = {
 
 describe('wdio-crossbrowsertesting-service', () => {
     const execute = vi.fn()
-    let browser: any
+    let browser: WebdriverIO.Browser
 
     beforeEach(() => {
         browser = {
@@ -49,7 +49,6 @@ describe('wdio-crossbrowsertesting-service', () => {
     })
 
     afterEach(() => {
-        browser = undefined
         execute.mockReset()
         vi.mocked(got.put).mockClear()
     })
@@ -276,7 +275,7 @@ describe('wdio-crossbrowsertesting-service', () => {
         } as any, { chromeA: {}, chromeB: {}, chromeC: {} } as any)
         cbtService['_browser'] = browser
         const updateJobSpy = vi.spyOn(cbtService, 'updateJob')
-        cbtService['_browser']!.isMultiremote = true
+        cbtService['_browser']!.isMultiremote = true as any
         cbtService['_browser']!.sessionId = 'sessionId'
         cbtService['_failures'] = 2
         await cbtService.after()
@@ -323,7 +322,7 @@ describe('wdio-crossbrowsertesting-service', () => {
         cbtService['_browser'] = browser
         const updateJobSpy = vi.spyOn(cbtService, 'updateJob')
 
-        cbtService['_browser']!.isMultiremote = true
+        cbtService['_browser']!.isMultiremote = true as any
         cbtService['_browser']!.sessionId = 'sessionId'
         cbtService['_failures'] = 2
         cbtService.onReload('oldSessionId', 'sessionChromeA')
@@ -355,7 +354,7 @@ describe('wdio-crossbrowsertesting-service', () => {
         })
 
         cbtService['_testCnt'] = 2
-        cbtService['_browser']!.isMultiremote = true
+        cbtService['_browser']!.isMultiremote = true as any
         expect(cbtService.getBody(2, true)).toEqual({
             test: {
                 build: 344,

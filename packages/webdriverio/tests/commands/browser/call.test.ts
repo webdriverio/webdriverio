@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll, vi } from 'vitest'
-import { remote } from '../../../src'
+import { remote } from '../../../src/index.js'
 
 vi.mock('got')
 

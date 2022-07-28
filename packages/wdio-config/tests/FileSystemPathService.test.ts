@@ -4,7 +4,7 @@ import process from 'node:process'
 import glob from 'glob'
 import { vi, MockedFunction, describe, it, expect, afterEach, beforeEach } from 'vitest'
 
-import FileSystemPathService from '../src/lib/FileSystemPathService'
+import FileSystemPathService from '../src/lib/FileSystemPathService.js'
 
 const INDEX_PATH = path.resolve(__dirname, '..', 'src', 'index.ts')
 

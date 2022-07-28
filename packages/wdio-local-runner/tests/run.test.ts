@@ -23,7 +23,7 @@ beforeAll(async () => {
     vi.spyOn(process, 'on')
     process.send = vi.fn()
     process.exit = vi.fn() as any
-    const run = await import('../src/run')
+    const run = await import('../src/run.js')
     exitHookFn = run.exitHookFn
     runner = run.runner
 })

@@ -3,7 +3,7 @@ import { expect, describe, it, afterEach, vi } from 'vitest'
 
 // @ts-ignore mocked (original defined in webdriver package)
 import got from 'got'
-import { remote } from '../../../src'
+import { remote } from '../../../src/index.js'
 
 vi.mock('got')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
@@ -278,7 +278,7 @@ describe('click test', () => {
         })
         const elem = await browser.$('#foo')
 
-        // @ts-expect-error wrong param
+        // @ts-expect-error invalid param
         expect(elem.click([])).rejects.toThrow('Options must be an object')
     })
 
@@ -291,7 +291,7 @@ describe('click test', () => {
         })
         const elem = await browser.$('#foo')
 
-        // @ts-expect-error wrong param
+        // @ts-expect-error invalid param
         expect(elem.click({ x: 'not-suppported' })).rejects.toThrow('Coordinates must be integers')
     })
 

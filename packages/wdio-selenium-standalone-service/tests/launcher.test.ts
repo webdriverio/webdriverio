@@ -3,7 +3,7 @@ import fs from 'fs-extra'
 import * as SeleniumStandalone from 'selenium-standalone'
 import { describe, expect, test, vi, beforeEach } from 'vitest'
 
-import SeleniumStandaloneLauncher from '../src/launcher'
+import SeleniumStandaloneLauncher from '../src/launcher.js'
 
 vi.mock('fs-extra', () => ({
     default: {

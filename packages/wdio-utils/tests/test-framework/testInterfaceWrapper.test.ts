@@ -1,7 +1,7 @@
 import { MockedFunction, vi, describe, it, expect, afterEach, beforeEach } from 'vitest'
 
-import { testFnWrapper as testFnWrapperImport } from '../../src/test-framework/testFnWrapper'
-import { runHook, runSpec, wrapTestFunction, runTestInFiberContext } from '../../src/test-framework/testInterfaceWrapper'
+import { testFnWrapper as testFnWrapperImport } from '../../src/test-framework/testFnWrapper.js'
+import { runHook, runSpec, wrapTestFunction, runTestInFiberContext } from '../../src/test-framework/testInterfaceWrapper.js'
 
 const testFunction = vi.fn(function (this: any, specTitle, cb) { return cb.call(this, 'foo', 'bar') })
 const hookFunction = vi.fn(function (this: any, cb) { return cb.call(this, 'foo', 'bar') })
@@ -13,8 +13,7 @@ vi.mock('../../src/test-framework/testFnWrapper', () => ({
 const testFnWrapper = testFnWrapperImport as MockedFunction<any>
 beforeEach(() => {
     testFnWrapper.mockClear()
-    // @ts-expect-error
-    global.jasmine = {}
+    global.jasmine = {} as any
 })
 
 describe('runHook', () => {
@@ -90,23 +89,16 @@ describe('wrapTestFunction', () => {
 describe('runTestInFiberContext', () => {
     it('should wrap skip and only functions', () => {
         const skipFn = () => { }
-        // @ts-expect-error
         const onlyFn = function (...args: any[]) { return global.foobar(...args) }
-        // @ts-expect-error
         global.foobar = testFunction
-        // @ts-expect-error
         global.foobar.only = onlyFn
-        // @ts-expect-error
         global.foobar.skip = skipFn
         runTestInFiberContext(true, 'beforeFn' as any, () => [] as any, 'afterFn' as any, () => [] as any, 'foobar', 'cid')
 
-        // @ts-expect-error
         expect(global.foobar.skip).toBe(skipFn)
-        // @ts-expect-error
         expect(global.foobar.only).toBe(onlyFn)
 
         const specFn = vi.fn()
-        // @ts-expect-error
         global.foobar.only('test title', specFn, 321, 3)
         expect(testFnWrapper).toBeCalledWith(
             'Test',
@@ -144,9 +136,7 @@ describe('runTestInFiberContext', () => {
 })
 
 afterEach(() => {
-    // @ts-expect-error
     delete global.foobar
-    // @ts-expect-error
     delete global.jasmine
     testFnWrapper.mockClear()
 })

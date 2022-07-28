@@ -1,5 +1,5 @@
 import { test, expect } from 'vitest'
-import SuiteStats from '../../src/stats/suite'
+import SuiteStats from '../../src/stats/suite.js'
 
 test('should get initialised', () => {
     const suite = new SuiteStats({

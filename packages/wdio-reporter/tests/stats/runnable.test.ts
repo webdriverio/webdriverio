@@ -1,5 +1,5 @@
 import { describe, beforeEach, it, afterEach, expect, vi } from 'vitest'
-import TestStats from '../../src/stats/test'
+import TestStats from '../../src/stats/test.js'
 
 describe('RunnableStats', () => {
     let stat: TestStats

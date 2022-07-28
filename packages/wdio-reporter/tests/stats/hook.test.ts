@@ -1,5 +1,5 @@
 import { test, expect } from 'vitest'
-import HookStats from '../../src/stats/hook'
+import HookStats from '../../src/stats/hook.js'
 
 test('should get initialised', () => {
     const hook = new HookStats({

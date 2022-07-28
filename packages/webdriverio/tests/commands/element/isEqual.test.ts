@@ -3,13 +3,13 @@ import { expect, describe, it, beforeAll, afterEach, vi } from 'vitest'
 
 // @ts-ignore mocked (original defined in webdriver package)
 import got from 'got'
-import { remote } from '../../../src'
+import { remote } from '../../../src/index.js'
 
 vi.mock('got')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 describe('isEqual test', () => {
-    let browser: any
+    let browser: WebdriverIO.Browser
     let elem: any
 
     describe('web', () => {

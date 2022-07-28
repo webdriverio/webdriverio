@@ -1,5 +1,5 @@
 import { vi, describe, it, afterEach } from 'vitest'
-import { logHookError } from '../../src/test-framework/errorHandler'
+import { logHookError } from '../../src/test-framework/errorHandler.js'
 
 // const pSend = vi.spyOn(process, 'send')
 const pSend = vi.fn()

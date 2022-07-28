@@ -1,6 +1,6 @@
 import { test, expect, vi, beforeEach, describe } from 'vitest'
 import fse from 'fs-extra'
-import NetworkInterception from '../../../src/utils/interception/devtools'
+import NetworkInterception from '../../../src/utils/interception/devtools.js'
 
 vi.mock('fs-extra', () => ({
     default: {

@@ -1,5 +1,5 @@
 import { beforeEach, test, expect, vi } from 'vitest'
-import NetworkInterception from '../../../src/utils/interception/webdriver'
+import NetworkInterception from '../../../src/utils/interception/webdriver.js'
 
 const browserMock = {
     mockRequest: vi.fn().mockReturnValue({ mockId: 123 }),

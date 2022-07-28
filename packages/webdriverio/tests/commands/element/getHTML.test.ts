@@ -3,7 +3,7 @@ import { expect, describe, it, afterEach, vi } from 'vitest'
 
 // @ts-ignore mocked (original defined in webdriver package)
 import got from 'got'
-import { remote } from '../../../src'
+import { remote } from '../../../src/index.js'
 
 vi.mock('got')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
@@ -17,6 +17,7 @@ describe('getHTML test', () => {
             }
         })
         const elem = await browser.$('#foo')
+        // @ts-expect-error mock feature
         elem.elementId = {
             outerHTML: '<some>outer html</some>',
             innerHTML: 'some inner html'

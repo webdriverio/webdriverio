@@ -1,7 +1,7 @@
 import path from 'node:path'
 import { describe, test, expect, vi } from 'vitest'
 import type { Options, Capabilities } from '@wdio/types'
-import { remote, multiremote } from '../src'
+import { remote, multiremote } from '../src/index.js'
 
 vi.mock('got')
 vi.mock('devtools')
@@ -45,7 +45,9 @@ describe('addCommand', () => {
             const browser = await remote(remoteConfig)
 
             browser.addCommand('mytest', customCommand)
+            // @ts-expect-error undefined custom command
             expect(typeof browser.mytest).toBe('function')
+            // @ts-expect-error undefined custom command
             expect(await browser.mytest()).toBe('foobar')
         })
 
@@ -54,6 +56,7 @@ describe('addCommand', () => {
 
             browser.addCommand('mytest', customCommand)
             const elem = await browser.$('#foo')
+            // @ts-expect-error undefined custom command
             expect(typeof elem.mytest).toBe('undefined')
         })
 
@@ -65,6 +68,7 @@ describe('addCommand', () => {
                 return this.execute(function () { return 1 })
             })
 
+            // @ts-expect-error undefined custom command
             expect(await browser.myCustomElementCommand()).toBe(1)
         })
 
@@ -78,6 +82,7 @@ describe('addCommand', () => {
 
             const elem = await browser.$('#foo')
 
+            // @ts-expect-error undefined custom command
             expect(await elem.myCustomElementCommand()).toBe(50)
         })
 
@@ -90,12 +95,17 @@ describe('addCommand', () => {
                 return result + 'bar-' + this.selector
             })
 
+            // @ts-expect-error undefined custom command
             expect(typeof browser.myCustomElementCommand).toBe('undefined')
+            // @ts-expect-error undefined custom command
             expect(typeof elem.myCustomElementCommand).toBe('function')
+            // @ts-expect-error undefined custom command
             expect(await elem.myCustomElementCommand()).toBe('foobar-#foo')
 
             const elem2 = await browser.$('#bar')
+            // @ts-expect-error undefined custom command
             expect(typeof elem2.myCustomElementCommand).toBe('function')
+            // @ts-expect-error undefined custom command
             expect(await elem2.myCustomElementCommand()).toBe('foobar-#bar')
         })
 
@@ -103,6 +113,7 @@ describe('addCommand', () => {
             const browser = await remote(remoteConfig)
             const elem = await browser.$('#foo')
 
+            // @ts-expect-error undefined custom command
             expect(typeof elem.myCustomElementCommand).toBe('undefined')
             elem.addCommand('myCustomElementCommand', async function (this: WebdriverIO.Element) {
                 const result = await new Promise(
@@ -111,11 +122,17 @@ describe('addCommand', () => {
             })
 
             const elems = await browser.$$('.someRandomElement')
+            // @ts-expect-error undefined custom command
             expect(typeof elems[0].myCustomElementCommand).toBe('function')
+            // @ts-expect-error undefined custom command
             expect(typeof elems[1].myCustomElementCommand).toBe('function')
+            // @ts-expect-error undefined custom command
             expect(typeof elems[2].myCustomElementCommand).toBe('function')
+            // @ts-expect-error undefined custom command
             expect(await elems[0].myCustomElementCommand()).toBe('foobar-.someRandomElement0')
+            // @ts-expect-error undefined custom command
             expect(await elems[1].myCustomElementCommand()).toBe('foobar-.someRandomElement1')
+            // @ts-expect-error undefined custom command
             expect(await elems[2].myCustomElementCommand()).toBe('foobar-.someRandomElement2')
         })
 
@@ -123,6 +140,7 @@ describe('addCommand', () => {
             const browser = await remote(remoteConfig)
             const elem = await browser.$('#foo')
 
+            // @ts-expect-error undefined custom command
             expect(typeof elem.myCustomElementCommand).toBe('undefined')
             elem.addCommand('myCustomElementCommand', async function (this: WebdriverIO.Element) {
                 const result = await new Promise(
@@ -131,7 +149,9 @@ describe('addCommand', () => {
             })
 
             const subElem = await elem.$('.subElem')
+            // @ts-expect-error undefined custom command
             expect(typeof subElem.myCustomElementCommand).toBe('function')
+            // @ts-expect-error undefined custom command
             expect(await subElem.myCustomElementCommand()).toBe('foobar-.subElem')
         })
 
@@ -140,6 +160,7 @@ describe('addCommand', () => {
             const elems = await browser.$$('.someRandomElement')
             const elem = elems[0]
 
+            // @ts-expect-error undefined custom command
             expect(typeof elem.myCustomElementCommand).toBe('undefined')
             elem.addCommand('myCustomElementCommand', async function (this: WebdriverIO.Element) {
                 const result = await new Promise(
@@ -148,7 +169,9 @@ describe('addCommand', () => {
             })
 
             const subElem = await elem.$('.subElem')
+            // @ts-expect-error undefined custom command
             expect(typeof subElem.myCustomElementCommand).toBe('function')
+            // @ts-expect-error undefined custom command
             expect(await subElem.myCustomElementCommand()).toBe('foobar-.subElem')
         })
 
@@ -158,6 +181,7 @@ describe('addCommand', () => {
             const elems = await elem.$$('.someRandomElement')
             const subElem = elems[0]
 
+            // @ts-expect-error undefined custom command
             expect(typeof subElem.myCustomElementCommand).toBe('undefined')
             subElem.addCommand('myCustomElementCommand', async function (this: WebdriverIO.Element) {
                 const result = await new Promise(
@@ -165,7 +189,9 @@ describe('addCommand', () => {
                 return result + 'bar-' + this.selector
             })
 
+            // @ts-expect-error undefined custom command
             expect(typeof subElem.myCustomElementCommand).toBe('function')
+            // @ts-expect-error undefined custom command
             expect(await subElem.myCustomElementCommand()).toBe('foobar-.someRandomElement')
         })
 
@@ -174,7 +200,9 @@ describe('addCommand', () => {
             const elem = await browser.$('#foo')
             const subElem = await elem.$('.subElem')
 
+            // @ts-expect-error undefined custom command
             expect(typeof elem.myCustomElementCommand).toBe('undefined')
+            // @ts-expect-error undefined custom command
             expect(typeof subElem.myCustomElementCommand).toBe('undefined')
             subElem.addCommand('myCustomElementCommand', async function (this: WebdriverIO.Element) {
                 const result = await new Promise(
@@ -182,15 +210,22 @@ describe('addCommand', () => {
                 return result + 'bar-' + this.selector
             })
 
+            // @ts-expect-error undefined custom command
             expect(typeof elem.myCustomElementCommand).toBe('undefined')
+            // @ts-expect-error undefined custom command
             expect(typeof subElem.myCustomElementCommand).toBe('function')
+            // @ts-expect-error undefined custom command
             expect(await subElem.myCustomElementCommand()).toBe('foobar-.subElem')
 
             const otherElem = await browser.$('#otherFoo')
+            // @ts-expect-error undefined custom command
             expect(typeof otherElem.myCustomElementCommand).toBe('function')
+            // @ts-expect-error undefined custom command
             expect(await otherElem.myCustomElementCommand()).toBe('foobar-#otherFoo')
             const otherSubElem = await otherElem.$('.otherSubElem')
+            // @ts-expect-error undefined custom command
             expect(typeof otherSubElem.myCustomElementCommand).toBe('function')
+            // @ts-expect-error undefined custom command
             expect(await otherSubElem.myCustomElementCommand()).toBe('foobar-.otherSubElem')
         })
 
@@ -205,7 +240,9 @@ describe('addCommand', () => {
                 throw error2
             })
 
+            // @ts-expect-error undefined custom command
             await expect(() => browser.function1()).rejects.toThrow(error1)
+            // @ts-expect-error undefined custom command
             await expect(() => browser.function2()).rejects.toThrow(error2)
         })
 
@@ -221,12 +258,14 @@ describe('addCommand', () => {
             })
 
             try {
+                // @ts-expect-error undefined custom command
                 await browser.function1()
             } catch (error) {
                 expect(error).toBe(error1)
             }
 
             try {
+                // @ts-expect-error undefined custom command
                 await browser.function2()
             } catch (error) {
                 expect(error).toBe(error2)
@@ -246,7 +285,9 @@ describe('addCommand', () => {
             }, true)
             const elem = await browser.$('#foo')
 
+            // @ts-expect-error undefined custom command
             await expect(elem.function1()).rejects.toThrow(error1)
+            // @ts-expect-error undefined custom command
             await expect(elem.function2()).rejects.toThrow(error2)
         })
 
@@ -262,12 +303,14 @@ describe('addCommand', () => {
             const elem = await browser.$('#foo')
 
             try {
+                // @ts-expect-error undefined custom command
                 await elem.function1()
             } catch (error) {
                 expect(error).toBe(error1)
             }
 
             try {
+                // @ts-expect-error undefined custom command
                 await elem.function2()
             } catch (error) {
                 expect(error).toBe(error2)
@@ -288,6 +331,7 @@ describe('addCommand', () => {
             })
 
             expect(typeof browser.myCustomCommand).toBe('function')
+            // @ts-expect-error undefined custom command
             const { param, commandResult } = await browser.myCustomCommand('barfoo')
             expect(param).toBe('barfoo')
             expect(commandResult).toEqual(['foobar', 'foobar'])
@@ -303,8 +347,11 @@ describe('addCommand', () => {
             })
 
             expect(typeof browser.myOtherCustomCommand).toBe('undefined')
+            // @ts-expect-error undefined custom command
             expect(typeof browser.browserB.myOtherCustomCommand).toBe('undefined')
+            // @ts-expect-error undefined custom command
             expect(typeof browser.browserA.myOtherCustomCommand).toBe('function')
+            // @ts-expect-error undefined custom command
             const { param, commandResult } = await browser.browserA.myOtherCustomCommand('barfoo')
             expect(param).toBe('barfoo')
             expect(commandResult).toEqual('foobar')
@@ -319,7 +366,9 @@ describe('addCommand', () => {
 
             const elem = await browser.$('#foo')
             expect(typeof elem.myCustomOtherOtherCommand).toBe('undefined')
+            // @ts-expect-error undefined custom command
             expect(typeof elem.browserA.myCustomOtherOtherCommand).toBe('undefined')
+            // @ts-expect-error undefined custom command
             expect(typeof elem.browserB.myCustomOtherOtherCommand).toBe('undefined')
         })
     })

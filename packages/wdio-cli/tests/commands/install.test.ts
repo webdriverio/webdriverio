@@ -3,9 +3,9 @@ import { vi, describe, it, expect, afterEach, beforeEach } from 'vitest'
 // @ts-expect-error mock
 import { yargs } from 'yargs'
 import fs from 'fs-extra'
-import * as installCmd from '../../src/commands/install'
-import * as configCmd from '../../src/commands/config'
-import * as utils from '../../src/utils'
+import * as installCmd from '../../src/commands/install.js'
+import * as configCmd from '../../src/commands/config.js'
+import * as utils from '../../src/utils.js'
 import yarnInstall from 'yarn-install'
 
 vi.mock('yargs')
@@ -113,7 +113,7 @@ You can create one by running 'wdio config'`, undefined)
     it('should exit if there is an error while installing', async () => {
         findInConfigMock.mockReturnValue([''])
         vi.mocked(fs.existsSync).mockReturnValue(true)
-        vi.mocked(yarnInstall).mockImplementation(() => ({ status: 1, stderr: 'test error' }))
+        vi.mocked(yarnInstall).mockImplementation(() => ({ status: 1, stderr: 'test error' } as any))
         vi.spyOn(console, 'error')
 
         await installCmd.handler({ type: 'service', name: 'chromedriver', config: './wdio.conf.js' } as any)

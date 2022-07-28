@@ -3,7 +3,7 @@ import { expect, test, vi, beforeEach, afterEach } from 'vitest'
 import logger from '@wdio/logger'
 import { EventEmitter } from 'node:events'
 
-import JasmineReporter from '../src/reporter'
+import JasmineReporter from '../src/reporter.js'
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 const log = logger('')

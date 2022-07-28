@@ -1,8 +1,8 @@
-import Launcher from '../src/launcher'
 import FirefoxProfile from 'firefox-profile'
 import type WebdriverIO from 'webdriverio'
 
 import { describe, expect, test, vi } from 'vitest'
+import Launcher from '../src/launcher.js'
 
 vi.mock('firefox-profile')
 

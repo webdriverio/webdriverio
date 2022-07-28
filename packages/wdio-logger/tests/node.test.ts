@@ -1,8 +1,8 @@
 import fs from 'node:fs'
 import { it, describe, expect, vi, afterEach, beforeEach, afterAll } from 'vitest'
 
-import nodeLogger from '../src/node'
-import nodeLogger2 from '../build/node'
+import nodeLogger from '../src/node.js'
+import nodeLogger2 from '../build/node.js'
 
 import type log from 'loglevel'
 

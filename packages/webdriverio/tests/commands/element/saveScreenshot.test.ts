@@ -4,8 +4,8 @@ import { expect, describe, it, vi, beforeEach, afterEach, SpyInstance } from 'vi
 
 // @ts-ignore mocked (original defined in webdriver package)
 import got from 'got'
-import { remote } from '../../../src'
-import * as utils from '../../../src/utils'
+import { remote } from '../../../src/index.js'
+import * as utils from '../../../src/utils/index.js'
 
 vi.mock('got')
 vi.mock('fs')

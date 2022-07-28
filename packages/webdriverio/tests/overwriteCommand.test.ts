@@ -1,6 +1,6 @@
 import path from 'node:path'
 import { describe, expect, test, vi } from 'vitest'
-import { remote, multiremote } from '../src'
+import { remote, multiremote } from '../src/index.js'
 
 vi.mock('got')
 vi.mock('devtools')

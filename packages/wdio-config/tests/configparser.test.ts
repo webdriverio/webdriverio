@@ -7,11 +7,11 @@ import tsConfigPath from 'tsconfig-paths'
 import babelRegister from '@babel/register'
 import logger from '@wdio/logger'
 
-import ConfigParser from '../src/lib/ConfigParser'
-import MockFileContentBuilder, { MockFileContent } from './lib/MockFileContentBuilder'
-import { FilePathsAndContents, MockSystemFilePath, MockSystemFolderPath } from './lib/MockPathService'
-import ConfigParserBuilder from './lib/ConfigParserBuilder'
-import { FileNamed, realReadFilePair, realRequiredFilePair } from './lib/FileNamed'
+import ConfigParser from '../src/lib/ConfigParser.js'
+import MockFileContentBuilder, { MockFileContent } from './lib/MockFileContentBuilder.js'
+import { FilePathsAndContents, MockSystemFilePath, MockSystemFolderPath } from './lib/MockPathService.js'
+import ConfigParserBuilder from './lib/ConfigParserBuilder.js'
+import { FileNamed, realReadFilePair, realRequiredFilePair } from './lib/FileNamed.js'
 
 const log = logger('')
 
