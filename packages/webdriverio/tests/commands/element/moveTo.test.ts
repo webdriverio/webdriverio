@@ -27,7 +27,7 @@ describe('moveTo', () => {
         expect(got.mock.calls[4][1].json.actions[0].type).toBe('pointer')
         expect(got.mock.calls[4][1].json.actions[0].actions).toHaveLength(1)
         expect(got.mock.calls[4][1].json.actions[0].actions[0])
-            .toEqual({ type: 'pointerMove', duration: 0, x: 40, y: 15 })
+            .toMatchSnapshot()
     })
 
     it('should do a moveTo with params', async () => {
@@ -43,7 +43,7 @@ describe('moveTo', () => {
         got.setMockResponse([undefined, { scrollX: 19, scrollY: 0 }])
         await elem.moveTo({ xOffset: 5, yOffset: 10 })
         expect(got.mock.calls[4][1].json.actions[0].actions[0])
-            .toEqual({ type: 'pointerMove', duration: 0, x: 1, y: 30 })
+            .toMatchSnapshot()
     })
 
     it('should do a moveTo with params if getElementRect returned empty object', async () => {
@@ -59,7 +59,7 @@ describe('moveTo', () => {
         got.setMockResponse([{}, { x: 5, y: 10, height: 33, width: 44 }, { scrollX: 0, scrollY: 0 }])
         await elem.moveTo({ xOffset: 5, yOffset: 10 })
         expect(got.mock.calls[5][1].json.actions[0].actions[0])
-            .toEqual({ type: 'pointerMove', duration: 0, x: 10, y: 20 })
+            .toMatchSnapshot()
     })
 
     it('should do a moveTo with params if getElementRect and getBoundingClientRect returned empty object', async () => {
@@ -112,7 +112,7 @@ describe('moveTo', () => {
         got.setMockResponse([{}, { x: 4, y: 9, height: 35, width: 42 }, { scrollX: 2.1, scrollY: 3.3 }])
         await elem.moveTo({ xOffset: 5, yOffset: 10 })
         expect(got.mock.calls[5][1].json.actions[0].actions[0])
-            .toEqual({ type: 'pointerMove', duration: 0, x: 6, y: 15 })
+            .toMatchSnapshot()
     })
 
     afterEach(() => {

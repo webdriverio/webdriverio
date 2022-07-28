@@ -93,7 +93,7 @@ export default async function click(
         throw new TypeError('Options must be an object')
     }
 
-    let button = 0 as Button
+    let button = (options.button || 0) as Button
     let {
         x: xoffset = 0,
         y: yoffset = 0,
@@ -108,13 +108,13 @@ export default async function click(
         throw new TypeError('Coordinates must be integers')
     }
 
-    if (options?.button === 'left') {
+    if (options.button === 'left') {
         button = 0
     }
-    if (options?.button === 'middle') {
+    if (options.button === 'middle') {
         button = 1
     }
-    if (options?.button === 'right') {
+    if (options.button === 'right') {
         button = 2
     }
     if (![0, 1, 2].includes(button as number)) {
@@ -133,7 +133,7 @@ export default async function click(
             })
             .down({ button })
             .up({ button })
-            .perform(!skipRelease)
+            .perform(skipRelease)
         return
     }
 

@@ -53,8 +53,6 @@ export default class BaseAction {
      * @param skipRelease set to true if `releaseActions` command should not be invoked
      */
     async perform (skipRelease = false) {
-        let isWheelActionWithOrigin = false
-
         /**
          * transform chainable / not resolved elements into WDIO elements
          */
@@ -80,25 +78,9 @@ export default class BaseAction {
             }
 
             seq.origin = { [ELEMENT_KEY]: seq.origin[ELEMENT_KEY] }
-            if (seq.type === 'scroll') {
-                isWheelActionWithOrigin = true
-            }
         }
 
-        try {
-            await this.#instance.performActions([this.toJSON()])
-        } catch (err: any) {
-            /**
-             * it seems like there is a weird WebDriver bug that always
-             * throws an error when scrolling to an origin, given that
-             * the scroll action still happens we can ignore that one
-             * @see https://github.com/w3c/webdriver/issues/1635#issuecomment-1196434722
-             */
-            if (!(err as Error).message.includes('out of bounds') || !isWheelActionWithOrigin) {
-                throw err
-            }
-        }
-
+        await this.#instance.performActions([this.toJSON()])
         if (!skipRelease) {
             await this.#instance.releaseActions()
         }

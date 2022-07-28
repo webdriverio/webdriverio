@@ -1,0 +1,81 @@
+// Vitest Snapshot v1
+
+exports[`moveTo > should do a moveTo with params 1`] = `
+{
+  "altitudeAngle": 0,
+  "azimuthAngle": 0,
+  "button": 0,
+  "duration": 100,
+  "height": 0,
+  "origin": "viewport",
+  "pressure": 0,
+  "tangentialPressure": 0,
+  "tiltX": 0,
+  "tiltY": 0,
+  "twist": 0,
+  "type": "pointerMove",
+  "width": 0,
+  "x": 1,
+  "y": 30,
+}
+`;
+
+exports[`moveTo > should do a moveTo with params if getElementRect returned empty object 1`] = `
+{
+  "altitudeAngle": 0,
+  "azimuthAngle": 0,
+  "button": 0,
+  "duration": 100,
+  "height": 0,
+  "origin": "viewport",
+  "pressure": 0,
+  "tangentialPressure": 0,
+  "tiltX": 0,
+  "tiltY": 0,
+  "twist": 0,
+  "type": "pointerMove",
+  "width": 0,
+  "x": 10,
+  "y": 20,
+}
+`;
+
+exports[`moveTo > should do a moveTo without params 1`] = `
+{
+  "altitudeAngle": 0,
+  "azimuthAngle": 0,
+  "button": 0,
+  "duration": 100,
+  "height": 0,
+  "origin": "viewport",
+  "pressure": 0,
+  "tangentialPressure": 0,
+  "tiltX": 0,
+  "tiltY": 0,
+  "twist": 0,
+  "type": "pointerMove",
+  "width": 0,
+  "x": 40,
+  "y": 15,
+}
+`;
+
+exports[`moveTo > should return integer values when provided float getScrollPosition params 1`] = `
+{
+  "altitudeAngle": 0,
+  "azimuthAngle": 0,
+  "button": 0,
+  "duration": 100,
+  "height": 0,
+  "origin": "viewport",
+  "pressure": 0,
+  "tangentialPressure": 0,
+  "tiltX": 0,
+  "tiltY": 0,
+  "twist": 0,
+  "type": "pointerMove",
+  "width": 0,
+  "x": 6,
+  "y": 15,
+}
+`;

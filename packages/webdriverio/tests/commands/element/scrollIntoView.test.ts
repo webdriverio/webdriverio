@@ -1,5 +1,5 @@
 import path from 'node:path'
-import { expect, describe, it, vi, beforeAll, afterEach } from 'vitest'
+import { expect, describe, it, vi, beforeAll, beforeEach } from 'vitest'
 
 // @ts-ignore mocked (original defined in webdriver package)
 import got from 'got'
@@ -9,8 +9,8 @@ vi.mock('got')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 describe('scrollIntoView test', () => {
-    let browser: any
-    let elem: any
+    let browser: WebdriverIO.Browser
+    let elem: WebdriverIO.Element
 
     beforeAll(async () => {
         browser = await remote({
@@ -22,20 +22,25 @@ describe('scrollIntoView test', () => {
         elem = await browser.$('#foo')
     })
 
-    it('should allow to check if an element is enabled', async () => {
-        // @ts-ignore mock feature
-        elem.elementId = { scrollIntoView: vi.fn() }
+    it('scrolls by default the element to the top', async () => {
         await elem.scrollIntoView()
-        const executeCallUrl = got.mock.calls[2][0]
-        const executeCallOptions = got.mock.calls[2][1]
-        expect(executeCallUrl.pathname)
-            .toBe('/session/foobar-123/execute/sync')
-        expect(Object.keys(executeCallOptions.json.args[0])).toHaveLength(2)
-        // @ts-ignore mock feature
-        expect(elem.elementId.scrollIntoView.mock.calls).toHaveLength(1)
+        expect(got.mock.calls.slice(-2, -1)[0][1].json).toMatchSnapshot()
     })
 
-    afterEach(() => {
+    it('scrolls element when using boolean scroll options', async () => {
+        await elem.scrollIntoView(true)
+        expect(got.mock.calls.slice(-2, -1)[0][1].json).toMatchSnapshot()
+        got.mockClear()
+        await elem.scrollIntoView(false)
+        expect(got.mock.calls.slice(-2, -1)[0][1].json).toMatchSnapshot()
+    })
+
+    it('scrolls element using scroll into view options', async () => {
+        await elem.scrollIntoView({ block: 'center', inline: 'center' })
+        expect(got.mock.calls.slice(-2, -1)[0][1].json).toMatchSnapshot()
+    })
+
+    beforeEach(() => {
         got.mockClear()
     })
 })

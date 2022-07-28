@@ -86,6 +86,11 @@ const requestMock: any = vi.fn().mockImplementation((uri, params) => {
             break
         }
 
+        if (params.json && params.json.value === 'html') {
+            value = { [ELEMENT_KEY]: 'html-element' }
+            break
+        }
+
         if (params.json && params.json.value === '#slowRerender') {
             ++requestMock.retryCnt
             if (requestMock.retryCnt === 2) {
@@ -107,6 +112,14 @@ const requestMock: any = vi.fn().mockImplementation((uri, params) => {
     case `${path}/${sessionId}/element/${genericSubElementId}/element`:
         value = {
             [ELEMENT_KEY]: genericSubSubElementId
+        }
+        break
+    case `${path}/${sessionId}/element/html-element/rect`:
+        value = {
+            x: 0,
+            y: 0,
+            height: 1000,
+            width: 1000
         }
         break
     case `${path}/${sessionId}/element/${genericElementId}/rect`:

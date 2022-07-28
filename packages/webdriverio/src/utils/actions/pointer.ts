@@ -52,8 +52,16 @@ export default class PointerAction extends BaseAction {
      * the viewport (e.g. "viewport") or the center of a specific element.
      * @param params PointerActionMoveParams
      */
-    move (params: PointerActionMoveParams = { ...PARAM_DEFAULTS, ...UP_PARAM_DEFAULTS, ...MOVE_PARAM_DEFAULTS }) {
-        this.sequence.push({ type: 'pointerMove', ...params })
+    move (params: PointerActionMoveParams = {}) {
+        this.sequence.push({
+            type: 'pointerMove',
+            // default params
+            ...PARAM_DEFAULTS,
+            ...UP_PARAM_DEFAULTS,
+            ...MOVE_PARAM_DEFAULTS,
+            // user params
+            ...params
+        })
         return this
     }
 
@@ -70,8 +78,12 @@ export default class PointerAction extends BaseAction {
      * Creates an action to press a single key
      * @param params PointerActionParams
      */
-    down (params: PointerActionParams = PARAM_DEFAULTS) {
-        this.sequence.push({ type: 'pointerDown', ...params })
+    down (params: PointerActionParams = {}) {
+        this.sequence.push({
+            type: 'pointerDown',
+            ...PARAM_DEFAULTS,
+            ...params
+        })
         return this
     }
 
