@@ -1,7 +1,9 @@
+/* eslint-disable no-dupe-class-members */
 import { ElementReference } from '@wdio/protocols'
 import BaseAction, { BaseActionParams } from './base.js'
 import type { ChainablePromiseElement } from '../../types'
 
+export type ButtonNames = 'left' | 'middle' | 'right'
 export type Button = 0 | 1 | 2
 export type Origin = 'pointer' | 'viewport'
 
@@ -52,25 +54,40 @@ export default class PointerAction extends BaseAction {
      * the viewport (e.g. "viewport") or the center of a specific element.
      * @param params PointerActionMoveParams
      */
-    move (params: PointerActionMoveParams = {}) {
-        this.sequence.push({
+    move (params: PointerActionMoveParams): PointerAction
+    move (x: number, y: number): PointerAction
+    move (params: PointerActionMoveParams | number = {}, y?: number) {
+        const seq = {
             type: 'pointerMove',
             // default params
             ...PARAM_DEFAULTS,
             ...UP_PARAM_DEFAULTS,
             ...MOVE_PARAM_DEFAULTS,
-            // user params
-            ...params
-        })
+        }
+
+        if (typeof params === 'number') {
+            Object.assign(seq, { x: params, y })
+        } else if (params) {
+            Object.assign(seq, params)
+        }
+
+        this.sequence.push(seq)
         return this
     }
 
     /**
-     * Creates an action to release a single key
+     * Creates an action to release a single key.
      * @param params PointerActionUpParams
      */
-    up (params: PointerActionUpParams = UP_PARAM_DEFAULTS) {
-        this.sequence.push({ type: 'pointerUp', button: params.button })
+    up (button?: ButtonNames): PointerAction
+    up (params?: PointerActionUpParams): PointerAction
+    up (params: PointerActionUpParams | ButtonNames = UP_PARAM_DEFAULTS) {
+        this.sequence.push({
+            type: 'pointerUp',
+            button: typeof params === 'string'
+                ? params === 'right' ? 2 : (params === 'middle' ? 1 : 0)
+                : params.button
+        })
         return this
     }
 
@@ -78,11 +95,16 @@ export default class PointerAction extends BaseAction {
      * Creates an action to press a single key
      * @param params PointerActionParams
      */
-    down (params: PointerActionParams = {}) {
+    down (button?: ButtonNames): PointerAction
+    down (params?: PointerActionParams): PointerAction
+    down (params: PointerActionParams | ButtonNames = {}) {
         this.sequence.push({
             type: 'pointerDown',
             ...PARAM_DEFAULTS,
-            ...params
+            ...(typeof params === 'string'
+                ? { button: params === 'right' ? 2 : (params === 'middle' ? 1 : 0) }
+                : params
+            )
         })
         return this
     }

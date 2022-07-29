@@ -65,6 +65,8 @@ describe('action command', () => {
                 altitudeAngle: 9,
                 azimuthAngle: 10,
             })
+            .down('right')
+            .move(100, 200)
             .pause(100)
             .move({
                 button: 0,
@@ -83,6 +85,7 @@ describe('action command', () => {
                 origin: 'viewport'
             })
             .up({ button: 2 })
+            .up('middle')
             .cancel()
             .perform()
 
