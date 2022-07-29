@@ -10,6 +10,8 @@ import { getBrowserObject } from '../../utils/index.js'
         const elem = await $('#myElement');
         // scroll to specific element
         await elem.scrollIntoView();
+        // center element within the viewport
+        await elem.scrollIntoView({ block: 'center', inline: 'center' });
     });
  * </example>
  *

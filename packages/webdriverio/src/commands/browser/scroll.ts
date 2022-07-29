@@ -4,7 +4,8 @@ const log = logger('webdriverio')
 
 /**
  *
- * Scroll within the browser viewport.
+ * Scroll within the browser viewport. Note that `x` and `y` coordinates are relative to the current
+ * scroll positon, therefore `browser.scroll(0, 0)` is a non operation.
  *
  * <example>
     :scroll.js
@@ -17,7 +18,7 @@ const log = logger('webdriverio')
     });
  * </example>
  *
- * @alias element.scrollIntoView
+ * @alias element.scroll
  * @param {number=} x  horizontal scroll position (default: `0`)
  * @param {number=} y  vertical scroll position (default: `0`)
  * @uses protocol/execute
