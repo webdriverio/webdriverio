@@ -19,6 +19,16 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.20.9 (2022-07-29)
+
+#### :bug: Bug Fix
+* `wdio-sync`
+  * [#8611](https://github.com/webdriverio/webdriverio/pull/8611) fix: pin fibers version to 5.0.1 ([@harsha509](https://github.com/harsha509))
+
+#### Committers: 1
+- Sri Harsha ([@harsha509](https://github.com/harsha509))
+
+
 ## v7.20.8 (2022-07-28)
 
 #### :bug: Bug Fix
