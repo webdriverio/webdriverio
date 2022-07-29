@@ -2,6 +2,7 @@ import { _keyDefinitions, KeyInput } from 'puppeteer-core/lib/cjs/puppeteer/comm
 import type { Keyboard, Mouse } from 'puppeteer-core/lib/cjs/puppeteer/common/Input.js'
 
 import getElementRect from './getElementRect.js'
+import getWindowRect from './getWindowRect.js'
 import { ELEMENT_KEY } from '../constants.js'
 import { sleep } from '../utils.js'
 import type DevToolsDriver from '../devtoolsdriver'
@@ -15,6 +16,8 @@ interface Action {
     value?: string
     x?: number
     y?: number
+    deltaX?: number
+    deltaY?: number
     button?: number
     origin?: any
 }
@@ -176,6 +179,27 @@ export default async function performActions(
                     await sleep(duration)
                 }
                 continue
+            }
+            continue
+        }
+
+        if (action.type === 'wheel') {
+            for (const singleAction of action.actions) {
+                if (singleAction.origin) {
+                    const windowSize = await getWindowRect.call(this)
+                    const location = await getElementRect.call(this, { elementId: singleAction.origin[ELEMENT_KEY] })
+                    await page.mouse.wheel({
+                        deltaX: location.x,
+                        deltaY: location.y - windowSize.height
+                    })
+                } else if (singleAction.x || singleAction.y) {
+                    await page.mouse.move(singleAction.x || 0, singleAction.y || 0)
+                }
+
+                await page.mouse.wheel({
+                    deltaX: singleAction.deltaX || 0,
+                    deltaY: singleAction.deltaY || 0
+                })
             }
             continue
         }

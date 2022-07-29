@@ -1,6 +1,10 @@
+
+import { Capabilities } from '../../../packages/wdio-types'
+
 describe('main suite 1', () => {
     it('foobar test', async () => {
-        const browserName = browser.capabilities.browserName.replace('Headless', '').trim()
+        const browserName = (browser.capabilities as Capabilities.Capabilities).browserName!
+            .replace('Headless', '').trim()
         await browser.url('http://guinea-pig.webdriver.io/')
         await expect($('#useragent')).toHaveTextContaining(browserName)
     })
@@ -48,5 +52,31 @@ describe('main suite 1', () => {
         expect(typeof metrics.cumulativeLayoutShift).toBe('number')
         const score = await browser.getPerformanceScore()
         expect(typeof score).toBe('number')
+    })
+
+    it('should be able to scroll up and down', async () => {
+        await browser.url('https://webdriver.io/')
+        const currentScrollPosition = await browser.execute(() => [
+            window.scrollX, window.scrollY
+        ])
+        expect(currentScrollPosition).toEqual([0, 0])
+        await $('footer').scrollIntoView()
+        const [x, y] = await browser.execute(() => [
+            window.scrollX, window.scrollY
+        ])
+        expect(y).toBeGreaterThan(100)
+
+        // should scroll relative to current position
+        browser.scroll(0, 0)
+        const sameScrollPosition = await browser.execute(() => [
+            window.scrollX, window.scrollY
+        ])
+        expect(sameScrollPosition).toEqual([x, y])
+
+        browser.scroll(0, -y)
+        const oldScrollPosition = await browser.execute(() => [
+            window.scrollX, window.scrollY
+        ])
+        expect(oldScrollPosition).toEqual([x, y])
     })
 })
