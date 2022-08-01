@@ -11,7 +11,9 @@ import { KeyAction, PointerAction, WheelAction, ActionType, BaseActionParams } f
  * - a pointer input for a mouse, pen or touch devices
  * - and wheel inputs for scroll wheel devices
  *
- * Every chain of action commands has to be completed calling `perform` in order to trigger the set of actions.
+ * Every chain of action commands has to be completed calling `perform` in order to trigger the set of actions. This
+ * causes actions [to be released](https://w3c.github.io/webdriver/#release-actions) and events to be fired. You can
+ * skip this by passing in `true` (e.g. `browser.actions(...).perform(true)`).
  *
  * ### Key input source
  *
@@ -34,7 +36,7 @@ import { KeyAction, PointerAction, WheelAction, ActionType, BaseActionParams } f
  * specified when invoking the `action` command, e.g.:
  *
  * ```ts
- * browser.action('key'. {
+ * browser.action('pointer'. {
  *     parameters: { pointerType: 'mouse' } // "mouse" is default value, also possible: "pen" or "touch"
  * })
  * ```
