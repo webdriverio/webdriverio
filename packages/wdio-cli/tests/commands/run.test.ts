@@ -43,11 +43,10 @@ describe('Command: run', () => {
 
     it('should call missingConfigurationPrompt if no config found', async () => {
         vi.mocked(fs.existsSync).mockImplementation(() => false)
-        await runCmd.handler({} as any)
-
+        await runCmd.handler({ configPath: 'sample.conf.js' } as any)
         expect(configCmd.missingConfigurationPrompt).toHaveBeenCalledTimes(1)
         expect(vi.mocked(configCmd.missingConfigurationPrompt).mock.calls[0][1])
-            .toContain('No WebdriverIO configuration found in "')
+            .toContain('sample.conf.js')
 
         vi.mocked(fs.existsSync).mockClear()
     })
