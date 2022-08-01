@@ -36,8 +36,15 @@ describe('waitForClickable', () => {
     })
 
     it('should call isClickable and return true immediately if true', async () => {
-        const elem = await browser.$('#foo')
-        elem.isClickable = vi.fn().mockImplementationOnce(() => true)
+        const tmpElem = await browser.$('#foo')
+        const elem = {
+            selector : '#foo',
+            waitForClickable : tmpElem.waitForClickable,
+            elementId : 123,
+            waitUntil : tmpElem.waitUntil,
+            isClickable : vi.fn(() => true),
+            options : { waitforTimeout : 500, waitforInterval: 50 },
+        } as any as WebdriverIO.Element
         const result = await elem.waitForClickable({ timeout: duration })
 
         expect(result).toBe(true)

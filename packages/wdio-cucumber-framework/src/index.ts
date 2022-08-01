@@ -42,7 +42,7 @@ import { setUserHookNames } from './utils.js'
 import type { CucumberOptions, StepDefinitionOptions, HookFunctionExtension as HookFunctionExtensionImport } from './types'
 
 const require = createRequire(import.meta.url)
-const EventDataCollector = require('@cucumber/cucumber/lib/formatter/helpers/event_data_collector.js').default
+const EventDataCollector = require('@cucumber/cucumber/lib/formatter/helpers/event_data_collector').default
 const FILE_PROTOCOL = 'file://'
 
 const { incrementing } = IdGenerator
