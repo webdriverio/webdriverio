@@ -15,6 +15,15 @@ import { KeyAction, PointerAction, WheelAction, ActionType, BaseActionParams } f
  * causes actions [to be released](https://w3c.github.io/webdriver/#release-actions) and events to be fired. You can
  * skip this by passing in `true` (e.g. `browser.actions(...).perform(true)`).
  *
+ * :::info
+ *
+ * Support for this command and specific actions can differ based on the environment. Progress on the development
+ * can be followed on [wpt.fyi](https://wpt.fyi/results/webdriver/tests/perform_actions?label=experimental&label=master&aligned).
+ * For mobile you might want to use Appium specific gesture commands on [iOS](https://github.com/appium/appium-xcuitest-driver#mobile-pinch)
+ * and [Android](https://github.com/appium/appium-uiautomator2-driver#mobile-gesture-commands).
+ *
+ * :::
+ *
  * ### Key input source
  *
  * A key input source is an input source that is associated with a keyboard-type device. It can be triggered
