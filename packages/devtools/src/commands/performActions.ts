@@ -185,21 +185,24 @@ export default async function performActions(
 
         if (action.type === 'wheel') {
             for (const singleAction of action.actions) {
+                const deltaX = singleAction.deltaX || 0
+                const deltaY = singleAction.deltaY || 0
+
                 if (singleAction.origin) {
                     const windowSize = await getWindowRect.call(this)
                     const location = await getElementRect.call(this, { elementId: singleAction.origin[ELEMENT_KEY] })
                     await page.mouse.wheel({
-                        deltaX: location.x,
-                        deltaY: location.y - windowSize.height
+                        deltaX: location.x + deltaX,
+                        deltaY: location.y - windowSize.height + deltaY
                     })
                 } else if (singleAction.x || singleAction.y) {
-                    await page.mouse.move(singleAction.x || 0, singleAction.y || 0)
+                    await page.mouse.wheel({
+                        deltaX: (singleAction.x || 0) + deltaX,
+                        deltaY: (singleAction.y || 0) + deltaY
+                    })
+                } else {
+                    await page.mouse.wheel({ deltaX, deltaY })
                 }
-
-                await page.mouse.wheel({
-                    deltaX: singleAction.deltaX || 0,
-                    deltaY: singleAction.deltaY || 0
-                })
             }
             continue
         }
