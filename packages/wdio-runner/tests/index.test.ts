@@ -7,6 +7,7 @@ import logger from '@wdio/logger'
 import { describe, expect, it, vi, afterEach, beforeEach } from 'vitest'
 import { executeHooksWithArgs } from '@wdio/utils'
 import { attach } from 'webdriverio'
+import { _setGlobal } from '@wdio/globals'
 
 import WDIORunner from '../src/index.js'
 
@@ -18,10 +19,17 @@ vi.mock('webdriverio', () => import(path.join(process.cwd(), '__mocks__', 'webdr
 vi.mock('@wdio/utils', () => import(path.join(process.cwd(), '__mocks__', '@wdio/utils')))
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 vi.mock('@wdio/config', () => import(path.join(process.cwd(), '__mocks__', '@wdio/config')))
+vi.mock('@wdio/globals', () => ({
+    _setGlobal: vi.fn()
+}))
 
 type BrowserObject = WebdriverIO.Browser
 
 describe('wdio-runner', () => {
+    beforeEach(() => {
+        vi.mocked(_setGlobal).mockClear()
+    })
+
     describe('_fetchDriverLogs', () => {
         let runner: WDIORunner
 
@@ -31,16 +39,14 @@ describe('wdio-runner', () => {
         })
 
         it('not do anything if driver does not support log commands', async () => {
-            // @ts-expect-error
-            global.browser = { sessionId: '123' } as any as BrowserObject
+            runner['_browser'] = { sessionId: '123' } as any as BrowserObject
 
             const result = await runner['_fetchDriverLogs']({ outputDir: '/foo/bar', capabilities: {} }, ['*'])
             expect(result).toBe(undefined)
         })
 
         it('should not write to file if all logs excluded', async () => {
-            // @ts-expect-error
-            global.browser = {
+            runner['_browser'] = {
                 getLogTypes: () => Promise.resolve(['foo', 'bar']),
                 getLogs: (type: string) => Promise.resolve([
                     { message: `#1 ${type} log` },
@@ -55,8 +61,7 @@ describe('wdio-runner', () => {
         })
 
         it('should not write to file excluded logTypes', async () => {
-            // @ts-expect-error
-            global.browser = {
+            runner['_browser'] = {
                 getLogTypes: () => Promise.resolve(['foo', 'bar']),
                 getLogs: (type: string) => Promise.resolve([
                     { message: `#1 ${type} log` },
@@ -78,8 +83,7 @@ describe('wdio-runner', () => {
         })
 
         it('should fetch logs', async () => {
-            // @ts-expect-error
-            global.browser = {
+            runner['_browser'] = {
                 getLogTypes: () => Promise.resolve(['foo', 'bar']),
                 getLogs: (type: string) => Promise.resolve([
                     { message: `#1 ${type} log` },
@@ -106,8 +110,7 @@ describe('wdio-runner', () => {
         })
 
         it('should not fail if logsTypes can not be received', async () => {
-            // @ts-expect-error
-            global.browser = {
+            runner['_browser'] = {
                 getLogTypes: () => Promise.reject(new Error('boom')),
                 getLogs: (type: string) => Promise.resolve([
                     { message: `#1 ${type} log` },
@@ -121,8 +124,7 @@ describe('wdio-runner', () => {
         })
 
         it('should not fail if logs can not be received', async () => {
-            // @ts-expect-error
-            global.browser = {
+            runner['_browser'] = {
                 getLogTypes: () => Promise.resolve(['corrupt']),
                 getLogs: () => Promise.reject(new Error('boom')),
                 sessionId: '123'
@@ -133,8 +135,7 @@ describe('wdio-runner', () => {
         })
 
         it('should not write to file if no logs exist', async () => {
-            // @ts-expect-error
-            global.browser = {
+            runner['_browser'] = {
                 getLogTypes: () => Promise.resolve(['foo', 'bar']),
                 getLogs: () => Promise.resolve([]),
                 sessionId: '123'
@@ -146,8 +147,7 @@ describe('wdio-runner', () => {
 
         afterEach(() => {
             vi.mocked(fs.writeFile).mockClear()
-            // @ts-ignore test scenario
-            delete global.browser
+            delete runner['_browser']
         })
     })
 
@@ -156,22 +156,19 @@ describe('wdio-runner', () => {
             const hook = vi.fn()
             const runner = new WDIORunner()
             runner['_shutdown'] = vi.fn()
-            // @ts-expect-error
-            global.browser = {
+            runner['_browser'] = {
                 deleteSession: vi.fn(),
                 sessionId: '123',
                 config: { afterSession: [hook] }
             } as any as BrowserObject
-            runner['_config'] = { logLevel: 'info' } as any
+            runner['_config'] = { logLevel: 'info', afterSession: [hook] } as any
             await runner.endSession()
             expect(executeHooksWithArgs).toBeCalledWith(
                 'afterSession',
                 [hook],
-                [{ logLevel: 'info' }, {}, undefined])
-            // @ts-expect-error
-            expect(global.browser.deleteSession).toBeCalledTimes(1)
-            // @ts-expect-error
-            expect(!global.browser.sessionId).toBe(true)
+                [{ logLevel: 'info', afterSession: [hook] }, {}, undefined])
+            expect(runner['_browser'].deleteSession).toBeCalledTimes(1)
+            expect(!runner['_browser'].sessionId).toBe(true)
             expect(runner['_shutdown']).toBeCalledTimes(0)
         })
 
@@ -188,8 +185,7 @@ describe('wdio-runner', () => {
             const runner = new WDIORunner()
             runner['_isMultiremote'] = true
             runner['_shutdown'] = vi.fn()
-            // @ts-expect-error
-            global.browser = {
+            runner['_browser'] = {
                 deleteSession: vi.fn(),
                 instances: ['foo', 'bar'],
                 foo: {
@@ -207,19 +203,18 @@ describe('wdio-runner', () => {
                     }
                 },
                 config: { afterSession: [hook] }
-            } as any as WebdriverIO.MultiRemoteBrowser
-            runner['_config'] = { logLevel: 'error' } as any
+            } as any
+            runner['_config'] = { logLevel: 'error', afterSession: [hook] } as any
             await runner.endSession()
             expect(executeHooksWithArgs).toBeCalledWith(
                 'afterSession',
                 [hook],
-                [{ logLevel: 'error' }, { foo: undefined, bar: undefined }, undefined])
+                [{ logLevel: 'error', afterSession: [hook] }, { foo: undefined, bar: undefined }, undefined])
+            expect(runner['_browser']!.deleteSession).toBeCalledTimes(1)
             // @ts-expect-error
-            expect(global.browser.deleteSession).toBeCalledTimes(1)
+            expect(!(runner['_browser'] as any as WebdriverIO.MultiRemoteBrowser).foo.sessionId).toBe(true)
             // @ts-expect-error
-            expect(!global.browser.foo.sessionId).toBe(true)
-            // @ts-expect-error
-            expect(!global.browser.bar.sessionId).toBe(true)
+            expect(!(runner['_browser'] as any as WebdriverIO.MultiRemoteBrowser).bar.sessionId).toBe(true)
             expect(runner['_shutdown']).toBeCalledTimes(0)
         })
 
@@ -230,11 +225,6 @@ describe('wdio-runner', () => {
             runner['_shutdown'] = vi.fn()
             await runner.endSession()
             expect(hook).toBeCalledTimes(0)
-        })
-
-        afterEach(() => {
-            // @ts-ignore test scenario
-            delete global.browser
         })
     })
 
@@ -333,15 +323,13 @@ describe('wdio-runner', () => {
                 beforeSession: []
             }
             runner['_configParser'].getConfig = vi.fn().mockReturnValue(config)
-            // @ts-expect-error
-            global.browser = { url: vi.fn(url => url) } as any as BrowserObject
+            runner['_browser'] = { url: vi.fn(url => url) } as any as BrowserObject
             runner['_startSession'] = vi.fn().mockReturnValue({ })
             runner['_initSession'] = vi.fn().mockReturnValue({ options: { capabilities: {} } })
             const failures = await runner.run({ args: { watch: true }, caps: {} } as any)
 
             expect(failures).toBe(0)
-            // @ts-expect-error
-            expect(global.browser.url).not.toBeCalled()
+            expect(runner['_browser'].url).not.toBeCalled()
         })
 
         it('should set failures to 1 in case of error', async () => {
@@ -438,11 +426,6 @@ describe('wdio-runner', () => {
             // browser session is started
             expect(runner['_reporter']?.caps).toEqual(caps)
         })
-
-        afterEach(() => {
-            // @ts-ignore test scenario
-            delete global.browser
-        })
     })
 
     describe('_initSession', () => {
@@ -453,19 +436,10 @@ describe('wdio-runner', () => {
                 [{ browserName: 'chrome1' }] as any
             )
 
-            // @ts-expect-error
-            expect(browser).toBe(global.browser)
-            expect(typeof $).toBe('function')
-            expect(typeof $$).toBe('function')
-
-            expect(browser!.$).toBeCalledTimes(0)
-            expect(browser!.$$).toBeCalledTimes(0)
-            /* eslint-disable-next-line */
-            $('foobar')
-            /* eslint-disable-next-line */
-            $$('barfoo')
-            expect(browser!.$).toBeCalledTimes(1)
-            expect(browser!.$$).toBeCalledTimes(1)
+            expect(_setGlobal).toBeCalledWith('browser', browser, undefined)
+            expect(_setGlobal).toBeCalledWith('driver', browser, undefined)
+            expect(_setGlobal).toBeCalledWith('$', expect.any(Function), undefined)
+            expect(_setGlobal).toBeCalledWith('$$', expect.any(Function), undefined)
         })
 
         it('should register before and after command listener', async () => {
@@ -511,21 +485,13 @@ describe('wdio-runner', () => {
         afterEach(() => {
             // @ts-ignore test scenario
             delete global.throwRemoteCall
-            // @ts-ignore test scenario
-            delete global.browser
-            // @ts-ignore test scenario
-            delete global.driver
-            // @ts-ignore test scenario
-            delete global.$
-            // @ts-ignore test scenario
-            delete global.$$
         })
     })
 
     describe('_shutdown', () => {
         it('should emit exit', async () => {
-            global.browser = {} as any as BrowserObject
             const runner = new WDIORunner()
+            runner['_browser'] = {} as any as BrowserObject
             runner['_reporter'] = {
                 waitForSync: vi.fn().mockReturnValue(Promise.resolve()),
                 emit: vi.fn()
@@ -538,11 +504,11 @@ describe('wdio-runner', () => {
         })
 
         it('should emit exit when reporter unsync', async () => {
-            global.browser = {} as any as BrowserObject
             const log = logger('wdio-runner')
             vi.spyOn(log, 'error').mockImplementation((string) => string)
 
             const runner = new WDIORunner()
+            runner['_browser'] = {} as any as BrowserObject
             runner['_reporter'] = {
                 waitForSync: vi.fn().mockReturnValue(Promise.reject('foo')),
                 emit: vi.fn()
@@ -556,9 +522,8 @@ describe('wdio-runner', () => {
         })
 
         it('should emit runner:start if the initialisation failed', async () => {
-            global.browser = {} as any as BrowserObject
-
             const runner = new WDIORunner()
+            runner['_browser'] = {} as any as BrowserObject
             runner['_reporter'] = {
                 waitForSync: vi.fn().mockReturnValue(Promise.resolve()),
                 emit: vi.fn()
@@ -590,7 +555,5 @@ describe('wdio-runner', () => {
     afterEach(() => {
         vi.mocked(executeHooksWithArgs).mockClear()
         vi.mocked(attach).mockClear()
-        // @ts-ignore test scenario
-        delete global.browser
     })
 })

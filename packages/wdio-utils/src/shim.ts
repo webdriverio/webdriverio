@@ -12,7 +12,6 @@ interface Retries {
 }
 
 declare global {
-    var browser: any
     var expectAsync: any
 }
 

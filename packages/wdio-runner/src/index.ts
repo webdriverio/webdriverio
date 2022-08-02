@@ -294,8 +294,8 @@ export default class Runner extends EventEmitter {
     ) {
         try {
             this._browser = await initialiseInstance(config, caps, this._isMultiremote)
-            _setGlobal('browser', browser, config.injectGlobals)
-            _setGlobal('driver', browser, config.injectGlobals)
+            _setGlobal('browser', this._browser, config.injectGlobals)
+            _setGlobal('driver', this._browser, config.injectGlobals)
 
             /**
              * attach browser to `multiremotebrowser` so user have better typing support
@@ -465,9 +465,8 @@ export default class Runner extends EventEmitter {
                 // @ts-ignore sessionId is usually required
                 delete multiremoteBrowser[browserName].sessionId
             })
-        } else {
-            // @ts-ignore sessionId is usually required
-            delete global.browser.sessionId
+        } else if (this._browser) {
+            this._browser.sessionId = undefined as any as string
         }
 
         const afterSessionArgs: AfterSessionArgs = [this._config!, capabilities, this._specs as string[]]

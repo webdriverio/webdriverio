@@ -477,6 +477,17 @@ const severeErrorTest = async () => {
     assert.equal(onCompleteFailed, true, 'Expected onWorkerStart to fail testrun')
 }
 
+/**
+ * test usage of globals package
+ */
+const nonGlobalTestrunner = async () => {
+    const hasFailed = await launch('nonGlobalTestrunner', baseConfig, {
+        specs: [path.resolve(__dirname, 'mocha', 'noGlobals.ts')],
+        injectGlobals: false
+    }).then(() => false, () => true)
+    assert.strictEqual(hasFailed, false)
+}
+
 (async () => {
     const smokeTests = [
         mochaTestrunner,
@@ -500,7 +511,8 @@ const severeErrorTest = async () => {
         retryPass,
         customReporterString,
         customReporterObject,
-        severeErrorTest
+        severeErrorTest,
+        nonGlobalTestrunner
     ]
 
     console.log('\nRunning smoke tests...\n')

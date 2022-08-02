@@ -56,8 +56,12 @@ describe('wdio-runner', () => {
         })
 
         it('should add user flags to browser but not overwrite', async () => {
-            // @ts-ignore test scenario
-            const browser = await runner['_initSession'](undefined, undefined, { isFoo: true, $: true, $$: false, isBar: true })
+            const browser = await runner['_initSession'](
+                // @ts-ignore test scenario
+                { injectGlobals: false },
+                undefined,
+                { isFoo: true, $: true, $$: false, isBar: true }
+            )
 
             expect(typeof browser!.$).toBe('function')
             expect(typeof browser!.$$).toBe('function')

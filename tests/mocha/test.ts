@@ -10,8 +10,15 @@ describe('Mocha smoke test', () => {
         }
     })
 
-    it('should return sync value', () => {
-        expect(browser).toHaveTitle('Mock Page Title')
+    it('has globals set up', () => {
+        expect(typeof global.browser).not.toBe('undefined')
+        expect(typeof global.driver).not.toBe('undefined')
+        expect(typeof global.$).not.toBe('undefined')
+        expect(typeof global.$$).not.toBe('undefined')
+    })
+
+    it('should return sync value', async () => {
+        await expect(browser).toHaveTitle('Mock Page Title')
     })
 
     let hasRun = false
@@ -27,7 +34,7 @@ describe('Mocha smoke test', () => {
 
     it('should chain properly', async () => {
         // @ts-expect-error custom command
-        browser.isExistingScenario()
+        await browser.isExistingScenario()
 
         const el = browser.$('body')
         assert.equal(await el.$('.selector-1').isExisting(), true)
