@@ -1,0 +1,33 @@
+{
+  "name": "@wdio/globals",
+  "version": "7.19.0",
+  "description": "A helper utility for importing global variables directly",
+  "author": "Christian Bromann <mail@bromann.dev>",
+  "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-globals",
+  "license": "MIT",
+  "type": "module",
+  "exports": "./build/index.js",
+  "types": "./build/index.d.ts",
+  "typeScriptVersion": "3.8.3",
+  "engines": {
+     "node": "^16.13 || >=18"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/webdriverio/webdriverio.git"
+  },
+  "keywords": [
+    "webdriver",
+    "wdio",
+    "wdio-utility"
+  ],
+  "bugs": {
+    "url": "https://github.com/webdriverio/webdriverio/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "peerDependencies": {
+    "webdriverio": "^7.0.0"
+  }
+}
