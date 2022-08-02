@@ -258,7 +258,6 @@ export function handler(argv: ConfigCommandArguments) {
  * @param {Function} runConfigCmd   runConfig method to be replaceable for unit testing
  */
 export async function missingConfigurationPrompt(command: string, message: string, useYarn = false, runConfigCmd = runConfig) {
-
     const configMessage = command === 'run'
         ? `Error: Could not execute "run" due to missing configuration, file "${message}" not found! Would you like to create one?`
         : `Error: Could not execute "${command}" due to missing configuration. Would you like to create one?`
