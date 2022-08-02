@@ -146,7 +146,8 @@ export async function handler (argv: RunCommandArguments) {
     const { configPath, ...params } = argv
 
     if (!fs.existsSync(configPath)) {
-        await missingConfigurationPrompt('run', `No WebdriverIO configuration found in "${process.cwd()}"`)
+        const configFullPath = path.join(process.cwd(), configPath)
+        await missingConfigurationPrompt('run', configFullPath)
     }
 
     const localConf = path.join(process.cwd(), 'wdio.conf.js')
