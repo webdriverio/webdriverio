@@ -5,6 +5,7 @@ import { EventEmitter } from 'node:events'
 import logger from '@wdio/logger'
 import { initialiseWorkerService, initialisePlugin, executeHooksWithArgs } from '@wdio/utils'
 import { ConfigParser } from '@wdio/config'
+import { _setGlobal } from '@wdio/globals'
 import type { Options, Capabilities, Services } from '@wdio/types'
 import type { Selector, Browser, MultiRemoteBrowser } from 'webdriverio'
 
@@ -17,22 +18,6 @@ type BeforeArgs = Parameters<Required<Services.HookFunctions>['before']>
 type AfterArgs = Parameters<Required<Services.HookFunctions>['after']>
 type BeforeSessionArgs = Parameters<Required<Services.HookFunctions>['beforeSession']>
 type AfterSessionArgs = Parameters<Required<Services.HookFunctions>['afterSession']>
-
-/**
- * user types for globals are set in webdriverio
- * putting this here to make compiler happy
- */
-declare global {
-    namespace NodeJS {
-        interface Global {
-            $: any
-            $$: any
-            browser: any
-            driver: any
-            multiremotebrowser: any
-        }
-    }
-}
 
 interface Args extends Partial<Options.Testrunner> {
     ignoredWorkerServices?: string[]
@@ -65,6 +50,7 @@ interface SingleConfigOption extends Omit<Options.Testrunner, 'capabilities'>, S
 type MultiRemoteCaps = Record<string, (Capabilities.DesiredCapabilities | Capabilities.W3CCapabilities) & { sessionId?: string }>
 
 export default class Runner extends EventEmitter {
+    private _browser?: Browser<'async'> | MultiRemoteBrowser<'async'>
     private _configParser = new ConfigParser()
     private _sigintWasCalled = false
     private _isMultiremote = false
@@ -274,10 +260,8 @@ export default class Runner extends EventEmitter {
         /**
          * register global helper method to fetch elements
          */
-        // @ts-ignore
-        global.$ = (selector: Selector) => browser.$(selector)
-        // @ts-ignore
-        global.$$ = (selector: Selector) => browser.$$(selector)
+        _setGlobal('$', (selector: Selector) => browser.$(selector), config.injectGlobals)
+        _setGlobal('$$', (selector: Selector) => browser.$$(selector), config.injectGlobals)
 
         /**
          * register command event
@@ -308,26 +292,24 @@ export default class Runner extends EventEmitter {
         config: SingleConfigOption,
         caps: Capabilities.RemoteCapability
     ) {
-        let browser: Browser<'async'> | MultiRemoteBrowser<'async'>
-
         try {
-            // @ts-ignore
-            browser = global.browser = global.driver = await initialiseInstance(config, caps, this._isMultiremote)
+            this._browser = await initialiseInstance(config, caps, this._isMultiremote)
+            _setGlobal('browser', browser, config.injectGlobals)
+            _setGlobal('driver', browser, config.injectGlobals)
 
             /**
              * attach browser to `multiremotebrowser` so user have better typing support
              */
             if (this._isMultiremote) {
-                // @ts-ignore
-                global.multiremotebrowser = browser
+                _setGlobal('multiremotebrowser', browser, config.injectGlobals)
             }
         } catch (err: any) {
             log.error(err)
             return
         }
 
-        browser.config = config as Options.Testrunner
-        return browser
+        this._browser.config = config as Options.Testrunner
+        return this._browser
     }
 
     /**
@@ -348,18 +330,18 @@ export default class Runner extends EventEmitter {
             /**
              * the session wasn't killed during start up phase
              */
-            !global.browser.sessionId ||
+            !this._browser?.sessionId ||
             /**
              * driver supports it
              */
-            typeof global.browser.getLogs === 'undefined'
+            typeof this._browser.getLogs === 'undefined'
         ) {
             return
         }
 
-        let logTypes
+        let logTypes: string[]
         try {
-            logTypes = await global.browser.getLogTypes()
+            logTypes = await this._browser.getLogTypes() as string[]
         } catch (errIgnored) {
             /**
              * getLogTypes is not supported by browser
@@ -374,7 +356,7 @@ export default class Runner extends EventEmitter {
             let logs
 
             try {
-                logs = await global.browser.getLogs(logType)
+                logs = await this._browser?.getLogs(logType)
             } catch (e: any) {
                 return log.warn(`Couldn't fetch logs for ${logType}: ${e.message}`)
             }
@@ -382,7 +364,7 @@ export default class Runner extends EventEmitter {
             /**
              * don't write to file if no logs were captured
              */
-            if (logs.length === 0) {
+            if (!logs || logs.length === 0) {
                 return
             }
 
@@ -406,7 +388,7 @@ export default class Runner extends EventEmitter {
          * In case of initialisation failed, the sessionId is undefined and the runner:start is not triggered.
          * So, to be able to perform the runner:end into the reporters, we need to launch the runner:start just before the runner:end.
          */
-        if (!global.browser.sessionId && this._reporter) {
+        if (!this._browser?.sessionId && this._reporter) {
             this._reporter.emit('runner:start', {
                 cid: this._cid,
                 specs: this._specs,
@@ -440,8 +422,8 @@ export default class Runner extends EventEmitter {
         /**
          * make sure instance(s) exist and have `sessionId`
          */
-        const multiremoteBrowser = global.browser as unknown as MultiRemoteBrowser<'async'>
-        const hasSessionId = Boolean(global.browser) && (this._isMultiremote
+        const multiremoteBrowser = this._browser as MultiRemoteBrowser<'async'>
+        const hasSessionId = Boolean(this._browser) && (this._isMultiremote
             /**
              * every multiremote instance should exist and should have `sessionId`
              */
@@ -453,7 +435,7 @@ export default class Runner extends EventEmitter {
             /**
              * browser object should have `sessionId` in regular mode
              */
-            : global.browser.sessionId)
+            : this._browser?.sessionId)
 
         /**
          * don't do anything if test framework returns after SIGINT
@@ -466,14 +448,14 @@ export default class Runner extends EventEmitter {
         /**
          * store capabilities for afterSession hook
          */
-        const capabilities: Capabilities.Capabilities | Capabilities.W3CCapabilities | MultiRemoteCaps = global.browser.capabilities || {}
+        const capabilities: Capabilities.Capabilities | Capabilities.W3CCapabilities | MultiRemoteCaps = this._browser?.capabilities || {}
         if (this._isMultiremote) {
             multiremoteBrowser.instances.forEach((browserName: string) => {
                 (capabilities as MultiRemoteCaps)[browserName] = multiremoteBrowser[browserName].capabilities
             })
         }
 
-        await global.browser.deleteSession()
+        await this._browser?.deleteSession()
 
         /**
          * delete session(s)
@@ -489,6 +471,6 @@ export default class Runner extends EventEmitter {
         }
 
         const afterSessionArgs: AfterSessionArgs = [this._config!, capabilities, this._specs as string[]]
-        await executeHooksWithArgs('afterSession', global.browser.config.afterSession!, afterSessionArgs)
+        await executeHooksWithArgs('afterSession', this._config!.afterSession!, afterSessionArgs)
     }
 }
