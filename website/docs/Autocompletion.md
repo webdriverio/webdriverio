@@ -44,7 +44,7 @@ If you use vanilla JavaScript and want to have proper type support for synchrono
     "compilerOptions": {
         "types": [
             "node",
-            "webdriverio/sync",
+            "@wdio/globals",
             "@wdio/mocha-framework"
         ]
     }

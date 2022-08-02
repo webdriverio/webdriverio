@@ -73,44 +73,13 @@ npx wdio run ./entrypoint.js --no-autoCompileOpts.autoCompile
 
 And your `tsconfig.json` needs the following:
 
-<Tabs
-  defaultValue="async"
-  className="runtime"
-  values={[
-    {label: 'Async Mode', value: 'async'},
-    {label: 'Sync Mode', value: 'sync'},
-  ]
-}>
-<TabItem value="sync">
-
 ```json title="tsconfig.json"
 {
     "compilerOptions": {
-        "types": ["node", "webdriverio/sync"]
+        "types": ["node", "@wdio/globals"]
     }
 }
 ```
-
-:::caution
-Synchronous Mode will depcrecated with Node.js v16. With an update to the
-underlying Chromium version it became technically impossible to provide the
-same synchronous behavior. We recommend to start transition to asynchronous
-command execution. For more information, see our <a href="https://github.com/webdriverio/webdriverio/discussions/6702">RFC</a>.
-:::
-
-</TabItem>
-<TabItem value="async">
-
-```json title="tsconfig.json"
-{
-    "compilerOptions": {
-        "types": ["node", "webdriverio/async"]
-    }
-}
-```
-
-</TabItem>
-</Tabs>
 
 Please avoid importing `webdriverio` or `@wdio/sync` explicitly.
 `WebdriverIO` and `WebDriver` types are accessible from anywhere once added to `types` in `tsconfig.json`. If you use additional WebdriverIO services, plugins or the `devtools` automation package, please also add them to the `types` list as many provide additional typings.
