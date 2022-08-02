@@ -20,6 +20,7 @@ export const DEFAULT_CONFIGS: () => Omit<Options.Testrunner, 'capabilities'> = (
     services: [],
     maxInstances: 100,
     maxInstancesPerCapability: 100,
+    injectGlobals: true,
     filesToWatch: [],
     connectionRetryTimeout: 120000,
     connectionRetryCount: 3,

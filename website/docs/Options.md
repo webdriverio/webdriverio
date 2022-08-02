@@ -291,6 +291,20 @@ Maximum number of total parallel running workers per capability.
 Type: `Number`<br />
 Default: `100`
 
+### injectGlobals
+
+Inserts WebdriverIO's globals (e.g. `browser`, `$` and `$$`) into the global environment.
+If you set to `false`, you should import from `@wdio/globals`, e.g.:
+
+```ts
+import { browser, $, $$ } from '@wdio/globals'
+```
+
+Note: WebdriverIO doesn't handle injection of test framework specific globals.
+
+Type: `Boolean`<br />
+Default: `true`
+
 ### bail
 
 If you want your test run to stop after a specific number of test failures, use `bail`.

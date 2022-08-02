@@ -270,6 +270,13 @@ export const WDIO_DEFAULTS: Options.Definition<Options.WebdriverIO & Options.Tes
         type: 'number'
     },
     /**
+     * whether or not testrunner should inject `browser`, `$` and `$$` as
+     * global environment variables
+     */
+    injectGlobals: {
+        type: 'boolean'
+    },
+    /**
      * list of strings to watch of `wdio` command is called with `--watch` flag
      */
     filesToWatch: {

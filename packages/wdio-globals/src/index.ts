@@ -1,4 +1,4 @@
-type SupportedGlobals = 'browser'
+type SupportedGlobals = 'browser' | '$' | '$$'
 
 const globals: Map<SupportedGlobals, any> = new Map()
 

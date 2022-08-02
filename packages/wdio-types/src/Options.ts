@@ -360,6 +360,21 @@ export interface Testrunner extends Hooks, Omit<WebdriverIO, 'capabilities'>, We
      */
     maxInstancesPerCapability?: number
     /**
+     * Inserts WebdriverIO's globals (e.g. `browser`, `$` and `$$`) into the
+     * global environment. If you set to `false`, you should import from
+     * `@wdio/globals`, e.g.:
+     *
+     * ```ts
+     * import { browser, $, $$ } from '@wdio/globals'
+     * ```
+     *
+     * Note: WebdriverIO doesn't handle injection of test framework specific
+     * globals.
+     *
+     * @default true
+     */
+    injectGlobals?: boolean
+    /**
      * If you want your test run to stop after a specific number of test failures, use bail.
      * (It defaults to 0, which runs all tests no matter what.) Note: Please be aware that
      * when using a third party test runner (such as Mocha), additional configuration might
