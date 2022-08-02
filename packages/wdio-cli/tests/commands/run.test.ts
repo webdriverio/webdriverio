@@ -38,11 +38,11 @@ describe('Command: run', () => {
 
     it('should call missingConfigurationPrompt if no config found', async () => {
         (fs.existsSync as jest.Mock).mockImplementation(() => false)
-        await runCmd.handler({} as any)
+        await runCmd.handler({ configPath: 'sample.conf.js' } as any)
 
         expect(configCmd.missingConfigurationPrompt).toHaveBeenCalledTimes(1)
         expect((configCmd.missingConfigurationPrompt as jest.Mock).mock.calls[0][1])
-            .toContain('No WebdriverIO configuration found in "')
+            .toContain('sample.conf.js')
 
         ;(fs.existsSync as jest.Mock).mockClear()
     })

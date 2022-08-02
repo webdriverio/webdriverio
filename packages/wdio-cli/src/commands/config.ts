@@ -258,11 +258,16 @@ export function handler(argv: ConfigCommandArguments) {
  * @param {Function} runConfigCmd   runConfig method to be replaceable for unit testing
  */
 export async function missingConfigurationPrompt(command: string, message: string, useYarn = false, runConfigCmd = runConfig) {
+
+    const configMessage = command === 'run'
+        ? `Error: Could not execute "run" due to missing configuration, file "${message}" not found! Would you like to create one?`
+        : `Error: Could not execute "${command}" due to missing configuration. Would you like to create one?`
+
     const { config } = await inquirer.prompt([
         {
             type: 'confirm',
             name: 'config',
-            message: `Error: Could not execute "${command}" due to missing configuration. Would you like to create one?`,
+            message: configMessage,
             default: false
         }
     ])
@@ -272,7 +277,9 @@ export async function missingConfigurationPrompt(command: string, message: strin
      */
     if (!config && !process.env.JEST_WORKER_ID) {
         /* istanbul ignore next */
-        console.log(message)
+        console.log(command === 'run'
+            ? `No WebdriverIO configuration found in "${process.cwd()}"`
+            : message)
         /* istanbul ignore next */
         return process.exit(0)
     }
