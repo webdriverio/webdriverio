@@ -12,13 +12,14 @@ const ROOT = path.resolve(__dirname, '..', '..')
 
 // TypeScript project root for testing particular typings
 const outDirs = [
-    'devtools', 'sync-devtools', 'webdriverio', 'webdriver', 'mocha', 'jasmine', 'cucumber', 'sync'
+    'devtools', 'webdriverio', 'webdriver', 'mocha', 'jasmine', 'cucumber'
 ]
 
 const packages = {
     'devtools': 'packages/devtools',
     'webdriver': 'packages/webdriver',
     'webdriverio': 'packages/webdriverio',
+    '@wdio/globals': 'packages/wdio-globals',
     '@wdio/reporter': 'packages/wdio-reporter',
     '@wdio/allure-reporter': 'packages/wdio-allure-reporter',
     '@wdio/appium-service': 'packages/wdio-appium-service',

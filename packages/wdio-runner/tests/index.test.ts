@@ -1,4 +1,4 @@
-/// <reference path="../../webdriverio/async.d.ts" />
+/// <reference path="../../webdriverio/src/@types/async.d.ts" />
 
 import path from 'node:path'
 import fs from 'node:fs/promises'
