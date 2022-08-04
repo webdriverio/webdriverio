@@ -17,7 +17,8 @@ declare namespace WebdriverIOAsync {
 declare namespace WebdriverIO {
     interface Browser extends BrowserSync, WebdriverIOAsync.Browser { }
     interface Element extends ElementSync, WebdriverIOAsync.Element { }
-    // @ts-expect-error
+    // @ts-expect-error unsufficient definition for multiremote which allows
+    // `browser.click()` as well as `browser.browserName.click()`
     interface MultiRemoteBrowser extends MultiRemoteBrowserAsync, WebdriverIOAsync.MultiRemoteBrowser { }
     interface ElementArray extends ElementArrayImport {}
 }

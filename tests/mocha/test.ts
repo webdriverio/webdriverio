@@ -11,10 +11,10 @@ describe('Mocha smoke test', () => {
     })
 
     it('has globals set up', () => {
-        expect(typeof global.browser).not.toBe('undefined')
-        expect(typeof global.driver).not.toBe('undefined')
-        expect(typeof global.$).not.toBe('undefined')
-        expect(typeof global.$$).not.toBe('undefined')
+        expect(global.browser).not.toBeDefined()
+        expect(global.driver).not.toBeDefined()
+        expect(global.$).not.toBeDefined()
+        expect(global.$$).not.toBeDefined()
     })
 
     it('should return sync value', async () => {
@@ -82,7 +82,7 @@ describe('Mocha smoke test', () => {
         )
 
         // @ts-expect-error invalid type assertion
-        expect(typeof browser.foo).toBe('undefined')
+        expect(browser.foo).toBeDefined()
         // @ts-expect-error invalid type assertion
         expect(await browser.$('body').$('.selector-1').foo()).toBe('foo_.selector-1_bar')
     })

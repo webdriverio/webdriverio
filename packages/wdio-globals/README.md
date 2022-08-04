@@ -6,7 +6,7 @@ WDIO Globals
 This package can be used to import global variables explicitly, e.g.
 
 ```ts
-import { browser, describe, it } from '@wdio/globals'
+import { browser, expect } from '@wdio/globals'
 
 describe('my test', () => {
     // ...

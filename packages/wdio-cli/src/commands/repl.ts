@@ -50,9 +50,7 @@ export const handler = async (argv: ReplCommandArguments) => {
     const caps = await getCapabilities(argv)
     const client = await remote({ ...argv, ...caps })
 
-    // @ts-ignore
     global.$ = client.$.bind(client)
-    // @ts-ignore
     global.$$ = client.$$.bind(client)
     global.browser = client
 

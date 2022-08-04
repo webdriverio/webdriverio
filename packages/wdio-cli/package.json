@@ -40,6 +40,7 @@
     "@types/lodash.union": "^4.6.7",
     "@types/recursive-readdir": "^2.2.1",
     "@wdio/config": "7.20.7",
+    "@wdio/globals": "^7.20.7",
     "@wdio/logger": "7.19.0",
     "@wdio/protocols": "7.20.6",
     "@wdio/types": "7.20.7",
