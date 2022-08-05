@@ -48,6 +48,7 @@ const target = new TargetMock()
 
 class PageMock {
     on = vi.fn()
+    off = vi.fn()
     close = vi.fn()
     url = vi.fn().mockReturnValue('about:blank')
     emulate = vi.fn()
@@ -64,6 +65,7 @@ const page2 = new PageMock2()
 
 class PuppeteerMock {
     on = vi.fn()
+    off = vi.fn()
     waitForTarget = vi.fn().mockImplementation(() => target)
     getActivePage = vi.fn().mockImplementation(() => page)
     pages = vi.fn().mockReturnValue(Promise.resolve([page, page2]))
