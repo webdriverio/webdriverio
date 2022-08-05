@@ -308,7 +308,6 @@ export default class Runner extends EventEmitter {
             return
         }
 
-        this._browser.config = config as Options.Testrunner
         return this._browser
     }
 
