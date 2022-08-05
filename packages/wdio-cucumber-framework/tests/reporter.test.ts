@@ -15,6 +15,19 @@ import {
     testRunFinished
 } from './fixtures/envelopes.js'
 
+vi.mock('@cucumber/messages', () => ({
+    IdGenerator: { incrementing: vi.fn() },
+    TestStepResultStatus: {
+        UNKNOWN: 'UNKNOWN',
+        PASSED: 'PASSED',
+        SKIPPED: 'SKIPPED',
+        PENDING: 'PENDING',
+        UNDEFINED: 'UNDEFINED',
+        AMBIGUOUS: 'AMBIGUOUS',
+        FAILED: 'FAILED'
+    }
+}))
+
 const wdioReporter = {
     write: vi.fn(),
     emit: vi.fn(),

@@ -14,6 +14,7 @@ vi.mock('mockery')
 vi.mock('@wdio/utils')
 vi.mock('expect-webdriverio')
 vi.mock('@cucumber/cucumber')
+vi.mock('@cucumber/messages', () => ({ IdGenerator: { incrementing: vi.fn() } }))
 vi.mock('../src/reporter', () => ({
     default: class CucumberReporter {
         eventListener = {

@@ -346,7 +346,46 @@ $ npx wdio run wdio.conf.js
 ]
 `;
 
-exports[`should not install npm packages when npmInstall is false 1`] = `[Function]`;
+exports[`should not install npm packages when npmInstall is false 1`] = `
+[MockFunction log] {
+  "calls": [
+    [
+      "
+=========================
+WDIO Configuration Helper
+=========================
+",
+    ],
+    [
+      "
+To install dependencies, execute:
+npm i --save-dev @wdio/local-runner @wdio/mocha-framework @wdio/spec-reporter wdio-wait-for @wdio/sauce-service
+",
+    ],
+    [
+      "
+Configuration file was created successfully!
+To run your tests, execute:
+$ npx wdio run wdio.conf.js
+",
+    ],
+  ],
+  "results": [
+    {
+      "type": "return",
+      "value": undefined,
+    },
+    {
+      "type": "return",
+      "value": undefined,
+    },
+    {
+      "type": "return",
+      "value": undefined,
+    },
+  ],
+}
+`;
 
 exports[`should setup Babel if not existing 1`] = `
 [
