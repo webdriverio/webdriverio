@@ -31,7 +31,8 @@ ruleTester.run('await-expect-check', rule, {
         {
             code : 'expect($(`.foo`)).toExist()',
             errors,
-        },        {
+        },
+        {
             code : 'expect($(`.foo`)).toBeExisting()',
             errors,
         },
