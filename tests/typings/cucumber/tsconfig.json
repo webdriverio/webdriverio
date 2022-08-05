@@ -6,7 +6,7 @@
     "esModuleInterop": true,
     "resolveJsonModule": true,
     "types": [
-      "@wdio/globals",
+      "@wdio/globals/types",
       "@wdio/cucumber-framework"
     ]
   }

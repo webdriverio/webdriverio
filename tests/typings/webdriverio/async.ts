@@ -45,8 +45,8 @@ async function bar() {
     }).then(() => {}, () => {})
 
     // interact with specific instance
-    // const mrSingleElem = await mr.myBrowserInstance.$('')
-    // await mrSingleElem.click()
+    const mrSingleElem = await mr.myBrowserInstance.$('')
+    await mrSingleElem.click()
 
     // interact with all instances
     const mrElem = await mr.$('')
@@ -55,8 +55,8 @@ async function bar() {
     // instances array
     expectType<string[]>(mr.instances)
 
-    const nsElems: WebdriverIO.ElementArray = {} as any
-    expectType<string>(nsElems.foundWith)
+    const elements = await browser.$$('foo')
+    expectType<string>(elements.foundWith)
 
     ////////////////////////////////////////////////////////////////////////////////
 

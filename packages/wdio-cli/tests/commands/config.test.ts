@@ -234,7 +234,7 @@ test('prints TypeScript setup message with ts-node installed', async () => {
             moduleResolution: 'node',
             types: [
                 'node',
-                '@wdio/globals',
+                '@wdio/globals/types',
                 '@wdio/mocha-framework',
                 'expect-webdriverio'
             ],

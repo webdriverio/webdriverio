@@ -28,7 +28,7 @@ Packages installed successfully, creating configuration file...",
     "To have TypeScript support please add the following packages to your \\"types\\" list:
 {
   \\"compilerOptions\\": {
-    \\"types\\": [\\"node\\", \\"@wdio/globals\\", \\"@wdio/mocha-framework\\", \\"expect-webdriverio\\", \\"@wdio/crossbrowsertesting-service\\"]
+    \\"types\\": [\\"node\\", \\"@wdio/globals/types\\", \\"@wdio/mocha-framework\\", \\"expect-webdriverio\\", \\"@wdio/crossbrowsertesting-service\\"]
   }
 }
 
@@ -73,7 +73,7 @@ Packages installed successfully, creating configuration file...",
     "To have TypeScript support please add the following packages to your \\"types\\" list:
 {
   \\"compilerOptions\\": {
-    \\"types\\": [\\"node\\", \\"@wdio/globals\\", \\"@wdio/mocha-framework\\", \\"expect-webdriverio\\", \\"@wdio/crossbrowsertesting-service\\"]
+    \\"types\\": [\\"node\\", \\"@wdio/globals/types\\", \\"@wdio/mocha-framework\\", \\"expect-webdriverio\\", \\"@wdio/crossbrowsertesting-service\\"]
   }
 }
 
@@ -118,7 +118,7 @@ Packages installed successfully, creating configuration file...",
     "To have TypeScript support please add the following packages to your \\"types\\" list:
 {
   \\"compilerOptions\\": {
-    \\"types\\": [\\"node\\", \\"@wdio/globals\\", \\"@wdio/mocha-framework\\", \\"expect-webdriverio\\", \\"@wdio/crossbrowsertesting-service\\"]
+    \\"types\\": [\\"node\\", \\"@wdio/globals/types\\", \\"@wdio/mocha-framework\\", \\"expect-webdriverio\\", \\"@wdio/crossbrowsertesting-service\\"]
   }
 }
 
@@ -163,7 +163,7 @@ Packages installed successfully, creating configuration file...",
     "To have TypeScript support please add the following packages to your \\"types\\" list:
 {
   \\"compilerOptions\\": {
-    \\"types\\": [\\"node\\", \\"@wdio/globals\\", \\"@wdio/mocha-framework\\", \\"expect-webdriverio\\", \\"@wdio/crossbrowsertesting-service\\"]
+    \\"types\\": [\\"node\\", \\"@wdio/globals/types\\", \\"@wdio/mocha-framework\\", \\"expect-webdriverio\\", \\"@wdio/crossbrowsertesting-service\\"]
   }
 }
 
@@ -208,7 +208,7 @@ Packages installed successfully, creating configuration file...",
     "To have TypeScript support please add the following packages to your \\"types\\" list:
 {
   \\"compilerOptions\\": {
-    \\"types\\": [\\"node\\", \\"@wdio/globals\\", \\"@wdio/mocha-framework\\", \\"expect-webdriverio\\", \\"@wdio/crossbrowsertesting-service\\"]
+    \\"types\\": [\\"node\\", \\"@wdio/globals/types\\", \\"@wdio/mocha-framework\\", \\"expect-webdriverio\\", \\"@wdio/crossbrowsertesting-service\\"]
   }
 }
 
@@ -253,7 +253,7 @@ Packages installed successfully, creating configuration file...",
     "To have TypeScript support please add the following packages to your \\"types\\" list:
 {
   \\"compilerOptions\\": {
-    \\"types\\": [\\"node\\", \\"@wdio/globals\\", \\"@wdio/mocha-framework\\", \\"expect-webdriverio\\", \\"@wdio/crossbrowsertesting-service\\"]
+    \\"types\\": [\\"node\\", \\"@wdio/globals/types\\", \\"@wdio/mocha-framework\\", \\"expect-webdriverio\\", \\"@wdio/crossbrowsertesting-service\\"]
   }
 }
 

@@ -365,7 +365,7 @@ export interface Testrunner extends Hooks, Omit<WebdriverIO, 'capabilities'>, We
      * `@wdio/globals`, e.g.:
      *
      * ```ts
-     * import { browser, $, $$ } from '@wdio/globals'
+     * import { browser, $, $$, expect } from '@wdio/globals'
      * ```
      *
      * Note: WebdriverIO doesn't handle injection of test framework specific

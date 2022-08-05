@@ -1,35 +1,9 @@
+/// <reference path="../types.d.ts" />
+
 type SupportedGlobals = 'browser' | 'driver' | 'multiremotebrowser' | '$' | '$$'
 
 const globals: Map<SupportedGlobals, any> = new Map()
 const GLOBALS_ERROR_MESSAGE = 'Don\'t import @wdio/globals outside of the WDIO testrunner context'
-
-type BrowserSync = import('webdriverio').Browser<'async'>
-type ElementSync = import('webdriverio').Element<'async'>
-type MultiRemoteBrowserAsync = import('webdriverio').MultiRemoteBrowser<'async'>
-type ElementArrayImport = import('webdriverio').ElementArray
-
-declare namespace WebdriverIOAsync {
-    interface Browser {}
-    interface Element {}
-    interface MultiRemoteBrowser {}
-}
-
-declare namespace WebdriverIO {
-    interface Browser extends BrowserSync, WebdriverIOAsync.Browser { }
-    interface Element extends ElementSync, WebdriverIOAsync.Element { }
-    // @ts-expect-error unsufficient definition for multiremote which allows
-    // `browser.click()` as well as `browser.browserName.click()`
-    interface MultiRemoteBrowser extends MultiRemoteBrowserAsync, WebdriverIOAsync.MultiRemoteBrowser { }
-    interface ElementArray extends ElementArrayImport {}
-}
-
-declare global {
-    var browser: WebdriverIO.Browser
-    var driver: WebdriverIO.Browser
-    var multiremotebrowser: WebdriverIO.MultiRemoteBrowser
-    var $: (...args: Parameters<WebdriverIO.Browser['$']>) => ReturnType<WebdriverIO.Browser['$']>
-    var $$: (...args: Parameters<WebdriverIO.Browser['$$']>) => ReturnType<WebdriverIO.Browser['$$']>
-}
 
 function proxyHandler (key: SupportedGlobals) {
     return {
@@ -43,25 +17,25 @@ function proxyHandler (key: SupportedGlobals) {
     }
 }
 
-export const browser = new Proxy(
+export const browser: WebdriverIO.Browser = new Proxy(
     class Browser {} as any as WebdriverIO.Browser,
     proxyHandler('browser')
 )
-export const driver = new Proxy(
+export const driver: WebdriverIO.Browser = new Proxy(
     class Browser {} as any as WebdriverIO.Browser,
     proxyHandler('driver')
 )
-export const multiremotebrowser = new Proxy(
+export const multiremotebrowser: WebdriverIO.MultiRemoteBrowser = new Proxy(
     class Browser {} as any as WebdriverIO.MultiRemoteBrowser,
     proxyHandler('multiremotebrowser')
 )
-export const $ = (...args: any) => {
+export const $: WebdriverIO.Browser['$'] = (...args: any) => {
     if (!globals.has('$')) {
         throw new Error(GLOBALS_ERROR_MESSAGE)
     }
     return globals.get('$')(...args)
 }
-export const $$ = (...args: any) => {
+export const $$: WebdriverIO.Browser['$$'] = (...args: any) => {
     if (!globals.has('$$')) {
         throw new Error(GLOBALS_ERROR_MESSAGE)
     }
@@ -78,6 +52,7 @@ export function _setGlobal (key: SupportedGlobals, value: any, setGlobal = true)
     globals.set(key, value)
 
     if (setGlobal) {
+        // @ts-expect-error
         globalThis[key] = value
     }
 }

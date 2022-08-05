@@ -27,7 +27,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "peerDependencies": {
-    "webdriverio": "^7.0.0"
+  "dependencies": {
+    "webdriverio": "7.20.7"
   }
 }

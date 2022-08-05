@@ -28,14 +28,14 @@ We recommend using [NVM](https://github.com/nvm-sh/nvm) (Node Version Manager) t
 
 We have rewritten the complete code base and almost touched all files to add type safety and to fix a lot of bugs on the way. This was a true community effort and would have taken much longer if we didn’t have so many people helping with code contributions. Thank you all for that ❤️! Before, WebdriverIO auto-generated all type definitions, which caused the creation of a lot of duplicate types and inconsistency. With this overhaul, all types are directly taken from the code itself and centralized in a single new helper package called [`@wdio/types`](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-types). If you have been using TypeScript, you will now have much better type support for various commands and the configuration file.
 
-There are two significant changes how this TypeScript rewrite will impact you. Instead of just defining `webdriverio` in your types you now need to set `@wdio/globals`:
+There are two significant changes how this TypeScript rewrite will impact you. Instead of just defining `webdriverio` in your types you now need to set `@wdio/globals/types`:
 
 ```git
 // tsconfig.json
 "types": [
   "node",
 -  "webdriverio",
-+  "@wdio/globals",
++  "@wdio/globals/types",
   "@wdio/mocha-framework"
 ],
 ```

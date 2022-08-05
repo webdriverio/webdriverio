@@ -297,7 +297,7 @@ Inserts WebdriverIO's globals (e.g. `browser`, `$` and `$$`) into the global env
 If you set to `false`, you should import from `@wdio/globals`, e.g.:
 
 ```ts
-import { browser, $, $$ } from '@wdio/globals'
+import { browser, $, $$, expect } from '@wdio/globals'
 ```
 
 Note: WebdriverIO doesn't handle injection of test framework specific globals.

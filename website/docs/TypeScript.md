@@ -76,7 +76,7 @@ And your `tsconfig.json` needs the following:
 ```json title="tsconfig.json"
 {
     "compilerOptions": {
-        "types": ["node", "@wdio/globals"]
+        "types": ["node", "@wdio/globals/types"]
     }
 }
 ```
@@ -103,7 +103,7 @@ For instance, if you decide to use the Mocha framework, you need to install `@ty
 ```json title="tsconfig.json"
 {
     "compilerOptions": {
-        "types": ["node", "@wdio/globals", "@wdio/mocha-framework"]
+        "types": ["node", "@wdio/globals/types", "@wdio/mocha-framework"]
     }
 }
 ```
@@ -114,7 +114,7 @@ For instance, if you decide to use the Mocha framework, you need to install `@ty
 ```json title="tsconfig.json"
 {
     "compilerOptions": {
-        "types": ["node", "@wdio/globals", "@wdio/jasmine-framework"]
+        "types": ["node", "@wdio/globals/types", "@wdio/jasmine-framework"]
     }
 }
 ```
@@ -125,7 +125,7 @@ For instance, if you decide to use the Mocha framework, you need to install `@ty
 ```json title="tsconfig.json"
 {
     "compilerOptions": {
-        "types": ["node", "@wdio/globals", "@wdio/cucumber-framework"]
+        "types": ["node", "@wdio/globals/types", "@wdio/cucumber-framework"]
     }
 }
 ```
@@ -142,7 +142,7 @@ If you use services that add commands to the browser scope you also need to incl
     "compilerOptions": {
         "types": [
             "node",
-            "@wdio/globals",
+            "@wdio/globals/types",
             "@wdio/mocha-framework",
             "@wdio/devtools-service"
         ]
@@ -348,7 +348,7 @@ declare namespace WebdriverIO {
     "strictNullChecks": true,
     "types": [
       "node",
-      "@wdio/globals",
+      "@wdio/globals/types",
       "@wdio/mocha-framework"
     ]
   },
@@ -375,7 +375,7 @@ declare namespace WebdriverIO {
     "strictNullChecks": true,
     "types": [
       "node",
-      "@wdio/globals",
+      "@wdio/globals/types",
       "@wdio/mocha-framework"
     ]
   }

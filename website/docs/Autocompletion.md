@@ -35,7 +35,7 @@ If you use vanilla JavaScript and want to have proper type support for synchrono
     "compilerOptions": {
         "types": [
             "node",
-            "@wdio/globals",
+            "@wdio/globals/types",
             "@wdio/mocha-framework"
         ]
     }
