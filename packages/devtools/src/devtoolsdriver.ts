@@ -106,7 +106,7 @@ export default class DevToolsDriver {
         this.activeListeners.push({ emitter, eventName, boundHandler })
     }
 
-    private offActiverListeners() {
+    private offAllListeners() {
         this.activeListeners.forEach(({ emitter, eventName, boundHandler }) => {
             emitter.off(eventName, boundHandler)
         })
@@ -115,12 +115,12 @@ export default class DevToolsDriver {
 
     /**
      * Inits browser listeners and sets initial handlers for given pages.
-     * Function is intended to be used while reloading DevTools session.
-     * @param browser pupeteer Browser
-     * @param pages pupeteer page array
+     * Function is also intended to be used while reloading DevTools session.
+     * @param browser Puppeteer Browser
+     * @param pages Puppeteer page array
      */
     initBrowser(browser: Browser, pages: Page[]) {
-        this.offActiverListeners()
+        this.offAllListeners()
         this.elementStore = new ElementStore()
         this.windows = new Map()
         this.activeDialog = undefined
