@@ -4,7 +4,12 @@ import path from 'node:path'
 import archiver from 'archiver'
 import { remote } from '../../../src/index.js'
 
-vi.mock('node:fs')
+vi.mock('node:fs', () => ({
+    default: {
+        createReadStream: vi.fn(),
+        existsSync: vi.fn()
+    }
+}))
 vi.mock('got')
 vi.mock('archiver')
 vi.mock('devtools')
@@ -36,10 +41,7 @@ describe('uploadFile', () => {
             new Error('number or type of arguments don\'t agree with uploadFile command'))
     })
 
-    /**
-     * Todo(Christian): fix unit tests
-     */
-    it.skip('should archive the file and use file command', async () => {
+    it('should archive the file and use file command', async () => {
         const browser = await remote({
             baseUrl: 'http://webdriver.io',
             capabilities: {
@@ -54,10 +56,7 @@ describe('uploadFile', () => {
         expect(archiverMock.append).toBeCalledWith(undefined, { name: 'toUpload.jpg' })
     })
 
-    /**
-     * Todo(Christian): fix unit tests
-     */
-    it.skip('reject on error', async () => {
+    it('reject on error', async () => {
         const browser = await remote({
             baseUrl: 'http://webdriver.io',
             capabilities: {
@@ -77,10 +76,7 @@ describe('uploadFile', () => {
         expect(commandError).toEqual(new Error('boom'))
     })
 
-    /**
-     * Todo(Christian): fix unit tests
-     */
-    it.skip('should push zip data to file command', async () => {
+    it('should push zip data to file command', async () => {
         const browser = await remote({
             baseUrl: 'http://webdriver.io',
             capabilities: {

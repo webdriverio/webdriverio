@@ -1,14 +1,13 @@
-import { vi, describe, it, afterEach } from 'vitest'
+import { vi, describe, it, afterEach, expect } from 'vitest'
 import { logHookError } from '../../src/test-framework/errorHandler.js'
 
-// const pSend = vi.spyOn(process, 'send')
-const pSend = vi.fn()
+process.send = vi.fn()
 
 describe('logHookError', () => {
-    it.skip('should send message if there is Error in results', () => {
+    it('should send message if there is Error in results', () => {
         logHookError('BeforeStep', [undefined, true, new Error('foobar')], '0-1')
-        expect(pSend).toBeCalledTimes(1)
-        expect(pSend).toBeCalledWith({
+        expect(process.send).toBeCalledTimes(1)
+        expect(process.send).toBeCalledWith({
             name: 'printFailureMessage',
             origin: 'reporter',
             content: {
@@ -22,6 +21,6 @@ describe('logHookError', () => {
     })
 
     afterEach(() => {
-        pSend.mockClear()
+        vi.mocked(process.send!).mockClear()
     })
 })

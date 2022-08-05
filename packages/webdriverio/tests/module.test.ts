@@ -210,11 +210,7 @@ describe('WebdriverIO module interface', () => {
     })
 
     describe('multiremote', () => {
-        /**
-         * fails due to vitest bug
-         * https://github.com/vitest-dev/vitest/issues/1563
-         */
-        it.skip('register multiple clients', async () => {
+        it('register multiple clients', async () => {
             await multiremote({
                 browserA: {
                     // @ts-ignore mock feature
