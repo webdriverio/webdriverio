@@ -12,6 +12,7 @@ const errors = [{ messageId : 'missingAwait' }]
 ruleTester.run('await-expect-check', rule, {
     valid : [
         'it(`bar`, async () => { await expect($(`.foo`)).toBeDisplayed(); });',
+        'it(`bar`, async () => { await expect($(`.foo`)).toExist(); });',
         'it(`bar`, async () => { await expect($(`.foo`)).toBeExisting(); });',
         'it(`bar`, async () => { await expect($(`.foo`)).toBeRequestedWith(); });',
         'it(`bar`, async () => { await expect($(`.foo`)).toHaveChildren(); });',
@@ -28,6 +29,9 @@ ruleTester.run('await-expect-check', rule, {
             errors,
         },
         {
+            code : 'expect($(`.foo`)).toExist()',
+            errors,
+        },        {
             code : 'expect($(`.foo`)).toBeExisting()',
             errors,
         },
