@@ -1,6 +1,6 @@
 import path from 'node:path'
 import { describe, it, vi, expect } from 'vitest'
-import { BidiHandler } from '../src/bidi'
+import { BidiHandler } from '../src/bidi.js'
 
 vi.mock('ws')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))

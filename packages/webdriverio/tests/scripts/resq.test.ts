@@ -2,7 +2,7 @@
  * @vitest-environment jsdom
  */
 import { it, expect, vi, beforeEach, describe, afterEach } from 'vitest'
-import { react$, react$$, waitToLoadReact } from '../../src/scripts/resq'
+import { react$, react$$, waitToLoadReact } from '../../src/scripts/resq.js'
 
 class MockResq {
     byProps = vi.fn().mockImplementation(() => new MockResq())

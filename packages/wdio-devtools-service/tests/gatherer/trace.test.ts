@@ -5,8 +5,8 @@ import type { CDPSession } from 'puppeteer-core/lib/cjs/puppeteer/common/Connect
 import type { Page } from 'puppeteer-core/lib/cjs/puppeteer/common/Page'
 import type { HTTPRequest } from 'puppeteer-core/lib/cjs/puppeteer/common/HTTPRequest'
 
-import TraceGatherer from '../../src/gatherer/trace'
-import { FRAME_LOAD_START_TIMEOUT, CLICK_TRANSITION } from '../../src/constants'
+import TraceGatherer from '../../src/gatherer/trace.js'
+import { FRAME_LOAD_START_TIMEOUT, CLICK_TRANSITION } from '../../src/constants.js'
 import type { GathererDriver } from '../../src/types'
 
 import TRACELOG from '../__fixtures__/tracelog.json'
@@ -207,23 +207,6 @@ test('onLoadEventFired', async () => {
     await traceGatherer.onLoadEventFired()
     traceGatherer['_traceStart'] = Date.now()
     traceGatherer.completeTracing = vi.fn().mockReturnValue(Promise.resolve('yeahh'))
-
-    // @ts-expect-error
-    traceGatherer['_waitForNetworkIdleEvent'] = {
-        promise: new Promise<void>((resolve) => {
-            vi.advanceTimersByTime(50)
-            resolve()
-        }),
-        cancel: vi.fn()
-    }
-    // @ts-expect-error
-    traceGatherer['_waitForCPUIdleEvent'] = {
-        promise: new Promise<void>((resolve) => {
-            vi.advanceTimersByTime(100)
-            resolve()
-        }),
-        cancel: vi.fn()
-    }
 
     vi.advanceTimersByTime(15000)
     await traceGatherer.onLoadEventFired()

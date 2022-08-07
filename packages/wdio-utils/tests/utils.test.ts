@@ -5,7 +5,7 @@ import fs from 'node:fs'
 import {
     overwriteElementCommands, commandCallStructure, isValidParameter, canAccess,
     getArgumentType, isFunctionAsync, filterSpecArgs, isBase64, transformCommandLogResult
-} from '../src/utils'
+} from '../src/utils.js'
 
 vi.mock('fs', () => import(path.join(process.cwd(), '__mocks__', 'fs')))
 

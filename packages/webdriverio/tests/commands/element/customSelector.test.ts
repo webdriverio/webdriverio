@@ -1,12 +1,12 @@
 import path from 'node:path'
 import { expect, describe, it, beforeEach, vi } from 'vitest'
-import { remote } from '../../../src'
+import { remote } from '../../../src/index.js'
 
 vi.mock('got')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 describe('custom$', () => {
-    let browser: any
+    let browser: WebdriverIO.Browser
 
     beforeEach(async () => {
         browser = await remote({
@@ -22,7 +22,7 @@ describe('custom$', () => {
         const error = await elem.custom$('test', '.foo')
             // @ts-ignore uses sync commands
             .catch((err: Error) => err)
-        expect(error.message).toBe('No strategy found for test')
+        expect((error as Error).message).toBe('No strategy found for test')
     })
 
     it('should fetch element', async () => {
@@ -44,7 +44,7 @@ describe('custom$', () => {
         const error = await elem.custom$('test', '.test')
             // @ts-ignore uses sync commands
             .catch((err: Error) => err)
-        expect(error.message).toContain('because element wasn\'t found')
+        expect((error as Error).message).toContain('because element wasn\'t found')
     })
 
     it('should fetch element one element even if the script returns multiple', async () => {

@@ -22,7 +22,7 @@ import {
     validateUrl,
     getAutomationProtocol,
     updateCapabilities
-} from '../src/utils'
+} from '../src/utils/index.js'
 
 vi.mock('http', () => {
     const req = { on: vi.fn(), end: vi.fn() }
@@ -253,13 +253,9 @@ describe('utils', () => {
 
         it('throws if selector is neither string nor function', async () => {
             const expectedMatch = 'selector needs to be typeof `string` or `function`'
-            // @ts-expect-error invalid param
             await expect(findElement.call(scope as any, null)).rejects.toEqual(new Error(expectedMatch))
-            // @ts-expect-error invalid param
             await expect(findElement.call(scope as any, 123)).rejects.toEqual(new Error(expectedMatch))
-            // @ts-expect-error invalid param
             await expect(findElement.call(scope as any, false)).rejects.toEqual(new Error(expectedMatch))
-            // @ts-expect-error invalid param
             await expect(findElement.call(scope as any)).rejects.toEqual(new Error(expectedMatch))
         })
 
@@ -371,13 +367,9 @@ describe('utils', () => {
 
         it('throws if selector is neither string nor function', async () => {
             const expectedMatch = 'selector needs to be typeof `string` or `function`'
-            // @ts-expect-error invalid param
             await expect(findElements.call(scope, null)).rejects.toEqual(new Error(expectedMatch))
-            // @ts-expect-error invalid param
             await expect(findElements.call(scope, 123)).rejects.toEqual(new Error(expectedMatch))
-            // @ts-expect-error invalid param
             await expect(findElements.call(scope, false)).rejects.toEqual(new Error(expectedMatch))
-            // @ts-expect-error invalid param
             await expect(findElements.call(scope)).rejects.toEqual(new Error(expectedMatch))
         })
 
@@ -414,7 +406,6 @@ describe('utils', () => {
             elementId: string
             constructor({ elementId, ...otherProps }: any) {
                 this.elementId = elementId
-                // @ts-expect-error
                 Object.keys(otherProps).forEach((key) => this[key] = otherProps[key])
             }
         }

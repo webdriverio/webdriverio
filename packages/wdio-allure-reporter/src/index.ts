@@ -24,7 +24,7 @@ const require = createRequire(import.meta.url)
  * ToDo(Christian): update to Allure v2 (https://github.com/webdriverio/webdriverio/issues/6313)
  */
 const Allure = require('allure-js-commons')
-const Step = require('allure-js-commons/beans/step')
+const Step = require('allure-js-commons/beans/step.js')
 
 class AllureReporter extends WDIOReporter {
     private _allure: any

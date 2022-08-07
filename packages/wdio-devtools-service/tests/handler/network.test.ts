@@ -2,7 +2,7 @@ import { EventEmitter } from 'node:events'
 import { expect, test, vi } from 'vitest'
 import type { CDPSession } from 'puppeteer-core/lib/cjs/puppeteer/common/Connection'
 
-import NetworkHandler from '../../src/handler/network'
+import NetworkHandler from '../../src/handler/network.js'
 
 import eventLog from '../__fixtures__/events.json'
 

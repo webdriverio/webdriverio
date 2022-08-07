@@ -9,7 +9,7 @@ import {
     getErrorFromResponseBody, CustomRequestError, startWebDriverSession,
     getTimeoutError,
     setupDirectConnect
-} from '../src/utils'
+} from '../src/utils.js'
 import type { Client } from '../src/types'
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))

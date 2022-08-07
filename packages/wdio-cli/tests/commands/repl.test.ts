@@ -4,7 +4,7 @@ import { vi, describe, it, expect, afterEach, beforeEach } from 'vitest'
 import { yargs } from 'yargs'
 import { remote } from 'webdriverio'
 
-import { handler, builder } from '../../src/commands/repl'
+import { handler, builder } from '../../src/commands/repl.js'
 
 vi.mock('@wdio/utils', () => {
     let syncSupport = false

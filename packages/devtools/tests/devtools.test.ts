@@ -1,8 +1,8 @@
 import path from 'node:path'
 import { expect, test, vi, beforeEach } from 'vitest'
 import type { Capabilities } from '@wdio/types'
-import launch from '../src/launcher'
-import DevTools from '../src'
+import launch from '../src/launcher.js'
+import DevTools from '../src/index.js'
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 vi.mock('../src/launcher', () => ({

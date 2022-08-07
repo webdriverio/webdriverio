@@ -26,8 +26,8 @@ import {
     When
 } from '@cucumber/cucumber'
 import { GherkinStreams } from '@cucumber/gherkin-streams'
-import { ITestCaseHookParameter } from '@cucumber/cucumber/lib/support_code_library_builder/types'
-import { IRuntimeOptions } from '@cucumber/cucumber/lib/runtime'
+import type { ITestCaseHookParameter } from '@cucumber/cucumber/lib/support_code_library_builder/types'
+import type { IRuntimeOptions } from '@cucumber/cucumber/lib/runtime'
 import { Long } from 'long'
 import { IdGenerator } from '@cucumber/messages'
 

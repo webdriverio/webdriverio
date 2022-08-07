@@ -11,8 +11,8 @@ import {
     getTestStepTitle,
     addKeywordToStep,
     getRule,
-} from '../src/utils'
-import { featureWithRules } from './fixtures/features'
+} from '../src/utils.js'
+import { featureWithRules } from './fixtures/features.js'
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 

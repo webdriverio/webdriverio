@@ -5,7 +5,7 @@ import { runTestInFiberContext, executeHooksWithArgs } from '@wdio/utils'
 import { setOptions } from 'expect-webdriverio'
 import { EventEmitter } from 'node:events'
 
-import JasmineAdapterFactory, { JasmineAdapter } from '../src'
+import JasmineAdapterFactory, { JasmineAdapter } from '../src/index.js'
 
 vi.mock('jasmine')
 vi.mock('expect-webdriverio')

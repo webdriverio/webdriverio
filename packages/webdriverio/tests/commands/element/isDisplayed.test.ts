@@ -3,7 +3,7 @@ import { expect, describe, it, beforeEach, vi } from 'vitest'
 
 // @ts-ignore mocked (original defined in webdriver package)
 import got from 'got'
-import { remote } from '../../../src'
+import { remote } from '../../../src/index.js'
 
 vi.mock('got')
 vi.mock('devtools')
@@ -15,8 +15,8 @@ vi.mock('../../../src/scripts/isElementDisplayed', () => ({
 }))
 
 describe('isDisplayed test', () => {
-    let browser: any
-    let elem: any
+    let browser: WebdriverIO.Browser
+    let elem: WebdriverIO.Element
 
     beforeEach(async () => {
         browser = await remote({

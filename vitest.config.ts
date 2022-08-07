@@ -12,12 +12,12 @@ export default defineConfig({
             'packages/eslint-plugin-wdio/**/*'
         ],
         coverage: {
-            enabled: false,
+            enabled: true,
             exclude: ['**/build/**', '**/*.test.ts'],
-            lines: 90,
+            lines: 96,
             functions: 90,
-            branches: 90,
-            statements: 90
+            branches: 94,
+            statements: 96
         },
         globalSetup: [
             'scripts/test/globalSetup.ts'

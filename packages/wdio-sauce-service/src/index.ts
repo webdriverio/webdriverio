@@ -1,6 +1,6 @@
 import SauceLauncher from './launcher.js'
 import SauceService from './service.js'
-import { SauceServiceConfig } from './types'
+import type { SauceServiceConfig } from './types'
 
 export default SauceService
 export const launcher = SauceLauncher

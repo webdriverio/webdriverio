@@ -2,7 +2,7 @@ import path from 'node:path'
 import { vi } from 'vitest'
 import { Minimatch } from 'minimatch'
 
-import { FilePathAndContent } from './MockFileContentBuilder'
+import { FilePathAndContent } from './MockFileContentBuilder.js'
 import type { PathService } from '../../src/types'
 
 export type MockSystemFolderPath = string;

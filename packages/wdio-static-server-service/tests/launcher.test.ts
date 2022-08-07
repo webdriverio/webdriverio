@@ -4,7 +4,7 @@ import express from 'express'
 import fs from 'fs-extra'
 import { test, expect, vi, afterEach } from 'vitest'
 
-import StaticServerLauncher from '../src/launcher'
+import StaticServerLauncher from '../src/launcher.js'
 
 vi.mock('fs-extra')
 vi.mock('express')

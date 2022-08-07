@@ -1,5 +1,5 @@
-import rule from '../src/rules/no-debug'
 import { RuleTester } from 'eslint'
+import rule from '../src/rules/no-debug.js'
 
 const ruleTester = new RuleTester({
     parserOptions : {

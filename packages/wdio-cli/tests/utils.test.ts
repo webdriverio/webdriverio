@@ -24,8 +24,8 @@ import {
     getPathForFileGeneration,
     getDefaultFiles,
     hasPackage
-} from '../src/utils'
-import { COMPILER_OPTION_ANSWERS } from '../src/constants'
+} from '../src/utils.js'
+import { COMPILER_OPTION_ANSWERS } from '../src/constants.js'
 
 vi.mock('ejs')
 vi.mock('recursive-readdir')

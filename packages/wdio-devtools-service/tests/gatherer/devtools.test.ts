@@ -1,5 +1,5 @@
 import { test, expect } from 'vitest'
-import DevtoolsGatherer from '../../src/gatherer/devtools'
+import DevtoolsGatherer from '../../src/gatherer/devtools.js'
 
 test('getLogs', () => {
     const gatherer = new DevtoolsGatherer()

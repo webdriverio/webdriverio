@@ -6,7 +6,7 @@ import { describe, expect, it, vi, afterEach, beforeEach } from 'vitest'
 
 import {
     initialiseInstance, sanitizeCaps, sendFailureMessage, getInstancesData, ConfigWithSessionId
-} from '../src/utils'
+} from '../src/utils.js'
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 vi.mock('webdriverio', () => import(path.join(process.cwd(), '__mocks__', 'webdriverio')))

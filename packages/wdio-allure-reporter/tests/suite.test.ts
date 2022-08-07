@@ -3,8 +3,8 @@ import { log } from 'node:console'
 import { describe, it, expect, afterEach, beforeEach, beforeAll, afterAll, vi } from 'vitest'
 import { temporaryDirectory } from 'tempy'
 
-import AllureReporter from '../src/'
-import { TYPE } from '../src/types'
+import AllureReporter from '../src/index.js'
+import { TYPE } from '../src/types.js'
 
 /**
  * this is not a real package and only used to utilize helper
@@ -13,15 +13,15 @@ import { TYPE } from '../src/types'
 // eslint-disable-next-line
 import { clean, getResults } from './helpers/wdio-allure-helper'
 
-import { runnerEnd, runnerStart } from './__fixtures__/runner'
-import { suiteEnd, suiteStart } from './__fixtures__/suite'
+import { runnerEnd, runnerStart } from './__fixtures__/runner.js'
+import { suiteEnd, suiteStart } from './__fixtures__/suite.js'
 import {
     testFailed, testPending, testStart, testFailedWithMultipleErrors,
     hookStart, hookFailed, hookStartWithCurrentTest,
-    testFailedWithAssertionErrorFromExpectWebdriverIO } from './__fixtures__/testState'
+    testFailedWithAssertionErrorFromExpectWebdriverIO } from './__fixtures__/testState.js'
 import {
     commandStart, commandEnd, commandEndScreenShot, commandStartScreenShot
-} from './__fixtures__/command'
+} from './__fixtures__/command.js'
 
 vi.mock('@wdio/reporter', () => import(path.join(process.cwd(), '__mocks__', '@wdio/reporter')))
 

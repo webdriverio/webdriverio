@@ -5,9 +5,9 @@ import logger from '@wdio/logger'
 import { runTestInFiberContext, executeHooksWithArgs } from '@wdio/utils'
 import { setOptions } from 'expect-webdriverio'
 
-import MochaAdapterFactory, { MochaAdapter } from '../src'
-import { loadModule } from '../src/utils'
-import { EVENTS } from '../src/constants'
+import MochaAdapterFactory, { MochaAdapter } from '../src/index.js'
+import { loadModule } from '../src/utils.js'
+import { EVENTS } from '../src/constants.js'
 
 vi.mock('mocha')
 vi.mock('@wdio/utils')

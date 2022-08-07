@@ -3,14 +3,14 @@ import { expect, describe, it, vi, beforeEach } from 'vitest'
 
 // @ts-ignore mocked (original defined in webdriver package)
 import got from 'got'
-import { remote } from '../../../src'
+import { remote } from '../../../src/index.js'
 
 vi.mock('got')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 describe('waitForExists', () => {
     const timeout = 1000
-    let browser: any
+    let browser: WebdriverIO.Browser
 
     beforeEach(async () => {
         got.mockClear()
@@ -29,10 +29,10 @@ describe('waitForExists', () => {
             waitForExist: tmpElem.waitForExist,
             waitUntil: vi.fn(),
             options: { waitforInterval: 5, waitforTimeout: timeout }
-        }
+        } as any as WebdriverIO.Element
 
         await elem.waitForExist()
-        expect(elem.waitUntil.mock.calls).toMatchSnapshot()
+        expect(vi.mocked(elem.waitUntil).mock.calls).toMatchSnapshot()
     })
 
     it('should allow to set custom error', async () => {
@@ -41,13 +41,13 @@ describe('waitForExists', () => {
             waitForExist: tmpElem.waitForExist,
             waitUntil: vi.fn(),
             options: { waitforInterval: 5, waitforTimeout: timeout }
-        }
+        } as any as WebdriverIO.Element
 
         await elem.waitForExist({
             timeout,
             reverse: true,
             timeoutMsg: 'my custom error'
         })
-        expect(elem.waitUntil.mock.calls).toMatchSnapshot()
+        expect(vi.mocked(elem.waitUntil).mock.calls).toMatchSnapshot()
     })
 })

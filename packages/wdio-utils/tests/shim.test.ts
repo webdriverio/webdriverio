@@ -1,5 +1,5 @@
 import { vi, describe, it, expect } from 'vitest'
-import { wrapCommand, expectAsyncShim } from '../src/shim'
+import { wrapCommand, expectAsyncShim } from '../src/shim.js'
 
 describe('wrapCommand', () => {
     it('should run command with before and after hook', async () => {

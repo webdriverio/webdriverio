@@ -5,8 +5,8 @@ import logger from '@wdio/logger'
 import type { MultiRemoteBrowser } from 'webdriverio'
 import type { Capabilities, Options } from '@wdio/types'
 
-import SauceService from '../src'
-import { isRDC } from '../src/utils'
+import SauceService from '../src/index.js'
+import { isRDC } from '../src/utils.js'
 
 const log = logger('test')
 const uri = '/some/uri'

@@ -64,6 +64,7 @@ const ELEMENT_PROPS = [
     'elementId', 'error', 'selector', 'parent', 'index', 'isReactElement',
     'length'
 ]
+const ACTION_COMMANDS = ['action', 'actions']
 const PROMISE_METHODS = ['then', 'catch', 'finally']
 
 let executeHooksWithArgs = async function executeHooksWithArgsShim<T> (hookName: string, hooks: Function | Function[] = [], args: any[] = []): Promise<(T | Error)[]> {
@@ -286,7 +287,13 @@ let wrapCommand = function wrapCommand<T>(commandName: string, fn: Function): (.
          */
         const command = ELEMENT_QUERY_COMMANDS.includes(commandName) || commandName.endsWith('$')
             ? chainElementQuery
-            : wrapCommandFn
+            : ACTION_COMMANDS.includes(commandName)
+                /**
+                 * actions commands are a bit special as they return their own
+                 * sync interface
+                 */
+                ? fn
+                : wrapCommandFn
 
         return command.apply(this, args)
     }

@@ -3,7 +3,7 @@ import { expect, describe, it, beforeEach, vi } from 'vitest'
 
 // @ts-ignore mocked (original defined in webdriver package)
 import got from 'got'
-import { remote } from '../../../src'
+import { remote } from '../../../src/index.js'
 
 vi.mock('got')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
@@ -30,15 +30,10 @@ describe('doubleClick', () => {
         expect(got.mock.calls[2][1].json.actions[0].type).toBe('pointer')
         expect(got.mock.calls[2][1].json.actions[0].actions).toHaveLength(6)
         expect(got.mock.calls[2][1].json.actions[0].actions[0].type).toBe('pointerMove')
-        expect(got.mock.calls[2][1].json.actions[0].actions[0].origin.elementId).toBe('some-elem-123')
         expect(got.mock.calls[2][1].json.actions[0].actions[0].origin['element-6066-11e4-a52e-4f735466cecf']).toBe('some-elem-123')
         expect(got.mock.calls[2][1].json.actions[0].actions[0].x).toBe(0)
         expect(got.mock.calls[2][1].json.actions[0].actions[0].y).toBe(0)
-        expect(got.mock.calls[2][1].json.actions[0].actions[1]).toEqual({ button: 0, type: 'pointerDown' })
-        expect(got.mock.calls[2][1].json.actions[0].actions[2]).toEqual({ button: 0, type: 'pointerUp' })
-        expect(got.mock.calls[2][1].json.actions[0].actions[3]).toEqual({ duration: 10, type: 'pause' })
-        expect(got.mock.calls[2][1].json.actions[0].actions[4]).toEqual({ button: 0, type: 'pointerDown' })
-        expect(got.mock.calls[2][1].json.actions[0].actions[5]).toEqual({ button: 0, type: 'pointerUp' })
+        expect(got.mock.calls[2][1].json.actions[0].actions).toMatchSnapshot()
     })
 
     it('should do a doubleClick (no w3c)', async () => {

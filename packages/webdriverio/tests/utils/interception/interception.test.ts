@@ -1,6 +1,6 @@
 import { test, expect, vi } from 'vitest'
-import NetworkInterception from '../../../src/utils/interception'
-import Timer from '../../../src/utils/Timer'
+import NetworkInterception from '../../../src/utils/interception/index.js'
+import Timer from '../../../src/utils/Timer.js'
 
 const browserMock = {
     call: vi.fn((cb) => cb()),

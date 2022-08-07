@@ -1,9 +1,9 @@
 import path from 'node:path'
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 
-import reporter from '../src/'
-import * as utils from '../src/utils'
-import { events, stepStatuses } from '../src/constants'
+import reporter from '../src/index.js'
+import * as utils from '../src/utils.js'
+import { events, stepStatuses } from '../src/constants.js'
 
 vi.mock('@wdio/reporter', () => import(path.join(process.cwd(), '__mocks__', '@wdio/reporter')))
 vi.mock('../src/utils')

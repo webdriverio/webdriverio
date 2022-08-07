@@ -5,8 +5,8 @@ import type { Browser } from 'webdriverio'
 import {
     sumByKey, isBrowserVersionLower, getBrowserMajorVersion,
     isBrowserSupported, setUnsupportedCommand, getLighthouseDriver
-} from '../src/utils'
-import { RequestPayload } from '../src/handler/network'
+} from '../src/utils.js'
+import { RequestPayload } from '../src/handler/network.js'
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 vi.mock('fs', () => ({

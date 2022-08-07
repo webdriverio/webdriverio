@@ -1,7 +1,7 @@
 import path from 'node:path'
 import { describe, expect, it, vi, beforeEach, beforeAll } from 'vitest'
-import { runnerEnd } from '../../wdio-allure-reporter/tests/__fixtures__/runner'
-import SpecReporter from '../src'
+import { runnerEnd } from '../../wdio-allure-reporter/tests/__fixtures__/runner.js'
+import SpecReporter from '../src/index.js'
 import {
     RUNNER,
     SUITE_UIDS,
@@ -10,7 +10,7 @@ import {
     SUITES_WITH_DATA_TABLE,
     SUITES_NO_TESTS_WITH_HOOK_ERROR,
     SUITES_MULTIPLE_ERRORS
-} from './__fixtures__/testdata'
+} from './__fixtures__/testdata.js'
 
 vi.mock('chalk')
 vi.mock('@wdio/reporter', () => import(path.join(process.cwd(), '__mocks__', '@wdio/reporter')))
@@ -682,7 +682,7 @@ describe('SpecReporter', () => {
     })
 
     describe('showPreface', () => {
-        let printReporter = null
+        let printReporter: SpecReporter = null as any
         const runner = getRunnerConfig({ hostname: 'localhost' })
         it('false', () => {
             printReporter = new SpecReporter({ showPreface: false })

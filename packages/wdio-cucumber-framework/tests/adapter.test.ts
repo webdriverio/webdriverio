@@ -6,14 +6,15 @@ import { executeHooksWithArgs, testFnWrapper } from '@wdio/utils'
 import * as Cucumber from '@cucumber/cucumber'
 import mockery from 'mockery'
 
-import CucumberAdapter from '../src'
-import { setUserHookNames } from '../src/utils'
-import * as packageExports from '../src'
+import CucumberAdapter from '../src/index.js'
+import { setUserHookNames } from '../src/utils.js'
+import * as packageExports from '../src/index.js'
 
 vi.mock('mockery')
 vi.mock('@wdio/utils')
 vi.mock('expect-webdriverio')
 vi.mock('@cucumber/cucumber')
+vi.mock('@cucumber/messages', () => ({ IdGenerator: { incrementing: vi.fn() } }))
 vi.mock('../src/reporter', () => ({
     default: class CucumberReporter {
         eventListener = {

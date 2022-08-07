@@ -1,14 +1,14 @@
 import path from 'node:path'
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest'
 
-import { executeHooksWithArgs, executeAsync, wrapCommand } from '../src/shim'
+import { executeHooksWithArgs, executeAsync, wrapCommand } from '../src/shim.js'
 
 const globalAny: any = global
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 beforeEach(() => {
-    globalAny.browser = {}
+    globalAny.browser = {} as WebdriverIO.Browser
 })
 
 afterEach(() => {
@@ -170,7 +170,6 @@ describe('wrapCommand', () => {
         rawCommand.mockReturnValue(Promise.resolve(scope))
         const commandA = wrapCommand('$', rawCommand)
         expect(await commandA.call(scope, 'bar')
-            // @ts-expect-error
             .$('foo')
             .getTagName()
         ).toBe('Yayy')
@@ -193,7 +192,6 @@ describe('wrapCommand', () => {
         rawCommand.mockReturnValue(Promise.resolve(scope))
         const commandB = wrapCommand('user$', rawCommand)
         expect(await commandB.call(scope, 'bar')
-            // @ts-expect-error
             .user$('foo')
             .getTagName()).toBe('Yayy')
         expect(scope.user$).toBeCalledTimes(2)
@@ -222,13 +220,11 @@ describe('wrapCommand', () => {
         ])
         const commandA = wrapCommand('$', rawCommand$)
         expect(await commandA.call(scope(0))
-            // @ts-expect-error
             .$('foo')
             .$$('bar')[2]
             .getTagName()
         ).toBe('Yayy2')
         expect(await commandA.call(scope(0))
-            // @ts-expect-error
             .$('foo')
             .$$('bar')[2]
             .$('barfoo')
@@ -258,7 +254,6 @@ describe('wrapCommand', () => {
         ])
         const commandA = wrapCommand('$', rawCommand$)
         expect(await commandA.call(scope(0))
-            // @ts-expect-error
             .$('foo')
             .$$('bar')
             .map((el: any) => el.getTagName())
@@ -275,7 +270,6 @@ describe('wrapCommand', () => {
         }
         const rawCommand = vi.fn().mockReturnValue(Promise.resolve(scope))
         const commandA = wrapCommand('$', rawCommand)
-        // @ts-expect-error
         expect(await commandA.call(scope).selector).toBe('foobar')
     })
 

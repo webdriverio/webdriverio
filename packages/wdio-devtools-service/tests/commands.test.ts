@@ -3,7 +3,7 @@ import { expect, test, vi, beforeEach } from 'vitest'
 import type { CDPSession } from 'puppeteer-core/lib/cjs/puppeteer/common/Connection'
 import type { Page } from 'puppeteer-core/lib/cjs/puppeteer/common/Page'
 
-import CommandHandler from '../src/commands'
+import CommandHandler from '../src/commands.js'
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 

@@ -1,7 +1,7 @@
 import type { ChildProcess } from 'node:child_process'
 import { expect, test, vi } from 'vitest'
 
-import ReplQueue from '../src/replQueue'
+import ReplQueue from '../src/replQueue.js'
 
 test('add', () => {
     const queue = new ReplQueue()

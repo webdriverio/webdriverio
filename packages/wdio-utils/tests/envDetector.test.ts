@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import type { Capabilities } from '@wdio/types'
 
-import { sessionEnvironmentDetector, capabilitiesEnvironmentDetector } from '../src/envDetector'
+import { sessionEnvironmentDetector, capabilitiesEnvironmentDetector } from '../src/envDetector.js'
 
 import appiumResponse from './__fixtures__/appium.response.json'
 import experitestResponse from './__fixtures__/experitest.response.json'

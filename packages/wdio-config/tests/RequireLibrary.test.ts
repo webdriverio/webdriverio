@@ -1,4 +1,4 @@
-import RequireLibrary from '../src/lib/RequireLibrary'
+import RequireLibrary from '../src/lib/RequireLibrary.js'
 import { vi, describe, it, expect } from 'vitest'
 
 vi.mock('ts-node', () => ({ default: 'mock module' }))

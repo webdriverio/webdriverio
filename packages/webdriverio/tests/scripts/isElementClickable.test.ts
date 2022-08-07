@@ -1,5 +1,5 @@
 import { describe, it, vi, expect, beforeAll, afterEach, afterAll } from 'vitest'
-import isElementClickable from '../../src/scripts/isElementClickable'
+import isElementClickable from '../../src/scripts/isElementClickable.js'
 
 describe('isElementClickable script', () => {
     beforeAll(() => {

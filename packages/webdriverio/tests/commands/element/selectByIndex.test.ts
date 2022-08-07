@@ -3,16 +3,16 @@ import { expect, describe, it, vi, beforeEach, afterEach } from 'vitest'
 
 // @ts-ignore mocked (original defined in webdriver package)
 import got from 'got'
-import { remote } from '../../../src'
-import { ELEMENT_KEY } from '../../../src/constants'
-import * as utils from '../../../src/utils'
+import { remote } from '../../../src/index.js'
+import { ELEMENT_KEY } from '../../../src/constants.js'
+import * as utils from '../../../src/utils/index.js'
 
 vi.mock('got')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 describe('selectByIndex test', () => {
     const getElementFromResponseSpy = vi.spyOn(utils, 'getElementFromResponse')
-    let browser: any
+    let browser: WebdriverIO.Browser
     let elem: any
 
     beforeEach(async () => {

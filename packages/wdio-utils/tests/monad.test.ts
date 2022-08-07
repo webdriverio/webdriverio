@@ -1,6 +1,6 @@
 import path from 'node:path'
 import { vi, describe, it, expect, beforeEach } from 'vitest'
-import webdriverMonad from '../src/monad'
+import webdriverMonad from '../src/monad.js'
 
 let prototype: any
 

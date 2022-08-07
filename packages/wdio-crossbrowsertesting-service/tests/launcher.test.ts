@@ -4,8 +4,8 @@ import cbtTunnels from 'cbt_tunnels'
 import logger from '@wdio/logger'
 import type { Capabilities, Options } from '@wdio/types'
 
-import CrossBrowserTestingLauncher from '../src/launcher'
-import { CrossBrowserTestingConfig } from '../src/types'
+import CrossBrowserTestingLauncher from '../src/launcher.js'
+import type { CrossBrowserTestingConfig } from '../src/types'
 
 vi.mock('cbt_tunnels')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
@@ -67,7 +67,7 @@ describe('wdio-crossbrowsertesting-service', () => {
             user: 'test',
             key: 'testy'
         } as any)
-        vi.mocked(cbtTunnels.start).mockImplementationOnce((options: never, cb: any) => cb(error))
+        vi.mocked(cbtTunnels.start).mockImplementationOnce((options: any, cb: Function) => cb(error))
         expect(cbtLauncher.onPrepare()).rejects.toThrow(error)
             .then(() => expect(cbtTunnels.start).toHaveBeenCalled())
 

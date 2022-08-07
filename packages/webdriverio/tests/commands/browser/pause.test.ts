@@ -2,7 +2,7 @@ import path from 'node:path'
 import { expect, describe, beforeEach, afterEach, it, vi } from 'vitest'
 // @ts-ignore mocked (original defined in webdriver package)
 import got from 'got'
-import { remote } from '../../../src'
+import { remote } from '../../../src/index.js'
 
 vi.mock('got')
 vi.useFakeTimers()

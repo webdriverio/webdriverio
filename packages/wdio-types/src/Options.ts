@@ -3,9 +3,9 @@ import * as https from 'node:https'
 import type { RegisterOptions } from './Compiler'
 import type { URL } from 'node:url'
 
-import { W3CCapabilities, DesiredCapabilities, RemoteCapabilities, RemoteCapability, MultiRemoteCapabilities, Capabilities } from './Capabilities'
-import { Hooks, ServiceEntry } from './Services'
-import { ReporterEntry } from './Reporters'
+import type { W3CCapabilities, DesiredCapabilities, RemoteCapabilities, RemoteCapability, MultiRemoteCapabilities, Capabilities } from './Capabilities'
+import type { Hooks, ServiceEntry } from './Services'
+import type { ReporterEntry } from './Reporters'
 
 export type WebDriverLogTypes = 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'silent'
 export type SupportedProtocols = 'webdriver' | 'devtools' | './protocol-stub.js'

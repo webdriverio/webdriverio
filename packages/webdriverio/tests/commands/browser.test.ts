@@ -1,7 +1,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { test, expect } from 'vitest'
-import { getPrototype } from '../../src/utils'
+import { getPrototype } from '../../src/utils/index.js'
 
 const scope = 'browser'
 const dir = path.resolve(__dirname, '../..', 'src', 'commands', scope)

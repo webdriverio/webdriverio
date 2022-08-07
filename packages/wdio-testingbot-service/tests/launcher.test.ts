@@ -3,7 +3,7 @@ import { describe, it, expect, vi, afterEach } from 'vitest'
 import logger from '@wdio/logger'
 import type { Capabilities } from '@wdio/types'
 
-import TestingBotLauncher from '../src/launcher'
+import TestingBotLauncher from '../src/launcher.js'
 import type { TestingbotOptions } from '../src/types'
 
 vi.mock('testingbot-tunnel-launcher')

@@ -10,7 +10,7 @@ import {
     validate, getPrototype, findElement, findElements, getStaleElementError,
     sanitizeError, transformExecuteArgs, transformExecuteResult, getPages,
     uniq, findByWhich, patchDebug, sleep
-} from '../src/utils'
+} from '../src/utils.js'
 
 vi.mock('@wdio/logger', async () => {
     const pathModule = await vi.importActual('node:path') as typeof path

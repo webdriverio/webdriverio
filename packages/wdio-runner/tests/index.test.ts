@@ -1,11 +1,14 @@
+/// <reference path="../../webdriverio/async.d.ts" />
+
 import path from 'node:path'
 import fs from 'node:fs/promises'
 
+import logger from '@wdio/logger'
 import { describe, expect, it, vi, afterEach, beforeEach } from 'vitest'
 import { executeHooksWithArgs } from '@wdio/utils'
-import { attach, Browser } from 'webdriverio'
-import WDIORunner from '../src'
-import logger from '@wdio/logger'
+import { attach } from 'webdriverio'
+
+import WDIORunner from '../src/index.js'
 
 vi.mock('fs/promises', () => ({
     default: { writeFile: vi.fn() }
@@ -16,7 +19,7 @@ vi.mock('@wdio/utils', () => import(path.join(process.cwd(), '__mocks__', '@wdio
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 vi.mock('@wdio/config', () => import(path.join(process.cwd(), '__mocks__', '@wdio/config')))
 
-type BrowserObject = Browser<'async'>
+type BrowserObject = WebdriverIO.Browser
 
 describe('wdio-runner', () => {
     describe('_fetchDriverLogs', () => {

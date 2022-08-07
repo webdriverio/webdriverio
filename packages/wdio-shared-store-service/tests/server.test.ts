@@ -1,9 +1,12 @@
+/// <reference path="../src/@types/polka-stub.d.ts" />
+
 import { describe, expect, vi, beforeAll, afterAll, afterEach, it } from 'vitest'
-import { startServer, __store } from '../src/server'
+import { startServer, __store } from '../src/server.js'
+import gotType from 'got'
 
 vi.mock('got')
 
-const { post } = await vi.importActual('got')
+const got = await vi.importActual('got') as typeof gotType
 const errHandler = vi.fn()
 
 describe('WdioSharedStoreService exports', () => {
@@ -22,13 +25,13 @@ describe('WdioSharedStoreService exports', () => {
     })
 
     it('should not fail if payload has no key/value', async () => {
-        await post(setUrl, { json: {} })
-        await post(getUrl, { json: {} })
+        await got.post(setUrl, { json: {} })
+        await got.post(getUrl, { json: {} })
         expect(__store).toEqual({})
     })
 
     it('should handle non json type', async () => {
-        const response = await post(getUrl, { body: 'foobar', throwHttpErrors: false })
+        const response = await got.post(getUrl, { body: 'foobar', throwHttpErrors: false })
         expect(response.statusCode).toBe(422)
         expect(response.statusMessage).toBe('Unprocessable Entity')
         expect(response.url).toContain('/get')
@@ -36,19 +39,19 @@ describe('WdioSharedStoreService exports', () => {
     })
 
     it('should handle 404', async () => {
-        const response = await post(getUrl + 'foobar', { throwHttpErrors: false })
+        const response = await got.post(getUrl + 'foobar', { throwHttpErrors: false })
         expect(response.statusCode).toBe(404)
     })
 
     describe('setting/getting entries', () => {
         it('should set entry', async () => {
-            await post(setUrl, { json: { key: 'foo', value: 'bar' }, responseType: 'json' })
+            await got.post(setUrl, { json: { key: 'foo', value: 'bar' }, responseType: 'json' })
             expect(__store).toEqual({ foo: 'bar' })
         })
 
         it('should get entry', async () => {
             __store.foobar = 'barfoo'
-            const res = await post(getUrl, { json: { key: 'foobar' }, responseType: 'json' })
+            const res = await got.post<{ value: string }>(getUrl, { json: { key: 'foobar' }, responseType: 'json' })
             expect(res.body.value).toEqual('barfoo')
         })
     })

@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest'
 import type { Services } from '@wdio/types'
 
-import initialisePlugin from '../src/initialisePlugin'
+import initialisePlugin from '../src/initialisePlugin.js'
 
 interface TestService extends Services.ServiceInstance {
     foo: string

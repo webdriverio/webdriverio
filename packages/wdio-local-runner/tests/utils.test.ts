@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
-import RunnerStream from '../src/stdStream'
-import { removeLastListener } from '../src/utils'
+import RunnerStream from '../src/stdStream.js'
+import { removeLastListener } from '../src/utils.js'
 
 describe('removeLastListener', () => {
     it('should remove only last listener', () => {

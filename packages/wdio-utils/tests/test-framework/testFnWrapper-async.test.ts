@@ -1,7 +1,7 @@
 import { vi, MockedFunction, describe, it, expect, afterEach } from 'vitest'
 
-import * as shim from '../../src/shim'
-import { testFnWrapper, filterStackTrace } from '../../src/test-framework/testFnWrapper'
+import * as shim from '../../src/shim.js'
+import { testFnWrapper, filterStackTrace } from '../../src/test-framework/testFnWrapper.js'
 
 vi.mock('../../src/shim', () => ({
     executeHooksWithArgs: vi.fn(),

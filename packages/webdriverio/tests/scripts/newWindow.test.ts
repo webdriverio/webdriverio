@@ -1,5 +1,5 @@
 import { it, expect, vi, beforeEach, describe, afterEach } from 'vitest'
-import newWindow from '../../src/scripts/newWindow'
+import newWindow from '../../src/scripts/newWindow.js'
 
 describe('newWindow script', () => {
     beforeEach(() => {

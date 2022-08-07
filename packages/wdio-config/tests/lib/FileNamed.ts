@@ -1,5 +1,5 @@
-import { MockSystemFilePath } from './MockPathService'
-import MockFileContentBuilder, { FilePathAndContent, MockFileContent } from './MockFileContentBuilder'
+import { MockSystemFilePath } from './MockPathService.js'
+import MockFileContentBuilder, { FilePathAndContent, MockFileContent } from './MockFileContentBuilder.js'
 
 /**
  * Builder for a virtual file system file

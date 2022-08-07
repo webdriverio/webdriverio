@@ -1,5 +1,5 @@
 import { describe, it, afterEach, expect, vi } from 'vitest'
-import Timer from '../../src/utils/Timer'
+import Timer from '../../src/utils/Timer.js'
 
 vi.useFakeTimers()
 

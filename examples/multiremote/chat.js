@@ -9,7 +9,7 @@
  * ```
  */
 
-const { multiremote } = require('../../packages/webdriverio/build')
+const { multiremote } = require('../../packages/webdriverio/build/index.js')
 
 let matrix, browserA, browserB
 

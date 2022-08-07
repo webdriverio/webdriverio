@@ -5,7 +5,7 @@ import { EventEmitter } from 'node:events'
 import { mocks } from 'node:module'
 import type { WriteStream } from 'node:fs'
 
-import WDIOReporter from '../src'
+import WDIOReporter from '../src/index.js'
 
 vi.mock('node:module', () => {
     const mocks = {

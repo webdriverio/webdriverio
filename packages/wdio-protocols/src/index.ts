@@ -1,6 +1,6 @@
 import { createRequire } from 'node:module'
 
-import { Protocol } from './types'
+import type { Protocol } from './types'
 import type AppiumCommands from './commands/appium'
 import type ChromiumCommands from './commands/chromium'
 import type GeckoCommands from './commands/gecko'

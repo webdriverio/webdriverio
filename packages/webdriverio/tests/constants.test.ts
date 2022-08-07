@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { WDIO_DEFAULTS } from '../src/constants'
+import { WDIO_DEFAULTS } from '../src/constants.js'
 
 class CustomReporter {}
 

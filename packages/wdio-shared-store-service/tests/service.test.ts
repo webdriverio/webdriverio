@@ -1,7 +1,7 @@
 import { describe, expect, vi, beforeEach, afterEach, it } from 'vitest'
 
-import { getValue, setValue, setPort } from '../src/client'
-import SharedStoreService from '../src/service'
+import { getValue, setValue, setPort } from '../src/client.js'
+import SharedStoreService from '../src/service.js'
 import type { SharedStoreServiceCapabilities } from '../build/types'
 
 vi.mock('../src/client', () => ({

@@ -1,6 +1,6 @@
 import fs from 'node:fs'
 import { describe, it, expect, vi } from 'vitest'
-import { findStrategy } from '../src/utils/findStrategy'
+import { findStrategy } from '../src/utils/findStrategy.js'
 
 vi.mock('fs')
 

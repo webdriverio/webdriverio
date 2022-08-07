@@ -4,8 +4,8 @@ import chokidar from 'chokidar'
 import EventEmitter from 'node:events'
 import type { Workers } from '@wdio/types'
 
-import { RunCommandArguments } from '../src/types'
-import Watcher from '../src/watcher'
+import type { RunCommandArguments } from '../src/types'
+import Watcher from '../src/watcher.js'
 
 vi.mock('chokidar')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
@@ -155,13 +155,13 @@ describe('watcher', () => {
         expect(worker.on).toBeCalledTimes(1)
 
         const eventHandler = worker.on.mock.calls[0][1]
-        expect(watcher['_launcher'].interface.finalise).toBeCalledTimes(0)
+        expect(watcher['_launcher'].interface!.finalise).toBeCalledTimes(0)
         worker.isBusy = true
         eventHandler()
-        expect(watcher['_launcher'].interface.finalise).toBeCalledTimes(0)
+        expect(watcher['_launcher'].interface!.finalise).toBeCalledTimes(0)
         worker.isBusy = false
         eventHandler()
-        expect(watcher['_launcher'].interface.finalise).toBeCalledTimes(1)
+        expect(watcher['_launcher'].interface!.finalise).toBeCalledTimes(1)
     })
 
     it('should call run with modifed path when a new file was changed or added', async () => {
@@ -228,9 +228,9 @@ describe('watcher', () => {
             // @ts-ignore mock feature
             '1-0': new WorkerMock({ cid: '1-0', specs: ['/bar/foo.js'] })
         }
-        watcher['_launcher'].interface.emit = vi.fn()
+        watcher['_launcher'].interface!.emit = vi.fn()
         watcher.run({ spec: '/foo/bar.js' } as any)
-        expect(watcher['_launcher'].interface.emit).toHaveBeenCalledWith('job:start', {
+        expect(watcher['_launcher'].interface!.emit).toHaveBeenCalledWith('job:start', {
             cid: '0-0',
             caps: { browserName: 'chrome' },
             specs: ['/foo/bar.js']
@@ -238,7 +238,7 @@ describe('watcher', () => {
 
         const { postMessage, sessionId } = watcher['_launcher'].runner!.workerPool['0-0']
         expect(postMessage).toHaveBeenCalledWith('run', { sessionId, spec: '/foo/bar.js' })
-        expect(watcher['_launcher'].interface.totalWorkerCnt).toBe(1)
+        expect(watcher['_launcher'].interface!.totalWorkerCnt).toBe(1)
     })
 
     it('should not clean if no watcher is running', () => {
@@ -251,15 +251,15 @@ describe('watcher', () => {
             // @ts-ignore mock feature
             '1-0': new WorkerMock({ cid: '1-0', specs: ['/bar/foo.js'] })
         }
-        watcher['_launcher'].interface.emit = vi.fn()
+        watcher['_launcher'].interface!.emit = vi.fn()
         watcher.run({ spec: '/foo/bar2.js' } as any)
-        expect(watcher['_launcher'].interface.emit).toHaveBeenCalledTimes(0)
+        expect(watcher['_launcher'].interface!.emit).toHaveBeenCalledTimes(0)
     })
 
     it('should run all tests if `filesToWatch` entry was changed', () => {
         const wdioConf = path.join(__dirname, '__fixtures__', 'wdio.conf')
         const watcher = new Watcher(wdioConf, {})
-        watcher['_launcher'].interface.totalWorkerCnt = 1
+        watcher['_launcher'].interface!.totalWorkerCnt = 1
         watcher.cleanUp = vi.fn()
         watcher['_launcher'].runner!.workerPool = {
             // @ts-ignore mock feature
@@ -270,13 +270,13 @@ describe('watcher', () => {
         }
         watcher.run()
 
-        expect(watcher['_launcher'].interface.totalWorkerCnt).toBe(2)
+        expect(watcher['_launcher'].interface!.totalWorkerCnt).toBe(2)
 
         const worker00 = watcher['_launcher'].runner!.workerPool['0-0']
         expect(worker00.postMessage).toHaveBeenCalledWith(
             'run',
             { sessionId: worker00.sessionId })
-        expect(watcher['_launcher'].interface.emit).toHaveBeenCalledWith('job:start', {
+        expect(watcher['_launcher'].interface!.emit).toHaveBeenCalledWith('job:start', {
             cid: '0-0',
             caps: { browserName: 'chrome' },
             specs: ['/foo/bar.js'] })
@@ -285,7 +285,7 @@ describe('watcher', () => {
         expect(worker10.postMessage).toHaveBeenCalledWith(
             'run',
             { sessionId: worker10.sessionId })
-        expect(watcher['_launcher'].interface.emit).toHaveBeenCalledWith('job:start', {
+        expect(watcher['_launcher'].interface!.emit).toHaveBeenCalledWith('job:start', {
             cid: '1-0',
             caps: { browserName: 'chrome' },
             specs: ['/bar/foo.js'] })
@@ -315,7 +315,7 @@ describe('watcher', () => {
             }
         } as any
         const runSpy = vi.spyOn(watcher, 'run')
-        const emitSpy = watcher['_launcher'].interface.emit
+        const emitSpy = watcher['_launcher'].interface!.emit
         watcher.cleanUp = vi.fn()
         await watcher.watch()
 
@@ -368,7 +368,7 @@ describe('watcher', () => {
             }
         } as any
         const runSpy = vi.spyOn(watcher, 'run')
-        const emitSpy = watcher['_launcher'].interface.emit
+        const emitSpy = watcher['_launcher'].interface!.emit
         watcher.cleanUp = vi.fn()
         await watcher.watch()
 

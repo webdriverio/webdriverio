@@ -3,8 +3,8 @@ import { vi, describe, it, expect, afterEach, beforeEach } from 'vitest'
 // @ts-expect-error mock
 import { yargs as yargsMock } from 'yargs'
 
-import { run } from '../src/index'
-import { handler } from '../src/commands/run'
+import { run } from '../src/index.js'
+import { handler } from '../src/commands/run.js'
 
 vi.mock('yargs')
 vi.mock('./../src/commands/run', async () => ({

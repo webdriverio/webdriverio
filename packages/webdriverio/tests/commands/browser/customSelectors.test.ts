@@ -1,6 +1,6 @@
 import path from 'node:path'
 import { expect, describe, it, beforeEach, vi } from 'vitest'
-import { remote, CustomStrategyReference } from '../../../src'
+import { remote, CustomStrategyReference } from '../../../src/index.js'
 
 vi.mock('got')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))

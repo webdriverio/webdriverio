@@ -4,8 +4,8 @@ import { test, expect, vi, afterEach } from 'vitest'
 import got from 'got'
 import type { Capabilities } from '@wdio/types'
 
-import { multiremote } from '../src'
-import { MultiRemoteBrowser } from '../build'
+import { multiremote } from '../src/index.js'
+import type { MultiRemoteBrowser } from '../src/index.js'
 
 vi.mock('got')
 vi.mock('devtools')
@@ -60,8 +60,11 @@ test('should properly create stub instance', async () => {
     expect(browser.browserA.$).toBeUndefined()
     expect(browser.browserA.$).toBeUndefined()
 
+    // @ts-expect-error invalid params
     expect(() => browser.addCommand()).toThrow()
+    // @ts-expect-error invalid params
     expect(() => browser.browserA.addCommand()).toThrow()
+    // @ts-expect-error invalid params
     expect(() => browser.browserB.overwriteCommand()).toThrow()
 })
 
@@ -74,6 +77,7 @@ test('should allow to call on elements', async () => {
     expect(elem.browserA.elementId).toBe('some-elem-123')
     expect(elem.browserB.elementId).toBe('some-elem-123')
 
+    // @ts-expect-error invalid params
     const result = await elem.getSize()
     expect(result).toEqual([{ width: 50, height: 30 }, { width: 50, height: 30 }])
 
@@ -93,6 +97,7 @@ test('should be able to fetch multiple elements', async () => {
     const elems = await browser.$$('#foo')
     expect(elems).toHaveLength(3)
 
+    // @ts-expect-error invalid params
     const size = await elems[0].getSize()
     expect(size).toEqual([{ width: 50, height: 30 }, { width: 50, height: 30 }])
 })
@@ -101,14 +106,18 @@ test('should be able to add a command to and element in multiremote', async () =
     const browser = await multiremote(caps())
 
     browser.addCommand('myCustomElementCommand', async function (this: MultiRemoteBrowser<'async'>) {
+        // @ts-expect-error invalid params
         const size = await this.getSize()
         return size.width
     }, true)
 
     const elem = await browser.$('#foo')
 
+    // @ts-expect-error untyped custom command
     expect(await elem.browserA.myCustomElementCommand()).toBe(50)
+    // @ts-expect-error untyped custom command
     expect(await elem.browserB.myCustomElementCommand()).toBe(50)
+    // @ts-expect-error untyped custom command
     expect(await elem.myCustomElementCommand()).toEqual([50, 50])
 })
 
@@ -116,8 +125,8 @@ test('should be able to overwrite command to and element in multiremote', async 
     const browser = await multiremote(caps())
 
     browser.overwriteCommand('getSize', async function (
-        this: MultiRemoteBrowser<'async'>,
-        origCmd: () => { width: number, height: number }
+        this: WebdriverIO.MultiRemoteBrowser,
+        origCmd: any
     ) {
         let size = await origCmd()
         size = { width: size.width / 10, height: size.height / 10 }
@@ -126,6 +135,7 @@ test('should be able to overwrite command to and element in multiremote', async 
 
     const elem = await browser.$('#foo')
 
+    // @ts-expect-error invalid params
     const sizes = await elem.getSize()
     const sizeA = await elem.browserA.getSize()
     const sizeB = await elem.browserB.getSize()

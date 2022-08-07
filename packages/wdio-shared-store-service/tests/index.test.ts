@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest'
 
-import * as WdioSharedStoreService from '../src'
-import SharedStoreLauncher from '../src/launcher'
-import SharedStoreService from '../src/service'
-import * as SharedStoreClient from '../src/client'
+import * as WdioSharedStoreService from '../src/index.js'
+import SharedStoreLauncher from '../src/launcher.js'
+import SharedStoreService from '../src/service.js'
+import * as SharedStoreClient from '../src/client.js'
 
 describe('WdioSharedStoreService exports', () => {
     it('should export service and launcher', async () => {

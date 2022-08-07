@@ -1,8 +1,6 @@
-import logger from '@wdio/logger'
-
+import { getBrowserObject } from '../../utils/index.js'
 import type { ClickOptions } from '../../types'
-
-const log = logger('webdriverio/click')
+import type { Button } from '../../utils/actions'
 
 /**
  *
@@ -95,8 +93,8 @@ export default async function click(
         throw new TypeError('Options must be an object')
     }
 
+    let button = (options.button || 0) as Button
     let {
-        button = 0,
         x: xoffset = 0,
         y: yoffset = 0,
         skipRelease = false
@@ -110,13 +108,13 @@ export default async function click(
         throw new TypeError('Coordinates must be integers')
     }
 
-    if (button === 'left') {
+    if (options.button === 'left') {
         button = 0
     }
-    if (button === 'middle') {
+    if (options.button === 'middle') {
         button = 1
     }
-    if (button === 'right') {
+    if (options.button === 'right') {
         button = 2
     }
     if (![0, 1, 2].includes(button as number)) {
@@ -124,29 +122,18 @@ export default async function click(
     }
 
     if (this.isW3C) {
-        await this.performActions([{
-            type: 'pointer',
-            id: 'pointer1',
-            parameters: {
-                pointerType: 'mouse'
-            },
-            actions: [{
-                type: 'pointerMove',
+        const browser = getBrowserObject(this)
+        await browser.action('pointer', {
+            parameters: { pointerType: 'mouse' }
+        })
+            .move({
                 origin: this,
                 x: xoffset,
                 y: yoffset
-            }, {
-                type: 'pointerDown',
-                button
-            }, {
-                type: 'pointerUp',
-                button
-            }]
-        }])
-        if (!skipRelease) await this.releaseActions().then(
-            () => null,
-            (err) => log.warn(`Failed to call "releaseAction" command due to: ${err.message}, ignoring!`))
-
+            })
+            .down({ button })
+            .up({ button })
+            .perform(skipRelease)
         return
     }
 

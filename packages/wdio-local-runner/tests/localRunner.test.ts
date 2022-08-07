@@ -2,7 +2,7 @@ import path from 'node:path'
 import child from 'node:child_process'
 import { expect, test, vi } from 'vitest'
 
-import LocalRunner from '../src'
+import LocalRunner from '../src/index.js'
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 

@@ -2,8 +2,8 @@ import path from 'node:path'
 import { expect, describe, it, vi } from 'vitest'
 // @ts-ignore mocked (original defined in webdriver package)
 import got from 'got'
-import { ELEMENT_KEY } from '../../../src/constants'
-import { remote } from '../../../src'
+import { ELEMENT_KEY } from '../../../src/constants.js'
+import { remote } from '../../../src/index.js'
 
 vi.mock('got')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))

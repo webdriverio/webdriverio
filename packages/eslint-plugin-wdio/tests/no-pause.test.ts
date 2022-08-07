@@ -1,5 +1,5 @@
-import rule from '../src/rules/no-pause'
 import { RuleTester } from 'eslint'
+import rule from '../src/rules/no-pause.js'
 
 const ruleTester = new RuleTester({
     parserOptions : {

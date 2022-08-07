@@ -11,7 +11,7 @@ import shell from 'shelljs'
 import { Octokit } from '@octokit/rest'
 import { highlight } from 'cli-highlight'
 import { Changelog } from 'lerna-changelog'
-import { load } from 'lerna-changelog/lib/configuration'
+import { load } from 'lerna-changelog/lib/configuration.js'
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 const root = path.resolve(__dirname, '..')

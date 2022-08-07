@@ -4,7 +4,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import type { Capabilities, Frameworks } from '@wdio/types'
 import type { Browser, MultiRemoteBrowser } from 'webdriverio'
 
-import TestingBotService from '../src/service'
+import TestingBotService from '../src/service.js'
 
 const uri = '/some/uri'
 const featureObject = {

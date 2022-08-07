@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { validateConfig } from '../src/utils'
+import { validateConfig } from '../src/utils.js'
 
 describe('validateConfig', () => {
     it('should throw if required config is missing', () => {

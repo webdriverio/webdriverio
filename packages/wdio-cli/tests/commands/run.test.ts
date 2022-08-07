@@ -2,8 +2,8 @@ import { vi, describe, it, expect, afterEach, beforeEach } from 'vitest'
 // @ts-expect-error mock
 import { yargs } from 'yargs'
 import fs from 'fs-extra'
-import * as runCmd from '../../src/commands/run'
-import * as configCmd from '../../src/commands/config'
+import * as runCmd from '../../src/commands/run.js'
+import * as configCmd from '../../src/commands/config.js'
 
 vi.mock('yargs')
 vi.mock('fs-extra')

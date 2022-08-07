@@ -4,8 +4,8 @@ import logger from '@wdio/logger'
 // @ts-ignore mocked (original defined in webdriver package)
 import got from 'got'
 
-import waitForExist from '../src/commands/element/waitForExist'
-import { remote } from '../src'
+import waitForExist from '../src/commands/element/waitForExist.js'
+import { remote } from '../src/index.js'
 
 vi.mock('got')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
@@ -29,7 +29,7 @@ vi.mock('../src/commands/element/waitForEnabled', () => ({
 const { warn } = logger('foobar')
 
 describe('middleware', () => {
-    let browser: any
+    let browser: WebdriverIO.Browser
 
     beforeAll(async () => {
         browser = await remote({
@@ -53,7 +53,7 @@ describe('middleware', () => {
         })
 
         const elem = await browser.$('#foo')
-        elem.elementId = undefined
+        elem.elementId = undefined as any
 
         await expect(elem.click())
             .rejects.toThrow('Can\'t call click on element with selector "#foo" because element wasn\'t found')
@@ -63,7 +63,7 @@ describe('middleware', () => {
         const elem = await browser.$('#foo')
         const subElem = await elem.$('#subfoo')
         const subSubElem = await subElem.$('#subsubfoo')
-        subSubElem.elementId = undefined
+        subSubElem.elementId = undefined as any
 
         //Success returns a null
         expect(await subSubElem.click()).toEqual(null)
@@ -112,6 +112,7 @@ describe('middleware', () => {
 
         elem.selector = '#exists'
         elem.addCommand('getThis', function(this: any) { return this })
+        // @ts-expect-error undefined custom command
         const elementThis = await elem.getThis()
         expect(elementThis.elementId).toEqual('some-elem-123')
         expect(elementThis['element-6066-11e4-a52e-4f735466cecf']).toEqual('some-elem-123')
@@ -152,6 +153,7 @@ describe('middleware', () => {
         it('elem EXISTS and command = foo', async () => {
             browser.addCommand('foo', () => {}, true)
             const elem = await browser.$('#exists')
+            // @ts-expect-error undefined custom command
             await elem.foo()
             expect(vi.mocked(waitForExist).mock.calls).toHaveLength(0)
         })
@@ -167,6 +169,7 @@ describe('middleware', () => {
         it('elem NOT_FOUND and command = foo', async () => {
             browser.addCommand('foo', () => {}, true)
             const elem = await browser.$('#nonexisting')
+            // @ts-expect-error undefined custom command
             await elem.foo()
             expect(vi.mocked(waitForExist).mock.calls).toHaveLength(1)
         })

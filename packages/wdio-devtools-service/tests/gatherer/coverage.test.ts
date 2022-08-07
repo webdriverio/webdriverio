@@ -7,7 +7,7 @@ import reports from 'istanbul-reports'
 import { transformAsync as babelTransform } from '@babel/core'
 import type { Page } from 'puppeteer-core/lib/cjs/puppeteer/common/Page'
 
-import CoverageGatherer from '../../src/gatherer/coverage'
+import CoverageGatherer from '../../src/gatherer/coverage.js'
 
 vi.useFakeTimers()
 vi.spyOn(global, 'setInterval')

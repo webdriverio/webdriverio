@@ -7,11 +7,11 @@ import yarnInstall from 'yarn-install'
 import inquirer from 'inquirer'
 import pkg from '../../package.json'
 
-import { handler, builder, missingConfigurationPrompt } from '../../src/commands/config'
+import { handler, builder, missingConfigurationPrompt } from '../../src/commands/config.js'
 import {
     getAnswers, addServiceDeps, convertPackageHashToObject, renderConfigurationFile,
     generateTestFiles, getPathForFileGeneration
-} from '../../src/utils'
+} from '../../src/utils.js'
 
 vi.mock('yargs')
 vi.mock('yarn-install')

@@ -1,8 +1,8 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { test, expect, vi } from 'vitest'
-import { getPrototype } from '../../src/utils'
-import { remote } from '../../src'
+import { getPrototype } from '../../src/utils/index.js'
+import { remote } from '../../src/index.js'
 
 vi.mock('got')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))

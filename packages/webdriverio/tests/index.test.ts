@@ -2,7 +2,7 @@ import { describe, it, afterEach, expect, vi } from 'vitest'
 import path from 'node:path'
 // @ts-ignore mock feature
 import { logMock } from '@wdio/logger'
-import * as webdriverio from '../src'
+import * as webdriverio from '../src/index.js'
 
 // If you're making a change here, like adding a new export, the TypeScript
 // typings may need an update : packages/webdriverio/webdriverio.d.ts

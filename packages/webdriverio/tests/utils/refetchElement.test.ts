@@ -2,9 +2,9 @@ import path from 'node:path'
 import { describe, it, beforeAll, expect, vi } from 'vitest'
 // @ts-expect-error
 import got from 'got'
-import { remote } from '../../src'
-import refetchElement from '../../src/utils/refetchElement'
-import waitForExist from '../../src/commands/element/waitForExist'
+import { remote } from '../../src/index.js'
+import refetchElement from '../../src/utils/refetchElement.js'
+import waitForExist from '../../src/commands/element/waitForExist.js'
 
 vi.mock('got')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))

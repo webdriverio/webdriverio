@@ -1,13 +1,13 @@
 import path from 'node:path'
 import { describe, expect, it, beforeAll, beforeEach, vi } from 'vitest'
-import ConciseReporter from '../src'
+import ConciseReporter from '../src/index.js'
 import {
     RUNNER,
     SUITE_UIDS,
     SUITES,
     SUITES_NO_TESTS,
     REPORT,
-} from './fixtures'
+} from './fixtures.js'
 const reporter = new ConciseReporter({})
 
 vi.mock('chalk')

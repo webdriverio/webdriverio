@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 
-import ProtocolStub from '../src/protocol-stub'
-import Multiremote from '../src/multiremote'
+import ProtocolStub from '../src/protocol-stub.js'
+import Multiremote from '../src/multiremote.js'
 
 describe('reloadSession', () => {
     it('should throw', () => {

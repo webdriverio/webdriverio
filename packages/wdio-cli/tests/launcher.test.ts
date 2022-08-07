@@ -1,9 +1,10 @@
 import path from 'node:path'
 import { vi, describe, it, expect, afterEach, beforeEach } from 'vitest'
-import Launcher from '../src/launcher'
 import logger from '@wdio/logger'
 import { sleep } from '@wdio/utils'
 import fs from 'fs-extra'
+
+import Launcher from '../src/launcher.js'
 
 const caps: WebDriver.DesiredCapabilities = { maxInstances: 1, browserName: 'chrome' }
 
@@ -191,7 +192,7 @@ describe('launcher', () => {
             launcher['_schedule'] = [{ cid: 1 } as any, { cid: 2 }]
             launcher['_resolve'] = vi.fn()
             await launcher.endHandler({ cid: '0-1', exitCode: 1, specs: [], retries: 0 } as any)
-            expect(launcher.interface.emit).toBeCalledWith('job:end', { cid: '0-1', passed: false, retries: 0 })
+            expect(launcher.interface!.emit).toBeCalledWith('job:end', { cid: '0-1', passed: false, retries: 0 })
             expect(launcher['_resolve']).toBeCalledWith(1)
             expect(config.onWorkerEnd).toBeCalledWith('0-1', 1, [], 0)
         })
@@ -202,7 +203,7 @@ describe('launcher', () => {
             launcher['_schedule'] = [{ cid: 1 } as any, { cid: 2 }]
             launcher['_resolve'] = vi.fn()
             await launcher.endHandler({ cid: '0-1', exitCode: 0 } as any)
-            expect(launcher.interface.emit).toBeCalledWith('job:end', { cid: '0-1', passed: true })
+            expect(launcher.interface!.emit).toBeCalledWith('job:end', { cid: '0-1', passed: true })
             expect(launcher['_resolve']).toBeCalledWith(0)
         })
 
@@ -212,7 +213,7 @@ describe('launcher', () => {
             launcher['_schedule'] = [{ cid: 1 } as any, { cid: 2 }]
             launcher['_resolve'] = vi.fn()
             await launcher.endHandler({ cid: '0-1', exitCode: 0 } as any)
-            expect(launcher.interface.emit).toBeCalledWith('job:end', { cid: '0-1', passed: true })
+            expect(launcher.interface!.emit).toBeCalledWith('job:end', { cid: '0-1', passed: true })
             expect(launcher['_resolve']).toBeCalledTimes(0)
         })
 
@@ -223,7 +224,7 @@ describe('launcher', () => {
             launcher['_schedule'] = [{ cid: 1 } as any, { cid: 2 }]
             launcher['_resolve'] = vi.fn()
             await launcher.endHandler({ cid: '0-1', exitCode: 1 } as any)
-            expect(launcher.interface.emit).toBeCalledWith('job:end', { cid: '0-1', passed: false })
+            expect(launcher.interface!.emit).toBeCalledWith('job:end', { cid: '0-1', passed: false })
             expect(launcher['_resolve']).toBeCalledTimes(0)
         })
 
@@ -235,7 +236,7 @@ describe('launcher', () => {
             launcher['_schedule'] = [{ cid: 1 } as any, { cid: 2 }]
             launcher['_resolve'] = vi.fn()
             await launcher.endHandler({ cid: '0-1', exitCode: 1 } as any)
-            expect(launcher.interface.emit).not.toBeCalled()
+            expect(launcher.interface!.emit).not.toBeCalled()
             expect(launcher['_resolve']).toBeCalledWith(0)
         })
 
@@ -268,7 +269,7 @@ describe('launcher', () => {
             launcher.exitHandler()
 
             expect(launcher['_hasTriggeredExitRoutine']).toBe(false)
-            expect(launcher.interface.sigintTrigger).toBeCalledTimes(0)
+            expect(launcher.interface!.sigintTrigger).toBeCalledTimes(0)
             expect(launcher.runner?.shutdown).toBeCalledTimes(0)
         })
 
@@ -279,7 +280,7 @@ describe('launcher', () => {
             expect(launcher.exitHandler(() => 'foo')).toBe('foo')
 
             expect(launcher['_hasTriggeredExitRoutine']).toBe(true)
-            expect(launcher.interface.sigintTrigger).toBeCalledTimes(0)
+            expect(launcher.interface!.sigintTrigger).toBeCalledTimes(0)
             expect(launcher.runner?.shutdown).toBeCalledTimes(0)
         })
 
@@ -290,7 +291,7 @@ describe('launcher', () => {
             launcher.exitHandler(vi.fn())
 
             expect(launcher['_hasTriggeredExitRoutine']).toBe(true)
-            expect(launcher.interface.sigintTrigger).toBeCalledTimes(1)
+            expect(launcher.interface!.sigintTrigger).toBeCalledTimes(1)
             expect(launcher.runner?.shutdown).toBeCalledTimes(1)
         })
     })
@@ -690,9 +691,9 @@ describe('launcher', () => {
             expect(launcher.configParser.getCapabilities).toBeCalledTimes(2)
             expect(launcher.configParser.getConfig).toBeCalledTimes(1)
             expect(launcher.runner!.initialise).toBeCalledTimes(1)
-            expect(config.onPrepare[0]).toBeCalledTimes(1)
+            expect(config.onPrepare![0]).toBeCalledTimes(1)
             expect(launcher.runMode).toBeCalledTimes(1)
-            expect(config.onPrepare[0]).toBeCalledTimes(1)
+            expect(config.onPrepare![0]).toBeCalledTimes(1)
             expect(launcher.interface!.finalise).toBeCalledTimes(1)
         })
 
@@ -711,7 +712,7 @@ describe('launcher', () => {
         })
 
         it('should shutdown runner on error', async () => {
-            delete logger.waitForBuffer
+            logger.waitForBuffer = () => Promise.reject(new Error('ups'))
 
             let error
             try {

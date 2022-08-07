@@ -10,11 +10,11 @@ import { temporaryDirectory } from 'tempy'
 // eslint-disable-next-line
 import { clean, getResults } from './helpers/wdio-allure-helper'
 
-import AllureReporter from '../src/'
-import { runnerEnd, runnerStart } from './__fixtures__/runner'
-import * as cucumberHelper from './__fixtures__/cucumber'
-import * as attachmentHelper from './__fixtures__/attachment'
-import { commandStart, commandEnd } from './__fixtures__/command'
+import AllureReporter from '../src/index.js'
+import { runnerEnd, runnerStart } from './__fixtures__/runner.js'
+import * as cucumberHelper from './__fixtures__/cucumber.js'
+import * as attachmentHelper from './__fixtures__/attachment.js'
+import { commandStart, commandEnd } from './__fixtures__/command.js'
 
 vi.mock('@wdio/reporter', () => import(path.join(process.cwd(), '__mocks__', '@wdio/reporter')))
 

@@ -20,7 +20,6 @@
     "__mocks__",
     "packages/**/node_modules",
     "**/*.spec.ts",
-    "e2e/**/*",
     "coverage",
     "examples",
     "/*.js"

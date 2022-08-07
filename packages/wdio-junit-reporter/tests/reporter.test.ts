@@ -2,7 +2,7 @@ import path from 'node:path'
 import { describe, expect, it, vi, beforeEach } from 'vitest'
 import { TestStats } from '@wdio/reporter'
 
-import WDIOJunitReporter from '../src'
+import WDIOJunitReporter from '../src/index.js'
 
 import mochaRunnerLog from './__fixtures__/mocha-runner.json'
 import cucumberRunnerLog from './__fixtures__/cucumber-runner.json'
