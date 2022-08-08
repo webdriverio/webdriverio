@@ -106,7 +106,7 @@ export default class DevToolsDriver {
         this.activeListeners.push({ emitter, eventName, boundHandler })
     }
 
-    private offAllListeners() {
+    private cleanupListeners() {
         this.activeListeners.forEach(({ emitter, eventName, boundHandler }) => {
             emitter.off(eventName, boundHandler)
         })
@@ -120,7 +120,7 @@ export default class DevToolsDriver {
      * @param pages Puppeteer page array
      */
     initBrowser(browser: Browser, pages: Page[]) {
-        this.offAllListeners()
+        this.cleanupListeners()
         this.elementStore = new ElementStore()
         this.windows = new Map()
         this.activeDialog = undefined
