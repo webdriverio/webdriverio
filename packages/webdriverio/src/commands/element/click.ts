@@ -86,7 +86,7 @@ export default async function click(
     options?: ClickOptions
 ) {
     if (typeof options === 'undefined') {
-        return this.elementClick(this.elementId)
+        options = {}
     }
 
     if (typeof options !== 'object' || Array.isArray(options)) {
