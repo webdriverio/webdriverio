@@ -147,7 +147,7 @@ export default async function click(
             () => null,
             (err) => log.warn(`Failed to call "releaseAction" command due to: ${err.message}, ignoring!`))
 
-        return
+        return null
     }
 
     const { width, height } = await this.getElementSize(this.elementId)
