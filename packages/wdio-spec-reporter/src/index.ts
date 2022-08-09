@@ -116,7 +116,7 @@ export default class SpecReporter extends WDIOReporter {
 
     onTestSkip (testStat: TestStats) {
         this.printCurrentStats(testStat)
-        this._pendingReasons.push(testStat.pendingReason as string);
+        this._pendingReasons.push(testStat.pendingReason as string)
         this._consoleLogs.push(this._consoleOutput)
         this._stateCounts.skipped++
     }
@@ -361,10 +361,10 @@ export default class SpecReporter extends WDIOReporter {
                 }
 
                 // print pending reasons
-                const pendingItem = this._pendingReasons.shift();
+                const pendingItem = this._pendingReasons.shift()
                 if (pendingItem) {
                     output.push('');
-                    output.push(testIndent.repeat(2) + '.........Pending Reasons.........');
+                    output.push(testIndent.repeat(2) + '.........Pending Reasons.........')
                     output.push(testIndent.repeat(3) + pendingItem?.replace(/\n/g, '\n'.concat(preface + ' ', testIndent.repeat(3))))
                 }
 
