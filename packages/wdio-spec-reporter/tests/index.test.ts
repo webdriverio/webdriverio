@@ -634,7 +634,7 @@ describe('SpecReporter', () => {
             tmpReporter.onSuiteEnd()
             tmpReporter.onRunnerEnd(runnerEnd())
         })
-        
+
         it('should not add webdriver logs to report', () => {
             tmpReporter = new SpecReporter(options)
             tmpReporter.onSuiteStart(Object.values(SUITES)[0] as any)
