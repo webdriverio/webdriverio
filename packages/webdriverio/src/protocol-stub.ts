@@ -22,6 +22,7 @@ export default class ProtocolStub {
             ...capabilitiesEnvironmentDetector(capabilities, (options as any)._automationProtocol || 'webdriver')
         })
 
+        browser.options = options
         return browser
     }
 
