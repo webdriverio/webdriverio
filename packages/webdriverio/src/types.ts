@@ -494,3 +494,12 @@ export interface AttachOptions extends Omit<DevToolsAttachOptions, 'capabilities
     capabilities: DevToolsAttachOptions['capabilities'] | WebDriverAttachOptions['capabilities'],
     requestedCapabilities?: DevToolsAttachOptions['capabilities'] | WebDriverAttachOptions['capabilities'],
 }
+
+export interface RequestParams extends RequestInit {
+    /**
+     * if set to `true` request is made within the browser context
+     */
+    useFetch: boolean
+}
+
+export interface RequestObject {}
