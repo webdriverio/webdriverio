@@ -1,7 +1,7 @@
 import path from 'node:path'
 import { log } from 'node:console'
 import { describe, it, expect, afterEach, beforeEach, beforeAll, afterAll, vi } from 'vitest'
-import { temporaryDirectory } from 'tempy'
+import tempy from 'tempy'
 
 import AllureReporter from '../src/index.js'
 import { TYPE } from '../src/types.js'
@@ -36,7 +36,7 @@ afterAll(() => {
 })
 
 describe('Passing tests', () => {
-    const outputDir = temporaryDirectory()
+    const outputDir = tempy.directory()
     let allureXml: any
 
     beforeAll(() => {
@@ -136,7 +136,7 @@ describe('Failed tests', () => {
     let allureXml
 
     beforeEach(() => {
-        outputDir = temporaryDirectory()
+        outputDir = tempy.directory()
     })
 
     afterEach(() => {
@@ -250,7 +250,7 @@ describe('Pending tests', () => {
     })
 
     it('should detect started pending test case', () => {
-        outputDir = temporaryDirectory()
+        outputDir = tempy.directory()
         const reporter = new AllureReporter({ outputDir })
 
         reporter.onRunnerStart(runnerStart())
@@ -269,7 +269,7 @@ describe('Pending tests', () => {
     })
 
     it('should detect not started pending test case', () => {
-        outputDir = temporaryDirectory()
+        outputDir = tempy.directory()
         const reporter = new AllureReporter({ outputDir })
 
         reporter.onRunnerStart(runnerStart())
@@ -287,7 +287,7 @@ describe('Pending tests', () => {
     })
 
     it('should detect not started pending test case after completed test', () => {
-        outputDir = temporaryDirectory()
+        outputDir = tempy.directory()
         const reporter = new AllureReporter({ outputDir })
         let passed = testStart()
         passed = {
@@ -324,7 +324,7 @@ describe('Hook start', () => {
     let allureXml
 
     beforeEach(() => {
-        outputDir = temporaryDirectory()
+        outputDir = tempy.directory()
     })
 
     afterEach(() => {
@@ -383,7 +383,7 @@ for (const protocol of ['webdriver', 'devtools']) {
         let outputDir: any
 
         beforeEach(() => {
-            outputDir = temporaryDirectory()
+            outputDir = tempy.directory()
         })
 
         afterEach(() => {
