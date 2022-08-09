@@ -25,5 +25,7 @@ export const returnTypeMap = {
     findElementFromElement: 'ElementReference',
     findElementsFromElement: 'ElementReference[]',
     getAllCookies: 'Cookie[]',
-    send: 'BidiResponse'
+    send: 'BidiResponse',
+    getContext: 'Context',
+    getContexts: 'Context[]'
 }

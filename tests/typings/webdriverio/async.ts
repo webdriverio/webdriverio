@@ -2,6 +2,7 @@ import { expectType } from 'tsd'
 
 import allure from '@wdio/allure-reporter'
 import { remote, multiremote, SevereServiceError } from 'webdriverio'
+import type { DetailedContext } from '@wdio/protocols'
 import type { MockOverwriteFunction, ClickOptions, TouchAction, Selector } from 'webdriverio'
 
 declare global {
@@ -156,6 +157,19 @@ async function bar() {
             arg.toFixed()
             cb(123)
         }, 456)
+    )
+
+    expectType<string>(
+        (await browser.getContext()) as string
+    )
+    expectType<{ id: string }>(
+        await browser.getContext() as DetailedContext
+    )
+    expectType<string[]>(
+        (await browser.getContexts()) as string[]
+    )
+    expectType<{ id: string }[]>(
+        (await browser.getContexts()) as DetailedContext[]
     )
 
     expectType<undefined>(
