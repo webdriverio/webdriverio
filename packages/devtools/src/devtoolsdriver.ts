@@ -13,7 +13,7 @@ import type { Frame } from 'puppeteer-core/lib/cjs/puppeteer/common/FrameManager
 import ElementStore from './elementstore'
 import { validate, sanitizeError } from './utils'
 import { DEFAULT_IMPLICIT_TIMEOUT, DEFAULT_PAGELOAD_TIMEOUT, DEFAULT_SCRIPT_TIMEOUT } from './constants'
-import { EventEmitter } from 'puppeteer-core/lib/cjs/puppeteer/common/EventEmitter'
+import { ActiveListener } from './types.js'
 
 const log = logger('devtools')
 
@@ -28,7 +28,7 @@ export default class DevToolsDriver {
     currentFrame?: Page
     currentWindowHandle?: string
     currentFrameUrl?: string
-    activeListeners: {emitter: EventEmitter, eventName: string, boundHandler: any}[] = []
+    activeListeners: ActiveListener[] = []
     constructor(browser: Browser, pages: Page[]) {
         this.browser = browser
 
@@ -100,7 +100,7 @@ export default class DevToolsDriver {
         return require(filePath).default
     }
 
-    private addListener(emitter: EventEmitter, eventName: string, handler: any) {
+    private addListener(emitter: ActiveListener['emitter'], eventName: string, handler: any) {
         const boundHandler = handler.bind(this)
         emitter.on(eventName, boundHandler)
         this.activeListeners.push({ emitter, eventName, boundHandler })
