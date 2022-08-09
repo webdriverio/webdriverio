@@ -116,7 +116,7 @@ export default class SpecReporter extends WDIOReporter {
 
     onTestSkip (testStat: TestStats) {
         this.printCurrentStats(testStat)
-        this._pendingReasons.push(testStat.pendingReason);
+        this._pendingReasons.push(testStat.pendingReason as string);
         this._consoleLogs.push(this._consoleOutput)
         this._stateCounts.skipped++
     }
