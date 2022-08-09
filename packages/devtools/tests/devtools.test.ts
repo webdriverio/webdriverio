@@ -8,6 +8,7 @@ jest.mock('../src/launcher', () => jest.fn().mockImplementation((capabilities) =
         off: jest.fn(),
         pages: jest.fn().mockReturnValue(Promise.resolve([{
             on: jest.fn(),
+            off: jest.fn(),
             setDefaultTimeout: jest.fn()
         }])),
         _connection: {
