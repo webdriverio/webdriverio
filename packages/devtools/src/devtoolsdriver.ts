@@ -15,7 +15,7 @@ import * as commands from './commands/index.js'
 import ElementStore from './elementstore.js'
 import { validate, sanitizeError } from './utils.js'
 import { DEFAULT_IMPLICIT_TIMEOUT, DEFAULT_PAGELOAD_TIMEOUT, DEFAULT_SCRIPT_TIMEOUT } from './constants.js'
-import { EventEmitter } from 'puppeteer-core/lib/cjs/puppeteer/common/EventEmitter.js'
+import { ActiveListener } from './types.js'
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 const log = logger('devtools')
@@ -31,7 +31,7 @@ export default class DevToolsDriver {
     currentFrame?: Page
     currentWindowHandle?: string
     currentFrameUrl?: string
-    activeListeners: {emitter: EventEmitter, eventName: string, boundHandler: any}[] = []
+    activeListeners: ActiveListener[] = []
     constructor(browser: Browser, pages: Page[]) {
         this.browser = browser
 
@@ -94,7 +94,7 @@ export default class DevToolsDriver {
         log.trace(`Switching to window handle with id ${pageIds[0]}`)
     }
 
-    private addListener(emitter: EventEmitter, eventName: string, handler: any) {
+    private addListener(emitter: ActiveListener['emitter'], eventName: string, handler: any) {
         const boundHandler = handler.bind(this)
         emitter.on(eventName, boundHandler)
         this.activeListeners.push({ emitter, eventName, boundHandler })
