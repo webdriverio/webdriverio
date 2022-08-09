@@ -129,7 +129,10 @@ test('overriding chrome default flags (backwards compat)', async () => {
             // possible with old format
             // @ts-ignore
             headless: true,
-            args: ['--enable-features=NetworkService']
+            args: ['--enable-features=NetworkService'],
+            prefs: {
+                bar: 'foo'
+            }
         }
     })
     expect(vi.mocked(launchChromeBrowser).mock.calls).toMatchSnapshot()
@@ -170,6 +173,9 @@ test('throws an error if an unknown deviceName is picked', async () => {
         'goog:chromeOptions': {
             mobileEmulation: {
                 deviceName: 'Cool Nexus 5'
+            },
+            prefs: {
+                foo: 'bar'
             }
         }
     }).catch((err) => err)
@@ -242,7 +248,10 @@ test('launch Firefox Nightly binary without Puppeteer default args', async () =>
     await launch({
         browserName: 'firefox',
         'moz:firefoxOptions': {
-            binary: 'firefox'
+            binary: 'firefox',
+            prefs: {
+                foo: 'bar'
+            }
         },
         'wdio:devtoolsOptions': {
             ignoreDefaultArgs: true,
@@ -274,7 +283,10 @@ test('launch Edge without Puppeteer default args (backwards compat)', async () =
             // ignore type check as we want to test whether it is still
             // possible with old format
             // @ts-ignore
-            headless: true
+            headless: true,
+            prefs: {
+                foo: 'bar'
+            }
         }
     })
     expect(vi.mocked(puppeteer.launch).mock.calls).toMatchSnapshot()
