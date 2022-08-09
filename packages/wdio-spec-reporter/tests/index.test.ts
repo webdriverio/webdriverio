@@ -118,13 +118,19 @@ describe('SpecReporter', () => {
         beforeAll(() => {
             reporter.onTestSkip({
                 title:'test1',
-                state:'skipped'
+                state:'skipped',
+                pendingReason: 'some random reason'
             } as any)
         })
 
         it('should increase stateCounts.skipped by 1', () => {
             expect(reporter['_stateCounts'].skipped).toBe(1)
         })
+
+        it('should have a pending reason', () => {
+            expect(reporter['_pendingReasons'][0]).toBe('some random reason')
+        })
+
     })
 
     describe('onSuiteEnd', () => {
@@ -611,6 +617,21 @@ describe('SpecReporter', () => {
                 state:'skipped'
             } as any)
             expect(tmpReporter.getResultDisplay().toString()).toContain('Printing to console spec')
+            tmpReporter.onSuiteEnd()
+            tmpReporter.onRunnerEnd(runnerEnd())
+        })
+
+        it('should add pending reason to report for skipped tests', () => {
+            tmpReporter = new SpecReporter(options)
+            tmpReporter.onSuiteStart(Object.values(SUITES)[2] as any)
+            tmpReporter.onTestStart()
+            tmpReporter['_orderedSuites'] = Object.values(SUITES) as any
+            tmpReporter.onTestSkip({
+                title:'test1',
+                state:'skipped',
+                pendingReason:'some random Reasons'
+            } as any)
+            expect(tmpReporter.getResultDisplay().toString()).toContain('Pending Reasons')
             tmpReporter.onSuiteEnd()
             tmpReporter.onRunnerEnd(runnerEnd())
         })
