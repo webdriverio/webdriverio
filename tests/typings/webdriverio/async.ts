@@ -475,6 +475,10 @@ async function bar() {
             return browser.call(async () => {}).then(() => acc)
         }, {} as Random)
     )
+
+    const elemArrayTest: WebdriverIO.ElementArray = {} as any
+    expectType<string>(elemArrayTest.foundWith)
+    expectType<WebdriverIO.Element>(elemArrayTest[123])
 }
 
 function testSevereServiceError_noParameters() {
