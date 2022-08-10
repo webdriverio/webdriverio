@@ -2,7 +2,7 @@ import fs from 'fs'
 import isPlainObject from 'lodash.isplainobject'
 import { roleElements, ARIARoleDefintionKey, ARIARoleRelationConcept, ARIARoleRelationConceptAttribute } from 'aria-query'
 
-import { W3C_SELECTOR_STRATEGIES, DEEP_SELECTOR } from '../constants'
+import { DEEP_SELECTOR } from '../constants.js'
 
 const DEFAULT_STRATEGY = 'css selector'
 const DIRECT_SELECTOR_REGEXP = /^(id|css selector|xpath|link text|partial link text|name|tag name|class name|-android uiautomator|-android datamatcher|-android viewmatcher|-android viewtag|-ios uiautomation|-ios predicate string|-ios class chain|accessibility id):(.+)/
@@ -122,7 +122,7 @@ export const findStrategy = function (selector: SelectorStrategy, isW3C?: boolea
     // user has specified locator strategy directly
     case 'directly': {
         const match = stringSelector.match(DIRECT_SELECTOR_REGEXP)
-        if (!match || !isMobile && isW3C && !W3C_SELECTOR_STRATEGIES.includes(match[1])) {
+        if (!match) {
             throw new Error('InvalidSelectorStrategy') // ToDo: move error to wdio-error package
         }
         using = match[1]

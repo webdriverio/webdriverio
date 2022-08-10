@@ -356,8 +356,12 @@ describe('selector strategies helper', () => {
         expect(element.value).toBe('.ui-cloud__sec__develop-content__app-grid:nth-child(1)')
     })
 
-    it('should not allow unsupported selector strategies if w3c is used', () => {
-        expect(() => findStrategy('accessibility id:foobar accessibility id', true)).toThrow()
+    it('should allow unsupported selector strategies if w3c is used as we need support it in Appium', () => {
+        expect(() => findStrategy('accessibility id:foobar accessibility id', true))
+            .not.toThrow()
+        const element = findStrategy('-ios predicate string:foobar', true)
+        expect(element.using).toBe('-ios predicate string')
+        expect(element.value).toBe('foobar')
     })
 
     it('should allow non w3c selector strategy if driver supports it', () => {
