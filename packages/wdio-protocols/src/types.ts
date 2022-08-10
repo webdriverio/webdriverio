@@ -176,3 +176,15 @@ export type Environments = 'XCUITest' | 'UIAutomation' | 'UiAutomator'
  * ```
  */
 export type SupportedEnvironments = Record<Platform, Record<Environments, string>>
+
+export type Context = string | DetailedContext
+
+/**
+ * Extended Context when running tests in Appium
+ */
+export interface DetailedContext {
+    id: string
+    title?: string
+    url?: string
+    bundleId?: string
+}
