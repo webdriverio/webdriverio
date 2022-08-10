@@ -13,6 +13,7 @@ import type { Frame } from 'puppeteer-core/lib/cjs/puppeteer/common/FrameManager
 import ElementStore from './elementstore'
 import { validate, sanitizeError } from './utils'
 import { DEFAULT_IMPLICIT_TIMEOUT, DEFAULT_PAGELOAD_TIMEOUT, DEFAULT_SCRIPT_TIMEOUT } from './constants'
+import { ActiveListener } from './types.js'
 
 const log = logger('devtools')
 
@@ -27,11 +28,9 @@ export default class DevToolsDriver {
     currentFrame?: Page
     currentWindowHandle?: string
     currentFrameUrl?: string
-
+    activeListeners: ActiveListener[] = []
     constructor(browser: Browser, pages: Page[]) {
         this.browser = browser
-        this.browser.on('targetcreated', this._targetCreatedHandler.bind(this))
-        this.browser.on('targetdestroyed', this._targetDestroyedHandler.bind(this))
 
         const dir = path.resolve(__dirname, 'commands')
         const files = fs.readdirSync(dir).filter(
@@ -55,20 +54,7 @@ export default class DevToolsDriver {
             )
         }
 
-        for (const page of pages) {
-            this._createWindowHandle(page)
-        }
-
-        /**
-         * set default timeouts
-         */
-        this.setTimeouts(DEFAULT_IMPLICIT_TIMEOUT, DEFAULT_PAGELOAD_TIMEOUT, DEFAULT_SCRIPT_TIMEOUT)
-
-        const page = this.getPageHandle()
-        if (page) {
-            page.on('dialog', this.dialogHandler.bind(this))
-            page.on('framenavigated', this.framenavigatedHandler.bind(this))
-        }
+        this.initBrowser(browser, pages)
     }
 
     private _createWindowHandle (page: Page) {
@@ -112,6 +98,51 @@ export default class DevToolsDriver {
     /* istanbul ignore next */
     static requireCommand(filePath: string) {
         return require(filePath).default
+    }
+
+    private addListener(emitter: ActiveListener['emitter'], eventName: string, handler: any) {
+        const boundHandler = handler.bind(this)
+        emitter.on(eventName, boundHandler)
+        this.activeListeners.push({ emitter, eventName, boundHandler })
+    }
+
+    private cleanupListeners() {
+        this.activeListeners.forEach(({ emitter, eventName, boundHandler }) => {
+            emitter.off(eventName, boundHandler)
+        })
+        this.activeListeners = []
+    }
+
+    /**
+     * Inits browser listeners and sets initial handlers for given pages.
+     * Function is also intended to be used while reloading DevTools session.
+     * @param browser Puppeteer Browser
+     * @param pages Puppeteer page array
+     */
+    initBrowser(browser: Browser, pages: Page[]) {
+        this.cleanupListeners()
+        this.elementStore = new ElementStore()
+        this.windows = new Map()
+        this.activeDialog = undefined
+        this.browser = browser
+
+        this.addListener(this.browser, 'targetcreated', this._targetCreatedHandler)
+        this.addListener(this.browser, 'targetdestroyed', this._targetDestroyedHandler)
+
+        for (const page of pages) {
+            this._createWindowHandle(page)
+        }
+
+        /**
+         * set default timeouts
+         */
+        this.setTimeouts(DEFAULT_IMPLICIT_TIMEOUT, DEFAULT_PAGELOAD_TIMEOUT, DEFAULT_SCRIPT_TIMEOUT)
+
+        const page = this.getPageHandle()
+        if (page) {
+            this.addListener(page, 'dialog', this.dialogHandler)
+            this.addListener(page, 'framenavigated', this.framenavigatedHandler)
+        }
     }
 
     register(commandInfo: CommandEndpoint) {

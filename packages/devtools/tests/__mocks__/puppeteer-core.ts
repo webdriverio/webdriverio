@@ -46,6 +46,7 @@ const target = new TargetMock()
 
 class PageMock {
     on = jest.fn()
+    off = jest.fn()
     close = jest.fn()
     url = jest.fn().mockReturnValue('about:blank')
     emulate = jest.fn()
@@ -62,6 +63,7 @@ const page2 = new PageMock2()
 
 class PuppeteerMock {
     on = jest.fn()
+    off = jest.fn()
     waitForTarget = jest.fn().mockImplementation(() => target)
     getActivePage = jest.fn().mockImplementation(() => page)
     pages = jest.fn().mockReturnValue(Promise.resolve([page, page2]))

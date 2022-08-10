@@ -5,8 +5,10 @@ jest.mock('../src/launcher', () => jest.fn().mockImplementation((capabilities) =
     capabilities['goog:chromeOptions'] = capabilities['goog:chromeOptions'] || {}
     return {
         on: jest.fn(),
+        off: jest.fn(),
         pages: jest.fn().mockReturnValue(Promise.resolve([{
             on: jest.fn(),
+            off: jest.fn(),
             setDefaultTimeout: jest.fn()
         }])),
         _connection: {
