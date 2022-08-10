@@ -33,11 +33,11 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "devDependencies": {
-    "@types/lodash.merge": "^4.6.7",
-    "@types/ws": "^8.5.3"
+    "@types/lodash.merge": "^4.6.7"
   },
   "dependencies": {
     "@types/node": "^18.0.0",
+    "@types/ws": "^8.5.3",
     "@wdio/config": "7.20.7",
     "@wdio/logger": "7.19.0",
     "@wdio/protocols": "7.20.6",
