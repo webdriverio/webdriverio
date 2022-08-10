@@ -39,6 +39,7 @@
     "@types/lodash.pickby": "^4.6.7",
     "@types/lodash.union": "^4.6.7",
     "@types/recursive-readdir": "^2.2.1",
+    "@types/yargs": "^17.0.10",
     "@wdio/config": "7.20.7",
     "@wdio/globals": "7.20.7",
     "@wdio/logger": "7.19.0",
@@ -65,7 +66,6 @@
     "access": "public"
   },
   "devDependencies": {
-    "@types/node": "^18.0.0",
-    "@types/yargs": "^17.0.10"
+    "@types/node": "^18.0.0"
   }
 }
