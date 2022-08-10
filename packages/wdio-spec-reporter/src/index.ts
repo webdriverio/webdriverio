@@ -21,6 +21,7 @@ export default class SpecReporter extends WDIOReporter {
     private _suiteIndent = ''
     private _preface = ''
     private _consoleLogs: string[] = []
+    private _pendingReasons: string[] = []
     private _originalStdoutWrite = process.stdout.write.bind(process.stdout)
 
     private _addConsoleLogs = false
@@ -114,6 +115,7 @@ export default class SpecReporter extends WDIOReporter {
 
     onTestSkip (testStat: TestStats) {
         this.printCurrentStats(testStat)
+        this._pendingReasons.push(testStat.pendingReason as string)
         this._consoleLogs.push(this._consoleOutput)
         this._stateCounts.skipped++
     }
@@ -353,6 +355,14 @@ export default class SpecReporter extends WDIOReporter {
                     const rawTable = printTable(data)
                     const table = getFormattedRows(rawTable, testIndent)
                     output.push(...table)
+                }
+
+                // print pending reasons
+                const pendingItem = this._pendingReasons.shift()
+                if (pendingItem) {
+                    output.push('')
+                    output.push(testIndent.repeat(2) + '.........Pending Reasons.........')
+                    output.push(testIndent.repeat(3) + pendingItem?.replace(/\n/g, '\n'.concat(preface + ' ', testIndent.repeat(3))))
                 }
 
                 // print console output
