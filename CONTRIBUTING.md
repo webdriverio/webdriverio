@@ -38,7 +38,7 @@ When [opening a new issue](https://github.com/webdriverio/webdriverio/issues/new
 
 ### Security Bugs
 
-See [SECURITY.md](https://github.com/webdriverio/webdriverio/blob/main/SECURITY.md).
+See [SECURITY.md](https://github.com/webdriverio/webdriverio/blob/main/.github/SECURITY.md).
 
 ## Proposing a Change
 
