@@ -86,7 +86,8 @@ export default async function click(
     options?: ClickOptions
 ) {
     if (typeof options === 'undefined') {
-        options = {}
+        await this.scrollIntoView()
+        return this.elementClick(this.elementId)
     }
 
     if (typeof options !== 'object' || Array.isArray(options)) {

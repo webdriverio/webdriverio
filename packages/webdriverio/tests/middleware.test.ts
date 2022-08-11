@@ -65,8 +65,8 @@ describe('middleware', () => {
         const subSubElem = await subElem.$('#subsubfoo')
         subSubElem.elementId = undefined as any
 
-        //Success returns undefined
-        expect(await subSubElem.click()).toEqual(undefined)
+        //Success returns a null
+        expect(await subSubElem.click()).toEqual(null)
         expect(vi.mocked(warn).mock.calls).toHaveLength(1)
         expect(vi.mocked(warn).mock.calls).toEqual([['Request encountered a stale element - terminating request']])
         // @ts-ignore mock feature
