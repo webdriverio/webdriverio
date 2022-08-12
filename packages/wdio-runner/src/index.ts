@@ -6,6 +6,7 @@ import logger from '@wdio/logger'
 import { initialiseWorkerService, initialisePlugin, executeHooksWithArgs } from '@wdio/utils'
 import { ConfigParser } from '@wdio/config'
 import { _setGlobal } from '@wdio/globals'
+import { expect, setOptions } from 'expect-webdriverio'
 import type { Options, Capabilities, Services } from '@wdio/types'
 import type { Selector, Browser, MultiRemoteBrowser } from 'webdriverio'
 
@@ -296,6 +297,16 @@ export default class Runner extends EventEmitter {
             this._browser = await initialiseInstance(config, caps, this._isMultiremote)
             _setGlobal('browser', this._browser, config.injectGlobals)
             _setGlobal('driver', this._browser, config.injectGlobals)
+            _setGlobal('expect', expect, config.injectGlobals)
+
+            /**
+             * import and set options for `expect-webdriverio` assertion lib once
+             * the browser was initiated
+             */
+            setOptions({
+                wait: config.waitforTimeout, // ms to wait for expectation to succeed
+                interval: config.waitforInterval, // interval between attempts
+            })
 
             /**
              * attach browser to `multiremotebrowser` so user have better typing support

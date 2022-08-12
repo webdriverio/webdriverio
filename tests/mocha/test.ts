@@ -10,11 +10,13 @@ describe('Mocha smoke test', () => {
         }
     })
 
-    it('has globals set up', () => {
+    it('has globals set up', async () => {
+        expect(1).toBe(1) // has non wdio matcher support
         expect(global.browser).toBeDefined()
         expect(global.driver).toBeDefined()
         expect(global.$).toBeDefined()
         expect(global.$$).toBeDefined()
+        expect(global.expect).toBeDefined()
     })
 
     it('should return sync value', async () => {

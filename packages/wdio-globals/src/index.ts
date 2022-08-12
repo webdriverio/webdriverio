@@ -1,9 +1,9 @@
 /// <reference path="../types.d.ts" />
 
-type SupportedGlobals = 'browser' | 'driver' | 'multiremotebrowser' | '$' | '$$'
+type SupportedGlobals = 'browser' | 'driver' | 'multiremotebrowser' | '$' | '$$' | 'expect'
 
 const globals: Map<SupportedGlobals, any> = new Map()
-const GLOBALS_ERROR_MESSAGE = 'Don\'t import @wdio/globals outside of the WDIO testrunner context'
+const GLOBALS_ERROR_MESSAGE = 'No browser instance registered. Don\'t import @wdio/globals outside of the WDIO testrunner context. Or you have two two different "@wdio/globals" packages installed.'
 
 function proxyHandler (key: SupportedGlobals) {
     return {
@@ -41,6 +41,12 @@ export const $$: WebdriverIO.Browser['$$'] = (...args: any) => {
     }
     return globals.get('$$')(...args)
 }
+export const expect: ExpectWebdriverIO.Expect = ((...args: any) => {
+    if (!globals.has('expect')) {
+        throw new Error(GLOBALS_ERROR_MESSAGE)
+    }
+    return globals.get('expect')(...args)
+}) as ExpectWebdriverIO.Expect
 
 /**
  * allows to set global property to be imported and used later on

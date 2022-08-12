@@ -154,7 +154,7 @@ const jasmineTimeout = async () => {
         'spec was not failing due to timeout error'
     )
     assert.ok(
-        specLogs.includes('Expected true to be false.'),
+        specLogs.includes('Error: expect(received).toBe(expected) // Object.is equality'),
         'spec was not failing a sync assertion error'
     )
     assert.ok(
@@ -164,10 +164,6 @@ const jasmineTimeout = async () => {
     assert.ok(
         specLogs.includes('✓ should allow also async assertions afterwards'),
         'spec should also allow async assertions afterwards'
-    )
-    assert.ok(
-        specLogs.includes('✓ should allow also sync assertions afterwards'),
-        'spec should also allow sync assertions afterwards'
     )
 }
 

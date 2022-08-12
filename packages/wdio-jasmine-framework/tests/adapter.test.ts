@@ -2,7 +2,6 @@ import path from 'node:path'
 import { expect, test, vi, it, describe, afterEach } from 'vitest'
 import logger from '@wdio/logger'
 import { runTestInFiberContext, executeHooksWithArgs } from '@wdio/utils'
-import { setOptions } from 'expect-webdriverio'
 import { EventEmitter } from 'node:events'
 
 import JasmineAdapterFactory, { JasmineAdapter } from '../src/index.js'
@@ -69,7 +68,6 @@ test('should properly set up jasmine', async () => {
     const result = await adapter.run()
 
     expect(result).toBe(0)
-    expect(setOptions).toBeCalledTimes(1)
     expect(vi.mocked(adapter['_jrunner']!.addSpecFile).mock.calls[0][0]).toEqual('/foo/bar.test.js')
     // @ts-ignore outdated types
     expect(vi.mocked(adapter['_jrunner']!.jasmine.addReporter).mock.calls).toHaveLength(1)
@@ -518,7 +516,6 @@ describe('hasTests', () => {
 })
 
 afterEach(() => {
-    vi.mocked(setOptions).mockClear()
     vi.mocked(runTestInFiberContext).mockClear()
     vi.mocked(executeHooksWithArgs).mockClear()
 })

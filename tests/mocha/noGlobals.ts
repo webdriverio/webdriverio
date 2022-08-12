@@ -1,4 +1,4 @@
-import { browser, $, $$ } from '../../packages/wdio-globals/build/index.js'
+import { browser, $, $$, expect } from '../../packages/wdio-globals/build/index.js'
 
 describe('global usage', () => {
     it('has no globals registered', () => {

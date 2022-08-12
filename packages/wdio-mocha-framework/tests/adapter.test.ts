@@ -3,7 +3,6 @@ import path from 'node:path'
 import Mocha from 'mocha'
 import logger from '@wdio/logger'
 import { runTestInFiberContext, executeHooksWithArgs } from '@wdio/utils'
-import { setOptions } from 'expect-webdriverio'
 
 import MochaAdapterFactory, { MochaAdapter } from '../src/index.js'
 import { loadModule } from '../src/utils.js'
@@ -57,7 +56,6 @@ test('should properly set up mocha', async () => {
     const result = await adapter.run()
     expect(result).toBe(0)
 
-    expect(setOptions).toBeCalledTimes(1)
     expect(adapter['_mocha']!['loadFiles']).not.toBeCalled()
     expect(adapter['_mocha']!.loadFilesAsync).toBeCalled()
     expect(adapter['_mocha']!.reporter).toBeCalled()
@@ -528,5 +526,4 @@ afterEach(() => {
     vi.mocked(Mocha.Runner).mockClear()
     vi.mocked(runTestInFiberContext).mockReset()
     vi.mocked(executeHooksWithArgs).mockReset()
-    vi.mocked(setOptions).mockClear()
 })
