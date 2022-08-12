@@ -5,7 +5,6 @@ import { EventEmitter } from 'node:events'
 import { expect } from 'expect-webdriverio'
 import { _setGlobal } from '@wdio/globals'
 import type { Options, Services, Capabilities } from '@wdio/types'
-import type ExpectWebdriverIO from 'expect-webdriverio'
 
 import JasmineReporter from './reporter.js'
 import type {
