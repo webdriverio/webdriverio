@@ -10,7 +10,7 @@
   "types": "./build/index.d.ts",
   "typeScriptVersion": "3.8.3",
   "engines": {
-     "node": "^16.13 || >=18"
+    "node": "^16.13 || >=18"
   },
   "repository": {
     "type": "git",
@@ -30,10 +30,11 @@
   "dependencies": {
     "@types/jasmine": "4.0.3",
     "@types/node": "^18.0.0",
+    "@wdio/globals": "^7.20.7",
     "@wdio/logger": "7.19.0",
     "@wdio/types": "7.20.7",
     "@wdio/utils": "7.20.7",
-    "expect-webdriverio": "^4.0.0-alpha.2",
+    "expect-webdriverio": "^4.0.0-alpha.3",
     "jasmine": "^4.2.1"
   },
   "peerDependencies": {

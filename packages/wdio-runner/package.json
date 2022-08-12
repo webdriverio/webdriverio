@@ -31,7 +31,7 @@
     "@wdio/types": "7.20.7",
     "@wdio/utils": "7.20.7",
     "deepmerge": "^4.0.0",
-    "expect-webdriverio": "^4.0.0-alpha.2",
+    "expect-webdriverio": "^4.0.0-alpha.3",
     "gaze": "^1.1.2",
     "webdriver": "7.20.7",
     "webdriverio": "7.20.7"

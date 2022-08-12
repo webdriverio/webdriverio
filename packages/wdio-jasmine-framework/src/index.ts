@@ -2,6 +2,8 @@ import Jasmine from 'jasmine'
 import logger from '@wdio/logger'
 import { runTestInFiberContext, executeHooksWithArgs } from '@wdio/utils'
 import { EventEmitter } from 'node:events'
+import { expect } from 'expect-webdriverio'
+import { _setGlobal } from '@wdio/globals'
 import type { Options, Services, Capabilities } from '@wdio/types'
 import type ExpectWebdriverIO from 'expect-webdriverio'
 
@@ -187,6 +189,12 @@ class JasmineAdapter {
         }
 
         await this._loadFiles()
+
+        /**
+         * overwrite Jasmine global expect with WebdriverIOs expect
+         */
+        _setGlobal('expect', expect, this._config.injectGlobals)
+
         return this
     }
 
