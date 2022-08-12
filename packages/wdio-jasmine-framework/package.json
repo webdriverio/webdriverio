@@ -33,7 +33,7 @@
     "@wdio/logger": "7.19.0",
     "@wdio/types": "7.20.7",
     "@wdio/utils": "7.20.7",
-    "expect-webdriverio": "next",
+    "expect-webdriverio": "^4.0.0-alpha.2",
     "jasmine": "^4.2.1"
   },
   "peerDependencies": {

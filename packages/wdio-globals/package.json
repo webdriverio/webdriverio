@@ -28,7 +28,7 @@
     "access": "public"
   },
   "dependencies": {
-    "expect-webdriverio": "^4.0.0-alpha.1",
+    "expect-webdriverio": "^4.0.0-alpha.2",
     "webdriverio": "7.20.7"
   }
 }
