@@ -8,6 +8,7 @@ import { describe, expect, it, vi, afterEach, beforeEach } from 'vitest'
 import { executeHooksWithArgs } from '@wdio/utils'
 import { attach } from 'webdriverio'
 import { _setGlobal } from '@wdio/globals'
+import { setOptions } from 'expect-webdriverio'
 
 import WDIORunner from '../src/index.js'
 
@@ -15,6 +16,7 @@ vi.mock('fs/promises', () => ({
     default: { writeFile: vi.fn() }
 }))
 vi.mock('util')
+vi.mock('expect-webdriverio')
 vi.mock('webdriverio', () => import(path.join(process.cwd(), '__mocks__', 'webdriverio')))
 vi.mock('@wdio/utils', () => import(path.join(process.cwd(), '__mocks__', '@wdio/utils')))
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
@@ -28,6 +30,7 @@ type BrowserObject = WebdriverIO.Browser
 describe('wdio-runner', () => {
     beforeEach(() => {
         vi.mocked(_setGlobal).mockClear()
+        vi.mocked(setOptions).mockClear()
     })
 
     describe('_fetchDriverLogs', () => {
@@ -432,14 +435,21 @@ describe('wdio-runner', () => {
         it('should register browser to global scope', async () => {
             const runner = new WDIORunner()
             const browser = await runner['_initSession'](
-                { hostname: 'foobar' } as any,
+                { hostname: 'foobar', waitforTimeout: 1, waitforInterval: 2 } as any,
                 [{ browserName: 'chrome1' }] as any
             )
 
             expect(_setGlobal).toBeCalledWith('browser', browser, undefined)
             expect(_setGlobal).toBeCalledWith('driver', browser, undefined)
+            expect(_setGlobal).toBeCalledWith('expect', expect.any(Function), undefined)
             expect(_setGlobal).toBeCalledWith('$', expect.any(Function), undefined)
             expect(_setGlobal).toBeCalledWith('$$', expect.any(Function), undefined)
+
+            expect(setOptions).toBeCalledTimes(1)
+            expect(setOptions).toBeCalledWith({
+                wait: 1,
+                interval: 2
+            })
         })
 
         it('should register before and after command listener', async () => {

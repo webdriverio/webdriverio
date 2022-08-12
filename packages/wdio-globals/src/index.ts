@@ -1,6 +1,6 @@
 /// <reference path="../types.d.ts" />
 
-type SupportedGlobals = 'browser' | 'driver' | 'multiremotebrowser' | '$' | '$$'
+type SupportedGlobals = 'browser' | 'driver' | 'multiremotebrowser' | '$' | '$$' | 'expect'
 
 const globals: Map<SupportedGlobals, any> = new Map()
 const GLOBALS_ERROR_MESSAGE = 'Don\'t import @wdio/globals outside of the WDIO testrunner context'

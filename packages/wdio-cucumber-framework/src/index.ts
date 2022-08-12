@@ -32,9 +32,7 @@ import { Long } from 'long'
 import { IdGenerator } from '@cucumber/messages'
 
 import { executeHooksWithArgs, testFnWrapper } from '@wdio/utils'
-import { setOptions } from 'expect-webdriverio'
 import type { Capabilities, Options, Frameworks } from '@wdio/types'
-import type ExpectWebdriverIO from 'expect-webdriverio'
 
 import CucumberReporter from './reporter.js'
 import { DEFAULT_OPTS } from './constants.js'
@@ -133,15 +131,6 @@ class CucumberAdapter {
             await executeHooksWithArgs('after', this._config.after, [runtimeError, this._capabilities, this._specs])
             throw runtimeError
         }
-
-        /**
-         * import and set options for `expect-webdriverio` assertion lib once
-         * the framework was initiated so that it can detect the environment
-         */
-        setOptions({
-            wait: this._config.waitforTimeout, // ms to wait for expectation to succeed
-            interval: this._config.waitforInterval, // interval between attempts
-        })
 
         return this
     }
@@ -429,10 +418,5 @@ declare global {
     namespace WebdriverIO {
         interface CucumberOpts extends CucumberOptions {}
         interface HookFunctionExtension extends HookFunctionExtensionImport {}
-    }
-    namespace NodeJS {
-        interface Global {
-            expect: ExpectWebdriverIO.Expect
-        }
     }
 }

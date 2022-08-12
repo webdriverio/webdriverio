@@ -3,6 +3,7 @@ import logger from '@wdio/logger'
 import { runTestInFiberContext, executeHooksWithArgs } from '@wdio/utils'
 import { EventEmitter } from 'node:events'
 import type { Options, Services, Capabilities } from '@wdio/types'
+import type ExpectWebdriverIO from 'expect-webdriverio'
 
 import JasmineReporter from './reporter.js'
 import type {
@@ -186,17 +187,6 @@ class JasmineAdapter {
         }
 
         await this._loadFiles()
-
-        /**
-         * expect-webdriverio needs to be dynamically imported here so that it can
-         * attach its matchers to the jasmine expect library
-         */
-        const { setOptions } = await import('expect-webdriverio')
-        setOptions({
-            wait: this._config.waitforTimeout, // ms to wait for expectation to succeed
-            interval: this._config.waitforInterval, // interval between attempts
-        })
-
         return this
     }
 
@@ -455,7 +445,6 @@ declare global {
     }
 
     namespace jasmine {
-        interface Matchers<T> extends ExpectWebdriverIO.Matchers<any, T> {}
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         interface AsyncMatchers<T, U> extends ExpectWebdriverIO.Matchers<Promise<void>, T> {}
     }
