@@ -34,5 +34,10 @@
   },
   "peerDependencies": {
     "typescript": "^4.6.2"
+  },
+  "peerDependenciesMeta": {
+    "typescript": {
+      "optional": true 
+    }
   }
 }
