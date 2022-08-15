@@ -33,7 +33,7 @@
     "webdriverio": "7.20.7"
   },
   "peerDependencies": {
-    "@wdio/cli": "^7.0.0"
+    "@wdio/cli": "next"
   },
   "publishConfig": {
     "access": "public"

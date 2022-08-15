@@ -35,7 +35,7 @@
     "json-stringify-safe": "^5.0.1"
   },
   "peerDependencies": {
-    "@wdio/cli": "^7.0.0"
+    "@wdio/cli": "next"
   },
   "publishConfig": {
     "access": "public"
