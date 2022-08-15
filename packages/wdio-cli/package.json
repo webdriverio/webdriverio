@@ -34,7 +34,7 @@
   "dependencies": {
     "@types/ejs": "^3.1.1",
     "@types/fs-extra": "^9.0.13",
-    "@types/inquirer": "^8.2.1",
+    "@types/inquirer": "^9.0.0",
     "@types/lodash.flattendeep": "^4.4.7",
     "@types/lodash.pickby": "^4.6.7",
     "@types/lodash.union": "^4.6.7",
