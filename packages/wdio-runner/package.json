@@ -1,6 +1,6 @@
 {
   "name": "@wdio/runner",
-  "version": "7.20.9",
+  "version": "7.21.0",
   "description": "A WebdriverIO service that runs tests in arbitrary environments",
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-runner",
@@ -22,14 +22,14 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "dependencies": {
-    "@wdio/config": "7.20.8",
+    "@wdio/config": "7.21.0",
     "@wdio/logger": "7.19.0",
-    "@wdio/types": "7.20.7",
-    "@wdio/utils": "7.20.7",
+    "@wdio/types": "7.21.0",
+    "@wdio/utils": "7.21.0",
     "deepmerge": "^4.0.0",
     "gaze": "^1.1.2",
-    "webdriver": "7.20.8",
-    "webdriverio": "7.20.9"
+    "webdriver": "7.21.0",
+    "webdriverio": "7.21.0"
   },
   "publishConfig": {
     "access": "public"

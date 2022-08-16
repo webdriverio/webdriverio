@@ -19,6 +19,22 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.21.0 (2022-08-16)
+
+#### :nail_care: Polish
+* `wdio-cli`
+  * [#8633](https://github.com/webdriverio/webdriverio/pull/8633) Issue 8592: Detailed message for missing config - v7 ([@perillai](https://github.com/perillai))
+
+#### Committers: 7
+- Chandler Boone Ferry ([@ChandlerFerry](https://github.com/ChandlerFerry))
+- Erik B. ([@erborg](https://github.com/erborg))
+- Gencho Kerkeniakov ([@kerkeniakov](https://github.com/kerkeniakov))
+- Perillai ([@perillai](https://github.com/perillai))
+- Richard Roozenboom ([@Roozenboom](https://github.com/Roozenboom))
+- Sri Harsha ([@harsha509](https://github.com/harsha509))
+- [@olexme](https://github.com/olexme)
+
+
 ## v7.20.9 (2022-07-29)
 
 #### :bug: Bug Fix
