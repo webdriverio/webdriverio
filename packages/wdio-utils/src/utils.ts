@@ -1,6 +1,9 @@
 import fs from 'node:fs'
+import { createRequire } from 'node:module'
 
 import type { Services, Clients } from '@wdio/types'
+
+const require = createRequire(import.meta.url)
 
 const SCREENSHOT_REPLACEMENT = '"<Screenshot[base64]>"'
 const SCRIPT_PLACEHOLDER = '"<Script[base64]>"'
@@ -171,15 +174,15 @@ export async function safeImport (name: string): Promise<Services.ServicePlugin 
          * imported correctly (for dev purposes).
          */
         /* istanbul ignore if */
-        if (import.meta.resolve) {
-            requirePath = await import.meta.resolve(name)
+        if (require.resolve) {
+            requirePath = await require.resolve(name)
         }
     } catch (err: any) {
         return null
     }
 
     try {
-        return import(requirePath)
+        return await import(requirePath)
     } catch (e: any) {
         throw new Error(`Couldn't initialise "${name}".\n${e.stack}`)
     }
