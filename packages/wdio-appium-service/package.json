@@ -10,7 +10,8 @@
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/webdriverio/webdriverio.git"
+    "url": "git://github.com/webdriverio/webdriverio.git",
+    "directory": "packages/wdio-appium-service"
   },
   "keywords": [
     "webdriver",

@@ -16,7 +16,8 @@
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/webdriverio/webdriverio.git"
+    "url": "git://github.com/webdriverio/webdriverio.git",
+    "directory": "packages/wdio-types"
   },
   "keywords": [
     "webdriver",
@@ -36,7 +37,7 @@
   },
   "peerDependenciesMeta": {
     "typescript": {
-      "optional": true 
+      "optional": true
     }
   }
 }
