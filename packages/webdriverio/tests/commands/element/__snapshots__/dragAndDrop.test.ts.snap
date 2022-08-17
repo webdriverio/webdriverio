@@ -63,7 +63,9 @@ exports[`dragAndDrop > should allow drag and drop to 0 coordinates 1`] = `
       },
     ],
     "id": "action3",
-    "parameters": {},
+    "parameters": {
+      "pointerType": "mouse",
+    },
     "type": "pointer",
   },
 ]
@@ -134,7 +136,9 @@ exports[`dragAndDrop > should do a dragAndDrop 1`] = `
       },
     ],
     "id": "action1",
-    "parameters": {},
+    "parameters": {
+      "pointerType": "mouse",
+    },
     "type": "pointer",
   },
 ]
@@ -203,7 +207,9 @@ exports[`dragAndDrop > should do a dragAndDrop with coordinates 1`] = `
       },
     ],
     "id": "action2",
-    "parameters": {},
+    "parameters": {
+      "pointerType": "mouse",
+    },
     "type": "pointer",
   },
 ]
