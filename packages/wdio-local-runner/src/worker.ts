@@ -92,7 +92,7 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
         }
 
         if (this.config.autoCompileOpts?.autoCompile) {
-            runnerEnv.NODE_OPTIONS = (runnerEnv.NODE_OPTIONS || '') + ' --loader ts-node/esm/transpile-only'
+            runnerEnv.NODE_OPTIONS = (runnerEnv.NODE_OPTIONS || '') + ' --loader ts-node/esm/transpile-only --no-warnings'
         }
 
         log.info(`Start worker ${cid} with arg: ${argv}`)
