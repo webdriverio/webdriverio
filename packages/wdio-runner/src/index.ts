@@ -55,6 +55,7 @@ export default class Runner extends EventEmitter {
     private _configParser = new ConfigParser()
     private _sigintWasCalled = false
     private _isMultiremote = false
+    private _hadRunnerStartEvent = false
     private _specFileRetryAttempts = 0
 
     private _reporter?: BaseReporter
@@ -94,7 +95,7 @@ export default class Runner extends EventEmitter {
             await this._configParser.addConfigFile(configFile)
         } catch (err: any) {
             log.error(`Failed to read config file: ${err.stack}`)
-            return this._shutdown(1, retries)
+            return this._shutdown(1, retries, true)
         }
 
         /**
@@ -139,7 +140,7 @@ export default class Runner extends EventEmitter {
         this._framework = await this._framework.init(cid, this._config, specs, caps, this._reporter)
         process.send!({ name: 'testFrameworkInit', content: { cid, caps, specs, hasTests: this._framework.hasTests() } })
         if (!this._framework.hasTests()) {
-            return this._shutdown(0, retries)
+            return this._shutdown(0, retries, true)
         }
 
         browser = await this._initSession(this._config as SingleConfigOption, this._caps, browser)
@@ -150,7 +151,7 @@ export default class Runner extends EventEmitter {
         if (!browser) {
             const afterArgs: AfterArgs = [1, this._caps, this._specs]
             await executeHooksWithArgs('after', this._config.after as Function, afterArgs)
-            return this._shutdown(1, retries)
+            return this._shutdown(1, retries, true)
         }
 
         this._reporter.caps = browser.capabilities as Capabilities.RemoteCapability
@@ -165,7 +166,7 @@ export default class Runner extends EventEmitter {
         if (this._sigintWasCalled) {
             log.info('SIGINT signal detected while starting session, shutting down...')
             await this.endSession()
-            return this._shutdown(0, retries)
+            return this._shutdown(0, retries, true)
         }
 
         /**
@@ -195,6 +196,7 @@ export default class Runner extends EventEmitter {
                 : { ...browser.capabilities, sessionId: browser.sessionId },
             retry: this._specFileRetryAttempts
         } as Options.RunnerStart)
+        this._hadRunnerStartEvent = true
 
         /**
          * report sessionId and target connection information to worker
@@ -392,13 +394,14 @@ export default class Runner extends EventEmitter {
      */
     private async _shutdown (
         failures: number,
-        retries: number
+        retries: number,
+        initiationFailed = false
     ) {
         /**
          * In case of initialisation failed, the sessionId is undefined and the runner:start is not triggered.
          * So, to be able to perform the runner:end into the reporters, we need to launch the runner:start just before the runner:end.
          */
-        if (!this._browser?.sessionId && this._reporter) {
+        if (this._reporter && initiationFailed) {
             this._reporter.emit('runner:start', {
                 cid: this._cid,
                 specs: this._specs,

@@ -244,7 +244,7 @@ describe('wdio-runner', () => {
                 () => { throw new Error('boom') })
             await runner.run({ args: {} } as any)
 
-            expect(runner['_shutdown']).toBeCalledWith(1, undefined)
+            expect(runner['_shutdown']).toBeCalledWith(1, undefined, true)
             expect(runner['_configParser'].autoCompile).toBeCalledTimes(0)
         })
 
@@ -262,7 +262,7 @@ describe('wdio-runner', () => {
             runner['_configParser'].getConfig = vi.fn().mockReturnValue(config)
             await runner.run({ args: { autoCompileOpts: { autoCompile: true } } } as any)
 
-            expect(runner['_shutdown']).toBeCalledWith(1, undefined)
+            expect(runner['_shutdown']).toBeCalledWith(1, undefined, true)
             expect(runner['_configParser'].autoCompile).toBeCalledTimes(1)
         })
 
@@ -376,7 +376,7 @@ describe('wdio-runner', () => {
             })
 
             expect(runner.endSession).toBeCalledTimes(1)
-            expect(runner['_shutdown']).toBeCalledWith(0, 0)
+            expect(runner['_shutdown']).toBeCalledWith(0, 0, true)
         })
 
         it('should not initSession if there are no tests to run', async () => {
@@ -391,7 +391,7 @@ describe('wdio-runner', () => {
             runner['_initSession'] = vi.fn()
 
             expect(await runner.run({ args: {}, caps: {} } as any)).toBe(0)
-            expect(runner['_shutdown']).toBeCalledWith(0, undefined)
+            expect(runner['_shutdown']).toBeCalledWith(0, undefined, true)
             expect(runner['_initSession']).not.toBeCalled()
         })
 
@@ -418,7 +418,7 @@ describe('wdio-runner', () => {
                 retries: 0
             })).toBe('_shutdown')
 
-            expect(runner['_shutdown']).toBeCalledWith(1, 0)
+            expect(runner['_shutdown']).toBeCalledWith(1, 0, true)
             expect(executeHooksWithArgs).toBeCalledWith(
                 'after',
                 'foobar',
@@ -556,7 +556,7 @@ describe('wdio-runner', () => {
                 }],
                 ['runner:end', { 'cid': undefined, 'failures': 123, 'retries': 123 }]
             ]
-            expect(await runner['_shutdown'](123, 123)).toBe(123)
+            expect(await runner['_shutdown'](123, 123, true)).toBe(123)
             expect(reporter.emit.mock.calls).toEqual(args)
             expect(runner.emit).toBeCalledWith('exit', 1)
         })
