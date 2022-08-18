@@ -1,5 +1,5 @@
 ---
-id: api-globals
+id: globals
 title: Globals
 ---
 

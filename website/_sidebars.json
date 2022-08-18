@@ -56,9 +56,10 @@
   },
   "api": [
     "api",
-    "api-globals",
-    "api-environment",
-    "api/expect-webdriverio"
+    "api/expect-webdriverio",
+    "api/globals",
+    "api/environment",
+    "api/modules"
   ],
   "flowcharts": {
       "Flowcharts": [

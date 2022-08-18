@@ -1,5 +1,5 @@
 ---
-id: api-environment
+id: environment
 title: Environment Variables
 ---
 

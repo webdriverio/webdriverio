@@ -3,6 +3,9 @@ id: gettingstarted
 title: Getting Started
 ---
 
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 Welcome to the WebdriverIO documentation. It will help you to get started fast. If you run into problems, you can find help and answers on our [Gitter Channel](https://gitter.im/webdriverio/webdriverio) or you can hit me on [Twitter](https://twitter.com/webdriverio).
 
 :::info
@@ -13,9 +16,17 @@ These are the docs for the latest version (__>=7.x__) of WebdriverIO. If you are
 
 To add a full WebdriverIO setup to an existing or new project using the [WebdriverIO Starter Toolkit](https://www.npmjs.com/package/create-wdio), run:
 
-### Using NPM
-
 If you're in the root directory of an existing project, run:
+
+<Tabs
+  defaultValue="npm"
+  values={[
+    {label: 'NPM', value: 'npm'},
+    {label: 'Yarn', value: 'yarn'},
+    {label: 'PnPm', value: 'pnpm'},
+  ]
+}>
+<TabItem value="npm">
 
 ```sh
 npm init wdio .
@@ -27,9 +38,8 @@ or if you want to create a new project:
 npm init wdio ./path/to/new/project
 ```
 
-### Using Yarn
-
-If you're in the root directory of an existing project, run:
+</TabItem>
+<TabItem value="yarn">
 
 ```sh
 yarn create wdio .
@@ -40,6 +50,22 @@ or if you want to create a new project:
 ```sh
 yarn create wdio ./path/to/new/project
 ```
+
+</TabItem>
+<TabItem value="pnpm">
+
+```sh
+pnpm create wdio .
+```
+
+or if you want to create a new project:
+
+```sh
+pnpm create wdio ./path/to/new/project
+```
+
+</TabItem>
+</Tabs>
 
 This single command downloads the WebdriverIO CLI tool and runs a configuration wizard that helps you to configure your test suite.
 
@@ -69,7 +95,7 @@ npx wdio run ./wdio.conf.js --suite exampleSuiteName
 
 ## Run in a script
 
-If you like to use WebdriverIO as an automation engine in a Node.JS script you can also directly install WebdriverIO and use it as a package, e.g. to generate a screenshot of a website:
+If you like to use WebdriverIO as an automation engine in [Standalone Mode](docs/setuptypes#standalone-mode) within a Node.JS script you can also directly install WebdriverIO and use it as a package, e.g. to generate a screenshot of a website:
 
 ```js
 import { remote } from 'webdriverio'
@@ -95,7 +121,7 @@ __Note:__ all WebdriverIO commands are asynchronous and need to be properly hand
 
 You’ll need [Node.js](http://nodejs.org) installed.
 
-- Install at least v12.16.1 or higher as this is the oldest active LTS version
+- Install at least v16.x or higher as this is the oldest active LTS version
 - Only releases that are or will become an LTS release are officially supported
 
 If you don't have Node installed, we recommend installing [NVM](https://github.com/creationix/nvm) to assist managing multiple active Node.js versions.

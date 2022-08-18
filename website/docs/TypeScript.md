@@ -39,8 +39,15 @@ export const config = {
 
 If you don't want to use WebdriverIO's internal transpiler functionality you can create your own `entrypoint.js` file where `ts-node` is defined manually:
 
-<!--DOCUSAURUS_CODE_TABS-->
-<!--Using EcmaScript Modules-->
+<Tabs
+  defaultValue="esm"
+  values={[
+    {label: 'ESM', value: 'esm'},
+    {label: 'CommonJS', value: 'commonjs'},
+  ]
+}>
+<TabItem value="esm">
+
 ```js title="entrypoint.js"
 import { register } from 'ts-node'
 register({
@@ -50,7 +57,10 @@ register({
 })
 export * from './configs/wdio.conf'
 ```
-<!--Using CommonJS-->
+
+</TabItem>
+<TabItem value="commonjs">
+
 ```js title="entrypoint.js"
 require('ts-node').register(
     {
@@ -61,7 +71,9 @@ require('ts-node').register(
 )
 module.exports = require('./configs/wdio.conf')
 ```
-<!--END_DOCUSAURUS_CODE_TABS-->
+
+</TabItem>
+</Tabs>
 
 In this case you have to pass `--no-autoCompileOpts.autoCompile` as parameter to the `wdio` command to disable auto compiling, e.g.:
 
