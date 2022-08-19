@@ -11,6 +11,7 @@
     "ci": "run-s setup-full test test:e2e",
     "clean": "run-p clean-full:* clean:*",
     "clean:build": "rimraf ./packages/*/build",
+    "clean:commands": "rimraf ./packages/wdio-protocols/src/commands",
     "clean:pkglock": "rimraf ./packages/*/package-lock.json",
     "clean:tgz": "rimraf ./packages/*/*.tgz",
     "clean:node_modules": "rimraf ./packages/node_modules",
