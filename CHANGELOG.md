@@ -19,6 +19,33 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.22.0 (2022-08-19)
+
+#### :boom: Breaking Change
+* `wdio-protocols`, `webdriverio`
+  * [#8692](https://github.com/webdriverio/webdriverio/pull/8692) Support detailed contexts in TypeScript ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :bug: Bug Fix
+* `devtools`
+  * [#8691](https://github.com/webdriverio/webdriverio/pull/8691) Support prefs when running devtools ([@christian-bromann](https://github.com/christian-bromann))
+* `webdriverio`
+  * [#8693](https://github.com/webdriverio/webdriverio/pull/8693) Support direct locators in Appium ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :nail_care: Polish
+* `wdio-cli`
+  * [#8630](https://github.com/webdriverio/webdriverio/pull/8630) Issue 8592: Detailed message for missing config ([@perillai](https://github.com/perillai))
+
+#### :memo: Documentation
+* `wdio-browserstack-service`
+  * [#8575](https://github.com/webdriverio/webdriverio/pull/8575) Update default env var and readme ([@Ankit098](https://github.com/Ankit098))
+
+#### Committers: 4
+- Ankit Singh ([@Ankit098](https://github.com/Ankit098))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Kyle Pittman ([@monkpit](https://github.com/monkpit))
+- Perillai ([@perillai](https://github.com/perillai))
+
+
 ## v7.21.0 (2022-08-16)
 
 #### :nail_care: Polish
