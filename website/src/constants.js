@@ -140,9 +140,7 @@ expect(pwaCheckResult.passed).toBe(true)
 `
 
 export const SetupExample = `
-$ npm install --save-dev @wdio/cli
-$ npx wdio config --yes
-$ npx wdio run
+$ npm init wdio
 `
 
 export const ReactIntegration = `
