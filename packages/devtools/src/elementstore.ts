@@ -1,5 +1,5 @@
 import type { ElementHandle } from 'puppeteer-core/lib/cjs/puppeteer/common/ElementHandle.js'
-import type { Frame } from 'puppeteer-core/lib/cjs/puppeteer/common/FrameManager.js'
+import type { Frame } from 'puppeteer-core/lib/cjs/puppeteer/common/Frame.js'
 
 export default class ElementStore {
     private _index = 0

@@ -36,7 +36,6 @@ onHookStart
 onHookEnd
 onBeforeCommand
 onAfterCommand
-onRunnerStart
 onRunnerEnd
 `
 

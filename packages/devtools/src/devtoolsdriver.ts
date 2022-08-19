@@ -9,7 +9,7 @@ import type { Dialog } from 'puppeteer-core/lib/cjs/puppeteer/common/Dialog'
 import type { Page } from 'puppeteer-core/lib/cjs/puppeteer/common/Page'
 import type { Target } from 'puppeteer-core/lib/cjs/puppeteer/common/Target'
 import type { CommandEndpoint } from '@wdio/protocols'
-import type { Frame } from 'puppeteer-core/lib/cjs/puppeteer/common/FrameManager'
+import type { Frame } from 'puppeteer-core/lib/cjs/puppeteer/common/Frame'
 
 import * as commands from './commands/index.js'
 import ElementStore from './elementstore.js'
