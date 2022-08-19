@@ -2,7 +2,7 @@ import fs from 'fs'
 import isPlainObject from 'lodash.isplainobject'
 import { roleElements, ARIARoleDefintionKey, ARIARoleRelationConcept, ARIARoleRelationConceptAttribute } from 'aria-query'
 
-import { DEEP_SELECTOR } from '../constants.js'
+import { DEEP_SELECTOR } from '../constants'
 
 const DEFAULT_STRATEGY = 'css selector'
 const DIRECT_SELECTOR_REGEXP = /^(id|css selector|xpath|link text|partial link text|name|tag name|class name|-android uiautomator|-android datamatcher|-android viewmatcher|-android viewtag|-ios uiautomation|-ios predicate string|-ios class chain|accessibility id):(.+)/

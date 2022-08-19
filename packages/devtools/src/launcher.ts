@@ -1,5 +1,5 @@
 import { launch as launchChromeBrowser } from 'chrome-launcher'
-import puppeteer, { PuppeteerLaunchOptions } from 'puppeteer-core'
+import puppeteer, { PuppeteerNodeLaunchOptions } from 'puppeteer-core'
 import logger from '@wdio/logger'
 import type { Browser } from 'puppeteer-core/lib/cjs/puppeteer/common/Browser'
 import type { Capabilities } from '@wdio/types'
@@ -169,7 +169,7 @@ function launchBrowser (capabilities: ExtendedCapabilities, browserType: 'edge' 
         browserFinderMethod()[0]
     )
 
-    const puppeteerOptions: PuppeteerLaunchOptions = Object.assign(<PuppeteerLaunchOptions>{
+    const puppeteerOptions: PuppeteerNodeLaunchOptions = Object.assign(<PuppeteerNodeLaunchOptions>{
         product,
         executablePath,
         ignoreDefaultArgs,
