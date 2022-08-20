@@ -1,7 +1,7 @@
 import { expectType } from 'tsd'
 
 import allure from '@wdio/allure-reporter'
-import { remote, multiremote, SevereServiceError } from 'webdriverio'
+import { remote, multiremote, SevereServiceError, ElementArray } from 'webdriverio'
 import type { DetailedContext } from '@wdio/protocols'
 import type { MockOverwriteFunction, ClickOptions, TouchAction, Selector } from 'webdriverio'
 
@@ -67,6 +67,11 @@ async function bar() {
         () => {}, () => {})
     const rElem = await browser.$('')
     await rElem.click()
+
+    const elemA = await remoteBrowser.$('')
+    const elemB = await remoteBrowser.$('')
+    const multipleElems = await $$([elemA, elemB])
+    expectType<ElementArray>(multipleElems)
 
     ////////////////////////////////////////////////////////////////////////////////
 
