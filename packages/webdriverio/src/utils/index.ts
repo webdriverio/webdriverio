@@ -498,12 +498,19 @@ export function addLocatorStrategyHandler(scope: WebdriverIO.Browser | Webdriver
 export const enhanceElementsArray = (
     elements: ElementArray,
     parent: WebdriverIO.Browser | WebdriverIO.Element,
-    selector: Selector,
+    selector: Selector | ElementReference[] | WebdriverIO.Element[],
     foundWith = '$$',
     props: any[] = []
 ) => {
+    /**
+     * if we have an element collection, e.g. `const elems = $$([elemA, elemB])`
+     * we cna't assign a common selector to the element array
+     */
+    if (!Array.isArray(selector)) {
+        elements.selector = selector
+    }
+
     elements.parent = parent
-    elements.selector = selector
     elements.foundWith = foundWith
     elements.props = props
     return elements

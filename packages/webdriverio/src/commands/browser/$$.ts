@@ -1,3 +1,5 @@
+import type { ElementReference } from '@wdio/protocols'
+
 import { findElements, enhanceElementsArray } from '../../utils'
 import { getElements } from '../../utils/getElementObject'
 import type { Selector, ElementArray } from '../../types'
@@ -41,6 +43,14 @@ import type { Selector, ElementArray } from '../../types'
         })[0];
         console.log(await text.$$('li')[2].$('a').getText()); // outputs: "API"
     });
+
+    it('can create element array out of single elements', async () => {
+        const red = await $('.red');
+        const green = await $('.green');
+        const elems = $$([red, green]);
+        console.log(await elems.map((e) => e.getAttribute('class')));
+        // returns "[ 'box red ui-droppable', 'box green' ]"
+    });
  * </example>
  *
  * @alias $$
@@ -51,9 +61,11 @@ import type { Selector, ElementArray } from '../../types'
  */
 export default async function $$ (
     this: WebdriverIO.Browser | WebdriverIO.Element,
-    selector: Selector
+    selector: Selector | ElementReference[] | WebdriverIO.Element[]
 ) {
-    const res = await findElements.call(this, selector)
+    const res = Array.isArray(selector)
+        ? selector
+        : await findElements.call(this, selector)
     const elements = await getElements.call(this, selector, res)
     return enhanceElementsArray(elements, this, selector) as ElementArray
 }

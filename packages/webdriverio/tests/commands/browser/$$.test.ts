@@ -79,6 +79,19 @@ describe('elements', () => {
         expect(elems[2].isMobile).toBe(true)
     })
 
+    it('it can create an element array based on single elements', async () => {
+        const browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                browserName: 'foobar'
+            }
+        })
+        const elemA = await browser.$('#foo')
+        const elemB = { [ELEMENT_KEY]: 'foobar' }
+        const elems = await browser.$$([elemA, elemB])
+        console.log(await elems.map((e) => e.elementId))
+    })
+
     afterEach(() => {
         got.mockClear()
     })

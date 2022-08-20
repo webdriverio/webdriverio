@@ -74,7 +74,7 @@ export const getElement = function findElement(
  */
 export const getElements = function getElements(
     this: WebdriverIO.Browser | WebdriverIO.Element,
-    selector: Selector,
+    selector: Selector | ElementReference[] | WebdriverIO.Element[],
     elemResponse: ElementReference[],
     isReactElement = false
 ): ElementArray {
@@ -84,7 +84,14 @@ export const getElements = function getElements(
         ...getWDIOPrototype('element')
     }
 
-    const elements = elemResponse.map((res: ElementReference | Error, i) => {
+    const elements = elemResponse.map((res: ElementReference | WebdriverIO.Element | Error, i) => {
+        /**
+         * if we already deal with an element, just return it
+         */
+        if ((res as WebdriverIO.Element).selector) {
+            return res
+        }
+
         propertiesObject.scope = { value: 'element' }
         const element = webdriverMonad(this.options, (client: WebdriverIO.Element) => {
             const elementId = getElementFromResponse(res as ElementReference)
@@ -104,7 +111,9 @@ export const getElements = function getElements(
                 client.error = res as Error
             }
 
-            client.selector = selector
+            client.selector = Array.isArray(selector)
+                ? (selector[i] as WebdriverIO.Element).selector
+                : selector
             client.parent = this
             client.index = i
             client.emit = this.emit.bind(this)
