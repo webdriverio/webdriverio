@@ -152,6 +152,8 @@ export interface VendorExtensions extends EdgeCapabilities, AppiumW3CCapabilitie
     'sauce:options'?: SauceLabsCapabilities
     // Sauce Labs Visual
     'sauce:visual'?: SauceLabsVisualCapabilities
+    // Experitest Access Keys
+    'experitest:accessKey'?: string
     // Browserstack w3c specific
     'bstack:options'?: BrowserStackCapabilities
     'browserstack.local'?: boolean
