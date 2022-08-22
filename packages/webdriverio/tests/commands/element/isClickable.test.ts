@@ -41,6 +41,17 @@ describe('isClickable test', () => {
         expect(got).toBeCalledTimes(2)
     })
 
+    it('should throw if in mobile native context', async () => {
+        const scope = {
+            isDisplayed: vi.fn().mockResolvedValue(true),
+            execute: vi.fn(),
+            options: {},
+            isMobile: true,
+            getContext: vi.fn().mockResolvedValue('NATIVE_APP')
+        }
+        await expect(() => elem.isClickable.call(scope)).rejects.toThrow()
+    })
+
     afterEach(() => {
         got.mockClear()
     })
