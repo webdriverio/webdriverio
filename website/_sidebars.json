@@ -27,7 +27,8 @@
       "customcommands",
       "pageobjects",
       "debugging",
-      "repl"
+      "repl",
+      "record"
     ],
     "Testrunner": [
       "clioptions",
