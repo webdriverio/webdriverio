@@ -40,7 +40,7 @@ describe("My WebdriverIO Test", function () {
     await browser.setWindowSize(1026, 688)
     await browser.url("https://webdriver.io/")
     await browser.$("#__docusaurus > div.main-wrapper > header > div").click()
-    await browser.$("#__docusaurus > nav > div.navbar__inner > div:nth-child(1) > a:nth-child(3)").click()
+    await browser.$("#__docusaurus > nav > div.navbar__inner > div:nth-child(1) > a:nth-child(3)").click()rec
     await browser.$("#__docusaurus > div.main-wrapper.docs-wrapper.docs-doc-page > div > aside > div > nav > ul > li:nth-child(4) > div > a").click()
     await browser.$("#__docusaurus > div.main-wrapper.docs-wrapper.docs-doc-page > div > aside > div > nav > ul > li:nth-child(4) > ul > li:nth-child(2) > a").click()
     await browser.$("#__docusaurus > nav > div.navbar__inner > div.navbar__items.navbar__items--right > div.searchBox_qEbK > button > span.DocSearch-Button-Container > span").click()
@@ -50,7 +50,7 @@ describe("My WebdriverIO Test", function () {
 });
 ```
 
-Make sure you some of the locators and replace them with [Link Text](/docs/selectors#link-text) or other more resilient [selector types](/docs/selectors). You can also export the flow as JSON file and use the [`@wdio/chrome-recorder`](https://github.com/webdriverio/chrome-recorder) package to transform it into an actual test script.
+Make sure you revisit some of the locators and replace them with more resilient [selector types](/docs/selectors) one if necessary. You can also export the flow as JSON file and use the [`@wdio/chrome-recorder`](https://github.com/webdriverio/chrome-recorder) package to transform it into an actual test script.
 
 ## Next Steps
 
