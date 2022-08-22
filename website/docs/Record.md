@@ -3,7 +3,7 @@ id: record
 title: Record Tests
 ---
 
-The Chrome DevTools panel has a _Record_ tab that allows users to record and playback automated steps within Chrome. These steps can be exported into WebdriverIO tests making writing test very easy.
+Chrome DevTools has a _Recorder_ panel that allows users to record and playback automated steps within Chrome. These steps can be exported into WebdriverIO tests making writing test very easy.
 
 ## What is Chrome DevTools Recorder
 
