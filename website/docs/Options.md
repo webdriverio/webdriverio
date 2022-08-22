@@ -392,6 +392,38 @@ Node arguments to specify when launching child processes.
 Type: `String[]`
 Default: `null`
 
+### autoCompileOpts
+
+Compiler options when using WebdriverIO with TypeScript or Babel.
+
+#### autoCompileOpts.autoCompile
+
+If set to `true` the WDIO testrunner will automatically try to transpile the spec files.
+
+Type: `Boolean`
+Default: `true`
+
+#### autoCompileOpts.tsNodeOpts
+
+Configure how [`ts-node`](https://www.npmjs.com/package/ts-node) is suppose to transpile the files.
+
+Type: `Object`
+Default: `{ transpileOnly: true }`
+
+#### autoCompileOpts.tsConfigPathsOpts
+
+If you have [tsconfig-paths](https://www.npmjs.com/package/tsconfig-paths) installed and provide a `tsConfigPathsOpts` option, it will be automatically registered during bootstrap.
+
+Type: `Object`
+Default: `{}`
+
+#### autoCompileOpts.babelOpts
+
+Configure how [@babel/register](https://www.npmjs.com/package/@babel/register) is suppose to transpile the files.
+
+Type: `Object`
+Default: `{}`
+
 ## Hooks
 
 The WDIO testrunner allows you to set hooks to be triggered at specific times of the test lifecycle. This allows custom actions (e.g. take screenshot if a test fails).
