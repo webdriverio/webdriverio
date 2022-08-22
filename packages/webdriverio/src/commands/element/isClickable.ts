@@ -45,6 +45,10 @@ export default async function isClickable (this: WebdriverIO.Element) {
         return false
     }
 
+    if (this.isMobile && await this.getContext() === 'NATIVE_APP') {
+        throw new Error('Method not supported in mobile native environment. It is unlikely that you need to use this command.')
+    }
+
     const browser = getBrowserObject(this)
     return browser.execute(isElementClickableScript, {
         [ELEMENT_KEY]: this.elementId, // w3c compatible

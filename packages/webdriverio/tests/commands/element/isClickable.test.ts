@@ -37,6 +37,17 @@ describe('isClickable test', () => {
         expect(got).toBeCalledTimes(2)
     })
 
+    it('should throw if in mobile native context', async () => {
+        const scope = {
+            isDisplayed: jest.fn().mockResolvedValue(true),
+            execute: jest.fn(),
+            options: {},
+            isMobile: true,
+            getContext: jest.fn().mockResolvedValue('NATIVE_APP')
+        }
+        await expect(() => elem.isClickable.call(scope)).rejects.toThrow()
+    })
+
     afterEach(() => {
         got.mockClear()
     })
