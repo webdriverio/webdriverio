@@ -21,7 +21,7 @@ To start recording a user journey, click on _"Start new recording"_, give your t
 
 ![Chrome DevTools Recorder](/img/recorder/demo.gif)
 
-Next step, click on _"Replay"_ to check if the recording was successful and does what you wanted to do. If everything is ok, click on the export icon and select _"Export as a WebdriverIO Test Script"_:
+Next step, click on _"Replay"_ to check if the recording was successful and does what you wanted to do. If everything is ok, click on the [export](https://developer.chrome.com/docs/devtools/recorder/reference/#recorder-extension) icon and select _"Export as a WebdriverIO Test Script"_:
 
 ![Chrome DevTools Recorder](/img/recorder/export.gif)
 
