@@ -6,14 +6,14 @@ import Link from '@docusaurus/Link'
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext'
 import useBaseUrl from '@docusaurus/useBaseUrl'
 
-import LogoCarousel from './components/LogoCarousel'
-import Feature from './components/Feature'
-import Section from './components/Section'
-import Highlight from './components/Highlight'
-import Robot from './components/Robot'
+import LogoCarousel from './components/LogoCarousel.js'
+import Feature from './components/Feature.js'
+import Section from './components/Section.js'
+import Highlight from './components/Highlight.js'
+import Robot from './components/Robot.js'
 
 import styles from './styles.module.css'
-import { logos, features, LHIntregrationExample, SetupExample, ReactIntegration } from '../constants'
+import { logos, features, LHIntregrationExample, SetupExample, ReactIntegration } from '../constants.js'
 
 function Home() {
     const context = useDocusaurusContext()
@@ -119,24 +119,23 @@ function Home() {
                 />
                 <Highlight
                     img={
-                        <CodeBlock className="js" children={LHIntregrationExample}></CodeBlock>
+                        <img src="/img/setup.gif" />
                     }
                     reversed
-                    title="Google Lighthouse Integration"
+                    title="Get Started With WebdriverIO within Minutes"
                     text={
                         <>
                             <p>
-                                WebdriverIO not only runs automation based on the WebDriver protocol, it also leverages
-                                native browser APIs to enable integrations to popular developer tools such as <a href="https://chromedevtools.github.io/devtools-protocol/">Chrome DevTools</a> or
-                                <a href="https://developers.google.com/web/tools/lighthouse">Google Lighthouse</a>. With the <Link to={useBaseUrl('/docs/devtools-service')}><code>@wdio/devtools-service</code></Link> plugin you have access to
-                                commands for validating if you app is a valid PWA application as well as to commands for
-                                capturing frontend performance metrics such as <code>speedIndex</code> and others.
+                                The WebdriverIO testrunner comes with a command line interface that
+                                provides a nice configuration utility that helps you to create your
+                                config file in less than a minute. It also gives an overview of all
+                                available 3rd party packages like framework adaptions, reporter and
+                                services and installs them for you!<br />
+                                <br />
+                                With just one simple command you can set up a complete test suite:
                             </p>
                             <div>
-                                <h4>Integration to developer tools such as:</h4>
-                                <a href="https://chromedevtools.github.io/devtools-protocol" className={styles.frameworkLogos}><img src="/img/icons/devtools.png" alt="Chrome DevTools" /></a>
-                                <a href="https://developers.google.com/web/tools/lighthouse" className={styles.frameworkLogos}><img src="/img/icons/lighthouse-logo.svg" alt="Google Lighthouse" /></a>
-                                <a href="https://www.deque.com/axe/" className={styles.frameworkLogos}><img src="/img/icons/axe.png" alt="Axe Accessibility Engine" /></a>
+                                <CodeBlock className="bash" children={SetupExample}></CodeBlock>
                             </div>
                         </>
                     }
@@ -170,19 +169,25 @@ function Home() {
                 />
                 <Highlight
                     img={
-                        <CodeBlock className="bash" children={SetupExample}></CodeBlock>
+                        <CodeBlock className="js" children={LHIntregrationExample}></CodeBlock>
                     }
                     reversed
-                    title="Get Started With WebdriverIO within Minutes"
+                    title="Google Lighthouse Integration"
                     text={
                         <>
                             <p>
-                                The WebdriverIO testrunner comes with a command line interface that
-                                provides a nice configuration utility that helps you to create your
-                                config file in less than a minute. It also gives an overview of all
-                                available 3rd party packages like framework adaptions, reporter and
-                                services and installs them for you!
+                                WebdriverIO not only runs automation based on the WebDriver protocol, it also leverages
+                                native browser APIs to enable integrations to popular developer tools such as <a href="https://chromedevtools.github.io/devtools-protocol/">Chrome DevTools</a> or
+                                <a href="https://developers.google.com/web/tools/lighthouse">Google Lighthouse</a>. With the <Link to={useBaseUrl('/docs/devtools-service')}><code>@wdio/devtools-service</code></Link> plugin you have access to
+                                commands for validating if you app is a valid PWA application as well as to commands for
+                                capturing frontend performance metrics such as <code>speedIndex</code> and others.
                             </p>
+                            <div>
+                                <h4>Integration to developer tools such as:</h4>
+                                <a href="https://chromedevtools.github.io/devtools-protocol" className={styles.frameworkLogos}><img src="/img/icons/devtools.png" alt="Chrome DevTools" /></a>
+                                <a href="https://developers.google.com/web/tools/lighthouse" className={styles.frameworkLogos}><img src="/img/icons/lighthouse-logo.svg" alt="Google Lighthouse" /></a>
+                                <a href="https://www.deque.com/axe/" className={styles.frameworkLogos}><img src="/img/icons/axe.png" alt="Axe Accessibility Engine" /></a>
+                            </div>
                         </>
                     }
                 />
