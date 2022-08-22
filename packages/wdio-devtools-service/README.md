@@ -7,7 +7,7 @@ With Chrome v63 and up the browser [started to support](https://developers.googl
 
 Since Firefox 86, [a subset of Chrome DevTools Protocol](https://firefox-source-docs.mozilla.org/remote/index.html) has been implemented by passing the capability `"moz:debuggerAddress": true`.
 
-_**Note:** this service currently only supports Chrome v63 and up, Chromium, and Firefox 86 and up (Microsoft Edge is not yet supported)!_
+**Note:** this service currently only supports Chrome v63 and up, Chromium, and Firefox 86 and up! Given that cloud vendors don't expose access to the Chrome DevTools Protocol this service also usually only works when running tests locally or through a [Selenium Grid](https://www.selenium.dev/documentation/grid/) v4 or higher.
 
 ## Installation
 
