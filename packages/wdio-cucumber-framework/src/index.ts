@@ -28,7 +28,6 @@ import {
 import { GherkinStreams } from '@cucumber/gherkin-streams'
 import type { ITestCaseHookParameter } from '@cucumber/cucumber/lib/support_code_library_builder/types'
 import type { IRuntimeOptions } from '@cucumber/cucumber/lib/runtime'
-import { Long } from 'long'
 import { IdGenerator } from '@cucumber/messages'
 
 import { executeHooksWithArgs, testFnWrapper } from '@wdio/utils'
@@ -63,14 +62,7 @@ class CucumberAdapter {
     private _cucumberReporter: CucumberReporter
     private _eventDataCollector: typeof EventDataCollector
     private _pickleFilter: Cucumber.PickleFilter
-
-    getHookParams?: Function
-
-    /**
-     * make sure TS loads `@types/long` otherwise it won't find it in `@cucumber/messages`
-     * see also https://github.com/cucumber/cucumber-js/issues/1491
-     */
-    never?: Long
+    private getHookParams?: Function
 
     constructor(
         private _cid: string,
