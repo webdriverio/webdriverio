@@ -161,13 +161,13 @@ export const findStrategy = function (selector: SelectorStrategy, isW3C?: boolea
         const label = stringSelector.slice(ARIA_SELECTOR.length)
         const conditions = [
             // element has direct aria label
-            `.//*[@aria-label="${label}"]`,
+            `.//*[@aria-label = "${label}"]`,
             // aria label is recevied by other element with aria-labelledBy
-            `//*[@aria-labelledBy = string(*[normalize-space() = "${label}"]/@id)]`,
+            `.//button[@aria-labelledby=(//*[normalize-space() = "${label}"]/@id)]`,
             // aria label is received from element content
             `.//*[normalize-space() = "${label}"]`,
             // aria label is received by its title attribute
-            `//*[@titel="${label}"]`
+            `.//*[@titel="${label}"]`
         ]
         using = 'xpath'
         value = `(${conditions.join(' | ')})[1]`
