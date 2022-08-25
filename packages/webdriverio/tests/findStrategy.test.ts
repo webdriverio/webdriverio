@@ -451,4 +451,10 @@ describe('selector strategies helper', () => {
         expect(element.using).toBe('shadow')
         expect(element.value).toBe('.foobar')
     })
+
+    it('should be able to fetch element by aria label', () => {
+        const element = findStrategy('aria/foobar')
+        expect(element.using).toBe('xpath')
+        expect(element.value).toMatchSnapshot()
+    })
 })

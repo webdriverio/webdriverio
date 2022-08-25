@@ -2,7 +2,7 @@ import fs from 'node:fs'
 import isPlainObject from 'lodash.isplainobject'
 import { roleElements, ARIARoleDefintionKey, ARIARoleRelationConcept, ARIARoleRelationConceptAttribute } from 'aria-query'
 
-import { DEEP_SELECTOR } from '../constants.js'
+import { DEEP_SELECTOR, ARIA_SELECTOR } from '../constants.js'
 
 const DEFAULT_STRATEGY = 'css selector'
 const DIRECT_SELECTOR_REGEXP = /^(id|css selector|xpath|link text|partial link text|name|tag name|class name|-android uiautomator|-android datamatcher|-android viewmatcher|-android viewtag|-ios uiautomation|-ios predicate string|-ios class chain|accessibility id):(.+)/
@@ -70,6 +70,10 @@ const defineStrategy = function (selector: SelectorStrategy) {
     // use shadow dom selector
     if (stringSelector.startsWith(DEEP_SELECTOR)) {
         return 'shadow'
+    }
+    // use aria selector
+    if (stringSelector.startsWith(ARIA_SELECTOR)) {
+        return 'aria'
     }
     // Recursive element search using the UiAutomator library (Android only)
     if (stringSelector.startsWith('android=')) {
@@ -152,6 +156,23 @@ export const findStrategy = function (selector: SelectorStrategy, isW3C?: boolea
         using = 'shadow'
         value = stringSelector.slice(DEEP_SELECTOR.length)
         break
+    // .//*[@aria-labelledby = string(.//*[normalize-space() = "target 2"]/@id)]
+    case 'aria': {
+        const label = stringSelector.slice(ARIA_SELECTOR.length)
+        const conditions = [
+            // element has direct aria label
+            `.//*[@aria-label="${label}"]`,
+            // aria label is recevied by other element with aria-labelledBy
+            `//*[@aria-labelledBy = string(*[normalize-space() = "${label}"]/@id)]`,
+            // aria label is received from element content
+            `.//*[normalize-space() = "${label}"]`,
+            // aria label is received by its title attribute
+            `//*[@titel="${label}"]`
+        ]
+        using = 'xpath'
+        value = `(${conditions.join(' | ')})[1]`
+        break
+    }
     case '-android uiautomator': {
         using = '-android uiautomator'
         value = stringSelector.slice(8)
