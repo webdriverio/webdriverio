@@ -168,6 +168,72 @@ const parent = await paragraph.$('..')
 console.log(await parent.getTagName()) // outputs: "body"
 ```
 
+## Accessibility Name Selector
+
+For querying elements based on their accessiblity name. The accessible name is part of what is announced by a screen reader when that element receives focus. The value of the accessible name can be both visual content or hidden text alternatives.
+
+### Fetch by `aria-label`
+
+```html
+<div aria-label="foobar">Hello World!</div>
+```
+
+```js
+console.log(await $('aria/foobar').getText()) // outputs: "Hello World!"
+```
+
+### Fetch by `aria-labelledby`
+
+```html
+<button aria-labelledby="ref-1">Click Me!</button>
+<div id="ref-1">Some Button</div>
+```
+
+```js
+console.log(await $('aria/Some Button').getText()) // outputs: "Click Me!"
+```
+
+### Fetch by content
+
+```html
+<h1>Hello World!</h1>
+```
+
+```js
+console.log(await $('aria/Hello World!').getText()) // outputs: "Hello World!"
+```
+
+### Fetch by title
+
+```html
+<a href="https://webdriver.io" title="foobar">Hello World!</h1>
+```
+
+```js
+console.log(await $('aria/foobar').getText()) // outputs: "Hello World!"
+```
+
+### Fetch by `alt` property
+
+```html
+<img src="/some/image.png" alt="Some Picture" />
+```
+
+```js
+console.log(await $('aria/Some Picture').getAttribute('src')) // outputs: "/some/image.png"
+```
+
+### Fetch by `for` property
+
+```html
+<label for="search">Search</label>
+<input id="search" type="text" value="Hello World!" />
+```
+
+```js
+console.log(await $('aria/Search').getValue()) // outputs: "Hello World!"
+```
+
 ## ARIA - Role Attribute
 
 For querying elements based on [ARIA roles](https://www.w3.org/TR/html-aria/#docconformance), you can directly specify role of the element like `[role=button]` as selector parameter:
@@ -196,7 +262,7 @@ Current supported selector syntaxes for ID are:
 const button = await $('#someid')
 //xpath locator
 const button = await $('//*[@id="someid"]')
-//id strategy 
+//id strategy
 // Note: works only in Appium or similar frameworks which supports locator strategy "ID"
 const button = await $('id=resource-id/iosname')
 ```
