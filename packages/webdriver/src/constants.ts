@@ -14,7 +14,7 @@ export const DEFAULTS: Options.Definition<Required<Options.WebDriver>> = {
      */
     hostname: {
         type: 'string',
-        default: '127.0.0.1'
+        default: 'localhost'
     },
     /**
      * port of automation driver
