@@ -32,7 +32,7 @@ vi.mock('../src/bidi', () => {
 
 const sessionOptions = {
     protocol: 'http',
-    hostname: 'localhost',
+    hostname: '127.0.0.1',
     port: 4444,
     path: '/',
     sessionId: 'foobar'
@@ -215,7 +215,7 @@ describe('WebDriver', () => {
             const client = WebDriver.attachToSession({ ...sessionOptions, logLevel: 'error' }) as any as TestClient
             await client.getUrl()
             expect(got).toHaveBeenCalledWith(
-                expect.objectContaining({ href: 'http://localhost:4444/session/foobar/url' }),
+                expect.objectContaining({ href: 'http://127.0.0.1:4444/session/foobar/url' }),
                 expect.anything()
             )
             expect(logger.setLevel).toBeCalled()
@@ -225,7 +225,7 @@ describe('WebDriver', () => {
             const client = WebDriver.attachToSession({ ...sessionOptions }) as any as TestClient
             await client.getUrl()
             expect(got).toHaveBeenCalledWith(
-                expect.objectContaining({ href: 'http://localhost:4444/session/foobar/url' }),
+                expect.objectContaining({ href: 'http://127.0.0.1:4444/session/foobar/url' }),
                 expect.anything()
             )
             expect(logger.setLevel).not.toBeCalled()
@@ -307,7 +307,7 @@ describe('WebDriver', () => {
         it('should apply default connection details', () => {
             const client = WebDriver.attachToSession({ sessionId: '123' })
             expect(client.options.protocol).toBe('http')
-            expect(client.options.hostname).toBe('localhost')
+            expect(client.options.hostname).toBe('127.0.0.1')
             expect(client.options.port).toBe(4444)
             expect(client.options.path).toBe('/')
         })
