@@ -64,7 +64,7 @@ The function we pass into `forEach` is an iterator function. In a synchronous wo
 
 ```js
 const elems = await $$('div')
-await elems.forEach((elem) => {
+await elems.map((elem) => {
     return elem.click()
 })
 ```
