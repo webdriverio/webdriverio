@@ -91,7 +91,7 @@
     "inquirer": "^8.2.1",
     "jest": "^28.0.3",
     "jest-circus": "^29.0.1",
-    "jest-environment-jsdom": "^28.0.2",
+    "jest-environment-jsdom": "^29.0.1",
     "lerna": "^5.0.0",
     "lerna-changelog": "^2.2.0",
     "markdox": "^0.1.10",
