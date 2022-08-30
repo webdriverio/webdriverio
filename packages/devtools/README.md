@@ -16,54 +16,48 @@ npm i webdriverio
 The following example demonstrates how WebdriverIO can be used with the `devtools` package as automation binding using the [`automationProtocol`](https://webdriver.io/docs/options#automationProtocol) option:
 
 ```js
-const { remote } = require('webdriverio')
+import { remote } from 'webdriverio'
 
-let browser;
-
-(async () => {
-    browser = await remote({
-        automationProtocol: 'devtools',
-        capabilities: {
-            browserName: 'chrome',
-            'wdio:devtoolsOptions': {
-                headless: true
-            }
+const browser = await remote({
+    automationProtocol: 'devtools',
+    capabilities: {
+        browserName: 'chrome',
+        'wdio:devtoolsOptions': {
+            headless: true
         }
-    })
-
-    await browser.url('https://webdriver.io')
-
-    /**
-     * run Puppeteer code
-     */
-    await browser.call(async () => {
-        const page = (await browser.puppeteer.pages())[0]
-        await page.setRequestInterception(true)
-        page.on('request', interceptedRequest => {
-            if (interceptedRequest.url().endsWith('webdriverio.png')) {
-                return interceptedRequest.continue({
-                    url: 'https://user-images.githubusercontent.com/10379601/29446482-04f7036a-841f-11e7-9872-91d1fc2ea683.png'
-                })
-            }
-
-            interceptedRequest.continue()
-        })
-    })
-
-    // continue with WebDriver commands
-    await browser.refresh()
-    await browser.pause(2000)
-
-    /**
-     * now on the https://webdriver.io page you see the Puppeteer logo
-     * instead of the WebdriverIO one
-     */
-
-    await browser.deleteSession()
-})().catch(async (e) => {
-    console.error(e)
-    await browser.deleteSession()
+    }
 })
+
+await browser.url('https://webdriver.io')
+
+/**
+ * run Puppeteer code
+ */
+await browser.call(async () => {
+    const puppeteer = await browser.getPuppeteer()
+    const page = (await puppeteer.pages())[0]
+    await page.setRequestInterception(true)
+    page.on('request', interceptedRequest => {
+        if (interceptedRequest.url().endsWith('webdriverio.png')) {
+            return interceptedRequest.continue({
+                url: 'https://user-images.githubusercontent.com/10379601/29446482-04f7036a-841f-11e7-9872-91d1fc2ea683.png'
+            })
+        }
+
+        interceptedRequest.continue()
+    })
+})
+
+// continue with WebDriver commands
+await browser.url('https://v6.webdriver.io')
+await browser.pause(2000)
+
+/**
+ * now on the https://webdriver.io page you see the Puppeteer logo
+ * instead of the WebdriverIO one
+ */
+
+await browser.deleteSession()
 ```
 
 ## `wdio:devtoolsOptions` Capability

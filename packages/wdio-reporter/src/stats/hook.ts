@@ -1,4 +1,4 @@
-import RunnableStats from './runnable'
+import RunnableStats from './runnable.js'
 
 export interface Hook {
     type?: string

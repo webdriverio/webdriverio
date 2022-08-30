@@ -1,7 +1,10 @@
-import { validateServiceAnswers, hasFile, getDefaultFiles } from './utils'
-import { Questionnair } from './types'
+import { createRequire } from 'node:module'
 
-const pkg = require('../package.json')
+import { validateServiceAnswers, hasFile, getDefaultFiles } from './utils.js'
+import type { Questionnair } from './types'
+
+const require = createRequire(import.meta.url)
+export const pkg = require('../package.json')
 
 export const CLI_EPILOGUE = `Documentation: https://webdriver.io\n@wdio/cli (v${pkg.version})`
 
@@ -129,6 +132,7 @@ export const SUPPORTED_PACKAGES = {
         { name: 'wiremock', value: 'wdio-wiremock-service$--$wiremock' },
         { name: 'ng-apimock', value: 'wdio-ng-apimock-service$--ng-apimock' },
         { name: 'slack', value: 'wdio-slack-service$--$slack' },
+        { name: 'cucumber-viewport-logger', value: 'wdio-cucumber-viewport-logger-service$--$cucumber-viewport-logger' },
         { name: 'intercept', value: 'wdio-intercept-service$--$intercept' },
         { name: 'docker', value: 'wdio-docker-service$--$docker' },
         { name: 'image-comparison', value: 'wdio-image-comparison-service$--$image-comparison' },
@@ -237,7 +241,7 @@ export const QUESTIONNAIRE = [{
     type: 'input',
     name: 'env_user',
     message: 'Environment variable for username',
-    default: 'BROWSERSTACK_USER',
+    default: 'BROWSERSTACK_USERNAME',
     when: /* istanbul ignore next */ (answers: Questionnair) => answers.backend.toString().startsWith('In the cloud using Browserstack')
 }, {
     type: 'input',

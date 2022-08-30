@@ -1,4 +1,10 @@
-import tempy from 'tempy'
+import path from 'node:path'
+import { log } from 'node:console'
+import { describe, it, expect, afterEach, beforeEach, beforeAll, afterAll, vi } from 'vitest'
+import { temporaryDirectory } from 'tempy'
+
+import AllureReporter from '../src/index.js'
+import { TYPE } from '../src/types.js'
 
 /**
  * this is not a real package and only used to utilize helper
@@ -7,22 +13,22 @@ import tempy from 'tempy'
 // eslint-disable-next-line
 import { clean, getResults } from './helpers/wdio-allure-helper'
 
-import AllureReporter from '../src/'
-import { runnerEnd, runnerStart } from './__fixtures__/runner'
-import { suiteEnd, suiteStart } from './__fixtures__/suite'
+import { runnerEnd, runnerStart } from './__fixtures__/runner.js'
+import { suiteEnd, suiteStart } from './__fixtures__/suite.js'
 import {
     testFailed, testPending, testStart, testFailedWithMultipleErrors,
     hookStart, hookFailed, hookStartWithCurrentTest,
-    testFailedWithAssertionErrorFromExpectWebdriverIO } from './__fixtures__/testState'
+    testFailedWithAssertionErrorFromExpectWebdriverIO } from './__fixtures__/testState.js'
 import {
     commandStart, commandEnd, commandEndScreenShot, commandStartScreenShot
-} from './__fixtures__/command'
-import { log } from 'console'
+} from './__fixtures__/command.js'
+
+vi.mock('@wdio/reporter', () => import(path.join(process.cwd(), '__mocks__', '@wdio/reporter')))
 
 let processOn: any
 beforeAll(() => {
     processOn = process.on.bind(process)
-    process.on = jest.fn()
+    process.on = vi.fn()
 })
 
 afterAll(() => {
@@ -30,7 +36,7 @@ afterAll(() => {
 })
 
 describe('Passing tests', () => {
-    const outputDir = tempy.directory()
+    const outputDir = temporaryDirectory()
     let allureXml: any
 
     beforeAll(() => {
@@ -46,7 +52,7 @@ describe('Passing tests', () => {
         reporter.addIssue({ issue: '1' })
         reporter.addTestId({ testId: '2' })
         reporter.addEnvironment({ name: 'jenkins', value: '1.2.3' })
-        reporter.addDescription({ description: 'functions', descriptionType: 'html' })
+        reporter.addDescription({ description: 'functions', descriptionType: TYPE.HTML })
         reporter.addAttachment({ name: 'My attachment', content: '99thoughtz', type: 'text/plain' })
         reporter.addArgument({ name: 'os', value: 'osx' })
         reporter.startStep('bar')
@@ -130,7 +136,7 @@ describe('Failed tests', () => {
     let allureXml
 
     beforeEach(() => {
-        outputDir = tempy.directory()
+        outputDir = temporaryDirectory()
     })
 
     afterEach(() => {
@@ -244,7 +250,7 @@ describe('Pending tests', () => {
     })
 
     it('should detect started pending test case', () => {
-        outputDir = tempy.directory()
+        outputDir = temporaryDirectory()
         const reporter = new AllureReporter({ outputDir })
 
         reporter.onRunnerStart(runnerStart())
@@ -263,7 +269,7 @@ describe('Pending tests', () => {
     })
 
     it('should detect not started pending test case', () => {
-        outputDir = tempy.directory()
+        outputDir = temporaryDirectory()
         const reporter = new AllureReporter({ outputDir })
 
         reporter.onRunnerStart(runnerStart())
@@ -281,7 +287,7 @@ describe('Pending tests', () => {
     })
 
     it('should detect not started pending test case after completed test', () => {
-        outputDir = tempy.directory()
+        outputDir = temporaryDirectory()
         const reporter = new AllureReporter({ outputDir })
         let passed = testStart()
         passed = {
@@ -318,7 +324,7 @@ describe('Hook start', () => {
     let allureXml
 
     beforeEach(() => {
-        outputDir = tempy.directory()
+        outputDir = temporaryDirectory()
     })
 
     afterEach(() => {
@@ -377,7 +383,7 @@ for (const protocol of ['webdriver', 'devtools']) {
         let outputDir: any
 
         beforeEach(() => {
-            outputDir = tempy.directory()
+            outputDir = temporaryDirectory()
         })
 
         afterEach(() => {
@@ -612,7 +618,7 @@ for (const protocol of ['webdriver', 'devtools']) {
             //this should be logged
             log('Printing to console 2')
             //this shouldn't be logged
-            log('Printing mwebdriver to console 2')
+            log('Printing webdriver to console 2')
             reporter.onTestPass()
             reporter.onSuiteEnd(suiteEnd())
             reporter.onRunnerEnd(runnerEnd())
@@ -638,7 +644,7 @@ for (const protocol of ['webdriver', 'devtools']) {
             //this should be logged
             log('Printing to console 2')
             //this shouldn't be logged
-            log('Printing mwebdriver to console 2')
+            log('Printing webdriver to console 2')
             reporter.onTestFail(testFailed())
             reporter.onSuiteEnd(suiteEnd())
             reporter.onRunnerEnd(runnerEnd())
@@ -664,7 +670,7 @@ for (const protocol of ['webdriver', 'devtools']) {
             //this should be logged
             log('Printing to console 2')
             //this shouldn't be logged
-            log('Printing mwebdriver to console 2')
+            log('Printing webdriver to console 2')
             reporter.onTestSkip(testFailed())
             reporter.onSuiteEnd(suiteEnd())
             reporter.onRunnerEnd(runnerEnd())

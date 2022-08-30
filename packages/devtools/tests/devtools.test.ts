@@ -1,27 +1,33 @@
-import launch from '../src/launcher'
-import DevTools from '../src'
+import path from 'node:path'
+import { expect, test, vi, beforeEach } from 'vitest'
+import type { Capabilities } from '@wdio/types'
+import launch from '../src/launcher.js'
+import DevTools from '../src/index.js'
 
-jest.mock('../src/launcher', () => jest.fn().mockImplementation((capabilities) => {
-    capabilities['goog:chromeOptions'] = capabilities['goog:chromeOptions'] || {}
-    return {
-        on: jest.fn(),
-        pages: jest.fn().mockReturnValue(Promise.resolve([{
-            on: jest.fn(),
-            setDefaultTimeout: jest.fn()
-        }])),
-        _connection: {
-            url: () => 'ws://localhost:49375/devtools/browser/c4b017ea-f476-4026-a699-bc5d4858cfe1'
-        },
-        userAgent: jest.fn().mockReturnValue(Promise.resolve('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.149 Safari/537.36'))
-    }
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock('../src/launcher', () => ({
+    default: vi.fn().mockImplementation((capabilities) => {
+        capabilities['goog:chromeOptions'] = capabilities['goog:chromeOptions'] || {}
+        return {
+            on: vi.fn(),
+            off: vi.fn(),
+            pages: vi.fn().mockReturnValue(Promise.resolve([{
+                on: vi.fn(),
+                off: vi.fn(),
+                setDefaultTimeout: vi.fn()
+            }])),
+            wsEndpoint: vi.fn().mockReturnValue('ws://localhost:49375/devtools/browser/c4b017ea-f476-4026-a699-bc5d4858cfe1'),
+            userAgent: vi.fn().mockReturnValue(Promise.resolve('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.149 Safari/537.36'))
+        }
+    })
 }))
 
 beforeEach(() => {
-    (launch as jest.Mock).mockClear()
+    vi.mocked(launch).mockClear()
 })
 
 test('newSession', async () => {
-    const client = await DevTools.newSession({
+    const client: any = await DevTools.newSession({
         logLevel: 'trace',
         capabilities: {
             browserName: 'chrome'
@@ -31,8 +37,8 @@ test('newSession', async () => {
     /**
      * don't include platform specific information in snapshot
      */
-    delete client.options.capabilities.platformName
-    delete client.options.capabilities.platformVersion
+    delete (client.options.capabilities as Capabilities.DesiredCapabilities).platformName
+    delete (client.options.capabilities as Capabilities.DesiredCapabilities).platformVersion
 
     expect(client.options.capabilities).toMatchSnapshot()
     expect(client.options.requestedCapabilities).toMatchSnapshot()
@@ -55,19 +61,19 @@ test('reloadSession', async () => {
 })
 
 test('attachSession', async () => {
-    const client = await DevTools.newSession({
+    const client: any = await DevTools.newSession({
         logLevel: 'trace',
         capabilities: {
             browserName: 'chrome'
         }
     })
-    const otherClient = await DevTools.attachToSession(client)
+    const otherClient: any = await DevTools.attachToSession(client)
 
     /**
      * don't include platform specific information in snapshot
      */
-    delete otherClient.options.capabilities.platformName
-    delete otherClient.options.capabilities.platformVersion
+    delete (otherClient.options.capabilities as Capabilities.DesiredCapabilities).platformName
+    delete (otherClient.options.capabilities as Capabilities.DesiredCapabilities).platformVersion
 
     expect(otherClient.capabilities).toMatchSnapshot()
     expect(otherClient.requestedCapabilities).toMatchSnapshot()

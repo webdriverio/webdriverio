@@ -1,20 +1,25 @@
 /**
- * @jest-environment jsdom
+ * @vitest-environment jsdom
  */
+import path from 'node:path'
+import { expect, describe, beforeEach, afterEach, it, vi } from 'vitest'
 // @ts-ignore mocked (original defined in webdriver package)
 import got from 'got'
-import { remote } from '../../../src'
+import { remote } from '../../../src/index.js'
 
 import type { Capabilities } from '@wdio/types'
 
+vi.mock('got')
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+
 describe('newWindow', () => {
     beforeEach(() => {
-        global.window.open = jest.fn()
+        global.window.open = vi.fn()
     })
 
     afterEach(() => {
         got.mockClear()
-        ;(global.window.open as jest.Mock).mockRestore()
+        vi.mocked(global.window.open).mockRestore()
     })
 
     it('should allow to create a new window handle', async () => {

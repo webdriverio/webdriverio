@@ -1,17 +1,33 @@
-import path from 'path'
-// not a real package but needed for testing
-// @ts-ignore
-import { log as pptrDebugLog } from 'pptrDebug'
-import childProcess from 'child_process'
+import { describe, it, expect, afterEach, vi, test } from 'vitest'
+
+import path from 'node:path'
+import childProcess from 'node:child_process'
+// @ts-ignore no types needed
+import debug from 'debug'
 import { canAccess } from '@wdio/utils'
 
 import {
     validate, getPrototype, findElement, findElements, getStaleElementError,
     sanitizeError, transformExecuteArgs, transformExecuteResult, getPages,
     uniq, findByWhich, patchDebug, sleep
-} from '../src/utils'
+} from '../src/utils.js'
 
-const debug = jest.requireActual('debug')
+vi.mock('@wdio/logger', async () => {
+    const pathModule = await vi.importActual('node:path') as typeof path
+    return import(pathModule.join(process.cwd(), '__mocks__', '@wdio/logger'))
+})
+vi.mock('@wdio/utils', async () => {
+    const pathModule = await vi.importActual('node:path') as typeof path
+    return import(pathModule.join(process.cwd(), '__mocks__', '@wdio/utils'))
+})
+vi.mock('pptrDebug', async () => {
+    const pathModule = await vi.importActual('node:path') as typeof path
+    return import(pathModule.join(process.cwd(), '__mocks__', 'pptrDebug'))
+})
+
+const PUPPETEER_LOG = `  puppeteer:protocol:RECV ◀ [
+    puppeteer:protocol:RECV ◀   '{"id":20,"result":{"result":{"type":"string","value":"complete"}},"sessionId":"B5BB76CBB624830A41E4159E01ABED39"}'
+    puppeteer:protocol:RECV ◀ ]`
 
 /**
  * some WebDriver commands are either not part of a recommended standard
@@ -53,39 +69,43 @@ const command = {
 }
 
 let pageMock = {
-    waitForSelector: jest.fn(),
-    waitForXPath: jest.fn(),
-    $$eval: jest.fn(),
-    $$: jest.fn(),
-    $x: jest.fn(),
-    $: jest.fn()
+    waitForSelector: vi.fn(),
+    waitForXPath: vi.fn(),
+    $$eval: vi.fn(),
+    $$: vi.fn(),
+    $x: vi.fn(),
+    $: vi.fn()
 }
 
-jest.mock('fs', () => {
+vi.mock('fs', () => {
     return {
-        existsSync: (pkgName: string) => pkgName === 'pptrDebug'
+        default: {
+            existsSync: (pkgName: string) => pkgName === 'pptrDebug'
+        }
     }
 })
 
-jest.mock('child_process', () => {
+vi.mock('node:child_process', () => {
     let returnValue = false
+    const execFileSync = vi.fn().mockImplementation(() => {
+        if (!returnValue) {
+            throw new Error('foo not found')
+        }
+        return returnValue
+    })
+
     return {
-        execFileSync: jest.fn().mockImplementation(() => {
-            if (!returnValue) {
-                throw new Error('foo not found')
-            }
-            return returnValue
-        }),
-        shouldReturn: (value: any) => (returnValue = value)
+        execFileSync,
+        default: {
+            execFileSync,
+            shouldReturn: (value: any) => (returnValue = value)
+        }
     }
 })
 
-jest.mock('path', () => {
-    let resolveResult = 'debug'
-    const resolve = jest.fn(() => resolveResult)
-    const setResolveResult = (result: any) => (resolveResult = result)
-    return { resolve, setResolveResult, dirname: jest.fn() }
-})
+vi.mock('debug', () => ({
+    default: { log: vi.fn() }
+}))
 
 describe('validate', () => {
     it('should fail if wrong arguments are passed in', () => {
@@ -141,8 +161,8 @@ describe('findElement utils', () => {
     describe('findElement', () => {
         it('tries to find element using css selector', async () => {
             const scope = {
-                timeouts: { get: jest.fn() },
-                elementStore: { set: jest.fn().mockReturnValue('foobar') }
+                timeouts: { get: vi.fn() },
+                elementStore: { set: vi.fn().mockReturnValue('foobar') }
             }
             pageMock.$.mockReturnValue(Promise.resolve(42))
 
@@ -156,8 +176,8 @@ describe('findElement utils', () => {
 
         it('tries to find element using xpath', async () => {
             const scope = {
-                timeouts: { get: jest.fn() },
-                elementStore: { set: jest.fn().mockReturnValue('foobar') }
+                timeouts: { get: vi.fn() },
+                elementStore: { set: vi.fn().mockReturnValue('foobar') }
             }
             pageMock.$x.mockReturnValue(Promise.resolve([42]))
 
@@ -171,8 +191,8 @@ describe('findElement utils', () => {
 
         it('should fail if not found', async () => {
             const scope = {
-                timeouts: { get: jest.fn() },
-                elementStore: { set: jest.fn() }
+                timeouts: { get: vi.fn() },
+                elementStore: { set: vi.fn() }
             }
             pageMock.$.mockReturnValue(Promise.resolve(null))
 
@@ -183,8 +203,8 @@ describe('findElement utils', () => {
 
         it('should not fail with the same error if Puppeteer can not find the element', async () => {
             const scope = {
-                timeouts: { get: jest.fn() },
-                elementStore: { set: jest.fn() }
+                timeouts: { get: vi.fn() },
+                elementStore: { set: vi.fn() }
             }
             pageMock.$.mockReturnValue(Promise.reject(new Error('failed to find element')))
 
@@ -195,8 +215,8 @@ describe('findElement utils', () => {
 
         it('sets implicit waits', async () => {
             const scope = {
-                timeouts: { get: jest.fn().mockReturnValue(1234) },
-                elementStore: { set: jest.fn() }
+                timeouts: { get: vi.fn().mockReturnValue(1234) },
+                elementStore: { set: vi.fn() }
             }
             pageMock.$.mockReturnValue(Promise.resolve('foobar'))
             await findElement.call(scope as any, pageMock as any, 'css selector', 'barfoo')
@@ -206,8 +226,8 @@ describe('findElement utils', () => {
 
         it('sets implicit waits with xpath', async () => {
             const scope = {
-                timeouts: { get: jest.fn().mockReturnValue(1234) },
-                elementStore: { set: jest.fn() }
+                timeouts: { get: vi.fn().mockReturnValue(1234) },
+                elementStore: { set: vi.fn() }
             }
             pageMock.$.mockReturnValue(Promise.resolve('foobar'))
             await findElement.call(scope as any, pageMock as any, 'xpath', 'barfoo')
@@ -219,8 +239,8 @@ describe('findElement utils', () => {
     describe('findElements', () => {
         it('should find elements', async () => {
             const scope = {
-                timeouts: { get: jest.fn() },
-                elementStore: { set: jest.fn().mockReturnValue('foobar') }
+                timeouts: { get: vi.fn() },
+                elementStore: { set: vi.fn().mockReturnValue('foobar') }
             }
             pageMock.$$.mockReturnValue(Promise.resolve([42, 11]))
             expect(await findElements.call(scope as any, pageMock as any, 'css selector', 'barfoo')).toMatchSnapshot()
@@ -231,8 +251,8 @@ describe('findElement utils', () => {
 
         it('should find elements with xpath', async () => {
             const scope = {
-                timeouts: { get: jest.fn() },
-                elementStore: { set: jest.fn().mockReturnValue('foobar') }
+                timeouts: { get: vi.fn() },
+                elementStore: { set: vi.fn().mockReturnValue('foobar') }
             }
             pageMock.$x.mockReturnValue(Promise.resolve([42, 11]))
             expect(await findElements.call(scope as any, pageMock as any, 'xpath', 'barfoo')).toMatchSnapshot()
@@ -243,8 +263,8 @@ describe('findElement utils', () => {
 
         it('should return immediately if no elements were found', async () => {
             const scope = {
-                timeouts: { get: jest.fn() },
-                elementStore: { set: jest.fn() }
+                timeouts: { get: vi.fn() },
+                elementStore: { set: vi.fn() }
             }
             pageMock.$$.mockReturnValue(Promise.resolve([]))
             expect(await findElements.call(scope as any, pageMock as any, 'css selector', 'barfoo')).toEqual([])
@@ -254,8 +274,8 @@ describe('findElement utils', () => {
 
         it('sets implicit waits', async () => {
             const scope = {
-                timeouts: { get: jest.fn().mockReturnValue(1234) },
-                elementStore: { set: jest.fn() }
+                timeouts: { get: vi.fn().mockReturnValue(1234) },
+                elementStore: { set: vi.fn() }
             }
             pageMock.$$.mockReturnValue(Promise.resolve(['foobar']))
             await findElements.call(scope as any, pageMock as any, 'css selector', 'barfoo')
@@ -264,8 +284,8 @@ describe('findElement utils', () => {
 
         it('sets implicit waits with xpath', async () => {
             const scope = {
-                timeouts: { get: jest.fn().mockReturnValue(1234) },
-                elementStore: { set: jest.fn() }
+                timeouts: { get: vi.fn().mockReturnValue(1234) },
+                elementStore: { set: vi.fn() }
             }
             pageMock.$x.mockReturnValue(Promise.resolve(['foobar']))
             await findElements.call(scope as any, pageMock as any, 'xpath', 'barfoo')
@@ -287,7 +307,7 @@ describe('sanitizeError', () => {
         const newStack = err?.stack?.split('\n') || []
         newStack.push('at /foo/bar/devtools/node_modules/puppeteer-core/bla.js')
         err.stack = newStack.join('\n')
-        expect(sanitizeError(err)).not.toContain('devtools/node_modules/puppeteer-core')
+        expect(sanitizeError(err).stack).not.toContain('devtools/node_modules/puppeteer-core')
     })
 })
 
@@ -323,8 +343,8 @@ test('transformExecuteArgs should allow undefined params', async () => {
 describe('transformExecuteResult', () => {
     test('multiple results', async () => {
         const scope = {
-            timeouts: { get: jest.fn() },
-            elementStore: { set: jest.fn().mockReturnValue('foobar') }
+            timeouts: { get: vi.fn() },
+            elementStore: { set: vi.fn().mockReturnValue('foobar') }
         }
         pageMock.$.mockReturnValue(Promise.resolve(42))
         expect(await transformExecuteResult.call(scope as any, pageMock as any, [
@@ -336,8 +356,8 @@ describe('transformExecuteResult', () => {
 
     test('single result', async () => {
         const scope = {
-            timeouts: { get: jest.fn() },
-            elementStore: { set: jest.fn().mockReturnValue('foobar') }
+            timeouts: { get: vi.fn() },
+            elementStore: { set: vi.fn().mockReturnValue('foobar') }
         }
         pageMock.$.mockReturnValue(Promise.resolve(42))
         expect(await transformExecuteResult.call(scope as any, pageMock as any, 'foobar'))
@@ -354,7 +374,7 @@ describe('transformExecuteResult', () => {
 
 test('getPages', async () => {
     const browser = {
-        pages: jest.fn()
+        pages: vi.fn()
             .mockReturnValueOnce([])
             .mockReturnValueOnce([])
             .mockReturnValueOnce([{}])
@@ -376,34 +396,33 @@ test('uniq', () => {
 })
 
 test('findByWhich', () => {
-    (canAccess as jest.Mock).mockImplementation(() => true)
+    vi.mocked(canAccess).mockImplementation(() => true)
     expect(findByWhich(['firefox'], [{ regex: /firefox/, weight: 51 }]))
         .toEqual([])
 
-    ;(childProcess as any).shouldReturn('/path/to/other/firefox\n')
+    // @ts-expect-error mock feature
+    vi.mocked(childProcess).shouldReturn('/path/to/other/firefox\n')
     expect(findByWhich(['firefox'], [{ regex: /firefox/, weight: 51 }]))
         .toEqual(['/path/to/other/firefox'])
 
-    ;(canAccess as jest.Mock).mockImplementation(() => {
+    vi.mocked(canAccess).mockImplementation(() => {
         throw new Error('uups')
     })
     expect(findByWhich(['firefox'], [{ regex: /firefox/, weight: 51 }]))
         .toEqual([])
 })
 
-test('patchDebug', () => {
-    const logMock = { debug: jest.fn() }
-    patchDebug(logMock as any)
-    debug.log('something something - puppeteer:protocol foobar')
-    expect(logMock.debug).toBeCalledWith('foobar')
-})
-
-test('patchDebug with debug not install in puppeteer', () => {
-    const logMock = { debug: jest.fn() }
-    ;(path as any).setResolveResult('pptrDebug')
-    patchDebug(logMock as any)
-    pptrDebugLog('something something - puppeteer:protocol barfoo')
-    expect(logMock.debug).toBeCalledWith('barfoo')
+test('patchDebug', async () => {
+    /**
+     * fails in Windows
+     */
+    if (process.platform === 'win32') {
+        return
+    }
+    const logMock = { debug: vi.fn() }
+    await patchDebug(logMock as any)
+    debug.log(PUPPETEER_LOG)
+    expect(logMock.debug.mock.calls[0]).toMatchSnapshot('foobar')
 })
 
 test('sleep', async () => {

@@ -1,5 +1,5 @@
-import os from 'os'
-import path from 'path'
+import os from 'node:os'
+import path from 'node:path'
 import UAParser from 'ua-parser-js'
 import { v4 as uuidv4 } from 'uuid'
 
@@ -10,10 +10,10 @@ import type { CommandEndpoint } from '@wdio/protocols'
 import type { Options, Capabilities } from '@wdio/types'
 import type { Browser } from 'puppeteer-core/lib/cjs/puppeteer/common/Browser'
 
-import DevToolsDriver from './devtoolsdriver'
-import launch from './launcher'
-import { DEFAULTS, SUPPORTED_BROWSER, VENDOR_PREFIX } from './constants'
-import { getPrototype, patchDebug } from './utils'
+import DevToolsDriver from './devtoolsdriver.js'
+import launch from './launcher.js'
+import { DEFAULTS, SUPPORTED_BROWSER, VENDOR_PREFIX } from './constants.js'
+import { getPrototype, patchDebug } from './utils.js'
 import type {
     Client,
     AttachOptions,
@@ -82,7 +82,7 @@ export default class DevTools {
         if (vendorCapPrefix) {
             Object.assign(params.capabilities, {
                 [vendorCapPrefix]: Object.assign(
-                    { debuggerAddress: (browser as any)._connection.url().split('/')[2] },
+                    { debuggerAddress: browser.wsEndpoint().split('/')[2] },
                     params.capabilities[vendorCapPrefix]
                 )
             })
@@ -119,18 +119,8 @@ export default class DevTools {
         const { session } = sessionMap.get(instance.sessionId)
         const browser = await launch(instance.requestedCapabilities)
         const pages = await browser.pages()
-
-        session.elementStore.clear()
-        session.windows = new Map()
-        session.browser = browser
+        session.initBrowser.call(session, browser, pages)
         instance.puppeteer = browser
-
-        for (const page of pages) {
-            const pageId = uuidv4()
-            session.windows.set(pageId, page)
-            session.currentWindowHandle = pageId
-        }
-
         sessionMap.set(instance.sessionId, { browser, session })
         return instance.sessionId
     }
@@ -179,7 +169,7 @@ export default class DevTools {
 }
 
 export { SUPPORTED_BROWSER }
-export * from './types'
+export * from './types.js'
 
 declare global {
     namespace WebdriverIO {

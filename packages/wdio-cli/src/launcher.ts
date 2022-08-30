@@ -1,4 +1,4 @@
-import path from 'path'
+import path from 'node:path'
 import fs from 'fs-extra'
 import exitHook from 'async-exit-hook'
 
@@ -7,9 +7,9 @@ import { ConfigParser } from '@wdio/config'
 import { initialisePlugin, initialiseLauncherService, sleep } from '@wdio/utils'
 import type { Options, Capabilities, Services } from '@wdio/types'
 
-import CLInterface from './interface'
-import { RunCommandArguments } from './types'
-import { runLauncherHook, runOnCompleteHook, runServiceHook, HookError } from './utils'
+import CLInterface from './interface.js'
+import { runLauncherHook, runOnCompleteHook, runServiceHook, HookError } from './utils.js'
+import type { RunCommandArguments } from './types'
 
 const log = logger('@wdio/cli:launcher')
 
@@ -35,10 +35,10 @@ interface EndMessage {
 }
 
 class Launcher {
-    configParser: ConfigParser
-    isMultiremote: boolean
-    runner: Services.RunnerInstance
-    interface: CLInterface
+    public configParser = new ConfigParser()
+    public isMultiremote = false
+    public runner?: Services.RunnerInstance
+    public interface?: CLInterface
 
     private _exitCode = 0
     private _hasTriggeredExitRoutine = false
@@ -55,19 +55,22 @@ class Launcher {
         private _args: Partial<RunCommandArguments> = {},
         private _isWatchMode = false
     ) {
-        this.configParser = new ConfigParser()
-
         /**
          * merge auto compile opts to understand how to parse the config
          */
         if (_args.autoCompileOpts) {
             this.configParser.merge({ autoCompileOpts: _args.autoCompileOpts })
         }
+    }
 
-        this.configParser.autoCompile()
-
-        this.configParser.addConfigFile(_configFilePath)
-        this.configParser.merge(_args)
+    /**
+     * run sequence
+     * @return  {Promise}               that only gets resolves with either an exitCode or an error
+     */
+    async run() {
+        await this.configParser.autoCompile()
+        await this.configParser.addConfigFile(this._configFilePath)
+        this.configParser.merge(this._args)
         const config = this.configParser.getConfig()
 
         /**
@@ -92,18 +95,12 @@ class Launcher {
                 .reduce((a, b) => a + b, 0)
             : 1
 
-        const Runner = (initialisePlugin(config.runner!, 'runner') as Services.RunnerPlugin).default
-        this.runner = new Runner(_configFilePath, config)
-
         this.interface = new CLInterface(config, totalWorkerCnt, this._isWatchMode)
         config.runnerEnv!.FORCE_COLOR = Number(this.interface.hasAnsiSupport)
-    }
 
-    /**
-     * run sequence
-     * @return  {Promise}               that only gets resolves with either an exitCode or an error
-     */
-    async run() {
+        const Runner = (await initialisePlugin(config.runner!, 'runner') as Services.RunnerPlugin).default
+        this.runner = new Runner(this._configFilePath, config)
+
         /**
          * catches ctrl+c event
          */
@@ -112,9 +109,8 @@ class Launcher {
         let error: HookError | undefined = undefined
 
         try {
-            const config = this.configParser.getConfig()
             const caps = this.configParser.getCapabilities() as Capabilities.RemoteCapabilities
-            const { ignoredWorkerServices, launcherServices } = initialiseLauncherService(config, caps as Capabilities.DesiredCapabilities)
+            const { ignoredWorkerServices, launcherServices } = await initialiseLauncherService(config, caps as Capabilities.DesiredCapabilities)
             this._launcher = launcherServices
             this._args.ignoredWorkerServices = ignoredWorkerServices
 
@@ -355,6 +351,10 @@ class Launcher {
         rid: string | undefined,
         retries: number
     ) {
+        if (!this.runner || !this.interface) {
+            throw new Error('Internal Error: no runner initialised, call run() first')
+        }
+
         let config = this.configParser.getConfig()
 
         // wait before retrying the spec file
@@ -400,12 +400,6 @@ class Launcher {
         // If an arg appears multiple times the last occurrence is used
         let execArgv = [...defaultArgs, ...debugArgs, ...capExecArgs]
 
-        // set '--no-wasm-code-gc' deliberatively as it causes problems with
-        // @wdio/sync and recent TypeScript compiles
-        if (!execArgv.includes('--no-wasm-code-gc')) {
-            execArgv.push('--no-wasm-code-gc')
-        }
-
         // bump up worker count
         this._runnerStarted++
 
@@ -421,7 +415,19 @@ class Launcher {
             cid: runnerId,
             command: 'run',
             configFile: this._configFilePath,
-            args: { ...this._args, ...(config?.autoCompileOpts ? { autoCompileOpts: config.autoCompileOpts } : {}) },
+            args: {
+                ...this._args,
+                ...(config?.autoCompileOpts
+                    ? { autoCompileOpts: config.autoCompileOpts }
+                    : {}
+                ),
+                /**
+                 * Pass on user and key values to ensure they are available in the worker process when using
+                 * environment variables that were locally exported but not part of the environment.
+                 */
+                user: config.user,
+                key: config.key
+            },
             caps,
             specs,
             execArgv,
@@ -433,6 +439,10 @@ class Launcher {
     }
 
     private _workerHookError (error: HookError) {
+        if (!this.interface) {
+            throw new Error('Internal Error: no interface initialised, call run() first')
+        }
+
         this.interface.logHookError(error)
         if (this._resolve) {
             this._resolve(1)
@@ -473,7 +483,7 @@ class Launcher {
         /**
          * avoid emitting job:end if watch mode has been stopped by user
          */
-        if (!this._isWatchModeHalted()) {
+        if (!this._isWatchModeHalted() && this.interface) {
             this.interface.emit('job:end', { cid: rid, passed, retries })
         }
 
@@ -515,7 +525,7 @@ class Launcher {
      * session first before killing
      */
     exitHandler (callback?: (value: void) => void) {
-        if (!callback) {
+        if (!callback || !this.runner || !this.interface) {
             return
         }
 

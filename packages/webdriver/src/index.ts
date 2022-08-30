@@ -1,13 +1,16 @@
-import path from 'path'
+import path from 'node:path'
 import logger from '@wdio/logger'
 
 import { webdriverMonad, sessionEnvironmentDetector } from '@wdio/utils'
 import { validateConfig } from '@wdio/config'
 import type { Options, Capabilities } from '@wdio/types'
 
-import command from './command'
-import { DEFAULTS } from './constants'
-import { startWebDriverSession, getPrototype, getEnvironmentVars, setupDirectConnect } from './utils'
+import command from './command.js'
+import { BidiHandler } from './bidi.js'
+import { DEFAULTS } from './constants.js'
+import {
+    startWebDriverSession, getPrototype, getEnvironmentVars, setupDirectConnect
+} from './utils.js'
 import type { Client, AttachOptions, SessionFlags } from './types'
 
 const log = logger('webdriver')
@@ -46,7 +49,15 @@ export default class WebDriver {
             modifier,
             prototype
         )
-        const client = monad(sessionId, customCommandWrapper)
+
+        let handler: BidiHandler | undefined
+        if (capabilities.webSocketUrl) {
+            log.info(`Register BiDi handler for session with id ${sessionId}`)
+            const socketUrl = (capabilities.webSocketUrl as any as string).replace('localhost', '127.0.0.1')
+            handler = new BidiHandler(socketUrl)
+            await handler.connect()
+        }
+        const client = monad(sessionId, customCommandWrapper, handler)
 
         /**
          * if the server responded with direct connect information, update the
@@ -121,4 +132,4 @@ export default class WebDriver {
  * Helper methods consumed by webdriverio package
  */
 export { getPrototype, DEFAULTS, command }
-export * from './types'
+export * from './types.js'

@@ -6,8 +6,8 @@
  * NOTE: not used by cucumber test framework. `testFnWrapper` is called directly there
  */
 
-import { filterSpecArgs } from '../utils'
-import { testFnWrapper } from './testFnWrapper'
+import { filterSpecArgs } from '../utils.js'
+import { testFnWrapper } from './testFnWrapper.js'
 
 import type {
     HookFnArgs,
@@ -20,8 +20,7 @@ import type {
 const MOCHA_COMMANDS: ['skip', 'only'] = ['skip', 'only']
 
 /**
- * runs a hook within fibers context (if function name is not async)
- * it also executes before/after hook
+ * runs a hook and execute before/after hook
  *
  * @param  {Function} hookFn        function that was passed to the framework hook
  * @param  {Function} origFn        original framework hook function
@@ -78,7 +77,7 @@ export const runHook = function (
 }
 
 /**
- * runs a spec function (test function) within the fibers context
+ * runs a spec function (test function)
  *
  * @param  {string}   specTitle     test description
  * @param  {Function} specFn        test function that got passed in from the user
@@ -173,7 +172,9 @@ export const wrapTestFunction = function (
          * Jasmine uses a timeout value as last parameter, in this case the arguments
          * should be [title, fn, timeout, retryCnt]
          */
+        // @ts-expect-error
         let timeout = global.jasmine?.DEFAULT_TIMEOUT_INTERVAL
+        // @ts-expect-error
         if (global.jasmine) {
             // if we have [title, fn, timeout, retryCnt]
             if (typeof specArguments[specArguments.length - 1] === 'number') {

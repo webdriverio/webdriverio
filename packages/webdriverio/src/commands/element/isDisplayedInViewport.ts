@@ -1,6 +1,6 @@
-import { ELEMENT_KEY } from '../../constants'
-import { getBrowserObject } from '../../utils'
-import isElementInViewportScript from '../../scripts/isElementInViewport'
+import { ELEMENT_KEY } from '../../constants.js'
+import { getBrowserObject } from '../../utils/index.js'
+import isElementInViewportScript from '../../scripts/isElementInViewport.js'
 
 /**
  *

@@ -1,5 +1,5 @@
-import { ELEMENT_KEY } from '../../constants'
-import { getBrowserObject } from '../../utils'
+import { ELEMENT_KEY } from '../../constants.js'
+import { getBrowserObject } from '../../utils/index.js'
 
 const getWebElement = (el: WebdriverIO.Element) => ({
     [ELEMENT_KEY]: el.elementId, // w3c compatible
@@ -37,7 +37,11 @@ export default async function isEqual (
     // mobile native
     if (browser.isMobile) {
         const context = await browser.getContext()
-        if (context?.toLowerCase().includes('native')) {
+        const contextId = typeof context === 'string'
+            ? context
+            : context?.id
+
+        if (contextId && contextId.toLowerCase().includes('native')) {
             return this.elementId === el.elementId
         }
     }

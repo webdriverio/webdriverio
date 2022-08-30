@@ -2,9 +2,9 @@ import exitHook from 'async-exit-hook'
 
 import Runner from '@wdio/runner'
 import logger from '@wdio/logger'
-
-import { SHUTDOWN_TIMEOUT } from './constants'
 import type { Workers } from '@wdio/types'
+
+import { SHUTDOWN_TIMEOUT } from './constants.js'
 
 const log = logger('@wdio/local-runner')
 

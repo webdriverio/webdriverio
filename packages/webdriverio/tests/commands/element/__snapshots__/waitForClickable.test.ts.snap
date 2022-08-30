@@ -1,10 +1,10 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Vitest Snapshot v1
 
-exports[`waitForClickable should call waitUntil 1`] = `
-Array [
-  Array [
+exports[`waitForClickable > should call waitUntil 1`] = `
+[
+  [
     [Function],
-    Object {
+    {
       "interval": 5,
       "timeout": 1000,
       "timeoutMsg": "element (\\"#foo\\") still not clickable after 1000ms",
@@ -13,11 +13,11 @@ Array [
 ]
 `;
 
-exports[`waitForClickable should do reverse 1`] = `
-Array [
-  Array [
+exports[`waitForClickable > should do reverse 1`] = `
+[
+  [
     [Function],
-    Object {
+    {
       "interval": 50,
       "timeout": 500,
       "timeoutMsg": "element (\\"#foo\\") still clickable after 500ms",

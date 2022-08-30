@@ -1,23 +1,25 @@
-import path from 'path'
-import process from 'process'
-import FileSystemPathService from '../src/lib/FileSystemPathService'
+import url from 'node:url'
+import path from 'node:path'
+import process from 'node:process'
 import glob from 'glob'
+import { vi, MockedFunction, describe, it, expect, afterEach, beforeEach } from 'vitest'
+
+import FileSystemPathService from '../src/lib/FileSystemPathService.js'
 
 const INDEX_PATH = path.resolve(__dirname, '..', 'src', 'index.ts')
 
-jest.mock('glob', () => ({
-    sync: jest.fn(() => 'glob result')
+vi.mock('glob', () => ({
+    default: { sync: vi.fn(() => 'glob result') }
 }))
 
 describe('FileSystemPathService', () => {
     afterEach(() => {
-        (glob.sync as jest.Mock).mockClear()
-        jest.clearAllMocks()
+        (glob.sync as MockedFunction<any>).mockClear()
+        vi.clearAllMocks()
     })
 
     describe('getcwd', function () {
-
-        let oldCwd
+        let oldCwd: () => string
         beforeEach(() => {
             oldCwd = process.cwd
         })
@@ -31,7 +33,7 @@ describe('FileSystemPathService', () => {
         })
 
         it('should throw if cwd returns undefined', function () {
-            process.cwd = () => undefined
+            process.cwd = () => undefined as any as string
             var svc = new FileSystemPathService()
             expect(() => svc.getcwd()).toThrowError('Unable to find current working directory from process')
         })
@@ -53,12 +55,13 @@ describe('FileSystemPathService', () => {
         it('should return abs path given abs path', function () {
             var svc = new FileSystemPathService()
             expect(svc.ensureAbsolutePath(path.resolve(__dirname, 'absolutely')))
-                .toEqual(path.resolve(__dirname, 'absolutely'))
+                .toEqual(url.pathToFileURL(path.resolve(__dirname, 'absolutely')).href)
         })
 
         it('should return abs path given relative path', function () {
             var svc = new FileSystemPathService()
-            expect(svc.ensureAbsolutePath('all_relativity')).toEqual(path.resolve(process.cwd(), 'all_relativity'))
+            expect(svc.ensureAbsolutePath('all_relativity')).toBe(
+                url.pathToFileURL(path.resolve(process.cwd(), 'all_relativity')).href)
         })
     })
 
@@ -71,21 +74,25 @@ describe('FileSystemPathService', () => {
     })
 
     describe('loadFile', function () {
-
-        it('should throw if path not given', function () {
+        it('should throw if path not given', async function () {
             var svc = new FileSystemPathService()
-            expect(() => svc.loadFile(undefined as any)).toThrowError('A path is required')
+            await expect(async () => await svc.loadFile(undefined as any))
+                .rejects.toThrowError('A path is required')
         })
 
-        it('should load files', function () {
+        it('should load files', async function () {
             var svc = new FileSystemPathService()
-            const loaded = svc.loadFile(INDEX_PATH) as any
+            const loaded = await svc.loadFile(INDEX_PATH) as any
             expect(loaded.ConfigParser).toBeDefined()
         })
 
-        it('should throw on non present files', function () {
+        it('should throw on non present files', async function () {
             var svc = new FileSystemPathService()
-            expect(() => svc.loadFile(INDEX_PATH + '.tar.gz.non-existent')).toThrowError(expect.objectContaining({ message: expect.stringContaining('Cannot find module') }))
+            await expect(async () => await svc.loadFile(INDEX_PATH + '.tar.gz.non-existent'))
+                .rejects
+                .toThrowError(expect.objectContaining({
+                    message: expect.stringContaining('Failed to load')
+                }))
         })
     })
 })

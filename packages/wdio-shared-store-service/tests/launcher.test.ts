@@ -1,19 +1,18 @@
+import path from 'node:path'
+import { describe, expect, vi, it } from 'vitest'
+
+import { setPort } from '../src/client.js'
+import SharedStoreLauncher from '../src/launcher.js'
 import type { SharedStoreServiceCapabilities } from '../src/types'
-import { setPort } from '../src/client'
-import SharedStoreLauncher from '../src/launcher'
-import StoreServerType from '../src/server'
-const StoreServer: typeof StoreServerType = require('../src/server').default
 
-const { stopServer } = StoreServer
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
-jest.mock('../src/server', () => ({
-    default: {
-        startServer: async () => ({ port: 3000 }),
-        stopServer: jest.fn(),
-    }
+vi.mock('../src/server', () => ({
+    startServer: () => Promise.resolve({ port: 3000 })
 }))
-jest.mock('../src/client', () => ({
-    setPort: jest.fn()
+
+vi.mock('../src/client', () => ({
+    setPort: vi.fn()
 }))
 
 const storeLauncher = new SharedStoreLauncher()
@@ -23,9 +22,5 @@ describe('SharedStoreService', () => {
         const capabilities = [{ browserName: 'chrome', acceptInsecureCerts: true }] as SharedStoreServiceCapabilities[]
         await storeLauncher.onPrepare(null as never, capabilities)
         expect(setPort).toBeCalledWith(3000)
-    })
-
-    afterEach(() => {
-        (stopServer as jest.Mock).mockClear()
     })
 })

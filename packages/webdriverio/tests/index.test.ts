@@ -1,7 +1,8 @@
-import path from 'path'
+import { describe, it, afterEach, expect, vi } from 'vitest'
+import path from 'node:path'
 // @ts-ignore mock feature
 import { logMock } from '@wdio/logger'
-import * as webdriverio from '../src'
+import * as webdriverio from '../src/index.js'
 
 // If you're making a change here, like adding a new export, the TypeScript
 // typings may need an update : packages/webdriverio/webdriverio.d.ts
@@ -9,6 +10,9 @@ import * as webdriverio from '../src'
 const OUTPUT_DIR = path.join('some', 'output', 'dir')
 const OUTPUT_FILE = path.join(OUTPUT_DIR, 'wdio.log')
 
+vi.mock('got')
+vi.mock('devtools')
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 const setUpLogCheck = (conditionFunction: () => boolean) => {
     const logCheck = (...args: string[]) => {
         if (!conditionFunction()) {
@@ -55,6 +59,10 @@ describe('index.js', () => {
 
     it('exports SevereServiceError class', () => {
         expect(webdriverio.SevereServiceError).toBeDefined()
+    })
+
+    it('exports key constant', () => {
+        expect(webdriverio.Key).toBeDefined()
     })
 
     describe('remote method', () => {

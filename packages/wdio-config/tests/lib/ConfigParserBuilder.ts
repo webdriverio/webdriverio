@@ -1,6 +1,8 @@
-import ConfigParser from '../../src/lib/ConfigParser'
-import MockedModules from './MockedModules'
-import MockPathService, { FilePathsAndContents, MockSystemFolderPath } from './MockPathService'
+import { vi } from 'vitest'
+
+import ConfigParser from '../../src/lib/ConfigParser.js'
+import MockedModules from './MockedModules.js'
+import MockPathService, { FilePathsAndContents, MockSystemFolderPath } from './MockPathService.js'
 
 export default class ConfigParserBuilder {
     private f : MockPathService
@@ -38,12 +40,17 @@ export default class ConfigParserBuilder {
         return this
     }
 
-    withTsNodeModule(registerMock = jest.fn()) {
+    withTsNodeModule(registerMock = vi.fn()) {
         this.m.withTsNodeModule(registerMock)
         return this
     }
 
-    withBabelModule(registerMock = jest.fn()) {
+    withTsconfigPathModule(registerMock = vi.fn()) {
+        this.m.withTsconfigPathModule(registerMock)
+        return this
+    }
+
+    withBabelModule(registerMock = vi.fn()) {
         this.m.withBabelModule(registerMock)
         return this
     }

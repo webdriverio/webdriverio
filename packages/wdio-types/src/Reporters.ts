@@ -1,5 +1,5 @@
-import { WriteStream } from 'fs'
-import { EventEmitter } from 'events'
+import type { WriteStream } from 'node:fs'
+import type { EventEmitter } from 'node:events'
 
 export interface Options {
     outputDir?: string

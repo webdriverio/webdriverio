@@ -1,12 +1,20 @@
-const fs = require('fs-extra')
-const path = require('path')
-const ejs = require('ejs')
+import path from 'node:path'
+import url from 'node:url'
+import { createRequire } from 'node:module'
 
+import fs from 'fs-extra'
+import ejs from 'ejs'
+
+import {
+    PROTOCOLS, PROTOCOL_NAMES, MOBILE_PROTOCOLS, VENDOR_PROTOCOLS,
+    PROTOCOL_API_DESCRIPTION
+} from '../constants.js'
+
+const require = createRequire(import.meta.url)
 const { repoUrl } = require('../../website/docusaurus.config.js')
+
+const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 const TEMPLATE_PATH = path.join(__dirname, '..', 'templates', 'api.tpl.ejs')
-const {
-    PROTOCOLS, PROTOCOL_NAMES, MOBILE_PROTOCOLS, VENDOR_PROTOCOLS, PROTOCOL_API_DESCRIPTION
-} = require('../constants')
 
 const category = 'api'
 const PROJECT_ROOT_DIR = path.join(__dirname, '..', '..', 'website')
@@ -16,16 +24,16 @@ const API_DOCS_ROOT_DIR = path.join(PROJECT_ROOT_DIR, 'docs', category)
  * Generate Protocol docs
  * @param {object} sidebars website/sidebars
  */
-exports.generateProtocolDocs = (sidebars) => {
+export function generateProtocolDocs (sidebars) {
     fs.ensureDirSync(API_DOCS_ROOT_DIR)
     const template = fs.readFileSync(TEMPLATE_PATH, 'utf8')
     const protocolDocs = {}
 
-    sidebars[category].push({
+    const protocolDocEntry = {
         type: 'category',
         label: 'Protocols',
         items: []
-    })
+    }
 
     for (const [protocolName, definition] of Object.entries(PROTOCOLS)) {
         const protocol = PROTOCOL_NAMES[protocolName]
@@ -95,6 +103,12 @@ exports.generateProtocolDocs = (sidebars) => {
         // eslint-disable-next-line no-console
         console.log(`Generated docs for ${protocolName} protocol`)
 
-        sidebars[category][sidebars[category].length - 1].items.push(`${category}/${protocolName}`)
+        protocolDocEntry.items.push(`${category}/${protocolName}`)
     }
+
+    /**
+     * Have API intro page first, then protocol commands, then general API docs last
+     */
+    const [api, ...rest] = sidebars[category]
+    sidebars.api = [api, protocolDocEntry, ...rest]
 }

@@ -1,21 +1,25 @@
-import path from 'path'
+import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest'
+import path from 'node:path'
 import Mocha from 'mocha'
 import logger from '@wdio/logger'
 import { runTestInFiberContext, executeHooksWithArgs } from '@wdio/utils'
-import { setOptions } from 'expect-webdriverio'
 
-import MochaAdapterFactory, { MochaAdapter } from '../src'
-import { loadModule } from '../src/utils'
-import { EVENTS } from '../src/constants'
+import MochaAdapterFactory, { MochaAdapter } from '../src/index.js'
+import { loadModule } from '../src/utils.js'
+import { EVENTS } from '../src/constants.js'
 
-jest.mock('../src/utils', () => ({
-    loadModule: jest.fn()
+vi.mock('mocha')
+vi.mock('@wdio/utils')
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock('expect-webdriverio')
+vi.mock('../src/utils', () => ({
+    loadModule: vi.fn()
 }))
 
 const wdioReporter = {
-    write: jest.fn(),
-    emit: jest.fn(),
-    on: jest.fn()
+    write: vi.fn(),
+    emit: vi.fn(),
+    on: vi.fn()
 } as const
 const adapterFactory = (config: any) => new MochaAdapter(
     '0-2',
@@ -52,13 +56,12 @@ test('should properly set up mocha', async () => {
     const result = await adapter.run()
     expect(result).toBe(0)
 
-    expect(setOptions).toBeCalledTimes(1)
     expect(adapter['_mocha']!['loadFiles']).not.toBeCalled()
     expect(adapter['_mocha']!.loadFilesAsync).toBeCalled()
     expect(adapter['_mocha']!.reporter).toBeCalled()
     expect(adapter['_mocha']!.fullTrace).toBeCalled()
     expect(adapter['_mocha']!.run).toBeCalled()
-    expect((executeHooksWithArgs as jest.Mock).mock.calls).toHaveLength(1)
+    expect(vi.mocked(executeHooksWithArgs).mock.calls).toHaveLength(1)
 
     // @ts-ignore outdated types
     const runner = adapter['_mocha']!['runner']
@@ -96,18 +99,18 @@ test('should throw runtime error if spec could not be loaded', async () => {
 test('options', () => {
     // @ts-ignore params not needed for test scenario
     const adapter = adapterFactory()
-    adapter.requireExternalModules = jest.fn()
+    adapter.requireExternalModules = vi.fn()
     adapter.options({
         require: ['foo/bar.js'],
         compilers: ['the/compiler.js']
-    }, 'context' as any)
-    expect(adapter.requireExternalModules).toBeCalledWith(['the/compiler.js', 'foo/bar.js'], 'context')
+    })
+    expect(adapter.requireExternalModules).toBeCalledWith(['the/compiler.js', 'foo/bar.js'])
 })
 
 test('preRequire', () => {
     const mochaOpts = { foo: 'bar', ui: 'tdd' }
     const adapter = adapterFactory({ mochaOpts, beforeHook: 'beforeHook123', afterHook: 'afterHook123', beforeTest: 'beforeTest234', afterTest: 'afterTest234' })
-    adapter.preRequire('context' as any, 'file', 'mocha' as any)
+    adapter.preRequire()
     expect(runTestInFiberContext).toBeCalledWith(
         false, 'beforeHook123', expect.any(Function), 'afterHook123', expect.any(Function), 'suiteSetup', '0-2')
     expect(runTestInFiberContext).toBeCalledWith(
@@ -119,7 +122,7 @@ test('preRequire', () => {
     expect(runTestInFiberContext).toBeCalledWith(
         false, 'beforeHook123', expect.any(Function), 'afterHook123', expect.any(Function), 'teardown', '0-2')
 
-    const hookArgsFn = (runTestInFiberContext as jest.Mock).mock.calls[0][2]
+    const hookArgsFn = vi.mocked(runTestInFiberContext).mock.calls[0][2]
     expect(hookArgsFn({ test: { foo: 'bar', parent: { title: 'parent' } } }))
         .toEqual([{ foo: 'bar', parent: 'parent' }, { test: { foo: 'bar', parent: { title: 'parent' } } }])
 })
@@ -127,7 +130,7 @@ test('preRequire', () => {
 test('custom ui', () => {
     const mochaOpts = { ui: 'custom-qunit' }
     const adapter = adapterFactory({ mochaOpts })
-    adapter.preRequire('context' as any, 'file', 'mocha' as any)
+    adapter.preRequire()
     expect(runTestInFiberContext).toBeCalledWith(
         false, undefined, expect.any(Function), undefined, expect.any(Function), 'after', '0-2')
     expect(runTestInFiberContext).toBeCalledWith(
@@ -143,11 +146,11 @@ test('wrapHook if successful', async () => {
     const adapter = adapterFactory(config)
     const wrappedHook = adapter.wrapHook('beforeAll' as any)
 
-    ;(executeHooksWithArgs as jest.Mock).mockImplementation((...args) => Promise.resolve(args))
+    vi.mocked(executeHooksWithArgs).mockImplementation((...args: any[]) => Promise.resolve(args))
     await wrappedHook()
-    expect((executeHooksWithArgs as jest.Mock).mock.calls[0][0]).toBe('beforeAll')
-    expect((executeHooksWithArgs as jest.Mock).mock.calls[0][1]).toBe('somehook')
-    expect((executeHooksWithArgs as jest.Mock).mock.calls[0][2][0].type).toBe('beforeAll')
+    expect(vi.mocked(executeHooksWithArgs).mock.calls[0][0]).toBe('beforeAll')
+    expect(vi.mocked(executeHooksWithArgs).mock.calls[0][1]).toBe('somehook')
+    expect((vi.mocked(executeHooksWithArgs).mock.calls[0][2] as any)[0].type).toBe('beforeAll')
 })
 
 test('wrapHook if failing', async () => {
@@ -155,15 +158,15 @@ test('wrapHook if failing', async () => {
     const adapter = adapterFactory(config)
     const wrappedHook = adapter.wrapHook('beforeAll' as any)
 
-    ;(executeHooksWithArgs as jest.Mock).mockImplementation(() => Promise.reject(new Error('uuuups')))
+    vi.mocked(executeHooksWithArgs).mockImplementation(() => Promise.reject(new Error('uuuups')))
     await wrappedHook()
-    expect((executeHooksWithArgs as jest.Mock).mock.calls[0][0])
+    expect(vi.mocked(executeHooksWithArgs).mock.calls[0][0])
         .toBe('beforeAll')
-    expect((executeHooksWithArgs as jest.Mock).mock.calls[0][1])
+    expect(vi.mocked(executeHooksWithArgs).mock.calls[0][1])
         .toBe('somehook')
-    expect((executeHooksWithArgs as jest.Mock).mock.calls[0][2][0].type)
+    expect((vi.mocked(executeHooksWithArgs).mock.calls[0][2] as any)[0].type)
         .toBe('beforeAll')
-    expect((logger('').error as jest.Mock).mock.calls[0][0]
+    expect(vi.mocked(logger('').error).mock.calls[0][0]
         .startsWith('Error in beforeAll hook: uuuups')).toBe(true)
 })
 
@@ -186,7 +189,7 @@ test('prepareMessage', async () => {
     expect(result.type).toBe('afterSuite')
     expect(result.title).toBe('first suite')
     expect(result.duration).toBeDefined()
-    expect(result.duration >= 5000 && result.duration <= 5020).toBeTruthy()
+    expect(result.duration! >= 5000 && result.duration! <= 5020).toBeTruthy()
 })
 
 describe('formatMessage', () => {
@@ -347,9 +350,9 @@ test('requireExternalModules', () => {
     // @ts-ignore params not needed for test scenario
     const adapter = adapterFactory()
     // @ts-ignore test invalid params
-    adapter.requireExternalModules(['/foo/bar.js', null, './bar/foo.js'], { myContext: 123 } as any)
-    expect(loadModule).toBeCalledWith('/foo/bar.js', { myContext: 123 })
-    expect(loadModule).toBeCalledWith(path.resolve(__dirname, '..', '..', '..', 'bar', 'foo.js'), { myContext: 123 })
+    adapter.requireExternalModules(['/foo/bar.js', null, './bar/foo.js'])
+    expect(loadModule).toBeCalledWith('/foo/bar.js')
+    expect(loadModule).toBeCalledWith(path.resolve(__dirname, '..', '..', '..', 'bar', 'foo.js'))
 })
 
 test('emit does not emit anything on root level', () => {
@@ -471,7 +474,7 @@ describe('loadFiles', () => {
         const adapter = adapterFactory({})
         adapter['_hasTests'] = false
         adapter['_mocha']! = {
-            loadFilesAsync: jest.fn(),
+            loadFilesAsync: vi.fn(),
             suite: 1 // mochaRunner.total
         } as any
         await adapter._loadFiles({})
@@ -482,12 +485,12 @@ describe('loadFiles', () => {
         const adapter = adapterFactory({})
         adapter['_hasTests'] = false
         adapter['_mocha']! = {
-            loadFilesAsync: jest.fn(),
+            loadFilesAsync: vi.fn(),
             options: { grep: 'regexp foo' },
             suite: 0 // mochaRunner.total
         } as any
         await adapter._loadFiles({ grep: 'foo', invert: 'invert' as any })
-        expect((Mocha.Runner as any as jest.Mock).mock.results[0].value.grep).toBeCalledWith('regexp foo', 'invert')
+        expect(vi.mocked(Mocha.Runner).mock.results[0].value.grep).toBeCalledWith('regexp foo', 'invert')
         expect(adapter['_hasTests']).toBe(false)
     })
 
@@ -496,7 +499,7 @@ describe('loadFiles', () => {
         // @ts-ignore test scenario
         delete adapter['_hasTests']
         adapter['_mocha']! = {
-            loadFilesAsync: jest.fn().mockImplementation(
+            loadFilesAsync: vi.fn().mockImplementation(
                 () => Promise.reject(new Error('foo'))
             ),
         } as any
@@ -520,8 +523,7 @@ describe('hasTests', () => {
 })
 
 afterEach(() => {
-    (Mocha.Runner as any as jest.Mock).mockClear()
-    ;(runTestInFiberContext as jest.Mock).mockReset()
-    ;(executeHooksWithArgs as jest.Mock).mockReset()
-    ;(setOptions as jest.Mock).mockClear()
+    vi.mocked(Mocha.Runner).mockClear()
+    vi.mocked(runTestInFiberContext).mockReset()
+    vi.mocked(executeHooksWithArgs).mockReset()
 })

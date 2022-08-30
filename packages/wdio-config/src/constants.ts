@@ -1,4 +1,4 @@
-import { Options, Services } from '@wdio/types'
+import type { Options, Services } from '@wdio/types'
 
 const DEFAULT_TIMEOUT = 10000
 
@@ -20,6 +20,7 @@ export const DEFAULT_CONFIGS: () => Omit<Options.Testrunner, 'capabilities'> = (
     services: [],
     maxInstances: 100,
     maxInstancesPerCapability: 100,
+    injectGlobals: true,
     filesToWatch: [],
     connectionRetryTimeout: 120000,
     connectionRetryCount: 3,

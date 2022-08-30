@@ -74,7 +74,7 @@ Default: `[]`
 
 ``` javascript
 // wdio.conf.js
-const middleware = require('middleware-package')
+import middleware from 'middleware-package'
 
 exports.config
     // ...

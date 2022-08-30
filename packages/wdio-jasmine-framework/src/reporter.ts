@@ -1,5 +1,5 @@
 import logger from '@wdio/logger'
-import type { EventEmitter } from 'events'
+import type { EventEmitter } from 'node:events'
 
 import type { ReporterOptions, ParentSuite, TestEvent, SuiteEvent } from './types'
 
@@ -134,7 +134,8 @@ export default class JasmineReporter {
                 deprecationWarnings: [],
                 passedExpectations: [],
                 status: 'unknown',
-                pendingReason: ''
+                pendingReason: '',
+                debugLogs: null
             })
             this.specDone({
                 id,
@@ -146,7 +147,8 @@ export default class JasmineReporter {
                 status: 'failed',
                 duration: null,
                 properties: {},
-                pendingReason: ''
+                pendingReason: '',
+                debugLogs: null
             })
         }
 

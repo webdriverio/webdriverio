@@ -1,5 +1,5 @@
-import { getElement } from '../../utils/getElementObject'
-import { ELEMENT_KEY } from '../../constants'
+import { getElement } from '../../utils/getElementObject.js'
+import { ELEMENT_KEY } from '../../constants.js'
 import type { CustomStrategyFunction } from '../../types'
 
 /**
@@ -10,7 +10,7 @@ import type { CustomStrategyFunction } from '../../types'
     :example.js
     it('should fetch the project title', async () => {
         await browser.url('https://webdriver.io')
-        await browser.addLocatorStrategy('myStrat', (selector) => {
+        browser.addLocatorStrategy('myStrat', (selector) => {
             return document.querySelectorAll(selector)
         })
 

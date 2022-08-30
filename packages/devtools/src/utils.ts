@@ -1,20 +1,22 @@
-import fs from 'fs'
-import path from 'path'
-import { execFileSync } from 'child_process'
+import fs from 'node:fs'
+import { createRequire } from 'node:module'
+import { execFileSync } from 'node:child_process'
+
 import logger from '@wdio/logger'
 import { commandCallStructure, isValidParameter, getArgumentType, canAccess } from '@wdio/utils'
 import { WebDriverProtocol, CommandParameters, CommandPathVariables, ElementReference } from '@wdio/protocols'
-import type { Logger } from '@wdio/logger'
-import type { ElementHandle } from 'puppeteer-core/lib/cjs/puppeteer/common/JSHandle'
+import type { Logger } from '@wdio/logger/build/node'
+import type { ElementHandle } from 'puppeteer-core/lib/cjs/puppeteer/common/ElementHandle'
 import type { Browser } from 'puppeteer-core/lib/cjs/puppeteer/common/Browser'
-import type { Frame } from 'puppeteer-core/lib/cjs/puppeteer/common/FrameManager'
+import type { Frame } from 'puppeteer-core/lib/cjs/puppeteer/common/Frame'
 import type { Page } from 'puppeteer-core/lib/cjs/puppeteer/common/Page'
 
-import cleanUp from './scripts/cleanUpSerializationSelector'
-import { ELEMENT_KEY, SERIALIZE_PROPERTY, SERIALIZE_FLAG, ERROR_MESSAGES, PPTR_LOG_PREFIX } from './constants'
+import cleanUp from './scripts/cleanUpSerializationSelector.js'
+import { ELEMENT_KEY, SERIALIZE_PROPERTY, SERIALIZE_FLAG, ERROR_MESSAGES } from './constants.js'
 import type { Priorities } from './finder/firefox'
 import type DevToolsDriver from './devtoolsdriver'
 
+const require = createRequire(import.meta.url)
 const log = logger('devtools')
 
 export const validate = function (
@@ -108,14 +110,14 @@ export async function findElement (
      */
     const implicitTimeout = this.timeouts.get('implicit')
     const waitForFn = using === 'xpath' ? (context as Page | Frame).waitForXPath : (context as Page | Frame).waitForSelector
-    if (implicitTimeout && waitForFn) {
+    if (implicitTimeout) {
         await waitForFn.call(context, value, { timeout: implicitTimeout })
     }
 
-    let element
+    let element: ElementHandle<Element> | null = null
     try {
         element = using === 'xpath'
-            ? (await context.$x(value))[0]
+            ? (await context.$x(value))[0] as ElementHandle<Element>
             : await context.$(value)
     } catch (err: any) {
         /**
@@ -148,12 +150,12 @@ export async function findElements (
      */
     const implicitTimeout = this.timeouts.get('implicit')
     const waitForFn = using === 'xpath' ? (context as Page | Frame).waitForXPath : (context as Page | Frame).waitForSelector
-    if (implicitTimeout && waitForFn) {
+    if (implicitTimeout) {
         await waitForFn.call(context, value, { timeout: implicitTimeout })
     }
 
     const elements = using === 'xpath'
-        ? await context.$x(value)
+        ? await context.$x(value) as ElementHandle<Element>[]
         : await context.$$(value)
 
     if (elements.length === 0) {
@@ -320,14 +322,20 @@ export function findByWhich (executables: string[], priorities: Priorities[]) {
 /**
  * monkey patch debug package to log CDP messages from Puppeteer
  */
-export function patchDebug (scoppedLogger: Logger) {
+export async function patchDebug (scoppedLogger: Logger) {
+    /**
+     * let's not get caught by our dep checker, therefore
+     * define package name in variable first
+     */
+    const pkgName = 'debug'
+
     /**
      * log puppeteer messages
+     * resolve debug *from* puppeteer-core to make sure we monkey patch the version
+     * it will use
      */
-    let puppeteerDebugPkg = path.resolve(
-        path.dirname(require.resolve('puppeteer-core')),
-        'node_modules',
-        'debug')
+    const puppeteerPkg = require.resolve('puppeteer-core')
+    let puppeteerDebugPkg = require.resolve(pkgName, { paths: [puppeteerPkg] })
 
     /**
      * check if Puppeteer has its own version of debug, if not use the
@@ -338,15 +346,29 @@ export function patchDebug (scoppedLogger: Logger) {
          * let's not get caught by our dep checker, therefor
          * define package name in variable first
          */
-        const pkgName = 'debug'
         puppeteerDebugPkg = require.resolve(pkgName)
     }
 
-    require(puppeteerDebugPkg).log = (msg: string) => {
-        if (msg.includes('puppeteer:protocol')) {
-            msg = msg.slice(msg.indexOf(PPTR_LOG_PREFIX) + PPTR_LOG_PREFIX.length).trim()
+    try {
+        const debug = (await import(puppeteerDebugPkg)).default
+        debug.log = (msg: string) => {
+            if (msg.includes('puppeteer:protocol')) {
+                msg = msg.split('\n')
+                    .map((l) => l.slice(Math.max(l.indexOf('◀ '), l.indexOf('► ')))
+                        .replace('\x1B[32m', '')
+                        .replace('\x1B[39m', '')
+                        .replace('◀ \x1B[0m', '')
+                        .replace('► \x1B[0m', '')
+                        .trim()
+                    )
+                    .join('')
+                    // remove [' and ']
+                    .slice(2, -2)
+            }
+            scoppedLogger.debug(msg)
         }
-        scoppedLogger.debug(msg)
+    } catch (err) {
+        log.warn('Couldn\'t stub Puppeteer debug package, Puppeteer logs might get lost')
     }
 }
 

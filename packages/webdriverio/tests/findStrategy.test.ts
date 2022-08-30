@@ -1,7 +1,8 @@
-import { findStrategy } from '../src/utils/findStrategy'
-import fs from 'fs'
+import fs from 'node:fs'
+import { describe, it, expect, vi } from 'vitest'
+import { findStrategy } from '../src/utils/findStrategy.js'
 
-jest.mock('fs')
+vi.mock('fs')
 
 describe('selector strategies helper', () => {
     it('should find an element using "css selector" method', () => {
@@ -356,8 +357,12 @@ describe('selector strategies helper', () => {
         expect(element.value).toBe('.ui-cloud__sec__develop-content__app-grid:nth-child(1)')
     })
 
-    it('should not allow unsupported selector strategies if w3c is used', () => {
-        expect(() => findStrategy('accessibility id:foobar accessibility id', true)).toThrow()
+    it('should allow unsupported selector strategies if w3c is used as we need support it in Appium', () => {
+        expect(() => findStrategy('accessibility id:foobar accessibility id', true))
+            .not.toThrow()
+        const element = findStrategy('-ios predicate string:foobar', true)
+        expect(element.using).toBe('-ios predicate string')
+        expect(element.value).toBe('foobar')
     })
 
     it('should allow non w3c selector strategy if driver supports it', () => {
@@ -385,7 +390,7 @@ describe('selector strategies helper', () => {
     })
 
     it('should find an mobile element using image string', () => {
-        fs.readFileSync = jest.fn(() => 'random string') as any
+        fs.readFileSync = vi.fn(() => 'random string') as any
         let element = findStrategy('/test.jpg')
         expect(element.using).toBe('-image')
         expect(element.value).toBe('random string')

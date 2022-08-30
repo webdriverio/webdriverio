@@ -1,25 +1,33 @@
+import path from 'node:path'
+import { expect, describe, it, beforeEach, vi } from 'vitest'
 // @ts-ignore mocked (original defined in webdriver package)
 import got from 'got'
-import { remote } from '../../../src'
+import { remote } from '../../../src/index.js'
 
-const clientMock = {
-    send: jest.fn(),
-    on: jest.fn()
+vi.mock('got')
+vi.mock('devtools')
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+
+const clientMock: any = {
+    send: vi.fn(),
+    on: vi.fn()
 }
-const pageMock = {
-    target: jest.fn().mockReturnValue({
-        createCDPSession: jest.fn().mockReturnValue(Promise.resolve(clientMock))
+const pageMock: any = {
+    target: vi.fn().mockReturnValue({
+        createCDPSession: vi.fn().mockReturnValue(Promise.resolve(clientMock))
     }),
-    evaluate: jest.fn().mockReturnValue(Promise.resolve(true))
+    evaluate: vi.fn().mockReturnValue(Promise.resolve(true))
 }
-const puppeteerMock = {
-    pages: jest.fn().mockReturnValue([pageMock]),
-    isConnected: jest.fn().mockReturnValue(true)
+const puppeteerMock: any = {
+    pages: vi.fn().mockReturnValue([pageMock]),
+    isConnected: vi.fn().mockReturnValue(true)
 }
 
-jest.mock('../../../src/utils/interception/webdriver', () => class {
-    init = jest.fn()
-})
+vi.mock('../../../src/utils/interception/webdriver', () => ({
+    default: class {
+        init = vi.fn()
+    }
+}))
 
 describe('mock', () => {
     let browser
@@ -81,6 +89,6 @@ describe('mock', () => {
 
         browser.puppeteer = puppeteerMock
         const mock = await browser.mock('/foobar')
-        expect(mock.init).toBeCalledWith()
+        expect(vi.mocked(mock.init)).toBeCalledWith()
     })
 })

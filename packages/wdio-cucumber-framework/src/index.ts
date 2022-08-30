@@ -1,5 +1,6 @@
-import path from 'path'
-import { EventEmitter } from 'events'
+import path from 'node:path'
+import { createRequire } from 'node:module'
+import { EventEmitter } from 'node:events'
 
 import mockery from 'mockery'
 import isGlob from 'is-glob'
@@ -25,20 +26,21 @@ import {
     When
 } from '@cucumber/cucumber'
 import { GherkinStreams } from '@cucumber/gherkin-streams'
-import EventDataCollector from '@cucumber/cucumber/lib/formatter/helpers/event_data_collector'
-import { ITestCaseHookParameter } from '@cucumber/cucumber/lib/support_code_library_builder/types'
-import { IRuntimeOptions } from '@cucumber/cucumber/lib/runtime'
-import { Long } from 'long'
+import type { ITestCaseHookParameter } from '@cucumber/cucumber/lib/support_code_library_builder/types'
+import type { IRuntimeOptions } from '@cucumber/cucumber/lib/runtime'
 import { IdGenerator } from '@cucumber/messages'
 
 import { executeHooksWithArgs, testFnWrapper } from '@wdio/utils'
 import type { Capabilities, Options, Frameworks } from '@wdio/types'
-import type ExpectWebdriverIO from 'expect-webdriverio'
 
-import CucumberReporter from './reporter'
-import { DEFAULT_OPTS } from './constants'
-import { CucumberOptions, StepDefinitionOptions, HookFunctionExtension as HookFunctionExtensionImport } from './types'
-import { setUserHookNames } from './utils'
+import CucumberReporter from './reporter.js'
+import { DEFAULT_OPTS } from './constants.js'
+import { setUserHookNames } from './utils.js'
+import type { CucumberOptions, StepDefinitionOptions, HookFunctionExtension as HookFunctionExtensionImport } from './types'
+
+const require = createRequire(import.meta.url)
+const EventDataCollector = require('@cucumber/cucumber/lib/formatter/helpers/event_data_collector').default
+const FILE_PROTOCOL = 'file://'
 
 const { incrementing } = IdGenerator
 
@@ -58,16 +60,9 @@ class CucumberAdapter {
     private _cucumberFeaturesWithLineNumbers: string[]
     private _eventBroadcaster: EventEmitter
     private _cucumberReporter: CucumberReporter
-    private _eventDataCollector: EventDataCollector
+    private _eventDataCollector: typeof EventDataCollector
     private _pickleFilter: Cucumber.PickleFilter
-
-    getHookParams?: Function
-
-    /**
-     * make sure TS loads `@types/long` otherwise it won't find it in `@cucumber/messages`
-     * see also https://github.com/cucumber/cucumber-js/issues/1491
-     */
-    never?: Long
+    private getHookParams?: Function
 
     constructor(
         private _cid: string,
@@ -82,7 +77,14 @@ class CucumberAdapter {
         this._eventBroadcaster = new EventEmitter()
         this._eventDataCollector = new EventDataCollector(this._eventBroadcaster)
 
-        const featurePathsToRun = this._cucumberFeaturesWithLineNumbers.length > 0 ? this._cucumberFeaturesWithLineNumbers : this._specs
+        this._specs = this._specs.map((spec) => (
+            spec.startsWith(FILE_PROTOCOL)
+                ? spec.slice(FILE_PROTOCOL.length)
+                : spec
+        ))
+        const featurePathsToRun = this._cucumberFeaturesWithLineNumbers.length > 0
+            ? this._cucumberFeaturesWithLineNumbers
+            : this._specs
         this._pickleFilter = new Cucumber.PickleFilter({
             cwd: this._cwd,
             featurePaths: featurePathsToRun,
@@ -122,16 +124,6 @@ class CucumberAdapter {
             throw runtimeError
         }
 
-        /**
-         * import and set options for `expect-webdriverio` assertion lib once
-         * the framework was initiated so that it can detect the environment
-         */
-        const { setOptions } = require('expect-webdriverio')
-        setOptions({
-            wait: this._config.waitforTimeout, // ms to wait for expectation to succeed
-            interval: this._config.waitforInterval, // interval between attempts
-        })
-
         return this
     }
 
@@ -143,14 +135,14 @@ class CucumberAdapter {
         let runtimeError
         let result
         try {
-            this.registerRequiredModules()
+            await this.registerRequiredModules()
             Cucumber.supportCodeLibraryBuilder.reset(this._cwd, this._newId)
 
             /**
              * wdio hooks should be added before spec files are loaded
              */
             this.addWdioHooks(this._config)
-            this.loadSpecFiles()
+            await this.loadSpecFiles()
             this.wrapSteps(this._config)
 
             /**
@@ -215,13 +207,13 @@ class CucumberAdapter {
      * Usage: `[() => { require('@babel/register')({ ignore: [] }) }]`
      */
     registerRequiredModules() {
-        this._cucumberOpts.requireModule.map(requiredModule => {
+        return this._cucumberOpts.requireModule.map(async (requiredModule) => {
             if (Array.isArray(requiredModule)) {
-                require(requiredModule[0])(requiredModule[1])
+                (await import(requiredModule[0]))(requiredModule[1])
             } else if (typeof requiredModule === 'function') {
                 (requiredModule as Function)()
             } else {
-                require(requiredModule)
+                await import(requiredModule)
             }
         })
     }
@@ -236,7 +228,7 @@ class CucumberAdapter {
         )
     }
 
-    loadSpecFiles() {
+    async loadSpecFiles() {
         // we use mockery to allow people to import 'our' cucumber even though their spec files are in their folders
         // because of that we don't have to attach anything to the global object, and the current cucumber spec files
         // should just work with no changes with this framework
@@ -246,15 +238,15 @@ class CucumberAdapter {
             warnOnUnregistered: false
         })
         mockery.registerMock('@cucumber/cucumber', Cucumber)
-        this.requiredFiles().forEach((codePath) => {
+        await Promise.all(this.requiredFiles().map((codePath) => {
             const filepath = path.isAbsolute(codePath)
                 ? codePath
                 : path.join(process.cwd(), codePath)
 
             // This allows rerunning a stepDefinitions file
             delete require.cache[require.resolve(filepath)]
-            require(filepath)
-        })
+            return import(filepath)
+        }))
         mockery.disable()
     }
 
@@ -418,10 +410,5 @@ declare global {
     namespace WebdriverIO {
         interface CucumberOpts extends CucumberOptions {}
         interface HookFunctionExtension extends HookFunctionExtensionImport {}
-    }
-    namespace NodeJS {
-        interface Global {
-            expect: ExpectWebdriverIO.Expect
-        }
     }
 }

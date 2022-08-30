@@ -38,7 +38,7 @@ When [opening a new issue](https://github.com/webdriverio/webdriverio/issues/new
 
 ### Security Bugs
 
-See [SECURITY.md](https://github.com/webdriverio/webdriverio/blob/main/SECURITY.md).
+See [SECURITY.md](https://github.com/webdriverio/webdriverio/blob/main/.github/SECURITY.md).
 
 ## Proposing a Change
 
@@ -64,7 +64,7 @@ The WebdriverIO maintainer will review your pull request as soon as possible. Th
 
 #### Set Up Project
 
-In order to set up this project and start contributing follow this step by step guide:
+You can immediately start working on the code using [a pre-setup Gitpod environment](https://gitpod.io/#https://github.com/webdriverio/webdriverio) (read more on this [here](https://bromann.dev/post/development-environment-for-webdriverio/)). If you like to develop on the project locally follow this step by step guide:
 
 * Fork the project.
 * Clone the project somewhere on your computer
@@ -81,7 +81,7 @@ In order to set up this project and start contributing follow this step by step 
 
 * If you need to update your fork you can do so following the steps [here](https://help.github.com/en/github/collaborating-with-issues-and-pull-requests/syncing-a-fork)
 
-* Switch to the most recent Node LTS (you should be able to use older/newer versions of Node but we recommend to use v14 LTS so all developers are on the same side) or to the one denoted in `.nvmrc`. We recommend to use [`nvm`](https://github.com/nvm-sh/nvm) to switch between Node.js versions.
+* Switch to the most recent Node LTS (you should be able to use older/newer versions of Node but we recommend to use v18 LTS so all developers are on the same side) or to the one denoted in `.nvmrc`. We recommend to use [`nvm`](https://github.com/nvm-sh/nvm) to switch between Node.js versions.
 
 * Set up the project:
 
@@ -92,21 +92,26 @@ In order to set up this project and start contributing follow this step by step 
 
     The second command does two things:
 
+    * Cleans (possible) existing build artifacts via ```npm run clean```
+
+        If you have compiled the code this command will remove them as well as all dependencies of the subpackages.
+
     * Bootstraps sub-projects via ```npm run bootstrap```
 
         Many packages depend on each other, in order to properly set up the dependency tree you need to run the [Lerna Bootstrap](https://github.com/lerna/lerna#bootstrap) command to create all necessary links. As this project also does some other house keeping tasks, it is recommended to use the package bootstrap command.
 
     * Builds all subpackages via ```npm run build```
 
-        As the last step you need to build all sub-packages in order to resolve the internal dependencies. WebdriverIO uses [TypeScript](https://www.typescriptlang.org/) as a compiler. We are currently transitioning to TypeScript so you will see a mixture of normal JS files and TypeScript files.
+        As the last step you need to build all sub-packages in order to resolve the internal dependencies. WebdriverIO uses [TypeScript](https://www.typescriptlang.org/) as a compiler.
 
 * Run Tests to ensure that everything is set up correctly
 
     ```sh
+    # run the complete unit test suite
     $ npm run test
 
     # run test for a specific sub project (e.g. webdriver)
-    $ npx jest ./packages/webdriver/tests --collectCoverage=false
+    $ npx vitest ./packages/webdriver/tests
     ```
 
     It should give you a passing result. Now you can move on to set up your development environment and start working on some code. If tests do not pass please create an issue and provide logs to the error.
@@ -126,10 +131,10 @@ If you only work on a single package, you can watch only for that one by calling
 $ npm run watch <package-name>
 ```
 
-It is also a good idea to run jest in watch mode while developing on a single package to see if changes affect any tests:
+It is also a good idea to run vitest in watch mode while developing on a single package to see if changes affect any tests:
 
 ```sh
-npx jest ./packages/<package-name>/tests --watch --collectCoverage=false
+npx vitest ./packages/<package-name>/tests
 ```
 
 #### TypeScript Definitions
@@ -188,10 +193,10 @@ When a PR gets submitted, WebdriverIO runs the following checks:
   ```
 - *Unit Tests*
   Like every project we unit-test our code and ensure that new patches are properly tested. The coverage threshold is pretty high so ensure that
-  your changes cover all necessary code paths. We are using [Jest](https://jestjs.io/) as a unit test framework here.
+  your changes cover all necessary code paths. We are using [Vitest](https://vitest.dev/) as a unit test framework here.
   You can manually trigger this check by calling:
   ```sh
-  $ npm run test:coverage
+  $ npm run test:unit
   ```
 - *Smoke Tests*
   While unit tests already cover a lot of cases, we run in addition to that smoke tests that simulate test scenarios which are difficult to test
@@ -225,12 +230,12 @@ are located in
 packages/webdriverio/tests/commands/element/getCSSProperty.test.ts
 ```
 
-If that is not the case the functionality of that file might be tested through a different file. We recommend to write unit tests for every new function being written in the code base. We advise to mock out every dependency to either other packages or modules using [Jests mock capabilities](https://jestjs.io/docs/manual-mocks).
+If that is not the case the functionality of that file might be tested through a different file. We recommend to write unit tests for every new function being written in the code base. We advise to mock out every dependency to either other packages or modules using [Vitests mock capabilities](https://vitest.dev/guide/mocking.html).
 
 During development it makes sense to focus running unit tests for a single file rather the whole code base. For example if you work on the `getCSSProperty` command it makes sense to run only the unit test for that specific command by calling:
 
 ```sh
-npx jest packages/webdriverio/tests/commands/element/getCSSProperty.test.ts --watch --collectCoverage=false
+npx vitest packages/webdriverio/tests/commands/element/getCSSProperty.test.ts
 ```
 
 With the `--watch` flag the unit tests will be re-run as soon as you change something within the file.

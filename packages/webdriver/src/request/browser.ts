@@ -1,7 +1,8 @@
-import { Options } from '@wdio/types'
-import logger from '@wdio/logger'
-import WebDriverRequest from './index'
 import ky, { Options as KyOptions } from 'ky'
+import logger from '@wdio/logger'
+import type { Options } from '@wdio/types'
+
+import WebDriverRequest from './index.js'
 
 type RequestLibOptions = Options.RequestLibOptions
 type RequestOptions = Omit<Options.WebDriver, 'capabilities'>
@@ -20,7 +21,7 @@ export default class BrowserRequest extends WebDriverRequest {
         super(method, endpoint, body, isHubCommand)
     }
 
-    protected _createOptions (options: RequestOptions, sessionId?: string): RequestLibOptions {
+    protected async _createOptions (options: RequestOptions, sessionId?: string): Promise<RequestLibOptions> {
         return super._createOptions(options, sessionId, true)
     }
 

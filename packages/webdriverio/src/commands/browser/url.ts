@@ -1,4 +1,4 @@
-import { validateUrl } from '../../utils'
+import { validateUrl } from '../../utils/index.js'
 
 /**
  *

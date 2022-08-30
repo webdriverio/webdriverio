@@ -148,7 +148,7 @@ Example:
 ```js
 installArgs: {
     version : "3.141.59",
-    baseURL : "https://selenium-release.storage.googleapis.com",
+    baseURL : "https://github.com/SeleniumHQ/selenium/releases/download",
     drivers : {
         chrome : {
             version : "91.0.4472.101",

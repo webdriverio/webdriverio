@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 
-const WDIOReporter = require('../../../../packages/wdio-reporter/build').default
+const WDIOReporter = require('../../../../packages/wdio-reporter/build.js').default
 
 module.exports = class CustomReporter extends WDIOReporter {
     constructor(options) {

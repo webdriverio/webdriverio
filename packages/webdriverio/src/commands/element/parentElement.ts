@@ -22,7 +22,7 @@
  * @type utility
  */
 export default function parentElement (this: WebdriverIO.Element) {
-    return this.$(/* istanbul ignore next */ function (this: HTMLElement) {
+    return this.$(/* istanbul ignore next */ function parentElement (this: HTMLElement) {
         return this.parentElement as HTMLElement
     })
 }

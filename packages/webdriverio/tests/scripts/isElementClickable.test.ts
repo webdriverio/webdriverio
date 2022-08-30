@@ -1,4 +1,5 @@
-import isElementClickable from '../../src/scripts/isElementClickable'
+import { describe, it, vi, expect, beforeAll, afterEach, afterAll } from 'vitest'
+import isElementClickable from '../../src/scripts/isElementClickable.js'
 
 describe('isElementClickable script', () => {
     beforeAll(() => {
@@ -9,7 +10,7 @@ describe('isElementClickable script', () => {
     })
 
     it('should be clickable if in viewport and elementFromPoint matches', () => {
-        const elemMock = {
+        const elemMock: any = {
             getBoundingClientRect: () => ({
                 height: 55,
                 width: 22,
@@ -19,7 +20,7 @@ describe('isElementClickable script', () => {
             clientHeight: 55,
             clientWidth: 22,
             getClientRects: () => [{}],
-            scrollIntoView: () => jest.fn(),
+            scrollIntoView: () => vi.fn(),
             contains: () => false
         } as any as Element
         global.document = { elementFromPoint: () => elemMock } as any
@@ -28,7 +29,7 @@ describe('isElementClickable script', () => {
     })
 
     it('should be clickable if in viewport and elementFromPoint is child of elem', () => {
-        const elemMock = {
+        const elemMock: any = {
             getBoundingClientRect: () => ({
                 height: 55,
                 width: 22,
@@ -38,7 +39,7 @@ describe('isElementClickable script', () => {
             clientHeight: 55,
             clientWidth: 22,
             getClientRects: () => [{}],
-            scrollIntoView: () => jest.fn(),
+            scrollIntoView: () => vi.fn(),
             contains: () => true
         } as any as Element
         global.document = { elementFromPoint: () => 'some element' as any } as any
@@ -47,7 +48,7 @@ describe('isElementClickable script', () => {
     })
 
     it('should be clickable if in viewport and elementFromPoint is child of elem [Edge]', () => {
-        const elemMock = {
+        const elemMock: any = {
             getBoundingClientRect: () => ({
                 height: 55,
                 width: 22,
@@ -57,10 +58,11 @@ describe('isElementClickable script', () => {
             clientHeight: 55,
             clientWidth: 22,
             getClientRects: () => [{}],
-            scrollIntoView: jest.fn(),
+            scrollIntoView: vi.fn(),
             contains: () => { throw new Error('should not be called in old Edge!') }
         } as any as Element
         // emulate old Edge
+        // @ts-expect-error
         global.window.StyleMedia = (() => { }) as any
 
         let attempts = 0
@@ -75,7 +77,7 @@ describe('isElementClickable script', () => {
     })
 
     it('should be clickable if in viewport and elementFromPoint if element is Document Fragment [Edge]', () => {
-        const elemMock = {
+        const elemMock: any = {
             getBoundingClientRect: () => ({
                 height: 55,
                 width: 22,
@@ -86,10 +88,11 @@ describe('isElementClickable script', () => {
             clientWidth: 22,
             nodeType: 11,
             getClientRects: () => [{}],
-            scrollIntoView: jest.fn(),
+            scrollIntoView: vi.fn(),
             contains: () => { throw new Error('should not be called in old Edge!') }
         } as any as Element
         // emulate old Edge
+        // @ts-expect-error
         global.window.StyleMedia = (() => { }) as any
 
         let attempts = 0
@@ -104,7 +107,7 @@ describe('isElementClickable script', () => {
     })
 
     it('should be clickable if in viewport and elementFromPoint of the rect matches', () => {
-        const elemMock = {
+        const elemMock: any = {
             getBoundingClientRect: () => ({
                 height: 55,
                 width: 22,
@@ -119,12 +122,12 @@ describe('isElementClickable script', () => {
                 top: 33,
                 left: 45500
             }],
-            scrollIntoView: () => jest.fn(),
+            scrollIntoView: () => vi.fn(),
             contains: () => false
         } as any as Element
         global.document = {
             // only return elemMock in getOverlappingRects
-            elementFromPoint: (x) => {
+            elementFromPoint: (x: number) => {
                 return x > 45500 ? elemMock : null
             }
         } as any
@@ -133,7 +136,7 @@ describe('isElementClickable script', () => {
     })
 
     it('should be clickable if in viewport and elementFromPoint matches [nested shadowRoot]', () => {
-        const elemMock = {
+        const elemMock: any = {
             getBoundingClientRect: () => ({
                 height: 55,
                 width: 22,
@@ -143,7 +146,7 @@ describe('isElementClickable script', () => {
             clientHeight: 55,
             clientWidth: 22,
             getClientRects: () => [{}],
-            scrollIntoView: () => jest.fn(),
+            scrollIntoView: () => vi.fn(),
             contains: () => false
         } as any as Element
         global.document = {
@@ -160,7 +163,7 @@ describe('isElementClickable script', () => {
     })
 
     it('should be not clickable if in viewport and elementFromPoint matches but is disabled', () => {
-        const elemMock = {
+        const elemMock: any = {
             getBoundingClientRect: () => ({
                 height: 55,
                 width: 22,
@@ -170,7 +173,7 @@ describe('isElementClickable script', () => {
             clientHeight: 55,
             clientWidth: 22,
             getClientRects: () => [{}],
-            scrollIntoView: () => jest.fn(),
+            scrollIntoView: () => vi.fn(),
             contains: () => false,
             disabled: true
         } as any as Element
@@ -180,7 +183,7 @@ describe('isElementClickable script', () => {
     })
 
     it("should be not clickable if in viewport but elementFromPoint doesn't match", () => {
-        const elemMock = {
+        const elemMock: any = {
             getBoundingClientRect: () => ({
                 height: 55,
                 width: 22,
@@ -190,7 +193,7 @@ describe('isElementClickable script', () => {
             clientHeight: 55,
             clientWidth: 22,
             getClientRects: () => [{}],
-            scrollIntoView: jest.fn(),
+            scrollIntoView: vi.fn(),
             contains: () => false
         } as any as Element
         global.document = { elementFromPoint: () => null } as any
@@ -201,7 +204,7 @@ describe('isElementClickable script', () => {
     })
 
     it("should be not clickable if in viewport but elementFromPoint doesn't match [shadowRoot]", () => {
-        const elemMock = {
+        const elemMock: any = {
             getBoundingClientRect: () => ({
                 height: 55,
                 width: 22,
@@ -211,7 +214,7 @@ describe('isElementClickable script', () => {
             clientHeight: 55,
             clientWidth: 22,
             getClientRects: () => [{}],
-            scrollIntoView: () => jest.fn(),
+            scrollIntoView: () => vi.fn(),
             contains: () => false
         } as any as Element
         global.document = {
@@ -224,7 +227,7 @@ describe('isElementClickable script', () => {
     })
 
     it('should be not clickable if not in viewport', () => {
-        const elemMock = {
+        const elemMock: any = {
             getBoundingClientRect: () => ({
                 height: 55,
                 width: 22,
@@ -232,7 +235,7 @@ describe('isElementClickable script', () => {
                 left: 999
             }),
             getClientRects: () => [{}],
-            scrollIntoView: () => jest.fn(),
+            scrollIntoView: () => vi.fn(),
             contains: () => false
         } as any as Element
         global.document = { elementFromPoint: () => elemMock } as any
@@ -241,6 +244,7 @@ describe('isElementClickable script', () => {
     })
 
     afterEach(() => {
+        // @ts-expect-error
         delete global.window.StyleMedia
     })
 

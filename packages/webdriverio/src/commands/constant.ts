@@ -1,4 +1,4 @@
-import { TouchAction, TouchActions } from '../types'
+import type { TouchAction, TouchActions } from '../types'
 
 /**
  * Constants around commands

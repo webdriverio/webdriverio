@@ -1,12 +1,12 @@
 import type { Browser, MultiRemoteBrowser } from 'webdriverio'
 import type { Capabilities } from '@wdio/types'
-import Driver from 'lighthouse/lighthouse-core/gather/driver'
 import type { CDPSession } from 'puppeteer-core/lib/cjs/puppeteer/common/Connection'
 import type { Target } from 'puppeteer-core/lib/cjs/puppeteer/common/Target'
+import Driver from 'lighthouse/lighthouse-core/gather/driver.js'
 
-import ChromeProtocol from './lighthouse/cri'
-import { IGNORED_URLS, UNSUPPORTED_ERROR_MESSAGE } from './constants'
-import { RequestPayload } from './handler/network'
+import ChromeProtocol from './lighthouse/cri.js'
+import { IGNORED_URLS, UNSUPPORTED_ERROR_MESSAGE } from './constants.js'
+import { RequestPayload } from './handler/network.js'
 import type { GathererDriver } from './types'
 
 const VERSION_PROPS = ['browserVersion', 'browser_version', 'version']
@@ -17,11 +17,26 @@ const SUPPORTED_BROWSERS_AND_MIN_VERSIONS = {
     'google chrome': 63,
     'firefox': 86
 }
+const CUSTOM_COMMANDS = [
+    'cdp',
+    'getNodeId',
+    'getMetrics',
+    'startTracing',
+    'getDiagnostics',
+    'getCoverageReport',
+    'enablePerformanceAudits',
+    'disablePerformanceAudits',
+    'getMainThreadWorkBreakdown',
+    'emulateDevice',
+    'checkPWA'
+]
 
 export function setUnsupportedCommand (browser: Browser<'async'> | MultiRemoteBrowser<'async'>) {
-    return browser.addCommand('cdp', /* istanbul ignore next */() => {
-        throw new Error(UNSUPPORTED_ERROR_MESSAGE)
-    })
+    for (const command of CUSTOM_COMMANDS) {
+        browser.addCommand(command, /* istanbul ignore next */() => {
+            throw new Error(UNSUPPORTED_ERROR_MESSAGE)
+        })
+    }
 }
 
 /**

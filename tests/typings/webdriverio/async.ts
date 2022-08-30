@@ -1,7 +1,8 @@
 import { expectType } from 'tsd'
 
 import allure from '@wdio/allure-reporter'
-import { remote, multiremote, SevereServiceError } from 'webdriverio'
+import { remote, multiremote, SevereServiceError, ElementArray } from 'webdriverio'
+import type { DetailedContext } from '@wdio/protocols'
 import type { MockOverwriteFunction, ClickOptions, TouchAction, Selector } from 'webdriverio'
 
 declare global {
@@ -45,8 +46,8 @@ async function bar() {
     }).then(() => {}, () => {})
 
     // interact with specific instance
-    // const mrSingleElem = await mr.myBrowserInstance.$('')
-    // await mrSingleElem.click()
+    const mrSingleElem = await mr.myBrowserInstance.$('')
+    await mrSingleElem.click()
 
     // interact with all instances
     const mrElem = await mr.$('')
@@ -55,8 +56,8 @@ async function bar() {
     // instances array
     expectType<string[]>(mr.instances)
 
-    const nsElems: WebdriverIO.ElementArray = {} as any
-    expectType<string>(nsElems.foundWith)
+    const elements = await browser.$$('foo')
+    expectType<string>(elements.foundWith)
 
     ////////////////////////////////////////////////////////////////////////////////
 
@@ -66,6 +67,11 @@ async function bar() {
         () => {}, () => {})
     const rElem = await browser.$('')
     await rElem.click()
+
+    const elemA = await remoteBrowser.$('')
+    const elemB = await remoteBrowser.$('')
+    const multipleElems = await $$([elemA, elemB])
+    expectType<ElementArray>(multipleElems)
 
     ////////////////////////////////////////////////////////////////////////////////
 
@@ -156,6 +162,19 @@ async function bar() {
             arg.toFixed()
             cb(123)
         }, 456)
+    )
+
+    expectType<string>(
+        (await browser.getContext()) as string
+    )
+    expectType<{ id: string }>(
+        await browser.getContext() as DetailedContext
+    )
+    expectType<string[]>(
+        (await browser.getContexts()) as string[]
+    )
+    expectType<{ id: string }[]>(
+        (await browser.getContexts()) as DetailedContext[]
     )
 
     expectType<undefined>(
@@ -268,8 +287,7 @@ async function bar() {
 
     // An examples of addValue command with enabled/disabled translation to Unicode
     const elem = await $('')
-    await elem.addValue('Delete', { translateToUnicode: true })
-    await elem.addValue('Delete', { translateToUnicode: false })
+    await elem.addValue('Delete')
 
     // scroll into view
     await elem.scrollIntoView(true)
@@ -282,8 +300,7 @@ async function bar() {
 
     // An examples of setValue command with enabled/disabled translation to Unicode
     const elem1 = await $('')
-    elem1.setValue('Delete', { translateToUnicode: true })
-    elem1.setValue('Delete', { translateToUnicode: false })
+    elem1.setValue('Delete')
 
     const selector$$: string | Function | Record<'element-6066-11e4-a52e-4f735466cecf', string> | {strategy: Function; strategyName: string; strategyArguments: any[]} = elems.selector
     ;(elems.parent as WebdriverIO.Element).click()
@@ -403,7 +420,7 @@ async function bar() {
 
     // async chain API
     expectType<WebdriverIO.Element>(
-        await browser.$('foo').$('bar').$$('loo')[2].$('foo').$('bar'))
+        await (await browser.$('foo').$('bar').$$('loo')[2]).$('foo').$('bar'))
     expectType<Selector>(
         await browser.$('foo').$('bar').selector)
     expectType<Error>(
@@ -463,6 +480,10 @@ async function bar() {
             return browser.call(async () => {}).then(() => acc)
         }, {} as Random)
     )
+
+    const elemArrayTest: WebdriverIO.ElementArray = {} as any
+    expectType<string>(elemArrayTest.foundWith)
+    expectType<WebdriverIO.Element>(elemArrayTest[123])
 }
 
 function testSevereServiceError_noParameters() {

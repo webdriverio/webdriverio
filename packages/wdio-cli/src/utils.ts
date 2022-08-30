@@ -1,18 +1,27 @@
+import { dirname } from 'node:path'
+import { fileURLToPath } from 'node:url'
+import { createRequire } from 'node:module'
+import { execSync } from 'node:child_process'
+import { promisify } from 'node:util'
+
 import fs from 'fs-extra'
 import ejs from 'ejs'
-import path from 'path'
+import path from 'node:path'
 import inquirer from 'inquirer'
+import pickBy from 'lodash.pickby'
 import logger from '@wdio/logger'
 import readDir from 'recursive-readdir'
 import { SevereServiceError } from 'webdriverio'
-import { execSync } from 'child_process'
-import { promisify } from 'util'
+import { ConfigParser } from '@wdio/config'
+import { CAPABILITY_KEYS } from '@wdio/protocols'
 import type { Options, Capabilities, Services } from '@wdio/types'
 
-import { ReplCommandArguments, Questionnair, SupportedPackage, OnCompleteResult, ParsedAnswers } from './types'
-import { EXCLUSIVE_SERVICES, ANDROID_CONFIG, IOS_CONFIG, QUESTIONNAIRE } from './constants'
+import { EXCLUSIVE_SERVICES, ANDROID_CONFIG, IOS_CONFIG, QUESTIONNAIRE } from './constants.js'
+import type { ReplCommandArguments, Questionnair, SupportedPackage, OnCompleteResult, ParsedAnswers } from './types'
 
+const require = createRequire(import.meta.url)
 const log = logger('@wdio/cli:utils')
+const __dirname = dirname(fileURLToPath(import.meta.url))
 
 const TEMPLATE_ROOT_DIR = path.join(__dirname, 'templates', 'exampleFiles')
 const renderFile = promisify(ejs.renderFile) as (path: string, data: Record<string, any>) => Promise<string>
@@ -287,6 +296,30 @@ export function getCapabilities(arg: ReplCommandArguments) {
         return { capabilities: { browserName: 'Chrome', ...ANDROID_CONFIG, ...optionalCapabilites } }
     } else if (/ios/.test(arg.option)) {
         return { capabilities: { browserName: 'Safari', ...IOS_CONFIG, ...optionalCapabilites } }
+    } else if (/(js|ts)$/.test(arg.option)) {
+        const config = new ConfigParser()
+        config.autoCompile()
+        try {
+            config.addConfigFile(arg.option)
+        } catch (e) {
+            throw Error((e as any).code === 'MODULE_NOT_FOUND' ? `Config File not found: ${arg.option}`:
+                `Could not parse ${arg.option}, failed with error : ${(e as Error).message}`)
+        }
+        if (typeof arg.capabilities === 'undefined') {
+            throw Error('Please provide index/named property of capability to use from the capabilities array/object in wdio config file')
+        }
+        let requiredCaps = config.getCapabilities()
+        requiredCaps = (
+            // multi capabilities
+            (requiredCaps as (Capabilities.DesiredCapabilities | Capabilities.W3CCapabilities)[])[parseInt(arg.capabilities, 10)] ||
+            // multiremote
+            (requiredCaps as Capabilities.MultiRemoteCapabilities)[arg.capabilities]
+        )
+        const requiredW3CCaps = pickBy(requiredCaps, (_, key) => CAPABILITY_KEYS.includes(key) || key.includes(':'))
+        if (!Object.keys(requiredW3CCaps).length) {
+            throw Error(`No capability found in given config file with the provided capability indexed/named property: ${arg.capabilities}. Please check the capability in your wdio config file.`)
+        }
+        return { capabilities: { ...(requiredW3CCaps as Capabilities.W3CCapabilities) } }
     }
     return { capabilities: { browserName: arg.option } }
 }
@@ -309,7 +342,7 @@ export function hasPackage (pkg: string) {
          * this is only for testing purposes as we want to check whether
          * we add `@babel/register` to the packages to install when resolving fails
          */
-        if (process.env.JEST_WORKER_ID && process.env.WDIO_TEST_THROW_RESOLVE) {
+        if (process.env.VITEST_WORKER_ID && process.env.WDIO_TEST_THROW_RESOLVE) {
             throw new Error('resolve error')
         }
         require.resolve(pkg)

@@ -1,5 +1,6 @@
-import fs from 'fs'
-import path from 'path'
+import fs from 'node:fs'
+import url from 'node:url'
+import path from 'node:path'
 import { v4 as uuidv4 } from 'uuid'
 
 import logger from '@wdio/logger'
@@ -8,12 +9,15 @@ import type { Dialog } from 'puppeteer-core/lib/cjs/puppeteer/common/Dialog'
 import type { Page } from 'puppeteer-core/lib/cjs/puppeteer/common/Page'
 import type { Target } from 'puppeteer-core/lib/cjs/puppeteer/common/Target'
 import type { CommandEndpoint } from '@wdio/protocols'
-import type { Frame } from 'puppeteer-core/lib/cjs/puppeteer/common/FrameManager'
+import type { Frame } from 'puppeteer-core/lib/cjs/puppeteer/common/Frame'
 
-import ElementStore from './elementstore'
-import { validate, sanitizeError } from './utils'
-import { DEFAULT_IMPLICIT_TIMEOUT, DEFAULT_PAGELOAD_TIMEOUT, DEFAULT_SCRIPT_TIMEOUT } from './constants'
+import * as commands from './commands/index.js'
+import ElementStore from './elementstore.js'
+import { validate, sanitizeError } from './utils.js'
+import { DEFAULT_IMPLICIT_TIMEOUT, DEFAULT_PAGELOAD_TIMEOUT, DEFAULT_SCRIPT_TIMEOUT } from './constants.js'
+import { ActiveListener } from './types.js'
 
+const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 const log = logger('devtools')
 
 export default class DevToolsDriver {
@@ -27,11 +31,9 @@ export default class DevToolsDriver {
     currentFrame?: Page
     currentWindowHandle?: string
     currentFrameUrl?: string
-
+    activeListeners: ActiveListener[] = []
     constructor(browser: Browser, pages: Page[]) {
         this.browser = browser
-        this.browser.on('targetcreated', this._targetCreatedHandler.bind(this))
-        this.browser.on('targetdestroyed', this._targetDestroyedHandler.bind(this))
 
         const dir = path.resolve(__dirname, 'commands')
         const files = fs.readdirSync(dir).filter(
@@ -43,6 +45,7 @@ export default class DevToolsDriver {
                 )
             )
         )
+
         for (let filename of files) {
             const commandName = path.basename(filename, path.extname(filename))
 
@@ -50,25 +53,10 @@ export default class DevToolsDriver {
                 throw new Error('Couldn\'t determine command name')
             }
 
-            this.commands[commandName] = DevToolsDriver.requireCommand(
-                path.join(dir, commandName)
-            )
+            this.commands[commandName] = commands[commandName as keyof typeof commands]
         }
 
-        for (const page of pages) {
-            this._createWindowHandle(page)
-        }
-
-        /**
-         * set default timeouts
-         */
-        this.setTimeouts(DEFAULT_IMPLICIT_TIMEOUT, DEFAULT_PAGELOAD_TIMEOUT, DEFAULT_SCRIPT_TIMEOUT)
-
-        const page = this.getPageHandle()
-        if (page) {
-            page.on('dialog', this.dialogHandler.bind(this))
-            page.on('framenavigated', this.framenavigatedHandler.bind(this))
-        }
+        this.initBrowser(browser, pages)
     }
 
     private _createWindowHandle (page: Page) {
@@ -106,12 +94,49 @@ export default class DevToolsDriver {
         log.trace(`Switching to window handle with id ${pageIds[0]}`)
     }
 
+    private addListener(emitter: ActiveListener['emitter'], eventName: string, handler: any) {
+        const boundHandler = handler.bind(this)
+        emitter.on(eventName, boundHandler)
+        this.activeListeners.push({ emitter, eventName, boundHandler })
+    }
+
+    private cleanupListeners() {
+        this.activeListeners.forEach(({ emitter, eventName, boundHandler }) => {
+            emitter.off(eventName, boundHandler)
+        })
+        this.activeListeners = []
+    }
+
     /**
-     * moved into an extra method for testing purposes
+     * Inits browser listeners and sets initial handlers for given pages.
+     * Function is also intended to be used while reloading DevTools session.
+     * @param browser Puppeteer Browser
+     * @param pages Puppeteer page array
      */
-    /* istanbul ignore next */
-    static requireCommand(filePath: string) {
-        return require(filePath).default
+    initBrowser(browser: Browser, pages: Page[]) {
+        this.cleanupListeners()
+        this.elementStore = new ElementStore()
+        this.windows = new Map()
+        this.activeDialog = undefined
+        this.browser = browser
+
+        this.addListener(this.browser, 'targetcreated', this._targetCreatedHandler)
+        this.addListener(this.browser, 'targetdestroyed', this._targetDestroyedHandler)
+
+        for (const page of pages) {
+            this._createWindowHandle(page)
+        }
+
+        /**
+         * set default timeouts
+         */
+        this.setTimeouts(DEFAULT_IMPLICIT_TIMEOUT, DEFAULT_PAGELOAD_TIMEOUT, DEFAULT_SCRIPT_TIMEOUT)
+
+        const page = this.getPageHandle()
+        if (page) {
+            this.addListener(page, 'dialog', this.dialogHandler)
+            this.addListener(page, 'framenavigated', this.framenavigatedHandler)
+        }
     }
 
     register(commandInfo: CommandEndpoint) {

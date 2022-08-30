@@ -1,6 +1,6 @@
-import { getElement } from '../../utils/getElementObject'
-import { getBrowserObject } from '../../utils'
-import { ELEMENT_KEY } from '../../constants'
+import { getElement } from '../../utils/getElementObject.js'
+import { getBrowserObject } from '../../utils/index.js'
+import { ELEMENT_KEY } from '../../constants.js'
 import type { CustomStrategyFunction } from '../../types'
 
 /**
@@ -49,7 +49,7 @@ async function custom$ (
 
     const strategyRef = { strategy, strategyName, strategyArguments: [...strategyArguments, this] }
 
-    let res = await this.execute(strategy, ...strategyArguments, this)
+    let res = await browserObject.execute(strategy, ...strategyArguments, this)
 
     /**
      * if the user's script returns multiple elements

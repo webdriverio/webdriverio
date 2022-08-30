@@ -1,7 +1,7 @@
-import RunnerStream from '../src/stdStream'
-import { removeLastListener } from '../src/utils'
+import { describe, expect, it } from 'vitest'
 
-const expect = global.expect as unknown as jest.Expect
+import RunnerStream from '../src/stdStream.js'
+import { removeLastListener } from '../src/utils.js'
 
 describe('removeLastListener', () => {
     it('should remove only last listener', () => {

@@ -1,52 +1,53 @@
 image:
-    file: .gitpod/dev.dockerfile
+  file: .gitpod/dev.dockerfile
 
 tasks:
-    - name: Unit Test Coverage
-      init: gp sync-await installation
-      command: |
-          npm run test:coverage
-          cd coverage/lcov-report/
-          http-server -p 8000 &
-          cd ../../
-          npx jest --watch
-    - name: Run Documentation Page
-      init: |
-          cd /workspace/webdriverio/website
-          npm install
-      command: |
-          cd /workspace/webdriverio/website
-          npm start
-    - name: Setup WebdriverIO Development Environment
-      init: |
-          npm install
-          npm run setup-full
-          gp sync-done installation
-      command: npm run watch
-    - name: Welcome Bash
-      init: gp sync-await installation
-      command: node .gitpod/welcome.mjs
+  - name: Unit Test Coverage
+    init: gp sync-await installation
+    command: |
+      npm run test:unit
+      cd coverage/lcov-report/
+      http-server -p 8000 &
+      cd ../../
+      npx vitest
+  - name: Run Documentation Page
+    init: |
+      cd /workspace/webdriverio/website
+      npm install
+    command: |
+      cd /workspace/webdriverio/website
+      npm start
+  - name: Setup WebdriverIO Development Environment
+    init: |
+      npm install
+      npm run setup-full
+      gp sync-done installation
+    command: npm run watch
+  - name: Welcome Bash
+    init: gp sync-await installation
+    command: node .gitpod/welcome.mjs
 
 ports:
-    - port: 3000
-      onOpen: notify
-      visibility: public
-    - port: 8000
-      onOpen: notify
-      visibility: public
+  - port: 3000
+    onOpen: notify
+    visibility: public
+  - port: 8000
+    onOpen: notify
+    visibility: public
 
 github:
-    prebuilds:
-        master: true
-        branches: true
-        pullRequests: true
-        pullRequestsFromForks: true
-        addCheck: prevent-merge-on-error
-        addComment: false
-        addBadge: true
+  prebuilds:
+    master: true
+    branches: true
+    pullRequests: true
+    pullRequestsFromForks: true
+    addCheck: prevent-merge-on-error
+    addComment: false
+    addBadge: true
 
 vscode:
   extensions:
     - EditorConfig.EditorConfig
     - DigitalBrainstem.javascript-ejs-support
     - dbaeumer.vscode-eslint
+    - eamodio.gitlens

@@ -291,6 +291,20 @@ Maximum number of total parallel running workers per capability.
 Type: `Number`<br />
 Default: `100`
 
+### injectGlobals
+
+Inserts WebdriverIO's globals (e.g. `browser`, `$` and `$$`) into the global environment.
+If you set to `false`, you should import from `@wdio/globals`, e.g.:
+
+```ts
+import { browser, $, $$, expect } from '@wdio/globals'
+```
+
+Note: WebdriverIO doesn't handle injection of test framework specific globals.
+
+Type: `Boolean`<br />
+Default: `true`
+
 ### bail
 
 If you want your test run to stop after a specific number of test failures, use `bail`.
@@ -391,6 +405,38 @@ Node arguments to specify when launching child processes.
 
 Type: `String[]`
 Default: `null`
+
+### autoCompileOpts
+
+Compiler options when using WebdriverIO with TypeScript or Babel.
+
+#### autoCompileOpts.autoCompile
+
+If set to `true` the WDIO testrunner will automatically try to transpile the spec files.
+
+Type: `Boolean`
+Default: `true`
+
+#### autoCompileOpts.tsNodeOpts
+
+Configure how [`ts-node`](https://www.npmjs.com/package/ts-node) is suppose to transpile the files.
+
+Type: `Object`
+Default: `{ transpileOnly: true }`
+
+#### autoCompileOpts.tsConfigPathsOpts
+
+If you have [tsconfig-paths](https://www.npmjs.com/package/tsconfig-paths) installed and provide a `tsConfigPathsOpts` option, it will be automatically registered during bootstrap.
+
+Type: `Object`
+Default: `{}`
+
+#### autoCompileOpts.babelOpts
+
+Configure how [@babel/register](https://www.npmjs.com/package/@babel/register) is suppose to transpile the files.
+
+Type: `Object`
+Default: `{}`
 
 ## Hooks
 

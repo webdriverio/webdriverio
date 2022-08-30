@@ -1,11 +1,12 @@
 #!/usr/bin/env node
+import fs from 'node:fs'
+import url from 'node:url'
+import path from 'node:path'
+import shell from 'shelljs'
+import { getSubPackages } from './utils/helpers.js'
 
-const path = require('path')
-const shell = require('shelljs')
+const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 
-const { getSubPackages } = require('./utils/helpers')
-
-const IGNORE_COMPILING_FOR_PACKAGES = ['wdio-protocols']
 const args = process.argv.slice(2)
 const HAS_WATCH_FLAG = args[0] === '--watch'
 const TSCONFIG_FILE = process.env.NODE_ENV === 'production' ? 'tsconfig.prod.json' : 'tsconfig.json'
@@ -28,13 +29,21 @@ const ROOT_PACKAGES = [
     'webdriver',
     'devtools',
     'webdriverio',
+    'wdio-globals',
 ]
 
 const packages = getSubPackages()
     /**
      * Filter out packages that don't need compiling
      */
-    .filter((pkg) => !IGNORE_COMPILING_FOR_PACKAGES.includes(pkg))
+    .filter((pkg) => {
+        try {
+            fs.accessSync(`packages/${pkg}/${TSCONFIG_FILE}`)
+            return true
+        } catch (err) {
+            return false
+        }
+    })
 
     /**
      * Deduplicate root packages
@@ -67,6 +76,15 @@ const cmd = `npx tsc -b ${packages.map((pkg) => `packages/${pkg}/${TSCONFIG_FILE
 
 console.log(cmd)
 const { code } = shell.exec(cmd)
+
+if (!HAS_WATCH_FLAG) {
+    console.log('Remove `export {}` from CJS files')
+    for (const pkg of ['webdriver', 'devtools', 'webdriverio']) {
+        const filePath = path.join(__dirname, '..', 'packages', pkg, 'build', 'cjs', 'index.js')
+        const fileContent = await fs.readFileSync(filePath, 'utf8')
+        await fs.writeFileSync(filePath, fileContent.toString().replace('export {};', ''), 'utf8')
+    }
+}
 
 if (code) {
     throw new Error('Failed compiling TypeScript files!')

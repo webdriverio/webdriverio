@@ -1,6 +1,6 @@
-import { ELEMENT_KEY } from '../../constants'
-import { getBrowserObject } from '../../utils'
-import isElementClickableScript from '../../scripts/isElementClickable'
+import { ELEMENT_KEY } from '../../constants.js'
+import { getBrowserObject } from '../../utils/index.js'
+import isElementClickableScript from '../../scripts/isElementClickable.js'
 
 /**
  *
@@ -43,6 +43,10 @@ import isElementClickableScript from '../../scripts/isElementClickable'
 export default async function isClickable (this: WebdriverIO.Element) {
     if (!await this.isDisplayed()) {
         return false
+    }
+
+    if (this.isMobile && await this.getContext() === 'NATIVE_APP') {
+        throw new Error('Method not supported in mobile native environment. It is unlikely that you need to use this command.')
     }
 
     const browser = getBrowserObject(this)

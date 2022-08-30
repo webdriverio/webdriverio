@@ -1,12 +1,12 @@
 import { launch as launchChromeBrowser } from 'chrome-launcher'
-import puppeteer from 'puppeteer-core'
+import puppeteer, { PuppeteerLaunchOptions } from 'puppeteer-core'
 import logger from '@wdio/logger'
 import type { Browser } from 'puppeteer-core/lib/cjs/puppeteer/common/Browser'
 import type { Capabilities } from '@wdio/types'
-import { QueryHandler } from 'query-selector-shadow-dom/plugins/puppeteer'
+import { QueryHandler } from 'query-selector-shadow-dom/plugins/puppeteer/index.js'
 
-import browserFinder from './finder'
-import { getPages } from './utils'
+import browserFinder from './finder/index.js'
+import { getPages } from './utils.js'
 import {
     CHROME_NAMES,
     FIREFOX_NAMES,
@@ -17,11 +17,8 @@ import {
     DEFAULT_HEIGHT,
     DEFAULT_X_POSITION,
     DEFAULT_Y_POSITION,
-    VENDOR_PREFIX,
-    CHANNEL_FIREFOX_NIGHTLY,
-    CHANNEL_FIREFOX_TRUNK,
-    BROWSER_ERROR_MESSAGES
-} from './constants'
+    VENDOR_PREFIX
+} from './constants.js'
 import type { ExtendedCapabilities, DevToolsOptions } from './types'
 
 const log = logger('devtools')
@@ -110,6 +107,7 @@ async function launchChrome (capabilities: ExtendedCapabilities) {
 
     log.info(`Launch Google Chrome with flags: ${chromeFlags.join(' ')}`)
     const chrome = await launchChromeBrowser({
+        prefs: chromeOptions.prefs,
         chromePath: chromeOptions.binary,
         ignoreDefaultFlags: true,
         chromeFlags,
@@ -123,7 +121,7 @@ async function launchChrome (capabilities: ExtendedCapabilities) {
         ...chromeOptions,
         ...devtoolsOptions,
         defaultViewport: null,
-        browserURL: `http://localhost:${chrome.port}`
+        browserURL: `http://127.0.0.1:${chrome.port}`
     }) as unknown as Browser // casting from @types/puppeteer to built in type
 
     /**
@@ -168,7 +166,7 @@ function launchBrowser (capabilities: ExtendedCapabilities, browserType: 'edge' 
         browserFinderMethod()[0]
     )
 
-    const puppeteerOptions = Object.assign({
+    const puppeteerOptions: PuppeteerLaunchOptions = Object.assign(<PuppeteerLaunchOptions>{
         product,
         executablePath,
         ignoreDefaultArgs,
@@ -176,18 +174,12 @@ function launchBrowser (capabilities: ExtendedCapabilities, browserType: 'edge' 
         defaultViewport: {
             width: DEFAULT_WIDTH,
             height: DEFAULT_HEIGHT
-        }
+        },
+        prefs: capabilities[vendorCapKey]?.prefs
     }, capabilities[vendorCapKey] || {}, devtoolsOptions || {})
 
     if (!executablePath) {
         throw new Error('Couldn\'t find executable for browser')
-    } else if (
-        browserType === BROWSER_TYPE.firefox &&
-        executablePath !== 'firefox' &&
-        !executablePath.toLowerCase().includes(CHANNEL_FIREFOX_NIGHTLY) &&
-        !executablePath.toLowerCase().includes(CHANNEL_FIREFOX_TRUNK)
-    ) {
-        throw new Error(BROWSER_ERROR_MESSAGES.firefoxNightly)
     }
 
     log.info(`Launch ${executablePath} with config: ${JSON.stringify(puppeteerOptions)}`)
@@ -206,7 +198,8 @@ function connectBrowser (connectionUrl: string, capabilities: ExtendedCapabiliti
 
 export default async function launch (capabilities: ExtendedCapabilities) {
     puppeteer.unregisterCustomQueryHandler('shadow')
-    puppeteer.registerCustomQueryHandler('shadow', QueryHandler)
+    // ToDo(Christian): fix types (https://github.com/Georgegriff/query-selector-shadow-dom/issues/77)
+    puppeteer.registerCustomQueryHandler('shadow', QueryHandler as any)
     const browserName = capabilities.browserName?.toLowerCase()
 
     /**

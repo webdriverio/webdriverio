@@ -1,8 +1,10 @@
-import WDIORunner from '../src'
-import BaseReporter from '../src/reporter'
+import { describe, expect, it, vi, beforeEach } from 'vitest'
+
+import WDIORunner from '../src/index.js'
+import BaseReporter from '../src/reporter.js'
 import type { Options, Capabilities } from '@wdio/types'
 
-jest.mock('../src/utils', () => ({
+vi.mock('../src/utils', () => ({
     __esModule: true,
     initialiseInstance() {
         return {
@@ -29,7 +31,7 @@ describe('wdio-runner', () => {
         beforeEach(() => {
             runner = new WDIORunner()
             runner['_reporter'] = {
-                emit: jest.fn()
+                emit: vi.fn()
             } as unknown as BaseReporter
         })
 
@@ -54,8 +56,12 @@ describe('wdio-runner', () => {
         })
 
         it('should add user flags to browser but not overwrite', async () => {
-            // @ts-ignore test scenario
-            const browser = await runner['_initSession'](undefined, undefined, { isFoo: true, $: true, $$: false, isBar: true })
+            const browser = await runner['_initSession'](
+                // @ts-ignore test scenario
+                { injectGlobals: false },
+                undefined,
+                { isFoo: true, $: true, $$: false, isBar: true }
+            )
 
             expect(typeof browser!.$).toBe('function')
             expect(typeof browser!.$$).toBe('function')

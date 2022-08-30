@@ -2,16 +2,15 @@ import merge from 'deepmerge'
 import logger from '@wdio/logger'
 import type { Capabilities, Options, Services } from '@wdio/types'
 
-import RequireLibrary from './RequireLibrary'
-import FileSystemPathService from './FileSystemPathService'
+import RequireLibrary from './RequireLibrary.js'
+import FileSystemPathService from './FileSystemPathService.js'
 import {
     removeLineNumbers, isCucumberFeatureWithLineNumber, validObjectOrArray,
     loadAutoCompilers
-} from '../utils'
-import { SUPPORTED_HOOKS, SUPPORTED_FILE_EXTENSIONS } from '../constants'
-import { DEFAULT_CONFIGS } from '../constants'
+} from '../utils.js'
+import { SUPPORTED_HOOKS, SUPPORTED_FILE_EXTENSIONS, DEFAULT_CONFIGS } from '../constants.js'
 
-import type { PathService, ModuleRequireService } from '../types'
+import type { PathService, ModuleImportService } from '../types'
 
 const log = logger('@wdio/config:ConfigParser')
 const MERGE_OPTIONS = { clone: false }
@@ -36,14 +35,15 @@ export default class ConfigParser {
 
     constructor(
         private _pathService: PathService = new FileSystemPathService(),
-        private _moduleRequireService: ModuleRequireService = new RequireLibrary()
-    ) {}
+        private _moduleRequireService: ModuleImportService = new RequireLibrary()
+    ) {
+    }
 
-    autoCompile() {
+    async autoCompile() {
         /**
          * on launcher compile files if Babel or TypeScript are installed using our defaults
          */
-        if (this._config.autoCompileOpts && !loadAutoCompilers(this._config.autoCompileOpts!, this._moduleRequireService)) {
+        if (this._config.autoCompileOpts && !(await loadAutoCompilers(this._config.autoCompileOpts!, this._moduleRequireService))) {
             log.debug('No compiler found, continue without compiling files')
         }
     }
@@ -52,7 +52,7 @@ export default class ConfigParser {
      * merges config file with default values
      * @param {String} filename path of file relative to current directory
      */
-    addConfigFile(filename: string) {
+    async addConfigFile(filename: string) {
         if (typeof filename !== 'string') {
             throw new Error('addConfigFile requires filepath')
         }
@@ -60,7 +60,7 @@ export default class ConfigParser {
         const filePath = this._pathService.ensureAbsolutePath(filename)
 
         try {
-            const config = this._pathService.loadFile<{ config: TestrunnerOptionsWithParameters }>(filePath).config
+            const config = (await this._pathService.loadFile<{ config: TestrunnerOptionsWithParameters }>(filePath)).config
 
             if (typeof config !== 'object') {
                 throw new Error('addConfigEntry requires config key')
@@ -214,26 +214,33 @@ export default class ConfigParser {
             // Removing any duplicate tests that could be included
             let tmpSpecs = spec.length > 0 ? [...specs, ...suiteSpecs] : suiteSpecs
 
+            //Only merge capability specs if --spec is not defined
+            if (spec.length === 0) {
+                if (Array.isArray(capSpecs)) {
+                    tmpSpecs = ConfigParser.getFilePaths(capSpecs, undefined, this._pathService)
+                }
+
+                if (Array.isArray(capExclude)) {
+                    exclude = ConfigParser.getFilePaths(capExclude, undefined, this._pathService)
+                }
+            }
+
+            specs = [...new Set(tmpSpecs)]
+            return this.filterSpecs(specs, <string[]>exclude)
+        }
+
+        //Only merge capability specs if --spec is not defined
+        if (spec.length === 0) {
             if (Array.isArray(capSpecs)) {
-                tmpSpecs = ConfigParser.getFilePaths(capSpecs, undefined, this._pathService)
+                specs = ConfigParser.getFilePaths(capSpecs, undefined, this._pathService)
             }
 
             if (Array.isArray(capExclude)) {
                 exclude = ConfigParser.getFilePaths(capExclude, undefined, this._pathService)
             }
-
-            specs = [...new Set(tmpSpecs)]
-            return this.filterSpecs(specs, <string[]> exclude)
         }
 
-        if (Array.isArray(capSpecs)) {
-            specs = ConfigParser.getFilePaths(capSpecs, undefined, this._pathService)
-        }
-
-        if (Array.isArray(capExclude)) {
-            exclude = ConfigParser.getFilePaths(capExclude, undefined, this._pathService)
-        }
-        return this.filterSpecs(specs, <string[]> exclude)
+        return this.filterSpecs(specs, <string[]>exclude)
     }
 
     /**

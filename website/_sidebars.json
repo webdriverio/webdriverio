@@ -7,7 +7,6 @@
     ],
     "Core Concepts": [
       "setuptypes",
-      "sync-vs-async",
       "automationProtocols",
       "multiremote",
       "autowait"
@@ -27,7 +26,8 @@
       "customcommands",
       "pageobjects",
       "debugging",
-      "repl"
+      "repl",
+      "record"
     ],
     "Testrunner": [
       "clioptions",
@@ -57,7 +57,10 @@
   },
   "api": [
     "api",
-    "api/expect-webdriverio"
+    "api/expect-webdriverio",
+    "api/globals",
+    "api/environment",
+    "api/modules"
   ],
   "flowcharts": {
       "Flowcharts": [

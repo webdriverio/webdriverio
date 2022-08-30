@@ -1,9 +1,9 @@
-import path from 'path'
+import path from 'node:path'
 import { canAccess } from '@wdio/utils'
 import logger from '@wdio/logger'
 import type { Capabilities, Options } from '@wdio/types'
 
-import type { ModuleRequireService } from './types'
+import type { ModuleImportService } from './types.js'
 
 const log = logger('@wdio/config:utils')
 
@@ -93,17 +93,17 @@ export function validateConfig<T>(defaults: Options.Definition<T>, options: T, k
     return params
 }
 
-export function loadAutoCompilers(autoCompileConfig: Options.AutoCompileConfig, requireService: ModuleRequireService) {
+export async function loadAutoCompilers(autoCompileConfig: Options.AutoCompileConfig, requireService: ModuleImportService) {
     return (
         autoCompileConfig.autoCompile &&
         (
-            loadTypeScriptCompiler(
+            await loadTypeScriptCompiler(
                 autoCompileConfig.tsNodeOpts,
                 autoCompileConfig.tsConfigPathsOpts,
                 requireService
             )
             ||
-            loadBabelCompiler(
+            await loadBabelCompiler(
                 autoCompileConfig.babelOpts,
                 requireService
             )
@@ -123,20 +123,27 @@ export function validateTsConfigPaths(tsNodeOpts: any = {}) {
     }
 }
 
-export function loadTypeScriptCompiler (
+export async function loadTypeScriptCompiler (
     tsNodeOpts: any = {},
     tsConfigPathsOpts: Options.TSConfigPathsOptions | undefined,
-    requireService: ModuleRequireService
+    requireService: ModuleImportService
 ) {
+    /**
+     * don't auto compile within worker as it already was spawn with a loader
+     */
+    if (process.env.WDIO_WORKER_ID) {
+        return true
+    }
+
     try {
         validateTsConfigPaths(tsNodeOpts)
-        requireService.resolve('ts-node') as any
-        (requireService.require('ts-node') as any).register(tsNodeOpts)
+
+        ;(await requireService.import('ts-node') as any).register({ ...tsNodeOpts, esm: 1 })
         log.debug('Found \'ts-node\' package, auto-compiling TypeScript files')
 
         if (tsConfigPathsOpts) {
             log.debug('Found \'tsconfig-paths\' options, register paths')
-            const tsConfigPaths = require('tsconfig-paths')
+            const tsConfigPaths = await requireService.import('tsconfig-paths') as any
             tsConfigPaths.register(tsConfigPathsOpts)
         }
 
@@ -146,18 +153,16 @@ export function loadTypeScriptCompiler (
     }
 }
 
-export function loadBabelCompiler (babelOpts: Record<string, any> = {}, requireService: ModuleRequireService) {
+export async function loadBabelCompiler (babelOpts: Record<string, any> = {}, requireService: ModuleImportService) {
     try {
-        requireService.resolve('@babel/register') as any
-
         /**
          * only for testing purposes
          */
-        if (process.env.JEST_WORKER_ID && process.env.THROW_BABEL_REGISTER) {
+        if (process.env.VITEST_WORKER_ID && process.env.THROW_BABEL_REGISTER) {
             throw new Error('test fail')
         }
 
-        (requireService.require('@babel/register') as any)(babelOpts)
+        (await requireService.import('@babel/register') as any)(babelOpts)
         log.debug('Found \'@babel/register\' package, auto-compiling files with Babel')
         return true
     } catch (err: any) {

@@ -37,5 +37,5 @@ TypeScript compilation is used to do this kind of static analysis.
 Typings should appear in node_modules folder, same as in real project. In order to achieve that typings are copied to package folders accordingly.
 
 1. Delete `node_modules` folder in every project
-2. Copy every typings and `package.json` file of package to `node_modules`, ex: `packages/wdio-sync` to `node_modules/@wdio/sync`, etc.
+2. Copy every typings and `package.json` file of package to `node_modules`, ex: `packages/wdio-types` to `node_modules/@wdio/types`, etc.
 3. Copy referenced typings that are required by webdriverio typings

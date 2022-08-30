@@ -1,13 +1,18 @@
-import { remote } from '../../../src'
+import { expect, describe, it, vi } from 'vitest'
+import { remote } from '../../../src/index.js'
+import $ from '../../../src/commands/element/$.js'
 
-jest.mock('../../../src/commands/element/$', () => ({
+vi.mock('got')
+
+vi.mock('../../../src/commands/element/$.js', () => ({
     __esModule: true,
-    default: jest.fn().mockImplementation(() => { })
+    default: vi.fn().mockImplementation(() => { })
 }))
 
-const $ = require('../../../src/commands/element/$')
-
-describe('shadow$$', () => {
+/**
+ * Todo(Christian): make unit test work
+ */
+describe('shadow$', () => {
     it('should call $ with a function selector', async () => {
         const browser = await remote({
             baseUrl: 'http://foobar.com',
@@ -18,6 +23,6 @@ describe('shadow$$', () => {
         const el = await browser.$('#foo')
 
         await el.shadow$('#shadowfoo')
-        expect($.default).toHaveBeenCalledWith(expect.any(Function))
+        expect($).toHaveBeenCalledWith(expect.any(Function))
     })
 })

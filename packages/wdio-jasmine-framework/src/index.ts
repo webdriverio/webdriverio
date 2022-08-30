@@ -1,13 +1,15 @@
-/// <reference types="expect-webdriverio/jasmine" />
-
 import Jasmine from 'jasmine'
-import { runTestInFiberContext, executeHooksWithArgs } from '@wdio/utils'
 import logger from '@wdio/logger'
-import { EventEmitter } from 'events'
+import { runTestInFiberContext, executeHooksWithArgs } from '@wdio/utils'
+import { EventEmitter } from 'node:events'
+import { expect } from 'expect-webdriverio'
+import { _setGlobal } from '@wdio/globals'
 import type { Options, Services, Capabilities } from '@wdio/types'
 
-import JasmineReporter from './reporter'
-import type { JasmineOpts as jasmineNodeOpts, ResultHandlerPayload, FrameworkMessage, FormattedMessage } from './types'
+import JasmineReporter from './reporter.js'
+import type {
+    JasmineOpts as jasmineNodeOpts, ResultHandlerPayload, FrameworkMessage, FormattedMessage
+} from './types'
 
 const INTERFACES = {
     bdd: ['beforeAll', 'beforeEach', 'it', 'xit', 'fit', 'afterEach', 'afterAll']
@@ -16,6 +18,7 @@ const INTERFACES = {
 const TEST_INTERFACES = ['it', 'fit', 'xit']
 const NOOP = function noop() { }
 const DEFAULT_TIMEOUT_INTERVAL = 60000
+const FILE_PROTOCOL = 'file://'
 
 const log = logger('@wdio/jasmine-framework')
 
@@ -38,7 +41,7 @@ class JasmineAdapter {
     private _lastTest?: any
     private _lastSpec?: any
 
-    private _jrunner?: Jasmine
+    private _jrunner = new Jasmine({})
 
     constructor(
         private _cid: string,
@@ -61,20 +64,20 @@ class JasmineAdapter {
             cleanStack: this._jasmineOpts.cleanStack
         })
         this._hasTests = true
+        this._jrunner.exitOnCompletion = false
     }
 
     async init() {
         const self = this
 
-        this._jrunner = new Jasmine({})
         const { jasmine } = this._jrunner
         // @ts-ignore outdated
         const jasmineEnv = jasmine.getEnv()
-
-        this._jrunner.projectBaseDir = ''
-        // @ts-ignore outdated
-        this._jrunner.specDir = ''
-        this._jrunner.addSpecFiles(this._specs)
+        this._specs.forEach((spec) => this._jrunner.addSpecFile(
+            spec.startsWith(FILE_PROTOCOL)
+                ? spec.slice(FILE_PROTOCOL.length)
+                : spec
+        ))
 
         // @ts-ignore only way to hack timeout into jasmine
         jasmine.DEFAULT_TIMEOUT_INTERVAL = this._jasmineOpts.defaultTimeoutInterval || DEFAULT_TIMEOUT_INTERVAL
@@ -126,6 +129,7 @@ class JasmineAdapter {
                 failedExpectations: [],
                 deprecationWarnings: [],
                 status: '',
+                debugLogs: null,
                 ...(error ? { error } : {})
             }
 
@@ -183,26 +187,17 @@ class JasmineAdapter {
             executeMock.apply(this, args)
         }
 
-        this._loadFiles()
+        await this._loadFiles()
 
         /**
-         * import and set options for `expect-webdriverio` assertion lib once
-         * the framework was initiated so that it can detect the environment
+         * overwrite Jasmine global expect with WebdriverIOs expect
          */
-        const { setOptions } = require('expect-webdriverio')
-        setOptions({
-            wait: this._config.waitforTimeout, // ms to wait for expectation to succeed
-            interval: this._config.waitforInterval, // interval between attempts
-        })
+        _setGlobal('expect', expect, this._config.injectGlobals)
 
         return this
     }
 
-    _loadFiles() {
-        if (!this._jrunner) {
-            throw new Error('Jasmine not initiate yet')
-        }
-
+    async _loadFiles() {
         try {
             if (Array.isArray(this._jasmineOpts.requires)) {
                 // @ts-ignore outdated types
@@ -213,9 +208,9 @@ class JasmineAdapter {
                 this._jrunner.addHelperFiles(this._jasmineOpts.helpers)
             }
             // @ts-ignore outdated types
-            this._jrunner.loadRequires()
-            this._jrunner.loadHelpers()
-            this._jrunner.loadSpecs()
+            await this._jrunner.loadRequires()
+            await this._jrunner.loadHelpers()
+            await this._jrunner.loadSpecs()
             // @ts-ignore outdated types
             this._grep(this._jrunner.env.topSuite())
             this._hasTests = this._totalTests > 0
@@ -247,19 +242,14 @@ class JasmineAdapter {
     }
 
     async run() {
-        const result = await new Promise((resolve, reject) => {
-            if (!this._jrunner) {
-                return reject(new Error('Jasmine not initiate yet'))
-            }
+        // @ts-expect-error
+        this._jrunner.env.beforeAll(this.wrapHook('beforeSuite'))
+        // @ts-expect-error
+        this._jrunner.env.afterAll(this.wrapHook('afterSuite'))
 
-            // @ts-expect-error
-            this._jrunner.env.beforeAll(this.wrapHook('beforeSuite'))
-            // @ts-expect-error
-            this._jrunner.env.afterAll(this.wrapHook('afterSuite'))
+        await this._jrunner.execute()
 
-            this._jrunner.onComplete(() => resolve(this._reporter.getFailedCount()))
-            this._jrunner.execute()
-        })
+        const result = this._reporter.getFailedCount()
         await executeHooksWithArgs('after', this._config.after, [result, this._capabilities, this._specs])
         return result
     }
@@ -267,9 +257,13 @@ class JasmineAdapter {
     customSpecFilter (spec: jasmine.Spec) {
         const { grep, invertGrep } = this._jasmineOpts
         const grepMatch = !grep || spec.getFullName().match(new RegExp(grep)) !== null
+
         if (grepMatch === Boolean(invertGrep)) {
-            // @ts-ignore outdated types
-            spec.pend('grep')
+            // @ts-expect-error internal method
+            if (typeof spec.pend === 'function') {
+                // @ts-expect-error internal method
+                spec.pend('grep')
+            }
             return false
         }
         return true
@@ -387,7 +381,7 @@ adapterFactory.init = async function (...args: any[]) {
 
 export default adapterFactory
 export { JasmineAdapter, adapterFactory }
-export * from './types'
+export * from './types.js'
 
 type jasmine = typeof Jasmine
 declare global {
@@ -455,11 +449,5 @@ declare global {
 
     namespace WebdriverIO {
         interface JasmineOpts extends jasmineNodeOpts {}
-    }
-
-    namespace jasmine {
-        interface Matchers<T> extends ExpectWebdriverIO.Matchers<any, T> {}
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        interface AsyncMatchers<T, U> extends ExpectWebdriverIO.Matchers<Promise<void>, T> {}
     }
 }

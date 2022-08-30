@@ -1,6 +1,6 @@
-import { EventEmitter } from 'events'
-import { Testrunner as TestrunnerOptions } from './Options'
-import {
+import type { EventEmitter } from 'node:events'
+import type { Testrunner as TestrunnerOptions } from './Options'
+import type {
     DesiredCapabilities,
     MultiRemoteCapabilities,
     RemoteCapability,

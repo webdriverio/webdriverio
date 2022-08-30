@@ -1,11 +1,7 @@
-import { ModuleRequireService } from '../types'
+import type { ModuleImportService } from '../types'
 
-export default class RequireLibrary implements ModuleRequireService {
-    require<T>(module: string): T {
-        return require(module) as T
-    }
-
-    resolve(request: string, options: { paths?: string[] }): string {
-        return require.resolve(request, options)
+export default class RequireLibrary implements ModuleImportService {
+    import<T>(module: string): Promise<T> {
+        return import(module) as Promise<T>
     }
 }

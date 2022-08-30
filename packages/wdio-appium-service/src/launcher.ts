@@ -1,12 +1,13 @@
+import { ChildProcessByStdio, spawn } from 'node:child_process'
+import { promisify } from 'node:util'
+import { Readable } from 'node:stream'
+import { createRequire } from 'node:module'
+
 import logger from '@wdio/logger'
-import { ChildProcessByStdio, spawn } from 'child_process'
-import { createWriteStream, ensureFileSync } from 'fs-extra'
-import { promisify } from 'util'
-import { Readable } from 'stream'
 import { isCloudCapability } from '@wdio/config'
 import type { Services, Capabilities, Options } from '@wdio/types'
 
-import { getFilePath, formatCliArgs } from './utils'
+import { getFilePath, formatCliArgs } from './utils.js'
 import type { AppiumServerArguments, AppiumServiceConfig } from './types'
 
 const log = logger('@wdio/appium-service')
@@ -18,6 +19,13 @@ const DEFAULT_CONNECTION = {
     port: 4723,
     path: '/'
 }
+
+const require = createRequire(import.meta.url)
+/**
+ * 'fs-extra' has no support for ESM
+ * https://github.com/jprichardson/node-fs-extra/issues/746
+ */
+const { createWriteStream, ensureFileSync } = require('fs-extra')
 
 export default class AppiumLauncher implements Services.ServiceInstance {
     private readonly _logPath?: string

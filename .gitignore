@@ -68,7 +68,7 @@ tests/typings/**/dist
 /*.ts
 devtools.d.ts
 !.eslintrc.js
-!jest.config.js
+!vitest.config.ts
 packages/**/package-lock.json
 .DS_Store
 
@@ -80,12 +80,14 @@ website/sidebars.json
 website/node_modules
 website/i18n/*
 website/docs/api/**/*.md
+!website/docs/api/Environment.md
+!website/docs/api/Globals.md
+!website/docs/api/Modules.md
 website/docs/docs/**/*.md
 website/docs/_*.md
 
 # Editor files
 .idea
-.vscode
 !.vscode/extensions.json
 .*.swp
 .history

@@ -1,14 +1,19 @@
-import { Protocol } from './types'
-import AppiumCommands from './commands/appium'
-import ChromiumCommands from './commands/chromium'
-import GeckoCommands from './commands/gecko'
-import JSONWPCommands from './commands/jsonwp'
-import MJSONWPCommands from './commands/mjsonwp'
-import SauceLabsCommands from './commands/saucelabs'
-import SeleniumCommands from './commands/selenium'
-import WebDriverCommands from './commands/webdriver'
+import { createRequire } from 'node:module'
 
+import type { Protocol } from './types'
+import type AppiumCommands from './commands/appium'
+import type ChromiumCommands from './commands/chromium'
+import type GeckoCommands from './commands/gecko'
+import type JSONWPCommands from './commands/jsonwp'
+import type MJSONWPCommands from './commands/mjsonwp'
+import type SauceLabsCommands from './commands/saucelabs'
+import type SeleniumCommands from './commands/selenium'
+import type WebDriverCommands from './commands/webdriver'
+import type WebDriverBidiCommands from './commands/webdriverBidi'
+
+const require = createRequire(import.meta.url)
 const WebDriverProtocol: Protocol = require('../protocols/webdriver.json')
+const WebDriverBidiProtocol: Protocol = require('../protocols/webdriverBidi.json')
 const MJsonWProtocol: Protocol = require('../protocols/mjsonwp.json')
 const JsonWProtocol: Protocol = require('../protocols/jsonwp.json')
 const AppiumProtocol: Protocol = require('../protocols/appium.json')
@@ -20,6 +25,10 @@ const SeleniumProtocol: Protocol = require('../protocols/selenium.json')
 type WebDriverCommandsAsync = {
     [K in keyof WebDriverCommands]:
     (...args: Parameters<WebDriverCommands[K]>) => Promise<ReturnType<WebDriverCommands[K]>>
+}
+type WebDriverBidiCommandsAsync = {
+    [K in keyof WebDriverBidiCommands]:
+    (...args: Parameters<WebDriverBidiCommands[K]>) => Promise<ReturnType<WebDriverBidiCommands[K]>>
 }
 type AppiumCommandsAsync = {
     [K in keyof AppiumCommands]:
@@ -53,16 +62,25 @@ type SeleniumCommandsAsync = {
 export interface ProtocolCommands extends WebDriverCommands, Omit<JSONWPCommands, keyof WebDriverCommands>, AppiumCommands, ChromiumCommands, Omit<MJSONWPCommands, keyof AppiumCommands | keyof ChromiumCommands>, SauceLabsCommands, SeleniumCommands {}
 export interface ProtocolCommandsAsync extends WebDriverCommandsAsync, Omit<JSONWPCommandsAsync, keyof WebDriverCommandsAsync>, AppiumCommandsAsync, ChromiumCommandsAsync, Omit<MJSONWPCommandsAsync, keyof AppiumCommandsAsync | keyof ChromiumCommandsAsync>, SauceLabsCommandsAsync, SeleniumCommandsAsync {}
 
-export * from './types'
+export * from './types.js'
 export {
     // protocols
     WebDriverProtocol, MJsonWProtocol, JsonWProtocol, AppiumProtocol,
     ChromiumProtocol, SauceLabsProtocol, SeleniumProtocol, GeckoProtocol,
+    WebDriverBidiProtocol,
     // sync commands
     AppiumCommands, ChromiumCommands, JSONWPCommands, MJSONWPCommands,
     SauceLabsCommands, SeleniumCommands, WebDriverCommands, GeckoCommands,
+    WebDriverBidiCommands,
     // async commands
     WebDriverCommandsAsync, AppiumCommandsAsync, ChromiumCommandsAsync,
     JSONWPCommandsAsync, MJSONWPCommandsAsync, SauceLabsCommandsAsync,
-    SeleniumCommandsAsync, GeckoCommandsAsync
+    SeleniumCommandsAsync, GeckoCommandsAsync,
+    WebDriverBidiCommandsAsync
 }
+
+export const CAPABILITY_KEYS = [
+    'browserName', 'browserVersion', 'platformName', 'acceptInsecureCerts',
+    'pageLoadStrategy', 'proxy', 'setWindowRect', 'timeouts', 'strictFileInteractability',
+    'unhandledPromptBehavior', 'webSocketUrl'
+]

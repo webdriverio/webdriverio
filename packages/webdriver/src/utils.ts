@@ -1,17 +1,18 @@
 import merge from 'lodash.merge'
 import logger from '@wdio/logger'
+import Protocols from '@wdio/protocols'
 import {
     WebDriverProtocol, MJsonWProtocol, JsonWProtocol, AppiumProtocol, ChromiumProtocol,
-    SauceLabsProtocol, SeleniumProtocol, GeckoProtocol
+    SauceLabsProtocol, SeleniumProtocol, GeckoProtocol, WebDriverBidiProtocol
 } from '@wdio/protocols'
-import Protocols from '@wdio/protocols'
-import { Options, Capabilities } from '@wdio/types'
-
-import RequestFactory from './request/factory'
-import { WebDriverResponse } from './request'
-import command from './command'
 import { transformCommandLogResult } from '@wdio/utils'
-import { VALID_CAPS, REG_EXPS } from './constants'
+import { CAPABILITY_KEYS } from '@wdio/protocols'
+import type { Options, Capabilities } from '@wdio/types'
+
+import RequestFactory from './request/factory.js'
+import command from './command.js'
+import { REG_EXPS } from './constants.js'
+import type { WebDriverResponse } from './request/index.js'
 import type { Client, JSONWPCommandError, SessionFlags } from './types'
 
 const log = logger('webdriver')
@@ -34,7 +35,7 @@ export async function startWebDriverSession (params: Options.WebDriver): Promise
     if (params.capabilities) {
         const extensionCaps = Object.keys(params.capabilities).filter((cap) => cap.includes(':'))
         const invalidWebDriverCaps = Object.keys(params.capabilities)
-            .filter((cap) => !VALID_CAPS.includes(cap) && !cap.includes(':'))
+            .filter((cap) => !CAPABILITY_KEYS.includes(cap) && !cap.includes(':'))
 
         /**
          * if there are vendor extensions, e.g. sauce:options or appium:app
@@ -68,7 +69,7 @@ export async function startWebDriverSession (params: Options.WebDriver): Promise
          */
         : [{ alwaysMatch: params.capabilities, firstMatch: [{}] }, params.capabilities]
 
-    const sessionRequest = RequestFactory.getInstance(
+    const sessionRequest = await RequestFactory.getInstance(
         'POST',
         '/session',
         {
@@ -178,6 +179,10 @@ export function getPrototype ({ isW3C, isChrome, isFirefox, isMobile, isSauce, i
             ? merge({}, JsonWProtocol, WebDriverProtocol)
             : isW3C ? WebDriverProtocol : JsonWProtocol,
         /**
+         * enable Bidi protocol for W3C sessions
+         */
+        isW3C ? WebDriverBidiProtocol : {},
+        /**
          * only apply mobile protocol if session is actually for mobile
          */
         isMobile ? merge({}, MJsonWProtocol, AppiumProtocol) : {},
@@ -214,7 +219,7 @@ export function getPrototype ({ isW3C, isChrome, isFirefox, isMobile, isSauce, i
  * @param  {Object} body body object
  * @return {Object} error
  */
-export function getErrorFromResponseBody (body: any) {
+export function getErrorFromResponseBody (body: any, requestOptions: any) {
     if (!body) {
         return new Error('Response has empty body')
     }
@@ -227,14 +232,26 @@ export function getErrorFromResponseBody (body: any) {
         return new Error('Unknown error')
     }
 
-    return new CustomRequestError(body)
+    return new CustomRequestError(body, requestOptions)
 }
 
 //Exporting for testability
 export class CustomRequestError extends Error {
-    constructor(body: WebDriverResponse) {
+    constructor (body: WebDriverResponse, requestOptions: any) {
         const errorObj = body.value || body
-        super(errorObj.message || errorObj.class || 'unknown error')
+        let errorMessage = errorObj.message || errorObj.class || 'unknown error'
+
+        /**
+         * improve error message for Chrome and Safari on invalid selectors
+         */
+        if (typeof errorObj.error === 'string' && errorObj.error.includes('invalid selector')) {
+            errorMessage = (
+                `The selector "${requestOptions.value}" used with strategy "${requestOptions.using}" is invalid! ` +
+                'For more information on selectors visit the WebdriverIO docs at: https://webdriver.io/docs/selectors'
+            )
+        }
+
+        super(errorMessage)
         if (errorObj.error) {
             this.name = errorObj.error
         } else if (errorObj.message && errorObj.message.includes('stale element reference')) {

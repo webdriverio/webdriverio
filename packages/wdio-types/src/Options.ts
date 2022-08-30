@@ -1,14 +1,14 @@
-import * as http from 'http'
-import * as https from 'https'
+import * as http from 'node:http'
+import * as https from 'node:https'
 import type { RegisterOptions } from './Compiler'
-import type { URL } from 'url'
+import type { URL } from 'node:url'
 
-import { W3CCapabilities, DesiredCapabilities, RemoteCapabilities, RemoteCapability, MultiRemoteCapabilities, Capabilities } from './Capabilities'
-import { Hooks, ServiceEntry } from './Services'
-import { ReporterEntry } from './Reporters'
+import type { W3CCapabilities, DesiredCapabilities, RemoteCapabilities, RemoteCapability, MultiRemoteCapabilities, Capabilities } from './Capabilities'
+import type { Hooks, ServiceEntry } from './Services'
+import type { ReporterEntry } from './Reporters'
 
 export type WebDriverLogTypes = 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'silent'
-export type SupportedProtocols = 'webdriver' | 'devtools' | './protocol-stub'
+export type SupportedProtocols = 'webdriver' | 'devtools' | './protocol-stub.js'
 export type Agents = {http?: any, https?: any}
 
 export interface RequestLibOptions {
@@ -19,10 +19,10 @@ export interface RequestLibOptions {
     json?: Record<string, unknown>
     method?: string
     responseType?: string
-    retry?: number
+    retry?: { limit: number }
     searchParams?: Record<string, unknown>
     throwHttpErrors?: boolean
-    timeout?: number
+    timeout?: { response: number }
     url?: URL
     path?: string
     username?: string
@@ -359,6 +359,21 @@ export interface Testrunner extends Hooks, Omit<WebdriverIO, 'capabilities'>, We
      * Maximum number of total parallel running workers per capability.
      */
     maxInstancesPerCapability?: number
+    /**
+     * Inserts WebdriverIO's globals (e.g. `browser`, `$` and `$$`) into the
+     * global environment. If you set to `false`, you should import from
+     * `@wdio/globals`, e.g.:
+     *
+     * ```ts
+     * import { browser, $, $$, expect } from '@wdio/globals'
+     * ```
+     *
+     * Note: WebdriverIO doesn't handle injection of test framework specific
+     * globals.
+     *
+     * @default true
+     */
+    injectGlobals?: boolean
     /**
      * If you want your test run to stop after a specific number of test failures, use bail.
      * (It defaults to 0, which runs all tests no matter what.) Note: Please be aware that

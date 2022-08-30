@@ -1,24 +1,23 @@
+import path from 'node:path'
+import util from 'node:util'
 import fs from 'fs-extra'
-import path from 'path'
-import util from 'util'
 import inquirer from 'inquirer'
 import yarnInstall from 'yarn-install'
+import type { Argv } from 'yargs'
 
 import {
     CONFIG_HELPER_INTRO, CLI_EPILOGUE, COMPILER_OPTIONS,
     TS_COMPILER_INSTRUCTIONS, SUPPORTED_PACKAGES,
     CONFIG_HELPER_SUCCESS_MESSAGE,
-    DEPENDENCIES_INSTALLATION_MESSAGE
-} from '../constants'
+    DEPENDENCIES_INSTALLATION_MESSAGE,
+    pkg
+} from '../constants.js'
 import {
     addServiceDeps, convertPackageHashToObject, renderConfigurationFile,
     hasFile, generateTestFiles, getAnswers, getPathForFileGeneration,
     hasPackage
-} from '../utils'
-import { ConfigCommandArguments, ParsedAnswers } from '../types'
-import yargs from 'yargs'
-
-const pkg = require('../../package.json')
+} from '../utils.js'
+import type { ConfigCommandArguments, ParsedAnswers } from '../types'
 
 export const command = 'config'
 export const desc = 'Initialize WebdriverIO and setup configuration in your current project.'
@@ -37,7 +36,7 @@ export const cmdArgs = {
     }
 } as const
 
-export const builder = (yargs: yargs.Argv) => {
+export const builder = (yargs: Argv) => {
     return yargs
         .options(cmdArgs)
         .epilogue(CLI_EPILOGUE)
@@ -64,9 +63,7 @@ const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) 
     /**
      * find relative paths between tests and pages
      */
-
     const parsedPaths = getPathForFileGeneration(answers)
-
     const parsedAnswers: ParsedAnswers = {
         ...answers,
         runner: runnerPackage.short as 'local',
@@ -99,7 +96,7 @@ const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) 
                 moduleResolution: 'node',
                 types: [
                     'node',
-                    'webdriverio/async',
+                    '@wdio/globals/types',
                     frameworkPackage.package,
                     'expect-webdriverio'
                 ],
@@ -181,7 +178,7 @@ const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) 
             /**
              * don't exit if running unit tests
              */
-            if (exit /* istanbul ignore next */ && !process.env.JEST_WORKER_ID) {
+            if (exit /* istanbul ignore next */ && !process.env.VITEST_WORKER_ID) {
                 /* istanbul ignore next */
                 process.exit(1)
             }
@@ -212,7 +209,7 @@ const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) 
      */
     if (answers.isUsingCompiler === COMPILER_OPTIONS.ts) {
         const tsPkgs = `"${[
-            'webdriverio/async',
+            '@wdio/globals/types',
             frameworkPackage.package,
             'expect-webdriverio',
             ...servicePackages
@@ -234,7 +231,7 @@ const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) 
     /**
      * don't exit if running unit tests
      */
-    if (exit /* istanbul ignore next */ && !process.env.JEST_WORKER_ID) {
+    if (exit /* istanbul ignore next */ && !process.env.VITEST_WORKER_ID) {
         /* istanbul ignore next */
         process.exit(0)
     }
@@ -258,11 +255,15 @@ export function handler(argv: ConfigCommandArguments) {
  * @param {Function} runConfigCmd   runConfig method to be replaceable for unit testing
  */
 export async function missingConfigurationPrompt(command: string, message: string, useYarn = false, runConfigCmd = runConfig) {
+    const configMessage = command === 'run'
+        ? `Error: Could not execute "run" due to missing configuration, file "${message}" not found! Would you like to create one?`
+        : `Error: Could not execute "${command}" due to missing configuration. Would you like to create one?`
+
     const { config } = await inquirer.prompt([
         {
             type: 'confirm',
             name: 'config',
-            message: `Error: Could not execute "${command}" due to missing configuration. Would you like to create one?`,
+            message: configMessage,
             default: false
         }
     ])
@@ -270,9 +271,12 @@ export async function missingConfigurationPrompt(command: string, message: strin
     /**
      * don't exit if running unit tests
      */
-    if (!config && !process.env.JEST_WORKER_ID) {
+    if (!config && !process.env.VITEST_WORKER_ID) {
         /* istanbul ignore next */
-        console.log(message)
+        console.log(command === 'run'
+            ? `No WebdriverIO configuration found in "${process.cwd()}"`
+            : message)
+
         /* istanbul ignore next */
         return process.exit(0)
     }

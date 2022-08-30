@@ -15,11 +15,33 @@ Instructions on how to install `WebdriverIO` can be found [here.](https://webdri
 
 ## Usage
 
-Get/set a value (plain object) to/from the store by key (string).
+Get/set a value (plain object) to/from the store by key (string). The key can be any arbitrary string except `*` which is reserved as it allows you to fetch the whole store.
 
-`browser.sharedStore.set('key', 'value')` set value to store
+### Set Values
 
-`browser.sharedStore.get('key')` get value from store (returns `'value'`)
+To set values to the store call:
+
+```js
+await browser.sharedStore.set('key', 'foobar123')
+```
+
+### Get Values
+
+To get values from the store call:
+
+```js
+const value = await browser.sharedStore.get('key')
+console.log(value) // returns "foobar123"
+```
+
+You can also fetch all key values by using the `*` key:
+
+```js
+const store = await browser.sharedStore.get('*')
+console.log(value) // returns `{ key: "foobar" }`
+```
+
+### Access Store in WDIO Hooks
 
 You could also directly access to `setValue` and `getValue` async handlers.
 Make sure you properly call them with the `await` keyword.

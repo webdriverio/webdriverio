@@ -41,7 +41,7 @@ export default function debug(
     /**
      * run repl in standalone mode
      */
-    if (!process.env.WDIO_WORKER || typeof process.send !== 'function') {
+    if (!process.env.WDIO_WORKER_ID || typeof process.send !== 'function') {
         // eslint-disable-next-line
         console.log(WDIORepl.introMessage)
         const context = {

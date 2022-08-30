@@ -1,7 +1,7 @@
 module.exports = {
     root: true,
     parser: '@typescript-eslint/parser',
-    plugins: ['@typescript-eslint'],
+    plugins: ['@typescript-eslint', 'unicorn', 'import'],
     extends: [
         'eslint:recommended'
     ],
@@ -10,7 +10,7 @@ module.exports = {
         es6: true
     },
     parserOptions: {
-        ecmaVersion: 2017,
+        ecmaVersion: 2020,
         sourceType: 'module'
     },
     rules: {
@@ -34,7 +34,9 @@ module.exports = {
         'object-curly-spacing': ['error', 'always'],
         'keyword-spacing':['error'],
         'require-atomic-updates': 0,
-        'linebreak-style': ['error', 'unix']
+        'linebreak-style': ['error', 'unix'],
+        'unicorn/prefer-node-protocol': ['error'],
+        'import/extensions': ['error', 'ignorePackages']
     },
     overrides: [{
         files: ['*.ts'],

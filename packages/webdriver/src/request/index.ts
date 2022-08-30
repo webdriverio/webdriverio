@@ -1,14 +1,16 @@
-import { EventEmitter } from 'events'
-import path from 'path'
-import type { URL } from 'url'
-import { URLFactory } from './factory'
+import path from 'node:path'
+import { EventEmitter } from 'node:events'
+import { createRequire } from 'node:module'
+import type { URL } from 'node:url'
 
 import logger from '@wdio/logger'
 import { transformCommandLogResult } from '@wdio/utils'
 import type { Options } from '@wdio/types'
 
-import { isSuccessfulResponse, getErrorFromResponseBody, getTimeoutError } from '../utils'
+import { URLFactory } from './factory.js'
+import { isSuccessfulResponse, getErrorFromResponseBody, getTimeoutError } from '../utils.js'
 
+const require = createRequire(import.meta.url)
 const pkg = require('../../package.json')
 
 type Agents = Options.Agents
@@ -56,7 +58,7 @@ export default abstract class WebDriverRequest extends EventEmitter {
     requiresSessionId: boolean
     defaultAgents: Agents | null
     defaultOptions: RequestLibOptions = {
-        retry: 0, // we have our own retry mechanism
+        retry: { limit: 0 }, // we have our own retry mechanism
         followRedirect: true,
         responseType: 'json',
         throwHttpErrors: false
@@ -72,10 +74,12 @@ export default abstract class WebDriverRequest extends EventEmitter {
         this.requiresSessionId = Boolean(this.endpoint.match(/:sessionId/))
     }
 
-    makeRequest (options: RequestOptions, sessionId?: string) {
-        let fullRequestOptions: RequestLibOptions = Object.assign({
-            method: this.method
-        }, this.defaultOptions, this._createOptions(options, sessionId))
+    async makeRequest (options: RequestOptions, sessionId?: string) {
+        let fullRequestOptions: RequestLibOptions = Object.assign(
+            { method: this.method },
+            this.defaultOptions,
+            await this._createOptions(options, sessionId)
+        )
         if (typeof options.transformRequest === 'function') {
             fullRequestOptions = options.transformRequest(fullRequestOptions)
         }
@@ -84,7 +88,7 @@ export default abstract class WebDriverRequest extends EventEmitter {
         return this._request(fullRequestOptions, options.transformResponse, options.connectionRetryCount, 0)
     }
 
-    protected _createOptions (options: RequestOptions, sessionId?: string, isBrowser: boolean = false): RequestLibOptions {
+    protected async _createOptions (options: RequestOptions, sessionId?: string, isBrowser: boolean = false): Promise<RequestLibOptions> {
         const agent = isBrowser ? undefined : (options.agent || this.defaultAgents)
         const searchParams = isBrowser ?
             undefined :
@@ -97,7 +101,7 @@ export default abstract class WebDriverRequest extends EventEmitter {
                 ...(typeof options.headers === 'object' ? options.headers : {})
             },
             searchParams,
-            timeout: options.connectionRetryTimeout
+            timeout: { response: options.connectionRetryTimeout as number }
         }
 
         /**
@@ -122,7 +126,7 @@ export default abstract class WebDriverRequest extends EventEmitter {
             endpoint = endpoint.replace(':sessionId', sessionId)
         }
 
-        requestOptions.url = URLFactory.getInstance(
+        requestOptions.url = await URLFactory.getInstance(
             `${options.protocol}://` +
             `${options.hostname}:${options.port}` +
             (this.isHubCommand ? this.endpoint : path.join(options.path || '', endpoint))
@@ -227,7 +231,7 @@ export default abstract class WebDriverRequest extends EventEmitter {
             response = transformResponse(response, fullRequestOptions) as RequestLibResponse
         }
 
-        const error = getErrorFromResponseBody(response.body)
+        const error = getErrorFromResponseBody(response.body, fullRequestOptions.json)
 
         /**
          * retry connection refused errors

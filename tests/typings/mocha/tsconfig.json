@@ -5,7 +5,7 @@
     "lib": ["es2018", "dom"],
     "esModuleInterop": true,
     "types": [
-      "webdriverio/async",
+      "@wdio/globals/types",
       "@wdio/mocha-framework"
     ],
     "typeRoots": ["./node_modules"]

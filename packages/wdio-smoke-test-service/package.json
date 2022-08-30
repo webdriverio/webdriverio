@@ -5,13 +5,13 @@
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-smoke-test-service",
   "license": "MIT",
-  "main": "./build/index",
   "engines": {
-    "node": ">=12.0.0"
+    "node": "^16.13 || >=18"
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/webdriverio/webdriverio.git"
+    "url": "git://github.com/webdriverio/webdriverio.git",
+    "directory": "packages/wdio-smoke-test-service"
   },
   "keywords": [],
   "bugs": {
@@ -20,5 +20,8 @@
   "publishConfig": {
     "access": "public"
   },
-  "types": "./build/index.d.ts"
+  "type": "module",
+  "exports": "./build/index.js",
+  "types": "./build/index.d.ts",
+  "typeScriptVersion": "3.8.3"
 }

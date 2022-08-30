@@ -73,6 +73,15 @@ exports.config = {
     // from the same test should run tests.
     maxInstances: 10,
     //
+    // Or set a limit to run tests with a specific capability.
+    maxInstancesPerCapability: 10,
+    //
+    // Inserts WebdriverIO's globals (e.g. `browser`, `$` and `$$`) into the global environment.
+    // If you set to `false`, you should import from `@wdio/globals`. Note: WebdriverIO doesn't
+    // handle injection of test framework specific globals.
+    //
+    injectGlobals: true,
+    //
     // If you have trouble getting all important capabilities together, check out the
     // Sauce Labs platform configurator - a great tool to configure your capabilities:
     // https://saucelabs.com/platform/platform-configurator

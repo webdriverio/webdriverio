@@ -1,4 +1,4 @@
-import {
+import type {
     WebdriverIO as WebDriverIOOptions,
     Connection as ConnectionOptions
 } from './Options'
@@ -152,13 +152,19 @@ export interface VendorExtensions extends EdgeCapabilities, AppiumW3CCapabilitie
     'sauce:options'?: SauceLabsCapabilities
     // Sauce Labs Visual
     'sauce:visual'?: SauceLabsVisualCapabilities
+    // Experitest Access Keys
+    'experitest:accessKey'?: string
     // Browserstack w3c specific
     'bstack:options'?: BrowserStackCapabilities
     'browserstack.local'?: boolean
+    /**
+     * @private
+     */
+    'browserstack.wdioService'?: string
 
     'goog:chromeOptions'?: ChromeOptions;
     'moz:firefoxOptions'?: FirefoxOptions;
-    'moz:debuggerAddress'?: boolean;
+    'moz:debuggerAddress'?: string;
     // eslint-disable-next-line
     firefox_profile?: string;
     'ms:edgeOptions'?: MicrosoftEdgeOptions;

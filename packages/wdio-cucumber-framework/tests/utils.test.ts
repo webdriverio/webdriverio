@@ -1,3 +1,5 @@
+import path from 'node:path'
+import { describe, expect, it, vi } from 'vitest'
 import {
     createStepArgument,
     formatMessage,
@@ -9,17 +11,19 @@ import {
     getTestStepTitle,
     addKeywordToStep,
     getRule,
-} from '../src/utils'
-import { featureWithRules } from './fixtures/features'
+} from '../src/utils.js'
+import { featureWithRules } from './fixtures/features.js'
+
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 describe('utils', () => {
     describe('createStepArgument', () => {
         it('Works without argument', () => {
-            expect(typeof createStepArgument({})).toBe('undefined')
+            expect(typeof createStepArgument({} as any)).toBe('undefined')
         })
 
         it('Works with unexpected type', () => {
-            expect(typeof createStepArgument({ argument: { } }))
+            expect(typeof createStepArgument({ argument: { } } as any))
                 .toBe('undefined')
         })
 
@@ -34,7 +38,7 @@ describe('utils', () => {
                         ]
                     }
                 }
-            })).toMatchSnapshot()
+            } as any)).toMatchSnapshot()
         })
 
         it('Works with DocString', () => {
@@ -44,7 +48,7 @@ describe('utils', () => {
                         content: 'some string content'
                     }
                 }
-            })).toEqual('some string content')
+            } as any)).toEqual('some string content')
         })
     })
 
@@ -81,8 +85,8 @@ describe('utils', () => {
     })
 
     it('getStepType', () => {
-        expect(getStepType({})).toBe('test')
-        expect(getStepType({ hookId: '123' })).toBe('hook')
+        expect(getStepType({} as any)).toBe('test')
+        expect(getStepType({ hookId: '123' } as any)).toBe('hook')
     })
 
     it('getFeatureId', () => {
@@ -91,20 +95,22 @@ describe('utils', () => {
                 line: 1,
                 column: 2
             }
-        })).toBe('bar.feature:1:2')
+        } as any)).toBe('bar.feature:1:2')
     })
 
     it('buildStepPayload', () => {
         expect(buildStepPayload('uri', {
             name: 'some feature'
-        }, {
+        } as any, {
             id: '321',
             tags: [{ name: 'some tag' }]
-        }, {
+        } as any, {
             id: '123',
             text: 'title',
             keyword: 'Given'
-        }, { type: 'step' })).toMatchSnapshot()
+        } as any, {
+            type: 'step'
+        })).toMatchSnapshot()
     })
 
     it('setUserHookNames', () => {
@@ -135,29 +141,29 @@ describe('utils', () => {
         }, {
             id: '123',
             tags: [{ name: '@skip(browserName="chrome")' }]
-        })).toBe(false)
+        } as any)).toBe(false)
         expect(filterPickles({
             browserName: 'chrome'
         }, {
             id: '123',
             tags: [{ name: '@skip(browserName="foobar")' }]
-        })).toBe(true)
+        } as any)).toBe(true)
         expect(filterPickles({
             browserName: 'chrome',
             platformName: 'windows'
         }, {
             id: '123',
             tags: [{ name: '@skip(browserName="foobar";platformName="windows")' }]
-        })).toBe(true)
+        } as any)).toBe(true)
         expect(filterPickles({
             browserName: 'chrome'
         }, {
             id: '123',
             tags: [{ name: '@skip(something=weird)' }]
-        })).toBe(false)
+        } as any)).toBe(false)
     })
 
-    it('addKeywordToStep should add keywords to the steps', ()=>{
+    it('addKeywordToStep should add keywords to the steps', () => {
         const steps = [
             // Should get a keyword
             {
@@ -233,15 +239,15 @@ describe('utils', () => {
             ]
         }
 
-        expect(addKeywordToStep(steps, feature)).toMatchSnapshot()
+        expect(addKeywordToStep(steps as any, feature as any)).toMatchSnapshot()
     })
 
-    it('getRule should get the rule for an specific scenario id', ()=>{
+    it('getRule should get the rule for an specific scenario id', () => {
         const feature = featureWithRules
 
-        expect(getRule(feature, '1')).toBe(undefined)
-        expect(getRule(feature, '2')).toBe('Rule for scenario 2')
-        expect(getRule(feature, '3')).toBe('Rule for scenario 3 and 4')
-        expect(getRule(feature, '4')).toBe('Rule for scenario 3 and 4')
+        expect(getRule(feature as any, '1')).toBe(undefined)
+        expect(getRule(feature as any, '2')).toBe('Rule for scenario 2')
+        expect(getRule(feature as any, '3')).toBe('Rule for scenario 3 and 4')
+        expect(getRule(feature as any, '4')).toBe('Rule for scenario 3 and 4')
     })
 })

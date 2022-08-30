@@ -1,13 +1,14 @@
 WebDriver
 =========
 
-> A lightweight, non-opinionated implementation of the [WebDriver specification](https://w3c.github.io/webdriver/webdriver-spec.html) including mobile commands supported by [Appium](http://appium.io/)
+> A lightweight, non-opinionated implementation of the [WebDriver](https://w3c.github.io/webdriver/webdriver-spec.html) and [WebDriver BiDi](https://w3c.github.io/webdriver-bidi/) specification including mobile commands supported by [Appium](http://appium.io/)
 
 There are [tons](https://github.com/christian-bromann/awesome-selenium#javascript) of Selenium and WebDriver binding implementations in the Node.js world. Every one of them have an opinionated API and recommended way to use. This binding is the most non-opinionated you will find as it just represents the [WebDriver specification](https://w3c.github.io/webdriver/webdriver-spec.html) and doesn't come with any extra or higher level abstraction. It is lightweight and comes with support for the [WebDriver specification](https://w3c.github.io/webdriver/webdriver-spec.html) and Appium's [Mobile JSONWire Protocol](https://github.com/appium/appium-base-driver/blob/master/docs/mjsonwp/protocol-methods.md).
 
 The package supports the following protocols:
 
 - [WebDriver](https://w3c.github.io/webdriver/)
+- [WebDriver Bidi](https://w3c.github.io/webdriver-bidi/)
 - [Appium](http://appium.io/)
 - [Chromium](http://chromedriver.chromium.org/) (additional Chromedriver specific commands)
 - [Selenium](https://www.selenium.dev/) (additional Selenium WebDriver specific commands)
@@ -25,31 +26,57 @@ To install this package from NPM run:
 npm i webdriver
 ```
 
-## Example
+## WebDriver Example
 
 The following example demonstrates a simple Google Search scenario:
 
 ```js
 import WebDriver from 'webdriver';
 
-(async () => {
-    const client = await WebDriver.newSession({
-        path: '/',
-        capabilities: { browserName: 'firefox' }
-    })
+const client = await WebDriver.newSession({
+    path: '/',
+    capabilities: { browserName: 'firefox' }
+})
 
-    await client.navigateTo('https://www.google.com/ncr')
+await client.navigateTo('https://www.google.com/ncr')
 
-    const searchInput = await client.findElement('css selector', '#lst-ib')
-    await client.elementSendKeys(searchInput['element-6066-11e4-a52e-4f735466cecf'], 'WebDriver')
+const searchInput = await client.findElement('css selector', '#lst-ib')
+await client.elementSendKeys(searchInput['element-6066-11e4-a52e-4f735466cecf'], 'WebDriver')
 
-    const searchBtn = await client.findElement('css selector', 'input[value="Google Search"]')
-    await client.elementClick(searchBtn['element-6066-11e4-a52e-4f735466cecf'])
+const searchBtn = await client.findElement('css selector', 'input[value="Google Search"]')
+await client.elementClick(searchBtn['element-6066-11e4-a52e-4f735466cecf'])
 
-    console.log(await client.getTitle()) // outputs "WebDriver - Google Search"
+console.log(await client.getTitle()) // outputs "WebDriver - Google Search"
 
-    await client.deleteSession()
-})()
+await client.deleteSession()
+```
+
+## WebDriver Bidi Example
+
+To connect to the WebDriver Bidi protocol you have to send along a `webSocketUrl` flag to tell the browser driver to opt-in to the protocol:
+
+```js
+import WebDriver from './packages/webdriver/build/index.js'
+
+const browser = await WebDriver.newSession({
+    capabilities: {
+        webSocketUrl: true,
+        browserName: 'firefox'
+    }
+})
+
+await browser.send({
+    method: 'session.subscribe',
+    params: { events: ['log.entryAdded'] }
+})
+
+/**
+ * returns: {"method":"log.entryAdded","params":{"type":"console","method":"log","realm":null,"args":[{"type":"string","value":"Hello Bidi"}],"level":"info","text":"Hello Bidi","timestamp":1657282076037}}
+ */
+browser.on('message', (data) => console.log('received %s', data))
+
+await browser.executeScript('console.log("Hello Bidi")', [])
+await browser.deleteSession()
 ```
 
 # Configuration

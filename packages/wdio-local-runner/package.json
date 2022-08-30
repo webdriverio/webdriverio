@@ -1,17 +1,17 @@
 {
   "name": "@wdio/local-runner",
-  "version": "7.20.2",
+  "version": "7.20.7",
   "description": "A WebdriverIO runner to run tests locally",
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-local-runner",
   "license": "MIT",
-  "main": "./build/index",
   "engines": {
-    "node": ">=12.0.0"
+    "node": "^16.13 || >=18"
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/webdriverio/webdriverio.git"
+    "url": "git://github.com/webdriverio/webdriverio.git",
+    "directory": "packages/wdio-local-runner"
   },
   "keywords": [
     "webdriver",
@@ -22,21 +22,24 @@
   "bugs": {
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
+  "type": "module",
+  "exports": "./build/index.js",
+  "types": "./build/index.d.ts",
+  "typeScriptVersion": "3.8.3",
   "dependencies": {
-    "@types/stream-buffers": "^3.0.3",
+    "@types/stream-buffers": "^3.0.4",
     "@wdio/logger": "7.19.0",
-    "@wdio/repl": "7.20.0",
-    "@wdio/runner": "7.20.2",
-    "@wdio/types": "7.20.0",
+    "@wdio/repl": "7.20.7",
+    "@wdio/runner": "7.20.7",
+    "@wdio/types": "7.20.7",
     "async-exit-hook": "^2.0.1",
-    "split2": "^4.0.0",
+    "split2": "^4.1.0",
     "stream-buffers": "^3.0.2"
   },
   "peerDependencies": {
-    "@wdio/cli": "^7.0.0"
+    "@wdio/cli": "next"
   },
   "publishConfig": {
     "access": "public"
-  },
-  "types": "./build/index.d.ts"
+  }
 }

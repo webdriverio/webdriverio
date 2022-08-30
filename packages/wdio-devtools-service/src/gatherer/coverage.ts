@@ -1,6 +1,6 @@
-import fs from 'fs'
-import path from 'path'
-import { EventEmitter } from 'events'
+import fs from 'node:fs'
+import path from 'node:path'
+import { EventEmitter } from 'node:events'
 import { transformAsync as babelTransform } from '@babel/core'
 import babelPluginIstanbul from 'babel-plugin-istanbul'
 import libCoverage from 'istanbul-lib-coverage'
@@ -196,7 +196,7 @@ export default class CoverageGatherer extends EventEmitter {
             // values can be nested/flat/pkg. Defaults to 'pkg'
             defaultSummarizer: 'nested',
             coverageMap,
-            sourceFinder: (source) => {
+            sourceFinder: (source: string) => {
                 const f = fs.readFileSync(path.join(this._coverageLogDir, 'files', source.replace(process.cwd(), '')))
                 return f.toString('utf8')
             }

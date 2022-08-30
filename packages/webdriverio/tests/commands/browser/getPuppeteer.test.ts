@@ -1,8 +1,12 @@
+import { expect, describe, it, vi, beforeEach, beforeAll } from 'vitest'
 import puppeteer from 'puppeteer-core'
 
-import { remote } from '../../../src'
+import { remote } from '../../../src/index.js'
 
-const puppeteerConnect = puppeteer.connect as jest.Mock
+vi.mock('got')
+vi.mock('puppeteer-core')
+
+const puppeteerConnect = vi.mocked(puppeteer.connect)
 
 describe('attach Puppeteer', () => {
     let browser: WebdriverIO.Browser
@@ -23,6 +27,7 @@ describe('attach Puppeteer', () => {
     it('should pass for Chrome', async () => {
         const pptr = await browser.getPuppeteer.call({
             ...browser,
+            options: browser.options,
             capabilities: {
                 browserName: 'chrome',
                 'goog:chromeOptions': {
@@ -38,6 +43,7 @@ describe('attach Puppeteer', () => {
     it('should pass for Firefox', async () => {
         const pprt = await browser.getPuppeteer.call({
             ...browser,
+            options: browser.options,
             capabilities: {
                 browserName: 'firefox',
                 browserVersion: '79.0b'
@@ -45,7 +51,7 @@ describe('attach Puppeteer', () => {
             requestedCapabilities: {
                 'moz:firefoxOptions': {
                     args: ['foo', 'bar', '-remote-debugging-port', 4321, 'barfoo']
-                }
+                } as any
             }
         })
         expect(typeof pprt).toBe('object')
@@ -55,6 +61,7 @@ describe('attach Puppeteer', () => {
     it('should pass for Firefox (DevTools)', async () => {
         const pptr = await browser.getPuppeteer.call({
             ...browser,
+            options: browser.options,
             capabilities: {
                 browserName: 'firefox',
                 browserVersion: '79.0b',
@@ -65,7 +72,7 @@ describe('attach Puppeteer', () => {
             requestedCapabilities: {
                 'moz:firefoxOptions': {
                     args: {}
-                }
+                } as any
             }
         })
         expect(typeof pptr).toBe('object')
@@ -75,6 +82,7 @@ describe('attach Puppeteer', () => {
     it('should pass for Edge', async () => {
         const pptr = await browser.getPuppeteer.call({
             ...browser,
+            options: browser.options,
             capabilities: {
                 browserName: 'edge',
                 'ms:edgeOptions': {
@@ -90,6 +98,7 @@ describe('attach Puppeteer', () => {
     it('should fail for old Firefox version', async () => {
         const err = await browser.getPuppeteer.call({
             ...browser,
+            options: browser.options,
             capabilities: {
                 browserName: 'firefox',
                 browserVersion: '78.0b'
@@ -97,7 +106,7 @@ describe('attach Puppeteer', () => {
             requestedCapabilities: {
                 'moz:firefoxOptions': {
                     args: ['foo', 'bar', '-remote-debugging-port', 4321, 'barfoo']
-                }
+                } as any
             }
         // @ts-ignore uses sync command
         }).catch(err => err)
@@ -108,6 +117,7 @@ describe('attach Puppeteer', () => {
     it('should not re-attach if connection was already established', async () => {
         const pptr = await browser.getPuppeteer.call({
             ...browser,
+            options: browser.options,
             capabilities: {
                 browserName: 'chrome',
                 'goog:chromeOptions': {
@@ -115,8 +125,8 @@ describe('attach Puppeteer', () => {
                 }
             },
             puppeteer: {
-                isConnected: jest.fn().mockReturnValue(true)
-            }
+                isConnected: vi.fn().mockReturnValue(true)
+            } as any
         })
         expect(typeof pptr).toBe('object')
         expect(puppeteerConnect).toHaveBeenCalledTimes(0)
@@ -125,6 +135,7 @@ describe('attach Puppeteer', () => {
     it('should pass for Selenium CDP', async () => {
         const pptr = await browser.getPuppeteer.call({
             ...browser,
+            options: browser.options,
             capabilities: {
                 'se:cdp': 'http://my.grid:1234/session/mytestsession/se/cdp'
             }
@@ -139,18 +150,18 @@ describe('attach Puppeteer', () => {
             capabilities: {
                 'selenoid:options': {
                     foo: 'bar'
-                }
+                } as any
             },
             requestedCapabilities: {
                 'selenoid:options': {
                     foo: 'bar'
-                }
+                } as any
             },
             options: {
                 hostname: 'my.grid',
                 port: 4444,
                 path: '/wd/hub'
-            }
+            } as any
         })
         expect(typeof pptr).toBe('object')
         expect(puppeteerConnect.mock.calls).toMatchSnapshot()
@@ -162,18 +173,18 @@ describe('attach Puppeteer', () => {
             capabilities: {
                 'moon:options': {
                     foo: 'bar'
-                }
+                } as any
             },
             requestedCapabilities: {
                 'moon:options': {
                     foo: 'bar'
-                }
+                } as any
             },
             options: {
                 hostname: 'my.grid',
                 port: 4444,
                 path: '/wd/hub'
-            }
+            } as any
         })
         expect(typeof pptr).toBe('object')
         expect(puppeteerConnect.mock.calls).toMatchSnapshot()

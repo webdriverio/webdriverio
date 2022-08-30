@@ -1,6 +1,6 @@
 import type { RectReturn } from '@wdio/protocols'
 
-import { getElementRect } from '../../utils'
+import { getElementRect } from '../../utils/index.js'
 
 export type Size = Pick<RectReturn, 'width' | 'height'>;
 

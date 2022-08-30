@@ -1,9 +1,10 @@
-import { keyDefinitions, KeyInput } from 'puppeteer-core/lib/cjs/puppeteer/common/USKeyboardLayout'
-import type { Keyboard, Mouse } from 'puppeteer-core/lib/cjs/puppeteer/common/Input'
+import { _keyDefinitions, KeyInput } from 'puppeteer-core/lib/cjs/puppeteer/common/USKeyboardLayout.js'
+import type { Keyboard, Mouse } from 'puppeteer-core/lib/cjs/puppeteer/common/Input.js'
 
-import getElementRect from './getElementRect'
-import { ELEMENT_KEY } from '../constants'
-import { sleep } from '../utils'
+import getElementRect from './getElementRect.js'
+import getWindowRect from './getWindowRect.js'
+import { ELEMENT_KEY } from '../constants.js'
+import { sleep } from '../utils.js'
 import type DevToolsDriver from '../devtoolsdriver'
 
 const KEY = 'key'
@@ -15,6 +16,8 @@ interface Action {
     value?: string
     x?: number
     y?: number
+    deltaX?: number
+    deltaY?: number
     button?: number
     origin?: any
 }
@@ -81,7 +84,7 @@ export default async function performActions(
                  * for special characters like emojis 😉 we need to
                  * send in the value as text because it is not unicode
                  */
-                if (!keyDefinitions[singleAction.value as unknown as KeyInput]) {
+                if (!_keyDefinitions[singleAction.value as unknown as KeyInput]) {
                     await page.keyboard.sendCharacter(singleAction.value as unknown as KeyInput)
                     skipChars.push(singleAction.value)
                     continue
@@ -176,6 +179,30 @@ export default async function performActions(
                     await sleep(duration)
                 }
                 continue
+            }
+            continue
+        }
+
+        if (action.type === 'wheel') {
+            for (const singleAction of action.actions) {
+                const deltaX = singleAction.deltaX || 0
+                const deltaY = singleAction.deltaY || 0
+
+                if (singleAction.origin) {
+                    const windowSize = await getWindowRect.call(this)
+                    const location = await getElementRect.call(this, { elementId: singleAction.origin[ELEMENT_KEY] })
+                    await page.mouse.wheel({
+                        deltaX: location.x + deltaX,
+                        deltaY: location.y - windowSize.height + deltaY
+                    })
+                } else if (singleAction.x || singleAction.y) {
+                    await page.mouse.wheel({
+                        deltaX: (singleAction.x || 0) + deltaX,
+                        deltaY: (singleAction.y || 0) + deltaY
+                    })
+                } else {
+                    await page.mouse.wheel({ deltaX, deltaY })
+                }
             }
             continue
         }

@@ -1,9 +1,12 @@
-const path = require('path')
+import url from 'node:url'
+import path from 'node:path'
 
-const { config } = require('./config')
-const reporter = require('../../packages/wdio-smoke-test-reporter')
+import { config as baseConfig } from './config.js'
+import reporter from '../../packages/wdio-smoke-test-reporter/build/index.js'
 
-exports.config = Object.assign({}, config, {
-    reporters: ['spec', reporter.default],
+const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
+
+export const config = Object.assign({}, baseConfig, {
+    reporters: ['spec', reporter],
     specs: [path.resolve(__dirname, '..', 'mocha', 'reporter.js')],
 })

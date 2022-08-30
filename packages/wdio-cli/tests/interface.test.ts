@@ -1,5 +1,7 @@
-import WDIOCLInterface from '../src/interface'
-import { HookError } from '../src/utils'
+import path from 'node:path'
+import { vi, describe, it, expect, afterEach, beforeEach } from 'vitest'
+import WDIOCLInterface from '../src/interface.js'
+import { HookError } from '../src/utils.js'
 import chalk from 'chalk'
 
 const config = {}
@@ -8,13 +10,16 @@ const EMPTY_INTERFACE_MESSAGE_OBJECT = {
     debugger: {}
 }
 
+vi.mock('chalk')
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+
 describe('cli interface', () => {
     let wdioClInterface: WDIOCLInterface
 
     beforeEach(() => {
-        global.console.log = jest.fn()
+        global.console.log = vi.fn()
         wdioClInterface = new WDIOCLInterface(config as any, 5)
-        wdioClInterface.log = jest.fn().mockImplementation((...args) => args)
+        wdioClInterface.log = vi.fn().mockImplementation((...args: any[]) => args)
     })
 
     it('should add jobs', () => {
@@ -99,7 +104,7 @@ describe('cli interface', () => {
     })
 
     it('should print test error', () => {
-        wdioClInterface.onTestError = jest.fn()
+        wdioClInterface.onTestError = vi.fn()
         wdioClInterface.onMessage({
             origin: 'reporter',
             name: 'printFailureMessage',
@@ -110,7 +115,7 @@ describe('cli interface', () => {
     })
 
     it('should trigger job:start event on testFrameworkInit', () => {
-        wdioClInterface.emit = jest.fn()
+        wdioClInterface.emit = vi.fn()
         wdioClInterface.onMessage({
             name: 'testFrameworkInit',
             content: 'content'
@@ -120,7 +125,7 @@ describe('cli interface', () => {
 
     it('should print reporter messages in watch mode', () => {
         wdioClInterface['_isWatchMode'] = true
-        wdioClInterface.printReporters = jest.fn()
+        wdioClInterface.printReporters = vi.fn()
 
         wdioClInterface.onMessage({
             origin: 'reporter',
@@ -136,7 +141,7 @@ describe('cli interface', () => {
     })
 
     it('should not store any other messages', () => {
-        wdioClInterface.printReporters = jest.fn()
+        wdioClInterface.printReporters = vi.fn()
 
         expect(wdioClInterface.onMessage({
             cid: '0-0',
@@ -201,7 +206,7 @@ describe('cli interface', () => {
 
     describe('setup', () => {
         it('called within constructor', () => {
-            wdioClInterface.onStart = jest.fn()
+            wdioClInterface.onStart = vi.fn()
             expect(wdioClInterface.result).toEqual({
                 finished: 0,
                 passed: 0,
@@ -212,7 +217,7 @@ describe('cli interface', () => {
         })
 
         it('called explicitly', () => {
-            wdioClInterface.onStart = jest.fn()
+            wdioClInterface.onStart = vi.fn()
             wdioClInterface['_messages'] = {
                 reporter: {},
                 debugger: {}
@@ -315,7 +320,7 @@ describe('cli interface', () => {
 
         scenarios.forEach(scenario => {
             it(scenario.method, () => {
-                wdioClInterface.onJobComplete = jest.fn()
+                wdioClInterface.onJobComplete = vi.fn()
                 wdioClInterface['_jobs'].set(scenario.cid, scenario.job)
                 wdioClInterface[scenario.method](scenario.cid, scenario.job, scenario.retries)
                 expect(wdioClInterface.onJobComplete).toBeCalledWith(scenario.cid, scenario.job, scenario.retries, scenario.message)
@@ -323,14 +328,14 @@ describe('cli interface', () => {
         })
 
         it('onSpecSkip', () => {
-            wdioClInterface.onJobComplete = jest.fn()
+            wdioClInterface.onJobComplete = vi.fn()
             wdioClInterface['_jobs'].set('cid', job)
             wdioClInterface.onSpecSkip(cid, job)
             expect(wdioClInterface.onJobComplete).toBeCalledWith(cid, job, 0, 'SKIPPED', expect.any(Function))
         })
 
         it('onSpecRetry with delay', () => {
-            wdioClInterface.onJobComplete = jest.fn()
+            wdioClInterface.onJobComplete = vi.fn()
             wdioClInterface['_specFileRetriesDelay'] = 2
             wdioClInterface['_jobs'].set('cid', job)
             wdioClInterface.onSpecRetry(cid, job, 3)
@@ -369,15 +374,15 @@ describe('cli interface', () => {
             wdioClInterface.printReporters()
             expect(wdioClInterface['_messages'].reporter).toEqual({})
             expect(wdioClInterface.log).toBeCalledTimes(2)
-            expect((wdioClInterface.log as jest.Mock).mock.calls[0][1]).toContain('"foo" Reporter:')
-            expect((wdioClInterface.log as jest.Mock).mock.calls[1][0]).toContain('bar')
+            expect(vi.mocked(wdioClInterface.log).mock.calls[0][1]).toContain('"foo" Reporter:')
+            expect(vi.mocked(wdioClInterface.log).mock.calls[1][0]).toContain('bar')
         })
     })
 
     describe('finalise', () => {
         it('finalise should print reporters and summary', () => {
-            wdioClInterface.printReporters = jest.fn()
-            wdioClInterface.printSummary = jest.fn()
+            wdioClInterface.printReporters = vi.fn()
+            wdioClInterface.printSummary = vi.fn()
             wdioClInterface.finalise()
             expect(wdioClInterface.printReporters).toBeCalledTimes(1)
             expect(wdioClInterface.printSummary).toBeCalledTimes(1)
@@ -385,8 +390,8 @@ describe('cli interface', () => {
 
         it('finalise should do nothing in watch mode', () => {
             wdioClInterface['_isWatchMode'] = true
-            wdioClInterface.printReporters = jest.fn()
-            wdioClInterface.printSummary = jest.fn()
+            wdioClInterface.printReporters = vi.fn()
+            wdioClInterface.printSummary = vi.fn()
             wdioClInterface.finalise()
             expect(wdioClInterface.printReporters).toBeCalledTimes(0)
             expect(wdioClInterface.printSummary).toBeCalledTimes(0)
@@ -423,7 +428,7 @@ describe('cli interface', () => {
         })
     })
 
-    test('logHookError', () => {
+    it('logHookError', () => {
         const err = new HookError('foobar', 'somewhere')
         expect(wdioClInterface.logHookError(err)[0])
             .toContain('red SevereServiceError in "somewhere"')
@@ -492,6 +497,6 @@ describe('cli interface', () => {
 
     afterEach(() => {
         wdioClInterface['_specFileRetriesDelay'] = 0
-        ;(global.console.log as jest.Mock).mockRestore()
+        vi.mocked(global.console.log).mockRestore()
     })
 })
