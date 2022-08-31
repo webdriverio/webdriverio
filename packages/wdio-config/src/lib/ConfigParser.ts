@@ -184,7 +184,7 @@ export default class ConfigParser {
     /**
      * get excluded files from config pattern
      */
-    getSpecs(capSpecs?: string[], capExclude?: string[]) {
+    getSpecs(capSpecs?: string[], capExclude?: string[], ignoreExcludes: boolean = false) {
         let specs = ConfigParser.getFilePaths(this._config.specs!, undefined, this._pathService)
         let spec = Array.isArray(this._config.spec) ? this._config.spec : []
         let exclude = ConfigParser.getFilePaths(this._config.exclude!, undefined, this._pathService)
@@ -214,8 +214,7 @@ export default class ConfigParser {
             // Removing any duplicate tests that could be included
             let tmpSpecs = spec.length > 0 ? [...specs, ...suiteSpecs] : suiteSpecs
 
-            //Only merge capability specs if --spec is not defined
-            if (spec.length === 0) {
+            if (!ignoreExcludes) {
                 if (Array.isArray(capSpecs)) {
                     tmpSpecs = ConfigParser.getFilePaths(capSpecs, undefined, this._pathService)
                 }
@@ -229,8 +228,7 @@ export default class ConfigParser {
             return this.filterSpecs(specs, <string[]>exclude)
         }
 
-        //Only merge capability specs if --spec is not defined
-        if (spec.length === 0) {
+        if (!ignoreExcludes) {
             if (Array.isArray(capSpecs)) {
                 specs = ConfigParser.getFilePaths(capSpecs, undefined, this._pathService)
             }
