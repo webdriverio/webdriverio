@@ -170,6 +170,10 @@ export interface VendorExtensions extends EdgeCapabilities, AppiumW3CCapabilitie
     'ms:edgeOptions'?: MicrosoftEdgeOptions;
     'ms:edgeChromium'?: MicrosoftEdgeOptions;
 
+    // Windows Application Driver
+    'ms:experimental-webdriver'?: boolean;
+    'ms:waitForAppLaunch'?: string;
+
     // Safari specific
     'safari.options'?: {
         [name: string]: any;
@@ -702,6 +706,10 @@ export interface AppiumXCUITestCapabilities {
     'appium:forceAppLaunch'?: boolean;
     'appium:useNativeCachingStrategy'?: boolean;
     'appium:appInstallStrategy'?: string;
+    /**
+     * Windows Application Driver capabilities
+     */
+    'appium:appArguments'?: string;
 }
 
 export interface AppiumXCUISafariGlobalPreferences {
