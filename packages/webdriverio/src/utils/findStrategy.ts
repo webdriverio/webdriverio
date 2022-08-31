@@ -156,22 +156,30 @@ export const findStrategy = function (selector: SelectorStrategy, isW3C?: boolea
         using = 'shadow'
         value = stringSelector.slice(DEEP_SELECTOR.length)
         break
-    // .//*[@aria-labelledby = string(.//*[normalize-space() = "target 2"]/@id)]
     case 'aria': {
         const label = stringSelector.slice(ARIA_SELECTOR.length)
         const conditions = [
-            // element has direct aria label
-            `.//*[@aria-label = "${label}"]`,
             // aria label is recevied by other element with aria-labelledBy
+            // https://www.w3.org/TR/accname-1.1/#step2B
             `.//*[@aria-labelledby=(//*[normalize-space() = "${label}"]/@id)]`,
-            // aria label is received from element content
-            `.//*[normalize-space() = "${label}"]`,
+            // aria label is recevied by other element with aria-labelledBy
+            // https://www.w3.org/TR/accname-1.1/#step2B
+            `.//*[@aria-describedby=(//*[normalize-space() = "${label}"]/@id)]`,
+            // element has direct aria label
+            // https://www.w3.org/TR/accname-1.1/#step2C
+            `.//*[@aria-label = "${label}"]`,
             // aria label is received by its title attribute
-            `.//*[@titel="${label}"]`,
-            // images with an alt tag
-            `.//img[@alt="${label}"]`,
+            // https://www.w3.org/TR/accname-1.1/#step2D
+            `.//*[@title="${label}"]`,
             // inputs with a label
-            `.//input[@id = (//label[normalize-space() = "${label}"]/@for)]`
+            // https://www.w3.org/TR/accname-1.1/#step2D
+            `.//input[@id = (//label[normalize-space() = "${label}"]/@for)]`,
+            // images with an alt tag
+            // https://www.w3.org/TR/accname-1.1/#step2D
+            `.//img[@alt="${label}"]`,
+            // aria label is received from element content
+            // https://www.w3.org/TR/accname-1.1/#step2G
+            `.//*[normalize-space() = "${label}"]`
         ]
         using = 'xpath'
         value = `(${conditions.join(' | ')})[1]`
