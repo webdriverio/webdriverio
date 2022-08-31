@@ -168,12 +168,18 @@ export const findStrategy = function (selector: SelectorStrategy, isW3C?: boolea
             // element has direct aria label
             // https://www.w3.org/TR/accname-1.1/#step2C
             `.//*[@aria-label = "${label}"]`,
-            // aria label is received by its title attribute
-            // https://www.w3.org/TR/accname-1.1/#step2D
-            `.//*[@title="${label}"]`,
             // inputs with a label
             // https://www.w3.org/TR/accname-1.1/#step2D
             `.//input[@id = (//label[normalize-space() = "${label}"]/@for)]`,
+            // aria label is received by an input placeholder
+            // https://www.w3.org/TR/accname-1.1/#step2D
+            `.//input[@placeholder="${label}"]`,
+            // aria label is received by an input placeholder
+            // https://www.w3.org/TR/accname-1.1/#step2D
+            `.//input[@aria-placeholder="${label}"]`,
+            // aria label is received by its title attribute
+            // https://www.w3.org/TR/accname-1.1/#step2D
+            `.//*[@title="${label}"]`,
             // images with an alt tag
             // https://www.w3.org/TR/accname-1.1/#step2D
             `.//img[@alt="${label}"]`,
