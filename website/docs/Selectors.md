@@ -172,6 +172,12 @@ console.log(await parent.getTagName()) // outputs: "body"
 
 Query elements by their accessible name. The accessible name is what is announced by a screen reader when that element receives focus. The value of the accessible name can be both visual content or hidden text alternatives.
 
+:::info
+
+You can read more about this selector in our [release blog post](/blog/2022/09/01/accessibility-selector)
+
+:::
+
 ### Fetch by `aria-label`
 
 ```html
