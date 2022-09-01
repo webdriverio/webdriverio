@@ -4,14 +4,12 @@ import Mocha, { Runner } from 'mocha'
 
 import logger from '@wdio/logger'
 import { runTestInFiberContext, executeHooksWithArgs } from '@wdio/utils'
-import { setOptions } from 'expect-webdriverio'
 import type { Capabilities, Services } from '@wdio/types'
 
 import { loadModule } from './utils.js'
 import { INTERFACES, EVENTS, NOOP, MOCHA_TIMEOUT_MESSAGE, MOCHA_TIMEOUT_MESSAGE_REPLACEMENT } from './constants.js'
 import type { MochaConfig, MochaOpts as MochaOptsImport, FrameworkMessage, FormattedMessage, MochaError } from './types'
 import type { EventEmitter } from 'node:events'
-import type ExpectWebdriverIO from 'expect-webdriverio'
 
 const log = logger('@wdio/mocha-framework')
 
@@ -66,19 +64,17 @@ class MochaAdapter {
         mocha.reporter(NOOP as any)
         mocha.fullTrace()
 
+        /**
+         * as Mocha doesn't support file:// formats yet we have to
+         * remove it before adding it to Mocha
+         */
         this._specs.forEach((spec) => mocha.addFile(
             spec.startsWith(FILE_PROTOCOL)
-                ? spec.slice(FILE_PROTOCOL.length)
+                ? spec.slice(FILE_PROTOCOL.length + 1)
                 : spec
         ))
         mocha.suite.on('pre-require', this.preRequire.bind(this))
         await this._loadFiles(mochaOpts)
-
-        setOptions({
-            wait: this._config.waitforTimeout, // ms to wait for expectation to succeed
-            interval: this._config.waitforInterval, // interval between attempts
-        })
-
         return this
     }
 
@@ -394,10 +390,5 @@ export { MochaAdapter, adapterFactory }
 declare global {
     namespace WebdriverIO {
         interface MochaOpts extends MochaOptsImport {}
-    }
-    namespace NodeJS {
-        interface Global {
-            expect: ExpectWebdriverIO.Expect
-        }
     }
 }

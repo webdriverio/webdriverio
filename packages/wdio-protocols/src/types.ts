@@ -220,3 +220,15 @@ export interface BidiRequest {
 export interface BidiResponse {
     id: number
 }
+
+export type Context = string | DetailedContext
+
+/**
+ * Extended Context when running tests in Appium
+ */
+export interface DetailedContext {
+    id: string
+    title?: string
+    url?: string
+    bundleId?: string
+}

@@ -270,6 +270,13 @@ export const WDIO_DEFAULTS: Options.Definition<Options.WebdriverIO & Options.Tes
         type: 'number'
     },
     /**
+     * whether or not testrunner should inject `browser`, `$` and `$$` as
+     * global environment variables
+     */
+    injectGlobals: {
+        type: 'boolean'
+    },
+    /**
      * list of strings to watch of `wdio` command is called with `--watch` flag
      */
     filesToWatch: {
@@ -314,6 +321,7 @@ export const DRIVER_DEFAULT_ENDPOINT = {
 
 export const FF_REMOTE_DEBUG_ARG = '-remote-debugging-port'
 export const DEEP_SELECTOR = '>>>'
+export const ARIA_SELECTOR = 'aria/'
 
 export const ERROR_REASON = [
     'Failed', 'Aborted', 'TimedOut', 'AccessDenied', 'ConnectionClosed',

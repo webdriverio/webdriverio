@@ -4,7 +4,7 @@ import $ from '../../../src/commands/element/$.js'
 
 vi.mock('got')
 
-vi.mock('../../../src/commands/element/$', () => ({
+vi.mock('../../../src/commands/element/$.js', () => ({
     __esModule: true,
     default: vi.fn().mockImplementation(() => { })
 }))
@@ -12,7 +12,7 @@ vi.mock('../../../src/commands/element/$', () => ({
 /**
  * Todo(Christian): make unit test work
  */
-describe.skip('shadow$', () => {
+describe('shadow$', () => {
     it('should call $ with a function selector', async () => {
         const browser = await remote({
             baseUrl: 'http://foobar.com',

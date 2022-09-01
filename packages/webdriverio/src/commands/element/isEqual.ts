@@ -37,7 +37,11 @@ export default async function isEqual (
     // mobile native
     if (browser.isMobile) {
         const context = await browser.getContext()
-        if (context?.toLowerCase().includes('native')) {
+        const contextId = typeof context === 'string'
+            ? context
+            : context?.id
+
+        if (contextId && contextId.toLowerCase().includes('native')) {
             return this.elementId === el.elementId
         }
     }

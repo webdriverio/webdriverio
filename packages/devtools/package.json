@@ -6,11 +6,12 @@
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/devtools",
   "license": "MIT",
   "engines": {
-     "node": "^16.13 || >=18"
+    "node": "^16.13 || >=18"
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/webdriverio/webdriverio.git"
+    "url": "git://github.com/webdriverio/webdriverio.git",
+    "directory": "packages/devtools"
   },
   "keywords": [
     "devtoolsdriver"
@@ -41,7 +42,7 @@
     "@wdio/utils": "7.20.7",
     "chrome-launcher": "^0.15.0",
     "edge-paths": "^2.1.0",
-    "puppeteer-core": "^15.3.2",
+    "puppeteer-core": "^17.0.0",
     "query-selector-shadow-dom": "^1.0.0",
     "ua-parser-js": "^1.0.1",
     "uuid": "^8.0.0"

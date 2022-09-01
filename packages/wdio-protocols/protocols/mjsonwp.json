@@ -5,7 +5,7 @@
       "ref": "https://github.com/SeleniumHQ/mobile-spec/blob/master/spec-draft.md#webviews-and-other-contexts",
       "parameters": [],
       "returns": {
-        "type": "string|null",
+        "type": "Context",
         "name": "context",
         "description": "a string representing the current context or null representing 'no context'"
       }
@@ -27,7 +27,7 @@
       "ref": "https://github.com/SeleniumHQ/mobile-spec/blob/master/spec-draft.md#webviews-and-other-contexts",
       "parameters": [],
       "returns": {
-        "type": "string[]",
+        "type": "Context[]",
         "name": "contexts",
         "description": "an array of strings representing available contexts, e.g. 'WEBVIEW', or 'NATIVE'"
       }

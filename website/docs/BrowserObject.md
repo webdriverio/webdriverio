@@ -88,7 +88,7 @@ exports.config = {
 And access it in your tests:
 
 ```js
-console.log(browser.config)
+console.log(browser.options)
 /**
  * outputs:
  * {
@@ -106,43 +106,10 @@ console.log(browser.config)
         // ...
  */
 
-console.log(browser.config.fakeUser) // outputs: "maxmustermann"
+console.log(browser.options.fakeUser) // outputs: "maxmustermann"
 ```
 
-### Configurations versus Options
 
-Custom configurations should not be confused with [Options](Options.md), which are accessed separately.
-
-```js
-console.log(browser.options)
-/**
- * outputs:
- * {
-        protocol: 'http',
-        port: 4444,
-        hostname: 'localhost',
-        baseUrl: 'example.com',
-        // ...
- */
-```
-
-When using the WDIO testrunner, if any configuration and option keys conflict in name (e.g. `baseUrl` in the following code snippets) the option value will take precedence and overwrite the config value.
-
-```js
-// wdio.conf.js
-exports.config = {
-    baseUrl: 'example.com'
-}
-```
-
-```sh
-# testrunner invocation
-$ npm wdio wdio.conf.js --baseUrl foobar.com
-```
-
-```js
-console.log(browser.config.baseUrl) // 'foobar.com', despite being set as 'example.com'
-console.log(browser.options.baseUrl) // 'foobar.com'
 ```
 
 ## Mobile Flags

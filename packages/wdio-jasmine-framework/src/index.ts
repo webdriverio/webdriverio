@@ -2,6 +2,8 @@ import Jasmine from 'jasmine'
 import logger from '@wdio/logger'
 import { runTestInFiberContext, executeHooksWithArgs } from '@wdio/utils'
 import { EventEmitter } from 'node:events'
+import { expect } from 'expect-webdriverio'
+import { _setGlobal } from '@wdio/globals'
 import type { Options, Services, Capabilities } from '@wdio/types'
 
 import JasmineReporter from './reporter.js'
@@ -72,8 +74,12 @@ class JasmineAdapter {
         // @ts-ignore outdated
         const jasmineEnv = jasmine.getEnv()
         this._specs.forEach((spec) => this._jrunner.addSpecFile(
+            /**
+             * as Jasmine doesn't support file:// formats yet we have to
+             * remove it before adding it to Jasmine
+             */
             spec.startsWith(FILE_PROTOCOL)
-                ? spec.slice(FILE_PROTOCOL.length)
+                ? spec.slice(FILE_PROTOCOL.length + 1)
                 : spec
         ))
 
@@ -188,14 +194,9 @@ class JasmineAdapter {
         await this._loadFiles()
 
         /**
-         * expect-webdriverio needs to be dynamically imported here so that it can
-         * attach its matchers to the jasmine expect library
+         * overwrite Jasmine global expect with WebdriverIOs expect
          */
-        const { setOptions } = await import('expect-webdriverio')
-        setOptions({
-            wait: this._config.waitforTimeout, // ms to wait for expectation to succeed
-            interval: this._config.waitforInterval, // interval between attempts
-        })
+        _setGlobal('expect', expect, this._config.injectGlobals)
 
         return this
     }
@@ -452,11 +453,5 @@ declare global {
 
     namespace WebdriverIO {
         interface JasmineOpts extends jasmineNodeOpts {}
-    }
-
-    namespace jasmine {
-        interface Matchers<T> extends ExpectWebdriverIO.Matchers<any, T> {}
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        interface AsyncMatchers<T, U> extends ExpectWebdriverIO.Matchers<Promise<void>, T> {}
     }
 }

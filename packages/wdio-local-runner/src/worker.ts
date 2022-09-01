@@ -83,8 +83,8 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
         const argv = process.argv.slice(2)
 
         const runnerEnv = Object.assign({}, process.env, this.config.runnerEnv, {
-            WDIO_WORKER: true,
-            WDIO_WORKER_ID: cid
+            WDIO_WORKER_ID: cid,
+            NODE_ENV: process.env.NODE_ENV || 'test'
         })
 
         if (this.config.outputDir) {
@@ -92,7 +92,7 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
         }
 
         if (this.config.autoCompileOpts?.autoCompile) {
-            runnerEnv.NODE_OPTIONS = (runnerEnv.NODE_OPTIONS || '') + ' --loader ts-node/esm/transpile-only'
+            runnerEnv.NODE_OPTIONS = (runnerEnv.NODE_OPTIONS || '') + ' --loader ts-node/esm/transpile-only --no-warnings'
         }
 
         log.info(`Start worker ${cid} with arg: ${argv}`)

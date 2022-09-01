@@ -25,7 +25,7 @@ export const Key = KeyConstant
  *
  * <b>
  * NOTE: If you hit "error TS2694: Namespace 'global.WebdriverIO' has no exported member 'Browser'" when using typescript,
- * add "webdriverio/async" into tsconfig.json's "types" array will solve it: <code> { "compilerOptions": { "types": ["webdriverio/async"] } } </code>
+ * add "@wdio/globals/types" into tsconfig.json's "types" array will solve it: <code> { "compilerOptions": { "types": ["@wdio/globals/types"] } } </code>
  * </b>
  *
  * @param  {Object} [params={}]       Options to create the session with

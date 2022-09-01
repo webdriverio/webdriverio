@@ -28,13 +28,10 @@ import {
 import { GherkinStreams } from '@cucumber/gherkin-streams'
 import type { ITestCaseHookParameter } from '@cucumber/cucumber/lib/support_code_library_builder/types'
 import type { IRuntimeOptions } from '@cucumber/cucumber/lib/runtime'
-import { Long } from 'long'
 import { IdGenerator } from '@cucumber/messages'
 
 import { executeHooksWithArgs, testFnWrapper } from '@wdio/utils'
-import { setOptions } from 'expect-webdriverio'
 import type { Capabilities, Options, Frameworks } from '@wdio/types'
-import type ExpectWebdriverIO from 'expect-webdriverio'
 
 import CucumberReporter from './reporter.js'
 import { DEFAULT_OPTS } from './constants.js'
@@ -65,14 +62,7 @@ class CucumberAdapter {
     private _cucumberReporter: CucumberReporter
     private _eventDataCollector: typeof EventDataCollector
     private _pickleFilter: Cucumber.PickleFilter
-
-    getHookParams?: Function
-
-    /**
-     * make sure TS loads `@types/long` otherwise it won't find it in `@cucumber/messages`
-     * see also https://github.com/cucumber/cucumber-js/issues/1491
-     */
-    never?: Long
+    private getHookParams?: Function
 
     constructor(
         private _cid: string,
@@ -88,8 +78,12 @@ class CucumberAdapter {
         this._eventDataCollector = new EventDataCollector(this._eventBroadcaster)
 
         this._specs = this._specs.map((spec) => (
+            /**
+             * as Cucumber doesn't support file:// formats yet we have to
+             * remove it before adding it to Cucumber
+             */
             spec.startsWith(FILE_PROTOCOL)
-                ? spec.slice(FILE_PROTOCOL.length)
+                ? spec.slice(FILE_PROTOCOL.length + 1)
                 : spec
         ))
         const featurePathsToRun = this._cucumberFeaturesWithLineNumbers.length > 0
@@ -133,15 +127,6 @@ class CucumberAdapter {
             await executeHooksWithArgs('after', this._config.after, [runtimeError, this._capabilities, this._specs])
             throw runtimeError
         }
-
-        /**
-         * import and set options for `expect-webdriverio` assertion lib once
-         * the framework was initiated so that it can detect the environment
-         */
-        setOptions({
-            wait: this._config.waitforTimeout, // ms to wait for expectation to succeed
-            interval: this._config.waitforInterval, // interval between attempts
-        })
 
         return this
     }
@@ -429,10 +414,5 @@ declare global {
     namespace WebdriverIO {
         interface CucumberOpts extends CucumberOptions {}
         interface HookFunctionExtension extends HookFunctionExtensionImport {}
-    }
-    namespace NodeJS {
-        interface Global {
-            expect: ExpectWebdriverIO.Expect
-        }
     }
 }

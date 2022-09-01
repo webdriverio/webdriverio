@@ -10,8 +10,17 @@ describe('Mocha smoke test', () => {
         }
     })
 
-    it('should return sync value', () => {
-        expect(browser).toHaveTitle('Mock Page Title')
+    it('has globals set up', async () => {
+        expect(1).toBe(1) // has non wdio matcher support
+        expect(global.browser).toBeDefined()
+        expect(global.driver).toBeDefined()
+        expect(global.$).toBeDefined()
+        expect(global.$$).toBeDefined()
+        expect(global.expect).toBeDefined()
+    })
+
+    it('should return sync value', async () => {
+        await expect(browser).toHaveTitle('Mock Page Title')
     })
 
     let hasRun = false
@@ -27,7 +36,7 @@ describe('Mocha smoke test', () => {
 
     it('should chain properly', async () => {
         // @ts-expect-error custom command
-        browser.isExistingScenario()
+        await browser.isExistingScenario()
 
         const el = browser.$('body')
         assert.equal(await el.$('.selector-1').isExisting(), true)
@@ -75,7 +84,7 @@ describe('Mocha smoke test', () => {
         )
 
         // @ts-expect-error invalid type assertion
-        expect(typeof browser.foo).toBe('undefined')
+        expect(browser.foo).not.toBeDefined()
         // @ts-expect-error invalid type assertion
         expect(await browser.$('body').$('.selector-1').foo()).toBe('foo_.selector-1_bar')
     })

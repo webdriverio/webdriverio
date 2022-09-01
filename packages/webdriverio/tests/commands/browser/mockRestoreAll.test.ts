@@ -15,7 +15,7 @@ vi.mock('../../../src/commands/browser/mock', () => {
     SESSION_MOCKS['foobar'].add({ restore: vi.fn(bumpCall) })
     SESSION_MOCKS['barfoo'] = new Set()
     SESSION_MOCKS['barfoo'].add({ restore: vi.fn(bumpCall) })
-    return { SESSION_MOCKS, getMockCalls: () => clearedMocks }
+    return { SESSION_MOCKS, getMockCalls: () => clearedMocks, default: vi.fn() }
 })
 
 describe('mockClearAll', () => {

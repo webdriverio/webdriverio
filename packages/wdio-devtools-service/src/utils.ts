@@ -17,11 +17,26 @@ const SUPPORTED_BROWSERS_AND_MIN_VERSIONS = {
     'google chrome': 63,
     'firefox': 86
 }
+const CUSTOM_COMMANDS = [
+    'cdp',
+    'getNodeId',
+    'getMetrics',
+    'startTracing',
+    'getDiagnostics',
+    'getCoverageReport',
+    'enablePerformanceAudits',
+    'disablePerformanceAudits',
+    'getMainThreadWorkBreakdown',
+    'emulateDevice',
+    'checkPWA'
+]
 
 export function setUnsupportedCommand (browser: Browser<'async'> | MultiRemoteBrowser<'async'>) {
-    return browser.addCommand('cdp', /* istanbul ignore next */() => {
-        throw new Error(UNSUPPORTED_ERROR_MESSAGE)
-    })
+    for (const command of CUSTOM_COMMANDS) {
+        browser.addCommand(command, /* istanbul ignore next */() => {
+            throw new Error(UNSUPPORTED_ERROR_MESSAGE)
+        })
+    }
 }
 
 /**

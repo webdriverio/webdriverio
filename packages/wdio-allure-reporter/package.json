@@ -7,7 +7,8 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git://github.com/webdriverio/webdriverio.git"
+    "url": "git://github.com/webdriverio/webdriverio.git",
+    "directory": "packages/wdio-allure-reporter"
   },
   "keywords": [
     "webdriver",
@@ -23,7 +24,7 @@
   "types": "./build/index.d.ts",
   "typeScriptVersion": "3.8.3",
   "engines": {
-     "node": "^16.13 || >=18"
+    "node": "^16.13 || >=18"
   },
   "dependencies": {
     "@wdio/reporter": "7.20.7",
@@ -36,7 +37,7 @@
     "@types/node": "^18.0.0"
   },
   "peerDependencies": {
-    "@wdio/cli": "^7.0.0"
+    "@wdio/cli": "next"
   },
   "publishConfig": {
     "access": "public"

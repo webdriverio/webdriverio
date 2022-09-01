@@ -10,8 +10,10 @@ vi.mock('../src/launcher', () => ({
         capabilities['goog:chromeOptions'] = capabilities['goog:chromeOptions'] || {}
         return {
             on: vi.fn(),
+            off: vi.fn(),
             pages: vi.fn().mockReturnValue(Promise.resolve([{
                 on: vi.fn(),
+                off: vi.fn(),
                 setDefaultTimeout: vi.fn()
             }])),
             wsEndpoint: vi.fn().mockReturnValue('ws://localhost:49375/devtools/browser/c4b017ea-f476-4026-a699-bc5d4858cfe1'),

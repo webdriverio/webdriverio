@@ -1,7 +1,6 @@
 import path from 'node:path'
 import { describe, expect, it, vi, beforeEach } from 'vitest'
 
-import { setOptions } from 'expect-webdriverio'
 import { executeHooksWithArgs, testFnWrapper } from '@wdio/utils'
 import * as Cucumber from '@cucumber/cucumber'
 import mockery from 'mockery'
@@ -84,16 +83,9 @@ describe('CucumberAdapter', () => {
     })
 
     it('can be initiated with tests', async () => {
-        const adapter = await CucumberAdapter.init!!('0-0', {
-            waitforTimeout: 1,
-            waitforInterval: 2
-        }, ['/foo/bar'], {}, {})
+        const adapter = await CucumberAdapter.init!!('0-0', {}, ['/foo/bar'], {}, {})
 
         expect(executeHooksWithArgs).toBeCalledTimes(0)
-        expect(setOptions).toBeCalledWith({
-            wait: 1,
-            interval: 2
-        })
         expect(adapter.hasTests()).toBe(true)
         expect(Cucumber.PickleFilter).toBeCalledWith({
             cwd: expect.any(String),

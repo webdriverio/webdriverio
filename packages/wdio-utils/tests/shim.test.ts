@@ -1,5 +1,5 @@
 import { vi, describe, it, expect } from 'vitest'
-import { wrapCommand, expectAsyncShim } from '../src/shim.js'
+import { wrapCommand } from '../src/shim.js'
 
 describe('wrapCommand', () => {
     it('should run command with before and after hook', async () => {
@@ -42,24 +42,4 @@ describe('wrapCommand', () => {
         expect(afterHook).toBeCalledTimes(3)
         expect(afterHook).toBeCalledWith('someCommand', [123, 'barfoo'], undefined, error)
     })
-})
-
-it('expectAsyncShim', () => {
-    global.expectAsync = vi.fn()
-    const expectSync = vi.fn()
-    expectAsyncShim(undefined, expectSync)
-    expect(expectSync).toBeCalledTimes(1)
-    expect(global.expectAsync).toBeCalledTimes(0)
-    expectAsyncShim(42, expectSync)
-    expect(expectSync).toBeCalledTimes(2)
-    expect(global.expectAsync).toBeCalledTimes(0)
-    expectAsyncShim(Promise.resolve({}), expectSync)
-    expect(expectSync).toBeCalledTimes(2)
-    expect(global.expectAsync).toBeCalledTimes(1)
-    expectAsyncShim({ elementId: 42 }, expectSync)
-    expect(expectSync).toBeCalledTimes(2)
-    expect(global.expectAsync).toBeCalledTimes(2)
-    expectAsyncShim({ sessionId: '42' }, expectSync)
-    expect(expectSync).toBeCalledTimes(2)
-    expect(global.expectAsync).toBeCalledTimes(3)
 })
