@@ -93,6 +93,11 @@ const { remote } = require('webdriverio');
 
 __Note:__ using WebdriverIO as a package requires handling asynchronous commands via `async/await`. Read more about this in our section on [Sync vs. Async](./SyncVsAsync.md).
 
+
+## Record tests
+
+WebdriverIO provides tools to help you get started by recording your test actions on screen and generate WebdriverIO test scripts automatically. See [Recorder tests with Chrome DevTools Recorder](/docs/record) for more information.
+
 ## System Requirements
 
 You’ll need [Node.js](http://nodejs.org) installed.
