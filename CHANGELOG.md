@@ -19,6 +19,26 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.24.0 (2022-09-01)
+
+#### :rocket: New Feature
+* `webdriverio`
+  * [#8762](https://github.com/webdriverio/webdriverio/pull/8762) Allow fetching elements by a11y name ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :nail_care: Polish
+* `wdio-types`
+  * [#8791](https://github.com/webdriverio/webdriverio/pull/8791) (bug):fix missing capas for WinAPPDriver for v7 ([@lacell75](https://github.com/lacell75))
+
+#### :memo: Documentation
+* [#8736](https://github.com/webdriverio/webdriverio/pull/8736) Document new Chrome DevTools Recorder integration ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 4
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Fabien CELLIER ([@lacell75](https://github.com/lacell75))
+- Jecelyn Yeen ([@jecfish](https://github.com/jecfish))
+- Narin Luangrath ([@narinluangrath](https://github.com/narinluangrath))
+
+
 ## v7.22.0 (2022-08-19)
 
 #### :boom: Breaking Change
