@@ -19,6 +19,7 @@ const FIXTURES_PATH = path.resolve(__dirname, '__fixtures__')
 const FIXTURES_CONF = path.resolve(FIXTURES_PATH, 'wdio.conf.ts')
 const FIXTURES_CONF_RDC = path.resolve(FIXTURES_PATH, 'wdio.conf.rdc.ts')
 const FIXTURES_CONF_ARRAY = path.resolve(FIXTURES_PATH, 'wdio.array.conf.ts')
+const FIXTURES_CONF_SQ = path.resolve(FIXTURES_PATH, 'wdio.sq.conf.ts')
 const FIXTURES_LOCAL_CONF = path.resolve(FIXTURES_PATH, 'wdio.local.conf.ts')
 const FIXTURES_CUCUMBER_FEATURE_A_LINE_2 = path.resolve(FIXTURES_PATH, 'test-a.feature:2')
 const FIXTURES_CUCUMBER_FEATURE_A_LINE_2_AND_12 = path.resolve(FIXTURES_PATH, 'test-a.feature:2:12')
@@ -87,6 +88,7 @@ async function MockedFileSystem_LoadingAsMuchAsCanFromFileSystem(): Promise<File
         realReadFilePair(path.resolve(FIXTURES_PATH, '../configparser.test.ts')),
         realReadFilePair(path.resolve(FIXTURES_PATH, '../utils.test.ts')),
         realReadFilePair(path.resolve(FIXTURES_PATH, '../RequireLibrary.test.ts')),
+        realReadFilePair(path.resolve(FIXTURES_PATH, '../specfolder/[sqbrackets].ts')),
         FileNamed(path.resolve(FIXTURES_PATH, 'test.cjs')).withContents('test file contents'),
         FileNamed(path.resolve(FIXTURES_PATH, 'test.es6')).withContents( 'test file contents'),
         FileNamed(path.resolve(FIXTURES_PATH, 'test.java')).withContents( 'test file contents'),
@@ -98,6 +100,7 @@ async function MockedFileSystem_LoadingAsMuchAsCanFromFileSystem(): Promise<File
         await realRequiredFilePair(path.resolve(FIXTURES_PATH, 'wdio.conf.multiremote.rdc.ts')),
         await realRequiredFilePair(path.resolve(FIXTURES_PATH, 'wdio.conf.rdc.ts')),
         await realRequiredFilePair(path.resolve(FIXTURES_PATH, 'wdio.conf.ts')),
+        await realRequiredFilePair(path.resolve(FIXTURES_PATH, 'wdio.sq.conf.ts')),
         await realRequiredFilePair(path.resolve(FIXTURES_PATH, 'wdio.local.conf.ts')),
         await realRequiredFilePair(path.resolve(INDEX_PATH))
     ]
@@ -1032,11 +1035,18 @@ describe('ConfigParser', () => {
         it('should include files in arrays to be run in a single worker', async () => {
             const configParser = await ConfigParserForTestWithAllFiles()
             await configParser.addConfigFile(FIXTURES_CONF_ARRAY)
-
             const filePaths = ConfigParser.getFilePaths(configParser['_config'].specs!, undefined, configParser['_pathService'])
             expect(Array.isArray(filePaths[0])).toBe(true)
             expect(filePaths[0].length).toBe(4)
             expect(filePaths[0][0]).not.toContain('*')
+        })
+
+        it('should allow square brackets in file paths', async () => {
+            const configParser = await ConfigParserForTestWithAllFiles()
+            await configParser.addConfigFile(FIXTURES_CONF_SQ)
+            const filePaths = ConfigParser.getFilePaths(configParser['_config'].specs!, undefined, configParser['_pathService'])
+            expect(filePaths[0]).toBe(configParser['_config'].specs![0])
+            expect(filePaths.length).toBe(1)
         })
     })
 })
