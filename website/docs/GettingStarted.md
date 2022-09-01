@@ -117,6 +117,11 @@ await browser.deleteSession()
 
 __Note:__ all WebdriverIO commands are asynchronous and need to be properly handled using [`async/await`](https://javascript.info/async-await).
 
+
+## Record tests
+
+WebdriverIO provides tools to help you get started by recording your test actions on screen and generate WebdriverIO test scripts automatically. See [Recorder tests with Chrome DevTools Recorder](/docs/record) for more information.
+
 ## System Requirements
 
 You’ll need [Node.js](http://nodejs.org) installed.
