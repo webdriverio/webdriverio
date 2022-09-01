@@ -70,7 +70,7 @@ class MochaAdapter {
          */
         this._specs.forEach((spec) => mocha.addFile(
             spec.startsWith(FILE_PROTOCOL)
-                ? spec.slice(FILE_PROTOCOL.length)
+                ? spec.slice(FILE_PROTOCOL.length + 1)
                 : spec
         ))
         mocha.suite.on('pre-require', this.preRequire.bind(this))
