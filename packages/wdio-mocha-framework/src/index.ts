@@ -64,6 +64,10 @@ class MochaAdapter {
         mocha.reporter(NOOP as any)
         mocha.fullTrace()
 
+        /**
+         * as Mocha doesn't support file:// formats yet we have to
+         * remove it before adding it to Mocha
+         */
         this._specs.forEach((spec) => mocha.addFile(
             spec.startsWith(FILE_PROTOCOL)
                 ? spec.slice(FILE_PROTOCOL.length)

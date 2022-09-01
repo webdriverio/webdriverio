@@ -78,8 +78,12 @@ class CucumberAdapter {
         this._eventDataCollector = new EventDataCollector(this._eventBroadcaster)
 
         this._specs = this._specs.map((spec) => (
+            /**
+             * as Cucumber doesn't support file:// formats yet we have to
+             * remove it before adding it to Cucumber
+             */
             spec.startsWith(FILE_PROTOCOL)
-                ? spec.slice(FILE_PROTOCOL.length)
+                ? spec.slice(FILE_PROTOCOL.length + 1)
                 : spec
         ))
         const featurePathsToRun = this._cucumberFeaturesWithLineNumbers.length > 0

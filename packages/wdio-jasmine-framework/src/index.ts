@@ -74,8 +74,12 @@ class JasmineAdapter {
         // @ts-ignore outdated
         const jasmineEnv = jasmine.getEnv()
         this._specs.forEach((spec) => this._jrunner.addSpecFile(
+            /**
+             * as Jasmine doesn't support file:// formats yet we have to
+             * remove it before adding it to Jasmine
+             */
             spec.startsWith(FILE_PROTOCOL)
-                ? spec.slice(FILE_PROTOCOL.length)
+                ? spec.slice(FILE_PROTOCOL.length + 1)
                 : spec
         ))
 
