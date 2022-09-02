@@ -84,7 +84,7 @@ class CucumberAdapter {
              * remove it before adding it to Cucumber
              */
             spec.startsWith(FILE_PROTOCOL)
-                ? spec.slice(FILE_PROTOCOL.length + 1)
+                ? url.fileURLToPath(spec)
                 : spec
         ))
         const featurePathsToRun = this._cucumberFeaturesWithLineNumbers.length > 0

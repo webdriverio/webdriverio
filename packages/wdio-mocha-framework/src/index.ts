@@ -1,3 +1,4 @@
+import url from 'node:url'
 import path from 'node:path'
 import { format } from 'node:util'
 import Mocha, { Runner } from 'mocha'
@@ -70,7 +71,7 @@ class MochaAdapter {
          */
         this._specs.forEach((spec) => mocha.addFile(
             spec.startsWith(FILE_PROTOCOL)
-                ? spec.slice(FILE_PROTOCOL.length + 1)
+                ? url.fileURLToPath(spec)
                 : spec
         ))
         mocha.suite.on('pre-require', this.preRequire.bind(this))
