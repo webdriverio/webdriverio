@@ -1,3 +1,4 @@
+import url from 'node:url'
 import path from 'node:path'
 import { createRequire } from 'node:module'
 import { EventEmitter } from 'node:events'
@@ -244,11 +245,19 @@ class CucumberAdapter {
         mockery.registerMock('@cucumber/cucumber', Cucumber)
         await Promise.all(this.requiredFiles().map((codePath) => {
             const filepath = path.isAbsolute(codePath)
-                ? codePath
+                ? codePath.startsWith(FILE_PROTOCOL)
+                    ? codePath
+                    : url.pathToFileURL(codePath).href
                 : path.join(process.cwd(), codePath)
 
             // This allows rerunning a stepDefinitions file
-            delete require.cache[require.resolve(filepath)]
+            const stepDefPath = url.pathToFileURL(require.resolve(codePath)).href
+            const cacheEntryToDelete = Object.keys(require.cache).find(
+                (u) => url.pathToFileURL(u).href === stepDefPath)
+            if (cacheEntryToDelete) {
+                delete require.cache[cacheEntryToDelete]
+            }
+
             return import(filepath)
         }))
         mockery.disable()
