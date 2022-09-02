@@ -40,21 +40,21 @@ jobs:
       - name: Bootstrap Packages
         run: npm run setup-full
       - name: Lint / Dependencies / Unit / Smoke Tests
-        run: npm run test:eslint && npm run test:typings && npm run test:unit
-      # - name: Setup Chrome Browser
-      #   uses: browser-actions/setup-chrome@latest
-      # - name: E2E Protocol Tests
-      #   uses: nick-invision/retry@v2
-      #   with:
-      #     timeout_minutes: 20
-      #     max_attempts: 3
-      #     command: npm run test:e2e
-      # - name: E2E Edge Launch Tests
-      #   uses: nick-invision/retry@v2
-      #   with:
-      #     timeout_minutes: 20
-      #     max_attempts: 3
-      #     command: npm run test:e2e:edge
+        run: npm run test
+      - name: Setup Chrome Browser
+        uses: browser-actions/setup-chrome@latest
+      - name: E2E Protocol Tests
+        uses: nick-invision/retry@v2
+        with:
+          timeout_minutes: 20
+          max_attempts: 3
+          command: npm run test:e2e
+      - name: E2E Edge Launch Tests
+        uses: nick-invision/retry@v2
+        with:
+          timeout_minutes: 20
+          max_attempts: 3
+          command: npm run test:e2e:edge
   e2e-mac:
     runs-on: macos-latest
     steps:

@@ -248,10 +248,12 @@ class CucumberAdapter {
                 ? codePath.startsWith(FILE_PROTOCOL)
                     ? codePath
                     : url.pathToFileURL(codePath).href
-                : path.join(process.cwd(), codePath)
+                : url.pathToFileURL(path.join(process.cwd(), codePath)).href
 
             // This allows rerunning a stepDefinitions file
-            const stepDefPath = url.pathToFileURL(require.resolve(codePath)).href
+            const stepDefPath = url.pathToFileURL(
+                require.resolve(url.fileURLToPath(filepath))
+            ).href
             const cacheEntryToDelete = Object.keys(require.cache).find(
                 (u) => url.pathToFileURL(u).href === stepDefPath)
             if (cacheEntryToDelete) {
