@@ -45,7 +45,7 @@
     "puppeteer-core": "^17.0.0",
     "query-selector-shadow-dom": "^1.0.0",
     "ua-parser-js": "^1.0.1",
-    "uuid": "^8.0.0"
+    "uuid": "^9.0.0"
   },
   "devDependencies": {
     "@types/node": "^18.0.0",
