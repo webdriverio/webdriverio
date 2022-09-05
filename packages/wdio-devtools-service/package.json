@@ -31,7 +31,7 @@
   "typeScriptVersion": "3.8.3",
   "dependencies": {
     "@babel/core": "^7.18.0",
-    "@tracerbench/trace-event": "^7.0.0",
+    "@tracerbench/trace-event": "^8.0.0",
     "@types/babel__core": "^7.1.19",
     "@types/istanbul-lib-report": "^3.0.0",
     "@types/istanbul-reports": "^3.0.1",
