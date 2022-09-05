@@ -59,6 +59,12 @@
     "githubUrl": "https://github.com/js-soft/wdi5",
     "npmUrl": "https://www.npmjs.com/package/wdio-ui5-service"
   },
+    {
+    "packageName": "wdio-qmate-service",
+    "title": "Qmate Service",
+    "githubUrl": "https://github.com/SAP/wdio-qmate-service",
+    "npmUrl": "https://www.npmjs.com/package/@sap_oss/wdio-qmate-service"
+  },
   {
     "packageName": "wdio-wiremock-service",
     "title": "WireMock",
