@@ -129,6 +129,7 @@ export const SUPPORTED_PACKAGES = {
         { name: 'reportportal', value: 'wdio-reportportal-service$--$reportportal' },
         { name: 'docker', value: 'wdio-docker-service$--$docker' },
         { name: 'ui5', value: 'wdio-ui5-service$--$ui5' },
+        { name: 'qmate-service', value: '@sap_oss/wdio-qmate-service--$qmate-service' },
         { name: 'wiremock', value: 'wdio-wiremock-service$--$wiremock' },
         { name: 'ng-apimock', value: 'wdio-ng-apimock-service$--ng-apimock' },
         { name: 'slack', value: 'wdio-slack-service$--$slack' },
