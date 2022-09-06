@@ -1,14 +1,7 @@
 import assert from 'node:assert'
-import os from 'node:os'
 
 describe('Mocha smoke test', () => {
     let testJs = 'tests/mocha/test.ts:'
-
-    before(() => {
-        if (os.platform() === 'win32') {
-            testJs = testJs.split('/').join('\\')
-        }
-    })
 
     it('has globals set up', async () => {
         expect(1).toBe(1) // has non wdio matcher support

@@ -1,3 +1,4 @@
+import url from 'node:url'
 import path from 'node:path'
 import { format } from 'node:util'
 import Mocha, { Runner } from 'mocha'
@@ -64,9 +65,13 @@ class MochaAdapter {
         mocha.reporter(NOOP as any)
         mocha.fullTrace()
 
+        /**
+         * as Mocha doesn't support file:// formats yet we have to
+         * remove it before adding it to Mocha
+         */
         this._specs.forEach((spec) => mocha.addFile(
             spec.startsWith(FILE_PROTOCOL)
-                ? spec.slice(FILE_PROTOCOL.length)
+                ? url.fileURLToPath(spec)
                 : spec
         ))
         mocha.suite.on('pre-require', this.preRequire.bind(this))

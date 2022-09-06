@@ -95,7 +95,7 @@ npx wdio run ./wdio.conf.js --suite exampleSuiteName
 
 ## Run in a script
 
-If you like to use WebdriverIO as an automation engine in [Standalone Mode](docs/setuptypes#standalone-mode) within a Node.JS script you can also directly install WebdriverIO and use it as a package, e.g. to generate a screenshot of a website:
+If you would like to use WebdriverIO as an automation engine in [Standalone Mode](/docs/setuptypes#standalone-mode) within a Node.JS script you can also directly install WebdriverIO and use it as a package, e.g. to generate a screenshot of a website:
 
 ```js
 import { remote } from 'webdriverio'
@@ -116,6 +116,11 @@ await browser.deleteSession()
 ```
 
 __Note:__ all WebdriverIO commands are asynchronous and need to be properly handled using [`async/await`](https://javascript.info/async-await).
+
+
+## Record tests
+
+WebdriverIO provides tools to help you get started by recording your test actions on screen and generate WebdriverIO test scripts automatically. See [Recorder tests with Chrome DevTools Recorder](/docs/record) for more information.
 
 ## System Requirements
 

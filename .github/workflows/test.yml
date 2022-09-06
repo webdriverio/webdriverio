@@ -28,6 +28,8 @@ jobs:
         run: npm run test:depcheck
       - name: Lint / Typings / Unit / Smoke Tests
         run: npm run test
+      - name: Interop Tests
+        run: npm i chromedriver@104 && npm run test:e2e:cjs
   e2e-windows:
     runs-on: windows-latest
     steps:
@@ -40,21 +42,25 @@ jobs:
       - name: Bootstrap Packages
         run: npm run setup-full
       - name: Lint / Dependencies / Unit / Smoke Tests
-        run: npm run test:eslint && npm run test:typings && npm run test:unit
-      # - name: Setup Chrome Browser
-      #   uses: browser-actions/setup-chrome@latest
-      # - name: E2E Protocol Tests
-      #   uses: nick-invision/retry@v2
-      #   with:
-      #     timeout_minutes: 20
-      #     max_attempts: 3
-      #     command: npm run test:e2e
-      # - name: E2E Edge Launch Tests
-      #   uses: nick-invision/retry@v2
-      #   with:
-      #     timeout_minutes: 20
-      #     max_attempts: 3
-      #     command: npm run test:e2e:edge
+        run: npm run test
+      - name: Setup Chrome Browser
+        uses: browser-actions/setup-chrome@latest
+      - name: Print Chrome Location
+        run: which chrome
+      - name: Add location to $PATH
+        run: $env:Path += ";C:\hostedtoolcache\windows\chromium\latest\x64"
+      - name: E2E Protocol Tests
+        uses: nick-invision/retry@v2
+        with:
+          timeout_minutes: 20
+          max_attempts: 3
+          command: npm run test:e2e
+      - name: E2E Edge Launch Tests
+        uses: nick-invision/retry@v2
+        with:
+          timeout_minutes: 20
+          max_attempts: 3
+          command: npm run test:e2e:edge
   e2e-mac:
     runs-on: macos-latest
     steps:

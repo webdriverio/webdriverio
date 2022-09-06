@@ -1,7 +1,9 @@
+import url from 'node:url'
+import { EventEmitter } from 'node:events'
+
 import Jasmine from 'jasmine'
 import logger from '@wdio/logger'
 import { runTestInFiberContext, executeHooksWithArgs } from '@wdio/utils'
-import { EventEmitter } from 'node:events'
 import { expect } from 'expect-webdriverio'
 import { _setGlobal } from '@wdio/globals'
 import type { Options, Services, Capabilities } from '@wdio/types'
@@ -74,8 +76,12 @@ class JasmineAdapter {
         // @ts-ignore outdated
         const jasmineEnv = jasmine.getEnv()
         this._specs.forEach((spec) => this._jrunner.addSpecFile(
+            /**
+             * as Jasmine doesn't support file:// formats yet we have to
+             * remove it before adding it to Jasmine
+             */
             spec.startsWith(FILE_PROTOCOL)
-                ? spec.slice(FILE_PROTOCOL.length)
+                ? url.fileURLToPath(spec)
                 : spec
         ))
 

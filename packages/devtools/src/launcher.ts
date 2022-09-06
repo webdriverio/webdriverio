@@ -1,4 +1,4 @@
-import { launch as launchChromeBrowser } from 'chrome-launcher'
+import { launch as launchChromeBrowser, Options } from 'chrome-launcher'
 import puppeteer, { PuppeteerLaunchOptions } from 'puppeteer-core'
 import logger from '@wdio/logger'
 import type { Browser } from 'puppeteer-core/lib/cjs/puppeteer/common/Browser'
@@ -6,7 +6,7 @@ import type { Capabilities } from '@wdio/types'
 import { QueryHandler } from 'query-selector-shadow-dom/plugins/puppeteer/index.js'
 
 import browserFinder from './finder/index.js'
-import { getPages } from './utils.js'
+import { getPages, launchChromeUsingWhich } from './utils.js'
 import {
     CHROME_NAMES,
     FIREFOX_NAMES,
@@ -106,7 +106,7 @@ async function launchChrome (capabilities: ExtendedCapabilities) {
     }
 
     log.info(`Launch Google Chrome with flags: ${chromeFlags.join(' ')}`)
-    const chrome = await launchChromeBrowser({
+    const launchOptions: Options = {
         prefs: chromeOptions.prefs,
         chromePath: chromeOptions.binary,
         ignoreDefaultFlags: true,
@@ -114,7 +114,9 @@ async function launchChrome (capabilities: ExtendedCapabilities) {
         userDataDir,
         envVars: devtoolsOptions.env,
         ...(devtoolsOptions.customPort ? { port: devtoolsOptions.customPort } : {})
-    })
+    }
+    const chrome = await launchChromeBrowser(launchOptions).catch(
+        (err: Error) => launchChromeUsingWhich(err, launchOptions))
 
     log.info(`Connect Puppeteer with browser on port ${chrome.port}`)
     const browser = await puppeteer.connect({
