@@ -28,6 +28,8 @@ jobs:
         run: npm run test:depcheck
       - name: Lint / Typings / Unit / Smoke Tests
         run: npm run test
+      - name: Interop Tests
+        run: npm run test:e2e:cjs
   e2e-windows:
     runs-on: windows-latest
     steps:
