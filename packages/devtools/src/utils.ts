@@ -1,4 +1,5 @@
 import fs from 'node:fs'
+import util from 'node:util'
 import { createRequire } from 'node:module'
 
 import which from 'which'
@@ -391,8 +392,24 @@ export const launchChromeUsingWhich = async (err: Error, launchOptions: Options,
     /**
      * try to use node-which to resolve a Chrome path
      */
+    const errorMessage = (
+        'Failed to find a Chrome installation via:\n' +
+        '$ which chrome: %s\n' +
+        '$ which chromium: %s\n' +
+        '$ which google-chrome: %s'
+    )
     const chromePath = await which('chrome')
-        .catch(() => which('chromium')
-            .catch(() => which('google-chrome')))
+        .catch((errorChrome: Error) => which('chromium')
+            .catch((errorChromium: Error) => which('google-chrome')
+                .catch((errorGoogleChrome: Error) => {
+                    throw new Error(util.format(
+                        errorMessage,
+                        errorChrome.message,
+                        errorChromium.message,
+                        errorGoogleChrome.message
+                    ))
+                })
+            )
+        )
     return launchChromeBrowser({ ...launchOptions, chromePath })
 }
