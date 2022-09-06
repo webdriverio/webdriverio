@@ -29,9 +29,7 @@ jobs:
       - name: Lint / Typings / Unit / Smoke Tests
         run: npm run test
       - name: Interop Tests
-        run:
-          npm i chromedriver@104
-          npm run test:e2e:cjs
+        run: npm i chromedriver@104 && npm run test:e2e:cjs
   e2e-windows:
     runs-on: windows-latest
     steps:
