@@ -45,6 +45,7 @@ jobs:
         run: npm run test
       - name: Setup Chrome Browser
         uses: browser-actions/setup-chrome@latest
+      - run: chrome --version
       - name: E2E Protocol Tests
         uses: nick-invision/retry@v2
         with:
