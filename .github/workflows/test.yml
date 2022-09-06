@@ -45,7 +45,10 @@ jobs:
         run: npm run test
       - name: Setup Chrome Browser
         uses: browser-actions/setup-chrome@latest
-      - run: which chrome
+      - name: Print Chrome Location
+        run: which chrome
+      - name: Add location to $PATH
+        run: set PATH=%PATH%;C:\hostedtoolcache\windows\chromium\latest\x64\
       - name: E2E Protocol Tests
         uses: nick-invision/retry@v2
         with:
