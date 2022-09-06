@@ -1,17 +1,20 @@
 import { describe, it, expect, afterEach, vi, test } from 'vitest'
 
 import path from 'node:path'
-import childProcess from 'node:child_process'
 // @ts-ignore no types needed
 import debug from 'debug'
+import which from 'which'
+import { launch } from 'chrome-launcher'
 import { canAccess } from '@wdio/utils'
 
 import {
     validate, getPrototype, findElement, findElements, getStaleElementError,
     sanitizeError, transformExecuteArgs, transformExecuteResult, getPages,
-    uniq, findByWhich, patchDebug, sleep
+    uniq, findByWhich, patchDebug, sleep, launchChromeUsingWhich
 } from '../src/utils.js'
 
+vi.mock('which')
+vi.mock('chrome-launcher')
 vi.mock('@wdio/logger', async () => {
     const pathModule = await vi.importActual('node:path') as typeof path
     return import(pathModule.join(process.cwd(), '__mocks__', '@wdio/logger'))
@@ -81,24 +84,6 @@ vi.mock('fs', () => {
     return {
         default: {
             existsSync: (pkgName: string) => pkgName === 'pptrDebug'
-        }
-    }
-})
-
-vi.mock('node:child_process', () => {
-    let returnValue = false
-    const execFileSync = vi.fn().mockImplementation(() => {
-        if (!returnValue) {
-            throw new Error('foo not found')
-        }
-        return returnValue
-    })
-
-    return {
-        execFileSync,
-        default: {
-            execFileSync,
-            shouldReturn: (value: any) => (returnValue = value)
         }
     }
 })
@@ -400,8 +385,7 @@ test('findByWhich', () => {
     expect(findByWhich(['firefox'], [{ regex: /firefox/, weight: 51 }]))
         .toEqual([])
 
-    // @ts-expect-error mock feature
-    vi.mocked(childProcess).shouldReturn('/path/to/other/firefox\n')
+    vi.mocked(which.sync).mockReturnValue('/path/to/other/firefox')
     expect(findByWhich(['firefox'], [{ regex: /firefox/, weight: 51 }]))
         .toEqual(['/path/to/other/firefox'])
 
@@ -429,4 +413,29 @@ test('sleep', async () => {
     const start = Date.now()
     await sleep(100)
     expect(Date.now() - start).toBeGreaterThanOrEqual(90)
+})
+
+describe('launchChromeUsingWhich', () => {
+    it('should throw if error is not related to chrome binary not found', async () => {
+        await expect(() => launchChromeUsingWhich(new Error('ups'), {}))
+            .rejects.toThrow('ups')
+    })
+
+    it('should throw if user has specified path explicitly', async () => {
+        await expect(() => launchChromeUsingWhich(
+            new Error('No Chrome installations found.'),
+            { chromePath: '/foo/bar' }
+        )).rejects.toThrow('No Chrome installations found.')
+    })
+
+    it('should use which properly to find path', async () => {
+        vi.mocked(which).mockImplementation(async (binary: string) => {
+            if (binary === 'google-chrome') {
+                return '/foo/bar/google-chrome'
+            }
+            throw new Error('not found')
+        })
+        await launchChromeUsingWhich(new Error('No Chrome installations found.'), {})
+        expect(launch).toBeCalledWith({ chromePath: '/foo/bar/google-chrome' })
+    })
 })

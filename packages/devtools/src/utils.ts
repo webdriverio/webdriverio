@@ -1,10 +1,11 @@
 import fs from 'node:fs'
 import { createRequire } from 'node:module'
-import { execFileSync } from 'node:child_process'
 
+import which from 'which'
 import logger from '@wdio/logger'
 import { commandCallStructure, isValidParameter, getArgumentType, canAccess } from '@wdio/utils'
 import { WebDriverProtocol, CommandParameters, CommandPathVariables, ElementReference } from '@wdio/protocols'
+import { launch as launchChromeBrowser, Options } from 'chrome-launcher'
 import type { Logger } from '@wdio/logger/build/node'
 import type { ElementHandle } from 'puppeteer-core/lib/cjs/puppeteer/common/ElementHandle'
 import type { Browser } from 'puppeteer-core/lib/cjs/puppeteer/common/Browser'
@@ -302,12 +303,7 @@ export function findByWhich (executables: string[], priorities: Priorities[]) {
     const installations: string[] = []
     executables.forEach((executable) => {
         try {
-            const browserPath = execFileSync(
-                'which',
-                [executable],
-                { stdio: 'pipe' }
-            ).toString().split(/\r?\n/)[0]
-
+            const browserPath = which.sync(executable)
             if (canAccess(browserPath)) {
                 installations.push(browserPath)
             }
@@ -374,3 +370,29 @@ export async function patchDebug (scoppedLogger: Logger) {
 
 export const sleep = (time = 0) => new Promise(
     (resolve) => setTimeout(resolve, time))
+
+export const launchChromeUsingWhich = async (err: Error, launchOptions: Options, ) => {
+    /**
+     * we only handle the error if
+     */
+    if (
+        /**
+         * the installation could not be found
+         */
+        !err.message.includes('No Chrome installations found.') ||
+        /**
+         * the user specified a binary path that could not be found
+         */
+        typeof launchOptions.chromePath === 'string'
+    ) {
+        throw err
+    }
+
+    /**
+     * try to use node-which to resolve a Chrome path
+     */
+    const chromePath = await which('chrome')
+        .catch(() => which('chromium')
+            .catch(() => which('google-chrome')))
+    return launchChromeBrowser({ ...launchOptions, chromePath })
+}
