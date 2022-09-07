@@ -49,6 +49,10 @@ jobs:
         run: which chrome
       - name: Add location to $PATH
         run: echo "C:\hostedtoolcache\windows\chromium\latest\x64" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+      - name: Print $PATH
+        run: ($env:path).split(';')
+      - name: Check Chrome Location
+        run: ls -la C:\hostedtoolcache\windows\chromium\latest\x64
       - name: E2E Protocol Tests
         uses: nick-invision/retry@v2
         with:
