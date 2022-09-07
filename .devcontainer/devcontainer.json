@@ -33,9 +33,17 @@
     // website
     3000
   ],
+  "portsAttributes": {
+    "3000": { "label": "Code Coverage Site" },
+    "8000": { "label": "Project Documentation" }
+  },
+  "postCreateCommand": "npm install && npm run setup-full && node ./scripts/welcome.js",
   // Use 'postCreateCommand' to run commands after the container is created.
   // "postCreateCommand": "yarn install",
   // Comment out to connect as root instead. More info: https://aka.ms/vscode-remote/containers/non-root.
   "remoteUser": "node",
-  "features": {}
+  "features": {},
+  "remoteEnv": {
+    "IS_DEVCONTAINER": "1"
+  }
 }

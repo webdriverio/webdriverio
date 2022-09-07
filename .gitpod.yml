@@ -25,7 +25,7 @@ tasks:
     command: npm run watch
   - name: Welcome Bash
     init: gp sync-await installation
-    command: node .gitpod/welcome.mjs
+    command: node ./scripts/welcome.js
 
 ports:
   - port: 3000

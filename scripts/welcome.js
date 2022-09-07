@@ -2,6 +2,13 @@ import chalk from 'chalk'
 import sh from 'shelljs'
 
 const orange = chalk.hex('#ea5906')
+const urlToDocs = process.env.IS_DEVCONTAINER
+    ? 'http://localhost:3000'
+    : await sh.exec('gp url 3000')
+
+const urlToCoverage = process.env.IS_DEVCONTAINER
+    ? 'http://localhost:8000'
+    : await sh.exec('gp url 8000')
 
 const robot = `
                    .::::::::::::::::::::::::::.
@@ -59,10 +66,10 @@ ${chalk.bold('$ npm run test:mocha')}
 
 The following environments are available for you:
     - Preview of the documentation page
-      ${chalk.blue.bold(await sh.exec('gp url 3000')).trim()}
+      ${chalk.blue.bold(urlToDocs).trim()}
 
     - Code Coverage Overview
-      ${chalk.blue.bold(await sh.exec('gp url 8000')).trim()}
+      ${chalk.blue.bold(urlToCoverage).trim()}
 
 For more information, go to: ${chalk.blue.bold('https://webdriver.io/docs/contribute')}!
 
