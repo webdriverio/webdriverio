@@ -22,7 +22,6 @@
         "EditorConfig.EditorConfig",
         "DigitalBrainstem.javascript-ejs-support",
         "eamodio.gitlens",
-        "stateful.issue-explorer",
         "stateful.marquee"
       ]
     }
@@ -38,7 +37,5 @@
   // "postCreateCommand": "yarn install",
   // Comment out to connect as root instead. More info: https://aka.ms/vscode-remote/containers/non-root.
   "remoteUser": "node",
-  "features": {
-    "github-cli": "latest"
-  }
+  "features": {}
 }
