@@ -1,11 +1,22 @@
 import Browserstack from 'browserstack-local'
 import logger from '@wdio/logger'
+import gotMock from 'got'
 
 import BrowserstackLauncher from '../src/launcher'
 import { BrowserstackConfig } from '../src/types'
+
+import fs from 'fs'
+import FormData from 'form-data'
+
 // @ts-ignore
 import { version as bstackServiceVersion } from '../package.json'
+import { servicesVersion } from 'typescript'
 
+interface GotMock extends jest.Mock {
+    post: jest.Mock
+}
+
+const got = gotMock as unknown as GotMock
 const expect = global.expect as unknown as jest.Expect
 
 const log = logger('test')
@@ -50,6 +61,111 @@ describe('onPrepare', () => {
 
         expect(logInfoSpy).toHaveBeenCalledWith('browserstackLocal is not enabled - skipping...')
         expect(service.browserstackLocal).toBeUndefined()
+    })
+
+    it('should add the "app" property to a multiremote capability if no "bstack:options"', async () => {
+        const options: BrowserstackConfig = { app: 'bs://<app-id>' }
+        const service = new BrowserstackLauncher(options, caps, config)
+        const capabilities = { samsungGalaxy: { capabilities: {} } }
+
+        await service.onPrepare(config, capabilities)
+        expect(capabilities.samsungGalaxy.capabilities).toEqual({ 'app': 'bs://<app-id>' })
+    })
+
+    it('should add the "appium:app" property to a multiremote capability if "bstack:options" present', async () => {
+        const options: BrowserstackConfig = { app: 'bs://<app-id>' }
+        const service = new BrowserstackLauncher(options, caps, config)
+        const capabilities = { samsungGalaxy: { capabilities: { 'bstack:options': {} } } }
+
+        await service.onPrepare(config, capabilities)
+        expect(capabilities.samsungGalaxy.capabilities).toEqual({ 'bstack:options': {}, 'appium:app': 'bs://<app-id>' })
+    })
+
+    it('should add the "appium:app" property to a multiremote capability if any extension cap present', async () => {
+        const options: BrowserstackConfig = { app: 'bs://<app-id>' }
+        const service = new BrowserstackLauncher(options, caps, config)
+        const capabilities = { samsungGalaxy: { capabilities: { 'appium:chromeOptions': {} } } }
+
+        await service.onPrepare(config, capabilities)
+        expect(capabilities.samsungGalaxy.capabilities).toEqual({ 'appium:app': 'bs://<app-id>', 'appium:chromeOptions': {} })
+    })
+
+    it('should add the "app" property to an array of capabilities if no "bstack:options"', async () => {
+        const options: BrowserstackConfig = { app: 'bs://<app-id>' }
+        const service = new BrowserstackLauncher(options, caps, config)
+        const capabilities = [{}, {}, {}]
+
+        await service.onPrepare(config, capabilities)
+        expect(capabilities).toEqual([
+            { 'app': 'bs://<app-id>' },
+            { 'app': 'bs://<app-id>' },
+            { 'app': 'bs://<app-id>' }
+        ])
+    })
+
+    it('should add the "appium:app" property to an array of capabilities if "bstack:options" present', async () => {
+        const options: BrowserstackConfig = { app: 'bs://<app-id>' }
+        const service = new BrowserstackLauncher(options, caps, config)
+        const capabilities = [{ 'bstack:options': {} }, { 'bstack:options': {} }, { 'bstack:options': {} }]
+
+        await service.onPrepare(config, capabilities)
+        expect(capabilities).toEqual([
+            { 'bstack:options': {}, 'appium:app': 'bs://<app-id>' },
+            { 'bstack:options': {}, 'appium:app': 'bs://<app-id>' },
+            { 'bstack:options': {}, 'appium:app': 'bs://<app-id>' }
+        ])
+    })
+
+    it('should add the "appium:app" property to an array of capabilities if any extension cap present', async () => {
+        const options: BrowserstackConfig = { app: 'bs://<app-id>' }
+        const service = new BrowserstackLauncher(options, caps, config)
+        const capabilities = [{ 'appium:chromeOptions': {} }, { 'appium:chromeOptions': {} }]
+
+        await service.onPrepare(config, capabilities)
+        expect(capabilities).toEqual([
+            { 'appium:app': 'bs://<app-id>', 'appium:chromeOptions': {} },
+            { 'appium:app': 'bs://<app-id>', 'appium:chromeOptions': {} }
+        ])
+    })
+
+    it('should add the "appium:app" as custom_id of app to capability object', async () => {
+        const options: BrowserstackConfig = { app: 'custom_id' }
+        const service = new BrowserstackLauncher(options, caps, config)
+        const capabilities = [{ 'appium:chromeOptions': {} }, { 'appium:chromeOptions': {} }]
+
+        await service.onPrepare(config, capabilities)
+        expect(capabilities).toEqual([
+            { 'appium:app': 'custom_id', 'appium:chromeOptions': {} },
+            { 'appium:app': 'custom_id', 'appium:chromeOptions': {} }
+        ])
+    })
+
+    it('should add the "appium:app" as shareable_id of app to capability object', async () => {
+        const options: BrowserstackConfig = { app: 'user/custom_id' }
+        const service = new BrowserstackLauncher(options, caps, config)
+        const capabilities = [{ 'appium:chromeOptions': {} }, { 'appium:chromeOptions': {} }]
+
+        await service.onPrepare(config, capabilities)
+        expect(capabilities).toEqual([
+            { 'appium:app': 'user/custom_id', 'appium:chromeOptions': {} },
+            { 'appium:app': 'user/custom_id', 'appium:chromeOptions': {} }
+        ])
+    })
+
+    it('should add "appium:app" property with value returned from app upload to capabilities', async () => {
+        const options: BrowserstackConfig = { app: '/some/dummy/file.apk' }
+        const service = new BrowserstackLauncher(options, caps, config)
+        const capabilities = [{ 'bstack:options': {} }, { 'bstack:options': {} }, { 'bstack:options': {} }]
+
+        jest.spyOn(fs, 'existsSync').mockReturnValueOnce(true)
+        jest.spyOn(service, '_uploadApp').mockImplementation(() => Promise.resolve({ app_url: 'bs://<app-id>' }))
+
+        await service.onPrepare(config, capabilities)
+        expect(capabilities).toEqual([
+            { 'bstack:options': {}, 'appium:app': 'bs://<app-id>' },
+            { 'bstack:options': {}, 'appium:app': 'bs://<app-id>' },
+            { 'bstack:options': {}, 'appium:app': 'bs://<app-id>' }
+        ])
     })
 
     it('should initialize the opts object, and spawn a new Local instance', async () => {
@@ -116,14 +232,6 @@ describe('onPrepare', () => {
             { 'bstack:options': { local: true }, 'goog:chromeOptions': {} },
             { 'bstack:options': { local: true }, 'moz:firefoxOptions': {} }
         ])
-    })
-
-    it('should throw an error if "capabilities" is not an object/array', () => {
-        const service = new BrowserstackLauncher(options, caps, config)
-        const capabilities = 1
-
-        expect(() => service.onPrepare(config, capabilities as any))
-            .toThrow(TypeError('Capabilities should be an object or Array!'))
     })
 
     it('should reject if local.start throws an error', () => {
@@ -231,3 +339,39 @@ describe('constructor', () => {
         ])
     })
 })
+
+describe('_updateCaps', () => {
+    const options: BrowserstackConfig = { browserstackLocal: true }
+    const caps: any = [{}]
+    const config = {
+        user: 'foobaruser',
+        key: '12345',
+        capabilities: []
+    }
+
+    it('should throw an error if "capabilities" is not an object/array', () => {
+        const service = new BrowserstackLauncher(options, caps, config)
+        const capabilities = 1
+
+        expect(() => service._updateCaps(capabilities as any, 'local'))
+            .toThrow(TypeError('Capabilities should be an object or Array!'))
+    })
+})
+
+// describe('_uploadApp', () => {
+//     const options: BrowserstackConfig = { app: 'bs://<app-id>' }
+//     const caps: any = [{}]
+//     const config = {
+//         user: 'foobaruser',
+//         key: '12345',
+//         capabilities: []
+//     }
+
+//     it('should upload the app and return app_url', async() => {
+//         const service = new BrowserstackLauncher(options, caps, config)
+//         await service._uploadApp(options.app)
+//         expect(got.post).toHaveBeenCalledWith(
+//             'https://api-cloud.browserstack.com/app-automate/upload',
+//             { username: 'foo', password: 'bar', body: 'json' })
+//     })
+// })
