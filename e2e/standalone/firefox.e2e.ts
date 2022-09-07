@@ -5,7 +5,6 @@ let browser: Client
 
 beforeAll(async () => {
     browser = await DevTools.newSession({
-        outputDir: __dirname,
         capabilities: {
             browserName: 'firefox',
             'wdio:devtoolsOptions': {
