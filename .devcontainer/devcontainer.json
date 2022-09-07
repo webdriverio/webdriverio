@@ -45,5 +45,8 @@
   "features": {},
   "remoteEnv": {
     "IS_DEVCONTAINER": "1"
+  },
+  "containerEnv": {
+    "PATH": "${containerEnv:PATH}:/opt/google/chrome:/opt/firefox"
   }
 }

@@ -8,7 +8,7 @@ import { remote } from '../../packages/webdriverio/build/index.js'
  */
 const browser = await remote({
     capabilities: {
-        browserName: 'firefox',
+        browserName: 'chrome',
         'wdio:devtoolsOptions': {
             headless: true
         }
