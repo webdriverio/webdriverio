@@ -44,9 +44,7 @@
   "remoteUser": "node",
   "features": {},
   "remoteEnv": {
-    "IS_DEVCONTAINER": "1"
-  },
-  "containerEnv": {
+    "IS_DEVCONTAINER": "1",
     "PATH": "${containerEnv:PATH}:/opt/google/chrome:/opt/firefox"
   }
 }
