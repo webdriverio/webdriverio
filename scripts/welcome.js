@@ -3,11 +3,11 @@ import sh from 'shelljs'
 
 const orange = chalk.hex('#ea5906')
 const urlToDocs = process.env.IS_DEVCONTAINER
-    ? 'http://localhost:3000'
+    ? `https://${process.env.CODESPACE_NAME || 'locahost'}-${3000}.githubpreview.dev`
     : await sh.exec('gp url 3000')
 
 const urlToCoverage = process.env.IS_DEVCONTAINER
-    ? 'http://localhost:8000'
+    ? `https://${process.env.CODESPACE_NAME || 'locahost'}-${8000}.githubpreview.dev`
     : await sh.exec('gp url 8000')
 
 const robot = `
