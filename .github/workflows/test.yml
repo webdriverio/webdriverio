@@ -29,7 +29,9 @@ jobs:
       - name: Lint / Typings / Unit / Smoke Tests
         run: npm run test
       - name: Interop Tests
-        run: npm i chromedriver@104 && npm run test:e2e:cjs
+        run: |
+          npm i chromedriver@104
+          npm run test:e2e:cjs
   e2e-windows:
     runs-on: windows-latest
     steps:
@@ -89,6 +91,7 @@ jobs:
       - run: |
           export FIREFOX_BINARY=$(which firefox)
           echo "FIREFOX_BINARY=$FIREFOX_BINARY" >> $GITHUB_ENV
+          echo "$FIREFOX_BINARY"
       - name: E2E Firefox Launch Tests
         run: npm run test:e2e:firefox
       - name: E2E Connection Test
