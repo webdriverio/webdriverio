@@ -43,6 +43,7 @@ export const builder = (yargs: Argv) => {
         .help()
 }
 
+const VERSION_REGEXP = /(\d+)\.(\d+)\.(\d+)-(alpha|beta|)\.(\d+)\+(.+)/g
 const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) {
     console.log(CONFIG_HELPER_INTRO)
     const answers = await getAnswers(yes)
@@ -152,13 +153,15 @@ const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) 
 
     /**
      * ensure wdio packages have the same dist tag as cli
+     * running `matchAll` to a version like "8.0.0-alpha.249+4bc237701", results in:
+     * ['8.0.0-alpha.249+4bc237701', '8', '0', '0', 'alpha', '249', '4bc237701']
      */
-    if (pkg._requested && pkg._requested.fetchSpec) {
-        const { fetchSpec } = pkg._requested
+    const { value } = (pkg.version as string).matchAll(VERSION_REGEXP).next()
+    if (value) {
+        const nextVersion = value.slice(0, -1) // drop commit bit
         packagesToInstall = packagesToInstall.map((p) =>
-            (p.startsWith('@wdio') || ['devtools', 'webdriver', 'webdriverio'].includes(p)) &&
-            (fetchSpec.match(/(v)?\d+\.\d+\.\d+/) === null)
-                ? `${p}@${fetchSpec}`
+            (p.startsWith('@wdio') || ['devtools', 'webdriver', 'webdriverio'].includes(p))
+                ? `${p}@^${nextVersion}`
                 : p
         )
     }
