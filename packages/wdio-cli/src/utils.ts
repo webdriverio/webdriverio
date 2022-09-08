@@ -23,6 +23,7 @@ const require = createRequire(import.meta.url)
 const log = logger('@wdio/cli:utils')
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
+const VERSION_REGEXP = /(\d+)\.(\d+)\.(\d+)-(alpha|beta|)\.(\d+)\+(.+)/g
 const TEMPLATE_ROOT_DIR = path.join(__dirname, 'templates', 'exampleFiles')
 const renderFile = promisify(ejs.renderFile) as (path: string, data: Record<string, any>) => Promise<string>
 
@@ -452,4 +453,24 @@ export function getDefaultFiles (answers: Partial<Questionnair>, filePath: strin
     return answers?.isUsingCompiler?.toString().includes('TypeScript')
         ? `${filePath}.ts`
         : `${filePath}.js`
+}
+
+/**
+ * Ensure core WebdriverIO packages have the same version as cli so that if someone
+ * installs `@wdio/cli@next` and runs the wizard, all related packages have the same version.
+ * running `matchAll` to a version like "8.0.0-alpha.249+4bc237701", results in:
+ * ['8.0.0-alpha.249+4bc237701', '8', '0', '0', 'alpha', '249', '4bc237701']
+ */
+export function specifyVersionIfNeeded (packagesToInstall: string[], version: string) {
+    const { value } = version.matchAll(VERSION_REGEXP).next()
+    if (value) {
+        const [major, minor, patch, tagName, build] = value.slice(1, -1) // drop commit bit
+        return packagesToInstall.map((p) =>
+            (p.startsWith('@wdio') || ['devtools', 'webdriver', 'webdriverio'].includes(p))
+                ? `${p}@^${major}.${minor}.${patch}-${tagName}.${build}`
+                : p
+        )
+    }
+
+    return packagesToInstall
 }

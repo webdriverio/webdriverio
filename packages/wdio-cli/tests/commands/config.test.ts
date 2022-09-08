@@ -32,7 +32,8 @@ vi.mock('../../src/utils', async () => {
         hasPackage: vi.fn().mockReturnValue(false),
         getAnswers: vi.fn(),
         generateTestFiles: vi.fn(),
-        getPathForFileGeneration: vi.fn()
+        getPathForFileGeneration: vi.fn(),
+        specifyVersionIfNeeded: vi.fn((pkgs) => pkgs)
     }
 })
 

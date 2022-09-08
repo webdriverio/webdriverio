@@ -15,7 +15,7 @@ import {
 import {
     addServiceDeps, convertPackageHashToObject, renderConfigurationFile,
     hasFile, generateTestFiles, getAnswers, getPathForFileGeneration,
-    hasPackage
+    hasPackage, specifyVersionIfNeeded
 } from '../utils.js'
 import type { ConfigCommandArguments, ParsedAnswers } from '../types'
 
@@ -43,7 +43,6 @@ export const builder = (yargs: Argv) => {
         .help()
 }
 
-const VERSION_REGEXP = /(\d+)\.(\d+)\.(\d+)-(alpha|beta|)\.(\d+)\+(.+)/g
 const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) {
     console.log(CONFIG_HELPER_INTRO)
     const answers = await getAnswers(yes)
@@ -150,21 +149,10 @@ const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) 
      * add packages that are required by services
      */
     addServiceDeps(servicePackages, packagesToInstall)
-
     /**
-     * ensure wdio packages have the same dist tag as cli
-     * running `matchAll` to a version like "8.0.0-alpha.249+4bc237701", results in:
-     * ['8.0.0-alpha.249+4bc237701', '8', '0', '0', 'alpha', '249', '4bc237701']
+     * update package version if CLI is a pre release
      */
-    const { value } = (pkg.version as string).matchAll(VERSION_REGEXP).next()
-    if (value) {
-        const [, major, minor, patch, tagName, build] = value.slice(1, -1) // drop commit bit
-        packagesToInstall = packagesToInstall.map((p) =>
-            (p.startsWith('@wdio') || ['devtools', 'webdriver', 'webdriverio'].includes(p))
-                ? `${p}@^${major}.${minor}.${patch}-${tagName}.${build}`
-                : p
-        )
-    }
+    packagesToInstall = specifyVersionIfNeeded(packagesToInstall, pkg.version)
 
     /**
      * run npm install only if required by the user

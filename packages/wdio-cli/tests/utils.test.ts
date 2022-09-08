@@ -23,7 +23,8 @@ import {
     generateTestFiles,
     getPathForFileGeneration,
     getDefaultFiles,
-    hasPackage
+    hasPackage,
+    specifyVersionIfNeeded
 } from '../src/utils.js'
 import { COMPILER_OPTION_ANSWERS } from '../src/constants.js'
 
@@ -753,6 +754,17 @@ test('getDefaultFiles', () => {
         .toBe('/foo/bar.ts')
     expect(getDefaultFiles({ isUsingCompiler: COMPILER_OPTION_ANSWERS[2] }, files))
         .toBe('/foo/bar.js')
+})
+
+test('specifyVersionIfNeeded', () => {
+    expect(specifyVersionIfNeeded(
+        ['webdriverio', '@wdio/spec-reporter', 'wdio-chromedriver-service'],
+        '8.0.0-alpha.249+4bc237701'
+    )).toEqual([
+        'webdriverio@^8.0.0-alpha.249',
+        '@wdio/spec-reporter@^8.0.0-alpha.249',
+        'wdio-chromedriver-service'
+    ])
 })
 
 afterEach(() => {
