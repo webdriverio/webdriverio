@@ -758,12 +758,13 @@ test('getDefaultFiles', () => {
 
 test('specifyVersionIfNeeded', () => {
     expect(specifyVersionIfNeeded(
-        ['webdriverio', '@wdio/spec-reporter', 'wdio-chromedriver-service'],
+        ['webdriverio', '@wdio/spec-reporter', 'wdio-chromedriver-service', 'wdio-geckodriver-service'],
         '8.0.0-alpha.249+4bc237701'
     )).toEqual([
         'webdriverio@^8.0.0-alpha.249',
         '@wdio/spec-reporter@^8.0.0-alpha.249',
-        'wdio-chromedriver-service'
+        'wdio-chromedriver-service@next',
+        'wdio-geckodriver-service'
     ])
 })
 

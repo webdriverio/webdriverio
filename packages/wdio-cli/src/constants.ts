@@ -150,6 +150,11 @@ export const SUPPORTED_PACKAGES = {
     ]
 } as const
 
+export const COMMUNITY_PACKAGES_WITH_V8_SUPPORT = [
+    'wdio-chromedriver-service',
+    'expect-webdriverio'
+]
+
 export const BACKEND_CHOICES = [
     'On my local machine',
     'In the cloud using Experitest',

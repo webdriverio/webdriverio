@@ -16,7 +16,7 @@ import { ConfigParser } from '@wdio/config'
 import { CAPABILITY_KEYS } from '@wdio/protocols'
 import type { Options, Capabilities, Services } from '@wdio/types'
 
-import { EXCLUSIVE_SERVICES, ANDROID_CONFIG, IOS_CONFIG, QUESTIONNAIRE } from './constants.js'
+import { EXCLUSIVE_SERVICES, ANDROID_CONFIG, IOS_CONFIG, QUESTIONNAIRE, COMMUNITY_PACKAGES_WITH_V8_SUPPORT } from './constants.js'
 import type { ReplCommandArguments, Questionnair, SupportedPackage, OnCompleteResult, ParsedAnswers } from './types'
 
 const require = createRequire(import.meta.url)
@@ -465,11 +465,15 @@ export function specifyVersionIfNeeded (packagesToInstall: string[], version: st
     const { value } = version.matchAll(VERSION_REGEXP).next()
     if (value) {
         const [major, minor, patch, tagName, build] = value.slice(1, -1) // drop commit bit
-        return packagesToInstall.map((p) =>
-            (p.startsWith('@wdio') || ['devtools', 'webdriver', 'webdriverio'].includes(p))
-                ? `${p}@^${major}.${minor}.${patch}-${tagName}.${build}`
-                : p
-        )
+        return packagesToInstall.map((p) => {
+            if (p.startsWith('@wdio') || ['devtools', 'webdriver', 'webdriverio'].includes(p)) {
+                return `${p}@^${major}.${minor}.${patch}-${tagName}.${build}`
+            }
+            if (COMMUNITY_PACKAGES_WITH_V8_SUPPORT.includes(p)) {
+                return `${p}@next`
+            }
+            return p
+        })
     }
 
     return packagesToInstall

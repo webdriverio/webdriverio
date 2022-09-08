@@ -45,6 +45,7 @@ export default class ConfigParser {
          */
         if (this._config.autoCompileOpts && !(await loadAutoCompilers(this._config.autoCompileOpts!, this._moduleRequireService))) {
             log.debug('No compiler found, continue without compiling files')
+            this._config.autoCompileOpts.autoCompile = false
         }
     }
 
