@@ -8,11 +8,22 @@ export interface SessionResponse {
 
 export type MultiRemoteAction = (sessionId: string, browserName?: string) => Promise<any>;
 
-type AppObject = {
+export type AppConfig = {
     id?: string,
     path?: string,
     custom_id?: string,
-    sharable_id?: string
+    shareable_id?: string
+}
+
+export interface AppUploadResponse {
+    app_url?: string,
+    custom_id?: string,
+    shareable_id?: string
+}
+
+export interface App {
+    app?: string,
+    customId?: string
 }
 
 export interface BrowserstackConfig {
@@ -26,7 +37,7 @@ export interface BrowserstackConfig {
      * app hashed id returned after uploading app to Browserstack or
      * custom_id, sharable_id of the uploaded app
      */
-    app?: string | AppObject;
+    app?: string | AppConfig;
     /**
      * Cucumber only. Set this to true to enable updating the session name to the Scenario name if only
      * a single Scenario was ran. Useful when running in parallel

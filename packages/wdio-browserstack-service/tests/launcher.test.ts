@@ -1,22 +1,14 @@
 import Browserstack from 'browserstack-local'
 import logger from '@wdio/logger'
-import gotMock from 'got'
 
 import BrowserstackLauncher from '../src/launcher'
 import { BrowserstackConfig } from '../src/types'
 
 import fs from 'fs'
-import FormData from 'form-data'
 
 // @ts-ignore
 import { version as bstackServiceVersion } from '../package.json'
-import { servicesVersion } from 'typescript'
 
-interface GotMock extends jest.Mock {
-    post: jest.Mock
-}
-
-const got = gotMock as unknown as GotMock
 const expect = global.expect as unknown as jest.Expect
 
 const log = logger('test')
@@ -250,7 +242,7 @@ describe('onPrepare', () => {
         await service.onPrepare(config, caps)
         expect(service.browserstackLocal?.start).toHaveBeenCalled()
         await sleep(100)
-        expect(logInfoMock.mock.calls[0][0])
+        expect(logInfoMock.mock.calls[1][0])
             .toContain('Browserstack Local successfully started after')
     })
 

@@ -3,7 +3,8 @@ import { performance, PerformanceObserver } from 'perf_hooks'
 
 import * as BrowserstackLocalLauncher from 'browserstack-local'
 import logger from '@wdio/logger'
-import type { Capabilities, Services, Options, JsonObject } from '@wdio/types'
+import type { Capabilities, Services, Options } from '@wdio/types'
+import { App, AppConfig, AppUploadResponse } from './types'
 
 import got, { Response } from 'got'
 import FormData from 'form-data'
@@ -65,37 +66,61 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
          * Upload app to BrowserStack if valid file path to app is given.
          * Assign app value to capability if app_url, custom_id, shareable_id is given
          */
-        if (this._options.app) {
-            let app: string | undefined
-            let customId: string | undefined
+        if (!this._options.app) {
+            log.info('app is not defined in browserstack-service config, skipping ...')
+        } else {
+            let app: App = {}
+            let appConfig: AppConfig | string = this._options.app
 
-            if (typeof this._options.app === 'string'){
-                app = this._options.app
-            } else if (typeof this._options.app === 'object' && Object.keys(this._options.app).length) {
-                app = this._options.app.id || this._options.app.path || this._options.app.custom_id || this._options.app.sharable_id
-                customId = this._options.app.custom_id
+            /**
+             * appConfig validation:
+             *   should be of string or object data type
+             *   string data type:
+             *     should be "app file path", "app_url", "custom_id" or "shareable_id"
+             *   object data type:
+             *     only "path" and "custom_id" should coexist as multiple properties.
+             */
+            if (typeof appConfig === 'string'){
+                app.app = appConfig
+            } else if (typeof appConfig === 'object' && Object.keys(appConfig).length) {
+                if (Object.keys(appConfig).length > 2 || (Object.keys(appConfig).length === 2 && (!appConfig.path || !appConfig.custom_id))) {
+                    log.warn(`keys ${Object.keys(appConfig)} can't co-exist as app values, use any one property from
+                                {id<string>, path<string>, custom_id<string>, shareable_id<string>}, only "path" and "custom_id" can co-exist.`)
+
+                    return process.emit('SIGTERM')
+                }
+
+                app.app = appConfig.id || appConfig.path || appConfig.custom_id || appConfig.shareable_id
+                app.customId = appConfig.custom_id
             } else {
                 log.warn('[Invalid format] app should be string or an object')
-                process.emit('SIGINT')
+
+                return process.emit('SIGTERM')
             }
 
-            if (app && ['.apk', '.aab', '.ipa'].includes(path.extname(app))){
-                if (fs.existsSync(app)) {
-                    const data: any = await this._uploadApp(app, customId)
-                    log.info(`app upload completed ${data.app_url}`)
-                    this._updateCaps(capabilities, 'app', data.app_url)
-                } else if (customId){
-                    this._updateCaps(capabilities, 'app', customId)
+            if (!app.app){
+                log.warn(`[Invalid app property] supported properties are {id<string>, path<string>, custom_id<string>, shareable_id<string>}.
+                            For more details please visit https://www.browserstack.com/docs/app-automate/appium/set-up-tests/specify-app')`)
+
+                return process.emit('SIGTERM')
+            }
+
+            if (app.app && ['.apk', '.aab', '.ipa'].includes(path.extname(app.app))){
+                if (fs.existsSync(app.app)) {
+                    const data: AppUploadResponse = await this._uploadApp(app)
+
+                    log.info(`app upload completed \n ${JSON.stringify(data)}`)
+                    app.app = data.app_url
+                } else if (app.customId){
+                    app.app = app.customId
                 } else {
                     log.warn('Invalid file path...')
-                    process.emit('SIGINT')
+                    return process.emit('SIGTERM')
                 }
-            } else if (app) {
-                this._updateCaps(capabilities, 'app', app)
-            } else {
-                log.warn('Invalid property given for app object, supported properties are {id: <string>, path: <string>, custom_id: <string>, sharable_id: <string>}')
-                process.emit('SIGINT')
             }
+
+            log.info(`Using app: ${app.app}`)
+            this._updateCaps(capabilities, 'app', app.app)
         }
 
         if (!this._options.browserstackLocal) {
@@ -176,12 +201,12 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         })
     }
 
-    async _uploadApp(appPath: string, customId?: string): Promise<JsonObject> {
-        log.info(`uploading app ${appPath} to browserstack`)
+    async _uploadApp(app:App): Promise<AppUploadResponse> {
+        log.info(`uploading app ${app.app} ${app.customId? `and custom_id: ${app.customId}` : ''} to browserstack`)
 
         const form = new FormData()
-        form.append('file', fs.createReadStream(appPath))
-        if (customId) form.append('custom_id', customId)
+        if (app.app) form.append('file', fs.createReadStream(app.app))
+        if (app.customId) form.append('custom_id', app.customId)
 
         const res = await got.post('https://api-cloud.browserstack.com/app-automate/upload', {
             body: form,
@@ -189,12 +214,13 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             password : this._config.key
         }).json().catch((err) => { this._uploadErrHandler(err) })
 
-        return res as JsonObject
+        return res as AppUploadResponse
     }
 
     _uploadErrHandler(err: Response<Error>) {
         log.warn(`app upload failed, ${err}`)
-        process.emit('SIGINT')
+
+        return process.emit('SIGTERM')
     }
 
     _updateCaps(capabilities?: Capabilities.RemoteCapabilities, capType?: string, value?:string) {
@@ -203,19 +229,19 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                 if (!capability['bstack:options']) {
                     const extensionCaps = Object.keys(capability).filter((cap) => cap.includes(':'))
                     if (extensionCaps.length) {
-                        if (capType == 'local') {
+                        if (capType === 'local') {
                             capability['bstack:options'] = { local: true }
-                        } else {
+                        } else if (capType === 'app') {
                             capability['appium:app'] = value
                         }
-                    } else if (capType == 'local'){
+                    } else if (capType === 'local'){
                         capability['browserstack.local'] = true
-                    } else {
+                    } else if (capType === 'app') {
                         capability['app'] = value
                     }
-                } else if (capType == 'local') {
+                } else if (capType === 'local') {
                     capability['bstack:options'].local = true
-                } else {
+                } else if (capType === 'app') {
                     capability['appium:app'] = value
                 }
             })
@@ -224,19 +250,19 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                 if (!(caps.capabilities as Capabilities.Capabilities)['bstack:options']) {
                     const extensionCaps = Object.keys(caps.capabilities).filter((cap) => cap.includes(':'))
                     if (extensionCaps.length) {
-                        if (capType == 'local') {
+                        if (capType === 'local') {
                             (caps.capabilities as Capabilities.Capabilities)['bstack:options'] = { local: true }
-                        } else {
+                        } else if (capType === 'app') {
                             (caps.capabilities as Capabilities.Capabilities)['appium:app'] = value
                         }
-                    } else if (capType == 'local'){
+                    } else if (capType === 'local'){
                         (caps.capabilities as Capabilities.Capabilities)['browserstack.local'] = true
-                    } else {
+                    } else if (capType === 'app') {
                         (caps.capabilities as Capabilities.Capabilities)['app'] = value
                     }
-                } else if (capType == 'local'){
+                } else if (capType === 'local'){
                     (caps.capabilities as Capabilities.Capabilities)['bstack:options']!.local = true
-                } else {
+                } else if (capType === 'app') {
                     (caps.capabilities as Capabilities.Capabilities)['appium:app'] = value
                 }
             })
