@@ -105,7 +105,7 @@ async function launchChrome (capabilities: ExtendedCapabilities) {
         )
     }
 
-    log.info(`Launch Google Chrome with flags: ${chromeFlags.join(' ')}`)
+    log.info(`Launch Google Chrome (${chromeOptions.binary}) with flags: ${chromeFlags.join(' ')}`)
     const launchOptions: Options = {
         prefs: chromeOptions.prefs,
         chromePath: chromeOptions.binary,
