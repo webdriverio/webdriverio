@@ -8,6 +8,7 @@ beforeAll(async () => {
         capabilities: {
             browserName: 'firefox',
             'wdio:devtoolsOptions': {
+                dumpio: true,
                 headless: true
             },
             ...(process.env.FIREFOX_BINARY

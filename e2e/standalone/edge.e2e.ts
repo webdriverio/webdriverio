@@ -9,6 +9,7 @@ beforeAll(async () => {
         capabilities: {
             browserName: 'edge',
             'wdio:devtoolsOptions': {
+                dumpio: true,
                 headless: true
             }
         }
