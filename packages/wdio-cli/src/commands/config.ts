@@ -158,10 +158,10 @@ const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) 
      */
     const { value } = (pkg.version as string).matchAll(VERSION_REGEXP).next()
     if (value) {
-        const nextVersion = value.slice(0, -1) // drop commit bit
+        const [, major, minor, patch, tagName, build] = value.slice(1, -1) // drop commit bit
         packagesToInstall = packagesToInstall.map((p) =>
             (p.startsWith('@wdio') || ['devtools', 'webdriver', 'webdriverio'].includes(p))
-                ? `${p}@^${nextVersion}`
+                ? `${p}@^${major}.${minor}.${patch}-${tagName}.${build}`
                 : p
         )
     }
