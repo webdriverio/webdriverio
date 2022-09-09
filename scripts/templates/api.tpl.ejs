@@ -32,7 +32,7 @@ import TabItem from '@theme/TabItem';
 | Name | Type | Details |
 | ---- | ---- | ------- |
 <? method.paramTags.forEach((paramTag) => {
-    var paramKey = paramTag.types
+    var paramKey = Array.isArray(paramTag.types)
         ? paramTag.types.map((type) => `<code>${type.replace(/>/g, "&gt;").replace(/</g, "&lt;")}</code>`).join('|')
         : paramTag.type
     ?>| <code><var><?= paramTag.name ?></var></code><? if ((!paramTag.required && typeof paramTag.optional === 'undefined') || paramTag.optional) { ?><br /><span class="label labelWarning">optional</span><? }

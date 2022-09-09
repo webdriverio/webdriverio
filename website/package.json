@@ -12,21 +12,21 @@
     "clear": "docusaurus clear"
   },
   "dependencies": {
-    "@docusaurus/core": "^2.0.0-beta.15",
-    "@docusaurus/plugin-client-redirects": "^2.0.0-beta.15",
-    "@docusaurus/plugin-google-analytics": "^2.0.0-beta.15",
-    "@docusaurus/plugin-ideal-image": "^2.0.0-beta.15",
-    "@docusaurus/plugin-pwa": "^2.0.0-beta.15",
-    "@docusaurus/preset-classic": "^2.0.0-beta.15",
-    "@docusaurus/remark-plugin-npm2yarn": "^2.0.0-beta.15",
-    "@docusaurus/theme-search-algolia": "^2.0.0-beta.15",
+    "@docusaurus/core": "^2.1.0",
+    "@docusaurus/plugin-client-redirects": "^2.1.0",
+    "@docusaurus/plugin-google-analytics": "^2.1.0",
+    "@docusaurus/plugin-ideal-image": "^2.1.0",
+    "@docusaurus/plugin-pwa": "^2.1.0",
+    "@docusaurus/preset-classic": "^2.1.0",
+    "@docusaurus/remark-plugin-npm2yarn": "^2.1.0",
+    "@docusaurus/theme-search-algolia": "^2.1.0",
     "@mdx-js/react": "^1.6.22",
     "@saucelabs/theme-github-codeblock": "^0.1.1",
-    "clsx": "^1.1.1",
+    "clsx": "^1.2.1",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
-    "workbox-routing": "^6.4.2",
-    "workbox-strategies": "^6.4.2"
+    "workbox-routing": "^6.5.4",
+    "workbox-strategies": "^6.5.4"
   },
   "browserslist": {
     "production": [
