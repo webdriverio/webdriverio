@@ -100,7 +100,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
 
             if (!app.app){
                 log.warn(`[Invalid app property] supported properties are {id<string>, path<string>, custom_id<string>, shareable_id<string>}.
-                            For more details please visit https://www.browserstack.com/docs/app-automate/appium/set-up-tests/specify-app')`)
+                            For more details please visit https://www.browserstack.com/docs/app-automate/appium/set-up-tests/specify-app ')`)
 
                 return process.emit('SIGTERM')
             }
