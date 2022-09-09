@@ -49,6 +49,7 @@ export async function generateWdioDocs (sidebars) {
             const filepath = path.join(COMMAND_DIR, scope, file)
             const output = path.join(docDir, `_${file.replace(/(js|ts)/, 'md')}`)
             const options = Object.assign({}, MARKDOX_OPTIONS, { output })
+            console.log('PROCESS', filepath)
             await processDocs(filepath, options)
             console.log(`Generated docs for ${scope}/${file} - ${output}`)
 
