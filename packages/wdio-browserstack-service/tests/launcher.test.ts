@@ -29,7 +29,6 @@ describe('onPrepare', () => {
         capabilities: []
     }
     const logInfoSpy = jest.spyOn(log, 'info').mockImplementation((string) => string)
-    const logWarnSpy = jest.spyOn(log, 'warn').mockImplementation((string) => string)
 
     it('should not try to upload app is app is undefined', () => {
         const service = new BrowserstackLauncher({}, caps, config)
@@ -169,19 +168,6 @@ describe('onPrepare', () => {
         ])
     })
 
-    it('should use id as app value', async() => {
-        const options: BrowserstackConfig = { app: { id: 'bs://<app-id>' } }
-        const service = new BrowserstackLauncher(options, caps, config)
-        const capabilities = [{ 'bstack:options': {} }, { 'bstack:options': {} }, { 'bstack:options': {} }]
-
-        await service.onPrepare(config, capabilities)
-        expect(capabilities).toEqual([
-            { 'bstack:options': {}, 'appium:app': 'bs://<app-id>' },
-            { 'bstack:options': {}, 'appium:app': 'bs://<app-id>' },
-            { 'bstack:options': {}, 'appium:app': 'bs://<app-id>' }
-        ])
-    })
-
     it('should upload app if path property present in appConfig', async() => {
         const options: BrowserstackConfig = { app: { path: '/path/to/app.apk' } }
         const service = new BrowserstackLauncher(options, caps, config)
@@ -212,30 +198,6 @@ describe('onPrepare', () => {
             { 'bstack:options': {}, 'appium:app': 'bs://<app-id>' },
             { 'bstack:options': {}, 'appium:app': 'bs://<app-id>' }
         ])
-    })
-
-    it('should terminate the session if more than two property passed in appConfig', async() => {
-        const options: BrowserstackConfig = { app: { path: '/path/to/app.apk', custom_id: 'custom_id', id: 'bs://<app-id>' } }
-        const service = new BrowserstackLauncher(options, caps, config)
-        const capabilities = [{ 'bstack:options': {} }, { 'bstack:options': {} }, { 'bstack:options': {} }]
-        const processSpy = jest.spyOn(process, 'emit')
-
-        await service.onPrepare(config, capabilities)
-        expect(logWarnSpy).toHaveBeenCalledWith(`keys ${Object.keys(options.app)} can't co-exist as app values, use any one property from
-                                {id<string>, path<string>, custom_id<string>, shareable_id<string>}, only "path" and "custom_id" can co-exist.`)
-        expect(processSpy).toHaveBeenCalledWith('SIGTERM')
-    })
-
-    it('should terminate the session if property not matches path and custom_id in appConfig', async() => {
-        const options: BrowserstackConfig = { app: { custom_id: 'custom_id', id: 'bs://<app-id>' } }
-        const service = new BrowserstackLauncher(options, caps, config)
-        const capabilities = [{ 'bstack:options': {} }, { 'bstack:options': {} }, { 'bstack:options': {} }]
-        const processSpy = jest.spyOn(process, 'emit')
-
-        await service.onPrepare(config, capabilities)
-        expect(logWarnSpy).toHaveBeenCalledWith(`keys ${Object.keys(options.app)} can't co-exist as app values, use any one property from
-                                {id<string>, path<string>, custom_id<string>, shareable_id<string>}, only "path" and "custom_id" can co-exist.`)
-        expect(processSpy).toHaveBeenCalledWith('SIGTERM')
     })
 
     it('should initialize the opts object, and spawn a new Local instance', async () => {
@@ -428,6 +390,47 @@ describe('_updateCaps', () => {
     })
 })
 
+describe('_validateApp', () => {
+    const caps: any = [{}]
+    const config = {
+        user: 'foobaruser',
+        key: '12345',
+        capabilities: []
+    }
+
+    it('should use id as app value', async() => {
+        const options: BrowserstackConfig = { app: { id: 'bs://<app-id>' } }
+        const service = new BrowserstackLauncher(options, caps, config)
+
+        const app:App = await service._validateApp(options.app)
+        expect(app).toEqual({ app: 'bs://<app-id>', custom_id: undefined })
+    })
+
+    it('should throw error if more than two property passed in appConfig', async() => {
+        const options: BrowserstackConfig = { app: { custom_id: 'custom_id', id: 'bs://<app-id>' } }
+        const service = new BrowserstackLauncher(options, caps, config)
+
+        try {
+            await service._validateApp(options.app)
+        } catch (e){
+            expect(e).toEqual(`keys ${Object.keys(options.app)} can't co-exist as app values, use any one property from
+                                {id<string>, path<string>, custom_id<string>, shareable_id<string>}, only "path" and "custom_id" can co-exist.`)
+        }
+    })
+
+    it('should throw error if property not matches path and custom_id in appConfig', async() => {
+        const options: BrowserstackConfig = { app: { custom_id: 'custom_id', id: 'bs://<app-id>' } }
+        const service = new BrowserstackLauncher(options, caps, config)
+
+        try {
+            await service._validateApp(options.app)
+        } catch (e){
+            expect(e).toEqual(`keys ${Object.keys(options.app)} can't co-exist as app values, use any one property from
+                                {id<string>, path<string>, custom_id<string>, shareable_id<string>}, only "path" and "custom_id" can co-exist.`)
+        }
+    })
+})
+
 describe('_uploadApp', () => {
     const options: BrowserstackConfig = { app: '/path/to/app.apk' }
     const caps: any = [{}]
@@ -437,7 +440,7 @@ describe('_uploadApp', () => {
         capabilities: []
     }
 
-    const logWarnSpy = jest.spyOn(log, 'warn').mockImplementation((string) => string)
+    const logErrorSpy = jest.spyOn(log, 'error').mockImplementation((string) => string)
 
     jest.mock('got', () => ({
         post: jest.fn().mockImplementation(() => new Promise(() => {}))
@@ -461,7 +464,7 @@ describe('_uploadApp', () => {
 
         const service = new BrowserstackLauncher(options, caps, config)
         await service._uploadApp(options.app)
-        expect(logWarnSpy).toHaveBeenCalledWith('app upload failed, Some error occured during app upload')
+        expect(logErrorSpy).toHaveBeenCalledWith('app upload failed, Some error occured during app upload')
 
         expect(got.post).toHaveBeenCalled()
     })
