@@ -263,7 +263,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                     } else if (capType === 'local'){
                         (caps.capabilities as Capabilities.Capabilities)['browserstack.local'] = true
                     } else if (capType === 'app') {
-                        (caps.capabilities as Capabilities.Capabilities)['app'] = value
+                        (caps.capabilities as Capabilities.AppiumCapabilities)['app'] = value
                     }
                 } else if (capType === 'local'){
                     (caps.capabilities as Capabilities.Capabilities)['bstack:options']!.local = true

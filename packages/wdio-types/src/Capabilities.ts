@@ -157,8 +157,6 @@ export interface VendorExtensions extends EdgeCapabilities, AppiumW3CCapabilitie
     // Browserstack w3c specific
     'bstack:options'?: BrowserStackCapabilities
     'browserstack.local'?: boolean
-    // Browserstack mjsonp specific
-    'app'?: string
     /**
      * @private
      */
