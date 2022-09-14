@@ -174,7 +174,7 @@ Query elements by their accessible name. The accessible name is what is announce
 
 :::info
 
-You can read more about this selector in our [release blog post](/blog/2022/09/01/accessibility-selector)
+You can read more about this selector in our [release blog post](/blog/2022/09/05/accessibility-selector)
 
 :::
 
