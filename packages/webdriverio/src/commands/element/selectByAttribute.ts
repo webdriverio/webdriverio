@@ -45,7 +45,7 @@ export default async function selectByAttribute (
      * Throw error if Select element is disabled
      */
     if (!(await this.isElementEnabled(this.elementId))) {
-        throw new Error(`Select element is disabled and may not be used.`)
+        throw new Error('Select element is disabled and may not be used.')
     }
 
     /**
