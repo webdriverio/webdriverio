@@ -36,10 +36,14 @@ describe('selectByAttribute test', () => {
         expect(got.mock.calls[1][0].pathname)
             .toBe('/session/foobar-123/element')
         expect(got.mock.calls[2][0].pathname)
-            .toBe('/session/foobar-123/element/some-elem-123/element')
-        expect(got.mock.calls[2][1].json.value)
-            .toBe('./option[normalize-space(@value) = "someValue1"]|./optgroup/option[normalize-space(@value) = "someValue1"]')
+            .toBe('/session/foobar-123/element/some-elem-123/enabled')
         expect(got.mock.calls[3][0].pathname)
+            .toBe('/session/foobar-123/element/some-elem-123/element')
+        expect(got.mock.calls[3][1].json.value)
+            .toBe('./option[normalize-space(@value) = "someValue1"]|./optgroup/option[normalize-space(@value) = "someValue1"]')
+        expect(got.mock.calls[4][0].pathname)
+            .toBe('/session/foobar-123/element/some-sub-elem-321/enabled')
+        expect(got.mock.calls[5][0].pathname)
             .toBe('/session/foobar-123/element/some-sub-elem-321/click')
         expect(getElementFromResponseSpy).toBeCalledWith({
             [ELEMENT_KEY]: 'some-sub-elem-321'
@@ -52,10 +56,14 @@ describe('selectByAttribute test', () => {
         expect(got.mock.calls[1][0].pathname)
             .toBe('/session/foobar-123/element')
         expect(got.mock.calls[2][0].pathname)
-            .toBe('/session/foobar-123/element/some-elem-123/element')
-        expect(got.mock.calls[2][1].json.value)
-            .toBe('./option[normalize-space(@value) = "123"]|./optgroup/option[normalize-space(@value) = "123"]')
+            .toBe('/session/foobar-123/element/some-elem-123/enabled')
         expect(got.mock.calls[3][0].pathname)
+            .toBe('/session/foobar-123/element/some-elem-123/element')
+        expect(got.mock.calls[3][1].json.value)
+            .toBe('./option[normalize-space(@value) = "123"]|./optgroup/option[normalize-space(@value) = "123"]')
+        expect(got.mock.calls[4][0].pathname)
+            .toBe('/session/foobar-123/element/some-sub-elem-321/enabled')
+        expect(got.mock.calls[5][0].pathname)
             .toBe('/session/foobar-123/element/some-sub-elem-321/click')
         expect(getElementFromResponseSpy).toBeCalledWith({
             [ELEMENT_KEY]: 'some-sub-elem-321'
@@ -71,6 +79,7 @@ describe('selectByAttribute test', () => {
             selector: 'foobar2',
             elementId: 'some-elem-123',
             'element-6066-11e4-a52e-4f735466cecf': 'some-elem-123',
+            isElementEnabled: vi.fn().mockReturnValue(Promise.resolve(true)),
             findElementFromElement: vi.fn().mockReturnValue(Promise.resolve({ error: 'no such element' }))
         }
         // @ts-ignore mock feature

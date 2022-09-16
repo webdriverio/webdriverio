@@ -35,8 +35,12 @@ describe('selectByIndex test', () => {
         expect(got.mock.calls[1][0].pathname)
             .toBe('/session/foobar-123/element')
         expect(got.mock.calls[2][0].pathname)
-            .toBe('/session/foobar-123/element/some-elem-123/elements')
+            .toBe('/session/foobar-123/element/some-elem-123/enabled')
         expect(got.mock.calls[3][0].pathname)
+            .toBe('/session/foobar-123/element/some-elem-123/elements')
+        expect(got.mock.calls[4][0].pathname)
+            .toBe('/session/foobar-123/element/some-elem-456/enabled')
+        expect(got.mock.calls[5][0].pathname)
             .toBe('/session/foobar-123/element/some-elem-456/click')
         expect(getElementFromResponseSpy).toBeCalledWith({
             [ELEMENT_KEY]: 'some-elem-456',
@@ -62,7 +66,8 @@ describe('selectByIndex test', () => {
             selector: 'foobar2',
             elementId: 'some-elem-123',
             'element-6066-11e4-a52e-4f735466cecf': 'some-elem-123',
-            findElementsFromElement: vi.fn().mockReturnValue(Promise.resolve([]))
+            findElementsFromElement: vi.fn().mockReturnValue(Promise.resolve([])),
+            isElementEnabled: vi.fn().mockReturnValue(Promise.resolve(true))
         }
         // @ts-ignore mock feature
         mockElem.selectByIndex = elem.selectByIndex.bind(mockElem)
@@ -80,7 +85,8 @@ describe('selectByIndex test', () => {
         const mockElem = {
             options: {},
             selector: 'foobar',
-            findElementsFromElement: vi.fn().mockReturnValue(Promise.resolve([{ elem: 1 }]))
+            findElementsFromElement: vi.fn().mockReturnValue(Promise.resolve([{ elem: 1 }])),
+            isElementEnabled: vi.fn().mockReturnValue(Promise.resolve(true)),
         }
         // @ts-ignore mock feature
         mockElem.selectByIndex = elem.selectByIndex.bind(mockElem)
