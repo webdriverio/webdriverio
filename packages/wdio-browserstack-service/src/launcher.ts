@@ -81,8 +81,13 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
 
             if (['.apk', '.aab', '.ipa'].includes(path.extname(app.app!))){
                 if (fs.existsSync(app.app!)) {
-                    const data: AppUploadResponse = await this._uploadApp(app)
-
+                    let data: AppUploadResponse
+                    try {
+                        data = await this._uploadApp(app)
+                    } catch (error: unknown) {
+                        log.error(error)
+                        return process.emit('SIGTERM')
+                    }
                     log.info(`app upload completed: ${JSON.stringify(data)}`)
                     app.app = data.app_url
                 } else if (app.customId){
@@ -223,9 +228,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
     }
 
     _uploadErrHandler(err: Response<Error>) {
-        log.error(`app upload failed, ${err}`)
-
-        return process.emit('SIGTERM')
+        throw new Error(`app upload failed, ${err}`)
     }
 
     _updateCaps(capabilities?: Capabilities.RemoteCapabilities, capType?: string, value?:string) {
