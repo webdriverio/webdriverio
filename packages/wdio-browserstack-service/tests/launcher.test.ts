@@ -440,8 +440,6 @@ describe('_uploadApp', () => {
         capabilities: []
     }
 
-    const logErrorSpy = jest.spyOn(log, 'error').mockImplementation((string) => string)
-
     jest.mock('got', () => ({
         post: jest.fn().mockImplementation(() => new Promise(() => {}))
     }))
@@ -455,17 +453,5 @@ describe('_uploadApp', () => {
         const res = await service._uploadApp(options.app)
         expect(got.post).toHaveBeenCalled()
         expect(res).toEqual({ app_url: 'bs://<app-id>' })
-    })
-
-    it('should throw error if upload fails', async() => {
-        got.post = jest.fn().mockReturnValue({
-            json: () => Promise.reject('Some error occured during app upload')
-        })
-
-        const service = new BrowserstackLauncher(options, caps, config)
-        await service._uploadApp(options.app)
-        expect(logErrorSpy).toHaveBeenCalledWith('app upload failed, Some error occured during app upload')
-
-        expect(got.post).toHaveBeenCalled()
     })
 })
