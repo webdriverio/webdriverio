@@ -33,6 +33,14 @@ export default async function selectByVisibleText (
     this: WebdriverIO.Element,
     text: string | number
 ) {
+
+    /**
+     * Throw error if Select element is disabled
+     */
+    if (!(await this.isElementEnabled(this.elementId))) {
+        throw new Error(`Select element is disabled and may not be used.`)
+    }
+
     /**
      * convert value into string
      */
@@ -64,6 +72,15 @@ export default async function selectByVisibleText (
 
     if (optionElement && (optionElement as any).error === 'no such element') {
         throw new Error(`Option with text "${text}" not found.`)
+    }
+
+    const elementId = getElementFromResponse(optionElement) as string
+
+    /**
+     * Throw error if Select option is disabled
+     */
+    if (!(await this.isElementEnabled(elementId))) {
+        throw new Error(`Option with text "${text}" is disabled.`)
     }
 
     /**

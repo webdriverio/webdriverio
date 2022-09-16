@@ -23,7 +23,7 @@ import { getElementFromResponse } from '../../utils/index.js'
     });
  * </example>
  *
- * @alias element.selectByIndexs
+ * @alias element.selectByIndex
  * @param {Number} index      option index
  * @uses protocol/findElementsFromElement, protocol/elementClick
  * @type action
@@ -33,6 +33,14 @@ export default async function selectByIndex (
     this: WebdriverIO.Element,
     index: number
 ) {
+
+    /**
+     * Throw error if Select element is disabled
+     */
+    if (!(await this.isElementEnabled(this.elementId))) {
+        throw new Error(`Select element is disabled and may not be used.`)
+    }
+
     /**
      * negative index check
      */
@@ -41,7 +49,7 @@ export default async function selectByIndex (
     }
 
     /**
-    * get option elememnts using css
+    * get option elements using css
     */
     const optionElements = await this.findElementsFromElement(this.elementId, 'css selector',  'option')
 
@@ -53,8 +61,17 @@ export default async function selectByIndex (
         throw new Error(`Option with index "${index}" not found. Select element only contains ${optionElements.length} option elements`)
     }
 
+    const elementId = getElementFromResponse(optionElements[index]) as string
+
+    /**
+     * Throw error if Select option is disabled
+     */
+    if (!(await this.isElementEnabled(elementId))) {
+        throw new Error(`Option with index "${index}" is disabled.`)
+    }
+
     /**
     * select option
     */
-    return this.elementClick(getElementFromResponse(optionElements[index]) as string)
+    return this.elementClick(elementId)
 }

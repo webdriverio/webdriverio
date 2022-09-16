@@ -40,6 +40,14 @@ export default async function selectByAttribute (
     attribute: string,
     value: string | number
 ) {
+
+    /**
+     * Throw error if Select element is disabled
+     */
+    if (!(await this.isElementEnabled(this.elementId))) {
+        throw new Error(`Select element is disabled and may not be used.`)
+    }
+
     /**
      * convert value into string
      */
@@ -48,7 +56,7 @@ export default async function selectByAttribute (
         : value
 
     /**
-    * find option elememnt using xpath
+    * find option element using xpath
     */
     const normalized = `[normalize-space(@${attribute.trim()}) = "${value.trim()}"]`
     const optionElement = await this.findElementFromElement(
@@ -61,8 +69,17 @@ export default async function selectByAttribute (
         throw new Error(`Option with attribute "${attribute}=${value}" not found.`)
     }
 
+    const elementId = getElementFromResponse(optionElement) as string
+
+    /**
+     * Throw error if Select option is disabled
+     */
+    if (!(await this.isElementEnabled(elementId))) {
+        throw new Error(`Option with attribute "${attribute}=${value}" is disabled.`)
+    }
+
     /**
     * select option
     */
-    return this.elementClick(getElementFromResponse(optionElement) as string)
+    return this.elementClick(elementId)
 }
