@@ -29,6 +29,7 @@
     "@types/is-glob": "^4.0.1",
     "@types/long": "^4.0.1",
     "@types/mockery": "^1.4.29",
+    "@types/sinonjs__fake-timers": "^8.1.2",
     "@wdio/logger": "7.19.0",
     "@wdio/types": "7.24.0",
     "@wdio/utils": "7.24.0",
