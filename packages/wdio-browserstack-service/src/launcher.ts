@@ -1,6 +1,8 @@
 import { createRequire } from 'node:module'
 import { promisify } from 'node:util'
 import { performance, PerformanceObserver } from 'node:perf_hooks'
+import { SevereServiceError } from 'webdriverio'
+import { VALID_APP_EXTENSION } from './constants.js'
 
 import * as BrowserstackLocalLauncher from 'browserstack-local'
 
@@ -76,27 +78,24 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
 
             try {
                 app = await this._validateApp(appConfig)
-            } catch (error: unknown){
-                log.error(error)
-                return process.emit('SIGTERM')
+            } catch (error: any){
+                throw new SevereServiceError(error)
             }
 
-            if (['.apk', '.aab', '.ipa'].includes(path.extname(app.app!))){
+            if (VALID_APP_EXTENSION.includes(path.extname(app.app!))){
                 if (fs.existsSync(app.app!)) {
                     let data: AppUploadResponse
                     try {
                         data = await this._uploadApp(app)
-                    } catch (error: unknown) {
-                        log.error(error)
-                        return process.emit('SIGTERM')
+                    } catch (error: any) {
+                        throw new SevereServiceError(error)
                     }
                     log.info(`app upload completed: ${JSON.stringify(data)}`)
                     app.app = data.app_url
                 } else if (app.customId){
                     app.app = app.customId
                 } else {
-                    log.error('Invalid file path...')
-                    return process.emit('SIGTERM')
+                    throw new SevereServiceError('Invalid file path...')
                 }
             }
 
@@ -202,31 +201,29 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
      * @param  {String | AppConfig}  appConfig    <string>: should be "app file path" or "app_url" or "custom_id" or "shareable_id".
      *                                            <object>: only "path" and "custom_id" should coexist as multiple properties.
      */
-    _validateApp (appConfig: AppConfig | string): Promise<App> {
-        return new Promise((resolve, reject) => {
-            let app: App = {}
+    async _validateApp (appConfig: AppConfig | string): Promise<App> {
+        let app: App = {}
 
-            if (typeof appConfig === 'string'){
-                app.app = appConfig
-            } else if (typeof appConfig === 'object' && Object.keys(appConfig).length) {
-                if (Object.keys(appConfig).length > 2 || (Object.keys(appConfig).length === 2 && (!appConfig.path || !appConfig.custom_id))) {
-                    return reject(`keys ${Object.keys(appConfig)} can't co-exist as app values, use any one property from
-                                {id<string>, path<string>, custom_id<string>, shareable_id<string>}, only "path" and "custom_id" can co-exist.`)
-                }
-
-                app.app = appConfig.id || appConfig.path || appConfig.custom_id || appConfig.shareable_id
-                app.customId = appConfig.custom_id
-            } else {
-                return reject('[Invalid format] app should be string or an object')
+        if (typeof appConfig === 'string'){
+            app.app = appConfig
+        } else if (typeof appConfig === 'object' && Object.keys(appConfig).length) {
+            if (Object.keys(appConfig).length > 2 || (Object.keys(appConfig).length === 2 && (!appConfig.path || !appConfig.custom_id))) {
+                throw new Error(`keys ${Object.keys(appConfig)} can't co-exist as app values, use any one property from
+                            {id<string>, path<string>, custom_id<string>, shareable_id<string>}, only "path" and "custom_id" can co-exist.`)
             }
 
-            if (!app.app) {
-                return reject(`[Invalid app property] supported properties are {id<string>, path<string>, custom_id<string>, shareable_id<string>}.
-                            For more details please visit https://www.browserstack.com/docs/app-automate/appium/set-up-tests/specify-app ')`)
-            }
+            app.app = appConfig.id || appConfig.path || appConfig.custom_id || appConfig.shareable_id
+            app.customId = appConfig.custom_id
+        } else {
+            throw new Error('[Invalid format] app should be string or an object')
+        }
 
-            resolve(app)
-        })
+        if (!app.app) {
+            throw new Error(`[Invalid app property] supported properties are {id<string>, path<string>, custom_id<string>, shareable_id<string>}.
+                        For more details please visit https://www.browserstack.com/docs/app-automate/appium/set-up-tests/specify-app ')`)
+        }
+
+        return app
     }
 
     _uploadErrHandler(err: Response<Error>) {
@@ -277,7 +274,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                 }
             })
         } else {
-            throw TypeError('Capabilities should be an object or Array!')
+            throw new SevereServiceError('Capabilities should be an object or Array!')
         }
     }
 }
