@@ -1,21 +1,20 @@
+import got from 'got'
+import FormData from 'form-data'
+import fs from 'fs'
+import path from 'path'
 import { promisify } from 'util'
 import { performance, PerformanceObserver } from 'perf_hooks'
 import { SevereServiceError } from 'webdriverio'
-import { VALID_APP_EXTENSION } from './constants'
 
 import * as BrowserstackLocalLauncher from 'browserstack-local'
 import logger from '@wdio/logger'
 import type { Capabilities, Services, Options } from '@wdio/types'
 import { App, AppConfig, AppUploadResponse } from './types'
 
-import got, { Response } from 'got'
-import FormData from 'form-data'
-import fs from 'fs'
-import * as path from 'path'
-
 // @ts-ignore
 import { version as bstackServiceVersion } from '../package.json'
 import { BrowserstackConfig } from './types'
+import { VALID_APP_EXTENSION } from './constants'
 
 const log = logger('@wdio/browserstack-service')
 
@@ -83,17 +82,13 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             if (VALID_APP_EXTENSION.includes(path.extname(app.app!))){
                 if (fs.existsSync(app.app!)) {
                     let data: AppUploadResponse
-                    try {
-                        data = await this._uploadApp(app)
-                    } catch (error: any) {
-                        throw new SevereServiceError(error)
-                    }
+                    data = await this._uploadApp(app)
                     log.info(`app upload completed: ${JSON.stringify(data)}`)
                     app.app = data.app_url
                 } else if (app.customId){
                     app.app = app.customId
                 } else {
-                    throw new SevereServiceError('Invalid file path...')
+                    throw new SevereServiceError('[Invalid app path] app path ${app.app} is not correct, Provide correct path to app under test')
                 }
             }
 
@@ -190,7 +185,9 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             body: form,
             username : this._config.user,
             password : this._config.key
-        }).json().catch((err) => { this._uploadErrHandler(err) })
+        }).json().catch((err) => {
+            throw new SevereServiceError(`app upload failed ${(err as Error).message}`)
+        })
 
         return res as AppUploadResponse
     }
@@ -206,26 +203,22 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             app.app = appConfig
         } else if (typeof appConfig === 'object' && Object.keys(appConfig).length) {
             if (Object.keys(appConfig).length > 2 || (Object.keys(appConfig).length === 2 && (!appConfig.path || !appConfig.custom_id))) {
-                throw new Error(`keys ${Object.keys(appConfig)} can't co-exist as app values, use any one property from
+                throw new SevereServiceError(`keys ${Object.keys(appConfig)} can't co-exist as app values, use any one property from
                             {id<string>, path<string>, custom_id<string>, shareable_id<string>}, only "path" and "custom_id" can co-exist.`)
             }
 
             app.app = appConfig.id || appConfig.path || appConfig.custom_id || appConfig.shareable_id
             app.customId = appConfig.custom_id
         } else {
-            throw new Error('[Invalid format] app should be string or an object')
+            throw new SevereServiceError('[Invalid format] app should be string or an object')
         }
 
         if (!app.app) {
-            throw new Error(`[Invalid app property] supported properties are {id<string>, path<string>, custom_id<string>, shareable_id<string>}.
+            throw new SevereServiceError(`[Invalid app property] supported properties are {id<string>, path<string>, custom_id<string>, shareable_id<string>}.
                     For more details please visit https://www.browserstack.com/docs/app-automate/appium/set-up-tests/specify-app ')`)
         }
 
         return app
-    }
-
-    _uploadErrHandler(err: Response<Error>) {
-        throw new Error(`app upload failed, ${err}`)
     }
 
     _updateCaps(capabilities?: Capabilities.RemoteCapabilities, capType?: string, value?:string) {
