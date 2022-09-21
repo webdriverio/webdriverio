@@ -32,7 +32,8 @@
     "webdriverio": "7.24.0"
   },
   "peerDependencies": {
-    "@wdio/cli": "^5.0.0 || ^6.0.0 || ^7.0.0"
+    "@wdio/cli": "^5.0.0 || ^6.0.0 || ^7.0.0",
+    "webdriverio": "7.24.0"
   },
   "publishConfig": {
     "access": "public"

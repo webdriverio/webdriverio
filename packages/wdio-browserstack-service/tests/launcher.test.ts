@@ -413,8 +413,8 @@ describe('_validateApp', () => {
         try {
             await service._validateApp(options.app)
         } catch (e){
-            expect(e).toEqual(`keys ${Object.keys(options.app)} can't co-exist as app values, use any one property from
-                                {id<string>, path<string>, custom_id<string>, shareable_id<string>}, only "path" and "custom_id" can co-exist.`)
+            expect(e.message).toEqual(`keys ${Object.keys(options.app)} can't co-exist as app values, use any one property from
+                            {id<string>, path<string>, custom_id<string>, shareable_id<string>}, only "path" and "custom_id" can co-exist.`)
         }
     })
 
@@ -425,8 +425,8 @@ describe('_validateApp', () => {
         try {
             await service._validateApp(options.app)
         } catch (e){
-            expect(e).toEqual(`keys ${Object.keys(options.app)} can't co-exist as app values, use any one property from
-                                {id<string>, path<string>, custom_id<string>, shareable_id<string>}, only "path" and "custom_id" can co-exist.`)
+            expect(e.message).toEqual(`keys ${Object.keys(options.app)} can't co-exist as app values, use any one property from
+                            {id<string>, path<string>, custom_id<string>, shareable_id<string>}, only "path" and "custom_id" can co-exist.`)
         }
     })
 })
