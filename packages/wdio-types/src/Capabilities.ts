@@ -480,7 +480,7 @@ export interface AppiumW3CCapabilities {
      * This is a hexadecimal handle of an existing application top level window to attach to. Either this
      * capability or 'appium:app' must be provided on session startup.
      */
-     'appium:appTopLevelWindow'?: string;    
+     'appium:appTopLevelWindow'?: string;
 }
 
 /**
