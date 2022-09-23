@@ -73,7 +73,7 @@ The protocol commands applied to the instance depend on the initial session resp
 
 You can run the same set of commands (except mobile ones) using the Chrome DevTools protocol when importing the [`devtools`](https://www.npmjs.com/package/devtools) NPM package. It has the same interface as the `webdriver` package but runs its automation based on [Puppeteer](https://pptr.dev/).
 
-For more information on these package interfaces, see [Modules API](/api/modules).
+For more information on these package interfaces, see [Modules API](/docs/api/modules).
 
 ## Standalone Mode
 
@@ -106,7 +106,7 @@ Using WebdriverIO in standalone mode still gives you access to all protocol comm
 
 If no specific options are set WebdriverIO will try to find a browser driver on `http://localhost:4444/` and automatically switches to the Chrome DevTools protocol and Puppeteer as automation engine if such a driver can't be found. If you like to run based on WebDriver you need to either start that driver manually or through a script or [NPM package](https://www.npmjs.com/package/chromedriver).
 
-For more information on the `webdriverio` package interfaces, see [Modules API](/api/modules).
+For more information on the `webdriverio` package interfaces, see [Modules API](/docs/api/modules).
 
 ## The WDIO Testrunner
 
