@@ -32,6 +32,10 @@ export function generateProtocolDocs (sidebars) {
     const protocolDocEntry = {
         type: 'category',
         label: 'Protocols',
+        link: {
+            type: 'doc',
+            id: 'api/protocols'
+        },
         items: []
     }
 
