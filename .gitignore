@@ -84,6 +84,9 @@ website/docs/api/**/*.md
 !website/docs/api/Environment.md
 !website/docs/api/Globals.md
 !website/docs/api/Modules.md
+!website/docs/api/Browser.md
+!website/docs/api/Element.md
+!website/docs/api/Mock.md
 website/docs/docs/**/*.md
 website/docs/_*.md
 

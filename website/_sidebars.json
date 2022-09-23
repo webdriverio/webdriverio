@@ -21,7 +21,6 @@
     "Guides": [
       "selectors",
       "timeouts",
-      "browserobject",
       "mocksandspies",
       "customcommands",
       "pageobjects",

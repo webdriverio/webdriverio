@@ -133,4 +133,4 @@ describe('DuckDuckGo search', () => {
 
 The test runner is an abstraction of popular test frameworks like Mocha, Jasmine, or Cucumber. To run your tests using the WDIO test runner, check out the [Getting Started](GettingStarted.md) section for more information.
 
-For more information on the `@wdio/cli` testrunner package interface, see [Modules API](/api/modules).
+For more information on the `@wdio/cli` testrunner package interface, see [Modules API](/docs/api/modules).

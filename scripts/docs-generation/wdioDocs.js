@@ -24,19 +24,23 @@ const processDocs = promisify(markdox.process)
 export async function generateWdioDocs (sidebars) {
     const COMMAND_DIR = path.join(__dirname, '..', '..', 'packages', 'webdriverio', 'src', 'commands')
     const COMMANDS = {
-        browser: fs.readdirSync(path.join(COMMAND_DIR, 'browser')),
-        element: fs.readdirSync(path.join(COMMAND_DIR, 'element')),
-        mock: fs.readdirSync(path.join(COMMAND_DIR, 'mock'))
+        browser: ['api/browser', fs.readdirSync(path.join(COMMAND_DIR, 'browser'))],
+        element: ['api/element', fs.readdirSync(path.join(COMMAND_DIR, 'element'))],
+        mock: ['api/mock', fs.readdirSync(path.join(COMMAND_DIR, 'mock'))]
     }
 
     const apiDocs = []
-    for (const [scope, files] of Object.entries(COMMANDS)) {
+    for (const [scope, [id, files]] of Object.entries(COMMANDS)) {
         /**
          * add scope to sidebar
          */
         apiDocs.push({
             type: 'category',
             label: scope,
+            link: {
+                type: 'doc',
+                id
+            },
             items: []
         })
 
