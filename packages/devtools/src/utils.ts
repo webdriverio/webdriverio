@@ -9,9 +9,9 @@ import { WebDriverProtocol, CommandParameters, CommandPathVariables, ElementRefe
 import { launch as launchChromeBrowser, Options } from 'chrome-launcher'
 import type { Logger } from '@wdio/logger/build/node'
 import type { ElementHandle } from 'puppeteer-core/lib/cjs/puppeteer/common/ElementHandle'
-import type { Browser } from 'puppeteer-core/lib/cjs/puppeteer/common/Browser'
+import type { Browser } from 'puppeteer-core/lib/cjs/puppeteer/api/Browser'
 import type { Frame } from 'puppeteer-core/lib/cjs/puppeteer/common/Frame'
-import type { Page } from 'puppeteer-core/lib/cjs/puppeteer/common/Page'
+import type { Page } from 'puppeteer-core/lib/cjs/puppeteer/api/Page'
 
 import cleanUp from './scripts/cleanUpSerializationSelector.js'
 import { ELEMENT_KEY, SERIALIZE_PROPERTY, SERIALIZE_FLAG, ERROR_MESSAGES } from './constants.js'

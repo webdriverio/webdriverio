@@ -1,4 +1,4 @@
-import type { Page } from 'puppeteer-core/lib/cjs/puppeteer/common/Page.js'
+import type { Page } from 'puppeteer-core/lib/cjs/puppeteer/api/Page.js'
 import type { Frame } from 'puppeteer-core/lib/cjs/puppeteer/common/Frame.js'
 import type DevToolsDriver from '../devtoolsdriver'
 
