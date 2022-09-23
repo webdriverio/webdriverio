@@ -19,6 +19,16 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.25.0 (2022-09-23)
+
+#### :rocket: New Feature
+* `wdio-browserstack-service`
+  * [#8856](https://github.com/webdriverio/webdriverio/pull/8856) [Browserstack-service] Local App file upload to browserstack for Appium sessions ([@avinash-bharti](https://github.com/avinash-bharti))
+
+#### Committers: 1
+- Avinash Bharti ([@avinash-bharti](https://github.com/avinash-bharti))
+
+
 ## v7.24.0 (2022-09-01)
 
 #### :rocket: New Feature
