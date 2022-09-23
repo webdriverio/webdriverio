@@ -56,6 +56,91 @@ Set this to true to kill the browserstack process on complete, without waiting f
 Type: `Boolean`<br />
 Default: `false`
 
+### app
+[Appium](https://appium.io/) set this with app file path available locally on your machine to use the app as [application under test](https://www.browserstack.com/docs/app-automate/appium/set-up-tests/specify-app) for Appium sessions.
+
+Type: `String` or `JsonObject`<br />
+Default: `undefined`
+
+List of available app values:
+
+#### path
+
+Use local available app file path as application under test for appium.
+
+```js
+services: [
+  ['browserstack', {
+    app: '/path/to/local/app.apk'
+    // OR
+    app: {
+      path: '/path/to/local/app.apk'
+    }
+  }]
+]
+```
+
+Pass custom_id while app upload.
+
+```js
+services: [
+  ['browserstack', {
+    app: {
+      path: '/path/to/local/app.apk',
+      custom_id: 'custom_id'
+    }
+  }]
+]
+```
+
+#### id
+
+Use app url returned after uploading app to BrowserStack.
+
+```js
+services: [
+  ['browserstack', {
+    app: 'bs://<app-id>'
+    // OR
+    app: {
+      id: 'bs://<app-id>'
+    }
+  }]
+]
+```
+
+#### custom_id
+
+use custom_id of already uploaded apps
+
+```js
+services: [
+  ['browserstack', {
+    app: 'custom_id'
+    // OR
+    app: {
+      custom_id: 'custom_id'
+    }
+  }]
+]
+```
+
+#### shareable_id
+
+use shareable_id of already uploaded apps
+
+```js
+services: [
+  ['browserstack', {
+    app: 'username/custom_id'
+    // OR
+    app: {
+      shareable_id: 'username/custom_id'
+    }
+  }]
+]
+```
+
 ### opts
 Specified optional will be passed down to BrowserstackLocal.
 
