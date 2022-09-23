@@ -1,7 +1,7 @@
 import { launch as launchChromeBrowser, Options } from 'chrome-launcher'
 import puppeteer, { PuppeteerLaunchOptions } from 'puppeteer-core'
 import logger from '@wdio/logger'
-import type { Browser } from 'puppeteer-core/lib/cjs/puppeteer/common/Browser'
+import type { Browser } from 'puppeteer-core/lib/cjs/puppeteer/api/Browser'
 import type { Capabilities } from '@wdio/types'
 import { QueryHandler } from 'query-selector-shadow-dom/plugins/puppeteer/index.js'
 

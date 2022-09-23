@@ -3,7 +3,7 @@ import type { Browser, MultiRemoteBrowser } from 'webdriverio'
 
 import type { TraceEvent } from '@tracerbench/trace-event'
 import type { CDPSession } from 'puppeteer-core/lib/cjs/puppeteer/common/Connection.js'
-import type { Page } from 'puppeteer-core/lib/cjs/puppeteer/common/Page.js'
+import type { Page } from 'puppeteer-core/lib/cjs/puppeteer/api/Page.js'
 import type { TracingOptions } from 'puppeteer-core/lib/cjs/puppeteer/common/Tracing.js'
 
 import NetworkHandler, { RequestPayload } from './handler/network.js'
