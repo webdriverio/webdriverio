@@ -32,6 +32,7 @@
     "@wdio/types": "7.20.7",
     "browserstack-local": "^1.5.1",
     "got": "^12.1.0",
+    "form-data": "^4.0.0",
     "webdriverio": "7.20.7"
   },
   "peerDependencies": {

@@ -8,3 +8,9 @@ export const BROWSER_DESCRIPTION = [
     'browserVersion',
     'browser_version'
 ] as const
+
+export const VALID_APP_EXTENSION = [
+    '.apk',
+    '.aab',
+    '.ipa'
+]
