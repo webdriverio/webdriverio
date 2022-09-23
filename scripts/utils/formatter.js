@@ -27,7 +27,9 @@ export default function (docfile) {
 
     for (const tag of javadoc.tags) {
         if (tag.type == 'param') {
-            tag.joinedTypes = tag.types.join('|').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+            tag.joinedTypes = Array.isArray(tag.types)
+                ? tag.types.join('|').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                : 'any'
 
             if (tag.typesDescription.includes('|<code>undefined</code>')) {
                 tag.typesDescription = `<code>${tag.joinedTypes}</code>`
@@ -36,13 +38,19 @@ export default function (docfile) {
             paramTags.push(tag)
             paramStr.push(tag.name)
         } else if (tag.type == 'property') {
-            tag.joinedTypes = tag.types.join('|').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+            tag.joinedTypes = Array.isArray(tag.types)
+                ? tag.types.join('|').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                : 'any'
             propertyTags.push(tag)
         } else if (tag.type == 'return' || tag.type == 'returns') {
-            tag.joinedTypes = tag.types.join('|').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+            tag.joinedTypes = Array.isArray(tag.types)
+                ? tag.types.join('|').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                : 'any'
             returnTags.push(tag)
         } else if (tag.type == 'throws') {
-            tag.joinedTypes = tag.types.join('|').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+            tag.joinedTypes = Array.isArray(tag.types)
+                ? tag.types.join('|').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                : 'any'
             throwsTags.push(tag)
         } else if (tag.type == 'fires') {
             fires.push(tag.string)
@@ -67,7 +75,9 @@ export default function (docfile) {
         } else if (tag.type == 'author') {
             tagAuthor = tag.string
         } else if (tag.type == 'type') {
-            tagType = tag.types.join('|').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+            tagType = Array.isArray(tag.types)
+                ? tag.types.join('|').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                : 'any'
         }
     }
 

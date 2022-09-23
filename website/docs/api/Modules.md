@@ -20,6 +20,10 @@ Starts a new session with specific capabilities. Based on the session response c
 - `userPrototype`: properties object that allows to extend the instance prototype
 - `customCommandWrapper`: function that allows to wrap functionality around function calls
 
+##### Returns
+
+- [Browser](/docs/api/browser) object
+
 ##### Example
 
 ```js
@@ -38,6 +42,10 @@ Attaches to a running WebDriver or DevTools session.
 - `modifier`: function that allows to modify the client instance before it is being returned
 - `userPrototype`: properties object that allows to extend the instance prototype
 - `customCommandWrapper`: function that allows to wrap functionality around function calls
+
+##### Returns
+
+- [Browser](/docs/api/browser) object
 
 ##### Example
 
@@ -74,6 +82,10 @@ Starts a WebdriverIO session. The instance contains all commands as the protocol
 - `options`: [WebdriverIO Options](/docs/options#webdriverio)
 - `modifier`: function that allows to modify the client instance before it is being returned
 
+##### Returns
+
+- [Browser](/docs/api/browser) object
+
 ##### Example
 
 ```js
@@ -92,6 +104,10 @@ Attaches to a running WebdriverIO session.
 
 - `attachOptions`: instance to attach a session to or at least an object with a property `sessionId` (e.g. `{ sessionId: 'xxx' }`)
 
+##### Returns
+
+- [Browser](/docs/api/browser) object
+
 ##### Example
 
 ```js
@@ -108,6 +124,10 @@ Initiates a multiremote instance which allows you to control multiple session wi
 ##### Paramaters
 
 - `multiremoteOptions`: an object with keys representing the browser name and their [WebdriverIO Options](/docs/options#webdriverio).
+
+##### Returns
+
+- [Browser](/docs/api/browser) object
 
 ##### Example
 

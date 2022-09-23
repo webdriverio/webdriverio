@@ -1,4 +1,4 @@
-const path = require('path')
+const path = require('node:path')
 
 const organizationName = 'webdriverio' // Usually your GitHub org/user name.
 const projectName = 'webdriverio' // Usually your repo name.

@@ -9,8 +9,8 @@ import selenium from '../packages/wdio-protocols/protocols/selenium.json' assert
 import jsonwp from '../packages/wdio-protocols/protocols/jsonwp.json' assert { type: 'json' }
 
 export const PROTOCOLS = {
-    webdriver, webdriverBidi, appium, mjsonwp,
-    chromium, gecko, saucelabs, selenium, jsonwp
+    webdriver, webdriverBidi, appium, chromium,
+    gecko, saucelabs, selenium, jsonwp, mjsonwp
 }
 export const PROTOCOL_NAMES = {
     appium: 'Appium',

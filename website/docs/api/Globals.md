@@ -7,7 +7,7 @@ In your test files, WebdriverIO puts each of these methods and objects into the 
 
 The following global objects are set if not configured otherwise:
 
-- `browser`: WebdriverIO [Browser object](https://webdriver.io/docs/browserobject)
+- `browser`: WebdriverIO [Browser object](https://webdriver.io/docs/api/browser)
 - `driver`: alias to `browser` (used when running mobile tests)
 - `multiremotebrowser`: alias to `browser` or `driver` but only set for [Multiremote](/docs/multiremote) sessions
 - `$`: command to fetch an element (see more in [API docs](/docs/api/browser/$))

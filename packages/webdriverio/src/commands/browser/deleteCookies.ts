@@ -1,6 +1,6 @@
 /**
- *
- * Delete cookies visible to the current page. By providing a cookie name it just removes the single cookie or more when multiple names are passed.
+ * Delete cookies visible to the current page. By providing a cookie name it
+ * just removes the single cookie or more when multiple names are passed.
  *
  * <example>
     :deleteCookie.js
@@ -36,7 +36,7 @@
  * </example>
  *
  * @alias browser.deleteCookies
- * @param {String=|String[]=} names  names of cookies to be deleted
+ * @param {String | String[]} names  names of cookies to be deleted
  * @uses webdriver/deleteAllCookies,webdriver/deleteCookie
  * @type cookie
  *
