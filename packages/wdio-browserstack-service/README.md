@@ -58,6 +58,7 @@ Type: `Boolean`<br />
 Default: `false`
 
 ### app
+
 [Appium](https://appium.io/) set this with app file path available locally on your machine to use the app as [application under test](https://www.browserstack.com/docs/app-automate/appium/set-up-tests/specify-app) for Appium sessions.
 
 Type: `String` or `JsonObject`<br />
