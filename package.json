@@ -61,7 +61,7 @@
   "devDependencies": {
     "@cucumber/cucumber": "^8.5.2",
     "@octokit/rest": "^19.0.4",
-    "@tsconfig/node16": "^1.0.3",
+    "@tsconfig/node18": "^1.0.1",
     "@types/archiver": "^5.3.1",
     "@types/cheerio": "^0.22.31",
     "@types/eslint": "^8.4.6",
