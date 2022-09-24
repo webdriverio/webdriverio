@@ -219,6 +219,17 @@ export default async function launch (capabilities: ExtendedCapabilities) {
         return connectBrowser(connectionUrl, capabilities)
     }
 
+    /**
+     * This fixes running e2e tests on Windows. For some reason within a Vitest environment
+     * capitalization matters for environment variables.
+     */
+    if (!process.env.PROGRAMFILES && process.env['ProgramFiles']) {
+        process.env.PROGRAMFILES = process.env['ProgramFiles']
+    }
+    if (!process.env['PROGRAMFILES(X86)'] && process.env['ProgramFiles(X86)']) {
+        process.env['PROGRAMFILES(X86)'] = process.env['ProgramFiles(X86)']
+    }
+
     if (browserName && CHROME_NAMES.includes(browserName)) {
         return launchChrome(capabilities)
     }
