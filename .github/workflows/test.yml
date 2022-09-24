@@ -53,8 +53,9 @@ jobs:
           timeout_minutes: 20
           max_attempts: 3
           command: npm run test:e2e
-      - name: E2E Edge Launch Tests
+      - name: Install Edge
         uses: browser-actions/setup-edge@latest
+      - name: E2E Edge Launch Tests
         run: npm run test:e2e:edge
       - uses: actions/upload-artifact@v3
         if: failure()
