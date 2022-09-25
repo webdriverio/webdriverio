@@ -46,6 +46,22 @@ html[data-theme=dark] {
     :root {
         --wdio-spacing-vertical: 20px;
     }
+
+    body .footer__links {
+        width: 100%;
+    }
+
+    .col {
+        --ifm-col-width: 30%;
+    }
+
+    body .footer__bottom {
+        width: 100%;
+    }
+
+    body .footer__bottom > div {
+        text-align: center;
+    }
 }
 
 @media (max-width: 500px) {
@@ -98,6 +114,9 @@ html[data-theme=dark] {
     color: var(--wdio-link-color);
 }
 
+.footer__logo {
+    max-width: 125px;
+}
 .footer__links {
     width: 75%;
     float: right;
