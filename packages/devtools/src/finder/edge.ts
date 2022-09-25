@@ -94,11 +94,6 @@ function win32 () {
         }
     }))
 
-    let a = true
-    if (a) {
-        throw new Error(`Checked at "${checkedPath.join('", "')}" ... also ${JSON.stringify(process.env, null, 4)}`)
-    }
-
     /**
      * fallback using edge-path
      */
