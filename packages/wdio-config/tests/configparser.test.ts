@@ -20,6 +20,7 @@ const FIXTURES_CONF = path.resolve(FIXTURES_PATH, 'wdio.conf.ts')
 const FIXTURES_CONF_RDC = path.resolve(FIXTURES_PATH, 'wdio.conf.rdc.ts')
 const FIXTURES_CONF_ARRAY = path.resolve(FIXTURES_PATH, 'wdio.array.conf.ts')
 const FIXTURES_LOCAL_CONF = path.resolve(FIXTURES_PATH, 'wdio.local.conf.ts')
+const FIXTURES_DEFAULT_CONF = path.resolve(FIXTURES_PATH, 'wdio.default.conf.ts')
 const FIXTURES_CUCUMBER_FEATURE_A_LINE_2 = path.resolve(FIXTURES_PATH, 'test-a.feature:2')
 const FIXTURES_CUCUMBER_FEATURE_A_LINE_2_AND_12 = path.resolve(FIXTURES_PATH, 'test-a.feature:2:12')
 const FIXTURES_CUCUMBER_FEATURE_B_LINE_7 = path.resolve(FIXTURES_PATH, 'test-b.feature:7')
@@ -683,6 +684,19 @@ describe('ConfigParser', () => {
             const config = configParser.getConfig()
             expect(config.hostname).toBe('127.0.0.1')
             expect(config.port).toBe(4444)
+        })
+
+        it('should be able to read config file if object is attached to default', async () => {
+            const configParser = ConfigParserBuilder.withBaseDir(FIXTURES_PATH).withFiles([
+                FileNamed(FIXTURES_DEFAULT_CONF).withContents({
+                    default: {
+                        config: { foo: 'bar' }
+                    }
+                })
+            ]).build()
+            await configParser.addConfigFile(FIXTURES_DEFAULT_CONF)
+            const config = configParser.getConfig()
+            expect(config['foo']).toBe('bar')
         })
 
         it('should allow specifying a exclude file', async () => {

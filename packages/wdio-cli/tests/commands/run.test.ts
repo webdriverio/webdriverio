@@ -1,12 +1,23 @@
 import { vi, describe, it, expect, afterEach, beforeEach } from 'vitest'
 // @ts-expect-error mock
 import { yargs } from 'yargs'
-import fs from 'fs-extra'
+import fs from 'node:fs/promises'
+import cp from 'node:child_process'
 import * as runCmd from '../../src/commands/run.js'
 import * as configCmd from '../../src/commands/config.js'
 
 vi.mock('yargs')
-vi.mock('fs-extra')
+vi.mock('node:child_process', () => ({
+    default: {
+        spawn: vi.fn()
+    }
+}))
+vi.mock('node:fs/promises', () => ({
+    default: {
+        access: vi.fn().mockResolvedValue(true),
+        readFile: vi.fn()
+    }
+}))
 vi.mock('./../../src/launcher', () => ({
     default: class {
         run() {
@@ -31,8 +42,7 @@ describe('Command: run', () => {
     const onMock = vi.fn((s, c) => c())
 
     beforeEach(() => {
-        vi.mocked(fs.existsSync).mockImplementation(() => true)
-        vi.mocked(fs.existsSync).mockClear()
+        vi.mocked(fs.access).mockClear()
         vi.spyOn(configCmd, 'missingConfigurationPrompt').mockImplementation((): Promise<never> => {
             return undefined as never
         })
@@ -42,19 +52,16 @@ describe('Command: run', () => {
     })
 
     it('should call missingConfigurationPrompt if no config found', async () => {
-        vi.mocked(fs.existsSync).mockImplementation(() => false)
+        vi.mocked(fs.access).mockRejectedValueOnce('not found')
         await runCmd.handler({ configPath: 'sample.conf.js' } as any)
         expect(configCmd.missingConfigurationPrompt).toHaveBeenCalledTimes(1)
         expect(vi.mocked(configCmd.missingConfigurationPrompt).mock.calls[0][1])
             .toContain('sample.conf.js')
-
-        vi.mocked(fs.existsSync).mockClear()
     })
 
     it('should use local conf if nothing defined', async () => {
-        vi.mocked(fs.existsSync).mockImplementation(() => true)
         await runCmd.handler({ argv: {} } as any)
-        expect(fs.existsSync).toBeCalledTimes(2)
+        expect(fs.access).toBeCalledTimes(2)
     })
 
     it('should use Watcher if "--watch" flag is passed', async () => {
@@ -93,10 +100,32 @@ describe('Command: run', () => {
         expect(yargs.help).toHaveBeenCalled()
     })
 
+    describe('launch', () => {
+        afterEach(() => {
+            vi.mocked(cp.spawn).mockClear()
+            delete process.env.NODE_OPTIONS
+        })
+
+        it('should restart process if esm loader if needed', async () => {
+            expect(cp.spawn).toBeCalledTimes(0)
+            await runCmd.launch('/wdio.conf.ts', {})
+            expect(cp.spawn).toBeCalledTimes(1)
+            expect(vi.mocked(cp.spawn).mock.calls[0][2].env?.NODE_OPTIONS)
+                .toContain('--loader ts-node/esm/transpile-only')
+        })
+
+        it('should not restart if loader is already provided', async () => {
+            expect(cp.spawn).toBeCalledTimes(0)
+            process.env.NODE_OPTIONS = '--loader ts-node/esm'
+            await runCmd.launch('/wdio.conf.ts', {})
+            expect(cp.spawn).toBeCalledTimes(0)
+        })
+    })
+
     afterEach(() => {
         vi.mocked(process.openStdin).mockReset()
         vi.mocked(console.error).mockReset()
-        vi.mocked(fs.existsSync).mockClear()
+        vi.mocked(fs.access).mockClear()
         vi.mocked(configCmd.missingConfigurationPrompt).mockClear()
     })
 })
