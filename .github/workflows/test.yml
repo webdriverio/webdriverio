@@ -9,6 +9,9 @@ on:
       - v7
   pull_request:
 
+permissions:
+  contents: read # to fetch code (actions/checkout)
+
 jobs:
   linux:
     runs-on: ubuntu-latest
