@@ -1,5 +1,6 @@
 import path from 'node:path'
-import fs from 'fs-extra'
+import fs from 'node:fs/promises'
+import cp from 'node:child_process'
 import type { Argv } from 'yargs'
 
 import Launcher from '../launcher.js'
@@ -124,6 +125,32 @@ export function launchWithStdin (wdioConfPath: string, params: Partial<RunComman
 }
 
 export function launch (wdioConfPath: string, params: Partial<RunCommandArguments>) {
+    /**
+     * In order to load TypeScript files in ESM we need to apply the ts-node loader.
+     * Let's have WebdriverIO set it automatically if the user doesn't.
+     */
+    const nodePath = process.argv[0]
+    let NODE_OPTIONS = process.env.NODE_OPTIONS || ''
+    const runsWithLoader = (
+        Boolean(
+            process.argv.find((arg) => arg.startsWith('--loader')) &&
+            process.argv.find((arg) => arg.endsWith('ts-node/esm'))
+        ) ||
+        NODE_OPTIONS?.includes('ts-node/esm')
+    )
+    if (wdioConfPath.endsWith('.ts') && !runsWithLoader && nodePath) {
+        NODE_OPTIONS += ' --loader ts-node/esm/transpile-only --no-warnings'
+        return cp.spawn(nodePath, process.argv.slice(1), {
+            cwd: process.cwd(),
+            detached : true,
+            stdio: 'inherit',
+            env: {
+                ...process.env,
+                NODE_OPTIONS
+            }
+        })
+    }
+
     const launcher = new Launcher(wdioConfPath, params)
     return launcher.run()
         .then((...args) => {
@@ -144,13 +171,20 @@ export function launch (wdioConfPath: string, params: Partial<RunCommandArgument
 export async function handler (argv: RunCommandArguments) {
     const { configPath, ...params } = argv
 
-    if (!fs.existsSync(configPath)) {
+    const canAccessConfigPath = await fs.access(configPath).then(
+        () => true,
+        () => false
+    )
+    if (!canAccessConfigPath) {
         const configFullPath = path.join(process.cwd(), configPath)
         await missingConfigurationPrompt('run', configFullPath)
     }
 
     const localConf = path.join(process.cwd(), 'wdio.conf.js')
-    const wdioConf = configPath || (fs.existsSync(localConf) ? localConf : undefined) as string
+    const wdioConf = configPath || ((await fs.access(localConf).then(() => true, () => false))
+        ? localConf
+        : undefined
+    ) as string
 
     /**
      * if `--watch` param is set, run launcher in watch mode
