@@ -16,6 +16,7 @@ import { getBrowserObject } from '../../utils/index.js'
  * </example>
  *
  * @alias element.scrollIntoView
+ * @param {object|boolean=} scrollIntoViewOptions  options for `Element.scrollIntoView()` (default: `{ block: 'start', inline: 'nearest' }`)
  * @uses protocol/execute
  * @type utility
  *
