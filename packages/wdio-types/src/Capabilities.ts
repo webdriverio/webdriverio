@@ -555,6 +555,7 @@ export interface AppiumAndroidCapabilities {
     uiautomator2ServerInstallTimeout?: number;
     skipServerInstallation?: boolean;
     espressoServerLaunchTimeout?: number;
+    disableSuppressAccessibilityService?: boolean;
 }
 
 /**
