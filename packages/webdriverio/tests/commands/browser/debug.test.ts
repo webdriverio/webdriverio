@@ -40,7 +40,7 @@ describe('debug command', () => {
         })
 
         it('should send debugger start command to wdio testrunner', () => {
-            global.process.env.WDIO_WORKER = 'true'
+            global.process.env.WDIO_WORKER_ID = '1'
             browser.debug()
             expect(global.process.send).toBeCalledWith({
                 origin: 'debugger',
@@ -55,7 +55,7 @@ describe('debug command', () => {
             let messageHandlerCallback: Function
 
             beforeEach(async () => {
-                global.process.env.WDIO_WORKER = 'true'
+                global.process.env.WDIO_WORKER_ID = '1'
                 browser.debug()
                 messageHandlerCallback = vi.mocked(global.process.on).mock.calls.pop()!.pop() as any
             })
@@ -82,7 +82,7 @@ describe('debug command', () => {
 
         afterEach(() => {
             global.process = realProcess
-            delete global.process.env.WDIO_WORKER
+            delete global.process.env.WDIO_WORKER_ID
         })
     })
 })

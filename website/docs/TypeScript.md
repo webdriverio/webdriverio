@@ -39,8 +39,15 @@ export const config = {
 
 If you don't want to use WebdriverIO's internal transpiler functionality you can create your own `entrypoint.js` file where `ts-node` is defined manually:
 
-<!--DOCUSAURUS_CODE_TABS-->
-<!--Using EcmaScript Modules-->
+<Tabs
+  defaultValue="esm"
+  values={[
+    {label: 'ESM', value: 'esm'},
+    {label: 'CommonJS', value: 'commonjs'},
+  ]
+}>
+<TabItem value="esm">
+
 ```js title="entrypoint.js"
 import { register } from 'ts-node'
 register({
@@ -50,7 +57,10 @@ register({
 })
 export * from './configs/wdio.conf'
 ```
-<!--Using CommonJS-->
+
+</TabItem>
+<TabItem value="commonjs">
+
 ```js title="entrypoint.js"
 require('ts-node').register(
     {
@@ -61,7 +71,9 @@ require('ts-node').register(
 )
 module.exports = require('./configs/wdio.conf')
 ```
-<!--END_DOCUSAURUS_CODE_TABS-->
+
+</TabItem>
+</Tabs>
 
 In this case you have to pass `--no-autoCompileOpts.autoCompile` as parameter to the `wdio` command to disable auto compiling, e.g.:
 
@@ -73,44 +85,13 @@ npx wdio run ./entrypoint.js --no-autoCompileOpts.autoCompile
 
 And your `tsconfig.json` needs the following:
 
-<Tabs
-  defaultValue="async"
-  className="runtime"
-  values={[
-    {label: 'Async Mode', value: 'async'},
-    {label: 'Sync Mode', value: 'sync'},
-  ]
-}>
-<TabItem value="sync">
-
 ```json title="tsconfig.json"
 {
     "compilerOptions": {
-        "types": ["node", "webdriverio/sync"]
+        "types": ["node", "@wdio/globals/types"]
     }
 }
 ```
-
-:::caution
-Synchronous Mode will depcrecated with Node.js v16. With an update to the
-underlying Chromium version it became technically impossible to provide the
-same synchronous behavior. We recommend to start transition to asynchronous
-command execution. For more information, see our <a href="https://github.com/webdriverio/webdriverio/discussions/6702">RFC</a>.
-:::
-
-</TabItem>
-<TabItem value="async">
-
-```json title="tsconfig.json"
-{
-    "compilerOptions": {
-        "types": ["node", "webdriverio/async"]
-    }
-}
-```
-
-</TabItem>
-</Tabs>
 
 Please avoid importing `webdriverio` or `@wdio/sync` explicitly.
 `WebdriverIO` and `WebDriver` types are accessible from anywhere once added to `types` in `tsconfig.json`. If you use additional WebdriverIO services, plugins or the `devtools` automation package, please also add them to the `types` list as many provide additional typings.
@@ -134,7 +115,7 @@ For instance, if you decide to use the Mocha framework, you need to install `@ty
 ```json title="tsconfig.json"
 {
     "compilerOptions": {
-        "types": ["node", "webdriverio/async", "@wdio/mocha-framework"]
+        "types": ["node", "@wdio/globals/types", "@wdio/mocha-framework"]
     }
 }
 ```
@@ -145,7 +126,7 @@ For instance, if you decide to use the Mocha framework, you need to install `@ty
 ```json title="tsconfig.json"
 {
     "compilerOptions": {
-        "types": ["node", "webdriverio/async", "@wdio/jasmine-framework"]
+        "types": ["node", "@wdio/globals/types", "@wdio/jasmine-framework"]
     }
 }
 ```
@@ -156,7 +137,7 @@ For instance, if you decide to use the Mocha framework, you need to install `@ty
 ```json title="tsconfig.json"
 {
     "compilerOptions": {
-        "types": ["node", "webdriverio/async", "@wdio/cucumber-framework"]
+        "types": ["node", "@wdio/globals/types", "@wdio/cucumber-framework"]
     }
 }
 ```
@@ -173,7 +154,7 @@ If you use services that add commands to the browser scope you also need to incl
     "compilerOptions": {
         "types": [
             "node",
-            "webdriverio/async",
+            "@wdio/globals/types",
             "@wdio/mocha-framework",
             "@wdio/devtools-service"
         ]
@@ -379,7 +360,7 @@ declare namespace WebdriverIO {
     "strictNullChecks": true,
     "types": [
       "node",
-      "webdriverio/async",
+      "@wdio/globals/types",
       "@wdio/mocha-framework"
     ]
   },
@@ -406,7 +387,7 @@ declare namespace WebdriverIO {
     "strictNullChecks": true,
     "types": [
       "node",
-      "webdriverio/async",
+      "@wdio/globals/types",
       "@wdio/mocha-framework"
     ]
   }

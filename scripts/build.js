@@ -29,6 +29,7 @@ const ROOT_PACKAGES = [
     'webdriver',
     'devtools',
     'webdriverio',
+    'wdio-globals',
 ]
 
 const packages = getSubPackages()

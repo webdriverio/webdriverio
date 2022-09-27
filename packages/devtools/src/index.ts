@@ -119,18 +119,8 @@ export default class DevTools {
         const { session } = sessionMap.get(instance.sessionId)
         const browser = await launch(instance.requestedCapabilities)
         const pages = await browser.pages()
-
-        session.elementStore.clear()
-        session.windows = new Map()
-        session.browser = browser
+        session.initBrowser.call(session, browser, pages)
         instance.puppeteer = browser
-
-        for (const page of pages) {
-            const pageId = uuidv4()
-            session.windows.set(pageId, page)
-            session.currentWindowHandle = pageId
-        }
-
         sessionMap.set(instance.sessionId, { browser, session })
         return instance.sessionId
     }

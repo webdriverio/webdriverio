@@ -6,11 +6,12 @@
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-selenium-standalone-service",
   "license": "MIT",
   "engines": {
-     "node": "^16.13 || >=18"
+    "node": "^16.13 || >=18"
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/webdriverio/webdriverio.git"
+    "url": "git://github.com/webdriverio/webdriverio.git",
+    "directory": "packages/wdio-seleniun-standalone-service"
   },
   "keywords": [
     "webdriver",
@@ -42,7 +43,7 @@
     "@types/node": "^18.0.0"
   },
   "peerDependencies": {
-    "@wdio/cli": "^7.0.0"
+    "@wdio/cli": "next"
   },
   "publishConfig": {
     "access": "public"

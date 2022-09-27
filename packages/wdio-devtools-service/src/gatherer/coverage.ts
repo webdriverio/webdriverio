@@ -196,7 +196,7 @@ export default class CoverageGatherer extends EventEmitter {
             // values can be nested/flat/pkg. Defaults to 'pkg'
             defaultSummarizer: 'nested',
             coverageMap,
-            sourceFinder: (source) => {
+            sourceFinder: (source: string) => {
                 const f = fs.readFileSync(path.join(this._coverageLogDir, 'files', source.replace(process.cwd(), '')))
                 return f.toString('utf8')
             }

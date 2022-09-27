@@ -23,7 +23,7 @@ For the full list, see the [expect API doc](/docs/api/expect-webdriverio).
 
 ## Migrating from Chai
 
-[Chai](https://www.chaijs.com/) and [expect-webdriverio](https://github.com/webdriverio/expect-webdriverio#readme) can coexist, and with some minor adjustments a smooth transition to expect-webdriverio can be achieved. If you've upgraded to wdio v6 then by default you will have access to all the assertions from expect-webdriverio out of the box. This means that globally wherever you use `expect` you would call an expect-webdriverio assertion. That is, unless you have explicitly overridden the global `expect` to use Chai. In this case you would not have access to any of the expect-webdriverio assertions without explicitly importing the expect-webdriverio package where you need it.
+[Chai](https://www.chaijs.com/) and [expect-webdriverio](https://github.com/webdriverio/expect-webdriverio#readme) can coexist, and with some minor adjustments a smooth transition to expect-webdriverio can be achieved. If you've upgraded to WebdriverIO v6 then by default you will have access to all the assertions from `expect-webdriverio` out of the box. This means that globally wherever you use `expect` you would call an `expect-webdriverio` assertion. That is, unless you you set [`injectGlobals`](/docs/options#injectglobals) to `false` or have explicitly overridden the global `expect` to use Chai. In this case you would not have access to any of the expect-webdriverio assertions without explicitly importing the expect-webdriverio package where you need it.
 
 This guide will show examples of how to migrate from Chai if it has been overridden locally and how to migrate from Chai if it has been overridden globally.
 
@@ -60,6 +60,7 @@ If you wanted to use both Chai and expect-webdriverio in the same file you would
 ```js
 // myfile.js
 import { expect as expectChai } from 'chai'
+import { expect as expectWDIO } from '@wdio/globals'
 
 describe('Element', () => {
     it('should be displayed', async () => {
@@ -70,7 +71,7 @@ describe('Element', () => {
 
 describe('Other element', () => {
     it('should not be displayed', async () => {
-        await expect($("#element")).not.toBeDisplayed(); // expect-webdriverio assertion
+        await expectWDIO($("#element")).not.toBeDisplayed(); // expect-webdriverio assertion
     })
 })
 ```

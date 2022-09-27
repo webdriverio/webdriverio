@@ -6,11 +6,12 @@
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-concise-reporter",
   "license": "MIT",
   "engines": {
-     "node": "^16.13 || >=18"
+    "node": "^16.13 || >=18"
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/webdriverio/webdriverio.git"
+    "url": "git://github.com/webdriverio/webdriverio.git",
+    "directory": "packages/wdio-concise-reporter"
   },
   "keywords": [
     "webdriver",
@@ -31,7 +32,7 @@
     "pretty-ms": "^7.0.1"
   },
   "peerDependencies": {
-    "@wdio/cli": "^7.0.0"
+    "@wdio/cli": "next"
   },
   "publishConfig": {
     "access": "public"

@@ -2,7 +2,7 @@ import fs from 'node:fs'
 import isPlainObject from 'lodash.isplainobject'
 import { roleElements, ARIARoleDefintionKey, ARIARoleRelationConcept, ARIARoleRelationConceptAttribute } from 'aria-query'
 
-import { W3C_SELECTOR_STRATEGIES, DEEP_SELECTOR } from '../constants.js'
+import { DEEP_SELECTOR, ARIA_SELECTOR } from '../constants.js'
 
 const DEFAULT_STRATEGY = 'css selector'
 const DIRECT_SELECTOR_REGEXP = /^(id|css selector|xpath|link text|partial link text|name|tag name|class name|-android uiautomator|-android datamatcher|-android viewmatcher|-android viewtag|-ios uiautomation|-ios predicate string|-ios class chain|accessibility id):(.+)/
@@ -71,6 +71,10 @@ const defineStrategy = function (selector: SelectorStrategy) {
     if (stringSelector.startsWith(DEEP_SELECTOR)) {
         return 'shadow'
     }
+    // use aria selector
+    if (stringSelector.startsWith(ARIA_SELECTOR)) {
+        return 'aria'
+    }
     // Recursive element search using the UiAutomator library (Android only)
     if (stringSelector.startsWith('android=')) {
         return '-android uiautomator'
@@ -122,7 +126,7 @@ export const findStrategy = function (selector: SelectorStrategy, isW3C?: boolea
     // user has specified locator strategy directly
     case 'directly': {
         const match = stringSelector.match(DIRECT_SELECTOR_REGEXP)
-        if (!match || !isMobile && isW3C && !W3C_SELECTOR_STRATEGIES.includes(match[1])) {
+        if (!match) {
             throw new Error('InvalidSelectorStrategy') // ToDo: move error to wdio-error package
         }
         using = match[1]
@@ -152,6 +156,41 @@ export const findStrategy = function (selector: SelectorStrategy, isW3C?: boolea
         using = 'shadow'
         value = stringSelector.slice(DEEP_SELECTOR.length)
         break
+    case 'aria': {
+        const label = stringSelector.slice(ARIA_SELECTOR.length)
+        const conditions = [
+            // aria label is recevied by other element with aria-labelledBy
+            // https://www.w3.org/TR/accname-1.1/#step2B
+            `.//*[@aria-labelledby=(//*[normalize-space() = "${label}"]/@id)]`,
+            // aria label is recevied by other element with aria-labelledBy
+            // https://www.w3.org/TR/accname-1.1/#step2B
+            `.//*[@aria-describedby=(//*[normalize-space() = "${label}"]/@id)]`,
+            // element has direct aria label
+            // https://www.w3.org/TR/accname-1.1/#step2C
+            `.//*[@aria-label = "${label}"]`,
+            // inputs with a label
+            // https://www.w3.org/TR/accname-1.1/#step2D
+            `.//input[@id = (//label[normalize-space() = "${label}"]/@for)]`,
+            // aria label is received by an input placeholder
+            // https://www.w3.org/TR/accname-1.1/#step2D
+            `.//input[@placeholder="${label}"]`,
+            // aria label is received by an input placeholder
+            // https://www.w3.org/TR/accname-1.1/#step2D
+            `.//input[@aria-placeholder="${label}"]`,
+            // aria label is received by its title attribute
+            // https://www.w3.org/TR/accname-1.1/#step2D
+            `.//*[@title="${label}"]`,
+            // images with an alt tag
+            // https://www.w3.org/TR/accname-1.1/#step2D
+            `.//img[@alt="${label}"]`,
+            // aria label is received from element content
+            // https://www.w3.org/TR/accname-1.1/#step2G
+            `.//*[normalize-space() = "${label}"]`
+        ]
+        using = 'xpath'
+        value = `(${conditions.join(' | ')})[1]`
+        break
+    }
     case '-android uiautomator': {
         using = '-android uiautomator'
         value = stringSelector.slice(8)

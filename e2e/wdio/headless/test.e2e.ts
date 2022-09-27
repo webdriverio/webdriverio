@@ -61,6 +61,7 @@ describe('main suite 1', () => {
         ])
         expect(currentScrollPosition).toEqual([0, 0])
         await $('footer').scrollIntoView()
+        await browser.pause(500)
         const [x, y] = await browser.execute(() => [
             window.scrollX, window.scrollY
         ])
@@ -68,6 +69,7 @@ describe('main suite 1', () => {
 
         // should scroll relative to current position
         browser.scroll(0, 0)
+        await browser.pause(500)
         const sameScrollPosition = await browser.execute(() => [
             window.scrollX, window.scrollY
         ])

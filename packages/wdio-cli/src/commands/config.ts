@@ -96,7 +96,7 @@ const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) 
                 moduleResolution: 'node',
                 types: [
                     'node',
-                    'webdriverio/async',
+                    '@wdio/globals/types',
                     frameworkPackage.package,
                     'expect-webdriverio'
                 ],
@@ -209,7 +209,7 @@ const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) 
      */
     if (answers.isUsingCompiler === COMPILER_OPTIONS.ts) {
         const tsPkgs = `"${[
-            'webdriverio/async',
+            '@wdio/globals/types',
             frameworkPackage.package,
             'expect-webdriverio',
             ...servicePackages

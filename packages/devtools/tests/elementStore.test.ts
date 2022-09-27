@@ -2,7 +2,7 @@ import path from 'node:path'
 import { expect, test, vi } from 'vitest'
 import ElementStore from '../src/elementstore.js'
 import type { ElementHandle } from 'puppeteer-core/lib/cjs/puppeteer/common/ElementHandle'
-import type { Frame } from 'puppeteer-core/lib/cjs/puppeteer/common/FrameManager'
+import type { Frame } from 'puppeteer-core/lib/cjs/puppeteer/common/Frame'
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
@@ -14,7 +14,7 @@ const elementHandleFactory = (
         return cb({ isConnected })
     },
     executionContext() {
-        return { frame: () => frame }
+        return { _world: { frame: () => frame } }
     }
 })
 

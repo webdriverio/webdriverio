@@ -6,11 +6,12 @@
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-runner",
   "license": "MIT",
   "engines": {
-     "node": "^16.13 || >=18"
+    "node": "^16.13 || >=18"
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/webdriverio/webdriverio.git"
+    "url": "git://github.com/webdriverio/webdriverio.git",
+    "directory": "packages/wdio-runner"
   },
   "keywords": [
     "webdriver",
@@ -26,10 +27,12 @@
   "typeScriptVersion": "3.8.3",
   "dependencies": {
     "@wdio/config": "7.20.7",
+    "@wdio/globals": "7.20.7",
     "@wdio/logger": "7.19.0",
     "@wdio/types": "7.20.7",
     "@wdio/utils": "7.20.7",
     "deepmerge": "^4.0.0",
+    "expect-webdriverio": "^4.0.0-alpha.3",
     "gaze": "^1.1.2",
     "webdriver": "7.20.7",
     "webdriverio": "7.20.7"

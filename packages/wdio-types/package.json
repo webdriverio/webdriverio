@@ -12,11 +12,12 @@
     "./package.json": "./package.json"
   },
   "engines": {
-     "node": "^16.13 || >=18"
+    "node": "^16.13 || >=18"
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/webdriverio/webdriverio.git"
+    "url": "git://github.com/webdriverio/webdriverio.git",
+    "directory": "packages/wdio-types"
   },
   "keywords": [
     "webdriver",
@@ -33,5 +34,10 @@
   },
   "peerDependencies": {
     "typescript": "^4.6.2"
+  },
+  "peerDependenciesMeta": {
+    "typescript": {
+      "optional": true
+    }
   }
 }

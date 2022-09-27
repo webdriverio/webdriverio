@@ -10,7 +10,8 @@
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/webdriverio/webdriverio.git"
+    "url": "git://github.com/webdriverio/webdriverio.git",
+    "directory": "packages/wdio-devtools-service"
   },
   "keywords": [
     "webdriver",
@@ -31,30 +32,31 @@
   "dependencies": {
     "@babel/core": "^7.18.0",
     "@tracerbench/trace-event": "^7.0.0",
+    "@types/babel__core": "^7.1.19",
+    "@types/istanbul-lib-report": "^3.0.0",
+    "@types/istanbul-reports": "^3.0.1",
+    "@types/ws": "^8.5.3",
     "@wdio/logger": "7.19.0",
     "@wdio/types": "7.20.7",
     "babel-plugin-istanbul": "^6.1.1",
-    "devtools-protocol": "^0.0.1031356",
+    "devtools-protocol": "^0.0.1040073",
     "istanbul-lib-coverage": "^3.2.0",
     "istanbul-lib-report": "^3.0.0",
     "istanbul-reports": "^3.1.4",
     "lighthouse": "8.6.0",
-    "puppeteer-core": "^15.3.2",
+    "puppeteer-core": "^17.0.0",
     "speedline": "^1.4.3",
     "stable": "^0.1.8",
     "webdriverio": "7.20.7",
     "ws": "^8.8.1"
   },
   "peerDependencies": {
-    "@wdio/cli": "^7.0.0"
+    "@wdio/cli": "next"
   },
   "publishConfig": {
     "access": "public"
   },
   "devDependencies": {
-    "@types/babel__core": "^7.1.19",
-    "@types/istanbul-reports": "^3.0.1",
-    "@types/node": "^18.0.0",
-    "@types/ws": "^8.5.3"
+    "@types/node": "^18.0.0"
   }
 }

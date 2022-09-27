@@ -154,7 +154,7 @@ const jasmineTimeout = async () => {
         'spec was not failing due to timeout error'
     )
     assert.ok(
-        specLogs.includes('Expected true to be false.'),
+        specLogs.includes('Error: expect(received).toBe(expected) // Object.is equality'),
         'spec was not failing a sync assertion error'
     )
     assert.ok(
@@ -164,10 +164,6 @@ const jasmineTimeout = async () => {
     assert.ok(
         specLogs.includes('✓ should allow also async assertions afterwards'),
         'spec should also allow async assertions afterwards'
-    )
-    assert.ok(
-        specLogs.includes('✓ should allow also sync assertions afterwards'),
-        'spec should also allow sync assertions afterwards'
     )
 }
 
@@ -477,6 +473,17 @@ const severeErrorTest = async () => {
     assert.equal(onCompleteFailed, true, 'Expected onWorkerStart to fail testrun')
 }
 
+/**
+ * test usage of globals package
+ */
+const nonGlobalTestrunner = async () => {
+    const hasFailed = await launch('nonGlobalTestrunner', baseConfig, {
+        specs: [path.resolve(__dirname, 'mocha', 'noGlobals.ts')],
+        injectGlobals: false
+    }).then(() => false, () => true)
+    assert.strictEqual(hasFailed, false)
+}
+
 (async () => {
     const smokeTests = [
         mochaTestrunner,
@@ -500,7 +507,8 @@ const severeErrorTest = async () => {
         retryPass,
         customReporterString,
         customReporterObject,
-        severeErrorTest
+        severeErrorTest,
+        nonGlobalTestrunner
     ]
 
     console.log('\nRunning smoke tests...\n')

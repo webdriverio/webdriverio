@@ -8,7 +8,7 @@ import { WebDriverProtocol, CommandParameters, CommandPathVariables, ElementRefe
 import type { Logger } from '@wdio/logger/build/node'
 import type { ElementHandle } from 'puppeteer-core/lib/cjs/puppeteer/common/ElementHandle'
 import type { Browser } from 'puppeteer-core/lib/cjs/puppeteer/common/Browser'
-import type { Frame } from 'puppeteer-core/lib/cjs/puppeteer/common/FrameManager'
+import type { Frame } from 'puppeteer-core/lib/cjs/puppeteer/common/Frame'
 import type { Page } from 'puppeteer-core/lib/cjs/puppeteer/common/Page'
 
 import cleanUp from './scripts/cleanUpSerializationSelector.js'

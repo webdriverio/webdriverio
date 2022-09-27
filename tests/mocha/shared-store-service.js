@@ -17,4 +17,12 @@ describe('Shared store service', () => {
         assert.equal(await browser.sharedStore.get('string'), 'foobar')
         assert.equal(await browser.sharedStore.get('null'), null)
     })
+
+    it('should be able to fetch all key/value pairs', async () => {
+        const keys = Object.keys(await browser.sharedStore.get('*'))
+        expect(keys).toEqual([
+            browser.sessionId,
+            'boolean', 'number', 'string', 'null'
+        ])
+    })
 })

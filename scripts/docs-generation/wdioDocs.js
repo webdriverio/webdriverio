@@ -29,11 +29,12 @@ export async function generateWdioDocs (sidebars) {
         mock: fs.readdirSync(path.join(COMMAND_DIR, 'mock'))
     }
 
+    const apiDocs = []
     for (const [scope, files] of Object.entries(COMMANDS)) {
         /**
          * add scope to sidebar
          */
-        sidebars.api.push({
+        apiDocs.push({
             type: 'category',
             label: scope,
             items: []
@@ -51,8 +52,15 @@ export async function generateWdioDocs (sidebars) {
             await processDocs(filepath, options)
             console.log(`Generated docs for ${scope}/${file} - ${output}`)
 
-            sidebars.api[sidebars.api.length - 1].items
+            apiDocs[apiDocs.length - 1].items
                 .push(`api/${scope}/${file.replace(/\.(js|ts)/, '')}`)
         }
     }
+
+    /**
+     * Have API intro page first, then protocol commands, then these and lastly
+     * general API docs
+     */
+    const [api, protocol, ...rest] = sidebars.api
+    sidebars.api = [api, protocol, ...apiDocs, ...rest]
 }

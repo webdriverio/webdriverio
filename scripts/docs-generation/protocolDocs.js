@@ -29,11 +29,11 @@ export function generateProtocolDocs (sidebars) {
     const template = fs.readFileSync(TEMPLATE_PATH, 'utf8')
     const protocolDocs = {}
 
-    sidebars[category].push({
+    const protocolDocEntry = {
         type: 'category',
         label: 'Protocols',
         items: []
-    })
+    }
 
     for (const [protocolName, definition] of Object.entries(PROTOCOLS)) {
         const protocol = PROTOCOL_NAMES[protocolName]
@@ -103,6 +103,12 @@ export function generateProtocolDocs (sidebars) {
         // eslint-disable-next-line no-console
         console.log(`Generated docs for ${protocolName} protocol`)
 
-        sidebars[category][sidebars[category].length - 1].items.push(`${category}/${protocolName}`)
+        protocolDocEntry.items.push(`${category}/${protocolName}`)
     }
+
+    /**
+     * Have API intro page first, then protocol commands, then general API docs last
+     */
+    const [api, ...rest] = sidebars[category]
+    sidebars.api = [api, protocolDocEntry, ...rest]
 }
