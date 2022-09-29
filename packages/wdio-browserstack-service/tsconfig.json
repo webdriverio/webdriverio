@@ -8,5 +8,6 @@
   "include": [
     "src/**/*",
     "../../@types"
-  ]
+  ],
+  "types": [ "node" ],
 }

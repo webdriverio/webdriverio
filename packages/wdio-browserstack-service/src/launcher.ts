@@ -15,6 +15,7 @@ import { App, AppConfig, AppUploadResponse } from './types'
 import { version as bstackServiceVersion } from '../package.json'
 import { BrowserstackConfig } from './types'
 import { VALID_APP_EXTENSION } from './constants'
+import { launchTestSession, stopBuildUpstream } from './util'
 
 const log = logger('@wdio/browserstack-service')
 
@@ -96,6 +97,19 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             this._updateCaps(capabilities, 'app', app.app)
         }
 
+        if (this._options.observability) {
+            log.debug('sending lauch start event')
+            let bsConfig = {
+                username : this._config.user,
+                password : this._config.key,
+                projectName: '',
+                buildName: ''
+            }
+            const [BS_TESTOPS_JWT, BS_TESTOPS_BUILD_HASHED_ID] = await launchTestSession(bsConfig)
+            if (BS_TESTOPS_JWT !== null) process.env.BS_TESTOPS_JWT = BS_TESTOPS_JWT
+            if (BS_TESTOPS_BUILD_HASHED_ID !== null) process.env.BS_TESTOPS_BUILD_HASHED_ID = BS_TESTOPS_BUILD_HASHED_ID
+        }
+
         if (!this._options.browserstackLocal) {
             return log.info('browserstackLocal is not enabled - skipping...')
         }
@@ -139,7 +153,12 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         })
     }
 
-    onComplete () {
+    async onComplete () {
+        if (this._options.observability) {
+            log.debug('sending lauch stop event')
+            await stopBuildUpstream()
+        }
+
         if (!this.browserstackLocal || !this.browserstackLocal.isRunning()) {
             return
         }
@@ -185,7 +204,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             body: form,
             username : this._config.user,
             password : this._config.key
-        }).json().catch((err) => {
+        }).json().catch((err: any) => {
             throw new SevereServiceError(`app upload failed ${(err as Error).message}`)
         })
 
