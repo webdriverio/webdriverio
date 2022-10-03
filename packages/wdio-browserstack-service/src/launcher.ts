@@ -15,7 +15,7 @@ import { App, AppConfig, AppUploadResponse } from './types'
 import { version as bstackServiceVersion } from '../package.json'
 import { BrowserstackConfig } from './types'
 import { VALID_APP_EXTENSION } from './constants'
-import { launchTestSession, stopBuildUpstream } from './util'
+import { getLaunchInfo, launchTestSession, stopBuildUpstream } from './util'
 
 const log = logger('@wdio/browserstack-service')
 
@@ -61,6 +61,9 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                 }
             })
         }
+
+        // by default observability will be true unless specified as false
+        this._options.observability = this._options.observability == false ? false : true
     }
 
     async onPrepare (config?: Options.Testrunner, capabilities?: Capabilities.RemoteCapabilities) {
@@ -99,11 +102,19 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
 
         if (this._options.observability) {
             log.debug('sending lauch start event')
+
+            let buildName: any
+            let projectName: any
+            let buildTag: any
+
+            [buildName, projectName, buildTag] = getLaunchInfo(capabilities)
+
             let bsConfig = {
                 username : this._config.user,
                 password : this._config.key,
-                projectName: '',
-                buildName: ''
+                projectName: projectName,
+                buildName: buildName,
+                buildTag: buildTag
             }
             const [BS_TESTOPS_JWT, BS_TESTOPS_BUILD_HASHED_ID] = await launchTestSession(bsConfig)
             if (BS_TESTOPS_JWT !== null) process.env.BS_TESTOPS_JWT = BS_TESTOPS_JWT

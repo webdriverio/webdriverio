@@ -3,7 +3,7 @@ import got from 'got'
 import type { Services, Capabilities, Options, Frameworks } from '@wdio/types'
 import type { Browser, MultiRemoteBrowser } from 'webdriverio'
 
-import { getBrowserDescription, getBrowserCapabilities, isBrowserstackCapability, getParentSuiteName } from './util'
+import { getBrowserDescription, getBrowserCapabilities, isBrowserstackCapability, getParentSuiteName, getUniqueIdentifier, getCloudProvider } from './util';
 import { BrowserstackConfig, MultiRemoteAction, SessionResponse } from './types'
 import { v4 as uuidv4 } from 'uuid'
 import { uploadEventData } from './util'
@@ -22,6 +22,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
     private _tests: any
     private _platformMeta: any
     private _currentTest: any
+    private _framework?: string
 
     constructor (
         private _options: BrowserstackConfig & Options.Testrunner,
@@ -30,9 +31,12 @@ export default class BrowserstackService implements Services.ServiceInstance {
     ) {
         // added to maintain backward compatibility with webdriverIO v5
         this._config || (this._config = _options)
+        if (this._options.observability == false) this._observability = false
+
         if (this._observability) {
             this._tests = {}
             this._cloudProvider = getCloudProvider(_config)
+            this._framework = _config.framework
         }
 
         // Cucumber specific
@@ -343,6 +347,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
             location: test.file,
             started_at: testMetaData.startedAt,
             finished_at: testMetaData.finishedAt,
+            framework: this._framework
             // 'retry_of': test.retryOf, // can you results.retries? (retries: { attempts: 0, limit: 0 })
         }
 

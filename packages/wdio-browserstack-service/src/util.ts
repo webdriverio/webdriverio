@@ -159,11 +159,10 @@ export async function launchTestSession (userConfig: any) {
 
     const data = {
         'format': 'json',
-        'project_name': userConfig.projectName || '',
-        'name': userConfig.buildName || process.cwd(), // why process.cwd()?
-        'description': userConfig.buildDescription || '', // why buildDescription?
+        'project_name': userConfig.projectName,
+        'name': userConfig.buildName,
         'start_time': (new Date()).toISOString(),
-        // 'tags': this.getCustomTags(userConfig), // get tags
+        'tags': [userConfig.buildTag],
         'host_info': {
             hostname: hostname(),
             platform: platform(),
@@ -449,4 +448,27 @@ export function getCloudProvider(config: Options.Testrunner): string {
         }
     }
     return provider
+}
+
+export function getLaunchInfo(capabilities: any) {
+    let buildName: any
+    let projectName: any
+    let buildTag: any
+    let caps: any
+
+    if (Array.isArray(capabilities)) {
+        caps = capabilities[0]['bstack:options']
+    } else if (typeof capabilities === 'object') {
+        caps = capabilities['bstack:options']
+    }
+
+    if (caps) {
+        buildName = caps.buildName || caps.build
+        projectName = caps.projectName || caps.project
+        buildTag = caps.buildTag
+    }
+
+    buildName = buildName || process.cwd()
+
+    return [buildName, projectName, buildTag]
 }
