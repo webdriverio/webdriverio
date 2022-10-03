@@ -10,6 +10,8 @@ import { promisify } from 'util'
 import { Repository } from 'nodegit'
 import gitRepoInfo from 'git-repo-info'
 import gitconfig from 'gitconfiglocal'
+import { Frameworks } from '@wdio/types'
+import { Options } from '@wdio/types'
 
 const pGitconfig = promisify(gitconfig)
 
@@ -76,6 +78,72 @@ export function getParentSuiteName(fullTitle: string, testSuiteTitle: string): s
         parentSuiteName += fullTitleWords[c++] + ' '
     }
     return parentSuiteName.trim()
+}
+
+export async function uploadEventData (eventData: any, run=0) {
+    const logTag = 'TestRunStarted'
+    // logTag = {
+    //     ['TestRunStarted']: 'Test_Upload',
+    //     ['TestRunFinished']: 'Test_Upload',
+    //     ['LogCreated']: 'Log_Upload',
+    //     ['HookRunStarted']: 'Hook_Upload',
+    //     ['HookRunFinished']: 'Hook_Upload',
+    // }[eventData.eventType]
+
+    // if (run === 0) pendingTestUploads += 1
+
+    if (process.env.BS_TESTOPS_BUILD_COMPLETED) {
+        if (!process.env.BS_TESTOPS_JWT) {
+            console.log(`[${logTag}] Missing Authentication Token/ Build ID`)
+            // pendingTestUploads = Math.max(0, pendingTestUploads-1);
+            return {
+                status: 'error',
+                message: 'Token/buildID is undefined, build creation might have failed'
+            }
+        }
+        const data = eventData
+        const config = {
+            headers: {
+                'Authorization': `Bearer ${process.env.BS_TESTOPS_JWT}`,
+                'Content-Type': 'application/json',
+                'X-BSTACK-OBS': 'true'
+            }
+        }
+
+        try {
+            const response: any = await nodeRequest('POST', 'api/v1/event', data, config)
+            if (response.data.error) {
+                throw ({ message: response.data.error })
+            } else {
+                console.log(`[${logTag}] run[${run}] Browserstack TestOps success response: ${JSON.stringify(response.data)}`)
+                // pendingTestUploads = Math.max(0,pendingTestUploads-1)
+                return {
+                    status: 'success',
+                    message: ''
+                }
+            }
+        } catch (error: any) {
+            if (error.response) {
+                console.log(`[${logTag}] Browserstack TestOps error response: ${error.response.status} ${error.response.statusText} ${JSON.stringify(error.response.data)}`)
+            } else {
+                console.log(`[${logTag}] Browserstack TestOps error: ${error.message || error}`)
+            }
+            // pendingTestUploads = Math.max(0, pendingTestUploads - 1)
+            return {
+                status: 'error',
+                message: error.message || (error.response ? `${error.response.status}:${error.response.statusText}` : error)
+            }
+        }
+    } else if (run >= 5) {
+        console.log(`[${logTag}] BuildStart is not completed and ${logTag} retry runs exceeded`)
+        // pendingTestUploads = Math.max(0, pendingTestUploads - 1)
+        return {
+            status: 'error',
+            message: 'Retry runs exceeded'
+        }
+    } else {
+        setTimeout(function(){ exports.uploadEventData(eventData, run+1) }, 1000)
+    }
 }
 
 export async function launchTestSession (userConfig: any) {
@@ -355,4 +423,30 @@ async function nodeRequest (type: string, url: string, data: any, config: any) {
             }
         })
     })
+}
+
+export function getUniqueIdentifier(test: Frameworks.Test): string {
+    if (test.fullName) {
+        // jasmine
+        return test.fullName
+    }
+    // mocha and cucumber
+    return `${test.parent} - ${test.title}`
+}
+
+export function getCloudProvider(config: Options.Testrunner): string {
+    let provider: string = 'UNKNOWN'
+    if (config.services) {
+        for (let i = 0; i < config.services.length;  i += 1) {
+            let service: any = config.services[i]
+            if (Array.isArray(service)) {
+                let serviceName: string = service[0]
+                if (serviceName == 'sauce' || serviceName == 'browserstack') {
+                    provider = serviceName
+                    break
+                }
+            }
+        }
+    }
+    return provider
 }

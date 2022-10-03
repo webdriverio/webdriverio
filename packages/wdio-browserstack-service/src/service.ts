@@ -5,6 +5,8 @@ import type { Browser, MultiRemoteBrowser } from 'webdriverio'
 
 import { getBrowserDescription, getBrowserCapabilities, isBrowserstackCapability, getParentSuiteName } from './util'
 import { BrowserstackConfig, MultiRemoteAction, SessionResponse } from './types'
+import { v4 as uuidv4 } from 'uuid'
+import { uploadEventData } from './util'
 
 const log = logger('@wdio/browserstack-service')
 
@@ -15,6 +17,11 @@ export default class BrowserstackService implements Services.ServiceInstance {
     private _failureStatuses: string[] = ['failed', 'ambiguous', 'undefined', 'unknown']
     private _browser?: Browser<'async'> | MultiRemoteBrowser<'async'>
     private _fullTitle?: string
+    private _cloudProvider?: string
+    private _observability?: boolean = true
+    private _tests: any
+    private _platformMeta: any
+    private _currentTest: any
 
     constructor (
         private _options: BrowserstackConfig & Options.Testrunner,
@@ -23,6 +30,11 @@ export default class BrowserstackService implements Services.ServiceInstance {
     ) {
         // added to maintain backward compatibility with webdriverIO v5
         this._config || (this._config = _options)
+        if (this._observability) {
+            this._tests = {}
+            this._cloudProvider = getCloudProvider(_config)
+        }
+
         // Cucumber specific
         const strict = Boolean(this._config.cucumberOpts && this._config.cucumberOpts.strict)
         // See https://github.com/cucumber/cucumber-js/blob/master/src/runtime/index.ts#L136
@@ -70,6 +82,22 @@ export default class BrowserstackService implements Services.ServiceInstance {
 
         this._scenariosThatRan = []
 
+        this._observability = true // TODO: update later as per args
+        if (this._observability) {
+            if (this._browser) {
+                // get platform details
+                let browserCaps: any = getBrowserCapabilities(this._browser, (this._caps as Capabilities.MultiRemoteCapabilities))
+                this._platformMeta = {
+                    browserName: browserCaps.browserName,
+                    browserVersion: browserCaps.browserVersion,
+                    platformName: browserCaps.platformName,
+                    caps: browserCaps,
+                    sessionId: browserCaps['webdriver.remote.sessionid']
+                }
+            }
+
+        }
+
         return this._printSessionURL()
     }
 
@@ -82,7 +110,39 @@ export default class BrowserstackService implements Services.ServiceInstance {
         return this._updateJob({ name: this._fullTitle })
     }
 
-    afterTest(test: Frameworks.Test, context: never, results: Frameworks.TestResult) {
+    beforeCommand(commandName: string, args: any[]) {
+    }
+
+    async afterCommand(commandName: string, args: any[], result: any, error?: Error) {
+        if (this._observability && this._currentTest && commandName == 'takeScreenshot'){
+            let log: any = {
+                test_run_uuid: this._tests[getUniqueIdentifier(this._currentTest)].uuid,
+                timestamp: new Date().toISOString(),
+                message: result,
+                kind: 'TEST_SCREENSHOT'
+            }
+
+            await uploadEventData({
+                event_type: 'LogCreated',
+                logs: [log]
+            })
+        }
+    }
+
+    async beforeTest(test: Frameworks.Test, context: any) {
+        this._currentTest = test
+        if (this._observability) {
+            let fullTitle = `${test.parent} - ${test.title}`
+            this._tests[fullTitle] = {
+                uuid: uuidv4(),
+                startedAt: (new Date()).toISOString(),
+                finishedAt: null
+            }
+            await this.sendTestRunEvent(test, 'TestRunStarted')
+        }
+    }
+
+    async afterTest(test: Frameworks.Test, context: never, results: Frameworks.TestResult) {
         const { error, passed } = results
 
         // Jasmine
@@ -101,6 +161,31 @@ export default class BrowserstackService implements Services.ServiceInstance {
         if (!passed) {
             this._failReasons.push((error && error.message) || 'Unknown Error')
         }
+
+        if (this._observability) {
+            let fullTitle = getUniqueIdentifier(test)
+            if (this._tests[fullTitle]) {
+                this._tests[fullTitle]['finishedAt'] = (new Date()).toISOString()
+            } else {
+                this._tests[fullTitle] = {
+                    finishedAt: (new Date()).toISOString()
+                }
+            }
+            await this.sendTestRunEvent(test, 'TestRunFinished', results)
+        }
+    }
+
+    scopes(test: Frameworks.Test) {
+        let value = []
+        let parent = test.ctx.test.parent
+        while (parent && parent.title !== '') {
+            value.push(parent.title)
+            parent = parent.parent
+        }
+        if (parent && parent.title !== '') {
+            value.push(parent.title)
+        }
+        return value.reverse()
     }
 
     after (result: number) {
@@ -237,5 +322,64 @@ export default class BrowserstackService implements Services.ServiceInstance {
             const browserString = getBrowserDescription(capabilities)
             log.info(`${browserString} session: ${response.body.automation_session.browser_url}`)
         })
+    }
+
+    async sendTestRunEvent (test: Frameworks.Test, eventType: string, results?: Frameworks.TestResult) {
+        let fullTitle = getUniqueIdentifier(test)
+        let testMetaData = this._tests[fullTitle]
+
+        let testData: any = {
+            uuid: testMetaData.uuid,
+            type: test.type, // test, hook etc (not passed in sdk)
+            name: test.title,
+            body: {
+                lang: 'webdriverio',
+                code: test.body
+            },
+            scope: fullTitle,
+            scopes: this.scopes(test),
+            identifier: fullTitle,
+            file_name: test.file,
+            location: test.file,
+            started_at: testMetaData.startedAt,
+            finished_at: testMetaData.finishedAt,
+            // 'retry_of': test.retryOf, // can you results.retries? (retries: { attempts: 0, limit: 0 })
+        }
+
+        if (eventType == 'TestRunFinished' && results != null) {
+            const { error, passed } = results
+            if (!passed) {
+                testData['result'] = 'failed'
+                if (error) {
+                    testData['failure'] = [{ backtrace: [error.message] }] // add all errors here
+                    testData['failure_reason'] = error.message
+                    testData['failure_type'] = error.message!=null ? null : error.message.toString().match(/AssertionError/) ? 'AssertionError' : 'UnhandledError' //verify if this is working
+                }
+            } else {
+                testData['result'] = 'passed'
+            }
+
+            testData['duration_in_ms'] = results.duration
+        }
+
+        if (eventType == 'TestRunStarted') {
+            if (this._platformMeta) {
+                let provider = this._cloudProvider ? this._cloudProvider : 'UNKNOWN'
+                testData['integrations'] = {}
+                testData['integrations'][provider] = {
+                    'capabilities': this._platformMeta.caps,
+                    'session_id': this._platformMeta.sessionId,
+                    'browser': this._platformMeta.browserName,
+                    'browser_version': this._platformMeta.browserVersion,
+                    'platform': this._platformMeta.platformName,
+                }
+            }
+        }
+
+        let uploadData: any = {
+            event_type: eventType,
+            test_run: testData
+        }
+        await uploadEventData(uploadData)
     }
 }
