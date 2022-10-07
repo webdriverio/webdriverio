@@ -153,7 +153,8 @@ export function launch (wdioConfPath: string, params: Partial<RunCommandArgument
         /**
          * ensure process is killed according to result of new process
          */
-        return tsProcess.on('close', (code) => process.exit(code || 0))
+        tsProcess.on('close', (code) => process.exit(code || 0))
+        return tsProcess
     }
 
     const launcher = new Launcher(wdioConfPath, params)

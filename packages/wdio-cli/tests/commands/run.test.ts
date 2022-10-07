@@ -108,10 +108,12 @@ describe('Command: run', () => {
 
         it('should restart process if esm loader if needed', async () => {
             expect(cp.spawn).toBeCalledTimes(0)
-            await runCmd.launch('/wdio.conf.ts', {})
+            vi.mocked(cp.spawn).mockReturnValue({ on: vi.fn() } as any)
+            const p = await runCmd.launch('/wdio.conf.ts', {})
             expect(cp.spawn).toBeCalledTimes(1)
             expect(vi.mocked(cp.spawn).mock.calls[0][2].env?.NODE_OPTIONS)
                 .toContain('--loader ts-node/esm/transpile-only')
+            expect(p?.on).toBeCalledWith('close', expect.any(Function))
         })
 
         it('should not restart if loader is already provided', async () => {
