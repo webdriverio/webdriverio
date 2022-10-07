@@ -140,7 +140,7 @@ export function launch (wdioConfPath: string, params: Partial<RunCommandArgument
     )
     if (wdioConfPath.endsWith('.ts') && !runsWithLoader && nodePath) {
         NODE_OPTIONS += ' --loader ts-node/esm/transpile-only --no-warnings'
-        return cp.spawn(nodePath, process.argv.slice(1), {
+        const tsProcess = cp.spawn(nodePath, process.argv.slice(1), {
             cwd: process.cwd(),
             detached : true,
             stdio: 'inherit',
@@ -149,6 +149,11 @@ export function launch (wdioConfPath: string, params: Partial<RunCommandArgument
                 NODE_OPTIONS
             }
         })
+
+        /**
+         * ensure process is killed according to result of new process
+         */
+        return tsProcess.on('close', (code) => process.exit(code || 0))
     }
 
     const launcher = new Launcher(wdioConfPath, params)

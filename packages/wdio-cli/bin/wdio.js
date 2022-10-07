@@ -13,5 +13,5 @@ if (process.env.NODE_ENV == null) {
  */
 (async () => {
     const cli = await import('../build/index.js')
-    cli.run()
+    return cli.run()
 })()
