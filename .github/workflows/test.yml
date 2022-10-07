@@ -33,7 +33,7 @@ jobs:
         run: npm run test
       - name: Interop Tests
         run: |
-          npm i chromedriver@104
+          npm i chromedriver@105
           npm run test:e2e:cjs
   e2e-windows:
     runs-on: windows-latest
