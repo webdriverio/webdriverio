@@ -5,11 +5,9 @@ title: Custom Commands
 
 ## Adding custom commands
 
-If you want to extend the `browser` instance with your own set of commands, the browser method  `addCommand` is here for you.
+If you want to extend the `browser` instance with your own set of commands, the browser method  `addCommand` is here for you. You can write your command in a asynchronous way, just as in your specs.
 
-You can write your command in a synchronous way (default), just as in your specs&mdash;or, you can write it in an asynchronous way (like when using WebdriverIO in standalone mode).
-
-This example shows how to add a new command that returns the current URL and title as one result, using only synchronous commands:
+This example shows how to add a new command that returns the current URL and title as one result. The scope (`this`) is a [`WebdriverIO.Browser](/docs/api/browser) object.
 
 ```js
 browser.addCommand('getUrlAndTitle', async function (customVar) {
@@ -22,9 +20,7 @@ browser.addCommand('getUrlAndTitle', async function (customVar) {
 })
 ```
 
-Additionally, you can extend the element instance with your own set of commands, by passing `true` as the final argument.
-
-By default, element is expected to exist in `waitforTimeout` milliseconds, or an exception will be thrown.
+Additionally, you can extend the element instance with your own set of commands, by passing `true` as the final argument. The scope (`this`) in this case is a [`WebdriverIO.Element](/docs/api/element) object.
 
 ```js
 browser.addCommand("waitAndClick", async function () {
@@ -49,22 +45,6 @@ it('should use my custom command', async () => {
 })
 ```
 
-If you need to control element existence in a custom command, it is possible either to:
-
-- add the command to `browser`, and pass a selector; *OR*
-- add the command to `element` using name that starts with one of the following: `waitUntil`, `waitFor`, `isExisting`, `isDisplayed`.
-
-```js
-browser.addCommand('isDisplayedWithin', async function (timeout) {
-    try {
-        await this.waitForDisplayed(timeout)
-        return true
-    } catch (err) {
-        return false
-    }
-}, true)
-```
-
 __Note:__ If you register a custom command to the `browser` scope, the command won't be accessible for elements. Likewise, if you register a command to the element scope, it won't be accessible in the `browser` scope:
 
 ```js
@@ -84,7 +64,8 @@ console.log(typeof browser.myCustomElementCommand2) // outputs "undefined"
 console.log(elem3.myCustomElementCommand2('foobar')) // outputs "function"
 ```
 
-__Note:__ If you need to chain a custom command, the command should end with `$`, 
+__Note:__ If you need to chain a custom command, the command should end with `$`,
+
 ```js
 browser.addCommand("user$", (locator) => { return ele })
 browser.addCommand("user$", (locator) => { return ele }, true)
@@ -95,6 +76,97 @@ Be careful to not overload the `browser` scope with too many custom commands.
 
 We recommend defining custom logic in [page objects](PageObjects.md), so they are bound to a specific page.
 
+## Extend Type Definitions
+
+With TypeScript, it's easy to extend WebdriverIO interfaces. Add types to your custom commands like this:
+
+1. Create a type definition file (e.g., `./src/types/wdio.d.ts`)
+2. a. If using a module-style type definition file (using import/export and `declare global WebdriverIO` in the type definition file), make sure to include the file path in the `tsconfig.json` `include` property.
+
+   b.  If using ambient-style type definition files (no import/export in type definition files and `declare namespace WebdriverIO` for custom commands), make sure the `tsconfig.json` does *not* contain any `include` section, since this will cause all type definition files not listed in the `include` section to not be recognized by typescript.
+
+<Tabs
+  defaultValue="modules"
+  values={[
+    {label: 'Modules (using import/export)', value: 'modules'},
+    {label: 'Ambient Type Definitions (no tsconfig include)', value: 'ambient'},
+  ]
+}>
+<TabItem value="modules">
+
+```json title="tsconfig.json"
+{
+    "compilerOptions": { ... },
+    "include": [
+        "./test/**/*.ts",
+        "./src/types/**/*.ts"
+    ]
+}
+```
+
+</TabItem>
+<TabItem value="ambient">
+
+```json title="tsconfig.json"
+{
+    "compilerOptions": { ... }
+}
+```
+
+</TabItem>
+</Tabs>
+
+3. Add definitions for your commands according to your execution mode.
+
+<Tabs
+  defaultValue="modules"
+  values={[
+    {label: 'Modules (using import/export)', value: 'modules'},
+    {label: 'Ambient Type Definitions', value: 'ambient'},
+  ]
+}>
+<TabItem value="modules">
+
+```typescript
+declare global {
+    namespace WebdriverIO {
+        interface Browser {
+            browserCustomCommand: (arg: any) => Promise<void>
+        }
+
+        interface MultiRemoteBrowser {
+            browserCustomCommand: (arg: any) => Promise<void>
+        }
+
+        interface Element {
+            elementCustomCommand: (arg: any) => Promise<number>
+        }
+    }
+}
+```
+
+</TabItem>
+<TabItem value="ambient">
+
+```typescript
+declare namespace WebdriverIO {
+    interface Browser {
+        browserCustomCommand: (arg: any) => Promise<void>
+    }
+
+    interface MultiRemoteBrowser {
+        browserCustomCommand: (arg: any) => Promise<void>
+    }
+
+    interface Element {
+        elementCustomCommand: (arg: any) => Promise<number>
+    }
+}
+```
+
+</TabItem>
+</Tabs>
+
 ## Integrate 3rd party libraries
 
 If you use external libraries (e.g., to do database calls) that support promises, a nice approach to integrate them is to wrap certain API methods with a custom command.
@@ -102,14 +174,14 @@ If you use external libraries (e.g., to do database calls) that support promises
 When returning the promise, WebdriverIO ensures that it doesn't continue with the next command until the promise is resolved. If the promise gets rejected, the command will throw an error.
 
 ```js
-import request from 'request'
+import got from 'got'
 
 browser.addCommand('makeRequest', async (url) => {
-    return request.get(url).then((response) => response.body)
+    return got(url).json()
 })
 ```
 
-Then, just use it in your WDIO test specs synchronously:
+Then, just use it in your WDIO test specs:
 
 ```js
 it('execute external library in a sync way', async () => {
@@ -119,7 +191,7 @@ it('execute external library in a sync way', async () => {
 })
 ```
 
-**Note:** The result of your custom command is the result of the promise you return. Also, there is no support for synchronous commands in standalone mode; therefore, you must _always_ handle asynchronous commands using promises.
+**Note:** The result of your custom command is the result of the promise you return.
 
 ## Overwriting native commands
 
@@ -128,8 +200,6 @@ You can also overwrite native commands with `overwriteCommand`.
 It is not recommended to do this, because it may lead to unpredictable behavior of the framework!
 
 The overall approach is similar to `addCommand`, the only difference is that the first argument in the command function is the original function that you are about to overwrite. Please see some examples below.
-
-**NOTE:** Examples below assume sync mode. If you are not using it, don't forget to add `async`/`await`.
 
 ### Overwriting browser commands
 
