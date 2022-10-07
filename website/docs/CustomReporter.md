@@ -101,7 +101,7 @@ export default class CustomReporter extends WDIOReporter {
 
 Note that you cannot defer the test execution in any way.
 
-All event handlers should execute synchronous routines (or you’ll run into race conditions).
+All event handlers should execute synchronous routines (or you'll run into race conditions).
 
 Be sure to check out the [example section](https://github.com/webdriverio/webdriverio/tree/main/examples/wdio) where you can find an example custom reporter that prints the event name for each event.
 

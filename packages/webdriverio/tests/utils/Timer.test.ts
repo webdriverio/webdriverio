@@ -73,12 +73,6 @@ describe('timer', () => {
         await expect(wasExecuted).toBeTruthy
     })
 
-    it('should execute synchronously', async () => {
-        let timer = new Timer(20, 30, () => Promise.resolve(true), true)
-        await triggerDelay()
-        await expect(timer).resolves
-    })
-
     afterEach(() => {
         processEmitSpy.mockClear()
     })
