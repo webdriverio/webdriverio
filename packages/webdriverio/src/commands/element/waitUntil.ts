@@ -1,8 +1,7 @@
 /**
  *
  * This wait command is your universal weapon if you want to wait on something. It expects a condition
- * and waits until that condition is fulfilled with a truthy value. If you use the WDIO testrunner the
- * commands within the condition are getting executed synchronously like in your test.
+ * and waits until that condition is fulfilled with a truthy value.
  *
  * :::info
  *

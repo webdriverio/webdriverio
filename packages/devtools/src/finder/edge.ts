@@ -85,8 +85,10 @@ function win32 () {
         process.env.LOCALAPPDATA || '', process.env.PROGRAMFILES || '', process.env['PROGRAMFILES(X86)'] || ''
     ].filter(Boolean)
 
+    const checkedPath: string[] = []
     prefixes.forEach(prefix => suffixes.forEach(suffix => {
         const edgePath = path.join(prefix, suffix)
+        checkedPath.push(edgePath)
         if (canAccess(edgePath)) {
             installations.push(edgePath)
         }

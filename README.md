@@ -48,9 +48,11 @@ WebdriverIO is a test automation framework that allows you to run tests based on
 
 ## :woman_technologist: :man_technologist: Contributing
 
-You like WebdriverIO and want to help making it better? Awesome! Have a look into our [Contributor Documentation](CONTRIBUTING.md) to get started or just click on:
+You like WebdriverIO and want to help making it better? Awesome! Have a look into our [Contributor Documentation](CONTRIBUTING.md) to get started and find out what contributions can be and how to make them. You can also just click on:
 
 [![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/webdriverio/webdriverio)
+
+to get a ready-to-use development environment for you to start working on this code base.
 
 If you're looking for issues to help out with, check out [the issues labelled "good first pick"](https://github.com/webdriverio/webdriverio/issues?q=is%3Aopen+is%3Aissue+label%3A"good+first+pick"). You can also reach out in our [Gitter Channel](https://gitter.im/webdriverio/webdriverio) if you have question on where to start contributing.
 

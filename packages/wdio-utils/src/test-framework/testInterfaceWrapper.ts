@@ -227,7 +227,7 @@ export const wrapTestFunction = function (
 }
 
 /**
- * Wraps global test function like `it` so that commands can run synchronouse
+ * Wraps global test function like `it`.
  *
  * The scope parameter is used in the qunit framework since all functions are bound to global.QUnit instead of global
  *

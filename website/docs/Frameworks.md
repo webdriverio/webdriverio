@@ -43,10 +43,10 @@ suite('my awesome website', () => {
 
 If you want to define other Mocha-specific settings, you can do it with the `mochaOpts` key in your configuration file. A list of all options can be found on the [Mocha project website](https://mochajs.org/api/mocha).
 
-__Note:__ Since all commands are running synchronously, there is no need to have async mode in Mocha enabled. Therefore, you can't use the `done` callback:
+__Note:__ WebdriverIO does not support the deprecated usage of `done` callbacks in Mocha:
 
 ```js
-it('should test something', () => {
+it('should test something', (done) => {
     done() // throws "done is not a function"
 })
 ```

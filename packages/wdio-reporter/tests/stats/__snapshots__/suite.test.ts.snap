@@ -5,6 +5,7 @@ exports[`should get initialised 1`] = `
   "_duration": 0,
   "cid": "0-0",
   "description": "some description",
+  "end": undefined,
   "file": "/this/is/a/file.txt",
   "fullTitle": "barfoo",
   "hooks": [],

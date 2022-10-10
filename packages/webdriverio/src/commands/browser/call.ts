@@ -1,11 +1,13 @@
 /**
- * You can use `call` to execute any async action within your test spec. The command itself
- * is treated like a synchronous function. It accepts promises and stops the execution until
- * the promise has resolved.
+ * You can use `call` to execute any async action within your test spec.
+ * It accepts promises and stops the execution until the promise has been resolved.
  *
- * This command helps to run asynchronous code within a synchronous context. With
- * WebdriverIO deprecating synchronous usage (see [RFC](https://github.com/webdriverio/webdriverio/discussions/6702))
+ * :::info
+ *
+ * With WebdriverIO deprecating synchronous usage (see [RFC](https://github.com/webdriverio/webdriverio/discussions/6702))
  * this command is not very useful anymore.
+ *
+ * :::
  *
  * <example>
     :call.js

@@ -1,7 +1,7 @@
 WDIO Allure Reporter
 ====================
 
-> A WebdriverIO reporter plugin to create [Allure Test Reports](https://docs.qameta.io/allure/).
+> A WebdriverIO reporter plugin to create [Allure Test Reports](https://docs.qameta.io/allure-report/).
 
 ![Allure Reporter Example](/img/allure.png)
 

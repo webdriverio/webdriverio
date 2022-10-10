@@ -69,3 +69,7 @@ const location = await $$('div').map((el) => el.getLocation())
 ```
 
 WebdriverIO uses [`p-iteration`](https://www.npmjs.com/package/p-iteration#api) under the hood so all commands from their API are also supported for these use cases.
+
+### Custom Commands
+
+You can set custom commands on the browser scope to abstract away workflows that are commonly used. Check out our guide on [Custom Commands](/docs/customcommands#adding-custom-commands) for more information.

@@ -24,7 +24,7 @@ function Version() {
         path: 'https://v7.webdriver.io',
         comment: (
             <div>
-                <b>LTS</b> (until February 2024)
+                <b>LTS</b> (until October 2023)
             </div>
         ),
         repoUrl

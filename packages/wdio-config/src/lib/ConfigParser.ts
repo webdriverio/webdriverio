@@ -8,7 +8,7 @@ import {
     removeLineNumbers, isCucumberFeatureWithLineNumber, validObjectOrArray,
     loadAutoCompilers
 } from '../utils.js'
-import { SUPPORTED_HOOKS, SUPPORTED_FILE_EXTENSIONS, DEFAULT_CONFIGS } from '../constants.js'
+import { SUPPORTED_HOOKS, SUPPORTED_FILE_EXTENSIONS, DEFAULT_CONFIGS, NO_NAMED_CONFIG_EXPORT } from '../constants.js'
 
 import type { PathService, ModuleImportService } from '../types'
 
@@ -16,6 +16,9 @@ const log = logger('@wdio/config:ConfigParser')
 const MERGE_OPTIONS = { clone: false }
 
 type Spec = string | string[]
+type ESMImport = { config?: TestrunnerOptionsWithParameters }
+type DefaultImport = { default?: { config?: TestrunnerOptionsWithParameters } }
+type ImportedConfigModule = ESMImport | DefaultImport
 
 interface TestrunnerOptionsWithParameters extends Omit<Options.Testrunner, 'capabilities'> {
     watch?: boolean
@@ -61,10 +64,14 @@ export default class ConfigParser {
         const filePath = this._pathService.ensureAbsolutePath(filename)
 
         try {
-            const config = (await this._pathService.loadFile<{ config: TestrunnerOptionsWithParameters }>(filePath)).config
-
+            /**
+             * Check if direct exports got assigned as default exports and if so
+             * be more flexible and pick allow for these as well.
+             */
+            const importedModule = await this._pathService.loadFile<ImportedConfigModule>(filePath)
+            const config = (importedModule as ESMImport).config || (importedModule as DefaultImport).default?.config
             if (typeof config !== 'object') {
-                throw new Error('addConfigEntry requires config key')
+                throw new Error(NO_NAMED_CONFIG_EXPORT)
             }
 
             /**

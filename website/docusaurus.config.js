@@ -70,7 +70,7 @@ module.exports = {
                 position: 'left',
                 activeBaseRegex: '/community/'
             }, {
-                label: 'v7',
+                label: 'v8',
                 position: 'right',
                 to: '/versions'
             }, {
