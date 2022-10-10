@@ -28,7 +28,7 @@
   "dependencies": {
     "@wdio/reporter": "7.20.7",
     "@wdio/types": "7.20.7",
-    "chalk": "^4.0.0",
+    "chalk": "^5.1.0",
     "easy-table": "^1.2.0",
     "pretty-ms": "^7.0.0"
   },
