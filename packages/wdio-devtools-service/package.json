@@ -39,7 +39,7 @@
     "@wdio/logger": "7.19.0",
     "@wdio/types": "7.20.7",
     "babel-plugin-istanbul": "^6.1.1",
-    "devtools-protocol": "^0.0.1052822",
+    "devtools-protocol": "^0.0.1056733",
     "istanbul-lib-coverage": "^3.2.0",
     "istanbul-lib-report": "^3.0.0",
     "istanbul-reports": "^3.1.4",
