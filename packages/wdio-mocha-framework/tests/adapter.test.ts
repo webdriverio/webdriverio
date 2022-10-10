@@ -167,26 +167,43 @@ test('wrapHook if failing', async () => {
         .startsWith('Error in beforeAll hook: uuuups')).toBe(true)
 })
 
-test('prepareMessage', async () => {
-    // @ts-ignore params not needed for test scenario
-    const adapter = adapterFactory()
-    await adapter.init()
-    await adapter.run()
+describe('prepareMessage', () => {
+    test('should prepare a message', async () => {
+        // @ts-ignore params not needed for test scenario
+        const adapter = adapterFactory()
+        await adapter.init()
+        await adapter.run()
 
-    let result = adapter.prepareMessage('beforeSuite')
-    expect(result.type).toBe('beforeSuite')
+        let result = adapter.prepareMessage('beforeSuite')
+        expect(result.type).toBe('beforeSuite')
 
-    adapter['_runner']!.test = { title: 'foobar', file: '/foo/bar.test.js' } as any
-    result = adapter.prepareMessage('afterTest')
-    expect(result.type).toBe('afterTest')
-    expect(result.title).toBe('foobar')
-    expect(result.file).toBe('/foo/bar.test.js')
-    adapter['_suiteStartDate'] = Date.now() - 5000
-    result = adapter.prepareMessage('afterSuite')
-    expect(result.type).toBe('afterSuite')
-    expect(result.title).toBe('first suite')
-    expect(result.duration).toBeDefined()
-    expect(result.duration >= 5000 && result.duration <= 5020).toBeTruthy()
+        adapter['_runner']!.test = { title: 'foobar', file: '/foo/bar.test.js' } as any
+        result = adapter.prepareMessage('afterTest')
+        expect(result.type).toBe('afterTest')
+        expect(result.title).toBe('foobar')
+        expect(result.file).toBe('/foo/bar.test.js')
+        adapter['_suiteStartDate'] = Date.now() - 5000
+        result = adapter.prepareMessage('afterSuite')
+        expect(result.type).toBe('afterSuite')
+        expect(result.title).toBe('first suite')
+        expect(result.duration).toBeDefined()
+        expect(result.duration! >= 5000 && result.duration! <= 5020).toBeTruthy()
+    })
+
+    test('should prepare a message when suites array is empty', async () => {
+        // @ts-ignore params not needed for test scenario
+        const adapter = adapterFactory()
+        await adapter.init()
+        await adapter.run()
+
+        adapter['_runner']!.suite.suites = []
+        adapter['_suiteStartDate'] = Date.now() - 5000
+
+        const result = adapter.prepareMessage('afterSuite')
+        expect(result.type).toBe('afterSuite')
+        expect(result.title).toBeUndefined()
+        expect(result.duration).toBeUndefined()
+    })
 })
 
 describe('formatMessage', () => {
