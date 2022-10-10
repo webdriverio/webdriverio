@@ -14,6 +14,7 @@ vi.mock('glob', () => ({
 
 describe('FileSystemPathService', () => {
     afterEach(() => {
+        vi.mocked(glob.sync).mockClear()
         vi.clearAllMocks()
     })
 

@@ -1,0 +1,19 @@
+{
+    "configurations": [
+{
+    "name": "run select spec",
+    "type": "node",
+    "request": "launch",
+ "args": ["examples/wdio/mocha/wdio.conf.js","--spec", "./examples/wdio/mocha/[test].js"],
+    "cwd": "${workspaceFolder}",
+    "autoAttachChildProcesses": true,
+    "program": "./packages/wdio-cli/bin/wdio.js",
+    "console": "integratedTerminal",
+    "skipFiles": [
+        "${workspaceFolder}/node_modules/**/*.js",
+        "${workspaceFolder}/lib/**/*.js",
+        "<node_internals>/**/*.js"
+    ]
+},
+    ]
+}
