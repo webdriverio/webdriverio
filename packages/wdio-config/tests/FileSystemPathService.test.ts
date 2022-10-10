@@ -2,7 +2,7 @@ import url from 'node:url'
 import path from 'node:path'
 import process from 'node:process'
 import glob from 'glob'
-import { vi, MockedFunction, describe, it, expect, afterEach, beforeEach } from 'vitest'
+import { vi, describe, it, expect, afterEach, beforeEach } from 'vitest'
 
 import FileSystemPathService from '../src/lib/FileSystemPathService.js'
 
@@ -14,7 +14,6 @@ vi.mock('glob', () => ({
 
 describe('FileSystemPathService', () => {
     afterEach(() => {
-        (glob.sync as MockedFunction<any>).mockClear()
         vi.clearAllMocks()
     })
 
@@ -70,6 +69,11 @@ describe('FileSystemPathService', () => {
             var svc = new FileSystemPathService()
             expect(svc.glob('globtrotter')).toEqual('glob result')
             expect(glob.sync).toHaveBeenCalledWith('globtrotter')
+        })
+        it('should process file name with []', function () {
+            vi.mocked(glob.sync).mockReturnValue([])
+            const svc = new FileSystemPathService()
+            expect(svc.glob('./examples/wdio/mocha/[test].js')).toEqual([`${process.cwd()}/examples/wdio/mocha/[test].js`])
         })
     })
 

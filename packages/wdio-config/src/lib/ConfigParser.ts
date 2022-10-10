@@ -241,7 +241,7 @@ export default class ConfigParser {
             }
         }
 
-        return this.filterSpecs(specs, <string[]>exclude)
+        return this.filterSpecs([...spec, ...specs], <string[]>exclude)
     }
 
     /**
