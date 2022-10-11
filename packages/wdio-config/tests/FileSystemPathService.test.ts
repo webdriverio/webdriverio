@@ -74,22 +74,22 @@ describe('FileSystemPathService', () => {
                     return true
                 },
                 isDirectory: function (): boolean {
-                    throw new Error('Function not implemented.')
+                    return false
                 },
                 isBlockDevice: function (): boolean {
-                    throw new Error('Function not implemented.')
+                    return false
                 },
                 isCharacterDevice: function (): boolean {
-                    throw new Error('Function not implemented.')
+                    return false
                 },
                 isSymbolicLink: function (): boolean {
-                    throw new Error('Function not implemented.')
+                    return false
                 },
                 isFIFO: function (): boolean {
-                    throw new Error('Function not implemented.')
+                    return false
                 },
                 isSocket: function (): boolean {
-                    throw new Error('Function not implemented.')
+                    return false
                 }
             })
             const svc = new FileSystemPathService()
