@@ -8,6 +8,7 @@ export interface RunnerInstance {
     getWorkerCount(): number
     run(args: any): NodeJS.EventEmitter
     workerPool: any
+    browserPool: any
 }
 
 export interface RunnerClass {

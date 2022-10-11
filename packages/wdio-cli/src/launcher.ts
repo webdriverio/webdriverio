@@ -235,9 +235,15 @@ class Launcher {
      * Format the specs into an array of objects with files and retries
      */
     formatSpecs(capabilities: (Capabilities.DesiredCapabilities | Capabilities.W3CCapabilities | Capabilities.RemoteCapabilities), specFileRetries: number) {
-        let files: (string | string[])[] = []
+        const files = this.configParser.getSpecs((capabilities as Capabilities.DesiredCapabilities).specs, (capabilities as Capabilities.DesiredCapabilities).exclude)
 
-        files = this.configParser.getSpecs((capabilities as Capabilities.DesiredCapabilities).specs, (capabilities as Capabilities.DesiredCapabilities).exclude)
+        /**
+         * when running tests in the browser we don't need a new session for every spec file
+         */
+        if (this.configParser.getConfig().runner === 'browser') {
+            return [{ files: files.flat(), retries: 0 }]
+        }
+
         return files.map(file => {
             if (typeof file === 'string') {
                 return { files: [file], retries: specFileRetries }
@@ -411,7 +417,7 @@ class Launcher {
             .catch((error) => this._workerHookError(error))
 
         // prefer launcher settings in capabilities over general launcher
-        const worker = this.runner.run({
+        const worker = await this.runner.run({
             cid: runnerId,
             command: 'run',
             configFile: this._configFilePath,

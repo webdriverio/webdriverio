@@ -486,3 +486,5 @@ export default class Runner extends EventEmitter {
         await executeHooksWithArgs('afterSession', this._config!.afterSession!, afterSessionArgs)
     }
 }
+
+export { default as BaseReporter } from './reporter.js'
