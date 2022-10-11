@@ -14,7 +14,11 @@ vi.mock('glob', () => ({
 }))
 
 vi.mock('node:fs', async () => {
-    return { default: { existsSync: vi.fn() } }
+    return {
+        default: {
+            existsSync: vi.fn(), lstatSync: vi.fn()
+        }
+    }
 })
 
 describe('FileSystemPathService', () => {
@@ -45,12 +49,55 @@ describe('FileSystemPathService', () => {
     })
 
     describe('isFile', function () {
-        it('should return true if file esxists', function () {
+        it('should return true if file exists', function () {
+            vi.mocked(fs.existsSync).mockReturnValue(true)
+            vi.mocked(fs.lstatSync).mockReturnValue({
+                dev: 2114,
+                ino: 48064969,
+                mode: 33188,
+                nlink: 1,
+                uid: 85,
+                gid: 100,
+                rdev: 0,
+                size: 527,
+                blksize: 4096,
+                blocks: 8,
+                atimeMs: 1318289051000.1,
+                mtimeMs: 1318289051000.1,
+                ctimeMs: 1318289051000.1,
+                birthtimeMs: 1318289051000.1,
+                atime: new Date('Mon, 10 Oct 2011 23: 24: 11 GMT'),
+                mtime: new Date('Mon, 10 Oct 2011 23: 24: 11 GMT'),
+                ctime: new Date('Mon, 10 Oct 2011 23: 24: 11 GMT'),
+                birthtime: new Date('Mon, 10 Oct 2011 23: 24: 11 GMT'),
+                isFile: function (): boolean {
+                    return true
+                },
+                isDirectory: function (): boolean {
+                    throw new Error('Function not implemented.')
+                },
+                isBlockDevice: function (): boolean {
+                    throw new Error('Function not implemented.')
+                },
+                isCharacterDevice: function (): boolean {
+                    throw new Error('Function not implemented.')
+                },
+                isSymbolicLink: function (): boolean {
+                    throw new Error('Function not implemented.')
+                },
+                isFIFO: function (): boolean {
+                    throw new Error('Function not implemented.')
+                },
+                isSocket: function (): boolean {
+                    throw new Error('Function not implemented.')
+                }
+            })
             const svc = new FileSystemPathService()
             expect(svc.isFile(INDEX_PATH)).toBeTruthy()
         })
 
         it("should return false if file doesn't exist", function () {
+            vi.mocked(fs.existsSync).mockReturnValue(false)
             const svc = new FileSystemPathService()
             expect(svc.isFile(INDEX_PATH + '.tar.gz.non-existent')).toBeFalsy()
         })
