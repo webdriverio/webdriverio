@@ -91,7 +91,20 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
             runnerEnv.WDIO_LOG_PATH = path.join(this.config.outputDir, `wdio-${cid}.log`)
         }
 
-        if (this.config.autoCompileOpts?.autoCompile) {
+        /**
+         * only attach ts loader if
+         */
+        if (
+            /**
+             * autoCompile feature is enabled
+             */
+            this.config.autoCompileOpts?.autoCompile &&
+            /**
+             * the `@wdio/cli` didn't already attached the loader
+             * to the environment
+             */
+            !(process.env.NODE_OPTIONS || '').includes('--loader ts-node/esm')
+        ) {
             runnerEnv.NODE_OPTIONS = (runnerEnv.NODE_OPTIONS || '') + ' --loader ts-node/esm/transpile-only --no-warnings'
         }
 
