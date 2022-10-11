@@ -333,9 +333,12 @@ export interface Testrunner extends Hooks, Omit<WebdriverIO, 'capabilities'>, We
      */
     capabilities: RemoteCapabilities
     /**
-     * Type of runner (currently only "local" is supported)
+     * Type of runner
+     * - local: every spec file group is spawned in its own local process
+     *   running an independant browser session
+     * - browser: all spec files are run within the browser
      */
-    runner?: 'local'
+    runner?: 'local' | 'browser'
     /**
      * Define specs for test execution. You can either specify a glob
      * pattern to match multiple files at once or wrap a glob or set of

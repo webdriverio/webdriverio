@@ -1,0 +1,42 @@
+{
+  "name": "@wdio/browser-runner",
+  "version": "7.20.7",
+  "description": "A WebdriverIO runner to run unit tests tests in the browser.",
+  "author": "Christian Bromann <mail@bromann.dev>",
+  "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-browser-runner",
+  "license": "MIT",
+  "engines": {
+    "node": "^16.13 || >=18"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/webdriverio/webdriverio.git",
+    "directory": "packages/wdio-browser-runner"
+  },
+  "keywords": [
+    "webdriver",
+    "webdriverio",
+    "wdio",
+    "wdio-runner"
+  ],
+  "bugs": {
+    "url": "https://github.com/webdriverio/webdriverio/issues"
+  },
+  "type": "module",
+  "exports": "./build/index.js",
+  "types": "./build/index.d.ts",
+  "typeScriptVersion": "3.8.3",
+  "dependencies": {
+    "@wdio/logger": "7.19.0",
+    "@wdio/runner": "7.20.7",
+    "@wdio/types": "7.20.7",
+    "get-port": "^6.1.2",
+    "vite": "^3.1.7"
+  },
+  "peerDependencies": {
+    "@wdio/cli": "next"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

@@ -14,6 +14,7 @@ const log = logger('@wdio/runner')
  */
 export default class BaseReporter {
     private _reporters: Reporters.ReporterInstance[] = []
+    private listeners: ((ev: any) => void)[] = []
 
     constructor(
         private _config: Options.Testrunner,
@@ -42,6 +43,10 @@ export default class BaseReporter {
         sendFailureMessage(e, payload)
 
         this._reporters.forEach((reporter) => reporter.emit(e, payload))
+    }
+
+    onMessage (listener: (ev: any) => void) {
+        this.listeners.push(listener)
     }
 
     getLogFile (name: string) {
@@ -85,11 +90,20 @@ export default class BaseReporter {
      */
     getWriteStreamObject (reporter: string) {
         return {
-            write: /* istanbul ignore next */ (content: unknown) => process.send!({
-                origin: 'reporter',
-                name: reporter,
-                content
-            })
+            write: /* istanbul ignore next */ (content: unknown) => {
+                const payload = {
+                    origin: 'reporter',
+                    name: reporter,
+                    content
+                }
+
+                if (typeof process.send === 'function') {
+                    return process.send!(payload)
+                }
+
+                this.listeners.forEach((fn) => fn(payload))
+                return true
+            }
         }
     }
 

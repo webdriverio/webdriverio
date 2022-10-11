@@ -76,7 +76,7 @@ export default class SpecReporter extends WDIOReporter {
     }
 
     onSuiteStart (suite: SuiteStats) {
-        this._suiteName = suite.file.replace(process.cwd(), '')
+        this._suiteName = suite.file?.replace(process.cwd(), '')
         this.printCurrentStats(suite)
         this._suiteUids.add(suite.uid)
         if (suite.type === 'feature') {

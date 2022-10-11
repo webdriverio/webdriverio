@@ -6,7 +6,7 @@ import { DEFAULT_CONFIGS } from '@wdio/config'
 import type { Options, Capabilities } from '@wdio/types'
 import type { Browser, MultiRemoteBrowser } from 'webdriverio'
 
-const log = logger('@wdio/local-runner:utils')
+const log = logger('@wdio/runner')
 
 const MERGE_OPTIONS = { clone: false }
 const mochaAllHooks = ['"before all" hook', '"after all" hook']
