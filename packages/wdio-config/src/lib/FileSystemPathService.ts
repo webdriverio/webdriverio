@@ -31,7 +31,20 @@ export default class FileSystemPathService implements PathService {
     }
 
     glob(pattern: string): string[] {
-        return glob.sync(pattern)
+        const globResult = glob.sync(pattern) || []
+        const fileName = pattern.startsWith('/') ? pattern : path.resolve(this.getcwd(), pattern)
+        /**
+         * given that glob treats characters like `[` or `{` in a special way
+         * and we also want to be able to find files with these characters included
+         * we add an additional check to see if the file as pattern exists.
+         * add file to globResult only if filename doesn't include pattern(*)
+         * and globResult doest contain the fileName
+         * and file should be available
+         */
+        if (!pattern.includes('*') && !globResult.includes(fileName) && fs.existsSync(fileName)) {
+            globResult.push(fileName)
+        }
+        return globResult
     }
 
     ensureAbsolutePath(filepath: string): string {
