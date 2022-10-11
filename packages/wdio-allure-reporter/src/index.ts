@@ -36,6 +36,7 @@ class AllureReporter extends WDIOReporter {
     private _consoleOutput: string
     private _originalStdoutWrite: Function
     private _addConsoleLogs: boolean
+    private _startedSuites: SuiteStats[] = []
 
     constructor(options: AllureReporterOptions = {}) {
         const outputDir = options.outputDir || 'allure-results'
@@ -89,6 +90,9 @@ class AllureReporter extends WDIOReporter {
     }
 
     onSuiteStart(suite: SuiteStats) {
+        // temp solution to keep suites stats index for saving allure test ops feature based structure
+        this._startedSuites.push(suite)
+
         if (this._options.useCucumberStepReporter) {
             if (suite.type === 'feature') {
                 // handle cucumber features as allure "suite"
@@ -104,7 +108,7 @@ class AllureReporter extends WDIOReporter {
             if (suite.description) {
                 this.addDescription(suite)
             }
-            return this.setCaseParameters(suite.cid)
+            return this.setCaseParameters(suite.cid, undefined)
         }
 
         const currentSuite = this._allure.getCurrentSuite()
@@ -113,6 +117,9 @@ class AllureReporter extends WDIOReporter {
     }
 
     onSuiteEnd(suite: SuiteStats) {
+        // cleanup suites index to prevent resource leaks
+        this._startedSuites = this._startedSuites.filter((suite) => suite.uid !== suite.uid)
+
         if (this._options.useCucumberStepReporter && suite.type === 'scenario') {
             // passing hooks are missing the 'state' property
             suite.hooks = suite.hooks!.map((hook) => {
@@ -147,10 +154,12 @@ class AllureReporter extends WDIOReporter {
 
     onTestStart(test: TestStats | HookStats) {
         this._consoleOutput = ''
+
         const testTitle = test.currentTest ? test.currentTest : test.title
+
         if (this.isAnyTestRunning() && this._allure.getCurrentTest().name == testTitle) {
             // Test already in progress, most likely started by a before each hook
-            this.setCaseParameters(test.cid)
+            this.setCaseParameters(test.cid, test.parent)
             return
         }
 
@@ -167,10 +176,11 @@ class AllureReporter extends WDIOReporter {
         }
 
         this._allure.startCase(testTitle)
-        this.setCaseParameters(test.cid)
+        this.setCaseParameters(test.cid, test.parent)
     }
 
-    setCaseParameters(cid: string | undefined) {
+    setCaseParameters(cid: string | undefined, parentUid: string | undefined) {
+        const parentSuite = this.getParentSuite(parentUid)
         const currentTest = this._allure.getCurrentTest()
 
         if (!this._isMultiremote) {
@@ -194,6 +204,18 @@ class AllureReporter extends WDIOReporter {
         currentTest.addLabel('language', 'javascript')
         currentTest.addLabel('framework', 'wdio')
         currentTest.addLabel('thread', cid)
+
+        if (parentSuite?.title) {
+            currentTest.addLabel('feature', parentSuite?.title)
+        }
+    }
+
+    getParentSuite(uid?: string): SuiteStats | undefined {
+        if (!uid) {
+            return undefined
+        }
+
+        return this._startedSuites.find((suite) => suite.uid === uid)
     }
 
     getLabels({
