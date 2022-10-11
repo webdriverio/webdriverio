@@ -36,7 +36,7 @@ class AllureReporter extends WDIOReporter {
     private _consoleOutput: string
     private _originalStdoutWrite: Function
     private _addConsoleLogs: boolean
-    private _startedSuites: SuiteStats[] = []
+    private _startedFeatures: SuiteStats[] = []
 
     constructor(options: AllureReporterOptions = {}) {
         const outputDir = options.outputDir || 'allure-results'
@@ -90,35 +90,45 @@ class AllureReporter extends WDIOReporter {
     }
 
     onSuiteStart(suite: SuiteStats) {
-        // temp solution to keep suites stats index for saving allure test ops feature based structure
-        this._startedSuites.push(suite)
+        const isFeature = suite.type === 'feature'
 
-        if (this._options.useCucumberStepReporter) {
-            if (suite.type === 'feature') {
-                // handle cucumber features as allure "suite"
-                return this._allure.startSuite(suite.title)
-            }
+        if (!this._options.useCucumberStepReporter) {
+            const currentSuite = this._allure.getCurrentSuite()
+            const prefix = currentSuite ? currentSuite.name + ': ' : ''
 
-            // handle cucumber scenario as allure "case" instead of "suite"
-            this._allure.startCase(suite.title)
-            const currentTest = this._allure.getCurrentTest()
-            this.getLabels(suite).forEach(({ name, value }) => {
-                currentTest.addLabel(name, value)
-            })
-            if (suite.description) {
-                this.addDescription(suite)
-            }
-            return this.setCaseParameters(suite.cid, undefined)
+            this._allure.startSuite(prefix + suite.title)
+            return
         }
 
-        const currentSuite = this._allure.getCurrentSuite()
-        const prefix = currentSuite ? currentSuite.name + ': ' : ''
-        this._allure.startSuite(prefix + suite.title)
+        // handle cucumber features as allure "suite"
+        if (isFeature) {
+            // temp solution to keep suites stats index for saving allure test ops feature based structure
+            this._startedFeatures.push(suite)
+            this._allure.startSuite(suite.title)
+            return
+        }
+
+        // handle cucumber scenario as allure "case" instead of "suite"
+        this._allure.startCase(suite.title)
+
+        const currentTest = this._allure.getCurrentTest()
+
+        this.getLabels(suite).forEach(({ name, value }) => {
+            currentTest.addLabel(name, value)
+        })
+
+        if (suite.description) {
+            this.addDescription(suite)
+        }
+
+        this.setCaseParameters(suite.cid, suite.parent)
     }
 
     onSuiteEnd(suite: SuiteStats) {
         // cleanup suites index to prevent resource leaks
-        this._startedSuites = this._startedSuites.filter((suite) => suite.uid !== suite.uid)
+        if (suite.type === 'feature') {
+            this._startedFeatures = this._startedFeatures.filter((suite) => suite.uid !== suite.uid)
+        }
 
         if (this._options.useCucumberStepReporter && suite.type === 'scenario') {
             // passing hooks are missing the 'state' property
@@ -168,11 +178,12 @@ class AllureReporter extends WDIOReporter {
             const testObj = test as TestStats
             const argument = testObj?.argument as Argument
             const dataTable = argument?.rows?.map((a: { cells: string[] }) => a?.cells)
+
             if (dataTable) {
                 this._allure.addAttachment('Data Table', stringify(dataTable), 'text/csv')
             }
 
-            return step
+            return
         }
 
         this._allure.startCase(testTitle)
@@ -215,7 +226,7 @@ class AllureReporter extends WDIOReporter {
             return undefined
         }
 
-        return this._startedSuites.find((suite) => suite.uid === uid)
+        return this._startedFeatures.find((suite) => suite.uid === uid)
     }
 
     getLabels({
