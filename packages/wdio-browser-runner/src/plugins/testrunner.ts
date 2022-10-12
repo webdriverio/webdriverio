@@ -1,4 +1,5 @@
 import url from 'node:url'
+import path from 'node:path'
 import logger from '@wdio/logger'
 import { createRequire } from 'node:module'
 
@@ -10,7 +11,7 @@ import { getTemplate } from '../utils.js'
 const log = logger('@wdio/browser-runner:plugin')
 const require = createRequire(import.meta.url)
 
-export function testrunner (): Plugin {
+export function testrunner (root: string): Plugin {
     return {
         name: 'wdio:testrunner',
         enforce: 'pre',
@@ -21,7 +22,6 @@ export function testrunner (): Plugin {
             if (id.startsWith('@wdio')) {
                 return require.resolve(id)
             }
-            return id
         },
         configureServer (server) {
             return () => {
@@ -33,7 +33,7 @@ export function testrunner (): Plugin {
 
                     const urlParsed = url.parse(req.url)
                     // if request is not html , directly return next()
-                    if (!urlParsed.pathname || !urlParsed.path || !urlParsed.pathname.endsWith('.html')) {
+                    if (!urlParsed.pathname || !urlParsed.path || !urlParsed.pathname.endsWith('test.html')) {
                         return next()
                     }
 
@@ -51,7 +51,7 @@ export function testrunner (): Plugin {
                     }
 
                     const env = SESSIONS.get(cid)!
-                    const template = getTemplate(cid, env, spec)
+                    const template = await getTemplate(cid, env, path.join(root, spec))
                     log.debug(`Render template: ${template}`)
                     res.end(await server.transformIndexHtml(`${req.url}`, template))
                     return next()
