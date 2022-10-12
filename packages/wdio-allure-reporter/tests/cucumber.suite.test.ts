@@ -87,6 +87,7 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
             })
 
             it('should detect analytics labels in test case', () => {
+                expect(allureXml('test-case label[name="feature"]').eq(0).attr('value')).toEqual('MyFeature')
                 expect(allureXml('test-case label[name="language"]').eq(0).attr('value')).toEqual('javascript')
                 expect(allureXml('test-case label[name="framework"]').eq(0).attr('value')).toEqual('wdio')
             })
@@ -140,6 +141,8 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
             const results = getResults(outputDir)
             expect(results).toHaveLength(2) // one for report, one for attachment
             allureXml = results.find((xml: any) => xml('ns2\\:test-suite').length >= 1)
+
+            console.log(allureXml('test-case label[name="feature"]').eq(0).attr('value'))
         })
 
         afterAll(() => {
