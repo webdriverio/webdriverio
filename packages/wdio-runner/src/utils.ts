@@ -9,7 +9,6 @@ import type { Browser, MultiRemoteBrowser } from 'webdriverio'
 const log = logger('@wdio/runner')
 
 const MERGE_OPTIONS = { clone: false }
-const mochaAllHooks = ['"before all" hook', '"after all" hook']
 
 export interface ConfigWithSessionId extends Omit<Options.Testrunner, 'capabilities'> {
     sessionId?: string,
@@ -128,28 +127,6 @@ export function filterLogTypes(
     }
 
     return logTypes
-}
-
-/**
- * Send event to WDIOCLInterface if test or before/after all hook failed
- * @param {string} e        event
- * @param {object} payload  payload
- */
-export function sendFailureMessage(e: string, payload: any) {
-    if (
-        e === 'test:fail' ||
-        (
-            e === 'hook:end' &&
-            payload.error &&
-            mochaAllHooks.some(hook => payload.title.startsWith(hook))
-        )
-    ) {
-        process.send!({
-            origin: 'reporter',
-            name: 'printFailureMessage',
-            content: payload
-        })
-    }
 }
 
 type BrowserData = {

@@ -3,9 +3,8 @@ import logger from '@wdio/logger'
 import { initialisePlugin } from '@wdio/utils'
 import type { Options, Capabilities, Reporters } from '@wdio/types'
 
-import { sendFailureMessage } from './utils.js'
-
 const log = logger('@wdio/runner')
+const mochaAllHooks = ['"before all" hook', '"after all" hook']
 
 /**
  * BaseReporter
@@ -40,7 +39,19 @@ export default class BaseReporter {
         /**
          * Send failure message (only once) in case of test or hook failure
          */
-        sendFailureMessage(e, payload)
+        const isTestError = e === 'test:fail'
+        const isHookError = (
+            e === 'hook:end' &&
+            payload.error &&
+            mochaAllHooks.some(hook => payload.title.startsWith(hook))
+        )
+        if (isTestError || isHookError) {
+            this.#emitData({
+                origin: 'reporter',
+                name: 'printFailureMessage',
+                content: payload
+            })
+        }
 
         this._reporters.forEach((reporter) => reporter.emit(e, payload))
     }
@@ -90,21 +101,24 @@ export default class BaseReporter {
      */
     getWriteStreamObject (reporter: string) {
         return {
-            write: /* istanbul ignore next */ (content: unknown) => {
-                const payload = {
-                    origin: 'reporter',
-                    name: reporter,
-                    content
-                }
-
-                if (typeof process.send === 'function') {
-                    return process.send!(payload)
-                }
-
-                this.listeners.forEach((fn) => fn(payload))
-                return true
-            }
+            write: /* istanbul ignore next */ (content: unknown) => this.#emitData({
+                origin: 'reporter',
+                name: reporter,
+                content
+            })
         }
+    }
+
+    /**
+     * emit data either through process or listener
+     */
+    #emitData (payload: any) {
+        if (typeof process.send === 'function') {
+            return process.send!(payload)
+        }
+
+        this.listeners.forEach((fn) => fn(payload))
+        return true
     }
 
     /**

@@ -171,7 +171,9 @@ class JunitReporter extends WDIOReporter {
 
             const test = suite.tests[testKey as any]
             const testName = this._prepareName(test.title)
-            const classNameFormat = this.options.classNameFormat ? this.options.classNameFormat({ packageName: this._packageName, suite }) : `${this._packageName}.${suite.fullTitle.replace(/\s/g, '_')}`
+            const classNameFormat = this.options.classNameFormat
+                ? this.options.classNameFormat({ packageName: this._packageName, suite })
+                : `${this._packageName}.${(suite.fullTitle || suite.title).replace(/\s/g, '_')}`
             const testCase = testSuite.testCase()
                 .className(classNameFormat)
                 .name(testName)

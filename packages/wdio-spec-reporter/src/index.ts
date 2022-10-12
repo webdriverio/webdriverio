@@ -314,6 +314,8 @@ export default class SpecReporter extends WDIOReporter {
         for (const suite of suites) {
             // Don't do anything if a suite has no tests or sub suites
             if (suite.tests.length === 0 && suite.suites.length === 0 && suite.hooks.length === 0) {
+                console.log('WHUPP WHUPP', suite)
+
                 continue
             }
 

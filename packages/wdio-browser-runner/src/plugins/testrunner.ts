@@ -28,13 +28,19 @@ export function testrunner (): Plugin {
 
                     const urlParamString = new URLSearchParams(urlParsed.query || '')
                     const cid = urlParamString.get('cid')
+                    const spec = urlParamString.get('spec')
                     if (!cid || !SESSIONS.has(cid)) {
                         log.error(`No environment found for ${cid || 'non determined environment'}`)
                         return next()
                     }
 
+                    if (!spec) {
+                        log.error('No spec file was defined to run for this environment')
+                        return next()
+                    }
+
                     const env = SESSIONS.get(cid)!
-                    const template = getTemplate(cid, env)
+                    const template = getTemplate(cid, env, spec)
                     log.debug(`Render template: ${template}`)
                     res.end(await server.transformIndexHtml(`${req.url}`, template))
                     return next()

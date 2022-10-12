@@ -422,6 +422,7 @@ class Launcher {
             command: 'run',
             configFile: this._configFilePath,
             args: {
+                capabilityId: cid,
                 ...this._args,
                 ...(config?.autoCompileOpts
                     ? { autoCompileOpts: config.autoCompileOpts }
