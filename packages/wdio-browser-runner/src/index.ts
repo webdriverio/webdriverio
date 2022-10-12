@@ -1,6 +1,7 @@
 import logger from '@wdio/logger'
 import getPort from 'get-port'
 import { createServer, ViteDevServer } from 'vite'
+import { remote, Browser } from 'webdriverio'
 import type { Capabilities, Options } from '@wdio/types'
 
 import SessionWorker from './worker.js'
@@ -12,7 +13,7 @@ const log = logger('@wdio/browser-runner')
 export default class LocalRunner {
     #config: Options.Testrunner
     #server?: ViteDevServer
-    sessionPool: Record<string, SessionWorker> = {}
+    $browserPool: Map<number, Promise<Browser<'async'>>> = new Map()
 
     constructor (
         configFile: unknown,
@@ -44,7 +45,7 @@ export default class LocalRunner {
     }
 
     getWorkerCount () {
-        return Object.keys(this.sessionPool).length
+        return Object.keys(this.$browserPool).length
     }
 
     async run (args: RunArgs) {
@@ -56,9 +57,39 @@ export default class LocalRunner {
             throw new Error('Vite server didn\'t start')
         }
 
-        const worker = this.sessionPool[args.cid] = new SessionWorker(this.#config, args, this.#server)
-        worker.run()
+        if (!this.$browserPool.has(args.args.capabilityId)) {
+            this.$browserPool.set(args.args.capabilityId, this.#initSession(args))
+        }
+
+        const browser = this.$browserPool.get(args.args.capabilityId)
+        if (!browser) {
+            throw new Error(`No browser found with id ${args.args.capabilityId}`)
+        }
+
+        const worker = new SessionWorker(this.#config, args, this.#server)
+        worker.run(browser)
         return worker
+    }
+
+    #initSession (args: RunArgs): Promise<Browser<'async'>> {
+        try {
+            log.info('Initiate browser session')
+            return remote({
+                capabilities: args.caps,
+                baseUrl: `http://localhost:${this.#server!.config.server.port}`
+            })
+        } catch (err: any) {
+            throw new Error(`Failed to start browser session with cid: ${err.message}`)
+        }
+    }
+
+    async closeSession (cid: number) {
+        const browser = await this.$browserPool.get(cid)
+        if (!browser) {
+            return
+        }
+        log.info(`Shutdown browser with session ${browser.sessionId}`)
+        await browser.deleteSession()
     }
 
     /**
@@ -68,7 +99,7 @@ export default class LocalRunner {
      */
     async shutdown () {
         if (this.#server) {
-            log.info('Shutting down browser session')
+            log.info('Shutting down Vite server')
             await this.#server.close()
         }
     }

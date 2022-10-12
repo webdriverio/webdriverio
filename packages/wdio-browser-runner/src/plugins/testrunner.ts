@@ -1,5 +1,6 @@
 import url from 'node:url'
 import logger from '@wdio/logger'
+import { createRequire } from 'node:module'
 
 import type { Plugin } from 'vite'
 
@@ -7,11 +8,21 @@ import { SESSIONS } from '../constants.js'
 import { getTemplate } from '../utils.js'
 
 const log = logger('@wdio/browser-runner:plugin')
+const require = createRequire(import.meta.url)
 
 export function testrunner (): Plugin {
     return {
         name: 'wdio:testrunner',
         enforce: 'pre',
+        resolveId: (id) => {
+            /**
+             * make sure WDIO imports are resolved properly
+             */
+            if (id.startsWith('@wdio')) {
+                return require.resolve(id)
+            }
+            return id
+        },
         configureServer (server) {
             return () => {
                 server.middlewares.use('/', async (req, res, next) => {

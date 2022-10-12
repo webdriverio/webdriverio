@@ -5,6 +5,7 @@ import type { Suite, Test, TestResult } from './Frameworks'
 export interface RunnerInstance {
     initialise(): Promise<void>
     shutdown(): Promise<void>
+    closeSession?: (cid: number) => Promise<void>
     getWorkerCount(): number
     run(args: any): NodeJS.EventEmitter
     workerPool: any

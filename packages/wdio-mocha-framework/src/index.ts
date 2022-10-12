@@ -1,6 +1,5 @@
 import url from 'node:url'
 import path from 'node:path'
-import { format } from 'node:util'
 import Mocha, { Runner } from 'mocha'
 
 import logger from '@wdio/logger'
@@ -8,8 +7,9 @@ import { runTestInFiberContext, executeHooksWithArgs } from '@wdio/utils'
 import type { Capabilities, Services } from '@wdio/types'
 
 import { loadModule } from './utils.js'
-import { INTERFACES, TEST_INTERFACES, EVENTS, NOOP, MOCHA_TIMEOUT_MESSAGE, MOCHA_TIMEOUT_MESSAGE_REPLACEMENT } from './constants.js'
-import type { MochaConfig, MochaOpts as MochaOptsImport, FrameworkMessage, FormattedMessage, MochaError } from './types'
+import { formatMessage } from './common/utils.js'
+import { INTERFACES, TEST_INTERFACES, EVENTS, NOOP } from './constants.js'
+import type { MochaConfig, MochaOpts as MochaOptsImport, FrameworkMessage, MochaError } from './types'
 import type { EventEmitter } from 'node:events'
 
 const log = logger('@wdio/mocha-framework')
@@ -208,82 +208,7 @@ class MochaAdapter {
             break
         }
 
-        return this.formatMessage(params)
-    }
-
-    formatMessage (params: FrameworkMessage) {
-        let message: FormattedMessage = {
-            type: params.type
-        }
-
-        const mochaAllHooksIfPresent = params.payload?.title?.match(/^"(before|after)( all| each)?" hook/)
-
-        if (params.err) {
-            /**
-             * replace "Ensure the done() callback is being called in this test." with a more meaningful message
-             */
-            if (params.err && params.err.message && params.err.message.includes(MOCHA_TIMEOUT_MESSAGE)) {
-                const replacement = format(MOCHA_TIMEOUT_MESSAGE_REPLACEMENT, params.payload.parent.title, params.payload.title)
-                params.err.message = params.err.message.replace(MOCHA_TIMEOUT_MESSAGE, replacement)
-                params.err.stack = params.err.stack.replace(MOCHA_TIMEOUT_MESSAGE, replacement)
-            }
-
-            message.error = {
-                name: params.err.name,
-                message: params.err.message,
-                stack: params.err.stack,
-                type: params.err.type || params.err.name,
-                expected: params.err.expected,
-                actual: params.err.actual
-            }
-
-            /**
-             * hook failures are emitted as "test:fail"
-             */
-            if (mochaAllHooksIfPresent) {
-                message.type = 'hook:end'
-            }
-        }
-
-        if (params.payload) {
-            message.title = params.payload.title
-            message.parent = params.payload.parent ? params.payload.parent.title : null
-
-            let fullTitle = message.title
-            if (params.payload.parent) {
-                let parent = params.payload.parent
-                while (parent && parent.title) {
-                    fullTitle = parent.title + '.' + fullTitle
-                    parent = parent.parent
-                }
-            }
-
-            message.fullTitle = fullTitle
-            message.pending = params.payload.pending || false
-            message.file = params.payload.file
-            message.duration = params.payload.duration
-
-            /**
-             * Add the current test title to the payload for cases where it helps to
-             * identify the test, e.g. when running inside a beforeEach hook
-             */
-            if (params.payload.ctx && params.payload.ctx.currentTest) {
-                message.currentTest = params.payload.ctx.currentTest.title
-            }
-
-            if (params.type.match(/Test/)) {
-                message.passed = (params.payload.state === 'passed')
-            }
-
-            if (params.payload.parent?.title && mochaAllHooksIfPresent) {
-                const hookName = mochaAllHooksIfPresent[0]
-                message.title = `${hookName} for ${params.payload.parent.title}`
-            }
-
-            if (params.payload.context) { message.context = params.payload.context }
-        }
-
-        return message
+        return formatMessage(params)
     }
 
     requireExternalModules (modules: string[]) {
@@ -309,7 +234,7 @@ class MochaAdapter {
          */
         if (payload.root) return
 
-        let message = this.formatMessage({ type: event, payload, err })
+        let message = formatMessage({ type: event, payload, err })
 
         message.cid = this._cid
         message.specs = this._specs
