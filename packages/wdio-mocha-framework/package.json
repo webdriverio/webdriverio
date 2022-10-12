@@ -22,7 +22,10 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "type": "module",
-  "exports": "./build/index.js",
+  "exports": {
+    "./common": "./build/common/utils.js",
+    ".": "./build/index.js"
+  },
   "types": "./build/index.d.ts",
   "typeScriptVersion": "3.8.3",
   "dependencies": {

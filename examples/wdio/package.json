@@ -1,5 +1,6 @@
 {
   "scripts": {
+    "test:browser": "node ../../packages/wdio-cli/bin/wdio.js ./browser-runner/wdio.conf.js",
     "test:mocha": "node ../../packages/wdio-cli/bin/wdio.js ./mocha/wdio.conf.js",
     "test:jasmine": "node ../../packages/wdio-cli/bin/wdio.js ./jasmine/wdio.conf.js",
     "test:cucumber": "node ../../packages/wdio-cli/bin/wdio.js ./cucumber/wdio.conf.js",

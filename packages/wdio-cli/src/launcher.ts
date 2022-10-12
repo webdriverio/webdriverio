@@ -201,11 +201,18 @@ class Launcher {
              * Regular mode
              */
             for (let capabilities of caps as (Capabilities.DesiredCapabilities | Capabilities.W3CCapabilities)[]) {
+                /**
+                 * when using browser runner we only allow one session per browser
+                 */
+                const availableInstances = config.runner === 'browser'
+                    ? 1
+                    : (capabilities as Capabilities.DesiredCapabilities).maxInstances || config.maxInstancesPerCapability
+
                 this._schedule.push({
                     cid: cid++,
                     caps: capabilities as Capabilities.Capabilities,
                     specs: this.formatSpecs(capabilities, specFileRetries),
-                    availableInstances: (capabilities as Capabilities.DesiredCapabilities).maxInstances || config.maxInstancesPerCapability,
+                    availableInstances,
                     runningInstances: 0
                 })
             }
@@ -236,13 +243,6 @@ class Launcher {
      */
     formatSpecs(capabilities: (Capabilities.DesiredCapabilities | Capabilities.W3CCapabilities | Capabilities.RemoteCapabilities), specFileRetries: number) {
         const files = this.configParser.getSpecs((capabilities as Capabilities.DesiredCapabilities).specs, (capabilities as Capabilities.DesiredCapabilities).exclude)
-
-        /**
-         * when running tests in the browser we don't need a new session for every spec file
-         */
-        if (this.configParser.getConfig().runner === 'browser') {
-            return [{ files: files.flat(), retries: 0 }]
-        }
 
         return files.map(file => {
             if (typeof file === 'string') {
@@ -499,6 +499,17 @@ class Launcher {
          * get cid (capability id) from rid (runner id)
          */
         const cid = parseInt(rid, 10)
+
+        /**
+         * shut down remote sessions if schedule has no tests left for that
+         * remote to run, avoids pending remote sessions
+         */
+        if (this.runner && typeof this.runner.closeSession === 'function') {
+            const noTestsForCapability = Boolean(this._schedule.find((s) => s.cid === cid && s.specs.length === 0))
+            if (noTestsForCapability) {
+                await this.runner.closeSession(cid)
+            }
+        }
 
         this._schedule[cid].availableInstances++
         this._schedule[cid].runningInstances--

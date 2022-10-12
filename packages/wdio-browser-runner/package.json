@@ -28,6 +28,7 @@
   "typeScriptVersion": "3.8.3",
   "dependencies": {
     "@wdio/logger": "7.19.0",
+    "@wdio/mocha-framework": "^7.20.7",
     "@wdio/runner": "7.20.7",
     "@wdio/types": "7.20.7",
     "get-port": "^6.1.2",
