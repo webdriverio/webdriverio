@@ -27,6 +27,7 @@
   "types": "./build/index.d.ts",
   "typeScriptVersion": "3.8.3",
   "dependencies": {
+    "@vitejs/plugin-vue": "^3.1.2",
     "@wdio/logger": "7.19.0",
     "@wdio/mocha-framework": "^7.20.7",
     "@wdio/runner": "7.20.7",

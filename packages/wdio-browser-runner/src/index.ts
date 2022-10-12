@@ -1,5 +1,6 @@
 import logger from '@wdio/logger'
 import getPort from 'get-port'
+import vue from '@vitejs/plugin-vue'
 import { createServer, ViteDevServer } from 'vite'
 import { remote, Browser } from 'webdriverio'
 import type { Capabilities, Options } from '@wdio/types'
@@ -26,19 +27,22 @@ export default class LocalRunner {
      * nothing to initialise when running locally
      */
     async initialise () {
+        const root = process.cwd()
+
         log.info('Initiate browser environment')
         try {
             const port = await getPort()
             this.#server = await createServer({
                 configFile: false,
-                root: process.cwd(),
+                root,
                 server: { port, host: 'localhost' },
                 plugins: [
-                    testrunner()
+                    testrunner(root),
+                    vue()
                 ]
             })
             await this.#server.listen()
-            log.info(`Vite server started successfully on port ${port}, root directory: ${process.cwd()}`)
+            log.info(`Vite server started successfully on port ${port}, root directory: ${root}`)
         } catch (err: any) {
             log.error(`Vite server failed to start: ${err.message}`)
         }
