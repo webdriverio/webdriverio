@@ -42,74 +42,51 @@ export default class SessionWorker extends EventEmitter {
             return
         }
 
-        SESSIONS.set(this.#args.cid, {
-            args: this.#config.mochaOpts || {},
-            specs: this.#args.specs.map((spec) =>
-                url.fileURLToPath(spec.replace(this.#server.config.root, ''))
-            )
-        })
+        const specs = this.#args.specs.map((spec) =>
+            url.fileURLToPath(spec.replace(this.#server.config.root, ''))
+        )
 
         try {
-            log.info(`Start running tests for ${this.#args.cid}`)
-
-            /**
-             * initiate reporters
-             */
-            const reporter = new BaseReporter(this.#config, this.#args.cid, this.#browser.capabilities)
-            await reporter.initReporters()
-            reporter.onMessage((payload: any) => {
-                this.emit('message', payload)
-            })
-            reporter.emit('runner:start', {
-                cid: this.#args.cid,
-                specs: this.#args.specs,
-                config: this.#config,
-                isMultiremote: false,
-                instanceOptions: {},
-                capabilities: this.#browser.capabilities,
-                retry: 0
-            })
-
             /**
              * start tests
              */
-            await this.#browser.url(`/test.html?cid=${this.#args.cid}`)
+            let failures = 0
+            let rid = -1
+            for (const spec of specs) {
+                const cid = `${this.#args.args.capabilityId}-${++rid}`
+                SESSIONS.set(cid, { args: this.#config.mochaOpts || {} })
 
-            let failures = -1
-            await this.#browser.waitUntil(async () => {
-                while (failures === -1) {
-                    failures = await this.#browser?.execute(() => (
-                        // @ts-expect-error define in window scope
-                        window.__wdioEvents__.length > 0
-                            // @ts-expect-error define in window scope
-                            ? window.__wdioFailures__
-                            : -1
-                    ))
-                }
-                return true
-            }, {
-                timeoutMsg: 'browser test timed out'
-            })
+                /**
+                 * initiate reporters
+                 */
+                const reporter = new BaseReporter(this.#config, cid, this.#browser.capabilities)
+                await reporter.initReporters()
+                reporter.onMessage((payload: any) => {
+                    this.emit('message', payload)
+                })
+                reporter.emit('runner:start', {
+                    cid: cid,
+                    specs: [spec],
+                    config: this.#config,
+                    isMultiremote: false,
+                    instanceOptions: {},
+                    capabilities: this.#browser.capabilities,
+                    retry: 0
+                })
 
-            /**
-             * populate events
-             */
-            // @ts-expect-error define in window scope
-            const events = await this.#browser.execute(() => window.__wdioEvents__)
-            for (const ev of events) {
-                if (ev.type === 'suite:start' && ev.title === '') {
-                    continue
-                }
-                reporter.emit(ev.type, ev)
+                log.info(`Run spec file ${spec} for cid ${cid}`)
+                await this.#browser.url(`/test.html?cid=${cid}&spec=${spec}`)
+                // await this.#browser.pause(60000)
+                failures += await this.#fetchEvents(reporter)
+                reporter.emit('runner:end', {
+                    failures,
+                    cid: this.#args.cid,
+                    retries: 0
+                } as Options.RunnerEnd)
+
+                await reporter.waitForSync()
             }
 
-            reporter.emit('runner:end', {
-                failures,
-                cid: this.#args.cid,
-                retries: 0
-            } as Options.RunnerEnd)
-
-            await reporter.waitForSync()
             this.emit('exit', {
                 cid: this.#args.cid,
                 exitCode: failures === 0 ? 0 : 1,
@@ -137,15 +114,54 @@ export default class SessionWorker extends EventEmitter {
         }
     }
 
+    async #fetchEvents (reporter: BaseReporter): Promise<number> {
+        if (!this.#browser) {
+            throw new Error('browser not initiate to fetch events')
+        }
+
+        /**
+         * wait until tests have finished and results are emitted to the window scope
+         */
+        let failures: number | null = null
+        await this.#browser.waitUntil(async () => {
+            while (typeof failures !== 'number') {
+                failures = await this.#browser?.execute(() => (
+                    // @ts-expect-error define in window scope
+                    window.__wdioEvents__.length > 0
+                        // @ts-expect-error define in window scope
+                        ? window.__wdioFailures__
+                        : null
+                ))
+            }
+            return true
+        }, {
+            timeoutMsg: 'browser test timed out'
+        })
+
+        /**
+         * populate events to the reporter
+         */
+        // @ts-expect-error define in window scope
+        const events = await this.#browser.execute(() => window.__wdioEvents__)
+        for (const ev of events) {
+            if ((ev.type === 'suite:start' || ev.type === 'suite:end') && ev.title === '') {
+                continue
+            }
+            reporter.emit(ev.type, ev)
+        }
+
+        return failures! as number
+    }
+
     async #initSession (): Promise<Browser<'async'> | undefined> {
         try {
-            log.info(`Initiate browser session with cid ${this.#args.cid}`)
+            log.info('Initiate browser session')
             return await remote({
                 capabilities: this.#args.caps,
                 baseUrl: `http://localhost:${this.#server.config.server.port}`
             })
         } catch (err: any) {
-            this.#errorOut(`Failed to start browser session with cid ${this.#args.cid}: ${err.message}`)
+            this.#errorOut(`Failed to start browser session with cid: ${err.message}`)
         }
     }
 

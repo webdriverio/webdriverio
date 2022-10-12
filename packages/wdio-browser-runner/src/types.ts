@@ -6,6 +6,5 @@ export interface RunArgs extends Workers.WorkerRunPayload {
 }
 
 export interface Environment {
-    specs: string[]
     args: any
 }
