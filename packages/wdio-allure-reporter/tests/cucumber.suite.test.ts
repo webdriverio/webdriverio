@@ -136,8 +136,6 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
             const results = getResults(outputDir)
             expect(results).toHaveLength(2) // one for report, one for attachment
             allureXml = results.find((xml: any) => xml('ns2\\:test-suite').length >= 1)
-
-            console.log(allureXml('test-case label[name="feature"]').eq(0).attr('value'))
         })
 
         afterAll(() => {
