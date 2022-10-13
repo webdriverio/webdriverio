@@ -174,6 +174,8 @@ class AllureReporter extends WDIOReporter {
         }
 
         if (this._options.useCucumberStepReporter) {
+            this._allure.startStep(testTitle)
+
             const testObj = test as TestStats
             const argument = testObj?.argument as Argument
             const dataTable = argument?.rows?.map((a: { cells: string[] }) => a?.cells)
