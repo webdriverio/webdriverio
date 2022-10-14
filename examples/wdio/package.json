@@ -7,5 +7,15 @@
     "test:multiremote": "node ../../packages/wdio-cli/bin/wdio.js ./multiremote/wdio.conf.js",
     "test:customReporter": "node ../../packages/wdio-cli/bin/wdio.js ./custom-reporter/wdio.conf.js",
     "test:customService": "node ../../packages/wdio-cli/bin/wdio.js ./custom-service/wdio.conf.js"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^5.16.5",
+    "@testing-library/svelte": "^3.2.2",
+    "@testing-library/vue": "^6.6.1",
+    "expect": "^29.1.2"
+  },
+  "dependencies": {
+    "svelte": "^3.51.0",
+    "vue": "^3.2.40"
   }
 }

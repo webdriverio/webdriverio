@@ -23,6 +23,20 @@ export function testrunner (root: string): Plugin {
                 return require.resolve(id)
             }
         },
+        transform(code, id) {
+            if (id.includes('.vite/deps/expect.js')) {
+                return {
+                    code: code.replace(
+                        'var fs = _interopRequireWildcard(require_graceful_fs());',
+                        'var fs = {};'
+                    ).replace(
+                        'var expect_default = require_build11();',
+                        'var expect_default = require_build11();\nwindow.expect = expect_default.default;'
+                    )
+                }
+            }
+            return { code }
+        },
         configureServer (server) {
             return () => {
                 server.middlewares.use('/', async (req, res, next) => {
