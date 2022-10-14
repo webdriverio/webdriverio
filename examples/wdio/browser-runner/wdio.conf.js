@@ -5,6 +5,7 @@ exports.config = {
      * specify test files
      */
     specs: [
+        path.resolve(__dirname, '*.test.tsx'),
         path.resolve(__dirname, '*.test.js')
     ],
 

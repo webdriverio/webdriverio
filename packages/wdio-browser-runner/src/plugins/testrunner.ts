@@ -32,6 +32,9 @@ export function testrunner (root: string): Plugin {
                     ).replace(
                         'var expect_default = require_build11();',
                         'var expect_default = require_build11();\nwindow.expect = expect_default.default;'
+                    ).replace(
+                        'process.stdout.isTTY',
+                        'false'
                     )
                 }
             }

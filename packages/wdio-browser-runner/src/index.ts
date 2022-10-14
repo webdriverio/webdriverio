@@ -1,6 +1,7 @@
 import logger from '@wdio/logger'
 import getPort from 'get-port'
 import vue from '@vitejs/plugin-vue'
+import preact from '@preact/preset-vite'
 import { svelte } from '@sveltejs/vite-plugin-svelte'
 import { createServer, ViteDevServer } from 'vite'
 import { remote, Browser } from 'webdriverio'
@@ -42,7 +43,8 @@ export default class LocalRunner {
                 plugins: [
                     testrunner(root),
                     vue(),
-                    svelte()
+                    svelte(),
+                    preact()
                 ],
                 optimizeDeps: {
                     esbuildOptions: {
