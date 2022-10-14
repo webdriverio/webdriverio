@@ -30,7 +30,7 @@ export interface BrowserstackConfig {
     /**
      * TODO: update message here
      */
-    observability?: boolean;
+    testObservability?: boolean;
     /**
      * Set this to true to enable routing connections from Browserstack cloud through your computer.
      * You will also need to set `browserstack.local` to true in browser capabilities.

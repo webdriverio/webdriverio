@@ -63,9 +63,9 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         }
 
         // by default observability will be true unless specified as false
-        this._options.observability = this._options.observability == false ? false : true
+        this._options.testObservability = this._options.testObservability == false ? false : true
 
-        if (this._options.observability) {
+        if (this._options.testObservability) {
             // update files to run if it's a rerun
             if (process.env.BROWSERSTACK_TESTOPS_RERUN && process.env.BROWSERSTACK_TESTOPS_TESTS) {
                 this._config.specs = process.env.BROWSERSTACK_TESTOPS_TESTS.split(',')
@@ -107,7 +107,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             this._updateCaps(capabilities, 'app', app.app)
         }
 
-        if (this._options.observability) {
+        if (this._options.testObservability) {
             log.debug('sending lauch start event')
 
             let buildName: any
@@ -117,8 +117,8 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             [buildName, projectName, buildTag] = getLaunchInfo(capabilities)
 
             let bsConfig = {
-                username : this._config.user,
-                password : this._config.key,
+                username : process.env.BROWSERSTACK_USERNAME || this._config.user,
+                password : process.env.BROWSERSTACK_ACCESS_KEY || this._config.key,
                 projectName: projectName,
                 buildName: buildName,
                 buildTag: buildTag
@@ -172,7 +172,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
     }
 
     async onComplete () {
-        if (this._options.observability) {
+        if (this._options.testObservability) {
             log.debug('sending lauch stop event')
             await stopBuildUpstream()
         }

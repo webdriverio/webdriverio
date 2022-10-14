@@ -372,21 +372,21 @@ export function getUniqueIdentifierForCucumber(obj: any): string {
     return obj.pickle.uri + '_' + obj.pickle.astNodeIds.join(',')
 }
 
-export function getCloudProvider(config: Options.Testrunner): string {
+export function getCloudProvider(browser: any): string {
     let provider: string = 'UNKNOWN'
-    if (config.services) {
-        for (let i = 0; i < config.services.length;  i += 1) {
-            let service: any = config.services[i]
-            if (Array.isArray(service)) {
-                let serviceName: string = service[0]
-                if (serviceName == 'sauce' || serviceName == 'browserstack') {
-                    provider = serviceName
-                    break
-                }
-            }
+    if (browser.options && browser.options.hostname) {
+        if (browser.options.hostname.includes('browserstack')) {
+            return 'Browserstack'
+        } else if (browser.options.hostname.includes('saucelabs')) {
+            return 'Sauce'
         }
+        // add statements for lambdatest etc
     }
     return provider
+}
+
+export function isBrowserstackSession(browser: any): boolean {
+    return getCloudProvider(browser).toLowerCase() == 'browserstack'
 }
 
 export function getLaunchInfo(capabilities: any) {

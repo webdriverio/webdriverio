@@ -4,7 +4,7 @@ import stripAnsi from 'strip-ansi'
 import type { Services, Capabilities, Options, Frameworks } from '@wdio/types'
 import type { Browser, MultiRemoteBrowser } from 'webdriverio'
 
-import { getBrowserDescription, getBrowserCapabilities, isBrowserstackCapability, getParentSuiteName, getUniqueIdentifier, getCloudProvider, getUniqueIdentifierForCucumber, getScenarioNameWithExamples } from './util'
+import { getBrowserDescription, getBrowserCapabilities, isBrowserstackCapability, getParentSuiteName, getUniqueIdentifier, getCloudProvider, getUniqueIdentifierForCucumber, getScenarioNameWithExamples, isBrowserstackSession } from './util';
 import { BrowserstackConfig, MultiRemoteAction, SessionResponse } from './types'
 import path from 'path'
 import { v4 as uuidv4 } from 'uuid'
@@ -20,7 +20,6 @@ export default class BrowserstackService implements Services.ServiceInstance {
     private _failureStatuses: string[] = ['failed', 'ambiguous', 'undefined', 'unknown']
     private _browser?: Browser<'async'> | MultiRemoteBrowser<'async'>
     private _fullTitle?: string
-    private _cloudProvider?: string
     private _observability?: boolean = true
     private _tests: any
     private _platformMeta: any
@@ -34,12 +33,11 @@ export default class BrowserstackService implements Services.ServiceInstance {
     ) {
         // added to maintain backward compatibility with webdriverIO v5
         this._config || (this._config = _options)
-        if (this._options.observability == false) this._observability = false
+        if (this._options.testObservability == false) this._observability = false
 
         if (this._observability) {
             this._tests = {}
             // this._config.reporters ? this._config.reporters.push(path.join(__dirname, 'reporter.js')) : [path.join(__dirname, 'reporter.js')]
-            this._cloudProvider = getCloudProvider(_config)
             this._framework = _config.framework
         }
 
@@ -90,7 +88,6 @@ export default class BrowserstackService implements Services.ServiceInstance {
 
         this._scenariosThatRan = []
 
-        this._observability = true // TODO: update later as per args
         if (this._observability) {
             // capture requests
             // requestTracer((error: any, requestData: any) => {
@@ -257,9 +254,6 @@ export default class BrowserstackService implements Services.ServiceInstance {
         return this._updateJob({ name: this._fullTitle })
     }
 
-    afterFeature(uri: string, feature: any) {
-    }
-
     beforeScenario (world: any) {
 
         if (this._observability) {
@@ -323,9 +317,6 @@ export default class BrowserstackService implements Services.ServiceInstance {
         if (this._observability) {
             this.sendTestRunEventForCucumber(world, 'TestRunFinished')
         }
-    }
-
-    beforeStep (step: any, scenario: any) {
     }
 
     afterStep (step: any, scenario: any, result: any) {
@@ -421,6 +412,9 @@ export default class BrowserstackService implements Services.ServiceInstance {
     }
 
     _update(sessionId: string, requestBody: any) {
+        if (this._browser && !isBrowserstackSession(this._browser)) {
+            return Promise.resolve()
+        }
         const sessionUrl = `${this._sessionBaseUrl}/${sessionId}.json`
         log.debug(`Updating Browserstack session at ${sessionUrl} with request body: `, requestBody)
         return got.put(sessionUrl, {
@@ -431,7 +425,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
     }
 
     async _printSessionURL() {
-        if (!this._browser) {
+        if (!this._browser || !isBrowserstackSession(this._browser)) {
             return Promise.resolve()
         }
         await this._multiRemoteAction(async (sessionId, browserName) => {
@@ -493,9 +487,8 @@ export default class BrowserstackService implements Services.ServiceInstance {
 
         if (eventType == 'TestRunStarted') {
             if (this._platformMeta) {
-                let provider = this._cloudProvider ? this._cloudProvider : 'UNKNOWN'
                 testData['integrations'] = {}
-                testData['integrations'][provider] = {
+                testData['integrations'][getCloudProvider(this._browser)] = {
                     'capabilities': this._platformMeta.caps,
                     'session_id': this._platformMeta.sessionId,
                     'browser': this._platformMeta.browserName,
@@ -566,9 +559,8 @@ export default class BrowserstackService implements Services.ServiceInstance {
 
         if (eventType == 'TestRunStarted') {
             if (this._platformMeta) {
-                let provider = this._cloudProvider ? this._cloudProvider : 'UNKNOWN'
                 testData['integrations'] = {}
-                testData['integrations'][provider] = {
+                testData['integrations'][getCloudProvider(this._browser)] = {
                     'capabilities': this._platformMeta.caps,
                     'session_id': this._platformMeta.sessionId,
                     'browser': this._platformMeta.browserName,
