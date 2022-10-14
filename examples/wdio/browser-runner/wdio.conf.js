@@ -5,7 +5,7 @@ exports.config = {
      * specify test files
      */
     specs: [
-        path.resolve(__dirname, 'test*')
+        path.resolve(__dirname, '*.test.js')
     ],
 
     /**
@@ -13,10 +13,12 @@ exports.config = {
      */
     capabilities: [{
         browserName: 'chrome',
-        acceptInsecureCerts: true
-    }, {
-        browserName: 'chrome',
-        acceptInsecureCerts: true
+        acceptInsecureCerts: true,
+        // 'wdio:devtoolsOptions': { headless: true }
+    // }, {
+    //     browserName: 'chrome',
+    //     acceptInsecureCerts: true,
+    //     'wdio:devtoolsOptions': { headless: true }
     }],
 
     /**

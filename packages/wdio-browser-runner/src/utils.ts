@@ -31,14 +31,14 @@ export async function getTemplate (cid: string, env: Environment, spec: string) 
             </script>
             <script type="module">
             window.Symbol.for = (a) => a
+
+            import Mocha from 'https://esm.sh/mocha@10.0.0'
+            const mocha = Mocha.setup(${JSON.stringify(env.args || {})})
             </script>
         </head>
         <body>
             <div id="mocha"></div>
             <script type="module">
-                import Mocha from 'https://esm.sh/mocha@10.0.0'
-                const mocha = Mocha.setup(${JSON.stringify(env.args || {})})
-
                 ${testScript}
 
                 import { formatMessage } from '@wdio/mocha-framework/common'
