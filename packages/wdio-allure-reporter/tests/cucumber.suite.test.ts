@@ -82,6 +82,7 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
             })
 
             it('should detect analytics labels in test case', () => {
+                expect(allureXml('test-case label[name="feature"]').eq(0).attr('value')).toEqual('MyFeature')
                 expect(allureXml('test-case label[name="language"]').eq(0).attr('value')).toEqual('javascript')
                 expect(allureXml('test-case label[name="framework"]').eq(0).attr('value')).toEqual('wdio')
             })

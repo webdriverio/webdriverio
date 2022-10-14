@@ -14,6 +14,7 @@ const suite = (type = 'feature') => ({
         name: '@severity=critical'
     }],
     tests: [],
+    parent: type === 'feature' ? undefined : 'MyFeature1',
     description: 'My scenario description',
     hooks: [],
     suites: []
