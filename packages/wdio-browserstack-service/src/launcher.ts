@@ -64,6 +64,13 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
 
         // by default observability will be true unless specified as false
         this._options.observability = this._options.observability == false ? false : true
+
+        if (this._options.observability) {
+            // update files to run if it's a rerun
+            if (process.env.BROWSERSTACK_TESTOPS_RERUN && process.env.BROWSERSTACK_TESTOPS_TESTS) {
+                this._config.specs = process.env.BROWSERSTACK_TESTOPS_TESTS.split(',')
+            }
+        }
     }
 
     async onPrepare (config?: Options.Testrunner, capabilities?: Capabilities.RemoteCapabilities) {

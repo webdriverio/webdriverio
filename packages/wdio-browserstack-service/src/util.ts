@@ -1,13 +1,15 @@
 import type { Browser, MultiRemoteBrowser } from 'webdriverio'
 import type { Capabilities } from '@wdio/types'
 
-import { BROWSER_DESCRIPTION } from './constants'
+import { BROWSER_DESCRIPTION, DATA_ENDPOINT } from './constants'
 
+import got from 'got'
+// import { ClientRequest } from 'http'
 import { hostname, platform, type, version, arch } from 'os'
 import { Agent } from 'http'
 import request from 'request'
 import { promisify } from 'util'
-import { Repository } from 'nodegit'
+// import { Repository } from 'nodegit'
 import gitRepoInfo from 'git-repo-info'
 import gitconfig from 'gitconfiglocal'
 import { Frameworks } from '@wdio/types'
@@ -80,72 +82,6 @@ export function getParentSuiteName(fullTitle: string, testSuiteTitle: string): s
     return parentSuiteName.trim()
 }
 
-export async function uploadEventData (eventData: any, run=0) {
-    const logTag = 'TestRunStarted'
-    // logTag = {
-    //     ['TestRunStarted']: 'Test_Upload',
-    //     ['TestRunFinished']: 'Test_Upload',
-    //     ['LogCreated']: 'Log_Upload',
-    //     ['HookRunStarted']: 'Hook_Upload',
-    //     ['HookRunFinished']: 'Hook_Upload',
-    // }[eventData.eventType]
-
-    // if (run === 0) pendingTestUploads += 1
-
-    if (process.env.BS_TESTOPS_BUILD_COMPLETED) {
-        if (!process.env.BS_TESTOPS_JWT) {
-            console.log(`[${logTag}] Missing Authentication Token/ Build ID`)
-            // pendingTestUploads = Math.max(0, pendingTestUploads-1);
-            return {
-                status: 'error',
-                message: 'Token/buildID is undefined, build creation might have failed'
-            }
-        }
-        const data = eventData
-        const config = {
-            headers: {
-                'Authorization': `Bearer ${process.env.BS_TESTOPS_JWT}`,
-                'Content-Type': 'application/json',
-                'X-BSTACK-OBS': 'true'
-            }
-        }
-
-        try {
-            const response: any = await nodeRequest('POST', 'api/v1/event', data, config)
-            if (response.data.error) {
-                throw ({ message: response.data.error })
-            } else {
-                console.log(`[${logTag}] run[${run}] Browserstack TestOps success response: ${JSON.stringify(response.data)}`)
-                // pendingTestUploads = Math.max(0,pendingTestUploads-1)
-                return {
-                    status: 'success',
-                    message: ''
-                }
-            }
-        } catch (error: any) {
-            if (error.response) {
-                console.log(`[${logTag}] Browserstack TestOps error response: ${error.response.status} ${error.response.statusText} ${JSON.stringify(error.response.data)}`)
-            } else {
-                console.log(`[${logTag}] Browserstack TestOps error: ${error.message || error}`)
-            }
-            // pendingTestUploads = Math.max(0, pendingTestUploads - 1)
-            return {
-                status: 'error',
-                message: error.message || (error.response ? `${error.response.status}:${error.response.statusText}` : error)
-            }
-        }
-    } else if (run >= 5) {
-        console.log(`[${logTag}] BuildStart is not completed and ${logTag} retry runs exceeded`)
-        // pendingTestUploads = Math.max(0, pendingTestUploads - 1)
-        return {
-            status: 'error',
-            message: 'Retry runs exceeded'
-        }
-    } else {
-        setTimeout(function(){ exports.uploadEventData(eventData, run+1) }, 1000)
-    }
-}
-
 export async function launchTestSession (userConfig: any) {
     const BSTestOpsToken = `${userConfig.username}:${userConfig.password}`
 
@@ -172,31 +108,47 @@ export async function launchTestSession (userConfig: any) {
         },
         'ci_info': getCiInfo(),
         'failed_tests_rerun': process.env.BROWSERSTACK_TESTOPS_RERUN || false,
-        'version_control': await getGitMetaData()
+        // 'version_control': await getGitMetaData()
     }
     const config = {
-        auth: {
-            username: userConfig.username,
-            password: userConfig.password
-        },
+        // auth: {
+        //     username: userConfig.username,
+        //     password: userConfig.password
+        // },
+        username: userConfig.username,
+        password: userConfig.password,
         headers: {
             'Content-Type': 'application/json',
             'X-BSTACK-OBS': 'true'
-        }
+        },
+        timeout: {
+            // request: 60000
+        },
+        // agent: httpKeepAliveAgent
     }
 
     try {
-        const response: any = await nodeRequest('POST', 'api/v1/builds', data, config)
-        console.log(`[Start_Build] Browserstack TestOps success response: ${JSON.stringify(response.data)}`)
+        // const response: any = await nodeRequest('POST', 'api/v1/builds', data, config)
+        let url = `http://${DATA_ENDPOINT}/api/v1/builds`
+        let response: any
+        try {
+            // dataCounter('in')
+            response = await got.post(url, { json: data, ...config }).json()
+        } catch (error) {
+            console.log(error)
+            // console.error(error.response.statusCode)
+        }
+        console.log(`[Start_Build] Browserstack TestOps success response: ${JSON.stringify(response)}`)
+        // console.log(`[Start_Build] Browserstack TestOps success response: ${JSON.stringify(response.data)}`)
         process.env.BS_TESTOPS_BUILD_COMPLETED = 'true'
-        return [response.data.jwt, response.data.build_hashed_id]
+        return [response.jwt, response.build_hashed_id]
     } catch (error: any) {
         console.log(error)
-        if (error.response) {
-            console.log(`[Start_Build] Browserstack TestOps error response: ${error.response.status} ${error.response.statusText} ${JSON.stringify(error.response.data)}`)
-        } else {
-            console.log(`[Start_Build] Browserstack TestOps error: ${error.message || error}`)
-        }
+        // if (error.response) {
+        //     console.log(`[Start_Build] Browserstack TestOps error response: ${error.response.status} ${error.response.statusText} ${JSON.stringify(error.response.data)}`)
+        // } else {
+        //     console.log(`[Start_Build] Browserstack TestOps error: ${error.message || error}`)
+        // }
         process.env.BS_TESTOPS_BUILD_COMPLETED = 'true'
         return [null, null]
     }
@@ -224,30 +176,43 @@ export async function stopBuildUpstream (buildStartWaitRun: number = 0, testUplo
                 'Authorization': `Bearer ${process.env.BS_TESTOPS_JWT}`,
                 'Content-Type': 'application/json',
                 'X-BSTACK-OBS': 'true'
-            }
+            },
+            timeout: {
+                // request: 60000
+            },
+            // agent: httpKeepAliveAgent
         }
 
         try {
-            const response: any = await nodeRequest('PUT', `api/v1/builds/${process.env.BS_TESTOPS_BUILD_HASHED_ID}/stop`, data, config)
-            if (response.data.error) {
-                throw ({ message: response.data.error })
-            } else {
-                console.log(`[Stop_Build] buildStartWaitRun[${buildStartWaitRun}] testUploadWaitRun[${testUploadWaitRun}] Browserstack TestOps success response: ${JSON.stringify(response.data)}`)
-                return {
-                    status: 'success',
-                    message: ''
-                }
+            // const response: any = await nodeRequest('PUT', `api/v1/builds/${process.env.BS_TESTOPS_BUILD_HASHED_ID}/stop`, data, config)
+            let url = `http://${DATA_ENDPOINT}/api/v1/builds/${process.env.BS_TESTOPS_BUILD_HASHED_ID}/stop`
+            let response: any
+            try {
+                response = await got.put(url, { json: data, ...config }).json()
+            } catch (error) {
+                console.log(error)
+                // console.error(error.response.statusCode)
             }
-        } catch (error: any) {
-            if (error.response) {
-                console.log(`[Stop_Build] Browserstack TestOps error response: ${error.response.status} ${error.response.statusText} ${JSON.stringify(error.response.data)}`)
-            } else {
-                console.log(`[Stop_Build] Browserstack TestOps error: ${error.message || error}`)
-            }
+            // if (response.error) {
+            //     throw ({ message: response.error })
+            // } else {
+            console.log(`[Stop_Build] buildStartWaitRun[${buildStartWaitRun}] testUploadWaitRun[${testUploadWaitRun}] Browserstack TestOps success response: ${JSON.stringify(response)}`)
             return {
-                status: 'error',
-                message: error.message || error.response ? `${error.response.status}:${error.response.statusText}` : error
+                status: 'success',
+                message: ''
             }
+            // }
+        } catch (error: any) {
+            console.log(error)
+            // if (error.response) {
+            //     console.log(`[Stop_Build] Browserstack TestOps error response: ${error.response.status} ${error.response.statusText} ${JSON.stringify(error.response.data)}`)
+            // } else {
+            //     console.log(`[Stop_Build] Browserstack TestOps error: ${error.message || error}`)
+            // }
+            // return {
+            //     status: 'error',
+            //     message: error.message || error.response ? `${error.response.status}:${error.response.statusText}` : error
+            // }
         }
     } else {
         /* forceStop = true since we won't wait for pendingUploads trigerred post stop flow */
@@ -342,95 +307,69 @@ const getCiInfo = () => {
     if (env.TF_BUILD === 'True') {
         return {
             name: 'Visual Studio Team Services',
-            build_url: null,
-            job_name: null,
-            build_number: null
+            build_url: `${env.SYSTEM_TEAMFOUNDATIONSERVERURI}${env.SYSTEM_TEAMPROJECTID}`,
+            job_name: env.SYSTEM_DEFINITIONID,
+            build_number: env.BUILD_BUILDID
         }
     }
     // if no matches, return null
     return null
 }
 
-const getGitMetaData = async () => {
-    var info: any = gitRepoInfo()
-    if (!info.commonGitDir) return {}
-    if (!info.author) {
-        /* commit objects are packed */
-        const headCommit: any = await Repository.open(info.worktreeGitDir.replace('/.git', '')).then(function(repo: any) {
-            return repo.getHeadCommit()
-        })
-        var author = headCommit.author(), committer = headCommit.committer()
-        info['author'] = info['author'] || `${author.name()} <${author.email()}>`
-        info['authorDate'] = info['authorDate'] || '' // TODO
-        info['committer'] = info['committer'] || `${committer.name()} <${committer.email()}>`
-        info['committerDate'] = info['committerDate'] || headCommit.date()
-        info['commitMessage'] = info['commitMessage'] || headCommit.message()
-    }
-    const { remote } = await pGitconfig(info.commonGitDir)
-    const remotes = Object.keys(remote).map(remoteName =>  ({ name: remoteName, url: remote[remoteName]['url'] }))
-    return {
-        'name': 'git',
-        'sha': info['sha'],
-        'short_sha': info['abbreviatedSha'],
-        'branch': info['branch'],
-        'tag': info['tag'],
-        'committer': info['committer'],
-        'committer_date': info['committerDate'],
-        'author': info['author'],
-        'author_date': info['authorDate'],
-        'commit_message': info['commitMessage'],
-        'root': info['root'],
-        'common_git_dir': info['commonGitDir'],
-        'worktree_git_dir': info['worktreeGitDir'],
-        'last_tag': info['lastTag'],
-        'commits_since_last_tag': info['commitsSinceLastTag'],
-        'remotes': remotes
-    }
-}
+// const getGitMetaData = async () => {
+//     var info: any = gitRepoInfo()
+//     if (!info.commonGitDir) return {}
+//     if (!info.author) {
+//         /* commit objects are packed */
+//         const headCommit: any = await Repository.open(info.worktreeGitDir.replace('/.git', '')).then(function(repo: any) {
+//             return repo.getHeadCommit()
+//         })
+//         var author = headCommit.author(), committer = headCommit.committer()
+//         info['author'] = info['author'] || `${author.name()} <${author.email()}>`
+//         info['authorDate'] = info['authorDate'] || '' // TODO
+//         info['committer'] = info['committer'] || `${committer.name()} <${committer.email()}>`
+//         info['committerDate'] = info['committerDate'] || headCommit.date()
+//         info['commitMessage'] = info['commitMessage'] || headCommit.message()
+//     }
+//     const { remote } = await pGitconfig(info.commonGitDir)
+//     const remotes = Object.keys(remote).map(remoteName =>  ({ name: remoteName, url: remote[remoteName]['url'] }))
+//     return {
+//         'name': 'git',
+//         'sha': info['sha'],
+//         'short_sha': info['abbreviatedSha'],
+//         'branch': info['branch'],
+//         'tag': info['tag'],
+//         'committer': info['committer'],
+//         'committer_date': info['committerDate'],
+//         'author': info['author'],
+//         'author_date': info['authorDate'],
+//         'commit_message': info['commitMessage'],
+//         'root': info['root'],
+//         'common_git_dir': info['commonGitDir'],
+//         'worktree_git_dir': info['worktreeGitDir'],
+//         'last_tag': info['lastTag'],
+//         'commits_since_last_tag': info['commitsSinceLastTag'],
+//         'remotes': remotes
+//     }
+// }
 
 const httpKeepAliveAgent = new Agent({
     keepAlive: true,
     timeout: 60000
 })
 
-async function nodeRequest (type: string, url: string, data: any, config: any) {
-    console.log(`http://${process.env.LOCAL_API_HOST}/${url}`) // remove later
-    // eslint-disable-next-line no-async-promise-executor
-    return new Promise(async (resolve, reject) => {
-        const options = { ...config, ...{
-            method: type,
-            url: `http://${process.env.LOCAL_API_HOST}/${url}`,
-            body: data,
-            json: config.headers['Content-Type'] === 'application/json',
-            agent: httpKeepAliveAgent
-        } }
-
-        request(options, function callback(error: any, response: any, body: any) {
-            if (error) {
-                reject(error)
-            } else if (response.statusCode != 200) {
-                reject(`Received response from BrowserStack TestOps Server with status : ${response.statusCode}`)
-            } else {
-                try {
-                    if (typeof(body) !== 'object') body = JSON.parse(body)
-                } catch (e) {
-                    reject('Not a JSON response from BrowserStack TestOps Server')
-                }
-                resolve({
-                    data: body
-                })
-            }
-        })
-    })
+export function getUniqueIdentifier(test: Frameworks.Test): string {
+    // if (test.fullName) {
+    //     // jasmine
+    //     return test.fullName
+    // }
+    // mocha
+    return `${test.parent} - ${test.title}`
 }
 
-export function getUniqueIdentifier(test: Frameworks.Test): string {
-    if (test.fullName) {
-        // jasmine
-        return test.fullName
-    }
-    // mocha and cucumber
-    return `${test.parent} - ${test.title}`
+export function getUniqueIdentifierForCucumber(obj: any): string {
+    // cucumber
+    return obj.pickle.uri + '_' + obj.pickle.astNodeIds.join(',')
 }
 
 export function getCloudProvider(config: Options.Testrunner): string {
@@ -471,4 +410,36 @@ export function getLaunchInfo(capabilities: any) {
     buildName = buildName || process.cwd()
 
     return [buildName, projectName, buildTag]
+}
+
+export function getScenarioNameWithExamples(world: any): string {
+    let scenario: any = world.pickle
+
+    // no examples present
+    if (scenario.astNodeIds == 1) return scenario.name
+
+    let pickleId: string = scenario.astNodeIds[0]
+    let examplesId: string = scenario.astNodeIds[1]
+    let gherkinDocumentChildren = world.gherkinDocument.feature.children
+
+    let examples: string[] = []
+
+    gherkinDocumentChildren.forEach((child: any) => {
+        if (child.rule) {
+            // handle if rule is present
+            child.rule.children.forEach((childLevel2: any) => {
+                if (childLevel2.scenario && childLevel2.scenario.id == pickleId && childLevel2.scenario.examples) {
+                    examples = childLevel2.scenario.examples.flatMap((val: any) => (val.tableBody)).find((item: any) => item.id == examplesId).cells.map((val: any) => (val.value))
+                }
+            })
+        } else if (child.scenario && child.scenario.id == pickleId && child.scenario.examples) {
+            // handle if scenario outside rule
+            examples = child.scenario.examples.flatMap((val: any) => (val.tableBody)).find((item: any) => item.id == examplesId).cells.map((val: any) => (val.value))
+        }
+    })
+
+    if (examples.length) {
+        return scenario.name + ' (' + examples.join(', ')  + ' )'
+    }
+    return scenario.name
 }

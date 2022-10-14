@@ -14,3 +14,5 @@ export const VALID_APP_EXTENSION = [
     '.aab',
     '.ipa'
 ]
+
+export const DATA_ENDPOINT = process.env.LOCAL_API_HOST // TODO: update to browserstack prod before raising pr

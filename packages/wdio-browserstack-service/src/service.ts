@@ -1,12 +1,15 @@
 import logger from '@wdio/logger'
 import got from 'got'
+import stripAnsi from 'strip-ansi'
 import type { Services, Capabilities, Options, Frameworks } from '@wdio/types'
 import type { Browser, MultiRemoteBrowser } from 'webdriverio'
 
-import { getBrowserDescription, getBrowserCapabilities, isBrowserstackCapability, getParentSuiteName, getUniqueIdentifier, getCloudProvider } from './util';
+import { getBrowserDescription, getBrowserCapabilities, isBrowserstackCapability, getParentSuiteName, getUniqueIdentifier, getCloudProvider, getUniqueIdentifierForCucumber, getScenarioNameWithExamples } from './util'
 import { BrowserstackConfig, MultiRemoteAction, SessionResponse } from './types'
+import path from 'path'
 import { v4 as uuidv4 } from 'uuid'
-import { uploadEventData } from './util'
+import { DATA_ENDPOINT } from './constants'
+// import { requestTracer, requestRestore } from './request-tracer'
 
 const log = logger('@wdio/browserstack-service')
 
@@ -35,6 +38,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
 
         if (this._observability) {
             this._tests = {}
+            // this._config.reporters ? this._config.reporters.push(path.join(__dirname, 'reporter.js')) : [path.join(__dirname, 'reporter.js')]
             this._cloudProvider = getCloudProvider(_config)
             this._framework = _config.framework
         }
@@ -88,6 +92,43 @@ export default class BrowserstackService implements Services.ServiceInstance {
 
         this._observability = true // TODO: update later as per args
         if (this._observability) {
+            // capture requests
+            // requestTracer((error: any, requestData: any) => {
+            //     console.log('========')
+            //     console.log(require('util').inspect(requestData, { depth: null }))
+            //     console.log('========')
+
+            //     // if (requestData && !(requestData.headers && requestData.headers['X-BSTACK-TESTOPS'] == 'true')) {
+            //     // process.emit('bs:addLog', {
+            //     //     test_run_uuid: this._tests[getUniqueIdentifier(this._currentTest)].uuid,
+            //     //     timestamp: new Date().toISOString(),
+            //     //     kind: 'HTTP',
+            //     //     http_response: requestData
+            //     // })
+
+            //     let log = {
+            //         test_run_uuid: this._tests[getUniqueIdentifier(this._currentTest)].uuid,
+            //         timestamp: new Date().toISOString(),
+            //         kind: 'HTTP',
+            //         http_response: requestData
+            //     }
+
+            //     this.uploadEventData({
+            //         event_type: 'LogCreated',
+            //         logs: [log]
+            //     })
+
+            //     // }
+
+            //     // if (requestData && requestData.hostname.includes('browserstack.com')) {
+            //     //     this._cloudProvider = 'browserstack'
+            //     // } else if (requestData && requestData.hostname.includes('localhost')) {
+            //     //     this._cloudProvider = 'local'
+            //     // } else {
+            //     //     this._cloudProvider = 'UNKNOWN'
+            //     // }
+            // })
+
             if (this._browser) {
                 // get platform details
                 let browserCaps: any = getBrowserCapabilities(this._browser, (this._caps as Capabilities.MultiRemoteCapabilities))
@@ -109,31 +150,26 @@ export default class BrowserstackService implements Services.ServiceInstance {
         this._fullTitle = suite.title
     }
 
-    beforeFeature(uri: unknown, feature: { name: string }) {
-        this._fullTitle = feature.name
-        return this._updateJob({ name: this._fullTitle })
-    }
-
     beforeCommand(commandName: string, args: any[]) {
     }
 
     async afterCommand(commandName: string, args: any[], result: any, error?: Error) {
         if (this._observability && this._currentTest && commandName == 'takeScreenshot'){
             let log: any = {
-                test_run_uuid: this._tests[getUniqueIdentifier(this._currentTest)].uuid,
+                test_run_uuid: this._tests[getUniqueIdentifier(this._currentTest)].uuid, // handle for cucumber
                 timestamp: new Date().toISOString(),
                 message: result,
                 kind: 'TEST_SCREENSHOT'
             }
 
-            await uploadEventData({
+            this.uploadEventData({
                 event_type: 'LogCreated',
                 logs: [log]
             })
         }
     }
 
-    async beforeTest(test: Frameworks.Test, context: any) {
+    beforeTest(test: Frameworks.Test, context: any) {
         this._currentTest = test
         if (this._observability) {
             let fullTitle = `${test.parent} - ${test.title}`
@@ -142,11 +178,11 @@ export default class BrowserstackService implements Services.ServiceInstance {
                 startedAt: (new Date()).toISOString(),
                 finishedAt: null
             }
-            await this.sendTestRunEvent(test, 'TestRunStarted')
+            this.sendTestRunEvent(test, 'TestRunStarted')
         }
     }
 
-    async afterTest(test: Frameworks.Test, context: never, results: Frameworks.TestResult) {
+    afterTest(test: Frameworks.Test, context: never, results: Frameworks.TestResult) {
         const { error, passed } = results
 
         // Jasmine
@@ -175,7 +211,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
                     finishedAt: (new Date()).toISOString()
                 }
             }
-            await this.sendTestRunEvent(test, 'TestRunFinished', results)
+            this.sendTestRunEvent(test, 'TestRunFinished', results)
         }
     }
 
@@ -201,6 +237,10 @@ export default class BrowserstackService implements Services.ServiceInstance {
 
         const hasReasons = Boolean(this._failReasons.filter(Boolean).length)
 
+        if (this._observability) {
+            // requestRestore()
+        }
+
         return this._updateJob({
             status: result === 0 ? 'passed' : 'failed',
             name: this._fullTitle,
@@ -211,7 +251,58 @@ export default class BrowserstackService implements Services.ServiceInstance {
     /**
      * For CucumberJS
      */
-    afterScenario (world: Frameworks.World) {
+
+    beforeFeature(uri: unknown, feature: { name: string }) {
+        this._fullTitle = feature.name
+        return this._updateJob({ name: this._fullTitle })
+    }
+
+    afterFeature(uri: string, feature: any) {
+    }
+
+    beforeScenario (world: any) {
+
+        if (this._observability) {
+            let pickleData = world.pickle
+            let featureData: any
+            let gherkinDocument = world.gherkinDocument
+            if (gherkinDocument) {
+                featureData = gherkinDocument.feature
+            }
+
+            let testData: any = {}
+
+            if (pickleData) {
+                testData['scenario'] = {
+                    name: pickleData.name,
+                }
+            }
+
+            if (gherkinDocument && featureData) {
+                testData['feature'] = {
+                    path: gherkinDocument.uri,
+                    name: featureData.name,
+                    description: featureData.description,
+                }
+            }
+
+            let uniqueId = getUniqueIdentifierForCucumber(world)
+
+            let testMetaData = {
+                uuid: uuidv4(),
+                started_at: (new Date()).toISOString(),
+                finishedAt: null,
+                ...testData
+            }
+            this._tests[uniqueId] = testMetaData
+
+            if (this._observability) {
+                this.sendTestRunEventForCucumber(world, 'TestRunStarted')
+            }
+        }
+    }
+
+    afterScenario (world: any) {
         const status = world.result?.status.toLowerCase()
         if (status !== 'skipped') {
             this._scenariosThatRan.push(world.pickle.name || 'unknown pickle name')
@@ -227,6 +318,40 @@ export default class BrowserstackService implements Services.ServiceInstance {
             )
 
             this._failReasons.push(exception)
+        }
+
+        if (this._observability) {
+            this.sendTestRunEventForCucumber(world, 'TestRunFinished')
+        }
+    }
+
+    beforeStep (step: any, scenario: any) {
+    }
+
+    afterStep (step: any, scenario: any, result: any) {
+        if (this._observability) {
+            let uniqueId = getUniqueIdentifierForCucumber({ pickle: scenario })
+            // console.log(`uniqueId=${uniqueId}`)
+            let testMetaData = this._tests[uniqueId]
+            if (!testMetaData) {
+                testMetaData = {
+                    steps: []
+                }
+            }
+
+            if (testMetaData && !testMetaData['steps']) {
+                testMetaData['steps'] = []
+            }
+
+            testMetaData['steps'].push({
+                text: step.text,
+                keyword: step.keyword,
+                result: result.passed ? 'PASSED' : 'FAILED',
+                duration: result.duration,
+                failure: result.error ? stripAnsi(result.error) : result.error
+            })
+
+            this._tests[uniqueId] = testMetaData
         }
     }
 
@@ -328,7 +453,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
         })
     }
 
-    async sendTestRunEvent (test: Frameworks.Test, eventType: string, results?: Frameworks.TestResult) {
+    sendTestRunEvent (test: Frameworks.Test, eventType: string, results?: Frameworks.TestResult) {
         let fullTitle = getUniqueIdentifier(test)
         let testMetaData = this._tests[fullTitle]
 
@@ -348,7 +473,6 @@ export default class BrowserstackService implements Services.ServiceInstance {
             started_at: testMetaData.startedAt,
             finished_at: testMetaData.finishedAt,
             framework: this._framework
-            // 'retry_of': test.retryOf, // can you results.retries? (retries: { attempts: 0, limit: 0 })
         }
 
         if (eventType == 'TestRunFinished' && results != null) {
@@ -356,9 +480,9 @@ export default class BrowserstackService implements Services.ServiceInstance {
             if (!passed) {
                 testData['result'] = 'failed'
                 if (error) {
-                    testData['failure'] = [{ backtrace: [error.message] }] // add all errors here
-                    testData['failure_reason'] = error.message
-                    testData['failure_type'] = error.message!=null ? null : error.message.toString().match(/AssertionError/) ? 'AssertionError' : 'UnhandledError' //verify if this is working
+                    testData['failure'] = [{ backtrace: [stripAnsi(error.message)] }] // add all errors here
+                    testData['failure_reason'] = stripAnsi(error.message)
+                    testData['failure_type'] = error.message == null ? null : error.message.toString().match(/AssertionError/) ? 'AssertionError' : 'UnhandledError' //verify if this is working
                 }
             } else {
                 testData['result'] = 'passed'
@@ -385,6 +509,197 @@ export default class BrowserstackService implements Services.ServiceInstance {
             event_type: eventType,
             test_run: testData
         }
-        await uploadEventData(uploadData)
+        this.uploadEventData(uploadData)
+    }
+
+    sendTestRunEventForCucumber (world: any, eventType: string) {
+        let uniqueId = getUniqueIdentifierForCucumber(world)
+
+        let testMetaData = this._tests[uniqueId]
+        if (!testMetaData) testMetaData = {}
+
+        if (world.result) {
+            let result: string = world.result.status.toLowerCase()
+            testMetaData['finished_at'] = (new Date()).toISOString()
+            testMetaData['result'] = result
+            testMetaData['duration_in_ms'] = world.result.duration.nanos / 1000000 // send duration in ms
+
+            if (result == 'failed') {
+                testMetaData['failure'] = [
+                    {
+                        'backtrace': [world.result.message ? stripAnsi(world.result.message) : world.result.message]
+                    }
+                ],
+                testMetaData['failure_reason'] = world.result.message ? stripAnsi(world.result.message) : world.result.message,
+                testMetaData['failure_type'] = world.result.message == undefined ? null : world.result.message.toString().match(/AssertionError/) ? 'AssertionError' : 'UnhandledError'
+            }
+        }
+
+        if (world.pickle) {
+            testMetaData['tags'] = world.pickle.tags.map( ({ name }: { name: string }) => (name) )
+        }
+
+        const { feature, scenario, steps } = testMetaData
+
+        let fullNameWithExamples: string = getScenarioNameWithExamples(world)
+
+        let testData: any = {
+            ...testMetaData,
+            type: 'test',
+            body: {
+                lang: 'webdriverio',
+                code: null
+            },
+            name: fullNameWithExamples,
+            scope: fullNameWithExamples,
+            scopes: [testMetaData.feature.name],
+            identifier: testMetaData.scenario.name,
+            file_name: testMetaData.feature.path,
+            location: testMetaData.feature.path,
+            framework: this._framework,
+            meta: {
+                feature: feature,
+                scenario: scenario,
+                steps: steps
+            }
+        }
+
+        if (eventType == 'TestRunStarted') {
+            if (this._platformMeta) {
+                let provider = this._cloudProvider ? this._cloudProvider : 'UNKNOWN'
+                testData['integrations'] = {}
+                testData['integrations'][provider] = {
+                    'capabilities': this._platformMeta.caps,
+                    'session_id': this._platformMeta.sessionId,
+                    'browser': this._platformMeta.browserName,
+                    'browser_version': this._platformMeta.browserVersion,
+                    'platform': this._platformMeta.platformName,
+                }
+            }
+        }
+
+        delete testData['feature']
+        // delete testData['tags']
+        delete testData['scenario']
+        delete testData['steps']
+
+        let uploadData: any = {
+            event_type: eventType,
+            test_run: testData
+        }
+        this.uploadEventData(uploadData)
+    }
+
+    async uploadEventData (eventData: any) {
+        const logTag = 'TestRunStarted'
+        // logTag = {
+        //     ['TestRunStarted']: 'Test_Upload',
+        //     ['TestRunFinished']: 'Test_Upload',
+        //     ['LogCreated']: 'Log_Upload',
+        //     ['HookRunStarted']: 'Hook_Upload',
+        //     ['HookRunFinished']: 'Hook_Upload',
+        // }[eventData.eventType]
+
+        // if (run === 0) pendingTestUploads += 1
+
+        if (process.env.BS_TESTOPS_BUILD_COMPLETED) {
+            if (!process.env.BS_TESTOPS_JWT) {
+                console.log(`[${logTag}] Missing Authentication Token/ Build ID`)
+                // pendingTestUploads = Math.max(0, pendingTestUploads-1);
+                return {
+                    status: 'error',
+                    message: 'Token/buildID is undefined, build creation might have failed'
+                }
+            }
+            const config = {
+                headers: {
+                    'Authorization': `Bearer ${process.env.BS_TESTOPS_JWT}`,
+                    'Content-Type': 'application/json',
+                    'X-BSTACK-OBS': 'true'
+                },
+                timeout: {
+                    // request: 60000
+                },
+                // agent: httpKeepAliveAgent
+            }
+
+            try {
+                // const response: any = await nodeRequest('POST', 'api/v1/event', data, config)
+                // console.log(`${DATA_ENDPOINT}/api/v1/event`)
+                let url = `http://${DATA_ENDPOINT}/api/v1/event`
+                let response: any
+                try {
+                    // response = await got.post(url, { json: eventData, ...config })
+
+                    const readStream: any = got.post(url, { json: eventData, ...config }).json()
+                    const onError = (error: any) => {
+                        console.log('inside onError')
+                        console.log(error)
+                        // Do something with it.
+                    }
+
+                    readStream.on('response', async (response: any) => {
+                        console.log('inside onResponse')
+                        if (response.headers.age > 3600) {
+                            console.log('Failure - response too old')
+                            // readStream.destroy() // Destroy the stream to prevent hanging resources.
+                            return
+                        }
+
+                        // Prevent `onError` being called twice.
+                        // readStream.off('error', onError)
+
+                        try {
+                            // console.log(readStream.json())
+                            console.log(`[${logTag}] Browserstack TestOps success response: ${response}`)
+                            // console.log(`[${logTag}] run[${run}] Browserstack TestOps success response: ${JSON.stringify(response.data)}`)
+                            // await pipeline(
+                            //     readStream,
+                            //     createWriteStream('image.png')
+                            // )
+                            console.log('Success')
+                        } catch (error) {
+                            onError(error)
+                        }
+                    })
+                    // readStream.once('error', onError)
+                } catch (error) {
+                    console.log(error)
+                    // console.error(error.response.statusCode)
+                }
+                // if (response.data.error) {
+                //     throw ({ message: response.data.error })
+                // } else {
+                // console.log(`[${logTag}] run[${run}] Browserstack TestOps success response: ${JSON.stringify(response.data)}`)
+                // pendingTestUploads = Math.max(0,pendingTestUploads-1)
+                // return {
+                //     status: 'success',
+                //     message: ''
+                // }
+                // }
+            } catch (error: any) {
+                console.log(error)
+                // if (error.response) {
+                //     console.log(`[${logTag}] Browserstack TestOps error response: ${error.response.status} ${error.response.statusText} ${JSON.stringify(error.response.data)}`)
+                // } else {
+                //     console.log(`[${logTag}] Browserstack TestOps error: ${error.message || error}`)
+                // }
+                // // pendingTestUploads = Math.max(0, pendingTestUploads - 1)
+                // return {
+                //     status: 'error',
+                //     message: error.message || (error.response ? `${error.response.status}:${error.response.statusText}` : error)
+                // }
+            }
+        }
+        // else if (run >= 5) {
+        //     console.log(`[${logTag}] BuildStart is not completed and ${logTag} retry runs exceeded`)
+        //     // pendingTestUploads = Math.max(0, pendingTestUploads - 1)
+        //     return {
+        //         status: 'error',
+        //         message: 'Retry runs exceeded'
+        //     }
+        // } else {
+        //     setTimeout(function(){ exports.uploadEventData(eventData, run+1) }, 1000)
+        // }
     }
 }
