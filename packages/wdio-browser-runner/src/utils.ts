@@ -1,4 +1,5 @@
 import fs from 'node:fs/promises'
+import got from 'got'
 
 import { EVENTS } from './constants.js'
 import type { Environment } from './types'
@@ -11,6 +12,8 @@ export async function getTemplate (cid: string, env: Environment, spec: string) 
     )).join('\n')
 
     const testScript = await fs.readFile(spec, 'utf-8')
+    const vueScript = await (await got('https://unpkg.com/vue@3.2.40/dist/vue.global.prod.js')).body
+    const vueCompilerScript = await (await got('https://unpkg.com/@vue/compiler-dom@3.2.40/dist/compiler-dom.global.prod.js')).body
 
     return /* html */`
     <!doctype html>
@@ -18,6 +21,17 @@ export async function getTemplate (cid: string, env: Environment, spec: string) 
         <head>
             <title>WebdriverIO Browser Test</title>
             <link rel="stylesheet" href="https://unpkg.com/mocha@10.0.0/mocha.css">
+            <script type="module">
+                ${vueScript}
+                window.Vue = Vue
+            </script>
+            <script type="module">
+                ${vueCompilerScript}
+                window.VueCompilerDOM = VueCompilerDOM
+            </script>
+            <script type="module">
+            window.Symbol.for = (a) => a
+            </script>
         </head>
         <body>
             <div id="mocha"></div>

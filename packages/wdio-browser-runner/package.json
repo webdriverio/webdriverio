@@ -27,12 +27,16 @@
   "types": "./build/index.d.ts",
   "typeScriptVersion": "3.8.3",
   "dependencies": {
+    "@esbuild-plugins/node-globals-polyfill": "^0.1.1",
+    "@originjs/vite-plugin-commonjs": "^1.0.3",
+    "@sveltejs/vite-plugin-svelte": "^1.0.9",
     "@vitejs/plugin-vue": "^3.1.2",
     "@wdio/logger": "7.19.0",
     "@wdio/mocha-framework": "^7.20.7",
     "@wdio/runner": "7.20.7",
     "@wdio/types": "7.20.7",
     "get-port": "^6.1.2",
+    "got": "^12.5.2",
     "vite": "^3.1.7"
   },
   "peerDependencies": {

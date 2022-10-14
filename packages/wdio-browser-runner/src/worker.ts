@@ -58,6 +58,7 @@ export default class SessionWorker extends EventEmitter {
             for (const spec of specs) {
                 log.info(`Run spec file ${spec} for cid ${this.#args.cid}`)
                 await browser.url(`/test.html?cid=${this.#args.cid}&spec=${spec}`)
+                await browser.debug()
                 failures += await this.#fetchEvents(browser, reporter, spec)
             }
 

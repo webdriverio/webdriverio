@@ -1,8 +1,11 @@
 import logger from '@wdio/logger'
 import getPort from 'get-port'
 import vue from '@vitejs/plugin-vue'
+import { svelte } from '@sveltejs/vite-plugin-svelte'
 import { createServer, ViteDevServer } from 'vite'
 import { remote, Browser } from 'webdriverio'
+import { esbuildCommonjs } from '@originjs/vite-plugin-commonjs'
+import { NodeGlobalsPolyfillPlugin } from '@esbuild-plugins/node-globals-polyfill'
 import type { Capabilities, Options } from '@wdio/types'
 
 import SessionWorker from './worker.js'
@@ -16,7 +19,7 @@ export default class LocalRunner {
     #server?: ViteDevServer
     $browserPool: Map<number, Promise<Browser<'async'>>> = new Map()
 
-    constructor (
+    constructor(
         configFile: unknown,
         config: Options.Testrunner
     ) {
@@ -26,7 +29,7 @@ export default class LocalRunner {
     /**
      * nothing to initialise when running locally
      */
-    async initialise () {
+    async initialise() {
         const root = process.cwd()
 
         log.info('Initiate browser environment')
@@ -38,8 +41,25 @@ export default class LocalRunner {
                 server: { port, host: 'localhost' },
                 plugins: [
                     testrunner(root),
-                    vue()
-                ]
+                    vue(),
+                    svelte()
+                ],
+                optimizeDeps: {
+                    esbuildOptions: {
+                        // Node.js global to browser globalThis
+                        define: {
+                            global: 'globalThis',
+                        },
+                        // Enable esbuild polyfill plugins
+                        plugins: [
+                            NodeGlobalsPolyfillPlugin({
+                                process: true,
+                                buffer: true
+                            }),
+                            esbuildCommonjs(['@testing-library/vue'])
+                        ],
+                    },
+                }
             })
             await this.#server.listen()
             log.info(`Vite server started successfully on port ${port}, root directory: ${root}`)
@@ -48,11 +68,11 @@ export default class LocalRunner {
         }
     }
 
-    getWorkerCount () {
+    getWorkerCount() {
         return Object.keys(this.$browserPool).length
     }
 
-    async run (args: RunArgs) {
+    async run(args: RunArgs) {
         if (!(args.caps as Capabilities.Capabilities).browserName) {
             throw new Error('Multiremote capabilities are not supported when running in the browser')
         }
@@ -75,7 +95,7 @@ export default class LocalRunner {
         return worker
     }
 
-    #initSession (args: RunArgs): Promise<Browser<'async'>> {
+    #initSession(args: RunArgs): Promise<Browser<'async'>> {
         try {
             log.info('Initiate browser session')
             return remote({
@@ -87,7 +107,7 @@ export default class LocalRunner {
         }
     }
 
-    async closeSession (cid: number) {
+    async closeSession(cid: number) {
         const browser = await this.$browserPool.get(cid)
         if (!browser) {
             return
@@ -101,7 +121,7 @@ export default class LocalRunner {
      *
      * @return {Promise}  resolves when vite server has been shutdown
      */
-    async shutdown () {
+    async shutdown() {
         if (this.#server) {
             log.info('Shutting down Vite server')
             await this.#server.close()
