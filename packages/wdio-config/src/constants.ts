@@ -95,7 +95,7 @@ export const SUPPORTED_HOOKS: (keyof Services.Hooks)[] = [
 ]
 
 export const SUPPORTED_FILE_EXTENSIONS = [
-    '.js', '.mjs', '.es6', '.ts', '.feature', '.coffee', '.cjs'
+    '.js', '.mjs', '.es6', '.ts', '.tsx', '.feature', '.coffee', '.cjs'
 ]
 
 export const NO_NAMED_CONFIG_EXPORT = (

@@ -1,4 +1,3 @@
-import fs from 'node:fs/promises'
 import got from 'got'
 
 import { EVENTS } from './constants.js'
@@ -11,7 +10,6 @@ export async function getTemplate (cid: string, env: Environment, spec: string) 
         })`
     )).join('\n')
 
-    const testScript = await fs.readFile(spec, 'utf-8')
     const vueScript = await (await got('https://unpkg.com/vue@3.2.40/dist/vue.global.prod.js')).body
     const vueCompilerScript = await (await got('https://unpkg.com/@vue/compiler-dom@3.2.40/dist/compiler-dom.global.prod.js')).body
 
@@ -38,9 +36,8 @@ export async function getTemplate (cid: string, env: Environment, spec: string) 
         </head>
         <body>
             <div id="mocha"></div>
+            <script type="module" src="${spec}"></script>
             <script type="module">
-                ${testScript}
-
                 import { formatMessage } from '@wdio/mocha-framework/common'
 
                 window.__wdioEvents__ = []
