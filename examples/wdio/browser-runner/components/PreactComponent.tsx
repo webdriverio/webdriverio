@@ -1,7 +1,12 @@
+// eslint-disable-next-line no-unused-vars
 import { h } from 'preact'
 import { useState } from 'preact/hooks'
 
-export function Counter({ initialCount }) {
+interface Props {
+    initialCount: number
+}
+
+export function Counter({ initialCount }: Props) {
     const [count, setCount] = useState(initialCount)
     const increment = () => setCount(count + 1)
 
