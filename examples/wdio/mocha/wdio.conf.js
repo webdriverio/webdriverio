@@ -4,17 +4,17 @@ exports.config = {
     /**
      * specify test files
      */
-    specs: [
-        path.resolve(__dirname, 'mocha.test.js')
-    ],
-
+    specs: [path.resolve(__dirname, 'mocha.test.js')],
+    waitforTimeout: 10,
     /**
      * capabilities
      */
-    capabilities: [{
-        browserName: 'chrome',
-        acceptInsecureCerts: true
-    }],
+    capabilities: [
+        {
+            browserName: 'chrome',
+            acceptInsecureCerts: true,
+        },
+    ],
 
     /**
      * test configurations
@@ -27,18 +27,18 @@ exports.config = {
 
     mochaOpts: {
         ui: 'bdd',
-        timeout: 15000
+        timeout: 15000,
     },
 
     /**
      * hooks
      */
-    onPrepare: function() {
+    onPrepare: function () {
         // eslint-disable-next-line
-        console.log('let\'s go')
+        console.log("let's go");
     },
-    onComplete: function() {
+    onComplete: function () {
         // eslint-disable-next-line
-        console.log('that\'s it')
-    }
+        console.log("that's it");
+    },
 }

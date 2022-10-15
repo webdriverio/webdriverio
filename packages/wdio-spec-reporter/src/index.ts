@@ -342,14 +342,42 @@ export default class SpecReporter extends WDIOReporter {
                     .map((l) => `${suiteIndent}${chalk.grey(l.trim())}`))
             }
 
-            const eventsToReport = this.getEventsToReport(suite)
+            const eventsToReport: any = this.getEventsToReport(suite)
+
+            eventsToReport.forEach((event: any, index:number, array: any)=>{
+                const previousEvent = index - 1
+
+                if (index ===0){
+                    return
+                }
+                if (event.retries === 0 && array[previousEvent].retries === 0) {
+                    return
+                }
+                if (event.retries > 0) {
+                    event.title = `${event.title} (retries: ${event.retries})`
+                }
+
+                if (event.retries === 0 && array[previousEvent].retries > 0) {
+                    const maxRetries = array[previousEvent].retries
+                    // array[previousEvent].title = `${array[previousEvent].title} (retries: ${maxRetries})`
+                    for (let i = 1; i <= maxRetries; i++) {
+                        array[previousEvent-i].isTitlePrintable = false
+                    }
+
+                }
+
+            })
+
             for (const test of eventsToReport) {
                 const testTitle = test.title
                 const state = test.state
                 const testIndent = `${DEFAULT_INDENT}${suiteIndent}`
+                const isPrintable = test.isTitlePrintable
 
                 // Output for a single test
-                output.push(`${testIndent}${chalk[this.getColor(state)](this.getSymbol(state))} ${testTitle}`)
+                if (isPrintable===undefined || isPrintable!==false){
+                    output.push(`${testIndent}${chalk[this.getColor(state)](this.getSymbol(state))} ${testTitle}`)
+                }
 
                 // print cucumber data table cells
                 const args = (test as TestStats).argument as Argument
