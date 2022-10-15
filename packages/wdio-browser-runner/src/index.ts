@@ -1,7 +1,8 @@
 import logger from '@wdio/logger'
 import getPort from 'get-port'
 import vue from '@vitejs/plugin-vue'
-import preact from '@preact/preset-vite'
+import react from '@vitejs/plugin-react'
+// import preact from '@preact/preset-vite'
 import { svelte } from '@sveltejs/vite-plugin-svelte'
 import { createServer, ViteDevServer } from 'vite'
 import { remote, Browser } from 'webdriverio'
@@ -44,7 +45,17 @@ export default class LocalRunner {
                     testrunner(root),
                     vue(),
                     svelte(),
-                    preact()
+                    // preact(),
+                    react({
+                        babel: {
+                            assumptions: {
+                                setPublicClassFields: true
+                            },
+                            parserOpts: {
+                                plugins: ['decorators-legacy', 'classProperties']
+                            }
+                        }
+                    })
                 ],
                 optimizeDeps: {
                     esbuildOptions: {

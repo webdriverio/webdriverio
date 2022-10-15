@@ -8,6 +8,7 @@
     "resolveJsonModule": true,
     "removeComments": false,
     "strictFunctionTypes": false,
+    "experimentalDecorators": true,
     "esModuleInterop": true,
     "moduleResolution": "Node",
     "module": "ESNext",
