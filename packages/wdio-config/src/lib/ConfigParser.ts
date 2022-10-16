@@ -223,11 +223,11 @@ export default class ConfigParser {
             }
 
             // Allow --suite and --spec to both be defined on the command line
-            let tmpSpecs = isSpecParamPassed ? [...specs, ...suiteSpecs] : suiteSpecs
-
-            // Remove any duplicate tests from the final specs array
-            specs = [...new Set(tmpSpecs)]
+            specs = isSpecParamPassed ? [...specs, ...suiteSpecs] : suiteSpecs
         }
+
+        // Remove any duplicate tests from the final specs array
+        specs = [...new Set(specs)]
 
         return this.filterSpecs(specs, <string[]>exclude)
     }
