@@ -93,7 +93,7 @@
     "husky": "^8.0.1",
     "inquirer": "^9.1.2",
     "jsdom": "^20.0.0",
-    "lerna": "^5.5.2",
+    "lerna": "^6.0.1",
     "lerna-changelog": "^2.2.0",
     "markdox": "^0.1.10",
     "mime-types": "^2.1.35",
