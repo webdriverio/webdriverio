@@ -429,5 +429,6 @@ export function getScenarioNameWithExamples(world: any): string {
 
 export function removeAnsiColors(message: string): string {
     // https://stackoverflow.com/a/29497680
+    // eslint-disable-next-line no-control-regex
     return message.replace(/[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g, '')
 }
