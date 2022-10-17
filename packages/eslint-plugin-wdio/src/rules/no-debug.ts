@@ -7,7 +7,7 @@ const rule: Rule.RuleModule = {
         docs: {
             description: 'Disallow browser.debug() in tests',
             category: 'Possible Errors',
-            url: 'https://github.com/webdriverio/packages/eslint-plugin-wdio/docs/rules/no-debug.md',
+            url: 'https://github.com/webdriverio/webdriverio/blob/main/packages/eslint-plugin-wdio/docs/rules/no-debug.md',
             recommended: false,
         },
         messages: {
