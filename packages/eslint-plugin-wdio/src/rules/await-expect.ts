@@ -9,7 +9,7 @@ const rule: Rule.RuleModule = {
         docs: {
             description: 'expect must be prefixed with await',
             category: 'Possible Errors',
-            url: 'https://github.com/webdriverio/packages/eslint-plugin-wdio/docs/rules/await-expect.md',
+            url: 'https://github.com/webdriverio/webdriverio/blob/main/packages/eslint-plugin-wdio/docs/rules/await-expect.md',
             recommended: false,
         },
         messages: {
