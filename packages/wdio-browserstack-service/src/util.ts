@@ -4,16 +4,13 @@ import type { Capabilities } from '@wdio/types'
 import { BROWSER_DESCRIPTION, DATA_ENDPOINT } from './constants'
 
 import got from 'got'
-// import { ClientRequest } from 'http'
 import { hostname, platform, type, version, arch } from 'os'
-import { Agent } from 'http'
-import request from 'request'
+// import { Agent } from 'http'
 import { promisify } from 'util'
-// import { Repository } from 'nodegit'
+import { Repository } from 'nodegit'
 import gitRepoInfo from 'git-repo-info'
 import gitconfig from 'gitconfiglocal'
 import { Frameworks } from '@wdio/types'
-import { Options } from '@wdio/types'
 
 const pGitconfig = promisify(gitconfig)
 
@@ -108,27 +105,18 @@ export async function launchTestSession (userConfig: any) {
         },
         'ci_info': getCiInfo(),
         'failed_tests_rerun': process.env.BROWSERSTACK_TESTOPS_RERUN || false,
-        // 'version_control': await getGitMetaData()
+        'version_control': await getGitMetaData()
     }
     const config = {
-        // auth: {
-        //     username: userConfig.username,
-        //     password: userConfig.password
-        // },
         username: userConfig.username,
         password: userConfig.password,
         headers: {
             'Content-Type': 'application/json',
             'X-BSTACK-OBS': 'true'
         },
-        timeout: {
-            // request: 60000
-        },
-        // agent: httpKeepAliveAgent
     }
 
     try {
-        // const response: any = await nodeRequest('POST', 'api/v1/builds', data, config)
         let url = `http://${DATA_ENDPOINT}/api/v1/builds`
         let response: any
         try {
@@ -154,7 +142,7 @@ export async function launchTestSession (userConfig: any) {
     }
 }
 
-export async function stopBuildUpstream (buildStartWaitRun: number = 0, testUploadWaitRun: number = 0, forceStop: boolean = false) {
+export async function stopBuildUpstream (buildStartWaitRun: number = 0, testUploadWaitRun: number = 0) {
     // if (!forceStop && pending_test_uploads && testUploadWaitRun < 5) {
     //     console.log(`[Stop_Build] Retry ${testUploadWaitRun+1} stopBuildUpstream due to pending event uploads ${pending_test_uploads}`)
     //     setTimeout(function(){ exports.stopBuildUpstream(buildStartWaitRun, testUploadWaitRun+1, false) }, 5000)
@@ -177,14 +165,9 @@ export async function stopBuildUpstream (buildStartWaitRun: number = 0, testUplo
                 'Content-Type': 'application/json',
                 'X-BSTACK-OBS': 'true'
             },
-            timeout: {
-                // request: 60000
-            },
-            // agent: httpKeepAliveAgent
         }
 
         try {
-            // const response: any = await nodeRequest('PUT', `api/v1/builds/${process.env.BS_TESTOPS_BUILD_HASHED_ID}/stop`, data, config)
             let url = `http://${DATA_ENDPOINT}/api/v1/builds/${process.env.BS_TESTOPS_BUILD_HASHED_ID}/stop`
             let response: any
             try {
@@ -220,7 +203,7 @@ export async function stopBuildUpstream (buildStartWaitRun: number = 0, testUplo
     }
 }
 
-const getCiInfo = () => {
+export function getCiInfo () {
     var env = process.env
     // Jenkins
     if ((typeof env.JENKINS_URL === 'string' && env.JENKINS_URL.length > 0) || (typeof env.JENKINS_HOME === 'string' && env.JENKINS_HOME.length > 0)) {
@@ -316,47 +299,47 @@ const getCiInfo = () => {
     return null
 }
 
-// const getGitMetaData = async () => {
-//     var info: any = gitRepoInfo()
-//     if (!info.commonGitDir) return {}
-//     if (!info.author) {
-//         /* commit objects are packed */
-//         const headCommit: any = await Repository.open(info.worktreeGitDir.replace('/.git', '')).then(function(repo: any) {
-//             return repo.getHeadCommit()
-//         })
-//         var author = headCommit.author(), committer = headCommit.committer()
-//         info['author'] = info['author'] || `${author.name()} <${author.email()}>`
-//         info['authorDate'] = info['authorDate'] || '' // TODO
-//         info['committer'] = info['committer'] || `${committer.name()} <${committer.email()}>`
-//         info['committerDate'] = info['committerDate'] || headCommit.date()
-//         info['commitMessage'] = info['commitMessage'] || headCommit.message()
-//     }
-//     const { remote } = await pGitconfig(info.commonGitDir)
-//     const remotes = Object.keys(remote).map(remoteName =>  ({ name: remoteName, url: remote[remoteName]['url'] }))
-//     return {
-//         'name': 'git',
-//         'sha': info['sha'],
-//         'short_sha': info['abbreviatedSha'],
-//         'branch': info['branch'],
-//         'tag': info['tag'],
-//         'committer': info['committer'],
-//         'committer_date': info['committerDate'],
-//         'author': info['author'],
-//         'author_date': info['authorDate'],
-//         'commit_message': info['commitMessage'],
-//         'root': info['root'],
-//         'common_git_dir': info['commonGitDir'],
-//         'worktree_git_dir': info['worktreeGitDir'],
-//         'last_tag': info['lastTag'],
-//         'commits_since_last_tag': info['commitsSinceLastTag'],
-//         'remotes': remotes
-//     }
-// }
+export async function getGitMetaData () {
+    var info: any = gitRepoInfo()
+    if (!info.commonGitDir) return {}
+    if (!info.author) {
+        /* commit objects are packed */
+        const headCommit: any = await Repository.open(info.worktreeGitDir.replace('/.git', '')).then(function(repo: any) {
+            return repo.getHeadCommit()
+        })
+        var author = headCommit.author(), committer = headCommit.committer()
+        info['author'] = info['author'] || `${author.name()} <${author.email()}>`
+        info['authorDate'] = info['authorDate'] || '' // TODO
+        info['committer'] = info['committer'] || `${committer.name()} <${committer.email()}>`
+        info['committerDate'] = info['committerDate'] || headCommit.date()
+        info['commitMessage'] = info['commitMessage'] || headCommit.message()
+    }
+    const { remote } = await pGitconfig(info.commonGitDir)
+    const remotes = Object.keys(remote).map(remoteName =>  ({ name: remoteName, url: remote[remoteName]['url'] }))
+    return {
+        'name': 'git',
+        'sha': info['sha'],
+        'short_sha': info['abbreviatedSha'],
+        'branch': info['branch'],
+        'tag': info['tag'],
+        'committer': info['committer'],
+        'committer_date': info['committerDate'],
+        'author': info['author'],
+        'author_date': info['authorDate'],
+        'commit_message': info['commitMessage'],
+        'root': info['root'],
+        'common_git_dir': info['commonGitDir'],
+        'worktree_git_dir': info['worktreeGitDir'],
+        'last_tag': info['lastTag'],
+        'commits_since_last_tag': info['commitsSinceLastTag'],
+        'remotes': remotes
+    }
+}
 
-const httpKeepAliveAgent = new Agent({
-    keepAlive: true,
-    timeout: 60000
-})
+// const httpKeepAliveAgent = new Agent({
+//     keepAlive: true,
+//     timeout: 60000
+// })
 
 export function getUniqueIdentifier(test: Frameworks.Test): string {
     // if (test.fullName) {
@@ -416,7 +399,7 @@ export function getScenarioNameWithExamples(world: any): string {
     let scenario: any = world.pickle
 
     // no examples present
-    if (scenario.astNodeIds == 1) return scenario.name
+    if ((scenario.astNodeIds && scenario.astNodeIds.length <= 1) || scenario.astNodeIds == undefined) return scenario.name
 
     let pickleId: string = scenario.astNodeIds[0]
     let examplesId: string = scenario.astNodeIds[1]
@@ -439,7 +422,12 @@ export function getScenarioNameWithExamples(world: any): string {
     })
 
     if (examples.length) {
-        return scenario.name + ' (' + examples.join(', ')  + ' )'
+        return scenario.name + ' (' + examples.join(', ')  + ')'
     }
     return scenario.name
+}
+
+export function removeAnsiColors(message: string): string {
+    // https://stackoverflow.com/a/29497680
+    return message.replace(/[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g, '')
 }

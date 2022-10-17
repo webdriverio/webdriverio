@@ -338,7 +338,8 @@ describe('constructor', () => {
     const config = {
         user: 'foobaruser',
         key: '12345',
-        capabilities: []
+        capabilities: [],
+        specs: []
     }
 
     it('should add the "browserstack.wdioService" property to an array of capabilities if no "bstack:options"', async () => {
@@ -369,6 +370,19 @@ describe('constructor', () => {
             { 'bstack:options': { wdioService: bstackServiceVersion }, 'moz:firefoxOptions': {} },
             { 'bstack:options': { wdioService: bstackServiceVersion }, 'goog:chromeOptions': {} }
         ])
+    })
+
+    it('update spec list if it is a rerun', async () => {
+        process.env.BROWSERSTACK_TESTOPS_RERUN = 'true'
+        process.env.BROWSERSTACK_TESTOPS_TESTS = 'demo1.test.js,demo2.test.js'
+
+        const caps: any = [{ 'bstack:options': {} }, { 'bstack:options': {} }]
+        new BrowserstackLauncher(options, caps, config)
+
+        expect(config.specs).toEqual(['demo1.test.js', 'demo2.test.js'])
+
+        delete process.env.BROWSERSTACK_TESTOPS_RERUN
+        delete process.env.BROWSERSTACK_TESTOPS_TESTS
     })
 })
 

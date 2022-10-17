@@ -4,7 +4,16 @@ import {
     getBrowserDescription,
     getBrowserCapabilities,
     isBrowserstackCapability,
-    getParentSuiteName
+    getParentSuiteName,
+    getCiInfo,
+    getCloudProvider,
+    isBrowserstackSession,
+    getUniqueIdentifier,
+    getUniqueIdentifierForCucumber,
+    getLaunchInfo,
+    removeAnsiColors,
+    getScenarioNameWithExamples,
+    stopBuildUpstream
 } from '../src/util'
 
 describe('getBrowserCapabilities', () => {
@@ -154,5 +163,401 @@ describe('getParentSuiteName', () => {
     it('should handle empty values', () => {
         expect(getParentSuiteName('', 'foo')).toBe('')
         expect(getParentSuiteName('foo', '')).toBe('')
+    })
+})
+
+describe('getCiInfo', () => {
+    describe('should handle if running on CI', () => {
+        beforeEach(() => {
+            process.env.CI = 'true'
+            // process.env.CI_NAME = 'codeship'
+        })
+
+        afterEach(() => {
+            delete process.env.CI
+            // delete process.env.CI_NAME
+        })
+
+        it('should return object if any CI being used - codeship', () => {
+            process.env.CI_NAME = 'codeship'
+            expect(getCiInfo()).toBeInstanceOf(Object)
+            delete process.env.CI_NAME
+        })
+
+        it('should return object if any CI being used - JENKINS', () => {
+            process.env.JENKINS_URL = 'url'
+            expect(getCiInfo()).toBeInstanceOf(Object)
+            delete process.env.JENKINS_URL
+        })
+
+        it('should return object if any CI being used - TRAVIS', () => {
+            process.env.TRAVIS = 'true'
+            expect(getCiInfo()).toBeInstanceOf(Object)
+            delete process.env.TRAVIS
+        })
+
+        it('should return object if any CI being used - CIRCLECI', () => {
+            process.env.CIRCLECI = 'true'
+            expect(getCiInfo()).toBeInstanceOf(Object)
+            delete process.env.CIRCLECI
+        })
+
+        it('should return object if any CI being used - BITBUCKET', () => {
+            process.env.BITBUCKET_BRANCH = 'true'
+            process.env.BITBUCKET_COMMIT = 'true'
+            expect(getCiInfo()).toBeInstanceOf(Object)
+            delete process.env.BITBUCKET_COMMIT
+            delete process.env.BITBUCKET_BRANCH
+        })
+
+        it('should return object if any CI being used - DRONE', () => {
+            process.env.DRONE = 'true'
+            expect(getCiInfo()).toBeInstanceOf(Object)
+            delete process.env.DRONE
+        })
+
+        it('should return object if any CI being used - SEMAPHORE', () => {
+            process.env.SEMAPHORE = 'true'
+            expect(getCiInfo()).toBeInstanceOf(Object)
+            delete process.env.SEMAPHORE
+        })
+
+        it('should return object if any CI being used - GITLAB_CI', () => {
+            process.env.GITLAB_CI = 'true'
+            expect(getCiInfo()).toBeInstanceOf(Object)
+            delete process.env.GITLAB_CI
+        })
+
+        it('should return object if any CI being used - BUILDKITE', () => {
+            process.env.BUILDKITE = 'true'
+            expect(getCiInfo()).toBeInstanceOf(Object)
+            delete process.env.BUILDKITE
+        })
+
+        it('should return object if any CI being used - TF_BUILD', () => {
+            process.env.TF_BUILD = 'True'
+            expect(getCiInfo()).toBeInstanceOf(Object)
+            delete process.env.TF_BUILD
+        })
+    })
+
+    it('should return null if no CI being used', () => {
+        expect(getCiInfo()).toBeNull
+    })
+})
+
+describe('getCloudProvider', () => {
+    it('return UNKNOWN if not able to fetch', () => {
+        expect(getCloudProvider({})).toEqual('UNKNOWN')
+    })
+    it('return Browserstack if test being run on browserstack', () => {
+        expect(getCloudProvider({ options: { hostname: 'hub.browserstack.com' } })).toEqual('Browserstack')
+    })
+
+    it('return Sauce if test being run on SauceLabs', () => {
+        expect(getCloudProvider({ options: { hostname: 'anything-saucelabs.com' } })).toEqual('Sauce')
+    })
+})
+
+describe('isBrowserstackSession', () => {
+    it('return false if run locally', () => {
+        expect(isBrowserstackSession({})).toEqual(false)
+    })
+    it('return false if run on any other cloud service', () => {
+        expect(isBrowserstackSession({ options: { hostname: 'anything-saucelabs.com' } })).toEqual(false)
+    })
+    it('return true if run on Browserstack', () => {
+        expect(isBrowserstackSession({ options: { hostname: 'hub.browserstack.com' } })).toEqual(true)
+    })
+})
+
+describe('getUniqueIdentifier', () => {
+    it('return unique identifier for mocha tests', () => {
+        const test = {
+            parent: 'root-level',
+            title: 'title',
+            fullName: '',
+            ctx: '',
+            type: '',
+            fullTitle: '',
+            pending: false,
+            file: ''
+        }
+        expect(getUniqueIdentifier(test)).toEqual('root-level - title')
+    })
+})
+
+describe('getUniqueIdentifierForCucumber', () => {
+    it('return unique identifier for cucumber tests', () => {
+        const test = {
+            pickle: {
+                uri: 'uri',
+                astNodeIds: ['1', '2']
+            }
+        }
+        expect(getUniqueIdentifierForCucumber(test)).toEqual('uri_1,2')
+    })
+})
+
+describe('getLaunchInfo', () => {
+    it('handle empty caps', () => {
+        const capabilities = {}
+        expect(getLaunchInfo(capabilities)).toEqual([process.cwd(), undefined, undefined])
+    })
+
+    it('handle caps of type object', () => {
+        const capabilities = {
+            'bstack:options': {
+                buildName: 'buildName',
+                projectName: 'projectName',
+                buildTag: 'buildTag'
+            }
+        }
+        expect(getLaunchInfo(capabilities)).toEqual(['buildName', 'projectName', 'buildTag'])
+    })
+
+    it('handle caps of type array', () => {
+        const capabilities = [{
+            'bstack:options': {
+                buildName: 'buildName',
+                projectName: 'projectName',
+                buildTag: 'buildTag'
+            }
+        }]
+        expect(getLaunchInfo(capabilities)).toEqual(['buildName', 'projectName', 'buildTag'])
+    })
+
+    it('handle old way to defined build and project names', () => {
+        const capabilities = {
+            'bstack:options': {
+                build: 'buildName',
+                project: 'projectName',
+                buildTag: 'buildTag'
+            }
+        }
+        expect(getLaunchInfo(capabilities)).toEqual(['buildName', 'projectName', 'buildTag'])
+    })
+})
+
+describe('removeAnsiColors', () => {
+    it('remove color encoding', () => {
+        expect(removeAnsiColors('\x1b[F\x1b[31;1mHello, there!\x1b[m\x1b[E')).toEqual('Hello, there!')
+    })
+})
+
+describe('getScenarioNameWithExamples', () => {
+    it('return just scenario name if no nesting is there', () => {
+        const test = {
+            pickle: {
+                name: 'name',
+                astNodeIds: ['1']
+            }
+        }
+        expect(getScenarioNameWithExamples(test)).toEqual('name')
+    })
+
+    it('return just scenario name if astNodeIds not present', () => {
+        const test = {
+            pickle: {
+                name: 'name'
+            }
+        }
+        expect(getScenarioNameWithExamples(test)).toEqual('name')
+    })
+
+    it('return full scenario name with passed examples', () => {
+        const test = {
+            gherkinDocument: {
+                feature: {
+                    children: [
+                        {
+                            background: {
+                                id: '1',
+                                name: '',
+                            }
+                        },
+                        {
+                            scenario: {
+                                id: '8',
+                                steps: [
+                                    {
+                                        id: '2',
+                                        keyword: 'Given ',
+                                        text: 'the title is <title>',
+                                    },
+                                    {
+                                        id: '3',
+                                        keyword: 'Then ',
+                                        text: 'I expect that element "h1" contains the same text as element ".subtitle"',
+                                    }
+                                ],
+                                examples: [
+                                    {
+                                        id: '7',
+                                        tags: [],
+                                        location: { line: 12, column: 9 },
+                                        keyword: 'Examples',
+                                        name: '',
+                                        description: '',
+                                        tableHeader: {
+                                            id: '4',
+                                            location: { line: 13, column: 13 },
+                                            cells: [
+                                                {
+                                                    location: { line: 13, column: 15 },
+                                                    value: 'title'
+                                                }
+                                            ]
+                                        },
+                                        tableBody: [
+                                            {
+                                                id: '5',
+                                                location: { line: 14, column: 13 },
+                                                cells: [
+                                                    {
+                                                        location: { line: 14, column: 15 },
+                                                        value: 'value1'
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                id: '6',
+                                                location: { line: 15, column: 13 },
+                                                cells: [
+                                                    {
+                                                        location: { line: 15, column: 15 },
+                                                        value: 'value2'
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                },
+            },
+            pickle: {
+                name: 'name',
+                astNodeIds: ['8', '5']
+            }
+        }
+        expect(getScenarioNameWithExamples(test)).toEqual('name (value1)')
+    })
+
+    it('return full scenario name with passed examples if rule present', () => {
+        const test = {
+            gherkinDocument: {
+                feature: {
+                    children: [
+                        {
+                            background: {
+                                id: '1',
+                                name: '',
+                            }
+                        },
+                        {
+                            rule: {
+                                children: [
+                                    {
+                                        scenario: {
+                                            id: '8',
+                                            steps: [
+                                                {
+                                                    id: '2',
+                                                    keyword: 'Given ',
+                                                    text: 'the title is <title>',
+                                                },
+                                                {
+                                                    id: '3',
+                                                    keyword: 'Then ',
+                                                    text: 'I expect that element "h1" contains the same text as element ".subtitle"',
+                                                }
+                                            ],
+                                            examples: [
+                                                {
+                                                    id: '7',
+                                                    tags: [],
+                                                    location: { line: 12, column: 9 },
+                                                    keyword: 'Examples',
+                                                    name: '',
+                                                    description: '',
+                                                    tableHeader: {
+                                                        id: '4',
+                                                        location: { line: 13, column: 13 },
+                                                        cells: [
+                                                            {
+                                                                location: { line: 13, column: 15 },
+                                                                value: 'title'
+                                                            }
+                                                        ]
+                                                    },
+                                                    tableBody: [
+                                                        {
+                                                            id: '5',
+                                                            location: { line: 14, column: 13 },
+                                                            cells: [
+                                                                {
+                                                                    location: { line: 14, column: 15 },
+                                                                    value: 'value1'
+                                                                }
+                                                            ]
+                                                        },
+                                                        {
+                                                            id: '6',
+                                                            location: { line: 15, column: 13 },
+                                                            cells: [
+                                                                {
+                                                                    location: { line: 15, column: 15 },
+                                                                    value: 'value2'
+                                                                }
+                                                            ]
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                },
+            },
+            pickle: {
+                name: 'name',
+                astNodeIds: ['8', '5']
+            }
+        }
+        expect(getScenarioNameWithExamples(test)).toEqual('name (value1)')
+    })
+
+    it('return just scenario name if no examples present', () => {
+        const test = {
+            gherkinDocument: {
+                feature: {
+                    children: []
+                },
+            },
+            pickle: {
+                name: 'name',
+                astNodeIds: ['8', '5']
+            }
+        }
+        expect(getScenarioNameWithExamples(test)).toEqual('name')
+    })
+})
+
+describe('stopBuildUpstream', () => {
+    it('return error if completed but jwt token not present', async () => {
+        process.env.BS_TESTOPS_BUILD_COMPLETED = 'true'
+        delete process.env.BS_TESTOPS_JWT
+
+        const result: any = await stopBuildUpstream()
+
+        delete process.env.BS_TESTOPS_BUILD_COMPLETED
+        expect(result.status).toEqual('error')
+        expect(result.message).toEqual('Token/buildID is undefined, build creation might have failed')
     })
 })

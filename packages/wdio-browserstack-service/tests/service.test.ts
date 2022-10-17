@@ -3,6 +3,7 @@ import logger from '@wdio/logger'
 import type { Browser } from 'webdriverio'
 
 import BrowserstackService from '../src/service'
+import * as utils from '../src/util'
 
 interface GotMock extends jest.Mock {
     put: jest.Mock
@@ -50,7 +51,7 @@ beforeEach(() => {
         },
         browserB: {}
     } as any as Browser
-    service = new BrowserstackService({}, [] as any, { user: 'foo', key: 'bar' } as any)
+    service = new BrowserstackService({ testObservability: false }, [] as any, { user: 'foo', key: 'bar' } as any)
 })
 
 it('should initialize correctly', () => {
@@ -61,11 +62,13 @@ it('should initialize correctly', () => {
 describe('onReload()', () => {
     it('should update and get session', async () => {
         const updateSpy = jest.spyOn(service, '_update')
+        const isBrowserstackSessionSpy = jest.spyOn(utils, 'isBrowserstackSession').mockReturnValue(true)
         service['_browser'] = browser
         await service.onReload('1', '2')
         expect(updateSpy).toHaveBeenCalled()
         expect(got.put).toHaveBeenCalled()
         expect(got).toHaveBeenCalled()
+        expect(isBrowserstackSessionSpy).toHaveBeenCalled()
     })
 
     it('should update and get multiremote session', async () => {
@@ -73,10 +76,12 @@ describe('onReload()', () => {
         browser.isMultiremote = true
         service['_browser'] = browser
         const updateSpy = jest.spyOn(service, '_update')
+        const isBrowserstackSessionSpy = jest.spyOn(utils, 'isBrowserstackSession').mockReturnValue(true)
         await service.onReload('1', '2')
         expect(updateSpy).toHaveBeenCalled()
         expect(got.put).toHaveBeenCalled()
         expect(got).toHaveBeenCalled()
+        expect(isBrowserstackSessionSpy).toHaveBeenCalled()
     })
 
     it('should reset failures', async () => {
@@ -115,6 +120,7 @@ describe('_printSessionURL', () => {
         browser.isMultiremote = false
         service['_browser'] = browser
         const logInfoSpy = jest.spyOn(log, 'info').mockImplementation((string) => string)
+        const isBrowserstackSessionSpy = jest.spyOn(utils, 'isBrowserstackSession').mockReturnValue(true)
         await service._printSessionURL()
         expect(got).toHaveBeenCalledWith(
             'https://api.browserstack.com/automate/sessions/session123.json',
@@ -123,6 +129,7 @@ describe('_printSessionURL', () => {
         expect(logInfoSpy).toHaveBeenCalledWith(
             'OS X Sierra chrome session: https://www.browserstack.com/automate/builds/1/sessions/2'
         )
+        expect(isBrowserstackSessionSpy).toHaveBeenCalled()
     })
 
     it('should get and log multi remote session details', async () => {
@@ -130,6 +137,7 @@ describe('_printSessionURL', () => {
         browser.isMultiremote = true
         service['_browser'] = browser
         const logInfoSpy = jest.spyOn(log, 'info').mockImplementation((string) => string)
+        const isBrowserstackSessionSpy = jest.spyOn(utils, 'isBrowserstackSession').mockReturnValue(true)
         await service._printSessionURL()
         expect(got).toHaveBeenCalledWith(
             'https://api.browserstack.com/automate/sessions/session456.json',
@@ -138,6 +146,7 @@ describe('_printSessionURL', () => {
         expect(logInfoSpy).toHaveBeenCalledWith(
             'Windows 10 chrome session: https://www.browserstack.com/automate/builds/1/sessions/2'
         )
+        expect(isBrowserstackSessionSpy).toHaveBeenCalled()
     })
 })
 
@@ -378,7 +387,7 @@ describe('afterTest', () => {
 
 describe('afterScenario', () => {
     it('should increment failure reasons on non-passing statuses (strict mode off)', () => {
-        service = new BrowserstackService({}, [] as any,
+        service = new BrowserstackService({ testObservability: false }, [] as any,
             { user: 'foo', key: 'bar', cucumberOpts: { strict: false } } as any)
 
         expect(service['_failReasons']).toEqual([])
@@ -421,7 +430,7 @@ describe('afterScenario', () => {
     })
 
     it('should increment failure reasons on non-passing statuses (strict mode on)', () => {
-        service = new BrowserstackService({}, [] as any,
+        service = new BrowserstackService({ testObservability: false }, [] as any,
             { user: 'foo', key: 'bar', cucumberOpts: { strict: true }, capabilities: {} })
 
         expect(service['_failReasons']).toEqual([])
@@ -516,7 +525,7 @@ describe('after', () => {
 
     describe('Cucumber only', function () {
         it('should call _update with status "failed" if strict mode is "on" and all tests are pending', async () => {
-            service = new BrowserstackService({}, [] as any,
+            service = new BrowserstackService({ testObservability: false }, [] as any,
                 { user: 'foo', key: 'bar', cucumberOpts: { strict: true } } as any)
 
             const updateSpy = jest.spyOn(service, '_update')
@@ -541,7 +550,7 @@ describe('after', () => {
         })
 
         it('should call _update with status "passed" when strict mode is "off" and only passed and pending tests ran', async () => {
-            service = new BrowserstackService({}, [] as any,
+            service = new BrowserstackService({ testObservability: false }, [] as any,
                 { user: 'foo', key: 'bar', cucumberOpts: { strict: false } } as any)
 
             const updateSpy = jest.spyOn(service, '_update')
@@ -564,7 +573,7 @@ describe('after', () => {
         })
 
         it('should call _update with status is "failed" when strict mode is "on" and only passed and pending tests ran', async () => {
-            service = new BrowserstackService({}, [] as any,
+            service = new BrowserstackService({ testObservability: false }, [] as any,
                 { user: 'foo', key: 'bar', cucumberOpts: { strict: true } } as any)
 
             const updateSpy = jest.spyOn(service, '_update')
@@ -606,7 +615,7 @@ describe('after', () => {
         })
 
         it('should call _update with status "failed" when strict mode is "on" and only failed and pending tests ran', async () => {
-            service = new BrowserstackService({}, [] as any,
+            service = new BrowserstackService({ testObservability: false }, [] as any,
                 { user: 'foo', key: 'bar', cucumberOpts: { strict: true } } as any)
 
             const updateSpy = jest.spyOn(service, '_update')
@@ -677,7 +686,7 @@ describe('after', () => {
                     /*, 5, 4, 0*/
                 ].map(({ status, body }) =>
                     it(`should call _update /w status failed and name of Scenario when single "${status}" Scenario ran`, async () => {
-                        service = new BrowserstackService({ preferScenarioName : true }, [] as any,
+                        service = new BrowserstackService({ testObservability: false, preferScenarioName : true }, [] as any,
                             { user: 'foo', key: 'bar', cucumberOpts: { strict: false } } as any)
                         service.before({}, [], browser)
 
@@ -692,7 +701,7 @@ describe('after', () => {
                 )
 
                 it('should call _update /w status passed and name of Scenario when single "passed" Scenario ran', async () => {
-                    service = new BrowserstackService({ preferScenarioName : true }, [] as any,
+                    service = new BrowserstackService({ testObservability: false, preferScenarioName : true }, [] as any,
                         { user: 'foo', key: 'bar', cucumberOpts: { strict: false } } as any)
                     service.before({}, [], browser)
 
@@ -715,7 +724,7 @@ describe('after', () => {
             describe('disabled', () => {
                 ['FAILED', 'AMBIGUOUS', 'UNDEFINED', 'UNKNOWN'].map(status =>
                     it(`should call _update /w status failed and name of Feature when single "${status}" Scenario ran`, async () => {
-                        service = new BrowserstackService({ preferScenarioName : false }, [] as any,
+                        service = new BrowserstackService({ testObservability: false, preferScenarioName : false }, [] as any,
                             { user: 'foo', key: 'bar', cucumberOpts: { strict: false } } as any)
                         service.before({}, [], browser)
 
@@ -736,7 +745,7 @@ describe('after', () => {
                 )
 
                 it('should call _update /w status passed and name of Feature when single "passed" Scenario ran', async () => {
-                    service = new BrowserstackService({ preferScenarioName : false }, [] as any,
+                    service = new BrowserstackService({ testObservability: false, preferScenarioName : false }, [] as any,
                         { user: 'foo', key: 'bar', cucumberOpts: { strict: false } } as any)
                     service.before({}, [], browser)
 

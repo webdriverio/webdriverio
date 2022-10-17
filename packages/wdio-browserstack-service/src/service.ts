@@ -1,12 +1,10 @@
 import logger from '@wdio/logger'
 import got from 'got'
-import stripAnsi from 'strip-ansi'
 import type { Services, Capabilities, Options, Frameworks } from '@wdio/types'
 import type { Browser, MultiRemoteBrowser } from 'webdriverio'
 
-import { getBrowserDescription, getBrowserCapabilities, isBrowserstackCapability, getParentSuiteName, getUniqueIdentifier, getCloudProvider, getUniqueIdentifierForCucumber, getScenarioNameWithExamples, isBrowserstackSession } from './util';
+import { getBrowserDescription, getBrowserCapabilities, isBrowserstackCapability, getParentSuiteName, getUniqueIdentifier, getCloudProvider, getUniqueIdentifierForCucumber, getScenarioNameWithExamples, isBrowserstackSession, removeAnsiColors } from './util'
 import { BrowserstackConfig, MultiRemoteAction, SessionResponse } from './types'
-import path from 'path'
 import { v4 as uuidv4 } from 'uuid'
 import { DATA_ENDPOINT } from './constants'
 // import { requestTracer, requestRestore } from './request-tracer'
@@ -147,9 +145,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
         this._fullTitle = suite.title
     }
 
-    beforeCommand(commandName: string, args: any[]) {
-    }
-
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     async afterCommand(commandName: string, args: any[], result: any, error?: Error) {
         if (this._observability && this._currentTest && commandName == 'takeScreenshot'){
             let log: any = {
@@ -166,7 +162,8 @@ export default class BrowserstackService implements Services.ServiceInstance {
         }
     }
 
-    beforeTest(test: Frameworks.Test, context: any) {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    beforeTest(test: Frameworks.Test, _context: any) {
         this._currentTest = test
         if (this._observability) {
             let fullTitle = `${test.parent} - ${test.title}`
@@ -339,7 +336,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
                 keyword: step.keyword,
                 result: result.passed ? 'PASSED' : 'FAILED',
                 duration: result.duration,
-                failure: result.error ? stripAnsi(result.error) : result.error
+                failure: result.error ? removeAnsiColors(result.error) : result.error
             })
 
             this._tests[uniqueId] = testMetaData
@@ -474,8 +471,8 @@ export default class BrowserstackService implements Services.ServiceInstance {
             if (!passed) {
                 testData['result'] = 'failed'
                 if (error) {
-                    testData['failure'] = [{ backtrace: [stripAnsi(error.message)] }] // add all errors here
-                    testData['failure_reason'] = stripAnsi(error.message)
+                    testData['failure'] = [{ backtrace: [removeAnsiColors(error.message)] }] // add all errors here
+                    testData['failure_reason'] = removeAnsiColors(error.message)
                     testData['failure_type'] = error.message == null ? null : error.message.toString().match(/AssertionError/) ? 'AssertionError' : 'UnhandledError' //verify if this is working
                 }
             } else {
@@ -520,10 +517,10 @@ export default class BrowserstackService implements Services.ServiceInstance {
             if (result == 'failed') {
                 testMetaData['failure'] = [
                     {
-                        'backtrace': [world.result.message ? stripAnsi(world.result.message) : world.result.message]
+                        'backtrace': [world.result.message ? removeAnsiColors(world.result.message) : world.result.message]
                     }
                 ],
-                testMetaData['failure_reason'] = world.result.message ? stripAnsi(world.result.message) : world.result.message,
+                testMetaData['failure_reason'] = world.result.message ? removeAnsiColors(world.result.message) : world.result.message,
                 testMetaData['failure_type'] = world.result.message == undefined ? null : world.result.message.toString().match(/AssertionError/) ? 'AssertionError' : 'UnhandledError'
             }
         }
@@ -616,13 +613,8 @@ export default class BrowserstackService implements Services.ServiceInstance {
             }
 
             try {
-                // const response: any = await nodeRequest('POST', 'api/v1/event', data, config)
-                // console.log(`${DATA_ENDPOINT}/api/v1/event`)
                 let url = `http://${DATA_ENDPOINT}/api/v1/event`
-                let response: any
                 try {
-                    // response = await got.post(url, { json: eventData, ...config })
-
                     const readStream: any = got.post(url, { json: eventData, ...config }).json()
                     const onError = (error: any) => {
                         console.log('inside onError')
