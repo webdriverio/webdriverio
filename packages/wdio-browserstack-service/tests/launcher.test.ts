@@ -373,16 +373,16 @@ describe('constructor', () => {
     })
 
     it('update spec list if it is a rerun', async () => {
-        process.env.BROWSERSTACK_TESTOPS_RERUN = 'true'
-        process.env.BROWSERSTACK_TESTOPS_TESTS = 'demo1.test.js,demo2.test.js'
+        process.env.BROWSERSTACK_RERUN = 'true'
+        process.env.BROWSERSTACK_RERUN_TESTS = 'demo1.test.js,demo2.test.js'
 
         const caps: any = [{ 'bstack:options': {} }, { 'bstack:options': {} }]
         new BrowserstackLauncher(options, caps, config)
 
         expect(config.specs).toEqual(['demo1.test.js', 'demo2.test.js'])
 
-        delete process.env.BROWSERSTACK_TESTOPS_RERUN
-        delete process.env.BROWSERSTACK_TESTOPS_TESTS
+        delete process.env.BROWSERSTACK_RERUN
+        delete process.env.BROWSERSTACK_RERUN_TESTS
     })
 })
 

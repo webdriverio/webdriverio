@@ -104,7 +104,7 @@ export async function launchTestSession (userConfig: any) {
             arch: arch()
         },
         'ci_info': getCiInfo(),
-        'failed_tests_rerun': process.env.BROWSERSTACK_TESTOPS_RERUN || false,
+        'failed_tests_rerun': process.env.BROWSERSTACK_RERUN || false,
         'version_control': await getGitMetaData()
     }
     const config = {

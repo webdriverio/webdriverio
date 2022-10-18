@@ -67,8 +67,8 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
 
         if (this._options.testObservability) {
             // update files to run if it's a rerun
-            if (process.env.BROWSERSTACK_TESTOPS_RERUN && process.env.BROWSERSTACK_TESTOPS_TESTS) {
-                this._config.specs = process.env.BROWSERSTACK_TESTOPS_TESTS.split(',')
+            if (process.env.BROWSERSTACK_RERUN && process.env.BROWSERSTACK_RERUN_TESTS) {
+                this._config.specs = process.env.BROWSERSTACK_RERUN_TESTS.split(',')
             }
         }
     }
