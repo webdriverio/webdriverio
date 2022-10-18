@@ -316,10 +316,9 @@ export default class BrowserstackService implements Services.ServiceInstance {
         }
     }
 
-    afterStep (step: any, scenario: any, result: any) {
+    beforeStep (step: any, scenario: any) {
         if (this._observability) {
             let uniqueId = getUniqueIdentifierForCucumber({ pickle: scenario })
-            // console.log(`uniqueId=${uniqueId}`)
             let testMetaData = this._tests[uniqueId]
             if (!testMetaData) {
                 testMetaData = {
@@ -332,12 +331,46 @@ export default class BrowserstackService implements Services.ServiceInstance {
             }
 
             testMetaData['steps'].push({
+                id: step.id,
                 text: step.text,
                 keyword: step.keyword,
-                result: result.passed ? 'PASSED' : 'FAILED',
-                duration: result.duration,
-                failure: result.error ? removeAnsiColors(result.error) : result.error
+                started_at: (new Date()).toISOString()
             })
+
+            this._tests[uniqueId] = testMetaData
+        }
+    }
+
+    afterStep (step: any, scenario: any, result: any) {
+        if (this._observability) {
+            let uniqueId = getUniqueIdentifierForCucumber({ pickle: scenario })
+            let testMetaData = this._tests[uniqueId]
+            if (!testMetaData) {
+                testMetaData = {
+                    steps: []
+                }
+            }
+
+            if (testMetaData && !testMetaData['steps']) {
+                testMetaData['steps'] = []
+                testMetaData['steps'].push({
+                    id: step.id,
+                    text: step.text,
+                    keyword: step.keyword,
+                    finished_at: (new Date()).toISOString(),
+                    result: result.passed ? 'PASSED' : 'FAILED',
+                    duration: result.duration,
+                    failure: result.error ? removeAnsiColors(result.error) : result.error
+                })
+            } else if (testMetaData){
+                let stepDetails = testMetaData['steps'].find((item: any) => item.id == step.id)
+                if (stepDetails) {
+                    stepDetails.finished_at = (new Date()).toISOString()
+                    stepDetails.result = result.passed ? 'PASSED' : 'FAILED'
+                    stepDetails.duration = result.duration
+                    stepDetails.failure = result.error ? removeAnsiColors(result.error) : result.error
+                }
+            }
 
             this._tests[uniqueId] = testMetaData
         }
