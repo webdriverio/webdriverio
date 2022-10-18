@@ -148,8 +148,9 @@ export default class BrowserstackService implements Services.ServiceInstance {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     async afterCommand(commandName: string, args: any[], result: any, error?: Error) {
         if (this._observability && this._currentTest && commandName == 'takeScreenshot'){
+            let identifier = this._currentTest.pickle == undefined ? getUniqueIdentifier(this._currentTest) : getUniqueIdentifierForCucumber(this._currentTest)
             let log: any = {
-                test_run_uuid: this._tests[getUniqueIdentifier(this._currentTest)].uuid, // handle for cucumber
+                test_run_uuid: this._tests[identifier].uuid,
                 timestamp: new Date().toISOString(),
                 message: result,
                 kind: 'TEST_SCREENSHOT'
@@ -252,6 +253,8 @@ export default class BrowserstackService implements Services.ServiceInstance {
     }
 
     beforeScenario (world: any) {
+
+        this._currentTest = world
 
         if (this._observability) {
             let pickleData = world.pickle
