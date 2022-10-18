@@ -7,9 +7,12 @@ import { getBrowserDescription, getBrowserCapabilities, isBrowserstackCapability
 import { BrowserstackConfig, MultiRemoteAction, SessionResponse } from './types'
 import { v4 as uuidv4 } from 'uuid'
 import { DATA_ENDPOINT } from './constants'
-// import { requestTracer, requestRestore } from './request-tracer'
+import { ClientRequestInterceptor } from '@mswjs/interceptors/lib/interceptors/ClientRequest'
+import { IsomorphicRequest } from '@mswjs/interceptors/lib/IsomorphicRequest'
+import { IsomorphicResponse } from '@mswjs/interceptors'
 
 const log = logger('@wdio/browserstack-service')
+const interceptor = new ClientRequestInterceptor()
 
 export default class BrowserstackService implements Services.ServiceInstance {
     private _sessionBaseUrl = 'https://api.browserstack.com/automate/sessions'
@@ -88,41 +91,15 @@ export default class BrowserstackService implements Services.ServiceInstance {
 
         if (this._observability) {
             // capture requests
-            // requestTracer((error: any, requestData: any) => {
-            //     console.log('========')
-            //     console.log(require('util').inspect(requestData, { depth: null }))
-            //     console.log('========')
 
-            //     // if (requestData && !(requestData.headers && requestData.headers['X-BSTACK-TESTOPS'] == 'true')) {
-            //     // process.emit('bs:addLog', {
-            //     //     test_run_uuid: this._tests[getUniqueIdentifier(this._currentTest)].uuid,
-            //     //     timestamp: new Date().toISOString(),
-            //     //     kind: 'HTTP',
-            //     //     http_response: requestData
-            //     // })
+            // Enable the interception of requests.
+            interceptor.apply()
 
-            //     let log = {
-            //         test_run_uuid: this._tests[getUniqueIdentifier(this._currentTest)].uuid,
-            //         timestamp: new Date().toISOString(),
-            //         kind: 'HTTP',
-            //         http_response: requestData
-            //     }
-
-            //     this.uploadEventData({
-            //         event_type: 'LogCreated',
-            //         logs: [log]
-            //     })
-
-            //     // }
-
-            //     // if (requestData && requestData.hostname.includes('browserstack.com')) {
-            //     //     this._cloudProvider = 'browserstack'
-            //     // } else if (requestData && requestData.hostname.includes('localhost')) {
-            //     //     this._cloudProvider = 'local'
-            //     // } else {
-            //     //     this._cloudProvider = 'UNKNOWN'
-            //     // }
-            // })
+            // Listen to any responses sent to "http.ClientRequest".
+            // Note that this listener is read-only and cannot affect responses.
+            interceptor.on('response', (request: IsomorphicRequest, response: IsomorphicResponse) => {
+                this.requestHandler(request, response, this._currentTest)
+            })
 
             if (this._browser) {
                 // get platform details
@@ -233,7 +210,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
         const hasReasons = Boolean(this._failReasons.filter(Boolean).length)
 
         if (this._observability) {
-            // requestRestore()
+            interceptor.dispose()
         }
 
         return this._updateJob({
@@ -722,5 +699,32 @@ export default class BrowserstackService implements Services.ServiceInstance {
         // } else {
         //     setTimeout(function(){ exports.uploadEventData(eventData, run+1) }, 1000)
         // }
+    }
+
+    requestHandler (request: IsomorphicRequest, response: IsomorphicResponse, currentTest: any) {
+        let requestData = {
+            hostname: request.url ? request.url.host || request.url.hostname : null,
+            path: request.url ? request.url.pathname : null,
+            method: request.method,
+            headers: request.headers.all(),
+            status_code: response.status,
+            body: response.body,
+        }
+
+        if (request.headers.all()['x-bstack-obs'] !== 'true' && currentTest) {
+            let identifier = currentTest.pickle == undefined ? getUniqueIdentifier(currentTest) : getUniqueIdentifierForCucumber(currentTest)
+
+            let log = {
+                test_run_uuid: this._tests[identifier].uuid,
+                timestamp: new Date().toISOString(),
+                kind: 'HTTP',
+                http_response: requestData
+            }
+
+            this.uploadEventData({
+                event_type: 'LogCreated',
+                logs: [log]
+            })
+        }
     }
 }
