@@ -499,7 +499,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
             framework: this._framework
         }
 
-        if (eventType == 'TestRunFinished' && results != null) {
+        if (eventType == 'TestRunFinished' && results) {
             const { error, passed } = results
             if (!passed) {
                 testData['result'] = 'failed'
@@ -512,6 +512,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
                 testData['result'] = 'passed'
             }
 
+            testData['retries'] = results.retries
             testData['duration_in_ms'] = results.duration
         }
 
