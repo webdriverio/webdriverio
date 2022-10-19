@@ -190,7 +190,7 @@ export default class ConfigParser {
         const isSpecParamPassed = Array.isArray(this._config.spec)
         // when CLI --spec is explicitly specified, this._config.specs contains the filtered
         // specs matching the passed pattern else the specs defined inside the config are returned
-        let specs = ConfigParser.getFilePaths(this._config.specs, undefined, this._pathService)
+        let specs = ConfigParser.getFilePaths(this._config.specs!, undefined, this._pathService)
         let exclude = ConfigParser.getFilePaths(this._config.exclude!, undefined, this._pathService)
         let suites = Array.isArray(this._config.suite) ? this._config.suite : []
 
