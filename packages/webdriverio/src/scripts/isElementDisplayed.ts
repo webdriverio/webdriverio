@@ -89,7 +89,7 @@ export default function isElementDisplayed (element: Element): boolean {
         // if document-fragment, skip it and use element.host instead. This happens
         // when the element is inside a shadow root.
         // window.getComputedStyle errors on document-fragment.
-        if (element instanceof ShadowRoot) {
+        if (element instanceof window.ShadowRoot) {
             element = element.host
         }
 
