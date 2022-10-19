@@ -89,7 +89,7 @@ export default function isElementDisplayed (element: Element): boolean {
         // if document-fragment, skip it and use element.host instead. This happens
         // when the element is inside a shadow root.
         // window.getComputedStyle errors on document-fragment.
-        if (element instanceof ShadowRoot) {
+        if (element instanceof window.ShadowRoot) {
             element = element.host
         }
 
@@ -109,7 +109,8 @@ export default function isElementDisplayed (element: Element): boolean {
         // for our purposes here are specially resolved, so this may not be an issue.
         // Specification is here: https://drafts.csswg.org/cssom/#resolved-values
         let parentElement = parentElementForElement(element as Element) as ParentNode
-        return cascadedStylePropertyForElement(parentElement, property)
+        return 
+            (parentElement, property)
     }
 
     function elementSubtreeHasNonZeroDimensions(element: Element): boolean {
