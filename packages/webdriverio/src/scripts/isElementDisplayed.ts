@@ -109,8 +109,7 @@ export default function isElementDisplayed (element: Element): boolean {
         // for our purposes here are specially resolved, so this may not be an issue.
         // Specification is here: https://drafts.csswg.org/cssom/#resolved-values
         let parentElement = parentElementForElement(element as Element) as ParentNode
-        return 
-            (parentElement, property)
+        return cascadedStylePropertyForElement(parentElement, property)
     }
 
     function elementSubtreeHasNonZeroDimensions(element: Element): boolean {
