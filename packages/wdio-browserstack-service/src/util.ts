@@ -358,12 +358,16 @@ export function getUniqueIdentifierForCucumber(obj: any): string {
 export function getCloudProvider(browser: any): string {
     let provider: string = 'UNKNOWN'
     if (browser.options && browser.options.hostname) {
-        if (browser.options.hostname.includes('browserstack')) {
-            return 'Browserstack'
-        } else if (browser.options.hostname.includes('saucelabs')) {
-            return 'Sauce'
+        let hostname: string = browser.options.hostname
+        if (hostname.includes('browserstack')) {
+            return 'browserstack'
+        } else if (hostname.includes('saucelabs')) {
+            return 'sauce'
+        } else if (hostname.includes('lambdatest')) {
+            return 'lambdatest'
+        } else if (hostname.includes('testingbot')) {
+            return 'testingbot'
         }
-        // add statements for lambdatest etc
     }
     return provider
 }
