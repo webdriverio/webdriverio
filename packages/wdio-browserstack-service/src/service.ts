@@ -10,6 +10,7 @@ import { DATA_ENDPOINT } from './constants'
 import { ClientRequestInterceptor } from '@mswjs/interceptors/lib/interceptors/ClientRequest'
 import { IsomorphicRequest } from '@mswjs/interceptors/lib/IsomorphicRequest'
 import { IsomorphicResponse } from '@mswjs/interceptors'
+import { Test, TestResult } from '@wdio/types/build/Frameworks'
 
 const log = logger('@wdio/browserstack-service')
 const interceptor = new ClientRequestInterceptor()
@@ -39,7 +40,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
         if (this._observability) {
             this._tests = {}
             // this._config.reporters ? this._config.reporters.push(path.join(__dirname, 'reporter.js')) : [path.join(__dirname, 'reporter.js')]
-            this._framework = _config.framework
+            this._framework = this._config.framework
         }
 
         // Cucumber specific
@@ -120,6 +121,33 @@ export default class BrowserstackService implements Services.ServiceInstance {
 
     beforeSuite (suite: Frameworks.Suite) {
         this._fullTitle = suite.title
+    }
+
+    beforeHook (test: any, context: any) {
+        this._currentTest = test
+        if (this._observability) {
+            let fullTitle = `${test.parent} - ${test.title}`
+            this._tests[fullTitle] = {
+                uuid: uuidv4(),
+                startedAt: (new Date()).toISOString(),
+                finishedAt: null
+            }
+            this.sendTestRunEvent(test, 'HookRunStarted')
+        }
+    }
+
+    afterHook (test: Test, context: any, result: TestResult) {
+        if (this._observability) {
+            let fullTitle = getUniqueIdentifier(test)
+            if (this._tests[fullTitle]) {
+                this._tests[fullTitle]['finishedAt'] = (new Date()).toISOString()
+            } else {
+                this._tests[fullTitle] = {
+                    finishedAt: (new Date()).toISOString()
+                }
+            }
+            this.sendTestRunEvent(test, 'HookRunFinished', result)
+        }
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -479,7 +507,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
             framework: this._framework
         }
 
-        if (eventType == 'TestRunFinished' && results) {
+        if ((eventType == 'TestRunFinished' || eventType == 'HookRunFinished') && results) {
             const { error, passed } = results
             if (!passed) {
                 testData['result'] = 'failed'
@@ -511,7 +539,14 @@ export default class BrowserstackService implements Services.ServiceInstance {
 
         let uploadData: any = {
             event_type: eventType,
-            test_run: testData
+            // test_run: testData
+        }
+
+        if (eventType.match(/HookRun/)) {
+            // testData['hook_type'] = getHookType()
+            uploadData['hook_run'] = testData
+        } else {
+            uploadData['test_run'] = testData
         }
         this.uploadEventData(uploadData)
     }
