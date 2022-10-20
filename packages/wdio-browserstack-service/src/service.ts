@@ -123,7 +123,8 @@ export default class BrowserstackService implements Services.ServiceInstance {
         this._fullTitle = suite.title
     }
 
-    beforeHook (test: any, context: any) {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    beforeHook (test: any, _context: any) {
         this._currentTest = test
         if (this._observability) {
             let fullTitle = `${test.parent} - ${test.title}`
