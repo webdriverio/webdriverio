@@ -20,6 +20,13 @@ export async function getTemplate (cid: string, env: Environment, spec: string) 
             <title>WebdriverIO Browser Test</title>
             <link rel="stylesheet" href="https://unpkg.com/mocha@10.0.0/mocha.css">
             <script type="module">
+                window.__wdioErrors__ = []
+                addEventListener('error', (ev) => window.__wdioErrors__.push({
+                    filename: ev.filename,
+                    message: ev.message
+                }))
+            </script>
+            <script type="module">
                 ${vueScript}
                 window.Vue = Vue
             </script>

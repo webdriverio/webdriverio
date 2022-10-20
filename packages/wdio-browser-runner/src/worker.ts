@@ -1,4 +1,5 @@
 import url from 'node:url'
+import path from 'node:path'
 import { EventEmitter } from 'node:events'
 
 import logger from '@wdio/logger'
@@ -12,6 +13,15 @@ import { SESSIONS } from './constants.js'
 import type { RunArgs } from './types'
 
 const log = logger('@wdio/browser-runner:session')
+const sep = '\n  - '
+
+declare global {
+    interface Window {
+        __wdioErrors__: ErrorEvent[]
+        __wdioEvents__: any[]
+        __wdioFailures__: number
+    }
+}
 
 export default class SessionWorker extends EventEmitter {
     #server: ViteDevServer
@@ -59,6 +69,23 @@ export default class SessionWorker extends EventEmitter {
                 log.info(`Run spec file ${spec} for cid ${this.#args.cid}`)
                 await browser.url(`/test.html?cid=${this.#args.cid}&spec=${spec}`)
                 // await browser.debug()
+
+                /**
+                 * fetch page errors that are thrown during rendering and let spec file fail
+                 */
+                const jsErrors: ErrorEvent[] = (await browser.execute(() => window.__wdioErrors__)) || []
+                if (jsErrors.length) {
+                    const errors = jsErrors.map((ev) => `${path.basename(ev.filename)}: ${ev.message}`)
+                    const envError = new Error(`Test failed due to following error(s):${sep}${errors.join(sep)}`)
+                    this.emit('error', {
+                        cid: this.#args.cid,
+                        name: 'error',
+                        content: envError.message
+                    })
+                    failures += 1
+                    continue
+                }
+
                 failures += await this.#fetchEvents(browser, reporter, spec)
             }
 
@@ -89,9 +116,7 @@ export default class SessionWorker extends EventEmitter {
         await browser.waitUntil(async () => {
             while (typeof failures !== 'number') {
                 failures = await browser?.execute(() => (
-                    // @ts-expect-error define in window scope
                     window.__wdioEvents__.length > 0
-                        // @ts-expect-error define in window scope
                         ? window.__wdioFailures__
                         : null
                 ))
@@ -104,7 +129,6 @@ export default class SessionWorker extends EventEmitter {
         /**
          * populate events to the reporter
          */
-        // @ts-expect-error define in window scope
         const events = await browser.execute(() => window.__wdioEvents__)
         for (const ev of events) {
             if ((ev.type === 'suite:start' || ev.type === 'suite:end') && ev.title === '') {
