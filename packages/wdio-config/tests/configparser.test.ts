@@ -703,9 +703,16 @@ describe('ConfigParser', () => {
             const configParser = ConfigParserForTest()
             configParser.addConfigFile(FIXTURES_CONF)
             configParser.merge({ spec: [INDEX_PATH, FIXTURES_CONF] })
-            configParser.merge({ exclude: [path.resolve(__dirname).replace(/\\/g, '/') + '/*'] })
-            const specs = configParser.getSpecs()
-            expect(specs).toHaveLength(2)
+
+            // first validate that the conf fixture 'spec' was merged successfully
+            expect(configParser.getSpecs()).toHaveLength(1)
+
+            configParser.merge({ exclude: [path.join(__dirname, '**', '*conf*')] })
+
+            // then after merging an exclude containing a glob pattern, validate that the exclude
+            // attribute contains multiple items and the filtering on the spec attribute works
+            expect(configParser.getConfig().exclude.length).toBeGreaterThan(0)
+            expect(configParser.getSpecs()).toHaveLength(0)
         })
 
         it('should overwrite exclude if piped into cli command', () => {
