@@ -763,20 +763,24 @@ describe('ConfigParser', () => {
 
         it('should overwrite config and capabilities exclude if piped into cli command with suite', async () => {
             const configParser = await ConfigParserForTestWithAllFiles()
-            await configParser.addConfigFile(FIXTURES_CONF)
-            configParser.merge({ suite: ['mobile'] })
-            expect(configParser.getSpecs()).toHaveLength(1)
-
             const requireLibPath = path.join(__dirname, 'RequireLibrary.test.ts')
-            const indexPath = path.join(__dirname, '..', 'src', 'index.ts')
+            const configParserPath = path.join(__dirname, 'configparser.test.ts')
+
+            await configParser.addConfigFile(FIXTURES_CONF)
+            configParser.merge({ suite: ['mobile', 'unit'] })
+
+            // the initial list of specs has the ones defined in the suites passed via cli 'suite' (RequireLibrary & configparser)
+            expect(configParser.getSpecs()).toHaveLength(2)
 
             // set a cli exclude
             configParser.merge({ exclude: [requireLibPath] })
 
             // set capability 'specs' and 'exclude'
-            const specs = configParser.getSpecs([indexPath, requireLibPath], [indexPath])
+            const specs = configParser.getSpecs([configParserPath, requireLibPath], [configParserPath])
 
-            expect(specs).toHaveLength(0)
+            // validate that only the cli exclude is taken into account and the 'configparser' test is not removed
+            expect(specs).toHaveLength(1)
+            expect(specs).toContain(configParserPath)
         })
 
         it('should set hooks to empty arrays as default', async () => {
