@@ -254,7 +254,7 @@ export default class ConfigParser {
         cliArgFileList.forEach(filteredFile => {
             filteredFile = removeLineNumbers(filteredFile)
             // Send single file/file glob to getFilePaths - not supporting hierarchy in spec/exclude
-            // Return value will alwyas be string[]
+            // Return value will always be string[]
             let globMatchedFiles = <string[]>ConfigParser.getFilePaths(this._pathService.glob(filteredFile), undefined, this._pathService)
             if (this._pathService.isFile(filteredFile)) {
                 filesToFilter.add(this._pathService.ensureAbsolutePath(filteredFile))
@@ -306,10 +306,10 @@ export default class ConfigParser {
     /**
      * returns a flattened list of globbed files
      *
-     * @param  {String[] | String[][]} filenames list of files to glob
-     * @param  {Boolean} flag to indicate omission of warnings
-     * @param  {FileSystemPathService} file system path service for expanding globbed file names
-     * @param  {number} hierarchy depth to prevent recursive calling beyond a depth of 1
+     * @param  {String[] | String[][]} patterns list of files to glob
+     * @param  {Boolean} omitWarnings to indicate omission of warnings
+     * @param  {FileSystemPathService} findAndGlob system path service for expanding globbed file names
+     * @param  {number} hierarchyDepth depth to prevent recursive calling beyond a depth of 1
      * @return {String[] | String[][]} list of files
      */
     static getFilePaths(patterns: Spec[], omitWarnings?: boolean, findAndGlob: PathService = new FileSystemPathService(), hierarchyDepth?: number) {
@@ -321,7 +321,6 @@ export default class ConfigParser {
         }
 
         // patterns must be an array of strings and/or string arrays
-        // check and throw and error if not
         if (!Array.isArray(patterns)) {
             throw new Error('specs or exclude property should be an array of strings, specs may also be an array of string arrays')
         }
