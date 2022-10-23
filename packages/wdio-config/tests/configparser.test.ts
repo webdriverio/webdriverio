@@ -743,9 +743,11 @@ describe('ConfigParser', () => {
         it('should overwrite config exclude if piped into cli command', async () => {
             const configParser = await ConfigParserForTestWithAllFiles()
             await configParser.addConfigFile(FIXTURES_CONF)
+            // check that the initial exclude from the config filtered out 1 spec (out of a total of 4)
             expect(configParser.getSpecs()).toHaveLength(3)
 
             configParser.merge({ exclude: [INDEX_PATH] })
+            // after overriding the config exclude with cli exclude check that the initial config exclude is discarded
             expect(configParser.getSpecs()).toHaveLength(4)
         })
 
