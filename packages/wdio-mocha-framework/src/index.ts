@@ -168,7 +168,7 @@ class MochaAdapter {
         }
 
         INTERFACES[type].forEach((fnName: string) => {
-            const isTest = TEST_INTERFACES.flatMap((testCommand: string) => [testCommand, testCommand + '.only']).includes(fnName)
+            const isTest = TEST_INTERFACES[type].flatMap((testCommand: string) => [testCommand, testCommand + '.only']).includes(fnName)
 
             runTestInFiberContext(
                 isTest,
