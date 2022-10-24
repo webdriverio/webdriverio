@@ -4,6 +4,12 @@ export const INTERFACES = {
     qunit: ['test', 'before', 'beforeEach', 'after', 'afterEach']
 } as const
 
+export const TEST_INTERFACES = {
+    bdd: ['it', 'specify'],
+    tdd: ['test'],
+    qunit: ['test']
+} as const
+
 /**
  * to map Mocha events to WDIO events
  */
