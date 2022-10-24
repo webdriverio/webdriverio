@@ -145,6 +145,7 @@ export const SUPPORTED_PACKAGES = {
         { name: 'aws-device-farm', value: 'wdio-aws-device-farm-service$--$aws-device-farm' },
         { name: 'ocr-native-apps', value: 'wdio-ocr-service$--$ocr-native-apps' },
         { name: 'ms-teams', value: 'wdio-ms-teams-service$--$ms-teams' },
+        { name: 'google-chat', value: 'wdio-google-chat-service' },
         { name: 'tesults', value: 'wdio-tesults-service$--$tesults' },
         { name: 'azure-devops', value: '@gmangiapelo/wdio-azure-devops-service$--$azure-devops' },
         { name: 'qmate-service', value: '@sap_oss/wdio-qmate-service--$qmate-service' }
