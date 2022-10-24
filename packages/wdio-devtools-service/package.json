@@ -32,7 +32,7 @@
     "@wdio/logger": "7.19.0",
     "@wdio/types": "7.25.1",
     "babel-plugin-istanbul": "^6.0.0",
-    "core-js": "~3.25.0",
+    "core-js": "~3.26.0",
     "devtools-protocol": "^0.0.1061995",
     "istanbul-lib-coverage": "^3.0.0",
     "istanbul-lib-report": "^3.0.0",
