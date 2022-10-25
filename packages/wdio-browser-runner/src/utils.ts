@@ -1,21 +1,48 @@
-import got from 'got'
-import type { InlineConfig } from 'vite'
+import fs from 'node:fs/promises'
+import path from 'node:path'
+import { createRequire } from 'node:module'
+
 import { esbuildCommonjs } from '@originjs/vite-plugin-commonjs'
 import { NodeGlobalsPolyfillPlugin } from '@esbuild-plugins/node-globals-polyfill'
+import type { InlineConfig } from 'vite'
 
 import { testrunner } from './plugins/testrunner.js'
 import { EVENTS, PRESET_DEPENDENCIES } from './constants.js'
 import type { Environment, FrameworkPreset } from './types'
 
-export async function getTemplate (cid: string, env: Environment, spec: string) {
+export async function getTemplate (options: WebdriverIO.BrowserRunnerOptions, env: Environment, spec: string) {
+    const root = options.rootDir || process.cwd()
+    const require = createRequire(path.join(root, 'node_modules'))
     const listeners = Object.entries(EVENTS).map(([mochaEvent, wdioEvent]) => (
         /*js*/`runner.on('${mochaEvent}', (payload) => {
             window.__wdioEvents__.push(formatMessage({ type: '${wdioEvent}', payload, err: payload.err }))
         })`
     )).join('\n')
 
-    const vueScript = await (await got('https://unpkg.com/vue@3.2.40/dist/vue.global.prod.js')).body
-    const vueCompilerScript = await (await got('https://unpkg.com/@vue/compiler-dom@3.2.40/dist/compiler-dom.global.prod.js')).body
+    let vueDeps = ''
+    if (options.preset) {
+        try {
+            const vueDir = path.dirname(require.resolve('vue'))
+            const vueScript = (await fs.readFile(path.join(vueDir, 'dist', 'vue.global.prod.js'), 'utf-8')).toString()
+            vueDeps += /*html*/`
+            <script type="module">
+                ${vueScript}
+                window.Vue = Vue
+            </script>`
+            const vueCompilerDir = path.dirname(require.resolve('@vue/compiler-dom'))
+            const vueCompilerScript = (await fs.readFile(path.join(vueCompilerDir, 'dist', 'compiler-dom.global.prod.js'), 'utf-8')).toString()
+            vueDeps += /*html*/`
+            <script type="module">
+                ${vueCompilerScript}
+                window.VueCompilerDOM = VueCompilerDOM
+            </script>`
+        } catch (err: any) {
+            throw new Error(
+                `Fail to set-up Vue environment: ${err.message}\n\n` +
+                'Make sure you have "vue" and "@vue/compiler-dom" installed as dependencies!'
+            )
+        }
+    }
 
     return /* html */`
     <!doctype html>
@@ -30,14 +57,7 @@ export async function getTemplate (cid: string, env: Environment, spec: string) 
                     message: ev.message
                 }))
             </script>
-            <script type="module">
-                ${vueScript}
-                window.Vue = Vue
-            </script>
-            <script type="module">
-                ${vueCompilerScript}
-                window.VueCompilerDOM = VueCompilerDOM
-            </script>
+            ${vueDeps}
             <script type="module">
             window.Symbol.for = (a) => a
 
@@ -59,6 +79,18 @@ export async function getTemplate (cid: string, env: Environment, spec: string) 
             </script>
         </body>
     </html>`
+}
+
+export async function getErrorTemplate (filename: string, error: Error) {
+    return /*html*/`
+        <pre>${error.stack}</pre>
+        <script type="module">
+            window.__wdioErrors__ = [{
+                filename: "${filename}",
+                message: \`${error.message}\`
+            }]
+        </script>
+    `
 }
 
 async function userfriendlyImport (preset: FrameworkPreset, pkg?: string) {
@@ -83,7 +115,7 @@ export async function getViteConfig (options: WebdriverIO.BrowserRunnerOptions, 
     if (options.viteConfig) {
         return Object.assign({}, options.viteConfig, {
             plugins: [
-                testrunner(root),
+                testrunner(options),
                 ...(options.viteConfig.plugins || [])
             ]
         })
@@ -93,7 +125,7 @@ export async function getViteConfig (options: WebdriverIO.BrowserRunnerOptions, 
         configFile: false,
         root,
         server: { port, host: 'localhost' },
-        plugins: [testrunner(root)],
+        plugins: [testrunner(options)],
         optimizeDeps: {
             esbuildOptions: {
                 // Node.js global to browser globalThis
