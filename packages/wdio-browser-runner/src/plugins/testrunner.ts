@@ -6,12 +6,13 @@ import { createRequire } from 'node:module'
 import type { Plugin } from 'vite'
 
 import { SESSIONS } from '../constants.js'
-import { getTemplate } from '../utils.js'
+import { getTemplate, getErrorTemplate } from '../utils.js'
 
 const log = logger('@wdio/browser-runner:plugin')
 const require = createRequire(import.meta.url)
 
-export function testrunner (root: string): Plugin {
+export function testrunner (options: WebdriverIO.BrowserRunnerOptions): Plugin {
+    const root = options.rootDir || process.cwd()
     return {
         name: 'wdio:testrunner',
         enforce: 'pre',
@@ -68,9 +69,16 @@ export function testrunner (root: string): Plugin {
                     }
 
                     const env = SESSIONS.get(cid)!
-                    const template = await getTemplate(cid, env, path.join(root, spec))
-                    log.debug(`Render template: ${template}`)
-                    res.end(await server.transformIndexHtml(`${req.url}`, template))
+                    try {
+                        const template = await getTemplate(options, env, path.join(root, spec))
+                        log.debug(`Render template: ${template}`)
+                        res.end(await server.transformIndexHtml(`${req.url}`, template))
+                    } catch (err: any) {
+                        const template = await getErrorTemplate(req.url, err)
+                        log.error(`Failed to render template: ${err.message}`)
+                        res.end(await server.transformIndexHtml(`${req.url}`, template))
+                    }
+
                     return next()
                 })
             }
