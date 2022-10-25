@@ -104,24 +104,47 @@ test('options', () => {
     expect(adapter.requireExternalModules).toBeCalledWith(['the/compiler.js', 'foo/bar.js'], 'context')
 })
 
-test('preRequire', () => {
-    const mochaOpts = { foo: 'bar', ui: 'tdd' }
-    const adapter = adapterFactory({ mochaOpts, beforeHook: 'beforeHook123', afterHook: 'afterHook123', beforeTest: 'beforeTest234', afterTest: 'afterTest234' })
-    adapter.preRequire('context' as any, 'file', 'mocha' as any)
-    expect(runTestInFiberContext).toBeCalledWith(
-        false, 'beforeHook123', expect.any(Function), 'afterHook123', expect.any(Function), 'suiteSetup', '0-2')
-    expect(runTestInFiberContext).toBeCalledWith(
-        false, 'beforeHook123', expect.any(Function), 'afterHook123', expect.any(Function), 'setup', '0-2')
-    expect(runTestInFiberContext).toBeCalledWith(
-        true, 'beforeTest234', expect.any(Function), 'afterTest234', expect.any(Function), 'test', '0-2')
-    expect(runTestInFiberContext).toBeCalledWith(
-        false, 'beforeHook123', expect.any(Function), 'afterHook123', expect.any(Function), 'suiteTeardown', '0-2')
-    expect(runTestInFiberContext).toBeCalledWith(
-        false, 'beforeHook123', expect.any(Function), 'afterHook123', expect.any(Function), 'teardown', '0-2')
+describe('preRequire', () => {
+    test('preRequire - TDD', () => {
+        const mochaOpts = { foo: 'bar', ui: 'tdd' }
+        const adapter = adapterFactory({ mochaOpts, beforeHook: 'beforeHook123', afterHook: 'afterHook123', beforeTest: 'beforeTest234', afterTest: 'afterTest234' })
+        adapter.preRequire('context' as any, 'file', 'mocha' as any)
+        expect(runTestInFiberContext).toBeCalledWith(
+            false, 'beforeHook123', expect.any(Function), 'afterHook123', expect.any(Function), 'suiteSetup', '0-2')
+        expect(runTestInFiberContext).toBeCalledWith(
+            false, 'beforeHook123', expect.any(Function), 'afterHook123', expect.any(Function), 'setup', '0-2')
+        expect(runTestInFiberContext).toBeCalledWith(
+            true, 'beforeTest234', expect.any(Function), 'afterTest234', expect.any(Function), 'test', '0-2')
+        expect(runTestInFiberContext).toBeCalledWith(
+            false, 'beforeHook123', expect.any(Function), 'afterHook123', expect.any(Function), 'suiteTeardown', '0-2')
+        expect(runTestInFiberContext).toBeCalledWith(
+            false, 'beforeHook123', expect.any(Function), 'afterHook123', expect.any(Function), 'teardown', '0-2')
+        const hookArgsFn = (runTestInFiberContext as jest.Mock).mock.calls[0][2]
+        expect(hookArgsFn({ test: { foo: 'bar', parent: { title: 'parent' } } }))
+            .toEqual([{ foo: 'bar', parent: 'parent' }, { test: { foo: 'bar', parent: { title: 'parent' } } }])
+    })
 
-    const hookArgsFn = (runTestInFiberContext as jest.Mock).mock.calls[0][2]
-    expect(hookArgsFn({ test: { foo: 'bar', parent: { title: 'parent' } } }))
-        .toEqual([{ foo: 'bar', parent: 'parent' }, { test: { foo: 'bar', parent: { title: 'parent' } } }])
+    test('preRequire - BDD', () => {
+        const mochaOpts = { foo: 'bar', ui: 'bdd' }
+        const adapter = adapterFactory({ mochaOpts, beforeHook: 'beforeHook123', afterHook: 'afterHook123', beforeTest: 'beforeTest234', afterTest: 'afterTest234' })
+        adapter.preRequire('context' as any, 'file', 'mocha' as any)
+        expect(runTestInFiberContext).toBeCalledWith(
+            false, 'beforeHook123', expect.any(Function), 'afterHook123', expect.any(Function), 'before', '0-2')
+        expect(runTestInFiberContext).toBeCalledWith(
+            false, 'beforeHook123', expect.any(Function), 'afterHook123', expect.any(Function), 'beforeEach', '0-2')
+        expect(runTestInFiberContext).toBeCalledWith(
+            true, 'beforeTest234', expect.any(Function), 'afterTest234', expect.any(Function), 'it', '0-2')
+        expect(runTestInFiberContext).toBeCalledWith(
+            true, 'beforeTest234', expect.any(Function), 'afterTest234', expect.any(Function), 'specify', '0-2')
+        expect(runTestInFiberContext).toBeCalledWith(
+            false, 'beforeHook123', expect.any(Function), 'afterHook123', expect.any(Function), 'after', '0-2')
+        expect(runTestInFiberContext).toBeCalledWith(
+            false, 'beforeHook123', expect.any(Function), 'afterHook123', expect.any(Function), 'afterEach', '0-2')
+
+        const hookArgsFn = (runTestInFiberContext as jest.Mock).mock.calls[0][2]
+        expect(hookArgsFn({ test: { foo: 'bar', parent: { title: 'parent' } } }))
+            .toEqual([{ foo: 'bar', parent: 'parent' }, { test: { foo: 'bar', parent: { title: 'parent' } } }])
+    })
 })
 
 test('custom ui', () => {
