@@ -28,6 +28,7 @@ declare global {
         interface HookFunctionExtension {}
         interface WDIODevtoolsOptions {}
         interface WDIOVSCodeServiceOptions {}
+        interface BrowserRunnerOptions {}
     }
 
     namespace WebDriver {

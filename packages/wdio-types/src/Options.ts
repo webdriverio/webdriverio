@@ -338,7 +338,7 @@ export interface Testrunner extends Hooks, Omit<WebdriverIO, 'capabilities'>, We
      *   running an independant browser session
      * - browser: all spec files are run within the browser
      */
-    runner?: 'local' | 'browser'
+    runner?: 'local' | 'browser' | ['browser', WebdriverIO.BrowserRunnerOptions] | ['local', never]
     /**
      * Define specs for test execution. You can either specify a glob
      * pattern to match multiple files at once or wrap a glob or set of

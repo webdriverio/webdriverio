@@ -5,10 +5,7 @@ import '@testing-library/jest-dom'
 // @ts-expect-error cwd based import checks need to be implemented
 import { Counter } from '/browser-runner/components/PreactComponent.tsx'
 
-/**
- * skipped due to incompatibility to React plugin
- */
-describe.skip('Counter', () => {
+describe('Preact Component Testing', () => {
     it('should display initial count', () => {
         const { container } = render(<Counter initialCount={5} />)
         expect(container.textContent).toMatch('Current value: 5')

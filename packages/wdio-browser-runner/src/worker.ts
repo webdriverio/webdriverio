@@ -60,6 +60,16 @@ export default class SessionWorker extends EventEmitter {
             retry: 0
         })
 
+        this.emit('message', {
+            name: 'testFrameworkInit',
+            content: {
+                cid: this.#args.cid,
+                caps: this.#args.caps,
+                specs,
+                hasTests: true
+            }
+        })
+
         try {
             /**
              * start tests
