@@ -7,7 +7,7 @@ import { runTestInFiberContext, executeHooksWithArgs } from '@wdio/utils'
 import type { Capabilities, Services } from '@wdio/types'
 
 import { loadModule } from './utils'
-import { INTERFACES, EVENTS, NOOP, MOCHA_TIMEOUT_MESSAGE, MOCHA_TIMEOUT_MESSAGE_REPLACEMENT } from './constants'
+import { INTERFACES, TEST_INTERFACES, EVENTS, NOOP, MOCHA_TIMEOUT_MESSAGE, MOCHA_TIMEOUT_MESSAGE_REPLACEMENT } from './constants'
 import type { MochaConfig, MochaOpts as MochaOptsImport, FrameworkMessage, FormattedMessage, MochaContext, MochaError } from './types'
 import type { EventEmitter } from 'events'
 import type ExpectWebdriverIO from 'expect-webdriverio'
@@ -168,8 +168,7 @@ class MochaAdapter {
         }
 
         INTERFACES[type].forEach((fnName: string) => {
-            let testCommand = INTERFACES[type][0]
-            const isTest = [testCommand, testCommand + '.only'].includes(fnName)
+            const isTest = TEST_INTERFACES[type].flatMap((testCommand: string) => [testCommand, testCommand + '.only']).includes(fnName)
 
             runTestInFiberContext(
                 isTest,
