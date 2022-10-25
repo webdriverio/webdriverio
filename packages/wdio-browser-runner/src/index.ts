@@ -1,83 +1,43 @@
 import logger from '@wdio/logger'
 import getPort from 'get-port'
-import vue from '@vitejs/plugin-vue'
-import react from '@vitejs/plugin-react'
-// import preact from '@preact/preset-vite'
-import { svelte } from '@sveltejs/vite-plugin-svelte'
 import { createServer, ViteDevServer } from 'vite'
 import { remote, Browser } from 'webdriverio'
-import { esbuildCommonjs } from '@originjs/vite-plugin-commonjs'
-import { NodeGlobalsPolyfillPlugin } from '@esbuild-plugins/node-globals-polyfill'
 import type { Capabilities, Options } from '@wdio/types'
 
-import SessionWorker from './worker.js'
-import { testrunner } from './plugins/testrunner.js'
-import type { RunArgs } from './types'
+import Session from './worker.js'
+import { getViteConfig } from './utils.js'
+import type { RunArgs, BrowserRunnerOptions as BrowserRunnerOptionsImport } from './types'
 
 const log = logger('@wdio/browser-runner')
 
 export default class LocalRunner {
+    #options: WebdriverIO.BrowserRunnerOptions
     #config: Options.Testrunner
     #server?: ViteDevServer
     $browserPool: Map<number, Promise<Browser<'async'>>> = new Map()
 
     constructor(
-        configFile: unknown,
+        options: WebdriverIO.BrowserRunnerOptions,
         config: Options.Testrunner
     ) {
         this.#config = config
+        this.#options = options
     }
 
     /**
      * nothing to initialise when running locally
      */
     async initialise() {
-        const root = process.cwd()
-
+        const rootDir = this.#options.rootDir || process.cwd()
         log.info('Initiate browser environment')
         try {
             const port = await getPort()
-            this.#server = await createServer({
-                configFile: false,
-                root,
-                server: { port, host: 'localhost' },
-                plugins: [
-                    testrunner(root),
-                    vue(),
-                    svelte(),
-                    // preact(),
-                    react({
-                        babel: {
-                            assumptions: {
-                                setPublicClassFields: true
-                            },
-                            parserOpts: {
-                                plugins: ['decorators-legacy', 'classProperties']
-                            }
-                        }
-                    })
-                ],
-                optimizeDeps: {
-                    esbuildOptions: {
-                        // Node.js global to browser globalThis
-                        define: {
-                            global: 'globalThis',
-                        },
-                        // Enable esbuild polyfill plugins
-                        plugins: [
-                            NodeGlobalsPolyfillPlugin({
-                                process: true,
-                                buffer: true
-                            }),
-                            esbuildCommonjs(['@testing-library/vue'])
-                        ],
-                    },
-                }
-            })
+            const viteConfig = await getViteConfig(this.#options, rootDir, port)
+            this.#server = await createServer(viteConfig)
             await this.#server.listen()
-            log.info(`Vite server started successfully on port ${port}, root directory: ${root}`)
+            log.info(`Vite server started successfully on port ${port}, root directory: ${rootDir}`)
         } catch (err: any) {
-            log.error(`Vite server failed to start: ${err.message}`)
+            throw new Error(`Vite server failed to start: ${err.stack}`)
         }
     }
 
@@ -85,7 +45,7 @@ export default class LocalRunner {
         return Object.keys(this.$browserPool).length
     }
 
-    async run(args: RunArgs) {
+    run(args: RunArgs) {
         if (!(args.caps as Capabilities.Capabilities).browserName) {
             throw new Error('Multiremote capabilities are not supported when running in the browser')
         }
@@ -103,9 +63,9 @@ export default class LocalRunner {
             throw new Error(`No browser found with id ${args.args.capabilityId}`)
         }
 
-        const worker = new SessionWorker(this.#config, args, this.#server)
-        worker.run(browser)
-        return worker
+        const session = new Session(this.#config, args, this.#server)
+        session.run(browser)
+        return session
     }
 
     #initSession(args: RunArgs): Promise<Browser<'async'>> {
@@ -139,5 +99,11 @@ export default class LocalRunner {
             log.info('Shutting down Vite server')
             await this.#server.close()
         }
+    }
+}
+
+declare global {
+    namespace WebdriverIO {
+        interface BrowserRunnerOptions extends BrowserRunnerOptionsImport {}
     }
 }

@@ -28,7 +28,9 @@ exports.config = {
     logLevel: 'trace',
     framework: 'mocha',
     outputDir: __dirname,
-    runner: 'browser',
+    runner: ['browser', {
+        preset: process.env.WDIO_PRESET
+    }],
 
     reporters: ['spec', 'dot', 'junit'],
 

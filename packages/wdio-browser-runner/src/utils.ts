@@ -1,7 +1,11 @@
 import got from 'got'
+import type { InlineConfig } from 'vite'
+import { esbuildCommonjs } from '@originjs/vite-plugin-commonjs'
+import { NodeGlobalsPolyfillPlugin } from '@esbuild-plugins/node-globals-polyfill'
 
-import { EVENTS } from './constants.js'
-import type { Environment } from './types'
+import { testrunner } from './plugins/testrunner.js'
+import { EVENTS, PRESET_DEPENDENCIES } from './constants.js'
+import type { Environment, FrameworkPreset } from './types'
 
 export async function getTemplate (cid: string, env: Environment, spec: string) {
     const listeners = Object.entries(EVENTS).map(([mochaEvent, wdioEvent]) => (
@@ -55,4 +59,66 @@ export async function getTemplate (cid: string, env: Environment, spec: string) 
             </script>
         </body>
     </html>`
+}
+
+async function userfriendlyImport (preset: FrameworkPreset, pkg?: string) {
+    if (!pkg) {
+        return {}
+    }
+
+    try {
+        return await import(pkg)
+    } catch (err: any) {
+        throw new Error(
+            `Couldn't load preset "${preset}" given important dependency ("${pkg}") is not installed.\n` +
+            `Please run:\n\n\tnpm install ${pkg}\n\tor\n\tyarn add --dev ${pkg}`
+        )
+    }
+}
+
+export async function getViteConfig (options: WebdriverIO.BrowserRunnerOptions, root: string, port: number) {
+    /**
+     * user provided vite config
+     */
+    if (options.viteConfig) {
+        return Object.assign({}, options.viteConfig, {
+            plugins: [
+                testrunner(root),
+                ...(options.viteConfig.plugins || [])
+            ]
+        })
+    }
+
+    const config: Partial<InlineConfig> = {
+        configFile: false,
+        root,
+        server: { port, host: 'localhost' },
+        plugins: [testrunner(root)],
+        optimizeDeps: {
+            esbuildOptions: {
+                // Node.js global to browser globalThis
+                define: {
+                    global: 'globalThis',
+                },
+                // Enable esbuild polyfill plugins
+                plugins: [
+                    NodeGlobalsPolyfillPlugin({
+                        process: true,
+                        buffer: true
+                    }),
+                    esbuildCommonjs(['@testing-library/vue'])
+                ],
+            },
+        }
+    }
+
+    if (options.preset) {
+        const [pkg, importProp, opts] = PRESET_DEPENDENCIES[options.preset] || []
+        const plugin = (await userfriendlyImport(options.preset, pkg))[importProp || 'default']
+        if (plugin) {
+            config.plugins!.push(plugin(opts))
+        }
+    }
+
+    return config
 }

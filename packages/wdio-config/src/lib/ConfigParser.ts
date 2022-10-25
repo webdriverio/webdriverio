@@ -354,6 +354,9 @@ export default class ConfigParser {
                 files.push(groupedFiles)
             } else if (Array.isArray(pattern) && hierarchyDepth) {
                 log.error('Unexpected depth of hierarchical arrays')
+            } else if ((pattern as string).startsWith('file://')) {
+                // files are already absolute, no need to glob them
+                files.push(pattern)
             } else {
                 pattern = pattern.toString().replace(/\\/g, '/')
                 let filenames = findAndGlob.glob(<string>pattern)

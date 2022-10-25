@@ -19,7 +19,7 @@ export default class LocalRunner {
     stderr = new WritableStreamBuffer(BUFFER_OPTIONS)
 
     constructor (
-        configFile: unknown,
+        private _options: never,
         private _config: Options.Testrunner
     ) {}
 

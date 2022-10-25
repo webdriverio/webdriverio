@@ -98,8 +98,9 @@ class Launcher {
         this.interface = new CLInterface(config, totalWorkerCnt, this._isWatchMode)
         config.runnerEnv!.FORCE_COLOR = Number(this.interface.hasAnsiSupport)
 
-        const Runner = (await initialisePlugin(config.runner!, 'runner') as Services.RunnerPlugin).default
-        this.runner = new Runner(this._configFilePath, config)
+        const [runnerName, runnerOptions] = Array.isArray(config.runner) ? config.runner : [config.runner, {} as WebdriverIO.BrowserRunnerOptions]
+        const Runner = (await initialisePlugin(runnerName, 'runner') as Services.RunnerPlugin).default
+        this.runner = new Runner(runnerOptions, config)
 
         /**
          * catches ctrl+c event

@@ -13,7 +13,10 @@ export interface RunnerInstance {
 }
 
 export interface RunnerClass {
-    new(configFile: string, config: Omit<WebdriverIOOptions, 'capabilities' | keyof Hooks>): RunnerInstance
+    new(
+        options: WebdriverIO.BrowserRunnerOptions,
+        config: Omit<WebdriverIOOptions, 'capabilities' | keyof Hooks>
+    ): RunnerInstance
 }
 
 export interface RunnerPlugin extends RunnerClass {
