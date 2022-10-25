@@ -1,8 +1,14 @@
 export const INTERFACES = {
-    bdd: ['it', 'before', 'beforeEach', 'after', 'afterEach'],
+    bdd: ['it', 'specify', 'before', 'beforeEach', 'after', 'afterEach'],
     tdd: ['test', 'suiteSetup', 'setup', 'suiteTeardown', 'teardown'],
     qunit: ['test', 'before', 'beforeEach', 'after', 'afterEach']
 } as const
+
+export const TEST_INTERFACES = {
+     bdd: ['it', 'specify'],
+     tdd: ['test'],
+     qunit: ['test']
+ } as const
 
 /**
  * to map Mocha events to WDIO events
