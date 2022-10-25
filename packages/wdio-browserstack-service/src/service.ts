@@ -512,7 +512,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
             const { error, passed } = results
             if (!passed) {
                 testData['result'] = (error && error.message && error.message.includes('sync skip; aborting execution')) ? 'skipped' : 'failed'
-                if (error) {
+                if (error && testData['result'] != 'skipped') {
                     testData['failure'] = [{ backtrace: [removeAnsiColors(error.message)] }] // add all errors here
                     testData['failure_reason'] = removeAnsiColors(error.message)
                     testData['failure_type'] = error.message == null ? null : error.message.toString().match(/AssertionError/) ? 'AssertionError' : 'UnhandledError' //verify if this is working
