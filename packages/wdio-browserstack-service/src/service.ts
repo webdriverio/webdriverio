@@ -511,7 +511,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
         if ((eventType == 'TestRunFinished' || eventType == 'HookRunFinished') && results) {
             const { error, passed } = results
             if (!passed) {
-                testData['result'] = 'failed'
+                testData['result'] = (error && error.message && error.message.includes('sync skip; aborting execution')) ? 'skipped' : 'failed'
                 if (error) {
                     testData['failure'] = [{ backtrace: [removeAnsiColors(error.message)] }] // add all errors here
                     testData['failure_reason'] = removeAnsiColors(error.message)
