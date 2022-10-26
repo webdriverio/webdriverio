@@ -50,9 +50,6 @@
     "webdriverio": "7.20.7",
     "ws": "^8.8.1"
   },
-  "peerDependencies": {
-    "@wdio/cli": "next"
-  },
   "publishConfig": {
     "access": "public"
   },

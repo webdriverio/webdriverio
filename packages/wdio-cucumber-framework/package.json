@@ -50,9 +50,6 @@
     "long": "^4.0.0",
     "mockery": "^2.1.0"
   },
-  "peerDependencies": {
-    "@wdio/cli": "next"
-  },
   "publishConfig": {
     "access": "public"
   }

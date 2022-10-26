@@ -37,9 +37,6 @@
     "fs-extra": "^10.1.0",
     "param-case": "^3.0.4"
   },
-  "peerDependencies": {
-    "@wdio/cli": "next"
-  },
   "publishConfig": {
     "access": "public"
   }

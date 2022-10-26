@@ -33,9 +33,6 @@
     "got": "^12.1.0",
     "webdriverio": "7.20.7"
   },
-  "peerDependencies": {
-    "@wdio/cli": "next"
-  },
   "publishConfig": {
     "access": "public"
   }

@@ -38,9 +38,6 @@
     "vite": "^3.1.7",
     "webdriverio": "7.20.7"
   },
-  "peerDependencies": {
-    "@wdio/cli": "next"
-  },
   "publishConfig": {
     "access": "public"
   }

@@ -35,9 +35,6 @@
     "got": "^12.1.0",
     "json-stringify-safe": "^5.0.1"
   },
-  "peerDependencies": {
-    "@wdio/cli": "next"
-  },
   "publishConfig": {
     "access": "public"
   }

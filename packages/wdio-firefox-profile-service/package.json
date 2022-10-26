@@ -36,9 +36,6 @@
     "@wdio/types": "7.20.7",
     "firefox-profile": "^4.0.0"
   },
-  "peerDependencies": {
-    "@wdio/cli": "next"
-  },
   "publishConfig": {
     "access": "public"
   }

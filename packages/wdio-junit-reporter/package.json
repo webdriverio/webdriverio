@@ -36,9 +36,6 @@
     "junit-report-builder": "^3.0.0",
     "validator": "^13.7.0"
   },
-  "peerDependencies": {
-    "@wdio/cli": "next"
-  },
   "publishConfig": {
     "access": "public"
   }
