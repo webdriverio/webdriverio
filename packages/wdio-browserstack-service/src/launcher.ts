@@ -40,7 +40,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                     const extensionCaps = Object.keys(capability).filter((cap) => cap.includes(':'))
                     if (extensionCaps.length) {
                         capability['bstack:options'] = { wdioService: bstackServiceVersion }
-                    } else {
+                    } else if (this._shouldAddServiceVersion(this._config)) {
                         capability['browserstack.wdioService'] = bstackServiceVersion
                     }
                 } else {
@@ -53,7 +53,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                     const extensionCaps = Object.keys(caps.capabilities).filter((cap) => cap.includes(':'))
                     if (extensionCaps.length) {
                         (caps.capabilities as Capabilities.Capabilities)['bstack:options'] = { wdioService: bstackServiceVersion }
-                    } else {
+                    } else if (this._shouldAddServiceVersion(this._config)) {
                         (caps.capabilities as Capabilities.Capabilities)['browserstack.wdioService'] = bstackServiceVersion
                     }
                 } else {
@@ -304,5 +304,12 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         } else {
             throw new SevereServiceError('Capabilities should be an object or Array!')
         }
+    }
+
+    _shouldAddServiceVersion(config: Options.Testrunner): boolean {
+        if (config.services && config.services.toString().includes('chromedriver') && this._options.testObservability != false) {
+            return false
+        }
+        return true
     }
 }

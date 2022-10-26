@@ -3,14 +3,14 @@ import got from 'got'
 import type { Services, Capabilities, Options, Frameworks } from '@wdio/types'
 import type { Browser, MultiRemoteBrowser } from 'webdriverio'
 
-import { getBrowserDescription, getBrowserCapabilities, isBrowserstackCapability, getParentSuiteName, getUniqueIdentifier, getCloudProvider, getUniqueIdentifierForCucumber, getScenarioNameWithExamples, isBrowserstackSession, removeAnsiColors } from './util'
+import { getBrowserDescription, getBrowserCapabilities, isBrowserstackCapability, getParentSuiteName, getUniqueIdentifier, getCloudProvider, getUniqueIdentifierForCucumber, getScenarioNameWithExamples, isBrowserstackSession, removeAnsiColors, uploadEventData } from './util'
 import { BrowserstackConfig, MultiRemoteAction, SessionResponse } from './types'
 import { v4 as uuidv4 } from 'uuid'
-import { DATA_ENDPOINT } from './constants'
 import { ClientRequestInterceptor } from '@mswjs/interceptors/lib/interceptors/ClientRequest'
 import { IsomorphicRequest } from '@mswjs/interceptors/lib/IsomorphicRequest'
 import { IsomorphicResponse } from '@mswjs/interceptors'
 import { Test, TestResult } from '@wdio/types/build/Frameworks'
+import path from 'path'
 
 const log = logger('@wdio/browserstack-service')
 const interceptor = new ClientRequestInterceptor()
@@ -39,7 +39,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
 
         if (this._observability) {
             this._tests = {}
-            // this._config.reporters ? this._config.reporters.push(path.join(__dirname, 'reporter.js')) : [path.join(__dirname, 'reporter.js')]
+            this._config.reporters ? this._config.reporters.push(path.join(__dirname, 'reporter.js')) : [path.join(__dirname, 'reporter.js')]
             this._framework = this._config.framework
         }
 
@@ -162,7 +162,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
                 kind: 'TEST_SCREENSHOT'
             }
 
-            this.uploadEventData({
+            uploadEventData({
                 event_type: 'LogCreated',
                 logs: [log]
             })
@@ -492,7 +492,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
 
         let testData: any = {
             uuid: testMetaData.uuid,
-            type: test.type, // test, hook etc (not passed in sdk)
+            type: test.type,
             name: test.title,
             body: {
                 lang: 'webdriverio',
@@ -549,7 +549,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
         } else {
             uploadData['test_run'] = testData
         }
-        this.uploadEventData(uploadData)
+        uploadEventData(uploadData)
     }
 
     sendTestRunEventForCucumber (world: any, eventType: string) {
@@ -626,115 +626,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
             event_type: eventType,
             test_run: testData
         }
-        this.uploadEventData(uploadData)
-    }
-
-    async uploadEventData (eventData: any) {
-        const logTag = 'TestRunStarted'
-        // logTag = {
-        //     ['TestRunStarted']: 'Test_Upload',
-        //     ['TestRunFinished']: 'Test_Upload',
-        //     ['LogCreated']: 'Log_Upload',
-        //     ['HookRunStarted']: 'Hook_Upload',
-        //     ['HookRunFinished']: 'Hook_Upload',
-        // }[eventData.eventType]
-
-        // if (run === 0) pendingTestUploads += 1
-
-        if (process.env.BS_TESTOPS_BUILD_COMPLETED) {
-            if (!process.env.BS_TESTOPS_JWT) {
-                console.log(`[${logTag}] Missing Authentication Token/ Build ID`)
-                // pendingTestUploads = Math.max(0, pendingTestUploads-1);
-                return {
-                    status: 'error',
-                    message: 'Token/buildID is undefined, build creation might have failed'
-                }
-            }
-            const config = {
-                headers: {
-                    'Authorization': `Bearer ${process.env.BS_TESTOPS_JWT}`,
-                    'Content-Type': 'application/json',
-                    'X-BSTACK-OBS': 'true'
-                },
-                timeout: {
-                    // request: 60000
-                },
-                // agent: httpKeepAliveAgent
-            }
-
-            try {
-                let url = `http://${DATA_ENDPOINT}/api/v1/event`
-                try {
-                    const readStream: any = got.post(url, { json: eventData, ...config }).json()
-                    const onError = (error: any) => {
-                        console.log('inside onError')
-                        console.log(error)
-                        // Do something with it.
-                    }
-
-                    readStream.on('response', async (response: any) => {
-                        console.log('inside onResponse')
-                        if (response.headers.age > 3600) {
-                            console.log('Failure - response too old')
-                            // readStream.destroy() // Destroy the stream to prevent hanging resources.
-                            return
-                        }
-
-                        // Prevent `onError` being called twice.
-                        // readStream.off('error', onError)
-
-                        try {
-                            // console.log(readStream.json())
-                            console.log(`[${logTag}] Browserstack TestOps success response: ${response}`)
-                            // console.log(`[${logTag}] run[${run}] Browserstack TestOps success response: ${JSON.stringify(response.data)}`)
-                            // await pipeline(
-                            //     readStream,
-                            //     createWriteStream('image.png')
-                            // )
-                            console.log('Success')
-                        } catch (error) {
-                            onError(error)
-                        }
-                    })
-                    // readStream.once('error', onError)
-                } catch (error) {
-                    console.log(error)
-                    // console.error(error.response.statusCode)
-                }
-                // if (response.data.error) {
-                //     throw ({ message: response.data.error })
-                // } else {
-                // console.log(`[${logTag}] run[${run}] Browserstack TestOps success response: ${JSON.stringify(response.data)}`)
-                // pendingTestUploads = Math.max(0,pendingTestUploads-1)
-                // return {
-                //     status: 'success',
-                //     message: ''
-                // }
-                // }
-            } catch (error: any) {
-                console.log(error)
-                // if (error.response) {
-                //     console.log(`[${logTag}] Browserstack TestOps error response: ${error.response.status} ${error.response.statusText} ${JSON.stringify(error.response.data)}`)
-                // } else {
-                //     console.log(`[${logTag}] Browserstack TestOps error: ${error.message || error}`)
-                // }
-                // // pendingTestUploads = Math.max(0, pendingTestUploads - 1)
-                // return {
-                //     status: 'error',
-                //     message: error.message || (error.response ? `${error.response.status}:${error.response.statusText}` : error)
-                // }
-            }
-        }
-        // else if (run >= 5) {
-        //     console.log(`[${logTag}] BuildStart is not completed and ${logTag} retry runs exceeded`)
-        //     // pendingTestUploads = Math.max(0, pendingTestUploads - 1)
-        //     return {
-        //         status: 'error',
-        //         message: 'Retry runs exceeded'
-        //     }
-        // } else {
-        //     setTimeout(function(){ exports.uploadEventData(eventData, run+1) }, 1000)
-        // }
+        uploadEventData(uploadData)
     }
 
     requestHandler (request: IsomorphicRequest, response: IsomorphicResponse, currentTest: any) {
@@ -757,7 +649,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
                 http_response: requestData
             }
 
-            this.uploadEventData({
+            uploadEventData({
                 event_type: 'LogCreated',
                 logs: [log]
             })

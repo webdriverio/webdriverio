@@ -1,5 +1,6 @@
 import type { Browser, MultiRemoteBrowser } from 'webdriverio'
 import type { Capabilities } from '@wdio/types'
+import logger from '@wdio/logger'
 
 import { BROWSER_DESCRIPTION, DATA_ENDPOINT } from './constants'
 
@@ -13,6 +14,7 @@ import gitconfig from 'gitconfiglocal'
 import { Frameworks } from '@wdio/types'
 
 const pGitconfig = promisify(gitconfig)
+const log = logger('@wdio/browserstack-service')
 
 /**
  * get browser description for Browserstack service
@@ -83,9 +85,7 @@ export async function launchTestSession (userConfig: any) {
     const BSTestOpsToken = `${userConfig.username}:${userConfig.password}`
 
     if (BSTestOpsToken === '') {
-        // TODO: never go inside this
-
-        // debug('[Start_Build] Missing BROWSERSTACK_TESTOPS_TOKEN')
+        log.debug('[Start_Build] Missing BROWSERSTACK_TESTOPS_TOKEN')
         process.env.BS_TESTOPS_BUILD_COMPLETED = 'true'
         return [null, null]
     }
@@ -120,37 +120,24 @@ export async function launchTestSession (userConfig: any) {
         let url = `http://${DATA_ENDPOINT}/api/v1/builds`
         let response: any
         try {
-            // dataCounter('in')
             response = await got.post(url, { json: data, ...config }).json()
         } catch (error) {
-            console.log(error)
-            // console.error(error.response.statusCode)
+            log.debug(`[Start_Build] Browserstack TestOps failed. Error: ${error}`)
         }
-        console.log(`[Start_Build] Browserstack TestOps success response: ${JSON.stringify(response)}`)
-        // console.log(`[Start_Build] Browserstack TestOps success response: ${JSON.stringify(response.data)}`)
+        log.debug(`[Start_Build] Success response: ${JSON.stringify(response)}`)
         process.env.BS_TESTOPS_BUILD_COMPLETED = 'true'
         return [response.jwt, response.build_hashed_id]
     } catch (error: any) {
-        console.log(error)
-        // if (error.response) {
-        //     console.log(`[Start_Build] Browserstack TestOps error response: ${error.response.status} ${error.response.statusText} ${JSON.stringify(error.response.data)}`)
-        // } else {
-        //     console.log(`[Start_Build] Browserstack TestOps error: ${error.message || error}`)
-        // }
+        log.debug(`[Start_Build] Failed. Error: ${error}`)
         process.env.BS_TESTOPS_BUILD_COMPLETED = 'true'
         return [null, null]
     }
 }
 
-export async function stopBuildUpstream (buildStartWaitRun: number = 0, testUploadWaitRun: number = 0) {
-    // if (!forceStop && pending_test_uploads && testUploadWaitRun < 5) {
-    //     console.log(`[Stop_Build] Retry ${testUploadWaitRun+1} stopBuildUpstream due to pending event uploads ${pending_test_uploads}`)
-    //     setTimeout(function(){ exports.stopBuildUpstream(buildStartWaitRun, testUploadWaitRun+1, false) }, 5000)
-    // }
-
+export async function stopBuildUpstream () {
     if (process.env.BS_TESTOPS_BUILD_COMPLETED) {
         if (!process.env.BS_TESTOPS_JWT) {
-            console.log('[Stop_Build] Missing Authentication Token/ Build ID')
+            log.debug('[Stop_Build] Missing Authentication Token/ Build ID')
             return {
                 status: 'error',
                 message: 'Token/buildID is undefined, build creation might have failed'
@@ -173,33 +160,16 @@ export async function stopBuildUpstream (buildStartWaitRun: number = 0, testUplo
             try {
                 response = await got.put(url, { json: data, ...config }).json()
             } catch (error) {
-                console.log(error)
-                // console.error(error.response.statusCode)
+                log.debug(`[Stop_Build] Failed. Error: ${error}`)
             }
-            // if (response.error) {
-            //     throw ({ message: response.error })
-            // } else {
-            console.log(`[Stop_Build] buildStartWaitRun[${buildStartWaitRun}] testUploadWaitRun[${testUploadWaitRun}] Browserstack TestOps success response: ${JSON.stringify(response)}`)
+            log.debug(`[Stop_Build] Success response: ${JSON.stringify(response)}`)
             return {
                 status: 'success',
                 message: ''
             }
-            // }
         } catch (error: any) {
-            console.log(error)
-            // if (error.response) {
-            //     console.log(`[Stop_Build] Browserstack TestOps error response: ${error.response.status} ${error.response.statusText} ${JSON.stringify(error.response.data)}`)
-            // } else {
-            //     console.log(`[Stop_Build] Browserstack TestOps error: ${error.message || error}`)
-            // }
-            // return {
-            //     status: 'error',
-            //     message: error.message || error.response ? `${error.response.status}:${error.response.statusText}` : error
-            // }
+            log.debug(`[Stop_Build] Failed. Error: ${error}`)
         }
-    } else {
-        /* forceStop = true since we won't wait for pendingUploads trigerred post stop flow */
-        setTimeout(function(){ exports.stopBuildUpstream(buildStartWaitRun+1, testUploadWaitRun, true) }, 1000)
     }
 }
 
@@ -359,7 +329,7 @@ export function getCloudProvider(browser: any): string {
     let provider: string = 'UNKNOWN'
     if (browser.options && browser.options.hostname) {
         let hostname: string = browser.options.hostname
-        if (hostname.includes('browserstack')) {
+        if (hostname.includes('browserstack') || hostname.includes('bsstag')) {
             return 'browserstack'
         } else if (hostname.includes('saucelabs')) {
             return 'sauce'
@@ -435,4 +405,57 @@ export function removeAnsiColors(message: string): string {
     // https://stackoverflow.com/a/29497680
     // eslint-disable-next-line no-control-regex
     return message.replace(/[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g, '')
+}
+
+export function uploadEventData (eventData: any) {
+    let logTag: string = ''
+    switch (eventData.event_type) {
+    case 'TestRunStarted':
+    case 'TestRunFinished':
+        logTag = 'Test_Upload'
+        break
+    case 'HookRunStarted':
+    case 'HookRunFinished':
+        logTag = 'Hook_Upload'
+        break
+    case 'LogCreated':
+        logTag = 'Log_Upload'
+        break
+    }
+
+    if (process.env.BS_TESTOPS_BUILD_COMPLETED) {
+        if (!process.env.BS_TESTOPS_JWT) {
+            log.debug(`[${logTag}] Missing Authentication Token/ Build ID`)
+            return {
+                status: 'error',
+                message: 'Token/buildID is undefined, build creation might have failed'
+            }
+        }
+        const config = {
+            headers: {
+                'Authorization': `Bearer ${process.env.BS_TESTOPS_JWT}`,
+                'Content-Type': 'application/json',
+                'X-BSTACK-OBS': 'true'
+            },
+        }
+
+        try {
+            let url = `http://${DATA_ENDPOINT}/api/v1/event`
+            const readStream: any = got.post(url, { json: eventData, ...config }).json()
+
+            readStream.on('response', async (response: any) => {
+                if (response.headers.age > 3600) {
+                    log.debug('[${logTag}] Failure - response too old')
+                    return
+                }
+                log.debug(`[${logTag}] Success response: ${response}`)
+                return {
+                    status: 'success',
+                    message: ''
+                }
+            })
+        } catch (error: any) {
+            log.debug(`[${logTag}] Failed. Error: ${error}`)
+        }
+    }
 }
