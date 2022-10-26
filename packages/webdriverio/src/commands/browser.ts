@@ -35,7 +35,7 @@ import uploadFile from './browser/uploadFile.js'
 import url from './browser/url.js'
 import waitUntil from './browser/waitUntil.js'
 
-export default {
+export {
     $$, $, action, actions, call, custom$$, custom$, debug, deleteCookies, execute, executeAsync,
     getCookies, getPuppeteer, getWindowSize, keys, mock, mockClearAll, mockRestoreAll, newWindow,
     pause, react$$, react$, reloadSession, savePDF, saveRecordingScreen, saveScreenshot, scroll,

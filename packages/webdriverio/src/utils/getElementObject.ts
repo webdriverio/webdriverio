@@ -21,7 +21,7 @@ export const getElement = function findElement(
     isReactElement = false
 ): WebdriverIO.Element {
     const browser = getBrowserObject(this)
-    const browserCommandKeys = Object.keys(browserCommands.default)
+    const browserCommandKeys = Object.keys(browserCommands)
     const propertiesObject = {
         /**
          * filter out browser commands from object
@@ -89,7 +89,7 @@ export const getElements = function getElements(
     isReactElement = false
 ): ElementArray {
     const browser = getBrowserObject(this as WebdriverIO.Element)
-    const browserCommandKeys = Object.keys(browserCommands.default)
+    const browserCommandKeys = Object.keys(browserCommands)
     const propertiesObject = {
         /**
          * filter out browser commands from object

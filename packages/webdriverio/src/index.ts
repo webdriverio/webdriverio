@@ -7,7 +7,6 @@ import type { Options, Capabilities } from '@wdio/types'
 import type * as WebDriverTypes from 'webdriver'
 
 import MultiRemote from './multiremote.js'
-import type ElementCommands from './commands/element.js'
 import SevereServiceErrorImport from './utils/SevereServiceError.js'
 import detectBackend from './utils/detectBackend.js'
 import { WDIO_DEFAULTS, Key as KeyConstant } from './constants.js'
@@ -16,6 +15,7 @@ import {
     updateCapabilities
 } from './utils/index.js'
 import type { AttachOptions } from './types'
+import type * as elementCommands from './commands/element.js'
 
 export type RemoteOptions = Options.WebdriverIO & Omit<Options.Testrunner, 'capabilities'>
 export const Key = KeyConstant
@@ -72,7 +72,7 @@ export const remote = async function (params: RemoteOptions, remoteModifier?: Fu
 
         const origOverwriteCommand = instance.overwriteCommand.bind(instance)
         instance.overwriteCommand = (name: string, fn: (...args: any[]) => any, attachToElement) => (
-            origOverwriteCommand<keyof typeof ElementCommands, any, any>(name, fn, attachToElement)
+            origOverwriteCommand<keyof typeof elementCommands, any, any>(name, fn, attachToElement)
         )
     }
 
@@ -103,7 +103,7 @@ export const attach = async function (attachOptions: AttachOptions): Promise<Web
 
 /**
  * WebdriverIO allows you to run multiple automated sessions in a single test.
- * This is handy when you’re testing features that require multiple users (for example, chat or WebRTC applications).
+ * This is handy when you're testing features that require multiple users (for example, chat or WebRTC applications).
  *
  * Instead of creating a couple of remote instances where you need to execute common commands like newSession() or url() on each instance,
  * you can simply create a multiremote instance and control all browsers at the same time.
@@ -175,7 +175,7 @@ export const multiremote = async function (
 
         const origOverwriteCommand = driver.overwriteCommand.bind(driver)
         driver.overwriteCommand = (name: string, fn: (...args: any[]) => any, attachToElement) => {
-            return origOverwriteCommand<keyof typeof ElementCommands, any, any>(
+            return origOverwriteCommand<keyof typeof elementCommands, any, any>(
                 name,
                 fn,
                 attachToElement,
