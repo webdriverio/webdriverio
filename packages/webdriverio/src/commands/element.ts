@@ -47,7 +47,7 @@ import waitForEnabled from './element/waitForEnabled.js'
 import waitForExist from './element/waitForExist.js'
 import waitUntil from './element/waitUntil.js'
 
-export default {
+export {
     $$, $, addValue, clearValue, click, custom$, custom$$, doubleClick, dragAndDrop,
     getAttribute, getCSSProperty, getComputedRole, getComputedLabel, getHTML, getLocation,
     getProperty, getSize, getTagName, getText, getValue, isClickable, isDisplayed,

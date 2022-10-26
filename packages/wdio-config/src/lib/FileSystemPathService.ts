@@ -1,7 +1,7 @@
 import fs from 'node:fs'
-import url from 'node:url'
 import path from 'node:path'
 import glob from 'glob'
+import { pathToFileURL } from 'node:url'
 
 import RequireLibrary from './RequireLibrary.js'
 import type { PathService, ModuleImportService } from '../types'
@@ -55,6 +55,6 @@ export default class FileSystemPathService implements PathService {
         const p = path.isAbsolute(filepath)
             ? path.normalize(filepath)
             : path.resolve(this.getcwd(), filepath)
-        return url.pathToFileURL(p).href
+        return pathToFileURL(p).href
     }
 }

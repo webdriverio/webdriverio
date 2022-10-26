@@ -1,5 +1,5 @@
 import fs from 'node:fs'
-import url from 'node:url'
+import { pathToFileURL } from 'node:url'
 import { createRequire } from 'node:module'
 
 import type { Services, Clients } from '@wdio/types'
@@ -178,7 +178,7 @@ export async function safeImport (name: string): Promise<Services.ServicePlugin 
         if (require.resolve) {
             requirePath = await require.resolve(name)
             if (!requirePath.startsWith('file://')) {
-                requirePath = url.pathToFileURL(requirePath).href
+                requirePath = pathToFileURL(requirePath).href
             }
         }
     } catch (err: any) {

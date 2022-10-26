@@ -5,8 +5,8 @@ import type { Options, Capabilities, FunctionProperties, ThenArg } from '@wdio/t
 import type { ElementReference, ProtocolCommandsAsync, ProtocolCommands, RectReturn } from '@wdio/protocols'
 import type { Browser as PuppeteerBrowser } from 'puppeteer-core/lib/cjs/puppeteer/api/Browser'
 
-import type BrowserCommands from './commands/browser'
-import type ElementCommands from './commands/element'
+import type * as BrowserCommands from './commands/browser'
+import type * as ElementCommands from './commands/element'
 import type DevtoolsInterception from './utils/interception/devtools'
 import type { Location } from './commands/element/getLocation'
 import type { Size } from './commands/element/getSize'
