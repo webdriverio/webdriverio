@@ -146,6 +146,10 @@ export default class BrowserstackService implements Services.ServiceInstance {
             return Promise.resolve()
         }
 
+        if (this._options.preferScenarioName && this._scenariosThatRan.length === 1){
+            this._fullTitle = this._scenariosThatRan.pop()
+        }
+
         const hasReasons = Boolean(this._failReasons.filter(Boolean).length)
 
         let status = hasReasons ? 'failed' : 'passed'
