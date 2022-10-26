@@ -36,9 +36,6 @@
     "split2": "^4.1.0",
     "stream-buffers": "^3.0.2"
   },
-  "peerDependencies": {
-    "@wdio/cli": "next"
-  },
   "publishConfig": {
     "access": "public"
   }

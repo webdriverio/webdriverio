@@ -31,9 +31,6 @@
     "chalk": "^5.0.1",
     "pretty-ms": "^7.0.1"
   },
-  "peerDependencies": {
-    "@wdio/cli": "next"
-  },
   "publishConfig": {
     "access": "public"
   }

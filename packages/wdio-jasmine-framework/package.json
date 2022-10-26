@@ -38,9 +38,6 @@
     "expect-webdriverio": "^4.0.0-alpha.3",
     "jasmine": "^4.2.1"
   },
-  "peerDependencies": {
-    "@wdio/cli": "next"
-  },
   "publishConfig": {
     "access": "public"
   }
