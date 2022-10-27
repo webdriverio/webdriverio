@@ -1,12 +1,12 @@
 import path from 'node:path'
+import fs from 'node:fs'
 import os from 'node:os'
 import express from 'express'
-import fs from 'fs-extra'
 import { test, expect, vi, afterEach } from 'vitest'
 
 import StaticServerLauncher from '../src/launcher.js'
 
-vi.mock('fs-extra')
+vi.mock('fs')
 vi.mock('express')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
@@ -52,7 +52,6 @@ test('should stream logs to log dir', async () => {
         filename = filename.split('/').join('\\')
     }
 
-    expect(fs.createFile).toBeCalledWith(filename)
     expect(fs.createWriteStream).toBeCalledWith(filename)
 })
 

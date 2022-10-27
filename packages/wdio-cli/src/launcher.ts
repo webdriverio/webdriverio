@@ -1,5 +1,5 @@
+import fs from 'node:fs/promises'
 import path from 'node:path'
-import fs from 'fs-extra'
 import exitHook from 'async-exit-hook'
 
 import logger from '@wdio/logger'
@@ -83,7 +83,7 @@ class Launcher {
         this.isMultiremote = !Array.isArray(capabilities)
 
         if (config.outputDir) {
-            fs.ensureDirSync(path.join(config.outputDir))
+            await fs.mkdir(path.join(config.outputDir), { recursive: true })
             process.env.WDIO_LOG_PATH = path.join(config.outputDir, 'wdio.log')
         }
 

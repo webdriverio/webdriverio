@@ -1,3 +1,6 @@
+import fs from 'node:fs'
+import fsp from 'node:fs/promises'
+import path from 'node:path'
 import { ChildProcessByStdio, spawn } from 'node:child_process'
 import { promisify } from 'node:util'
 import { Readable } from 'node:stream'
@@ -21,11 +24,6 @@ const DEFAULT_CONNECTION = {
 }
 
 const require = createRequire(import.meta.url)
-/**
- * 'fs-extra' has no support for ESM
- * https://github.com/jprichardson/node-fs-extra/issues/746
- */
-const { createWriteStream, ensureFileSync } = require('fs-extra')
 
 export default class AppiumLauncher implements Services.ServiceInstance {
     private readonly _logPath?: string
@@ -153,17 +151,17 @@ export default class AppiumLauncher implements Services.ServiceInstance {
         })
     }
 
-    private _redirectLogStream(logPath: string) {
+    private async _redirectLogStream(logPath: string) {
         if (!this._process){
             throw Error('No Appium process to redirect log stream')
         }
         const logFile = getFilePath(logPath, DEFAULT_LOG_FILENAME)
 
         // ensure file & directory exists
-        ensureFileSync(logFile)
+        await fsp.mkdir(path.dirname(logFile))
 
         log.debug(`Appium logs written to: ${logFile}`)
-        const logStream = createWriteStream(logFile, { flags: 'w' })
+        const logStream = fs.createWriteStream(logFile, { flags: 'w' })
         this._process.stdout.pipe(logStream)
         this._process.stderr.pipe(logStream)
     }

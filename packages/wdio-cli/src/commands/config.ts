@@ -1,6 +1,6 @@
+import fs from 'node:fs/promises'
 import path from 'node:path'
 import util from 'node:util'
-import fs from 'fs-extra'
 import inquirer from 'inquirer'
 import yarnInstall from 'yarn-install'
 import type { Argv } from 'yargs'
@@ -104,8 +104,8 @@ const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) 
             }
         }
 
-        fs.ensureDirSync(path.join(process.cwd(), 'test'))
-        await fs.promises.writeFile(
+        await fs.mkdir(path.join(process.cwd(), 'test'), { recursive: true })
+        await fs.writeFile(
             parsedAnswers.tsConfigFilePath,
             JSON.stringify(config, null, 4)
         )
@@ -130,7 +130,7 @@ const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) 
             if (!hasPackage('@babel/preset-env')) {
                 packagesToInstall.push('@babel/preset-env')
             }
-            await fs.promises.writeFile(
+            await fs.writeFile(
                 path.join(process.cwd(), 'babel.config.js'),
                 `module.exports = ${JSON.stringify({
                     presets: [

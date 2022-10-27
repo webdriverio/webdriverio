@@ -1,7 +1,7 @@
 import { vi, describe, it, expect, afterEach, beforeEach, test } from 'vitest'
 import path from 'node:path'
 import * as childProcess from 'node:child_process'
-import fs from 'fs-extra'
+import fs from 'node:fs/promises'
 import ejs from 'ejs'
 import readDir from 'recursive-readdir'
 import { SevereServiceError } from 'webdriverio'
@@ -43,13 +43,11 @@ vi.mock('../src/commands/config', () => ({
     runConfig: vi.fn()
 }))
 
-vi.mock('fs-extra', () => ({
+vi.mock('node:fs/promises', () => ({
     default: {
-        existsSync: vi.fn(),
-        ensureDirSync: vi.fn(),
-        promises: {
-            writeFile: vi.fn().mockReturnValue(Promise.resolve())
-        }
+        access: vi.fn(),
+        mkdir: vi.fn(),
+        writeFile: vi.fn().mockReturnValue(Promise.resolve())
     }
 }))
 
@@ -262,8 +260,8 @@ describe('renderConfigurationFile', () => {
         await renderConfigurationFile({ foo: 'bar' } as any)
 
         expect(ejs.renderFile).toHaveBeenCalled()
-        expect(fs.promises.writeFile).toHaveBeenCalled()
-        expect((vi.mocked(fs.promises.writeFile).mock.calls[0][0] as string)
+        expect(fs.writeFile).toHaveBeenCalled()
+        expect((vi.mocked(fs.writeFile).mock.calls[0][0] as string)
             .endsWith('wdio.conf.js')).toBe(true)
     })
 
@@ -274,8 +272,8 @@ describe('renderConfigurationFile', () => {
         await renderConfigurationFile({ isUsingTypeScript: true } as any)
 
         expect(ejs.renderFile).toHaveBeenCalled()
-        expect(fs.promises.writeFile).toHaveBeenCalled()
-        expect((vi.mocked(fs.promises.writeFile).mock.calls[0][0] as string)
+        expect(fs.writeFile).toHaveBeenCalled()
+        expect((vi.mocked(fs.writeFile).mock.calls[0][0] as string)
             .endsWith('wdio.conf.ts')).toBe(true)
     })
 
@@ -467,9 +465,9 @@ describe('getCapabilities', () => {
 })
 
 test('hasFile', () => {
-    vi.mocked(fs.existsSync).mockReturnValue(true)
+    vi.mocked(fs.access).mockResolvedValue()
     expect(hasFile('package.json')).toBe(true)
-    vi.mocked(fs.existsSync).mockReturnValue(false)
+    vi.mocked(fs.access).mockRejectedValue(new Error('not existing'))
     expect(hasFile('xyz')).toBe(false)
 })
 
@@ -522,10 +520,10 @@ describe('generateTestFiles', () => {
             answers,
             expect.any(Function)
         )
-        expect(fs.ensureDirSync).toBeCalledTimes(4)
-        expect((vi.mocked(fs.promises.writeFile).mock.calls[0][0] as string).endsWith('/page/objects/model/page.js'))
+        expect(fs.mkdir).toBeCalledTimes(4)
+        expect((vi.mocked(fs.writeFile).mock.calls[0][0] as string).endsWith('/page/objects/model/page.js'))
             .toBe(true)
-        expect((vi.mocked(fs.promises.writeFile).mock.calls[1][0] as string).endsWith('/example.e2e.js'))
+        expect((vi.mocked(fs.writeFile).mock.calls[1][0] as string).endsWith('/example.e2e.js'))
             .toBe(true)
     })
 
@@ -572,11 +570,11 @@ describe('generateTestFiles', () => {
             answers,
             expect.any(Function)
         )
-        expect(fs.ensureDirSync).toBeCalledTimes(4)
-        expect((vi.mocked(fs.promises.writeFile).mock.calls[0][0] as string)
+        expect(fs.mkdir).toBeCalledTimes(4)
+        expect((vi.mocked(fs.writeFile).mock.calls[0][0] as string)
             .endsWith('/page/objects/model/page.js'))
             .toBe(true)
-        expect((vi.mocked(fs.promises.writeFile).mock.calls[1][0] as string)
+        expect((vi.mocked(fs.writeFile).mock.calls[1][0] as string)
             .endsWith('/example.e2e.js'))
             .toBe(true)
     })
@@ -638,7 +636,7 @@ describe('generateTestFiles', () => {
             answers,
             expect.any(Function)
         )
-        expect(fs.ensureDirSync).toBeCalledTimes(2)
+        expect(fs.mkdir).toBeCalledTimes(2)
     })
 
     it('Cucumber with page objects and TypeScript', async () => {
@@ -670,10 +668,10 @@ describe('generateTestFiles', () => {
             answers,
             expect.any(Function)
         )
-        expect(fs.ensureDirSync).toBeCalledTimes(6)
-        expect((vi.mocked(fs.promises.writeFile).mock.calls[0][0] as string).endsWith('/some/page/objects/page.ts'))
+        expect(fs.mkdir).toBeCalledTimes(6)
+        expect((vi.mocked(fs.writeFile).mock.calls[0][0] as string).endsWith('/some/page/objects/page.ts'))
             .toBe(true)
-        expect((vi.mocked(fs.promises.writeFile).mock.calls[2][0] as string).endsWith('/example.feature'))
+        expect((vi.mocked(fs.writeFile).mock.calls[2][0] as string).endsWith('/example.feature'))
             .toBe(true)
     })
 })
@@ -771,7 +769,7 @@ test('specifyVersionIfNeeded', () => {
 afterEach(() => {
     vi.mocked(console.log).mockRestore()
     vi.mocked(readDir).mockClear()
-    vi.mocked(fs.promises.writeFile).mockClear()
-    vi.mocked(fs.ensureDirSync).mockClear()
+    vi.mocked(fs.writeFile).mockClear()
+    vi.mocked(fs.mkdir).mockClear()
     vi.mocked(ejs.renderFile).mockClear()
 })

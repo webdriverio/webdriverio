@@ -1,36 +1,20 @@
 import { describe, expect, vi, it, afterAll, afterEach } from 'vitest'
 
 import { EventEmitter } from 'node:events'
-// @ts-expect-error mock feature
-import { mocks } from 'node:module'
-import type { WriteStream } from 'node:fs'
+import fs, { WriteStream } from 'node:fs'
 
 import WDIOReporter from '../src/index.js'
 
-vi.mock('node:module', () => {
-    const mocks = {
-        'fs-extra': {
-            createWriteStream: vi.fn().mockReturnValue({
-                write: vi.fn(),
-                end: vi.fn((cb) => cb())
-            }),
-            ensureDirSync: vi.fn(),
-            ensureFileSync: vi.fn()
-        }
+vi.mock('node:fs', () => ({
+    default: {
+        createWriteStream: vi.fn().mockReturnValue({
+            write: vi.fn(),
+            end: vi.fn((cb) => cb())
+        }),
+        mkdir: vi.fn(),
+        access: vi.fn()
     }
-    const requireFn = vi.fn().mockImplementation((moduleName: keyof typeof mocks) => mocks[moduleName])
-    // @ts-expect-error
-    requireFn.resolve = vi.fn().mockImplementation((moduleName: keyof typeof mocks) => {
-        if (!mocks[moduleName]) {
-            throw new Error(`Cannot find module '${moduleName}'`)
-        }
-        return '/some/path'
-    })
-    return ({
-        mocks,
-        createRequire: vi.fn().mockReturnValue(requireFn)
-    })
-})
+}))
 
 describe('WDIOReporter', () => {
     const eventsOnSpy = vi.spyOn(EventEmitter.prototype, 'on')
@@ -68,7 +52,7 @@ describe('WDIOReporter', () => {
     })
 
     it('should allow an own writeable stream', () => {
-        const customLogStream = mocks['fs-extra'].createWriteStream('/foo/bar')
+        const customLogStream = fs.createWriteStream('/foo/bar')
         const reporter = new WDIOReporter({ stdout: true, writeStream: customLogStream })
         reporter.write('foobar')
 
@@ -95,12 +79,12 @@ describe('WDIOReporter', () => {
             const options = { outputDir: './tempDir', logFile: '' }
             new WDIOReporter(options)
 
-            expect(mocks['fs-extra'].ensureDirSync).toHaveBeenCalled()
-            expect(mocks['fs-extra'].ensureDirSync).toHaveBeenCalledWith('./tempDir')
+            expect(fs.mkdir).toHaveBeenCalled()
+            expect(fs.mkdir).toHaveBeenCalledWith('./tempDir', { recursive: true }, expect.any(Function))
         })
 
         afterEach(() => {
-            mocks['fs-extra'].ensureDirSync.mockClear()
+            vi.mocked(fs.mkdir).mockClear()
         })
     })
 

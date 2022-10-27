@@ -1,10 +1,11 @@
+import fs from 'node:fs/promises'
+import fsSync from 'node:fs'
 import { dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { createRequire } from 'node:module'
 import { execSync } from 'node:child_process'
 import { promisify } from 'node:util'
 
-import fs from 'fs-extra'
 import ejs from 'ejs'
 import path from 'node:path'
 import inquirer from 'inquirer'
@@ -248,7 +249,7 @@ export async function renderConfigurationFile (answers: ParsedAnswers) {
     const tplPath = path.join(__dirname, 'templates/wdio.conf.tpl.ejs')
     const filename = `wdio.conf.${answers.isUsingTypeScript ? 'ts' : 'js'}`
     const renderedTpl = await renderFile(tplPath, { answers })
-    return fs.promises.writeFile(
+    return fs.writeFile(
         path.join(
             process.cwd(),
             answers.isUsingTypeScript ? 'test' : '', filename
@@ -330,7 +331,12 @@ export function getCapabilities(arg: ReplCommandArguments) {
  * @param {string} filename to check existance for
  */
 export function hasFile (filename: string) {
-    return fs.existsSync(path.join(process.cwd(), filename))
+    try {
+        fsSync.accessSync(path.join(process.cwd(), filename))
+        return true
+    } catch (err: any) {
+        return false
+    }
 }
 
 /**
@@ -382,8 +388,8 @@ export async function generateTestFiles (answers: ParsedAnswers) {
                     : `${answers.destSpecRootPath}/${path.basename(file)}`
         ).replace(/\.ejs$/, '').replace(/\.js$/, answers.isUsingTypeScript ? '.ts' : '.js')
 
-        fs.ensureDirSync(path.dirname(destPath))
-        await fs.promises.writeFile(destPath, renderedTpl)
+        await fs.mkdir(path.dirname(destPath), { recursive: true })
+        await fs.writeFile(destPath, renderedTpl)
     }
 }
 

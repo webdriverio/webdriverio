@@ -35,12 +35,10 @@
     "@types/tmp": "^0.2.3",
     "@wdio/types": "7.20.7",
     "diff": "^5.0.0",
-    "fs-extra": "^10.1.0",
     "object-inspect": "^1.12.0",
     "supports-color": "9.2.3"
   },
   "devDependencies": {
-    "@types/fs-extra": "^9.0.13",
     "@types/node": "^18.0.0",
     "tmp": "^0.2.1"
   }

@@ -1,7 +1,7 @@
 import fs from 'node:fs'
 import type { WriteStream } from 'node:fs'
 import { EventEmitter } from 'node:events'
-import { createRequire } from 'node:module'
+import logger from '@wdio/logger'
 import type { Reporters, Options } from '@wdio/types'
 
 import { getErrorsFromEvent } from './utils.js'
@@ -11,14 +11,8 @@ import TestStats, { Test } from './stats/test.js'
 import RunnerStats from './stats/runner.js'
 import type { AfterCommandArgs, BeforeCommandArgs, CommandArgs, Tag, Argument } from './types'
 
-const require = createRequire(import.meta.url)
-/**
- * 'fs-extra' has no support for ESM
- * https://github.com/jprichardson/node-fs-extra/issues/746
- */
-const { createWriteStream, ensureDirSync } = require('fs-extra')
-
 type CustomWriteStream = { write: (content: any) => boolean }
+const log = logger('WDIOReporter')
 
 export default class WDIOReporter extends EventEmitter {
     outputStream: WriteStream | CustomWriteStream
@@ -46,12 +40,14 @@ export default class WDIOReporter extends EventEmitter {
 
         // ensure the report directory exists
         if (this.options.outputDir) {
-            ensureDirSync(this.options.outputDir)
+            fs.mkdir(this.options.outputDir, { recursive: true }, (err) => {
+                err && log.error(`Couldn't create output dir: ${err.stack}`)
+            })
         }
 
         this.outputStream = (this.options.stdout || !this.options.logFile) && this.options.writeStream
             ? this.options.writeStream as CustomWriteStream
-            : createWriteStream(this.options.logFile!)
+            : fs.createWriteStream(this.options.logFile!)
 
         let currentTest: TestStats
 

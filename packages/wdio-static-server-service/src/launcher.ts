@@ -1,7 +1,7 @@
+import fs from 'node:fs'
 import { join, resolve } from 'node:path'
 import { promisify } from 'node:util'
 import express from 'express'
-import fs from 'fs-extra'
 import morgan from 'morgan'
 import logger from '@wdio/logger'
 import type { Services } from '@wdio/types'
@@ -33,7 +33,6 @@ export default class StaticServerLauncher implements Services.ServiceInstance {
 
         if (outputDir) {
             const file = join(outputDir, DEFAULT_LOG_NAME)
-            await fs.createFile(file)
             const stream = fs.createWriteStream(file)
             this._server.use(morgan('tiny', { stream }))
         }

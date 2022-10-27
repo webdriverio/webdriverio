@@ -234,7 +234,7 @@ export function isBase64(str: string) {
  * @param {String} file file to check access for
  * @return              true if file can be accessed
  */
-export const canAccess = (file: string) => {
+export const canAccess = (file?: string) => {
     if (!file) {
         return false
     }

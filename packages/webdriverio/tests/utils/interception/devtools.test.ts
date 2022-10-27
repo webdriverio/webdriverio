@@ -1,15 +1,9 @@
 import { test, expect, vi, beforeEach, describe } from 'vitest'
-import fse from 'fs-extra'
+import fs from 'node:fs/promises'
 import NetworkInterception from '../../../src/utils/interception/devtools.js'
 
-vi.mock('fs-extra', () => ({
+vi.mock('node:fs/promise', () => ({
     default: {
-        pathExists: async (filepath: string) => {
-            if (filepath.endsWith('/missing/mock-file.txt') || filepath === __filename) {
-                return true
-            }
-            return false
-        },
         access: async (filepath: string) => {
             if (filepath.endsWith('/missing/mock-file.txt')) {
                 throw new Error('fse mock')
@@ -352,7 +346,7 @@ describe('stub request', () => {
     })
 
     test('with a file', async () => {
-        const fileContent = (await fse.readFile(__filename)).toString('base64')
+        const fileContent = (await fs.readFile(__filename)).toString('base64')
         mock.respond(__filename)
         await fetchListenerWrapper()
 
