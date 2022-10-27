@@ -40,7 +40,11 @@ export default class SessionWorker extends EventEmitter {
         const specs = this.#args.specs.map(
             (spec) => url.fileURLToPath(spec.replace(this.#server.config.root, '')))
 
-        SESSIONS.set(this.#args.cid, { args: this.#config.mochaOpts || {} })
+        SESSIONS.set(this.#args.cid, {
+            args: this.#config.mochaOpts || {},
+            capabilities: browser.capabilities,
+            sessionId: browser.sessionId
+        })
 
         /**
          * initiate reporters

@@ -6,6 +6,12 @@ import type { Options, Capabilities, Services, Reporters } from '@wdio/types'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const require = createRequire(import.meta.url)
+enum SupportedAutomationProtocols {
+    browser = 'browser-runner/build/browser/driver.js',
+    webdriver = 'webdriver',
+    devtools = 'devtools',
+    stub = './protocol-stub.js'
+}
 
 /* istanbul ignore next */
 const HOOK_DEFINITION = {
@@ -42,12 +48,19 @@ export const WDIO_DEFAULTS: Options.Definition<Options.WebdriverIO & Options.Tes
     automationProtocol: {
         type: 'string',
         validate: (param: Options.SupportedProtocols) => {
-            if (!['webdriver', 'devtools', './protocol-stub.js'].includes(param.toLowerCase())) {
+            /**
+             * path when proxy is used for browser testing
+             */
+            if (param.endsWith(SupportedAutomationProtocols.browser)) {
+                return
+            }
+
+            if (!Object.values(SupportedAutomationProtocols).includes(param.toLowerCase() as SupportedAutomationProtocols)) {
                 throw new Error(`Currently only "webdriver" and "devtools" is supproted as automationProtocol, you set "${param}"`)
             }
 
             try {
-                const id = param === './protocol-stub.js'
+                const id = param === SupportedAutomationProtocols.stub
                     ? resolve(__dirname, '..', 'build', param)
                     : param
                 require.resolve(id)

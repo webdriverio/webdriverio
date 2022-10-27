@@ -26,6 +26,10 @@ import type { CustomStrategyReference } from '../types'
 const log = logger('webdriverio')
 const INVALID_SELECTOR_ERROR = 'selector needs to be typeof `string` or `function`'
 
+declare global {
+    interface Window { __wdio_element: Record<string, HTMLElement> }
+}
+
 const scopes = {
     browser: browserCommands,
     element: elementCommands
@@ -195,18 +199,27 @@ export function checkUnicode (
 
 function fetchElementByJSFunction (
     selector: ElementFunction,
-    scope: WebdriverIO.Browser | WebdriverIO.Element
+    scope: WebdriverIO.Browser | WebdriverIO.Element,
+    referenceId?: string
 ): Promise<ElementReference | ElementReference[]> {
     if (!(scope as WebdriverIO.Element).elementId) {
-        return scope.execute(selector as any)
+        return scope.execute(selector as any, referenceId)
     }
     /**
      * use a regular function because IE does not understand arrow functions
      */
-    const script = (function (elem: HTMLElement) {
-        return (selector as any as Function).call(elem)
+    const script = (function (elem: HTMLElement, id: string) {
+        return (selector as any as Function).call(elem, id)
     }).toString().replace('selector', `(${selector.toString()})`)
-    return getBrowserObject(scope).execute(`return (${script}).apply(null, arguments)`, scope)
+    return getBrowserObject(scope).execute(`return (${script}).apply(null, arguments)`, scope, referenceId)
+}
+
+function isElement (o: Selector){
+    return (
+        typeof HTMLElement === 'object'
+            ? o instanceof HTMLElement
+            : o && typeof o === 'object' && o !== null && (o as HTMLElement).nodeType === 1 && typeof (o as HTMLElement).nodeName==='string'
+    )
 }
 
 /**
@@ -262,6 +275,23 @@ export async function findElement(
     if (typeof selector === 'function') {
         const notFoundError = new Error(`Function selector "${selector.toString()}" did not return an HTMLElement`)
         let elem = await fetchElementByJSFunction(selector, this)
+        elem = Array.isArray(elem) ? elem[0] : elem
+        return getElementFromResponse(elem) ? elem : notFoundError
+    }
+
+    /**
+     * handle DOM element transformation
+     * Note: this runs in the browser
+     */
+    if (isElement(selector)) {
+        if (!window.__wdio_element) {
+            window.__wdio_element = {}
+        }
+        const notFoundError = new Error('DOM Node couldn\'t be found anymore')
+        const uid = Math.random().toString().slice(2)
+        window.__wdio_element[uid] = selector as HTMLElement
+        selector = ((id: string) => window.__wdio_element[id]) as any as ElementFunction
+        let elem = await fetchElementByJSFunction(selector, this, uid)
         elem = Array.isArray(elem) ? elem[0] : elem
         return getElementFromResponse(elem) ? elem : notFoundError
     }

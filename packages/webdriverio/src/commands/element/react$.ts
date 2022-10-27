@@ -8,8 +8,7 @@ import { getElement } from '../../utils/getElementObject.js'
 import { waitToLoadReact, react$ as react$Script } from '../../scripts/resq.js'
 import type { ReactSelectorOptions } from '../../types'
 
-const require = createRequire(import.meta.url)
-const resqScript = await fs.readFile(require.resolve('resq'))
+let resqScript: string
 
 /**
  *
@@ -59,6 +58,11 @@ export default async function react$(
     selector: string,
     { props = {}, state = {} }: ReactSelectorOptions = {}
 ) {
+    if (!resqScript) {
+        const require = createRequire(import.meta.url)
+        resqScript = (await fs.readFile(require.resolve('resq'))).toString()
+    }
+
     const browser = await getBrowserObject(this)
     await this.executeScript(resqScript.toString(), [])
     await browser.execute(waitToLoadReact)

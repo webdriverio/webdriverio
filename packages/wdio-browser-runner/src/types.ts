@@ -1,5 +1,5 @@
 import type { InlineConfig } from 'vite'
-import type { Workers } from '@wdio/types'
+import type { Workers, Capabilities } from '@wdio/types'
 
 export type FrameworkPreset = 'react' | 'preact' | 'vue' | 'svelte' | 'lit'
 
@@ -26,4 +26,6 @@ export interface RunArgs extends Workers.WorkerRunPayload {
 
 export interface Environment {
     args: any
+    capabilities: Capabilities.RemoteCapability
+    sessionId: string
 }
