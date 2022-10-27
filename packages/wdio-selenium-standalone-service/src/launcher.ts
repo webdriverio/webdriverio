@@ -1,8 +1,11 @@
+import fs from 'node:fs'
+import fsp from 'node:fs/promises'
+import path from 'node:path'
+
 import logger from '@wdio/logger'
 import { isCloudCapability } from '@wdio/config'
 import type { Capabilities, Options, Services } from '@wdio/types'
 
-import fs from 'fs-extra'
 import * as SeleniumStandalone from 'selenium-standalone'
 
 import { getFilePath, hasCapsWithSupportedBrowser } from './utils.js'
@@ -144,7 +147,7 @@ export default class SeleniumStandaloneLauncher {
         const logFile = getFilePath(this._config.outputDir!, DEFAULT_LOG_FILENAME)
 
         // ensure file & directory exists
-        await fs.ensureFile(logFile)
+        await fsp.mkdir(path.dirname(logFile), { recursive: true })
 
         const logStream = fs.createWriteStream(logFile, { flags: 'w' })
         this.process.stdout?.pipe(logStream)

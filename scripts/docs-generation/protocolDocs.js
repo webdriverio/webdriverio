@@ -1,8 +1,8 @@
+import fs from 'node:fs'
 import path from 'node:path'
 import url from 'node:url'
 import { createRequire } from 'node:module'
 
-import fs from 'fs-extra'
 import ejs from 'ejs'
 
 import {
@@ -25,7 +25,7 @@ const API_DOCS_ROOT_DIR = path.join(PROJECT_ROOT_DIR, 'docs', category)
  * @param {object} sidebars website/sidebars
  */
 export function generateProtocolDocs (sidebars) {
-    fs.ensureDirSync(API_DOCS_ROOT_DIR)
+    fs.mkdir(API_DOCS_ROOT_DIR, { recursive: true }, (err) => console.error(err))
     const template = fs.readFileSync(TEMPLATE_PATH, 'utf8')
     const protocolDocs = {}
 

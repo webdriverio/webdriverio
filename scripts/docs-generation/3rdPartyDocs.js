@@ -1,4 +1,4 @@
-import fs from 'fs-extra'
+import fs from 'node:fs/promises'
 import url from 'node:url'
 import path from 'node:path'
 import urljoin from 'url-join'
@@ -44,7 +44,7 @@ const DOCS_ROOT_DIR = path.join(PROJECT_ROOT_DIR, 'website', 'docs')
 export async function generate3rdPartyDocs (sidebars) {
     for (const { category, namePlural, nameSingular, packages3rdParty } of plugins) {
         const categoryDir = path.join(DOCS_ROOT_DIR, category === 'api' ? 'api' : '')
-        await fs.ensureDir(categoryDir)
+        await fs.mkdir(categoryDir, { recursive: true })
 
         for (const { packageName, title, githubUrl, npmUrl, suppressBuildInfo, locations, location = githubReadme, branch = 'master' } of packages3rdParty) {
             const readme = locations

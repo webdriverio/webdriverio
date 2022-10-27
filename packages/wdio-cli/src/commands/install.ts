@@ -1,6 +1,7 @@
 /* eslint-disable no-console */
+import fs from 'node:fs/promises'
 import path from 'node:path'
-import fs from 'fs-extra'
+
 import yarnInstall from 'yarn-install'
 import type { Argv } from 'yargs'
 
@@ -82,7 +83,8 @@ export async function handler(argv: InstallCommandArguments) {
     }
 
     const localConfPath = path.join(process.cwd(), config)
-    if (!fs.existsSync(localConfPath)) {
+    const localConfExists = await fs.access(localConfPath).then(() => true, () => false)
+    if (!localConfExists) {
         try {
             const promptMessage = `Cannot install packages without a WebdriverIO configuration.
 You can create one by running 'wdio config'`
@@ -94,7 +96,7 @@ You can create one by running 'wdio config'`
         }
     }
 
-    const configFile = fs.readFileSync(localConfPath, { encoding: 'utf-8' })
+    const configFile = await fs.readFile(localConfPath, { encoding: 'utf-8' })
     const match = findInConfig(configFile, type)
 
     if (match && match[0].includes(name)) {
@@ -124,7 +126,7 @@ You can create one by running 'wdio config'`
         throw new Error(`Couldn't find "${type}" property in ${path.basename(localConfPath)}`)
     }
 
-    fs.writeFileSync(localConfPath, newConfig, { encoding: 'utf-8' })
+    await fs.writeFile(localConfPath, newConfig, { encoding: 'utf-8' })
     console.log('Your wdio.conf.js file has been updated.')
 
     process.exit(0)

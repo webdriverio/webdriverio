@@ -1,14 +1,18 @@
 import path from 'node:path'
-import fs from 'fs-extra'
+import fs from 'node:fs'
 import * as SeleniumStandalone from 'selenium-standalone'
 import { describe, expect, test, vi, beforeEach } from 'vitest'
 
 import SeleniumStandaloneLauncher from '../src/launcher.js'
 
-vi.mock('fs-extra', () => ({
+vi.mock('node:fs', () => ({
     default: {
         createWriteStream: vi.fn(),
-        ensureFile: vi.fn(),
+    }
+}))
+vi.mock('node:fs/promises', () => ({
+    default: {
+        mkdir: vi.fn(),
     }
 }))
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))

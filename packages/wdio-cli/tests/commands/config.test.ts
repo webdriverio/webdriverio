@@ -1,8 +1,9 @@
 import { vi, describe, it, test, expect, afterEach, beforeEach } from 'vitest'
+import fs from 'node:fs/promises'
 import path from 'node:path'
+
 // @ts-expect-error mock
 import { yargs } from 'yargs'
-import fs from 'fs-extra'
 import yarnInstall from 'yarn-install'
 import inquirer from 'inquirer'
 import pkg from '../../package.json'
@@ -162,9 +163,7 @@ describe('install compliant NPM tag packages', () => {
     test('it should install tagged version if cli is tagged with next', async () => {
         setFetchSpec('next')
         vi.mocked(inquirer.prompt).mockResolvedValue(args)
-        fs.promises = {
-            writeFile: vi.fn().mockReturnValue(Promise.resolve(''))
-        } as any
+        fs.writeFile = vi.fn().mockReturnValue(Promise.resolve(''))
         await handler({} as any)
 
         expect(consoleLogSpy.mock.calls).toMatchSnapshot()
@@ -243,7 +242,7 @@ test('prints TypeScript setup message with ts-node installed', async () => {
         }
     }
 
-    expect(fs.promises.writeFile).toBeCalledWith(
+    expect(fs.writeFile).toBeCalledWith(
         path.join(process.cwd(), 'test', 'tsconfig.json'),
         JSON.stringify(config, null, 4))
 

@@ -1,36 +1,39 @@
+import fs from 'node:fs'
+import fsp from 'node:fs/promises'
 import path from 'node:path'
 import { spawn, ChildProcess } from 'node:child_process'
 // @ts-expect-error mock feature
 import { mocks } from 'node:module'
 
 import { describe, expect, beforeEach, afterEach, test, vi } from 'vitest'
-import {  } from 'fs-extra'
 import type { Capabilities, Options } from '@wdio/types'
 
 import AppiumLauncher from '../src/launcher.js'
+
+vi.mock('node:fs', () => ({
+    default: {
+        createWriteStream: vi.fn()
+    }
+}))
+
+vi.mock('node:fs/promises', () => ({
+    default: {
+        mkdir: vi.fn()
+    }
+}))
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 vi.mock('child_process', () => ({
     spawn: vi.fn()
 }))
 vi.mock('node:module', () => {
-    const mocks = {
-        'fs-extra': {
-            createWriteStream: vi.fn(),
-            ensureFileSync: vi.fn()
-        }
-    }
-    const requireFn = vi.fn().mockImplementation((moduleName: keyof typeof mocks) => mocks[moduleName])
     // @ts-expect-error
-    requireFn.resolve = vi.fn().mockImplementation((moduleName: keyof typeof mocks) => {
-        if (!mocks[moduleName]) {
-            throw new Error(`Cannot find module '${moduleName}'`)
-        }
+    requireFn.resolve = vi.fn().mockImplementation(() => {
         return '/some/path'
     })
     return ({
         mocks,
-        createRequire: vi.fn().mockReturnValue(requireFn)
+        createRequire: vi.fn()
     })
 })
 
@@ -335,7 +338,7 @@ describe('Appium launcher', () => {
             const launcher = new AppiumLauncher({ logPath: './' }, [], {} as any)
             await launcher.onPrepare()
 
-            expect(vi.mocked(mocks['fs-extra'].createWriteStream).mock.calls[0][0]).toBe('/some/file/path')
+            expect(vi.mocked(fs.createWriteStream).mock.calls[0][0]).toBe('/some/file/path')
             expect(launcher['_process']!.stdout.pipe).toBeCalled()
             expect(launcher['_process']!.stderr.pipe).toBeCalled()
         })
@@ -348,7 +351,7 @@ describe('Appium launcher', () => {
         })
 
         test('should return path to dependency', () => {
-            expect(AppiumLauncher['_getAppiumCommand']('fs-extra'))
+            expect(AppiumLauncher['_getAppiumCommand']('appium'))
                 .toBe('/some/path')
         })
 

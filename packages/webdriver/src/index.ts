@@ -131,5 +131,5 @@ export default class WebDriver {
 /**
  * Helper methods consumed by webdriverio package
  */
-export { getPrototype, DEFAULTS, command }
+export { getPrototype, DEFAULTS, command, getEnvironmentVars }
 export * from './types.js'

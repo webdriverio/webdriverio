@@ -1,14 +1,14 @@
+import fs from 'node:fs/promises'
 import path from 'node:path'
 import { vi, describe, it, expect, afterEach, beforeEach } from 'vitest'
 import logger from '@wdio/logger'
 import { sleep } from '@wdio/utils'
-import fs from 'fs-extra'
 
 import Launcher from '../src/launcher.js'
 
 const caps: WebDriver.DesiredCapabilities = { maxInstances: 1, browserName: 'chrome' }
 
-vi.mock('fs-extra')
+vi.mock('node:fs/promises')
 vi.mock('@wdio/utils', () => import(path.join(process.cwd(), '__mocks__', '@wdio/utils')))
 vi.mock('@wdio/config', () => import(path.join(process.cwd(), '__mocks__', '@wdio/config')))
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
@@ -685,8 +685,8 @@ describe('launcher', () => {
             expect(await launcher.run()).toEqual(0)
             expect(launcher['configParser'].autoCompile).toBeCalledTimes(1)
             expect(launcher.runner!.shutdown).toBeCalled()
-            expect(vi.mocked(fs.ensureDirSync)).toHaveBeenCalled()
-            expect(vi.mocked(fs.ensureDirSync)).toHaveBeenCalledWith('tempDir')
+            expect(vi.mocked(fs.mkdir)).toHaveBeenCalled()
+            expect(vi.mocked(fs.mkdir)).toHaveBeenCalledWith('tempDir')
 
             expect(launcher.configParser.getCapabilities).toBeCalledTimes(2)
             expect(launcher.configParser.getConfig).toBeCalledTimes(1)
@@ -726,7 +726,7 @@ describe('launcher', () => {
 
         afterEach(() => {
             vi.mocked(global.console.error).mockRestore()
-            vi.mocked(fs.ensureDirSync).mockClear()
+            vi.mocked(fs.mkdir).mockClear()
         })
     })
 
