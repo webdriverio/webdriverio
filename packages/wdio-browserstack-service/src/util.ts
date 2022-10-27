@@ -407,7 +407,7 @@ export function removeAnsiColors(message: string): string {
     return message.replace(/[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g, '')
 }
 
-export function uploadEventData (eventData: any) {
+export async function uploadEventData (eventData: any) {
     let logTag: string = ''
     switch (eventData.event_type) {
     case 'TestRunStarted':
@@ -441,18 +441,10 @@ export function uploadEventData (eventData: any) {
 
         try {
             let url = `http://${DATA_ENDPOINT}/api/v1/event`
-            const readStream: any = got.post(url, { json: eventData, ...config }).json()
-
-            readStream.on('response', async (response: any) => {
-                if (response.headers.age > 3600) {
-                    log.debug('[${logTag}] Failure - response too old')
-                    return
-                }
-                log.debug(`[${logTag}] Success response: ${response}`)
-                return {
-                    status: 'success',
-                    message: ''
-                }
+            await got.post(url, { json: eventData, ...config }).json().then(( data: any ) => {
+                log.debug(`[${logTag}] Success response: ${require('util').inspect(data, { depth: null })}`)
+            }).catch((error: any) => {
+                log.debug(`[${logTag}] Failed. Error: ${error}`)
             })
         } catch (error: any) {
             log.debug(`[${logTag}] Failed. Error: ${error}`)

@@ -29,7 +29,7 @@ export default class TestReporter extends WDIOReporter {
         this._suiteName = suiteStats.file
     }
 
-    onTestSkip (testStats: TestStats) {
+    async onTestSkip (testStats: TestStats) {
         if (this._observability) {
             let testData: any = {
                 uuid: uuidv4(),
@@ -65,11 +65,11 @@ export default class TestReporter extends WDIOReporter {
                 'platform': this._capabilities?.platformName,
             }
 
-            uploadEventData({
+            await uploadEventData({
                 event_type: 'TestRunStarted',
                 test_run: testData
             })
-            uploadEventData({
+            await uploadEventData({
                 event_type: 'TestRunFinished',
                 test_run: finishedTestData
             })

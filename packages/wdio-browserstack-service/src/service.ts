@@ -124,7 +124,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    beforeHook (test: any, _context: any) {
+    async beforeHook (test: any, _context: any) {
         this._currentTest = test
         if (this._observability) {
             let fullTitle = `${test.parent} - ${test.title}`
@@ -133,11 +133,11 @@ export default class BrowserstackService implements Services.ServiceInstance {
                 startedAt: (new Date()).toISOString(),
                 finishedAt: null
             }
-            this.sendTestRunEvent(test, 'HookRunStarted')
+            await this.sendTestRunEvent(test, 'HookRunStarted')
         }
     }
 
-    afterHook (test: Test, context: any, result: TestResult) {
+    async afterHook (test: Test, context: any, result: TestResult) {
         if (this._observability) {
             let fullTitle = getUniqueIdentifier(test)
             if (this._tests[fullTitle]) {
@@ -147,7 +147,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
                     finishedAt: (new Date()).toISOString()
                 }
             }
-            this.sendTestRunEvent(test, 'HookRunFinished', result)
+            await this.sendTestRunEvent(test, 'HookRunFinished', result)
         }
     }
 
@@ -162,7 +162,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
                 kind: 'TEST_SCREENSHOT'
             }
 
-            uploadEventData({
+            await uploadEventData({
                 event_type: 'LogCreated',
                 logs: [log]
             })
@@ -170,7 +170,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    beforeTest(test: Frameworks.Test, _context: any) {
+    async beforeTest(test: Frameworks.Test, _context: any) {
         this._currentTest = test
         if (this._observability) {
             let fullTitle = `${test.parent} - ${test.title}`
@@ -179,11 +179,11 @@ export default class BrowserstackService implements Services.ServiceInstance {
                 startedAt: (new Date()).toISOString(),
                 finishedAt: null
             }
-            this.sendTestRunEvent(test, 'TestRunStarted')
+            await this.sendTestRunEvent(test, 'TestRunStarted')
         }
     }
 
-    afterTest(test: Frameworks.Test, context: never, results: Frameworks.TestResult) {
+    async afterTest(test: Frameworks.Test, context: never, results: Frameworks.TestResult) {
         const { error, passed } = results
 
         // Jasmine
@@ -212,7 +212,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
                     finishedAt: (new Date()).toISOString()
                 }
             }
-            this.sendTestRunEvent(test, 'TestRunFinished', results)
+            await this.sendTestRunEvent(test, 'TestRunFinished', results)
         }
     }
 
@@ -258,7 +258,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
         return this._updateJob({ name: this._fullTitle })
     }
 
-    beforeScenario (world: any) {
+    async beforeScenario (world: any) {
 
         this._currentTest = world
 
@@ -297,12 +297,12 @@ export default class BrowserstackService implements Services.ServiceInstance {
             this._tests[uniqueId] = testMetaData
 
             if (this._observability) {
-                this.sendTestRunEventForCucumber(world, 'TestRunStarted')
+                await this.sendTestRunEventForCucumber(world, 'TestRunStarted')
             }
         }
     }
 
-    afterScenario (world: any) {
+    async afterScenario (world: any) {
         const status = world.result?.status.toLowerCase()
         if (status !== 'skipped') {
             this._scenariosThatRan.push(world.pickle.name || 'unknown pickle name')
@@ -321,7 +321,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
         }
 
         if (this._observability) {
-            this.sendTestRunEventForCucumber(world, 'TestRunFinished')
+            await this.sendTestRunEventForCucumber(world, 'TestRunFinished')
         }
     }
 
@@ -486,7 +486,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
         })
     }
 
-    sendTestRunEvent (test: Frameworks.Test, eventType: string, results?: Frameworks.TestResult) {
+    async sendTestRunEvent (test: Frameworks.Test, eventType: string, results?: Frameworks.TestResult) {
         let fullTitle = getUniqueIdentifier(test)
         let testMetaData = this._tests[fullTitle]
 
@@ -511,7 +511,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
         if ((eventType == 'TestRunFinished' || eventType == 'HookRunFinished') && results) {
             const { error, passed } = results
             if (!passed) {
-                testData['result'] = (error && error.message && error.message.includes('sync skip; aborting execution')) ? 'skipped' : 'failed'
+                testData['result'] = (error && error.message && error.message.includes('sync skip; aborting execution')) ? 'ignore' : 'failed'
                 if (error && testData['result'] != 'skipped') {
                     testData['failure'] = [{ backtrace: [removeAnsiColors(error.message)] }] // add all errors here
                     testData['failure_reason'] = removeAnsiColors(error.message)
@@ -549,10 +549,10 @@ export default class BrowserstackService implements Services.ServiceInstance {
         } else {
             uploadData['test_run'] = testData
         }
-        uploadEventData(uploadData)
+        await uploadEventData(uploadData)
     }
 
-    sendTestRunEventForCucumber (world: any, eventType: string) {
+    async sendTestRunEventForCucumber (world: any, eventType: string) {
         let uniqueId = getUniqueIdentifierForCucumber(world)
 
         let testMetaData = this._tests[uniqueId]
@@ -626,7 +626,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
             event_type: eventType,
             test_run: testData
         }
-        uploadEventData(uploadData)
+        await uploadEventData(uploadData)
     }
 
     requestHandler (request: IsomorphicRequest, response: IsomorphicResponse, currentTest: any) {
