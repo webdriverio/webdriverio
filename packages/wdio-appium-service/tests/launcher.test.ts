@@ -1,5 +1,4 @@
 import fs from 'node:fs'
-import fsp from 'node:fs/promises'
 import path from 'node:path'
 import { spawn, ChildProcess } from 'node:child_process'
 // @ts-expect-error mock feature
