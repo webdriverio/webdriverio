@@ -5,6 +5,7 @@ import { remote, Browser } from 'webdriverio'
 import type { Capabilities, Options } from '@wdio/types'
 
 import Session from './worker.js'
+import { BROWSER_POOL } from './constants.js'
 import { getViteConfig } from './utils.js'
 import type { RunArgs, BrowserRunnerOptions as BrowserRunnerOptionsImport } from './types'
 
@@ -14,7 +15,6 @@ export default class LocalRunner {
     #options: WebdriverIO.BrowserRunnerOptions
     #config: Options.Testrunner
     #server?: ViteDevServer
-    $browserPool: Map<number, Promise<Browser<'async'>>> = new Map()
 
     constructor(
         options: WebdriverIO.BrowserRunnerOptions,
@@ -42,7 +42,7 @@ export default class LocalRunner {
     }
 
     getWorkerCount() {
-        return Object.keys(this.$browserPool).length
+        return Object.keys(BROWSER_POOL).length
     }
 
     run(args: RunArgs) {
@@ -54,11 +54,11 @@ export default class LocalRunner {
             throw new Error('Vite server didn\'t start')
         }
 
-        if (!this.$browserPool.has(args.args.capabilityId)) {
-            this.$browserPool.set(args.args.capabilityId, this.#initSession(args))
+        if (!BROWSER_POOL.has(args.args.capabilityId)) {
+            BROWSER_POOL.set(args.args.capabilityId, this.#initSession(args))
         }
 
-        const browser = this.$browserPool.get(args.args.capabilityId)
+        const browser = BROWSER_POOL.get(args.args.capabilityId)
         if (!browser) {
             throw new Error(`No browser found with id ${args.args.capabilityId}`)
         }
@@ -81,7 +81,7 @@ export default class LocalRunner {
     }
 
     async closeSession(cid: number) {
-        const browser = await this.$browserPool.get(cid)
+        const browser = await BROWSER_POOL.get(cid)
         if (!browser) {
             return
         }

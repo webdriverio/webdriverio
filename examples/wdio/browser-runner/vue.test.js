@@ -1,4 +1,5 @@
-import { render, fireEvent } from '@testing-library/vue'
+import { browser } from '@wdio/globals'
+import { render } from '@testing-library/vue'
 import Component from '/browser-runner/components/Component.vue'
 
 describe('Vue Component Testing', () => {
@@ -10,11 +11,12 @@ describe('Vue Component Testing', () => {
         // throws an error if no elements match or if more than one match is found.
         getByText('Times clicked: 0')
 
-        const button = getByText('increment')
+        const button = await browser.$(getByText('increment'))
+        await browser.debug()
 
         // Dispatch a native click event to our button element.
-        await fireEvent.click(button)
-        await fireEvent.click(button)
+        await button.click()
+        await button.click()
 
         getByText('Times clicked: 2')
     })

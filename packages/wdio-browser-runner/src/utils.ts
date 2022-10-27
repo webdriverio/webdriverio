@@ -1,14 +1,21 @@
 import fs from 'node:fs/promises'
 import path from 'node:path'
+
 import { createRequire } from 'node:module'
 
+import getPort from 'get-port'
+import { WebSocketServer, WebSocket } from 'ws'
 import { esbuildCommonjs } from '@originjs/vite-plugin-commonjs'
 import { NodeGlobalsPolyfillPlugin } from '@esbuild-plugins/node-globals-polyfill'
+import logger from '@wdio/logger'
 import type { InlineConfig } from 'vite'
+import type { Browser } from 'webdriverio'
 
 import { testrunner } from './plugins/testrunner.js'
-import { EVENTS, PRESET_DEPENDENCIES } from './constants.js'
+import { EVENTS, PRESET_DEPENDENCIES, BROWSER_POOL } from './constants.js'
 import type { Environment, FrameworkPreset } from './types'
+
+const log = logger('@wdio/browser-runner')
 
 export async function getTemplate (options: WebdriverIO.BrowserRunnerOptions, env: Environment, spec: string) {
     const root = options.rootDir || process.cwd()
@@ -20,7 +27,7 @@ export async function getTemplate (options: WebdriverIO.BrowserRunnerOptions, en
     )).join('\n')
 
     let vueDeps = ''
-    if (options.preset) {
+    if (options.preset === 'vue') {
         try {
             const vueDir = path.dirname(require.resolve('vue'))
             const vueScript = (await fs.readFile(path.join(vueDir, 'dist', 'vue.global.prod.js'), 'utf-8')).toString()
@@ -52,6 +59,8 @@ export async function getTemplate (options: WebdriverIO.BrowserRunnerOptions, en
             <link rel="stylesheet" href="https://unpkg.com/mocha@10.0.0/mocha.css">
             <script type="module">
                 window.__wdioErrors__ = []
+                window.__wdioSessionId__ = ${JSON.stringify(env.sessionId)}
+                window.__wdioSessionCapabilities__ = ${JSON.stringify(env.capabilities)}
                 addEventListener('error', (ev) => window.__wdioErrors__.push({
                     filename: ev.filename,
                     message: ev.message
@@ -59,19 +68,18 @@ export async function getTemplate (options: WebdriverIO.BrowserRunnerOptions, en
             </script>
             ${vueDeps}
             <script type="module">
-            window.Symbol.for = (a) => a
-
             import Mocha from 'https://esm.sh/mocha@10.0.0'
             const mocha = Mocha.setup(${JSON.stringify(env.args || {})})
             </script>
         </head>
         <body>
             <div id="mocha"></div>
-            <script type="module" src="${spec}"></script>
-            <script type="module">
+            <script async type="module">
                 import { formatMessage } from '@wdio/mocha-framework/common'
+                import '${spec}'
 
                 window.__wdioEvents__ = []
+                console.log('[WDIO] Start Mocha testsuite')
                 const runner = mocha.run((failures) => {
                     window.__wdioFailures__ = failures
                 })
@@ -121,10 +129,23 @@ export async function getViteConfig (options: WebdriverIO.BrowserRunnerOptions, 
         })
     }
 
+    const wsPort = await getPort()
+    const wss = new WebSocketServer({ port: wsPort })
+    wss.on('connection', (ws) => ws.on('message', handleBrowserCommand(ws)))
+
     const config: Partial<InlineConfig> = {
         configFile: false,
         root,
-        server: { port, host: 'localhost' },
+        server: {
+            port,
+            host: 'localhost',
+            proxy: {
+                '/ws': {
+                    target: `ws://localhost:${wsPort}`,
+                    ws: true
+                }
+            }
+        },
         plugins: [testrunner(options)],
         optimizeDeps: {
             esbuildOptions: {
@@ -153,4 +174,36 @@ export async function getViteConfig (options: WebdriverIO.BrowserRunnerOptions, 
     }
 
     return config
+}
+
+function handleBrowserCommand (ws: WebSocket) {
+    return async (data: Buffer) => {
+        log.info(`Received browser message: ${data}`)
+        try {
+            const payload = JSON.parse(data.toString())
+            const cid = payload.cid
+            if (typeof cid !== 'number') {
+                return ws.send(JSON.stringify({
+                    id: payload.id,
+                    error: `No "cid" property passed into command message with id "${payload.id}"`
+                }))
+            }
+
+            const browser = await BROWSER_POOL.get(payload.cid) as Browser<'async'> | undefined
+            if (!browser) {
+                return ws.send(JSON.stringify({
+                    id: payload.id,
+                    error: `Couldn't find browser with cid "${payload.cid}"`
+                }))
+            }
+
+            const result = await (browser[payload.commandName as keyof typeof browser] as Function)(...payload.args)
+            const resultMsg = JSON.stringify({ id: payload.id, result })
+            log.info(`Return command result: ${resultMsg}`)
+            return ws.send(resultMsg)
+        } catch (err: any) {
+            log.error(`Failed handling command: ${err.message}`)
+            return ws.send(JSON.stringify({ error: `Failed handling command message: ${err.message}` }))
+        }
+    }
 }

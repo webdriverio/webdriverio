@@ -366,7 +366,7 @@ export type CustomStrategyReference = {
     strategyName: string
     strategyArguments: any[]
 }
-export type Selector = string | ElementReference | ElementFunction | CustomStrategyReference
+export type Selector = string | ElementReference | ElementFunction | CustomStrategyReference | HTMLElement
 
 interface CSSValue {
     type: string

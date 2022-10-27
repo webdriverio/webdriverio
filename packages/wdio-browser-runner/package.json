@@ -36,9 +36,13 @@
     "@wdio/types": "7.20.7",
     "get-port": "^6.1.2",
     "vite": "^3.1.7",
-    "webdriverio": "7.20.7"
+    "webdriverio": "7.20.7",
+    "ws": "^8.10.0"
   },
   "publishConfig": {
     "access": "public"
+  },
+  "devDependencies": {
+    "@types/ws": "^8.5.3"
   }
 }
