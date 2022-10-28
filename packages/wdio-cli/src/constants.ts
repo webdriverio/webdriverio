@@ -143,7 +143,9 @@ export const SUPPORTED_PACKAGES = {
         { name: 'ocr-native-apps', value: 'wdio-ocr-service$--$ocr-native-apps' },
         { name: 'ms-teams', value: 'wdio-ms-teams-service$--$ms-teams' },
         { name: 'tesults', value: 'wdio-tesults-service$--$tesults' },
-        { name: 'azure-devops', value: '@gmangiapelo/wdio-azure-devops-service$--$azure-devops' }
+        { name: 'azure-devops', value: '@gmangiapelo/wdio-azure-devops-service$--$azure-devops' },
+        { name: 'google-Chat', value: 'wdio-google-chat-service' },
+        { name: 'qmate-service', value: '@sap_oss/wdio-qmate-service--$qmate-service' }
     ]
 } as const
 

@@ -181,5 +181,16 @@
     "title": "Azure DevOps Test Plans",
     "githubUrl": "https://github.com/gianlucamangiapelo/wdio-azure-devops-service",
     "npmUrl": "https://www.npmjs.com/package/@gmangiapelo/wdio-azure-devops-service"
+  },  {
+    "packageName": "@qajonatasmartins/wdio-google-chat-service",
+    "title": "Google Chat",
+    "githubUrl": "https://github.com/qajonatasmartins/wdio-google-chat-service",
+    "npmUrl": "https://www.npmjs.com/package/wdio-google-chat-service"
+  },
+  {
+    "packageName": "@sap_oss/wdio-qmate-service",
+    "title": "Qmate Service",
+    "githubUrl": "https://github.com/SAP/wdio-qmate-service",
+    "npmUrl": "https://www.npmjs.com/package/@sap_oss/wdio-qmate-service"
   }
 ]

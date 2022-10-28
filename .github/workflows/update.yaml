@@ -8,8 +8,14 @@ on:
         workflows:
             - 'Test'
 
+permissions: {}
+
 jobs:
     merge-me:
+        permissions:
+          pull-requests: write
+          contents: write
+
         name: Merge me!
 
         runs-on: ubuntu-latest

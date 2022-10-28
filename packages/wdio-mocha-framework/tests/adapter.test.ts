@@ -104,24 +104,47 @@ test('options', () => {
     expect(adapter.requireExternalModules).toBeCalledWith(['the/compiler.js', 'foo/bar.js'], 'context')
 })
 
-test('preRequire', () => {
-    const mochaOpts = { foo: 'bar', ui: 'tdd' }
-    const adapter = adapterFactory({ mochaOpts, beforeHook: 'beforeHook123', afterHook: 'afterHook123', beforeTest: 'beforeTest234', afterTest: 'afterTest234' })
-    adapter.preRequire('context' as any, 'file', 'mocha' as any)
-    expect(runTestInFiberContext).toBeCalledWith(
-        false, 'beforeHook123', expect.any(Function), 'afterHook123', expect.any(Function), 'suiteSetup', '0-2')
-    expect(runTestInFiberContext).toBeCalledWith(
-        false, 'beforeHook123', expect.any(Function), 'afterHook123', expect.any(Function), 'setup', '0-2')
-    expect(runTestInFiberContext).toBeCalledWith(
-        true, 'beforeTest234', expect.any(Function), 'afterTest234', expect.any(Function), 'test', '0-2')
-    expect(runTestInFiberContext).toBeCalledWith(
-        false, 'beforeHook123', expect.any(Function), 'afterHook123', expect.any(Function), 'suiteTeardown', '0-2')
-    expect(runTestInFiberContext).toBeCalledWith(
-        false, 'beforeHook123', expect.any(Function), 'afterHook123', expect.any(Function), 'teardown', '0-2')
+describe('preRequire', () => {
+    test('preRequire - TDD', () => {
+        const mochaOpts = { foo: 'bar', ui: 'tdd' }
+        const adapter = adapterFactory({ mochaOpts, beforeHook: 'beforeHook123', afterHook: 'afterHook123', beforeTest: 'beforeTest234', afterTest: 'afterTest234' })
+        adapter.preRequire('context' as any, 'file', 'mocha' as any)
+        expect(runTestInFiberContext).toBeCalledWith(
+            false, 'beforeHook123', expect.any(Function), 'afterHook123', expect.any(Function), 'suiteSetup', '0-2')
+        expect(runTestInFiberContext).toBeCalledWith(
+            false, 'beforeHook123', expect.any(Function), 'afterHook123', expect.any(Function), 'setup', '0-2')
+        expect(runTestInFiberContext).toBeCalledWith(
+            true, 'beforeTest234', expect.any(Function), 'afterTest234', expect.any(Function), 'test', '0-2')
+        expect(runTestInFiberContext).toBeCalledWith(
+            false, 'beforeHook123', expect.any(Function), 'afterHook123', expect.any(Function), 'suiteTeardown', '0-2')
+        expect(runTestInFiberContext).toBeCalledWith(
+            false, 'beforeHook123', expect.any(Function), 'afterHook123', expect.any(Function), 'teardown', '0-2')
+        const hookArgsFn = (runTestInFiberContext as jest.Mock).mock.calls[0][2]
+        expect(hookArgsFn({ test: { foo: 'bar', parent: { title: 'parent' } } }))
+            .toEqual([{ foo: 'bar', parent: 'parent' }, { test: { foo: 'bar', parent: { title: 'parent' } } }])
+    })
 
-    const hookArgsFn = (runTestInFiberContext as jest.Mock).mock.calls[0][2]
-    expect(hookArgsFn({ test: { foo: 'bar', parent: { title: 'parent' } } }))
-        .toEqual([{ foo: 'bar', parent: 'parent' }, { test: { foo: 'bar', parent: { title: 'parent' } } }])
+    test('preRequire - BDD', () => {
+        const mochaOpts = { foo: 'bar', ui: 'bdd' }
+        const adapter = adapterFactory({ mochaOpts, beforeHook: 'beforeHook123', afterHook: 'afterHook123', beforeTest: 'beforeTest234', afterTest: 'afterTest234' })
+        adapter.preRequire('context' as any, 'file', 'mocha' as any)
+        expect(runTestInFiberContext).toBeCalledWith(
+            false, 'beforeHook123', expect.any(Function), 'afterHook123', expect.any(Function), 'before', '0-2')
+        expect(runTestInFiberContext).toBeCalledWith(
+            false, 'beforeHook123', expect.any(Function), 'afterHook123', expect.any(Function), 'beforeEach', '0-2')
+        expect(runTestInFiberContext).toBeCalledWith(
+            true, 'beforeTest234', expect.any(Function), 'afterTest234', expect.any(Function), 'it', '0-2')
+        expect(runTestInFiberContext).toBeCalledWith(
+            true, 'beforeTest234', expect.any(Function), 'afterTest234', expect.any(Function), 'specify', '0-2')
+        expect(runTestInFiberContext).toBeCalledWith(
+            false, 'beforeHook123', expect.any(Function), 'afterHook123', expect.any(Function), 'after', '0-2')
+        expect(runTestInFiberContext).toBeCalledWith(
+            false, 'beforeHook123', expect.any(Function), 'afterHook123', expect.any(Function), 'afterEach', '0-2')
+
+        const hookArgsFn = (runTestInFiberContext as jest.Mock).mock.calls[0][2]
+        expect(hookArgsFn({ test: { foo: 'bar', parent: { title: 'parent' } } }))
+            .toEqual([{ foo: 'bar', parent: 'parent' }, { test: { foo: 'bar', parent: { title: 'parent' } } }])
+    })
 })
 
 test('custom ui', () => {
@@ -167,26 +190,43 @@ test('wrapHook if failing', async () => {
         .startsWith('Error in beforeAll hook: uuuups')).toBe(true)
 })
 
-test('prepareMessage', async () => {
-    // @ts-ignore params not needed for test scenario
-    const adapter = adapterFactory()
-    await adapter.init()
-    await adapter.run()
+describe('prepareMessage', () => {
+    test('should prepare a message', async () => {
+        // @ts-ignore params not needed for test scenario
+        const adapter = adapterFactory()
+        await adapter.init()
+        await adapter.run()
 
-    let result = adapter.prepareMessage('beforeSuite')
-    expect(result.type).toBe('beforeSuite')
+        let result = adapter.prepareMessage('beforeSuite')
+        expect(result.type).toBe('beforeSuite')
 
-    adapter['_runner']!.test = { title: 'foobar', file: '/foo/bar.test.js' } as any
-    result = adapter.prepareMessage('afterTest')
-    expect(result.type).toBe('afterTest')
-    expect(result.title).toBe('foobar')
-    expect(result.file).toBe('/foo/bar.test.js')
-    adapter['_suiteStartDate'] = Date.now() - 5000
-    result = adapter.prepareMessage('afterSuite')
-    expect(result.type).toBe('afterSuite')
-    expect(result.title).toBe('first suite')
-    expect(result.duration).toBeDefined()
-    expect(result.duration >= 5000 && result.duration <= 5020).toBeTruthy()
+        adapter['_runner']!.test = { title: 'foobar', file: '/foo/bar.test.js' } as any
+        result = adapter.prepareMessage('afterTest')
+        expect(result.type).toBe('afterTest')
+        expect(result.title).toBe('foobar')
+        expect(result.file).toBe('/foo/bar.test.js')
+        adapter['_suiteStartDate'] = Date.now() - 5000
+        result = adapter.prepareMessage('afterSuite')
+        expect(result.type).toBe('afterSuite')
+        expect(result.title).toBe('first suite')
+        expect(result.duration).toBeDefined()
+        expect(result.duration! >= 5000 && result.duration! <= 5020).toBeTruthy()
+    })
+
+    test('should prepare a message when suites array is empty', async () => {
+        // @ts-ignore params not needed for test scenario
+        const adapter = adapterFactory()
+        await adapter.init()
+        await adapter.run()
+
+        adapter['_runner']!.suite.suites = []
+        adapter['_suiteStartDate'] = Date.now() - 5000
+
+        const result = adapter.prepareMessage('afterSuite')
+        expect(result.type).toBe('afterSuite')
+        expect(result.title).toBeUndefined()
+        expect(result.duration).toBeUndefined()
+    })
 })
 
 describe('formatMessage', () => {
