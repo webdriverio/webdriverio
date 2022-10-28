@@ -34,22 +34,22 @@ const protocolCommandList = Object.values(commands).map(
         ({ command }) => command
     )
 ).flat()
-const WDIO_PACKAGES = ['webdriverio']
+const WDIO_PACKAGES = ['webdriverio', 'expect-webdriverio']
 const virtualModuleId = 'virtual:wdio'
 const resolvedVirtualModuleId = '\0' + virtualModuleId
 
 const MODULES_TO_MOCK = [
-    'node:module', 'node:events', 'node:url', 'puppeteer-core', 'archiver', '/devtools/build/index.js',
-    'query-selector-shadow-dom/plugins'
+    'node:module', 'node:events', 'node:path', 'node:url', 'puppeteer-core', 'archiver',
+    'query-selector-shadow-dom/plugins/puppeteer/index.js',
+    'query-selector-shadow-dom/plugins/webdriverio/index.js',
+    'glob', 'devtools'
 ]
 
 export function testrunner (options: WebdriverIO.BrowserRunnerOptions): Plugin {
     const root = options.rootDir || process.cwd()
     const automationProtocolPath = path.resolve(__dirname, '..', 'browser', 'driver.js')
-    console.log(automationProtocolPath)
-
     const mockModulePath = path.resolve(__dirname, '..', 'browser', 'mock.js')
-    const globalModulePath = path.resolve(__dirname, '..', 'browser', 'global.js')
+    const setupModulePath = path.resolve(__dirname, '..', 'browser', 'setup.js')
     return {
         name: 'wdio:testrunner',
         enforce: 'pre',
@@ -58,21 +58,21 @@ export function testrunner (options: WebdriverIO.BrowserRunnerOptions): Plugin {
                 return resolvedVirtualModuleId
             }
 
+            if (id === '@wdio/browser-runner/setup') {
+                return setupModulePath
+            }
+
             /**
              * make sure WDIO imports are resolved properly as ESM module
              */
             if (id.startsWith('@wdio') || WDIO_PACKAGES.includes(id)) {
-                if (id === '@wdio/globals') {
-                    return globalModulePath
-                }
-
                 return require.resolve(id).replace('/cjs', '')
             }
 
             /**
              * mock out imports that we can't transpile into browser land
              */
-            if (MODULES_TO_MOCK.find((m) => id.includes(m))) {
+            if (MODULES_TO_MOCK.includes(id)) {
                 return mockModulePath
             }
         },

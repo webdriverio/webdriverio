@@ -4,6 +4,7 @@ import path from 'node:path'
 import { createRequire } from 'node:module'
 
 import getPort from 'get-port'
+import topLevelAwait from 'vite-plugin-top-level-await'
 import { WebSocketServer, WebSocket } from 'ws'
 import { esbuildCommonjs } from '@originjs/vite-plugin-commonjs'
 import { NodeGlobalsPolyfillPlugin } from '@esbuild-plugins/node-globals-polyfill'
@@ -58,13 +59,10 @@ export async function getTemplate (options: WebdriverIO.BrowserRunnerOptions, en
             <title>WebdriverIO Browser Test</title>
             <link rel="stylesheet" href="https://unpkg.com/mocha@10.0.0/mocha.css">
             <script type="module">
-                window.__wdioErrors__ = []
-                window.__wdioSessionId__ = ${JSON.stringify(env.sessionId)}
-                window.__wdioSessionCapabilities__ = ${JSON.stringify(env.capabilities)}
-                addEventListener('error', (ev) => window.__wdioErrors__.push({
-                    filename: ev.filename,
-                    message: ev.message
-                }))
+                /**
+                 * Inject environment variables
+                 */
+                window.__wdioEnv__ = ${JSON.stringify(env)}
             </script>
             ${vueDeps}
             <script type="module">
@@ -75,6 +73,7 @@ export async function getTemplate (options: WebdriverIO.BrowserRunnerOptions, en
         <body>
             <div id="mocha"></div>
             <script async type="module">
+                import '@wdio/browser-runner/setup'
                 import { formatMessage } from '@wdio/mocha-framework/common'
                 import '${spec}'
 
@@ -146,8 +145,12 @@ export async function getViteConfig (options: WebdriverIO.BrowserRunnerOptions, 
                 }
             }
         },
-        plugins: [testrunner(options)],
+        plugins: [
+            testrunner(options),
+            topLevelAwait()
+        ],
         optimizeDeps: {
+            include: ['expect', 'jest-matcher-utils'],
             esbuildOptions: {
                 // Node.js global to browser globalThis
                 define: {
