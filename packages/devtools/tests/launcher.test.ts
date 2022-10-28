@@ -1,6 +1,6 @@
 import path from 'node:path'
 import { expect, vi, beforeEach, test } from 'vitest'
-import puppeteer from 'puppeteer-core'
+import puppeteer, { Puppeteer } from 'puppeteer-core'
 import { launch as launchChromeBrowser } from 'chrome-launcher'
 
 import launch from '../src/launcher.js'
@@ -37,7 +37,7 @@ test('launch chrome with default values', async () => {
     })
     expect(vi.mocked(launchChromeBrowser).mock.calls).toMatchSnapshot()
     expect(vi.mocked(puppeteer.connect).mock.calls).toMatchSnapshot()
-    expect(puppeteer.registerCustomQueryHandler).toBeCalledWith(
+    expect(Puppeteer.registerCustomQueryHandler).toBeCalledWith(
         'shadow',
         {
             queryAll: expect.any(Function),

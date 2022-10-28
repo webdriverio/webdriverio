@@ -74,6 +74,11 @@ class PuppeteerMock {
     wsEndpoint = vi.fn().mockReturnValue('ws://some/path/to/cdp')
 }
 
+export class Puppeteer {
+    static registerCustomQueryHandler = vi.fn()
+    static unregisterCustomQueryHandler = vi.fn()
+}
+
 export default {
     CDPSessionMock,
     PageMock,
@@ -81,8 +86,6 @@ export default {
     PuppeteerMock,
     sendMock,
     listenerMock,
-    registerCustomQueryHandler: vi.fn(),
-    unregisterCustomQueryHandler: vi.fn(),
     launch: vi.fn().mockImplementation(
         () => Promise.resolve(new PuppeteerMock())),
     connect: vi.fn().mockImplementation(
