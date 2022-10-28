@@ -267,7 +267,7 @@ export interface ChromeOptions {
      * file in Chrome's user data directory for examples.
      */
     prefs?: {
-        [name: string]: string | number | boolean;
+        [name: string]: string[] | string | number | boolean;
     };
     /**
      * A list of window types that will appear in the list of window handles. For access
@@ -308,7 +308,7 @@ export interface FirefoxOptions {
     profile?: string
     log?: FirefoxLogObject
     prefs?: {
-        [name: string]: string | number | boolean
+        [name: string]: string[] | string | number | boolean
     }
 }
 
