@@ -14,5 +14,5 @@ const Devtools = require('../../packages/devtools')
     await client.deleteSession()
 })().then(
     () => console.log('Devtools CJS Test Passed!') || process.exit(0),
-    () => console.log('Devtools CJS Test Failed!') || process.exit(1)
+    (err) => console.log('Devtools CJS Test Failed!', err) || process.exit(1)
 )

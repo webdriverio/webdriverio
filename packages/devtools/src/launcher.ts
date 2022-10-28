@@ -1,5 +1,5 @@
 import { launch as launchChromeBrowser, Options } from 'chrome-launcher'
-import puppeteer, { PuppeteerLaunchOptions, KnownDevices } from 'puppeteer-core'
+import puppeteer, { PuppeteerLaunchOptions, KnownDevices, Puppeteer } from 'puppeteer-core'
 import logger from '@wdio/logger'
 import type { Browser } from 'puppeteer-core/lib/cjs/puppeteer/api/Browser'
 import type { Capabilities } from '@wdio/types'
@@ -199,9 +199,9 @@ function connectBrowser (connectionUrl: string, capabilities: ExtendedCapabiliti
 }
 
 export default async function launch (capabilities: ExtendedCapabilities) {
-    puppeteer.unregisterCustomQueryHandler('shadow')
+    Puppeteer.unregisterCustomQueryHandler('shadow')
     // ToDo(Christian): fix types (https://github.com/Georgegriff/query-selector-shadow-dom/issues/77)
-    puppeteer.registerCustomQueryHandler('shadow', QueryHandler as any)
+    Puppeteer.registerCustomQueryHandler('shadow', QueryHandler as any)
     const browserName = capabilities.browserName?.toLowerCase()
 
     /**
