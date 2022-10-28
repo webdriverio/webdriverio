@@ -19,6 +19,24 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.25.4 (2022-10-28)
+
+#### :bug: Bug Fix
+* `wdio-mocha-framework`
+  * [#9083](https://github.com/webdriverio/webdriverio/pull/9083) Issue 9082 - beforeTest afterTest hooks not working with `specify` test interface in Mocha BDD ([@nagpalkaran95](https://github.com/nagpalkaran95))
+* `webdriverio`
+  * [#9050](https://github.com/webdriverio/webdriverio/pull/9050) fix: access ShadowRoot via window.ShadowRoot ([@klipstein](https://github.com/klipstein))
+
+#### :memo: Documentation
+* [#9088](https://github.com/webdriverio/webdriverio/pull/9088) Fix example to check wdio options with TypeScript (v7) ([@rhysd](https://github.com/rhysd))
+
+#### Committers: 4
+- Boris Brtáň ([@boris-brtan](https://github.com/boris-brtan))
+- Karan Nagpal ([@nagpalkaran95](https://github.com/nagpalkaran95))
+- Linda_pp ([@rhysd](https://github.com/rhysd))
+- Tobias von Klipstein ([@klipstein](https://github.com/klipstein))
+
+
 ## v7.25.0 (2022-09-23)
 
 #### :rocket: New Feature
