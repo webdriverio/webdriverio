@@ -6,7 +6,6 @@ import { BROWSER_DESCRIPTION, DATA_ENDPOINT } from './constants'
 
 import got from 'got'
 import { hostname, platform, type, version, arch } from 'os'
-// import { Agent } from 'http'
 import { promisify } from 'util'
 import { Repository } from 'nodegit'
 import gitRepoInfo from 'git-repo-info'
@@ -306,16 +305,7 @@ export async function getGitMetaData () {
     }
 }
 
-// const httpKeepAliveAgent = new Agent({
-//     keepAlive: true,
-//     timeout: 60000
-// })
-
 export function getUniqueIdentifier(test: Frameworks.Test): string {
-    // if (test.fullName) {
-    //     // jasmine
-    //     return test.fullName
-    // }
     // mocha
     return `${test.parent} - ${test.title}`
 }
