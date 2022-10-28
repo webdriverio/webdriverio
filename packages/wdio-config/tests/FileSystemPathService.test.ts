@@ -88,7 +88,8 @@ describe('FileSystemPathService', () => {
             vi.mocked(glob.sync).mockReturnValue([])
             vi.mocked(fs.existsSync).mockReturnValue(true)
             const svc = new FileSystemPathService()
-            expect(svc.glob('./examples/wdio/mocha/[test].js')).toEqual([`${process.cwd()}/examples/wdio/mocha/[test].js`])
+            expect(svc.glob('./examples/wdio/mocha/[test].js'))
+                .toEqual([path.resolve(process.cwd(), 'examples', 'wdio', 'mocha', '[test].js')])
         })
     })
 
