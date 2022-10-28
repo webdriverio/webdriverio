@@ -94,6 +94,6 @@ export default class ProxyDriver {
         prototype.on = { writable: true, value: () => {} }
 
         const monad = webdriverMonad(params, modifier, prototype)
-        return monad(window.__wdioSessionId__, commandWrapper)
+        return monad(window.__wdioEnv__.sessionId, commandWrapper)
     }
 }
