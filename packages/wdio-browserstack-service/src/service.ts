@@ -27,6 +27,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
     private _platformMeta: any
     private _currentTest: any
     private _framework?: string
+    private _hooks: any
 
     constructor (
         private _options: BrowserstackConfig & Options.Testrunner,
@@ -39,6 +40,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
 
         if (this._observability) {
             this._tests = {}
+            this._hooks = {}
             this._config.reporters ? this._config.reporters.push(path.join(__dirname, 'reporter.js')) : [path.join(__dirname, 'reporter.js')]
             this._framework = this._config.framework
         }
@@ -124,15 +126,17 @@ export default class BrowserstackService implements Services.ServiceInstance {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    async beforeHook (test: any, _context: any) {
+    async beforeHook (test: any, context: any) {
         this._currentTest = test
+        let hookId = uuidv4()
         if (this._observability) {
             let fullTitle = `${test.parent} - ${test.title}`
             this._tests[fullTitle] = {
-                uuid: uuidv4(),
+                uuid: hookId,
                 startedAt: (new Date()).toISOString(),
                 finishedAt: null
             }
+            this._attachHookData(context, hookId)
             await this.sendTestRunEvent(test, 'HookRunStarted')
         }
     }
@@ -173,7 +177,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
     async beforeTest(test: Frameworks.Test, _context: any) {
         this._currentTest = test
         if (this._observability) {
-            let fullTitle = `${test.parent} - ${test.title}`
+            let fullTitle = getUniqueIdentifier(test)
             this._tests[fullTitle] = {
                 uuid: uuidv4(),
                 startedAt: (new Date()).toISOString(),
@@ -523,6 +527,9 @@ export default class BrowserstackService implements Services.ServiceInstance {
 
             testData['retries'] = results.retries
             testData['duration_in_ms'] = results.duration
+            if (this._hooks[fullTitle]) {
+                testData['hooks'] = this._hooks[fullTitle]
+            }
         }
 
         if (eventType == 'TestRunStarted') {
@@ -540,16 +547,39 @@ export default class BrowserstackService implements Services.ServiceInstance {
 
         let uploadData: any = {
             event_type: eventType,
-            // test_run: testData
         }
 
         if (eventType.match(/HookRun/)) {
-            // testData['hook_type'] = getHookType()
+            testData['hook_type'] = this._getHookType(testData.name.toLowerCase())
             uploadData['hook_run'] = testData
         } else {
             uploadData['test_run'] = testData
         }
         await uploadEventData(uploadData)
+    }
+
+    _getHookType(hookName: string): string {
+        if (hookName.includes('before each')) {
+            return 'BEFORE_EACH'
+        } else if (hookName.includes('before all')) {
+            return 'BEFORE_ALL'
+        } else if (hookName.includes('after each')) {
+            return 'AFTER_EACH'
+        } else if (hookName.includes('after all')) {
+            return 'AFTER_ALL'
+        }
+        return 'unknown'
+    }
+
+    _attachHookData(context: any, hookId: string): void {
+        if (context.currentTest && context.currentTest.parent) {
+            let parentTest = `${context.currentTest.parent.title} - ${context.currentTest.title}`
+            if (this._hooks[parentTest]) {
+                this._hooks[parentTest].push(hookId)
+            } else {
+                this._hooks[parentTest] = [hookId]
+            }
+        }
     }
 
     async sendTestRunEventForCucumber (world: any, eventType: string) {
