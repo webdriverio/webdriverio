@@ -2,8 +2,7 @@ import { expect } from 'expect'
 import { render, fireEvent, screen, waitFor } from '@testing-library/preact'
 import '@testing-library/jest-dom'
 
-// @ts-expect-error cwd based import checks need to be implemented
-import { Counter } from '/browser-runner/components/PreactComponent.tsx'
+import { Counter } from './components/PreactComponent.js'
 
 describe('Preact Component Testing', () => {
     it('should display initial count', () => {

@@ -3,7 +3,7 @@ import expect from 'expect'
 import { render, fireEvent, screen } from '@testing-library/svelte'
 import '@testing-library/jest-dom'
 
-import Comp from '/browser-runner/components/Component.svelte'
+import Comp from './components/Component.svelte'
 
 describe('Svelte Component Testing', () => {
     it('shows proper heading when rendered', () => {
