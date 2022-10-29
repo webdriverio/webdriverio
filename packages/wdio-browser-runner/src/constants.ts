@@ -33,3 +33,5 @@ export const PRESET_DEPENDENCIES: Record<FrameworkPreset, [string, string, any] 
     svelte: ['@sveltejs/vite-plugin-svelte', 'svelte', undefined],
     lit: undefined
 }
+
+export const FRAMEWORK_SUPPORT_ERROR = 'Currently only "mocha" is supported as framework when using @wdio/browser-runner.'

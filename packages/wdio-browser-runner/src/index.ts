@@ -5,13 +5,13 @@ import { remote, Browser } from 'webdriverio'
 import type { Capabilities, Options } from '@wdio/types'
 
 import Session from './worker.js'
-import { BROWSER_POOL } from './constants.js'
+import { BROWSER_POOL, FRAMEWORK_SUPPORT_ERROR } from './constants.js'
 import { getViteConfig } from './utils.js'
 import type { RunArgs, BrowserRunnerOptions as BrowserRunnerOptionsImport } from './types'
 
 const log = logger('@wdio/browser-runner')
 
-export default class LocalRunner {
+export default class BrowserRunner {
     #options: WebdriverIO.BrowserRunnerOptions
     #config: Options.Testrunner
     #server?: ViteDevServer
@@ -22,6 +22,10 @@ export default class LocalRunner {
     ) {
         this.#config = config
         this.#options = options
+
+        if (this.#config.framework !== 'mocha') {
+            throw new Error(FRAMEWORK_SUPPORT_ERROR)
+        }
     }
 
     /**
