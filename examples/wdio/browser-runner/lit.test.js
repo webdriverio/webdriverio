@@ -1,6 +1,6 @@
 import expect from 'expect'
 import { waitFor } from '@testing-library/dom'
-import '/browser-runner/components/LitComponent.ts'
+import './components/LitComponent.ts'
 
 describe('Lit Component testing', () => {
     it('should render component', async () => {

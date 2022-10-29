@@ -73,9 +73,11 @@ export async function getTemplate (options: WebdriverIO.BrowserRunnerOptions, en
         <body>
             <div id="mocha"></div>
             <script async type="module">
-                import '@wdio/browser-runner/setup'
+                import { setupEnv } from '@wdio/browser-runner/setup'
                 import { formatMessage } from '@wdio/mocha-framework/common'
-                import '${spec}'
+
+                await setupEnv()
+                await import('${spec}')
 
                 window.__wdioEvents__ = []
                 console.log('[WDIO] Start Mocha testsuite')

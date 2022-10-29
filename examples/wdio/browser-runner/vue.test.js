@@ -1,6 +1,6 @@
 import { $, expect } from '@wdio/globals'
 import { render } from '@testing-library/vue'
-import Component from '/browser-runner/components/Component.vue'
+import Component from './components/Component.vue'
 
 describe('Vue Component Testing', () => {
     it('increments value on click', async () => {
