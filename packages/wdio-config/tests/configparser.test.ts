@@ -732,7 +732,7 @@ describe('ConfigParser', () => {
             // first validate that the conf fixture 'spec' was merged successfully
             expect(configParser.getSpecs()).toHaveLength(1)
 
-            configParser.merge({ exclude: [path.join(__dirname, '**', '*conf*')] })
+            configParser.merge({ exclude: [path.join(__dirname, '**', '*conf*').replace(/\\/g, '/')] })
 
             // then after merging an exclude containing a glob pattern, validate that the exclude
             // attribute contains multiple items and the filtering on the spec attribute works
