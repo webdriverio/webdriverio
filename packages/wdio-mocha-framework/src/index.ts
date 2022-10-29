@@ -8,7 +8,7 @@ import { runTestInFiberContext, executeHooksWithArgs } from '@wdio/utils'
 import type { Capabilities, Services } from '@wdio/types'
 
 import { loadModule } from './utils.js'
-import { INTERFACES, EVENTS, NOOP, MOCHA_TIMEOUT_MESSAGE, MOCHA_TIMEOUT_MESSAGE_REPLACEMENT } from './constants.js'
+import { INTERFACES, TEST_INTERFACES, EVENTS, NOOP, MOCHA_TIMEOUT_MESSAGE, MOCHA_TIMEOUT_MESSAGE_REPLACEMENT } from './constants.js'
 import type { MochaConfig, MochaOpts as MochaOptsImport, FrameworkMessage, FormattedMessage, MochaError } from './types'
 import type { EventEmitter } from 'node:events'
 
@@ -159,8 +159,7 @@ class MochaAdapter {
         }
 
         INTERFACES[type].forEach((fnName: string) => {
-            let testCommand = INTERFACES[type][0]
-            const isTest = [testCommand, testCommand + '.only'].includes(fnName)
+            const isTest = TEST_INTERFACES[type].flatMap((testCommand: string) => [testCommand, testCommand + '.only']).includes(fnName)
 
             runTestInFiberContext(
                 isTest,

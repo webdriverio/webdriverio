@@ -1,5 +1,5 @@
 import logger from '@wdio/logger'
-import puppeteerCore from 'puppeteer-core'
+import puppeteerCore, { KnownDevices } from 'puppeteer-core'
 import WebSocket from 'ws'
 
 import type { Browser, MultiRemoteBrowser } from 'webdriverio'
@@ -167,8 +167,8 @@ export default class DevToolsService implements Services.ServiceInstance {
         }
 
         if (typeof device === 'string') {
-            const deviceName = device + (inLandscape ? ' landscape' : '')
-            const deviceCapabilities = puppeteerCore.devices[deviceName]
+            const deviceName = device + (inLandscape ? ' landscape' : '') as keyof typeof KnownDevices
+            const deviceCapabilities = KnownDevices[deviceName]
             if (!deviceCapabilities) {
                 const deviceNames = Object.values(puppeteerCore.devices as any)
                     .map((device: Device) => device.name)

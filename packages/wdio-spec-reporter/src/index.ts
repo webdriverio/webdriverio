@@ -1,5 +1,5 @@
 import { format } from 'node:util'
-import chalk, { Chalk } from 'chalk'
+import chalk from 'chalk'
 import prettyMs from 'pretty-ms'
 import WDIOReporter, { SuiteStats, HookStats, RunnerStats, TestStats, Argument } from '@wdio/reporter'
 import type { Capabilities } from '@wdio/types'
@@ -505,7 +505,7 @@ export default class SpecReporter extends WDIOReporter {
      */
     getColor (state?: string) {
         // In case of an unknown state
-        let color: keyof Chalk = 'gray'
+        let color: keyof typeof chalk = 'gray'
 
         switch (state) {
         case 'passed':

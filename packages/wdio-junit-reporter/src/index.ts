@@ -184,7 +184,7 @@ class JunitReporter extends WDIOReporter {
             if (test.state === 'pending' || test.state === 'skipped') {
                 testCase.skipped()
                 if (test.error) {
-                    testCase.standardError(`\n${test.error.stack}\n`)
+                    testCase.standardError(`\n${test.error.stack?.replace(ansiRegex, '')}\n`)
                 }
             } else if (test.state === 'failed') {
                 if (test.error) {
@@ -201,7 +201,7 @@ class JunitReporter extends WDIOReporter {
                         // default
                         testCase.error(test.error.message)
                     }
-                    testCase.standardError(`\n${test.error.stack}\n`)
+                    testCase.standardError(`\n${test.error.stack?.replace(ansiRegex, '')}\n`)
                 } else {
                     testCase.error()
                 }

@@ -41,7 +41,7 @@ class MockProcess {
         pipe: vi.fn(),
         on: (event: string, callback: Function) =>{
             callback('[Appium] Welcome to Appium v1.11.1')
-            callback('[Appium] Appium REST http interface listener started on localhost:4723')
+            callback('[Appium] Appium REST http interface listener started on 127.0.0.1:4723')
         } }
     stderr = {
         pipe: vi.fn(), once: vi.fn()
@@ -111,7 +111,7 @@ describe('Appium launcher', () => {
                 expect(launcher['_command']).toBe('path/to/my_custom_appium')
             }
             expect(capabilities[0].protocol).toBe('http')
-            expect(capabilities[0].hostname).toBe('localhost')
+            expect(capabilities[0].hostname).toBe('127.0.0.1')
             expect(capabilities[0].port).toBe(1234)
             expect(capabilities[0].path).toBe('/')
         })
@@ -129,11 +129,11 @@ describe('Appium launcher', () => {
             const launcher = new AppiumLauncher(options, capabilities, {} as any)
             await launcher.onPrepare()
             expect(capabilities.browserA.protocol).toBe('http')
-            expect(capabilities.browserA.hostname).toBe('localhost')
+            expect(capabilities.browserA.hostname).toBe('127.0.0.1')
             expect(capabilities.browserA.port).toBe(1234)
             expect(capabilities.browserA.path).toBe('/')
             expect(capabilities.browserB.protocol).toBe('http')
-            expect(capabilities.browserB.hostname).toBe('localhost')
+            expect(capabilities.browserB.hostname).toBe('127.0.0.1')
             expect(capabilities.browserB.port).toBe(4723)
             expect(capabilities.browserB.path).toBe('/')
         })
@@ -152,7 +152,7 @@ describe('Appium launcher', () => {
             launcher['_redirectLogStream'] = vi.fn()
             await launcher.onPrepare()
             expect(capabilities.browserA.protocol).toBe('http')
-            expect(capabilities.browserA.hostname).toBe('localhost')
+            expect(capabilities.browserA.hostname).toBe('127.0.0.1')
             expect(capabilities.browserA.port).toBe(1234)
             expect(capabilities.browserA.path).toBe('/')
             expect(capabilities.browserB.protocol).toBeUndefined()
@@ -181,7 +181,7 @@ describe('Appium launcher', () => {
                 expect(launcher['_command']).toBe('path/to/my_custom_appium')
             }
             expect(capabilities[0].protocol).toBe('http')
-            expect(capabilities[0].hostname).toBe('localhost')
+            expect(capabilities[0].hostname).toBe('127.0.0.1')
             expect(capabilities[0].port).toBe(1234)
             expect(capabilities[0].path).toBe('/')
         })
@@ -207,7 +207,7 @@ describe('Appium launcher', () => {
             }
 
             expect(capabilities[0].protocol).toBe('http')
-            expect(capabilities[0].hostname).toBe('localhost')
+            expect(capabilities[0].hostname).toBe('127.0.0.1')
             expect(capabilities[0].port).toBe(4321)
             expect(capabilities[0].path).toBe('/foo/bar')
         })

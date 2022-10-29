@@ -20,8 +20,8 @@ const WebDriver = require('../../packages/webdriver')
         chromedriver.stop()
         process.exit(0)
     },
-    () => {
-        console.log('WebDriver CJS Test Failed!')
+    (err) => {
+        console.log('WebDriver CJS Test Failed!', err)
         chromedriver.stop()
         process.exit(1)
     }

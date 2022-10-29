@@ -2,7 +2,7 @@ import fs from 'node:fs'
 import util from 'node:util'
 
 import log from 'loglevel'
-import chalk, { Color } from 'chalk'
+import chalk, { ColorName } from 'chalk'
 import prefix from 'loglevel-plugin-prefix'
 import ansiStrip from 'strip-ansi'
 
@@ -11,7 +11,7 @@ prefix.reg(log)
 const DEFAULT_LEVEL = process.env.WDIO_DEBUG
     ? 'trace'
     : 'info'
-const COLORS: Record<string, typeof Color> = {
+const COLORS: Record<string, ColorName> = {
     error: 'red',
     warn: 'yellow',
     info: 'cyanBright',

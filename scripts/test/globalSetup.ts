@@ -13,7 +13,8 @@ function throwBetterErrorMessage (err: Error) {
         'We need to remove rename the got dependency (at "packages/webdriver/node_modules/got") ' +
         'during the test to force Vitest to use our mocked version. You might already run unit ' +
         'tests in a different terminal.\n\n' +
-        err.stack
+        err.stack +
+        '\n\nPlease run:\n   mv packages/webdriver/node_modules/tmp_got packages/webdriver/node_modules/got'
     )
 }
 
