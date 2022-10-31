@@ -1,10 +1,13 @@
 import WDIOReporter from '@wdio/reporter'
+import logger from '@wdio/logger'
 import { SuiteStats, TestStats, RunnerStats } from '@wdio/reporter'
 
 import { v4 as uuidv4 } from 'uuid'
 import { Options, Reporters } from '@wdio/types'
 import { BrowserstackConfig } from './types'
 import { getCloudProvider, uploadEventData } from './util'
+
+const log = logger('@wdio/browserstack-service')
 
 export default class TestReporter extends WDIOReporter {
     private _capabilities: any
@@ -31,48 +34,52 @@ export default class TestReporter extends WDIOReporter {
 
     async onTestSkip (testStats: TestStats) {
         if (this._observability) {
-            let testData: any = {
-                uuid: uuidv4(),
-                type: testStats.type,
-                name: testStats.title,
-                body: {
-                    lang: 'webdriverio',
-                    code: null
-                },
-                scope: testStats.fullTitle,
-                scopes: testStats.fullTitle.split('.').slice(0, -1),
-                identifier: testStats.fullTitle,
-                file_name: this._suiteName,
-                location: this._suiteName,
-                started_at: testStats.start,
-                framework: this._config?.framework,
-            }
+            try {
+                let testData: any = {
+                    uuid: uuidv4(),
+                    type: testStats.type,
+                    name: testStats.title,
+                    body: {
+                        lang: 'webdriverio',
+                        code: null
+                    },
+                    scope: testStats.fullTitle,
+                    scopes: testStats.fullTitle.split('.').slice(0, -1),
+                    identifier: testStats.fullTitle,
+                    file_name: this._suiteName,
+                    location: this._suiteName,
+                    started_at: testStats.start,
+                    framework: this._config?.framework,
+                }
 
-            let finishedTestData = {
-                ...testData,
-                finished_at: (new Date()).toISOString(),
-                duration_in_ms: testStats._duration,
-                retries: { attempts: 0 },
-                result: testStats.state,
-            }
+                let finishedTestData = {
+                    ...testData,
+                    finished_at: (new Date()).toISOString(),
+                    duration_in_ms: testStats._duration,
+                    retries: { attempts: 0 },
+                    result: testStats.state,
+                }
 
-            testData['integrations'] = {}
-            testData['integrations'][getCloudProvider({ options: { hostname: this._config?.hostname } })] = {
-                'capabilities': this._capabilities,
-                'session_id': this._sessionId,
-                'browser': this._capabilities?.browserName,
-                'browser_version': this._capabilities?.browserVersion,
-                'platform': this._capabilities?.platformName,
-            }
+                testData['integrations'] = {}
+                testData['integrations'][getCloudProvider({ options: { hostname: this._config?.hostname } })] = {
+                    'capabilities': this._capabilities,
+                    'session_id': this._sessionId,
+                    'browser': this._capabilities?.browserName,
+                    'browser_version': this._capabilities?.browserVersion,
+                    'platform': this._capabilities?.platformName,
+                }
 
-            await uploadEventData({
-                event_type: 'TestRunStarted',
-                test_run: testData
-            })
-            await uploadEventData({
-                event_type: 'TestRunFinished',
-                test_run: finishedTestData
-            })
+                await uploadEventData({
+                    event_type: 'TestRunStarted',
+                    test_run: testData
+                })
+                await uploadEventData({
+                    event_type: 'TestRunFinished',
+                    test_run: finishedTestData
+                })
+            } catch (error: any) {
+                log.debug(error)
+            }
         }
     }
 }

@@ -112,10 +112,12 @@ export default class BrowserstackService implements Services.ServiceInstance {
                     browserVersion: browserCaps.browserVersion,
                     platformName: browserCaps.platformName,
                     caps: browserCaps,
-                    sessionId: browserCaps['webdriver.remote.sessionid']
+                    sessionId: browserCaps['webdriver.remote.sessionid'],
+                    product: this._isAppAutomate() ? 'app-automate' : 'automate'
                 }
-            }
 
+                this._browser.execute(`browserstack_executor: {"action": "annotate", "arguments": {"data": "ObservabilitySync:${Date.now()}","level": "debug"}}`)
+            }
         }
 
         return this._printSessionURL()
@@ -137,7 +139,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
                 finishedAt: null
             }
             this._attachHookData(context, hookId)
-            await this.sendTestRunEvent(test, 'HookRunStarted')
+            if (this._framework == 'mocha') await this._sendTestRunEvent(test, 'HookRunStarted')
         }
     }
 
@@ -151,7 +153,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
                     finishedAt: (new Date()).toISOString()
                 }
             }
-            await this.sendTestRunEvent(test, 'HookRunFinished', result)
+            if (this._framework == 'mocha') await this._sendTestRunEvent(test, 'HookRunFinished', result)
         }
     }
 
@@ -183,7 +185,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
                 startedAt: (new Date()).toISOString(),
                 finishedAt: null
             }
-            await this.sendTestRunEvent(test, 'TestRunStarted')
+            await this._sendTestRunEvent(test, 'TestRunStarted')
         }
     }
 
@@ -216,19 +218,22 @@ export default class BrowserstackService implements Services.ServiceInstance {
                     finishedAt: (new Date()).toISOString()
                 }
             }
-            await this.sendTestRunEvent(test, 'TestRunFinished', results)
+            await this._sendTestRunEvent(test, 'TestRunFinished', results)
         }
     }
 
     scopes(test: Frameworks.Test) {
-        let value = []
-        let parent = test.ctx.test.parent
-        while (parent && parent.title !== '') {
-            value.push(parent.title)
-            parent = parent.parent
-        }
-        if (parent && parent.title !== '') {
-            value.push(parent.title)
+        let value: any[] = []
+        if (test.ctx && test.ctx.test) {
+            let parent = test.ctx.test.parent
+            while (parent && parent.title !== '') {
+                value.push(parent.title)
+                parent = parent.parent
+            }
+            if (parent && parent.title !== '') {
+                value.push(parent.title)
+            }
+            return value.reverse()
         }
         return value.reverse()
     }
@@ -300,9 +305,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
             }
             this._tests[uniqueId] = testMetaData
 
-            if (this._observability) {
-                await this.sendTestRunEventForCucumber(world, 'TestRunStarted')
-            }
+            await this._sendTestRunEventForCucumber(world, 'TestRunStarted')
         }
     }
 
@@ -325,7 +328,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
         }
 
         if (this._observability) {
-            await this.sendTestRunEventForCucumber(world, 'TestRunFinished')
+            await this._sendTestRunEventForCucumber(world, 'TestRunFinished')
         }
     }
 
@@ -490,7 +493,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
         })
     }
 
-    async sendTestRunEvent (test: Frameworks.Test, eventType: string, results?: Frameworks.TestResult) {
+    async _sendTestRunEvent (test: Frameworks.Test, eventType: string, results?: Frameworks.TestResult) {
         let fullTitle = getUniqueIdentifier(test)
         let testMetaData = this._tests[fullTitle]
 
@@ -541,6 +544,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
                     'browser': this._platformMeta.browserName,
                     'browser_version': this._platformMeta.browserVersion,
                     'platform': this._platformMeta.platformName,
+                    'product': this._platformMeta.product
                 }
             }
         }
@@ -582,7 +586,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
         }
     }
 
-    async sendTestRunEventForCucumber (world: any, eventType: string) {
+    async _sendTestRunEventForCucumber (world: any, eventType: string) {
         let uniqueId = getUniqueIdentifierForCucumber(world)
 
         let testMetaData = this._tests[uniqueId]
@@ -590,6 +594,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
 
         if (world.result) {
             let result: string = world.result.status.toLowerCase()
+            if (result !== 'passed' && result !== 'failed') result = 'skipped' // mark UNKNOWN/UNDEFINED/AMBIGUOUS/PENDING as skipped
             testMetaData['finished_at'] = (new Date()).toISOString()
             testMetaData['result'] = result
             testMetaData['duration_in_ms'] = world.result.duration.nanos / 1000000 // send duration in ms
@@ -643,6 +648,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
                     'browser': this._platformMeta.browserName,
                     'browser_version': this._platformMeta.browserVersion,
                     'platform': this._platformMeta.platformName,
+                    'product': this._platformMeta.product
                 }
             }
         }

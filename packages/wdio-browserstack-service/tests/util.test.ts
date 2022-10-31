@@ -1,4 +1,8 @@
 import type { Browser, MultiRemoteBrowser } from 'webdriverio'
+import logger from '@wdio/logger'
+import got from 'got'
+import gitRepoInfo from 'git-repo-info'
+import { Repository } from 'nodegit'
 
 import {
     getBrowserDescription,
@@ -13,8 +17,18 @@ import {
     getLaunchInfo,
     removeAnsiColors,
     getScenarioNameWithExamples,
-    stopBuildUpstream
+    stopBuildUpstream,
+    launchTestSession,
+    getGitMetaData,
+    uploadEventData,
+    getLogTag
 } from '../src/util'
+
+jest.mock('got')
+jest.mock('git-repo-info')
+jest.useFakeTimers().setSystemTime(new Date('2020-01-01'))
+
+const log = logger('test')
 
 describe('getBrowserCapabilities', () => {
     it('should get default browser capabilities', () => {
@@ -251,11 +265,19 @@ describe('getCloudProvider', () => {
         expect(getCloudProvider({})).toEqual('UNKNOWN')
     })
     it('return Browserstack if test being run on browserstack', () => {
-        expect(getCloudProvider({ options: { hostname: 'hub.browserstack.com' } })).toEqual('Browserstack')
+        expect(getCloudProvider({ options: { hostname: 'hub.browserstack.com' } })).toEqual('browserstack')
     })
 
     it('return Sauce if test being run on SauceLabs', () => {
-        expect(getCloudProvider({ options: { hostname: 'anything-saucelabs.com' } })).toEqual('Sauce')
+        expect(getCloudProvider({ options: { hostname: 'anything-saucelabs.com' } })).toEqual('sauce')
+    })
+
+    it('return lambdatest if test being run on lambdatest', () => {
+        expect(getCloudProvider({ options: { hostname: 'anything-lambdatest.com' } })).toEqual('lambdatest')
+    })
+
+    it('return testingbot if test being run on testingbot', () => {
+        expect(getCloudProvider({ options: { hostname: 'anything-testingbot.com' } })).toEqual('testingbot')
     })
 })
 
@@ -550,6 +572,8 @@ describe('getScenarioNameWithExamples', () => {
 })
 
 describe('stopBuildUpstream', () => {
+    const mockedGot = jest.mocked(got)
+
     it('return error if completed but jwt token not present', async () => {
         process.env.BS_TESTOPS_BUILD_COMPLETED = 'true'
         delete process.env.BS_TESTOPS_JWT
@@ -559,5 +583,141 @@ describe('stopBuildUpstream', () => {
         delete process.env.BS_TESTOPS_BUILD_COMPLETED
         expect(result.status).toEqual('error')
         expect(result.message).toEqual('Token/buildID is undefined, build creation might have failed')
+    })
+
+    it('return success if completed', async () => {
+        process.env.BS_TESTOPS_BUILD_COMPLETED = 'true'
+        process.env.BS_TESTOPS_JWT = 'jwt'
+
+        mockedGot.put = jest.fn().mockReturnValue({
+            json: () => Promise.resolve({}),
+        } as any)
+
+        const result: any = await stopBuildUpstream()
+        expect(got.put).toHaveBeenCalled()
+        expect(result.status).toEqual('success')
+    })
+
+    it('return error if failed', async () => {
+        process.env.BS_TESTOPS_BUILD_COMPLETED = 'true'
+        process.env.BS_TESTOPS_JWT = 'jwt'
+
+        mockedGot.put = jest.fn().mockReturnValue({
+            json: () => Promise.reject({}),
+        } as any)
+
+        const result: any = await stopBuildUpstream()
+        expect(got.put).toHaveBeenCalled()
+        expect(result.status).toEqual('error')
+    })
+
+    afterEach(() => {
+        (got.put as jest.Mock).mockClear()
+    })
+})
+
+describe('launchTestSession', () => {
+    const mockedGot = jest.mocked(got)
+    jest.mocked(gitRepoInfo).mockReturnValue({} as any)
+
+    it('return array if completed', async () => {
+        mockedGot.post = jest.fn().mockReturnValue({
+            json: () => Promise.resolve({ build_hashed_id: 'build_id', jwt: 'jwt' }),
+        } as any)
+
+        const result: any = await launchTestSession( { username: 'username', password: 'password' } )
+        expect(got.post).toBeCalledTimes(1)
+        expect(result).toEqual(['jwt', 'build_id'])
+    })
+
+    it('return null in case of error', async () => {
+        mockedGot.post = jest.fn().mockReturnValue({
+            json: () => Promise.reject({ build_hashed_id: 'build_id', jwt: 'jwt' }),
+        } as any)
+
+        const result = await launchTestSession( { username: 'username', password: 'password' } )
+        expect(got.post).toHaveBeenCalled()
+        expect(result).toEqual([null, null])
+    })
+})
+
+describe('uploadEventData', () => {
+    const mockedGot = jest.mocked(got)
+
+    it('got.post called', async () => {
+        process.env.BS_TESTOPS_BUILD_COMPLETED = 'true'
+        process.env.BS_TESTOPS_JWT = 'jwt'
+        mockedGot.post = jest.fn().mockReturnValue({
+            json: () => Promise.resolve({ }),
+        } as any)
+
+        await uploadEventData( { event_type: 'testRunStarted' } )
+        expect(got.post).toBeCalledTimes(1)
+    })
+
+    it('got.post failed', async () => {
+        process.env.BS_TESTOPS_BUILD_COMPLETED = 'true'
+        process.env.BS_TESTOPS_JWT = 'jwt'
+        mockedGot.post = jest.fn().mockReturnValue({
+            json: () => Promise.reject({ }),
+        } as any)
+
+        await uploadEventData( { event_type: 'testRunStarted' } )
+        expect(got.post).toBeCalledTimes(1)
+    })
+
+    it('got.post not called', async () => {
+        process.env.BS_TESTOPS_BUILD_COMPLETED = 'true'
+        delete process.env.BS_TESTOPS_JWT
+        mockedGot.post = jest.fn().mockReturnValue({
+            json: () => Promise.resolve({ }),
+        } as any)
+
+        await uploadEventData( { event_type: 'testRunStarted' } )
+        expect(got.post).toBeCalledTimes(0)
+    })
+})
+
+describe('getLogTag', () => {
+
+    it('return correct tag', () => {
+        expect(getLogTag('TestRunStarted')).toEqual('Test_Upload')
+        expect(getLogTag('TestRunFinished')).toEqual('Test_Upload')
+        expect(getLogTag('HookRunStarted')).toEqual('Hook_Upload')
+        expect(getLogTag('HookRunFinished')).toEqual('Hook_Upload')
+        expect(getLogTag('LogCreated')).toEqual('Log_Upload')
+    })
+})
+
+describe('getGitMetaData', () => {
+
+    it('return empty object', async () => {
+        jest.mocked(gitRepoInfo).mockReturnValue({} as any)
+        const result: any = await getGitMetaData()
+        expect(result).toEqual({})
+    })
+
+    it('return non empty object', async () => {
+
+        jest.spyOn(Repository, 'open').mockImplementation((_dir) => Promise.resolve({
+            getHeadCommit: jest.fn().mockReturnValue({
+                author: jest.fn().mockReturnValue({
+                    name: jest.fn().mockReturnValue('author-name'),
+                    email: jest.fn().mockReturnValue('author-email')
+                }),
+                committer: jest.fn().mockReturnValue({
+                    name: jest.fn().mockReturnValue('committer-name'),
+                    email: jest.fn().mockReturnValue('committer-email')
+                }),
+                message: jest.fn().mockReturnValue('commitMessage'),
+                date: jest.fn().mockReturnValue('committerDate'),
+            })
+        }))
+
+        jest.mocked(gitRepoInfo).mockReturnValue({ commonGitDir: '/tmp', worktreeGitDir: '/tmp' } as any)
+        try {
+            const result: any = await getGitMetaData()
+            expect(result).toEqual({})
+        } catch (e) {}
     })
 })

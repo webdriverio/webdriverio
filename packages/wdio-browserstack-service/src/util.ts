@@ -81,14 +81,6 @@ export function getParentSuiteName(fullTitle: string, testSuiteTitle: string): s
 }
 
 export async function launchTestSession (userConfig: any) {
-    const BSTestOpsToken = `${userConfig.username}:${userConfig.password}`
-
-    if (BSTestOpsToken === '') {
-        log.debug('[Start_Build] Missing BROWSERSTACK_TESTOPS_TOKEN')
-        process.env.BS_TESTOPS_BUILD_COMPLETED = 'true'
-        return [null, null]
-    }
-
     const data = {
         'format': 'json',
         'project_name': userConfig.projectName,
@@ -117,12 +109,7 @@ export async function launchTestSession (userConfig: any) {
 
     try {
         let url = `http://${DATA_ENDPOINT}/api/v1/builds`
-        let response: any
-        try {
-            response = await got.post(url, { json: data, ...config }).json()
-        } catch (error) {
-            log.debug(`[Start_Build] Browserstack TestOps failed. Error: ${error}`)
-        }
+        let response: any = await got.post(url, { json: data, ...config }).json()
         log.debug(`[Start_Build] Success response: ${JSON.stringify(response)}`)
         process.env.BS_TESTOPS_BUILD_COMPLETED = 'true'
         return [response.jwt, response.build_hashed_id]
@@ -155,12 +142,7 @@ export async function stopBuildUpstream () {
 
         try {
             let url = `http://${DATA_ENDPOINT}/api/v1/builds/${process.env.BS_TESTOPS_BUILD_HASHED_ID}/stop`
-            let response: any
-            try {
-                response = await got.put(url, { json: data, ...config }).json()
-            } catch (error) {
-                log.debug(`[Stop_Build] Failed. Error: ${error}`)
-            }
+            let response: any = await got.put(url, { json: data, ...config }).json()
             log.debug(`[Stop_Build] Success response: ${JSON.stringify(response)}`)
             return {
                 status: 'success',
@@ -168,6 +150,10 @@ export async function stopBuildUpstream () {
             }
         } catch (error: any) {
             log.debug(`[Stop_Build] Failed. Error: ${error}`)
+            return {
+                status: 'error',
+                message: error.message
+            }
         }
     }
 }
@@ -319,7 +305,7 @@ export function getCloudProvider(browser: any): string {
     let provider: string = 'UNKNOWN'
     if (browser.options && browser.options.hostname) {
         let hostname: string = browser.options.hostname
-        if (hostname.includes('browserstack') || hostname.includes('bsstag')) {
+        if (hostname.includes('browserstack')) {
             return 'browserstack'
         } else if (hostname.includes('saucelabs')) {
             return 'sauce'
@@ -397,21 +383,19 @@ export function removeAnsiColors(message: string): string {
     return message.replace(/[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g, '')
 }
 
-export async function uploadEventData (eventData: any) {
-    let logTag: string = ''
-    switch (eventData.event_type) {
-    case 'TestRunStarted':
-    case 'TestRunFinished':
-        logTag = 'Test_Upload'
-        break
-    case 'HookRunStarted':
-    case 'HookRunFinished':
-        logTag = 'Hook_Upload'
-        break
-    case 'LogCreated':
-        logTag = 'Log_Upload'
-        break
+export function getLogTag(eventType: string): string {
+    if (eventType == 'TestRunStarted' || eventType == 'TestRunFinished') {
+        return 'Test_Upload'
+    } else if (eventType == 'HookRunStarted' || eventType == 'HookRunFinished') {
+        return 'Hook_Upload'
+    } else if (eventType == 'LogCreated') {
+        return 'Log_Upload'
     }
+    return 'undefined'
+}
+
+export async function uploadEventData (eventData: any) {
+    let logTag: string = getLogTag(eventData.event_type)
 
     if (process.env.BS_TESTOPS_BUILD_COMPLETED) {
         if (!process.env.BS_TESTOPS_JWT) {
