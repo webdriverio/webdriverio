@@ -1,5 +1,4 @@
 import type { Browser, MultiRemoteBrowser } from 'webdriverio'
-import logger from '@wdio/logger'
 import got from 'got'
 import gitRepoInfo from 'git-repo-info'
 import { Repository } from 'nodegit'
@@ -27,8 +26,6 @@ import {
 jest.mock('got')
 jest.mock('git-repo-info')
 jest.useFakeTimers().setSystemTime(new Date('2020-01-01'))
-
-const log = logger('test')
 
 describe('getBrowserCapabilities', () => {
     it('should get default browser capabilities', () => {
@@ -699,7 +696,7 @@ describe('getGitMetaData', () => {
 
     it('return non empty object', async () => {
 
-        jest.spyOn(Repository, 'open').mockImplementation((_dir) => Promise.resolve({
+        jest.spyOn(Repository, 'open').mockImplementation(() => Promise.resolve({
             getHeadCommit: jest.fn().mockReturnValue({
                 author: jest.fn().mockReturnValue({
                     name: jest.fn().mockReturnValue('author-name'),
@@ -718,6 +715,8 @@ describe('getGitMetaData', () => {
         try {
             const result: any = await getGitMetaData()
             expect(result).toEqual({})
-        } catch (e) {}
+        } catch (e) {
+            //
+        }
     })
 })

@@ -425,3 +425,8 @@ export async function uploadEventData (eventData: any) {
         }
     }
 }
+
+export function scopes(fullTitle?: string) {
+    if (!fullTitle) return []
+    return fullTitle.split('.').slice(0, -1)
+}

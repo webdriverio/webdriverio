@@ -230,9 +230,6 @@ export default class BrowserstackService implements Services.ServiceInstance {
                 value.push(parent.title)
                 parent = parent.parent
             }
-            if (parent && parent.title !== '') {
-                value.push(parent.title)
-            }
             return value.reverse()
         }
         return value.reverse()
@@ -458,7 +455,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
     }
 
     _update(sessionId: string, requestBody: any) {
-        if (this._browser && !isBrowserstackSession(this._browser)) {
+        if (!this._browser || !isBrowserstackSession(this._browser)) {
             return Promise.resolve()
         }
         const sessionUrl = `${this._sessionBaseUrl}/${sessionId}.json`

@@ -100,6 +100,14 @@ describe('onReload()', () => {
         })
         expect(service['_failReasons']).toEqual([])
     })
+
+    it('should return if no browser object', async () => {
+        const updateSpy = jest.spyOn(service, '_update')
+        service['_browser'] = undefined
+
+        await service.onReload('1', '2')
+        expect(updateSpy).toBeCalledTimes(0)
+    })
 })
 
 describe('beforeSession', () => {
@@ -116,6 +124,46 @@ describe('beforeSession', () => {
     it('should set key default to make missing key parameter apparent', () => {
         service.beforeSession({ key: 'bar' } as any)
         expect(service['_config']).toEqual({ user: 'NotSetUser', key: 'bar' })
+    })
+})
+
+describe('_multiRemoteAction', () => {
+    it('resolve if no browser object', () => {
+        const tmpService = new BrowserstackService({ testObservability: false }, [] as any,
+            { user: 'foo', key: 'bar', cucumberOpts: { strict: false } } as any)
+        tmpService['_browser'] = undefined
+        expect(tmpService._multiRemoteAction({} as any)).toEqual(Promise.resolve())
+    })
+})
+
+describe('_update', () => {
+    const tmpService = new BrowserstackService({ testObservability: false }, [] as any,
+        { user: 'foo', key: 'bar', cucumberOpts: { strict: false } } as any)
+
+    describe('should return if not a browserstack session', () => {
+        const logDebugSpy = jest.spyOn(log, 'debug').mockImplementation((string) => string)
+        const isBrowserstackSessionSpy = jest.spyOn(utils, 'isBrowserstackSession').mockImplementation()
+        isBrowserstackSessionSpy.mockReturnValue(false)
+        const getCloudProviderSpy = jest.spyOn(utils, 'getCloudProvider').mockReturnValue('browserstack')
+
+        beforeEach(() => {
+            logDebugSpy.mockClear()
+            isBrowserstackSessionSpy.mockClear()
+            getCloudProviderSpy.mockClear()
+        })
+
+        it('should resolve if not a browserstack session', () => {
+            tmpService['_browser'] = undefined
+            tmpService._update('sessionId', {})
+            expect(isBrowserstackSessionSpy).toBeCalledTimes(0)
+            expect(logDebugSpy).toBeCalledTimes(0)
+        })
+
+        afterEach(() => {
+            logDebugSpy.mockClear()
+            isBrowserstackSessionSpy.mockClear()
+            getCloudProviderSpy.mockClear()
+        })
     })
 })
 
@@ -400,14 +448,21 @@ describe('afterTest', () => {
         const sendSpy = jest.spyOn(service, '_sendTestRunEvent').mockImplementation(() => { return [] })
         const getUniqueIdentifierSpy = jest.spyOn(utils, 'getUniqueIdentifier').mockReturnValue('test title')
 
-        service['_tests'] = {}
-
         beforeEach(() => {
             sendSpy.mockClear()
             getUniqueIdentifierSpy.mockClear()
         })
 
+        it('add hook data', async () => {
+            service['_tests'] = {}
+            await service.afterTest({ title: 'bar', parent: 'foo' } as any, undefined as never, {} as any)
+            expect(service['_tests']).toEqual({ 'test title': { finishedAt: '2020-01-01T00:00:00.000Z' } })
+            expect(sendSpy).toBeCalledTimes(1)
+            expect(getUniqueIdentifierSpy).toBeCalledTimes(1)
+        })
+
         it('update hook data', async () => {
+            service['_tests'] = { 'test title': {} }
             await service.afterTest({ title: 'bar', parent: 'foo' } as any, undefined as never, {} as any)
             expect(service['_tests']).toEqual({ 'test title': { finishedAt: '2020-01-01T00:00:00.000Z' } })
             expect(sendSpy).toBeCalledTimes(1)
@@ -525,6 +580,17 @@ describe('afterScenario', () => {
             'Step XYZ is undefined',
             'Step XYZ2 is ambiguous',
             'Some steps/hooks are pending for scenario "Can do something"'])
+    })
+
+    describe('Observability only', () => {
+        const tmpService = new BrowserstackService({ testObservability: true }, [] as any,
+            { user: 'foo', key: 'bar', cucumberOpts: { strict: false } } as any)
+        const sendSpy = jest.spyOn(tmpService, '_sendTestRunEventForCucumber').mockImplementation(() => Promise.resolve())
+
+        it('send event called', async () => {
+            await tmpService.afterScenario({ pickle: {}, result: { duration: { seconds: 0, nanos: 1000000 }, willBeRetried: false, status: 'PASSED' } })
+            expect(sendSpy).toBeCalledTimes(1)
+        })
     })
 })
 
@@ -821,6 +887,19 @@ describe('after', () => {
             })
         })
     })
+
+    describe('Observability only', function () {
+        it('should call _update with status "failed" if strict mode is "on" and all tests are pending', async () => {
+            service = new BrowserstackService({ testObservability: true } as any, [] as any,
+                { user: 'foo', key: 'bar', cucumberOpts: { strict: true } } as any)
+
+            service['_failReasons'] = []
+            const updateSpy = jest.spyOn(service, '_updateJob')
+            await service.after(1)
+
+            expect(updateSpy).toHaveBeenCalled()
+        })
+    })
 })
 
 describe('_sendTestRunEvent', () => {
@@ -838,7 +917,7 @@ describe('_sendTestRunEvent', () => {
             file: 'filename'
         }
         service['_tests'] = { 'test title': { uuid: 'uuid', startedAt: '', finishedAt: '' } }
-        service['_platformMeta'] = { caps: {},  sessionId: '', browserName: '', browserVersion: '', platformName: '', product: ''}
+        service['_platformMeta'] = { caps: {},  sessionId: '', browserName: '', browserVersion: '', platformName: '', product: '' }
         service['_hooks'] = { 'test title': ['hook_id'] }
 
         beforeEach(() => {
@@ -893,7 +972,7 @@ describe('_sendTestRunEventForCucumber', () => {
         jest.spyOn(utils, 'getScenarioNameWithExamples').mockReturnValue('test title with examples')
         jest.spyOn(utils, 'getCloudProvider').mockImplementation( () => 'browserstack' )
         service['_tests'] = { 'test title': { uuid: 'uuid', startedAt: '', finishedAt: '', feature: { name: 'name', path: 'path' }, scenario: { name: 'name' } } }
-        service['_platformMeta'] = { caps: {},  sessionId: '', browserName: '', browserVersion: '', platformName: '', product: ''}
+        service['_platformMeta'] = { caps: {},  sessionId: '', browserName: '', browserVersion: '', platformName: '', product: '' }
 
         beforeEach(() => {
             uploadEventDataSpy.mockClear()
@@ -1030,6 +1109,16 @@ describe('afterStep', () => {
         expect(service['_tests']).toEqual({ 'test title': { steps: [] } })
     })
 
+    it('failed case', () => {
+        service['_tests'] = { 'test title': { uuid: 'uuid', startedAt: '', finishedAt: '', feature: { name: 'name', path: 'path' }, scenario: { name: 'name' }, steps: [{ id: 'step_id' }] } }
+        service.afterStep({ id: 'step_id', text: 'this is step', keyword: 'Given' } as any, {} as any, {
+            passed: false,
+            duration: 10,
+            error: 'this is a error'
+        })
+        expect(service['_tests']).toEqual({ 'test title': { uuid: 'uuid', startedAt: '', finishedAt: '', feature: { name: 'name', path: 'path' }, scenario: { name: 'name' }, steps: [{ id: 'step_id', 'result': 'FAILED', duration: 10, failure: 'this is a error', finished_at: '2020-01-01T00:00:00.000Z' }] } })
+    })
+
     afterEach(() => {
         getUniqueIdentifierForCucumberSpy.mockClear()
     })
@@ -1064,7 +1153,7 @@ describe('_attachHookData', () => {
     })
 
     it('push hooks data in test', () => {
-        service['_hooks'] = {'parent - test': ['hook_id_old']}
+        service['_hooks'] = { 'parent - test': ['hook_id_old'] }
         service._attachHookData({
             currentTest: {
                 title: 'test',
@@ -1131,12 +1220,50 @@ describe('requestHandler', () => {
         expect(getUniqueIdentifierForCucumberSpy).toBeCalledTimes(1)
         expect(uploadEventDataSpy).toBeCalledTimes(1)
     })
+
+    it('hostname handling', () => {
+        service.requestHandler({
+            url: {
+                hostname: 'host',
+                pathname: 'path',
+            },
+            method: 'post',
+            headers: {
+                all: jest.fn().mockReturnValue({})
+            }
+        } as any, {
+            status: '200',
+            body: 'json body'
+        } as any, {
+            nopickle: 'no-pickle'
+        })
+        expect(getUniqueIdentifierSpy).toBeCalledTimes(1)
+        expect(getUniqueIdentifierForCucumberSpy).toBeCalledTimes(0)
+        expect(uploadEventDataSpy).toBeCalledTimes(1)
+    })
+
+    it('hostname and path not present', () => {
+        service.requestHandler({
+            method: 'post',
+            headers: {
+                all: jest.fn().mockReturnValue({})
+            }
+        } as any, {
+            status: '200',
+            body: 'json body'
+        } as any, {
+            nopickle: 'no-pickle'
+        })
+        expect(getUniqueIdentifierSpy).toBeCalledTimes(1)
+        expect(getUniqueIdentifierForCucumberSpy).toBeCalledTimes(0)
+        expect(uploadEventDataSpy).toBeCalledTimes(1)
+    })
 })
 
 describe('scopes', () => {
     const service = new BrowserstackService({} as any, [{}] as any, { capabilities: {} })
 
-    it('get hook type as string', () => {
+    it('return array of scopes when context present', () => {
         expect(service.scopes({
             ctx: {
                 test: {
@@ -1149,6 +1276,10 @@ describe('scopes', () => {
                 }
             }
         } as any)).toEqual(['test 1', 'test 2'])
+    })
+
+    it('return empty array when no context present', () => {
+        expect(service.scopes({} as any)).toEqual([])
     })
 })
 
@@ -1195,14 +1326,24 @@ describe('afterHook', () => {
     const getUniqueIdentifierSpy = jest.spyOn(utils, 'getUniqueIdentifier').mockReturnValue('test title')
     const getUniqueIdentifierForCucumberSpy = jest.spyOn(utils, 'getUniqueIdentifierForCucumber').mockReturnValue('test title')
 
-    service['_tests'] = {}
     service['_framework'] = 'mocha'
-    sendSpy.mockClear()
-    attachHookDataSpy.mockClear()
-    getUniqueIdentifierForCucumberSpy.mockClear()
-    getUniqueIdentifierSpy.mockClear()
+
+    beforeEach(() => {
+        sendSpy.mockClear()
+        attachHookDataSpy.mockClear()
+        getUniqueIdentifierForCucumberSpy.mockClear()
+        getUniqueIdentifierSpy.mockClear()
+    })
+
+    it('add hook data', async () => {
+        service['_tests'] = {}
+        await service.afterHook({ parent: 'parent', title: 'test' } as any, {} as any, {} as any)
+        expect(service['_tests']).toEqual({ 'test title': { finishedAt: '2020-01-01T00:00:00.000Z', } })
+        expect(sendSpy).toBeCalledTimes(1)
+    })
 
     it('update hook data', async () => {
+        service['_tests'] = { 'test title': {} }
         await service.afterHook({ parent: 'parent', title: 'test' } as any, {} as any, {} as any)
         expect(service['_tests']).toEqual({ 'test title': { finishedAt: '2020-01-01T00:00:00.000Z', } })
         expect(sendSpy).toBeCalledTimes(1)
@@ -1245,5 +1386,20 @@ describe('afterCommand', () => {
         expect(uploadEventData).toBeCalledTimes(1)
         expect(getUniqueIdentifierSpy).toBeCalledTimes(0)
         expect(getUniqueIdentifierForCucumberSpy).toBeCalledTimes(1)
+    })
+})
+
+describe('_updateCaps', () => {
+    it('calls fn', () => {
+        const fnSpy = jest.fn()
+        service._updateCaps(fnSpy)
+        expect(fnSpy).toBeCalledTimes(1)
+    })
+
+    it('calls fn - caps present', () => {
+        const fnSpy = jest.fn()
+        service['_caps'] = { capabilities: { browserName: 'chrome' } } as any
+        service._updateCaps(fnSpy)
+        expect(fnSpy).toBeCalledTimes(1)
     })
 })

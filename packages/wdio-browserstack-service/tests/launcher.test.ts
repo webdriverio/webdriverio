@@ -417,6 +417,13 @@ describe('constructor', () => {
         expect(caps).toEqual({ 'browserA': { 'capabilities': { 'bstack:options': { 'wdioService': '7.25.2' }, 'goog:chromeOptions': {} } } })
     })
 
+    it('should add the "wdioService" property to object of capabilities inside "bstack:options" if any extension cap not present', async () => {
+        const caps: any = { browserA: { capabilities: {} } }
+        new BrowserstackLauncher(options, caps, config)
+
+        expect(caps).toEqual({ 'browserA': { 'capabilities': { 'browserstack.wdioService': '7.25.2' } } })
+    })
+
     it('update spec list if it is a rerun', async () => {
         process.env.BROWSERSTACK_RERUN = 'true'
         process.env.BROWSERSTACK_RERUN_TESTS = 'demo1.test.js,demo2.test.js'
@@ -488,6 +495,29 @@ describe('_validateApp', () => {
                             {id<string>, path<string>, custom_id<string>, shareable_id<string>}, only "path" and "custom_id" can co-exist.`)
         }
     })
+
+    it('should throw error if appConfig is invalid format', async() => {
+        const options: BrowserstackConfig = { app: {} }
+        const service = new BrowserstackLauncher(options, caps, config)
+
+        try {
+            await service._validateApp(options.app)
+        } catch (e: any){
+            expect(e.message).toEqual('[Invalid format] app should be string or an object')
+        }
+    })
+
+    it('should throw error if appConfig is invalid format', async() => {
+        const options: BrowserstackConfig = { app: { key1: '2' } }
+        const service = new BrowserstackLauncher(options, caps, config)
+
+        try {
+            await service._validateApp(options.app)
+        } catch (e: any){
+            expect(e.message).toEqual(`[Invalid app property] supported properties are {id<string>, path<string>, custom_id<string>, shareable_id<string>}.
+                    For more details please visit https://www.browserstack.com/docs/app-automate/appium/set-up-tests/specify-app ')`)
+        }
+    })
 })
 
 describe('_uploadApp', () => {
@@ -499,19 +529,36 @@ describe('_uploadApp', () => {
         capabilities: []
     }
 
-    jest.mock('got', () => ({
-        post: jest.fn().mockImplementation(() => new Promise(() => {}))
-    }))
-
-    got.post = jest.fn().mockReturnValue({
-        json: () => Promise.resolve({ app_url: 'bs://<app-id>' })
-    })
-
     it('should upload the app and return app_url', async() => {
+        jest.mock('got', () => ({
+            post: jest.fn().mockImplementation(() => new Promise(() => {}))
+        }))
+
+        got.post = jest.fn().mockReturnValue({
+            json: () => Promise.resolve({ app_url: 'bs://<app-id>' })
+        })
         const service = new BrowserstackLauncher(options, caps, config)
         const res = await service._uploadApp(options.app)
         expect(got.post).toHaveBeenCalled()
         expect(res).toEqual({ app_url: 'bs://<app-id>' })
+    })
+
+    it('throw SevereServiceError if upload fails', async() => {
+        jest.mock('got', () => ({
+            post: jest.fn().mockImplementation(() => new Promise(() => {}))
+        }))
+
+        got.post = jest.fn().mockReturnValue({
+            json: () => Promise.reject({})
+        })
+        const service = new BrowserstackLauncher(options, caps, config)
+
+        try {
+            const res = await service._uploadApp(options.app)
+        } catch (e: any) {
+            expect(got.post).toHaveBeenCalled()
+            expect(e.name).toEqual('SevereServiceError')
+        }
     })
 })
 
