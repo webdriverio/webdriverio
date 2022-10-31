@@ -554,7 +554,7 @@ describe('_uploadApp', () => {
         const service = new BrowserstackLauncher(options, caps, config)
 
         try {
-            const res = await service._uploadApp(options.app)
+            await service._uploadApp(options.app)
         } catch (e: any) {
             expect(got.post).toHaveBeenCalled()
             expect(e.name).toEqual('SevereServiceError')
