@@ -76,11 +76,12 @@ export default class SauceService implements Services.ServiceInstance {
         this._suiteTitle = suite.title
 
         /**
-         * Make sure we account for the cases where there is a long running `before` function for a
-         * suite or one that can fail so we set the default job name at the suite level
-         * Don't do this for Jasmine because the `suiteTitle` is `Jasmine__TopLevel__Suite` and the
-         * `fullName` is `null`, so no alternative
-         **/
+         * Set the default job name at the suite level to make sure we account
+         * for the cases where there is a long running `before` function for a
+         * suite or one that can fail.
+         * Don't do this for Jasmine because `suite.title` is `Jasmine__TopLevel__Suite`
+         * and `suite.fullTitle` is `undefined`, so no alternative to use for the job name.
+         */
         if (this._browser && !this._isRDC && !this._isJobNameSet && this._suiteTitle !== 'Jasmine__TopLevel__Suite') {
             await this.setAnnotation('sauce:job-name=' + this._suiteTitle)
             this._isJobNameSet = true
@@ -233,6 +234,10 @@ export default class SauceService implements Services.ServiceInstance {
         return this.setAnnotation(`sauce:context=Feature: ${this._suiteTitle}`)
     }
 
+    /**
+     * Runs before a Cucumber Scenario.
+     * @param world world object containing information on pickle and test step
+     */
     beforeScenario (world: Frameworks.World) {
         /**
          * Date:    20200714
@@ -259,8 +264,7 @@ export default class SauceService implements Services.ServiceInstance {
     }
 
     /**
-     *
-     * Runs before a Cucumber Scenario.
+     * Runs after a Cucumber Scenario.
      * @param world world object containing information on pickle and test step
      * @param result result object containing
      * @param result.passed   true if scenario has passed
