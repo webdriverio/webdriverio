@@ -1051,10 +1051,29 @@ export interface BrowserStackCapabilities {
     osVersion?: string
     desired?: DesiredCapabilities
     device?: string
+    /**
+     * Specify a name for a logical group of builds.
+     */
     projectName?: string
+    /**
+     * Specify a name for a logical group of tests.
+     */
     buildName?: string
+    /**
+     * Specify an identifier for the test run.
+     */
     sessionName?: string
+    /**
+     * Test locally hosted websites on BrowserStack.
+     * To enable access to the local machine you need to setup the
+     * [BrowserStack Local Binary](https://www.browserstack.com/local-testing/automate).
+     */
     local?: boolean
+    /**
+     * Generate screenshots at various steps of the test.
+     *
+     * @default false
+     */
     debug?: boolean
     networkLogs?: boolean
     seleniumVersion?: string
@@ -1068,21 +1087,96 @@ export interface BrowserStackCapabilities {
     userName?: string
     accessKey?: string
     localIdentifier?: string
+    /**
+     * Capture browser console logs at various steps in the test.
+     * Console Logs are available for Selenium tests on Desktop Chrome
+     * and Mobile Chrome (Android devices).
+     *
+     * @default 'errors'
+     */
     consoleLogs?: 'disable' | 'errors' | 'warnings' | 'info' | 'verbose'
     appiumLogs?: boolean
     video?: boolean
     seleniumLogs?: boolean
     geoLocation?: string
     timezone?: string
+    /**
+     * Set the resolution of the VM.
+     */
     resolution?: string
+    /**
+     * Mask the data sent or retrieved by certain commands.
+     *
+     * Note: Multiple commands can be passed in a single array, separated by commas.
+     */
     'browserstack.maskCommands'?: string[]
+    /**
+     * BrowerStack triggers `BROWSERSTACK_IDLE_TIMEOUT` error when a session
+     * is left idle for more than `idleTimeout` seconds. This happens as BrowserStack by
+     * default waits for the timeout duration for additional steps or commands
+     * to run. If no command is received during that time, the session is stopped,
+     * changing the session status to `TIMEOUT` on the Automate dashboard.
+     *
+     * Valid range: 0-300 seconds.
+     *
+     * @default 90
+     */
     idleTimeout?: number
+    /**
+     * Mask credentials from test logs if using basic authentication.
+     */
     maskBasicAuth?: boolean
+    /**
+     * Specify a custom delay between the execution of Selenium commands.
+     *
+     * @default 20
+     */
     autoWait?: number
+    /**
+     * Add a host entry (/etc/hosts) to the remote BrowserStack machine.
+     *
+     * Format: ip_address domain_name
+     * @example
+     * { "bstack:options": { hosts: "1.2.3.4 staging.website.com" } }
+     */
     hosts?: string
+    /**
+     * IE 11 uses cached pages when navigating using the backward or forward buttons.
+     * To disable page caching, set this value to 1.
+     *
+     * @default 0
+     */
     bfcache?: 0 | 1
+    /**
+     * Enable WSS (WebSocket Secure) connections to work with Network Logs
+     * on Chrome v71 and above.
+     *
+     * Note: if using `localhost` in your test, change it to `bs-local.com`.
+     *
+     * @default false
+     */
     wsLocalSupport?: boolean
+    /**
+     * Use this capability to disable cross origin restrictions in Safari.
+     * Available for Monterey, Big Sur, Catalina and Mojave.
+     *
+     * @default false
+     */
+    disableCorsRestrictions?: boolean
+    /**
+     * Use this capability to add a custom tag to the builds.
+     * These tags can be used to filter the builds on the Automate dashboard.
+     */
+    buildTag?: string
+    /**
+     * Specify a particular mobile device for the test environment.
+     */
     deviceName?: string
+    /**
+     * Use this flag to test on a physical mobile device.
+     *
+     * @default false
+     */
     realMobile?: boolean
     appiumVersion?: string
     deviceOrientation?: 'portrait' | 'landscape'
@@ -1104,6 +1198,11 @@ export interface BrowserStackCapabilities {
     }
     browserName?: string
     browserVersion?: string
+    /**
+     * Ignore invalid certificate errors.
+     *
+     * @default false
+     */
     acceptSslCerts?: boolean
     /**
      * @private
