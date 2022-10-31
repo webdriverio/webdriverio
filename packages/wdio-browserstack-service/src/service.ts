@@ -14,6 +14,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
     private _scenariosThatRan: string[] = []
     private _failureStatuses: string[] = ['failed', 'ambiguous', 'undefined', 'unknown']
     private _browser?: Browser<'async'> | MultiRemoteBrowser<'async'>
+    private _suiteTitle?: string
     private _fullTitle?: string
 
     constructor (
@@ -41,12 +42,10 @@ export default class BrowserstackService implements Services.ServiceInstance {
         return fn(this._caps as Capabilities.Capabilities)
     }
 
-    /**
-     * if no user and key is specified even though a browserstack service was
-     * provided set user and key with values so that the session request
-     * will fail
-     */
-    beforeSession (config: Options.Testrunner) {
+    beforeSession (config: Omit<Options.Testrunner, 'capabilities'>) {
+        // if no user and key is specified even though a browserstack service was
+        // provided set user and key with values so that the session request
+        // will fail
         if (!config.user) {
             config.user = 'NotSetUser'
         }
@@ -73,31 +72,77 @@ export default class BrowserstackService implements Services.ServiceInstance {
         return this._printSessionURL()
     }
 
-    beforeSuite (suite: Frameworks.Suite) {
-        this._fullTitle = suite.title
+    /**
+     * Set the default job name at the suite level to make sure we account
+     * for the cases where there is a long running `before` function for a
+     * suite or one that can fail.
+     * Don't do this for Jasmine because `suite.title` is `Jasmine__TopLevel__Suite`
+     * and `suite.fullTitle` is `undefined`, so no alternative to use for the job name.
+     */
+    async beforeSuite (suite: Frameworks.Suite) {
+        this._suiteTitle = suite.title
+
+        if (suite.title && suite.title !== 'Jasmine__TopLevel__Suite') {
+            let jobName = suite.title
+            if (this._options.setSessionName) {
+                jobName = this._options.setSessionName(
+                    this._config,
+                    this._caps,
+                    suite.title
+                )
+            }
+            this._fullTitle = jobName
+            await this._updateJob({ name: jobName })
+        }
     }
 
+    async beforeTest (test: Frameworks.Test) {
+        const prevFullTitle = this._fullTitle
+
+        if (test.fullName) {
+            // For Jasmine, `suite.title` is `Jasmine__TopLevel__Suite`.
+            // This tweak allows us to set the real suite name.
+            const testSuiteName = test.fullName.slice(0, test.fullName.indexOf(test.description || '') - 1)
+            if (this._suiteTitle === 'Jasmine__TopLevel__Suite') {
+                this._fullTitle = testSuiteName
+            } else if (this._suiteTitle) {
+                this._fullTitle = getParentSuiteName(this._suiteTitle, testSuiteName)
+            }
+        } else {
+            // Mocha
+            const pre = this._options.prependTopLevelSuiteTitle ? `${this._suiteTitle} - ` : ''
+            const post = !this._options.omitTestTitle ? ` - ${test.title}` : ''
+            this._fullTitle = `${pre}${test.parent}${post}`
+        }
+
+        if (this._options.setSessionName) {
+            const suiteTitle = test.fullName ? this._fullTitle! : this._suiteTitle!
+            this._fullTitle = this._options.setSessionName(
+                this._config,
+                this._caps,
+                suiteTitle,
+                test.title
+            )
+        }
+
+        if (this._fullTitle !== prevFullTitle) {
+            await this._updateJob({ name: this._fullTitle })
+        }
+    }
+
+    /**
+     * For CucumberJS
+     */
     beforeFeature(uri: unknown, feature: { name: string }) {
-        this._fullTitle = feature.name
-        return this._updateJob({ name: this._fullTitle })
+        this._suiteTitle = feature.name
+        if (feature.name && this._fullTitle !== feature.name) {
+            this._fullTitle = feature.name
+            return this._updateJob({ name: this._fullTitle })
+        }
     }
 
     afterTest(test: Frameworks.Test, context: never, results: Frameworks.TestResult) {
         const { error, passed } = results
-
-        // Jasmine
-        if (test.fullName) {
-            const testSuiteName = test.fullName.slice(0, test.fullName.indexOf(test.description || '') - 1)
-            if (this._fullTitle === 'Jasmine__TopLevel__Suite') {
-                this._fullTitle = testSuiteName
-            } else if (this._fullTitle) {
-                this._fullTitle = getParentSuiteName(this._fullTitle, testSuiteName)
-            }
-        } else {
-            // Mocha
-            this._fullTitle = `${test.parent} - ${test.title}`
-        }
-
         if (!passed) {
             this._failReasons.push((error && error.message) || 'Unknown Error')
         }
@@ -163,6 +208,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
             reason: hasReasons ? this._failReasons.join('\n') : undefined
         })
         this._scenariosThatRan = []
+        delete this._suiteTitle
         delete this._fullTitle
         this._failReasons = []
         await this._printSessionURL()

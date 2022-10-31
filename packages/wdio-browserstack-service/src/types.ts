@@ -1,3 +1,5 @@
+import type { Capabilities, Options } from '@wdio/types'
+
 export interface SessionResponse {
     // eslint-disable-next-line camelcase
     automation_session: {
@@ -50,6 +52,16 @@ export interface BrowserstackConfig {
      */
     forcedStop?: boolean;
     /**
+     * Set this to true to only use the suite title(s) for setting the session name.
+     * @default false
+     */
+    omitTestTitle?: boolean;
+    /**
+     * Set this to true to prepend the top level suite title to the session name.
+     * @default false
+     */
+    prependTopLevelSuiteTitle?: boolean;
+    /**
      * Specified optional will be passed down to BrowserstackLocal. For more details check out the
      * [`browserstack-local`](https://www.npmjs.com/package/browserstack-local#arguments) docs.
      *
@@ -61,4 +73,13 @@ export interface BrowserstackConfig {
      * ```
      */
     opts?: Partial<import('browserstack-local').Options>
+    /**
+     * Dynamically control the name of the session in Browserstack.
+     */
+    setSessionName?: (
+        config: Options.Testrunner,
+        capabilities: Capabilities.RemoteCapability,
+        suiteTitle: string,
+        testTitle?: string
+    ) => string
 }
