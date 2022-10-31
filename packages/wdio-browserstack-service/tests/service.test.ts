@@ -335,16 +335,29 @@ describe('beforeSuite', () => {
         expect(service['_fullTitle']).toBeUndefined()
         expect(got.put).not.toBeCalled()
     })
+
+    it('should not send request to set the session name if option setSessionName is false', async () => {
+        const service = new BrowserstackService({ setSessionName: false } as any, [] as any, { user: 'foo', key: 'bar' } as any)
+        await service.beforeSuite({ title: 'Project Title' } as any)
+        expect(got.put).not.toBeCalled()
+    })
 })
 
 describe('beforeTest', () => {
-    describe('prependTopLevelSuiteTitle is true', () => {
-        it('should set title for Mocha tests using concatenation of top level suite name, innermost suite name, and test title', () => {
-            const service = new BrowserstackService({ prependTopLevelSuiteTitle: true } as any, [] as any, { user: 'foo', key: 'bar' } as any)
-            service.before(service['_config'] as any, [], browser)
-            service.beforeSuite({ title: 'Project Title' } as any)
+    it('should not send request to set the session name if option setSessionName is false', async () => {
+        const service = new BrowserstackService({ setSessionName: false } as any, [] as any, { user: 'foo', key: 'bar' } as any)
+        await service.beforeSuite({ title: 'Project Title' } as any)
+        await service.beforeTest({ title: 'Test Title', parent: 'Suite Title' } as any)
+        expect(got.put).not.toBeCalled()
+    })
+
+    describe('sessionNamePrependTopLevelSuiteTitle is true', () => {
+        it('should set title for Mocha tests using concatenation of top level suite name, innermost suite name, and test title', async () => {
+            const service = new BrowserstackService({ sessionNamePrependTopLevelSuiteTitle: true } as any, [] as any, { user: 'foo', key: 'bar' } as any)
+            await service.before(service['_config'] as any, [], browser)
+            await service.beforeSuite({ title: 'Project Title' } as any)
             expect(service['_fullTitle']).toBe('Project Title')
-            service.beforeTest({ title: 'Test Title', parent: 'Suite Title' } as any)
+            await service.beforeTest({ title: 'Test Title', parent: 'Suite Title' } as any)
             expect(service['_fullTitle']).toBe('Project Title - Suite Title - Test Title')
             expect(got.put).toBeCalledTimes(2)
             expect(got.put).toBeCalledWith(
@@ -366,17 +379,17 @@ describe('beforeTest', () => {
         })
     })
 
-    describe('omitTestTitle is true', () => {
+    describe('sessionNameOmitTestTitle is true', () => {
         beforeEach(() => {
-            service = new BrowserstackService({ omitTestTitle: true } as any, [] as any, { user: 'foo', key: 'bar' } as any)
+            service = new BrowserstackService({ sessionNameOmitTestTitle: true } as any, [] as any, { user: 'foo', key: 'bar' } as any)
         })
-        it('should not set title for Mocha tests', () => {
-            service.before(service['_config'] as any, [], browser)
-            service.beforeSuite({ title: 'Suite Title' } as any)
+        it('should not set title for Mocha tests', async () => {
+            await service.before(service['_config'] as any, [], browser)
+            await service.beforeSuite({ title: 'Suite Title' } as any)
             expect(service['_fullTitle']).toBe('Suite Title')
-            service.beforeTest({ title: 'bar', parent: 'Suite Title' } as any)
+            await service.beforeTest({ title: 'bar', parent: 'Suite Title' } as any)
             expect(service['_fullTitle']).toBe('Suite Title')
-            service.afterTest({ title: 'bar', parent: 'Suite Title' } as any, undefined as never, {} as any)
+            await service.afterTest({ title: 'bar', parent: 'Suite Title' } as any, undefined as never, {} as any)
             expect(service['_fullTitle']).toBe('Suite Title')
             expect(got.put).toBeCalledTimes(1)
             expect(got.put).toBeCalledWith(
@@ -390,15 +403,15 @@ describe('beforeTest', () => {
         })
     })
 
-    describe('prependTopLevelSuiteTitle is true, omitTestTitle is true', () => {
+    describe('sessionNamePrependTopLevelSuiteTitle is true, sessionNameOmitTestTitle is true', () => {
         beforeEach(() => {
-            service = new BrowserstackService({ omitTestTitle: true, prependTopLevelSuiteTitle: true } as any, [] as any, { user: 'foo', key: 'bar' } as any)
+            service = new BrowserstackService({ sessionNameOmitTestTitle: true, sessionNamePrependTopLevelSuiteTitle: true } as any, [] as any, { user: 'foo', key: 'bar' } as any)
         })
-        it('should set title for Mocha tests using concatenation of top level suite name and innermost suite name', () => {
-            service.before(service['_config'] as any, [], browser)
-            service.beforeSuite({ title: 'Project Title' } as any)
+        it('should set title for Mocha tests using concatenation of top level suite name and innermost suite name', async () => {
+            await service.before(service['_config'] as any, [], browser)
+            await service.beforeSuite({ title: 'Project Title' } as any)
             expect(service['_fullTitle']).toBe('Project Title')
-            service.beforeTest({ title: 'Test Title', parent: 'Suite Title' } as any)
+            await service.beforeTest({ title: 'Test Title', parent: 'Suite Title' } as any)
             expect(service['_fullTitle']).toBe('Project Title - Suite Title')
             expect(got.put).toBeCalledTimes(2)
             expect(got.put).toBeCalledWith(
@@ -420,10 +433,10 @@ describe('beforeTest', () => {
         })
     })
 
-    describe('setSessionName is defined', () => {
+    describe('sessionNameFormat is defined', () => {
         beforeEach(() => {
             service = new BrowserstackService({
-                setSessionName: (config, caps, suiteTitle, testTitle) => {
+                sessionNameFormat: (config, caps, suiteTitle, testTitle) => {
                     if (testTitle) {
                         return `${config.region} - ${(caps as any).browserName} - ${suiteTitle} - ${testTitle}`
                     }
@@ -437,7 +450,7 @@ describe('beforeTest', () => {
                 region: 'barfoo'
             } as any)
         })
-        it('should set title via custom setSessionName method', async () => {
+        it('should set title via sessionNameFormat method', async () => {
             await service.before(service['_config'] as any, [], browser)
             service['_browser'] = browser
             service['_suiteTitle'] = 'Suite Title'
@@ -661,15 +674,13 @@ describe('after', () => {
         expect(updateSpy).toHaveBeenCalledWith(service['_browser']?.sessionId,
             {
                 status: 'passed',
-                name: 'foo - bar',
-                reason: undefined
+                name: 'foo - bar'
             })
         expect(got.put).toHaveBeenCalledWith(
             `${sessionBaseUrl}/${sessionId}.json`,
             { json: {
                 status: 'passed',
-                name: 'foo - bar',
-                reason: undefined
+                name: 'foo - bar'
             }, username: 'foo', password: 'bar' })
     })
 
@@ -694,6 +705,35 @@ describe('after', () => {
                 name: 'foo - bar',
                 reason: 'I am failure'
             }, username: 'foo', password: 'bar' })
+    })
+
+    it('should not set session status if option setSessionStatus is false', async () => {
+        const service = new BrowserstackService({ setSessionStatus: false } as any, [] as any, { user: 'foo', key: 'bar' } as any)
+        const updateSpy = jest.spyOn(service, '_update')
+        await service.before(service['_config'] as any, [], browser)
+
+        service['_fullTitle'] = 'foo - bar'
+        service['_failReasons'] = ['I am failure']
+        await service.after(1)
+
+        expect(updateSpy).not.toHaveBeenCalled()
+        expect(got.put).not.toHaveBeenCalled()
+    })
+
+    it('should not set session name if option setSessionName is false', async () => {
+        const service = new BrowserstackService({ setSessionName: false } as any, [] as any, { user: 'foo', key: 'bar' } as any)
+        const updateSpy = jest.spyOn(service, '_update')
+        await service.before(service['_config'] as any, [], browser)
+
+        service['_failReasons'] = []
+        service['_fullTitle'] = 'foo - bar'
+
+        await service.after(0)
+
+        expect(updateSpy).toHaveBeenCalledWith(service['_browser']?.sessionId, { status: 'passed' })
+        expect(got.put).toHaveBeenCalledWith(
+            `${sessionBaseUrl}/${sessionId}.json`,
+            { json: { status: 'passed' }, username: 'foo', password: 'bar' })
     })
 
     describe('Cucumber only', function () {
@@ -740,7 +780,6 @@ describe('after', () => {
             expect(updateSpy).toHaveBeenCalled()
             expect(updateSpy).toHaveBeenLastCalledWith(service['_browser']?.sessionId, {
                 name: 'Feature1',
-                reason: undefined,
                 status: 'passed',
             })
         })
@@ -782,7 +821,6 @@ describe('after', () => {
 
             expect(updateSpy).toHaveBeenCalledWith(service['_browser']?.sessionId, {
                 name: 'Feature1',
-                reason: undefined,
                 status: 'passed',
             })
         })
@@ -888,7 +926,6 @@ describe('after', () => {
 
                     expect(updateSpy).toHaveBeenLastCalledWith(service['_browser']?.sessionId, {
                         name: 'Can do something single',
-                        reason: undefined,
                         status: 'passed',
                     })
                 })
@@ -934,7 +971,6 @@ describe('after', () => {
 
                     expect(updateSpy).toHaveBeenLastCalledWith(service['_browser']?.sessionId, {
                         name: 'Feature1',
-                        reason: undefined,
                         status: 'passed',
                     })
                 })
