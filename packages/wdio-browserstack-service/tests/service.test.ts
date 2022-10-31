@@ -303,27 +303,33 @@ describe('afterTest', () => {
         service.before(service['_config'] as any, [], browser)
         service['_fullTitle'] = ''
         service.beforeSuite({ title: 'foo' } as any)
+        service.beforeTest({ title: 'foo', parent: 'bar' } as any)
         service.afterTest(
             { title: 'foo', parent: 'bar' } as any,
             undefined as never,
             { error: { message: 'cool reason' }, result: 1, duration: 5, passed: false } as any)
+
+        expect(service['_fullTitle']).toBe('foo - bar')
         expect(service['_failReasons']).toContain('cool reason')
 
+        service.beforeTest({ title: 'foo2', parent: 'bar2' } as any)
         service.afterTest(
             { title: 'foo2', parent: 'bar2' } as any,
             undefined as never,
             { error: { message: 'not so cool reason' }, result: 1, duration: 7, passed: false } as any)
 
+        expect(service['_fullTitle']).toBe('foo - bar2')
         expect(service['_failReasons']).toHaveLength(2)
         expect(service['_failReasons']).toContain('cool reason')
         expect(service['_failReasons']).toContain('not so cool reason')
 
+        service.beforeTest({ title: 'foo3', parent: 'bar3' } as any)
         service.afterTest(
             { title: 'foo3', parent: 'bar3' } as any,
             undefined as never,
             { error: undefined, result: 1, duration: 7, passed: false } as any)
 
-        expect(service['_fullTitle']).toBe('bar3 - foo3')
+        expect(service['_fullTitle']).toBe('foo - bar3')
         expect(service['_failReasons']).toHaveLength(3)
         expect(service['_failReasons']).toContain('cool reason')
         expect(service['_failReasons']).toContain('not so cool reason')
@@ -333,32 +339,38 @@ describe('afterTest', () => {
     it('should not increment failure reasons on passes', () => {
         service.before(service['_config'] as any, [], browser)
         service.beforeSuite({ title: 'foo' } as any)
+        service.beforeTest({ title: 'foo', parent: 'bar' } as any)
         service.afterTest(
             { title: 'foo', parent: 'bar' } as any,
             undefined as never,
             { error: { message: 'cool reason' }, result: 1, duration: 5, passed: true } as any)
+
+        expect(service['_fullTitle']).toBe('foo - bar')
         expect(service['_failReasons']).toEqual([])
 
+        service.beforeTest({ title: 'foo2', parent: 'bar2' } as any)
         service.afterTest(
             { title: 'foo2', parent: 'bar2' } as any,
             undefined as never,
             { error: { message: 'not so cool reason' }, result: 1, duration: 5, passed: true } as any)
 
-        expect(service['_fullTitle']).toBe('bar2 - foo2')
+        expect(service['_fullTitle']).toBe('foo - bar2')
         expect(service['_failReasons']).toEqual([])
     })
 
     it('should set title for Mocha tests', () => {
         service.before(service['_config'] as any, [], browser)
         service.beforeSuite({ title: 'foo' } as any)
+        service.beforeTest({ title: 'bar', parent: 'foo' } as any)
         service.afterTest({ title: 'bar', parent: 'foo' } as any, undefined as never, {} as any)
-        expect(service['_fullTitle']).toBe('foo - bar')
+        expect(service['_fullTitle']).toBe('foo')
     })
 
     describe('Jasmine only', () => {
         it('should set suite name of first test as title', () => {
             service.before(service['_config'] as any, [], browser)
             service.beforeSuite({ title: 'Jasmine__TopLevel__Suite' } as any)
+            service.beforeTest({ fullName: 'foo bar baz', description: 'baz' } as any)
             service.afterTest({ fullName: 'foo bar baz', description: 'baz' } as any, undefined as never, {} as any)
             expect(service['_fullTitle']).toBe('foo bar')
         })
@@ -366,6 +378,8 @@ describe('afterTest', () => {
         it('should set parent suite name as title', () => {
             service.before(service['_config'] as any, [], browser)
             service.beforeSuite({ title: 'Jasmine__TopLevel__Suite' } as any)
+            service.beforeTest({ fullName: 'foo bar baz', description: 'baz' } as any)
+            service.beforeTest({ fullName: 'foo xyz', description: 'xyz' } as any)
             service.afterTest({ fullName: 'foo bar baz', description: 'baz' } as any, undefined as never, {} as any)
             service.afterTest({ fullName: 'foo xyz', description: 'xyz' } as any, undefined as never, {} as any)
             expect(service['_fullTitle']).toBe('foo')
