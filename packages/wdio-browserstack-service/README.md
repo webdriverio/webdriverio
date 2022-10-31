@@ -1,7 +1,7 @@
-WebdriverIO Browserstack Service
+WebdriverIO BrowserStack Service
 ==========
 
-> A WebdriverIO service that manages local tunnel and job metadata for Browserstack users.
+> A WebdriverIO service that manages local tunnel and job metadata for BrowserStack users.
 
 ## Installation
 
@@ -17,7 +17,7 @@ Instructions on how to install `WebdriverIO` can be found [here.](https://webdri
 
 ## Configuration
 
-WebdriverIO has Browserstack support out of the box. You should set `user` and `key` in your `wdio.conf.js` file. This service plugin provides support for [Browserstack](https://www.browserstack.com/automate/node#setting-local-tunnel) Tunnel](https://www.browserstack.com/automate/node#setting-local-tunnel). Set `browserstackLocal: true` also to activate this feature.
+WebdriverIO has BrowserStack support out of the box. You should set `user` and `key` in your `wdio.conf.js` file. This service plugin provides support for [BrowserStack](https://www.browserstack.com/automate/node#setting-local-tunnel) Tunnel](https://www.browserstack.com/automate/node#setting-local-tunnel). Set `browserstackLocal: true` also to activate this feature.
 Reporting of session status on BrowserStack will respect `strict` setting of Cucumber options.
 
 ```js
@@ -40,19 +40,13 @@ export const config = {
 In order to authorize to the BrowserStack service your config needs to contain a [`user`](https://webdriver.io/docs/options#user) and [`key`](https://webdriver.io/docs/options#key) option.
 
 ### browserstackLocal
-Set this to true to enable routing connections from Browserstack cloud through your computer.
-
-Type: `Boolean`<br />
-Default: `false`
-
-### preferScenarioName
-Cucumber only. Set this to true to enable updating the session name to the Scenario name if only a single Scenario was run. Useful when running in parallel with [wdio-cucumber-parallel-execution](https://github.com/SimitTomar/wdio-cucumber-parallel-execution).
+Set this to true to enable routing connections from BrowserStack cloud through your computer.
 
 Type: `Boolean`<br />
 Default: `false`
 
 ### forcedStop
-Set this to true to kill the Browserstack process on complete, without waiting for the browserstack stop callback to be called. This is experimental and should not be used by all. Mostly necessary as a workaraound for [this issue](https://github.com/browserstack/browserstack-local-nodejs/issues/41).
+Set this to true to kill the BrowserStack Local process on complete, without waiting for the BrowserStack Local stop callback to be called. This is experimental and should not be used by all. Mostly necessary as a workaraound for [this issue](https://github.com/browserstack/browserstack-local-nodejs/issues/41).
 
 Type: `Boolean`<br />
 Default: `false`
@@ -141,8 +135,53 @@ services: [
 ]
 ```
 
+### preferScenarioName
+
+Cucumber only. Set the BrowserStack Automate session name to the Scenario name if only a single Scenario ran.
+Useful when running in parallel with [wdio-cucumber-parallel-execution](https://github.com/SimitTomar/wdio-cucumber-parallel-execution).
+
+Type: `Boolean`<br />
+Default: `false`
+
+### sessionNameFormat
+
+Customize the BrowserStack Automate session name format.
+
+Type: `Function`<br />
+Default (Cucumber/Jasmine): `(config, capabilities, suiteTitle) => suiteTitle`<br />
+Default (Mocha): `(config, capabilities, suiteTitle, testTitle) => suiteTitle + ' - ' + testTitle`
+
+### sessionNameOmitTestTitle
+
+Mocha only. Do not append the test title to the BrowserStack Automate session name.
+
+Type: `Boolean`<br />
+Default: `false`
+
+### sessionNamePrependTopLevelSuiteTitle
+
+Mocha only. Prepend the top level suite title to the BrowserStack Automate session name.
+
+Type: `Boolean`<br />
+Default: `false`
+
+### setSessionName
+
+Automatically set the BrowserStack Automate session name.
+
+Type: `Boolean`<br />
+Default: `true`
+
+### setSessionStatus
+
+Automatically set the BrowserStack Automate session status (passed/failed).
+
+Type: `Boolean`<br />
+Default: `true`
+
 ### opts
-Specified optional will be passed down to BrowserstackLocal.
+
+BrowserStack Local options.
 
 Type: `Object`<br />
 Default: `{}`
@@ -185,7 +224,7 @@ opts = { f: "/my/awesome/folder" };
 
 #### Force Start
 
-To kill other running Browserstack Local instances -
+To kill other running BrowserStack Local instances -
 
 ```js
 opts = { force: "true" };
