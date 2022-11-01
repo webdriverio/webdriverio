@@ -651,7 +651,6 @@ export default class BrowserstackService implements Services.ServiceInstance {
         }
 
         delete testData['feature']
-        // delete testData['tags']
         delete testData['scenario']
         delete testData['steps']
 

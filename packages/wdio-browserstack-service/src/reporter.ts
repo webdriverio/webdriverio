@@ -8,7 +8,7 @@ import { getCloudProvider, uploadEventData, scopes } from './util'
 
 export default class TestReporter extends WDIOReporter {
     private _capabilities: any
-    private _config?: BrowserstackConfig & Options.Testrunner
+    private _config: BrowserstackConfig & Options.Testrunner
     private _observability?: boolean = true
     private _sessionId?: string
     private _suiteName?: string
@@ -16,6 +16,7 @@ export default class TestReporter extends WDIOReporter {
     constructor(options: Reporters.Options) {
         super(options)
         this._capabilities = {}
+        this._config = {} as any
     }
 
     onRunnerStart (runnerStats: RunnerStats) {
@@ -30,7 +31,7 @@ export default class TestReporter extends WDIOReporter {
     }
 
     async onTestSkip (testStats: TestStats) {
-        if (this._observability) {
+        if (this._observability && this._config.framework != 'cucumber') {
             let testData: any = {
                 uuid: uuidv4(),
                 type: testStats.type,
