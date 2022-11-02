@@ -3,6 +3,14 @@ import { expect } from 'expect-webdriverio'
 import { remote } from 'webdriverio'
 import { _setGlobal } from '@wdio/globals'
 
+type WDIOErrorEvent = Pick<ErrorEvent, 'filename' | 'message'>
+
+declare global {
+    interface Window {
+        __wdioErrors__: WDIOErrorEvent[]
+    }
+}
+
 window.__wdioErrors__ = []
 addEventListener('error', (ev) => window.__wdioErrors__.push({
     filename: ev.filename,
