@@ -50,6 +50,7 @@ export function testrunner (options: WebdriverIO.BrowserRunnerOptions): Plugin {
     const automationProtocolPath = path.resolve(__dirname, '..', 'browser', 'driver.js')
     const mockModulePath = path.resolve(__dirname, '..', 'browser', 'mock.js')
     const setupModulePath = path.resolve(__dirname, '..', 'browser', 'setup.js')
+    const reporterPath = path.resolve(__dirname, '..', 'browser', 'reporter.js')
     return {
         name: 'wdio:testrunner',
         enforce: 'pre',
@@ -60,6 +61,10 @@ export function testrunner (options: WebdriverIO.BrowserRunnerOptions): Plugin {
 
             if (id === '@wdio/browser-runner/setup') {
                 return setupModulePath
+            }
+
+            if (id === '@wdio/browser-runner/reporter') {
+                return reporterPath
             }
 
             /**
