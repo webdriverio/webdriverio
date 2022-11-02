@@ -160,7 +160,7 @@ test('beforeTest should set job-name via custom setJobName method', async () => 
     expect(service.setAnnotation).toBeCalledWith('sauce:job-name=barfoo-foobar-Suite Title')
 })
 
-test('beforeTest not should set job-name when it has already been set', async () => {
+test('beforeTest should not set job-name when it has already been set', async () => {
     const service = new SauceService({}, {}, { user: 'foobar', key: '123', capabilities: {} })
     service['_browser'] = browser
     service['_suiteTitle'] = 'Suite Title'
