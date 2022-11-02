@@ -1,18 +1,23 @@
-/// <reference path="../../webdriverio/src/@types/async.d.ts" />
-
 import path from 'node:path'
+
 import { describe, expect, it, vi, beforeEach } from 'vitest'
 import got from 'got'
 import logger from '@wdio/logger'
+import type { Browser, MultiRemoteBrowser } from 'webdriverio'
 
 import BrowserstackService from '../src/service.js'
+
+const jasmineSuiteTitle = 'Jasmine__TopLevel__Suite'
+const sessionBaseUrl = 'https://api.browserstack.com/automate/sessions'
+const sessionId = 'session123'
+const sessionIdA = 'session456'
 
 vi.mock('got')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 const log = logger('test')
 let service: BrowserstackService
-let browser: WebdriverIO.Browser
+let browser: Browser<'async'> | MultiRemoteBrowser<'async'>
 
 beforeEach(() => {
     vi.mocked(log.info).mockClear()
@@ -28,7 +33,7 @@ beforeEach(() => {
     vi.mocked(got.put).mockResolvedValue({})
 
     browser = {
-        sessionId: 'session123',
+        sessionId: sessionId,
         config: {},
         capabilities: {
             device: '',
@@ -39,16 +44,18 @@ beforeEach(() => {
         instances: ['browserA', 'browserB'],
         isMultiremote: false,
         browserA: {
-            sessionId: 'session456',
-            capabilities: { 'bstack:options': {
-                device: '',
-                os: 'Windows',
-                osVersion: 10,
-                browserName: 'chrome'
-            } }
+            sessionId: sessionIdA,
+            capabilities: {
+                'bstack:options': {
+                    device: '',
+                    os: 'Windows',
+                    osVersion: 10,
+                    browserName: 'chrome'
+                }
+            }
         },
         browserB: {}
-    } as any as WebdriverIO.Browser
+    } as unknown as Browser<'async'> | MultiRemoteBrowser<'async'>
     service = new BrowserstackService({} as any, [] as any, { user: 'foo', key: 'bar' } as any)
 })
 
@@ -115,7 +122,7 @@ describe('_printSessionURL', () => {
         const logInfoSpy = vi.spyOn(log, 'info').mockImplementation((string) => string)
         await service._printSessionURL()
         expect(got).toHaveBeenCalledWith(
-            'https://api.browserstack.com/automate/sessions/session123.json',
+            `${sessionBaseUrl}/${sessionId}.json`,
             { username: 'foo', password: 'bar', responseType: 'json' })
         expect(logInfoSpy).toHaveBeenCalled()
         expect(logInfoSpy).toHaveBeenCalledWith(
@@ -129,7 +136,7 @@ describe('_printSessionURL', () => {
         const logInfoSpy = vi.spyOn(log, 'info').mockImplementation((string) => string)
         await service._printSessionURL()
         expect(got).toHaveBeenCalledWith(
-            'https://api.browserstack.com/automate/sessions/session456.json',
+            `${sessionBaseUrl}/${sessionIdA}.json`,
             { username: 'foo', password: 'bar', responseType: 'json' })
         expect(logInfoSpy).toHaveBeenCalled()
         expect(logInfoSpy).toHaveBeenCalledWith(
@@ -180,7 +187,7 @@ describe('before', () => {
         let service = new BrowserstackService({} as any, [{}] as any, { capabilities: {} })
 
         await service.beforeSession({} as any as any)
-        await service.before(service['_config'] as any, [], browser as WebdriverIO.Browser)
+        await service.before(service['_config'] as any, [], browser)
 
         expect(service['_failReasons']).toEqual([])
         expect(service['_config'].user).toEqual('NotSetUser')
@@ -212,7 +219,7 @@ describe('before', () => {
         service.before(service['_config'] as any, [], browser)
 
         expect(service['_failReasons']).toEqual([])
-        expect(service['_sessionBaseUrl']).toEqual('https://api.browserstack.com/automate/sessions')
+        expect(service['_sessionBaseUrl']).toEqual(sessionBaseUrl)
     })
 
     it('should initialize correctly for multiremote', () => {
@@ -228,7 +235,7 @@ describe('before', () => {
         service.before(service['_config'] as any, [], browser)
 
         expect(service['_failReasons']).toEqual([])
-        expect(service['_sessionBaseUrl']).toEqual('https://api.browserstack.com/automate/sessions')
+        expect(service['_sessionBaseUrl']).toEqual(sessionBaseUrl)
     })
 
     it('should initialize correctly for appium', () => {
@@ -298,6 +305,108 @@ describe('before', () => {
     })
 })
 
+describe('beforeSuite', () => {
+    it('should send request to set the session name as suite name for Mocha tests', async () => {
+        await service.before(service['_config'] as any, [], browser)
+        expect(service['_suiteTitle']).toBeUndefined()
+        expect(service['_fullTitle']).toBeUndefined()
+        await service.beforeSuite({ title: 'foobar' } as any)
+        expect(service['_suiteTitle']).toBe('foobar')
+        expect(service['_fullTitle']).toBe('foobar')
+        expect(got.put).toBeCalledWith(
+            `${sessionBaseUrl}/${sessionId}.json`,
+            {
+                json: { name: 'foobar' },
+                username: 'foo',
+                password: 'bar'
+            }
+        )
+    })
+
+    it('should not send request to set the session name as suite name for Jasmine tests', async () => {
+        await service.before(service['_config'] as any, [], browser)
+        expect(service['_suiteTitle']).toBeUndefined()
+        expect(service['_fullTitle']).toBeUndefined()
+        await service.beforeSuite({ title: jasmineSuiteTitle } as any)
+        expect(service['_suiteTitle']).toBe(jasmineSuiteTitle)
+        expect(service['_fullTitle']).toBeUndefined()
+        expect(got.put).not.toBeCalled()
+    })
+})
+
+describe('beforeTest', () => {
+    it('should set title for Mocha tests', () => {
+        service.before(service['_config'] as any, [], browser)
+        service.beforeSuite({ title: 'foo' } as any)
+        service.beforeTest({ title: 'bar', parent: 'foo' } as any)
+        service.afterTest({ title: 'bar', parent: 'foo' } as any, undefined as never, {} as any)
+        expect(service['_fullTitle']).toBe('foo')
+        expect(got.put).toBeCalledWith(
+            `${sessionBaseUrl}/${sessionId}.json`,
+            {
+                json: { name: 'foo' },
+                username: 'foo',
+                password: 'bar'
+            }
+        )
+    })
+
+    describe('Jasmine only', () => {
+        it('should set suite name of first test as title', () => {
+            service.before(service['_config'] as any, [], browser)
+            service.beforeSuite({ title: jasmineSuiteTitle } as any)
+            service.beforeTest({ fullName: 'foo bar baz', description: 'baz' } as any)
+            service.afterTest({ fullName: 'foo bar baz', description: 'baz' } as any, undefined as never, {} as any)
+            expect(service['_fullTitle']).toBe('foo bar')
+            expect(got.put).toBeCalledWith(
+                `${sessionBaseUrl}/${sessionId}.json`,
+                {
+                    json: { name: 'foo bar' },
+                    username: 'foo',
+                    password: 'bar'
+                }
+            )
+        })
+
+        it('should set parent suite name as title', () => {
+            service.before(service['_config'] as any, [], browser)
+            service.beforeSuite({ title: jasmineSuiteTitle } as any)
+            service.beforeTest({ fullName: 'foo bar baz', description: 'baz' } as any)
+            service.beforeTest({ fullName: 'foo xyz', description: 'xyz' } as any)
+            service.afterTest({ fullName: 'foo bar baz', description: 'baz' } as any, undefined as never, {} as any)
+            service.afterTest({ fullName: 'foo xyz', description: 'xyz' } as any, undefined as never, {} as any)
+            expect(service['_fullTitle']).toBe('foo')
+            expect(got.put).toBeCalledWith(
+                `${sessionBaseUrl}/${sessionId}.json`,
+                {
+                    json: { name: 'foo' },
+                    username: 'foo',
+                    password: 'bar'
+                }
+            )
+        })
+    })
+
+    it('should send the session name as suite name by default', async () => {
+        service.before(service['_config'] as any, [], browser)
+        service['_suiteTitle'] = 'Suite Title'
+        await service.beforeSuite({ title: 'foobar suite' } as any)
+        await service.beforeTest({
+            fullName: 'my test can do something',
+            description: 'foobar'
+        } as any)
+        expect(got.put).toBeCalledTimes(1)
+        expect(got.put).toBeCalledWith(
+            `${sessionBaseUrl}/${sessionId}.json`,
+            {
+                json: { name: 'foobar suite' },
+                username: 'foo',
+                password: 'bar'
+            }
+        )
+    })
+})
+
 describe('afterTest', () => {
     it('should increment failure reasons on fails', () => {
         service.before(service['_config'] as any, [], browser)
@@ -311,6 +420,14 @@ describe('afterTest', () => {
 
         expect(service['_fullTitle']).toBe('foo - bar')
         expect(service['_failReasons']).toContain('cool reason')
+        expect(got.put).toBeCalledWith(
+            `${sessionBaseUrl}/${sessionId}.json`,
+            {
+                json: { name: 'foo - bar' },
+                username: 'foo',
+                password: 'bar'
+            }
+        )
 
         service.beforeTest({ title: 'foo2', parent: 'bar2' } as any)
         service.afterTest(
@@ -322,6 +439,14 @@ describe('afterTest', () => {
         expect(service['_failReasons']).toHaveLength(2)
         expect(service['_failReasons']).toContain('cool reason')
         expect(service['_failReasons']).toContain('not so cool reason')
+        expect(got.put).toBeCalledWith(
+            `${sessionBaseUrl}/${sessionId}.json`,
+            {
+                json: { name: 'foo - bar2' },
+                username: 'foo',
+                password: 'bar'
+            }
+        )
 
         service.beforeTest({ title: 'foo3', parent: 'bar3' } as any)
         service.afterTest(
@@ -334,6 +459,14 @@ describe('afterTest', () => {
         expect(service['_failReasons']).toContain('cool reason')
         expect(service['_failReasons']).toContain('not so cool reason')
         expect(service['_failReasons']).toContain('Unknown Error')
+        expect(got.put).toBeCalledWith(
+            `${sessionBaseUrl}/${sessionId}.json`,
+            {
+                json: { name: 'foo - bar3' },
+                username: 'foo',
+                password: 'bar'
+            }
+        )
     })
 
     it('should not increment failure reasons on passes', () => {
@@ -347,6 +480,14 @@ describe('afterTest', () => {
 
         expect(service['_fullTitle']).toBe('foo - bar')
         expect(service['_failReasons']).toEqual([])
+        expect(got.put).toBeCalledWith(
+            `${sessionBaseUrl}/${sessionId}.json`,
+            {
+                json: { name: 'foo - bar' },
+                username: 'foo',
+                password: 'bar'
+            }
+        )
 
         service.beforeTest({ title: 'foo2', parent: 'bar2' } as any)
         service.afterTest(
@@ -356,34 +497,14 @@ describe('afterTest', () => {
 
         expect(service['_fullTitle']).toBe('foo - bar2')
         expect(service['_failReasons']).toEqual([])
-    })
-
-    it('should set title for Mocha tests', () => {
-        service.before(service['_config'] as any, [], browser)
-        service.beforeSuite({ title: 'foo' } as any)
-        service.beforeTest({ title: 'bar', parent: 'foo' } as any)
-        service.afterTest({ title: 'bar', parent: 'foo' } as any, undefined as never, {} as any)
-        expect(service['_fullTitle']).toBe('foo')
-    })
-
-    describe('Jasmine only', () => {
-        it('should set suite name of first test as title', () => {
-            service.before(service['_config'] as any, [], browser)
-            service.beforeSuite({ title: 'Jasmine__TopLevel__Suite' } as any)
-            service.beforeTest({ fullName: 'foo bar baz', description: 'baz' } as any)
-            service.afterTest({ fullName: 'foo bar baz', description: 'baz' } as any, undefined as never, {} as any)
-            expect(service['_fullTitle']).toBe('foo bar')
-        })
-
-        it('should set parent suite name as title', () => {
-            service.before(service['_config'] as any, [], browser)
-            service.beforeSuite({ title: 'Jasmine__TopLevel__Suite' } as any)
-            service.beforeTest({ fullName: 'foo bar baz', description: 'baz' } as any)
-            service.beforeTest({ fullName: 'foo xyz', description: 'xyz' } as any)
-            service.afterTest({ fullName: 'foo bar baz', description: 'baz' } as any, undefined as never, {} as any)
-            service.afterTest({ fullName: 'foo xyz', description: 'xyz' } as any, undefined as never, {} as any)
-            expect(service['_fullTitle']).toBe('foo')
-        })
+        expect(got.put).toBeCalledWith(
+            `${sessionBaseUrl}/${sessionId}.json`,
+            {
+                json: { name: 'foo - bar2' },
+                username: 'foo',
+                password: 'bar'
+            }
+        )
     })
 })
 
@@ -494,7 +615,7 @@ describe('after', () => {
                 reason: undefined
             })
         expect(got.put).toHaveBeenCalledWith(
-            'https://api.browserstack.com/automate/sessions/session123.json',
+            `${sessionBaseUrl}/${sessionId}.json`,
             { json: {
                 status: 'passed',
                 name: 'foo - bar',
@@ -517,7 +638,7 @@ describe('after', () => {
                 reason: 'I am failure'
             })
         expect(got.put).toHaveBeenCalledWith(
-            'https://api.browserstack.com/automate/sessions/session123.json',
+            `${sessionBaseUrl}/${sessionId}.json`,
             { json: {
                 status: 'failed',
                 name: 'foo - bar',
