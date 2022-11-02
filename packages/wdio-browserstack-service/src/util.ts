@@ -2,8 +2,6 @@ import type { Browser, MultiRemoteBrowser } from 'webdriverio'
 import type { Capabilities } from '@wdio/types'
 import logger from '@wdio/logger'
 
-import { BROWSER_DESCRIPTION, DATA_ENDPOINT } from './constants'
-
 import got from 'got'
 import { hostname, platform, type, version, arch } from 'os'
 import { promisify } from 'util'
@@ -11,6 +9,8 @@ import { Repository } from 'nodegit'
 import gitRepoInfo from 'git-repo-info'
 import gitconfig from 'gitconfiglocal'
 import { Frameworks } from '@wdio/types'
+
+import { BROWSER_DESCRIPTION, DATA_ENDPOINT } from './constants'
 
 const pGitconfig = promisify(gitconfig)
 const log = logger('@wdio/browserstack-service')
@@ -108,8 +108,8 @@ export async function launchTestSession (userConfig: any) {
     }
 
     try {
-        let url = `http://${DATA_ENDPOINT}/api/v1/builds`
-        let response: any = await got.post(url, { json: data, ...config }).json()
+        const url = `${DATA_ENDPOINT}/api/v1/builds`
+        const response: any = await got.post(url, { json: data, ...config }).json()
         log.debug(`[Start_Build] Success response: ${JSON.stringify(response)}`)
         process.env.BS_TESTOPS_BUILD_COMPLETED = 'true'
         return [response.jwt, response.build_hashed_id]
@@ -141,8 +141,8 @@ export async function stopBuildUpstream () {
         }
 
         try {
-            let url = `http://${DATA_ENDPOINT}/api/v1/builds/${process.env.BS_TESTOPS_BUILD_HASHED_ID}/stop`
-            let response: any = await got.put(url, { json: data, ...config }).json()
+            const url = `${DATA_ENDPOINT}/api/v1/builds/${process.env.BS_TESTOPS_BUILD_HASHED_ID}/stop`
+            const response: any = await got.put(url, { json: data, ...config }).json()
             log.debug(`[Stop_Build] Success response: ${JSON.stringify(response)}`)
             return {
                 status: 'success',
@@ -264,7 +264,7 @@ export async function getGitMetaData () {
         })
         var author = headCommit.author(), committer = headCommit.committer()
         info['author'] = info['author'] || `${author.name()} <${author.email()}>`
-        info['authorDate'] = info['authorDate'] || '' // TODO
+        info['authorDate'] = info['authorDate'] || ''
         info['committer'] = info['committer'] || `${committer.name()} <${committer.email()}>`
         info['committerDate'] = info['committerDate'] || headCommit.date()
         info['commitMessage'] = info['commitMessage'] || headCommit.message()
@@ -292,30 +292,18 @@ export async function getGitMetaData () {
 }
 
 export function getUniqueIdentifier(test: Frameworks.Test): string {
-    // mocha
     return `${test.parent} - ${test.title}`
 }
 
 export function getUniqueIdentifierForCucumber(obj: any): string {
-    // cucumber
     return obj.pickle.uri + '_' + obj.pickle.astNodeIds.join(',')
 }
 
 export function getCloudProvider(browser: any): string {
-    let provider: string = 'UNKNOWN'
-    if (browser.options && browser.options.hostname) {
-        let hostname: string = browser.options.hostname
-        if (hostname.includes('browserstack')) {
-            return 'browserstack'
-        } else if (hostname.includes('saucelabs')) {
-            return 'sauce'
-        } else if (hostname.includes('lambdatest')) {
-            return 'lambdatest'
-        } else if (hostname.includes('testingbot')) {
-            return 'testingbot'
-        }
+    if (browser.options && browser.options.hostname && browser.options.hostname.includes('browserstack')) {
+        return 'browserstack'
     }
-    return provider
+    return 'unknown_grid'
 }
 
 export function isBrowserstackSession(browser: any): boolean {
@@ -346,14 +334,14 @@ export function getLaunchInfo(capabilities: any) {
 }
 
 export function getScenarioNameWithExamples(world: any): string {
-    let scenario: any = world.pickle
+    const scenario: any = world.pickle
 
     // no examples present
     if ((scenario.astNodeIds && scenario.astNodeIds.length <= 1) || scenario.astNodeIds == undefined) return scenario.name
 
-    let pickleId: string = scenario.astNodeIds[0]
-    let examplesId: string = scenario.astNodeIds[1]
-    let gherkinDocumentChildren = world.gherkinDocument.feature.children
+    const pickleId: string = scenario.astNodeIds[0]
+    const examplesId: string = scenario.astNodeIds[1]
+    const gherkinDocumentChildren = world.gherkinDocument.feature.children
 
     let examples: string[] = []
 
@@ -395,7 +383,7 @@ export function getLogTag(eventType: string): string {
 }
 
 export async function uploadEventData (eventData: any) {
-    let logTag: string = getLogTag(eventData.event_type)
+    const logTag: string = getLogTag(eventData.event_type)
 
     if (process.env.BS_TESTOPS_BUILD_COMPLETED) {
         if (!process.env.BS_TESTOPS_JWT) {
@@ -414,7 +402,7 @@ export async function uploadEventData (eventData: any) {
         }
 
         try {
-            let url = `http://${DATA_ENDPOINT}/api/v1/event`
+            const url = `${DATA_ENDPOINT}/api/v1/event`
             await got.post(url, { json: eventData, ...config }).json().then(( data: any ) => {
                 log.debug(`[${logTag}] Success response: ${require('util').inspect(data, { depth: null })}`)
             }).catch((error: any) => {

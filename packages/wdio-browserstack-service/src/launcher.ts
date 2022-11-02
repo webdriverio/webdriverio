@@ -108,7 +108,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         }
 
         if (this._options.testObservability) {
-            log.debug('sending lauch start event')
+            log.debug('sending launch start event')
 
             let buildName: any
             let projectName: any
@@ -116,7 +116,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
 
             [buildName, projectName, buildTag] = getLaunchInfo(capabilities)
 
-            let bsConfig = {
+            const bsConfig = {
                 username : process.env.BROWSERSTACK_USERNAME || this._config.user,
                 password : process.env.BROWSERSTACK_ACCESS_KEY || this._config.key,
                 projectName: projectName,
@@ -173,7 +173,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
 
     async onComplete () {
         if (this._options.testObservability) {
-            log.debug('sending lauch stop event')
+            log.debug('sending launch stop event')
             await stopBuildUpstream()
         }
 

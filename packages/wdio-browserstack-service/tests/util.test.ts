@@ -258,23 +258,11 @@ describe('getCiInfo', () => {
 })
 
 describe('getCloudProvider', () => {
-    it('return UNKNOWN if not able to fetch', () => {
-        expect(getCloudProvider({})).toEqual('UNKNOWN')
+    it('return unknown_grid if test not on browserstack', () => {
+        expect(getCloudProvider({})).toEqual('unknown_grid')
     })
     it('return Browserstack if test being run on browserstack', () => {
         expect(getCloudProvider({ options: { hostname: 'hub.browserstack.com' } })).toEqual('browserstack')
-    })
-
-    it('return Sauce if test being run on SauceLabs', () => {
-        expect(getCloudProvider({ options: { hostname: 'anything-saucelabs.com' } })).toEqual('sauce')
-    })
-
-    it('return lambdatest if test being run on lambdatest', () => {
-        expect(getCloudProvider({ options: { hostname: 'anything-lambdatest.com' } })).toEqual('lambdatest')
-    })
-
-    it('return testingbot if test being run on testingbot', () => {
-        expect(getCloudProvider({ options: { hostname: 'anything-testingbot.com' } })).toEqual('testingbot')
     })
 })
 

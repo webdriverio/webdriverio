@@ -15,4 +15,4 @@ export const VALID_APP_EXTENSION = [
     '.ipa'
 ]
 
-export const DATA_ENDPOINT = process.env.LOCAL_API_HOST // TODO: update to browserstack prod before raising pr
+export const DATA_ENDPOINT = 'https://collector-observability.browserstack.com'

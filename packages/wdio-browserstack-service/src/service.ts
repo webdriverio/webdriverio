@@ -130,9 +130,9 @@ export default class BrowserstackService implements Services.ServiceInstance {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     async beforeHook (test: any, context: any) {
         this._currentTest = test
-        let hookId = uuidv4()
+        const hookId = uuidv4()
         if (this._observability) {
-            let fullTitle = `${test.parent} - ${test.title}`
+            const fullTitle = `${test.parent} - ${test.title}`
             this._tests[fullTitle] = {
                 uuid: hookId,
                 startedAt: (new Date()).toISOString(),
@@ -145,7 +145,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
 
     async afterHook (test: Test, context: any, result: TestResult) {
         if (this._observability) {
-            let fullTitle = getUniqueIdentifier(test)
+            const fullTitle = getUniqueIdentifier(test)
             if (this._tests[fullTitle]) {
                 this._tests[fullTitle]['finishedAt'] = (new Date()).toISOString()
             } else {
@@ -160,7 +160,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     async afterCommand(commandName: string, args: any[], result: any, error?: Error) {
         if (this._observability && this._currentTest && commandName == 'takeScreenshot'){
-            let identifier = this._currentTest.pickle == undefined ? getUniqueIdentifier(this._currentTest) : getUniqueIdentifierForCucumber(this._currentTest)
+            const identifier = this._currentTest.pickle == undefined ? getUniqueIdentifier(this._currentTest) : getUniqueIdentifierForCucumber(this._currentTest)
             let log: any = {
                 test_run_uuid: this._tests[identifier].uuid,
                 timestamp: new Date().toISOString(),
@@ -179,7 +179,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
     async beforeTest(test: Frameworks.Test, _context: any) {
         this._currentTest = test
         if (this._observability) {
-            let fullTitle = getUniqueIdentifier(test)
+            const fullTitle = getUniqueIdentifier(test)
             this._tests[fullTitle] = {
                 uuid: uuidv4(),
                 startedAt: (new Date()).toISOString(),
@@ -210,7 +210,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
         }
 
         if (this._observability) {
-            let fullTitle = getUniqueIdentifier(test)
+            const fullTitle = getUniqueIdentifier(test)
             if (this._tests[fullTitle]) {
                 this._tests[fullTitle]['finishedAt'] = (new Date()).toISOString()
             } else {
@@ -271,7 +271,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
         if (this._observability) {
             let pickleData = world.pickle
             let featureData: any
-            let gherkinDocument = world.gherkinDocument
+            const gherkinDocument = world.gherkinDocument
             if (gherkinDocument) {
                 featureData = gherkinDocument.feature
             }
@@ -292,7 +292,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
                 }
             }
 
-            let uniqueId = getUniqueIdentifierForCucumber(world)
+            const uniqueId = getUniqueIdentifierForCucumber(world)
 
             let testMetaData = {
                 uuid: uuidv4(),
@@ -331,7 +331,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
 
     beforeStep (step: any, scenario: any) {
         if (this._observability) {
-            let uniqueId = getUniqueIdentifierForCucumber({ pickle: scenario })
+            const uniqueId = getUniqueIdentifierForCucumber({ pickle: scenario })
             let testMetaData = this._tests[uniqueId]
             if (!testMetaData) {
                 testMetaData = {
@@ -356,7 +356,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
 
     afterStep (step: any, scenario: any, result: any) {
         if (this._observability) {
-            let uniqueId = getUniqueIdentifierForCucumber({ pickle: scenario })
+            const uniqueId = getUniqueIdentifierForCucumber({ pickle: scenario })
             let testMetaData = this._tests[uniqueId]
             if (!testMetaData) {
                 testMetaData = {
@@ -491,7 +491,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
     }
 
     async _sendTestRunEvent (test: Frameworks.Test, eventType: string, results?: Frameworks.TestResult) {
-        let fullTitle = getUniqueIdentifier(test)
+        const fullTitle = getUniqueIdentifier(test)
         let testMetaData = this._tests[fullTitle]
 
         let testData: any = {
@@ -574,7 +574,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
 
     _attachHookData(context: any, hookId: string): void {
         if (context.currentTest && context.currentTest.parent) {
-            let parentTest = `${context.currentTest.parent.title} - ${context.currentTest.title}`
+            const parentTest = `${context.currentTest.parent.title} - ${context.currentTest.title}`
             if (this._hooks[parentTest]) {
                 this._hooks[parentTest].push(hookId)
             } else {
@@ -584,7 +584,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
     }
 
     async _sendTestRunEventForCucumber (world: any, eventType: string) {
-        let uniqueId = getUniqueIdentifierForCucumber(world)
+        const uniqueId = getUniqueIdentifierForCucumber(world)
 
         let testMetaData = this._tests[uniqueId]
         if (!testMetaData) testMetaData = {}
@@ -613,7 +613,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
 
         const { feature, scenario, steps } = testMetaData
 
-        let fullNameWithExamples: string = getScenarioNameWithExamples(world)
+        const fullNameWithExamples: string = getScenarioNameWithExamples(world)
 
         let testData: any = {
             ...testMetaData,
@@ -662,7 +662,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
     }
 
     requestHandler (request: IsomorphicRequest, response: IsomorphicResponse, currentTest: any) {
-        let requestData = {
+        const requestData = {
             hostname: request.url ? request.url.host || request.url.hostname : null,
             path: request.url ? request.url.pathname : null,
             method: request.method,
@@ -672,7 +672,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
         }
 
         if (request.headers.all()['x-bstack-obs'] !== 'true' && currentTest) {
-            let identifier = currentTest.pickle == undefined ? getUniqueIdentifier(currentTest) : getUniqueIdentifierForCucumber(currentTest)
+            const identifier = currentTest.pickle == undefined ? getUniqueIdentifier(currentTest) : getUniqueIdentifierForCucumber(currentTest)
 
             let log = {
                 test_run_uuid: this._tests[identifier].uuid,
