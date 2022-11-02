@@ -116,7 +116,9 @@ export default class BrowserstackService implements Services.ServiceInstance {
                     product: this._isAppAutomate() ? 'app-automate' : 'automate'
                 }
 
-                this._browser.execute(`browserstack_executor: {"action": "annotate", "arguments": {"data": "ObservabilitySync:${Date.now()}","level": "debug"}}`)
+                if (isBrowserstackSession(this._browser)) {
+                    this._browser.execute(`browserstack_executor: {"action": "annotate", "arguments": {"data": "ObservabilitySync:${Date.now()}","level": "debug"}}`)
+                }
             }
         }
 
