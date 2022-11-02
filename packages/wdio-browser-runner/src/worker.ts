@@ -3,14 +3,18 @@ import path from 'node:path'
 import { EventEmitter } from 'node:events'
 
 import logger from '@wdio/logger'
-import { Browser } from 'webdriverio'
+import { remote, Browser } from 'webdriverio'
 import { BaseReporter } from '@wdio/runner'
-import type { Options } from '@wdio/types'
+import { executeHooksWithArgs } from '@wdio/utils'
+import type { Options, Services } from '@wdio/types'
 
 import type { ViteDevServer } from 'vite'
 
-import { SESSIONS } from './constants.js'
+import { SESSIONS, BROWSER_POOL } from './constants.js'
 import type { RunArgs, WDIOErrorEvent } from './types'
+
+type BeforeSessionArgs = Parameters<Required<Services.HookFunctions>['beforeSession']>
+type AfterSessionArgs = Parameters<Required<Services.HookFunctions>['afterSession']>
 
 const log = logger('@wdio/browser-runner:session')
 const sep = '\n  - '
@@ -27,8 +31,8 @@ export default class SessionWorker extends EventEmitter {
         this.#server = server
     }
 
-    async run (browserPromise: Promise<Browser<'async'>>) {
-        const browser = await browserPromise
+    async run () {
+        const browser = await this.#initSession()
         const specs = this.#args.specs.map(
             (spec) => url.fileURLToPath(spec.replace(this.#server.config.root, '')))
 
@@ -43,9 +47,7 @@ export default class SessionWorker extends EventEmitter {
          */
         const reporter = new BaseReporter(this.#config, this.#args.cid, browser.capabilities)
         await reporter.initReporters()
-        reporter.onMessage((payload: any) => {
-            this.emit('message', payload)
-        })
+        reporter.onMessage((payload: any) => this.emit('message', payload))
         reporter.emit('runner:start', {
             cid: this.#args.cid,
             specs,
@@ -71,10 +73,14 @@ export default class SessionWorker extends EventEmitter {
              * start tests
              */
             let failures = 0
+            console.log(this.#args.cid, specs)
+
             for (const spec of specs) {
                 log.info(`Run spec file ${spec} for cid ${this.#args.cid}`)
+                console.log(`Run spec file ${spec} for cid ${this.#args.cid}`)
                 await browser.url(`/test.html?cid=${this.#args.cid}&spec=${spec}`)
-                await browser.debug()
+                await browser.pause(3000)
+                // await browser.debug()
 
                 /**
                  * fetch page errors that are thrown during rendering and let spec file fail
@@ -95,6 +101,8 @@ export default class SessionWorker extends EventEmitter {
                 failures += await this.#fetchEvents(browser, reporter, spec)
             }
 
+            await this.#closeSession()
+
             reporter.emit('runner:end', {
                 failures,
                 cid: this.#args.cid,
@@ -112,6 +120,29 @@ export default class SessionWorker extends EventEmitter {
         } catch (err: any) {
             this.#errorOut(`Failed to run browser tests with cid ${this.#args.cid}: ${err.stack}`)
         }
+    }
+
+    async #initSession () {
+        const beforeSessionParams: BeforeSessionArgs = [this.#config, this.#args.caps, this.#args.specs, this.#args.cid]
+        await executeHooksWithArgs('beforeSession', this.#config.beforeSession, beforeSessionParams)
+        log.info('Initiate browser session')
+        const browser = await remote({
+            capabilities: this.#args.caps,
+            baseUrl: `http://localhost:${this.#server!.config.server.port}`
+        })
+        BROWSER_POOL.set(this.#args.cid, browser)
+        return browser
+    }
+
+    async #closeSession() {
+        const browser = BROWSER_POOL.get(this.#args.cid)
+        if (!browser) {
+            return
+        }
+        log.info(`Shutdown browser with session ${browser.sessionId}`)
+        const afterSessionArgs: AfterSessionArgs = [this.#config, browser.capabilities, this.#args.specs]
+        await executeHooksWithArgs('afterSession', this.#config.afterSession!, afterSessionArgs)
+        await browser.deleteSession()
     }
 
     async #fetchEvents (browser: Browser<'async'>, reporter: BaseReporter, spec: string): Promise<number> {

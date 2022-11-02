@@ -423,7 +423,6 @@ class Launcher {
             command: 'run',
             configFile: this._configFilePath,
             args: {
-                capabilityId: cid,
                 ...this._args,
                 ...(config?.autoCompileOpts
                     ? { autoCompileOpts: config.autoCompileOpts }
@@ -500,17 +499,6 @@ class Launcher {
          * get cid (capability id) from rid (runner id)
          */
         const cid = parseInt(rid, 10)
-
-        /**
-         * shut down remote sessions if schedule has no tests left for that
-         * remote to run, avoids pending remote sessions
-         */
-        if (this.runner && typeof this.runner.closeSession === 'function') {
-            const noTestsForCapability = Boolean(this._schedule.find((s) => s.cid === cid && s.specs.length === 0))
-            if (noTestsForCapability) {
-                await this.runner.closeSession(cid)
-            }
-        }
 
         this._schedule[cid].availableInstances++
         this._schedule[cid].runningInstances--

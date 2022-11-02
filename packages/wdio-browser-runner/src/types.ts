@@ -33,6 +33,7 @@ export interface BrowserRunnerOptions {
 export interface RunArgs extends Workers.WorkerRunPayload {
     command: string
     args: any
+    cid: string
 }
 
 export interface Environment {
