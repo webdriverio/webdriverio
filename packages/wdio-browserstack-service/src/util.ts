@@ -5,12 +5,13 @@ import logger from '@wdio/logger'
 import got from 'got'
 import { hostname, platform, type, version, arch } from 'os'
 import { promisify } from 'util'
-import { Repository } from 'nodegit'
 import gitRepoInfo from 'git-repo-info'
 import gitconfig from 'gitconfiglocal'
 import { Frameworks } from '@wdio/types'
 
 import { BROWSER_DESCRIPTION, DATA_ENDPOINT } from './constants'
+import { ITestCaseHookParameter } from '@cucumber/cucumber/lib/support_code_library_builder/types'
+import { UserConfig } from './types'
 
 const pGitconfig = promisify(gitconfig)
 const log = logger('@wdio/browserstack-service')
@@ -80,7 +81,7 @@ export function getParentSuiteName(fullTitle: string, testSuiteTitle: string): s
     return parentSuiteName.trim()
 }
 
-export async function launchTestSession (userConfig: any) {
+export async function launchTestSession (userConfig: UserConfig) {
     const data = {
         'format': 'json',
         'project_name': userConfig.projectName,
@@ -257,18 +258,6 @@ export function getCiInfo () {
 export async function getGitMetaData () {
     var info: any = gitRepoInfo()
     if (!info.commonGitDir) return {}
-    if (!info.author) {
-        /* commit objects are packed */
-        const headCommit: any = await Repository.open(info.worktreeGitDir.replace('/.git', '')).then(function(repo: any) {
-            return repo.getHeadCommit()
-        })
-        var author = headCommit.author(), committer = headCommit.committer()
-        info['author'] = info['author'] || `${author.name()} <${author.email()}>`
-        info['authorDate'] = info['authorDate'] || ''
-        info['committer'] = info['committer'] || `${committer.name()} <${committer.email()}>`
-        info['committerDate'] = info['committerDate'] || headCommit.date()
-        info['commitMessage'] = info['commitMessage'] || headCommit.message()
-    }
     const { remote } = await pGitconfig(info.commonGitDir)
     const remotes = Object.keys(remote).map(remoteName =>  ({ name: remoteName, url: remote[remoteName]['url'] }))
     return {
@@ -295,57 +284,34 @@ export function getUniqueIdentifier(test: Frameworks.Test): string {
     return `${test.parent} - ${test.title}`
 }
 
-export function getUniqueIdentifierForCucumber(obj: any): string {
-    return obj.pickle.uri + '_' + obj.pickle.astNodeIds.join(',')
+export function getUniqueIdentifierForCucumber(world: ITestCaseHookParameter): string {
+    return world.pickle.uri + '_' + world.pickle.astNodeIds.join(',')
 }
 
-export function getCloudProvider(browser: any): string {
+export function getCloudProvider(browser: Browser<'async'> | MultiRemoteBrowser<'async'>): string {
     if (browser.options && browser.options.hostname && browser.options.hostname.includes('browserstack')) {
         return 'browserstack'
     }
     return 'unknown_grid'
 }
 
-export function isBrowserstackSession(browser: any): boolean {
+export function isBrowserstackSession(browser: Browser<'async'> | MultiRemoteBrowser<'async'>): boolean {
     return getCloudProvider(browser).toLowerCase() == 'browserstack'
 }
 
-export function getLaunchInfo(capabilities: any) {
-    let buildName: any
-    let projectName: any
-    let buildTag: any
-    let caps: any
-
-    if (Array.isArray(capabilities)) {
-        caps = capabilities[0]['bstack:options']
-    } else if (typeof capabilities === 'object') {
-        caps = capabilities['bstack:options']
-    }
-
-    if (caps) {
-        buildName = caps.buildName || caps.build
-        projectName = caps.projectName || caps.project
-        buildTag = caps.buildTag
-    }
-
-    buildName = buildName || process.cwd()
-
-    return [buildName, projectName, buildTag]
-}
-
-export function getScenarioNameWithExamples(world: any): string {
-    const scenario: any = world.pickle
+export function getScenarioNameWithExamples(world: ITestCaseHookParameter): string {
+    const scenario = world.pickle
 
     // no examples present
     if ((scenario.astNodeIds && scenario.astNodeIds.length <= 1) || scenario.astNodeIds == undefined) return scenario.name
 
     const pickleId: string = scenario.astNodeIds[0]
     const examplesId: string = scenario.astNodeIds[1]
-    const gherkinDocumentChildren = world.gherkinDocument.feature.children
+    const gherkinDocumentChildren = world.gherkinDocument.feature?.children
 
     let examples: string[] = []
 
-    gherkinDocumentChildren.forEach((child: any) => {
+    gherkinDocumentChildren?.forEach((child: any) => {
         if (child.rule) {
             // handle if rule is present
             child.rule.children.forEach((childLevel2: any) => {

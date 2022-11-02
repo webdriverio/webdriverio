@@ -68,3 +68,75 @@ export interface BrowserstackConfig {
      */
     opts?: Partial<import('browserstack-local').Options>
 }
+
+export interface PlatformMeta {
+    sessionId?: string,
+    browserName?: string,
+    browserVersion?: string,
+    platformName?: string,
+    caps?: string,
+    product?: string
+}
+
+export interface TestMeta {
+    uuid?: string,
+    startedAt?: string,
+    finishedAt?: string,
+    steps?: StepData[],
+    feature?: { name: string, path?: string, description: string | null },
+    scenario?: { name: string },
+}
+
+export interface TestData {
+    uuid?: string,
+    type?: string,
+    name?: string,
+    scope?: string,
+    scopes?: string[],
+    identifier?: string,
+    file_name?: string,
+    location?: string,
+    started_at?: string,
+    finished_at?: string,
+    framework?: string,
+    body?: TestCodeBody,
+    result?: string,
+    failure?: Failure[],
+    failure_reason?: string,
+    failure_type?: string | null,
+    retries?: { limit: number, attempts: number },
+    duration_in_ms?: number,
+    integrations?: { [index: string]: any },
+    hook_type?: string,
+    hooks?: string[],
+    meta?: TestMeta,
+    tags?: string[]
+}
+
+export interface UserConfig {
+    username?: string,
+    password?: string
+    buildName?: string,
+    projectName?: string,
+    buildTag?: string
+}
+
+interface TestCodeBody {
+    lang: string,
+    code?: string | null
+}
+
+interface StepData {
+    id?: string,
+    text?: string,
+    keyword?: string,
+    started_at?: string,
+    finished_at?: string,
+    result?: string,
+    duration?: number,
+    failure?: string
+}
+
+interface Failure {
+    backtrace: string[]
+}

@@ -4,12 +4,13 @@ import type { Services, Capabilities, Options, Frameworks } from '@wdio/types'
 import type { Browser, MultiRemoteBrowser } from 'webdriverio'
 
 import { getBrowserDescription, getBrowserCapabilities, isBrowserstackCapability, getParentSuiteName, getUniqueIdentifier, getCloudProvider, getUniqueIdentifierForCucumber, getScenarioNameWithExamples, isBrowserstackSession, removeAnsiColors, uploadEventData } from './util'
-import { BrowserstackConfig, MultiRemoteAction, SessionResponse } from './types'
+import { BrowserstackConfig, MultiRemoteAction, SessionResponse, PlatformMeta, TestMeta, TestData } from './types'
 import { v4 as uuidv4 } from 'uuid'
 import { ClientRequestInterceptor } from '@mswjs/interceptors/lib/interceptors/ClientRequest'
 import { IsomorphicRequest } from '@mswjs/interceptors/lib/IsomorphicRequest'
 import { IsomorphicResponse } from '@mswjs/interceptors'
-import { Test, TestResult } from '@wdio/types/build/Frameworks'
+import type { Pickle, Feature } from '@cucumber/messages'
+import type { ITestCaseHookParameter } from '@cucumber/cucumber/lib/support_code_library_builder/types'
 import path from 'path'
 
 const log = logger('@wdio/browserstack-service')
@@ -23,11 +24,11 @@ export default class BrowserstackService implements Services.ServiceInstance {
     private _browser?: Browser<'async'> | MultiRemoteBrowser<'async'>
     private _fullTitle?: string
     private _observability?: boolean = true
-    private _tests: any
-    private _platformMeta: any
-    private _currentTest: any
+    private _platformMeta: PlatformMeta = {}
+    private _currentTest?: Frameworks.Test | ITestCaseHookParameter
     private _framework?: string
-    private _hooks: any
+    private _tests: { [index: string]: TestMeta } = {}
+    private _hooks: { [index: string]: string[] } = {}
 
     constructor (
         private _options: BrowserstackConfig & Options.Testrunner,
@@ -39,8 +40,6 @@ export default class BrowserstackService implements Services.ServiceInstance {
         if (this._options.testObservability == false) this._observability = false
 
         if (this._observability) {
-            this._tests = {}
-            this._hooks = {}
             this._config.reporters ? this._config.reporters.push(path.join(__dirname, 'reporter.js')) : [path.join(__dirname, 'reporter.js')]
             this._framework = this._config.framework
         }
@@ -130,22 +129,21 @@ export default class BrowserstackService implements Services.ServiceInstance {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    async beforeHook (test: any, context: any) {
+    async beforeHook (test: Frameworks.Test, context: any) {
         this._currentTest = test
         const hookId = uuidv4()
         if (this._observability) {
             const fullTitle = `${test.parent} - ${test.title}`
             this._tests[fullTitle] = {
                 uuid: hookId,
-                startedAt: (new Date()).toISOString(),
-                finishedAt: null
+                startedAt: (new Date()).toISOString()
             }
             this._attachHookData(context, hookId)
             if (this._framework == 'mocha') await this._sendTestRunEvent(test, 'HookRunStarted')
         }
     }
 
-    async afterHook (test: Test, context: any, result: TestResult) {
+    async afterHook (test: Frameworks.Test, context: any, result: Frameworks.TestResult) {
         if (this._observability) {
             const fullTitle = getUniqueIdentifier(test)
             if (this._tests[fullTitle]) {
@@ -162,8 +160,13 @@ export default class BrowserstackService implements Services.ServiceInstance {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     async afterCommand(commandName: string, args: any[], result: any, error?: Error) {
         if (this._observability && this._currentTest && commandName == 'takeScreenshot'){
-            const identifier = this._currentTest.pickle == undefined ? getUniqueIdentifier(this._currentTest) : getUniqueIdentifierForCucumber(this._currentTest)
-            let log: any = {
+            let identifier
+            if ('pickle' in this._currentTest) {
+                identifier = getUniqueIdentifierForCucumber(this._currentTest)
+            } else {
+                identifier = getUniqueIdentifier(this._currentTest)
+            }
+            let log = {
                 test_run_uuid: this._tests[identifier].uuid,
                 timestamp: new Date().toISOString(),
                 message: result,
@@ -184,8 +187,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
             const fullTitle = getUniqueIdentifier(test)
             this._tests[fullTitle] = {
                 uuid: uuidv4(),
-                startedAt: (new Date()).toISOString(),
-                finishedAt: null
+                startedAt: (new Date()).toISOString()
             }
             await this._sendTestRunEvent(test, 'TestRunStarted')
         }
@@ -261,54 +263,51 @@ export default class BrowserstackService implements Services.ServiceInstance {
      * For CucumberJS
      */
 
-    beforeFeature(uri: unknown, feature: { name: string }) {
+    beforeFeature(uri: unknown, feature: Feature) {
         this._fullTitle = feature.name
         return this._updateJob({ name: this._fullTitle })
     }
 
-    async beforeScenario (world: any) {
+    async beforeScenario (world: ITestCaseHookParameter) {
 
         this._currentTest = world
 
         if (this._observability) {
             let pickleData = world.pickle
-            let featureData: any
             const gherkinDocument = world.gherkinDocument
-            if (gherkinDocument) {
-                featureData = gherkinDocument.feature
+            const featureData = gherkinDocument.feature
+            // if (gherkinDocument) {
+            //     featureData = gherkinDocument.feature
+            // }
+
+            const uniqueId = getUniqueIdentifierForCucumber(world)
+
+            let testMetaData: TestMeta = {
+                uuid: uuidv4(),
+                startedAt: (new Date()).toISOString()
             }
 
-            let testData: any = {}
-
             if (pickleData) {
-                testData['scenario'] = {
+                testMetaData['scenario'] = {
                     name: pickleData.name,
                 }
             }
 
             if (gherkinDocument && featureData) {
-                testData['feature'] = {
+                testMetaData['feature'] = {
                     path: gherkinDocument.uri,
                     name: featureData.name,
                     description: featureData.description,
                 }
             }
 
-            const uniqueId = getUniqueIdentifierForCucumber(world)
-
-            let testMetaData = {
-                uuid: uuidv4(),
-                started_at: (new Date()).toISOString(),
-                finishedAt: null,
-                ...testData
-            }
             this._tests[uniqueId] = testMetaData
 
             await this._sendTestRunEventForCucumber(world, 'TestRunStarted')
         }
     }
 
-    async afterScenario (world: any) {
+    async afterScenario (world: ITestCaseHookParameter) {
         const status = world.result?.status.toLowerCase()
         if (status !== 'skipped') {
             this._scenariosThatRan.push(world.pickle.name || 'unknown pickle name')
@@ -331,9 +330,9 @@ export default class BrowserstackService implements Services.ServiceInstance {
         }
     }
 
-    beforeStep (step: any, scenario: any) {
+    beforeStep (step: Frameworks.PickleStep, scenario: Pickle) {
         if (this._observability) {
-            const uniqueId = getUniqueIdentifierForCucumber({ pickle: scenario })
+            const uniqueId = getUniqueIdentifierForCucumber({ pickle: scenario } as any)
             let testMetaData = this._tests[uniqueId]
             if (!testMetaData) {
                 testMetaData = {
@@ -345,7 +344,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
                 testMetaData['steps'] = []
             }
 
-            testMetaData['steps'].push({
+            testMetaData['steps']?.push({
                 id: step.id,
                 text: step.text,
                 keyword: step.keyword,
@@ -356,9 +355,9 @@ export default class BrowserstackService implements Services.ServiceInstance {
         }
     }
 
-    afterStep (step: any, scenario: any, result: any) {
+    afterStep (step: Frameworks.PickleStep, scenario: Pickle, result: Frameworks.PickleResult) {
         if (this._observability) {
-            const uniqueId = getUniqueIdentifierForCucumber({ pickle: scenario })
+            const uniqueId = getUniqueIdentifierForCucumber({ pickle: scenario } as any)
             let testMetaData = this._tests[uniqueId]
             if (!testMetaData) {
                 testMetaData = {
@@ -378,7 +377,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
                     failure: result.error ? removeAnsiColors(result.error) : result.error
                 })
             } else if (testMetaData){
-                let stepDetails = testMetaData['steps'].find((item: any) => item.id == step.id)
+                let stepDetails = testMetaData['steps']?.find((item: any) => item.id == step.id)
                 if (stepDetails) {
                     stepDetails.finished_at = (new Date()).toISOString()
                     stepDetails.result = result.passed ? 'PASSED' : 'FAILED'
@@ -403,7 +402,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
             log.info(`Update (reloaded) job with sessionId ${oldSessionId}, ${status}`)
         } else {
             const browserName = (this._browser as MultiRemoteBrowser<'async'>).instances.filter(
-                (browserName) => this._browser && (this._browser as MultiRemoteBrowser<'async'>)[browserName].sessionId === newSessionId)[0]
+                (browserName: string) => this._browser && (this._browser as MultiRemoteBrowser<'async'>)[browserName].sessionId === newSessionId)[0]
             log.info(`Update (reloaded) multiremote job for browser "${browserName}" and sessionId ${oldSessionId}, ${status}`)
         }
 
@@ -446,7 +445,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
         }
 
         return Promise.all(_browser.instances
-            .filter(browserName => {
+            .filter((browserName: string) => {
                 const cap = getBrowserCapabilities(_browser, (this._caps as Capabilities.MultiRemoteCapabilities), browserName)
                 return isBrowserstackCapability(cap)
             })
@@ -496,7 +495,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
         const fullTitle = getUniqueIdentifier(test)
         let testMetaData = this._tests[fullTitle]
 
-        let testData: any = {
+        let testData: TestData = {
             uuid: testMetaData.uuid,
             type: test.type,
             name: test.title,
@@ -537,7 +536,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
         if (eventType == 'TestRunStarted') {
             if (this._platformMeta) {
                 testData['integrations'] = {}
-                testData['integrations'][getCloudProvider(this._browser)] = {
+                if (this._browser) testData['integrations'][getCloudProvider(this._browser)] = {
                     'capabilities': this._platformMeta.caps,
                     'session_id': this._platformMeta.sessionId,
                     'browser': this._platformMeta.browserName,
@@ -553,7 +552,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
         }
 
         if (eventType.match(/HookRun/)) {
-            testData['hook_type'] = this._getHookType(testData.name.toLowerCase())
+            testData['hook_type'] = testData.name?.toLowerCase() ? this._getHookType(testData.name.toLowerCase()) : 'undefined'
             uploadData['hook_run'] = testData
         } else {
             uploadData['test_run'] = testData
@@ -585,40 +584,20 @@ export default class BrowserstackService implements Services.ServiceInstance {
         }
     }
 
-    async _sendTestRunEventForCucumber (world: any, eventType: string) {
+    async _sendTestRunEventForCucumber (world: ITestCaseHookParameter, eventType: string) {
         const uniqueId = getUniqueIdentifierForCucumber(world)
 
         let testMetaData = this._tests[uniqueId]
         if (!testMetaData) testMetaData = {}
 
-        if (world.result) {
-            let result: string = world.result.status.toLowerCase()
-            if (result !== 'passed' && result !== 'failed') result = 'skipped' // mark UNKNOWN/UNDEFINED/AMBIGUOUS/PENDING as skipped
-            testMetaData['finished_at'] = (new Date()).toISOString()
-            testMetaData['result'] = result
-            testMetaData['duration_in_ms'] = world.result.duration.nanos / 1000000 // send duration in ms
-
-            if (result == 'failed') {
-                testMetaData['failure'] = [
-                    {
-                        'backtrace': [world.result.message ? removeAnsiColors(world.result.message) : world.result.message]
-                    }
-                ],
-                testMetaData['failure_reason'] = world.result.message ? removeAnsiColors(world.result.message) : world.result.message,
-                testMetaData['failure_type'] = world.result.message == undefined ? null : world.result.message.toString().match(/AssertionError/) ? 'AssertionError' : 'UnhandledError'
-            }
-        }
-
-        if (world.pickle) {
-            testMetaData['tags'] = world.pickle.tags.map( ({ name }: { name: string }) => (name) )
-        }
-
         const { feature, scenario, steps } = testMetaData
 
         const fullNameWithExamples: string = getScenarioNameWithExamples(world)
 
-        let testData: any = {
-            ...testMetaData,
+        let testData: TestData = {
+            uuid: testMetaData.uuid,
+            started_at: testMetaData.startedAt,
+            finished_at: testMetaData.finishedAt,
             type: 'test',
             body: {
                 lang: 'webdriverio',
@@ -626,10 +605,10 @@ export default class BrowserstackService implements Services.ServiceInstance {
             },
             name: fullNameWithExamples,
             scope: fullNameWithExamples,
-            scopes: [testMetaData.feature.name],
-            identifier: testMetaData.scenario.name,
-            file_name: testMetaData.feature.path,
-            location: testMetaData.feature.path,
+            scopes: [feature?.name || ''],
+            identifier: scenario?.name,
+            file_name: feature?.path,
+            location: feature?.path,
             framework: this._framework,
             meta: {
                 feature: feature,
@@ -641,7 +620,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
         if (eventType == 'TestRunStarted') {
             if (this._platformMeta) {
                 testData['integrations'] = {}
-                testData['integrations'][getCloudProvider(this._browser)] = {
+                if (this._browser) testData['integrations'][getCloudProvider(this._browser)] = {
                     'capabilities': this._platformMeta.caps,
                     'session_id': this._platformMeta.sessionId,
                     'browser': this._platformMeta.browserName,
@@ -652,9 +631,27 @@ export default class BrowserstackService implements Services.ServiceInstance {
             }
         }
 
-        delete testData['feature']
-        delete testData['scenario']
-        delete testData['steps']
+        if (world.result) {
+            let result: string = world.result.status.toLowerCase()
+            if (result !== 'passed' && result !== 'failed') result = 'skipped' // mark UNKNOWN/UNDEFINED/AMBIGUOUS/PENDING as skipped
+            testData['finished_at'] = (new Date()).toISOString()
+            testData['result'] = result
+            testData['duration_in_ms'] = world.result.duration.nanos / 1000000 // send duration in ms
+
+            if (result == 'failed') {
+                testData['failure'] = [
+                    {
+                        'backtrace': [world.result.message ? removeAnsiColors(world.result.message) : 'unknown']
+                    }
+                ],
+                testData['failure_reason'] = world.result.message ? removeAnsiColors(world.result.message) : world.result.message,
+                testData['failure_type'] = world.result.message == undefined ? null : world.result.message.toString().match(/AssertionError/) ? 'AssertionError' : 'UnhandledError'
+            }
+        }
+
+        if (world.pickle) {
+            testData['tags'] = world.pickle.tags.map( ({ name }: { name: string }) => (name) )
+        }
 
         let uploadData: any = {
             event_type: eventType,
