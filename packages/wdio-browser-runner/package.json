@@ -31,6 +31,7 @@
     "@esbuild-plugins/node-globals-polyfill": "^0.1.1",
     "@originjs/vite-plugin-commonjs": "^1.0.3",
     "@wdio/globals": "^7.20.7",
+    "@wdio/local-runner": "^7.20.7",
     "@wdio/logger": "7.19.0",
     "@wdio/mocha-framework": "^7.20.7",
     "@wdio/runner": "7.20.7",

@@ -6,6 +6,7 @@ import type { Options, Capabilities, Workers } from '@wdio/types'
 import { getRunnerName, HookError } from './utils.js'
 
 const log = logger('@wdio/cli')
+const EVENT_FILTER = ['sessionStarted', 'sessionEnded', 'finisedCommand']
 
 interface TestError {
     type: string
@@ -214,6 +215,8 @@ export default class WDIOCLInterface extends EventEmitter {
      * event handler that is triggered when runner sends up events
      */
     onMessage (event: CLIInterfaceEvent) {
+        // let a = true
+        // if (a) return
         if (event.name === 'reporterRealTime') {
             this.log(event.content)
             return
@@ -242,6 +245,12 @@ export default class WDIOCLInterface extends EventEmitter {
         }
 
         if (event.origin !== 'reporter' && event.origin !== 'debugger') {
+            /**
+             * filter certain events though
+             */
+            if (EVENT_FILTER.includes(event.name)) {
+                return
+            }
             return this.log(event.cid, event.origin, event.name, event.content)
         }
 

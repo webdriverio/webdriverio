@@ -152,9 +152,7 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
                 Object.assign(this, payload.content)
             } else {
                 this.sessionId = payload.content.sessionId
-                delete payload.content.sessionId
             }
-            return
         }
 
         /**

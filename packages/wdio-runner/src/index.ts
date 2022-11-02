@@ -7,55 +7,25 @@ import { initialiseWorkerService, initialisePlugin, executeHooksWithArgs } from 
 import { ConfigParser } from '@wdio/config'
 import { _setGlobal } from '@wdio/globals'
 import { expect, setOptions } from 'expect-webdriverio'
-import type { Options, Capabilities, Services } from '@wdio/types'
+import type { Options, Capabilities } from '@wdio/types'
 import type { Selector, Browser, MultiRemoteBrowser } from 'webdriverio'
 
+import BrowserFramework from './browser.js'
 import BaseReporter from './reporter.js'
 import { initialiseInstance, filterLogTypes, getInstancesData } from './utils.js'
+import type {
+    BeforeArgs, AfterArgs, BeforeSessionArgs, AfterSessionArgs, RunParams,
+    TestFramework, SingleConfigOption, MultiRemoteCaps, SessionStartedMessage,
+    SessionEndedMessage
+} from './types'
 
 const log = logger('@wdio/runner')
-
-type BeforeArgs = Parameters<Required<Services.HookFunctions>['before']>
-type AfterArgs = Parameters<Required<Services.HookFunctions>['after']>
-type BeforeSessionArgs = Parameters<Required<Services.HookFunctions>['beforeSession']>
-type AfterSessionArgs = Parameters<Required<Services.HookFunctions>['afterSession']>
-
-interface Args extends Partial<Options.Testrunner> {
-    ignoredWorkerServices?: string[]
-    watch?: boolean
-}
-
-type RunParams = {
-    cid: string
-    args: Args
-    specs: string[]
-    caps: Capabilities.RemoteCapability
-    configFile: string
-    retries: number
-}
-
-interface TestFramework {
-    init: (
-        cid: string,
-        config: Options.Testrunner,
-        specs: string[],
-        capabilities: Capabilities.RemoteCapability,
-        reporter: BaseReporter
-    ) => TestFramework
-    run (): number
-    hasTests (): boolean
-}
-
-type SingleCapability = { capabilities: Capabilities.RemoteCapability }
-interface SingleConfigOption extends Omit<Options.Testrunner, 'capabilities'>, SingleCapability {}
-type MultiRemoteCaps = Record<string, (Capabilities.DesiredCapabilities | Capabilities.W3CCapabilities) & { sessionId?: string }>
 
 export default class Runner extends EventEmitter {
     private _browser?: Browser<'async'> | MultiRemoteBrowser<'async'>
     private _configParser = new ConfigParser()
     private _sigintWasCalled = false
     private _isMultiremote = false
-    private _hadRunnerStartEvent = false
     private _specFileRetryAttempts = 0
 
     private _reporter?: BaseReporter
@@ -136,8 +106,7 @@ export default class Runner extends EventEmitter {
         /**
          * initialise framework
          */
-        this._framework = (await initialisePlugin(this._config.framework as string, 'framework')).default as unknown as TestFramework
-        this._framework = await this._framework.init(cid, this._config, specs, caps, this._reporter)
+        this._framework = await this.#initFramework(cid, this._config, caps, this._reporter, specs)
         process.send!({ name: 'testFrameworkInit', content: { cid, caps, specs, hasTests: this._framework.hasTests() } })
         if (!this._framework.hasTests()) {
             return this._shutdown(0, retries, true)
@@ -196,7 +165,6 @@ export default class Runner extends EventEmitter {
                 : { ...browser.capabilities, sessionId: browser.sessionId },
             retry: this._specFileRetryAttempts
         } as Options.RunnerStart)
-        this._hadRunnerStartEvent = true
 
         /**
          * report sessionId and target connection information to worker
@@ -204,10 +172,13 @@ export default class Runner extends EventEmitter {
         const { protocol, hostname, port, path, queryParams } = browser.options
         const { isW3C, sessionId } = browser
         const instances = getInstancesData(browser, isMultiremote)
-        process.send!({
+        process.send!(<SessionStartedMessage>{
             origin: 'worker',
             name: 'sessionStarted',
-            content: { sessionId, isW3C, protocol, hostname, port, path, queryParams, isMultiremote, instances }
+            content: {
+                sessionId, isW3C, protocol, hostname, port, path, queryParams,
+                isMultiremote, instances, capabilities: browser.capabilities
+            }
         })
 
         /**
@@ -231,6 +202,34 @@ export default class Runner extends EventEmitter {
         }
 
         return this._shutdown(failures, retries)
+    }
+
+    async #initFramework (
+        cid: string,
+        config: Options.Testrunner,
+        capabilities: Capabilities.RemoteCapability,
+        reporter: BaseReporter,
+        specs: string[]
+    ): Promise<TestFramework> {
+        const runner = Array.isArray(config.runner) ? config.runner[0] : config.runner
+
+        /**
+         * initialise framework adapter when running remote browser tests
+         */
+        if (runner === 'local') {
+            const framework = (await initialisePlugin(config.framework as string, 'framework')).default as unknown as TestFramework
+            return framework.init(cid, config, specs, capabilities, reporter)
+        }
+
+        /**
+         * for embedded browser tests the `@wdio/browser-runner` already has the environment
+         * setup so we can just run through the tests
+         */
+        if (runner === 'browser') {
+            return BrowserFramework.init(cid, config, specs, capabilities, reporter)
+        }
+
+        throw new Error(`Unknown runner "${runner}"`)
     }
 
     /**
@@ -469,6 +468,11 @@ export default class Runner extends EventEmitter {
         }
 
         await this._browser?.deleteSession()
+        process.send!(<SessionEndedMessage>{
+            origin: 'worker',
+            name: 'sessionEnded',
+            cid: this._cid
+        })
 
         /**
          * delete session(s)
@@ -488,3 +492,4 @@ export default class Runner extends EventEmitter {
 }
 
 export { default as BaseReporter } from './reporter.js'
+export * from './types.js'

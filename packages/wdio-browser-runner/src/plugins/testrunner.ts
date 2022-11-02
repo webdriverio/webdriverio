@@ -46,7 +46,6 @@ const MODULES_TO_MOCK = [
 ]
 
 export function testrunner (options: WebdriverIO.BrowserRunnerOptions): Plugin {
-    const root = options.rootDir || process.cwd()
     const automationProtocolPath = path.resolve(__dirname, '..', 'browser', 'driver.js')
     const mockModulePath = path.resolve(__dirname, '..', 'browser', 'mock.js')
     const setupModulePath = path.resolve(__dirname, '..', 'browser', 'setup.js')
@@ -138,7 +137,7 @@ export function testrunner (options: WebdriverIO.BrowserRunnerOptions): Plugin {
 
                     const env = SESSIONS.get(cid)!
                     try {
-                        const template = await getTemplate(options, env, path.join(root, spec))
+                        const template = await getTemplate(options, env, spec)
                         log.debug(`Render template for ${req.url}`)
                         res.end(await server.transformIndexHtml(`${req.url}`, template))
                     } catch (err: any) {
