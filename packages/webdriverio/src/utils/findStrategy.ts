@@ -1,6 +1,6 @@
 import fs from 'fs'
 import isPlainObject from 'lodash.isplainobject'
-import { roleElements, ARIARoleDefintionKey, ARIARoleRelationConcept, ARIARoleRelationConceptAttribute } from 'aria-query'
+import { roleElements, ARIARoleDefinitionKey, ARIARoleRelationConcept, ARIARoleRelationConceptAttribute } from 'aria-query'
 
 import { DEEP_SELECTOR, ARIA_SELECTOR } from '../constants'
 
@@ -278,7 +278,7 @@ export const findStrategy = function (selector: SelectorStrategy, isW3C?: boolea
             throw new Error(`InvalidSelectorMatch. Strategy 'role' has failed to match '${stringSelector}'`)
         }
         using = 'css selector'
-        value = createRoleBaseXpathSelector(match[1] as ARIARoleDefintionKey)
+        value = createRoleBaseXpathSelector(match[1] as ARIARoleDefinitionKey)
         break
     }
     }
@@ -286,7 +286,7 @@ export const findStrategy = function (selector: SelectorStrategy, isW3C?: boolea
     return { using, value }
 }
 
-const createRoleBaseXpathSelector = (role: ARIARoleDefintionKey) => {
+const createRoleBaseXpathSelector = (role: ARIARoleDefinitionKey) => {
     const locatorArr: string[] = []
     roleElements.get(role)?.forEach((value: ARIARoleRelationConcept) => {
         let locator: string
