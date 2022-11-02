@@ -2,7 +2,7 @@ import type { Browser } from 'webdriverio'
 import type { Environment, FrameworkPreset } from './types'
 
 export const SESSIONS = new Map<string, Environment>()
-export const BROWSER_POOL: Map<number, Promise<Browser<'async'>>> = new Map()
+export const BROWSER_POOL: Map<string, Browser<'async'>> = new Map()
 
 export const EVENTS = {
     'suite': 'suite:start',

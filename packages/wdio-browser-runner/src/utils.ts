@@ -67,7 +67,12 @@ export async function getTemplate (options: WebdriverIO.BrowserRunnerOptions, en
             ${vueDeps}
             <script type="module">
             import Mocha from 'https://esm.sh/mocha@10.0.0'
-            const mocha = Mocha.setup(${JSON.stringify(env.args || {})})
+            import HTMLReporter from '@wdio/browser-runner/reporter'
+            const mochaOpts = ${JSON.stringify(env.args || {})}
+            const mocha = Mocha.setup({
+                ...mochaOpts,
+                reporter: HTMLReporter
+            })
             </script>
         </head>
         <body>
@@ -147,6 +152,7 @@ export async function getViteConfig (options: WebdriverIO.BrowserRunnerOptions, 
                 }
             }
         },
+        logLevel: 'silent',
         plugins: [
             testrunner(options),
             topLevelAwait()
@@ -154,6 +160,7 @@ export async function getViteConfig (options: WebdriverIO.BrowserRunnerOptions, 
         optimizeDeps: {
             include: ['expect', 'jest-matcher-utils'],
             esbuildOptions: {
+                logLevel: 'silent',
                 // Node.js global to browser globalThis
                 define: {
                     global: 'globalThis',

@@ -58,17 +58,8 @@ export default class BrowserRunner {
             throw new Error('Vite server didn\'t start')
         }
 
-        if (!BROWSER_POOL.has(args.args.capabilityId)) {
-            BROWSER_POOL.set(args.args.capabilityId, this.#initSession(args))
-        }
-
-        const browser = BROWSER_POOL.get(args.args.capabilityId)
-        if (!browser) {
-            throw new Error(`No browser found with id ${args.args.capabilityId}`)
-        }
-
         const session = new Session(this.#config, args, this.#server)
-        session.run(browser)
+        session.run()
         return session
     }
 
@@ -82,15 +73,6 @@ export default class BrowserRunner {
         } catch (err: any) {
             throw new Error(`Failed to start browser session with cid: ${err.message}`)
         }
-    }
-
-    async closeSession(cid: number) {
-        const browser = await BROWSER_POOL.get(cid)
-        if (!browser) {
-            return
-        }
-        log.info(`Shutdown browser with session ${browser.sessionId}`)
-        await browser.deleteSession()
     }
 
     /**
