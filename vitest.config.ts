@@ -14,10 +14,10 @@ export default defineConfig({
         coverage: {
             enabled: true,
             exclude: ['**/build/**', '**/*.test.ts'],
-            lines: 95,
+            lines: 94,
             functions: 88,
             branches: 93,
-            statements: 95
+            statements: 94
         },
         globalSetup: [
             'scripts/test/globalSetup.ts'
