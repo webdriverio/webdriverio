@@ -21,7 +21,8 @@ const IGNORE_PACKAGES = {
     'wdio-reporter': ['cucumber'],
     'wdio-cli': ['ts-node', '@babel/register'],
     'wdio-config': ['ts-node', '@babel/register'],
-    'wdio-types': ['ts-node']
+    'wdio-types': ['ts-node'],
+    'wdio-browser-runner': ['vue', '@vue/compiler-dom', 'virtual:wdio']
 }
 
 shell.cd(ROOT_DIR)
