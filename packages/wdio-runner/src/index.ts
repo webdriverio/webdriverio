@@ -176,8 +176,9 @@ export default class Runner extends EventEmitter {
             origin: 'worker',
             name: 'sessionStarted',
             content: {
-                sessionId, isW3C, protocol, hostname, port, path, queryParams,
-                isMultiremote, instances, capabilities: browser.capabilities
+                sessionId, isW3C, protocol, hostname, port, path, queryParams, isMultiremote, instances,
+                capabilities: browser.capabilities,
+                injectGlobals: this._config.injectGlobals
             }
         })
 

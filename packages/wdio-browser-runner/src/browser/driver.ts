@@ -15,8 +15,7 @@ export default class ProxyDriver {
     ) {
         const commandMessages = new Map<number, any>()
         const wsUrl = 'ws://' + window.location.host + '/ws'
-        const queryParams = new URLSearchParams(window.location.search)
-        const [cid] = (queryParams.get('cid') || '').split('-')
+        const [cid] = window.location.pathname.slice(1).split('/')
         if (!cid) {
             throw new Error('"cid" query parameter is missing')
         }
@@ -59,7 +58,7 @@ export default class ProxyDriver {
                     }
                     commandId++
                     console.log(`${(new Date()).toISOString()} - id: ${commandId} - COMMAND: ${commandName}(${args.join(', ')})`)
-                    socket.send(JSON.stringify({ commandName, args, id: commandId, cid: parseInt(cid, 10) }))
+                    socket.send(JSON.stringify({ commandName, args, id: commandId, cid }))
                     return new Promise((resolve, reject) => {
                         const commandTimeout = setTimeout(
                             () => reject(new Error(`Command "${commandName}" timed out`)),
