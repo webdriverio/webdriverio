@@ -8,9 +8,7 @@ import type { Options, Capabilities } from '@wdio/types'
 import command from './command.js'
 import { BidiHandler } from './bidi.js'
 import { DEFAULTS } from './constants.js'
-import {
-    startWebDriverSession, getPrototype, getEnvironmentVars, setupDirectConnect
-} from './utils.js'
+import { startWebDriverSession, getPrototype, getEnvironmentVars, setupDirectConnect } from './utils.js'
 import type { Client, AttachOptions, SessionFlags } from './types'
 
 const log = logger('webdriver')

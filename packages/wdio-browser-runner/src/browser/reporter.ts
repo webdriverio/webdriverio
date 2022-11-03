@@ -1,9 +1,8 @@
-import type { Runner } from 'mocha'
-
+// @ts-ignore
 const BaseReporter = Mocha.reporters.html
 
 export default class HTMLReporter extends BaseReporter {
-    constructor (runner: Runner, options: Mocha.MochaOptions) {
+    constructor (runner: any, options: any) {
         super(runner, options)
     }
 

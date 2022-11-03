@@ -40,6 +40,7 @@
     "get-port": "^6.1.2",
     "vite": "^3.1.7",
     "vite-plugin-top-level-await": "^1.2.1",
+    "webdriver": "^7.20.7",
     "webdriverio": "7.20.7",
     "ws": "^8.10.0"
   },

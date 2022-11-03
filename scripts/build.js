@@ -30,6 +30,8 @@ const ROOT_PACKAGES = [
     'devtools',
     'webdriverio',
     'wdio-globals',
+    'wdio-local-runner',
+    'wdio-browser-runner'
 ]
 
 const packages = getSubPackages()
