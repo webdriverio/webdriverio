@@ -183,7 +183,7 @@ const requestMock: any = vi.fn().mockImplementation((uri, params) => {
     case `/session/${sessionId}/execute`:
     case `/session/${sessionId}/execute/sync`: {
         const script = Function(params.json.script)
-        const args = params.json.args.map((arg: any) => arg.ELEMENT || arg[ELEMENT_KEY] || arg)
+        const args = params.json.args.map((arg: any) => (arg && (arg.ELEMENT || arg[ELEMENT_KEY])) || arg)
 
         let result: any = null
         if (params.json.script.includes('resq')) {

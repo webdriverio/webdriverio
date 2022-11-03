@@ -38,7 +38,7 @@ describe('handleMessage', () => {
         expect(worker.isBusy).toBe(false)
     })
 
-    it('stores sessionId and connection data to worker instance', () => {
+    it.only('stores sessionId and connection data to worker instance', () => {
         const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer())
         worker.emit = vi.fn()
         const payload = {
@@ -50,8 +50,6 @@ describe('handleMessage', () => {
         }
         worker['_handleMessage'](payload as unknown as Workers.WorkerMessage)
         expect(worker.sessionId).toEqual('abc123')
-        expect(payload.content.sessionId).toBe(undefined)
-        expect(worker.emit).not.toBeCalled()
     })
 
     it('stores instances to worker instance in Multiremote mode', () => {

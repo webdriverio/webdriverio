@@ -23,8 +23,6 @@ const DEFAULT_CONNECTION = {
     path: '/'
 }
 
-const require = createRequire(import.meta.url)
-
 export default class AppiumLauncher implements Services.ServiceInstance {
     private readonly _logPath?: string
     private readonly _appiumCliArgs: string[] = []
@@ -168,6 +166,7 @@ export default class AppiumLauncher implements Services.ServiceInstance {
 
     private static _getAppiumCommand (moduleName = 'appium') {
         try {
+            const require = createRequire(import.meta.url)
             return require.resolve(moduleName)
         } catch (err: any) {
             log.error(

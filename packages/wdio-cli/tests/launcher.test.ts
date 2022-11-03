@@ -681,12 +681,12 @@ describe('launcher', () => {
             launcher.runMode = vi.fn().mockImplementation((config, caps) => caps)
         })
 
-        it('exit code 0', async () => {
+        it.only('exit code 0', async () => {
             expect(await launcher.run()).toEqual(0)
             expect(launcher['configParser'].autoCompile).toBeCalledTimes(1)
             expect(launcher.runner!.shutdown).toBeCalled()
             expect(vi.mocked(fs.mkdir)).toHaveBeenCalled()
-            expect(vi.mocked(fs.mkdir)).toHaveBeenCalledWith('tempDir')
+            expect(vi.mocked(fs.mkdir)).toHaveBeenCalledWith('tempDir', { recursive: true })
 
             expect(launcher.configParser.getCapabilities).toBeCalledTimes(2)
             expect(launcher.configParser.getConfig).toBeCalledTimes(1)

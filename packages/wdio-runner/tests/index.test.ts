@@ -31,6 +31,7 @@ describe('wdio-runner', () => {
     beforeEach(() => {
         vi.mocked(_setGlobal).mockClear()
         vi.mocked(setOptions).mockClear()
+        process.send = vi.fn()
     })
 
     describe('_fetchDriverLogs', () => {
@@ -214,9 +215,7 @@ describe('wdio-runner', () => {
                 [hook],
                 [{ logLevel: 'error', afterSession: [hook] }, { foo: undefined, bar: undefined }, undefined])
             expect(runner['_browser']!.deleteSession).toBeCalledTimes(1)
-            // @ts-expect-error
             expect(!(runner['_browser'] as any as WebdriverIO.MultiRemoteBrowser).foo.sessionId).toBe(true)
-            // @ts-expect-error
             expect(!(runner['_browser'] as any as WebdriverIO.MultiRemoteBrowser).bar.sessionId).toBe(true)
             expect(runner['_shutdown']).toBeCalledTimes(0)
         })
@@ -232,10 +231,6 @@ describe('wdio-runner', () => {
     })
 
     describe('run', () => {
-        beforeEach(() => {
-            process.send = vi.fn()
-        })
-
         it('should fail if log file is corrupted', async () => {
             const runner = new WDIORunner()
             runner['_shutdown'] = vi.fn()
@@ -253,7 +248,8 @@ describe('wdio-runner', () => {
                 reporters: [],
                 before: [],
                 beforeSession: [],
-                framework: 'testWithFailures'
+                framework: 'testWithFailures',
+                runner: 'local'
             }
 
             const runner = new WDIORunner()
@@ -276,7 +272,8 @@ describe('wdio-runner', () => {
                 reporters: [],
                 before: [before],
                 beforeSession: [beforeSession],
-                framework: 'testWithFailures'
+                framework: 'testWithFailures',
+                runner: 'local'
             }
             runner['_configParser'].getConfig = vi.fn().mockReturnValue(config)
             runner['_shutdown'] = vi.fn()
@@ -309,7 +306,8 @@ describe('wdio-runner', () => {
             const config = {
                 framework: 'testNoFailures',
                 reporters: [],
-                beforeSession: []
+                beforeSession: [],
+                runner: 'local'
             }
             runner['_configParser'].getConfig = vi.fn().mockReturnValue(config)
             runner['_initSession'] = vi.fn().mockReturnValue({ options: { capabilities: {} } })
@@ -323,7 +321,8 @@ describe('wdio-runner', () => {
             const config = {
                 framework: 'testNoFailures',
                 reporters: [],
-                beforeSession: []
+                beforeSession: [],
+                runner: 'local'
             }
             runner['_configParser'].getConfig = vi.fn().mockReturnValue(config)
             runner['_browser'] = { url: vi.fn(url => url) } as any as BrowserObject
@@ -340,7 +339,8 @@ describe('wdio-runner', () => {
             const config = {
                 framework: 'testThrows',
                 reporters: [],
-                beforeSession: []
+                beforeSession: [],
+                runner: 'local'
             }
             runner['_configParser'].getConfig = vi.fn().mockReturnValue(config)
             runner['_initSession'] = vi.fn().mockReturnValue({ options: { capabilities: {} } })
@@ -359,7 +359,8 @@ describe('wdio-runner', () => {
             const config = {
                 framework: 'testThrows',
                 reporters: [],
-                beforeSession: []
+                beforeSession: [],
+                runner: 'local'
             }
             runner['_configParser'].getConfig = vi.fn().mockReturnValue(config)
             runner['_shutdown'] = vi.fn()
@@ -384,7 +385,8 @@ describe('wdio-runner', () => {
             const config = {
                 framework: 'testNoTests',
                 reporters: [],
-                beforeSession: []
+                beforeSession: [],
+                runner: 'local'
             }
             runner['_configParser'].getConfig = vi.fn().mockReturnValue(config)
             runner['_shutdown'] = vi.fn().mockImplementation((arg) => arg)
@@ -403,7 +405,8 @@ describe('wdio-runner', () => {
                 framework: 'testNoFailures',
                 reporters: [],
                 beforeSession: [],
-                after: 'foobar'
+                after: 'foobar',
+                runner: 'local'
             }
             runner['_configParser'].getConfig = vi.fn().mockReturnValue(config)
             runner['_shutdown'] = vi.fn().mockReturnValue('_shutdown')
@@ -565,5 +568,6 @@ describe('wdio-runner', () => {
     afterEach(() => {
         vi.mocked(executeHooksWithArgs).mockClear()
         vi.mocked(attach).mockClear()
+        delete process.send
     })
 })
