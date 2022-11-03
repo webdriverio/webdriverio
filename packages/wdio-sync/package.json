@@ -26,7 +26,7 @@
   },
   "dependencies": {
     "@types/fibers": "^3.1.0",
-    "@types/puppeteer": "^5.4.0",
+    "@types/puppeteer": "^7.0.4",
     "@wdio/logger": "7.19.0",
     "@wdio/types": "7.25.4",
     "fibers": "5.0.3",
