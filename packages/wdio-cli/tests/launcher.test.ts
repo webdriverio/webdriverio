@@ -681,7 +681,7 @@ describe('launcher', () => {
             launcher.runMode = vi.fn().mockImplementation((config, caps) => caps)
         })
 
-        it.only('exit code 0', async () => {
+        it('exit code 0', async () => {
             expect(await launcher.run()).toEqual(0)
             expect(launcher['configParser'].autoCompile).toBeCalledTimes(1)
             expect(launcher.runner!.shutdown).toBeCalled()
