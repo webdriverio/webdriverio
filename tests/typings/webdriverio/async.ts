@@ -302,7 +302,7 @@ async function bar() {
     const elem1 = await $('')
     elem1.setValue('Delete')
 
-    const selector$$: string | Function | Record<'element-6066-11e4-a52e-4f735466cecf', string> | {strategy: Function; strategyName: string; strategyArguments: any[]} = elems.selector
+    const selector$$: string | HTMLElement | Function | Record<'element-6066-11e4-a52e-4f735466cecf', string> | {strategy: Function; strategyName: string; strategyArguments: any[]} = elems.selector
     ;(elems.parent as WebdriverIO.Element).click()
     ;(elems.parent as WebdriverIO.Browser).url('')
     ;(elems.parent as WebdriverIO.MultiRemoteBrowser).url('')
