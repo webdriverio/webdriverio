@@ -158,7 +158,7 @@ export default class AppiumLauncher implements Services.ServiceInstance {
         const logFile = getFilePath(logPath, DEFAULT_LOG_FILENAME)
 
         // ensure file & directory exists
-        await fsp.mkdir(path.dirname(logFile))
+        await fsp.mkdir(path.dirname(logFile), { recursive: true })
 
         log.debug(`Appium logs written to: ${logFile}`)
         const logStream = fs.createWriteStream(logFile, { flags: 'w' })
