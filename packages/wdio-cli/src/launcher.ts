@@ -418,7 +418,7 @@ class Launcher {
             .catch((error) => this._workerHookError(error))
 
         // prefer launcher settings in capabilities over general launcher
-        const worker = await this.runner.run({
+        const worker = this.runner.run({
             cid: runnerId,
             command: 'run',
             configFile: this._configFilePath,
