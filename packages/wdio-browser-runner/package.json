@@ -34,6 +34,7 @@
     "@wdio/local-runner": "^7.20.7",
     "@wdio/logger": "7.19.0",
     "@wdio/mocha-framework": "^7.20.7",
+    "@wdio/protocols": "^7.20.6",
     "@wdio/runner": "7.20.7",
     "@wdio/types": "7.20.7",
     "expect-webdriverio": "^4.0.0-alpha.4",
