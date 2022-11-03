@@ -38,7 +38,7 @@ describe('handleMessage', () => {
         expect(worker.isBusy).toBe(false)
     })
 
-    it.only('stores sessionId and connection data to worker instance', () => {
+    it('stores sessionId and connection data to worker instance', () => {
         const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer())
         worker.emit = vi.fn()
         const payload = {
