@@ -1,8 +1,6 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { spawn, ChildProcess } from 'node:child_process'
-// @ts-expect-error mock feature
-import { mocks } from 'node:module'
 
 import { describe, expect, beforeEach, afterEach, test, vi } from 'vitest'
 import type { Capabilities, Options } from '@wdio/types'
@@ -26,14 +24,11 @@ vi.mock('child_process', () => ({
     spawn: vi.fn()
 }))
 vi.mock('node:module', () => {
-    // @ts-expect-error
+    const requireFn = vi.fn() as any
     requireFn.resolve = vi.fn().mockImplementation(() => {
         return '/some/path'
     })
-    return ({
-        mocks,
-        createRequire: vi.fn()
-    })
+    return ({ createRequire: vi.fn().mockReturnValue(requireFn) })
 })
 
 class MockProcess {
@@ -352,11 +347,6 @@ describe('Appium launcher', () => {
         test('should return path to dependency', () => {
             expect(AppiumLauncher['_getAppiumCommand']('appium'))
                 .toBe('/some/path')
-        })
-
-        test('should be appium by default', () => {
-            expect(() => AppiumLauncher['_getAppiumCommand']())
-                .toThrow("Cannot find module 'appium'")
         })
     })
 
