@@ -30,6 +30,7 @@ const ROOT_PACKAGES = [
     'devtools',
     'webdriverio',
     'wdio-globals',
+    'wdio-runner',
     'wdio-local-runner',
     'wdio-browser-runner'
 ]
