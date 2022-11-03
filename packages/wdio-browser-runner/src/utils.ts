@@ -194,7 +194,7 @@ function handleBrowserCommand (ws: WebSocket) {
         try {
             const payload = JSON.parse(data.toString())
             const cid = payload.cid
-            if (typeof cid !== 'number') {
+            if (typeof cid !== 'string') {
                 return ws.send(JSON.stringify({
                     id: payload.id,
                     error: `No "cid" property passed into command message with id "${payload.id}"`

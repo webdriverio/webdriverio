@@ -4,8 +4,6 @@ import type { Workers, Capabilities } from '@wdio/types'
 declare global {
     interface Window {
         __wdioEnv__: Environment
-        __wdioEvents__: any[]
-        __wdioFailures__: number
         wdioDebugContinue: (value: unknown) => void
     }
 }
@@ -38,4 +36,5 @@ export interface Environment {
     args: any
     capabilities: Capabilities.RemoteCapability
     sessionId: string
+    injectGlobals: boolean
 }

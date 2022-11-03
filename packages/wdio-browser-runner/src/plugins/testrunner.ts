@@ -123,7 +123,7 @@ export function testrunner (options: WebdriverIO.BrowserRunnerOptions): Plugin {
                     }
 
                     const urlParamString = new URLSearchParams(urlParsed.query || '')
-                    const cid = urlParamString.get('cid')
+                    const [cid] = urlParsed.pathname.slice(1).split('/')
                     const spec = urlParamString.get('spec')
                     if (!cid || !SESSIONS.has(cid)) {
                         log.error(`No environment found for ${cid || 'non determined environment'}`)

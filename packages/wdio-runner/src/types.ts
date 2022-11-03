@@ -47,6 +47,7 @@ export interface SessionStartedMessage {
         port: number
         path: string
         isMultiremote: boolean
+        injectGlobals: boolean
         capabilities: Capabilities.Capabilities
     },
     cid?: string

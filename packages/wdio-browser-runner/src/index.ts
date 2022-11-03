@@ -58,7 +58,8 @@ export default class BrowserRunner extends LocalRunner {
                 SESSIONS.set(payload.cid!, {
                     args: this.#config.mochaOpts || {},
                     capabilities: payload.content.capabilities,
-                    sessionId: payload.content.sessionId
+                    sessionId: payload.content.sessionId,
+                    injectGlobals: payload.content.injectGlobals
                 })
                 BROWSER_POOL.set(payload.cid!, await attach({
                     sessionId: payload.content.sessionId,

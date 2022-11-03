@@ -18,13 +18,14 @@ addEventListener('error', (ev) => window.__wdioErrors__.push({
 }))
 
 export async function setupEnv () {
+    const injectGlobals = window.__wdioEnv__.injectGlobals
     const browser = await remote({
         automationProtocol: automationProtocolPath as any,
         capabilities: window.__wdioEnv__.capabilities
     })
-    _setGlobal('browser', browser)
-    _setGlobal('driver', browser)
-    _setGlobal('expect', expect)
-    _setGlobal('$', browser.$.bind(browser))
-    _setGlobal('$$', browser.$.bind(browser))
+    _setGlobal('browser', browser, injectGlobals)
+    _setGlobal('driver', browser, injectGlobals)
+    _setGlobal('expect', expect, injectGlobals)
+    _setGlobal('$', browser.$.bind(browser), injectGlobals)
+    _setGlobal('$$', browser.$.bind(browser), injectGlobals)
 }
