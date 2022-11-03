@@ -122,22 +122,35 @@ async function userfriendlyImport (preset: FrameworkPreset, pkg?: string) {
     }
 }
 
-export async function getViteConfig (options: WebdriverIO.BrowserRunnerOptions, root: string, port: number) {
+export async function getViteConfig (
+    options: WebdriverIO.BrowserRunnerOptions,
+    root: string,
+    port: number
+): Promise<[Partial<InlineConfig>, WebSocketServer]> {
+    const wsPort = await getPort()
+    const wss = new WebSocketServer({ port: wsPort })
+    wss.on('connection', (ws) => ws.on('message', handleBrowserCommand(ws)))
+
     /**
      * user provided vite config
      */
     if (options.viteConfig) {
-        return Object.assign({}, options.viteConfig, {
-            plugins: [
-                testrunner(options),
-                ...(options.viteConfig.plugins || [])
-            ]
-        })
+        options.viteConfig.plugins = [
+            ...(options.viteConfig.plugins || []),
+            testrunner(options)
+        ]
+        options.viteConfig.server = {
+            ...(options.viteConfig.server || {}),
+            proxy: {
+                ...(options.viteConfig.server?.proxy || {}),
+                '/ws': {
+                    target: `ws://localhost:${wsPort}`,
+                    ws: true
+                }
+            }
+        }
+        return [options.viteConfig, wss]
     }
-
-    const wsPort = await getPort()
-    const wss = new WebSocketServer({ port: wsPort })
-    wss.on('connection', (ws) => ws.on('message', handleBrowserCommand(ws)))
 
     const config: Partial<InlineConfig> = {
         configFile: false,
@@ -185,14 +198,18 @@ export async function getViteConfig (options: WebdriverIO.BrowserRunnerOptions, 
         }
     }
 
-    return config
+    return [config, wss]
 }
 
 function handleBrowserCommand (ws: WebSocket) {
     return async (data: Buffer) => {
-        log.info(`Received browser message: ${data}`)
         try {
             const payload = JSON.parse(data.toString())
+            if (!payload.commandName) {
+                return
+            }
+
+            log.info(`Received browser message: ${data}`)
             const cid = payload.cid
             if (typeof cid !== 'string') {
                 return ws.send(JSON.stringify({

@@ -3,8 +3,10 @@ import { webdriverMonad } from '@wdio/utils'
 import { getEnvironmentVars } from 'webdriver'
 
 import browserCommands from './commands/index.js'
+import type { ConsoleEvent } from '../types'
 
 const COMMAND_TIMEOUT = 30 * 1000 // 30s
+const CONSOLE_METHODS = ['log', 'info', 'warn', 'error', 'debug'] as const
 
 export default class ProxyDriver {
     static newSession (
@@ -26,6 +28,25 @@ export default class ProxyDriver {
             console.log('[WDIO] Connected to testrunner')
             socket.addEventListener('open', resolve)
         })
+
+        /**
+         * log all console events once connected
+         */
+        connectPromise.then(() => {
+            for (const method of CONSOLE_METHODS) {
+                const origCommand = console[method].bind(console)
+                console[method] = (...args: unknown[]) => {
+                    socket.send(JSON.stringify(<ConsoleEvent>{
+                        name: 'consoleEvent',
+                        type: method,
+                        args,
+                        cid
+                    }))
+                    origCommand(...args)
+                }
+            }
+        })
+
         socket.addEventListener('message', (ev) => {
             try {
                 const payload = JSON.parse(ev.data)
@@ -38,10 +59,10 @@ export default class ProxyDriver {
                     return console.error(`Unknown command id "${payload.id}"`)
                 }
                 if (payload.error) {
-                    console.log(`${(new Date()).toISOString()} - id: ${payload.id} - ERROR: ${JSON.stringify(payload.result)}`)
+                    console.log(`[WDIO] ${(new Date()).toISOString()} - id: ${payload.id} - ERROR: ${JSON.stringify(payload.result)}`)
                     return commandMessage.reject(new Error(payload.error))
                 }
-                console.log(`${(new Date()).toISOString()} - id: ${payload.id} - RESULT: ${JSON.stringify(payload.result)}`)
+                console.log(`[WDIO] ${(new Date()).toISOString()} - id: ${payload.id} - RESULT: ${JSON.stringify(payload.result)}`)
                 commandMessage.resolve(payload.result)
             } catch (err: any) {
                 console.error(`Failed handling command socket message "${err.message}"`)
@@ -57,7 +78,7 @@ export default class ProxyDriver {
                         await connectPromise
                     }
                     commandId++
-                    console.log(`${(new Date()).toISOString()} - id: ${commandId} - COMMAND: ${commandName}(${args.join(', ')})`)
+                    console.log(`[WDIO] ${(new Date()).toISOString()} - id: ${commandId} - COMMAND: ${commandName}(${args.join(', ')})`)
                     socket.send(JSON.stringify({ commandName, args, id: commandId, cid }))
                     return new Promise((resolve, reject) => {
                         const commandTimeout = setTimeout(

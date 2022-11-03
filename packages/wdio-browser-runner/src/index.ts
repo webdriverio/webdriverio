@@ -3,12 +3,13 @@ import getPort from 'get-port'
 import LocalRunner, { RunArgs } from '@wdio/local-runner'
 import { attach } from 'webdriverio'
 import { createServer, ViteDevServer } from 'vite'
+import type { WebSocketServer } from 'ws'
 import type { SessionStartedMessage, SessionEndedMessage } from '@wdio/runner'
 import type { Options } from '@wdio/types'
 
 import { FRAMEWORK_SUPPORT_ERROR, SESSIONS, BROWSER_POOL } from './constants.js'
 import { getViteConfig } from './utils.js'
-import type { BrowserRunnerOptions as BrowserRunnerOptionsImport } from './types'
+import type { BrowserRunnerOptions as BrowserRunnerOptionsImport, ConsoleEvent } from './types'
 
 const log = logger('@wdio/browser-runner')
 
@@ -16,6 +17,7 @@ export default class BrowserRunner extends LocalRunner {
     #options: BrowserRunnerOptionsImport
     #config: Options.Testrunner
     #server?: ViteDevServer
+    #wss?: WebSocketServer
 
     constructor(private options: BrowserRunnerOptionsImport, private config: Options.Testrunner) {
         super(options as never, config)
@@ -36,10 +38,26 @@ export default class BrowserRunner extends LocalRunner {
         log.info('Initiate browser environment')
         try {
             const port = await getPort()
-            const viteConfig = await getViteConfig(this.#options, rootDir, port)
+            const [viteConfig, wss] = await getViteConfig(this.#options, rootDir, port)
             this.#server = await createServer(viteConfig)
             await this.#server.listen()
             log.info(`Vite server started successfully on port ${port}, root directory: ${rootDir}`)
+
+            /**
+             * propagate console events
+             */
+            wss.on('connection', (ws) => ws.on('message', (payload: string) => {
+                try {
+                    const message: ConsoleEvent = JSON.parse(payload)
+                    const isWDIOLog = Boolean(typeof message.args[0] === 'string' && message.args[0].startsWith('[WDIO]'))
+                    if (message.name !== 'consoleEvent' || isWDIOLog) {
+                        return
+                    }
+                    console[message.type](`[${message.cid}]`, ...(message.args || []))
+                } catch (err: any) {
+                    return
+                }
+            }))
         } catch (err: any) {
             throw new Error(`Vite server failed to start: ${err.stack}`)
         }
@@ -73,6 +91,7 @@ export default class BrowserRunner extends LocalRunner {
                 BROWSER_POOL.delete(payload.cid)
             }
         })
+
         return worker
     }
 
