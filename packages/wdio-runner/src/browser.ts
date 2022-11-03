@@ -62,7 +62,7 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
             log.info(`Run spec file ${spec} for cid ${this._cid}`)
             console.log(`Run spec file ${spec} for cid ${this._cid}`)
             await browser.url(`/${this._cid}/test.html?spec=${url.fileURLToPath(spec)}`)
-            await browser.debug()
+            // await browser.debug()
 
             /**
              * fetch page errors that are thrown during rendering and let spec file fail
