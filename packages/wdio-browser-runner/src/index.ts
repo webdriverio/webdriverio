@@ -80,9 +80,8 @@ export default class BrowserRunner extends LocalRunner {
                     injectGlobals: payload.content.injectGlobals
                 })
                 BROWSER_POOL.set(payload.cid!, await attach({
-                    sessionId: payload.content.sessionId,
-                    options: this.#config,
-                    capabilities: payload.content.capabilities
+                    ...this.#config,
+                    ...payload.content
                 }))
             }
 

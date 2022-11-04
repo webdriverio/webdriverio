@@ -45,6 +45,12 @@ const MODULES_TO_MOCK = [
     'glob', 'devtools'
 ]
 
+const FETCH_FROM_ESM = [
+    'serialize-error', 'minimatch', 'css-shorthand-properties', 'lodash.merge', 'lodash.zip',
+    'lodash.clonedeep', 'lodash.pickby', 'lodash.flattendeep', 'aria-query', 'grapheme-splitter',
+    'css-value', 'rgb2hex', 'p-iteration'
+]
+
 export function testrunner (options: WebdriverIO.BrowserRunnerOptions): Plugin {
     const automationProtocolPath = path.resolve(__dirname, '..', 'browser', 'driver.js')
     const mockModulePath = path.resolve(__dirname, '..', 'browser', 'mock.js')
@@ -78,6 +84,14 @@ export function testrunner (options: WebdriverIO.BrowserRunnerOptions): Plugin {
              */
             if (MODULES_TO_MOCK.includes(id)) {
                 return mockModulePath
+            }
+
+            /**
+             * some dependencies used by WebdriverIO packages are still using CJS
+             * so we need to pull them from esm.sh to have them run in the browser
+             */
+            if (FETCH_FROM_ESM.includes(id)) {
+                return `https://esm.sh/${id}`
             }
         },
         load(id) {

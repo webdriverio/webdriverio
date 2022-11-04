@@ -44,11 +44,11 @@ Then create another config file for each environment, and supplement the the mai
 
 ```js
 // wdio.dev.config.js
-import merge from 'deepmerge'
+import { deepmerge } from 'deepmerge-ts'
 import wdioConf from './wdio.conf.js'
 
 // have main config file as default but overwrite environment specific information
-exports.config = merge(wdioConf.config, {
+exports.config = deepmerge(wdioConf.config, {
     capabilities: [
         // more caps defined here
         // ...
