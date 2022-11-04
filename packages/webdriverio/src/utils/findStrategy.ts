@@ -1,5 +1,4 @@
 import fs from 'node:fs'
-import isPlainObject from 'lodash.isplainobject'
 import { roleElements, ARIARoleDefinitionKey, ARIARoleRelationConcept, ARIARoleRelationConceptAttribute } from 'aria-query'
 
 import { DEEP_SELECTOR, ARIA_SELECTOR } from '../constants.js'
@@ -33,7 +32,7 @@ const defineStrategy = function (selector: SelectorStrategy) {
     // in case of "selector" argument is a plain object then .match() will cause
     // an error like "selector.match is not a function"
     // Use '-android datamatcher' or '-android viewmatcher' strategy if selector is a plain object (Android only)
-    if (isPlainObject(selector)) {
+    if (typeof selector === 'object') {
         if (JSON.stringify(selector).indexOf('test.espresso.matcher.ViewMatchers') < 0)
             return '-android datamatcher'
         return '-android viewmatcher'

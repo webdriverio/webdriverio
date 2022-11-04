@@ -1,4 +1,3 @@
-import merge from 'lodash.merge'
 import logger from '@wdio/logger'
 import Protocols from '@wdio/protocols'
 import {
@@ -169,14 +168,15 @@ export function isSuccessfulResponse (statusCode?: number, body?: WebDriverRespo
  */
 export function getPrototype ({ isW3C, isChrome, isFirefox, isMobile, isSauce, isSeleniumStandalone }: Partial<SessionFlags>) {
     const prototype: Record<string, PropertyDescriptor> = {}
-    const ProtocolCommands: Protocols.Protocol = merge(
+    const ProtocolCommands: Protocols.Protocol = Object.assign(
+        {},
         /**
          * if mobile apply JSONWire and WebDriver protocol because
          * some legacy JSONWire commands are still used in Appium
          * (e.g. set/get geolocation)
          */
         isMobile
-            ? merge({}, JsonWProtocol, WebDriverProtocol)
+            ? Object.assign({}, JsonWProtocol, WebDriverProtocol)
             : isW3C ? WebDriverProtocol : JsonWProtocol,
         /**
          * enable Bidi protocol for W3C sessions
@@ -185,7 +185,7 @@ export function getPrototype ({ isW3C, isChrome, isFirefox, isMobile, isSauce, i
         /**
          * only apply mobile protocol if session is actually for mobile
          */
-        isMobile ? merge({}, MJsonWProtocol, AppiumProtocol) : {},
+        isMobile ? Object.assign({}, MJsonWProtocol, AppiumProtocol) : {},
         /**
          * only apply special Chrome commands if session is using Chrome
          */

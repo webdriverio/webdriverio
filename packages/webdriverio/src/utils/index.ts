@@ -7,8 +7,7 @@ import cssValue from 'css-value'
 import rgb2hex from 'rgb2hex'
 import GraphemeSplitter from 'grapheme-splitter'
 import logger from '@wdio/logger'
-import isObject from 'lodash.isobject'
-import isPlainObject from 'lodash.isplainobject'
+import isPlainObject from 'is-plain-obj'
 // @ts-expect-error
 import { locatorStrategy } from 'query-selector-shadow-dom/plugins/webdriverio/index.js'
 import { SUPPORTED_BROWSER } from 'devtools'
@@ -250,7 +249,7 @@ export async function findElement(
     /**
      * fetch element using custom strategy function
      */
-    if (isPlainObject(selector) && typeof (selector as CustomStrategyReference).strategy === 'function') {
+    if (typeof selector === 'object' && typeof (selector as CustomStrategyReference).strategy === 'function') {
         const { strategy, strategyName, strategyArguments } = selector as CustomStrategyReference
         const notFoundError = new Error(`Custom Strategy "${strategyName}" did not return an HTMLElement`)
         let elem = await browserObject.execute(strategy, ...strategyArguments)
@@ -361,7 +360,7 @@ export async function findElements(
  */
 export function verifyArgsAndStripIfElement(args: any) {
     function verify (arg: any) {
-        if (isObject(arg) && arg.constructor.name === 'Element') {
+        if (typeof arg === 'object' && arg.constructor.name === 'Element') {
             const elem = arg as WebdriverIO.Element
             if (!elem.elementId) {
                 throw new Error(`The element with selector "${elem.selector}" you are trying to pass into the execute method wasn't found`)

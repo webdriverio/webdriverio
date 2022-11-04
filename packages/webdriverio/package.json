@@ -61,8 +61,6 @@
   "devDependencies": {
     "@types/archiver": "^5.1.0",
     "@types/lodash.clonedeep": "^4.5.6",
-    "@types/lodash.isobject": "^3.0.6",
-    "@types/lodash.isplainobject": "^4.0.6",
     "@types/lodash.zip": "^4.2.6"
   },
   "dependencies": {
@@ -81,9 +79,8 @@
     "devtools": "7.20.7",
     "devtools-protocol": "^0.0.1065144",
     "grapheme-splitter": "^1.0.2",
+    "is-plain-obj": "^4.1.0",
     "lodash.clonedeep": "^4.5.0",
-    "lodash.isobject": "^3.0.2",
-    "lodash.isplainobject": "^4.0.6",
     "lodash.zip": "^4.2.0",
     "minimatch": "^5.0.0",
     "puppeteer-core": "19.2.0",
