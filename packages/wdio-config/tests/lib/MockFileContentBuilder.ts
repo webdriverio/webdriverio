@@ -1,9 +1,7 @@
 import fs from 'node:fs'
-import merge from 'deepmerge'
+import { deepmerge } from 'deepmerge-ts'
 
 import { MockSystemFilePath } from './MockPathService.js'
-
-const MERGE_OPTIONS = { clone: false }
 
 export type MockFileContent = string | object;
 export type FilePathAndContent = [MockSystemFilePath, MockFileContent];
@@ -51,7 +49,7 @@ export default class MockFileContentBuilder {
      * @param enhanceContents
      */
     withTheseContentsMergedOn( enhanceContents = {}) : MockFileContentBuilder {
-        this.fileContents = merge(this.fileContents, enhanceContents, MERGE_OPTIONS)
+        this.fileContents = deepmerge(this.fileContents, enhanceContents)
         return this
     }
 

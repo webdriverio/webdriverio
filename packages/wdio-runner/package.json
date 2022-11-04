@@ -31,7 +31,7 @@
     "@wdio/logger": "7.19.0",
     "@wdio/types": "7.20.7",
     "@wdio/utils": "7.20.7",
-    "deepmerge": "^4.0.0",
+    "deepmerge-ts": "^4.2.2",
     "expect-webdriverio": "^4.0.0-alpha.3",
     "gaze": "^1.1.2",
     "webdriver": "7.20.7",

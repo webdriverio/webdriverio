@@ -1,4 +1,4 @@
-import merge from 'deepmerge'
+import { deepmerge } from 'deepmerge-ts'
 import logger from '@wdio/logger'
 import { remote, multiremote, attach } from 'webdriverio'
 import { DEFAULTS } from 'webdriver'
@@ -7,8 +7,6 @@ import type { Options, Capabilities } from '@wdio/types'
 import type { Browser, MultiRemoteBrowser } from 'webdriverio'
 
 const log = logger('@wdio/runner')
-
-const MERGE_OPTIONS = { clone: false }
 
 export interface ConfigWithSessionId extends Omit<Options.Testrunner, 'capabilities'> {
     sessionId?: string,
@@ -86,10 +84,9 @@ export async function initialiseInstance (
     // @ts-expect-error ToDo(Christian): can be removed?
     delete config.capabilities
     for (let browserName of Object.keys(capabilities)) {
-        options[browserName] = merge(
+        options[browserName] = deepmerge(
             config,
-            (capabilities as Capabilities.MultiRemoteCapabilities)[browserName],
-            MERGE_OPTIONS
+            (capabilities as Capabilities.MultiRemoteCapabilities)[browserName]
         )
     }
 

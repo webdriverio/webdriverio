@@ -1,4 +1,4 @@
-import merge from 'deepmerge'
+import { deepmerge } from 'deepmerge-ts'
 import logger from '@wdio/logger'
 import type { Capabilities, Options, Services } from '@wdio/types'
 
@@ -13,7 +13,6 @@ import { SUPPORTED_HOOKS, SUPPORTED_FILE_EXTENSIONS, DEFAULT_CONFIGS, NO_NAMED_C
 import type { PathService, ModuleImportService } from '../types'
 
 const log = logger('@wdio/config:ConfigParser')
-const MERGE_OPTIONS = { clone: false }
 
 type Spec = string | string[]
 type ESMImport = { config?: TestrunnerOptionsWithParameters }
@@ -77,13 +76,13 @@ export default class ConfigParser {
             /**
              * clone the original config
              */
-            const fileConfig = merge<Omit<Options.Testrunner, 'capabilities'> & { capabilities?: Capabilities.RemoteCapabilities }>(config, {}, MERGE_OPTIONS)
+            const fileConfig = deepmerge(config) as Omit<Options.Testrunner, 'capabilities'> & { capabilities?: Capabilities.RemoteCapabilities }
 
             /**
              * merge capabilities
              */
             const defaultTo: Capabilities.RemoteCapabilities = Array.isArray(this._capabilities) ? [] : {}
-            this._capabilities = merge<Capabilities.RemoteCapabilities>(this._capabilities, fileConfig.capabilities || defaultTo, MERGE_OPTIONS)
+            this._capabilities = deepmerge(this._capabilities, fileConfig.capabilities || defaultTo)
             delete fileConfig.capabilities
 
             /**
@@ -95,7 +94,7 @@ export default class ConfigParser {
                 delete fileConfig[hookName]
             }
 
-            this._config = merge(this._config, fileConfig, MERGE_OPTIONS)
+            this._config = deepmerge(this._config, fileConfig)
 
             /**
              * remove `watch` from config as far as it can be only passed as command line argument
@@ -114,7 +113,7 @@ export default class ConfigParser {
     merge(object: MergeConfig = {}) {
         const spec = Array.isArray(object.spec) ? object.spec : []
         const exclude = Array.isArray(object.exclude) ? object.exclude : []
-        this._config = merge(this._config, object, MERGE_OPTIONS) as TestrunnerOptionsWithParameters
+        this._config = deepmerge(this._config, object) as TestrunnerOptionsWithParameters
 
         /**
          * overwrite config specs that got piped into the wdio command
@@ -369,7 +368,7 @@ export default class ConfigParser {
                 if (filenames.length === 0 && !omitWarnings) {
                     log.warn('pattern', pattern, 'did not match any file')
                 }
-                files = merge(files, filenames, MERGE_OPTIONS)
+                files = deepmerge(files, filenames)
             }
         }
         return files
