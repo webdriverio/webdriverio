@@ -28,8 +28,16 @@
   "publishConfig": {
     "access": "public"
   },
-  "dependencies": {
+  "peerDependencies": {
     "expect-webdriverio": "^4.0.0-alpha.3",
     "webdriverio": "7.20.7"
+  },
+  "peerDependenciesMeta": {
+    "webdriverio": {
+      "optional": true
+    },
+    "expect-webdriverio": {
+      "optional": true
+    }
   }
 }

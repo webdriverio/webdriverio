@@ -89,6 +89,7 @@
     "eslint-plugin-import": "^2.26.0",
     "eslint-plugin-unicorn": "^44.0.0",
     "eslint-plugin-wdio": "^7.21.0",
+    "expect-webdriverio": "^3.4.0",
     "husky": "^8.0.1",
     "inquirer": "^9.1.2",
     "jsdom": "^20.0.0",
