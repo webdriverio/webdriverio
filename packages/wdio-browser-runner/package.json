@@ -30,20 +30,23 @@
     "@babel/plugin-proposal-class-properties": "^7.18.6",
     "@esbuild-plugins/node-globals-polyfill": "^0.1.1",
     "@originjs/vite-plugin-commonjs": "^1.0.3",
-    "@wdio/globals": "^7.20.7",
-    "@wdio/local-runner": "^7.20.7",
+    "@wdio/globals": "7.20.7",
+    "@wdio/local-runner": "7.20.7",
     "@wdio/logger": "7.19.0",
-    "@wdio/mocha-framework": "^7.20.7",
+    "@wdio/mocha-framework": "7.20.7",
     "@wdio/protocols": "^7.20.6",
     "@wdio/runner": "7.20.7",
     "@wdio/types": "7.20.7",
-    "expect-webdriverio": "^4.0.0-alpha.4",
+    "expect-webdriverio": "^4.0.0-alpha.6",
     "get-port": "^6.1.2",
     "vite": "^3.1.7",
     "vite-plugin-top-level-await": "^1.2.1",
-    "webdriver": "^7.20.7",
+    "webdriver": "7.20.7",
     "webdriverio": "7.20.7",
     "ws": "^8.10.0"
+  },
+  "scripts": {
+    "prepare": "rimraf node_modules/@wdio/config node_modules/@wdio/repl node_modules/@wdio/utils"
   },
   "publishConfig": {
     "access": "public"
