@@ -51,7 +51,7 @@ WebdriverIO provides multiple commands to wait on elements to reach a certain st
 
 ```js
 // wdio.conf.js
-exports.config = {
+export const config = {
     // ...
     waitforTimeout: 5000,
     // ...
@@ -98,7 +98,7 @@ In Cucumber, the timeout applies to a single step definition. However, if you wa
 <!--Mocha-->
 ```js
 // wdio.conf.js
-exports.config = {
+export const config = {
     // ...
     framework: 'mocha',
     mochaOpts: {
@@ -110,7 +110,7 @@ exports.config = {
 <!--Jasmine-->
 ```js
 // wdio.conf.js
-exports.config = {
+export const config = {
     // ...
     framework: 'jasmine',
     jasmineOpts: {
@@ -122,7 +122,7 @@ exports.config = {
 <!--Cucumber-->
 ```js
 // wdio.conf.js
-exports.config = {
+export const config = {
     // ...
     framework: 'cucumber',
     cucumberOpts: {

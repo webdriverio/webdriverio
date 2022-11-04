@@ -17,12 +17,12 @@ Instructions on how to install `WebdriverIO` can be found [here.](https://webdri
 
 ## Configuration
 
-WebdriverIO has Browserstack support out of the box. You should simply set `user` and `key` in your `wdio.conf.js` file. This service plugin provides supports for [Browserstack Tunnel](https://www.browserstack.com/automate/node#setting-local-tunnel). Set `browserstackLocal: true` also to activate this feature.
+WebdriverIO has Browserstack support out of the box. You should set `user` and `key` in your `wdio.conf.js` file. This service plugin provides support for [Browserstack](https://www.browserstack.com/automate/node#setting-local-tunnel) Tunnel](https://www.browserstack.com/automate/node#setting-local-tunnel). Set `browserstackLocal: true` also to activate this feature.
 Reporting of session status on BrowserStack will respect `strict` setting of Cucumber options.
 
 ```js
 // wdio.conf.js
-exports.config
+export const config = {
     // ...
     user: process.env.BROWSERSTACK_USERNAME,
     key: process.env.BROWSERSTACK_ACCESS_KEY,
@@ -46,20 +46,20 @@ Type: `Boolean`<br />
 Default: `false`
 
 ### preferScenarioName
-Cucumber only. Set this to true to enable updating the session name to the Scenario name if only a single Scenario was ran. Useful when running in parallel with [wdio-cucumber-parallel-execution](https://github.com/SimitTomar/wdio-cucumber-parallel-execution).
+Cucumber only. Set this to true to enable updating the session name to the Scenario name if only a single Scenario was run. Useful when running in parallel with [wdio-cucumber-parallel-execution](https://github.com/SimitTomar/wdio-cucumber-parallel-execution).
 
 Type: `Boolean`<br />
 Default: `false`
 
 ### forcedStop
-Set this to true to kill the browserstack process on complete, without waiting for the browserstack stop callback to be called. This is experimental and should not be used by all. Mostly necessary as a workaraound for [this issue](https://github.com/browserstack/browserstack-local-nodejs/issues/41).
+Set this to true to kill the Browserstack process on complete, without waiting for the browserstack stop callback to be called. This is experimental and should not be used by all. Mostly necessary as a workaraound for [this issue](https://github.com/browserstack/browserstack-local-nodejs/issues/41).
 
 Type: `Boolean`<br />
 Default: `false`
 
 ### app
 
-[Appium](https://appium.io/) set this with app file path available locally on your machine to use the app as [application under test](https://www.browserstack.com/docs/app-automate/appium/set-up-tests/specify-app) for Appium sessions.
+[Appium](https://appium.io/) set this with the app file path available locally on your machine to use the app as [application under test](https://www.browserstack.com/docs/app-automate/appium/set-up-tests/specify-app) for Appium sessions.
 
 Type: `String` or `JsonObject`<br />
 Default: `undefined`
@@ -67,8 +67,7 @@ Default: `undefined`
 List of available app values:
 
 #### path
-
-Use local available app file path as application under test for appium.
+Use locally available app file path as an application under test for Appium.
 
 ```js
 services: [
@@ -82,7 +81,7 @@ services: [
 ]
 ```
 
-Pass custom_id while app upload.
+Pass custom_id while the app upload.
 
 ```js
 services: [
@@ -96,8 +95,7 @@ services: [
 ```
 
 #### id
-
-Use app url returned after uploading app to BrowserStack.
+Use the app URL returned after uploading the app to BrowserStack.
 
 ```js
 services: [

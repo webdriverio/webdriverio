@@ -172,7 +172,7 @@ export default class BaseReporter {
          *
          * ```js
          * import MyCustomReporter from '/some/path/MyCustomReporter.js'
-         * exports.config
+         * export const config = {
          *     //...
          *     reporters: [
          *         MyCustomReporter, // or
@@ -197,7 +197,7 @@ export default class BaseReporter {
          * check if reporter is a node package, e.g. wdio-dot reporter
          *
          * ```js
-         * exports.config
+         * export const config = {
          *     //...
          *     reporters: [
          *         'dot', // or

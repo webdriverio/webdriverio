@@ -9,18 +9,16 @@ Optionally, you can also parametrize your test by setting cloud-specific capabil
 
 ```js
 // wdio.conf.js
-
-let config = {...}
+export let config = {...}
 if (process.env.CI) {
     config.user = process.env.SAUCE_USERNAME
     config.key = process.env.SAUCE_ACCESS_KEY
 }
-exports.config = config
 ```
 
 ## Sauce Labs
 
-It is easy to set up your tests to run remotely in [Sauce Labs](https://saucelabs.com).
+You can set up your tests to run remotely in [Sauce Labs](https://saucelabs.com).
 
 The only requirement is to set the `user` and `key` in your config (either exported by `wdio.conf.js` or passed into `webdriverio.remote(...)`) to your Sauce Labs username and access key.
 
@@ -177,9 +175,9 @@ build: `myApp #${process.env.TRAVIS_BUILD_NUMBER}.${process.env.TRAVIS_JOB_NUMBE
 ## Perfecto
 
 When using wdio with [`Perfecto`](https://www.perfecto.io), you need to create a security token for each user and add this in the capabilities structure (in addition to other capabilities), as follows:
-  
+
 ```js
-exports.config = {
+export const config = {
   capabilities: [{
     // ...
     securityToken: "your security token"
@@ -189,10 +187,8 @@ exports.config = {
 In addition, you need to add cloud configuration, as follows:
 
 ```js
-  
   hostname: "your_cloud_name.perfectomobile.com",
   path: "/nexperience/perfectomobile/wd/hub",
   port: 443,
   protocol: "https",
 ```
-  

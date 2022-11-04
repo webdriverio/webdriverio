@@ -26,15 +26,15 @@ Instructions on how to install `WebdriverIO` can be found [here.](https://webdri
 
 ## Configuration
 
-In order to use the service for the virtual machine and em/simulator cloud you need to set `user` and `key` in your `wdio.conf.js` file. It will automatically use Sauce Labs to run your integration tests. If you run your tests on Sauce Labs you can specify the region you want to run your tests in via the `region` property. Available short handles for regions are `us` (default), `eu` and `apac`. These regions are used for the Sauce Labs VM cloud and the Sauce Labs Real Device Cloud. If you don't provide the region, it defaults to `us`.
+To use the service for the virtual machine and em/simulator cloud you need to set `user` and `key` in your `wdio.conf.js` file. It will automatically use Sauce Labs to run your integration tests. If you run your tests on Sauce Labs you can specify the region you want to run your tests in via the `region` property. Available short handles for regions are `us` (default), `eu` and `apac`. These regions are used for the Sauce Labs VM cloud and the Sauce Labs Real Device Cloud. If you don't provide the region, it defaults to `us`.
 
 > NOTE: By default the `ondemand.us-west-1.saucelabs.com` US endpoint will be used. This is the new Unified Platform endpoint. If you want to use the *old* endpoint then don't provide a region and add `hostname: ondemand.saucelabs.com` to your configuration file.
 
-If you want WebdriverIO to automatically spin up a [Sauce Connect](https://wiki.saucelabs.com/display/DOCS/Sauce+Connect+Proxy) tunnel, you just need to set `sauceConnect: true`. If you would like to change data center to EU add `region:'eu'` or APAC add `region:'apac'` as US data center is set as default (region only works on ^4.14.1 or ^5.0.0).
+If you want WebdriverIO to automatically spin up a [Sauce Connect](https://wiki.saucelabs.com/display/DOCS/Sauce+Connect+Proxy) tunnel, you need to set `sauceConnect: true`. If you would like to change the data center to EU add `region:'eu'` or APAC add `region:'apac'` as US data center is set as default (region only works on ^4.14.1 or ^5.0.0).
 
 ```js
 // wdio.conf.js
-exports.config
+export const config = {
     // ...
     user: process.env.SAUCE_USERNAME,
     key: process.env.SAUCE_ACCESS_KEY,
@@ -51,12 +51,12 @@ exports.config
 };
 ```
 
-If you want to use an existing Sauce Connect tunnel you only need to provide, or the `tunnelIdentifier`, or if you are using a parent tunnel the `parentTunnel` into you capabilites like this:
+If you want to use an existing Sauce Connect tunnel you only need to provide or the `tunnelIdentifier`, or if you are using a parent tunnel the `parentTunnel` into you capabilities like this:
 
 <!--DOCUSAURUS_CODE_TABS-->
 <!--Tunnel Identifier-->
 ```js
-exports.config
+export const config = {
     // ...
     {
         browserName: 'chrome',
@@ -77,7 +77,7 @@ exports.config
 ```
 <!--Parent Tunnel-->
 ```js
-exports.config
+export const config = {
     // ...
     {
         browserName: 'chrome',
@@ -99,7 +99,7 @@ exports.config
 ```
 <!--END_DOCUSAURUS_CODE_TABS-->
 
-If you want to use the Real Device cloud just pass the `testobject_api_key` in the capabilities like this:
+If you want to use the Real Device cloud pass the `testobject_api_key` in the capabilities like this:
 
 ```js
 capabilities = [
@@ -117,10 +117,10 @@ capabilities = [
 
 ## Sauce Service Options
 
-In order to authorize to the Sauce Labs service your config needs to contain a [`user`](https://webdriver.io/docs/options#user) and [`key`](https://webdriver.io/docs/options#key) option.
+To authorize the Sauce Labs service your config needs to contain a [`user`](https://webdriver.io/docs/options#user) and [`key`](https://webdriver.io/docs/options#key) option.
 
 ### maxErrorStackLength
-This service will automatically push the error stack to Sauce Labs when a test fails. By default it will only push the first 5 lines, but if needed this can be changed. Be aware that more lines will result in more WebDriver calls which might slow down the execution.
+This service will automatically push the error stack to Sauce Labs when a test fails. By default, it will only push the first 5 lines, but if needed this can be changed. Be aware that more lines will result in more WebDriver calls which might slow down the execution.
 
 Type: `number`<br />
 Default: `5`
@@ -136,7 +136,7 @@ Default: `false`
 *(only for vm and or em/simulators)*
 
 ### sauceConnectOpts
-Apply Sauce Connect options (e.g. to change port number or logFile settings). See [this list](https://wiki.saucelabs.com/display/DOCS/Sauce+Connect+Proxy+Command-Line+Quick+Reference+Guide) for more information. Per default the service disables SC proxy auto-detection as via `noAutodetect` as this can be unreliable for some machines.
+Apply Sauce Connect options (e.g. to change port number or logFile settings). See [this list](https://wiki.saucelabs.com/display/DOCS/Sauce+Connect+Proxy+Command-Line+Quick+Reference+Guide) for more information. Per default, the service disables SC proxy auto-detection via `noAutodetect`` as this can be unreliable for some machines.
 
 NOTE: When specifying the options the `--` should be omitted. It can also be turned into camelCase (e.g. `shared-tunnel` or `sharedTunnel`).
 
@@ -147,7 +147,7 @@ Default: `{ noAutodetect: true }`
 
 ### uploadLogs
 
-If `true` this options uploads all WebdriverIO log files to the Sauce Labs platform for further inspection. Make sure you have [`outputDir`](https://webdriver.io/docs/options#outputdir) set in your wdio config to write logs into files, otherwise data will be streamed to stdout and can't get uploaded.
+If `true` this option uploads all WebdriverIO log files to the Sauce Labs platform for further inspection. Make sure you have [`outputDir`](https://webdriver.io/docs/options#outputdir) set in your wdio config to write logs into files, otherwise data will be streamed to stdout and can't get uploaded.
 
 Type: `Boolean`<br />
 Default: `true`

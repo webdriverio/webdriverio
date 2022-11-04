@@ -1,7 +1,7 @@
 WebdriverIO Appium Service
 ==========================
 
-Handling the Appium server is out of scope of the actual WebdriverIO project. This service helps you to run the Appium server seamlessly when running tests with the [WDIO testrunner](https://webdriver.io/docs/clioptions). It starts the [Appium Server](http://appium.io/docs/en/about-appium/getting-started/index.html#starting-appium) in a child process.
+Handling the Appium server is out of the scope of the actual WebdriverIO project. This service helps you to run the Appium server seamlessly when running tests with the [WDIO testrunner](https://webdriver.io/docs/clioptions). It starts the [Appium Server](http://appium.io/docs/en/about-appium/getting-started/index.html#starting-appium) in a child process.
 
 ## Installation
 
@@ -19,7 +19,7 @@ In order to use the service you need to add `appium` to your service array:
 
 ```js
 // wdio.conf.js
-exports.config
+export const config = {
     // ...
     port: 4723, // default appium port
     services: ['appium'],
@@ -33,7 +33,7 @@ The following options can be added to the wdio.conf.js file. To define options f
 
 ```js
 // wdio.conf.js
-exports.config
+export const config = {
     // ...
     port: 4723, // default appium port
     services: [
@@ -47,13 +47,13 @@ exports.config
 ```
 
 ### logPath
-Path where all logs from the Appium server should be stored.
+The path where all logs from the Appium server should be stored.
 
 Type: `String`
 
 Example:
 ```js
-exports.config
+export const config = {
     // ...
     services: [
         ['appium', {
@@ -65,13 +65,13 @@ exports.config
 ```
 
 ### command
-To use your own installation of Appium, e.g. globally installed, specify the command which should be started.
+To use your installation of Appium, e.g. globally installed, specify the command which should be started.
 
 Type: `String`
 
 Example:
 ```js
-exports.config
+export const config = {
     // ...
     services: [
         ['appium', {
@@ -94,7 +94,7 @@ Default: `{}`
 
 Example:
 ```js
-exports.config
+export const config = {
     // ...
     services: [
         ['appium', {

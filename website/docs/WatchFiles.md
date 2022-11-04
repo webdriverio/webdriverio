@@ -13,7 +13,7 @@ By default it only watches for changes in your `specs` files. However by setting
 
 ```js
 // wdio.conf.js
-exports.config
+export const config = {
     // ...
     filesToWatch: [
         // watch for all JS files in my app

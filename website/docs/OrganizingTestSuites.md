@@ -17,7 +17,7 @@ If you run your own WebDriver grid, you may (for example) have more capacity for
 
 ```js
 // wdio.conf.js
-exports.config = {
+export const config = {
     // ...
     // set maxInstance for all browser
     maxInstances: 10,
@@ -48,7 +48,7 @@ import { deepmerge } from 'deepmerge-ts'
 import wdioConf from './wdio.conf.js'
 
 // have main config file as default but overwrite environment specific information
-exports.config = deepmerge(wdioConf.config, {
+export const config = deepmerge(wdioConf.config, {
     capabilities: [
         // more caps defined here
         // ...
@@ -61,18 +61,18 @@ exports.config = deepmerge(wdioConf.config, {
 }, { clone: false })
 
 // add an additional reporter
-exports.config.reporters.push('allure')
+config.reporters.push('allure')
 ```
 
 ## Grouping Test Specs In Suites
 
-You can easily group test specs in suites and run single specific suites instead of all of them.
+You can group test specs in suites and run single specific suites instead of all of them.
 
 First, define your suites in your WDIO config:
 
 ```js
 // wdio.conf.js
-exports.config = {
+export const config = {
     // define all tests
     specs: ['./test/specs/**/*.spec.js'],
     // ...
@@ -106,7 +106,7 @@ wdio wdio.conf.js --suite login --suite otherFeature
 
 As described above, there are benefits in running the tests concurrently.  However, there are cases where it would be beneficial to group tests together to run sequentially in a single instance.  Examples of this are mainly where there is a large setup cost e.g. transpiling code or provisioning cloud instances, but there are also advanced usage models that benefit from this capability.
 
-To group tests to run in a single instance, simply define them as an array within the specs definition.
+To group tests to run in a single instance, define them as an array within the specs definition.
 
 ```json
     "specs": [
@@ -278,7 +278,7 @@ If you require both of these capabilities in your config file, then the Android 
 
 ```js
 //wdio.conf.js
-exports.config = {
+export const config = {
     "specs": [
         "tests/general/**/*.js"
     ],

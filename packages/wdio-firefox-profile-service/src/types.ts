@@ -50,7 +50,7 @@ export interface FirefoxProfileOptions extends FirefoxSettings {
      * @example
      * ```js
      * // Automatic Proxy
-     * exports.config
+     * export const config = {
      *     // ...
      *     services: [
      *         ['firefox-profile', {
@@ -65,7 +65,7 @@ export interface FirefoxProfileOptions extends FirefoxSettings {
      * ```
      * ```js
      * // Manual HTTP Proxy
-     * exports.config
+     * export const config = {
      *     // ...
      *     services: [
      *         ['firefox-profile', {
@@ -80,7 +80,7 @@ export interface FirefoxProfileOptions extends FirefoxSettings {
      * ```
      * ```js
      * // Manual HTTP and HTTPS Proxy
-     * exports.config
+     * export const config = {
      *     // ...
      *     services: [
      *         ['firefox-profile', {

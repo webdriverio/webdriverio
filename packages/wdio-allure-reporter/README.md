@@ -28,7 +28,7 @@ npm install @wdio/allure-reporter --save-dev
 Configure the output directory in your wdio.conf.js file:
 
 ```js
-exports.config = {
+export const config = {
     // ...
     reporters: [['allure', {
         outputDir: 'allure-results',
@@ -49,7 +49,7 @@ exports.config = {
 
 ## Supported Allure API
 * `addLabel(name, value)` - assign a custom label to test
-* `addFeature(featureName)` – assign feature to test
+* `addFeature(featureName)` – assign features to test
 * `addStory(storyName)` – assign user story to test
 * `addSeverity(value)` – assign severity to test, accepts one of these values: blocker, critical, normal, minor, trivial
 * `addIssue(value)` – assign issue id to test
@@ -59,7 +59,7 @@ exports.config = {
     * `name` (*String*) - attachment name.
     * `content` – attachment content.
     * `type` (*String*, optional) – attachment MIME-type, `text/plain` by default
-* `addArgument(name, value)` - add additional argument to test
+* `addArgument(name, value)` - add an additional argument to test
 * `addDescription(description, [type])` – add description to test.
     * `description` (*String*) - description of the test.
     * `type` (*String*, optional) – description type, `text` by default. Values ['text', 'html','markdown']
@@ -123,7 +123,7 @@ This will generate a report (by default in `./allure-report`), and open it in yo
 
 ### Autogenerate Report
 
-You can also auto generate the report by using the Allure command line tool programmatically. To do so install the package in your project by:
+You can also auto-generate the report by using the Allure command line tool programmatically. To do so install the package in your project by:
 
 ```sh
 npm i allure-commandline
@@ -135,7 +135,7 @@ Then add or extend your `onComplete` hook or create a [custom service](/docs/cus
 // wdio.conf.js
 const allure = require('allure-commandline')
 
-exports.config = {
+export const config = {
     // ...
     onComplete: function() {
         const reportError = new Error('Could not generate Allure report')

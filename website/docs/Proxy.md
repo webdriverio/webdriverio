@@ -71,7 +71,7 @@ In order to tunnel the connection between the browser and the internet, you can 
 The `proxy` parameters can be applied via the standard capabilities the following way:
 
 ```js title="wdio.conf.js"
-exports.config = {
+export const config = {
     // ...
     capabilities: [{
         browserName: 'chrome',

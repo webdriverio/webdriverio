@@ -15,7 +15,7 @@ Instructions on how to install `WebdriverIO` can be found [here.](https://webdri
 
 ## Usage
 
-Get/set a value (plain object) to/from the store by key (string). The key can be any arbitrary string except `*` which is reserved as it allows you to fetch the whole store.
+Get/set a value (a plain object) to/from the store by key (string). The key can be any arbitrary string except `*` which is reserved as it allows you to fetch the whole store.
 
 ### Set Values
 
@@ -55,17 +55,17 @@ onPrepare: [async function (config, capabilities) {
 }],
 ```
 
-IMPORTANT! Every spec file should be atomic and isolated from others specs.
+IMPORTANT! Every spec file should be atomic and isolated from others' specs.
 The idea of the service is to deal with very specific environment setup issues.
 Please avoid sharing test execution data!
 
 ## Configuration
 
-Just add `shared-store` to services list and the `sharedStore` object will be accessible to you in your test.
+Add `shared-store` to the services list and the `sharedStore` object will be accessible to you in your test.
 
 ```js
 // wdio.conf.js
-exports.config
+export const config = {
     // ...
     services: ['shared-store'],
     // ...

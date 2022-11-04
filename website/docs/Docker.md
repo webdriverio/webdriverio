@@ -28,7 +28,7 @@ We are using a Docker image here that comes with Google Chrome pre-installed. Th
 As we can only run Google Chrome in headless mode in our Docker container we have to modify our `wdio.conf.js` to ensure we do that:
 
 ```js title="wdio.conf.js"
-exports.config
+export const config = {
     // ...
     capabilities: [{
         maxInstances: 1,

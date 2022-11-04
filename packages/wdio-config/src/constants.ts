@@ -100,6 +100,6 @@ export const SUPPORTED_FILE_EXTENSIONS = [
 
 export const NO_NAMED_CONFIG_EXPORT = (
     'No named export object called "config" found. Make sure you export the config object ' +
-    'via `exports.config = { ... }` when using CommonJS or `export config = { ... }` when ' +
+    'via `export.config = { ... }` when using CommonJS or `export const config = { ... }` when ' +
     'using ESM. Read more on this on https://webdriver.io/docs/configurationfile !'
 )

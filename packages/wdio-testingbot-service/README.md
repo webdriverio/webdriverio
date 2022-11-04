@@ -15,12 +15,12 @@ Instructions on how to install `WebdriverIO` can be found [here.](https://webdri
 
 ## Configuration
 
-In order to use the service you need to set `user` and `key` in your `wdio.conf.js` file, and set the `host` option to `hub.testingbot.com`. If you want to use [TestingBot Tunnel](https://testingbot.com/support/other/tunnel)
-you just need to set `tbTunnel: true`.
+In order to use the service you need to set `user` and `key` in your `wdio.conf.js` file, and set the `hostname` option to `hub.testingbot.com`. If you want to use [TestingBot Tunnel](https://testingbot.com/support/other/tunnel)
+you need to set `tbTunnel: true`.
 
 ```js
 // wdio.conf.js
-exports.config
+export const config = {
     // ...
     user: process.env.TB_KEY,
     key: process.env.TB_SECRET,
@@ -35,7 +35,7 @@ exports.config
 
 ## Options
 
-In order to authorize to the TestingBot service your config needs to contain a [`user`](https://webdriver.io/docs/options#user) and [`key`](https://webdriver.io/docs/options#key) option.
+To authorize the TestingBot service your config needs to contain a [`user`](https://webdriver.io/docs/options#user) and [`key`](https://webdriver.io/docs/options#key) option.
 
 ### tbTunnel
 If true it runs the TestingBot Tunnel and opens a secure connection between a TestingBot Virtual Machine running your browser tests.

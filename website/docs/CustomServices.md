@@ -125,7 +125,7 @@ Modify your `wdio.conf.js` file to look like this:
 ```js
 import CustomService from './service/my.custom.service'
 
-exports.config = {
+export const config = {
     // ...
     services: [
         /**
@@ -158,7 +158,7 @@ Following the recommended naming pattern allows services to be added by name:
 
 ```js
 // Add wdio-custom-service
-exports.config = {
+export const config = {
     // ...
     services: ['custom'],
     // ...

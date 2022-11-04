@@ -47,7 +47,7 @@ For example, given this config:
 
 ```js
 // wdio.conf.js
-exports.config = {
+export const config = {
     // ...
     capabilities: {
         platformName: 'iOS',

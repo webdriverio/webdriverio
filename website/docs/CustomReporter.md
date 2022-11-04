@@ -176,7 +176,7 @@ Following the recommended naming pattern allows services to be added by name:
 
 ```js
 // Add wdio-custom-reporter
-exports.config = {
+export const config = {
     // ...
     reporter: ['custom'],
     // ...
