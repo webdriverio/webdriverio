@@ -83,7 +83,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
      */
     async beforeSuite (suite: Frameworks.Suite) {
         this._suiteTitle = suite.title
-        if (suite.title !== 'Jasmine__TopLevel__Suite') {
+        if (suite.title && suite.title !== 'Jasmine__TopLevel__Suite' && this._fullTitle !== suite.title) {
             this._fullTitle = suite.title
             await this._updateJob({ name: this._fullTitle })
         }
@@ -93,25 +93,27 @@ export default class BrowserstackService implements Services.ServiceInstance {
      * Update the job name using concatenation of suite titles.
      */
     async beforeTest (test: Frameworks.Test) {
+        let jobName = ''
         if (test.fullName) {
             // For Jasmine, `suite.title` is `Jasmine__TopLevel__Suite`.
             // This tweak allows us to set the real suite name.
             const testSuiteName = test.fullName.slice(0, test.fullName.indexOf(test.description || '') - 1)
             if (this._suiteTitle === 'Jasmine__TopLevel__Suite') {
-                this._fullTitle = testSuiteName
+                jobName = testSuiteName
             } else if (this._suiteTitle) {
-                this._fullTitle = getParentSuiteName(this._suiteTitle, testSuiteName)
+                jobName = getParentSuiteName(this._suiteTitle, testSuiteName)
             }
         } else {
             // Mocha
-            this._fullTitle = this._suiteTitle
+            jobName = this._suiteTitle
                 ? this._suiteTitle !== test.parent
                     ? `${this._suiteTitle} - ${test.parent}`
                     : this._suiteTitle
                 : test.parent ?? test.title
         }
 
-        if (this._fullTitle) {
+        if (jobName && this._fullTitle !== jobName) {
+            this._fullTitle = jobName
             await this._updateJob({ name: this._fullTitle })
         }
     }
@@ -121,8 +123,10 @@ export default class BrowserstackService implements Services.ServiceInstance {
      */
     beforeFeature(uri: unknown, feature: { name: string }) {
         this._suiteTitle = feature.name
-        this._fullTitle = feature.name
-        return this._updateJob({ name: this._fullTitle })
+        if (feature.name && this._fullTitle !== feature.name) {
+            this._fullTitle = feature.name
+            return this._updateJob({ name: this._fullTitle })
+        }
     }
 
     afterTest(test: Frameworks.Test, context: never, results: Frameworks.TestResult) {

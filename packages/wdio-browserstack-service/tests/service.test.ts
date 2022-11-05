@@ -335,16 +335,46 @@ describe('beforeSuite', () => {
 })
 
 describe('beforeTest', () => {
-    it('should set title for Mocha tests', () => {
+    it('should set title for Mocha tests using concatenation of outermost and innermost suite names ', () => {
         service.before(service['_config'] as any, [], browser)
-        service.beforeSuite({ title: 'foo' } as any)
-        service.beforeTest({ title: 'bar', parent: 'foo' } as any)
-        service.afterTest({ title: 'bar', parent: 'foo' } as any, undefined as never, {} as any)
-        expect(service['_fullTitle']).toBe('foo')
+        service.beforeSuite({ title: 'Project Title' } as any)
+        expect(service['_fullTitle']).toBe('Project Title')
+        service.beforeTest({ title: 'bar', parent: 'Suite Title' } as any)
+        expect(service['_fullTitle']).toBe('Project Title - Suite Title')
+        service.afterTest({ title: 'bar', parent: 'Suite Title' } as any, undefined as never, {} as any)
+        expect(service['_fullTitle']).toBe('Project Title - Suite Title')
+        expect(got.put).toBeCalledTimes(2)
         expect(got.put).toBeCalledWith(
             `${sessionBaseUrl}/${sessionId}.json`,
             {
-                json: { name: 'foo' },
+                json: { name: 'Project Title' },
+                username: 'foo',
+                password: 'bar'
+            }
+        )
+        expect(got.put).toBeCalledWith(
+            `${sessionBaseUrl}/${sessionId}.json`,
+            {
+                json: { name: 'Project Title - Suite Title' },
+                username: 'foo',
+                password: 'bar'
+            }
+        )
+    })
+
+    it('should not set title for Mocha tests if title has not changed', () => {
+        service.before(service['_config'] as any, [], browser)
+        service.beforeSuite({ title: 'Suite Title' } as any)
+        expect(service['_fullTitle']).toBe('Suite Title')
+        service.beforeTest({ title: 'bar', parent: 'Suite Title' } as any)
+        expect(service['_fullTitle']).toBe('Suite Title')
+        service.afterTest({ title: 'bar', parent: 'Suite Title' } as any, undefined as never, {} as any)
+        expect(service['_fullTitle']).toBe('Suite Title')
+        expect(got.put).toBeCalledTimes(1)
+        expect(got.put).toBeCalledWith(
+            `${sessionBaseUrl}/${sessionId}.json`,
+            {
+                json: { name: 'Suite Title' },
                 username: 'foo',
                 password: 'bar'
             }
@@ -385,25 +415,25 @@ describe('beforeTest', () => {
                 }
             )
         })
-    })
 
-    it('should send the session name as suite name by default', async () => {
-        service.before(service['_config'] as any, [], browser)
-        service['_suiteTitle'] = 'Suite Title'
-        await service.beforeSuite({ title: 'foobar suite' } as any)
-        await service.beforeTest({
-            fullName: 'my test can do something',
-            description: 'foobar'
-        } as any)
-        expect(got.put).toBeCalledTimes(1)
-        expect(got.put).toBeCalledWith(
-            `${sessionBaseUrl}/${sessionId}.json`,
-            {
-                json: { name: 'foobar suite' },
-                username: 'foo',
-                password: 'bar'
-            }
-        )
+        it('should send the session name as suite name by default', async () => {
+            service.before(service['_config'] as any, [], browser)
+            service['_suiteTitle'] = 'Suite Title'
+            await service.beforeSuite({ title: 'foobar suite' } as any)
+            await service.beforeTest({
+                fullName: 'my test can do something',
+                description: 'foobar'
+            } as any)
+            expect(got.put).toBeCalledTimes(1)
+            expect(got.put).toBeCalledWith(
+                `${sessionBaseUrl}/${sessionId}.json`,
+                {
+                    json: { name: 'foobar suite' },
+                    username: 'foo',
+                    password: 'bar'
+                }
+            )
+        })
     })
 })
 
