@@ -112,6 +112,14 @@ export default class BrowserstackService implements Services.ServiceInstance {
                 : test.parent ?? test.title
         }
 
+        if (this._options.setJobName) {
+            jobName = this._options.setJobName(
+                this._config,
+                this._caps,
+                this._suiteTitle!
+            )
+        }
+
         if (jobName && this._fullTitle !== jobName) {
             this._fullTitle = jobName
             await this._updateJob({ name: this._fullTitle })
