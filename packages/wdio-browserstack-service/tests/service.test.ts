@@ -384,6 +384,36 @@ describe('beforeTest', () => {
         )
     })
 
+    it('should set title via custom setJobName method', async () => {
+        const service = new BrowserstackService({
+            setJobName: (config, caps, title) => {
+                return `${config.region}-${(caps as any).browserName}-${title}`
+            }
+        } as any, {
+            browserName: 'foobar'
+        }, {
+            user: 'foo',
+            key: 'bar',
+            region: 'barfoo'
+        } as any)
+        await service.before(service['_config'] as any, [], browser)
+        service['_browser'] = browser
+        service['_suiteTitle'] = 'Suite Title'
+        await service.beforeSuite({ title: 'Suite Title' } as any)
+        await service.beforeTest({
+            fullName: 'my test can do something',
+            description: 'foobar'
+        } as any)
+        expect(got.put).toBeCalledWith(
+            `${sessionBaseUrl}/${sessionId}.json`,
+            {
+                json: { name: 'barfoo-foobar-Suite Title' },
+                username: 'foo',
+                password: 'bar'
+            }
+        )
+    })
+
     describe('Jasmine only', () => {
         it('should set suite name of first test as title', () => {
             service.before(service['_config'] as any, [], browser)

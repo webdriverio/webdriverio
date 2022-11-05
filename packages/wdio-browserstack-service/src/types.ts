@@ -1,3 +1,5 @@
+import type { Capabilities, Options } from '@wdio/types'
+
 export interface SessionResponse {
     // eslint-disable-next-line camelcase
     automation_session: {
@@ -61,4 +63,12 @@ export interface BrowserstackConfig {
      * ```
      */
     opts?: Partial<import('browserstack-local').Options>
+    /**
+     * Dynamically control the name of the job in Browserstack.
+     */
+     setJobName?: (
+        config: Options.Testrunner,
+        capabilities: Capabilities.RemoteCapability,
+        suiteTitle: string
+    ) => string
 }
