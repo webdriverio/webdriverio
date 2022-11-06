@@ -23,7 +23,6 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "dependencies": {
-    "@mswjs/interceptors": "^0.17.6",
     "@types/gitconfiglocal": "^2.0.1",
     "@types/node": "^18.7.23",
     "@types/request": "^2.48.8",

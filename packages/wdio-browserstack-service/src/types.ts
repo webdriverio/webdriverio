@@ -1,3 +1,5 @@
+import { Capabilities } from '@wdio/types';
+
 export interface SessionResponse {
     // eslint-disable-next-line camelcase
     automation_session: {
@@ -74,7 +76,7 @@ export interface PlatformMeta {
     browserName?: string,
     browserVersion?: string,
     platformName?: string,
-    caps?: string,
+    caps?: Capabilities.Capabilities,
     product?: string
 }
 
