@@ -15,7 +15,7 @@ import { App, AppConfig, AppUploadResponse } from './types'
 import { version as bstackServiceVersion } from '../package.json'
 import { BrowserstackConfig } from './types'
 import { VALID_APP_EXTENSION } from './constants'
-import { getLaunchInfo, launchTestSession, stopBuildUpstream } from './util'
+import { launchTestSession, stopBuildUpstream } from './util'
 
 const log = logger('@wdio/browserstack-service')
 
@@ -26,6 +26,9 @@ type BrowserstackLocal = BrowserstackLocalLauncher.Local & {
 
 export default class BrowserstackLauncherService implements Services.ServiceInstance {
     browserstackLocal?: BrowserstackLocal
+    _buildName?: string
+    _projectName?: string
+    _buildTag?: string
 
     constructor (
         private _options: BrowserstackConfig & Options.Testrunner,
@@ -45,6 +48,9 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                     }
                 } else {
                     capability['bstack:options'].wdioService = bstackServiceVersion
+                    this._buildName = capability['bstack:options'].buildName
+                    this._projectName = capability['bstack:options'].projectName
+                    this._buildTag = capability['bstack:options'].buildTag
                 }
             })
         } else if (typeof capabilities === 'object') {
@@ -57,7 +63,11 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                         (caps.capabilities as Capabilities.Capabilities)['browserstack.wdioService'] = bstackServiceVersion
                     }
                 } else {
-                    (caps.capabilities as Capabilities.Capabilities)['bstack:options']!.wdioService = bstackServiceVersion
+                    const bstackOptions = (caps.capabilities as Capabilities.Capabilities)['bstack:options']
+                    bstackOptions!.wdioService = bstackServiceVersion
+                    this._buildName = bstackOptions!.buildName
+                    this._projectName = bstackOptions!.projectName
+                    this._buildTag = bstackOptions!.buildTag
                 }
             })
         }
@@ -110,18 +120,12 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         if (this._options.testObservability) {
             log.debug('sending launch start event')
 
-            let buildName: any
-            let projectName: any
-            let buildTag: any
-
-            [buildName, projectName, buildTag] = getLaunchInfo(capabilities)
-
             const bsConfig = {
                 username : process.env.BROWSERSTACK_USERNAME || this._config.user,
                 password : process.env.BROWSERSTACK_ACCESS_KEY || this._config.key,
-                projectName: projectName,
-                buildName: buildName,
-                buildTag: buildTag
+                projectName: this._projectName,
+                buildName: this._buildName || process.cwd(),
+                buildTag: this._buildTag
             }
             const [BS_TESTOPS_JWT, BS_TESTOPS_BUILD_HASHED_ID] = await launchTestSession(bsConfig)
             if (BS_TESTOPS_JWT !== null) process.env.BS_TESTOPS_JWT = BS_TESTOPS_JWT

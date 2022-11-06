@@ -1,7 +1,6 @@
 import type { Browser, MultiRemoteBrowser } from 'webdriverio'
 import got from 'got'
 import gitRepoInfo from 'git-repo-info'
-import { Repository } from 'nodegit'
 
 import {
     getBrowserDescription,
@@ -683,22 +682,6 @@ describe('getGitMetaData', () => {
     })
 
     it('return non empty object', async () => {
-
-        jest.spyOn(Repository, 'open').mockImplementation(() => Promise.resolve({
-            getHeadCommit: jest.fn().mockReturnValue({
-                author: jest.fn().mockReturnValue({
-                    name: jest.fn().mockReturnValue('author-name'),
-                    email: jest.fn().mockReturnValue('author-email')
-                }),
-                committer: jest.fn().mockReturnValue({
-                    name: jest.fn().mockReturnValue('committer-name'),
-                    email: jest.fn().mockReturnValue('committer-email')
-                }),
-                message: jest.fn().mockReturnValue('commitMessage'),
-                date: jest.fn().mockReturnValue('committerDate'),
-            })
-        }))
-
         jest.mocked(gitRepoInfo).mockReturnValue({ commonGitDir: '/tmp', worktreeGitDir: '/tmp' } as any)
         try {
             const result: any = await getGitMetaData()
