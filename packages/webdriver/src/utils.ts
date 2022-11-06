@@ -1,4 +1,4 @@
-import { deepmerge } from 'deepmerge-ts'
+import { deepmergeCustom } from 'deepmerge-ts'
 
 import logger from '@wdio/logger'
 import Protocols from '@wdio/protocols'
@@ -17,6 +17,7 @@ import type { WebDriverResponse } from './request/index.js'
 import type { Client, JSONWPCommandError, SessionFlags } from './types'
 
 const log = logger('webdriver')
+const deepmerge = deepmergeCustom({ mergeArrays: false })
 
 const BROWSER_DRIVER_ERRORS = [
     'unknown command: wd/hub/session', // chromedriver
