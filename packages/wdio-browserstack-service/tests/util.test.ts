@@ -12,7 +12,6 @@ import {
     isBrowserstackSession,
     getUniqueIdentifier,
     getUniqueIdentifierForCucumber,
-    getLaunchInfo,
     removeAnsiColors,
     getScenarioNameWithExamples,
     stopBuildUpstream,
@@ -302,46 +301,6 @@ describe('getUniqueIdentifierForCucumber', () => {
             }
         }
         expect(getUniqueIdentifierForCucumber(test)).toEqual('uri_1,2')
-    })
-})
-
-describe('getLaunchInfo', () => {
-    it('handle empty caps', () => {
-        const capabilities = {}
-        expect(getLaunchInfo(capabilities)).toEqual([process.cwd(), undefined, undefined])
-    })
-
-    it('handle caps of type object', () => {
-        const capabilities = {
-            'bstack:options': {
-                buildName: 'buildName',
-                projectName: 'projectName',
-                buildTag: 'buildTag'
-            }
-        }
-        expect(getLaunchInfo(capabilities)).toEqual(['buildName', 'projectName', 'buildTag'])
-    })
-
-    it('handle caps of type array', () => {
-        const capabilities = [{
-            'bstack:options': {
-                buildName: 'buildName',
-                projectName: 'projectName',
-                buildTag: 'buildTag'
-            }
-        }]
-        expect(getLaunchInfo(capabilities)).toEqual(['buildName', 'projectName', 'buildTag'])
-    })
-
-    it('handle old way to defined build and project names', () => {
-        const capabilities = {
-            'bstack:options': {
-                build: 'buildName',
-                project: 'projectName',
-                buildTag: 'buildTag'
-            }
-        }
-        expect(getLaunchInfo(capabilities)).toEqual(['buildName', 'projectName', 'buildTag'])
     })
 })
 
