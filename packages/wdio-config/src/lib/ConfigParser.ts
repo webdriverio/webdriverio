@@ -76,7 +76,7 @@ export default class ConfigParser {
             /**
              * clone the original config
              */
-            const fileConfig = deepmerge(config) as Omit<Options.Testrunner, 'capabilities'> & { capabilities?: Capabilities.RemoteCapabilities }
+            const fileConfig = Object.assign({}, config)
 
             /**
              * merge capabilities
@@ -368,7 +368,7 @@ export default class ConfigParser {
                 if (filenames.length === 0 && !omitWarnings) {
                     log.warn('pattern', pattern, 'did not match any file')
                 }
-                files = deepmerge(files, filenames)
+                files = [...files, ...filenames]
             }
         }
         return files
