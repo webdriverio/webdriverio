@@ -47,7 +47,7 @@
     "@wdio/utils": "7.20.7",
     "glob": "^8.0.3",
     "is-glob": "^4.0.0",
-    "long": "^4.0.0",
+    "long": "^5.2.1",
     "mockery": "^2.1.0"
   },
   "publishConfig": {
