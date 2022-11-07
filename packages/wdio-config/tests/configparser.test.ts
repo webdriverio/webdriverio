@@ -703,39 +703,59 @@ describe('ConfigParser', () => {
             const configParser = ConfigParserForTest()
             configParser.addConfigFile(FIXTURES_CONF)
             configParser.merge({ spec: [INDEX_PATH, FIXTURES_CONF] })
-            configParser.merge({ exclude: [path.resolve(__dirname).replace(/\\/g, '/') + '/*'] })
-            const specs = configParser.getSpecs()
-            expect(specs).toHaveLength(2)
+
+            // first validate that the conf fixture 'spec' was merged successfully
+            expect(configParser.getSpecs()).toHaveLength(1)
+
+            configParser.merge({ exclude: [path.join(__dirname, '**', '*conf*').replace(/\\/g, '/')] })
+
+            // then after merging an exclude containing a glob pattern, validate that the exclude
+            // attribute contains multiple items and the filtering on the spec attribute works
+            expect(configParser.getConfig().exclude.length).toBeGreaterThan(0)
+            expect(configParser.getSpecs()).toHaveLength(0)
         })
 
-        it('should overwrite exclude if piped into cli command', () => {
+        it('should overwrite config exclude if piped into cli command', () => {
             const configParser = ConfigParserForTestWithAllFiles()
             configParser.addConfigFile(FIXTURES_CONF)
+            // check that the initial exclude from the config filtered out 1 spec (out of a total of 4)
+            expect(configParser.getSpecs()).toHaveLength(3)
+
             configParser.merge({ exclude: [INDEX_PATH] })
-            const specs = configParser.getSpecs()
-            expect(specs).toHaveLength(4)
+            // after overriding the config exclude with cli exclude check that the initial config exclude is discarded
+            expect(configParser.getSpecs()).toHaveLength(4)
         })
 
-        it('should overwrite exclude if piped into cli command with params', () => {
+        it('should overwrite config and capabilities exclude if piped into cli command', () => {
             const configParser = ConfigParserForTestWithAllFiles()
             configParser.addConfigFile(FIXTURES_CONF)
-            configParser.merge({})
+            expect(configParser.getSpecs()).toHaveLength(3)
 
-            const utilsPath = path.join(__dirname, '..', 'src', 'utils.ts')
-            const indexPath = path.join(__dirname, '..', 'src', 'index.ts')
-            const specs = configParser.getSpecs([indexPath, utilsPath], [utilsPath])
-            expect(specs).toEqual([indexPath])
+            configParser.merge({ exclude: [FIXTURES_CONF] })
+            const specs = configParser.getSpecs([FIXTURES_CONF, FIXTURES_CONF_RDC], [FIXTURES_CONF_RDC])
+            expect(specs).toEqual([FIXTURES_CONF_RDC])
         })
 
-        it('should overwrite exclude if piped into cli command with params in suite', () => {
+        it('should overwrite config and capabilities exclude if piped into cli command with suite', () => {
             const configParser = ConfigParserForTestWithAllFiles()
-            configParser.addConfigFile(FIXTURES_CONF)
-            configParser.merge({ suite: ['mobile'] })
+            const requireLibPath = path.join(__dirname, 'RequireLibrary.test.ts')
+            const configParserPath = path.join(__dirname, 'configparser.test.ts')
 
-            const utilsPath = path.join(__dirname, '..', 'src', 'utils.ts')
-            const indexPath = path.join(__dirname, '..', 'src', 'index.ts')
-            const specs = configParser.getSpecs([indexPath, utilsPath], [utilsPath])
-            expect(specs).toEqual([indexPath])
+            configParser.addConfigFile(FIXTURES_CONF)
+            configParser.merge({ suite: ['mobile', 'unit'] })
+
+            // the initial list of specs has the ones defined in the suites passed via cli 'suite' (RequireLibrary & configparser)
+            expect(configParser.getSpecs()).toHaveLength(2)
+
+            // set a cli exclude
+            configParser.merge({ exclude: [requireLibPath] })
+
+            // set capability 'specs' and 'exclude'
+            const specs = configParser.getSpecs([configParserPath, requireLibPath], [configParserPath])
+
+            // validate that only the cli exclude is taken into account and the 'configparser' test is not removed
+            expect(specs).toHaveLength(1)
+            expect(specs).toContain(configParserPath)
         })
 
         it('should set hooks to empty arrays as default', () => {
@@ -833,7 +853,6 @@ describe('ConfigParser', () => {
         })
 
         it('should exclude/include capability excludes', () => {
-            // const configParser = ConfigParserForTest()
             const configParser = ConfigParserForTestWithAllFiles()
 
             configParser.addConfigFile(FIXTURES_CONF)
@@ -845,14 +864,24 @@ describe('ConfigParser', () => {
         })
 
         it('should exclude/include capability excludes in suites', () => {
-            // const configParser = ConfigParserForTest()
             const configParser = ConfigParserForTestWithAllFiles()
             configParser.addConfigFile(FIXTURES_CONF)
             configParser.merge({ suite: ['unit', 'mobile'] })
 
-            const specs = configParser.getSpecs([INDEX_PATH], [path.join(__dirname, 'RequireLibrary.test.ts')])
-            expect(specs).not.toContain(path.join(__dirname, 'RequireLibrary.test.ts'))
-            expect(specs).toContain(INDEX_PATH)
+            const configParserPath = path.join(__dirname, 'configparser.test.ts')
+            const requireLibPath = path.join(__dirname, 'RequireLibrary.test.ts')
+            const getSpecs = () => configParser.getSpecs([INDEX_PATH], [requireLibPath])
+
+            // verify that the capability exclude was ignored since
+            // config exclude takes precedence over capability exclude
+            expect(getSpecs()).toContain(requireLibPath)
+            expect(getSpecs()).toContain(configParserPath)
+
+            // verify that the capability exclude is applied successfully
+            // when the config exclude is not defined
+            configParser.getConfig().exclude = []
+            expect(getSpecs()).not.toContain(requireLibPath)
+            expect(getSpecs()).toContain(configParserPath)
         })
 
         it('should include typescript files', () => {

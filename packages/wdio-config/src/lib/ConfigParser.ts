@@ -183,17 +183,28 @@ export default class ConfigParser {
     }
 
     /**
-     * get excluded files from config pattern
+     * determine what specs to run based on the spec(s), suite(s), exclude
+     * attributes from CLI, config and capabilities
      */
-    getSpecs(capSpecs?: string[], capExclude?: string[]) {
+    getSpecs(capSpecs?: Spec[], capExclude?: Spec[]) {
+        const isSpecParamPassed = Array.isArray(this._config.spec)
+        // when CLI --spec is explicitly specified, this._config.specs contains the filtered
+        // specs matching the passed pattern else the specs defined inside the config are returned
         let specs = ConfigParser.getFilePaths(this._config.specs!, undefined, this._pathService)
-        let spec = Array.isArray(this._config.spec) ? this._config.spec : []
         let exclude = ConfigParser.getFilePaths(this._config.exclude!, undefined, this._pathService)
         let suites = Array.isArray(this._config.suite) ? this._config.suite : []
 
-        /**
-         * check if user has specified a specific suites to run
-         */
+        // only use capability excludes if (CLI) --exclude or config exclude are not defined
+        if (Array.isArray(capExclude) && exclude.length === 0){
+            exclude = ConfigParser.getFilePaths(capExclude, undefined, this._pathService)
+        }
+
+        // only use capability specs if (CLI) --spec is not defined
+        if (!isSpecParamPassed && Array.isArray(capSpecs)){
+            specs = ConfigParser.getFilePaths(capSpecs, undefined, this._pathService)
+        }
+
+        // handle case where user passes --suite via CLI
         if (suites.length > 0) {
             let suiteSpecs: Spec[] = []
             for (let suiteName of suites) {
@@ -212,34 +223,11 @@ export default class ConfigParser {
             }
 
             // Allow --suite and --spec to both be defined on the command line
-            // Removing any duplicate tests that could be included
-            let tmpSpecs = spec.length > 0 ? [...specs, ...suiteSpecs] : suiteSpecs
-
-            //Only merge capability specs if --spec is not defined
-            if (spec.length === 0) {
-                if (Array.isArray(capSpecs)) {
-                    tmpSpecs = ConfigParser.getFilePaths(capSpecs, undefined, this._pathService)
-                }
-
-                if (Array.isArray(capExclude)) {
-                    exclude = ConfigParser.getFilePaths(capExclude, undefined, this._pathService)
-                }
-            }
-
-            specs = [...new Set(tmpSpecs)]
-            return this.filterSpecs(specs, <string[]>exclude)
+            specs = isSpecParamPassed ? [...specs, ...suiteSpecs] : suiteSpecs
         }
 
-        //Only merge capability specs if --spec is not defined
-        if (spec.length === 0) {
-            if (Array.isArray(capSpecs)) {
-                specs = ConfigParser.getFilePaths(capSpecs, undefined, this._pathService)
-            }
-
-            if (Array.isArray(capExclude)) {
-                exclude = ConfigParser.getFilePaths(capExclude, undefined, this._pathService)
-            }
-        }
+        // Remove any duplicate tests from the final specs array
+        specs = [...new Set(specs)]
 
         return this.filterSpecs(specs, <string[]>exclude)
     }
@@ -259,7 +247,7 @@ export default class ConfigParser {
         cliArgFileList.forEach(filteredFile => {
             filteredFile = removeLineNumbers(filteredFile)
             // Send single file/file glob to getFilePaths - not supporting hierarchy in spec/exclude
-            // Return value will alwyas be string[]
+            // Return value will always be string[]
             let globMatchedFiles = <string[]>ConfigParser.getFilePaths(this._pathService.glob(filteredFile), undefined, this._pathService)
             if (this._pathService.isFile(filteredFile)) {
                 filesToFilter.add(this._pathService.ensureAbsolutePath(filteredFile))
@@ -311,10 +299,10 @@ export default class ConfigParser {
     /**
      * returns a flattened list of globbed files
      *
-     * @param  {String[] | String[][]} filenames list of files to glob
-     * @param  {Boolean} flag to indicate omission of warnings
-     * @param  {FileSystemPathService} file system path service for expanding globbed file names
-     * @param  {number} hierarchy depth to prevent recursive calling beyond a depth of 1
+     * @param  {String[] | String[][]} patterns list of files to glob
+     * @param  {Boolean} omitWarnings to indicate omission of warnings
+     * @param  {FileSystemPathService} findAndGlob system path service for expanding globbed file names
+     * @param  {number} hierarchyDepth depth to prevent recursive calling beyond a depth of 1
      * @return {String[] | String[][]} list of files
      */
     static getFilePaths(patterns: Spec[], omitWarnings?: boolean, findAndGlob: PathService = new FileSystemPathService(), hierarchyDepth?: number) {
@@ -326,7 +314,6 @@ export default class ConfigParser {
         }
 
         // patterns must be an array of strings and/or string arrays
-        // check and throw and error if not
         if (!Array.isArray(patterns)) {
             throw new Error('specs or exclude property should be an array of strings, specs may also be an array of string arrays')
         }
