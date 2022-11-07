@@ -255,11 +255,30 @@ export interface ChromeOptions {
      * more information.
      */
     perfLoggingPrefs?: {
+        /**
+         * Whether or not to collect events from Network domain.
+         * @default true
+         */
         enableNetwork?: boolean;
+        /**
+         * Whether or not to collect events from Page domain.
+         * @default true
+         */
         enablePage?: boolean;
-        enableTimeline?: boolean;
-        tracingCategories?: boolean;
-        bufferUsageReportingInterval?: boolean;
+        /**
+         * A comma-separated string of Chrome tracing categories for which trace events
+         * should be collected. An unspecified or empty string disables tracing.
+         * @default ''
+         */
+        tracingCategories?: string;
+        /**
+         * The requested number of milliseconds between DevTools trace buffer
+         * usage events. For example, if 1000, then once per second, DevTools
+         * will report how full the trace buffer is. If a report indicates the
+         * buffer usage is 100%, a warning will be issued.
+         * @default 1000
+         */
+        bufferUsageReportingInterval?: number;
     };
     /**
      * A dictionary with each entry consisting of the name of the preference and its value.
