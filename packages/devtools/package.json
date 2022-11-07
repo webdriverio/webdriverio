@@ -46,7 +46,7 @@
     "query-selector-shadow-dom": "^1.0.0",
     "ua-parser-js": "^1.0.1",
     "uuid": "^9.0.0",
-    "which": "^2.0.2"
+    "which": "^3.0.0"
   },
   "devDependencies": {
     "@types/node": "^18.0.0",
