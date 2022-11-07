@@ -8,7 +8,7 @@ import { v4 as uuidv4 } from 'uuid'
 import { getCloudProvider, getScenarioNameWithExamples, getUniqueIdentifier, getUniqueIdentifierForCucumber, isBrowserstackSession, removeAnsiColors, uploadEventData } from './util'
 import { TestData, TestMeta, PlatformMeta } from './types'
 
-export class InsightsHandler {
+export default class InsightsHandler {
 
     private _browser?: Browser<'async'> | MultiRemoteBrowser<'async'>
     private _tests: { [index: string]: TestMeta }
@@ -185,12 +185,7 @@ export class InsightsHandler {
 
     async afterCommand(commandName: string, args: any[], result: any, error?: Error, test?: any) {
         if (test && commandName == 'takeScreenshot') {
-            let identifier
-            if ('pickle' in test) {
-                identifier = getUniqueIdentifierForCucumber(test)
-            } else {
-                identifier = getUniqueIdentifier(test)
-            }
+            const identifier = this.getIdentifier(test)
             let log = {
                 test_run_uuid: this._tests[identifier].uuid,
                 timestamp: new Date().toISOString(),
@@ -209,17 +204,11 @@ export class InsightsHandler {
         if (commandType == 'client:beforeCommand') {
             this._commands[`${args.sessionId}_${args.method}_${args.endpoint}`] = args
         } else {
-            if (!test) return
+            if (test == undefined) return
 
             const dataKey = `${args.sessionId}_${args.method}_${args.endpoint}`
             const requestData = this._commands[dataKey]
-
-            let identifier
-            if ('pickle' in test) {
-                identifier = getUniqueIdentifierForCucumber(test)
-            } else {
-                identifier = getUniqueIdentifier(test)
-            }
+            const identifier = this.getIdentifier(test)
 
             let log = {
                 test_run_uuid: this._tests[identifier].uuid,
@@ -418,5 +407,12 @@ export class InsightsHandler {
             'platform': this._platformMeta?.platformName,
             'product': this._platformMeta?.product
         }
+    }
+
+    private getIdentifier(test: any) {
+        if ('pickle' in test) {
+            return getUniqueIdentifierForCucumber(test)
+        }
+        return getUniqueIdentifier(test)
     }
 }

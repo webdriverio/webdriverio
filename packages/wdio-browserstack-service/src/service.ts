@@ -8,7 +8,7 @@ import { BrowserstackConfig, MultiRemoteAction, SessionResponse } from './types'
 import type { Pickle, Feature } from '@cucumber/messages'
 import type { ITestCaseHookParameter } from '@cucumber/cucumber/lib/support_code_library_builder/types'
 import path from 'path'
-import { InsightsHandler } from './insights-handler'
+import InsightsHandler from './insights-handler'
 
 const log = logger('@wdio/browserstack-service')
 
