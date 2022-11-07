@@ -3,7 +3,6 @@ import logger from '@wdio/logger'
 import type { Browser } from 'webdriverio'
 
 import BrowserstackService from '../src/service'
-import InsightsHandler from '../src/insights-handler'
 import * as utils from '../src/util'
 
 interface GotMock extends jest.Mock {
@@ -15,7 +14,6 @@ const expect = global.expect as unknown as jest.Expect
 
 const log = logger('test')
 let service: BrowserstackService
-const insightsHandler = new InsightsHandler('framework')
 let browser: Browser
 
 jest.useFakeTimers().setSystemTime(new Date('2020-01-01'))
