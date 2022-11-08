@@ -77,22 +77,28 @@ describe('BaseReporter', () => {
             .toMatch(/(\\|\/)foo(\\|\/)bar(\\|\/)baz(\\|\/)wdio-0-0-dot-reporter.log/)
     })
 
-    it('should return custom log file name', () => {
+    it('should return custom log file name using cid and capabilities', async () => {
         const reporter = new BaseReporter({
             outputDir: '/foo/bar',
             reporters: [
                 'dot',
                 ['dot', {
                     foo: 'bar',
-                    outputFileFormat: (options: any) => {
-                        return `wdio-results-${options.cid}.xml`
+                    outputFileFormat: (options) => {
+                        const { cid, capabilities } = options
+                        expect(cid).toBe('0-0')
+                        expect(capabilities).toBe(capability)
+                        if ('browserName' in capabilities) {
+                            const { browserName } = capabilities
+                            return `wdio-results-${cid}-${browserName}.log`
+                        }
                     }
                 }]
             ]
         } as Options.Testrunner, '0-0', capability)
 
         expect(reporter.getLogFile('dot'))
-            .toMatch(/(\\|\/)foo(\\|\/)bar(\\|\/)wdio-results-0-0.xml/)
+            .toMatch(/(\\|\/)foo(\\|\/)bar(\\|\/)wdio-results-0-0-foo.log/)
     })
 
     it('should throw error if outputFileFormat is not a function', () => {
