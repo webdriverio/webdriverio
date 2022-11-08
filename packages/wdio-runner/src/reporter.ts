@@ -43,7 +43,10 @@ export default class BaseReporter {
 
     getLogFile (name: string) {
         // clone the config to avoid changing original properties
-        let options = Object.assign({}, this._config) as any
+        let options = Object.assign({}, this._config) as Omit<Options.Testrunner, 'capabilities'> & {
+            cid: string
+            capabilities: Capabilities.RemoteCapability
+        }
         let filename = `wdio-${this._cid}-${name}-reporter.log`
 
         const reporterOptions = this._config.reporters!.find((reporter) => (
@@ -52,9 +55,9 @@ export default class BaseReporter {
                 reporter[0] === name ||
                 typeof reporter[0] === 'function' && reporter[0].name === name
             )
-        )) as { outputFileFormat?: Function }[]
+        ))
 
-        if (reporterOptions) {
+        if (reporterOptions && Array.isArray(reporterOptions)) {
             const fileformat = reporterOptions[1].outputFileFormat
 
             options.cid = this._cid
