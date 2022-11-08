@@ -10,10 +10,8 @@ export default class ConciseReporter extends WDIOReporter {
     private _stateCounts = { failed: 0 }
 
     constructor(options: Reporters.Options) {
-        /**
-        * make Concise reporter to write to output stream by default
-        */
-        super(Object.assign(options, { stdout: true }))
+        // write to output stream by default
+        super(Object.assign({ stdout: true }, options))
     }
 
     onSuiteStart (suite: SuiteStats): void {
@@ -33,9 +31,9 @@ export default class ConciseReporter extends WDIOReporter {
     }
 
     /**
-    * Print the Concise report to the screen
-    * @param  {Object} runner Wdio runner
-    */
+     * Print the Concise report to the screen
+     * @param  {Object} runner Wdio runner
+     */
     printReport(runner: RunnerStats): void {
         const header = chalk.yellow('========= Your concise report ==========')
 
@@ -49,9 +47,9 @@ export default class ConciseReporter extends WDIOReporter {
     }
 
     /**
-    * Get the display for failing tests
-    * @return {String} Count display
-    */
+     * Get the display for failing tests
+     * @return {String} Count display
+     */
     getCountDisplay () {
         const failedTestsCount = this._stateCounts.failed
 
@@ -61,9 +59,9 @@ export default class ConciseReporter extends WDIOReporter {
     }
 
     /**
-    * Get display for failed tests, e.g. stack trace
-    * @return {Array} Stack trace output
-    */
+     * Get display for failed tests, e.g. stack trace
+     * @return {Array} Stack trace output
+     */
     getFailureDisplay () {
         const output: string[] = []
 
