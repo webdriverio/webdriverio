@@ -109,6 +109,24 @@ export const config: Options.Testrunner = {<%
         // 'path/to/excluded/files'
     ],
     //
+    // ======
+    // Runner
+    // ======
+    // WebdriverIO supports running e2e tests as well as unit and component tests.
+    runner: <%
+    if (answers.runner === 'browser') {
+        if (answers.preset) {
+            %>['browser', {
+        preset: '<%- answers.preset %>'
+    }]<%
+        } else {
+            %>'browser'<%
+        }
+    } else {
+        %>'local'<%
+    }
+    %>,
+    //
     // ============
     // Capabilities
     // ============
@@ -131,7 +149,7 @@ export const config: Options.Testrunner = {<%
     // https://saucelabs.com/platform/platform-configurator
     //
     capabilities: [{
-    <%if(answers.expEnvAccessKey){%> 'experitest:accessKey': '<%- answers.expEnvAccessKey %>',<%}%>
+    <% if (answers.expEnvAccessKey){%> 'experitest:accessKey': '<%- answers.expEnvAccessKey %>',<% } %>
         // maxInstances can get overwritten per capability. So if you have an in-house Selenium
         // grid with only 5 firefox instances available you can make sure that not more than
         // 5 instances get started at a time.

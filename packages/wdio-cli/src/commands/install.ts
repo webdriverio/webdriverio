@@ -16,6 +16,7 @@ import { SUPPORTED_PACKAGES, CLI_EPILOGUE } from '../constants.js'
 import type { InstallCommandArguments, SupportedPackage } from '../types'
 
 const supportedInstallations = {
+    runner: SUPPORTED_PACKAGES.runner.map(({ value }) => convertPackageHashToObject(value)),
     plugin: SUPPORTED_PACKAGES.plugin.map(({ value }) => convertPackageHashToObject(value)),
     service: SUPPORTED_PACKAGES.service.map(({ value }) => convertPackageHashToObject(value)),
     reporter: SUPPORTED_PACKAGES.reporter.map(({ value }) => convertPackageHashToObject(value)),

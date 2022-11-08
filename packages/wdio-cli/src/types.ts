@@ -4,7 +4,9 @@ import type { BACKEND_CHOICES, REGION_OPTION, COMPILER_OPTION_ANSWERS } from './
 type ValueOf<T> = T[keyof T]
 
 export interface Questionnair {
-    runner: 'local'
+    runner: string
+    preset: string
+    installTestingLibrary: boolean
     backend: ValueOf<typeof BACKEND_CHOICES>
     hostname: string
     port: string
@@ -35,7 +37,7 @@ export interface Questionnair {
 }
 
 export interface ParsedAnswers extends Omit<Questionnair, 'runner' | 'framework' | 'reporters' | 'services' | 'plugins'> {
-    runner: 'local'
+    runner: 'local' | 'browser'
     framework: string
     reporters: string[]
     plugins: string[]

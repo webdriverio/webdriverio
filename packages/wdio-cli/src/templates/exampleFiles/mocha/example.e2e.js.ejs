@@ -4,23 +4,70 @@
  */
 if (usePageObjects) {
 %><%- isUsingTypeScript || isUsingBabel
-    ? `import LoginPage from  '${relativePath}/login.page';`
-    : `const LoginPage = require('${relativePath}/login.page');` %>
+    ? `import LoginPage from  '${relativePath}/login.page'`
+    : `const LoginPage = require('${relativePath}/login.page')` %>
 <%- isUsingTypeScript || isUsingBabel
-    ? `import SecurePage from '${relativePath}/secure.page';`
-    : `const SecurePage = require('${relativePath}/secure.page');` %>
+    ? `import SecurePage from '${relativePath}/secure.page'`
+    : `const SecurePage = require('${relativePath}/secure.page')` %>
 
 describe('My Login application', () => {
     it('should login with valid credentials', async () => {
-        await LoginPage.open();
+        await LoginPage.open()
 
-        await LoginPage.login('tomsmith', 'SuperSecretPassword!');
-        await expect(SecurePage.flashAlert).toBeExisting();
+        await LoginPage.login('tomsmith', 'SuperSecretPassword!')
+        await expect(SecurePage.flashAlert).toBeExisting()
         await expect(SecurePage.flashAlert).toHaveTextContaining(
-            'You logged into a secure area!');
-    });
-});
+            'You logged into a secure area!')
+    })
+})
 
+<% } else if (runner === 'browser') {
+
+const componentSuffix = preset
+    ? preset.includes('react')
+        ? isUsingTypeScript ? 'tsx' : 'jsx'
+        : preset
+    : isUsingTypeScript ? 'ts' : 'js'
+const importStatement = preset
+    ? `import Component from '/path/to/component.${componentSuffix}'`
+    : `import '/path/to/component.${componentSuffix}'`
+const renderStatement = (preset
+    ? [
+        preset.includes('react')
+            ? 'render(<Component />)'
+            : 'render(Component, { prop: \'foobar\' })',
+        'const component = screen.getByText(/Click me!/i)'
+    ]
+    : [
+        `const component = document.createElement('example-component')`,
+        `component.setAttribute('prop', 'foobar')`,
+        `document.body.appendChild(component)`
+    ]
+).join('\n        ')
+const assertionStatement = preset
+    ? `expect(buttonEl).toContainText('Click me!')`
+    : `await expect(buttonEl).toHaveText('Click me!')`
+
+/**
+ * Component Testing
+ */
+%>import { expect, $ } from '@wdio/globals'
+<%- preset && installTestingLibrary ? `import { render, screen } from '@testing-library/${preset}'` : '' %>
+<% if (installTestingLibrary) { %>
+import * as matchers from '@testing-library/jest-dom/matchers'
+expect.extend(matchers)
+<% } %>
+<%- importStatement %>
+
+describe('<%- (preset || 'my') %> component tests', () => {
+    it('should do something cool', async () => {
+        <%- renderStatement %>
+
+        const elem = await $(component)
+        await elem.click()
+        <%- assertionStatement %>
+    })
+})
 <% } else {
 
 /**
@@ -28,15 +75,15 @@ describe('My Login application', () => {
  */
 %>describe('My Login application', () => {
     it('should login with valid credentials', async () => {
-        await browser.url(`https://the-internet.herokuapp.com/login`);
+        await browser.url(`https://the-internet.herokuapp.com/login`)
 
-        await $('#username').setValue('tomsmith');
-        await $('#password').setValue('SuperSecretPassword!');
-        await $('button[type="submit"]').click();
+        await $('#username').setValue('tomsmith')
+        await $('#password').setValue('SuperSecretPassword!')
+        await $('button[type="submit"]').click()
 
-        await expect($('#flash')).toBeExisting();
+        await expect($('#flash')).toBeExisting()
         await expect($('#flash')).toHaveTextContaining(
-            'You logged into a secure area!');
-    });
-});
+            'You logged into a secure area!')
+    })
+})
 <% } %>

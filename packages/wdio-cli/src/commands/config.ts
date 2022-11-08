@@ -7,9 +7,8 @@ import type { Argv } from 'yargs'
 
 import {
     CONFIG_HELPER_INTRO, CLI_EPILOGUE, COMPILER_OPTIONS,
-    TS_COMPILER_INSTRUCTIONS, SUPPORTED_PACKAGES,
-    CONFIG_HELPER_SUCCESS_MESSAGE,
-    DEPENDENCIES_INSTALLATION_MESSAGE,
+    CONFIG_HELPER_SUCCESS_MESSAGE, TESTING_LIBRARY_PACKAGES,
+    DEPENDENCIES_INSTALLATION_MESSAGE, SUPPORTED_PACKAGES,
     pkg
 } from '../constants.js'
 import {
@@ -51,22 +50,30 @@ const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) 
     const servicePackages = answers.services.map((service) => convertPackageHashToObject(service))
     const pluginPackages = answers.plugins.map((plugin)=> convertPackageHashToObject(plugin))
     const reporterPackages = answers.reporters.map((reporter) => convertPackageHashToObject(reporter))
+    const presetPackage = convertPackageHashToObject(answers.preset)
 
     let packagesToInstall: string[] = [
         runnerPackage.package,
         frameworkPackage.package,
+        presetPackage.package,
         ...reporterPackages.map(reporter => reporter.package),
         ...pluginPackages.map(plugin => plugin.package),
         ...servicePackages.map(service => service.package)
-    ]
+    ].filter(Boolean)
 
     /**
      * find relative paths between tests and pages
      */
     const parsedPaths = getPathForFileGeneration(answers)
     const parsedAnswers: ParsedAnswers = {
+        // default values required in templates
+        ...({
+            usePageObjects: false,
+            installTestingLibrary: false
+        }),
         ...answers,
-        runner: runnerPackage.short as 'local',
+        runner: runnerPackage.short as 'local' | 'browser',
+        preset: presetPackage.short,
         framework: frameworkPackage.short,
         reporters: reporterPackages.map(({ short }) => short),
         plugins: pluginPackages.map(({ short }) => short),
@@ -91,16 +98,26 @@ const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) 
             packagesToInstall.push('ts-node', 'typescript')
         }
 
+        const types = [
+            'node',
+            '@wdio/globals/types',
+            'expect-webdriverio',
+            frameworkPackage.package,
+            ...(parsedAnswers.runner === 'browser' ? ['@wdio/browser-runner'] : []),
+            ...servicePackages
+                .map(service => service.package)
+                /**
+                 * given that we know that all "offical" services have
+                 * typescript support we only include them
+                 */
+                .filter(service => service.startsWith('@wdio'))
+        ]
+
         const config = {
             compilerOptions: {
                 moduleResolution: 'node',
-                types: [
-                    'node',
-                    '@wdio/globals/types',
-                    frameworkPackage.package,
-                    'expect-webdriverio'
-                ],
-                target: 'es2019',
+                types,
+                target: 'es2022',
             }
         }
 
@@ -110,6 +127,16 @@ const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) 
             JSON.stringify(config, null, 4)
         )
 
+    }
+
+    /**
+     * install Testing Library dependency if desired
+     */
+    if (answers.installTestingLibrary) {
+        packagesToInstall.push(
+            TESTING_LIBRARY_PACKAGES[presetPackage.short],
+            '@testing-library/jest-dom'
+        )
     }
 
     /**
@@ -193,25 +220,6 @@ const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) 
         }
     } catch (err: any) {
         throw new Error(`Couldn't write config file: ${err.stack}`)
-    }
-
-    /**
-     * print TypeScript configuration message
-     */
-    if (answers.isUsingCompiler === COMPILER_OPTIONS.ts) {
-        const tsPkgs = `"${[
-            '@wdio/globals/types',
-            frameworkPackage.package,
-            'expect-webdriverio',
-            ...servicePackages
-                .map(service => service.package)
-                /**
-                 * given that we know that all "offical" services have
-                 * typescript support we only include them
-                 */
-                .filter(service => service.startsWith('@wdio'))
-        ].join('", "')}"`
-        console.log(util.format(TS_COMPILER_INSTRUCTIONS, tsPkgs))
     }
 
     console.log(util.format(CONFIG_HELPER_SUCCESS_MESSAGE,

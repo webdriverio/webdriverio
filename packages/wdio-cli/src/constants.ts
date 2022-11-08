@@ -1,6 +1,6 @@
 import { createRequire } from 'node:module'
 
-import { validateServiceAnswers, hasFile, getDefaultFiles } from './utils.js'
+import { validateServiceAnswers, hasFile, getDefaultFiles, convertPackageHashToObject } from './utils.js'
 import type { Questionnair } from './types'
 
 const require = createRequire(import.meta.url)
@@ -58,28 +58,19 @@ export const COMPILER_OPTIONS = {
     nil: COMPILER_OPTION_ANSWERS[2]
 } as const
 
-export const TS_COMPILER_INSTRUCTIONS = `To have TypeScript support please add the following packages to your "types" list:
-{
-  "compilerOptions": {
-    "types": ["node", %s]
-  }
-}
-
-For for information on TypeScript integration check out: https://webdriver.io/docs/typescript
-`
-
 /**
  * We have to use a string hash for value because InquirerJS default values do not work if we have
  * objects as a `value` to be stored from the user's answers.
  */
 export const SUPPORTED_PACKAGES = {
     runner: [
-        { name: 'local', value: '@wdio/local-runner$--$local' }
+        { name: 'local - for e2e testing of web and mobile applications', value: '@wdio/local-runner$--$local' },
+        { name: 'browser - for unit and component testing in the browser', value: '@wdio/browser-runner$--$browser' }
     ],
     framework: [
-        { name: 'mocha', value: '@wdio/mocha-framework$--$mocha' },
-        { name: 'jasmine', value: '@wdio/jasmine-framework$--$jasmine' },
-        { name: 'cucumber', value: '@wdio/cucumber-framework$--$cucumber' }
+        { name: 'Mocha (https://mochajs.org/)', value: '@wdio/mocha-framework$--$mocha' },
+        { name: 'Jasmine (https://jasmine.github.io/)', value: '@wdio/jasmine-framework$--$jasmine' },
+        { name: 'Cucumber (https://cucumber.io/)', value: '@wdio/cucumber-framework$--$cucumber' }
     ],
     reporter: [
         { name: 'spec', value: '@wdio/spec-reporter$--$spec' },
@@ -111,17 +102,18 @@ export const SUPPORTED_PACKAGES = {
         { name: 'chromedriver', value: 'wdio-chromedriver-service$--$chromedriver' },
         { name: 'geckodriver', value: 'wdio-geckodriver-service$--$geckodriver' },
         { name: 'edgedriver', value: 'wdio-edgedriver-service$--$edgedriver' },
+        { name: 'safaridriver', value: 'wdio-safaridriver-service$--$safaridriver' },
         // internal
-        { name: 'sauce', value: '@wdio/sauce-service$--$sauce' },
-        { name: 'testingbot', value: '@wdio/testingbot-service$--$testingbot' },
         { name: 'selenium-standalone', value: '@wdio/selenium-standalone-service$--$selenium-standalone' },
+        { name: 'appium', value: '@wdio/appium-service$--$appium' },
         { name: 'vscode', value: 'wdio-vscode-service$--$vscode' },
         { name: 'electron', value: 'wdio-electron-service$--$electron' },
         { name: 'devtools', value: '@wdio/devtools-service$--$devtools' },
-        { name: 'browserstack', value: '@wdio/browserstack-service$--$browserstack' },
-        { name: 'appium', value: '@wdio/appium-service$--$appium' },
-        { name: 'firefox-profile', value: '@wdio/firefox-profile-service$--$firefox-profile' },
+        { name: 'sauce', value: '@wdio/sauce-service$--$sauce' },
+        { name: 'testingbot', value: '@wdio/testingbot-service$--$testingbot' },
         { name: 'crossbrowsertesting', value: '@wdio/crossbrowsertesting-service$--$crossbrowsertesting' },
+        { name: 'browserstack', value: '@wdio/browserstack-service$--$browserstack' },
+        { name: 'firefox-profile', value: '@wdio/firefox-profile-service$--$firefox-profile' },
         // external
         { name: 'eslinter-service', value: 'wdio-eslinter-service$--$eslinter' },
         { name: 'lambdatest', value: 'wdio-lambdatest-service$--$lambdatest' },
@@ -147,8 +139,8 @@ export const SUPPORTED_PACKAGES = {
         { name: 'ms-teams', value: 'wdio-ms-teams-service$--$ms-teams' },
         { name: 'tesults', value: 'wdio-tesults-service$--$tesults' },
         { name: 'azure-devops', value: '@gmangiapelo/wdio-azure-devops-service$--$azure-devops' },
-        { name: 'google-Chat', value: 'wdio-google-chat-service' },
-        { name: 'qmate-service', value: '@sap_oss/wdio-qmate-service--$qmate-service' }
+        { name: 'google-Chat', value: 'wdio-google-chat-service$--$google-chat' },
+        { name: 'qmate-service', value: '@sap_oss/wdio-qmate-service$--$qmate-service' }
     ]
 } as const
 
@@ -156,6 +148,22 @@ export const COMMUNITY_PACKAGES_WITH_V8_SUPPORT = [
     'wdio-chromedriver-service',
     'expect-webdriverio'
 ]
+
+export const SUPPORTED_BROWSER_RUNNER_PRESETS = [
+    { name: 'Lit (https://lit.dev/)', value: '' },
+    { name: 'Vue.js (https://vuejs.org/)', value: '@vitejs/plugin-vue$--$vue' },
+    { name: 'Svelte (https://svelte.dev/)', value: '@sveltejs/vite-plugin-svelte$--$svelte' },
+    { name: 'React (https://reactjs.org/)', value: '@vitejs/plugin-react$--$react' },
+    { name: 'Preact (https://preactjs.com/)', value: '@preact/preset-vite$--$preact' },
+    { name: 'Other', value: '' }
+]
+
+export const TESTING_LIBRARY_PACKAGES: Record<string, string> = {
+    react: '@testing-library/react',
+    preact: '@testing-library/preact',
+    vue: '@testing-library/vue',
+    svelte: '@testing-library/svelte'
+}
 
 export const BACKEND_CHOICES = [
     'On my local machine',
@@ -176,6 +184,10 @@ export const REGION_OPTION = [
     'apac'
 ] as const
 
+function isBrowserRunner (answers: Questionnair) {
+    return answers.runner === SUPPORTED_PACKAGES.runner[1].value
+}
+
 export const QUESTIONNAIRE = [{
     type: 'list',
     name: 'runner',
@@ -185,9 +197,38 @@ export const QUESTIONNAIRE = [{
     when: /* istanbul ignore next */ () => SUPPORTED_PACKAGES.runner.length > 1
 }, {
     type: 'list',
+    name: 'preset',
+    message: 'Which framework do you use for building components?',
+    choices: SUPPORTED_BROWSER_RUNNER_PRESETS,
+    // only ask if there are more than 1 runner to pick from
+    when: /* istanbul ignore next */ isBrowserRunner
+}, {
+    type: 'confirm',
+    name: 'installTestingLibrary',
+    message: 'Do you like to use Testing Library (https://testing-library.com/) as test utility?',
+    default: false,
+    // only ask if there are more than 1 runner to pick from
+    when: /* istanbul ignore next */ (answers: Questionnair) => (
+        isBrowserRunner(answers) &&
+        /**
+         * Only show if Testing Library has an add-on for framework
+         */
+        TESTING_LIBRARY_PACKAGES[convertPackageHashToObject(answers.preset).short]
+    )
+}, {
+    type: 'list',
     name: 'backend',
     message: 'Where is your automation backend located?',
-    choices: BACKEND_CHOICES
+    choices: /* instanbul ignore next */ (answers: Questionnair) => {
+        /**
+         * browser runner currently supports only local testing
+         * until we have tunnel support for other cloud vendors
+         */
+        if (isBrowserRunner(answers)) {
+            return BACKEND_CHOICES.slice(0, 1)
+        }
+        return BACKEND_CHOICES
+    }
 }, {
     type: 'input',
     name: 'hostname',
@@ -302,7 +343,15 @@ export const QUESTIONNAIRE = [{
     type: 'list',
     name: 'framework',
     message: 'Which framework do you want to use?',
-    choices: SUPPORTED_PACKAGES.framework,
+    choices: /* instanbul ignore next */ (answers: Questionnair) => {
+        /**
+         * browser runner currently supports only Mocha framework
+         */
+        if (isBrowserRunner(answers)) {
+            return SUPPORTED_PACKAGES.framework.slice(0, 1)
+        }
+        return SUPPORTED_PACKAGES.framework
+    }
 }, {
     type: 'list',
     name: 'isUsingCompiler',
@@ -341,7 +390,13 @@ export const QUESTIONNAIRE = [{
     name: 'usePageObjects',
     message: 'Do you want to use page objects (https://martinfowler.com/bliki/PageObject.html)?',
     default: true,
-    when: /* istanbul ignore next */ (answers: Questionnair) => answers.generateTestFiles
+    when: /* istanbul ignore next */ (answers: Questionnair) => (
+        answers.generateTestFiles &&
+        /**
+         * page objects aren't common for component testing
+         */
+        !isBrowserRunner(answers)
+    )
 }, {
     type: 'input',
     name: 'pages',
@@ -401,7 +456,9 @@ export const QUESTIONNAIRE = [{
     type: 'input',
     name: 'baseUrl',
     message: 'What is the base url?',
-    default: 'http://localhost'
+    default: 'http://localhost',
+    // no base url for browser tests
+    when: /* istanbul ignore next */ (answers: Questionnair) => !isBrowserRunner(answers)
 }, {
     type: 'confirm',
     name: 'npmInstall',

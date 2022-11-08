@@ -413,9 +413,13 @@ export async function getAnswers(yes: boolean): Promise<Questionnair> {
                     /**
                      * pick first choice, select value if it exists
                      */
-                        ? (question.choices[0] as { value: any }).value
-                            ? (question.choices[0] as { value: any }).value
-                            : question.choices[0]
+                        ? typeof question.choices === 'function'
+                            ? (question.choices(answers)[0] as any as { value: any }).value
+                                ? (question.choices(answers)[0] as any as { value: any }).value
+                                : question.choices(answers)[0]
+                            : (question.choices[0] as { value: any }).value
+                                ? (question.choices[0] as { value: any }).value
+                                : question.choices[0]
                         : {}
                 }
         ), {} as Questionnair)
