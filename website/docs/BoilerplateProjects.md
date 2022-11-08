@@ -17,7 +17,7 @@ Boilerplate project to run Appium tests with WebdriverIO for:
 
 This boilerplate includes the following:
 
-- Framework: Jasmine
+- Framework: Mocha
 - Features:
     - Configs for:
         - iOS and Android app
