@@ -50,7 +50,7 @@ const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) 
     const servicePackages = answers.services.map((service) => convertPackageHashToObject(service))
     const pluginPackages = answers.plugins.map((plugin)=> convertPackageHashToObject(plugin))
     const reporterPackages = answers.reporters.map((reporter) => convertPackageHashToObject(reporter))
-    const presetPackage = convertPackageHashToObject(answers.preset)
+    const presetPackage = convertPackageHashToObject(answers.preset || '')
 
     let packagesToInstall: string[] = [
         runnerPackage.package,

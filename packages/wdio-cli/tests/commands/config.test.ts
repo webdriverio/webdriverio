@@ -60,6 +60,8 @@ const errorLogSpy = vi.spyOn(console, 'error')
 const consoleLogSpy = vi.spyOn(console, 'log')
 
 const args = {
+    runner: '@wdio/local-runner$--$local',
+    preset: '',
     framework: '@wdio/mocha-framework$--$mocha',
     reporters: [
         '@wdio/spec-reporter$--$spec'
@@ -98,7 +100,7 @@ test('should create config file', async () => {
     result.parsedAnswers!.tsConfigFilePath = fileName
     expect(result).toMatchSnapshot()
     expect(addServiceDeps).toBeCalledTimes(1)
-    expect(convertPackageHashToObject).toBeCalledTimes(5)
+    expect(convertPackageHashToObject).toBeCalledTimes(6)
     expect(renderConfigurationFile).toBeCalledTimes(1)
     expect(generateTestFiles).toBeCalledTimes(0)
     expect(getPathForFileGeneration).toBeCalledTimes(1)
@@ -137,6 +139,7 @@ describe('install compliant NPM tag packages', () => {
     // @ts-expect-error
     const setFetchSpec = (fetchSpec) => pkg.setFetchSpec(fetchSpec)
     const args = {
+        runner: '@wdio/local-runner$--$local',
         framework: '@wdio/mocha-framework$--$mocha',
         reporters: [],
         plugins: [],
@@ -167,6 +170,19 @@ describe('install compliant NPM tag packages', () => {
         await handler({} as any)
 
         expect(consoleLogSpy.mock.calls).toMatchSnapshot()
+    })
+
+    it('install testing library packages', async () => {
+        vi.mocked(inquirer.prompt).mockResolvedValue({
+            ...args,
+            installTestingLibrary: true,
+            preset: '$--$vue'
+        })
+        fs.writeFile = vi.fn().mockReturnValue(Promise.resolve(''))
+        await handler({} as any)
+
+        expect(consoleLogSpy.mock.calls[1].join('\n')).toContain('@testing-library/vue')
+        expect(consoleLogSpy.mock.calls[1].join('\n')).toContain('@testing-library/jest-dom')
     })
 
     test('it should install tagged version if cli is tagged with latest', async () => {
@@ -217,6 +233,7 @@ test('prints TypeScript setup message', async () => {
 test('prints TypeScript setup message with ts-node installed', async () => {
     process.env.WDIO_TEST_THROW_RESOLVE = '1'
     vi.mocked(inquirer.prompt).mockResolvedValue({
+        runner: '@wdio/local-runner$--$local',
         framework: '@wdio/mocha-framework$--$mocha',
         reporters: [],
         plugins: [],
@@ -235,10 +252,11 @@ test('prints TypeScript setup message with ts-node installed', async () => {
             types: [
                 'node',
                 '@wdio/globals/types',
+                'expect-webdriverio',
                 '@wdio/mocha-framework',
-                'expect-webdriverio'
+                '@wdio/crossbrowsertesting-service'
             ],
-            target: 'es2019',
+            target: 'es2022',
         }
     }
 
@@ -256,6 +274,7 @@ test('prints TypeScript setup message with ts-node installed', async () => {
 test('should setup Babel if not existing', async () => {
     process.env.WDIO_TEST_THROW_RESOLVE = '1'
     vi.mocked(inquirer.prompt).mockResolvedValue({
+        runner: '@wdio/local-runner$--$local',
         framework: '@wdio/mocha-framework$--$mocha',
         reporters: [],
         plugins: [],
@@ -277,6 +296,7 @@ test('should setup Babel if not existing', async () => {
 test('should not install @babel/register if existing', async () => {
     delete process.env.WDIO_TEST_THROW_RESOLVE
     vi.mocked(inquirer.prompt).mockResolvedValue({
+        runner: '@wdio/local-runner$--$local',
         framework: '@wdio/mocha-framework$--$mocha',
         reporters: [],
         plugins: [],
@@ -300,7 +320,7 @@ test('should not install npm packages when npmInstall is false', async () => {
     expect(yarnInstall).not.toHaveBeenCalled()
 })
 
-describe('missingConfigurationPromp', () => {
+describe('missingConfigurationPrompt', () => {
     it('should prompt user', async () => {
         vi.mocked(inquirer.prompt).mockImplementation(() => ({ config: true }) as any)
         await missingConfigurationPrompt('run', 'foobar', false, vi.fn())
