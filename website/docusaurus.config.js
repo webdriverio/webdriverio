@@ -158,6 +158,7 @@ module.exports = {
                 blog: {
                     showReadingTime: true,
                     postsPerPage: 3,
+                    blogSidebarCount: 7,
                     // Please change this to your repo.
                     editUrl: `${repoUrl}/edit/${branch}/website/blog/`,
                 },

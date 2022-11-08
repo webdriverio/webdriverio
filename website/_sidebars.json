@@ -1,59 +1,112 @@
 {
-  "docs": {
-    "Introduction": [
-      "what-is-webdriverio",
-      "gettingstarted",
-      "boilerplates"
-    ],
-    "Core Concepts": [
-      "setuptypes",
-      "automationProtocols",
-      "multiremote",
-      "autowait"
-    ],
-    "Configuration": [
-      "options",
-      "babel",
-      "typescript",
-      "proxy",
-      "driverbinaries"
-    ],
-    "Guides": [
-      "selectors",
-      "timeouts",
-      "mocksandspies",
-      "customcommands",
-      "pageobjects",
-      "debugging",
-      "repl",
-      "record"
-    ],
-    "Testrunner": [
-      "clioptions",
-      "configurationfile",
-      "frameworks",
-      "assertion",
-      "organizingsuites",
-      "retry",
-      "watcher",
-      "customreporter",
-      "customservices"
-    ],
-    "Migrate": [
-      "v6-migration",
-      "v7-migration",
-      "protractor-migration",
-      "async-migration"
-    ],
-    "Integration": [
-      "cloudservices",
-      "autocompletion",
-      "docker",
-      "githubactions",
-      "jenkins",
-      "bamboo"
-    ]
-  },
+  "docs": [
+    {
+      "type": "category",
+      "label": "Introduction",
+      "link": {
+        "type": "doc",
+        "id": "gettingstarted"
+      },
+      "items": [
+        "what-is-webdriverio",
+        "boilerplates"
+      ]
+    },
+    {
+      "type": "category",
+      "label": "Core Concepts",
+      "items": [
+        "setuptypes",
+        "automationProtocols",
+        "multiremote",
+        "autowait"
+      ]
+    },
+    {
+      "type": "category",
+      "label": "Configuration",
+      "link": {
+        "type": "doc",
+        "id": "configuration"
+      },
+      "items": [
+        "babel",
+        "typescript",
+        "proxy",
+        "driverbinaries"
+      ]
+    },
+    {
+      "type": "category",
+      "label": "Guides",
+      "items": [
+        "selectors",
+        "timeouts",
+        "mocksandspies",
+        "customcommands",
+        "pageobjects",
+        "debugging",
+        "repl",
+        "record"
+      ]
+    },
+    {
+      "type": "category",
+      "label": "Testrunner",
+      "link": {
+        "type": "doc",
+        "id": "testrunner"
+      },
+      "items": [
+        "configurationfile",
+        "runner",
+        "frameworks",
+        "assertion",
+        "organizingsuites",
+        "retry",
+        "watcher",
+        "customreporter",
+        "customservices"
+      ]
+    },
+    {
+      "type": "category",
+      "label": "Component Testing",
+      "link": {
+        "type": "doc",
+        "id": "component-testing"
+      },
+      "items": [
+        "component-testing/lit",
+        "component-testing/vue",
+        "component-testing/svelte",
+        "component-testing/react",
+        "component-testing/preact"
+      ]
+    },
+    {
+      "type": "category",
+      "label": "Migrate",
+      "items": [
+        "v6-migration",
+        "v7-migration",
+        "protractor-migration",
+        "async-migration"
+      ]
+    },
+    {
+      "type": "category",
+      "label": "Integration",
+      "items": [
+        "cloudservices",
+        "autocompletion",
+        "docker",
+        "githubactions",
+        "jenkins",
+        "bamboo"
+      ]
+    }
+  ],
   "api": [
     "api",
     "api/expect-webdriverio",

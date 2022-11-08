@@ -1,6 +1,6 @@
 ---
-id: options
-title: Options
+id: configuration
+title: Configuration
 ---
 
 Based on the [setup type](./SetupTypes.md) (e.g. using the raw protocol bindings, WebdriverIO as standalone package or the WDIO testrunner) there is a different set of options available to control the environment.

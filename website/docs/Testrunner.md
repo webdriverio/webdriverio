@@ -1,13 +1,11 @@
 ---
-id: clioptions
-title: WDIO CLI Options
+id: testrunner
+title: Testrunner
 ---
 
-WebdriverIO comes with its own test runner to help you start testing as quickly as possible.
+WebdriverIO comes with its own test runner to help you start testing as quickly as possible. It is suppose to do all the work for you, allows integrate to 3rd party services, and helps you to run your tests as efficiently as possible.
 
-Fiddling around hooking up WebdriverIO with a test framework is a thing of the past. The WebdriverIO runner does all the work for you, and helps you to run your tests as efficiently as possible.
-
-Starting with v5, WebdriverIO's testrunner is bundled separately in the NPM package `@wdio/cli`.
+WebdriverIO's testrunner is bundled separately in the NPM package `@wdio/cli`.
 
 Install it like this:
 
@@ -15,7 +13,7 @@ Install it like this:
 npm install @wdio/cli
 ```
 
-To see the command line interface help, just type the following command in your terminal:
+To see the command line interface help, type the following command in your terminal:
 
 ```sh
 $ npx wdio --help
@@ -36,8 +34,7 @@ Options:
   --help     Show help                                                 [boolean]
 ```
 
-Sweet! Now you need to define a configuration file where all information about your tests, capabilities, and settings are set.
-Switch over to the [Configuration File](ConfigurationFile.md) section to see what that file should look like.
+Sweet! Now you need to define a configuration file where all information about your tests, capabilities, and settings are set. Switch over to the [Configuration File](ConfigurationFile.md) section to see what that file should look like.
 
 With the `wdio` configuration helper, it is super easy to generate your config file. Just run:
 
