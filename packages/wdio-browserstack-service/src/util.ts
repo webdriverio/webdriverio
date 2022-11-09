@@ -97,7 +97,12 @@ export async function launchTestSession (userConfig: UserConfig) {
         },
         'ci_info': getCiInfo(),
         'failed_tests_rerun': process.env.BROWSERSTACK_RERUN || false,
-        'version_control': await getGitMetaData()
+        'version_control': await getGitMetaData(),
+        'observability_version': {
+            frameworkName: userConfig.framework,
+            frameworkVersion: userConfig.frameworkVersion,
+            sdkVersion: userConfig.bstackServiceVersion
+        }
     }
     const config = {
         username: userConfig.username,
@@ -299,11 +304,11 @@ export function isBrowserstackSession(browser: Browser<'async'> | MultiRemoteBro
     return getCloudProvider(browser).toLowerCase() == 'browserstack'
 }
 
-export function getScenarioNameWithExamples(world: ITestCaseHookParameter): string {
+export function getScenarioExamples(world: ITestCaseHookParameter) {
     const scenario = world.pickle
 
     // no examples present
-    if ((scenario.astNodeIds && scenario.astNodeIds.length <= 1) || scenario.astNodeIds == undefined) return scenario.name
+    if ((scenario.astNodeIds && scenario.astNodeIds.length <= 1) || scenario.astNodeIds == undefined) return
 
     const pickleId: string = scenario.astNodeIds[0]
     const examplesId: string = scenario.astNodeIds[1]
@@ -325,10 +330,8 @@ export function getScenarioNameWithExamples(world: ITestCaseHookParameter): stri
         }
     })
 
-    if (examples.length) {
-        return scenario.name + ' (' + examples.join(', ')  + ')'
-    }
-    return scenario.name
+    if (examples.length) return examples
+    return
 }
 
 export function removeAnsiColors(message: string): string {
@@ -380,7 +383,22 @@ export async function uploadEventData (eventData: any) {
     }
 }
 
-export function scopes(fullTitle?: string) {
+// get hierarchy for a particular test (called by reporter for skipped tests)
+export function getHierarchy(fullTitle?: string) {
     if (!fullTitle) return []
     return fullTitle.split('.').slice(0, -1)
+}
+
+export function getFrameworkVersion(framework?: string) {
+    try {
+        if (framework == 'mocha') {
+            return require('../../wdio-mocha-framework/package.json').version
+        } else if (framework == 'cucumber') {
+            return require('../../wdio-cucumber-framework/package.json').version
+        }
+    } catch (err) {
+        return
+    }
+
+    return
 }

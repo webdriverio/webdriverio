@@ -13,7 +13,7 @@ import {
     getUniqueIdentifier,
     getUniqueIdentifierForCucumber,
     removeAnsiColors,
-    getScenarioNameWithExamples,
+    getScenarioExamples,
     stopBuildUpstream,
     launchTestSession,
     getGitMetaData,
@@ -310,27 +310,27 @@ describe('removeAnsiColors', () => {
     })
 })
 
-describe('getScenarioNameWithExamples', () => {
-    it('return just scenario name if no nesting is there', () => {
+describe('getScenarioExamples', () => {
+    it('return undefined if no nesting is there', () => {
         const test = {
             pickle: {
                 name: 'name',
                 astNodeIds: ['1']
             }
         }
-        expect(getScenarioNameWithExamples(test)).toEqual('name')
+        expect(getScenarioExamples(test)).toEqual(undefined)
     })
 
-    it('return just scenario name if astNodeIds not present', () => {
+    it('return undefined if astNodeIds not present', () => {
         const test = {
             pickle: {
                 name: 'name'
             }
         }
-        expect(getScenarioNameWithExamples(test)).toEqual('name')
+        expect(getScenarioExamples(test)).toEqual(undefined)
     })
 
-    it('return full scenario name with passed examples', () => {
+    it('return examples array', () => {
         const test = {
             gherkinDocument: {
                 feature: {
@@ -408,10 +408,10 @@ describe('getScenarioNameWithExamples', () => {
                 astNodeIds: ['8', '5']
             }
         }
-        expect(getScenarioNameWithExamples(test)).toEqual('name (value1)')
+        expect(getScenarioExamples(test)).toEqual(['value1'])
     })
 
-    it('return full scenario name with passed examples if rule present', () => {
+    it('return array with passed examples if rule present', () => {
         const test = {
             gherkinDocument: {
                 feature: {
@@ -495,10 +495,10 @@ describe('getScenarioNameWithExamples', () => {
                 astNodeIds: ['8', '5']
             }
         }
-        expect(getScenarioNameWithExamples(test)).toEqual('name (value1)')
+        expect(getScenarioExamples(test)).toEqual(['value1'])
     })
 
-    it('return just scenario name if no examples present', () => {
+    it('return undefined if no examples present', () => {
         const test = {
             gherkinDocument: {
                 feature: {
@@ -510,7 +510,7 @@ describe('getScenarioNameWithExamples', () => {
                 astNodeIds: ['8', '5']
             }
         }
-        expect(getScenarioNameWithExamples(test)).toEqual('name')
+        expect(getScenarioExamples(test)).toEqual(undefined)
     })
 })
 

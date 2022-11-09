@@ -71,7 +71,7 @@ describe('test-reporter', () => {
     describe('onTestSkip', () => {
         const uploadEventDataSpy = jest.spyOn(utils, 'uploadEventData').mockImplementation()
         const getCloudProviderSpy = jest.spyOn(utils, 'getCloudProvider').mockReturnValue('browserstack')
-        const scopesSpy = jest.spyOn(utils, 'scopes').mockImplementation(() => [])
+        const scopesSpy = jest.spyOn(utils, 'getHierarchy').mockImplementation(() => [])
 
         beforeEach(() => {
             uploadEventDataSpy.mockClear()
@@ -94,7 +94,7 @@ describe('test-reporter', () => {
                 parent: '1',
                 state: 'skipped'
             } as any)
-            expect(uploadEventDataSpy).toBeCalledTimes(2)
+            expect(uploadEventDataSpy).toBeCalledTimes(1)
             expect(scopesSpy).toBeCalledTimes(1)
             expect(log.debug).toHaveBeenCalledTimes(0)
         })

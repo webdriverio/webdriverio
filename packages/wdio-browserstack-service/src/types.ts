@@ -87,6 +87,7 @@ export interface TestMeta {
     steps?: StepData[],
     feature?: { name: string, path?: string, description: string | null },
     scenario?: { name: string },
+    examples?: any[]
 }
 
 export interface TestData {
@@ -120,7 +121,10 @@ export interface UserConfig {
     password?: string
     buildName?: string,
     projectName?: string,
-    buildTag?: string
+    buildTag?: string,
+    bstackServiceVersion?: string,
+    framework?: string,
+    frameworkVersion?: string
 }
 
 interface TestCodeBody {

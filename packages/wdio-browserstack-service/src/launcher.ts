@@ -15,7 +15,7 @@ import { App, AppConfig, AppUploadResponse } from './types'
 import { version as bstackServiceVersion } from '../package.json'
 import { BrowserstackConfig } from './types'
 import { VALID_APP_EXTENSION } from './constants'
-import { launchTestSession, stopBuildUpstream } from './util'
+import { getFrameworkVersion, launchTestSession, stopBuildUpstream } from './util'
 
 const log = logger('@wdio/browserstack-service')
 
@@ -125,7 +125,10 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                 password : process.env.BROWSERSTACK_ACCESS_KEY || this._config.key,
                 projectName: this._projectName,
                 buildName: this._buildName || process.cwd(),
-                buildTag: this._buildTag
+                buildTag: this._buildTag,
+                bstackServiceVersion: bstackServiceVersion,
+                framework: this._config.framework,
+                frameworkVersion: getFrameworkVersion(this._config.framework)
             }
             const [BS_TESTOPS_JWT, BS_TESTOPS_BUILD_HASHED_ID] = await launchTestSession(bsConfig)
             if (BS_TESTOPS_JWT !== null) process.env.BS_TESTOPS_JWT = BS_TESTOPS_JWT

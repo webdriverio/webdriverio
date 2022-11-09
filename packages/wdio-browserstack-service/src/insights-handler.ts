@@ -5,7 +5,7 @@ import { ITestCaseHookParameter } from '@cucumber/cucumber/lib/support_code_libr
 
 import { v4 as uuidv4 } from 'uuid'
 
-import { getCloudProvider, getScenarioNameWithExamples, getUniqueIdentifier, getUniqueIdentifierForCucumber, isBrowserstackSession, removeAnsiColors, uploadEventData } from './util'
+import { getCloudProvider, getScenarioExamples, getUniqueIdentifier, getUniqueIdentifierForCucumber, isBrowserstackSession, removeAnsiColors, uploadEventData } from './util'
 import { TestData, TestMeta, PlatformMeta } from './types'
 
 export default class InsightsHandler {
@@ -339,7 +339,11 @@ export default class InsightsHandler {
 
         const { feature, scenario, steps } = testMetaData
 
-        const fullNameWithExamples: string = getScenarioNameWithExamples(world)
+        let fullNameWithExamples = world.pickle.name
+        const examples = getScenarioExamples(world)
+        if (examples) {
+            fullNameWithExamples = world.pickle.name + ' (' + examples.join(', ')  + ')'
+        }
 
         let testData: TestData = {
             uuid: testMetaData.uuid,
@@ -360,7 +364,8 @@ export default class InsightsHandler {
             meta: {
                 feature: feature,
                 scenario: scenario,
-                steps: steps
+                steps: steps,
+                examples: examples
             }
         }
 

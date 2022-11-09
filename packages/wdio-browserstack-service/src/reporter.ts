@@ -4,7 +4,7 @@ import { SuiteStats, TestStats, RunnerStats } from '@wdio/reporter'
 import { v4 as uuidv4 } from 'uuid'
 import { Options, Reporters } from '@wdio/types'
 import { BrowserstackConfig, TestData } from './types'
-import { getCloudProvider, uploadEventData, scopes } from './util'
+import { getCloudProvider, uploadEventData, getHierarchy } from './util'
 
 export default class TestReporter extends WDIOReporter {
     private _capabilities: any
@@ -31,8 +31,9 @@ export default class TestReporter extends WDIOReporter {
     }
 
     async onTestSkip (testStats: TestStats) {
+        // cucumber steps call this method. We don't want step skipped state so skip for cucumber
         if (this._observability && this._config.framework != 'cucumber') {
-            let startedtestData: TestData = {
+            let testData: TestData = {
                 uuid: uuidv4(),
                 type: testStats.type,
                 name: testStats.title,
@@ -41,25 +42,21 @@ export default class TestReporter extends WDIOReporter {
                     code: null
                 },
                 scope: testStats.fullTitle,
-                scopes: scopes(testStats.fullTitle),
+                scopes: getHierarchy(testStats.fullTitle),
                 identifier: testStats.fullTitle,
                 file_name: this._suiteName,
                 location: this._suiteName,
                 started_at: (new Date()).toISOString(),
                 framework: this._config.framework,
-            }
-
-            const finishedTestData = {
-                ...startedtestData,
                 finished_at: (new Date()).toISOString(),
                 duration_in_ms: testStats._duration,
-                retries: { attempts: 0 },
+                retries: { limit:0, attempts: 0 },
                 result: testStats.state,
             }
 
             const cloudProvider = getCloudProvider({ options: { hostname: this._config.hostname } } as any)
-            startedtestData['integrations'] = {}
-            startedtestData['integrations'][cloudProvider] = {
+            testData['integrations'] = {}
+            testData['integrations'][cloudProvider] = {
                 'capabilities': this._capabilities,
                 'session_id': this._sessionId,
                 'browser': this._capabilities.browserName,
@@ -68,12 +65,8 @@ export default class TestReporter extends WDIOReporter {
             }
 
             await uploadEventData({
-                event_type: 'TestRunStarted',
-                test_run: startedtestData
-            })
-            await uploadEventData({
                 event_type: 'TestRunFinished',
-                test_run: finishedTestData
+                test_run: testData
             })
         }
     }

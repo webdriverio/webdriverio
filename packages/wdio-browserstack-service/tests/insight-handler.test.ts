@@ -155,7 +155,7 @@ describe('_sendTestRunEventForCucumber', () => {
         const getUniqueIdentifierForCucumberSpy = jest.spyOn(utils, 'getUniqueIdentifierForCucumber').mockReturnValue('test title')
         jest.spyOn(insightsHandler, 'getHierarchy').mockImplementation(() => { return [] })
         const uploadEventDataSpy = jest.spyOn(utils, 'uploadEventData').mockImplementation()
-        jest.spyOn(utils, 'getScenarioNameWithExamples').mockReturnValue('test title with examples')
+        const getScenarioExamplesSpy = jest.spyOn(utils, 'getScenarioExamples').mockReturnValue(undefined)
         jest.spyOn(utils, 'getCloudProvider').mockImplementation( () => 'browserstack' )
         insightsHandler['_tests'] = { 'test title': { uuid: 'uuid', startedAt: '', finishedAt: '', feature: { name: 'name', path: 'path' }, scenario: { name: 'name' } } }
         insightsHandler['_platformMeta'] = { caps: {},  sessionId: '', browserName: '', browserVersion: '', platformName: '', product: '' }
@@ -163,6 +163,7 @@ describe('_sendTestRunEventForCucumber', () => {
         beforeEach(() => {
             uploadEventDataSpy.mockClear()
             getUniqueIdentifierForCucumberSpy.mockClear()
+            getScenarioExamplesSpy.mockClear()
         })
 
         it('for passed', async () => {
@@ -201,6 +202,12 @@ describe('_sendTestRunEventForCucumber', () => {
                 }
             } as any, 'TestRunStarted')
             expect(uploadEventDataSpy).toBeCalledTimes(1)
+        })
+
+        afterEach(() => {
+            uploadEventDataSpy.mockClear()
+            getUniqueIdentifierForCucumberSpy.mockClear()
+            getScenarioExamplesSpy.mockClear()
         })
     })
 })

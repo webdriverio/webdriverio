@@ -116,13 +116,12 @@ export default class BrowserstackService implements Services.ServiceInstance {
     }
 
     async beforeHook (test: Frameworks.Test, context: any) {
-        this._currentTest = test
+        if (this._config.framework !== 'cucumber') this._currentTest = test // not able currentTest when this is called for cucumber step
         await this.insightsHandler?.beforeHook(test, context)
     }
 
     async afterHook (test: Frameworks.Test, context: any, result: Frameworks.TestResult) {
         await this.insightsHandler?.afterHook(test, context, result)
-        this._currentTest = undefined
     }
 
     async afterCommand(commandName: string, args: any[], result: any, error?: Error) {
@@ -155,7 +154,6 @@ export default class BrowserstackService implements Services.ServiceInstance {
         }
 
         await this.insightsHandler?.afterTest(test, context, results)
-        this._currentTest = undefined
     }
 
     after (result: number) {
@@ -207,7 +205,6 @@ export default class BrowserstackService implements Services.ServiceInstance {
         }
 
         await this.insightsHandler?.afterScenario(world)
-        this._currentTest = undefined
     }
 
     beforeStep (step: Frameworks.PickleStep, scenario: Pickle) {
