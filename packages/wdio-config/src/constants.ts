@@ -2,9 +2,13 @@ import type { Options, Services } from '@wdio/types'
 
 const DEFAULT_TIMEOUT = 10000
 
-/* istanbul ignore next */
+/**
+ * omitted as they are set during config parser initiation
+ */
+type OmittedProps = 'capabilities' | 'rootDir'
 
-export const DEFAULT_CONFIGS: () => Omit<Options.Testrunner, 'capabilities'> = () => ({
+/* istanbul ignore next */
+export const DEFAULT_CONFIGS: () => Omit<Options.Testrunner, OmittedProps> = () => ({
     specs: [],
     suites: {},
     exclude: [],

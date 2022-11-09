@@ -6,7 +6,7 @@
     "test:browser:vue": "WDIO_PRESET=vue node ../../packages/wdio-cli/bin/wdio.js ./browser-runner/wdio.conf.js --spec vue.test.js",
     "test:browser:svelte": "WDIO_PRESET=svelte node ../../packages/wdio-cli/bin/wdio.js ./browser-runner/wdio.conf.js --spec svelte.test.js",
     "test:browser:lit": "WDIO_PRESET=lit node ../../packages/wdio-cli/bin/wdio.js ./browser-runner/wdio.conf.js --spec lit.test.js",
-    "test:mocha": "node` ../../packages/wdio-cli/bin/wdio.js ./mocha/wdio.conf.js",
+    "test:mocha": "node ../../packages/wdio-cli/bin/wdio.js ./mocha/wdio.conf.js",
     "test:jasmine": "node ../../packages/wdio-cli/bin/wdio.js ./jasmine/wdio.conf.js",
     "test:cucumber": "node ../../packages/wdio-cli/bin/wdio.js ./cucumber/wdio.conf.js",
     "test:multiremote": "node ../../packages/wdio-cli/bin/wdio.js ./multiremote/wdio.conf.js",

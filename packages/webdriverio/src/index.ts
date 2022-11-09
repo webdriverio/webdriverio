@@ -17,7 +17,7 @@ import {
 import type { AttachOptions } from './types'
 import type * as elementCommands from './commands/element.js'
 
-export type RemoteOptions = Options.WebdriverIO & Omit<Options.Testrunner, 'capabilities'>
+export type RemoteOptions = Options.WebdriverIO & Omit<Options.Testrunner, 'capabilities' | 'rootDir'>
 export const Key = KeyConstant
 
 /**

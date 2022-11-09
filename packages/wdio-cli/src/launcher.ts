@@ -35,7 +35,7 @@ interface EndMessage {
 }
 
 class Launcher {
-    public configParser = new ConfigParser()
+    public configParser: ConfigParser
     public isMultiremote = false
     public runner?: Services.RunnerInstance
     public interface?: CLInterface
@@ -55,22 +55,23 @@ class Launcher {
         private _args: Partial<RunCommandArguments> = {},
         private _isWatchMode = false
     ) {
-        /**
-         * merge auto compile opts to understand how to parse the config
-         */
-        if (_args.autoCompileOpts) {
-            this.configParser.merge({ autoCompileOpts: _args.autoCompileOpts })
-        }
+        this.configParser = new ConfigParser(
+            _configFilePath,
+            /**
+             * merge auto compile opts to understand how to parse the config
+             */
+            _args.autoCompileOpts
+                ? { autoCompileOpts: _args.autoCompileOpts }
+                : {}
+        )
     }
 
     /**
      * run sequence
-     * @return  {Promise}               that only gets resolves with either an exitCode or an error
+     * @return  {Promise}  that only gets resolves with either an exitCode or an error
      */
     async run() {
-        await this.configParser.autoCompile()
-        await this.configParser.addConfigFile(this._configFilePath)
-        this.configParser.merge(this._args)
+        await this.configParser.initialize(this._args)
         const config = this.configParser.getConfig()
 
         /**
