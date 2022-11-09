@@ -232,11 +232,12 @@ This is helpful with large test suites when you already know that your build wil
 The `bail` option expects a number, which specifies how many test failures can occur before WebDriver stop the entire testing run. The default is `0`, meaning that it always runs all tests specs it can find.
 
 Please see [Options Page](Options.md) for additional information on the bail configuration.
-## Hierarchy of spec patterns
+## Run options hierarchy
 
-When declaring what specs to run, there is a certain hierarchy defining what pattern will take precedence when defined. Currently, this is how it works, from highest priority to lowest:
+When declaring what specs to run, there is a certain hierarchy defining what pattern will take precedence. Currently, this is how it works, from highest priority to lowest:
 
 > CLI `--spec` argument > capability `specs` pattern > config `specs` pattern
+> CLI `--exclude` argument > config `exclude` pattern > capability `exclude` pattern
 
 If only the config parameter is given, it will be used for all capabilities. However, if defining the pattern at the capability level, it will be used instead of the config pattern. Finally, any spec pattern defined on the command line will override all other patterns given.
 

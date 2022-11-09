@@ -56,7 +56,7 @@ const logCache = new Set()
 let logFile: fs.WriteStream | null
 
 const originalFactory = log.methodFactory
-const wdioLoggerMethodFactory = function (this: log.Logger, methodName: string, logLevel: log.LogLevelNumbers, loggerName: string) {
+const wdioLoggerMethodFactory = function (this: log.Logger, methodName: log.LogLevelNames, logLevel: log.LogLevelNumbers, loggerName: string) {
     const rawMethod = originalFactory(methodName, logLevel, loggerName)
     return (...args: string[]) => {
         /**
