@@ -5,67 +5,71 @@ import MockedModules from './MockedModules.js'
 import MockPathService, { FilePathsAndContents, MockSystemFolderPath } from './MockPathService.js'
 
 export default class ConfigParserBuilder {
-    private f : MockPathService
-    private m : MockedModules
+    #configPath: string
+    #f : MockPathService
+    #m : MockedModules
 
-    public constructor(baseDir: string, files: FilePathsAndContents = [], modules:[string, any][] = []) {
-        this.f = MockPathService.inWorkingDirectoryWithFiles({ cwd: baseDir, files })
-        this.m = MockedModules.withNoModules()
+    public constructor(baseDir: string, configPath: string, files: FilePathsAndContents = [], modules:[string, any][] = []) {
+        this.#configPath = configPath
+        this.#f = MockPathService.inWorkingDirectoryWithFiles({ cwd: baseDir, files })
+        this.#m = MockedModules.withNoModules()
         this.withBaseDir(baseDir)
         this.withFiles(files)
         this.withModules(modules)
     }
 
-    static withBaseDir(baseDir: MockSystemFolderPath) : ConfigParserBuilder {
-        return new ConfigParserBuilder(baseDir)
+    static withBaseDir(baseDir: MockSystemFolderPath, configPath: string) : ConfigParserBuilder {
+        return new ConfigParserBuilder(baseDir, configPath)
     }
 
     withBaseDir(baseDir: MockSystemFolderPath):ConfigParserBuilder {
-        this.f.withCwd(baseDir)
+        this.#f.withCwd(baseDir)
         return this
     }
 
     withFiles(files : FilePathsAndContents) :ConfigParserBuilder {
-        this.f.withFiles(files)
+        this.#f.withFiles(files)
         return this
     }
 
     withNoModules():ConfigParserBuilder {
-        this.m.resetModules()
+        this.#m.resetModules()
         return this
     }
 
     withModules(modulesAndValuesList: [string, any][]):ConfigParserBuilder {
-        this.m.withModules(modulesAndValuesList)
+        this.#m.withModules(modulesAndValuesList)
         return this
     }
 
     withTsNodeModule(registerMock = vi.fn()) {
-        this.m.withTsNodeModule(registerMock)
+        this.#m.withTsNodeModule(registerMock)
         return this
     }
 
     withTsconfigPathModule(registerMock = vi.fn()) {
-        this.m.withTsconfigPathModule(registerMock)
+        this.#m.withTsconfigPathModule(registerMock)
         return this
     }
 
     withBabelModule(registerMock = vi.fn()) {
-        this.m.withBabelModule(registerMock)
+        this.#m.withBabelModule(registerMock)
         return this
     }
 
     getMocks() {
         return {
-            finder: this.f,
-            modules: this.m
+            finder: this.#f,
+            modules: this.#m
         }
     }
 
     build(): ConfigParser {
         return new ConfigParser(
-            this.f,
-            this.m
+            this.#configPath,
+            {},
+            this.#f,
+            this.#m
         )
     }
 }

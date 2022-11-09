@@ -48,7 +48,7 @@ export default class MockFileContentBuilder {
      *
      * @param enhanceContents
      */
-    withTheseContentsMergedOn( enhanceContents = {}) : MockFileContentBuilder {
+    withTheseContentsMergedOn(enhanceContents = {}) : MockFileContentBuilder {
         this.fileContents = deepmerge(this.fileContents, enhanceContents)
         return this
     }

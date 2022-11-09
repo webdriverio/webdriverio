@@ -26,6 +26,7 @@ interface TestrunnerOptionsWithParameters extends Omit<Options.Testrunner, 'capa
     spec?: string[]
     suite?: string[]
     capabilities?: Capabilities.RemoteCapabilities
+    rootDir: string
 }
 
 interface MergeConfig extends Omit<Partial<TestrunnerOptionsWithParameters>, 'specs' | 'exclude'> {
@@ -36,31 +37,34 @@ interface MergeConfig extends Omit<Partial<TestrunnerOptionsWithParameters>, 'sp
 export default class ConfigParser {
     #isInitialised = false
     #configFilePath: string
-    #options: TestrunnerOptionsWithParameters
     private _config: TestrunnerOptionsWithParameters
     private _capabilities: Capabilities.RemoteCapabilities = []
 
     constructor(
         configFilePath: string,
-        options?: Omit<TestrunnerOptionsWithParameters, 'rootDir'>,
+        initialConfig: Partial<TestrunnerOptionsWithParameters> = {},
         private _pathService: PathService = new FileSystemPathService(),
         private _moduleRequireService: ModuleImportService = new RequireLibrary()
     ) {
         this.#configFilePath = configFilePath
-        this.#options = Object.assign({
-            rootDir: path.dirname(configFilePath)
-        }, options || {})
-        this._config = Object.assign({}, DEFAULT_CONFIGS(), this.#options)
+        this._config = Object.assign(
+            { rootDir: path.dirname(configFilePath) },
+            initialConfig,
+            DEFAULT_CONFIGS()
+        )
     }
 
+    /**
+     * intializes the config object
+     */
     async initialize (object: MergeConfig = {}) {
-        this.#merge({ ...this.#options, ...object })
-        await this.#autoCompile()
-        await this.#addConfigFile(this.#configFilePath)
+        await this.autoCompile()
+        await this.addConfigFile(this.#configFilePath)
         this.#isInitialised = true
+        this.merge({ ...object })
     }
 
-    async #autoCompile() {
+    private async autoCompile() {
         /**
          * on launcher compile files if Babel or TypeScript are installed using our defaults
          */
@@ -74,7 +78,7 @@ export default class ConfigParser {
      * merges config file with default values
      * @param {String} filename path of file relative to current directory
      */
-    async #addConfigFile(filename: string) {
+    private async addConfigFile(filename: string) {
         if (typeof filename !== 'string') {
             throw new Error('addConfigFile requires filepath')
         }
@@ -129,7 +133,7 @@ export default class ConfigParser {
      * merge external object with config object
      * @param  {Object} object  desired object to merge into the config object
      */
-    #merge(object: MergeConfig = {}) {
+    private merge(object: MergeConfig = {}) {
         const spec = Array.isArray(object.spec) ? object.spec : []
         const exclude = Array.isArray(object.exclude) ? object.exclude : []
         this._config = deepmerge(this._config, object) as TestrunnerOptionsWithParameters

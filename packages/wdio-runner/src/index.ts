@@ -46,7 +46,7 @@ export default class Runner extends EventEmitter {
      * @return {Promise}                  resolves in number of failures for testrun
      */
     async run({ cid, args, specs, caps, configFile, retries }: RunParams) {
-        this._configParser = new ConfigParser(configFile, { autoCompileOpts: args.autoCompileOpts })
+        this._configParser = new ConfigParser(configFile, args)
         this._cid = cid
         this._specs = specs
         this._caps = caps

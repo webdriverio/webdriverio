@@ -342,7 +342,7 @@ export interface Testrunner extends Hooks, Omit<WebdriverIO, 'capabilities'>, We
     /**
      * Project root directory path.
      */
-    rootDir: string
+    rootDir?: string
     /**
      * Define specs for test execution. You can either specify a glob
      * pattern to match multiple files at once or wrap a glob or set of
