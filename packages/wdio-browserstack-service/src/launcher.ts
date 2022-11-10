@@ -124,7 +124,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                 username : process.env.BROWSERSTACK_USERNAME || this._config.user,
                 password : process.env.BROWSERSTACK_ACCESS_KEY || this._config.key,
                 projectName: this._projectName,
-                buildName: this._buildName || process.cwd(),
+                buildName: this._buildName || path.basename(path.resolve(process.cwd())),
                 buildTag: this._buildTag,
                 bstackServiceVersion: bstackServiceVersion,
                 framework: this._config.framework,
