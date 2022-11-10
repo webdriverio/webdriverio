@@ -1221,7 +1221,7 @@
       }]
     }
   },
-  "/session/:sessionId/authenticator/:authenticatorId": {
+  "/session/:sessionId/webauthn/authenticator/:authenticatorId": {
     "DELETE": {
       "command": "removeVirtualAuthenticator",
       "description": "Removes a previously created Virtual Authenticator.",
@@ -1233,7 +1233,7 @@
       "parameters": []
     }
   },
-  "/session/:sessionId/authenticator/:authenticatorId/credential": {
+  "/session/:sessionId/webauthn/authenticator/:authenticatorId/credential": {
     "POST": {
       "command": "addCredential",
       "description": "Injects a Public Key Credential Source into an existing Virtual Authenticator.",
@@ -1276,7 +1276,7 @@
       }]
     }
   },
-  "/session/:sessionId/authenticator/:authenticatorId/credentials": {
+  "/session/:sessionId/webauthn/authenticator/:authenticatorId/credentials": {
     "GET": {
       "command": "getCredentials",
       "description": "Returns one Credential Parameters object for every Public Key Credential Source stored in a Virtual Authenticator, regardless of whether they were stored using Add Credential or `navigator.credentials.create()`.",
@@ -1298,7 +1298,7 @@
       "parameters": []
     }
   },
-  "/session/:sessionId/authenticator/:authenticatorId/credentials/:credentialId": {
+  "/session/:sessionId/webauthn/authenticator/:authenticatorId/credentials/:credentialId": {
     "DELETE": {
       "command": "removeCredential",
       "description": "Removes a Public Key Credential Source stored on a Virtual Authenticator.",
@@ -1313,7 +1313,7 @@
       "parameters": []
     }
   },
-  "/session/:sessionId/authenticator/:authenticatorId/credentials/:credentialId/uv": {
+  "/session/:sessionId/webauthn/authenticator/:authenticatorId/credentials/:credentialId/uv": {
     "POST": {
       "command": "setUserVerified",
       "description": "The Set User Verified extension command sets the isUserVerified property on the Virtual Authenticator.",
