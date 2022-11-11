@@ -45,8 +45,8 @@ const renderStatement = (preset
     ]
 ).join('\n        ')
 const assertionStatement = preset
-    ? `expect(buttonEl).toContainText('Click me!')`
-    : `await expect(buttonEl).toHaveText('Click me!')`
+    ? `expect(elem).toContainText('Click me!')`
+    : `await expect(elem).toHaveText('Click me!')`
 
 /**
  * Component Testing
