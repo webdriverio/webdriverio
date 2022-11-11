@@ -1,4 +1,5 @@
 import fs from 'node:fs'
+import path from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { createRequire } from 'node:module'
 
@@ -174,12 +175,28 @@ export async function safeImport (name: string): Promise<Services.ServicePlugin 
          * also allows to link the package to a random place and have plugins
          * imported correctly (for dev purposes).
          */
+        const localNodeModules = path.join(process.cwd(), 'node_modules')
         /* istanbul ignore if */
-        if (require.resolve) {
-            requirePath = await require.resolve(name)
-            if (!requirePath.startsWith('file://')) {
-                requirePath = pathToFileURL(requirePath).href
-            }
+        if (!require.resolve.paths(name)?.includes(localNodeModules)) {
+            const resolveLocation = [
+                ...(require.resolve.paths(name) || []),
+                localNodeModules
+            ]
+
+            /**
+             * don't set requireOpts when running unit tests as it
+             * confuses Jest require magic
+             */
+            const requireOpts = process.env.VITEST_WORKER_ID
+                ? {}
+                : { paths: resolveLocation }
+            requirePath = require.resolve(name, requireOpts)
+        } else {
+            requirePath = require.resolve(name)
+        }
+
+        if (!requirePath.startsWith('file://')) {
+            requirePath = pathToFileURL(requirePath).href
         }
     } catch (err: any) {
         return null

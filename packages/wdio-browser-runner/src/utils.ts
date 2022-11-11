@@ -81,10 +81,11 @@ export async function getTemplate (options: WebdriverIO.BrowserRunnerOptions, en
                 import { setupEnv } from '@wdio/browser-runner/setup'
                 import { formatMessage } from '@wdio/mocha-framework/common'
 
+                window.__wdioEvents__ = []
+
                 await setupEnv()
                 await import('${spec}')
 
-                window.__wdioEvents__ = []
                 console.log('[WDIO] Start Mocha testsuite')
                 const runner = mocha.run((failures) => {
                     window.__wdioFailures__ = failures
