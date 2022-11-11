@@ -85,18 +85,45 @@ export const {
 }
 ```
 
-If you test components using one of the mentioned frameworks above, you can define a preset that ensures everything is configured out of the box, e.g. when you want to import and test Svelte components, define the Browser Runner as follows:
+### Runner Options
 
-```js
-// wdio.conf.js
+The Browser runner allows following configurations:
+
+#### `preset`
+
+If you test components using one of the mentioned frameworks above, you can define a preset that ensures everything is configured out of the box. This option can't be used together with `viteConfig`.
+
+__Type:__ `vue` | `svelte` | `react` | `preact`<br />
+__Example:__
+
+```js title="wdio.conf.js"
 export const {
     // ...
     runner: ['browser', {
-        preset: 'Svelte'
+        preset: 'svelte'
     }],
     // ...
 }
 ```
+
+#### `viteConfig`
+
+Define your own [Vite configuration](https://vitejs.dev/config/). You can either pass in a custom object or import an existing `vite.conf.ts` file if you use Vite.js for development. Note that WebdriverIO merges custom configurations to set up framework and runner objects. This option can't be used together with `preset`.
+
+__Type:__ [`UserConfig`](https://github.com/vitejs/vite/blob/52e64eb43287d241f3fd547c332e16bd9e301e95/packages/vite/src/node/config.ts#L119-L272)
+__Example:__
+
+```js title="wdio.conf.ts"
+import viteConfig from '../vite.config.ts'
+
+export const {
+    // ...
+    runner: ['browser', { viteConfig }],
+    // ...
+}
+```
+
+### Examples
 
 Make sure to check out the docs around [component testing](https://webdriver.io/docs/component-testing) and have a look into the [example repository](https://github.com/webdriverio/component-testing-examples) for examples using these and various other frameworks.
 

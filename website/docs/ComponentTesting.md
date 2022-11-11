@@ -11,7 +11,7 @@ The Browser Runner uses [Vite](https://vitejs.dev/) to render a test page and in
 
 The Vite server is started by the WebdriverIO testrunner and configured so that you can use all reporter and services as you used to for normal e2e tests. Furthermore initialises the runner a [`browser`](/docs/api/browser) instance within the global scope that allows you to access a subset of the [WebdriverIO API](/docs/api).
 
-## Set-up
+## Setup
 
 To set-up WebdriverIO for unit or component testing in the browser, initiate a new WebdriverIO project via:
 
@@ -21,7 +21,9 @@ npm init wdio@latest ./
 yarn create wdio ./
 ```
 
-Once the configuration wizard starts, pick `browser` for running unit and component testing and choose one of the presets if desired otherwise go with _"Other"_ if you only want to run basic unit tests. At the end of this process you should find a `wdio.conf.js` that contains various WebdriverIO configurations, including a `runner` property, e.g.:
+Once the configuration wizard starts, pick `browser` for running unit and component testing and choose one of the presets if desired otherwise go with _"Other"_ if you only want to run basic unit tests. You can also configure a custom Vite configuration if you use Vite already in your project. For more information check out all [runner options](/docs/runner#runner-options).
+
+At the end of this process you should find a `wdio.conf.js` that contains various WebdriverIO configurations, including a `runner` property, e.g.:
 
 ```js
 // wdio.conf.js
@@ -29,7 +31,7 @@ export const config = {
     // ...
     runner: ['browser', {
         // runner options
-        preset: 'svelte' // set-up WebdriverIOs Vite server for a Svelte project
+        preset: 'svelte' // setup WebdriverIOs Vite server for a Svelte project
     }]
 }
 ```

@@ -1,5 +1,7 @@
 import type { Options } from '@wdio/types'
 
+import viteConfig from '../vite.config.js'
+
 export const config: Options.Testrunner = {
     //
     // ====================
@@ -61,9 +63,7 @@ export const config: Options.Testrunner = {
     // Runner
     // ======
     // WebdriverIO supports running e2e tests as well as unit and component tests.
-    runner: ['browser', {
-        preset: 'vue'
-    }],
+    runner: ['browser', { viteConfig }],
     //
     // ============
     // Capabilities

@@ -20,6 +20,12 @@ export const config = {
 }
 ```
 
+:::info
+
+If you are already using [Vite](https://vitejs.dev/) as development server you also just re-use your configuration in `vite.config.ts` within your WebdriverIO config. For more information, see `viteConfig` in [runner options](http://localhost:3000/docs/runner#runner-options).
+
+:::
+
 The React preset requires `@vitejs/plugin-react` to be installed. Also we recommend using [Testing Library](https://testing-library.com/) for rendering the component into the test page. Therefor you'll need to install the following additional dependencies:
 
 ```sh npm2yarn

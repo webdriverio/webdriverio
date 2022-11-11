@@ -5,6 +5,7 @@ import { createRequire } from 'node:module'
 
 import getPort from 'get-port'
 import topLevelAwait from 'vite-plugin-top-level-await'
+import { deepmerge } from 'deepmerge-ts'
 import { WebSocketServer, WebSocket } from 'ws'
 import { esbuildCommonjs } from '@originjs/vite-plugin-commonjs'
 import { NodeGlobalsPolyfillPlugin } from '@esbuild-plugins/node-globals-polyfill'
@@ -57,6 +58,7 @@ export async function getTemplate (options: WebdriverIO.BrowserRunnerOptions, en
     <html>
         <head>
             <title>WebdriverIO Browser Test</title>
+            <link rel="icon" type="image/x-icon" href="https://webdriver.io/img/favicon.png">
             <link rel="stylesheet" href="https://unpkg.com/mocha@10.0.0/mocha.css">
             <script type="module">
                 /**
@@ -132,28 +134,11 @@ export async function getViteConfig (
     const wss = new WebSocketServer({ port: wsPort })
     wss.on('connection', (ws) => ws.on('message', handleBrowserCommand(ws)))
 
-    /**
-     * user provided vite config
-     */
-    if (options.viteConfig) {
-        options.viteConfig.plugins = [
-            ...(options.viteConfig.plugins || []),
-            testrunner(options)
-        ]
-        options.viteConfig.server = {
-            ...(options.viteConfig.server || {}),
-            proxy: {
-                ...(options.viteConfig.server?.proxy || {}),
-                '/ws': {
-                    target: `ws://localhost:${wsPort}`,
-                    ws: true
-                }
-            }
-        }
-        return [options.viteConfig, wss]
+    if (options.preset && options.viteConfig) {
+        throw new Error('Invalid runner configuration: "preset" and "viteConfig" options are defined but only one of each can be used at the same time')
     }
 
-    const config: Partial<InlineConfig> = {
+    let config: Partial<InlineConfig> = {
         configFile: false,
         root,
         server: {
@@ -191,7 +176,9 @@ export async function getViteConfig (
         }
     }
 
-    if (options.preset) {
+    if (options.viteConfig) {
+        config = deepmerge(config, options.viteConfig)
+    } else if (options.preset) {
         const [pkg, importProp, opts] = PRESET_DEPENDENCIES[options.preset] || []
         const plugin = (await userfriendlyImport(options.preset, pkg))[importProp || 'default']
         if (plugin) {
