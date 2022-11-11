@@ -76,7 +76,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
         await this.insightsHandler?.browserCommand(type, args, this._currentTest)
     }
 
-    before(caps: Capabilities.RemoteCapability, specs: string[], browser: Browser<'async'> | MultiRemoteBrowser<'async'>) {
+    async before(caps: Capabilities.RemoteCapability, specs: string[], browser: Browser<'async'> | MultiRemoteBrowser<'async'>) {
         // added to maintain backward compatibility with webdriverIO v5
         this._browser = browser ? browser : (global as any).browser
 
@@ -89,8 +89,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
         this._scenariosThatRan = []
 
         if (this._observability && this._browser) {
-            let browserCaps = getBrowserCapabilities(this._browser, (this._caps as Capabilities.MultiRemoteCapabilities))
-            this.insightsHandler?.setUp(this._browser, browserCaps, this._isAppAutomate(), this._browser.sessionId as string)
+            await this.insightsHandler?.setUp(this._browser, this._browser.capabilities as Capabilities.Capabilities, this._isAppAutomate(), this._browser.sessionId as string)
 
             /**
              * register command event

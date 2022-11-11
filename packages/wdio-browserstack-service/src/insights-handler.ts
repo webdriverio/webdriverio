@@ -5,8 +5,9 @@ import { ITestCaseHookParameter } from '@cucumber/cucumber/lib/support_code_libr
 
 import { v4 as uuidv4 } from 'uuid'
 
-import { getCloudProvider, getScenarioExamples, getUniqueIdentifier, getUniqueIdentifierForCucumber, isBrowserstackSession, removeAnsiColors, uploadEventData } from './util'
+import { getCloudProvider, getGitMetaData, getScenarioExamples, getUniqueIdentifier, getUniqueIdentifierForCucumber, isBrowserstackSession, removeAnsiColors, uploadEventData } from './util'
 import { TestData, TestMeta, PlatformMeta } from './types'
+import path from 'path'
 
 export default class InsightsHandler {
 
@@ -16,6 +17,7 @@ export default class InsightsHandler {
     private _platformMeta?: PlatformMeta
     private _framework?: string
     private _commands: { [index: string]: any }
+    private _gitConfigPath?: string
 
     constructor (framework?: string) {
         this._tests = {}
@@ -24,7 +26,7 @@ export default class InsightsHandler {
         this._framework = framework
     }
 
-    setUp(browser?: Browser<'async'> | MultiRemoteBrowser<'async'>, browserCaps?: Capabilities.Capabilities, isAppAutomate?: boolean, sessionId?: string) {
+    async setUp(browser?: Browser<'async'> | MultiRemoteBrowser<'async'>, browserCaps?: Capabilities.Capabilities, isAppAutomate?: boolean, sessionId?: string) {
         this._browser = browser
 
         if (this._browser) {
@@ -40,6 +42,11 @@ export default class InsightsHandler {
             if (isBrowserstackSession(this._browser)) {
                 this._browser.execute(`browserstack_executor: {"action": "annotate", "arguments": {"data": "ObservabilitySync:${Date.now()}","level": "debug"}}`)
             }
+        }
+
+        const gitMeta = await getGitMetaData()
+        if (gitMeta) {
+            this._gitConfigPath = gitMeta['root']
         }
     }
 
@@ -288,6 +295,7 @@ export default class InsightsHandler {
             identifier: fullTitle,
             file_name: test.file,
             location: test.file,
+            vc_filepath: (this._gitConfigPath && test.file) ? path.relative(this._gitConfigPath, test.file) : undefined,
             started_at: testMetaData.startedAt,
             finished_at: testMetaData.finishedAt,
             framework: this._framework
@@ -359,6 +367,7 @@ export default class InsightsHandler {
             scopes: [feature?.name || ''],
             identifier: scenario?.name,
             file_name: feature?.path,
+            vc_filepath: (this._gitConfigPath && feature?.path) ? path.relative(this._gitConfigPath, feature?.path) : undefined,
             location: feature?.path,
             framework: this._framework,
             meta: {

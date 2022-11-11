@@ -98,6 +98,7 @@ export interface TestData {
     scopes?: string[],
     identifier?: string,
     file_name?: string,
+    vc_filepath?: string,
     location?: string,
     started_at?: string,
     finished_at?: string,
