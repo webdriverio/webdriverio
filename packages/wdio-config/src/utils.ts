@@ -169,3 +169,18 @@ export async function loadBabelCompiler (babelOpts: Record<string, any> = {}, re
         return false
     }
 }
+
+export function makeRelativeToCWD (files: (string | string[])[] = []): (string | string[])[] {
+    const returnFiles: (string | string[])[] = []
+
+    for (const file of files) {
+        if (Array.isArray(file)) {
+            returnFiles.push(makeRelativeToCWD(file) as string[])
+            continue
+        }
+
+        returnFiles.push(path.resolve(process.cwd(), file))
+    }
+
+    return returnFiles
+}

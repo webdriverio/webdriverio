@@ -247,14 +247,14 @@ The following options (including the ones listed above) are defined only for run
 
 ### specs
 
-Define specs for test execution. You can either specify a glob pattern to match multiple files at once or wrap a glob or set of paths into an array to run them within a single worker process.
+Define specs for test execution. You can either specify a glob pattern to match multiple files at once or wrap a glob or set of paths into an array to run them within a single worker process. All paths are seen as relative from the config file path.
 
 Type: `(String | String[])[]`<br />
 Default: `[]`
 
 ### exclude
 
-Exclude specs from test execution.
+Exclude specs from test execution. All paths are seen as relative from the config file path.
 
 Type: `String[]`<br />
 Default: `[]`

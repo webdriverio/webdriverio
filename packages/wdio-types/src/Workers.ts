@@ -40,7 +40,7 @@ export interface WorkerMessage {
 }
 
 export interface Worker
-    extends Omit<TestrunnerOptions, 'capabilities' | 'specs'>,
+    extends Omit<TestrunnerOptions, 'capabilities' | 'specs' | 'rootDir'>,
         EventEmitter {
     capabilities: RemoteCapability;
     caps: RemoteCapability;

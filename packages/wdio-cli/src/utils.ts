@@ -276,7 +276,7 @@ export const validateServiceAnswers = (answers: string[]): Boolean | string => {
     return result
 }
 
-export function getCapabilities(arg: ReplCommandArguments) {
+export async function getCapabilities(arg: ReplCommandArguments) {
     const optionalCapabilites = {
         platformVersion: arg.platformVersion,
         udid: arg.udid,
@@ -299,10 +299,9 @@ export function getCapabilities(arg: ReplCommandArguments) {
     } else if (/ios/.test(arg.option)) {
         return { capabilities: { browserName: 'Safari', ...IOS_CONFIG, ...optionalCapabilites } }
     } else if (/(js|ts)$/.test(arg.option)) {
-        const config = new ConfigParser()
-        config.autoCompile()
+        const config = new ConfigParser(arg.option)
         try {
-            config.addConfigFile(arg.option)
+            await config.initialize()
         } catch (e) {
             throw Error((e as any).code === 'MODULE_NOT_FOUND' ? `Config File not found: ${arg.option}`:
                 `Could not parse ${arg.option}, failed with error : ${(e as Error).message}`)

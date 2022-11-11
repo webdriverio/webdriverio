@@ -7,32 +7,30 @@ import RequireLibrary from './RequireLibrary.js'
 import type { PathService, ModuleImportService } from '../types'
 
 export default class FileSystemPathService implements PathService {
-    constructor(
-        private _moduleRequireService: ModuleImportService = new RequireLibrary()
-    ) {}
-
-    getcwd(): string {
-        const cwd = process.cwd()
-        if ( typeof cwd === 'undefined' ) {
-            throw new Error('Unable to find current working directory from process')
-        }
-        return cwd
-    }
+    #moduleRequireService: ModuleImportService = new RequireLibrary()
 
     loadFile<T>(path: string): Promise<T> {
         if (!path) {
             throw new Error('A path is required')
         }
-        return this._moduleRequireService.import<T>(path)
+        return this.#moduleRequireService.import<T>(path)
     }
 
     isFile(filepath: string): boolean {
         return (fs.existsSync(filepath) && fs.lstatSync(filepath).isFile())
     }
 
-    glob(pattern: string): string[] {
-        const globResult = glob.sync(pattern) || []
-        const fileName = pattern.startsWith('/') ? pattern : path.resolve(this.getcwd(), pattern)
+    /**
+     * find test files based on a glob pattern
+     * @param pattern file pattern to glob
+     * @param rootDir directory of wdio config file
+     * @returns files matching the glob pattern
+     */
+    glob(pattern: string, rootDir: string): string[] {
+        const globResult = glob.sync(pattern, {
+            cwd: rootDir
+        }) || []
+        const fileName = pattern.startsWith(path.sep) ? pattern : path.resolve(rootDir, pattern)
         /**
          * given that glob treats characters like `[` or `{` in a special way
          * and we also want to be able to find files with these characters included
@@ -47,14 +45,14 @@ export default class FileSystemPathService implements PathService {
         return globResult
     }
 
-    ensureAbsolutePath(filepath: string): string {
+    ensureAbsolutePath(filepath: string, rootDir: string): string {
         if (filepath.startsWith('file://')) {
             return filepath
         }
 
         const p = path.isAbsolute(filepath)
             ? path.normalize(filepath)
-            : path.resolve(this.getcwd(), filepath)
+            : path.resolve(rootDir, filepath)
         return url.pathToFileURL(p).href
     }
 }

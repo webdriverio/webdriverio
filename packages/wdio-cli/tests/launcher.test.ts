@@ -38,24 +38,8 @@ describe('launcher', () => {
         } as any
     })
 
-    describe('defaults', () => {
-        it('should have default for the argv parameter', () => {
-            expect(launcher['_args']).toEqual({})
-        })
-
-        it('should not run auto compile if cli param was provided', () => {
-            const otherLauncher = new Launcher('./', {
-                autoCompileOpts: {
-                    autoCompile: false
-                }
-            })
-
-            expect(otherLauncher['configParser'].merge).toBeCalledWith({
-                autoCompileOpts: {
-                    autoCompile: false
-                }
-            })
-        })
+    it('should have default for the argv parameter', () => {
+        expect(launcher['_args']).toEqual({})
     })
 
     describe('capabilities', () => {
@@ -673,9 +657,7 @@ describe('launcher', () => {
             launcher.configParser = {
                 getCapabilities: vi.fn().mockReturnValue(0),
                 getConfig: vi.fn().mockReturnValue(config),
-                autoCompile: vi.fn(),
-                addConfigFile: vi.fn(),
-                merge: vi.fn()
+                initialize: vi.fn()
             } as any
             launcher.runner = { initialise: vi.fn(), shutdown: vi.fn() } as any
             launcher.runMode = vi.fn().mockImplementation((config, caps) => caps)
@@ -683,7 +665,7 @@ describe('launcher', () => {
 
         it('exit code 0', async () => {
             expect(await launcher.run()).toEqual(0)
-            expect(launcher['configParser'].autoCompile).toBeCalledTimes(1)
+            expect(launcher['configParser'].initialize).toBeCalledTimes(1)
             expect(launcher.runner!.shutdown).toBeCalled()
             expect(vi.mocked(fs.mkdir)).toHaveBeenCalled()
             expect(vi.mocked(fs.mkdir)).toHaveBeenCalledWith('tempDir', { recursive: true })

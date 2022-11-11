@@ -1,3 +1,5 @@
+import path from 'node:path'
+
 import { deepmerge } from 'deepmerge-ts'
 import logger from '@wdio/logger'
 import type { Capabilities, Options, Services } from '@wdio/types'
@@ -6,7 +8,7 @@ import RequireLibrary from './RequireLibrary.js'
 import FileSystemPathService from './FileSystemPathService.js'
 import {
     removeLineNumbers, isCucumberFeatureWithLineNumber, validObjectOrArray,
-    loadAutoCompilers
+    loadAutoCompilers, makeRelativeToCWD
 } from '../utils.js'
 import { SUPPORTED_HOOKS, SUPPORTED_FILE_EXTENSIONS, DEFAULT_CONFIGS, NO_NAMED_CONFIG_EXPORT } from '../constants.js'
 
@@ -24,6 +26,7 @@ interface TestrunnerOptionsWithParameters extends Omit<Options.Testrunner, 'capa
     spec?: string[]
     suite?: string[]
     capabilities?: Capabilities.RemoteCapabilities
+    rootDir: string
 }
 
 interface MergeConfig extends Omit<Partial<TestrunnerOptionsWithParameters>, 'specs' | 'exclude'> {
@@ -32,16 +35,48 @@ interface MergeConfig extends Omit<Partial<TestrunnerOptionsWithParameters>, 'sp
 }
 
 export default class ConfigParser {
-    private _config: TestrunnerOptionsWithParameters = DEFAULT_CONFIGS()
+    #isInitialised = false
+    #configFilePath: string
+    private _config: TestrunnerOptionsWithParameters
     private _capabilities: Capabilities.RemoteCapabilities = []
 
     constructor(
+        configFilePath: string,
+        /**
+         * config options parsed in via CLI arguments and applied before
+         * trying to compile config file
+         */
+        initialConfig: Partial<TestrunnerOptionsWithParameters> = {},
         private _pathService: PathService = new FileSystemPathService(),
         private _moduleRequireService: ModuleImportService = new RequireLibrary()
     ) {
+        this.#configFilePath = configFilePath
+        this._config = Object.assign(
+            { rootDir: path.dirname(configFilePath) },
+            DEFAULT_CONFIGS()
+        )
+
+        /**
+         * specs applied as CLI arguments should be relative from CWD
+         * rather than relative to the config file
+         */
+        if (initialConfig.spec) {
+            initialConfig.spec = makeRelativeToCWD(initialConfig.spec) as string[]
+        }
+        this.merge(initialConfig)
     }
 
-    async autoCompile() {
+    /**
+     * intializes the config object
+     */
+    async initialize (object: MergeConfig = {}) {
+        await this.autoCompile()
+        await this.addConfigFile(this.#configFilePath)
+        this.merge({ ...object })
+        this.#isInitialised = true
+    }
+
+    private async autoCompile() {
         /**
          * on launcher compile files if Babel or TypeScript are installed using our defaults
          */
@@ -55,12 +90,12 @@ export default class ConfigParser {
      * merges config file with default values
      * @param {String} filename path of file relative to current directory
      */
-    async addConfigFile(filename: string) {
+    private async addConfigFile(filename: string) {
         if (typeof filename !== 'string') {
             throw new Error('addConfigFile requires filepath')
         }
 
-        const filePath = this._pathService.ensureAbsolutePath(filename)
+        const filePath = this._pathService.ensureAbsolutePath(filename, path.dirname(filename))
 
         try {
             /**
@@ -110,7 +145,7 @@ export default class ConfigParser {
      * merge external object with config object
      * @param  {Object} object  desired object to merge into the config object
      */
-    merge(object: MergeConfig = {}) {
+    private merge(object: MergeConfig = {}) {
         const spec = Array.isArray(object.spec) ? object.spec : []
         const exclude = Array.isArray(object.exclude) ? object.exclude : []
         this._config = deepmerge(this._config, object) as TestrunnerOptionsWithParameters
@@ -196,18 +231,18 @@ export default class ConfigParser {
         const isSpecParamPassed = Array.isArray(this._config.spec)
         // when CLI --spec is explicitly specified, this._config.specs contains the filtered
         // specs matching the passed pattern else the specs defined inside the config are returned
-        let specs = ConfigParser.getFilePaths(this._config.specs!, undefined, this._pathService)
-        let exclude = ConfigParser.getFilePaths(this._config.exclude!, undefined, this._pathService)
+        let specs = ConfigParser.getFilePaths(this._config.specs!, this._config.rootDir, this._pathService)
+        let exclude = ConfigParser.getFilePaths(this._config.exclude!, this._config.rootDir, this._pathService)
         let suites = Array.isArray(this._config.suite) ? this._config.suite : []
 
         // only use capability excludes if (CLI) --exclude or config exclude are not defined
         if (Array.isArray(capExclude) && exclude.length === 0){
-            exclude = ConfigParser.getFilePaths(capExclude, undefined, this._pathService)
+            exclude = ConfigParser.getFilePaths(capExclude, this._config.rootDir, this._pathService)
         }
 
         // only use capability specs if (CLI) --spec is not defined
         if (!isSpecParamPassed && Array.isArray(capSpecs)){
-            specs = ConfigParser.getFilePaths(capSpecs, undefined, this._pathService)
+            specs = ConfigParser.getFilePaths(capSpecs, this._config.rootDir, this._pathService)
         }
 
         // handle case where user passes --suite via CLI
@@ -219,7 +254,7 @@ export default class ConfigParser {
                     log.warn(`No suite was found with name "${suiteName}"`)
                 }
                 if (Array.isArray(suite)) {
-                    suiteSpecs = suiteSpecs.concat(ConfigParser.getFilePaths(suite, undefined, this._pathService))
+                    suiteSpecs = suiteSpecs.concat(ConfigParser.getFilePaths(suite, this._config.rootDir, this._pathService))
                 }
             }
 
@@ -247,16 +282,25 @@ export default class ConfigParser {
      * cli argument
      * @return {String[]} List of files that should be included or excluded
      */
-    setFilePathToFilterOptions(cliArgFileList: string[], config: Spec[]) {
+    setFilePathToFilterOptions(cliArgFileList: string[], specs: Spec[]) {
         const filesToFilter = new Set<string>()
-        const fileList = ConfigParser.getFilePaths(config, undefined, this._pathService)
+        const fileList = ConfigParser.getFilePaths(specs, this._config.rootDir, this._pathService)
         cliArgFileList.forEach(filteredFile => {
             filteredFile = removeLineNumbers(filteredFile)
             // Send single file/file glob to getFilePaths - not supporting hierarchy in spec/exclude
             // Return value will always be string[]
-            let globMatchedFiles = <string[]>ConfigParser.getFilePaths(this._pathService.glob(filteredFile), undefined, this._pathService)
+            let globMatchedFiles = <string[]>ConfigParser.getFilePaths(
+                this._pathService.glob(filteredFile, path.dirname(this.#configFilePath)),
+                this._config.rootDir,
+                this._pathService
+            )
             if (this._pathService.isFile(filteredFile)) {
-                filesToFilter.add(this._pathService.ensureAbsolutePath(filteredFile))
+                filesToFilter.add(
+                    this._pathService.ensureAbsolutePath(
+                        filteredFile,
+                        path.dirname(this.#configFilePath)
+                    )
+                )
             } else if (globMatchedFiles.length) {
                 globMatchedFiles.forEach(file => filesToFilter.add(file))
             } else {
@@ -288,6 +332,9 @@ export default class ConfigParser {
      * return configs
      */
     getConfig() {
+        if (!this.#isInitialised) {
+            throw new Error('ConfigParser was not initialised, call "await config.initialize()" first!')
+        }
         return this._config as Required<Options.Testrunner>
     }
 
@@ -295,6 +342,10 @@ export default class ConfigParser {
      * return capabilities
      */
     getCapabilities(i?: number) {
+        if (!this.#isInitialised) {
+            throw new Error('ConfigParser was not initialised, call "await config.initialize()" first!')
+        }
+
         if (typeof i === 'number' && Array.isArray(this._capabilities) && this._capabilities[i]) {
             return this._capabilities[i]
         }
@@ -311,7 +362,7 @@ export default class ConfigParser {
      * @param  {number} hierarchyDepth depth to prevent recursive calling beyond a depth of 1
      * @return {String[] | String[][]} list of files
      */
-    static getFilePaths(patterns: Spec[], omitWarnings?: boolean, findAndGlob: PathService = new FileSystemPathService(), hierarchyDepth?: number) {
+    static getFilePaths(patterns: Spec[], rootDir: string, findAndGlob: PathService = new FileSystemPathService(), hierarchyDepth?: number) {
         let files: Spec[] = []
         let groupedFiles: string[] = []
 
@@ -336,7 +387,7 @@ export default class ConfigParser {
             // But only call one level deep, can't have multiple levels of hierarchy
             if (Array.isArray(pattern) && !hierarchyDepth) {
                 // Will always only get a string array back
-                groupedFiles = <string[]>ConfigParser.getFilePaths(pattern, omitWarnings, findAndGlob, 1)
+                groupedFiles = <string[]>ConfigParser.getFilePaths(pattern, rootDir, findAndGlob, 1)
                 files.push(groupedFiles)
             } else if (Array.isArray(pattern) && hierarchyDepth) {
                 log.error('Unexpected depth of hierarchical arrays')
@@ -345,14 +396,14 @@ export default class ConfigParser {
                 files.push(pattern)
             } else {
                 pattern = pattern.toString().replace(/\\/g, '/')
-                let filenames = findAndGlob.glob(<string>pattern)
+                let filenames = findAndGlob.glob(<string>pattern, rootDir)
                 filenames = filenames.filter(
                     (filename) => SUPPORTED_FILE_EXTENSIONS.find(
                         (ext) => filename.endsWith(ext)))
 
-                filenames = filenames.map(filename => findAndGlob.ensureAbsolutePath(filename))
+                filenames = filenames.map(filename => findAndGlob.ensureAbsolutePath(filename, rootDir))
 
-                if (filenames.length === 0 && !omitWarnings) {
+                if (filenames.length === 0) {
                     log.warn('pattern', pattern, 'did not match any file')
                 }
                 files = [...files, ...filenames]

@@ -140,7 +140,7 @@ and in this case all of the tests of the "end2end" suite would be run in a singl
 
 In some cases, you may wish to only execute a single test (or subset of tests) of your suites.
 
-With the `--spec` parameter, you can specify which _suite_ (Mocha, Jasmine) or _feature_ (Cucumber) should be run.
+With the `--spec` parameter, you can specify which _suite_ (Mocha, Jasmine) or _feature_ (Cucumber) should be run. The path is resolved relative from your current working directory.
 
 For example, to run only your login test:
 

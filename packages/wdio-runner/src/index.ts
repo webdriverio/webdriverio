@@ -23,7 +23,7 @@ const log = logger('@wdio/runner')
 
 export default class Runner extends EventEmitter {
     private _browser?: Browser<'async'> | MultiRemoteBrowser<'async'>
-    private _configParser = new ConfigParser()
+    private _configParser?: ConfigParser
     private _sigintWasCalled = false
     private _isMultiremote = false
     private _specFileRetryAttempts = 0
@@ -46,32 +46,20 @@ export default class Runner extends EventEmitter {
      * @return {Promise}                  resolves in number of failures for testrun
      */
     async run({ cid, args, specs, caps, configFile, retries }: RunParams) {
+        this._configParser = new ConfigParser(configFile, args)
         this._cid = cid
         this._specs = specs
         this._caps = caps
 
         /**
-         * autocompile after parsing configs so we support ES6 features in tests with config driven by users
-         */
-        if (args.autoCompileOpts?.autoCompile) {
-            this._configParser.merge({ autoCompileOpts: args.autoCompileOpts })
-            this._configParser.autoCompile()
-        }
-
-        /**
          * add config file
          */
         try {
-            await this._configParser.addConfigFile(configFile)
+            await this._configParser.initialize(args)
         } catch (err: any) {
             log.error(`Failed to read config file: ${err.stack}`)
             return this._shutdown(1, retries, true)
         }
-
-        /**
-         * merge cli arguments again as some might have been overwritten by the config
-         */
-        this._configParser.merge(args)
 
         this._config = this._configParser.getConfig()
         this._specFileRetryAttempts = (this._config.specFileRetries || 0) - (retries || 0)
@@ -408,7 +396,7 @@ export default class Runner extends EventEmitter {
                 config: this._config,
                 isMultiremote: this._isMultiremote,
                 instanceOptions: {},
-                capabilities: { ...this._configParser.getCapabilities() },
+                capabilities: { ...this._configParser!.getCapabilities() },
                 retry: this._specFileRetryAttempts
             })
         }

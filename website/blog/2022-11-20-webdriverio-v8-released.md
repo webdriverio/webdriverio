@@ -121,6 +121,8 @@ Aside from these major updates, the team has spent time improving the documentat
 + browser.options.hostname
 ```
 
+Furthermore did we fix the behavior of relative spec or exclude paths. Before `v8` every path within `specs`, `exclude` or `--spec` was always seen relative from the users working directory. This behavior was confusing especially when the `wdio.conf.js` was not within the root of you project. This got fixed now so that `specs` and `exclude` path will be always seen as relative to the config file and `--spec` arguments, relative from the working directory.
+
 ## What's Next?
 
 The WebdriverIO team is very excited about this release as it frees up time to start working on some new cool features we put on the [roadmap](https://github.com/webdriverio/webdriverio/blob/main/ROADMAP.md). For many months we have been working secretly on a VS Code Extension that makes authoring and debugging tests much easier. We also started work on a component testing service that enables developers to test individual web components earlier in the pipeline within an actual browser rather than using [jsdom](https://github.com/jsdom/jsdom). Aside from that, there is always plenty more work to do and opportunities to explore to make this project better. We are welcoming and supporting everyone who likes to join us.

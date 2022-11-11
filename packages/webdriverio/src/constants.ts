@@ -137,6 +137,12 @@ export const WDIO_DEFAULTS: Options.Definition<Options.WebdriverIO & Options.Tes
         required: true
     },
     /**
+     * Project root directory path.
+     */
+    rootDir: {
+        type: 'string'
+    },
+    /**
      * Shorten navigateTo command calls by setting a base url
      */
     baseUrl: {
