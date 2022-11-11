@@ -60,7 +60,9 @@ export default class ConfigParser {
          * specs applied as CLI arguments should be relative from CWD
          * rather than relative to the config file
          */
-        initialConfig.spec = makeRelativeToCWD(initialConfig.spec) as string[]
+        if (initialConfig.spec) {
+            initialConfig.spec = makeRelativeToCWD(initialConfig.spec) as string[]
+        }
         this.merge(initialConfig)
     }
 

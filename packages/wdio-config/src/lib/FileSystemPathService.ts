@@ -20,9 +20,17 @@ export default class FileSystemPathService implements PathService {
         return (fs.existsSync(filepath) && fs.lstatSync(filepath).isFile())
     }
 
+    /**
+     * find test files based on a glob pattern
+     * @param pattern file pattern to glob
+     * @param rootDir directory of wdio config file
+     * @returns files matching the glob pattern
+     */
     glob(pattern: string, rootDir: string): string[] {
-        const globResult = glob.sync(pattern) || []
-        const fileName = pattern.startsWith('/') ? pattern : path.resolve(rootDir, pattern)
+        const globResult = glob.sync(pattern, {
+            cwd: rootDir
+        }) || []
+        const fileName = pattern.startsWith(path.sep) ? pattern : path.resolve(rootDir, pattern)
         /**
          * given that glob treats characters like `[` or `{` in a special way
          * and we also want to be able to find files with these characters included
