@@ -23,7 +23,7 @@ If you're in the root directory of an existing project, run:
   values={[
     {label: 'NPM', value: 'npm'},
     {label: 'Yarn', value: 'yarn'},
-    {label: 'PnPm', value: 'pnpm'},
+    {label: 'pnpm', value: 'pnpm'},
   ]
 }>
 <TabItem value="npm">

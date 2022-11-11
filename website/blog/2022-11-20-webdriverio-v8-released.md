@@ -26,9 +26,45 @@ We recommend using [NVM](https://github.com/nvm-sh/nvm) (Node Version Manager) t
 
 ## CommonJS to ESM Transition
 
-The transition to the new module system has been the biggest chunk of work related to this release. It required us to update all module imports, transitioning from [Jest](https://jestjs.io/) to [Vitest](https://vitest.dev/) as a unit test framework and rewrite various parts within the code base. While this affected every single file it "should" be unrecognizable to you. If your project still uses CommonJS WebdriverIO will work just fine as both module systems continue to be supported. This is also the case when using `webdriver`, `devtools` or `webdriverio` as a [module](/docs/api/modules).
+The transition to the new module system has been the biggest chunk of work related to this release. It required us to update all module imports, transitioning from [Jest](https://jestjs.io/) to [Vitest](https://vitest.dev/) as a unit test framework and rewrite various parts within the code base. While this affected every single file it "should" be unrecognizable to you. If your project still uses CommonJS, WebdriverIO will work just fine as both module systems continue to be supported. This is also the case when using `webdriver`, `devtools` or `webdriverio` as a [module](/docs/api/modules).
 
 If you have been using Babel only to use `import` statements in your tests, you can remove the integration as this is now supported by ESM natively. If you like to continue using CommonJS and `require`, that is fine too, no changes are needed to update to `v8`.
+
+## A new Runner for Unit and Component Testing in the Browser
+
+If it comes to one feature we are really excited about in this release it is the new browser runner 🙌 I've been writing and testing a lot of web components in this past year and was always frustrated about the fact that they would be tested against [JSDOM](https://www.npmjs.com/package/jsdom) rather than an actual browser. JSDOM is a re-implementation of many Web APIs in Node.js and is a great tool for simple testing but it doesn't replace an actual DOM implementation within a browser. Especially using JSDOM for component testing has [various disadvantages](/docs/runner#browser-runner) compared to running tests in the browser.
+
+Furthermore running component tests through WebdriverIO allows to use the WebdriverIO [API](/docs/api) seamlessly and enables real user interaction with your components through the [WebDriver protocol](https://w3c.github.io/webdriver/). This makes those interactions more realistic compared to emitting them through JavaScript. It comes also with 1st class support for popular utility frameworks such as [Testing Library](https://testing-library.com/) and allows to use both APIs interchangeably. Check out how you can use Testing Library for rendering and fetching elements while using WebdriverIO for interacting with the component:
+
+```ts title="vue.test.ts"
+import { $, expect } from '@wdio/globals'
+import { render } from '@testing-library/vue'
+import Component from './components/Component.vue'
+
+describe('Vue Component Testing', () => {
+    it('increments value on click', async () => {
+        // The render method returns a collection of utilities to query your component.
+        const { getByText } = render(Component)
+
+        // getByText returns the first matching node for the provided text, and
+        // throws an error if no elements match or if more than one match is found.
+        getByText('Times clicked: 0')
+
+        const button = await $(getByText('increment'))
+
+        // Dispatch a native click event to our button element.
+        await button.click()
+        await button.click()
+
+        getByText('Times clicked: 2') // assert with Testing Library
+        await expect($('p=Times clicked: 2')).toExist() // assert with WebdriverIO
+    })
+})
+```
+
+The new browser runner allows you to load and execute tests within the browser rather than in Node.js. This allows you to access all Web APIs to render web components or to run unit tests for your frontend modules. Under the hood it uses [Vite](https://vitejs.dev/) to load all dependencies and make the integration seamless.
+
+If you have been using [Karma](https://github.com/karma-runner/karma) for running unit tests in the browser you can switch over to WebdriverIO which provides the same capabilities but offers better support and integration to other services and reporters. It also seems that the Karma project is not much maintained these days and has [unresovled security vulnerabilities](https://github.com/karma-runner/karma/issues/3823).
 
 ## New Action Interface
 
@@ -125,7 +161,7 @@ Furthermore did we fix the behavior of relative spec or exclude paths. Before `v
 
 ## What's Next?
 
-The WebdriverIO team is very excited about this release as it frees up time to start working on some new cool features we put on the [roadmap](https://github.com/webdriverio/webdriverio/blob/main/ROADMAP.md). For many months we have been working secretly on a VS Code Extension that makes authoring and debugging tests much easier. We also started work on a component testing service that enables developers to test individual web components earlier in the pipeline within an actual browser rather than using [jsdom](https://github.com/jsdom/jsdom). Aside from that, there is always plenty more work to do and opportunities to explore to make this project better. We are welcoming and supporting everyone who likes to join us.
+The WebdriverIO team is very excited about this release as it frees up time to start working on some new cool features we put on the [roadmap](https://github.com/webdriverio/webdriverio/blob/main/ROADMAP.md). For many months we have been working secretly on a VS Code Extension that makes authoring and debugging tests much easier. Aside from that, there is always plenty more work to do and opportunities to explore to make this project better. We are welcoming and supporting everyone who likes to join us.
 
 Lastly, I would like to say thank you to everyone who supports the project. Not only the folks who contribute financially through [Open Collective](https://opencollective.com/webdriverio) or [Tidelift](https://tidelift.com/lifter/search/npm/webdriverio) but also everyone who contributes code, ideas, reports issues or supports folks in our [support chat](https://gitter.im/webdriverio/webdriverio), occasionally or on regular basis. Without contributions from the community, this project can't go anywhere. Aside from many alternative projects WebdriverIO is not funded, nor driven by any corporate interest and stays 100% community governed. No lack of funding or need for capital gains will have an impact on this project. It has been like this since its inception more than 10 years ago and will continue to be like this for many many more years. Therefore we are always looking for interested folks who like to help us hack on the project. If you haven't, join our [Open Office Hours](https://webdriver.io/community/openofficehours) and consider giving back to the project.
 
