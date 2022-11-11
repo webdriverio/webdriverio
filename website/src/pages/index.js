@@ -87,7 +87,7 @@ function Home() {
                 </Section>
                 <Highlight
                     img={
-                        <CodeBlock className="js" children={ReactIntegration}></CodeBlock>
+                        <CodeBlock language="js" children={ReactIntegration}></CodeBlock>
                     }
                     isDark
                     title="Support for Modern Web and Mobile Frameworks"
