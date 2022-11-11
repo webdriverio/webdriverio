@@ -8,7 +8,7 @@ import RequireLibrary from './RequireLibrary.js'
 import FileSystemPathService from './FileSystemPathService.js'
 import {
     removeLineNumbers, isCucumberFeatureWithLineNumber, validObjectOrArray,
-    loadAutoCompilers
+    loadAutoCompilers, makeRelativeToCWD
 } from '../utils.js'
 import { SUPPORTED_HOOKS, SUPPORTED_FILE_EXTENSIONS, DEFAULT_CONFIGS, NO_NAMED_CONFIG_EXPORT } from '../constants.js'
 
@@ -42,6 +42,10 @@ export default class ConfigParser {
 
     constructor(
         configFilePath: string,
+        /**
+         * config options parsed in via CLI arguments and applied before
+         * trying to compile config file
+         */
         initialConfig: Partial<TestrunnerOptionsWithParameters> = {},
         private _pathService: PathService = new FileSystemPathService(),
         private _moduleRequireService: ModuleImportService = new RequireLibrary()
@@ -49,9 +53,15 @@ export default class ConfigParser {
         this.#configFilePath = configFilePath
         this._config = Object.assign(
             { rootDir: path.dirname(configFilePath) },
-            initialConfig,
             DEFAULT_CONFIGS()
         )
+
+        /**
+         * specs applied as CLI arguments should be relative from CWD
+         * rather than relative to the config file
+         */
+        initialConfig.spec = makeRelativeToCWD(initialConfig.spec) as string[]
+        this.merge(initialConfig)
     }
 
     /**
@@ -60,8 +70,8 @@ export default class ConfigParser {
     async initialize (object: MergeConfig = {}) {
         await this.autoCompile()
         await this.addConfigFile(this.#configFilePath)
-        this.#isInitialised = true
         this.merge({ ...object })
+        this.#isInitialised = true
     }
 
     private async autoCompile() {

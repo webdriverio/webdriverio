@@ -9,11 +9,9 @@ import {
 
 class ConfigParserMock {
     addService = vi.fn()
-
+    initialize = vi.fn()
     addConfigFile = vi.fn()
-
     merge = vi.fn()
-
     autoCompile = vi.fn()
 
     getConfig = vi.fn().mockReturnValue({

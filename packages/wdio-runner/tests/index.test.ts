@@ -6,6 +6,7 @@ import fs from 'node:fs/promises'
 import logger from '@wdio/logger'
 import { describe, expect, it, vi, afterEach, beforeEach } from 'vitest'
 import { executeHooksWithArgs } from '@wdio/utils'
+import { ConfigParser } from '@wdio/config'
 import { attach } from 'webdriverio'
 import { _setGlobal } from '@wdio/globals'
 import { setOptions } from 'expect-webdriverio'
@@ -20,7 +21,6 @@ vi.mock('expect-webdriverio')
 vi.mock('webdriverio', () => import(path.join(process.cwd(), '__mocks__', 'webdriverio')))
 vi.mock('@wdio/utils', () => import(path.join(process.cwd(), '__mocks__', '@wdio/utils')))
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
-vi.mock('@wdio/config', () => import(path.join(process.cwd(), '__mocks__', '@wdio/config')))
 vi.mock('@wdio/globals', () => ({
     _setGlobal: vi.fn()
 }))
@@ -231,20 +231,20 @@ describe('wdio-runner', () => {
     })
 
     describe('run', () => {
+        afterEach(() => {
+            vi.spyOn(ConfigParser.prototype, 'initialize').mockRestore()
+        })
+
         it('should fail if log file is corrupted', async () => {
+            vi.spyOn(ConfigParser.prototype, 'initialize').mockRejectedValueOnce(new Error('ups'))
             const runner = new WDIORunner()
             runner['_shutdown'] = vi.fn()
-            runner['_configParser'].autoCompile = vi.fn()
-            runner['_configParser'].addConfigFile = vi.fn().mockImplementation(
-                () => { throw new Error('boom') })
-            await runner.run({ args: {} } as any)
-
+            await runner.run({ args: {}, configFile: '/foo/bar' } as any)
             expect(runner['_shutdown']).toBeCalledWith(1, undefined, true)
-            expect(runner['_configParser'].autoCompile).toBeCalledTimes(0)
         })
 
         it('should auto compile if args are given', async () => {
-            const config = {
+            const config: any = {
                 reporters: [],
                 before: [],
                 beforeSession: [],
@@ -254,12 +254,10 @@ describe('wdio-runner', () => {
 
             const runner = new WDIORunner()
             runner['_shutdown'] = vi.fn()
-            runner['_configParser'].autoCompile = vi.fn()
-            runner['_configParser'].getConfig = vi.fn().mockReturnValue(config)
-            await runner.run({ args: { autoCompileOpts: { autoCompile: true } } } as any)
+            vi.spyOn(ConfigParser.prototype, 'getConfig').mockReturnValue(config)
+            await runner.run({ configFile: '/foo/bar', args: { autoCompileOpts: { autoCompile: true } } } as any)
 
             expect(runner['_shutdown']).toBeCalledWith(1, undefined, true)
-            expect(runner['_configParser'].autoCompile).toBeCalledTimes(1)
         })
 
         it('should fail if init session fails', async () => {
@@ -268,14 +266,17 @@ describe('wdio-runner', () => {
             const before = vi.fn()
             const caps = { browserName: '123' }
             const specs = ['foobar']
-            const config = {
+            const config:any = {
                 reporters: [],
                 before: [before],
                 beforeSession: [beforeSession],
                 framework: 'testWithFailures',
                 runner: 'local'
             }
-            runner['_configParser'].getConfig = vi.fn().mockReturnValue(config)
+            vi.spyOn(ConfigParser.prototype, 'getConfig').mockReturnValue(config)
+            // @ts-expect-error mock private
+            vi.spyOn(ConfigParser.prototype, 'addConfigFile').mockReturnValue()
+
             runner['_shutdown'] = vi.fn()
             const stubBrowser = {
                 capabilities: { browserName: 'chrome' },
@@ -303,32 +304,32 @@ describe('wdio-runner', () => {
 
         it('should return failures count', async () => {
             const runner = new WDIORunner()
-            const config = {
+            const config: any = {
                 framework: 'testNoFailures',
                 reporters: [],
                 beforeSession: [],
                 runner: 'local'
             }
-            runner['_configParser'].getConfig = vi.fn().mockReturnValue(config)
+            vi.spyOn(ConfigParser.prototype, 'getConfig').mockReturnValue(config)
             runner['_initSession'] = vi.fn().mockReturnValue({ options: { capabilities: {} } })
-            const failures = await runner.run({ args: {}, caps: {} } as any)
+            const failures = await runner.run({ args: {}, caps: {}, configFile: '/bar/foo' } as any)
 
             expect(failures).toBe(0)
         })
 
         it('should not call browser url if args watch', async () => {
             const runner = new WDIORunner()
-            const config = {
+            const config: any = {
                 framework: 'testNoFailures',
                 reporters: [],
                 beforeSession: [],
                 runner: 'local'
             }
-            runner['_configParser'].getConfig = vi.fn().mockReturnValue(config)
+            vi.spyOn(ConfigParser.prototype, 'getConfig').mockReturnValue(config)
             runner['_browser'] = { url: vi.fn(url => url) } as any as BrowserObject
             runner['_startSession'] = vi.fn().mockReturnValue({ })
             runner['_initSession'] = vi.fn().mockReturnValue({ options: { capabilities: {} } })
-            const failures = await runner.run({ args: { watch: true }, caps: {} } as any)
+            const failures = await runner.run({ args: { watch: true }, caps: {}, configFile: '/foo/bar' } as any)
 
             expect(failures).toBe(0)
             expect(runner['_browser'].url).not.toBeCalled()
@@ -336,16 +337,16 @@ describe('wdio-runner', () => {
 
         it('should set failures to 1 in case of error', async () => {
             const runner = new WDIORunner()
-            const config = {
+            const config:any = {
                 framework: 'testThrows',
                 reporters: [],
                 beforeSession: [],
                 runner: 'local'
             }
-            runner['_configParser'].getConfig = vi.fn().mockReturnValue(config)
+            vi.spyOn(ConfigParser.prototype, 'getConfig').mockReturnValue(config)
             runner['_initSession'] = vi.fn().mockReturnValue({ options: { capabilities: {} } })
             runner.emit = vi.fn()
-            const failures = await runner.run({ args: {}, caps: {} } as any)
+            const failures = await runner.run({ args: {}, caps: {}, configFile: '/foo/bar' } as any)
 
             expect(failures).toBe(1)
             expect(vi.mocked(runner.emit).mock.calls[0])
@@ -356,13 +357,13 @@ describe('wdio-runner', () => {
             const runner = new WDIORunner()
             const caps = { browserName: '123' }
             const specs = ['foobar']
-            const config = {
+            const config: any = {
                 framework: 'testThrows',
                 reporters: [],
                 beforeSession: [],
                 runner: 'local'
             }
-            runner['_configParser'].getConfig = vi.fn().mockReturnValue(config)
+            vi.spyOn(ConfigParser.prototype, 'getConfig').mockReturnValue(config)
             runner['_shutdown'] = vi.fn()
             runner.endSession = vi.fn()
             runner['_initSession'] = vi.fn().mockReturnValue({})
@@ -382,17 +383,17 @@ describe('wdio-runner', () => {
 
         it('should not initSession if there are no tests to run', async () => {
             const runner = new WDIORunner()
-            const config = {
+            const config: any = {
                 framework: 'testNoTests',
                 reporters: [],
                 beforeSession: [],
                 runner: 'local'
             }
-            runner['_configParser'].getConfig = vi.fn().mockReturnValue(config)
+            vi.spyOn(ConfigParser.prototype, 'getConfig').mockReturnValue(config)
             runner['_shutdown'] = vi.fn().mockImplementation((arg) => arg)
             runner['_initSession'] = vi.fn()
 
-            expect(await runner.run({ args: {}, caps: {} } as any)).toBe(0)
+            expect(await runner.run({ args: {}, caps: {}, configFile: '/foo/bar' } as any)).toBe(0)
             expect(runner['_shutdown']).toBeCalledWith(0, undefined, true)
             expect(runner['_initSession']).not.toBeCalled()
         })
@@ -401,14 +402,14 @@ describe('wdio-runner', () => {
             const runner = new WDIORunner()
             const caps = { browserName: '123' }
             const specs = ['foobar']
-            const config = {
+            const config: any = {
                 framework: 'testNoFailures',
                 reporters: [],
                 beforeSession: [],
                 after: 'foobar',
                 runner: 'local'
             }
-            runner['_configParser'].getConfig = vi.fn().mockReturnValue(config)
+            vi.spyOn(ConfigParser.prototype, 'getConfig').mockReturnValue(config)
             runner['_shutdown'] = vi.fn().mockReturnValue('_shutdown')
             runner.endSession = vi.fn()
             runner['_initSession'] = vi.fn().mockReturnValue(null)
@@ -536,6 +537,7 @@ describe('wdio-runner', () => {
 
         it('should emit runner:start if the initialisation failed', async () => {
             const runner = new WDIORunner()
+            runner['_configParser'] = { getCapabilities: vi.fn().mockReturnValue([{ browserName: 'safari' }]) }
             runner['_browser'] = {} as any as BrowserObject
             runner['_reporter'] = {
                 waitForSync: vi.fn().mockReturnValue(Promise.resolve()),
@@ -547,8 +549,7 @@ describe('wdio-runner', () => {
             const args = [
                 ['runner:start', {
                     'capabilities': {
-                        '0': { 'browserName': 'chrome', 'specs': ['./tests/test2.js'] },
-                        '1': { 'browserName': 'firefox' }
+                        '0': { 'browserName': 'safari' }
                     },
                     'cid': undefined,
                     'config': undefined,

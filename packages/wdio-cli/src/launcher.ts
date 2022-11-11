@@ -35,7 +35,7 @@ interface EndMessage {
 }
 
 class Launcher {
-    public configParser = new ConfigParser(this._configFilePath)
+    public configParser: ConfigParser
     public isMultiremote = false
     public runner?: Services.RunnerInstance
     public interface?: CLInterface
@@ -54,7 +54,9 @@ class Launcher {
         private _configFilePath: string,
         private _args: Partial<RunCommandArguments> = {},
         private _isWatchMode = false
-    ) {}
+    ) {
+        this.configParser = new ConfigParser(this._configFilePath, this._args)
+    }
 
     /**
      * run sequence

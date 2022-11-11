@@ -22,8 +22,6 @@ export default class FileSystemPathService implements PathService {
 
     glob(pattern: string, rootDir: string): string[] {
         const globResult = glob.sync(pattern) || []
-        console.log('!!!', pattern)
-
         const fileName = pattern.startsWith('/') ? pattern : path.resolve(rootDir, pattern)
         /**
          * given that glob treats characters like `[` or `{` in a special way

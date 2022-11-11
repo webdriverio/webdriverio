@@ -61,7 +61,7 @@ async function runTests (tests) {
 const mochaTestrunner = async () => {
     const { skippedSpecs } = await launch('mochaTestrunner', baseConfig, {
         specs: [
-            path.resolve(__dirname, 'mocha', 'test.ts'),
+            '../mocha/test.ts',
             path.resolve(__dirname, 'mocha', 'test-middleware.ts'),
             path.resolve(__dirname, 'mocha', 'test-waitForElement.ts'),
             path.resolve(__dirname, 'mocha', 'test-skipped.ts'),
@@ -80,14 +80,15 @@ const mochaTestrunner = async () => {
 }
 
 /**
- * Mocha wdio testrunner tests with asynchronous execution
+ * Mocha wdio testrunner tests with asynchronous execution, also checks
+ * if `spec` CLI arguments are relative to cwd
  */
 const mochaAsyncTestrunner = async () => {
     const { skippedSpecs } = await launch(
         'mochaAsyncTestrunner',
         path.resolve(__dirname, 'helpers', 'command.hook.config.js'),
         {
-            specs: [path.resolve(__dirname, 'mocha', 'test-async.ts')]
+            spec: ['./tests/mocha/test-async.ts']
         }
     )
     assert.strictEqual(skippedSpecs, 0)

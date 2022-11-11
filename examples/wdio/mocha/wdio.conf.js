@@ -1,11 +1,9 @@
-const path = require('node:path')
-
 exports.config = {
     /**
      * specify test files
      */
     specs: [
-        path.resolve(__dirname, 'mocha.test.js')
+        './mocha.test.js'
     ],
 
     /**

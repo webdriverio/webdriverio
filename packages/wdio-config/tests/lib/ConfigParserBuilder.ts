@@ -5,11 +5,13 @@ import MockedModules from './MockedModules.js'
 import MockPathService, { FilePathsAndContents, MockSystemFolderPath } from './MockPathService.js'
 
 export default class ConfigParserBuilder {
+    #args: any
     #configPath: string
     #f : MockPathService
     #m : MockedModules
 
-    public constructor(baseDir: string, configPath: string, files: FilePathsAndContents = [], modules:[string, any][] = []) {
+    public constructor(baseDir: string, configPath: string, args: any, files: FilePathsAndContents = [], modules:[string, any][] = []) {
+        this.#args = args
         this.#configPath = configPath
         this.#f = MockPathService.inWorkingDirectoryWithFiles({ cwd: baseDir, files })
         this.#m = MockedModules.withNoModules()
@@ -18,8 +20,8 @@ export default class ConfigParserBuilder {
         this.withModules(modules)
     }
 
-    static withBaseDir(baseDir: MockSystemFolderPath, configPath: string) : ConfigParserBuilder {
-        return new ConfigParserBuilder(baseDir, configPath)
+    static withBaseDir(baseDir: MockSystemFolderPath, configPath: string, args: any = {}) : ConfigParserBuilder {
+        return new ConfigParserBuilder(baseDir, configPath, args)
     }
 
     withBaseDir(baseDir: MockSystemFolderPath):ConfigParserBuilder {
@@ -67,7 +69,7 @@ export default class ConfigParserBuilder {
     build(): ConfigParser {
         return new ConfigParser(
             this.#configPath,
-            {},
+            this.#args,
             this.#f,
             this.#m
         )

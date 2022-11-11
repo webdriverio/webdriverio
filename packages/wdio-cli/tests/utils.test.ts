@@ -53,8 +53,7 @@ vi.mock('node:fs/promises', () => ({
 
 vi.mock('@wdio/config', () => ({
     ConfigParser: class ConfigParserMock {
-        addConfigFile () {}
-        autoCompile () {}
+        initialize () {}
         getCapabilities () {}
     }
 }))
@@ -416,22 +415,22 @@ describe('getCapabilities', () => {
     })
 
     it('should throw config not found error', async () => {
-        const addConfigFileMock = vi.spyOn(ConfigParser.prototype, 'addConfigFile')
-        addConfigFileMock.mockImplementationOnce(() => {
+        const initializeMock = vi.spyOn(ConfigParser.prototype, 'initialize')
+        initializeMock.mockImplementationOnce(() => {
             const error: any = new Error('ups')
             error.code = 'MODULE_NOT_FOUND'
-            throw error
+            return Promise.reject(error)
         })
         await expect(() => getCapabilities({ option: './test.js', capabilities: 2 } as any))
-            .toThrowErrorMatchingSnapshot()
-        addConfigFileMock.mockImplementationOnce(() => { throw new Error('ups') })
+            .rejects.toThrowErrorMatchingSnapshot()
+        initializeMock.mockImplementationOnce(async () => { throw new Error('ups') })
         await expect(() => getCapabilities({ option: './test.js', capabilities: 2 } as any))
-            .toThrowErrorMatchingSnapshot()
+            .rejects.toThrowErrorMatchingSnapshot()
     })
 
     it('should throw capability not provided', async () => {
         await expect(() => getCapabilities({ option: '/path/to/config.js' } as any))
-            .toThrowErrorMatchingSnapshot()
+            .rejects.toThrowErrorMatchingSnapshot()
     })
 
     it('should through capability not found', async () => {
@@ -439,11 +438,11 @@ describe('getCapabilities', () => {
         const getCapabilitiesMock = vi.spyOn(ConfigParser.prototype, 'getCapabilities')
         getCapabilitiesMock.mockReturnValue([cap, cap, cap, cap, cap])
         await expect(() => getCapabilities({ option: '/path/to/config.js', capabilities: 5 } as any))
-            .toThrowErrorMatchingSnapshot()
+            .rejects.toThrowErrorMatchingSnapshot()
     })
 
     it('should get capability from wdio.conf.js', async () => {
-        const autoCompileMock = vi.spyOn(ConfigParser.prototype, 'autoCompile')
+        const autoCompileMock = vi.spyOn(ConfigParser.prototype, 'initialize')
         const getCapabilitiesMock = vi.spyOn(ConfigParser.prototype, 'getCapabilities')
         getCapabilitiesMock.mockReturnValue([
             { browserName: 'chrome' },

@@ -1,9 +1,8 @@
 import url from 'node:url'
 import path from 'node:path'
 import fs from 'node:fs'
-import process from 'node:process'
 import glob from 'glob'
-import { vi, describe, it, expect, afterEach, beforeEach } from 'vitest'
+import { vi, describe, it, expect, afterEach } from 'vitest'
 
 import FileSystemPathService from '../src/lib/FileSystemPathService.js'
 
@@ -29,27 +28,6 @@ describe('FileSystemPathService', () => {
         vi.clearAllMocks()
     })
 
-    describe('getcwd', function () {
-        let oldCwd: () => string
-        beforeEach(() => {
-            oldCwd = process.cwd
-        })
-        afterEach(() => {
-            process.cwd = oldCwd
-        })
-
-        it('should return current working directory', function () {
-            const svc = new FileSystemPathService()
-            expect(svc.getcwd()).toEqual(process.cwd())
-        })
-
-        it('should throw if cwd returns undefined', function () {
-            process.cwd = () => undefined as any as string
-            const svc = new FileSystemPathService()
-            expect(() => svc.getcwd()).toThrowError('Unable to find current working directory from process')
-        })
-    })
-
     describe('isFile', function () {
         it('should return true if file exists', function () {
             vi.mocked(fs.existsSync).mockReturnValue(true)
@@ -67,29 +45,29 @@ describe('FileSystemPathService', () => {
     describe('ensureAbsolutePath', function () {
         it('should return abs path given abs path', function () {
             const svc = new FileSystemPathService()
-            expect(svc.ensureAbsolutePath(path.resolve(__dirname, 'absolutely')))
+            expect(svc.ensureAbsolutePath(path.resolve(__dirname, 'absolutely'), '/foo/bar'))
                 .toEqual(url.pathToFileURL(path.resolve(__dirname, 'absolutely')).href)
         })
 
         it('should return abs path given relative path', function () {
             const svc = new FileSystemPathService()
-            expect(svc.ensureAbsolutePath('all_relativity')).toBe(
-                url.pathToFileURL(path.resolve(process.cwd(), 'all_relativity')).href)
+            expect(svc.ensureAbsolutePath('all_relativity', '/foo/bar')).toBe(
+                url.pathToFileURL(path.resolve('/foo/bar', 'all_relativity')).href)
         })
     })
 
     describe('glob', function () {
         it('should pass calls to glob', function () {
             const svc = new FileSystemPathService()
-            expect(svc.glob('globtrotter')).toEqual('glob result')
+            expect(svc.glob('globtrotter', '/foo/bar')).toEqual('glob result')
             expect(glob.sync).toHaveBeenCalledWith('globtrotter')
         })
         it('should process file name with []', function () {
             vi.mocked(glob.sync).mockReturnValue([])
             vi.mocked(fs.existsSync).mockReturnValue(true)
             const svc = new FileSystemPathService()
-            expect(svc.glob('./examples/wdio/mocha/[test].js'))
-                .toEqual([path.resolve(process.cwd(), 'examples', 'wdio', 'mocha', '[test].js')])
+            expect(svc.glob('./examples/wdio/mocha/[test].js', '/foo/bar'))
+                .toEqual([path.resolve('/foo', 'bar', 'examples', 'wdio', 'mocha', '[test].js')])
         })
     })
 
