@@ -111,10 +111,15 @@ export default function (
         log.info('COMMAND', commandCallStructure(command, args))
         return request.makeRequest(this.options, this.sessionId).then((result) => {
             if (result.value != null) {
-                log.info('RESULT', /screenshot|recording/i.test(command)
-                    && typeof result.value === 'string' && result.value.length > 64
-                    ? `${result.value.slice(0, 61)}...`
-                    : result.value)
+                let resultLog = result.value
+
+                if (/screenshot|recording/i.test(command) && typeof result.value === 'string' && result.value.length > 64) {
+                    resultLog = `${result.value.slice(0, 61)}...`
+                } else if (command === 'executeScript' && body.script && body.script.includes('(() => window.__wdioEvents__)')) {
+                    resultLog = `[${result.value.length} framework events captured]`
+                }
+
+                log.info('RESULT', resultLog)
             }
 
             this.emit('result', { method, endpoint, body, result })
