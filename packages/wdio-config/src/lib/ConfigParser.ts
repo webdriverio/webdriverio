@@ -95,7 +95,10 @@ export default class ConfigParser {
             throw new Error('addConfigFile requires filepath')
         }
 
-        const filePath = this._pathService.ensureAbsolutePath(filename, path.dirname(filename))
+        /**
+         * resolve config file path always relative to working directory
+         */
+        const filePath = this._pathService.ensureAbsolutePath(filename, process.cwd())
 
         try {
             /**
