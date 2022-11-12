@@ -32,7 +32,7 @@ export default async function saveScreenshot (
     }
 
     const absoluteFilepath = getAbsoluteFilepath(filepath)
-    assertDirectoryExists(absoluteFilepath)
+    await assertDirectoryExists(absoluteFilepath)
 
     const screenBuffer = await this.takeScreenshot()
     const screenshot = Buffer.from(screenBuffer, 'base64')

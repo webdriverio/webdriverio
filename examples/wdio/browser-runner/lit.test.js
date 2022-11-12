@@ -1,5 +1,4 @@
-import expect from 'expect'
-import { waitFor } from '@testing-library/dom'
+import { expect, $ } from '@wdio/globals'
 import './components/LitComponent.ts'
 
 describe('Lit Component testing', () => {
@@ -8,8 +7,7 @@ describe('Lit Component testing', () => {
         elem.setAttribute('name', 'WebdriverIO')
         document.body.appendChild(elem)
 
-        await waitFor(() => {
-            expect(elem.shadowRoot.textContent).toBe('Hello, WebdriverIO!')
-        })
+        const innerElem = await $(elem).$('>>> p')
+        expect(await innerElem.getText()).toBe('Hello, WebdriverIO!')
     })
 })

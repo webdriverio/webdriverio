@@ -40,8 +40,6 @@ const resolvedVirtualModuleId = '\0' + virtualModuleId
 
 const MODULES_TO_MOCK = [
     'node:module', 'node:events', 'node:path', 'node:url', 'puppeteer-core', 'archiver',
-    'query-selector-shadow-dom/plugins/puppeteer/index.js',
-    'query-selector-shadow-dom/plugins/webdriverio/index.js',
     'glob', 'devtools', 'ws'
 ]
 

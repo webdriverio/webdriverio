@@ -57,7 +57,7 @@ export default async function savePDF (
     }
 
     const absoluteFilepath = getAbsoluteFilepath(filepath)
-    assertDirectoryExists(absoluteFilepath)
+    await assertDirectoryExists(absoluteFilepath)
 
     const pdf = await this.printPage(options?.orientation, options?.scale, options?.background,
         options?.width, options?.height, options?.top, options?.bottom, options?.left, options?.right,

@@ -1,4 +1,4 @@
-import fs from 'node:fs'
+import fs from 'node:fs/promises'
 import http from 'node:http'
 import path from 'node:path'
 import { URL } from 'node:url'
@@ -8,8 +8,6 @@ import rgb2hex from 'rgb2hex'
 import GraphemeSplitter from 'grapheme-splitter'
 import logger from '@wdio/logger'
 import isPlainObject from 'is-plain-obj'
-// @ts-expect-error
-import { locatorStrategy } from 'query-selector-shadow-dom/plugins/webdriverio/index.js'
 import { SUPPORTED_BROWSER } from 'devtools'
 import { UNICODE_CHARACTERS } from '@wdio/utils'
 import type { ElementReference } from '@wdio/protocols'
@@ -17,6 +15,7 @@ import type { Options, Capabilities } from '@wdio/types'
 
 import * as browserCommands from '../commands/browser.js'
 import * as elementCommands from '../commands/element.js'
+import querySelectorAllDeep from './thirdParty/querySelectorShadowDom.js'
 import { ELEMENT_KEY, DRIVER_DEFAULT_ENDPOINT, DEEP_SELECTOR, Key } from '../constants.js'
 import { findStrategy } from './findStrategy.js'
 import type { ElementArray, ElementFunction, Selector, ParsedCSSValue, CustomLocatorReturnValue } from '../types'
@@ -236,11 +235,11 @@ export async function findElement(
     if (!this.isDevTools && typeof selector === 'string' && selector.startsWith(DEEP_SELECTOR)) {
         const notFoundError = new Error(`shadow selector "${selector.slice(DEEP_SELECTOR.length)}" did not return an HTMLElement`)
         let elem: ElementReference | ElementReference[] = await browserObject.execute(
-            locatorStrategy,
-            ...[
-                selector.slice(DEEP_SELECTOR.length),
-                (this as WebdriverIO.Element).elementId ? this : undefined
-            ].filter(Boolean)
+            `return (${querySelectorAllDeep}).apply(null, arguments)`,
+            false,
+            selector.slice(DEEP_SELECTOR.length),
+            // hard conversion from element id to Element is done by browser driver
+            ((this as WebdriverIO.Element).elementId ? this : undefined) as any as Element | Document
         )
         elem = Array.isArray(elem) ? elem[0] : elem
         return getElementFromResponse(elem) ? elem : notFoundError
@@ -312,11 +311,11 @@ export async function findElements(
      */
     if (!this.isDevTools && typeof selector === 'string' && selector.startsWith(DEEP_SELECTOR)) {
         const elems: ElementReference | ElementReference[] = await browserObject.execute(
-            locatorStrategy,
-            ...[
-                selector.slice(DEEP_SELECTOR.length),
-                (this as WebdriverIO.Element).elementId ? this : undefined
-            ].filter(Boolean)
+            `return (${querySelectorAllDeep}).apply(null, arguments)`,
+            true,
+            selector.slice(DEEP_SELECTOR.length),
+            // hard conversion from element id to Element is done by browser driver
+            ((this as WebdriverIO.Element).elementId ? this : undefined) as any as Element | Document
         )
         const elemArray = Array.isArray(elems) ? elems : [elems]
         return elemArray.filter((elem) => elem && getElementFromResponse(elem))
@@ -431,8 +430,9 @@ export function getAbsoluteFilepath(filepath: string) {
 /**
  * check if directory exists
  */
-export function assertDirectoryExists(filepath: string) {
-    if (!fs.existsSync(path.dirname(filepath))) {
+export async function assertDirectoryExists(filepath: string) {
+    const exist = await fs.access(path.dirname(filepath)).then(() => true, () => false)
+    if (!exist) {
         throw new Error(`directory (${path.dirname(filepath)}) doesn't exist`)
     }
 }

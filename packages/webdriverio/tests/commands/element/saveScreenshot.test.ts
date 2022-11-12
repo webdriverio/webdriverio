@@ -1,4 +1,4 @@
-import fs from 'node:fs'
+import fs from 'node:fs/promises'
 import path from 'node:path'
 import { expect, describe, it, vi, beforeEach, afterEach, SpyInstance } from 'vitest'
 
@@ -8,18 +8,18 @@ import { remote } from '../../../src/index.js'
 import * as utils from '../../../src/utils/index.js'
 
 vi.mock('got')
-vi.mock('fs')
+vi.mock('fs/promises')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 describe('saveScreenshot', () => {
     let getAbsoluteFilepathSpy: SpyInstance
     let assertDirectoryExistsSpy: SpyInstance
-    let writeFileSyncSpy: SpyInstance
+    let writeFileSyncSpy = vi.spyOn(fs, 'writeFile')
 
     beforeEach(() => {
         getAbsoluteFilepathSpy = vi.spyOn(utils, 'getAbsoluteFilepath')
         assertDirectoryExistsSpy = vi.spyOn(utils, 'assertDirectoryExists')
-        writeFileSyncSpy = vi.spyOn(fs, 'writeFileSync')
+        vi.spyOn(fs, 'access').mockResolvedValue()
     })
 
     afterEach(() => {

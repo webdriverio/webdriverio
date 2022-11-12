@@ -1,4 +1,3 @@
-import fs from 'node:fs'
 import http from 'node:http'
 import path from 'node:path'
 import { describe, expect, it, vi, beforeEach } from 'vitest'
@@ -265,8 +264,10 @@ describe('utils', () => {
             expect(scope.findElement).not.toBeCalled()
             expect(scope.findElementFromElement).not.toBeCalled()
             expect(scope.execute).toBeCalledWith(
-                expect.any(Function),
-                '.foobar'
+                expect.any(String),
+                false,
+                '.foobar',
+                undefined
             )
             expect(elem[ELEMENT_KEY]).toBe('foobar')
         })
@@ -278,7 +279,8 @@ describe('utils', () => {
             expect(scope.findElement).not.toBeCalled()
             expect(scope.findElementFromElement).not.toBeCalled()
             expect(scope.execute).toBeCalledWith(
-                expect.any(Function),
+                expect.any(String),
+                false,
                 '.foobar',
                 scope
             )
@@ -379,8 +381,10 @@ describe('utils', () => {
             expect(scope.findElements).not.toBeCalled()
             expect(scope.findElementsFromElement).not.toBeCalled()
             expect(scope.execute).toBeCalledWith(
-                expect.any(Function),
-                '.foobar'
+                expect.any(String),
+                true,
+                '.foobar',
+                undefined
             )
             expect(elem).toHaveLength(1)
             expect(elem[0][ELEMENT_KEY]).toBe('foobar')
@@ -393,7 +397,8 @@ describe('utils', () => {
             expect(scope.findElements).not.toBeCalled()
             expect(scope.findElementsFromElement).not.toBeCalled()
             expect(scope.execute).toBeCalledWith(
-                expect.any(Function),
+                expect.any(String),
+                true,
                 '.foobar',
                 scope
             )
@@ -489,16 +494,11 @@ describe('utils', () => {
     })
 
     describe('assertDirectoryExists', () => {
-        beforeEach(async () => {
-            const fsOrig = await vi.importActual('fs') as typeof fs
-            vi.mocked(fs.existsSync).mockImplementation(fsOrig.existsSync.bind(fsOrig))
+        it('should fail if not existing directory', async () => {
+            await expect(() => assertDirectoryExists('/i/dont/exist.png')).rejects.toThrowError(new Error('directory (/i/dont) doesn\'t exist'))
         })
-
-        it('should fail if not existing directory', () => {
-            expect(() => assertDirectoryExists('/i/dont/exist.png')).toThrowError(new Error('directory (/i/dont) doesn\'t exist'))
-        })
-        it('should not fail if directory exists', () => {
-            expect(() => assertDirectoryExists('.')).not.toThrow()
+        it('should not fail if directory exists', async () => {
+            expect(await assertDirectoryExists('.')).toBe(undefined)
         })
     })
 

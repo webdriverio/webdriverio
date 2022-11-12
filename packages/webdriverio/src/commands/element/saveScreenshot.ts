@@ -1,4 +1,4 @@
-import fs from 'node:fs'
+import fs from 'node:fs/promises'
 import { getAbsoluteFilepath, assertDirectoryExists } from '../../utils/index.js'
 
 /**
@@ -31,11 +31,11 @@ export default async function saveScreenshot (
     }
 
     const absoluteFilepath = getAbsoluteFilepath(filepath)
-    assertDirectoryExists(absoluteFilepath)
+    await assertDirectoryExists(absoluteFilepath)
 
     const screenBuffer = await this.takeElementScreenshot(this.elementId)
     const screenshot = Buffer.from(screenBuffer, 'base64')
-    fs.writeFileSync(absoluteFilepath, screenshot)
+    await fs.writeFile(absoluteFilepath, screenshot)
 
     return screenshot
 }

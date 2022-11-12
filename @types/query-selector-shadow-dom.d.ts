@@ -24,7 +24,3 @@ declare const querySelectorShadowDom: {
 declare module "query-selector-shadow-dom/plugins/puppeteer/index.js" {
     export = querySelectorShadowDom
 }
-
-declare module "query-selector-shadow-dom/plugins/webdriverio" {
-    export = querySelectorShadowDom
-}
