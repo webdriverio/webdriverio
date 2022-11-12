@@ -81,18 +81,18 @@ const mochaAsyncTestrunner = async () => {
 /**
  * Jasmine wdio testrunner tests
  */
-const jasmineTestrunner = async () => {
-    const { skippedSpecs } = await launch(
-        path.resolve(__dirname, 'helpers', 'config.js'),
-        {
-            specs: [
-                path.resolve(__dirname, 'jasmine', 'test.js'),
-                path.resolve(__dirname, 'jasmine', 'test-skipped.js')
-            ],
-            framework: 'jasmine'
-        })
-    assert.strictEqual(skippedSpecs, 1)
-}
+// const jasmineTestrunner = async () => {
+//     const { skippedSpecs } = await launch(
+//         path.resolve(__dirname, 'helpers', 'config.js'),
+//         {
+//             specs: [
+//                 path.resolve(__dirname, 'jasmine', 'test.js'),
+//                 path.resolve(__dirname, 'jasmine', 'test-skipped.js')
+//             ],
+//             framework: 'jasmine'
+//         })
+//     assert.strictEqual(skippedSpecs, 1)
+// }
 
 /**
  * Jasmine reporter
@@ -495,7 +495,7 @@ const severeErrorTest = async () => {
     if (parseInt(major) < 16) {
         smokeTests.push(
             mochaTestrunner,
-            jasmineTestrunner,
+            // jasmineTestrunner,
             multiremote,
             wdioHooks,
             sharedStoreServiceTest,
