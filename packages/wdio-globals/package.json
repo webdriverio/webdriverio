@@ -6,7 +6,10 @@
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-globals",
   "license": "MIT",
   "type": "module",
-  "exports": "./build/index.js",
+  "exports": {
+    ".": "./build/index.js",
+    "./types": "./types.d.ts"
+  },
   "types": "./build/index.d.ts",
   "typeScriptVersion": "3.8.3",
   "engines": {
