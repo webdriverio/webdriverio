@@ -19,6 +19,25 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.26.0 (2022-11-12)
+
+#### :bug: Bug Fix
+* `wdio-concise-reporter`, `wdio-junit-reporter`, `wdio-runner`, `wdio-types`
+  * [#9157](https://github.com/webdriverio/webdriverio/pull/9157) [v7] @wdio/types: Add type definition for reporter outputFileFormat ([@SCG82](https://github.com/SCG82))
+* `wdio-config`
+  * [#9103](https://github.com/webdriverio/webdriverio/pull/9103) Fix exclude pattern when cli spec passed v7 ([@dragosMC91](https://github.com/dragosMC91))
+
+#### :memo: Documentation
+* `wdio-types`
+  * [#9137](https://github.com/webdriverio/webdriverio/pull/9137) [v7] @wdio/types: fix ChromeOptions - perfLoggingPrefs  ([@SCG82](https://github.com/SCG82))
+  * [#9121](https://github.com/webdriverio/webdriverio/pull/9121) Add missing capability types in BrowserStackCapabilities ([@SCG82](https://github.com/SCG82))
+
+#### Committers: 3
+- Dragos Campean ([@dragosMC91](https://github.com/dragosMC91))
+- Sébastien David (seb) ([@alk-sdavid](https://github.com/alk-sdavid))
+- [@SCG82](https://github.com/SCG82)
+
+
 ## v7.25.4 (2022-10-28)
 
 #### :bug: Bug Fix
