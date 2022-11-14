@@ -101,12 +101,17 @@ export const SUPPORTED_HOOKS: (keyof Services.Hooks)[] = [
     'afterSuite',
     'afterSession',
     'after',
-    // @ts-ignore not defined in core hooks but added with cucumber
+    // @ts-expect-error not defined in core hooks but added with cucumber
     'beforeFeature',
+    // @ts-expect-error not defined in core hooks but added with cucumber
     'beforeScenario',
+    // @ts-expect-error not defined in core hooks but added with cucumber
     'beforeStep',
+    // @ts-expect-error not defined in core hooks but added with cucumber
     'afterStep',
+    //@ts-expect-error not defined in core hooks but added with cucumber
     'afterScenario',
+    // @ts-expect-error not defined in core hooks but added with cucumber
     'afterFeature',
     'onReload',
     'onPrepare',
