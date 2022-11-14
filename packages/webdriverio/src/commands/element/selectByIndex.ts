@@ -29,9 +29,9 @@ import { getElementFromResponse } from '../../utils/index.js'
  * @type action
  *
  */
-export default async function selectByIndex (
+export default async function selectByIndex(
     this: WebdriverIO.Element,
-    index: number
+    index: number,
 ) {
     /**
      * negative index check
@@ -41,20 +41,28 @@ export default async function selectByIndex (
     }
 
     /**
-    * get option elememnts using css
-    */
-    const optionElements = await this.findElementsFromElement(this.elementId, 'css selector',  'option')
+     * get option elememnts using css
+     */
+    const optionElements = await this.findElementsFromElement(
+        this.elementId,
+        'css selector',
+        'option',
+    )
 
     if (optionElements.length === 0) {
-        throw new Error('Select element doesn\'t contain any option element')
+        throw new Error("Select element doesn't contain any option element")
     }
 
     if (optionElements.length - 1 < index) {
-        throw new Error(`Option with index "${index}" not found. Select element only contains ${optionElements.length} option elements`)
+        throw new Error(
+            `Option with index "${index}" not found. Select element only contains ${optionElements.length} option elements`,
+        )
     }
 
     /**
-    * select option
-    */
-    return this.elementClick(getElementFromResponse(optionElements[index]) as string)
+     * select option
+     */
+    return this.elementClick(
+        getElementFromResponse(optionElements[index]) as string,
+    )
 }

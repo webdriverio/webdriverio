@@ -28,20 +28,20 @@
  * @param  {HTMLElement} elem  element to check
  * @return {Boolean}           true if element is within viewport
  */
-export default function isElementDisplayed (element: Element): boolean {
+export default function isElementDisplayed(element: Element): boolean {
     function nodeIsElement(node?: Element) {
         if (!node) {
             return false
         }
 
         switch (node.nodeType) {
-        case Node.ELEMENT_NODE:
-        case Node.DOCUMENT_NODE:
-        case Node.DOCUMENT_FRAGMENT_NODE:
-            return true
+            case Node.ELEMENT_NODE:
+            case Node.DOCUMENT_NODE:
+            case Node.DOCUMENT_FRAGMENT_NODE:
+                return true
 
-        default:
-            return false
+            default:
+                return false
         }
     }
 
@@ -50,10 +50,16 @@ export default function isElementDisplayed (element: Element): boolean {
             return null
         }
 
-        return enclosingNodeOrSelfMatchingPredicate(element.parentNode as ParentNode, nodeIsElement)
+        return enclosingNodeOrSelfMatchingPredicate(
+            element.parentNode as ParentNode,
+            nodeIsElement,
+        )
     }
 
-    function enclosingNodeOrSelfMatchingPredicate(targetNode: ParentNode | HTMLElement, predicate: Function) {
+    function enclosingNodeOrSelfMatchingPredicate(
+        targetNode: ParentNode | HTMLElement,
+        predicate: Function,
+    ) {
         for (
             let node: ParentNode = targetNode;
             node && node !== (targetNode as Node).ownerDocument;
@@ -66,11 +72,16 @@ export default function isElementDisplayed (element: Element): boolean {
         return null
     }
 
-    function enclosingElementOrSelfMatchingPredicate(targetElement: HTMLElement | Document, predicate: Function) {
+    function enclosingElementOrSelfMatchingPredicate(
+        targetElement: HTMLElement | Document,
+        predicate: Function,
+    ) {
         for (
             let element: HTMLElement | ParentNode = targetElement;
             element && element !== targetElement.ownerDocument;
-            element = parentElementForElement(element as HTMLElement) as HTMLElement
+            element = parentElementForElement(
+                element as HTMLElement,
+            ) as HTMLElement
         )
             if (predicate(element)) {
                 return element
@@ -81,7 +92,7 @@ export default function isElementDisplayed (element: Element): boolean {
 
     function cascadedStylePropertyForElement(
         element?: Element | ParentNode | ShadowRoot,
-        property?: string
+        property?: string,
     ): string | null {
         if (!element || !property) {
             return null
@@ -108,7 +119,9 @@ export default function isElementDisplayed (element: Element): boolean {
         // I think all important non-inheritable properties (width, height, etc.)
         // for our purposes here are specially resolved, so this may not be an issue.
         // Specification is here: https://drafts.csswg.org/cssom/#resolved-values
-        let parentElement = parentElementForElement(element as Element) as ParentNode
+        let parentElement = parentElementForElement(
+            element as Element,
+        ) as ParentNode
         return cascadedStylePropertyForElement(parentElement, property)
     }
 
@@ -119,12 +132,21 @@ export default function isElementDisplayed (element: Element): boolean {
         }
 
         // Paths can have a zero width or height. Treat them as shown if the stroke width is positive.
-        if (element.tagName.toUpperCase() === 'PATH' && boundingBox.width + boundingBox.height > 0) {
-            let strokeWidth = cascadedStylePropertyForElement(element, 'stroke-width')
-            return !!strokeWidth && (parseInt(strokeWidth, 10) > 0)
+        if (
+            element.tagName.toUpperCase() === 'PATH' &&
+            boundingBox.width + boundingBox.height > 0
+        ) {
+            let strokeWidth = cascadedStylePropertyForElement(
+                element,
+                'stroke-width',
+            )
+            return !!strokeWidth && parseInt(strokeWidth, 10) > 0
         }
 
-        let cascadedOverflow = cascadedStylePropertyForElement(element, 'overflow')
+        let cascadedOverflow = cascadedStylePropertyForElement(
+            element,
+            'overflow',
+        )
         if (cascadedOverflow === 'hidden') {
             return false
         }
@@ -145,7 +167,10 @@ export default function isElementDisplayed (element: Element): boolean {
     }
 
     function elementOverflowsContainer(element: Element) {
-        let cascadedOverflow = cascadedStylePropertyForElement(element, 'overflow')
+        let cascadedOverflow = cascadedStylePropertyForElement(
+            element,
+            'overflow',
+        )
         if (cascadedOverflow !== 'hidden') {
             return false
         }
@@ -156,7 +181,7 @@ export default function isElementDisplayed (element: Element): boolean {
         return true
     }
 
-    function isElementSubtreeHiddenByOverflow (element: Element): boolean {
+    function isElementSubtreeHiddenByOverflow(element: Element): boolean {
         if (!element) {
             return false
         }
@@ -190,7 +215,7 @@ export default function isElementDisplayed (element: Element): boolean {
         })
     }
     // walk up the tree testing for a shadow root
-    function isElementInsideShadowRoot (element: Element): boolean {
+    function isElementInsideShadowRoot(element: Element): boolean {
         if (!element) {
             return false
         }
@@ -209,42 +234,51 @@ export default function isElementDisplayed (element: Element): boolean {
 
     // Special cases for specific tag names.
     switch (element.tagName.toUpperCase()) {
-    case 'BODY':
-        return true
+        case 'BODY':
+            return true
 
-    case 'SCRIPT':
-    case 'NOSCRIPT':
-        return false
-
-    case 'OPTGROUP':
-    case 'OPTION': {
-        // Option/optgroup are considered shown if the containing <select> is shown.
-        let enclosingSelectElement = enclosingNodeOrSelfMatchingPredicate(element, (e: Element) => e.tagName.toUpperCase() === 'SELECT')
-        return isElementDisplayed(enclosingSelectElement as Element)
-    }
-    case 'INPUT':
-        // <input type="hidden"> is considered not shown.
-        if ((element as HTMLInputElement).type === 'hidden') {
+        case 'SCRIPT':
+        case 'NOSCRIPT':
             return false
+
+        case 'OPTGROUP':
+        case 'OPTION': {
+            // Option/optgroup are considered shown if the containing <select> is shown.
+            let enclosingSelectElement = enclosingNodeOrSelfMatchingPredicate(
+                element,
+                (e: Element) => e.tagName.toUpperCase() === 'SELECT',
+            )
+            return isElementDisplayed(enclosingSelectElement as Element)
         }
-        break
+        case 'INPUT':
+            // <input type="hidden"> is considered not shown.
+            if ((element as HTMLInputElement).type === 'hidden') {
+                return false
+            }
+            break
         // case 'MAP':
         // FIXME: Selenium has special handling for <map> elements. We don't do anything now.
 
-    default:
-        break
+        default:
+            break
     }
 
     if (cascadedStylePropertyForElement(element, 'visibility') !== 'visible') {
         return false
     }
 
-    let hasAncestorWithZeroOpacity = !!enclosingElementOrSelfMatchingPredicate(element as HTMLElement, (e: Element) => {
-        return Number(cascadedStylePropertyForElement(e, 'opacity')) === 0
-    })
-    let hasAncestorWithDisplayNone = !!enclosingElementOrSelfMatchingPredicate(element as HTMLElement, (e: Element) => {
-        return cascadedStylePropertyForElement(e, 'display') === 'none'
-    })
+    let hasAncestorWithZeroOpacity = !!enclosingElementOrSelfMatchingPredicate(
+        element as HTMLElement,
+        (e: Element) => {
+            return Number(cascadedStylePropertyForElement(e, 'opacity')) === 0
+        },
+    )
+    let hasAncestorWithDisplayNone = !!enclosingElementOrSelfMatchingPredicate(
+        element as HTMLElement,
+        (e: Element) => {
+            return cascadedStylePropertyForElement(e, 'display') === 'none'
+        },
+    )
     if (hasAncestorWithZeroOpacity || hasAncestorWithDisplayNone) {
         return false
     }

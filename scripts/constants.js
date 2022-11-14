@@ -1,16 +1,23 @@
-import webdriver from '../packages/wdio-protocols/protocols/webdriver.json' assert { type: 'json' }
-import webdriverBidi from '../packages/wdio-protocols/protocols/webdriverBidi.json' assert { type: 'json' }
 import appium from '../packages/wdio-protocols/protocols/appium.json' assert { type: 'json' }
-import mjsonwp from '../packages/wdio-protocols/protocols/mjsonwp.json' assert { type: 'json' }
 import chromium from '../packages/wdio-protocols/protocols/chromium.json' assert { type: 'json' }
 import gecko from '../packages/wdio-protocols/protocols/gecko.json' assert { type: 'json' }
+import jsonwp from '../packages/wdio-protocols/protocols/jsonwp.json' assert { type: 'json' }
+import mjsonwp from '../packages/wdio-protocols/protocols/mjsonwp.json' assert { type: 'json' }
 import saucelabs from '../packages/wdio-protocols/protocols/saucelabs.json' assert { type: 'json' }
 import selenium from '../packages/wdio-protocols/protocols/selenium.json' assert { type: 'json' }
-import jsonwp from '../packages/wdio-protocols/protocols/jsonwp.json' assert { type: 'json' }
+import webdriver from '../packages/wdio-protocols/protocols/webdriver.json' assert { type: 'json' }
+import webdriverBidi from '../packages/wdio-protocols/protocols/webdriverBidi.json' assert { type: 'json' }
 
 export const PROTOCOLS = {
-    webdriver, webdriverBidi, appium, chromium,
-    gecko, saucelabs, selenium, jsonwp, mjsonwp
+    webdriver,
+    webdriverBidi,
+    appium,
+    chromium,
+    gecko,
+    saucelabs,
+    selenium,
+    jsonwp,
+    mjsonwp,
 }
 export const PROTOCOL_NAMES = {
     appium: 'Appium',
@@ -21,14 +28,14 @@ export const PROTOCOL_NAMES = {
     chromium: 'Chromium',
     gecko: 'Firefox',
     saucelabs: 'Sauce Labs',
-    selenium: 'Selenium Standalone'
+    selenium: 'Selenium Standalone',
 }
 export const MOBILE_PROTOCOLS = ['appium', 'mjsonwp']
 export const VENDOR_PROTOCOLS = ['chromium']
 export const IGNORED_SUBPACKAGES_FOR_DOCS = [
     'eslint-plugin-wdio',
     'wdio-smoke-test-service',
-    'wdio-smoke-test-reporter'
+    'wdio-smoke-test-reporter',
 ]
 
 export const EDIT_WARNING = `// -------------------- ATTENTION --------------------
@@ -65,6 +72,6 @@ protocol.
 `
 
 export const PROTOCOL_API_DESCRIPTION = {
-    'saucelabs': SAUCE_API_DESCRIPTION,
-    'jsonwp': JSONWP_API_DESCRIPTION
+    saucelabs: SAUCE_API_DESCRIPTION,
+    jsonwp: JSONWP_API_DESCRIPTION,
 }

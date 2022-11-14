@@ -1,10 +1,16 @@
 import path from 'node:path'
-import { expect, describe, it, beforeEach, afterEach, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { remote } from '../../../src/index.js'
 
 vi.mock('got')
-vi.mock('@wdio/repl', () => import(path.join(process.cwd(), '__mocks__', '@wdio/repl')))
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock(
+    '@wdio/repl',
+    () => import(path.join(process.cwd(), '__mocks__', '@wdio/repl')),
+)
+vi.mock(
+    '@wdio/logger',
+    () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')),
+)
 
 describe('debug command', () => {
     let browser: WebdriverIO.Browser
@@ -13,14 +19,14 @@ describe('debug command', () => {
         browser = await remote({
             baseUrl: 'http://foobar.com',
             capabilities: {
-                browserName: 'foobar'
-            }
+                browserName: 'foobar',
+            },
         })
     })
 
     describe('standalone mode', () => {
         it('should start wdio repl if in standalone mode', async () => {
-            const repl = await browser.debug() as any
+            const repl = (await browser.debug()) as any
             expect(repl['_startFn']).toBeCalled()
         })
     })
@@ -35,7 +41,7 @@ describe('debug command', () => {
                 _debugProcess: vi.fn(),
                 _debugEnd: vi.fn(),
                 send: vi.fn(),
-                on: vi.fn()
+                on: vi.fn(),
             } as any
         })
 
@@ -45,7 +51,10 @@ describe('debug command', () => {
             expect(global.process.send).toBeCalledWith({
                 origin: 'debugger',
                 name: 'start',
-                params: { commandTimeout: 5000, introMessage: 'some intro from mock' }
+                params: {
+                    commandTimeout: 5000,
+                    introMessage: 'some intro from mock',
+                },
             })
             // @ts-expect-error internal var
             expect(global.process._debugProcess).toBeCalledWith(process.pid)
@@ -57,7 +66,10 @@ describe('debug command', () => {
             beforeEach(async () => {
                 global.process.env.WDIO_WORKER_ID = '1'
                 browser.debug()
-                messageHandlerCallback = vi.mocked(global.process.on).mock.calls.pop()!.pop() as any
+                messageHandlerCallback = vi
+                    .mocked(global.process.on)
+                    .mock.calls.pop()!
+                    .pop() as any
             })
 
             it('should do nothing if no debugger origin', () => {
@@ -75,7 +87,7 @@ describe('debug command', () => {
                 messageHandlerCallback({
                     origin: 'debugger',
                     name: 'eval',
-                    content: { cmd: '1+1' }
+                    content: { cmd: '1+1' },
                 })
             })
         })

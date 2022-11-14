@@ -1,5 +1,5 @@
 import path from 'node:path'
-import { expect, describe, it, beforeEach, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 // @ts-ignore mocked (original defined in webdriver package)
 import got from 'got'
@@ -7,7 +7,10 @@ import got from 'got'
 import { remote } from '../../../src/index.js'
 
 vi.mock('got')
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock(
+    '@wdio/logger',
+    () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')),
+)
 
 describe('dragAndDrop', () => {
     beforeEach(() => {
@@ -18,8 +21,8 @@ describe('dragAndDrop', () => {
         const browser = await remote({
             baseUrl: 'http://foobar.com',
             capabilities: {
-                browserName: 'foobar'
-            }
+                browserName: 'foobar',
+            },
         })
 
         const elem = await browser.$('#foo')
@@ -49,8 +52,8 @@ describe('dragAndDrop', () => {
         const browser = await remote({
             baseUrl: 'http://foobar.com',
             capabilities: {
-                browserName: 'foobar'
-            }
+                browserName: 'foobar',
+            },
         })
 
         const elem = await browser.$('#foo')
@@ -70,8 +73,8 @@ describe('dragAndDrop', () => {
         const browser = await remote({
             baseUrl: 'http://foobar.com',
             capabilities: {
-                browserName: 'foobar'
-            }
+                browserName: 'foobar',
+            },
         })
 
         const elem = await browser.$('#foo')
@@ -91,8 +94,8 @@ describe('dragAndDrop', () => {
         const browser = await remote({
             baseUrl: 'http://foobar.com',
             capabilities: {
-                browserName: 'foobar'
-            }
+                browserName: 'foobar',
+            },
         })
 
         const elem = await browser.$('#foo')
@@ -107,8 +110,8 @@ describe('dragAndDrop', () => {
         const browser = await remote({
             baseUrl: 'http://foobar.com',
             capabilities: {
-                browserName: 'foobar-noW3C'
-            }
+                browserName: 'foobar-noW3C',
+            },
         })
 
         const elem = await browser.$('#foo')
@@ -117,9 +120,13 @@ describe('dragAndDrop', () => {
 
         expect(got.mock.calls[3][0].pathname).toContain('/foobar-123/moveto')
         expect(got.mock.calls[3][1].json).toEqual({ element: 'some-elem-123' })
-        expect(got.mock.calls[4][0].pathname).toContain('/foobar-123/buttondown')
+        expect(got.mock.calls[4][0].pathname).toContain(
+            '/foobar-123/buttondown',
+        )
         expect(got.mock.calls[5][0].pathname).toContain('/foobar-123/moveto')
-        expect(got.mock.calls[5][1].json).toEqual({ element: 'some-sub-elem-321' })
+        expect(got.mock.calls[5][1].json).toEqual({
+            element: 'some-sub-elem-321',
+        })
         expect(got.mock.calls[6][0].pathname).toContain('/foobar-123/buttonup')
     })
 
@@ -127,8 +134,8 @@ describe('dragAndDrop', () => {
         const browser = await remote({
             baseUrl: 'http://foobar.com',
             capabilities: {
-                browserName: 'foobar-noW3C'
-            }
+                browserName: 'foobar-noW3C',
+            },
         })
 
         const elem = await browser.$('#foo')
@@ -139,16 +146,17 @@ describe('dragAndDrop', () => {
         const endTime = process.hrtime(startTime)
         const totalExecutionTime = (endTime[0] * 1e9 + endTime[1]) * 1e-6
 
-        expect(totalExecutionTime >= 100 && totalExecutionTime < 400).toBeTruthy()
-
+        expect(
+            totalExecutionTime >= 100 && totalExecutionTime < 400,
+        ).toBeTruthy()
     })
 
     it('should do a dragAndDrop with the given coordinates (no w3c)', async () => {
         const browser = await remote({
             baseUrl: 'http://foobar.com',
             capabilities: {
-                browserName: 'foobar-noW3C'
-            }
+                browserName: 'foobar-noW3C',
+            },
         })
 
         const elem = await browser.$('#foo')
@@ -156,9 +164,15 @@ describe('dragAndDrop', () => {
 
         expect(got.mock.calls[2][0].pathname).toContain('/foobar-123/moveto')
         expect(got.mock.calls[2][1].json).toEqual({ element: 'some-elem-123' })
-        expect(got.mock.calls[3][0].pathname).toContain('/foobar-123/buttondown')
+        expect(got.mock.calls[3][0].pathname).toContain(
+            '/foobar-123/buttondown',
+        )
         expect(got.mock.calls[4][0].pathname).toContain('/foobar-123/moveto')
-        expect(got.mock.calls[4][1].json).toEqual({ element: null, xoffset: 123, yoffset: 321 })
+        expect(got.mock.calls[4][1].json).toEqual({
+            element: null,
+            xoffset: 123,
+            yoffset: 321,
+        })
         expect(got.mock.calls[5][0].pathname).toContain('/foobar-123/buttonup')
     })
 
@@ -166,8 +180,8 @@ describe('dragAndDrop', () => {
         const browser = await remote({
             baseUrl: 'http://foobar.com',
             capabilities: {
-                browserName: 'foobar-noW3C'
-            }
+                browserName: 'foobar-noW3C',
+            },
         })
 
         const elem = await browser.$('#foo')
@@ -176,6 +190,8 @@ describe('dragAndDrop', () => {
         const endTime = process.hrtime(startTime)
         const totalExecutionTime = (endTime[0] * 1e9 + endTime[1]) * 1e-6
 
-        expect(totalExecutionTime >= 200 && totalExecutionTime < 500).toBeTruthy()
+        expect(
+            totalExecutionTime >= 200 && totalExecutionTime < 500,
+        ).toBeTruthy()
     })
 })

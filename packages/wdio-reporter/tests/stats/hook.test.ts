@@ -1,4 +1,4 @@
-import { test, expect } from 'vitest'
+import { expect, test } from 'vitest'
 import HookStats from '../../src/stats/hook.js'
 
 test('should get initialised', () => {
@@ -6,7 +6,7 @@ test('should get initialised', () => {
         cid: '0-0',
         title: 'foobar',
         parent: 'barfoo',
-        currentTest: 'sometest'
+        currentTest: 'sometest',
     })
     expect(hook.type).toBe('hook')
     expect(hook.cid).toBe('0-0')
@@ -19,7 +19,7 @@ test('should allow to be called complete', () => {
     const hook = new HookStats({
         cid: '0-0',
         title: 'foobar',
-        parent: 'barfoo'
+        parent: 'barfoo',
     })
     expect(typeof hook.end).toBe('undefined')
     hook.complete()
@@ -30,7 +30,7 @@ test('should mark hook as failed if onComplete has errors', () => {
     const hook = new HookStats({
         cid: '0-0',
         title: 'foobar',
-        parent: 'barfoo'
+        parent: 'barfoo',
     })
     const errors = [new Error('boom')]
     hook.complete(errors)
@@ -43,7 +43,7 @@ test('Should not mark hook as failed if onComplete has no errors', () => {
     const hook = new HookStats({
         cid: '0-0',
         title: 'foobar',
-        parent: 'barfoo'
+        parent: 'barfoo',
     })
     const errors: [] = []
     hook.complete(errors)

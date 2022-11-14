@@ -1,7 +1,16 @@
-import path from 'node:path'
 import { log } from 'node:console'
-import { describe, it, expect, afterEach, beforeEach, beforeAll, afterAll, vi } from 'vitest'
+import path from 'node:path'
 import { temporaryDirectory } from 'tempy'
+import {
+    afterAll,
+    afterEach,
+    beforeAll,
+    beforeEach,
+    describe,
+    expect,
+    it,
+    vi,
+} from 'vitest'
 
 import AllureReporter from '../src/index.js'
 import { TYPE } from '../src/types.js'
@@ -13,17 +22,29 @@ import { TYPE } from '../src/types.js'
 // eslint-disable-next-line
 import { clean, getResults } from './helpers/wdio-allure-helper'
 
+import {
+    commandEnd,
+    commandEndScreenShot,
+    commandStart,
+    commandStartScreenShot,
+} from './__fixtures__/command.js'
 import { runnerEnd, runnerStart } from './__fixtures__/runner.js'
 import { suiteEnd, suiteStart } from './__fixtures__/suite.js'
 import {
-    testFailed, testPending, testStart, testFailedWithMultipleErrors,
-    hookStart, hookFailed, hookStartWithCurrentTest,
-    testFailedWithAssertionErrorFromExpectWebdriverIO } from './__fixtures__/testState.js'
-import {
-    commandStart, commandEnd, commandEndScreenShot, commandStartScreenShot
-} from './__fixtures__/command.js'
+    hookFailed,
+    hookStart,
+    hookStartWithCurrentTest,
+    testFailed,
+    testFailedWithAssertionErrorFromExpectWebdriverIO,
+    testFailedWithMultipleErrors,
+    testPending,
+    testStart,
+} from './__fixtures__/testState.js'
 
-vi.mock('@wdio/reporter', () => import(path.join(process.cwd(), '__mocks__', '@wdio/reporter')))
+vi.mock(
+    '@wdio/reporter',
+    () => import(path.join(process.cwd(), '__mocks__', '@wdio/reporter')),
+)
 
 let processOn: any
 beforeAll(() => {
@@ -52,12 +73,25 @@ describe('Passing tests', () => {
         reporter.addIssue({ issue: '1' })
         reporter.addTestId({ testId: '2' })
         reporter.addEnvironment({ name: 'jenkins', value: '1.2.3' })
-        reporter.addDescription({ description: 'functions', descriptionType: TYPE.HTML })
-        reporter.addAttachment({ name: 'My attachment', content: '99thoughtz', type: 'text/plain' })
+        reporter.addDescription({
+            description: 'functions',
+            descriptionType: TYPE.HTML,
+        })
+        reporter.addAttachment({
+            name: 'My attachment',
+            content: '99thoughtz',
+            type: 'text/plain',
+        })
         reporter.addArgument({ name: 'os', value: 'osx' })
         reporter.startStep('bar')
         reporter.endStep('passed')
-        const step = { 'step': { 'attachment': { 'content': 'baz', 'name': 'attachment' }, 'status': 'failed', 'title': 'foo' } }
+        const step = {
+            step: {
+                attachment: { content: 'baz', name: 'attachment' },
+                status: 'failed',
+                title: 'foo',
+            },
+        }
         reporter.addStep(step)
         reporter.onTestPass()
         reporter.onSuiteEnd(suiteEnd())
@@ -73,39 +107,79 @@ describe('Passing tests', () => {
     })
 
     it('should report one suite', () => {
-        expect(allureXml('ns2\\:test-suite > name').text()).toEqual('A passing Suite')
-        expect(allureXml('ns2\\:test-suite > title').text()).toEqual('A passing Suite')
+        expect(allureXml('ns2\\:test-suite > name').text()).toEqual(
+            'A passing Suite',
+        )
+        expect(allureXml('ns2\\:test-suite > title').text()).toEqual(
+            'A passing Suite',
+        )
     })
 
     it('should detect passed test case', () => {
-        expect(allureXml('ns2\\:test-suite > name').text()).toEqual('A passing Suite')
-        expect(allureXml('test-case > name').text()).toEqual('should can do something')
+        expect(allureXml('ns2\\:test-suite > name').text()).toEqual(
+            'A passing Suite',
+        )
+        expect(allureXml('test-case > name').text()).toEqual(
+            'should can do something',
+        )
         expect(allureXml('test-case').attr('status')).toEqual('passed')
     })
 
     it('should detect analytics labels in test case', () => {
-        expect(allureXml('test-case label[name="language"]').eq(0).attr('value')).toEqual('javascript')
-        expect(allureXml('test-case label[name="framework"]').eq(0).attr('value')).toEqual('wdio')
+        expect(
+            allureXml('test-case label[name="language"]').eq(0).attr('value'),
+        ).toEqual('javascript')
+        expect(
+            allureXml('test-case label[name="framework"]').eq(0).attr('value'),
+        ).toEqual('wdio')
     })
 
     it('should add browser name as test argument', () => {
-        expect(allureXml('test-case parameter[kind="argument"]')).toHaveLength(2)
-        expect(allureXml('test-case parameter[name="browser"]').eq(0).attr('value')).toEqual('chrome-68')
+        expect(allureXml('test-case parameter[kind="argument"]')).toHaveLength(
+            2,
+        )
+        expect(
+            allureXml('test-case parameter[name="browser"]')
+                .eq(0)
+                .attr('value'),
+        ).toEqual('chrome-68')
     })
 
     it('should add label, story, feature, severity, issue, testId labels, thread', () => {
-        expect(allureXml('test-case label[name="customLabel"]').eq(0).attr('value')).toEqual('Label')
-        expect(allureXml('test-case label[name="feature"]').eq(0).attr('value')).toEqual('foo')
-        expect(allureXml('test-case label[name="story"]').eq(0).attr('value')).toEqual('Story')
-        expect(allureXml('test-case label[name="severity"]').eq(0).attr('value')).toEqual('baz')
-        expect(allureXml('test-case label[name="issue"]').eq(0).attr('value')).toEqual('1')
-        expect(allureXml('test-case label[name="testId"]').eq(0).attr('value')).toEqual('2')
-        expect(allureXml('test-case label[name="thread"]').eq(0).attr('value')).toEqual(testStart().cid)
+        expect(
+            allureXml('test-case label[name="customLabel"]')
+                .eq(0)
+                .attr('value'),
+        ).toEqual('Label')
+        expect(
+            allureXml('test-case label[name="feature"]').eq(0).attr('value'),
+        ).toEqual('foo')
+        expect(
+            allureXml('test-case label[name="story"]').eq(0).attr('value'),
+        ).toEqual('Story')
+        expect(
+            allureXml('test-case label[name="severity"]').eq(0).attr('value'),
+        ).toEqual('baz')
+        expect(
+            allureXml('test-case label[name="issue"]').eq(0).attr('value'),
+        ).toEqual('1')
+        expect(
+            allureXml('test-case label[name="testId"]').eq(0).attr('value'),
+        ).toEqual('2')
+        expect(
+            allureXml('test-case label[name="thread"]').eq(0).attr('value'),
+        ).toEqual(testStart().cid)
     })
 
     it('should add environment variable', () => {
-        expect(allureXml('test-case parameter[kind="environment-variable"]')).toHaveLength(1)
-        expect(allureXml('test-case parameter[name="jenkins"]').eq(0).attr('value')).toEqual('1.2.3')
+        expect(
+            allureXml('test-case parameter[kind="environment-variable"]'),
+        ).toHaveLength(1)
+        expect(
+            allureXml('test-case parameter[name="jenkins"]')
+                .eq(0)
+                .attr('value'),
+        ).toEqual('1.2.3')
     })
 
     it('should start end custom step', () => {
@@ -117,17 +191,25 @@ describe('Passing tests', () => {
     it('should add custom step', () => {
         expect(allureXml('step > name').eq(1).text()).toEqual('foo')
         expect(allureXml('step > title').eq(1).text()).toEqual('foo')
-        expect(allureXml('test-case attachment[title="attachment"]')).toHaveLength(1)
+        expect(
+            allureXml('test-case attachment[title="attachment"]'),
+        ).toHaveLength(1)
         expect(allureXml('step').eq(1).attr('status')).toEqual('failed')
     })
 
     it('should add attachment', () => {
-        expect(allureXml('test-case attachment[title="My attachment"]')).toHaveLength(1)
+        expect(
+            allureXml('test-case attachment[title="My attachment"]'),
+        ).toHaveLength(1)
     })
 
     it('should add additional argument', () => {
-        expect(allureXml('test-case parameter[kind="argument"]')).toHaveLength(2)
-        expect(allureXml('test-case parameter[name="os"]').eq(0).attr('value')).toEqual('osx')
+        expect(allureXml('test-case parameter[kind="argument"]')).toHaveLength(
+            2,
+        )
+        expect(
+            allureXml('test-case parameter[name="os"]').eq(0).attr('value'),
+        ).toEqual('osx')
     })
 })
 
@@ -161,11 +243,19 @@ describe('Failed tests', () => {
         expect(results).toHaveLength(1)
         allureXml = results[0]
 
-        expect(allureXml('test-case > name').text()).toEqual('should can do something')
+        expect(allureXml('test-case > name').text()).toEqual(
+            'should can do something',
+        )
         expect(allureXml('test-case').attr('status')).toEqual('failed')
 
-        expect(allureXml('test-case parameter[kind="argument"]')).toHaveLength(1)
-        expect(allureXml('test-case parameter[name="browser"]').eq(0).attr('value')).toEqual(testStart().cid)
+        expect(allureXml('test-case parameter[kind="argument"]')).toHaveLength(
+            1,
+        )
+        expect(
+            allureXml('test-case parameter[name="browser"]')
+                .eq(0)
+                .attr('value'),
+        ).toEqual(testStart().cid)
     })
 
     it('should detect failed test case without start event', () => {
@@ -181,7 +271,9 @@ describe('Failed tests', () => {
         expect(results).toHaveLength(1)
         allureXml = results[0]
 
-        expect(allureXml('test-case > name').text()).toEqual('should can do something')
+        expect(allureXml('test-case > name').text()).toEqual(
+            'should can do something',
+        )
         expect(allureXml('test-case').attr('status')).toEqual('failed')
     })
 
@@ -204,7 +296,9 @@ describe('Failed tests', () => {
         expect(results).toHaveLength(1)
 
         allureXml = results[0]
-        expect(allureXml('test-case > name').text()).toEqual('should can do something')
+        expect(allureXml('test-case > name').text()).toEqual(
+            'should can do something',
+        )
         expect(allureXml('test-case').attr('status')).toEqual('failed')
         const message = allureXml('message').text()
         const lines = message.split('\n')
@@ -231,12 +325,16 @@ describe('Failed tests', () => {
         expect(results).toHaveLength(1)
         allureXml = results[0]
 
-        expect(allureXml('test-case > name').text()).toEqual('should can do something')
+        expect(allureXml('test-case > name').text()).toEqual(
+            'should can do something',
+        )
         expect(allureXml('test-case').attr('status')).toEqual('failed')
 
         const message = allureXml('message').text()
         const lines = message.split('\n')
-        expect(lines[0]).toBe('Expect $(`login-app`).$(`<fn>`).$(`<fn>`).$(`<fn>`) to be displayed')
+        expect(lines[0]).toBe(
+            'Expect $(`login-app`).$(`<fn>`).$(`<fn>`).$(`<fn>`) to be displayed',
+        )
         expect(lines[1].trim()).toBe('Expected: "displayed"')
         expect(lines[2].trim()).toBe('Received: "not displayed"')
     })
@@ -264,7 +362,9 @@ describe('Pending tests', () => {
         expect(results).toHaveLength(1)
         const allureXml = results[0]
 
-        expect(allureXml('test-case > name').text()).toEqual('should can do something')
+        expect(allureXml('test-case > name').text()).toEqual(
+            'should can do something',
+        )
         expect(allureXml('test-case').attr('status')).toEqual('pending')
     })
 
@@ -282,7 +382,9 @@ describe('Pending tests', () => {
         expect(results).toHaveLength(1)
         const allureXml = results[0]
 
-        expect(allureXml('test-case > name').text()).toEqual('should can do something')
+        expect(allureXml('test-case > name').text()).toEqual(
+            'should can do something',
+        )
         expect(allureXml('test-case').attr('status')).toEqual('pending')
     })
 
@@ -294,7 +396,7 @@ describe('Pending tests', () => {
             ...passed,
             title: passed.title + '2',
             uid: passed.uid + '2',
-            fullTitle: passed.fullTitle + '2'
+            fullTitle: passed.fullTitle + '2',
         }
 
         reporter.onRunnerStart(runnerStart())
@@ -311,10 +413,14 @@ describe('Pending tests', () => {
 
         expect(allureXml('test-case > name').length).toEqual(2)
 
-        expect(allureXml('test-case > name').last().text()).toEqual('should can do something')
+        expect(allureXml('test-case > name').last().text()).toEqual(
+            'should can do something',
+        )
         expect(allureXml('test-case').last().attr('status')).toEqual('pending')
 
-        expect(allureXml('test-case > name').first().text()).toEqual(passed.title)
+        expect(allureXml('test-case > name').first().text()).toEqual(
+            passed.title,
+        )
         expect(allureXml('test-case').first().attr('status')).toEqual('passed')
     })
 })
@@ -332,8 +438,9 @@ describe('Hook start', () => {
     })
 
     for (const hookFirst of [true, false]) {
-        it(`should use currentTest if provided by hook and not report multiple tests when start hook comes ${hookFirst ? 'first' : 'second'}`, () => {
-
+        it(`should use currentTest if provided by hook and not report multiple tests when start hook comes ${
+            hookFirst ? 'first' : 'second'
+        }`, () => {
             const reporter = new AllureReporter({ outputDir })
 
             const runnerEvent = runnerStart()
@@ -361,7 +468,9 @@ describe('Hook start', () => {
             allureXml = results[0]
 
             expect(allureXml('test-case').length).toEqual(1)
-            expect(allureXml('test-case > name').text()).toEqual('should can do something')
+            expect(allureXml('test-case > name').text()).toEqual(
+                'should can do something',
+            )
             expect(allureXml('test-case').attr('status')).toEqual('failed')
         })
     }
@@ -370,12 +479,12 @@ describe('Hook start', () => {
 const assertionResults: any = {
     webdriver: {
         commandTitle: 'GET /session/:sessionId/element',
-        screenshotTitle: 'GET /session/:sessionId/screenshot'
+        screenshotTitle: 'GET /session/:sessionId/screenshot',
     },
     devtools: {
         commandTitle: 'getTitle',
-        screenshotTitle: 'takeScreenshot'
-    }
+        screenshotTitle: 'takeScreenshot',
+    },
 }
 
 for (const protocol of ['webdriver', 'devtools']) {
@@ -393,7 +502,7 @@ for (const protocol of ['webdriver', 'devtools']) {
         it('should not add step if no tests started', () => {
             const allureOptions = {
                 stdout: true,
-                outputDir
+                outputDir,
             }
             const reporter = new AllureReporter(allureOptions)
             reporter.onRunnerStart(runnerStart())
@@ -414,10 +523,12 @@ for (const protocol of ['webdriver', 'devtools']) {
         it('should not add step if isMultiremote = true', () => {
             const allureOptions = {
                 stdout: true,
-                outputDir
+                outputDir,
             }
             const reporter = new AllureReporter(allureOptions)
-            reporter.onRunnerStart(Object.assign(runnerStart(), { isMultiremote: true }))
+            reporter.onRunnerStart(
+                Object.assign(runnerStart(), { isMultiremote: true }),
+            )
             reporter.onSuiteStart(suiteStart())
             reporter.onTestStart(testStart())
             reporter.onBeforeCommand(commandStart(protocol === 'devtools'))
@@ -436,10 +547,12 @@ for (const protocol of ['webdriver', 'devtools']) {
         it('should not end step if it was not started', () => {
             const allureOptions = {
                 stdout: true,
-                outputDir
+                outputDir,
             }
             const reporter = new AllureReporter(allureOptions)
-            reporter.onRunnerStart(Object.assign(runnerStart(), { isMultiremote: true }))
+            reporter.onRunnerStart(
+                Object.assign(runnerStart(), { isMultiremote: true }),
+            )
             reporter.onSuiteStart(suiteStart())
             reporter.onTestStart(testStart())
             reporter.onAfterCommand(commandEnd(protocol === 'devtools'))
@@ -458,10 +571,10 @@ for (const protocol of ['webdriver', 'devtools']) {
             const allureOptions = {
                 stdout: true,
                 outputDir,
-                disableWebdriverStepsReporting: true
+                disableWebdriverStepsReporting: true,
             }
             const reporter = new AllureReporter(allureOptions)
-            reporter.onRunnerStart(Object.assign(runnerStart(),))
+            reporter.onRunnerStart(Object.assign(runnerStart()))
             reporter.onSuiteStart(suiteStart())
             reporter.onTestStart(testStart())
             reporter.onBeforeCommand(commandStart(protocol === 'devtools'))
@@ -496,9 +609,15 @@ for (const protocol of ['webdriver', 'devtools']) {
             expect(results).toHaveLength(1)
             const allureXml = results[0]
             expect(allureXml('step > name')).toHaveLength(1)
-            expect(allureXml('step > name').eq(0).text()).toEqual(assertionResults[protocol].commandTitle)
-            expect(allureXml('step > title').eq(0).text()).toEqual(assertionResults[protocol].commandTitle)
-            expect(allureXml('test-case attachment[title="Response"]')).toHaveLength(1)
+            expect(allureXml('step > name').eq(0).text()).toEqual(
+                assertionResults[protocol].commandTitle,
+            )
+            expect(allureXml('step > title').eq(0).text()).toEqual(
+                assertionResults[protocol].commandTitle,
+            )
+            expect(
+                allureXml('test-case attachment[title="Response"]'),
+            ).toHaveLength(1)
             expect(allureXml('step').eq(0).attr('status')).toEqual('passed')
         })
 
@@ -523,9 +642,15 @@ for (const protocol of ['webdriver', 'devtools']) {
             expect(results).toHaveLength(1)
             const allureXml = results[0]
             expect(allureXml('step > name')).toHaveLength(1)
-            expect(allureXml('step > name').eq(0).text()).toEqual(assertionResults[protocol].commandTitle)
-            expect(allureXml('step > title').eq(0).text()).toEqual(assertionResults[protocol].commandTitle)
-            expect(allureXml('test-case attachment[title="Request"]')).toHaveLength(0)
+            expect(allureXml('step > name').eq(0).text()).toEqual(
+                assertionResults[protocol].commandTitle,
+            )
+            expect(allureXml('step > title').eq(0).text()).toEqual(
+                assertionResults[protocol].commandTitle,
+            )
+            expect(
+                allureXml('test-case attachment[title="Request"]'),
+            ).toHaveLength(0)
             expect(allureXml('step').eq(0).attr('status')).toEqual('passed')
         })
 
@@ -538,8 +663,12 @@ for (const protocol of ['webdriver', 'devtools']) {
             reporter.onRunnerStart(runnerStart())
             reporter.onSuiteStart(suiteStart())
             reporter.onTestStart(testStart())
-            reporter.onBeforeCommand(commandStartScreenShot(protocol === 'devtools'))
-            reporter.onAfterCommand(commandEndScreenShot(protocol === 'devtools'))
+            reporter.onBeforeCommand(
+                commandStartScreenShot(protocol === 'devtools'),
+            )
+            reporter.onAfterCommand(
+                commandEndScreenShot(protocol === 'devtools'),
+            )
             reporter.onTestSkip(testPending())
             reporter.onSuiteEnd(suiteEnd())
             reporter.onRunnerEnd(runnerEnd())
@@ -548,9 +677,15 @@ for (const protocol of ['webdriver', 'devtools']) {
             expect(results).toHaveLength(1)
             const allureXml = results[0]
             expect(allureXml('step > name')).toHaveLength(1)
-            expect(allureXml('step > name').eq(0).text()).toEqual(assertionResults[protocol].screenshotTitle)
-            expect(allureXml('step > title').eq(0).text()).toEqual(assertionResults[protocol].screenshotTitle)
-            expect(allureXml('test-case attachment[title="Screenshot"]')).toHaveLength(1)
+            expect(allureXml('step > name').eq(0).text()).toEqual(
+                assertionResults[protocol].screenshotTitle,
+            )
+            expect(allureXml('step > title').eq(0).text()).toEqual(
+                assertionResults[protocol].screenshotTitle,
+            )
+            expect(
+                allureXml('test-case attachment[title="Screenshot"]'),
+            ).toHaveLength(1)
             expect(allureXml('step').eq(0).attr('status')).toEqual('passed')
         })
 
@@ -558,14 +693,18 @@ for (const protocol of ['webdriver', 'devtools']) {
             const allureOptions = {
                 stdout: true,
                 outputDir,
-                disableWebdriverScreenshotsReporting: true
+                disableWebdriverScreenshotsReporting: true,
             }
             const reporter = new AllureReporter(allureOptions)
             reporter.onRunnerStart(runnerStart())
             reporter.onSuiteStart(suiteStart())
             reporter.onTestStart(testStart())
-            reporter.onBeforeCommand(commandStartScreenShot(protocol === 'devtools'))
-            reporter.onAfterCommand(commandEndScreenShot(protocol === 'devtools'))
+            reporter.onBeforeCommand(
+                commandStartScreenShot(protocol === 'devtools'),
+            )
+            reporter.onAfterCommand(
+                commandEndScreenShot(protocol === 'devtools'),
+            )
             reporter.onTestSkip(testPending())
             reporter.onSuiteEnd(suiteEnd())
             reporter.onRunnerEnd(runnerEnd())
@@ -574,9 +713,15 @@ for (const protocol of ['webdriver', 'devtools']) {
             expect(results).toHaveLength(1)
             const allureXml = results[0]
             expect(allureXml('step > name')).toHaveLength(1)
-            expect(allureXml('step > name').eq(0).text()).toEqual(assertionResults[protocol].screenshotTitle)
-            expect(allureXml('step > title').eq(0).text()).toEqual(assertionResults[protocol].screenshotTitle)
-            expect(allureXml('test-case attachment[title="Screenshot"]')).toHaveLength(0)
+            expect(allureXml('step > name').eq(0).text()).toEqual(
+                assertionResults[protocol].screenshotTitle,
+            )
+            expect(allureXml('step > title').eq(0).text()).toEqual(
+                assertionResults[protocol].screenshotTitle,
+            )
+            expect(
+                allureXml('test-case attachment[title="Screenshot"]'),
+            ).toHaveLength(0)
             expect(allureXml('step').eq(0).attr('status')).toEqual('passed')
         })
 
@@ -590,8 +735,12 @@ for (const protocol of ['webdriver', 'devtools']) {
             reporter.onRunnerStart(runnerStart())
             reporter.onSuiteStart(suiteStart())
             reporter.onHookStart(hookStart())
-            reporter.onBeforeCommand(commandStartScreenShot(protocol === 'devtools'))
-            reporter.onAfterCommand(commandEndScreenShot(protocol === 'devtools'))
+            reporter.onBeforeCommand(
+                commandStartScreenShot(protocol === 'devtools'),
+            )
+            reporter.onAfterCommand(
+                commandEndScreenShot(protocol === 'devtools'),
+            )
             reporter.onHookEnd(hookFailed())
             reporter.onSuiteEnd(suiteEnd())
             reporter.onRunnerEnd(runnerEnd())
@@ -599,7 +748,9 @@ for (const protocol of ['webdriver', 'devtools']) {
             const results = getResults(outputDir)
             expect(results).toHaveLength(1)
             const allureXml = results[0]
-            expect(allureXml('test-case attachment[title="Screenshot"]')).toHaveLength(1)
+            expect(
+                allureXml('test-case attachment[title="Screenshot"]'),
+            ).toHaveLength(1)
         })
 
         it('should attach console log for passing test', () => {
@@ -607,7 +758,7 @@ for (const protocol of ['webdriver', 'devtools']) {
                 stdout: true,
                 outputDir,
                 disableMochaHooks: true,
-                addConsoleLogs: true
+                addConsoleLogs: true,
             }
             const reporter = new AllureReporter(allureOptions)
             reporter.onRunnerStart(runnerStart())
@@ -625,7 +776,9 @@ for (const protocol of ['webdriver', 'devtools']) {
             const results = getResults(outputDir)
             expect(results).toHaveLength(1)
             const allureXml = results[0]
-            expect(allureXml('test-case attachment[title="Console Logs"]')).toHaveLength(1)
+            expect(
+                allureXml('test-case attachment[title="Console Logs"]'),
+            ).toHaveLength(1)
         })
 
         it('should attach console log for failing test', () => {
@@ -633,7 +786,7 @@ for (const protocol of ['webdriver', 'devtools']) {
                 stdout: true,
                 outputDir,
                 disableMochaHooks: true,
-                addConsoleLogs: true
+                addConsoleLogs: true,
             }
             const reporter = new AllureReporter(allureOptions)
             reporter.onRunnerStart(runnerStart())
@@ -651,7 +804,9 @@ for (const protocol of ['webdriver', 'devtools']) {
             const results = getResults(outputDir)
             expect(results).toHaveLength(1)
             const allureXml = results[0]
-            expect(allureXml('test-case attachment[title="Console Logs"]')).toHaveLength(1)
+            expect(
+                allureXml('test-case attachment[title="Console Logs"]'),
+            ).toHaveLength(1)
         })
 
         it('should attach console log for skipping test', () => {
@@ -659,7 +814,7 @@ for (const protocol of ['webdriver', 'devtools']) {
                 stdout: true,
                 outputDir,
                 disableMochaHooks: true,
-                addConsoleLogs: true
+                addConsoleLogs: true,
             }
             const reporter = new AllureReporter(allureOptions)
             reporter.onRunnerStart(runnerStart())
@@ -677,7 +832,9 @@ for (const protocol of ['webdriver', 'devtools']) {
             const results = getResults(outputDir)
             expect(results).toHaveLength(1)
             const allureXml = results[0]
-            expect(allureXml('test-case attachment[title="Console Logs"]')).toHaveLength(1)
+            expect(
+                allureXml('test-case attachment[title="Console Logs"]'),
+            ).toHaveLength(1)
         })
 
         it('should not attach webdriver logs', () => {
@@ -685,7 +842,7 @@ for (const protocol of ['webdriver', 'devtools']) {
                 stdout: true,
                 outputDir,
                 disableMochaHooks: true,
-                addConsoleLogs: true
+                addConsoleLogs: true,
             }
             const reporter = new AllureReporter(allureOptions)
             reporter.onRunnerStart(runnerStart())
@@ -701,8 +858,9 @@ for (const protocol of ['webdriver', 'devtools']) {
             const results = getResults(outputDir)
             expect(results).toHaveLength(1)
             const allureXml = results[0]
-            expect(allureXml('test-case attachment[title="Console Logs"]')).toHaveLength(0)
+            expect(
+                allureXml('test-case attachment[title="Console Logs"]'),
+            ).toHaveLength(0)
         })
-
     })
 }

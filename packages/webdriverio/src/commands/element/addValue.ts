@@ -27,9 +27,9 @@ const VALID_TYPES = ['string', 'number']
  * @param {string | number}  value  value to be added
  *
  */
-export default function addValue (
+export default function addValue(
     this: WebdriverIO.Element,
-    value: string | number
+    value: string | number,
 ) {
     /**
      * The JSONWireProtocol allowed array values and use of special characters when adding a value to an input.
@@ -39,7 +39,7 @@ export default function addValue (
     if (!VALID_TYPES.includes(typeof value)) {
         throw new Error(
             'The setValue/addValue command only take string or number values. ' +
-            'If you like to use special characters, use the "keys" command.'
+                'If you like to use special characters, use the "keys" command.',
         )
     }
 

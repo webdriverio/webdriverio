@@ -1,11 +1,14 @@
 import path from 'node:path'
-import { expect, describe, it, vi, afterEach, beforeAll } from 'vitest'
+import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 // @ts-ignore mocked (original defined in webdriver package)
 import got from 'got'
 import { remote } from '../../../src/index.js'
 
 vi.mock('got')
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock(
+    '@wdio/logger',
+    () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')),
+)
 
 describe('getCookies', () => {
     let browser: WebdriverIO.Browser
@@ -14,8 +17,8 @@ describe('getCookies', () => {
         browser = await remote({
             baseUrl: 'http://foobar.com',
             capabilities: {
-                browserName: 'foobar'
-            }
+                browserName: 'foobar',
+            },
         })
     })
 
@@ -23,8 +26,7 @@ describe('getCookies', () => {
         const cookies = await browser.getCookies()
 
         expect(got.mock.calls[1][1].method).toBe('GET')
-        expect(got.mock.calls[1][0].pathname)
-            .toBe('/session/foobar-123/cookie')
+        expect(got.mock.calls[1][0].pathname).toBe('/session/foobar-123/cookie')
         expect(cookies).toEqual([
             { name: 'cookie1', value: 'dummy-value-1' },
             { name: 'cookie2', value: 'dummy-value-2' },
@@ -36,8 +38,7 @@ describe('getCookies', () => {
         const cookies = await browser.getCookies('cookie1')
 
         expect(got.mock.calls[0][1].method).toBe('GET')
-        expect(got.mock.calls[0][0].pathname)
-            .toBe('/session/foobar-123/cookie')
+        expect(got.mock.calls[0][0].pathname).toBe('/session/foobar-123/cookie')
         expect(cookies).toEqual([{ name: 'cookie1', value: 'dummy-value-1' }])
     })
 
@@ -45,8 +46,7 @@ describe('getCookies', () => {
         const cookies = await browser.getCookies(['cookie1'])
 
         expect(got.mock.calls[0][1].method).toBe('GET')
-        expect(got.mock.calls[0][0].pathname)
-            .toBe('/session/foobar-123/cookie')
+        expect(got.mock.calls[0][0].pathname).toBe('/session/foobar-123/cookie')
         expect(cookies).toEqual([{ name: 'cookie1', value: 'dummy-value-1' }])
     })
 
@@ -55,8 +55,7 @@ describe('getCookies', () => {
         const cookies = await browser.getCookies(cookieNames)
 
         expect(got.mock.calls[0][1].method).toBe('GET')
-        expect(got.mock.calls[0][0].pathname)
-            .toBe('/session/foobar-123/cookie')
+        expect(got.mock.calls[0][0].pathname).toBe('/session/foobar-123/cookie')
         expect(cookies).toEqual([
             { name: 'cookie1', value: 'dummy-value-1' },
             { name: 'cookie3', value: 'dummy-value-3' },
@@ -65,9 +64,11 @@ describe('getCookies', () => {
 
     it('should throw error if invalid arguments are passed', async () => {
         // @ts-ignore test invalid input
-        await expect(browser.getCookies([2]))
-            .rejects
-            .toEqual(new Error('Invalid input (see https://webdriver.io/docs/api/browser/getCookies for documentation)'))
+        await expect(browser.getCookies([2])).rejects.toEqual(
+            new Error(
+                'Invalid input (see https://webdriver.io/docs/api/browser/getCookies for documentation)',
+            ),
+        )
     })
 
     afterEach(() => {

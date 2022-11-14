@@ -9,18 +9,20 @@ export const config: ConfigOptions = {
     specs: [path.join(TEST_ROOT, '*.test.ts')],
     exclude: [
         path.join(TEST_ROOT, '/RequireLibrary.test.ts'),
-        path.join(TEST_ROOT, '/validateConfig.test.ts')
+        path.join(TEST_ROOT, '/validateConfig.test.ts'),
     ],
-    capabilities: [{
-        browserName: 'chrome',
-        testobject_api_key: '1',
-    }],
+    capabilities: [
+        {
+            browserName: 'chrome',
+            testobject_api_key: '1',
+        },
+    ],
     suites: {
         unit: [path.join(TEST_ROOT, 'configparser.test.ts')],
         mobile: [path.join(TEST_ROOT, 'RequireLibrary.test.ts')],
         functional: [
             path.join(TEST_ROOT, 'validateConfig.test.ts'),
-            path.join(TEST_ROOT, '..', 'src/index.ts')
-        ]
-    }
+            path.join(TEST_ROOT, '..', 'src/index.ts'),
+        ],
+    },
 }

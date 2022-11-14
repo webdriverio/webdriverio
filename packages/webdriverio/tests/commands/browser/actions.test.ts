@@ -1,11 +1,14 @@
 import path from 'node:path'
-import { describe, it, expect, beforeAll, vi, beforeEach } from 'vitest'
+import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 // @ts-expect-error
 import got from 'got'
 import { remote } from '../../../src/index.js'
 
 vi.mock('got')
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock(
+    '@wdio/logger',
+    () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')),
+)
 
 describe('actions command', () => {
     let browser: WebdriverIO.Browser
@@ -14,8 +17,8 @@ describe('actions command', () => {
         browser = await remote({
             baseUrl: 'http://foobar.com',
             capabilities: {
-                browserName: 'foobar'
-            }
+                browserName: 'foobar',
+            },
         })
     })
 
@@ -25,18 +28,16 @@ describe('actions command', () => {
 
     it('should support multiple actions', async () => {
         await browser.actions([
-            browser.action('key', { id: 'foobar' })
+            browser
+                .action('key', { id: 'foobar' })
                 .down('foo')
                 .pause(100)
-                .up('bar')
-            ,
-            browser.action(
-                'pointer',
-                {
+                .up('bar'),
+            browser
+                .action('pointer', {
                     id: 'foobar',
-                    parameters: { pointerType: 'pen' }
-                }
-            )
+                    parameters: { pointerType: 'pen' },
+                })
                 .down({
                     button: 1,
                     width: 2,
@@ -64,27 +65,24 @@ describe('actions command', () => {
                     x: 10,
                     y: 11,
                     duration: 12,
-                    origin: 'viewport'
+                    origin: 'viewport',
                 })
                 .up({ button: 2 })
-                .cancel()
-            ,
-            browser.action('wheel', { id: 'foobar' })
-                .pause(100)
-                .scroll({
-                    x: 0,
-                    y: 1,
-                    deltaX: 2,
-                    deltaY: 3,
-                    duration: 4
-                })
+                .cancel(),
+            browser.action('wheel', { id: 'foobar' }).pause(100).scroll({
+                x: 0,
+                y: 1,
+                deltaX: 2,
+                deltaY: 3,
+                duration: 4,
+            }),
         ])
 
         const calls = vi.mocked(got).mock.calls
         expect(calls).toHaveLength(2)
         const [
             [performActionUrl, performActionParam],
-            [releaseActionUrl, releaseActionParam]
+            [releaseActionUrl, releaseActionParam],
         ] = calls as any
         expect(performActionUrl.pathname).toBe('/session/foobar-123/actions')
         expect(releaseActionUrl.pathname).toBe('/session/foobar-123/actions')

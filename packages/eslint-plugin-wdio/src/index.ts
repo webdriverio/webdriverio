@@ -5,7 +5,7 @@ import noPause from './rules/no-pause.js'
 const rules = {
     'await-expect': awaitExpect,
     'no-debug': noDebug,
-    'no-pause': noPause
+    'no-pause': noPause,
 }
 
 const configs = {
@@ -22,11 +22,8 @@ const configs = {
             'wdio/await-expect': 'error',
             'wdio/no-debug': 'error',
             'wdio/no-pause': 'error',
-        }
-    }
+        },
+    },
 }
 
-export {
-    rules,
-    configs,
-}
+export { rules, configs }

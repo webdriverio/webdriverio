@@ -1,24 +1,24 @@
 import { remote } from '../../packages/webdriverio/build/index.js'
-
-(async () => {
+;(async () => {
     const browser = await remote({
         capabilities: {
             sessionName: 'Automation test session',
-            sessionDescription: 'This is an example for Automation Test on Android device',
+            sessionDescription:
+                'This is an example for Automation Test on Android device',
             deviceOrientation: 'portrait',
             captureScreenshots: true,
             browserName: 'chrome',
             deviceGroup: 'KOBITON',
             deviceName: 'Galaxy Note5',
             platformVersion: '6.0.1',
-            platformName: 'Android'
+            platformName: 'Android',
         },
         protocol: 'https',
         port: 443,
         hostname: 'api.kobiton.com',
         user: process.env.KOBITON_USERNAME,
         key: process.env.KOBITON_ACCESS_KEY,
-        logLevel: 'trace'
+        logLevel: 'trace',
     })
 
     await browser.url('https://webdriver.io')

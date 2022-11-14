@@ -1,6 +1,6 @@
 import path from 'node:path'
-import { describe, expect, beforeAll, test } from 'vitest'
-import { getFilePath, formatCliArgs } from '../src/utils.js'
+import { beforeAll, describe, expect, test } from 'vitest'
+import { formatCliArgs, getFilePath } from '../src/utils.js'
 
 describe('getFilePath', () => {
     let basePath: string
@@ -38,7 +38,9 @@ describe('getFilePath', () => {
         const dir = '/log'
         const filePath = getFilePath(dir, defaultFilename)
 
-        expect(filePath).toMatch(/(\w:)?(\\|\/)log(\\|\/)appium-standalone\.txt/)
+        expect(filePath).toMatch(
+            /(\w:)?(\\|\/)log(\\|\/)appium-standalone\.txt/,
+        )
     })
 
     test('should handle dir "./log/"', () => {
@@ -53,7 +55,9 @@ describe('getFilePath', () => {
         const dir = '/log/'
         const filePath = getFilePath(dir, defaultFilename)
 
-        expect(filePath).toMatch(/(\w:)?(\\|\/)log(\\|\/)appium-standalone\.txt/)
+        expect(filePath).toMatch(
+            /(\w:)?(\\|\/)log(\\|\/)appium-standalone\.txt/,
+        )
     })
 
     test('should handle dir "./log/appium"', () => {
@@ -76,7 +80,9 @@ describe('getFilePath', () => {
         const dir = '/log/appium'
         const filePath = getFilePath(dir, defaultFilename)
 
-        expect(filePath).toMatch(/(\w:)?(\\|\/)log(\\|\/)appium(\\|\/)appium-standalone\.txt/)
+        expect(filePath).toMatch(
+            /(\w:)?(\\|\/)log(\\|\/)appium(\\|\/)appium-standalone\.txt/,
+        )
     })
 
     test('should handle file ".log"', () => {
@@ -157,7 +163,7 @@ describe('argument formatting', () => {
             commandTimeout: '7200',
             showIosLog: false,
             sessionOverride: true,
-            app: '/Users/frodo/My Projects/the-ring/the-ring.app'
+            app: '/Users/frodo/My Projects/the-ring/the-ring.app',
         })
 
         expect(args[0]).toBe('--address')
@@ -166,7 +172,7 @@ describe('argument formatting', () => {
         expect(args[3]).toBe('7200')
         expect(args[4]).toBe('--session-override')
         expect(args[5]).toBe('--app')
-        expect(args[6]).toBe('\'/Users/frodo/My Projects/the-ring/the-ring.app\'')
+        expect(args[6]).toBe("'/Users/frodo/My Projects/the-ring/the-ring.app'")
         expect(args.length).toBe(7)
     })
 

@@ -1,11 +1,17 @@
 import logger from '@wdio/logger'
 import type { EventEmitter } from 'node:events'
 
-import type { ReporterOptions, ParentSuite, TestEvent, SuiteEvent } from './types'
+import type {
+    ParentSuite,
+    ReporterOptions,
+    SuiteEvent,
+    TestEvent,
+} from './types'
 
 const log = logger('@wdio/jasmine-framework')
 
-const STACKTRACE_FILTER = /(node_modules(\/|\\)(\w+)*|@wdio\/sync\/(build|src)|- - - - -)/g
+const STACKTRACE_FILTER =
+    /(node_modules(\/|\\)(\w+)*|@wdio\/sync\/(build|src)|- - - - -)/g
 
 export default class JasmineReporter {
     public startedSuite?: SuiteEvent
@@ -18,21 +24,19 @@ export default class JasmineReporter {
     private _suiteStart = new Date()
     private _testStart = new Date()
 
-    constructor (
-        private _reporter: EventEmitter,
-        params: ReporterOptions
-    ) {
+    constructor(private _reporter: EventEmitter, params: ReporterOptions) {
         this._cid = params.cid
         this._specs = params.specs
-        this._shouldCleanStack = typeof params.cleanStack === 'boolean' ? params.cleanStack : true
+        this._shouldCleanStack =
+            typeof params.cleanStack === 'boolean' ? params.cleanStack : true
     }
 
-    suiteStarted (suite: jasmine.SuiteResult) {
+    suiteStarted(suite: jasmine.SuiteResult) {
         this._suiteStart = new Date()
         const newSuite: SuiteEvent = {
             type: 'suite',
             start: this._suiteStart,
-            ...suite
+            ...suite,
         }
 
         this.startedSuite = newSuite
@@ -47,16 +51,16 @@ export default class JasmineReporter {
         this._parent.push({
             description: suite.description,
             id: suite.id,
-            tests: 0
+            tests: 0,
         })
     }
 
-    specStarted (test: jasmine.SpecResult) {
+    specStarted(test: jasmine.SpecResult) {
         this._testStart = new Date()
         const newTest: TestEvent = {
             type: 'test',
             start: this._testStart,
-            ...test
+            ...test,
         }
 
         const parentSuite = this._parent[this._parent.length - 1]
@@ -67,7 +71,7 @@ export default class JasmineReporter {
         if (!parentSuite) {
             log.warn(
                 'No root suite was defined! This can cause reporters to malfunction. ' +
-                'Please always start a spec file with describe("...", () => { ... }).'
+                    'Please always start a spec file with describe("...", () => { ... }).',
             )
         } else {
             parentSuite.tests++
@@ -76,12 +80,12 @@ export default class JasmineReporter {
         this.emit('test:start', newTest)
     }
 
-    specDone (test: jasmine.SpecResult) {
+    specDone(test: jasmine.SpecResult) {
         const newTest: TestEvent = {
             ...test,
             start: this._testStart,
             type: 'test',
-            duration: Date.now() - this._testStart.getTime()
+            duration: Date.now() - this._testStart.getTime(),
         }
 
         /**
@@ -94,7 +98,7 @@ export default class JasmineReporter {
         if (test.failedExpectations && test.failedExpectations.length) {
             let errors = test.failedExpectations
             if (this._shouldCleanStack) {
-                errors = test.failedExpectations.map(x => this.cleanStack(x))
+                errors = test.failedExpectations.map((x) => this.cleanStack(x))
             }
             newTest.errors = errors
             // We maintain the single error property for backwards compatibility with reporters
@@ -103,26 +107,32 @@ export default class JasmineReporter {
             newTest.error = errors[0]
         }
 
-        const e = 'test:' + (newTest.status ? newTest.status.replace(/ed/, '') : 'unknown')
+        const e =
+            'test:' +
+            (newTest.status ? newTest.status.replace(/ed/, '') : 'unknown')
         this.emit(e, newTest)
         this._failedCount += test.status === 'failed' ? 1 : 0
         this.emit('test:end', newTest)
     }
 
-    suiteDone (suite: jasmine.SuiteResult) {
+    suiteDone(suite: jasmine.SuiteResult) {
         const parentSuite = this._parent[this._parent.length - 1]
         const newSuite: SuiteEvent = {
             ...suite,
             type: 'suite',
             start: this._suiteStart,
-            duration: Date.now() - this._suiteStart.getTime()
+            duration: Date.now() - this._suiteStart.getTime(),
         }
 
         /**
          * in case there is a runtime error within one of the specs
          * create an empty test to attach the error to it
          */
-        if (parentSuite.tests === 0 && suite.failedExpectations && suite.failedExpectations.length) {
+        if (
+            parentSuite.tests === 0 &&
+            suite.failedExpectations &&
+            suite.failedExpectations.length
+        ) {
             const id = 'spec' + Math.random()
             this.specStarted({
                 id,
@@ -135,7 +145,7 @@ export default class JasmineReporter {
                 passedExpectations: [],
                 status: 'unknown',
                 pendingReason: '',
-                debugLogs: null
+                debugLogs: null,
             })
             this.specDone({
                 id,
@@ -148,7 +158,7 @@ export default class JasmineReporter {
                 duration: null,
                 properties: {},
                 pendingReason: '',
-                debugLogs: null
+                debugLogs: null,
             })
         }
 
@@ -157,7 +167,7 @@ export default class JasmineReporter {
         delete this.startedSuite
     }
 
-    emit (event: string, payload: SuiteEvent | TestEvent) {
+    emit(event: string, payload: SuiteEvent | TestEvent) {
         let message = {
             cid: this._cid,
             uid: this.getUniqueIdentifier(payload),
@@ -166,7 +176,11 @@ export default class JasmineReporter {
             fullTitle: payload.fullName,
             pending: payload.status === 'pending',
             pendingReason: (payload as TestEvent).pendingReason,
-            parent: this._parent.length ? this.getUniqueIdentifier(this._parent[this._parent.length - 1]) : null,
+            parent: this._parent.length
+                ? this.getUniqueIdentifier(
+                      this._parent[this._parent.length - 1],
+                  )
+                : null,
             type: payload.type,
             // We maintain the single error property for backwards compatibility with reporters
             // However, any reporter wanting to make use of Jasmine's 'soft assertion' type expects
@@ -181,15 +195,15 @@ export default class JasmineReporter {
         this._reporter.emit(event, message)
     }
 
-    getFailedCount () {
+    getFailedCount() {
         return this._failedCount
     }
 
-    getUniqueIdentifier (target: Pick<TestEvent, 'description' | 'id'>) {
+    getUniqueIdentifier(target: Pick<TestEvent, 'description' | 'id'>) {
         return target.description + target.id
     }
 
-    cleanStack (error: jasmine.FailedExpectation) {
+    cleanStack(error: jasmine.FailedExpectation) {
         if (!error.stack) {
             return error
         }

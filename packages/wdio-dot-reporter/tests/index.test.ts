@@ -5,7 +5,10 @@ import { describe, expect, it, vi } from 'vitest'
 import DotReporter from '../src/index.js'
 
 vi.mock('chalk')
-vi.mock('@wdio/reporter', () => import(path.join(process.cwd(), '__mocks__', '@wdio/reporter')))
+vi.mock(
+    '@wdio/reporter',
+    () => import(path.join(process.cwd(), '__mocks__', '@wdio/reporter')),
+)
 
 describe('Dot Reporter', () => {
     it('should write proper symbols', () => {
@@ -36,9 +39,11 @@ describe('Dot Reporter', () => {
         const logFile = tmp.fileSync()
         const reporter = new DotReporter({
             logFile: logFile.name,
-            stdout: false
+            stdout: false,
         })
         reporter.write(1)
-        expect(vi.mocked(reporter.outputStream.write).mock.calls[0]).toEqual([1])
+        expect(vi.mocked(reporter.outputStream.write).mock.calls[0]).toEqual([
+            1,
+        ])
     })
 })

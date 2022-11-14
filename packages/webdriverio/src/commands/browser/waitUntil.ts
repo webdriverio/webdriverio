@@ -1,5 +1,5 @@
-import Timer from '../../utils/Timer.js'
 import type { WaitUntilOptions } from '../../types'
+import Timer from '../../utils/Timer.js'
 
 /**
  *
@@ -47,8 +47,8 @@ export default function waitUntil(
     {
         timeout = this.options.waitforTimeout,
         interval = this.options.waitforInterval,
-        timeoutMsg
-    }: Partial<WaitUntilOptions> = {}
+        timeoutMsg,
+    }: Partial<WaitUntilOptions> = {},
 ): Promise<true | void> {
     if (typeof condition !== 'function') {
         throw new Error('Condition is not a function')
@@ -75,6 +75,10 @@ export default function waitUntil(
             throw new Error(`waitUntil condition timed out after ${timeout}ms`)
         }
 
-        throw new Error(`waitUntil condition failed with the following reason: ${(e && e.message) || e}`)
+        throw new Error(
+            `waitUntil condition failed with the following reason: ${
+                (e && e.message) || e
+            }`,
+        )
     })
 }

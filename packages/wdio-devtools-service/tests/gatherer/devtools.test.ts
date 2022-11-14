@@ -1,4 +1,4 @@
-import { test, expect } from 'vitest'
+import { expect, test } from 'vitest'
 import DevtoolsGatherer from '../../src/gatherer/devtools.js'
 
 test('getLogs', () => {

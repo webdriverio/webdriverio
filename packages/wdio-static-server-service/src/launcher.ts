@@ -1,10 +1,10 @@
+import logger from '@wdio/logger'
+import type { Services } from '@wdio/types'
+import express from 'express'
+import morgan from 'morgan'
 import fs from 'node:fs'
 import { join, resolve } from 'node:path'
 import { promisify } from 'node:util'
-import express from 'express'
-import morgan from 'morgan'
-import logger from '@wdio/logger'
-import type { Services } from '@wdio/types'
 
 import type { FolderOption, MiddleWareOption } from './types'
 
@@ -18,8 +18,20 @@ export default class StaticServerLauncher implements Services.ServiceInstance {
     private _middleware: MiddleWareOption[]
     private _server?: express.Express
 
-    constructor({ folders, port = 4567, middleware = [] }: { folders?: FolderOption[] | FolderOption, port?: number, middleware?: MiddleWareOption[] }) {
-        this._folders = folders ? Array.isArray(folders) ? folders : [folders] : null
+    constructor({
+        folders,
+        port = 4567,
+        middleware = [],
+    }: {
+        folders?: FolderOption[] | FolderOption
+        port?: number
+        middleware?: MiddleWareOption[]
+    }) {
+        this._folders = folders
+            ? Array.isArray(folders)
+                ? folders
+                : [folders]
+            : null
         this._port = port
         this._middleware = middleware
     }
@@ -38,14 +50,24 @@ export default class StaticServerLauncher implements Services.ServiceInstance {
         }
 
         this._folders.forEach((folder: FolderOption) => {
-            log.info('Mounting folder `%s` at `%s`', resolve(folder.path), folder.mount)
+            log.info(
+                'Mounting folder `%s` at `%s`',
+                resolve(folder.path),
+                folder.mount,
+            )
             this._server!.use(folder.mount, express.static(folder.path))
         })
 
-        this._middleware.forEach(
-            (ware: MiddleWareOption) => this._server!.use(ware.mount, ware.middleware as unknown as express.Application))
+        this._middleware.forEach((ware: MiddleWareOption) =>
+            this._server!.use(
+                ware.mount,
+                ware.middleware as unknown as express.Application,
+            ),
+        )
 
-        const listen = <(port: number) => Promise<any>> promisify(this._server.listen.bind(this._server))
+        const listen = <(port: number) => Promise<any>>(
+            promisify(this._server.listen.bind(this._server))
+        )
         await listen(this._port)
         log.info(`Static server running at http://localhost:${this._port}`)
     }

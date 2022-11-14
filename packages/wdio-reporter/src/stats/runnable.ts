@@ -11,14 +11,14 @@ export default abstract class RunnableStats {
     end?: Date
     _duration = 0
 
-    constructor (public type: string) {}
+    constructor(public type: string) {}
 
-    complete () {
+    complete() {
         this.end = new Date()
         this._duration = this.end.getTime() - this.start.getTime()
     }
 
-    get duration () {
+    get duration() {
         if (this.end) {
             return this._duration
         }
@@ -28,7 +28,7 @@ export default abstract class RunnableStats {
     /**
      * ToDo: we should always rely on uid
      */
-    static getIdentifier (runner: Hook | Suite | Test) {
+    static getIdentifier(runner: Hook | Suite | Test) {
         return runner.uid || runner.title
     }
 }

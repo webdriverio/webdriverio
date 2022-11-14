@@ -1,5 +1,5 @@
-import supportsColor from 'supports-color'
 import type { Capabilities } from '@wdio/types'
+import supportsColor from 'supports-color'
 
 import { COLORS } from './constants.js'
 
@@ -8,7 +8,7 @@ import { COLORS } from './constants.js'
  * @param  {String} str  variable to sanitize
  * @return {String}      sanitized variable
  */
-export function sanitizeString (str?: string) {
+export function sanitizeString(str?: string) {
     if (!str) {
         return ''
     }
@@ -24,7 +24,7 @@ export function sanitizeString (str?: string) {
  * formats capability object into sanitized string for e.g.filenames
  * @param {Object} caps  Selenium capabilities
  */
-export function sanitizeCaps (caps?: Capabilities.DesiredCapabilities) {
+export function sanitizeCaps(caps?: Capabilities.DesiredCapabilities) {
     if (!caps) {
         return ''
     }
@@ -39,18 +39,18 @@ export function sanitizeCaps (caps?: Capabilities.DesiredCapabilities) {
             sanitizeString(caps.deviceName),
             sanitizeString(caps.platformName),
             sanitizeString(caps.platformVersion),
-            sanitizeString(caps.app)
+            sanitizeString(caps.app),
         ]
     } else {
         result = [
             sanitizeString(caps.browserName),
             sanitizeString(caps.version || caps.browserVersion),
             sanitizeString(caps.platform || caps.platformName),
-            sanitizeString(caps.app)
+            sanitizeString(caps.app),
         ]
     }
 
-    result = result.filter(n => n !== undefined && n !== '')
+    result = result.filter((n) => n !== undefined && n !== '')
     return result.join('.')
 }
 
@@ -76,11 +76,11 @@ export function getErrorsFromEvent(e: { errors?: any; error?: any }) {
  * @param {number} len
  * @return {string}
  */
-export function pad (str: string, len: number) {
+export function pad(str: string, len: number) {
     return Array(len - str.length + 1).join(' ') + str
 }
 
-export function color (type: keyof typeof COLORS, content: string) {
+export function color(type: keyof typeof COLORS, content: string) {
     if (!supportsColor.stdout) {
         return String(content)
     }
@@ -95,7 +95,7 @@ export function color (type: keyof typeof COLORS, content: string) {
  * @param {string} str
  * @return {string}
  */
-export function colorLines (name: keyof typeof COLORS, str: string) {
+export function colorLines(name: keyof typeof COLORS, str: string) {
     return str
         .split('\n')
         .map((str) => color(name, str))

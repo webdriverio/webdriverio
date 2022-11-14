@@ -70,9 +70,9 @@ import { parseCSS } from '../../utils/index.js'
  * @return {CSSProperty}             The specified css of the element
  *
  */
-export default async function getCSSProperty (
+export default async function getCSSProperty(
     this: WebdriverIO.Element,
-    cssProperty: string
+    cssProperty: string,
 ) {
     /**
      * Getting the css value of a shorthand property results in different results
@@ -81,13 +81,16 @@ export default async function getCSSProperty (
      * otherwise expand it and run the command for each longhand property.
      */
     if (!cssShorthandProps.isShorthand(cssProperty)) {
-        const cssValue = await this.getElementCSSValue(this.elementId, cssProperty)
+        const cssValue = await this.getElementCSSValue(
+            this.elementId,
+            cssProperty,
+        )
         return parseCSS(cssValue, cssProperty)
     }
 
     const properties = cssShorthandProps.expand(cssProperty)
     let cssValues = await Promise.all(
-        properties.map((prop) => this.getElementCSSValue(this.elementId, prop))
+        properties.map((prop) => this.getElementCSSValue(this.elementId, prop)),
     )
 
     /**
@@ -95,13 +98,15 @@ export default async function getCSSProperty (
      * - e.g. `36px 10px 36px 10px` to `36px 10px`
      * - or `0px 0px 0px 0px` to `0px`
      */
-    while ((cssValues.length % 2) === 0) {
+    while (cssValues.length % 2 === 0) {
         const mergedValues = [
             cssValues.slice(0, cssValues.length / 2).join(' '),
-            cssValues.slice(cssValues.length / 2).join(' ')
+            cssValues.slice(cssValues.length / 2).join(' '),
         ]
 
-        const hasEqualProperties = mergedValues.every((v) => v === mergedValues[0])
+        const hasEqualProperties = mergedValues.every(
+            (v) => v === mergedValues[0],
+        )
         if (!hasEqualProperties) {
             break
         }

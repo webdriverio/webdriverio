@@ -1,6 +1,6 @@
-import { EventEmitter } from 'node:events'
-import type { Options, Capabilities } from '@wdio/types'
 import type { ProtocolCommands, ProtocolCommandsAsync } from '@wdio/protocols'
+import type { Capabilities, Options } from '@wdio/types'
+import { EventEmitter } from 'node:events'
 
 export interface JSONWPCommandError extends Error {
     code?: string
@@ -24,9 +24,13 @@ export interface BaseClient extends EventEmitter, SessionFlags {
     // id of WebDriver session
     sessionId: string
     // assigned capabilities by the browser driver / WebDriver server
-    capabilities: Capabilities.DesiredCapabilities | Capabilities.W3CCapabilities
+    capabilities:
+        | Capabilities.DesiredCapabilities
+        | Capabilities.W3CCapabilities
     // original requested capabilities
-    requestedCapabilities: Capabilities.DesiredCapabilities | Capabilities.W3CCapabilities
+    requestedCapabilities:
+        | Capabilities.DesiredCapabilities
+        | Capabilities.W3CCapabilities
     // framework options
     options: Options.WebDriver
 }
@@ -34,8 +38,12 @@ export interface BaseClient extends EventEmitter, SessionFlags {
 export interface Client extends BaseClient, ProtocolCommandsAsync {}
 export interface ClientSync extends BaseClient, ProtocolCommands {}
 
-export interface AttachOptions extends Partial<SessionFlags>, Partial<Options.WebDriver> {
+export interface AttachOptions
+    extends Partial<SessionFlags>,
+        Partial<Options.WebDriver> {
     sessionId: string
-    capabilities?: Capabilities.DesiredCapabilities | Capabilities.W3CCapabilities
+    capabilities?:
+        | Capabilities.DesiredCapabilities
+        | Capabilities.W3CCapabilities
     isW3C?: boolean
 }

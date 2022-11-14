@@ -10,9 +10,9 @@ import type DevToolsDriver from '../devtoolsdriver'
  * @param {string} name  name of the cookie to retrieve
  * @return {object}      A serialized cookie, with name and value fields. There are a number of optional fields like `path`, `domain`, and `expiry-time` which may also be present.
  */
-export default async function getNamedCookie (
+export default async function getNamedCookie(
     this: DevToolsDriver,
-    { name }: { name: string }
+    { name }: { name: string },
 ) {
     const page = this.getPageHandle()
     const cookies = await page.cookies()

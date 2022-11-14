@@ -1,21 +1,42 @@
-import { createRequire } from 'node:module'
-import { stringify } from 'csv-stringify/sync'
 import WDIOReporter, {
-    SuiteStats, Tag, HookStats, RunnerStats, TestStats, BeforeCommandArgs,
-    AfterCommandArgs, CommandArgs, Argument
+    AfterCommandArgs,
+    Argument,
+    BeforeCommandArgs,
+    CommandArgs,
+    HookStats,
+    RunnerStats,
+    SuiteStats,
+    Tag,
+    TestStats,
 } from '@wdio/reporter'
 import type { Capabilities, Options } from '@wdio/types'
+import { stringify } from 'csv-stringify/sync'
+import { createRequire } from 'node:module'
 
-import {
-    getTestStatus, isEmpty, tellReporter, isMochaEachHooks, getErrorFromFailedTest,
-    isMochaAllHooks, getLinkByTemplate, attachConsoleLogs
-} from './utils.js'
 import { events, PASSED, PENDING, SKIPPED, stepStatuses } from './constants.js'
 import {
-    AddAttachmentEventArgs, AddDescriptionEventArgs, AddEnvironmentEventArgs,
-    AddFeatureEventArgs, AddIssueEventArgs, AddLabelEventArgs, AddSeverityEventArgs,
-    AddStoryEventArgs, AddTestIdEventArgs, AllureReporterOptions, Status
+    AddAttachmentEventArgs,
+    AddDescriptionEventArgs,
+    AddEnvironmentEventArgs,
+    AddFeatureEventArgs,
+    AddIssueEventArgs,
+    AddLabelEventArgs,
+    AddSeverityEventArgs,
+    AddStoryEventArgs,
+    AddTestIdEventArgs,
+    AllureReporterOptions,
+    Status,
 } from './types.js'
+import {
+    attachConsoleLogs,
+    getErrorFromFailedTest,
+    getLinkByTemplate,
+    getTestStatus,
+    isEmpty,
+    isMochaAllHooks,
+    isMochaEachHooks,
+    tellReporter,
+} from './utils.js'
 
 const require = createRequire(import.meta.url)
 
@@ -56,10 +77,17 @@ class AllureReporter extends WDIOReporter {
 
         this._lastScreenshot = undefined
 
-        let processObj:any = process
+        let processObj: any = process
         if (options.addConsoleLogs || this._addConsoleLogs) {
-            processObj.stdout.write = (chunk: string, encoding: BufferEncoding, callback:  ((err?: Error) => void)) => {
-                if (typeof chunk === 'string' && !chunk.includes('mwebdriver')) {
+            processObj.stdout.write = (
+                chunk: string,
+                encoding: BufferEncoding,
+                callback: (err?: Error) => void,
+            ) => {
+                if (
+                    typeof chunk === 'string' &&
+                    !chunk.includes('mwebdriver')
+                ) {
                     this._consoleOutput += chunk
                 }
                 return this._originalStdoutWrite(chunk, encoding, callback)
@@ -127,29 +155,44 @@ class AllureReporter extends WDIOReporter {
     onSuiteEnd(suite: SuiteStats) {
         // cleanup suites index to prevent resource leaks
         if (suite.type === 'feature') {
-            this._startedFeatures = this._startedFeatures.filter((suite) => suite.uid !== suite.uid)
+            this._startedFeatures = this._startedFeatures.filter(
+                (suite) => suite.uid !== suite.uid,
+            )
         }
 
-        if (this._options.useCucumberStepReporter && suite.type === 'scenario') {
+        if (
+            this._options.useCucumberStepReporter &&
+            suite.type === 'scenario'
+        ) {
             // passing hooks are missing the 'state' property
             suite.hooks = suite.hooks!.map((hook) => {
                 hook.state = hook.state ? hook.state : 'passed'
                 return hook
             })
             const suiteChildren = [...suite.tests!, ...suite.hooks]
-            const isPassed = !suiteChildren.some(item => item.state !== 'passed')
+            const isPassed = !suiteChildren.some(
+                (item) => item.state !== 'passed',
+            )
             if (isPassed) {
                 return this._allure.endCase('passed')
             }
 
             // A scenario is it skipped if every steps are skipped and hooks are passed or skipped
-            const isSkipped = suite.tests.every(item => [SKIPPED].indexOf(item.state!) >= 0) && suite.hooks.every(item => [PASSED, SKIPPED].indexOf(item.state!) >= 0)
+            const isSkipped =
+                suite.tests.every(
+                    (item) => [SKIPPED].indexOf(item.state!) >= 0,
+                ) &&
+                suite.hooks.every(
+                    (item) => [PASSED, SKIPPED].indexOf(item.state!) >= 0,
+                )
             if (isSkipped) {
                 return this._allure.endCase(PENDING)
             }
 
             // A scenario is it passed if certain steps are passed and all other are skipped and every hooks are passed or skipped
-            const isPartiallySkipped = suiteChildren.every(item => [PASSED, SKIPPED].indexOf(item.state!) >= 0)
+            const isPartiallySkipped = suiteChildren.every(
+                (item) => [PASSED, SKIPPED].indexOf(item.state!) >= 0,
+            )
             if (isPartiallySkipped) {
                 return this._allure.endCase('passed')
             }
@@ -167,7 +210,10 @@ class AllureReporter extends WDIOReporter {
 
         const testTitle = test.currentTest ? test.currentTest : test.title
 
-        if (this.isAnyTestRunning() && this._allure.getCurrentTest().name == testTitle) {
+        if (
+            this.isAnyTestRunning() &&
+            this._allure.getCurrentTest().name == testTitle
+        ) {
             // Test already in progress, most likely started by a before each hook
             this.setCaseParameters(test.cid, test.parent)
             return
@@ -178,10 +224,16 @@ class AllureReporter extends WDIOReporter {
 
             const testObj = test as TestStats
             const argument = testObj?.argument as Argument
-            const dataTable = argument?.rows?.map((a: { cells: string[] }) => a?.cells)
+            const dataTable = argument?.rows?.map(
+                (a: { cells: string[] }) => a?.cells,
+            )
 
             if (dataTable) {
-                this._allure.addAttachment('Data Table', stringify(dataTable), 'text/csv')
+                this._allure.addAttachment(
+                    'Data Table',
+                    stringify(dataTable),
+                    'text/csv',
+                )
             }
 
             return
@@ -201,11 +253,18 @@ class AllureReporter extends WDIOReporter {
             let targetName = device || browserName || deviceName || cid
             // custom mobile grids can have device information in a `desired` cap
             if (desired && desired.deviceName && desired.platformVersion) {
-                targetName = `${device || desired.deviceName} ${desired.platformVersion}`
+                targetName = `${device || desired.deviceName} ${
+                    desired.platformVersion
+                }`
             }
             const browserstackVersion = caps.os_version || caps.osVersion
-            const version = browserstackVersion || caps.browserVersion || caps.version || caps.platformVersion || ''
-            const paramName = (deviceName || device) ? 'device' : 'browser'
+            const version =
+                browserstackVersion ||
+                caps.browserVersion ||
+                caps.version ||
+                caps.platformVersion ||
+                ''
+            const paramName = deviceName || device ? 'device' : 'browser'
             const paramValue = version ? `${targetName}-${version}` : targetName
             currentTest.addParameter('argument', paramName, paramValue)
         } else {
@@ -230,12 +289,10 @@ class AllureReporter extends WDIOReporter {
         return this._startedFeatures.find((suite) => suite.uid === uid)
     }
 
-    getLabels({
-        tags
-    }: SuiteStats) {
-        const labels: { name: string, value: string }[] = []
+    getLabels({ tags }: SuiteStats) {
+        const labels: { name: string; value: string }[] = []
         if (tags) {
-            (tags as Tag[]).forEach((tag: Tag) => {
+            ;(tags as Tag[]).forEach((tag: Tag) => {
                 const label = tag.name.replace(/[@]/, '').split('=')
                 if (label.length === 2) {
                     labels.push({ name: label[0], value: label[1] })
@@ -261,8 +318,10 @@ class AllureReporter extends WDIOReporter {
         if (this._options.useCucumberStepReporter) {
             attachConsoleLogs(this._consoleOutput, this._allure)
             const testStatus = getTestStatus(test, this._config)
-            const stepStatus: Status = Object.values(stepStatuses).indexOf(testStatus) >= 0 ?
-                testStatus : 'failed'
+            const stepStatus: Status =
+                Object.values(stepStatuses).indexOf(testStatus) >= 0
+                    ? testStatus
+                    : 'failed'
             const suite = this._allure.getCurrentSuite()
             if (suite && suite.currentStep instanceof Step) {
                 this._allure.endStep(stepStatus)
@@ -271,11 +330,11 @@ class AllureReporter extends WDIOReporter {
             return
         }
 
-        if (!this.isAnyTestRunning()) { // is any CASE running
+        if (!this.isAnyTestRunning()) {
+            // is any CASE running
 
             this.onTestStart(test)
         } else {
-
             this._allure.getCurrentTest().name = test.title
         }
         attachConsoleLogs(this._consoleOutput, this._allure)
@@ -294,7 +353,10 @@ class AllureReporter extends WDIOReporter {
             if (suite && suite.currentStep instanceof Step) {
                 this._allure.endStep('canceled')
             }
-        } else if (!this._allure.getCurrentTest() || this._allure.getCurrentTest().name !== test.title) {
+        } else if (
+            !this._allure.getCurrentTest() ||
+            this._allure.getCurrentTest().name !== test.title
+        ) {
             this._allure.pendingCase(test.title)
         } else {
             this._allure.endCase('pending')
@@ -312,9 +374,10 @@ class AllureReporter extends WDIOReporter {
             return
         }
 
-        this._allure.startStep(command.method
-            ? `${command.method} ${command.endpoint}`
-            : command.command
+        this._allure.startStep(
+            command.method
+                ? `${command.method} ${command.endpoint}`
+                : command.command,
         )
 
         const payload = command.body || command.params
@@ -324,7 +387,10 @@ class AllureReporter extends WDIOReporter {
     }
 
     onAfterCommand(command: AfterCommandArgs) {
-        const { disableWebdriverStepsReporting, disableWebdriverScreenshotsReporting } = this._options
+        const {
+            disableWebdriverStepsReporting,
+            disableWebdriverScreenshotsReporting,
+        } = this._options
         if (this.isScreenshotCommand(command) && command.result.value) {
             if (!disableWebdriverScreenshotsReporting) {
                 this._lastScreenshot = command.result.value
@@ -342,7 +408,11 @@ class AllureReporter extends WDIOReporter {
         }
 
         if (!disableWebdriverStepsReporting) {
-            if (command.result && command.result.value && !this.isScreenshotCommand(command)) {
+            if (
+                command.result &&
+                command.result.value &&
+                !this.isScreenshotCommand(command)
+            ) {
                 this.dumpJSON('Response', command.result.value)
             }
 
@@ -380,7 +450,13 @@ class AllureReporter extends WDIOReporter {
 
     onHookEnd(hook: HookStats) {
         // ignore global hooks
-        if (!hook.parent || !this._allure.getCurrentSuite() || (this._options.disableMochaHooks && !isMochaAllHooks(hook.title) && !this._allure.getCurrentTest())) {
+        if (
+            !hook.parent ||
+            !this._allure.getCurrentSuite() ||
+            (this._options.disableMochaHooks &&
+                !isMochaAllHooks(hook.title) &&
+                !this._allure.getCurrentTest())
+        ) {
             return false
         }
 
@@ -396,17 +472,26 @@ class AllureReporter extends WDIOReporter {
 
         // set hook (test) status
         if (hook.error) {
-            if (this._options.disableMochaHooks && isMochaAllHooks(hook.title)) {
+            if (
+                this._options.disableMochaHooks &&
+                isMochaAllHooks(hook.title)
+            ) {
                 this.onTestStart(hook)
                 this.attachScreenshot()
             }
             this.onTestFail(hook)
-        } else if (this._options.disableMochaHooks || this._options.useCucumberStepReporter) {
+        } else if (
+            this._options.disableMochaHooks ||
+            this._options.useCucumberStepReporter
+        ) {
             if (!isMochaAllHooks(hook.title)) {
                 this.onTestPass()
 
                 // remove hook from suite if it has no steps
-                if (this._allure.getCurrentTest().steps.length === 0 && !this._options.useCucumberStepReporter) {
+                if (
+                    this._allure.getCurrentTest().steps.length === 0 &&
+                    !this._options.useCucumberStepReporter
+                ) {
                     this._allure.getCurrentSuite().testcases.pop()
                 } else if (this._options.useCucumberStepReporter) {
                     // remove hook when it's registered as a step and if it's passed
@@ -415,7 +500,9 @@ class AllureReporter extends WDIOReporter {
                     // if it had any attachments, reattach them to current test
                     if (step && step.attachments.length >= 1) {
                         step.attachments.forEach((attachment: any) => {
-                            this._allure.getCurrentTest().addAttachment(attachment)
+                            this._allure
+                                .getCurrentTest()
+                                .addAttachment(attachment)
                         })
                     }
                 }
@@ -423,10 +510,7 @@ class AllureReporter extends WDIOReporter {
         } else if (!this._options.disableMochaHooks) this.onTestPass()
     }
 
-    addLabel({
-        name,
-        value
-    }: AddLabelEventArgs) {
+    addLabel({ name, value }: AddLabelEventArgs) {
         if (!this.isAnyTestRunning()) {
             return false
         }
@@ -435,9 +519,7 @@ class AllureReporter extends WDIOReporter {
         test.addLabel(name, value)
     }
 
-    addStory({
-        storyName
-    }: AddStoryEventArgs) {
+    addStory({ storyName }: AddStoryEventArgs) {
         if (!this.isAnyTestRunning()) {
             return false
         }
@@ -446,9 +528,7 @@ class AllureReporter extends WDIOReporter {
         test.addLabel('story', storyName)
     }
 
-    addFeature({
-        featureName
-    }: AddFeatureEventArgs) {
+    addFeature({ featureName }: AddFeatureEventArgs) {
         if (!this.isAnyTestRunning()) {
             return false
         }
@@ -457,9 +537,7 @@ class AllureReporter extends WDIOReporter {
         test.addLabel('feature', featureName)
     }
 
-    addSeverity({
-        severity
-    }: AddSeverityEventArgs) {
+    addSeverity({ severity }: AddSeverityEventArgs) {
         if (!this.isAnyTestRunning()) {
             return false
         }
@@ -468,21 +546,20 @@ class AllureReporter extends WDIOReporter {
         test.addLabel('severity', severity)
     }
 
-    addIssue({
-        issue
-    }: AddIssueEventArgs) {
+    addIssue({ issue }: AddIssueEventArgs) {
         if (!this.isAnyTestRunning()) {
             return false
         }
 
         const test = this._allure.getCurrentTest()
-        const issueLink = getLinkByTemplate(this._options.issueLinkTemplate, issue)
+        const issueLink = getLinkByTemplate(
+            this._options.issueLinkTemplate,
+            issue,
+        )
         test.addLabel('issue', issueLink)
     }
 
-    addTestId({
-        testId
-    }: AddTestIdEventArgs) {
+    addTestId({ testId }: AddTestIdEventArgs) {
         if (!this.isAnyTestRunning()) {
             return false
         }
@@ -492,10 +569,7 @@ class AllureReporter extends WDIOReporter {
         test.addLabel('testId', tmsLink)
     }
 
-    addEnvironment({
-        name,
-        value
-    }: AddEnvironmentEventArgs) {
+    addEnvironment({ name, value }: AddEnvironmentEventArgs) {
         if (!this.isAnyTestRunning()) {
             return false
         }
@@ -504,10 +578,7 @@ class AllureReporter extends WDIOReporter {
         test.addParameter('environment-variable', name, value)
     }
 
-    addDescription({
-        description,
-        descriptionType
-    }: AddDescriptionEventArgs) {
+    addDescription({ description, descriptionType }: AddDescriptionEventArgs) {
         if (!this.isAnyTestRunning()) {
             return false
         }
@@ -519,7 +590,7 @@ class AllureReporter extends WDIOReporter {
     addAttachment({
         name,
         content,
-        type = 'text/plain'
+        type = 'text/plain',
     }: AddAttachmentEventArgs) {
         if (!this.isAnyTestRunning()) {
             return false
@@ -528,7 +599,11 @@ class AllureReporter extends WDIOReporter {
         if (type === 'application/json') {
             this.dumpJSON(name, content as object)
         } else {
-            this._allure.addAttachment(name, Buffer.from(content as string), type)
+            this._allure.addAttachment(
+                name,
+                Buffer.from(content as string),
+                type,
+            )
         }
     }
 
@@ -546,9 +621,7 @@ class AllureReporter extends WDIOReporter {
         this._allure.endStep(status)
     }
 
-    addStep({
-        step
-    }: any) {
+    addStep({ step }: any) {
         if (!this.isAnyTestRunning()) {
             return false
         }
@@ -559,10 +632,7 @@ class AllureReporter extends WDIOReporter {
         this.endStep(step.status)
     }
 
-    addArgument({
-        name,
-        value
-    }: any) {
+    addArgument({ name, value }: any) {
         if (!this.isAnyTestRunning()) {
             return false
         }
@@ -576,7 +646,8 @@ class AllureReporter extends WDIOReporter {
     }
 
     isScreenshotCommand(command: CommandArgs) {
-        const isScrenshotEndpoint = /\/session\/[^/]*(\/element\/[^/]*)?\/screenshot/
+        const isScrenshotEndpoint =
+            /\/session\/[^/]*(\/element\/[^/]*)?\/screenshot/
         return (
             // WebDriver protocol
             (command.endpoint && isScrenshotEndpoint.test(command.endpoint)) ||
@@ -588,12 +659,22 @@ class AllureReporter extends WDIOReporter {
     dumpJSON(name: string, json: object) {
         const content = JSON.stringify(json, null, 2)
         const isStr = typeof content === 'string'
-        this._allure.addAttachment(name, isStr ? content : `${content}`, isStr ? 'application/json' : 'text/plain')
+        this._allure.addAttachment(
+            name,
+            isStr ? content : `${content}`,
+            isStr ? 'application/json' : 'text/plain',
+        )
     }
 
     attachScreenshot() {
-        if (this._lastScreenshot && !this._options.disableWebdriverScreenshotsReporting) {
-            this._allure.addAttachment('Screenshot', Buffer.from(this._lastScreenshot, 'base64'))
+        if (
+            this._lastScreenshot &&
+            !this._options.disableWebdriverScreenshotsReporting
+        ) {
+            this._allure.addAttachment(
+                'Screenshot',
+                Buffer.from(this._lastScreenshot, 'base64'),
+            )
             this._lastScreenshot = undefined
         }
     }
@@ -679,9 +760,18 @@ class AllureReporter extends WDIOReporter {
      * @param {*} content           - attachment content
      * @param {string=} mimeType    - attachment mime type
      */
-    static addAttachment = (name: string, content: string | Buffer | object, type: string) => {
+    static addAttachment = (
+        name: string,
+        content: string | Buffer | object,
+        type: string,
+    ) => {
         if (!type) {
-            type = content instanceof Buffer ? 'image/png' : typeof content === 'string' ? 'text/plain' : 'application/json'
+            type =
+                content instanceof Buffer
+                    ? 'image/png'
+                    : typeof content === 'string'
+                    ? 'text/plain'
+                    : 'application/json'
         }
         tellReporter(events.addAttachment, { name, content, type })
     }
@@ -702,7 +792,11 @@ class AllureReporter extends WDIOReporter {
      */
     static endStep = (status: Status = 'passed') => {
         if (!Object.values(stepStatuses).includes(status)) {
-            throw new Error(`Step status must be ${Object.values(stepStatuses).join(' or ')}. You tried to set "${status}"`)
+            throw new Error(
+                `Step status must be ${Object.values(stepStatuses).join(
+                    ' or ',
+                )}. You tried to set "${status}"`,
+            )
         }
         tellReporter(events.endStep, status)
     }
@@ -717,16 +811,22 @@ class AllureReporter extends WDIOReporter {
      * @param {string} [attachmentObject.type='text/plain'] - attachment type
      * @param {string} [status='passed'] - step status
      */
-    static addStep = (title: string, {
-        content,
-        name = 'attachment',
-        type = 'text/plain'
-    }: any = {}, status: Status = 'passed') => {
+    static addStep = (
+        title: string,
+        { content, name = 'attachment', type = 'text/plain' }: any = {},
+        status: Status = 'passed',
+    ) => {
         if (!Object.values(stepStatuses).includes(status)) {
-            throw new Error(`Step status must be ${Object.values(stepStatuses).join(' or ')}. You tried to set "${status}"`)
+            throw new Error(
+                `Step status must be ${Object.values(stepStatuses).join(
+                    ' or ',
+                )}. You tried to set "${status}"`,
+            )
         }
 
-        const step = content ? { title, attachment: { content, name, type }, status } : { title, status }
+        const step = content
+            ? { title, attachment: { content, name, type }, status }
+            : { title, status }
         tellReporter(events.addStep, { step })
     }
 
@@ -743,11 +843,11 @@ class AllureReporter extends WDIOReporter {
 
 export default AllureReporter
 
-export { AllureReporterOptions }
 export * from './types.js'
+export { AllureReporterOptions }
 
 declare global {
     namespace WebdriverIO {
-        interface ReporterOption extends AllureReporterOptions { }
+        interface ReporterOption extends AllureReporterOptions {}
     }
 }

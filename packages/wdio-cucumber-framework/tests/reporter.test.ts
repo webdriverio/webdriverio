@@ -1,18 +1,30 @@
+import {
+    TestStepFinished,
+    TestStepResultStatus,
+    TestStepStarted,
+} from '@cucumber/messages'
 import { EventEmitter } from 'node:events'
-import { describe, expect, it, vi, afterEach, beforeEach, beforeAll } from 'vitest'
-import { TestStepFinished, TestStepResultStatus, TestStepStarted } from '@cucumber/messages'
+import {
+    afterEach,
+    beforeAll,
+    beforeEach,
+    describe,
+    expect,
+    it,
+    vi,
+} from 'vitest'
 
 import CucumberReporter from '../src/reporter.js'
 import {
     gherkinDocument,
     pickle,
-    testRunStarted,
     testCase,
-    testCaseStarted,
-    testStepStarted,
-    testStepFinished,
     testCaseFinished,
-    testRunFinished
+    testCaseStarted,
+    testRunFinished,
+    testRunStarted,
+    testStepFinished,
+    testStepStarted,
 } from './fixtures/envelopes.js'
 
 vi.mock('@cucumber/messages', () => ({
@@ -24,14 +36,14 @@ vi.mock('@cucumber/messages', () => ({
         PENDING: 'PENDING',
         UNDEFINED: 'UNDEFINED',
         AMBIGUOUS: 'AMBIGUOUS',
-        FAILED: 'FAILED'
-    }
+        FAILED: 'FAILED',
+    },
 }))
 
 const wdioReporter = {
     write: vi.fn(),
     emit: vi.fn(),
-    on: vi.fn()
+    on: vi.fn(),
 }
 
 const buildGherkinDocEvent = () => gherkinDocument
@@ -43,7 +55,9 @@ delete gherkinDocEventNoLine.feature?.location?.line
 const loadGherkin = (eventBroadcaster: EventEmitter) =>
     eventBroadcaster.emit('envelope', { gherkinDocument })
 const loadGherkinNoLine = (eventBroadcaster: EventEmitter) =>
-    eventBroadcaster.emit('envelope', { gherkinDocument: gherkinDocEventNoLine })
+    eventBroadcaster.emit('envelope', {
+        gherkinDocument: gherkinDocEventNoLine,
+    })
 const acceptPickle = (eventBroadcaster: EventEmitter) =>
     eventBroadcaster.emit('envelope', { pickle })
 const prepareSuite = (eventBroadcaster: EventEmitter) =>
@@ -67,13 +81,15 @@ describe('cucumber reporter', () => {
                 { failAmbiguousDefinitions: true } as any,
                 cid,
                 specs,
-                wdioReporter as any
+                wdioReporter as any,
             )
         })
 
         it('should not send any data on `gherkin-document` event', () => {
             loadGherkin(eventBroadcaster)
-            expect(cucumberReporter.eventListener['_gherkinDocEvents']).toEqual([gherkinDocEvent])
+            expect(cucumberReporter.eventListener['_gherkinDocEvents']).toEqual(
+                [gherkinDocEvent],
+            )
             expect(wdioReporter.emit).not.toHaveBeenCalled()
         })
 
@@ -100,7 +116,7 @@ describe('cucumber reporter', () => {
             expect(wdioReporter.emit).not.toHaveBeenCalled()
         })
 
-        it('should send accepted pickle\'s data on `test-case-started` event', () => {
+        it("should send accepted pickle's data on `test-case-started` event", () => {
             loadGherkin(eventBroadcaster)
             acceptPickle(eventBroadcaster)
             prepareSuite(eventBroadcaster)
@@ -124,26 +140,36 @@ describe('cucumber reporter', () => {
             })
 
             it('passed step', () => {
-                const passingStep: TestStepFinished = JSON.parse(JSON.stringify(testStepFinished))
-                eventBroadcaster.emit('envelope', { testStepFinished: passingStep })
+                const passingStep: TestStepFinished = JSON.parse(
+                    JSON.stringify(testStepFinished),
+                )
+                eventBroadcaster.emit('envelope', {
+                    testStepFinished: passingStep,
+                })
                 delete wdioReporter.emit.mock.calls[0][1].duration
                 expect(wdioReporter.emit.mock.calls).toMatchSnapshot()
             })
 
             it('failed step', () => {
-                const failedStep: TestStepFinished = JSON.parse(JSON.stringify(testStepFinished))
+                const failedStep: TestStepFinished = JSON.parse(
+                    JSON.stringify(testStepFinished),
+                )
                 failedStep.testStepResult = {
                     ...failedStep.testStepResult,
-                    status: TestStepResultStatus.FAILED
+                    status: TestStepResultStatus.FAILED,
                 }
-                eventBroadcaster.emit('envelope', { testStepFinished: failedStep })
+                eventBroadcaster.emit('envelope', {
+                    testStepFinished: failedStep,
+                })
                 delete wdioReporter.emit.mock.calls[0][1].duration
                 expect(wdioReporter.emit.mock.calls).toMatchSnapshot()
             })
         })
 
         it('should send proper data on onTestRunFinished', () => {
-            const passingStep: TestStepFinished = JSON.parse(JSON.stringify(testStepFinished))
+            const passingStep: TestStepFinished = JSON.parse(
+                JSON.stringify(testStepFinished),
+            )
 
             loadGherkin(eventBroadcaster)
             acceptPickle(eventBroadcaster)
@@ -159,9 +185,13 @@ describe('cucumber reporter', () => {
         })
 
         it('should proper data when executing a hook', () => {
-            const hookStarted: TestStepStarted = JSON.parse(JSON.stringify(testStepStarted))
+            const hookStarted: TestStepStarted = JSON.parse(
+                JSON.stringify(testStepStarted),
+            )
             hookStarted.testStepId = '24'
-            const hookFinished: TestStepFinished = JSON.parse(JSON.stringify(testStepFinished))
+            const hookFinished: TestStepFinished = JSON.parse(
+                JSON.stringify(testStepFinished),
+            )
             hookFinished.testStepId = '24'
 
             loadGherkin(eventBroadcaster)
@@ -170,7 +200,9 @@ describe('cucumber reporter', () => {
             startSuite(eventBroadcaster)
             eventBroadcaster.emit('envelope', { testStepStarted: hookStarted })
             wdioReporter.emit.mockClear()
-            eventBroadcaster.emit('envelope', { testStepFinished: hookFinished })
+            eventBroadcaster.emit('envelope', {
+                testStepFinished: hookFinished,
+            })
             delete wdioReporter.emit.mock.calls[0][1].duration
             expect(wdioReporter.emit.mock.calls).toMatchSnapshot()
         })
@@ -184,12 +216,24 @@ describe('cucumber reporter', () => {
 
         beforeEach(() => {
             eventBroadcaster = new EventEmitter()
-            cucumberReporter = new CucumberReporter(eventBroadcaster, {} as any, { failAmbiguousDefinitions: true, scenarioLevelReporter: true } as any, cid, specs, wdioReporter as any)
+            cucumberReporter = new CucumberReporter(
+                eventBroadcaster,
+                {} as any,
+                {
+                    failAmbiguousDefinitions: true,
+                    scenarioLevelReporter: true,
+                } as any,
+                cid,
+                specs,
+                wdioReporter as any,
+            )
         })
 
         it('should not send any data on `gherkin-document` event', () => {
             loadGherkin(eventBroadcaster)
-            expect(cucumberReporter.eventListener['_gherkinDocEvents']).toEqual([gherkinDocEvent])
+            expect(cucumberReporter.eventListener['_gherkinDocEvents']).toEqual(
+                [gherkinDocEvent],
+            )
             expect(wdioReporter.emit).not.toHaveBeenCalled()
         })
 
@@ -216,7 +260,7 @@ describe('cucumber reporter', () => {
             expect(wdioReporter.emit).not.toHaveBeenCalled()
         })
 
-        it('should send accepted pickle\'s data on `test-case-started` event', () => {
+        it("should send accepted pickle's data on `test-case-started` event", () => {
             loadGherkin(eventBroadcaster)
             acceptPickle(eventBroadcaster)
             prepareSuite(eventBroadcaster)
@@ -228,7 +272,7 @@ describe('cucumber reporter', () => {
 
         it('should send proper data on `test-case-finished` event', () => {
             const passingStep: TestStepFinished = JSON.parse(
-                JSON.stringify(testStepFinished)
+                JSON.stringify(testStepFinished),
             )
 
             loadGherkin(eventBroadcaster)
@@ -245,7 +289,9 @@ describe('cucumber reporter', () => {
         })
 
         it('should send proper data on onTestRunFinished', () => {
-            const passingStep: TestStepFinished = JSON.parse(JSON.stringify(testStepFinished))
+            const passingStep: TestStepFinished = JSON.parse(
+                JSON.stringify(testStepFinished),
+            )
 
             loadGherkin(eventBroadcaster)
             acceptPickle(eventBroadcaster)
@@ -267,7 +313,14 @@ describe('cucumber reporter', () => {
 
         beforeEach(() => {
             eventBroadcaster = new EventEmitter()
-            reporter = new CucumberReporter(eventBroadcaster, {} as any, { failAmbiguousDefinitions: true } as any, '0-1', ['/foobar.js'], wdioReporter as any)
+            reporter = new CucumberReporter(
+                eventBroadcaster,
+                {} as any,
+                { failAmbiguousDefinitions: true } as any,
+                '0-1',
+                ['/foobar.js'],
+                wdioReporter as any,
+            )
 
             loadGherkin(eventBroadcaster)
             acceptPickle(eventBroadcaster)
@@ -277,11 +330,11 @@ describe('cucumber reporter', () => {
 
         it('should increment failed counter on `failed` status', () => {
             const failedStep: TestStepFinished = JSON.parse(
-                JSON.stringify(testStepFinished)
+                JSON.stringify(testStepFinished),
             )
             failedStep.testStepResult = {
                 ...failedStep.testStepResult,
-                status: TestStepResultStatus.FAILED
+                status: TestStepResultStatus.FAILED,
             }
             eventBroadcaster.emit('envelope', { testStepFinished: failedStep })
             expect(reporter.failedCount).toBe(1)
@@ -289,38 +342,44 @@ describe('cucumber reporter', () => {
 
         it('should increment failed counter on `ambiguous` status', () => {
             const ambiguousStep: TestStepFinished = JSON.parse(
-                JSON.stringify(testStepFinished)
+                JSON.stringify(testStepFinished),
             )
             ambiguousStep.testStepResult = {
                 ...ambiguousStep.testStepResult,
-                status: TestStepResultStatus.AMBIGUOUS
+                status: TestStepResultStatus.AMBIGUOUS,
             }
-            eventBroadcaster.emit('envelope', { testStepFinished: ambiguousStep })
+            eventBroadcaster.emit('envelope', {
+                testStepFinished: ambiguousStep,
+            })
             expect(reporter.failedCount).toBe(1)
         })
 
         it('should increment failed counter on `undefined` status', () => {
             const undefinedStep: TestStepFinished = JSON.parse(
-                JSON.stringify(testStepFinished)
+                JSON.stringify(testStepFinished),
             )
             undefinedStep.testStepResult = {
                 ...undefinedStep.testStepResult,
-                status: TestStepResultStatus.UNDEFINED
+                status: TestStepResultStatus.UNDEFINED,
             }
-            eventBroadcaster.emit('envelope', { testStepFinished: undefinedStep })
+            eventBroadcaster.emit('envelope', {
+                testStepFinished: undefinedStep,
+            })
             expect(reporter.failedCount).toBe(1)
         })
 
         it('should not increment failed counter on `undefined` status if ignoreUndefinedDefinitions set to true', () => {
             reporter['_options'].ignoreUndefinedDefinitions = true
             const undefinedStep: TestStepFinished = JSON.parse(
-                JSON.stringify(testStepFinished)
+                JSON.stringify(testStepFinished),
             )
             undefinedStep.testStepResult = {
                 ...undefinedStep.testStepResult,
-                status: TestStepResultStatus.UNDEFINED
+                status: TestStepResultStatus.UNDEFINED,
             }
-            eventBroadcaster.emit('envelope', { testStepFinished: undefinedStep })
+            eventBroadcaster.emit('envelope', {
+                testStepFinished: undefinedStep,
+            })
             expect(reporter.failedCount).toBe(0)
         })
     })
@@ -330,13 +389,22 @@ describe('cucumber reporter', () => {
 
         beforeAll(() => {
             eventBroadcaster = new EventEmitter()
-            new CucumberReporter(eventBroadcaster, {} as any, {
-                tagsInTitle: true
-            } as any, '0-1', ['/foobar.js'], wdioReporter as any)
+            new CucumberReporter(
+                eventBroadcaster,
+                {} as any,
+                {
+                    tagsInTitle: true,
+                } as any,
+                '0-1',
+                ['/foobar.js'],
+                wdioReporter as any,
+            )
         })
 
         it('should add tags on handleBeforeFeatureEvent', () => {
-            eventBroadcaster.emit('envelope', { gherkinDocument: gherkinDocEvent })
+            eventBroadcaster.emit('envelope', {
+                gherkinDocument: gherkinDocEvent,
+            })
             expect(wdioReporter.emit).not.toBeCalled()
             eventBroadcaster.emit('envelope', { testRunStarted })
 

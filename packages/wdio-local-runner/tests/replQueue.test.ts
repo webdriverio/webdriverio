@@ -5,11 +5,21 @@ import ReplQueue from '../src/replQueue.js'
 
 test('add', () => {
     const queue = new ReplQueue()
-    queue.add(1 as unknown as ChildProcess, 2, 3 as unknown as Function, 4 as unknown as Function)
-    queue.add(5 as unknown as ChildProcess, 6, 7 as unknown as Function, 8 as unknown as Function)
+    queue.add(
+        1 as unknown as ChildProcess,
+        2,
+        3 as unknown as Function,
+        4 as unknown as Function,
+    )
+    queue.add(
+        5 as unknown as ChildProcess,
+        6,
+        7 as unknown as Function,
+        8 as unknown as Function,
+    )
     expect(queue['_repls']).toEqual([
         { childProcess: 1, options: 2, onStart: 3, onEnd: 4 },
-        { childProcess: 5, options: 6, onStart: 7, onEnd: 8 }
+        { childProcess: 5, options: 6, onStart: 7, onEnd: 8 },
     ] as any)
 })
 
@@ -42,7 +52,7 @@ test.skip('next', async () => {
     await new Promise((resolve) => setTimeout(resolve, 100))
     expect(childProcess.send).toHaveBeenCalledWith({
         origin: 'debugger',
-        name: 'stop'
+        name: 'stop',
     })
     expect(endFn).toHaveBeenCalledTimes(1)
     expect(startFn2).toHaveBeenCalledTimes(1)

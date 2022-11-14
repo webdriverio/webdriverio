@@ -10,14 +10,17 @@ declare global {
  * property on window to the end time of the last long task.
  */
 
-export default function registerPerformanceObserverInPage () {
+export default function registerPerformanceObserverInPage() {
     window.____lastLongTask = window.performance.now()
-    const observer = new window.PerformanceObserver(entryList => {
+    const observer = new window.PerformanceObserver((entryList) => {
         const entries = entryList.getEntries()
         for (const entry of entries) {
             if (entry.entryType === 'longtask') {
                 const taskEnd = entry.startTime + entry.duration
-                window.____lastLongTask = Math.max(window.____lastLongTask, taskEnd)
+                window.____lastLongTask = Math.max(
+                    window.____lastLongTask,
+                    taskEnd,
+                )
             }
         }
     })

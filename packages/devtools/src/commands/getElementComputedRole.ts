@@ -8,14 +8,14 @@ import type DevToolsDriver from '../devtoolsdriver'
  * @param {string} elementId  the id of an element returned in a previous call to Find Element(s)
  * @return {string}           The result of computing the WAI-ARIA role of element.
  */
-export default async function getElementComputedRole (
+export default async function getElementComputedRole(
     this: DevToolsDriver,
-    { elementId }: { elementId: string }
+    { elementId }: { elementId: string },
 ) {
     const page = this.getPageHandle(true)
     const elementHandle = await this.elementStore.get(elementId)
     const snapshot = await page.accessibility.snapshot({
-        root: elementHandle
+        root: elementHandle,
     })
 
     if (!snapshot) {

@@ -1,5 +1,5 @@
-import path from 'node:path'
 import type { Services } from '@wdio/types'
+import path from 'node:path'
 
 import { safeImport } from './utils.js'
 
@@ -9,7 +9,10 @@ import { safeImport } from './utils.js'
  * 2. otherwise try to require "@wdio/<name>-<type>"
  * 3. otherwise try to require "wdio-<name>-<type>"
  */
-export default async function initialisePlugin (name: string, type?: string): Promise<Services.ServicePlugin | Services.RunnerPlugin> {
+export default async function initialisePlugin(
+    name: string,
+    type?: string,
+): Promise<Services.ServicePlugin | Services.RunnerPlugin> {
     /**
      * directly import packages that are scoped or start with an absolute path
      */
@@ -42,8 +45,8 @@ export default async function initialisePlugin (name: string, type?: string): Pr
     }
 
     throw new Error(
-        `Couldn't find plugin "${name}" ${type}, neither as wdio scoped package `+
-        `"@wdio/${name.toLowerCase()}-${type}" nor as community package ` +
-        `"wdio-${name.toLowerCase()}-${type}". Please make sure you have it installed!`
+        `Couldn't find plugin "${name}" ${type}, neither as wdio scoped package ` +
+            `"@wdio/${name.toLowerCase()}-${type}" nor as community package ` +
+            `"wdio-${name.toLowerCase()}-${type}". Please make sure you have it installed!`,
     )
 }

@@ -5,12 +5,12 @@
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
  */
+import { canAccess } from '@wdio/utils'
+import { execSync } from 'node:child_process'
 import os from 'node:os'
 import path from 'node:path'
-import { execSync } from 'node:child_process'
-import { canAccess } from '@wdio/utils'
 
-import { sort, findByWhich } from '../utils.js'
+import { findByWhich, sort } from '../utils.js'
 import { darwinGetAppPaths, darwinGetInstallations } from './finder.js'
 
 const newLineRegex = /\r?\n/
@@ -21,9 +21,7 @@ export interface Priorities {
 }
 
 function darwin() {
-    const suffixes = [
-        '/Contents/MacOS/firefox-bin'
-    ]
+    const suffixes = ['/Contents/MacOS/firefox-bin']
 
     const appName = 'Firefox Nightly'
     const defaultPath = `/Applications/${appName}.app${suffixes[0]}`
@@ -40,14 +38,19 @@ function darwin() {
      * Retains one per line to maintain readability.
      */
     const priorities: Priorities[] = [
-        { regex: new RegExp(`^${process.env.HOME}/Applications/.*Firefox.app`), weight: 50 },
+        {
+            regex: new RegExp(
+                `^${process.env.HOME}/Applications/.*Firefox.app`,
+            ),
+            weight: 50,
+        },
         { regex: /^\/Applications\/.*Firefox.app/, weight: 100 },
-        { regex: /^\/Volumes\/.*Firefox.app/, weight: -2 }
+        { regex: /^\/Volumes\/.*Firefox.app/, weight: -2 },
     ]
 
     const whichFinds = findByWhich(
         ['firefox-nightly', 'firefox-trunk'],
-        [{ regex: /firefox-nightly/, weight: 51 }]
+        [{ regex: /firefox-nightly/, weight: 51 }],
     )
     const installFinds = sort(installations, priorities)
     return [...installFinds, ...whichFinds]
@@ -66,13 +69,13 @@ function linux() {
         path.join(os.homedir(), '.local/share/applications/'),
         '/usr/share/applications/',
     ]
-    desktopInstallationFolders.forEach(folder => {
+    desktopInstallationFolders.forEach((folder) => {
         installations = installations.concat(findFirefoxExecutables(folder))
     })
 
     const whichFinds = findByWhich(
         ['firefox-nightly', 'firefox-trunk', 'firefox'],
-        [{ regex: /firefox/, weight: 51 }]
+        [{ regex: /firefox/, weight: 51 }],
     )
     return [...installations, ...whichFinds]
 }
@@ -80,19 +83,23 @@ function linux() {
 function win32() {
     const installations: string[] = []
     const suffixes = [
-        `${path.sep}Firefox Nightly${path.sep}Application${path.sep}firefox.exe`
+        `${path.sep}Firefox Nightly${path.sep}Application${path.sep}firefox.exe`,
     ]
 
     const prefixes = [
-        process.env.LOCALAPPDATA || '', process.env.PROGRAMFILES || '', process.env['PROGRAMFILES(X86)'] || ''
+        process.env.LOCALAPPDATA || '',
+        process.env.PROGRAMFILES || '',
+        process.env['PROGRAMFILES(X86)'] || '',
     ].filter(Boolean)
 
-    prefixes.forEach(prefix => suffixes.forEach(suffix => {
-        const firefoxPath = path.join(prefix, suffix)
-        if (canAccess(firefoxPath)) {
-            installations.push(firefoxPath)
-        }
-    }))
+    prefixes.forEach((prefix) =>
+        suffixes.forEach((suffix) => {
+            const firefoxPath = path.join(prefix, suffix)
+            if (canAccess(firefoxPath)) {
+                installations.push(firefoxPath)
+            }
+        }),
+    )
 
     return installations
 }
@@ -109,16 +116,24 @@ function findFirefoxExecutables(folder: string) {
         // See https://github.com/GoogleChrome/chrome-launcher/issues/46 for more context.
         try {
             execPaths = execSync(
-                `grep -ER "${edgeExecRegex}" ${folder} | awk -F '=' '{print $2}'`, { stdio: 'pipe' })
+                `grep -ER "${edgeExecRegex}" ${folder} | awk -F '=' '{print $2}'`,
+                { stdio: 'pipe' },
+            )
         } catch (err: any) {
             execPaths = execSync(
-                `grep -Er "${edgeExecRegex}" ${folder} | awk -F '=' '{print $2}'`, { stdio: 'pipe' })
+                `grep -Er "${edgeExecRegex}" ${folder} | awk -F '=' '{print $2}'`,
+                { stdio: 'pipe' },
+            )
         }
 
-        execPaths = execPaths.toString().split(newLineRegex).map(
-            (execPath) => execPath.replace(argumentsRegex, '$1'))
+        execPaths = execPaths
+            .toString()
+            .split(newLineRegex)
+            .map((execPath) => execPath.replace(argumentsRegex, '$1'))
 
-        execPaths.forEach((execPath) => canAccess(execPath) && installations.push(execPath))
+        execPaths.forEach(
+            (execPath) => canAccess(execPath) && installations.push(execPath),
+        )
     }
 
     return installations
@@ -127,5 +142,5 @@ function findFirefoxExecutables(folder: string) {
 export default {
     darwin,
     linux,
-    win32
+    win32,
 }

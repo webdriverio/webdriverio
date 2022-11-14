@@ -1,7 +1,6 @@
 import { remote } from '../../packages/webdriverio/build/index.js'
 
 let browser
-
 ;(async () => {
     /**
      * intiate browser
@@ -13,9 +12,9 @@ let browser
         capabilities: {
             browserName: 'chrome',
             'wdio:devtoolsOptions': {
-                headless: true
-            }
-        }
+                headless: true,
+            },
+        },
     })
 
     /**
@@ -23,7 +22,6 @@ let browser
      */
     await browser.url('https://webdriver.io')
     console.log(await browser.getUrl())
-
 })().then(
     /**
      * tear down session
@@ -32,5 +30,5 @@ let browser
     (err) => {
         console.log(`Something went wrong: ${err.stack}`)
         return browser.deleteSession()
-    }
+    },
 )

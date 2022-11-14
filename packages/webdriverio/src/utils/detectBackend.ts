@@ -7,11 +7,11 @@ const DEFAULT_PATH = '/'
 const LEGACY_PATH = '/wd/hub'
 
 const REGION_MAPPING = {
-    'us': 'us-west-1.', // default endpoint
-    'eu': 'eu-central-1.',
+    us: 'us-west-1.', // default endpoint
+    eu: 'eu-central-1.',
     'eu-central-1': 'eu-central-1.',
     'us-east-1': 'us-east-1.',
-    'apac': 'apac-southeast-1.',
+    apac: 'apac-southeast-1.',
     'apac-southeast-1': 'apac-southeast-1',
 }
 
@@ -24,12 +24,14 @@ interface BackendConfigurations {
     region?: Options.SauceRegions
     headless?: boolean
     path?: string
-    capabilities?: Capabilities.RemoteCapabilities | Capabilities.RemoteCapability
+    capabilities?:
+        | Capabilities.RemoteCapabilities
+        | Capabilities.RemoteCapability
 }
 
-function getSauceEndpoint (
+function getSauceEndpoint(
     region: keyof typeof REGION_MAPPING,
-    { isRDC, isVisual }: { isRDC?: boolean, isVisual?: boolean } = {}
+    { isRDC, isVisual }: { isRDC?: boolean; isVisual?: boolean } = {},
 ) {
     const shortRegion = REGION_MAPPING[region] ? region : 'us'
     if (isRDC) {
@@ -45,18 +47,32 @@ function getSauceEndpoint (
  * helper to detect the Selenium backend according to given capabilities
  */
 export default function detectBackend(options: BackendConfigurations = {}) {
-    let { port, hostname, user, key, protocol, region, headless, path, capabilities } = options
+    let {
+        port,
+        hostname,
+        user,
+        key,
+        protocol,
+        region,
+        headless,
+        path,
+        capabilities,
+    } = options
 
     /**
      * browserstack
      * e.g. zHcv9sZ39ip8ZPsxBVJ2
      */
-    if (typeof user === 'string' && typeof key === 'string' && key.length === 20) {
+    if (
+        typeof user === 'string' &&
+        typeof key === 'string' &&
+        key.length === 20
+    ) {
         return {
             protocol: protocol || 'https',
             hostname: hostname || 'hub-cloud.browserstack.com',
             port: port || 443,
-            path: path || LEGACY_PATH
+            path: path || LEGACY_PATH,
         }
     }
 
@@ -64,12 +80,16 @@ export default function detectBackend(options: BackendConfigurations = {}) {
      * testingbot
      * e.g. ec337d7b677720a4dde7bd72be0bfc67
      */
-    if (typeof user === 'string' && typeof key === 'string' && key.length === 32) {
+    if (
+        typeof user === 'string' &&
+        typeof key === 'string' &&
+        key.length === 32
+    ) {
         return {
             protocol: protocol || 'https',
             hostname: hostname || 'hub.testingbot.com',
             port: port || 443,
-            path: path || LEGACY_PATH
+            path: path || LEGACY_PATH,
         }
     }
 
@@ -80,20 +100,35 @@ export default function detectBackend(options: BackendConfigurations = {}) {
      * For Sauce Labs Legacy RDC we only need to determine if the sauce option has a `testobject_api_key`.
      * Same for Sauce Visual where an apiKey can be passed in through the capabilities (soon to be legacy too).
      */
-    const isRDC = Boolean(!Array.isArray(capabilities) && (capabilities as WebDriver.DesiredCapabilities)?.testobject_api_key)
-    const isVisual = Boolean(!Array.isArray(capabilities) && capabilities && (capabilities as WebDriver.DesiredCapabilities)['sauce:visual']?.apiKey)
-    if ((typeof user === 'string' && typeof key === 'string' && key.length === 36) ||
+    const isRDC = Boolean(
+        !Array.isArray(capabilities) &&
+            (capabilities as WebDriver.DesiredCapabilities)?.testobject_api_key,
+    )
+    const isVisual = Boolean(
+        !Array.isArray(capabilities) &&
+            capabilities &&
+            (capabilities as WebDriver.DesiredCapabilities)['sauce:visual']
+                ?.apiKey,
+    )
+    if (
+        (typeof user === 'string' &&
+            typeof key === 'string' &&
+            key.length === 36) ||
         // Or only RDC or visual
-        (isRDC || isVisual)
+        isRDC ||
+        isVisual
     ) {
         // Sauce headless is currently only in us-east-1
-        const sauceRegion = headless ? 'us-east-1' : region as keyof typeof REGION_MAPPING
+        const sauceRegion = headless
+            ? 'us-east-1'
+            : (region as keyof typeof REGION_MAPPING)
 
         return {
             protocol: protocol || 'https',
-            hostname: hostname || getSauceEndpoint(sauceRegion, { isRDC, isVisual }),
+            hostname:
+                hostname || getSauceEndpoint(sauceRegion, { isRDC, isVisual }),
             port: port || 443,
-            path: path || LEGACY_PATH
+            path: path || LEGACY_PATH,
         }
     }
 
@@ -101,12 +136,16 @@ export default function detectBackend(options: BackendConfigurations = {}) {
      * Lambdatest
      * e.g. cYAjKrqGwyPjPQv41ICDF4C5OjlxzA9epZsnugVJJxqOReWRWU
      */
-    if (typeof user === 'string' && typeof key === 'string' && key.length === 50) {
+    if (
+        typeof user === 'string' &&
+        typeof key === 'string' &&
+        key.length === 50
+    ) {
         return {
             protocol: protocol || DEFAULT_PROTOCOL,
             hostname: hostname || 'hub.lambdatest.com',
             port: port || 80,
-            path: path || LEGACY_PATH
+            path: path || LEGACY_PATH,
         }
     }
 
@@ -122,8 +161,8 @@ export default function detectBackend(options: BackendConfigurations = {}) {
     ) {
         throw new Error(
             'A "user" or "key" was provided but could not be connected to a ' +
-            'known cloud service (Sauce Labs, Browerstack, Testingbot or Lambdatest). ' +
-            'Please check if given user and key properties are correct!'
+                'known cloud service (Sauce Labs, Browerstack, Testingbot or Lambdatest). ' +
+                'Please check if given user and key properties are correct!',
         )
     }
 
@@ -135,7 +174,7 @@ export default function detectBackend(options: BackendConfigurations = {}) {
             hostname: hostname || DEFAULT_HOSTNAME,
             port: port || DEFAULT_PORT,
             protocol: protocol || DEFAULT_PROTOCOL,
-            path: path || DEFAULT_PATH
+            path: path || DEFAULT_PATH,
         }
     }
 

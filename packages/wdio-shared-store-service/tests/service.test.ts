@@ -1,8 +1,8 @@
-import { describe, expect, vi, beforeEach, afterEach, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { getValue, setValue, setPort } from '../src/client.js'
-import SharedStoreService from '../src/service.js'
 import type { SharedStoreServiceCapabilities } from '../build/types'
+import { getValue, setPort, setValue } from '../src/client.js'
+import SharedStoreService from '../src/service.js'
 
 vi.mock('../src/client', () => ({
     getValue: vi.fn(),
@@ -17,7 +17,7 @@ describe('SharedStoreService', () => {
         const capabilities = {
             browserName: 'chrome',
             acceptInsecureCerts: true,
-            'wdio:sharedStoreServicePort': 65209
+            'wdio:sharedStoreServicePort': 65209,
         } as SharedStoreServiceCapabilities
         storeService = new SharedStoreService(null as never, capabilities)
     })

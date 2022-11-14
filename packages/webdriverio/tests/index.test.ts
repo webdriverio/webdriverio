@@ -1,5 +1,5 @@
-import { describe, it, afterEach, expect, vi } from 'vitest'
 import path from 'node:path'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 // @ts-ignore mock feature
 import { logMock } from '@wdio/logger'
 import * as webdriverio from '../src/index.js'
@@ -12,15 +12,18 @@ const OUTPUT_FILE = path.join(OUTPUT_DIR, 'wdio.log')
 
 vi.mock('got')
 vi.mock('devtools')
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock(
+    '@wdio/logger',
+    () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')),
+)
 const setUpLogCheck = (conditionFunction: () => boolean) => {
     const logCheck = (...args: string[]) => {
         if (!conditionFunction()) {
             throw new Error(
                 'Log function was called before setting ' +
-                'process.env.WDIO_LOG_PATH.\n' +
-                'Passed arguments to log function:\n' +
-                args.map((arg, index) => `  [${index}]: ${arg}`).join('\n')
+                    'process.env.WDIO_LOG_PATH.\n' +
+                    'Passed arguments to log function:\n' +
+                    args.map((arg, index) => `  [${index}]: ${arg}`).join('\n'),
             )
         }
     }
@@ -71,8 +74,8 @@ describe('index.js', () => {
 
             await webdriverio.remote({
                 capabilities: {
-                    browserName: 'chrome'
-                }
+                    browserName: 'chrome',
+                },
             })
 
             expect('WDIO_LOG_PATH' in process.env).toBe(false)
@@ -83,7 +86,7 @@ describe('index.js', () => {
 
             await webdriverio.remote({
                 capabilities: {
-                    browserName: 'chrome'
+                    browserName: 'chrome',
                 },
                 outputDir: OUTPUT_DIR,
             })

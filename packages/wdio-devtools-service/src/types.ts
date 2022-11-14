@@ -1,6 +1,6 @@
 import type { TraceStreamJson } from '@tracerbench/trace-event'
+import type { CoverageSummaryData, Totals } from 'istanbul-lib-coverage'
 import type { ReportOptions } from 'istanbul-reports'
-import type { Totals, CoverageSummaryData } from 'istanbul-lib-coverage'
 import type { Viewport } from 'puppeteer-core/lib/cjs/puppeteer/common/PuppeteerViewport'
 import type { NETWORK_STATES, PWA_AUDITS } from './constants'
 
@@ -44,25 +44,25 @@ export interface EnablePerformanceAuditsOptions {
 }
 
 export interface DeviceDescription {
-    viewport: Viewport;
-    userAgent: string;
+    viewport: Viewport
+    userAgent: string
 }
 
 export interface Device {
-    name: string;
-    userAgent: string;
+    name: string
+    userAgent: string
     viewport: {
-        width: number;
-        height: number;
-        deviceScaleFactor: number;
-        isMobile: boolean;
-        hasTouch: boolean;
-        isLandscape: boolean;
-    };
+        width: number
+        height: number
+        deviceScaleFactor: number
+        isMobile: boolean
+        hasTouch: boolean
+        isLandscape: boolean
+    }
 }
 
 export interface Audit {
-    audit: (opts: any, context: any) => Promise<any>,
+    audit: (opts: any, context: any) => Promise<any>
     defaultOptions: Record<string, any>
 }
 
@@ -83,7 +83,7 @@ export interface AuditRef {
 export interface MainThreadWorkBreakdownResult {
     details: {
         items: {
-            group: string,
+            group: string
             duration: number
         }[]
     }
@@ -147,7 +147,17 @@ export interface ErrorAudit {
 }
 
 export type PWAAudits = keyof typeof PWA_AUDITS
-export type NetworkStates = 'offline' | 'GPRS' | 'Regular 2G' | 'Good 2G' | 'Regular 3G' | 'Good 3G' | 'Regular 4G' | 'DSL' | 'Wifi' | 'online';
+export type NetworkStates =
+    | 'offline'
+    | 'GPRS'
+    | 'Regular 2G'
+    | 'Good 2G'
+    | 'Regular 3G'
+    | 'Good 3G'
+    | 'Regular 4G'
+    | 'DSL'
+    | 'Wifi'
+    | 'online'
 
 export interface Coverage {
     lines: Totals
@@ -158,21 +168,57 @@ export interface Coverage {
 }
 
 export interface CustomDevice {
-    viewport: Viewport,
+    viewport: Viewport
     userAgent: string
 }
 
-export type DeviceProfiles = 'Blackberry PlayBook' | 'BlackBerry Z30' | 'Galaxy Note 3' | 'Galaxy Note II' | 'Galaxy S III' | 'Galaxy S5' | 'iPad' | 'iPad Mini' | 'iPad Pro' | 'iPhone 4' | 'iPhone 5' | 'iPhone 6' | 'iPhone 6 Plus' | 'iPhone 7' | 'iPhone 7 Plus' | 'iPhone 8' | 'iPhone 8 Plus' | 'iPhone SE' | 'iPhone X' | 'JioPhone 2' | 'Kindle Fire HDX' | 'LG Optimus L70' | 'Microsoft Lumia 550' | 'Microsoft Lumia 950' | 'Nexus 10' | 'Nexus 4' | 'Nexus 5' | 'Nexus 5X' | 'Nexus 6' | 'Nexus 6P' | 'Nexus 7' | 'Nokia Lumia 520' | 'Nokia N9' | 'Pixel 2' | 'Pixel 2 XL' | CustomDevice
+export type DeviceProfiles =
+    | 'Blackberry PlayBook'
+    | 'BlackBerry Z30'
+    | 'Galaxy Note 3'
+    | 'Galaxy Note II'
+    | 'Galaxy S III'
+    | 'Galaxy S5'
+    | 'iPad'
+    | 'iPad Mini'
+    | 'iPad Pro'
+    | 'iPhone 4'
+    | 'iPhone 5'
+    | 'iPhone 6'
+    | 'iPhone 6 Plus'
+    | 'iPhone 7'
+    | 'iPhone 7 Plus'
+    | 'iPhone 8'
+    | 'iPhone 8 Plus'
+    | 'iPhone SE'
+    | 'iPhone X'
+    | 'JioPhone 2'
+    | 'Kindle Fire HDX'
+    | 'LG Optimus L70'
+    | 'Microsoft Lumia 550'
+    | 'Microsoft Lumia 950'
+    | 'Nexus 10'
+    | 'Nexus 4'
+    | 'Nexus 5'
+    | 'Nexus 5X'
+    | 'Nexus 6'
+    | 'Nexus 6P'
+    | 'Nexus 7'
+    | 'Nokia Lumia 520'
+    | 'Nokia N9'
+    | 'Pixel 2'
+    | 'Pixel 2 XL'
+    | CustomDevice
 
 export interface PerformanceAuditOptions {
     /**
      * Network throttling artificially limits the maximum download throughput (rate of data transfer). (e.g. Fast 3G).
      */
-    networkThrottling?: NetworkStates,
+    networkThrottling?: NetworkStates
     /**
      * Define CPU throttling to understand how your page performs under that constraint (e.g. 1.5).
      */
-    cpuThrottling?: number,
+    cpuThrottling?: number
     /**
      * Enable or disable cache of resources. Defaults to true.
      */
@@ -180,7 +226,7 @@ export interface PerformanceAuditOptions {
 }
 
 export interface GathererDriver {
-    beginTrace (): Promise<void>
-    endTrace (): Promise<TraceStreamJson>
-    evaluate (script: Function, args: Object): Promise<any>
+    beginTrace(): Promise<void>
+    endTrace(): Promise<TraceStreamJson>
+    evaluate(script: Function, args: Object): Promise<any>
 }

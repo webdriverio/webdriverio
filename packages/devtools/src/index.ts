@@ -3,23 +3,23 @@ import path from 'node:path'
 import UAParser from 'ua-parser-js'
 import { v4 as uuidv4 } from 'uuid'
 
-import logger from '@wdio/logger'
-import { webdriverMonad, devtoolsEnvironmentDetector } from '@wdio/utils'
 import { validateConfig } from '@wdio/config'
+import logger from '@wdio/logger'
 import type { CommandEndpoint } from '@wdio/protocols'
-import type { Options, Capabilities } from '@wdio/types'
+import type { Capabilities, Options } from '@wdio/types'
+import { devtoolsEnvironmentDetector, webdriverMonad } from '@wdio/utils'
 import type { Browser } from 'puppeteer-core/lib/cjs/puppeteer/api/Browser'
 
+import { DEFAULTS, SUPPORTED_BROWSER, VENDOR_PREFIX } from './constants.js'
 import DevToolsDriver from './devtoolsdriver.js'
 import launch from './launcher.js'
-import { DEFAULTS, SUPPORTED_BROWSER, VENDOR_PREFIX } from './constants.js'
-import { getPrototype, patchDebug } from './utils.js'
 import type {
-    Client,
     AttachOptions,
+    Client,
     ExtendedCapabilities,
-    WDIODevtoolsOptions as WDIODevtoolsOptionsExtension
+    WDIODevtoolsOptions as WDIODevtoolsOptionsExtension,
 } from './types'
+import { getPrototype, patchDebug } from './utils.js'
 
 const log = logger('devtools:puppeteer')
 
@@ -31,15 +31,18 @@ patchDebug(log)
 export const sessionMap = new Map()
 
 export default class DevTools {
-    static async newSession (
+    static async newSession(
         options: Options.WebDriver,
         modifier?: Function,
         userPrototype = {},
-        customCommandWrapper?: Function
+        customCommandWrapper?: Function,
     ): Promise<Client> {
         const params = validateConfig(DEFAULTS, options)
 
-        if (params.logLevel && (!options.logLevels || !(options.logLevels as any)['devtools'])) {
+        if (
+            params.logLevel &&
+            (!options.logLevels || !(options.logLevels as any)['devtools'])
+        ) {
             logger.setLevel('devtools', params.logLevel)
         }
 
@@ -53,7 +56,9 @@ export default class DevTools {
         log.info('Initiate new session using the DevTools protocol')
 
         const requestedCapabilities = { ...params.capabilities }
-        const browser = await launch(params.capabilities as ExtendedCapabilities)
+        const browser = await launch(
+            params.capabilities as ExtendedCapabilities,
+        )
         const pages = await browser.pages()
         const driver = new DevToolsDriver(browser, pages)
         const sessionId = uuidv4()
@@ -65,57 +70,61 @@ export default class DevTools {
          */
         type ValueOf<T> = T[keyof T]
         const availableVendorPrefixes = Object.values(VENDOR_PREFIX)
-        const vendorCapPrefix = Object.keys(params.capabilities as Capabilities.Capabilities)
-            .find(
-                (capKey: ValueOf<typeof VENDOR_PREFIX>) => availableVendorPrefixes.includes(capKey)
-            ) as keyof Capabilities.Capabilities
-            ||
-            VENDOR_PREFIX[userAgent.browser.name?.toLocaleLowerCase() as keyof typeof VENDOR_PREFIX]
+        const vendorCapPrefix =
+            (Object.keys(params.capabilities as Capabilities.Capabilities).find(
+                (capKey: ValueOf<typeof VENDOR_PREFIX>) =>
+                    availableVendorPrefixes.includes(capKey),
+            ) as keyof Capabilities.Capabilities) ||
+            VENDOR_PREFIX[
+                userAgent.browser.name?.toLocaleLowerCase() as keyof typeof VENDOR_PREFIX
+            ]
 
         params.capabilities = {
             browserName: userAgent.browser.name,
             browserVersion: userAgent.browser.version,
             platformName: os.platform(),
-            platformVersion: os.release()
+            platformVersion: os.release(),
         }
 
         if (vendorCapPrefix) {
             Object.assign(params.capabilities, {
                 [vendorCapPrefix]: Object.assign(
                     { debuggerAddress: browser.wsEndpoint().split('/')[2] },
-                    params.capabilities[vendorCapPrefix]
-                )
+                    params.capabilities[vendorCapPrefix],
+                ),
             })
         }
 
         sessionMap.set(sessionId, { browser, session: driver })
         const environmentPrototype: Record<string, { value: any }> = {}
-        Object.entries(devtoolsEnvironmentDetector({
-            browserName: userAgent?.browser?.name?.toLowerCase()
-        })).forEach(([name, value]) => {
+        Object.entries(
+            devtoolsEnvironmentDetector({
+                browserName: userAgent?.browser?.name?.toLowerCase(),
+            }),
+        ).forEach(([name, value]) => {
             environmentPrototype[name] = { value }
         })
         const commandWrapper = (
             method: string,
             endpoint: string,
-            commandInfo: CommandEndpoint
+            commandInfo: CommandEndpoint,
         ) => driver.register(commandInfo)
         const protocolCommands = getPrototype(commandWrapper)
         const prototype = {
             ...protocolCommands,
             ...userPrototype,
-            ...environmentPrototype
+            ...environmentPrototype,
         }
 
         const monad = webdriverMonad(
             { ...params, requestedCapabilities },
             modifier,
-            prototype
+            prototype,
         )
         return monad(sessionId, customCommandWrapper)
     }
 
-    static async reloadSession (instance: any): Promise<string> {
+    static async reloadSession(instance: any): Promise<string> {
         const { session } = sessionMap.get(instance.sessionId)
         const browser = await launch(instance.requestedCapabilities)
         const pages = await browser.pages()
@@ -128,48 +137,51 @@ export default class DevTools {
     /**
      * allows user to attach to existing sessions
      */
-    static async attachToSession (
+    static async attachToSession(
         options: AttachOptions,
         modifier?: Function,
         userPrototype = {},
-        customCommandWrapper?: Function
+        customCommandWrapper?: Function,
     ): Promise<Client> {
-        const browser = await launch(options.capabilities as ExtendedCapabilities)
+        const browser = await launch(
+            options.capabilities as ExtendedCapabilities,
+        )
         const pages = await browser.pages()
         const driver = new DevToolsDriver(browser, pages)
         const sessionId = uuidv4()
         const uaParser = new UAParser(await browser.userAgent())
         const userAgent = uaParser.getResult()
 
-        const environmentPrototype: Record<string, { value: Browser | boolean }> = { puppeteer: { value: browser } }
-        Object.entries(devtoolsEnvironmentDetector({
-            browserName: userAgent?.browser?.name?.toLowerCase()
-        })).forEach(([name, value]) => {
+        const environmentPrototype: Record<
+            string,
+            { value: Browser | boolean }
+        > = { puppeteer: { value: browser } }
+        Object.entries(
+            devtoolsEnvironmentDetector({
+                browserName: userAgent?.browser?.name?.toLowerCase(),
+            }),
+        ).forEach(([name, value]) => {
             environmentPrototype[name] = { value }
         })
         const commandWrapper = (
             method: string,
             endpoint: string,
-            commandInfo: CommandEndpoint
+            commandInfo: CommandEndpoint,
         ) => driver.register(commandInfo)
         const protocolCommands = getPrototype(commandWrapper)
         const prototype = {
             ...protocolCommands,
             ...userPrototype,
-            ...environmentPrototype
+            ...environmentPrototype,
         }
 
-        const monad = webdriverMonad(
-            options,
-            modifier,
-            prototype
-        )
+        const monad = webdriverMonad(options, modifier, prototype)
         return monad(sessionId, customCommandWrapper)
     }
 }
 
-export { SUPPORTED_BROWSER }
 export * from './types.js'
+export { SUPPORTED_BROWSER }
 
 declare global {
     namespace WebdriverIO {

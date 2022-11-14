@@ -1,10 +1,10 @@
 import os from 'node:os'
 import { v4 as uuidv4 } from 'uuid'
 
-import launch from '../launcher.js'
-import { sessionMap } from '../index.js'
-import type { ExtendedCapabilities } from '../types'
 import type DevToolsDriver from '../devtoolsdriver'
+import { sessionMap } from '../index.js'
+import launch from '../launcher.js'
+import type { ExtendedCapabilities } from '../types'
 
 /**
  * The New Session command creates a new WebDriver session with the endpoint node.
@@ -15,9 +15,9 @@ import type DevToolsDriver from '../devtoolsdriver'
  * @param  {Object} capabilities An object describing the set of capabilities for the capability processing algorithm
  * @return {Object}              Object containing sessionId and capabilities of created WebDriver session.
  */
-export default async function newSession (
+export default async function newSession(
     this: DevToolsDriver,
-    { capabilities }: { capabilities: ExtendedCapabilities }
+    { capabilities }: { capabilities: ExtendedCapabilities },
 ) {
     const browser = await launch(capabilities)
     const sessionId = uuidv4()
@@ -31,7 +31,7 @@ export default async function newSession (
             browserName,
             browserVersion,
             platformName: os.platform(),
-            platformVersion: os.release()
-        }
+            platformVersion: os.release(),
+        },
     }
 }

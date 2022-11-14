@@ -11,7 +11,7 @@ const rule: Rule.RuleModule = {
             recommended: false,
         },
         messages: {
-            unexpectedPause: 'Unexpected browser.pause() not allowed'
+            unexpectedPause: 'Unexpected browser.pause() not allowed',
         },
         hasSuggestions: true,
         schema: [],
@@ -23,9 +23,9 @@ const rule: Rule.RuleModule = {
                 if (isCommand(node, 'pause')) {
                     context.report({ node, messageId: 'unexpectedPause' })
                 }
-            }
+            },
         }
-    }
+    },
 }
 
 export default rule

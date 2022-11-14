@@ -1,11 +1,11 @@
-beforeAll(() => { })
-afterAll(() => { })
+beforeAll(() => {})
+afterAll(() => {})
 
 // ignored in repoter: https://github.com/webdriverio/webdriverio/issues/4582
 it('root level test', () => {})
 
 describe('Jasmine reporter', () => {
-    beforeAll(() => { })
+    beforeAll(() => {})
 
     // not shown in reporter
     beforeEach(() => {})
@@ -22,7 +22,7 @@ describe('Jasmine reporter', () => {
     })
 
     describe('Jasmine nested suite', () => {
-        afterAll(() => { })
+        afterAll(() => {})
 
         // not shown in reporter but fails the test
         beforeEach(() => {

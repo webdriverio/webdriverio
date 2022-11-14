@@ -1,28 +1,29 @@
 // object with no match
 export interface ProtocolCommandResponse {
-    [key: string]: any;
+    [key: string]: any
 }
 
 // webdriver.json
-export interface SessionReturn extends /* DesiredCapabilities, */ ProtocolCommandResponse { }
+export interface SessionReturn
+    extends /* DesiredCapabilities, */ ProtocolCommandResponse {}
 
 export interface StatusReturn extends ProtocolCommandResponse {
-    ready?: boolean,
-    message?: string,
+    ready?: boolean
+    message?: string
 }
 
 export type ElementReferenceId = 'element-6066-11e4-a52e-4f735466cecf'
 export type ElementReference = Record<ElementReferenceId, string>
 
 export interface WindowHandle {
-    handle: string,
+    handle: string
     type: string
 }
 
 export interface RectReturn {
-    x: number,
-    y: number,
-    width: number,
+    x: number
+    y: number
+    width: number
     height: number
 }
 
@@ -32,27 +33,27 @@ export interface StringsReturn {
 }
 
 export interface SettingsReturn extends ProtocolCommandResponse {
-    shouldUseCompactResponses?: boolean,
-    elementResponseAttributes?: string,
-    ignoreUnimportantViews?: boolean,
-    allowInvisibleElements?: boolean,
-    enableNotificationListener?: boolean,
-    actionAcknowledgmentTimeout?: number,
-    keyInjectionDelay?: number,
-    scrollAcknowledgmentTimeout?: number,
-    waitForIdleTimeout?: number,
-    waitForSelectorTimeout?: number,
-    normalizeTagNames?: boolean,
-    shutdownOnPowerDisconnect?: boolean,
-    mjpegServerScreenshotQuality?: number,
-    mjpegServerFramerate?: number,
-    screenshotQuality?: number,
-    mjpegScalingFactor?: number,
+    shouldUseCompactResponses?: boolean
+    elementResponseAttributes?: string
+    ignoreUnimportantViews?: boolean
+    allowInvisibleElements?: boolean
+    enableNotificationListener?: boolean
+    actionAcknowledgmentTimeout?: number
+    keyInjectionDelay?: number
+    scrollAcknowledgmentTimeout?: number
+    waitForIdleTimeout?: number
+    waitForSelectorTimeout?: number
+    normalizeTagNames?: boolean
+    shutdownOnPowerDisconnect?: boolean
+    mjpegServerScreenshotQuality?: number
+    mjpegServerFramerate?: number
+    screenshotQuality?: number
+    mjpegScalingFactor?: number
 }
 
 export interface Timeouts {
-    implicit?: number,
-    pageLoad?: number,
+    implicit?: number
+    pageLoad?: number
     script?: number
 }
 
@@ -61,35 +62,35 @@ export interface Cookie {
     /**
      * The name of the cookie.
      */
-    name: string;
+    name: string
     /**
      * The cookie value.
      */
-    value: string;
+    value: string
     /**
      * The cookie path. Defaults to "/" if omitted when adding a cookie.
      */
-    path?: string;
+    path?: string
     /**
      * The domain the cookie is visible to. Defaults to the current browsing context’s
      * active document’s URL domain if omitted when adding a cookie.
      */
-    domain?: string;
+    domain?: string
     /**
      * Whether the cookie is a secure cookie. Defaults to false if omitted when adding
      * a cookie.
      */
-    secure?: boolean;
+    secure?: boolean
     /**
      * Whether the cookie is an HTTP only cookie. Defaults to false if omitted when
      * adding a cookie.
      */
-    httpOnly?: boolean;
+    httpOnly?: boolean
     /**
      * When the cookie expires, specified in seconds since Unix Epoch. Must not be set if
      * omitted when adding a cookie.
      */
-    expiry?: number;
+    expiry?: number
     /**
      * Whether the cookie applies to a SameSite policy. Defaults to None if omitted when
      * adding a cookie. Can be set to either "Lax" or "Strict".
@@ -99,7 +100,10 @@ export interface Cookie {
 
 export type CommandPath = 'string'
 export type CommandMethod = 'POST' | 'GET' | 'DELETE'
-export type Protocol = Record<CommandPath, Record<CommandMethod, CommandEndpoint>>
+export type Protocol = Record<
+    CommandPath,
+    Record<CommandMethod, CommandEndpoint>
+>
 
 /**
  * describes a command endpoint
@@ -132,7 +136,7 @@ export interface CommandEndpoint {
     /**
      * set to true if command is only supported in Selenium Hub Node
      */
-    isHubCommand?: boolean,
+    isHubCommand?: boolean
     /**
      * information on return data
      */
@@ -158,9 +162,9 @@ export interface CommandPathVariables {
 }
 
 export interface CommandParameters {
-    name: string,
-    type: string,
-    description: string,
+    name: string
+    type: string
+    description: string
     required: boolean
 }
 
@@ -175,39 +179,41 @@ export type Environments = 'XCUITest' | 'UIAutomation' | 'UiAutomator'
  * }
  * ```
  */
-export type SupportedEnvironments = Record<Platform, Record<Environments, string>>
+export type SupportedEnvironments = Record<
+    Platform,
+    Record<Environments, string>
+>
 
-export type SupportedMethods = (
-    'session.status' |
-    'session.new' |
-    'session.subscribe' |
-    'session.unsubscribe' |
-    'browsingContext.captureScreenshot' |
-    'browsingContext.close' |
-    'browsingContext.create' |
-    'browsingContext.getTree' |
-    'browsingContext.handleUserPrompt' |
-    'browsingContext.navigate' |
-    'browsingContext.reload' |
-    'browsingContext.contextCreated' |
-    'browsingContext.contextDestroyed' |
-    'browsingContext.navigationStarted' |
-    'browsingContext.fragmentNavigated' |
-    'browsingContext.domContentLoaded' |
-    'browsingContext.load' |
-    'browsingContext.downloadWillBegin' |
-    'browsingContext.navigationAborted' |
-    'browsingContext.navigationFailed' |
-    'browsingContext.userPromptClosed' |
-    'browsingContext.userPromptOpened' |
-    'script.disown' |
-    'script.callFunction' |
-    'script.evaluate' |
-    'script.getRealms' |
-    'script.realmCreated' |
-    'script.realmDestoyed' |
-    'log.entryAdded'
-)
+export type SupportedMethods =
+    | 'session.status'
+    | 'session.new'
+    | 'session.subscribe'
+    | 'session.unsubscribe'
+    | 'browsingContext.captureScreenshot'
+    | 'browsingContext.close'
+    | 'browsingContext.create'
+    | 'browsingContext.getTree'
+    | 'browsingContext.handleUserPrompt'
+    | 'browsingContext.navigate'
+    | 'browsingContext.reload'
+    | 'browsingContext.contextCreated'
+    | 'browsingContext.contextDestroyed'
+    | 'browsingContext.navigationStarted'
+    | 'browsingContext.fragmentNavigated'
+    | 'browsingContext.domContentLoaded'
+    | 'browsingContext.load'
+    | 'browsingContext.downloadWillBegin'
+    | 'browsingContext.navigationAborted'
+    | 'browsingContext.navigationFailed'
+    | 'browsingContext.userPromptClosed'
+    | 'browsingContext.userPromptOpened'
+    | 'script.disown'
+    | 'script.callFunction'
+    | 'script.evaluate'
+    | 'script.getRealms'
+    | 'script.realmCreated'
+    | 'script.realmDestoyed'
+    | 'log.entryAdded'
 
 export interface BidiRequest {
     method: SupportedMethods

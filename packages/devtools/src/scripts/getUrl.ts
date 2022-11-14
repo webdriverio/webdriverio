@@ -1,3 +1,3 @@
-export default function getUrl () {
+export default function getUrl() {
     return document.location.href
 }

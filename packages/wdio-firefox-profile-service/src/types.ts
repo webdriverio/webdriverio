@@ -3,27 +3,31 @@
  */
 type FirefoxSettings = Record<string, any>
 interface NoProxySettings {
-    proxyType: 'direct';
+    proxyType: 'direct'
 }
 
 interface SystemProxySettings {
-    proxyType: 'system';
+    proxyType: 'system'
 }
 
 interface AutomaticProxySettings {
-    proxyType: 'pac';
-    autoConfigUrl: string;
+    proxyType: 'pac'
+    autoConfigUrl: string
 }
 
 interface ManualProxySettings {
-    proxyType: 'manual';
-    ftpProxy?: string;
-    httpProxy?: string;
-    sslProxy?: string;
-    socksProxy?: string;
+    proxyType: 'manual'
+    ftpProxy?: string
+    httpProxy?: string
+    sslProxy?: string
+    socksProxy?: string
 }
 
-type ProxySettings = NoProxySettings | SystemProxySettings | AutomaticProxySettings | ManualProxySettings;
+type ProxySettings =
+    | NoProxySettings
+    | SystemProxySettings
+    | AutomaticProxySettings
+    | ManualProxySettings
 
 export interface FirefoxProfileOptions extends FirefoxSettings {
     /**

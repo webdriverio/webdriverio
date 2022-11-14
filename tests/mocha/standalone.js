@@ -1,7 +1,11 @@
 import assert from 'node:assert'
-import { remote, attach, multiremote } from '../../packages/webdriverio/build/index.js'
+import {
+    attach,
+    multiremote,
+    remote,
+} from '../../packages/webdriverio/build/index.js'
 
-function sleep (ms) {
+function sleep(ms) {
     return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
@@ -18,16 +22,20 @@ describe('scripts run in standalone mode', () => {
                 port: 4444,
                 path: '/',
                 capabilities: {
-                    browserName: 'chrome'
+                    browserName: 'chrome',
                 },
-                beforeCommand: [async () => {
-                    await sleep(100)
-                    ++beforeCmdCounter
-                }],
-                afterCommand: [async () => {
-                    await sleep(100)
-                    ++afterCmdCounter
-                }]
+                beforeCommand: [
+                    async () => {
+                        await sleep(100)
+                        ++beforeCmdCounter
+                    },
+                ],
+                afterCommand: [
+                    async () => {
+                        await sleep(100)
+                        ++afterCmdCounter
+                    },
+                ],
             })
         })
 
@@ -36,7 +44,7 @@ describe('scripts run in standalone mode', () => {
             assert.equal(await remoteBrowser.getTitle(), 'Mock Page Title')
             assert.equal(beforeCmdCounter, 1)
             assert.equal(afterCmdCounter, 1)
-            assert.ok((Date.now() - start) > 200)
+            assert.ok(Date.now() - start > 200)
         })
     })
 
@@ -45,8 +53,8 @@ describe('scripts run in standalone mode', () => {
             const remoteBrowser = await remote({
                 automationProtocol: 'webdriver',
                 capabilities: {
-                    browserName: 'chrome'
-                }
+                    browserName: 'chrome',
+                },
             })
             assert.equal(await remoteBrowser.getTitle(), 'Mock Page Title')
             const attachBrowser = await attach(remoteBrowser)
@@ -61,20 +69,22 @@ describe('scripts run in standalone mode', () => {
             remoteBrowser = await multiremote({
                 foo: {
                     capabilities: {
-                        browserName: 'chrome'
-                    }
+                        browserName: 'chrome',
+                    },
                 },
                 bar: {
                     capabilities: {
-                        browserName: 'chrome'
-                    }
-                }
+                        browserName: 'chrome',
+                    },
+                },
             })
         })
 
         it('should be able to fetch a title', async () => {
-            expect(await remoteBrowser.getTitle())
-                .toEqual(['Mock Page Title', 'Mock Page Title'])
+            expect(await remoteBrowser.getTitle()).toEqual([
+                'Mock Page Title',
+                'Mock Page Title',
+            ])
         })
     })
 })

@@ -12,14 +12,14 @@ import type DevToolsDriver from '../devtoolsdriver'
  */
 export default async function addCookie(
     this: DevToolsDriver,
-    { cookie }: { cookie: Cookie }
+    { cookie }: { cookie: Cookie },
 ) {
     const page = this.getPageHandle()
 
     const cookieProps = Object.keys(cookie)
     if (!cookieProps.includes('name') || !cookieProps.includes('value')) {
         throw new Error(
-            'Provided cookie object is missing either "name" or "value" property'
+            'Provided cookie object is missing either "name" or "value" property',
         )
     }
 

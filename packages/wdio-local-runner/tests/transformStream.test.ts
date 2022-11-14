@@ -1,16 +1,18 @@
 import { Readable } from 'node:stream'
-import { test, expect } from 'vitest'
+import { expect, test } from 'vitest'
 
-import runnerTransformStream from '../src/transformStream.js'
 import { DEBUGGER_MESSAGES } from '../src/constants.js'
+import runnerTransformStream from '../src/transformStream.js'
 
 function read(stream: Readable): Promise<string> {
     return new Promise((resolve, reject) => {
         const chunks: Buffer[] = []
 
-        stream.on('data',   chunk => chunks.push(Buffer.from(chunk)))
-        stream.on('error',  err => reject(err))
-        stream.on('unpipe', () => resolve(Buffer.concat(chunks).toString('utf8')))
+        stream.on('data', (chunk) => chunks.push(Buffer.from(chunk)))
+        stream.on('error', (err) => reject(err))
+        stream.on('unpipe', () =>
+            resolve(Buffer.concat(chunks).toString('utf8')),
+        )
     })
 }
 
@@ -27,7 +29,7 @@ test('should add cid at the beginning of each line for multi-line message', asyn
 })
 
 test('should ignore debugger messages', async () => {
-    const input = Readable.from(DEBUGGER_MESSAGES.map(m => `${m} foobar`))
+    const input = Readable.from(DEBUGGER_MESSAGES.map((m) => `${m} foobar`))
     const output = await read(runnerTransformStream('0-5', input))
     expect(output).toEqual('')
 })

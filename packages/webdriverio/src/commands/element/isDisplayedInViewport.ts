@@ -1,6 +1,6 @@
 import { ELEMENT_KEY } from '../../constants.js'
-import { getBrowserObject } from '../../utils/index.js'
 import isElementInViewportScript from '../../scripts/isElementInViewport.js'
+import { getBrowserObject } from '../../utils/index.js'
 
 /**
  *
@@ -38,14 +38,14 @@ import isElementInViewportScript from '../../scripts/isElementInViewport.js'
  * @type state
  *
  */
-export default async function isDisplayedInViewport (this: WebdriverIO.Element) {
-    if (!await this.isDisplayed()) {
+export default async function isDisplayedInViewport(this: WebdriverIO.Element) {
+    if (!(await this.isDisplayed())) {
         return false
     }
 
     const browser = getBrowserObject(this)
     return browser.execute(isElementInViewportScript, {
         [ELEMENT_KEY]: this.elementId, // w3c compatible
-        ELEMENT: this.elementId // jsonwp compatible
+        ELEMENT: this.elementId, // jsonwp compatible
     } as any as HTMLElement)
 }

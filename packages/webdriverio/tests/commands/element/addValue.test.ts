@@ -1,12 +1,15 @@
 import path from 'node:path'
-import { expect, describe, it, beforeEach, afterEach, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 // @ts-ignore mocked (original defined in webdriver package)
 import got from 'got'
-import { remote, Key } from '../../../src/index.js'
+import { Key, remote } from '../../../src/index.js'
 
 vi.mock('got')
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock(
+    '@wdio/logger',
+    () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')),
+)
 
 let browser: WebdriverIO.Browser
 
@@ -20,16 +23,17 @@ describe('addValue test', () => {
             browser = await remote({
                 baseUrl: 'http://foobar.com',
                 capabilities: {
-                    browserName: 'foobar'
-                }
+                    browserName: 'foobar',
+                },
             })
         })
 
         it('add string', async () => {
             const elem = await browser.$('#foo')
             await elem.addValue('foobar')
-            expect(got.mock.calls[2][0].pathname)
-                .toBe('/session/foobar-123/element/some-elem-123/value')
+            expect(got.mock.calls[2][0].pathname).toBe(
+                '/session/foobar-123/element/some-elem-123/value',
+            )
             expect(got.mock.calls[2][1].json.text).toEqual('foobar')
             expect(got.mock.calls[2][1].json.value).toEqual(undefined)
         })
@@ -37,8 +41,9 @@ describe('addValue test', () => {
         it('add number', async () => {
             const elem = await browser.$('#foo')
             await elem.addValue(42)
-            expect(got.mock.calls[2][0].pathname)
-                .toBe('/session/foobar-123/element/some-elem-123/value')
+            expect(got.mock.calls[2][0].pathname).toBe(
+                '/session/foobar-123/element/some-elem-123/value',
+            )
             expect(got.mock.calls[2][1].json.text).toEqual('42')
             expect(got.mock.calls[2][1].json.value).toEqual(undefined)
         })
@@ -49,8 +54,8 @@ describe('addValue test', () => {
             browser = await remote({
                 baseUrl: 'http://foobar.com',
                 capabilities: {
-                    browserName: 'foobar-noW3C'
-                }
+                    browserName: 'foobar-noW3C',
+                },
             })
         })
 
@@ -58,10 +63,10 @@ describe('addValue test', () => {
             const elem = await browser.$('#foo')
 
             await elem.addValue('foobar')
-            expect(got.mock.calls[2][0].pathname)
-                .toBe('/session/foobar-123/element/some-elem-123/value')
-            expect(got.mock.calls[2][1].json.value)
-                .toEqual(['foobar'])
+            expect(got.mock.calls[2][0].pathname).toBe(
+                '/session/foobar-123/element/some-elem-123/value',
+            )
+            expect(got.mock.calls[2][1].json.value).toEqual(['foobar'])
             expect(got.mock.calls[2][1].json.text).toEqual(undefined)
         })
 
@@ -69,8 +74,9 @@ describe('addValue test', () => {
             const elem = await browser.$('#foo')
 
             await elem.addValue(42)
-            expect(got.mock.calls[2][0].pathname)
-                .toBe('/session/foobar-123/element/some-elem-123/value')
+            expect(got.mock.calls[2][0].pathname).toBe(
+                '/session/foobar-123/element/some-elem-123/value',
+            )
             expect(got.mock.calls[2][1].json.value).toEqual(['42'])
             expect(got.mock.calls[2][1].json.text).toEqual(undefined)
         })
@@ -81,8 +87,8 @@ describe('addValue test', () => {
             browser = await remote({
                 baseUrl: 'http://foobar.com',
                 capabilities: {
-                    browserName: 'foobar'
-                }
+                    browserName: 'foobar',
+                },
             })
         })
 
@@ -90,7 +96,9 @@ describe('addValue test', () => {
             const elem = await browser.$('#foo')
 
             await elem.addValue('Delete')
-            expect(got.mock.calls[2][0].pathname).toBe('/session/foobar-123/element/some-elem-123/value')
+            expect(got.mock.calls[2][0].pathname).toBe(
+                '/session/foobar-123/element/some-elem-123/value',
+            )
             expect(got.mock.calls[2][1].json.text).toEqual('Delete')
         })
     })
@@ -100,8 +108,8 @@ describe('addValue test', () => {
             browser = await remote({
                 baseUrl: 'http://foobar.com',
                 capabilities: {
-                    browserName: 'foobar'
-                }
+                    browserName: 'foobar',
+                },
             })
         })
 
@@ -109,14 +117,18 @@ describe('addValue test', () => {
             const elem = await browser.$('#foo')
 
             await elem.addValue('Delete')
-            expect(got.mock.calls[2][0].pathname).toBe('/session/foobar-123/element/some-elem-123/value')
+            expect(got.mock.calls[2][0].pathname).toBe(
+                '/session/foobar-123/element/some-elem-123/value',
+            )
             expect(got.mock.calls[2][1].json.text).toEqual('Delete')
         })
         it('should translate to unicode', async () => {
             const elem = await browser.$('#foo')
 
             await elem.addValue(Key.Delete)
-            expect(got.mock.calls[2][0].pathname).toBe('/session/foobar-123/element/some-elem-123/value')
+            expect(got.mock.calls[2][0].pathname).toBe(
+                '/session/foobar-123/element/some-elem-123/value',
+            )
             expect(got.mock.calls[2][1].json.text).toEqual('\uE017')
         })
     })

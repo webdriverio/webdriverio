@@ -1,10 +1,14 @@
-import type { Options, Capabilities, Services } from '@wdio/types'
+import type { Capabilities, Options, Services } from '@wdio/types'
 import BaseReporter from './reporter.js'
 
 export type BeforeArgs = Parameters<Required<Services.HookFunctions>['before']>
 export type AfterArgs = Parameters<Required<Services.HookFunctions>['after']>
-export type BeforeSessionArgs = Parameters<Required<Services.HookFunctions>['beforeSession']>
-export type AfterSessionArgs = Parameters<Required<Services.HookFunctions>['afterSession']>
+export type BeforeSessionArgs = Parameters<
+    Required<Services.HookFunctions>['beforeSession']
+>
+export type AfterSessionArgs = Parameters<
+    Required<Services.HookFunctions>['afterSession']
+>
 
 interface Args extends Partial<Options.Testrunner> {
     ignoredWorkerServices?: string[]
@@ -26,15 +30,22 @@ export interface TestFramework {
         config: Options.Testrunner,
         specs: string[],
         capabilities: Capabilities.RemoteCapability,
-        reporter: BaseReporter
+        reporter: BaseReporter,
     ) => TestFramework
-    run (): Promise<number>
-    hasTests (): boolean
+    run(): Promise<number>
+    hasTests(): boolean
 }
 
 type SingleCapability = { capabilities: Capabilities.RemoteCapability }
-export interface SingleConfigOption extends Omit<Options.Testrunner, 'capabilities'>, SingleCapability {}
-export type MultiRemoteCaps = Record<string, (Capabilities.DesiredCapabilities | Capabilities.W3CCapabilities) & { sessionId?: string }>
+export interface SingleConfigOption
+    extends Omit<Options.Testrunner, 'capabilities'>,
+        SingleCapability {}
+export type MultiRemoteCaps = Record<
+    string,
+    (Capabilities.DesiredCapabilities | Capabilities.W3CCapabilities) & {
+        sessionId?: string
+    }
+>
 
 export interface SessionStartedMessage {
     origin: 'worker'
@@ -49,12 +60,12 @@ export interface SessionStartedMessage {
         isMultiremote: boolean
         injectGlobals: boolean
         capabilities: Capabilities.Capabilities
-    },
+    }
     cid?: string
 }
 
 export interface SessionEndedMessage {
     origin: 'worker'
-    name: 'sessionEnded',
+    name: 'sessionEnded'
     cid: string
 }

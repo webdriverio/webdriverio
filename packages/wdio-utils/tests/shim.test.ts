@@ -1,4 +1,4 @@
-import { vi, describe, it, expect } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { wrapCommand } from '../src/shim.js'
 
 describe('wrapCommand', () => {
@@ -9,10 +9,14 @@ describe('wrapCommand', () => {
         const scope = {
             options: {
                 beforeCommand: [beforeHook, beforeHook],
-                afterCommand: [afterHook, afterHook, afterHook]
-            }
+                afterCommand: [afterHook, afterHook, afterHook],
+            },
         }
-        const res = await wrapCommand('someCommand', commandFn).call(scope, 123, 'barfoo')
+        const res = await wrapCommand('someCommand', commandFn).call(
+            scope,
+            123,
+            'barfoo',
+        )
         expect(res).toEqual('foobar')
         expect(commandFn).toBeCalledTimes(1)
         expect(commandFn).toBeCalledWith(123, 'barfoo')
@@ -21,7 +25,12 @@ describe('wrapCommand', () => {
         expect(beforeHook).toBeCalledWith('someCommand', [123, 'barfoo'])
 
         expect(afterHook).toBeCalledTimes(3)
-        expect(afterHook).toBeCalledWith('someCommand', [123, 'barfoo'], 'foobar', undefined)
+        expect(afterHook).toBeCalledWith(
+            'someCommand',
+            [123, 'barfoo'],
+            'foobar',
+            undefined,
+        )
     })
 
     it('should throw but still run after command hook', async () => {
@@ -31,15 +40,22 @@ describe('wrapCommand', () => {
         const scope = {
             options: {
                 beforeCommand: [],
-                afterCommand: [afterHook, afterHook, afterHook]
-            }
+                afterCommand: [afterHook, afterHook, afterHook],
+            },
         }
-        const res = await wrapCommand('someCommand', commandFn).call(scope, 123, 'barfoo').catch(err => err)
+        const res = await wrapCommand('someCommand', commandFn)
+            .call(scope, 123, 'barfoo')
+            .catch((err) => err)
         expect(res).toEqual(error)
         expect(commandFn).toBeCalledTimes(1)
         expect(commandFn).toBeCalledWith(123, 'barfoo')
 
         expect(afterHook).toBeCalledTimes(3)
-        expect(afterHook).toBeCalledWith('someCommand', [123, 'barfoo'], undefined, error)
+        expect(afterHook).toBeCalledWith(
+            'someCommand',
+            [123, 'barfoo'],
+            undefined,
+            error,
+        )
     })
 })

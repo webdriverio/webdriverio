@@ -8,4 +8,4 @@
  * @alias browser.performActions
  * @see https://w3c.github.io/webdriver/#dfn-release-actions
  */
-export default async function performActions () {}
+export default async function performActions() {}

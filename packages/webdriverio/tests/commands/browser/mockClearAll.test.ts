@@ -1,5 +1,5 @@
 import path from 'node:path'
-import { expect, describe, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { remote } from '../../../src/index.js'
 // @ts-expect-error mock feature
 import { getMockCalls } from '../../../src/commands/browser/mock.js'
@@ -16,15 +16,18 @@ vi.mock('../../../src/commands/browser/mock', () => {
     SESSION_MOCKS['barfoo'].add({ clear: vi.fn(bumpCall) })
     return { SESSION_MOCKS, getMockCalls: () => clearedMocks, default: vi.fn() }
 })
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock(
+    '@wdio/logger',
+    () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')),
+)
 
 describe('mockClearAll', () => {
     it('should clear all mocks', async () => {
         const browser = await remote({
             baseUrl: 'http://foobar.com',
             capabilities: {
-                browserName: 'devtools'
-            }
+                browserName: 'devtools',
+            },
         })
         expect(getMockCalls()).toBe(0)
         await browser.mockClearAll()

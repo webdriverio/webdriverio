@@ -46,15 +46,22 @@ import { verifyArgsAndStripIfElement } from '../../utils/index.js'
 export default function executeAsync<ReturnValue, InnerArguments extends any[]>(
     this: WebdriverIO.Browser | WebdriverIO.Element,
     script:
-        string |
-        ((...args: [...innerArgs: InnerArguments, callback: (result?: ReturnValue) => void]) => void),
+        | string
+        | ((
+              ...args: [
+                  ...innerArgs: InnerArguments,
+                  callback: (result?: ReturnValue) => void,
+              ]
+          ) => void),
     ...args: InnerArguments
 ): Promise<ReturnValue> {
     /**
      * parameter check
      */
-    if ((typeof script !== 'string' && typeof script !== 'function')) {
-        throw new Error('number or type of arguments don\'t agree with execute protocol command')
+    if (typeof script !== 'string' && typeof script !== 'function') {
+        throw new Error(
+            "number or type of arguments don't agree with execute protocol command",
+        )
     }
 
     /**

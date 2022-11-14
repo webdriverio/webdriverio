@@ -1,15 +1,15 @@
 import { join, resolve } from 'node:path'
-import { vi, describe, it, expect, afterEach, beforeEach } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 // @ts-expect-error mock
 import { yargs as yargsMock } from 'yargs'
 
-import { run } from '../src/index.js'
 import { handler } from '../src/commands/run.js'
+import { run } from '../src/index.js'
 
 vi.mock('yargs')
 vi.mock('./../src/commands/run', async () => ({
-    ...(await vi.importActual('./../src/commands/run')) as object,
-    handler: vi.fn().mockReturnValue(Promise.resolve('success'))
+    ...((await vi.importActual('./../src/commands/run')) as object),
+    handler: vi.fn().mockReturnValue(Promise.resolve('success')),
 }))
 
 const consoleError = console.error
@@ -25,29 +25,33 @@ describe('index', () => {
         await run()
         expect(vi.mocked(handler).mock.calls[0][0]).toEqual({
             configPath: join(`${process.cwd()}`, 'wdio.conf.js'),
-            _: ['wdio.conf.js']
+            _: ['wdio.conf.js'],
         })
     })
 
     it('should set default config filename if not set', async () => {
-        vi.mocked(yargsMock.parse).mockReturnValue({ _: [], spec: ['/foo/bar'] }) as any
+        vi
+            .mocked(yargsMock.parse)
+            .mockReturnValue({ _: [], spec: ['/foo/bar'] }) as any
         await run()
         expect(vi.mocked(handler).mock.calls[0][0]).toEqual({
             configPath: join(`${process.cwd()}`, 'wdio.conf.js'),
             spec: ['/foo/bar'],
-            _: []
+            _: [],
         })
     })
 
     it('should work properly with absolute paths', async () => {
         const expectedPath = resolve('/some/absolute/path/here/wdio.conf.js')
-        vi.mocked(yargsMock.parse).mockReturnValue({ ...yargsMock.argv, _: [expectedPath] }) as any
+        vi
+            .mocked(yargsMock.parse)
+            .mockReturnValue({ ...yargsMock.argv, _: [expectedPath] }) as any
         await run().catch()
 
         expect(handler).toHaveBeenCalledTimes(1)
         expect(vi.mocked(handler).mock.calls[0][0]).toEqual({
             configPath: expectedPath,
-            _: [expectedPath]
+            _: [expectedPath],
         })
         vi.mocked(yargsMock.epilogue).mockClear()
     })
@@ -57,10 +61,12 @@ describe('index', () => {
      * for some reason the `cb` variable is not the callback passed in
      */
     it.skip('should gracefully fail', async () => {
-        vi.mocked(yargsMock.parse).mockImplementation((str: never, cb: Function) => {
-            cb(null, null, 'test')
-            return yargsMock.argv
-        })
+        vi.mocked(yargsMock.parse).mockImplementation(
+            (str: never, cb: Function) => {
+                cb(null, null, 'test')
+                return yargsMock.argv
+            },
+        )
         vi.mocked(handler).mockRejectedValue(new Error('ups'))
         vi.spyOn(console, 'error')
 
@@ -69,7 +75,9 @@ describe('index', () => {
     })
 
     it('should do nothing if command was called', async () => {
-        vi.mocked(yargsMock.parse).mockReturnValue({ ...yargsMock.argv, _: ['run'] }) as any
+        vi
+            .mocked(yargsMock.parse)
+            .mockReturnValue({ ...yargsMock.argv, _: ['run'] }) as any
         expect(typeof (await run())).toBe('undefined')
     })
 

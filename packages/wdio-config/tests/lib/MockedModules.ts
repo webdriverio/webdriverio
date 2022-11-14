@@ -18,36 +18,36 @@ export default class MockedModules implements ModuleImportService {
 
     private constructor(callThroughNotMockedModules = false) {
         this.mockLoadedModules = {}
-        this.requireMock = vi.fn((m:string) => {
+        this.requireMock = vi.fn((m: string) => {
             try {
                 return this.getModule(m)
             } catch (err: any) {
-                if ( callThroughNotMockedModules ) {
+                if (callThroughNotMockedModules) {
                     return require(m)
                 }
                 throw err
-
             }
         })
-        this.resolveMock = vi.fn((m:string) => {
+        this.resolveMock = vi.fn((m: string) => {
             try {
                 return this.hasModule(m)
             } catch (err: any) {
-                if ( callThroughNotMockedModules ) {
+                if (callThroughNotMockedModules) {
                     return require.resolve(m)
                 }
                 throw err
-
             }
         })
     }
 
     static withNoModules(callThroughNotMockedModules = false) {
         return new MockedModules(callThroughNotMockedModules)
-
     }
 
-    static withModules(moduleAndValuesList: [string, any][], callThroughNotMockedModules = false) {
+    static withModules(
+        moduleAndValuesList: [string, any][],
+        callThroughNotMockedModules = false,
+    ) {
         let instance = new MockedModules(callThroughNotMockedModules)
         return instance.withModules(moduleAndValuesList)
     }
@@ -60,7 +60,7 @@ export default class MockedModules implements ModuleImportService {
     getMocks() {
         return {
             requireMock: this.requireMock,
-            resolveMock: this.resolveMock
+            resolveMock: this.resolveMock,
         }
     }
 
@@ -85,15 +85,11 @@ export default class MockedModules implements ModuleImportService {
     }
 
     withTsNodeModule(registerMock = vi.fn()) {
-        return this.withModule(
-            'ts-node', { register: registerMock }
-        )
+        return this.withModule('ts-node', { register: registerMock })
     }
 
     withTsconfigPathModule(registerMock = vi.fn()) {
-        return this.withModule(
-            'tsconfig-paths', { register: registerMock }
-        )
+        return this.withModule('tsconfig-paths', { register: registerMock })
     }
 
     withBabelModule(registerMock = vi.fn()) {
@@ -116,7 +112,7 @@ export default class MockedModules implements ModuleImportService {
 
     // Interface
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    import <T>(module: string): Promise<T> {
+    import<T>(module: string): Promise<T> {
         // forward to vi mock
         return this.requireMock.apply(this, arguments)
     }

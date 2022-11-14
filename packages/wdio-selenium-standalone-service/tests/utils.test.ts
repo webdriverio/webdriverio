@@ -1,5 +1,5 @@
 import path from 'node:path'
-import { describe, expect, test, beforeAll } from 'vitest'
+import { beforeAll, describe, expect, test } from 'vitest'
 
 import { getFilePath } from '../src/utils.js'
 
@@ -39,7 +39,9 @@ describe('getFilePath', () => {
         const dir = '/log'
         const filePath = getFilePath(dir, defaultFilename)
 
-        expect(filePath).toMatch(/(\w:)?(\\|\/)log(\\|\/)selenium-standalone\.txt/)
+        expect(filePath).toMatch(
+            /(\w:)?(\\|\/)log(\\|\/)selenium-standalone\.txt/,
+        )
     })
 
     test('should handle dir "./log/"', () => {
@@ -77,7 +79,9 @@ describe('getFilePath', () => {
         const dir = '/log/selenium'
         const filePath = getFilePath(dir, defaultFilename)
 
-        expect(filePath).toMatch(/(\w:)?(\\|\/)log(\\|\/)selenium(\\|\/)selenium-standalone\.txt/)
+        expect(filePath).toMatch(
+            /(\w:)?(\\|\/)log(\\|\/)selenium(\\|\/)selenium-standalone\.txt/,
+        )
     })
 
     test('should handle file ".log"', () => {

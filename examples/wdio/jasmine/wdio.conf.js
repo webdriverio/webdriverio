@@ -1,7 +1,6 @@
 const path = require('node:path')
 
 exports.config = {
-
     /**
      * specify test files
      */
@@ -10,13 +9,15 @@ exports.config = {
     /**
      * capabilities
      */
-    capabilities: [{
-        browserName: 'chrome',
-        acceptInsecureCerts: true,
-        'wdio:devtoolsOptions': {
-            headless: true
-        }
-    }],
+    capabilities: [
+        {
+            browserName: 'chrome',
+            acceptInsecureCerts: true,
+            'wdio:devtoolsOptions': {
+                headless: true,
+            },
+        },
+    ],
 
     /**
      * test configurations
@@ -28,18 +29,18 @@ exports.config = {
     reporters: ['spec'],
 
     jasmineOpts: {
-        defaultTimeoutInterval: 1000 * 60 * 3
+        defaultTimeoutInterval: 1000 * 60 * 3,
     },
 
     /**
      * hooks
      */
-    onPrepare: function() {
+    onPrepare: function () {
         // eslint-disable-next-line
         console.log('let\'s go');
     },
-    onComplete: function() {
+    onComplete: function () {
         // eslint-disable-next-line
         console.log('that\'s it');
-    }
+    },
 }

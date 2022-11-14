@@ -26,7 +26,7 @@ export default class HookStats extends RunnableStats {
     state?: 'failed' | 'passed'
     currentTest?: string
 
-    constructor (runner: Hook) {
+    constructor(runner: Hook) {
         super('hook')
         this.uid = RunnableStats.getIdentifier(runner)
         this.cid = runner.cid
@@ -35,7 +35,7 @@ export default class HookStats extends RunnableStats {
         this.currentTest = runner.currentTest
     }
 
-    complete (errors?: Error[]) {
+    complete(errors?: Error[]) {
         this.errors = errors
         if (errors && errors.length) {
             this.error = errors[0]

@@ -14,14 +14,14 @@ const {
     setWorldConstructor,
     World,
     Then,
-    When
+    When,
 } = require('@cucumber/cucumber')
 
 const adapterFactory = {
-    init: async function initCucumberFramework (...args: any[]) {
+    init: async function initCucumberFramework(...args: any[]) {
         const { CucumberAdapter } = await import('../index.js')
         // @ts-ignore just passing through args
-        const adapter = new CucumberAdapter(...args as any)
+        const adapter = new CucumberAdapter(...(args as any))
         const instance = await adapter.init()
         return instance
     },

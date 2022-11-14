@@ -3,7 +3,7 @@ import { config as baseConfig } from './config.js'
 export const config = Object.assign({}, baseConfig, {
     framework: 'cucumber',
 
-    async beforeFeature () {
+    async beforeFeature() {
         await browser.pause(30)
         browser.Cucumber_Test = 0
     },

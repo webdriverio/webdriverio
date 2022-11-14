@@ -1,4 +1,4 @@
-import { describe, expect, vi, it, afterAll, afterEach } from 'vitest'
+import { afterAll, afterEach, describe, expect, it, vi } from 'vitest'
 
 import { EventEmitter } from 'node:events'
 import fs, { WriteStream } from 'node:fs'
@@ -9,11 +9,11 @@ vi.mock('node:fs', () => ({
     default: {
         createWriteStream: vi.fn().mockReturnValue({
             write: vi.fn(),
-            end: vi.fn((cb) => cb())
+            end: vi.fn((cb) => cb()),
         }),
         mkdir: vi.fn(),
-        access: vi.fn()
-    }
+        access: vi.fn(),
+    },
 }))
 
 describe('WDIOReporter', () => {
@@ -21,8 +21,14 @@ describe('WDIOReporter', () => {
 
     it('constructor', () => {
         new WDIOReporter({ logFile: '/some/logpath' })
-        expect(eventsOnSpy).toBeCalledWith('client:beforeCommand', expect.any(Function))
-        expect(eventsOnSpy).toBeCalledWith('client:afterCommand', expect.any(Function))
+        expect(eventsOnSpy).toBeCalledWith(
+            'client:beforeCommand',
+            expect.any(Function),
+        )
+        expect(eventsOnSpy).toBeCalledWith(
+            'client:afterCommand',
+            expect.any(Function),
+        )
         expect(eventsOnSpy).toBeCalledWith('runner:start', expect.any(Function))
         expect(eventsOnSpy).toBeCalledWith('suite:start', expect.any(Function))
         expect(eventsOnSpy).toBeCalledWith('hook:start', expect.any(Function))
@@ -36,8 +42,14 @@ describe('WDIOReporter', () => {
         expect(eventsOnSpy).toBeCalledWith('test:end', expect.any(Function))
         expect(eventsOnSpy).toBeCalledWith('suite:end', expect.any(Function))
         expect(eventsOnSpy).toBeCalledWith('runner:end', expect.any(Function))
-        expect(eventsOnSpy).toBeCalledWith('client:beforeCommand', expect.any(Function))
-        expect(eventsOnSpy).toBeCalledWith('client:afterCommand', expect.any(Function))
+        expect(eventsOnSpy).toBeCalledWith(
+            'client:beforeCommand',
+            expect.any(Function),
+        )
+        expect(eventsOnSpy).toBeCalledWith(
+            'client:afterCommand',
+            expect.any(Function),
+        )
     })
 
     it('should be by default synchronised', () => {
@@ -53,21 +65,30 @@ describe('WDIOReporter', () => {
 
     it('should allow an own writeable stream', () => {
         const customLogStream = fs.createWriteStream('/foo/bar')
-        const reporter = new WDIOReporter({ stdout: true, writeStream: customLogStream })
+        const reporter = new WDIOReporter({
+            stdout: true,
+            writeStream: customLogStream,
+        })
         reporter.write('foobar')
 
         expect(customLogStream.write).toBeCalledWith('foobar')
     })
 
     it('should not create log file if no file name is given', () => {
-        const options = { stdout: true, writeStream: { write: vi.fn() } as unknown as WriteStream }
+        const options = {
+            stdout: true,
+            writeStream: { write: vi.fn() } as unknown as WriteStream,
+        }
         const reporter = new WDIOReporter(options)
         reporter.write('foobar')
         expect(options.writeStream.write).toBeCalledWith('foobar')
     })
 
     it('should set isContentPresent to true when content is passed to write()', () => {
-        const options = { stdout: true, writeStream: { write: vi.fn() } as unknown as WriteStream }
+        const options = {
+            stdout: true,
+            writeStream: { write: vi.fn() } as unknown as WriteStream,
+        }
         const reporter = new WDIOReporter(options)
         expect(reporter.isContentPresent).toBe(false)
         reporter.write('foobar')
@@ -80,7 +101,11 @@ describe('WDIOReporter', () => {
             new WDIOReporter(options)
 
             expect(fs.mkdir).toHaveBeenCalled()
-            expect(fs.mkdir).toHaveBeenCalledWith('./tempDir', { recursive: true }, expect.any(Function))
+            expect(fs.mkdir).toHaveBeenCalledWith(
+                './tempDir',
+                { recursive: true },
+                expect.any(Function),
+            )
         })
 
         afterEach(() => {

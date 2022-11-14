@@ -1,5 +1,8 @@
 import fs from 'node:fs'
-import { getAbsoluteFilepath, assertDirectoryExists } from '../../utils/index.js'
+import {
+    assertDirectoryExists,
+    getAbsoluteFilepath,
+} from '../../utils/index.js'
 
 /**
  *
@@ -26,9 +29,9 @@ import { getAbsoluteFilepath, assertDirectoryExists } from '../../utils/index.js
  * @type utility
  *
  */
-export default async function saveRecordingScreen (
+export default async function saveRecordingScreen(
     this: WebdriverIO.Browser,
-    filepath: string
+    filepath: string,
 ) {
     /**
      * type check

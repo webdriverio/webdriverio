@@ -1,11 +1,11 @@
-import { describe, expect, vi, it, afterEach, beforeEach } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import WDIOReporter from '../src/index.js'
 import tmp from 'tmp'
-import TestStats, { Test } from '../src/stats/test.js'
+import WDIOReporter from '../src/index.js'
+import { Hook } from '../src/stats/hook.js'
 import RunnerStats from '../src/stats/runner.js'
 import { Suite } from '../src/stats/suite.js'
-import { Hook } from '../src/stats/hook.js'
+import TestStats, { Test } from '../src/stats/test.js'
 
 const runnerSpecs = ['/path/to/fileA.js', '/path/to/fileA.js']
 
@@ -43,7 +43,7 @@ describe('WDIOReporter Listeners', () => {
                 pending: false,
                 cid: '0-0',
                 specs: ['/path/to/test/specs/sync.spec.js'],
-                uid: '0-0'
+                uid: '0-0',
             }
         })
 
@@ -159,14 +159,13 @@ describe('WDIOReporter Listeners', () => {
     })
 
     describe('handling runner:start', () => {
-
         beforeEach(() => {
             runnerStartEvent = {
                 cid: 'runnerid',
                 capabilities: {
-                    browserName: 'Chrome'
+                    browserName: 'Chrome',
                 },
-                specs: runnerSpecs
+                specs: runnerSpecs,
             } as RunnerStats
             reporter.onRunnerStart = vi.fn()
         })
@@ -179,7 +178,9 @@ describe('WDIOReporter Listeners', () => {
         it('should set the runner stat', () => {
             reporter.emit('runner:start', runnerStartEvent)
             expect(reporter.runnerStat).toBeDefined()
-            expect(reporter.runnerStat!.capabilities).toEqual(runnerStartEvent.capabilities)
+            expect(reporter.runnerStat!.capabilities).toEqual(
+                runnerStartEvent.capabilities,
+            )
         })
 
         it('should call onRunnerStart', () => {
@@ -189,18 +190,17 @@ describe('WDIOReporter Listeners', () => {
     })
 
     describe('handling suite:start', () => {
-
         beforeEach(() => {
             runnerStartEvent = {
                 cid: 'runnerid',
                 capabilities: {
-                    browserName: 'Chrome'
+                    browserName: 'Chrome',
                 },
-                specs: runnerSpecs
+                specs: runnerSpecs,
             } as RunnerStats
             suiteStartEvent = {
                 uid: 'suiteid',
-                title: 'the software'
+                title: 'the software',
             } as Suite
             reporter.onSuiteStart = vi.fn()
         })
@@ -210,7 +210,9 @@ describe('WDIOReporter Listeners', () => {
             reporter.emit('suite:start', suiteStartEvent)
 
             expect(reporter.currentSuites[0].suites.length).toBe(1)
-            expect(reporter.currentSuites[0].suites[0].title).toBe(suiteStartEvent.title)
+            expect(reporter.currentSuites[0].suites[0].title).toBe(
+                suiteStartEvent.title,
+            )
         })
 
         it('should add the suite to the stack of current suites', () => {
@@ -226,19 +228,22 @@ describe('WDIOReporter Listeners', () => {
             reporter.emit('suite:start', suiteStartEvent)
 
             expect(reporter.suites[suiteStartEvent.uid!]).toBeDefined()
-            expect(reporter.suites[suiteStartEvent.uid!].title).toBe(suiteStartEvent.title)
+            expect(reporter.suites[suiteStartEvent.uid!].title).toBe(
+                suiteStartEvent.title,
+            )
         })
 
         it('should call onSuiteStart with the suite stat', () => {
             reporter.emit('runner:start', runnerStartEvent)
             reporter.emit('suite:start', suiteStartEvent)
 
-            expect(reporter.onSuiteStart).toBeCalledWith(reporter.suites[suiteStartEvent.uid!])
+            expect(reporter.onSuiteStart).toBeCalledWith(
+                reporter.suites[suiteStartEvent.uid!],
+            )
         })
     })
 
     describe('handling hook:start', () => {
-
         const emitEvents = () => {
             reporter.emit('runner:start', runnerStartEvent)
             reporter.emit('suite:start', suiteStartEvent)
@@ -249,40 +254,45 @@ describe('WDIOReporter Listeners', () => {
             runnerStartEvent = {
                 cid: 'runnerid',
                 capabilities: {
-                    browserName: 'Chrome'
+                    browserName: 'Chrome',
                 },
-                specs: runnerSpecs
+                specs: runnerSpecs,
             } as RunnerStats
             suiteStartEvent = {
                 uid: 'suiteid',
-                title: 'the software'
+                title: 'the software',
             } as Suite
             hookStartEvent = {
                 uid: 'hookid',
-                title: 'beforeAll'
+                title: 'beforeAll',
             } as Hook
         })
 
         it('should attach the hook stats to the current suite stats', () => {
             emitEvents()
             expect(reporter.currentSuites[1].hooks).toHaveLength(1)
-            expect(reporter.currentSuites[1].hooks[0].uid).toEqual(hookStartEvent.uid)
+            expect(reporter.currentSuites[1].hooks[0].uid).toEqual(
+                hookStartEvent.uid,
+            )
         })
 
         it('should add the hook stats to the lookup object of hook stats', () => {
             emitEvents()
-            expect(reporter.hooks[hookStartEvent.uid!].title).toBe(hookStartEvent.title)
+            expect(reporter.hooks[hookStartEvent.uid!].title).toBe(
+                hookStartEvent.title,
+            )
         })
 
         it('should call on hook start with the hook stat', () => {
             reporter.onHookStart = vi.fn()
             emitEvents()
-            expect(reporter.onHookStart).toBeCalledWith(reporter.hooks[hookStartEvent.uid!])
+            expect(reporter.onHookStart).toBeCalledWith(
+                reporter.hooks[hookStartEvent.uid!],
+            )
         })
     })
 
     describe('handling hook:end', () => {
-
         const emitEvents = () => {
             reporter.emit('runner:start', runnerStartEvent)
             reporter.emit('suite:start', suiteStartEvent)
@@ -294,21 +304,21 @@ describe('WDIOReporter Listeners', () => {
             runnerStartEvent = {
                 cid: 'runnerid',
                 capabilities: {
-                    browserName: 'Chrome'
+                    browserName: 'Chrome',
                 },
-                specs: runnerSpecs
+                specs: runnerSpecs,
             } as RunnerStats
             suiteStartEvent = {
                 uid: 'suiteid',
-                title: 'the software'
+                title: 'the software',
             } as Suite
             hookStartEvent = {
                 uid: 'hookid',
-                title: 'beforeAll'
+                title: 'beforeAll',
             } as Hook
             hookEndEvent = {
                 uid: 'hookid',
-                title: 'beforeAll'
+                title: 'beforeAll',
             } as Hook
         })
 
@@ -316,7 +326,9 @@ describe('WDIOReporter Listeners', () => {
             emitEvents()
 
             expect(reporter.hooks[hookStartEvent.uid!]).toBeDefined()
-            expect(reporter.hooks[hookStartEvent.uid!].end instanceof Date).toBe(true)
+            expect(
+                reporter.hooks[hookStartEvent.uid!].end instanceof Date,
+            ).toBe(true)
             expect(reporter.hooks[hookStartEvent.uid!].state).not.toBe('failed')
         })
 
@@ -325,7 +337,9 @@ describe('WDIOReporter Listeners', () => {
             emitEvents()
 
             expect(reporter.hooks[hookStartEvent.uid!]).toBeDefined()
-            expect(reporter.hooks[hookStartEvent.uid!].end instanceof Date).toBe(true)
+            expect(
+                reporter.hooks[hookStartEvent.uid!].end instanceof Date,
+            ).toBe(true)
             expect(reporter.hooks[hookStartEvent.uid!].state).not.toBe('failed')
             expect(reporter.hooks[hookStartEvent.uid!].error).toBeUndefined()
         })
@@ -335,31 +349,50 @@ describe('WDIOReporter Listeners', () => {
             emitEvents()
 
             expect(reporter.hooks[hookStartEvent.uid!]).toBeDefined()
-            expect(reporter.hooks[hookStartEvent.uid!].end instanceof Date).toBe(true)
+            expect(
+                reporter.hooks[hookStartEvent.uid!].end instanceof Date,
+            ).toBe(true)
             expect(reporter.hooks[hookStartEvent.uid!].state).toBe('failed')
-            expect(reporter.hooks[hookStartEvent.uid!].error!.message).toBe('Boom')
+            expect(reporter.hooks[hookStartEvent.uid!].error!.message).toBe(
+                'Boom',
+            )
             expect(reporter.hooks[hookStartEvent.uid!].errors!.length).toBe(1)
-            expect(reporter.hooks[hookStartEvent.uid!].errors![0].message).toBe('Boom')
+            expect(reporter.hooks[hookStartEvent.uid!].errors![0].message).toBe(
+                'Boom',
+            )
         })
 
         it('should complete the hook if the hook fails with multiple errors and mark it failed (Jasmine-style)', () => {
-            hookEndEvent.errors = [{ message: 'SoftFail' } as Error, { message: 'anotherfail' } as Error]
+            hookEndEvent.errors = [
+                { message: 'SoftFail' } as Error,
+                { message: 'anotherfail' } as Error,
+            ]
             emitEvents()
 
             expect(reporter.hooks[hookStartEvent.uid!]).toBeDefined()
-            expect(reporter.hooks[hookStartEvent.uid!].end instanceof Date).toBe(true)
+            expect(
+                reporter.hooks[hookStartEvent.uid!].end instanceof Date,
+            ).toBe(true)
             expect(reporter.hooks[hookStartEvent.uid!].state).toBe('failed')
-            expect(reporter.hooks[hookStartEvent.uid!].error!.message).toBe('SoftFail')
+            expect(reporter.hooks[hookStartEvent.uid!].error!.message).toBe(
+                'SoftFail',
+            )
             expect(reporter.hooks[hookStartEvent.uid!].errors!.length).toBe(2)
-            expect(reporter.hooks[hookStartEvent.uid!].errors![0].message).toBe('SoftFail')
-            expect(reporter.hooks[hookStartEvent.uid!].errors![1].message).toBe('anotherfail')
+            expect(reporter.hooks[hookStartEvent.uid!].errors![0].message).toBe(
+                'SoftFail',
+            )
+            expect(reporter.hooks[hookStartEvent.uid!].errors![1].message).toBe(
+                'anotherfail',
+            )
         })
 
         it('should call onHookEnd with the hook stats', () => {
             reporter.onHookEnd = vi.fn()
             emitEvents()
 
-            expect(reporter.onHookEnd).toHaveBeenCalledWith(reporter.hooks[hookStartEvent.uid!])
+            expect(reporter.onHookEnd).toHaveBeenCalledWith(
+                reporter.hooks[hookStartEvent.uid!],
+            )
         })
 
         it('should increment the hook count', () => {
@@ -369,7 +402,6 @@ describe('WDIOReporter Listeners', () => {
     })
 
     describe('handling test:start', () => {
-
         const emitEvents = () => {
             reporter.emit('runner:start', runnerStartEvent)
             reporter.emit('suite:start', suiteStartEvent)
@@ -380,40 +412,45 @@ describe('WDIOReporter Listeners', () => {
             runnerStartEvent = {
                 cid: 'runnerid',
                 capabilities: {
-                    browserName: 'Chrome'
+                    browserName: 'Chrome',
                 },
-                specs: runnerSpecs
+                specs: runnerSpecs,
             } as RunnerStats
             suiteStartEvent = {
                 uid: 'suiteid',
-                title: 'the software'
+                title: 'the software',
             } as Suite
             testStartEvent = {
                 uid: 'testid',
-                title: 'should do the needful'
+                title: 'should do the needful',
             } as Test
         })
 
         it('should add the test stat to the current suite stat', () => {
             emitEvents()
             expect(reporter.suites[suiteStartEvent.uid!].tests.length).toBe(1)
-            expect(reporter.suites[suiteStartEvent.uid!].tests[0].title).toBe(testStartEvent.title)
+            expect(reporter.suites[suiteStartEvent.uid!].tests[0].title).toBe(
+                testStartEvent.title,
+            )
         })
 
         it('should add the test stat to the lookup object of test stats', () => {
             emitEvents()
-            expect(reporter.tests[testStartEvent.uid].title).toBe(testStartEvent.title)
+            expect(reporter.tests[testStartEvent.uid].title).toBe(
+                testStartEvent.title,
+            )
         })
 
         it('should call onTestStart with the test stat', () => {
             reporter.onTestStart = vi.fn()
             emitEvents()
-            expect(reporter.onTestStart).toHaveBeenCalledWith(reporter.tests[testStartEvent.uid])
+            expect(reporter.onTestStart).toHaveBeenCalledWith(
+                reporter.tests[testStartEvent.uid],
+            )
         })
     })
 
     describe('handling test:pass', () => {
-
         const emitEvents = () => {
             reporter.emit('runner:start', runnerStartEvent)
             reporter.emit('suite:start', suiteStartEvent)
@@ -425,17 +462,17 @@ describe('WDIOReporter Listeners', () => {
             runnerStartEvent = {
                 cid: 'runnerid',
                 capabilities: {
-                    browserName: 'Chrome'
+                    browserName: 'Chrome',
                 },
-                specs: runnerSpecs
+                specs: runnerSpecs,
             } as RunnerStats
             suiteStartEvent = {
                 uid: 'suiteid',
-                title: 'the software'
+                title: 'the software',
             } as Suite
             testStartEvent = {
                 uid: 'testid',
-                title: 'should do the needful'
+                title: 'should do the needful',
             } as Test
             testPassEvent = {
                 uid: 'testid',
@@ -446,7 +483,9 @@ describe('WDIOReporter Listeners', () => {
             emitEvents()
 
             expect(reporter.tests[testStartEvent.uid].state).toBe('passed')
-            expect(reporter.tests[testStartEvent.uid].end instanceof Date).toBe(true)
+            expect(reporter.tests[testStartEvent.uid].end instanceof Date).toBe(
+                true,
+            )
         })
 
         it('should increment the test and passes counts', () => {
@@ -460,12 +499,13 @@ describe('WDIOReporter Listeners', () => {
             reporter.onTestPass = vi.fn()
             emitEvents()
 
-            expect(reporter.onTestPass).toHaveBeenCalledWith(reporter.tests[testStartEvent.uid])
+            expect(reporter.onTestPass).toHaveBeenCalledWith(
+                reporter.tests[testStartEvent.uid],
+            )
         })
     })
 
     describe('handling test:fail', () => {
-
         const emitEvents = () => {
             reporter.emit('runner:start', runnerStartEvent)
             reporter.emit('suite:start', suiteStartEvent)
@@ -477,27 +517,29 @@ describe('WDIOReporter Listeners', () => {
             runnerStartEvent = {
                 cid: 'runnerid',
                 capabilities: {
-                    browserName: 'Chrome'
+                    browserName: 'Chrome',
                 },
-                specs: runnerSpecs
+                specs: runnerSpecs,
             } as RunnerStats
             suiteStartEvent = {
                 uid: 'suiteid',
-                title: 'the softare'
+                title: 'the softare',
             } as Suite
             testStartEvent = {
                 uid: 'testid',
-                title: 'should do the needful'
+                title: 'should do the needful',
             } as Test
             testFailEvent = {
-                uid: 'testid'
+                uid: 'testid',
             } as Test
         })
 
         it('Should flag the test as failed and complete if the test somehow has no error', () => {
             emitEvents()
             expect(reporter.tests[testStartEvent.uid].state).toBe('failed')
-            expect(reporter.tests[testStartEvent.uid].end instanceof Date).toBe(true)
+            expect(reporter.tests[testStartEvent.uid].end instanceof Date).toBe(
+                true,
+            )
         })
 
         it('shoud flag the test as failed and complete if the test has one error (Mocha style)', () => {
@@ -505,29 +547,48 @@ describe('WDIOReporter Listeners', () => {
             emitEvents()
 
             expect(reporter.tests[testStartEvent.uid].state).toBe('failed')
-            expect(reporter.tests[testStartEvent.uid].end instanceof Date).toBe(true)
-            expect(reporter.tests[testStartEvent.uid!].error!.message).toBe('Boom')
+            expect(reporter.tests[testStartEvent.uid].end instanceof Date).toBe(
+                true,
+            )
+            expect(reporter.tests[testStartEvent.uid!].error!.message).toBe(
+                'Boom',
+            )
             expect(reporter.tests[testStartEvent.uid!].errors!.length).toBe(1)
-            expect(reporter.tests[testStartEvent.uid!].errors![0].message).toBe('Boom')
+            expect(reporter.tests[testStartEvent.uid!].errors![0].message).toBe(
+                'Boom',
+            )
         })
 
         it('should flag the test as failed and complete the test if the test has multiple errors (Jasmine style)', () => {
-            testFailEvent.errors = [{ message: 'SoftFail' } as Error, { message: 'anotherfail' } as Error]
+            testFailEvent.errors = [
+                { message: 'SoftFail' } as Error,
+                { message: 'anotherfail' } as Error,
+            ]
             emitEvents()
 
             expect(reporter.tests[testStartEvent.uid].state).toBe('failed')
-            expect(reporter.tests[testStartEvent.uid].end instanceof Date).toBe(true)
-            expect(reporter.tests[testStartEvent.uid!].error!.message).toBe('SoftFail')
+            expect(reporter.tests[testStartEvent.uid].end instanceof Date).toBe(
+                true,
+            )
+            expect(reporter.tests[testStartEvent.uid!].error!.message).toBe(
+                'SoftFail',
+            )
             expect(reporter.tests[testStartEvent.uid!].errors!.length).toBe(2)
-            expect(reporter.tests[testStartEvent.uid!].errors![0].message).toBe('SoftFail')
-            expect(reporter.tests[testStartEvent.uid!].errors![1].message).toBe('anotherfail')
+            expect(reporter.tests[testStartEvent.uid!].errors![0].message).toBe(
+                'SoftFail',
+            )
+            expect(reporter.tests[testStartEvent.uid!].errors![1].message).toBe(
+                'anotherfail',
+            )
         })
 
         it('should call onTestFail with the test stat', () => {
             reporter.onTestFail = vi.fn()
             emitEvents()
 
-            expect(reporter.onTestFail).toBeCalledWith(reporter.tests[testStartEvent.uid])
+            expect(reporter.onTestFail).toBeCalledWith(
+                reporter.tests[testStartEvent.uid],
+            )
         })
 
         it('Should increment the test and failure counts', () => {
@@ -538,7 +599,6 @@ describe('WDIOReporter Listeners', () => {
     })
 
     describe('handling test:retry', () => {
-
         const emitEventsFirstTry = () => {
             reporter.emit('runner:start', runnerStartEvent)
             reporter.emit('suite:start', suiteStartEvent)
@@ -562,33 +622,33 @@ describe('WDIOReporter Listeners', () => {
             runnerStartEvent = {
                 cid: 'runner-id',
                 capabilities: {
-                    browserName: 'Chrome'
+                    browserName: 'Chrome',
                 },
-                specs: runnerSpecs
+                specs: runnerSpecs,
             } as RunnerStats
             suiteStartEvent = {
                 uid: 'suite-id',
-                title: 'the software'
+                title: 'the software',
             } as Suite
             testStartFirstEvent = {
                 uid: 'test-id',
-                title: 'should do the needful'
+                title: 'should do the needful',
             } as Test
             testRetryEvent = {
-                uid: 'test-id'
+                uid: 'test-id',
             } as Test
             testStartSecondEvent = {
                 uid: 'test-retry-id',
-                title: 'should do the needful'
+                title: 'should do the needful',
             } as Test
             testPassEvent = {
-                uid: 'test-retry-id'
+                uid: 'test-retry-id',
             } as Test
             testFailEvent = {
-                uid: 'test-retry-id'
+                uid: 'test-retry-id',
             } as Test
             testEndEvent = {
-                uid: 'test-retry-id'
+                uid: 'test-retry-id',
             } as Test
         })
 
@@ -599,13 +659,23 @@ describe('WDIOReporter Listeners', () => {
             reporter.onTestEnd = vi.fn()
 
             emitEventsFirstTry()
-            expect(reporter.onTestStart).toHaveBeenCalledWith(reporter.tests[testStartFirstEvent.uid])
-            expect(reporter.onTestRetry).toHaveBeenCalledWith(reporter.tests[testRetryEvent.uid])
+            expect(reporter.onTestStart).toHaveBeenCalledWith(
+                reporter.tests[testStartFirstEvent.uid],
+            )
+            expect(reporter.onTestRetry).toHaveBeenCalledWith(
+                reporter.tests[testRetryEvent.uid],
+            )
 
             emitEventsSecondFailTry()
-            expect(reporter.onTestStart).toHaveBeenCalledWith(reporter.tests[testStartSecondEvent.uid])
-            expect(reporter.onTestFail).toHaveBeenCalledWith(reporter.tests[testFailEvent.uid])
-            expect(reporter.onTestEnd).toHaveBeenCalledWith(reporter.tests[testEndEvent.uid])
+            expect(reporter.onTestStart).toHaveBeenCalledWith(
+                reporter.tests[testStartSecondEvent.uid],
+            )
+            expect(reporter.onTestFail).toHaveBeenCalledWith(
+                reporter.tests[testFailEvent.uid],
+            )
+            expect(reporter.onTestEnd).toHaveBeenCalledWith(
+                reporter.tests[testEndEvent.uid],
+            )
         })
 
         it('should update test retries count', () => {
@@ -642,7 +712,6 @@ describe('WDIOReporter Listeners', () => {
     })
 
     describe('handling test:end', () => {
-
         const emitEvents = () => {
             reporter.emit('runner:start', runnerStartEvent)
             reporter.emit('suite:start', suiteStartEvent)
@@ -655,30 +724,32 @@ describe('WDIOReporter Listeners', () => {
             runnerStartEvent = {
                 cid: 'runnerid',
                 capabilities: {
-                    browserName: 'Chrome'
+                    browserName: 'Chrome',
                 },
-                specs: runnerSpecs
+                specs: runnerSpecs,
             } as RunnerStats
             suiteStartEvent = {
                 uid: 'suiteid',
-                title: 'the software'
+                title: 'the software',
             } as Suite
             testStartEvent = {
                 uid: 'testid',
-                title: 'should do the needful'
+                title: 'should do the needful',
             } as Test
             testPassEvent = {
                 uid: 'testid',
             } as Test
             testEndEvent = {
-                uid: 'testid'
+                uid: 'testid',
             } as Test
         })
 
         it('should call test end with the test stat', () => {
             reporter.onTestEnd = vi.fn()
             emitEvents()
-            expect(reporter.onTestEnd).toHaveBeenCalledWith(reporter.tests[testStartEvent.uid])
+            expect(reporter.onTestEnd).toHaveBeenCalledWith(
+                reporter.tests[testStartEvent.uid],
+            )
         })
     })
 })

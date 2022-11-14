@@ -1,7 +1,7 @@
-import { getElement } from '../../utils/getElementObject.js'
-import { getBrowserObject } from '../../utils/index.js'
 import { ELEMENT_KEY } from '../../constants.js'
 import type { CustomStrategyFunction } from '../../types'
+import { getElement } from '../../utils/getElementObject.js'
+import { getBrowserObject } from '../../utils/index.js'
 
 /**
  *
@@ -27,13 +27,15 @@ import type { CustomStrategyFunction } from '../../types'
  * @param {Any} strategyArguments
  * @return {Element}
  */
-async function custom$ (
+async function custom$(
     this: WebdriverIO.Element,
     strategyName: string,
     ...strategyArguments: any[]
 ) {
     const browserObject = getBrowserObject(this)
-    const strategy = browserObject.strategies.get(strategyName) as CustomStrategyFunction
+    const strategy = browserObject.strategies.get(
+        strategyName,
+    ) as CustomStrategyFunction
 
     if (!strategy) {
         throw Error('No strategy found for ' + strategyName)
@@ -44,10 +46,16 @@ async function custom$ (
      * $('.notExisting').$('.someElem')
      */
     if (!this.elementId) {
-        throw Error(`Can't call custom$ on element with selector "${this.selector}" because element wasn't found`)
+        throw Error(
+            `Can't call custom$ on element with selector "${this.selector}" because element wasn't found`,
+        )
     }
 
-    const strategyRef = { strategy, strategyName, strategyArguments: [...strategyArguments, this] }
+    const strategyRef = {
+        strategy,
+        strategyName,
+        strategyArguments: [...strategyArguments, this],
+    }
 
     let res = await browserObject.execute(strategy, ...strategyArguments, this)
 

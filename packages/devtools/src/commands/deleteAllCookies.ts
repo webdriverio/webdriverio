@@ -7,7 +7,7 @@ import type DevToolsDriver from '../devtoolsdriver'
  * @alias browser.deleteAllCookies
  * @see https://w3c.github.io/webdriver/#dfn-delete-all-cookies
  */
-export default async function deleteAllCookies (this: DevToolsDriver) {
+export default async function deleteAllCookies(this: DevToolsDriver) {
     const page = this.getPageHandle()
     const cookies = await page.cookies()
 

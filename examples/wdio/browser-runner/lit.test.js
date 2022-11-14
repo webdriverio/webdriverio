@@ -1,4 +1,4 @@
-import { expect, $ } from '@wdio/globals'
+import { $, expect } from '@wdio/globals'
 import './components/LitComponent.ts'
 
 describe('Lit Component testing', () => {

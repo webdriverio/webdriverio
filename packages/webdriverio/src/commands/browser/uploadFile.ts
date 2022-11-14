@@ -1,7 +1,7 @@
+import type { Capabilities } from '@wdio/types'
+import archiver from 'archiver'
 import fs from 'node:fs'
 import path from 'node:path'
-import archiver from 'archiver'
-import type { Capabilities } from '@wdio/types'
 
 /**
  * Uploads a file to the Selenium Standalone server or other browser driver
@@ -33,22 +33,28 @@ import type { Capabilities } from '@wdio/types'
  * @uses protocol/file
  * @return {String} remote URL
  */
-export default async function uploadFile (
+export default async function uploadFile(
     this: WebdriverIO.Browser,
-    localPath: string
+    localPath: string,
 ): Promise<string> {
     /**
      * parameter check
      */
     if (typeof localPath !== 'string') {
-        throw new Error('number or type of arguments don\'t agree with uploadFile command')
+        throw new Error(
+            "number or type of arguments don't agree with uploadFile command",
+        )
     }
 
     /**
      * check if command is available
      */
     if (typeof this.file !== 'function') {
-        throw new Error(`The uploadFile command is not available in ${(this.capabilities as Capabilities.Capabilities).browserName}`)
+        throw new Error(
+            `The uploadFile command is not available in ${
+                (this.capabilities as Capabilities.Capabilities).browserName
+            }`,
+        )
     }
 
     let zipData: Uint8Array[] = []
@@ -58,10 +64,12 @@ export default async function uploadFile (
         archiver('zip')
             .on('error', (err: Error) => reject(err))
             .on('data', (data: Uint8Array) => zipData.push(data))
-            .on('end', () => (
-                this.file(Buffer.concat(zipData).toString('base64'))
-                    .then((localPath) => resolve(localPath), reject)
-            ))
+            .on('end', () =>
+                this.file(Buffer.concat(zipData).toString('base64')).then(
+                    (localPath) => resolve(localPath),
+                    reject,
+                ),
+            )
             .append(source, { name: path.basename(localPath) })
             .finalize()
     })

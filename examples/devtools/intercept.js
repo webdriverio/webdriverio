@@ -7,13 +7,12 @@
  */
 const { remote } = require('webdriverio')
 
-let browser;
-
-(async () => {
+let browser
+;(async () => {
     browser = await remote({
         capabilities: {
-            browserName: 'chrome'
-        }
+            browserName: 'chrome',
+        },
     })
 
     await browser.url('https://webdriver.io')
@@ -22,10 +21,10 @@ let browser;
         const puppeteerBrowser = await browser.getPuppeteer()
         const page = (await puppeteerBrowser.pages())[0]
         await page.setRequestInterception(true)
-        page.on('request', interceptedRequest => {
+        page.on('request', (interceptedRequest) => {
             if (interceptedRequest.url().endsWith('webdriverio.png')) {
                 return interceptedRequest.continue({
-                    url: 'https://user-images.githubusercontent.com/10379601/29446482-04f7036a-841f-11e7-9872-91d1fc2ea683.png'
+                    url: 'https://user-images.githubusercontent.com/10379601/29446482-04f7036a-841f-11e7-9872-91d1fc2ea683.png',
                 })
             }
 

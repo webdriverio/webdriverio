@@ -2,21 +2,22 @@
 
 import { describe, expect, it } from 'vitest'
 import {
-    getBrowserDescription,
     getBrowserCapabilities,
+    getBrowserDescription,
+    getParentSuiteName,
     isBrowserstackCapability,
-    getParentSuiteName
 } from '../src/util.js'
 
 describe('getBrowserCapabilities', () => {
     it('should get default browser capabilities', () => {
         const browser = {
             capabilities: {
-                browser: 'browser'
-            }
+                browser: 'browser',
+            },
         } as WebdriverIO.Browser
-        expect(getBrowserCapabilities(browser))
-            .toEqual(browser.capabilities as any)
+        expect(getBrowserCapabilities(browser)).toEqual(
+            browser.capabilities as any,
+        )
     })
 
     it('should get multiremote browser capabilities', () => {
@@ -24,18 +25,19 @@ describe('getBrowserCapabilities', () => {
             isMultiremote: true,
             browserA: {
                 capabilities: {
-                    browser: 'browser'
-                }
-            }
+                    browser: 'browser',
+                },
+            },
         } as any as WebdriverIO.MultiRemoteBrowser
-        expect(getBrowserCapabilities(browser, {}, 'browserA'))
-            .toEqual(browser.browserA.capabilities as any)
+        expect(getBrowserCapabilities(browser, {}, 'browserA')).toEqual(
+            browser.browserA.capabilities as any,
+        )
     })
 
     it('should handle null multiremote browser capabilities', () => {
         const browser = {
             isMultiremote: true,
-            browserA: {}
+            browserA: {},
         } as any as WebdriverIO.MultiRemoteBrowser
         expect(getBrowserCapabilities(browser, {}, 'browserB')).toEqual({})
     })
@@ -45,10 +47,12 @@ describe('getBrowserCapabilities', () => {
             capabilities: {
                 browser: 'browser',
                 os: 'OS X',
-            }
+            },
         } as any as WebdriverIO.Browser
-        expect(getBrowserCapabilities(browser, { os: 'Windows' }))
-            .toEqual({ os:'Windows', browser: 'browser' } as any)
+        expect(getBrowserCapabilities(browser, { os: 'Windows' })).toEqual({
+            os: 'Windows',
+            browser: 'browser',
+        } as any)
     })
 
     it('should merge multiremote service capabilities and browser capabilities', () => {
@@ -58,45 +62,54 @@ describe('getBrowserCapabilities', () => {
                 capabilities: {
                     browser: 'browser',
                     os: 'OS X',
-                }
-            }
+                },
+            },
         } as any as WebdriverIO.MultiRemoteBrowser
-        expect(getBrowserCapabilities(browser, { browserA: { capabilities: { os: 'Windows' } } }, 'browserA'))
-            .toEqual({ os:'Windows', browser: 'browser' } as any)
+        expect(
+            getBrowserCapabilities(
+                browser,
+                { browserA: { capabilities: { os: 'Windows' } } },
+                'browserA',
+            ),
+        ).toEqual({ os: 'Windows', browser: 'browser' } as any)
     })
 
     it('should handle null multiremote browser capabilities', () => {
         const browser = {
             isMultiremote: true,
-            browserA: {}
+            browserA: {},
         } as any as WebdriverIO.MultiRemoteBrowser
-        expect(getBrowserCapabilities(browser, {}, 'browserB'))
-            .toEqual({})
+        expect(getBrowserCapabilities(browser, {}, 'browserB')).toEqual({})
     })
 
     it('should handle null multiremote browser capabilities', () => {
         const browser = {
             isMultiremote: true,
-            browserA: {}
+            browserA: {},
         } as any as WebdriverIO.MultiRemoteBrowser
-        expect(getBrowserCapabilities(browser, { browserB: {} } as any, 'browserB'))
-            .toEqual({})
+        expect(
+            getBrowserCapabilities(
+                browser,
+                { browserB: {} } as any,
+                'browserB',
+            ),
+        ).toEqual({})
     })
 })
 
 describe('getBrowserDescription', () => {
     const defaultCap = {
-        'device': 'device',
-        'os': 'os',
-        'osVersion': 'osVersion',
-        'browserName': 'browserName',
-        'browser': 'browser',
-        'browserVersion': 'browserVersion',
+        device: 'device',
+        os: 'os',
+        osVersion: 'osVersion',
+        browserName: 'browserName',
+        browser: 'browser',
+        browserVersion: 'browserVersion',
     }
     const defaultDesc = 'device os osVersion browserName browser browserVersion'
     const legacyCap = {
-        'os_version': 'os_version',
-        'browser_version': 'browser_version'
+        os_version: 'os_version',
+        browser_version: 'browser_version',
     }
 
     it('should get correct description for default capabilities', () => {
@@ -104,15 +117,21 @@ describe('getBrowserDescription', () => {
     })
 
     it('should get correct description for legacy capabilities', () => {
-        expect(getBrowserDescription(legacyCap)).toEqual('os_version browser_version')
+        expect(getBrowserDescription(legacyCap)).toEqual(
+            'os_version browser_version',
+        )
     })
 
     it('should get correct description for W3C capabilities', () => {
-        expect(getBrowserDescription({ 'bstack:options': defaultCap })).toEqual(defaultDesc)
+        expect(getBrowserDescription({ 'bstack:options': defaultCap })).toEqual(
+            defaultDesc,
+        )
     })
 
     it('should merge W3C and lecacy capabilities', () => {
-        expect(getBrowserDescription({ 'bstack:options': defaultCap })).toEqual(defaultDesc)
+        expect(getBrowserDescription({ 'bstack:options': defaultCap })).toEqual(
+            defaultDesc,
+        )
     })
 
     it('should not crash when capabilities is null or undefined', () => {
@@ -132,11 +151,17 @@ describe('isBrowserstackCapability', () => {
     })
 
     it('should return false if only key in browserstack W3C capabilities is wdioService', () => {
-        expect(isBrowserstackCapability({ 'bstack:options': { wdioService: 'version' } })).toBe(false)
+        expect(
+            isBrowserstackCapability({
+                'bstack:options': { wdioService: 'version' },
+            }),
+        ).toBe(false)
     })
 
     it('should detect browserstack W3C capabilities', () => {
-        expect(isBrowserstackCapability({ 'bstack:options': { os: 'some os' } })).toBe(true)
+        expect(
+            isBrowserstackCapability({ 'bstack:options': { os: 'some os' } }),
+        ).toBe(true)
     })
 })
 

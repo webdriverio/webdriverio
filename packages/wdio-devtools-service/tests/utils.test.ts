@@ -2,16 +2,23 @@ import path from 'node:path'
 import { describe, expect, test, vi } from 'vitest'
 import type { Browser } from 'webdriverio'
 
-import {
-    sumByKey, isBrowserVersionLower, getBrowserMajorVersion,
-    isBrowserSupported, setUnsupportedCommand, getLighthouseDriver
-} from '../src/utils.js'
 import { RequestPayload } from '../src/handler/network.js'
+import {
+    getBrowserMajorVersion,
+    getLighthouseDriver,
+    isBrowserSupported,
+    isBrowserVersionLower,
+    setUnsupportedCommand,
+    sumByKey,
+} from '../src/utils.js'
 
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock(
+    '@wdio/logger',
+    () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')),
+)
 vi.mock('fs', () => ({
     readFileSync: vi.fn().mockReturnValue('1234\nsomepath'),
-    existsSync: vi.fn()
+    existsSync: vi.fn(),
 }))
 
 vi.mock('lighthouse/lighthouse-core/gather/connections/cri.js', () => ({
@@ -21,21 +28,30 @@ vi.mock('lighthouse/lighthouse-core/gather/connections/cri.js', () => ({
         public _sendCommandMock = vi.fn()
         public on = vi.fn()
 
-        sendCommand (...args: any) {
+        sendCommand(...args: any) {
             this._sendCommandMock(...args)
             return { sessionId: 'session 321' }
         }
-    }
+    },
 }))
 
 test('sumByKey', () => {
-    expect(sumByKey([{
-        size: 1
-    } as unknown as RequestPayload, {
-        size: 2
-    } as unknown as RequestPayload, {
-        size: 3
-    } as unknown as RequestPayload], 'size')).toBe(6)
+    expect(
+        sumByKey(
+            [
+                {
+                    size: 1,
+                } as unknown as RequestPayload,
+                {
+                    size: 2,
+                } as unknown as RequestPayload,
+                {
+                    size: 3,
+                } as unknown as RequestPayload,
+            ],
+            'size',
+        ),
+    ).toBe(6)
 })
 
 test('setUnsupportedCommand', () => {
@@ -59,7 +75,7 @@ describe('isBrowserVersionLower', () => {
     test('should return false if version is higher than required', () => {
         const versionProps = ['browserVersion', 'browser_version', 'version']
         let browserVersion = 63
-        versionProps.forEach(prop => {
+        versionProps.forEach((prop) => {
             const caps = {} as any
             caps[prop] = browserVersion
             expect(isBrowserVersionLower(caps, 63)).toBe(false)
@@ -126,9 +142,13 @@ describe('isBrowserSupported', () => {
 
 describe('getLighthouseDriver', () => {
     test('should return a driver w/o creating new session', async () => {
-        const urlMock = vi.fn().mockReturnValue('ws://127.0.0.1:56513/devtools/browser/9aae0e34-86a9-4b0e-856b-d0d37009ddbb')
+        const urlMock = vi
+            .fn()
+            .mockReturnValue(
+                'ws://127.0.0.1:56513/devtools/browser/9aae0e34-86a9-4b0e-856b-d0d37009ddbb',
+            )
         const session = {
-            connection: vi.fn().mockReturnValue({ url: urlMock })
+            connection: vi.fn().mockReturnValue({ url: urlMock }),
         }
         const target = { _targetId: 'foobar321' }
         const driver = await getLighthouseDriver(session as any, target as any)
@@ -138,9 +158,13 @@ describe('getLighthouseDriver', () => {
     })
 
     test('should create a new session', async () => {
-        const urlMock = vi.fn().mockReturnValue('ws://127.0.0.1:56513/session/9aae0e34-86a9-4b0e-856b-d0d37009ddbb/se/cdp')
+        const urlMock = vi
+            .fn()
+            .mockReturnValue(
+                'ws://127.0.0.1:56513/session/9aae0e34-86a9-4b0e-856b-d0d37009ddbb/se/cdp',
+            )
         const session = {
-            connection: vi.fn().mockReturnValue({ url: urlMock })
+            connection: vi.fn().mockReturnValue({ url: urlMock }),
         }
         const target = { _targetId: 'foobar321' }
         const driver = await getLighthouseDriver(session as any, target as any)

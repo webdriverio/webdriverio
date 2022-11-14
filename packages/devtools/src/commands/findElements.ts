@@ -1,6 +1,6 @@
 import { SUPPORTED_SELECTOR_STRATEGIES } from '../constants.js'
-import { findElements as findElementsUtil } from '../utils.js'
 import type DevToolsDriver from '../devtoolsdriver'
+import { findElements as findElementsUtil } from '../utils.js'
 
 /**
  * The Find Elements command is used to find elements
@@ -12,9 +12,9 @@ import type DevToolsDriver from '../devtoolsdriver'
  * @param {string} value  the actual selector that will be used to find an element
  * @return {object[]}     A (possibly empty) JSON list of representations of an element object.
  */
-export default async function findElements (
+export default async function findElements(
     this: DevToolsDriver,
-    { using, value }: { using: string, value: string }
+    { using, value }: { using: string; value: string },
 ) {
     if (!SUPPORTED_SELECTOR_STRATEGIES.includes(using)) {
         throw new Error(`selector strategy "${using}" is not yet supported`)

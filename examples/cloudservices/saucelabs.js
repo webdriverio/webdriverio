@@ -1,6 +1,5 @@
 import { remote } from '../../packages/webdriverio/build/index.js'
-
-(async () => {
+;(async () => {
     const browser = await remote({
         capabilities: {
             browserName: 'chrome',
@@ -15,11 +14,11 @@ import { remote } from '../../packages/webdriverio/build/index.js'
             // status will only be marked "Finished." This property can be
             // be omitted for commercial (private) Sauce Labs accounts.
             // Also see https://support.saucelabs.com/customer/portal/articles/2005331-why-do-my-tests-say-%22finished%22-instead-of-%22passed%22-or-%22failed%22-how-do-i-set-the-status-
-            'public': true
+            public: true,
         },
         user: process.env.SAUCE_USERNAME,
         key: process.env.SAUCE_ACCESS_KEY,
-        logLevel: 'trace'
+        logLevel: 'trace',
     })
 
     await browser.url('https://webdriver.io')

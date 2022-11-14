@@ -10,9 +10,13 @@ import type DevToolsDriver from '../devtoolsdriver'
  * @param {number} pageLoad  integer in ms for session page load timeout
  * @param {number} script    integer in ms for session script timeout
  */
-export default async function setTimeouts (
+export default async function setTimeouts(
     this: DevToolsDriver,
-    { implicit, pageLoad, script }: { implicit: number, pageLoad: number, script: number }
+    {
+        implicit,
+        pageLoad,
+        script,
+    }: { implicit: number; pageLoad: number; script: number },
 ) {
     await this.setTimeouts(implicit, pageLoad, script)
     return null

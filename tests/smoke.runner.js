@@ -1,24 +1,24 @@
-import fs from 'node:fs/promises'
-import url from 'node:url'
-import path from 'node:path'
 import assert from 'node:assert'
+import fs from 'node:fs/promises'
+import path from 'node:path'
+import url from 'node:url'
 
-import { sleep } from '../packages/wdio-utils/build/utils.js'
 import { SevereServiceError } from '../packages/node_modules/webdriverio/build/index.js'
+import { sleep } from '../packages/wdio-utils/build/utils.js'
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 const baseConfig = path.resolve(__dirname, 'helpers', 'config.js')
 
-import launch from './helpers/launch.js'
 import {
-    SERVICE_LOGS,
+    CUCUMBER_REPORTER_LOGS,
+    JASMINE_REPORTER_LOGS,
     LAUNCHER_LOGS,
     REPORTER_LOGS,
-    JASMINE_REPORTER_LOGS,
-    CUCUMBER_REPORTER_LOGS,
+    SERVICE_LOGS,
 } from './helpers/fixtures.js'
+import launch from './helpers/launch.js'
 
-async function fileExists (path) {
+async function fileExists(path) {
     try {
         await fs.access(path)
         return true
@@ -27,19 +27,23 @@ async function fileExists (path) {
     }
 }
 
-async function runTests (tests) {
+async function runTests(tests) {
     /**
      * Usage example: `npm run test:smoke -- customService`
      */
     const testFilter = process.argv[2]
 
     if (process.env.CI || testFilter) {
-        const testsFiltered = testFilter ? tests.filter(test => test.name === testFilter) : tests
+        const testsFiltered = testFilter
+            ? tests.filter((test) => test.name === testFilter)
+            : tests
 
         if (testsFiltered.length === 0) {
             throw new Error(
                 `No test was selected! Smoke test "${testFilter}" ` +
-                `picked but only ${tests.map(test => test.name).join(', ')} available`
+                    `picked but only ${tests
+                        .map((test) => test.name)
+                        .join(', ')} available`,
             )
         }
 
@@ -49,9 +53,15 @@ async function runTests (tests) {
         }
     } else {
         // parallel
-        await Promise.all(tests.map(test => test().catch((err) => {
-            throw new Error(`Smoke test failed with name ${test.name}, ${err.stack}`)
-        })))
+        await Promise.all(
+            tests.map((test) =>
+                test().catch((err) => {
+                    throw new Error(
+                        `Smoke test failed with name ${test.name}, ${err.stack}`,
+                    )
+                }),
+            ),
+        )
     }
 }
 
@@ -65,8 +75,8 @@ const mochaTestrunner = async () => {
             path.resolve(__dirname, 'mocha', 'test-middleware.ts'),
             path.resolve(__dirname, 'mocha', 'test-waitForElement.ts'),
             path.resolve(__dirname, 'mocha', 'test-skipped.ts'),
-            path.resolve(__dirname, 'mocha', 'cjs', 'test-cjs.js')
-        ]
+            path.resolve(__dirname, 'mocha', 'cjs', 'test-cjs.js'),
+        ],
     })
 
     /**
@@ -88,8 +98,8 @@ const mochaAsyncTestrunner = async () => {
         'mochaAsyncTestrunner',
         path.resolve(__dirname, 'helpers', 'command.hook.config.js'),
         {
-            spec: ['./tests/mocha/test-async.ts']
-        }
+            spec: ['./tests/mocha/test-async.ts'],
+        },
     )
     assert.strictEqual(skippedSpecs, 0)
 }
@@ -100,7 +110,7 @@ const mochaAsyncTestrunner = async () => {
 const cjsTestrunner = async () => {
     const { skippedSpecs } = await launch('cjsTestrunner', baseConfig, {
         autoCompileOpts: { autoCompile: false },
-        specs: [path.resolve(__dirname, 'mocha', 'cjs', 'test-cjs.js')]
+        specs: [path.resolve(__dirname, 'mocha', 'cjs', 'test-cjs.js')],
     })
     assert.strictEqual(skippedSpecs, 0)
 }
@@ -113,9 +123,9 @@ const jasmineTestrunner = async () => {
         autoCompileOpts: { autoCompile: false },
         specs: [
             path.resolve(__dirname, 'jasmine', 'test.js'),
-            path.resolve(__dirname, 'jasmine', 'test-skipped.js')
+            path.resolve(__dirname, 'jasmine', 'test-skipped.js'),
         ],
-        framework: 'jasmine'
+        framework: 'jasmine',
     })
     /**
      * assertion fails in Windows
@@ -137,10 +147,14 @@ const jasmineReporter = async () => {
         specs: [path.resolve(__dirname, 'jasmine', 'reporter.js')],
         reporters: [['smoke-test', { foo: 'bar' }]],
         framework: 'jasmine',
-        outputDir: __dirname + '/jasmine'
+        outputDir: __dirname + '/jasmine',
     }).catch((err) => err) // error expected
     await sleep(100)
-    const reporterLogsPath = path.join(__dirname, 'jasmine', 'wdio-0-0-smoke-test-reporter.log')
+    const reporterLogsPath = path.join(
+        __dirname,
+        'jasmine',
+        'wdio-0-0-smoke-test-reporter.log',
+    )
     const reporterLogs = await fs.readFile(reporterLogsPath)
     assert.equal(reporterLogs.toString(), JASMINE_REPORTER_LOGS)
     await fs.unlink(reporterLogsPath)
@@ -155,32 +169,41 @@ const jasmineTimeout = async () => {
         autoCompileOpts: { autoCompile: false },
         specs: [path.resolve(__dirname, 'jasmine', 'test-timeout.js')],
         reporters: [
-            ['spec', {
-                outputDir: __dirname,
-                stdout: false,
-                logFile
-            }]
+            [
+                'spec',
+                {
+                    outputDir: __dirname,
+                    stdout: false,
+                    logFile,
+                },
+            ],
         ],
-        framework: 'jasmine'
+        framework: 'jasmine',
     }).catch((err) => err) // error expected
 
-    // eslint-disable-next-line no-control-regex
-    const specLogs = (await fs.readFile(logFile)).toString().replace(/[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g, '')
-    assert.ok(
-        specLogs.includes('Error: Timeout - Async function did not complete within 1000ms (custom timeout)'),
-        'spec was not failing due to timeout error'
+    const specLogs = (await fs.readFile(logFile)).toString().replace(
+        /[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g, // eslint-disable-line no-control-regex
+        '',
     )
     assert.ok(
-        specLogs.includes('Error: expect(received).toBe(expected) // Object.is equality'),
-        'spec was not failing a sync assertion error'
+        specLogs.includes(
+            'Error: Timeout - Async function did not complete within 1000ms (custom timeout)',
+        ),
+        'spec was not failing due to timeout error',
+    )
+    assert.ok(
+        specLogs.includes(
+            'Error: expect(received).toBe(expected) // Object.is equality',
+        ),
+        'spec was not failing a sync assertion error',
     )
     assert.ok(
         !specLogs.includes('RangeError: Maximum call stack size exceeded'),
-        'spec was failing due to unexpected "Maximum call stack size exceeded"'
+        'spec was failing due to unexpected "Maximum call stack size exceeded"',
     )
     assert.ok(
         specLogs.includes('✓ should allow also async assertions afterwards'),
-        'spec should also allow async assertions afterwards'
+        'spec should also allow async assertions afterwards',
     )
 }
 
@@ -195,16 +218,16 @@ const cucumberTestrunner = async () => {
             autoCompileOpts: { autoCompile: false },
             specs: [
                 path.resolve(__dirname, 'cucumber', 'test.feature'),
-                path.resolve(__dirname, 'cucumber', 'test-skipped.feature')
+                path.resolve(__dirname, 'cucumber', 'test-skipped.feature'),
             ],
             cucumberOpts: {
                 tagExpression: '(not @SKIPPED_TAG)',
                 ignoreUndefinedDefinitions: true,
                 retry: 1,
                 retryTagFilter: '@retry',
-                scenarioLevelReporter: true
-            }
-        }
+                scenarioLevelReporter: true,
+            },
+        },
     )
     assert.strictEqual(skippedSpecs, 1)
 }
@@ -222,12 +245,12 @@ const cucumberFailAmbiguousDefinitions = async () => {
             cucumberOpts: {
                 ignoreUndefinedDefinitions: true,
                 failAmbiguousDefinitions: true,
-                names: ['failAmbiguousDefinitions']
-            }
-        }
+                names: ['failAmbiguousDefinitions'],
+            },
+        },
     ).then(
         () => false,
-        () => true
+        () => true,
     )
     assert.equal(hasFailed, true)
 }
@@ -244,10 +267,13 @@ const cucumberReporter = async () => {
             autoCompileOpts: { autoCompile: false },
             specs: [path.resolve(basePath, 'reporter.feature')],
             outputDir: basePath,
-        }
+        },
     ).catch((err) => err) // error expected
     await sleep(100)
-    const reporterLogsPath = path.join(basePath, 'wdio-0-0-smoke-test-reporter.log')
+    const reporterLogsPath = path.join(
+        basePath,
+        'wdio-0-0-smoke-test-reporter.log',
+    )
     const reporterLogs = await fs.readFile(reporterLogsPath)
     assert.equal(reporterLogs.toString(), CUCUMBER_REPORTER_LOGS)
     await fs.unlink(reporterLogsPath)
@@ -260,12 +286,16 @@ const customService = async () => {
     await launch('customService', baseConfig, {
         autoCompileOpts: { autoCompile: false },
         specs: [path.resolve(__dirname, 'mocha', 'service.js')],
-        services: [['smoke-test', { foo: 'bar' }]]
+        services: [['smoke-test', { foo: 'bar' }]],
     })
     await sleep(100)
-    const serviceLogs = await fs.readFile(path.join(__dirname, 'helpers', 'service.log'))
+    const serviceLogs = await fs.readFile(
+        path.join(__dirname, 'helpers', 'service.log'),
+    )
     assert.equal(serviceLogs.toString(), SERVICE_LOGS)
-    const launcherLogs = await fs.readFile(path.join(__dirname, 'helpers', 'launcher.log'))
+    const launcherLogs = await fs.readFile(
+        path.join(__dirname, 'helpers', 'launcher.log'),
+    )
     assert.equal(launcherLogs.toString(), LAUNCHER_LOGS)
 }
 
@@ -276,10 +306,14 @@ const customReporterString = async () => {
     await launch('customReporterString', baseConfig, {
         autoCompileOpts: { autoCompile: false },
         specs: [path.resolve(__dirname, 'mocha', 'reporter.js')],
-        reporters: [['smoke-test', { foo: 'bar' }]]
+        reporters: [['smoke-test', { foo: 'bar' }]],
     })
     await sleep(100)
-    const reporterLogsPath = path.join(__dirname, 'helpers', 'wdio-0-0-smoke-test-reporter.log')
+    const reporterLogsPath = path.join(
+        __dirname,
+        'helpers',
+        'wdio-0-0-smoke-test-reporter.log',
+    )
     const reporterLogs = await fs.readFile(reporterLogsPath)
     assert.equal(reporterLogs.toString(), REPORTER_LOGS)
     await fs.unlink(reporterLogsPath)
@@ -292,11 +326,17 @@ const customReporterObject = async () => {
     await launch(
         'customReporterObject',
         path.resolve(__dirname, 'helpers', 'reporter.conf.js'),
-        { autoCompileOpts: { autoCompile: false } }
+        { autoCompileOpts: { autoCompile: false } },
     )
     await sleep(100)
-    const reporterLogsWithReporterAsObjectPath = path.join(__dirname, 'helpers', 'wdio-0-0-CustomSmokeTestReporter-reporter.log')
-    const reporterLogsWithReporterAsObject = await fs.readFile(reporterLogsWithReporterAsObjectPath)
+    const reporterLogsWithReporterAsObjectPath = path.join(
+        __dirname,
+        'helpers',
+        'wdio-0-0-CustomSmokeTestReporter-reporter.log',
+    )
+    const reporterLogsWithReporterAsObject = await fs.readFile(
+        reporterLogsWithReporterAsObjectPath,
+    )
     assert.equal(reporterLogsWithReporterAsObject.toString(), REPORTER_LOGS)
     await fs.unlink(reporterLogsWithReporterAsObjectPath)
 }
@@ -310,8 +350,8 @@ const wdioHooks = async () => {
         path.resolve(__dirname, 'helpers', 'hooks.conf.js'),
         {
             autoCompileOpts: { autoCompile: false },
-            specs: [path.resolve(__dirname, 'mocha', 'wdio_hooks.js')]
-        }
+            specs: [path.resolve(__dirname, 'mocha', 'wdio_hooks.js')],
+        },
     )
 }
 
@@ -324,12 +364,12 @@ const multiremote = async () => {
         specs: [path.resolve(__dirname, 'multiremote', 'test.js')],
         capabilities: {
             browserA: {
-                capabilities: { browserName: 'chrome' }
+                capabilities: { browserName: 'chrome' },
             },
             browserB: {
-                capabilities: { browserName: 'chrome' }
-            }
-        }
+                capabilities: { browserName: 'chrome' },
+            },
+        },
     })
 }
 
@@ -340,10 +380,10 @@ const retryFail = async () => {
     const retryFailed = await launch('retryFailed', baseConfig, {
         autoCompileOpts: { autoCompile: false },
         specs: [path.resolve(__dirname, 'mocha', 'retry_and_fail.js')],
-        specFileRetries: 1
+        specFileRetries: 1,
     }).then(
         () => false,
-        () => true
+        () => true,
     )
     assert.equal(retryFailed, true, 'Expected retries to fail but they passed')
 }
@@ -353,11 +393,13 @@ const retryFail = async () => {
  */
 const retryPass = async () => {
     let retryFilename = path.join(__dirname, '.retry_succeeded')
-    let logfiles = ['wdio-0-0.log', 'wdio-0-1.log'].map(f => path.join(__dirname, f))
+    let logfiles = ['wdio-0-0.log', 'wdio-0-1.log'].map((f) =>
+        path.join(__dirname, f),
+    )
     let rmfiles = [retryFilename, ...logfiles]
     for (let filename of rmfiles) {
         if (await fileExists(filename)) {
-            fs.unlink(filename, err => {
+            fs.unlink(filename, (err) => {
                 if (err) {
                     throw Error(`Unable to delete ${filename}`)
                 }
@@ -370,10 +412,10 @@ const retryPass = async () => {
         outputDir: path.dirname(logfiles[0]),
         specFileRetries: 1,
         specFileRetriesDelay: 1,
-        retryFilename
+        retryFilename,
     })
 
-    if (!await fileExists(logfiles[0])) {
+    if (!(await fileExists(logfiles[0]))) {
         throw Error(`Expected ${logfiles[0]} to exist but it does not`)
     }
     if (await fileExists(logfiles[1])) {
@@ -397,8 +439,10 @@ const sharedStoreServiceTest = async () => {
         path.resolve(__dirname, 'helpers', 'shared-store.conf.js'),
         {
             autoCompileOpts: { autoCompile: false },
-            specs: [path.resolve(__dirname, 'mocha', 'shared-store-service.js')]
-        }
+            specs: [
+                path.resolve(__dirname, 'mocha', 'shared-store-service.js'),
+            ],
+        },
     )
 }
 
@@ -411,8 +455,8 @@ const mochaSpecFiltering = async () => {
         specs: [
             path.resolve(__dirname, 'mocha', 'test-empty.js'),
             path.resolve(__dirname, 'mocha', 'test-skipped.ts'),
-            path.resolve(__dirname, 'mocha', 'test-skipped-grep.js')
-        ]
+            path.resolve(__dirname, 'mocha', 'test-skipped-grep.js'),
+        ],
     })
     assert.strictEqual(skippedSpecs, 2)
 }
@@ -426,9 +470,9 @@ const jasmineSpecFiltering = async () => {
         specs: [
             path.resolve(__dirname, 'jasmine', 'test-empty.js'),
             path.resolve(__dirname, 'jasmine', 'test-skipped.js'),
-            path.resolve(__dirname, 'jasmine', 'test-skipped-grep.js')
+            path.resolve(__dirname, 'jasmine', 'test-skipped-grep.js'),
         ],
-        framework: 'jasmine'
+        framework: 'jasmine',
     })
     assert.strictEqual(skippedSpecs, 2)
 }
@@ -445,9 +489,9 @@ const mochaSpecGrouping = async () => {
                 path.resolve(__dirname, 'mocha', 'test-middleware.js'),
                 path.resolve(__dirname, 'mocha', 'test-waitForElement.js'),
                 path.resolve(__dirname, 'mocha', 'test-skipped.js'),
-                path.resolve(__dirname, 'mocha', 'test-skipped-grep.js')
-            ]
-        ]
+                path.resolve(__dirname, 'mocha', 'test-skipped-grep.js'),
+            ],
+        ],
     })
     // Specs will be treated as a group, so no specs will be skipped
     assert.strictEqual(skippedSpecs, 0)
@@ -462,39 +506,87 @@ const standaloneTest = async () => {
         path.resolve(__dirname, 'helpers', 'async.config.js'),
         {
             autoCompileOpts: { autoCompile: false },
-            specs: [path.resolve(__dirname, 'mocha', 'standalone.js')]
-        }
+            specs: [path.resolve(__dirname, 'mocha', 'standalone.js')],
+        },
     )
     assert.strictEqual(skippedSpecs, 0)
 }
 
 const severeErrorTest = async () => {
-    const onPrepareFailed = await launch('severeErrorTest - onPrepareFailed', baseConfig, {
-        autoCompileOpts: { autoCompile: false },
-        specs: [path.resolve(__dirname, 'mocha', 'test-empty.js')],
-        onPrepare: () => { throw new SevereServiceError('ups') }
-    }).then(() => false, () => true)
+    const onPrepareFailed = await launch(
+        'severeErrorTest - onPrepareFailed',
+        baseConfig,
+        {
+            autoCompileOpts: { autoCompile: false },
+            specs: [path.resolve(__dirname, 'mocha', 'test-empty.js')],
+            onPrepare: () => {
+                throw new SevereServiceError('ups')
+            },
+        },
+    ).then(
+        () => false,
+        () => true,
+    )
     assert.equal(onPrepareFailed, true, 'Expected onPrepare to fail testrun')
 
-    const onWorkerStartFailed = await launch('severeErrorTest - onWorkerStartFailed', baseConfig, {
-        specs: [path.resolve(__dirname, 'mocha', 'test-empty.js')],
-        onWorkerStart: () => { throw new SevereServiceError('ups') }
-    }).then(() => false, () => true)
-    assert.equal(onWorkerStartFailed, true, 'Expected onWorkerStart to fail testrun')
+    const onWorkerStartFailed = await launch(
+        'severeErrorTest - onWorkerStartFailed',
+        baseConfig,
+        {
+            specs: [path.resolve(__dirname, 'mocha', 'test-empty.js')],
+            onWorkerStart: () => {
+                throw new SevereServiceError('ups')
+            },
+        },
+    ).then(
+        () => false,
+        () => true,
+    )
+    assert.equal(
+        onWorkerStartFailed,
+        true,
+        'Expected onWorkerStart to fail testrun',
+    )
 
-    const onWorkerEndFailed = await launch('severeErrorTest - onWorkerEndFailed', baseConfig, {
-        autoCompileOpts: { autoCompile: false },
-        specs: [path.resolve(__dirname, 'mocha', 'test-empty.js')],
-        onWorkerEnd: () => { throw new SevereServiceError('ups') }
-    }).then(() => false, () => true)
-    assert.equal(onWorkerEndFailed, true, 'Expected onWorkerStart to fail testrun')
+    const onWorkerEndFailed = await launch(
+        'severeErrorTest - onWorkerEndFailed',
+        baseConfig,
+        {
+            autoCompileOpts: { autoCompile: false },
+            specs: [path.resolve(__dirname, 'mocha', 'test-empty.js')],
+            onWorkerEnd: () => {
+                throw new SevereServiceError('ups')
+            },
+        },
+    ).then(
+        () => false,
+        () => true,
+    )
+    assert.equal(
+        onWorkerEndFailed,
+        true,
+        'Expected onWorkerStart to fail testrun',
+    )
 
-    const onCompleteFailed = await launch('severeErrorTest - onCompleteFailed', baseConfig, {
-        autoCompileOpts: { autoCompile: false },
-        specs: [path.resolve(__dirname, 'mocha', 'test-empty.js')],
-        onComplete: () => { throw new SevereServiceError('ups') }
-    }).then(() => false, () => true)
-    assert.equal(onCompleteFailed, true, 'Expected onWorkerStart to fail testrun')
+    const onCompleteFailed = await launch(
+        'severeErrorTest - onCompleteFailed',
+        baseConfig,
+        {
+            autoCompileOpts: { autoCompile: false },
+            specs: [path.resolve(__dirname, 'mocha', 'test-empty.js')],
+            onComplete: () => {
+                throw new SevereServiceError('ups')
+            },
+        },
+    ).then(
+        () => false,
+        () => true,
+    )
+    assert.equal(
+        onCompleteFailed,
+        true,
+        'Expected onWorkerStart to fail testrun',
+    )
 }
 
 /**
@@ -503,12 +595,15 @@ const severeErrorTest = async () => {
 const nonGlobalTestrunner = async () => {
     const hasFailed = await launch('nonGlobalTestrunner', baseConfig, {
         specs: [path.resolve(__dirname, 'mocha', 'noGlobals.ts')],
-        injectGlobals: false
-    }).then(() => false, () => true)
+        injectGlobals: false,
+    }).then(
+        () => false,
+        () => true,
+    )
     assert.strictEqual(hasFailed, false)
 }
 
-(async () => {
+;(async () => {
     const smokeTests = [
         mochaTestrunner,
         jasmineTestrunner,
@@ -532,7 +627,7 @@ const nonGlobalTestrunner = async () => {
         customReporterString,
         customReporterObject,
         severeErrorTest,
-        nonGlobalTestrunner
+        nonGlobalTestrunner,
     ]
 
     console.log('\nRunning smoke tests...\n')

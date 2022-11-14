@@ -1,6 +1,6 @@
+import type DevToolsDriver from '../devtoolsdriver'
 import getElementProperty from './getElementProperty.js'
 import getElementTagName from './getElementTagName.js'
-import type DevToolsDriver from '../devtoolsdriver'
 
 /**
  * Is Element Selected determines if the referenced element is selected or not.
@@ -12,11 +12,11 @@ import type DevToolsDriver from '../devtoolsdriver'
  * @param {string} elementId  the id of an element returned in a previous call to Find Element(s)
  * @return {boolean}          `true` or `false` based on the selected state.
  */
-export default async function isElementSelected (
+export default async function isElementSelected(
     this: DevToolsDriver,
-    { elementId }: { elementId: string }
+    { elementId }: { elementId: string },
 ) {
-    const tagName  = await getElementTagName.call(this, { elementId })
+    const tagName = await getElementTagName.call(this, { elementId })
     const name = tagName === 'option' ? 'selected' : 'checked'
     const isSelected = await getElementProperty.call(this, { elementId, name })
     return Boolean(isSelected)

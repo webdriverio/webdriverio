@@ -1,4 +1,10 @@
-import { KeyAction, PointerAction, WheelAction, ActionType, BaseActionParams } from '../../utils/actions/index.js'
+import {
+    ActionType,
+    BaseActionParams,
+    KeyAction,
+    PointerAction,
+    WheelAction,
+} from '../../utils/actions/index.js'
 
 /**
  * The action command is a low-level interface for providing virtualized device input actions to the web browser.
@@ -127,25 +133,25 @@ import { KeyAction, PointerAction, WheelAction, ActionType, BaseActionParams } f
  * @type utility
  *
  */
-export default function action (
+export default function action(
     this: WebdriverIO.Browser,
     type: 'key',
-    opts?: Pick<BaseActionParams, 'id'>
+    opts?: Pick<BaseActionParams, 'id'>,
 ): KeyAction
-export default function action (
+export default function action(
     this: WebdriverIO.Browser,
     type: 'pointer',
-    opts?: BaseActionParams
+    opts?: BaseActionParams,
 ): PointerAction
-export default function action (
+export default function action(
     this: WebdriverIO.Browser,
     type: 'wheel',
-    opts?: Pick<BaseActionParams, 'id'>
+    opts?: Pick<BaseActionParams, 'id'>,
 ): WheelAction
-export default function action (
+export default function action(
     this: WebdriverIO.Browser,
     type: ActionType,
-    opts?: BaseActionParams
+    opts?: BaseActionParams,
 ): KeyAction | PointerAction | WheelAction {
     if (type === 'key') {
         return new KeyAction(this, opts)
@@ -157,5 +163,7 @@ export default function action (
         return new WheelAction(this, opts)
     }
 
-    throw new Error(`Unsupported action type "${type}", supported are "key", "pointer", "wheel"`)
+    throw new Error(
+        `Unsupported action type "${type}", supported are "key", "pointer", "wheel"`,
+    )
 }

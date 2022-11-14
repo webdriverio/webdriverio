@@ -1,4 +1,8 @@
-import { KeyAction, PointerAction, WheelAction } from '../../utils/actions/index.js'
+import {
+    KeyAction,
+    PointerAction,
+    WheelAction,
+} from '../../utils/actions/index.js'
 
 /**
  * Allows to run multiple action interaction at once, e.g. to simulate a pinch zoom.
@@ -26,7 +30,7 @@ import { KeyAction, PointerAction, WheelAction } from '../../utils/actions/index
  * @type utility
  *
  */
-export default async function actions (
+export default async function actions(
     this: WebdriverIO.Browser,
     actions: (KeyAction | PointerAction | WheelAction)[],
 ): Promise<void> {

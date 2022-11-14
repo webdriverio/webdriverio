@@ -1,10 +1,10 @@
 import fs from 'node:fs'
 import path from 'node:path'
-import { describe, expect, it, vi, beforeEach } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { transformAsync as babelTransform } from '@babel/core'
 import libReport from 'istanbul-lib-report'
 import reports from 'istanbul-reports'
-import { transformAsync as babelTransform } from '@babel/core'
 import type { Page } from 'puppeteer-core/lib/cjs/puppeteer/api/Page'
 
 import CoverageGatherer from '../../src/gatherer/coverage.js'
@@ -13,33 +13,36 @@ vi.useFakeTimers()
 vi.spyOn(global, 'setInterval')
 vi.spyOn(global, 'clearInterval')
 
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock(
+    '@wdio/logger',
+    () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')),
+)
 vi.mock('@babel/core', () => ({
-    transformAsync: vi.fn().mockResolvedValue({ code: 'transpiled code' })
+    transformAsync: vi.fn().mockResolvedValue({ code: 'transpiled code' }),
 }))
 
 vi.mock('babel-plugin-istanbul', () => ({ default: vi.fn() }))
 vi.mock('istanbul-lib-coverage', () => ({
     default: {
         createCoverageMap: vi.fn().mockReturnValue({
-            files: vi.fn().mockReturnValue(['/foo/bar.js'])
+            files: vi.fn().mockReturnValue(['/foo/bar.js']),
         }),
         createCoverageSummary: vi.fn().mockReturnValue({
             merge: vi.fn(),
-            data: { some: 'coverageData' }
-        })
-    }
+            data: { some: 'coverageData' },
+        }),
+    },
 }))
 vi.mock('istanbul-lib-report', () => ({
-    default: { createContext: vi.fn().mockReturnValue('someContext') }
+    default: { createContext: vi.fn().mockReturnValue('someContext') },
 }))
 vi.mock('istanbul-reports', () => {
     const reportInstance = { execute: vi.fn() }
     return {
         default: {
             create: vi.fn().mockReturnValue(reportInstance),
-            reportInstance
-        }
+            reportInstance,
+        },
     }
 })
 vi.mock('fs', () => ({
@@ -48,28 +51,29 @@ vi.mock('fs', () => ({
         readFileSync: vi.fn().mockReturnValue({ toString: () => 'barfoo' }),
         promises: {
             mkdir: vi.fn(),
-            writeFile: vi.fn()
-        }
-    }
+            writeFile: vi.fn(),
+        },
+    },
 }))
 
 const sessionMock = {
     on: vi.fn(),
-    send: vi.fn().mockResolvedValue({})
+    send: vi.fn().mockResolvedValue({}),
 }
 
 const targetMock = {
-    createCDPSession: vi.fn().mockResolvedValue(sessionMock)
+    createCDPSession: vi.fn().mockResolvedValue(sessionMock),
 }
 
 let i = 0
 const pageMock = {
     on: vi.fn(),
     target: vi.fn().mockReturnValue(targetMock),
-    evaluate: vi.fn()
+    evaluate: vi
+        .fn()
         .mockResolvedValueOnce(++i)
         .mockResolvedValueOnce(++i)
-        .mockRejectedValueOnce(new Error('foo'))
+        .mockRejectedValueOnce(new Error('foo')),
 } as unknown as Page
 
 describe('CoverageGatherer', () => {
@@ -87,10 +91,14 @@ describe('CoverageGatherer', () => {
         expect(pageMock.on).toBeCalledWith('load', expect.any(Function))
 
         await gatherer.init()
-        expect(sessionMock.send)
-            .toBeCalledWith('Fetch.enable', expect.any(Object))
-        expect(sessionMock.on)
-            .toBeCalledWith('Fetch.requestPaused', expect.any(Function))
+        expect(sessionMock.send).toBeCalledWith(
+            'Fetch.enable',
+            expect.any(Object),
+        )
+        expect(sessionMock.on).toBeCalledWith(
+            'Fetch.requestPaused',
+            expect.any(Function),
+        )
         expect(gatherer['_client']).toBe(sessionMock)
     })
 
@@ -100,14 +108,16 @@ describe('CoverageGatherer', () => {
         await gatherer['_handleRequests']({
             requestId: '123',
             request: {
-                url: 'http://json.org/foo.html'
+                url: 'http://json.org/foo.html',
             },
-            responseStatusCode: 444
+            responseStatusCode: 444,
         })
 
         expect(sessionMock.send).toBeCalledTimes(2)
-        expect(sessionMock.send.mock.calls.pop())
-            .toEqual(['Fetch.continueRequest', { requestId: '123' }])
+        expect(sessionMock.send.mock.calls.pop()).toEqual([
+            'Fetch.continueRequest',
+            { requestId: '123' },
+        ])
         expect(babelTransform).toBeCalledTimes(0)
     })
 
@@ -115,12 +125,12 @@ describe('CoverageGatherer', () => {
         const params = {
             requestId: '123',
             request: {
-                url: 'http://json.org/foo.js'
+                url: 'http://json.org/foo.js',
             },
-            responseStatusCode: 444
+            responseStatusCode: 444,
         }
         const gatherer = new CoverageGatherer(pageMock, {
-            logDir: '/foo/bar'
+            logDir: '/foo/bar',
         })
 
         // test without _client
@@ -129,37 +139,38 @@ describe('CoverageGatherer', () => {
         await gatherer.init()
         await gatherer['_handleRequests'](params)
 
-        expect(sessionMock.send.mock.calls.slice(1))
-            .toMatchSnapshot()
+        expect(sessionMock.send.mock.calls.slice(1)).toMatchSnapshot()
         expect(
             (vi.mocked(fs.promises.mkdir).mock.calls[0][0] as any).endsWith(
-                path.join('foo', 'bar', 'files', 'json.org')
-            )
+                path.join('foo', 'bar', 'files', 'json.org'),
+            ),
         ).toBe(true)
         expect(
             (vi.mocked(fs.promises.writeFile).mock.calls[0][0] as any).endsWith(
-                path.join('foo', 'bar', 'files', 'json.org', 'foo.js')
-            )
+                path.join('foo', 'bar', 'files', 'json.org', 'foo.js'),
+            ),
         ).toBe(true)
     })
 
     it('_handleRequests should return if file is part of exclude', async () => {
         const gatherer = new CoverageGatherer(pageMock, {
-            exclude: [/.*foo.js/]
+            exclude: [/.*foo.js/],
         })
 
         await gatherer.init()
         await gatherer['_handleRequests']({
             requestId: '123',
             request: {
-                url: 'http://json.org/foo.js'
+                url: 'http://json.org/foo.js',
             },
-            responseStatusCode: 444
+            responseStatusCode: 444,
         })
 
         expect(sessionMock.send).toBeCalledTimes(2)
-        expect(sessionMock.send.mock.calls.pop())
-            .toEqual(['Fetch.continueRequest', { requestId: '123' }])
+        expect(sessionMock.send.mock.calls.pop()).toEqual([
+            'Fetch.continueRequest',
+            { requestId: '123' },
+        ])
         expect(babelTransform).toBeCalledTimes(1)
     })
 
@@ -167,12 +178,12 @@ describe('CoverageGatherer', () => {
         const params = {
             requestId: '123',
             request: {
-                url: 'http://json.org/foo.js'
+                url: 'http://json.org/foo.js',
             },
-            responseStatusCode: 444
+            responseStatusCode: 444,
         }
         const gatherer = new CoverageGatherer(pageMock, {
-            exclude: [/.*bar.js/]
+            exclude: [/.*bar.js/],
         })
 
         // test without _client
@@ -181,17 +192,16 @@ describe('CoverageGatherer', () => {
         await gatherer.init()
         await gatherer['_handleRequests'](params)
 
-        expect(sessionMock.send.mock.calls.slice(1))
-            .toMatchSnapshot()
+        expect(sessionMock.send.mock.calls.slice(1)).toMatchSnapshot()
         expect(
             (vi.mocked(fs.promises.mkdir).mock.calls[0][0] as any).endsWith(
-                path.join('foo', 'bar', 'files', 'json.org')
-            )
+                path.join('foo', 'bar', 'files', 'json.org'),
+            ),
         ).toBe(true)
         expect(
             (vi.mocked(fs.promises.writeFile).mock.calls[0][0] as any).endsWith(
-                path.join('foo', 'bar', 'files', 'json.org', 'foo.js')
-            )
+                path.join('foo', 'bar', 'files', 'json.org', 'foo.js'),
+            ),
         ).toBe(true)
     })
 
@@ -199,20 +209,21 @@ describe('CoverageGatherer', () => {
         const params = {
             requestId: '123',
             request: {
-                url: 'http://json.org/foo.js'
+                url: 'http://json.org/foo.js',
             },
-            responseStatusCode: 444
+            responseStatusCode: 444,
         }
         const gatherer = new CoverageGatherer(pageMock, {
-            logDir: '/foo/bar'
+            logDir: '/foo/bar',
         })
 
-        vi.mocked(babelTransform).mockReturnValueOnce(Promise.reject(new Error('upps')))
+        vi.mocked(babelTransform).mockReturnValueOnce(
+            Promise.reject(new Error('upps')),
+        )
         await gatherer.init()
         await gatherer['_handleRequests'](params)
 
-        expect(sessionMock.send.mock.calls.slice(1))
-            .toMatchSnapshot()
+        expect(sessionMock.send.mock.calls.slice(1)).toMatchSnapshot()
     })
 
     it('_clearCaptureInterval', () => {
@@ -248,7 +259,7 @@ describe('CoverageGatherer', () => {
         const gatherer = new CoverageGatherer(pageMock, {
             type: 'json-summary',
             logDir: '/foo/bar',
-            options: { foo: 'bar' }
+            options: { foo: 'bar' },
         })
         gatherer['_clearCaptureInterval'] = vi.fn()
         gatherer['_getCoverageMap'] = vi.fn().mockResolvedValue({ bar: 'foo' })
@@ -257,12 +268,14 @@ describe('CoverageGatherer', () => {
         expect(gatherer['_clearCaptureInterval']).toBeCalledTimes(1)
         expect(libReport.createContext).toBeCalledTimes(1)
         expect(
-            (vi.mocked(libReport.createContext).mock.calls[0][0] as any).sourceFinder('/to/a/file.js')
+            (
+                vi.mocked(libReport.createContext).mock.calls[0][0] as any
+            ).sourceFinder('/to/a/file.js'),
         ).toBe('barfoo')
         expect(
             (vi.mocked(fs.readFileSync).mock.calls[0][0] as any).endsWith(
-                path.join('foo', 'bar', 'files', 'to', 'a', 'file.js')
-            )
+                path.join('foo', 'bar', 'files', 'to', 'a', 'file.js'),
+            ),
         ).toBe(true)
         expect(reports.create).toBeCalledWith('json-summary', { foo: 'bar' })
         // @ts-ignore mock feature
@@ -271,11 +284,11 @@ describe('CoverageGatherer', () => {
 
     it('getCoverageReport', async () => {
         const coverage = {
-            toSummary: vi.fn().mockReturnValue({ data: { some: 'coverage' } })
+            toSummary: vi.fn().mockReturnValue({ data: { some: 'coverage' } }),
         }
         const coverageMap = {
             files: vi.fn().mockReturnValue(['/foo/bar.js', '/bar/foo.js']),
-            fileCoverageFor: vi.fn().mockReturnValue(coverage)
+            fileCoverageFor: vi.fn().mockReturnValue(coverage),
         }
         const gatherer = new CoverageGatherer(pageMock, {})
         gatherer['_getCoverageMap'] = vi.fn().mockResolvedValue(coverageMap)

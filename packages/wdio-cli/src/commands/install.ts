@@ -2,39 +2,49 @@
 import fs from 'node:fs/promises'
 import path from 'node:path'
 
-import yarnInstall from 'yarn-install'
 import type { Argv } from 'yargs'
+import yarnInstall from 'yarn-install'
 
+import { CLI_EPILOGUE, SUPPORTED_PACKAGES } from '../constants.js'
+import type { InstallCommandArguments, SupportedPackage } from '../types'
 import {
-    replaceConfig,
-    findInConfig,
     addServiceDeps,
-    convertPackageHashToObject
+    convertPackageHashToObject,
+    findInConfig,
+    replaceConfig,
 } from '../utils.js'
 import { missingConfigurationPrompt } from './config.js'
-import { SUPPORTED_PACKAGES, CLI_EPILOGUE } from '../constants.js'
-import type { InstallCommandArguments, SupportedPackage } from '../types'
 
 const supportedInstallations = {
-    runner: SUPPORTED_PACKAGES.runner.map(({ value }) => convertPackageHashToObject(value)),
-    plugin: SUPPORTED_PACKAGES.plugin.map(({ value }) => convertPackageHashToObject(value)),
-    service: SUPPORTED_PACKAGES.service.map(({ value }) => convertPackageHashToObject(value)),
-    reporter: SUPPORTED_PACKAGES.reporter.map(({ value }) => convertPackageHashToObject(value)),
-    framework: SUPPORTED_PACKAGES.framework.map(({ value }) => convertPackageHashToObject(value))
+    runner: SUPPORTED_PACKAGES.runner.map(({ value }) =>
+        convertPackageHashToObject(value),
+    ),
+    plugin: SUPPORTED_PACKAGES.plugin.map(({ value }) =>
+        convertPackageHashToObject(value),
+    ),
+    service: SUPPORTED_PACKAGES.service.map(({ value }) =>
+        convertPackageHashToObject(value),
+    ),
+    reporter: SUPPORTED_PACKAGES.reporter.map(({ value }) =>
+        convertPackageHashToObject(value),
+    ),
+    framework: SUPPORTED_PACKAGES.framework.map(({ value }) =>
+        convertPackageHashToObject(value),
+    ),
 }
 
 export const command = 'install <type> <name>'
 export const desc = [
     'Add a `reporter`, `service`, or `framework` to your WebdriverIO project.',
     'The command installs the package from NPM, adds it to your package.json',
-    'and modifies the wdio.conf.js accordingly.'
+    'and modifies the wdio.conf.js accordingly.',
 ].join(' ')
 
 export const cmdArgs = {
     yarn: {
         desc: 'Install packages using yarn',
         type: 'boolean',
-        default: false
+        default: false,
     },
     config: {
         desc: 'Location of your WDIO configuration',
@@ -43,14 +53,14 @@ export const cmdArgs = {
 } as const
 
 export const builder = (yargs: Argv) => {
-    yargs
-        .options(cmdArgs)
-        .epilogue(CLI_EPILOGUE)
-        .help()
+    yargs.options(cmdArgs).epilogue(CLI_EPILOGUE).help()
 
     for (const [type, plugins] of Object.entries(supportedInstallations)) {
         for (const plugin of plugins) {
-            yargs.example(`$0 install ${type} ${plugin.short}`, `Install ${plugin.package}`)
+            yargs.example(
+                `$0 install ${type} ${plugin.short}`,
+                `Install ${plugin.package}`,
+            )
         }
     }
 
@@ -77,14 +87,17 @@ export async function handler(argv: InstallCommandArguments) {
     /**
      * verify if the name of the `type` is valid
      */
-    if (!supportedInstallations[type].find(pkg => pkg.short === name)) {
+    if (!supportedInstallations[type].find((pkg) => pkg.short === name)) {
         console.log(`${name} is not a supported ${type}.`)
         process.exit(0)
         return
     }
 
     const localConfPath = path.join(process.cwd(), config)
-    const localConfExists = await fs.access(localConfPath).then(() => true, () => false)
+    const localConfExists = await fs.access(localConfPath).then(
+        () => true,
+        () => false,
+    )
     if (!localConfExists) {
         try {
             const promptMessage = `Cannot install packages without a WebdriverIO configuration.
@@ -101,18 +114,32 @@ You can create one by running 'wdio config'`
     const match = findInConfig(configFile, type)
 
     if (match && match[0].includes(name)) {
-        console.log(`The ${type} ${name} is already part of your configuration.`)
+        console.log(
+            `The ${type} ${name} is already part of your configuration.`,
+        )
         process.exit(0)
         return
     }
 
-    const selectedPackage = supportedInstallations[type].find(({ short }) => short === name) as SupportedPackage
+    const selectedPackage = supportedInstallations[type].find(
+        ({ short }) => short === name,
+    ) as SupportedPackage
     const pkgsToInstall = selectedPackage ? [selectedPackage.package] : []
 
-    addServiceDeps(selectedPackage ? [selectedPackage] : [], pkgsToInstall, true)
+    addServiceDeps(
+        selectedPackage ? [selectedPackage] : [],
+        pkgsToInstall,
+        true,
+    )
 
-    console.log(`Installing "${selectedPackage.package}"${yarn ? ' using yarn.' : '.'}`)
-    const install = yarnInstall({ deps: pkgsToInstall, dev: true, respectNpm5: !yarn }) // use !yarn so the package forces npm install
+    console.log(
+        `Installing "${selectedPackage.package}"${yarn ? ' using yarn.' : '.'}`,
+    )
+    const install = yarnInstall({
+        deps: pkgsToInstall,
+        dev: true,
+        respectNpm5: !yarn,
+    }) // use !yarn so the package forces npm install
 
     if (install.status !== 0) {
         console.error('Error installing packages', install.stderr)
@@ -124,7 +151,11 @@ You can create one by running 'wdio config'`
     const newConfig = replaceConfig(configFile, type, name)
 
     if (!newConfig) {
-        throw new Error(`Couldn't find "${type}" property in ${path.basename(localConfPath)}`)
+        throw new Error(
+            `Couldn't find "${type}" property in ${path.basename(
+                localConfPath,
+            )}`,
+        )
     }
 
     await fs.writeFile(localConfPath, newConfig, { encoding: 'utf-8' })

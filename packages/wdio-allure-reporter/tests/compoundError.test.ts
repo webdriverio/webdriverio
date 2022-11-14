@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { beforeEach, describe, expect, it } from 'vitest'
 import CompoundError from '../src/compoundError.js'
 
 describe('CompoundError', () => {
@@ -33,7 +33,7 @@ describe('CompoundError', () => {
 
     it('should include stack traces from the errors', () => {
         const compoundErr = new CompoundError(e1, e2)
-        const lines = compoundErr.message.split('\n').map(x => x.substr(4))
+        const lines = compoundErr.message.split('\n').map((x) => x.substr(4))
 
         // This is a little dense, but essentially, CompoundError's messages look like
         //
@@ -56,7 +56,9 @@ describe('CompoundError', () => {
         const startOfSecondStack = endOfFirstStack + startOfFirstStack
         const endOfSecondStack = startOfSecondStack + (e2split?.length || 0)
         expect(lines.slice(startOfFirstStack, endOfFirstStack)).toEqual(e1split)
-        expect(lines.slice(startOfSecondStack, endOfSecondStack)).toEqual(e2split)
+        expect(lines.slice(startOfSecondStack, endOfSecondStack)).toEqual(
+            e2split,
+        )
     })
 
     it('should include delimiters to indicate where stack traces end', () => {
@@ -68,14 +70,14 @@ describe('CompoundError', () => {
 
     it('should not explode if the stack property is undefined one an error', () => {
         e1 = { message: 'goodbye' } as any
-        e2 = { message: 'hello' }as any
+        e2 = { message: 'hello' } as any
 
         expect(() => new CompoundError(e1, e2)).not.toThrow()
     })
 
     it('should combine messages if stacks are not available for some reason', () => {
-        e1 = { message: 'goodbye' }as any
-        e2 = { message: 'hello' }as any
+        e1 = { message: 'goodbye' } as any
+        e2 = { message: 'hello' } as any
         const error = new CompoundError(e1, e2)
         const lines = error.message.split('\n')
 

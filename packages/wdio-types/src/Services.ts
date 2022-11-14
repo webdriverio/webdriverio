@@ -1,6 +1,13 @@
-import type { DesiredCapabilities, RemoteCapability, RemoteCapabilities } from './Capabilities'
-import type { Testrunner as TestrunnerOptions, WebdriverIO as WebdriverIOOptions } from './Options'
+import type {
+    DesiredCapabilities,
+    RemoteCapabilities,
+    RemoteCapability,
+} from './Capabilities'
 import type { Suite, Test, TestResult } from './Frameworks'
+import type {
+    Testrunner as TestrunnerOptions,
+    WebdriverIO as WebdriverIOOptions,
+} from './Options'
 
 export interface RunnerInstance {
     initialise(): Promise<void>
@@ -13,9 +20,9 @@ export interface RunnerInstance {
 }
 
 export interface RunnerClass {
-    new(
+    new (
         options: WebdriverIO.BrowserRunnerOptions,
-        config: Omit<WebdriverIOOptions, 'capabilities' | keyof Hooks>
+        config: Omit<WebdriverIOOptions, 'capabilities' | keyof Hooks>,
     ): RunnerInstance
 }
 
@@ -29,7 +36,11 @@ export interface ServiceOption {
 }
 
 export interface ServiceClass {
-    new(options: ServiceOption, caps: RemoteCapability, config: Omit<WebdriverIOOptions, 'capabilities'>): ServiceInstance
+    new (
+        options: ServiceOption,
+        caps: RemoteCapability,
+        config: Omit<WebdriverIOOptions, 'capabilities'>,
+    ): ServiceInstance
 }
 
 export interface ServicePlugin extends ServiceClass {
@@ -38,24 +49,24 @@ export interface ServicePlugin extends ServiceClass {
 }
 
 export interface ServiceInstance extends HookFunctions {
-    options?: Record<string, any>,
-    capabilities?: RemoteCapability,
+    options?: Record<string, any>
+    capabilities?: RemoteCapability
     config?: TestrunnerOptions
 }
 
-export type ServiceEntry = (
+export type ServiceEntry =
     /**
      * e.g. `services: ['@wdio/sauce-service']`
      */
-    string |
+    | string
     /**
      * e.g. `services: [{ onPrepare: () => { ... } }]`
      */
-    HookFunctions |
+    | HookFunctions
     /**
      * e.g. `services: [CustomClass]`
      */
-    ServiceClass |
+    | ServiceClass
     /**
      * e.g. `services: [['@wdio/sauce-service', { ... }]]`
      *
@@ -63,7 +74,7 @@ export type ServiceEntry = (
      * interface directly to allow other services to extend the service option
      * with theirs
      */
-    [string, WebdriverIO.ServiceOption] |
+    | [string, WebdriverIO.ServiceOption]
     /**
      * e.g. `services: [[CustomClass, { ... }]]`
      *
@@ -71,11 +82,12 @@ export type ServiceEntry = (
      * interface directly to allow other services to extend the service option
      * with theirs
      */
-    [ServiceClass, WebdriverIO.ServiceOption]
-)
+    | [ServiceClass, WebdriverIO.ServiceOption]
 
 export type Hooks = {
-    [k in keyof HookFunctions]: HookFunctions[k] | NonNullable<HookFunctions[k]>[];
+    [k in keyof HookFunctions]:
+        | HookFunctions[k]
+        | NonNullable<HookFunctions[k]>[]
 }
 
 export interface HookFunctions {
@@ -86,8 +98,8 @@ export interface HookFunctions {
      */
     onPrepare?(
         config: TestrunnerOptions,
-        capabilities: RemoteCapabilities
-    ): void;
+        capabilities: RemoteCapabilities,
+    ): void
 
     /**
      * Gets executed before a worker process is spawned and can be used to initialise specific service
@@ -103,8 +115,8 @@ export interface HookFunctions {
         caps: DesiredCapabilities,
         specs: string[],
         args: TestrunnerOptions,
-        execArgv: string[]
-    ): void;
+        execArgv: string[],
+    ): void
 
     /**
      * Gets executed just after a worker process has exited.
@@ -113,12 +125,12 @@ export interface HookFunctions {
      * @param  {[type]} specs    specs to be run in the worker process
      * @param  {Number} retries  number of retries used
      */
-     onWorkerEnd?(
+    onWorkerEnd?(
         cid: string,
         exitCode: number,
         specs: string[],
         retries: number,
-    ): void;
+    ): void
 
     /**
      * Gets executed after all workers got shut down and the process is about to exit. An error
@@ -132,18 +144,15 @@ export interface HookFunctions {
         exitCode: number,
         config: Omit<TestrunnerOptions, 'capabilities'>,
         capabilities: RemoteCapabilities,
-        results: any // Results
-    ): void;
+        results: any, // Results
+    ): void
 
     /**
      * Gets executed when a refresh happens.
      * @param oldSessionId session id of old session
      * @param newSessionId session id of new session
      */
-    onReload?(
-        oldSessionId: string,
-        newSessionId: string
-    ): void;
+    onReload?(oldSessionId: string, newSessionId: string): void
 
     /**
      * Gets executed before test execution begins. At this point you can access to all global
@@ -155,18 +164,15 @@ export interface HookFunctions {
     before?(
         capabilities: RemoteCapability,
         specs: string[],
-        browser: any // BrowserObject
-    ): void;
+        browser: any, // BrowserObject
+    ): void
 
     /**
      * Runs before a WebdriverIO command gets executed.
      * @param commandName command name
      * @param args        arguments that command would receive
      */
-    beforeCommand?(
-        commandName: string,
-        args: any[]
-    ): void;
+    beforeCommand?(commandName: string, args: any[]): void
 
     /**
      * Hook that gets executed _before_ a hook within the suite starts (e.g. runs before calling
@@ -174,7 +180,7 @@ export interface HookFunctions {
      * @param test      details to current running test (represents step in Cucumber)
      * @param context   context to current running test (represents World object in Cucumber)
      */
-    beforeHook?(test: any, context: any): void;
+    beforeHook?(test: any, context: any): void
 
     /**
      * Gets executed just before initialising the webdriver session and test framework. It allows you
@@ -188,21 +194,21 @@ export interface HookFunctions {
         config: Omit<TestrunnerOptions, 'capabilities'>,
         capabilities: RemoteCapability,
         specs: string[],
-        cid: string
-    ): void;
+        cid: string,
+    ): void
 
     /**
      * Hook that gets executed before the suite starts.
      * @param suite suite details
      */
-    beforeSuite?(suite: Suite): void;
+    beforeSuite?(suite: Suite): void
 
     /**
      * Function to be executed before a test (in Mocha/Jasmine only)
      * @param {Object} test    test object
      * @param {Object} context scope object the test was executed with
      */
-    beforeTest?(test: Test, context: any): void;
+    beforeTest?(test: Test, context: any): void
 
     /**
      * Function to be executed after a test (in Mocha/Jasmine only)
@@ -214,13 +220,13 @@ export interface HookFunctions {
      * @param {Boolean} result.passed    true if test has passed, otherwise false
      * @param {Object}  result.retries   informations to spec related retries, e.g. `{ attempts: 0, limit: 0 }`
      */
-    afterTest?(test: Test, context: any, result: TestResult): void;
+    afterTest?(test: Test, context: any, result: TestResult): void
 
     /**
      * Hook that gets executed after the suite has ended
      * @param suite suite details
      */
-    afterSuite?(suite: Suite): void;
+    afterSuite?(suite: Suite): void
 
     /**
      * Hook that gets executed _after_ a hook within the suite ends (e.g. runs after calling
@@ -229,7 +235,7 @@ export interface HookFunctions {
      * @param context   context to current running test (represents World object in Cucumber)
      * @param result    test result
      */
-    afterHook?(test: Test, context: any, result: TestResult): void;
+    afterHook?(test: Test, context: any, result: TestResult): void
 
     /**
      * Gets executed after all tests are done. You still have access to all global variables from
@@ -241,8 +247,8 @@ export interface HookFunctions {
     after?(
         result: number,
         capabilities: RemoteCapability,
-        specs: string[]
-    ): void;
+        specs: string[],
+    ): void
 
     /**
      * Runs after a WebdriverIO command gets executed
@@ -255,8 +261,8 @@ export interface HookFunctions {
         commandName: string,
         args: any[],
         result: any,
-        error?: Error
-    ): void;
+        error?: Error,
+    ): void
 
     /**
      * Gets executed right after terminating the webdriver session.
@@ -267,6 +273,6 @@ export interface HookFunctions {
     afterSession?(
         config: TestrunnerOptions,
         capabilities: RemoteCapability,
-        specs: string[]
-    ): void;
+        specs: string[],
+    ): void
 }

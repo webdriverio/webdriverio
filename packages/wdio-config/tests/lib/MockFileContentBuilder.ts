@@ -1,16 +1,16 @@
-import fs from 'node:fs'
 import { deepmerge } from 'deepmerge-ts'
+import fs from 'node:fs'
 
 import { MockSystemFilePath } from './MockPathService.js'
 
-export type MockFileContent = string | object;
-export type FilePathAndContent = [MockSystemFilePath, MockFileContent];
+export type MockFileContent = string | object
+export type FilePathAndContent = [MockSystemFilePath, MockFileContent]
 
 /**
  * Record builder for virtual file system for tests
  */
 export default class MockFileContentBuilder {
-    private fileContents : MockFileContent
+    private fileContents: MockFileContent
     private constructor(fileContents: MockFileContent) {
         this.fileContents = fileContents
     }
@@ -21,7 +21,9 @@ export default class MockFileContentBuilder {
      * @param realConfigFilepath
      * @constructor
      */
-    static async FromRealConfigFile(realConfigFilepath: string): Promise<MockFileContentBuilder> {
+    static async FromRealConfigFile(
+        realConfigFilepath: string,
+    ): Promise<MockFileContentBuilder> {
         const pkg = await import(realConfigFilepath)
         return new MockFileContentBuilder({ ...pkg })
     }
@@ -36,8 +38,10 @@ export default class MockFileContentBuilder {
      * @param realConfigFilepath
      * @constructor
      */
-    static FromRealDataFile(realConfigFilepath: string) : MockFileContent {
-        return new MockFileContentBuilder(fs.readFileSync(realConfigFilepath).toString()).build()
+    static FromRealDataFile(realConfigFilepath: string): MockFileContent {
+        return new MockFileContentBuilder(
+            fs.readFileSync(realConfigFilepath).toString(),
+        ).build()
     }
 
     /**
@@ -48,12 +52,12 @@ export default class MockFileContentBuilder {
      *
      * @param enhanceContents
      */
-    withTheseContentsMergedOn(enhanceContents = {}) : MockFileContentBuilder {
+    withTheseContentsMergedOn(enhanceContents = {}): MockFileContentBuilder {
         this.fileContents = deepmerge(this.fileContents, enhanceContents)
         return this
     }
 
-    build() : MockFileContent {
+    build(): MockFileContent {
         return this.fileContents
     }
 }

@@ -6,18 +6,20 @@
  * @param  {HTMLElement} elem  element to check
  * @return {Boolean}           true if element is within viewport
  */
-export default function isElementInViewport (elem: HTMLElement) {
+export default function isElementInViewport(elem: HTMLElement) {
     if (!elem.getBoundingClientRect) {
         return false
     }
 
     const rect = elem.getBoundingClientRect()
 
-    const windowHeight = (window.innerHeight || document.documentElement.clientHeight)
-    const windowWidth = (window.innerWidth || document.documentElement.clientWidth)
+    const windowHeight =
+        window.innerHeight || document.documentElement.clientHeight
+    const windowWidth =
+        window.innerWidth || document.documentElement.clientWidth
 
-    const vertInView = (rect.top <= windowHeight) && ((rect.top + rect.height) > 0)
-    const horInView = (rect.left <= windowWidth) && ((rect.left + rect.width) > 0)
+    const vertInView = rect.top <= windowHeight && rect.top + rect.height > 0
+    const horInView = rect.left <= windowWidth && rect.left + rect.width > 0
 
-    return (vertInView && horInView)
+    return vertInView && horInView
 }

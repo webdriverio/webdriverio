@@ -25,13 +25,11 @@ const log = logger('webdriverio')
  * @type utility
  *
  */
-export default function scroll (
-    this: WebdriverIO.Browser,
-    x = 0,
-    y = 0
-) {
+export default function scroll(this: WebdriverIO.Browser, x = 0, y = 0) {
     if (!x && !y) {
-        return log.warn('"scroll" command was called with no parameters, skipping execution')
+        return log.warn(
+            '"scroll" command was called with no parameters, skipping execution',
+        )
     }
 
     return this.action('wheel')
@@ -42,7 +40,7 @@ export default function scroll (
              * needed otherwise the command finished before
              * scrolling position is reached
              */
-            duration: 200
+            duration: 200,
         })
         .perform()
 }

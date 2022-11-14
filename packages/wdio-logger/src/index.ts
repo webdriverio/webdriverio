@@ -7,12 +7,16 @@ import type loggerType from './node'
  */
 // By default, import the web code using a literal require, so that in webpack
 // contexts, it will always be bundled
-let mode = await import('./web.js') as any
+let mode = (await import('./web.js')) as any
 
 // Then, if we're in a Node.js context, require the node version of this module
 // using a variable, so that it will _not_ be included in a bundle, either
 // during compilation or execution
-if (typeof process !== 'undefined' && typeof process.release !== 'undefined' && process.release.name === 'node') {
+if (
+    typeof process !== 'undefined' &&
+    typeof process.release !== 'undefined' &&
+    process.release.name === 'node'
+) {
     const nodeMode = './node.js'
     mode = await import(nodeMode)
 }

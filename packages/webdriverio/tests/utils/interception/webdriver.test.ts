@@ -1,4 +1,4 @@
-import { beforeEach, test, expect, vi } from 'vitest'
+import { beforeEach, expect, test, vi } from 'vitest'
 import NetworkInterception from '../../../src/utils/interception/webdriver.js'
 
 const browserMock = {
@@ -6,7 +6,7 @@ const browserMock = {
     getMockCalls: vi.fn().mockReturnValue([1, 2, 3]),
     clearMockCalls: vi.fn().mockReturnValue({}),
     respondMock: vi.fn().mockReturnValue({}),
-    call: vi.fn((cb) => cb())
+    call: vi.fn((cb) => cb()),
 } as any as WebdriverIO.Browser
 
 beforeEach(() => {
@@ -18,15 +18,27 @@ beforeEach(() => {
 })
 
 test('init', async () => {
-    const mock = new NetworkInterception('**/foobar/**', { headers: { foo: 'bar' } }, browserMock)
+    const mock = new NetworkInterception(
+        '**/foobar/**',
+        { headers: { foo: 'bar' } },
+        browserMock,
+    )
     await mock.init()
-    expect(browserMock.mockRequest).toBeCalledWith('**/foobar/**', { headers: { foo: 'bar' } })
+    expect(browserMock.mockRequest).toBeCalledWith('**/foobar/**', {
+        headers: { foo: 'bar' },
+    })
     expect(mock.mockId).toBe(123)
 })
 
 test('init does not support regexp urls', async () => {
-    const mock = new NetworkInterception(/foo/, { headers: { foo: 'bar' } }, browserMock)
-    await expect(() => mock.init()).rejects.toEqual(new Error('Regular Expressions as mock url are not supported'))
+    const mock = new NetworkInterception(
+        /foo/,
+        { headers: { foo: 'bar' } },
+        browserMock,
+    )
+    await expect(() => mock.init()).rejects.toEqual(
+        new Error('Regular Expressions as mock url are not supported'),
+    )
 })
 
 test('calls', async () => {
@@ -54,54 +66,44 @@ test('respond', async () => {
     const mock = new NetworkInterception('**/foobar/**', {}, browserMock)
     await mock.init()
     expect(await mock.respond('foo', { headers: { foo: 'bar' } })).toEqual({})
-    expect(browserMock.respondMock).toBeCalledWith(
-        123,
-        {
-            overwrite: 'foo',
-            params: { headers: { foo: 'bar' } },
-            sticky: true
-        }
-    )
+    expect(browserMock.respondMock).toBeCalledWith(123, {
+        overwrite: 'foo',
+        params: { headers: { foo: 'bar' } },
+        sticky: true,
+    })
 })
 
 test('respond without params', async () => {
     const mock = new NetworkInterception('**/foobar/**', {}, browserMock)
     await mock.init()
     expect(await mock.respond('foo')).toEqual({})
-    expect(browserMock.respondMock).toBeCalledWith(
-        123,
-        {
-            overwrite: 'foo',
-            params: {},
-            sticky: true
-        }
-    )
+    expect(browserMock.respondMock).toBeCalledWith(123, {
+        overwrite: 'foo',
+        params: {},
+        sticky: true,
+    })
 })
 
 test('respondOnce', async () => {
     const mock = new NetworkInterception('**/foobar/**', {}, browserMock)
     await mock.init()
-    expect(await mock.respondOnce('foo', { headers: { foo: 'bar' } })).toEqual({})
-    expect(browserMock.respondMock).toBeCalledWith(
-        123,
-        {
-            overwrite: 'foo',
-            params: { headers: { foo: 'bar' } }
-        }
+    expect(await mock.respondOnce('foo', { headers: { foo: 'bar' } })).toEqual(
+        {},
     )
+    expect(browserMock.respondMock).toBeCalledWith(123, {
+        overwrite: 'foo',
+        params: { headers: { foo: 'bar' } },
+    })
 })
 
 test('respondOnce without params', async () => {
     const mock = new NetworkInterception('**/foobar/**', {}, browserMock)
     await mock.init()
     expect(await mock.respondOnce('foo')).toEqual({})
-    expect(browserMock.respondMock).toBeCalledWith(
-        123,
-        {
-            overwrite: 'foo',
-            params: {}
-        }
-    )
+    expect(browserMock.respondMock).toBeCalledWith(123, {
+        overwrite: 'foo',
+        params: {},
+    })
 })
 
 test('abort', async () => {
@@ -109,13 +111,10 @@ test('abort', async () => {
     await mock.init()
 
     expect(await mock.abort('InternetDisconnected')).toEqual({})
-    expect(browserMock.respondMock).toBeCalledWith(
-        123,
-        {
-            errorReason: 'InternetDisconnected',
-            sticky: true
-        }
-    )
+    expect(browserMock.respondMock).toBeCalledWith(123, {
+        errorReason: 'InternetDisconnected',
+        sticky: true,
+    })
 })
 
 test('abort fails if invalid error reason was provided', async () => {
@@ -135,11 +134,8 @@ test('abortOnce', async () => {
     await mock.init()
 
     expect(await mock.abortOnce('InternetDisconnected')).toEqual({})
-    expect(browserMock.respondMock).toBeCalledWith(
-        123,
-        {
-            errorReason: 'InternetDisconnected',
-            sticky: false
-        }
-    )
+    expect(browserMock.respondMock).toBeCalledWith(123, {
+        errorReason: 'InternetDisconnected',
+        sticky: false,
+    })
 })

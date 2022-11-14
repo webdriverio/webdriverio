@@ -1,4 +1,4 @@
-import { describe, expect, vi, it, beforeEach } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { AssertionError } from 'node:assert'
 import TestStats from '../../src/stats/test.js'
@@ -16,7 +16,7 @@ describe('TestStats', () => {
             cid: '0-0',
             specs: ['/path/to/test/specs/sync.spec.js'],
             uid: 'should can do something3',
-            argument: { rows: [{ cells: ['hello'] }] }
+            argument: { rows: [{ cells: ['hello'] }] },
         })
     })
 
@@ -84,40 +84,65 @@ describe('TestStats', () => {
     })
 
     it('should show diff of error', () => {
-        stat.fail([new AssertionError({ message: 'foobar', actual: 'true', expected: 'false' })])
+        stat.fail([
+            new AssertionError({
+                message: 'foobar',
+                actual: 'true',
+                expected: 'false',
+            }),
+        ])
         expect(stat.error?.message).toContain('actual')
         expect(stat.error?.message).toContain('expected')
     })
 
     it('should not diff if "actual" and "expected" are empty', () => {
-        stat.fail([new AssertionError({ message: 'foobar', actual: '', expected: '' })])
+        stat.fail([
+            new AssertionError({ message: 'foobar', actual: '', expected: '' }),
+        ])
         expect(stat.error?.message).not.toContain('actual')
         expect(stat.error?.message).not.toContain('expected')
     })
 
     it('should not diff if error is already diffed', () => {
-        stat.fail([new AssertionError({ message: 'foobar\nExpected: foo\nReceived: bar42', actual: 'true', expected: 'false' })])
+        stat.fail([
+            new AssertionError({
+                message: 'foobar\nExpected: foo\nReceived: bar42',
+                actual: 'true',
+                expected: 'false',
+            }),
+        ])
         expect(stat.error?.message).toContain('bar42')
     })
 
     it('should not call stringifyDiffObjs if actual is a Proxy', () => {
-        const TestStatsSpy = vi.spyOn(TestStats.prototype as any, '_stringifyDiffObjs')
-        stat.fail([new AssertionError({
-            message: 'Expect $(`#flash`) to be existing\n\nExpected \u001b[32m"existing"\u001b[39m\nReceived \u001b[31m"\u001b[7mnot \u001b[27mexisting"\u001b[39m',
-            expected: 'hi',
-            actual: new Proxy(new Promise(()=>{}), {})
-        })])
+        const TestStatsSpy = vi.spyOn(
+            TestStats.prototype as any,
+            '_stringifyDiffObjs',
+        )
+        stat.fail([
+            new AssertionError({
+                message:
+                    'Expect $(`#flash`) to be existing\n\nExpected \u001b[32m"existing"\u001b[39m\nReceived \u001b[31m"\u001b[7mnot \u001b[27mexisting"\u001b[39m',
+                expected: 'hi',
+                actual: new Proxy(new Promise(() => {}), {}),
+            }),
+        ])
         expect(TestStatsSpy).not.toHaveBeenCalled()
     })
 
     it('should call stringifyDiffObjs if actual is not a Proxy', () => {
-        const TestStatsSpy = vi.spyOn(TestStats.prototype as any, '_stringifyDiffObjs')
-        stat.fail([new AssertionError({
-            message: 'Expect $(`#flash`) to be existing\n\nExpected \u001b[32m"existing"\u001b[39m\nReceived \u001b[31m"\u001b[7mnot \u001b[27mexisting"\u001b[39m',
-            expected: 'hi',
-            actual: 'false'
-        })])
+        const TestStatsSpy = vi.spyOn(
+            TestStats.prototype as any,
+            '_stringifyDiffObjs',
+        )
+        stat.fail([
+            new AssertionError({
+                message:
+                    'Expect $(`#flash`) to be existing\n\nExpected \u001b[32m"existing"\u001b[39m\nReceived \u001b[31m"\u001b[7mnot \u001b[27mexisting"\u001b[39m',
+                expected: 'hi',
+                actual: 'false',
+            }),
+        ])
         expect(TestStatsSpy).toHaveBeenCalled()
     })
-
 })

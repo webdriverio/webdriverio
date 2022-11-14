@@ -2,16 +2,16 @@ exports.config = {
     /**
      * specify test files
      */
-    specs: [
-        __dirname + '/features/*.feature'
-    ],
+    specs: [__dirname + '/features/*.feature'],
 
     /**
      * capabilities
      */
-    capabilities: [{
-        browserName: 'chrome'
-    }],
+    capabilities: [
+        {
+            browserName: 'chrome',
+        },
+    ],
 
     /**
      * test configurations
@@ -22,6 +22,6 @@ exports.config = {
     reporters: ['spec'],
 
     cucumberOpts: {
-        require: [__dirname + '/step-definitions.js']
-    }
+        require: [__dirname + '/step-definitions.js'],
+    },
 }

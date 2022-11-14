@@ -1,11 +1,15 @@
 import { performance, PerformanceObserver } from 'node:perf_hooks'
 import { promisify } from 'node:util'
 
-import testingbotTunnel from 'testingbot-tunnel-launcher'
 import logger from '@wdio/logger'
 import type { Capabilities, Options, Services } from '@wdio/types'
+import testingbotTunnel from 'testingbot-tunnel-launcher'
 
-import type { TestingbotOptions, TestingbotTunnel, TunnelLauncherOptions } from './types'
+import type {
+    TestingbotOptions,
+    TestingbotTunnel,
+    TunnelLauncherOptions,
+} from './types'
 
 const log = logger('@wdio/testingbot-service')
 
@@ -13,29 +17,37 @@ export default class TestingBotLauncher implements Services.ServiceInstance {
     options: TestingbotOptions
     tbTunnelOpts!: TunnelLauncherOptions
     tunnel?: TestingbotTunnel
-    constructor (options: TestingbotOptions) {
+    constructor(options: TestingbotOptions) {
         this.options = options
     }
 
-    async onPrepare (config: Options.Testrunner, capabilities: Capabilities.RemoteCapabilities) {
+    async onPrepare(
+        config: Options.Testrunner,
+        capabilities: Capabilities.RemoteCapabilities,
+    ) {
         if (!this.options.tbTunnel || !config.user || !config.key) {
             return
         }
 
-        const tbTunnelIdentifier = (
+        const tbTunnelIdentifier =
             this.options.tbTunnelOpts?.tunnelIdentifier ||
             `TB-tunnel-${Math.random().toString().slice(2)}`
+
+        this.tbTunnelOpts = Object.assign(
+            {
+                apiKey: config.user,
+                apiSecret: config.key,
+                'tunnel-identifier': tbTunnelIdentifier,
+            },
+            this.options.tbTunnelOpts,
         )
 
-        this.tbTunnelOpts = Object.assign({
-            apiKey: config.user,
-            apiSecret: config.key,
-            'tunnel-identifier': tbTunnelIdentifier,
-        }, this.options.tbTunnelOpts)
-
-        const capabilitiesEntries = Array.isArray(capabilities) ? capabilities : Object.values(capabilities)
+        const capabilitiesEntries = Array.isArray(capabilities)
+            ? capabilities
+            : Object.values(capabilities)
         for (const capability of capabilitiesEntries) {
-            const caps = (capability as Options.WebDriver).capabilities || capability
+            const caps =
+                (capability as Options.WebDriver).capabilities || capability
             const c = (caps as Capabilities.W3CCapabilities).alwaysMatch || caps
 
             if (!c['tb:options']) {
@@ -50,7 +62,9 @@ export default class TestingBotLauncher implements Services.ServiceInstance {
          */
         const obs = new PerformanceObserver((list) => {
             const entry = list.getEntries()[0]
-            log.info(`TestingBot tunnel successfully started after ${entry.duration}ms`)
+            log.info(
+                `TestingBot tunnel successfully started after ${entry.duration}ms`,
+            )
         })
         obs.observe({ entryTypes: ['measure'] })
 
@@ -64,11 +78,11 @@ export default class TestingBotLauncher implements Services.ServiceInstance {
      * Shut down the tunnel
      * @returns {Promise} Resolved promise when tunnel is closed
      */
-    onComplete () {
+    onComplete() {
         if (!this.tunnel) {
             return
         }
 
-        return new Promise(resolve => this.tunnel!.close(resolve))
+        return new Promise((resolve) => this.tunnel!.close(resolve))
     }
 }

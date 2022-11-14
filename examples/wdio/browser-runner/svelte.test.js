@@ -1,7 +1,7 @@
 import expect from 'expect'
 
-import { render, fireEvent, screen } from '@testing-library/svelte'
 import '@testing-library/jest-dom'
+import { fireEvent, render, screen } from '@testing-library/svelte'
 
 import Comp from './components/Component.svelte'
 

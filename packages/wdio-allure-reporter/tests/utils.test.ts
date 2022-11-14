@@ -1,11 +1,24 @@
-import { describe, it, expect, afterEach, beforeAll, afterAll, vi } from 'vitest'
 import process from 'node:process'
-import CompoundError from '../src/compoundError.js'
 import {
-    getTestStatus, isEmpty, tellReporter, isMochaEachHooks,
-    getErrorFromFailedTest, isMochaAllHooks, getLinkByTemplate
-} from '../src/utils.js'
+    afterAll,
+    afterEach,
+    beforeAll,
+    describe,
+    expect,
+    it,
+    vi,
+} from 'vitest'
+import CompoundError from '../src/compoundError.js'
 import { linkPlaceholder, testStatuses } from '../src/constants.js'
+import {
+    getErrorFromFailedTest,
+    getLinkByTemplate,
+    getTestStatus,
+    isEmpty,
+    isMochaAllHooks,
+    isMochaEachHooks,
+    tellReporter,
+} from '../src/utils.js'
 
 describe('utils', () => {
     let processEmit: any
@@ -21,42 +34,56 @@ describe('utils', () => {
     describe('getTestStatus', () => {
         it('return  status for jasmine', () => {
             const config: any = { framework: 'jasmine' }
-            expect(getTestStatus({} as any, config)).toEqual(testStatuses.FAILED)
+            expect(getTestStatus({} as any, config)).toEqual(
+                testStatuses.FAILED,
+            )
         })
 
         it('broken for test with no error', () => {
             const config: any = { framework: 'mocha' }
-            expect(getTestStatus({} as any, config)).toEqual(testStatuses.BROKEN)
+            expect(getTestStatus({} as any, config)).toEqual(
+                testStatuses.BROKEN,
+            )
         })
 
         it('failed for AssertionError', () => {
             const config: any = { framework: 'mocha' }
             const test = { error: { name: 'Error', message: 'AssertionError' } }
-            expect(getTestStatus(test as any, config)).toEqual(testStatuses.FAILED)
+            expect(getTestStatus(test as any, config)).toEqual(
+                testStatuses.FAILED,
+            )
         })
 
         it('failed for AssertionError stacktrace', () => {
             const config: any = { framework: 'mocha' }
             const test = { error: { stack: 'AssertionError' } }
-            expect(getTestStatus(test as any, config)).toEqual(testStatuses.FAILED)
+            expect(getTestStatus(test as any, config)).toEqual(
+                testStatuses.FAILED,
+            )
         })
 
         it('broken for not AssertionError', () => {
             const config: any = { framework: 'mocha' }
             const test = { error: { name: 'MyError' } }
-            expect(getTestStatus(test as any, config)).toEqual(testStatuses.BROKEN)
+            expect(getTestStatus(test as any, config)).toEqual(
+                testStatuses.BROKEN,
+            )
         })
 
         it('broken for error without stacktrace', () => {
             const config: any = { framework: 'mocha' }
             const test = { error: {} }
-            expect(getTestStatus(test as any, config)).toEqual(testStatuses.BROKEN)
+            expect(getTestStatus(test as any, config)).toEqual(
+                testStatuses.BROKEN,
+            )
         })
 
         it('failed status for not AssertionError stacktrace', () => {
             const config: any = { framework: 'mocha' }
             const test = { error: { stack: 'MyError stack trace' } }
-            expect(getTestStatus(test as any, config)).toEqual(testStatuses.BROKEN)
+            expect(getTestStatus(test as any, config)).toEqual(
+                testStatuses.BROKEN,
+            )
         })
     })
 
@@ -118,25 +145,34 @@ describe('utils', () => {
         // wdio-mocha-framework returns a single 'error', while wdio-jasmine-framework returns an array of 'errors'
         it('should return just the error property when there is no errors property', () => {
             const testStat = {
-                error: new Error('Everything is Broken Forever')
+                error: new Error('Everything is Broken Forever'),
             }
-            expect(getErrorFromFailedTest(testStat as any)!.message).toBe('Everything is Broken Forever')
+            expect(getErrorFromFailedTest(testStat as any)!.message).toBe(
+                'Everything is Broken Forever',
+            )
         })
 
         it('should return a single error when there is an errors array with one error', () => {
             const testStat = {
                 errors: [new Error('Everything is Broken Forever')],
-                error: new Error('Everything is Broken Forever')
+                error: new Error('Everything is Broken Forever'),
             }
-            expect(getErrorFromFailedTest(testStat as any)!.message).toBe('Everything is Broken Forever')
+            expect(getErrorFromFailedTest(testStat as any)!.message).toBe(
+                'Everything is Broken Forever',
+            )
         })
 
         it('should return a CompoundError of the errors when there is more than one error', () => {
             const testStat = {
-                errors: [new Error('Everything is Broken Forever'), new Error('Additional things are broken')],
-                error: new Error('Everything is Broken Forever')
+                errors: [
+                    new Error('Everything is Broken Forever'),
+                    new Error('Additional things are broken'),
+                ],
+                error: new Error('Everything is Broken Forever'),
             }
-            const error = getErrorFromFailedTest(testStat as any) as CompoundError
+            const error = getErrorFromFailedTest(
+                testStat as any,
+            ) as CompoundError
             expect(error instanceof CompoundError).toBe(true)
             expect(error.innerErrors).toEqual(testStat.errors)
         })
@@ -157,9 +193,9 @@ describe('utils', () => {
 
         it('should throw error if template is invalid', () => {
             const template = 'foo'
-            expect(() => getLinkByTemplate(template, id))
-                .toThrow(`The link template "${template}" must contain ${linkPlaceholder} substring.`)
+            expect(() => getLinkByTemplate(template, id)).toThrow(
+                `The link template "${template}" must contain ${linkPlaceholder} substring.`,
+            )
         })
     })
 })
-

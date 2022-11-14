@@ -3,10 +3,13 @@ import { createRequire } from 'node:module'
 
 import type { ElementReference } from '@wdio/protocols'
 
-import { enhanceElementsArray } from '../../utils/index.js'
+import {
+    react$$ as react$$Script,
+    waitToLoadReact,
+} from '../../scripts/resq.js'
+import type { ElementArray, ReactSelectorOptions } from '../../types'
 import { getElements } from '../../utils/getElementObject.js'
-import { waitToLoadReact, react$$ as react$$Script } from '../../scripts/resq.js'
-import type { ReactSelectorOptions, ElementArray } from '../../types'
+import { enhanceElementsArray } from '../../utils/index.js'
 
 let resqScript: string
 
@@ -43,10 +46,10 @@ let resqScript: string
  * @return {ElementArray}
  *
  */
-export default async function react$$ (
+export default async function react$$(
     this: WebdriverIO.Browser,
     selector: string,
-    { props = {}, state = {} }: ReactSelectorOptions = {}
+    { props = {}, state = {} }: ReactSelectorOptions = {},
 ) {
     if (!resqScript) {
         const require = createRequire(import.meta.url)
@@ -55,10 +58,21 @@ export default async function react$$ (
 
     await this.executeScript(resqScript, [])
     await this.execute(waitToLoadReact)
-    const res = await this.execute(
-        react$$Script as any, selector, props, state
-    ) as ElementReference[]
+    const res = (await this.execute(
+        react$$Script as any,
+        selector,
+        props,
+        state,
+    )) as ElementReference[]
 
-    const elements: ElementArray = await getElements.call(this, selector, res, true)
-    return enhanceElementsArray(elements, this, selector, 'react$$', [props, state])
+    const elements: ElementArray = await getElements.call(
+        this,
+        selector,
+        res,
+        true,
+    )
+    return enhanceElementsArray(elements, this, selector, 'react$$', [
+        props,
+        state,
+    ])
 }

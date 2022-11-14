@@ -1,28 +1,34 @@
 import path from 'node:path'
 // @ts-ignore mocked (original defined in webdriver package)
 import got from 'got'
-import { describe, it, afterEach, expect, vi } from 'vitest'
-import { remote } from '../../../src/index.js'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { ELEMENT_KEY } from '../../../src/constants.js'
+import { remote } from '../../../src/index.js'
 
 vi.mock('got')
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock(
+    '@wdio/logger',
+    () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')),
+)
 
 describe('elements', () => {
     it('should fetch elements', async () => {
         const browser = await remote({
             baseUrl: 'http://foobar.com',
             capabilities: {
-                browserName: 'foobar'
-            }
+                browserName: 'foobar',
+            },
         })
 
         const elems = await browser.$$('.foo')
         expect(got.mock.calls[1][1].method).toBe('POST')
-        expect(got.mock.calls[1][0].pathname)
-            .toBe('/session/foobar-123/elements')
-        expect(got.mock.calls[1][1].json)
-            .toEqual({ using: 'css selector', value: '.foo' })
+        expect(got.mock.calls[1][0].pathname).toBe(
+            '/session/foobar-123/elements',
+        )
+        expect(got.mock.calls[1][1].json).toEqual({
+            using: 'css selector',
+            value: '.foo',
+        })
         expect(elems).toHaveLength(3)
 
         expect(elems[0].elementId).toBe('some-elem-123')
@@ -53,8 +59,8 @@ describe('elements', () => {
         const browser = await remote({
             baseUrl: 'http://foobar.com',
             capabilities: {
-                browserName: 'foobar-noW3C'
-            }
+                browserName: 'foobar-noW3C',
+            },
         })
 
         const elems = await browser.$$('.foo')
@@ -74,8 +80,8 @@ describe('elements', () => {
                 browserName: 'foobar',
                 // @ts-ignore mock feature
                 mobileMode: true,
-                'appium-version': '1.9.2'
-            } as any
+                'appium-version': '1.9.2',
+            } as any,
         })
 
         const elems = await browser.$$('.foo')
@@ -88,8 +94,8 @@ describe('elements', () => {
         const browser = await remote({
             baseUrl: 'http://foobar.com',
             capabilities: {
-                browserName: 'foobar'
-            }
+                browserName: 'foobar',
+            },
         })
         const elemA = await browser.$('#foo')
         const elemB = { [ELEMENT_KEY]: 'foobar' }

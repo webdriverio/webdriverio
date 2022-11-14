@@ -23,7 +23,7 @@ describe('Mocha smoke test', () => {
         await browser.parentElementChaining()
         assert.equal(
             await $('foo').parentElement().getText(),
-            'some element text'
+            'some element text',
         )
     })
 
@@ -32,7 +32,7 @@ describe('Mocha smoke test', () => {
         await browser.parentElementChaining()
         assert.equal(
             await $('foo').nextElement().getText(),
-            'some element text'
+            'some element text',
         )
     })
 
@@ -41,7 +41,7 @@ describe('Mocha smoke test', () => {
         await browser.parentElementChaining()
         assert.equal(
             await $('foo').previousElement().getText(),
-            'some element text'
+            'some element text',
         )
     })
 })

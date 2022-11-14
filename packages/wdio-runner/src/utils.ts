@@ -1,15 +1,16 @@
-import { deepmerge } from 'deepmerge-ts'
-import logger from '@wdio/logger'
-import { remote, multiremote, attach } from 'webdriverio'
-import { DEFAULTS } from 'webdriver'
 import { DEFAULT_CONFIGS } from '@wdio/config'
-import type { Options, Capabilities } from '@wdio/types'
+import logger from '@wdio/logger'
+import type { Capabilities, Options } from '@wdio/types'
+import { deepmerge } from 'deepmerge-ts'
+import { DEFAULTS } from 'webdriver'
 import type { Browser, MultiRemoteBrowser } from 'webdriverio'
+import { attach, multiremote, remote } from 'webdriverio'
 
 const log = logger('@wdio/runner')
 
-export interface ConfigWithSessionId extends Omit<Options.Testrunner, 'capabilities'> {
-    sessionId?: string,
+export interface ConfigWithSessionId
+    extends Omit<Options.Testrunner, 'capabilities'> {
+    sessionId?: string
     capabilities: Capabilities.RemoteCapability
 }
 
@@ -18,29 +19,35 @@ export interface ConfigWithSessionId extends Omit<Options.Testrunner, 'capabilit
  * @param  {Object} caps  desired session capabilities
  * @return {Object}       sanitized caps
  */
-export function sanitizeCaps (
+export function sanitizeCaps(
     caps: Capabilities.RemoteCapability,
-    filterOut?: boolean
+    filterOut?: boolean,
 ): Omit<Capabilities.RemoteCapability, 'logLevel'> {
     const defaultConfigsKeys = [
         // WDIO config keys
         ...Object.keys(DEFAULT_CONFIGS()),
         // WebDriver config keys
-        ...Object.keys(DEFAULTS)
+        ...Object.keys(DEFAULTS),
     ]
 
-    return Object.keys(caps).filter((key: keyof Capabilities.RemoteCapability) => (
-        /**
-         * filter out all wdio config keys
-         */
-        !defaultConfigsKeys.includes(key as string) === !filterOut
-    )).reduce((
-        obj: Capabilities.RemoteCapability,
-        key: keyof Capabilities.RemoteCapability
-    ) => {
-        obj[key] = caps[key]
-        return obj
-    }, {})
+    return Object.keys(caps)
+        .filter(
+            (key: keyof Capabilities.RemoteCapability) =>
+                /**
+                 * filter out all wdio config keys
+                 */
+                !defaultConfigsKeys.includes(key as string) === !filterOut,
+        )
+        .reduce(
+            (
+                obj: Capabilities.RemoteCapability,
+                key: keyof Capabilities.RemoteCapability,
+            ) => {
+                obj[key] = caps[key]
+                return obj
+            },
+            {},
+        )
 }
 
 /**
@@ -50,10 +57,10 @@ export function sanitizeCaps (
  * @param  {boolean} isMultiremote isMultiremote
  * @return {Promise}               resolves with browser object
  */
-export async function initialiseInstance (
+export async function initialiseInstance(
     config: ConfigWithSessionId,
     capabilities: Capabilities.RemoteCapability,
-    isMultiremote?: boolean
+    isMultiremote?: boolean,
 ): Promise<Browser<'async'> | MultiRemoteBrowser<'async'>> {
     /**
      * check if config has sessionId and attach it to a running session if so
@@ -65,8 +72,12 @@ export async function initialiseInstance (
         /**
          * propagate connection details defined by services or user in capabilities
          */
-        const { protocol, hostname, port, path } = capabilities as Capabilities.Capabilities
-        return attach({ ...config, ...{ protocol, hostname, port, path } } as Required<ConfigWithSessionId>)
+        const { protocol, hostname, port, path } =
+            capabilities as Capabilities.Capabilities
+        return attach({
+            ...config,
+            ...{ protocol, hostname, port, path },
+        } as Required<ConfigWithSessionId>)
     }
 
     if (!isMultiremote) {
@@ -74,7 +85,7 @@ export async function initialiseInstance (
         const sessionConfig: Options.WebdriverIO = {
             ...config,
             ...sanitizeCaps(capabilities, true),
-            capabilities: sanitizeCaps(capabilities)
+            capabilities: sanitizeCaps(capabilities),
         }
         return remote(sessionConfig)
     }
@@ -86,7 +97,7 @@ export async function initialiseInstance (
     for (let browserName of Object.keys(capabilities)) {
         options[browserName] = deepmerge(
             config,
-            (capabilities as Capabilities.MultiRemoteCapabilities)[browserName]
+            (capabilities as Capabilities.MultiRemoteCapabilities)[browserName],
         )
     }
 
@@ -107,17 +118,18 @@ export async function initialiseInstance (
  */
 export function filterLogTypes(
     excludeDriverLogs: string[],
-    driverLogTypes: string[]
+    driverLogTypes: string[],
 ) {
     let logTypes = [...driverLogTypes]
 
     if (Array.isArray(excludeDriverLogs)) {
         log.debug('filtering logTypes', logTypes)
 
-        if (excludeDriverLogs.length === 1 && excludeDriverLogs[0] === '*') { // exclude all logTypes
+        if (excludeDriverLogs.length === 1 && excludeDriverLogs[0] === '*') {
+            // exclude all logTypes
             logTypes = []
         } else {
-            logTypes = logTypes.filter(x => !excludeDriverLogs.includes(x)) // exclude specific logTypes
+            logTypes = logTypes.filter((x) => !excludeDriverLogs.includes(x)) // exclude specific logTypes
         }
 
         log.debug('filtered logTypes', logTypes)
@@ -142,9 +154,9 @@ type BrowserData = {
  * @param {boolean} isMultiremote isMultiremote
  * @return {object}
  */
-export function getInstancesData (
+export function getInstancesData(
     browser: Browser<'async'> | MultiRemoteBrowser<'async'>,
-    isMultiremote: boolean
+    isMultiremote: boolean,
 ) {
     if (!isMultiremote) {
         return
@@ -153,10 +165,19 @@ export function getInstancesData (
     const multiRemoteBrowser = browser as MultiRemoteBrowser<'async'>
     const instances: Record<string, Partial<BrowserData>> = {}
     multiRemoteBrowser.instances.forEach((browserName: string) => {
-        const { protocol, hostname, port, path, queryParams } = multiRemoteBrowser[browserName].options
+        const { protocol, hostname, port, path, queryParams } =
+            multiRemoteBrowser[browserName].options
         const { isW3C, sessionId } = multiRemoteBrowser[browserName]
 
-        instances[browserName] = { sessionId, isW3C, protocol, hostname, port, path, queryParams }
+        instances[browserName] = {
+            sessionId,
+            isW3C,
+            protocol,
+            hostname,
+            port,
+            path,
+            queryParams,
+        }
     })
 
     return instances

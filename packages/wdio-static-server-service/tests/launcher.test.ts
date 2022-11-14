@@ -1,14 +1,17 @@
-import path from 'node:path'
+import express from 'express'
 import fs from 'node:fs'
 import os from 'node:os'
-import express from 'express'
-import { test, expect, vi, afterEach } from 'vitest'
+import path from 'node:path'
+import { afterEach, expect, test, vi } from 'vitest'
 
 import StaticServerLauncher from '../src/launcher.js'
 
 vi.mock('fs')
 vi.mock('express')
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock(
+    '@wdio/logger',
+    () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')),
+)
 
 test('should not start server when no mount folder is defined', async () => {
     const service = new StaticServerLauncher({})
@@ -18,7 +21,7 @@ test('should not start server when no mount folder is defined', async () => {
 
 test('should be able to start server', async () => {
     const service = new StaticServerLauncher({
-        folders: { mount: 'foo', path: 'bar' }
+        folders: { mount: 'foo', path: 'bar' },
     })
     await service.onPrepare({})
     expect(express).toBeCalledTimes(1)
@@ -30,8 +33,8 @@ test('should be able to mount multiple folder', async () => {
     const service = new StaticServerLauncher({
         folders: [
             { mount: 'foo', path: 'bar' },
-            { mount: 'foo2', path: 'bar2' }
-        ]
+            { mount: 'foo2', path: 'bar2' },
+        ],
     })
     await service.onPrepare({})
     expect(express).toBeCalledTimes(1)
@@ -43,7 +46,7 @@ test('should be able to mount multiple folder', async () => {
 
 test('should stream logs to log dir', async () => {
     const service = new StaticServerLauncher({
-        folders: { mount: 'foo', path: 'bar' }
+        folders: { mount: 'foo', path: 'bar' },
     })
     await service.onPrepare({ outputDir: '/foo/bar' })
 
@@ -58,7 +61,7 @@ test('should stream logs to log dir', async () => {
 test('should register middlewares', async () => {
     const service = new StaticServerLauncher({
         folders: { mount: 'foo', path: 'bar' },
-        middleware: [{ mount: 'foo', middleware: 'bar' }]
+        middleware: [{ mount: 'foo', middleware: 'bar' }],
     })
     await service.onPrepare({})
     expect(service['_server']!.use).toBeCalledWith('foo', 'bar')

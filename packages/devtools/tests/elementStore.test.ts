@@ -1,21 +1,25 @@
 import path from 'node:path'
-import { expect, test, vi } from 'vitest'
-import ElementStore from '../src/elementstore.js'
 import type { ElementHandle } from 'puppeteer-core/lib/cjs/puppeteer/common/ElementHandle'
 import type { Frame } from 'puppeteer-core/lib/cjs/puppeteer/common/Frame'
+import { expect, test, vi } from 'vitest'
+import ElementStore from '../src/elementstore.js'
 
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock(
+    '@wdio/logger',
+    () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')),
+)
 
-const elementHandleFactory = (
-    { isConnected = true, frame = Symbol() }: { isConnected?: boolean, frame?: symbol } = {}
-) => ({
+const elementHandleFactory = ({
+    isConnected = true,
+    frame = Symbol(),
+}: { isConnected?: boolean; frame?: symbol } = {}) => ({
     id: Math.random(),
     async evaluate(cb: any) {
         return cb({ isConnected })
     },
     executionContext() {
         return { _world: { frame: () => frame } }
-    }
+    },
 })
 
 test('should keep a map of elements', async () => {
@@ -35,7 +39,9 @@ test('should keep a map of elements', async () => {
 
 test('should not return element if it is not attached to the DOM', async () => {
     const store = new ElementStore()
-    const elementHandle = elementHandleFactory({ isConnected: false }) as any as ElementHandle
+    const elementHandle = elementHandleFactory({
+        isConnected: false,
+    }) as any as ElementHandle
     store.set(elementHandle)
     expect(await store.get('ELEMENT-1')).toBe(undefined)
 })
@@ -44,9 +50,13 @@ test('should clear elements of a specific frame', async () => {
     const store = new ElementStore()
     const frame1 = Symbol('frame1')
     const frame2 = Symbol('frame2')
-    const elementHandle1 = elementHandleFactory({ frame: frame1 }) as any as ElementHandle
+    const elementHandle1 = elementHandleFactory({
+        frame: frame1,
+    }) as any as ElementHandle
     store.set(elementHandle1)
-    const elementHandle2 = elementHandleFactory({ frame: frame2 }) as any as ElementHandle
+    const elementHandle2 = elementHandleFactory({
+        frame: frame2,
+    }) as any as ElementHandle
     store.set(elementHandle2)
     expect(store['_frameMap'].size).toBe(2)
 

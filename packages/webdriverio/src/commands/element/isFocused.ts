@@ -1,6 +1,6 @@
 import { ELEMENT_KEY } from '../../constants.js'
-import { getBrowserObject } from '../../utils/index.js'
 import isFocusedScript from '../../scripts/isFocused.js'
+import { getBrowserObject } from '../../utils/index.js'
 
 /**
  *
@@ -28,10 +28,10 @@ import isFocusedScript from '../../scripts/isFocused.js'
  * @type state
  *
  */
-export default async function isFocused (this: WebdriverIO.Element) {
+export default async function isFocused(this: WebdriverIO.Element) {
     const browser = await getBrowserObject(this)
     return browser.execute(isFocusedScript, {
         [ELEMENT_KEY]: this.elementId, // w3c compatible
-        ELEMENT: this.elementId // jsonwp compatible
+        ELEMENT: this.elementId, // jsonwp compatible
     } as any as HTMLElement)
 }

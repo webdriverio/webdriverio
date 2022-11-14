@@ -8,16 +8,19 @@ const replConfig = {
     eval: () => {},
     prompt: 'foobar',
     useGlobal: true,
-    useColor: true
+    useColor: true,
 }
 
 test('should parse error object', () => {
     const childProcess = { send: vi.fn() }
-    const repl = new WDIORunnerRepl(childProcess as unknown as ChildProcess, replConfig)
+    const repl = new WDIORunnerRepl(
+        childProcess as unknown as ChildProcess,
+        replConfig,
+    )
     const err = repl['_getError']({
         error: true,
         message: 'foobar',
-        stack: 'fooo:1:1\nbar:2:1'
+        stack: 'fooo:1:1\nbar:2:1',
     })
     expect(err).toBeInstanceOf(Error)
     expect(repl['_getError']({ foo: 'bar' })).toBe(null)
@@ -25,16 +28,24 @@ test('should parse error object', () => {
 
 test('should send child process message that debugger has started', () => {
     const childProcess = { send: vi.fn() }
-    const repl = new WDIORunnerRepl(childProcess as unknown as ChildProcess, replConfig)
+    const repl = new WDIORunnerRepl(
+        childProcess as unknown as ChildProcess,
+        replConfig,
+    )
     repl.start({})
-    expect(childProcess.send)
-        .toHaveBeenCalledWith({ origin: 'debugger', name: 'start' })
+    expect(childProcess.send).toHaveBeenCalledWith({
+        origin: 'debugger',
+        name: 'start',
+    })
 })
 
 test('should send command to child process', () => {
     const childProcess = { send: vi.fn() }
     const callback = vi.fn()
-    const repl = new WDIORunnerRepl(childProcess as unknown as ChildProcess, replConfig)
+    const repl = new WDIORunnerRepl(
+        childProcess as unknown as ChildProcess,
+        replConfig,
+    )
 
     expect(repl.commandIsRunning).toBe(false)
     expect(repl.callback).toBe(undefined)
@@ -43,7 +54,7 @@ test('should send command to child process', () => {
     expect(childProcess.send).toHaveBeenCalledWith({
         origin: 'debugger',
         name: 'eval',
-        content: { cmd: '1+1' }
+        content: { cmd: '1+1' },
     })
     expect(typeof repl.callback).toBe('function')
 
@@ -54,7 +65,10 @@ test('should send command to child process', () => {
 test('should not send command if command is already running', () => {
     const childProcess = { send: vi.fn() }
     const callback = vi.fn()
-    const repl = new WDIORunnerRepl(childProcess as unknown as ChildProcess, replConfig)
+    const repl = new WDIORunnerRepl(
+        childProcess as unknown as ChildProcess,
+        replConfig,
+    )
     repl.commandIsRunning = true
 
     repl.eval('1+1', {}, '/foo/bar', callback)
@@ -63,7 +77,10 @@ test('should not send command if command is already running', () => {
 
 test('should pass in result to callback', () => {
     const childProcess = { send: vi.fn() }
-    const repl = new WDIORunnerRepl(childProcess as unknown as ChildProcess, replConfig)
+    const repl = new WDIORunnerRepl(
+        childProcess as unknown as ChildProcess,
+        replConfig,
+    )
     repl.callback = vi.fn()
     repl.commandIsRunning = true
 
@@ -73,7 +90,10 @@ test('should pass in result to callback', () => {
 
 test('should switch flag even if no callback is set', () => {
     const childProcess = { send: vi.fn() }
-    const repl = new WDIORunnerRepl(childProcess as unknown as ChildProcess, replConfig)
+    const repl = new WDIORunnerRepl(
+        childProcess as unknown as ChildProcess,
+        replConfig,
+    )
     repl.commandIsRunning = true
 
     repl.onResult({ result: 'foobar' })

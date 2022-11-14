@@ -11,7 +11,7 @@ const rule: Rule.RuleModule = {
             recommended: false,
         },
         messages: {
-            unexpectedDebug: 'Unexpected browser.debug() not allowed'
+            unexpectedDebug: 'Unexpected browser.debug() not allowed',
         },
         hasSuggestions: true,
         schema: [],
@@ -23,9 +23,9 @@ const rule: Rule.RuleModule = {
                 if (isCommand(node, 'debug')) {
                     context.report({ node, messageId: 'unexpectedDebug' })
                 }
-            }
+            },
         }
-    }
+    },
 }
 
 export default rule

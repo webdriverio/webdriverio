@@ -46,85 +46,90 @@ import { getBrowserObject } from '../../utils/index.js'
 import type { ThrottleOptions } from '../../utils/interception/types'
 
 const NETWORK_PRESETS = {
-    'offline': {
+    offline: {
         offline: true,
         downloadThroughput: 0,
         uploadThroughput: 0,
-        latency: 1
+        latency: 1,
     },
-    'GPRS': {
+    GPRS: {
         offline: false,
-        downloadThroughput: 50 * 1024 / 8,
-        uploadThroughput: 20 * 1024 / 8,
-        latency: 500
+        downloadThroughput: (50 * 1024) / 8,
+        uploadThroughput: (20 * 1024) / 8,
+        latency: 500,
     },
-    'Regular2G': {
+    Regular2G: {
         offline: false,
-        downloadThroughput: 250 * 1024 / 8,
-        uploadThroughput: 50 * 1024 / 8,
-        latency: 300
+        downloadThroughput: (250 * 1024) / 8,
+        uploadThroughput: (50 * 1024) / 8,
+        latency: 300,
     },
-    'Good2G': {
+    Good2G: {
         offline: false,
-        downloadThroughput: 450 * 1024 / 8,
-        uploadThroughput: 150 * 1024 / 8,
-        latency: 150
+        downloadThroughput: (450 * 1024) / 8,
+        uploadThroughput: (150 * 1024) / 8,
+        latency: 150,
     },
-    'Regular3G': {
+    Regular3G: {
         offline: false,
-        downloadThroughput: 750 * 1024 / 8,
-        uploadThroughput: 250 * 1024 / 8,
-        latency: 100
+        downloadThroughput: (750 * 1024) / 8,
+        uploadThroughput: (250 * 1024) / 8,
+        latency: 100,
     },
-    'Good3G': {
+    Good3G: {
         offline: false,
-        downloadThroughput: 1.5 * 1024 * 1024 / 8,
-        uploadThroughput: 750 * 1024 / 8,
-        latency: 40
+        downloadThroughput: (1.5 * 1024 * 1024) / 8,
+        uploadThroughput: (750 * 1024) / 8,
+        latency: 40,
     },
-    'Regular4G': {
+    Regular4G: {
         offline: false,
-        downloadThroughput: 4 * 1024 * 1024 / 8,
-        uploadThroughput: 3 * 1024 * 1024 / 8,
-        latency: 20
+        downloadThroughput: (4 * 1024 * 1024) / 8,
+        uploadThroughput: (3 * 1024 * 1024) / 8,
+        latency: 20,
     },
-    'DSL': {
+    DSL: {
         offline: false,
-        downloadThroughput: 2 * 1024 * 1024 / 8,
-        uploadThroughput: 1 * 1024 * 1024 / 8,
-        latency: 5
+        downloadThroughput: (2 * 1024 * 1024) / 8,
+        uploadThroughput: (1 * 1024 * 1024) / 8,
+        latency: 5,
     },
-    'WiFi': {
+    WiFi: {
         offline: false,
-        downloadThroughput: 30 * 1024 * 1024 / 8,
-        uploadThroughput: 15 * 1024 * 1024 / 8,
-        latency: 2
+        downloadThroughput: (30 * 1024 * 1024) / 8,
+        uploadThroughput: (15 * 1024 * 1024) / 8,
+        latency: 2,
     },
-    'online': {
+    online: {
         offline: false,
         latency: 0,
         downloadThroughput: -1,
-        uploadThroughput: -1
-    }
+        uploadThroughput: -1,
+    },
 } as const
 
 const NETWORK_PRESET_TYPES = Object.keys(NETWORK_PRESETS)
 
-export default async function throttle (
+export default async function throttle(
     this: WebdriverIO.Browser,
-    params: ThrottleOptions
+    params: ThrottleOptions,
 ) {
     if (
         /**
          * check string parameter
          */
-        (typeof params !== 'string' || !NETWORK_PRESET_TYPES.includes(params)) &&
+        (typeof params !== 'string' ||
+            !NETWORK_PRESET_TYPES.includes(params)) &&
         /**
          * check object parameter
          */
-        (typeof params !== 'object')
+        typeof params !== 'object'
     ) {
-        throw new Error(`Invalid parameter for "throttle". Expected it to be typeof object or one of the following values: ${NETWORK_PRESET_TYPES.join(', ')} but found "${params}"`)
+        throw new Error(
+            `Invalid parameter for "throttle". Expected it to be typeof object or one of the following values: ${NETWORK_PRESET_TYPES.join(
+                ', ',
+            )} but found "${params}"`,
+        )
     }
 
     /**
@@ -139,7 +144,9 @@ export default async function throttle (
     // Connect to Chrome DevTools
     await this.getPuppeteer()
     if (!this.puppeteer) {
-        throw new Error('No Puppeteer connection could be established which is required to use this command')
+        throw new Error(
+            'No Puppeteer connection could be established which is required to use this command',
+        )
     }
 
     const pages = await this.puppeteer.pages()
@@ -148,9 +155,7 @@ export default async function throttle (
     // Set throttling property
     await client.send(
         'Network.emulateNetworkConditions',
-        typeof params === 'string'
-            ? NETWORK_PRESETS[params]
-            : params
+        typeof params === 'string' ? NETWORK_PRESETS[params] : params,
     )
 
     return null

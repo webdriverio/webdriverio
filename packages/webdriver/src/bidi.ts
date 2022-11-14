@@ -1,7 +1,7 @@
-import { EventEmitter } from 'node:events'
-import WebSocket from 'ws'
 import logger from '@wdio/logger'
 import { BidiRequest, BidiResponse } from '@wdio/protocols'
+import { EventEmitter } from 'node:events'
+import WebSocket from 'ws'
 
 const log = logger('webdriver:BidiHandler')
 const RESPONSE_TIMEOUT = 1000 * 60
@@ -11,28 +11,30 @@ export class BidiHandler extends EventEmitter {
     #ws: WebSocket
     #isConnected = false
 
-    constructor (private _webSocketUrl: string) {
+    constructor(private _webSocketUrl: string) {
         super()
         log.info(`Connect to webSocketUrl ${this._webSocketUrl}`)
         this.#ws = new WebSocket(this._webSocketUrl)
     }
 
-    public connect () {
-        return new Promise<void>((resolve) => this.#ws.on('open', () => {
-            this.#isConnected = true
-            resolve()
-        }))
+    public connect() {
+        return new Promise<void>((resolve) =>
+            this.#ws.on('open', () => {
+                this.#isConnected = true
+                resolve()
+            }),
+        )
     }
 
-    get socket () {
+    get socket() {
         return this.#ws
     }
 
-    get isConnected () {
+    get isConnected() {
         return this.#isConnected
     }
 
-    public send (params: BidiRequest) {
+    public send(params: BidiRequest) {
         if (!this.#isConnected) {
             throw new Error('No connection to WebDriver Bidi was established')
         }
@@ -61,7 +63,7 @@ export class BidiHandler extends EventEmitter {
         })
     }
 
-    public sendAsync (params: BidiRequest) {
+    public sendAsync(params: BidiRequest) {
         if (!this.#isConnected) {
             throw new Error('No connection to WebDriver Bidi was established')
         }

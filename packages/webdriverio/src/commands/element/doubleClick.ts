@@ -23,7 +23,7 @@ import { getBrowserObject } from '../../utils/index.js'
  * @type action
  *
  */
-export default async function doubleClick (this: WebdriverIO.Element) {
+export default async function doubleClick(this: WebdriverIO.Element) {
     /**
      * move to element
      */
@@ -36,7 +36,8 @@ export default async function doubleClick (this: WebdriverIO.Element) {
      * W3C way of handle the double click actions
      */
     const browser = getBrowserObject(this)
-    return browser.action('pointer', { parameters: { pointerType: 'mouse' } })
+    return browser
+        .action('pointer', { parameters: { pointerType: 'mouse' } })
         .move({ origin: this })
         .down()
         .up()

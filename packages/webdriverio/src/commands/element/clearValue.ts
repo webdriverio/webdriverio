@@ -25,6 +25,6 @@
  *
  */
 
-export default function clearValue (this: WebdriverIO.Element) {
+export default function clearValue(this: WebdriverIO.Element) {
     return this.elementClear(this.elementId)
 }

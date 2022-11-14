@@ -8,9 +8,9 @@ import type DevToolsDriver from '../devtoolsdriver'
  * @see https://w3c.github.io/webdriver/#dfn-delete-cookie
  * @param {string} name  name of the cookie to delete
  */
-export default async function deleteCookie (
+export default async function deleteCookie(
     this: DevToolsDriver,
-    { name }: { name: string }
+    { name }: { name: string },
 ) {
     const page = this.getPageHandle()
     const cookies = await page.cookies()

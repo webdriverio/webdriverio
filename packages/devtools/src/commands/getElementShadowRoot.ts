@@ -1,6 +1,6 @@
-import { getStaleElementError } from '../utils.js'
 import { SHADOW_ELEMENT_KEY } from '../constants.js'
 import type DevToolsDriver from '../devtoolsdriver'
+import { getStaleElementError } from '../utils.js'
 
 /**
  * Get the shadow root object of an element. The result object can be used to fetch
@@ -11,9 +11,9 @@ import type DevToolsDriver from '../devtoolsdriver'
  * @param {string} elementId  the id of an element returned in a previous call to Find Element(s)
  * @return {string}           A JSON representation of an element shadow root, e.g. `{ 'shadow-6066-11e4-a52e-4f735466cecf': 'ELEMENT_1' }`.
  */
-export default async function getElementShadowRoot (
+export default async function getElementShadowRoot(
     this: DevToolsDriver,
-    { elementId }: { elementId: string }
+    { elementId }: { elementId: string },
 ) {
     const elementHandle = await this.elementStore.get(elementId)
     if (!elementHandle) {

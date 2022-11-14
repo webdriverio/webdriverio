@@ -1,14 +1,14 @@
 import fs from 'node:fs'
-import url from 'node:url'
 import path from 'node:path'
+import url from 'node:url'
 
 import yargs from 'yargs'
 import { hideBin } from 'yargs/helpers'
 
-import Launcher from './launcher.js'
 import { commands } from './commands/index.js'
-import { handler, cmdArgs } from './commands/run.js'
+import { cmdArgs, handler } from './commands/run.js'
 import { CLI_EPILOGUE } from './constants.js'
+import Launcher from './launcher.js'
 import type { RunCommandArguments } from './types'
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
@@ -23,21 +23,41 @@ const DESCRIPTION = [
     'is the same as:',
     '$ wdio run wdio.conf.js',
     '',
-    'For more information, visit: https://webdriver.io/docs/clioptions'
+    'For more information, visit: https://webdriver.io/docs/clioptions',
 ]
 
 export const run = async () => {
     const commandDir = path.join(__dirname, 'commands')
     const argv = yargs(hideBin(process.argv))
         .command(commands)
-        .example('wdio run wdio.conf.js --suite foobar', 'Run suite on testsuite "foobar"')
-        .example('wdio run wdio.conf.js --spec ./tests/e2e/a.js --spec ./tests/e2e/b.js', 'Run suite on specific specs')
-        .example('wdio run wdio.conf.js --spec ./tests/e2e/a.feature:5', 'Run scenario by line number')
-        .example('wdio run wdio.conf.js --spec ./tests/e2e/a.feature:5:10', 'Run scenarios by line number')
-        .example('wdio run wdio.conf.js --spec ./tests/e2e/a.feature:5:10 --spec ./test/e2e/b.feature', 'Run scenarios by line number in single feature and another complete feature')
+        .example(
+            'wdio run wdio.conf.js --suite foobar',
+            'Run suite on testsuite "foobar"',
+        )
+        .example(
+            'wdio run wdio.conf.js --spec ./tests/e2e/a.js --spec ./tests/e2e/b.js',
+            'Run suite on specific specs',
+        )
+        .example(
+            'wdio run wdio.conf.js --spec ./tests/e2e/a.feature:5',
+            'Run scenario by line number',
+        )
+        .example(
+            'wdio run wdio.conf.js --spec ./tests/e2e/a.feature:5:10',
+            'Run scenarios by line number',
+        )
+        .example(
+            'wdio run wdio.conf.js --spec ./tests/e2e/a.feature:5:10 --spec ./test/e2e/b.feature',
+            'Run scenarios by line number in single feature and another complete feature',
+        )
         .example('wdio install reporter spec', 'Install @wdio/spec-reporter')
-        .example('wdio repl chrome -u <SAUCE_USERNAME> -k <SAUCE_ACCESS_KEY>', 'Run repl in Sauce Labs cloud')
-        .updateStrings({ 'Commands:': `${DESCRIPTION.join('\n')}\n\nCommands:` })
+        .example(
+            'wdio repl chrome -u <SAUCE_USERNAME> -k <SAUCE_ACCESS_KEY>',
+            'Run repl in Sauce Labs cloud',
+        )
+        .updateStrings({
+            'Commands:': `${DESCRIPTION.join('\n')}\n\nCommands:`,
+        })
         .epilogue(CLI_EPILOGUE)
 
     /**
@@ -62,19 +82,26 @@ export const run = async () => {
         .readdirSync(commandDir)
         .map((file) => file.slice(0, -3))
 
-    if (params._ && !params._.find((param: string) => supportedCommands.includes(param))) {
+    if (
+        params._ &&
+        !params._.find((param: string) => supportedCommands.includes(param))
+    ) {
         const args: RunCommandArguments = {
             ...params,
-            configPath: path.resolve(process.cwd(), params._[0] && params._[0].toString() || DEFAULT_CONFIG_FILENAME)
+            configPath: path.resolve(
+                process.cwd(),
+                (params._[0] && params._[0].toString()) ||
+                    DEFAULT_CONFIG_FILENAME,
+            ),
         }
 
         return handler(args).catch(async (err) => {
-            const output = await new Promise((resolve) => (
-                yargs(hideBin(process.argv)).parse('--help', (
-                    err: Error,
-                    argv: Record<string, any>,
-                    output: string
-                ) => resolve(output)))
+            const output = await new Promise((resolve) =>
+                yargs(hideBin(process.argv)).parse(
+                    '--help',
+                    (err: Error, argv: Record<string, any>, output: string) =>
+                        resolve(output),
+                ),
             )
 
             console.error(`${output}\n\n${err.stack}`)

@@ -1,5 +1,5 @@
+import { describe, expect, it, vi } from 'vitest'
 import RequireLibrary from '../src/lib/RequireLibrary.js'
-import { vi, describe, it, expect } from 'vitest'
 
 vi.mock('ts-node', () => ({ default: 'mock module' }))
 
@@ -16,8 +16,11 @@ describe('RequireLibrary', () => {
 
         it('should what to require', async function () {
             const svc = new RequireLibrary()
-            await expect(async () => await svc.import('abcdef xyz'))
-                .toThrowError("Cannot find module 'abcdef xyz' from 'packages/wdio-config/src/lib/RequireLibrary.ts'")
+            await expect(
+                async () => await svc.import('abcdef xyz'),
+            ).toThrowError(
+                "Cannot find module 'abcdef xyz' from 'packages/wdio-config/src/lib/RequireLibrary.ts'",
+            )
         })
     })
 })

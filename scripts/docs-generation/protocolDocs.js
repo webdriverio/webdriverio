@@ -1,13 +1,16 @@
 import fs from 'node:fs'
+import { createRequire } from 'node:module'
 import path from 'node:path'
 import url from 'node:url'
-import { createRequire } from 'node:module'
 
 import ejs from 'ejs'
 
 import {
-    PROTOCOLS, PROTOCOL_NAMES, MOBILE_PROTOCOLS, VENDOR_PROTOCOLS,
-    PROTOCOL_API_DESCRIPTION
+    MOBILE_PROTOCOLS,
+    PROTOCOLS,
+    PROTOCOL_API_DESCRIPTION,
+    PROTOCOL_NAMES,
+    VENDOR_PROTOCOLS,
 } from '../constants.js'
 
 const require = createRequire(import.meta.url)
@@ -24,8 +27,10 @@ const API_DOCS_ROOT_DIR = path.join(PROJECT_ROOT_DIR, 'docs', category)
  * Generate Protocol docs
  * @param {object} sidebars website/sidebars
  */
-export function generateProtocolDocs (sidebars) {
-    fs.mkdir(API_DOCS_ROOT_DIR, { recursive: true }, (err) => console.error(err))
+export function generateProtocolDocs(sidebars) {
+    fs.mkdir(API_DOCS_ROOT_DIR, { recursive: true }, (err) =>
+        console.error(err),
+    )
     const template = fs.readFileSync(TEMPLATE_PATH, 'utf8')
     const protocolDocs = {}
 
@@ -34,9 +39,9 @@ export function generateProtocolDocs (sidebars) {
         label: 'Protocols',
         link: {
             type: 'doc',
-            id: 'api/protocols'
+            id: 'api/protocols',
         },
-        items: []
+        items: [],
     }
 
     for (const [protocolName, definition] of Object.entries(PROTOCOLS)) {
@@ -44,18 +49,30 @@ export function generateProtocolDocs (sidebars) {
 
         for (const [, methods] of Object.entries(definition)) {
             for (const [, description] of Object.entries(methods)) {
-                description.paramTags = [...(description.variables || []).map((variable) => {
-                    return Object.assign(variable, { required: true, type: 'String' })
-                }), ...description.parameters || []]
+                description.paramTags = [
+                    ...(description.variables || []).map((variable) => {
+                        return Object.assign(variable, {
+                            required: true,
+                            type: 'String',
+                        })
+                    }),
+                    ...(description.parameters || []),
+                ]
 
                 description.hasHeader = true
-                description.paramString = description.paramTags.map((param) => param.name).join(', ')
-                description.examples = (description.examples || []).map((example) => {
-                    return {
-                        code: Array.isArray(example) ? example.join('\n') : example,
-                        format: 'js'
-                    }
-                })
+                description.paramString = description.paramTags
+                    .map((param) => param.name)
+                    .join(', ')
+                description.examples = (description.examples || []).map(
+                    (example) => {
+                        return {
+                            code: Array.isArray(example)
+                                ? example.join('\n')
+                                : example,
+                            format: 'js',
+                        }
+                    },
+                )
                 description.returnTags = [] // tbd
                 description.throwsTags = [] // tbd
                 description.isMobile = MOBILE_PROTOCOLS.includes(protocolName)
@@ -77,23 +94,35 @@ export function generateProtocolDocs (sidebars) {
                     description.description = protocolNote
                 }
 
-                const markdown = ejs.render(template, { docfiles: [description] }, { delimiter: '?' })
+                const markdown = ejs.render(
+                    template,
+                    { docfiles: [description] },
+                    { delimiter: '?' },
+                )
                 if (!protocolDocs[protocolName]) {
-                    protocolDocs[protocolName] = [[
-                        '---',
-                        `id: ${protocolName}`,
-                        `title: ${protocol}`,
-                        `custom_edit_url: https://github.com/webdriverio/webdriverio/edit/main/packages/wdio-protocols/protocols/${protocolName}.json`,
-                        '---\n',
-                        'import Tabs from \'@theme/Tabs\';',
-                        'import TabItem from \'@theme/TabItem\';\n'
-                    ].join('\n')]
+                    protocolDocs[protocolName] = [
+                        [
+                            '---',
+                            `id: ${protocolName}`,
+                            `title: ${protocol}`,
+                            `custom_edit_url: https://github.com/webdriverio/webdriverio/edit/main/packages/wdio-protocols/protocols/${protocolName}.json`,
+                            '---\n',
+                            "import Tabs from '@theme/Tabs';",
+                            "import TabItem from '@theme/TabItem';\n",
+                        ].join('\n'),
+                    ]
 
                     /**
                      * include API description if existent
                      */
-                    if (Object.keys(PROTOCOL_API_DESCRIPTION).includes(protocolName)) {
-                        protocolDocs[protocolName].push(PROTOCOL_API_DESCRIPTION[protocolName])
+                    if (
+                        Object.keys(PROTOCOL_API_DESCRIPTION).includes(
+                            protocolName,
+                        )
+                    ) {
+                        protocolDocs[protocolName].push(
+                            PROTOCOL_API_DESCRIPTION[protocolName],
+                        )
                     }
                 }
                 protocolDocs[protocolName].push(markdown)
@@ -102,7 +131,9 @@ export function generateProtocolDocs (sidebars) {
 
         const docPath = path.join(API_DOCS_ROOT_DIR, `_${protocolName}.md`)
         const [preemble, ...apiDocs] = protocolDocs[protocolName]
-        fs.writeFileSync(docPath, preemble + apiDocs.join('\n---\n'), { encoding: 'utf-8' })
+        fs.writeFileSync(docPath, preemble + apiDocs.join('\n---\n'), {
+            encoding: 'utf-8',
+        })
 
         // eslint-disable-next-line no-console
         console.log(`Generated docs for ${protocolName} protocol`)

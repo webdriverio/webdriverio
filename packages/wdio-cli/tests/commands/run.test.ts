@@ -1,40 +1,40 @@
-import { vi, describe, it, expect, afterEach, beforeEach } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 // @ts-expect-error mock
-import { yargs } from 'yargs'
-import fs from 'node:fs/promises'
 import cp from 'node:child_process'
-import * as runCmd from '../../src/commands/run.js'
+import fs from 'node:fs/promises'
+import { yargs } from 'yargs'
 import * as configCmd from '../../src/commands/config.js'
+import * as runCmd from '../../src/commands/run.js'
 
 vi.mock('yargs')
 vi.mock('node:child_process', () => ({
     default: {
-        spawn: vi.fn()
-    }
+        spawn: vi.fn(),
+    },
 }))
 vi.mock('node:fs/promises', () => ({
     default: {
         access: vi.fn().mockResolvedValue(true),
-        readFile: vi.fn()
-    }
+        readFile: vi.fn(),
+    },
 }))
 vi.mock('./../../src/launcher', () => ({
     default: class {
         run() {
             return {
                 then: vi.fn().mockReturnValue({
-                    catch: vi.fn().mockReturnValue('launcher-mock')
-                })
+                    catch: vi.fn().mockReturnValue('launcher-mock'),
+                }),
             }
         }
-    }
+    },
 }))
 vi.mock('./../../src/watcher', () => ({
     default: class {
         watch() {
             return 'watching-test'
         }
-    }
+    },
 }))
 
 describe('Command: run', () => {
@@ -43,20 +43,24 @@ describe('Command: run', () => {
 
     beforeEach(() => {
         vi.mocked(fs.access).mockClear()
-        vi.spyOn(configCmd, 'missingConfigurationPrompt').mockImplementation((): Promise<never> => {
-            return undefined as never
-        })
+        vi.spyOn(configCmd, 'missingConfigurationPrompt').mockImplementation(
+            (): Promise<never> => {
+                return undefined as never
+            },
+        )
         vi.spyOn(console, 'error')
         vi.spyOn(process, 'openStdin').mockImplementation(
-            () => ({ setEncoding: setEncodingMock, on: onMock }) as any)
+            () => ({ setEncoding: setEncodingMock, on: onMock } as any),
+        )
     })
 
     it('should call missingConfigurationPrompt if no config found', async () => {
         vi.mocked(fs.access).mockRejectedValueOnce('not found')
         await runCmd.handler({ configPath: 'sample.conf.js' } as any)
         expect(configCmd.missingConfigurationPrompt).toHaveBeenCalledTimes(1)
-        expect(vi.mocked(configCmd.missingConfigurationPrompt).mock.calls[0][1])
-            .toContain('sample.conf.js')
+        expect(
+            vi.mocked(configCmd.missingConfigurationPrompt).mock.calls[0][1],
+        ).toContain('sample.conf.js')
     })
 
     it('should use local conf if nothing defined', async () => {
@@ -65,7 +69,10 @@ describe('Command: run', () => {
     })
 
     it('should use Watcher if "--watch" flag is passed', async () => {
-        const watcher = await runCmd.handler({ configPath: 'foo/bar', watch: true } as any)
+        const watcher = await runCmd.handler({
+            configPath: 'foo/bar',
+            watch: true,
+        } as any)
 
         expect(watcher).toBe('watching-test')
     })
@@ -111,8 +118,9 @@ describe('Command: run', () => {
             vi.mocked(cp.spawn).mockReturnValue({ on: vi.fn() } as any)
             const p = await runCmd.launch('/wdio.conf.ts', {})
             expect(cp.spawn).toBeCalledTimes(1)
-            expect(vi.mocked(cp.spawn).mock.calls[0][2].env?.NODE_OPTIONS)
-                .toContain('--loader ts-node/esm/transpile-only')
+            expect(
+                vi.mocked(cp.spawn).mock.calls[0][2].env?.NODE_OPTIONS,
+            ).toContain('--loader ts-node/esm/transpile-only')
             expect(p?.on).toBeCalledWith('close', expect.any(Function))
         })
 

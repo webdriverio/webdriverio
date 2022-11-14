@@ -1,17 +1,17 @@
+import { ChildProcessByStdio, spawn } from 'node:child_process'
 import fs from 'node:fs'
 import fsp from 'node:fs/promises'
-import path from 'node:path'
-import { ChildProcessByStdio, spawn } from 'node:child_process'
-import { promisify } from 'node:util'
-import { Readable } from 'node:stream'
 import { createRequire } from 'node:module'
+import path from 'node:path'
+import { Readable } from 'node:stream'
+import { promisify } from 'node:util'
 
-import logger from '@wdio/logger'
 import { isCloudCapability } from '@wdio/config'
-import type { Services, Capabilities, Options } from '@wdio/types'
+import logger from '@wdio/logger'
+import type { Capabilities, Options, Services } from '@wdio/types'
 
-import { getFilePath, formatCliArgs } from './utils.js'
 import type { AppiumServerArguments, AppiumServiceConfig } from './types'
+import { formatCliArgs, getFilePath } from './utils.js'
 
 const log = logger('@wdio/appium-service')
 const DEFAULT_LOG_FILENAME = 'wdio-appium.log'
@@ -20,7 +20,7 @@ const DEFAULT_CONNECTION = {
     protocol: 'http',
     hostname: '127.0.0.1',
     port: 4723,
-    path: '/'
+    path: '/',
 }
 
 export default class AppiumLauncher implements Services.ServiceInstance {
@@ -33,11 +33,11 @@ export default class AppiumLauncher implements Services.ServiceInstance {
     constructor(
         private _options: AppiumServiceConfig,
         private _capabilities: Capabilities.RemoteCapabilities,
-        private _config?: Options.Testrunner
+        private _config?: Options.Testrunner,
     ) {
         this._args = {
             basePath: DEFAULT_CONNECTION.path,
-            ...(this._options.args || {})
+            ...(this._options.args || {}),
         }
         this._logPath = _options.logPath || this._config?.outputDir
         this._command = this._getCommand(_options.command)
@@ -74,27 +74,36 @@ export default class AppiumLauncher implements Services.ServiceInstance {
          */
         if (!Array.isArray(this._capabilities)) {
             for (const [, capability] of Object.entries(this._capabilities)) {
-                const cap = (capability.capabilities as Capabilities.W3CCapabilities) || capability
-                const c = (cap as Capabilities.W3CCapabilities).alwaysMatch || cap
-                !isCloudCapability(c) && Object.assign(
-                    capability,
-                    DEFAULT_CONNECTION,
-                    'port' in this._args ? { port: this._args.port } : {},
-                    { path: this._args.basePath },
-                    { ...capability }
-                )
+                const cap =
+                    (capability.capabilities as Capabilities.W3CCapabilities) ||
+                    capability
+                const c =
+                    (cap as Capabilities.W3CCapabilities).alwaysMatch || cap
+                !isCloudCapability(c) &&
+                    Object.assign(
+                        capability,
+                        DEFAULT_CONNECTION,
+                        'port' in this._args ? { port: this._args.port } : {},
+                        { path: this._args.basePath },
+                        { ...capability },
+                    )
             }
             return
         }
 
         this._capabilities.forEach(
-            (cap) => !isCloudCapability((cap as Capabilities.W3CCapabilities).alwaysMatch || cap) && Object.assign(
-                cap,
-                DEFAULT_CONNECTION,
-                'port' in this._args ? { port: this._args.port } : {},
-                { path: this._args.basePath },
-                { ...cap }
-            ))
+            (cap) =>
+                !isCloudCapability(
+                    (cap as Capabilities.W3CCapabilities).alwaysMatch || cap,
+                ) &&
+                Object.assign(
+                    cap,
+                    DEFAULT_CONNECTION,
+                    'port' in this._args ? { port: this._args.port } : {},
+                    { path: this._args.basePath },
+                    { ...cap },
+                ),
+        )
     }
 
     async onPrepare() {
@@ -108,7 +117,10 @@ export default class AppiumLauncher implements Services.ServiceInstance {
         /**
          * start Appium
          */
-        this._process = await promisify(this._startAppium)(this._command, this._appiumCliArgs)
+        this._process = await promisify(this._startAppium)(
+            this._command,
+            this._appiumCliArgs,
+        )
 
         if (this._logPath) {
             this._redirectLogStream(this._logPath)
@@ -122,9 +134,17 @@ export default class AppiumLauncher implements Services.ServiceInstance {
         }
     }
 
-    private _startAppium(command: string, args: Array<string>, callback: (err: any, result: any) => void): void {
+    private _startAppium(
+        command: string,
+        args: Array<string>,
+        callback: (err: any, result: any) => void,
+    ): void {
         log.debug(`Will spawn Appium process: ${command} ${args.join(' ')}`)
-        let process: ChildProcessByStdio<null, Readable, Readable> = spawn(command, args, { stdio: ['ignore', 'pipe', 'pipe'] })
+        let process: ChildProcessByStdio<null, Readable, Readable> = spawn(
+            command,
+            args,
+            { stdio: ['ignore', 'pipe', 'pipe'] },
+        )
         let error: Error | undefined
 
         process.stdout.on('data', (data) => {
@@ -137,12 +157,17 @@ export default class AppiumLauncher implements Services.ServiceInstance {
         /**
          * only capture first error to print it in case Appium failed to start.
          */
-        process.stderr.once('data', err => { error = err })
+        process.stderr.once('data', (err) => {
+            error = err
+        })
 
-        process.once('exit', exitCode => {
+        process.once('exit', (exitCode) => {
             let errorMessage = `Appium exited before timeout (exit code: ${exitCode})`
             if (exitCode == 2) {
-                errorMessage += '\n' + (error || 'Check that you don\'t already have a running Appium service.')
+                errorMessage +=
+                    '\n' +
+                    (error ||
+                        "Check that you don't already have a running Appium service.")
                 log.error(errorMessage)
             }
             callback(new Error(errorMessage), null)
@@ -150,7 +175,7 @@ export default class AppiumLauncher implements Services.ServiceInstance {
     }
 
     private async _redirectLogStream(logPath: string) {
-        if (!this._process){
+        if (!this._process) {
             throw Error('No Appium process to redirect log stream')
         }
         const logFile = getFilePath(logPath, DEFAULT_LOG_FILENAME)
@@ -164,16 +189,16 @@ export default class AppiumLauncher implements Services.ServiceInstance {
         this._process.stderr.pipe(logStream)
     }
 
-    private static _getAppiumCommand (moduleName = 'appium') {
+    private static _getAppiumCommand(moduleName = 'appium') {
         try {
             const require = createRequire(import.meta.url)
             return require.resolve(moduleName)
         } catch (err: any) {
             log.error(
                 'Appium is not installed locally.\n' +
-                'If you use globally installed appium please add\n' +
-                "appium: { command: 'appium' }\n" +
-                'to your wdio.conf.js!'
+                    'If you use globally installed appium please add\n' +
+                    "appium: { command: 'appium' }\n" +
+                    'to your wdio.conf.js!',
             )
             throw err
         }

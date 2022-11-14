@@ -1,6 +1,6 @@
+import type DevToolsDriver from '../devtoolsdriver'
 import command from '../scripts/elementClear.js'
 import { getStaleElementError } from '../utils.js'
-import type DevToolsDriver from '../devtoolsdriver'
 
 /**
  * The Element Clear command scrolls into view an editable or resettable element and then attempts
@@ -10,9 +10,9 @@ import type DevToolsDriver from '../devtoolsdriver'
  * @see https://w3c.github.io/webdriver/#dfn-element-clear
  * @param {string} elementId  the id of an element returned in a previous call to Find Element(s)
  */
-export default async function elementClear (
+export default async function elementClear(
     this: DevToolsDriver,
-    { elementId }: { elementId: string }
+    { elementId }: { elementId: string },
 ) {
     const elementHandle = await this.elementStore.get(elementId)
     if (!elementHandle) {

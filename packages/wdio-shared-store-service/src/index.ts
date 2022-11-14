@@ -1,4 +1,4 @@
-import type { JsonPrimitive, JsonCompatible } from '@wdio/types'
+import type { JsonCompatible, JsonPrimitive } from '@wdio/types'
 
 import SharedStoreLauncher from './launcher.js'
 import SharedStoreService from './service.js'
@@ -9,19 +9,19 @@ export const launcher = SharedStoreLauncher
 
 export interface BrowserExtension {
     sharedStore: {
-        get: (key: string) => JsonPrimitive | JsonCompatible;
-        set: (key: string, value: JsonPrimitive | JsonCompatible) => void;
+        get: (key: string) => JsonPrimitive | JsonCompatible
+        set: (key: string, value: JsonPrimitive | JsonCompatible) => void
     }
 }
 
 declare global {
     namespace WebdriverIOAsync {
-        interface Browser extends BrowserExtension { }
-        interface MultiRemoteBrowser extends BrowserExtension { }
+        interface Browser extends BrowserExtension {}
+        interface MultiRemoteBrowser extends BrowserExtension {}
     }
 
     namespace WebdriverIOSync {
-        interface Browser extends BrowserExtension { }
-        interface MultiRemoteBrowser extends BrowserExtension { }
+        interface Browser extends BrowserExtension {}
+        interface MultiRemoteBrowser extends BrowserExtension {}
     }
 }

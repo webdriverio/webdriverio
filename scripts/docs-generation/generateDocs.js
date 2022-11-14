@@ -1,19 +1,19 @@
 #!/usr/bin/env node
 import fs from 'node:fs'
-import url from 'node:url'
 import path from 'node:path'
+import url from 'node:url'
 
 import sidebars from '../../website/_sidebars.json' assert { type: 'json' }
-import { generateProtocolDocs } from './protocolDocs.js'
-import { generateWdioDocs } from './wdioDocs.js'
-import { generateReportersAndServicesDocs } from './packagesDocs.js'
 import { generate3rdPartyDocs } from './3rdPartyDocs.js'
 import { copyContributingDocs } from './copyContributingDocs.js'
 import { downloadAwesomeResources } from './downloadAwesomeResources.js'
+import { generateReportersAndServicesDocs } from './packagesDocs.js'
+import { generateProtocolDocs } from './protocolDocs.js'
+import { generateWdioDocs } from './wdioDocs.js'
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 
-function print (title) {
+function print(title) {
     console.log(`
 //////////////////////////////////////////////////
 ${title}
@@ -24,7 +24,7 @@ function writeSidebars(sidebars) {
     fs.writeFileSync(
         path.join(__dirname, '..', '..', 'website', 'sidebars.json'),
         JSON.stringify(sidebars, null, 2),
-        { encoding: 'utf-8' }
+        { encoding: 'utf-8' },
     )
 }
 
@@ -53,4 +53,3 @@ try {
     console.error(err)
     process.exit(1)
 }
-

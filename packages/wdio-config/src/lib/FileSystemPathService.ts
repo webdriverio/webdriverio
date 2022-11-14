@@ -1,10 +1,10 @@
-import fs from 'node:fs'
-import url from 'node:url'
-import path from 'node:path'
 import glob from 'glob'
+import fs from 'node:fs'
+import path from 'node:path'
+import url from 'node:url'
 
+import type { ModuleImportService, PathService } from '../types'
 import RequireLibrary from './RequireLibrary.js'
-import type { PathService, ModuleImportService } from '../types'
 
 export default class FileSystemPathService implements PathService {
     #moduleRequireService: ModuleImportService = new RequireLibrary()
@@ -17,7 +17,7 @@ export default class FileSystemPathService implements PathService {
     }
 
     isFile(filepath: string): boolean {
-        return (fs.existsSync(filepath) && fs.lstatSync(filepath).isFile())
+        return fs.existsSync(filepath) && fs.lstatSync(filepath).isFile()
     }
 
     /**
@@ -27,10 +27,13 @@ export default class FileSystemPathService implements PathService {
      * @returns files matching the glob pattern
      */
     glob(pattern: string, rootDir: string): string[] {
-        const globResult = glob.sync(pattern, {
-            cwd: rootDir
-        }) || []
-        const fileName = pattern.startsWith(path.sep) ? pattern : path.resolve(rootDir, pattern)
+        const globResult =
+            glob.sync(pattern, {
+                cwd: rootDir,
+            }) || []
+        const fileName = pattern.startsWith(path.sep)
+            ? pattern
+            : path.resolve(rootDir, pattern)
         /**
          * given that glob treats characters like `[` or `{` in a special way
          * and we also want to be able to find files with these characters included
@@ -39,7 +42,11 @@ export default class FileSystemPathService implements PathService {
          * and globResult doest contain the fileName
          * and file should be available
          */
-        if (!pattern.includes('*') && !globResult.includes(fileName) && fs.existsSync(fileName)) {
+        if (
+            !pattern.includes('*') &&
+            !globResult.includes(fileName) &&
+            fs.existsSync(fileName)
+        ) {
             globResult.push(fileName)
         }
         return globResult

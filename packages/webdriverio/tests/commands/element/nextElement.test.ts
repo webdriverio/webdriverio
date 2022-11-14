@@ -1,17 +1,20 @@
 import path from 'node:path'
-import { expect, describe, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import { remote } from '../../../src/index.js'
 
 vi.mock('got')
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock(
+    '@wdio/logger',
+    () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')),
+)
 
 describe('next element sibling test', () => {
     it('should return next sibling of an element', async () => {
         const browser = await remote({
             capabilities: {
-                browserName: 'foobar'
-            }
+                browserName: 'foobar',
+            },
         })
         const elem = await browser.$('#foo')
         const nextEl = await elem.nextElement()
@@ -24,14 +27,15 @@ describe('next element sibling test', () => {
             waitforInterval: 1,
             waitforTimeout: 1,
             capabilities: {
-                browserName: 'foobar'
-            }
+                browserName: 'foobar',
+            },
         })
         const elem = await browser.$$('#foo')
         const nextElem = await elem[2].nextElement()
 
         const err = await nextElem.click().catch((err) => err)
-        expect(err.message)
-            .toContain('next element of element with selector "#foo"')
+        expect(err.message).toContain(
+            'next element of element with selector "#foo"',
+        )
     })
 })

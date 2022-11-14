@@ -1,11 +1,14 @@
-import { vi, describe, it, expect, afterEach, beforeEach } from 'vitest'
-import { launch, cmdArgs } from '../src/commands/run.js'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { cmdArgs, launch } from '../src/commands/run.js'
 import Launcher from '../src/launcher.js'
 
 vi.mock('../src/launcher', () => ({
     default: vi.fn().mockImplementation((conf, result) => ({
-        run: () => Number.isInteger(result) ? Promise.resolve(result) : Promise.reject(result)
-    }))
+        run: () =>
+            Number.isInteger(result)
+                ? Promise.resolve(result)
+                : Promise.reject(result),
+    })),
 }))
 
 describe('launch', () => {
@@ -43,7 +46,7 @@ describe('launch', () => {
 
 describe('cmdArgs', () => {
     it('should not have default', () => {
-        Object.values(cmdArgs).forEach(cmdArg => {
+        Object.values(cmdArgs).forEach((cmdArg) => {
             // @ts-ignore test undefined property
             expect(cmdArg.default).toBeUndefined()
         })

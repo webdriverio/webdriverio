@@ -1,24 +1,35 @@
-import url from 'node:url'
 import { EventEmitter } from 'node:events'
+import url from 'node:url'
 
-import Jasmine from 'jasmine'
-import logger from '@wdio/logger'
-import { runTestInFiberContext, executeHooksWithArgs } from '@wdio/utils'
-import { expect } from 'expect-webdriverio'
 import { _setGlobal } from '@wdio/globals'
-import type { Options, Services, Capabilities } from '@wdio/types'
+import logger from '@wdio/logger'
+import type { Capabilities, Options, Services } from '@wdio/types'
+import { executeHooksWithArgs, runTestInFiberContext } from '@wdio/utils'
+import { expect } from 'expect-webdriverio'
+import Jasmine from 'jasmine'
 
 import JasmineReporter from './reporter.js'
 import type {
-    JasmineOpts as jasmineNodeOpts, ResultHandlerPayload, FrameworkMessage, FormattedMessage
+    FormattedMessage,
+    FrameworkMessage,
+    JasmineOpts as jasmineNodeOpts,
+    ResultHandlerPayload,
 } from './types'
 
 const INTERFACES = {
-    bdd: ['beforeAll', 'beforeEach', 'it', 'xit', 'fit', 'afterEach', 'afterAll']
+    bdd: [
+        'beforeAll',
+        'beforeEach',
+        'it',
+        'xit',
+        'fit',
+        'afterEach',
+        'afterAll',
+    ],
 }
 
 const TEST_INTERFACES = ['it', 'fit', 'xit']
-const NOOP = function noop() { }
+const NOOP = function noop() {}
 const DEFAULT_TIMEOUT_INTERVAL = 60000
 const FILE_PROTOCOL = 'file://'
 
@@ -28,7 +39,9 @@ type HooksArray = {
     [K in keyof Required<Services.HookFunctions>]: Required<Services.HookFunctions>[K][]
 }
 
-interface WebdriverIOJasmineConfig extends Omit<Options.Testrunner, keyof HooksArray>, HooksArray {
+interface WebdriverIOJasmineConfig
+    extends Omit<Options.Testrunner, keyof HooksArray>,
+        HooksArray {
     jasmineOpts: Omit<jasmineNodeOpts, 'cleanStack'>
 }
 
@@ -50,20 +63,21 @@ class JasmineAdapter {
         private _config: WebdriverIOJasmineConfig,
         private _specs: string[],
         private _capabilities: Capabilities.RemoteCapabilities,
-        reporter: EventEmitter
+        reporter: EventEmitter,
     ) {
-        this._jasmineOpts = Object.assign({
-            cleanStack: true
-        }, (
+        this._jasmineOpts = Object.assign(
+            {
+                cleanStack: true,
+            },
             this._config.jasmineOpts ||
-            // @ts-expect-error legacy option
-            this._config.jasmineNodeOpts
-        ))
+                // @ts-expect-error legacy option
+                this._config.jasmineNodeOpts,
+        )
 
         this._reporter = new JasmineReporter(reporter, {
             cid: this._cid,
             specs: this._specs,
-            cleanStack: this._jasmineOpts.cleanStack
+            cleanStack: this._jasmineOpts.cleanStack,
         })
         this._hasTests = true
         this._jrunner.exitOnCompletion = false
@@ -75,72 +89,82 @@ class JasmineAdapter {
         const { jasmine } = this._jrunner
         // @ts-ignore outdated
         const jasmineEnv = jasmine.getEnv()
-        this._specs.forEach((spec) => this._jrunner.addSpecFile(
-            /**
-             * as Jasmine doesn't support file:// formats yet we have to
-             * remove it before adding it to Jasmine
-             */
-            spec.startsWith(FILE_PROTOCOL)
-                ? url.fileURLToPath(spec)
-                : spec
-        ))
+        this._specs.forEach((spec) =>
+            this._jrunner.addSpecFile(
+                /**
+                 * as Jasmine doesn't support file:// formats yet we have to
+                 * remove it before adding it to Jasmine
+                 */
+                spec.startsWith(FILE_PROTOCOL) ? url.fileURLToPath(spec) : spec,
+            ),
+        )
 
         // @ts-ignore only way to hack timeout into jasmine
-        jasmine.DEFAULT_TIMEOUT_INTERVAL = this._jasmineOpts.defaultTimeoutInterval || DEFAULT_TIMEOUT_INTERVAL
+        jasmine.DEFAULT_TIMEOUT_INTERVAL =
+            this._jasmineOpts.defaultTimeoutInterval || DEFAULT_TIMEOUT_INTERVAL
         jasmineEnv.addReporter(this._reporter)
 
         /**
          * Filter specs to run based on jasmineOpts.grep and jasmineOpts.invert
          */
         jasmineEnv.configure({
-            specFilter: this._jasmineOpts.specFilter || this.customSpecFilter.bind(this),
+            specFilter:
+                this._jasmineOpts.specFilter ||
+                this.customSpecFilter.bind(this),
             stopOnSpecFailure: Boolean(this._jasmineOpts.stopOnSpecFailure),
-            failSpecWithNoExpectations: Boolean(this._jasmineOpts.failSpecWithNoExpectations),
+            failSpecWithNoExpectations: Boolean(
+                this._jasmineOpts.failSpecWithNoExpectations,
+            ),
             failFast: this._jasmineOpts.failFast,
             random: Boolean(this._jasmineOpts.random),
             seed: Boolean(this._jasmineOpts.seed),
             oneFailurePerSpec: Boolean(
                 // depcrecated old property
                 this._jasmineOpts.stopSpecOnExpectationFailure ||
-                this._jasmineOpts.oneFailurePerSpec
-            )
+                    this._jasmineOpts.oneFailurePerSpec,
+            ),
         })
 
         /**
          * enable expectHandler
          */
-        jasmine.Spec.prototype.addExpectationResult = this.getExpectationResultHandler(jasmine)
+        jasmine.Spec.prototype.addExpectationResult =
+            this.getExpectationResultHandler(jasmine)
 
-        const hookArgsFn = (context: unknown): [unknown, unknown] => [{ ...(self._lastTest || {}) }, context]
+        const hookArgsFn = (context: unknown): [unknown, unknown] => [
+            { ...(self._lastTest || {}) },
+            context,
+        ]
 
-        const emitHookEvent = (
-            fnName: string,
-            eventType: string
-        ) => (
-            _test: never,
-            _context: never,
-            { error }: { error?: jasmine.FailedExpectation } = {}
-        ) => {
-            const title = `"${fnName === 'beforeAll' ? 'before' : 'after'} all" hook`
-            const hook = {
-                id: '',
-                start: new Date(),
-                type: 'hook' as const,
-                description: title,
-                fullName: title,
-                duration: null,
-                properties: {},
-                passedExpectations: [],
-                pendingReason: '',
-                failedExpectations: [],
-                deprecationWarnings: [],
-                status: '',
-                debugLogs: null,
-                ...(error ? { error } : {})
+        const emitHookEvent =
+            (fnName: string, eventType: string) =>
+            (
+                _test: never,
+                _context: never,
+                { error }: { error?: jasmine.FailedExpectation } = {},
+            ) => {
+                const title = `"${
+                    fnName === 'beforeAll' ? 'before' : 'after'
+                } all" hook`
+                const hook = {
+                    id: '',
+                    start: new Date(),
+                    type: 'hook' as const,
+                    description: title,
+                    fullName: title,
+                    duration: null,
+                    properties: {},
+                    passedExpectations: [],
+                    pendingReason: '',
+                    failedExpectations: [],
+                    deprecationWarnings: [],
+                    status: '',
+                    debugLogs: null,
+                    ...(error ? { error } : {}),
+                }
+
+                this._reporter.emit('hook:' + eventType, hook)
             }
-
-            this._reporter.emit('hook:' + eventType, hook)
-        }
 
         /**
          * wrap commands
@@ -165,7 +189,7 @@ class JasmineAdapter {
                 isTest ? this._config.afterTest : afterHook,
                 hookArgsFn,
                 fnName,
-                this._cid
+                this._cid,
             )
         })
 
@@ -223,15 +247,16 @@ class JasmineAdapter {
         } catch (err: any) {
             log.warn(
                 'Unable to load spec files quite likely because they rely on `browser` object that is not fully initialised.\n' +
-                '`browser` object has only `capabilities` and some flags like `isMobile`.\n' +
-                'Helper files that use other `browser` commands have to be moved to `before` hook.\n' +
-                `Spec file(s): ${this._specs.join(',')}\n`,
-                'Error: ', err
+                    '`browser` object has only `capabilities` and some flags like `isMobile`.\n' +
+                    'Helper files that use other `browser` commands have to be moved to `before` hook.\n' +
+                    `Spec file(s): ${this._specs.join(',')}\n`,
+                'Error: ',
+                err,
             )
         }
     }
 
-    _grep (suite: jasmine.Suite) {
+    _grep(suite: jasmine.Suite) {
         // @ts-ignore outdated types
         suite.children.forEach((child) => {
             if (Array.isArray((child as jasmine.Suite).children)) {
@@ -256,13 +281,18 @@ class JasmineAdapter {
         await this._jrunner.execute()
 
         const result = this._reporter.getFailedCount()
-        await executeHooksWithArgs('after', this._config.after, [result, this._capabilities, this._specs])
+        await executeHooksWithArgs('after', this._config.after, [
+            result,
+            this._capabilities,
+            this._specs,
+        ])
         return result
     }
 
-    customSpecFilter (spec: jasmine.Spec) {
+    customSpecFilter(spec: jasmine.Spec) {
         const { grep, invertGrep } = this._jasmineOpts
-        const grepMatch = !grep || spec.getFullName().match(new RegExp(grep)) !== null
+        const grepMatch =
+            !grep || spec.getFullName().match(new RegExp(grep)) !== null
 
         if (grepMatch === Boolean(invertGrep)) {
             // @ts-expect-error internal method
@@ -278,40 +308,45 @@ class JasmineAdapter {
     /**
      * Hooks which are added as true Jasmine hooks need to call done() to notify async
      */
-    wrapHook (hookName: keyof Services.HookFunctions) {
-        return () => executeHooksWithArgs(
-            hookName,
-            this._config[hookName],
-            [this.prepareMessage(hookName)]
-        ).catch((e) => {
-            log.info(`Error in ${hookName} hook: ${e.stack.slice(7)}`)
-        })
+    wrapHook(hookName: keyof Services.HookFunctions) {
+        return () =>
+            executeHooksWithArgs(hookName, this._config[hookName], [
+                this.prepareMessage(hookName),
+            ]).catch((e) => {
+                log.info(`Error in ${hookName} hook: ${e.stack.slice(7)}`)
+            })
     }
 
-    prepareMessage (hookName: keyof Services.HookFunctions) {
+    prepareMessage(hookName: keyof Services.HookFunctions) {
         const params: FrameworkMessage = { type: hookName }
 
         switch (hookName) {
-        case 'beforeSuite':
-        case 'afterSuite':
-            params.payload = Object.assign({
-                file: this._jrunner?.specFiles[0]
-            }, this._lastSpec)
-            break
-        case 'beforeTest':
-        case 'afterTest':
-            params.payload = Object.assign({
-                file: this._jrunner?.specFiles[0]
-            }, this._lastTest)
-            break
+            case 'beforeSuite':
+            case 'afterSuite':
+                params.payload = Object.assign(
+                    {
+                        file: this._jrunner?.specFiles[0],
+                    },
+                    this._lastSpec,
+                )
+                break
+            case 'beforeTest':
+            case 'afterTest':
+                params.payload = Object.assign(
+                    {
+                        file: this._jrunner?.specFiles[0],
+                    },
+                    this._lastTest,
+                )
+                break
         }
 
         return this.formatMessage(params)
     }
 
-    formatMessage (params: FrameworkMessage) {
+    formatMessage(params: FrameworkMessage) {
         let message: FormattedMessage = {
-            type: params.type
+            type: params.type,
         }
 
         if (params.payload) {
@@ -319,7 +354,10 @@ class JasmineAdapter {
             message.fullName = params.payload.fullName || null
             message.file = params.payload.file
 
-            if (params.payload.failedExpectations && params.payload.failedExpectations.length) {
+            if (
+                params.payload.failedExpectations &&
+                params.payload.failedExpectations.length
+            ) {
                 message.errors = params.payload.failedExpectations
                 message.error = params.payload.failedExpectations[0]
             }
@@ -341,7 +379,7 @@ class JasmineAdapter {
         return message
     }
 
-    getExpectationResultHandler (jasmine: jasmine.Jasmine) {
+    getExpectationResultHandler(jasmine: jasmine.Jasmine) {
         let { expectationResultHandler } = this._jasmineOpts
         const origHandler = jasmine.Spec.prototype.addExpectationResult
 
@@ -352,9 +390,13 @@ class JasmineAdapter {
         return this.expectationResultHandler(origHandler)
     }
 
-    expectationResultHandler (origHandler: Function) {
+    expectationResultHandler(origHandler: Function) {
         const { expectationResultHandler } = this._jasmineOpts
-        return function (this: jasmine.Spec, passed: boolean, data: ResultHandlerPayload) {
+        return function (
+            this: jasmine.Spec,
+            passed: boolean,
+            data: ResultHandlerPayload,
+        ) {
             try {
                 expectationResultHandler!.call(this, passed, data)
             } catch (e: any) {
@@ -367,7 +409,7 @@ class JasmineAdapter {
                     data = {
                         passed,
                         message: 'expectationResultHandlerError: ' + e.message,
-                        error: e
+                        error: e,
                     }
                 }
             }
@@ -386,8 +428,8 @@ adapterFactory.init = async function (...args: any[]) {
 }
 
 export default adapterFactory
-export { JasmineAdapter, adapterFactory }
 export * from './types.js'
+export { JasmineAdapter, adapterFactory }
 
 type jasmine = typeof Jasmine
 declare global {
@@ -399,7 +441,12 @@ declare global {
      * @param timeout Custom timeout for an async spec.
      * @param retries Custom retry count for this single spec (WebdriverIO specific)
      */
-    function it(expectation: string, assertion?: jasmine.ImplementationCallback, timeout?: number, retries?: number): void;
+    function it(
+        expectation: string,
+        assertion?: jasmine.ImplementationCallback,
+        timeout?: number,
+        retries?: number,
+    ): void
 
     /**
      * A focused `it`. If suites or specs are focused, only those that are focused will be executed.
@@ -408,7 +455,12 @@ declare global {
      * @param timeout Custom timeout for an async spec.
      * @param retries Custom retry count for this single spec (WebdriverIO specific)
      */
-    function fit(expectation: string, assertion?: jasmine.ImplementationCallback, timeout?: number, retries?: number): void;
+    function fit(
+        expectation: string,
+        assertion?: jasmine.ImplementationCallback,
+        timeout?: number,
+        retries?: number,
+    ): void
 
     /**
      * A temporarily disabled `it`. The spec will report as pending and will not be executed.
@@ -417,7 +469,12 @@ declare global {
      * @param timeout Custom timeout for an async spec.
      * @param retries Custom retry count for this single spec (WebdriverIO specific)
      */
-    function xit(expectation: string, assertion?: jasmine.ImplementationCallback, timeout?: number, retries?: number): void;
+    function xit(
+        expectation: string,
+        assertion?: jasmine.ImplementationCallback,
+        timeout?: number,
+        retries?: number,
+    ): void
 
     /**
      * Run some shared setup before each of the specs in the describe in which it is called.
@@ -425,7 +482,11 @@ declare global {
      * @param timeout Custom timeout for an async beforeEach.
      * @param retries Custom retry count for this single hook (WebdriverIO specific)
      */
-    function beforeEach(action: jasmine.ImplementationCallback, timeout?: number, retries?: number): void;
+    function beforeEach(
+        action: jasmine.ImplementationCallback,
+        timeout?: number,
+        retries?: number,
+    ): void
 
     /**
      * Run some shared teardown after each of the specs in the describe in which it is called.
@@ -433,7 +494,11 @@ declare global {
      * @param timeout Custom timeout for an async afterEach.
      * @param retries Custom retry count for this single hook (WebdriverIO specific)
      */
-    function afterEach(action: jasmine.ImplementationCallback, timeout?: number, retries?: number): void;
+    function afterEach(
+        action: jasmine.ImplementationCallback,
+        timeout?: number,
+        retries?: number,
+    ): void
 
     /**
      * Run some shared setup once before all of the specs in the describe are run.
@@ -442,7 +507,11 @@ declare global {
      * @param timeout Custom timeout for an async beforeAll.
      * @param retries Custom retry count for this single hook (WebdriverIO specific)
      */
-    function beforeAll(action: jasmine.ImplementationCallback, timeout?: number, retries?: number): void;
+    function beforeAll(
+        action: jasmine.ImplementationCallback,
+        timeout?: number,
+        retries?: number,
+    ): void
 
     /**
      * Run some shared teardown once before all of the specs in the describe are run.
@@ -451,7 +520,11 @@ declare global {
      * @param timeout Custom timeout for an async afterAll
      * @param retries Custom retry count for this single hook (WebdriverIO specific)
      */
-    function afterAll(action: jasmine.ImplementationCallback, timeout?: number, retries?: number): void;
+    function afterAll(
+        action: jasmine.ImplementationCallback,
+        timeout?: number,
+        retries?: number,
+    ): void
 
     namespace WebdriverIO {
         interface JasmineOpts extends jasmineNodeOpts {}

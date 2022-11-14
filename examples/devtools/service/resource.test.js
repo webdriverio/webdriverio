@@ -5,7 +5,7 @@ describe('pageWeight', () => {
         browser.enablePerformanceAudits({
             networkThrottling: 'online',
             cpuThrottling: 0,
-            cacheEnabled: false
+            cacheEnabled: false,
         })
         browser.url('/')
         const pageWeight = browser.getPageWeight()

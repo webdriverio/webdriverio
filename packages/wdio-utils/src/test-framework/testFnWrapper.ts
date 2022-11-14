@@ -1,12 +1,12 @@
+import { executeAsync, executeHooksWithArgs } from '../shim.js'
 import { logHookError } from './errorHandler.js'
-import { executeHooksWithArgs, executeAsync } from '../shim.js'
 
 import type {
-    WrapperMethods,
-    SpecFunction,
-    BeforeHookParam,
     AfterHookParam,
-    JasmineContext
+    BeforeHookParam,
+    JasmineContext,
+    SpecFunction,
+    WrapperMethods,
 } from './types'
 
 const STACKTRACE_FILTER = [
@@ -35,10 +35,14 @@ export const testFnWrapper = function (
         BeforeHookParam<unknown>,
         AfterHookParam<unknown>,
         string,
-        number
+        number,
     ]
 ) {
-    return testFrameworkFnWrapper.call(this, { executeHooksWithArgs, executeAsync }, ...args)
+    return testFrameworkFnWrapper.call(
+        this,
+        { executeHooksWithArgs, executeAsync },
+        ...args,
+    )
 }
 
 /**
@@ -61,11 +65,15 @@ export const testFrameworkFnWrapper = async function (
     { beforeFn, beforeFnArgs }: BeforeHookParam<unknown>,
     { afterFn, afterFnArgs }: AfterHookParam<unknown>,
     cid: string,
-    repeatTest = 0
+    repeatTest = 0,
 ) {
     const retries = { attempts: 0, limit: repeatTest }
     const beforeArgs = beforeFnArgs(this)
-    await logHookError(`Before${type}`, await executeHooksWithArgs(`before${type}`, beforeFn, beforeArgs), cid)
+    await logHookError(
+        `Before${type}`,
+        await executeHooksWithArgs(`before${type}`, beforeFn, beforeArgs),
+        cid,
+    )
 
     let result
     let error
@@ -88,8 +96,14 @@ export const testFrameworkFnWrapper = async function (
      * (in Jasmine failing assertions are not causing the test to throw as
      * oppose to other common assertion libraries like chai)
      */
-    if (!error && afterArgs[0] && (afterArgs as [JasmineContext, unknown])[0].failedExpectations && (afterArgs as [JasmineContext, unknown])[0].failedExpectations.length) {
-        error = (afterArgs as [JasmineContext, unknown])[0].failedExpectations[0]
+    if (
+        !error &&
+        afterArgs[0] &&
+        (afterArgs as [JasmineContext, unknown])[0].failedExpectations &&
+        (afterArgs as [JasmineContext, unknown])[0].failedExpectations.length
+    ) {
+        error = (afterArgs as [JasmineContext, unknown])[0]
+            .failedExpectations[0]
     }
 
     afterArgs.push({
@@ -97,10 +111,14 @@ export const testFrameworkFnWrapper = async function (
         error,
         result,
         duration,
-        passed: !error
+        passed: !error,
     })
 
-    await logHookError(`After${type}`, await executeHooksWithArgs(`after${type}`, afterFn, [...afterArgs]), cid)
+    await logHookError(
+        `After${type}`,
+        await executeHooksWithArgs(`after${type}`, afterFn, [...afterArgs]),
+        cid,
+    )
 
     if (error && !error.matcherName) {
         throw error
@@ -116,6 +134,6 @@ export const testFrameworkFnWrapper = async function (
 export const filterStackTrace = (stack: string): string => {
     return stack
         .split('\n')
-        .filter(line => !STACKTRACE_FILTER.some(l => line.includes(l)))
+        .filter((line) => !STACKTRACE_FILTER.some((l) => line.includes(l)))
         .join('\n')
 }

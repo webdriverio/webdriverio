@@ -1,5 +1,5 @@
-import { serializeError } from 'serialize-error'
 import WDIORepl from '@wdio/repl'
+import { serializeError } from 'serialize-error'
 
 /**
  *
@@ -33,7 +33,7 @@ import WDIORepl from '@wdio/repl'
  */
 export default function debug(
     this: WebdriverIO.Browser,
-    commandTimeout = 5000
+    commandTimeout = 5000,
 ) {
     const repl = new WDIORepl()
     const { introMessage } = WDIORepl
@@ -48,7 +48,7 @@ export default function debug(
             browser: this,
             driver: this,
             $: this.$.bind(this),
-            $$: this.$$.bind(this)
+            $$: this.$$.bind(this),
         }
         return repl.start(context)
     }
@@ -64,10 +64,10 @@ export default function debug(
     process.send({
         origin: 'debugger',
         name: 'start',
-        params: { commandTimeout, introMessage }
+        params: { commandTimeout, introMessage },
     })
 
-    let commandResolve = /* istanbul ignore next */ () => { }
+    let commandResolve = /* istanbul ignore next */ () => {}
     process.on('message', (m: any) => {
         if (m.origin !== 'debugger') {
             return
@@ -80,35 +80,40 @@ export default function debug(
 
         /* istanbul ignore if */
         if (m.name === 'eval') {
-            repl.eval(m.content.cmd, global, undefined, (err: Error | null, result: any) => {
-                if (typeof process.send !== 'function') {
-                    return
-                }
+            repl.eval(
+                m.content.cmd,
+                global,
+                undefined,
+                (err: Error | null, result: any) => {
+                    if (typeof process.send !== 'function') {
+                        return
+                    }
 
-                if (err) {
+                    if (err) {
+                        process.send({
+                            origin: 'debugger',
+                            name: 'result',
+                            params: {
+                                error: true,
+                                ...serializeError(err),
+                            },
+                        })
+                    }
+
+                    /**
+                     * try to do some smart serializations
+                     */
+                    if (typeof result === 'function') {
+                        result = `[Function: ${result.name}]`
+                    }
+
                     process.send({
                         origin: 'debugger',
                         name: 'result',
-                        params: {
-                            error: true,
-                            ...serializeError(err)
-                        }
+                        params: { result },
                     })
-                }
-
-                /**
-                 * try to do some smart serializations
-                 */
-                if (typeof result === 'function') {
-                    result = `[Function: ${result.name}]`
-                }
-
-                process.send({
-                    origin: 'debugger',
-                    name: 'result',
-                    params: { result }
-                })
-            })
+                },
+            )
         }
     })
 

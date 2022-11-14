@@ -1,15 +1,18 @@
-import logger from '@wdio/logger'
-import getPort from 'get-port'
 import LocalRunner, { RunArgs } from '@wdio/local-runner'
-import { attach } from 'webdriverio'
-import { createServer, ViteDevServer } from 'vite'
-import type { WebSocketServer } from 'ws'
-import type { SessionStartedMessage, SessionEndedMessage } from '@wdio/runner'
+import logger from '@wdio/logger'
+import type { SessionEndedMessage, SessionStartedMessage } from '@wdio/runner'
 import type { Options } from '@wdio/types'
+import getPort from 'get-port'
+import { createServer, ViteDevServer } from 'vite'
+import { attach } from 'webdriverio'
+import type { WebSocketServer } from 'ws'
 
-import { FRAMEWORK_SUPPORT_ERROR, SESSIONS, BROWSER_POOL } from './constants.js'
+import { BROWSER_POOL, FRAMEWORK_SUPPORT_ERROR, SESSIONS } from './constants.js'
+import type {
+    BrowserRunnerOptions as BrowserRunnerOptionsImport,
+    ConsoleEvent,
+} from './types'
 import { getViteConfig } from './utils.js'
-import type { BrowserRunnerOptions as BrowserRunnerOptionsImport, ConsoleEvent } from './types'
 
 const log = logger('@wdio/browser-runner')
 
@@ -19,7 +22,10 @@ export default class BrowserRunner extends LocalRunner {
     #server?: ViteDevServer
     #wss?: WebSocketServer
 
-    constructor(private options: BrowserRunnerOptionsImport, private config: Options.Testrunner) {
+    constructor(
+        private options: BrowserRunnerOptionsImport,
+        private config: Options.Testrunner,
+    ) {
         super(options as never, config)
 
         if (config.framework !== 'mocha') {
@@ -38,26 +44,40 @@ export default class BrowserRunner extends LocalRunner {
         log.info('Initiate browser environment')
         try {
             const port = await getPort()
-            const [viteConfig, wss] = await getViteConfig(this.#options, rootDir, port)
+            const [viteConfig, wss] = await getViteConfig(
+                this.#options,
+                rootDir,
+                port,
+            )
             this.#server = await createServer(viteConfig)
             await this.#server.listen()
-            log.info(`Vite server started successfully on port ${port}, root directory: ${rootDir}`)
+            log.info(
+                `Vite server started successfully on port ${port}, root directory: ${rootDir}`,
+            )
 
             /**
              * propagate console events
              */
-            wss.on('connection', (ws) => ws.on('message', (payload: string) => {
-                try {
-                    const message: ConsoleEvent = JSON.parse(payload)
-                    const isWDIOLog = Boolean(typeof message.args[0] === 'string' && message.args[0].startsWith('[WDIO]'))
-                    if (message.name !== 'consoleEvent' || isWDIOLog) {
+            wss.on('connection', (ws) =>
+                ws.on('message', (payload: string) => {
+                    try {
+                        const message: ConsoleEvent = JSON.parse(payload)
+                        const isWDIOLog = Boolean(
+                            typeof message.args[0] === 'string' &&
+                                message.args[0].startsWith('[WDIO]'),
+                        )
+                        if (message.name !== 'consoleEvent' || isWDIOLog) {
+                            return
+                        }
+                        console[message.type](
+                            `[${message.cid}]`,
+                            ...(message.args || []),
+                        )
+                    } catch (err: any) {
                         return
                     }
-                    console[message.type](`[${message.cid}]`, ...(message.args || []))
-                } catch (err: any) {
-                    return
-                }
-            }))
+                }),
+            )
         } catch (err: any) {
             throw new Error(`Vite server failed to start: ${err.stack}`)
         }
@@ -65,31 +85,39 @@ export default class BrowserRunner extends LocalRunner {
         await super.initialise()
     }
 
-    run (runArgs: RunArgs) {
+    run(runArgs: RunArgs) {
         if (runArgs.command === 'run') {
-            runArgs.args.baseUrl = `http://localhost:${this.#server?.config.server.port}`
+            runArgs.args.baseUrl = `http://localhost:${
+                this.#server?.config.server.port
+            }`
         }
 
         const worker = super.run(runArgs)
-        worker.on('message', async (payload: SessionStartedMessage | SessionEndedMessage) => {
-            if (payload.name === 'sessionStarted') {
-                SESSIONS.set(payload.cid!, {
-                    args: this.#config.mochaOpts || {},
-                    capabilities: payload.content.capabilities,
-                    sessionId: payload.content.sessionId,
-                    injectGlobals: payload.content.injectGlobals
-                })
-                BROWSER_POOL.set(payload.cid!, await attach({
-                    ...this.#config,
-                    ...payload.content
-                }))
-            }
+        worker.on(
+            'message',
+            async (payload: SessionStartedMessage | SessionEndedMessage) => {
+                if (payload.name === 'sessionStarted') {
+                    SESSIONS.set(payload.cid!, {
+                        args: this.#config.mochaOpts || {},
+                        capabilities: payload.content.capabilities,
+                        sessionId: payload.content.sessionId,
+                        injectGlobals: payload.content.injectGlobals,
+                    })
+                    BROWSER_POOL.set(
+                        payload.cid!,
+                        await attach({
+                            ...this.#config,
+                            ...payload.content,
+                        }),
+                    )
+                }
 
-            if (payload.name === 'sessionEnded') {
-                SESSIONS.delete(payload.cid)
-                BROWSER_POOL.delete(payload.cid)
-            }
-        })
+                if (payload.name === 'sessionEnded') {
+                    SESSIONS.delete(payload.cid)
+                    BROWSER_POOL.delete(payload.cid)
+                }
+            },
+        )
 
         return worker
     }

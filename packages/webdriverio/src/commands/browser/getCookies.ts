@@ -32,7 +32,7 @@
  */
 export default async function getCookies(
     this: WebdriverIO.Browser,
-    names?: string | string[]
+    names?: string | string[],
 ) {
     if (names === undefined) {
         return this.getAllCookies()
@@ -40,10 +40,12 @@ export default async function getCookies(
 
     const namesList = Array.isArray(names) ? names : [names]
 
-    if (namesList.every(obj => typeof obj !== 'string')) {
-        throw new Error('Invalid input (see https://webdriver.io/docs/api/browser/getCookies for documentation)')
+    if (namesList.every((obj) => typeof obj !== 'string')) {
+        throw new Error(
+            'Invalid input (see https://webdriver.io/docs/api/browser/getCookies for documentation)',
+        )
     }
 
     const allCookies = await this.getAllCookies()
-    return allCookies.filter(cookie => namesList.includes(cookie.name))
+    return allCookies.filter((cookie) => namesList.includes(cookie.name))
 }

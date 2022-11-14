@@ -1,34 +1,37 @@
+import { ChildProcess, spawn } from 'node:child_process'
 import fs from 'node:fs'
 import path from 'node:path'
-import { spawn, ChildProcess } from 'node:child_process'
 
-import { describe, expect, beforeEach, afterEach, test, vi } from 'vitest'
 import type { Capabilities, Options } from '@wdio/types'
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 
 import AppiumLauncher from '../src/launcher.js'
 
 vi.mock('node:fs', () => ({
     default: {
-        createWriteStream: vi.fn()
-    }
+        createWriteStream: vi.fn(),
+    },
 }))
 
 vi.mock('node:fs/promises', () => ({
     default: {
-        mkdir: vi.fn()
-    }
+        mkdir: vi.fn(),
+    },
 }))
 
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock(
+    '@wdio/logger',
+    () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')),
+)
 vi.mock('child_process', () => ({
-    spawn: vi.fn()
+    spawn: vi.fn(),
 }))
 vi.mock('node:module', () => {
     const requireFn = vi.fn() as any
     requireFn.resolve = vi.fn().mockImplementation(() => {
         return '/some/path'
     })
-    return ({ createRequire: vi.fn().mockReturnValue(requireFn) })
+    return { createRequire: vi.fn().mockReturnValue(requireFn) }
 })
 
 class MockProcess {
@@ -36,12 +39,16 @@ class MockProcess {
     kill() {}
     stdout = {
         pipe: vi.fn(),
-        on: (event: string, callback: Function) =>{
+        on: (event: string, callback: Function) => {
             callback('[Appium] Welcome to Appium v1.11.1')
-            callback('[Appium] Appium REST http interface listener started on 127.0.0.1:4723')
-        } }
+            callback(
+                '[Appium] Appium REST http interface listener started on 127.0.0.1:4723',
+            )
+        },
+    }
     stderr = {
-        pipe: vi.fn(), once: vi.fn()
+        pipe: vi.fn(),
+        once: vi.fn(),
     }
 }
 
@@ -59,19 +66,22 @@ class MockFailingProcess extends MockProcess {
     }
     stdout = {
         pipe: vi.fn(),
-        on: vi.fn()
+        on: vi.fn(),
     }
 }
 
 class MockCustomFailingProcess extends MockFailingProcess {
-    stderr = { pipe: vi.fn(), once: vi.fn().mockImplementation((event, cb) => cb(new Error('Uups'))) }
+    stderr = {
+        pipe: vi.fn(),
+        once: vi.fn().mockImplementation((event, cb) => cb(new Error('Uups'))),
+    }
 }
 
 vi.mock('../src/utils', async () => {
-    const { formatCliArgs } = await vi.importActual('../src/utils.js') as any
+    const { formatCliArgs } = (await vi.importActual('../src/utils.js')) as any
     return {
         getFilePath: vi.fn().mockReturnValue('/some/file/path'),
-        formatCliArgs
+        formatCliArgs,
     }
 })
 
@@ -81,23 +91,34 @@ describe('Appium launcher', () => {
     const originalPlatform = process.platform
     const consoleSpy = vi.spyOn(global.console, 'error')
     //@ts-ignore spyOn private function
-    const getAppiumCommandSpy = vi.spyOn<any>(AppiumLauncher, '_getAppiumCommand')
+    const getAppiumCommandSpy = vi.spyOn<any>(
+        AppiumLauncher,
+        '_getAppiumCommand',
+    )
 
     beforeEach(() => {
         getAppiumCommandSpy.mockReturnValue('/appium/command/path')
         vi.mocked(spawn).mockClear()
-        vi.mocked(spawn).mockReturnValue(new MockProcess() as unknown as ChildProcess)
+        vi.mocked(spawn).mockReturnValue(
+            new MockProcess() as unknown as ChildProcess,
+        )
     })
 
     describe('onPrepare', () => {
         test('should set correct config properties', async () => {
             const options = {
                 logPath: './',
-                command:'path/to/my_custom_appium',
-                args: { foo: 'bar' }
+                command: 'path/to/my_custom_appium',
+                args: { foo: 'bar' },
             }
-            const capabilities = [{ port: 1234, capabilities: [] }] as (Capabilities.DesiredCapabilities & Options.WebDriver)[]
-            const launcher = new AppiumLauncher(options, capabilities, {} as any)
+            const capabilities = [
+                { port: 1234, capabilities: [] },
+            ] as (Capabilities.DesiredCapabilities & Options.WebDriver)[]
+            const launcher = new AppiumLauncher(
+                options,
+                capabilities,
+                {} as any,
+            )
             await launcher.onPrepare()
 
             expect(launcher['_process']).toBeInstanceOf(MockProcess)
@@ -117,13 +138,17 @@ describe('Appium launcher', () => {
             const options = {
                 logPath: './',
                 command: 'path/to/my_custom_appium',
-                args: { foo: 'bar' }
+                args: { foo: 'bar' },
             }
             const capabilities: Capabilities.MultiRemoteCapabilities = {
                 browserA: { port: 1234, capabilities: {} },
-                browserB: { capabilities: {} }
+                browserB: { capabilities: {} },
             }
-            const launcher = new AppiumLauncher(options, capabilities, {} as any)
+            const launcher = new AppiumLauncher(
+                options,
+                capabilities,
+                {} as any,
+            )
             await launcher.onPrepare()
             expect(capabilities.browserA.protocol).toBe('http')
             expect(capabilities.browserA.hostname).toBe('127.0.0.1')
@@ -137,15 +162,22 @@ describe('Appium launcher', () => {
 
         test('should not override cloud config using multiremote', async () => {
             const options = {
-                logPath : './',
-                args : { foo : 'foo' },
-                installArgs : { bar : 'bar' },
+                logPath: './',
+                args: { foo: 'foo' },
+                installArgs: { bar: 'bar' },
             }
             const capabilities: Capabilities.MultiRemoteCapabilities = {
                 browserA: { port: 1234, capabilities: {} },
-                browserB: { port: 4321, capabilities: { 'bstack:options': {} } }
+                browserB: {
+                    port: 4321,
+                    capabilities: { 'bstack:options': {} },
+                },
             }
-            const launcher = new AppiumLauncher(options, capabilities, {} as any)
+            const launcher = new AppiumLauncher(
+                options,
+                capabilities,
+                {} as any,
+            )
             launcher['_redirectLogStream'] = vi.fn()
             await launcher.onPrepare()
             expect(capabilities.browserA.protocol).toBe('http')
@@ -162,12 +194,19 @@ describe('Appium launcher', () => {
             const options = {
                 logPath: './',
                 command: 'path/to/my_custom_appium',
-                args: { foo: 'bar', port: 1234 }
+                args: { foo: 'bar', port: 1234 },
             }
             const capabilities = [{} as Capabilities.DesiredCapabilities]
-            const launcher = new AppiumLauncher(options, capabilities, {} as any)
-            launcher['_startAppium'] = vi.fn().mockImplementation(
-                (cmd, args, cb) => cb(null, new MockProcess()))
+            const launcher = new AppiumLauncher(
+                options,
+                capabilities,
+                {} as any,
+            )
+            launcher['_startAppium'] = vi
+                .fn()
+                .mockImplementation((cmd, args, cb) =>
+                    cb(null, new MockProcess()),
+                )
             await launcher.onPrepare()
 
             expect(launcher['_process']).toBeInstanceOf(MockProcess)
@@ -187,12 +226,21 @@ describe('Appium launcher', () => {
             const options = {
                 logPath: './',
                 command: 'path/to/my_custom_appium',
-                args: { foo: 'bar', port: 1234, basePath: '/foo/bar' }
+                args: { foo: 'bar', port: 1234, basePath: '/foo/bar' },
             }
-            const capabilities = [{ port: 4321 } as Capabilities.DesiredCapabilities]
-            const launcher = new AppiumLauncher(options, capabilities, {} as any)
-            launcher['_startAppium'] = vi.fn().mockImplementation(
-                (cmd, args, cb) => cb(null, new MockProcess()))
+            const capabilities = [
+                { port: 4321 } as Capabilities.DesiredCapabilities,
+            ]
+            const launcher = new AppiumLauncher(
+                options,
+                capabilities,
+                {} as any,
+            )
+            launcher['_startAppium'] = vi
+                .fn()
+                .mockImplementation((cmd, args, cb) =>
+                    cb(null, new MockProcess()),
+                )
             await launcher.onPrepare()
 
             expect(launcher['_process']).toBeInstanceOf(MockProcess)
@@ -211,14 +259,18 @@ describe('Appium launcher', () => {
 
         test('should set correct config properties for Windows', async () => {
             Object.defineProperty(process, 'platform', {
-                value: 'win32'
+                value: 'win32',
             })
 
-            const launcher = new AppiumLauncher({
-                logPath: './',
-                command: 'path/to/my_custom_appium',
-                args: { foo: 'bar' }
-            }, [], {} as any)
+            const launcher = new AppiumLauncher(
+                {
+                    logPath: './',
+                    command: 'path/to/my_custom_appium',
+                    args: { foo: 'bar' },
+                },
+                [],
+                {} as any,
+            )
             await launcher.onPrepare()
 
             expect(launcher['_command']).toBe('cmd')
@@ -227,14 +279,18 @@ describe('Appium launcher', () => {
 
         test('should set correct config properties for mac', async () => {
             Object.defineProperty(process, 'platform', {
-                value: 'darwin'
+                value: 'darwin',
             })
 
-            const launcher = new AppiumLauncher({
-                logPath: './',
-                command: 'path/to/my_custom_appium',
-                args: { foo: 'bar' }
-            }, [], {} as any)
+            const launcher = new AppiumLauncher(
+                {
+                    logPath: './',
+                    command: 'path/to/my_custom_appium',
+                    args: { foo: 'bar' },
+                },
+                [],
+                {} as any,
+            )
             await launcher.onPrepare()
 
             expect(launcher['_command']).toBe('path/to/my_custom_appium')
@@ -243,14 +299,18 @@ describe('Appium launcher', () => {
 
         test('should set correct config properties for linux', async () => {
             Object.defineProperty(process, 'platform', {
-                value: 'linux'
+                value: 'linux',
             })
 
-            const launcher = new AppiumLauncher({
-                logPath: './',
-                command: 'path/to/my_custom_appium',
-                args: { foo: 'bar' }
-            }, [], {} as any)
+            const launcher = new AppiumLauncher(
+                {
+                    logPath: './',
+                    command: 'path/to/my_custom_appium',
+                    args: { foo: 'bar' },
+                },
+                [],
+                {} as any,
+            )
             await launcher.onPrepare()
 
             expect(launcher['_command']).toBe('path/to/my_custom_appium')
@@ -270,35 +330,51 @@ describe('Appium launcher', () => {
         })
 
         test('should start Appium', async () => {
-            const launcher = new AppiumLauncher({ args: { superspeed: true } }, [], {} as any)
+            const launcher = new AppiumLauncher(
+                { args: { superspeed: true } },
+                [],
+                {} as any,
+            )
             await launcher.onPrepare()
         })
 
         test('should fail if Appium exits', async () => {
             const launcher = new AppiumLauncher({}, [], {} as any)
-            vi.mocked(spawn).mockReturnValue(new MockFailingProcess(1) as unknown as ChildProcess)
+            vi.mocked(spawn).mockReturnValue(
+                new MockFailingProcess(1) as unknown as ChildProcess,
+            )
 
             const error = await launcher.onPrepare().catch((err) => err)
-            const expectedError = new Error('Appium exited before timeout (exit code: 1)')
+            const expectedError = new Error(
+                'Appium exited before timeout (exit code: 1)',
+            )
             expect(error).toEqual(expectedError)
         })
 
         test('should fail and error message if Appium already runs', async () => {
             const launcher = new AppiumLauncher({}, [], {} as any)
-            vi.mocked(spawn).mockReturnValue(new MockFailingProcess(2) as unknown as ChildProcess)
+            vi.mocked(spawn).mockReturnValue(
+                new MockFailingProcess(2) as unknown as ChildProcess,
+            )
 
             const error = await launcher.onPrepare().catch((err) => err)
-            const expectedError = new Error('Appium exited before timeout (exit code: 2)\n' +
-                "Check that you don't already have a running Appium service.")
+            const expectedError = new Error(
+                'Appium exited before timeout (exit code: 2)\n' +
+                    "Check that you don't already have a running Appium service.",
+            )
             expect(error).toEqual(expectedError)
         })
 
         test('should fail with Appium error message', async () => {
             const launcher = new AppiumLauncher({}, [], {} as any)
-            vi.mocked(spawn).mockReturnValue(new MockCustomFailingProcess(2) as unknown as ChildProcess)
+            vi.mocked(spawn).mockReturnValue(
+                new MockCustomFailingProcess(2) as unknown as ChildProcess,
+            )
 
             const error = await launcher.onPrepare().catch((err) => err)
-            const expectedError = new Error('Appium exited before timeout (exit code: 2)\nError: Uups')
+            const expectedError = new Error(
+                'Appium exited before timeout (exit code: 2)\nError: Uups',
+            )
             expect(error).toEqual(expectedError)
         })
     })
@@ -329,31 +405,37 @@ describe('Appium launcher', () => {
         })
 
         test('should write output to file', async () => {
-            const launcher = new AppiumLauncher({ logPath: './' }, [], {} as any)
+            const launcher = new AppiumLauncher(
+                { logPath: './' },
+                [],
+                {} as any,
+            )
             await launcher.onPrepare()
 
-            expect(vi.mocked(fs.createWriteStream).mock.calls[0][0]).toBe('/some/file/path')
+            expect(vi.mocked(fs.createWriteStream).mock.calls[0][0]).toBe(
+                '/some/file/path',
+            )
             expect(launcher['_process']!.stdout.pipe).toBeCalled()
             expect(launcher['_process']!.stderr.pipe).toBeCalled()
         })
     })
 
     describe('_getAppiumCommand', () => {
-
         beforeEach(() => {
             getAppiumCommandSpy.mockRestore()
         })
 
         test('should return path to dependency', () => {
-            expect(AppiumLauncher['_getAppiumCommand']('appium'))
-                .toBe('/some/path')
+            expect(AppiumLauncher['_getAppiumCommand']('appium')).toBe(
+                '/some/path',
+            )
         })
     })
 
     afterEach(() => {
         consoleSpy.mockRestore()
         Object.defineProperty(process, 'platform', {
-            value: originalPlatform
+            value: originalPlatform,
         })
     })
 })

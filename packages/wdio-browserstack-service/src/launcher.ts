@@ -1,19 +1,24 @@
-import got from 'got'
 import FormData from 'form-data'
+import got from 'got'
 import fs from 'node:fs'
-import path from 'node:path'
 import { createRequire } from 'node:module'
-import { promisify } from 'node:util'
+import path from 'node:path'
 import { performance, PerformanceObserver } from 'node:perf_hooks'
+import { promisify } from 'node:util'
 import { SevereServiceError } from 'webdriverio'
 
 import * as BrowserstackLocalLauncher from 'browserstack-local'
 
 import logger from '@wdio/logger'
-import type { Capabilities, Services, Options } from '@wdio/types'
+import type { Capabilities, Options, Services } from '@wdio/types'
 
-import type { BrowserstackConfig, App, AppConfig, AppUploadResponse } from './types'
 import { VALID_APP_EXTENSION } from './constants.js'
+import type {
+    App,
+    AppConfig,
+    AppUploadResponse,
+    BrowserstackConfig,
+} from './types'
 
 const require = createRequire(import.meta.url)
 const { version: bstackServiceVersion } = require('../package.json')
@@ -21,76 +26,107 @@ const { version: bstackServiceVersion } = require('../package.json')
 const log = logger('@wdio/browserstack-service')
 
 type BrowserstackLocal = BrowserstackLocalLauncher.Local & {
-    pid?: number;
-    stop(callback: (err?: any) => void): void;
+    pid?: number
+    stop(callback: (err?: any) => void): void
 }
 
-export default class BrowserstackLauncherService implements Services.ServiceInstance {
+export default class BrowserstackLauncherService
+    implements Services.ServiceInstance
+{
     browserstackLocal?: BrowserstackLocal
 
-    constructor (
+    constructor(
         private _options: BrowserstackConfig & Options.Testrunner,
         capabilities: Capabilities.RemoteCapability,
-        private _config: Options.Testrunner
+        private _config: Options.Testrunner,
     ) {
         // added to maintain backward compatibility with webdriverIO v5
         this._config || (this._config = _options)
         if (Array.isArray(capabilities)) {
-            capabilities.forEach((capability: Capabilities.DesiredCapabilities) => {
-                if (!capability['bstack:options']) {
-                    const extensionCaps = Object.keys(capability).filter((cap) => cap.includes(':'))
-                    if (extensionCaps.length) {
-                        capability['bstack:options'] = { wdioService: bstackServiceVersion }
+            capabilities.forEach(
+                (capability: Capabilities.DesiredCapabilities) => {
+                    if (!capability['bstack:options']) {
+                        const extensionCaps = Object.keys(capability).filter(
+                            (cap) => cap.includes(':'),
+                        )
+                        if (extensionCaps.length) {
+                            capability['bstack:options'] = {
+                                wdioService: bstackServiceVersion,
+                            }
+                        } else {
+                            capability['browserstack.wdioService'] =
+                                bstackServiceVersion
+                        }
                     } else {
-                        capability['browserstack.wdioService'] = bstackServiceVersion
+                        capability['bstack:options'].wdioService =
+                            bstackServiceVersion
                     }
-                } else {
-                    capability['bstack:options'].wdioService = bstackServiceVersion
-                }
-            })
+                },
+            )
         } else if (typeof capabilities === 'object') {
-            Object.entries(capabilities as Capabilities.MultiRemoteCapabilities).forEach(([, caps]) => {
-                if (!(caps.capabilities as Capabilities.Capabilities)['bstack:options']) {
-                    const extensionCaps = Object.keys(caps.capabilities).filter((cap) => cap.includes(':'))
+            Object.entries(
+                capabilities as Capabilities.MultiRemoteCapabilities,
+            ).forEach(([, caps]) => {
+                if (
+                    !(caps.capabilities as Capabilities.Capabilities)[
+                        'bstack:options'
+                    ]
+                ) {
+                    const extensionCaps = Object.keys(caps.capabilities).filter(
+                        (cap) => cap.includes(':'),
+                    )
                     if (extensionCaps.length) {
-                        (caps.capabilities as Capabilities.Capabilities)['bstack:options'] = { wdioService: bstackServiceVersion }
+                        ;(caps.capabilities as Capabilities.Capabilities)[
+                            'bstack:options'
+                        ] = { wdioService: bstackServiceVersion }
                     } else {
-                        (caps.capabilities as Capabilities.Capabilities)['browserstack.wdioService'] = bstackServiceVersion
+                        ;(caps.capabilities as Capabilities.Capabilities)[
+                            'browserstack.wdioService'
+                        ] = bstackServiceVersion
                     }
                 } else {
-                    (caps.capabilities as Capabilities.Capabilities)['bstack:options']!.wdioService = bstackServiceVersion
+                    ;(caps.capabilities as Capabilities.Capabilities)[
+                        'bstack:options'
+                    ]!.wdioService = bstackServiceVersion
                 }
             })
         }
     }
 
-    async onPrepare (config?: Options.Testrunner, capabilities?: Capabilities.RemoteCapabilities) {
+    async onPrepare(
+        config?: Options.Testrunner,
+        capabilities?: Capabilities.RemoteCapabilities,
+    ) {
         /**
          * Upload app to BrowserStack if valid file path to app is given.
          * Update app value of capability directly if app_url, custom_id, shareable_id is given
          */
         if (!this._options.app) {
-            log.info('app is not defined in browserstack-service config, skipping ...')
+            log.info(
+                'app is not defined in browserstack-service config, skipping ...',
+            )
         } else {
             let app: App = {}
             let appConfig: AppConfig | string = this._options.app
 
             try {
                 app = await this._validateApp(appConfig)
-            } catch (error: any){
+            } catch (error: any) {
                 throw new SevereServiceError(error)
             }
 
-            if (VALID_APP_EXTENSION.includes(path.extname(app.app!))){
+            if (VALID_APP_EXTENSION.includes(path.extname(app.app!))) {
                 if (fs.existsSync(app.app!)) {
                     let data: AppUploadResponse
                     data = await this._uploadApp(app)
                     log.info(`app upload completed: ${JSON.stringify(data)}`)
                     app.app = data.app_url
-                } else if (app.customId){
+                } else if (app.customId) {
                     app.app = app.customId
                 } else {
-                    throw new SevereServiceError(`[Invalid app path] app path ${app.app} is not correct, Provide correct path to app under test`)
+                    throw new SevereServiceError(
+                        `[Invalid app path] app path ${app.app} is not correct, Provide correct path to app under test`,
+                    )
                 }
             }
 
@@ -104,7 +140,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
 
         const opts = {
             key: this._config.key,
-            ...this._options.opts
+            ...this._options.opts,
         }
 
         this.browserstackLocal = new BrowserstackLocalLauncher.Local()
@@ -115,7 +151,9 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
          */
         const obs = new PerformanceObserver((list) => {
             const entry = list.getEntries()[0]
-            log.info(`Browserstack Local successfully started after ${entry.duration}ms`)
+            log.info(
+                `Browserstack Local successfully started after ${entry.duration}ms`,
+            )
         })
 
         obs.observe({ entryTypes: ['measure'] })
@@ -123,25 +161,32 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         let timer: NodeJS.Timeout
         performance.mark('tbTunnelStart')
         return Promise.race([
-            promisify(this.browserstackLocal.start.bind(this.browserstackLocal))(opts),
+            promisify(
+                this.browserstackLocal.start.bind(this.browserstackLocal),
+            )(opts),
             new Promise((resolve, reject) => {
                 /* istanbul ignore next */
                 timer = setTimeout(function () {
-                    reject('Browserstack Local failed to start within 60 seconds!')
+                    reject(
+                        'Browserstack Local failed to start within 60 seconds!',
+                    )
                 }, 60000)
-            })]
-        ).then(function (result) {
-            clearTimeout(timer)
-            performance.mark('tbTunnelEnd')
-            performance.measure('bootTime', 'tbTunnelStart', 'tbTunnelEnd')
-            return Promise.resolve(result)
-        }, function (err) {
-            clearTimeout(timer)
-            return Promise.reject(err)
-        })
+            }),
+        ]).then(
+            function (result) {
+                clearTimeout(timer)
+                performance.mark('tbTunnelEnd')
+                performance.measure('bootTime', 'tbTunnelStart', 'tbTunnelEnd')
+                return Promise.resolve(result)
+            },
+            function (err) {
+                clearTimeout(timer)
+                return Promise.reject(err)
+            },
+        )
     }
 
-    onComplete () {
+    onComplete() {
         if (!this.browserstackLocal || !this.browserstackLocal.isRunning()) {
             return
         }
@@ -163,33 +208,50 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             new Promise((resolve, reject) => {
                 /* istanbul ignore next */
                 timer = setTimeout(
-                    () => reject(new Error('Browserstack Local failed to stop within 60 seconds!')),
-                    60000
+                    () =>
+                        reject(
+                            new Error(
+                                'Browserstack Local failed to stop within 60 seconds!',
+                            ),
+                        ),
+                    60000,
                 )
-            })]
-        ).then(function (result) {
-            clearTimeout(timer)
-            return Promise.resolve(result)
-        }, function (err) {
-            clearTimeout(timer)
-            return Promise.reject(err)
-        })
+            }),
+        ]).then(
+            function (result) {
+                clearTimeout(timer)
+                return Promise.resolve(result)
+            },
+            function (err) {
+                clearTimeout(timer)
+                return Promise.reject(err)
+            },
+        )
     }
 
-    async _uploadApp(app:App): Promise<AppUploadResponse> {
-        log.info(`uploading app ${app.app} ${app.customId? `and custom_id: ${app.customId}` : ''} to browserstack`)
+    async _uploadApp(app: App): Promise<AppUploadResponse> {
+        log.info(
+            `uploading app ${app.app} ${
+                app.customId ? `and custom_id: ${app.customId}` : ''
+            } to browserstack`,
+        )
 
         const form = new FormData()
         if (app.app) form.append('file', fs.createReadStream(app.app))
         if (app.customId) form.append('custom_id', app.customId)
 
-        const res = await got.post('https://api-cloud.browserstack.com/app-automate/upload', {
-            body: form,
-            username : this._config.user,
-            password : this._config.key
-        }).json().catch((err) => {
-            throw new SevereServiceError(`app upload failed ${(err as Error).message}`)
-        })
+        const res = await got
+            .post('https://api-cloud.browserstack.com/app-automate/upload', {
+                body: form,
+                username: this._config.user,
+                password: this._config.key,
+            })
+            .json()
+            .catch((err) => {
+                throw new SevereServiceError(
+                    `app upload failed ${(err as Error).message}`,
+                )
+            })
 
         return res as AppUploadResponse
     }
@@ -198,21 +260,36 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
      * @param  {String | AppConfig}  appConfig    <string>: should be "app file path" or "app_url" or "custom_id" or "shareable_id".
      *                                            <object>: only "path" and "custom_id" should coexist as multiple properties.
      */
-    async _validateApp (appConfig: AppConfig | string): Promise<App> {
+    async _validateApp(appConfig: AppConfig | string): Promise<App> {
         let app: App = {}
 
-        if (typeof appConfig === 'string'){
+        if (typeof appConfig === 'string') {
             app.app = appConfig
-        } else if (typeof appConfig === 'object' && Object.keys(appConfig).length) {
-            if (Object.keys(appConfig).length > 2 || (Object.keys(appConfig).length === 2 && (!appConfig.path || !appConfig.custom_id))) {
-                throw new SevereServiceError(`keys ${Object.keys(appConfig)} can't co-exist as app values, use any one property from
+        } else if (
+            typeof appConfig === 'object' &&
+            Object.keys(appConfig).length
+        ) {
+            if (
+                Object.keys(appConfig).length > 2 ||
+                (Object.keys(appConfig).length === 2 &&
+                    (!appConfig.path || !appConfig.custom_id))
+            ) {
+                throw new SevereServiceError(`keys ${Object.keys(
+                    appConfig,
+                )} can't co-exist as app values, use any one property from
                             {id<string>, path<string>, custom_id<string>, shareable_id<string>}, only "path" and "custom_id" can co-exist.`)
             }
 
-            app.app = appConfig.id || appConfig.path || appConfig.custom_id || appConfig.shareable_id
+            app.app =
+                appConfig.id ||
+                appConfig.path ||
+                appConfig.custom_id ||
+                appConfig.shareable_id
             app.customId = appConfig.custom_id
         } else {
-            throw new SevereServiceError('[Invalid format] app should be string or an object')
+            throw new SevereServiceError(
+                '[Invalid format] app should be string or an object',
+            )
         }
 
         if (!app.app) {
@@ -223,51 +300,81 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         return app
     }
 
-    _updateCaps(capabilities?: Capabilities.RemoteCapabilities, capType?: string, value?:string) {
+    _updateCaps(
+        capabilities?: Capabilities.RemoteCapabilities,
+        capType?: string,
+        value?: string,
+    ) {
         if (Array.isArray(capabilities)) {
-            capabilities.forEach((capability: Capabilities.DesiredCapabilities) => {
-                if (!capability['bstack:options']) {
-                    const extensionCaps = Object.keys(capability).filter((cap) => cap.includes(':'))
+            capabilities.forEach(
+                (capability: Capabilities.DesiredCapabilities) => {
+                    if (!capability['bstack:options']) {
+                        const extensionCaps = Object.keys(capability).filter(
+                            (cap) => cap.includes(':'),
+                        )
+                        if (extensionCaps.length) {
+                            if (capType === 'local') {
+                                capability['bstack:options'] = { local: true }
+                            } else if (capType === 'app') {
+                                capability['appium:app'] = value
+                            }
+                        } else if (capType === 'local') {
+                            capability['browserstack.local'] = true
+                        } else if (capType === 'app') {
+                            capability['app'] = value
+                        }
+                    } else if (capType === 'local') {
+                        capability['bstack:options'].local = true
+                    } else if (capType === 'app') {
+                        capability['appium:app'] = value
+                    }
+                },
+            )
+        } else if (typeof capabilities === 'object') {
+            Object.entries(
+                capabilities as Capabilities.MultiRemoteCapabilities,
+            ).forEach(([, caps]) => {
+                if (
+                    !(caps.capabilities as Capabilities.Capabilities)[
+                        'bstack:options'
+                    ]
+                ) {
+                    const extensionCaps = Object.keys(caps.capabilities).filter(
+                        (cap) => cap.includes(':'),
+                    )
                     if (extensionCaps.length) {
                         if (capType === 'local') {
-                            capability['bstack:options'] = { local: true }
+                            ;(caps.capabilities as Capabilities.Capabilities)[
+                                'bstack:options'
+                            ] = { local: true }
                         } else if (capType === 'app') {
-                            capability['appium:app'] = value
+                            ;(caps.capabilities as Capabilities.Capabilities)[
+                                'appium:app'
+                            ] = value
                         }
-                    } else if (capType === 'local'){
-                        capability['browserstack.local'] = true
+                    } else if (capType === 'local') {
+                        ;(caps.capabilities as Capabilities.Capabilities)[
+                            'browserstack.local'
+                        ] = true
                     } else if (capType === 'app') {
-                        capability['app'] = value
+                        ;(caps.capabilities as Capabilities.AppiumCapabilities)[
+                            'app'
+                        ] = value
                     }
                 } else if (capType === 'local') {
-                    capability['bstack:options'].local = true
+                    ;(caps.capabilities as Capabilities.Capabilities)[
+                        'bstack:options'
+                    ]!.local = true
                 } else if (capType === 'app') {
-                    capability['appium:app'] = value
-                }
-            })
-        } else if (typeof capabilities === 'object') {
-            Object.entries(capabilities as Capabilities.MultiRemoteCapabilities).forEach(([, caps]) => {
-                if (!(caps.capabilities as Capabilities.Capabilities)['bstack:options']) {
-                    const extensionCaps = Object.keys(caps.capabilities).filter((cap) => cap.includes(':'))
-                    if (extensionCaps.length) {
-                        if (capType === 'local') {
-                            (caps.capabilities as Capabilities.Capabilities)['bstack:options'] = { local: true }
-                        } else if (capType === 'app') {
-                            (caps.capabilities as Capabilities.Capabilities)['appium:app'] = value
-                        }
-                    } else if (capType === 'local'){
-                        (caps.capabilities as Capabilities.Capabilities)['browserstack.local'] = true
-                    } else if (capType === 'app') {
-                        (caps.capabilities as Capabilities.AppiumCapabilities)['app'] = value
-                    }
-                } else if (capType === 'local'){
-                    (caps.capabilities as Capabilities.Capabilities)['bstack:options']!.local = true
-                } else if (capType === 'app') {
-                    (caps.capabilities as Capabilities.Capabilities)['appium:app'] = value
+                    ;(caps.capabilities as Capabilities.Capabilities)[
+                        'appium:app'
+                    ] = value
                 }
             })
         } else {
-            throw new SevereServiceError('Capabilities should be an object or Array!')
+            throw new SevereServiceError(
+                'Capabilities should be an object or Array!',
+            )
         }
     }
 }

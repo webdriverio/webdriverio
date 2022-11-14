@@ -1,10 +1,10 @@
+import type { ElementReference } from '@wdio/protocols'
 import type { Page } from 'puppeteer-core/lib/cjs/puppeteer/api/Page.js'
 import type { Frame } from 'puppeteer-core/lib/cjs/puppeteer/common/Frame.js'
-import type { ElementReference } from '@wdio/protocols'
 
 import { ELEMENT_KEY } from '../constants.js'
-import { getStaleElementError } from '../utils.js'
 import type DevToolsDriver from '../devtoolsdriver'
+import { getStaleElementError } from '../utils.js'
 
 /**
  * The Switch To Frame command is used to select the current top-level browsing context
@@ -15,9 +15,9 @@ import type DevToolsDriver from '../devtoolsdriver'
  * @see https://w3c.github.io/webdriver/#dfn-switch-to-frame
  * @param {string|object|null} id  one of three possible types: null: this represents the top-level browsing context (i.e., not an iframe), a Number, representing the index of the window object corresponding to a frame, an Element object received using `findElement`.
  */
-export default async function switchToFrame (
+export default async function switchToFrame(
     this: DevToolsDriver,
-    { id }: { id: string }
+    { id }: { id: string },
 ) {
     const page = this.getPageHandle(true) as unknown as Frame
 
@@ -45,7 +45,9 @@ export default async function switchToFrame (
      */
     const idAsElementReference = id as unknown as ElementReference
     if (typeof idAsElementReference[ELEMENT_KEY] === 'string') {
-        const elementHandle = await this.elementStore.get(idAsElementReference[ELEMENT_KEY])
+        const elementHandle = await this.elementStore.get(
+            idAsElementReference[ELEMENT_KEY],
+        )
 
         if (!elementHandle) {
             throw getStaleElementError(id)

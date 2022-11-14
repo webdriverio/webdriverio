@@ -1,5 +1,5 @@
-import findElementsFromElement from './findElementsFromElement.js'
 import type DevToolsDriver from '../devtoolsdriver'
+import findElementsFromElement from './findElementsFromElement.js'
 
 /**
  * The Find Elements command is used to find elements within the shadow root of an
@@ -13,17 +13,23 @@ import type DevToolsDriver from '../devtoolsdriver'
  * @param {string} value  the actual selector that will be used to find an element
  * @return {object[]}     A (possibly empty) JSON list of representations of an element object, e.g. `{ 'element-6066-11e4-a52e-4f735466cecf': 'ELEMENT_1' }`.
  */
-export default async function findElementsFromShadowRoot (
+export default async function findElementsFromShadowRoot(
     this: DevToolsDriver,
-    { shadowId, using, value }: { shadowId: string, using: string, value: string }
+    {
+        shadowId,
+        using,
+        value,
+    }: { shadowId: string; using: string; value: string },
 ) {
     if (using !== 'css selector') {
-        throw new Error('Fetching elements from a shadow element using something other than "css selector" is currently not supported.')
+        throw new Error(
+            'Fetching elements from a shadow element using something other than "css selector" is currently not supported.',
+        )
     }
 
     return findElementsFromElement.call(this, {
         elementId: shadowId,
         using: 'shadow',
-        value
+        value,
     })
 }

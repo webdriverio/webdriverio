@@ -1,21 +1,25 @@
 import fs from 'node:fs'
-import url from 'node:url'
 import path from 'node:path'
+import url from 'node:url'
 import { v4 as uuidv4 } from 'uuid'
 
 import logger from '@wdio/logger'
-import type { Browser } from 'puppeteer-core/lib/cjs/puppeteer/api/Browser'
-import type { Dialog } from 'puppeteer-core/lib/cjs/puppeteer/common/Dialog'
-import type { Page } from 'puppeteer-core/lib/cjs/puppeteer/api/Page'
-import type { Target } from 'puppeteer-core/lib/cjs/puppeteer/common/Target'
 import type { CommandEndpoint } from '@wdio/protocols'
+import type { Browser } from 'puppeteer-core/lib/cjs/puppeteer/api/Browser'
+import type { Page } from 'puppeteer-core/lib/cjs/puppeteer/api/Page'
+import type { Dialog } from 'puppeteer-core/lib/cjs/puppeteer/common/Dialog'
 import type { Frame } from 'puppeteer-core/lib/cjs/puppeteer/common/Frame'
+import type { Target } from 'puppeteer-core/lib/cjs/puppeteer/common/Target'
 
 import * as commands from './commands/index.js'
+import {
+    DEFAULT_IMPLICIT_TIMEOUT,
+    DEFAULT_PAGELOAD_TIMEOUT,
+    DEFAULT_SCRIPT_TIMEOUT,
+} from './constants.js'
 import ElementStore from './elementstore.js'
-import { validate, sanitizeError } from './utils.js'
-import { DEFAULT_IMPLICIT_TIMEOUT, DEFAULT_PAGELOAD_TIMEOUT, DEFAULT_SCRIPT_TIMEOUT } from './constants.js'
 import { ActiveListener } from './types.js'
+import { sanitizeError, validate } from './utils.js'
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 const log = logger('devtools')
@@ -36,37 +40,36 @@ export default class DevToolsDriver {
         this.browser = browser
 
         const dir = path.resolve(__dirname, 'commands')
-        const files = fs.readdirSync(dir).filter(
-            (file) => (
-                file.endsWith('.js') ||
-                (
-                    file.endsWith('.ts') &&
-                    !file.endsWith('.d.ts')
-                )
+        const files = fs
+            .readdirSync(dir)
+            .filter(
+                (file) =>
+                    file.endsWith('.js') ||
+                    (file.endsWith('.ts') && !file.endsWith('.d.ts')),
             )
-        )
 
         for (let filename of files) {
             const commandName = path.basename(filename, path.extname(filename))
 
             if (!commandName) {
-                throw new Error('Couldn\'t determine command name')
+                throw new Error("Couldn't determine command name")
             }
 
-            this.commands[commandName] = commands[commandName as keyof typeof commands]
+            this.commands[commandName] =
+                commands[commandName as keyof typeof commands]
         }
 
         this.initBrowser(browser, pages)
     }
 
-    private _createWindowHandle (page: Page) {
+    private _createWindowHandle(page: Page) {
         const pageId = uuidv4()
         this.windows.set(pageId, page)
         this.currentFrame = page
         this.currentWindowHandle = pageId
     }
 
-    private async _targetCreatedHandler (target: Target) {
+    private async _targetCreatedHandler(target: Target) {
         const page = await target.page()
 
         if (!page) {
@@ -76,7 +79,7 @@ export default class DevToolsDriver {
         this._createWindowHandle(page)
     }
 
-    private async _targetDestroyedHandler (target: Target) {
+    private async _targetDestroyedHandler(target: Target) {
         const page = await target.page()
         for (const [pageId, p] of this.windows.entries()) {
             if (page !== p) {
@@ -94,7 +97,11 @@ export default class DevToolsDriver {
         log.trace(`Switching to window handle with id ${pageIds[0]}`)
     }
 
-    private addListener(emitter: ActiveListener['emitter'], eventName: string, handler: any) {
+    private addListener(
+        emitter: ActiveListener['emitter'],
+        eventName: string,
+        handler: any,
+    ) {
         const boundHandler = handler.bind(this)
         emitter.on(eventName, boundHandler)
         this.activeListeners.push({ emitter, eventName, boundHandler })
@@ -120,8 +127,16 @@ export default class DevToolsDriver {
         this.activeDialog = undefined
         this.browser = browser
 
-        this.addListener(this.browser, 'targetcreated', this._targetCreatedHandler)
-        this.addListener(this.browser, 'targetdestroyed', this._targetDestroyedHandler)
+        this.addListener(
+            this.browser,
+            'targetcreated',
+            this._targetCreatedHandler,
+        )
+        this.addListener(
+            this.browser,
+            'targetdestroyed',
+            this._targetDestroyedHandler,
+        )
 
         for (const page of pages) {
             this._createWindowHandle(page)
@@ -130,7 +145,11 @@ export default class DevToolsDriver {
         /**
          * set default timeouts
          */
-        this.setTimeouts(DEFAULT_IMPLICIT_TIMEOUT, DEFAULT_PAGELOAD_TIMEOUT, DEFAULT_SCRIPT_TIMEOUT)
+        this.setTimeouts(
+            DEFAULT_IMPLICIT_TIMEOUT,
+            DEFAULT_PAGELOAD_TIMEOUT,
+            DEFAULT_SCRIPT_TIMEOUT,
+        )
 
         const page = this.getPageHandle()
         if (page) {
@@ -147,16 +166,27 @@ export default class DevToolsDriver {
          * check if command is implemented
          */
         if (typeof this.commands[command] !== 'function') {
-            return () => { throw new Error(`Command "${command}" is not yet implemented`) }
+            return () => {
+                throw new Error(`Command "${command}" is not yet implemented`)
+            }
         }
 
         /**
          * within here you find the webdriver scope
          */
         let retries = 0
-        const wrappedCommand = async function (this: Browser, ...args: any[]): Promise<any> {
+        const wrappedCommand = async function (
+            this: Browser,
+            ...args: any[]
+        ): Promise<any> {
             await self.checkPendingNavigations()
-            const params = validate(command, parameters, variables as any, ref, args)
+            const params = validate(
+                command,
+                parameters,
+                variables as any,
+                ref,
+                args,
+            )
             let result
 
             try {
@@ -170,13 +200,18 @@ export default class DevToolsDriver {
                  * context gets destroyed. For these cases handle page transitions gracefully
                  * by repeating the command.
                  */
-                if (err.message.includes('most likely because of a navigation')) {
-                    log.debug('Command failed due to unfinished page transition, retrying...')
+                if (
+                    err.message.includes('most likely because of a navigation')
+                ) {
+                    log.debug(
+                        'Command failed due to unfinished page transition, retrying...',
+                    )
                     const page = self.getPageHandle()
                     await new Promise<void>((resolve, reject) => {
                         const pageloadTimeout = setTimeout(
                             () => reject(new Error('page load timeout')),
-                            self.timeouts.get('pageLoad'))
+                            self.timeouts.get('pageLoad'),
+                        )
 
                         page.once('load', () => {
                             clearTimeout(pageloadTimeout)
@@ -190,14 +225,21 @@ export default class DevToolsDriver {
                 throw sanitizeError(err)
             }
 
-            this.emit('result', { command, params, retries, result: { value: result } })
+            this.emit('result', {
+                command,
+                params,
+                retries,
+                result: { value: result },
+            })
             if (typeof result !== 'undefined') {
-                const isScreenshot = (
+                const isScreenshot =
                     command.toLowerCase().includes('screenshot') &&
                     typeof result === 'string' &&
                     result.length > 64
+                log.info(
+                    'RESULT',
+                    isScreenshot ? `${result.substr(0, 61)}...` : result,
                 )
-                log.info('RESULT', isScreenshot ? `${result.substr(0, 61)}...` : result)
             }
 
             return result
@@ -233,7 +275,7 @@ export default class DevToolsDriver {
         }
     }
 
-    getPageHandle (isInFrame = false) {
+    getPageHandle(isInFrame = false) {
         if (isInFrame && this.currentFrame) {
             return this.currentFrame
         }
@@ -245,13 +287,13 @@ export default class DevToolsDriver {
         const pageHandle = this.windows.get(this.currentWindowHandle)
 
         if (!pageHandle) {
-            throw new Error('Couldn\'t find page handle')
+            throw new Error("Couldn't find page handle")
         }
 
         return pageHandle
     }
 
-    async checkPendingNavigations (pendingNavigationStart = Date.now()) {
+    async checkPendingNavigations(pendingNavigationStart = Date.now()) {
         /**
          * ensure there is no page transition happening and an execution context
          * is available
@@ -272,9 +314,9 @@ export default class DevToolsDriver {
          */
         if (!page.mainFrame) {
             const pages = await this.browser.pages()
-            const mainFrame = pages.find((browserPage) => (
-                browserPage.frames().find((frame: unknown) => page === frame)
-            ))
+            const mainFrame = pages.find((browserPage) =>
+                browserPage.frames().find((frame: unknown) => page === frame),
+            )
 
             if (mainFrame) {
                 page = mainFrame
@@ -282,9 +324,10 @@ export default class DevToolsDriver {
         }
 
         const pageloadTimeout = this.timeouts.get('pageLoad')
-        const pageloadTimeoutReached = pageloadTimeout != null
-            ? Date.now() - pendingNavigationStart > pageloadTimeout
-            : false
+        const pageloadTimeoutReached =
+            pageloadTimeout != null
+                ? Date.now() - pendingNavigationStart > pageloadTimeout
+                : false
 
         try {
             const executionContext = await page.mainFrame().executionContext()
@@ -293,7 +336,9 @@ export default class DevToolsDriver {
             /**
              * if we have an execution context, also check for the ready state
              */
-            const readyState = await executionContext.evaluate('document.readyState')
+            const readyState = await executionContext.evaluate(
+                'document.readyState',
+            )
             if (readyState === 'complete' || pageloadTimeoutReached) {
                 return
             }
@@ -309,7 +354,17 @@ export default class DevToolsDriver {
         /***
          * Avoid looping so quickly we run out of memory before the timeout.
          */
-        await new Promise(resolve => setTimeout(resolve, Math.min(100, typeof pageloadTimeout === 'number' ? pageloadTimeout / 10 : 100)))
+        await new Promise((resolve) =>
+            setTimeout(
+                resolve,
+                Math.min(
+                    100,
+                    typeof pageloadTimeout === 'number'
+                        ? pageloadTimeout / 10
+                        : 100,
+                ),
+            ),
+        )
         await this.checkPendingNavigations(pendingNavigationStart)
     }
 }

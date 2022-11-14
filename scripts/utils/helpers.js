@@ -9,17 +9,19 @@ const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
  * @param   {string[]} ignorePackages  a list of packages to be ignored
  * @returns {string[]}                 a list of sub packages
  */
-export const getSubPackages = (ignorePackages = []) => shell.ls(path.join(__dirname, '..', '..', 'packages')).filter((pkg) => (
-    /**
-     * ignore node_modules directory that is created by the link script to test the
-     * wdio test runner
-     */
-    pkg !== 'node_modules' &&
-    /**
-     * ignore packages that don't need to be compiled
-     */
-    !ignorePackages.includes(pkg)
-))
+export const getSubPackages = (ignorePackages = []) =>
+    shell.ls(path.join(__dirname, '..', '..', 'packages')).filter(
+        (pkg) =>
+            /**
+             * ignore node_modules directory that is created by the link script to test the
+             * wdio test runner
+             */
+            pkg !== 'node_modules' &&
+            /**
+             * ignore packages that don't need to be compiled
+             */
+            !ignorePackages.includes(pkg),
+    )
 
 export function buildPreface(id, title, titleSuffix, editUrl) {
     return [
@@ -28,7 +30,7 @@ export function buildPreface(id, title, titleSuffix, editUrl) {
         `title: ${title} ${titleSuffix}`,
         `custom_edit_url: ${editUrl}`,
         '---\n',
-        'import Tabs from \'@theme/Tabs\';',
-        'import TabItem from \'@theme/TabItem\';\n'
+        "import Tabs from '@theme/Tabs';",
+        "import TabItem from '@theme/TabItem';\n",
     ]
 }

@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 
-import ProtocolStub from '../src/protocol-stub.js'
 import Multiremote from '../src/multiremote.js'
+import ProtocolStub from '../src/protocol-stub.js'
 
 describe('reloadSession', () => {
     it('should throw', () => {
@@ -16,8 +16,8 @@ describe('newSession', () => {
                 'appium:deviceName': 'Some Device',
                 platformName: 'iOS',
                 // @ts-ignore not allowed but possible
-                foo: 'bar'
-            }
+                foo: 'bar',
+            },
         })
         expect(Object.keys(session)).toHaveLength(10)
         expect(session.isAndroid).toBe(false)
@@ -29,7 +29,7 @@ describe('newSession', () => {
         expect(session.capabilities).toEqual({
             deviceName: 'Some Device',
             platformName: 'iOS',
-            foo: 'bar'
+            foo: 'bar',
         })
         expect(() => session.addCommand()).toThrow()
         expect(() => session.overwriteCommand()).toThrow()
@@ -39,16 +39,21 @@ describe('newSession', () => {
 describe('attachToSession', () => {
     it('should return newSession if not multiremote', async () => {
         const modifier = vi.fn()
-        const session = await ProtocolStub.attachToSession({
-            sessionId: '1234',
-            capabilities: { browserName: 'chrome' }
-        }, modifier)
+        const session = await ProtocolStub.attachToSession(
+            {
+                sessionId: '1234',
+                capabilities: { browserName: 'chrome' },
+            },
+            modifier,
+        )
         expect(modifier).not.toBeCalled()
         expect(session.isChrome).toBe(true)
     })
 
     it('should return newSession if modifier was not passed', async () => {
-        const session = await ProtocolStub.attachToSession({ sessionId: '1234' })
+        const session = await ProtocolStub.attachToSession({
+            sessionId: '1234',
+        })
         expect(session.capabilities).toEqual({})
     })
 
@@ -60,7 +65,7 @@ describe('attachToSession', () => {
         const session = await ProtocolStub.attachToSession(
             // @ts-expect-error
             undefined,
-            multiremote.modifier.bind(multiremote)
+            multiremote.modifier.bind(multiremote),
         )
 
         expect(session.capabilities).toBeUndefined()

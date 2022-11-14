@@ -7,9 +7,10 @@ import type DevToolsDriver from '../devtoolsdriver'
  * @see https://w3c.github.io/webdriver/#dfn-send-alert-text
  * @param {string} text  string to set the prompt to
  */
-export default async function sendAlertText (
+export default async function sendAlertText(
     this: DevToolsDriver,
-    { text }: { text: string }) {
+    { text }: { text: string },
+) {
     if (!this.activeDialog) {
         throw new Error('no such alert')
     }

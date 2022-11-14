@@ -1,4 +1,7 @@
-export default function selectOption (html: HTMLElement, elem: HTMLOptionElement) {
+export default function selectOption(
+    html: HTMLElement,
+    elem: HTMLOptionElement,
+) {
     elem.selected = true
 
     let parent = elem.parentElement as HTMLElement

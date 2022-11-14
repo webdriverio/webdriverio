@@ -1,5 +1,5 @@
 import path from 'node:path'
-import { expect, test, beforeEach, vi } from 'vitest'
+import { beforeEach, expect, test, vi } from 'vitest'
 // @ts-ignore mocked (original defined in webdriver package)
 import got from 'got'
 import puppeteer from 'puppeteer-core'
@@ -8,7 +8,10 @@ import { remote } from '../../../src/index.js'
 
 vi.mock('got')
 vi.mock('puppeteer-core')
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock(
+    '@wdio/logger',
+    () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')),
+)
 
 // @ts-ignore mock feature
 const cdpSession = new puppeteer.CDPSessionMock()
@@ -21,8 +24,8 @@ beforeEach(() => {
 test('should fail if wrong params applied', async () => {
     const browser = await remote({
         capabilities: {
-            browserName: 'devtools'
-        }
+            browserName: 'devtools',
+        },
     })
 
     // @ts-expect-error wrong parameter
@@ -41,21 +44,22 @@ test('should use WebDriver extension if run on Sauce', async () => {
         capabilities: {
             browserName: 'foobar',
             'sauce:options': {
-                extendedDebugging: true
-            }
-        }
+                extendedDebugging: true,
+            },
+        },
     })
 
     await browser.throttle('Regular3G')
-    expect(got.mock.calls[1][0].href)
-        .toContain('/sauce/ondemand/throttle/network')
+    expect(got.mock.calls[1][0].href).toContain(
+        '/sauce/ondemand/throttle/network',
+    )
 })
 
 test('should allow to send strings as param', async () => {
     const browser = await remote({
         capabilities: {
-            browserName: 'devtools'
-        }
+            browserName: 'devtools',
+        },
     })
 
     await browser.throttle('Regular3G')
@@ -65,13 +69,13 @@ test('should allow to send strings as param', async () => {
 test('should allow to send objects as param', async () => {
     const browser = await remote({
         capabilities: {
-            browserName: 'devtools'
-        }
+            browserName: 'devtools',
+        },
     })
 
     // @ts-expect-error wrong parameter
     await browser.throttle({ foo: 'bar' })
-    expect(cdpSession.send).toBeCalledWith(
-        'Network.emulateNetworkConditions',
-        { foo: 'bar' })
+    expect(cdpSession.send).toBeCalledWith('Network.emulateNetworkConditions', {
+        foo: 'bar',
+    })
 })

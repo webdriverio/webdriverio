@@ -43,7 +43,7 @@
  */
 export default function deleteCookies(
     this: WebdriverIO.Browser,
-    names?: string | string[]
+    names?: string | string[],
 ) {
     if (names === undefined) {
         return this.deleteAllCookies()
@@ -51,9 +51,13 @@ export default function deleteCookies(
 
     const namesList = Array.isArray(names) ? names : [names]
 
-    if (namesList.every(obj => typeof obj !== 'string')) {
-        return Promise.reject(new Error('Invalid input (see https://webdriver.io/docs/api/browser/deleteCookies for documentation)'))
+    if (namesList.every((obj) => typeof obj !== 'string')) {
+        return Promise.reject(
+            new Error(
+                'Invalid input (see https://webdriver.io/docs/api/browser/deleteCookies for documentation)',
+            ),
+        )
     }
 
-    return Promise.all(namesList.map(name => this.deleteCookie(name)))
+    return Promise.all(namesList.map((name) => this.deleteCookie(name)))
 }

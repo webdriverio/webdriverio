@@ -1,6 +1,6 @@
+import type DevToolsDriver from '../devtoolsdriver'
 import command from '../scripts/getElementText.js'
 import { getStaleElementError } from '../utils.js'
-import type DevToolsDriver from '../devtoolsdriver'
 
 /**
  * The Get Element Text command intends to return an element’s text \"as rendered\".
@@ -12,9 +12,9 @@ import type DevToolsDriver from '../devtoolsdriver'
  * @param {string} elementId  the id of an element returned in a previous call to Find Element(s)
  * @return {string}           The visible text of the element (including child elements).
  */
-export default async function getElementText (
+export default async function getElementText(
     this: DevToolsDriver,
-    { elementId }: { elementId: string }
+    { elementId }: { elementId: string },
 ) {
     const elementHandle = await this.elementStore.get(elementId)
     if (!elementHandle) {

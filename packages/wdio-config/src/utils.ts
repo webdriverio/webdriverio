@@ -1,13 +1,16 @@
-import path from 'node:path'
-import { canAccess } from '@wdio/utils'
 import logger from '@wdio/logger'
 import type { Capabilities, Options } from '@wdio/types'
+import { canAccess } from '@wdio/utils'
+import path from 'node:path'
 
 import type { ModuleImportService } from './types.js'
 
 const log = logger('@wdio/config:utils')
 
-export const validObjectOrArray = (object: any): object is object | Array<any> => (Array.isArray(object) && object.length > 0) ||
+export const validObjectOrArray = (
+    object: any,
+): object is object | Array<any> =>
+    (Array.isArray(object) && object.length > 0) ||
     (typeof object === 'object' && Object.keys(object).length > 0)
 
 /**
@@ -35,7 +38,12 @@ export function isCucumberFeatureWithLineNumber(spec: string | string[]) {
 }
 
 export function isCloudCapability(caps: Capabilities.Capabilities) {
-    return Boolean(caps && (caps['bstack:options'] || caps['sauce:options'] || caps['tb:options']))
+    return Boolean(
+        caps &&
+            (caps['bstack:options'] ||
+                caps['sauce:options'] ||
+                caps['tb:options']),
+    )
 }
 
 /**
@@ -44,14 +52,25 @@ export function isCloudCapability(caps: Capabilities.Capabilities) {
  * @param  {Object} options   option to check against
  * @return {Object}           validated config enriched with default values
  */
-export function validateConfig<T>(defaults: Options.Definition<T>, options: T, keysToKeep = [] as (keyof T)[]) {
+export function validateConfig<T>(
+    defaults: Options.Definition<T>,
+    options: T,
+    keysToKeep = [] as (keyof T)[],
+) {
     const params = {} as T
 
-    for (const [name, expectedOption] of Object.entries(defaults) as [keyof Options.Definition<T>, NonNullable<Options.Definition<T>[keyof Options.Definition<T>]>][]) {
+    for (const [name, expectedOption] of Object.entries(defaults) as [
+        keyof Options.Definition<T>,
+        NonNullable<Options.Definition<T>[keyof Options.Definition<T>]>,
+    ][]) {
         /**
          * check if options is given
          */
-        if (typeof options[name] === 'undefined' && !expectedOption.default && expectedOption.required) {
+        if (
+            typeof options[name] === 'undefined' &&
+            !expectedOption.default &&
+            expectedOption.required
+        ) {
             throw new Error(`Required option "${name.toString()}" is missing`)
         }
 
@@ -62,26 +81,45 @@ export function validateConfig<T>(defaults: Options.Definition<T>, options: T, k
         if (typeof options[name] !== 'undefined') {
             const optValue = options[name]
             if (typeof optValue !== expectedOption.type) {
-                throw new Error(`Expected option "${name.toString()}" to be type of ${expectedOption.type} but was ${typeof options[name]}`)
+                throw new Error(
+                    `Expected option "${name.toString()}" to be type of ${
+                        expectedOption.type
+                    } but was ${typeof options[name]}`,
+                )
             }
 
             if (typeof expectedOption.validate === 'function') {
                 try {
                     expectedOption.validate(optValue)
                 } catch (e: any) {
-                    throw new Error(`Type check for option "${name.toString()}" failed: ${e.message}`)
+                    throw new Error(
+                        `Type check for option "${name.toString()}" failed: ${
+                            e.message
+                        }`,
+                    )
                 }
             }
 
-            if (typeof optValue === 'string' && expectedOption.match && !optValue.match(expectedOption.match)) {
-                throw new Error(`Option "${name.toString()}" doesn't match expected values: ${expectedOption.match}`)
+            if (
+                typeof optValue === 'string' &&
+                expectedOption.match &&
+                !optValue.match(expectedOption.match)
+            ) {
+                throw new Error(
+                    `Option "${name.toString()}" doesn't match expected values: ${
+                        expectedOption.match
+                    }`,
+                )
             }
 
             params[name] = options[name]
         }
     }
 
-    for (const [name, option] of Object.entries(options as any) as [keyof T, T[keyof T]][]) {
+    for (const [name, option] of Object.entries(options as any) as [
+        keyof T,
+        T[keyof T],
+    ][]) {
         /**
          * keep keys from source object if desired
          */
@@ -93,40 +131,42 @@ export function validateConfig<T>(defaults: Options.Definition<T>, options: T, k
     return params
 }
 
-export async function loadAutoCompilers(autoCompileConfig: Options.AutoCompileConfig, requireService: ModuleImportService) {
+export async function loadAutoCompilers(
+    autoCompileConfig: Options.AutoCompileConfig,
+    requireService: ModuleImportService,
+) {
     return (
         autoCompileConfig.autoCompile &&
-        (
-            await loadTypeScriptCompiler(
-                autoCompileConfig.tsNodeOpts,
-                autoCompileConfig.tsConfigPathsOpts,
-                requireService
-            )
-            ||
-            await loadBabelCompiler(
+        ((await loadTypeScriptCompiler(
+            autoCompileConfig.tsNodeOpts,
+            autoCompileConfig.tsConfigPathsOpts,
+            requireService,
+        )) ||
+            (await loadBabelCompiler(
                 autoCompileConfig.babelOpts,
-                requireService
-            )
-        )
+                requireService,
+            )))
     )
 }
 
 export function validateTsConfigPaths(tsNodeOpts: any = {}) {
     /**
-    * Checks tsconfig.json path, throws error if it doesn't exist
-    */
+     * Checks tsconfig.json path, throws error if it doesn't exist
+     */
     if (tsNodeOpts?.project) {
         const tsconfigPath = path.resolve(tsNodeOpts.project)
         if (!canAccess(tsconfigPath)) {
-            throw new Error('Provided tsconfig file path in wdio config is incorrect. Is it correctly set in wdio config ?')
+            throw new Error(
+                'Provided tsconfig file path in wdio config is incorrect. Is it correctly set in wdio config ?',
+            )
         }
     }
 }
 
-export async function loadTypeScriptCompiler (
+export async function loadTypeScriptCompiler(
     tsNodeOpts: any = {},
     tsConfigPathsOpts: Options.TSConfigPathsOptions | undefined,
-    requireService: ModuleImportService
+    requireService: ModuleImportService,
 ) {
     /**
      * don't auto compile within worker as it already was spawn with a loader
@@ -137,13 +177,17 @@ export async function loadTypeScriptCompiler (
 
     try {
         validateTsConfigPaths(tsNodeOpts)
-
-        ;(await requireService.import('ts-node') as any).register({ ...tsNodeOpts, esm: 1 })
-        log.debug('Found \'ts-node\' package, auto-compiling TypeScript files')
+        ;((await requireService.import('ts-node')) as any).register({
+            ...tsNodeOpts,
+            esm: 1,
+        })
+        log.debug("Found 'ts-node' package, auto-compiling TypeScript files")
 
         if (tsConfigPathsOpts) {
-            log.debug('Found \'tsconfig-paths\' options, register paths')
-            const tsConfigPaths = await requireService.import('tsconfig-paths') as any
+            log.debug("Found 'tsconfig-paths' options, register paths")
+            const tsConfigPaths = (await requireService.import(
+                'tsconfig-paths',
+            )) as any
             tsConfigPaths.register(tsConfigPathsOpts)
         }
 
@@ -153,7 +197,10 @@ export async function loadTypeScriptCompiler (
     }
 }
 
-export async function loadBabelCompiler (babelOpts: Record<string, any> = {}, requireService: ModuleImportService) {
+export async function loadBabelCompiler(
+    babelOpts: Record<string, any> = {},
+    requireService: ModuleImportService,
+) {
     try {
         /**
          * only for testing purposes
@@ -162,15 +209,19 @@ export async function loadBabelCompiler (babelOpts: Record<string, any> = {}, re
             throw new Error('test fail')
         }
 
-        (await requireService.import('@babel/register') as any)(babelOpts)
-        log.debug('Found \'@babel/register\' package, auto-compiling files with Babel')
+        ;((await requireService.import('@babel/register')) as any)(babelOpts)
+        log.debug(
+            "Found '@babel/register' package, auto-compiling files with Babel",
+        )
         return true
     } catch (err: any) {
         return false
     }
 }
 
-export function makeRelativeToCWD (files: (string | string[])[] = []): (string | string[])[] {
+export function makeRelativeToCWD(
+    files: (string | string[])[] = [],
+): (string | string[])[] {
     const returnFiles: (string | string[])[] = []
 
     for (const file of files) {

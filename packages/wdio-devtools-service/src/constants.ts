@@ -1,11 +1,11 @@
+import AppleTouchIcon from 'lighthouse/lighthouse-core/audits/apple-touch-icon.js'
+import ContentWidth from 'lighthouse/lighthouse-core/audits/content-width.js'
 import InstallableManifest from 'lighthouse/lighthouse-core/audits/installable-manifest.js'
+import MaskableIcon from 'lighthouse/lighthouse-core/audits/maskable-icon.js'
 import ServiceWorker from 'lighthouse/lighthouse-core/audits/service-worker.js'
 import SplashScreen from 'lighthouse/lighthouse-core/audits/splash-screen.js'
 import ThemedOmnibox from 'lighthouse/lighthouse-core/audits/themed-omnibox.js'
-import ContentWidth from 'lighthouse/lighthouse-core/audits/content-width.js'
 import Viewport from 'lighthouse/lighthouse-core/audits/viewport.js'
-import AppleTouchIcon from 'lighthouse/lighthouse-core/audits/apple-touch-icon.js'
-import MaskableIcon from 'lighthouse/lighthouse-core/audits/maskable-icon.js'
 
 import { throttling } from 'lighthouse/lighthouse-core/config/constants.js'
 
@@ -61,7 +61,7 @@ export const DEFAULT_TRACING_CATEGORIES = [
 export const IGNORED_URLS = [
     'data:,', // empty pages
     'about:', // new tabs
-    'chrome-extension://' // all chrome extensions
+    'chrome-extension://', // all chrome extensions
 ] as const
 
 export const FRAME_LOAD_START_TIMEOUT = 2000
@@ -69,85 +69,93 @@ export const TRACING_TIMEOUT = 15000
 export const MAX_TRACE_WAIT_TIME = 45000
 export const DEFAULT_NETWORK_THROTTLING_STATE = 'online' as const
 export const DEFAULT_FORM_FACTOR = 'desktop' as const
-export const UNSUPPORTED_ERROR_MESSAGE = (
+export const UNSUPPORTED_ERROR_MESSAGE =
     'The @wdio/devtools-service currently only supports Chrome version 63 and up, ' +
     'Firefox 86 and up, and Chromium as the browserName!\n\n' +
-    'Given that cloud vendors don\'t expose access to the Chrome DevTools Protocol ' +
+    "Given that cloud vendors don't expose access to the Chrome DevTools Protocol " +
     'this service also usually only works when running tests locally or through a ' +
     'Selenium Grid (https://www.selenium.dev/documentation/grid/) v4 or higher.'
-)
 
 export const NETWORK_STATES = {
     offline: {
         offline: true,
         latency: 0,
         downloadThroughput: 0,
-        uploadThroughput: 0
+        uploadThroughput: 0,
     },
     GPRS: {
         offline: false,
-        downloadThroughput: 50 * 1024 / 8,
-        uploadThroughput: 20 * 1024 / 8,
-        latency: 500
+        downloadThroughput: (50 * 1024) / 8,
+        uploadThroughput: (20 * 1024) / 8,
+        latency: 500,
     },
     'Regular 2G': {
         offline: false,
-        downloadThroughput: 250 * 1024 / 8,
-        uploadThroughput: 50 * 1024 / 8,
-        latency: 300
+        downloadThroughput: (250 * 1024) / 8,
+        uploadThroughput: (50 * 1024) / 8,
+        latency: 300,
     },
     'Good 2G': {
         offline: false,
-        downloadThroughput: 450 * 1024 / 8,
-        uploadThroughput: 150 * 1024 / 8,
-        latency: 150
+        downloadThroughput: (450 * 1024) / 8,
+        uploadThroughput: (150 * 1024) / 8,
+        latency: 150,
     },
     'Regular 3G': {
         offline: false,
         latency: throttling.mobileRegular3G.requestLatencyMs,
         // DevTools expects throughput in bytes per second rather than kbps
-        downloadThroughput: Math.floor(throttling.mobileRegular3G.downloadThroughputKbps * 1024 / 8),
-        uploadThroughput: Math.floor(throttling.mobileRegular3G.uploadThroughputKbps * 1024 / 8)
+        downloadThroughput: Math.floor(
+            (throttling.mobileRegular3G.downloadThroughputKbps * 1024) / 8,
+        ),
+        uploadThroughput: Math.floor(
+            (throttling.mobileRegular3G.uploadThroughputKbps * 1024) / 8,
+        ),
     },
     'Good 3G': {
         offline: false,
         latency: throttling.mobileSlow4G.requestLatencyMs,
         // DevTools expects throughput in bytes per second rather than kbps
-        downloadThroughput: Math.floor(throttling.mobileSlow4G.downloadThroughputKbps * 1024 / 8),
-        uploadThroughput: Math.floor(throttling.mobileSlow4G.uploadThroughputKbps * 1024 / 8)
+        downloadThroughput: Math.floor(
+            (throttling.mobileSlow4G.downloadThroughputKbps * 1024) / 8,
+        ),
+        uploadThroughput: Math.floor(
+            (throttling.mobileSlow4G.uploadThroughputKbps * 1024) / 8,
+        ),
     },
     'Regular 4G': {
         offline: false,
-        downloadThroughput: 4 * 1024 * 1024 / 8,
-        uploadThroughput: 3 * 1024 * 1024 / 8,
-        latency: 20
+        downloadThroughput: (4 * 1024 * 1024) / 8,
+        uploadThroughput: (3 * 1024 * 1024) / 8,
+        latency: 20,
     },
-    'DSL': {
+    DSL: {
         offline: false,
-        downloadThroughput: 2 * 1024 * 1024 / 8,
-        uploadThroughput: 1 * 1024 * 1024 / 8,
-        latency: 5
+        downloadThroughput: (2 * 1024 * 1024) / 8,
+        uploadThroughput: (1 * 1024 * 1024) / 8,
+        latency: 5,
     },
-    'Wifi': {
+    Wifi: {
         offline: false,
-        downloadThroughput: 30 * 1024 * 1024 / 8,
-        uploadThroughput: 15 * 1024 * 1024 / 8,
-        latency: 2
+        downloadThroughput: (30 * 1024 * 1024) / 8,
+        uploadThroughput: (15 * 1024 * 1024) / 8,
+        latency: 2,
     },
     online: {
         offline: false,
         latency: 0,
         downloadThroughput: -1,
-        uploadThroughput: -1
-    }
+        uploadThroughput: -1,
+    },
 }
 
 export const CLICK_TRANSITION = 'click transition'
 export const DEFAULT_THROTTLE_STATE = {
-    networkThrottling: DEFAULT_NETWORK_THROTTLING_STATE as keyof typeof NETWORK_STATES,
+    networkThrottling:
+        DEFAULT_NETWORK_THROTTLING_STATE as keyof typeof NETWORK_STATES,
     cpuThrottling: 0,
     cacheEnabled: false,
-    formFactor: DEFAULT_FORM_FACTOR
+    formFactor: DEFAULT_FORM_FACTOR,
 } as const
 
 export const NETWORK_RECORDER_EVENTS = [
@@ -157,7 +165,7 @@ export const NETWORK_RECORDER_EVENTS = [
     'Network.dataReceived',
     'Network.loadingFinished',
     'Network.loadingFailed',
-    'Network.resourceChangedPriority'
+    'Network.resourceChangedPriority',
 ] as const
 
 export const PWA_AUDITS = {
@@ -168,5 +176,5 @@ export const PWA_AUDITS = {
     contentWith: ContentWidth,
     viewport: Viewport,
     appleTouchIcon: AppleTouchIcon,
-    maskableIcon: MaskableIcon
+    maskableIcon: MaskableIcon,
 } as const

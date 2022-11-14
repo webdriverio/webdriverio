@@ -1,5 +1,5 @@
-import { UNICODE_CHARACTERS } from '@wdio/utils'
 import type { Capabilities } from '@wdio/types'
+import { UNICODE_CHARACTERS } from '@wdio/utils'
 
 import { checkUnicode } from '../../utils/index.js'
 /**
@@ -38,25 +38,34 @@ import { checkUnicode } from '../../utils/index.js'
  * @see https://w3c.github.io/webdriver/#dispatching-actions
  *
  */
-export default function keys (
+export default function keys(
     this: WebdriverIO.Browser,
-    value: string | string[]
+    value: string | string[],
 ) {
     let keySequence: string[] = []
-    const platformName = (this.capabilities as Capabilities.Capabilities).platformName
+    const platformName = (this.capabilities as Capabilities.Capabilities)
+        .platformName
 
     /**
      * replace key with corresponding unicode character
      */
     if (typeof value === 'string') {
-        keySequence = checkUnicode(value as keyof typeof UNICODE_CHARACTERS, this.isDevTools, platformName)
+        keySequence = checkUnicode(
+            value as keyof typeof UNICODE_CHARACTERS,
+            this.isDevTools,
+            platformName,
+        )
     } else if (Array.isArray(value)) {
         const charArray: (keyof typeof UNICODE_CHARACTERS)[] = value as any
         for (const charSet of charArray) {
-            keySequence = keySequence.concat(checkUnicode(charSet, this.isDevTools, platformName))
+            keySequence = keySequence.concat(
+                checkUnicode(charSet, this.isDevTools, platformName),
+            )
         }
     } else {
-        throw new Error('"keys" command requires a string or array of strings as parameter')
+        throw new Error(
+            '"keys" command requires a string or array of strings as parameter',
+        )
     }
 
     /**

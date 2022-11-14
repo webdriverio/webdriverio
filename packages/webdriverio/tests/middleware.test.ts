@@ -1,6 +1,6 @@
-import { describe, it, beforeAll, afterEach, expect, vi } from 'vitest'
-import path from 'node:path'
 import logger from '@wdio/logger'
+import path from 'node:path'
+import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 // @ts-ignore mocked (original defined in webdriver package)
 import got from 'got'
 
@@ -8,22 +8,33 @@ import waitForExist from '../src/commands/element/waitForExist.js'
 import { remote } from '../src/index.js'
 
 vi.mock('got')
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock(
+    '@wdio/logger',
+    () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')),
+)
 vi.mock('../src/commands/element/waitUntil', () => ({
     __esModule: true,
-    default: vi.fn().mockImplementation(() => { return true })
+    default: vi.fn().mockImplementation(() => {
+        return true
+    }),
 }))
 vi.mock('../src/commands/element/waitForDisplayed', () => ({
     __esModule: true,
-    default: vi.fn().mockImplementation(() => { return true })
+    default: vi.fn().mockImplementation(() => {
+        return true
+    }),
 }))
 vi.mock('../src/commands/element/waitForExist', () => ({
     __esModule: true,
-    default: vi.fn().mockImplementation(() => { return true })
+    default: vi.fn().mockImplementation(() => {
+        return true
+    }),
 }))
 vi.mock('../src/commands/element/waitForEnabled', () => ({
     __esModule: true,
-    default: vi.fn().mockImplementation(() => { return true })
+    default: vi.fn().mockImplementation(() => {
+        return true
+    }),
 }))
 
 const { warn } = logger('foobar')
@@ -35,10 +46,10 @@ describe('middleware', () => {
         browser = await remote({
             baseUrl: 'http://foobar.com',
             capabilities: {
-                browserName: 'foobar'
+                browserName: 'foobar',
             },
             waitforInterval: 20,
-            waitforTimeout: 100
+            waitforTimeout: 100,
         })
     })
 
@@ -55,8 +66,9 @@ describe('middleware', () => {
         const elem = await browser.$('#foo')
         elem.elementId = undefined as any
 
-        await expect(elem.click())
-            .rejects.toThrow('Can\'t call click on element with selector "#foo" because element wasn\'t found')
+        await expect(elem.click()).rejects.toThrow(
+            'Can\'t call click on element with selector "#foo" because element wasn\'t found',
+        )
     })
 
     it('should successfully click on an element that falls stale after being re-found', async () => {
@@ -68,7 +80,9 @@ describe('middleware', () => {
         //Success returns a null
         expect(await subSubElem.click()).toEqual(null)
         expect(vi.mocked(warn).mock.calls).toHaveLength(1)
-        expect(vi.mocked(warn).mock.calls).toEqual([['Request encountered a stale element - terminating request']])
+        expect(vi.mocked(warn).mock.calls).toEqual([
+            ['Request encountered a stale element - terminating request'],
+        ])
         // @ts-ignore mock feature
         got.retryCnt = 0
     })
@@ -80,15 +94,20 @@ describe('middleware', () => {
                 // @ts-expect-error
                 browserName: 'safari',
                 // @ts-expect-error mock feature
-                keepBrowserName: true
+                keepBrowserName: true,
             },
             waitforInterval: 20,
-            waitforTimeout: 100
+            waitforTimeout: 100,
         })
         const elem = await browser.$('#foo')
         elem.selector = '#nonexisting'
         // @ts-ignore mock feature
-        got.setMockResponse([{ error: 'no such element', statusCode: 404 }, undefined, undefined, 'bar'])
+        got.setMockResponse([
+            { error: 'no such element', statusCode: 404 },
+            undefined,
+            undefined,
+            'bar',
+        ])
         expect(await elem.getAttribute('foo')).toEqual('bar')
         expect(vi.mocked(waitForExist).mock.calls).toHaveLength(1)
         vi.mocked(got).mockClear()
@@ -102,7 +121,9 @@ describe('middleware', () => {
         //Success returns a null
         expect(await subSubElem.click()).toEqual(null)
         expect(vi.mocked(warn).mock.calls).toHaveLength(1)
-        expect(vi.mocked(warn).mock.calls).toEqual([['Request encountered a stale element - terminating request']])
+        expect(vi.mocked(warn).mock.calls).toEqual([
+            ['Request encountered a stale element - terminating request'],
+        ])
     })
 
     it('should assign elementId and w3c identifier to element scope after re-found', async () => {
@@ -111,11 +132,15 @@ describe('middleware', () => {
         expect(elem['element-6066-11e4-a52e-4f735466cecf']).toEqual(undefined)
 
         elem.selector = '#exists'
-        elem.addCommand('getThis', function(this: any) { return this })
+        elem.addCommand('getThis', function (this: any) {
+            return this
+        })
         // @ts-expect-error undefined custom command
         const elementThis = await elem.getThis()
         expect(elementThis.elementId).toEqual('some-elem-123')
-        expect(elementThis['element-6066-11e4-a52e-4f735466cecf']).toEqual('some-elem-123')
+        expect(elementThis['element-6066-11e4-a52e-4f735466cecf']).toEqual(
+            'some-elem-123',
+        )
     })
 
     describe('should NOT wait on element if', () => {
@@ -139,9 +164,10 @@ describe('middleware', () => {
             'waitUntilFoo',
             'waitForFoo',
             'isExistingFoo',
-            'isDisplayedFoo']
+            'isDisplayedFoo',
+        ]
 
-        commands.forEach(commandName => {
+        commands.forEach((commandName) => {
             it(`elem NOT_FOUND and command = ${commandName}`, async () => {
                 browser.addCommand(commandName, () => {}, true)
                 const elem = await browser.$('#nonexisting')

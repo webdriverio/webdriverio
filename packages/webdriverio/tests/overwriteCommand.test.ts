@@ -1,44 +1,56 @@
 import path from 'node:path'
 import { describe, expect, test, vi } from 'vitest'
-import { remote, multiremote } from '../src/index.js'
+import { multiremote, remote } from '../src/index.js'
 
 vi.mock('got')
 vi.mock('devtools')
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock(
+    '@wdio/logger',
+    () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')),
+)
 
 const remoteConfig = {
     baseUrl: 'http://foobar.com',
     capabilities: {
-        browserName: 'foobar-noW3C'
-    }
+        browserName: 'foobar-noW3C',
+    },
 }
 
 const multiremoteConfig = {
     browserA: {
         logLevel: 'debug',
         capabilities: {
-            browserName: 'chrome'
-        }
+            browserName: 'chrome',
+        },
     },
     browserB: {
         logLevel: 'debug',
         port: 4445,
         capabilities: {
-            browserName: 'firefox'
-        }
-    }
+            browserName: 'firefox',
+        },
+    },
 }
 
 const error1 = Error('Thrown 1!')
 const error2 = new Error('Thrown 2!')
 
-const customElementCommand = async (origCmd: Function, origCmdArg: any[], arg: any) => {
-    const result = await new Promise(
-        (resolve) => setTimeout(async () => resolve(await origCmd(origCmdArg)), 1))
+const customElementCommand = async (
+    origCmd: Function,
+    origCmdArg: any[],
+    arg: any,
+) => {
+    const result = await new Promise((resolve) =>
+        setTimeout(async () => resolve(await origCmd(origCmdArg)), 1),
+    )
     return `${result} ${origCmdArg} ${arg}`
 }
 
-const customBrowserCommand = async (origCmd: Function, origCmdArg: number, arg = 0) => {
+const customBrowserCommand = async (
+    origCmd: Function,
+    origCmdArg: number,
+    arg = 0,
+) => {
     const start = Date.now() - 1
     await origCmd(origCmdArg + arg)
     return Date.now() - start
@@ -68,7 +80,9 @@ describe('overwriteCommand', () => {
             const elem = await browser.$('#foo')
 
             // @ts-expect-error command overwritten
-            expect(await elem.getAttribute('foo', 'bar')).toBe('foo-value foo bar')
+            expect(await elem.getAttribute('foo', 'bar')).toBe(
+                'foo-value foo bar',
+            )
         })
 
         test('should propagate element commands for all prototypes', async () => {
@@ -91,7 +105,9 @@ describe('overwriteCommand', () => {
             const subElem = await elem.$('.subElem')
 
             // @ts-expect-error command overwritten
-            expect(await subElem.getAttribute('bar', 'foo')).toBe('bar-value bar foo')
+            expect(await subElem.getAttribute('bar', 'foo')).toBe(
+                'bar-value bar foo',
+            )
         })
 
         test('should properly throw exceptions on the browser scope', async () => {
@@ -113,13 +129,21 @@ describe('overwriteCommand', () => {
 
         test('should properly throw exceptions on the element scope', async () => {
             const browser = await remote(remoteConfig)
-            browser.overwriteCommand('click', function () {
-                throw error1
-            }, true)
-            browser.overwriteCommand('waitForDisplayed', async function () {
-                await browser.$('#foo')
-                throw error2
-            }, true)
+            browser.overwriteCommand(
+                'click',
+                function () {
+                    throw error1
+                },
+                true,
+            )
+            browser.overwriteCommand(
+                'waitForDisplayed',
+                async function () {
+                    await browser.$('#foo')
+                    throw error2
+                },
+                true,
+            )
             const elem = await browser.$('#foo')
 
             await expect(() => elem.click()).rejects.toThrow(error1)
@@ -141,7 +165,9 @@ describe('overwriteCommand', () => {
             browser.browserA.overwriteCommand('pause', customBrowserCommand)
 
             // @ts-expect-error command overwritten
-            expect(await browser.browserA.pause(10, 10)).toBeGreaterThanOrEqual(20)
+            expect(await browser.browserA.pause(10, 10)).toBeGreaterThanOrEqual(
+                20,
+            )
             // @ts-expect-error command overwritten
             expect(await browser.browserB.pause(10)).toBe(undefined)
 
@@ -157,7 +183,8 @@ describe('overwriteCommand', () => {
 
             // @ts-expect-error command overwritten
             expect(await elem.getAttribute('foo', 'bar')).toEqual([
-                'foo-value foo bar', 'foo-value foo bar'
+                'foo-value foo bar',
+                'foo-value foo bar',
             ])
         })
     })

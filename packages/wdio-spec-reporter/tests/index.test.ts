@@ -1,30 +1,38 @@
 import path from 'node:path'
-import { describe, expect, it, vi, beforeEach, beforeAll } from 'vitest'
+import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { runnerEnd } from '../../wdio-allure-reporter/tests/__fixtures__/runner.js'
 import SpecReporter from '../src/index.js'
 import {
     RUNNER,
-    SUITE_UIDS,
     SUITES,
+    SUITES_MULTIPLE_ERRORS,
     SUITES_NO_TESTS,
-    SUITES_WITH_DATA_TABLE,
     SUITES_NO_TESTS_WITH_HOOK_ERROR,
-    SUITES_MULTIPLE_ERRORS
+    SUITES_WITH_DATA_TABLE,
+    SUITE_UIDS,
 } from './__fixtures__/testdata.js'
 
 vi.mock('chalk')
-vi.mock('@wdio/reporter', () => import(path.join(process.cwd(), '__mocks__', '@wdio/reporter')))
+vi.mock(
+    '@wdio/reporter',
+    () => import(path.join(process.cwd(), '__mocks__', '@wdio/reporter')),
+)
 
 const reporter = new SpecReporter({})
 
-const defaultCaps = { browserName: 'loremipsum', version: 50, platform: 'Windows 10', sessionId: 'foobar' }
+const defaultCaps = {
+    browserName: 'loremipsum',
+    version: 50,
+    platform: 'Windows 10',
+    sessionId: 'foobar',
+}
 const fakeSessionId = 'ba86cbcb70774ef8a0757c1702c3bdf9'
 const getRunnerConfig = (config: any = {}) => {
     return Object.assign(JSON.parse(JSON.stringify(RUNNER)), {
         capabilities: config.capabilities || defaultCaps,
         config,
         sessionId: fakeSessionId,
-        isMultiremote: Boolean(config.isMultiremote)
+        isMultiremote: Boolean(config.isMultiremote),
     })
 }
 
@@ -75,24 +83,55 @@ describe('SpecReporter', () => {
 
     describe('getEventsToReport', () => {
         it('should return all tests and hook errors to report', () => {
-            expect(tmpReporter.getEventsToReport({
-                tests: [{ type: 'test', title: '1' }, { type: 'test', title: '2' }],
-                hooks: [{}],
-                hooksAndTests: [{}, { type: 'test', title: '11' }, {}, { type: 'test', title: '22' }, {}]
-            } as any)).toEqual([{ type: 'test', title: '11' }, { type: 'test', title: '22' }])
-            expect(tmpReporter.getEventsToReport({
-                tests: [{ type: 'test', title: '1' }, { type: 'test', title: '2' }],
-                hooks: [{ error: 1 }, {}, { error: 2 }],
-                hooksAndTests: [{}, { error: 11 }, {}, { type: 'test', title: '33' }, {}, { error: 22 }, {}]
-            } as any)).toEqual([{ error: 11 }, { type: 'test', title: '33' }, { error: 22 }])
+            expect(
+                tmpReporter.getEventsToReport({
+                    tests: [
+                        { type: 'test', title: '1' },
+                        { type: 'test', title: '2' },
+                    ],
+                    hooks: [{}],
+                    hooksAndTests: [
+                        {},
+                        { type: 'test', title: '11' },
+                        {},
+                        { type: 'test', title: '22' },
+                        {},
+                    ],
+                } as any),
+            ).toEqual([
+                { type: 'test', title: '11' },
+                { type: 'test', title: '22' },
+            ])
+            expect(
+                tmpReporter.getEventsToReport({
+                    tests: [
+                        { type: 'test', title: '1' },
+                        { type: 'test', title: '2' },
+                    ],
+                    hooks: [{ error: 1 }, {}, { error: 2 }],
+                    hooksAndTests: [
+                        {},
+                        { error: 11 },
+                        {},
+                        { type: 'test', title: '33' },
+                        {},
+                        { error: 22 },
+                        {},
+                    ],
+                } as any),
+            ).toEqual([
+                { error: 11 },
+                { type: 'test', title: '33' },
+                { error: 22 },
+            ])
         })
     })
 
     describe('onTestPass', () => {
         beforeAll(() => {
             reporter.onTestPass({
-                title:'test1',
-                state:'passed'
+                title: 'test1',
+                state: 'passed',
             } as any)
         })
 
@@ -104,8 +143,8 @@ describe('SpecReporter', () => {
     describe('onTestFail', () => {
         beforeAll(() => {
             reporter.onTestFail({
-                title:'test1',
-                state:'failed'
+                title: 'test1',
+                state: 'failed',
             } as any)
         })
 
@@ -117,9 +156,9 @@ describe('SpecReporter', () => {
     describe('onTestSkip', () => {
         beforeAll(() => {
             reporter.onTestSkip({
-                title:'test1',
-                state:'skipped',
-                pendingReason: 'some random reason'
+                title: 'test1',
+                state: 'skipped',
+                pendingReason: 'some random reason',
             } as any)
         })
 
@@ -148,7 +187,9 @@ describe('SpecReporter', () => {
             reporter.onRunnerEnd(RUNNER as any)
 
             expect(vi.mocked(reporter.printReport).mock.calls.length).toBe(1)
-            expect(vi.mocked(reporter.printReport).mock.calls[0][0]).toEqual(RUNNER)
+            expect(vi.mocked(reporter.printReport).mock.calls[0][0]).toEqual(
+                RUNNER,
+            )
         })
     })
 
@@ -160,8 +201,8 @@ describe('SpecReporter', () => {
             printReporter.write = vi.fn()
             printReporter.runnerStat = {
                 instanceOptions: {
-                    [fakeSessionId]: {}
-                }
+                    [fakeSessionId]: {},
+                },
             } as any
         })
 
@@ -186,10 +227,11 @@ describe('SpecReporter', () => {
                 const options = {
                     hostname: 'ondemand.saucelabs.com',
                     user: 'foobar',
-                    key: '123'
+                    key: '123',
                 }
                 const runner = getRunnerConfig({})
-                printReporter.runnerStat.instanceOptions[fakeSessionId] = options
+                printReporter.runnerStat.instanceOptions[fakeSessionId] =
+                    options
                 printReporter.printReport(runner)
                 expect(printReporter.write.mock.calls).toMatchSnapshot()
             })
@@ -198,7 +240,7 @@ describe('SpecReporter', () => {
                 const options = {
                     hostname: 'ondemand.saucelabs.com',
                     user: 'foobar',
-                    key: '123'
+                    key: '123',
                 }
                 const runner = getRunnerConfig({
                     capabilities: {
@@ -206,11 +248,13 @@ describe('SpecReporter', () => {
                         deviceName: 'udid-serial-of-device',
                         platformVersion: '14.3',
                         platformName: 'iOS',
-                        testobject_test_report_url: ' https://app.eu-central-1.saucelabs.com/tests/c752c683e0874da4b1dad593ce6645b2'
+                        testobject_test_report_url:
+                            ' https://app.eu-central-1.saucelabs.com/tests/c752c683e0874da4b1dad593ce6645b2',
                     },
                     sessionId: 'c752c683e0874da4b1dad593ce6645b2',
                 })
-                printReporter.runnerStat.instanceOptions[fakeSessionId] = options
+                printReporter.runnerStat.instanceOptions[fakeSessionId] =
+                    options
                 printReporter.printReport(runner)
                 expect(printReporter.write.mock.calls).toMatchSnapshot()
             })
@@ -219,14 +263,14 @@ describe('SpecReporter', () => {
                 const options = {
                     hostname: 'ondemand.saucelabs.com',
                     user: 'foobar',
-                    key: '123'
+                    key: '123',
                 }
                 const runner = getRunnerConfig({
                     capabilities: {
                         browserA: { sessionId: 'foobar' },
-                        browserB: { sessionId: 'barfoo' }
+                        browserB: { sessionId: 'barfoo' },
                     },
-                    isMultiremote: true
+                    isMultiremote: true,
                 })
                 printReporter.runnerStat.instanceOptions['foobar'] = options
                 printReporter.runnerStat.instanceOptions['barfoo'] = options
@@ -238,14 +282,14 @@ describe('SpecReporter', () => {
                 const runner = getRunnerConfig({
                     capabilities: {
                         ...defaultCaps,
-                        'sauce:options': 'foobar'
+                        'sauce:options': 'foobar',
                     },
-                    sessionId: fakeSessionId
+                    sessionId: fakeSessionId,
                 })
                 printReporter.runnerStat.instanceOptions[fakeSessionId] = {
                     hostname: 'ondemand.us-west-1.saucelabs.com',
                     user: 'foobar',
-                    key: '123'
+                    key: '123',
                 }
                 printReporter.printReport(runner)
                 expect(printReporter.write.mock.calls).toMatchSnapshot()
@@ -255,14 +299,14 @@ describe('SpecReporter', () => {
                 const runner = getRunnerConfig({
                     capabilities: {
                         tunnelIdentifier: 'foobar',
-                        ...defaultCaps
+                        ...defaultCaps,
                     },
-                    sessionId: fakeSessionId
+                    sessionId: fakeSessionId,
                 })
                 printReporter.runnerStat.instanceOptions[fakeSessionId] = {
                     hostname: 'ondemand.saucelabs.com',
                     user: 'foobar',
-                    key: '123'
+                    key: '123',
                 }
                 printReporter.printReport(runner)
                 expect(printReporter.write.mock.calls).toMatchSnapshot()
@@ -272,7 +316,7 @@ describe('SpecReporter', () => {
                 printReporter.runnerStat.instanceOptions[fakeSessionId] = {
                     hostname: 'ondemand.eu-central-1.saucelabs.com',
                     user: 'foobar',
-                    key: '123'
+                    key: '123',
                 }
                 printReporter.printReport(getRunnerConfig({}))
                 expect(printReporter.write.mock.calls).toMatchSnapshot()
@@ -283,7 +327,7 @@ describe('SpecReporter', () => {
                     hostname: 'ondemand.saucelabs.com',
                     user: 'foobar',
                     key: '123',
-                    region: 'apac'
+                    region: 'apac',
                 }
                 printReporter.printReport(getRunnerConfig({}))
                 expect(printReporter.write.mock.calls).toMatchSnapshot()
@@ -293,7 +337,7 @@ describe('SpecReporter', () => {
                 printReporter.runnerStat.instanceOptions[fakeSessionId] = {
                     hostname: 'ondemand.us-east-1.saucelabs.com',
                     user: 'foobar',
-                    key: '123'
+                    key: '123',
                 }
                 printReporter.printReport(getRunnerConfig({}))
                 expect(printReporter.write.mock.calls).toMatchSnapshot()
@@ -321,7 +365,9 @@ describe('SpecReporter', () => {
                     key: '123',
                 })
                 tmpReporter.printReport(runner)
-                expect(vi.mocked(tmpReporter.write).mock.calls).toMatchSnapshot()
+                expect(
+                    vi.mocked(tmpReporter.write).mock.calls,
+                ).toMatchSnapshot()
             })
         })
 
@@ -331,12 +377,14 @@ describe('SpecReporter', () => {
 
             const runner = getRunnerConfig({
                 capabilities: {},
-                hostname: 'localhost'
+                hostname: 'localhost',
             })
             printReporter.printReport(runner)
 
             expect(printReporter.write.mock.calls.length).toBe(1)
-            expect(printReporter.write.mock.calls[0][0]).toContain('a failed hook')
+            expect(printReporter.write.mock.calls[0][0]).toContain(
+                'a failed hook',
+            )
         })
 
         it('should not print the report because there are no tests', () => {
@@ -367,10 +415,11 @@ describe('SpecReporter', () => {
                 getRunnerConfig({
                     capabilities: {
                         browserA: { browserName: 'chrome' },
-                        browserB: { browserName: 'firefox' }
+                        browserB: { browserName: 'firefox' },
                     },
                     isMultiremote: true,
-                }))
+                }),
+            )
 
             expect(result).toMatchSnapshot()
         })
@@ -378,26 +427,34 @@ describe('SpecReporter', () => {
 
     describe('getResultDisplay', () => {
         it('should validate the result output with tests', () => {
-            tmpReporter.getOrderedSuites = vi.fn(() => Object.values(SUITES)) as any
+            tmpReporter.getOrderedSuites = vi.fn(() =>
+                Object.values(SUITES),
+            ) as any
             const result = tmpReporter.getResultDisplay()
             expect(result).toMatchSnapshot()
         })
 
         it('should validate the result output with no tests', () => {
-            tmpReporter.getOrderedSuites = vi.fn(() => Object.values(SUITES_NO_TESTS)) as any
+            tmpReporter.getOrderedSuites = vi.fn(() =>
+                Object.values(SUITES_NO_TESTS),
+            ) as any
             const result = tmpReporter.getResultDisplay()
             expect(result.length).toBe(0)
         })
 
         it('should print data tables', () => {
-            tmpReporter.getOrderedSuites = vi.fn(() => Object.values(SUITES_WITH_DATA_TABLE)) as any
+            tmpReporter.getOrderedSuites = vi.fn(() =>
+                Object.values(SUITES_WITH_DATA_TABLE),
+            ) as any
             const result = tmpReporter.getResultDisplay()
             expect(result).toMatchSnapshot()
         })
 
         it('should not print if data table format is not given', () => {
             tmpReporter.getOrderedSuites = vi.fn(() => {
-                const suites = Object.values(JSON.parse(JSON.stringify(SUITES_WITH_DATA_TABLE))) as any[]
+                const suites = Object.values(
+                    JSON.parse(JSON.stringify(SUITES_WITH_DATA_TABLE)),
+                ) as any[]
                 suites[0].hooksAndTests[0].argument = 'some different format'
                 return suites
             })
@@ -407,7 +464,9 @@ describe('SpecReporter', () => {
 
         it('should not print if data table is empty', () => {
             tmpReporter.getOrderedSuites = vi.fn(() => {
-                const suites = Object.values(JSON.parse(JSON.stringify(SUITES_WITH_DATA_TABLE))) as any[]
+                const suites = Object.values(
+                    JSON.parse(JSON.stringify(SUITES_WITH_DATA_TABLE)),
+                ) as any[]
                 suites[0].hooksAndTests[0].argument.rows = []
                 return suites
             })
@@ -457,7 +516,9 @@ describe('SpecReporter', () => {
 
     describe('getFailureDisplay', () => {
         it('should return failing results', () => {
-            tmpReporter.getOrderedSuites = vi.fn(() => Object.values(SUITES)) as any
+            tmpReporter.getOrderedSuites = vi.fn(() =>
+                Object.values(SUITES),
+            ) as any
             const result = tmpReporter.getFailureDisplay()
 
             expect(result.length).toBe(7)
@@ -468,21 +529,29 @@ describe('SpecReporter', () => {
         })
 
         it('should return no results', () => {
-            tmpReporter.getOrderedSuites = vi.fn(() => Object.values(SUITES_NO_TESTS)) as any
+            tmpReporter.getOrderedSuites = vi.fn(() =>
+                Object.values(SUITES_NO_TESTS),
+            ) as any
             const result = tmpReporter.getFailureDisplay()
 
             expect(result.length).toBe(0)
         })
 
         it('should return mutliple failing results if they exist', () => {
-            tmpReporter.getOrderedSuites = vi.fn(() => Object.values(SUITES_MULTIPLE_ERRORS)) as any
+            tmpReporter.getOrderedSuites = vi.fn(() =>
+                Object.values(SUITES_MULTIPLE_ERRORS),
+            ) as any
             const result = tmpReporter.getFailureDisplay()
             expect(result.length).toBe(6)
             expect(result[0]).toBe('')
             expect(result[1]).toBe('1) Bar test a test with two failures')
-            expect(result[2]).toBe('red expected the party on the first part to be the party on the first part')
+            expect(result[2]).toBe(
+                'red expected the party on the first part to be the party on the first part',
+            )
             expect(result[3]).toBe('gray First failed stack trace')
-            expect(result[4]).toBe('red expected the party on the second part to be the party on the second part')
+            expect(result[4]).toBe(
+                'red expected the party on the second part to be the party on the second part',
+            )
             expect(result[5]).toBe('gray Second failed stack trace')
         })
     })
@@ -580,12 +649,14 @@ describe('SpecReporter', () => {
             tmpReporter.onSuiteStart(Object.values(SUITES)[0] as any)
             tmpReporter.onTestStart()
             tmpReporter['_orderedSuites'] = Object.values(SUITES) as any
-            tmpReporter['_consoleOutput']='Printing to console spec'
+            tmpReporter['_consoleOutput'] = 'Printing to console spec'
             tmpReporter.onTestPass({
-                title:'test1',
-                state:'passed'
+                title: 'test1',
+                state: 'passed',
             } as any)
-            expect(tmpReporter.getResultDisplay().toString()).toContain('Printing to console spec')
+            expect(tmpReporter.getResultDisplay().toString()).toContain(
+                'Printing to console spec',
+            )
             tmpReporter.onSuiteEnd()
             tmpReporter.onRunnerEnd(runnerEnd())
         })
@@ -595,12 +666,14 @@ describe('SpecReporter', () => {
             tmpReporter.onSuiteStart(Object.values(SUITES)[0] as any)
             tmpReporter.onTestStart()
             tmpReporter['_orderedSuites'] = Object.values(SUITES) as any
-            tmpReporter['_consoleOutput']='Printing to console spec'
+            tmpReporter['_consoleOutput'] = 'Printing to console spec'
             tmpReporter.onTestFail({
-                title:'test1',
-                state:'failed'
+                title: 'test1',
+                state: 'failed',
             } as any)
-            expect(tmpReporter.getResultDisplay().toString()).toContain('Printing to console spec')
+            expect(tmpReporter.getResultDisplay().toString()).toContain(
+                'Printing to console spec',
+            )
             tmpReporter.onSuiteEnd()
             tmpReporter.onRunnerEnd(runnerEnd())
         })
@@ -610,12 +683,14 @@ describe('SpecReporter', () => {
             tmpReporter.onSuiteStart(Object.values(SUITES)[0] as any)
             tmpReporter.onTestStart()
             tmpReporter['_orderedSuites'] = Object.values(SUITES) as any
-            tmpReporter['_consoleOutput']='Printing to console spec'
+            tmpReporter['_consoleOutput'] = 'Printing to console spec'
             tmpReporter.onTestSkip({
-                title:'test1',
-                state:'skipped'
+                title: 'test1',
+                state: 'skipped',
             } as any)
-            expect(tmpReporter.getResultDisplay().toString()).toContain('Printing to console spec')
+            expect(tmpReporter.getResultDisplay().toString()).toContain(
+                'Printing to console spec',
+            )
             tmpReporter.onSuiteEnd()
             tmpReporter.onRunnerEnd(runnerEnd())
         })
@@ -626,11 +701,13 @@ describe('SpecReporter', () => {
             tmpReporter.onTestStart()
             tmpReporter['_orderedSuites'] = Object.values(SUITES) as any
             tmpReporter.onTestSkip({
-                title:'test1',
-                state:'skipped',
-                pendingReason:'some random Reasons'
+                title: 'test1',
+                state: 'skipped',
+                pendingReason: 'some random Reasons',
             } as any)
-            expect(tmpReporter.getResultDisplay().toString()).toContain('Pending Reasons')
+            expect(tmpReporter.getResultDisplay().toString()).toContain(
+                'Pending Reasons',
+            )
             tmpReporter.onSuiteEnd()
             tmpReporter.onRunnerEnd(runnerEnd())
         })
@@ -639,8 +716,10 @@ describe('SpecReporter', () => {
             tmpReporter = new SpecReporter(options)
             tmpReporter.onSuiteStart(Object.values(SUITES)[0] as any)
             tmpReporter['_orderedSuites'] = Object.values(SUITES) as any
-            tmpReporter['_consoleOutput']='mwebdriver test log'
-            expect(tmpReporter.getResultDisplay().toString()).not.toContain('mwebdriver test log')
+            tmpReporter['_consoleOutput'] = 'mwebdriver test log'
+            expect(tmpReporter.getResultDisplay().toString()).not.toContain(
+                'mwebdriver test log',
+            )
             tmpReporter.onSuiteEnd()
             tmpReporter.onRunnerEnd(runnerEnd())
         })
@@ -746,142 +825,204 @@ describe('SpecReporter', () => {
 
     describe('getEnviromentCombo', () => {
         it('should return Multibrowser as capability if multiremote is used', () => {
-            expect(tmpReporter.getEnviromentCombo({
-                myBrowser: {
-                    browserName: 'chrome',
-                    platform: 'Windows 8.1'
-                }
-            } as any, true, true)).toBe('MultiremoteBrowser on chrome')
+            expect(
+                tmpReporter.getEnviromentCombo(
+                    {
+                        myBrowser: {
+                            browserName: 'chrome',
+                            platform: 'Windows 8.1',
+                        },
+                    } as any,
+                    true,
+                    true,
+                ),
+            ).toBe('MultiremoteBrowser on chrome')
         })
 
         it('should return verbose desktop combo', () => {
-            expect(tmpReporter.getEnviromentCombo({
-                browserName: 'chrome',
-                version: 50,
-                platform: 'Windows 8.1'
-            } as any)).toBe('chrome (v50) on Windows 8.1')
+            expect(
+                tmpReporter.getEnviromentCombo({
+                    browserName: 'chrome',
+                    version: 50,
+                    platform: 'Windows 8.1',
+                } as any),
+            ).toBe('chrome (v50) on Windows 8.1')
         })
 
         it('should return preface desktop combo', () => {
-            expect(tmpReporter.getEnviromentCombo({
-                browserName: 'chrome',
-                version: 50,
-                platform: 'Windows 8.1'
-            } as any, false)).toBe('chrome 50 Windows 8.1')
+            expect(
+                tmpReporter.getEnviromentCombo(
+                    {
+                        browserName: 'chrome',
+                        version: 50,
+                        platform: 'Windows 8.1',
+                    } as any,
+                    false,
+                ),
+            ).toBe('chrome 50 Windows 8.1')
         })
 
         it('should return verbose mobile combo', () => {
-            expect(tmpReporter.getEnviromentCombo({
-                deviceName: 'iPhone 6 Plus',
-                platformVersion: '9.2',
-                platformName: 'iOS'
-            })).toBe('iPhone 6 Plus on iOS 9.2')
+            expect(
+                tmpReporter.getEnviromentCombo({
+                    deviceName: 'iPhone 6 Plus',
+                    platformVersion: '9.2',
+                    platformName: 'iOS',
+                }),
+            ).toBe('iPhone 6 Plus on iOS 9.2')
         })
 
         it('should return preface mobile combo', () => {
-            expect(tmpReporter.getEnviromentCombo({
-                deviceName: 'iPhone 6 Plus',
-                platformVersion: '9.2',
-                platformName: 'iOS'
-            }, false)).toBe('iPhone 6 Plus iOS 9.2')
+            expect(
+                tmpReporter.getEnviromentCombo(
+                    {
+                        deviceName: 'iPhone 6 Plus',
+                        platformVersion: '9.2',
+                        platformName: 'iOS',
+                    },
+                    false,
+                ),
+            ).toBe('iPhone 6 Plus iOS 9.2')
         })
 
         it('should return verbose mobile combo executing an app', () => {
-            expect(tmpReporter.getEnviromentCombo({
-                deviceName: 'iPhone 6 Plus',
-                platformVersion: '9.2',
-                platformName: 'iOS',
-                app: 'sauce-storage:myApp.app'
-            })).toBe('iPhone 6 Plus on iOS 9.2 executing myApp.app')
+            expect(
+                tmpReporter.getEnviromentCombo({
+                    deviceName: 'iPhone 6 Plus',
+                    platformVersion: '9.2',
+                    platformName: 'iOS',
+                    app: 'sauce-storage:myApp.app',
+                }),
+            ).toBe('iPhone 6 Plus on iOS 9.2 executing myApp.app')
         })
 
         it('should return preface mobile combo executing an app', () => {
-            expect(tmpReporter.getEnviromentCombo({
-                deviceName: 'iPhone 6 Plus',
-                platformVersion: '9.2',
-                platformName: 'iOS',
-                app: 'sauce-storage:myApp.app'
-            }, true)).toBe('iPhone 6 Plus on iOS 9.2 executing myApp.app')
+            expect(
+                tmpReporter.getEnviromentCombo(
+                    {
+                        deviceName: 'iPhone 6 Plus',
+                        platformVersion: '9.2',
+                        platformName: 'iOS',
+                        app: 'sauce-storage:myApp.app',
+                    },
+                    true,
+                ),
+            ).toBe('iPhone 6 Plus on iOS 9.2 executing myApp.app')
         })
 
         it('should return verbose mobile combo executing a browser', () => {
-            expect(tmpReporter.getEnviromentCombo({
-                deviceName: 'iPhone 6 Plus',
-                platformVersion: '9.2',
-                platformName: 'iOS',
-                browserName: 'Safari'
-            })).toBe('iPhone 6 Plus on iOS 9.2 executing Safari')
+            expect(
+                tmpReporter.getEnviromentCombo({
+                    deviceName: 'iPhone 6 Plus',
+                    platformVersion: '9.2',
+                    platformName: 'iOS',
+                    browserName: 'Safari',
+                }),
+            ).toBe('iPhone 6 Plus on iOS 9.2 executing Safari')
         })
 
         it('should return preface mobile combo executing a browser', () => {
-            expect(tmpReporter.getEnviromentCombo({
-                deviceName: 'iPhone 6 Plus',
-                platformVersion: '9.2',
-                platformName: 'iOS',
-                browserName: 'Safari'
-            }, false)).toBe('iPhone 6 Plus iOS 9.2')
+            expect(
+                tmpReporter.getEnviromentCombo(
+                    {
+                        deviceName: 'iPhone 6 Plus',
+                        platformVersion: '9.2',
+                        platformName: 'iOS',
+                        browserName: 'Safari',
+                    },
+                    false,
+                ),
+            ).toBe('iPhone 6 Plus iOS 9.2')
         })
 
         it('should return verbose desktop combo when using BrowserStack capabilities', () => {
-            expect(tmpReporter.getEnviromentCombo({
-                browser: 'Chrome',
-                browser_version: 50,
-                os: 'Windows',
-                os_version: '10'
-            } as any)).toBe('Chrome (v50) on Windows 10')
+            expect(
+                tmpReporter.getEnviromentCombo({
+                    browser: 'Chrome',
+                    browser_version: 50,
+                    os: 'Windows',
+                    os_version: '10',
+                } as any),
+            ).toBe('Chrome (v50) on Windows 10')
         })
 
         it('should return preface desktop combo when using BrowserStack capabilities', () => {
-            expect(tmpReporter.getEnviromentCombo({
-                browser: 'Chrome',
-                browser_version: 50,
-                os: 'Windows',
-                os_version: '10'
-            } as any, false)).toBe('Chrome 50 Windows 10')
+            expect(
+                tmpReporter.getEnviromentCombo(
+                    {
+                        browser: 'Chrome',
+                        browser_version: 50,
+                        os: 'Windows',
+                        os_version: '10',
+                    } as any,
+                    false,
+                ),
+            ).toBe('Chrome 50 Windows 10')
         })
 
         it('should return verbose desktop combo when using BrowserStack capabilities without os', () => {
-            expect(tmpReporter.getEnviromentCombo({
-                browser: 'Chrome',
-                browser_version: 50,
-            } as any)).toBe('Chrome (v50) on (unknown)')
+            expect(
+                tmpReporter.getEnviromentCombo({
+                    browser: 'Chrome',
+                    browser_version: 50,
+                } as any),
+            ).toBe('Chrome (v50) on (unknown)')
         })
 
         it('should return preface desktop combo when using BrowserStack capabilities without os', () => {
-            expect(tmpReporter.getEnviromentCombo({
-                browser: 'Chrome',
-                browser_version: 50,
-            } as any, false)).toBe('Chrome 50 (unknown)')
+            expect(
+                tmpReporter.getEnviromentCombo(
+                    {
+                        browser: 'Chrome',
+                        browser_version: 50,
+                    } as any,
+                    false,
+                ),
+            ).toBe('Chrome 50 (unknown)')
         })
 
         it('should return verbose desktop combo when using BrowserStack capabilities without os_version', () => {
-            expect(tmpReporter.getEnviromentCombo({
-                browser: 'Chrome',
-                browser_version: 50,
-                os: 'Windows',
-            } as any)).toBe('Chrome (v50) on Windows')
+            expect(
+                tmpReporter.getEnviromentCombo({
+                    browser: 'Chrome',
+                    browser_version: 50,
+                    os: 'Windows',
+                } as any),
+            ).toBe('Chrome (v50) on Windows')
         })
 
         it('should return preface desktop combo when using BrowserStack capabilities without os_version', () => {
-            expect(tmpReporter.getEnviromentCombo({
-                browser: 'Chrome',
-                browser_version: 50,
-                os: 'Windows',
-            } as any, false)).toBe('Chrome 50 Windows')
+            expect(
+                tmpReporter.getEnviromentCombo(
+                    {
+                        browser: 'Chrome',
+                        browser_version: 50,
+                        os: 'Windows',
+                    } as any,
+                    false,
+                ),
+            ).toBe('Chrome 50 Windows')
         })
 
         it('should return verbose desktop combo without platform', () => {
-            expect(tmpReporter.getEnviromentCombo({
-                browserName: 'chrome',
-                version: 50,
-            } as any)).toBe('chrome (v50) on (unknown)')
+            expect(
+                tmpReporter.getEnviromentCombo({
+                    browserName: 'chrome',
+                    version: 50,
+                } as any),
+            ).toBe('chrome (v50) on (unknown)')
         })
 
         it('should return preface desktop combo without platform', () => {
-            expect(tmpReporter.getEnviromentCombo({
-                browserName: 'chrome',
-                version: 50,
-            } as any, false)).toBe('chrome 50 (unknown)')
+            expect(
+                tmpReporter.getEnviromentCombo(
+                    {
+                        browserName: 'chrome',
+                        version: 50,
+                    } as any,
+                    false,
+                ),
+            ).toBe('chrome 50 (unknown)')
         })
     })
 
@@ -894,14 +1035,14 @@ describe('SpecReporter', () => {
             tmpReporter.onSuiteStart(Object.values(SUITES)[0] as any)
             tmpReporter.onTestStart()
             tmpReporter['_orderedSuites'] = Object.values(SUITES) as any
-            tmpReporter['_consoleOutput']='Printing to console spec'
+            tmpReporter['_consoleOutput'] = 'Printing to console spec'
             tmpReporter.onTestPass({
-                title:'test1',
-                state:'passed'
+                title: 'test1',
+                state: 'passed',
             } as any)
             expect(tmpReporter.printCurrentStats).toBeCalledWith({
-                title:'test1',
-                state:'passed'
+                title: 'test1',
+                state: 'passed',
             })
             tmpReporter.onSuiteEnd()
             tmpReporter.onRunnerEnd(runnerEnd())
@@ -913,14 +1054,14 @@ describe('SpecReporter', () => {
             tmpReporter.onSuiteStart(Object.values(SUITES)[0] as any)
             tmpReporter.onTestStart()
             tmpReporter['_orderedSuites'] = Object.values(SUITES) as any
-            tmpReporter['_consoleOutput']='Printing to console spec'
+            tmpReporter['_consoleOutput'] = 'Printing to console spec'
             tmpReporter.onTestPass({
-                title:'test1',
-                state:'failed'
+                title: 'test1',
+                state: 'failed',
             } as any)
             expect(tmpReporter.printCurrentStats).toBeCalledWith({
-                title:'test1',
-                state:'failed'
+                title: 'test1',
+                state: 'failed',
             })
             tmpReporter.onSuiteEnd()
             tmpReporter.onRunnerEnd(runnerEnd())
@@ -932,14 +1073,14 @@ describe('SpecReporter', () => {
             tmpReporter.onSuiteStart(Object.values(SUITES)[0] as any)
             tmpReporter.onTestStart()
             tmpReporter['_orderedSuites'] = Object.values(SUITES) as any
-            tmpReporter['_consoleOutput']='Printing to console spec'
+            tmpReporter['_consoleOutput'] = 'Printing to console spec'
             tmpReporter.onTestPass({
-                title:'test1',
-                state:'skipped'
+                title: 'test1',
+                state: 'skipped',
             } as any)
             expect(tmpReporter.printCurrentStats).toBeCalledWith({
-                title:'test1',
-                state:'skipped'
+                title: 'test1',
+                state: 'skipped',
             })
             tmpReporter.onSuiteEnd()
             tmpReporter.onRunnerEnd(runnerEnd())
@@ -947,19 +1088,19 @@ describe('SpecReporter', () => {
     })
 
     it('should call printCurrentStats on Hook complete', () => {
-        tmpReporter = new SpecReporter({ realtimeReporting : false })
+        tmpReporter = new SpecReporter({ realtimeReporting: false })
         vi.spyOn(tmpReporter, 'printCurrentStats')
         tmpReporter.onSuiteStart(Object.values(SUITES)[0] as any)
         tmpReporter.onTestStart()
         tmpReporter['_orderedSuites'] = Object.values(SUITES) as any
-        tmpReporter['_consoleOutput']='Printing to console spec'
+        tmpReporter['_consoleOutput'] = 'Printing to console spec'
         tmpReporter.onHookEnd({
-            title:'test1',
-            state:'failed'
+            title: 'test1',
+            state: 'failed',
         } as any)
         expect(tmpReporter.printCurrentStats).toBeCalledWith({
-            title:'test1',
-            state:'failed'
+            title: 'test1',
+            state: 'failed',
         })
         tmpReporter.onSuiteEnd()
         tmpReporter.onRunnerEnd(runnerEnd())

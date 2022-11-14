@@ -1,11 +1,14 @@
 import path from 'node:path'
-import { expect, describe, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { remote } from '../../../src/index.js'
 // @ts-expect-error mock feature
 import { getMockCalls } from '../../../src/commands/browser/mock.js'
 
 vi.mock('got')
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock(
+    '@wdio/logger',
+    () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')),
+)
 vi.mock('../../../src/commands/browser/mock', () => {
     let clearedMocks = 0
     const bumpCall = () => ++clearedMocks
@@ -23,8 +26,8 @@ describe('mockClearAll', () => {
         const browser = await remote({
             baseUrl: 'http://foobar.com',
             capabilities: {
-                browserName: 'devtools'
-            }
+                browserName: 'devtools',
+            },
         })
         expect(getMockCalls()).toBe(0)
         await browser.mockRestoreAll()

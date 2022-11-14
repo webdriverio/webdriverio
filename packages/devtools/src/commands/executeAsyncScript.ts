@@ -1,7 +1,7 @@
+import { SERIALIZE_FLAG, SERIALIZE_PROPERTY } from '../constants.js'
+import type DevToolsDriver from '../devtoolsdriver'
 import command from '../scripts/executeAsyncScript.js'
 import { transformExecuteArgs, transformExecuteResult } from '../utils.js'
-import { SERIALIZE_PROPERTY, SERIALIZE_FLAG } from '../constants.js'
-import type DevToolsDriver from '../devtoolsdriver'
 
 /**
  * The Execute Async Script command causes JavaScript to execute as an anonymous function.
@@ -15,9 +15,9 @@ import type DevToolsDriver from '../devtoolsdriver'
  * @param {*[]}    args    an array of JSON values which will be deserialized and passed as arguments to your function
  * @return *               Either the return value of your script, the fulfillment of the Promise returned by your script, or the error which was the reason for your script's returned Promise's rejection.
  */
-export default async function executeAsyncScript (
+export default async function executeAsyncScript(
     this: DevToolsDriver,
-    { script, args }: { script: string, args: any[] }
+    { script, args }: { script: string; args: any[] },
 ) {
     const page = this.getPageHandle(true)
     const scriptTimeout = this.timeouts.get('script') || 0
@@ -38,7 +38,7 @@ export default async function executeAsyncScript (
         scriptTimeout,
         SERIALIZE_PROPERTY,
         SERIALIZE_FLAG,
-        ...(await transformExecuteArgs.call(this, args))
+        ...(await transformExecuteArgs.call(this, args)),
     )
 
     return transformExecuteResult.call(this, page, result)

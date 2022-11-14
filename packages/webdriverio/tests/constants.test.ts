@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { WDIO_DEFAULTS } from '../src/constants.js'
 
 class CustomReporter {}
@@ -25,10 +25,11 @@ describe('constants', () => {
             // @ts-expect-error wrong parameter
             expect(() => WDIO_DEFAULTS.reporters!.validate!('foobar')).toThrow()
             // @ts-expect-error wrong parameter
-            expect(() => WDIO_DEFAULTS.reporters!.validate!([false, 'string'])).toThrow()
+            expect(() =>
+                WDIO_DEFAULTS.reporters!.validate!([false, 'string']),
+            ).toThrow()
             // @ts-expect-error wrong parameter
             expect(() => WDIO_DEFAULTS.reporters!.validate!([{}])).toThrow()
-
         })
 
         it('should validate capabilities correctly', () => {
@@ -36,10 +37,14 @@ describe('constants', () => {
             WDIO_DEFAULTS.capabilities!.validate!({})
 
             // @ts-expect-error wrong parameter
-            expect(() => WDIO_DEFAULTS.capabilities!.validate!('foobar')).toThrow()
+            expect(() =>
+                WDIO_DEFAULTS.capabilities!.validate!('foobar'),
+            ).toThrow()
             // @ts-expect-error wrong parameter
             expect(() => WDIO_DEFAULTS.capabilities!.validate!(false)).toThrow()
-            expect(() => WDIO_DEFAULTS.capabilities!.validate!([{}, 'foobar'])).toThrow()
+            expect(() =>
+                WDIO_DEFAULTS.capabilities!.validate!([{}, 'foobar']),
+            ).toThrow()
         })
 
         it('should validate services correctly', () => {
@@ -53,7 +58,9 @@ describe('constants', () => {
             // @ts-expect-error wrong parameter
             expect(() => WDIO_DEFAULTS.services!.validate!(false)).toThrow()
             // @ts-expect-error wrong parameter
-            expect(() => WDIO_DEFAULTS.services!.validate!(['foobar', true])).toThrow()
+            expect(() =>
+                WDIO_DEFAULTS.services!.validate!(['foobar', true]),
+            ).toThrow()
             // @ts-expect-error wrong parameter
             expect(() => WDIO_DEFAULTS.services!.validate!([[], {}])).toThrow()
         })
@@ -67,16 +74,22 @@ describe('constants', () => {
         it('should expect filesToWatch to be an array', () => {
             WDIO_DEFAULTS.filesToWatch!.validate!([])
             // @ts-expect-error wrong parameter
-            expect(() => WDIO_DEFAULTS.filesToWatch!.validate!('foobar')).toThrow()
+            expect(() =>
+                WDIO_DEFAULTS.filesToWatch!.validate!('foobar'),
+            ).toThrow()
         })
 
         it('should properly detect automation protocol', () => {
             // @ts-expect-error wrong parameter
             expect(() => WDIO_DEFAULTS.automationProtocol.validate()).toThrow()
             // @ts-expect-error wrong parameter
-            expect(() => WDIO_DEFAULTS.automationProtocol!.validate!(123)).toThrow()
+            expect(() =>
+                WDIO_DEFAULTS.automationProtocol!.validate!(123),
+            ).toThrow()
             // @ts-expect-error wrong parameter
-            expect(() => WDIO_DEFAULTS.automationProtocol!.validate!('foobar')).toThrow()
+            expect(() =>
+                WDIO_DEFAULTS.automationProtocol!.validate!('foobar'),
+            ).toThrow()
 
             /**
              * Todo(Christian): this test got disabled because our current validate method
@@ -100,7 +113,9 @@ describe('constants', () => {
             // @ts-expect-error wrong parameter
             expect(() => WDIO_DEFAULTS.before!.validate!(['foobar'])).toThrow()
             // @ts-expect-error wrong parameter
-            expect(() => WDIO_DEFAULTS.before!.validate!([() => {}, 'foobar'])).toThrow()
+            expect(() =>
+                WDIO_DEFAULTS.before!.validate!([() => {}, 'foobar']),
+            ).toThrow()
         })
     })
 })

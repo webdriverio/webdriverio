@@ -1,4 +1,4 @@
-import { it, expect, vi, beforeEach, describe, afterEach } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import newWindow from '../../src/scripts/newWindow.js'
 
 describe('newWindow script', () => {
@@ -9,7 +9,11 @@ describe('newWindow script', () => {
     it('should check if elem is active', () => {
         newWindow('foo', 'bar', 'loo')
         expect(vi.mocked(global.window.open).mock.calls).toHaveLength(1)
-        expect(vi.mocked(global.window.open).mock.calls[0]).toEqual(['foo', 'bar', 'loo'])
+        expect(vi.mocked(global.window.open).mock.calls[0]).toEqual([
+            'foo',
+            'bar',
+            'loo',
+        ])
     })
 
     afterEach(() => {

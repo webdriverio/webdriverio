@@ -1,32 +1,35 @@
 import path from 'node:path'
-import { expect, test, vi, beforeEach } from 'vitest'
-import type { CDPSession } from 'puppeteer-core/lib/cjs/puppeteer/common/Connection'
 import type { Page } from 'puppeteer-core/lib/cjs/puppeteer/api/Page'
+import type { CDPSession } from 'puppeteer-core/lib/cjs/puppeteer/common/Connection'
+import { beforeEach, expect, test, vi } from 'vitest'
 
 import CommandHandler from '../src/commands.js'
 
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock(
+    '@wdio/logger',
+    () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')),
+)
 
 vi.mock('../src/utils', () => ({
     readIOStream: vi.fn().mockReturnValue('foobar'),
-    sumByKey: vi.fn().mockReturnValue('foobar')
+    sumByKey: vi.fn().mockReturnValue('foobar'),
 }))
 
 const pageMock = {
     tracing: {
         start: vi.fn(),
-        stop: vi.fn()
-    }
+        stop: vi.fn(),
+    },
 }
 
 const sessionMock = {
     on: vi.fn(),
     emit: vi.fn(),
-    send: vi.fn()
+    send: vi.fn(),
 }
 
 const browser: any = {
-    addCommand: vi.fn()
+    addCommand: vi.fn(),
 }
 
 beforeEach(() => {
@@ -39,11 +42,7 @@ beforeEach(() => {
 })
 
 test('initialization', () => {
-    new CommandHandler(
-        sessionMock as any,
-        pageMock as any,
-        browser as any
-    )
+    new CommandHandler(sessionMock as any, pageMock as any, browser as any)
     expect(browser.addCommand.mock.calls).toHaveLength(7)
     expect(sessionMock.on).toBeCalled()
 })
@@ -52,7 +51,7 @@ test('getTraceLogs', () => {
     const commander = new CommandHandler(
         sessionMock as unknown as CDPSession,
         pageMock as unknown as Page,
-        browser
+        browser,
     )
     commander['_traceEvents'] = [{ foo: 'bar' }] as any
     expect(commander.getTraceLogs()).toEqual([{ foo: 'bar' }])
@@ -63,7 +62,7 @@ test('cdp', async () => {
     const handler = new CommandHandler(
         sessionMock as any,
         pageMock as any,
-        browser as any
+        browser as any,
     )
     expect(await handler.cdp('Network', 'enable')).toBe('foobar')
     expect(sessionMock.send).toBeCalledWith('Network.enable', {})
@@ -75,14 +74,15 @@ test('getNodeId', async () => {
     const handler = new CommandHandler(
         sessionMock as any,
         pageMock as any,
-        browser as any
+        browser as any,
     )
 
     expect(await handler.getNodeId('selector')).toBe(42)
     expect(sessionMock.send).toBeCalledWith('DOM.getDocument')
-    expect(sessionMock.send).toBeCalledWith(
-        'DOM.querySelector',
-        { nodeId: 123, selector: 'selector' })
+    expect(sessionMock.send).toBeCalledWith('DOM.querySelector', {
+        nodeId: 123,
+        selector: 'selector',
+    })
 })
 
 test('getNodeIds', async () => {
@@ -91,21 +91,22 @@ test('getNodeIds', async () => {
     const handler = new CommandHandler(
         sessionMock as any,
         pageMock as any,
-        browser as any
+        browser as any,
     )
 
     expect(await handler.getNodeIds('selector')).toEqual([42, 43])
     expect(sessionMock.send).toBeCalledWith('DOM.getDocument')
-    expect(sessionMock.send).toBeCalledWith(
-        'DOM.querySelectorAll',
-        { nodeId: 123, selector: 'selector' })
+    expect(sessionMock.send).toBeCalledWith('DOM.querySelectorAll', {
+        nodeId: 123,
+        selector: 'selector',
+    })
 })
 
 test('startTracing', () => {
     const handler = new CommandHandler(
         sessionMock as any,
         pageMock as any,
-        browser as any
+        browser as any,
     )
     handler.startTracing()
 
@@ -115,11 +116,13 @@ test('startTracing', () => {
 })
 
 test('endTracing', async () => {
-    pageMock.tracing.stop.mockResolvedValue(Buffer.from('{ "traceEvents": "foobar" }'))
+    pageMock.tracing.stop.mockResolvedValue(
+        Buffer.from('{ "traceEvents": "foobar" }'),
+    )
     const handler = new CommandHandler(
         sessionMock as any,
         pageMock as any,
-        browser as any
+        browser as any,
     )
     handler['_isTracing'] = true
 
@@ -133,7 +136,7 @@ test('endTracing throws if not tracing', async () => {
     const handler = new CommandHandler(
         sessionMock as any,
         pageMock as any,
-        browser as any
+        browser as any,
     )
     const err = await handler.endTracing().catch((err) => err)
     expect(err.message).toContain('No tracing was initiated')
@@ -144,7 +147,7 @@ test('endTracing throws if parsing of trace events fails', async () => {
     const handler = new CommandHandler(
         sessionMock as any,
         pageMock as any,
-        browser as any
+        browser as any,
     )
     handler['_isTracing'] = true
     const err = await handler.endTracing().catch((err) => err)
@@ -155,15 +158,16 @@ test('getPageWeight', () => {
     const handler = new CommandHandler(
         sessionMock as any,
         pageMock as any,
-        browser as any
+        browser as any,
     )
     handler['_networkHandler'].requestTypes = {
         Document: { size: 23343, encoded: 7674, count: 1 },
         Image: { size: 53479, encoded: 53479, count: 6 },
-        Other: { size: 0, encoded: 0, count: 1 }
+        Other: { size: 0, encoded: 0, count: 1 },
     }
 
-    const { pageWeight, transferred, requestCount, details } = handler.getPageWeight()
+    const { pageWeight, transferred, requestCount, details } =
+        handler.getPageWeight()
     expect(pageWeight).toBe('foobar')
     expect(transferred).toBe('foobar')
     expect(requestCount).toBe('foobar')

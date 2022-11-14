@@ -1,11 +1,14 @@
 import path from 'node:path'
-import { expect, describe, it, beforeEach, vi, beforeAll } from 'vitest'
+import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 // @ts-ignore mocked (original defined in webdriver package)
 import got from 'got'
 import { remote } from '../../../src/index.js'
 
 vi.mock('got')
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock(
+    '@wdio/logger',
+    () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')),
+)
 
 describe('touchAction test', () => {
     let browser: WebdriverIO.Browser
@@ -17,16 +20,17 @@ describe('touchAction test', () => {
             capabilities: {
                 browserName: 'foobar',
                 // @ts-ignore mock feature
-                mobileMode: true
-            } as any
+                mobileMode: true,
+            } as any,
         })
         elem = await browser.$('#foo')
     })
 
     describe('single touch', () => {
         it('should throw if element is not applied', async () => {
-            await expect(() => browser.touchAction('press'))
-                .rejects.toThrow(/Touch actions like "press" need at least some kind of position information/)
+            await expect(() => browser.touchAction('press')).rejects.toThrow(
+                /Touch actions like "press" need at least some kind of position information/,
+            )
         })
 
         it('should allow to pass in an element object', async () => {
@@ -34,13 +38,16 @@ describe('touchAction test', () => {
                 action: 'press',
                 x: 1,
                 y: 2,
-                element: elem
+                element: elem,
             })
             expect(got.mock.calls[0][0].pathname).toContain('/touch/perform')
             expect(got.mock.calls[0][1].json).toEqual({
                 actions: [
-                    { action: 'press', options: { x: 1, y: 2, element: 'some-elem-123' } }
-                ]
+                    {
+                        action: 'press',
+                        options: { x: 1, y: 2, element: 'some-elem-123' },
+                    },
+                ],
             })
         })
 
@@ -48,13 +55,11 @@ describe('touchAction test', () => {
             await browser.touchAction({
                 action: 'press',
                 x: 1,
-                y: 2
+                y: 2,
             })
             expect(got.mock.calls[0][0].pathname).toContain('/touch/perform')
             expect(got.mock.calls[0][1].json).toEqual({
-                actions: [
-                    { action: 'press', options: { x: 1, y: 2 } }
-                ]
+                actions: [{ action: 'press', options: { x: 1, y: 2 } }],
             })
         })
 
@@ -62,10 +67,7 @@ describe('touchAction test', () => {
             await browser.touchAction(['wait', 'release'])
             expect(got.mock.calls[0][0].pathname).toContain('/touch/perform')
             expect(got.mock.calls[0][1].json).toEqual({
-                actions: [
-                    { action: 'wait' },
-                    { action: 'release' }
-                ]
+                actions: [{ action: 'wait' }, { action: 'release' }],
             })
         })
     })
@@ -73,30 +75,36 @@ describe('touchAction test', () => {
     describe('multi touch', () => {
         it('should transform to array using element as first citizen', async () => {
             await browser.touchAction([['press'], ['release']])
-            expect(got.mock.calls[0][0].pathname).toContain('/touch/multi/perform')
+            expect(got.mock.calls[0][0].pathname).toContain(
+                '/touch/multi/perform',
+            )
             expect(got.mock.calls[0][1].json).toEqual({
-                actions: [
-                    [{ action: 'press' }],
-                    [{ action: 'release' }]
-                ]
+                actions: [[{ action: 'press' }], [{ action: 'release' }]],
             })
         })
 
         it('should transform object into array', async () => {
-            await browser.touchAction([[{
-                action: 'press',
-                x: 1,
-                y: 2
-            }], [{
-                action: 'tap',
-                x: 112,
-                y: 245
-            }]])
+            await browser.touchAction([
+                [
+                    {
+                        action: 'press',
+                        x: 1,
+                        y: 2,
+                    },
+                ],
+                [
+                    {
+                        action: 'tap',
+                        x: 112,
+                        y: 245,
+                    },
+                ],
+            ])
             expect(got.mock.calls[0][1].json).toEqual({
                 actions: [
                     [{ action: 'press', options: { x: 1, y: 2 } }],
-                    [{ action: 'tap', options: { x: 112, y: 245 } }]
-                ]
+                    [{ action: 'tap', options: { x: 112, y: 245 } }],
+                ],
             })
         })
     })
@@ -104,11 +112,12 @@ describe('touchAction test', () => {
     describe('wrong protocol', () => {
         it('should transform object into array', async () => {
             const desktopBrowser = await remote({
-                capabilities: { browserName: 'foobar' }
+                capabilities: { browserName: 'foobar' },
             })
 
-            await expect(() => desktopBrowser.touchAction(['release']))
-                .rejects.toThrow('touchAction can be used with Appium only.')
+            await expect(() =>
+                desktopBrowser.touchAction(['release']),
+            ).rejects.toThrow('touchAction can be used with Appium only.')
         })
     })
 

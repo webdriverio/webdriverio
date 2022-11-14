@@ -9,7 +9,7 @@ import type DevToolsDriver from '../devtoolsdriver'
  * @alias browser.switchToParentFrame
  * @see https://w3c.github.io/webdriver/#dfn-switch-to-parent-frame
  */
-export default async function switchToParentFrame (this: DevToolsDriver) {
+export default async function switchToParentFrame(this: DevToolsDriver) {
     const page = this.getPageHandle(true) as unknown as Frame
 
     /**
@@ -23,6 +23,6 @@ export default async function switchToParentFrame (this: DevToolsDriver) {
     /**
      * ToDo(Christian): investigate why we interchangeably use Page and Frames here
      */
-    this.currentFrame = await page.parentFrame() as unknown as Page
+    this.currentFrame = (await page.parentFrame()) as unknown as Page
     return null
 }

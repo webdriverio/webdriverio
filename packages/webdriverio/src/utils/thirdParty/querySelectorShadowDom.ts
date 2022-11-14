@@ -5,13 +5,20 @@
  * original source: https://github.com/Georgegriff/query-selector-shadow-dom
  * Copyright by https://github.com/Georgegriff
  */
-export default function querySelectorAllDeep (findMany: boolean, s: string, r: Element | Document) {
-    function normalizeSelector (sel: string) {
+export default function querySelectorAllDeep(
+    findMany: boolean,
+    s: string,
+    r: Element | Document,
+) {
+    function normalizeSelector(sel: string) {
         // save unmatched text, if any
         function saveUnmatched() {
             if (unmatched) {
                 // whitespace needed after combinator?
-                if (tokens.length > 0 && /^[~+>]$/.test(tokens[tokens.length - 1])) {
+                if (
+                    tokens.length > 0 &&
+                    /^[~+>]$/.test(tokens[tokens.length - 1])
+                ) {
                     tokens.push(' ')
                 }
 
@@ -56,7 +63,7 @@ export default function querySelectorAllDeep (findMany: boolean, s: string, r: E
                 if (prev_match_idx < next_match_idx - match[0].length) {
                     unmatched = sel.substring(
                         prev_match_idx,
-                        next_match_idx - match[0].length
+                        next_match_idx - match[0].length,
                     )
                 }
 
@@ -90,7 +97,9 @@ export default function querySelectorAllDeep (findMany: boolean, s: string, r: E
                         // need to insert whitespace before?
                         if (
                             tokens.length > 0 &&
-                            !whitespace_pattern.test(tokens[tokens.length - 1]) &&
+                            !whitespace_pattern.test(
+                                tokens[tokens.length - 1],
+                            ) &&
                             state[state.length - 1] === 0
                         ) {
                             // add normalized whitespace
@@ -127,7 +136,9 @@ export default function querySelectorAllDeep (findMany: boolean, s: string, r: E
                             // ok to drop comment?
                             if (
                                 tokens.length < 2 ||
-                                whitespace_pattern.test(tokens[tokens.length - 2])
+                                whitespace_pattern.test(
+                                    tokens[tokens.length - 2],
+                                )
                             ) {
                                 tokens.pop()
                             }
@@ -159,7 +170,11 @@ export default function querySelectorAllDeep (findMany: boolean, s: string, r: E
         return tokens.join('').trim()
     }
 
-    function _querySelectorDeep(selector: string, root: Element | Document, allElements = null) {
+    function _querySelectorDeep(
+        selector: string,
+        root: Element | Document,
+        allElements = null,
+    ) {
         selector = normalizeSelector(selector)
         let lightElement = root.querySelector(selector)
 
@@ -173,40 +188,61 @@ export default function querySelectorAllDeep (findMany: boolean, s: string, r: E
             // split on commas because those are a logical divide in the operation
             const selectionsToMake = splitByCharacterUnlessQuoted(selector, ',')
 
-            return selectionsToMake.reduce((acc: any, minimalSelector: any) => {
-                // if not finding many just reduce the first match
-                if (!findMany && acc) {
-                    return acc
-                }
-                // do best to support complex selectors and split the query
-                const splitSelector = splitByCharacterUnlessQuoted(minimalSelector
-                    //remove white space at start of selector
-                    .replace(/^\s+/g, '')
-                    .replace(/\s*([>+~]+)\s*/g, '$1'), ' ')
-                    // filter out entry white selectors
-                    .filter((entry: unknown) => !!entry)
-                    // convert "a > b" to ["a", "b"]
-                    .map((entry: string) => splitByCharacterUnlessQuoted(entry, '>'))
+            return selectionsToMake.reduce(
+                (acc: any, minimalSelector: any) => {
+                    // if not finding many just reduce the first match
+                    if (!findMany && acc) {
+                        return acc
+                    }
+                    // do best to support complex selectors and split the query
+                    const splitSelector = splitByCharacterUnlessQuoted(
+                        minimalSelector
+                            //remove white space at start of selector
+                            .replace(/^\s+/g, '')
+                            .replace(/\s*([>+~]+)\s*/g, '$1'),
+                        ' ',
+                    )
+                        // filter out entry white selectors
+                        .filter((entry: unknown) => !!entry)
+                        // convert "a > b" to ["a", "b"]
+                        .map((entry: string) =>
+                            splitByCharacterUnlessQuoted(entry, '>'),
+                        )
 
-                const possibleElementsIndex = splitSelector.length - 1
-                const lastSplitPart = splitSelector[possibleElementsIndex][splitSelector[possibleElementsIndex].length - 1]
-                const possibleElements = collectAllElementsDeep(lastSplitPart, root, allElements)
-                const findElements = findMatchingElement(splitSelector, possibleElementsIndex, root)
-                if (findMany) {
-                    acc = acc.concat(possibleElements.filter(findElements))
-                    return acc
-                }
-                acc = possibleElements.find(findElements)
-                return acc || null
-            }, findMany ? [] : null)
+                    const possibleElementsIndex = splitSelector.length - 1
+                    const lastSplitPart =
+                        splitSelector[possibleElementsIndex][
+                            splitSelector[possibleElementsIndex].length - 1
+                        ]
+                    const possibleElements = collectAllElementsDeep(
+                        lastSplitPart,
+                        root,
+                        allElements,
+                    )
+                    const findElements = findMatchingElement(
+                        splitSelector,
+                        possibleElementsIndex,
+                        root,
+                    )
+                    if (findMany) {
+                        acc = acc.concat(possibleElements.filter(findElements))
+                        return acc
+                    }
+                    acc = possibleElements.find(findElements)
+                    return acc || null
+                },
+                findMany ? [] : null,
+            )
         }
 
-        return !findMany
-            ? lightElement
-            : root.querySelectorAll(selector)
+        return !findMany ? lightElement : root.querySelectorAll(selector)
     }
 
-    function findMatchingElement(splitSelector: string, possibleElementsIndex: number, root: Document | Element) {
+    function findMatchingElement(
+        splitSelector: string,
+        possibleElementsIndex: number,
+        root: Document | Element,
+    ) {
         return (element: Element) => {
             let position = possibleElementsIndex
             let parent = element
@@ -218,7 +254,9 @@ export default function querySelectorAllDeep (findMany: boolean, s: string, r: E
                 } else {
                     // selector is in the format "a > b"
                     // make sure a few parents match in order
-                    const reversedParts = ([]).concat(splitSelector[position] as any).reverse()
+                    const reversedParts = []
+                        .concat(splitSelector[position] as any)
+                        .reverse()
                     let newParent = parent
                     for (const part of reversedParts) {
                         if (!newParent || !newParent.matches(part)) {
@@ -243,21 +281,23 @@ export default function querySelectorAllDeep (findMany: boolean, s: string, r: E
     }
 
     function splitByCharacterUnlessQuoted(selector: string, character: string) {
-        return selector.match(/\\?.|^$/g)!.reduce((p, c) => {
-            if (c === '"' && !p.sQuote) {
-                p.quote ^= 1
-                p.a[p.a.length - 1] += c
-            } else if (c === '\'' && !p.quote) {
-                p.sQuote ^= 1
-                p.a[p.a.length - 1] += c
-
-            } else if (!p.quote && !p.sQuote && c === character) {
-                p.a.push('')
-            } else {
-                p.a[p.a.length - 1] += c
-            }
-            return p
-        }, { a: [''] } as any).a
+        return selector.match(/\\?.|^$/g)!.reduce(
+            (p, c) => {
+                if (c === '"' && !p.sQuote) {
+                    p.quote ^= 1
+                    p.a[p.a.length - 1] += c
+                } else if (c === "'" && !p.quote) {
+                    p.sQuote ^= 1
+                    p.a[p.a.length - 1] += c
+                } else if (!p.quote && !p.sQuote && c === character) {
+                    p.a.push('')
+                } else {
+                    p.a[p.a.length - 1] += c
+                }
+                return p
+            },
+            { a: [''] } as any,
+        ).a
     }
 
     /**
@@ -266,18 +306,21 @@ export default function querySelectorAllDeep (findMany: boolean, s: string, r: E
      * @returns {node is Document | DocumentFragment}
      */
     function isDocumentNode(node: Element) {
-        return node.nodeType === Node.DOCUMENT_FRAGMENT_NODE || node.nodeType === Node.DOCUMENT_NODE
+        return (
+            node.nodeType === Node.DOCUMENT_FRAGMENT_NODE ||
+            node.nodeType === Node.DOCUMENT_NODE
+        )
     }
 
     function findParentOrHost(element: Element, root: Element | Document) {
         const parentNode = element.parentNode
         // @ts-expect-error
-        return (parentNode && parentNode.host && parentNode.nodeType === 11)
-            // @ts-expect-error
-            ? parentNode.host
+        return parentNode && parentNode.host && parentNode.nodeType === 11
+            ? // @ts-expect-error
+              parentNode.host
             : parentNode === root
-                ? null
-                : parentNode
+            ? null
+            : parentNode
     }
 
     /**
@@ -287,13 +330,17 @@ export default function querySelectorAllDeep (findMany: boolean, s: string, r: E
      * @author ebidel@ (Eric Bidelman)
      * License Apache-2.0
      */
-    function collectAllElementsDeep(selector = null, root: Document | Element, cachedElements = null) {
+    function collectAllElementsDeep(
+        selector = null,
+        root: Document | Element,
+        cachedElements = null,
+    ) {
         let allElements: Element[] = []
 
         if (cachedElements) {
             allElements = cachedElements
         } else {
-            const findAllElements = function(nodes: NodeListOf<Element>) {
+            const findAllElements = function (nodes: NodeListOf<Element>) {
                 for (let i = 0; i < nodes.length; i++) {
                     const el = nodes[i]
                     allElements.push(el)
@@ -304,12 +351,16 @@ export default function querySelectorAllDeep (findMany: boolean, s: string, r: E
                 }
             }
             if ((root as Element).shadowRoot) {
-                findAllElements((root as Element).shadowRoot?.querySelectorAll('*')!)
+                findAllElements(
+                    (root as Element).shadowRoot?.querySelectorAll('*')!,
+                )
             }
             findAllElements(root.querySelectorAll('*'))
         }
 
-        return selector ? allElements.filter(el => el.matches(selector)) : allElements
+        return selector
+            ? allElements.filter((el) => el.matches(selector))
+            : allElements
     }
 
     return _querySelectorDeep(s, r)

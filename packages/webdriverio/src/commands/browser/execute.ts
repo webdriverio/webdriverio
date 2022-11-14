@@ -35,7 +35,7 @@ import { verifyArgsAndStripIfElement } from '../../utils/index.js'
  * @type protocol
  *
  */
-export default function execute<ReturnValue, InnerArguments extends any[]> (
+export default function execute<ReturnValue, InnerArguments extends any[]>(
     this: WebdriverIO.Browser | WebdriverIO.Element,
     script: string | ((...innerArgs: InnerArguments) => ReturnValue),
     ...args: InnerArguments
@@ -43,8 +43,10 @@ export default function execute<ReturnValue, InnerArguments extends any[]> (
     /**
      * parameter check
      */
-    if ((typeof script !== 'string' && typeof script !== 'function')) {
-        throw new Error('number or type of arguments don\'t agree with execute protocol command')
+    if (typeof script !== 'string' && typeof script !== 'function') {
+        throw new Error(
+            "number or type of arguments don't agree with execute protocol command",
+        )
     }
 
     /**

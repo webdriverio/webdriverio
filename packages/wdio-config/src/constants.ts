@@ -3,7 +3,10 @@ import type { Options, Services } from '@wdio/types'
 const DEFAULT_TIMEOUT = 10000
 
 /* istanbul ignore next */
-export const DEFAULT_CONFIGS: () => Omit<Options.Testrunner, 'capabilities'> = () => ({
+export const DEFAULT_CONFIGS: () => Omit<
+    Options.Testrunner,
+    'capabilities'
+> = () => ({
     specs: [],
     suites: {},
     exclude: [],
@@ -35,22 +38,22 @@ export const DEFAULT_CONFIGS: () => Omit<Options.Testrunner, 'capabilities'> = (
     autoCompileOpts: {
         autoCompile: true,
         tsNodeOpts: {
-            transpileOnly: true
+            transpileOnly: true,
         },
-        babelOpts: {}
+        babelOpts: {},
     },
 
     /**
      * framework defaults
      */
     mochaOpts: {
-        timeout: DEFAULT_TIMEOUT
+        timeout: DEFAULT_TIMEOUT,
     },
     jasmineOpts: {
-        defaultTimeoutInterval: DEFAULT_TIMEOUT
+        defaultTimeoutInterval: DEFAULT_TIMEOUT,
     },
     cucumberOpts: {
-        timeout: DEFAULT_TIMEOUT
+        timeout: DEFAULT_TIMEOUT,
     },
 
     /**
@@ -82,23 +85,48 @@ export const DEFAULT_CONFIGS: () => Omit<Options.Testrunner, 'capabilities'> = (
     beforeStep: [],
     afterStep: [],
     afterScenario: [],
-    afterFeature: []
+    afterFeature: [],
 })
 
 export const SUPPORTED_HOOKS: (keyof Services.Hooks)[] = [
-    'before', 'beforeSession', 'beforeSuite', 'beforeHook', 'beforeTest', 'beforeCommand',
-    'afterCommand', 'afterTest', 'afterHook', 'afterSuite', 'afterSession', 'after',
+    'before',
+    'beforeSession',
+    'beforeSuite',
+    'beforeHook',
+    'beforeTest',
+    'beforeCommand',
+    'afterCommand',
+    'afterTest',
+    'afterHook',
+    'afterSuite',
+    'afterSession',
+    'after',
     // @ts-ignore not defined in core hooks but added with cucumber
-    'beforeFeature', 'beforeScenario', 'beforeStep', 'afterStep', 'afterScenario', 'afterFeature',
-    'onReload', 'onPrepare', 'onWorkerStart', 'onWorkerEnd', 'onComplete'
+    'beforeFeature',
+    'beforeScenario',
+    'beforeStep',
+    'afterStep',
+    'afterScenario',
+    'afterFeature',
+    'onReload',
+    'onPrepare',
+    'onWorkerStart',
+    'onWorkerEnd',
+    'onComplete',
 ]
 
 export const SUPPORTED_FILE_EXTENSIONS = [
-    '.js', '.mjs', '.es6', '.ts', '.tsx', '.feature', '.coffee', '.cjs'
+    '.js',
+    '.mjs',
+    '.es6',
+    '.ts',
+    '.tsx',
+    '.feature',
+    '.coffee',
+    '.cjs',
 ]
 
-export const NO_NAMED_CONFIG_EXPORT = (
+export const NO_NAMED_CONFIG_EXPORT =
     'No named export object called "config" found. Make sure you export the config object ' +
     'via `export.config = { ... }` when using CommonJS or `export const config = { ... }` when ' +
     'using ESM. Read more on this on https://webdriver.io/docs/configurationfile !'
-)

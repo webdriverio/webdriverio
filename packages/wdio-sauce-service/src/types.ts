@@ -1,5 +1,5 @@
-import type { SauceConnectOptions } from 'saucelabs'
 import type { Capabilities, Options } from '@wdio/types'
+import type { SauceConnectOptions } from 'saucelabs'
 
 export interface SauceServiceConfig {
     /**
@@ -52,6 +52,6 @@ export interface SauceServiceConfig {
     setJobName?: (
         config: Options.Testrunner,
         capabilities: Capabilities.RemoteCapability,
-        suiteTitle: string
+        suiteTitle: string,
     ) => string
 }

@@ -4,9 +4,7 @@ exports.config = {
     /**
      * specify test files
      */
-    specs: [
-        [path.resolve(__dirname, '*.test.js')]
-    ],
+    specs: [[path.resolve(__dirname, '*.test.js')]],
 
     /**
      * capabilities
@@ -14,14 +12,14 @@ exports.config = {
     capabilities: {
         browserA: {
             capabilities: {
-                browserName: 'chrome'
-            }
+                browserName: 'chrome',
+            },
         },
         browserB: {
             capabilities: {
-                browserName: 'chrome'
-            }
-        }
+                browserName: 'chrome',
+            },
+        },
     },
 
     /**
@@ -35,6 +33,6 @@ exports.config = {
 
     mochaOpts: {
         ui: 'bdd',
-        timeout: 1000 * 60 * 3
-    }
+        timeout: 1000 * 60 * 3,
+    },
 }

@@ -1,24 +1,35 @@
 import { MOCHA_TIMEOUT_MESSAGE } from '../constants.js'
 import type { FormattedMessage, FrameworkMessage } from '../types'
 
-export function formatMessage (params: FrameworkMessage) {
+export function formatMessage(params: FrameworkMessage) {
     let message: FormattedMessage = {
-        type: params.type
+        type: params.type,
     }
 
-    const mochaAllHooksIfPresent = params.payload?.title?.match(/^"(before|after)( all| each)?" hook/)
+    const mochaAllHooksIfPresent = params.payload?.title?.match(
+        /^"(before|after)( all| each)?" hook/,
+    )
 
     if (params.err) {
         /**
          * replace "Ensure the done() callback is being called in this test." with a more meaningful message
          */
-        if (params.err && params.err.message && params.err.message.includes(MOCHA_TIMEOUT_MESSAGE)) {
-            const replacement = (
+        if (
+            params.err &&
+            params.err.message &&
+            params.err.message.includes(MOCHA_TIMEOUT_MESSAGE)
+        ) {
+            const replacement =
                 `The execution in the test "${params.payload.parent.title} ${params.payload.title}" took too long. Try to reduce the run time or ` +
                 'increase your timeout for test specs (https://webdriver.io/docs/timeouts).'
+            params.err.message = params.err.message.replace(
+                MOCHA_TIMEOUT_MESSAGE,
+                replacement,
             )
-            params.err.message = params.err.message.replace(MOCHA_TIMEOUT_MESSAGE, replacement)
-            params.err.stack = params.err.stack.replace(MOCHA_TIMEOUT_MESSAGE, replacement)
+            params.err.stack = params.err.stack.replace(
+                MOCHA_TIMEOUT_MESSAGE,
+                replacement,
+            )
         }
 
         message.error = {
@@ -27,7 +38,7 @@ export function formatMessage (params: FrameworkMessage) {
             stack: params.err.stack,
             type: params.err.type || params.err.name,
             expected: params.err.expected,
-            actual: params.err.actual
+            actual: params.err.actual,
         }
 
         /**
@@ -40,7 +51,9 @@ export function formatMessage (params: FrameworkMessage) {
 
     if (params.payload) {
         message.title = params.payload.title
-        message.parent = params.payload.parent ? params.payload.parent.title : null
+        message.parent = params.payload.parent
+            ? params.payload.parent.title
+            : null
 
         let fullTitle = message.title
         if (params.payload.parent) {
@@ -65,7 +78,7 @@ export function formatMessage (params: FrameworkMessage) {
         }
 
         if (params.type.match(/Test/)) {
-            message.passed = (params.payload.state === 'passed')
+            message.passed = params.payload.state === 'passed'
         }
 
         if (params.payload.parent?.title && mochaAllHooksIfPresent) {
@@ -73,7 +86,9 @@ export function formatMessage (params: FrameworkMessage) {
             message.title = `${hookName} for ${params.payload.parent.title}`
         }
 
-        if (params.payload.context) { message.context = params.payload.context }
+        if (params.payload.context) {
+            message.context = params.payload.context
+        }
     }
 
     return message

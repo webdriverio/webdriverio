@@ -1,24 +1,29 @@
-import path from 'node:path'
 import logger from '@wdio/logger'
+import path from 'node:path'
 
-import { webdriverMonad, sessionEnvironmentDetector } from '@wdio/utils'
 import { validateConfig } from '@wdio/config'
-import type { Options, Capabilities } from '@wdio/types'
+import type { Capabilities, Options } from '@wdio/types'
+import { sessionEnvironmentDetector, webdriverMonad } from '@wdio/utils'
 
-import command from './command.js'
 import { BidiHandler } from './bidi.js'
+import command from './command.js'
 import { DEFAULTS } from './constants.js'
-import { startWebDriverSession, getPrototype, getEnvironmentVars, setupDirectConnect } from './utils.js'
-import type { Client, AttachOptions, SessionFlags } from './types'
+import type { AttachOptions, Client, SessionFlags } from './types'
+import {
+    getEnvironmentVars,
+    getPrototype,
+    setupDirectConnect,
+    startWebDriverSession,
+} from './utils.js'
 
 const log = logger('webdriver')
 
 export default class WebDriver {
-    static async newSession (
+    static async newSession(
         options: Options.WebDriver,
         modifier?: (...args: any[]) => any,
         userPrototype = {},
-        customCommandWrapper?: (...args: any[]) => any
+        customCommandWrapper?: (...args: any[]) => any,
     ): Promise<Client> {
         const params = validateConfig(DEFAULTS, options)
 
@@ -37,21 +42,30 @@ export default class WebDriver {
 
         const requestedCapabilities = { ...params.capabilities }
         const { sessionId, capabilities } = await startWebDriverSession(params)
-        const environment = sessionEnvironmentDetector({ capabilities, requestedCapabilities })
+        const environment = sessionEnvironmentDetector({
+            capabilities,
+            requestedCapabilities,
+        })
         const environmentPrototype = getEnvironmentVars(environment)
         const protocolCommands = getPrototype(environment)
-        const prototype = { ...protocolCommands, ...environmentPrototype, ...userPrototype }
+        const prototype = {
+            ...protocolCommands,
+            ...environmentPrototype,
+            ...userPrototype,
+        }
 
         const monad = webdriverMonad(
             { ...params, requestedCapabilities },
             modifier,
-            prototype
+            prototype,
         )
 
         let handler: BidiHandler | undefined
         if (capabilities.webSocketUrl) {
             log.info(`Register BiDi handler for session with id ${sessionId}`)
-            const socketUrl = (capabilities.webSocketUrl as any as string).replace('localhost', '127.0.0.1')
+            const socketUrl = (
+                capabilities.webSocketUrl as any as string
+            ).replace('localhost', '127.0.0.1')
             handler = new BidiHandler(socketUrl)
             await handler.connect()
         }
@@ -74,14 +88,16 @@ export default class WebDriver {
     /**
      * allows user to attach to existing sessions
      */
-    static attachToSession (
+    static attachToSession(
         options?: AttachOptions,
         modifier?: (...args: any[]) => any,
         userPrototype = {},
-        commandWrapper?: (...args: any[]) => any
+        commandWrapper?: (...args: any[]) => any,
     ): Client {
         if (!options || typeof options.sessionId !== 'string') {
-            throw new Error('sessionId is required to attach to existing session')
+            throw new Error(
+                'sessionId is required to attach to existing session',
+            )
         }
 
         // logLevel can be undefined in watch mode when SIGINT is called
@@ -96,9 +112,15 @@ export default class WebDriver {
         options.port = options.port || DEFAULTS.port.default
         options.path = options.path || DEFAULTS.path.default
 
-        const environmentPrototype = getEnvironmentVars(options as Partial<SessionFlags>)
+        const environmentPrototype = getEnvironmentVars(
+            options as Partial<SessionFlags>,
+        )
         const protocolCommands = getPrototype(options as Partial<SessionFlags>)
-        const prototype = { ...protocolCommands, ...environmentPrototype, ...userPrototype }
+        const prototype = {
+            ...protocolCommands,
+            ...environmentPrototype,
+            ...userPrototype,
+        }
         const monad = webdriverMonad(options, modifier, prototype)
         return monad(options.sessionId, commandWrapper)
     }
@@ -109,11 +131,12 @@ export default class WebDriver {
      *
      * @param   {Object} instance  the object we get from a new browser session.
      * @returns {string}           the new session id of the browser
-    */
-    static async reloadSession (instance: Client) {
+     */
+    static async reloadSession(instance: Client) {
         const params: Options.WebDriver = {
             ...instance.options,
-            capabilities: instance.requestedCapabilities as Capabilities.DesiredCapabilities
+            capabilities:
+                instance.requestedCapabilities as Capabilities.DesiredCapabilities,
         }
         const { sessionId, capabilities } = await startWebDriverSession(params)
         instance.sessionId = sessionId
@@ -121,7 +144,7 @@ export default class WebDriver {
         return sessionId
     }
 
-    static get WebDriver () {
+    static get WebDriver() {
         return WebDriver
     }
 }
@@ -129,5 +152,5 @@ export default class WebDriver {
 /**
  * Helper methods consumed by webdriverio package
  */
-export { getPrototype, DEFAULTS, command, getEnvironmentVars }
 export * from './types.js'
+export { getPrototype, DEFAULTS, command, getEnvironmentVars }

@@ -19,16 +19,16 @@ describe('multiremote example', () => {
             browserA: {
                 capabilities: {
                     browserName: 'chrome',
-                    acceptInsecureCerts: true
-                }
+                    acceptInsecureCerts: true,
+                },
             },
             browserB: {
                 capabilities: {
                     browserName: 'chrome',
-                    acceptInsecureCerts: true
+                    acceptInsecureCerts: true,
                 },
-                port: 4445
-            }
+                port: 4445,
+            },
         })
         browserA = matrix.browserA
         browserB = matrix.browserB

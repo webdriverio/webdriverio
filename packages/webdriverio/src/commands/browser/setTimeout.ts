@@ -38,10 +38,12 @@ import type { Timeouts } from '@wdio/protocols'
 
 export default async function setTimeout(
     this: WebdriverIO.Browser,
-    timeouts: Partial<Timeouts>
+    timeouts: Partial<Timeouts>,
 ): Promise<void> {
     if (typeof timeouts !== 'object') {
-        throw new Error('Parameter for "setTimeout" command needs to be an object')
+        throw new Error(
+            'Parameter for "setTimeout" command needs to be an object',
+        )
     }
 
     /**
@@ -49,8 +51,18 @@ export default async function setTimeout(
      * integer, return error with error code invalid argument.
      */
     const timeoutValues = Object.values(timeouts)
-    if (timeoutValues.length && timeoutValues.every(timeout => typeof timeout !== 'number' || timeout < 0 || timeout > Number.MAX_SAFE_INTEGER)) {
-        throw new Error('Specified timeout values are not valid integer (see https://webdriver.io/docs/api/browser/setTimeout for documentation).')
+    if (
+        timeoutValues.length &&
+        timeoutValues.every(
+            (timeout) =>
+                typeof timeout !== 'number' ||
+                timeout < 0 ||
+                timeout > Number.MAX_SAFE_INTEGER,
+        )
+    ) {
+        throw new Error(
+            'Specified timeout values are not valid integer (see https://webdriver.io/docs/api/browser/setTimeout for documentation).',
+        )
     }
 
     const implicit = timeouts.implicit as number
@@ -63,11 +75,13 @@ export default async function setTimeout(
      * JsonWireProtocol action
      */
     if (!this.isW3C) {
-        await Promise.all([
-            isFinite(implicit) && setTimeouts('implicit', implicit),
-            isFinite(pageLoad) && setTimeouts('page load', pageLoad),
-            isFinite(script) && setTimeouts('script', script),
-        ].filter(Boolean))
+        await Promise.all(
+            [
+                isFinite(implicit) && setTimeouts('implicit', implicit),
+                isFinite(pageLoad) && setTimeouts('page load', pageLoad),
+                isFinite(script) && setTimeouts('script', script),
+            ].filter(Boolean),
+        )
         return
     }
 

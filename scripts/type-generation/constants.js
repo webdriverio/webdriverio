@@ -1,8 +1,10 @@
 export const paramTypeMap = {
-    createWindow: [{
-        name: 'type',
-        type: "'tab' | 'window'"
-    }]
+    createWindow: [
+        {
+            name: 'type',
+            type: "'tab' | 'window'",
+        },
+    ],
 }
 
 export const returnTypeMap = {
@@ -27,5 +29,5 @@ export const returnTypeMap = {
     getAllCookies: 'Cookie[]',
     send: 'BidiResponse',
     getContext: 'Context',
-    getContexts: 'Context[]'
+    getContexts: 'Context[]',
 }

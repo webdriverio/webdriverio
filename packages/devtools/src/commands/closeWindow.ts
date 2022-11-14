@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from 'uuid'
-import { sleep } from '../utils.js'
 import type DevToolsDriver from '../devtoolsdriver'
+import { sleep } from '../utils.js'
 
 /**
  * The Close Window command closes the current top-level browsing context.
@@ -10,7 +10,7 @@ import type DevToolsDriver from '../devtoolsdriver'
  * @alias browser.closeWindow
  * @see https://w3c.github.io/webdriver/#dfn-close-window
  */
-export default async function closeWindow (this: DevToolsDriver) {
+export default async function closeWindow(this: DevToolsDriver) {
     delete this.currentFrame
 
     const page = this.getPageHandle()

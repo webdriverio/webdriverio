@@ -1,13 +1,13 @@
 import { config as baseConfig } from './config.js'
 
 export const config = Object.assign({}, baseConfig, {
-    async beforeCommand () {
+    async beforeCommand() {
         await browser.pause(100)
     },
-    async afterCommand () {
+    async afterCommand() {
         await browser.pause(100)
     },
-    afterTest () {
+    afterTest() {
         throw new Error('I should not cause problems')
-    }
+    },
 })

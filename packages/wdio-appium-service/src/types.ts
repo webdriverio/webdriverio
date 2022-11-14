@@ -7,7 +7,7 @@ export type AppiumServerArguments = {
     basePath?: string
 }
 
-export interface AppiumSessionCapabilities  {
+export interface AppiumSessionCapabilities {
     /**
      * Default session parameters
      */

@@ -1,20 +1,23 @@
 import path from 'node:path'
 import { describe, expect, it, vi } from 'vitest'
 import {
-    createStepArgument,
-    formatMessage,
-    getStepType,
-    getFeatureId,
-    buildStepPayload,
-    setUserHookNames,
-    filterPickles,
-    getTestStepTitle,
     addKeywordToStep,
+    buildStepPayload,
+    createStepArgument,
+    filterPickles,
+    formatMessage,
+    getFeatureId,
     getRule,
+    getStepType,
+    getTestStepTitle,
+    setUserHookNames,
 } from '../src/utils.js'
 import { featureWithRules } from './fixtures/features.js'
 
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock(
+    '@wdio/logger',
+    () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')),
+)
 
 describe('utils', () => {
     describe('createStepArgument', () => {
@@ -23,40 +26,47 @@ describe('utils', () => {
         })
 
         it('Works with unexpected type', () => {
-            expect(typeof createStepArgument({ argument: { } } as any))
-                .toBe('undefined')
+            expect(typeof createStepArgument({ argument: {} } as any)).toBe(
+                'undefined',
+            )
         })
 
         it('Works with DataTable', () => {
-            expect(createStepArgument({
-                argument: {
-                    dataTable: {
-                        rows: [
-                            { cells: [{ value: '1' }, { value: '2' }] },
-                            { cells: [{ value: '3' }, { value: '4' }] },
-                            { cells: [{ value: '5' }, { value: '6' }] }
-                        ]
-                    }
-                }
-            } as any)).toMatchSnapshot()
+            expect(
+                createStepArgument({
+                    argument: {
+                        dataTable: {
+                            rows: [
+                                { cells: [{ value: '1' }, { value: '2' }] },
+                                { cells: [{ value: '3' }, { value: '4' }] },
+                                { cells: [{ value: '5' }, { value: '6' }] },
+                            ],
+                        },
+                    },
+                } as any),
+            ).toMatchSnapshot()
         })
 
         it('Works with DocString', () => {
-            expect(createStepArgument({
-                argument: {
-                    docString: {
-                        content: 'some string content'
-                    }
-                }
-            } as any)).toEqual('some string content')
+            expect(
+                createStepArgument({
+                    argument: {
+                        docString: {
+                            content: 'some string content',
+                        },
+                    },
+                } as any),
+            ).toEqual('some string content')
         })
     })
 
     describe('formatMessage', () => {
         it('should set passed state for test hooks', () => {
-            expect(formatMessage({
-                payload: { state: 'passed' }
-            })).toMatchSnapshot()
+            expect(
+                formatMessage({
+                    payload: { state: 'passed' },
+                }),
+            ).toMatchSnapshot()
         })
 
         it('should not fail if payload was not passed', () => {
@@ -64,9 +74,11 @@ describe('utils', () => {
         })
 
         it('should set fullTitle', () => {
-            expect(formatMessage({
-                payload: { parent: 'foo', title: 'bar' }
-            })).toEqual({
+            expect(
+                formatMessage({
+                    payload: { parent: 'foo', title: 'bar' },
+                }),
+            ).toEqual({
                 parent: 'foo',
                 title: 'bar',
                 fullTitle: 'foo: bar',
@@ -76,7 +88,9 @@ describe('utils', () => {
 
     describe('getTestStepTitle', () => {
         it('should determine a correct title', () => {
-            expect(getTestStepTitle('Given ', 'I do something good', 'Step')).toEqual('Given I do something good')
+            expect(
+                getTestStepTitle('Given ', 'I do something good', 'Step'),
+            ).toEqual('Given I do something good')
         })
 
         it('should determine a Undefined Step', () => {
@@ -90,45 +104,78 @@ describe('utils', () => {
     })
 
     it('getFeatureId', () => {
-        expect(getFeatureId('/foo/bar.feature', {
-            location: {
-                line: 1,
-                column: 2
-            }
-        } as any)).toBe('bar.feature:1:2')
+        expect(
+            getFeatureId('/foo/bar.feature', {
+                location: {
+                    line: 1,
+                    column: 2,
+                },
+            } as any),
+        ).toBe('bar.feature:1:2')
     })
 
     it('buildStepPayload', () => {
-        expect(buildStepPayload('uri', {
-            name: 'some feature'
-        } as any, {
-            id: '321',
-            tags: [{ name: 'some tag' }]
-        } as any, {
-            id: '123',
-            text: 'title',
-            keyword: 'Given'
-        } as any, {
-            type: 'step'
-        })).toMatchSnapshot()
+        expect(
+            buildStepPayload(
+                'uri',
+                {
+                    name: 'some feature',
+                } as any,
+                {
+                    id: '321',
+                    tags: [{ name: 'some tag' }],
+                } as any,
+                {
+                    id: '123',
+                    text: 'title',
+                    keyword: 'Given',
+                } as any,
+                {
+                    type: 'step',
+                },
+            ),
+        ).toMatchSnapshot()
     })
 
     it('setUserHookNames', () => {
         const options = {
-            beforeTestRunHookDefinitionConfigs: [{ code: function wdioHookFoo () { } }, { code: async function someHookFoo () { } }, { code: () => { } }],
-            beforeTestCaseHookDefinitionConfigs: [{ code: function wdioHookFoo () { } }, { code: function someHookFoo () { } }, { code: async () => { } }],
-            afterTestCaseHookDefinitionConfigs: [{ code: function wdioHookFoo () { } }, { code: function someHookFoo () { } }, { code: async () => { } }],
-            afterTestRunHookDefinitionConfigs: [{ code: function wdioHookFoo () { } }, { code: async function someHookFoo () { } }, { code: () => { } }],
+            beforeTestRunHookDefinitionConfigs: [
+                { code: function wdioHookFoo() {} },
+                { code: async function someHookFoo() {} },
+                { code: () => {} },
+            ],
+            beforeTestCaseHookDefinitionConfigs: [
+                { code: function wdioHookFoo() {} },
+                { code: function someHookFoo() {} },
+                { code: async () => {} },
+            ],
+            afterTestCaseHookDefinitionConfigs: [
+                { code: function wdioHookFoo() {} },
+                { code: function someHookFoo() {} },
+                { code: async () => {} },
+            ],
+            afterTestRunHookDefinitionConfigs: [
+                { code: function wdioHookFoo() {} },
+                { code: async function someHookFoo() {} },
+                { code: () => {} },
+            ],
         }
         setUserHookNames(options as any)
         const hookTypes = Object.values(options)
         expect(hookTypes).toHaveLength(4)
-        hookTypes.forEach(hookType => {
+        hookTypes.forEach((hookType) => {
             expect(hookType).toHaveLength(3)
 
-            const wdioHooks = hookType.filter(hookDefinition => hookDefinition.code.name.startsWith('wdioHook'))
-            const userHooks = hookType.filter(hookDefinition => hookDefinition.code.name === 'userHookFn')
-            const userAsyncHooks = hookType.filter(hookDefinition => hookDefinition.code.name === 'userHookAsyncFn')
+            const wdioHooks = hookType.filter((hookDefinition) =>
+                hookDefinition.code.name.startsWith('wdioHook'),
+            )
+            const userHooks = hookType.filter(
+                (hookDefinition) => hookDefinition.code.name === 'userHookFn',
+            )
+            const userAsyncHooks = hookType.filter(
+                (hookDefinition) =>
+                    hookDefinition.code.name === 'userHookAsyncFn',
+            )
             expect(wdioHooks).toHaveLength(1)
             expect(userHooks).toHaveLength(1)
             expect(userAsyncHooks).toHaveLength(1)
@@ -136,31 +183,55 @@ describe('utils', () => {
     })
 
     it('filterPickles', () => {
-        expect(filterPickles({
-            browserName: 'chrome'
-        }, {
-            id: '123',
-            tags: [{ name: '@skip(browserName="chrome")' }]
-        } as any)).toBe(false)
-        expect(filterPickles({
-            browserName: 'chrome'
-        }, {
-            id: '123',
-            tags: [{ name: '@skip(browserName="foobar")' }]
-        } as any)).toBe(true)
-        expect(filterPickles({
-            browserName: 'chrome',
-            platformName: 'windows'
-        }, {
-            id: '123',
-            tags: [{ name: '@skip(browserName="foobar";platformName="windows")' }]
-        } as any)).toBe(true)
-        expect(filterPickles({
-            browserName: 'chrome'
-        }, {
-            id: '123',
-            tags: [{ name: '@skip(something=weird)' }]
-        } as any)).toBe(false)
+        expect(
+            filterPickles(
+                {
+                    browserName: 'chrome',
+                },
+                {
+                    id: '123',
+                    tags: [{ name: '@skip(browserName="chrome")' }],
+                } as any,
+            ),
+        ).toBe(false)
+        expect(
+            filterPickles(
+                {
+                    browserName: 'chrome',
+                },
+                {
+                    id: '123',
+                    tags: [{ name: '@skip(browserName="foobar")' }],
+                } as any,
+            ),
+        ).toBe(true)
+        expect(
+            filterPickles(
+                {
+                    browserName: 'chrome',
+                    platformName: 'windows',
+                },
+                {
+                    id: '123',
+                    tags: [
+                        {
+                            name: '@skip(browserName="foobar";platformName="windows")',
+                        },
+                    ],
+                } as any,
+            ),
+        ).toBe(true)
+        expect(
+            filterPickles(
+                {
+                    browserName: 'chrome',
+                },
+                {
+                    id: '123',
+                    tags: [{ name: '@skip(something=weird)' }],
+                } as any,
+            ),
+        ).toBe(false)
     })
 
     it('addKeywordToStep should add keywords to the steps', () => {
@@ -169,19 +240,19 @@ describe('utils', () => {
             {
                 text: 'I have a background',
                 id: '20',
-                astNodeIds: ['0']
+                astNodeIds: ['0'],
             },
             // Should get a keyword
             {
                 text: 'I have 42 cukes in my belly',
                 id: '21',
-                astNodeIds: ['2']
+                astNodeIds: ['2'],
             },
             // Should NOT get a keyword
             {
                 id: '77',
-                hookId: '47'
-            }
+                hookId: '47',
+            },
         ]
         const feature = {
             children: [
@@ -193,11 +264,11 @@ describe('utils', () => {
                             {
                                 keyword: 'Given ',
                                 text: 'I have a background',
-                                id: '0'
-                            }
+                                id: '0',
+                            },
                         ],
-                        id: '1'
-                    }
+                        id: '1',
+                    },
                 },
                 {
                     scenario: {
@@ -207,11 +278,11 @@ describe('utils', () => {
                             {
                                 keyword: 'Given ',
                                 text: 'I have 42 cukes in my belly',
-                                id: '2'
-                            }
+                                id: '2',
+                            },
                         ],
-                        id: '3'
-                    }
+                        id: '3',
+                    },
                 },
                 {
                     rule: {
@@ -226,17 +297,17 @@ describe('utils', () => {
                                         {
                                             keyword: 'Given ',
                                             text: 'I am on the login page',
-                                            id: '4'
-                                        }
+                                            id: '4',
+                                        },
                                     ],
-                                    id: '5'
-                                }
-                            }
+                                    id: '5',
+                                },
+                            },
                         ],
-                        id: '6'
-                    }
-                }
-            ]
+                        id: '6',
+                    },
+                },
+            ],
         }
 
         expect(addKeywordToStep(steps as any, feature as any)).toMatchSnapshot()

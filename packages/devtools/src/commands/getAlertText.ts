@@ -8,7 +8,7 @@ import type DevToolsDriver from '../devtoolsdriver'
  * @see https://w3c.github.io/webdriver/#dfn-get-alert-text
  * @return {string} The message of the user prompt.
  */
-export default function getAlertText (this: DevToolsDriver) {
+export default function getAlertText(this: DevToolsDriver) {
     if (!this.activeDialog) {
         throw new Error('no such alert')
     }

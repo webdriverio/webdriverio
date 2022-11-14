@@ -1,3 +1,3 @@
 describe('empty test', () => {
-    it('should not be skipped', () => { })
+    it('should not be skipped', () => {})
 })

@@ -1,73 +1,87 @@
-import { expect, describe, it, afterEach, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
-import path from 'node:path'
 import archiver from 'archiver'
+import path from 'node:path'
 import { remote } from '../../../src/index.js'
 
 vi.mock('node:fs', () => ({
     default: {
         createReadStream: vi.fn(),
-        existsSync: vi.fn()
-    }
+        existsSync: vi.fn(),
+    },
 }))
 vi.mock('got')
 vi.mock('archiver')
 vi.mock('devtools')
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock(
+    '@wdio/logger',
+    () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')),
+)
 
 describe('uploadFile', () => {
     it('should throw if browser does not support it', async function () {
         const browser = await remote({
             baseUrl: 'http://webdriver.io',
             capabilities: {
-                browserName: 'firefox'
-            }
+                browserName: 'firefox',
+            },
         })
 
         await expect(browser.uploadFile('/foo/bar.jpg')).rejects.toEqual(
-            new Error('The uploadFile command is not available in mockBrowser'))
+            new Error('The uploadFile command is not available in mockBrowser'),
+        )
     })
 
     it('should throw if path is not a string', async function () {
         const browser = await remote({
             baseUrl: 'http://webdriver.io',
             capabilities: {
-                browserName: 'chrome'
-            }
+                browserName: 'chrome',
+            },
         })
 
         // @ts-expect-error wrong parameter
         await expect(browser.uploadFile(123)).rejects.toEqual(
-            new Error('number or type of arguments don\'t agree with uploadFile command'))
+            new Error(
+                "number or type of arguments don't agree with uploadFile command",
+            ),
+        )
     })
 
     it('should archive the file and use file command', async () => {
         const browser = await remote({
             baseUrl: 'http://webdriver.io',
             capabilities: {
-                browserName: 'chrome'
-            }
+                browserName: 'chrome',
+            },
         })
         browser.file = vi.fn().mockReturnValue(Promise.resolve())
 
         const archiverMock = archiver('zip')
-        browser.uploadFile(path.resolve(__dirname, '..', '__fixtures__', 'toUpload.jpg'))
+        browser.uploadFile(
+            path.resolve(__dirname, '..', '__fixtures__', 'toUpload.jpg'),
+        )
         expect((archiverMock as any).args).toEqual(['zip'])
-        expect(archiverMock.append).toBeCalledWith(undefined, { name: 'toUpload.jpg' })
+        expect(archiverMock.append).toBeCalledWith(undefined, {
+            name: 'toUpload.jpg',
+        })
     })
 
     it('reject on error', async () => {
         const browser = await remote({
             baseUrl: 'http://webdriver.io',
             capabilities: {
-                browserName: 'chrome'
-            }
+                browserName: 'chrome',
+            },
         })
         browser.file = vi.fn().mockReturnValue(Promise.resolve())
 
         let commandError: Error | null = null
         const archiverMock = archiver('zip')
-        const command = browser.uploadFile(path.resolve(__dirname, '..', '__fixtures__', 'toUpload.jpg'))
+        const command = browser
+            .uploadFile(
+                path.resolve(__dirname, '..', '__fixtures__', 'toUpload.jpg'),
+            )
             .catch((e: Error) => (commandError = e))
         expect(vi.mocked(archiverMock.on).mock.calls[0][0]).toBe('error')
         vi.mocked(archiverMock.on).mock.calls[0][1](new Error('boom'))
@@ -80,13 +94,17 @@ describe('uploadFile', () => {
         const browser = await remote({
             baseUrl: 'http://webdriver.io',
             capabilities: {
-                browserName: 'chrome'
-            }
+                browserName: 'chrome',
+            },
         })
-        browser.file = vi.fn().mockReturnValue(Promise.resolve('/some/local/path'))
+        browser.file = vi
+            .fn()
+            .mockReturnValue(Promise.resolve('/some/local/path'))
 
         const archiverMock = archiver('zip')
-        const command = browser.uploadFile(path.resolve(__dirname, '..', '__fixtures__', 'toUpload.jpg'))
+        const command = browser.uploadFile(
+            path.resolve(__dirname, '..', '__fixtures__', 'toUpload.jpg'),
+        )
         expect(vi.mocked(archiverMock.on).mock.calls[1][0]).toBe('data')
         expect(vi.mocked(archiverMock.on).mock.calls[2][0]).toBe('end')
 
@@ -95,7 +113,9 @@ describe('uploadFile', () => {
         vi.mocked(archiverMock.on).mock.calls[2][1]()
 
         const localPath = await command
-        expect(browser.file).toBeCalledWith('AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==')
+        expect(browser.file).toBeCalledWith(
+            'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==',
+        )
         expect(localPath).toBe('/some/local/path')
     })
 

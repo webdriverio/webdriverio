@@ -1,15 +1,24 @@
 import path from 'node:path'
 // @ts-ignore mock feature
 import { logMock } from '@wdio/logger'
-import { attach, remote, multiremote } from 'webdriverio'
-import { describe, expect, it, vi, afterEach, beforeEach } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { attach, multiremote, remote } from 'webdriverio'
 
 import {
-    initialiseInstance, sanitizeCaps, getInstancesData, ConfigWithSessionId
+    ConfigWithSessionId,
+    getInstancesData,
+    initialiseInstance,
+    sanitizeCaps,
 } from '../src/utils.js'
 
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
-vi.mock('webdriverio', () => import(path.join(process.cwd(), '__mocks__', 'webdriverio')))
+vi.mock(
+    '@wdio/logger',
+    () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')),
+)
+vi.mock(
+    'webdriverio',
+    () => import(path.join(process.cwd(), '__mocks__', 'webdriverio')),
+)
 
 process.send = vi.fn()
 
@@ -23,21 +32,18 @@ describe('utils', () => {
             const config: ConfigWithSessionId = {
                 sessionId: '123',
                 // @ts-ignore test invalid params
-                foo: 'bar'
+                foo: 'bar',
             }
-            initialiseInstance(
-                config,
-                {
-                    browserName: 'chrome',
-                    maxInstances: 2,
-                    hostname: 'foobar'
-                }
-            )
+            initialiseInstance(config, {
+                browserName: 'chrome',
+                maxInstances: 2,
+                hostname: 'foobar',
+            })
             expect(attach).toBeCalledWith({
                 sessionId: '123',
                 foo: 'bar',
                 hostname: 'foobar',
-                capabilities: { browserName: 'chrome' }
+                capabilities: { browserName: 'chrome' },
             })
             expect(config.capabilities).toEqual({ browserName: 'chrome' })
             expect(multiremote).toHaveBeenCalledTimes(0)
@@ -50,33 +56,38 @@ describe('utils', () => {
                 // @ts-ignore test invalid params
                 { foo: 'bar' },
                 capabilities,
-                true
+                true,
             )
             expect(attach).toHaveBeenCalledTimes(0)
-            expect(multiremote).toBeCalledWith({
-                someBrowser: {
-                    browserName: 'chrome',
-                    foo: 'bar'
-                }
-            }, { foo: 'bar' })
+            expect(multiremote).toBeCalledWith(
+                {
+                    someBrowser: {
+                        browserName: 'chrome',
+                        foo: 'bar',
+                    },
+                },
+                { foo: 'bar' },
+            )
             expect(remote).toHaveBeenCalledTimes(0)
         })
 
         it('should create normal remote session', () => {
-            initialiseInstance({
-                // @ts-ignore test invalid params
-                foo: 'bar'
-            },
-            {
-                browserName: 'chrome',
-                maxInstances: 123
-            })
+            initialiseInstance(
+                {
+                    // @ts-ignore test invalid params
+                    foo: 'bar',
+                },
+                {
+                    browserName: 'chrome',
+                    maxInstances: 123,
+                },
+            )
             expect(attach).toHaveBeenCalledTimes(0)
             expect(multiremote).toHaveBeenCalledTimes(0)
             expect(remote).toBeCalledWith({
                 foo: 'bar',
                 maxInstances: 123,
-                capabilities: { browserName: 'chrome' }
+                capabilities: { browserName: 'chrome' },
             })
         })
 
@@ -85,18 +96,21 @@ describe('utils', () => {
                 browserName: 'chrome',
                 hostname: 'barfoo',
                 port: 4321,
-                path: '/'
+                path: '/',
             }
-            initialiseInstance({
-                hostname: 'foobar',
-                port: 1234,
-                path: '/some/path'
-            } as any, caps)
+            initialiseInstance(
+                {
+                    hostname: 'foobar',
+                    port: 1234,
+                    path: '/some/path',
+                } as any,
+                caps,
+            )
             expect(remote).toBeCalledWith({
                 hostname: 'barfoo',
                 port: 4321,
                 path: '/',
-                capabilities: { browserName: 'chrome' }
+                capabilities: { browserName: 'chrome' },
             })
         })
 
@@ -111,18 +125,20 @@ describe('utils', () => {
         const validCaps = {
             browserName: 'chrome',
             browserVersion: 'latest',
-            platformName: 'macOS 10.13'
+            platformName: 'macOS 10.13',
         }
 
         const invalidCaps = {
             maxInstances: 123,
-            specs: ['./foo.test.js', './bar.test.js']
+            specs: ['./foo.test.js', './bar.test.js'],
         }
 
-        expect(sanitizeCaps({
-            ...invalidCaps,
-            ...validCaps
-        })).toEqual(validCaps)
+        expect(
+            sanitizeCaps({
+                ...invalidCaps,
+                ...validCaps,
+            }),
+        ).toEqual(validCaps)
     })
 
     // describe('sendFailureMessage', () => {
@@ -170,31 +186,58 @@ describe('utils', () => {
 
     describe('getInstancesData', () => {
         it('isMultiremote = true', () => {
-            const { sessionId, isW3C, protocol, hostname, port, path, queryParams } = {
+            const {
+                sessionId,
+                isW3C,
+                protocol,
+                hostname,
+                port,
+                path,
+                queryParams,
+            } = {
                 isW3C: true,
                 sessionId: 'bar',
                 protocol: 'http',
                 hostname: 'localhost',
                 port: 4441,
                 path: '/foo/bar',
-                queryParams: { foo: '123' }
+                queryParams: { foo: '123' },
             }
 
-            expect(getInstancesData({
-                instances: ['foo'],
+            expect(
+                getInstancesData(
+                    {
+                        instances: ['foo'],
+                        foo: {
+                            isW3C,
+                            sessionId,
+                            options: {
+                                protocol,
+                                hostname,
+                                port,
+                                path,
+                                queryParams,
+                            },
+                        },
+                        // @ts-expect-error
+                    } as any as WebdriverIO.MultiRemoteBrowserObject,
+                    true,
+                ),
+            ).toEqual({
                 foo: {
-                    isW3C,
                     sessionId,
-                    options: { protocol, hostname, port, path, queryParams }
-                }
-            // @ts-expect-error
-            } as any as WebdriverIO.MultiRemoteBrowserObject, true))
-                .toEqual({ foo: { sessionId, isW3C, protocol, hostname, port, path, queryParams } })
+                    isW3C,
+                    protocol,
+                    hostname,
+                    port,
+                    path,
+                    queryParams,
+                },
+            })
         })
 
         it('isMultiremote = false', () => {
-            expect(getInstancesData({} as any, false))
-                .toEqual(undefined)
+            expect(getInstancesData({} as any, false)).toEqual(undefined)
         })
     })
 })

@@ -1,18 +1,17 @@
 import { remote } from '../../packages/webdriverio/build/index.js'
-
-(async () => {
+;(async () => {
     const browser = await remote({
         capabilities: {
             browserName: 'chrome',
             version: '65',
             platform: 'XP',
-            name: 'This is an example test'
+            name: 'This is an example test',
         },
         hostname: 'hub.testingbot.com',
         port: 80,
         user: process.env.TESTINGBOT_KEY,
         key: process.env.TESTINGBOT_SECRET,
-        logLevel: 'trace'
+        logLevel: 'trace',
     })
 
     await browser.url('https://webdriver.io')

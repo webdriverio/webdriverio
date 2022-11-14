@@ -1,6 +1,6 @@
+import type { ElementReference } from '@wdio/protocols'
 import { ELEMENT_KEY } from '../../constants.js'
 import { getBrowserObject } from '../../utils/index.js'
-import type { ElementReference } from '@wdio/protocols'
 
 const ACTION_BUTTON = 0 as const
 
@@ -46,10 +46,10 @@ type ElementCoordinates = {
  * @param {DragAndDropOptions=} options           dragAndDrop command options
  * @param {Number=}             options.duration  how long the drag should take place
  */
-export default async function dragAndDrop (
+export default async function dragAndDrop(
     this: WebdriverIO.Element,
     target: WebdriverIO.Element | ElementCoordinates,
-    { duration = 10 }: DragAndDropOptions = {}
+    { duration = 10 }: DragAndDropOptions = {},
 ) {
     const moveToCoordinates = target as ElementCoordinates
     const moveToElement = target as WebdriverIO.Element
@@ -62,21 +62,19 @@ export default async function dragAndDrop (
          * no target was specified
          */
         !target ||
-        (
-            /**
-             * target is not from type element
-             */
-            target.constructor.name !== 'Element' &&
+        /**
+         * target is not from type element
+         */
+        (target.constructor.name !== 'Element' &&
             /**
              * and is also not an object with x and y number parameters
              */
-            (
-                typeof moveToCoordinates.x !== 'number' ||
-                typeof moveToCoordinates.y !== 'number'
-            )
-        )
+            (typeof moveToCoordinates.x !== 'number' ||
+                typeof moveToCoordinates.y !== 'number'))
     ) {
-        throw new Error('command dragAndDrop requires an WebdriverIO Element or and object with "x" and "y" variables as first parameter')
+        throw new Error(
+            'command dragAndDrop requires an WebdriverIO Element or and object with "x" and "y" variables as first parameter',
+        )
     }
 
     /**
@@ -91,7 +89,11 @@ export default async function dragAndDrop (
         if (isMovingToElement) {
             await moveToElement.moveTo()
         } else {
-            await this.moveToElement(null, moveToCoordinates.x, moveToCoordinates.y)
+            await this.moveToElement(
+                null,
+                moveToCoordinates.x,
+                moveToCoordinates.y,
+            )
         }
 
         await sleep(duration)
@@ -99,7 +101,9 @@ export default async function dragAndDrop (
     }
 
     const sourceRef: ElementReference = { [ELEMENT_KEY]: this[ELEMENT_KEY] }
-    const targetRef: ElementReference = { [ELEMENT_KEY]: moveToElement[ELEMENT_KEY] }
+    const targetRef: ElementReference = {
+        [ELEMENT_KEY]: moveToElement[ELEMENT_KEY],
+    }
 
     const origin = sourceRef
     const targetOrigin = isMovingToElement ? targetRef : 'pointer'
@@ -111,7 +115,8 @@ export default async function dragAndDrop (
      * W3C way of handle the drag and drop action
      */
     const browser = getBrowserObject(this)
-    return browser.action('pointer')
+    return browser
+        .action('pointer')
         .move({ duration: 0, origin, x: 0, y: 0 })
         .down({ button: ACTION_BUTTON })
         .pause(10)

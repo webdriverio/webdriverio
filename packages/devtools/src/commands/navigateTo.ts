@@ -9,9 +9,9 @@ import type DevToolsDriver from '../devtoolsdriver'
  * @param  {string} url  current top-level browsing context’s active document’s document URL
  * @return {string}      current document URL of the top-level browsing context.
  */
-export default async function navigateTo (
+export default async function navigateTo(
     this: DevToolsDriver,
-    { url }: { url: string }
+    { url }: { url: string },
 ) {
     /**
      * when navigating to a new url get out of frame scope

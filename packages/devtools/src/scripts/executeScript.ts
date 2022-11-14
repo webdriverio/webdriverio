@@ -13,8 +13,14 @@
  * @param  {Object[]}    args         user arguments for custom script
  * @return {Object}                   result of custom script
  */
-export default (_: HTMLElement, script: string, dataProperty: string, dataFlag: string, ...args: any[]) => {
-    (window as any).arguments = args
+export default (
+    _: HTMLElement,
+    script: string,
+    dataProperty: string,
+    dataFlag: string,
+    ...args: any[]
+) => {
+    ;(window as any).arguments = args
     const result = eval(script)
     let tmpResult = result instanceof NodeList ? Array.from(result) : result
     const isResultArray = Array.isArray(tmpResult)

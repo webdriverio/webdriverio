@@ -1,5 +1,5 @@
-import path from 'node:path'
 import type { Capabilities } from '@wdio/types'
+import path from 'node:path'
 
 const FILE_EXTENSION_REGEX = /\.[0-9a-z]+$/i
 const SUPPORTED_CAPABILITIES = [
@@ -11,7 +11,7 @@ const SUPPORTED_CAPABILITIES = [
     'microsoftedge',
     'microsoft edge',
     'safari',
-    'webkit'
+    'webkit',
 ]
 
 /**
@@ -20,7 +20,7 @@ const SUPPORTED_CAPABILITIES = [
  * @param  {String} defaultFilename default file name when filePath is a directory
  * @return {String}                 absolute file path
  */
-export function getFilePath (filePath: string, defaultFilename: string): string {
+export function getFilePath(filePath: string, defaultFilename: string): string {
     let absolutePath = path.resolve(filePath)
 
     // test if we already have a file (e.g. selenium.txt, .log, log.txt, etc.)
@@ -37,11 +37,13 @@ export function getFilePath (filePath: string, defaultFilename: string): string 
  * @param   {Capabilities.Capabilities} capabilities capabilities used for the session
  * @returns {Boolean}                                true, if capabilities suggest a supported platform
  */
-export function hasCapsWithSupportedBrowser (capabilities: Capabilities.Capabilities) {
+export function hasCapsWithSupportedBrowser(
+    capabilities: Capabilities.Capabilities,
+) {
     if (!capabilities.browserName) {
         return false
     }
     return SUPPORTED_CAPABILITIES.includes(
-        capabilities.browserName?.toLowerCase()
+        capabilities.browserName?.toLowerCase(),
     )
 }

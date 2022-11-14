@@ -1,4 +1,4 @@
-declare module 'lighthouse';
+declare module 'lighthouse'
 declare module 'lighthouse/lighthouse-core/gather/driver.js'
 declare module 'lighthouse/lighthouse-core/gather/connections/cri.js'
 declare module 'lighthouse/lighthouse-core/gather/gather-runner.js'

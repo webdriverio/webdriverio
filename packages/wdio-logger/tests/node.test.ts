@@ -1,8 +1,16 @@
 import fs from 'node:fs'
-import { it, describe, expect, vi, afterEach, beforeEach, afterAll } from 'vitest'
+import {
+    afterAll,
+    afterEach,
+    beforeEach,
+    describe,
+    expect,
+    it,
+    vi,
+} from 'vitest'
 
-import nodeLogger from '../src/node.js'
 import nodeLogger2 from '../build/node.js'
+import nodeLogger from '../src/node.js'
 
 import type log from 'loglevel'
 
@@ -18,27 +26,34 @@ describe('wdio-logger node', () => {
         })
 
         const scenarios: {
-            level: log.LogLevelDesc,
+            level: log.LogLevelDesc
             logLevel: log.LogLevelNumbers
-        }[] = [{
-            level: 'trace',
-            logLevel: 0
-        }, {
-            level: 'debug',
-            logLevel: 1
-        }, {
-            level: 'info',
-            logLevel: 2
-        }, {
-            level: 'warn',
-            logLevel: 3
-        }, {
-            level: 'error',
-            logLevel: 4
-        }, {
-            level: 'silent',
-            logLevel: 5
-        }]
+        }[] = [
+            {
+                level: 'trace',
+                logLevel: 0,
+            },
+            {
+                level: 'debug',
+                logLevel: 1,
+            },
+            {
+                level: 'info',
+                logLevel: 2,
+            },
+            {
+                level: 'warn',
+                logLevel: 3,
+            },
+            {
+                level: 'error',
+                logLevel: 4,
+            },
+            {
+                level: 'silent',
+                logLevel: 5,
+            },
+        ]
 
         scenarios.forEach((scenario) => {
             it(`should be possible to set ${scenario.level} logLevel`, () => {
@@ -67,33 +82,43 @@ describe('wdio-logger node', () => {
             logger: string
             config?: Record<string, log.LogLevelDesc>
             logLevel: number
-        }[] = [{
-            name: 'should be possible to set logLevel in config',
-            logger: 'test-setLogLevelsConfig-3',
-            config: { 'test-setLogLevelsConfig-3': 'silent' },
-            logLevel: 5
-        }, {
-            name: 'should be possible to set logLevel in WDIO_LOG_LEVEL',
-            logger: 'test-setLogLevelsConfig-4',
-            get config() {
-                process.env.WDIO_LOG_LEVEL = 'info'
-                return undefined
+        }[] = [
+            {
+                name: 'should be possible to set logLevel in config',
+                logger: 'test-setLogLevelsConfig-3',
+                config: { 'test-setLogLevelsConfig-3': 'silent' },
+                logLevel: 5,
             },
-            logLevel: 2
-        }, {
-            name: 'should be possible to override WDIO_LOG_LEVEL in config',
-            logger: 'test-setLogLevelsConfig-5',
-            get config() {
-                process.env.WDIO_LOG_LEVEL = 'info'
-                return { 'test-setLogLevelsConfig-5': 'warn' as log.LogLevelDesc }
+            {
+                name: 'should be possible to set logLevel in WDIO_LOG_LEVEL',
+                logger: 'test-setLogLevelsConfig-4',
+                get config() {
+                    process.env.WDIO_LOG_LEVEL = 'info'
+                    return undefined
+                },
+                logLevel: 2,
             },
-            logLevel: 3
-        }, {
-            name: 'should be possible to set logLevel in config for all sub levels',
-            logger: 'test-setLogLevelsConfig-6:foo',
-            config: { 'test-setLogLevelsConfig-6:bar': 'error' as log.LogLevelDesc },
-            logLevel: 4
-        }]
+            {
+                name: 'should be possible to override WDIO_LOG_LEVEL in config',
+                logger: 'test-setLogLevelsConfig-5',
+                get config() {
+                    process.env.WDIO_LOG_LEVEL = 'info'
+                    return {
+                        'test-setLogLevelsConfig-5': 'warn' as log.LogLevelDesc,
+                    }
+                },
+                logLevel: 3,
+            },
+            {
+                name: 'should be possible to set logLevel in config for all sub levels',
+                logger: 'test-setLogLevelsConfig-6:foo',
+                config: {
+                    'test-setLogLevelsConfig-6:bar':
+                        'error' as log.LogLevelDesc,
+                },
+                logLevel: 4,
+            },
+        ]
 
         scenarios.forEach((scenario) => {
             it(scenario.name, () => {
@@ -109,7 +134,9 @@ describe('wdio-logger node', () => {
             expect(log1.getLevel()).toEqual(2)
             expect(log2.getLevel()).toEqual(2)
 
-            nodeLogger.setLogLevelsConfig({ 'test-applyLogLevelsConfig1': 'error' })
+            nodeLogger.setLogLevelsConfig({
+                'test-applyLogLevelsConfig1': 'error',
+            })
 
             expect(log1.getLevel()).toEqual(4)
             expect(log2.getLevel()).toEqual(4)
@@ -137,23 +164,25 @@ describe('wdio-logger node', () => {
     })
 
     describe('logFile', () => {
-        const write = vi.fn(logText => logText)
+        const write = vi.fn((logText) => logText)
         const logInfoSpy = vi.spyOn(fs, 'createWriteStream')
         const logCacheAddSpy = vi.spyOn(Set.prototype, 'add')
         const logCacheForEachSpy = vi.spyOn(Set.prototype, 'forEach')
         let writableBuffer: any = null
-        logInfoSpy.mockImplementation((path: fs.PathLike): fs.WriteStream => ({
-            path: path as string,
-            write,
-            writable: true,
-            // @ts-ignore
-            get writableBuffer () {
+        logInfoSpy.mockImplementation(
+            (path: fs.PathLike): fs.WriteStream => ({
+                path: path as string,
+                write,
+                writable: true,
                 // @ts-ignore
-                return writableBuffer
-            },
-            // @ts-expect-error
-            end: vi.fn()
-        }))
+                get writableBuffer() {
+                    // @ts-ignore
+                    return writableBuffer
+                },
+                // @ts-expect-error
+                end: vi.fn(),
+            }),
+        )
 
         beforeEach(() => {
             logCacheAddSpy.mockClear()
@@ -201,7 +230,9 @@ describe('wdio-logger node', () => {
             expect(write.mock.calls.length).toBe(2)
             expect(write.mock.results[0].value).toContain('test-logFile2: foo')
             expect(write.mock.results[1].value).toContain('test-logFile2: bar')
-            expect(write.mock.results[1].value).not.toContain('test-logFile2: foo')
+            expect(write.mock.results[1].value).not.toContain(
+                'test-logFile2: foo',
+            )
 
             expect(logCacheForEachSpy).toBeCalledTimes(0)
         })
@@ -216,10 +247,18 @@ describe('wdio-logger node', () => {
             log.info(new Error('bar'))
 
             expect(write.mock.calls.length).toBe(4)
-            expect(write.mock.results[0].value).toContain('test-logFile4: yellow DATA')
-            expect(write.mock.results[1].value).toContain('test-logFile4: cyan RESULT')
-            expect(write.mock.results[2].value).toContain('test-logFile4: magenta COMMAND')
-            expect(write.mock.results[3].value).toContain('test-logFile4: Error: bar')
+            expect(write.mock.results[0].value).toContain(
+                'test-logFile4: yellow DATA',
+            )
+            expect(write.mock.results[1].value).toContain(
+                'test-logFile4: cyan RESULT',
+            )
+            expect(write.mock.results[2].value).toContain(
+                'test-logFile4: magenta COMMAND',
+            )
+            expect(write.mock.results[3].value).toContain(
+                'test-logFile4: Error: bar',
+            )
         })
 
         it('is not confused by multiple copies of source code', () => {
@@ -232,7 +271,9 @@ describe('wdio-logger node', () => {
 
             expect(write.mock.calls.length).toBe(2)
             expect(write.mock.results[0].value).toContain('test-logFile4: foo')
-            expect(write.mock.results[1].value).toContain('test-logFile4: Error: bar')
+            expect(write.mock.results[1].value).toContain(
+                'test-logFile4: Error: bar',
+            )
         })
 
         describe('clearLogger', () => {
@@ -250,15 +291,18 @@ describe('wdio-logger node', () => {
         })
 
         describe('waitForBuffer with logFile', () => {
-            const scenarios = [{
-                name: 'should be ok buffer is empty',
-                writableBuffer: [],
-                logPath: 'wdio.test.log'
-            }, {
-                name: 'should flush if buffer is not defined',
-                writableBuffer: undefined,
-                logPath: 'wdio.test.log'
-            }]
+            const scenarios = [
+                {
+                    name: 'should be ok buffer is empty',
+                    writableBuffer: [],
+                    logPath: 'wdio.test.log',
+                },
+                {
+                    name: 'should flush if buffer is not defined',
+                    writableBuffer: undefined,
+                    logPath: 'wdio.test.log',
+                },
+            ]
 
             scenarios.forEach((scenario, idx) => {
                 it(scenario.name, async () => {

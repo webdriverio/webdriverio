@@ -1,18 +1,24 @@
-import path from 'node:path'
 import got from 'got'
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
+import path from 'node:path'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 // @ts-ignore mock feature
 import logger, { logMock } from '@wdio/logger'
-import { sessionEnvironmentDetector } from '@wdio/utils'
 import type { Capabilities } from '@wdio/types'
+import { sessionEnvironmentDetector } from '@wdio/utils'
 
-import WebDriver, { getPrototype, DEFAULTS, command } from '../src/index.js'
+import WebDriver, { command, DEFAULTS, getPrototype } from '../src/index.js'
 // @ts-expect-error mock feature
 import { initCount } from '../src/bidi.js'
 import type { Client } from '../src/types'
 
-vi.mock('@wdio/utils', () => import(path.join(process.cwd(), '__mocks__', '@wdio/utils')))
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock(
+    '@wdio/utils',
+    () => import(path.join(process.cwd(), '__mocks__', '@wdio/utils')),
+)
+vi.mock(
+    '@wdio/logger',
+    () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')),
+)
 vi.mock('fs')
 vi.mock('ws')
 vi.mock('got')
@@ -22,11 +28,11 @@ vi.mock('../src/bidi', () => {
     return {
         BidiHandler: class BidiHandlerMock {
             connect = vi.fn()
-            constructor () {
+            constructor() {
                 ++initCount
             }
         },
-        initCount: () => initCount
+        initCount: () => initCount,
     }
 })
 
@@ -35,7 +41,7 @@ const sessionOptions = {
     hostname: 'localhost',
     port: 4444,
     path: '/',
-    sessionId: 'foobar'
+    sessionId: 'foobar',
 }
 
 const OUTPUT_DIR = path.join('some', 'output', 'dir')
@@ -46,9 +52,9 @@ const setUpLogCheck = (conditionFunction: () => boolean) => {
         if (!conditionFunction()) {
             throw new Error(
                 'Log function was called before setting ' +
-                'process.env.WDIO_LOG_PATH.\n' +
-                'Passed arguments to log function:\n' +
-                args.map((arg, index) => `  [${index}]: ${arg}`).join('\n')
+                    'process.env.WDIO_LOG_PATH.\n' +
+                    'Passed arguments to log function:\n' +
+                    args.map((arg, index) => `  [${index}]: ${arg}`).join('\n'),
             )
         }
     }
@@ -61,10 +67,10 @@ const setUpLogCheck = (conditionFunction: () => boolean) => {
 
 // @ts-expect-error
 interface TestClient extends Client {
-    getUrl (): string
-    getApplicationCacheStatus (): void
-    takeElementScreenshot (): void
-    getDeviceTime (): void
+    getUrl(): string
+    getApplicationCacheStatus(): void
+    takeElementScreenshot(): void
+    getDeviceTime(): void
 }
 
 beforeEach(() => {
@@ -93,20 +99,24 @@ describe('WebDriver', () => {
             await WebDriver.newSession({
                 path: '/',
                 outputDir: testDirPath,
-                capabilities: { browserName: 'firefox' }
+                capabilities: { browserName: 'firefox' },
             })
 
             expect(got).toHaveBeenCalledWith(
                 expect.objectContaining({ pathname: '/session' }),
-                expect.objectContaining({ json: {
-                    capabilities: {
-                        alwaysMatch: { browserName: 'firefox' },
-                        firstMatch: [{}]
+                expect.objectContaining({
+                    json: {
+                        capabilities: {
+                            alwaysMatch: { browserName: 'firefox' },
+                            firstMatch: [{}],
+                        },
+                        desiredCapabilities: { browserName: 'firefox' },
                     },
-                    desiredCapabilities: { browserName: 'firefox' }
-                } })
+                }),
             )
-            expect(process.env.WDIO_LOG_PATH).toEqual(path.join(testDirPath, 'wdio.log'))
+            expect(process.env.WDIO_LOG_PATH).toEqual(
+                path.join(testDirPath, 'wdio.log'),
+            )
         })
 
         it('should allow to create a new session using w3c compliant caps', async () => {
@@ -114,30 +124,33 @@ describe('WebDriver', () => {
                 path: '/',
                 capabilities: {
                     alwaysMatch: { browserName: 'firefox' },
-                    firstMatch: [{}]
-                }
+                    firstMatch: [{}],
+                },
             })
 
             expect(got).toHaveBeenCalledWith(
                 expect.objectContaining({ pathname: '/session' }),
-                expect.objectContaining({ json: {
-                    capabilities: {
-                        alwaysMatch: { browserName: 'firefox' },
-                        firstMatch: [{}]
+                expect.objectContaining({
+                    json: {
+                        capabilities: {
+                            alwaysMatch: { browserName: 'firefox' },
+                            firstMatch: [{}],
+                        },
+                        desiredCapabilities: { browserName: 'firefox' },
                     },
-                    desiredCapabilities: { browserName: 'firefox' }
-                } })
+                }),
             )
 
-            expect(vi.mocked(sessionEnvironmentDetector).mock.calls)
-                .toMatchSnapshot()
+            expect(
+                vi.mocked(sessionEnvironmentDetector).mock.calls,
+            ).toMatchSnapshot()
         })
 
         it('should be possible to skip setting logLevel', async () => {
             await WebDriver.newSession({
                 capabilities: { browserName: 'chrome' },
                 logLevel: 'info',
-                logLevels: { webdriver: 'silent' }
+                logLevels: { webdriver: 'silent' },
             })
 
             expect(logger.setLevel).not.toBeCalled()
@@ -146,7 +159,7 @@ describe('WebDriver', () => {
         it('should be possible to set logLevel', async () => {
             await WebDriver.newSession({
                 capabilities: { browserName: 'chrome' },
-                logLevel: 'info'
+                logLevel: 'info',
             })
 
             expect(logger.setLevel).toBeCalled()
@@ -192,19 +205,26 @@ describe('WebDriver', () => {
         it('propagates capabilities and requestedCapabilities', async () => {
             const browser = await WebDriver.newSession({
                 path: '/',
-                capabilities: { browserName: 'firefox' }
+                capabilities: { browserName: 'firefox' },
             })
-            expect((browser.capabilities as Capabilities.DesiredCapabilities).browserName).toBe('mockBrowser')
-            expect((browser.requestedCapabilities as Capabilities.DesiredCapabilities).browserName).toBe('firefox')
+            expect(
+                (browser.capabilities as Capabilities.DesiredCapabilities)
+                    .browserName,
+            ).toBe('mockBrowser')
+            expect(
+                (
+                    browser.requestedCapabilities as Capabilities.DesiredCapabilities
+                ).browserName,
+            ).toBe('firefox')
         })
 
         it('attaches bidi handler if socket url is given', async () => {
             vi.mocked(got).mockResolvedValue({
-                body: { value: { webSocketUrl: 'ws://foo/bar' } }
+                body: { value: { webSocketUrl: 'ws://foo/bar' } },
             })
             await WebDriver.newSession({
                 path: '/',
-                capabilities: { browserName: 'firefox' }
+                capabilities: { browserName: 'firefox' },
             })
             expect(initCount()).toBe(1)
         })
@@ -212,27 +232,38 @@ describe('WebDriver', () => {
 
     describe('attachToSession', () => {
         it('should allow to attach to existing session', async () => {
-            const client = WebDriver.attachToSession({ ...sessionOptions, logLevel: 'error' }) as any as TestClient
+            const client = WebDriver.attachToSession({
+                ...sessionOptions,
+                logLevel: 'error',
+            }) as any as TestClient
             await client.getUrl()
             expect(got).toHaveBeenCalledWith(
-                expect.objectContaining({ href: 'http://localhost:4444/session/foobar/url' }),
-                expect.anything()
+                expect.objectContaining({
+                    href: 'http://localhost:4444/session/foobar/url',
+                }),
+                expect.anything(),
             )
             expect(logger.setLevel).toBeCalled()
         })
 
         it('should allow to attach to existing session2', async () => {
-            const client = WebDriver.attachToSession({ ...sessionOptions }) as any as TestClient
+            const client = WebDriver.attachToSession({
+                ...sessionOptions,
+            }) as any as TestClient
             await client.getUrl()
             expect(got).toHaveBeenCalledWith(
-                expect.objectContaining({ href: 'http://localhost:4444/session/foobar/url' }),
-                expect.anything()
+                expect.objectContaining({
+                    href: 'http://localhost:4444/session/foobar/url',
+                }),
+                expect.anything(),
             )
             expect(logger.setLevel).not.toBeCalled()
         })
 
         it('should allow to attach to existing session - W3C', async () => {
-            const client = WebDriver.attachToSession({ ...sessionOptions }) as any as TestClient
+            const client = WebDriver.attachToSession({
+                ...sessionOptions,
+            }) as any as TestClient
             await client.getUrl()
 
             expect(client.isChrome).toBeFalsy()
@@ -244,7 +275,8 @@ describe('WebDriver', () => {
         })
 
         it('should allow to attach to existing session - non W3C', async () => {
-            const client = WebDriver.attachToSession({ ...sessionOptions,
+            const client = WebDriver.attachToSession({
+                ...sessionOptions,
                 isW3C: false,
                 isSauce: true,
             }) as any as TestClient
@@ -258,9 +290,10 @@ describe('WebDriver', () => {
         })
 
         it('should allow to attach to existing session - mobile', async () => {
-            const client = WebDriver.attachToSession({ ...sessionOptions,
+            const client = WebDriver.attachToSession({
+                ...sessionOptions,
                 isChrome: true,
-                isMobile: true
+                isMobile: true,
             }) as any as TestClient
 
             await client.getUrl()
@@ -273,13 +306,14 @@ describe('WebDriver', () => {
         })
 
         it('it should propagate all environment flags', () => {
-            const client = WebDriver.attachToSession({ ...sessionOptions,
+            const client = WebDriver.attachToSession({
+                ...sessionOptions,
                 isW3C: false,
                 isMobile: false,
                 isIOS: false,
                 isAndroid: false,
                 isChrome: false,
-                isSauce: false
+                isSauce: false,
             })
             expect(client.isW3C).toBe(false)
             expect(client.isMobile).toBe(false)
@@ -288,13 +322,14 @@ describe('WebDriver', () => {
             expect(client.isChrome).toBe(false)
             expect(client.isSauce).toBe(false)
 
-            const anotherClient = WebDriver.attachToSession({ ...sessionOptions,
+            const anotherClient = WebDriver.attachToSession({
+                ...sessionOptions,
                 isW3C: true,
                 isMobile: true,
                 isIOS: true,
                 isAndroid: true,
                 isChrome: true,
-                isSauce: true
+                isSauce: true,
             })
             expect(anotherClient.isW3C).toBe(true)
             expect(anotherClient.isMobile).toBe(true)
@@ -314,8 +349,9 @@ describe('WebDriver', () => {
 
         it('should fail attaching to session if sessionId is not given', () => {
             // @ts-ignore
-            expect(() => WebDriver.attachToSession({}))
-                .toThrow(/sessionId is required/)
+            expect(() => WebDriver.attachToSession({})).toThrow(
+                /sessionId is required/,
+            )
         })
     })
 
@@ -323,7 +359,7 @@ describe('WebDriver', () => {
         it('should reload session', async () => {
             const session = await WebDriver.newSession({
                 path: '/',
-                capabilities: { browserName: 'firefox' }
+                capabilities: { browserName: 'firefox' },
             })
             await WebDriver.reloadSession(session)
             expect(got).toHaveBeenCalledTimes(2)

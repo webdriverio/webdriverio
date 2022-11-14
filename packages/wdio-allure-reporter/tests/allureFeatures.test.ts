@@ -1,11 +1,22 @@
-import path from 'node:path'
-import { describe, it, expect, beforeEach, vi, beforeAll, afterAll } from 'vitest'
 import { CommandArgs, SuiteStats, TestStats } from '@wdio/reporter'
-import AllureReporter from '../src/index.js'
+import path from 'node:path'
+import {
+    afterAll,
+    beforeAll,
+    beforeEach,
+    describe,
+    expect,
+    it,
+    vi,
+} from 'vitest'
 import { linkPlaceholder } from '../src/constants.js'
+import AllureReporter from '../src/index.js'
 import { TYPE } from '../src/types.js'
 
-vi.mock('@wdio/reporter', () => import(path.join(process.cwd(), '__mocks__', '@wdio/reporter')))
+vi.mock(
+    '@wdio/reporter',
+    () => import(path.join(process.cwd(), '__mocks__', '@wdio/reporter')),
+)
 
 let processOn: any
 beforeAll(() => {
@@ -99,7 +110,9 @@ describe('reporter runtime implementation', () => {
     })
 
     it('should correctly add issue label with link', () => {
-        const reporter = new AllureReporter({ issueLinkTemplate: `http://example.com/${linkPlaceholder}` })
+        const reporter = new AllureReporter({
+            issueLinkTemplate: `http://example.com/${linkPlaceholder}`,
+        })
         const addLabel = vi.fn()
         const mock = vi.fn(() => {
             return { addLabel }
@@ -131,7 +144,9 @@ describe('reporter runtime implementation', () => {
     })
 
     it('should correctly add test id label with link', () => {
-        const reporter = new AllureReporter({ tmsLinkTemplate: `https://webdriver.io/${linkPlaceholder}` })
+        const reporter = new AllureReporter({
+            tmsLinkTemplate: `https://webdriver.io/${linkPlaceholder}`,
+        })
         const addLabel = vi.fn()
         const mock = vi.fn(() => {
             return { addLabel }
@@ -143,7 +158,10 @@ describe('reporter runtime implementation', () => {
 
         reporter.addTestId({ testId: '2' })
         expect(addLabel).toHaveBeenCalledTimes(1)
-        expect(addLabel).toHaveBeenCalledWith('testId', 'https://webdriver.io/2')
+        expect(addLabel).toHaveBeenCalledWith(
+            'testId',
+            'https://webdriver.io/2',
+        )
     })
 
     it('should correct add environment', () => {
@@ -159,7 +177,11 @@ describe('reporter runtime implementation', () => {
 
         reporter.addEnvironment({ name: 'foo', value: 'bar' })
         expect(addParameter).toHaveBeenCalledTimes(1)
-        expect(addParameter).toHaveBeenCalledWith('environment-variable', 'foo', 'bar')
+        expect(addParameter).toHaveBeenCalledWith(
+            'environment-variable',
+            'foo',
+            'bar',
+        )
     })
 
     it('should correct add description', () => {
@@ -175,7 +197,7 @@ describe('reporter runtime implementation', () => {
 
         reporter.addDescription({
             description: 'foo',
-            descriptionType: TYPE.MARKDOWN
+            descriptionType: TYPE.MARKDOWN,
         })
         expect(setDescription).toHaveBeenCalledTimes(1)
         expect(setDescription).toHaveBeenCalledWith('foo', TYPE.MARKDOWN)
@@ -187,12 +209,16 @@ describe('reporter runtime implementation', () => {
         reporter['_allure'] = {
             getCurrentSuite: vi.fn(() => true),
             getCurrentTest: vi.fn(() => true),
-            addAttachment
+            addAttachment,
         } as any
 
         reporter.addAttachment({ name: 'foo', content: 'bar', type: 'baz' })
         expect(addAttachment).toHaveBeenCalledTimes(1)
-        expect(addAttachment).toHaveBeenCalledWith('foo', Buffer.from('bar'), 'baz')
+        expect(addAttachment).toHaveBeenCalledWith(
+            'foo',
+            Buffer.from('bar'),
+            'baz',
+        )
     })
 
     it('should correct add "application/json" attachment', () => {
@@ -204,7 +230,11 @@ describe('reporter runtime implementation', () => {
             getCurrentTest: vi.fn(() => true),
         } as any
 
-        reporter.addAttachment({ name: 'foo', content: 'bar', type: 'application/json' })
+        reporter.addAttachment({
+            name: 'foo',
+            content: 'bar',
+            type: 'application/json',
+        })
         expect(dumpJSON).toHaveBeenCalledWith('foo', 'bar')
     })
 
@@ -216,7 +246,7 @@ describe('reporter runtime implementation', () => {
             getCurrentSuite: vi.fn(() => true),
             getCurrentTest: vi.fn(() => true),
             startStep,
-            endStep
+            endStep,
         } as any
         reporter.startStep('bar')
         reporter.endStep('failed')
@@ -238,15 +268,15 @@ describe('reporter runtime implementation', () => {
             getCurrentSuite: vi.fn(() => true),
             getCurrentTest: vi.fn(() => true),
             startStep,
-            endStep
+            endStep,
         } as any
 
         const step = {
-            'step': {
-                'attachment': { 'content': 'baz', 'name': 'attachment' },
-                'status': 'passed',
-                'title': 'foo'
-            }
+            step: {
+                attachment: { content: 'baz', name: 'attachment' },
+                status: 'passed',
+                title: 'foo',
+            },
         }
         reporter.addStep(step)
 
@@ -269,10 +299,10 @@ describe('reporter runtime implementation', () => {
             getCurrentSuite: vi.fn(() => true),
             getCurrentTest: vi.fn(() => true),
             startStep,
-            endStep
+            endStep,
         } as any
 
-        const step = { 'step': { 'status': 'passed', 'title': 'foo' } }
+        const step = { step: { status: 'passed', title: 'foo' } }
         reporter.addStep(step)
 
         expect(startStep).toHaveBeenCalledTimes(1)
@@ -301,24 +331,21 @@ describe('reporter runtime implementation', () => {
 
     it('should do nothing if no tests run', () => {
         const reporter = new AllureReporter()
-        expect(reporter.addLabel({ name: 'foo', value: 'bar' }))
-            .toEqual(false)
-        expect(reporter.addStory({ storyName: 'foobar' }))
-            .toEqual(false)
-        expect(reporter.addFeature({ featureName: 'foobar' }))
-            .toEqual(false)
-        expect(reporter.addSeverity({ severity: 'foobar' }))
-            .toEqual(false)
-        expect(reporter.addIssue({ issue: 'foobar' }))
-            .toEqual(false)
-        expect(reporter.addTestId({ testId: '123' }))
-            .toEqual(false)
-        expect(reporter.addEnvironment({ name: 'foo', value: 'bar' }))
-            .toEqual(false)
-        expect(reporter.addDescription({ description: 'foobar' }))
-            .toEqual(false)
-        expect(reporter.addAttachment({ name: '', content: '', type: '' }))
-            .toEqual(false)
+        expect(reporter.addLabel({ name: 'foo', value: 'bar' })).toEqual(false)
+        expect(reporter.addStory({ storyName: 'foobar' })).toEqual(false)
+        expect(reporter.addFeature({ featureName: 'foobar' })).toEqual(false)
+        expect(reporter.addSeverity({ severity: 'foobar' })).toEqual(false)
+        expect(reporter.addIssue({ issue: 'foobar' })).toEqual(false)
+        expect(reporter.addTestId({ testId: '123' })).toEqual(false)
+        expect(reporter.addEnvironment({ name: 'foo', value: 'bar' })).toEqual(
+            false,
+        )
+        expect(reporter.addDescription({ description: 'foobar' })).toEqual(
+            false,
+        )
+        expect(
+            reporter.addAttachment({ name: '', content: '', type: '' }),
+        ).toEqual(false)
         expect(reporter.startStep('test')).toEqual(false)
         expect(reporter.endStep('passed')).toEqual(false)
         expect(reporter.addStep({})).toEqual(false)
@@ -345,38 +372,84 @@ describe('reporter runtime implementation', () => {
         })
 
         it('should correctly add argument for selenium', () => {
-            reporter.onRunnerStart({ config: {}, capabilities: { browserName: 'firefox', version: '1.2.3' } })
+            reporter.onRunnerStart({
+                config: {},
+                capabilities: { browserName: 'firefox', version: '1.2.3' },
+            })
             reporter.onTestStart({ cid: '0-0', title: 'SomeTest' })
             expect(addParameter).toHaveBeenCalledTimes(1)
-            expect(addParameter).toHaveBeenCalledWith('argument', 'browser', 'firefox-1.2.3')
+            expect(addParameter).toHaveBeenCalledWith(
+                'argument',
+                'browser',
+                'firefox-1.2.3',
+            )
         })
 
         it('should correctly set proper browser version for chrome headless in devtools', () => {
-            reporter.onRunnerStart({ config: {}, capabilities: { browserName: 'Chrome Headless', browserVersion: '85.0.4183.84' } })
+            reporter.onRunnerStart({
+                config: {},
+                capabilities: {
+                    browserName: 'Chrome Headless',
+                    browserVersion: '85.0.4183.84',
+                },
+            })
             reporter.onTestStart({ cid: '0-0', title: 'SomeTest' })
             expect(addParameter).toHaveBeenCalledTimes(1)
-            expect(addParameter).toHaveBeenCalledWith('argument', 'browser', 'Chrome Headless-85.0.4183.84')
+            expect(addParameter).toHaveBeenCalledWith(
+                'argument',
+                'browser',
+                'Chrome Headless-85.0.4183.84',
+            )
         })
 
         it('should correctly add argument for appium', () => {
-            reporter.onRunnerStart({ config: {}, capabilities: { deviceName: 'Android Emulator', platformVersion: '8.0' } })
+            reporter.onRunnerStart({
+                config: {},
+                capabilities: {
+                    deviceName: 'Android Emulator',
+                    platformVersion: '8.0',
+                },
+            })
             reporter.onTestStart({ cid: '0-0', title: 'SomeTest' })
             expect(addParameter).toHaveBeenCalledTimes(1)
-            expect(addParameter).toHaveBeenCalledWith('argument', 'device', 'Android Emulator-8.0')
+            expect(addParameter).toHaveBeenCalledWith(
+                'argument',
+                'device',
+                'Android Emulator-8.0',
+            )
         })
 
         it('should correctly add device name when run on BrowserStack', () => {
-            reporter.onRunnerStart({ config: {}, capabilities: { device: 'Google Pixel 3', platformVersion: '9.0' } })
+            reporter.onRunnerStart({
+                config: {},
+                capabilities: {
+                    device: 'Google Pixel 3',
+                    platformVersion: '9.0',
+                },
+            })
             reporter.onTestStart({ cid: '0-0', title: 'SomeTest' })
             expect(addParameter).toHaveBeenCalledTimes(1)
-            expect(addParameter).toHaveBeenCalledWith('argument', 'device', 'Google Pixel 3-9.0')
+            expect(addParameter).toHaveBeenCalledWith(
+                'argument',
+                'device',
+                'Google Pixel 3-9.0',
+            )
         })
 
         it('should correctly add argument for multiremote', () => {
-            reporter.onRunnerStart({ isMultiremote: true, config: { capabilities: { myBrowser: { browserName: 'chrome' } } } })
+            reporter.onRunnerStart({
+                isMultiremote: true,
+                config: {
+                    capabilities: { myBrowser: { browserName: 'chrome' } },
+                },
+            })
             reporter.onTestStart({ cid: '0-0', title: 'SomeTest' })
             expect(addParameter).toHaveBeenCalledTimes(1)
-            expect(addParameter).toHaveBeenCalledWith('argument', 'isMultiremote', 'true')
+            expect(addParameter).toHaveBeenCalledWith(
+                'argument',
+                'isMultiremote',
+                'true',
+            )
         })
     })
 })
@@ -384,24 +457,52 @@ describe('reporter runtime implementation', () => {
 describe('auxiliary methods', () => {
     it('isScreenshotCommand', () => {
         const reporter = new AllureReporter()
-        expect(reporter.isScreenshotCommand({ endpoint: '/session/id/screenshot' } as CommandArgs)).toEqual(true)
-        expect(reporter.isScreenshotCommand({ endpoint: '/wdu/hub/session/id/screenshot' } as CommandArgs)).toEqual(true)
-        expect(reporter.isScreenshotCommand({ endpoint: '/session/id/click' } as CommandArgs)).toEqual(false)
-        expect(reporter.isScreenshotCommand({ command: 'takeScreenshot' } as CommandArgs)).toEqual(true)
-        expect(reporter.isScreenshotCommand({ command: 'elementClick' } as CommandArgs)).toEqual(false)
-        expect(reporter.isScreenshotCommand({ endpoint: '/session/id/element/id/screenshot' } as CommandArgs)).toEqual(true)
+        expect(
+            reporter.isScreenshotCommand({
+                endpoint: '/session/id/screenshot',
+            } as CommandArgs),
+        ).toEqual(true)
+        expect(
+            reporter.isScreenshotCommand({
+                endpoint: '/wdu/hub/session/id/screenshot',
+            } as CommandArgs),
+        ).toEqual(true)
+        expect(
+            reporter.isScreenshotCommand({
+                endpoint: '/session/id/click',
+            } as CommandArgs),
+        ).toEqual(false)
+        expect(
+            reporter.isScreenshotCommand({
+                command: 'takeScreenshot',
+            } as CommandArgs),
+        ).toEqual(true)
+        expect(
+            reporter.isScreenshotCommand({
+                command: 'elementClick',
+            } as CommandArgs),
+        ).toEqual(false)
+        expect(
+            reporter.isScreenshotCommand({
+                endpoint: '/session/id/element/id/screenshot',
+            } as CommandArgs),
+        ).toEqual(true)
     })
 
     it('dumpJSON', () => {
         const reporter = new AllureReporter()
         const addAttachment = vi.fn()
         reporter['_allure'] = {
-            addAttachment
+            addAttachment,
         } as any
         const json = { bar: 'baz' }
         reporter.dumpJSON('foo', json)
         expect(addAttachment).toHaveBeenCalledTimes(1)
-        expect(addAttachment).toHaveBeenCalledWith('foo', JSON.stringify(json, null, 2), 'application/json')
+        expect(addAttachment).toHaveBeenCalledWith(
+            'foo',
+            JSON.stringify(json, null, 2),
+            'application/json',
+        )
     })
 
     it('should populate the correct deviceName', () => {
@@ -413,38 +514,53 @@ describe('auxiliary methods', () => {
                 deviceName: 'Android GoogleAPI Emulator',
                 platformVersion: '6.0',
                 noReset: true,
-            }
+            },
         }
         const reporter = new AllureReporter()
         const currentTestMock = { addParameter: vi.fn(), addLabel: vi.fn() }
-        reporter['_allure'].getCurrentTest = vi.fn().mockReturnValue(currentTestMock)
+        reporter['_allure'].getCurrentTest = vi
+            .fn()
+            .mockReturnValue(currentTestMock)
         reporter['_allure'].startCase = vi.fn()
         reporter['_isMultiremote'] = false
         reporter['_capabilities'] = capabilities
         reporter.onTestStart({ cid: '0-0', title: 'SomeTest' } as TestStats)
         expect(reporter['_allure'].getCurrentTest).toBeCalledTimes(1)
-        expect(currentTestMock.addParameter).toHaveBeenCalledWith('argument', 'device', 'Android GoogleAPI Emulator 6.0')
+        expect(currentTestMock.addParameter).toHaveBeenCalledWith(
+            'argument',
+            'device',
+            'Android GoogleAPI Emulator 6.0',
+        )
     })
 })
 
 describe('hooks handling disabled Mocha Hooks', () => {
-    let reporter: any, startCase: any, endCase: any, startStep: any, endStep: any
-    const allureInstance = ({ suite = {}, test = { steps: [1] } }: any = {}) => ({
+    let reporter: any,
+        startCase: any,
+        endCase: any,
+        startStep: any,
+        endStep: any
+    const allureInstance = ({
+        suite = {},
+        test = { steps: [1] },
+    }: any = {}) => ({
         getCurrentSuite: vi.fn(() => suite),
-        getCurrentTest: vi.fn(() => { return test }),
+        getCurrentTest: vi.fn(() => {
+            return test
+        }),
         startCase,
         endCase,
         startStep,
-        endStep
+        endStep,
     })
 
     beforeEach(() => {
         reporter = new AllureReporter({ disableMochaHooks: true })
-        reporter.onTestStart = vi.fn(test => startCase(test.title))
+        reporter.onTestStart = vi.fn((test) => startCase(test.title))
         startCase = vi.fn()
-        endCase = vi.fn(result => result)
+        endCase = vi.fn((result) => result)
         startStep = vi.fn()
-        endStep = vi.fn(result => result)
+        endStep = vi.fn((result) => result)
     })
 
     it('should add test on custom hook', () => {
@@ -513,7 +629,10 @@ describe('hooks handling disabled Mocha Hooks', () => {
 
     it('should not pop test case if no steps and before hook', () => {
         const testcases = [1]
-        reporter['_allure'] = allureInstance({ suite: { testcases }, test: { steps: [] } })
+        reporter['_allure'] = allureInstance({
+            suite: { testcases },
+            test: { steps: [] },
+        })
         reporter.onHookEnd({ title: '"before all" hook', parent: 'foo' })
 
         expect(endCase).toHaveBeenCalledTimes(0)
@@ -522,7 +641,10 @@ describe('hooks handling disabled Mocha Hooks', () => {
 
     it('should pop test case if no steps and custom hook', () => {
         const testcases = [1]
-        reporter['_allure'] = allureInstance({ suite: { testcases }, test: { steps: [] } })
+        reporter['_allure'] = allureInstance({
+            suite: { testcases },
+            test: { steps: [] },
+        })
         reporter.onHookEnd({ title: 'bar', parent: 'foo' })
 
         expect(endCase).toHaveBeenCalledTimes(1)
@@ -531,7 +653,10 @@ describe('hooks handling disabled Mocha Hooks', () => {
 
     it('should keep passed hooks if there are some steps', () => {
         const testcases = [1]
-        reporter['_allure'] = allureInstance({ suite: { testcases }, test: { steps: [1] } })
+        reporter['_allure'] = allureInstance({
+            suite: { testcases },
+            test: { steps: [1] },
+        })
         reporter.onHookEnd({ title: 'foo', parent: 'bar' })
 
         expect(endCase).toHaveBeenCalledTimes(1)
@@ -541,8 +666,15 @@ describe('hooks handling disabled Mocha Hooks', () => {
 
     it('should keep failed hooks if there no some steps', () => {
         const testcases = [1]
-        reporter['_allure'] = allureInstance({ suite: { testcases }, test: { steps: [1] } })
-        reporter.onHookEnd({ title: '"after all" hook', parent: 'foo', error: { message: '', stack: '' } })
+        reporter['_allure'] = allureInstance({
+            suite: { testcases },
+            test: { steps: [1] },
+        })
+        reporter.onHookEnd({
+            title: '"after all" hook',
+            parent: 'foo',
+            error: { message: '', stack: '' },
+        })
 
         expect(endCase).toHaveBeenCalledTimes(1)
         expect(endCase.mock.results[0].value).toBe('broken')
@@ -551,8 +683,15 @@ describe('hooks handling disabled Mocha Hooks', () => {
 
     it('should keep failed hooks if there are some steps', () => {
         const testcases = [1]
-        reporter['_allure'] = allureInstance({ suite: { testcases }, test: { steps: [1] } })
-        reporter.onHookEnd({ title: '"after all" hook', parent: 'foo', error: { message: '', stack: '' } })
+        reporter['_allure'] = allureInstance({
+            suite: { testcases },
+            test: { steps: [1] },
+        })
+        reporter.onHookEnd({
+            title: '"after all" hook',
+            parent: 'foo',
+            error: { message: '', stack: '' },
+        })
 
         expect(endCase).toHaveBeenCalledTimes(1)
         expect(endCase.mock.results[0].value).toBe('broken')
@@ -570,7 +709,11 @@ describe('hooks handling disabled Mocha Hooks', () => {
 
     it('should capture mocha each hooks end - failed', () => {
         reporter['_allure'] = allureInstance()
-        reporter.onHookEnd({ title: '"before each" hook', parent: 'foo', error: { message: '', stack: '' } })
+        reporter.onHookEnd({
+            title: '"before each" hook',
+            parent: 'foo',
+            error: { message: '', stack: '' },
+        })
 
         expect(endCase).toHaveBeenCalledTimes(0)
         expect(endStep).toHaveBeenCalledTimes(1)
@@ -587,7 +730,11 @@ describe('hooks handling disabled Mocha Hooks', () => {
 
     it('should treat mocha all hooks as tests if hook throws', () => {
         reporter['_allure'] = allureInstance()
-        reporter.onHookEnd({ title: '"before all" hook', parent: 'foo', error: { message: '', stack: '' } })
+        reporter.onHookEnd({
+            title: '"before all" hook',
+            parent: 'foo',
+            error: { message: '', stack: '' },
+        })
 
         expect(startCase).toHaveBeenCalledTimes(1)
         expect(endCase).toHaveBeenCalledTimes(1)
@@ -596,23 +743,32 @@ describe('hooks handling disabled Mocha Hooks', () => {
 })
 
 describe('hooks handling default', () => {
-    let reporter: any, startCase: any, endCase: any, startStep: any, endStep: any
-    const allureInstance = ({ suite = {}, test = { steps: [1] } }: any = {}) => ({
+    let reporter: any,
+        startCase: any,
+        endCase: any,
+        startStep: any,
+        endStep: any
+    const allureInstance = ({
+        suite = {},
+        test = { steps: [1] },
+    }: any = {}) => ({
         getCurrentSuite: vi.fn(() => suite),
-        getCurrentTest: vi.fn(() => { return test }),
+        getCurrentTest: vi.fn(() => {
+            return test
+        }),
         startCase,
         endCase,
         startStep,
-        endStep
+        endStep,
     })
 
     beforeEach(() => {
         reporter = new AllureReporter({ disableMochaHooks: false })
-        reporter.onTestStart = vi.fn(test => startCase(test.title))
+        reporter.onTestStart = vi.fn((test) => startCase(test.title))
         startCase = vi.fn()
-        endCase = vi.fn(result => result)
+        endCase = vi.fn((result) => result)
         startStep = vi.fn()
-        endStep = vi.fn(result => result)
+        endStep = vi.fn((result) => result)
     })
 
     it('should capture mocha each hooks', () => {
@@ -633,7 +789,10 @@ describe('hooks handling default', () => {
 
     it('should keep passed hooks if there are no steps (before/after)', () => {
         const testcases = [1]
-        reporter['_allure'] = allureInstance({ suite: { testcases }, test: { steps: [] } })
+        reporter['_allure'] = allureInstance({
+            suite: { testcases },
+            test: { steps: [] },
+        })
         reporter.onHookEnd({ title: '"before all" hook', parent: 'foo' })
 
         expect(endCase).toHaveBeenCalledTimes(1)
@@ -642,7 +801,10 @@ describe('hooks handling default', () => {
 
     it('should keep passed hooks if there are some steps', () => {
         const testcases = [1]
-        reporter['_allure'] = allureInstance({ suite: { testcases }, test: { steps: [1] } })
+        reporter['_allure'] = allureInstance({
+            suite: { testcases },
+            test: { steps: [1] },
+        })
         reporter.onHookEnd({ title: 'foo', parent: 'bar' })
 
         expect(endCase).toHaveBeenCalledTimes(1)
@@ -655,8 +817,10 @@ describe('nested suite naming', () => {
         const reporter = new AllureReporter()
         const startSuite = vi.fn()
         reporter['_allure'] = {
-            getCurrentSuite: vi.fn(() => { return { name: 'foo' } }),
-            startSuite
+            getCurrentSuite: vi.fn(() => {
+                return { name: 'foo' }
+            }),
+            startSuite,
         } as any
         reporter.onSuiteStart({ title: 'bar' } as SuiteStats)
 

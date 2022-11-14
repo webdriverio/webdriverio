@@ -2,7 +2,7 @@
 
 const LOG_METHODS = ['error', 'warn', 'info', 'debug', 'trace', 'silent']
 
-export default function getLogger (component: string) {
+export default function getLogger(component: string) {
     return LOG_METHODS.reduce((acc: Console, cur: string): Console => {
         const prop = cur as keyof Console
 

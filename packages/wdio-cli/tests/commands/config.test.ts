@@ -1,27 +1,42 @@
-import { vi, describe, it, test, expect, afterEach, beforeEach } from 'vitest'
 import fs from 'node:fs/promises'
 import path from 'node:path'
+import { afterEach, beforeEach, describe, expect, it, test, vi } from 'vitest'
 
 // @ts-expect-error mock
+import inquirer from 'inquirer'
 import { yargs } from 'yargs'
 import yarnInstall from 'yarn-install'
-import inquirer from 'inquirer'
 import pkg from '../../package.json'
 
-import { handler, builder, missingConfigurationPrompt } from '../../src/commands/config.js'
 import {
-    getAnswers, addServiceDeps, convertPackageHashToObject, renderConfigurationFile,
-    generateTestFiles, getPathForFileGeneration
+    builder,
+    handler,
+    missingConfigurationPrompt,
+} from '../../src/commands/config.js'
+import {
+    addServiceDeps,
+    convertPackageHashToObject,
+    generateTestFiles,
+    getAnswers,
+    getPathForFileGeneration,
+    renderConfigurationFile,
 } from '../../src/utils.js'
 
 vi.mock('yargs')
 vi.mock('yarn-install')
 vi.mock('inquirer')
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock(
+    '@wdio/logger',
+    () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')),
+)
 
 const utils: any = await vi.importActual('../../src/utils')
-vi.mocked(convertPackageHashToObject).mockImplementation(utils.convertPackageHashToObject)
-vi.mocked(getPathForFileGeneration).mockImplementation(utils.getPathForFileGeneration)
+vi.mocked(convertPackageHashToObject).mockImplementation(
+    utils.convertPackageHashToObject,
+)
+vi.mocked(getPathForFileGeneration).mockImplementation(
+    utils.getPathForFileGeneration,
+)
 vi.mocked(getAnswers).mockImplementation(utils.getAnswers)
 
 vi.mock('../../src/utils', async () => {
@@ -34,19 +49,19 @@ vi.mock('../../src/utils', async () => {
         getAnswers: vi.fn(),
         generateTestFiles: vi.fn(),
         getPathForFileGeneration: vi.fn(),
-        specifyVersionIfNeeded: vi.fn((pkgs) => pkgs)
+        specifyVersionIfNeeded: vi.fn((pkgs) => pkgs),
     }
 })
 
 vi.mock('fs', () => ({
     default: {
         writeFile: vi.fn().mockResolvedValue(''),
-        existsSync: vi.fn()
-    }
+        existsSync: vi.fn(),
+    },
 }))
 
 vi.mock('../../package.json', async () => {
-    const pkg = await vi.importActual('../../package.json') as any
+    const pkg = (await vi.importActual('../../package.json')) as any
     pkg.setFetchSpec = (fetchSpec: string) => {
         pkg._requested = { fetchSpec }
     }
@@ -63,17 +78,11 @@ const args = {
     runner: '@wdio/local-runner$--$local',
     preset: '',
     framework: '@wdio/mocha-framework$--$mocha',
-    reporters: [
-        '@wdio/spec-reporter$--$spec'
-    ],
-    plugins: [
-        'wdio-wait-for$--$wait-for'
-    ],
-    services: [
-        '@wdio/sauce-service$--$sauce'
-    ],
+    reporters: ['@wdio/spec-reporter$--$spec'],
+    plugins: ['wdio-wait-for$--$wait-for'],
+    services: ['@wdio/sauce-service$--$sauce'],
     isUsingTypeScript: false,
-    npmInstall: true
+    npmInstall: true,
 }
 
 beforeEach(() => {
@@ -96,7 +105,9 @@ test('should create config file', async () => {
     delete result.parsedAnswers.destPageObjectRootPath
     // @ts-expect-error
     delete result.parsedAnswers.destSpecRootPath
-    const fileName = `${path.basename(path.dirname(result.parsedAnswers!.tsConfigFilePath))}/${path.basename(result.parsedAnswers!.tsConfigFilePath)}`
+    const fileName = `${path.basename(
+        path.dirname(result.parsedAnswers!.tsConfigFilePath),
+    )}/${path.basename(result.parsedAnswers!.tsConfigFilePath)}`
     result.parsedAnswers!.tsConfigFilePath = fileName
     expect(result).toMatchSnapshot()
     expect(addServiceDeps).toBeCalledTimes(1)
@@ -108,7 +119,7 @@ test('should create config file', async () => {
     expect(yarnInstall).toHaveBeenCalledWith({
         deps: expect.any(Object),
         dev: true,
-        respectNpm5: true
+        respectNpm5: true,
     })
 })
 
@@ -120,7 +131,9 @@ test('it should properly build command', () => {
 })
 
 test('should throw error if creating config file fails', async () => {
-    vi.mocked(renderConfigurationFile).mockReturnValueOnce(Promise.reject(new Error('boom!')))
+    vi.mocked(renderConfigurationFile).mockReturnValueOnce(
+        Promise.reject(new Error('boom!')),
+    )
     const err = await handler({} as any).catch((err) => err)
     expect(err.message).toContain('Error: boom!')
 })
@@ -131,7 +144,7 @@ test('it should install with yarn when flag is passed', async () => {
     expect(yarnInstall).toHaveBeenCalledWith({
         deps: expect.any(Object),
         dev: true,
-        respectNpm5: false
+        respectNpm5: false,
     })
 })
 
@@ -145,19 +158,20 @@ describe('install compliant NPM tag packages', () => {
         plugins: [],
         services: [
             '@wdio/crossbrowsertesting-service$--$crossbrowsertesting',
-            'wdio-lambdatest-service$--$lambdatest'
+            'wdio-lambdatest-service$--$lambdatest',
         ],
         generateTestFiles: false,
         isUsingCompiler: 'TypeScript (https://www.typescriptlang.org/)',
-        npmInstall: true
+        npmInstall: true,
     }
 
     test('it should install tagged version if cli is tagged with beta', async () => {
         setFetchSpec('beta')
         vi.mocked(inquirer.prompt).mockResolvedValue(args)
         // @ts-expect-error
-        fs.promises = { writeFile: vi.fn()
-            .mockReturnValue(Promise.resolve('')) }
+        fs.promises = {
+            writeFile: vi.fn().mockReturnValue(Promise.resolve('')),
+        }
         await handler({} as any)
 
         expect(consoleLogSpy.mock.calls).toMatchSnapshot()
@@ -176,21 +190,26 @@ describe('install compliant NPM tag packages', () => {
         vi.mocked(inquirer.prompt).mockResolvedValue({
             ...args,
             installTestingLibrary: true,
-            preset: '$--$vue'
+            preset: '$--$vue',
         })
         fs.writeFile = vi.fn().mockReturnValue(Promise.resolve(''))
         await handler({} as any)
 
-        expect(consoleLogSpy.mock.calls[1].join('\n')).toContain('@testing-library/vue')
-        expect(consoleLogSpy.mock.calls[1].join('\n')).toContain('@testing-library/jest-dom')
+        expect(consoleLogSpy.mock.calls[1].join('\n')).toContain(
+            '@testing-library/vue',
+        )
+        expect(consoleLogSpy.mock.calls[1].join('\n')).toContain(
+            '@testing-library/jest-dom',
+        )
     })
 
     test('it should install tagged version if cli is tagged with latest', async () => {
         setFetchSpec('latest')
         vi.mocked(inquirer.prompt).mockResolvedValue(args)
         // @ts-expect-error
-        fs.promises = { writeFile: vi.fn()
-            .mockReturnValue(Promise.resolve('')) }
+        fs.promises = {
+            writeFile: vi.fn().mockReturnValue(Promise.resolve('')),
+        }
         await handler({} as any)
 
         expect(consoleLogSpy.mock.calls).toMatchSnapshot()
@@ -200,8 +219,9 @@ describe('install compliant NPM tag packages', () => {
         setFetchSpec('7.0.8')
         vi.mocked(inquirer.prompt).mockResolvedValue(args)
         // @ts-expect-error
-        fs.promises = { writeFile: vi.fn()
-            .mockReturnValue(Promise.resolve('')) }
+        fs.promises = {
+            writeFile: vi.fn().mockReturnValue(Promise.resolve('')),
+        }
         await handler({} as any)
 
         expect(consoleLogSpy.mock.calls).toMatchSnapshot()
@@ -220,11 +240,11 @@ test('prints TypeScript setup message', async () => {
         plugins: [],
         services: [
             '@wdio/crossbrowsertesting-service$--$crossbrowsertesting',
-            'wdio-lambdatest-service$--$lambdatest'
+            'wdio-lambdatest-service$--$lambdatest',
         ],
         generateTestFiles: false,
         isUsingCompiler: 'TypeScript (https://www.typescriptlang.org/)',
-        npmInstall: true
+        npmInstall: true,
     })
     await handler({} as any)
     expect(consoleLogSpy.mock.calls).toMatchSnapshot()
@@ -239,11 +259,11 @@ test('prints TypeScript setup message with ts-node installed', async () => {
         plugins: [],
         services: [
             '@wdio/crossbrowsertesting-service$--$crossbrowsertesting',
-            'wdio-lambdatest-service$--$lambdatest'
+            'wdio-lambdatest-service$--$lambdatest',
         ],
         generateTestFiles: false,
         isUsingCompiler: 'TypeScript (https://www.typescriptlang.org/)',
-        npmInstall: true
+        npmInstall: true,
     })
 
     const config = {
@@ -254,19 +274,19 @@ test('prints TypeScript setup message with ts-node installed', async () => {
                 '@wdio/globals/types',
                 'expect-webdriverio',
                 '@wdio/mocha-framework',
-                '@wdio/crossbrowsertesting-service'
+                '@wdio/crossbrowsertesting-service',
             ],
             target: 'es2022',
-        }
+        },
     }
 
     expect(fs.writeFile).toBeCalledWith(
         path.join(process.cwd(), 'test', 'tsconfig.json'),
-        JSON.stringify(config, null, 4))
+        JSON.stringify(config, null, 4),
+    )
 
     // @ts-expect-error
-    fs.promises = { writeFile: vi.fn()
-        .mockReturnValue(Promise.resolve('')) }
+    fs.promises = { writeFile: vi.fn().mockReturnValue(Promise.resolve('')) }
     await handler({} as any)
     expect(consoleLogSpy.mock.calls).toMatchSnapshot()
 })
@@ -280,15 +300,14 @@ test('should setup Babel if not existing', async () => {
         plugins: [],
         services: [
             '@wdio/crossbrowsertesting-service$--$crossbrowsertesting',
-            'wdio-lambdatest-service$--$lambdatest'
+            'wdio-lambdatest-service$--$lambdatest',
         ],
         generateTestFiles: false,
         isUsingCompiler: 'Babel (https://babeljs.io/)',
-        npmInstall: true
+        npmInstall: true,
     })
     // @ts-expect-error
-    fs.promises = { writeFile: vi.fn()
-        .mockReturnValue(Promise.resolve('')) }
+    fs.promises = { writeFile: vi.fn().mockReturnValue(Promise.resolve('')) }
     await handler({} as any)
     expect(consoleLogSpy.mock.calls).toMatchSnapshot()
 })
@@ -302,11 +321,11 @@ test('should not install @babel/register if existing', async () => {
         plugins: [],
         services: [
             '@wdio/crossbrowsertesting-service$--$crossbrowsertesting',
-            'wdio-lambdatest-service$--$lambdatest'
+            'wdio-lambdatest-service$--$lambdatest',
         ],
         generateTestFiles: false,
         isUsingCompiler: 'Babel (https://babeljs.io/)',
-        npmInstall: true
+        npmInstall: true,
     })
     await handler({} as any)
     expect(consoleLogSpy.mock.calls).toMatchSnapshot()
@@ -322,7 +341,9 @@ test('should not install npm packages when npmInstall is false', async () => {
 
 describe('missingConfigurationPrompt', () => {
     it('should prompt user', async () => {
-        vi.mocked(inquirer.prompt).mockImplementation(() => ({ config: true }) as any)
+        vi.mocked(inquirer.prompt).mockImplementation(
+            () => ({ config: true } as any),
+        )
         await missingConfigurationPrompt('run', 'foobar', false, vi.fn())
         expect(vi.mocked(inquirer.prompt)).toHaveBeenCalled()
     })
@@ -335,7 +356,12 @@ describe('missingConfigurationPrompt', () => {
 
     it('should pass "yarn" flag to runConfig', async () => {
         const runConfig = vi.fn()
-        await missingConfigurationPrompt('test', 'test message', true, runConfig)
+        await missingConfigurationPrompt(
+            'test',
+            'test message',
+            true,
+            runConfig,
+        )
         expect(runConfig).toHaveBeenCalledWith(true, false, true)
     })
 

@@ -1,9 +1,9 @@
-import path from 'node:path'
 import { UNICODE_CHARACTERS } from '@wdio/utils'
+import path from 'node:path'
 import type { ElementHandle, KeyInput } from 'puppeteer-core'
 
-import { getStaleElementError } from '../utils.js'
 import type DevToolsDriver from '../devtoolsdriver'
+import { getStaleElementError } from '../utils.js'
 
 /**
  * The Element Send Keys command scrolls into view the form control element and then sends
@@ -16,11 +16,13 @@ import type DevToolsDriver from '../devtoolsdriver'
  * @param {string} elementId  the id of an element returned in a previous call to Find Element(s)
  * @param {string} text       string to send as keystrokes to the element
  */
-export default async function elementSendKeys (
+export default async function elementSendKeys(
     this: DevToolsDriver,
-    { elementId, text }: { elementId: string, text: string }
+    { elementId, text }: { elementId: string; text: string },
 ) {
-    const elementHandle = await this.elementStore.get(elementId) as any as ElementHandle<HTMLInputElement>
+    const elementHandle = (await this.elementStore.get(
+        elementId,
+    )) as any as ElementHandle<HTMLInputElement>
 
     if (!elementHandle) {
         throw getStaleElementError(elementId)
@@ -30,27 +32,32 @@ export default async function elementSendKeys (
     const page = this.getPageHandle()
     const propertyHandles = {
         tagName: await elementHandle.getProperty('tagName'),
-        type: await elementHandle.getProperty('type')
+        type: await elementHandle.getProperty('type'),
     }
 
-    const tagName = await propertyHandles.tagName?.jsonValue() as unknown as string
-    const type = await propertyHandles.type?.jsonValue() as unknown as string
+    const tagName =
+        (await propertyHandles.tagName?.jsonValue()) as unknown as string
+    const type = (await propertyHandles.type?.jsonValue()) as unknown as string
     let typeInput: string[] = [text]
 
     for (const [key, value] of Object.entries(UNICODE_CHARACTERS)) {
-        typeInput = typeInput.reduce((input, val) => [
-            ...input,
-            ...val.split(value).flatMap(
-                (value: string, index: number, array: string[]) =>
-                    array.length - 1 !== index // check for the last item
-                        ? [value, key]
-                        : value,
-            )
-        ], [] as string[])
+        typeInput = typeInput.reduce(
+            (input, val) => [
+                ...input,
+                ...val
+                    .split(value)
+                    .flatMap((value: string, index: number, array: string[]) =>
+                        array.length - 1 !== index // check for the last item
+                            ? [value, key]
+                            : value,
+                    ),
+            ],
+            [] as string[],
+        )
     }
 
     if (tagName === 'INPUT' && type === 'file') {
-        const paths = (text || '').split('\n').map(p => path.resolve(p))
+        const paths = (text || '').split('\n').map((p) => path.resolve(p))
         await elementHandle.uploadFile(...paths)
     } else {
         for (const input of typeInput) {

@@ -16,14 +16,15 @@ export const newSession = {
             'moz:geckodriverVersion': '0.23.0',
             'moz:headless': false,
             'moz:processID': 15867,
-            'moz:profile': '/var/folders/ns/8mj2mh0x27b_gsdddy1knnsm0000gn/T/rust_mozprofile.yUuH0ktcRJPN',
+            'moz:profile':
+                '/var/folders/ns/8mj2mh0x27b_gsdddy1knnsm0000gn/T/rust_mozprofile.yUuH0ktcRJPN',
             'moz:shutdownTimeout': 60000,
             'moz:useNonSpecCompliantPointerOrigin': false,
-            'moz:webdriverClick': true
-        }
-    }
+            'moz:webdriverClick': true,
+        },
+    },
 }
 
 export const deleteSession = {
-    value: null
+    value: null,
 }

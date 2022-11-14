@@ -1,4 +1,4 @@
-import { test, expect } from 'vitest'
+import { expect, test } from 'vitest'
 import SuiteStats from '../../src/stats/suite.js'
 
 test('should get initialised', () => {
@@ -9,7 +9,7 @@ test('should get initialised', () => {
         file: '/this/is/a/file.txt',
         description: 'some description',
         tags: ['foo', 'bar'],
-        parent: 'foobar'
+        parent: 'foobar',
     })
 
     const { start, ...snapshot } = suite

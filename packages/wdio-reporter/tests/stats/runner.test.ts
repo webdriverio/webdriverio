@@ -1,4 +1,4 @@
-import { test, expect } from 'vitest'
+import { expect, test } from 'vitest'
 import RunnerStats from '../../src/stats/runner.js'
 
 test('should get initialised', () => {
@@ -9,12 +9,12 @@ test('should get initialised', () => {
         cid: '0-0',
         capabilities,
         instanceOptions: {
-            'some-sessionId': config
+            'some-sessionId': config,
         },
         sessionId: 'some-sessionId',
         config,
         specs,
-        isMultiremote: false
+        isMultiremote: false,
     })
 
     expect(runner.type).toBe('runner')

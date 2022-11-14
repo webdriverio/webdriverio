@@ -1,6 +1,6 @@
 import { EventEmitter } from 'node:events'
-import { expect, test, vi } from 'vitest'
 import type { CDPSession } from 'puppeteer-core/lib/cjs/puppeteer/common/Connection'
+import { expect, test, vi } from 'vitest'
 
 import NetworkHandler from '../../src/handler/network.js'
 
@@ -24,6 +24,6 @@ test('network handler', () => {
 
     expect(handler.requestTypes).toEqual({
         Document: { size: 24714, encoded: 0, count: 1 },
-        Other: { size: 311, encoded: 311, count: 8 }
+        Other: { size: 311, encoded: 311, count: 8 },
     })
 })

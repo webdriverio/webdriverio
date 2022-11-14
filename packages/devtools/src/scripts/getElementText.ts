@@ -1,3 +1,3 @@
-export default function getElementText (html: HTMLElement, elem: HTMLElement) {
+export default function getElementText(html: HTMLElement, elem: HTMLElement) {
     return elem.innerText
 }

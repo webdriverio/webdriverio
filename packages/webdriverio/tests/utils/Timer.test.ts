@@ -1,4 +1,4 @@
-import { describe, it, afterEach, expect, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import Timer from '../../src/utils/Timer.js'
 
 vi.useFakeTimers()
@@ -22,7 +22,9 @@ describe('timer', () => {
         it('should be rejected by timeout', async () => {
             let timer = new Timer(20, 30, () => Promise.resolve(false))
             await triggerDelay()
-            await expect(timer).rejects.toMatchObject(new Error('timeout') as any as Record<string, unknown>)
+            await expect(timer).rejects.toMatchObject(
+                new Error('timeout') as any as Record<string, unknown>,
+            )
             expect(processEmitSpy).not.toBeCalled()
         })
 
@@ -36,20 +38,31 @@ describe('timer', () => {
         it('should not be fulfilled when resolved with false value', async () => {
             let timer = new Timer(20, 30, () => Promise.resolve(false))
             await triggerDelay()
-            await expect(timer).rejects.toMatchObject(new Error('timeout') as any as Record<string, unknown>)
+            await expect(timer).rejects.toMatchObject(
+                new Error('timeout') as any as Record<string, unknown>,
+            )
             expect(processEmitSpy).not.toBeCalled()
         })
 
         it('should be rejected', async () => {
-            let timer = new Timer(20, 30, () => Promise.reject(new Error('err')))
+            let timer = new Timer(20, 30, () =>
+                Promise.reject(new Error('err')),
+            )
             await triggerDelay()
-            await expect(timer).rejects.toMatchObject(new Error('err') as any as Record<string, unknown>)
+            await expect(timer).rejects.toMatchObject(
+                new Error('err') as any as Record<string, unknown>,
+            )
         })
 
         it('should be rejected without promise', async () => {
             let timer = new Timer(20, 30, () => 0)
             await triggerDelay()
-            await expect(timer).rejects.toMatchObject(new Error('return value was never truthy') as any as Record<string, unknown>)
+            await expect(timer).rejects.toMatchObject(
+                new Error('return value was never truthy') as any as Record<
+                    string,
+                    unknown
+                >,
+            )
         })
 
         it('should be fulfilled without promise', async () => {
@@ -61,12 +74,17 @@ describe('timer', () => {
 
     it('should execute condition at least once', async () => {
         let wasExecuted = false
-        let timer = new Timer(100, 200, () => new Promise((resolve) =>
-            setTimeout(() => {
-                wasExecuted = true
-                resolve(true)
-            }, 500)
-        ))
+        let timer = new Timer(
+            100,
+            200,
+            () =>
+                new Promise((resolve) =>
+                    setTimeout(() => {
+                        wasExecuted = true
+                        resolve(true)
+                    }, 500),
+                ),
+        )
 
         await triggerDelay(6, 100)
         await expect(timer).resolves

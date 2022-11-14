@@ -10,9 +10,11 @@ exports.config = {
     /**
      * capabilities
      */
-    capabilities: [{
-        browserName: 'chrome'
-    }],
+    capabilities: [
+        {
+            browserName: 'chrome',
+        },
+    ],
 
     /**
      * test configurations
@@ -21,12 +23,17 @@ exports.config = {
     outputDir: __dirname,
     framework: 'mocha',
 
-    services: [[CustomService, {
-        someOption: 'foobar'
-    }]],
+    services: [
+        [
+            CustomService,
+            {
+                someOption: 'foobar',
+            },
+        ],
+    ],
 
     mochaOpts: {
         ui: 'bdd',
-        timeout: 60000
-    }
+        timeout: 60000,
+    },
 }

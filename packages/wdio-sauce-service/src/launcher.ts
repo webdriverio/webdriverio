@@ -1,16 +1,20 @@
 import { performance, PerformanceObserver } from 'node:perf_hooks'
 
-import SauceLabs, { SauceLabsOptions, SauceConnectOptions, SauceConnectInstance } from 'saucelabs'
 import logger from '@wdio/logger'
-import type { Services, Capabilities, Options } from '@wdio/types'
+import type { Capabilities, Options, Services } from '@wdio/types'
+import SauceLabs, {
+    SauceConnectInstance,
+    SauceConnectOptions,
+    SauceLabsOptions,
+} from 'saucelabs'
 
-import { makeCapabilityFactory } from './utils.js'
 import type { SauceServiceConfig } from './types'
+import { makeCapabilityFactory } from './utils.js'
 
 const SC_RELAY_DEPCRECATION_WARNING = [
     'The "scRelay" option is depcrecated and will be removed',
     'with the upcoming versions of @wdio/sauce-service. Please',
-    'remove the option as tests should work identically without it.'
+    'remove the option as tests should work identically without it.',
 ].join(' ')
 const MAX_SC_START_TRIALS = 3
 
@@ -19,10 +23,10 @@ export default class SauceLauncher implements Services.ServiceInstance {
     private _api: SauceLabs
     private _sauceConnectProcess?: SauceConnectInstance
 
-    constructor (
+    constructor(
         private _options: SauceServiceConfig,
         private _capabilities: unknown,
-        private _config: Options.Testrunner
+        private _config: Options.Testrunner,
     ) {
         this._api = new SauceLabs(this._config as unknown as SauceLabsOptions)
     }
@@ -30,25 +34,25 @@ export default class SauceLauncher implements Services.ServiceInstance {
     /**
      * modify config and launch sauce connect
      */
-    async onPrepare (
+    async onPrepare(
         config: Options.Testrunner,
-        capabilities: Capabilities.RemoteCapabilities
+        capabilities: Capabilities.RemoteCapabilities,
     ) {
         if (!this._options.sauceConnect) {
             return
         }
 
-        const sauceConnectTunnelIdentifier = (
+        const sauceConnectTunnelIdentifier =
             this._options.sauceConnectOpts?.tunnelIdentifier ||
             /**
              * generate random identifier if not provided
              */
-            `SC-tunnel-${Math.random().toString().slice(2)}`)
+            `SC-tunnel-${Math.random().toString().slice(2)}`
 
         const sauceConnectOpts: SauceConnectOptions = {
             noAutodetect: true,
             tunnelIdentifier: sauceConnectTunnelIdentifier,
-            ...this._options.sauceConnectOpts
+            ...this._options.sauceConnectOpts,
         }
 
         let endpointConfigurations = {}
@@ -60,20 +64,27 @@ export default class SauceLauncher implements Services.ServiceInstance {
             endpointConfigurations = {
                 protocol: 'http',
                 hostname: 'localhost',
-                port: scRelayPort
+                port: scRelayPort,
             }
         }
 
-        const prepareCapability = makeCapabilityFactory(sauceConnectTunnelIdentifier, endpointConfigurations)
+        const prepareCapability = makeCapabilityFactory(
+            sauceConnectTunnelIdentifier,
+            endpointConfigurations,
+        )
 
         if (Array.isArray(capabilities)) {
             for (const capability of capabilities) {
-                prepareCapability(capability as Capabilities.DesiredCapabilities)
+                prepareCapability(
+                    capability as Capabilities.DesiredCapabilities,
+                )
             }
         } else {
             for (const browserName of Object.keys(capabilities)) {
                 const caps = capabilities[browserName].capabilities
-                prepareCapability((caps as Capabilities.W3CCapabilities).alwaysMatch || caps)
+                prepareCapability(
+                    (caps as Capabilities.W3CCapabilities).alwaysMatch || caps,
+                )
             }
         }
 
@@ -82,7 +93,9 @@ export default class SauceLauncher implements Services.ServiceInstance {
          */
         const obs = new PerformanceObserver((list) => {
             const entry = list.getEntries()[0]
-            log.info(`Sauce Connect successfully started after ${entry.duration}ms`)
+            log.info(
+                `Sauce Connect successfully started after ${entry.duration}ms`,
+            )
         })
         obs.observe({ entryTypes: ['measure'] })
 
@@ -92,9 +105,14 @@ export default class SauceLauncher implements Services.ServiceInstance {
         performance.measure('bootTime', 'sauceConnectStart', 'sauceConnectEnd')
     }
 
-    async startTunnel (sauceConnectOpts: SauceConnectOptions, retryCount = 0): Promise<SauceConnectInstance> {
+    async startTunnel(
+        sauceConnectOpts: SauceConnectOptions,
+        retryCount = 0,
+    ): Promise<SauceConnectInstance> {
         try {
-            const scProcess = await this._api.startSauceConnect(sauceConnectOpts)
+            const scProcess = await this._api.startSauceConnect(
+                sauceConnectOpts,
+            )
             return scProcess
         } catch (err: any) {
             ++retryCount
@@ -123,7 +141,7 @@ export default class SauceLauncher implements Services.ServiceInstance {
     /**
      * shut down sauce connect
      */
-    onComplete () {
+    onComplete() {
         if (!this._sauceConnectProcess) {
             return
         }

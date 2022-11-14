@@ -1,16 +1,27 @@
 import { EventEmitter } from 'node:events'
 
-import type { Options, Capabilities } from '@wdio/types'
 import type { ProtocolCommandsAsync } from '@wdio/protocols'
-import { LaunchOptions, BrowserLaunchArgumentOptions, BrowserConnectOptions, ConnectOptions } from 'puppeteer-core'
+import type { Capabilities, Options } from '@wdio/types'
+import {
+    BrowserConnectOptions,
+    BrowserLaunchArgumentOptions,
+    ConnectOptions,
+    LaunchOptions,
+} from 'puppeteer-core'
 import { EventEmitter as PuppeteerEventEmitter } from 'puppeteer-core/lib/cjs/puppeteer/common/EventEmitter.js'
-export interface ExtendedCapabilities extends Capabilities.Capabilities, WDIODevtoolsOptions {}
+export interface ExtendedCapabilities
+    extends Capabilities.Capabilities,
+        WDIODevtoolsOptions {}
 
 export interface WDIODevtoolsOptions {
     'wdio:devtoolsOptions'?: DevToolsOptions
 }
 
-export interface DevToolsOptions extends LaunchOptions, BrowserLaunchArgumentOptions, BrowserConnectOptions, ConnectOptions {
+export interface DevToolsOptions
+    extends LaunchOptions,
+        BrowserLaunchArgumentOptions,
+        BrowserConnectOptions,
+        ConnectOptions {
     /**
      * If you want to start Google Chrome on a custom port
      */
@@ -18,24 +29,30 @@ export interface DevToolsOptions extends LaunchOptions, BrowserLaunchArgumentOpt
 }
 
 export interface AttachOptions {
-    capabilities: {
-        'goog:chromeOptions': {
-            debuggerAddress: string
-        }
-    } | {
-        'ms:edgeOptions': {
-            debuggerAddress: string
-        }
-    }
+    capabilities:
+        | {
+              'goog:chromeOptions': {
+                  debuggerAddress: string
+              }
+          }
+        | {
+              'ms:edgeOptions': {
+                  debuggerAddress: string
+              }
+          }
 }
 
 export interface BaseClient extends EventEmitter {
     // id of WebDriver session
     sessionId: string
     // assigned capabilities by the browser driver / WebDriver server
-    capabilities: Capabilities.DesiredCapabilities | Capabilities.W3CCapabilities
+    capabilities:
+        | Capabilities.DesiredCapabilities
+        | Capabilities.W3CCapabilities
     // original requested capabilities
-    requestedCapabilities: Capabilities.DesiredCapabilities | Capabilities.W3CCapabilities
+    requestedCapabilities:
+        | Capabilities.DesiredCapabilities
+        | Capabilities.W3CCapabilities
     // framework options
     options: Options.WebDriver
 }

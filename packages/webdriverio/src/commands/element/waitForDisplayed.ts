@@ -41,17 +41,20 @@ import type { WaitForOptions } from '../../types'
  * @type utility
  *
  */
-export default async function waitForDisplayed (
+export default async function waitForDisplayed(
     this: WebdriverIO.Element,
     {
         timeout = this.options.waitforTimeout,
         interval = this.options.waitforInterval,
         reverse = false,
-        timeoutMsg = `element ("${this.selector}") still ${reverse ? '' : 'not '}displayed after ${timeout}ms`
-    }: WaitForOptions = {}
+        timeoutMsg = `element ("${this.selector}") still ${
+            reverse ? '' : 'not '
+        }displayed after ${timeout}ms`,
+    }: WaitForOptions = {},
 ) {
-    return this.waitUntil(
-        async () => reverse !== await this.isDisplayed(),
-        { timeout, interval, timeoutMsg }
-    )
+    return this.waitUntil(async () => reverse !== (await this.isDisplayed()), {
+        timeout,
+        interval,
+        timeoutMsg,
+    })
 }

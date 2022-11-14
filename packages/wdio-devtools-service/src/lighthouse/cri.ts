@@ -17,11 +17,14 @@ export default class ChromeProtocolPatched extends CriConnection {
      * @param {string=} hostname Optional hostname. Defaults to localhost.
      * @constructor
      */
-    constructor(port: string = DEFAULT_PORT, hostname: string = DEFAULT_HOSTNAME) {
+    constructor(
+        port: string = DEFAULT_PORT,
+        hostname: string = DEFAULT_HOSTNAME,
+    ) {
         super(port, hostname)
     }
 
-    setSessionId (sessionId: string) {
+    setSessionId(sessionId: string) {
         this._sessionId = sessionId
     }
 
@@ -29,6 +32,10 @@ export default class ChromeProtocolPatched extends CriConnection {
      * force every command to be send with the given session id
      */
     sendCommand(method: string, sessionId?: string, ...paramArgs: any[]) {
-        return super.sendCommand(method, sessionId || this._sessionId, ...paramArgs)
+        return super.sendCommand(
+            method,
+            sessionId || this._sessionId,
+            ...paramArgs,
+        )
     }
 }

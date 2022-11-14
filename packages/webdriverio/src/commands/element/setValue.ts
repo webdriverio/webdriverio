@@ -24,9 +24,9 @@
  * @param {string | number}  value  value to be added
  *
  */
-export default async function setValue (
+export default async function setValue(
     this: WebdriverIO.Element,
-    value: string | number
+    value: string | number,
 ) {
     await this.clearValue()
     return this.addValue(value)

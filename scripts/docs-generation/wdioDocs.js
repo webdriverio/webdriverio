@@ -1,18 +1,18 @@
-import fs from 'node:fs'
-import url from 'node:url'
-import path from 'node:path'
 import markdox from 'markdox'
+import fs from 'node:fs'
+import path from 'node:path'
+import url from 'node:url'
 import { promisify } from 'node:util'
 
-import formatter from '../utils/formatter.js'
 import compiler from '../utils/compiler.js'
+import formatter from '../utils/formatter.js'
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 const TEMPLATE_PATH = path.join(__dirname, '..', 'templates', 'api.tpl.ejs')
 const MARKDOX_OPTIONS = {
     formatter: formatter,
     compiler: compiler,
-    template: TEMPLATE_PATH
+    template: TEMPLATE_PATH,
 }
 
 const processDocs = promisify(markdox.process)
@@ -21,12 +21,26 @@ const processDocs = promisify(markdox.process)
  * Generate WebdriverIO docs
  * @param {object} sidebars website/sidebars
  */
-export async function generateWdioDocs (sidebars) {
-    const COMMAND_DIR = path.join(__dirname, '..', '..', 'packages', 'webdriverio', 'src', 'commands')
+export async function generateWdioDocs(sidebars) {
+    const COMMAND_DIR = path.join(
+        __dirname,
+        '..',
+        '..',
+        'packages',
+        'webdriverio',
+        'src',
+        'commands',
+    )
     const COMMANDS = {
-        browser: ['api/browser', fs.readdirSync(path.join(COMMAND_DIR, 'browser'))],
-        element: ['api/element', fs.readdirSync(path.join(COMMAND_DIR, 'element'))],
-        mock: ['api/mock', fs.readdirSync(path.join(COMMAND_DIR, 'mock'))]
+        browser: [
+            'api/browser',
+            fs.readdirSync(path.join(COMMAND_DIR, 'browser')),
+        ],
+        element: [
+            'api/element',
+            fs.readdirSync(path.join(COMMAND_DIR, 'element')),
+        ],
+        mock: ['api/mock', fs.readdirSync(path.join(COMMAND_DIR, 'mock'))],
     }
 
     const apiDocs = []
@@ -39,26 +53,38 @@ export async function generateWdioDocs (sidebars) {
             label: scope,
             link: {
                 type: 'doc',
-                id
+                id,
             },
-            items: []
+            items: [],
         })
 
         for (const file of files) {
-            const docDir = path.join(__dirname, '..', '..', 'website', 'docs', 'api', scope)
-            if (!fs.existsSync(docDir)){
+            const docDir = path.join(
+                __dirname,
+                '..',
+                '..',
+                'website',
+                'docs',
+                'api',
+                scope,
+            )
+            if (!fs.existsSync(docDir)) {
                 fs.mkdirSync(docDir)
             }
 
             const filepath = path.join(COMMAND_DIR, scope, file)
-            const output = path.join(docDir, `_${file.replace(/(js|ts)/, 'md')}`)
+            const output = path.join(
+                docDir,
+                `_${file.replace(/(js|ts)/, 'md')}`,
+            )
             const options = Object.assign({}, MARKDOX_OPTIONS, { output })
             console.log('PROCESS', filepath)
             await processDocs(filepath, options)
             console.log(`Generated docs for ${scope}/${file} - ${output}`)
 
-            apiDocs[apiDocs.length - 1].items
-                .push(`api/${scope}/${file.replace(/\.(js|ts)/, '')}`)
+            apiDocs[apiDocs.length - 1].items.push(
+                `api/${scope}/${file.replace(/\.(js|ts)/, '')}`,
+            )
         }
     }
 

@@ -1,6 +1,6 @@
 import { SUPPORTED_SELECTOR_STRATEGIES } from '../constants.js'
-import { findElement, getStaleElementError } from '../utils.js'
 import type DevToolsDriver from '../devtoolsdriver'
+import { findElement, getStaleElementError } from '../utils.js'
 
 /**
  * The Find Element From Element command is used to find an element from a web element
@@ -12,9 +12,13 @@ import type DevToolsDriver from '../devtoolsdriver'
  * @param {string} value  the actual selector that will be used to find an element
  * @return {Object}       A JSON representation of an element object.
  */
-export default async function findElementFromElement (
+export default async function findElementFromElement(
     this: DevToolsDriver,
-    { elementId, using, value }: { elementId: string, using: string, value: string }
+    {
+        elementId,
+        using,
+        value,
+    }: { elementId: string; using: string; value: string },
 ) {
     if (!SUPPORTED_SELECTOR_STRATEGIES.includes(using)) {
         throw new Error(`selector strategy "${using}" is not yet supported`)

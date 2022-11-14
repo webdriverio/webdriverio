@@ -1,21 +1,21 @@
-import type { Browser, MultiRemoteBrowser } from 'webdriverio'
 import type { Capabilities } from '@wdio/types'
+import Driver from 'lighthouse/lighthouse-core/gather/driver.js'
 import type { CDPSession } from 'puppeteer-core/lib/cjs/puppeteer/common/Connection'
 import type { Target } from 'puppeteer-core/lib/cjs/puppeteer/common/Target'
-import Driver from 'lighthouse/lighthouse-core/gather/driver.js'
+import type { Browser, MultiRemoteBrowser } from 'webdriverio'
 
-import ChromeProtocol from './lighthouse/cri.js'
 import { IGNORED_URLS, UNSUPPORTED_ERROR_MESSAGE } from './constants.js'
 import { RequestPayload } from './handler/network.js'
+import ChromeProtocol from './lighthouse/cri.js'
 import type { GathererDriver } from './types'
 
 const VERSION_PROPS = ['browserVersion', 'browser_version', 'version']
 const SUPPORTED_BROWSERS_AND_MIN_VERSIONS = {
-    'chrome': 63,
-    'chromium' : 63,
-    'googlechrome': 63,
+    chrome: 63,
+    chromium: 63,
+    googlechrome: 63,
     'google chrome': 63,
-    'firefox': 86
+    firefox: 86,
 }
 const CUSTOM_COMMANDS = [
     'cdp',
@@ -28,14 +28,19 @@ const CUSTOM_COMMANDS = [
     'disablePerformanceAudits',
     'getMainThreadWorkBreakdown',
     'emulateDevice',
-    'checkPWA'
+    'checkPWA',
 ]
 
-export function setUnsupportedCommand (browser: Browser<'async'> | MultiRemoteBrowser<'async'>) {
+export function setUnsupportedCommand(
+    browser: Browser<'async'> | MultiRemoteBrowser<'async'>,
+) {
     for (const command of CUSTOM_COMMANDS) {
-        browser.addCommand(command, /* istanbul ignore next */() => {
-            throw new Error(UNSUPPORTED_ERROR_MESSAGE)
-        })
+        browser.addCommand(
+            command,
+            /* istanbul ignore next */ () => {
+                throw new Error(UNSUPPORTED_ERROR_MESSAGE)
+            },
+        )
     }
 }
 
@@ -44,7 +49,7 @@ export function setUnsupportedCommand (browser: Browser<'async'> | MultiRemoteBr
  * @param list list of key/value objects
  * @param key  key of value to be summed up
  */
-export function sumByKey (list: RequestPayload[], key: keyof RequestPayload) {
+export function sumByKey(list: RequestPayload[], key: keyof RequestPayload) {
     return list.map((data) => data[key]).reduce((acc, val) => acc + val, 0)
 }
 
@@ -53,8 +58,11 @@ export function sumByKey (list: RequestPayload[], key: keyof RequestPayload) {
  * @param  {String}  url to check for
  * @return {Boolean}     true if url was opened by user
  */
-export function isSupportedUrl (url: string) {
-    return IGNORED_URLS.filter((ignoredUrl) => url.startsWith(ignoredUrl)).length === 0
+export function isSupportedUrl(url: string) {
+    return (
+        IGNORED_URLS.filter((ignoredUrl) => url.startsWith(ignoredUrl))
+            .length === 0
+    )
 }
 
 /**
@@ -62,9 +70,12 @@ export function isSupportedUrl (url: string) {
  * @param {object} caps capabilities
  * @param {number} minVersion minimal chrome browser version
  */
-export function isBrowserVersionLower (caps: Capabilities.Capabilities, minVersion: number) {
+export function isBrowserVersionLower(
+    caps: Capabilities.Capabilities,
+    minVersion: number,
+) {
     const versionProp = VERSION_PROPS.find(
-        (prop: keyof Capabilities.Capabilities) => caps[prop]
+        (prop: keyof Capabilities.Capabilities) => caps[prop],
     ) as 'browserVersion'
     const browserVersion = getBrowserMajorVersion(caps[versionProp])
     return typeof browserVersion === 'number' && browserVersion < minVersion
@@ -75,7 +86,7 @@ export function isBrowserVersionLower (caps: Capabilities.Capabilities, minVersi
  * @param   {string|*}      version chromedriver version like `78.0.3904.11` or just `78`
  * @return  {number|*}              either major version, ex `78`, or whatever value is passed
  */
-export function getBrowserMajorVersion (version?: string | number) {
+export function getBrowserMajorVersion(version?: string | number) {
     if (typeof version === 'string') {
         const majorVersion = Number(version.split('.')[0])
         return isNaN(majorVersion) ? parseInt(version, 10) : majorVersion
@@ -90,12 +101,15 @@ export function getBrowserMajorVersion (version?: string | number) {
 export function isBrowserSupported(caps: Capabilities.Capabilities) {
     if (
         !caps.browserName ||
-        !(caps.browserName.toLowerCase() in SUPPORTED_BROWSERS_AND_MIN_VERSIONS) ||
+        !(
+            caps.browserName.toLowerCase() in
+            SUPPORTED_BROWSERS_AND_MIN_VERSIONS
+        ) ||
         isBrowserVersionLower(
             caps,
             SUPPORTED_BROWSERS_AND_MIN_VERSIONS[
                 caps.browserName.toLowerCase() as keyof typeof SUPPORTED_BROWSERS_AND_MIN_VERSIONS
-            ]
+            ],
         )
     ) {
         return false
@@ -108,11 +122,14 @@ export function isBrowserSupported(caps: Capabilities.Capabilities) {
  * Either request the page list directly from the browser or if Selenium
  * or Selenoid is used connect to a target manually
  */
-export async function getLighthouseDriver (session: CDPSession, target: Target): Promise<GathererDriver> {
+export async function getLighthouseDriver(
+    session: CDPSession,
+    target: Target,
+): Promise<GathererDriver> {
     const connection = session.connection()
 
     if (!connection) {
-        throw new Error('Couldn\'t find a CDP connection')
+        throw new Error("Couldn't find a CDP connection")
     }
 
     const cUrl = new URL(connection.url())
@@ -125,12 +142,12 @@ export async function getLighthouseDriver (session: CDPSession, target: Target):
     if (!cUrl.pathname.startsWith('/devtools/browser')) {
         await cdpConnection._connectToSocket({
             webSocketDebuggerUrl: connection.url(),
-            id: target._targetId
+            id: target._targetId,
         })
         const { sessionId } = await cdpConnection.sendCommand(
             'Target.attachToTarget',
             undefined,
-            { targetId: target._targetId, flatten: true }
+            { targetId: target._targetId, flatten: true },
         )
         cdpConnection.setSessionId(sessionId)
         return new Driver(cdpConnection)

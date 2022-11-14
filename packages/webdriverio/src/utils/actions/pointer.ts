@@ -1,7 +1,7 @@
 /* eslint-disable no-dupe-class-members */
 import { ElementReference } from '@wdio/protocols'
-import BaseAction, { BaseActionParams, KeyActionType } from './base.js'
 import type { ChainablePromiseElement } from '../../types'
+import BaseAction, { BaseActionParams, KeyActionType } from './base.js'
 
 export type ButtonNames = 'left' | 'middle' | 'right'
 export type Button = 0 | 1 | 2
@@ -19,7 +19,7 @@ interface PointerActionUpParams {
     button: Button
 }
 const UP_PARAM_DEFAULTS = {
-    button: BUTTON_DEFAULT as Button
+    button: BUTTON_DEFAULT as Button,
 }
 
 const PARAM_DEFAULTS = {
@@ -32,20 +32,25 @@ const PARAM_DEFAULTS = {
     tiltY: 0,
     twist: 0,
     altitudeAngle: 0,
-    azimuthAngle: 0
+    azimuthAngle: 0,
 }
 const MOVE_PARAM_DEFAULTS = {
     x: 0,
     y: 0,
     duration: 100,
-    origin: ORIGIN_DEFAULT as (Origin | ElementReference | ChainablePromiseElement<WebdriverIO.Element>)
+    origin: ORIGIN_DEFAULT as
+        | Origin
+        | ElementReference
+        | ChainablePromiseElement<WebdriverIO.Element>,
 }
 
-type PointerActionParams = Partial<typeof PARAM_DEFAULTS> & Partial<PointerActionUpParams>
-type PointerActionMoveParams = Partial<typeof MOVE_PARAM_DEFAULTS> & PointerActionParams
+type PointerActionParams = Partial<typeof PARAM_DEFAULTS> &
+    Partial<PointerActionUpParams>
+type PointerActionMoveParams = Partial<typeof MOVE_PARAM_DEFAULTS> &
+    PointerActionParams
 
 export default class PointerAction extends BaseAction {
-    constructor (instance: WebdriverIO.Browser, params: BaseActionParams = {}) {
+    constructor(instance: WebdriverIO.Browser, params: BaseActionParams = {}) {
         if (!params.parameters) {
             params.parameters = { pointerType: POINTER_TYPE_DEFAULT }
         }
@@ -59,9 +64,9 @@ export default class PointerAction extends BaseAction {
      * the viewport (e.g. "viewport") or the center of a specific element.
      * @param params PointerActionMoveParams
      */
-    move (params: PointerActionMoveParams): PointerAction
-    move (x: number, y: number): PointerAction
-    move (params: PointerActionMoveParams | number = {}, y?: number) {
+    move(params: PointerActionMoveParams): PointerAction
+    move(x: number, y: number): PointerAction
+    move(params: PointerActionMoveParams | number = {}, y?: number) {
         const seq = {
             type: 'pointerMove',
             // default params
@@ -84,14 +89,19 @@ export default class PointerAction extends BaseAction {
      * Creates an action to release a single key.
      * @param params PointerActionUpParams
      */
-    up (button?: ButtonNames): PointerAction
-    up (params?: PointerActionUpParams): PointerAction
-    up (params: PointerActionUpParams | ButtonNames = UP_PARAM_DEFAULTS) {
+    up(button?: ButtonNames): PointerAction
+    up(params?: PointerActionUpParams): PointerAction
+    up(params: PointerActionUpParams | ButtonNames = UP_PARAM_DEFAULTS) {
         this.sequence.push({
             type: 'pointerUp',
-            button: typeof params === 'string'
-                ? params === 'right' ? 2 : (params === 'middle' ? 1 : 0)
-                : params.button
+            button:
+                typeof params === 'string'
+                    ? params === 'right'
+                        ? 2
+                        : params === 'middle'
+                        ? 1
+                        : 0
+                    : params.button,
         })
         return this
     }
@@ -100,16 +110,18 @@ export default class PointerAction extends BaseAction {
      * Creates an action to press a single key
      * @param params PointerActionParams
      */
-    down (button?: ButtonNames): PointerAction
-    down (params?: PointerActionParams): PointerAction
-    down (params: PointerActionParams | ButtonNames = {}) {
+    down(button?: ButtonNames): PointerAction
+    down(params?: PointerActionParams): PointerAction
+    down(params: PointerActionParams | ButtonNames = {}) {
         this.sequence.push({
             type: 'pointerDown',
             ...PARAM_DEFAULTS,
             ...(typeof params === 'string'
-                ? { button: params === 'right' ? 2 : (params === 'middle' ? 1 : 0) }
-                : params
-            )
+                ? {
+                      button:
+                          params === 'right' ? 2 : params === 'middle' ? 1 : 0,
+                  }
+                : params),
         })
         return this
     }
@@ -117,7 +129,7 @@ export default class PointerAction extends BaseAction {
     /**
      * An action that cancels this pointer's current input.
      */
-    cancel () {
+    cancel() {
         this.sequence.push({ type: 'pointerCancel' })
         return this
     }

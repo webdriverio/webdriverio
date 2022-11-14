@@ -1,4 +1,4 @@
-import type { executeHooksWithArgs, executeAsync } from '../shim'
+import type { executeAsync, executeHooksWithArgs } from '../shim'
 
 export type HookFnArgs<T> = (ctx: T) => [unknown, T]
 
@@ -26,21 +26,20 @@ export interface JasmineContext {
     failedExpectations: Array<Record<string, unknown>>
 }
 
-export type SpecArguments = (
+export type SpecArguments =
     /**
      * e.g. before(() => { ... })
      */
-    [Function] |
+    | [Function]
     /**
      * e.g. before(() => { ... }, 3)
      */
-    [Function, number] |
+    | [Function, number]
     /**
      * e.g. it('is a test', () => { ... })
      */
-    [string, Function] |
+    | [string, Function]
     /**
      * e.g. it('is a test', () => { ... }, 3)
      */
-    [string, Function, number]
-)
+    | [string, Function, number]

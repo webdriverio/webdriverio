@@ -1,8 +1,8 @@
-import { fileURLToPath } from 'node:url'
-import { dirname, resolve } from 'node:path'
-import { createRequire } from 'node:module'
+import type { Capabilities, Options, Reporters, Services } from '@wdio/types'
 import { UNICODE_CHARACTERS } from '@wdio/utils'
-import type { Options, Capabilities, Services, Reporters } from '@wdio/types'
+import { createRequire } from 'node:module'
+import { dirname, resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const require = createRequire(import.meta.url)
@@ -10,7 +10,7 @@ enum SupportedAutomationProtocols {
     browser = 'browser-runner/build/browser/driver.js',
     webdriver = 'webdriver',
     devtools = 'devtools',
-    stub = './protocol-stub.js'
+    stub = './protocol-stub.js',
 }
 
 /* istanbul ignore next */
@@ -37,11 +37,13 @@ const HOOK_DEFINITION = {
 
             throw new Error('expected hook to be type of function')
         }
-    }
+    },
 }
 export const ELEMENT_KEY = 'element-6066-11e4-a52e-4f735466cecf'
 
-export const WDIO_DEFAULTS: Options.Definition<Options.WebdriverIO & Options.Testrunner> = {
+export const WDIO_DEFAULTS: Options.Definition<
+    Options.WebdriverIO & Options.Testrunner
+> = {
     /**
      * allows to specify automation protocol
      */
@@ -55,23 +57,30 @@ export const WDIO_DEFAULTS: Options.Definition<Options.WebdriverIO & Options.Tes
                 return
             }
 
-            if (!Object.values(SupportedAutomationProtocols).includes(param.toLowerCase() as SupportedAutomationProtocols)) {
-                throw new Error(`Currently only "webdriver" and "devtools" is supproted as automationProtocol, you set "${param}"`)
+            if (
+                !Object.values(SupportedAutomationProtocols).includes(
+                    param.toLowerCase() as SupportedAutomationProtocols,
+                )
+            ) {
+                throw new Error(
+                    `Currently only "webdriver" and "devtools" is supproted as automationProtocol, you set "${param}"`,
+                )
             }
 
             try {
-                const id = param === SupportedAutomationProtocols.stub
-                    ? resolve(__dirname, '..', 'build', param)
-                    : param
+                const id =
+                    param === SupportedAutomationProtocols.stub
+                        ? resolve(__dirname, '..', 'build', param)
+                        : param
                 require.resolve(id)
             } catch (err: any) {
                 /* istanbul ignore next */
                 throw new Error(
                     'Automation protocol package is not installed!\n' +
-                    `Please install it via \`npm install ${param}\``
+                        `Please install it via \`npm install ${param}\``,
                 )
             }
-        }
+        },
     },
     /**
      * Define specs for test execution. You can either specify a glob
@@ -82,9 +91,11 @@ export const WDIO_DEFAULTS: Options.Definition<Options.WebdriverIO & Options.Tes
         type: 'object',
         validate: (param: string[]) => {
             if (!Array.isArray(param)) {
-                throw new Error('the "specs" option needs to be a list of strings')
+                throw new Error(
+                    'the "specs" option needs to be a list of strings',
+                )
             }
-        }
+        },
     },
     /**
      * exclude specs from test execution
@@ -93,16 +104,18 @@ export const WDIO_DEFAULTS: Options.Definition<Options.WebdriverIO & Options.Tes
         type: 'object',
         validate: (param: string[]) => {
             if (!Array.isArray(param)) {
-                throw new Error('the "exclude" option needs to be a list of strings')
+                throw new Error(
+                    'the "exclude" option needs to be a list of strings',
+                )
             }
-        }
+        },
     },
     /**
      * key/value definition of suites (named by key) and a list of specs as value
      * to specify a specific set of tests to execute
      */
     suites: {
-        type: 'object'
+        type: 'object',
     },
     /**
      * capabilities of WebDriver sessions
@@ -118,35 +131,40 @@ export const WDIO_DEFAULTS: Options.Definition<Options.WebdriverIO & Options.Tes
                     return true
                 }
 
-                throw new Error('the "capabilities" options needs to be an object or a list of objects')
+                throw new Error(
+                    'the "capabilities" options needs to be an object or a list of objects',
+                )
             }
 
             /**
              * or an array of objects
              */
             for (const option of param) {
-                if (typeof option === 'object') { // Check does not work recursively
+                if (typeof option === 'object') {
+                    // Check does not work recursively
                     continue
                 }
 
-                throw new Error('expected every item of a list of capabilities to be of type object')
+                throw new Error(
+                    'expected every item of a list of capabilities to be of type object',
+                )
             }
 
             return true
         },
-        required: true
+        required: true,
     },
     /**
      * Project root directory path.
      */
     rootDir: {
-        type: 'string'
+        type: 'string',
     },
     /**
      * Shorten navigateTo command calls by setting a base url
      */
     baseUrl: {
-        type: 'string'
+        type: 'string',
     },
     /**
      * If you only want to run your tests until a specific amount of tests have failed use
@@ -154,27 +172,27 @@ export const WDIO_DEFAULTS: Options.Definition<Options.WebdriverIO & Options.Tes
      */
     bail: {
         type: 'number',
-        default: 0
+        default: 0,
     },
     /**
      * Default interval for all waitFor* commands
      */
     waitforInterval: {
         type: 'number',
-        default: 500
+        default: 500,
     },
     /**
      * Default timeout for all waitFor* commands
      */
     waitforTimeout: {
         type: 'number',
-        default: 3000
+        default: 3000,
     },
     /**
      * supported test framework by wdio testrunner
      */
     framework: {
-        type: 'string'
+        type: 'string',
     },
     /**
      * list of reporters to use, a reporter can be either a string or an object with
@@ -194,13 +212,13 @@ export const WDIO_DEFAULTS: Options.Definition<Options.WebdriverIO & Options.Tes
              * option must be an array
              */
             if (!Array.isArray(param)) {
-                throw new Error('the "reporters" options needs to be a list of strings')
+                throw new Error(
+                    'the "reporters" options needs to be a list of strings',
+                )
             }
 
-            const isValidReporter = (option: string | Function) => (
-                (typeof option === 'string') ||
-                (typeof option === 'function')
-            )
+            const isValidReporter = (option: string | Function) =>
+                typeof option === 'string' || typeof option === 'function'
 
             /**
              * array elements must be:
@@ -227,13 +245,13 @@ export const WDIO_DEFAULTS: Options.Definition<Options.WebdriverIO & Options.Tes
 
                 throw new Error(
                     'a reporter should be either a string in the format "wdio-<reportername>-reporter" ' +
-                    'or a function/class. Please see the docs for more information on custom reporters ' +
-                    '(https://webdriver.io/docs/customreporter)'
+                        'or a function/class. Please see the docs for more information on custom reporters ' +
+                        '(https://webdriver.io/docs/customreporter)',
                 )
             }
 
             return true
-        }
+        },
     },
     /**
      * set of WDIO services to use
@@ -245,7 +263,9 @@ export const WDIO_DEFAULTS: Options.Definition<Options.WebdriverIO & Options.Tes
              * should be an array
              */
             if (!Array.isArray(param)) {
-                throw new Error('the "services" options needs to be a list of strings and/or arrays')
+                throw new Error(
+                    'the "services" options needs to be a list of strings and/or arrays',
+                )
             }
 
             /**
@@ -256,13 +276,15 @@ export const WDIO_DEFAULTS: Options.Definition<Options.WebdriverIO & Options.Tes
                     if (typeof option === 'string') {
                         continue
                     }
-                    throw new Error('the "services" options needs to be a list of strings and/or arrays')
+                    throw new Error(
+                        'the "services" options needs to be a list of strings and/or arrays',
+                    )
                 }
             }
 
             return true
         },
-        default: []
+        default: [],
     },
     /**
      * Node arguments to specify when launching child processes
@@ -271,29 +293,31 @@ export const WDIO_DEFAULTS: Options.Definition<Options.WebdriverIO & Options.Tes
         type: 'object',
         validate: (param: string[]) => {
             if (!Array.isArray(param)) {
-                throw new Error('the "execArgv" options needs to be a list of strings')
+                throw new Error(
+                    'the "execArgv" options needs to be a list of strings',
+                )
             }
         },
-        default: []
+        default: [],
     },
     /**
      * amount of instances to be allowed to run in total
      */
     maxInstances: {
-        type: 'number'
+        type: 'number',
     },
     /**
      * amount of instances to be allowed to run per capability
      */
     maxInstancesPerCapability: {
-        type: 'number'
+        type: 'number',
     },
     /**
      * whether or not testrunner should inject `browser`, `$` and `$$` as
      * global environment variables
      */
     injectGlobals: {
-        type: 'boolean'
+        type: 'boolean',
     },
     /**
      * list of strings to watch of `wdio` command is called with `--watch` flag
@@ -302,9 +326,11 @@ export const WDIO_DEFAULTS: Options.Definition<Options.WebdriverIO & Options.Tes
         type: 'object',
         validate: (param: string[]) => {
             if (!Array.isArray(param)) {
-                throw new Error('the "filesToWatch" options needs to be a list of strings')
+                throw new Error(
+                    'the "filesToWatch" options needs to be a list of strings',
+                )
             }
-        }
+        },
     },
 
     /**
@@ -326,16 +352,22 @@ export const WDIO_DEFAULTS: Options.Definition<Options.WebdriverIO & Options.Tes
     afterSession: HOOK_DEFINITION,
     after: HOOK_DEFINITION,
     onComplete: HOOK_DEFINITION,
-    onReload: HOOK_DEFINITION
+    onReload: HOOK_DEFINITION,
 }
 
-export const W3C_SELECTOR_STRATEGIES = ['css selector', 'link text', 'partial link text', 'tag name', 'xpath']
+export const W3C_SELECTOR_STRATEGIES = [
+    'css selector',
+    'link text',
+    'partial link text',
+    'tag name',
+    'xpath',
+]
 
 export const DRIVER_DEFAULT_ENDPOINT = {
     method: 'GET',
     host: 'localhost',
     port: 4444,
-    path: '/status'
+    path: '/status',
 }
 
 export const FF_REMOTE_DEBUG_ARG = '-remote-debugging-port'
@@ -343,10 +375,20 @@ export const DEEP_SELECTOR = '>>>'
 export const ARIA_SELECTOR = 'aria/'
 
 export const ERROR_REASON = [
-    'Failed', 'Aborted', 'TimedOut', 'AccessDenied', 'ConnectionClosed',
-    'ConnectionReset', 'ConnectionRefused', 'ConnectionAborted',
-    'ConnectionFailed', 'NameNotResolved', 'InternetDisconnected',
-    'AddressUnreachable', 'BlockedByClient', 'BlockedByResponse'
+    'Failed',
+    'Aborted',
+    'TimedOut',
+    'AccessDenied',
+    'ConnectionClosed',
+    'ConnectionReset',
+    'ConnectionRefused',
+    'ConnectionAborted',
+    'ConnectionFailed',
+    'NameNotResolved',
+    'InternetDisconnected',
+    'AddressUnreachable',
+    'BlockedByClient',
+    'BlockedByResponse',
 ]
 
 /**
@@ -413,5 +455,5 @@ export const Key = {
     F11: UNICODE_CHARACTERS.F11,
     F12: UNICODE_CHARACTERS.F12,
     Command: UNICODE_CHARACTERS.Command,
-    ZenkakuHankaku: UNICODE_CHARACTERS.ZenkakuHankaku
+    ZenkakuHankaku: UNICODE_CHARACTERS.ZenkakuHankaku,
 } as const

@@ -29,24 +29,22 @@ import { getElementFromResponse } from '../../utils/index.js'
  * @type action
  *
  */
-export default async function selectByVisibleText (
+export default async function selectByVisibleText(
     this: WebdriverIO.Element,
-    text: string | number
+    text: string | number,
 ) {
     /**
      * convert value into string
      */
-    text = typeof text === 'number'
-        ? text.toString()
-        : text
+    text = typeof text === 'number' ? text.toString() : text
 
     const normalized = text
         .trim() // strip leading and trailing white-space characters
         .replace(/\s+/, ' ') // replace sequences of whitespace characters by a single space
 
     /**
-    * find option element using xpath
-    */
+     * find option element using xpath
+     */
     const formatted = /"/.test(normalized)
         ? 'concat("' + normalized.split('"').join('", \'"\', "') + '")'
         : `"${normalized}"`
@@ -60,14 +58,18 @@ export default async function selectByVisibleText (
         `./optgroup/option${spaceFormat}`,
     ]
 
-    const optionElement = await this.findElementFromElement(this.elementId, 'xpath', selections.join('|'))
+    const optionElement = await this.findElementFromElement(
+        this.elementId,
+        'xpath',
+        selections.join('|'),
+    )
 
     if (optionElement && (optionElement as any).error === 'no such element') {
         throw new Error(`Option with text "${text}" not found.`)
     }
 
     /**
-    * select option
-    */
+     * select option
+     */
     return this.elementClick(getElementFromResponse(optionElement) as string)
 }

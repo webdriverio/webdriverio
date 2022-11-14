@@ -1,5 +1,5 @@
-import path from 'node:path'
 import { createRequire } from 'node:module'
+import path from 'node:path'
 
 const require = createRequire(import.meta.url)
 const { customFields } = require('../../website/docusaurus.config.js')
@@ -7,7 +7,7 @@ const { customFields } = require('../../website/docusaurus.config.js')
 export default function (docfile) {
     const javadoc = docfile.javadoc[0]
 
-    let type = (javadoc.ctx && javadoc.ctx.type)
+    let type = javadoc.ctx && javadoc.ctx.type
     const name = path.basename(path.basename(docfile.filename, '.js'), '.ts')
     const scope = docfile.filename.split('/').slice(-2, -1)[0]
 
@@ -28,7 +28,11 @@ export default function (docfile) {
     for (const tag of javadoc.tags) {
         if (tag.type == 'param') {
             tag.joinedTypes = Array.isArray(tag.types)
-                ? tag.types.join('|').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                ? tag.types
+                      .join('|')
+                      .replace(/&/g, '&amp;')
+                      .replace(/</g, '&lt;')
+                      .replace(/>/g, '&gt;')
                 : 'any'
 
             if (tag.typesDescription.includes('|<code>undefined</code>')) {
@@ -39,17 +43,29 @@ export default function (docfile) {
             paramStr.push(tag.name)
         } else if (tag.type == 'property') {
             tag.joinedTypes = Array.isArray(tag.types)
-                ? tag.types.join('|').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                ? tag.types
+                      .join('|')
+                      .replace(/&/g, '&amp;')
+                      .replace(/</g, '&lt;')
+                      .replace(/>/g, '&gt;')
                 : 'any'
             propertyTags.push(tag)
         } else if (tag.type == 'return' || tag.type == 'returns') {
             tag.joinedTypes = Array.isArray(tag.types)
-                ? tag.types.join('|').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                ? tag.types
+                      .join('|')
+                      .replace(/&/g, '&amp;')
+                      .replace(/</g, '&lt;')
+                      .replace(/>/g, '&gt;')
                 : 'any'
             returnTags.push(tag)
         } else if (tag.type == 'throws') {
             tag.joinedTypes = Array.isArray(tag.types)
-                ? tag.types.join('|').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                ? tag.types
+                      .join('|')
+                      .replace(/&/g, '&amp;')
+                      .replace(/</g, '&lt;')
+                      .replace(/>/g, '&gt;')
                 : 'any'
             throwsTags.push(tag)
         } else if (tag.type == 'fires') {
@@ -76,7 +92,11 @@ export default function (docfile) {
             tagAuthor = tag.string
         } else if (tag.type == 'type') {
             tagType = Array.isArray(tag.types)
-                ? tag.types.join('|').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                ? tag.types
+                      .join('|')
+                      .replace(/&/g, '&amp;')
+                      .replace(/</g, '&lt;')
+                      .replace(/>/g, '&gt;')
                 : 'any'
         }
     }
@@ -106,14 +126,18 @@ export default function (docfile) {
         console.log('parse example section for', docfile.filename)
 
         example = example[0].replace(/<(\/)*example>/g, '').split(/\n/g)
-        example.forEach(function(line) {
+        example.forEach(function (line) {
             ++currentLine
 
-            var checkForFilenameExpression = line.match(/\s\s\s\s(:(\S)*\.(\S)*)/g)
-            if ((checkForFilenameExpression && checkForFilenameExpression.length) || (currentLine === example.length)) {
-
+            var checkForFilenameExpression = line.match(
+                /\s\s\s\s(:(\S)*\.(\S)*)/g,
+            )
+            if (
+                (checkForFilenameExpression &&
+                    checkForFilenameExpression.length) ||
+                currentLine === example.length
+            ) {
                 if (exampleCodeLine.length) {
-
                     /**
                      * remove filename expression in first line
                      */
@@ -127,7 +151,7 @@ export default function (docfile) {
                         files.push({
                             file: exampleFilename,
                             format: exampleFilename.split(/\./).pop(),
-                            code: code
+                            code: code,
                         })
                     }
 
@@ -143,7 +167,6 @@ export default function (docfile) {
                 if (currentLine === example.length) {
                     return
                 }
-
             }
 
             exampleCodeLine.push(line.substr(4))
@@ -166,9 +189,14 @@ export default function (docfile) {
      * ```
      */
     const parsedParamStr = paramStr
-        .filter((param, i) => !paramStr[i + 1] || paramStr[i + 1].split('.')[0] !== param)
+        .filter(
+            (param, i) =>
+                !paramStr[i + 1] || paramStr[i + 1].split('.')[0] !== param,
+        )
         .filter((param) => !param.includes('.'))
-    const paramOptions = paramStr.filter((param) => param.includes('.')).map((param) => param.split('.')[1])
+    const paramOptions = paramStr
+        .filter((param) => param.includes('.'))
+        .map((param) => param.split('.')[1])
     if (paramOptions.length) {
         parsedParamStr.push(`{ ${paramOptions.join(', ')} }`)
     }
@@ -200,9 +228,9 @@ export default function (docfile) {
         customEditUrl: `${customFields.repoUrl}/edit/main/packages/webdriverio/src/commands/${scope}/${name}.ts`,
         hasDocusaurusHeader: true,
         originalId: `api/${scope}/${name}`,
-        isElementScope : scope === 'element',
-        isNetworkScope : scope === 'network',
-        isMockScope : scope === 'mock'
+        isElementScope: scope === 'element',
+        isNetworkScope: scope === 'network',
+        isMockScope: scope === 'mock',
     }
 
     return commandDescription

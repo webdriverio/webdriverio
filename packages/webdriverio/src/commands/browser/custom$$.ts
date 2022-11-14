@@ -1,7 +1,11 @@
-import { enhanceElementsArray } from '../../utils/index.js'
-import { getElements } from '../../utils/getElementObject.js'
 import { ELEMENT_KEY } from '../../constants.js'
-import type { ElementArray, CustomStrategyFunction, CustomStrategyReference } from '../../types'
+import type {
+    CustomStrategyFunction,
+    CustomStrategyReference,
+    ElementArray,
+} from '../../types'
+import { getElements } from '../../utils/getElementObject.js'
+import { enhanceElementsArray } from '../../utils/index.js'
 
 /**
  *
@@ -26,7 +30,7 @@ import type { ElementArray, CustomStrategyFunction, CustomStrategyReference } fr
  * @param {Any} strategyArguments
  * @return {ElementArray}
  */
-export default async function custom$$ (
+export default async function custom$$(
     this: WebdriverIO.Browser,
     strategyName: string,
     ...strategyArguments: any[]
@@ -37,7 +41,11 @@ export default async function custom$$ (
         throw Error('No strategy found for ' + strategyName)
     }
 
-    const strategyRef: CustomStrategyReference = { strategy, strategyName, strategyArguments }
+    const strategyRef: CustomStrategyReference = {
+        strategy,
+        strategyName,
+        strategyArguments,
+    }
     let res = await this.execute(strategy, ...strategyArguments)
 
     /**
@@ -49,8 +57,16 @@ export default async function custom$$ (
         res = [res]
     }
 
-    res = res.filter(el => !!el && typeof el[ELEMENT_KEY] === 'string')
+    res = res.filter((el) => !!el && typeof el[ELEMENT_KEY] === 'string')
 
-    const elements = res.length ? await getElements.call(this, strategyRef, res) : [] as any as ElementArray
-    return enhanceElementsArray(elements, this, strategyName, 'custom$$', strategyArguments)
+    const elements = res.length
+        ? await getElements.call(this, strategyRef, res)
+        : ([] as any as ElementArray)
+    return enhanceElementsArray(
+        elements,
+        this,
+        strategyName,
+        'custom$$',
+        strategyArguments,
+    )
 }

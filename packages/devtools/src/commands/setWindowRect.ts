@@ -12,9 +12,9 @@ import type DevToolsDriver from '../devtoolsdriver'
  * @param {number} height  the height of the outer dimensions of the top-level browsing context, including browser chrome etc...
  * @return {object}        A JSON representation of a "window rect" object based on the new window state.
  */
-export default async function setWindowRect (
+export default async function setWindowRect(
     this: DevToolsDriver,
-    params: { width: number, height: number }
+    params: { width: number; height: number },
 ) {
     const page = this.getPageHandle()
     await page.setViewport(params)

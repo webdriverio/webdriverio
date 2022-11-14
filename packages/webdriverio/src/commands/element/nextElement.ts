@@ -22,8 +22,10 @@
  * @type utility
  */
 
-export default function nextElement (this: WebdriverIO.Element) {
-    return this.$(/* istanbul ignore next */ function nextElement (this: HTMLElement) {
-        return this.nextElementSibling as HTMLElement
-    })
+export default function nextElement(this: WebdriverIO.Element) {
+    return this.$(
+        /* istanbul ignore next */ function nextElement(this: HTMLElement) {
+            return this.nextElementSibling as HTMLElement
+        },
+    )
 }

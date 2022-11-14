@@ -1,5 +1,5 @@
-import { expect, $ } from '@wdio/globals'
 import { render } from '@testing-library/vue'
+import { $, expect } from '@wdio/globals'
 
 import * as matchers from '@testing-library/jest-dom/matchers'
 expect.extend(matchers as any)
@@ -25,4 +25,3 @@ describe('vue component tests', () => {
         await expect(button).toHaveText('count is 2')
     })
 })
-

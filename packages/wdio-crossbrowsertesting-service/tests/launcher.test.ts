@@ -1,14 +1,17 @@
-import path from 'node:path'
-import { describe, expect, it, afterEach, vi } from 'vitest'
-import cbtTunnels from 'cbt_tunnels'
 import logger from '@wdio/logger'
 import type { Capabilities, Options } from '@wdio/types'
+import cbtTunnels from 'cbt_tunnels'
+import path from 'node:path'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import CrossBrowserTestingLauncher from '../src/launcher.js'
 import type { CrossBrowserTestingConfig } from '../src/types'
 
 vi.mock('cbt_tunnels')
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock(
+    '@wdio/logger',
+    () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')),
+)
 
 const error = new Error('Error!')
 
@@ -23,16 +26,20 @@ describe('wdio-crossbrowsertesting-service', () => {
         const caps: Capabilities.DesiredCapabilities = {}
         const config = {
             user: 'test',
-            key: 'key'
+            key: 'key',
         } as Options.Testrunner
 
-        const cbtLauncher = new CrossBrowserTestingLauncher(options, caps, config)
+        const cbtLauncher = new CrossBrowserTestingLauncher(
+            options,
+            caps,
+            config,
+        )
 
         await cbtLauncher.onPrepare()
         expect(cbtLauncher['_cbtTunnelOpts']).toEqual({
             authkey: 'key',
             nokill: true,
-            username: 'test'
+            username: 'test',
         })
         expect((cbtLauncher as any).cbtTunnel).toBeUndefined()
     })
@@ -41,56 +48,96 @@ describe('wdio-crossbrowsertesting-service', () => {
         const options: CrossBrowserTestingConfig = {
             cbtTunnel: true,
             cbtTunnelOpts: {
-                options: 'some options'
-            }
+                options: 'some options',
+            },
         }
-        const cbtLauncher = new CrossBrowserTestingLauncher(options, [{}] as Capabilities.DesiredCapabilities, {
-            user: 'test',
-            key: 'testy'
-        } as any)
+        const cbtLauncher = new CrossBrowserTestingLauncher(
+            options,
+            [{}] as Capabilities.DesiredCapabilities,
+            {
+                user: 'test',
+                key: 'testy',
+            } as any,
+        )
         await cbtLauncher.onPrepare()
-        expect(cbtTunnels.start).toHaveBeenCalledWith({ username: 'test', authkey: 'testy', nokill: true, options: 'some options' }, expect.any(Function))
-        expect(cbtLauncher['_cbtTunnelOpts']).toEqual({ username: 'test', authkey: 'testy', nokill: true, options: 'some options' })
+        expect(cbtTunnels.start).toHaveBeenCalledWith(
+            {
+                username: 'test',
+                authkey: 'testy',
+                nokill: true,
+                options: 'some options',
+            },
+            expect.any(Function),
+        )
+        expect(cbtLauncher['_cbtTunnelOpts']).toEqual({
+            username: 'test',
+            authkey: 'testy',
+            nokill: true,
+            options: 'some options',
+        })
         await new Promise((resolve) => setTimeout(resolve, 100))
-        expect(vi.mocked(logger('').info).mock.calls[0][0]).toContain('CrossBrowserTesting tunnel successfully started after')
-
+        expect(vi.mocked(logger('').info).mock.calls[0][0]).toContain(
+            'CrossBrowserTesting tunnel successfully started after',
+        )
     })
 
     it('onPrepare: cbtTunnel.start throws an error', () => {
         const options: CrossBrowserTestingConfig = {
             cbtTunnel: true,
             cbtTunnelOpts: {
-                options: 'some options'
-            }
+                options: 'some options',
+            },
         }
-        const cbtLauncher = new CrossBrowserTestingLauncher(options, [{}] as Capabilities.DesiredCapabilities, {
-            user: 'test',
-            key: 'testy'
-        } as any)
-        vi.mocked(cbtTunnels.start).mockImplementationOnce((options: any, cb: Function) => cb(error))
-        expect(cbtLauncher.onPrepare()).rejects.toThrow(error)
+        const cbtLauncher = new CrossBrowserTestingLauncher(
+            options,
+            [{}] as Capabilities.DesiredCapabilities,
+            {
+                user: 'test',
+                key: 'testy',
+            } as any,
+        )
+        vi.mocked(cbtTunnels.start).mockImplementationOnce(
+            (options: any, cb: Function) => cb(error),
+        )
+        expect(cbtLauncher.onPrepare())
+            .rejects.toThrow(error)
             .then(() => expect(cbtTunnels.start).toHaveBeenCalled())
-
     })
 
     it('onComplete: no tunnel', () => {
-        const cbtLauncher = new CrossBrowserTestingLauncher({}, [{}] as Capabilities.DesiredCapabilities, {} as any)
+        const cbtLauncher = new CrossBrowserTestingLauncher(
+            {},
+            [{}] as Capabilities.DesiredCapabilities,
+            {} as any,
+        )
         cbtLauncher['_isUsingTunnel'] = false
         expect(cbtLauncher.onComplete()).toBeUndefined()
     })
 
     it('onComplete: cbtTunnel.stop throws an error', () => {
-        const cbtLauncher = new CrossBrowserTestingLauncher({} as any, [{}] as Capabilities.DesiredCapabilities, {} as any)
+        const cbtLauncher = new CrossBrowserTestingLauncher(
+            {} as any,
+            [{}] as Capabilities.DesiredCapabilities,
+            {} as any,
+        )
         cbtLauncher['_isUsingTunnel'] = true
-        vi.mocked(cbtTunnels.stop).mockImplementationOnce((cb: any) => cb(error))
-        expect(cbtLauncher.onComplete()).rejects.toThrow(error)
+        vi.mocked(cbtTunnels.stop).mockImplementationOnce((cb: any) =>
+            cb(error),
+        )
+        expect(cbtLauncher.onComplete())
+            .rejects.toThrow(error)
             .then(() => expect(cbtTunnels.stop).toHaveBeenCalled())
     })
 
     it('onComplete: cbtTunnel.stop successful', async () => {
-        const cbtLauncher = new CrossBrowserTestingLauncher({} as any, [{}] as Capabilities.DesiredCapabilities, {} as any)
+        const cbtLauncher = new CrossBrowserTestingLauncher(
+            {} as any,
+            [{}] as Capabilities.DesiredCapabilities,
+            {} as any,
+        )
         cbtLauncher['_isUsingTunnel'] = true
-        expect(cbtLauncher.onComplete()).resolves.toBe('stopped')
+        expect(cbtLauncher.onComplete())
+            .resolves.toBe('stopped')
             .then(() => expect(cbtTunnels.stop).toHaveBeenCalled())
     })
 })

@@ -3,7 +3,7 @@
 import StaticServerLauncher from './launcher.js'
 import type { StaticServerOptions } from './types'
 
-export default class StaticServerService { }
+export default class StaticServerService {}
 export const launcher = StaticServerLauncher
 export * from './types.js'
 

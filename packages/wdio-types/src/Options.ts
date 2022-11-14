@@ -1,15 +1,28 @@
 import * as http from 'node:http'
 import * as https from 'node:https'
-import type { RegisterOptions } from './Compiler'
 import type { URL } from 'node:url'
+import type { RegisterOptions } from './Compiler'
 
-import type { W3CCapabilities, DesiredCapabilities, RemoteCapabilities, RemoteCapability, MultiRemoteCapabilities, Capabilities } from './Capabilities'
-import type { Hooks, ServiceEntry } from './Services'
+import type {
+    Capabilities,
+    DesiredCapabilities,
+    MultiRemoteCapabilities,
+    RemoteCapabilities,
+    RemoteCapability,
+    W3CCapabilities,
+} from './Capabilities'
 import type { ReporterEntry } from './Reporters'
+import type { Hooks, ServiceEntry } from './Services'
 
-export type WebDriverLogTypes = 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'silent'
+export type WebDriverLogTypes =
+    | 'trace'
+    | 'debug'
+    | 'info'
+    | 'warn'
+    | 'error'
+    | 'silent'
 export type SupportedProtocols = 'webdriver' | 'devtools' | './protocol-stub.js'
-export type Agents = {http?: any, https?: any}
+export type Agents = { http?: any; https?: any }
 
 export interface RequestLibOptions {
     agent?: Agents | null
@@ -168,7 +181,7 @@ export interface WebDriver extends Connection {
      * ```
      */
     agent?: {
-        http: http.Agent,
+        http: http.Agent
         https: https.Agent
     }
     /**
@@ -178,12 +191,15 @@ export interface WebDriver extends Connection {
     /**
      * Function intercepting HTTP response objects after a WebDriver response has arrived.
      */
-    transformResponse?: (response: RequestLibResponse, requestOptions: RequestLibOptions) => RequestLibResponse
+    transformResponse?: (
+        response: RequestLibResponse,
+        requestOptions: RequestLibOptions,
+    ) => RequestLibResponse
 
     /**
      * Appium direct connect options (see: https://appiumpro.com/editions/86-connecting-directly-to-appium-hosts-in-distributed-environments)
      */
-    enableDirectConnect?: boolean;
+    enableDirectConnect?: boolean
 
     /**
      * Whether it requires SSL certificates to be valid in HTTP/s requests
@@ -210,7 +226,15 @@ export interface MultiRemoteBrowserOptions {
     capabilities: DesiredCapabilities
 }
 
-export type SauceRegions = 'us' | 'eu' | 'apac' | 'us-west-1' | 'us-east-1' | 'eu-central-1' | 'apac-southeast-1' | 'staging'
+export type SauceRegions =
+    | 'us'
+    | 'eu'
+    | 'apac'
+    | 'us-west-1'
+    | 'us-east-1'
+    | 'eu-central-1'
+    | 'apac-southeast-1'
+    | 'staging'
 
 export interface WebdriverIO extends Omit<WebDriver, 'capabilities'> {
     /**
@@ -286,7 +310,10 @@ export interface WebdriverIO extends Omit<WebDriver, 'capabilities'> {
     waitforInterval?: number
 }
 
-export interface Testrunner extends Hooks, Omit<WebdriverIO, 'capabilities'>, WebdriverIO.HookFunctionExtension {
+export interface Testrunner
+    extends Hooks,
+        Omit<WebdriverIO, 'capabilities'>,
+        WebdriverIO.HookFunctionExtension {
     /**
      * Defines a set of capabilities you want to run in your testrunner session. Check out the
      * [WebDriver Protocol](https://w3c.github.io/webdriver/#capabilities) for more details.
@@ -338,7 +365,11 @@ export interface Testrunner extends Hooks, Omit<WebdriverIO, 'capabilities'>, We
      *   running an independant browser session
      * - browser: all spec files are run within the browser
      */
-    runner?: 'local' | 'browser' | ['browser', WebdriverIO.BrowserRunnerOptions] | ['local', never]
+    runner?:
+        | 'local'
+        | 'browser'
+        | ['browser', WebdriverIO.BrowserRunnerOptions]
+        | ['local', never]
     /**
      * Project root directory path.
      */

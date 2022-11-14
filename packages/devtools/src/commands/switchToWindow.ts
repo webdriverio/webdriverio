@@ -8,9 +8,9 @@ import type DevToolsDriver from '../devtoolsdriver'
  * @see https://w3c.github.io/webdriver/#dfn-switch-to-window
  * @param {string} handle  representing a window handle, should be one of the strings that was returned in a call to getWindowHandles
  */
-export default async function switchToWindow (
+export default async function switchToWindow(
     this: DevToolsDriver,
-    { handle }: { handle: string }
+    { handle }: { handle: string },
 ) {
     if (!this.windows.has(handle)) {
         throw new Error(`window with handle ${handle} not found`)

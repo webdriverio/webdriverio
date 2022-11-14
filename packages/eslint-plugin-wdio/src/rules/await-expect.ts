@@ -13,9 +13,9 @@ const rule: Rule.RuleModule = {
             recommended: false,
         },
         messages: {
-            missingAwait: 'Missing await before an expect statement'
+            missingAwait: 'Missing await before an expect statement',
         },
-        hasSuggestions: true
+        hasSuggestions: true,
     },
 
     create: function (context: Rule.RuleContext): Rule.RuleListener {
@@ -28,8 +28,11 @@ const rule: Rule.RuleModule = {
                 if (
                     node.callee.type !== 'MemberExpression' ||
                     node.callee.object.type !== 'CallExpression' ||
-                    (node.callee.object.callee as Identifier).name !== 'expect' ||
-                    !MATCHERS.includes((node.callee.property as Identifier).name)
+                    (node.callee.object.callee as Identifier).name !==
+                        'expect' ||
+                    !MATCHERS.includes(
+                        (node.callee.property as Identifier).name,
+                    )
                 ) {
                     return
                 }
@@ -46,9 +49,9 @@ const rule: Rule.RuleModule = {
                 ) {
                     context.report({ node, messageId: 'missingAwait' })
                 }
-            }
+            },
         }
-    }
+    },
 }
 
 export default rule

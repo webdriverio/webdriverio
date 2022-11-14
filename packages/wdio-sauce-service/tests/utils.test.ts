@@ -18,35 +18,57 @@ test('isRDC should be false for a non matching platformName', () => {
 })
 
 test('isRDC should be false for an emulator test', () => {
-    expect(isRDC({ deviceName: 'Google Pixel emulator', platformName: 'Android' })).toEqual(false)
+    expect(
+        isRDC({ deviceName: 'Google Pixel emulator', platformName: 'Android' }),
+    ).toEqual(false)
 })
 
 test('isRDC should be false for an W3C emulator test', () => {
-    expect(isRDC({ 'appium:deviceName': 'Google Pixel emulator', platformName: 'Android' })).toEqual(false)
+    expect(
+        isRDC({
+            'appium:deviceName': 'Google Pixel emulator',
+            platformName: 'Android',
+        }),
+    ).toEqual(false)
 })
 
 test('isRDC should be false for a simulator test', () => {
-    expect(isRDC({ deviceName: 'iPhone XS simulator', platformName: 'iOS' })).toEqual(false)
+    expect(
+        isRDC({ deviceName: 'iPhone XS simulator', platformName: 'iOS' }),
+    ).toEqual(false)
 })
 
 test('isRDC should be false for a W3C simulator test', () => {
-    expect(isRDC({ 'appium:deviceName': 'iPhone XS simulator', platformName: 'iOS' })).toEqual(false)
+    expect(
+        isRDC({
+            'appium:deviceName': 'iPhone XS simulator',
+            platformName: 'iOS',
+        }),
+    ).toEqual(false)
 })
 
 test('isRDC should be true for a real device iOS test', () => {
-    expect(isRDC({ deviceName: 'iPhone XS', platformName: 'iOS' })).toEqual(true)
+    expect(isRDC({ deviceName: 'iPhone XS', platformName: 'iOS' })).toEqual(
+        true,
+    )
 })
 
 test('isRDC should be true for a W3C real device iOS test', () => {
-    expect(isRDC({ 'appium:deviceName': 'iPhone XS', platformName: 'iOS' })).toEqual(true)
+    expect(
+        isRDC({ 'appium:deviceName': 'iPhone XS', platformName: 'iOS' }),
+    ).toEqual(true)
 })
 
 test('isRDC should be true for real device Android test', () => {
-    expect(isRDC({ deviceName: 'Google Pixel', platformName: 'Android' })).toEqual(true)
+    expect(
+        isRDC({ deviceName: 'Google Pixel', platformName: 'Android' }),
+    ).toEqual(true)
 })
 
 test('isRDC should be true for a W3C real device Android test', () => {
-    expect(isRDC({ 'appium:deviceName': 'Google Pixel', platformName: 'Android' })).toEqual(true)
+    expect(
+        isRDC({ 'appium:deviceName': 'Google Pixel', platformName: 'Android' }),
+    ).toEqual(true)
 })
 
 test('isEmuSim should be false for no provided deviceName and platformName', () => {
@@ -66,29 +88,55 @@ test('isEmuSim should be false for a non matching platformName', () => {
 })
 
 test('isEmuSim should be true for an emulator test', () => {
-    expect(isEmuSim({ deviceName: 'Google Pixel emulator', platformName: 'Android' })).toEqual(true)
+    expect(
+        isEmuSim({
+            deviceName: 'Google Pixel emulator',
+            platformName: 'Android',
+        }),
+    ).toEqual(true)
 })
 
 test('isEmuSim should be true for a W3C emulator test', () => {
-    expect(isEmuSim({ 'appium:deviceName': 'Google Pixel emulator', platformName: 'Android' })).toEqual(true)
+    expect(
+        isEmuSim({
+            'appium:deviceName': 'Google Pixel emulator',
+            platformName: 'Android',
+        }),
+    ).toEqual(true)
 })
 
 test('isEmuSim should be true for a W3C simulator test', () => {
-    expect(isEmuSim({ 'appium:deviceName': 'iPhone XS simulator', platformName: 'iOS' })).toEqual(true)
+    expect(
+        isEmuSim({
+            'appium:deviceName': 'iPhone XS simulator',
+            platformName: 'iOS',
+        }),
+    ).toEqual(true)
 })
 
 test('isEmuSim should be false for a real device iOS test', () => {
-    expect(isEmuSim({ deviceName: 'iPhone XS', platformName: 'iOS' })).toEqual(false)
+    expect(isEmuSim({ deviceName: 'iPhone XS', platformName: 'iOS' })).toEqual(
+        false,
+    )
 })
 
 test('isEmuSim should be false for a W3C real device iOS test', () => {
-    expect(isEmuSim({ 'appium:deviceName': 'iPhone XS', platformName: 'iOS' })).toEqual(false)
+    expect(
+        isEmuSim({ 'appium:deviceName': 'iPhone XS', platformName: 'iOS' }),
+    ).toEqual(false)
 })
 
 test('isEmuSim should be false for real device Android test', () => {
-    expect(isEmuSim({ deviceName: 'Google Pixel', platformName: 'Android' })).toEqual(false)
+    expect(
+        isEmuSim({ deviceName: 'Google Pixel', platformName: 'Android' }),
+    ).toEqual(false)
 })
 
 test('isEmuSim should be false for a W3C real device Android test', () => {
-    expect(isEmuSim({ 'appium:deviceName': 'Google Pixel', platformName: 'Android' })).toEqual(false)
+    expect(
+        isEmuSim({
+            'appium:deviceName': 'Google Pixel',
+            platformName: 'Android',
+        }),
+    ).toEqual(false)
 })

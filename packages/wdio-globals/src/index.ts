@@ -1,11 +1,18 @@
 /// <reference path="../types.d.ts" />
 
-type SupportedGlobals = 'browser' | 'driver' | 'multiremotebrowser' | '$' | '$$' | 'expect'
+type SupportedGlobals =
+    | 'browser'
+    | 'driver'
+    | 'multiremotebrowser'
+    | '$'
+    | '$$'
+    | 'expect'
 
 const globals: Map<SupportedGlobals, any> = new Map()
-const GLOBALS_ERROR_MESSAGE = 'No browser instance registered. Don\'t import @wdio/globals outside of the WDIO testrunner context. Or you have two two different "@wdio/globals" packages installed.'
+const GLOBALS_ERROR_MESSAGE =
+    'No browser instance registered. Don\'t import @wdio/globals outside of the WDIO testrunner context. Or you have two two different "@wdio/globals" packages installed.'
 
-function proxyHandler (key: SupportedGlobals) {
+function proxyHandler(key: SupportedGlobals) {
     return {
         get: (self: never, prop: any) => {
             if (!globals.has(key)) {
@@ -13,21 +20,21 @@ function proxyHandler (key: SupportedGlobals) {
             }
 
             return globals.get(key)[prop]
-        }
+        },
     }
 }
 
 export const browser: WebdriverIO.Browser = new Proxy(
     class Browser {} as any as WebdriverIO.Browser,
-    proxyHandler('browser')
+    proxyHandler('browser'),
 )
 export const driver: WebdriverIO.Browser = new Proxy(
     class Browser {} as any as WebdriverIO.Browser,
-    proxyHandler('driver')
+    proxyHandler('driver'),
 )
 export const multiremotebrowser: WebdriverIO.MultiRemoteBrowser = new Proxy(
     class Browser {} as any as WebdriverIO.MultiRemoteBrowser,
-    proxyHandler('multiremotebrowser')
+    proxyHandler('multiremotebrowser'),
 )
 export const $: WebdriverIO.Browser['$'] = (...args: any) => {
     if (!globals.has('$')) {
@@ -62,7 +69,11 @@ expect.extend = (...args: unknown[]) => {
  * @param value actual value to be returned
  * @private
  */
-export function _setGlobal (key: SupportedGlobals, value: any, setGlobal = true) {
+export function _setGlobal(
+    key: SupportedGlobals,
+    value: any,
+    setGlobal = true,
+) {
     globals.set(key, value)
 
     if (setGlobal) {

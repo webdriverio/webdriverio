@@ -4,76 +4,88 @@
  * here
  */
 module.exports = class CustomService {
-    constructor (config) {
+    constructor(config) {
         console.log('custom service options:', config.someOption)
     }
-    onPrepare () {
+    onPrepare() {
         console.log('execute onPrepare(config, capabilities)')
     }
-    onWorkerStart () {
+    onWorkerStart() {
         console.log('execute onWorkerStart(cid, caps, specs, args, execArgv)')
     }
-    onWorkerEnd () {
+    onWorkerEnd() {
         console.log('execute onWorkerEnd(cid, exitCode, specs, retries)')
     }
-    beforeSession () {
+    beforeSession() {
         console.log('execute beforeSession(config, capabilities, specs, cid)')
     }
-    before () {
+    before() {
         console.log('execute before(capabilities, specs)')
     }
-    beforeSuite () {
+    beforeSuite() {
         console.log('execute beforeSuite(suite)')
     }
-    beforeHook () {
+    beforeHook() {
         console.log('execute beforeHook(test, context)')
     }
-    afterHook () {
-        console.log('execute afterHook(test, context, { error, result, duration, passed, retries })')
+    afterHook() {
+        console.log(
+            'execute afterHook(test, context, { error, result, duration, passed, retries })',
+        )
     }
-    beforeTest () {
+    beforeTest() {
         console.log('execute beforeTest(test, context)')
     }
-    beforeCommand () {
+    beforeCommand() {
         console.log('execute beforeCommand(commandName, args)')
     }
-    afterCommand () {
+    afterCommand() {
         console.log('execute afterCommand(commandName, args, result, error)')
     }
-    afterTest () {
-        console.log('execute afterTest(test, context, { error, result, duration, passed, retries })')
+    afterTest() {
+        console.log(
+            'execute afterTest(test, context, { error, result, duration, passed, retries })',
+        )
     }
-    afterSuite () {
+    afterSuite() {
         console.log('execute afterSuite(suite)')
     }
-    after () {
+    after() {
         console.log('execute after(result, capabilities, specs)')
     }
-    afterSession () {
+    afterSession() {
         console.log('execute afterSession(config, capabilities, specs)')
     }
-    onComplete () {
-        console.log('execute onComplete(exitCode, config, capabilities, results)')
+    onComplete() {
+        console.log(
+            'execute onComplete(exitCode, config, capabilities, results)',
+        )
     }
     onReload() {
         console.log('execute onReloadedSessionId, newSessionId)')
     }
-    beforeFeature () {
+    beforeFeature() {
         console.log('execute beforeFeature(uri, feature, scenarios)')
     }
-    beforeScenario () {
-        console.log('execute beforeScenario(uri, feature, scenario, sourceLocation, context)')
+    beforeScenario() {
+        console.log(
+            'execute beforeScenario(uri, feature, scenario, sourceLocation, context)',
+        )
     }
-    beforeStep () {
+    beforeStep() {
         console.log('execute beforeStep({ uri, feature, step }, context)')
     }
-    afterStep () {
-        console.log('execute afterStep({ uri, feature, step }, context, { error, result, duration, passed, retries })')
+    afterStep() {
+        console.log(
+            'execute afterStep({ uri, feature, step }, context, { error, result, duration, passed, retries })',
+        )
     }
-    afterScenario () {
-        console.log('execute afterScenario(uri, feature, scenario, result, sourceLocation, context)')
+    afterScenario() {
+        console.log(
+            'execute afterScenario(uri, feature, scenario, result, sourceLocation, context)',
+        )
     }
-    afterFeature () {
+    afterFeature() {
         console.log('execute afterFeature(uri, feature, scenarios)')
     }
 }

@@ -1,6 +1,6 @@
+import type { Capabilities } from '@wdio/types'
 import Profile from 'firefox-profile'
 import { promisify } from 'node:util'
-import type { Capabilities } from '@wdio/types'
 
 import type { FirefoxProfileOptions } from './types'
 
@@ -8,7 +8,10 @@ export default class FirefoxProfileLauncher {
     private _profile?: Profile
     constructor(private _options: FirefoxProfileOptions) {}
 
-    async onPrepare(config: never, capabilities: Capabilities.RemoteCapabilities) {
+    async onPrepare(
+        config: never,
+        capabilities: Capabilities.RemoteCapabilities,
+    ) {
         /**
          * Return if no profile options were specified
          */
@@ -17,7 +20,9 @@ export default class FirefoxProfileLauncher {
         }
 
         if (this._options.profileDirectory) {
-            this._profile = await promisify(Profile.copy)(this._options.profileDirectory)
+            this._profile = await promisify(Profile.copy)(
+                this._options.profileDirectory,
+            )
         } else {
             this._profile = new Profile()
         }
@@ -34,7 +39,9 @@ export default class FirefoxProfileLauncher {
         }
 
         // Add the extension
-        await promisify(this._profile.addExtensions.bind(this._profile))(this._options.extensions)
+        await promisify(this._profile.addExtensions.bind(this._profile))(
+            this._options.extensions,
+        )
         return this._buildExtension(capabilities)
     }
 
@@ -47,7 +54,11 @@ export default class FirefoxProfileLauncher {
         }
 
         for (const [preference, value] of Object.entries(this._options)) {
-            if (['extensions', 'proxy', 'legacy', 'profileDirectory'].includes(preference)) {
+            if (
+                ['extensions', 'proxy', 'legacy', 'profileDirectory'].includes(
+                    preference,
+                )
+            ) {
                 continue
             }
 
@@ -66,10 +77,12 @@ export default class FirefoxProfileLauncher {
             return
         }
 
-        const zippedProfile = await promisify(this._profile.encoded.bind(this._profile))()
+        const zippedProfile = await promisify(
+            this._profile.encoded.bind(this._profile),
+        )()
 
         if (Array.isArray(capabilities)) {
-            (capabilities as Capabilities.DesiredCapabilities[])
+            ;(capabilities as Capabilities.DesiredCapabilities[])
                 .filter((capability) => capability.browserName === 'firefox')
                 .forEach((capability) => {
                     this._setProfile(capability, zippedProfile)
@@ -79,7 +92,8 @@ export default class FirefoxProfileLauncher {
         }
 
         for (const browser in capabilities) {
-            const capability = capabilities[browser].capabilities as Capabilities.DesiredCapabilities
+            const capability = capabilities[browser]
+                .capabilities as Capabilities.DesiredCapabilities
 
             if (!capability || capability.browserName !== 'firefox') {
                 continue
@@ -95,7 +109,8 @@ export default class FirefoxProfileLauncher {
             capability.firefox_profile = zippedProfile
         } else {
             // for firefox >= 56.0 and geckodriver >= 0.19.0
-            capability['moz:firefoxOptions'] = capability['moz:firefoxOptions'] || {}
+            capability['moz:firefoxOptions'] =
+                capability['moz:firefoxOptions'] || {}
             capability['moz:firefoxOptions'].profile = zippedProfile
         }
     }

@@ -8,7 +8,7 @@ import type DevToolsDriver from '../devtoolsdriver'
  * @alias browser.getPageSource
  * @return {string}  the DOM of the current browsing context active document
  */
-export default function getPageSource (this: DevToolsDriver) {
+export default function getPageSource(this: DevToolsDriver) {
     const page = this.getPageHandle(true)
     return page.content()
 }

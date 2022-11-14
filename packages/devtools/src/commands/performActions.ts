@@ -1,11 +1,17 @@
-import { _keyDefinitions, KeyInput } from 'puppeteer-core/lib/cjs/puppeteer/common/USKeyboardLayout.js'
-import type { Keyboard, Mouse } from 'puppeteer-core/lib/cjs/puppeteer/common/Input.js'
+import type {
+    Keyboard,
+    Mouse,
+} from 'puppeteer-core/lib/cjs/puppeteer/common/Input.js'
+import {
+    KeyInput,
+    _keyDefinitions,
+} from 'puppeteer-core/lib/cjs/puppeteer/common/USKeyboardLayout.js'
 
+import { ELEMENT_KEY } from '../constants.js'
+import type DevToolsDriver from '../devtoolsdriver'
+import { sleep } from '../utils.js'
 import getElementRect from './getElementRect.js'
 import getWindowRect from './getWindowRect.js'
-import { ELEMENT_KEY } from '../constants.js'
-import { sleep } from '../utils.js'
-import type DevToolsDriver from '../devtoolsdriver'
 
 const KEY = 'key'
 const POINTER = 'pointer'
@@ -40,11 +46,11 @@ interface ActionsParameter {
  */
 export default async function performActions(
     this: DevToolsDriver,
-    { actions }: { actions: ActionsParameter[] }
+    { actions }: { actions: ActionsParameter[] },
 ) {
     const page = this.getPageHandle()
     const lastPointer: {
-        x?: number,
+        x?: number
         y?: number
     } = {}
 
@@ -68,8 +74,12 @@ export default async function performActions(
                     continue
                 }
 
-                const cmd = singleAction.type.slice(KEY.length).toLowerCase() as keyof Keyboard
-                const keyboardFn = (page.keyboard[cmd] as Function).bind(page.keyboard)
+                const cmd = singleAction.type
+                    .slice(KEY.length)
+                    .toLowerCase() as keyof Keyboard
+                const keyboardFn = (page.keyboard[cmd] as Function).bind(
+                    page.keyboard,
+                )
 
                 /**
                  * skip up event as we had to use sendCharacter for non unicode
@@ -84,8 +94,12 @@ export default async function performActions(
                  * for special characters like emojis 😉 we need to
                  * send in the value as text because it is not unicode
                  */
-                if (!_keyDefinitions[singleAction.value as unknown as KeyInput]) {
-                    await page.keyboard.sendCharacter(singleAction.value as unknown as KeyInput)
+                if (
+                    !_keyDefinitions[singleAction.value as unknown as KeyInput]
+                ) {
+                    await page.keyboard.sendCharacter(
+                        singleAction.value as unknown as KeyInput,
+                    )
                     skipChars.push(singleAction.value)
                     continue
                 }
@@ -97,8 +111,14 @@ export default async function performActions(
         }
 
         if (action.type === 'pointer') {
-            if (action.parameters && action.parameters.pointerType && action.parameters.pointerType !== 'mouse') {
-                throw new Error('Currently only "mouse" is supported as pointer type')
+            if (
+                action.parameters &&
+                action.parameters.pointerType &&
+                action.parameters.pointerType !== 'mouse'
+            ) {
+                throw new Error(
+                    'Currently only "mouse" is supported as pointer type',
+                )
             }
 
             /**
@@ -116,9 +136,11 @@ export default async function performActions(
                 let x = action.actions[0].x || 0
                 let y = action.actions[0].y || 0
                 if (action.actions[0].origin) {
-                    const location = await getElementRect.call(this, { elementId: action.actions[0].origin[ELEMENT_KEY] })
-                    x += location.x + (location.width / 2)
-                    y += location.y + (location.height / 2)
+                    const location = await getElementRect.call(this, {
+                        elementId: action.actions[0].origin[ELEMENT_KEY],
+                    })
+                    x += location.x + location.width / 2
+                    y += location.y + location.height / 2
                 }
 
                 await page.mouse.click(x, y, { clickCount: 2 })
@@ -131,8 +153,12 @@ export default async function performActions(
                     continue
                 }
 
-                const cmd = singleAction.type.slice(POINTER.length).toLowerCase()
-                const keyboardFn = (page.mouse[cmd as keyof Mouse] as Function).bind(page.mouse)
+                const cmd = singleAction.type
+                    .slice(POINTER.length)
+                    .toLowerCase()
+                const keyboardFn = (
+                    page.mouse[cmd as keyof Mouse] as Function
+                ).bind(page.mouse)
                 let { x, y, duration, button, origin } = singleAction
 
                 if (cmd === 'move') {
@@ -143,7 +169,8 @@ export default async function performActions(
                         typeof x === 'number' &&
                         typeof y === 'number' &&
                         origin === 'pointer' &&
-                        lastPointer.x && lastPointer.y
+                        lastPointer.x &&
+                        lastPointer.y
                     ) {
                         x += lastPointer.x
                         y += lastPointer.y
@@ -152,10 +179,17 @@ export default async function performActions(
                     /**
                      * set location relative from an element
                      */
-                    if (origin && typeof origin[ELEMENT_KEY] === 'string' && typeof x === 'number' && typeof y === 'number') {
-                        const elemRect = await getElementRect.call(this, { elementId: origin[ELEMENT_KEY] })
-                        x += elemRect.x + (elemRect.width / 2)
-                        y += elemRect.y + (elemRect.height / 2)
+                    if (
+                        origin &&
+                        typeof origin[ELEMENT_KEY] === 'string' &&
+                        typeof x === 'number' &&
+                        typeof y === 'number'
+                    ) {
+                        const elemRect = await getElementRect.call(this, {
+                            elementId: origin[ELEMENT_KEY],
+                        })
+                        x += elemRect.x + elemRect.width / 2
+                        y += elemRect.y + elemRect.height / 2
                     }
 
                     lastPointer.x = x
@@ -167,11 +201,12 @@ export default async function performActions(
                      * "left" is default button
                      * "1": middle, "2": right
                      */
-                    const pptrButton = (
-                        button === 1 ? 'middle' : (
-                            button === 2 ? 'right' : 'left'
-                        )
-                    )
+                    const pptrButton =
+                        button === 1
+                            ? 'middle'
+                            : button === 2
+                            ? 'right'
+                            : 'left'
                     await keyboardFn({ button: pptrButton })
                 }
 
@@ -190,15 +225,17 @@ export default async function performActions(
 
                 if (singleAction.origin) {
                     const windowSize = await getWindowRect.call(this)
-                    const location = await getElementRect.call(this, { elementId: singleAction.origin[ELEMENT_KEY] })
+                    const location = await getElementRect.call(this, {
+                        elementId: singleAction.origin[ELEMENT_KEY],
+                    })
                     await page.mouse.wheel({
                         deltaX: location.x + deltaX,
-                        deltaY: location.y - windowSize.height + deltaY
+                        deltaY: location.y - windowSize.height + deltaY,
                     })
                 } else if (singleAction.x || singleAction.y) {
                     await page.mouse.wheel({
                         deltaX: (singleAction.x || 0) + deltaX,
-                        deltaY: (singleAction.y || 0) + deltaY
+                        deltaY: (singleAction.y || 0) + deltaY,
                     })
                 } else {
                     await page.mouse.wheel({ deltaX, deltaY })
@@ -207,6 +244,8 @@ export default async function performActions(
             continue
         }
 
-        throw new Error(`Unknown action type ("${action.type}"), allowed are only: null, key and pointer`)
+        throw new Error(
+            `Unknown action type ("${action.type}"), allowed are only: null, key and pointer`,
+        )
     }
 }

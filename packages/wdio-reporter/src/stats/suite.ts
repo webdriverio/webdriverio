@@ -1,7 +1,7 @@
+import type { Tag } from '../types'
 import HookStats from './hook.js'
 import RunnableStats from './runnable.js'
 import TestStats from './test.js'
-import type { Tag } from '../types'
 
 export interface Suite {
     type?: string
@@ -40,7 +40,7 @@ export default class SuiteStats extends RunnableStats {
     description?: string
     rule?: string
 
-    constructor (suite: Suite) {
+    constructor(suite: Suite) {
         super(suite.type || 'suite')
         this.uid = RunnableStats.getIdentifier(suite)
         this.cid = suite.cid
@@ -48,7 +48,7 @@ export default class SuiteStats extends RunnableStats {
         this.title = suite.title
         this.fullTitle = suite.fullTitle
         this.tags = suite.tags
-        this.parent= suite.parent
+        this.parent = suite.parent
         /**
          * only Cucumber
          */

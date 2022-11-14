@@ -39,21 +39,30 @@ describe('Mocha smoke test', () => {
     it('should allow to use then/catch/finally', async () => {
         // @ts-expect-error custom command
         await browser.isExistingScenario()
-        const val = await browser.$('body').$('.selector-1').then(() => 123)
+        const val = await browser
+            .$('body')
+            .$('.selector-1')
+            .then(() => 123)
         expect(val).toBe(123)
 
         // @ts-expect-error custom command
         await browser.isExistingScenario()
         let anotherVal
-        const elem = await browser.$('body').$('.selector-1').finally(() => {
-            anotherVal = 321
-        })
+        const elem = await browser
+            .$('body')
+            .$('.selector-1')
+            .finally(() => {
+                anotherVal = 321
+            })
         expect(elem.selector).toBe('.selector-1')
         expect(anotherVal).toBe(321)
 
         // @ts-expect-error custom command
         await browser.isNotExistingScenario()
-        const errorVal = await browser.$('body').$('.fooobar').catch(() => 42)
+        const errorVal = await browser
+            .$('body')
+            .$('.fooobar')
+            .catch(() => 42)
         expect(errorVal).toBe(42)
     })
 
@@ -61,7 +70,10 @@ describe('Mocha smoke test', () => {
         browser.addLocatorStrategy('someSelector', () => global.document.body)
         // @ts-expect-error custom command
         await browser.customSelectorScenario()
-        const el = await browser.$('body').custom$('someSelector', 'foo').$('div#foobar')
+        const el = await browser
+            .$('body')
+            .custom$('someSelector', 'foo')
+            .$('div#foobar')
         expect(el.selector).toBe('div#foobar')
     })
 
@@ -71,15 +83,19 @@ describe('Mocha smoke test', () => {
         browser.addCommand(
             'foo',
             function (this: WebdriverIO.Element) {
-                return Promise.resolve('foo').then((r) => `${r}_${this.selector}_bar`)
+                return Promise.resolve('foo').then(
+                    (r) => `${r}_${this.selector}_bar`,
+                )
             },
-            true
+            true,
         )
 
         // @ts-expect-error invalid type assertion
         expect(browser.foo).not.toBeDefined()
         // @ts-expect-error invalid type assertion
-        expect(await browser.$('body').$('.selector-1').foo()).toBe('foo_.selector-1_bar')
+        expect(await browser.$('body').$('.selector-1').foo()).toBe(
+            'foo_.selector-1_bar',
+        )
     })
 
     it('should allow to reload a session', async () => {
@@ -95,7 +111,10 @@ describe('Mocha smoke test', () => {
             return results.length > 1
         })
         assert.strictEqual(result, true)
-        assert.deepEqual(results, ['https://mymockpage.com', 'https://mymockpage.com'])
+        assert.deepEqual(results, [
+            'https://mymockpage.com',
+            'https://mymockpage.com',
+        ])
     })
 
     it('should handle waitUntil timeout', async () => {
@@ -103,14 +122,20 @@ describe('Mocha smoke test', () => {
         await browser.staleElementRefetchScenario()
         const elem = await $('elem')
         try {
-            await browser.waitUntil(async () => {
-                await elem.click()
-                return false
-            }, { timeout: 1000 })
+            await browser.waitUntil(
+                async () => {
+                    await elem.click()
+                    return false
+                },
+                { timeout: 1000 },
+            )
         } catch (err) {
             // ignored
         }
-        assert.equal(JSON.stringify(await elem.getSize()), JSON.stringify({ width: 1, height: 2 }))
+        assert.equal(
+            JSON.stringify(await elem.getSize()),
+            JSON.stringify({ width: 1, height: 2 }),
+        )
     })
 
     describe('isDisplayed', () => {
@@ -136,7 +161,7 @@ describe('Mocha smoke test', () => {
             browser.addCommand('myCustomCommand', async function (param) {
                 const result = {
                     url: await browser.getUrl(),
-                    title: await browser.getTitle()
+                    title: await browser.getTitle(),
                 }
 
                 return { param, ...result }
@@ -148,8 +173,8 @@ describe('Mocha smoke test', () => {
                 JSON.stringify({
                     param: 'foobar',
                     url: 'https://mymockpage.com',
-                    title: 'Mock Page Title'
-                })
+                    title: 'Mock Page Title',
+                }),
             )
         })
 
@@ -157,10 +182,13 @@ describe('Mocha smoke test', () => {
             // @ts-expect-error custom command
             await browser.customCommandScenario()
             const elem = await $('elem')
-            elem.addCommand('myCustomCommand', async function (this: WebdriverIO.Element, param) {
-                const result = await this.getSize()
-                return { selector: this.selector, result, param }
-            })
+            elem.addCommand(
+                'myCustomCommand',
+                async function (this: WebdriverIO.Element, param) {
+                    const result = await this.getSize()
+                    return { selector: this.selector, result, param }
+                },
+            )
 
             assert.equal(
                 // @ts-expect-error custom command
@@ -168,17 +196,23 @@ describe('Mocha smoke test', () => {
                 JSON.stringify({
                     selector: 'elem',
                     result: { width: 1, height: 2 },
-                    param: 'foobar'
-                })
+                    param: 'foobar',
+                }),
             )
         })
 
         it('should keep the scope', async () => {
             // @ts-expect-error custom command
             await browser.customCommandScenario()
-            browser.addCommand('customFn', async function (this: WebdriverIO.Element, elem: WebdriverIO.Element) {
-                return (await this.execute('1+1')) + '-' + elem.selector
-            })
+            browser.addCommand(
+                'customFn',
+                async function (
+                    this: WebdriverIO.Element,
+                    elem: WebdriverIO.Element,
+                ) {
+                    return (await this.execute('1+1')) + '-' + elem.selector
+                },
+            )
 
             // @ts-expect-error custom command
             assert.equal(await browser.customFn(await $('body')), '2-body')
@@ -212,9 +246,13 @@ describe('Mocha smoke test', () => {
         it('allows to create custom commands on elements that respects promises', async () => {
             // @ts-expect-error custom command
             await browser.customCommandScenario()
-            browser.addCommand('myCustomPromiseCommand', function () {
-                return Promise.resolve('foobar')
-            }, true)
+            browser.addCommand(
+                'myCustomPromiseCommand',
+                function () {
+                    return Promise.resolve('foobar')
+                },
+                true,
+            )
             const elem = await $('elem')
 
             // @ts-expect-error custom command
@@ -226,9 +264,12 @@ describe('Mocha smoke test', () => {
         it('should allow to overwrite browser commands', async () => {
             // @ts-expect-error custom command
             await browser.customCommandScenario()
-            browser.overwriteCommand('getTitle' as any, async function (origCommand, pre = '') {
-                return pre + await origCommand()
-            })
+            browser.overwriteCommand(
+                'getTitle' as any,
+                async function (origCommand, pre = '') {
+                    return pre + (await origCommand())
+                },
+            )
 
             // @ts-expect-error custom command
             assert.equal(await browser.getTitle('Foo '), 'Foo Mock Page Title')
@@ -237,72 +278,93 @@ describe('Mocha smoke test', () => {
         it('should allow to overwrite element commands', async () => {
             // @ts-expect-error custom command
             await browser.customCommandScenario()
-            browser.overwriteCommand('getSize', (async (origCommand: Function, ratio = 1) => {
-                const { width, height } = await origCommand()
-                return { width: width * ratio, height: height * ratio }
-            }) as any, true)
+            browser.overwriteCommand(
+                'getSize',
+                (async (origCommand: Function, ratio = 1) => {
+                    const { width, height } = await origCommand()
+                    return { width: width * ratio, height: height * ratio }
+                }) as any,
+                true,
+            )
             const elem = await $('elem')
 
             assert.equal(
                 // @ts-expect-error custom command
                 JSON.stringify(await elem.getSize(2)),
-                JSON.stringify({ width: 2, height: 4 })
+                JSON.stringify({ width: 2, height: 4 }),
             )
         })
 
         it('should allow to invoke native command on different element', async () => {
             // @ts-expect-error custom command
             await browser.customCommandScenario()
-            browser.overwriteCommand('getSize', (async function (origCommand: Function, ratio = 1) {
-                const elemAlt = await $('elemAlt')
-                const { width, height } = await origCommand.call(elemAlt)
-                return { width: width * ratio, height: height * ratio }
-            }) as any, true)
+            browser.overwriteCommand(
+                'getSize',
+                async function (origCommand: Function, ratio = 1) {
+                    const elemAlt = await $('elemAlt')
+                    const { width, height } = await origCommand.call(elemAlt)
+                    return { width: width * ratio, height: height * ratio }
+                } as any,
+                true,
+            )
             const elem = await $('elem')
 
             assert.equal(
                 // @ts-expect-error custom command
                 JSON.stringify(await elem.getSize(2)),
-                JSON.stringify({ width: 20, height: 40 })
+                JSON.stringify({ width: 20, height: 40 }),
             )
         })
 
         it('should keep the scope', async () => {
             // @ts-expect-error custom command
             await browser.customCommandScenario()
-            browser.overwriteCommand('saveRecordingScreen', (async function (
+            browser.overwriteCommand('saveRecordingScreen', async function (
                 this: WebdriverIO.Browser,
                 origCommand: Function,
                 filepath: string,
-                elem: WebdriverIO.Element
+                elem: WebdriverIO.Element,
             ) {
                 if (elem) {
                     return (await this.execute('1+1')) + '-' + elem.selector
                 }
                 return origCommand(filepath)
-            }) as any)
+            } as any)
 
             // @ts-expect-error custom command
-            assert.equal(await browser.saveRecordingScreen(null, await $('body')), '2-body')
+            assert.equal(
+                await browser.saveRecordingScreen(null, await $('body')),
+                '2-body',
+            )
         })
 
         it('should respect promises - browser', async () => {
             // @ts-expect-error custom command
             await browser.customCommandScenario()
-            browser.overwriteCommand('getUrl' as any, async function (origCommand, append = '') {
-                return Promise.resolve((await origCommand()) + append)
-            })
+            browser.overwriteCommand(
+                'getUrl' as any,
+                async function (origCommand, append = '') {
+                    return Promise.resolve((await origCommand()) + append)
+                },
+            )
 
             // @ts-expect-error custom command
-            assert.equal(await browser.getUrl('/foobar'), 'https://mymockpage.com/foobar')
+            assert.equal(
+                await browser.getUrl('/foobar'),
+                'https://mymockpage.com/foobar',
+            )
         })
 
         it('should respect promises - element', async () => {
             // @ts-expect-error custom command
             await browser.customCommandScenario()
-            browser.overwriteCommand('getHTML', async function (origCommand) {
-                return Promise.resolve(await origCommand())
-            }, true)
+            browser.overwriteCommand(
+                'getHTML',
+                async function (origCommand) {
+                    return Promise.resolve(await origCommand())
+                },
+                true,
+            )
             const elem = await $('elem')
 
             assert.equal(await elem.getHTML(), '2')
@@ -311,7 +373,10 @@ describe('Mocha smoke test', () => {
         it('should throw if promise rejects', async () => {
             // @ts-expect-error custom command
             await browser.customCommandScenario()
-            browser.overwriteCommand('deleteCookies', (async (origCommand: Function, fail: boolean) => {
+            browser.overwriteCommand('deleteCookies', (async (
+                origCommand: Function,
+                fail: boolean,
+            ) => {
                 const result = await origCommand()
                 return fail ? Promise.reject(new Error(result)) : result
             }) as any)
@@ -330,10 +395,13 @@ describe('Mocha smoke test', () => {
         it('should throw if promise rejects (async execution)', async () => {
             // @ts-expect-error custom command
             await browser.customCommandScenario()
-            browser.overwriteCommand('deleteCookies', async (origCommand, fail) => {
-                const result = (await origCommand()) as any as string
-                return fail ? Promise.reject(new Error(result)) : result
-            })
+            browser.overwriteCommand(
+                'deleteCookies',
+                async (origCommand, fail) => {
+                    const result = (await origCommand()) as any as string
+                    return fail ? Promise.reject(new Error(result)) : result
+                },
+            )
 
             let err: Error | null = null
             try {

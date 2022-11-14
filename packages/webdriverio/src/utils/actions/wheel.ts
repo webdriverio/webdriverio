@@ -1,5 +1,5 @@
-import BaseAction, { BaseActionParams } from './base.js'
 import type { ChainablePromiseElement } from '../../types'
+import BaseAction, { BaseActionParams } from './base.js'
 
 export interface ScrollParams {
     /**
@@ -33,7 +33,7 @@ const DEFAULT_SCROLL_PARAMS: ScrollParams = {
     y: 0,
     deltaX: 0,
     deltaY: 0,
-    duration: 0
+    duration: 0,
 }
 
 export default class WheelAction extends BaseAction {
@@ -45,7 +45,11 @@ export default class WheelAction extends BaseAction {
      * Scrolls a page to given coordinates or origin.
      */
     scroll(params?: Partial<ScrollParams>) {
-        this.sequence.push({ type: 'scroll', ...DEFAULT_SCROLL_PARAMS, ...params })
+        this.sequence.push({
+            type: 'scroll',
+            ...DEFAULT_SCROLL_PARAMS,
+            ...params,
+        })
         return this
     }
 }

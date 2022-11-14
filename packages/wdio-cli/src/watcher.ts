@@ -1,9 +1,9 @@
-import chokidar from 'chokidar'
 import logger from '@wdio/logger'
-import pickBy from 'lodash.pickby'
-import flattenDeep from 'lodash.flattendeep'
-import union from 'lodash.union'
 import type { Capabilities, Workers } from '@wdio/types'
+import chokidar from 'chokidar'
+import flattenDeep from 'lodash.flattendeep'
+import pickBy from 'lodash.pickby'
+import union from 'lodash.union'
 
 import Launcher from './launcher.js'
 import type { RunCommandArguments, ValueKeyIteratee } from './types'
@@ -15,26 +15,33 @@ export default class Watcher {
     private _launcher: Launcher
     private _specs: Spec[]
 
-    constructor (
+    constructor(
         private _configFile: string,
-        private _args: Omit<RunCommandArguments, 'configPath'>
+        private _args: Omit<RunCommandArguments, 'configPath'>,
     ) {
         log.info('Starting launcher in watch mode')
         this._launcher = new Launcher(this._configFile, this._args, true)
 
         const specs = this._launcher.configParser.getSpecs()
-        const capSpecs = this._launcher.isMultiremote ? [] : union(flattenDeep(
-            (this._launcher.configParser.getCapabilities() as Capabilities.DesiredCapabilities[]).map(cap => cap.specs || [])
-        ))
+        const capSpecs = this._launcher.isMultiremote
+            ? []
+            : union(
+                  flattenDeep(
+                      (
+                          this._launcher.configParser.getCapabilities() as Capabilities.DesiredCapabilities[]
+                      ).map((cap) => cap.specs || []),
+                  ),
+              )
         this._specs = [...specs, ...capSpecs]
     }
 
-    async watch () {
+    async watch() {
         /**
          * listen on spec changes and rerun specific spec file
          */
         let flattenedSpecs = flattenDeep(this._specs)
-        chokidar.watch(flattenedSpecs, { ignoreInitial: true })
+        chokidar
+            .watch(flattenedSpecs, { ignoreInitial: true })
             .on('add', this.getFileListener())
             .on('change', this.getFileListener())
 
@@ -43,7 +50,8 @@ export default class Watcher {
          */
         const { filesToWatch } = this._launcher.configParser.getConfig()
         if (filesToWatch.length) {
-            chokidar.watch(filesToWatch, { ignoreInitial: true })
+            chokidar
+                .watch(filesToWatch, { ignoreInitial: true })
                 .on('add', this.getFileListener(false))
                 .on('change', this.getFileListener(false))
         }
@@ -57,16 +65,18 @@ export default class Watcher {
          * clean interface once all worker finish
          */
         const workers = this.getWorkers()
-        Object.values(workers).forEach((worker) => worker.on('exit', () => {
-            /**
-             * check if all workers have finished
-             */
-            if (Object.values(workers).find((w) => w.isBusy)) {
-                return
-            }
+        Object.values(workers).forEach((worker) =>
+            worker.on('exit', () => {
+                /**
+                 * check if all workers have finished
+                 */
+                if (Object.values(workers).find((w) => w.isBusy)) {
+                    return
+                }
 
-            this._launcher.interface?.finalise()
-        }))
+                this._launcher.interface?.finalise()
+            }),
+        )
     }
 
     /**
@@ -74,15 +84,19 @@ export default class Watcher {
      * @param  {Boolean}  [passOnFile=true]  if true pass on file change as parameter
      * @return {Function}                    chokidar event callback
      */
-    getFileListener (passOnFile = true) {
+    getFileListener(passOnFile = true) {
         return (spec: string) => {
             const runSpecs: Spec[] = []
             let singleSpecFound: boolean = false
-            for (let index = 0, length = this._specs.length; index < length; index += 1) {
+            for (
+                let index = 0, length = this._specs.length;
+                index < length;
+                index += 1
+            ) {
                 const value = this._specs[index]
                 if (Array.isArray(value) && value.indexOf(spec) > -1) {
                     runSpecs.push(value)
-                } else if ( !singleSpecFound && spec === value) {
+                } else if (!singleSpecFound && spec === value) {
                     // Only need to run a singleFile once  - so avoid duplicates
                     singleSpecFound = true
                     runSpecs.push(value)
@@ -110,9 +124,14 @@ export default class Watcher {
      * @param  includeBusyWorker don't filter out busy worker (default: false)
      * @return                   Object with workers, e.g. {'0-0': { ... }}
      */
-    getWorkers (predicate?: ValueKeyIteratee<Workers.Worker> | null | undefined, includeBusyWorker?: boolean): Workers.WorkerPool {
+    getWorkers(
+        predicate?: ValueKeyIteratee<Workers.Worker> | null | undefined,
+        includeBusyWorker?: boolean,
+    ): Workers.WorkerPool {
         if (!this._launcher.runner) {
-            throw new Error('Internal Error: no runner initialised, call run() first')
+            throw new Error(
+                'Internal Error: no runner initialised, call run() first',
+            )
         }
 
         let workers = this._launcher.runner.workerPool
@@ -135,14 +154,20 @@ export default class Watcher {
      * run workers with params
      * @param  params parameters to run the worker with
      */
-    run (params: Omit<Partial<RunCommandArguments>, 'spec'> & { spec?: Spec } = {}) {
+    run(
+        params: Omit<Partial<RunCommandArguments>, 'spec'> & {
+            spec?: Spec
+        } = {},
+    ) {
         const workers = this.getWorkers(
-            (params.spec ? (worker) => {
-                if (Array.isArray(params.spec)) {
-                    return params.spec === worker.specs
-                }
-                return worker.specs.includes(params.spec!)
-            } : undefined)
+            params.spec
+                ? (worker) => {
+                      if (Array.isArray(params.spec)) {
+                          return params.spec === worker.specs
+                      }
+                      return worker.specs.includes(params.spec!)
+                  }
+                : undefined,
         )
 
         /**
@@ -174,7 +199,7 @@ export default class Watcher {
         }
     }
 
-    cleanUp () {
+    cleanUp() {
         this._launcher.interface?.setup()
     }
 }

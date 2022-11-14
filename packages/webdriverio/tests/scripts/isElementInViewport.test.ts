@@ -1,11 +1,11 @@
-import { describe, it, expect, beforeAll, afterAll } from 'vitest'
+import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import isElementInViewport from '../../src/scripts/isElementInViewport.js'
 
 describe('isElementInViewport script', () => {
     beforeAll(() => {
         global.window = {
             innerWidth: 800,
-            innerHeight: 600
+            innerHeight: 600,
         } as any
     })
 
@@ -17,8 +17,8 @@ describe('isElementInViewport script', () => {
         global.document = {
             documentElement: {
                 clientWidth: 800,
-                clientHeight: 600
-            }
+                clientHeight: 600,
+            },
         } as any
         global.window = {} as any
         const elemMock = {
@@ -26,8 +26,8 @@ describe('isElementInViewport script', () => {
                 height: 55,
                 width: 22,
                 top: 33,
-                left: 455
-            })
+                left: 455,
+            }),
         } as any as HTMLElement
 
         expect(isElementInViewport(elemMock)).toBe(true)
@@ -46,8 +46,8 @@ describe('isElementInViewport script', () => {
                 height: 55,
                 width: 22,
                 top: 33,
-                left: 455
-            })
+                left: 455,
+            }),
         } as any as HTMLElement
 
         expect(isElementInViewport(elemMock)).toBe(true)
@@ -59,8 +59,8 @@ describe('isElementInViewport script', () => {
                 height: 55,
                 width: 22,
                 top: 601,
-                left: 455
-            })
+                left: 455,
+            }),
         } as any as HTMLElement
 
         expect(isElementInViewport(elemMock)).toBe(false)
@@ -72,8 +72,8 @@ describe('isElementInViewport script', () => {
                 height: 55,
                 width: 22,
                 top: -55,
-                left: 455
-            })
+                left: 455,
+            }),
         } as any as HTMLElement
 
         expect(isElementInViewport(elemMock)).toBe(false)
@@ -85,8 +85,8 @@ describe('isElementInViewport script', () => {
                 height: 55,
                 width: 22,
                 top: 33,
-                left: 801
-            })
+                left: 801,
+            }),
         } as any as HTMLElement
 
         expect(isElementInViewport(elemMock)).toBe(false)
@@ -98,8 +98,8 @@ describe('isElementInViewport script', () => {
                 height: 55,
                 width: 22,
                 top: 33,
-                left: -22
-            })
+                left: -22,
+            }),
         } as any as HTMLElement
 
         expect(isElementInViewport(elemMock)).toBe(false)

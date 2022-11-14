@@ -6,7 +6,7 @@ export interface ActionParameters {
     pointerType?: KeyActionType
 }
 export interface BaseActionParams {
-    id?: string,
+    id?: string
     parameters?: ActionParameters
 }
 
@@ -19,10 +19,10 @@ export default class BaseAction {
     #instance: WebdriverIO.Browser
     protected sequence: any[] = []
 
-    constructor (
+    constructor(
         protected instance: WebdriverIO.Browser,
         type: ActionType,
-        params?: BaseActionParams
+        params?: BaseActionParams,
     ) {
         this.#instance = instance
         this.#id = params?.id || `action${++actionIds}`
@@ -30,12 +30,12 @@ export default class BaseAction {
         this.#parameters = params?.parameters || {}
     }
 
-    toJSON () {
+    toJSON() {
         return {
             id: this.#id,
             type: this.#type,
             parameters: this.#parameters,
-            actions: this.sequence
+            actions: this.sequence,
         }
     }
 
@@ -43,7 +43,7 @@ export default class BaseAction {
      * Inserts a pause action for the specified device, ensuring it idles for a tick.
      * @param duration idle time of tick
      */
-    pause (duration: number) {
+    pause(duration: number) {
         this.sequence.push({ type: 'pause', duration })
         return this
     }
@@ -52,7 +52,7 @@ export default class BaseAction {
      * Perform action sequence
      * @param skipRelease set to true if `releaseActions` command should not be invoked
      */
-    async perform (skipRelease = false) {
+    async perform(skipRelease = false) {
         /**
          * transform chainable / not resolved elements into WDIO elements
          */
@@ -74,7 +74,9 @@ export default class BaseAction {
             }
 
             if (!seq.origin[ELEMENT_KEY]) {
-                throw new Error(`Couldn't find element for "${seq.type}" action sequence`)
+                throw new Error(
+                    `Couldn't find element for "${seq.type}" action sequence`,
+                )
             }
 
             seq.origin = { [ELEMENT_KEY]: seq.origin[ELEMENT_KEY] }

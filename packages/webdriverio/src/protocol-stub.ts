@@ -1,5 +1,5 @@
-import { capabilitiesEnvironmentDetector } from '@wdio/utils'
 import type { Capabilities, Options } from '@wdio/types'
+import { capabilitiesEnvironmentDetector } from '@wdio/utils'
 import type { AttachOptions } from 'webdriver'
 
 /**
@@ -12,14 +12,18 @@ const WARN_ON_COMMANDS = ['addCommand', 'overwriteCommand']
  * so that Mocha/Jasmine users can filter their specs based on flags or use capabilities in test titles
  */
 export default class ProtocolStub {
-    static async newSession (options: Options.WebDriver) {
+    static async newSession(options: Options.WebDriver) {
         const capabilities = emulateSessionCapabilities(
-            (options.capabilities || {}) as unknown as Capabilities.DesiredCapabilities
+            (options.capabilities ||
+                {}) as unknown as Capabilities.DesiredCapabilities,
         )
 
         const browser = addCommands({
             capabilities,
-            ...capabilitiesEnvironmentDetector(capabilities, (options as any)._automationProtocol || 'webdriver')
+            ...capabilitiesEnvironmentDetector(
+                capabilities,
+                (options as any)._automationProtocol || 'webdriver',
+            ),
         })
 
         browser.options = options
@@ -30,13 +34,15 @@ export default class ProtocolStub {
      * added just in case user wants to somehow reload webdriver or devtools session
      * before it was started.
      */
-    static reloadSession () {
-        throw new Error('Protocol Stub: Make sure to start webdriver or devtools session before reloading it.')
+    static reloadSession() {
+        throw new Error(
+            'Protocol Stub: Make sure to start webdriver or devtools session before reloading it.',
+        )
     }
 
-    static attachToSession (
+    static attachToSession(
         options: AttachOptions,
-        modifier?: (...args: any[]) => any
+        modifier?: (...args: any[]) => any,
     ) {
         if (options || !modifier) {
             return ProtocolStub.newSession(options as any)
@@ -45,9 +51,11 @@ export default class ProtocolStub {
         /**
          * MultiRemote
          */
-        return addCommands(modifier({
-            commandList: []
-        }))
+        return addCommands(
+            modifier({
+                commandList: [],
+            }),
+        )
     }
 }
 
@@ -56,7 +64,7 @@ export default class ProtocolStub {
  * before session is started
  * @param {object} browser
  */
-function addCommands (browser: Record<string, any>) {
+function addCommands(browser: Record<string, any>) {
     WARN_ON_COMMANDS.forEach((commandName) => {
         browser[commandName] = commandNotAvailable(commandName)
     })
@@ -69,7 +77,7 @@ function addCommands (browser: Record<string, any>) {
  * @param   {object} caps user defined capabilities
  * @return  {object}
  */
-function emulateSessionCapabilities (caps: Capabilities.DesiredCapabilities) {
+function emulateSessionCapabilities(caps: Capabilities.DesiredCapabilities) {
     const capabilities: Record<string, any> = {}
 
     // remove appium vendor prefix from capabilities
@@ -90,6 +98,10 @@ function emulateSessionCapabilities (caps: Capabilities.DesiredCapabilities) {
  * warn user to avoid usage of command before browser session is started.
  * @param {string} commandName
  */
-function commandNotAvailable (commandName: string) {
-    return () => { throw new Error(`Unable to use '${commandName}' before browser session is started.`) }
+function commandNotAvailable(commandName: string) {
+    return () => {
+        throw new Error(
+            `Unable to use '${commandName}' before browser session is started.`,
+        )
+    }
 }

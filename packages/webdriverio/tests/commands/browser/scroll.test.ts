@@ -1,11 +1,14 @@
 import path from 'node:path'
-import { describe, it, expect, beforeAll, vi, beforeEach } from 'vitest'
+import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
 // @ts-expect-error
 import got from 'got'
 import { remote } from '../../../src/index.js'
 
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock(
+    '@wdio/logger',
+    () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')),
+)
 vi.mock('got')
 
 describe('action command', () => {
@@ -15,8 +18,8 @@ describe('action command', () => {
         browser = await remote({
             baseUrl: 'http://foobar.com',
             capabilities: {
-                browserName: 'foobar'
-            }
+                browserName: 'foobar',
+            },
         })
     })
 
@@ -32,7 +35,7 @@ describe('action command', () => {
 
         const [
             [performActionUrl, performActionParam],
-            [releaseActionUrl, releaseActionParam]
+            [releaseActionUrl, releaseActionParam],
         ] = calls as any
         expect(performActionUrl.pathname).toBe('/session/foobar-123/actions')
         expect(releaseActionUrl.pathname).toBe('/session/foobar-123/actions')

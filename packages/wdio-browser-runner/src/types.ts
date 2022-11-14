@@ -1,5 +1,5 @@
+import type { Capabilities, Workers } from '@wdio/types'
 import type { InlineConfig } from 'vite'
-import type { Workers, Capabilities } from '@wdio/types'
 
 declare global {
     interface Window {

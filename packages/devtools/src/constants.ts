@@ -49,28 +49,45 @@ export const DEFAULT_FLAGS = [
      * `site-per-process` affects `page.frames()`, see #4471
      * `TranslateUI` disables built-in Google Translate service
      */
-    '--disable-features=site-per-process,TranslateUI,BlinkGenPropertyTrees'
+    '--disable-features=site-per-process,TranslateUI,BlinkGenPropertyTrees',
 ]
 
-export const CHROME_NAMES = ['chrome', 'googlechrome', 'headlesschrome', 'google-chrome', 'chromium']
-export const FIREFOX_NAMES = ['firefox', 'ff', 'mozilla', 'mozillafirefox', 'headless firefox', 'headlessfirefox']
+export const CHROME_NAMES = [
+    'chrome',
+    'googlechrome',
+    'headlesschrome',
+    'google-chrome',
+    'chromium',
+]
+export const FIREFOX_NAMES = [
+    'firefox',
+    'ff',
+    'mozilla',
+    'mozillafirefox',
+    'headless firefox',
+    'headlessfirefox',
+]
 export const EDGE_NAMES = ['edge', 'msedge', 'microsoft-edge', 'microsoftedge']
-export const SUPPORTED_BROWSER = [...CHROME_NAMES, ...FIREFOX_NAMES, ...EDGE_NAMES]
+export const SUPPORTED_BROWSER = [
+    ...CHROME_NAMES,
+    ...FIREFOX_NAMES,
+    ...EDGE_NAMES,
+]
 
 export const BROWSER_TYPE: {
-    chrome: 'chrome',
-    firefox: 'firefox',
+    chrome: 'chrome'
+    firefox: 'firefox'
     edge: 'edge'
 } = {
     chrome: 'chrome',
     firefox: 'firefox',
-    edge: 'edge'
+    edge: 'edge',
 }
 
 export const DEFAULTS: Options.Definition<Options.WebDriver> = {
     capabilities: {
         type: 'object',
-        required: true
+        required: true,
     },
     /**
      * Level of logging verbosity
@@ -78,28 +95,35 @@ export const DEFAULTS: Options.Definition<Options.WebDriver> = {
     logLevel: {
         type: 'string',
         default: 'info',
-        match: /(trace|debug|info|warn|error|silent)/
+        match: /(trace|debug|info|warn|error|silent)/,
     },
     /**
      * directory for log files
      */
     outputDir: {
-        type: 'string'
+        type: 'string',
     },
     /**
      * maxConnectionRetries in chrome-launcher
      */
     connectionRetryCount: {
         type: 'number',
-        default: 50
-    }
+        default: 50,
+    },
 }
 
 export const DEFAULT_IMPLICIT_TIMEOUT = 0
 export const DEFAULT_PAGELOAD_TIMEOUT = 5 * 60 * 1000 // 5 min
 export const DEFAULT_SCRIPT_TIMEOUT = 30 * 1000 // 30s
 
-export const SUPPORTED_SELECTOR_STRATEGIES = ['css selector', 'tag name', 'xpath', 'link text', 'partial link text', 'shadow']
+export const SUPPORTED_SELECTOR_STRATEGIES = [
+    'css selector',
+    'tag name',
+    'xpath',
+    'link text',
+    'partial link text',
+    'shadow',
+]
 export const SERIALIZE_PROPERTY = 'data-devtoolsdriver-fetchedElement'
 export const SERIALIZE_FLAG = '__executeElement'
 
@@ -108,18 +132,19 @@ export const PPTR_LOG_PREFIX = 'puppeteer:protocol'
 export const ERROR_MESSAGES = {
     staleElement: {
         name: 'stale element reference',
-        message: 'stale element reference: The element reference is stale; either the element is no longer attached to the DOM, it is not in the current frame context, or the document has been refreshed'
-    }
+        message:
+            'stale element reference: The element reference is stale; either the element is no longer attached to the DOM, it is not in the current frame context, or the document has been refreshed',
+    },
 }
 
 export const VENDOR_PREFIX: {
-    chrome: 'goog:chromeOptions',
-    'chrome headless': 'goog:chromeOptions',
-    firefox: 'moz:firefoxOptions',
+    chrome: 'goog:chromeOptions'
+    'chrome headless': 'goog:chromeOptions'
+    firefox: 'moz:firefoxOptions'
     edge: 'ms:edgeOptions'
 } = {
     chrome: 'goog:chromeOptions',
     'chrome headless': 'goog:chromeOptions',
     firefox: 'moz:firefoxOptions',
-    edge: 'ms:edgeOptions'
+    edge: 'ms:edgeOptions',
 }

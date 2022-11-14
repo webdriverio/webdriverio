@@ -1,7 +1,7 @@
+import { SERIALIZE_FLAG, SERIALIZE_PROPERTY } from '../constants.js'
+import type DevToolsDriver from '../devtoolsdriver'
 import command from '../scripts/executeScript.js'
 import { transformExecuteArgs, transformExecuteResult } from '../utils.js'
-import { SERIALIZE_PROPERTY, SERIALIZE_FLAG } from '../constants.js'
-import type DevToolsDriver from '../devtoolsdriver'
 
 /**
  * The Execute Script command executes a JavaScript function in the context of the
@@ -13,9 +13,9 @@ import type DevToolsDriver from '../devtoolsdriver'
  * @param {*[]}    args    an array of JSON values which will be deserialized and passed as arguments to your function
  * @return *               Either the return value of your script, the fulfillment of the Promise returned by your script, or the error which was the reason for your script's returned Promise's rejection.
  */
-export default async function executeScript (
+export default async function executeScript(
     this: DevToolsDriver,
-    { script, args }: { script: string, args: any[] }
+    { script, args }: { script: string; args: any[] },
 ) {
     const page = this.getPageHandle(true)
     const scriptTimeout = this.timeouts.get('script')
@@ -35,7 +35,7 @@ export default async function executeScript (
         script,
         SERIALIZE_PROPERTY,
         SERIALIZE_FLAG,
-        ...(await transformExecuteArgs.call(this, args))
+        ...(await transformExecuteArgs.call(this, args)),
     )
 
     let executeTimeout: undefined | ReturnType<typeof setTimeout>
@@ -51,9 +51,11 @@ export default async function executeScript (
         }, scriptTimeout)
     })
 
-    const result = await Promise.race([executePromise, timeoutPromise]).finally(() => {
-        clearTimeout(executeTimeout)
-    })
+    const result = await Promise.race([executePromise, timeoutPromise]).finally(
+        () => {
+            clearTimeout(executeTimeout)
+        },
+    )
 
     return transformExecuteResult.call(this, page, result)
 }

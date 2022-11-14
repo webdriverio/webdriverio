@@ -1,25 +1,43 @@
-import path from 'node:path'
-import { expect, test, vi, beforeEach } from 'vitest'
 import type { Capabilities } from '@wdio/types'
-import launch from '../src/launcher.js'
+import path from 'node:path'
+import { beforeEach, expect, test, vi } from 'vitest'
 import DevTools from '../src/index.js'
+import launch from '../src/launcher.js'
 
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock(
+    '@wdio/logger',
+    () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')),
+)
 vi.mock('../src/launcher', () => ({
     default: vi.fn().mockImplementation((capabilities) => {
-        capabilities['goog:chromeOptions'] = capabilities['goog:chromeOptions'] || {}
+        capabilities['goog:chromeOptions'] =
+            capabilities['goog:chromeOptions'] || {}
         return {
             on: vi.fn(),
             off: vi.fn(),
-            pages: vi.fn().mockReturnValue(Promise.resolve([{
-                on: vi.fn(),
-                off: vi.fn(),
-                setDefaultTimeout: vi.fn()
-            }])),
-            wsEndpoint: vi.fn().mockReturnValue('ws://localhost:49375/devtools/browser/c4b017ea-f476-4026-a699-bc5d4858cfe1'),
-            userAgent: vi.fn().mockReturnValue(Promise.resolve('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.149 Safari/537.36'))
+            pages: vi.fn().mockReturnValue(
+                Promise.resolve([
+                    {
+                        on: vi.fn(),
+                        off: vi.fn(),
+                        setDefaultTimeout: vi.fn(),
+                    },
+                ]),
+            ),
+            wsEndpoint: vi
+                .fn()
+                .mockReturnValue(
+                    'ws://localhost:49375/devtools/browser/c4b017ea-f476-4026-a699-bc5d4858cfe1',
+                ),
+            userAgent: vi
+                .fn()
+                .mockReturnValue(
+                    Promise.resolve(
+                        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.149 Safari/537.36',
+                    ),
+                ),
         }
-    })
+    }),
 }))
 
 beforeEach(() => {
@@ -30,15 +48,17 @@ test('newSession', async () => {
     const client: any = await DevTools.newSession({
         logLevel: 'trace',
         capabilities: {
-            browserName: 'chrome'
-        }
+            browserName: 'chrome',
+        },
     })
 
     /**
      * don't include platform specific information in snapshot
      */
-    delete (client.options.capabilities as Capabilities.DesiredCapabilities).platformName
-    delete (client.options.capabilities as Capabilities.DesiredCapabilities).platformVersion
+    delete (client.options.capabilities as Capabilities.DesiredCapabilities)
+        .platformName
+    delete (client.options.capabilities as Capabilities.DesiredCapabilities)
+        .platformVersion
 
     expect(client.options.capabilities).toMatchSnapshot()
     expect(client.options.requestedCapabilities).toMatchSnapshot()
@@ -52,8 +72,8 @@ test('reloadSession', async () => {
     const client = await DevTools.newSession({
         logLevel: 'trace',
         capabilities: {
-            browserName: 'chrome'
-        }
+            browserName: 'chrome',
+        },
     })
     const origSessionId = client.sessionId
     const newClient = await DevTools.reloadSession(client)
@@ -64,16 +84,20 @@ test('attachSession', async () => {
     const client: any = await DevTools.newSession({
         logLevel: 'trace',
         capabilities: {
-            browserName: 'chrome'
-        }
+            browserName: 'chrome',
+        },
     })
     const otherClient: any = await DevTools.attachToSession(client)
 
     /**
      * don't include platform specific information in snapshot
      */
-    delete (otherClient.options.capabilities as Capabilities.DesiredCapabilities).platformName
-    delete (otherClient.options.capabilities as Capabilities.DesiredCapabilities).platformVersion
+    delete (
+        otherClient.options.capabilities as Capabilities.DesiredCapabilities
+    ).platformName
+    delete (
+        otherClient.options.capabilities as Capabilities.DesiredCapabilities
+    ).platformVersion
 
     expect(otherClient.capabilities).toMatchSnapshot()
     expect(otherClient.requestedCapabilities).toMatchSnapshot()

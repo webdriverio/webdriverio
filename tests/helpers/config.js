@@ -7,9 +7,11 @@ export const config = {
     /**
      * capabilities
      */
-    capabilities: [{
-        browserName: 'chrome'
-    }],
+    capabilities: [
+        {
+            browserName: 'chrome',
+        },
+    ],
 
     /**
      * test configurations
@@ -25,19 +27,19 @@ export const config = {
         ui: 'bdd',
         timeout: 10000,
         grep: 'SKIPPED_GREP',
-        invert: true
+        invert: true,
     },
 
     jasmineOpts: {
         defaultTimeoutInterval: 1000 * 60 * 3,
         grep: 'SKIPPED_GREP',
         invertGrep: true,
-        require: ['ts-node/esm']
+        require: ['ts-node/esm'],
     },
 
     cucumberOpts: {
         timeout: 5000,
         requireModule: ['ts-node/esm'],
-        require: ['./tests/cucumber/step-definitions/*.js']
-    }
+        require: ['./tests/cucumber/step-definitions/*.js'],
+    },
 }

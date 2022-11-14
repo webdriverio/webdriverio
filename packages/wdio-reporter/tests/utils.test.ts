@@ -1,52 +1,68 @@
-import { describe, expect, vi, it, afterAll } from 'vitest'
+import { afterAll, describe, expect, it, vi } from 'vitest'
 
 import supportsColor from 'supports-color'
-import { sanitizeString, sanitizeCaps, pad, color, colorLines } from '../src/utils.js'
+import {
+    color,
+    colorLines,
+    pad,
+    sanitizeCaps,
+    sanitizeString,
+} from '../src/utils.js'
 
 vi.mock('supports-color', () => {
     return {
-        default: new Proxy({
-            stdout: false
-        }, {
-            get: (ctx, prop) => {
-                if (prop === 'stdout') {
-                    return ctx.stdout
-                }
-                if (prop === 'set') {
-                    return (val: boolean) => {
-                        ctx.stdout = val
+        default: new Proxy(
+            {
+                stdout: false,
+            },
+            {
+                get: (ctx, prop) => {
+                    if (prop === 'stdout') {
+                        return ctx.stdout
                     }
-                }
-            }
-        })
+                    if (prop === 'set') {
+                        return (val: boolean) => {
+                            ctx.stdout = val
+                        }
+                    }
+                },
+            },
+        ),
     }
 })
 
 describe('utils', () => {
     it('sanitizeString', () => {
-        expect(sanitizeString('Chrome v64 Windows XP my-awesome.app'))
-            .toBe('chromev64windowsxpmy-awesome_app')
+        expect(sanitizeString('Chrome v64 Windows XP my-awesome.app')).toBe(
+            'chromev64windowsxpmy-awesome_app',
+        )
     })
 
     it('sanitizeCaps', () => {
         expect(sanitizeCaps()).toBe('')
-        expect(sanitizeCaps({
-            browserName: 'chrome',
-            platform: 'Windows 10',
-            version: 'latest',
-            app: 'my-awesome.app'
-        })).toBe('chrome.latest.windows10.my-awesome_app')
-        expect(sanitizeCaps({
-            browserName: 'chrome',
-            platformName: 'Windows 10',
-            browserVersion: 'latest'
-        })).toBe('chrome.latest.windows10')
-        expect(sanitizeCaps({
-            deviceName: 'Android Emulator',
-            platformName: 'Android',
-            platformVersion: '6.4',
-            app: 'my-awesome.apk'
-        })).toBe('androidemulator.android.6_4.my-awesome_apk')
+        expect(
+            sanitizeCaps({
+                browserName: 'chrome',
+                platform: 'Windows 10',
+                version: 'latest',
+                app: 'my-awesome.app',
+            }),
+        ).toBe('chrome.latest.windows10.my-awesome_app')
+        expect(
+            sanitizeCaps({
+                browserName: 'chrome',
+                platformName: 'Windows 10',
+                browserVersion: 'latest',
+            }),
+        ).toBe('chrome.latest.windows10')
+        expect(
+            sanitizeCaps({
+                deviceName: 'Android Emulator',
+                platformName: 'Android',
+                platformVersion: '6.4',
+                app: 'my-awesome.apk',
+            }),
+        ).toBe('androidemulator.android.6_4.my-awesome_apk')
     })
 
     it('pad', () => {

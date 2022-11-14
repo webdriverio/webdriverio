@@ -1,6 +1,6 @@
-import type { Capabilities, Frameworks } from '@wdio/types'
-import type { Pickle, PickleStep, TestStep, Feature } from '@cucumber/messages'
 import type { ITestCaseHookParameter } from '@cucumber/cucumber/lib/support_code_library_builder/types'
+import type { Feature, Pickle, PickleStep, TestStep } from '@cucumber/messages'
+import type { Capabilities, Frameworks } from '@wdio/types'
 
 export interface CucumberOptions {
     /**
@@ -38,7 +38,7 @@ export interface CucumberOptions {
      * Only execute the scenarios with name matching the expression (repeatable).
      * @default []
      */
-    names?: (string|RegExp)[]
+    names?: (string | RegExp)[]
     /**
      * Require files containing your step definitions before executing features.
      * You can also specify a glob to your step definitions.
@@ -119,16 +119,16 @@ export interface ReporterOptions {
 }
 
 export interface TestHookDefinitionConfig {
-    code: Function;
-    line: number;
-    options: any;
-    uri: string;
+    code: Function
+    line: number
+    options: any
+    uri: string
 }
 
 export interface HookParams {
-    uri?: string | null,
-    feature?: Feature | null,
-    scenario?: Pickle,
+    uri?: string | null
+    feature?: Feature | null
+    scenario?: Pickle
     step?: PickleStep | TestStep
 }
 
@@ -143,7 +143,7 @@ export interface HookFunctionExtension {
      * @param uri      path to feature file
      * @param feature  Cucumber feature object
      */
-    beforeFeature?(uri: string, feature: Feature): void;
+    beforeFeature?(uri: string, feature: Feature): void
 
     /**
      *
@@ -151,7 +151,7 @@ export interface HookFunctionExtension {
      * @param world     world object containing information on pickle and test step
      * @param context   Cucumber World object
      */
-    beforeScenario?(world: ITestCaseHookParameter, context: Object): void;
+    beforeScenario?(world: ITestCaseHookParameter, context: Object): void
 
     /**
      *
@@ -160,7 +160,7 @@ export interface HookFunctionExtension {
      * @param scenario scenario data
      * @param context  Cucumber World object
      */
-    beforeStep?(step: PickleStep, scenario: Pickle, context: Object): void;
+    beforeStep?(step: PickleStep, scenario: Pickle, context: Object): void
 
     /**
      *
@@ -173,7 +173,12 @@ export interface HookFunctionExtension {
      * @param result.duration duration of scenario in milliseconds
      * @param context         Cucumber World object
      */
-    afterStep?(step: PickleStep, scenario: Pickle, result: Frameworks.PickleResult, context: Object): void;
+    afterStep?(
+        step: PickleStep,
+        scenario: Pickle,
+        result: Frameworks.PickleResult,
+        context: Object,
+    ): void
 
     /**
      *
@@ -185,7 +190,11 @@ export interface HookFunctionExtension {
      * @param result.duration   duration of scenario in milliseconds
      * @param context           Cucumber World object
      */
-    afterScenario?(world: ITestCaseHookParameter, result: Frameworks.PickleResult, context: Object): void;
+    afterScenario?(
+        world: ITestCaseHookParameter,
+        result: Frameworks.PickleResult,
+        context: Object,
+    ): void
 
     /**
      *
@@ -193,5 +202,5 @@ export interface HookFunctionExtension {
      * @param uri      path to feature file
      * @param feature  Cucumber feature object
      */
-    afterFeature?(uri: string, feature: Feature): void;
+    afterFeature?(uri: string, feature: Feature): void
 }

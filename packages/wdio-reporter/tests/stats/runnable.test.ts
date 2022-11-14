@@ -1,4 +1,4 @@
-import { describe, beforeEach, it, afterEach, expect, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import TestStats from '../../src/stats/test.js'
 
 describe('RunnableStats', () => {
@@ -16,7 +16,11 @@ describe('RunnableStats', () => {
             cid: '0-0',
             specs: ['/path/to/test/specs/sync.spec.js'],
             uid: 'should can do something3',
-            argument: { rows: [{ location: { column: 1, line: 1 }, value: 'hallo' } as any] }
+            argument: {
+                rows: [
+                    { location: { column: 1, line: 1 }, value: 'hallo' } as any,
+                ],
+            },
         })
     })
 
@@ -33,7 +37,7 @@ describe('RunnableStats', () => {
     it('complete', () => {
         stat.start = { getTime: vi.fn().mockReturnValue(3) } as any
         global.Date = vi.fn().mockReturnValue({
-            getTime: () => 45
+            getTime: () => 45,
         }) as any
         stat.complete()
 
@@ -43,7 +47,7 @@ describe('RunnableStats', () => {
     it('duration', () => {
         stat.start = { getTime: vi.fn().mockReturnValue(3) } as any
         global.Date = vi.fn().mockReturnValue({
-            getTime: () => 45
+            getTime: () => 45,
         }) as any
         expect(stat.duration).toBe(42)
     })

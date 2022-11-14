@@ -1,5 +1,5 @@
 import fs from 'node:fs'
-import { describe, it, expect, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { findStrategy } from '../src/utils/findStrategy.js'
 
 vi.mock('fs')
@@ -36,9 +36,11 @@ describe('selector strategies helper', () => {
     })
 
     it('should find an element using "name" method with an attribute', () => {
-        const element = findStrategy('[name="searchinput[@isDisplayed=\'true\']"]')
+        const element = findStrategy(
+            '[name="searchinput[@isDisplayed=\'true\']"]',
+        )
         expect(element.using).toBe('name')
-        expect(element.value).toBe('searchinput[@isDisplayed=\'true\']')
+        expect(element.value).toBe("searchinput[@isDisplayed='true']")
     })
 
     it('should find an element using "name" method by "name" strategy if isMobile is used even when w3c is used', () => {
@@ -93,9 +95,13 @@ describe('selector strategies helper', () => {
     })
 
     it('should find an element by tag name + content', () => {
-        const element = findStrategy('div=some random text with "§$%&/()div=or others')
+        const element = findStrategy(
+            'div=some random text with "§$%&/()div=or others',
+        )
         expect(element.using).toBe('xpath')
-        expect(element.value).toBe('.//div[normalize-space() = "some random text with "§$%&/()div=or others"]')
+        expect(element.value).toBe(
+            './/div[normalize-space() = "some random text with "§$%&/()div=or others"]',
+        )
     })
 
     it('should find an element by tag name + id + similar content', () => {
@@ -105,99 +111,161 @@ describe('selector strategies helper', () => {
     })
 
     it('should find an element by tag name + similar content', () => {
-        const element = findStrategy('div*=some random text with "§$%&/()div=or others')
+        const element = findStrategy(
+            'div*=some random text with "§$%&/()div=or others',
+        )
         expect(element.using).toBe('xpath')
-        expect(element.value).toBe('.//div[contains(., "some random text with "§$%&/()div=or others")]')
+        expect(element.value).toBe(
+            './/div[contains(., "some random text with "§$%&/()div=or others")]',
+        )
     })
 
     it('should find an element by tag name + class + content', () => {
-        const element = findStrategy('div.some-class=some random text with "§$%&/()div=or others')
+        const element = findStrategy(
+            'div.some-class=some random text with "§$%&/()div=or others',
+        )
         expect(element.using).toBe('xpath')
-        expect(element.value).toBe('.//div[contains(@class, "some-class") and normalize-space() = "some random text with "§$%&/()div=or others"]')
+        expect(element.value).toBe(
+            './/div[contains(@class, "some-class") and normalize-space() = "some random text with "§$%&/()div=or others"]',
+        )
     })
 
     it('should find an element class + content', () => {
-        const element = findStrategy('.some-class=some random text with "§$%&/()div=or others')
+        const element = findStrategy(
+            '.some-class=some random text with "§$%&/()div=or others',
+        )
         expect(element.using).toBe('xpath')
-        expect(element.value).toBe('.//*[contains(@class, "some-class") and normalize-space() = "some random text with "§$%&/()div=or others"]')
+        expect(element.value).toBe(
+            './/*[contains(@class, "some-class") and normalize-space() = "some random text with "§$%&/()div=or others"]',
+        )
     })
 
     it('should find an element by tag name + class + similar content', () => {
-        const element = findStrategy('div.some-class*=some random text with "§$%&/()div=or others')
+        const element = findStrategy(
+            'div.some-class*=some random text with "§$%&/()div=or others',
+        )
         expect(element.using).toBe('xpath')
-        expect(element.value).toBe('.//div[contains(@class, "some-class") and contains(., "some random text with "§$%&/()div=or others")]')
+        expect(element.value).toBe(
+            './/div[contains(@class, "some-class") and contains(., "some random text with "§$%&/()div=or others")]',
+        )
     })
 
     it('should find an element by class + similar content', () => {
-        const element = findStrategy('.some-class*=some random text with "§$%&/()div=or others')
+        const element = findStrategy(
+            '.some-class*=some random text with "§$%&/()div=or others',
+        )
         expect(element.using).toBe('xpath')
-        expect(element.value).toBe('.//*[contains(@class, "some-class") and contains(., "some random text with "§$%&/()div=or others")]')
+        expect(element.value).toBe(
+            './/*[contains(@class, "some-class") and contains(., "some random text with "§$%&/()div=or others")]',
+        )
     })
 
     it('should find an element by tag name + id + content', () => {
-        const element = findStrategy('div#some-class=some random text with "§$%&/()div=or others')
+        const element = findStrategy(
+            'div#some-class=some random text with "§$%&/()div=or others',
+        )
         expect(element.using).toBe('xpath')
-        expect(element.value).toBe('.//div[contains(@id, "some-class") and normalize-space() = "some random text with "§$%&/()div=or others"]')
+        expect(element.value).toBe(
+            './/div[contains(@id, "some-class") and normalize-space() = "some random text with "§$%&/()div=or others"]',
+        )
     })
 
     it('should find an element by id + content', () => {
-        const element = findStrategy('#some-class=some random text with "§$%&/()div=or others')
+        const element = findStrategy(
+            '#some-class=some random text with "§$%&/()div=or others',
+        )
         expect(element.using).toBe('xpath')
-        expect(element.value).toBe('.//*[contains(@id, "some-class") and normalize-space() = "some random text with "§$%&/()div=or others"]')
+        expect(element.value).toBe(
+            './/*[contains(@id, "some-class") and normalize-space() = "some random text with "§$%&/()div=or others"]',
+        )
     })
 
     it('should find an element by tag name + id + similar content', () => {
-        const element = findStrategy('div#some-id*=some random text with "§$%&/()div=or others')
+        const element = findStrategy(
+            'div#some-id*=some random text with "§$%&/()div=or others',
+        )
         expect(element.using).toBe('xpath')
-        expect(element.value).toBe('.//div[contains(@id, "some-id") and contains(., "some random text with "§$%&/()div=or others")]')
+        expect(element.value).toBe(
+            './/div[contains(@id, "some-id") and contains(., "some random text with "§$%&/()div=or others")]',
+        )
     })
 
     it('should find an element by id + similar content', () => {
-        const element = findStrategy('#some-id*=some random text with "§$%&/()div=or others')
+        const element = findStrategy(
+            '#some-id*=some random text with "§$%&/()div=or others',
+        )
         expect(element.using).toBe('xpath')
-        expect(element.value).toBe('.//*[contains(@id, "some-id") and contains(., "some random text with "§$%&/()div=or others")]')
+        expect(element.value).toBe(
+            './/*[contains(@id, "some-id") and contains(., "some random text with "§$%&/()div=or others")]',
+        )
     })
 
     it('should find an element by id + similar content see #1494', () => {
         const element = findStrategy('#What-is-WebdriverIO*=What')
         expect(element.using).toBe('xpath')
-        expect(element.value).toBe('.//*[contains(@id, "What-is-WebdriverIO") and contains(., "What")]')
+        expect(element.value).toBe(
+            './/*[contains(@id, "What-is-WebdriverIO") and contains(., "What")]',
+        )
     })
 
     it('should find an element by tag name + attribute + content', () => {
-        const element = findStrategy('div[some-attribute="some-value"]=some random text with "§$%&/()div=or others')
+        const element = findStrategy(
+            'div[some-attribute="some-value"]=some random text with "§$%&/()div=or others',
+        )
         expect(element.using).toBe('xpath')
-        expect(element.value).toBe('.//div[contains(@some-attribute, "some-value") and normalize-space() = "some random text with "§$%&/()div=or others"]')
+        expect(element.value).toBe(
+            './/div[contains(@some-attribute, "some-value") and normalize-space() = "some random text with "§$%&/()div=or others"]',
+        )
     })
 
     it('should find an element by attribute + content', () => {
-        const element = findStrategy('[some-attribute="some-value"]=some random text with "§$%&/()div=or others')
+        const element = findStrategy(
+            '[some-attribute="some-value"]=some random text with "§$%&/()div=or others',
+        )
         expect(element.using).toBe('xpath')
-        expect(element.value).toBe('.//*[contains(@some-attribute, "some-value") and normalize-space() = "some random text with "§$%&/()div=or others"]')
+        expect(element.value).toBe(
+            './/*[contains(@some-attribute, "some-value") and normalize-space() = "some random text with "§$%&/()div=or others"]',
+        )
     })
 
     it('should find an element by attribute existence + content', () => {
-        const element = findStrategy('[some-attribute]=some random text with "§$%&/()div=or others')
+        const element = findStrategy(
+            '[some-attribute]=some random text with "§$%&/()div=or others',
+        )
         expect(element.using).toBe('xpath')
-        expect(element.value).toBe('.//*[@some-attribute and normalize-space() = "some random text with "§$%&/()div=or others"]')
+        expect(element.value).toBe(
+            './/*[@some-attribute and normalize-space() = "some random text with "§$%&/()div=or others"]',
+        )
     })
 
     it('should find an element by tag name + attribute + similar content', () => {
-        const element = findStrategy('div[some-attribute="some-value"]*=some random text with "§$%&/()div=or others')
+        const element = findStrategy(
+            'div[some-attribute="some-value"]*=some random text with "§$%&/()div=or others',
+        )
         expect(element.using).toBe('xpath')
-        expect(element.value).toBe('.//div[contains(@some-attribute, "some-value") and contains(., "some random text with "§$%&/()div=or others")]')
+        expect(element.value).toBe(
+            './/div[contains(@some-attribute, "some-value") and contains(., "some random text with "§$%&/()div=or others")]',
+        )
     })
 
     it('should find an element by attribute + similar content', () => {
-        const element = findStrategy('[some-attribute="some-value"]*=some random text with "§$%&/()div=or others')
+        const element = findStrategy(
+            '[some-attribute="some-value"]*=some random text with "§$%&/()div=or others',
+        )
         expect(element.using).toBe('xpath')
-        expect(element.value).toBe('.//*[contains(@some-attribute, "some-value") and contains(., "some random text with "§$%&/()div=or others")]')
+        expect(element.value).toBe(
+            './/*[contains(@some-attribute, "some-value") and contains(., "some random text with "§$%&/()div=or others")]',
+        )
     })
 
     it('should find an custom element by tag name + content', () => {
-        const element = findStrategy('custom-element-with-multiple-dashes=some random text with "§$%&/()div=or others')
+        const element = findStrategy(
+            'custom-element-with-multiple-dashes=some random text with "§$%&/()div=or others',
+        )
         expect(element.using).toBe('xpath')
-        expect(element.value).toBe('.//custom-element-with-multiple-dashes[normalize-space() = "some random text with "§$%&/()div=or others"]')
+        expect(element.value).toBe(
+            './/custom-element-with-multiple-dashes[normalize-space() = "some random text with "§$%&/()div=or others"]',
+        )
     })
 
     it('should allow to go up and down the DOM tree with xpath', () => {
@@ -216,17 +284,23 @@ describe('selector strategies helper', () => {
     })
 
     it('should find an element by datamatcher strategy (android only)', () => {
-        const selector = { 'name': 'startsWith', 'args': 'aFakeString' }
+        const selector = { name: 'startsWith', args: 'aFakeString' }
         const element = findStrategy(selector)
         expect(element.using).toBe('-android datamatcher')
         expect(element.value).toBe('{"name":"startsWith","args":"aFakeString"}')
     })
 
     it('should find an element by viewmatcher strategy (android only)', () => {
-        const selector = { 'name': 'startsWith', 'args': 'aFakeString', 'class': 'androidx.test.espresso.matcher.ViewMatchers' }
+        const selector = {
+            name: 'startsWith',
+            args: 'aFakeString',
+            class: 'androidx.test.espresso.matcher.ViewMatchers',
+        }
         const element = findStrategy(selector)
         expect(element.using).toBe('-android viewmatcher')
-        expect(element.value).toBe('{"name":"startsWith","args":"aFakeString","class":"androidx.test.espresso.matcher.ViewMatchers"}')
+        expect(element.value).toBe(
+            '{"name":"startsWith","args":"aFakeString","class":"androidx.test.espresso.matcher.ViewMatchers"}',
+        )
     })
 
     it('should find an element by ui automation strategy (ios only)', () => {
@@ -236,15 +310,23 @@ describe('selector strategies helper', () => {
     })
 
     it('should find an element by predicate strategy (ios only)', () => {
-        const element = findStrategy('-ios predicate string:type == \'XCUIElementTypeSwitch\' && name CONTAINS \'Allow\'')
+        const element = findStrategy(
+            "-ios predicate string:type == 'XCUIElementTypeSwitch' && name CONTAINS 'Allow'",
+        )
         expect(element.using).toBe('-ios predicate string')
-        expect(element.value).toBe('type == \'XCUIElementTypeSwitch\' && name CONTAINS \'Allow\'')
+        expect(element.value).toBe(
+            "type == 'XCUIElementTypeSwitch' && name CONTAINS 'Allow'",
+        )
     })
 
     it('should find an element by class chain strategy (ios only)', () => {
-        const element = findStrategy('-ios class chain:**/XCUIElementTypeCell[`name BEGINSWITH "D"`]/**/XCUIElementTypeButton')
+        const element = findStrategy(
+            '-ios class chain:**/XCUIElementTypeCell[`name BEGINSWITH "D"`]/**/XCUIElementTypeButton',
+        )
         expect(element.using).toBe('-ios class chain')
-        expect(element.value).toBe('**/XCUIElementTypeCell[`name BEGINSWITH "D"`]/**/XCUIElementTypeButton')
+        expect(element.value).toBe(
+            '**/XCUIElementTypeCell[`name BEGINSWITH "D"`]/**/XCUIElementTypeButton',
+        )
     })
 
     it('should find an element by accessibility id', () => {
@@ -280,14 +362,16 @@ describe('selector strategies helper', () => {
     })
 
     it('should find an element by android accessibility id', () => {
-        const selector = 'new UiSelector().text("Cancel")).className("android.widget.Button")'
+        const selector =
+            'new UiSelector().text("Cancel")).className("android.widget.Button")'
         const element = findStrategy('android=' + selector)
         expect(element.using).toBe('-android uiautomator')
         expect(element.value).toBe(selector)
     })
 
     it('should find an element by ios accessibility id', () => {
-        const selector = 'UIATarget.localTarget().frontMostApp().mainWindow().buttons()[0]'
+        const selector =
+            'UIATarget.localTarget().frontMostApp().mainWindow().buttons()[0]'
         const element = findStrategy('ios=' + selector)
         expect(element.using).toBe('-ios uiautomation')
         expect(element.value).toBe(selector)
@@ -333,13 +417,19 @@ describe('selector strategies helper', () => {
         element = findStrategy('class name:foobar class name')
         expect(element.using).toBe('class name')
         expect(element.value).toBe('foobar class name')
-        element = findStrategy('-android uiautomator:foobar -android uiautomator')
+        element = findStrategy(
+            '-android uiautomator:foobar -android uiautomator',
+        )
         expect(element.using).toBe('-android uiautomator')
         expect(element.value).toBe('foobar -android uiautomator')
-        element = findStrategy('-android datamatcher:foobar -android datamatcher')
+        element = findStrategy(
+            '-android datamatcher:foobar -android datamatcher',
+        )
         expect(element.using).toBe('-android datamatcher')
         expect(element.value).toBe('foobar -android datamatcher')
-        element = findStrategy('-android viewmatcher:foobar -android viewmatcher')
+        element = findStrategy(
+            '-android viewmatcher:foobar -android viewmatcher',
+        )
         expect(element.using).toBe('-android viewmatcher')
         expect(element.value).toBe('foobar -android viewmatcher')
         element = findStrategy('-android viewtag:foobar -android viewtag')
@@ -352,14 +442,19 @@ describe('selector strategies helper', () => {
         expect(element.using).toBe('accessibility id')
         expect(element.value).toBe('foobar accessibility id')
 
-        element = findStrategy('.ui-cloud__sec__develop-content__app-grid:nth-child(1)')
+        element = findStrategy(
+            '.ui-cloud__sec__develop-content__app-grid:nth-child(1)',
+        )
         expect(element.using).toBe('css selector')
-        expect(element.value).toBe('.ui-cloud__sec__develop-content__app-grid:nth-child(1)')
+        expect(element.value).toBe(
+            '.ui-cloud__sec__develop-content__app-grid:nth-child(1)',
+        )
     })
 
     it('should allow unsupported selector strategies if w3c is used as we need support it in Appium', () => {
-        expect(() => findStrategy('accessibility id:foobar accessibility id', true))
-            .not.toThrow()
+        expect(() =>
+            findStrategy('accessibility id:foobar accessibility id', true),
+        ).not.toThrow()
         const element = findStrategy('-ios predicate string:foobar', true)
         expect(element.using).toBe('-ios predicate string')
         expect(element.value).toBe('foobar')
@@ -419,7 +514,9 @@ describe('selector strategies helper', () => {
     it('should find an element using "css selector" method with implicit & explicit ARIA roles of button in case of role selector', () => {
         const element = findStrategy('[role=button]')
         expect(element.using).toBe('css selector')
-        expect(element.value).toBe('[role="button"],input[type="checkbox"],summary[aria-expanded="false"],summary[aria-expanded="true"],input[type="button"],input[type="image"],input[type="reset"],input[type="submit"],button')
+        expect(element.value).toBe(
+            '[role="button"],input[type="checkbox"],summary[aria-expanded="false"],summary[aria-expanded="true"],input[type="button"],input[type="image"],input[type="reset"],input[type="submit"],button',
+        )
     })
 
     it('should find an element using "css selector" method with implicit & explicit ARIA roles of checkbox in case of role selector', () => {
@@ -431,7 +528,9 @@ describe('selector strategies helper', () => {
     it('should find an element using "css selector" method with implicit & explicit ARIA roles of listbox in case of role selector', () => {
         const element = findStrategy('[role=listbox]')
         expect(element.using).toBe('css selector')
-        expect(element.value).toBe('[role="listbox"],select[multiple],select[size],select[multiple],datalist')
+        expect(element.value).toBe(
+            '[role="listbox"],select[multiple],select[size],select[multiple],datalist',
+        )
     })
 
     it('should find an element using "css selector" method with implicit & explicit ARIA roles of rowgroup in case of role selector', () => {

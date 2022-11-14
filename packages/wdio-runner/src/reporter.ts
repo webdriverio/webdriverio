@@ -1,7 +1,7 @@
-import path from 'node:path'
 import logger from '@wdio/logger'
+import type { Capabilities, Options, Reporters } from '@wdio/types'
 import { initialisePlugin } from '@wdio/utils'
-import type { Options, Capabilities, Reporters } from '@wdio/types'
+import path from 'node:path'
 
 const log = logger('@wdio/runner')
 const mochaAllHooks = ['"before all" hook', '"after all" hook']
@@ -18,12 +18,12 @@ export default class BaseReporter {
     constructor(
         private _config: Options.Testrunner,
         private _cid: string,
-        public caps: Capabilities.RemoteCapability
+        public caps: Capabilities.RemoteCapability,
     ) {}
 
-    async initReporters () {
+    async initReporters() {
         this._reporters = await Promise.all(
-            this._config.reporters!.map(this._loadReporter.bind(this))
+            this._config.reporters!.map(this._loadReporter.bind(this)),
         )
     }
 
@@ -33,48 +33,50 @@ export default class BaseReporter {
      * @param  {String} e       event name
      * @param  {object} payload event payload
      */
-    emit (e: string, payload: any) {
+    emit(e: string, payload: any) {
         payload.cid = this._cid
 
         /**
          * Send failure message (only once) in case of test or hook failure
          */
         const isTestError = e === 'test:fail'
-        const isHookError = (
+        const isHookError =
             e === 'hook:end' &&
             payload.error &&
-            mochaAllHooks.some(hook => payload.title.startsWith(hook))
-        )
+            mochaAllHooks.some((hook) => payload.title.startsWith(hook))
         if (isTestError || isHookError) {
             this.#emitData({
                 origin: 'reporter',
                 name: 'printFailureMessage',
-                content: payload
+                content: payload,
             })
         }
 
         this._reporters.forEach((reporter) => reporter.emit(e, payload))
     }
 
-    onMessage (listener: (ev: any) => void) {
+    onMessage(listener: (ev: any) => void) {
         this.listeners.push(listener)
     }
 
-    getLogFile (name: string) {
+    getLogFile(name: string) {
         // clone the config to avoid changing original properties
-        let options = Object.assign({}, this._config) as Omit<Options.Testrunner, 'capabilities'> & {
+        let options = Object.assign({}, this._config) as Omit<
+            Options.Testrunner,
+            'capabilities'
+        > & {
             cid: string
             capabilities: Capabilities.RemoteCapability
         }
         let filename = `wdio-${this._cid}-${name}-reporter.log`
 
-        const reporterOptions = this._config.reporters!.find((reporter) => (
-            Array.isArray(reporter) &&
-            (
-                reporter[0] === name ||
-                typeof reporter[0] === 'function' && reporter[0].name === name
-            )
-        ))
+        const reporterOptions = this._config.reporters!.find(
+            (reporter) =>
+                Array.isArray(reporter) &&
+                (reporter[0] === name ||
+                    (typeof reporter[0] === 'function' &&
+                        reporter[0].name === name)),
+        )
 
         if (reporterOptions && Array.isArray(reporterOptions)) {
             const fileformat = reporterOptions[1].outputFileFormat
@@ -102,20 +104,21 @@ export default class BaseReporter {
     /**
      * return write stream object based on reporter name
      */
-    getWriteStreamObject (reporter: string) {
+    getWriteStreamObject(reporter: string) {
         return {
-            write: /* istanbul ignore next */ (content: unknown) => this.#emitData({
-                origin: 'reporter',
-                name: reporter,
-                content
-            })
+            write: /* istanbul ignore next */ (content: unknown) =>
+                this.#emitData({
+                    origin: 'reporter',
+                    name: reporter,
+                    content,
+                }),
         }
     }
 
     /**
      * emit data either through process or listener
      */
-    #emitData (payload: any) {
+    #emitData(payload: any) {
         if (typeof process.send === 'function') {
             return process.send!(payload)
         }
@@ -136,9 +139,19 @@ export default class BaseReporter {
                     .filter((reporter) => !reporter.isSynchronised)
                     .map((reporter) => reporter.constructor.name)
 
-                if ((Date.now() - startTime) > this._config.reporterSyncTimeout! && unsyncedReporter.length) {
+                if (
+                    Date.now() - startTime >
+                        this._config.reporterSyncTimeout! &&
+                    unsyncedReporter.length
+                ) {
                     clearInterval(interval)
-                    return reject(new Error(`Some reporters are still unsynced: ${unsyncedReporter.join(', ')}`))
+                    return reject(
+                        new Error(
+                            `Some reporters are still unsynced: ${unsyncedReporter.join(
+                                ', ',
+                            )}`,
+                        ),
+                    )
                 }
 
                 /**
@@ -149,7 +162,9 @@ export default class BaseReporter {
                     return resolve(true)
                 }
 
-                log.info(`Wait for ${unsyncedReporter.length} reporter to synchronise`)
+                log.info(
+                    `Wait for ${unsyncedReporter.length} reporter to synchronise`,
+                )
                 // wait otherwise
             }, this._config.reporterSyncInterval)
         })
@@ -158,7 +173,7 @@ export default class BaseReporter {
     /**
      * initialise reporters
      */
-    private async _loadReporter (reporter: Reporters.ReporterEntry) {
+    private async _loadReporter(reporter: Reporters.ReporterEntry) {
         let ReporterClass: Reporters.ReporterClass
         let options: Partial<Reporters.Options> = {}
 
@@ -190,8 +205,8 @@ export default class BaseReporter {
             options.logFile = options.setLogFile
                 ? options.setLogFile(this._cid, ReporterClass.name)
                 : typeof options.logFile === 'string'
-                    ? options.logFile
-                    : this.getLogFile(ReporterClass.name)
+                ? options.logFile
+                : this.getLogFile(ReporterClass.name)
             options.writeStream = this.getWriteStreamObject(ReporterClass.name)
             return new ReporterClass(options)
         }
@@ -211,12 +226,13 @@ export default class BaseReporter {
          * ```
          */
         if (typeof reporter === 'string') {
-            ReporterClass = (await initialisePlugin(reporter, 'reporter')).default as Reporters.ReporterClass
+            ReporterClass = (await initialisePlugin(reporter, 'reporter'))
+                .default as Reporters.ReporterClass
             options.logFile = options.setLogFile
                 ? options.setLogFile(this._cid, reporter)
                 : typeof options.logFile === 'string'
-                    ? options.logFile
-                    : this.getLogFile(reporter)
+                ? options.logFile
+                : this.getLogFile(reporter)
             options.writeStream = this.getWriteStreamObject(reporter)
             return new ReporterClass(options)
         }

@@ -8,6 +8,6 @@ import type DevToolsDriver from '../devtoolsdriver'
  * @see https://w3c.github.io/webdriver/#dfn-get-window-handle
  * @return {string}  Returns a string which is the window handle for the current top-level browsing context.
  */
-export default async function getWindowHandle (this: DevToolsDriver) {
+export default async function getWindowHandle(this: DevToolsDriver) {
     return this.currentWindowHandle
 }

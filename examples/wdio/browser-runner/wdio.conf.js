@@ -6,21 +6,23 @@ exports.config = {
      */
     specs: [
         path.resolve(__dirname, '*.test.tsx'),
-        path.resolve(__dirname, '*.test.js')
+        path.resolve(__dirname, '*.test.js'),
     ],
 
     /**
      * capabilities
      */
-    capabilities: [{
-        browserName: 'chrome',
-        acceptInsecureCerts: true,
-        // 'wdio:devtoolsOptions': { headless: true }
-    // }, {
-    //     browserName: 'chrome',
-    //     acceptInsecureCerts: true,
-    //     'wdio:devtoolsOptions': { headless: true }
-    }],
+    capabilities: [
+        {
+            browserName: 'chrome',
+            acceptInsecureCerts: true,
+            // 'wdio:devtoolsOptions': { headless: true }
+            // }, {
+            //     browserName: 'chrome',
+            //     acceptInsecureCerts: true,
+            //     'wdio:devtoolsOptions': { headless: true }
+        },
+    ],
 
     /**
      * test configurations
@@ -28,26 +30,29 @@ exports.config = {
     logLevel: 'trace',
     framework: 'mocha',
     outputDir: __dirname,
-    runner: ['browser', {
-        preset: process.env.WDIO_PRESET
-    }],
+    runner: [
+        'browser',
+        {
+            preset: process.env.WDIO_PRESET,
+        },
+    ],
 
     reporters: ['spec', 'dot', 'junit'],
 
     mochaOpts: {
         ui: 'bdd',
-        timeout: 150000
+        timeout: 150000,
     },
 
     /**
      * hooks
      */
-    onPrepare: function() {
+    onPrepare: function () {
         // eslint-disable-next-line
         console.log('let\'s go')
     },
-    onComplete: function() {
+    onComplete: function () {
         // eslint-disable-next-line
         console.log('that\'s it')
-    }
+    },
 }

@@ -1,13 +1,26 @@
-import type { CDPSession } from 'puppeteer-core/lib/cjs/puppeteer/common/Connection'
 import type { JsonCompatible } from '@wdio/types'
+import type { CDPSession } from 'puppeteer-core/lib/cjs/puppeteer/common/Connection'
 
 /**
  * HTTP request data. (copied from the puppeteer-core package as there is currently
  * no way to access these types otherwise)
  */
-export type ResourcePriority = 'VeryLow' | 'Low' | 'Medium' | 'High' | 'VeryHigh'
+export type ResourcePriority =
+    | 'VeryLow'
+    | 'Low'
+    | 'Medium'
+    | 'High'
+    | 'VeryHigh'
 export type MixedContentType = 'blockable' | 'optionally-blockable' | 'none'
-export type ReferrerPolicy = 'unsafe-url' | 'no-referrer-when-downgrade' | 'no-referrer' | 'origin' | 'origin-when-cross-origin' | 'same-origin' | 'strict-origin' | 'strict-origin-when-cross-origin'
+export type ReferrerPolicy =
+    | 'unsafe-url'
+    | 'no-referrer-when-downgrade'
+    | 'no-referrer'
+    | 'origin'
+    | 'origin-when-cross-origin'
+    | 'same-origin'
+    | 'strict-origin'
+    | 'strict-origin-when-cross-origin'
 export interface Request {
     /**
      * Request URL (without fragment).
@@ -66,12 +79,17 @@ export interface Matches extends Request {
     statusCode: number
 }
 
-export type MockOverwriteFunction = (request: Matches, client: CDPSession) => Promise<string | Record<string, any>>
+export type MockOverwriteFunction = (
+    request: Matches,
+    client: CDPSession,
+) => Promise<string | Record<string, any>>
 export type MockOverwrite = string | Record<string, any> | MockOverwriteFunction
 
 export type MockResponseParams = {
     statusCode?: number | ((request: Matches) => number)
-    headers?: Record<string, string> | ((request: Matches) => Record<string, string>)
+    headers?:
+        | Record<string, string>
+        | ((request: Matches) => Record<string, string>)
     /**
      * fetch real response before responding with mocked data. Default: true
      */
@@ -80,16 +98,46 @@ export type MockResponseParams = {
 
 export type MockFilterOptions = {
     method?: string | ((method: string) => boolean)
-    headers?: Record<string, string> | ((headers: Record<string, string>) => boolean)
-    requestHeaders?: Record<string, string> | ((headers: Record<string, string>) => boolean)
-    responseHeaders?: Record<string, string> | ((headers: Record<string, string>) => boolean)
+    headers?:
+        | Record<string, string>
+        | ((headers: Record<string, string>) => boolean)
+    requestHeaders?:
+        | Record<string, string>
+        | ((headers: Record<string, string>) => boolean)
+    responseHeaders?:
+        | Record<string, string>
+        | ((headers: Record<string, string>) => boolean)
     statusCode?: number | ((statusCode: number) => boolean)
     postData?: string | ((payload: string | undefined) => boolean)
 }
 
-export type ErrorCode = 'Failed' | 'Aborted' | 'TimedOut' | 'AccessDenied' | 'ConnectionClosed' | 'ConnectionReset' | 'ConnectionRefused' | 'ConnectionAborted' | 'ConnectionFailed' | 'NameNotResolved' | 'InternetDisconnected' | 'AddressUnreachable' | 'BlockedByClient' | 'BlockedByResponse'
+export type ErrorCode =
+    | 'Failed'
+    | 'Aborted'
+    | 'TimedOut'
+    | 'AccessDenied'
+    | 'ConnectionClosed'
+    | 'ConnectionReset'
+    | 'ConnectionRefused'
+    | 'ConnectionAborted'
+    | 'ConnectionFailed'
+    | 'NameNotResolved'
+    | 'InternetDisconnected'
+    | 'AddressUnreachable'
+    | 'BlockedByClient'
+    | 'BlockedByResponse'
 
-export type ThrottlePreset = 'offline' | 'GPRS' | 'Regular2G' | 'Good2G' | 'Regular3G' | 'Good3G' | 'Regular4G' | 'DSL' | 'WiFi' | 'online'
+export type ThrottlePreset =
+    | 'offline'
+    | 'GPRS'
+    | 'Regular2G'
+    | 'Good2G'
+    | 'Regular3G'
+    | 'Good3G'
+    | 'Regular4G'
+    | 'DSL'
+    | 'WiFi'
+    | 'online'
 export interface CustomThrottle {
     offline: boolean
     downloadThroughput: number

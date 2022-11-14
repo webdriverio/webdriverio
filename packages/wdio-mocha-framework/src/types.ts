@@ -5,72 +5,72 @@ export interface MochaOpts {
      * The `require` option is useful when you want to add or extend some
      * basic functionality (WebdriverIO framework option).
      */
-    require?: string[],
+    require?: string[]
     /**
      * Use the given module(s) to compile files. Compilers will be included
      * before requires (WebdriverIO framework option).
      */
-    compilers?: string[],
+    compilers?: string[]
     /**
      * Propagate uncaught errors?
      */
-    allowUncaught?: boolean;
+    allowUncaught?: boolean
     /**
      * Force done callback or promise?
      */
-    asyncOnly?: boolean;
+    asyncOnly?: boolean
     /**
      * Bail after first test failure?
      */
-    bail?: boolean;
+    bail?: boolean
     /**
      * Check for global variable leaks?
      */
-    checkLeaks?: boolean;
+    checkLeaks?: boolean
     /**
      * Delay root suite execution?
      */
-    delay?: boolean;
+    delay?: boolean
     /**
      * Test filter given string.
      */
-    fgrep?: string;
+    fgrep?: string
     /**
      * Tests marked only fail the suite?
      */
-    forbidOnly?: boolean;
+    forbidOnly?: boolean
     /**
      * Pending tests fail the suite?
      */
-    forbidPending?: boolean;
+    forbidPending?: boolean
     /**
      * Full stacktrace upon failure?
      */
-    fullTrace?: boolean;
+    fullTrace?: boolean
     /**
      * Variables expected in global scope.
      */
-    global?: string[];
+    global?: string[]
     /**
      * Test filter given regular expression.
      */
-    grep?: RegExp | string;
+    grep?: RegExp | string
     /**
      * Invert test filter matches?
      */
-    invert?: boolean;
+    invert?: boolean
     /**
      * Number of times to retry failed tests.
      */
-    retries?: number;
+    retries?: number
     /**
      * Timeout threshold value.
      */
-    timeout?: number | string;
+    timeout?: number | string
     /**
      * Set test UI to one of the built-in test interfaces.
      */
-    ui?: 'bdd' | 'tdd' | 'qunit' | 'exports';
+    ui?: 'bdd' | 'tdd' | 'qunit' | 'exports'
 }
 
 export interface MochaConfig extends Required<Options.Testrunner> {

@@ -1,20 +1,25 @@
 import type { URL as URLType } from 'node:url'
-import type NodeJSRequest from './node'
 import type BrowserRequest from './browser'
+import type NodeJSRequest from './node'
 
 import WebDriverRequest from './index.js'
 
 interface Request {
-    new (method: string, endpoint: string, body?: Record<string, unknown>, isHubCommand?: boolean): NodeJSRequest | BrowserRequest;
+    new (
+        method: string,
+        endpoint: string,
+        body?: Record<string, unknown>,
+        isHubCommand?: boolean,
+    ): NodeJSRequest | BrowserRequest
 }
 
 let EnvRequestLib: Request
 export default class RequestFactory {
-    static async getInstance (
+    static async getInstance(
         method: string,
         endpoint: string,
         body?: Record<string, unknown>,
-        isHubCommand: boolean = false
+        isHubCommand: boolean = false,
     ): Promise<WebDriverRequest> {
         if (!EnvRequestLib) {
             EnvRequestLib = process?.versions?.node
@@ -27,7 +32,7 @@ export default class RequestFactory {
 }
 
 export class URLFactory {
-    static async getInstance (uri: string): Promise<URLType> {
+    static async getInstance(uri: string): Promise<URLType> {
         if (process?.versions?.node) {
             const { URL } = await import('node:url')
             return new URL(uri)

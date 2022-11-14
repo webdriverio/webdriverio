@@ -1,18 +1,32 @@
-import path from 'node:path'
-import { expect, test, vi, it, describe, afterEach } from 'vitest'
 import logger from '@wdio/logger'
-import { runTestInFiberContext, executeHooksWithArgs } from '@wdio/utils'
+import { executeHooksWithArgs, runTestInFiberContext } from '@wdio/utils'
 import { EventEmitter } from 'node:events'
+import path from 'node:path'
+import { afterEach, describe, expect, it, test, vi } from 'vitest'
 
 import JasmineAdapterFactory, { JasmineAdapter } from '../src/index.js'
 
 vi.mock('jasmine')
 vi.mock('expect-webdriverio')
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
-vi.mock('@wdio/utils', () => import(path.join(process.cwd(), '__mocks__', '@wdio/utils')))
+vi.mock(
+    '@wdio/logger',
+    () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')),
+)
+vi.mock(
+    '@wdio/utils',
+    () => import(path.join(process.cwd(), '__mocks__', '@wdio/utils')),
+)
 
 const INTERFACES = {
-    bdd: ['beforeAll', 'beforeEach', 'it', 'xit', 'fit', 'afterEach', 'afterAll']
+    bdd: [
+        'beforeAll',
+        'beforeEach',
+        'it',
+        'xit',
+        'fit',
+        'afterEach',
+        'afterAll',
+    ],
 }
 const TEST_INTERFACES = ['it', 'fit', 'xit']
 const BEFORE_HOOK_IDX = 1
@@ -21,7 +35,7 @@ const AFTER_HOOK_IDX = 3
 const wdioReporter: EventEmitter = {
     write: vi.fn(),
     emit: vi.fn(),
-    on: vi.fn()
+    on: vi.fn(),
 } as any
 
 const hookPayload = (type: string, error?: Error) => ({
@@ -38,16 +52,23 @@ const hookPayload = (type: string, error?: Error) => ({
     failedExpectations: [],
     deprecationWarnings: [],
     status: '',
-    pendingReason: ''
+    pendingReason: '',
 })
 
-const adapterFactory = (config = {}) => new JasmineAdapter(
-    '0-2',
-    { beforeHook: [], afterHook: [], beforeTest: 'beforeTest', afterTest: 'afterTest', ...config } as any,
-    ['/foo/bar.test.js'],
-    { browserName: 'chrome' } as any,
-    wdioReporter
-)
+const adapterFactory = (config = {}) =>
+    new JasmineAdapter(
+        '0-2',
+        {
+            beforeHook: [],
+            afterHook: [],
+            beforeTest: 'beforeTest',
+            afterTest: 'afterTest',
+            ...config,
+        } as any,
+        ['/foo/bar.test.js'],
+        { browserName: 'chrome' } as any,
+        wdioReporter,
+    )
 
 test('comes with a factory', async () => {
     expect(typeof JasmineAdapterFactory.init).toBe('function')
@@ -56,7 +77,7 @@ test('comes with a factory', async () => {
         { beforeHook: [], afterHook: [] },
         ['/foo/bar.test.js'],
         { browserName: 'chrome' },
-        wdioReporter
+        wdioReporter,
     )
     const result = await instance.run()
     expect(result).toBe(0)
@@ -68,19 +89,31 @@ test('should properly set up jasmine', async () => {
     const result = await adapter.run()
 
     expect(result).toBe(0)
-    expect(vi.mocked(adapter['_jrunner']!.addSpecFile).mock.calls[0][0]).toEqual('/foo/bar.test.js')
+    expect(
+        vi.mocked(adapter['_jrunner']!.addSpecFile).mock.calls[0][0],
+    ).toEqual('/foo/bar.test.js')
     // @ts-ignore outdated types
-    expect(vi.mocked(adapter['_jrunner']!.jasmine.addReporter).mock.calls).toHaveLength(1)
+    expect(
+        vi.mocked(adapter['_jrunner']!.jasmine.addReporter).mock.calls,
+    ).toHaveLength(1)
     expect(vi.mocked(executeHooksWithArgs).mock.calls).toHaveLength(1)
 
     // @ts-expect-error
-    expect(vi.mocked(adapter['_jrunner']!.env.beforeAll).mock.calls).toHaveLength(1)
+    expect(
+        vi.mocked(adapter['_jrunner']!.env.beforeAll).mock.calls,
+    ).toHaveLength(1)
     // @ts-expect-error
-    expect(vi.mocked(adapter['_jrunner']!.env.beforeEach).mock.calls).toHaveLength(0)
+    expect(
+        vi.mocked(adapter['_jrunner']!.env.beforeEach).mock.calls,
+    ).toHaveLength(0)
     // @ts-expect-error
-    expect(vi.mocked(adapter['_jrunner']!.env.afterEach).mock.calls).toHaveLength(0)
+    expect(
+        vi.mocked(adapter['_jrunner']!.env.afterEach).mock.calls,
+    ).toHaveLength(0)
     // @ts-expect-error
-    expect(vi.mocked(adapter['_jrunner']!.env.afterAll).mock.calls).toHaveLength(1)
+    expect(
+        vi.mocked(adapter['_jrunner']!.env.afterAll).mock.calls,
+    ).toHaveLength(1)
 
     expect(vi.mocked(adapter['_jrunner']!.execute).mock.calls).toHaveLength(1)
 
@@ -94,15 +127,21 @@ test('should propery wrap interfaces', async () => {
     await adapter.init()
     await adapter.run()
 
-    expect(vi.mocked(runTestInFiberContext).mock.calls).toHaveLength(INTERFACES.bdd.length)
+    expect(vi.mocked(runTestInFiberContext).mock.calls).toHaveLength(
+        INTERFACES.bdd.length,
+    )
 
     INTERFACES.bdd.forEach((fnName, idx) => {
         const isTest = TEST_INTERFACES.includes(fnName)
         const hook = fnName.includes('All') ? [expect.any(Function)] : []
 
         expect(vi.mocked(runTestInFiberContext).mock.calls[idx][5]).toBe(fnName)
-        expect(vi.mocked(runTestInFiberContext).mock.calls[idx][BEFORE_HOOK_IDX]).toEqual(isTest ? 'beforeTest' : hook)
-        expect(vi.mocked(runTestInFiberContext).mock.calls[idx][AFTER_HOOK_IDX]).toEqual(isTest ? 'afterTest' : hook)
+        expect(
+            vi.mocked(runTestInFiberContext).mock.calls[idx][BEFORE_HOOK_IDX],
+        ).toEqual(isTest ? 'beforeTest' : hook)
+        expect(
+            vi.mocked(runTestInFiberContext).mock.calls[idx][AFTER_HOOK_IDX],
+        ).toEqual(isTest ? 'afterTest' : hook)
     })
 })
 
@@ -123,24 +162,44 @@ test('emitHookEvent: should emit events for beforeAll and afterAll hooks', async
     await adapter.init()
     await adapter.run()
 
-    const allHooks = INTERFACES.bdd.filter(fnName => fnName.includes('All'))
+    const allHooks = INTERFACES.bdd.filter((fnName) => fnName.includes('All'))
     expect(allHooks).toHaveLength(2)
 
     adapter['_reporter'] = { emit: vi.fn() } as any
     allHooks.forEach((hookName) => {
         const hookIdx = INTERFACES.bdd.indexOf(hookName)
         adapter['_reporter'].startedSuite = true as any
-        (vi.mocked(runTestInFiberContext).mock.calls[hookIdx][BEFORE_HOOK_IDX] as Function[]).pop()!(null, null, undefined)
+        ;(
+            vi.mocked(runTestInFiberContext).mock.calls[hookIdx][
+                BEFORE_HOOK_IDX
+            ] as Function[]
+        ).pop()!(null, null, undefined)
         adapter['_reporter'].startedSuite = false as any
-        (vi.mocked(runTestInFiberContext).mock.calls[hookIdx][AFTER_HOOK_IDX] as Function[]).pop()!(null, null, { error: new Error(hookName) })
+        ;(
+            vi.mocked(runTestInFiberContext).mock.calls[hookIdx][
+                AFTER_HOOK_IDX
+            ] as Function[]
+        ).pop()!(null, null, { error: new Error(hookName) })
     })
 
     expect(adapter['_reporter'].emit).toHaveBeenCalledTimes(4)
 
-    expect(adapter['_reporter'].emit).toBeCalledWith('hook:start', hookPayload('before'))
-    expect(adapter['_reporter'].emit).toBeCalledWith('hook:end', hookPayload('before', new Error('beforeAll')))
-    expect(adapter['_reporter'].emit).toBeCalledWith('hook:start', hookPayload('after'))
-    expect(adapter['_reporter'].emit).toBeCalledWith('hook:end', hookPayload('after', new Error('afterAll')))
+    expect(adapter['_reporter'].emit).toBeCalledWith(
+        'hook:start',
+        hookPayload('before'),
+    )
+    expect(adapter['_reporter'].emit).toBeCalledWith(
+        'hook:end',
+        hookPayload('before', new Error('beforeAll')),
+    )
+    expect(adapter['_reporter'].emit).toBeCalledWith(
+        'hook:start',
+        hookPayload('after'),
+    )
+    expect(adapter['_reporter'].emit).toBeCalledWith(
+        'hook:end',
+        hookPayload('after', new Error('afterAll')),
+    )
 })
 
 test('should properly configure the jasmine environment', async () => {
@@ -157,7 +216,7 @@ test('should properly configure the jasmine environment', async () => {
             stopSpecOnExpectationFailure,
             random,
             failFast,
-        }
+        },
     })
     await adapter.init()
     await adapter.run()
@@ -177,13 +236,16 @@ test('set custom ', async () => {
     const config = {
         jasmineOpts: { expectationResultHandler: vi.fn() },
         beforeHook: [],
-        afterHook: []
+        afterHook: [],
     }
     const adapter = adapterFactory(config)
     await adapter.init()
     await adapter.run()
     adapter['_jrunner']!.jasmine.Spec.prototype.addExpectationResult('foobar')
-    expect(config.jasmineOpts.expectationResultHandler).toBeCalledWith('foobar', undefined)
+    expect(config.jasmineOpts.expectationResultHandler).toBeCalledWith(
+        'foobar',
+        undefined,
+    )
 })
 
 test('get data from beforeAll hook', async () => {
@@ -193,9 +255,12 @@ test('get data from beforeAll hook', async () => {
     expect(adapter['_lastSpec']).toBeUndefined()
 
     // @ts-ignore outdated types
-    adapter['_jrunner']!.jasmine.Suite.prototype.beforeAll.call({
-        result: 'some result'
-    }, 'foobar')
+    adapter['_jrunner']!.jasmine.Suite.prototype.beforeAll.call(
+        {
+            result: 'some result',
+        },
+        'foobar',
+    )
     expect(adapter['_lastSpec']).toBe('some result')
     // @ts-ignore outdated types
     expect(adapter['_jrunner']!.beforeAllHook).toBeCalledWith('foobar')
@@ -207,11 +272,14 @@ test('get data from execute hook', async () => {
     await adapter.run()
     expect(adapter['_lastTest']).toBeUndefined()
 
-    adapter['_jrunner']!.jasmine.Spec.prototype.execute.call({
-        result: {
-            text: 'some result'
-        }
-    }, 'barfoo')
+    adapter['_jrunner']!.jasmine.Spec.prototype.execute.call(
+        {
+            result: {
+                text: 'some result',
+            },
+        },
+        'barfoo',
+    )
 
     // @ts-ignore outdated types
     expect(adapter['_lastTest'].text).toBe('some result')
@@ -224,10 +292,10 @@ test('get data from execute hook', async () => {
 test('customSpecFilter', () => {
     const specMock = {
         getFullName: () => 'my test @smoke',
-        pend: vi.fn()
+        pend: vi.fn(),
     } as any
     const config = {
-        jasmineOpts: { grepMatch: '@smoke' }
+        jasmineOpts: { grepMatch: '@smoke' },
     }
     const adapter = adapterFactory(config)
 
@@ -254,11 +322,15 @@ test('wrapHook if successful', async () => {
     const adapter = adapterFactory(config)
     const wrappedHook = adapter.wrapHook('beforeAll' as any)
 
-    vi.mocked(executeHooksWithArgs).mockImplementation((...args: any[]) => Promise.resolve(args))
+    vi.mocked(executeHooksWithArgs).mockImplementation((...args: any[]) =>
+        Promise.resolve(args),
+    )
     await wrappedHook()
     expect(vi.mocked(executeHooksWithArgs).mock.calls[0][0]).toBe('beforeAll')
     expect(vi.mocked(executeHooksWithArgs).mock.calls[0][1]).toBe('somehook')
-    expect(vi.mocked(executeHooksWithArgs).mock.calls[0][2]![0].type).toBe('beforeAll')
+    expect(vi.mocked(executeHooksWithArgs).mock.calls[0][2]![0].type).toBe(
+        'beforeAll',
+    )
 })
 
 test('wrapHook if failing', async () => {
@@ -267,13 +339,20 @@ test('wrapHook if failing', async () => {
     const adapter = adapterFactory(config)
     const wrappedHook = adapter.wrapHook('beforeAll' as any)
 
-    vi.mocked(executeHooksWithArgs).mockImplementation(() => Promise.reject(new Error('uuuups')))
+    vi.mocked(executeHooksWithArgs).mockImplementation(() =>
+        Promise.reject(new Error('uuuups')),
+    )
     await wrappedHook()
     expect(vi.mocked(executeHooksWithArgs).mock.calls[0][0]).toBe('beforeAll')
     expect(vi.mocked(executeHooksWithArgs).mock.calls[0][1]).toBe('somehook')
-    expect(vi.mocked(executeHooksWithArgs).mock.calls[0][2]![0].type).toBe('beforeAll')
-    expect(vi.mocked(logger('').info).mock.calls[0][0].startsWith('Error in beforeAll hook: uuuups'))
-        .toBe(true)
+    expect(vi.mocked(executeHooksWithArgs).mock.calls[0][2]![0].type).toBe(
+        'beforeAll',
+    )
+    expect(
+        vi
+            .mocked(logger('').info)
+            .mock.calls[0][0].startsWith('Error in beforeAll hook: uuuups'),
+    ).toBe(true)
 })
 
 test('formatMessage', () => {
@@ -285,8 +364,8 @@ test('formatMessage', () => {
     message = adapter.formatMessage({
         type: 'foobar',
         payload: {
-            failedExpectations: [new Error('foobar')]
-        }
+            failedExpectations: [new Error('foobar')],
+        },
     })
     expect(message.error?.message).toBe('foobar')
 
@@ -299,8 +378,8 @@ test('formatMessage', () => {
             fullName: 'foo',
             file: '/some/test.js',
             failedExpectations: [],
-            start: Date.now() - 2000
-        }
+            start: Date.now() - 2000,
+        },
     })
     expect(message.duration).toBeGreaterThan(1999)
     expect(message.duration).toBeLessThan(2005)
@@ -315,8 +394,8 @@ test('formatMessage', () => {
             fullName: 'foo',
             file: '/some/test.js',
             start: Date.now() - 2000,
-            duration: 123
-        }
+            duration: 123,
+        },
     })
     expect(message.duration).toBe(123)
 })
@@ -326,12 +405,20 @@ test('formatMessage should pass all failedExpectations as errors', () => {
     const message = adapter.formatMessage({
         type: 'foobar',
         payload: {
-            failedExpectations: [new Error('foobar'), { message: 'I am also a failed expectation but not an exception' }]
-        }
+            failedExpectations: [
+                new Error('foobar'),
+                {
+                    message:
+                        'I am also a failed expectation but not an exception',
+                },
+            ],
+        },
     })
 
     expect(message.errors?.length).toBe(2)
-    expect(message.errors![1].message).toBe('I am also a failed expectation but not an exception')
+    expect(message.errors![1].message).toBe(
+        'I am also a failed expectation but not an exception',
+    )
 })
 
 test('getExpectationResultHandler returns origHandler if none is given', () => {
@@ -339,7 +426,9 @@ test('getExpectationResultHandler returns origHandler if none is given', () => {
     const config = { jasmineOpts: {} }
     const adapter = adapterFactory(config)
 
-    adapter.expectationResultHandler = vi.fn().mockImplementation(() => 'barfoo')
+    adapter.expectationResultHandler = vi
+        .fn()
+        .mockImplementation(() => 'barfoo')
     const handler = adapter.getExpectationResultHandler(jasmine as any)
     expect(handler).toBe('foobar')
 })
@@ -349,7 +438,9 @@ test('getExpectationResultHandler returns modified origHandler if expectationRes
     const config = { jasmineOpts: { expectationResultHandler: vi.fn() } }
     const adapter = adapterFactory(config)
 
-    adapter.expectationResultHandler = vi.fn().mockImplementation(() => 'barfoo')
+    adapter.expectationResultHandler = vi
+        .fn()
+        .mockImplementation(() => 'barfoo')
     const handler = adapter.getExpectationResultHandler(jasmine as any)
     expect(handler).toBe('barfoo')
     expect(adapter.expectationResultHandler).toBeCalledWith('foobar')
@@ -363,36 +454,44 @@ test('expectationResultHandler', () => {
     const resultHandler = adapter.expectationResultHandler(origHandler)
     // @ts-ignore mock feature
     resultHandler(true, 'foobar')
-    expect(config.jasmineOpts.expectationResultHandler).toBeCalledWith(true, 'foobar')
+    expect(config.jasmineOpts.expectationResultHandler).toBeCalledWith(
+        true,
+        'foobar',
+    )
     expect(origHandler).toBeCalledWith(true, 'foobar')
 })
 
 test('expectationResultHandler failing', () => {
     const origHandler = vi.fn()
     const err = new Error('uuups')
-    const config = { jasmineOpts: { expectationResultHandler: () => {
-        throw err
-    } } }
+    const config = {
+        jasmineOpts: {
+            expectationResultHandler: () => {
+                throw err
+            },
+        },
+    }
     const adapter = adapterFactory(config)
 
     const resultHandler = adapter.expectationResultHandler(origHandler)
     // @ts-ignore mock feature
     resultHandler(true, 'foobar')
-    expect(origHandler).toBeCalledWith(
-        false,
-        {
-            passed: false,
-            message: 'expectationResultHandlerError: uuups',
-            error: err
-        }
-    )
+    expect(origHandler).toBeCalledWith(false, {
+        passed: false,
+        message: 'expectationResultHandlerError: uuups',
+        error: err,
+    })
 })
 
 test('expectationResultHandler failing with failing test', () => {
     const origHandler = vi.fn()
-    const config = { jasmineOpts: { expectationResultHandler: () => {
-        throw new Error('uuups')
-    } } }
+    const config = {
+        jasmineOpts: {
+            expectationResultHandler: () => {
+                throw new Error('uuups')
+            },
+        },
+    }
     const adapter = adapterFactory(config)
 
     const resultHandler = adapter.expectationResultHandler(origHandler)
@@ -429,12 +528,16 @@ describe('_grep', () => {
         const adapter = adapterFactory()
         expect(adapter['_totalTests']).toBe(0)
 
-        adapter.customSpecFilter = vi.fn().mockImplementation(spec => !!spec.disable)
+        adapter.customSpecFilter = vi
+            .fn()
+            .mockImplementation((spec) => !!spec.disable)
 
         adapter._grep({
             children: [
-                { disable: false }, { disable: true },
-                { children: [{ disable: true }] }]
+                { disable: false },
+                { disable: true },
+                { children: [{ disable: true }] },
+            ],
         } as any)
         expect(adapter['_totalTests']).toBe(2)
     })
@@ -451,7 +554,11 @@ describe('loadFiles', () => {
         adapter['_jrunner']!.loadHelpers = vi.fn()
         adapter['_jrunner']!.loadSpecs = vi.fn()
         // @ts-ignore outdated types
-        adapter['_jrunner']!.env = { topSuite () { return { children: [1] } } }
+        adapter['_jrunner']!.env = {
+            topSuite() {
+                return { children: [1] }
+            },
+        }
 
         await adapter._loadFiles()
 
@@ -478,14 +585,22 @@ describe('loadFiles', () => {
         adapter['_jrunner']!.loadHelpers = vi.fn()
         adapter['_jrunner']!.loadSpecs = vi.fn()
         // @ts-ignore outdated types
-        adapter['_jrunner']!.env = { topSuite() { return { children: [] } } }
+        adapter['_jrunner']!.env = {
+            topSuite() {
+                return { children: [] }
+            },
+        }
 
         await adapter._loadFiles()
 
         // @ts-ignore outdated types
-        expect(adapter['_jrunner']!.addRequires).toHaveBeenCalledWith(adapter['_jasmineOpts'].requires)
+        expect(adapter['_jrunner']!.addRequires).toHaveBeenCalledWith(
+            adapter['_jasmineOpts'].requires,
+        )
         // @ts-ignore outdated types
-        expect(adapter['_jrunner']!.addHelperFiles).toHaveBeenCalledWith(adapter['_jasmineOpts'].helpers)
+        expect(adapter['_jrunner']!.addHelperFiles).toHaveBeenCalledWith(
+            adapter['_jasmineOpts'].helpers,
+        )
         expect(adapter['_hasTests']).toBe(false)
     })
 
@@ -496,9 +611,10 @@ describe('loadFiles', () => {
         delete adapter['_hasTests']
 
         // @ts-ignore outdated types
-        adapter['_jrunner']!.loadRequires = vi.fn().mockImplementation(() => { throw new Error('foo') }),
-
-        adapter._loadFiles()
+        ;(adapter['_jrunner']!.loadRequires = vi.fn().mockImplementation(() => {
+            throw new Error('foo')
+        })),
+            adapter._loadFiles()
         // @ts-ignore outdated types
         expect(adapter['_jrunner']!.loadRequires).toBeCalled()
         expect(adapter['_hasTests']).toBe(undefined)

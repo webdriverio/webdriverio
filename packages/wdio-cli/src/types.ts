@@ -1,5 +1,9 @@
 import type { Options, Reporters } from '@wdio/types'
-import type { BACKEND_CHOICES, REGION_OPTION, COMPILER_OPTION_ANSWERS } from './constants'
+import type {
+    BACKEND_CHOICES,
+    COMPILER_OPTION_ANSWERS,
+    REGION_OPTION,
+} from './constants'
 
 type ValueOf<T> = T[keyof T]
 
@@ -36,7 +40,11 @@ export interface Questionnair {
     npmInstall: boolean
 }
 
-export interface ParsedAnswers extends Omit<Questionnair, 'runner' | 'framework' | 'reporters' | 'services' | 'plugins'> {
+export interface ParsedAnswers
+    extends Omit<
+        Questionnair,
+        'runner' | 'framework' | 'reporters' | 'services' | 'plugins'
+    > {
     runner: 'local' | 'browser'
     framework: string
     reporters: string[]
@@ -117,13 +125,13 @@ export interface OnCompleteResult {
 /** Extracted from @types/lodash@4.14.168 */
 export type ValueKeyIteratee<T> =
     | ((value: T, key: string) => NotVoid)
-    | IterateeShorthand<T>;
+    | IterateeShorthand<T>
 type IterateeShorthand<T> =
     | PropertyName
     | [PropertyName, any]
-    | PartialShallow<T>;
-type PropertyName = string | number | symbol;
+    | PartialShallow<T>
+type PropertyName = string | number | symbol
 type PartialShallow<T> = {
-    [P in keyof T]?: T[P] extends object ? object : T[P];
-};
-type NotVoid = unknown;
+    [P in keyof T]?: T[P] extends object ? object : T[P]
+}
+type NotVoid = unknown

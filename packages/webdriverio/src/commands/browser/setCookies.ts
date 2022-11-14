@@ -56,12 +56,16 @@ import type { Cookie } from '@wdio/protocols'
  */
 export default async function setCookies(
     this: WebdriverIO.Browser,
-    cookieObjs: Cookie | Cookie[]
+    cookieObjs: Cookie | Cookie[],
 ) {
-    const cookieObjsList = !Array.isArray(cookieObjs) ? [cookieObjs] : cookieObjs
+    const cookieObjsList = !Array.isArray(cookieObjs)
+        ? [cookieObjs]
+        : cookieObjs
 
-    if (cookieObjsList.some(obj => (typeof obj !== 'object'))) {
-        throw new Error('Invalid input (see https://webdriver.io/docs/api/browser/setCookies for documentation)')
+    if (cookieObjsList.some((obj) => typeof obj !== 'object')) {
+        throw new Error(
+            'Invalid input (see https://webdriver.io/docs/api/browser/setCookies for documentation)',
+        )
     }
 
     for (const cookieObj of cookieObjsList) {

@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import detectBackend from '../../src/utils/detectBackend.js'
 
 describe('detectBackend', () => {
@@ -7,7 +7,7 @@ describe('detectBackend', () => {
             hostname: 'localhost',
             port: 1234,
             protocol: 'http',
-            path: '/'
+            path: '/',
         }
         expect(detectBackend(caps)).toEqual(caps)
     })
@@ -44,7 +44,7 @@ describe('detectBackend', () => {
     it('should detect browserstack user', () => {
         const caps = detectBackend({
             user: 'foobar',
-            key: 'zHcv9sZ39ip8ZPsxBVJ2'
+            key: 'zHcv9sZ39ip8ZPsxBVJ2',
         })
         expect(caps.hostname).toBe('hub-cloud.browserstack.com')
         expect(caps.port).toBe(443)
@@ -55,7 +55,7 @@ describe('detectBackend', () => {
     it('should detect testingbot user', () => {
         const caps = detectBackend({
             user: 'foobar',
-            key: 'ec337d7b677720a4dde7bd72be0bfc67'
+            key: 'ec337d7b677720a4dde7bd72be0bfc67',
         })
         expect(caps.hostname).toBe('hub.testingbot.com')
         expect(caps.port).toBe(443)
@@ -66,7 +66,7 @@ describe('detectBackend', () => {
     it('should detect lambdatest user', () => {
         const caps = detectBackend({
             user: 'foobar',
-            key: 'cYAjKrqGwyPjPQv41ICDF4C5OjlxzA9epZsnugVJJxqOReWRWU'
+            key: 'cYAjKrqGwyPjPQv41ICDF4C5OjlxzA9epZsnugVJJxqOReWRWU',
         })
         expect(caps.hostname).toBe('hub.lambdatest.com')
         expect(caps.port).toBe(80)
@@ -77,7 +77,7 @@ describe('detectBackend', () => {
     it('should detect saucelabs user', () => {
         const caps = detectBackend({
             user: 'foobar',
-            key: '50aa152c-1932-B2f0-9707-18z46q2n1mb0'
+            key: '50aa152c-1932-B2f0-9707-18z46q2n1mb0',
         })
         expect(caps.hostname).toBe('ondemand.us-west-1.saucelabs.com')
         expect(caps.port).toBe(443)
@@ -89,7 +89,7 @@ describe('detectBackend', () => {
         const caps = detectBackend({
             user: 'foobar',
             key: '50aa152c-1932-B2f0-9707-18z46q2n1mb0',
-            region: 'us'
+            region: 'us',
         })
         expect(caps.hostname).toBe('ondemand.us-west-1.saucelabs.com')
         expect(caps.port).toBe(443)
@@ -101,7 +101,7 @@ describe('detectBackend', () => {
         const caps = detectBackend({
             user: 'foobar',
             key: '50aa152c-1932-B2f0-9707-18z46q2n1mb0',
-            region: 'eu'
+            region: 'eu',
         })
         expect(caps.hostname).toBe('ondemand.eu-central-1.saucelabs.com')
         expect(caps.port).toBe(443)
@@ -113,7 +113,7 @@ describe('detectBackend', () => {
         const caps = detectBackend({
             user: 'foobar',
             key: '50aa152c-1932-B2f0-9707-18z46q2n1mb0',
-            region: 'apac'
+            region: 'apac',
         })
         expect(caps.hostname).toBe('ondemand.apac-southeast-1.saucelabs.com')
         expect(caps.port).toBe(443)
@@ -126,7 +126,7 @@ describe('detectBackend', () => {
             user: 'foobar',
             key: '50aa152c-1932-B2f0-9707-18z46q2n1mb0',
             // @ts-expect-error wrong param
-            region: 'foobar'
+            region: 'foobar',
         })
         expect(caps.hostname).toBe('ondemand.us-west-1.saucelabs.com')
         expect(caps.port).toBe(443)
@@ -140,7 +140,7 @@ describe('detectBackend', () => {
             key: '50aa152c-1932-B2f0-9707-18z46q2n1mb0',
             hostname: 'foobar.com',
             port: 1234,
-            protocol: 'tcp'
+            protocol: 'tcp',
         })
         expect(caps.hostname).toBe('foobar.com')
         expect(caps.port).toBe(1234)
@@ -149,7 +149,9 @@ describe('detectBackend', () => {
 
     describe('saucelabs legacy rdc', () => {
         it('should detect saucelabs rdc user that had not defaulted a region', () => {
-            const caps = detectBackend({ capabilities: { testobject_api_key: '123' } })
+            const caps = detectBackend({
+                capabilities: { testobject_api_key: '123' },
+            })
             expect(caps.hostname).toBe('us1.appium.testobject.com')
             expect(caps.port).toBe(443)
             expect(caps.path).toBe('/wd/hub')
@@ -157,7 +159,10 @@ describe('detectBackend', () => {
         })
 
         it('should detect saucelabs us rdc user', () => {
-            const caps = detectBackend({ region: 'us', capabilities: { testobject_api_key: '123' } })
+            const caps = detectBackend({
+                region: 'us',
+                capabilities: { testobject_api_key: '123' },
+            })
             expect(caps.hostname).toBe('us1.appium.testobject.com')
             expect(caps.port).toBe(443)
             expect(caps.path).toBe('/wd/hub')
@@ -165,7 +170,10 @@ describe('detectBackend', () => {
         })
 
         it('should detect saucelabs eu rdc user', () => {
-            const caps = detectBackend({ region: 'eu', capabilities: { testobject_api_key: '123' } })
+            const caps = detectBackend({
+                region: 'eu',
+                capabilities: { testobject_api_key: '123' },
+            })
             expect(caps.hostname).toBe('eu1.appium.testobject.com')
             expect(caps.port).toBe(443)
             expect(caps.path).toBe('/wd/hub')
@@ -180,7 +188,9 @@ describe('detectBackend', () => {
         })
 
         it('should detect sauce visual if api key is existing', () => {
-            const caps = detectBackend({ capabilities: { 'sauce:visual': { apiKey: 'foobar' } } })
+            const caps = detectBackend({
+                capabilities: { 'sauce:visual': { apiKey: 'foobar' } },
+            })
             expect(caps.hostname).toBe('hub.screener.io')
             expect(caps.port).toBe(443)
             expect(caps.path).toBe('/wd/hub')
@@ -193,7 +203,7 @@ describe('detectBackend', () => {
             user: 'foobar',
             key: '50aa152c-1932-B2f0-9707-18z46q2n1mb0',
             region: 'eu',
-            headless: true
+            headless: true,
         })
         expect(caps.hostname).toBe('ondemand.us-east-1.saucelabs.com')
         expect(caps.port).toBe(443)
@@ -202,17 +212,19 @@ describe('detectBackend', () => {
     })
 
     it('should throw if user and key are given but can not be connected to a cloud', () => {
-        expect(() => detectBackend({
-            user: 'foobar',
-            key: 'barfoo'
-        })).toThrow()
+        expect(() =>
+            detectBackend({
+                user: 'foobar',
+                key: 'barfoo',
+            }),
+        ).toThrow()
     })
 
     it('should not throw if user and key are invalid but a custom host was set', () => {
         const caps = detectBackend({
             user: 'foobar',
             key: 'barfoo',
-            hostname: 'foobar.com'
+            hostname: 'foobar.com',
         })
         expect(caps.hostname).toBe('foobar.com')
         expect(caps.port).toBe(4444)
@@ -226,7 +238,7 @@ describe('detectBackend', () => {
             hostname: 'foobar.com',
             port: 1234,
             protocol: 'ftp',
-            path: '/foo/bar'
+            path: '/foo/bar',
         })
         expect(caps.hostname).toBe('foobar.com')
         expect(caps.port).toBe(1234)
@@ -241,7 +253,7 @@ describe('detectBackend', () => {
             hostname: 'foobar.com',
             port: 1234,
             protocol: 'ftp',
-            path: '/foo/bar'
+            path: '/foo/bar',
         })
         expect(caps.hostname).toBe('foobar.com')
         expect(caps.port).toBe(1234)
@@ -256,7 +268,7 @@ describe('detectBackend', () => {
             hostname: 'foobar.com',
             port: 1234,
             protocol: 'ftp',
-            path: '/foo/bar'
+            path: '/foo/bar',
         })
         expect(caps.hostname).toBe('foobar.com')
         expect(caps.port).toBe(1234)
@@ -271,7 +283,7 @@ describe('detectBackend', () => {
             hostname: 'foobar.com',
             port: 1234,
             protocol: 'ftp',
-            path: '/foo/bar'
+            path: '/foo/bar',
         })
         expect(caps.hostname).toBe('foobar.com')
         expect(caps.port).toBe(1234)

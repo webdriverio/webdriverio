@@ -1,5 +1,5 @@
-import { $, expect } from '@wdio/globals'
 import { render } from '@testing-library/vue'
+import { $, expect } from '@wdio/globals'
 import Component from './components/Component.vue'
 
 describe('Vue Component Testing', () => {

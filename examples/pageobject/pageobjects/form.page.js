@@ -4,19 +4,27 @@ class FormPage extends Page {
     /**
      * define elements
      */
-    get username () { return $('#username') }
-    get password () { return $('#password') }
-    get submitButton () { return $('#login button[type=submit]') }
-    get flash () { return $('#flash') }
+    get username() {
+        return $('#username')
+    }
+    get password() {
+        return $('#password')
+    }
+    get submitButton() {
+        return $('#login button[type=submit]')
+    }
+    get flash() {
+        return $('#flash')
+    }
 
     /**
      * define or overwrite page methods
      */
-    open () {
+    open() {
         return super.open('login')
     }
 
-    submit () {
+    submit() {
         return this.submitButton.click()
     }
 }

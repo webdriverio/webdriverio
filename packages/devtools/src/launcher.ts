@@ -1,25 +1,29 @@
-import { launch as launchChromeBrowser, Options } from 'chrome-launcher'
-import puppeteer, { PuppeteerLaunchOptions, KnownDevices, Puppeteer } from 'puppeteer-core'
 import logger from '@wdio/logger'
-import type { Browser } from 'puppeteer-core/lib/cjs/puppeteer/api/Browser'
 import type { Capabilities } from '@wdio/types'
+import { launch as launchChromeBrowser, Options } from 'chrome-launcher'
+import puppeteer, {
+    KnownDevices,
+    Puppeteer,
+    PuppeteerLaunchOptions,
+} from 'puppeteer-core'
+import type { Browser } from 'puppeteer-core/lib/cjs/puppeteer/api/Browser'
 import { QueryHandler } from 'query-selector-shadow-dom/plugins/puppeteer/index.js'
 
-import browserFinder from './finder/index.js'
-import { getPages, launchChromeUsingWhich } from './utils.js'
 import {
-    CHROME_NAMES,
-    FIREFOX_NAMES,
-    EDGE_NAMES,
     BROWSER_TYPE,
+    CHROME_NAMES,
     DEFAULT_FLAGS,
-    DEFAULT_WIDTH,
     DEFAULT_HEIGHT,
+    DEFAULT_WIDTH,
     DEFAULT_X_POSITION,
     DEFAULT_Y_POSITION,
-    VENDOR_PREFIX
+    EDGE_NAMES,
+    FIREFOX_NAMES,
+    VENDOR_PREFIX,
 } from './constants.js'
-import type { ExtendedCapabilities, DevToolsOptions } from './types'
+import browserFinder from './finder/index.js'
+import type { DevToolsOptions, ExtendedCapabilities } from './types'
+import { getPages, launchChromeUsingWhich } from './utils.js'
 
 const log = logger('devtools')
 
@@ -30,13 +34,15 @@ const DEVICE_NAMES = Object.keys(KnownDevices)
  * @param  {object} capabilities  session capabilities
  * @return {object}               puppeteer browser instance
  */
-async function launchChrome (capabilities: ExtendedCapabilities) {
-    const chromeOptions: Capabilities.ChromeOptions = capabilities[VENDOR_PREFIX.chrome] || {}
+async function launchChrome(capabilities: ExtendedCapabilities) {
+    const chromeOptions: Capabilities.ChromeOptions =
+        capabilities[VENDOR_PREFIX.chrome] || {}
     const mobileEmulation = chromeOptions.mobileEmulation || {}
-    const devtoolsOptions: DevToolsOptions = capabilities['wdio:devtoolsOptions'] || {}
-    const chromeOptionsArgs = (chromeOptions.args || []).map((arg) => (
-        arg.startsWith('--') ? arg : `--${arg}`
-    ))
+    const devtoolsOptions: DevToolsOptions =
+        capabilities['wdio:devtoolsOptions'] || {}
+    const chromeOptionsArgs = (chromeOptions.args || []).map((arg) =>
+        arg.startsWith('--') ? arg : `--${arg}`,
+    )
 
     /**
      * `ignoreDefaultArgs` and `headless` are currently expected to be part of the capabilities
@@ -44,49 +50,68 @@ async function launchChrome (capabilities: ExtendedCapabilities) {
      * This should be cleaned up for v7 release
      * ToDo(Christian): v7 cleanup
      */
-    let ignoreDefaultArgs = (capabilities as any).ignoreDefaultArgs || devtoolsOptions.ignoreDefaultArgs
+    let ignoreDefaultArgs =
+        (capabilities as any).ignoreDefaultArgs ||
+        devtoolsOptions.ignoreDefaultArgs
     let headless = (chromeOptions as any).headless || devtoolsOptions.headless
 
     if (typeof mobileEmulation.deviceName === 'string') {
-        const deviceProperties = KnownDevices[mobileEmulation.deviceName as keyof typeof KnownDevices]
+        const deviceProperties =
+            KnownDevices[
+                mobileEmulation.deviceName as keyof typeof KnownDevices
+            ]
 
         if (!deviceProperties) {
-            throw new Error(`Unknown device name "${mobileEmulation.deviceName}", available: ${DEVICE_NAMES.join(', ')}`)
+            throw new Error(
+                `Unknown device name "${
+                    mobileEmulation.deviceName
+                }", available: ${DEVICE_NAMES.join(', ')}`,
+            )
         }
 
         mobileEmulation.userAgent = deviceProperties.userAgent
         mobileEmulation.deviceMetrics = {
             width: deviceProperties.viewport.width,
             height: deviceProperties.viewport.height,
-            pixelRatio: deviceProperties.viewport.deviceScaleFactor
+            pixelRatio: deviceProperties.viewport.deviceScaleFactor,
         }
     }
 
     let userDataDir: string | boolean | undefined
-    const userDataDirIndex = chromeOptionsArgs.findIndex((arg) => arg.includes('user-data-dir'))
+    const userDataDirIndex = chromeOptionsArgs.findIndex((arg) =>
+        arg.includes('user-data-dir'),
+    )
     if (userDataDirIndex > -1) {
-        userDataDir = chromeOptionsArgs[userDataDirIndex].split('=').pop() as string
+        userDataDir = chromeOptionsArgs[userDataDirIndex]
+            .split('=')
+            .pop() as string
         chromeOptionsArgs.splice(userDataDirIndex, 1)
     }
 
-    const defaultFlags = Array.isArray(ignoreDefaultArgs) ? DEFAULT_FLAGS.filter(flag => !ignoreDefaultArgs.includes(flag)) : (!ignoreDefaultArgs) ? DEFAULT_FLAGS : []
-    const deviceMetrics = mobileEmulation.deviceMetrics || (devtoolsOptions.defaultViewport && {
-        width: devtoolsOptions.defaultViewport.width,
-        height: devtoolsOptions.defaultViewport.height,
-        pixelRatio: devtoolsOptions.defaultViewport.deviceScaleFactor,
-        touch: devtoolsOptions.defaultViewport.isMobile
-    }) || {}
+    const defaultFlags = Array.isArray(ignoreDefaultArgs)
+        ? DEFAULT_FLAGS.filter((flag) => !ignoreDefaultArgs.includes(flag))
+        : !ignoreDefaultArgs
+        ? DEFAULT_FLAGS
+        : []
+    const deviceMetrics =
+        mobileEmulation.deviceMetrics ||
+        (devtoolsOptions.defaultViewport && {
+            width: devtoolsOptions.defaultViewport.width,
+            height: devtoolsOptions.defaultViewport.height,
+            pixelRatio: devtoolsOptions.defaultViewport.deviceScaleFactor,
+            touch: devtoolsOptions.defaultViewport.isMobile,
+        }) ||
+        {}
     const chromeFlags = [
         ...defaultFlags,
         ...[
             `--window-position=${DEFAULT_X_POSITION},${DEFAULT_Y_POSITION}`,
-            `--window-size=${deviceMetrics?.width || DEFAULT_WIDTH},${deviceMetrics?.height || DEFAULT_HEIGHT}`
+            `--window-size=${deviceMetrics?.width || DEFAULT_WIDTH},${
+                deviceMetrics?.height || DEFAULT_HEIGHT
+            }`,
         ],
-        ...(headless ? [
-            '--headless',
-            '--no-sandbox'
-        ] : []),
-        ...chromeOptionsArgs
+        ...(headless ? ['--headless', '--no-sandbox'] : []),
+        ...chromeOptionsArgs,
     ]
 
     if (typeof deviceMetrics.pixelRatio === 'number') {
@@ -101,11 +126,15 @@ async function launchChrome (capabilities: ExtendedCapabilities) {
         chromeFlags.push(
             '--enable-touch-drag-drop',
             '--touch-events',
-            '--enable-viewport'
+            '--enable-viewport',
         )
     }
 
-    log.info(`Launch Google Chrome (${chromeOptions.binary}) with flags: ${chromeFlags.join(' ')}`)
+    log.info(
+        `Launch Google Chrome (${
+            chromeOptions.binary
+        }) with flags: ${chromeFlags.join(' ')}`,
+    )
     const launchOptions: Options = {
         prefs: chromeOptions.prefs,
         chromePath: chromeOptions.binary,
@@ -113,18 +142,21 @@ async function launchChrome (capabilities: ExtendedCapabilities) {
         chromeFlags,
         userDataDir,
         envVars: devtoolsOptions.env,
-        ...(devtoolsOptions.customPort ? { port: devtoolsOptions.customPort } : {})
+        ...(devtoolsOptions.customPort
+            ? { port: devtoolsOptions.customPort }
+            : {}),
     }
     const chrome = await launchChromeBrowser(launchOptions).catch(
-        (err: Error) => launchChromeUsingWhich(err, launchOptions))
+        (err: Error) => launchChromeUsingWhich(err, launchOptions),
+    )
 
     log.info(`Connect Puppeteer with browser on port ${chrome.port}`)
-    const browser = await puppeteer.connect({
+    const browser = (await puppeteer.connect({
         ...chromeOptions,
         ...devtoolsOptions,
         defaultViewport: null,
-        browserURL: `http://127.0.0.1:${chrome.port}`
-    }) as unknown as Browser // casting from @types/puppeteer to built in type
+        browserURL: `http://127.0.0.1:${chrome.port}`,
+    })) as unknown as Browser // casting from @types/puppeteer to built in type
 
     /**
      * when using Chrome Launcher we have to close a tab as Puppeteer
@@ -140,8 +172,14 @@ async function launchChrome (capabilities: ExtendedCapabilities) {
     return browser
 }
 
-function launchBrowser (capabilities: ExtendedCapabilities, browserType: 'edge' | 'firefox') {
-    const product = browserType === BROWSER_TYPE.firefox ? BROWSER_TYPE.firefox : BROWSER_TYPE.chrome
+function launchBrowser(
+    capabilities: ExtendedCapabilities,
+    browserType: 'edge' | 'firefox',
+) {
+    const product =
+        browserType === BROWSER_TYPE.firefox
+            ? BROWSER_TYPE.firefox
+            : BROWSER_TYPE.chrome
     const vendorCapKey = VENDOR_PREFIX[browserType]
     const devtoolsOptions = capabilities['wdio:devtoolsOptions']
 
@@ -163,42 +201,53 @@ function launchBrowser (capabilities: ExtendedCapabilities, browserType: 'edge' 
     }
 
     const browserFinderMethod = browserFinder(browserType, process.platform)
-    const executablePath = (
-        capabilities[vendorCapKey]?.binary ||
-        browserFinderMethod()[0]
+    const executablePath =
+        capabilities[vendorCapKey]?.binary || browserFinderMethod()[0]
+
+    const puppeteerOptions: PuppeteerLaunchOptions = Object.assign(
+        <PuppeteerLaunchOptions>{
+            product,
+            executablePath,
+            ignoreDefaultArgs,
+            headless: Boolean(headless),
+            defaultViewport: {
+                width: DEFAULT_WIDTH,
+                height: DEFAULT_HEIGHT,
+            },
+            prefs: capabilities[vendorCapKey]?.prefs,
+        },
+        capabilities[vendorCapKey] || {},
+        devtoolsOptions || {},
     )
 
-    const puppeteerOptions: PuppeteerLaunchOptions = Object.assign(<PuppeteerLaunchOptions>{
-        product,
-        executablePath,
-        ignoreDefaultArgs,
-        headless: Boolean(headless),
-        defaultViewport: {
-            width: DEFAULT_WIDTH,
-            height: DEFAULT_HEIGHT
-        },
-        prefs: capabilities[vendorCapKey]?.prefs
-    }, capabilities[vendorCapKey] || {}, devtoolsOptions || {})
-
     if (!executablePath) {
-        throw new Error('Couldn\'t find executable for browser')
+        throw new Error("Couldn't find executable for browser")
     }
 
-    log.info(`Launch ${executablePath} with config: ${JSON.stringify(puppeteerOptions)}`)
+    log.info(
+        `Launch ${executablePath} with config: ${JSON.stringify(
+            puppeteerOptions,
+        )}`,
+    )
     return puppeteer.launch(puppeteerOptions) as unknown as Promise<Browser>
 }
 
-function connectBrowser (connectionUrl: string, capabilities: ExtendedCapabilities) {
-    const connectionProp = connectionUrl.startsWith('http') ? 'browserURL' : 'browserWSEndpoint'
+function connectBrowser(
+    connectionUrl: string,
+    capabilities: ExtendedCapabilities,
+) {
+    const connectionProp = connectionUrl.startsWith('http')
+        ? 'browserURL'
+        : 'browserWSEndpoint'
     const devtoolsOptions = capabilities['wdio:devtoolsOptions']
     const options: puppeteer.ConnectOptions = {
         [connectionProp]: connectionUrl,
-        ...devtoolsOptions
+        ...devtoolsOptions,
     }
     return puppeteer.connect(options) as unknown as Promise<Browser>
 }
 
-export default async function launch (capabilities: ExtendedCapabilities) {
+export default async function launch(capabilities: ExtendedCapabilities) {
     Puppeteer.unregisterCustomQueryHandler('shadow')
     // ToDo(Christian): fix types (https://github.com/Georgegriff/query-selector-shadow-dom/issues/77)
     Puppeteer.registerCustomQueryHandler('shadow', QueryHandler as any)
@@ -208,13 +257,14 @@ export default async function launch (capabilities: ExtendedCapabilities) {
      * check if capabilities already contains connection details and connect
      * to that rather than starting a new browser
      */
-    const browserOptions = capabilities['goog:chromeOptions'] || capabilities['ms:edgeOptions']
+    const browserOptions =
+        capabilities['goog:chromeOptions'] || capabilities['ms:edgeOptions']
     const devtoolsOptions = capabilities['wdio:devtoolsOptions'] || {}
-    const connectionUrl = (
-        (browserOptions?.debuggerAddress && `http://${browserOptions?.debuggerAddress}`) ||
+    const connectionUrl =
+        (browserOptions?.debuggerAddress &&
+            `http://${browserOptions?.debuggerAddress}`) ||
         devtoolsOptions.browserURL ||
         devtoolsOptions.browserWSEndpoint
-    )
     if (connectionUrl) {
         return connectBrowser(connectionUrl, capabilities)
     }
@@ -226,7 +276,8 @@ export default async function launch (capabilities: ExtendedCapabilities) {
     if (!process.env.PROGRAMFILES && process.env['ProgramFiles']) {
         process.env.PROGRAMFILES = process.env['ProgramFiles']
     }
-    const programFiles86 = process.env['ProgramFiles(X86)'] || process.env['ProgramFiles(x86)']
+    const programFiles86 =
+        process.env['ProgramFiles(X86)'] || process.env['ProgramFiles(x86)']
     if (!process.env['PROGRAMFILES(X86)'] && programFiles86) {
         process.env['PROGRAMFILES(X86)'] = programFiles86
     }

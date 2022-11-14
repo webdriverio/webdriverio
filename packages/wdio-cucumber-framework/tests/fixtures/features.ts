@@ -7,9 +7,9 @@ export const featureWithRules = {
                     {
                         keyword: 'Given ',
                         text: 'I have a background',
-                    }
+                    },
                 ],
-            }
+            },
         },
         {
             scenario: {
@@ -19,9 +19,9 @@ export const featureWithRules = {
                     {
                         keyword: 'Given ',
                         text: 'I have 42 cukes in my belly',
-                    }
-                ]
-            }
+                    },
+                ],
+            },
         },
         {
             rule: {
@@ -36,12 +36,12 @@ export const featureWithRules = {
                                 {
                                     keyword: 'Given ',
                                     text: 'I am on the login page',
-                                }
-                            ]
-                        }
-                    }
+                                },
+                            ],
+                        },
+                    },
                 ],
-            }
+            },
         },
         {
             rule: {
@@ -56,9 +56,9 @@ export const featureWithRules = {
                                 {
                                     keyword: 'Given ',
                                     text: 'I am on the sign up page',
-                                }
-                            ]
-                        }
+                                },
+                            ],
+                        },
                     },
                     {
                         scenario: {
@@ -67,13 +67,13 @@ export const featureWithRules = {
                             steps: [
                                 {
                                     keyword: 'Given ',
-                                    text: 'I am on the checkout page'
-                                }
-                            ]
-                        }
-                    }
-                ]
-            }
-        }
-    ]
+                                    text: 'I am on the checkout page',
+                                },
+                            ],
+                        },
+                    },
+                ],
+            },
+        },
+    ],
 }

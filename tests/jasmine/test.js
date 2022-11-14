@@ -22,13 +22,18 @@ describe('Jasmine smoke test', () => {
     })
 
     let hasRun = false
-    it('should retry', function () {
-        if (!hasRun) {
-            hasRun = true
-            assert.equal(this.wdioRetries, 0)
-            throw new Error('booom!')
-        }
+    it(
+        'should retry',
+        function () {
+            if (!hasRun) {
+                hasRun = true
+                assert.equal(this.wdioRetries, 0)
+                throw new Error('booom!')
+            }
 
-        expect(this.wdioRetries).toBe(1)
-    }, jasmine.DEFAULT_TIMEOUT_INTERVAL, 1)
+            expect(this.wdioRetries).toBe(1)
+        },
+        jasmine.DEFAULT_TIMEOUT_INTERVAL,
+        1,
+    )
 })

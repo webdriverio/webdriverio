@@ -8,7 +8,7 @@ import type DevToolsDriver from '../devtoolsdriver'
  * @alias browser.dismissAlert
  * @see https://w3c.github.io/webdriver/#dfn-dismiss-alert
  */
-export default async function dismissAlert (this: DevToolsDriver) {
+export default async function dismissAlert(this: DevToolsDriver) {
     if (!this.activeDialog) {
         throw new Error('no such alert')
     }

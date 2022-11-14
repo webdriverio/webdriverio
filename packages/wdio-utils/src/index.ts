@@ -1,19 +1,30 @@
 /* istanbul ignore file */
 
-import initialisePlugin from './initialisePlugin.js'
-import { initialiseWorkerService, initialiseLauncherService } from './initialiseServices.js'
-import webdriverMonad from './monad.js'
-import {
-    commandCallStructure, isValidParameter, getArgumentType, safeImport,
-    isFunctionAsync, transformCommandLogResult, canAccess, sleep
-} from './utils.js'
-import { wrapCommand, executeHooksWithArgs, executeAsync } from './shim.js'
-import { testFnWrapper, runTestInFiberContext } from './test-framework/index.js'
-import {
-    isW3C, capabilitiesEnvironmentDetector,
-    sessionEnvironmentDetector, devtoolsEnvironmentDetector
-} from './envDetector.js'
 import { UNICODE_CHARACTERS } from './constants.js'
+import {
+    capabilitiesEnvironmentDetector,
+    devtoolsEnvironmentDetector,
+    isW3C,
+    sessionEnvironmentDetector,
+} from './envDetector.js'
+import initialisePlugin from './initialisePlugin.js'
+import {
+    initialiseLauncherService,
+    initialiseWorkerService,
+} from './initialiseServices.js'
+import webdriverMonad from './monad.js'
+import { executeAsync, executeHooksWithArgs, wrapCommand } from './shim.js'
+import { runTestInFiberContext, testFnWrapper } from './test-framework/index.js'
+import {
+    canAccess,
+    commandCallStructure,
+    getArgumentType,
+    isFunctionAsync,
+    isValidParameter,
+    safeImport,
+    sleep,
+    transformCommandLogResult,
+} from './utils.js'
 
 export {
     initialisePlugin,
@@ -49,5 +60,5 @@ export {
     /**
      * constants
      */
-    UNICODE_CHARACTERS
+    UNICODE_CHARACTERS,
 }

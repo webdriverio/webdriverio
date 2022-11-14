@@ -1,18 +1,24 @@
 import { deepmergeCustom } from 'deepmerge-ts'
 
 import logger from '@wdio/logger'
-import Protocols from '@wdio/protocols'
-import {
-    WebDriverProtocol, MJsonWProtocol, JsonWProtocol, AppiumProtocol, ChromiumProtocol,
-    SauceLabsProtocol, SeleniumProtocol, GeckoProtocol, WebDriverBidiProtocol
+import Protocols, {
+    AppiumProtocol,
+    CAPABILITY_KEYS,
+    ChromiumProtocol,
+    GeckoProtocol,
+    JsonWProtocol,
+    MJsonWProtocol,
+    SauceLabsProtocol,
+    SeleniumProtocol,
+    WebDriverBidiProtocol,
+    WebDriverProtocol,
 } from '@wdio/protocols'
+import type { Capabilities, Options } from '@wdio/types'
 import { transformCommandLogResult } from '@wdio/utils'
-import { CAPABILITY_KEYS } from '@wdio/protocols'
-import type { Options, Capabilities } from '@wdio/types'
 
-import RequestFactory from './request/factory.js'
 import command from './command.js'
 import { REG_EXPS } from './constants.js'
+import RequestFactory from './request/factory.js'
 import type { WebDriverResponse } from './request/index.js'
 import type { Client, JSONWPCommandError, SessionFlags } from './types'
 
@@ -23,21 +29,29 @@ const BROWSER_DRIVER_ERRORS = [
     'unknown command: wd/hub/session', // chromedriver
     'HTTP method not allowed', // geckodriver
     "'POST /wd/hub/session' was not found.", // safaridriver
-    'Command not found' // iedriver
+    'Command not found', // iedriver
 ]
 
 /**
  * start browser session with WebDriver protocol
  */
-export async function startWebDriverSession (params: Options.WebDriver): Promise<{ sessionId: string, capabilities: Capabilities.DesiredCapabilities }> {
+export async function startWebDriverSession(
+    params: Options.WebDriver,
+): Promise<{
+    sessionId: string
+    capabilities: Capabilities.DesiredCapabilities
+}> {
     /**
      * validate capabilities to check if there are no obvious mix between
      * JSONWireProtocol and WebDriver protoocol, e.g.
      */
     if (params.capabilities) {
-        const extensionCaps = Object.keys(params.capabilities).filter((cap) => cap.includes(':'))
-        const invalidWebDriverCaps = Object.keys(params.capabilities)
-            .filter((cap) => !CAPABILITY_KEYS.includes(cap) && !cap.includes(':'))
+        const extensionCaps = Object.keys(params.capabilities).filter((cap) =>
+            cap.includes(':'),
+        )
+        const invalidWebDriverCaps = Object.keys(params.capabilities).filter(
+            (cap) => !CAPABILITY_KEYS.includes(cap) && !cap.includes(':'),
+        )
 
         /**
          * if there are vendor extensions, e.g. sauce:options or appium:app
@@ -46,11 +60,13 @@ export async function startWebDriverSession (params: Options.WebDriver): Promise
          */
         if (extensionCaps.length && invalidWebDriverCaps.length) {
             throw new Error(
-                `Invalid or unsupported WebDriver capabilities found ("${invalidWebDriverCaps.join('", "')}"). ` +
-                'Ensure to only use valid W3C WebDriver capabilities (see https://w3c.github.io/webdriver/#capabilities).' +
-                'If you run your tests on a remote vendor, like Sauce Labs or BrowserStack, make sure that you put them ' +
-                'into vendor specific capabilities, e.g. "sauce:options" or "bstack:options". Please reach out to ' +
-                'to your vendor support team if you have further questions.'
+                `Invalid or unsupported WebDriver capabilities found ("${invalidWebDriverCaps.join(
+                    '", "',
+                )}"). ` +
+                    'Ensure to only use valid W3C WebDriver capabilities (see https://w3c.github.io/webdriver/#capabilities).' +
+                    'If you run your tests on a remote vendor, like Sauce Labs or BrowserStack, make sure that you put them ' +
+                    'into vendor specific capabilities, e.g. "sauce:options" or "bstack:options". Please reach out to ' +
+                    'to your vendor support team if you have further questions.',
             )
         }
     }
@@ -61,23 +77,32 @@ export async function startWebDriverSession (params: Options.WebDriver): Promise
      * to check what style the user sent in so we know how to construct the
      * object for the other style
      */
-    const [w3cCaps, jsonwpCaps] = params.capabilities && (params.capabilities as Capabilities.W3CCapabilities).alwaysMatch
-        /**
-         * in case W3C compliant capabilities are provided
-         */
-        ? [params.capabilities, (params.capabilities as Capabilities.W3CCapabilities).alwaysMatch]
-        /**
-         * otherwise assume they passed in jsonwp-style caps (flat object)
-         */
-        : [{ alwaysMatch: params.capabilities, firstMatch: [{}] }, params.capabilities]
+    const [w3cCaps, jsonwpCaps] =
+        params.capabilities &&
+        (params.capabilities as Capabilities.W3CCapabilities).alwaysMatch
+            ? /**
+               * in case W3C compliant capabilities are provided
+               */
+              [
+                  params.capabilities,
+                  (params.capabilities as Capabilities.W3CCapabilities)
+                      .alwaysMatch,
+              ]
+            : /**
+               * otherwise assume they passed in jsonwp-style caps (flat object)
+               */
+              [
+                  { alwaysMatch: params.capabilities, firstMatch: [{}] },
+                  params.capabilities,
+              ]
 
     const sessionRequest = await RequestFactory.getInstance(
         'POST',
         '/session',
         {
             capabilities: w3cCaps, // W3C compliant
-            desiredCapabilities: jsonwpCaps // JSONWP compliant
-        }
+            desiredCapabilities: jsonwpCaps, // JSONWP compliant
+        },
     )
 
     let response
@@ -95,7 +120,10 @@ export async function startWebDriverSession (params: Options.WebDriver): Promise
      */
     params.capabilities = response.value.capabilities || response.value
 
-    return { sessionId, capabilities: params.capabilities as Capabilities.DesiredCapabilities }
+    return {
+        sessionId,
+        capabilities: params.capabilities as Capabilities.DesiredCapabilities,
+    }
 }
 
 /**
@@ -104,7 +132,10 @@ export async function startWebDriverSession (params: Options.WebDriver): Promise
  * @param  {Object}  body       body payload of response
  * @return {Boolean}            true if request was successful
  */
-export function isSuccessfulResponse (statusCode?: number, body?: WebDriverResponse) {
+export function isSuccessfulResponse(
+    statusCode?: number,
+    body?: WebDriverResponse,
+) {
     /**
      * response contains a body
      */
@@ -117,14 +148,17 @@ export function isSuccessfulResponse (statusCode?: number, body?: WebDriverRespo
      * ignore failing element request to enable lazy loading capability
      */
     if (
-        body.status === 7 && body.value && body.value.message &&
-        (
-            body.value.message.toLowerCase().startsWith('no such element') ||
+        body.status === 7 &&
+        body.value &&
+        body.value.message &&
+        (body.value.message.toLowerCase().startsWith('no such element') ||
             // Appium
-            body.value.message === 'An element could not be located on the page using the given search parameters.' ||
+            body.value.message ===
+                'An element could not be located on the page using the given search parameters.' ||
             // Internet Explorter
-            body.value.message.toLowerCase().startsWith('unable to find element')
-        )
+            body.value.message
+                .toLowerCase()
+                .startsWith('unable to find element'))
     ) {
         return true
     }
@@ -138,7 +172,9 @@ export function isSuccessfulResponse (statusCode?: number, body?: WebDriverRespo
         return false
     }
 
-    const hasErrorResponse = body.value && (body.value.error || body.value.stackTrace || body.value.stacktrace)
+    const hasErrorResponse =
+        body.value &&
+        (body.value.error || body.value.stackTrace || body.value.stacktrace)
 
     /**
      * check status code
@@ -151,7 +187,11 @@ export function isSuccessfulResponse (statusCode?: number, body?: WebDriverRespo
      * if an element was not found we don't flag it as failed request because
      * we lazy load it
      */
-    if (statusCode === 404 && body.value && body.value.error === 'no such element') {
+    if (
+        statusCode === 404 &&
+        body.value &&
+        body.value.error === 'no such element'
+    ) {
         return true
     }
 
@@ -169,7 +209,14 @@ export function isSuccessfulResponse (statusCode?: number, body?: WebDriverRespo
 /**
  * creates the base prototype for the webdriver monad
  */
-export function getPrototype ({ isW3C, isChrome, isFirefox, isMobile, isSauce, isSeleniumStandalone }: Partial<SessionFlags>) {
+export function getPrototype({
+    isW3C,
+    isChrome,
+    isFirefox,
+    isMobile,
+    isSauce,
+    isSeleniumStandalone,
+}: Partial<SessionFlags>) {
     const prototype: Record<string, PropertyDescriptor> = {}
     const ProtocolCommands: Protocols.Protocol = deepmerge(
         /**
@@ -179,7 +226,9 @@ export function getPrototype ({ isW3C, isChrome, isFirefox, isMobile, isSauce, i
          */
         isMobile
             ? deepmerge(JsonWProtocol, WebDriverProtocol)
-            : isW3C ? WebDriverProtocol : JsonWProtocol,
+            : isW3C
+            ? WebDriverProtocol
+            : JsonWProtocol,
         /**
          * enable Bidi protocol for W3C sessions
          */
@@ -204,12 +253,19 @@ export function getPrototype ({ isW3C, isChrome, isFirefox, isMobile, isSauce, i
          * only apply special commands when running tests using
          * Selenium Grid or Selenium Standalone server
          */
-        isSeleniumStandalone ? SeleniumProtocol : {}
+        isSeleniumStandalone ? SeleniumProtocol : {},
     )
 
     for (const [endpoint, methods] of Object.entries(ProtocolCommands)) {
         for (const [method, commandData] of Object.entries(methods)) {
-            prototype[commandData.command] = { value: command(method, endpoint, commandData, isSeleniumStandalone) }
+            prototype[commandData.command] = {
+                value: command(
+                    method,
+                    endpoint,
+                    commandData,
+                    isSeleniumStandalone,
+                ),
+            }
         }
     }
 
@@ -221,7 +277,7 @@ export function getPrototype ({ isW3C, isChrome, isFirefox, isMobile, isSauce, i
  * @param  {Object} body body object
  * @return {Object} error
  */
-export function getErrorFromResponseBody (body: any, requestOptions: any) {
+export function getErrorFromResponseBody(body: any, requestOptions: any) {
     if (!body) {
         return new Error('Response has empty body')
     }
@@ -239,24 +295,29 @@ export function getErrorFromResponseBody (body: any, requestOptions: any) {
 
 //Exporting for testability
 export class CustomRequestError extends Error {
-    constructor (body: WebDriverResponse, requestOptions: any) {
+    constructor(body: WebDriverResponse, requestOptions: any) {
         const errorObj = body.value || body
         let errorMessage = errorObj.message || errorObj.class || 'unknown error'
 
         /**
          * improve error message for Chrome and Safari on invalid selectors
          */
-        if (typeof errorObj.error === 'string' && errorObj.error.includes('invalid selector')) {
-            errorMessage = (
+        if (
+            typeof errorObj.error === 'string' &&
+            errorObj.error.includes('invalid selector')
+        ) {
+            errorMessage =
                 `The selector "${requestOptions.value}" used with strategy "${requestOptions.using}" is invalid! ` +
                 'For more information on selectors visit the WebdriverIO docs at: https://webdriver.io/docs/selectors'
-            )
         }
 
         super(errorMessage)
         if (errorObj.error) {
             this.name = errorObj.error
-        } else if (errorObj.message && errorObj.message.includes('stale element reference')) {
+        } else if (
+            errorObj.message &&
+            errorObj.message.includes('stale element reference')
+        ) {
             this.name = 'stale element reference'
         } else {
             this.name = errorObj.name || 'WebDriver Error'
@@ -272,7 +333,16 @@ export class CustomRequestError extends Error {
  * @param  {Object} options   driver instance or option object containing these flags
  * @return {Object}           prototype object
  */
-export function getEnvironmentVars({ isW3C, isMobile, isIOS, isAndroid, isChrome, isFirefox, isSauce, isSeleniumStandalone }: Partial<SessionFlags>) {
+export function getEnvironmentVars({
+    isW3C,
+    isMobile,
+    isIOS,
+    isAndroid,
+    isChrome,
+    isFirefox,
+    isSauce,
+    isSeleniumStandalone,
+}: Partial<SessionFlags>) {
     return {
         isW3C: { value: isW3C },
         isMobile: { value: isMobile },
@@ -281,7 +351,7 @@ export function getEnvironmentVars({ isW3C, isMobile, isIOS, isAndroid, isChrome
         isFirefox: { value: isFirefox },
         isChrome: { value: isChrome },
         isSauce: { value: isSauce },
-        isSeleniumStandalone: { value: isSeleniumStandalone }
+        isSeleniumStandalone: { value: isSeleniumStandalone },
     }
 }
 
@@ -293,18 +363,30 @@ export function getEnvironmentVars({ isW3C, isMobile, isIOS, isAndroid, isChrome
  */
 export function setupDirectConnect(client: Client) {
     const capabilities = client.capabilities as Capabilities.DesiredCapabilities
-    const directConnectProtocol = capabilities.directConnectProtocol || capabilities['appium:directConnectProtocol']
-    const directConnectHost = capabilities.directConnectHost || capabilities['appium:directConnectHost']
+    const directConnectProtocol =
+        capabilities.directConnectProtocol ||
+        capabilities['appium:directConnectProtocol']
+    const directConnectHost =
+        capabilities.directConnectHost ||
+        capabilities['appium:directConnectHost']
     let directConnectPath = capabilities.directConnectPath
     if (!(directConnectPath || directConnectPath === '')) {
         directConnectPath = capabilities['appium:directConnectPath']
     }
-    const directConnectPort = capabilities.directConnectPort || capabilities['appium:directConnectPort']
-    if (directConnectProtocol && directConnectHost && directConnectPort &&
-        (directConnectPath || directConnectPath === '')) {
-        log.info('Found direct connect information in new session response. ' +
-            `Will connect to server at ${directConnectProtocol}://` +
-            `${directConnectHost}:${directConnectPort}${directConnectPath}`)
+    const directConnectPort =
+        capabilities.directConnectPort ||
+        capabilities['appium:directConnectPort']
+    if (
+        directConnectProtocol &&
+        directConnectHost &&
+        directConnectPort &&
+        (directConnectPath || directConnectPath === '')
+    ) {
+        log.info(
+            'Found direct connect information in new session response. ' +
+                `Will connect to server at ${directConnectProtocol}://` +
+                `${directConnectHost}:${directConnectPort}${directConnectPath}`,
+        )
         client.options.protocol = directConnectProtocol
         client.options.hostname = directConnectHost
         client.options.port = directConnectPort
@@ -316,11 +398,16 @@ export function setupDirectConnect(client: Client) {
  * get human readable message from response error
  * @param {Error} err response error
  */
-export const getSessionError = (err: JSONWPCommandError, params: Partial<Options.WebDriver> = {}) => {
+export const getSessionError = (
+    err: JSONWPCommandError,
+    params: Partial<Options.WebDriver> = {},
+) => {
     // browser driver / service is not started
     if (err.code === 'ECONNREFUSED') {
-        return `Unable to connect to "${params.protocol}://${params.hostname}:${params.port}${params.path}", make sure browser driver is running on that address.` +
+        return (
+            `Unable to connect to "${params.protocol}://${params.hostname}:${params.port}${params.path}", make sure browser driver is running on that address.` +
             '\nIf you use services like chromedriver see initialiseServices logs above or in wdio.log file as the service might had problems to start the driver.'
+        )
     }
 
     if (err.message === 'unhandled request') {
@@ -332,21 +419,33 @@ export const getSessionError = (err: JSONWPCommandError, params: Partial<Options
     }
 
     // wrong path: selenium-standalone
-    if (err.message.includes('Whoops! The URL specified routes to this help page.')) {
+    if (
+        err.message.includes(
+            'Whoops! The URL specified routes to this help page.',
+        )
+    ) {
         return "It seems you are running a Selenium Standalone server and point to a wrong path. Please set `path: '/wd/hub'` in your wdio.conf.js!"
     }
 
     // wrong path: chromedriver, geckodriver, etc
-    if (BROWSER_DRIVER_ERRORS.some(m => err && err.message && err.message.includes(m))) {
+    if (
+        BROWSER_DRIVER_ERRORS.some(
+            (m) => err && err.message && err.message.includes(m),
+        )
+    ) {
         return "Make sure to set `path: '/'` in your wdio.conf.js!"
     }
 
     // edge driver on localhost
-    if (err.message.includes('Bad Request - Invalid Hostname') && err.message.includes('HTTP Error 400')) {
+    if (
+        err.message.includes('Bad Request - Invalid Hostname') &&
+        err.message.includes('HTTP Error 400')
+    ) {
         return "Run edge driver on 127.0.0.1 instead of localhost, ex: --host=127.0.0.1, or set `hostname: 'localhost'` in your wdio.conf.js"
     }
 
-    const w3cCapMessage = '\nMake sure to add vendor prefix like "goog:", "appium:", "moz:", etc to non W3C capabilities.' +
+    const w3cCapMessage =
+        '\nMake sure to add vendor prefix like "goog:", "appium:", "moz:", etc to non W3C capabilities.' +
         '\nSee more https://www.w3.org/TR/webdriver/#capabilities'
 
     // Illegal w3c capability passed to selenium standalone
@@ -356,14 +455,24 @@ export const getSessionError = (err: JSONWPCommandError, params: Partial<Options
 
     // wrong host/port, port in use, illegal w3c capability passed to selenium grid
     if (err.message === 'Response has empty body') {
-        return 'Make sure to connect to valid hostname:port or the port is not in use.' +
-            '\nIf you use a grid server ' + w3cCapMessage
+        return (
+            'Make sure to connect to valid hostname:port or the port is not in use.' +
+            '\nIf you use a grid server ' +
+            w3cCapMessage
+        )
     }
 
-    if (err.message.includes('failed serving request POST /wd/hub/session: Unauthorized') && params.hostname?.endsWith('saucelabs.com')) {
-        return 'Session request was not authorized because you either did provide a wrong access key or tried to run ' +
+    if (
+        err.message.includes(
+            'failed serving request POST /wd/hub/session: Unauthorized',
+        ) &&
+        params.hostname?.endsWith('saucelabs.com')
+    ) {
+        return (
+            'Session request was not authorized because you either did provide a wrong access key or tried to run ' +
             'in a region that has not been enabled for your user. If have registered a free trial account it is connected ' +
             'to a specific region. Ensure this region is set in your configuration (https://webdriver.io/docs/options.html#region).'
+        )
     }
 
     return err.message
@@ -372,7 +481,10 @@ export const getSessionError = (err: JSONWPCommandError, params: Partial<Options
 /**
  * return timeout error with information about the executing command on which the test hangs
  */
-export const getTimeoutError = (error: Error, requestOptions: Options.RequestLibOptions): Error => {
+export const getTimeoutError = (
+    error: Error,
+    requestOptions: Options.RequestLibOptions,
+): Error => {
     const cmdName = getExecCmdName(requestOptions)
     const cmdArgs = getExecCmdArgs(requestOptions)
 

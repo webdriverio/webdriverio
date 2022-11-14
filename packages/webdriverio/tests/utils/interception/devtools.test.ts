@@ -1,5 +1,5 @@
-import { test, expect, vi, beforeEach, describe } from 'vitest'
 import fs from 'node:fs/promises'
+import { beforeEach, describe, expect, test, vi } from 'vitest'
 import NetworkInterception from '../../../src/utils/interception/devtools.js'
 
 vi.mock('node:fs/promise', () => ({
@@ -9,15 +9,17 @@ vi.mock('node:fs/promise', () => ({
                 throw new Error('fse mock')
             }
         },
-        readFile: async () => Buffer.from('<89>PNG\r^Z\n^@^@^@^MI', 'binary')
-    }
+        readFile: async () => Buffer.from('<89>PNG\r^Z\n^@^@^@^MI', 'binary'),
+    },
 }))
 
 const cdpClient: any = {
-    send: vi.fn().mockReturnValue(Promise.resolve({
-        body: 'eyJmb28iOiJiYXIifQ==',
-        base64Encoded: true
-    }))
+    send: vi.fn().mockReturnValue(
+        Promise.resolve({
+            body: 'eyJmb28iOiJiYXIifQ==',
+            base64Encoded: true,
+        }),
+    ),
 }
 
 const browserMock = {} as any as WebdriverIO.Browser
@@ -25,15 +27,19 @@ const browserMock = {} as any as WebdriverIO.Browser
 const fetchListener = async (mock: any, params: any, client = cdpClient) => {
     const reponseParams = Object.entries(params).reduce((acc, [key, val]) => {
         if (!['responseHeaders', 'responseStatusCode'].includes(key)) {
-            (acc as any)[key] = val
+            ;(acc as any)[key] = val
         }
         return acc
     }, {}) as any
 
     // Request
-    await NetworkInterception.handleRequestInterception(client, [mock] as any)(reponseParams)
+    await NetworkInterception.handleRequestInterception(client, [mock] as any)(
+        reponseParams,
+    )
     // Response
-    return NetworkInterception.handleRequestInterception(client, [mock] as any)(params)
+    return NetworkInterception.handleRequestInterception(client, [mock] as any)(
+        params,
+    )
 }
 
 beforeEach(() => {
@@ -44,25 +50,35 @@ test('allows to access network calls', async () => {
     const mock = new NetworkInterception('**/foobar/**', undefined, browserMock)
     await fetchListener(mock, {
         request: { url: 'http://test.com/foobar/test.html' },
-        responseHeaders: []
+        responseHeaders: [],
     })
     await fetchListener(mock, {
         request: { url: 'http://test.com/barfoo/test.html' },
-        responseHeaders: []
+        responseHeaders: [],
     })
     expect(mock.calls.length).toBe(1)
 })
 
 describe('filter network calls by header', () => {
     const mockWithCall = async (filter: any) => {
-        const mock = new NetworkInterception('**/foobar/**', filter, browserMock)
+        const mock = new NetworkInterception(
+            '**/foobar/**',
+            filter,
+            browserMock,
+        )
         await fetchListener(mock, {
-            request: { url: 'http://test.com/foobar/test1.html', method: 'put' },
-            responseHeaders: [{ name: 'Content-Type', value: 'text/xml' }]
+            request: {
+                url: 'http://test.com/foobar/test1.html',
+                method: 'put',
+            },
+            responseHeaders: [{ name: 'Content-Type', value: 'text/xml' }],
         })
         await fetchListener(mock, {
-            request: { url: 'http://test.com/foobar/test2.html', method: 'put' },
-            responseHeaders: [{ name: 'Content-Type', value: 'foobar' }]
+            request: {
+                url: 'http://test.com/foobar/test2.html',
+                method: 'put',
+            },
+            responseHeaders: [{ name: 'Content-Type', value: 'foobar' }],
         })
         return mock
     }
@@ -70,7 +86,7 @@ describe('filter network calls by header', () => {
     test('1 match', async () => {
         const mock = await mockWithCall({
             method: 'put',
-            headers: { 'Content-Type': 'text/xml' }
+            headers: { 'Content-Type': 'text/xml' },
         })
 
         expect(mock.calls.length).toBe(1)
@@ -79,22 +95,24 @@ describe('filter network calls by header', () => {
 
     test('no match value', async () => {
         const mock = await mockWithCall({
-            headers: { 'Content-Type': 'no match' }
+            headers: { 'Content-Type': 'no match' },
         })
         expect(mock.calls.length).toBe(0)
     })
 
     test('no match key', async () => {
         const mock = await mockWithCall({
-            headers: { 'foo': 'bar' }
+            headers: { foo: 'bar' },
         })
         expect(mock.calls.length).toBe(0)
     })
 
     test('comparator fn', async () => {
         const mock = await mockWithCall({
-            headers: (headers: any) => Object.entries(headers)
-                .some(([, value]: any[]) => value.includes('xml'))
+            headers: (headers: any) =>
+                Object.entries(headers).some(([, value]: any[]) =>
+                    value.includes('xml'),
+                ),
         })
         expect(mock.calls.length).toBe(1)
         expect(mock.calls[0].url).toBe('http://test.com/foobar/test1.html')
@@ -103,25 +121,40 @@ describe('filter network calls by header', () => {
 
 describe('filter network calls by postData', () => {
     const mockWithCall = async (filter: any) => {
-        const mock = new NetworkInterception('**/foobar/**', filter, browserMock)
+        const mock = new NetworkInterception(
+            '**/foobar/**',
+            filter,
+            browserMock,
+        )
         await fetchListener(mock, {
-            request: { url: 'http://test.com/foobar/test1.html', method: 'post', postData: JSON.stringify({ foo: { bar: 'baz' } }) },
-            responseHeaders: []
+            request: {
+                url: 'http://test.com/foobar/test1.html',
+                method: 'post',
+                postData: JSON.stringify({ foo: { bar: 'baz' } }),
+            },
+            responseHeaders: [],
         })
         await fetchListener(mock, {
-            request: { url: 'http://test.com/foobar/test2.html', method: 'post', postData: 'foobar' },
-            responseHeaders: []
+            request: {
+                url: 'http://test.com/foobar/test2.html',
+                method: 'post',
+                postData: 'foobar',
+            },
+            responseHeaders: [],
         })
         await fetchListener(mock, {
-            request: { url: 'http://test.com/foobar/test3.html', method: 'get' },
-            responseHeaders: []
+            request: {
+                url: 'http://test.com/foobar/test3.html',
+                method: 'get',
+            },
+            responseHeaders: [],
         })
         return mock
     }
 
     test('exact match', async () => {
         const mock = await mockWithCall({
-            postData: 'foobar'
+            postData: 'foobar',
         } as any)
 
         expect(mock.calls.length).toBe(1)
@@ -139,7 +172,7 @@ describe('filter network calls by postData', () => {
                 } catch {
                     return false
                 }
-            }
+            },
         } as any)
 
         expect(mock.calls.length).toBe(1)
@@ -149,23 +182,33 @@ describe('filter network calls by postData', () => {
 
 describe('filter network calls by statusCode', () => {
     const mockWithCall = async (filter: any) => {
-        const mock = new NetworkInterception('**/foobar/**', filter, browserMock)
+        const mock = new NetworkInterception(
+            '**/foobar/**',
+            filter,
+            browserMock,
+        )
         await fetchListener(mock, {
-            request: { url: 'http://test.com/foobar/test1.html', method: 'post' },
+            request: {
+                url: 'http://test.com/foobar/test1.html',
+                method: 'post',
+            },
             responseHeaders: [],
-            responseStatusCode: 200
+            responseStatusCode: 200,
         })
         await fetchListener(mock, {
-            request: { url: 'http://test.com/foobar/test2.html', method: 'post' },
+            request: {
+                url: 'http://test.com/foobar/test2.html',
+                method: 'post',
+            },
             responseHeaders: [],
-            responseStatusCode: 203
+            responseStatusCode: 203,
         })
         return mock
     }
 
     test('exact match', async () => {
         const mock = await mockWithCall({
-            statusCode: 203
+            statusCode: 203,
         } as any)
 
         expect(mock.calls.length).toBe(1)
@@ -174,7 +217,8 @@ describe('filter network calls by statusCode', () => {
 
     test('comparator fn', async () => {
         const mock = await mockWithCall({
-            statusCode: (statusCode: number) => statusCode >= 200 && statusCode <= 201
+            statusCode: (statusCode: number) =>
+                statusCode >= 200 && statusCode <= 201,
         } as any)
 
         expect(mock.calls.length).toBe(1)
@@ -184,21 +228,31 @@ describe('filter network calls by statusCode', () => {
 
 describe('filter network calls by method', () => {
     const mockWithCall = async (filter: any) => {
-        const mock = new NetworkInterception('**/foobar/**', filter, browserMock)
+        const mock = new NetworkInterception(
+            '**/foobar/**',
+            filter,
+            browserMock,
+        )
         await fetchListener(mock, {
-            request: { url: 'http://test.com/foobar/test1.html', method: 'PUT' },
-            responseHeaders: []
+            request: {
+                url: 'http://test.com/foobar/test1.html',
+                method: 'PUT',
+            },
+            responseHeaders: [],
         })
         await fetchListener(mock, {
-            request: { url: 'http://test.com/foobar/test2.html', method: 'POST' },
-            responseHeaders: []
+            request: {
+                url: 'http://test.com/foobar/test2.html',
+                method: 'POST',
+            },
+            responseHeaders: [],
         })
         return mock
     }
 
     test('exact match', async () => {
         const mock = await mockWithCall({
-            method: 'put'
+            method: 'put',
         })
 
         expect(mock.calls.length).toBe(1)
@@ -207,7 +261,7 @@ describe('filter network calls by method', () => {
 
     test('comparator fn', async () => {
         const mock = await mockWithCall({
-            method: (method: string) => method.toLowerCase() === 'post'
+            method: (method: string) => method.toLowerCase() === 'post',
         })
 
         expect(mock.calls.length).toBe(1)
@@ -219,11 +273,11 @@ test('decodes base64 responses', async () => {
     const mock = new NetworkInterception('**/foobar/**', undefined, browserMock)
     await fetchListener(mock, {
         request: { url: 'http://test.com/foobar/test.html' },
-        responseHeaders: [{ name: 'content-Type', value: 'application/json' }]
+        responseHeaders: [{ name: 'content-Type', value: 'application/json' }],
     })
     await fetchListener(mock, {
         request: { url: 'http://test.com/foobar/test.html' },
-        responseHeaders: [{ name: 'Content-Type', value: 'foobar' }]
+        responseHeaders: [{ name: 'Content-Type', value: 'foobar' }],
     })
 
     expect(mock.calls[0].body).toEqual({ foo: 'bar' })
@@ -236,7 +290,7 @@ test('undefined response', async () => {
     cdpClient.send.mockReturnValueOnce(Promise.resolve({}))
     await fetchListener(mock, {
         request: { url: 'http://test.com/foobar/test.html' },
-        responseHeaders: [{ name: 'content-Type', value: 'application/json' }]
+        responseHeaders: [{ name: 'content-Type', value: 'application/json' }],
     })
 
     expect(mock.calls[0].body).toBeUndefined()
@@ -248,7 +302,7 @@ test('null response', async () => {
     cdpClient.send.mockReturnValueOnce(Promise.resolve({ body: 'null' }))
     await fetchListener(mock, {
         request: { url: 'http://test.com/foobar/test.html' },
-        responseHeaders: [{ name: 'content-Type', value: 'application/json' }]
+        responseHeaders: [{ name: 'content-Type', value: 'application/json' }],
     })
 
     expect(mock.calls[0].body).toBe('null')
@@ -267,43 +321,42 @@ test('abort request', async () => {
     mock.abort('ConnectionFailed')
 
     // Request stage only
-    await NetworkInterception.handleRequestInterception(cdpClient, [mock] as any)(request as any)
-    expect(cdpClient.send).toBeCalledWith(
-        'Fetch.failRequest',
-        {
-            requestId: 123,
-            errorReason: 'NameNotResolved'
-        }
-    )
+    await NetworkInterception.handleRequestInterception(cdpClient, [
+        mock,
+    ] as any)(request as any)
+    expect(cdpClient.send).toBeCalledWith('Fetch.failRequest', {
+        requestId: 123,
+        errorReason: 'NameNotResolved',
+    })
 
     // Request stage only
-    await NetworkInterception.handleRequestInterception(cdpClient, [mock] as any)(request as any)
-    expect(cdpClient.send).toBeCalledWith(
-        'Fetch.failRequest',
-        {
-            requestId: 123,
-            errorReason: 'ConnectionFailed'
-        }
-    )
+    await NetworkInterception.handleRequestInterception(cdpClient, [
+        mock,
+    ] as any)(request as any)
+    expect(cdpClient.send).toBeCalledWith('Fetch.failRequest', {
+        requestId: 123,
+        errorReason: 'ConnectionFailed',
+    })
 
     // Request stage only
-    await NetworkInterception.handleRequestInterception(cdpClient, [mock] as any)(request as any)
-    expect(cdpClient.send).toBeCalledWith(
-        'Fetch.failRequest',
-        {
-            requestId: 123,
-            errorReason: 'ConnectionFailed'
-        }
-    )
+    await NetworkInterception.handleRequestInterception(cdpClient, [
+        mock,
+    ] as any)(request as any)
+    expect(cdpClient.send).toBeCalledWith('Fetch.failRequest', {
+        requestId: 123,
+        errorReason: 'ConnectionFailed',
+    })
 })
 
 describe('stub request', () => {
     let mock: any
-    const fetchListenerWrapper = (responseHeaders = [{ name: 'Content-Type', value: 'application/json' }]) =>
+    const fetchListenerWrapper = (
+        responseHeaders = [{ name: 'Content-Type', value: 'application/json' }],
+    ) =>
         fetchListener(mock, {
             requestId: 123,
             request: { url: 'http://test.com/foobar/test.html' },
-            responseHeaders
+            responseHeaders,
         })
 
     beforeEach(() => {
@@ -360,7 +413,9 @@ describe('stub request', () => {
         await fetchListenerWrapper()
 
         const response = cdpClient.send.mock.calls.pop()[1]
-        expect(response.body).toEqual(Buffer.from(filepath, 'binary').toString('base64'))
+        expect(response.body).toEqual(
+            Buffer.from(filepath, 'binary').toString('base64'),
+        )
     })
 
     test('utf8 chars', async () => {
@@ -369,43 +424,55 @@ describe('stub request', () => {
         await fetchListenerWrapper()
 
         const response = cdpClient.send.mock.calls.pop()[1]
-        expect(Buffer.from(response.body, 'base64').toString()).toEqual(inputStr)
+        expect(Buffer.from(response.body, 'base64').toString()).toEqual(
+            inputStr,
+        )
     })
 
     test('with a different web resource', async () => {
         mock.respond('http://json.org/image.svg')
         await fetchListenerWrapper()
 
-        expect(cdpClient.send.mock.calls.pop()[1].responseHeaders).toMatchSnapshot()
+        expect(
+            cdpClient.send.mock.calls.pop()[1].responseHeaders,
+        ).toMatchSnapshot()
     })
 
     test('with a different web resource containing different location header', async () => {
         mock.respond('http://json.org/image.svg')
         const responseHeaders = [
             { name: 'Location', value: 'http://some.other/picture.png' },
-            { name: 'Content-Type', value: 'application/json' }
+            { name: 'Content-Type', value: 'application/json' },
         ]
         await fetchListenerWrapper(responseHeaders)
 
-        expect(cdpClient.send.mock.calls.pop()[1].responseHeaders).toMatchSnapshot()
+        expect(
+            cdpClient.send.mock.calls.pop()[1].responseHeaders,
+        ).toMatchSnapshot()
     })
 
     test('with modified headers', async () => {
-        mock.respond((r: any) => r.body, { headers: {
-            removed: undefined,
-            added: 'string'
-        } })
+        mock.respond((r: any) => r.body, {
+            headers: {
+                removed: undefined,
+                added: 'string',
+            },
+        })
         await fetchListenerWrapper()
 
         expect(cdpClient.send.mock.calls.pop()).toMatchSnapshot()
     })
 
     test('with modified headers fn', async () => {
-        mock.respond((r: any) => r.body, { headers: (r: any) => {
-            return r.responseHeaders['Content-Type'] === 'application/json' ? {
-                'Content-Type': 'text/xml',
-            } : {}
-        } })
+        mock.respond((r: any) => r.body, {
+            headers: (r: any) => {
+                return r.responseHeaders['Content-Type'] === 'application/json'
+                    ? {
+                          'Content-Type': 'text/xml',
+                      }
+                    : {}
+            },
+        })
         await fetchListenerWrapper()
 
         expect(cdpClient.send.mock.calls.pop()).toMatchSnapshot()
@@ -419,9 +486,11 @@ describe('stub request', () => {
     })
 
     test('with modified status code fn', async () => {
-        mock.respond((r: any) => r.body, { statusCode: (r: any) => {
-            return r.url.includes('test') ? 5678 : 1234
-        } })
+        mock.respond((r: any) => r.body, {
+            statusCode: (r: any) => {
+                return r.url.includes('test') ? 5678 : 1234
+            },
+        })
         await fetchListenerWrapper()
 
         expect(cdpClient.send.mock.calls.pop()).toMatchSnapshot()
@@ -431,9 +500,11 @@ describe('stub request', () => {
         mock.respond('foobar', { fetchResponse: false })
 
         // Request stage only
-        await NetworkInterception.handleRequestInterception(cdpClient, [mock] as any)({
+        await NetworkInterception.handleRequestInterception(cdpClient, [
+            mock,
+        ] as any)({
             requestId: 123,
-            request: { url: 'http://test.com/foobar/test.html' }
+            request: { url: 'http://test.com/foobar/test.html' },
         } as any)
 
         expect(cdpClient.send.mock.calls.pop()).toMatchSnapshot()
@@ -444,7 +515,7 @@ test('allows to clear mocks', async () => {
     const mock = new NetworkInterception('**/foobar/**', undefined, browserMock)
     await fetchListener(mock, {
         request: { url: 'http://test.com/foobar/test.html' },
-        responseHeaders: []
+        responseHeaders: [],
     })
     expect(mock.calls.length).toBe(1)
     mock.clear()
@@ -459,12 +530,12 @@ test('allows to restore mocks', async () => {
     expect(mock.respondOverwrites.length).toBe(2)
     await fetchListener(mock, {
         request: { url: 'http://test.com/foobar/test.html' },
-        responseHeaders: []
+        responseHeaders: [],
     })
     expect(mock.respondOverwrites.length).toBe(1)
     await fetchListener(mock, {
         request: { url: 'http://test.com/foobar/test.html' },
-        responseHeaders: []
+        responseHeaders: [],
     })
     expect(mock.respondOverwrites.length).toBe(1)
 

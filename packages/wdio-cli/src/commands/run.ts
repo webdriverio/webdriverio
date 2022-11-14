@@ -1,17 +1,18 @@
-import path from 'node:path'
-import fs from 'node:fs/promises'
 import cp from 'node:child_process'
+import fs from 'node:fs/promises'
+import path from 'node:path'
 import type { Argv } from 'yargs'
 
+import { CLI_EPILOGUE } from '../constants.js'
 import Launcher from '../launcher.js'
+import type { RunCommandArguments } from '../types'
 import Watcher from '../watcher.js'
 import { missingConfigurationPrompt } from './config.js'
-import { CLI_EPILOGUE } from '../constants.js'
-import type { RunCommandArguments } from '../types'
 
 export const command = 'run <configPath>'
 
-export const desc = 'Run your WDIO configuration file to initialize your tests. (default)'
+export const desc =
+    'Run your WDIO configuration file to initialize your tests. (default)'
 
 export const cmdArgs = {
     watch: {
@@ -21,94 +22,112 @@ export const cmdArgs = {
     hostname: {
         alias: 'h',
         desc: 'automation driver host address',
-        type: 'string'
+        type: 'string',
     },
     port: {
         alias: 'p',
         desc: 'automation driver port',
-        type: 'number'
+        type: 'number',
     },
     path: {
         type: 'string',
-        desc: 'path to WebDriver endpoints (default "/")'
+        desc: 'path to WebDriver endpoints (default "/")',
     },
     user: {
         alias: 'u',
         desc: 'username if using a cloud service as automation backend',
-        type: 'string'
+        type: 'string',
     },
     key: {
         alias: 'k',
         desc: 'corresponding access key to the user',
-        type: 'string'
+        type: 'string',
     },
     logLevel: {
         alias: 'l',
         desc: 'level of logging verbosity',
-        choices: ['trace', 'debug', 'info', 'warn', 'error', 'silent']
+        choices: ['trace', 'debug', 'info', 'warn', 'error', 'silent'],
     },
     bail: {
         desc: 'stop test runner after specific amount of tests have failed',
-        type: 'number'
+        type: 'number',
     },
     baseUrl: {
         desc: 'shorten url command calls by setting a base url',
-        type: 'string'
+        type: 'string',
     },
     waitforTimeout: {
         alias: 'w',
         desc: 'timeout for all waitForXXX commands',
-        type: 'number'
+        type: 'number',
     },
     framework: {
         alias: 'f',
         desc: 'defines the framework (Mocha, Jasmine or Cucumber) to run the specs',
-        type: 'string'
+        type: 'string',
     },
     reporters: {
         alias: 'r',
         desc: 'reporters to print out the results on stdout',
-        type: 'array'
+        type: 'array',
     },
     suite: {
         desc: 'overwrites the specs attribute and runs the defined suite',
-        type: 'array'
+        type: 'array',
     },
     spec: {
         desc: 'run only a certain spec file - overrides specs piped from stdin',
-        type: 'array'
+        type: 'array',
     },
     exclude: {
         desc: 'exclude certain spec file from the test run - overrides exclude piped from stdin',
-        type: 'array'
+        type: 'array',
     },
     mochaOpts: {
-        desc: 'Mocha options'
+        desc: 'Mocha options',
     },
     jasmineOpts: {
-        desc: 'Jasmine options'
+        desc: 'Jasmine options',
     },
     cucumberOpts: {
-        desc: 'Cucumber options'
+        desc: 'Cucumber options',
     },
     autoCompileOpts: {
-        desc: 'Auto compilation options'
-    }
+        desc: 'Auto compilation options',
+    },
 } as const
 
 export const builder = (yargs: Argv) => {
     return yargs
         .options(cmdArgs)
-        .example('$0 run wdio.conf.js --suite foobar', 'Run suite on testsuite "foobar"')
-        .example('$0 run wdio.conf.js --spec ./tests/e2e/a.js --spec ./tests/e2e/b.js', 'Run suite on specific specs')
-        .example('$0 run wdio.conf.js --mochaOpts.timeout 60000', 'Run suite with custom Mocha timeout')
-        .example('$0 run wdio.conf.js --autoCompileOpts.autoCompile=false', 'Disable auto-loading of ts-node or @babel/register')
-        .example('$0 run wdio.conf.js --autoCompileOpts.tsNodeOpts.project=configs/bdd-tsconfig.json', 'Run suite with ts-node using custom tsconfig.json')
+        .example(
+            '$0 run wdio.conf.js --suite foobar',
+            'Run suite on testsuite "foobar"',
+        )
+        .example(
+            '$0 run wdio.conf.js --spec ./tests/e2e/a.js --spec ./tests/e2e/b.js',
+            'Run suite on specific specs',
+        )
+        .example(
+            '$0 run wdio.conf.js --mochaOpts.timeout 60000',
+            'Run suite with custom Mocha timeout',
+        )
+        .example(
+            '$0 run wdio.conf.js --autoCompileOpts.autoCompile=false',
+            'Disable auto-loading of ts-node or @babel/register',
+        )
+        .example(
+            '$0 run wdio.conf.js --autoCompileOpts.tsNodeOpts.project=configs/bdd-tsconfig.json',
+            'Run suite with ts-node using custom tsconfig.json',
+        )
         .epilogue(CLI_EPILOGUE)
         .help()
 }
 
-export function launchWithStdin (wdioConfPath: string, params: Partial<RunCommandArguments>) {
+export function launchWithStdin(
+    wdioConfPath: string,
+    params: Partial<RunCommandArguments>,
+) {
     let stdinData = ''
     const stdin = process.openStdin()
 
@@ -124,30 +143,31 @@ export function launchWithStdin (wdioConfPath: string, params: Partial<RunComman
     })
 }
 
-export function launch (wdioConfPath: string, params: Partial<RunCommandArguments>) {
+export function launch(
+    wdioConfPath: string,
+    params: Partial<RunCommandArguments>,
+) {
     /**
      * In order to load TypeScript files in ESM we need to apply the ts-node loader.
      * Let's have WebdriverIO set it automatically if the user doesn't.
      */
     const nodePath = process.argv[0]
     let NODE_OPTIONS = process.env.NODE_OPTIONS || ''
-    const runsWithLoader = (
+    const runsWithLoader =
         Boolean(
             process.argv.find((arg) => arg.startsWith('--loader')) &&
-            process.argv.find((arg) => arg.endsWith('ts-node/esm'))
-        ) ||
-        NODE_OPTIONS?.includes('ts-node/esm')
-    )
+                process.argv.find((arg) => arg.endsWith('ts-node/esm')),
+        ) || NODE_OPTIONS?.includes('ts-node/esm')
     if (wdioConfPath.endsWith('.ts') && !runsWithLoader && nodePath) {
         NODE_OPTIONS += ' --loader ts-node/esm/transpile-only --no-warnings'
         const tsProcess = cp.spawn(nodePath, process.argv.slice(1), {
             cwd: process.cwd(),
-            detached : true,
+            detached: true,
             stdio: 'inherit',
             env: {
                 ...process.env,
-                NODE_OPTIONS
-            }
+                NODE_OPTIONS,
+            },
         })
 
         /**
@@ -158,14 +178,15 @@ export function launch (wdioConfPath: string, params: Partial<RunCommandArgument
     }
 
     const launcher = new Launcher(wdioConfPath, params)
-    return launcher.run()
+    return launcher
+        .run()
         .then((...args) => {
             /* istanbul ignore if */
             if (!process.env.VITEST_WORKER_ID) {
                 process.exit(...args)
             }
         })
-        .catch(err => {
+        .catch((err) => {
             console.error(err)
             /* istanbul ignore if */
             if (!process.env.VITEST_WORKER_ID) {
@@ -174,12 +195,12 @@ export function launch (wdioConfPath: string, params: Partial<RunCommandArgument
         })
 }
 
-export async function handler (argv: RunCommandArguments) {
+export async function handler(argv: RunCommandArguments) {
     const { configPath, ...params } = argv
 
     const canAccessConfigPath = await fs.access(configPath).then(
         () => true,
-        () => false
+        () => false,
     )
     if (!canAccessConfigPath) {
         const configFullPath = path.join(process.cwd(), configPath)
@@ -187,10 +208,14 @@ export async function handler (argv: RunCommandArguments) {
     }
 
     const localConf = path.join(process.cwd(), 'wdio.conf.js')
-    const wdioConf = configPath || ((await fs.access(localConf).then(() => true, () => false))
-        ? localConf
-        : undefined
-    ) as string
+    const wdioConf =
+        configPath ||
+        (((await fs.access(localConf).then(
+            () => true,
+            () => false,
+        ))
+            ? localConf
+            : undefined) as string)
 
     /**
      * if `--watch` param is set, run launcher in watch mode

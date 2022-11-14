@@ -1,12 +1,12 @@
-import { expect, describe, it, vi } from 'vitest'
-import { remote } from '../../../src/index.js'
+import { describe, expect, it, vi } from 'vitest'
 import $ from '../../../src/commands/element/$.js'
+import { remote } from '../../../src/index.js'
 
 vi.mock('got')
 
 vi.mock('../../../src/commands/element/$.js', () => ({
     __esModule: true,
-    default: vi.fn().mockImplementation(() => { })
+    default: vi.fn().mockImplementation(() => {}),
 }))
 
 /**
@@ -17,8 +17,8 @@ describe('shadow$', () => {
         const browser = await remote({
             baseUrl: 'http://foobar.com',
             capabilities: {
-                browserName: 'foobar'
-            }
+                browserName: 'foobar',
+            },
         })
         const el = await browser.$('#foo')
 

@@ -1,4 +1,4 @@
-import { test, expect } from 'vitest'
+import { expect, test } from 'vitest'
 import { DEFAULTS } from '../src/constants.js'
 
 test('should do correct type check for "path"', () => {
@@ -10,16 +10,20 @@ test('should do correct type check for "path"', () => {
 
 test('should return the passed-in request options', () => {
     const requestOptions = {
-        uri: { pathname: '/wd/hub/session' }
+        uri: { pathname: '/wd/hub/session' },
     } as any
 
-    expect(DEFAULTS.transformRequest!.default!(requestOptions)).toBe(requestOptions)
+    expect(DEFAULTS.transformRequest!.default!(requestOptions)).toBe(
+        requestOptions,
+    )
 })
 
 test('should return the passed-in response object', () => {
     const response = {
-        body: { value: { foo: 'bar' } }
+        body: { value: { foo: 'bar' } },
     }
 
-    expect(DEFAULTS.transformResponse!.default!(response as any, {})).toBe(response)
+    expect(DEFAULTS.transformResponse!.default!(response as any, {})).toBe(
+        response,
+    )
 })

@@ -8,9 +8,9 @@ import custom$ from './element/custom$.js'
 import doubleClick from './element/doubleClick.js'
 import dragAndDrop from './element/dragAndDrop.js'
 import getAttribute from './element/getAttribute.js'
-import getCSSProperty from './element/getCSSProperty.js'
-import getComputedRole from './element/getComputedRole.js'
 import getComputedLabel from './element/getComputedLabel.js'
+import getComputedRole from './element/getComputedRole.js'
+import getCSSProperty from './element/getCSSProperty.js'
 import getHTML from './element/getHTML.js'
 import getLocation from './element/getLocation.js'
 import getProperty from './element/getProperty.js'
@@ -48,12 +48,52 @@ import waitForExist from './element/waitForExist.js'
 import waitUntil from './element/waitUntil.js'
 
 export {
-    $$, $, addValue, clearValue, click, custom$, custom$$, doubleClick, dragAndDrop,
-    getAttribute, getCSSProperty, getComputedRole, getComputedLabel, getHTML, getLocation,
-    getProperty, getSize, getTagName, getText, getValue, isClickable, isDisplayed,
-    isDisplayedInViewport, isEnabled, isEqual, isExisting, isFocused, isSelected,
-    moveTo, nextElement, parentElement, previousElement, react$, react$$, saveScreenshot,
-    scrollIntoView, selectByAttribute, selectByIndex, selectByVisibleText, setValue,
-    shadow$, shadow$$, touchAction, waitForClickable, waitForDisplayed, waitForEnabled,
-    waitForExist, waitUntil
+    $$,
+    $,
+    addValue,
+    clearValue,
+    click,
+    custom$,
+    custom$$,
+    doubleClick,
+    dragAndDrop,
+    getAttribute,
+    getCSSProperty,
+    getComputedRole,
+    getComputedLabel,
+    getHTML,
+    getLocation,
+    getProperty,
+    getSize,
+    getTagName,
+    getText,
+    getValue,
+    isClickable,
+    isDisplayed,
+    isDisplayedInViewport,
+    isEnabled,
+    isEqual,
+    isExisting,
+    isFocused,
+    isSelected,
+    moveTo,
+    nextElement,
+    parentElement,
+    previousElement,
+    react$,
+    react$$,
+    saveScreenshot,
+    scrollIntoView,
+    selectByAttribute,
+    selectByIndex,
+    selectByVisibleText,
+    setValue,
+    shadow$,
+    shadow$$,
+    touchAction,
+    waitForClickable,
+    waitForDisplayed,
+    waitForEnabled,
+    waitForExist,
+    waitUntil,
 }

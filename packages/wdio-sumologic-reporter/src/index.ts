@@ -1,9 +1,13 @@
-import got from 'got'
 import dateFormat from 'dateformat'
+import got from 'got'
 import stringify from 'json-stringify-safe'
 
-import WDIOReporter, { RunnerStats, SuiteStats, TestStats } from '@wdio/reporter'
 import logger from '@wdio/logger'
+import WDIOReporter, {
+    RunnerStats,
+    SuiteStats,
+    TestStats,
+} from '@wdio/reporter'
 
 import type { Options } from './types'
 
@@ -25,98 +29,122 @@ export default class SumoLogicReporter extends WDIOReporter {
 
     constructor(options: Options) {
         super(options)
-        this._options = Object.assign({
-            // don't create a log file
-            stdout: true,
-            // define sync interval how often logs get pushed to Sumologic
-            syncInterval: 100,
-            // endpoint of collector source
-            sourceAddress: process.env.SUMO_SOURCE_ADDRESS
-        }, options)
+        this._options = Object.assign(
+            {
+                // don't create a log file
+                stdout: true,
+                // define sync interval how often logs get pushed to Sumologic
+                syncInterval: 100,
+                // endpoint of collector source
+                sourceAddress: process.env.SUMO_SOURCE_ADDRESS,
+            },
+            options,
+        )
 
         if (typeof this._options.sourceAddress !== 'string') {
             log.error('Sumo Logic requires "sourceAddress" paramater')
         }
 
-        this._interval = global.setInterval(this.sync.bind(this), this._options.syncInterval)
+        this._interval = global.setInterval(
+            this.sync.bind(this),
+            this._options.syncInterval,
+        )
     }
 
     // @ts-ignore
-    get isSynchronised () {
+    get isSynchronised() {
         return this._unsynced.length === 0
     }
 
     onRunnerStart(runner: RunnerStats) {
-        this._unsynced.push(stringify({
-            time: dateFormat(new Date(), DATE_FORMAT),
-            event: 'runner:start',
-            data: runner
-        }))
+        this._unsynced.push(
+            stringify({
+                time: dateFormat(new Date(), DATE_FORMAT),
+                event: 'runner:start',
+                data: runner,
+            }),
+        )
     }
 
     onSuiteStart(suite: SuiteStats) {
-        this._unsynced.push(stringify({
-            time: dateFormat(new Date(), DATE_FORMAT),
-            event: 'suite:start',
-            data: suite
-        }))
+        this._unsynced.push(
+            stringify({
+                time: dateFormat(new Date(), DATE_FORMAT),
+                event: 'suite:start',
+                data: suite,
+            }),
+        )
     }
 
     onTestStart(test: TestStats) {
-        this._unsynced.push(stringify({
-            time: dateFormat(new Date(), DATE_FORMAT),
-            event: 'test:start',
-            data: test
-        }))
+        this._unsynced.push(
+            stringify({
+                time: dateFormat(new Date(), DATE_FORMAT),
+                event: 'test:start',
+                data: test,
+            }),
+        )
     }
 
     onTestSkip(test: TestStats) {
-        this._unsynced.push(stringify({
-            time: dateFormat(new Date(), DATE_FORMAT),
-            event: 'test:skip',
-            data: test
-        }))
+        this._unsynced.push(
+            stringify({
+                time: dateFormat(new Date(), DATE_FORMAT),
+                event: 'test:skip',
+                data: test,
+            }),
+        )
     }
 
     onTestPass(test: TestStats) {
-        this._unsynced.push(stringify({
-            time: dateFormat(new Date(), DATE_FORMAT),
-            event: 'test:pass',
-            data: test
-        }))
+        this._unsynced.push(
+            stringify({
+                time: dateFormat(new Date(), DATE_FORMAT),
+                event: 'test:pass',
+                data: test,
+            }),
+        )
     }
 
     onTestFail(test: TestStats) {
-        this._unsynced.push(stringify({
-            time: dateFormat(new Date(), DATE_FORMAT),
-            event: 'test:fail',
-            data: test
-        }))
+        this._unsynced.push(
+            stringify({
+                time: dateFormat(new Date(), DATE_FORMAT),
+                event: 'test:fail',
+                data: test,
+            }),
+        )
     }
 
     onTestEnd(test: TestStats) {
-        this._unsynced.push(stringify({
-            time: dateFormat(new Date(), DATE_FORMAT),
-            event: 'test:end',
-            data: test
-        }))
+        this._unsynced.push(
+            stringify({
+                time: dateFormat(new Date(), DATE_FORMAT),
+                event: 'test:end',
+                data: test,
+            }),
+        )
     }
 
     onSuiteEnd(suite: SuiteStats) {
-        this._unsynced.push(stringify({
-            time: dateFormat(new Date(), DATE_FORMAT),
-            event: 'suite:end',
-            data: suite
-        }))
+        this._unsynced.push(
+            stringify({
+                time: dateFormat(new Date(), DATE_FORMAT),
+                event: 'suite:end',
+                data: suite,
+            }),
+        )
     }
 
     onRunnerEnd(runner: RunnerStats) {
         this._hasRunnerEnd = true
-        this._unsynced.push(stringify({
-            time: dateFormat(new Date(), DATE_FORMAT),
-            event: 'runner:end',
-            data: runner
-        }))
+        this._unsynced.push(
+            stringify({
+                time: dateFormat(new Date(), DATE_FORMAT),
+                event: 'runner:end',
+                data: runner,
+            }),
+        )
     }
 
     async sync() {
@@ -133,7 +161,11 @@ export default class SumoLogicReporter extends WDIOReporter {
          *  - we have nothing to synchronise
          *  - there is an invalid source address
          */
-        if (this._isSynchronising || this._unsynced.length === 0 || typeof this._options.sourceAddress !== 'string') {
+        if (
+            this._isSynchronising ||
+            this._unsynced.length === 0 ||
+            typeof this._options.sourceAddress !== 'string'
+        ) {
             return
         }
 
@@ -148,7 +180,7 @@ export default class SumoLogicReporter extends WDIOReporter {
         try {
             const resp = await got(this._options.sourceAddress, {
                 method: 'POST',
-                json: logLines as any
+                json: logLines as any,
             })
 
             /**
@@ -160,7 +192,9 @@ export default class SumoLogicReporter extends WDIOReporter {
              * reset sync flag so we can sync again
              */
             this._isSynchronising = false
-            return log.debug(`synchronised collector data, server status: ${resp.statusCode}`)
+            return log.debug(
+                `synchronised collector data, server status: ${resp.statusCode}`,
+            )
         } catch (err: any) {
             return log.error('failed send data to Sumo Logic:\n', err.stack)
         }

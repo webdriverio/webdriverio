@@ -1,4 +1,3 @@
-
 /**
  * get HTML of selector element
  *
@@ -7,6 +6,9 @@
  * @return {String}                      html source
  */
 
-export default function getHTML (element: HTMLElement, includeSelectorTag: boolean) {
+export default function getHTML(
+    element: HTMLElement,
+    includeSelectorTag: boolean,
+) {
     return element[includeSelectorTag ? 'outerHTML' : 'innerHTML']
 }

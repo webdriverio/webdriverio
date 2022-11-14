@@ -43,17 +43,20 @@ import type { WaitForOptions } from '../../types'
  * @type utility
  *
  */
-export default function waitForExist (
+export default function waitForExist(
     this: WebdriverIO.Element,
     {
         timeout = this.options.waitforTimeout,
         interval = this.options.waitforInterval,
         reverse = false,
-        timeoutMsg = `element ("${this.selector}") still ${reverse ? '' : 'not '}existing after ${timeout}ms`
-    }: WaitForOptions = {}
+        timeoutMsg = `element ("${this.selector}") still ${
+            reverse ? '' : 'not '
+        }existing after ${timeout}ms`,
+    }: WaitForOptions = {},
 ) {
-    return this.waitUntil(
-        async () => reverse !== await this.isExisting(),
-        { timeout, interval, timeoutMsg }
-    )
+    return this.waitUntil(async () => reverse !== (await this.isExisting()), {
+        timeout,
+        interval,
+        timeoutMsg,
+    })
 }

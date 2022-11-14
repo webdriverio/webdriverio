@@ -1,5 +1,5 @@
-import type { Reporters } from '@wdio/types'
 import type { SuiteStats } from '@wdio/reporter'
+import type { Reporters } from '@wdio/types'
 
 type TestSuiteNameFunction = (options: TestSuiteNameFormatOptions) => string
 

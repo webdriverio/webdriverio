@@ -1,15 +1,23 @@
 #!/usr/bin/env node
 
-import fs from 'node:fs'
-import url from 'node:url'
-import path from 'node:path'
 import camelCase from 'camelcase'
+import fs from 'node:fs'
+import path from 'node:path'
+import url from 'node:url'
 
-import { paramTypeMap, returnTypeMap } from './constants.js'
 import { PROTOCOLS } from '../constants.js'
+import { paramTypeMap, returnTypeMap } from './constants.js'
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
-const TYPINGS_PATH = path.join(__dirname, '..', '..', 'packages', 'wdio-protocols', 'src', 'commands')
+const TYPINGS_PATH = path.join(
+    __dirname,
+    '..',
+    '..',
+    'packages',
+    'wdio-protocols',
+    'src',
+    'commands',
+)
 
 const INDENTATION = ' '.repeat(4)
 const EXAMPLE_INDENTATION = `${INDENTATION} * `
@@ -30,7 +38,8 @@ if (!fs.existsSync(TYPINGS_PATH)) {
 }
 
 for (const [protocolName, definition] of Object.entries(PROTOCOLS)) {
-    const interfaceName = protocolName.slice(0, 1).toUpperCase() + protocolName.slice(1)
+    const interfaceName =
+        protocolName.slice(0, 1).toUpperCase() + protocolName.slice(1)
     const customTypes = new Set()
     const lines = ['']
 
@@ -39,9 +48,18 @@ for (const [protocolName, definition] of Object.entries(PROTOCOLS)) {
 
     for (const [, methods] of Object.entries(definition)) {
         for (const [, description] of Object.entries(methods)) {
-            const { command, parameters = [], variables = [], returns, ref, examples } = description
+            const {
+                command,
+                parameters = [],
+                variables = [],
+                returns,
+                ref,
+                examples,
+            } = description
             if (!ref) {
-                throw new Error(`missing ref for command ${command} in ${protocolName}`)
+                throw new Error(
+                    `missing ref for command ${command} in ${protocolName}`,
+                )
             }
             const vars = variables
                 // sessionId is handled by WebdriverIO for all protocol requests
@@ -49,10 +67,15 @@ for (const [protocolName, definition] of Object.entries(PROTOCOLS)) {
                 // url params are always type of string
                 .map((v) => `${v.name}: string`)
             const params = parameters.map((p, idx) => {
-                const paramType = paramTypeMap[command] && paramTypeMap[command][idx] && paramTypeMap[command][idx].name === p.name
-                    ? paramTypeMap[command][idx].type
-                    : p.type.toLowerCase()
-                return `${camelCase(p.name)}${p.required === false ? '?' : ''}: ${paramType}`
+                const paramType =
+                    paramTypeMap[command] &&
+                    paramTypeMap[command][idx] &&
+                    paramTypeMap[command][idx].name === p.name
+                        ? paramTypeMap[command][idx].type
+                        : p.type.toLowerCase()
+                return `${camelCase(p.name)}${
+                    p.required === false ? '?' : ''
+                }: ${paramType}`
             })
             const varsAndParams = vars.concat(params)
             let returnValue = returns ? returns.type.toLowerCase() : 'void'
@@ -68,25 +91,41 @@ for (const [protocolName, definition] of Object.entries(PROTOCOLS)) {
 
             const jsDoc = jsDocTemplate
                 .replace('{PROTOCOL}', interfaceName)
-                .replace('{DESCRIPTION}', description.description || 'No description available, please see reference link.')
-                .replace('{EXAMPLE}', (
-                    (examples || [])
-                        .map((example) => (
-                            `\n${EXAMPLE_INDENTATION}@example\n` +
-                            `${EXAMPLE_INDENTATION}\`\`\`js\n` +
-                            EXAMPLE_INDENTATION +
-                                `${example.map((l, i) => (i === 0
-                                    ? `${l}`
-                                    : `${EXAMPLE_INDENTATION}${l.replace(/(\/\*\*|\s\*\s|\s\*\/)/, '// ')}`.trimEnd())
-                                ).join('\n')}\n` +
-                            `${EXAMPLE_INDENTATION}` + '```'
-                        ))
-                        .join(`\n${EXAMPLE_INDENTATION}`.trim())
+                .replace(
+                    '{DESCRIPTION}',
+                    description.description ||
+                        'No description available, please see reference link.',
                 )
+                .replace(
+                    '{EXAMPLE}',
+                    (examples || [])
+                        .map(
+                            (example) =>
+                                `\n${EXAMPLE_INDENTATION}@example\n` +
+                                `${EXAMPLE_INDENTATION}\`\`\`js\n` +
+                                EXAMPLE_INDENTATION +
+                                `${example
+                                    .map((l, i) =>
+                                        i === 0
+                                            ? `${l}`
+                                            : `${EXAMPLE_INDENTATION}${l.replace(
+                                                  /(\/\*\*|\s\*\s|\s\*\/)/,
+                                                  '// ',
+                                              )}`.trimEnd(),
+                                    )
+                                    .join('\n')}\n` +
+                                `${EXAMPLE_INDENTATION}` +
+                                '```',
+                        )
+                        .join(`\n${EXAMPLE_INDENTATION}`.trim()),
                 )
                 .replace('{REF}', ref)
             lines.push(jsDoc)
-            lines.push(`${INDENTATION}${command}(${varsAndParams.join(', ')}): ${returnValue};`)
+            lines.push(
+                `${INDENTATION}${command}(${varsAndParams.join(
+                    ', ',
+                )}): ${returnValue};`,
+            )
         }
     }
 
@@ -94,11 +133,17 @@ for (const [protocolName, definition] of Object.entries(PROTOCOLS)) {
      * import missing protocol types
      */
     if (customTypes.size) {
-        lines.unshift(`import type { ${[...customTypes].join(', ')} } from '../types'`)
+        lines.unshift(
+            `import type { ${[...customTypes].join(', ')} } from '../types'`,
+        )
     }
 
     lines.push('}')
 
-    fs.writeFileSync(path.join(TYPINGS_PATH, `${protocolName}.ts`), lines.join('\n'), 'utf8')
+    fs.writeFileSync(
+        path.join(TYPINGS_PATH, `${protocolName}.ts`),
+        lines.join('\n'),
+        'utf8',
+    )
     console.log(`Generated typings file for ${protocolName}`)
 }

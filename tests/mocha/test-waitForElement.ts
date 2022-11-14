@@ -1,5 +1,5 @@
-import os from 'node:os'
 import assert from 'node:assert'
+import os from 'node:os'
 
 describe('Mocha smoke test', () => {
     it('should be able to wait for an element', async () => {

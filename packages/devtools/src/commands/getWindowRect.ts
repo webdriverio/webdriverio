@@ -1,4 +1,4 @@
-import { DEFAULT_WIDTH, DEFAULT_HEIGHT } from '../constants.js'
+import { DEFAULT_HEIGHT, DEFAULT_WIDTH } from '../constants.js'
 import type DevToolsDriver from '../devtoolsdriver'
 
 /**
@@ -9,11 +9,11 @@ import type DevToolsDriver from '../devtoolsdriver'
  * @see https://w3c.github.io/webdriver/#dfn-get-window-rect
  * @return {object}  A JSON representation of a "window rect" object. This has 4 properties: `x`, `y`, `width` and `height`.
  */
-export default async function getWindowRect (this: DevToolsDriver) {
+export default async function getWindowRect(this: DevToolsDriver) {
     const page = this.getPageHandle()
-    const viewport = await page.viewport() || {}
+    const viewport = (await page.viewport()) || {}
     return Object.assign(
         { width: DEFAULT_WIDTH, height: DEFAULT_HEIGHT, x: 0, y: 0 },
-        viewport
+        viewport,
     )
 }

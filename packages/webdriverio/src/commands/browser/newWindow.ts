@@ -43,23 +43,27 @@ const WAIT_FOR_NEW_HANDLE_TIMEOUT = 3000
  * @alias browser.newWindow
  * @type window
  */
-export default async function newWindow (
+export default async function newWindow(
     this: WebdriverIO.Browser,
     url: string,
-    { windowName = '', windowFeatures = '' }: NewWindowOptions = {}
+    { windowName = '', windowFeatures = '' }: NewWindowOptions = {},
 ) {
     /**
      * parameter check
      */
     if (typeof url !== 'string') {
-        throw new Error('number or type of arguments don\'t agree with newWindow command')
+        throw new Error(
+            "number or type of arguments don't agree with newWindow command",
+        )
     }
 
     /**
      * mobile check
      */
     if (this.isMobile) {
-        throw new Error('newWindow command is not supported on mobile platforms')
+        throw new Error(
+            'newWindow command is not supported on mobile platforms',
+        )
     }
 
     const tabsBefore = await this.getWindowHandles()
@@ -72,7 +76,7 @@ export default async function newWindow (
      */
     let tabsAfter = await this.getWindowHandles()
     const now = Date.now()
-    while ((Date.now() - now) < WAIT_FOR_NEW_HANDLE_TIMEOUT) {
+    while (Date.now() - now < WAIT_FOR_NEW_HANDLE_TIMEOUT) {
         tabsAfter = await this.getWindowHandles()
         if (tabsAfter.length > tabsBefore.length) {
             break

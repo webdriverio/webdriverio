@@ -31,5 +31,5 @@ export const MATCHERS = [
     'toBeRequested',
     'toBeRequestedTimes',
     'toBeRequestedWith',
-    'toBeRequestedWithResponse'
+    'toBeRequestedWithResponse',
 ]

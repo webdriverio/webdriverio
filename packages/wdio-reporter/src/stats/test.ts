@@ -1,17 +1,24 @@
-import { types as nodeUtilTypes } from 'node:util'
 import type { AssertionError } from 'node:assert'
+import { types as nodeUtilTypes } from 'node:util'
 
 import { diffWordsWithSpace } from 'diff'
 import objectInspect from 'object-inspect'
 
-import RunnableStats from './runnable.js'
-import { pad, color, colorLines } from '../utils.js'
 import type { Argument } from '../types'
+import { color, colorLines, pad } from '../utils.js'
+import RunnableStats from './runnable.js'
 
 const maxStringLength = 2048
 
 export interface Test {
-    type: 'test:start' | 'test:pass' | 'test:fail' | 'test:retry' | 'test:pending' | 'test:end' | 'test:skip'
+    type:
+        | 'test:start'
+        | 'test:pass'
+        | 'test:fail'
+        | 'test:retry'
+        | 'test:pending'
+        | 'test:end'
+        | 'test:skip'
     title: string
     parent: string
     fullTitle: string
@@ -74,7 +81,7 @@ export default class TestStats extends RunnableStats {
         this.output = []
         this.argument = test.argument
         this.retries = test.retries
-        this.parent= test.parent
+        this.parent = test.parent
 
         /**
          * initial test state is pending
@@ -101,18 +108,22 @@ export default class TestStats extends RunnableStats {
          * Iterates through all errors to check if they're a type of 'AssertionError',
          * and formats it if so. Otherwise, just leaves error as is
          */
-        const formattedErrors = errors?.map((err: Error) => (
+        const formattedErrors = errors?.map((err: Error) =>
             /**
              * only format if error object has either an "expected" or "actual" property set
              */
-            (((err as AssertionError).expected || (err as AssertionError).actual) && !nodeUtilTypes.isProxy((err as AssertionError).actual)) &&
+            ((err as AssertionError).expected ||
+                (err as AssertionError).actual) &&
+            !nodeUtilTypes.isProxy((err as AssertionError).actual) &&
             /**
              * and if they aren't already formated, e.g. in Jasmine
              */
-            (err.message && !err.message.includes('Expected: ') && !err.message.includes('Received: '))
+            err.message &&
+            !err.message.includes('Expected: ') &&
+            !err.message.includes('Received: ')
                 ? this._stringifyDiffObjs(err as AssertionError)
-                : err
-        ))
+                : err,
+        )
 
         this.errors = formattedErrors
         if (formattedErrors && formattedErrors.length) {
@@ -120,19 +131,19 @@ export default class TestStats extends RunnableStats {
         }
     }
 
-    private _stringifyDiffObjs (err: AssertionError) {
+    private _stringifyDiffObjs(err: AssertionError) {
         const inspectOpts = { maxStringLength }
         const expected = objectInspect(err.expected, inspectOpts)
         const actual = objectInspect(err.actual, inspectOpts)
 
         let msg = diffWordsWithSpace(actual, expected)
-            .map((str) => (
+            .map((str) =>
                 str.added
                     ? colorLines('diff added inline', str.value)
                     : str.removed
-                        ? colorLines('diff removed inline', str.value)
-                        : str.value
-            ))
+                    ? colorLines('diff removed inline', str.value)
+                    : str.value,
+            )
             .join('')
 
         // linenos
@@ -140,14 +151,17 @@ export default class TestStats extends RunnableStats {
         if (lines.length > 4) {
             const width = String(lines.length).length
             msg = lines
-                .map(function(str: string, i: number) {
+                .map(function (str: string, i: number) {
                     return pad(String(++i), width) + ' |' + ' ' + str
                 })
                 .join('\n')
         }
 
         // legend
-        msg = `\n${color('diff removed inline', 'actual')} ${color('diff added inline', 'expected')}\n\n${msg}\n`
+        msg = `\n${color('diff removed inline', 'actual')} ${color(
+            'diff added inline',
+            'expected',
+        )}\n\n${msg}\n`
 
         // indent
         msg = msg.replace(/^/gm, '      ')

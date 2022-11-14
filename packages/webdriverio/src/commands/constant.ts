@@ -18,7 +18,7 @@ interface FormattedActions {
 
 export const formatArgs = function (
     scope: WebdriverIO.Browser | WebdriverIO.Element,
-    actions: TouchActions[]
+    actions: TouchActions[],
 ): FormattedActions[] {
     return actions.map((action: TouchAction) => {
         if (Array.isArray(action)) {
@@ -31,27 +31,48 @@ export const formatArgs = function (
 
         const formattedAction: FormattedActions = {
             action: action.action,
-            options: {} as FormattedTouchAction
+            options: {} as FormattedTouchAction,
         }
 
         /**
          * don't propagate for actions that don't require element options
          */
-        const actionElement = action.element && typeof (action.element as any as WebdriverIO.Element).elementId === 'string'
-            ? (action.element as any as WebdriverIO.Element).elementId
-            : (scope as WebdriverIO.Element).elementId
-        if (POS_ACTIONS.includes(action.action) && formattedAction.options && actionElement) {
+        const actionElement =
+            action.element &&
+            typeof (action.element as any as WebdriverIO.Element).elementId ===
+                'string'
+                ? (action.element as any as WebdriverIO.Element).elementId
+                : (scope as WebdriverIO.Element).elementId
+        if (
+            POS_ACTIONS.includes(action.action) &&
+            formattedAction.options &&
+            actionElement
+        ) {
             formattedAction.options.element = actionElement
         }
 
-        if (formattedAction.options && typeof action.x === 'number' && isFinite(action.x)) formattedAction.options.x = action.x
-        if (formattedAction.options && typeof action.y === 'number' && isFinite(action.y)) formattedAction.options.y = action.y
-        if (formattedAction.options && action.ms) formattedAction.options.ms = action.ms
+        if (
+            formattedAction.options &&
+            typeof action.x === 'number' &&
+            isFinite(action.x)
+        )
+            formattedAction.options.x = action.x
+        if (
+            formattedAction.options &&
+            typeof action.y === 'number' &&
+            isFinite(action.y)
+        )
+            formattedAction.options.y = action.y
+        if (formattedAction.options && action.ms)
+            formattedAction.options.ms = action.ms
 
         /**
          * remove options property if empty
          */
-        if (formattedAction.options && Object.keys(formattedAction.options).length === 0) {
+        if (
+            formattedAction.options &&
+            Object.keys(formattedAction.options).length === 0
+        ) {
             delete formattedAction.options
         }
 
@@ -70,7 +91,7 @@ export const validateParameters = (params: FormattedActions) => {
     if (params.action === 'release' && options.length !== 0) {
         throw new Error(
             'action "release" doesn\'t accept any options ' +
-            `("${options.join('", "')}" found)`
+                `("${options.join('", "')}" found)`,
         )
     }
 
@@ -84,14 +105,16 @@ export const validateParameters = (params: FormattedActions) => {
     if (POS_ACTIONS.includes(params.action)) {
         for (const option in params.options) {
             if (!ACCEPTED_OPTIONS.includes(option)) {
-                throw new Error(`action "${params.action}" doesn't accept "${option}" as option`)
+                throw new Error(
+                    `action "${params.action}" doesn't accept "${option}" as option`,
+                )
             }
         }
 
         if (options.length === 0) {
             throw new Error(
                 `Touch actions like "${params.action}" need at least some kind of ` +
-                'position information like "element", "x" or "y" options, you\'ve none given.'
+                    'position information like "element", "x" or "y" options, you\'ve none given.',
             )
         }
     }
@@ -99,7 +122,7 @@ export const validateParameters = (params: FormattedActions) => {
 
 export const touchAction = function (
     this: WebdriverIO.Browser | WebdriverIO.Element,
-    actions: TouchActions
+    actions: TouchActions,
 ) {
     if (!this.multiTouchPerform || !this.touchPerform) {
         throw new Error('touchAction can be used with Appium only.')
@@ -110,8 +133,10 @@ export const touchAction = function (
 
     const formattedAction = formatArgs(this, actions)
     const protocolCommand = Array.isArray(actions[0])
-        // cast old JSONWP
-        ? this.multiTouchPerform.bind(this) as unknown as (actions: object[]) => Promise<void>
+        ? // cast old JSONWP
+          (this.multiTouchPerform.bind(this) as unknown as (
+              actions: object[],
+          ) => Promise<void>)
         : this.touchPerform.bind(this)
     formattedAction.forEach((params) => validateParameters(params))
     return protocolCommand(formattedAction)

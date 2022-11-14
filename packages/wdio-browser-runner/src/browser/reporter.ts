@@ -2,9 +2,9 @@
 const BaseReporter = Mocha.reporters.html
 
 export default class HTMLReporter extends BaseReporter {
-    constructor (runner: any, options: any) {
+    constructor(runner: any, options: any) {
         super(runner, options)
     }
 
-    addCodeToggle () {}
+    addCodeToggle() {}
 }

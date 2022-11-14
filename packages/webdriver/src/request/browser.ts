@@ -1,6 +1,6 @@
-import ky, { Options as KyOptions } from 'ky'
 import logger from '@wdio/logger'
 import type { Options } from '@wdio/types'
+import ky, { Options as KyOptions } from 'ky'
 
 import WebDriverRequest from './index.js'
 
@@ -16,25 +16,38 @@ const UNSUPPORTED_OPTS: Array<keyof RequestLibOptions> = [
 ]
 
 export default class BrowserRequest extends WebDriverRequest {
-
-    constructor (method: string, endpoint: string, body?: Record<string, unknown>, isHubCommand: boolean = false) {
+    constructor(
+        method: string,
+        endpoint: string,
+        body?: Record<string, unknown>,
+        isHubCommand: boolean = false,
+    ) {
         super(method, endpoint, body, isHubCommand)
     }
 
-    protected async _createOptions (options: RequestOptions, sessionId?: string): Promise<RequestLibOptions> {
+    protected async _createOptions(
+        options: RequestOptions,
+        sessionId?: string,
+    ): Promise<RequestLibOptions> {
         return super._createOptions(options, sessionId, true)
     }
 
-    protected async _libRequest (url: URL, options: RequestLibOptions) {
+    protected async _libRequest(url: URL, options: RequestLibOptions) {
         const kyOptions: KyOptions = {}
 
-        for (const opt of Object.keys(options) as Array<keyof RequestLibOptions>) {
+        for (const opt of Object.keys(options) as Array<
+            keyof RequestLibOptions
+        >) {
             if (
                 typeof options[opt] !== 'undefined' &&
                 UNSUPPORTED_OPTS.includes(opt) &&
                 options[opt] !== this.defaultOptions[opt]
             ) {
-                log.info(`Browser-based webdriver does not support the '${String(opt)}' option; behavior may be unexpected`)
+                log.info(
+                    `Browser-based webdriver does not support the '${String(
+                        opt,
+                    )}' option; behavior may be unexpected`,
+                )
                 continue
             }
             // @ts-expect-error
@@ -42,10 +55,13 @@ export default class BrowserRequest extends WebDriverRequest {
         }
 
         if (options.username && options.password) {
-            const encodedAuth = Buffer.from(`${options.username}:${options.password}`, 'utf8').toString('base64')
+            const encodedAuth = Buffer.from(
+                `${options.username}:${options.password}`,
+                'utf8',
+            ).toString('base64')
             kyOptions.headers = {
                 ...kyOptions.headers,
-                Authorization: `Basic ${encodedAuth}`
+                Authorization: `Basic ${encodedAuth}`,
             }
         }
 

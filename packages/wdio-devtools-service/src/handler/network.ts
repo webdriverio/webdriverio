@@ -1,5 +1,5 @@
-import type { CDPSession } from 'puppeteer-core/lib/cjs/puppeteer/common/Connection'
 import type Protocol from 'devtools-protocol'
+import type { CDPSession } from 'puppeteer-core/lib/cjs/puppeteer/common/Connection'
 
 import { IGNORED_URLS } from '../constants.js'
 
@@ -10,8 +10,8 @@ interface RequestLog {
 }
 
 interface Request {
-    id: string,
-    url: string,
+    id: string
+    url: string
     method: string
     loaderId?: string
     statusCode?: number
@@ -41,26 +41,42 @@ export default class NetworkHandler {
     } = {}
     cachedFirstRequest?: Request
 
-    constructor (session: CDPSession) {
+    constructor(session: CDPSession) {
         session.on('Network.dataReceived', this.onDataReceived.bind(this))
-        session.on('Network.responseReceived', this.onNetworkResponseReceived.bind(this))
-        session.on('Network.requestWillBeSent', this.onNetworkRequestWillBeSent.bind(this))
+        session.on(
+            'Network.responseReceived',
+            this.onNetworkResponseReceived.bind(this),
+        )
+        session.on(
+            'Network.requestWillBeSent',
+            this.onNetworkRequestWillBeSent.bind(this),
+        )
         session.on('Page.frameNavigated', this.onPageFrameNavigated.bind(this))
     }
 
-    findRequest (params: Protocol.Network.DataReceivedEvent | Protocol.Network.ResponseReceivedEvent) {
-        let request = this.requestLog.requests.find((req) => req.id === params.requestId)
+    findRequest(
+        params:
+            | Protocol.Network.DataReceivedEvent
+            | Protocol.Network.ResponseReceivedEvent,
+    ) {
+        let request = this.requestLog.requests.find(
+            (req) => req.id === params.requestId,
+        )
 
         /**
          * If no match is found, check if the corresponding request is the cached first request
          */
-        if (!request && this.cachedFirstRequest && this.cachedFirstRequest.id === params.requestId) {
+        if (
+            !request &&
+            this.cachedFirstRequest &&
+            this.cachedFirstRequest.id === params.requestId
+        ) {
             request = this.cachedFirstRequest
         }
         return request
     }
 
-    onDataReceived (params: Protocol.Network.DataReceivedEvent) {
+    onDataReceived(params: Protocol.Network.DataReceivedEvent) {
         let request = this.findRequest(params)
 
         /**
@@ -78,7 +94,7 @@ export default class NetworkHandler {
         requestType.encoded += params.encodedDataLength
     }
 
-    onNetworkResponseReceived (params: Protocol.Network.ResponseReceivedEvent) {
+    onNetworkResponseReceived(params: Protocol.Network.ResponseReceivedEvent) {
         let request = this.findRequest(params)
         /**
          * ensure that a requestWillBeSent event was triggered before
@@ -94,7 +110,9 @@ export default class NetworkHandler {
         request.type = params.type
     }
 
-    onNetworkRequestWillBeSent (params: Protocol.Network.RequestWillBeSentEvent) {
+    onNetworkRequestWillBeSent(
+        params: Protocol.Network.RequestWillBeSentEvent,
+    ) {
         let isFirstRequestOfFrame = false
 
         if (
@@ -112,7 +130,8 @@ export default class NetworkHandler {
             /**
              * ignore pages not initated by the user
              */
-            IGNORED_URLS.filter((url) => params.request.url.startsWith(url)).length === 0
+            IGNORED_URLS.filter((url) => params.request.url.startsWith(url))
+                .length === 0
         ) {
             isFirstRequestOfFrame = true
 
@@ -125,7 +144,7 @@ export default class NetworkHandler {
         const log: Request = {
             id: params.requestId,
             url: params.request.url,
-            method: params.request.method
+            method: params.request.method,
         }
 
         if (params.redirectResponse) {
@@ -134,7 +153,7 @@ export default class NetworkHandler {
                 statusCode: params.redirectResponse.status,
                 requestHeaders: params.redirectResponse.requestHeaders,
                 responseHeaders: params.redirectResponse.headers,
-                timing: params.redirectResponse.timing
+                timing: params.redirectResponse.timing,
             }
         }
 
@@ -144,7 +163,7 @@ export default class NetworkHandler {
                 this.requestTypes[params.type] = {
                     size: 0,
                     encoded: 0,
-                    count: 1
+                    count: 1,
                 }
             } else if (requestType) {
                 requestType.count++
@@ -159,21 +178,28 @@ export default class NetworkHandler {
         return this.requestLog.requests.push(log)
     }
 
-    onPageFrameNavigated (params: Protocol.Page.FrameNavigatedEvent) {
+    onPageFrameNavigated(params: Protocol.Page.FrameNavigatedEvent) {
         /**
          * Only create a requestLog for pages that don't have a parent frame.
          * I.e. iframes are ignored
          */
-        if (!params.frame.parentId && IGNORED_URLS.filter((url) => params.frame.url.startsWith(url)).length === 0) {
+        if (
+            !params.frame.parentId &&
+            IGNORED_URLS.filter((url) => params.frame.url.startsWith(url))
+                .length === 0
+        ) {
             this.requestLog = {
                 id: params.frame.loaderId,
                 url: params.frame.url,
-                requests: []
+                requests: [],
             }
             /**
              * Add the first request that was cached before the actual requestLog could be created
              */
-            if (this.cachedFirstRequest && this.cachedFirstRequest.loaderId === params.frame.loaderId) {
+            if (
+                this.cachedFirstRequest &&
+                this.cachedFirstRequest.loaderId === params.frame.loaderId
+            ) {
                 /**
                  * Delete the loaderId of the first request so that all request data has the same structure
                  */

@@ -12,17 +12,17 @@ export interface ParentSuite {
 
 export interface SuiteEvent extends jasmine.SuiteResult {
     type: 'suite'
-    start: Date,
-    duration: number | null,
-    errors?: jasmine.FailedExpectation[],
+    start: Date
+    duration: number | null
+    errors?: jasmine.FailedExpectation[]
     error?: jasmine.FailedExpectation
 }
 
 export interface TestEvent extends jasmine.SpecResult {
     type: 'test' | 'hook'
-    start: Date,
-    duration: number | null,
-    errors?: jasmine.FailedExpectation[],
+    start: Date
+    duration: number | null
+    errors?: jasmine.FailedExpectation[]
     error?: jasmine.FailedExpectation
 }
 
@@ -142,5 +142,8 @@ export interface JasmineOpts {
      * or website depending on the result. For example it is pretty handy to take a screenshot every time
      * an assertion fails.
      */
-    expectationResultHandler?: (passed: boolean, data: ResultHandlerPayload) => void
+    expectationResultHandler?: (
+        passed: boolean,
+        data: ResultHandlerPayload,
+    ) => void
 }

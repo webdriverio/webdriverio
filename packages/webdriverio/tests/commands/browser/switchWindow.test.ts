@@ -1,12 +1,37 @@
 import path from 'node:path'
-import { expect, describe, beforeEach, it, vi, beforeAll, afterAll } from 'vitest'
+import {
+    afterAll,
+    beforeAll,
+    beforeEach,
+    describe,
+    expect,
+    it,
+    vi,
+} from 'vitest'
 // @ts-ignore mocked (original defined in webdriver package)
 import got from 'got'
 import { remote } from '../../../src/index.js'
 
 vi.mock('got')
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
-const webdriverResponses = [null, null, 'foo', 'bar', 'loo', null, 'hello', 'world', 'yo', null, 'some', 'url', 'here']
+vi.mock(
+    '@wdio/logger',
+    () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')),
+)
+const webdriverResponses = [
+    null,
+    null,
+    'foo',
+    'bar',
+    'loo',
+    null,
+    'hello',
+    'world',
+    'yo',
+    null,
+    'some',
+    'url',
+    'here',
+]
 
 describe('switchWindow', () => {
     // @ts-ignore
@@ -15,7 +40,7 @@ describe('switchWindow', () => {
     beforeAll(() => {
         // @ts-ignore
         global.window = {
-            name: 'foobar'
+            name: 'foobar',
         }
     })
 
@@ -24,8 +49,8 @@ describe('switchWindow', () => {
         browser = await remote({
             baseUrl: 'http://foobar.com',
             capabilities: {
-                browserName: 'foobar'
-            }
+                browserName: 'foobar',
+            },
         })
     })
 
@@ -74,7 +99,18 @@ describe('switchWindow', () => {
     })
 
     it('should find url with query string', async () => {
-        got.setMockResponse([null, null, 'foo.com?foo=bar', 'bar', null, 'hello', 'world', null, 'some', 'url'])
+        got.setMockResponse([
+            null,
+            null,
+            'foo.com?foo=bar',
+            'bar',
+            null,
+            'hello',
+            'world',
+            null,
+            'some',
+            'url',
+        ])
         const tabId = await browser.switchWindow('foo.com?foo=bar')
         expect(tabId).toBe('window-handle-1')
     })

@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 
-import url from 'node:url'
-import path from 'node:path'
-import shell from 'shelljs'
 import { EventEmitter } from 'node:events'
+import path from 'node:path'
+import url from 'node:url'
+import shell from 'shelljs'
 
 import { getSubPackages } from './utils/helpers.js'
 
@@ -22,31 +22,41 @@ const IGNORE_PACKAGES = {
     'wdio-cli': ['ts-node', '@babel/register'],
     'wdio-config': ['ts-node', '@babel/register'],
     'wdio-types': ['ts-node'],
-    'wdio-browser-runner': ['vue', '@vue/compiler-dom', 'virtual:wdio']
+    'wdio-browser-runner': ['vue', '@vue/compiler-dom', 'virtual:wdio'],
 }
 
 shell.cd(ROOT_DIR)
-const brokenPackages = (await Promise.all(packages.map(async (pkg) => {
-    const packagePath = path.join(ROOT_DIR, 'packages', pkg)
-    let shellScript = `npx depcheck ${packagePath} --json --ignore-dirs build,tests`
+const brokenPackages = (
+    await Promise.all(
+        packages.map(async (pkg) => {
+            const packagePath = path.join(ROOT_DIR, 'packages', pkg)
+            let shellScript = `npx depcheck ${packagePath} --json --ignore-dirs build,tests`
 
-    // Workaround for depcheck issue: https://github.com/depcheck/depcheck/issues/526
-    if (IGNORE_PACKAGES[pkg]) {
-        shellScript += ` --ignores="${IGNORE_PACKAGES[pkg].join(',')}"`
-    }
-    const shellResult = await new Promise((resolve, reject) => shell.exec(shellScript, EXEC_OPTIONS, (code, stdout, stderr) => {
-        if (stderr) {
-            console.error('Error :', stderr)
-            return reject(new Error(stderr))
-        }
-        return resolve(stdout)
-    }))
+            // Workaround for depcheck issue: https://github.com/depcheck/depcheck/issues/526
+            if (IGNORE_PACKAGES[pkg]) {
+                shellScript += ` --ignores="${IGNORE_PACKAGES[pkg].join(',')}"`
+            }
+            const shellResult = await new Promise((resolve, reject) =>
+                shell.exec(
+                    shellScript,
+                    EXEC_OPTIONS,
+                    (code, stdout, stderr) => {
+                        if (stderr) {
+                            console.error('Error :', stderr)
+                            return reject(new Error(stderr))
+                        }
+                        return resolve(stdout)
+                    },
+                ),
+            )
 
-    const result = JSON.parse(shellResult)
-    result.package = pkg
-    result.packagePath = packagePath
-    return result
-}))).filter((result) => Object.keys(result.missing).length)
+            const result = JSON.parse(shellResult)
+            result.package = pkg
+            result.packagePath = packagePath
+            return result
+        }),
+    )
+).filter((result) => Object.keys(result.missing).length)
 
 if (brokenPackages.length) {
     let message = ''

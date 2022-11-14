@@ -1,5 +1,5 @@
-import type { WriteStream } from 'node:fs'
 import type { EventEmitter } from 'node:events'
+import type { WriteStream } from 'node:fs'
 import type { RemoteCapability } from './Capabilities'
 
 interface OutputFileFormatOptions {
@@ -47,9 +47,11 @@ export interface Options {
      *
      * Note: `logFile` must not be set, unless `stdout` is set to `true`.
      */
-    writeStream?: WriteStream | {
-        write: (content: any) => boolean
-    }
+    writeStream?:
+        | WriteStream
+        | {
+              write: (content: any) => boolean
+          }
     /**
      * allow random typings from 3rd party reporters
      */
@@ -61,18 +63,18 @@ export interface ReporterInstance extends EventEmitter {
 }
 
 export interface ReporterClass {
-    new(options: Partial<Options>): ReporterInstance
+    new (options: Partial<Options>): ReporterInstance
 }
 
-export type ReporterEntry = (
+export type ReporterEntry =
     /**
      * e.g. `services: ['@wdio/allure-reporter']`
      */
-    string |
+    | string
     /**
      * e.g. `services: [CustomReporter]`
      */
-    ReporterClass |
+    | ReporterClass
     /**
      * e.g. `services: [['@wdio/sauce-service', { ... }]]`
      *
@@ -80,7 +82,7 @@ export type ReporterEntry = (
      * interface directly to allow other services to extend the service option
      * with theirs
      */
-    [string, WebdriverIO.ReporterOption] |
+    | [string, WebdriverIO.ReporterOption]
     /**
      * e.g. `services: [[CustomClass, { ... }]]`
      *
@@ -88,5 +90,4 @@ export type ReporterEntry = (
      * interface directly to allow other services to extend the service option
      * with theirs
      */
-    [ReporterClass, WebdriverIO.ReporterOption]
-)
+    | [ReporterClass, WebdriverIO.ReporterOption]

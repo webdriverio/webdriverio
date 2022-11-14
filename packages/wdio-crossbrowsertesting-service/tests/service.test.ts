@@ -1,28 +1,31 @@
 import path from 'node:path'
-import { describe, expect, it, beforeEach, afterEach, test, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, test, vi } from 'vitest'
 
+import type { Frameworks } from '@wdio/types'
 import got from 'got'
 import CrossBrowserTestingService from '../src/service.js'
-import type { Frameworks } from '@wdio/types'
 
 vi.mock('got')
 vi.mocked(got.put).mockResolvedValue({ body: '{}' })
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock(
+    '@wdio/logger',
+    () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')),
+)
 
 const uri = 'some/uri'
 const featureObject = {
-    name: 'Create a feature'
+    name: 'Create a feature',
 }
 
 const testArgumens = {
-    capabilities:  {
+    capabilities: {
         name: 'Test suite',
         tags: ['tag1', 'tag2'],
         public: true,
-        build: 344
+        build: 344,
     },
     beforeSession: { user: 'test', key: 'testy' },
-    afterTest:<[Frameworks.Test, any]> [{}, {}]
+    afterTest: <[Frameworks.Test, any]>[{}, {}],
 }
 
 describe('wdio-crossbrowsertesting-service', () => {
@@ -36,15 +39,15 @@ describe('wdio-crossbrowsertesting-service', () => {
             requestHandler: {
                 auth: {
                     user: 'test',
-                    pass: 'testy'
-                }
+                    pass: 'testy',
+                },
             },
             config: {},
             chromeA: { sessionId: 'sessionChromeA' },
             chromeB: { sessionId: 'sessionChromeB' },
             chromeC: { sessionId: 'sessionChromeC' },
             instances: ['chromeA', 'chromeB', 'chromeC'],
-            isMultiremote: false
+            isMultiremote: false,
         } as any
     })
 
@@ -58,11 +61,14 @@ describe('wdio-crossbrowsertesting-service', () => {
             name: 'Test suite',
             tags: ['tag1', 'tag2'],
             public: true,
-            build: 344
+            build: 344,
         }
-        const cbtService = new CrossBrowserTestingService({
-            ...testArgumens.beforeSession
-        } as any, testArgumens.capabilities as any)
+        const cbtService = new CrossBrowserTestingService(
+            {
+                ...testArgumens.beforeSession,
+            } as any,
+            testArgumens.capabilities as any,
+        )
         cbtService['_browser'] = browser
 
         expect(cbtService['_capabilities']).toEqual(capabilities as any)
@@ -75,9 +81,9 @@ describe('wdio-crossbrowsertesting-service', () => {
     it('before', () => {
         const cbtService = new CrossBrowserTestingService(
             {
-                ...testArgumens.beforeSession
+                ...testArgumens.beforeSession,
             } as any,
-            testArgumens.capabilities as any
+            testArgumens.capabilities as any,
         )
         cbtService.before({}, [], 'browser' as any)
         expect(cbtService['_browser']).toBe('browser' as any)
@@ -86,7 +92,7 @@ describe('wdio-crossbrowsertesting-service', () => {
     it('beforeSuite', () => {
         const cbtService = new CrossBrowserTestingService(
             { ...testArgumens.beforeSession } as any,
-            testArgumens.capabilities as any
+            testArgumens.capabilities as any,
         )
         cbtService['_browser'] = browser
         const suiteTitle = 'Test Suite Title'
@@ -98,12 +104,12 @@ describe('wdio-crossbrowsertesting-service', () => {
     it('beforeTest: execute not called', () => {
         const cbtService = new CrossBrowserTestingService(
             { ...testArgumens.beforeSession } as any,
-            testArgumens.capabilities as any
+            testArgumens.capabilities as any,
         )
         cbtService['_browser'] = browser
         const test = {
             fullName: 'Test #1',
-            parent: 'Test parent'
+            parent: 'Test parent',
         } as any
         cbtService['_cbtUsername'] = ''
         cbtService['_cbtAuthkey'] = ''
@@ -113,15 +119,18 @@ describe('wdio-crossbrowsertesting-service', () => {
     })
 
     it('beforeTest: execute called', () => {
-        const cbtService = new CrossBrowserTestingService({
-            ...testArgumens.beforeSession
-        } as any, {})
+        const cbtService = new CrossBrowserTestingService(
+            {
+                ...testArgumens.beforeSession,
+            } as any,
+            {},
+        )
         cbtService['_browser'] = browser
         const test = {
             name: 'Test name',
             fullName: 'Test #1',
             title: 'Test title',
-            parent: 'Test parent'
+            parent: 'Test parent',
         } as any
         cbtService.beforeSuite({ title: 'Test suite' } as Frameworks.Suite)
         cbtService.beforeTest(test)
@@ -130,18 +139,23 @@ describe('wdio-crossbrowsertesting-service', () => {
     })
 
     it('beforeTest: execute called', () => {
-        const cbtService = new CrossBrowserTestingService({
-            ...testArgumens.beforeSession
-        } as any, {})
+        const cbtService = new CrossBrowserTestingService(
+            {
+                ...testArgumens.beforeSession,
+            } as any,
+            {},
+        )
         cbtService['_browser'] = browser
         const test = {
             name: 'Test name',
             fullName: 'Test #1',
             title: 'Test title',
-            parent: 'Test parent'
+            parent: 'Test parent',
         } as any
 
-        cbtService.beforeSuite({ title: 'Jasmine__TopLevel__Suite' } as Frameworks.Suite)
+        cbtService.beforeSuite({
+            title: 'Jasmine__TopLevel__Suite',
+        } as Frameworks.Suite)
         cbtService.beforeTest(test)
 
         expect(cbtService['_suiteTitle']).toEqual('Test ')
@@ -149,13 +163,15 @@ describe('wdio-crossbrowsertesting-service', () => {
 
     it('beforeTest: should not do anything if no key was specified', () => {
         const cbtService = new CrossBrowserTestingService({} as any, {} as any)
-        cbtService.beforeSuite({ title: 'Jasmine__TopLevel__Suite' } as Frameworks.Suite)
+        cbtService.beforeSuite({
+            title: 'Jasmine__TopLevel__Suite',
+        } as Frameworks.Suite)
         cbtService.beforeTest({} as any)
 
         expect(cbtService['_suiteTitle']).not.toEqual('Test ')
     })
 
-    it('afterSuite', ()=>{
+    it('afterSuite', () => {
         const cbtService = new CrossBrowserTestingService({} as any, {} as any)
         cbtService['_browser'] = browser
         expect(cbtService['_failures']).toBe(0)
@@ -165,7 +181,6 @@ describe('wdio-crossbrowsertesting-service', () => {
 
         cbtService.afterSuite({ error: new Error('error') } as Frameworks.Suite)
         expect(cbtService['_failures']).toBe(1)
-
     })
 
     it('afterTest: passed test', () => {
@@ -173,7 +188,7 @@ describe('wdio-crossbrowsertesting-service', () => {
         cbtService['_browser'] = browser
         cbtService['_failures'] = 0
         const testResult = {
-            passed: true
+            passed: true,
         } as Frameworks.TestResult
 
         cbtService.afterTest(...testArgumens.afterTest, testResult)
@@ -185,7 +200,7 @@ describe('wdio-crossbrowsertesting-service', () => {
         cbtService['_browser'] = browser
         cbtService['_failures'] = 0
         const testResult = {
-            passed: false
+            passed: false,
         } as Frameworks.TestResult
         cbtService.afterTest(...testArgumens.afterTest, testResult)
 
@@ -199,9 +214,12 @@ describe('wdio-crossbrowsertesting-service', () => {
     })
 
     it('beforeFeature: execute called', () => {
-        const cbtService = new CrossBrowserTestingService({
-            ...testArgumens.beforeSession
-        } as any, {})
+        const cbtService = new CrossBrowserTestingService(
+            {
+                ...testArgumens.beforeSession,
+            } as any,
+            {},
+        )
         cbtService['_browser'] = browser
 
         cbtService.beforeFeature(uri, featureObject)
@@ -229,10 +247,13 @@ describe('wdio-crossbrowsertesting-service', () => {
     })
 
     it('after: updatedJob not called', async () => {
-        const cbtService = new CrossBrowserTestingService({
-            user: '',
-            key: ''
-        } as any, {} as any)
+        const cbtService = new CrossBrowserTestingService(
+            {
+                user: '',
+                key: '',
+            } as any,
+            {} as any,
+        )
         cbtService['_browser'] = browser
         const updateJobSpy = vi.spyOn(cbtService, 'updateJob')
         await cbtService.after()
@@ -240,13 +261,16 @@ describe('wdio-crossbrowsertesting-service', () => {
     })
 
     it('after: updatedJob called with passed params', async () => {
-        const cbtService = new CrossBrowserTestingService({
-            ...testArgumens.beforeSession
-        } as any, {})
+        const cbtService = new CrossBrowserTestingService(
+            {
+                ...testArgumens.beforeSession,
+            } as any,
+            {},
+        )
         cbtService['_browser'] = browser
         const updateJobSpy = vi.spyOn(cbtService, 'updateJob')
 
-        cbtService['_config'] = { mochaOpts: { bail:<any> 1 } } as any
+        cbtService['_config'] = { mochaOpts: { bail: <any>1 } } as any
         cbtService['_browser']!.sessionId = 'test'
 
         cbtService['_failures'] = 2
@@ -256,23 +280,29 @@ describe('wdio-crossbrowsertesting-service', () => {
     })
 
     test('after: with bail set', async () => {
-        const cbtService = new CrossBrowserTestingService({ ...testArgumens.beforeSession } as any, {})
+        const cbtService = new CrossBrowserTestingService(
+            { ...testArgumens.beforeSession } as any,
+            {},
+        )
         cbtService['_browser'] = browser
         cbtService['_failures'] = 5
         cbtService.updateJob = vi.fn()
 
         cbtService['_browser']!.isMultiremote = false
         cbtService['_browser']!.sessionId = 'test'
-        cbtService['_config'] = { mochaOpts: { bail:<any> 1 } } as any
+        cbtService['_config'] = { mochaOpts: { bail: <any>1 } } as any
         await cbtService.after(1)
 
         expect(cbtService.updateJob).toHaveBeenCalledWith('test', 1)
     })
 
     it('after: with multi-remote: updatedJob called with passed params', async () => {
-        const cbtService = new CrossBrowserTestingService({
-            ...testArgumens.beforeSession
-        } as any, { chromeA: {}, chromeB: {}, chromeC: {} } as any)
+        const cbtService = new CrossBrowserTestingService(
+            {
+                ...testArgumens.beforeSession,
+            } as any,
+            { chromeA: {}, chromeB: {}, chromeC: {} } as any,
+        )
         cbtService['_browser'] = browser
         const updateJobSpy = vi.spyOn(cbtService, 'updateJob')
         cbtService['_browser']!.isMultiremote = true as any
@@ -280,16 +310,34 @@ describe('wdio-crossbrowsertesting-service', () => {
         cbtService['_failures'] = 2
         await cbtService.after()
 
-        expect(updateJobSpy).toHaveBeenCalledWith('sessionChromeA', 2, false, 'chromeA')
-        expect(updateJobSpy).toHaveBeenCalledWith('sessionChromeB', 2, false, 'chromeB')
-        expect(updateJobSpy).toHaveBeenCalledWith('sessionChromeC', 2, false, 'chromeC')
+        expect(updateJobSpy).toHaveBeenCalledWith(
+            'sessionChromeA',
+            2,
+            false,
+            'chromeA',
+        )
+        expect(updateJobSpy).toHaveBeenCalledWith(
+            'sessionChromeB',
+            2,
+            false,
+            'chromeB',
+        )
+        expect(updateJobSpy).toHaveBeenCalledWith(
+            'sessionChromeC',
+            2,
+            false,
+            'chromeC',
+        )
     })
 
     it('onReload: updatedJob not called', () => {
-        const cbtService = new CrossBrowserTestingService({
-            user: undefined,
-            key: undefined
-        } as any, {})
+        const cbtService = new CrossBrowserTestingService(
+            {
+                user: undefined,
+                key: undefined,
+            } as any,
+            {},
+        )
         cbtService['_browser'] = browser
         const cbtService2 = new CrossBrowserTestingService({} as any, {} as any)
         const updateJobSpy = vi.spyOn(cbtService2, 'updateJob')
@@ -301,9 +349,12 @@ describe('wdio-crossbrowsertesting-service', () => {
     })
 
     it('onReload: updatedJob called with passed params', () => {
-        const cbtService = new CrossBrowserTestingService({
-            ...testArgumens.beforeSession
-        } as any, {})
+        const cbtService = new CrossBrowserTestingService(
+            {
+                ...testArgumens.beforeSession,
+            } as any,
+            {},
+        )
         cbtService['_browser'] = browser
         const updateJobSpy = vi.spyOn(cbtService, 'updateJob')
 
@@ -312,13 +363,15 @@ describe('wdio-crossbrowsertesting-service', () => {
         cbtService.onReload('oldSessionId', 'newSessionId')
 
         expect(updateJobSpy).toHaveBeenCalledWith('oldSessionId', 2, true)
-
     })
 
     it('onReload with multi-remote: updatedJob called with passed params', () => {
-        const cbtService = new CrossBrowserTestingService({
-            ...testArgumens.beforeSession
-        } as any, {})
+        const cbtService = new CrossBrowserTestingService(
+            {
+                ...testArgumens.beforeSession,
+            } as any,
+            {},
+        )
         cbtService['_browser'] = browser
         const updateJobSpy = vi.spyOn(cbtService, 'updateJob')
 
@@ -327,19 +380,27 @@ describe('wdio-crossbrowsertesting-service', () => {
         cbtService['_failures'] = 2
         cbtService.onReload('oldSessionId', 'sessionChromeA')
 
-        expect(updateJobSpy).toHaveBeenCalledWith('oldSessionId', 2, true, 'chromeA')
-
+        expect(updateJobSpy).toHaveBeenCalledWith(
+            'oldSessionId',
+            2,
+            true,
+            'chromeA',
+        )
     })
 
     it('getRestUrl', () => {
         const cbtService = new CrossBrowserTestingService({} as any, {} as any)
         cbtService['_browser'] = browser
-        expect(cbtService.getRestUrl('testSessionId'))
-            .toEqual('https://crossbrowsertesting.com/api/v3/selenium/testSessionId')
+        expect(cbtService.getRestUrl('testSessionId')).toEqual(
+            'https://crossbrowsertesting.com/api/v3/selenium/testSessionId',
+        )
     })
 
     it('getBody', () => {
-        const cbtService = new CrossBrowserTestingService({} as any, testArgumens.capabilities as any)
+        const cbtService = new CrossBrowserTestingService(
+            {} as any,
+            testArgumens.capabilities as any,
+        )
         cbtService['_browser'] = browser
         cbtService.beforeSuite({ title: 'Suite title' } as Frameworks.Suite)
 
@@ -349,8 +410,8 @@ describe('wdio-crossbrowsertesting-service', () => {
                 name: 'Test suite',
                 public: true,
                 success: '1',
-                tags: ['tag1', 'tag2']
-            }
+                tags: ['tag1', 'tag2'],
+            },
         })
 
         cbtService['_testCnt'] = 2
@@ -361,18 +422,21 @@ describe('wdio-crossbrowsertesting-service', () => {
                 name: 'Test suite',
                 public: true,
                 success: '0',
-                tags: ['tag1', 'tag2']
-            }
+                tags: ['tag1', 'tag2'],
+            },
         })
     })
 
     it('getBody should contain browserName if passed', () => {
-        const cbtService = new CrossBrowserTestingService({} as any, {
-            name: 'Test suite',
-            tags: ['tag3', 'tag4'],
-            public: true,
-            build: 344
-        } as any)
+        const cbtService = new CrossBrowserTestingService(
+            {} as any,
+            {
+                name: 'Test suite',
+                tags: ['tag3', 'tag4'],
+                public: true,
+                build: 344,
+            } as any,
+        )
 
         expect(cbtService.getBody(0, false, 'internet explorer')).toEqual({
             test: {
@@ -380,13 +444,16 @@ describe('wdio-crossbrowsertesting-service', () => {
                 name: 'internet explorer: Test suite',
                 public: true,
                 success: '1',
-                tags: ['tag3', 'tag4']
-            }
+                tags: ['tag3', 'tag4'],
+            },
         })
     })
 
     it('updateJob success', async () => {
-        const service = new CrossBrowserTestingService({ user: 'test', key: 'testy' } as any, {})
+        const service = new CrossBrowserTestingService(
+            { user: 'test', key: 'testy' } as any,
+            {},
+        )
         service['_browser'] = browser
         service['_suiteTitle'] = 'my test'
 
@@ -404,10 +471,15 @@ describe('wdio-crossbrowsertesting-service', () => {
         response.statusCode = 500
         vi.mocked(got.put).mockRejectedValue(response)
 
-        const service = new CrossBrowserTestingService({ user: 'test', key: 'testy' } as any, {})
+        const service = new CrossBrowserTestingService(
+            { user: 'test', key: 'testy' } as any,
+            {},
+        )
         service['_browser'] = browser
         service['_suiteTitle'] = 'my test'
-        const err: any = await service.updateJob('12345', 23, true).catch((err) => err)
+        const err: any = await service
+            .updateJob('12345', 23, true)
+            .catch((err) => err)
         expect(err.message).toBe('Failure')
 
         expect(service['_failures']).toBe(0)

@@ -19,5 +19,5 @@ export const COLORS = {
     'diff added': 32,
     'diff removed': 31,
     'diff added inline': '30;42',
-    'diff removed inline': '30;41'
+    'diff removed inline': '30;41',
 }

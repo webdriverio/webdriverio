@@ -1,5 +1,5 @@
 export default {
     config: {
-        foo: 'bar'
-    }
+        foo: 'bar',
+    },
 }

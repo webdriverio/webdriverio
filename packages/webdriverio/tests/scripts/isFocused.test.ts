@@ -1,7 +1,7 @@
 /**
  * @vitest-environment jsdom
  */
-import { it, expect, describe } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import isFocused from '../../src/scripts/isFocused.js'
 
 describe('isFocused script', () => {

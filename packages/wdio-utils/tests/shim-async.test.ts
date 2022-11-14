@@ -1,11 +1,14 @@
 import path from 'node:path'
-import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { executeHooksWithArgs, executeAsync, wrapCommand } from '../src/shim.js'
+import { executeAsync, executeHooksWithArgs, wrapCommand } from '../src/shim.js'
 
 const globalAny: any = global
 
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock(
+    '@wdio/logger',
+    () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')),
+)
 
 beforeEach(() => {
     globalAny.browser = {} as WebdriverIO.Browser
@@ -17,16 +20,26 @@ afterEach(() => {
 
 describe('executeHooksWithArgs', () => {
     it('multiple hooks, multiple args', async () => {
-        const hookHoge = () => { return 'hoge' }
-        const hookFuga = () => { return 'fuga' }
+        const hookHoge = () => {
+            return 'hoge'
+        }
+        const hookFuga = () => {
+            return 'fuga'
+        }
         const argHoge = { hoge: 'hoge' }
         const argFuga = { fuga: 'fuga' }
-        const res = await executeHooksWithArgs('hookName', [hookHoge, hookFuga], [argHoge, argFuga])
+        const res = await executeHooksWithArgs(
+            'hookName',
+            [hookHoge, hookFuga],
+            [argHoge, argFuga],
+        )
         expect(res).toEqual(['hoge', 'fuga'])
     })
 
     it('one hook, one arg', async () => {
-        const hook = () => { return 'hoge' }
+        const hook = () => {
+            return 'hoge'
+        }
         const arg = { hoge: 'hoge' }
         // @ts-ignore test with invalid param
         const res = await executeHooksWithArgs('hookName', hook, arg)
@@ -35,7 +48,9 @@ describe('executeHooksWithArgs', () => {
     })
 
     it('with error', async () => {
-        const hook = () => { throw new Error('Hoge') }
+        const hook = () => {
+            throw new Error('Hoge')
+        }
         const res = await executeHooksWithArgs('hookName', hook, [])
         expect(res).toHaveLength(1)
         expect(res).toEqual([new Error('Hoge')])
@@ -43,7 +58,9 @@ describe('executeHooksWithArgs', () => {
 
     it('return promise with error', async () => {
         const hook = () => {
-            return new Promise(() => { throw new Error('Hoge') })
+            return new Promise(() => {
+                throw new Error('Hoge')
+            })
         }
         const res = await executeHooksWithArgs('hookName', hook, [])
         expect(res).toHaveLength(1)
@@ -52,28 +69,45 @@ describe('executeHooksWithArgs', () => {
 
     it('async functions', async () => {
         const hookHoge = () => {
-            return new Promise(reject => setTimeout(reject, 5, new Error('Hoge')))
+            return new Promise((reject) =>
+                setTimeout(reject, 5, new Error('Hoge')),
+            )
         }
-        const hookFuga = async () => new Promise(resolve => setTimeout(resolve, 10, 'fuga'))
-        const res = await executeHooksWithArgs('hookName', [hookHoge, hookFuga], [])
+        const hookFuga = async () =>
+            new Promise((resolve) => setTimeout(resolve, 10, 'fuga'))
+        const res = await executeHooksWithArgs(
+            'hookName',
+            [hookHoge, hookFuga],
+            [],
+        )
         expect(res).toEqual([new Error('Hoge'), 'fuga'])
     })
 })
 
 describe('executeAsync', () => {
     it('should pass with default values and fn returning synchronous value', async () => {
-        const result = await executeAsync.call({}, async () => 'foo', { limit: 0, attempts: 0 })
+        const result = await executeAsync.call({}, async () => 'foo', {
+            limit: 0,
+            attempts: 0,
+        })
         expect(result).toEqual('foo')
     })
 
     it('should pass when optional arguments are passed', async () => {
-        const result = await executeAsync.call({}, async (arg: unknown) => arg, { limit: 1, attempts: 0 }, ['foo'])
+        const result = await executeAsync.call(
+            {},
+            async (arg: unknown) => arg,
+            { limit: 1, attempts: 0 },
+            ['foo'],
+        )
         expect(result).toEqual('foo')
     })
 
     it('should reject if fn throws error directly', async () => {
         let error
-        const fn = () => { throw new Error('foo') }
+        const fn = () => {
+            throw new Error('foo')
+        }
         try {
             await executeAsync.call({}, fn, { limit: 0, attempts: 0 })
         } catch (err: any) {
@@ -86,13 +120,17 @@ describe('executeAsync', () => {
         let counter = 3
         const scope = { wdioRetries: undefined }
         const repeatTest = { limit: counter, attempts: 0 }
-        const result = await executeAsync.call(scope, () => {
-            if (counter > 0) {
-                counter--
-                throw new Error('foo')
-            }
-            return Promise.resolve(true)
-        }, repeatTest)
+        const result = await executeAsync.call(
+            scope,
+            () => {
+                if (counter > 0) {
+                    counter--
+                    throw new Error('foo')
+                }
+                return Promise.resolve(true)
+            },
+            repeatTest,
+        )
         expect(result).toEqual(true)
         expect(counter).toEqual(0)
         expect(repeatTest).toEqual({ limit: 3, attempts: 3 })
@@ -103,13 +141,17 @@ describe('executeAsync', () => {
         let counter = 3
         const scope = { wdioRetries: undefined }
         const repeatTest = { limit: counter, attempts: 0 }
-        const result = await executeAsync.call(scope, () => {
-            if (counter > 0) {
-                counter--
-                return Promise.reject(new Error('foo'))
-            }
-            return Promise.resolve(true)
-        }, repeatTest)
+        const result = await executeAsync.call(
+            scope,
+            () => {
+                if (counter > 0) {
+                    counter--
+                    return Promise.reject(new Error('foo'))
+                }
+                return Promise.resolve(true)
+            },
+            repeatTest,
+        )
         expect(result).toEqual(true)
         expect(counter).toEqual(0)
         expect(repeatTest).toEqual({ limit: 3, attempts: 3 })
@@ -125,9 +167,10 @@ describe('wrapCommand', () => {
         const scope: any = {
             options: {
                 beforeCommand: vi.fn(),
-                afterCommand: vi.fn().mockImplementation(
-                    () => commandB.call(scope, 123))
-            }
+                afterCommand: vi
+                    .fn()
+                    .mockImplementation(() => commandB.call(scope, 123)),
+            },
         }
 
         expect(await commandA.call(scope, true, false, '!!')).toBe('Yayy!')
@@ -137,19 +180,22 @@ describe('wrapCommand', () => {
     })
 
     it('throws an error if command fails', async () => {
-        const rawCommand = vi.fn().mockReturnValue(
-            Promise.reject(new Error('Uppsi!')))
+        const rawCommand = vi
+            .fn()
+            .mockReturnValue(Promise.reject(new Error('Uppsi!')))
         const commandA = wrapCommand('foobar', rawCommand)
         const commandB = wrapCommand('barfoo', rawCommand)
         const scope: any = {
             options: {
                 beforeCommand: vi.fn(),
-                afterCommand: vi.fn().mockImplementation(
-                    () => commandB.call(scope, 123))
-            }
+                afterCommand: vi
+                    .fn()
+                    .mockImplementation(() => commandB.call(scope, 123)),
+            },
         }
 
-        const error = await commandA.call(scope, true, false, '!!')
+        const error = await commandA
+            .call(scope, true, false, '!!')
             .catch((err: Error) => err)
         expect((error as Error).message).toBe('Uppsi!')
         expect(scope.options!.beforeCommand).toBeCalledTimes(1)
@@ -162,17 +208,16 @@ describe('wrapCommand', () => {
         const scope: any = {
             options: {
                 beforeCommand: vi.fn(),
-                afterCommand: vi.fn()
+                afterCommand: vi.fn(),
             },
             getTagName: vi.fn().mockResolvedValue('Yayy'),
-            $: rawCommand
+            $: rawCommand,
         }
         rawCommand.mockReturnValue(Promise.resolve(scope))
         const commandA = wrapCommand('$', rawCommand)
-        expect(await commandA.call(scope, 'bar')
-            .$('foo')
-            .getTagName()
-        ).toBe('Yayy')
+        expect(await commandA.call(scope, 'bar').$('foo').getTagName()).toBe(
+            'Yayy',
+        )
         expect(scope.$).toBeCalledTimes(2)
         expect(scope.$).toBeCalledWith('bar')
         expect(scope.$).toBeCalledWith('foo')
@@ -184,16 +229,16 @@ describe('wrapCommand', () => {
         const scope: any = {
             options: {
                 beforeCommand: vi.fn(),
-                afterCommand: vi.fn()
+                afterCommand: vi.fn(),
             },
             getTagName: vi.fn().mockResolvedValue('Yayy'),
-            user$: rawCommand
+            user$: rawCommand,
         }
         rawCommand.mockReturnValue(Promise.resolve(scope))
         const commandB = wrapCommand('user$', rawCommand)
-        expect(await commandB.call(scope, 'bar')
-            .user$('foo')
-            .getTagName()).toBe('Yayy')
+        expect(
+            await commandB.call(scope, 'bar').user$('foo').getTagName(),
+        ).toBe('Yayy')
         expect(scope.user$).toBeCalledTimes(2)
         expect(scope.user$).toBeCalledWith('bar')
         expect(scope.user$).toBeCalledWith('foo')
@@ -206,29 +251,29 @@ describe('wrapCommand', () => {
         const scope: (i: number) => any = (i) => ({
             options: {
                 beforeCommand: vi.fn(),
-                afterCommand: vi.fn()
+                afterCommand: vi.fn(),
             },
             getTagName: vi.fn().mockResolvedValue('Yayy' + i),
             $: rawCommand$,
-            $$: rawCommand$$
+            $$: rawCommand$$,
         })
         rawCommand$.mockResolvedValue(scope(0))
         rawCommand$$.mockReturnValue([
             Promise.resolve(scope(0)),
             Promise.resolve(scope(1)),
-            Promise.resolve(scope(2))
+            Promise.resolve(scope(2)),
         ])
         const commandA = wrapCommand('$', rawCommand$)
-        expect(await commandA.call(scope(0))
-            .$('foo')
-            .$$('bar')[2]
-            .getTagName()
+        expect(
+            await commandA.call(scope(0)).$('foo').$$('bar')[2].getTagName(),
         ).toBe('Yayy2')
-        expect(await commandA.call(scope(0))
-            .$('foo')
-            .$$('bar')[2]
-            .$('barfoo')
-            .getTagName()
+        expect(
+            await commandA
+                .call(scope(0))
+                .$('foo')
+                .$$('bar')[2]
+                .$('barfoo')
+                .getTagName(),
         ).toBe('Yayy0')
         expect(rawCommand$$).toBeCalledTimes(2)
         expect(rawCommand$$).toBeCalledWith('bar')
@@ -240,23 +285,25 @@ describe('wrapCommand', () => {
         const scope: (i: number) => any = (i) => ({
             options: {
                 beforeCommand: vi.fn(),
-                afterCommand: vi.fn()
+                afterCommand: vi.fn(),
             },
             getTagName: vi.fn().mockResolvedValue('Yayy' + i),
             $: rawCommand$,
-            $$: rawCommand$$
+            $$: rawCommand$$,
         })
         rawCommand$.mockResolvedValue(scope(0))
         rawCommand$$.mockReturnValue([
             Promise.resolve(scope(0)),
             Promise.resolve(scope(1)),
-            Promise.resolve(scope(2))
+            Promise.resolve(scope(2)),
         ])
         const commandA = wrapCommand('$', rawCommand$)
-        expect(await commandA.call(scope(0))
-            .$('foo')
-            .$$('bar')
-            .map((el: any) => el.getTagName())
+        expect(
+            await commandA
+                .call(scope(0))
+                .$('foo')
+                .$$('bar')
+                .map((el: any) => el.getTagName()),
         ).toEqual(['Yayy0', 'Yayy1', 'Yayy2'])
     })
 
@@ -264,9 +311,9 @@ describe('wrapCommand', () => {
         const scope: any = {
             options: {
                 beforeCommand: vi.fn(),
-                afterCommand: vi.fn()
+                afterCommand: vi.fn(),
             },
-            selector: 'foobar'
+            selector: 'foobar',
         }
         const rawCommand = vi.fn().mockReturnValue(Promise.resolve(scope))
         const commandA = wrapCommand('$', rawCommand)
@@ -276,21 +323,27 @@ describe('wrapCommand', () => {
     it('can iterate over elements asynchronously', async () => {
         const options = {
             beforeCommand: vi.fn(),
-            afterCommand: vi.fn()
+            afterCommand: vi.fn(),
         }
-        const scope: any = [{
-            selector: 'foobarA',
-            options
-        }, {
-            selector: 'foobarB',
-            options
-        }, {
-            selector: 'foobarC',
-            options
-        }]
+        const scope: any = [
+            {
+                selector: 'foobarA',
+                options,
+            },
+            {
+                selector: 'foobarB',
+                options,
+            },
+            {
+                selector: 'foobarC',
+                options,
+            },
+        ]
         scope.options = options
         const rawCommand = vi.fn().mockReturnValue(Promise.resolve(scope))
-        const commandA = wrapCommand('$$', rawCommand).bind(scope) as any as (sel: string) => Promise<any>[]
+        const commandA = wrapCommand('$$', rawCommand).bind(scope) as any as (
+            sel: string,
+        ) => Promise<any>[]
 
         const expectedResults = ['foobarA', 'foobarB', 'foobarC']
         let i = 0
@@ -303,15 +356,17 @@ describe('wrapCommand', () => {
         expect.assertions(1)
         const options = {
             beforeCommand: vi.fn(),
-            afterCommand: vi.fn()
+            afterCommand: vi.fn(),
         }
         const scope: any = {
             selector: 'foobarA',
-            options
+            options,
         }
         scope.options = options
         const rawCommand = vi.fn().mockReturnValue(Promise.resolve(scope))
-        const commandA = wrapCommand('$', rawCommand).bind(scope) as any as (sel: string) => Promise<any>[]
+        const commandA = wrapCommand('$', rawCommand).bind(scope) as any as (
+            sel: string,
+        ) => Promise<any>[]
 
         try {
             for await (let elem of commandA('selector')) {

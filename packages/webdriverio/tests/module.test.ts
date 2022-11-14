@@ -1,23 +1,26 @@
-import { describe, it, beforeEach, expect, vi, afterEach } from 'vitest'
-import path from 'node:path'
-import http from 'node:http'
-import WebDriver from 'webdriver'
-import logger from '@wdio/logger'
 import { validateConfig } from '@wdio/config'
+import logger from '@wdio/logger'
+import http from 'node:http'
+import path from 'node:path'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import WebDriver from 'webdriver'
 
+import { attach, multiremote, remote, RemoteOptions } from '../src/index.js'
 import detectBackend from '../src/utils/detectBackend.js'
-import { remote, multiremote, attach, RemoteOptions } from '../src/index.js'
 
 vi.mock('../src/utils/detectBackend', () => ({ default: vi.fn() }))
 
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock(
+    '@wdio/logger',
+    () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')),
+)
 vi.mock('webdriver', () => {
     const client = {
         sessionId: 'foobar-123',
         addCommand: vi.fn(),
         overwriteCommand: vi.fn(),
         strategies: new Map(),
-        isWebDriver: true
+        isWebDriver: true,
     }
     const newSessionMock = vi.fn()
     newSessionMock.mockReturnValue(new Promise((resolve) => resolve(client)))
@@ -35,7 +38,7 @@ vi.mock('webdriver', () => {
         default: class WebDriverMock {
             static newSession = newSessionMock
             static attachToSession = attachToSessionMock
-        }
+        },
     }
 })
 
@@ -58,7 +61,7 @@ vi.mock('devtools', () => {
         default: class DevtoolsMock {
             static newSession = newSessionMock
             static attachToSession = attachToSessionMock
-        }
+        },
     }
 })
 
@@ -80,8 +83,8 @@ vi.mock('http', () => {
                 return reqCall
             }),
             setResonse: (res: any) => (response = res),
-            Agent: vi.fn()
-        }
+            Agent: vi.fn(),
+        },
     }
 })
 
@@ -102,7 +105,7 @@ describe('WebdriverIO module interface', () => {
             const options: RemoteOptions = {
                 automationProtocol: 'webdriver',
                 capabilities: {},
-                logLevel: 'trace'
+                logLevel: 'trace',
             }
             const browser = await remote(options)
             expect(browser.sessionId).toBe('foobar-123')
@@ -111,13 +114,16 @@ describe('WebdriverIO module interface', () => {
         })
 
         it('allows to propagate a modifier', async () => {
-            const browser = await remote({
-                automationProtocol: 'webdriver',
-                capabilities: {}
-            }, (client: any) => {
-                client.foobar = 'barfoo'
-                return client
-            })
+            const browser = await remote(
+                {
+                    automationProtocol: 'webdriver',
+                    capabilities: {},
+                },
+                (client: any) => {
+                    client.foobar = 'barfoo'
+                    return client
+                },
+            )
             expect(browser.sessionId).toBe('foobar-123')
             // @ts-ignore mock feature
             expect(browser.foobar).toBe('barfoo')
@@ -127,24 +133,28 @@ describe('WebdriverIO module interface', () => {
             await remote({
                 user: 'foo',
                 key: 'bar',
-                capabilities: {}
+                capabilities: {},
             })
             expect(detectBackend).toBeCalled()
         })
 
         it('should properly detect automation protocol', async () => {
-            const devtoolsBrowser = await remote({ capabilities: { browserName: 'chrome' } })
+            const devtoolsBrowser = await remote({
+                capabilities: { browserName: 'chrome' },
+            })
             expect(devtoolsBrowser.isDevTools).toBe(true)
 
             // @ts-ignore mock feature
             http.setResonse({ statusCode: 200 })
-            const webdriverBrowser = await remote({ capabilities: { browserName: 'chrome' } })
+            const webdriverBrowser = await remote({
+                capabilities: { browserName: 'chrome' },
+            })
             // @ts-ignore mock feature
             expect(webdriverBrowser.isWebDriver).toBe(true)
 
             const anotherWebdriverBrowser = await remote({
                 path: '/',
-                capabilities: { browserName: 'chrome' }
+                capabilities: { browserName: 'chrome' },
             })
 
             // @ts-ignore mock feature
@@ -154,12 +164,16 @@ describe('WebdriverIO module interface', () => {
         it('should attach custom locators to the strategies', async () => {
             const browser = await remote({
                 automationProtocol: 'webdriver',
-                capabilities: {}
+                capabilities: {},
             })
-            const fakeFn = () => { return 'test' as any as HTMLElement }
+            const fakeFn = () => {
+                return 'test' as any as HTMLElement
+            }
 
             browser.addLocatorStrategy('test-strat', fakeFn)
-            expect(browser.strategies.get('test-strat').toString()).toBe(fakeFn.toString())
+            expect(browser.strategies.get('test-strat').toString()).toBe(
+                fakeFn.toString(),
+            )
         })
 
         it('throws error if trying to overwrite locator strategy', async () => {
@@ -167,11 +181,13 @@ describe('WebdriverIO module interface', () => {
             expect.assertions(1)
             const browser = await remote({
                 automationProtocol: 'webdriver',
-                capabilities: {}
+                capabilities: {},
             })
 
             try {
-                const fakeFn = () => { return 'test' as any as HTMLElement }
+                const fakeFn = () => {
+                    return 'test' as any as HTMLElement
+                }
                 browser.addLocatorStrategy('test-strat', fakeFn)
             } catch (error: any) {
                 browser.strategies.delete('test-strat')
@@ -181,12 +197,17 @@ describe('WebdriverIO module interface', () => {
 
         it('should properly create stub instance', async () => {
             vi.mocked(validateConfig).mockReturnValueOnce({
-                automationProtocol: './protocol-stub.js'
+                automationProtocol: './protocol-stub.js',
             })
-            const browser = await remote({ capabilities: { browserName: 'chrome' } })
+            const browser = await remote({
+                capabilities: { browserName: 'chrome' },
+            })
 
             expect(browser.sessionId).toBeUndefined()
-            expect(browser.capabilities).toEqual({ browserName: 'chrome', chrome: true })
+            expect(browser.capabilities).toEqual({
+                browserName: 'chrome',
+                chrome: true,
+            })
             // @ts-ignore test types
             expect(() => browser.addCommand()).toThrow()
             // @ts-ignore test types
@@ -204,7 +225,7 @@ describe('WebdriverIO module interface', () => {
                 isFirefox: false,
                 isIOS: false,
                 isMobile: false,
-                isSauce: false
+                isSauce: false,
             })
         })
     })
@@ -216,14 +237,14 @@ describe('WebdriverIO module interface', () => {
                     // @ts-ignore mock feature
                     test_multiremote: true,
                     automationProtocol: 'webdriver',
-                    capabilities: { browserName: 'chrome' }
+                    capabilities: { browserName: 'chrome' },
                 },
                 browserB: {
                     // @ts-ignore mock feature
                     test_multiremote: true,
                     automationProtocol: 'webdriver',
-                    capabilities: { browserName: 'firefox' }
-                }
+                    capabilities: { browserName: 'firefox' },
+                },
             })
             expect(WebDriver.attachToSession).toBeCalled()
             expect(vi.mocked(WebDriver.newSession).mock.calls).toHaveLength(2)
@@ -234,18 +255,22 @@ describe('WebdriverIO module interface', () => {
                 browserA: {
                     // @ts-ignore mock feature
                     test_multiremote: true,
-                    capabilities: { browserName: 'chrome' }
+                    capabilities: { browserName: 'chrome' },
                 },
                 browserB: {
                     // @ts-ignore mock feature
                     test_multiremote: true,
-                    capabilities: { browserName: 'firefox' }
-                }
+                    capabilities: { browserName: 'firefox' },
+                },
             })
 
-            const fakeFn = () => { return 'test' as any as HTMLElement }
+            const fakeFn = () => {
+                return 'test' as any as HTMLElement
+            }
             driver.addLocatorStrategy('test-strat', fakeFn)
-            expect(driver.strategies.get('test-strat').toString()).toBe(fakeFn.toString())
+            expect(driver.strategies.get('test-strat').toString()).toBe(
+                fakeFn.toString(),
+            )
         })
 
         it('throws error if trying to overwrite locator strategy', async () => {
@@ -253,13 +278,21 @@ describe('WebdriverIO module interface', () => {
             expect.assertions(1)
             const driver = await multiremote({
                 // @ts-ignore mock feature
-                browserA: { test_multiremote: true, capabilities: { browserName: 'chrome' } },
+                browserA: {
+                    test_multiremote: true,
+                    capabilities: { browserName: 'chrome' },
+                },
                 // @ts-ignore mock feature
-                browserB: { test_multiremote: true, capabilities: { browserName: 'firefox' } }
+                browserB: {
+                    test_multiremote: true,
+                    capabilities: { browserName: 'firefox' },
+                },
             })
 
             try {
-                const fakeFn = () => { return 'test' as any as HTMLElement }
+                const fakeFn = () => {
+                    return 'test' as any as HTMLElement
+                }
                 driver.addLocatorStrategy('test-strat', fakeFn)
             } catch (error: any) {
                 driver.strategies.delete('test-strat')
@@ -278,15 +311,17 @@ describe('WebdriverIO module interface', () => {
                 sessionId: 'foobar',
                 capabilities: {
                     browserName: 'chrome',
-                    platformName: 'MacOS'
+                    platformName: 'MacOS',
                 },
                 requestedCapabilities: {
-                    browserName: 'chrome'
-                }
+                    browserName: 'chrome',
+                },
             }
             await attach(browser)
             expect(WebDriver.attachToSession).toBeCalledTimes(1)
-            expect(vi.mocked(WebDriver.attachToSession).mock.calls[0][0]).toMatchSnapshot()
+            expect(
+                vi.mocked(WebDriver.attachToSession).mock.calls[0][0],
+            ).toMatchSnapshot()
         })
     })
 

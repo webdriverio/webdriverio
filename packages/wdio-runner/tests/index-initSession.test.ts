@@ -1,24 +1,24 @@
-import { describe, expect, it, vi, beforeEach } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+import type { Capabilities, Options } from '@wdio/types'
 import WDIORunner from '../src/index.js'
 import BaseReporter from '../src/reporter.js'
-import type { Options, Capabilities } from '@wdio/types'
 
 vi.mock('../src/utils', () => ({
     __esModule: true,
     initialiseInstance() {
         return {
-            '$'() { },
-            '$$'() { },
+            $() {},
+            $$() {},
             sessionId: 'id',
             isBar: false,
             events: {},
-            on (eventName: string, callback: Function) {
+            on(eventName: string, callback: Function) {
                 // @ts-ignore mock feature
                 this.events[eventName] = callback
-            }
+            },
         }
-    }
+    },
 }))
 
 const config: Options.WebdriverIO = { capabilities: {} }
@@ -31,7 +31,7 @@ describe('wdio-runner', () => {
         beforeEach(() => {
             runner = new WDIORunner()
             runner['_reporter'] = {
-                emit: vi.fn()
+                emit: vi.fn(),
             } as unknown as BaseReporter
         })
 
@@ -60,7 +60,7 @@ describe('wdio-runner', () => {
                 // @ts-ignore test scenario
                 { injectGlobals: false },
                 undefined,
-                { isFoo: true, $: true, $$: false, isBar: true }
+                { isFoo: true, $: true, $$: false, isBar: true },
             )
 
             expect(typeof browser!.$).toBe('function')

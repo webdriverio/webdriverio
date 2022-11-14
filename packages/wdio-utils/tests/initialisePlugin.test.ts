@@ -1,5 +1,5 @@
-import { describe, it, expect, vi } from 'vitest'
 import type { Services } from '@wdio/types'
+import { describe, expect, it, vi } from 'vitest'
 
 import initialisePlugin from '../src/initialisePlugin.js'
 
@@ -22,7 +22,10 @@ describe.skip('initialisePlugin', () => {
     })
 
     it('should allow to load unscoped service plugin from wdio', async () => {
-        const Service = await initialisePlugin('@wdio/foobar-service', 'service')
+        const Service = await initialisePlugin(
+            '@wdio/foobar-service',
+            'service',
+        )
         const service = new Service({} as any, {}, {}) as TestService
         expect(service.foo).toBe('foobar')
     })
@@ -34,13 +37,18 @@ describe.skip('initialisePlugin', () => {
     })
 
     it('should allow to load scoped services', async () => {
-        const Service = await initialisePlugin('@saucelabs/wdio-foobar-reporter', 'reporter')
+        const Service = await initialisePlugin(
+            '@saucelabs/wdio-foobar-reporter',
+            'reporter',
+        )
         const service = new Service({} as any, {}, {}) as TestService
         expect(service.foo).toBe('barfoo')
     })
 
     it('should allow to load service referenced with an absolute path', async () => {
-        const path = require.resolve(__dirname + '/__mocks__/@saucelabs/wdio-foobar-reporter')
+        const path = require.resolve(
+            __dirname + '/__mocks__/@saucelabs/wdio-foobar-reporter',
+        )
         const Service = await initialisePlugin(path)
         const service = new Service({} as any, {}, {}) as TestService
         expect(service.foo).toBe('barfoo')
@@ -53,11 +61,14 @@ describe.skip('initialisePlugin', () => {
     })
 
     it('should throw meaningful error message', async () => {
-        await expect(() => initialisePlugin('lala', 'service'))
-            .toThrow(/Please make sure you have it installed!/)
-        await expect(() => initialisePlugin('borked', 'framework'))
-            .toThrow(/Error: foobar/)
-        await expect(() => initialisePlugin('foobar'))
-            .toThrow(/No plugin type provided/)
+        await expect(() => initialisePlugin('lala', 'service')).toThrow(
+            /Please make sure you have it installed!/,
+        )
+        await expect(() => initialisePlugin('borked', 'framework')).toThrow(
+            /Error: foobar/,
+        )
+        await expect(() => initialisePlugin('foobar')).toThrow(
+            /No plugin type provided/,
+        )
     })
 })

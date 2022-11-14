@@ -1,4 +1,10 @@
-import { Given, BeforeAll, Before, After, AfterAll } from '../../../packages/wdio-cucumber-framework/build/index.js'
+import {
+    After,
+    AfterAll,
+    Before,
+    BeforeAll,
+    Given,
+} from '../../../packages/wdio-cucumber-framework/build/index.js'
 
 browser.addCommand('rootLevel', () => {
     return true
@@ -45,13 +51,17 @@ AfterAll(async () => {
     expect(await browser.pause(1)).toBe(undefined)
 })
 
-Given('I choose the {string} scenario', { retry: { wrapperOptions: { retry: 1 } } }, async (scenario) => {
-    if (typeof browser[scenario] !== 'function') {
-        throw new Error(`Scenario with name "${scenario}" is not defined`)
-    }
+Given(
+    'I choose the {string} scenario',
+    { retry: { wrapperOptions: { retry: 1 } } },
+    async (scenario) => {
+        if (typeof browser[scenario] !== 'function') {
+            throw new Error(`Scenario with name "${scenario}" is not defined`)
+        }
 
-    await browser[scenario]()
-})
+        await browser[scenario]()
+    },
+)
 
 const stepText = 'I go on the website'
 Given(`${stepText} {string}`, async function (url) {
@@ -81,10 +91,9 @@ Given(/^a table step$/, async function (table) {
     const expected = [
         ['Apricot', '5'],
         ['Brocolli', '2'],
-        ['Cucumber', '10']
+        ['Cucumber', '10'],
     ]
     expect(table.rows()).toEqual(expected)
 })
 
-Given('this is ambiguous', () => {
-})
+Given('this is ambiguous', () => {})

@@ -19,9 +19,9 @@ const { multiremote } = require('../../packages/webdriverio/build/index.js')
                     args: [
                         'use-fake-device-for-media-stream',
                         'use-fake-ui-for-media-stream',
-                    ]
-                }
-            }
+                    ],
+                },
+            },
         },
         browserB: {
             port: 4445,
@@ -32,10 +32,10 @@ const { multiremote } = require('../../packages/webdriverio/build/index.js')
                     args: [
                         'use-fake-device-for-media-stream',
                         'use-fake-ui-for-media-stream',
-                    ]
-                }
-            }
-        }
+                    ],
+                },
+            },
+        },
     })
 
     var channel = Math.round(Math.random() * 10e10)

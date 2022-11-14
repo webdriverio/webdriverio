@@ -1,8 +1,8 @@
-import { findElement } from '../../utils/index.js'
-import { getElement } from '../../utils/getElementObject.js'
+import type { ElementReference } from '@wdio/protocols'
 import { ELEMENT_KEY } from '../../constants.js'
 import type { Selector } from '../../types'
-import type { ElementReference } from '@wdio/protocols'
+import { getElement } from '../../utils/getElementObject.js'
+import { findElement } from '../../utils/index.js'
 
 /**
  * The `$` command is a short way to call the [`findElement`](/docs/api/webdriver#findelement) command in order
@@ -78,9 +78,9 @@ import type { ElementReference } from '@wdio/protocols'
  * @type utility
  *
  */
-export default async function $ (
+export default async function $(
     this: WebdriverIO.Browser | WebdriverIO.Element,
-    selector: Selector
+    selector: Selector,
 ) {
     /**
      * convert protocol result into WebdriverIO element

@@ -38,9 +38,9 @@ export interface AllureReporterOptions {
      */
     tmsLinkTemplate?: string
     /**
-    * set to true in order to attach console logs from step to the reporter.
-    * @default false
-    */
+     * set to true in order to attach console logs from step to the reporter.
+     * @default false
+     */
     addConsoleLogs?: boolean
 }
 
@@ -77,7 +77,7 @@ export interface AddEnvironmentEventArgs {
 export enum TYPE {
     TEXT = 'text',
     HTML = 'html',
-    MARKDOWN = 'markdown'
+    MARKDOWN = 'markdown',
 }
 
 export interface AddDescriptionEventArgs {
@@ -92,17 +92,23 @@ export interface AddAttachmentEventArgs {
 }
 
 export interface Step {
-    attachments: Attachment[];
-    addStep(step: Step): void;
-    addAttachment(attachment: Attachment): void;
-    end(status: Status, error: Error, timestamp?: number): void;
-    toXML(): string;
+    attachments: Attachment[]
+    addStep(step: Step): void
+    addAttachment(attachment: Attachment): void
+    end(status: Status, error: Error, timestamp?: number): void
+    toXML(): string
 }
 
-export type Status = 'passed' | 'pending' | 'skipped' | 'failed' | 'broken' | 'canceled';
+export type Status =
+    | 'passed'
+    | 'pending'
+    | 'skipped'
+    | 'failed'
+    | 'broken'
+    | 'canceled'
 export interface Attachment {
-    addStep(step: Step): void;
-    addAttachment(attachment: Attachment): void;
-    end(status: Status, error: Error, timestamp?: number): void;
-    toXML(): string;
+    addStep(step: Step): void
+    addAttachment(attachment: Attachment): void
+    end(status: Status, error: Error, timestamp?: number): void
+    toXML(): string
 }

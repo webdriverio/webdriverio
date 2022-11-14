@@ -1,19 +1,19 @@
-import { commands } from 'virtual:wdio'
 import { webdriverMonad } from '@wdio/utils'
+import { commands } from 'virtual:wdio'
 import { getEnvironmentVars } from 'webdriver'
 
-import browserCommands from './commands/index.js'
 import type { ConsoleEvent } from '../types'
+import browserCommands from './commands/index.js'
 
 const COMMAND_TIMEOUT = 30 * 1000 // 30s
 const CONSOLE_METHODS = ['log', 'info', 'warn', 'error', 'debug'] as const
 
 export default class ProxyDriver {
-    static newSession (
+    static newSession(
         params: any,
         modifier: never,
         userPrototype: Record<string, PropertyDescriptor>,
-        commandWrapper: any
+        commandWrapper: any,
     ) {
         const commandMessages = new Map<number, any>()
         const wsUrl = 'ws://' + window.location.host + '/ws'
@@ -36,12 +36,14 @@ export default class ProxyDriver {
             for (const method of CONSOLE_METHODS) {
                 const origCommand = console[method].bind(console)
                 console[method] = (...args: unknown[]) => {
-                    socket.send(JSON.stringify(<ConsoleEvent>{
-                        name: 'consoleEvent',
-                        type: method,
-                        args,
-                        cid
-                    }))
+                    socket.send(
+                        JSON.stringify(<ConsoleEvent>{
+                            name: 'consoleEvent',
+                            type: method,
+                            args,
+                            cid,
+                        }),
+                    )
                     origCommand(...args)
                 }
             }
@@ -51,7 +53,9 @@ export default class ProxyDriver {
             try {
                 const payload = JSON.parse(ev.data)
                 if (!payload.id) {
-                    return console.error(`Message without id: ${JSON.stringify(ev.data)}`)
+                    return console.error(
+                        `Message without id: ${JSON.stringify(ev.data)}`,
+                    )
                 }
 
                 const commandMessage = commandMessages.get(payload.id)
@@ -59,18 +63,29 @@ export default class ProxyDriver {
                     return console.error(`Unknown command id "${payload.id}"`)
                 }
                 if (payload.error) {
-                    console.log(`[WDIO] ${(new Date()).toISOString()} - id: ${payload.id} - ERROR: ${JSON.stringify(payload.result)}`)
+                    console.log(
+                        `[WDIO] ${new Date().toISOString()} - id: ${
+                            payload.id
+                        } - ERROR: ${JSON.stringify(payload.result)}`,
+                    )
                     return commandMessage.reject(new Error(payload.error))
                 }
-                console.log(`[WDIO] ${(new Date()).toISOString()} - id: ${payload.id} - RESULT: ${JSON.stringify(payload.result)}`)
+                console.log(
+                    `[WDIO] ${new Date().toISOString()} - id: ${
+                        payload.id
+                    } - RESULT: ${JSON.stringify(payload.result)}`,
+                )
                 commandMessage.resolve(payload.result)
             } catch (err: any) {
-                console.error(`Failed handling command socket message "${err.message}"`)
+                console.error(
+                    `Failed handling command socket message "${err.message}"`,
+                )
             }
         })
 
         let commandId = 0
-        const environmentPrototype: Record<string, PropertyDescriptor> = getEnvironmentVars(params)
+        const environmentPrototype: Record<string, PropertyDescriptor> =
+            getEnvironmentVars(params)
         const protocolCommands = commands.reduce((prev, commandName) => {
             prev[commandName] = {
                 value: async (...args: unknown[]) => {
@@ -78,16 +93,36 @@ export default class ProxyDriver {
                         await connectPromise
                     }
                     commandId++
-                    console.log(`[WDIO] ${(new Date()).toISOString()} - id: ${commandId} - COMMAND: ${commandName}(${args.join(', ')})`)
-                    socket.send(JSON.stringify({ commandName, args, id: commandId, cid }))
+                    console.log(
+                        `[WDIO] ${new Date().toISOString()} - id: ${commandId} - COMMAND: ${commandName}(${args.join(
+                            ', ',
+                        )})`,
+                    )
+                    socket.send(
+                        JSON.stringify({
+                            commandName,
+                            args,
+                            id: commandId,
+                            cid,
+                        }),
+                    )
                     return new Promise((resolve, reject) => {
                         const commandTimeout = setTimeout(
-                            () => reject(new Error(`Command "${commandName}" timed out`)),
-                            COMMAND_TIMEOUT
+                            () =>
+                                reject(
+                                    new Error(
+                                        `Command "${commandName}" timed out`,
+                                    ),
+                                ),
+                            COMMAND_TIMEOUT,
                         )
-                        commandMessages.set(commandId, { resolve, reject, commandTimeout })
+                        commandMessages.set(commandId, {
+                            resolve,
+                            reject,
+                            commandTimeout,
+                        })
                     })
-                }
+                },
             }
             return prev
         }, {} as Record<string, { value: Function }>)
@@ -108,7 +143,7 @@ export default class ProxyDriver {
             /**
              * custom browser specific commands
              */
-            ...browserCommands
+            ...browserCommands,
         }
         prototype.emit = { writable: true, value: () => {} }
         prototype.on = { writable: true, value: () => {} }

@@ -10,11 +10,11 @@ import { filterSpecArgs } from '../utils.js'
 import { testFnWrapper } from './testFnWrapper.js'
 
 import type {
-    HookFnArgs,
-    SpecFunction,
-    BeforeHookParam,
     AfterHookParam,
-    SpecArguments
+    BeforeHookParam,
+    HookFnArgs,
+    SpecArguments,
+    SpecFunction,
 } from './types'
 
 const MOCHA_COMMANDS: ['skip', 'only'] = ['skip', 'only']
@@ -42,7 +42,7 @@ export const runHook = function (
     afterFnArgs: HookFnArgs<unknown>,
     cid: string,
     repeatTest: number,
-    timeout: number
+    timeout: number,
 ) {
     return origFn(function (
         this: unknown,
@@ -52,7 +52,7 @@ export const runHook = function (
             BeforeHookParam<unknown>,
             AfterHookParam<unknown>,
             string,
-            number
+            number,
         ]
     ) {
         return testFnWrapper.call(
@@ -60,20 +60,21 @@ export const runHook = function (
             'Hook',
             {
                 specFn: hookFn,
-                specFnArgs: filterSpecArgs(hookFnArgs)
+                specFnArgs: filterSpecArgs(hookFnArgs),
             },
             {
                 beforeFn,
-                beforeFnArgs
+                beforeFnArgs,
             },
             {
                 afterFn,
-                afterFnArgs
+                afterFnArgs,
             },
             cid,
-            repeatTest
+            repeatTest,
         )
-    }, timeout)
+    },
+    timeout)
 }
 
 /**
@@ -101,38 +102,42 @@ export const runSpec = function (
     afterFnArgs: HookFnArgs<unknown>,
     cid: string,
     repeatTest: number,
-    timeout: number
+    timeout: number,
 ) {
-    return origFn(specTitle, function (
-        this: unknown,
-        ...specFnArgs: [
-            string,
-            SpecFunction,
-            BeforeHookParam<unknown>,
-            AfterHookParam<unknown>,
-            string,
-            number
-        ]
-    ) {
-        return testFnWrapper.call(
-            this,
-            'Test',
-            {
-                specFn,
-                specFnArgs: filterSpecArgs(specFnArgs)
-            },
-            {
-                beforeFn,
-                beforeFnArgs
-            },
-            {
-                afterFn,
-                afterFnArgs
-            },
-            cid,
-            repeatTest
-        )
-    }, timeout)
+    return origFn(
+        specTitle,
+        function (
+            this: unknown,
+            ...specFnArgs: [
+                string,
+                SpecFunction,
+                BeforeHookParam<unknown>,
+                AfterHookParam<unknown>,
+                string,
+                number,
+            ]
+        ) {
+            return testFnWrapper.call(
+                this,
+                'Test',
+                {
+                    specFn,
+                    specFnArgs: filterSpecArgs(specFnArgs),
+                },
+                {
+                    beforeFn,
+                    beforeFnArgs,
+                },
+                {
+                    afterFn,
+                    afterFnArgs,
+                },
+                cid,
+                repeatTest,
+            )
+        },
+        timeout,
+    )
 }
 
 /**
@@ -156,7 +161,7 @@ export const wrapTestFunction = function (
     beforeArgsFn: HookFnArgs<unknown>,
     afterFn: Function | Function[],
     afterArgsFn: HookFnArgs<unknown>,
-    cid: string
+    cid: string,
 ) {
     return function (...specArguments: SpecArguments) {
         /**
@@ -164,9 +169,10 @@ export const wrapTestFunction = function (
          * [title, fn], [title], [fn]
          * [title, fn, retryCnt], [title, retryCnt], [fn, retryCnt]
          */
-        let retryCnt = typeof specArguments[specArguments.length - 1] === 'number'
-            ? specArguments.pop() :
-            0
+        let retryCnt =
+            typeof specArguments[specArguments.length - 1] === 'number'
+                ? specArguments.pop()
+                : 0
 
         /**
          * Jasmine uses a timeout value as last parameter, in this case the arguments
@@ -179,15 +185,19 @@ export const wrapTestFunction = function (
             // if we have [title, fn, timeout, retryCnt]
             if (typeof specArguments[specArguments.length - 1] === 'number') {
                 timeout = specArguments.pop() as number
-            // if we have [title, fn, timeout]
+                // if we have [title, fn, timeout]
             } else {
                 timeout = retryCnt as number
                 retryCnt = 0
             }
         }
 
-        const specFn = typeof specArguments[0] === 'function' ? specArguments.shift()
-            : (typeof specArguments[1] === 'function' ? specArguments[1] : undefined)
+        const specFn =
+            typeof specArguments[0] === 'function'
+                ? specArguments.shift()
+                : typeof specArguments[1] === 'function'
+                ? specArguments[1]
+                : undefined
         const specTitle = specArguments[0]
 
         if (isSpec) {
@@ -202,7 +212,7 @@ export const wrapTestFunction = function (
                     afterArgsFn,
                     cid,
                     retryCnt as number,
-                    timeout
+                    timeout,
                 )
             }
 
@@ -221,7 +231,7 @@ export const wrapTestFunction = function (
             afterArgsFn,
             cid,
             retryCnt as number,
-            timeout
+            timeout,
         )
     }
 }
@@ -249,17 +259,17 @@ export const runTestInFiberContext = function (
     afterArgsFn: HookFnArgs<unknown>,
     fnName: string,
     cid: string,
-    scope = global
+    scope = global,
 ) {
-    const origFn = (scope as any)[fnName];
-    (scope as any)[fnName] = wrapTestFunction(
+    const origFn = (scope as any)[fnName]
+    ;(scope as any)[fnName] = wrapTestFunction(
         origFn,
         isSpec,
         beforeFn,
         beforeArgsFn,
         afterFn,
         afterArgsFn,
-        cid
+        cid,
     )
     addMochaCommands(origFn, (scope as any)[fnName])
 }
@@ -275,7 +285,7 @@ type ItFn = {
  * @param {Function} origFn original function
  * @param {function} newFn  wrapped function
  */
-function addMochaCommands (origFn: ItFn, newFn: ItFn) {
+function addMochaCommands(origFn: ItFn, newFn: ItFn) {
     MOCHA_COMMANDS.forEach((commandName: 'skip' | 'only') => {
         if (typeof origFn[commandName] === 'function') {
             newFn[commandName] = origFn[commandName]

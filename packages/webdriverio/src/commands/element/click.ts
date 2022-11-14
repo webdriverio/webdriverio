@@ -1,6 +1,6 @@
-import { getBrowserObject } from '../../utils/index.js'
 import type { ClickOptions } from '../../types'
 import type { Button } from '../../utils/actions'
+import { getBrowserObject } from '../../utils/index.js'
 
 /**
  *
@@ -83,7 +83,7 @@ import type { Button } from '../../utils/actions'
  */
 export default async function click(
     this: WebdriverIO.Element,
-    options?: ClickOptions
+    options?: ClickOptions,
 ) {
     if (typeof options === 'undefined') {
         return this.elementClick(this.elementId)
@@ -94,17 +94,14 @@ export default async function click(
     }
 
     let button = (options.button || 0) as Button
-    let {
-        x: xoffset = 0,
-        y: yoffset = 0,
-        skipRelease = false
-    } = options || {}
+    let { x: xoffset = 0, y: yoffset = 0, skipRelease = false } = options || {}
 
     if (
-        typeof xoffset !== 'number'
-        || typeof yoffset !== 'number'
-        || !Number.isInteger(xoffset)
-        || !Number.isInteger(yoffset)) {
+        typeof xoffset !== 'number' ||
+        typeof yoffset !== 'number' ||
+        !Number.isInteger(xoffset) ||
+        !Number.isInteger(yoffset)
+    ) {
         throw new TypeError('Coordinates must be integers')
     }
 
@@ -123,13 +120,14 @@ export default async function click(
 
     if (this.isW3C) {
         const browser = getBrowserObject(this)
-        await browser.action('pointer', {
-            parameters: { pointerType: 'mouse' }
-        })
+        await browser
+            .action('pointer', {
+                parameters: { pointerType: 'mouse' },
+            })
             .move({
                 origin: this,
                 x: xoffset,
-                y: yoffset
+                y: yoffset,
             })
             .down({ button })
             .up({ button })
@@ -138,6 +136,10 @@ export default async function click(
     }
 
     const { width, height } = await this.getElementSize(this.elementId)
-    await this.moveToElement(this.elementId, xoffset + (width / 2), yoffset + (height / 2))
+    await this.moveToElement(
+        this.elementId,
+        xoffset + width / 2,
+        yoffset + height / 2,
+    )
     return this.positionClick(button as number)
 }

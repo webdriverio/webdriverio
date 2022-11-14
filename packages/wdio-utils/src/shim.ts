@@ -1,6 +1,6 @@
-import * as iterators from 'p-iteration'
 import logger from '@wdio/logger'
 import type { Clients } from '@wdio/types'
+import * as iterators from 'p-iteration'
 
 const log = logger('@wdio/utils:shim')
 
@@ -25,17 +25,35 @@ declare global {
 }
 
 const ELEMENT_QUERY_COMMANDS = [
-    '$', '$$', 'custom$', 'custom$$', 'shadow$', 'shadow$$', 'react$',
-    'react$$', 'nextElement', 'previousElement', 'parentElement'
+    '$',
+    '$$',
+    'custom$',
+    'custom$$',
+    'shadow$',
+    'shadow$$',
+    'react$',
+    'react$$',
+    'nextElement',
+    'previousElement',
+    'parentElement',
 ]
 const ELEMENT_PROPS = [
-    'elementId', 'error', 'selector', 'parent', 'index', 'isReactElement',
-    'length'
+    'elementId',
+    'error',
+    'selector',
+    'parent',
+    'index',
+    'isReactElement',
+    'length',
 ]
 const ACTION_COMMANDS = ['action', 'actions']
 const PROMISE_METHODS = ['then', 'catch', 'finally']
 
-let executeHooksWithArgs = async function executeHooksWithArgsShim<T> (hookName: string, hooks: Function | Function[] = [], args: any[] = []): Promise<(T | Error)[]> {
+let executeHooksWithArgs = async function executeHooksWithArgsShim<T>(
+    hookName: string,
+    hooks: Function | Function[] = [],
+    args: any[] = [],
+): Promise<(T | Error)[]> {
     /**
      * make sure hooks are an array of functions
      */
@@ -50,34 +68,39 @@ let executeHooksWithArgs = async function executeHooksWithArgsShim<T> (hookName:
         args = [args]
     }
 
-    const hooksPromises = hooks.map((hook) => new Promise<T | Error>((resolve) => {
-        let result
+    const hooksPromises = hooks.map(
+        (hook) =>
+            new Promise<T | Error>((resolve) => {
+                let result
 
-        try {
-            result = hook.apply(null, args)
-        } catch (e: any) {
-            log.error(e.stack)
-            return resolve(e)
-        }
+                try {
+                    result = hook.apply(null, args)
+                } catch (e: any) {
+                    log.error(e.stack)
+                    return resolve(e)
+                }
 
-        /**
-         * if a promise is returned make sure we don't have a catch handler
-         * so in case of a rejection it won't cause the hook to fail
-         */
-        if (result && typeof result.then === 'function') {
-            return result.then(resolve, (e: Error) => {
-                log.error(e.stack)
-                resolve(e)
-            })
-        }
+                /**
+                 * if a promise is returned make sure we don't have a catch handler
+                 * so in case of a rejection it won't cause the hook to fail
+                 */
+                if (result && typeof result.then === 'function') {
+                    return result.then(resolve, (e: Error) => {
+                        log.error(e.stack)
+                        resolve(e)
+                    })
+                }
 
-        resolve(result)
-    }))
+                resolve(result)
+            }),
+    )
 
     const start = Date.now()
     const result = await Promise.all(hooksPromises)
     if (hooksPromises.length) {
-        log.debug(`Finished to run "${hookName}" hook in ${Date.now() - start}ms`)
+        log.debug(
+            `Finished to run "${hookName}" hook in ${Date.now() - start}ms`,
+        )
     }
     return result
 }
@@ -87,12 +110,20 @@ let executeHooksWithArgs = async function executeHooksWithArgsShim<T> (hookName:
  * @param commandName name of the command (e.g. getTitle)
  * @param fn          command function
  */
-let wrapCommand = function wrapCommand<T>(commandName: string, fn: Function): (...args: any) => Promise<T> {
+let wrapCommand = function wrapCommand<T>(
+    commandName: string,
+    fn: Function,
+): (...args: any) => Promise<T> {
     async function wrapCommandFn(this: any, ...args: any[]) {
         const beforeHookArgs = [commandName, args]
         if (!inCommandHook && this.options.beforeCommand) {
             inCommandHook = true
-            await executeHooksWithArgs.call(this, 'beforeCommand', this.options.beforeCommand, beforeHookArgs)
+            await executeHooksWithArgs.call(
+                this,
+                'beforeCommand',
+                this.options.beforeCommand,
+                beforeHookArgs,
+            )
             inCommandHook = false
         }
 
@@ -106,8 +137,17 @@ let wrapCommand = function wrapCommand<T>(commandName: string, fn: Function): (.
 
         if (!inCommandHook && this.options.afterCommand) {
             inCommandHook = true
-            const afterHookArgs = [...beforeHookArgs, commandResult, commandError]
-            await executeHooksWithArgs.call(this, 'afterCommand', this.options.afterCommand, afterHookArgs)
+            const afterHookArgs = [
+                ...beforeHookArgs,
+                commandResult,
+                commandError,
+            ]
+            await executeHooksWithArgs.call(
+                this,
+                'afterCommand',
+                this.options.afterCommand,
+                afterHookArgs,
+            )
             inCommandHook = false
         }
 
@@ -118,9 +158,16 @@ let wrapCommand = function wrapCommand<T>(commandName: string, fn: Function): (.
         return commandResult
     }
 
-    function wrapElementFn (promise: Promise<Clients.Browser>, cmd: Function, args: any[], prevInnerArgs?: { prop: string | number, args: any[] }): any {
+    function wrapElementFn(
+        promise: Promise<Clients.Browser>,
+        cmd: Function,
+        args: any[],
+        prevInnerArgs?: { prop: string | number; args: any[] },
+    ): any {
         return new Proxy(
-            Promise.resolve(promise).then((ctx: Clients.Browser) => cmd.call(ctx, ...args)),
+            Promise.resolve(promise).then((ctx: Clients.Browser) =>
+                cmd.call(ctx, ...args),
+            ),
             {
                 get: (target, prop: string) => {
                     /**
@@ -130,18 +177,23 @@ let wrapCommand = function wrapCommand<T>(commandName: string, fn: Function): (.
                         return () => ({
                             i: 0,
                             target,
-                            async next () {
+                            async next() {
                                 const elems = await this.target
                                 if (!Array.isArray(elems)) {
-                                    throw new Error('Can not iterate over non array')
+                                    throw new Error(
+                                        'Can not iterate over non array',
+                                    )
                                 }
 
                                 if (this.i < elems.length) {
-                                    return { value: elems[this.i++], done: false }
+                                    return {
+                                        value: elems[this.i++],
+                                        done: false,
+                                    }
                                 }
 
                                 return { done: true }
-                            }
+                            },
                         })
                     }
 
@@ -165,7 +217,7 @@ let wrapCommand = function wrapCommand<T>(commandName: string, fn: Function): (.
                                 return this[index]
                             },
                             [prop],
-                            { prop, args }
+                            { prop, args },
                         )
                     }
 
@@ -175,11 +227,17 @@ let wrapCommand = function wrapCommand<T>(commandName: string, fn: Function): (.
                      * await $('foo').$('bar')
                      * ```
                      */
-                    if (ELEMENT_QUERY_COMMANDS.includes(prop) || prop.endsWith('$')) {
+                    if (
+                        ELEMENT_QUERY_COMMANDS.includes(prop) ||
+                        prop.endsWith('$')
+                    ) {
                         // this: WebdriverIO.Element
-                        return wrapCommand(prop, function (this: any, ...args: any) {
-                            return this[prop].apply(this, args)
-                        })
+                        return wrapCommand(
+                            prop,
+                            function (this: any, ...args: any) {
+                                return this[prop].apply(this, args)
+                            },
+                        )
                     }
 
                     /**
@@ -189,15 +247,23 @@ let wrapCommand = function wrapCommand<T>(commandName: string, fn: Function): (.
                      * await $('body').$('header').$$('div').map((elem) => elem.getLocation())
                      * ```
                      */
-                    if (commandName.endsWith('$$') && typeof iterators[prop as keyof typeof iterators] === 'function') {
-                        return (mapIterator: Function) => wrapElementFn(
-                            target,
-                            function (this: never, mapIterator: Function): any {
-                                // @ts-ignore
-                                return iterators[prop](this, mapIterator)
-                            },
-                            [mapIterator]
-                        )
+                    if (
+                        commandName.endsWith('$$') &&
+                        typeof iterators[prop as keyof typeof iterators] ===
+                            'function'
+                    ) {
+                        return (mapIterator: Function) =>
+                            wrapElementFn(
+                                target,
+                                function (
+                                    this: never,
+                                    mapIterator: Function,
+                                ): any {
+                                    // @ts-ignore
+                                    return iterators[prop](this, mapIterator)
+                                },
+                                [mapIterator],
+                            )
                     }
 
                     /**
@@ -218,7 +284,9 @@ let wrapCommand = function wrapCommand<T>(commandName: string, fn: Function): (.
                      * ```
                      */
                     if (PROMISE_METHODS.includes(prop)) {
-                        return target[prop as 'then' | 'catch' | 'finally'].bind(target)
+                        return target[
+                            prop as 'then' | 'catch' | 'finally'
+                        ].bind(target)
                     }
 
                     /**
@@ -227,24 +295,32 @@ let wrapCommand = function wrapCommand<T>(commandName: string, fn: Function): (.
                      * const tagName = await $('foo').$('bar').getTagName()
                      * ```
                      */
-                    return (...args: any[]) => target.then(async (elem) => {
-                        if (!elem) {
-                            let errMsg = 'Element could not be found'
-                            const prevElem = await promise
-                            if (Array.isArray(prevElem) && prevInnerArgs && prevInnerArgs.prop === 'get') {
-                                errMsg = `Index out of bounds! $$(${prevInnerArgs.args[0]}) returned only ${prevElem.length} elements.`
-                            }
+                    return (...args: any[]) =>
+                        target.then(async (elem) => {
+                            if (!elem) {
+                                let errMsg = 'Element could not be found'
+                                const prevElem = await promise
+                                if (
+                                    Array.isArray(prevElem) &&
+                                    prevInnerArgs &&
+                                    prevInnerArgs.prop === 'get'
+                                ) {
+                                    errMsg = `Index out of bounds! $$(${prevInnerArgs.args[0]}) returned only ${prevElem.length} elements.`
+                                }
 
-                            throw new Error(errMsg)
-                        }
-                        return elem[prop](...args)
-                    })
-                }
-            }
+                                throw new Error(errMsg)
+                            }
+                            return elem[prop](...args)
+                        })
+                },
+            },
         )
     }
 
-    function chainElementQuery(this: Promise<Clients.Browser>, ...args: any[]): any {
+    function chainElementQuery(
+        this: Promise<Clients.Browser>,
+        ...args: any[]
+    ): any {
         return wrapElementFn(this, wrapCommandFn, args)
     }
 
@@ -253,14 +329,16 @@ let wrapCommand = function wrapCommand<T>(commandName: string, fn: Function): (.
          * if the command suppose to return an element, we apply `chainElementQuery` to allow
          * chaining of these promises.
          */
-        const command = ELEMENT_QUERY_COMMANDS.includes(commandName) || commandName.endsWith('$')
-            ? chainElementQuery
-            : ACTION_COMMANDS.includes(commandName)
-                /**
-                 * actions commands are a bit special as they return their own
-                 * sync interface
-                 */
-                ? fn
+        const command =
+            ELEMENT_QUERY_COMMANDS.includes(commandName) ||
+            commandName.endsWith('$')
+                ? chainElementQuery
+                : ACTION_COMMANDS.includes(commandName)
+                ? /**
+                   * actions commands are a bit special as they return their own
+                   * sync interface
+                   */
+                  fn
                 : wrapCommandFn
 
         return command.apply(this, args)
@@ -275,7 +353,12 @@ let wrapCommand = function wrapCommand<T>(commandName: string, fn: Function): (.
  * @param  {Array}    args       arguments passed to hook
  * @return {Promise}             that gets resolved once test/hook is done or was retried enough
  */
-async function executeAsync(this: any, fn: Function, retries: Retries, args: any[] = []): Promise<unknown> {
+async function executeAsync(
+    this: any,
+    fn: Function,
+    retries: Retries,
+    args: any[] = [],
+): Promise<unknown> {
     this.wdioRetries = retries.attempts
 
     try {
@@ -296,8 +379,4 @@ async function executeAsync(this: any, fn: Function, retries: Retries, args: any
     }
 }
 
-export {
-    executeHooksWithArgs,
-    wrapCommand,
-    executeAsync,
-}
+export { executeHooksWithArgs, wrapCommand, executeAsync }

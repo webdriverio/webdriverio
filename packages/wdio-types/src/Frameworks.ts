@@ -32,7 +32,7 @@ export interface TestResult {
     result?: any
     passed: boolean
     duration: number
-    retries: { limit: number, attempts: number }
+    retries: { limit: number; attempts: number }
     exception: string
     status: string
 }
@@ -52,7 +52,14 @@ export interface World {
             seconds: number
             nanos: number
         }
-        status: 'UNKNOWN' | 'PASSED' | 'SKIPPED' | 'PENDING' | 'UNDEFINED' | 'AMBIGUOUS' | 'FAILED'
+        status:
+            | 'UNKNOWN'
+            | 'PASSED'
+            | 'SKIPPED'
+            | 'PENDING'
+            | 'UNDEFINED'
+            | 'AMBIGUOUS'
+            | 'FAILED'
         message?: string
         willBeRetried: boolean
     }

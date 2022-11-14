@@ -1,7 +1,7 @@
-import getElementTagName from './getElementTagName.js'
+import type DevToolsDriver from '../devtoolsdriver'
 import selectOptionScript from '../scripts/selectOption.js'
 import { getStaleElementError } from '../utils.js'
-import type DevToolsDriver from '../devtoolsdriver'
+import getElementTagName from './getElementTagName.js'
 
 /**
  * The Element Click command scrolls into view the element if it is not already pointer-interactable,
@@ -14,9 +14,9 @@ import type DevToolsDriver from '../devtoolsdriver'
  * @see https://w3c.github.io/webdriver/#dfn-element-click
  * @param {string} elementId  the id of an element returned in a previous call to Find Element(s)
  */
-export default async function elementClick (
+export default async function elementClick(
     this: DevToolsDriver,
-    { elementId }: { elementId: string }
+    { elementId }: { elementId: string },
 ) {
     const page = this.getPageHandle()
     const elementHandle = await this.elementStore.get(elementId)
@@ -45,12 +45,15 @@ export default async function elementClick (
          */
         const dialogHandler = () => resolve(null)
         page.once('dialog', dialogHandler)
-        return elementHandle.click().then(() => {
-            /**
-             * no modals popped up, so clean up the listener
-             */
-            page.removeListener('dialog', dialogHandler)
-            resolve(null)
-        }).catch(reject)
+        return elementHandle
+            .click()
+            .then(() => {
+                /**
+                 * no modals popped up, so clean up the listener
+                 */
+                page.removeListener('dialog', dialogHandler)
+                resolve(null)
+            })
+            .catch(reject)
     })
 }

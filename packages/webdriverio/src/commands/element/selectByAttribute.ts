@@ -35,34 +35,34 @@ import { getElementFromResponse } from '../../utils/index.js'
  * @type action
  *
  */
-export default async function selectByAttribute (
+export default async function selectByAttribute(
     this: WebdriverIO.Element,
     attribute: string,
-    value: string | number
+    value: string | number,
 ) {
     /**
      * convert value into string
      */
-    value = typeof value === 'number'
-        ? value.toString()
-        : value
+    value = typeof value === 'number' ? value.toString() : value
 
     /**
-    * find option elememnt using xpath
-    */
+     * find option elememnt using xpath
+     */
     const normalized = `[normalize-space(@${attribute.trim()}) = "${value.trim()}"]`
     const optionElement = await this.findElementFromElement(
         this.elementId,
         'xpath',
-        `./option${normalized}|./optgroup/option${normalized}`
+        `./option${normalized}|./optgroup/option${normalized}`,
     )
 
     if (optionElement && (optionElement as any).error === 'no such element') {
-        throw new Error(`Option with attribute "${attribute}=${value}" not found.`)
+        throw new Error(
+            `Option with attribute "${attribute}=${value}" not found.`,
+        )
     }
 
     /**
-    * select option
-    */
+     * select option
+     */
     return this.elementClick(getElementFromResponse(optionElement) as string)
 }

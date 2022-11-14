@@ -1,12 +1,15 @@
 import path from 'node:path'
-import { expect, describe, it, vi, beforeEach } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 // @ts-ignore mocked (original defined in webdriver package)
 import got from 'got'
 import { remote } from '../../../src/index.js'
 
 vi.mock('got')
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock(
+    '@wdio/logger',
+    () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')),
+)
 
 describe('waitForDisplayed', () => {
     const timeout = 1000
@@ -18,8 +21,8 @@ describe('waitForDisplayed', () => {
         browser = await remote({
             baseUrl: 'http://foobar.com',
             capabilities: {
-                browserName: 'foobar'
-            }
+                browserName: 'foobar',
+            },
         })
     })
 
@@ -31,7 +34,7 @@ describe('waitForDisplayed', () => {
             waitForDisplayed: tmpElem.waitForDisplayed,
             elementId: 123,
             waitUntil: vi.fn().mockImplementation(cb),
-            options : { waitforInterval: 5, waitforTimeout: timeout }
+            options: { waitforInterval: 5, waitforTimeout: timeout },
         } as any as WebdriverIO.Element
 
         await elem.waitForDisplayed({ timeout })
@@ -44,8 +47,9 @@ describe('waitForDisplayed', () => {
         const result = await elem.waitForDisplayed({ timeout })
 
         expect(result).toBe(true)
-        expect(got.mock.calls[2][0].pathname)
-            .toBe('/session/foobar-123/element/some-elem-123/displayed')
+        expect(got.mock.calls[2][0].pathname).toBe(
+            '/session/foobar-123/element/some-elem-123/displayed',
+        )
     })
 
     it('should call isDisplayed and return true if eventually true', async () => {
@@ -55,7 +59,8 @@ describe('waitForDisplayed', () => {
             waitForDisplayed: tmpElem.waitForDisplayed,
             elementId: 123,
             waitUntil: tmpElem.waitUntil,
-            isDisplayed: vi.fn()
+            isDisplayed: vi
+                .fn()
                 .mockImplementationOnce(() => false)
                 .mockImplementationOnce(() => false)
                 .mockImplementationOnce(() => true),
@@ -82,7 +87,9 @@ describe('waitForDisplayed', () => {
         try {
             await elem.waitForDisplayed({ timeout })
         } catch (err: any) {
-            expect(err.message).toBe(`element ("#foo") still not displayed after ${timeout}ms`)
+            expect(err.message).toBe(
+                `element ("#foo") still not displayed after ${timeout}ms`,
+            )
         }
     })
 
@@ -90,7 +97,11 @@ describe('waitForDisplayed', () => {
         const tmpElem = await browser.$('#foo')
         const elem = {
             selector: '#foo',
-            parent: { $: vi.fn(() => { return elem}) },
+            parent: {
+                $: vi.fn(() => {
+                    return elem
+                }),
+            },
             waitForDisplayed: tmpElem.waitForDisplayed,
             waitUntil: tmpElem.waitUntil,
             isDisplayed: tmpElem.isDisplayed,
@@ -100,7 +111,9 @@ describe('waitForDisplayed', () => {
         try {
             await elem.waitForDisplayed({ timeout })
         } catch (err: any) {
-            expect(err.message).toBe(`element ("#foo") still not displayed after ${timeout}ms`)
+            expect(err.message).toBe(
+                `element ("#foo") still not displayed after ${timeout}ms`,
+            )
         }
     })
 
@@ -134,7 +147,10 @@ describe('waitForDisplayed', () => {
         } as any as WebdriverIO.Element
 
         try {
-            await elem.waitForDisplayed({ timeout, timeoutMsg: 'Element foo never displayed' })
+            await elem.waitForDisplayed({
+                timeout,
+                timeoutMsg: 'Element foo never displayed',
+            })
         } catch (err: any) {
             expect(err.message).toBe('Element foo never displayed')
         }

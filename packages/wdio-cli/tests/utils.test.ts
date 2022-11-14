@@ -1,61 +1,66 @@
-import { vi, describe, it, expect, afterEach, beforeEach, test } from 'vitest'
-import path from 'node:path'
+import { ConfigParser } from '@wdio/config'
+import ejs from 'ejs'
 import * as childProcess from 'node:child_process'
 import fs from 'node:fs/promises'
-import ejs from 'ejs'
+import path from 'node:path'
 import readDir from 'recursive-readdir'
+import { afterEach, beforeEach, describe, expect, it, test, vi } from 'vitest'
 import { SevereServiceError } from 'webdriverio'
-import { ConfigParser } from '@wdio/config'
 
+import { COMPILER_OPTION_ANSWERS } from '../src/constants.js'
 import {
+    addServiceDeps,
+    convertPackageHashToObject,
+    findInConfig,
+    generateTestFiles,
+    getCapabilities,
+    getDefaultFiles,
+    getPathForFileGeneration,
+    getRunnerName,
+    hasFile,
+    hasPackage,
+    renderConfigurationFile,
+    replaceConfig,
     runLauncherHook,
     runOnCompleteHook,
     runServiceHook,
-    getRunnerName,
-    findInConfig,
-    replaceConfig,
-    addServiceDeps,
-    convertPackageHashToObject,
-    renderConfigurationFile,
+    specifyVersionIfNeeded,
     validateServiceAnswers,
-    getCapabilities,
-    hasFile,
-    generateTestFiles,
-    getPathForFileGeneration,
-    getDefaultFiles,
-    hasPackage,
-    specifyVersionIfNeeded
 } from '../src/utils.js'
-import { COMPILER_OPTION_ANSWERS } from '../src/constants.js'
 
 vi.mock('ejs')
 vi.mock('recursive-readdir')
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock(
+    '@wdio/logger',
+    () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')),
+)
 vi.mock('child_process', function () {
     const m = {
         execSyncRes: 'APPIUM_MISSING',
-        execSync: function () { return m.execSyncRes }
+        execSync: function () {
+            return m.execSyncRes
+        },
     }
     return m
 })
 
 vi.mock('../src/commands/config', () => ({
-    runConfig: vi.fn()
+    runConfig: vi.fn(),
 }))
 
 vi.mock('node:fs/promises', () => ({
     default: {
         access: vi.fn(),
         mkdir: vi.fn(),
-        writeFile: vi.fn().mockReturnValue(Promise.resolve())
-    }
+        writeFile: vi.fn().mockReturnValue(Promise.resolve()),
+    },
 }))
 
 vi.mock('@wdio/config', () => ({
     ConfigParser: class ConfigParserMock {
-        initialize () {}
-        getCapabilities () {}
-    }
+        initialize() {}
+        getCapabilities() {}
+    },
 }))
 
 beforeEach(() => {
@@ -65,12 +70,15 @@ beforeEach(() => {
 describe('runServiceHook', () => {
     const hookSuccess = vi.fn()
     const slowSetupFn = vi.fn()
-    const asyncHookSuccess = vi.fn().mockImplementation(() => new Promise<void>(resolve => {
-        setTimeout(() => {
-            slowSetupFn()
-            resolve()
-        }, 20)
-    }))
+    const asyncHookSuccess = vi.fn().mockImplementation(
+        () =>
+            new Promise<void>((resolve) => {
+                setTimeout(() => {
+                    slowSetupFn()
+                    resolve()
+                }, 20)
+            }),
+    )
 
     beforeEach(() => {
         hookSuccess.mockClear()
@@ -79,27 +87,41 @@ describe('runServiceHook', () => {
     })
 
     it('run sync and async hooks successfully', async () => {
-        await runServiceHook([
-            { onPrepare: hookSuccess },
-            { onPrepare: asyncHookSuccess },
-            // @ts-ignore test invalid parameter
-            { onPrepare: 'foobar' },
-        ], 'onPrepare', 1, true, 'abc')
+        await runServiceHook(
+            [
+                { onPrepare: hookSuccess },
+                { onPrepare: asyncHookSuccess },
+                // @ts-ignore test invalid parameter
+                { onPrepare: 'foobar' },
+            ],
+            'onPrepare',
+            1,
+            true,
+            'abc',
+        )
         expect(hookSuccess).toBeCalledTimes(1)
         expect(asyncHookSuccess).toBeCalledTimes(1)
         expect(slowSetupFn).toBeCalledTimes(1)
     })
 
     it('executes all hooks and continues after a hook throws error', async () => {
-        const hookFailing = vi.fn().mockImplementation(() => { throw new Error('buhh') })
+        const hookFailing = vi.fn().mockImplementation(() => {
+            throw new Error('buhh')
+        })
 
-        await runServiceHook([
-            { onPrepare: hookSuccess },
-            // @ts-ignore test invalid parameter
-            { onPrepare: 'foobar' },
-            { onPrepare: asyncHookSuccess },
-            { onPrepare: hookFailing },
-        ], 'onPrepare', 1, true, 'abc')
+        await runServiceHook(
+            [
+                { onPrepare: hookSuccess },
+                // @ts-ignore test invalid parameter
+                { onPrepare: 'foobar' },
+                { onPrepare: asyncHookSuccess },
+                { onPrepare: hookFailing },
+            ],
+            'onPrepare',
+            1,
+            true,
+            'abc',
+        )
 
         expect(hookSuccess).toBeCalledTimes(1)
         expect(hookFailing).toBeCalledTimes(1)
@@ -108,19 +130,31 @@ describe('runServiceHook', () => {
     })
 
     it('executes all hooks and stops after a hook throws SevereServiceError', async () => {
-        const hookFailing = vi.fn().mockImplementation(() => { throw new SevereServiceError() })
+        const hookFailing = vi.fn().mockImplementation(() => {
+            throw new SevereServiceError()
+        })
 
         try {
-            await runServiceHook([
-                { onPrepare: hookSuccess },
-                // @ts-ignore test invalid parameter
-                { onPrepare: 'foobar' },
-                { onPrepare: asyncHookSuccess },
-                { onPrepare: hookFailing },
-            ], 'onPrepare', 1, true, 'abc')
+            await runServiceHook(
+                [
+                    { onPrepare: hookSuccess },
+                    // @ts-ignore test invalid parameter
+                    { onPrepare: 'foobar' },
+                    { onPrepare: asyncHookSuccess },
+                    { onPrepare: hookFailing },
+                ],
+                'onPrepare',
+                1,
+                true,
+                'abc',
+            )
         } catch (err: any) {
-            expect(err.message).toEqual(expect.stringContaining('SevereServiceError'))
-            expect(err.message).toEqual(expect.stringContaining('Stopping runner...'))
+            expect(err.message).toEqual(
+                expect.stringContaining('SevereServiceError'),
+            )
+            expect(err.message).toEqual(
+                expect.stringContaining('Stopping runner...'),
+            )
             expect(hookSuccess).toBeCalledTimes(1)
             expect(hookFailing).toBeCalledTimes(1)
             expect(slowSetupFn).toBeCalledTimes(1)
@@ -131,7 +165,9 @@ describe('runServiceHook', () => {
 
 test('runLauncherHook handles array of functions', () => {
     const hookSuccess = vi.fn()
-    const hookFailing = vi.fn().mockImplementation(() => { throw new Error('buhh') })
+    const hookFailing = vi.fn().mockImplementation(() => {
+        throw new Error('buhh')
+    })
 
     runLauncherHook([hookSuccess, hookFailing], 1, 2, 3, 4, 5, 6)
     expect(hookSuccess).toBeCalledTimes(1)
@@ -141,7 +177,7 @@ test('runLauncherHook handles array of functions', () => {
 })
 
 test('runLauncherHook handles async functions', async () => {
-    const hookSuccess = () => new Promise(resolve => setTimeout(resolve, 31))
+    const hookSuccess = () => new Promise((resolve) => setTimeout(resolve, 31))
 
     const start = Date.now()
     await runLauncherHook([hookSuccess], {}, {})
@@ -160,16 +196,28 @@ test('runOnCompleteHook handles array of functions', () => {
     const hookSuccess = vi.fn()
     const secondHook = vi.fn()
 
-    runOnCompleteHook([hookSuccess, secondHook], { capabilities: {} }, {}, 0, {} as any)
+    runOnCompleteHook(
+        [hookSuccess, secondHook],
+        { capabilities: {} },
+        {},
+        0,
+        {} as any,
+    )
     expect(hookSuccess).toBeCalledTimes(1)
     expect(secondHook).toBeCalledTimes(1)
 })
 
 test('runOnCompleteHook handles async functions', async () => {
-    const hookSuccess = () => new Promise(resolve => setTimeout(resolve, 31))
+    const hookSuccess = () => new Promise((resolve) => setTimeout(resolve, 31))
 
     const start = Date.now()
-    await runOnCompleteHook([hookSuccess], { capabilities: {} }, {}, 0, {} as any)
+    await runOnCompleteHook(
+        [hookSuccess],
+        { capabilities: {} },
+        {},
+        0,
+        {} as any,
+    )
     expect(Date.now() - start).toBeGreaterThanOrEqual(30)
 })
 
@@ -184,7 +232,13 @@ test('runOnCompleteHook with no failure returns 0', async () => {
     const hookSuccess = vi.fn()
     const hookFailing = vi.fn()
 
-    const result = await runOnCompleteHook([hookSuccess, hookFailing], { capabilities: {} }, {}, 0, {} as any)
+    const result = await runOnCompleteHook(
+        [hookSuccess, hookFailing],
+        { capabilities: {} },
+        {},
+        0,
+        {} as any,
+    )
 
     expect(result).not.toContain(1)
     expect(hookSuccess).toBeCalledTimes(1)
@@ -193,9 +247,17 @@ test('runOnCompleteHook with no failure returns 0', async () => {
 
 test('runOnCompleteHook with failure returns 1', async () => {
     const hookSuccess = vi.fn()
-    const hookFailing = vi.fn().mockImplementation(() => { throw new Error('buhh') })
+    const hookFailing = vi.fn().mockImplementation(() => {
+        throw new Error('buhh')
+    })
 
-    const result = await runOnCompleteHook([hookSuccess, hookFailing], { capabilities: {} }, {}, 0, {} as any)
+    const result = await runOnCompleteHook(
+        [hookSuccess, hookFailing],
+        { capabilities: {} },
+        {},
+        0,
+        {} as any,
+    )
 
     expect(result).toContain(1)
     expect(hookSuccess).toBeCalledTimes(1)
@@ -204,10 +266,17 @@ test('runOnCompleteHook with failure returns 1', async () => {
 
 test('runOnCompleteHook fails with SevereServiceError', async () => {
     const hookSuccess = vi.fn()
-    const hookFailing = vi.fn().mockImplementation(() => { throw new SevereServiceError('buhh') })
+    const hookFailing = vi.fn().mockImplementation(() => {
+        throw new SevereServiceError('buhh')
+    })
 
-    const result = await runOnCompleteHook([hookSuccess, hookFailing], { capabilities: {} }, {}, 0, {} as any)
-        .catch(() => 'some error')
+    const result = await runOnCompleteHook(
+        [hookSuccess, hookFailing],
+        { capabilities: {} },
+        {},
+        0,
+        {} as any,
+    ).catch(() => 'some error')
 
     expect(result).toBe('some error')
     expect(hookSuccess).toBeCalledTimes(1)
@@ -229,7 +298,9 @@ test('getRunnerName', () => {
     // @ts-ignore test invalid parameter
     expect(getRunnerName({ foo: {} })).toBe('undefined')
     // @ts-ignore test invalid parameter
-    expect(getRunnerName({ foo: { capabilities: {} }, bar: {} })).toBe('undefined')
+    expect(getRunnerName({ foo: { capabilities: {} }, bar: {} })).toBe(
+        'undefined',
+    )
     // @ts-ignore test invalid parameter
     expect(getRunnerName({ foo: { capabilities: {} } })).toBe('MultiRemote')
 })
@@ -239,7 +310,7 @@ describe('findInConfig', () => {
         const str = "services: ['foo', 'bar'],"
 
         expect(findInConfig(str, 'service')).toMatchObject([
-            'services: [\'foo\', \'bar\']'
+            "services: ['foo', 'bar']",
         ])
     })
 
@@ -247,21 +318,26 @@ describe('findInConfig', () => {
         const str = "framework: 'mocha'"
 
         expect(findInConfig(str, 'framework')).toMatchObject([
-            "framework: 'mocha'"
+            "framework: 'mocha'",
         ])
     })
 })
 
 describe('renderConfigurationFile', () => {
     it('should write file', async () => {
-        vi.mocked(ejs.renderFile).mockImplementation((a, b, c: any) => c(null, true))
+        vi.mocked(ejs.renderFile).mockImplementation((a, b, c: any) =>
+            c(null, true),
+        )
 
         await renderConfigurationFile({ foo: 'bar' } as any)
 
         expect(ejs.renderFile).toHaveBeenCalled()
         expect(fs.writeFile).toHaveBeenCalled()
-        expect((vi.mocked(fs.writeFile).mock.calls[0][0] as string)
-            .endsWith('wdio.conf.js')).toBe(true)
+        expect(
+            (vi.mocked(fs.writeFile).mock.calls[0][0] as string).endsWith(
+                'wdio.conf.js',
+            ),
+        ).toBe(true)
     })
 
     it('should write TS file', async () => {
@@ -272,13 +348,18 @@ describe('renderConfigurationFile', () => {
 
         expect(ejs.renderFile).toHaveBeenCalled()
         expect(fs.writeFile).toHaveBeenCalled()
-        expect((vi.mocked(fs.writeFile).mock.calls[0][0] as string)
-            .endsWith('wdio.conf.ts')).toBe(true)
+        expect(
+            (vi.mocked(fs.writeFile).mock.calls[0][0] as string).endsWith(
+                'wdio.conf.ts',
+            ),
+        ).toBe(true)
     })
 
     it('should throw error', async () => {
         // @ts-ignore mock feature
-        vi.mocked(ejs.renderFile).mockImplementationOnce((a, b, c) => c('test error', null))
+        vi.mocked(ejs.renderFile).mockImplementationOnce((a, b, c) =>
+            c('test error', null),
+        )
 
         try {
             await renderConfigurationFile({ foo: 'bar' } as any)
@@ -305,7 +386,7 @@ describe('replaceConfig', () => {
         './test/specs/**/*.js'
     ],
     framework: 'jasmine',
-}`
+}`,
         )
     })
 
@@ -326,7 +407,7 @@ describe('replaceConfig', () => {
     ],
     services: ['chromedriver','sauce'],
     framework: 'mocha',
-}`
+}`,
         )
     })
 })
@@ -334,7 +415,10 @@ describe('replaceConfig', () => {
 describe('addServiceDeps', () => {
     it('should add appium', () => {
         const packages: any = []
-        addServiceDeps([{ package: '@wdio/appium-service', short: 'appium' }], packages)
+        addServiceDeps(
+            [{ package: '@wdio/appium-service', short: 'appium' }],
+            packages,
+        )
         expect(packages).toEqual(['appium'])
         expect(global.console.log).not.toBeCalled()
     })
@@ -344,28 +428,42 @@ describe('addServiceDeps', () => {
         // eslint-disable-next-line no-import-assign, @typescript-eslint/no-unused-vars
         childProcess.execSyncRes = '1.13.0'
         const packages: any = []
-        addServiceDeps([{ package: '@wdio/appium-service', short: 'appium' }], packages)
+        addServiceDeps(
+            [{ package: '@wdio/appium-service', short: 'appium' }],
+            packages,
+        )
         expect(packages).toEqual([])
         expect(global.console.log).not.toBeCalled()
     })
 
     it('should add appium and print message if update and appium globally installed', () => {
         const packages: any = []
-        addServiceDeps([{ package: '@wdio/appium-service', short: 'appium' }], packages, true)
+        addServiceDeps(
+            [{ package: '@wdio/appium-service', short: 'appium' }],
+            packages,
+            true,
+        )
         expect(packages).toEqual([])
         expect(global.console.log).toBeCalled()
     })
 
     it('should add chromedriver', () => {
         const packages: any = []
-        addServiceDeps([{ package: 'wdio-chromedriver-service', short: 'chromedriver' }], packages)
+        addServiceDeps(
+            [{ package: 'wdio-chromedriver-service', short: 'chromedriver' }],
+            packages,
+        )
         expect(packages).toEqual(['chromedriver'])
         expect(global.console.log).not.toBeCalled()
     })
 
     it('should add chromedriver and print message if update', () => {
         const packages: any = []
-        addServiceDeps([{ package: 'wdio-chromedriver-service', short: 'chromedriver' }], packages, true)
+        addServiceDeps(
+            [{ package: 'wdio-chromedriver-service', short: 'chromedriver' }],
+            packages,
+            true,
+        )
         expect(packages).toEqual(['chromedriver'])
         expect(global.console.log).toBeCalled()
     })
@@ -377,41 +475,72 @@ describe('addServiceDeps', () => {
 
 describe('convertPackageHashToObject', () => {
     it('works with default `$--$` hash', () => {
-        expect(convertPackageHashToObject('test/package-name$--$package-name')).toMatchObject({
+        expect(
+            convertPackageHashToObject('test/package-name$--$package-name'),
+        ).toMatchObject({
             package: 'test/package-name',
-            short: 'package-name'
+            short: 'package-name',
         })
     })
 
     it('works with custom hash', () => {
-        expect(convertPackageHashToObject('test/package-name##-##package-name', '##-##')).toMatchObject({
+        expect(
+            convertPackageHashToObject(
+                'test/package-name##-##package-name',
+                '##-##',
+            ),
+        ).toMatchObject({
             package: 'test/package-name',
-            short: 'package-name'
+            short: 'package-name',
         })
     })
 })
 
 test('validateServiceAnswers', () => {
-    expect(validateServiceAnswers(['wdio-chromedriver-service', '@wdio/selenium-standalone-service']))
-        .toContain('wdio-chromedriver-service cannot work together with @wdio/selenium-standalone-service')
-    expect(validateServiceAnswers(['@wdio/static-server-service', '@wdio/selenium-standalone-service']))
-        .toBe(true)
+    expect(
+        validateServiceAnswers([
+            'wdio-chromedriver-service',
+            '@wdio/selenium-standalone-service',
+        ]),
+    ).toContain(
+        'wdio-chromedriver-service cannot work together with @wdio/selenium-standalone-service',
+    )
+    expect(
+        validateServiceAnswers([
+            '@wdio/static-server-service',
+            '@wdio/selenium-standalone-service',
+        ]),
+    ).toBe(true)
 })
 
 describe('getCapabilities', () => {
     it('should return driver with capabilities for android', async () => {
-        expect(await getCapabilities({ option: 'foo.apk' } as any)).toMatchSnapshot()
-        expect(await getCapabilities({ option: 'android' } as any)).toMatchSnapshot()
+        expect(
+            await getCapabilities({ option: 'foo.apk' } as any),
+        ).toMatchSnapshot()
+        expect(
+            await getCapabilities({ option: 'android' } as any),
+        ).toMatchSnapshot()
     })
 
     it('should return driver with capabilities for ios', async () => {
-        expect(await getCapabilities({ option: 'foo.app', deviceName: 'fooName', udid: 'num', platformVersion: 'fooNum' } as any))
-            .toMatchSnapshot()
-        expect(await getCapabilities({ option: 'ios' } as any)).toMatchSnapshot()
+        expect(
+            await getCapabilities({
+                option: 'foo.app',
+                deviceName: 'fooName',
+                udid: 'num',
+                platformVersion: 'fooNum',
+            } as any),
+        ).toMatchSnapshot()
+        expect(
+            await getCapabilities({ option: 'ios' } as any),
+        ).toMatchSnapshot()
     })
 
     it('should return driver with capabilities for desktop', async () => {
-        expect(await getCapabilities({ option: 'chrome' } as any)).toMatchSnapshot()
+        expect(
+            await getCapabilities({ option: 'chrome' } as any),
+        ).toMatchSnapshot()
     })
 
     it('should throw config not found error', async () => {
@@ -421,44 +550,63 @@ describe('getCapabilities', () => {
             error.code = 'MODULE_NOT_FOUND'
             return Promise.reject(error)
         })
-        await expect(() => getCapabilities({ option: './test.js', capabilities: 2 } as any))
-            .rejects.toThrowErrorMatchingSnapshot()
-        initializeMock.mockImplementationOnce(async () => { throw new Error('ups') })
-        await expect(() => getCapabilities({ option: './test.js', capabilities: 2 } as any))
-            .rejects.toThrowErrorMatchingSnapshot()
+        await expect(() =>
+            getCapabilities({ option: './test.js', capabilities: 2 } as any),
+        ).rejects.toThrowErrorMatchingSnapshot()
+        initializeMock.mockImplementationOnce(async () => {
+            throw new Error('ups')
+        })
+        await expect(() =>
+            getCapabilities({ option: './test.js', capabilities: 2 } as any),
+        ).rejects.toThrowErrorMatchingSnapshot()
     })
 
     it('should throw capability not provided', async () => {
-        await expect(() => getCapabilities({ option: '/path/to/config.js' } as any))
-            .rejects.toThrowErrorMatchingSnapshot()
+        await expect(() =>
+            getCapabilities({ option: '/path/to/config.js' } as any),
+        ).rejects.toThrowErrorMatchingSnapshot()
     })
 
     it('should through capability not found', async () => {
         const cap = { browserName: 'chrome' }
-        const getCapabilitiesMock = vi.spyOn(ConfigParser.prototype, 'getCapabilities')
+        const getCapabilitiesMock = vi.spyOn(
+            ConfigParser.prototype,
+            'getCapabilities',
+        )
         getCapabilitiesMock.mockReturnValue([cap, cap, cap, cap, cap])
-        await expect(() => getCapabilities({ option: '/path/to/config.js', capabilities: 5 } as any))
-            .rejects.toThrowErrorMatchingSnapshot()
+        await expect(() =>
+            getCapabilities({
+                option: '/path/to/config.js',
+                capabilities: 5,
+            } as any),
+        ).rejects.toThrowErrorMatchingSnapshot()
     })
 
     it('should get capability from wdio.conf.js', async () => {
         const autoCompileMock = vi.spyOn(ConfigParser.prototype, 'initialize')
-        const getCapabilitiesMock = vi.spyOn(ConfigParser.prototype, 'getCapabilities')
+        const getCapabilitiesMock = vi.spyOn(
+            ConfigParser.prototype,
+            'getCapabilities',
+        )
         getCapabilitiesMock.mockReturnValue([
             { browserName: 'chrome' },
             {
                 browserName: 'firefox',
-                specs: ['/path/to/some/specs.js']
+                specs: ['/path/to/some/specs.js'],
             },
             {
                 maxInstances: 5,
                 browserName: 'chrome',
                 acceptInsecureCerts: true,
-                'goog:chromeOptions' : { 'args' : ['window-size=8000,1200'] }
-            }
+                'goog:chromeOptions': { args: ['window-size=8000,1200'] },
+            },
         ])
-        expect(await getCapabilities({ option: '/path/to/config.js', capabilities: 2 } as any))
-            .toMatchSnapshot()
+        expect(
+            await getCapabilities({
+                option: '/path/to/config.js',
+                capabilities: 2,
+            } as any),
+        ).toMatchSnapshot()
         expect(autoCompileMock).toBeCalledTimes(1)
     })
 })
@@ -479,14 +627,14 @@ describe('generateTestFiles', () => {
     it('Mocha with page objects', async () => {
         vi.mocked(readDir).mockResolvedValue([
             '/foo/bar/loo/page.js.ejs',
-            '/foo/bar/example.e2e.js'
+            '/foo/bar/example.e2e.js',
         ] as any)
         const answers = {
             framework: 'mocha',
             usePageObjects: true,
             generateTestFiles: true,
             destPageObjectRootPath: '/tests/page/objects/model',
-            destSpecRootPath: '/tests/specs'
+            destSpecRootPath: '/tests/specs',
         }
 
         await generateTestFiles(answers as any)
@@ -512,31 +660,37 @@ describe('generateTestFiles', () => {
         expect(ejs.renderFile).toBeCalledWith(
             '/foo/bar/loo/page.js.ejs',
             answers,
-            expect.any(Function)
+            expect.any(Function),
         )
         expect(ejs.renderFile).toBeCalledWith(
             '/foo/bar/example.e2e.js',
             answers,
-            expect.any(Function)
+            expect.any(Function),
         )
         expect(fs.mkdir).toBeCalledTimes(4)
-        expect((vi.mocked(fs.writeFile).mock.calls[0][0] as string).endsWith('/page/objects/model/page.js'))
-            .toBe(true)
-        expect((vi.mocked(fs.writeFile).mock.calls[1][0] as string).endsWith('/example.e2e.js'))
-            .toBe(true)
+        expect(
+            (vi.mocked(fs.writeFile).mock.calls[0][0] as string).endsWith(
+                '/page/objects/model/page.js',
+            ),
+        ).toBe(true)
+        expect(
+            (vi.mocked(fs.writeFile).mock.calls[1][0] as string).endsWith(
+                '/example.e2e.js',
+            ),
+        ).toBe(true)
     })
 
     it('jasmine with page objects', async () => {
         vi.mocked(readDir).mockResolvedValue([
             '/foo/bar/loo/page.js.ejs',
-            '/foo/bar/example.e2e.js'
+            '/foo/bar/example.e2e.js',
         ] as any)
         const answers = {
             framework: 'jasmine',
             usePageObjects: true,
             generateTestFiles: true,
             destPageObjectRootPath: '/tests/page/objects/model',
-            destSpecRootPath: '/tests/specs'
+            destSpecRootPath: '/tests/specs',
         }
 
         await generateTestFiles(answers as any)
@@ -562,20 +716,24 @@ describe('generateTestFiles', () => {
         expect(ejs.renderFile).toBeCalledWith(
             '/foo/bar/loo/page.js.ejs',
             answers,
-            expect.any(Function)
+            expect.any(Function),
         )
         expect(ejs.renderFile).toBeCalledWith(
             '/foo/bar/example.e2e.js',
             answers,
-            expect.any(Function)
+            expect.any(Function),
         )
         expect(fs.mkdir).toBeCalledTimes(4)
-        expect((vi.mocked(fs.writeFile).mock.calls[0][0] as string)
-            .endsWith('/page/objects/model/page.js'))
-            .toBe(true)
-        expect((vi.mocked(fs.writeFile).mock.calls[1][0] as string)
-            .endsWith('/example.e2e.js'))
-            .toBe(true)
+        expect(
+            (vi.mocked(fs.writeFile).mock.calls[0][0] as string).endsWith(
+                '/page/objects/model/page.js',
+            ),
+        ).toBe(true)
+        expect(
+            (vi.mocked(fs.writeFile).mock.calls[1][0] as string).endsWith(
+                '/example.e2e.js',
+            ),
+        ).toBe(true)
     })
 
     it('Jasmine with page generation and no pageObjects', async () => {
@@ -584,7 +742,7 @@ describe('generateTestFiles', () => {
             specs: './tests/e2e/**/*.js',
             framework: 'jasmine',
             generateTestFiles: false,
-            usePageObjects: false
+            usePageObjects: false,
         }
 
         await generateTestFiles(answers as any)
@@ -611,14 +769,14 @@ describe('generateTestFiles', () => {
     it('Cucumber without page objects', async () => {
         vi.mocked(readDir).mockResolvedValue([
             '/foo/bar/loo/step_definition/example.step.js',
-            '/foo/bar/example.feature'
+            '/foo/bar/example.feature',
         ] as any)
         const answers = {
             specs: './tests/e2e/*.js',
             framework: 'cucumber',
             stepDefinitions: '/some/step/defs',
             usePageObjects: false,
-            generateTestFiles: true
+            generateTestFiles: true,
         }
         await generateTestFiles(answers as any)
 
@@ -628,12 +786,12 @@ describe('generateTestFiles', () => {
         expect(ejs.renderFile).toBeCalledWith(
             '/foo/bar/loo/step_definition/example.step.js',
             answers,
-            expect.any(Function)
+            expect.any(Function),
         )
         expect(ejs.renderFile).toBeCalledWith(
             '/foo/bar/example.feature',
             answers,
-            expect.any(Function)
+            expect.any(Function),
         )
         expect(fs.mkdir).toBeCalledTimes(2)
     })
@@ -642,7 +800,7 @@ describe('generateTestFiles', () => {
         vi.mocked(readDir).mockResolvedValue([
             '/foo/bar/loo/page.js.ejs',
             '/foo/bar/loo/step_definition/example.step.js',
-            '/foo/bar/example.feature'
+            '/foo/bar/example.feature',
         ] as any)
         const answers = {
             framework: 'cucumber',
@@ -650,7 +808,7 @@ describe('generateTestFiles', () => {
             isUsingTypeScript: true,
             stepDefinitions: '/some/step',
             destPageObjectRootPath: '/some/page/objects',
-            relativePath: '../page/object'
+            relativePath: '../page/object',
         }
         await generateTestFiles(answers as any)
 
@@ -660,18 +818,24 @@ describe('generateTestFiles', () => {
         expect(ejs.renderFile).toBeCalledWith(
             '/foo/bar/loo/step_definition/example.step.js',
             answers,
-            expect.any(Function)
+            expect.any(Function),
         )
         expect(ejs.renderFile).toBeCalledWith(
             '/foo/bar/example.feature',
             answers,
-            expect.any(Function)
+            expect.any(Function),
         )
         expect(fs.mkdir).toBeCalledTimes(6)
-        expect((vi.mocked(fs.writeFile).mock.calls[0][0] as string).endsWith('/some/page/objects/page.ts'))
-            .toBe(true)
-        expect((vi.mocked(fs.writeFile).mock.calls[2][0] as string).endsWith('/example.feature'))
-            .toBe(true)
+        expect(
+            (vi.mocked(fs.writeFile).mock.calls[0][0] as string).endsWith(
+                '/some/page/objects/page.ts',
+            ),
+        ).toBe(true)
+        expect(
+            (vi.mocked(fs.writeFile).mock.calls[2][0] as string).endsWith(
+                '/example.feature',
+            ),
+        ).toBe(true)
     })
 })
 
@@ -682,7 +846,7 @@ describe('getPathForFileGeneration', () => {
             pages: './features/pageobjects/**/*.js',
             generateTestFiles: true,
             usePageObjects: true,
-            framework: '@wdio/cucumber-service$--$cucumber'
+            framework: '@wdio/cucumber-service$--$cucumber',
         } as any)
         expect(generatedPaths.relativePath).toEqual('../pageobjects')
     })
@@ -693,7 +857,7 @@ describe('getPathForFileGeneration', () => {
             pages: './features/page/objects/**/*.js',
             generateTestFiles: true,
             usePageObjects: true,
-            framework: '@wdio/cucumber-service$--$cucumber'
+            framework: '@wdio/cucumber-service$--$cucumber',
         } as any)
         expect(generatedPaths.relativePath).toEqual('../page/objects')
     })
@@ -704,7 +868,7 @@ describe('getPathForFileGeneration', () => {
             pages: './test/pageobjects/**/*.js',
             generateTestFiles: true,
             usePageObjects: true,
-            framework: '@wdio/cucumber-service$--$mocha'
+            framework: '@wdio/cucumber-service$--$mocha',
         } as any)
         expect(generatedPaths.relativePath).toEqual('../pageobjects')
     })
@@ -715,7 +879,7 @@ describe('getPathForFileGeneration', () => {
             pages: './test/pageobjects/**/*.js',
             generateTestFiles: true,
             usePageObjects: true,
-            framework: '@wdio/cucumber-service$--$mocha'
+            framework: '@wdio/cucumber-service$--$mocha',
         } as any)
         expect(generatedPaths.relativePath).toEqual('../../pageobjects')
     })
@@ -726,7 +890,7 @@ describe('getPathForFileGeneration', () => {
             pages: './test/pageobjects/**/*.js',
             generateTestFiles: false,
             usePageObjects: true,
-            framework: '@wdio/cucumber-service$--$mocha'
+            framework: '@wdio/cucumber-service$--$mocha',
         } as any)
         expect(generatedPaths.relativePath).toEqual('')
     })
@@ -737,7 +901,7 @@ describe('getPathForFileGeneration', () => {
             pages: './test/pageobjects/**/*.js',
             generateTestFiles: true,
             usePageObjects: false,
-            framework: '@wdio/cucumber-service$--$mocha'
+            framework: '@wdio/cucumber-service$--$mocha',
         } as any)
         expect(generatedPaths.relativePath).toEqual('')
     })
@@ -745,23 +909,33 @@ describe('getPathForFileGeneration', () => {
 
 test('getDefaultFiles', () => {
     const files = '/foo/bar'
-    expect(getDefaultFiles({ isUsingCompiler: COMPILER_OPTION_ANSWERS[0] }, files))
-        .toBe('/foo/bar.js')
-    expect(getDefaultFiles({ isUsingCompiler: COMPILER_OPTION_ANSWERS[1] }, files))
-        .toBe('/foo/bar.ts')
-    expect(getDefaultFiles({ isUsingCompiler: COMPILER_OPTION_ANSWERS[2] }, files))
-        .toBe('/foo/bar.js')
+    expect(
+        getDefaultFiles({ isUsingCompiler: COMPILER_OPTION_ANSWERS[0] }, files),
+    ).toBe('/foo/bar.js')
+    expect(
+        getDefaultFiles({ isUsingCompiler: COMPILER_OPTION_ANSWERS[1] }, files),
+    ).toBe('/foo/bar.ts')
+    expect(
+        getDefaultFiles({ isUsingCompiler: COMPILER_OPTION_ANSWERS[2] }, files),
+    ).toBe('/foo/bar.js')
 })
 
 test('specifyVersionIfNeeded', () => {
-    expect(specifyVersionIfNeeded(
-        ['webdriverio', '@wdio/spec-reporter', 'wdio-chromedriver-service', 'wdio-geckodriver-service'],
-        '8.0.0-alpha.249+4bc237701'
-    )).toEqual([
+    expect(
+        specifyVersionIfNeeded(
+            [
+                'webdriverio',
+                '@wdio/spec-reporter',
+                'wdio-chromedriver-service',
+                'wdio-geckodriver-service',
+            ],
+            '8.0.0-alpha.249+4bc237701',
+        ),
+    ).toEqual([
         'webdriverio@^8.0.0-alpha.249',
         '@wdio/spec-reporter@^8.0.0-alpha.249',
         'wdio-chromedriver-service@next',
-        'wdio-geckodriver-service'
+        'wdio-geckodriver-service',
     ])
 })
 

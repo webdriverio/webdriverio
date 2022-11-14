@@ -1,4 +1,7 @@
-export const isCommand = function(expression: any, command: 'pause' | 'debug'): boolean {
+export const isCommand = function (
+    expression: any,
+    command: 'pause' | 'debug',
+): boolean {
     const callee = expression?.callee
 
     return (
@@ -7,4 +10,3 @@ export const isCommand = function(expression: any, command: 'pause' | 'debug'): 
         callee?.property?.name === command
     )
 }
-

@@ -19,7 +19,10 @@ export const limit = function (rawVal?: any) {
         }
 
         if (val.length > STRINGLIMIT) {
-            return val.substr(0, STRINGTRUNCATE) + ` ... (${val.length - STRINGTRUNCATE} more bytes)`
+            return (
+                val.substr(0, STRINGTRUNCATE) +
+                ` ... (${val.length - STRINGTRUNCATE} more bytes)`
+            )
         }
 
         return val
@@ -42,7 +45,11 @@ export const limit = function (rawVal?: any) {
             }
         }
         if (removed.length) {
-            val._ = (keys.length - OBJLENGTH) + ' more keys: ' + JSON.stringify(removed)
+            val._ =
+                keys.length -
+                OBJLENGTH +
+                ' more keys: ' +
+                JSON.stringify(removed)
         }
         return val
     }

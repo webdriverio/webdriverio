@@ -1,4 +1,3 @@
-
 /**
  *
  * This command helps you to debug your integration tests. It stops the running browser and gives
@@ -30,10 +29,10 @@
  *
  */
 
-import vm from 'node:vm'
 import repl from 'node:repl'
+import vm from 'node:vm'
 
-import { STATIC_RETURNS, INTRO_MESSAGE, DEFAULT_CONFIG } from './constants.js'
+import { DEFAULT_CONFIG, INTRO_MESSAGE, STATIC_RETURNS } from './constants.js'
 
 export interface ReplConfig {
     commandTimeout: number
@@ -55,11 +54,16 @@ export default class WDIORepl {
         this._config = Object.assign(
             DEFAULT_CONFIG,
             { eval: this.eval.bind(this) },
-            config
+            config,
         )
     }
 
-    eval (cmd: string, context: vm.Context, filename: string | undefined, callback: ReplCallback) {
+    eval(
+        cmd: string,
+        context: vm.Context,
+        filename: string | undefined,
+        callback: ReplCallback,
+    ) {
         if (this._isCommandRunning) {
             return
         }
@@ -74,7 +78,7 @@ export default class WDIORepl {
         return this._runCmd(cmd, context, callback)
     }
 
-    private _runCmd (cmd: string, context: vm.Context, callback: ReplCallback) {
+    private _runCmd(cmd: string, context: vm.Context, callback: ReplCallback) {
         try {
             const result = vm.runInContext(cmd, context)
             return this._handleResult(result, callback)
@@ -84,50 +88,52 @@ export default class WDIORepl {
         }
     }
 
-    private _handleResult (result: any, callback: ReplCallback) {
+    private _handleResult(result: any, callback: ReplCallback) {
         if (!result || typeof result.then !== 'function') {
             this._isCommandRunning = false
             return callback(null, result)
         }
 
         let timeoutCalled = false
-        const timeout = setTimeout(
-            () => {
-                callback(new Error('Command execution timed out'), undefined)
+        const timeout = setTimeout(() => {
+            callback(new Error('Command execution timed out'), undefined)
+            this._isCommandRunning = false
+            timeoutCalled = true
+        }, this._config.commandTimeout)
+
+        result.then(
+            (res: any) => {
+                /**
+                 * don't do anything if timeout was called
+                 */
+                if (timeoutCalled) {
+                    return
+                }
                 this._isCommandRunning = false
-                timeoutCalled = true
+                clearTimeout(timeout)
+                return callback(null, res)
             },
-            this._config.commandTimeout
+            (e: Error) => {
+                /**
+                 * don't do anything if timeout was called
+                 */
+                if (timeoutCalled) {
+                    return
+                }
+
+                this._isCommandRunning = false
+                clearTimeout(timeout)
+                const errorMessage = e
+                    ? e.message
+                    : 'Command execution timed out'
+                const commandError = new Error(errorMessage)
+                delete commandError.stack
+                return callback(commandError, undefined)
+            },
         )
-
-        result.then((res: any) => {
-            /**
-             * don't do anything if timeout was called
-             */
-            if (timeoutCalled) {
-                return
-            }
-            this._isCommandRunning = false
-            clearTimeout(timeout)
-            return callback(null, res)
-        }, (e: Error) => {
-            /**
-             * don't do anything if timeout was called
-             */
-            if (timeoutCalled) {
-                return
-            }
-
-            this._isCommandRunning = false
-            clearTimeout(timeout)
-            const errorMessage = e ? e.message : 'Command execution timed out'
-            const commandError = new Error(errorMessage)
-            delete commandError.stack
-            return callback(commandError, undefined)
-        })
     }
 
-    start (context?: vm.Context) {
+    start(context?: vm.Context) {
         if (this._replServer) {
             throw new Error('a repl was already initialised')
         }

@@ -22,7 +22,10 @@ describe('Shared store service', () => {
         const keys = Object.keys(await browser.sharedStore.get('*'))
         expect(keys).toEqual([
             browser.sessionId,
-            'boolean', 'number', 'string', 'null'
+            'boolean',
+            'number',
+            'string',
+            'null',
         ])
     })
 })

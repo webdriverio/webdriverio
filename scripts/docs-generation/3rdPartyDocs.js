@@ -1,32 +1,36 @@
 import fs from 'node:fs/promises'
-import url from 'node:url'
 import path from 'node:path'
+import url from 'node:url'
 import urljoin from 'url-join'
 
-import { downloadFromGitHub } from '../utils/index.js'
 import { buildPreface } from '../utils/helpers.js'
+import { downloadFromGitHub } from '../utils/index.js'
 
+import api3rdParty from './3rd-party/api.json' assert { type: 'json' }
 import reporters3rdParty from './3rd-party/reporters.json' assert { type: 'json' }
 import services3rdParty from './3rd-party/services.json' assert { type: 'json' }
-import api3rdParty from './3rd-party/api.json' assert { type: 'json' }
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
-const plugins = [{
-    category: 'docs',
-    namePlural: 'Reporter',
-    nameSingular: 'Reporter',
-    packages3rdParty: reporters3rdParty
-}, {
-    category: 'docs',
-    namePlural: 'Services',
-    nameSingular: 'Service',
-    packages3rdParty: services3rdParty
-}, {
-    category: 'api',
-    namePlural: 'Testrunner',
-    nameSingular: '',
-    packages3rdParty: api3rdParty
-}]
+const plugins = [
+    {
+        category: 'docs',
+        namePlural: 'Reporter',
+        nameSingular: 'Reporter',
+        packages3rdParty: reporters3rdParty,
+    },
+    {
+        category: 'docs',
+        namePlural: 'Services',
+        nameSingular: 'Service',
+        packages3rdParty: services3rdParty,
+    },
+    {
+        category: 'api',
+        namePlural: 'Testrunner',
+        nameSingular: '',
+        packages3rdParty: api3rdParty,
+    },
+]
 
 const githubReadme = '/README.md'
 
@@ -41,22 +45,55 @@ const DOCS_ROOT_DIR = path.join(PROJECT_ROOT_DIR, 'website', 'docs')
  * Generate docs for 3rd party reporters and services
  * @param {object} sidebars website/sidebars
  */
-export async function generate3rdPartyDocs (sidebars) {
-    for (const { category, namePlural, nameSingular, packages3rdParty } of plugins) {
-        const categoryDir = path.join(DOCS_ROOT_DIR, category === 'api' ? 'api' : '')
+export async function generate3rdPartyDocs(sidebars) {
+    for (const {
+        category,
+        namePlural,
+        nameSingular,
+        packages3rdParty,
+    } of plugins) {
+        const categoryDir = path.join(
+            DOCS_ROOT_DIR,
+            category === 'api' ? 'api' : '',
+        )
         await fs.mkdir(categoryDir, { recursive: true })
 
-        for (const { packageName, title, githubUrl, npmUrl, suppressBuildInfo, locations, location = githubReadme, branch = 'master' } of packages3rdParty) {
+        for (const {
+            packageName,
+            title,
+            githubUrl,
+            npmUrl,
+            suppressBuildInfo,
+            locations,
+            location = githubReadme,
+            branch = 'master',
+        } of packages3rdParty) {
             const readme = locations
-                ? await Promise.all(locations.map((l) => downloadFromGitHub(githubUrl, branch, l)))
-                    .then((readmes) => readmes.join('\n'))
+                ? await Promise.all(
+                      locations.map((l) =>
+                          downloadFromGitHub(githubUrl, branch, l),
+                      ),
+                  ).then((readmes) => readmes.join('\n'))
                 : await downloadFromGitHub(githubUrl, branch, location)
             const id = `${packageName}`.replace(/@/g, '').replace(/\//g, '-')
 
-            const doc = normalizeDoc(readme, githubUrl, branch,
-                buildPreface(id, title, nameSingular, `${githubUrl}/edit/${branch}/${location}`),
-                suppressBuildInfo ? [] : buildInfo(packageName, githubUrl, npmUrl))
-            await fs.writeFile(path.join(categoryDir, `_${id}.md`), doc, { encoding: 'utf-8' })
+            const doc = normalizeDoc(
+                readme,
+                githubUrl,
+                branch,
+                buildPreface(
+                    id,
+                    title,
+                    nameSingular,
+                    `${githubUrl}/edit/${branch}/${location}`,
+                ),
+                suppressBuildInfo
+                    ? []
+                    : buildInfo(packageName, githubUrl, npmUrl),
+            )
+            await fs.writeFile(path.join(categoryDir, `_${id}.md`), doc, {
+                encoding: 'utf-8',
+            })
 
             if (namePlural === 'Testrunner') {
                 return
@@ -70,7 +107,7 @@ export async function generate3rdPartyDocs (sidebars) {
             console.log(`Generated docs for ${packageName}`)
 
             sidebars[category][namePlural].push(
-                category === 'api' ? `${category}/${id}` : id
+                category === 'api' ? `${category}/${id}` : id,
             )
         }
     }
@@ -89,14 +126,16 @@ function normalizeDoc(readme, githubUrl, branch, preface, repoInfo) {
     /**
      * remove badges
      */
-    let readmeArr = readme.split('\n').filter(row => !readmeBadges.some(b => row.includes(b)))
+    let readmeArr = readme
+        .split('\n')
+        .filter((row) => !readmeBadges.some((b) => row.includes(b)))
 
     /**
      * get index of header to remove further
      */
     let sliceIdx = 0
     for (let i = 0; i < readmeHeaderLines && sliceIdx === 0; i++) {
-        if (readmeHeaders.some(x => readmeArr[i].startsWith(x))) {
+        if (readmeHeaders.some((x) => readmeArr[i].startsWith(x))) {
             sliceIdx = i + 1
         }
     }
@@ -119,7 +158,8 @@ function normalizeDoc(readme, githubUrl, branch, preface, repoInfo) {
          * match links like [foo](bar). `stringInParentheses` would be `bar`
          * do not match [foo](http://bar), [foo](#bar)
          */
-        const mdLinks = row.match(/\[([^\]]+)\]\(([^)"]+)(?: "([^"]+)")?\)/g) || []
+        const mdLinks =
+            row.match(/\[([^\]]+)\]\(([^)"]+)(?: "([^"]+)")?\)/g) || []
         for (const mdLink of mdLinks) {
             const urlMatcher = mdLink.match(/\[([^[]+)\]\((.*)\)/)
 
@@ -128,10 +168,15 @@ function normalizeDoc(readme, githubUrl, branch, preface, repoInfo) {
             }
 
             const stringInParentheses = urlMatcher[2]
-            const url = ( stringInParentheses.startsWith('http') || stringInParentheses.startsWith('#') )
-                ? stringInParentheses
-                : urljoin(githubUrl, 'blob', branch, stringInParentheses)
-            readmeArr[idx] = readmeArr[idx].replace(`](${stringInParentheses})`, `](${url})`)
+            const url =
+                stringInParentheses.startsWith('http') ||
+                stringInParentheses.startsWith('#')
+                    ? stringInParentheses
+                    : urljoin(githubUrl, 'blob', branch, stringInParentheses)
+            readmeArr[idx] = readmeArr[idx].replace(
+                `](${stringInParentheses})`,
+                `](${url})`,
+            )
         }
     })
 
@@ -148,6 +193,6 @@ function normalizeDoc(readme, githubUrl, branch, preface, repoInfo) {
  */
 function buildInfo(packageName, githubUrl, npmUrl) {
     return [
-        `> ${packageName} is a 3rd party package, for more information please see [GitHub](${githubUrl}) | [npm](${npmUrl})`
+        `> ${packageName} is a 3rd party package, for more information please see [GitHub](${githubUrl}) | [npm](${npmUrl})`,
     ]
 }

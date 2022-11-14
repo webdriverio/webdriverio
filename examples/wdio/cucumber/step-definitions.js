@@ -27,11 +27,14 @@ When(/^I add the following groceries$/, async (table) => {
     }
 })
 
-Then(/^should the element "([^"]*)" be (\d+)px wide and (\d+)px high$/, async (selector, width, height) => {
-    var elemSize = await $(selector).getSize()
-    expect(elemSize.width).toBe(width)
-    expect(elemSize.height).toBe(height)
-})
+Then(
+    /^should the element "([^"]*)" be (\d+)px wide and (\d+)px high$/,
+    async (selector, width, height) => {
+        var elemSize = await $(selector).getSize()
+        expect(elemSize.width).toBe(width)
+        expect(elemSize.height).toBe(height)
+    },
+)
 
 Then(/^should the title of the page be "([^"]*)"$/, async (expectedTitle) => {
     await expect(browser).toHaveTitle(expectedTitle)

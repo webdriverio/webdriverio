@@ -1,9 +1,9 @@
 import fs from 'node:fs'
+import { createRequire } from 'node:module'
 import path from 'node:path'
 import { pathToFileURL } from 'node:url'
-import { createRequire } from 'node:module'
 
-import type { Services, Clients } from '@wdio/types'
+import type { Clients, Services } from '@wdio/types'
 
 const require = createRequire(import.meta.url)
 
@@ -15,20 +15,36 @@ const REGEX_SCRIPT_NAME = /return \(function (\w+)/
  * overwrite native element commands with user defined
  * @param {object} propertiesObject propertiesObject
  */
-export function overwriteElementCommands(propertiesObject: { '__elementOverrides__'?: { value: any }, [key: string]: any }) {
-    const elementOverrides = propertiesObject['__elementOverrides__'] ? propertiesObject['__elementOverrides__'].value : {}
+export function overwriteElementCommands(propertiesObject: {
+    __elementOverrides__?: { value: any }
+    [key: string]: any
+}) {
+    const elementOverrides = propertiesObject['__elementOverrides__']
+        ? propertiesObject['__elementOverrides__'].value
+        : {}
 
-    for (const [commandName, userDefinedCommand] of Object.entries(elementOverrides)) {
+    for (const [commandName, userDefinedCommand] of Object.entries(
+        elementOverrides,
+    )) {
         if (typeof userDefinedCommand !== 'function') {
-            throw new Error('overwriteCommand: commands be overwritten only with functions, command: ' + commandName)
+            throw new Error(
+                'overwriteCommand: commands be overwritten only with functions, command: ' +
+                    commandName,
+            )
         }
 
         if (!propertiesObject[commandName]) {
-            throw new Error('overwriteCommand: no command to be overwritten: ' + commandName)
+            throw new Error(
+                'overwriteCommand: no command to be overwritten: ' +
+                    commandName,
+            )
         }
 
         if (typeof propertiesObject[commandName].value !== 'function') {
-            throw new Error('overwriteCommand: only functions can be overwritten, command: ' + commandName)
+            throw new Error(
+                'overwriteCommand: only functions can be overwritten, command: ' +
+                    commandName,
+            )
         }
 
         const origCommand = propertiesObject[commandName].value
@@ -37,17 +53,17 @@ export function overwriteElementCommands(propertiesObject: { '__elementOverrides
         const newCommand = function (this: Clients.Browser, ...args: any[]) {
             const element = this
             return userDefinedCommand.apply(element, [
-                function origCommandFunction (this: Clients.Browser) {
+                function origCommandFunction(this: Clients.Browser) {
                     const context = this || element // respect explicite context binding, use element as default
                     return origCommand.apply(context, arguments)
                 },
-                ...args
+                ...args,
             ])
         }
 
         propertiesObject[commandName] = {
             value: newCommand,
-            configurable: true
+            configurable: true,
         }
     }
 
@@ -59,35 +75,41 @@ export function overwriteElementCommands(propertiesObject: { '__elementOverrides
  * get command call structure
  * (for logging purposes)
  */
-export function commandCallStructure (commandName: string, args: any[]) {
-    const callArgs = args.map((arg) => {
-        if (typeof arg === 'string' && (arg.startsWith('!function(') || arg.startsWith('return (function'))) {
-            arg = '<fn>'
-        } else if (
-            typeof arg === 'string' &&
-            /**
-             * the isBase64 method returns for xPath values like
-             * "/html/body/a" a true value which is why we should
-             * include a command check in here.
-             */
-            !commandName.startsWith('findElement') &&
-            isBase64(arg)
-        ) {
-            arg = SCREENSHOT_REPLACEMENT
-        } else if (typeof arg === 'string') {
-            arg = `"${arg}"`
-        } else if (typeof arg === 'function') {
-            arg = '<fn>'
-        } else if (arg === null) {
-            arg = 'null'
-        } else if (typeof arg === 'object') {
-            arg = '<object>'
-        } else if (typeof arg === 'undefined') {
-            arg = typeof arg
-        }
+export function commandCallStructure(commandName: string, args: any[]) {
+    const callArgs = args
+        .map((arg) => {
+            if (
+                typeof arg === 'string' &&
+                (arg.startsWith('!function(') ||
+                    arg.startsWith('return (function'))
+            ) {
+                arg = '<fn>'
+            } else if (
+                typeof arg === 'string' &&
+                /**
+                 * the isBase64 method returns for xPath values like
+                 * "/html/body/a" a true value which is why we should
+                 * include a command check in here.
+                 */
+                !commandName.startsWith('findElement') &&
+                isBase64(arg)
+            ) {
+                arg = SCREENSHOT_REPLACEMENT
+            } else if (typeof arg === 'string') {
+                arg = `"${arg}"`
+            } else if (typeof arg === 'function') {
+                arg = '<fn>'
+            } else if (arg === null) {
+                arg = 'null'
+            } else if (typeof arg === 'object') {
+                arg = '<object>'
+            } else if (typeof arg === 'undefined') {
+                arg = typeof arg
+            }
 
-        return arg
-    }).join(', ')
+            return arg
+        })
+        .join(', ')
 
     return `${commandName}(${callArgs})`
 }
@@ -97,16 +119,37 @@ export function commandCallStructure (commandName: string, args: any[]) {
  * result strings e.g. if it contains a screenshot
  * @param {Object} result WebDriver response body
  */
-export function transformCommandLogResult (result: { file?: string, script?: string }) {
+export function transformCommandLogResult(result: {
+    file?: string
+    script?: string
+}) {
     if (typeof result.file === 'string' && isBase64(result.file)) {
         return SCREENSHOT_REPLACEMENT
     } else if (typeof result.script === 'string' && isBase64(result.script)) {
         return SCRIPT_PLACEHOLDER
-    } else if (typeof result.script === 'string' && result.script.match(REGEX_SCRIPT_NAME)) {
+    } else if (
+        typeof result.script === 'string' &&
+        result.script.match(REGEX_SCRIPT_NAME)
+    ) {
         const newScript = result.script.match(REGEX_SCRIPT_NAME)![1]
-        return { ...result, script: `${newScript}(...) [${Buffer.byteLength(result.script, 'utf-8')} bytes]` }
-    } else if (typeof result.script === 'string' && result.script.startsWith('!function(')) {
-        return { ...result, script: `<minified function> [${Buffer.byteLength(result.script, 'utf-8')} bytes]` }
+        return {
+            ...result,
+            script: `${newScript}(...) [${Buffer.byteLength(
+                result.script,
+                'utf-8',
+            )} bytes]`,
+        }
+    } else if (
+        typeof result.script === 'string' &&
+        result.script.startsWith('!function(')
+    ) {
+        return {
+            ...result,
+            script: `<minified function> [${Buffer.byteLength(
+                result.script,
+                'utf-8',
+            )} bytes]`,
+        }
     }
 
     return result
@@ -119,7 +162,7 @@ export function transformCommandLogResult (result: { file?: string, script?: str
  * @param  {Object}  expectedType  parameter type (e.g. `number`, `string[]` or `(number|string)`)
  * @return {Boolean}               true if argument is valid
  */
-export function isValidParameter (arg: any, expectedType: string) {
+export function isValidParameter(arg: any, expectedType: string) {
     let shouldBeArray = false
 
     if (expectedType.slice(-2) === '[]') {
@@ -154,7 +197,7 @@ export function isValidParameter (arg: any, expectedType: string) {
 /**
  * get type of command argument
  */
-export function getArgumentType (arg: any) {
+export function getArgumentType(arg: any) {
     return arg === null ? 'null' : typeof arg
 }
 
@@ -164,7 +207,9 @@ export function getArgumentType (arg: any) {
  * @param  {string} name  of package
  * @return {object}       package content
  */
-export async function safeImport (name: string): Promise<Services.ServicePlugin | null> {
+export async function safeImport(
+    name: string,
+): Promise<Services.ServicePlugin | null> {
     let requirePath = name
     try {
         /**
@@ -180,7 +225,7 @@ export async function safeImport (name: string): Promise<Services.ServicePlugin 
         if (!require.resolve.paths(name)?.includes(localNodeModules)) {
             const resolveLocation = [
                 ...(require.resolve.paths(name) || []),
-                localNodeModules
+                localNodeModules,
             ]
 
             /**
@@ -214,15 +259,18 @@ export async function safeImport (name: string): Promise<Services.ServicePlugin 
  * @param  {Function} fn  function to check
  * @return {Boolean}      true provided function is async
  */
-export function isFunctionAsync (fn: Function) {
-    return (fn.constructor && fn.constructor.name === 'AsyncFunction') || fn.name === 'async'
+export function isFunctionAsync(fn: Function) {
+    return (
+        (fn.constructor && fn.constructor.name === 'AsyncFunction') ||
+        fn.name === 'async'
+    )
 }
 
 /**
  * filter out arguments passed to specFn & hookFn, don't allow callbacks
  * as there is no need for user to call e.g. `done()`
  */
-export function filterSpecArgs (args: any[]) {
+export function filterSpecArgs(args: any[]) {
     return args.filter((arg) => typeof arg !== 'function')
 }
 
@@ -232,7 +280,7 @@ export function filterSpecArgs (args: any[]) {
  * @return {Boolean} true if the provided string is Base64
  */
 export function isBase64(str: string) {
-    var notBase64 = new RegExp('[^A-Z0-9+\\/=]',  'i')
+    var notBase64 = new RegExp('[^A-Z0-9+\\/=]', 'i')
     if (typeof str !== 'string') {
         throw new Error('Expected string but received invalid type.')
     }
@@ -241,9 +289,11 @@ export function isBase64(str: string) {
         return false
     }
     const firstPaddingChar = str.indexOf('=')
-    return firstPaddingChar === -1 ||
-      firstPaddingChar === len - 1 ||
-      (firstPaddingChar === len - 2 && str[len - 1] === '=')
+    return (
+        firstPaddingChar === -1 ||
+        firstPaddingChar === len - 1 ||
+        (firstPaddingChar === len - 2 && str[len - 1] === '=')
+    )
 }
 
 /**

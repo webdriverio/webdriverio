@@ -1,6 +1,6 @@
 export interface Tag {
-    name: string;
-    line: number;
+    name: string
+    line: number
 }
 
 export interface CommandArgs {

@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest'
-import { browser, $, _setGlobal } from '../src/index.js'
+import { describe, expect, it } from 'vitest'
+import { $, browser, _setGlobal } from '../src/index.js'
 
 describe('global handler', () => {
     it('should allow to import without issues', () => {

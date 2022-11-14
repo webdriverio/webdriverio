@@ -26,21 +26,23 @@
  * @type window
  *
  */
-export default async function switchWindow (
+export default async function switchWindow(
     this: WebdriverIO.Browser,
-    matcher: string | RegExp
+    matcher: string | RegExp,
 ) {
     /**
      * parameter check
      */
     if (typeof matcher !== 'string' && !(matcher instanceof RegExp)) {
-        throw new Error('Unsupported parameter for switchWindow, required is "string" or an RegExp')
+        throw new Error(
+            'Unsupported parameter for switchWindow, required is "string" or an RegExp',
+        )
     }
 
     const tabs = await this.getWindowHandles()
 
     const matchesTarget = (target: string): boolean => {
-        if (typeof matcher ==='string') {
+        if (typeof matcher === 'string') {
             return target.includes(matcher)
         }
         return !!target.match(matcher)
@@ -70,11 +72,14 @@ export default async function switchWindow (
          */
         const windowName = await this.execute(
             /* istanbul ignore next */
-            () => window.name)
+            () => window.name,
+        )
         if (windowName && matchesTarget(windowName)) {
             return tab
         }
     }
 
-    throw new Error(`No window found with title, url or name matching "${matcher}"`)
+    throw new Error(
+        `No window found with title, url or name matching "${matcher}"`,
+    )
 }

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import fs from 'node:fs'
-import url from 'node:url'
 import path from 'node:path'
+import url from 'node:url'
 import shell from 'shelljs'
 import { getSubPackages } from './utils/helpers.js'
 
@@ -9,7 +9,10 @@ const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 
 const args = process.argv.slice(2)
 const HAS_WATCH_FLAG = args[0] === '--watch'
-const TSCONFIG_FILE = process.env.NODE_ENV === 'production' ? 'tsconfig.prod.json' : 'tsconfig.json'
+const TSCONFIG_FILE =
+    process.env.NODE_ENV === 'production'
+        ? 'tsconfig.prod.json'
+        : 'tsconfig.json'
 
 if (HAS_WATCH_FLAG) {
     args.shift()
@@ -32,7 +35,7 @@ const ROOT_PACKAGES = [
     'wdio-globals',
     'wdio-runner',
     'wdio-local-runner',
-    'wdio-browser-runner'
+    'wdio-browser-runner',
 ]
 
 const packages = getSubPackages()
@@ -57,11 +60,14 @@ const packages = getSubPackages()
      * Divide packages into core (e.g. wdio-cli) and
      * plugins (wdio-allure-reporter)
      */
-    .reduce((acc, pkg) => {
-        const tokens = pkg.split('-')
-        acc[tokens.length > 2 ? 1 : 0].push(pkg)
-        return acc
-    }, [[], []])
+    .reduce(
+        (acc, pkg) => {
+            const tokens = pkg.split('-')
+            acc[tokens.length > 2 ? 1 : 0].push(pkg)
+            return acc
+        },
+        [[], []],
+    )
 
     /**
      * Concat all groups of packages, with root packages as first
@@ -75,7 +81,9 @@ const packages = getSubPackages()
 
 shell.cd(path.join(__dirname, '..'))
 
-const cmd = `npx tsc -b ${packages.map((pkg) => `packages/${pkg}/${TSCONFIG_FILE}`).join(' ')}${HAS_WATCH_FLAG ? ' --watch' : ''}`
+const cmd = `npx tsc -b ${packages
+    .map((pkg) => `packages/${pkg}/${TSCONFIG_FILE}`)
+    .join(' ')}${HAS_WATCH_FLAG ? ' --watch' : ''}`
 
 console.log(cmd)
 const { code } = shell.exec(cmd)
@@ -83,9 +91,21 @@ const { code } = shell.exec(cmd)
 if (!HAS_WATCH_FLAG) {
     console.log('Remove `export {}` from CJS files')
     for (const pkg of ['webdriver', 'devtools', 'webdriverio']) {
-        const filePath = path.join(__dirname, '..', 'packages', pkg, 'build', 'cjs', 'index.js')
+        const filePath = path.join(
+            __dirname,
+            '..',
+            'packages',
+            pkg,
+            'build',
+            'cjs',
+            'index.js',
+        )
         const fileContent = await fs.readFileSync(filePath, 'utf8')
-        await fs.writeFileSync(filePath, fileContent.toString().replace('export {};', ''), 'utf8')
+        await fs.writeFileSync(
+            filePath,
+            fileContent.toString().replace('export {};', ''),
+            'utf8',
+        )
     }
 }
 

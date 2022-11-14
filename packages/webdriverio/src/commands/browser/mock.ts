@@ -1,9 +1,9 @@
-import type Interception from '../../utils/interception/index.js'
-import DevtoolsNetworkInterception from '../../utils/interception/devtools.js'
-import WebDriverNetworkInterception from '../../utils/interception/webdriver.js'
-import { getBrowserObject } from '../../utils/index.js'
 import type { Mock } from '../../types'
+import { getBrowserObject } from '../../utils/index.js'
+import DevtoolsNetworkInterception from '../../utils/interception/devtools.js'
+import type Interception from '../../utils/interception/index.js'
 import type { MockFilterOptions } from '../../utils/interception/types'
+import WebDriverNetworkInterception from '../../utils/interception/webdriver.js'
 
 export const SESSION_MOCKS: Record<string, Set<Interception>> = {}
 
@@ -113,19 +113,23 @@ export const SESSION_MOCKS: Record<string, Set<Interception>> = {}
  * @type utility
  *
  */
-export default async function mock (
+export default async function mock(
     this: WebdriverIO.Browser,
     url: string | RegExp,
-    filterOptions?: MockFilterOptions
+    filterOptions?: MockFilterOptions,
 ) {
-    const NetworkInterception = this.isSauce ? WebDriverNetworkInterception : DevtoolsNetworkInterception
+    const NetworkInterception = this.isSauce
+        ? WebDriverNetworkInterception
+        : DevtoolsNetworkInterception
 
     if (!this.isSauce) {
         await this.getPuppeteer()
     }
 
     if (!this.puppeteer) {
-        throw new Error('No Puppeteer connection could be established which is required to use this command')
+        throw new Error(
+            'No Puppeteer connection could be established which is required to use this command',
+        )
     }
 
     const browser = getBrowserObject(this)
@@ -160,16 +164,24 @@ export default async function mock (
 
         const client = await page.target().createCDPSession()
         await client.send('Fetch.enable', {
-            patterns: [{ requestStage: 'Request' }, { requestStage: 'Response' }]
+            patterns: [
+                { requestStage: 'Request' },
+                { requestStage: 'Response' },
+            ],
         })
         client.on(
             'Fetch.requestPaused',
-            (NetworkInterception as unknown as typeof DevtoolsNetworkInterception)
-                .handleRequestInterception(client, SESSION_MOCKS[handle])
+            (
+                NetworkInterception as unknown as typeof DevtoolsNetworkInterception
+            ).handleRequestInterception(client, SESSION_MOCKS[handle]),
         )
     }
 
-    const networkInterception = new NetworkInterception(url, filterOptions, browser)
+    const networkInterception = new NetworkInterception(
+        url,
+        filterOptions,
+        browser,
+    )
     SESSION_MOCKS[handle].add(networkInterception as Interception)
 
     if (this.isSauce) {

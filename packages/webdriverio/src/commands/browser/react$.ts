@@ -3,9 +3,9 @@ import { createRequire } from 'node:module'
 
 import type { ElementReference } from '@wdio/protocols'
 
-import { getElement } from '../../utils/getElementObject.js'
-import { waitToLoadReact, react$ as react$Script } from '../../scripts/resq.js'
+import { react$ as react$Script, waitToLoadReact } from '../../scripts/resq.js'
 import type { ReactSelectorOptions } from '../../types'
+import { getElement } from '../../utils/getElementObject.js'
 
 let resqScript: string
 
@@ -52,10 +52,10 @@ let resqScript: string
  * @return {Element}
  *
  */
-export default async function react$ (
+export default async function react$(
     this: WebdriverIO.Browser,
     selector: string,
-    { props = {}, state = {} }: ReactSelectorOptions = {}
+    { props = {}, state = {} }: ReactSelectorOptions = {},
 ) {
     if (!resqScript) {
         const require = createRequire(import.meta.url)
@@ -64,9 +64,12 @@ export default async function react$ (
 
     await this.executeScript(resqScript.toString(), [])
     await this.execute(waitToLoadReact)
-    const res = await this.execute(
-        react$Script as any, selector, props, state
-    ) as any as ElementReference
+    const res = (await this.execute(
+        react$Script as any,
+        selector,
+        props,
+        state,
+    )) as any as ElementReference
 
     return getElement.call(this, selector, res, true)
 }

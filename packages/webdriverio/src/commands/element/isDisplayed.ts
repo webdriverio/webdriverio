@@ -1,10 +1,16 @@
 import type { Capabilities } from '@wdio/types'
 
 import { ELEMENT_KEY } from '../../constants.js'
-import { getBrowserObject, hasElementId } from '../../utils/index.js'
 import isElementDisplayedScript from '../../scripts/isElementDisplayed.js'
+import { getBrowserObject, hasElementId } from '../../utils/index.js'
 
-const noW3CEndpoint = ['microsoftedge', 'msedge', 'safari', 'chrome', 'safari technology preview']
+const noW3CEndpoint = [
+    'microsoftedge',
+    'msedge',
+    'safari',
+    'chrome',
+    'safari technology preview',
+]
 
 /**
  *
@@ -54,10 +60,10 @@ const noW3CEndpoint = ['microsoftedge', 'msedge', 'safari', 'chrome', 'safari te
  * @type state
  *
  */
-export default async function isDisplayed (this: WebdriverIO.Element) {
+export default async function isDisplayed(this: WebdriverIO.Element) {
     const browser = getBrowserObject(this)
 
-    if (!await hasElementId(this)) {
+    if (!(await hasElementId(this))) {
         return false
     }
 
@@ -71,19 +77,20 @@ export default async function isDisplayed (this: WebdriverIO.Element) {
      * - Appium didn't enable W3C mode for mobile drivers.
      * - Safari and Chrome work in jsonwp mode and Appium just rewrites W3C requests from upstream to jsonwp if needed
      */
-    const useAtom = (
-        await browser.isDevTools ||
-        (
-            await browser.isW3C &&
+    const useAtom =
+        (await browser.isDevTools) ||
+        ((await browser.isW3C) &&
             !browser.isMobile &&
-            noW3CEndpoint.includes((browser.capabilities as Capabilities.Capabilities).browserName?.toLowerCase()!)
-        )
-    )
+            noW3CEndpoint.includes(
+                (
+                    browser.capabilities as Capabilities.Capabilities
+                ).browserName?.toLowerCase()!,
+            ))
 
     return useAtom
         ? await browser.execute(isElementDisplayedScript, {
-            [ELEMENT_KEY]: this.elementId, // w3c compatible
-            ELEMENT: this.elementId // jsonwp compatible
-        } as any as HTMLElement) :
-        await this.isElementDisplayed(this.elementId)
+              [ELEMENT_KEY]: this.elementId, // w3c compatible
+              ELEMENT: this.elementId, // jsonwp compatible
+          } as any as HTMLElement)
+        : await this.isElementDisplayed(this.elementId)
 }

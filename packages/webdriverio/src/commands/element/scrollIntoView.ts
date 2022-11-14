@@ -21,9 +21,12 @@ import { getBrowserObject } from '../../utils/index.js'
  * @type utility
  *
  */
-export default async function scrollIntoView (
+export default async function scrollIntoView(
     this: WebdriverIO.Element,
-    options: ScrollIntoViewOptions | boolean = { block: 'start', inline: 'nearest' }
+    options: ScrollIntoViewOptions | boolean = {
+        block: 'start',
+        inline: 'nearest',
+    },
 ) {
     const browser = getBrowserObject(this)
 
@@ -34,11 +37,18 @@ export default async function scrollIntoView (
      * viewport. In order to stay complaint with `Element.scrollIntoView()`
      * we need to adjust the values a bit.
      */
-    if (typeof options === 'boolean' || typeof options.block === 'string' || typeof options.inline === 'string') {
+    if (
+        typeof options === 'boolean' ||
+        typeof options.block === 'string' ||
+        typeof options.inline === 'string'
+    ) {
         const htmlElem = await browser.$('html')
         const viewport = await htmlElem.getSize()
         const elemSize = await this.getSize()
-        if (options === true || (options as ScrollIntoViewOptions).block === 'start') {
+        if (
+            options === true ||
+            (options as ScrollIntoViewOptions).block === 'start'
+        ) {
             deltaY += viewport.height - elemSize.height
         } else if ((options as ScrollIntoViewOptions).block === 'center') {
             deltaY += Math.round((viewport.height - elemSize.height) / 2)
@@ -50,7 +60,8 @@ export default async function scrollIntoView (
         }
     }
 
-    return browser.action('wheel')
+    return browser
+        .action('wheel')
         .scroll({ origin: this, duration: 200, deltaY, deltaX })
         .perform()
 }

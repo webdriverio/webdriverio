@@ -44,12 +44,19 @@ import type { SauceServiceConfig } from './types'
  *  deviceContextId: ''
  * }
  */
-export function isRDC (caps: Capabilities.DesiredCapabilities){
-    const { 'appium:deviceName': appiumDeviceName = '', deviceName = '', platformName = '' } = caps
+export function isRDC(caps: Capabilities.DesiredCapabilities) {
+    const {
+        'appium:deviceName': appiumDeviceName = '',
+        deviceName = '',
+        platformName = '',
+    } = caps
     const name = appiumDeviceName || deviceName
 
     // If the string contains `simulator` or `emulator` it's an EMU/SIM session
-    return !name.match(/(simulator)|(emulator)/gi) && !!platformName.match(/(ios)|(android)/gi)
+    return (
+        !name.match(/(simulator)|(emulator)/gi) &&
+        !!platformName.match(/(ios)|(android)/gi)
+    )
 }
 
 /**
@@ -57,12 +64,19 @@ export function isRDC (caps: Capabilities.DesiredCapabilities){
  * @param {object} caps
  * @returns {boolean}
  */
-export function isEmuSim (caps: Capabilities.DesiredCapabilities){
-    const { 'appium:deviceName': appiumDeviceName = '', deviceName = '', platformName = '' } = caps
+export function isEmuSim(caps: Capabilities.DesiredCapabilities) {
+    const {
+        'appium:deviceName': appiumDeviceName = '',
+        deviceName = '',
+        platformName = '',
+    } = caps
     const name = appiumDeviceName || deviceName
 
     // If the string contains `simulator` or `emulator` it's an EMU/SIM session
-    return !!name.match(/(simulator)|(emulator)/gi) && !!platformName.match(/(ios)|(android)/gi)
+    return (
+        !!name.match(/(simulator)|(emulator)/gi) &&
+        !!platformName.match(/(ios)|(android)/gi)
+    )
 }
 
 /** Ensure capabilities are in the correct format for Sauce Labs
@@ -76,7 +90,7 @@ export function makeCapabilityFactory(tunnelIdentifier: string, options: any) {
         // where we assume that if only one cap has `:` it's W3C, even if the request
         // is a mix of JWP and W3C. This is hard to check
         const isW3CRequest = Boolean(
-            Object.keys(capability).find((cap) => cap.includes(':'))
+            Object.keys(capability).find((cap) => cap.includes(':')),
         )
 
         // If the `sauce:options` are not provided and it is a W3C session
@@ -87,12 +101,13 @@ export function makeCapabilityFactory(tunnelIdentifier: string, options: any) {
 
         Object.assign(capability, options)
 
-        const sauceOptions = (isW3CRequest ? capability['sauce:options'] : capability) as SauceServiceConfig
-        sauceOptions.tunnelIdentifier = (
+        const sauceOptions = (
+            isW3CRequest ? capability['sauce:options'] : capability
+        ) as SauceServiceConfig
+        sauceOptions.tunnelIdentifier =
             capability.tunnelIdentifier ||
             sauceOptions.tunnelIdentifier ||
             tunnelIdentifier
-        )
 
         if (isW3CRequest) {
             delete capability.tunnelIdentifier
@@ -100,10 +115,10 @@ export function makeCapabilityFactory(tunnelIdentifier: string, options: any) {
     }
 }
 
-export function ansiRegex () {
+export function ansiRegex() {
     const pattern = [
         '[\\u001B\\u009B][[\\]()#;?]*(?:(?:(?:[a-zA-Z\\d]*(?:;[-a-zA-Z\\d\\/#&.:=?%@~_]*)*)?\\u0007)',
-        '(?:(?:\\d{1,4}(?:;\\d{0,4})*)?[\\dA-PR-TZcf-ntqry=><~]))'
+        '(?:(?:\\d{1,4}(?:;\\d{0,4})*)?[\\dA-PR-TZcf-ntqry=><~]))',
     ].join('|')
 
     return new RegExp(pattern, 'g')

@@ -1,43 +1,43 @@
 import WDIOReporter from '@wdio/reporter'
 
 export default class CustomSmokeTestReporter extends WDIOReporter {
-    onRunnerStart () {
+    onRunnerStart() {
         this.write('onRunnerStart\n')
     }
-    onBeforeCommand () {
+    onBeforeCommand() {
         this.write('onBeforeCommand\n')
     }
-    onAfterCommand () {
+    onAfterCommand() {
         this.write('onAfterCommand\n')
     }
-    onSuiteStart () {
+    onSuiteStart() {
         this.write('onSuiteStart\n')
     }
-    onHookStart () {
+    onHookStart() {
         this.write('onHookStart\n')
     }
-    onHookEnd () {
+    onHookEnd() {
         this.write('onHookEnd\n')
     }
-    onTestStart () {
+    onTestStart() {
         this.write('onTestStart\n')
     }
-    onTestPass () {
+    onTestPass() {
         this.write('onTestPass\n')
     }
-    onTestFail () {
+    onTestFail() {
         this.write('onTestFail\n')
     }
-    onTestSkip () {
+    onTestSkip() {
         this.write('onTestSkip\n')
     }
-    onTestEnd () {
+    onTestEnd() {
         this.write('onTestEnd\n')
     }
-    onSuiteEnd () {
+    onSuiteEnd() {
         this.write('onSuiteEnd\n')
     }
-    onRunnerEnd () {
+    onRunnerEnd() {
         this.write('onRunnerEnd\n')
     }
 }

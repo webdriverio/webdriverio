@@ -1,18 +1,24 @@
 import path from 'node:path'
-import { describe, expect, it, beforeAll, beforeEach, vi } from 'vitest'
+import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import ConciseReporter from '../src/index.js'
 import {
+    REPORT,
     RUNNER,
-    SUITE_UIDS,
     SUITES,
     SUITES_NO_TESTS,
-    REPORT,
+    SUITE_UIDS,
 } from './fixtures.js'
 const reporter = new ConciseReporter({})
 
 vi.mock('chalk')
-vi.mock('@wdio/reporter', () => import(path.join(process.cwd(), '__mocks__', '@wdio/reporter')))
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock(
+    '@wdio/reporter',
+    () => import(path.join(process.cwd(), '__mocks__', '@wdio/reporter')),
+)
+vi.mock(
+    '@wdio/logger',
+    () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')),
+)
 
 describe('ConciseReporter', () => {
     let tmpReporter: ConciseReporter
@@ -28,7 +34,7 @@ describe('ConciseReporter', () => {
             expect(Array.isArray(reporter['_suites'])).toBe(true)
             expect(reporter['_suites'].length).toBe(0)
             expect(reporter['_stateCounts']).toEqual({
-                failed : 0
+                failed: 0,
             })
         })
     })
@@ -70,7 +76,9 @@ describe('ConciseReporter', () => {
             reporter.printReport = vi.fn()
             reporter.onRunnerEnd(RUNNER as any)
             expect(vi.mocked(reporter.printReport).mock.calls.length).toBe(1)
-            expect(vi.mocked(reporter.printReport).mock.calls[0][0]).toEqual(RUNNER)
+            expect(vi.mocked(reporter.printReport).mock.calls[0][0]).toEqual(
+                RUNNER,
+            )
         })
     })
 
@@ -86,7 +94,7 @@ describe('ConciseReporter', () => {
             printReporter['_suiteUids'] = SUITE_UIDS
             printReporter['_suites'] = SUITES as any
             printReporter['_stateCounts'] = {
-                failed : 1
+                failed: 1,
             }
 
             printReporter.printReport(RUNNER as any)
@@ -129,7 +137,9 @@ describe('ConciseReporter', () => {
 
             expect(result.length).toBe(2)
             expect(result[0]).toBe('  Fail : red a failed test')
-            expect(result[1]).toBe('    AssertionError [ERR_ASSERTION] : yellow \'Google\' == \'Google2\'')
+            expect(result[1]).toBe(
+                "    AssertionError [ERR_ASSERTION] : yellow 'Google' == 'Google2'",
+            )
         })
 
         it('should return no results', () => {
@@ -147,13 +157,13 @@ describe('ConciseReporter', () => {
             // @ts-expect-error
             tmpReporter.foo = 'hellooo'
             tmpReporter['_suiteUids'] = ['5', '3', '8']
-            tmpReporter['_suites'] = [{ uid : '3' }, { uid : '5' }] as any
+            tmpReporter['_suites'] = [{ uid: '3' }, { uid: '5' }] as any
 
             const result = tmpReporter.getOrderedSuites()
 
             expect(result.length).toBe(2)
-            expect(result[0]).toEqual({ uid : '5' })
-            expect(result[1]).toEqual({ uid : '3' })
+            expect(result[0]).toEqual({ uid: '5' })
+            expect(result[1]).toEqual({ uid: '3' })
         })
 
         it('should return no suites', () => {
@@ -163,46 +173,56 @@ describe('ConciseReporter', () => {
 
     describe('getEnviromentCombo', () => {
         it('should return desktop combo', () => {
-            expect(tmpReporter.getEnviromentCombo({
-                browserName: 'chrome',
-                browserVersion: '50',
-                platformName: 'Windows 8.1'
-            })).toBe('chrome (v50) on Windows 8.1')
+            expect(
+                tmpReporter.getEnviromentCombo({
+                    browserName: 'chrome',
+                    browserVersion: '50',
+                    platformName: 'Windows 8.1',
+                }),
+            ).toBe('chrome (v50) on Windows 8.1')
         })
 
         it('should return mobile combo', () => {
-            expect(tmpReporter.getEnviromentCombo({
-                deviceName: 'iPhone 6 Plus',
-                platformVersion: '9.2',
-                platformName: 'iOS'
-            })).toBe('iPhone 6 Plus on iOS 9.2')
+            expect(
+                tmpReporter.getEnviromentCombo({
+                    deviceName: 'iPhone 6 Plus',
+                    platformVersion: '9.2',
+                    platformName: 'iOS',
+                }),
+            ).toBe('iPhone 6 Plus on iOS 9.2')
         })
 
         it('should return mobile combo executing an app', () => {
-            expect(tmpReporter.getEnviromentCombo({
-                deviceName: 'iPhone 6 Plus',
-                platformVersion: '9.2',
-                platformName: 'iOS',
-                app: 'sauce-storage:myApp.app'
-            })).toBe('iPhone 6 Plus on iOS 9.2 executing myApp.app')
+            expect(
+                tmpReporter.getEnviromentCombo({
+                    deviceName: 'iPhone 6 Plus',
+                    platformVersion: '9.2',
+                    platformName: 'iOS',
+                    app: 'sauce-storage:myApp.app',
+                }),
+            ).toBe('iPhone 6 Plus on iOS 9.2 executing myApp.app')
         })
 
         it('should return mobile combo executing a browser', () => {
-            expect(tmpReporter.getEnviromentCombo({
-                deviceName: 'iPhone 6 Plus',
-                platformVersion: '9.2',
-                platformName: 'iOS',
-                browserName: 'Safari'
-            })).toBe('iPhone 6 Plus on iOS 9.2 executing Safari')
+            expect(
+                tmpReporter.getEnviromentCombo({
+                    deviceName: 'iPhone 6 Plus',
+                    platformVersion: '9.2',
+                    platformName: 'iOS',
+                    browserName: 'Safari',
+                }),
+            ).toBe('iPhone 6 Plus on iOS 9.2 executing Safari')
         })
 
         it('should return desktop combo when using BrowserStack capabilities', () => {
-            expect(tmpReporter.getEnviromentCombo({
-                browser: 'Chrome',
-                browser_version: '50',
-                os: 'Windows',
-                os_version: '10'
-            })).toBe('Chrome (v50) on Windows 10')
+            expect(
+                tmpReporter.getEnviromentCombo({
+                    browser: 'Chrome',
+                    browser_version: '50',
+                    os: 'Windows',
+                    os_version: '10',
+                }),
+            ).toBe('Chrome (v50) on Windows 10')
         })
     })
 })

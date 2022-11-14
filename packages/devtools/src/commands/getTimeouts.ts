@@ -7,10 +7,10 @@ import type DevToolsDriver from '../devtoolsdriver'
  * @see https://w3c.github.io/webdriver/#dfn-get-timeouts
  * @return {Object}  Object containing timeout durations for `script`, `pageLoad` and `implicit` timeouts.
  */
-export default function getTimeouts (this: DevToolsDriver) {
+export default function getTimeouts(this: DevToolsDriver) {
     return {
         implicit: this.timeouts.get('implicit'),
         pageLoad: this.timeouts.get('pageLoad'),
-        script: this.timeouts.get('script')
+        script: this.timeouts.get('script'),
     }
 }

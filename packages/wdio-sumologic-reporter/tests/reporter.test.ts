@@ -1,14 +1,20 @@
-import path from 'node:path'
 import got from 'got'
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import path from 'node:path'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import SumoLogicReporter from '../src/index.js'
 
 import logger from '@wdio/logger'
 
 vi.mock('got')
-vi.mock('@wdio/reporter', () => import(path.join(process.cwd(), '__mocks__', '@wdio/reporter')))
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock(
+    '@wdio/reporter',
+    () => import(path.join(process.cwd(), '__mocks__', '@wdio/reporter')),
+)
+vi.mock(
+    '@wdio/logger',
+    () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')),
+)
 
 vi.useFakeTimers()
 vi.spyOn(global, 'setInterval')
@@ -91,10 +97,13 @@ describe('wdio-sumologic-reporter', () => {
         await reporter.sync()
 
         expect(vi.mocked(got).mock.calls).toHaveLength(1)
-        expect((vi.mocked(got).mock.calls[0][1 as any] as any).method).toBe('POST')
+        expect((vi.mocked(got).mock.calls[0][1 as any] as any).method).toBe(
+            'POST',
+        )
         expect(vi.mocked(got).mock.calls[0][0]).toBe('http://localhost:1234')
-        expect((vi.mocked(got).mock.calls[0][1 as any] as any).json)
-            .toContain('"event":"runner:start","data":"onRunnerStart"')
+        expect((vi.mocked(got).mock.calls[0][1 as any] as any).json).toContain(
+            '"event":"runner:start","data":"onRunnerStart"',
+        )
 
         expect(reporter['_unsynced']).toHaveLength(0)
     })
@@ -108,12 +117,15 @@ describe('wdio-sumologic-reporter', () => {
         await reporter.sync()
 
         expect(vi.mocked(logger('').error).mock.calls).toHaveLength(1)
-        expect(vi.mocked(logger('').error).mock.calls[0][0])
-            .toContain('failed send data to Sumo Logic')
+        expect(vi.mocked(logger('').error).mock.calls[0][0]).toContain(
+            'failed send data to Sumo Logic',
+        )
     })
 
     it('should be synchronised when no unsynced messages', async () => {
-        reporter = new SumoLogicReporter({ sourceAddress: 'http://localhost:1234' })
+        reporter = new SumoLogicReporter({
+            sourceAddress: 'http://localhost:1234',
+        })
         reporter.onRunnerStart('onRunnerStart' as any)
         expect(reporter.isSynchronised).toBe(false)
         await reporter.sync()
@@ -121,7 +133,9 @@ describe('wdio-sumologic-reporter', () => {
     })
 
     it('should stop the timer if runner ended', async () => {
-        reporter = new SumoLogicReporter({ sourceAddress: 'http://localhost:1234' })
+        reporter = new SumoLogicReporter({
+            sourceAddress: 'http://localhost:1234',
+        })
         reporter.onRunnerStart('onRunnerStart' as any)
         reporter.onRunnerEnd('onRunnerStart' as any)
         expect(clearInterval).toBeCalledTimes(0)

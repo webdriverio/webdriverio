@@ -12,12 +12,12 @@ import elementClick from './elementClick.js'
 import elementSendKeys from './elementSendKeys.js'
 import executeAsyncScript from './executeAsyncScript.js'
 import executeScript from './executeScript.js'
+import findElement from './findElement.js'
 import findElementFromElement from './findElementFromElement.js'
 import findElementFromShadowRoot from './findElementFromShadowRoot.js'
+import findElements from './findElements.js'
 import findElementsFromElement from './findElementsFromElement.js'
 import findElementsFromShadowRoot from './findElementsFromShadowRoot.js'
-import findElements from './findElements.js'
-import findElement from './findElement.js'
 import forward from './forward.js'
 import getActiveElement from './getActiveElement.js'
 import getAlertText from './getAlertText.js'
@@ -36,8 +36,8 @@ import getPageSource from './getPageSource.js'
 import getTimeouts from './getTimeouts.js'
 import getTitle from './getTitle.js'
 import getUrl from './getUrl.js'
-import getWindowHandles from './getWindowHandles.js'
 import getWindowHandle from './getWindowHandle.js'
+import getWindowHandles from './getWindowHandles.js'
 import getWindowRect from './getWindowRect.js'
 import isElementEnabled from './isElementEnabled.js'
 import isElementSelected from './isElementSelected.js'
@@ -57,13 +57,61 @@ import takeElementScreenshot from './takeElementScreenshot.js'
 import takeScreenshot from './takeScreenshot.js'
 
 export {
-    acceptAlert, addCookie, back, closeWindow, createWindow, deleteAllCookies, deleteCookie, deleteSession,
-    dismissAlert, elementClear, elementClick, elementSendKeys, executeAsyncScript, executeScript,
-    findElementFromElement, findElementFromShadowRoot, findElementsFromElement, findElementsFromShadowRoot,
-    findElements, findElement, forward, getActiveElement, getAlertText, getAllCookies, getElementAttribute,
-    getElementComputedLabel, getElementComputedRole, getElementCSSValue, getElementProperty, getElementRect,
-    getElementShadowRoot, getElementTagName, getElementText, getNamedCookie, getPageSource, getTimeouts,
-    getTitle, getUrl, getWindowHandles, getWindowHandle, getWindowRect, isElementEnabled, isElementSelected,
-    navigateTo, newSession, performActions, refresh, releaseActions, sendAlertText, setTimeouts, setWindowRect,
-    status, switchToFrame, switchToParentFrame, switchToWindow, takeElementScreenshot, takeScreenshot
+    acceptAlert,
+    addCookie,
+    back,
+    closeWindow,
+    createWindow,
+    deleteAllCookies,
+    deleteCookie,
+    deleteSession,
+    dismissAlert,
+    elementClear,
+    elementClick,
+    elementSendKeys,
+    executeAsyncScript,
+    executeScript,
+    findElementFromElement,
+    findElementFromShadowRoot,
+    findElementsFromElement,
+    findElementsFromShadowRoot,
+    findElements,
+    findElement,
+    forward,
+    getActiveElement,
+    getAlertText,
+    getAllCookies,
+    getElementAttribute,
+    getElementComputedLabel,
+    getElementComputedRole,
+    getElementCSSValue,
+    getElementProperty,
+    getElementRect,
+    getElementShadowRoot,
+    getElementTagName,
+    getElementText,
+    getNamedCookie,
+    getPageSource,
+    getTimeouts,
+    getTitle,
+    getUrl,
+    getWindowHandles,
+    getWindowHandle,
+    getWindowRect,
+    isElementEnabled,
+    isElementSelected,
+    navigateTo,
+    newSession,
+    performActions,
+    refresh,
+    releaseActions,
+    sendAlertText,
+    setTimeouts,
+    setWindowRect,
+    status,
+    switchToFrame,
+    switchToParentFrame,
+    switchToWindow,
+    takeElementScreenshot,
+    takeScreenshot,
 }

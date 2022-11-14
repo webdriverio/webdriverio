@@ -22,30 +22,32 @@ export default (
     ...commandArgs: any[]
 ): Promise<any> => {
     return new Promise((_resolve, _reject) => {
-        setTimeout(
-            () => _reject('script timeout'),
-            scriptTimeout
-        )
+        setTimeout(() => _reject('script timeout'), scriptTimeout)
+        ;(window as any).arguments = [
+            ...commandArgs,
+            (result: NodeList | any) => {
+                let tmpResult: (Node | any)[] =
+                    result instanceof NodeList ? Array.from(result) : result
+                const isResultArray = Array.isArray(tmpResult)
+                tmpResult = isResultArray
+                    ? tmpResult
+                    : [tmpResult as unknown as Node]
 
-        ;(window as any).arguments = [...commandArgs, (result: NodeList | any) => {
-            let tmpResult: (Node | any)[] = result instanceof NodeList ? Array.from(result) : result
-            const isResultArray = Array.isArray(tmpResult)
-            tmpResult = isResultArray ? tmpResult : [tmpResult as unknown as Node]
+                if (tmpResult.find((r) => r instanceof HTMLElement)) {
+                    tmpResult = tmpResult.map((r, i) => {
+                        if (r instanceof HTMLElement) {
+                            const dataPropertyValue = `${dataFlag}_${i}`
+                            r.setAttribute(dataProperty, dataPropertyValue)
+                            return dataPropertyValue
+                        }
 
-            if (tmpResult.find((r) => r instanceof HTMLElement)) {
-                tmpResult = tmpResult.map((r, i) => {
-                    if (r instanceof HTMLElement) {
-                        const dataPropertyValue = `${dataFlag}_${i}`
-                        r.setAttribute(dataProperty, dataPropertyValue)
-                        return dataPropertyValue
-                    }
+                        return r
+                    })
+                }
 
-                    return r
-                })
-            }
-
-            return _resolve(isResultArray ? tmpResult : tmpResult[0])
-        }]
+                return _resolve(isResultArray ? tmpResult : tmpResult[0])
+            },
+        ]
 
         return eval(script)
     })

@@ -1,5 +1,8 @@
 import fs from 'node:fs/promises'
-import { getAbsoluteFilepath, assertDirectoryExists } from '../../utils/index.js'
+import {
+    assertDirectoryExists,
+    getAbsoluteFilepath,
+} from '../../utils/index.js'
 
 /**
  *
@@ -19,15 +22,17 @@ import { getAbsoluteFilepath, assertDirectoryExists } from '../../utils/index.js
  * @type utility
  *
  */
-export default async function saveScreenshot (
+export default async function saveScreenshot(
     this: WebdriverIO.Element,
-    filepath: string
+    filepath: string,
 ) {
     /**
      * type check
      */
     if (typeof filepath !== 'string' || !filepath.endsWith('.png')) {
-        throw new Error('saveScreenshot expects a filepath of type string and ".png" file ending')
+        throw new Error(
+            'saveScreenshot expects a filepath of type string and ".png" file ending',
+        )
     }
 
     const absoluteFilepath = getAbsoluteFilepath(filepath)

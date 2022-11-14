@@ -1,10 +1,14 @@
 import logger from '@wdio/logger'
-import { commandCallStructure, isValidParameter, getArgumentType } from '@wdio/utils'
-import type { CommandEndpoint, BidiResponse } from '@wdio/protocols'
+import type { BidiResponse, CommandEndpoint } from '@wdio/protocols'
+import {
+    commandCallStructure,
+    getArgumentType,
+    isValidParameter,
+} from '@wdio/utils'
 
-import RequestFactory from './request/factory.js'
 import { BidiHandler } from './bidi.js'
 import type { WebDriverResponse } from './request'
+import RequestFactory from './request/factory.js'
 import type { BaseClient } from './types'
 
 const log = logger('webdriver')
@@ -18,38 +22,61 @@ export default function (
     method: string,
     endpointUri: string,
     commandInfo: CommandEndpoint,
-    doubleEncodeVariables = false
+    doubleEncodeVariables = false,
 ) {
-    const { command, ref, parameters, variables = [], isHubCommand = false } = commandInfo
+    const {
+        command,
+        ref,
+        parameters,
+        variables = [],
+        isHubCommand = false,
+    } = commandInfo
 
-    return async function protocolCommand (this: BaseClientWithEventHandler, ...args: any[]): Promise<WebDriverResponse | BidiResponse | void> {
+    return async function protocolCommand(
+        this: BaseClientWithEventHandler,
+        ...args: any[]
+    ): Promise<WebDriverResponse | BidiResponse | void> {
         let endpoint = endpointUri // clone endpointUri in case we change it
-        const commandParams = [...variables.map((v) => Object.assign(v, {
-            /**
-             * url variables are:
-             */
-            required: true, // always required as they are part of the endpoint
-            type: 'string'  // have to be always type of string
-        })), ...parameters]
+        const commandParams = [
+            ...variables.map((v) =>
+                Object.assign(v, {
+                    /**
+                     * url variables are:
+                     */
+                    required: true, // always required as they are part of the endpoint
+                    type: 'string', // have to be always type of string
+                }),
+            ),
+            ...parameters,
+        ]
 
-        const commandUsage = `${command}(${commandParams.map((p) => p.name).join(', ')})`
+        const commandUsage = `${command}(${commandParams
+            .map((p) => p.name)
+            .join(', ')})`
         const moreInfo = `\n\nFor more info see ${ref}\n`
         const body: Record<string, any> = {}
 
         /**
          * parameter check
          */
-        const minAllowedParams = commandParams.filter((param) => param.required).length
-        if (args.length < minAllowedParams || args.length > commandParams.length) {
+        const minAllowedParams = commandParams.filter(
+            (param) => param.required,
+        ).length
+        if (
+            args.length < minAllowedParams ||
+            args.length > commandParams.length
+        ) {
             const parameterDescription = commandParams.length
-                ? `\n\nProperty Description:\n${commandParams.map((p) => `  "${p.name}" (${p.type}): ${p.description}`).join('\n')}`
+                ? `\n\nProperty Description:\n${commandParams
+                      .map((p) => `  "${p.name}" (${p.type}): ${p.description}`)
+                      .join('\n')}`
                 : ''
 
             throw new Error(
                 `Wrong parameters applied for ${command}\n` +
-                `Usage: ${commandUsage}` +
-                parameterDescription +
-                moreInfo
+                    `Usage: ${commandUsage}` +
+                    parameterDescription +
+                    moreInfo,
             )
         }
 
@@ -69,13 +96,15 @@ export default function (
                 }
 
                 const actual = commandParam.type.endsWith('[]')
-                    ? `(${(Array.isArray(arg) ? arg : [arg]).map((a) => getArgumentType(a))})[]`
+                    ? `(${(Array.isArray(arg) ? arg : [arg]).map((a) =>
+                          getArgumentType(a),
+                      )})[]`
                     : getArgumentType(arg)
                 throw new Error(
                     `Malformed type for "${commandParam.name}" parameter of command ${command}\n` +
-                    `Expected: ${commandParam.type}\n` +
-                    `Actual: ${actual}` +
-                    moreInfo
+                        `Expected: ${commandParam.type}\n` +
+                        `Actual: ${actual}` +
+                        moreInfo,
                 )
             }
 
@@ -83,8 +112,13 @@ export default function (
              * inject url variables
              */
             if (i < variables.length) {
-                const encodedArg = doubleEncodeVariables ? encodeURIComponent(encodeURIComponent(arg)) : encodeURIComponent(arg)
-                endpoint = endpoint.replace(`:${commandParams[i].name}`, encodedArg)
+                const encodedArg = doubleEncodeVariables
+                    ? encodeURIComponent(encodeURIComponent(arg))
+                    : encodeURIComponent(arg)
+                endpoint = endpoint.replace(
+                    `:${commandParams[i].name}`,
+                    encodedArg,
+                )
                 continue
             }
 
@@ -97,37 +131,64 @@ export default function (
         /**
          * Handle Bidi calls
          */
-        if (this.sessionId && BIDI_COMMANDS.includes(command as typeof BIDI_COMMANDS[number])) {
+        if (
+            this.sessionId &&
+            BIDI_COMMANDS.includes(command as typeof BIDI_COMMANDS[number])
+        ) {
             if (!this.eventMiddleware) {
-                throw new Error('Your WebDriver session doesn\'t support WebDriver Bidi')
+                throw new Error(
+                    "Your WebDriver session doesn't support WebDriver Bidi",
+                )
             }
 
-            return this.eventMiddleware[command as typeof BIDI_COMMANDS[number]](body.params)
+            return this.eventMiddleware[
+                command as typeof BIDI_COMMANDS[number]
+            ](body.params)
         }
 
-        const request = await RequestFactory.getInstance(method, endpoint, body, isHubCommand)
-        request.on('performance', (...args) => this.emit('request.performance', ...args))
+        const request = await RequestFactory.getInstance(
+            method,
+            endpoint,
+            body,
+            isHubCommand,
+        )
+        request.on('performance', (...args) =>
+            this.emit('request.performance', ...args),
+        )
         this.emit('command', { method, endpoint, body })
         log.info('COMMAND', commandCallStructure(command, args))
-        return request.makeRequest(this.options, this.sessionId).then((result) => {
-            if (result.value != null) {
-                let resultLog = result.value
+        return request
+            .makeRequest(this.options, this.sessionId)
+            .then((result) => {
+                if (result.value != null) {
+                    let resultLog = result.value
 
-                if (/screenshot|recording/i.test(command) && typeof result.value === 'string' && result.value.length > 64) {
-                    resultLog = `${result.value.slice(0, 61)}...`
-                } else if (command === 'executeScript' && body.script && body.script.includes('(() => window.__wdioEvents__)')) {
-                    resultLog = `[${result.value.length} framework events captured]`
+                    if (
+                        /screenshot|recording/i.test(command) &&
+                        typeof result.value === 'string' &&
+                        result.value.length > 64
+                    ) {
+                        resultLog = `${result.value.slice(0, 61)}...`
+                    } else if (
+                        command === 'executeScript' &&
+                        body.script &&
+                        body.script.includes('(() => window.__wdioEvents__)')
+                    ) {
+                        resultLog = `[${result.value.length} framework events captured]`
+                    }
+
+                    log.info('RESULT', resultLog)
                 }
 
-                log.info('RESULT', resultLog)
-            }
+                this.emit('result', { method, endpoint, body, result })
 
-            this.emit('result', { method, endpoint, body, result })
-
-            if (command === 'deleteSession' && !process.env.WDIO_WORKER_ID) {
-                logger.clearLogger()
-            }
-            return result.value
-        })
+                if (
+                    command === 'deleteSession' &&
+                    !process.env.WDIO_WORKER_ID
+                ) {
+                    logger.clearLogger()
+                }
+                return result.value
+            })
     }
 }

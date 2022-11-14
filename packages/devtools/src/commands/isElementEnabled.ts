@@ -1,5 +1,5 @@
-import getElementAttribute from './getElementAttribute.js'
 import type DevToolsDriver from '../devtoolsdriver'
+import getElementAttribute from './getElementAttribute.js'
 
 /**
  * Is Element Enabled determines if the referenced element is enabled or not.
@@ -10,10 +10,13 @@ import type DevToolsDriver from '../devtoolsdriver'
  * @param {string} elementId  the id of an element returned in a previous call to Find Element(s)
  * @return {string}           If the element is in an xml document, or is a disabled form control: `false`, otherwise, `true`.
  */
-export default async function isElementEnabled (
+export default async function isElementEnabled(
     this: DevToolsDriver,
-    { elementId }: { elementId: string }
+    { elementId }: { elementId: string },
 ) {
-    const result = await getElementAttribute.call(this, { elementId, name: 'disabled' })
+    const result = await getElementAttribute.call(this, {
+        elementId,
+        name: 'disabled',
+    })
     return result === null
 }

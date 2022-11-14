@@ -8,7 +8,7 @@ import type DevToolsDriver from '../devtoolsdriver'
  * @alias browser.back
  * @see https://w3c.github.io/webdriver/#dfn-back
  */
-export default async function back (this: DevToolsDriver) {
+export default async function back(this: DevToolsDriver) {
     delete this.currentFrame
     const page = this.getPageHandle()
 

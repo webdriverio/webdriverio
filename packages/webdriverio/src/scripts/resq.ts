@@ -6,15 +6,15 @@ interface CustomWindow extends Window {
 
 declare let window: CustomWindow
 
-export const waitToLoadReact = function waitToLoadReact () {
+export const waitToLoadReact = function waitToLoadReact() {
     window.resq.waitToLoadReact()
 }
 
-export const react$ = function react$ (
+export const react$ = function react$(
     selector: string,
     props: any[],
     state: Record<string, any>,
-    reactElement: HTMLElement
+    reactElement: HTMLElement,
 ) {
     props = props || {}
     state = state || {}
@@ -32,7 +32,9 @@ export const react$ = function react$ (
     }
 
     if (!element.name) {
-        return { message: `React element with selector "${selector}" wasn't found` }
+        return {
+            message: `React element with selector "${selector}" wasn't found`,
+        }
     }
 
     // resq returns an array of HTMLElements if the React component is a fragment
@@ -42,11 +44,11 @@ export const react$ = function react$ (
         : element.node
 }
 
-export const react$$ = function react$$ (
+export const react$$ = function react$$(
     selector: string,
     props: any[],
     state: Record<string, string>,
-    reactElement: HTMLElement
+    reactElement: HTMLElement,
 ) {
     let elements = window.resq.resq$$(selector, reactElement)
 
@@ -69,7 +71,7 @@ export const react$$ = function react$$ (
     // [[div, div], [div, div]] => [div, div, div, div]
     let nodes: HTMLElement[] = []
 
-    elements.forEach(element => {
+    elements.forEach((element) => {
         const { node, isFragment } = element
 
         if (isFragment) {

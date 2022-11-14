@@ -1,9 +1,10 @@
 /* istanbul ignore file */
 
 import { DEFAULT_CONFIGS } from './constants.js'
-import { validateConfig, isCloudCapability } from './utils.js'
 import ConfigParser from './lib/ConfigParser.js'
+import { isCloudCapability, validateConfig } from './utils.js'
 
+export * from './types.js'
 export {
     validateConfig,
     isCloudCapability,
@@ -12,7 +13,5 @@ export {
     /**
      * constants
      */
-    DEFAULT_CONFIGS
+    DEFAULT_CONFIGS,
 }
-
-export * from './types.js'

@@ -1,12 +1,15 @@
 import path from 'node:path'
-import { expect, describe, it, beforeAll, afterEach, vi } from 'vitest'
+import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
 // @ts-ignore mocked (original defined in webdriver package)
 import got from 'got'
 import { remote } from '../../../src/index.js'
 
 vi.mock('got')
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock(
+    '@wdio/logger',
+    () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')),
+)
 
 describe('url', () => {
     let browser: WebdriverIO.Browser
@@ -15,23 +18,22 @@ describe('url', () => {
         browser = await remote({
             baseUrl: 'http://foobar.com',
             capabilities: {
-                browserName: 'foobar'
-            }
+                browserName: 'foobar',
+            },
         })
     })
 
     it('should accept a full url', async () => {
         await browser.url('http://google.com')
-        expect(got.mock.calls[1][0].pathname)
-            .toBe('/session/foobar-123/url')
-        expect(got.mock.calls[1][1].json)
-            .toEqual({ url: 'http://google.com/' })
+        expect(got.mock.calls[1][0].pathname).toBe('/session/foobar-123/url')
+        expect(got.mock.calls[1][1].json).toEqual({ url: 'http://google.com/' })
     })
 
     it('should accept a relative url', async () => {
         await browser.url('/foobar')
-        expect(got.mock.calls[0][1].json)
-            .toEqual({ url: 'http://foobar.com/foobar' })
+        expect(got.mock.calls[0][1].json).toEqual({
+            url: 'http://foobar.com/foobar',
+        })
     })
 
     it('should throw an exception when a non-string value passed in', async () => {
@@ -50,13 +52,12 @@ describe('url', () => {
         browser = await remote({
             baseUrl: '',
             capabilities: {
-                browserName: 'foobar'
-            }
+                browserName: 'foobar',
+            },
         })
 
         await browser.url('/foobar')
-        expect(got.mock.calls[1][1].json)
-            .toEqual({ url: 'http://foobar/' })
+        expect(got.mock.calls[1][1].json).toEqual({ url: 'http://foobar/' })
     })
 
     afterEach(() => {

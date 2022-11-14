@@ -7,18 +7,21 @@ Then(/^the title of the page should be:$/, async (expectedTitle) => {
 })
 
 let hasRun = false
-Then('I should fail once but pass on the second run', { wrapperOptions: { retry: 1 } }, function () {
-    if (!hasRun) {
-        hasRun = true
-        expect(this.wdioRetries).toBe(0)
-        throw new Error('boom!')
-    }
+Then(
+    'I should fail once but pass on the second run',
+    { wrapperOptions: { retry: 1 } },
+    function () {
+        if (!hasRun) {
+            hasRun = true
+            expect(this.wdioRetries).toBe(0)
+            throw new Error('boom!')
+        }
 
-    expect(this.wdioRetries).toBe(1)
-})
+        expect(this.wdioRetries).toBe(1)
+    },
+)
 
-Then('this is ambiguous', () => {
-})
+Then('this is ambiguous', () => {})
 
 Then('this test should fail', () => {
     console.log('This step should have never been executed :-(')

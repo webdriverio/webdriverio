@@ -25,7 +25,7 @@ exports.config = {
     // values you need to put in here in order to connect to these services.
     //
     user: 'webdriverio',
-    key:  'xxxxxxxxxxxxxxxx-xxxxxx-xxxxx-xxxxxxxxx',
+    key: 'xxxxxxxxxxxxxxxx-xxxxxx-xxxxx-xxxxxxxxx',
     //
     // If you run your tests on Sauce Labs you can specify the region you want to run your tests
     // in via the `region` property. Available short handles for regions are:
@@ -48,14 +48,9 @@ exports.config = {
     // then the current working directory is where your `package.json` resides, so `wdio`
     // will be called from there.
     //
-    specs: [
-        'test/spec/**'
-    ],
+    specs: ['test/spec/**'],
     // Patterns to exclude.
-    exclude: [
-        'test/spec/multibrowser/**',
-        'test/spec/mobile/**'
-    ],
+    exclude: ['test/spec/multibrowser/**', 'test/spec/mobile/**'],
     //
     // ============
     // Capabilities
@@ -86,18 +81,19 @@ exports.config = {
     // Sauce Labs platform configurator - a great tool to configure your capabilities:
     // https://saucelabs.com/platform/platform-configurator
     //
-    capabilities: [{
-        browserName: 'chrome'
-    }, {
-        // maxInstances can get overwritten per capability. So if you have an in-house Selenium
-        // grid with only 5 firefox instances available you can make sure that not more than
-        // 5 instances get started at a time.
-        maxInstances: 5,
-        browserName: 'firefox',
-        specs: [
-            'test/ffOnly/*'
-        ]
-    }],
+    capabilities: [
+        {
+            browserName: 'chrome',
+        },
+        {
+            // maxInstances can get overwritten per capability. So if you have an in-house Selenium
+            // grid with only 5 firefox instances available you can make sure that not more than
+            // 5 instances get started at a time.
+            maxInstances: 5,
+            browserName: 'firefox',
+            specs: ['test/ffOnly/*'],
+        },
+    ],
     //
     //
     //
@@ -147,18 +143,21 @@ exports.config = {
     // see also: https://webdriver.io/docs/dot-reporter.html
     reporters: [
         'dot',
-        ['allure', {
-            //
-            // If you are using the "allure" reporter you should define the directory where
-            // WebdriverIO should save all allure reports.
-            outputDir: './allureReports'
-        }]
+        [
+            'allure',
+            {
+                //
+                // If you are using the "allure" reporter you should define the directory where
+                // WebdriverIO should save all allure reports.
+                outputDir: './allureReports',
+            },
+        ],
     ],
     //
     // Options to be passed to Mocha.
     // See the full list at http://mochajs.org/
     mochaOpts: {
-        ui: 'bdd'
+        ui: 'bdd',
     },
     //
     // Options to be passed to Jasmine.
@@ -171,28 +170,28 @@ exports.config = {
         // The Jasmine framework allows interception of each assertion in order to log the state of the application
         // or website depending on the result. For example, it is pretty handy to take a screenshot every time
         // an assertion fails.
-        expectationResultHandler: function(passed, assertion) {
+        expectationResultHandler: function (passed, assertion) {
             // do something
         },
         //
         // Make use of Jasmine-specific grep functionality
         grep: null,
-        invertGrep: null
+        invertGrep: null,
     },
     //
     // If you are using Cucumber you need to specify the location of your step definitions.
     // See also: https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-cucumber-framework#cucumberopts-options
     cucumberOpts: {
-        require: [],        // <string[]> (file/dir) require files before executing features
-        backtrace: false,   // <boolean> show full backtrace for errors
-        requireModule: [],  // <string[]> ("module") require MODULE files (repeatable)
-        dryRun: false,      // <boolean> invoke formatters without executing steps
-        failFast: false,    // <boolean> abort the run on first failure
-        snippets: true,     // <boolean> hide step definition snippets for pending steps
-        source: true,       // <boolean> hide source uris
-        strict: false,      // <boolean> fail if there are any undefined or pending steps
-        tagExpression: '',  // <string> (expression) only execute the features or scenarios with tags matching the expression
-        timeout: 20000,     // <number> timeout for step definitions
+        require: [], // <string[]> (file/dir) require files before executing features
+        backtrace: false, // <boolean> show full backtrace for errors
+        requireModule: [], // <string[]> ("module") require MODULE files (repeatable)
+        dryRun: false, // <boolean> invoke formatters without executing steps
+        failFast: false, // <boolean> abort the run on first failure
+        snippets: true, // <boolean> hide step definition snippets for pending steps
+        source: true, // <boolean> hide source uris
+        strict: false, // <boolean> fail if there are any undefined or pending steps
+        tagExpression: '', // <string> (expression) only execute the features or scenarios with tags matching the expression
+        timeout: 20000, // <number> timeout for step definitions
         ignoreUndefinedDefinitions: false, // <boolean> Enable this config to treat undefined definitions as warnings.
     },
     //
@@ -204,17 +203,17 @@ exports.config = {
         // Configure how ts-node is automatically included when present
         tsNodeOpts: {
             transpileOnly: true,
-            project: 'tsconfig.json'
+            project: 'tsconfig.json',
         },
 
         // If you have tsconfig-paths installed and provide a tsConfigPathsOpts
         // option, it will be automatically registered during bootstrap.
         tsConfigPathsOpts: {
-            baseUrl: './'
+            baseUrl: './',
         },
 
         // Configure how @babel/register is automatically included when present (and ts-node isn't)
-        babelOpts: {}
+        babelOpts: {},
     },
     //
     // =====
@@ -230,8 +229,7 @@ exports.config = {
      * @param {Object} config wdio configuration object
      * @param {Array.<Object>} capabilities list of capabilities details
      */
-    onPrepare: function (config, capabilities) {
-    },
+    onPrepare: function (config, capabilities) {},
     /**
      * Gets executed before a worker process is spawned and can be used to initialise specific service
      * for that worker as well as modify runtime environments in an async fashion.
@@ -241,8 +239,7 @@ exports.config = {
      * @param  {[type]}   args     object that will be merged with the main configuration once worker is initialised
      * @param  {[type]}   execArgv list of string arguments passed to the worker process
      */
-    onWorkerStart: function (cid, caps, specs, args, execArgv) {
-    },
+    onWorkerStart: function (cid, caps, specs, args, execArgv) {},
     /**
      * Gets executed just after a worker process has exited.
      * @param  {String}   cid      capability id (e.g 0-0)
@@ -250,8 +247,7 @@ exports.config = {
      * @param  {String[]} specs    specs to be run in the worker process
      * @param  {Number}   retries  number of retries used
      */
-    onWorkerEnd: function (cid, exitCode, specs, retries) {
-    },
+    onWorkerEnd: function (cid, exitCode, specs, retries) {},
     /**
      * Gets executed just before initialising the webdriver session and test framework. It allows you
      * to manipulate configurations depending on the capability or spec.
@@ -260,8 +256,7 @@ exports.config = {
      * @param {Array.<String>} specs List of spec file paths that are to be run
      * @param {String} cid worker id (e.g. 0-0)
      */
-    beforeSession: function (config, capabilities, specs, cid) {
-    },
+    beforeSession: function (config, capabilities, specs, cid) {},
     /**
      * Gets executed before test execution begins. At this point you can access to all global
      * variables like `browser`. It is the perfect place to define custom commands.
@@ -269,41 +264,39 @@ exports.config = {
      * @param {Array.<String>} specs        List of spec file paths that are to be run
      * @param {Object}         browser      instance of created browser/device session
      */
-    before: function (capabilities, specs, browser) {
-    },
+    before: function (capabilities, specs, browser) {},
     /**
      * Hook that gets executed before the suite starts
      * @param {Object} suite suite details
      */
-    beforeSuite: function (suite) {
-    },
+    beforeSuite: function (suite) {},
     /**
      * Hook that gets executed _before_ a hook within the suite starts (e.g. runs before calling
      * beforeEach in Mocha). In Cucumber `context` is the World object.
      */
-    beforeHook: function (test, context) {
-    },
+    beforeHook: function (test, context) {},
     /**
      * Hook that gets executed _after_ a hook within the suite ends (e.g. runs after calling
      * afterEach in Mocha). In Cucumber `context` is the World object.
      */
-    afterHook: function (test, context, { error, result, duration, passed, retries }) {
-    },
+    afterHook: function (
+        test,
+        context,
+        { error, result, duration, passed, retries },
+    ) {},
     /**
      * Function to be executed before a test (in Mocha/Jasmine only)
      * @param {Object} test    test object
      * @param {Object} context scope object the test was executed with
      */
-    beforeTest: function (test, context) {
-    },
+    beforeTest: function (test, context) {},
     //
     /**
      * Runs before a WebdriverIO command gets executed.
      * @param {String} commandName command name
      * @param {Array} args arguments that command would receive
      */
-    beforeCommand: function (commandName, args) {
-    },
+    beforeCommand: function (commandName, args) {},
     /**
      * Runs after a WebdriverIO command gets executed.
      * @param {String} commandName hook command name
@@ -311,8 +304,7 @@ exports.config = {
      * @param {Number} result 0 - command success, 1 - command error
      * @param {Object} error error object if any
      */
-    afterCommand: function (commandName, args, result, error) {
-    },
+    afterCommand: function (commandName, args, result, error) {},
     /**
      * Function to be executed after a test (in Mocha/Jasmine only)
      * @param {Object}  test             test object
@@ -323,14 +315,16 @@ exports.config = {
      * @param {Boolean} result.passed    true if test has passed, otherwise false
      * @param {Object}  result.retries   informations to spec related retries, e.g. `{ attempts: 0, limit: 0 }`
      */
-    afterTest: function (test, context, { error, result, duration, passed, retries }) {
-    },
+    afterTest: function (
+        test,
+        context,
+        { error, result, duration, passed, retries },
+    ) {},
     /**
      * Hook that gets executed after the suite has ended
      * @param {Object} suite suite details
      */
-    afterSuite: function (suite) {
-    },
+    afterSuite: function (suite) {},
     /**
      * Gets executed after all tests are done. You still have access to all global variables from
      * the test.
@@ -338,16 +332,14 @@ exports.config = {
      * @param {Array.<Object>} capabilities list of capabilities details
      * @param {Array.<String>} specs List of spec file paths that ran
      */
-    after: function (result, capabilities, specs) {
-    },
+    after: function (result, capabilities, specs) {},
     /**
      * Gets executed right after terminating the webdriver session.
      * @param {Object} config wdio configuration object
      * @param {Array.<Object>} capabilities list of capabilities details
      * @param {Array.<String>} specs List of spec file paths that ran
      */
-    afterSession: function (config, capabilities, specs) {
-    },
+    afterSession: function (config, capabilities, specs) {},
     /**
      * Gets executed after all workers got shut down and the process is about to exit. An error
      * thrown in the onComplete hook will result in the test run failing.
@@ -356,15 +348,13 @@ exports.config = {
      * @param {Array.<Object>} capabilities list of capabilities details
      * @param {<Object>} results object containing test results
      */
-    onComplete: function (exitCode, config, capabilities, results) {
-    },
+    onComplete: function (exitCode, config, capabilities, results) {},
     /**
-    * Gets executed when a refresh happens.
-    * @param {String} oldSessionId session ID of the old session
-    * @param {String} newSessionId session ID of the new session
-    */
-    onReload: function(oldSessionId, newSessionId) {
-    },
+     * Gets executed when a refresh happens.
+     * @param {String} oldSessionId session ID of the old session
+     * @param {String} newSessionId session ID of the new session
+     */
+    onReload: function (oldSessionId, newSessionId) {},
     /**
      * Cucumber Hooks
      *
@@ -372,16 +362,14 @@ exports.config = {
      * @param {String}                   uri      path to feature file
      * @param {GherkinDocument.IFeature} feature  Cucumber feature object
      */
-    beforeFeature: function (uri, feature) {
-    },
+    beforeFeature: function (uri, feature) {},
     /**
      *
      * Runs before a Cucumber Scenario.
      * @param {ITestCaseHookParameter} world    world object containing information on pickle and test step
      * @param {Object}                 context  Cucumber World object
      */
-    beforeScenario: function (world, context) {
-    },
+    beforeScenario: function (world, context) {},
     /**
      *
      * Runs before a Cucumber Step.
@@ -389,8 +377,7 @@ exports.config = {
      * @param {IPickle}            scenario scenario pickle
      * @param {Object}             context  Cucumber World object
      */
-    beforeStep: function (step, scenario, context) {
-    },
+    beforeStep: function (step, scenario, context) {},
     /**
      *
      * Runs after a Cucumber Step.
@@ -402,8 +389,7 @@ exports.config = {
      * @param {number}             result.duration duration of scenario in milliseconds
      * @param {Object}             context Cucumber World object
      */
-    afterStep: function (step, scenario, result, context) {
-    },
+    afterStep: function (step, scenario, result, context) {},
     /**
      *
      * Runs after a Cucumber Scenario.
@@ -414,14 +400,12 @@ exports.config = {
      * @param {number}                 result.duration duration of scenario in milliseconds
      * @param {Object}                 context Cucumber World object
      */
-    afterScenario: function (world, result, context) {
-    },
+    afterScenario: function (world, result, context) {},
     /**
      *
      * Runs after a Cucumber Feature.
      * @param {String}                   uri      path to feature file
      * @param {GherkinDocument.IFeature} feature  Cucumber feature object
      */
-    afterFeature: function (uri, feature) {
-    }
+    afterFeature: function (uri, feature) {},
 }

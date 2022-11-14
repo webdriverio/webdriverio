@@ -1,5 +1,5 @@
-import { expect, describe, it, vi, beforeEach, beforeAll } from 'vitest'
 import puppeteer from 'puppeteer-core'
+import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { remote } from '../../../src/index.js'
 
@@ -19,8 +19,8 @@ describe('attach Puppeteer', () => {
         browser = await remote({
             baseUrl: 'http://foobar.com',
             capabilities: {
-                browserName: 'foobar'
-            }
+                browserName: 'foobar',
+            },
         })
     })
 
@@ -31,10 +31,10 @@ describe('attach Puppeteer', () => {
             capabilities: {
                 browserName: 'chrome',
                 'goog:chromeOptions': {
-                    debuggerAddress: 'localhost:1234'
-                }
+                    debuggerAddress: 'localhost:1234',
+                },
             },
-            requestedCapabilities: {}
+            requestedCapabilities: {},
         })
         expect(typeof pptr).toBe('object')
         expect(puppeteerConnect.mock.calls).toMatchSnapshot()
@@ -46,13 +46,19 @@ describe('attach Puppeteer', () => {
             options: browser.options,
             capabilities: {
                 browserName: 'firefox',
-                browserVersion: '79.0b'
+                browserVersion: '79.0b',
             },
             requestedCapabilities: {
                 'moz:firefoxOptions': {
-                    args: ['foo', 'bar', '-remote-debugging-port', 4321, 'barfoo']
-                } as any
-            }
+                    args: [
+                        'foo',
+                        'bar',
+                        '-remote-debugging-port',
+                        4321,
+                        'barfoo',
+                    ],
+                } as any,
+            },
         })
         expect(typeof pprt).toBe('object')
         expect(puppeteerConnect.mock.calls).toMatchSnapshot()
@@ -66,14 +72,14 @@ describe('attach Puppeteer', () => {
                 browserName: 'firefox',
                 browserVersion: '79.0b',
                 'moz:firefoxOptions': {
-                    debuggerAddress: 'localhost:1234'
-                }
+                    debuggerAddress: 'localhost:1234',
+                },
             },
             requestedCapabilities: {
                 'moz:firefoxOptions': {
-                    args: {}
-                } as any
-            }
+                    args: {},
+                } as any,
+            },
         })
         expect(typeof pptr).toBe('object')
         expect(puppeteerConnect.mock.calls).toMatchSnapshot()
@@ -86,32 +92,42 @@ describe('attach Puppeteer', () => {
             capabilities: {
                 browserName: 'edge',
                 'ms:edgeOptions': {
-                    debuggerAddress: 'localhost:1234'
-                }
+                    debuggerAddress: 'localhost:1234',
+                },
             },
-            requestedCapabilities: {}
+            requestedCapabilities: {},
         })
         expect(typeof pptr).toBe('object')
         expect(puppeteerConnect.mock.calls).toMatchSnapshot()
     })
 
     it('should fail for old Firefox version', async () => {
-        const err = await browser.getPuppeteer.call({
-            ...browser,
-            options: browser.options,
-            capabilities: {
-                browserName: 'firefox',
-                browserVersion: '78.0b'
-            },
-            requestedCapabilities: {
-                'moz:firefoxOptions': {
-                    args: ['foo', 'bar', '-remote-debugging-port', 4321, 'barfoo']
-                } as any
-            }
-        // @ts-ignore uses sync command
-        }).catch(err => err)
+        const err = await browser.getPuppeteer
+            .call({
+                ...browser,
+                options: browser.options,
+                capabilities: {
+                    browserName: 'firefox',
+                    browserVersion: '78.0b',
+                },
+                requestedCapabilities: {
+                    'moz:firefoxOptions': {
+                        args: [
+                            'foo',
+                            'bar',
+                            '-remote-debugging-port',
+                            4321,
+                            'barfoo',
+                        ],
+                    } as any,
+                },
+                // @ts-ignore uses sync command
+            })
+            .catch((err) => err)
 
-        expect(err.message).toContain('Using DevTools capabilities is not supported for this session.')
+        expect(err.message).toContain(
+            'Using DevTools capabilities is not supported for this session.',
+        )
     })
 
     it('should not re-attach if connection was already established', async () => {
@@ -121,12 +137,12 @@ describe('attach Puppeteer', () => {
             capabilities: {
                 browserName: 'chrome',
                 'goog:chromeOptions': {
-                    debuggerAddress: 'localhost:1234'
-                }
+                    debuggerAddress: 'localhost:1234',
+                },
             },
             puppeteer: {
-                isConnected: vi.fn().mockReturnValue(true)
-            } as any
+                isConnected: vi.fn().mockReturnValue(true),
+            } as any,
         })
         expect(typeof pptr).toBe('object')
         expect(puppeteerConnect).toHaveBeenCalledTimes(0)
@@ -137,8 +153,8 @@ describe('attach Puppeteer', () => {
             ...browser,
             options: browser.options,
             capabilities: {
-                'se:cdp': 'http://my.grid:1234/session/mytestsession/se/cdp'
-            }
+                'se:cdp': 'http://my.grid:1234/session/mytestsession/se/cdp',
+            },
         })
         expect(typeof pptr).toBe('object')
         expect(puppeteerConnect.mock.calls).toMatchSnapshot()
@@ -149,19 +165,19 @@ describe('attach Puppeteer', () => {
             ...browser,
             capabilities: {
                 'selenoid:options': {
-                    foo: 'bar'
-                } as any
+                    foo: 'bar',
+                } as any,
             },
             requestedCapabilities: {
                 'selenoid:options': {
-                    foo: 'bar'
-                } as any
+                    foo: 'bar',
+                } as any,
             },
             options: {
                 hostname: 'my.grid',
                 port: 4444,
-                path: '/wd/hub'
-            } as any
+                path: '/wd/hub',
+            } as any,
         })
         expect(typeof pptr).toBe('object')
         expect(puppeteerConnect.mock.calls).toMatchSnapshot()
@@ -172,22 +188,21 @@ describe('attach Puppeteer', () => {
             ...browser,
             capabilities: {
                 'moon:options': {
-                    foo: 'bar'
-                } as any
+                    foo: 'bar',
+                } as any,
             },
             requestedCapabilities: {
                 'moon:options': {
-                    foo: 'bar'
-                } as any
+                    foo: 'bar',
+                } as any,
             },
             options: {
                 hostname: 'my.grid',
                 port: 4444,
-                path: '/wd/hub'
-            } as any
+                path: '/wd/hub',
+            } as any,
         })
         expect(typeof pptr).toBe('object')
         expect(puppeteerConnect.mock.calls).toMatchSnapshot()
     })
-
 })

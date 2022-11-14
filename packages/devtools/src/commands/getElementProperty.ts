@@ -1,5 +1,5 @@
-import { getStaleElementError } from '../utils.js'
 import type DevToolsDriver from '../devtoolsdriver'
+import { getStaleElementError } from '../utils.js'
 
 /**
  * The Get Element Property command will return the result of getting a property of an element.
@@ -10,9 +10,9 @@ import type DevToolsDriver from '../devtoolsdriver'
  * @param {string} name       name of the attribute property to retrieve
  * @return {string}           The named property of the element, accessed by calling GetOwnProperty on the element object.
  */
-export default async function getElementProperty (
+export default async function getElementProperty(
     this: DevToolsDriver,
-    { elementId, name }: { elementId: string, name: string }
+    { elementId, name }: { elementId: string; name: string },
 ) {
     const elementHandle = await this.elementStore.get(elementId)
 

@@ -3,7 +3,7 @@ import { getBrowserObject } from '../../utils/index.js'
 
 const getWebElement = (el: WebdriverIO.Element) => ({
     [ELEMENT_KEY]: el.elementId, // w3c compatible
-    ELEMENT: el.elementId // jsonwp compatible
+    ELEMENT: el.elementId, // jsonwp compatible
 })
 
 /**
@@ -28,18 +28,16 @@ const getWebElement = (el: WebdriverIO.Element) => ({
  * @return  {Boolean}   true if elements are equal
  *
  */
-export default async function isEqual (
+export default async function isEqual(
     this: WebdriverIO.Element,
-    el: WebdriverIO.Element
+    el: WebdriverIO.Element,
 ) {
     const browser = getBrowserObject(this)
 
     // mobile native
     if (browser.isMobile) {
         const context = await browser.getContext()
-        const contextId = typeof context === 'string'
-            ? context
-            : context?.id
+        const contextId = typeof context === 'string' ? context : context?.id
 
         if (contextId && contextId.toLowerCase().includes('native')) {
             return this.elementId === el.elementId
@@ -51,8 +49,12 @@ export default async function isEqual (
     try {
         result = await browser.execute(
             /* istanbul ignore next */
-            function (el1: WebdriverIO.Element, el2: WebdriverIO.Element) { return el1 === el2 },
-            getWebElement(this), getWebElement(el))
+            function (el1: WebdriverIO.Element, el2: WebdriverIO.Element) {
+                return el1 === el2
+            },
+            getWebElement(this),
+            getWebElement(el),
+        )
     } catch (err: any) {
         result = false
     }

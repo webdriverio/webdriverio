@@ -1,4 +1,4 @@
-import WDIOReporter, { SuiteStats, RunnerStats } from '@wdio/reporter'
+import WDIOReporter, { RunnerStats, SuiteStats } from '@wdio/reporter'
 import chalk from 'chalk'
 
 import type { Capabilities, Reporters } from '@wdio/types'
@@ -14,19 +14,19 @@ export default class ConciseReporter extends WDIOReporter {
         super(Object.assign({ stdout: true }, options))
     }
 
-    onSuiteStart (suite: SuiteStats): void {
+    onSuiteStart(suite: SuiteStats): void {
         this._suiteUids.push(suite.uid)
     }
 
-    onSuiteEnd (suite: SuiteStats): void {
+    onSuiteEnd(suite: SuiteStats): void {
         this._suites.push(suite)
     }
 
-    onTestFail () {
+    onTestFail() {
         this._stateCounts.failed++
     }
 
-    onRunnerEnd (runner: RunnerStats): void {
+    onRunnerEnd(runner: RunnerStats): void {
         this.printReport(runner)
     }
 
@@ -38,9 +38,11 @@ export default class ConciseReporter extends WDIOReporter {
         const header = chalk.yellow('========= Your concise report ==========')
 
         const output = [
-            this.getEnviromentCombo(runner.capabilities as Capabilities.DesiredCapabilities),
+            this.getEnviromentCombo(
+                runner.capabilities as Capabilities.DesiredCapabilities,
+            ),
             this.getCountDisplay(),
-            ...this.getFailureDisplay()
+            ...this.getFailureDisplay(),
         ]
 
         this.write(`${header}\n${output.join('\n')}\n`)
@@ -50,11 +52,13 @@ export default class ConciseReporter extends WDIOReporter {
      * Get the display for failing tests
      * @return {String} Count display
      */
-    getCountDisplay () {
+    getCountDisplay() {
         const failedTestsCount = this._stateCounts.failed
 
         return failedTestsCount > 0
-            ? `Test${failedTestsCount > 1 ? 's' : ''} failed (${failedTestsCount}):`
+            ? `Test${
+                  failedTestsCount > 1 ? 's' : ''
+              } failed (${failedTestsCount}):`
             : 'All went well !!'
     }
 
@@ -62,18 +66,22 @@ export default class ConciseReporter extends WDIOReporter {
      * Get display for failed tests, e.g. stack trace
      * @return {Array} Stack trace output
      */
-    getFailureDisplay () {
+    getFailureDisplay() {
         const output: string[] = []
 
-        this.getOrderedSuites().map(suite => suite.tests.map(test => {
-            if (test.state === 'failed') {
-                output.push(
-                    `  Fail : ${chalk.red(test.title)}`,
-                    // @ts-ignore
-                    `    ${test.error.type} : ${chalk.yellow(test.error?.message)}`
-                )
-            }
-        }))
+        this.getOrderedSuites().map((suite) =>
+            suite.tests.map((test) => {
+                if (test.state === 'failed') {
+                    output.push(
+                        `  Fail : ${chalk.red(test.title)}`,
+                        // @ts-ignore
+                        `    ${test.error.type} : ${chalk.yellow(
+                            test.error?.message,
+                        )}`,
+                    )
+                }
+            }),
+        )
 
         return output
     }
@@ -82,14 +90,16 @@ export default class ConciseReporter extends WDIOReporter {
      * Get suites in the order they were called
      * @return {Array} Ordered suites
      */
-    getOrderedSuites () {
+    getOrderedSuites() {
         const orderedSuites: SuiteStats[] = []
 
-        this._suiteUids.map(uid => this._suites.map(suite => {
-            if (suite.uid === uid) {
-                orderedSuites.push(suite)
-            }
-        }))
+        this._suiteUids.map((uid) =>
+            this._suites.map((suite) => {
+                if (suite.uid === uid) {
+                    orderedSuites.push(suite)
+                }
+            }),
+        )
 
         return orderedSuites
     }
@@ -100,22 +110,32 @@ export default class ConciseReporter extends WDIOReporter {
      * @param  {Boolean} verbose
      * @return {String}          Enviroment string
      */
-    getEnviromentCombo (caps: Capabilities.DesiredCapabilities) {
+    getEnviromentCombo(caps: Capabilities.DesiredCapabilities) {
         const device = caps.deviceName
         const browser = caps.browserName || caps.browser
-        const version = caps.browserVersion || caps.version || caps.platformVersion || caps.browser_version
-        const platform = caps.os ? (caps.os + ' ' + caps.os_version) : (caps.platform || caps.platformName)
+        const version =
+            caps.browserVersion ||
+            caps.version ||
+            caps.platformVersion ||
+            caps.browser_version
+        const platform = caps.os
+            ? caps.os + ' ' + caps.os_version
+            : caps.platform || caps.platformName
 
         // mobile capabilities
         if (device) {
-            const program = (caps.app || '').replace('sauce-storage:', '') || caps.browserName
+            const program =
+                (caps.app || '').replace('sauce-storage:', '') ||
+                caps.browserName
             const executing = program ? `executing ${program}` : ''
 
             return `${device} on ${platform} ${version} ${executing}`.trim()
         }
 
-        return browser
-            + (version ? ` (v${version})` : '')
-            + (platform ? ` on ${platform}` : '')
+        return (
+            browser +
+            (version ? ` (v${version})` : '') +
+            (platform ? ` on ${platform}` : '')
+        )
     }
 }

@@ -20,9 +20,9 @@ import { shadowFnFactory } from '../../scripts/shadowFnFactory.js'
  * @type utility
  *
  */
-export default async function shadowRoot (
+export default async function shadowRoot(
     this: WebdriverIO.Element,
-    selector: string
+    selector: string,
 ) {
     return await this.$$(shadowFnFactory(selector, true))
 }

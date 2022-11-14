@@ -21,11 +21,11 @@ class Timer {
     private _mainTimeoutId?: NodeJS.Timeout
     private _lastError?: Error
 
-    constructor (
+    constructor(
         private _delay: number,
         private _timeout: number,
         private _fn: Function,
-        private _leading = false
+        private _leading = false,
     ) {
         const retPromise = new Promise<boolean>((resolve, reject) => {
             this._resolve = resolve
@@ -37,7 +37,7 @@ class Timer {
         return retPromise as any
     }
 
-    private _start () {
+    private _start() {
         this._startTime = Date.now()
         if (this._leading) {
             this._tick()
@@ -59,25 +59,27 @@ class Timer {
         }, this._timeout)
     }
 
-    private _stop () {
+    private _stop() {
         if (this._timeoutId) {
             clearTimeout(this._timeoutId)
         }
         delete this._timeoutId
     }
 
-    private _stopMain () {
+    private _stopMain() {
         if (this._mainTimeoutId) {
             clearTimeout(this._mainTimeoutId)
         }
     }
 
-    private _tick () {
+    private _tick() {
         const result = this._fn()
 
         if (typeof result.then !== 'function') {
             if (!result) {
-                return this._checkCondition(new Error('return value was never truthy'))
+                return this._checkCondition(
+                    new Error('return value was never truthy'),
+                )
             }
 
             return this._checkCondition(undefined, result)
@@ -85,11 +87,11 @@ class Timer {
 
         result.then(
             (res: any) => this._checkCondition(undefined, res),
-            (err: Error) => this._checkCondition(err)
+            (err: Error) => this._checkCondition(err),
         )
     }
 
-    private _checkCondition (err?: Error, res?: any) {
+    private _checkCondition(err?: Error, res?: any) {
         ++this._conditionExecutedCnt
         this._lastError = err
 
@@ -102,7 +104,8 @@ class Timer {
         }
 
         // autocorrect timer
-        let diff = (Date.now() - (this._startTime || 0)) - (this._ticks++ * this._delay)
+        let diff =
+            Date.now() - (this._startTime || 0) - this._ticks++ * this._delay
         let delay = Math.max(0, this._delay - diff)
 
         // clear old timeoutID
@@ -118,11 +121,11 @@ class Timer {
         }
     }
 
-    private _hasTime (delay: number) {
-        return (Date.now() - (this._startTime || 0) + delay) <= this._timeout
+    private _hasTime(delay: number) {
+        return Date.now() - (this._startTime || 0) + delay <= this._timeout
     }
 
-    private _wasConditionExecuted () {
+    private _wasConditionExecuted() {
         return this._conditionExecutedCnt > 0
     }
 }

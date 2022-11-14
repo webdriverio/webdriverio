@@ -1,9 +1,9 @@
 import logger from '@wdio/logger'
-import { WritableStreamBuffer } from 'stream-buffers'
 import type { Options, Workers } from '@wdio/types'
+import { WritableStreamBuffer } from 'stream-buffers'
 
+import { BUFFER_OPTIONS, SHUTDOWN_TIMEOUT } from './constants.js'
 import WorkerInstance from './worker.js'
-import { SHUTDOWN_TIMEOUT, BUFFER_OPTIONS } from './constants.js'
 
 const log = logger('@wdio/local-runner')
 
@@ -18,21 +18,18 @@ export default class LocalRunner {
     stdout = new WritableStreamBuffer(BUFFER_OPTIONS)
     stderr = new WritableStreamBuffer(BUFFER_OPTIONS)
 
-    constructor (
-        private _options: never,
-        private _config: Options.Testrunner
-    ) {}
+    constructor(private _options: never, private _config: Options.Testrunner) {}
 
     /**
      * nothing to initialise when running locally
      */
-    initialise () {}
+    initialise() {}
 
-    getWorkerCount () {
+    getWorkerCount() {
         return Object.keys(this.workerPool).length
     }
 
-    run ({ command, args, ...workerOptions }: RunArgs) {
+    run({ command, args, ...workerOptions }: RunArgs) {
         /**
          * adjust max listeners on stdout/stderr when creating listeners
          */
@@ -42,7 +39,12 @@ export default class LocalRunner {
             process.stderr.setMaxListeners(workerCnt + 2)
         }
 
-        const worker = new WorkerInstance(this._config, workerOptions, this.stdout, this.stderr)
+        const worker = new WorkerInstance(
+            this._config,
+            workerOptions,
+            this.stdout,
+            this.stderr,
+        )
         this.workerPool[workerOptions.cid] = worker
         worker.postMessage(command, args)
 
@@ -55,11 +57,18 @@ export default class LocalRunner {
      * @return {Promise}  resolves when all worker have been shutdown or
      *                    a timeout was reached
      */
-    shutdown () {
+    shutdown() {
         log.info('Shutting down spawned worker')
 
         for (const [cid, worker] of Object.entries(this.workerPool)) {
-            const { caps, server, sessionId, config, isMultiremote, instances } = worker
+            const {
+                caps,
+                server,
+                sessionId,
+                config,
+                isMultiremote,
+                instances,
+            } = worker
             let payload = {}
 
             /**
@@ -72,7 +81,7 @@ export default class LocalRunner {
                     caps,
                     watch: true,
                     isMultiremote,
-                    instances
+                    instances,
                 }
             } else if (!worker.isBusy) {
                 delete this.workerPool[cid]
@@ -85,8 +94,9 @@ export default class LocalRunner {
         return new Promise<void>((resolve) => {
             const timeout = setTimeout(resolve, SHUTDOWN_TIMEOUT)
             const interval = setInterval(() => {
-                const busyWorker = Object.entries(this.workerPool)
-                    .filter(([, worker]) => worker.isBusy).length
+                const busyWorker = Object.entries(this.workerPool).filter(
+                    ([, worker]) => worker.isBusy,
+                ).length
 
                 log.info(`Waiting for ${busyWorker} to shut down gracefully`)
                 if (busyWorker === 0) {

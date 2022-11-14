@@ -7,7 +7,7 @@ import type DevToolsDriver from '../devtoolsdriver'
  * @alias browser.deleteSession
  * @see https://w3c.github.io/webdriver/#dfn-delete-session
  */
-export default async function deleteSession (this: DevToolsDriver) {
+export default async function deleteSession(this: DevToolsDriver) {
     await this.browser.close()
     this.windows.clear()
     return null

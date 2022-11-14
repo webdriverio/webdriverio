@@ -1,10 +1,10 @@
-import url from 'node:url'
 import path from 'node:path'
+import url from 'node:url'
 
-import logger from '@wdio/logger'
 import { browser } from '@wdio/globals'
-import type { Browser } from 'webdriverio'
+import logger from '@wdio/logger'
 import type { Capabilities } from '@wdio/types'
+import type { Browser } from 'webdriverio'
 
 import type BaseReporter from './reporter'
 import type { TestFramework } from './types'
@@ -23,36 +23,38 @@ declare global {
 }
 
 export default class BrowserFramework implements Omit<TestFramework, 'init'> {
-    constructor (
+    constructor(
         private _cid: string,
         private _config: unknown,
         private _specs: string[],
         private _capabilities: Capabilities.RemoteCapability,
-        private _reporter: BaseReporter
+        private _reporter: BaseReporter,
     ) {}
 
     /**
      * always return true as it is unrelevant for component testing
      */
-    hasTests () {
+    hasTests() {
         return true
     }
 
-    init () {
+    init() {
         return undefined as any as TestFramework
     }
 
-    async run () {
+    async run() {
         try {
             const failures = await this.#loop()
             return failures
         } catch (err: any) {
-            log.error(`Failed to run browser tests with cid ${this._cid}: ${err.stack}`)
+            log.error(
+                `Failed to run browser tests with cid ${this._cid}: ${err.stack}`,
+            )
             return 1
         }
     }
 
-    async #loop () {
+    async #loop() {
         /**
          * start tests
          */
@@ -61,20 +63,29 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
         for (const spec of this._specs) {
             log.info(`Run spec file ${spec} for cid ${this._cid}`)
             console.log(`Run spec file ${spec} for cid ${this._cid}`)
-            await browser.url(`/${this._cid}/test.html?spec=${url.fileURLToPath(spec)}`)
+            await browser.url(
+                `/${this._cid}/test.html?spec=${url.fileURLToPath(spec)}`,
+            )
             // await browser.debug()
 
             /**
              * fetch page errors that are thrown during rendering and let spec file fail
              */
-            const jsErrors: WDIOErrorEvent[] = (await browser.execute(() => window.__wdioErrors__)) || ([])
+            const jsErrors: WDIOErrorEvent[] =
+                (await browser.execute(() => window.__wdioErrors__)) || []
             if (jsErrors.length) {
-                const errors = jsErrors.map((ev) => `${path.basename(ev.filename)}: ${ev.message}`)
-                const envError = new Error(`Test failed due to following error(s):${sep}${errors.join(sep)}`)
+                const errors = jsErrors.map(
+                    (ev) => `${path.basename(ev.filename)}: ${ev.message}`,
+                )
+                const envError = new Error(
+                    `Test failed due to following error(s):${sep}${errors.join(
+                        sep,
+                    )}`,
+                )
                 this._reporter.emit('error', {
                     cid: this._cid,
                     name: 'error',
-                    content: envError.message
+                    content: envError.message,
                 })
                 failures += 1
                 continue
@@ -86,45 +97,66 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
         return failures
     }
 
-    async #fetchEvents (browser: Browser<'async'>, spec: string): Promise<number> {
+    async #fetchEvents(
+        browser: Browser<'async'>,
+        spec: string,
+    ): Promise<number> {
         /**
          * wait until tests have finished and results are emitted to the window scope
          */
         let failures: number | null = null
-        await browser.waitUntil(async () => {
-            while (typeof failures !== 'number') {
-                failures = await browser?.execute(() => (
-                    window.__wdioEvents__.length > 0
-                        ? window.__wdioFailures__
-                        : null
-                ))
-            }
-            return true
-        }, {
-            timeoutMsg: 'browser test timed out'
-        })
+        await browser.waitUntil(
+            async () => {
+                while (typeof failures !== 'number') {
+                    failures = await browser?.execute(() =>
+                        window.__wdioEvents__.length > 0
+                            ? window.__wdioFailures__
+                            : null,
+                    )
+                }
+                return true
+            },
+            {
+                timeoutMsg: 'browser test timed out',
+            },
+        )
 
         /**
          * populate events to the reporter
          */
         const events = await browser.execute(() => window.__wdioEvents__)
         for (const ev of events) {
-            if ((ev.type === 'suite:start' || ev.type === 'suite:end') && ev.title === '') {
+            if (
+                (ev.type === 'suite:start' || ev.type === 'suite:end') &&
+                ev.title === ''
+            ) {
                 continue
             }
             this._reporter.emit(ev.type, {
                 ...ev,
                 file: spec,
                 uid: this._cid,
-                cid: this._cid
+                cid: this._cid,
             })
         }
 
         return failures! as number
     }
 
-    static init (cid: string, config: unknown, specs: string[], caps: Capabilities.RemoteCapability, reporter: BaseReporter) {
-        const framework = new BrowserFramework(cid, config, specs, caps, reporter)
+    static init(
+        cid: string,
+        config: unknown,
+        specs: string[],
+        caps: Capabilities.RemoteCapability,
+        reporter: BaseReporter,
+    ) {
+        const framework = new BrowserFramework(
+            cid,
+            config,
+            specs,
+            caps,
+            reporter,
+        )
         return framework
     }
 }

@@ -1,7 +1,7 @@
 /**
  * @vitest-environment jsdom
  */
-import { it, expect, vi, beforeEach, describe, afterEach } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { react$, react$$, waitToLoadReact } from '../../src/scripts/resq.js'
 
 class MockResq {
@@ -10,7 +10,7 @@ class MockResq {
 }
 
 beforeEach(() => {
-    (global.window as any).resq = {
+    ;(global.window as any).resq = {
         resq$: vi.fn().mockImplementation(() => new MockResq()),
         resq$$: vi.fn().mockImplementation(() => new MockResq()),
         waitToLoadReact: vi.fn(),
@@ -20,7 +20,12 @@ beforeEach(() => {
 describe('resq script', () => {
     describe('react$', () => {
         it('should call the window function', () => {
-            const result = react$('Test', [{ foo: 'bar' }], { test: 123 }, {} as HTMLElement)
+            const result = react$(
+                'Test',
+                [{ foo: 'bar' }],
+                { test: 123 },
+                {} as HTMLElement,
+            )
 
             const { resq$ } = (global.window as any).resq
             const { byProps } = resq$.mock.results[0].value
@@ -32,34 +37,56 @@ describe('resq script', () => {
             expect(byProps).toBeCalledWith([{ foo: 'bar' }])
             expect(byState).toBeCalledTimes(1)
             expect(byState).toBeCalledWith({ test: 123 })
-            expect(result).toMatchObject({ message: 'React element with selector "Test" wasn\'t found' })
+            expect(result).toMatchObject({
+                message: 'React element with selector "Test" wasn\'t found',
+            })
         })
 
         it('should return node object found', () => {
-            (global.window as any).resq.resq$ = vi.fn().mockImplementation(() => ([{
-                node: global.document.createElement('div')
-            }]))
+            ;(global.window as any).resq.resq$ = vi
+                .fn()
+                .mockImplementation(() => [
+                    {
+                        node: global.document.createElement('div'),
+                    },
+                ])
 
             const result = react$('Test', [], {}, {} as HTMLElement)
 
-            expect(result).toMatchObject(global.document.createElement('div') as any)
+            expect(result).toMatchObject(
+                global.document.createElement('div') as any,
+            )
         })
 
         it('should return the first node object for fragments', () => {
-            (global.window as any).resq.resq$ = vi.fn().mockImplementation(() => ([{
-                node: [global.document.createElement('div'), global.document.createElement('div')],
-                isFragment: true,
-            }]))
+            ;(global.window as any).resq.resq$ = vi
+                .fn()
+                .mockImplementation(() => [
+                    {
+                        node: [
+                            global.document.createElement('div'),
+                            global.document.createElement('div'),
+                        ],
+                        isFragment: true,
+                    },
+                ])
 
             const result = react$('Test', [], {}, {} as HTMLElement)
 
-            expect(result).toMatchObject(global.document.createElement('div') as any)
+            expect(result).toMatchObject(
+                global.document.createElement('div') as any,
+            )
         })
     })
 
     describe('react$$"', () => {
         it('should call the window functiom', () => {
-            const result = react$$('Test', [{ foo: 'bar' }], { test: '123' }, {} as HTMLElement)
+            const result = react$$(
+                'Test',
+                [{ foo: 'bar' }],
+                { test: '123' },
+                {} as HTMLElement,
+            )
 
             const { resq$$ } = (global.window as any).resq
             const { byProps } = resq$$.mock.results[0].value
@@ -75,9 +102,11 @@ describe('resq script', () => {
         })
 
         it('should return node objects found', () => {
-            (global.window as any).resq.resq$$ = vi.fn().mockImplementation(() => ([
-                { node: global.document.createElement('div') }
-            ]))
+            ;(global.window as any).resq.resq$$ = vi
+                .fn()
+                .mockImplementation(() => [
+                    { node: global.document.createElement('div') },
+                ])
 
             const result = react$$('Test', [], {}, {} as HTMLElement)
 
@@ -85,16 +114,24 @@ describe('resq script', () => {
         })
 
         it('should return array node objects for fragments', () => {
-            (global.window as any).resq.resq$$ = vi.fn().mockImplementation(() => ([
-                {
-                    node: [global.document.createElement('div'), global.document.createElement('div')],
-                    isFragment: true,
-                },
-                {
-                    node: [global.document.createElement('div'), global.document.createElement('div')],
-                    isFragment: true,
-                }
-            ]))
+            ;(global.window as any).resq.resq$$ = vi
+                .fn()
+                .mockImplementation(() => [
+                    {
+                        node: [
+                            global.document.createElement('div'),
+                            global.document.createElement('div'),
+                        ],
+                        isFragment: true,
+                    },
+                    {
+                        node: [
+                            global.document.createElement('div'),
+                            global.document.createElement('div'),
+                        ],
+                        isFragment: true,
+                    },
+                ])
 
             const result = react$$('Test', [], {}, {} as HTMLElement)
 
@@ -102,7 +139,7 @@ describe('resq script', () => {
                 global.document.createElement('div'),
                 global.document.createElement('div'),
                 global.document.createElement('div'),
-                global.document.createElement('div')
+                global.document.createElement('div'),
             ])
         })
     })

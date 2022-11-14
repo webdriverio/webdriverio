@@ -1,10 +1,10 @@
-import path from 'node:path'
 import { EventEmitter } from 'node:events'
-import { expect, test, vi, beforeEach } from 'vitest'
+import path from 'node:path'
 import puppeteer from 'puppeteer-core'
+import { beforeEach, expect, test, vi } from 'vitest'
 
-import DevToolsService from '../src/index.js'
 import Auditor from '../src/auditor.js'
+import DevToolsService from '../src/index.js'
 
 import logger from '@wdio/logger'
 
@@ -12,7 +12,10 @@ vi.mock('ws')
 vi.mock('puppeteer-core')
 vi.mock('lighthouse/lighthouse-core/fraggle-rock/gather/session')
 
-vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock(
+    '@wdio/logger',
+    () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')),
+)
 vi.mock('../src/commands', () => {
     class CommandHandlerMock {
         cdp = vi.fn()
@@ -29,16 +32,18 @@ vi.mock('../src/auditor', () => {
             logs: any
             updateCommands = updateCommandsMock
 
-            constructor (traceEvents: any, logs: any) {
+            constructor(traceEvents: any, logs: any) {
                 this.traceEvents = traceEvents
                 this.logs = logs
             }
-        }
+        },
     }
 })
 
 vi.mock('../src/utils', async () => {
-    const { isBrowserSupported } = await vi.importActual('../src/utils.js') as any
+    const { isBrowserSupported } = (await vi.importActual(
+        '../src/utils.js',
+    )) as any
     let wasCalled = false
 
     return {
@@ -51,7 +56,7 @@ vi.mock('../src/utils', async () => {
         }),
         isBrowserSupported,
         setUnsupportedCommand: vi.fn(),
-        getLighthouseDriver: vi.fn()
+        getLighthouseDriver: vi.fn(),
     }
 })
 
@@ -62,16 +67,16 @@ vi.mock('../src/gatherer/coverage', () => {
             getCoverageReport = vi.fn()
             init = vi.fn()
 
-            constructor () {
+            constructor() {
                 instances.push(this)
             }
-        }
+        },
     }
 })
 
 const pageMock = {
     setCacheEnabled: vi.fn(),
-    emulate: vi.fn()
+    emulate: vi.fn(),
 }
 const sessionMock = { send: vi.fn() }
 const log = logger('')
@@ -81,7 +86,7 @@ beforeEach(() => {
     browser = {
         getPuppeteer: vi.fn(() => puppeteer.connect({})),
         addCommand: vi.fn(),
-        emit: vi.fn()
+        emit: vi.fn(),
     } as any
 
     sessionMock.send.mockClear()
@@ -134,14 +139,16 @@ test('if not supported by browser', async () => {
     service['_isSupported'] = false
 
     await service._setupHandler()
-    expect(vi.mocked(service['_browser']?.addCommand!).mock.calls).toHaveLength(0)
+    expect(vi.mocked(service['_browser']?.addCommand!).mock.calls).toHaveLength(
+        0,
+    )
 })
 
 test('if supported by browser', async () => {
     const service = new DevToolsService({
         coverageReporter: {
-            enable: true
-        }
+            enable: true,
+        },
     })
     service['_browser'] = browser
     service['_isSupported'] = true
@@ -150,18 +157,31 @@ test('if supported by browser', async () => {
     expect(service['_session']?.send).toBeCalledWith('Runtime.enable')
     expect(service['_session']?.send).toBeCalledWith('Page.enable')
     expect(service['_browser']?.addCommand).toBeCalledWith(
-        'enablePerformanceAudits', expect.any(Function))
+        'enablePerformanceAudits',
+        expect.any(Function),
+    )
     expect(service['_browser']?.addCommand).toBeCalledWith(
-        'disablePerformanceAudits', expect.any(Function))
+        'disablePerformanceAudits',
+        expect.any(Function),
+    )
     expect(service['_browser']?.addCommand).toBeCalledWith(
-        'emulateDevice', expect.any(Function))
+        'emulateDevice',
+        expect.any(Function),
+    )
     expect(service['_browser']?.addCommand).toBeCalledWith(
-        'checkPWA', expect.any(Function))
+        'checkPWA',
+        expect.any(Function),
+    )
 
     service['_devtoolsGatherer'] = { onMessage: vi.fn() } as any
-    service['_propagateWSEvents']({ data: '{"method": "foo", "params": "bar"}' })
+    service['_propagateWSEvents']({
+        data: '{"method": "foo", "params": "bar"}',
+    })
     expect(service['_devtoolsGatherer']?.onMessage).toBeCalledTimes(1)
-    expect(service['_devtoolsGatherer']?.onMessage).toBeCalledWith({ method:'foo', params: 'bar' })
+    expect(service['_devtoolsGatherer']?.onMessage).toBeCalledWith({
+        method: 'foo',
+        params: 'bar',
+    })
     expect((service['_browser'] as any).emit).toBeCalledTimes(1)
     expect((service['_browser'] as any).emit).toBeCalledWith('foo', 'bar')
     expect(service['_coverageGatherer']!.init).toBeCalledTimes(1)
@@ -202,7 +222,9 @@ test('beforeCommand', () => {
 
     service.beforeCommand('click', ['some other page'])
     expect(service['_traceGatherer']?.startTracing).toBeCalledTimes(3)
-    expect(service['_traceGatherer']?.startTracing).toBeCalledWith('click transition')
+    expect(service['_traceGatherer']?.startTracing).toBeCalledWith(
+        'click transition',
+    )
 })
 
 test('afterCommand', () => {
@@ -262,7 +284,10 @@ test('afterCommand: should update browser commands even if failed', () => {
     service['_traceGatherer']?.emit('tracingError', new Error('boom'))
 
     const auditor = new Auditor()
-    expect(auditor.updateCommands).toBeCalledWith('some browser', expect.any(Function))
+    expect(auditor.updateCommands).toBeCalledWith(
+        'some browser',
+        expect.any(Function),
+    )
 })
 
 test('afterCommand: should continue with command after tracingFinished was emitted', async () => {
@@ -285,11 +310,16 @@ test('afterCommand: should continue with command after tracingFinished was emitt
 test('_enablePerformanceAudits: throws if network or cpu properties have wrong types', () => {
     const service = new DevToolsService({})
     service['_browser'] = browser
-    expect(
-        () => service._enablePerformanceAudits({ networkThrottling: 'super fast 3g' } as any)
+    expect(() =>
+        service._enablePerformanceAudits({
+            networkThrottling: 'super fast 3g',
+        } as any),
     ).toThrow(/Network throttling profile/)
-    expect(
-        () => service._enablePerformanceAudits({ networkThrottling: 'Good 3G', cpuThrottling: '34' } as any)
+    expect(() =>
+        service._enablePerformanceAudits({
+            networkThrottling: 'Good 3G',
+            cpuThrottling: '34',
+        } as any),
     ).toThrow(/CPU throttling rate needs to be typeof number/)
 })
 
@@ -311,7 +341,7 @@ test('_enablePerformanceAudits: applies some custom values', () => {
         networkThrottling: 'Regular 2G',
         cpuThrottling: 42,
         cacheEnabled: true,
-        formFactor: 'mobile'
+        formFactor: 'mobile',
     })
 
     expect(service['_networkThrottling']).toBe('Regular 2G')
@@ -327,7 +357,7 @@ test('_disablePerformanceAudits', () => {
         networkThrottling: 'Regular 2G',
         cpuThrottling: 42,
         cacheEnabled: true,
-        formFactor: 'mobile'
+        formFactor: 'mobile',
     })
     service._disablePerformanceAudits()
     expect(service['_shouldRunPerformanceAudits']).toBe(false)
@@ -336,8 +366,9 @@ test('_disablePerformanceAudits', () => {
 test('_setThrottlingProfile', async () => {
     const service = new DevToolsService({})
     service['_browser'] = browser
-    const err = await service._setThrottlingProfile('Good 3G', 4, true)
-        .catch((err: Error) => err) as Error
+    const err = (await service
+        ._setThrottlingProfile('Good 3G', 4, true)
+        .catch((err: Error) => err)) as Error
     expect(err.message).toContain('No page')
 
     service['_page'] = pageMock as any
@@ -345,32 +376,43 @@ test('_setThrottlingProfile', async () => {
 
     await service._setThrottlingProfile('GPRS', 42, true)
     expect(pageMock.setCacheEnabled).toBeCalledWith(true)
-    expect(sessionMock.send).toBeCalledWith('Emulation.setCPUThrottlingRate', { rate: 42 })
-    expect(sessionMock.send).toBeCalledWith('Network.emulateNetworkConditions', {
-        downloadThroughput: 6400,
-        latency: 500,
-        offline: false,
-        uploadThroughput: 2560
+    expect(sessionMock.send).toBeCalledWith('Emulation.setCPUThrottlingRate', {
+        rate: 42,
     })
+    expect(sessionMock.send).toBeCalledWith(
+        'Network.emulateNetworkConditions',
+        {
+            downloadThroughput: 6400,
+            latency: 500,
+            offline: false,
+            uploadThroughput: 2560,
+        },
+    )
 
     pageMock.setCacheEnabled.mockClear()
     sessionMock.send.mockClear()
     await service._setThrottlingProfile()
     expect(pageMock.setCacheEnabled).toBeCalledWith(false)
-    expect(sessionMock.send).toBeCalledWith('Emulation.setCPUThrottlingRate', { rate: 0 })
-    expect(sessionMock.send).toBeCalledWith('Network.emulateNetworkConditions', {
-        downloadThroughput: -1,
-        latency: 0,
-        offline: false,
-        uploadThroughput: -1
+    expect(sessionMock.send).toBeCalledWith('Emulation.setCPUThrottlingRate', {
+        rate: 0,
     })
+    expect(sessionMock.send).toBeCalledWith(
+        'Network.emulateNetworkConditions',
+        {
+            downloadThroughput: -1,
+            latency: 0,
+            offline: false,
+            uploadThroughput: -1,
+        },
+    )
 })
 
 test('_emulateDevice', async () => {
     const service = new DevToolsService({})
     service['_browser'] = browser
-    const err = await service._emulateDevice('Nexus 6P')
-        .catch((err: Error) => err) as Error
+    const err = (await service
+        ._emulateDevice('Nexus 6P')
+        .catch((err: Error) => err)) as Error
     expect(err.message).toContain('No page')
 
     service['_page'] = pageMock as any
@@ -384,7 +426,8 @@ test('_emulateDevice', async () => {
 
     const isSuccessful = await service._emulateDevice('not existing').then(
         () => true,
-        () => false)
+        () => false,
+    )
     expect(isSuccessful).toBe(false)
 })
 
@@ -399,7 +442,8 @@ test('onReload hook', async () => {
     const service = new DevToolsService({})
     service['_browser'] = browser
     service._setupHandler = vi.fn()
-    ;(service['_browser'] as any).puppeteer = 'suppose to be reset after reload' as any
+    ;(service['_browser'] as any).puppeteer =
+        'suppose to be reset after reload' as any
     service.onReload()
     expect(service._setupHandler).toBeCalledTimes(1)
 })
