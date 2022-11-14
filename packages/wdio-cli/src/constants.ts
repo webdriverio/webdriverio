@@ -576,12 +576,11 @@ export const QUESTIONNAIRE = [
         name: 'reporters',
         message: 'Which reporter do you want to use?',
         choices: SUPPORTED_PACKAGES.reporter,
-        // @ts-ignore
         default: [
             SUPPORTED_PACKAGES.reporter.find(
                 /* istanbul ignore next */
                 ({ name }) => name === 'spec',
-            ).value,
+            )?.value,
         ],
     },
     {
@@ -596,12 +595,11 @@ export const QUESTIONNAIRE = [
         name: 'services',
         message: 'Do you want to add a service to your test setup?',
         choices: SUPPORTED_PACKAGES.service,
-        // @ts-ignore
         default: [
             SUPPORTED_PACKAGES.service.find(
                 /* istanbul ignore next */
                 ({ name }) => name === 'chromedriver',
-            ).value,
+            )?.value,
         ],
         validate: /* istanbul ignore next */ (answers: string[]) =>
             validateServiceAnswers(answers),
