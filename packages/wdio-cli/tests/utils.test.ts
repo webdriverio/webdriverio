@@ -356,8 +356,8 @@ describe('renderConfigurationFile', () => {
     })
 
     it('should throw error', async () => {
-        // @ts-ignore mock feature
         vi.mocked(ejs.renderFile).mockImplementationOnce((a, b, c) =>
+            // @ts-ignore mock feature
             c('test error', null),
         )
 

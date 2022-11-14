@@ -121,8 +121,8 @@ export default class MultiRemote {
             prototype,
         )
 
-        // @ts-ignore
         return element(
+            // @ts-ignore
             this.sessionId,
             multiremoteHandler(scope.commandWrapper.bind(scope)),
         )

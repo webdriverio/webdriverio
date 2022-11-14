@@ -54,7 +54,6 @@ test('comes with a factory', async () => {
 
 test('should properly set up mocha', async () => {
     // @ts-ignore params not needed for test scenario
-    // @ts-ignore params not needed for test scenario
     const adapter = adapterFactory()
     await adapter.init()
     const result = await adapter.run()

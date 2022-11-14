@@ -174,9 +174,7 @@ describe('wdio-logger node', () => {
                 path: path as string,
                 write,
                 writable: true,
-                // @ts-ignore
                 get writableBuffer() {
-                    // @ts-ignore
                     return writableBuffer
                 },
                 // @ts-expect-error

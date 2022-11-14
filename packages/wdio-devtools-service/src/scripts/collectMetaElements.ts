@@ -32,7 +32,8 @@ export default function collectMetaElements() {
             property: getAttribute('property'),
             // @ts-ignore
             httpEquiv: meta.httpEquiv
-                ? meta.httpEquiv.toLowerCase()
+                ? // @ts-ignore
+                  meta.httpEquiv.toLowerCase()
                 : undefined,
             charset: getAttribute('charset'),
         }

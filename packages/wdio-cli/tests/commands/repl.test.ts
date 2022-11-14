@@ -1,7 +1,7 @@
 import path from 'node:path'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-// @ts-expect-error mock
 import { remote } from 'webdriverio'
+// @ts-expect-error mock
 import { yargs } from 'yargs'
 
 import { builder, handler } from '../../src/commands/repl.js'
@@ -61,7 +61,6 @@ describe('Command: repl', () => {
 
         expect(global.$).not.toBeUndefined()
         expect(global.$$).not.toBeUndefined()
-        // @ts-expect-error
         expect(global.browser).not.toBeUndefined()
     })
 

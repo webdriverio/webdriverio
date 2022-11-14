@@ -156,10 +156,11 @@ export default function getLogger(name: string) {
  */
 getLogger.waitForBuffer = async () =>
     new Promise<void>((resolve) => {
-        // @ts-ignore
         if (
             logFile &&
+            // @ts-expect-error
             Array.isArray(logFile.writableBuffer) &&
+            // @ts-expect-error
             logFile.writableBuffer.length !== 0
         ) {
             return setTimeout(async () => {
