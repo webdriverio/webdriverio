@@ -74,6 +74,10 @@ export function testrunner (options: WebdriverIO.BrowserRunnerOptions): Plugin {
              * make sure WDIO imports are resolved properly as ESM module
              */
             if (id.startsWith('@wdio') || WDIO_PACKAGES.includes(id)) {
+                if (id === '@wdio/mocha-framework/common') {
+                    return require.resolve('@wdio/mocha-framework').replace('index.js', 'common.js')
+                }
+
                 return require.resolve(id).replace('/cjs', '')
             }
 

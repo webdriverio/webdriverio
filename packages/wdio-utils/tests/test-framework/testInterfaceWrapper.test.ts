@@ -1,7 +1,7 @@
 import { MockedFunction, vi, describe, it, expect, afterEach, beforeEach } from 'vitest'
 
 import { testFnWrapper as testFnWrapperImport } from '../../src/test-framework/testFnWrapper.js'
-import { runHook, runSpec, wrapTestFunction, runTestInFiberContext } from '../../src/test-framework/testInterfaceWrapper.js'
+import { runHook, runSpec, wrapTestFunction, wrapGlobalTestMethod } from '../../src/test-framework/testInterfaceWrapper.js'
 
 const testFunction = vi.fn(function (this: any, specTitle, cb) { return cb.call(this, 'foo', 'bar') })
 const hookFunction = vi.fn(function (this: any, cb) { return cb.call(this, 'foo', 'bar') })
@@ -86,14 +86,14 @@ describe('wrapTestFunction', () => {
     })
 })
 
-describe('runTestInFiberContext', () => {
+describe('wrapGlobalTestMethod', () => {
     it('should wrap skip and only functions', () => {
         const skipFn = () => { }
         const onlyFn = function (...args: any[]) { return global.foobar(...args) }
         global.foobar = testFunction
         global.foobar.only = onlyFn
         global.foobar.skip = skipFn
-        runTestInFiberContext(true, 'beforeFn' as any, () => [] as any, 'afterFn' as any, () => [] as any, 'foobar', 'cid')
+        wrapGlobalTestMethod(true, 'beforeFn' as any, () => [] as any, 'afterFn' as any, () => [] as any, 'foobar', 'cid')
 
         expect(global.foobar.skip).toBe(skipFn)
         expect(global.foobar.only).toBe(onlyFn)
@@ -120,7 +120,7 @@ describe('runTestInFiberContext', () => {
         const scope = {
             barfoo: hookFunction
         }
-        runTestInFiberContext(false, 'beforeFn' as any, () => [] as any, 'afterFn' as any, () => [] as any, 'barfoo', 'cid', scope as any)
+        wrapGlobalTestMethod(false, 'beforeFn' as any, () => [] as any, 'afterFn' as any, () => [] as any, 'barfoo', 'cid', scope as any)
 
         const specFn = vi.fn()
         scope.barfoo(specFn)

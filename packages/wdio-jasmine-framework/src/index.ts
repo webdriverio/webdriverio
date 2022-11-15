@@ -3,7 +3,7 @@ import { EventEmitter } from 'node:events'
 
 import Jasmine from 'jasmine'
 import logger from '@wdio/logger'
-import { runTestInFiberContext, executeHooksWithArgs } from '@wdio/utils'
+import { wrapGlobalTestMethod, executeHooksWithArgs } from '@wdio/utils'
 import { expect } from 'expect-webdriverio'
 import { _setGlobal } from '@wdio/globals'
 import type { Options, Services, Capabilities } from '@wdio/types'
@@ -158,7 +158,7 @@ class JasmineAdapter {
                 afterHook.push(emitHookEvent(fnName, 'end'))
             }
 
-            runTestInFiberContext(
+            wrapGlobalTestMethod(
                 isTest,
                 isTest ? this._config.beforeTest : beforeHook,
                 hookArgsFn,

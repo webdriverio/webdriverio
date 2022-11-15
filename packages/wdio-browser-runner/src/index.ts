@@ -3,7 +3,6 @@ import getPort from 'get-port'
 import LocalRunner, { RunArgs } from '@wdio/local-runner'
 import { attach } from 'webdriverio'
 import { createServer, ViteDevServer } from 'vite'
-import type { WebSocketServer } from 'ws'
 import type { SessionStartedMessage, SessionEndedMessage } from '@wdio/runner'
 import type { Options } from '@wdio/types'
 
@@ -17,9 +16,8 @@ export default class BrowserRunner extends LocalRunner {
     #options: BrowserRunnerOptionsImport
     #config: Options.Testrunner
     #server?: ViteDevServer
-    #wss?: WebSocketServer
 
-    constructor(private options: BrowserRunnerOptionsImport, private config: Options.Testrunner) {
+    constructor(options: BrowserRunnerOptionsImport, config: Options.Testrunner) {
         super(options as never, config)
 
         if (config.framework !== 'mocha') {
@@ -75,6 +73,7 @@ export default class BrowserRunner extends LocalRunner {
             if (payload.name === 'sessionStarted') {
                 SESSIONS.set(payload.cid!, {
                     args: this.#config.mochaOpts || {},
+                    config: this.#config,
                     capabilities: payload.content.capabilities,
                     sessionId: payload.content.sessionId,
                     injectGlobals: payload.content.injectGlobals

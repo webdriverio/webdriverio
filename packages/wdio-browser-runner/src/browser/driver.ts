@@ -1,6 +1,7 @@
 import { commands } from 'virtual:wdio'
 import { webdriverMonad } from '@wdio/utils'
 import { getEnvironmentVars } from 'webdriver'
+import { connectPromise, socket } from '@wdio/browser-runner/setup'
 
 import browserCommands from './commands/index.js'
 import type { ConsoleEvent } from '../types'
@@ -16,18 +17,10 @@ export default class ProxyDriver {
         commandWrapper: any
     ) {
         const commandMessages = new Map<number, any>()
-        const wsUrl = 'ws://' + window.location.host + '/ws'
         const [cid] = window.location.pathname.slice(1).split('/')
         if (!cid) {
             throw new Error('"cid" query parameter is missing')
         }
-
-        console.log(`[WDIO] Connect to testrunner: ${wsUrl}`)
-        const socket = new WebSocket(wsUrl)
-        const connectPromise = new Promise((resolve) => {
-            console.log('[WDIO] Connected to testrunner')
-            socket.addEventListener('open', resolve)
-        })
 
         /**
          * log all console events once connected
@@ -47,9 +40,13 @@ export default class ProxyDriver {
             }
         })
 
-        socket.addEventListener('message', (ev) => {
+        socket.addEventListener('message', (ev: MessageEvent) => {
             try {
                 const payload = JSON.parse(ev.data)
+                if (payload.type !== 'command') {
+                    return
+                }
+
                 if (!payload.id) {
                     return console.error(`Message without id: ${JSON.stringify(ev.data)}`)
                 }
@@ -79,7 +76,7 @@ export default class ProxyDriver {
                     }
                     commandId++
                     console.log(`[WDIO] ${(new Date()).toISOString()} - id: ${commandId} - COMMAND: ${commandName}(${args.join(', ')})`)
-                    socket.send(JSON.stringify({ commandName, args, id: commandId, cid }))
+                    socket.send(JSON.stringify({ commandName, args, id: commandId, cid, type: 'command' }))
                     return new Promise((resolve, reject) => {
                         const commandTimeout = setTimeout(
                             () => reject(new Error(`Command "${commandName}" timed out`)),

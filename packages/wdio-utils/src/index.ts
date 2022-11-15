@@ -8,7 +8,7 @@ import {
     isFunctionAsync, transformCommandLogResult, canAccess, sleep
 } from './utils.js'
 import { wrapCommand, executeHooksWithArgs, executeAsync } from './shim.js'
-import { testFnWrapper, runTestInFiberContext } from './test-framework/index.js'
+import { testFnWrapper, wrapGlobalTestMethod } from './test-framework/index.js'
 import {
     isW3C, capabilitiesEnvironmentDetector,
     sessionEnvironmentDetector, devtoolsEnvironmentDetector
@@ -34,7 +34,7 @@ export {
      */
     wrapCommand,
     executeAsync,
-    runTestInFiberContext,
+    wrapGlobalTestMethod,
     testFnWrapper,
     executeHooksWithArgs,
 

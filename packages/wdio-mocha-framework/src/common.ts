@@ -1,5 +1,19 @@
-import { MOCHA_TIMEOUT_MESSAGE } from '../constants.js'
-import type { FormattedMessage, FrameworkMessage } from '../types'
+import { wrapGlobalTestMethod } from '@wdio/utils'
+
+import { INTERFACES, TEST_INTERFACES, MOCHA_TIMEOUT_MESSAGE } from './constants.js'
+import type { FormattedMessage, FrameworkMessage, MochaOpts } from './types'
+
+/**
+* Extracts the mocha UI type following this convention:
+*  - If the mochaOpts.ui provided doesn't contain a '-' then the full name
+*      is taken as ui type (i.e. 'bdd','tdd','qunit')
+*  - If it contains a '-' then it asumes we are providing a custom ui for
+*      mocha. Then it extracts the text after the last '-' (ignoring .js if
+*      provided) as the interface type. (i.e. strong-bdd in
+*      https://github.com/strongloop/strong-mocha-interfaces)
+*/
+const MOCHA_UI_TYPE_EXTRACTOR = /^(?:.*-)?([^-.]+)(?:.js)?$/
+const DEFAULT_INTERFACE_TYPE = 'bdd'
 
 export function formatMessage (params: FrameworkMessage) {
     let message: FormattedMessage = {
@@ -77,4 +91,66 @@ export function formatMessage (params: FrameworkMessage) {
     }
 
     return message
+}
+
+function requireExternalModules (modules: string[]) {
+    return modules.map((module) => {
+        if (!module) {
+            return Promise.resolve()
+        }
+
+        module = module.replace(/.*:/, '')
+
+        if (module.startsWith('./') && globalThis.process) {
+            module = `${globalThis.process.cwd()}/${module.slice(2)}`
+        }
+
+        return loadModule(module)
+    })
+}
+
+type Hook = Function | Function[]
+export function setupEnv (cid: string, options: MochaOpts, beforeTest: Hook, beforeHook: Hook, afterTest: Hook, afterHook: Hook) {
+    const match = MOCHA_UI_TYPE_EXTRACTOR.exec(options.ui!) as any as [string, keyof typeof INTERFACES]
+    const type: keyof typeof INTERFACES = (match && INTERFACES[match[1]] && match[1]) || DEFAULT_INTERFACE_TYPE
+
+    const hookArgsFn = (context: Mocha.Context) => {
+        return [{ ...context.test, parent: context.test?.parent?.title }, context]
+    }
+
+    INTERFACES[type].forEach((fnName: string) => {
+        const isTest = TEST_INTERFACES[type].flatMap((testCommand: string) => [testCommand, testCommand + '.only']).includes(fnName)
+
+        wrapGlobalTestMethod(
+            isTest,
+            isTest ? beforeTest! : beforeHook!,
+            // @ts-ignore
+            hookArgsFn,
+            isTest ? afterTest : afterHook,
+            hookArgsFn,
+            fnName,
+            cid
+        )
+    })
+
+    let { require = [], compilers = [] } = options
+    if (typeof require === 'string') {
+        require = [require]
+    }
+
+    return requireExternalModules([...compilers, ...require])
+}
+
+export async function loadModule (name: string) {
+    if (process.env.VITEST_WORKER_ID) {
+        return name
+    }
+
+    try {
+        return await import(name)
+    } catch (err: any) {
+        throw new Error(`Module ${name} can't get loaded. Are you sure you have installed it?\n` +
+                        'Note: if you\'ve installed WebdriverIO globally you need to install ' +
+                        'these external modules globally too!')
+    }
 }

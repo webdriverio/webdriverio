@@ -66,7 +66,7 @@ let executeHooksWithArgs = async function executeHooksWithArgsShim<T> (hookName:
          */
         if (result && typeof result.then === 'function') {
             return result.then(resolve, (e: Error) => {
-                log.error(e.stack)
+                log.error(e.stack || e.message)
                 resolve(e)
             })
         }

@@ -1,7 +1,7 @@
 /**
  * used to wrap mocha, jasmine test frameworks functions (`it`, `beforeEach` and other)
  * with WebdriverIO before/after Test/Hook hooks.
- * Entrypoint is `runTestInFiberContext`, other functions are exported for testing purposes.
+ * Entrypoint is `wrapGlobalTestMethod`, other functions are exported for testing purposes.
  *
  * NOTE: not used by cucumber test framework. `testFnWrapper` is called directly there
  */
@@ -173,9 +173,9 @@ export const wrapTestFunction = function (
          * should be [title, fn, timeout, retryCnt]
          */
         // @ts-expect-error
-        let timeout = global.jasmine?.DEFAULT_TIMEOUT_INTERVAL
+        let timeout = globalThis.jasmine?.DEFAULT_TIMEOUT_INTERVAL
         // @ts-expect-error
-        if (global.jasmine) {
+        if (globalThis.jasmine) {
             // if we have [title, fn, timeout, retryCnt]
             if (typeof specArguments[specArguments.length - 1] === 'number') {
                 timeout = specArguments.pop() as number
@@ -240,7 +240,7 @@ export const wrapTestFunction = function (
  * @param  {String}   cid           cid
  * @param  {Object}   scope         the scope to run command from, defaults to global
  */
-export const runTestInFiberContext = function (
+export const wrapGlobalTestMethod = function (
     this: unknown,
     isSpec: boolean,
     beforeFn: Function | Function[],
@@ -249,7 +249,7 @@ export const runTestInFiberContext = function (
     afterArgsFn: HookFnArgs<unknown>,
     fnName: string,
     cid: string,
-    scope = global
+    scope = globalThis
 ) {
     const origFn = (scope as any)[fnName];
     (scope as any)[fnName] = wrapTestFunction(

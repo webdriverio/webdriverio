@@ -26,9 +26,11 @@ export const logHookError = (hookName: string, hookResults: any[] = [], cid: str
         state: 'fail'
     }
 
-    process.send!({
-        origin: 'reporter',
-        name: 'printFailureMessage',
-        content
-    })
+    if (globalThis.process) {
+        process.send!({
+            origin: 'reporter',
+            name: 'printFailureMessage',
+            content
+        })
+    }
 }

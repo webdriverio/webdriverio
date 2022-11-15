@@ -4,17 +4,20 @@ import path from 'node:path'
 import { createRequire } from 'node:module'
 
 import getPort from 'get-port'
+import logger from '@wdio/logger'
 import topLevelAwait from 'vite-plugin-top-level-await'
 import { deepmerge } from 'deepmerge-ts'
+import { executeHooksWithArgs } from '@wdio/utils'
 import { WebSocketServer, WebSocket } from 'ws'
 import { esbuildCommonjs } from '@originjs/vite-plugin-commonjs'
 import { NodeGlobalsPolyfillPlugin } from '@esbuild-plugins/node-globals-polyfill'
-import logger from '@wdio/logger'
+import { serializeError } from 'serialize-error'
 import type { InlineConfig } from 'vite'
 import type { Browser } from 'webdriverio'
+import type { Services } from '@wdio/types'
 
 import { testrunner } from './plugins/testrunner.js'
-import { EVENTS, PRESET_DEPENDENCIES, BROWSER_POOL } from './constants.js'
+import { EVENTS, PRESET_DEPENDENCIES, BROWSER_POOL, SESSIONS } from './constants.js'
 import type { Environment, FrameworkPreset } from './types'
 
 const log = logger('@wdio/browser-runner')
@@ -70,17 +73,20 @@ export async function getTemplate (options: WebdriverIO.BrowserRunnerOptions, en
             <script type="module">
             import Mocha from 'https://esm.sh/mocha@10.0.0'
             import HTMLReporter from '@wdio/browser-runner/reporter'
+            import { setupHooks } from '@wdio/browser-runner/setup'
+
             const mochaOpts = ${JSON.stringify(env.args || {})}
             const mocha = Mocha.setup({
                 ...mochaOpts,
                 reporter: HTMLReporter
             })
+            setupHooks(mocha)
             </script>
         </head>
         <body>
             <div id="mocha"></div>
             <script async type="module">
-                import { setupEnv } from '@wdio/browser-runner/setup'
+                import { setupEnv, getHook } from '@wdio/browser-runner/setup'
                 import { formatMessage } from '@wdio/mocha-framework/common'
 
                 window.__wdioEvents__ = []
@@ -89,9 +95,21 @@ export async function getTemplate (options: WebdriverIO.BrowserRunnerOptions, en
                 await import('${spec}')
 
                 console.log('[WDIO] Start Mocha testsuite')
-                const runner = mocha.run((failures) => {
+                const startTime = Date.now()
+                const runner = mocha.run(async (failures) => {
+                    await getHook('after')(failures, ${JSON.stringify(env.capabilities)}, ['${spec}'])
                     window.__wdioFailures__ = failures
                 })
+
+                runner.suite.beforeAll(() => getHook('beforeSuite')({
+                    ...runner.suite.suites[0],
+                    file: '${spec}',
+                }))
+                runner.suite.afterAll(() => getHook('afterSuite')({
+                    ...runner.suite.suites[0],
+                    file: '${spec}',
+                    duration: Date.now() - startTime
+                }))
                 ${listeners}
             </script>
         </body>
@@ -193,34 +211,52 @@ function handleBrowserCommand (ws: WebSocket) {
     return async (data: Buffer) => {
         try {
             const payload = JSON.parse(data.toString())
-            if (!payload.commandName) {
-                return
+            if (payload.type === 'hook') {
+                const session = SESSIONS.get(payload.cid)
+                if (!session) {
+                    const error = serializeError(new Error(`No session for cid ${payload.cid} found!`))
+                    return ws.send(JSON.stringify({ ...payload, error }))
+                }
+
+                return executeHooksWithArgs(payload.name, session.config[payload.name as keyof Services.HookFunctions], payload.args).then(
+                    () => ws.send(JSON.stringify(payload)),
+                    (error: Error) => ws.send(JSON.stringify({ ...payload, error: serializeError(error) }))
+                )
             }
 
-            log.info(`Received browser message: ${data}`)
-            const cid = payload.cid
-            if (typeof cid !== 'string') {
-                return ws.send(JSON.stringify({
-                    id: payload.id,
-                    error: `No "cid" property passed into command message with id "${payload.id}"`
-                }))
+            if (payload.type === 'command') {
+                log.info(`Received browser message: ${data}`)
+                const cid = payload.cid
+                if (typeof cid !== 'string') {
+                    const error = serializeError(new Error(`No "cid" property passed into command message with id "${payload.id}"`))
+                    return ws.send(JSON.stringify({
+                        id: payload.id,
+                        type: 'command',
+                        error
+                    }))
+                }
+
+                const browser = await BROWSER_POOL.get(payload.cid) as Browser<'async'> | undefined
+                if (!browser) {
+                    const error = serializeError(new Error(`Couldn't find browser with cid "${payload.cid}"`))
+                    return ws.send(JSON.stringify({
+                        id: payload.id,
+                        type: 'command',
+                        error
+                    }))
+                }
+
+                const result = await (browser[payload.commandName as keyof typeof browser] as Function)(...payload.args)
+                const resultMsg = JSON.stringify({ type: 'command', id: payload.id, result })
+                log.info(`Return command result: ${resultMsg}`)
+                return ws.send(resultMsg)
             }
 
-            const browser = await BROWSER_POOL.get(payload.cid) as Browser<'async'> | undefined
-            if (!browser) {
-                return ws.send(JSON.stringify({
-                    id: payload.id,
-                    error: `Couldn't find browser with cid "${payload.cid}"`
-                }))
-            }
-
-            const result = await (browser[payload.commandName as keyof typeof browser] as Function)(...payload.args)
-            const resultMsg = JSON.stringify({ id: payload.id, result })
-            log.info(`Return command result: ${resultMsg}`)
-            return ws.send(resultMsg)
+            throw new Error(`Unknown message type ${payload.type}`)
         } catch (err: any) {
-            log.error(`Failed handling command: ${err.message}`)
-            return ws.send(JSON.stringify({ error: `Failed handling command message: ${err.message}` }))
+            const error = `Failed handling socket message: ${err.message}`
+            log.error(error)
+            return ws.send(JSON.stringify(error))
         }
     }
 }
