@@ -298,6 +298,7 @@ export default class InsightsHandler {
             vc_filepath: (this._gitConfigPath && test.file) ? path.relative(this._gitConfigPath, test.file) : undefined,
             started_at: testMetaData.startedAt,
             finished_at: testMetaData.finishedAt,
+            result: 'pending',
             framework: this._framework
         }
 
@@ -370,6 +371,7 @@ export default class InsightsHandler {
             vc_filepath: (this._gitConfigPath && feature?.path) ? path.relative(this._gitConfigPath, feature?.path) : undefined,
             location: feature?.path,
             framework: this._framework,
+            result: 'pending',
             meta: {
                 feature: feature,
                 scenario: scenario,
