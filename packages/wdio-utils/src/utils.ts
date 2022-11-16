@@ -203,7 +203,26 @@ export async function safeImport (name: string): Promise<Services.ServicePlugin 
     }
 
     try {
-        return await import(requirePath)
+        const pkg = await import(requirePath)
+        /**
+         * CJS packages build with TS imported through an ESM context can end up being this:
+         *
+         * [Module: null prototype] {
+         *   __esModule: true,
+         *   default: {
+         *       launcher: [class SmokeServiceLauncher],
+         *       default: [class SmokeService]
+         *   },
+         *   launcher: [class SmokeServiceLauncher]
+         * }
+         *
+         * In order to not have the testrunner ignore importing a service we should double check if
+         * a nested default is given and return that.
+         */
+        if (pkg.default && pkg.default.default) {
+            return pkg.default
+        }
+        return pkg
     } catch (e: any) {
         throw new Error(`Couldn't initialise "${name}".\n${e.stack}`)
     }
