@@ -1,14 +1,15 @@
+import path from 'path'
+
 import logger from '@wdio/logger'
-import got from 'got'
 import type { Services, Capabilities, Options, Frameworks } from '@wdio/types'
 import type { Browser, MultiRemoteBrowser } from 'webdriverio'
+import type { BrowserstackConfig, MultiRemoteAction, SessionResponse } from './types'
 
-import { getBrowserDescription, getBrowserCapabilities, isBrowserstackCapability, getParentSuiteName, isBrowserstackSession } from './util'
-import { BrowserstackConfig, MultiRemoteAction, SessionResponse } from './types'
-import type { Pickle, Feature } from '@cucumber/messages'
-import type { ITestCaseHookParameter } from '@cucumber/cucumber/lib/support_code_library_builder/types'
-import path from 'path'
+import got from 'got'
+import type { Pickle, Feature, ITestCaseHookParameter } from './cucumber-types'
+
 import InsightsHandler from './insights-handler'
+import { getBrowserDescription, getBrowserCapabilities, isBrowserstackCapability, getParentSuiteName, isBrowserstackSession } from './util'
 
 const log = logger('@wdio/browserstack-service')
 
@@ -72,10 +73,6 @@ export default class BrowserstackService implements Services.ServiceInstance {
         this._config.key = config.key
     }
 
-    async _logBrowserCommand(type: string, args: any) {
-        await this.insightsHandler?.browserCommand(type, args, this._currentTest)
-    }
-
     async before(caps: Capabilities.RemoteCapability, specs: string[], browser: Browser<'async'> | MultiRemoteBrowser<'async'>) {
         // added to maintain backward compatibility with webdriverIO v5
         this._browser = browser ? browser : (global as any).browser
@@ -94,20 +91,22 @@ export default class BrowserstackService implements Services.ServiceInstance {
             /**
              * register command event
              */
-            this._browser.on('command', (command) => this._logBrowserCommand(
+            this._browser.on('command', async (command) => await this.insightsHandler?.browserCommand(
                 'client:beforeCommand',
-                Object.assign(command, { sessionId: this._browser?.sessionId })
+                Object.assign(command, { sessionId: this._browser?.sessionId }),
+                { ...this._currentTest }
             ))
             /**
              * register result event
              */
-            this._browser.on('result', (result) => this._logBrowserCommand(
+            this._browser.on('result', async (result) => await this.insightsHandler?.browserCommand(
                 'client:afterCommand',
-                Object.assign(result, { sessionId: this._browser?.sessionId })
+                Object.assign(result, { sessionId: this._browser?.sessionId }),
+                { ...this._currentTest }
             ))
         }
 
-        return this._printSessionURL()
+        return await this._printSessionURL()
     }
 
     beforeSuite (suite: Frameworks.Suite) {
@@ -115,16 +114,12 @@ export default class BrowserstackService implements Services.ServiceInstance {
     }
 
     async beforeHook (test: Frameworks.Test, context: any) {
-        if (this._config.framework !== 'cucumber') this._currentTest = test // not able currentTest when this is called for cucumber step
+        if (this._config.framework !== 'cucumber') this._currentTest = test // not update currentTest when this is called for cucumber step
         await this.insightsHandler?.beforeHook(test, context)
     }
 
     async afterHook (test: Frameworks.Test, context: any, result: Frameworks.TestResult) {
         await this.insightsHandler?.afterHook(test, context, result)
-    }
-
-    async afterCommand(commandName: string, args: any[], result: any, error?: Error) {
-        await this.insightsHandler?.afterCommand(commandName, args, result, error, this._currentTest)
     }
 
     async beforeTest(test: Frameworks.Test, context: any) {
@@ -206,12 +201,12 @@ export default class BrowserstackService implements Services.ServiceInstance {
         await this.insightsHandler?.afterScenario(world)
     }
 
-    beforeStep (step: Frameworks.PickleStep, scenario: Pickle) {
-        this.insightsHandler?.beforeStep(step, scenario)
+    async beforeStep (step: Frameworks.PickleStep, scenario: Pickle) {
+        await this.insightsHandler?.beforeStep(step, scenario)
     }
 
-    afterStep (step: Frameworks.PickleStep, scenario: Pickle, result: Frameworks.PickleResult) {
-        this.insightsHandler?.afterStep(step, scenario, result)
+    async afterStep (step: Frameworks.PickleStep, scenario: Pickle, result: Frameworks.PickleResult) {
+        await this.insightsHandler?.afterStep(step, scenario, result)
     }
 
     async onReload(oldSessionId: string, newSessionId: string) {

@@ -1,8 +1,8 @@
-import WDIOReporter from '@wdio/reporter'
-import { SuiteStats, TestStats, RunnerStats } from '@wdio/reporter'
+import WDIOReporter, { SuiteStats, TestStats, RunnerStats } from '@wdio/reporter'
+import type { Options, Reporters } from '@wdio/types'
 
 import { v4 as uuidv4 } from 'uuid'
-import { Options, Reporters } from '@wdio/types'
+
 import { BrowserstackConfig, TestData } from './types'
 import { getCloudProvider, uploadEventData, getHierarchy } from './util'
 

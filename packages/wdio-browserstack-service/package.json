@@ -24,9 +24,9 @@
   },
   "dependencies": {
     "@types/gitconfiglocal": "^2.0.1",
-    "@types/node": "^18.7.23",
     "@types/request": "^2.48.8",
     "@wdio/logger": "7.19.0",
+    "@wdio/reporter": "7.25.4",
     "@wdio/types": "7.25.4",
     "browserstack-local": "^1.4.5",
     "form-data": "^4.0.0",

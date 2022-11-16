@@ -1,13 +1,13 @@
-import { Capabilities, Frameworks } from '@wdio/types'
+import path from 'path'
+
+import type { Capabilities, Frameworks } from '@wdio/types'
 import type { Browser, MultiRemoteBrowser } from 'webdriverio'
-import type { Pickle } from '@cucumber/messages'
-import { ITestCaseHookParameter } from '@cucumber/cucumber/lib/support_code_library_builder/types'
 
 import { v4 as uuidv4 } from 'uuid'
+import type { Pickle, ITestCaseHookParameter } from './cucumber-types'
 
 import { getCloudProvider, getGitMetaData, getScenarioExamples, getUniqueIdentifier, getUniqueIdentifierForCucumber, isBrowserstackSession, removeAnsiColors, uploadEventData } from './util'
 import { TestData, TestMeta, PlatformMeta } from './types'
-import path from 'path'
 
 export default class InsightsHandler {
 
@@ -132,7 +132,7 @@ export default class InsightsHandler {
         await this._sendTestRunEventForCucumber(world, 'TestRunFinished')
     }
 
-    beforeStep (step: Frameworks.PickleStep, scenario: Pickle) {
+    async beforeStep (step: Frameworks.PickleStep, scenario: Pickle) {
         const uniqueId = getUniqueIdentifierForCucumber({ pickle: scenario } as any)
         let testMetaData = this._tests[uniqueId]
         if (!testMetaData) {
@@ -155,7 +155,7 @@ export default class InsightsHandler {
         this._tests[uniqueId] = testMetaData
     }
 
-    afterStep (step: Frameworks.PickleStep, scenario: Pickle, result: Frameworks.PickleResult) {
+    async afterStep (step: Frameworks.PickleStep, scenario: Pickle, result: Frameworks.PickleResult) {
         const uniqueId = getUniqueIdentifierForCucumber({ pickle: scenario } as any)
         let testMetaData = this._tests[uniqueId]
         if (!testMetaData) {
@@ -190,33 +190,30 @@ export default class InsightsHandler {
 
     // misc methods
 
-    async afterCommand(commandName: string, args: any[], result: any, error?: Error, test?: any) {
-        if (test && commandName == 'takeScreenshot') {
-            const identifier = this.getIdentifier(test)
-            let log = {
-                test_run_uuid: this._tests[identifier].uuid,
-                timestamp: new Date().toISOString(),
-                message: result,
-                kind: 'TEST_SCREENSHOT'
-            }
-
-            await uploadEventData({
-                event_type: 'LogCreated',
-                logs: [log]
-            })
-        }
-    }
-
     async browserCommand(commandType: string, args: any, test?: any) {
         if (commandType == 'client:beforeCommand') {
             this._commands[`${args.sessionId}_${args.method}_${args.endpoint}`] = args
         } else {
             if (test == undefined) return
+            const identifier = this.getIdentifier(test)
+
+            // log screenshot
+            if (this.isScreenshotCommand(args) && args.result.value) {
+                await uploadEventData({
+                    event_type: 'ScreenshotCreated',
+                    logs: [{
+                        test_run_uuid: this._tests[identifier].uuid,
+                        timestamp: new Date().toISOString(),
+                        message: args.result.value,
+                        kind: 'TEST_SCREENSHOT'
+                    }]
+                })
+            }
 
             const dataKey = `${args.sessionId}_${args.method}_${args.endpoint}`
             const requestData = this._commands[dataKey]
-            const identifier = this.getIdentifier(test)
 
+            // log http request
             let log = {
                 test_run_uuid: this._tests[identifier].uuid,
                 timestamp: new Date().toISOString(),
@@ -237,6 +234,10 @@ export default class InsightsHandler {
     }
 
     // private methods
+
+    isScreenshotCommand(args: any) {
+        return args.endpoint && args.endpoint.includes('/screenshot')
+    }
 
     private _getHookType(hookName: string): string {
         if (hookName.includes('before each')) {

@@ -4,16 +4,15 @@ import fs from 'fs'
 import path from 'path'
 import { promisify } from 'util'
 import { performance, PerformanceObserver } from 'perf_hooks'
-import { SevereServiceError } from 'webdriverio'
 
+import { SevereServiceError } from 'webdriverio'
 import * as BrowserstackLocalLauncher from 'browserstack-local'
 import logger from '@wdio/logger'
 import type { Capabilities, Services, Options } from '@wdio/types'
-import { App, AppConfig, AppUploadResponse } from './types'
 
 // @ts-ignore
 import { version as bstackServiceVersion } from '../package.json'
-import { BrowserstackConfig } from './types'
+import { App, AppConfig, AppUploadResponse, BrowserstackConfig } from './types'
 import { VALID_APP_EXTENSION } from './constants'
 import { getFrameworkVersion, launchTestSession, stopBuildUpstream } from './util'
 

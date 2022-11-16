@@ -1,17 +1,19 @@
+import { hostname, platform, type, version, arch } from 'os'
+import { promisify } from 'util'
+import * as http from 'http'
+import * as https from 'https'
+
 import type { Browser, MultiRemoteBrowser } from 'webdriverio'
-import type { Capabilities } from '@wdio/types'
+import type { Capabilities, Frameworks } from '@wdio/types'
 import logger from '@wdio/logger'
 
 import got from 'got'
-import { hostname, platform, type, version, arch } from 'os'
-import { promisify } from 'util'
 import gitRepoInfo from 'git-repo-info'
 import gitconfig from 'gitconfiglocal'
-import { Frameworks } from '@wdio/types'
+import type { ITestCaseHookParameter } from './cucumber-types'
 
-import { BROWSER_DESCRIPTION, DATA_ENDPOINT } from './constants'
-import { ITestCaseHookParameter } from '@cucumber/cucumber/lib/support_code_library_builder/types'
 import { UserConfig } from './types'
+import { BROWSER_DESCRIPTION, DATA_ENDPOINT } from './constants'
 
 const pGitconfig = promisify(gitconfig)
 const log = logger('@wdio/browserstack-service')
@@ -107,6 +109,7 @@ export async function launchTestSession (userConfig: UserConfig) {
     const config = {
         username: userConfig.username,
         password: userConfig.password,
+        agent: keepAliveAgent(),
         headers: {
             'Content-Type': 'application/json',
             'X-BSTACK-OBS': 'true'
@@ -139,6 +142,7 @@ export async function stopBuildUpstream () {
             'stop_time': (new Date()).toISOString()
         }
         const config = {
+            agent: keepAliveAgent(),
             headers: {
                 'Authorization': `Bearer ${process.env.BS_TESTOPS_JWT}`,
                 'Content-Type': 'application/json',
@@ -266,22 +270,22 @@ export async function getGitMetaData () {
     const { remote } = await pGitconfig(info.commonGitDir)
     const remotes = Object.keys(remote).map(remoteName =>  ({ name: remoteName, url: remote[remoteName]['url'] }))
     return {
-        'name': 'git',
-        'sha': info['sha'],
-        'short_sha': info['abbreviatedSha'],
-        'branch': info['branch'],
-        'tag': info['tag'],
-        'committer': info['committer'],
-        'committer_date': info['committerDate'],
-        'author': info['author'],
-        'author_date': info['authorDate'],
-        'commit_message': info['commitMessage'],
-        'root': info['root'],
-        'common_git_dir': info['commonGitDir'],
-        'worktree_git_dir': info['worktreeGitDir'],
-        'last_tag': info['lastTag'],
-        'commits_since_last_tag': info['commitsSinceLastTag'],
-        'remotes': remotes
+        name: 'git',
+        sha: info['sha'],
+        short_sha: info['abbreviatedSha'],
+        branch: info['branch'],
+        tag: info['tag'],
+        committer: info['committer'],
+        committer_date: info['committerDate'],
+        author: info['author'],
+        author_date: info['authorDate'],
+        commit_message: info['commitMessage'],
+        root: info['root'],
+        common_git_dir: info['commonGitDir'],
+        worktree_git_dir: info['worktreeGitDir'],
+        last_tag: info['lastTag'],
+        commits_since_last_tag: info['commitsSinceLastTag'],
+        remotes: remotes
     }
 }
 
@@ -345,14 +349,25 @@ export function getLogTag(eventType: string): string {
         return 'Test_Upload'
     } else if (eventType == 'HookRunStarted' || eventType == 'HookRunFinished') {
         return 'Hook_Upload'
+    } else if (eventType == 'ScreenshotCreated') {
+        return 'Screenshot_Upload'
     } else if (eventType == 'LogCreated') {
         return 'Log_Upload'
     }
     return 'undefined'
 }
 
+function keepAliveAgent () {
+    return {
+        http: new http.Agent({ keepAlive: true }),
+        https: new https.Agent({ keepAlive: true }),
+    }
+}
+
 export async function uploadEventData (eventData: any) {
     const logTag: string = getLogTag(eventData.event_type)
+
+    if (eventData.event_type == 'ScreenshotCreated') eventData.event_type = 'LogCreated'
 
     if (process.env.BS_TESTOPS_BUILD_COMPLETED) {
         if (!process.env.BS_TESTOPS_JWT) {
@@ -363,6 +378,7 @@ export async function uploadEventData (eventData: any) {
             }
         }
         const config = {
+            agent: keepAliveAgent(),
             headers: {
                 'Authorization': `Bearer ${process.env.BS_TESTOPS_JWT}`,
                 'Content-Type': 'application/json',
@@ -371,12 +387,10 @@ export async function uploadEventData (eventData: any) {
         }
 
         try {
+            log.debug(`[${logTag}] starting upload`)
             const url = `${DATA_ENDPOINT}/api/v1/event`
-            await got.post(url, { json: eventData, ...config }).json().then(( data: any ) => {
-                log.debug(`[${logTag}] Success response: ${require('util').inspect(data, { depth: null })}`)
-            }).catch((error: any) => {
-                log.debug(`[${logTag}] Failed. Error: ${error}`)
-            })
+            const data = await got.post(url, { json: eventData, ...config }).json()
+            log.debug(`[${logTag}] Success response: ${require('util').inspect(data, { depth: null })}`)
         } catch (error: any) {
             log.debug(`[${logTag}] Failed. Error: ${error}`)
         }
