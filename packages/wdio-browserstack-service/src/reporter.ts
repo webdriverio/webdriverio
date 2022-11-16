@@ -21,9 +21,9 @@ export default class TestReporter extends WDIOReporter {
 
     onRunnerStart (runnerStats: RunnerStats) {
         this._capabilities = runnerStats.capabilities as Capabilities.Capabilities
-        this._config = runnerStats.config
+        this._config = runnerStats.config as BrowserstackConfig & Options.Testrunner
         this._sessionId = runnerStats.sessionId
-        if (this._config.testObservability == false) this._observability = false
+        if (this._config?.testObservability == false) this._observability = false
     }
 
     onSuiteStart (suiteStats: SuiteStats) {
