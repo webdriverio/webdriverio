@@ -39,10 +39,3 @@ export interface Environment {
     sessionId: string
     injectGlobals: boolean
 }
-
-export interface ConsoleEvent {
-    name: 'consoleEvent'
-    type: 'log' | 'info' | 'warn' | 'debug' | 'error'
-    args: unknown[]
-    cid: string
-}

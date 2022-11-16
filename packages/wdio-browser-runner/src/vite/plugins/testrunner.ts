@@ -11,8 +11,8 @@ import {
     WebDriverBidiProtocol
 } from '@wdio/protocols'
 
-import { SESSIONS } from '../constants.js'
-import { getTemplate, getErrorTemplate } from '../utils.js'
+import { SESSIONS } from '../../constants.js'
+import { getTemplate, getErrorTemplate } from '../../utils.js'
 
 const log = logger('@wdio/browser-runner:plugin')
 const require = createRequire(import.meta.url)

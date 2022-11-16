@@ -2,21 +2,29 @@ import { commands } from 'virtual:wdio'
 import { webdriverMonad } from '@wdio/utils'
 import { getEnvironmentVars } from 'webdriver'
 import { connectPromise, socket } from '@wdio/browser-runner/setup'
+import type { ErrorObject } from 'serialize-error'
 
 import browserCommands from './commands/index.js'
-import type { ConsoleEvent } from '../types'
+import { MESSAGE_TYPES } from '../vite/constants.js'
+import type { SocketMessage, SocketMessagePayload, ConsoleEvent, CommandRequestEvent } from '../vite/types'
 
 const COMMAND_TIMEOUT = 30 * 1000 // 30s
 const CONSOLE_METHODS = ['log', 'info', 'warn', 'error', 'debug'] as const
+interface CommandMessagePromise {
+    resolve: (value: unknown) => void
+    reject: (err: ErrorObject) => void
+    commandTimeout: NodeJS.Timeout
+}
 
 export default class ProxyDriver {
+    static #commandMessages = new Map<string, CommandMessagePromise>()
+
     static newSession (
         params: any,
         modifier: never,
         userPrototype: Record<string, PropertyDescriptor>,
         commandWrapper: any
     ) {
-        const commandMessages = new Map<number, any>()
         const [cid] = window.location.pathname.slice(1).split('/')
         if (!cid) {
             throw new Error('"cid" query parameter is missing')
@@ -25,46 +33,11 @@ export default class ProxyDriver {
         /**
          * log all console events once connected
          */
-        connectPromise.then(() => {
-            for (const method of CONSOLE_METHODS) {
-                const origCommand = console[method].bind(console)
-                console[method] = (...args: unknown[]) => {
-                    socket.send(JSON.stringify(<ConsoleEvent>{
-                        name: 'consoleEvent',
-                        type: method,
-                        args,
-                        cid
-                    }))
-                    origCommand(...args)
-                }
-            }
-        })
-
-        socket.addEventListener('message', (ev: MessageEvent) => {
-            try {
-                const payload = JSON.parse(ev.data)
-                if (payload.type !== 'command') {
-                    return
-                }
-
-                if (!payload.id) {
-                    return console.error(`Message without id: ${JSON.stringify(ev.data)}`)
-                }
-
-                const commandMessage = commandMessages.get(payload.id)
-                if (!commandMessage) {
-                    return console.error(`Unknown command id "${payload.id}"`)
-                }
-                if (payload.error) {
-                    console.log(`[WDIO] ${(new Date()).toISOString()} - id: ${payload.id} - ERROR: ${JSON.stringify(payload.result)}`)
-                    return commandMessage.reject(new Error(payload.error))
-                }
-                console.log(`[WDIO] ${(new Date()).toISOString()} - id: ${payload.id} - RESULT: ${JSON.stringify(payload.result)}`)
-                commandMessage.resolve(payload.result)
-            } catch (err: any) {
-                console.error(`Failed handling command socket message "${err.message}"`)
-            }
-        })
+        connectPromise.then(this.#wrapConsolePrototype.bind(this, cid))
+        /**
+         * handle Vite server socket messages
+         */
+        socket.addEventListener('message', this.#handleServerMessage.bind(this))
 
         let commandId = 0
         const environmentPrototype: Record<string, PropertyDescriptor> = getEnvironmentVars(params)
@@ -76,13 +49,18 @@ export default class ProxyDriver {
                     }
                     commandId++
                     console.log(`[WDIO] ${(new Date()).toISOString()} - id: ${commandId} - COMMAND: ${commandName}(${args.join(', ')})`)
-                    socket.send(JSON.stringify({ commandName, args, id: commandId, cid, type: 'command' }))
+                    socket.send(JSON.stringify(this.#commandRequest({
+                        commandName,
+                        cid,
+                        id: commandId.toString(),
+                        args
+                    })))
                     return new Promise((resolve, reject) => {
                         const commandTimeout = setTimeout(
                             () => reject(new Error(`Command "${commandName}" timed out`)),
                             COMMAND_TIMEOUT
                         )
-                        commandMessages.set(commandId, { resolve, reject, commandTimeout })
+                        this.#commandMessages.set(commandId.toString(), { resolve, reject, commandTimeout })
                     })
                 }
             }
@@ -112,5 +90,60 @@ export default class ProxyDriver {
 
         const monad = webdriverMonad(params, modifier, prototype)
         return monad(window.__wdioEnv__.sessionId, commandWrapper)
+    }
+
+    static #handleServerMessage (ev: MessageEvent) {
+        try {
+            const { type, value } = JSON.parse(ev.data) as SocketMessagePayload<MESSAGE_TYPES.commandResponseMessage>
+            if (type !== MESSAGE_TYPES.commandResponseMessage) {
+                return
+            }
+
+            if (!value.id) {
+                return console.error(`Message without id: ${JSON.stringify(ev.data)}`)
+            }
+
+            const commandMessage = this.#commandMessages.get(value.id)
+            if (!commandMessage) {
+                return console.error(`Unknown command id "${value.id}"`)
+            }
+            if (value.error) {
+                console.log(`[WDIO] ${(new Date()).toISOString()} - id: ${value.id} - ERROR: ${JSON.stringify(value.result)}`)
+                return commandMessage.reject(value.error)
+            }
+            console.log(`[WDIO] ${(new Date()).toISOString()} - id: ${value.id} - RESULT: ${JSON.stringify(value.result)}`)
+            commandMessage.resolve(value.result)
+        } catch (err: any) {
+            console.error(`Failed handling command socket message "${err.message}"`)
+        }
+    }
+
+    static #wrapConsolePrototype (cid: string) {
+        for (const method of CONSOLE_METHODS) {
+            const origCommand = console[method].bind(console)
+            console[method] = (...args: unknown[]) => {
+                socket.send(JSON.stringify(this.#consoleMessage({
+                    name: 'consoleEvent',
+                    type: method,
+                    args,
+                    cid
+                })))
+                origCommand(...args)
+            }
+        }
+    }
+
+    static #commandRequest (value: CommandRequestEvent): SocketMessage {
+        return {
+            type: MESSAGE_TYPES.commandRequestMessage,
+            value
+        }
+    }
+
+    static #consoleMessage (value: ConsoleEvent): SocketMessage {
+        return {
+            type: MESSAGE_TYPES.consoleMessage,
+            value
+        }
     }
 }
