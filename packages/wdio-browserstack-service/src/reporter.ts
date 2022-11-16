@@ -1,14 +1,15 @@
 import WDIOReporter, { SuiteStats, TestStats, RunnerStats } from '@wdio/reporter'
-import type { Options, Reporters } from '@wdio/types'
+import type { Capabilities, Options, Reporters } from '@wdio/types'
 
 import { v4 as uuidv4 } from 'uuid'
+import { Browser, MultiRemoteBrowser } from 'webdriverio'
 
 import { BrowserstackConfig, TestData } from './types'
 import { getCloudProvider, uploadEventData, getHierarchy } from './util'
 
 export default class TestReporter extends WDIOReporter {
-    private _capabilities: any
-    private _config: BrowserstackConfig & Options.Testrunner
+    private _capabilities?: Capabilities.Capabilities
+    private _config?: BrowserstackConfig & Options.Testrunner
     private _observability?: boolean = true
     private _sessionId?: string
     private _suiteName?: string
@@ -16,11 +17,10 @@ export default class TestReporter extends WDIOReporter {
     constructor(options: Reporters.Options) {
         super(options)
         this._capabilities = {}
-        this._config = {} as any
     }
 
     onRunnerStart (runnerStats: RunnerStats) {
-        this._capabilities = runnerStats.capabilities
+        this._capabilities = runnerStats.capabilities as Capabilities.Capabilities
         this._config = runnerStats.config
         this._sessionId = runnerStats.sessionId
         if (this._config.testObservability == false) this._observability = false
@@ -32,7 +32,7 @@ export default class TestReporter extends WDIOReporter {
 
     async onTestSkip (testStats: TestStats) {
         // cucumber steps call this method. We don't want step skipped state so skip for cucumber
-        if (this._observability && this._config.framework != 'cucumber') {
+        if (this._observability && this._config?.framework != 'cucumber') {
             let testData: TestData = {
                 uuid: uuidv4(),
                 type: testStats.type,
@@ -47,21 +47,21 @@ export default class TestReporter extends WDIOReporter {
                 file_name: this._suiteName,
                 location: this._suiteName,
                 started_at: (new Date()).toISOString(),
-                framework: this._config.framework,
+                framework: this._config?.framework,
                 finished_at: (new Date()).toISOString(),
                 duration_in_ms: testStats._duration,
                 retries: { limit:0, attempts: 0 },
                 result: testStats.state,
             }
 
-            const cloudProvider = getCloudProvider({ options: { hostname: this._config.hostname } } as any)
+            const cloudProvider = getCloudProvider({ options: { hostname: this._config?.hostname } } as Browser<'async'> | MultiRemoteBrowser<'async'>)
             testData['integrations'] = {}
             testData['integrations'][cloudProvider] = {
-                'capabilities': this._capabilities,
-                'session_id': this._sessionId,
-                'browser': this._capabilities.browserName,
-                'browser_version': this._capabilities.browserVersion,
-                'platform': this._capabilities.platformName,
+                capabilities: this._capabilities,
+                session_id: this._sessionId,
+                browser: this._capabilities?.browserName,
+                browser_version: this._capabilities?.browserVersion,
+                platform: this._capabilities?.platformName,
             }
 
             await uploadEventData({

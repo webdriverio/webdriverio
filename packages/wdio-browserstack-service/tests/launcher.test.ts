@@ -562,7 +562,7 @@ describe('_uploadApp', () => {
     })
 })
 
-describe('_shouldAddServiceVersion', () => {
+describe('#shouldAddServiceVersion', () => {
     const options: BrowserstackConfig = { }
     const caps: any = [{}]
 
@@ -574,7 +574,7 @@ describe('_shouldAddServiceVersion', () => {
             services: ['chromedriver']
         }
         const service = new BrowserstackLauncher(options, caps, config)
-        const res = await service._shouldAddServiceVersion(config)
+        const res = await service.#shouldAddServiceVersion(config)
         expect(res).toEqual(false)
     })
 
@@ -586,7 +586,7 @@ describe('_shouldAddServiceVersion', () => {
             services: []
         }
         const service = new BrowserstackLauncher(options, caps, config)
-        const res = await service._shouldAddServiceVersion(config)
+        const res = await service.#shouldAddServiceVersion(config)
         expect(res).toEqual(true)
     })
 })

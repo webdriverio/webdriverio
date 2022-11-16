@@ -8,11 +8,11 @@ import type { Capabilities, Frameworks } from '@wdio/types'
 import logger from '@wdio/logger'
 
 import got from 'got'
-import gitRepoInfo from 'git-repo-info'
+import gitRepoInfo, { GitRepoInfo } from 'git-repo-info'
 import gitconfig from 'gitconfiglocal'
 import type { ITestCaseHookParameter } from './cucumber-types'
 
-import { UserConfig } from './types'
+import { UserConfig, UploadType, LaunchResponse } from './types'
 import { BROWSER_DESCRIPTION, DATA_ENDPOINT } from './constants'
 
 const pGitconfig = promisify(gitconfig)
@@ -118,11 +118,11 @@ export async function launchTestSession (userConfig: UserConfig) {
 
     try {
         const url = `${DATA_ENDPOINT}/api/v1/builds`
-        const response: any = await got.post(url, { json: data, ...config }).json()
+        const response: LaunchResponse = await got.post(url, { json: data, ...config }).json()
         log.debug(`[Start_Build] Success response: ${JSON.stringify(response)}`)
         process.env.BS_TESTOPS_BUILD_COMPLETED = 'true'
         return [response.jwt, response.build_hashed_id]
-    } catch (error: any) {
+    } catch (error) {
         log.debug(`[Start_Build] Failed. Error: ${error}`)
         process.env.BS_TESTOPS_BUILD_COMPLETED = 'true'
         return [null, null]
@@ -152,7 +152,7 @@ export async function stopBuildUpstream () {
 
         try {
             const url = `${DATA_ENDPOINT}/api/v1/builds/${process.env.BS_TESTOPS_BUILD_HASHED_ID}/stop`
-            const response: any = await got.put(url, { json: data, ...config }).json()
+            const response = await got.put(url, { json: data, ...config }).json()
             log.debug(`[Stop_Build] Success response: ${JSON.stringify(response)}`)
             return {
                 status: 'success',
@@ -265,7 +265,7 @@ export function getCiInfo () {
 }
 
 export async function getGitMetaData () {
-    var info: any = gitRepoInfo()
+    var info: GitRepoInfo = gitRepoInfo()
     if (!info.commonGitDir) return {}
     const { remote } = await pGitconfig(info.commonGitDir)
     const remotes = Object.keys(remote).map(remoteName =>  ({ name: remoteName, url: remote[remoteName]['url'] }))
@@ -320,17 +320,19 @@ export function getScenarioExamples(world: ITestCaseHookParameter) {
 
     let examples: string[] = []
 
-    gherkinDocumentChildren?.forEach((child: any) => {
+    gherkinDocumentChildren?.forEach(child => {
         if (child.rule) {
             // handle if rule is present
-            child.rule.children.forEach((childLevel2: any) => {
+            child.rule.children.forEach(childLevel2 => {
                 if (childLevel2.scenario && childLevel2.scenario.id == pickleId && childLevel2.scenario.examples) {
-                    examples = childLevel2.scenario.examples.flatMap((val: any) => (val.tableBody)).find((item: any) => item.id == examplesId).cells.map((val: any) => (val.value))
+                    const passedExamples = childLevel2.scenario.examples.flatMap((val) => (val.tableBody)).find((item) => item.id == examplesId)?.cells.map((val) => (val.value))
+                    if (passedExamples) examples = passedExamples
                 }
             })
         } else if (child.scenario && child.scenario.id == pickleId && child.scenario.examples) {
             // handle if scenario outside rule
-            examples = child.scenario.examples.flatMap((val: any) => (val.tableBody)).find((item: any) => item.id == examplesId).cells.map((val: any) => (val.value))
+            const passedExamples = child.scenario.examples.flatMap((val) => (val.tableBody)).find((item) => item.id == examplesId)?.cells.map((val) => (val.value))
+            if (passedExamples) examples = passedExamples
         }
     })
 
@@ -364,7 +366,7 @@ function keepAliveAgent () {
     }
 }
 
-export async function uploadEventData (eventData: any) {
+export async function uploadEventData (eventData: UploadType) {
     const logTag: string = getLogTag(eventData.event_type)
 
     if (eventData.event_type == 'ScreenshotCreated') eventData.event_type = 'LogCreated'
@@ -387,11 +389,10 @@ export async function uploadEventData (eventData: any) {
         }
 
         try {
-            log.debug(`[${logTag}] starting upload`)
             const url = `${DATA_ENDPOINT}/api/v1/event`
             const data = await got.post(url, { json: eventData, ...config }).json()
             log.debug(`[${logTag}] Success response: ${require('util').inspect(data, { depth: null })}`)
-        } catch (error: any) {
+        } catch (error) {
             log.debug(`[${logTag}] Failed. Error: ${error}`)
         }
     }
