@@ -1,5 +1,5 @@
-WebdriverIO Smoke Test Service
-==============================
+WebdriverIO Smoke Test Service CJS
+==================================
 
 > A WebdriverIO utility to smoke test services for internal testing purposes.
 

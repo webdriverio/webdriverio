@@ -270,6 +270,22 @@ const customService = async () => {
 }
 
 /**
+ * wdio test run with custom service
+ */
+const customCJSService = async () => {
+    await launch('customCJSService', baseConfig, {
+        autoCompileOpts: { autoCompile: false },
+        specs: [path.resolve(__dirname, 'mocha', 'service.js')],
+        services: [['smoke-test-cjs', { foo: 'bar' }]]
+    })
+    await sleep(100)
+    const serviceLogs = await fs.readFile(path.join(__dirname, 'helpers', 'service.log'))
+    assert.equal(serviceLogs.toString(), SERVICE_LOGS)
+    const launcherLogs = await fs.readFile(path.join(__dirname, 'helpers', 'launcher.log'))
+    assert.equal(launcherLogs.toString(), LAUNCHER_LOGS)
+}
+
+/**
  * wdio test run with custom reporter as string
  */
 const customReporterString = async () => {
@@ -523,6 +539,7 @@ const nonGlobalTestrunner = async () => {
         standaloneTest,
         mochaAsyncTestrunner,
         customService,
+        customCJSService,
         mochaSpecFiltering,
         jasmineSpecFiltering,
         jasmineReporter,
