@@ -407,21 +407,21 @@ describe('constructor', () => {
         const caps: any = { browserA: { capabilities: { 'goog:chromeOptions': {}, 'bstack:options': {} } } }
         new BrowserstackLauncher(options, caps, config)
 
-        expect(caps).toEqual({ 'browserA': { 'capabilities': { 'bstack:options': { 'wdioService': '7.25.4' }, 'goog:chromeOptions': {} } } })
+        expect(caps).toEqual({ 'browserA': { 'capabilities': { 'bstack:options': { 'wdioService': '7.26.0' }, 'goog:chromeOptions': {} } } })
     })
 
     it('should add the "wdioService" property to object of capabilities inside "bstack:options" if any extension cap present', async () => {
         const caps: any = { browserA: { capabilities: { 'goog:chromeOptions': {} } } }
         new BrowserstackLauncher(options, caps, config)
 
-        expect(caps).toEqual({ 'browserA': { 'capabilities': { 'bstack:options': { 'wdioService': '7.25.4' }, 'goog:chromeOptions': {} } } })
+        expect(caps).toEqual({ 'browserA': { 'capabilities': { 'bstack:options': { 'wdioService': '7.26.0' }, 'goog:chromeOptions': {} } } })
     })
 
     it('should add the "wdioService" property to object of capabilities inside "bstack:options" if any extension cap not present', async () => {
         const caps: any = { browserA: { capabilities: {} } }
         new BrowserstackLauncher(options, caps, config)
 
-        expect(caps).toEqual({ 'browserA': { 'capabilities': { 'browserstack.wdioService': '7.25.4' } } })
+        expect(caps).toEqual({ 'browserA': { 'capabilities': { 'browserstack.wdioService': '7.26.0' } } })
     })
 
     it('update spec list if it is a rerun', async () => {
@@ -559,34 +559,5 @@ describe('_uploadApp', () => {
             expect(got.post).toHaveBeenCalled()
             expect(e.name).toEqual('SevereServiceError')
         }
-    })
-})
-
-describe('#shouldAddServiceVersion', () => {
-    const options: BrowserstackConfig = { }
-    const caps: any = [{}]
-
-    it('return false if should not add service version', async() => {
-        let config = {
-            user: 'foobaruser',
-            key: '12345',
-            capabilities: [],
-            services: ['chromedriver']
-        }
-        const service = new BrowserstackLauncher(options, caps, config)
-        const res = await service.#shouldAddServiceVersion(config)
-        expect(res).toEqual(false)
-    })
-
-    it('return true if should add service version', async() => {
-        let config = {
-            user: 'foobaruser',
-            key: '12345',
-            capabilities: [],
-            services: []
-        }
-        const service = new BrowserstackLauncher(options, caps, config)
-        const res = await service.#shouldAddServiceVersion(config)
-        expect(res).toEqual(true)
     })
 })

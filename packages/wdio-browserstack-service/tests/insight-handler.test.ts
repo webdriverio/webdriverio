@@ -570,36 +570,6 @@ describe('browserCommand', () => {
     })
 })
 
-describe('afterCommand', () => {
-    const insightsHandler = new InsightsHandler('framework')
-    const uploadEventDataSpy = jest.spyOn(utils, 'uploadEventData').mockImplementation(() => { return [] })
-    const getIdentifierSpy = jest.spyOn(insightsHandler, 'getIdentifier').mockImplementation(() => { return 'test title' })
-
-    insightsHandler['_tests'] = { 'test title': { 'uuid': 'uuid' } }
-
-    beforeEach(() => {
-        uploadEventDataSpy.mockClear()
-        getIdentifierSpy.mockClear()
-    })
-
-    it('takeScreenshot', () => {
-        insightsHandler.afterCommand('takeScreenshot', [], {}, new Error('any error'), { name: 'test' })
-        // expect(getUniqueIdentifierSpy).toBeCalledTimes(1)
-        expect(uploadEventDataSpy).toBeCalledTimes(1)
-    })
-
-    it('takeScreenshot - cucumber', () => {
-        insightsHandler.afterCommand('takeScreenshot', [], {}, new Error('any error'), { name: 'test', pickle: {} })
-        // expect(getUniqueIdentifierForCucumberSpy).toBeCalledTimes(1)
-        expect(uploadEventDataSpy).toBeCalledTimes(1)
-    })
-
-    afterEach(() => {
-        uploadEventDataSpy.mockClear()
-        getIdentifierSpy.mockClear()
-    })
-})
-
 describe('getIdentifier', () => {
     const insightsHandler = new InsightsHandler('framework')
     const getUniqueIdentifierSpy = jest.spyOn(utils, 'getUniqueIdentifier')
@@ -610,25 +580,19 @@ describe('getIdentifier', () => {
     beforeEach(() => {
         getUniqueIdentifierSpy.mockClear()
         getUniqueIdentifierForCucumberSpy.mockClear()
-        // getUniqueIdentifierSpy.mockReset()
-        // getUniqueIdentifierForCucumberSpy.mockReset()
     })
 
     it('non cucumber', () => {
-        // expect(insightsHandler['getIdentifier']({ parent: 'parent', title: 'title' })).toEqual('parent - title')
         insightsHandler['getIdentifier']({ parent: 'parent', title: 'title' })
         expect(getUniqueIdentifierSpy).toBeCalledTimes(1)
     })
 
     it('cucumber', () => {
-        // expect(insightsHandler['getIdentifier']({ pickle: { uri: 'uri', astNodeIds: ['9', '8'] } })).toEqual('uri_9,8')
         insightsHandler['getIdentifier']({ pickle: { uri: 'uri', astNodeIds: ['9', '8'] } })
         expect(getUniqueIdentifierForCucumberSpy).toBeCalledTimes(1)
     })
 
     afterEach(() => {
-        // getUniqueIdentifierSpy.mockClear()
-        // getUniqueIdentifierForCucumberSpy.mockClear()
         getUniqueIdentifierSpy.mockReset()
         getUniqueIdentifierForCucumberSpy.mockReset()
     })
