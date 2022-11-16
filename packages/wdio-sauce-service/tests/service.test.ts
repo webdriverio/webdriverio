@@ -96,6 +96,26 @@ test('beforeSuite should not send request to set the job name as suite name for 
     expect(service.setAnnotation).not.toBeCalled()
 })
 
+test('beforeSuite should set job-name via custom setJobName method', async () => {
+    const service = new SauceService({
+        setJobName: (config, caps, title) => {
+            return `${config.region} - ${(caps as any).browserName} - ${title}`
+        }
+    }, {
+        browserName: 'foobar'
+    }, {
+        user: 'foobar',
+        key: '123',
+        region: 'barfoo' as any
+    } as any)
+    service['_browser'] = browser
+    service.setAnnotation = jest.fn()
+    expect(service['_isJobNameSet']).toBe(false)
+    await service.beforeSuite({ title: 'Suite Title' } as any)
+    expect(service['_isJobNameSet']).toBe(true)
+    expect(service.setAnnotation).toBeCalledWith('sauce:job-name=barfoo - foobar - Suite Title')
+})
+
 test('beforeTest should send the job-name as suite name by default', async () => {
     const service = new SauceService({}, {}, { user: 'foobar', key: '123', capabilities: {} })
     service['_browser'] = browser
@@ -128,7 +148,7 @@ test('beforeTest should mark job-name as set', async () => {
 test('beforeTest should set job-name via custom setJobName method', async () => {
     const service = new SauceService({
         setJobName: (config, caps, title) => {
-            return `${config.region}-${(caps as any).browserName}-${title}`
+            return `${config.region} - ${(caps as any).browserName} - ${title}`
         }
     }, {
         browserName: 'foobar'
@@ -146,10 +166,10 @@ test('beforeTest should set job-name via custom setJobName method', async () => 
         description: 'foobar'
     } as any)
     expect(service['_isJobNameSet']).toBe(true)
-    expect(service.setAnnotation).toBeCalledWith('sauce:job-name=barfoo-foobar-Suite Title')
+    expect(service.setAnnotation).toBeCalledWith('sauce:job-name=barfoo - foobar - Suite Title')
 })
 
-test('beforeTest not should set job-name when it has already been set', async () => {
+test('beforeTest should not set job-name when it has already been set', async () => {
     const service = new SauceService({}, {}, { user: 'foobar', key: '123', capabilities: {} })
     service['_browser'] = browser
     service['_suiteTitle'] = 'Suite Title'

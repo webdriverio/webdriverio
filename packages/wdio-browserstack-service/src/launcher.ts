@@ -4,16 +4,15 @@ import fs from 'fs'
 import path from 'path'
 import { promisify } from 'util'
 import { performance, PerformanceObserver } from 'perf_hooks'
-import { SevereServiceError } from 'webdriverio'
 
+import { SevereServiceError } from 'webdriverio'
 import * as BrowserstackLocalLauncher from 'browserstack-local'
 import logger from '@wdio/logger'
 import type { Capabilities, Services, Options } from '@wdio/types'
-import { App, AppConfig, AppUploadResponse } from './types'
 
 // @ts-ignore
 import { version as bstackServiceVersion } from '../package.json'
-import { BrowserstackConfig } from './types'
+import { App, AppConfig, AppUploadResponse, BrowserstackConfig } from './types'
 import { VALID_APP_EXTENSION } from './constants'
 import { getFrameworkVersion, launchTestSession, stopBuildUpstream } from './util'
 
@@ -43,7 +42,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                     const extensionCaps = Object.keys(capability).filter((cap) => cap.includes(':'))
                     if (extensionCaps.length) {
                         capability['bstack:options'] = { wdioService: bstackServiceVersion }
-                    } else if (this._shouldAddServiceVersion(this._config)) {
+                    } else if (this.#shouldAddServiceVersion(this._config)) {
                         capability['browserstack.wdioService'] = bstackServiceVersion
                     }
                 } else {
@@ -59,7 +58,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                     const extensionCaps = Object.keys(caps.capabilities).filter((cap) => cap.includes(':'))
                     if (extensionCaps.length) {
                         (caps.capabilities as Capabilities.Capabilities)['bstack:options'] = { wdioService: bstackServiceVersion }
-                    } else if (this._shouldAddServiceVersion(this._config)) {
+                    } else if (this.#shouldAddServiceVersion(this._config)) {
                         (caps.capabilities as Capabilities.Capabilities)['browserstack.wdioService'] = bstackServiceVersion
                     }
                 } else {
@@ -313,7 +312,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         }
     }
 
-    _shouldAddServiceVersion(config: Options.Testrunner): boolean {
+    #shouldAddServiceVersion(config: Options.Testrunner): boolean {
         if (config.services && config.services.toString().includes('chromedriver') && this._options.testObservability != false) {
             return false
         }

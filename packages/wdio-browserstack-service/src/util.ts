@@ -1,17 +1,19 @@
+import { hostname, platform, type, version, arch } from 'os'
+import { promisify } from 'util'
+import * as http from 'http'
+import * as https from 'https'
+
 import type { Browser, MultiRemoteBrowser } from 'webdriverio'
-import type { Capabilities } from '@wdio/types'
+import type { Capabilities, Frameworks } from '@wdio/types'
 import logger from '@wdio/logger'
 
 import got from 'got'
-import { hostname, platform, type, version, arch } from 'os'
-import { promisify } from 'util'
-import gitRepoInfo from 'git-repo-info'
+import gitRepoInfo, { GitRepoInfo } from 'git-repo-info'
 import gitconfig from 'gitconfiglocal'
-import { Frameworks } from '@wdio/types'
+import type { ITestCaseHookParameter } from './cucumber-types'
 
+import { UserConfig, UploadType, LaunchResponse } from './types'
 import { BROWSER_DESCRIPTION, DATA_ENDPOINT } from './constants'
-import { ITestCaseHookParameter } from '@cucumber/cucumber/lib/support_code_library_builder/types'
-import { UserConfig } from './types'
 
 const pGitconfig = promisify(gitconfig)
 const log = logger('@wdio/browserstack-service')
@@ -107,6 +109,7 @@ export async function launchTestSession (userConfig: UserConfig) {
     const config = {
         username: userConfig.username,
         password: userConfig.password,
+        agent: keepAliveAgent(),
         headers: {
             'Content-Type': 'application/json',
             'X-BSTACK-OBS': 'true'
@@ -115,11 +118,11 @@ export async function launchTestSession (userConfig: UserConfig) {
 
     try {
         const url = `${DATA_ENDPOINT}/api/v1/builds`
-        const response: any = await got.post(url, { json: data, ...config }).json()
+        const response: LaunchResponse = await got.post(url, { json: data, ...config }).json()
         log.debug(`[Start_Build] Success response: ${JSON.stringify(response)}`)
         process.env.BS_TESTOPS_BUILD_COMPLETED = 'true'
         return [response.jwt, response.build_hashed_id]
-    } catch (error: any) {
+    } catch (error) {
         log.debug(`[Start_Build] Failed. Error: ${error}`)
         process.env.BS_TESTOPS_BUILD_COMPLETED = 'true'
         return [null, null]
@@ -139,6 +142,7 @@ export async function stopBuildUpstream () {
             'stop_time': (new Date()).toISOString()
         }
         const config = {
+            agent: keepAliveAgent(),
             headers: {
                 'Authorization': `Bearer ${process.env.BS_TESTOPS_JWT}`,
                 'Content-Type': 'application/json',
@@ -148,7 +152,7 @@ export async function stopBuildUpstream () {
 
         try {
             const url = `${DATA_ENDPOINT}/api/v1/builds/${process.env.BS_TESTOPS_BUILD_HASHED_ID}/stop`
-            const response: any = await got.put(url, { json: data, ...config }).json()
+            const response = await got.put(url, { json: data, ...config }).json()
             log.debug(`[Stop_Build] Success response: ${JSON.stringify(response)}`)
             return {
                 status: 'success',
@@ -261,27 +265,27 @@ export function getCiInfo () {
 }
 
 export async function getGitMetaData () {
-    var info: any = gitRepoInfo()
+    var info: GitRepoInfo = gitRepoInfo()
     if (!info.commonGitDir) return {}
     const { remote } = await pGitconfig(info.commonGitDir)
     const remotes = Object.keys(remote).map(remoteName =>  ({ name: remoteName, url: remote[remoteName]['url'] }))
     return {
-        'name': 'git',
-        'sha': info['sha'],
-        'short_sha': info['abbreviatedSha'],
-        'branch': info['branch'],
-        'tag': info['tag'],
-        'committer': info['committer'],
-        'committer_date': info['committerDate'],
-        'author': info['author'],
-        'author_date': info['authorDate'],
-        'commit_message': info['commitMessage'],
-        'root': info['root'],
-        'common_git_dir': info['commonGitDir'],
-        'worktree_git_dir': info['worktreeGitDir'],
-        'last_tag': info['lastTag'],
-        'commits_since_last_tag': info['commitsSinceLastTag'],
-        'remotes': remotes
+        name: 'git',
+        sha: info['sha'],
+        short_sha: info['abbreviatedSha'],
+        branch: info['branch'],
+        tag: info['tag'],
+        committer: info['committer'],
+        committer_date: info['committerDate'],
+        author: info['author'],
+        author_date: info['authorDate'],
+        commit_message: info['commitMessage'],
+        root: info['root'],
+        common_git_dir: info['commonGitDir'],
+        worktree_git_dir: info['worktreeGitDir'],
+        last_tag: info['lastTag'],
+        commits_since_last_tag: info['commitsSinceLastTag'],
+        remotes: remotes
     }
 }
 
@@ -316,17 +320,19 @@ export function getScenarioExamples(world: ITestCaseHookParameter) {
 
     let examples: string[] = []
 
-    gherkinDocumentChildren?.forEach((child: any) => {
+    gherkinDocumentChildren?.forEach(child => {
         if (child.rule) {
             // handle if rule is present
-            child.rule.children.forEach((childLevel2: any) => {
+            child.rule.children.forEach(childLevel2 => {
                 if (childLevel2.scenario && childLevel2.scenario.id == pickleId && childLevel2.scenario.examples) {
-                    examples = childLevel2.scenario.examples.flatMap((val: any) => (val.tableBody)).find((item: any) => item.id == examplesId).cells.map((val: any) => (val.value))
+                    const passedExamples = childLevel2.scenario.examples.flatMap((val) => (val.tableBody)).find((item) => item.id == examplesId)?.cells.map((val) => (val.value))
+                    if (passedExamples) examples = passedExamples
                 }
             })
         } else if (child.scenario && child.scenario.id == pickleId && child.scenario.examples) {
             // handle if scenario outside rule
-            examples = child.scenario.examples.flatMap((val: any) => (val.tableBody)).find((item: any) => item.id == examplesId).cells.map((val: any) => (val.value))
+            const passedExamples = child.scenario.examples.flatMap((val) => (val.tableBody)).find((item) => item.id == examplesId)?.cells.map((val) => (val.value))
+            if (passedExamples) examples = passedExamples
         }
     })
 
@@ -345,14 +351,25 @@ export function getLogTag(eventType: string): string {
         return 'Test_Upload'
     } else if (eventType == 'HookRunStarted' || eventType == 'HookRunFinished') {
         return 'Hook_Upload'
+    } else if (eventType == 'ScreenshotCreated') {
+        return 'Screenshot_Upload'
     } else if (eventType == 'LogCreated') {
         return 'Log_Upload'
     }
     return 'undefined'
 }
 
-export async function uploadEventData (eventData: any) {
+function keepAliveAgent () {
+    return {
+        http: new http.Agent({ keepAlive: true }),
+        https: new https.Agent({ keepAlive: true }),
+    }
+}
+
+export async function uploadEventData (eventData: UploadType) {
     const logTag: string = getLogTag(eventData.event_type)
+
+    if (eventData.event_type == 'ScreenshotCreated') eventData.event_type = 'LogCreated'
 
     if (process.env.BS_TESTOPS_BUILD_COMPLETED) {
         if (!process.env.BS_TESTOPS_JWT) {
@@ -363,6 +380,7 @@ export async function uploadEventData (eventData: any) {
             }
         }
         const config = {
+            agent: keepAliveAgent(),
             headers: {
                 'Authorization': `Bearer ${process.env.BS_TESTOPS_JWT}`,
                 'Content-Type': 'application/json',
@@ -372,12 +390,9 @@ export async function uploadEventData (eventData: any) {
 
         try {
             const url = `${DATA_ENDPOINT}/api/v1/event`
-            await got.post(url, { json: eventData, ...config }).json().then(( data: any ) => {
-                log.debug(`[${logTag}] Success response: ${require('util').inspect(data, { depth: null })}`)
-            }).catch((error: any) => {
-                log.debug(`[${logTag}] Failed. Error: ${error}`)
-            })
-        } catch (error: any) {
+            const data = await got.post(url, { json: eventData, ...config }).json()
+            log.debug(`[${logTag}] Success response: ${require('util').inspect(data, { depth: null })}`)
+        } catch (error) {
             log.debug(`[${logTag}] Failed. Error: ${error}`)
         }
     }

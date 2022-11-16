@@ -1,4 +1,4 @@
-import { Capabilities } from '@wdio/types'
+import type { Capabilities } from '@wdio/types'
 
 export interface SessionResponse {
     // eslint-disable-next-line camelcase
@@ -71,6 +71,8 @@ export interface BrowserstackConfig {
     opts?: Partial<import('browserstack-local').Options>
 }
 
+// Observability types
+
 export interface PlatformMeta {
     sessionId?: string,
     browserName?: string,
@@ -87,7 +89,7 @@ export interface TestMeta {
     steps?: StepData[],
     feature?: { name: string, path?: string, description: string | null },
     scenario?: { name: string },
-    examples?: any[]
+    examples?: string[]
 }
 
 export interface TestData {
@@ -110,7 +112,7 @@ export interface TestData {
     failure_type?: string | null,
     retries?: { limit: number, attempts: number },
     duration_in_ms?: number,
-    integrations?: { [index: string]: any },
+    integrations?: { [index: string]: IntegrationObject },
     hook_type?: string,
     hooks?: string[],
     meta?: TestMeta,
@@ -119,13 +121,34 @@ export interface TestData {
 
 export interface UserConfig {
     username?: string,
-    password?: string
+    password?: string,
     buildName?: string,
     projectName?: string,
     buildTag?: string,
     bstackServiceVersion?: string,
     framework?: string,
     frameworkVersion?: string
+}
+
+export interface UploadType {
+    event_type: string,
+    hook_run?: TestData,
+    test_run?: TestData,
+    logs?: any[]
+}
+
+export interface LaunchResponse {
+    jwt: string,
+    build_hashed_id: string
+}
+
+interface IntegrationObject {
+    capabilities?: Capabilities.Capabilities,
+    session_id?: string
+    browser?: string
+    browser_version?: string
+    platform?: string
+    product?: string
 }
 
 interface TestCodeBody {

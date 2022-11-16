@@ -1,13 +1,14 @@
-import { Capabilities, Frameworks } from '@wdio/types'
+import path from 'path'
+
+import type { Capabilities, Frameworks } from '@wdio/types'
 import type { Browser, MultiRemoteBrowser } from 'webdriverio'
-import type { Pickle } from '@cucumber/messages'
-import { ITestCaseHookParameter } from '@cucumber/cucumber/lib/support_code_library_builder/types'
+import { BeforeCommandArgs, AfterCommandArgs } from '@wdio/reporter'
 
 import { v4 as uuidv4 } from 'uuid'
+import type { Pickle, ITestCaseHookParameter } from './cucumber-types'
 
 import { getCloudProvider, getGitMetaData, getScenarioExamples, getUniqueIdentifier, getUniqueIdentifierForCucumber, isBrowserstackSession, removeAnsiColors, uploadEventData } from './util'
-import { TestData, TestMeta, PlatformMeta } from './types'
-import path from 'path'
+import { TestData, TestMeta, PlatformMeta, UploadType } from './types'
 
 export default class InsightsHandler {
 
@@ -16,7 +17,7 @@ export default class InsightsHandler {
     private _hooks: { [index: string]: string[] }
     private _platformMeta?: PlatformMeta
     private _framework?: string
-    private _commands: { [index: string]: any }
+    private _commands: { [index: string]: BeforeCommandArgs & AfterCommandArgs }
     private _gitConfigPath?: string
 
     constructor (framework?: string) {
@@ -26,7 +27,7 @@ export default class InsightsHandler {
         this._framework = framework
     }
 
-    async setUp(browser?: Browser<'async'> | MultiRemoteBrowser<'async'>, browserCaps?: Capabilities.Capabilities, isAppAutomate?: boolean, sessionId?: string) {
+    async setUp (browser?: Browser<'async'> | MultiRemoteBrowser<'async'>, browserCaps?: Capabilities.Capabilities, isAppAutomate?: boolean, sessionId?: string) {
         this._browser = browser
 
         if (this._browser) {
@@ -50,18 +51,18 @@ export default class InsightsHandler {
         }
     }
 
-    async beforeHook(test: Frameworks.Test, context: any) {
+    async beforeHook (test: Frameworks.Test, context: any) {
         const fullTitle = `${test.parent} - ${test.title}`
         const hookId = uuidv4()
         this._tests[fullTitle] = {
             uuid: hookId,
             startedAt: (new Date()).toISOString()
         }
-        this._attachHookData(context, hookId)
-        if (this._framework == 'mocha') await this._sendTestRunEvent(test, 'HookRunStarted')
+        this.attachHookData(context, hookId)
+        if (this._framework == 'mocha') await this.sendTestRunEvent(test, 'HookRunStarted')
     }
 
-    async afterHook(test: Frameworks.Test, context: any, result: Frameworks.TestResult) {
+    async afterHook (test: Frameworks.Test, context: any, result: Frameworks.TestResult) {
         const fullTitle = getUniqueIdentifier(test)
         if (this._tests[fullTitle]) {
             this._tests[fullTitle]['finishedAt'] = (new Date()).toISOString()
@@ -70,20 +71,20 @@ export default class InsightsHandler {
                 finishedAt: (new Date()).toISOString()
             }
         }
-        if (this._framework == 'mocha') await this._sendTestRunEvent(test, 'HookRunFinished', result)
+        if (this._framework == 'mocha') await this.sendTestRunEvent(test, 'HookRunFinished', result)
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    async beforeTest(test: Frameworks.Test, context: any) {
+    async beforeTest (test: Frameworks.Test, context: any) {
         const fullTitle = getUniqueIdentifier(test)
         this._tests[fullTitle] = {
             uuid: uuidv4(),
             startedAt: (new Date()).toISOString()
         }
-        await this._sendTestRunEvent(test, 'TestRunStarted')
+        await this.sendTestRunEvent(test, 'TestRunStarted')
     }
 
-    async afterTest(test: Frameworks.Test, context: never, result: Frameworks.TestResult) {
+    async afterTest (test: Frameworks.Test, context: any, result: Frameworks.TestResult) {
         const fullTitle = getUniqueIdentifier(test)
         if (this._tests[fullTitle]) {
             this._tests[fullTitle]['finishedAt'] = (new Date()).toISOString()
@@ -92,7 +93,7 @@ export default class InsightsHandler {
                 finishedAt: (new Date()).toISOString()
             }
         }
-        await this._sendTestRunEvent(test, 'TestRunFinished', result)
+        await this.sendTestRunEvent(test, 'TestRunFinished', result)
     }
 
     // Cucumber Only
@@ -125,15 +126,15 @@ export default class InsightsHandler {
 
         this._tests[uniqueId] = testMetaData
 
-        await this._sendTestRunEventForCucumber(world, 'TestRunStarted')
+        await this.sendTestRunEventForCucumber(world, 'TestRunStarted')
     }
 
     async afterScenario (world: ITestCaseHookParameter) {
-        await this._sendTestRunEventForCucumber(world, 'TestRunFinished')
+        await this.sendTestRunEventForCucumber(world, 'TestRunFinished')
     }
 
-    beforeStep (step: Frameworks.PickleStep, scenario: Pickle) {
-        const uniqueId = getUniqueIdentifierForCucumber({ pickle: scenario } as any)
+    async beforeStep (step: Frameworks.PickleStep, scenario: Pickle) {
+        const uniqueId = getUniqueIdentifierForCucumber({ pickle: scenario } as ITestCaseHookParameter)
         let testMetaData = this._tests[uniqueId]
         if (!testMetaData) {
             testMetaData = {
@@ -155,8 +156,8 @@ export default class InsightsHandler {
         this._tests[uniqueId] = testMetaData
     }
 
-    afterStep (step: Frameworks.PickleStep, scenario: Pickle, result: Frameworks.PickleResult) {
-        const uniqueId = getUniqueIdentifierForCucumber({ pickle: scenario } as any)
+    async afterStep (step: Frameworks.PickleStep, scenario: Pickle, result: Frameworks.PickleResult) {
+        const uniqueId = getUniqueIdentifierForCucumber({ pickle: scenario } as ITestCaseHookParameter)
         let testMetaData = this._tests[uniqueId]
         if (!testMetaData) {
             testMetaData = {
@@ -176,7 +177,7 @@ export default class InsightsHandler {
                 failure: result.error ? removeAnsiColors(result.error) : result.error
             })
         } else if (testMetaData){
-            let stepDetails = testMetaData['steps']?.find((item: any) => item.id == step.id)
+            let stepDetails = testMetaData['steps']?.find(item => item.id == step.id)
             if (stepDetails) {
                 stepDetails.finished_at = (new Date()).toISOString()
                 stepDetails.result = result.passed ? 'PASSED' : 'FAILED'
@@ -190,33 +191,30 @@ export default class InsightsHandler {
 
     // misc methods
 
-    async afterCommand(commandName: string, args: any[], result: any, error?: Error, test?: any) {
-        if (test && commandName == 'takeScreenshot') {
-            const identifier = this.getIdentifier(test)
-            let log = {
-                test_run_uuid: this._tests[identifier].uuid,
-                timestamp: new Date().toISOString(),
-                message: result,
-                kind: 'TEST_SCREENSHOT'
-            }
-
-            await uploadEventData({
-                event_type: 'LogCreated',
-                logs: [log]
-            })
-        }
-    }
-
-    async browserCommand(commandType: string, args: any, test?: any) {
+    async browserCommand (commandType: string, args: BeforeCommandArgs & AfterCommandArgs, test?: Frameworks.Test | ITestCaseHookParameter) {
         if (commandType == 'client:beforeCommand') {
             this._commands[`${args.sessionId}_${args.method}_${args.endpoint}`] = args
         } else {
             if (test == undefined) return
+            const identifier = this.getIdentifier(test)
+
+            // log screenshot
+            if (this.isScreenshotCommand(args) && args.result.value) {
+                await uploadEventData({
+                    event_type: 'ScreenshotCreated',
+                    logs: [{
+                        test_run_uuid: this._tests[identifier].uuid,
+                        timestamp: new Date().toISOString(),
+                        message: args.result.value,
+                        kind: 'TEST_SCREENSHOT'
+                    }]
+                })
+            }
 
             const dataKey = `${args.sessionId}_${args.method}_${args.endpoint}`
             const requestData = this._commands[dataKey]
-            const identifier = this.getIdentifier(test)
 
+            // log http request
             let log = {
                 test_run_uuid: this._tests[identifier].uuid,
                 timestamp: new Date().toISOString(),
@@ -238,7 +236,11 @@ export default class InsightsHandler {
 
     // private methods
 
-    private _getHookType(hookName: string): string {
+    private isScreenshotCommand (args: BeforeCommandArgs & AfterCommandArgs) {
+        return args.endpoint && args.endpoint.includes('/screenshot')
+    }
+
+    private getHookType (hookName: string): string {
         if (hookName.includes('before each')) {
             return 'BEFORE_EACH'
         } else if (hookName.includes('before all')) {
@@ -251,7 +253,7 @@ export default class InsightsHandler {
         return 'unknown'
     }
 
-    private _attachHookData(context: any, hookId: string): void {
+    private attachHookData (context: any, hookId: string): void {
         if (context.currentTest && context.currentTest.parent) {
             const parentTest = `${context.currentTest.parent.title} - ${context.currentTest.title}`
             if (this._hooks[parentTest]) {
@@ -265,8 +267,8 @@ export default class InsightsHandler {
     /*
      * Get hierarchy info
      */
-    private getHierarchy(test: Frameworks.Test) {
-        let value: any[] = []
+    private getHierarchy (test: Frameworks.Test) {
+        let value: string[] = []
         if (test.ctx && test.ctx.test) {
             let parent = test.ctx.test.parent
             while (parent && parent.title !== '') {
@@ -278,7 +280,7 @@ export default class InsightsHandler {
         return value.reverse()
     }
 
-    private async _sendTestRunEvent (test: Frameworks.Test, eventType: string, results?: Frameworks.TestResult) {
+    private async sendTestRunEvent (test: Frameworks.Test, eventType: string, results?: Frameworks.TestResult) {
         const fullTitle = getUniqueIdentifier(test)
         let testMetaData = this._tests[fullTitle]
 
@@ -298,6 +300,7 @@ export default class InsightsHandler {
             vc_filepath: (this._gitConfigPath && test.file) ? path.relative(this._gitConfigPath, test.file) : undefined,
             started_at: testMetaData.startedAt,
             finished_at: testMetaData.finishedAt,
+            result: 'pending',
             framework: this._framework
         }
 
@@ -326,12 +329,12 @@ export default class InsightsHandler {
             if (this._browser && this._platformMeta) testData['integrations'][getCloudProvider(this._browser)] = this.getIntegrationsObject()
         }
 
-        let uploadData: any = {
+        let uploadData: UploadType = {
             event_type: eventType,
         }
 
         if (eventType.match(/HookRun/)) {
-            testData['hook_type'] = testData.name?.toLowerCase() ? this._getHookType(testData.name.toLowerCase()) : 'undefined'
+            testData['hook_type'] = testData.name?.toLowerCase() ? this.getHookType(testData.name.toLowerCase()) : 'undefined'
             uploadData['hook_run'] = testData
         } else {
             uploadData['test_run'] = testData
@@ -339,7 +342,7 @@ export default class InsightsHandler {
         await uploadEventData(uploadData)
     }
 
-    private async _sendTestRunEventForCucumber (world: ITestCaseHookParameter, eventType: string) {
+    private async sendTestRunEventForCucumber (world: ITestCaseHookParameter, eventType: string) {
         const uniqueId = getUniqueIdentifierForCucumber(world)
 
         let testMetaData = this._tests[uniqueId]
@@ -370,6 +373,7 @@ export default class InsightsHandler {
             vc_filepath: (this._gitConfigPath && feature?.path) ? path.relative(this._gitConfigPath, feature?.path) : undefined,
             location: feature?.path,
             framework: this._framework,
+            result: 'pending',
             meta: {
                 feature: feature,
                 scenario: scenario,
@@ -405,25 +409,25 @@ export default class InsightsHandler {
             testData['tags'] = world.pickle.tags.map( ({ name }: { name: string }) => (name) )
         }
 
-        let uploadData: any = {
+        let uploadData: UploadType = {
             event_type: eventType,
             test_run: testData
         }
         await uploadEventData(uploadData)
     }
 
-    private getIntegrationsObject() {
+    private getIntegrationsObject () {
         return {
-            'capabilities': this._platformMeta?.caps,
-            'session_id': this._platformMeta?.sessionId,
-            'browser': this._platformMeta?.browserName,
-            'browser_version': this._platformMeta?.browserVersion,
-            'platform': this._platformMeta?.platformName,
-            'product': this._platformMeta?.product
+            capabilities: this._platformMeta?.caps,
+            session_id: this._platformMeta?.sessionId,
+            browser: this._platformMeta?.browserName,
+            browser_version: this._platformMeta?.browserVersion,
+            platform: this._platformMeta?.platformName,
+            product: this._platformMeta?.product
         }
     }
 
-    private getIdentifier(test: any) {
+    private getIdentifier (test: Frameworks.Test | ITestCaseHookParameter) {
         if ('pickle' in test) {
             return getUniqueIdentifierForCucumber(test)
         }

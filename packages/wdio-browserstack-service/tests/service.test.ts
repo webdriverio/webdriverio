@@ -4,6 +4,7 @@ import type { Browser } from 'webdriverio'
 
 import BrowserstackService from '../src/service'
 import * as utils from '../src/util'
+import InsightsHandler from '../src/insights-handler'
 
 interface GotMock extends jest.Mock {
     put: jest.Mock
@@ -384,6 +385,92 @@ describe('before', () => {
         expect(log.info).toHaveBeenCalled()
         expect(log.info).toHaveBeenCalledWith(
             'OS X Sierra chrome session: https://www.browserstack.com/automate/builds/1/sessions/2')
+    })
+})
+
+describe('beforeHook', () => {
+    service = new BrowserstackService({}, [] as any,
+        { user: 'foo', key: 'bar', cucumberOpts: { strict: false } } as any)
+
+    it('call insightsHandler.beforeHook', () => {
+        service['insightsHandler'] = new InsightsHandler()
+        const methodSpy = jest.spyOn(service['insightsHandler'], 'beforeHook')
+        service.beforeHook({ title: 'foo2', parent: 'bar2' } as any,
+        {} as any)
+
+        expect(methodSpy).toBeCalled()
+    })
+})
+
+describe('afterHook', () => {
+    service = new BrowserstackService({}, [] as any,
+        { user: 'foo', key: 'bar', cucumberOpts: { strict: false } } as any)
+
+    it('call insightsHandler.afterHook', () => {
+        service['insightsHandler'] = new InsightsHandler()
+        const methodSpy = jest.spyOn(service['insightsHandler'], 'afterHook')
+        service.afterHook({ title: 'foo2', parent: 'bar2' } as any,
+        undefined as never, {} as any)
+
+        expect(methodSpy).toBeCalled()
+    })
+})
+
+describe('beforeStep', () => {
+    service = new BrowserstackService({}, [] as any,
+        { user: 'foo', key: 'bar', cucumberOpts: { strict: false } } as any)
+
+    it('call insightsHandler.beforeStep', () => {
+        jest.spyOn(utils, 'getUniqueIdentifierForCucumber').mockReturnValue('test title')
+        service['insightsHandler'] = new InsightsHandler()
+        const methodSpy = jest.spyOn(service['insightsHandler'], 'beforeStep')
+        service.beforeStep({ title: 'foo2', parent: 'bar2' } as any,
+        undefined as never)
+
+        expect(methodSpy).toBeCalled()
+    })
+})
+
+describe('afterStep', () => {
+    service = new BrowserstackService({}, [] as any,
+        { user: 'foo', key: 'bar', cucumberOpts: { strict: false } } as any)
+
+    it('call insightsHandler.afterStep', () => {
+        jest.spyOn(utils, 'getUniqueIdentifierForCucumber').mockReturnValue('test title')
+        service['insightsHandler'] = new InsightsHandler()
+        const methodSpy = jest.spyOn(service['insightsHandler'], 'afterStep')
+        service.afterStep({ title: 'foo2', parent: 'bar2' } as any,
+        undefined as never, {} as any)
+
+        expect(methodSpy).toBeCalled()
+    })
+})
+
+describe('beforeScenario', () => {
+    service = new BrowserstackService({}, [] as any,
+        { user: 'foo', key: 'bar', cucumberOpts: { strict: false } } as any)
+
+    it('call insightsHandler.beforeScenario', () => {
+        service['insightsHandler'] = new InsightsHandler()
+        jest.spyOn(utils, 'getUniqueIdentifierForCucumber').mockReturnValue('test title')
+        const methodSpy = jest.spyOn(service['insightsHandler'], 'beforeScenario')
+        service.beforeScenario({ pickle: { name: '', tags: [] }, gherkinDocument: { uri: '', feature: { name: '', description: '' } } } as any)
+
+        expect(methodSpy).toBeCalled()
+    })
+})
+
+describe('beforeTest', () => {
+    service = new BrowserstackService({}, [] as any,
+        { user: 'foo', key: 'bar', cucumberOpts: { strict: false } } as any)
+
+    it('call insightsHandler.beforeTest', () => {
+        service['insightsHandler'] = new InsightsHandler()
+        const methodSpy = jest.spyOn(service['insightsHandler'], 'beforeTest')
+        service.beforeTest({ title: 'foo2', parent: 'bar2' } as any,
+        undefined as never)
+
+        expect(methodSpy).toBeCalled()
     })
 })
 

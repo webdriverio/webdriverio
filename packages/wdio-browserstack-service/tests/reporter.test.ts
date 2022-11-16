@@ -99,6 +99,27 @@ describe('test-reporter', () => {
             expect(log.debug).toHaveBeenCalledTimes(0)
         })
 
+        it('uploadEventData not called for cucumber', async () => {
+            reporter['_config'] = { framework: 'cucumber' } as any
+            await reporter.onTestSkip({
+                type: 'test',
+                start: '2018-05-14T15:17:18.901Z',
+                _duration: 0,
+                uid: '23',
+                cid: '0-0',
+                title: 'Given the title is "Google1"',
+                fullTitle: 'TestDesc.TestRun.it',
+                output: [],
+                argument: undefined,
+                retries: 0,
+                parent: '1',
+                state: 'skipped'
+            } as any)
+            expect(uploadEventDataSpy).toBeCalledTimes(0)
+            expect(scopesSpy).toBeCalledTimes(0)
+            expect(log.debug).toHaveBeenCalledTimes(0)
+        })
+
         afterEach(() => {
             uploadEventDataSpy.mockClear()
             getCloudProviderSpy.mockClear()
