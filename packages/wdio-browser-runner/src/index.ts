@@ -57,7 +57,11 @@ export default class BrowserRunner extends LocalRunner {
                 })
                 BROWSER_POOL.set(payload.cid!, await attach({
                     ...this.#config,
-                    ...payload.content
+                    ...payload.content,
+                    options: {
+                        ...this.#config,
+                        ...payload.content
+                    }
                 }))
             }
 

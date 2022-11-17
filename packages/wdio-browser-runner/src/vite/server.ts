@@ -158,10 +158,17 @@ export class ViteServer {
             return ws.send(JSON.stringify(this.#commandResponse({ id: payload.id, error })))
         }
 
-        const result = await (browser[payload.commandName as keyof typeof browser] as Function)(...payload.args)
-        const resultMsg = JSON.stringify(this.#commandResponse({ id: payload.id, result }))
-        log.info(`Return command result: ${resultMsg}`)
-        return ws.send(resultMsg)
+        try {
+            const result = await (browser[payload.commandName as keyof typeof browser] as Function)(...payload.args)
+            const resultMsg = JSON.stringify(this.#commandResponse({ id: payload.id, result }))
+            log.info(`Return command result: ${resultMsg}`)
+            return ws.send(resultMsg)
+        } catch (error: any) {
+            return ws.send(JSON.stringify(this.#commandResponse({
+                id: payload.id,
+                error: serializeError(new Error(`Failed to execute command "${payload.commandName}": ${error.message}`))
+            })))
+        }
     }
 
     #commandResponse (value: CommandResponseEvent): SocketMessage {
