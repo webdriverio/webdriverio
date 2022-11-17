@@ -1,30 +1,42 @@
-import Mocha from 'https://esm.sh/mocha@10.0.0'
+import Mocha from 'mocha'
 import stringify from 'fast-safe-stringify'
 
 // @ts-expect-error
 import { setupEnv, formatMessage } from '@wdio/mocha-framework/common'
 
-import { EVENTS } from '../../constants.js'
-import { MESSAGE_TYPES } from '../../vite/constants.js'
-import type { HookResultEvent, SocketMessage } from '../../vite/types'
+import { MESSAGE_TYPES, EVENTS } from '../../constants.js'
+import type { HookResultEvent, HookTriggerEvent, SocketMessage } from '../../vite/types'
+
+const startTime = Date.now()
 
 export class MochaFramework {
     #socket: WebSocket
     #hookResolver = new Map<string, { resolve: Function, reject: Function }>()
-    #mocha: any
     #runnerEvents: any[] = []
 
     constructor (socket: WebSocket) {
-        this.#mocha = Mocha.setup({
-            ...window.__wdioEnv__.args,
-            reporter: HTMLReporter
-        })
-
         this.#socket = socket
         socket.addEventListener('message', this.#handleSocketMessage.bind(this))
+
+        const self = this
+        before(function () {
+            self.#getHook('beforeSuite')({
+                ...this.test?.parent?.suites[0],
+                file: window.__wdioSpec__,
+            })
+        })
+
+        after(function () {
+            self.#getHook('afterSuite')({
+                ...this.test?.parent?.suites[0],
+                file: window.__wdioSpec__,
+                duration: Date.now() - startTime
+            })
+        })
     }
 
     run () {
+        const runner = mocha.run(this.#onFinish.bind(this))
         const [cid] = window.location.pathname.slice(1).split('/')
         if (!cid) {
             throw new Error('"cid" query parameter is missing')
@@ -36,32 +48,20 @@ export class MochaFramework {
         const afterTest = this.#getHook('afterTest')
         setupEnv(cid, window.__wdioEnv__.args, beforeTest, beforeHook, afterTest, afterHook)
 
-        console.log('[WDIO] Start Mocha testsuite')
-        const startTime = Date.now()
-        const runner = this.#mocha.run(async (failures: number) => {
-            await this.#getHook('after')(failures, window.__wdioEnv__.capabilities, [window.__wdioSpec__])
-
-            /**
-             * propagate results to browser so it can be picked up by the runner
-             */
-            // @ts-ignore
-            window.__wdioEvents__ = this.#runnerEvents
-            window.__wdioFailures__ = failures
-        })
-
-        runner.suite.beforeAll(() => this.#getHook('beforeSuite')({
-            ...runner.suite.suites[0],
-            file: window.__wdioSpec__,
-        }))
-        runner.suite.afterAll(() => this.#getHook('afterSuite')({
-            ...runner.suite.suites[0],
-            file: window.__wdioSpec__,
-            duration: Date.now() - startTime
-        }))
-
         Object.entries(EVENTS).map(([mochaEvent, wdioEvent]) => runner.on(mochaEvent, (payload: any) => {
             this.#runnerEvents.push(formatMessage({ type: wdioEvent, payload, err: payload.err }))
         }))
+    }
+
+    async #onFinish (failures: number) {
+        await this.#getHook('after')(failures, window.__wdioEnv__.capabilities, [window.__wdioSpec__])
+
+        /**
+         * propagate results to browser so it can be picked up by the runner
+         */
+        window.__wdioEvents__ = this.#runnerEvents
+        window.__wdioFailures__ = failures
+        console.log(`[WDIO] Finished test suite in ${Date.now() - startTime}ms`)
     }
 
     #handleSocketMessage (payload: MessageEvent) {
@@ -92,24 +92,32 @@ export class MochaFramework {
 
     #getHook (name: string) {
         return (...args: any[]) => new Promise((resolve, reject) => {
-            const id = this.#hookResolver.size + 1
+            const id = (this.#hookResolver.size + 1).toString()
             const [cid] = window.location.pathname.slice(1).split('/')
             if (!cid) {
                 return reject(new Error('"cid" query parameter is missing'))
             }
 
             this.#hookResolver.set(id.toString(), { resolve, reject })
-            this.#socket.send(stringify({ type: 'hook', name, id, cid, args }))
+            this.#socket.send(stringify(this.#hookTrigger({ name, id, cid, args })))
         })
     }
+
+    #hookTrigger (value: HookTriggerEvent): SocketMessage {
+        return {
+            type: MESSAGE_TYPES.hookTriggerMessage,
+            value
+        }
+    }
 }
 
-const BaseReporter = Mocha.reporters.html
-
-export default class HTMLReporter extends BaseReporter {
-    constructor (runner: any, options: any) {
-        super(runner, options)
-    }
-
+// @ts-expect-error
+const BaseReporter = window.Mocha.reporters.html
+class HTMLReporter extends BaseReporter {
     addCodeToggle () {}
 }
+
+Mocha.setup({
+    ...window.__wdioEnv__.args,
+    reporter: HTMLReporter
+})

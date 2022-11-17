@@ -46,11 +46,3 @@ export const DEFAULT_VITE_CONFIG: Partial<InlineConfig> = {
         },
     }
 }
-
-export enum MESSAGE_TYPES {
-    consoleMessage = 0,
-    commandRequestMessage,
-    commandResponseMessage,
-    hookTriggerMessage,
-    hookResultMessage
-}

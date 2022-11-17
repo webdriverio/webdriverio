@@ -13,6 +13,8 @@ declare global {
         __wdioSpec__: string
         __wdioFailures__: number
         __wdioEvents__: any[]
+        __wdioSocket__: WebSocket
+        __wdioConnectPromise__: Promise<WebSocket>
     }
 }
 
@@ -30,8 +32,8 @@ addEventListener('error', (ev) => window.__wdioErrors__.push({
  */
 const wsUrl = 'ws://' + window.location.host + '/ws'
 console.log(`[WDIO] Connect to testrunner: ${wsUrl}`)
-export const socket = new WebSocket(wsUrl)
-export const connectPromise = new Promise<WebSocket>((resolve) => {
+export const socket = window.__wdioSocket__ = new WebSocket(wsUrl)
+export const connectPromise = window.__wdioConnectPromise__ = new Promise<WebSocket>((resolve) => {
     console.log('[WDIO] Connected to testrunner')
     socket.addEventListener('open', () => resolve(socket))
 })
@@ -47,21 +49,13 @@ _setGlobal('browser', browser, window.__wdioEnv__.injectGlobals)
 _setGlobal('driver', browser, window.__wdioEnv__.injectGlobals)
 _setGlobal('expect', expect, window.__wdioEnv__.injectGlobals)
 _setGlobal('$', browser.$.bind(browser), window.__wdioEnv__.injectGlobals)
-_setGlobal('$$', browser.$.bind(browser), window.__wdioEnv__.injectGlobals)
+_setGlobal('$$', browser.$$.bind(browser), window.__wdioEnv__.injectGlobals)
 
 /**
- * initiate framework execution once socket is connected
+ * execute test framework after socket connection was established
  */
-await connectPromise.then(async (socket) => {
-    const frameworkRunner = new MochaFramework(socket)
-
-    /**
-     * load spec file
-     */
+await connectPromise.then(async () => {
+    const framework = new MochaFramework(socket)
     await import(window.__wdioSpec__)
-
-    /**
-     * execute tests
-     */
-    await frameworkRunner.run()
+    framework.run()
 })

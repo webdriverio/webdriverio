@@ -1,11 +1,12 @@
+import stringify from 'fast-safe-stringify'
+
 import { commands } from 'virtual:wdio'
 import { webdriverMonad } from '@wdio/utils'
 import { getEnvironmentVars } from 'webdriver'
-import { connectPromise, socket } from '@wdio/browser-runner/setup'
 import type { ErrorObject } from 'serialize-error'
 
 import browserCommands from './commands/index.js'
-import { MESSAGE_TYPES } from '../vite/constants.js'
+import { MESSAGE_TYPES } from '../constants.js'
 import type { SocketMessage, SocketMessagePayload, ConsoleEvent, CommandRequestEvent } from '../vite/types'
 
 const COMMAND_TIMEOUT = 30 * 1000 // 30s
@@ -33,10 +34,12 @@ export default class ProxyDriver {
         /**
          * log all console events once connected
          */
+        const connectPromise = window.__wdioConnectPromise__
         connectPromise.then(this.#wrapConsolePrototype.bind(this, cid))
         /**
          * handle Vite server socket messages
          */
+        const socket = window.__wdioSocket__
         socket.addEventListener('message', this.#handleServerMessage.bind(this))
 
         let commandId = 0
@@ -119,10 +122,11 @@ export default class ProxyDriver {
     }
 
     static #wrapConsolePrototype (cid: string) {
+        const socket = window.__wdioSocket__
         for (const method of CONSOLE_METHODS) {
             const origCommand = console[method].bind(console)
             console[method] = (...args: unknown[]) => {
-                socket.send(JSON.stringify(this.#consoleMessage({
+                socket.send(stringify(this.#consoleMessage({
                     name: 'consoleEvent',
                     type: method,
                     args,

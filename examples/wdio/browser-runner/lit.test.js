@@ -1,13 +1,15 @@
 import { expect, $ } from '@wdio/globals'
+import { html, render } from 'lit'
 import './components/LitComponent.ts'
 
 describe('Lit Component testing', () => {
     it('should render component', async () => {
-        const elem = document.createElement('simple-greeting')
-        elem.setAttribute('name', 'WebdriverIO')
-        document.body.appendChild(elem)
+        render(
+            html`<simple-greeting name="WebdriverIO" />`,
+            document.body
+        )
 
-        const innerElem = await $(elem).$('>>> p')
+        const innerElem = await $('simple-greeting').$('>>> p')
         expect(await innerElem.getText()).toBe('Hello, WebdriverIO!')
     })
 })

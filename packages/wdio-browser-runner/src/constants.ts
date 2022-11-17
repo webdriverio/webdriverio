@@ -18,3 +18,11 @@ export const EVENTS = {
 } as const
 
 export const FRAMEWORK_SUPPORT_ERROR = 'Currently only "mocha" is supported as framework when using @wdio/browser-runner.'
+
+export enum MESSAGE_TYPES {
+    consoleMessage = 0,
+    commandRequestMessage,
+    commandResponseMessage,
+    hookTriggerMessage,
+    hookResultMessage
+}

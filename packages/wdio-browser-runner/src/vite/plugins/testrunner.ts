@@ -12,7 +12,7 @@ import {
 } from '@wdio/protocols'
 
 import { SESSIONS } from '../../constants.js'
-import { getTemplate, getErrorTemplate } from '../../utils.js'
+import { getTemplate, getErrorTemplate } from '../utils.js'
 
 const log = logger('@wdio/browser-runner:plugin')
 const require = createRequire(import.meta.url)
@@ -46,14 +46,14 @@ const MODULES_TO_MOCK = [
 const FETCH_FROM_ESM = [
     'serialize-error', 'minimatch', 'css-shorthand-properties', 'lodash.merge', 'lodash.zip',
     'lodash.clonedeep', 'lodash.pickby', 'lodash.flattendeep', 'aria-query', 'grapheme-splitter',
-    'css-value', 'rgb2hex', 'p-iteration'
+    'css-value', 'rgb2hex', 'p-iteration', 'fast-safe-stringify', 'deepmerge-ts', 'is-plain-obj',
+    'mocha'
 ]
 
 export function testrunner (options: WebdriverIO.BrowserRunnerOptions): Plugin {
-    const automationProtocolPath = path.resolve(__dirname, '..', 'browser', 'driver.js')
-    const mockModulePath = path.resolve(__dirname, '..', 'browser', 'mock.js')
-    const setupModulePath = path.resolve(__dirname, '..', 'browser', 'setup.js')
-    const reporterPath = path.resolve(__dirname, '..', 'browser', 'reporter.js')
+    const automationProtocolPath = path.resolve(__dirname, '..', '..', 'browser', 'driver.js')
+    const mockModulePath = path.resolve(__dirname, '..', '..', 'browser', 'mock.js')
+    const setupModulePath = path.resolve(__dirname, '..', '..', 'browser', 'setup.js')
     return {
         name: 'wdio:testrunner',
         enforce: 'pre',
@@ -62,12 +62,8 @@ export function testrunner (options: WebdriverIO.BrowserRunnerOptions): Plugin {
                 return resolvedVirtualModuleId
             }
 
-            if (id === '@wdio/browser-runner/setup') {
+            if (id.endsWith('@wdio/browser-runner/setup')) {
                 return setupModulePath
-            }
-
-            if (id === '@wdio/browser-runner/reporter') {
-                return reporterPath
             }
 
             /**

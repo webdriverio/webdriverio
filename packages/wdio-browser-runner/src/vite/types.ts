@@ -1,5 +1,5 @@
 import type { ErrorObject } from 'serialize-error'
-import { MESSAGE_TYPES } from './constants.js'
+import { MESSAGE_TYPES } from '../constants.js'
 
 interface SocketMessagePayloadType<T extends MESSAGE_TYPES> {
     type: T,
