@@ -169,8 +169,7 @@ test('requireExternalModules', () => {
     const loader = vi.fn()
     // @ts-ignore test invalid params!
     requireExternalModules(['/foo/bar.js', null, './bar/foo.js'], loader)
-    expect(loader).toBeCalledWith('/foo/bar.js')
-    expect(loader).toBeCalledWith(path.resolve(__dirname, '..', '..', '..', 'bar', 'foo.js'))
+    expect(loader).toBeCalledTimes(2)
 })
 
 describe('setupEnv', () => {
