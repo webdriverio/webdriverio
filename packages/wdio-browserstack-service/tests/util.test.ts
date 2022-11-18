@@ -18,7 +18,10 @@ import {
     launchTestSession,
     getGitMetaData,
     uploadEventData,
-    getLogTag
+    getLogTag,
+    getHookType,
+    isScreenshotCommand,
+    getFrameworkVersion
 } from '../src/util'
 
 jest.mock('got')
@@ -563,24 +566,24 @@ describe('launchTestSession', () => {
     const mockedGot = jest.mocked(got)
     jest.mocked(gitRepoInfo).mockReturnValue({} as any)
 
-    it('return array if completed', async () => {
+    it('return undefined if completed', async () => {
         mockedGot.post = jest.fn().mockReturnValue({
             json: () => Promise.resolve({ build_hashed_id: 'build_id', jwt: 'jwt' }),
         } as any)
 
         const result: any = await launchTestSession( { username: 'username', password: 'password' } )
         expect(got.post).toBeCalledTimes(1)
-        expect(result).toEqual(['jwt', 'build_id'])
+        expect(result).toEqual(undefined)
     })
 
-    it('return null in case of error', async () => {
+    it('return undefined in case of error', async () => {
         mockedGot.post = jest.fn().mockReturnValue({
             json: () => Promise.reject({ build_hashed_id: 'build_id', jwt: 'jwt' }),
         } as any)
 
         const result = await launchTestSession( { username: 'username', password: 'password' } )
         expect(got.post).toHaveBeenCalled()
-        expect(result).toEqual([null, null])
+        expect(result).toEqual(undefined)
     })
 })
 
@@ -648,5 +651,36 @@ describe('getGitMetaData', () => {
         } catch (e) {
             //
         }
+    })
+})
+
+describe('getHookType', () => {
+    it('get hook type as string', () => {
+        expect(getHookType('before each hook for test 1')).toEqual('BEFORE_EACH')
+        expect(getHookType('after each hook for test 1')).toEqual('AFTER_EACH')
+        expect(getHookType('before all hook for test 1')).toEqual('BEFORE_ALL')
+        expect(getHookType('after all hook for test 1')).toEqual('AFTER_ALL')
+        expect(getHookType('no hook test')).toEqual('unknown')
+    })
+})
+
+describe('isScreenshotCommand', () => {
+    it('get true if screenshot command', () => {
+        expect(isScreenshotCommand({ endpoint: 'session/:sessionId/screenshot' })).toEqual(true)
+    })
+    it('get false if not a screenshot command', () => {
+        expect(isScreenshotCommand({ endpoint: 'session/:sessionId/element/text' })).toEqual(false)
+    })
+})
+
+describe('getFrameworkVersion', () => {
+    it('return undefined if framework not defined', () => {
+        expect(getFrameworkVersion()).toEqual(undefined)
+    })
+    it('try fetching version for other frameworks', () => {
+        // jest doesn't allow mocking require resolve yet hence just checking flow - https://github.com/facebook/jest/issues/9543
+        expect(getFrameworkVersion('mocha')).toEqual(undefined)
+        expect(getFrameworkVersion('cucumber')).toEqual(undefined)
+        expect(getFrameworkVersion('jasmine')).toEqual(undefined)
     })
 })

@@ -118,13 +118,14 @@ export default class BrowserstackService implements Services.ServiceInstance {
         await this.insightsHandler?.beforeHook(test, context)
     }
 
-    async afterHook (test: Frameworks.Test, context: any, result: Frameworks.TestResult) {
-        await this.insightsHandler?.afterHook(test, context, result)
+    async afterHook (test: Frameworks.Test, context: unknown, result: Frameworks.TestResult) {
+        await this.insightsHandler?.afterHook(test, result)
     }
 
-    async beforeTest(test: Frameworks.Test, context: any) {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    async beforeTest(test: Frameworks.Test, context: unknown) {
         this._currentTest = test
-        await this.insightsHandler?.beforeTest(test, context)
+        await this.insightsHandler?.beforeTest(test)
     }
 
     async afterTest(test: Frameworks.Test, context: never, results: Frameworks.TestResult) {
@@ -147,7 +148,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
             this._failReasons.push((error && error.message) || 'Unknown Error')
         }
 
-        await this.insightsHandler?.afterTest(test, context, results)
+        await this.insightsHandler?.afterTest(test, results)
     }
 
     after (result: number) {

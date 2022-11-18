@@ -12,9 +12,9 @@ import type { Capabilities, Services, Options } from '@wdio/types'
 
 // @ts-ignore
 import { version as bstackServiceVersion } from '../package.json'
-import { App, AppConfig, AppUploadResponse, BrowserstackConfig } from './types'
+import type { App, AppConfig, AppUploadResponse, BrowserstackConfig } from './types'
 import { VALID_APP_EXTENSION } from './constants'
-import { getFrameworkVersion, launchTestSession, stopBuildUpstream } from './util'
+import { getFrameworkVersion, launchTestSession, shouldAddServiceVersion, stopBuildUpstream } from './util'
 
 const log = logger('@wdio/browserstack-service')
 
@@ -42,7 +42,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                     const extensionCaps = Object.keys(capability).filter((cap) => cap.includes(':'))
                     if (extensionCaps.length) {
                         capability['bstack:options'] = { wdioService: bstackServiceVersion }
-                    } else if (this.#shouldAddServiceVersion(this._config)) {
+                    } else if (shouldAddServiceVersion(this._config, this._options.testObservability)) {
                         capability['browserstack.wdioService'] = bstackServiceVersion
                     }
                 } else {
@@ -58,7 +58,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                     const extensionCaps = Object.keys(caps.capabilities).filter((cap) => cap.includes(':'))
                     if (extensionCaps.length) {
                         (caps.capabilities as Capabilities.Capabilities)['bstack:options'] = { wdioService: bstackServiceVersion }
-                    } else if (this.#shouldAddServiceVersion(this._config)) {
+                    } else if (shouldAddServiceVersion(this._config, this._options.testObservability)) {
                         (caps.capabilities as Capabilities.Capabilities)['browserstack.wdioService'] = bstackServiceVersion
                     }
                 } else {
@@ -129,9 +129,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                 framework: this._config.framework,
                 frameworkVersion: getFrameworkVersion(this._config.framework)
             }
-            const [BS_TESTOPS_JWT, BS_TESTOPS_BUILD_HASHED_ID] = await launchTestSession(bsConfig)
-            if (BS_TESTOPS_JWT !== null) process.env.BS_TESTOPS_JWT = BS_TESTOPS_JWT
-            if (BS_TESTOPS_BUILD_HASHED_ID !== null) process.env.BS_TESTOPS_BUILD_HASHED_ID = BS_TESTOPS_BUILD_HASHED_ID
+            await launchTestSession(bsConfig)
         }
 
         if (!this._options.browserstackLocal) {
@@ -310,12 +308,5 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         } else {
             throw new SevereServiceError('Capabilities should be an object or Array!')
         }
-    }
-
-    #shouldAddServiceVersion(config: Options.Testrunner): boolean {
-        if (config.services && config.services.toString().includes('chromedriver') && this._options.testObservability != false) {
-            return false
-        }
-        return true
     }
 }

@@ -7,8 +7,8 @@ import { BeforeCommandArgs, AfterCommandArgs } from '@wdio/reporter'
 import { v4 as uuidv4 } from 'uuid'
 import type { Pickle, ITestCaseHookParameter } from './cucumber-types'
 
-import { getCloudProvider, getGitMetaData, getScenarioExamples, getUniqueIdentifier, getUniqueIdentifierForCucumber, isBrowserstackSession, removeAnsiColors, uploadEventData } from './util'
-import { TestData, TestMeta, PlatformMeta, UploadType } from './types'
+import { getCloudProvider, getGitMetaData, getHookType, getScenarioExamples, getUniqueIdentifier, getUniqueIdentifierForCucumber, isBrowserstackSession, isScreenshotCommand, removeAnsiColors, uploadEventData } from './util'
+import type { TestData, TestMeta, PlatformMeta, UploadType } from './types'
 
 export default class InsightsHandler {
 
@@ -27,22 +27,20 @@ export default class InsightsHandler {
         this._framework = framework
     }
 
-    async setUp (browser?: Browser<'async'> | MultiRemoteBrowser<'async'>, browserCaps?: Capabilities.Capabilities, isAppAutomate?: boolean, sessionId?: string) {
+    async setUp (browser: Browser<'async'> | MultiRemoteBrowser<'async'>, browserCaps?: Capabilities.Capabilities, isAppAutomate?: boolean, sessionId?: string) {
         this._browser = browser
 
-        if (this._browser) {
-            this._platformMeta = {
-                browserName: browserCaps?.browserName,
-                browserVersion: browserCaps?.browserVersion,
-                platformName: browserCaps?.platformName,
-                caps: browserCaps,
-                sessionId: sessionId,
-                product: isAppAutomate ? 'app-automate' : 'automate'
-            }
+        this._platformMeta = {
+            browserName: browserCaps?.browserName,
+            browserVersion: browserCaps?.browserVersion,
+            platformName: browserCaps?.platformName,
+            caps: browserCaps,
+            sessionId: sessionId,
+            product: isAppAutomate ? 'app-automate' : 'automate'
+        }
 
-            if (isBrowserstackSession(this._browser)) {
-                this._browser.execute(`browserstack_executor: {"action": "annotate", "arguments": {"data": "ObservabilitySync:${Date.now()}","level": "debug"}}`)
-            }
+        if (isBrowserstackSession(this._browser)) {
+            this._browser.execute(`browserstack_executor: {"action": "annotate", "arguments": {"data": "ObservabilitySync:${Date.now()}","level": "debug"}}`)
         }
 
         const gitMeta = await getGitMetaData()
@@ -62,7 +60,7 @@ export default class InsightsHandler {
         if (this._framework == 'mocha') await this.sendTestRunEvent(test, 'HookRunStarted')
     }
 
-    async afterHook (test: Frameworks.Test, context: any, result: Frameworks.TestResult) {
+    async afterHook (test: Frameworks.Test, result: Frameworks.TestResult) {
         const fullTitle = getUniqueIdentifier(test)
         if (this._tests[fullTitle]) {
             this._tests[fullTitle]['finishedAt'] = (new Date()).toISOString()
@@ -74,8 +72,7 @@ export default class InsightsHandler {
         if (this._framework == 'mocha') await this.sendTestRunEvent(test, 'HookRunFinished', result)
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    async beforeTest (test: Frameworks.Test, context: any) {
+    async beforeTest (test: Frameworks.Test) {
         const fullTitle = getUniqueIdentifier(test)
         this._tests[fullTitle] = {
             uuid: uuidv4(),
@@ -84,7 +81,7 @@ export default class InsightsHandler {
         await this.sendTestRunEvent(test, 'TestRunStarted')
     }
 
-    async afterTest (test: Frameworks.Test, context: any, result: Frameworks.TestResult) {
+    async afterTest (test: Frameworks.Test, result: Frameworks.TestResult) {
         const fullTitle = getUniqueIdentifier(test)
         if (this._tests[fullTitle]) {
             this._tests[fullTitle]['finishedAt'] = (new Date()).toISOString()
@@ -199,7 +196,7 @@ export default class InsightsHandler {
             const identifier = this.getIdentifier(test)
 
             // log screenshot
-            if (this.isScreenshotCommand(args) && args.result.value) {
+            if (isScreenshotCommand(args) && args.result.value) {
                 await uploadEventData({
                     event_type: 'ScreenshotCreated',
                     logs: [{
@@ -215,7 +212,7 @@ export default class InsightsHandler {
             const requestData = this._commands[dataKey]
 
             // log http request
-            let log = {
+            const log = {
                 test_run_uuid: this._tests[identifier].uuid,
                 timestamp: new Date().toISOString(),
                 kind: 'HTTP',
@@ -235,23 +232,6 @@ export default class InsightsHandler {
     }
 
     // private methods
-
-    private isScreenshotCommand (args: BeforeCommandArgs & AfterCommandArgs) {
-        return args.endpoint && args.endpoint.includes('/screenshot')
-    }
-
-    private getHookType (hookName: string): string {
-        if (hookName.includes('before each')) {
-            return 'BEFORE_EACH'
-        } else if (hookName.includes('before all')) {
-            return 'BEFORE_ALL'
-        } else if (hookName.includes('after each')) {
-            return 'AFTER_EACH'
-        } else if (hookName.includes('after all')) {
-            return 'AFTER_ALL'
-        }
-        return 'unknown'
-    }
 
     private attachHookData (context: any, hookId: string): void {
         if (context.currentTest && context.currentTest.parent) {
@@ -334,7 +314,7 @@ export default class InsightsHandler {
         }
 
         if (eventType.match(/HookRun/)) {
-            testData['hook_type'] = testData.name?.toLowerCase() ? this.getHookType(testData.name.toLowerCase()) : 'undefined'
+            testData['hook_type'] = testData.name?.toLowerCase() ? getHookType(testData.name.toLowerCase()) : 'undefined'
             uploadData['hook_run'] = testData
         } else {
             uploadData['test_run'] = testData

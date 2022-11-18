@@ -93,7 +93,7 @@ describe('sendTestRunEvent', () => {
         const insightsHandler = new InsightsHandler('framework')
         const getUniqueIdentifierSpy = jest.spyOn(utils, 'getUniqueIdentifier').mockReturnValue('test title')
         jest.spyOn(insightsHandler, 'getHierarchy').mockImplementation(() => { return [] })
-        jest.spyOn(insightsHandler, 'getHookType').mockReturnValue('BEFORE_EACH')
+        jest.spyOn(utils, 'getHookType').mockReturnValue('BEFORE_EACH')
         const uploadEventDataSpy = jest.spyOn(utils, 'uploadEventData').mockImplementation()
         jest.spyOn(utils, 'getCloudProvider').mockImplementation( () => 'browserstack' )
         const test = {
@@ -155,7 +155,7 @@ describe('sendTestRunEventForCucumber', () => {
         const getUniqueIdentifierForCucumberSpy = jest.spyOn(utils, 'getUniqueIdentifierForCucumber').mockReturnValue('test title')
         jest.spyOn(insightsHandler, 'getHierarchy').mockImplementation(() => { return [] })
         const uploadEventDataSpy = jest.spyOn(utils, 'uploadEventData').mockImplementation()
-        const getScenarioExamplesSpy = jest.spyOn(utils, 'getScenarioExamples').mockReturnValue(undefined)
+        const getScenarioExamplesSpy = jest.spyOn(utils, 'getScenarioExamples')
         jest.spyOn(utils, 'getCloudProvider').mockImplementation( () => 'browserstack' )
         insightsHandler['_tests'] = { 'test title': { uuid: 'uuid', startedAt: '', finishedAt: '', feature: { name: 'name', path: 'path' }, scenario: { name: 'name' } } }
         insightsHandler['_platformMeta'] = { caps: {},  sessionId: '', browserName: '', browserVersion: '', platformName: '', product: '' }
@@ -164,6 +164,7 @@ describe('sendTestRunEventForCucumber', () => {
             uploadEventDataSpy.mockClear()
             getUniqueIdentifierForCucumberSpy.mockClear()
             getScenarioExamplesSpy.mockClear()
+            getScenarioExamplesSpy.mockReturnValue(undefined)
         })
 
         it('for passed', async () => {
@@ -201,6 +202,21 @@ describe('sendTestRunEventForCucumber', () => {
                     tags: []
                 }
             } as any, 'TestRunStarted')
+            expect(uploadEventDataSpy).toBeCalledTimes(1)
+        })
+
+        it('for passed - examples', async () => {
+            getScenarioExamplesSpy.mockReturnValue(['1', '2'])
+            await insightsHandler.sendTestRunEventForCucumber({
+                pickle: {
+                    tags: []
+                },
+                result: {
+                    duration: { nanos: 10 },
+                    retries: { limit: 0, attempts: 0 },
+                    status: 'passed'
+                }
+            } as any, 'TestRunFinished')
             expect(uploadEventDataSpy).toBeCalledTimes(1)
         })
 
@@ -337,18 +353,6 @@ describe('afterStep', () => {
 
     afterEach(() => {
         getUniqueIdentifierForCucumberSpy.mockClear()
-    })
-})
-
-describe('getHookType', () => {
-    const insightsHandler = new InsightsHandler('framework')
-
-    it('get hook type as string', () => {
-        expect(insightsHandler['getHookType']('before each hook for test 1')).toEqual('BEFORE_EACH')
-        expect(insightsHandler['getHookType']('after each hook for test 1')).toEqual('AFTER_EACH')
-        expect(insightsHandler['getHookType']('before all hook for test 1')).toEqual('BEFORE_ALL')
-        expect(insightsHandler['getHookType']('after all hook for test 1')).toEqual('AFTER_ALL')
-        expect(insightsHandler['getHookType']('no hook test')).toEqual('unknown')
     })
 })
 
@@ -540,6 +544,7 @@ describe('browserCommand', () => {
     const insightsHandler = new InsightsHandler('framework')
     const uploadEventDataSpy = jest.spyOn(utils, 'uploadEventData').mockImplementation(() => { return [] })
     const getIdentifierSpy = jest.spyOn(insightsHandler, 'getIdentifier').mockImplementation(() => { return 'test title' })
+    const commandSpy = jest.spyOn(utils, 'isScreenshotCommand')
 
     insightsHandler['_tests'] = { 'test title': { 'uuid': 'uuid' } }
     insightsHandler['_commands'] = { 's_m_e': {} }
@@ -562,6 +567,13 @@ describe('browserCommand', () => {
     it('client:afterCommand - test not defined', () => {
         insightsHandler.browserCommand('client:afterCommand', { sessionId: 's', method: 'm', endpoint: 'e', result: {} }, undefined)
         expect(uploadEventDataSpy).toBeCalledTimes(0)
+    })
+
+    it('client:afterCommand - screenshot', () => {
+        commandSpy.mockImplementation(() => { return true })
+        insightsHandler.browserCommand('client:afterCommand', { sessionId: 's', method: 'm', endpoint: 'e', result: { value: 'random' } }, {})
+        expect(uploadEventDataSpy).toBeCalled()
+        // commandSpy.mockRestore()
     })
 
     afterEach(() => {

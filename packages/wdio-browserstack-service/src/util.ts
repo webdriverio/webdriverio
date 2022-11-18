@@ -4,7 +4,8 @@ import * as http from 'http'
 import * as https from 'https'
 
 import type { Browser, MultiRemoteBrowser } from 'webdriverio'
-import type { Capabilities, Frameworks } from '@wdio/types'
+import type { Capabilities, Frameworks, Options } from '@wdio/types'
+import { BeforeCommandArgs, AfterCommandArgs } from '@wdio/reporter'
 import logger from '@wdio/logger'
 
 import got from 'got'
@@ -121,49 +122,50 @@ export async function launchTestSession (userConfig: UserConfig) {
         const response: LaunchResponse = await got.post(url, { json: data, ...config }).json()
         log.debug(`[Start_Build] Success response: ${JSON.stringify(response)}`)
         process.env.BS_TESTOPS_BUILD_COMPLETED = 'true'
-        return [response.jwt, response.build_hashed_id]
+        if (response.jwt) process.env.BS_TESTOPS_JWT = response.jwt
+        if (response.build_hashed_id) process.env.BS_TESTOPS_BUILD_HASHED_ID = response.build_hashed_id
     } catch (error) {
         log.debug(`[Start_Build] Failed. Error: ${error}`)
         process.env.BS_TESTOPS_BUILD_COMPLETED = 'true'
-        return [null, null]
     }
 }
 
 export async function stopBuildUpstream () {
-    if (process.env.BS_TESTOPS_BUILD_COMPLETED) {
-        if (!process.env.BS_TESTOPS_JWT) {
-            log.debug('[Stop_Build] Missing Authentication Token/ Build ID')
-            return {
-                status: 'error',
-                message: 'Token/buildID is undefined, build creation might have failed'
-            }
+    if (!process.env.BS_TESTOPS_BUILD_COMPLETED) {
+        return
+    }
+    if (!process.env.BS_TESTOPS_JWT) {
+        log.debug('[Stop_Build] Missing Authentication Token/ Build ID')
+        return {
+            status: 'error',
+            message: 'Token/buildID is undefined, build creation might have failed'
         }
-        const data = {
-            'stop_time': (new Date()).toISOString()
-        }
-        const config = {
-            agent: keepAliveAgent(),
-            headers: {
-                'Authorization': `Bearer ${process.env.BS_TESTOPS_JWT}`,
-                'Content-Type': 'application/json',
-                'X-BSTACK-OBS': 'true'
-            },
-        }
+    }
+    const data = {
+        'stop_time': (new Date()).toISOString()
+    }
+    const config = {
+        agent: keepAliveAgent(),
+        headers: {
+            'Authorization': `Bearer ${process.env.BS_TESTOPS_JWT}`,
+            'Content-Type': 'application/json',
+            'X-BSTACK-OBS': 'true'
+        },
+    }
 
-        try {
-            const url = `${DATA_ENDPOINT}/api/v1/builds/${process.env.BS_TESTOPS_BUILD_HASHED_ID}/stop`
-            const response = await got.put(url, { json: data, ...config }).json()
-            log.debug(`[Stop_Build] Success response: ${JSON.stringify(response)}`)
-            return {
-                status: 'success',
-                message: ''
-            }
-        } catch (error: any) {
-            log.debug(`[Stop_Build] Failed. Error: ${error}`)
-            return {
-                status: 'error',
-                message: error.message
-            }
+    try {
+        const url = `${DATA_ENDPOINT}/api/v1/builds/${process.env.BS_TESTOPS_BUILD_HASHED_ID}/stop`
+        const response = await got.put(url, { json: data, ...config }).json()
+        log.debug(`[Stop_Build] Success response: ${JSON.stringify(response)}`)
+        return {
+            status: 'success',
+            message: ''
+        }
+    } catch (error: any) {
+        log.debug(`[Stop_Build] Failed. Error: ${error}`)
+        return {
+            status: 'error',
+            message: error.message
         }
     }
 }
@@ -407,13 +409,39 @@ export function getHierarchy(fullTitle?: string) {
 export function getFrameworkVersion(framework?: string) {
     try {
         if (framework == 'mocha') {
-            return require('../../wdio-mocha-framework/package.json').version
+            return require(require.resolve('wdio-mocha-framework/package.json')).version
         } else if (framework == 'cucumber') {
-            return require('../../wdio-cucumber-framework/package.json').version
+            return require(require.resolve('wdio-cucumber-framework/package.json')).version
+        } else if (framework == 'jasmine') {
+            return require(require.resolve('wdio-jasmine-framework/package.json')).version
         }
     } catch (err) {
         return
     }
 
     return
+}
+
+export function getHookType (hookName: string): string {
+    if (hookName.includes('before each')) {
+        return 'BEFORE_EACH'
+    } else if (hookName.includes('before all')) {
+        return 'BEFORE_ALL'
+    } else if (hookName.includes('after each')) {
+        return 'AFTER_EACH'
+    } else if (hookName.includes('after all')) {
+        return 'AFTER_ALL'
+    }
+    return 'unknown'
+}
+
+export function isScreenshotCommand (args: BeforeCommandArgs & AfterCommandArgs) {
+    return args.endpoint && args.endpoint.includes('/screenshot')
+}
+
+export function shouldAddServiceVersion(config: Options.Testrunner, testObservability?: boolean): boolean {
+    if (config.services && config.services.toString().includes('chromedriver') && testObservability != false) {
+        return false
+    }
+    return true
 }
