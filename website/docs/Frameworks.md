@@ -187,7 +187,7 @@ commands the screenshot is taken anyway, which still gives _some_ valuable infor
 
 ### Jasmine Options
 
-The following options can be applied in your `wdio.conf.js` to configure your Jasmine environment using the `jasmineOpts` property:
+The following options can be applied in your `wdio.conf.js` to configure your Jasmine environment using the `jasmineOpts` property. For more information on these configuration options, check out the [Jasmine docs](https://jasmine.github.io/api/edge/Configuration).
 
 #### defaultTimeoutInterval
 Default Timeout Interval for Jasmine operations.
@@ -235,7 +235,7 @@ Default: `false`
 Function to use to filter specs.
 
 Type: `Function`<br />
-Default: `() => true`
+Default: `(spec) => true`
 
 #### grep
 Only run tests matching this string or regexp. (Only applicable if no custom `specFilter` function is set)
