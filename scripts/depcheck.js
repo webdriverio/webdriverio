@@ -22,7 +22,7 @@ const IGNORE_PACKAGES = {
     'wdio-cli': ['ts-node', '@babel/register'],
     'wdio-config': ['ts-node', '@babel/register'],
     'wdio-types': ['ts-node'],
-    'wdio-browser-runner': ['vue', '@vue/compiler-dom', 'virtual:wdio']
+    'wdio-browser-runner': ['vue', '@vue/compiler-dom', 'virtual:wdio', 'mocha']
 }
 
 shell.cd(ROOT_DIR)

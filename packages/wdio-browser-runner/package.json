@@ -38,6 +38,7 @@
     "@wdio/protocols": "^7.20.6",
     "@wdio/runner": "7.20.7",
     "@wdio/types": "7.20.7",
+    "@wdio/utils": "^7.20.7",
     "deepmerge-ts": "^4.2.2",
     "expect-webdriverio": "^4.0.0-alpha.6",
     "fast-safe-stringify": "^2.1.1",
