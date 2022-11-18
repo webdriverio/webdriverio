@@ -2,12 +2,13 @@ import path from 'node:path'
 import { describe, test, expect, vi, afterAll } from 'vitest'
 import { wrapGlobalTestMethod } from '@wdio/utils'
 
-import { loadModule, formatMessage, setupEnv } from '../src/common.js'
+import { loadModule, formatMessage, setupEnv, requireExternalModules } from '../src/common.js'
 declare global {
     var foo: string | undefined
 }
 
 vi.mock('randomModule', () => import(path.join(process.cwd(), '__mocks__', 'randomModule')))
+vi.mock('@wdio/utils')
 
 describe('formatMessage', () => {
     test('should do nothing if no error or params are given', () => {
@@ -164,9 +165,22 @@ describe('loadModule', () => {
     })
 })
 
+test('requireExternalModules', () => {
+    const loader = vi.fn()
+    // @ts-ignore test invalid params!
+    requireExternalModules(['/foo/bar.js', null, './bar/foo.js'], loader)
+    expect(loader).toBeCalledWith('/foo/bar.js')
+    expect(loader).toBeCalledWith(path.resolve(__dirname, '..', '..', '..', 'bar', 'foo.js'))
+})
+
 describe('setupEnv', () => {
     test('setupEnv - TDD', () => {
-        const hooks = { beforeHook: vi.fn(), afterHook: vi.fn(), beforeTest: vi.fn(), afterTest: vi.fn() }
+        const hooks = {
+            beforeHook: 'beforeHook123' as any,
+            afterHook: 'afterHook123' as any,
+            beforeTest: 'beforeTest234' as any,
+            afterTest: 'afterTest234' as any
+        }
         const mochaOpts = { foo: 'bar', ui: 'tdd' as const }
         setupEnv('0-2', mochaOpts, hooks.beforeTest, hooks.beforeHook, hooks.afterTest, hooks.afterHook)
         expect(wrapGlobalTestMethod).toBeCalledWith(
@@ -186,7 +200,12 @@ describe('setupEnv', () => {
     })
 
     test('setupEnv - BDD', () => {
-        const hooks = { beforeHook: vi.fn(), afterHook: vi.fn(), beforeTest: vi.fn(), afterTest: vi.fn() }
+        const hooks = {
+            beforeHook: 'beforeHook123' as any,
+            afterHook: 'afterHook123' as any,
+            beforeTest: 'beforeTest234' as any,
+            afterTest: 'afterTest234' as any
+        }
         const mochaOpts = { foo: 'bar', ui: 'bdd' as const }
         setupEnv('0-2', mochaOpts, hooks.beforeTest, hooks.beforeHook, hooks.afterTest, hooks.afterHook)
         expect(wrapGlobalTestMethod).toBeCalledWith(

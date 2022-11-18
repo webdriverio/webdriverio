@@ -5,7 +5,6 @@ import logger from '@wdio/logger'
 import { wrapGlobalTestMethod, executeHooksWithArgs } from '@wdio/utils'
 
 import MochaAdapterFactory, { MochaAdapter } from '../src/index.js'
-import { loadModule } from '../src/common.js'
 import { EVENTS } from '../src/constants.js'
 
 vi.mock('mocha')
@@ -176,15 +175,6 @@ describe('prepareMessage', () => {
         expect(result.title).toBeUndefined()
         expect(result.duration).toBeUndefined()
     })
-})
-
-test('requireExternalModules', () => {
-    // @ts-ignore params not needed for test scenario
-    const adapter = adapterFactory()
-    // @ts-ignore test invalid params
-    adapter.requireExternalModules(['/foo/bar.js', null, './bar/foo.js'])
-    expect(loadModule).toBeCalledWith('/foo/bar.js')
-    expect(loadModule).toBeCalledWith(path.resolve(__dirname, '..', '..', '..', 'bar', 'foo.js'))
 })
 
 test('emit does not emit anything on root level', () => {

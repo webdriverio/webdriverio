@@ -93,7 +93,12 @@ export function formatMessage (params: FrameworkMessage) {
     return message
 }
 
-function requireExternalModules (modules: string[]) {
+/**
+ * require external modules
+ * @param modules list of modules to load before the test starts
+ * @param loader  function to import the module, optional and for testing purposes only
+ */
+export function requireExternalModules (modules: string[], loader = loadModule) {
     return modules.map((module) => {
         if (!module) {
             return Promise.resolve()
@@ -105,7 +110,7 @@ function requireExternalModules (modules: string[]) {
             module = `${globalThis.process.cwd()}/${module.slice(2)}`
         }
 
-        return loadModule(module)
+        return loader(module)
     })
 }
 
@@ -142,10 +147,6 @@ export function setupEnv (cid: string, options: MochaOpts, beforeTest: Hook, bef
 }
 
 export async function loadModule (name: string) {
-    if (process.env.VITEST_WORKER_ID) {
-        return name
-    }
-
     try {
         return await import(name)
     } catch (err: any) {
