@@ -679,8 +679,8 @@ describe('getFrameworkVersion', () => {
     })
     it('try fetching version for other frameworks', () => {
         // jest doesn't allow mocking require resolve yet hence just checking flow - https://github.com/facebook/jest/issues/9543
-        expect(getFrameworkVersion('mocha')).toEqual(undefined)
-        expect(getFrameworkVersion('cucumber')).toEqual(undefined)
-        expect(getFrameworkVersion('jasmine')).toEqual(undefined)
+        expect(getFrameworkVersion('mocha')).toBeDefined()
+        expect(getFrameworkVersion('cucumber')).toBeDefined()
+        expect(getFrameworkVersion('jasmine')).toBeDefined()
     })
 })
