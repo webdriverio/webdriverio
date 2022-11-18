@@ -8,7 +8,7 @@ declare global {
     }
 }
 
-export type FrameworkPreset = 'react' | 'preact' | 'vue' | 'svelte' | 'lit'
+export type FrameworkPreset = 'react' | 'preact' | 'vue' | 'svelte' | 'lit' | 'solid'
 
 export interface BrowserRunnerOptions {
     /**

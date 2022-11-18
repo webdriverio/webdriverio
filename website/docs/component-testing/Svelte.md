@@ -22,7 +22,7 @@ export const config = {
 
 :::info
 
-If you are already using [Vite](https://vitejs.dev/) as development server you also just re-use your configuration in `vite.config.ts` within your WebdriverIO config. For more information, see `viteConfig` in [runner options](http://localhost:3000/docs/runner#runner-options).
+If you are already using [Vite](https://vitejs.dev/) as development server you can also just re-use your configuration in `vite.config.ts` within your WebdriverIO config. For more information, see `viteConfig` in [runner options](/docs/runner#runner-options).
 
 :::
 
@@ -40,7 +40,7 @@ npx wdio run ./wdio.conf.js
 
 ## Writing Tests
 
-Given you have the following Vue.js component:
+Given you have the following Svelte component:
 
 ```html title="./components/Component.svelte"
 <script>

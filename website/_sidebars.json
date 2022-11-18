@@ -80,6 +80,7 @@
         "component-testing/lit",
         "component-testing/vue",
         "component-testing/svelte",
+        "component-testing/solid",
         "component-testing/react",
         "component-testing/preact"
       ]
