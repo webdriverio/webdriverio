@@ -86,51 +86,25 @@ export default class BrowserstackService implements Services.ServiceInstance {
         this._suiteTitle = suite.title
 
         if (suite.title && suite.title !== 'Jasmine__TopLevel__Suite') {
-            let jobName = suite.title
-            if (this._options.sessionNameFormat) {
-                jobName = this._options.sessionNameFormat(
-                    this._config,
-                    this._caps,
-                    suite.title
-                )
-            }
-            this._fullTitle = jobName
-            await this._setSessionName(jobName)
+            await this._setSessionName(suite.title)
         }
     }
 
     async beforeTest (test: Frameworks.Test) {
-        const prevFullTitle = this._fullTitle
+        let suiteTitle = this._suiteTitle
 
         if (test.fullName) {
             // For Jasmine, `suite.title` is `Jasmine__TopLevel__Suite`.
             // This tweak allows us to set the real suite name.
             const testSuiteName = test.fullName.slice(0, test.fullName.indexOf(test.description || '') - 1)
             if (this._suiteTitle === 'Jasmine__TopLevel__Suite') {
-                this._fullTitle = testSuiteName
+                suiteTitle = testSuiteName
             } else if (this._suiteTitle) {
-                this._fullTitle = getParentSuiteName(this._suiteTitle, testSuiteName)
+                suiteTitle = getParentSuiteName(this._suiteTitle, testSuiteName)
             }
-        } else {
-            // Mocha
-            const pre = this._options.sessionNamePrependTopLevelSuiteTitle ? `${this._suiteTitle} - ` : ''
-            const post = !this._options.sessionNameOmitTestTitle ? ` - ${test.title}` : ''
-            this._fullTitle = `${pre}${test.parent}${post}`
         }
 
-        if (this._options.sessionNameFormat) {
-            const suiteTitle = test.fullName ? this._fullTitle! : this._suiteTitle!
-            this._fullTitle = this._options.sessionNameFormat(
-                this._config,
-                this._caps,
-                suiteTitle,
-                test.title
-            )
-        }
-
-        if (this._fullTitle !== prevFullTitle) {
-            await this._setSessionName(this._fullTitle)
-        }
+        await this._setSessionName(suiteTitle, test)
     }
 
     /**
@@ -138,10 +112,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
      */
     beforeFeature(uri: unknown, feature: { name: string }) {
         this._suiteTitle = feature.name
-        if (feature.name && this._fullTitle !== feature.name) {
-            this._fullTitle = feature.name
-            return this._setSessionName(this._fullTitle)
-        }
+        return this._setSessionName(feature.name)
     }
 
     afterTest(test: Frameworks.Test, context: never, results: Frameworks.TestResult) {
@@ -159,9 +130,8 @@ export default class BrowserstackService implements Services.ServiceInstance {
             this._fullTitle = this._scenariosThatRan.pop()
         }
 
-        const hasReasons = this._failReasons.length > 0
-
         if (setSessionStatus) {
+            const hasReasons = this._failReasons.length > 0
             await this._updateJob({
                 status: result === 0 ? 'passed' : 'failed',
                 ...(setSessionName ? { name: this._fullTitle } : {}),
@@ -295,10 +265,29 @@ export default class BrowserstackService implements Services.ServiceInstance {
         })
     }
 
-    private async _setSessionName(name: string | undefined) {
-        if (!this._options.setSessionName || !name) {
+    private async _setSessionName(suiteTitle: string | undefined, test?: Frameworks.Test) {
+        if (!this._options.setSessionName || !suiteTitle) {
             return
         }
-        await this._updateJob({ name })
+
+        let name = suiteTitle
+        if (this._options.sessionNameFormat) {
+            name = this._options.sessionNameFormat(
+                this._config,
+                this._caps,
+                suiteTitle,
+                test?.title
+            )
+        } else if (test && !test.fullName) {
+            // Mocha
+            const pre = this._options.sessionNamePrependTopLevelSuiteTitle ? `${suiteTitle} - ` : ''
+            const post = !this._options.sessionNameOmitTestTitle ? ` - ${test.title}` : ''
+            name = `${pre}${test.parent}${post}`
+        }
+
+        if (name !== this._fullTitle) {
+            this._fullTitle = name
+            await this._updateJob({ name })
+        }
     }
 }
