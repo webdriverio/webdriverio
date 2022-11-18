@@ -1,7 +1,7 @@
 import path from 'node:path'
 import { expect, test, vi, it, describe, afterEach } from 'vitest'
 import logger from '@wdio/logger'
-import { runTestInFiberContext, executeHooksWithArgs } from '@wdio/utils'
+import { wrapGlobalTestMethod, executeHooksWithArgs } from '@wdio/utils'
 import { EventEmitter } from 'node:events'
 
 import JasmineAdapterFactory, { JasmineAdapter } from '../src/index.js'
@@ -94,15 +94,15 @@ test('should propery wrap interfaces', async () => {
     await adapter.init()
     await adapter.run()
 
-    expect(vi.mocked(runTestInFiberContext).mock.calls).toHaveLength(INTERFACES.bdd.length)
+    expect(vi.mocked(wrapGlobalTestMethod).mock.calls).toHaveLength(INTERFACES.bdd.length)
 
     INTERFACES.bdd.forEach((fnName, idx) => {
         const isTest = TEST_INTERFACES.includes(fnName)
         const hook = fnName.includes('All') ? [expect.any(Function)] : []
 
-        expect(vi.mocked(runTestInFiberContext).mock.calls[idx][5]).toBe(fnName)
-        expect(vi.mocked(runTestInFiberContext).mock.calls[idx][BEFORE_HOOK_IDX]).toEqual(isTest ? 'beforeTest' : hook)
-        expect(vi.mocked(runTestInFiberContext).mock.calls[idx][AFTER_HOOK_IDX]).toEqual(isTest ? 'afterTest' : hook)
+        expect(vi.mocked(wrapGlobalTestMethod).mock.calls[idx][5]).toBe(fnName)
+        expect(vi.mocked(wrapGlobalTestMethod).mock.calls[idx][BEFORE_HOOK_IDX]).toEqual(isTest ? 'beforeTest' : hook)
+        expect(vi.mocked(wrapGlobalTestMethod).mock.calls[idx][AFTER_HOOK_IDX]).toEqual(isTest ? 'afterTest' : hook)
     })
 })
 
@@ -111,7 +111,7 @@ test('hookArgsFn: should return proper value', async () => {
     await adapter.init()
     await adapter.run()
 
-    const hookArgsFn = vi.mocked(runTestInFiberContext).mock.calls[0][2]
+    const hookArgsFn = vi.mocked(wrapGlobalTestMethod).mock.calls[0][2]
     adapter['_lastTest'] = { title: 'foo' } as any
     expect(hookArgsFn('bar')).toEqual([{ title: 'foo' }, 'bar'])
     delete adapter['_lastTest']
@@ -130,9 +130,9 @@ test('emitHookEvent: should emit events for beforeAll and afterAll hooks', async
     allHooks.forEach((hookName) => {
         const hookIdx = INTERFACES.bdd.indexOf(hookName)
         adapter['_reporter'].startedSuite = true as any
-        (vi.mocked(runTestInFiberContext).mock.calls[hookIdx][BEFORE_HOOK_IDX] as Function[]).pop()!(null, null, undefined)
+        (vi.mocked(wrapGlobalTestMethod).mock.calls[hookIdx][BEFORE_HOOK_IDX] as Function[]).pop()!(null, null, undefined)
         adapter['_reporter'].startedSuite = false as any
-        (vi.mocked(runTestInFiberContext).mock.calls[hookIdx][AFTER_HOOK_IDX] as Function[]).pop()!(null, null, { error: new Error(hookName) })
+        (vi.mocked(wrapGlobalTestMethod).mock.calls[hookIdx][AFTER_HOOK_IDX] as Function[]).pop()!(null, null, { error: new Error(hookName) })
     })
 
     expect(adapter['_reporter'].emit).toHaveBeenCalledTimes(4)
@@ -516,6 +516,6 @@ describe('hasTests', () => {
 })
 
 afterEach(() => {
-    vi.mocked(runTestInFiberContext).mockClear()
+    vi.mocked(wrapGlobalTestMethod).mockClear()
     vi.mocked(executeHooksWithArgs).mockClear()
 })

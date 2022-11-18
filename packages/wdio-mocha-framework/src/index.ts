@@ -1,30 +1,16 @@
 import url from 'node:url'
-import path from 'node:path'
 import Mocha, { Runner } from 'mocha'
 
 import logger from '@wdio/logger'
-import { runTestInFiberContext, executeHooksWithArgs } from '@wdio/utils'
+import { executeHooksWithArgs } from '@wdio/utils'
 import type { Capabilities, Services } from '@wdio/types'
 
-import { loadModule } from './utils.js'
-import { formatMessage } from './common/utils.js'
-import { INTERFACES, TEST_INTERFACES, EVENTS, NOOP } from './constants.js'
+import { formatMessage, setupEnv } from './common.js'
+import { EVENTS, NOOP } from './constants.js'
 import type { MochaConfig, MochaOpts as MochaOptsImport, FrameworkMessage, MochaError } from './types'
 import type { EventEmitter } from 'node:events'
 
 const log = logger('@wdio/mocha-framework')
-
-/**
-* Extracts the mocha UI type following this convention:
-*  - If the mochaOpts.ui provided doesn't contain a '-' then the full name
-*      is taken as ui type (i.e. 'bdd','tdd','qunit')
-*  - If it contains a '-' then it asumes we are providing a custom ui for
-*      mocha. Then it extracts the text after the last '-' (ignoring .js if
-*      provided) as the interface type. (i.e. strong-bdd in
-*      https://github.com/strongloop/strong-mocha-interfaces)
-*/
-const MOCHA_UI_TYPE_EXTRACTOR = /^(?:.*-)?([^-.]+)(?:.js)?$/
-const DEFAULT_INTERFACE_TYPE = 'bdd'
 const FILE_PROTOCOL = 'file://'
 
 type EventTypes = 'hook' | 'test' | 'suite'
@@ -74,7 +60,10 @@ class MochaAdapter {
                 ? url.fileURLToPath(spec)
                 : spec
         ))
-        mocha.suite.on('pre-require', this.preRequire.bind(this))
+
+        const { beforeTest, beforeHook, afterTest, afterHook } = this._config
+        mocha.suite.on('pre-require', (context: Mocha.MochaOptions) =>
+            setupEnv(this._cid, context, beforeTest, beforeHook, afterTest, afterHook))
         await this._loadFiles(mochaOpts)
         return this
     }
@@ -138,43 +127,6 @@ class MochaAdapter {
         return result
     }
 
-    options (options: MochaOptsImport) {
-        let { require = [], compilers = [] } = options
-
-        if (typeof require === 'string') {
-            require = [require]
-        }
-
-        return this.requireExternalModules([...compilers, ...require])
-    }
-
-    preRequire () {
-        const options = this._config.mochaOpts
-
-        const match = MOCHA_UI_TYPE_EXTRACTOR.exec(options.ui!) as any as [string, keyof typeof INTERFACES]
-        const type: keyof typeof INTERFACES = (match && INTERFACES[match[1]] && match[1]) || DEFAULT_INTERFACE_TYPE
-
-        const hookArgsFn = (context: Mocha.Context) => {
-            return [{ ...context.test, parent: context.test?.parent?.title }, context]
-        }
-
-        INTERFACES[type].forEach((fnName: string) => {
-            const isTest = TEST_INTERFACES[type].flatMap((testCommand: string) => [testCommand, testCommand + '.only']).includes(fnName)
-
-            runTestInFiberContext(
-                isTest,
-                isTest ? this._config.beforeTest! : this._config.beforeHook!,
-                // @ts-ignore
-                hookArgsFn,
-                isTest ? this._config.afterTest : this._config.afterHook,
-                hookArgsFn,
-                fnName,
-                this._cid
-            )
-        })
-        return this.options(options)
-    }
-
     /**
      * Hooks which are added as true Mocha hooks need to call done() to notify async
      */
@@ -209,22 +161,6 @@ class MochaAdapter {
         }
 
         return formatMessage(params)
-    }
-
-    requireExternalModules (modules: string[]) {
-        return modules.map((module) => {
-            if (!module) {
-                return Promise.resolve()
-            }
-
-            module = module.replace(/.*:/, '')
-
-            if (module.substr(0, 1) === '.') {
-                module = path.join(process.cwd(), module)
-            }
-
-            return loadModule(module)
-        })
     }
 
     emit (event: string, payload: any, err?: MochaError) {

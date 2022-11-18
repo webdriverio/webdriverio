@@ -2,10 +2,9 @@ import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest'
 import path from 'node:path'
 import Mocha from 'mocha'
 import logger from '@wdio/logger'
-import { runTestInFiberContext, executeHooksWithArgs } from '@wdio/utils'
+import { wrapGlobalTestMethod, executeHooksWithArgs } from '@wdio/utils'
 
 import MochaAdapterFactory, { MochaAdapter } from '../src/index.js'
-import { loadModule } from '../src/utils.js'
 import { EVENTS } from '../src/constants.js'
 
 vi.mock('mocha')
@@ -96,74 +95,19 @@ test('should throw runtime error if spec could not be loaded', async () => {
     await expect(adapter.run()).rejects.toEqual(runtimeError)
 })
 
-test('options', () => {
-    // @ts-ignore params not needed for test scenario
-    const adapter = adapterFactory()
-    adapter.requireExternalModules = vi.fn()
-    adapter.options({
-        require: ['foo/bar.js'],
-        compilers: ['the/compiler.js']
-    })
-    expect(adapter.requireExternalModules).toBeCalledWith(['the/compiler.js', 'foo/bar.js'])
-})
-
-describe('preRequire', () => {
-    test('preRequire - TDD', () => {
-        const mochaOpts = { foo: 'bar', ui: 'tdd' }
-        const adapter = adapterFactory({ mochaOpts, beforeHook: 'beforeHook123', afterHook: 'afterHook123', beforeTest: 'beforeTest234', afterTest: 'afterTest234' })
-        adapter.preRequire()
-        expect(runTestInFiberContext).toBeCalledWith(
-            false, 'beforeHook123', expect.any(Function), 'afterHook123', expect.any(Function), 'suiteSetup', '0-2')
-        expect(runTestInFiberContext).toBeCalledWith(
-            false, 'beforeHook123', expect.any(Function), 'afterHook123', expect.any(Function), 'setup', '0-2')
-        expect(runTestInFiberContext).toBeCalledWith(
-            true, 'beforeTest234', expect.any(Function), 'afterTest234', expect.any(Function), 'test', '0-2')
-        expect(runTestInFiberContext).toBeCalledWith(
-            false, 'beforeHook123', expect.any(Function), 'afterHook123', expect.any(Function), 'suiteTeardown', '0-2')
-        expect(runTestInFiberContext).toBeCalledWith(
-            false, 'beforeHook123', expect.any(Function), 'afterHook123', expect.any(Function), 'teardown', '0-2')
-
-        const hookArgsFn = vi.mocked(runTestInFiberContext).mock.calls[0][2]
-        expect(hookArgsFn({ test: { foo: 'bar', parent: { title: 'parent' } } }))
-            .toEqual([{ foo: 'bar', parent: 'parent' }, { test: { foo: 'bar', parent: { title: 'parent' } } }])
-    })
-
-    test('preRequire - BDD', () => {
-        const mochaOpts = { foo: 'bar', ui: 'bdd' }
-        const adapter = adapterFactory({ mochaOpts, beforeHook: 'beforeHook123', afterHook: 'afterHook123', beforeTest: 'beforeTest234', afterTest: 'afterTest234' })
-        adapter.preRequire()
-        expect(runTestInFiberContext).toBeCalledWith(
-            false, 'beforeHook123', expect.any(Function), 'afterHook123', expect.any(Function), 'before', '0-2')
-        expect(runTestInFiberContext).toBeCalledWith(
-            false, 'beforeHook123', expect.any(Function), 'afterHook123', expect.any(Function), 'beforeEach', '0-2')
-        expect(runTestInFiberContext).toBeCalledWith(
-            true, 'beforeTest234', expect.any(Function), 'afterTest234', expect.any(Function), 'it', '0-2')
-        expect(runTestInFiberContext).toBeCalledWith(
-            true, 'beforeTest234', expect.any(Function), 'afterTest234', expect.any(Function), 'specify', '0-2')
-        expect(runTestInFiberContext).toBeCalledWith(
-            false, 'beforeHook123', expect.any(Function), 'afterHook123', expect.any(Function), 'after', '0-2')
-        expect(runTestInFiberContext).toBeCalledWith(
-            false, 'beforeHook123', expect.any(Function), 'afterHook123', expect.any(Function), 'afterEach', '0-2')
-
-        const hookArgsFn = vi.mocked(runTestInFiberContext).mock.calls[0][2]
-        expect(hookArgsFn({ test: { foo: 'bar', parent: { title: 'parent' } } }))
-            .toEqual([{ foo: 'bar', parent: 'parent' }, { test: { foo: 'bar', parent: { title: 'parent' } } }])
-    })
-})
-
-test('custom ui', () => {
-    const mochaOpts = { ui: 'custom-qunit' }
-    const adapter = adapterFactory({ mochaOpts })
-    adapter.preRequire()
-    expect(runTestInFiberContext).toBeCalledWith(
-        false, undefined, expect.any(Function), undefined, expect.any(Function), 'after', '0-2')
-    expect(runTestInFiberContext).toBeCalledWith(
-        false, undefined, expect.any(Function), undefined, expect.any(Function), 'afterEach', '0-2')
-    expect(runTestInFiberContext).toBeCalledWith(
-        false, undefined, expect.any(Function), undefined, expect.any(Function), 'beforeEach', '0-2')
-    expect(runTestInFiberContext).toBeCalledWith(
-        false, undefined, expect.any(Function), undefined, expect.any(Function), 'before', '0-2')
-})
+// test('custom ui', () => {
+//     const mochaOpts = { ui: 'custom-qunit' }
+//     const adapter = adapterFactory({ mochaOpts })
+//     adapter.preRequire()
+//     expect(wrapGlobalTestMethod).toBeCalledWith(
+//         false, undefined, expect.any(Function), undefined, expect.any(Function), 'after', '0-2')
+//     expect(wrapGlobalTestMethod).toBeCalledWith(
+//         false, undefined, expect.any(Function), undefined, expect.any(Function), 'afterEach', '0-2')
+//     expect(wrapGlobalTestMethod).toBeCalledWith(
+//         false, undefined, expect.any(Function), undefined, expect.any(Function), 'beforeEach', '0-2')
+//     expect(wrapGlobalTestMethod).toBeCalledWith(
+//         false, undefined, expect.any(Function), undefined, expect.any(Function), 'before', '0-2')
+// })
 
 test('wrapHook if successful', async () => {
     const config = { beforeAll: 'somehook' }
@@ -231,15 +175,6 @@ describe('prepareMessage', () => {
         expect(result.title).toBeUndefined()
         expect(result.duration).toBeUndefined()
     })
-})
-
-test('requireExternalModules', () => {
-    // @ts-ignore params not needed for test scenario
-    const adapter = adapterFactory()
-    // @ts-ignore test invalid params
-    adapter.requireExternalModules(['/foo/bar.js', null, './bar/foo.js'])
-    expect(loadModule).toBeCalledWith('/foo/bar.js')
-    expect(loadModule).toBeCalledWith(path.resolve(__dirname, '..', '..', '..', 'bar', 'foo.js'))
 })
 
 test('emit does not emit anything on root level', () => {
@@ -411,6 +346,6 @@ describe('hasTests', () => {
 
 afterEach(() => {
     vi.mocked(Mocha.Runner).mockClear()
-    vi.mocked(runTestInFiberContext).mockReset()
+    vi.mocked(wrapGlobalTestMethod).mockReset()
     vi.mocked(executeHooksWithArgs).mockReset()
 })

@@ -22,6 +22,8 @@ declare global {
     }
 }
 
+const sleep = (ms = 100) => new Promise((resolve) => setTimeout(resolve, ms))
+
 export default class BrowserFramework implements Omit<TestFramework, 'init'> {
     constructor (
         private _cid: string,
@@ -60,7 +62,6 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
 
         for (const spec of this._specs) {
             log.info(`Run spec file ${spec} for cid ${this._cid}`)
-            console.log(`Run spec file ${spec} for cid ${this._cid}`)
             await browser.url(`/${this._cid}/test.html?spec=${url.fileURLToPath(spec)}`)
             // await browser.debug()
 
@@ -93,6 +94,7 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
         let failures: number | null = null
         await browser.waitUntil(async () => {
             while (typeof failures !== 'number') {
+                await sleep()
                 failures = await browser?.execute(() => (
                     window.__wdioEvents__.length > 0
                         ? window.__wdioFailures__

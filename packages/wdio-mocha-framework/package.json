@@ -23,7 +23,10 @@
   },
   "type": "module",
   "exports": {
-    "./common": "./build/common/utils.js",
+    "./common": {
+      "import": "./build/common.js",
+      "types": "./build/common.d.ts"
+    },
     ".": "./build/index.js"
   },
   "types": "./build/index.d.ts",

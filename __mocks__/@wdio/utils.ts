@@ -91,7 +91,7 @@ export const getArgumentType = getArgumentTypeOrig
 export const executeSync = vi.fn()
 export const executeAsync = vi.fn()
 export const wrapCommand = (_: any, origFn: any) => origFn
-export const runTestInFiberContext = vi.fn().mockReturnValue(vi.fn())
+export const wrapGlobalTestMethod = vi.fn().mockReturnValue(vi.fn())
 export const executeHooksWithArgs = vi.fn()
 export const runFnInFiberContext = vi.fn().mockImplementation((fn) => {
     return function (this: unknown, ...args: any[]) {

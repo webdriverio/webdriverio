@@ -1,5 +1,5 @@
 import type { InlineConfig } from 'vite'
-import type { Workers, Capabilities } from '@wdio/types'
+import type { Workers, Capabilities, Options } from '@wdio/types'
 
 declare global {
     interface Window {
@@ -34,14 +34,8 @@ export interface RunArgs extends Workers.WorkerRunPayload {
 
 export interface Environment {
     args: any
+    config: Options.Testrunner
     capabilities: Capabilities.RemoteCapability
     sessionId: string
     injectGlobals: boolean
-}
-
-export interface ConsoleEvent {
-    name: 'consoleEvent'
-    type: 'log' | 'info' | 'warn' | 'debug' | 'error'
-    args: unknown[]
-    cid: string
 }
