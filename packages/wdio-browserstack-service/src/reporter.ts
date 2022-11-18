@@ -23,6 +23,7 @@ export default class TestReporter extends WDIOReporter {
         this._capabilities = runnerStats.capabilities as Capabilities.Capabilities
         this._config = runnerStats.config as BrowserstackConfig & Options.Testrunner
         this._sessionId = runnerStats.sessionId
+        /* istanbul ignore next */
         if (this._config?.testObservability == false) this._observability = false
     }
 
@@ -32,7 +33,11 @@ export default class TestReporter extends WDIOReporter {
 
     async onTestSkip (testStats: TestStats) {
         // cucumber steps call this method. We don't want step skipped state so skip for cucumber
-        if (this._observability && this._config?.framework != 'cucumber') {
+
+        /* istanbul ignore next */
+        const framework = this._config?.framework
+
+        if (this._observability && framework != 'cucumber') {
             let testData: TestData = {
                 uuid: uuidv4(),
                 type: testStats.type,
@@ -47,15 +52,18 @@ export default class TestReporter extends WDIOReporter {
                 file_name: this._suiteName,
                 location: this._suiteName,
                 started_at: (new Date()).toISOString(),
-                framework: this._config?.framework,
+                framework: framework,
                 finished_at: (new Date()).toISOString(),
                 duration_in_ms: testStats._duration,
                 retries: { limit:0, attempts: 0 },
                 result: testStats.state,
             }
 
+            /* istanbul ignore next */
             const cloudProvider = getCloudProvider({ options: { hostname: this._config?.hostname } } as Browser<'async'> | MultiRemoteBrowser<'async'>)
             testData['integrations'] = {}
+
+            /* istanbul ignore next */
             testData['integrations'][cloudProvider] = {
                 capabilities: this._capabilities,
                 session_id: this._sessionId,

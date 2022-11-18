@@ -30,6 +30,7 @@ export default class InsightsHandler {
     async setUp (browser: Browser<'async'> | MultiRemoteBrowser<'async'>, browserCaps?: Capabilities.Capabilities, isAppAutomate?: boolean, sessionId?: string) {
         this._browser = browser
 
+        /* istanbul ignore next */
         this._platformMeta = {
             browserName: browserCaps?.browserName,
             browserVersion: browserCaps?.browserVersion,
@@ -313,6 +314,7 @@ export default class InsightsHandler {
             event_type: eventType,
         }
 
+        /* istanbul ignore if */
         if (eventType.match(/HookRun/)) {
             testData['hook_type'] = testData.name?.toLowerCase() ? getHookType(testData.name.toLowerCase()) : 'undefined'
             uploadData['hook_run'] = testData
@@ -336,6 +338,7 @@ export default class InsightsHandler {
             fullNameWithExamples = world.pickle.name + ' (' + examples.join(', ')  + ')'
         }
 
+        /* istanbul ignore next */
         let testData: TestData = {
             uuid: testMetaData.uuid,
             started_at: testMetaData.startedAt,
@@ -367,6 +370,7 @@ export default class InsightsHandler {
             if (this._browser && this._platformMeta) testData['integrations'][getCloudProvider(this._browser)] = this.getIntegrationsObject()
         }
 
+        /* istanbul ignore if */
         if (world.result) {
             let result: string = world.result.status.toLowerCase()
             if (result !== 'passed' && result !== 'failed') result = 'skipped' // mark UNKNOWN/UNDEFINED/AMBIGUOUS/PENDING as skipped
@@ -397,6 +401,7 @@ export default class InsightsHandler {
     }
 
     private getIntegrationsObject () {
+        /* istanbul ignore next */
         return {
             capabilities: this._platformMeta?.caps,
             session_id: this._platformMeta?.sessionId,
