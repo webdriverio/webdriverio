@@ -1,6 +1,6 @@
 import path from 'node:path'
 import { describe, it, expect, vi } from 'vitest'
-import { isCloudCapability, removeLineNumbers, validObjectOrArray, validateTsConfigPaths } from '../src/utils.js'
+import { isCloudCapability, removeLineNumbers, validObjectOrArray } from '../src/utils.js'
 
 vi.mock('@wdio/utils', () => import(path.join(process.cwd(), '__mocks__', '@wdio/utils')))
 
@@ -66,13 +66,6 @@ describe('utils', () => {
 
         it('should handle null or empty capabilities', ()  => {
             expect(isCloudCapability({})).toBe(false)
-        })
-    })
-
-    describe('validateTsConfigPaths', () => {
-        it('should throw error if valid Tsconfig not provided', ()  => {
-            expect(() => validateTsConfigPaths({ project: './test/tsconfig.json' }))
-                .toThrow(/Is it correctly set in wdio config/)
         })
     })
 })

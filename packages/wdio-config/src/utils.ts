@@ -1,5 +1,4 @@
 import path from 'node:path'
-import { canAccess } from '@wdio/utils'
 import logger from '@wdio/logger'
 import type { Capabilities, Options } from '@wdio/types'
 
@@ -97,53 +96,12 @@ export async function loadAutoCompilers(autoCompileConfig: Options.AutoCompileCo
     return (
         autoCompileConfig.autoCompile &&
         (
-            await loadTypeScriptCompiler(
-                autoCompileConfig.tsNodeOpts,
-                autoCompileConfig.tsConfigPathsOpts,
-                requireService
-            )
-            ||
             await loadBabelCompiler(
                 autoCompileConfig.babelOpts,
                 requireService
             )
         )
     )
-}
-
-export function validateTsConfigPaths(tsNodeOpts: any = {}) {
-    /**
-    * Checks tsconfig.json path, throws error if it doesn't exist
-    */
-    if (tsNodeOpts?.project) {
-        const tsconfigPath = path.resolve(tsNodeOpts.project)
-        if (!canAccess(tsconfigPath)) {
-            throw new Error('Provided tsconfig file path in wdio config is incorrect. Is it correctly set in wdio config ?')
-        }
-    }
-}
-
-export async function loadTypeScriptCompiler (
-    tsNodeOpts: any = {},
-    tsConfigPathsOpts: Options.TSConfigPathsOptions | undefined,
-    requireService: ModuleImportService
-) {
-    try {
-        validateTsConfigPaths(tsNodeOpts)
-
-        ;(await requireService.import('ts-node') as any).register({ ...tsNodeOpts, esm: 1 })
-        log.debug('Found \'ts-node\' package, auto-compiling TypeScript files')
-
-        if (tsConfigPathsOpts) {
-            log.debug('Found \'tsconfig-paths\' options, register paths')
-            const tsConfigPaths = await requireService.import('tsconfig-paths') as any
-            tsConfigPaths.register(tsConfigPathsOpts)
-        }
-
-        return true
-    } catch (err: any) {
-        return false
-    }
 }
 
 export async function loadBabelCompiler (babelOpts: Record<string, any> = {}, requireService: ModuleImportService) {

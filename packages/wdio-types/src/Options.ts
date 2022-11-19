@@ -1,6 +1,5 @@
 import * as http from 'node:http'
 import * as https from 'node:https'
-import type { RegisterOptions } from './Compiler'
 import type { URL } from 'node:url'
 
 import type { W3CCapabilities, DesiredCapabilities, RemoteCapabilities, RemoteCapability, MultiRemoteCapabilities, Capabilities } from './Capabilities'
@@ -468,9 +467,7 @@ export interface TSConfigPathsOptions {
 
 export interface AutoCompileConfig {
     autoCompile?: boolean
-    tsNodeOpts?: RegisterOptions
     babelOpts?: Record<string, any>
-    tsConfigPathsOpts?: TSConfigPathsOptions
 }
 
 export interface MultiRemote extends Omit<Testrunner, 'capabilities'> {

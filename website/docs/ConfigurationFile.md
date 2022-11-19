@@ -270,20 +270,6 @@ export const config = {
         // To disable auto-loading entirely set this to false.
         autoCompile: true, // <boolean> Disable this to turn off autoloading. Note: When disabling, you will need to handle calling any such libraries yourself.
         //
-        // If you have ts-node installed, you can customize how options are passed to it here:
-        // Any valid ts-node config option is allowed. Alternatively the ENV Vars could also be used instead of this.
-        // See also: https://github.com/TypeStrong/ts-node#cli-and-programmatic-options
-        // See also RegisterOptions in https://github.com/TypeStrong/ts-node/blob/master/src/index.ts
-        tsNodeOpts: {
-            transpileOnly: true,
-            project: 'tsconfig.json'
-        },
-        // If you have tsconfig-paths installed and provide a tsConfigPathsOpts
-        // option, it will be automatically registered during bootstrap.
-        tsConfigPathsOpts: {
-            baseUrl: './'
-        },
-        //
         // If @babel/register is installed, you can customize how options are passed to it here:
         // Any valid @babel/register config option is allowed.
         // https://babeljs.io/docs/en/babel-register#specifying-options

@@ -3,83 +3,17 @@ id: typescript
 title: TypeScript Setup
 ---
 
-You can write tests using [TypeScript](http://www.typescriptlang.org) to get autocompletion and type safety.
+You can write tests using [TypeScript](http://www.typescriptlang.org) to get auto-completion and type safety.
 
-You will need [`typescript`](https://github.com/microsoft/TypeScript) and [`ts-node`](https://github.com/TypeStrong/ts-node) installed as `devDependencies`. WebdriverIO will automatically detect if these dependencies are installed and will compile your config and tests for you. If you need to configure how ts-node runs please use the environment variables for [ts-node](TypeScript.md) or use wdio config's [autoCompileOpts section](ConfigurationFile.md).
+You will need [`typescript`](https://github.com/microsoft/TypeScript) and [`ts-node`](https://github.com/TypeStrong/ts-node) installed as `devDependencies`, via:
 
 ```bash npm2yarn
 $ npm install typescript ts-node --save-dev
 ```
 
+WebdriverIO will automatically detect if these dependencies are installed and will compile your config and tests for you. Ensure to have a `tsconfig.json` in the same directory as you WDIO config. If you want to specify a different project path or need to configure how ts-node runs please use environment variables as described [in their docs](https://www.npmjs.com/package/ts-node#tsconfig-options).
+
 The minimum TypeScript version is `v4.0.5`.
-
-## Configuration
-
-You can provide custom `ts-node` and `tsconfig-paths` options through your `wdio.conf.ts`, e.g.:
-
-```ts title="wdio.conf.ts"
-export const config = {
-    // ...
-    autoCompileOpts: {
-        autoCompile: true,
-        // see https://github.com/TypeStrong/ts-node#cli-and-programmatic-options
-        // for all available options
-        tsNodeOpts: {
-            transpileOnly: true,
-            project: 'tsconfig.json'
-        },
-        // tsconfig-paths is only used if "tsConfigPathsOpts" are provided, if you
-        // do please make sure "tsconfig-paths" is installed as dependency
-        tsConfigPathsOpts: {
-            baseUrl: './'
-        }
-    }
-}
-```
-
-If you don't want to use WebdriverIO's internal transpiler functionality you can create your own `entrypoint.js` file where `ts-node` is defined manually:
-
-<Tabs
-  defaultValue="esm"
-  values={[
-    {label: 'ESM', value: 'esm'},
-    {label: 'CommonJS', value: 'commonjs'},
-  ]
-}>
-<TabItem value="esm">
-
-```js title="entrypoint.js"
-import { register } from 'ts-node'
-register({
-    transpileOnly: false,
-    files: true,
-    project: "./tsconfig.json"
-})
-export * from './configs/wdio.conf'
-```
-
-</TabItem>
-<TabItem value="commonjs">
-
-```js title="entrypoint.js"
-require('ts-node').register(
-    {
-        transpileOnly: false,
-        files: true,
-        project: "./tsconfig.json"
-    }
-)
-module.exports = require('./configs/wdio.conf')
-```
-
-</TabItem>
-</Tabs>
-
-In this case you have to pass `--no-autoCompileOpts.autoCompile` as parameter to the `wdio` command to disable auto compiling, e.g.:
-
-```sh
-npx wdio run ./entrypoint.js --no-autoCompileOpts.autoCompile
-```
 
 ## Framework Setup
 

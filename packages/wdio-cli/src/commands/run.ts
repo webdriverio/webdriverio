@@ -103,7 +103,6 @@ export const builder = (yargs: Argv) => {
         .example('$0 run wdio.conf.js --spec ./tests/e2e/a.js --spec ./tests/e2e/b.js', 'Run suite on specific specs')
         .example('$0 run wdio.conf.js --mochaOpts.timeout 60000', 'Run suite with custom Mocha timeout')
         .example('$0 run wdio.conf.js --autoCompileOpts.autoCompile=false', 'Disable auto-loading of ts-node or @babel/register')
-        .example('$0 run wdio.conf.js --autoCompileOpts.tsNodeOpts.project=configs/bdd-tsconfig.json', 'Run suite with ts-node using custom tsconfig.json')
         .epilogue(CLI_EPILOGUE)
         .help()
 }
@@ -124,7 +123,7 @@ export function launchWithStdin (wdioConfPath: string, params: Partial<RunComman
     })
 }
 
-export function launch (wdioConfPath: string, params: Partial<RunCommandArguments>) {
+export async function launch (wdioConfPath: string, params: Partial<RunCommandArguments>) {
     /**
      * In order to load TypeScript files in ESM we need to apply the ts-node loader.
      * Let's have WebdriverIO set it automatically if the user doesn't.
@@ -140,12 +139,15 @@ export function launch (wdioConfPath: string, params: Partial<RunCommandArgument
     )
     if (wdioConfPath.endsWith('.ts') && !runsWithLoader && nodePath) {
         NODE_OPTIONS += ' --loader ts-node/esm/transpile-only --no-warnings'
+        const localTSConfigPath = path.join(path.dirname(wdioConfPath), 'tsconfig.json')
+        const hasLocalTSConfig = await fs.access(localTSConfigPath).then(() => true, () => false)
         const tsProcess = cp.spawn(nodePath, process.argv.slice(1), {
             cwd: process.cwd(),
             detached : true,
             stdio: 'inherit',
             env: {
                 ...process.env,
+                ...(hasLocalTSConfig ? { TS_NODE_PROJECT: localTSConfigPath } : {}),
                 NODE_OPTIONS
             }
         })

@@ -1,8 +1,6 @@
 import path from 'node:path'
 
 import { vi, MockedFunction, describe, it, expect, beforeEach } from 'vitest'
-import tsNode from 'ts-node'
-import tsConfigPath from 'tsconfig-paths'
 // @ts-expect-error
 import babelRegister from '@babel/register'
 import logger from '@wdio/logger'
@@ -180,175 +178,9 @@ describe('ConfigParser', () => {
             expect(() => configParser['addConfigFile']('test-a.feature')).rejects.toThrow()
         })
 
-        describe('TypeScript integration', () => {
-            beforeEach(() => {
-                (log.debug as MockedFunction<any>).mockClear()
-                ;(tsNode.register as MockedFunction<any>).mockClear()
-                ;(tsConfigPath.register as MockedFunction<any>).mockClear()
-                process.env.THROW_BABEL_REGISTER = '1'
-                delete process.env.WDIO_WORKER_ID
-            })
-
-            it('when ts-node exists should initiate TypeScript compiler with defaults', async function () {
-                let configFileContents = (await MockFileContentBuilder.FromRealConfigFile(FIXTURES_CONF_RDC)).build()
-                const tsNodeRegister = vi.fn()
-                const configParser = ConfigParserBuilder
-                    .withBaseDir(path.join(FIXTURES_PATH, '/here'), 'cool.conf')
-                    .withTsNodeModule(tsNodeRegister)
-                    .withFiles([
-                        ...(await MockedFileSystem_LoadingAsMuchAsCanFromFileSystem()),
-                        FileNamed(path.join(FIXTURES_PATH, '/here/cool.conf')).withContents(configFileContents)
-                    ])
-                    .build()
-                await configParser.initialize()
-                expect(tsNodeRegister).toBeCalledTimes(1)
-                expect(tsNodeRegister).toHaveBeenCalledWith({
-                    'esm': 1,
-                    'transpileOnly': true
-                })
-            })
-
-            it('when ts-node exists should initiate TypeScript compiler with defaults if autoCompiled before config is read', async function () {
-                let configFileContents = (await MockFileContentBuilder.FromRealConfigFile(FIXTURES_CONF_RDC))
-                    .withTheseContentsMergedOn({
-                        config: {
-                            autoCompileOpts: {
-                                tsNodeOpts: {
-                                    'ts-node': 'do this',
-                                    'and': 'that'
-                                }
-                            }
-                        }
-                    }).build()
-                const tsNodeRegister = vi.fn()
-                const configParser = ConfigParserBuilder
-                    .withBaseDir(path.join(__dirname, '/tests/'), 'tests/cool.conf')
-                    .withFiles([
-                        ...MockedFileSystem_OnlyLoadingConfig(path.join(__dirname, '/tests/'), '/path/to/config'),
-                        FileNamed(path.join(__dirname, '/tests/tests/cool.conf')).withContents(JSON.stringify(configFileContents))
-                    ])
-                    .withTsNodeModule(tsNodeRegister).build()
-                await configParser.initialize()
-                expect(tsNodeRegister).toBeCalledTimes(1)
-            })
-
-            it('when ts-node exists should initiate TypeScript compiler with defaults + config, preferring config, if it is present and autocompiled after config is read', async function () {
-                let configFileContents = (await MockFileContentBuilder.FromRealConfigFile(FIXTURES_CONF_RDC)).build()
-                const tsNodeRegister = vi.fn()
-                const configParser = ConfigParserBuilder
-                    .withBaseDir(path.join(__dirname, '/tests/'), 'tests/cool.conf', {
-                        autoCompileOpts: {
-                            tsNodeOpts: {
-                                'ts-node': 'do this',
-                                'and': 'that'
-                            } as any
-                        }
-                    })
-                    .withFiles([
-                        ...MockedFileSystem_OnlyLoadingConfig(path.join(__dirname, '/tests/'), '/path/to/config'),
-                        FileNamed(path.join(__dirname, '/tests/tests/cool.conf')).withContents(JSON.stringify(configFileContents))
-                    ])
-                    .withTsNodeModule(tsNodeRegister).build()
-                await configParser.initialize()
-                expect(tsNodeRegister).toBeCalledTimes(1)
-                expect(tsNodeRegister).toHaveBeenCalledWith({
-                    'transpileOnly': true,
-                    'ts-node': 'do this',
-                    'esm': 1,
-                    'and': 'that'
-                })
-            })
-
-            it('config can overwrite defaults', async function () {
-                let configFileContents = (await MockFileContentBuilder.FromRealConfigFile(FIXTURES_CONF_RDC)).build()
-                const tsNodeRegister = vi.fn()
-                const configParser = ConfigParserBuilder
-                    .withBaseDir(path.join(__dirname, '/tests/'), 'tests/cool.conf', {
-                        autoCompileOpts: {
-                            tsNodeOpts: {
-                                'transpileOnly': false
-                            }
-                        }
-                    })
-                    .withFiles([
-                        ...MockedFileSystem_OnlyLoadingConfig(path.join(__dirname, '/tests/'), '/path/to/config'),
-                        FileNamed(path.join(__dirname, '/tests/tests/cool.conf')).withContents(JSON.stringify(configFileContents))
-                    ])
-                    .withTsNodeModule(tsNodeRegister).build()
-                await configParser.initialize()
-                expect(tsConfigPath.register).toBeCalledTimes(0)
-                expect(tsNodeRegister).toBeCalledTimes(1)
-                expect(tsNodeRegister).toHaveBeenCalledWith({
-                    'esm': 1,
-                    'transpileOnly': false
-                })
-            })
-
-            it('bootstraps tsconfig-paths if options are given', async function () {
-                let configFileContents = (await MockFileContentBuilder.FromRealConfigFile(FIXTURES_CONF_RDC)).build()
-                const tsNodeRegister = vi.fn()
-                const tsConfigPathRegister = vi.fn()
-                const configParser = ConfigParserBuilder
-                    .withBaseDir(path.join(__dirname, '/tests/'), 'tests/cool.conf', {
-                        autoCompileOpts: {
-                            tsConfigPathsOpts: {
-                                base: '/foo/bar'
-                            }
-                        }
-                    })
-                    .withFiles([
-                        ...MockedFileSystem_OnlyLoadingConfig(path.join(__dirname, '/tests/'), '/path/to/config'),
-                        FileNamed(path.join(__dirname, '/tests/tests/cool.conf')).withContents(JSON.stringify(configFileContents))
-                    ])
-                    .withTsNodeModule(tsNodeRegister)
-                    .withTsconfigPathModule(tsConfigPathRegister)
-                    .build()
-                await configParser.initialize()
-                expect(tsConfigPathRegister).toHaveBeenCalledWith( {
-                    base: '/foo/bar'
-                })
-            })
-
-            it('should just continue without initiation when autoCompile:false', async function () {
-                (tsNode.register as MockedFunction<any>)
-                    .mockImplementation(() => { throw new Error('boom') })
-                const tsNodeRegister = vi.fn()
-                const configParser = ConfigParserBuilder
-                    .withBaseDir(FIXTURES_PATH, FIXTURES_CONF_RDC, {
-                        autoCompileOpts: {
-                            autoCompile: false
-                        }
-                    })
-                    .withTsNodeModule(tsNodeRegister)
-                    .withFiles(await MockedFileSystem_LoadingAsMuchAsCanFromFileSystem())
-                    .build()
-                await configParser.initialize()
-                expect(tsNodeRegister).toBeCalledTimes(0)
-            })
-
-            it('should just continue without initiation if ts-node does not exist', async () => {
-                (tsNode.register as MockedFunction<any>)
-                    .mockImplementation(() => { throw new Error('boom') })
-                const configParser = ConfigParserBuilder
-                    .withBaseDir(FIXTURES_PATH, FIXTURES_CONF_RDC)
-                    .withFiles(await MockedFileSystem_LoadingAsMuchAsCanFromFileSystem())
-                    .withNoModules()
-                    .build()
-                await configParser.initialize()
-                expect(log.debug).toBeCalledTimes(1)
-                expect((log.debug as MockedFunction<any>).mock.calls[0][0])
-                    .toContain('No compiler found')
-            })
-        })
-
         describe('Babel integration', () => {
             beforeEach(() => {
                 (log.debug as MockedFunction<any>).mockClear()
-                ;(tsNode.register as MockedFunction<any>).mockClear()
-                ;(tsNode.register as MockedFunction<any>).mockImplementation(() => {
-                    throw new Error('do not exist')
-                })
-
                 delete process.env.THROW_BABEL_REGISTER
             })
 
@@ -440,31 +272,12 @@ describe('ConfigParser', () => {
                         ...MockedFileSystem_OnlyLoadingConfig(FIXTURES_PATH, FIXTURES_CONF_RDC)
                     ])
                     .withNoModules()
-                const { requireMock } = configParserBuilder.getMocks().modules.getMocks()
                 const configParser = configParserBuilder.build()
                 await configParser.initialize()
-                expect(requireMock).toHaveBeenCalledWith('ts-node')
                 expect(babelRegister).not.toHaveBeenCalled()
                 expect(log.debug).toBeCalledTimes(1)
                 expect((log.debug as MockedFunction<any>).mock.calls[0][0])
                     .toContain('No compiler found')
-            })
-
-            it('when both ts-node and @babel/register exist should prefer ts-node', async () => {
-                process.env.THROW_BABEL_REGISTER = '1'
-                const configParserBuilder = ConfigParserBuilder
-                    .withBaseDir(FIXTURES_PATH, FIXTURES_CONF_RDC)
-                    .withFiles([
-                        ...MockedFileSystem_OnlyLoadingConfig(FIXTURES_PATH, FIXTURES_CONF_RDC)
-                    ])
-                    .withTsNodeModule()
-                    .withBabelModule()
-                const { requireMock } = configParserBuilder.getMocks().modules.getMocks()
-                const configParser = configParserBuilder.build()
-                await configParser.initialize()
-                expect(requireMock).not.toHaveBeenCalledWith('@babel/register')
-                expect(log.debug).toBeCalledTimes(1)
-                expect(log.debug).toHaveBeenCalledWith(expect.stringContaining('auto-compiling TypeScript files'))
             })
         })
     })

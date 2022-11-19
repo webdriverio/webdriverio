@@ -417,20 +417,6 @@ If set to `true` the WDIO testrunner will automatically try to transpile the spe
 Type: `Boolean`
 Default: `true`
 
-#### autoCompileOpts.tsNodeOpts
-
-Configure how [`ts-node`](https://www.npmjs.com/package/ts-node) is suppose to transpile the files.
-
-Type: `Object`
-Default: `{ transpileOnly: true }`
-
-#### autoCompileOpts.tsConfigPathsOpts
-
-If you have [tsconfig-paths](https://www.npmjs.com/package/tsconfig-paths) installed and provide a `tsConfigPathsOpts` option, it will be automatically registered during bootstrap.
-
-Type: `Object`
-Default: `{}`
-
 #### autoCompileOpts.babelOpts
 
 Configure how [@babel/register](https://www.npmjs.com/package/@babel/register) is suppose to transpile the files.
