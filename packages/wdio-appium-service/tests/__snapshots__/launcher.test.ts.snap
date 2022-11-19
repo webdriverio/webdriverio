@@ -17,6 +17,7 @@ exports[`Appium launcher > onPrepare > should set correct config properties for 
   "/",
   "--foo",
   "bar",
+  "/foo/bar/appium",
 ]
 `;
 

@@ -3,6 +3,7 @@ import path from 'node:path'
 import { spawn, ChildProcess } from 'node:child_process'
 
 import { describe, expect, beforeEach, afterEach, test, vi } from 'vitest'
+import { resolve } from 'import-meta-resolve'
 import type { Capabilities, Options } from '@wdio/types'
 
 import AppiumLauncher from '../src/launcher.js'
@@ -20,16 +21,8 @@ vi.mock('node:fs/promises', () => ({
 }))
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
-vi.mock('child_process', () => ({
-    spawn: vi.fn()
-}))
-vi.mock('node:module', () => {
-    const requireFn = vi.fn() as any
-    requireFn.resolve = vi.fn().mockImplementation(() => {
-        return '/some/path'
-    })
-    return ({ createRequire: vi.fn().mockReturnValue(requireFn) })
-})
+vi.mock('child_process', () => ({ spawn: vi.fn() }))
+vi.mock('import-meta-resolve', () => ({ resolve: vi.fn().mockResolvedValue('/foo/bar/appium') }))
 
 class MockProcess {
     removeListener() {}
@@ -80,11 +73,8 @@ const isWindows = process.platform === 'win32'
 describe('Appium launcher', () => {
     const originalPlatform = process.platform
     const consoleSpy = vi.spyOn(global.console, 'error')
-    //@ts-ignore spyOn private function
-    const getAppiumCommandSpy = vi.spyOn<any>(AppiumLauncher, '_getAppiumCommand')
 
     beforeEach(() => {
-        getAppiumCommandSpy.mockReturnValue('/appium/command/path')
         vi.mocked(spawn).mockClear()
         vi.mocked(spawn).mockReturnValue(new MockProcess() as unknown as ChildProcess)
     })
@@ -103,9 +93,28 @@ describe('Appium launcher', () => {
             expect(launcher['_process']).toBeInstanceOf(MockProcess)
             expect(launcher['_logPath']).toBe('./')
             if (isWindows) {
-                expect(launcher['_command']).toBe('cmd')
+                expect(spawn).toBeCalledWith(
+                    'cmd',
+                    [
+                        '--base-path',
+                        '/',
+                        '--foo',
+                        'bar',
+                        'path/to/my_custom_appium'
+                    ],
+                    expect.any(Object)
+                )
             } else {
-                expect(launcher['_command']).toBe('path/to/my_custom_appium')
+                expect(spawn).toBeCalledWith(
+                    'path/to/my_custom_appium',
+                    [
+                        '--base-path',
+                        '/',
+                        '--foo',
+                        'bar'
+                    ],
+                    expect.any(Object)
+                )
             }
             expect(capabilities[0].protocol).toBe('http')
             expect(capabilities[0].hostname).toBe('127.0.0.1')
@@ -172,11 +181,6 @@ describe('Appium launcher', () => {
 
             expect(launcher['_process']).toBeInstanceOf(MockProcess)
             expect(launcher['_logPath']).toBe('./')
-            if (isWindows) {
-                expect(launcher['_command']).toBe('cmd')
-            } else {
-                expect(launcher['_command']).toBe('path/to/my_custom_appium')
-            }
             expect(capabilities[0].protocol).toBe('http')
             expect(capabilities[0].hostname).toBe('127.0.0.1')
             expect(capabilities[0].port).toBe(1234)
@@ -197,12 +201,6 @@ describe('Appium launcher', () => {
 
             expect(launcher['_process']).toBeInstanceOf(MockProcess)
             expect(launcher['_logPath']).toBe('./')
-            if (isWindows) {
-                expect(launcher['_command']).toBe('cmd')
-            } else {
-                expect(launcher['_command']).toBe('path/to/my_custom_appium')
-            }
-
             expect(capabilities[0].protocol).toBe('http')
             expect(capabilities[0].hostname).toBe('127.0.0.1')
             expect(capabilities[0].port).toBe(4321)
@@ -221,7 +219,18 @@ describe('Appium launcher', () => {
             }, [], {} as any)
             await launcher.onPrepare()
 
-            expect(launcher['_command']).toBe('cmd')
+            expect(spawn).toBeCalledWith(
+                'cmd',
+                [
+                    '/c',
+                    'path/to/my_custom_appium',
+                    '--base-path',
+                    '/',
+                    '--foo',
+                    'bar'
+                ],
+                expect.any(Object)
+            )
             expect(launcher['_appiumCliArgs']).toMatchSnapshot()
         })
 
@@ -236,8 +245,6 @@ describe('Appium launcher', () => {
                 args: { foo: 'bar' }
             }, [], {} as any)
             await launcher.onPrepare()
-
-            expect(launcher['_command']).toBe('path/to/my_custom_appium')
             expect(launcher['_appiumCliArgs']).toMatchSnapshot()
         })
 
@@ -248,12 +255,36 @@ describe('Appium launcher', () => {
 
             const launcher = new AppiumLauncher({
                 logPath: './',
-                command: 'path/to/my_custom_appium',
                 args: { foo: 'bar' }
             }, [], {} as any)
             await launcher.onPrepare()
 
-            expect(launcher['_command']).toBe('path/to/my_custom_appium')
+            if (isWindows) {
+                expect(spawn).toBeCalledWith(
+                    'cmd',
+                    [
+                        'node',
+                        '--base-path',
+                        '/',
+                        '--foo',
+                        'bar',
+                        '/foo/bar/appium'
+                    ],
+                    expect.any(Object)
+                )
+            } else {
+                expect(spawn).toBeCalledWith(
+                    'node',
+                    [
+                        '--base-path',
+                        '/',
+                        '--foo',
+                        'bar',
+                        '/foo/bar/appium'
+                    ],
+                    expect.any(Object)
+                )
+            }
             expect(launcher['_appiumCliArgs']).toMatchSnapshot()
         })
 
@@ -263,9 +294,26 @@ describe('Appium launcher', () => {
 
             expect(launcher['_logPath']).toBe(undefined)
             if (isWindows) {
-                expect(launcher['_command']).toBe('cmd')
+                expect(spawn).toBeCalledWith(
+                    'cmd',
+                    [
+                        'node',
+                        '--base-path',
+                        '/',
+                        '/foo/bar/appium'
+                    ],
+                    expect.any(Object)
+                )
             } else {
-                expect(launcher['_command']).toBe('node')
+                expect(spawn).toBeCalledWith(
+                    'node',
+                    [
+                        '--base-path',
+                        '/',
+                        '/foo/bar/appium'
+                    ],
+                    expect.any(Object)
+                )
             }
         })
 
@@ -339,14 +387,13 @@ describe('Appium launcher', () => {
     })
 
     describe('_getAppiumCommand', () => {
-
-        beforeEach(() => {
-            getAppiumCommandSpy.mockRestore()
+        test('should return path to dependency', async () => {
+            await expect(AppiumLauncher['_getAppiumCommand']('appium')).resolves.toBe('/foo/bar/appium')
         })
 
-        test('should return path to dependency', () => {
-            expect(AppiumLauncher['_getAppiumCommand']('appium'))
-                .toBe('/some/path')
+        test('should throw if appium is not installed', async () => {
+            vi.mocked(resolve).mockRejectedValue(new Error('Not found'))
+            await expect(AppiumLauncher['_getAppiumCommand']('appium')).rejects.toThrow()
         })
     })
 

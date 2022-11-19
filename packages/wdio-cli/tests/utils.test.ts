@@ -470,9 +470,9 @@ test('hasFile', () => {
     expect(hasFile('xyz')).toBe(false)
 })
 
-test('hasPackage', () => {
-    expect(hasPackage('yargs')).toBe(true)
-    expect(hasPackage('foobar')).toBe(false)
+test('hasPackage', async () => {
+    expect(await hasPackage('yargs')).toBe(true)
+    expect(await hasPackage('foobar')).toBe(false)
 })
 
 describe('generateTestFiles', () => {

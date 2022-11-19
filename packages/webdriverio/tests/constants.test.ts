@@ -78,15 +78,8 @@ describe('constants', () => {
             // @ts-expect-error wrong parameter
             expect(() => WDIO_DEFAULTS.automationProtocol!.validate!('foobar')).toThrow()
 
-            /**
-             * Todo(Christian): this test got disabled because our current validate method
-             * uses require.resolve which looks for the CJS version which is at the point
-             * of writing this comment not yet available
-             *
-             * Please enable these lines once we compile to CJS properly.
-             */
-            // WDIO_DEFAULTS.automationProtocol!.validate!('webdriver')
-            // WDIO_DEFAULTS.automationProtocol!.validate!('devtools')
+            WDIO_DEFAULTS.automationProtocol!.validate!('webdriver')
+            WDIO_DEFAULTS.automationProtocol!.validate!('devtools')
         })
     })
 

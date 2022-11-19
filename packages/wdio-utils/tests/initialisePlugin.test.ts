@@ -40,8 +40,7 @@ describe.skip('initialisePlugin', () => {
     })
 
     it('should allow to load service referenced with an absolute path', async () => {
-        const path = require.resolve(__dirname + '/__mocks__/@saucelabs/wdio-foobar-reporter')
-        const Service = await initialisePlugin(path)
+        const Service = await initialisePlugin(__dirname + '/__mocks__/@saucelabs/wdio-foobar-reporter')
         const service = new Service({} as any, {}, {}) as TestService
         expect(service.foo).toBe('barfoo')
     })

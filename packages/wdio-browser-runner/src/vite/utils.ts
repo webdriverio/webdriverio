@@ -1,26 +1,25 @@
 import fs from 'node:fs/promises'
+import url from 'node:url'
 import path from 'node:path'
-
-import { createRequire } from 'node:module'
+import { resolve } from 'import-meta-resolve'
 
 import type { Environment, FrameworkPreset } from '../types'
 
 export async function getTemplate (options: WebdriverIO.BrowserRunnerOptions, env: Environment, spec: string) {
     const root = options.rootDir || process.cwd()
-    const require = createRequire(path.join(root, 'node_modules'))
 
     let vueDeps = ''
     if (options.preset === 'vue') {
         try {
-            const vueDir = path.dirname(require.resolve('vue'))
+            const vueDir = path.dirname(url.fileURLToPath(await resolve('vue', url.pathToFileURL(root).href)))
             const vueScript = (await fs.readFile(path.join(vueDir, 'dist', 'vue.global.prod.js'), 'utf-8')).toString()
             vueDeps += /*html*/`
             <script type="module">
                 ${vueScript}
                 window.Vue = Vue
             </script>`
-            const vueCompilerDir = path.dirname(require.resolve('@vue/compiler-dom'))
-            const vueCompilerScript = (await fs.readFile(path.join(vueCompilerDir, 'dist', 'compiler-dom.global.prod.js'), 'utf-8')).toString()
+            const vueCompilerDir = path.dirname(url.fileURLToPath(await resolve('@vue/compiler-dom', url.pathToFileURL(root).href)))
+            const vueCompilerScript = (await fs.readFile(path.join(vueCompilerDir, 'dist', 'compiler-dom.global.prod.js'))).toString()
             vueDeps += /*html*/`
             <script type="module">
                 ${vueCompilerScript}
@@ -33,6 +32,7 @@ export async function getTemplate (options: WebdriverIO.BrowserRunnerOptions, en
                 `Error: ${err.stack}`
             )
         }
+
     }
 
     return /* html */`

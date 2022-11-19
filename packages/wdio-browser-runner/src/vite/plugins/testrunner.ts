@@ -2,7 +2,7 @@ import url from 'node:url'
 import path from 'node:path'
 
 import logger from '@wdio/logger'
-import { createRequire } from 'node:module'
+import { resolve } from 'import-meta-resolve'
 
 import type { Plugin } from 'vite'
 import {
@@ -15,7 +15,6 @@ import { SESSIONS } from '../../constants.js'
 import { getTemplate, getErrorTemplate } from '../utils.js'
 
 const log = logger('@wdio/browser-runner:plugin')
-const require = createRequire(import.meta.url)
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
 
 const commands = {
@@ -57,7 +56,7 @@ export function testrunner (options: WebdriverIO.BrowserRunnerOptions): Plugin {
     return {
         name: 'wdio:testrunner',
         enforce: 'pre',
-        resolveId: (id) => {
+        resolveId: async (id) => {
             if (id === virtualModuleId) {
                 return resolvedVirtualModuleId
             }
@@ -70,11 +69,7 @@ export function testrunner (options: WebdriverIO.BrowserRunnerOptions): Plugin {
              * make sure WDIO imports are resolved properly as ESM module
              */
             if (id.startsWith('@wdio') || WDIO_PACKAGES.includes(id)) {
-                if (id === '@wdio/mocha-framework/common') {
-                    return require.resolve('@wdio/mocha-framework').replace('index.js', 'common.js')
-                }
-
-                return require.resolve(id).replace('/cjs', '')
+                return url.fileURLToPath(await resolve(id, import.meta.url))
             }
 
             /**

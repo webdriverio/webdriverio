@@ -1,7 +1,6 @@
 import Mocha from 'mocha'
 import stringify from 'fast-safe-stringify'
 
-// @ts-expect-error
 import { setupEnv, formatMessage } from '@wdio/mocha-framework/common'
 
 import { MESSAGE_TYPES, EVENTS } from '../../constants.js'

@@ -1,9 +1,9 @@
-import fs from 'node:fs'
+import fs from 'node:fs/promises'
 import util from 'node:util'
-import { createRequire } from 'node:module'
 
 import which from 'which'
 import logger from '@wdio/logger'
+import { resolve } from 'import-meta-resolve'
 import { commandCallStructure, isValidParameter, getArgumentType, canAccess } from '@wdio/utils'
 import { WebDriverProtocol, CommandParameters, CommandPathVariables, ElementReference } from '@wdio/protocols'
 import { launch as launchChromeBrowser, Options } from 'chrome-launcher'
@@ -18,7 +18,6 @@ import { ELEMENT_KEY, SERIALIZE_PROPERTY, SERIALIZE_FLAG, ERROR_MESSAGES } from 
 import type { Priorities } from './finder/firefox'
 import type DevToolsDriver from './devtoolsdriver'
 
-const require = createRequire(import.meta.url)
 const log = logger('devtools')
 
 export const validate = function (
@@ -331,19 +330,19 @@ export async function patchDebug (scoppedLogger: Logger) {
      * resolve debug *from* puppeteer-core to make sure we monkey patch the version
      * it will use
      */
-    const puppeteerPkg = require.resolve('puppeteer-core')
-    let puppeteerDebugPkg = require.resolve(pkgName, { paths: [puppeteerPkg] })
+    const puppeteerPkg = await resolve('puppeteer-core', import.meta.url)
+    let puppeteerDebugPkg = await resolve(pkgName, puppeteerPkg)
 
     /**
      * check if Puppeteer has its own version of debug, if not use the
      * one that is installed for all packages
      */
-    if (!fs.existsSync(puppeteerDebugPkg)) {
+    if (!await fs.access(puppeteerDebugPkg).then(() => true, () => false)) {
         /**
          * let's not get caught by our dep checker, therefor
          * define package name in variable first
          */
-        puppeteerDebugPkg = require.resolve(pkgName)
+        puppeteerDebugPkg = await resolve(pkgName, import.meta.url)
     }
 
     try {

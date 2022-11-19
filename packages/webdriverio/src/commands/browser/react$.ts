@@ -1,6 +1,6 @@
 import fs from 'node:fs/promises'
-import { createRequire } from 'node:module'
 
+import { resolve } from 'import-meta-resolve'
 import type { ElementReference } from '@wdio/protocols'
 
 import { getElement } from '../../utils/getElementObject.js'
@@ -58,8 +58,8 @@ export default async function react$ (
     { props = {}, state = {} }: ReactSelectorOptions = {}
 ) {
     if (!resqScript) {
-        const require = createRequire(import.meta.url)
-        resqScript = (await fs.readFile(require.resolve('resq'))).toString()
+        const resqScriptPath = await resolve('resq', import.meta.url)
+        resqScript = (await fs.readFile(resqScriptPath)).toString()
     }
 
     await this.executeScript(resqScript.toString(), [])

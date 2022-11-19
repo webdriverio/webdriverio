@@ -4,9 +4,9 @@ import path from 'node:path'
 import { ChildProcessByStdio, spawn } from 'node:child_process'
 import { promisify } from 'node:util'
 import { Readable } from 'node:stream'
-import { createRequire } from 'node:module'
 
 import logger from '@wdio/logger'
+import { resolve } from 'import-meta-resolve'
 import { isCloudCapability } from '@wdio/config'
 import type { Services, Capabilities, Options } from '@wdio/types'
 
@@ -27,7 +27,7 @@ export default class AppiumLauncher implements Services.ServiceInstance {
     private readonly _logPath?: string
     private readonly _appiumCliArgs: string[] = []
     private readonly _args: AppiumServerArguments
-    private _command: string
+    private _command?: string
     private _process?: ChildProcessByStdio<null, Readable, Readable>
 
     constructor(
@@ -40,17 +40,16 @@ export default class AppiumLauncher implements Services.ServiceInstance {
             ...(this._options.args || {})
         }
         this._logPath = _options.logPath || this._config?.outputDir
-        this._command = this._getCommand(_options.command)
     }
 
-    private _getCommand(command?: string) {
+    private async _getCommand(command?: string) {
         /**
          * Explicitly set node as command and appium
          * module path as it's first argument if it's not defined
          */
         if (!command) {
             command = 'node'
-            this._appiumCliArgs.push(AppiumLauncher._getAppiumCommand())
+            this._appiumCliArgs.push(await AppiumLauncher._getAppiumCommand())
         }
 
         /**
@@ -102,13 +101,13 @@ export default class AppiumLauncher implements Services.ServiceInstance {
          * Append remaining arguments
          */
         this._appiumCliArgs.push(...formatCliArgs(this._args))
-
         this._setCapabilities()
 
         /**
          * start Appium
          */
-        this._process = await promisify(this._startAppium)(this._command, this._appiumCliArgs)
+        const command = await this._getCommand(this._options.command)
+        this._process = await promisify(this._startAppium)(command, this._appiumCliArgs)
 
         if (this._logPath) {
             this._redirectLogStream(this._logPath)
@@ -164,10 +163,9 @@ export default class AppiumLauncher implements Services.ServiceInstance {
         this._process.stderr.pipe(logStream)
     }
 
-    private static _getAppiumCommand (moduleName = 'appium') {
+    private static async _getAppiumCommand (command = 'appium') {
         try {
-            const require = createRequire(import.meta.url)
-            return require.resolve(moduleName)
+            return await resolve(command, import.meta.url)
         } catch (err: any) {
             log.error(
                 'Appium is not installed locally.\n' +

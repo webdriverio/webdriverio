@@ -4,6 +4,7 @@ import path from 'node:path'
 
 // @ts-expect-error mock
 import { yargs } from 'yargs'
+import { resolve } from 'import-meta-resolve'
 import yarnInstall from 'yarn-install'
 import inquirer from 'inquirer'
 import pkg from '../../package.json'
@@ -56,6 +57,10 @@ vi.mock('../../package.json', async () => {
     return { default: pkg }
 })
 
+vi.mock('import-meta-resolve', () => ({
+    resolve: vi.fn().mockResolvedValue('/foo/bar')
+}))
+
 const errorLogSpy = vi.spyOn(console, 'error')
 const consoleLogSpy = vi.spyOn(console, 'log')
 
@@ -81,8 +86,6 @@ beforeEach(() => {
     vi.mocked(yarnInstall).mockReturnValue({ status: 0 } as any)
     errorLogSpy.mockClear()
     consoleLogSpy.mockClear()
-
-    delete process.env.WDIO_TEST_THROW_RESOLVE
 })
 
 afterEach(() => {
@@ -231,7 +234,7 @@ test('prints TypeScript setup message', async () => {
 })
 
 test('prints TypeScript setup message with ts-node installed', async () => {
-    process.env.WDIO_TEST_THROW_RESOLVE = '1'
+    vi.mocked(resolve).mockRejectedValue(new Error('resolve error'))
     vi.mocked(inquirer.prompt).mockResolvedValue({
         runner: '@wdio/local-runner$--$local',
         framework: '@wdio/mocha-framework$--$mocha',
@@ -272,7 +275,7 @@ test('prints TypeScript setup message with ts-node installed', async () => {
 })
 
 test('should setup Babel if not existing', async () => {
-    process.env.WDIO_TEST_THROW_RESOLVE = '1'
+    vi.mocked(resolve).mockRejectedValue(new Error('resolve error'))
     vi.mocked(inquirer.prompt).mockResolvedValue({
         runner: '@wdio/local-runner$--$local',
         framework: '@wdio/mocha-framework$--$mocha',
@@ -294,7 +297,7 @@ test('should setup Babel if not existing', async () => {
 })
 
 test('should not install @babel/register if existing', async () => {
-    delete process.env.WDIO_TEST_THROW_RESOLVE
+    vi.mocked(resolve).mockResolvedValue('/foo/bar')
     vi.mocked(inquirer.prompt).mockResolvedValue({
         runner: '@wdio/local-runner$--$local',
         framework: '@wdio/mocha-framework$--$mocha',

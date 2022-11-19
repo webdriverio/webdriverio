@@ -94,7 +94,7 @@ const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) 
      * add ts-node if TypeScript is desired but not installed
      */
     if (parsedAnswers.isUsingTypeScript) {
-        if (!hasPackage('ts-node')) {
+        if (!await hasPackage('ts-node')) {
             packagesToInstall.push('ts-node', 'typescript')
         }
 
@@ -143,7 +143,7 @@ const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) 
      * add @babel/register package if not installed
      */
     if (parsedAnswers.isUsingBabel) {
-        if (!hasPackage('@babel/register')) {
+        if (!await hasPackage('@babel/register')) {
             packagesToInstall.push('@babel/register')
         }
 
@@ -151,10 +151,10 @@ const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) 
          * setup Babel if no config file exists
          */
         if (!hasFile('babel.config.js')) {
-            if (!hasPackage('@babel/core')) {
+            if (!await hasPackage('@babel/core')) {
                 packagesToInstall.push('@babel/core')
             }
-            if (!hasPackage('@babel/preset-env')) {
+            if (!await hasPackage('@babel/preset-env')) {
                 packagesToInstall.push('@babel/preset-env')
             }
             await fs.writeFile(

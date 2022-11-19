@@ -2,7 +2,6 @@ import fs from 'node:fs/promises'
 import fsSync from 'node:fs'
 import { dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { createRequire } from 'node:module'
 import { execSync } from 'node:child_process'
 import { promisify } from 'node:util'
 
@@ -12,6 +11,7 @@ import inquirer from 'inquirer'
 import pickBy from 'lodash.pickby'
 import logger from '@wdio/logger'
 import readDir from 'recursive-readdir'
+import { resolve } from 'import-meta-resolve'
 import { SevereServiceError } from 'webdriverio'
 import { ConfigParser } from '@wdio/config'
 import { CAPABILITY_KEYS } from '@wdio/protocols'
@@ -20,7 +20,6 @@ import type { Options, Capabilities, Services } from '@wdio/types'
 import { EXCLUSIVE_SERVICES, ANDROID_CONFIG, IOS_CONFIG, QUESTIONNAIRE, COMMUNITY_PACKAGES_WITH_V8_SUPPORT } from './constants.js'
 import type { ReplCommandArguments, Questionnair, SupportedPackage, OnCompleteResult, ParsedAnswers } from './types'
 
-const require = createRequire(import.meta.url)
 const log = logger('@wdio/cli:utils')
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
@@ -342,16 +341,9 @@ export function hasFile (filename: string) {
  * Check if package is installed
  * @param {string} package to check existance for
  */
-export function hasPackage (pkg: string) {
+export async function hasPackage (pkg: string) {
     try {
-        /**
-         * this is only for testing purposes as we want to check whether
-         * we add `@babel/register` to the packages to install when resolving fails
-         */
-        if (process.env.VITEST_WORKER_ID && process.env.WDIO_TEST_THROW_RESOLVE) {
-            throw new Error('resolve error')
-        }
-        require.resolve(pkg)
+        await resolve(pkg, import.meta.url)
         return true
     } catch (err: any) {
         return false
