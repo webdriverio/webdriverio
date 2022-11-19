@@ -13,6 +13,11 @@ $ npm install typescript ts-node --save-dev
 
 WebdriverIO will automatically detect if these dependencies are installed and will compile your config and tests for you. Ensure to have a `tsconfig.json` in the same directory as you WDIO config. If you want to specify a different project path or need to configure how ts-node runs please use environment variables as described [in their docs](https://www.npmjs.com/package/ts-node#tsconfig-options).
 
+```sh
+# run wdio testrunner with custom tsconfig.json location
+TS_NODE_PROJECT=./.config/tsconfig.json wdio run wdio.conf.ts
+```
+
 The minimum TypeScript version is `v4.0.5`.
 
 ## Framework Setup
