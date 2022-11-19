@@ -208,22 +208,6 @@ describe('ConfigParser', () => {
                 })
             })
 
-            it('should not transpile via ts-node if we are within the worker', async function () {
-                process.env.WDIO_WORKER_ID = '0-0'
-                let configFileContents = (await MockFileContentBuilder.FromRealConfigFile(FIXTURES_CONF_RDC)).build()
-                const tsNodeRegister = vi.fn()
-                const configParser = ConfigParserBuilder
-                    .withBaseDir(path.join(FIXTURES_PATH, '/here'), 'cool.conf')
-                    .withTsNodeModule(tsNodeRegister)
-                    .withFiles([
-                        ...(await MockedFileSystem_LoadingAsMuchAsCanFromFileSystem()),
-                        FileNamed(path.join(FIXTURES_PATH, '/here/cool.conf')).withContents(configFileContents)
-                    ])
-                    .build()
-                await configParser.initialize()
-                expect(tsNodeRegister).toBeCalledTimes(0)
-            })
-
             it('when ts-node exists should initiate TypeScript compiler with defaults if autoCompiled before config is read', async function () {
                 let configFileContents = (await MockFileContentBuilder.FromRealConfigFile(FIXTURES_CONF_RDC))
                     .withTheseContentsMergedOn({

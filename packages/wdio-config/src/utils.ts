@@ -128,13 +128,6 @@ export async function loadTypeScriptCompiler (
     tsConfigPathsOpts: Options.TSConfigPathsOptions | undefined,
     requireService: ModuleImportService
 ) {
-    /**
-     * don't auto compile within worker as it already was spawn with a loader
-     */
-    if (process.env.WDIO_WORKER_ID) {
-        return true
-    }
-
     try {
         validateTsConfigPaths(tsNodeOpts)
 
