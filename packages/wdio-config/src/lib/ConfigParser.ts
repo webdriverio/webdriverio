@@ -1,7 +1,7 @@
 import path from 'node:path'
 
-import { deepmerge } from 'deepmerge-ts'
 import logger from '@wdio/logger'
+import { deepmerge } from 'deepmerge-ts'
 import type { Capabilities, Options, Services } from '@wdio/types'
 
 import RequireLibrary from './RequireLibrary.js'

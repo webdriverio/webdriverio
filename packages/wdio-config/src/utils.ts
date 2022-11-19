@@ -1,5 +1,6 @@
 import path from 'node:path'
 import logger from '@wdio/logger'
+import { resolve } from 'import-meta-resolve'
 import type { Capabilities, Options } from '@wdio/types'
 
 import type { ModuleImportService } from './types.js'
@@ -96,12 +97,22 @@ export async function loadAutoCompilers(autoCompileConfig: Options.AutoCompileCo
     return (
         autoCompileConfig.autoCompile &&
         (
+            await loadTypeScriptCompiler() ||
             await loadBabelCompiler(
                 autoCompileConfig.babelOpts,
                 requireService
             )
         )
     )
+}
+
+export async function loadTypeScriptCompiler () {
+    try {
+        await resolve('ts-node', import.meta.url)
+        return true
+    } catch (err) {
+        return false
+    }
 }
 
 export async function loadBabelCompiler (babelOpts: Record<string, any> = {}, requireService: ModuleImportService) {

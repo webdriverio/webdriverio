@@ -31,13 +31,5 @@
   },
   "dependencies": {
     "@types/node": "^18.0.0"
-  },
-  "peerDependencies": {
-    "typescript": "^4.6.2"
-  },
-  "peerDependenciesMeta": {
-    "typescript": {
-      "optional": true
-    }
   }
 }

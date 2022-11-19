@@ -1,8 +1,10 @@
-import path from 'node:path'
-import { describe, it, expect, vi } from 'vitest'
-import { isCloudCapability, removeLineNumbers, validObjectOrArray } from '../src/utils.js'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { resolve } from 'import-meta-resolve'
+import { isCloudCapability, removeLineNumbers, validObjectOrArray, loadTypeScriptCompiler } from '../src/utils.js'
 
-vi.mock('@wdio/utils', () => import(path.join(process.cwd(), '__mocks__', '@wdio/utils')))
+vi.mock('import-meta-resolve', () => ({
+    resolve: vi.fn().mockResolvedValue('/some/path')
+}))
 
 describe('utils', () => {
     describe('removeLineNumbers', () => {
@@ -66,6 +68,23 @@ describe('utils', () => {
 
         it('should handle null or empty capabilities', ()  => {
             expect(isCloudCapability({})).toBe(false)
+        })
+    })
+
+    describe('loadTypeScriptCompiler', () => {
+        beforeEach(() => {
+            vi.mocked(resolve).mockClear()
+        })
+
+        it('should return true if tsconfig exists', async () => {
+            expect(await loadTypeScriptCompiler()).toBe(true)
+            expect(resolve).toBeCalledTimes(1)
+        })
+
+        it('should return false if tsconfig exists', async () => {
+            vi.mocked(resolve).mockRejectedValue(new Error('ups'))
+            expect(await loadTypeScriptCompiler()).toBe(false)
+            expect(resolve).toBeCalledTimes(1)
         })
     })
 })
