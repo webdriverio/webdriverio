@@ -84,7 +84,7 @@
     "ejs": "^3.1.8",
     "eslint": "^8.27.0",
     "eslint-plugin-import": "^2.26.0",
-    "eslint-plugin-unicorn": "^44.0.2",
+    "eslint-plugin-unicorn": "^45.0.0",
     "eslint-plugin-wdio": "^7.25.3",
     "expect-webdriverio": "^4.0.0-alpha.6",
     "husky": "^8.0.2",
