@@ -1,6 +1,6 @@
 ---
-id: what-is-webdriverio
-title: What is Webdriver.IO?
+id: why-webdriverio
+title: Why Webdriver.IO?
 ---
 
 WebdriverIO is a progressive automation framework built to automate modern web and mobile applications. It simplifies the interaction with your app and provides a set of plugins that help you create a scalable, robust and stable test suite.
@@ -16,6 +16,7 @@ You can use WebdriverIO to automate:
 - 🌐 <span>&nbsp;</span> __modern web applications__ written in React, Vue, Angular, Svelte or other frontend frameworks
 - 📱 <span>&nbsp;</span> __hybrid__ or __native mobile applications__ running in an emulator/simulator or on a real device
 - 💻 <span>&nbsp;</span> __native desktop applications__ (e.g. written with Electron.js)
+- 📦 <span>&nbsp;</span> __unit or component testing__ of web components in the browser
 
 ## Based on Web Standards
 

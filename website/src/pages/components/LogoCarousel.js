@@ -27,7 +27,7 @@ export default class LogoCarousel extends React.Component {
         this.setState({
             swapInterval: setInterval(this.nextPage.bind(this), INTERVAL_LENGTH),
             pages: Math.ceil(this.props.logos ? this.props.logos.length / logosPerPage : 1),
-            margin: rect.width < 700 ? 0 : 70
+            margin: rect.width < 700 ? 0 : 210
         })
     }
 

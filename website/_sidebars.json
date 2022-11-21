@@ -2,13 +2,13 @@
   "docs": [
     {
       "type": "category",
-      "label": "Introduction",
+      "label": "Getting Started",
       "link": {
         "type": "doc",
         "id": "gettingstarted"
       },
       "items": [
-        "what-is-webdriverio",
+        "why-webdriverio",
         "boilerplates"
       ]
     },

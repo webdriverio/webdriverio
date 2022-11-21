@@ -31,7 +31,7 @@
     --wdio-link-background-color: #eee0d7;
     --wdio-link-color: #000;
     --wdio-section-background-color: #fff;
-    --wdio-dark-section-background-color: #efefef;
+    --wdio-dark-section-background-color: #dfdfdf;
 }
 
 html[data-theme=dark] {

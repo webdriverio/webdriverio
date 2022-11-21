@@ -61,6 +61,7 @@ This runner uses [Vite](https://vitejs.dev/) to compile your test code and load 
 - Preact
 - Vue.js
 - Svelte
+- SolidJS
 
 Every test file / test file group runs within a single page which means that between each test the page is being reloaded to guarantee isolation between tests.
 
