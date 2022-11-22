@@ -32,6 +32,7 @@ const ROOT_PACKAGES = [
     'wdio-globals',
     'wdio-runner',
     'wdio-local-runner',
+    'wdio-mocha-framework',
     'wdio-browser-runner'
 ]
 
