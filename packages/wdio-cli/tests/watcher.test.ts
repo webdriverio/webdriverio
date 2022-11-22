@@ -26,9 +26,6 @@ vi.mock('../src/launcher', async () => {
 
         constructor (configFile: string, args: LauncherMockRunCommandArguments) {
             this.configParser = new ConfigParser(configFile)
-            if ( this.configParser.autoCompile ) {
-                this.configParser.autoCompile()
-            }
             this.configParser.addConfigFile(configFile)
             this.configParser.merge(args)
             this.isMultiremote = args.isMultiremote || false

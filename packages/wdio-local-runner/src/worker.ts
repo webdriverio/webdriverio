@@ -98,10 +98,9 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
             /**
              * autoCompile feature is enabled
              */
-            this.config.autoCompileOpts?.autoCompile &&
+            process.env.WDIO_LOAD_TS_NODE === '1' &&
             /**
-             * the `@wdio/cli` didn't already attached the loader
-             * to the environment
+             * the `@wdio/cli` didn't already attached the loader to the environment
              */
             !(process.env.NODE_OPTIONS || '').includes('--loader ts-node/esm')
         ) {

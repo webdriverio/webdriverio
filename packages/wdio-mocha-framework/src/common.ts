@@ -95,22 +95,22 @@ export function formatMessage (params: FrameworkMessage) {
 
 /**
  * require external modules
- * @param modules list of modules to load before the test starts
+ * @param mods list of modules to load before the test starts
  * @param loader  function to import the module, optional and for testing purposes only
  */
-export function requireExternalModules (modules: string[], loader = loadModule) {
-    return modules.map((module) => {
-        if (!module) {
+export function requireExternalModules (mods: string[], loader = loadModule) {
+    return mods.map((mod) => {
+        if (!mod) {
             return Promise.resolve()
         }
 
-        module = module.replace(/.*:/, '')
+        mod = mod.replace(/.*:/, '')
 
-        if (module.startsWith('./') && globalThis.process) {
-            module = `${globalThis.process.cwd()}/${module.slice(2)}`
+        if (mod.startsWith('./') && globalThis.process) {
+            mod = `${globalThis.process.cwd()}/${mod.slice(2)}`
         }
 
-        return loader(module)
+        return loader(mod)
     })
 }
 

@@ -203,6 +203,22 @@ describe('ConfigParser', () => {
                     .toContain('auto-compiling files with Babel')
             })
 
+            it('should not transpile via ts-node if we are within the worker', async function () {
+                process.env.WDIO_WORKER_ID = '0-0'
+                let configFileContents = (await MockFileContentBuilder.FromRealConfigFile(FIXTURES_CONF_RDC)).build()
+                const tsNodeRegister = vi.fn()
+                const configParser = ConfigParserBuilder
+                    .withBaseDir(path.join(FIXTURES_PATH, '/here'), 'cool.conf')
+                    .withTsNodeModule(tsNodeRegister)
+                    .withFiles([
+                        ...(await MockedFileSystem_LoadingAsMuchAsCanFromFileSystem()),
+                        FileNamed(path.join(FIXTURES_PATH, '/here/cool.conf')).withContents(configFileContents)
+                    ])
+                    .build()
+                await configParser.initialize()
+                expect(tsNodeRegister).toBeCalledTimes(0)
+            })
+
             it('when @babel/register package exists should merge config, preferring config, if present', async function () {
                 delete process.env.THROW_BABEL_REGISTER // Code in this test will bail early if we leave this set
                 let configFileContents = (await MockFileContentBuilder.FromRealConfigFile(FIXTURES_CONF_RDC)).build()

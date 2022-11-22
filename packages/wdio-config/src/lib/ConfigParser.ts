@@ -70,20 +70,10 @@ export default class ConfigParser {
      * intializes the config object
      */
     async initialize (object: MergeConfig = {}) {
-        await this.autoCompile()
+        await loadAutoCompilers(this._config.autoCompileOpts!, this._moduleRequireService)
         await this.addConfigFile(this.#configFilePath)
         this.merge({ ...object })
         this.#isInitialised = true
-    }
-
-    private async autoCompile() {
-        /**
-         * on launcher compile files if Babel or TypeScript are installed using our defaults
-         */
-        if (this._config.autoCompileOpts && !(await loadAutoCompilers(this._config.autoCompileOpts!, this._moduleRequireService))) {
-            log.debug('No compiler found, continue without compiling files')
-            this._config.autoCompileOpts.autoCompile = false
-        }
     }
 
     /**

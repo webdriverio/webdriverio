@@ -1,5 +1,6 @@
 import type { InlineConfig } from 'vite'
 import type { Workers, Capabilities, Options } from '@wdio/types'
+import type { MochaOpts } from '@wdio/mocha-framework'
 
 declare global {
     interface Window {
@@ -33,7 +34,7 @@ export interface RunArgs extends Workers.WorkerRunPayload {
 }
 
 export interface Environment {
-    args: any
+    args: MochaOpts
     config: Options.Testrunner
     capabilities: Capabilities.RemoteCapability
     sessionId: string

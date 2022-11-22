@@ -159,6 +159,8 @@ Aside from these major updates, the team has spent time improving the documentat
 
 Furthermore did we fix the behavior of relative spec or exclude paths. Before `v8` every path within `specs`, `exclude` or `--spec` was always seen relative from the users working directory. This behavior was confusing especially when the `wdio.conf.js` was not within the root of you project. This got fixed now so that `specs` and `exclude` path will be always seen as relative to the config file and `--spec` arguments, relative from the working directory.
 
+Lastly, we had to remove support for [tsconfig-paths](https://www.npmjs.com/package/tsconfig-paths) as we haven't found a way to get it working within an ESM context. We believe this integration hasn't been used much anyway and a lot of it is nowadays natively supported in TypeScript. Let us know if this assumption is wrong and you would like to see it being supported again.
+
 ## What's Next?
 
 The WebdriverIO team is very excited about this release as it frees up time to start working on some new cool features we put on the [roadmap](https://github.com/webdriverio/webdriverio/blob/main/ROADMAP.md). For many months we have been working secretly on a VS Code Extension that makes authoring and debugging tests much easier. Aside from that, there is always plenty more work to do and opportunities to explore to make this project better. We are welcoming and supporting everyone who likes to join us.

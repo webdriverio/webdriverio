@@ -62,8 +62,8 @@ class MochaAdapter {
         ))
 
         const { beforeTest, beforeHook, afterTest, afterHook } = this._config
-        mocha.suite.on('pre-require', (context: Mocha.MochaOptions) =>
-            setupEnv(this._cid, context, beforeTest, beforeHook, afterTest, afterHook))
+        mocha.suite.on('pre-require', () =>
+            setupEnv(this._cid, this._config.mochaOpts, beforeTest, beforeHook, afterTest, afterHook))
         await this._loadFiles(mochaOpts)
         return this
     }
@@ -249,6 +249,7 @@ adapterFactory.init = async function (...args: any[]) {
 
 export default adapterFactory
 export { MochaAdapter, adapterFactory }
+export * from './types.js'
 
 declare global {
     namespace WebdriverIO {

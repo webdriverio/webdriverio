@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { resolve } from 'import-meta-resolve'
-import { isCloudCapability, removeLineNumbers, validObjectOrArray, loadTypeScriptCompiler } from '../src/utils.js'
+import { isCloudCapability, removeLineNumbers, validObjectOrArray, loadTypeScriptCompiler, objectToEnv } from '../src/utils.js'
 
 vi.mock('import-meta-resolve', () => ({
     resolve: vi.fn().mockResolvedValue('/some/path')
@@ -77,14 +77,38 @@ describe('utils', () => {
         })
 
         it('should return true if tsconfig exists', async () => {
-            expect(await loadTypeScriptCompiler()).toBe(true)
+            expect(await loadTypeScriptCompiler({})).toBe(true)
             expect(resolve).toBeCalledTimes(1)
         })
 
         it('should return false if tsconfig exists', async () => {
             vi.mocked(resolve).mockRejectedValue(new Error('ups'))
-            expect(await loadTypeScriptCompiler()).toBe(false)
+            expect(await loadTypeScriptCompiler({})).toBe(false)
             expect(resolve).toBeCalledTimes(1)
         })
+
+        it('should return true if WDIO_WORKER_ID is set', async () => {
+            process.env.WDIO_WORKER_ID = '1'
+            vi.mocked(resolve).mockRejectedValue(new Error('ups'))
+            expect(await loadTypeScriptCompiler({})).toBe(true)
+            expect(resolve).toBeCalledTimes(0)
+        })
+    })
+
+    it('objectToEnv', () => {
+        objectToEnv({
+            wdioFoo: true,
+            wdioBar: 'foobar',
+            wdioArray: ['foo', 'bar'],
+            wdioObject: { foo: 'bar' },
+            wdioRegex: /foo/,
+            wdioFalse: false
+        })
+        expect(process.env.WDIO_FOO).toBe('1')
+        expect(process.env.WDIO_BAR).toBe('foobar')
+        expect(process.env.WDIO_ARRAY).toBe('foo,bar')
+        expect(process.env.WDIO_OBJECT).toBe('{"foo":"bar"}')
+        expect(process.env.WDIO_REGEX).toBe('/foo/')
+        expect(process.env.WDIO_FALSE).toBeUndefined()
     })
 })

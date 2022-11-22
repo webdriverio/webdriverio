@@ -119,4 +119,4 @@ class HTMLReporter extends BaseReporter {
 Mocha.setup({
     ...window.__wdioEnv__.args,
     reporter: HTMLReporter
-})
+} as any)

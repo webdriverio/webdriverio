@@ -196,6 +196,27 @@ exports.config = {
         ignoreUndefinedDefinitions: false, // <boolean> Enable this config to treat undefined definitions as warnings.
     },
     //
+    // Auto-compilation configuration
+    autoCompileOpts: {
+        // Enable/disable auto-compilation (enabled by default)
+        autoCompile: true,
+
+        // Configure how ts-node is automatically included when present
+        tsNodeOpts: {
+            transpileOnly: true,
+            project: './path/to/tsconfig.json'
+        },
+
+        // If you have tsconfig-paths installed and provide a tsConfigPathsOpts
+        // option, it will be automatically registered during bootstrap.
+        tsConfigPathsOpts: {
+            baseUrl: './'
+        },
+
+        // Configure how @babel/register is automatically included when present (and ts-node isn't)
+        babelOpts: {}
+    },
+    //
     // =====
     // Hooks
     // =====

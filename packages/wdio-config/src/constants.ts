@@ -34,6 +34,9 @@ export const DEFAULT_CONFIGS: () => Omit<Options.Testrunner, 'capabilities'> = (
     cucumberFeaturesWithLineNumbers: [],
     autoCompileOpts: {
         autoCompile: true,
+        tsNodeOpts: {
+            transpileOnly: true
+        },
         babelOpts: {}
     },
 
