@@ -111,7 +111,7 @@ export const {
 
 Define your own [Vite configuration](https://vitejs.dev/config/). You can either pass in a custom object or import an existing `vite.conf.ts` file if you use Vite.js for development. Note that WebdriverIO merges custom configurations to set up framework and runner objects. This option can't be used together with `preset`.
 
-__Type:__ [`UserConfig`](https://github.com/vitejs/vite/blob/52e64eb43287d241f3fd547c332e16bd9e301e95/packages/vite/src/node/config.ts#L119-L272)
+__Type:__ [`UserConfig`](https://github.com/vitejs/vite/blob/52e64eb43287d241f3fd547c332e16bd9e301e95/packages/vite/src/node/config.ts#L119-L272)<br />
 __Example:__
 
 ```js title="wdio.conf.ts"
