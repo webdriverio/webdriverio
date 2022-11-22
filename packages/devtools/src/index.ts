@@ -26,7 +26,7 @@ const log = logger('devtools:puppeteer')
 /**
  * patch debug package to log Puppeteer CDP messages
  */
-patchDebug(log)
+await patchDebug(log)
 
 export const sessionMap = new Map()
 

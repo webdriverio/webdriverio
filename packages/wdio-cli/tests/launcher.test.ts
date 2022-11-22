@@ -4,6 +4,8 @@ import { vi, describe, it, expect, afterEach, beforeEach } from 'vitest'
 import logger from '@wdio/logger'
 import { sleep } from '@wdio/utils'
 
+vi.mocked(fs.access).mockResolvedValue()
+
 import Launcher from '../src/launcher.js'
 
 const caps: WebDriver.DesiredCapabilities = { maxInstances: 1, browserName: 'chrome' }

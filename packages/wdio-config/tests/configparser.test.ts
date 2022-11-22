@@ -182,9 +182,12 @@ describe('ConfigParser', () => {
             beforeEach(() => {
                 (log.debug as MockedFunction<any>).mockClear()
                 delete process.env.THROW_BABEL_REGISTER
+                delete process.env.THROW_TSNODE_RESOLVE
+                delete process.env.WDIO_WORKER_ID
             })
 
             it('when @babel/register package exists should initiate with @babel/register compiler', async () => {
+                process.env.THROW_TSNODE_RESOLVE = '1'
                 const configContents = (await MockFileContentBuilder.FromRealConfigFile(FIXTURES_CONF_RDC)).build()
                 const babelRegister = vi.fn()
                 const configParser = ConfigParserBuilder
@@ -198,8 +201,8 @@ describe('ConfigParser', () => {
                 await configParser.initialize()
 
                 expect(babelRegister).toHaveBeenCalledWith({})
-                expect(log.debug).toBeCalledTimes(1)
-                expect((log.debug as MockedFunction<any>).mock.calls[0][0])
+                expect(log.debug).toBeCalledTimes(2)
+                expect((log.debug as MockedFunction<any>).mock.calls[1][0])
                     .toContain('auto-compiling files with Babel')
             })
 
@@ -220,7 +223,7 @@ describe('ConfigParser', () => {
             })
 
             it('when @babel/register package exists should merge config, preferring config, if present', async function () {
-                delete process.env.THROW_BABEL_REGISTER // Code in this test will bail early if we leave this set
+                process.env.THROW_TSNODE_RESOLVE = '1'
                 let configFileContents = (await MockFileContentBuilder.FromRealConfigFile(FIXTURES_CONF_RDC)).build()
                 const babelRegister = vi.fn()
                 const configParser = ConfigParserBuilder.withBaseDir(
@@ -282,6 +285,7 @@ describe('ConfigParser', () => {
 
             it('should just continue without initiation if @babel/register does not exist', async () => {
                 process.env.THROW_BABEL_REGISTER = '1'
+                process.env.THROW_TSNODE_RESOLVE = '1'
                 const configParserBuilder = ConfigParserBuilder
                     .withBaseDir(FIXTURES_PATH, FIXTURES_CONF_RDC)
                     .withFiles([
@@ -293,7 +297,7 @@ describe('ConfigParser', () => {
                 expect(babelRegister).not.toHaveBeenCalled()
                 expect(log.debug).toBeCalledTimes(1)
                 expect((log.debug as MockedFunction<any>).mock.calls[0][0])
-                    .toContain('No compiler found')
+                    .toContain('Failed loading TS Node')
             })
         })
     })

@@ -11,8 +11,7 @@ vi.mock('node:fs', () => ({
             write: vi.fn(),
             end: vi.fn((cb) => cb())
         }),
-        mkdir: vi.fn(),
-        access: vi.fn()
+        mkdir: vi.fn()
     }
 }))
 

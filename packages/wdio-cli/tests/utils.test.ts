@@ -45,7 +45,7 @@ vi.mock('../src/commands/config', () => ({
 
 vi.mock('node:fs/promises', () => ({
     default: {
-        access: vi.fn(),
+        access: vi.fn().mockResolvedValue(),
         mkdir: vi.fn(),
         writeFile: vi.fn().mockReturnValue(Promise.resolve())
     }

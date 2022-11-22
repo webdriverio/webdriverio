@@ -1,4 +1,5 @@
 import fs from 'node:fs/promises'
+import url from 'node:url'
 
 import { resolve } from 'import-meta-resolve'
 import type { ElementReference } from '@wdio/protocols'
@@ -49,7 +50,7 @@ export default async function react$$(
     { props = {}, state = {} }: ReactSelectorOptions = {}
 ) {
     if (!resqScript) {
-        const resqScriptPath = await resolve('resq', import.meta.url)
+        const resqScriptPath = url.fileURLToPath(await resolve('resq', import.meta.url))
         resqScript = (await fs.readFile(resqScriptPath)).toString()
     }
 

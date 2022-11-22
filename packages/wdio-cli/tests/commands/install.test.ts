@@ -3,10 +3,13 @@ import path from 'node:path'
 import { vi, describe, it, expect, afterEach, beforeEach } from 'vitest'
 // @ts-expect-error mock
 import { yargs } from 'yargs'
+import yarnInstall from 'yarn-install'
+
+vi.mocked(fs.access).mockResolvedValue()
+
 import * as installCmd from '../../src/commands/install.js'
 import * as configCmd from '../../src/commands/config.js'
 import * as utils from '../../src/utils.js'
-import yarnInstall from 'yarn-install'
 
 vi.mock('yargs')
 vi.mock('yarn-install')

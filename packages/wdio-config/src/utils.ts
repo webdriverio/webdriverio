@@ -95,14 +95,15 @@ export function validateConfig<T>(defaults: Options.Definition<T>, options: T, k
 }
 
 export async function loadAutoCompilers(autoCompileConfig: Options.AutoCompileConfig, requireService: ModuleImportService) {
+    if (!autoCompileConfig.autoCompile) {
+        return
+    }
+
     return (
-        autoCompileConfig.autoCompile &&
-        (
-            await loadTypeScriptCompiler(autoCompileConfig) ||
-            await loadBabelCompiler(
-                autoCompileConfig.babelOpts,
-                requireService
-            )
+        await loadTypeScriptCompiler(autoCompileConfig) ||
+        await loadBabelCompiler(
+            autoCompileConfig.babelOpts,
+            requireService
         )
     )
 }
@@ -116,6 +117,12 @@ export async function loadTypeScriptCompiler (autoCompileConfig: Options.AutoCom
     }
 
     try {
+        /**
+         * only for testing purposes
+         */
+        if (process.env.VITEST_WORKER_ID && process.env.THROW_TSNODE_RESOLVE) {
+            throw new Error('test fail')
+        }
         await resolve('ts-node', import.meta.url)
         process.env.WDIO_LOAD_TS_NODE = '1'
         objectToEnv(autoCompileConfig.tsNodeOpts)
