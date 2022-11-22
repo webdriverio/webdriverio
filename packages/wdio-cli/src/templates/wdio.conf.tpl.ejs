@@ -10,7 +10,7 @@ export const config: Options.Testrunner = {<%
     // ====================
     // Runner Configuration
     // ====================
-    if(answers.expEnvAccessKey){ %>
+    <% if(answers.expEnvAccessKey){ %>
     hostname: '<%- answers.expEnvHostname %>',
     <% if (answers.expEnvPort === '443'){%>protocol: 'https',
     <%} else if (answers.expEnvPort === '80'){%>protocol: 'http',
