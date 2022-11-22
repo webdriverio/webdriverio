@@ -71,6 +71,8 @@ describe('Svelte Component Testing', () => {
 })
 ```
 
+__Note:__ using render methods from Testing Library helps remove created components between the tests. If you don't use Testing Library ensure to attach your test components to a container that gets cleaned up between tests.
+
 ## Examples
 
 You can find various examples for testing components using popular component frameworks in our [example repository](https://github.com/webdriverio/component-testing-examples).
