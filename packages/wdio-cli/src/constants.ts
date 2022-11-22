@@ -146,7 +146,7 @@ export const SUPPORTED_PACKAGES = {
         { name: 'azure-devops', value: '@gmangiapelo/wdio-azure-devops-service$--$azure-devops' },
         { name: 'google-Chat', value: 'wdio-google-chat-service' },
         { name: 'qmate-service', value: '@sap_oss/wdio-qmate-service--$qmate-service' },
-        { name: 'vitaqai', value: 'wdio-vitaqai-service$--$vitaqai'}
+        { name: 'vitaqai', value: 'wdio-vitaqai-service$--$vitaqai' }
     ]
 } as const
 
