@@ -30,10 +30,11 @@
         "id": "configuration"
       },
       "items": [
+        "driverbinaries",
+        "capabilities",
         "babel",
         "typescript",
-        "proxy",
-        "driverbinaries"
+        "proxy"
       ]
     },
     {
