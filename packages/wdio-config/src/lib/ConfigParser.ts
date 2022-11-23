@@ -142,6 +142,13 @@ export default class ConfigParser {
         if (exclude.length > 0) {
             this._config.exclude = this.setFilePathToFilterOptions(exclude, this._config.exclude!)
         }
+
+        /**
+         * Parse cucumberOpts.names into an array, if defined
+         */
+        if (this._config.cucumberOpts?.names != null && typeof this._config.cucumberOpts.names == 'string') {
+            this._config.cucumberOpts.names = this._config.cucumberOpts?.names.split(',')
+        }
     }
 
     /**
