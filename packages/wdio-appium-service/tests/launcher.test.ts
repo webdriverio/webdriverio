@@ -96,11 +96,12 @@ describe('Appium launcher', () => {
                 expect(spawn).toBeCalledWith(
                     'cmd',
                     [
+                        '/c',
+                        'path/to/my_custom_appium',
                         '--base-path',
                         '/',
                         '--foo',
-                        'bar',
-                        'path/to/my_custom_appium'
+                        'bar'
                     ],
                     expect.any(Object)
                 )
@@ -261,9 +262,8 @@ describe('Appium launcher', () => {
 
             if (isWindows) {
                 expect(spawn).toBeCalledWith(
-                    'cmd',
+                    'node',
                     [
-                        'node',
                         '--base-path',
                         '/',
                         '--foo',
@@ -297,6 +297,7 @@ describe('Appium launcher', () => {
                 expect(spawn).toBeCalledWith(
                     'cmd',
                     [
+                        '/c',
                         'node',
                         '--base-path',
                         '/',
