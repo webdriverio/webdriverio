@@ -1,3 +1,5 @@
+import type { Capabilities, Options } from '@wdio/types'
+
 export interface SessionResponse {
     // eslint-disable-next-line camelcase
     automation_session: {
@@ -28,29 +30,28 @@ export interface App {
 
 export interface BrowserstackConfig {
     /**
-     * Set this to true to enable routing connections from Browserstack cloud through your computer.
-     * You will also need to set `browserstack.local` to true in browser capabilities.
-     */
-    browserstackLocal?: boolean;
-    /**
      * Set this with app file path present locally on your device or
-     * app hashed id returned after uploading app to Browserstack or
+     * app hashed id returned after uploading app to BrowserStack or
      * custom_id, sharable_id of the uploaded app
+     * @default undefined
      */
     app?: string | AppConfig;
     /**
-     * Cucumber only. Set this to true to enable updating the session name to the Scenario name if only
-     * a single Scenario was ran. Useful when running in parallel
-     * with [wdio-cucumber-parallel-execution](https://github.com/SimitTomar/wdio-cucumber-parallel-execution).
+     * Enable routing connections from BrowserStack cloud through your computer.
+     * You will also need to set `browserstack.local` to true in browser capabilities.
+     * @default false
      */
-    preferScenarioName?: boolean;
+    browserstackLocal?: boolean;
     /**
-     * Set this to true to kill the browserstack process on complete, without waiting for the
-     * browserstack stop callback to be called. This is experimental and should not be used by all.
+     * Kill the BrowserStack Local process on complete, without waiting for the
+     * BrowserStack Local stop callback to be called.
+     *
+     * __This is experimental and should not be used by all.__
+     * @default false
      */
     forcedStop?: boolean;
     /**
-     * Specified optional will be passed down to BrowserstackLocal. For more details check out the
+     * BrowserStack Local options. For more details check out the
      * [`browserstack-local`](https://www.npmjs.com/package/browserstack-local#arguments) docs.
      *
      * @example
@@ -59,6 +60,43 @@ export interface BrowserstackConfig {
      *   localIdentifier: 'some-identifier'
      * }
      * ```
+     * @default {}
      */
     opts?: Partial<import('browserstack-local').Options>
+    /**
+     * Cucumber only. Set the BrowserStack Automate session name to the Scenario name if only a single Scenario ran.
+     * Useful when running in parallel with [wdio-cucumber-parallel-execution](https://github.com/SimitTomar/wdio-cucumber-parallel-execution).
+     * @default false
+     */
+    preferScenarioName?: boolean;
+    /**
+     * Customize the BrowserStack Automate session name format.
+     * @default undefined
+     */
+    sessionNameFormat?: (
+        config: Options.Testrunner,
+        capabilities: Capabilities.RemoteCapability,
+        suiteTitle: string,
+        testTitle?: string
+    ) => string
+    /**
+     * Mocha only. Do not append the test title to the BrowserStack Automate session name.
+     * @default false
+     */
+    sessionNameOmitTestTitle?: boolean;
+    /**
+     * Mocha only. Prepend the top level suite title to the BrowserStack Automate session name.
+     * @default false
+     */
+    sessionNamePrependTopLevelSuiteTitle?: boolean;
+    /**
+     * Automatically set the BrowserStack Automate session name.
+     * @default true
+     */
+    setSessionName?: boolean
+    /**
+     * Automatically set the BrowserStack Automate session status (passed/failed).
+     * @default true
+     */
+    setSessionStatus?: boolean
 }
