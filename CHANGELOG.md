@@ -19,6 +19,30 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.27.0 (2022-11-23)
+
+#### :eyeglasses: Spec Compliancy
+* `wdio-protocols`
+  * [#9177](https://github.com/webdriverio/webdriverio/pull/9177) Fix URLs for webauthn extension capabilities ([@ericparton](https://github.com/ericparton))
+
+#### :rocket: New Feature
+* `wdio-browserstack-service`
+  * [#9168](https://github.com/webdriverio/webdriverio/pull/9168) [v7] @wdio/browserstack-service: Add session naming options ([@SCG82](https://github.com/SCG82))
+
+#### :nail_care: Polish
+* `wdio-sauce-service`
+  * [#9167](https://github.com/webdriverio/webdriverio/pull/9167) [v7] @wdio/sauce-service: apply setJobName in beforeSuite ([@SCG82](https://github.com/SCG82))
+
+#### :memo: Documentation
+* `wdio-cli`
+  * [#9228](https://github.com/webdriverio/webdriverio/pull/9228) [v7] Add the Vitaq AI service to the list of services in the v7 WebdriverIO documentation ([@RossVertizan](https://github.com/RossVertizan))
+
+#### Committers: 3
+- Eric Parton ([@ericparton](https://github.com/ericparton))
+- Ross Addinall ([@RossVertizan](https://github.com/RossVertizan))
+- [@SCG82](https://github.com/SCG82)
+
+
 ## v7.26.0 (2022-11-12)
 
 #### :bug: Bug Fix

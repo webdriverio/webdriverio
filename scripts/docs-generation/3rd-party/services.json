@@ -192,5 +192,11 @@
     "title": "Qmate Service",
     "githubUrl": "https://github.com/SAP/wdio-qmate-service",
     "npmUrl": "https://www.npmjs.com/package/@sap_oss/wdio-qmate-service"
+  },
+  {
+    "packageName": "wdio-vitaqai-service",
+    "title": "Vitaq AI",
+    "githubUrl": "https://github.com/RossVertizan/wdio-vitaqai-service",
+    "npmUrl": "https://www.npmjs.com/package/wdio-vitaqai-service"
   }
 ]

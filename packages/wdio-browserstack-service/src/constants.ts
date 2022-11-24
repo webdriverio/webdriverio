@@ -1,3 +1,5 @@
+import type { BrowserstackConfig } from './types'
+
 export const BROWSER_DESCRIPTION = [
     'device',
     'os',
@@ -14,5 +16,10 @@ export const VALID_APP_EXTENSION = [
     '.aab',
     '.ipa'
 ]
+
+export const DEFAULT_OPTIONS: Partial<BrowserstackConfig> = {
+    setSessionName: true,
+    setSessionStatus: true
+}
 
 export const DATA_ENDPOINT = 'https://collector-observability.browserstack.com'
