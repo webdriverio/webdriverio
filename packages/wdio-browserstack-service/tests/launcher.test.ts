@@ -30,7 +30,7 @@ describe('onPrepare', () => {
         capabilities: []
     }
     const logInfoSpy = jest.spyOn(log, 'info').mockImplementation((string) => string)
-    const launchTestSessionSpy = jest.spyOn(utils, 'launchTestSession').mockImplementation(() => {})
+    jest.spyOn(utils, 'launchTestSession').mockImplementation(() => {})
 
     it('should not try to upload app is app is undefined', () => {
         const service = new BrowserstackLauncher({}, caps, config)
@@ -476,7 +476,7 @@ describe('_validateApp', () => {
     })
 
     it('should throw error if more than two property passed in appConfig', async() => {
-        const options: BrowserstackConfig = { app: { custom_id: 'custom_id', id: 'bs://<app-id>' }}
+        const options: BrowserstackConfig = { app: { custom_id: 'custom_id', id: 'bs://<app-id>' } }
         const service = new BrowserstackLauncher(options, caps, config)
 
         try {
