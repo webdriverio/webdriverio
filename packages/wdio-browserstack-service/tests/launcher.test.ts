@@ -4,6 +4,7 @@ import got from 'got'
 
 import BrowserstackLauncher from '../src/launcher'
 import { BrowserstackConfig } from '../src/types'
+import * as utils from '../src/util'
 
 import fs from 'fs'
 
@@ -29,6 +30,7 @@ describe('onPrepare', () => {
         capabilities: []
     }
     const logInfoSpy = jest.spyOn(log, 'info').mockImplementation((string) => string)
+    const launchTestSessionSpy = jest.spyOn(utils, 'launchTestSession').mockImplementation(() => {})
 
     it('should not try to upload app is app is undefined', () => {
         const service = new BrowserstackLauncher({}, caps, config)
@@ -307,6 +309,7 @@ describe('onPrepare', () => {
     })
 
     it('should successfully resolve if local.start is successful', async () => {
+        const options: BrowserstackConfig = { browserstackLocal: true }
         const logInfoMock = jest.spyOn(log, 'info')
         const service = new BrowserstackLauncher(options, caps, config)
 
@@ -337,7 +340,7 @@ describe('onComplete', () => {
     })
 
     it('should kill the process if forcedStop is true', async () => {
-        const service = new BrowserstackLauncher({ forcedStop: true, testObservability: false }, [{}] as any, {} as any)
+        const service = new BrowserstackLauncher({ forcedStop: true }, [{}] as any, {} as any)
         service.browserstackLocal = new Browserstack.Local()
         service.browserstackLocal.pid = 102
 
@@ -407,21 +410,21 @@ describe('constructor', () => {
         const caps: any = { browserA: { capabilities: { 'goog:chromeOptions': {}, 'bstack:options': {} } } }
         new BrowserstackLauncher(options, caps, config)
 
-        expect(caps).toEqual({ 'browserA': { 'capabilities': { 'bstack:options': { 'wdioService': '7.26.0' }, 'goog:chromeOptions': {} } } })
+        expect(caps).toEqual({ 'browserA': { 'capabilities': { 'bstack:options': { 'wdioService': bstackServiceVersion }, 'goog:chromeOptions': {} } } })
     })
 
     it('should add the "wdioService" property to object of capabilities inside "bstack:options" if any extension cap present', async () => {
         const caps: any = { browserA: { capabilities: { 'goog:chromeOptions': {} } } }
         new BrowserstackLauncher(options, caps, config)
 
-        expect(caps).toEqual({ 'browserA': { 'capabilities': { 'bstack:options': { 'wdioService': '7.26.0' }, 'goog:chromeOptions': {} } } })
+        expect(caps).toEqual({ 'browserA': { 'capabilities': { 'bstack:options': { 'wdioService': bstackServiceVersion }, 'goog:chromeOptions': {} } } })
     })
 
     it('should add the "wdioService" property to object of capabilities inside "bstack:options" if any extension cap not present', async () => {
         const caps: any = { browserA: { capabilities: {} } }
         new BrowserstackLauncher(options, caps, config)
 
-        expect(caps).toEqual({ 'browserA': { 'capabilities': { 'browserstack.wdioService': '7.26.0' } } })
+        expect(caps).toEqual({ 'browserA': { 'capabilities': { 'browserstack.wdioService': bstackServiceVersion } } })
     })
 
     it('update spec list if it is a rerun', async () => {
@@ -473,7 +476,7 @@ describe('_validateApp', () => {
     })
 
     it('should throw error if more than two property passed in appConfig', async() => {
-        const options: BrowserstackConfig = { app: { custom_id: 'custom_id', id: 'bs://<app-id>' } }
+        const options: BrowserstackConfig = { app: { custom_id: 'custom_id', id: 'bs://<app-id>' }}
         const service = new BrowserstackLauncher(options, caps, config)
 
         try {

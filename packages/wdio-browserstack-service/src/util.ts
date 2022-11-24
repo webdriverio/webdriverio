@@ -125,7 +125,11 @@ export async function launchTestSession (userConfig: UserConfig) {
         if (response.jwt) process.env.BS_TESTOPS_JWT = response.jwt
         if (response.build_hashed_id) process.env.BS_TESTOPS_BUILD_HASHED_ID = response.build_hashed_id
     } catch (error) {
-        log.debug(`[Start_Build] Failed. Error: ${error}`)
+        if (error instanceof got.HTTPError && error.response && error.response.statusCode == 401) {
+            log.debug('Either your BrowserStack access credentials are incorrect or you do not have access to BrowserStack Test Observability yet.')
+        } else {
+            log.debug(`[Start_Build] Failed. Error: ${error}`)
+        }
         process.env.BS_TESTOPS_BUILD_COMPLETED = 'true'
     }
 }

@@ -117,7 +117,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         }
 
         if (this._options.testObservability) {
-            log.debug('sending launch start event')
+            log.debug('Sending launch start event')
 
             const bsConfig = {
                 username : process.env.BROWSERSTACK_USERNAME || this._config.user,
@@ -177,8 +177,11 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
 
     async onComplete () {
         if (this._options.testObservability) {
-            log.debug('sending launch stop event')
+            log.debug('Sending stop launch event')
             await stopBuildUpstream()
+            if (process.env.BS_TESTOPS_BUILD_HASHED_ID) {
+                console.log(`\nVisit https://observability.browserstack.com/builds/${process.env.BS_TESTOPS_BUILD_HASHED_ID} to view build report, insights, and many more debugging information all at one place!\n`)
+            }
         }
 
         if (!this.browserstackLocal || !this.browserstackLocal.isRunning()) {

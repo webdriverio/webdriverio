@@ -575,16 +575,6 @@ describe('launchTestSession', () => {
         expect(got.post).toBeCalledTimes(1)
         expect(result).toEqual(undefined)
     })
-
-    it('return undefined in case of error', async () => {
-        mockedGot.post = jest.fn().mockReturnValue({
-            json: () => Promise.reject({ build_hashed_id: 'build_id', jwt: 'jwt' }),
-        } as any)
-
-        const result = await launchTestSession( { username: 'username', password: 'password' } )
-        expect(got.post).toHaveBeenCalled()
-        expect(result).toEqual(undefined)
-    })
 })
 
 describe('uploadEventData', () => {
