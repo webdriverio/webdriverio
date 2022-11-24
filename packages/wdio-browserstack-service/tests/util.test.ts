@@ -20,8 +20,7 @@ import {
     uploadEventData,
     getLogTag,
     getHookType,
-    isScreenshotCommand,
-    getFrameworkVersion
+    isScreenshotCommand
 } from '../src/util'
 
 jest.mock('got')
@@ -660,17 +659,5 @@ describe('isScreenshotCommand', () => {
     })
     it('get false if not a screenshot command', () => {
         expect(isScreenshotCommand({ endpoint: 'session/:sessionId/element/text' })).toEqual(false)
-    })
-})
-
-describe('getFrameworkVersion', () => {
-    it('return undefined if framework not defined', () => {
-        expect(getFrameworkVersion()).toEqual(undefined)
-    })
-    it('try fetching version for other frameworks', () => {
-        // jest doesn't allow mocking require resolve yet hence just checking flow - https://github.com/facebook/jest/issues/9543
-        expect(getFrameworkVersion('mocha')).toBeDefined()
-        expect(getFrameworkVersion('cucumber')).toBeDefined()
-        expect(getFrameworkVersion('jasmine')).toBeDefined()
     })
 })

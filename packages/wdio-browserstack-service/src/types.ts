@@ -162,8 +162,7 @@ export interface UserConfig {
     projectName?: string,
     buildTag?: string,
     bstackServiceVersion?: string,
-    framework?: string,
-    frameworkVersion?: string
+    framework?: string
 }
 
 export interface UploadType {

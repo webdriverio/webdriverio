@@ -103,7 +103,6 @@ export async function launchTestSession (userConfig: UserConfig) {
         'version_control': await getGitMetaData(),
         'observability_version': {
             frameworkName: userConfig.framework,
-            frameworkVersion: userConfig.frameworkVersion,
             sdkVersion: userConfig.bstackServiceVersion
         }
     }
@@ -408,22 +407,6 @@ export async function uploadEventData (eventData: UploadType) {
 export function getHierarchy(fullTitle?: string) {
     if (!fullTitle) return []
     return fullTitle.split('.').slice(0, -1)
-}
-
-export function getFrameworkVersion(framework?: string) {
-    try {
-        if (framework == 'mocha') {
-            return require(require.resolve('@wdio/mocha-framework/package.json')).version
-        } else if (framework == 'cucumber') {
-            return require(require.resolve('@wdio/cucumber-framework/package.json')).version
-        } else if (framework == 'jasmine') {
-            return require(require.resolve('@wdio/jasmine-framework/package.json')).version
-        }
-    } catch (err) {
-        return
-    }
-
-    return
 }
 
 export function getHookType (hookName: string): string {

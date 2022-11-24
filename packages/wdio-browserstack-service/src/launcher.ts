@@ -14,7 +14,7 @@ import type { Capabilities, Services, Options } from '@wdio/types'
 import { version as bstackServiceVersion } from '../package.json'
 import type { App, AppConfig, AppUploadResponse, BrowserstackConfig } from './types'
 import { VALID_APP_EXTENSION } from './constants'
-import { getFrameworkVersion, launchTestSession, shouldAddServiceVersion, stopBuildUpstream } from './util'
+import { launchTestSession, shouldAddServiceVersion, stopBuildUpstream } from './util'
 
 const log = logger('@wdio/browserstack-service')
 
@@ -126,8 +126,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                 buildName: this._buildName || path.basename(path.resolve(process.cwd())),
                 buildTag: this._buildTag,
                 bstackServiceVersion: bstackServiceVersion,
-                framework: this._config.framework,
-                frameworkVersion: getFrameworkVersion(this._config.framework)
+                framework: this._config.framework
             }
             await launchTestSession(bsConfig)
         }
