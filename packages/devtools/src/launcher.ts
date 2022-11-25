@@ -1,5 +1,5 @@
 import { launch as launchChromeBrowser, Options } from 'chrome-launcher'
-import puppeteer, { PuppeteerLaunchOptions, KnownDevices, Puppeteer } from 'puppeteer-core'
+import puppeteer, { PuppeteerLaunchOptions, KnownDevices, Puppeteer, ConnectOptions } from 'puppeteer-core'
 import logger from '@wdio/logger'
 import type { Browser } from 'puppeteer-core/lib/cjs/puppeteer/api/Browser'
 import type { Capabilities } from '@wdio/types'
@@ -191,7 +191,7 @@ function launchBrowser (capabilities: ExtendedCapabilities, browserType: 'edge' 
 function connectBrowser (connectionUrl: string, capabilities: ExtendedCapabilities) {
     const connectionProp = connectionUrl.startsWith('http') ? 'browserURL' : 'browserWSEndpoint'
     const devtoolsOptions = capabilities['wdio:devtoolsOptions']
-    const options: puppeteer.ConnectOptions = {
+    const options: ConnectOptions = {
         [connectionProp]: connectionUrl,
         ...devtoolsOptions
     }
