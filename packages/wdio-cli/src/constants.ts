@@ -1,6 +1,6 @@
 import { createRequire } from 'node:module'
 
-import { validateServiceAnswers, hasFile, getDefaultFiles, convertPackageHashToObject } from './utils.js'
+import { validateServiceAnswers, detectCompiler, getDefaultFiles, convertPackageHashToObject } from './utils.js'
 import type { Questionnair } from './types'
 
 const require = createRequire(import.meta.url)
@@ -22,9 +22,17 @@ WDIO Configuration Helper
 `
 
 export const CONFIG_HELPER_SUCCESS_MESSAGE = `
-Configuration file was created successfully!
+🤖 Successfully setup project at %s 🎉
+
+Join our Gitter community and instantly find answers to your issues or queries. Or just join and say hi 👋!
+  🔗 https://gitter.im/webdriverio/webdriverio
+
+Visit the project on GitHub to report bugs 🐛 or raise feature requests 💡:
+  🔗 https://github.com/webdriverio/webdriverio
+
 To run your tests, execute:
-$ npx wdio run %swdio.conf.%s
+$ cd %s
+$ npm run wdio
 `
 
 export const DEPENDENCIES_INSTALLATION_MESSAGE = `
@@ -214,7 +222,7 @@ export const QUESTIONNAIRE = [{
         /**
          * Only show if Testing Library has an add-on for framework
          */
-        TESTING_LIBRARY_PACKAGES[convertPackageHashToObject(answers.preset).short]
+        TESTING_LIBRARY_PACKAGES[convertPackageHashToObject(answers.preset!).short]
     )
 }, {
     type: 'list',
@@ -275,7 +283,7 @@ export const QUESTIONNAIRE = [{
     default: 'LT_USERNAME',
     when: /* istanbul ignore next */ (answers: Questionnair) => (
         answers.backend.toString().indexOf('LambdaTest') > -1 &&
-        answers.hostname.indexOf('lambdatest.com') > -1
+        answers.hostname!.indexOf('lambdatest.com') > -1
     )
 }, {
     type: 'input',
@@ -284,7 +292,7 @@ export const QUESTIONNAIRE = [{
     default: 'LT_ACCESS_KEY',
     when: /* istanbul ignore next */ (answers: Questionnair) => (
         answers.backend.toString().indexOf('LambdaTest') > -1 &&
-        answers.hostname.indexOf('lambdatest.com') > -1
+        answers.hostname!.indexOf('lambdatest.com') > -1
     )
 }, {
     type: 'input',
@@ -311,17 +319,11 @@ export const QUESTIONNAIRE = [{
     default: 'SAUCE_ACCESS_KEY',
     when: /* istanbul ignore next */ (answers: Questionnair) => answers.backend === 'In the cloud using Sauce Labs'
 }, {
-    type: 'confirm',
-    name: 'headless',
-    message: 'Do you want to run your test on Sauce Headless? (https://saucelabs.com/products/web-testing/sauce-headless)',
-    default: false,
-    when: /* istanbul ignore next */ (answers: Questionnair) => answers.backend === 'In the cloud using Sauce Labs'
-}, {
     type: 'list',
     name: 'region',
     message: 'In which region do you want to run your Sauce Labs tests in?',
     choices: REGION_OPTION,
-    when: /* istanbul ignore next */ (answers: Questionnair) => !answers.headless && answers.backend === 'In the cloud using Sauce Labs'
+    when: /* istanbul ignore next */ (answers: Questionnair) => answers.backend === 'In the cloud using Sauce Labs'
 }, {
     type: 'input',
     name: 'hostname',
@@ -358,34 +360,30 @@ export const QUESTIONNAIRE = [{
     name: 'isUsingCompiler',
     message: 'Do you want to use a compiler?',
     choices: COMPILER_OPTION_ANSWERS,
-    default: /* istanbul ignore next */ () => hasFile('babel.config.js')
-        ? COMPILER_OPTIONS.babel // default to Babel
-        : hasFile('tsconfig.json')
-            ? COMPILER_OPTIONS.ts // default to TypeScript
-            : COMPILER_OPTIONS.nil // default to no compiler
-}, {
-    type: 'input',
-    name: 'specs',
-    message: 'Where are your test specs located?',
-    default: (answers: Questionnair) => getDefaultFiles(answers, './test/specs/**/*'),
-    when: /* istanbul ignore next */ (answers: Questionnair) => answers.framework.match(/(mocha|jasmine)/)
-}, {
-    type: 'input',
-    name: 'specs',
-    message: 'Where are your feature files located?',
-    default: './features/**/*.feature',
-    when: /* istanbul ignore next */ (answers: Questionnair) => answers.framework.includes('cucumber')
-}, {
-    type: 'input',
-    name: 'stepDefinitions',
-    message: 'Where are your step definitions located?',
-    default: (answers: Questionnair) => getDefaultFiles(answers, './features/step-definitions/steps'),
-    when: /* istanbul ignore next */ (answers: Questionnair) => answers.framework.includes('cucumber')
+    default: /* istanbul ignore next */ (answers: Questionnair) => detectCompiler(answers)
 }, {
     type: 'confirm',
     name: 'generateTestFiles',
     message: 'Do you want WebdriverIO to autogenerate some test files?',
     default: true
+}, {
+    type: 'input',
+    name: 'specs',
+    message: 'Where should these files be located?',
+    default: /* istanbul ignore next */ (answers: Questionnair) => getDefaultFiles(answers, 'test/specs/**/*'),
+    when: /* istanbul ignore next */ (answers: Questionnair) => answers.generateTestFiles && answers.framework.match(/(mocha|jasmine)/)
+}, {
+    type: 'input',
+    name: 'specs',
+    message: 'Where should these feature files be located?',
+    default: (answers: Questionnair) => getDefaultFiles(answers, 'features/**/*.feature'),
+    when: /* istanbul ignore next */ (answers: Questionnair) => answers.generateTestFiles && answers.framework.includes('cucumber')
+}, {
+    type: 'input',
+    name: 'stepDefinitions',
+    message: 'Where should these step definitions be located?',
+    default: (answers: Questionnair) => getDefaultFiles(answers, 'features/step-definitions/steps'),
+    when: /* istanbul ignore next */ (answers: Questionnair) => answers.generateTestFiles && answers.framework.includes('cucumber')
 }, {
     type: 'confirm',
     name: 'usePageObjects',
@@ -404,8 +402,8 @@ export const QUESTIONNAIRE = [{
     message: 'Where are your page objects located?',
     default: /* istanbul ignore next */ (answers: Questionnair) => (
         answers.framework.match(/(mocha|jasmine)/)
-            ? getDefaultFiles(answers, './test/pageobjects/**/*')
-            : getDefaultFiles(answers, './features/pageobjects/**/*')
+            ? getDefaultFiles(answers, 'test/pageobjects/**/*')
+            : getDefaultFiles(answers, 'features/pageobjects/**/*')
     ),
     when: /* istanbul ignore next */ (answers: Questionnair) => answers.generateTestFiles && answers.usePageObjects
 }, {

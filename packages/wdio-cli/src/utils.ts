@@ -1,16 +1,18 @@
 import fs from 'node:fs/promises'
-import fsSync from 'node:fs'
+import util from 'node:util'
 import { dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { execSync } from 'node:child_process'
+import { execSync, spawn, SpawnOptions } from 'node:child_process'
 import { promisify } from 'node:util'
 
 import ejs from 'ejs'
+import chalk from 'chalk'
 import path from 'node:path'
 import inquirer from 'inquirer'
 import pickBy from 'lodash.pickby'
 import logger from '@wdio/logger'
 import readDir from 'recursive-readdir'
+import yarnInstall from 'yarn-install'
 import { readPackageUp } from 'read-pkg-up'
 import { resolve } from 'import-meta-resolve'
 import { SevereServiceError } from 'webdriverio'
@@ -18,15 +20,18 @@ import { ConfigParser } from '@wdio/config'
 import { CAPABILITY_KEYS } from '@wdio/protocols'
 import type { Options, Capabilities, Services } from '@wdio/types'
 
-import { EXCLUSIVE_SERVICES, ANDROID_CONFIG, IOS_CONFIG, QUESTIONNAIRE, COMMUNITY_PACKAGES_WITH_V8_SUPPORT } from './constants.js'
-import type { ReplCommandArguments, Questionnair, SupportedPackage, OnCompleteResult, ParsedAnswers } from './types'
+import {
+    EXCLUSIVE_SERVICES, ANDROID_CONFIG, IOS_CONFIG, QUESTIONNAIRE, COMMUNITY_PACKAGES_WITH_V8_SUPPORT, pkg,
+    COMPILER_OPTIONS, TESTING_LIBRARY_PACKAGES, DEPENDENCIES_INSTALLATION_MESSAGE
+} from './constants.js'
+import type { ReplCommandArguments, Questionnair, SupportedPackage, OnCompleteResult, ParsedAnswers, ProjectProps } from './types'
 
 const log = logger('@wdio/cli:utils')
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
 const VERSION_REGEXP = /(\d+)\.(\d+)\.(\d+)-(alpha|beta|)\.(\d+)\+(.+)/g
 const TEMPLATE_ROOT_DIR = path.join(__dirname, 'templates', 'exampleFiles')
-const renderFile = promisify(ejs.renderFile) as (path: string, data: Record<string, any>) => Promise<string>
+export const renderFile = promisify(ejs.renderFile) as (path: string, data: Record<string, any>) => Promise<string>
 
 export class HookError extends SevereServiceError {
     public origin: string
@@ -245,19 +250,6 @@ export function convertPackageHashToObject(pkg: string, hash = '$--$'): Supporte
     }
 }
 
-export async function renderConfigurationFile (answers: ParsedAnswers) {
-    const tplPath = path.join(__dirname, 'templates/wdio.conf.tpl.ejs')
-    const filename = `wdio.conf.${answers.isUsingTypeScript ? 'ts' : 'js'}`
-    const renderedTpl = await renderFile(tplPath, { answers })
-    return fs.writeFile(
-        path.join(
-            process.cwd(),
-            answers.isUsingTypeScript ? 'test' : '', filename
-        ),
-        renderedTpl
-    )
-}
-
 export const validateServiceAnswers = (answers: string[]): Boolean | string => {
     let result: boolean | string = true
 
@@ -326,16 +318,51 @@ export async function getCapabilities(arg: ReplCommandArguments) {
 }
 
 /**
- * Check if file exists in current work directory
- * @param {string} filename to check existance for
+ * Get project root directory based on questionair answers
+ * @param answers questionair answers
+ * @param projectProps project properties received via `getProjectProps`
+ * @returns project root path
  */
-export function hasFile (filename: string) {
-    try {
-        fsSync.accessSync(path.join(process.cwd(), filename))
-        return true
-    } catch (err: any) {
-        return false
-    }
+export function getProjectRoot (answers: Questionnair, projectProps?: ProjectProps) {
+    return (
+        answers.projectRoot ||
+        (
+            typeof projectProps === 'undefined'
+                ? process.cwd()
+                : projectProps.path
+        )
+    )
+}
+
+/**
+ * Checks if certain directory has babel configuration files
+ * @param rootDir directory where this function checks for Babel signs
+ * @returns true, if a babel config was found, otherwise false
+ */
+export function hasBabelConfig (rootDir: string) {
+    return Promise.all([
+        fs.access(path.join(rootDir, 'babel.js')),
+        fs.access(path.join(rootDir, 'babel.cjs')),
+        fs.access(path.join(rootDir, 'babel.mjs')),
+        fs.access(path.join(rootDir, '.babelrc'))
+    ]).then(
+        (results) => results.filter(Boolean).length > 1,
+        () => false
+    )
+}
+
+/**
+ * detect if project has a compiler file
+ */
+export async function detectCompiler (answers: Questionnair) {
+    const projectProps = await getProjectProps(process.cwd())
+    const root = getProjectRoot(answers, projectProps)
+    const rootTSConfigExist = await fs.access(path.resolve(root, 'tsconfig.json')).then(() => true, () => false)
+    return (await hasBabelConfig(root))
+        ? COMPILER_OPTIONS.babel // default to Babel
+        : rootTSConfigExist
+            ? COMPILER_OPTIONS.ts // default to TypeScript
+            : COMPILER_OPTIONS.nil // default to no compiler
 }
 
 /**
@@ -387,7 +414,7 @@ export async function generateTestFiles (answers: ParsedAnswers) {
 
 export async function getAnswers(yes: boolean): Promise<Questionnair> {
     if (yes) {
-        return QUESTIONNAIRE.reduce((answers, question) => Object.assign(
+        const answers = QUESTIONNAIRE.reduce((answers, question) => Object.assign(
             answers,
             question.when && !question.when(answers)
                 /**
@@ -415,15 +442,24 @@ export async function getAnswers(yes: boolean): Promise<Questionnair> {
                         : {}
                 }
         ), {} as Questionnair)
+        /**
+         * some questions have async defaults
+         */
+        answers.isUsingCompiler = await answers.isUsingCompiler
+        answers.specs = await answers.specs
+        answers.pages = await answers.pages
+        return answers
     }
 
-    const hasESMSupport = await checkModuleSystem(process.cwd())
+    const projectProps = await getProjectProps(process.cwd())
+    const isProjectExisting = Boolean(projectProps)
+    const projectName = projectProps?.packageJson.name ? ` named "${projectProps?.packageJson.name}"` : ''
     const questions = [
-        ...(typeof hasESMSupport === 'undefined' ? [{
+        ...(!isProjectExisting ? [{
             type: 'confirm',
             name: 'createPackageJSON',
             default: true,
-            message: `Couldn't find a packgae.json in "${process.cwd()}" or any of the parent directories, create one?`,
+            message: `Couldn't find a package.json in "${process.cwd()}" or any of the parent directories, do you want to create one?`,
         }, {
             type: 'list',
             name: 'moduleSystem',
@@ -434,22 +470,34 @@ export async function getAnswers(yes: boolean): Promise<Questionnair> {
             ],
             // only ask if there are more than 1 runner to pick from
             when: /* istanbul ignore next */ (answers: Questionnair) => answers.createPackageJSON
-        }] : []),
+        }] : [{
+            type: 'confirm',
+            name: 'projectRootCorrect',
+            default: true,
+            message: `A project${projectName} was detected at "${projectProps?.path}", correct?`,
+        }, {
+            type: 'input',
+            name: 'projectRoot',
+            message: 'What is the project root for your test project?',
+            default: projectProps?.path,
+            // only ask if there are more than 1 runner to pick from
+            when: /* istanbul ignore next */ (answers: Questionnair) => !answers.projectRootCorrect
+        }]),
         ...QUESTIONNAIRE
     ]
     return inquirer.prompt(questions)
 }
 
-export function getPathForFileGeneration (answers: Questionnair) {
-    const destSpecRootPath = path.join(
-        process.cwd(),
+export function getPathForFileGeneration (answers: Questionnair, projectRootDir: string) {
+    const destSpecRootPath = path.resolve(
+        projectRootDir,
         path.dirname(answers.specs || '').replace(/\*\*$/, ''))
 
-    const destStepRootPath = path.join(process.cwd(), path.dirname(answers.stepDefinitions || ''))
+    const destStepRootPath = path.resolve(projectRootDir, path.dirname(answers.stepDefinitions || ''))
 
     const destPageObjectRootPath = answers.usePageObjects
-        ?  path.join(
-            process.cwd(),
+        ?  path.resolve(
+            projectRootDir,
             path.dirname(answers.pages || '').replace(/\*\*$/, ''))
         : ''
     let relativePath = (answers.generateTestFiles && answers.usePageObjects)
@@ -473,10 +521,14 @@ export function getPathForFileGeneration (answers: Questionnair) {
     }
 }
 
-export function getDefaultFiles (answers: Partial<Questionnair>, filePath: string) {
-    return answers?.isUsingCompiler?.toString().includes('TypeScript')
-        ? `${filePath}.ts`
-        : `${filePath}.js`
+export async function getDefaultFiles (answers: Questionnair, pattern: string) {
+    const projectProps = await getProjectProps()
+    const rootdir = getProjectRoot(answers, projectProps)
+    return pattern.endsWith('.feature')
+        ? path.join(rootdir, pattern)
+        : answers?.isUsingCompiler?.toString().includes('TypeScript')
+            ? `${path.join(rootdir, pattern)}.ts`
+            : `${path.join(rootdir, pattern)}.js`
 }
 
 /**
@@ -502,18 +554,232 @@ export function specifyVersionIfNeeded (packagesToInstall: string[], version: st
     })
 }
 
-export async function checkModuleSystem (cwd = process.cwd()) {
+/**
+ * Receive project properties
+ * @returns {@type ProjectProps} if a package.json can be found in cwd or parent directories, otherwise undefined
+ *                               which means that a new project can be created
+ */
+export async function getProjectProps (cwd = process.cwd()): Promise<ProjectProps | undefined> {
     try {
-        const { packageJson } = await readPackageUp({ cwd }) || {}
-        if (!packageJson) {
+        const { packageJson, path: packageJsonPath } = await readPackageUp({ cwd }) || {}
+        if (!packageJson || !packageJsonPath) {
             return undefined
         }
 
-        return (
-            packageJson.type === 'module' ||
-            typeof packageJson.module === 'string'
-        )
+        return {
+            esmSupported: (
+                packageJson.type === 'module' ||
+                typeof packageJson.module === 'string'
+            ),
+            packageJson,
+            path: path.dirname(packageJsonPath)
+        }
     } catch (err) {
         return undefined
+    }
+}
+
+export function runProgram (command: string, args: string[], options: SpawnOptions) {
+    const child = spawn(command, args, { stdio: 'inherit', ...options })
+    return new Promise<void>((resolve, reject) => {
+        let error: Error
+        child.on('error', (e) => (error = e))
+        child.on('close', code => {
+            if (code !== 0) {
+                return reject(new Error(
+                    (error && error.message) ||
+                    `Error calling: ${command} ${args.join(' ')}`
+                ))
+            }
+            resolve()
+        })
+    })
+}
+
+/**
+ * create package.json if not already existing
+ */
+export async function createPackageJSON (parsedAnswers: ParsedAnswers) {
+    if (!parsedAnswers.createPackageJSON) {
+        return
+    }
+
+    console.log(`Creating a ${chalk.bold('package.json')} for the directory...`)
+    await fs.writeFile(path.resolve(process.cwd(), 'package.json'), JSON.stringify({
+        name: 'webdriverio-tests',
+        version: '0.0.0',
+        private: true,
+        license: 'ISC',
+        type: parsedAnswers.moduleSystem,
+        dependencies: {},
+        devDependencies: {}
+    }, null, 2))
+    console.log(chalk.green.bold('✔ Success!\n'))
+}
+
+/**
+ * run npm install only if required by the user
+ */
+export function npmInstall (parsedAnswers: ParsedAnswers, useYarn: boolean, npmTag: string) {
+    const servicePackages = parsedAnswers.rawAnswers.services.map((service) => convertPackageHashToObject(service))
+    const presetPackage = convertPackageHashToObject(parsedAnswers.rawAnswers.preset || '')
+
+    /**
+     * install Testing Library dependency if desired
+     */
+    if (parsedAnswers.installTestingLibrary && TESTING_LIBRARY_PACKAGES[presetPackage.short]) {
+        parsedAnswers.packagesToInstall.push(
+            TESTING_LIBRARY_PACKAGES[presetPackage.short],
+            '@testing-library/jest-dom'
+        )
+    }
+
+    /**
+     * add packages that are required by services
+     */
+    addServiceDeps(servicePackages, parsedAnswers.packagesToInstall)
+
+    /**
+      * update package version if CLI is a pre release
+      */
+    parsedAnswers.packagesToInstall = specifyVersionIfNeeded(parsedAnswers.packagesToInstall, pkg.version, npmTag)
+
+    if (parsedAnswers.npmInstall){
+        console.log('Installing wdio packages:\n-', parsedAnswers.packagesToInstall.join('\n- '))
+        const result = yarnInstall({ deps: parsedAnswers.packagesToInstall, dev: true, respectNpm5: !useYarn })
+        if (result.status !== 0) {
+            const customError = '⚠️ An unknown error happened! Please retry ' +
+                `installing dependencies via "${useYarn ? 'yarn add --dev' : 'npm i --save-dev'} ` +
+                `${parsedAnswers.packagesToInstall.join(' ')}"\n\nError: ${result.stderr || 'unknown'}`
+            console.error(customError)
+        }
+        console.log(chalk.green.bold('✔ Success!\n'))
+    } else {
+        const installationCommand = `${useYarn ? 'yarn add --dev' : 'npm i --save-dev'} ${parsedAnswers.packagesToInstall.join(' ')}`
+        console.log(util.format(DEPENDENCIES_INSTALLATION_MESSAGE, installationCommand))
+    }
+}
+
+/**
+ * add ts-node if TypeScript is desired but not installed
+ */
+export async function setupTypeScript (parsedAnswers: ParsedAnswers) {
+    if (!parsedAnswers.isUsingTypeScript) {
+        return
+    }
+
+    console.log('Setting up TypeScript...')
+    const frameworkPackage = convertPackageHashToObject(parsedAnswers.rawAnswers.framework)
+    const servicePackages = parsedAnswers.rawAnswers.services.map((service) => convertPackageHashToObject(service))
+    parsedAnswers.packagesToInstall.push('ts-node', 'typescript')
+    const types = [
+        'node',
+        '@wdio/globals/types',
+        'expect-webdriverio',
+        frameworkPackage.package,
+        ...(parsedAnswers.runner === 'browser' ? ['@wdio/browser-runner'] : []),
+        ...servicePackages
+            .map(service => service.package)
+            /**
+             * given that we know that all "offical" services have
+             * typescript support we only include them
+             */
+            .filter(service => service.startsWith('@wdio'))
+    ]
+
+    const config = {
+        compilerOptions: {
+            moduleResolution: 'node',
+            module: 'ESNext',
+            types,
+            target: 'es2022',
+        }
+    }
+
+    await fs.mkdir(path.dirname(parsedAnswers.tsConfigFilePath), { recursive: true })
+    await fs.writeFile(
+        parsedAnswers.tsConfigFilePath,
+        JSON.stringify(config, null, 4)
+    )
+    console.log(chalk.green.bold('✔ Success!\n'))
+}
+
+/**
+ * add @babel/register package if not installed
+ */
+export async function setupBabel (parsedAnswers: ParsedAnswers) {
+    if (!parsedAnswers.isUsingBabel) {
+        return
+    }
+
+    if (!await hasPackage('@babel/register')) {
+        parsedAnswers.packagesToInstall.push('@babel/register')
+    }
+
+    /**
+     * setup Babel if no config file exists
+     */
+    const hasBabelConfig = await Promise.all([
+        fs.access(path.join(parsedAnswers.projectRootDir, 'babel.js')),
+        fs.access(path.join(parsedAnswers.projectRootDir, 'babel.cjs')),
+        fs.access(path.join(parsedAnswers.projectRootDir, 'babel.mjs')),
+        fs.access(path.join(parsedAnswers.projectRootDir, '.babelrc'))
+    ]).then(
+        (results) => results.filter(Boolean).length > 1,
+        () => false
+    )
+
+    if (!hasBabelConfig) {
+        console.log('Setting up Babel project...')
+        if (!await hasPackage('@babel/core')) {
+            parsedAnswers.packagesToInstall.push('@babel/core')
+        }
+        if (!await hasPackage('@babel/preset-env')) {
+            parsedAnswers.packagesToInstall.push('@babel/preset-env')
+        }
+        await fs.writeFile(
+            path.join(process.cwd(), 'babel.config.js'),
+            `module.exports = ${JSON.stringify({
+                presets: [
+                    ['@babel/preset-env', {
+                        targets: {
+                            node: 16
+                        }
+                    }]
+                ]
+            }, null, 4)}`
+        )
+        console.log(chalk.green.bold('✔ Success!\n'))
+    }
+}
+
+export async function createWDIOConfig (parsedAnswers: ParsedAnswers) {
+    try {
+        console.log('Creating a WebdriverIO config file...')
+        const tplPath = path.resolve(__dirname, 'templates', 'wdio.conf.tpl.ejs')
+        const renderedTpl = await renderFile(tplPath, { answers: parsedAnswers })
+        await fs.writeFile(parsedAnswers.wdioConfigPath, renderedTpl)
+        console.log(chalk.green.bold('✔ Success!\n'))
+
+        if (parsedAnswers.generateTestFiles) {
+            console.log('Autogenerating test files...')
+            await generateTestFiles(parsedAnswers)
+            console.log(chalk.green.bold('✔ Success!\n'))
+        }
+    } catch (err: any) {
+        throw new Error(`⚠️ Couldn't write config file: ${err.stack}`)
+    }
+}
+
+export async function createWDIOScript (parsedAnswers: ParsedAnswers) {
+    const projectProps = await getProjectProps(process.cwd())
+
+    try {
+        console.log(`Adding ${chalk.bold('"wdio"')} script to package.json.`)
+        const script = `wdio run ./${path.join('.', parsedAnswers.wdioConfigPath.replace(projectProps?.path || process.cwd(), ''))}`
+        await runProgram('npm', ['set-script', 'wdio', script], { cwd: parsedAnswers.projectRootDir })
+        console.log(chalk.green.bold('✔ Success!'))
+    } catch (err: any) {
+        throw new Error(`⚠️ Couldn't add script to package.json: ${err.stack}`)
     }
 }

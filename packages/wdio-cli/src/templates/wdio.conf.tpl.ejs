@@ -1,9 +1,9 @@
-<% if (answers.esmSupport) {
-    %>export const config = {<%
-} else if (answers.isUsingTypeScript) {
+<% if (answers.isUsingTypeScript) {
     %>import type { Options } from '@wdio/types'
 
 export const config: Options.Testrunner = {<%
+} else if (answers.esmSupport) {
+    %>export const config = {<%
 } else {
     %>exports.config = {<%
 } %>
@@ -24,7 +24,14 @@ export const config: Options.Testrunner = {<%
     } else {
         %>'local'<%
     }
-    %>,
+    %>,<%
+    if (answers.isUsingTypeScript) { %>
+    autoCompileOpts: {
+        tsNodeOpts: {
+            project: '<%- answers.tsProject %>'
+        }
+    },
+    <% } %>
     <% if(answers.expEnvAccessKey){ %>
     hostname: '<%- answers.expEnvHostname %>',
     <% if (answers.expEnvPort === '443'){%>protocol: 'https',
@@ -87,7 +94,7 @@ export const config: Options.Testrunner = {<%
     // will be called from there.
     //
     specs: [
-        '<%- answers.specs %>'
+        <%- answers.specs ? `'${answers.specs}'` : '// ToDo: define location for spec files here' %>
     ],
     // Patterns to exclude.
     exclude: [

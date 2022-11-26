@@ -87,9 +87,10 @@ export async function handler(argv: InstallCommandArguments) {
     const localConfExists = await fs.access(localConfPath).then(() => true, () => false)
     if (!localConfExists) {
         try {
-            const promptMessage = `Cannot install packages without a WebdriverIO configuration.
-You can create one by running 'wdio config'`
-
+            const promptMessage = (
+                'Cannot install packages without a WebdriverIO configuration. ' +
+                'You can create one by running \'wdio config\''
+            )
             await missingConfigurationPrompt('install', promptMessage, yarn)
         } catch {
             process.exit(1)

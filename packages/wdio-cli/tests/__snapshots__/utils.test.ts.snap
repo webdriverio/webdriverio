@@ -1,5 +1,60 @@
 // Vitest Snapshot v1
 
+exports[`createWDIOConfig 1`] = `
+[
+  [
+    "/foo/wdio.conf.js",
+    undefined,
+  ],
+  [
+    "/foo/test/pageobjects/page.js",
+    undefined,
+  ],
+  [
+    "undefined",
+    undefined,
+  ],
+  [
+    "/foo/test/specs/example.feature",
+    undefined,
+  ],
+  [
+    "/foo/test/pageobjects/page.js",
+    undefined,
+  ],
+  [
+    "undefined",
+    undefined,
+  ],
+  [
+    "/foo/test/specs/example.feature",
+    undefined,
+  ],
+]
+`;
+
+exports[`getAnswers 1`] = `
+{
+  "backend": "On my local machine",
+  "baseUrl": "http://localhost",
+  "framework": "@wdio/mocha-framework$--$mocha",
+  "generateTestFiles": true,
+  "isUsingCompiler": "TypeScript (https://www.typescriptlang.org/)",
+  "npmInstall": true,
+  "pages": "/foo/test/pageobjects/**/*.js",
+  "plugins": [],
+  "reporters": [
+    "@wdio/spec-reporter$--$spec",
+  ],
+  "runner": "@wdio/local-runner$--$local",
+  "services": [
+    "wdio-chromedriver-service$--$chromedriver",
+  ],
+  "specs": "/foo/test/specs/**/*.js",
+  "usePageObjects": true,
+}
+`;
+
 exports[`getCapabilities > should get capability from wdio.conf.js 1`] = `
 {
   "capabilities": {
@@ -81,3 +136,47 @@ exports[`getCapabilities > should throw capability not provided 1`] = `"Please p
 exports[`getCapabilities > should throw config not found error 1`] = `"Config File not found: ./test.js"`;
 
 exports[`getCapabilities > should throw config not found error 2`] = `"Could not parse ./test.js, failed with error : ups"`;
+
+exports[`npmInstall 1`] = `
+{
+  "deps": [
+    "foo$--$bar",
+    "bar$--$foo",
+    "@testing-library/vue",
+    "@testing-library/jest-dom",
+  ],
+  "dev": true,
+  "respectNpm5": false,
+}
+`;
+
+exports[`setup Babel 1`] = `
+"module.exports = {
+    \\"presets\\": [
+        [
+            \\"@babel/preset-env\\",
+            {
+                \\"targets\\": {
+                    \\"node\\": 16
+                }
+            }
+        ]
+    ]
+}"
+`;
+
+exports[`setupTypeScript 1`] = `
+"{
+    \\"compilerOptions\\": {
+        \\"moduleResolution\\": \\"node\\",
+        \\"module\\": \\"ESNext\\",
+        \\"types\\": [
+            \\"node\\",
+            \\"@wdio/globals/types\\",
+            \\"expect-webdriverio\\",
+            \\"foo\\"
+        ],
+        \\"target\\": \\"es2022\\"
+    }
+}"
+`;
