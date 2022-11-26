@@ -14,7 +14,7 @@ import {
 import {
     addServiceDeps, convertPackageHashToObject, renderConfigurationFile,
     hasFile, generateTestFiles, getAnswers, getPathForFileGeneration,
-    hasPackage, specifyVersionIfNeeded
+    hasPackage, specifyVersionIfNeeded, checkModuleSystem
 } from '../utils.js'
 import type { ConfigCommandArguments, ParsedAnswers } from '../types'
 
@@ -32,6 +32,12 @@ export const cmdArgs = {
         desc: 'will fill in all config defaults without prompting',
         type: 'boolean',
         default: false
+    },
+    npmTag: {
+        alias: 't',
+        desc: 'define NPM tag to use for WebdriverIO related packages',
+        type: 'string',
+        default: 'latest'
     }
 } as const
 
@@ -42,7 +48,7 @@ export const builder = (yargs: Argv) => {
         .help()
 }
 
-const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) {
+const runConfig = async function (useYarn: boolean, yes: boolean, npmTag: string, exit = false) {
     console.log(CONFIG_HELPER_INTRO)
     const answers = await getAnswers(yes)
     const frameworkPackage = convertPackageHashToObject(answers.framework)
@@ -51,6 +57,7 @@ const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) 
     const pluginPackages = answers.plugins.map((plugin)=> convertPackageHashToObject(plugin))
     const reporterPackages = answers.reporters.map((reporter) => convertPackageHashToObject(reporter))
     const presetPackage = convertPackageHashToObject(answers.preset || '')
+    const hasESMSupport = await checkModuleSystem(process.cwd())
 
     let packagesToInstall: string[] = [
         runnerPackage.package,
@@ -81,6 +88,7 @@ const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) 
         packagesToInstall,
         isUsingTypeScript: answers.isUsingCompiler === COMPILER_OPTIONS.ts,
         isUsingBabel: answers.isUsingCompiler === COMPILER_OPTIONS.babel,
+        esmSupport: hasESMSupport || answers.moduleSystem === 'esm' || answers.isUsingCompiler === COMPILER_OPTIONS.babel,
         isSync: false,
         _async: 'async ',
         _await: 'await ',
@@ -179,7 +187,7 @@ const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) 
     /**
      * update package version if CLI is a pre release
      */
-    packagesToInstall = specifyVersionIfNeeded(packagesToInstall, pkg.version)
+    packagesToInstall = specifyVersionIfNeeded(packagesToInstall, pkg.version, npmTag)
 
     /**
      * run npm install only if required by the user
@@ -243,7 +251,7 @@ const runConfig = async function (useYarn: boolean, yes: boolean, exit = false) 
 }
 
 export function handler(argv: ConfigCommandArguments) {
-    return runConfig(argv.yarn, argv.yes)
+    return runConfig(argv.yarn, argv.yes, argv.npmTag)
 }
 
 /**
@@ -280,5 +288,5 @@ export async function missingConfigurationPrompt(command: string, message: strin
         return process.exit(0)
     }
 
-    return await runConfigCmd(useYarn, false, true)
+    return await runConfigCmd(useYarn, false, 'latest', true)
 }

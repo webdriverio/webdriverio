@@ -1,7 +1,7 @@
 <%- isUsingTypeScript ? "import { ChainablePromiseElement } from 'webdriverio';" : "" %>
 
-<%- isUsingTypeScript || isUsingBabel
-    ? "import Page from './page';"
+<%- isUsingTypeScript || esmSupport
+    ? `import Page from './page${esmSupport ? '.js' : ''}';`
     : "const Page = require('./page');" %>
 
 /**
@@ -41,4 +41,4 @@ class LoginPage extends Page {
     }
 }
 
-<%- isUsingTypeScript || isUsingBabel ? "export default": "module.exports =" %> new LoginPage();
+<%- isUsingTypeScript || esmSupport ? "export default": "module.exports =" %> new LoginPage();

@@ -1,4 +1,4 @@
-<%- isUsingTypeScript || isUsingBabel
+<%- isUsingTypeScript || esmSupport
     ? "import { Given, When, Then } from '@wdio/cucumber-framework';"
     : "const { Given, When, Then } = require('@wdio/cucumber-framework');" %>
 <%
@@ -6,11 +6,11 @@
  * step definition without page objects
  */
 if (usePageObjects) { %>
-<%- isUsingTypeScript || isUsingBabel
-    ? `import LoginPage from '${relativePath}/login.page';`
+<%- isUsingTypeScript || esmSupport
+    ? `import LoginPage from '${relativePath}/login.page${esmSupport ? '.js' : ''}';`
     : `const LoginPage = require('${relativePath}/login.page');` %>
-<%- isUsingTypeScript || isUsingBabel
-    ? `import SecurePage from '${relativePath}/secure.page';`
+<%- isUsingTypeScript || esmSupport
+    ? `import SecurePage from '${relativePath}/secure.page${esmSupport ? '.js' : ''}';`
     : `const SecurePage = require('${relativePath}/secure.page');` %>
 
 const pages = {

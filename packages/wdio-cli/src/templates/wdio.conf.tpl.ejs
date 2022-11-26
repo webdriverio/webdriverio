@@ -1,15 +1,30 @@
-<%
-if(!answers.isUsingTypeScript) {
-    %>exports.config = {<%
-} else {
+<% if (answers.esmSupport) {
+    %>export const config = {<%
+} else if (answers.isUsingTypeScript) {
     %>import type { Options } from '@wdio/types'
 
 export const config: Options.Testrunner = {<%
+} else {
+    %>exports.config = {<%
 } %>
     //
     // ====================
     // Runner Configuration
     // ====================
+    // WebdriverIO supports running e2e tests as well as unit and component tests.
+    runner: <%
+    if (answers.runner === 'browser') {
+        if (answers.preset) {
+            %>['browser', {
+        preset: '<%- answers.preset %>'
+    }]<%
+        } else {
+            %>'browser'<%
+        }
+    } else {
+        %>'local'<%
+    }
+    %>,
     <% if(answers.expEnvAccessKey){ %>
     hostname: '<%- answers.expEnvHostname %>',
     <% if (answers.expEnvPort === '443'){%>protocol: 'https',
@@ -78,24 +93,6 @@ export const config: Options.Testrunner = {<%
     exclude: [
         // 'path/to/excluded/files'
     ],
-    //
-    // ======
-    // Runner
-    // ======
-    // WebdriverIO supports running e2e tests as well as unit and component tests.
-    runner: <%
-    if (answers.runner === 'browser') {
-        if (answers.preset) {
-            %>['browser', {
-        preset: '<%- answers.preset %>'
-    }]<%
-        } else {
-            %>'browser'<%
-        }
-    } else {
-        %>'local'<%
-    }
-    %>,
     //
     // ============
     // Capabilities

@@ -34,6 +34,8 @@ export interface Questionnair {
     outputDir: string
     baseUrl: string
     npmInstall: boolean
+    createPackageJSON: boolean
+    moduleSystem: 'esm' | 'commonjs'
 }
 
 export interface ParsedAnswers extends Omit<Questionnair, 'runner' | 'framework' | 'reporters' | 'services' | 'plugins'> {
@@ -45,6 +47,7 @@ export interface ParsedAnswers extends Omit<Questionnair, 'runner' | 'framework'
     packagesToInstall: string[]
     isUsingTypeScript: boolean
     isUsingBabel: boolean
+    esmSupport: boolean
     isSync: boolean
     _async: string
     _await: string
@@ -100,6 +103,7 @@ export interface InstallCommandArguments {
 export interface ConfigCommandArguments {
     yarn: boolean
     yes: boolean
+    npmTag: string
 }
 
 export interface SupportedPackage {

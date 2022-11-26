@@ -219,7 +219,7 @@ exports[`should create config file 1`] = `
     "framework": "mocha",
     "installTestingLibrary": false,
     "isSync": false,
-    "isUsingBabel": false,
+    "esmSupport": false,
     "isUsingTypeScript": false,
     "npmInstall": true,
     "packagesToInstall": [

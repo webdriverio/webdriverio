@@ -113,7 +113,7 @@ export async function loadTypeScriptCompiler (autoCompileConfig: Options.AutoCom
      * don't auto compile within worker as it already was spawn with a loader
      */
     if (process.env.WDIO_WORKER_ID) {
-        return true
+        return false
     }
 
     try {

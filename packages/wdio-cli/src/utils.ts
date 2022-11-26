@@ -11,6 +11,7 @@ import inquirer from 'inquirer'
 import pickBy from 'lodash.pickby'
 import logger from '@wdio/logger'
 import readDir from 'recursive-readdir'
+import { readPackageUp } from 'read-pkg-up'
 import { resolve } from 'import-meta-resolve'
 import { SevereServiceError } from 'webdriverio'
 import { ConfigParser } from '@wdio/config'
@@ -385,8 +386,8 @@ export async function generateTestFiles (answers: ParsedAnswers) {
 }
 
 export async function getAnswers(yes: boolean): Promise<Questionnair> {
-    return yes
-        ? QUESTIONNAIRE.reduce((answers, question) => Object.assign(
+    if (yes) {
+        return QUESTIONNAIRE.reduce((answers, question) => Object.assign(
             answers,
             question.when && !question.when(answers)
                 /**
@@ -414,7 +415,29 @@ export async function getAnswers(yes: boolean): Promise<Questionnair> {
                         : {}
                 }
         ), {} as Questionnair)
-        : await inquirer.prompt(QUESTIONNAIRE)
+    }
+
+    const hasESMSupport = await checkModuleSystem(process.cwd())
+    const questions = [
+        ...(typeof hasESMSupport === 'undefined' ? [{
+            type: 'confirm',
+            name: 'createPackageJSON',
+            default: true,
+            message: `Couldn't find a packgae.json in "${process.cwd()}" or any of the parent directories, create one?`,
+        }, {
+            type: 'list',
+            name: 'moduleSystem',
+            message: 'Which module system should be used?',
+            choices: [
+                { name: 'esm', value: 'ESM (recommended)$--$esm' },
+                { name: 'commonjs', value: 'CommonJS$--$commonjs' }
+            ],
+            // only ask if there are more than 1 runner to pick from
+            when: /* istanbul ignore next */ (answers: Questionnair) => answers.createPackageJSON
+        }] : []),
+        ...QUESTIONNAIRE
+    ]
+    return inquirer.prompt(questions)
 }
 
 export function getPathForFileGeneration (answers: Questionnair) {
@@ -462,20 +485,35 @@ export function getDefaultFiles (answers: Partial<Questionnair>, filePath: strin
  * running `matchAll` to a version like "8.0.0-alpha.249+4bc237701", results in:
  * ['8.0.0-alpha.249+4bc237701', '8', '0', '0', 'alpha', '249', '4bc237701']
  */
-export function specifyVersionIfNeeded (packagesToInstall: string[], version: string) {
+export function specifyVersionIfNeeded (packagesToInstall: string[], version: string, npmTag: string) {
     const { value } = version.matchAll(VERSION_REGEXP).next()
-    if (value) {
-        const [major, minor, patch, tagName, build] = value.slice(1, -1) // drop commit bit
-        return packagesToInstall.map((p) => {
-            if (p.startsWith('@wdio') || ['devtools', 'webdriver', 'webdriverio'].includes(p)) {
-                return `${p}@^${major}.${minor}.${patch}-${tagName}.${build}`
-            }
-            if (COMMUNITY_PACKAGES_WITH_V8_SUPPORT.includes(p)) {
-                return `${p}@next`
-            }
-            return p
-        })
-    }
+    const [major, minor, patch, tagName, build] = (value || []).slice(1, -1) // drop commit bit
+    return packagesToInstall.map((p) => {
+        if (p.startsWith('@wdio') || ['devtools', 'webdriver', 'webdriverio'].includes(p)) {
+            const tag = major && npmTag === 'latest'
+                ? `^${major}.${minor}.${patch}-${tagName}.${build}`
+                : npmTag
+            return `${p}@${tag}`
+        }
+        if (major && COMMUNITY_PACKAGES_WITH_V8_SUPPORT.includes(p)) {
+            return `${p}@next`
+        }
+        return p
+    })
+}
 
-    return packagesToInstall
+export async function checkModuleSystem (cwd = process.cwd()) {
+    try {
+        const { packageJson } = await readPackageUp({ cwd }) || {}
+        if (!packageJson) {
+            return undefined
+        }
+
+        return (
+            packageJson.type === 'module' ||
+            typeof packageJson.module === 'string'
+        )
+    } catch (err) {
+        return undefined
+    }
 }

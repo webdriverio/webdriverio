@@ -57,6 +57,7 @@
     "lodash.pickby": "^4.6.0",
     "lodash.union": "^4.6.0",
     "mkdirp": "^1.0.4",
+    "read-pkg-up": "9.1.0",
     "recursive-readdir": "^2.2.2",
     "webdriverio": "7.20.7",
     "yargs": "^17.5.1",
