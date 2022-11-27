@@ -87,10 +87,10 @@ describe('utils', () => {
             expect(resolve).toBeCalledTimes(1)
         })
 
-        it('should return true if WDIO_WORKER_ID is set', async () => {
+        it('should return false if WDIO_WORKER_ID is set', async () => {
             process.env.WDIO_WORKER_ID = '1'
             vi.mocked(resolve).mockRejectedValue(new Error('ups'))
-            expect(await loadTypeScriptCompiler({})).toBe(true)
+            expect(await loadTypeScriptCompiler({})).toBe(false)
             expect(resolve).toBeCalledTimes(0)
         })
     })
