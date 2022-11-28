@@ -25,6 +25,11 @@ export interface BrowserRunnerOptions {
      * Vite configuration to overwrite the preset
      */
     viteConfig?: InlineConfig
+    /**
+     * Run tests in headless mode
+     * @default false // true in CI environment
+     */
+    headless?: boolean
 }
 
 export interface RunArgs extends Workers.WorkerRunPayload {

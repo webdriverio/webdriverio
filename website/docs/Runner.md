@@ -124,6 +124,13 @@ export const {
 }
 ```
 
+#### `headless`
+
+If set to `true` the runner will update capabilities to run tests headless. By default this is enabled within CI environments where a `CI` environment variable is set to `'1'` or `'true'`.
+
+__Type:__ `boolean`<br />
+__Default:__ `false`, set to `true` if `CI` environment variable is set
+
 ### Examples
 
 Make sure to check out the docs around [component testing](https://webdriver.io/docs/component-testing) and have a look into the [example repository](https://github.com/webdriverio/component-testing-examples) for examples using these and various other frameworks.

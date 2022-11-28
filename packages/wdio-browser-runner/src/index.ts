@@ -7,6 +7,7 @@ import type { Options } from '@wdio/types'
 
 import { ViteServer } from './vite/server.js'
 import { FRAMEWORK_SUPPORT_ERROR, SESSIONS, BROWSER_POOL } from './constants.js'
+import { makeHeadless } from './utils.js'
 import type { BrowserRunnerOptions as BrowserRunnerOptionsImport } from './types'
 
 const log = logger('@wdio/browser-runner')
@@ -15,7 +16,7 @@ export default class BrowserRunner extends LocalRunner {
     #config: Options.Testrunner
     #server: ViteServer
 
-    constructor(options: BrowserRunnerOptionsImport, config: Options.Testrunner) {
+    constructor(private options: BrowserRunnerOptionsImport, config: Options.Testrunner) {
         super(options as never, config)
 
         if (config.framework !== 'mocha') {
@@ -41,6 +42,8 @@ export default class BrowserRunner extends LocalRunner {
     }
 
     run (runArgs: RunArgs) {
+        runArgs.caps = makeHeadless(this.options, runArgs.caps)
+
         if (runArgs.command === 'run') {
             runArgs.args.baseUrl = `http://localhost:${this.#server.config.server?.port}`
         }
