@@ -105,14 +105,33 @@ export default class BrowserstackService implements Services.ServiceInstance {
         }
 
         await this._setSessionName(suiteTitle, test)
+        await this._setAnnotation(`Test: ${test.fullName ?? test.title}`)
     }
 
     /**
      * For CucumberJS
      */
-    beforeFeature(uri: unknown, feature: { name: string }) {
+    async beforeFeature(uri: unknown, feature: { name: string }) {
         this._suiteTitle = feature.name
-        return this._setSessionName(feature.name)
+        await this._setSessionName(feature.name)
+        await this._setAnnotation(`Feature: ${feature.name}`)
+    }
+
+    /**
+     * Runs before a Cucumber Scenario.
+     * @param world world object containing information on pickle and test step
+     */
+    async beforeScenario (world: Frameworks.World) {
+        const scenarioName = world.pickle.name || 'unknown scenario'
+        await this._setAnnotation(`Scenario: ${scenarioName}`)
+    }
+
+    /**
+     * For CucumberJS
+     */
+    async beforeStep (step: Frameworks.PickleStep) {
+        const { keyword, text } = step
+        await this._setAnnotation(`Step: ${keyword}${text}`)
     }
 
     afterTest(test: Frameworks.Test, context: never, results: Frameworks.TestResult) {
@@ -289,5 +308,31 @@ export default class BrowserstackService implements Services.ServiceInstance {
             this._fullTitle = name
             await this._updateJob({ name })
         }
+    }
+
+    private _setAnnotation(data: string) {
+        return this._executeCommand('annotate', { data, level: 'info' })
+    }
+
+    private async _executeCommand<T = any>(
+        action: string,
+        args?: object,
+    ) {
+        if (!this._browser) {
+            return Promise.resolve()
+        }
+
+        const cmd = { action, ...(args ? { arguments: args } : {}) }
+        const script = `browserstack_executor: ${JSON.stringify(cmd)}`
+
+        if (this._browser.isMultiremote) {
+            const multiRemoteBrowser = this._browser as MultiRemoteBrowser<'async'>
+            return Promise.all(Object.keys(this._caps).map(async (browserName) => {
+                const browser = multiRemoteBrowser[browserName]
+                return (await browser.execute<T, []>(script))
+            }))
+        }
+
+        return (await this._browser.execute<T, []>(script))
     }
 }

@@ -34,6 +34,7 @@ beforeEach(() => {
     got.put.mockReturnValue(Promise.resolve({}))
 
     browser = {
+        execute: jest.fn(),
         sessionId: sessionId,
         config: {},
         capabilities: {
@@ -975,6 +976,47 @@ describe('after', () => {
                     })
                 })
             })
+        })
+    })
+})
+
+describe('setAnnotation', () => {
+    describe('Cucumber', () => {
+        it('should correctly annotate Features, Scenarios, and Steps', async () => {
+            await service.before(service['_config'] as any, [], browser)
+            await service.beforeFeature(null, { name: 'Feature1' })
+            await service.beforeScenario({ pickle: { name: 'foobar' } })
+            const step = {
+                id: '5',
+                text: 'I am a step',
+                astNodeIds: ['0'],
+                keyword: 'Given ',
+            }
+            await service.beforeStep(step)
+            expect(browser.execute).toBeCalledTimes(3)
+            expect(browser.execute).toBeCalledWith('browserstack_executor: {"action":"annotate","arguments":{"data":"Feature: Feature1","level":"info"}}')
+            expect(browser.execute).toBeCalledWith('browserstack_executor: {"action":"annotate","arguments":{"data":"Scenario: foobar","level":"info"}}')
+            expect(browser.execute).toBeCalledWith('browserstack_executor: {"action":"annotate","arguments":{"data":"Step: Given I am a step","level":"info"}}')
+        })
+    })
+
+    describe('Jasmine', () => {
+        it('should correctly annotate Tests', async () => {
+            await service.before(service['_config'] as any, [], browser)
+            await service.beforeSuite({ title: jasmineSuiteTitle } as any)
+            await service.beforeTest({ fullName: 'foo bar baz', description: 'baz' } as any)
+            expect(browser.execute).toBeCalledTimes(1)
+            expect(browser.execute).toBeCalledWith('browserstack_executor: {"action":"annotate","arguments":{"data":"Test: foo bar baz","level":"info"}}')
+        })
+    })
+
+    describe('Mocha', () => {
+        it('should correctly annotate Tests', async () => {
+            await service.before(service['_config'] as any, [], browser)
+            await service.beforeSuite({ title: 'My Feature' } as any)
+            await service.beforeTest({ title: 'Test Title', parent: 'Suite Title' } as any)
+            expect(browser.execute).toBeCalledTimes(1)
+            expect(browser.execute).toBeCalledWith('browserstack_executor: {"action":"annotate","arguments":{"data":"Test: Test Title","level":"info"}}')
         })
     })
 })
