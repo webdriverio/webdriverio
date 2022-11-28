@@ -64,6 +64,7 @@ tests/typings/**/dist
 .changelog
 
 **/build
+**/cjs/index.js
 /*.js
 /*.mjs
 /*.ts

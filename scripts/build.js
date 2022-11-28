@@ -74,9 +74,21 @@ const packages = getSubPackages()
      */
     .filter((pkg) => args.length === 0 || args.includes(pkg))
 
+    /**
+     * map tsconfig path
+     */
+    .map((pkg) => `packages/${pkg}/${TSCONFIG_FILE}`)
+
 shell.cd(path.join(__dirname, '..'))
 
-const cmd = `npx tsc -b ${packages.map((pkg) => `packages/${pkg}/${TSCONFIG_FILE}`).join(' ')}${HAS_WATCH_FLAG ? ' --watch' : ''}`
+/**
+ * add cjs compiling for @wdio/globals
+ */
+if (packages.find((projectPath) => projectPath.includes('wdio-globals'))) {
+    packages.push('packages/wdio-globals/tsconfig.cjs.json')
+}
+
+const cmd = `npx tsc -b ${packages.join(' ')}${HAS_WATCH_FLAG ? ' --watch' : ''}`
 
 console.log(cmd)
 const { code } = shell.exec(cmd)
