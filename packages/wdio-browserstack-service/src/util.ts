@@ -125,7 +125,7 @@ export async function launchTestSession (userConfig: UserConfig) {
         if (response.build_hashed_id) process.env.BS_TESTOPS_BUILD_HASHED_ID = response.build_hashed_id
     } catch (error) {
         if (error instanceof got.HTTPError && error.response && error.response.statusCode == 401) {
-            log.debug('Either your BrowserStack access credentials are incorrect or you do not have access to BrowserStack Test Observability yet.')
+            log.debug('Data upload to BrowserStack Test Observability failed either due to incorrect credentials or an unsupported SDK version or because you do not have access to the product.')
         } else {
             log.debug(`[Start_Build] Failed. Error: ${error}`)
         }
