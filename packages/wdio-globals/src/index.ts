@@ -2,7 +2,18 @@
 
 type SupportedGlobals = 'browser' | 'driver' | 'multiremotebrowser' | '$' | '$$' | 'expect'
 
-const globals: Map<SupportedGlobals, any> = new Map()
+declare global {
+    var _wdioGlobals: Map<SupportedGlobals, any>
+}
+
+/**
+ * As this file gets imported/used as ESM and CJS artifact we have to make sure
+ * that we can share the globals map across both files. For example if someone
+ * runs a CJS project, we run this file as ESM (/build/index.js) first, but when
+ * imported in the test, the same file will be used as CJS version (/cjs/index.js)
+ * and can use the Map initiated by the testrunner by making it accessible globally.
+ */
+const globals: Map<SupportedGlobals, any> = globalThis._wdioGlobals = globalThis._wdioGlobals || new Map()
 const GLOBALS_ERROR_MESSAGE = 'No browser instance registered. Don\'t import @wdio/globals outside of the WDIO testrunner context. Or you have two two different "@wdio/globals" packages installed.'
 
 function proxyHandler (key: SupportedGlobals) {
