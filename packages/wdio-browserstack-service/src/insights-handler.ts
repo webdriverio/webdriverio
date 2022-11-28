@@ -13,18 +13,13 @@ import type { TestData, TestMeta, PlatformMeta, UploadType } from './types'
 export default class InsightsHandler {
 
     private _browser?: Browser<'async'> | MultiRemoteBrowser<'async'>
-    private _tests: { [index: string]: TestMeta }
-    private _hooks: { [index: string]: string[] }
+    private _tests: { [index: string]: TestMeta } = {}
+    private _hooks: { [index: string]: string[] } = {}
     private _platformMeta?: PlatformMeta
-    private _framework?: string
-    private _commands: { [index: string]: BeforeCommandArgs & AfterCommandArgs }
+    private _commands: { [index: string]: BeforeCommandArgs & AfterCommandArgs } = {}
     private _gitConfigPath?: string
 
-    constructor (framework?: string) {
-        this._tests = {}
-        this._hooks = {}
-        this._commands = {}
-        this._framework = framework
+    constructor (private _framework?: string) {
     }
 
     async setUp (browser: Browser<'async'> | MultiRemoteBrowser<'async'>, browserCaps?: Capabilities.Capabilities, isAppAutomate?: boolean, sessionId?: string) {
@@ -41,7 +36,7 @@ export default class InsightsHandler {
         }
 
         if (isBrowserstackSession(this._browser)) {
-            this._browser.execute(`browserstack_executor: {"action": "annotate", "arguments": {"data": "ObservabilitySync:${Date.now()}","level": "debug"}}`)
+            await this._browser.execute(`browserstack_executor: {"action": "annotate", "arguments": {"data": "ObservabilitySync:${Date.now()}","level": "debug"}}`)
         }
 
         const gitMeta = await getGitMetaData()
@@ -64,7 +59,7 @@ export default class InsightsHandler {
     async afterHook (test: Frameworks.Test, result: Frameworks.TestResult) {
         const fullTitle = getUniqueIdentifier(test)
         if (this._tests[fullTitle]) {
-            this._tests[fullTitle]['finishedAt'] = (new Date()).toISOString()
+            this._tests[fullTitle].finishedAt = (new Date()).toISOString()
         } else {
             this._tests[fullTitle] = {
                 finishedAt: (new Date()).toISOString()
@@ -85,7 +80,7 @@ export default class InsightsHandler {
     async afterTest (test: Frameworks.Test, result: Frameworks.TestResult) {
         const fullTitle = getUniqueIdentifier(test)
         if (this._tests[fullTitle]) {
-            this._tests[fullTitle]['finishedAt'] = (new Date()).toISOString()
+            this._tests[fullTitle].finishedAt = (new Date()).toISOString()
         } else {
             this._tests[fullTitle] = {
                 finishedAt: (new Date()).toISOString()
@@ -94,7 +89,9 @@ export default class InsightsHandler {
         await this.sendTestRunEvent(test, 'TestRunFinished', result)
     }
 
-    // Cucumber Only
+    /**
+      * Cucumber Only
+      */
 
     async beforeScenario (world: ITestCaseHookParameter) {
         let pickleData = world.pickle
@@ -109,13 +106,13 @@ export default class InsightsHandler {
         }
 
         if (pickleData) {
-            testMetaData['scenario'] = {
+            testMetaData.scenario = {
                 name: pickleData.name,
             }
         }
 
         if (gherkinDocument && featureData) {
-            testMetaData['feature'] = {
+            testMetaData.feature = {
                 path: gherkinDocument.uri,
                 name: featureData.name,
                 description: featureData.description,
@@ -163,9 +160,8 @@ export default class InsightsHandler {
             }
         }
 
-        if (testMetaData && !testMetaData['steps']) {
-            testMetaData['steps'] = []
-            testMetaData['steps'].push({
+        if (testMetaData && !testMetaData.steps) {
+            testMetaData.steps = [{
                 id: step.id,
                 text: step.text,
                 keyword: step.keyword,
@@ -173,9 +169,9 @@ export default class InsightsHandler {
                 result: result.passed ? 'PASSED' : 'FAILED',
                 duration: result.duration,
                 failure: result.error ? removeAnsiColors(result.error) : result.error
-            })
+            }]
         } else if (testMetaData){
-            let stepDetails = testMetaData['steps']?.find(item => item.id == step.id)
+            const stepDetails = testMetaData['steps']?.find(item => item.id == step.id)
             if (stepDetails) {
                 stepDetails.finished_at = (new Date()).toISOString()
                 stepDetails.result = result.passed ? 'PASSED' : 'FAILED'
@@ -187,61 +183,67 @@ export default class InsightsHandler {
         this._tests[uniqueId] = testMetaData
     }
 
-    // misc methods
+    /**
+     * misc methods
+     */
 
     async browserCommand (commandType: string, args: BeforeCommandArgs & AfterCommandArgs, test?: Frameworks.Test | ITestCaseHookParameter) {
         if (commandType == 'client:beforeCommand') {
             this._commands[`${args.sessionId}_${args.method}_${args.endpoint}`] = args
-        } else {
-            if (test == undefined) return
-            const identifier = this.getIdentifier(test)
+            return
+        }
 
-            // log screenshot
-            if (isScreenshotCommand(args) && args.result.value) {
-                await uploadEventData({
-                    event_type: 'ScreenshotCreated',
-                    logs: [{
-                        test_run_uuid: this._tests[identifier].uuid,
-                        timestamp: new Date().toISOString(),
-                        message: args.result.value,
-                        kind: 'TEST_SCREENSHOT'
-                    }]
-                })
-            }
+        if (!test) {
+            return
+        }
+        const identifier = this.getIdentifier(test)
 
-            const dataKey = `${args.sessionId}_${args.method}_${args.endpoint}`
-            const requestData = this._commands[dataKey]
-
-            // log http request
-            const log = {
-                test_run_uuid: this._tests[identifier].uuid,
-                timestamp: new Date().toISOString(),
-                kind: 'HTTP',
-                http_response: {
-                    path: requestData.endpoint,
-                    method: requestData.method,
-                    body: requestData.body,
-                    response: args.result
-                }
-            }
-
+        // log screenshot
+        if (isScreenshotCommand(args) && args.result.value) {
             await uploadEventData({
-                event_type: 'LogCreated',
-                logs: [log]
+                event_type: 'ScreenshotCreated',
+                logs: [{
+                    test_run_uuid: this._tests[identifier].uuid,
+                    timestamp: new Date().toISOString(),
+                    message: args.result.value,
+                    kind: 'TEST_SCREENSHOT'
+                }]
             })
         }
+
+        const dataKey = `${args.sessionId}_${args.method}_${args.endpoint}`
+        const requestData = this._commands[dataKey]
+
+        // log http request
+        const log = {
+            test_run_uuid: this._tests[identifier].uuid,
+            timestamp: new Date().toISOString(),
+            kind: 'HTTP',
+            http_response: {
+                path: requestData.endpoint,
+                method: requestData.method,
+                body: requestData.body,
+                response: args.result
+            }
+        }
+
+        await uploadEventData({
+            event_type: 'LogCreated',
+            logs: [log]
+        })
     }
 
     // private methods
 
     private attachHookData (context: any, hookId: string): void {
-        if (context.currentTest && context.currentTest.parent) {
-            const parentTest = `${context.currentTest.parent.title} - ${context.currentTest.title}`
-            if (this._hooks[parentTest]) {
-                this._hooks[parentTest].push(hookId)
-            } else {
-                this._hooks[parentTest] = [hookId]
-            }
+        if (!context.currentTest || !context.currentTest.parent) {
+            return
+        }
+        const parentTest = `${context.currentTest.parent.title} - ${context.currentTest.title}`
+        if (this._hooks[parentTest]) {
+            this._hooks[parentTest].push(hookId)
+        } else {
+            this._hooks[parentTest] = [hookId]
         }
     }
 
@@ -290,24 +292,27 @@ export default class InsightsHandler {
             if (!passed) {
                 testData['result'] = (error && error.message && error.message.includes('sync skip; aborting execution')) ? 'ignore' : 'failed'
                 if (error && testData['result'] != 'skipped') {
-                    testData['failure'] = [{ backtrace: [removeAnsiColors(error.message)] }] // add all errors here
-                    testData['failure_reason'] = removeAnsiColors(error.message)
-                    testData['failure_type'] = error.message == null ? null : error.message.toString().match(/AssertionError/) ? 'AssertionError' : 'UnhandledError' //verify if this is working
+                    testData.failure = [{ backtrace: [removeAnsiColors(error.message)] }] // add all errors here
+                    testData.failure_reason = removeAnsiColors(error.message)
+                    testData.failure_type = error.message == null ? null : error.message.toString().match(/AssertionError/) ? 'AssertionError' : 'UnhandledError' //verify if this is working
                 }
             } else {
-                testData['result'] = 'passed'
+                testData.result = 'passed'
             }
 
-            testData['retries'] = results.retries
-            testData['duration_in_ms'] = results.duration
+            testData.retries = results.retries
+            testData.duration_in_ms = results.duration
             if (this._hooks[fullTitle]) {
-                testData['hooks'] = this._hooks[fullTitle]
+                testData.hooks = this._hooks[fullTitle]
             }
         }
 
         if (eventType == 'TestRunStarted') {
             testData['integrations'] = {}
-            if (this._browser && this._platformMeta) testData['integrations'][getCloudProvider(this._browser)] = this.getIntegrationsObject()
+            if (this._browser && this._platformMeta) {
+                const provider = getCloudProvider(this._browser)
+                testData.integrations[provider] = this.getIntegrationsObject()
+            }
         }
 
         let uploadData: UploadType = {
@@ -316,8 +321,8 @@ export default class InsightsHandler {
 
         /* istanbul ignore if */
         if (eventType.match(/HookRun/)) {
-            testData['hook_type'] = testData.name?.toLowerCase() ? getHookType(testData.name.toLowerCase()) : 'undefined'
-            uploadData['hook_run'] = testData
+            testData.hook_type = testData.name?.toLowerCase() ? getHookType(testData.name.toLowerCase()) : 'undefined'
+            uploadData.hook_run = testData
         } else {
             uploadData['test_run'] = testData
         }
@@ -374,23 +379,23 @@ export default class InsightsHandler {
         if (world.result) {
             let result: string = world.result.status.toLowerCase()
             if (result !== 'passed' && result !== 'failed') result = 'skipped' // mark UNKNOWN/UNDEFINED/AMBIGUOUS/PENDING as skipped
-            testData['finished_at'] = (new Date()).toISOString()
-            testData['result'] = result
-            testData['duration_in_ms'] = world.result.duration.nanos / 1000000 // send duration in ms
+            testData.finished_at = (new Date()).toISOString()
+            testData.result = result
+            testData.duration_in_ms = world.result.duration.nanos / 1000000 // send duration in ms
 
             if (result == 'failed') {
-                testData['failure'] = [
+                testData.failure = [
                     {
                         'backtrace': [world.result.message ? removeAnsiColors(world.result.message) : 'unknown']
                     }
                 ],
-                testData['failure_reason'] = world.result.message ? removeAnsiColors(world.result.message) : world.result.message,
-                testData['failure_type'] = world.result.message == undefined ? null : world.result.message.toString().match(/AssertionError/) ? 'AssertionError' : 'UnhandledError'
+                testData.failure_reason = world.result.message ? removeAnsiColors(world.result.message) : world.result.message,
+                testData.failure_type = world.result.message == undefined ? null : world.result.message.toString().match(/AssertionError/) ? 'AssertionError' : 'UnhandledError'
             }
         }
 
         if (world.pickle) {
-            testData['tags'] = world.pickle.tags.map( ({ name }: { name: string }) => (name) )
+            testData.tags = world.pickle.tags.map( ({ name }: { name: string }) => (name) )
         }
 
         let uploadData: UploadType = {
