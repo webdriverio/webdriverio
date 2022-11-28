@@ -1,4 +1,5 @@
 /packages/**/build
+/packages/**/cjs
 /packages/**/node_modules
 /packages/node_modules
 /packages/**/coverage
