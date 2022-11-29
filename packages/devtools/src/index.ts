@@ -72,8 +72,9 @@ export default class DevTools {
             ||
             VENDOR_PREFIX[userAgent.browser.name?.toLocaleLowerCase() as keyof typeof VENDOR_PREFIX]
 
+        const { browserName } = (requestedCapabilities as Capabilities.W3CCapabilities).alwaysMatch || requestedCapabilities
         params.capabilities = {
-            browserName: userAgent.browser.name,
+            browserName: (userAgent.browser.name || browserName || 'unknown').split(' ').shift()?.toLowerCase(),
             browserVersion: userAgent.browser.version,
             platformName: os.platform(),
             platformVersion: os.release()
