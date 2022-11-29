@@ -27,7 +27,7 @@ const sleep = (ms = 100) => new Promise((resolve) => setTimeout(resolve, ms))
 export default class BrowserFramework implements Omit<TestFramework, 'init'> {
     constructor (
         private _cid: string,
-        private _config: unknown,
+        private _config: { sessionId?: string },
         private _specs: string[],
         private _capabilities: Capabilities.RemoteCapability,
         private _reporter: BaseReporter
@@ -62,7 +62,15 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
 
         for (const spec of this._specs) {
             log.info(`Run spec file ${spec} for cid ${this._cid}`)
-            await browser.url(`/${this._cid}/test.html?spec=${url.fileURLToPath(spec)}`)
+
+            /**
+             * if a `sessionId` is part of `this._config` it means we are in watch mode and are
+             * re-using a previous session. Since Vite has already a hotreload feature, there
+             * is no need to call the url command again
+             */
+            if (!this._config.sessionId) {
+                await browser.url(`/${this._cid}/test.html?spec=${url.fileURLToPath(spec)}`)
+            }
             // await browser.debug()
 
             /**
@@ -125,7 +133,7 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
         return failures! as number
     }
 
-    static init (cid: string, config: unknown, specs: string[], caps: Capabilities.RemoteCapability, reporter: BaseReporter) {
+    static init (cid: string, config: any, specs: string[], caps: Capabilities.RemoteCapability, reporter: BaseReporter) {
         const framework = new BrowserFramework(cid, config, specs, caps, reporter)
         return framework
     }
