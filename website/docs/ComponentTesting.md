@@ -79,6 +79,24 @@ describe('Svelte Component Testing', () => {
 
 __Note:__ using render methods from Testing Library helps remove created components between the tests. If you don't use Testing Library ensure to attach your test components to a container that gets cleaned up between tests.
 
+## Watch Test and Application Files
+
+There are multiple ways how you can debug your browser tests. The easiest is to start the WebdriverIO testrunner with the `--watch` flag, e.g.:
+
+```sh
+$ npx wdio run ./wdio.conf.js --watch
+```
+
+This will run through all tests initially and halt once all are run. You can then make changes to individual files which then will be rerun individually. If you set a [`filesToWatch`](/docs/configuration#filestowatch) pointing to your application files, it will re-run all tests when changes to your app are being made.
+
+## Debugging
+
+While it is not (yet) possible to set breakpoints in your IDE and have them being recognised by the remote browser, you can use the [`debug`](/docs/api/browser/debug) command to stop the test at any point. This allows you to open DevTools to then debug the test by setting breakpoints in the [sources tab](https://buddy.works/tutorials/debugging-javascript-efficiently-with-chrome-devtools). Within the Console Tab you will see a WebdriverIO message saying:
+
+> Debug Mode Enabled enter the command `wdioDebugContinue()` in the console to continue
+
+By calling `wdioDebugContinue()` in the Console you can continue the test.
+
 ## Examples
 
 You can find various examples for testing components using popular component frameworks in our [example repository](https://github.com/webdriverio/component-testing-examples).

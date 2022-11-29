@@ -228,17 +228,6 @@ Default: `us`
 
 *(only for vm and or em/simulators)*
 
-### headless
-
-Sauce Labs provides a [headless offering](https://saucelabs.com/products/web-testing/sauce-headless-testing) that allows you to run Chrome and Firefox tests headless.
-
-__Note:__ This only has an effect if you provide `user` and `key` options that are connected to your Sauce Labs account.
-
-Type: `Boolean`<br />
-Default: `false`
-
-*(only for VM or EM/simulators)*
-
 ---
 
 ## Testrunner Options
@@ -403,8 +392,15 @@ Default: `5000` (ms)
 
 Node arguments to specify when launching child processes.
 
-Type: `String[]`
+Type: `String[]`<br />
 Default: `null`
+
+### filesToWatch
+
+A list of glob supporting string patterns that tell the testrunner to have it additionally watch other files, e.g. application files, when running it with the `--watch` flag. By default the testrunner already watches all spec files.
+
+Type: `String[]`<br />
+Default: `[]`
 
 ### autoCompileOpts
 
