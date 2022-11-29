@@ -2,7 +2,7 @@
 
 exports[`attachSession 1`] = `
 {
-  "browserName": "Chrome",
+  "browserName": "chrome",
   "browserVersion": "80.0.3987.149",
   "goog:chromeOptions": {
     "debuggerAddress": "localhost:49375",
@@ -18,7 +18,7 @@ exports[`attachSession 2`] = `
 
 exports[`newSession 1`] = `
 {
-  "browserName": "Chrome",
+  "browserName": "chrome",
   "browserVersion": "80.0.3987.149",
   "goog:chromeOptions": {
     "debuggerAddress": "localhost:49375",
