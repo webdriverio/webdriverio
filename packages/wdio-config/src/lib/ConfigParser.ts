@@ -70,8 +70,15 @@ export default class ConfigParser {
      * intializes the config object
      */
     async initialize (object: MergeConfig = {}) {
-        await loadAutoCompilers(this._config.autoCompileOpts!, this._moduleRequireService)
-        await this.addConfigFile(this.#configFilePath)
+        /**
+         * only run auto compile functionality once but allow the config parse to be initialised
+         * multiple times, e.g. when used with the packages/wdio-cli/src/watcher.ts
+         */
+        if (!this.#isInitialised) {
+            await loadAutoCompilers(this._config.autoCompileOpts!, this._moduleRequireService)
+            await this.addConfigFile(this.#configFilePath)
+        }
+
         this.merge({ ...object })
         this.#isInitialised = true
     }

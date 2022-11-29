@@ -1,3 +1,4 @@
+import url from 'node:url'
 import path from 'node:path'
 import logger from '@wdio/logger'
 import decamelize from 'decamelize'
@@ -179,7 +180,9 @@ export function makeRelativeToCWD (files: (string | string[])[] = []): (string |
             continue
         }
 
-        returnFiles.push(path.resolve(process.cwd(), file))
+        returnFiles.push(file.startsWith('file:///')
+            ? url.fileURLToPath(file)
+            : path.resolve(process.cwd(), file))
     }
 
     return returnFiles

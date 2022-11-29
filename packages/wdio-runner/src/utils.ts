@@ -66,7 +66,7 @@ export async function initialiseInstance (
          * propagate connection details defined by services or user in capabilities
          */
         const { protocol, hostname, port, path } = capabilities as Capabilities.Capabilities
-        return attach({ ...config, ...{ protocol, hostname, port, path } } as Required<ConfigWithSessionId>)
+        return attach({ ...config, ...{ protocol, hostname, port, path }, capabilities } as Required<ConfigWithSessionId>)
     }
 
     if (!isMultiremote) {

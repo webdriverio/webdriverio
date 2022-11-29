@@ -20,7 +20,7 @@ export default class LocalRunner {
 
     constructor (
         private _options: never,
-        private _config: Options.Testrunner
+        protected _config: Options.Testrunner
     ) {}
 
     /**
@@ -45,7 +45,6 @@ export default class LocalRunner {
         const worker = new WorkerInstance(this._config, workerOptions, this.stdout, this.stderr)
         this.workerPool[workerOptions.cid] = worker
         worker.postMessage(command, args)
-
         return worker
     }
 
@@ -59,7 +58,7 @@ export default class LocalRunner {
         log.info('Shutting down spawned worker')
 
         for (const [cid, worker] of Object.entries(this.workerPool)) {
-            const { caps, server, sessionId, config, isMultiremote, instances } = worker
+            const { capabilities, server, sessionId, config, isMultiremote, instances } = worker
             let payload = {}
 
             /**
@@ -68,8 +67,8 @@ export default class LocalRunner {
              */
             if (config && config.watch && (sessionId || isMultiremote)) {
                 payload = {
-                    config: { ...server, sessionId },
-                    caps,
+                    config: { ...server, sessionId, ...config },
+                    capabilities,
                     watch: true,
                     isMultiremote,
                     instances

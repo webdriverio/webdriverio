@@ -30,7 +30,9 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
     cid: string
     config: Options.Testrunner
     configFile: string
+    // requestedCapabilities
     caps: Capabilities.RemoteCapability
+    // actual capabilities returned by driver
     capabilities: Capabilities.RemoteCapability
     specs: string[]
     execArgv: string[]
@@ -151,6 +153,7 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
                 Object.assign(this, payload.content)
             } else {
                 this.sessionId = payload.content.sessionId
+                this.capabilities = payload.content.capabilities
             }
         }
 
@@ -205,7 +208,7 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
      * @param  args     arguments for functions to call
      */
     postMessage (command: string, args: Workers.WorkerMessageArgs): void {
-        const { cid, configFile, caps, specs, retries, isBusy } = this
+        const { cid, configFile, capabilities, specs, retries, isBusy } = this
 
         if (isBusy && command !== 'endSession') {
             return log.info(`worker with cid ${cid} already busy and can't take new commands`)
@@ -219,7 +222,7 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
             this.childProcess = this.startProcess()
         }
 
-        const cmd: Workers.WorkerCommand = { cid, command, configFile, args, caps, specs, retries }
+        const cmd: Workers.WorkerCommand = { cid, command, configFile, args, caps: capabilities, specs, retries }
         this.childProcess.send(cmd)
         this.isBusy = true
     }

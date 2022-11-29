@@ -215,8 +215,6 @@ export default class WDIOCLInterface extends EventEmitter {
      * event handler that is triggered when runner sends up events
      */
     onMessage (event: CLIInterfaceEvent) {
-        // let a = true
-        // if (a) return
         if (event.name === 'reporterRealTime') {
             this.log(event.content)
             return

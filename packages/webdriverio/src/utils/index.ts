@@ -568,7 +568,7 @@ export const getAutomationProtocol = async (config: Options.WebdriverIO | Option
      */
     if (
         desiredCaps.deviceName || caps['appium:deviceName'] ||
-        desiredCaps.platformVersion || caps['appium:platformVersion'] ||
+        caps['appium:platformVersion'] ||
         desiredCaps.app || caps['appium:app']
     ) {
         return 'webdriver'

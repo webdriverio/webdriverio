@@ -7,8 +7,8 @@ import { initialiseWorkerService, initialisePlugin, executeHooksWithArgs } from 
 import { ConfigParser } from '@wdio/config'
 import { _setGlobal } from '@wdio/globals'
 import { expect, setOptions } from 'expect-webdriverio'
+import { Selector, Browser, MultiRemoteBrowser, attach } from 'webdriverio'
 import type { Options, Capabilities } from '@wdio/types'
-import type { Selector, Browser, MultiRemoteBrowser } from 'webdriverio'
 
 import BrowserFramework from './browser.js'
 import BaseReporter from './reporter.js'
@@ -100,7 +100,7 @@ export default class Runner extends EventEmitter {
             return this._shutdown(0, retries, true)
         }
 
-        browser = await this._initSession(this._config as SingleConfigOption, this._caps, browser)
+        browser = await this._initSession(this._config as SingleConfigOption, this._caps)
 
         /**
          * return if session initialisation failed
@@ -230,23 +230,12 @@ export default class Runner extends EventEmitter {
      */
     private async _initSession (
         config: SingleConfigOption,
-        caps: Capabilities.RemoteCapability,
-        browserStub?: Browser<'async'> | MultiRemoteBrowser<'async'>
+        caps: Capabilities.RemoteCapability
     ) {
         const browser = await this._startSession(config, caps) as Browser<'async'>
 
         // return null if session couldn't get established
         if (!browser) { return }
-
-        // add flags declared by user to browser object
-        if (browserStub) {
-            Object.entries(browserStub).forEach(([key, value]: [keyof Browser<'async'>, any]) => {
-                if (typeof browser[key] === 'undefined') {
-                    // @ts-ignore allow to set value for undefined props
-                    browser[key] = value
-                }
-            })
-        }
 
         /**
          * register global helper method to fetch elements
@@ -419,7 +408,7 @@ export default class Runner extends EventEmitter {
      * end WebDriver session, a config object can be applied if object has changed
      * within a hook by the user
      */
-    async endSession() {
+    async endSession(payload?: any) {
         /**
          * make sure instance(s) exist and have `sessionId`
          */
@@ -436,13 +425,24 @@ export default class Runner extends EventEmitter {
             /**
              * browser object should have `sessionId` in regular mode
              */
-            : this._browser?.sessionId)
+            : this._browser?.sessionId
+        )
 
         /**
-         * don't do anything if test framework returns after SIGINT
-         * if endSession is called without payload we expect a session id
+         * in watch mode we create a new child process to kill the
+         * session, see packages/wdio-local-runner/src/index.ts,
+         * therefore we need to attach to the session to kill it
          */
-        if (!hasSessionId) {
+        if (!hasSessionId && payload?.args.config.sessionId) {
+            this._browser = await attach({
+                ...payload.args.config,
+                capabilities: payload?.args.capabilities
+            })
+        } else if (!hasSessionId) {
+            /**
+             * don't do anything if test framework returns after SIGINT
+             * if endSession is called without payload we expect a session id
+             */
             return
         }
 

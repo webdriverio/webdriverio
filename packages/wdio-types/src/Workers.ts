@@ -32,8 +32,9 @@ export interface WorkerCommand extends Omit<WorkerRunPayload, 'execArgv'> {
 export interface WorkerMessage {
     name: string;
     content: {
-        sessionId?: string;
-        isMultiremote?: boolean;
+        sessionId?: string
+        isMultiremote?: boolean
+        capabilities: RemoteCapability
     };
     origin: string;
     params: Record<string, string>;
@@ -43,6 +44,7 @@ export interface Worker
     extends Omit<TestrunnerOptions, 'capabilities' | 'specs' | 'rootDir'>,
         EventEmitter {
     capabilities: RemoteCapability;
+    config: TestrunnerOptions,
     caps: RemoteCapability;
     cid: string;
     isBusy?: boolean;

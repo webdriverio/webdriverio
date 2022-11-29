@@ -1,3 +1,5 @@
+import url from 'node:url'
+
 import chokidar from 'chokidar'
 import logger from '@wdio/logger'
 import pickBy from 'lodash.pickby'
@@ -13,7 +15,7 @@ const log = logger('@wdio/cli:watch')
 type Spec = string | string[]
 export default class Watcher {
     private _launcher: Launcher
-    private _specs: Spec[]
+    private _specs: Spec[] = []
 
     constructor (
         private _configFile: string,
@@ -21,19 +23,22 @@ export default class Watcher {
     ) {
         log.info('Starting launcher in watch mode')
         this._launcher = new Launcher(this._configFile, this._args, true)
-
-        const specs = this._launcher.configParser.getSpecs()
-        const capSpecs = this._launcher.isMultiremote ? [] : union(flattenDeep(
-            (this._launcher.configParser.getCapabilities() as Capabilities.DesiredCapabilities[]).map(cap => cap.specs || [])
-        ))
-        this._specs = [...specs, ...capSpecs]
     }
 
     async watch () {
+        await this._launcher.configParser.initialize()
+        const specs = this._launcher.configParser.getSpecs()
+        const capSpecs = this._launcher.isMultiremote
+            ? []
+            : union(flattenDeep(
+                (this._launcher.configParser.getCapabilities() as Capabilities.DesiredCapabilities[]).map(cap => cap.specs || [])
+            ))
+        this._specs = [...specs, ...capSpecs]
+
         /**
          * listen on spec changes and rerun specific spec file
          */
-        let flattenedSpecs = flattenDeep(this._specs)
+        const flattenedSpecs = flattenDeep(this._specs).map((fileUrl) => url.fileURLToPath(fileUrl))
         chokidar.watch(flattenedSpecs, { ignoreInitial: true })
             .on('add', this.getFileListener())
             .on('change', this.getFileListener())
@@ -92,14 +97,17 @@ export default class Watcher {
             // If the runSpecs array is empty, then this must be a new file/array
             // so add the spec directly to the runSpecs
             if (runSpecs.length === 0) {
-                runSpecs.push(spec)
+                runSpecs.push(url.pathToFileURL(spec).href)
             }
 
             // Do not pass the `spec` command line option to `this.run()`
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            const { spec: _specArg, ...args } = this._args
+            const { spec: _, ...args } = this._args
             return runSpecs.map((spec) => {
-                return this.run({ ...args, ...(passOnFile ? { spec } : {}) })
+                return this.run({
+                    ...args,
+                    ...(passOnFile ? { spec: [spec] as string[] } : {})
+                })
             })
         }
     }
@@ -135,14 +143,11 @@ export default class Watcher {
      * run workers with params
      * @param  params parameters to run the worker with
      */
-    run (params: Omit<Partial<RunCommandArguments>, 'spec'> & { spec?: Spec } = {}) {
+    run (params: Partial<RunCommandArguments> = {}) {
         const workers = this.getWorkers(
-            (params.spec ? (worker) => {
-                if (Array.isArray(params.spec)) {
-                    return params.spec === worker.specs
-                }
-                return worker.specs.includes(params.spec!)
-            } : undefined)
+            (params.spec
+                ? (worker) => Boolean(worker.specs.find((s) => params.spec?.includes(s)))
+                : undefined)
         )
 
         /**
@@ -167,10 +172,10 @@ export default class Watcher {
          * trigger new run for non busy worker
          */
         for (const [, worker] of Object.entries(workers)) {
-            const { cid, caps, specs, sessionId } = worker
-            const args = Object.assign({ sessionId }, params)
+            const { cid, capabilities, specs, sessionId } = worker
+            const args = Object.assign({ sessionId, baseUrl: worker.config.baseUrl }, params)
             worker.postMessage('run', args)
-            this._launcher.interface.emit('job:start', { cid, caps, specs })
+            this._launcher.interface.emit('job:start', { cid, caps: capabilities, specs })
         }
     }
 

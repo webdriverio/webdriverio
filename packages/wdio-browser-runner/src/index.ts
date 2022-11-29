@@ -16,15 +16,18 @@ export default class BrowserRunner extends LocalRunner {
     #config: Options.Testrunner
     #server: ViteServer
 
-    constructor(private options: BrowserRunnerOptionsImport, config: Options.Testrunner) {
-        super(options as never, config)
+    constructor(
+        private options: BrowserRunnerOptionsImport,
+        protected _config: Options.Testrunner
+    ) {
+        super(options as never, _config)
 
-        if (config.framework !== 'mocha') {
+        if (_config.framework !== 'mocha') {
             throw new Error(FRAMEWORK_SUPPORT_ERROR)
         }
 
         this.#server = new ViteServer(options)
-        this.#config = config
+        this.#config = _config
     }
 
     /**
@@ -34,6 +37,7 @@ export default class BrowserRunner extends LocalRunner {
         log.info('Initiate browser environment')
         try {
             await this.#server.start()
+            this._config.baseUrl = `http://localhost:${this.#server.config.server?.port}`
         } catch (err: any) {
             throw new Error(`Vite server failed to start: ${err.stack}`)
         }
@@ -45,12 +49,12 @@ export default class BrowserRunner extends LocalRunner {
         runArgs.caps = makeHeadless(this.options, runArgs.caps)
 
         if (runArgs.command === 'run') {
-            runArgs.args.baseUrl = `http://localhost:${this.#server.config.server?.port}`
+            runArgs.args.baseUrl = this._config.baseUrl
         }
 
         const worker = super.run(runArgs)
         worker.on('message', async (payload: SessionStartedMessage | SessionEndedMessage) => {
-            if (payload.name === 'sessionStarted') {
+            if (payload.name === 'sessionStarted' && !SESSIONS.has(payload.cid!)) {
                 SESSIONS.set(payload.cid!, {
                     args: this.#config.mochaOpts || {},
                     config: this.#config,
