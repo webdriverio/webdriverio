@@ -83,14 +83,16 @@ describe('CucumberAdapter', () => {
     })
 
     it('can be initiated with tests', async () => {
-        const adapter = await CucumberAdapter.init!!('0-0', {}, ['/foo/bar'], {}, {})
+        const adapter = await CucumberAdapter.init!!('0-0', {
+            cucumberOpts: { names: 'FeatureA,FeatureB' }
+        }, ['/foo/bar'], {}, {})
 
         expect(executeHooksWithArgs).toBeCalledTimes(0)
         expect(adapter.hasTests()).toBe(true)
         expect(Cucumber.PickleFilter).toBeCalledWith({
             cwd: expect.any(String),
             featurePaths: ['/foo/bar'],
-            names: [],
+            names: ['FeatureA', 'FeatureB'],
             tagExpression: ''
         })
     })

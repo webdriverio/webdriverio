@@ -72,7 +72,17 @@ class CucumberAdapter {
         private _capabilities: Capabilities.RemoteCapability,
         private _reporter: EventEmitter
     ) {
-        this._cucumberOpts = Object.assign({}, DEFAULT_OPTS, this._config.cucumberOpts as Required<CucumberOptions>)
+        const namesParam = this._config.cucumberOpts?.names || []
+        this._cucumberOpts = Object.assign(
+            {},
+            DEFAULT_OPTS,
+            this._config.cucumberOpts as Required<CucumberOptions>,
+            /**
+             * fix names param when passed in as CLI param, e.g.
+             * wdio run wdio.conf.ts --cucumberOpts.names="FeatureA"
+             */
+            typeof namesParam === 'string' ? { names: (namesParam as string).split(',') } : {}
+        )
         this._hasTests = true
         this._cucumberFeaturesWithLineNumbers = this._config.cucumberFeaturesWithLineNumbers || []
         this._eventBroadcaster = new EventEmitter()

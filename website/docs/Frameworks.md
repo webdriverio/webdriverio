@@ -314,7 +314,7 @@ Treat undefined definitions as warnings. Please note that this is a @wdio/cucumb
 Type: `boolean`<br />
 Default: `false`
 
-#### name
+#### names
 Only execute the scenarios with name matching the expression (repeatable).
 
 Type: `RegExp[]`<br />
