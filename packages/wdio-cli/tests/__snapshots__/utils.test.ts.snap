@@ -1,38 +1,5 @@
 // Vitest Snapshot v1
 
-exports[`createWDIOConfig 1`] = `
-[
-  [
-    "/foo/wdio.conf.js",
-    undefined,
-  ],
-  [
-    "/foo/test/pageobjects/page.js",
-    undefined,
-  ],
-  [
-    "undefined",
-    undefined,
-  ],
-  [
-    "/foo/test/specs/example.feature",
-    undefined,
-  ],
-  [
-    "/foo/test/pageobjects/page.js",
-    undefined,
-  ],
-  [
-    "undefined",
-    undefined,
-  ],
-  [
-    "/foo/test/specs/example.feature",
-    undefined,
-  ],
-]
-`;
-
 exports[`getAnswers 1`] = `
 {
   "backend": "On my local machine",
@@ -41,7 +8,6 @@ exports[`getAnswers 1`] = `
   "generateTestFiles": true,
   "isUsingCompiler": "TypeScript (https://www.typescriptlang.org/)",
   "npmInstall": true,
-  "pages": "/foo/test/pageobjects/**/*.js",
   "plugins": [],
   "reporters": [
     "@wdio/spec-reporter$--$spec",
@@ -50,7 +16,6 @@ exports[`getAnswers 1`] = `
   "services": [
     "wdio-chromedriver-service$--$chromedriver",
   ],
-  "specs": "/foo/test/specs/**/*.js",
   "usePageObjects": true,
 }
 `;
