@@ -19,7 +19,7 @@ vi.mock('child_process', () => {
 })
 
 test('should fork a new process', () => {
-    const runner = new LocalRunner('/path/to/wdio.conf.js', {
+    const runner = new LocalRunner(undefined as never, {
         outputDir: '/foo/bar',
         runnerEnv: { FORCE_COLOR: 1 }
     } as any)
@@ -58,7 +58,7 @@ test('should fork a new process', () => {
 })
 
 test('should shut down worker processes', async () => {
-    const runner = new LocalRunner('/path/to/wdio.conf.js', {
+    const runner = new LocalRunner(undefined as never, {
         outputDir: '/foo/bar',
         runnerEnv: { FORCE_COLOR: 1 }
     } as any)
@@ -103,7 +103,7 @@ test('should shut down worker processes', async () => {
 })
 
 test('should avoid shutting down if worker is not busy', async () => {
-    const runner = new LocalRunner('/path/to/wdio.conf.js', {
+    const runner = new LocalRunner(undefined as never, {
         outputDir: '/foo/bar',
         runnerEnv: { FORCE_COLOR: 1 }
     } as any)
@@ -126,7 +126,7 @@ test('should avoid shutting down if worker is not busy', async () => {
 })
 
 test('should shut down worker processes in watch mode - regular', async () => {
-    const runner = new LocalRunner('/path/to/wdio.conf.js', {
+    const runner = new LocalRunner(undefined as never, {
         outputDir: '/foo/bar',
         runnerEnv: { FORCE_COLOR: 1 },
         watch: true,
@@ -163,11 +163,10 @@ test('should shut down worker processes in watch mode - regular', async () => {
     expect(call.args.isMultiremote).toBeFalsy()
     expect(call.args.config.sessionId).toBe('abc')
     expect(call.args.config.host).toEqual('foo')
-    expect(call.args.caps).toEqual({ browser: 'chrome' })
 })
 
 test('should shut down worker processes in watch mode - mutliremote', async () => {
-    const runner = new LocalRunner('/path/to/wdio.conf.js', {
+    const runner = new LocalRunner(undefined as never, {
         outputDir: '/foo/bar',
         runnerEnv: { FORCE_COLOR: 1 },
         watch: true,
@@ -207,10 +206,9 @@ test('should shut down worker processes in watch mode - mutliremote', async () =
     expect(call.args.watch).toBe(true)
     expect(call.args.isMultiremote).toBe(true)
     expect(call.args.instances).toEqual({ foo: { sessionId: '123' } })
-    expect(call.args.caps).toEqual({ foo: { capabilities: { browser: 'chrome' } } })
 })
 
 test('should avoid shutting down if worker is not busy', async () => {
-    const runner = new LocalRunner('/path/to/wdio.conf.js', {} as any)
+    const runner = new LocalRunner(undefined as never, {} as any)
     expect(runner.initialise()).toBe(undefined)
 })

@@ -54,21 +54,5 @@ describe('wdio-runner', () => {
 
             expect(result).toEqual({ bar: 'foo', sessionId: 'id' })
         })
-
-        it('should add user flags to browser but not overwrite', async () => {
-            const browser = await runner['_initSession'](
-                // @ts-ignore test scenario
-                { injectGlobals: false },
-                undefined,
-                { isFoo: true, $: true, $$: false, isBar: true }
-            )
-
-            expect(typeof browser!.$).toBe('function')
-            expect(typeof browser!.$$).toBe('function')
-            // @ts-ignore test scenario
-            expect(browser.isFoo).toBe(true)
-            // @ts-ignore test scenario
-            expect(browser.isBar).toBe(false)
-        })
     })
 })

@@ -1,8 +1,9 @@
 import { vi, describe, it, expect, afterEach } from 'vitest'
+import url from 'node:url'
 import path from 'node:path'
 import chokidar from 'chokidar'
 import EventEmitter from 'node:events'
-import type { Workers } from '@wdio/types'
+import type { Options, Workers } from '@wdio/types'
 
 import type { RunCommandArguments } from '../src/types'
 import Watcher from '../src/watcher.js'
@@ -47,8 +48,9 @@ interface WorkerMockRunPayload extends Partial<Workers.WorkerRunPayload> {
 
 class WorkerMock extends EventEmitter implements Workers.Worker {
     cid: string
-    specs: string[]
+    specs: any
     caps: WebDriver.DesiredCapabilities
+    config: Options.Testrunner
     capabilities: WebDriver.DesiredCapabilities
     sessionId: string
     isBusy: boolean
@@ -57,8 +59,12 @@ class WorkerMock extends EventEmitter implements Workers.Worker {
     constructor ({ cid, specs, sessionId, isBusy = false }: WorkerMockRunPayload) {
         super()
         this.cid = cid || `${Math.random()}`
-        this.specs = specs
+        this.specs = specs.map((spec) => Array.isArray(spec)
+            ? spec.map((s) => url.pathToFileURL(s).href)
+            : url.pathToFileURL(spec).href
+        )
         this.caps = { browserName: 'chrome' }
+        this.config = { baseUrl: 'http://localhost:1234' } as any
         this.capabilities = this.caps
         this.sessionId = sessionId || `${Math.random()}`
         this.isBusy = isBusy
@@ -70,18 +76,7 @@ describe('watcher', () => {
     it('should initialise properly', async () => {
         const wdioConf = path.join(__dirname, '__fixtures__', 'wdio.conf')
         const watcher = new Watcher(wdioConf, {})
-        expect(watcher['_specs']).toEqual([
-            './tests/test1.js',
-            './tests/test2.js'
-        ])
-    })
-
-    it('should initialise properly in Multiremote', async () => {
-        const wdioConf = path.join(__dirname, '__fixtures__', 'wdio.conf')
-        const watcher = new Watcher(wdioConf, { isMultiremote: true } as any)
-        expect(watcher['_specs']).toEqual([
-            './tests/test1.js',
-        ])
+        expect(watcher['_launcher']).toBeDefined()
     })
 
     it('should run initial suite when starting watching', async () => {
@@ -93,7 +88,10 @@ describe('watcher', () => {
                 finalise: vi.fn()
             },
             configParser: {
-                getConfig: vi.fn().mockReturnValue({ filesToWatch: [] })
+                getConfig: vi.fn().mockReturnValue({ filesToWatch: ['./foobar'] }),
+                initialize: vi.fn(),
+                getSpecs: vi.fn().mockReturnValue(['file:///foo', 'file:///bar']),
+                getCapabilities: vi.fn().mockReturnValue([{ browserName: 'chrome' }])
             },
             runner: {
                 workerPool: {
@@ -103,7 +101,10 @@ describe('watcher', () => {
         } as any
         await watcher.watch()
 
-        expect(chokidar.watch).toHaveBeenCalledTimes(1)
+        expect(chokidar.watch).toHaveBeenCalledTimes(2)
+        expect(chokidar.watch).toBeCalledWith(['/foo', '/bar'], expect.any(Object))
+        expect(chokidar.watch).toBeCalledWith(['./foobar'], expect.any(Object))
+
     })
 
     it('should run initial suite when starting watching with grouped specs', async () => {
@@ -115,7 +116,10 @@ describe('watcher', () => {
                 finalise: vi.fn()
             },
             configParser: {
-                getConfig: vi.fn().mockReturnValue({ filesToWatch: [] })
+                getConfig: vi.fn().mockReturnValue({ filesToWatch: [] }),
+                initialize: vi.fn(),
+                getSpecs: vi.fn().mockReturnValue(['file:///foo', 'file:///bar']),
+                getCapabilities: vi.fn().mockReturnValue([{ browserName: 'chrome' }])
             },
             runner: {
                 workerPool: {
@@ -137,7 +141,10 @@ describe('watcher', () => {
                 finalise: vi.fn()
             },
             configParser: {
-                getConfig: vi.fn().mockReturnValue({ filesToWatch: ['/foo/bar'] })
+                getConfig: vi.fn().mockReturnValue({ filesToWatch: ['/foo/bar'] }),
+                initialize: vi.fn(),
+                getSpecs: vi.fn().mockReturnValue(['file:///foo', 'file:///bar']),
+                getCapabilities: vi.fn().mockReturnValue([{ browserName: 'chrome' }])
             },
             runner: {
                 workerPool: {
@@ -171,7 +178,10 @@ describe('watcher', () => {
                 finalise: vi.fn()
             },
             configParser: {
-                getConfig: vi.fn().mockReturnValue({ filesToWatch: ['/foo/bar'] })
+                getConfig: vi.fn().mockReturnValue({ filesToWatch: ['/foo/bar'] }),
+                initialize: vi.fn(),
+                getSpecs: vi.fn().mockReturnValue(['file:///foo', 'file:///bar']),
+                getCapabilities: vi.fn().mockReturnValue([{ browserName: 'chrome' }])
             },
             runner: {
                 workerPool: {
@@ -190,8 +200,8 @@ describe('watcher', () => {
         vi.mocked(chokidar.on).mock.calls[2][1]('/some/another/path.js')
         // @ts-ignore mock feature
         vi.mocked(chokidar.on).mock.calls[3][1]('/some/another/path.js')
-        expect(watcher.run).toHaveBeenNthCalledWith(1, { spec: '/some/path.js' })
-        expect(watcher.run).toHaveBeenNthCalledWith(2, { spec: '/some/other/path.js' })
+        expect(watcher.run).toHaveBeenNthCalledWith(1, { spec: ['file:///some/path.js'] })
+        expect(watcher.run).toHaveBeenNthCalledWith(2, { spec: ['file:///some/other/path.js'] })
         expect(watcher.run).toHaveBeenNthCalledWith(3, {})
         expect(watcher.run).toHaveBeenNthCalledWith(4, {})
     })
@@ -200,9 +210,9 @@ describe('watcher', () => {
         const wdioConf = path.join(__dirname, '__fixtures__', 'wdio.conf')
         const watcher = new Watcher(wdioConf, {})
         const workerPool = {
-            '0-0': new WorkerMock({ cid: '0-0', specs: ['/foo/bar.js'] }),
-            '0-1': new WorkerMock({ cid: '0-1', specs: ['/foo/bar2.js'], isBusy: true }),
-            '1-0': new WorkerMock({ cid: '1-0', specs: ['/bar/foo.js'] })
+            '0-0': new WorkerMock({ cid: '0-0', specs: ['file:///foo/bar.js'] }),
+            '0-1': new WorkerMock({ cid: '0-1', specs: ['file:///foo/bar2.js'], isBusy: true }),
+            '1-0': new WorkerMock({ cid: '1-0', specs: ['file:///bar/foo.js'] })
         }
         watcher['_launcher'].runner!.workerPool = workerPool
 
@@ -212,7 +222,7 @@ describe('watcher', () => {
             '1-0': workerPool['1-0']
         })
         expect(watcher.getWorkers(
-            (worker: Workers.Worker) => worker.specs.includes('/bar/foo.js'))
+            (worker: Workers.Worker) => worker.specs.find((spec) => spec.endsWith('/bar/foo.js')))
         ).toEqual({ '1-0': workerPool['1-0'] })
     })
 
@@ -227,15 +237,19 @@ describe('watcher', () => {
             '1-0': new WorkerMock({ cid: '1-0', specs: ['/bar/foo.js'] })
         }
         watcher['_launcher'].interface!.emit = vi.fn()
-        watcher.run({ spec: '/foo/bar.js' } as any)
+        watcher.run({ spec: 'file:///foo/bar.js' } as any)
         expect(watcher['_launcher'].interface!.emit).toHaveBeenCalledWith('job:start', {
             cid: '0-0',
             caps: { browserName: 'chrome' },
-            specs: ['/foo/bar.js']
+            specs: ['file:///foo/bar.js']
         })
 
         const { postMessage, sessionId } = watcher['_launcher'].runner!.workerPool['0-0']
-        expect(postMessage).toHaveBeenCalledWith('run', { sessionId, spec: '/foo/bar.js' })
+        expect(postMessage).toHaveBeenCalledWith('run', {
+            sessionId,
+            spec: 'file:///foo/bar.js',
+            baseUrl: 'http://localhost:1234'
+        })
         expect(watcher['_launcher'].interface!.totalWorkerCnt).toBe(1)
     })
 
@@ -273,20 +287,20 @@ describe('watcher', () => {
         const worker00 = watcher['_launcher'].runner!.workerPool['0-0']
         expect(worker00.postMessage).toHaveBeenCalledWith(
             'run',
-            { sessionId: worker00.sessionId })
+            { sessionId: worker00.sessionId, baseUrl: 'http://localhost:1234' })
         expect(watcher['_launcher'].interface!.emit).toHaveBeenCalledWith('job:start', {
             cid: '0-0',
             caps: { browserName: 'chrome' },
-            specs: ['/foo/bar.js'] })
+            specs: ['file:///foo/bar.js'] })
 
         const worker10 = watcher['_launcher'].runner!.workerPool['0-0']
         expect(worker10.postMessage).toHaveBeenCalledWith(
             'run',
-            { sessionId: worker10.sessionId })
+            { sessionId: worker10.sessionId, baseUrl: 'http://localhost:1234' })
         expect(watcher['_launcher'].interface!.emit).toHaveBeenCalledWith('job:start', {
             cid: '1-0',
             caps: { browserName: 'chrome' },
-            specs: ['/bar/foo.js'] })
+            specs: ['file:///bar/foo.js'] })
     })
 
     it('should re-run all specs when the --spec command line option is set and a filesToWatch file is added or changed', async () => {
@@ -303,7 +317,10 @@ describe('watcher', () => {
                 finalise: vi.fn()
             },
             configParser: {
-                getConfig: vi.fn().mockReturnValue({ filesToWatch })
+                getConfig: vi.fn().mockReturnValue({ filesToWatch }),
+                initialize: vi.fn(),
+                getSpecs: vi.fn().mockReturnValue(['file:///foo', 'file:///bar']),
+                getCapabilities: vi.fn().mockReturnValue([{ browserName: 'chrome' }])
             },
             runner: {
                 workerPool: {
@@ -319,13 +336,13 @@ describe('watcher', () => {
 
         // @ts-ignore mock feature
         vi.mocked(chokidar.on).mock.calls[0][1](spec[0])
-        expect(runSpy).toHaveBeenNthCalledWith(1, { spec: spec[0] })
+        expect(runSpy).toHaveBeenNthCalledWith(1, { spec: [`file://${spec[0]}`] })
         expect(emitSpy).toHaveBeenCalledTimes(1) // Only one Worker called
 
         vi.mocked(emitSpy).mockClear()
         // @ts-ignore mock feature
         vi.mocked(chokidar.on).mock.calls[1][1](someOtherExcludedPath)
-        expect(runSpy).toHaveBeenNthCalledWith(2, { spec: someOtherExcludedPath })
+        expect(runSpy).toHaveBeenNthCalledWith(2, { spec: [`file://${someOtherExcludedPath}`] })
         expect(emitSpy).not.toHaveBeenCalled() // No Workers called
 
         vi.mocked(emitSpy).mockClear()
@@ -356,12 +373,15 @@ describe('watcher', () => {
                 finalise: vi.fn()
             },
             configParser: {
-                getConfig: vi.fn().mockReturnValue({ filesToWatch })
+                getConfig: vi.fn().mockReturnValue({ filesToWatch }),
+                initialize: vi.fn(),
+                getSpecs: vi.fn().mockReturnValue(['file:///foo', 'file:///bar']),
+                getCapabilities: vi.fn().mockReturnValue([{ browserName: 'chrome' }])
             },
             runner: {
                 workerPool: {
                     '0-0': new WorkerMock({ cid: '0-0', specs: [spec[0] as any] }),
-                    '0-1': new WorkerMock({ cid: '0-1', specs: [spec[1] as any] })
+                    '0-1': new WorkerMock({ cid: '0-1', specs: spec[1] as any })
                 }
             }
         } as any
@@ -372,13 +392,13 @@ describe('watcher', () => {
 
         // @ts-ignore mock feature
         vi.mocked(chokidar.on).mock.calls[0][1](spec[0])
-        expect(runSpy).toHaveBeenNthCalledWith(1, { spec: spec[0] })
+        expect(runSpy).toHaveBeenNthCalledWith(1, { spec: [`file://${spec[0]}`] })
         expect(emitSpy).toHaveBeenCalledTimes(1) // Only one Worker called
 
         vi.mocked(emitSpy).mockClear()
         // @ts-ignore mock feature
         vi.mocked(chokidar.on).mock.calls[1][1](someOtherExcludedPath)
-        expect(runSpy).toHaveBeenNthCalledWith(2, { spec: someOtherExcludedPath })
+        expect(runSpy).toHaveBeenNthCalledWith(2, { spec: [`file://${someOtherExcludedPath}`] })
         expect(emitSpy).not.toHaveBeenCalled() // No Workers called
 
         vi.mocked(emitSpy).mockClear()

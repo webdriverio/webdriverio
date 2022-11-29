@@ -25,19 +25,20 @@ describe('utils', () => {
                 // @ts-ignore test invalid params
                 foo: 'bar'
             }
-            initialiseInstance(
-                config,
-                {
-                    browserName: 'chrome',
-                    maxInstances: 2,
-                    hostname: 'foobar'
-                }
-            )
+            initialiseInstance(config, {
+                browserName: 'chrome',
+                maxInstances: 2,
+                hostname: 'foobar'
+            })
             expect(attach).toBeCalledWith({
                 sessionId: '123',
                 foo: 'bar',
                 hostname: 'foobar',
-                capabilities: { browserName: 'chrome' }
+                capabilities: {
+                    hostname: 'foobar',
+                    maxInstances: 2,
+                    browserName: 'chrome'
+                }
             })
             expect(config.capabilities).toEqual({ browserName: 'chrome' })
             expect(multiremote).toHaveBeenCalledTimes(0)
