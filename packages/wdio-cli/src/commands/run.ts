@@ -108,7 +108,7 @@ export const builder = (yargs: Argv) => {
         .help()
 }
 
-export function launchWithStdin (wdioConfPath: string, params: Partial<RunCommandArguments>) {
+export function launchWithStdin(wdioConfPath: string, params: Partial<RunCommandArguments>) {
     let stdinData = ''
     const stdin = process.openStdin()
 
@@ -124,48 +124,7 @@ export function launchWithStdin (wdioConfPath: string, params: Partial<RunComman
     })
 }
 
-export async function launch (wdioConfPath: string, params: Partial<RunCommandArguments>) {
-    /**
-     * In order to load TypeScript files in ESM we need to apply the ts-node loader.
-     * Let's have WebdriverIO set it automatically if the user doesn't.
-     */
-    const nodePath = process.argv[0]
-    let NODE_OPTIONS = process.env.NODE_OPTIONS || ''
-    const runsWithLoader = (
-        Boolean(
-            process.argv.find((arg) => arg.startsWith('--loader')) &&
-            process.argv.find((arg) => arg.endsWith('ts-node/esm'))
-        ) ||
-        NODE_OPTIONS?.includes('ts-node/esm')
-    )
-    if (wdioConfPath.endsWith('.ts') && !runsWithLoader && nodePath) {
-        NODE_OPTIONS += ' --loader ts-node/esm/transpile-only --no-warnings'
-        const localTSConfigPath = (
-            (
-                params.autoCompileOpts?.tsNodeOpts?.project &&
-                path.resolve(process.cwd(), params.autoCompileOpts?.tsNodeOpts?.project)
-            ) ||
-            path.join(path.dirname(wdioConfPath), 'tsconfig.json')
-        )
-        const hasLocalTSConfig = await fs.access(localTSConfigPath).then(() => true, () => false)
-        const tsProcess = cp.spawn(nodePath, process.argv.slice(1), {
-            cwd: process.cwd(),
-            detached : true,
-            stdio: 'inherit',
-            env: {
-                ...process.env,
-                ...(hasLocalTSConfig ? { TS_NODE_PROJECT: localTSConfigPath } : {}),
-                NODE_OPTIONS
-            }
-        })
-
-        /**
-         * ensure process is killed according to result of new process
-         */
-        tsProcess.on('close', (code) => process.exit(code || 0))
-        return tsProcess
-    }
-
+export async function launch(wdioConfPath: string, params: Partial<RunCommandArguments>) {
     const launcher = new Launcher(wdioConfPath, params)
     return launcher.run()
         .then((...args) => {
@@ -183,7 +142,7 @@ export async function launch (wdioConfPath: string, params: Partial<RunCommandAr
         })
 }
 
-export async function handler (argv: RunCommandArguments) {
+export async function handler(argv: RunCommandArguments) {
     const { configPath, ...params } = argv
 
     const canAccessConfigPath = await fs.access(configPath).then(
@@ -200,6 +159,47 @@ export async function handler (argv: RunCommandArguments) {
         ? localConf
         : undefined
     ) as string
+
+    /**
+     * In order to load TypeScript files in ESM we need to apply the ts-node loader.
+     * Let's have WebdriverIO set it automatically if the user doesn't.
+     */
+    const nodePath = process.argv[0]
+    let NODE_OPTIONS = process.env.NODE_OPTIONS || ''
+    const runsWithLoader = (
+        Boolean(
+            process.argv.find((arg) => arg.startsWith('--loader')) &&
+            process.argv.find((arg) => arg.endsWith('ts-node/esm'))
+        ) ||
+        NODE_OPTIONS?.includes('ts-node/esm')
+    )
+    if (wdioConf.endsWith('.ts') && !runsWithLoader && nodePath) {
+        NODE_OPTIONS += ' --loader ts-node/esm/transpile-only --no-warnings'
+        const localTSConfigPath = (
+            (
+                params.autoCompileOpts?.tsNodeOpts?.project &&
+                path.resolve(process.cwd(), params.autoCompileOpts?.tsNodeOpts?.project)
+            ) ||
+            path.join(path.dirname(wdioConf), 'tsconfig.json')
+        )
+        const hasLocalTSConfig = await fs.access(localTSConfigPath).then(() => true, () => false)
+        const tsProcess = cp.spawn(nodePath, process.argv.slice(1), {
+            cwd: process.cwd(),
+            detached: true,
+            stdio: 'inherit',
+            env: {
+                ...process.env,
+                ...(hasLocalTSConfig ? { TS_NODE_PROJECT: localTSConfigPath } : {}),
+                NODE_OPTIONS
+            }
+        })
+
+        /**
+         * ensure process is killed according to result of new process
+         */
+        tsProcess.on('close', (code) => process.exit(code || 0))
+        return tsProcess
+    }
 
     /**
      * if `--watch` param is set, run launcher in watch mode
