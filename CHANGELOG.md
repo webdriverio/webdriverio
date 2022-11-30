@@ -17,7 +17,168 @@ See [CHANGELOG - v5](https://github.com/webdriverio/webdriverio/blob/v5/CHANGELO
 
 See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELOG.md)
 
+See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELOG.md)
+
 ---
+
+## v7.27.0 (2022-11-23)
+
+#### :eyeglasses: Spec Compliancy
+* `wdio-protocols`
+  * [#9177](https://github.com/webdriverio/webdriverio/pull/9177) Fix URLs for webauthn extension capabilities ([@ericparton](https://github.com/ericparton))
+
+#### :rocket: New Feature
+* `wdio-browserstack-service`
+  * [#9168](https://github.com/webdriverio/webdriverio/pull/9168) [v7] @wdio/browserstack-service: Add session naming options ([@SCG82](https://github.com/SCG82))
+
+#### :nail_care: Polish
+* `wdio-sauce-service`
+  * [#9167](https://github.com/webdriverio/webdriverio/pull/9167) [v7] @wdio/sauce-service: apply setJobName in beforeSuite ([@SCG82](https://github.com/SCG82))
+
+#### :memo: Documentation
+* `wdio-cli`
+  * [#9228](https://github.com/webdriverio/webdriverio/pull/9228) [v7] Add the Vitaq AI service to the list of services in the v7 WebdriverIO documentation ([@RossVertizan](https://github.com/RossVertizan))
+
+#### Committers: 3
+- Eric Parton ([@ericparton](https://github.com/ericparton))
+- Ross Addinall ([@RossVertizan](https://github.com/RossVertizan))
+- [@SCG82](https://github.com/SCG82)
+
+
+## v7.26.0 (2022-11-12)
+
+#### :bug: Bug Fix
+* `wdio-concise-reporter`, `wdio-junit-reporter`, `wdio-runner`, `wdio-types`
+  * [#9157](https://github.com/webdriverio/webdriverio/pull/9157) [v7] @wdio/types: Add type definition for reporter outputFileFormat ([@SCG82](https://github.com/SCG82))
+* `wdio-config`
+  * [#9103](https://github.com/webdriverio/webdriverio/pull/9103) Fix exclude pattern when cli spec passed v7 ([@dragosMC91](https://github.com/dragosMC91))
+
+#### :memo: Documentation
+* `wdio-types`
+  * [#9137](https://github.com/webdriverio/webdriverio/pull/9137) [v7] @wdio/types: fix ChromeOptions - perfLoggingPrefs  ([@SCG82](https://github.com/SCG82))
+  * [#9121](https://github.com/webdriverio/webdriverio/pull/9121) Add missing capability types in BrowserStackCapabilities ([@SCG82](https://github.com/SCG82))
+
+#### Committers: 3
+- Dragos Campean ([@dragosMC91](https://github.com/dragosMC91))
+- Sébastien David (seb) ([@alk-sdavid](https://github.com/alk-sdavid))
+- [@SCG82](https://github.com/SCG82)
+
+
+## v7.25.4 (2022-10-28)
+
+#### :bug: Bug Fix
+* `wdio-mocha-framework`
+  * [#9083](https://github.com/webdriverio/webdriverio/pull/9083) Issue 9082 - beforeTest afterTest hooks not working with `specify` test interface in Mocha BDD ([@nagpalkaran95](https://github.com/nagpalkaran95))
+* `webdriverio`
+  * [#9050](https://github.com/webdriverio/webdriverio/pull/9050) fix: access ShadowRoot via window.ShadowRoot ([@klipstein](https://github.com/klipstein))
+
+#### :memo: Documentation
+* [#9088](https://github.com/webdriverio/webdriverio/pull/9088) Fix example to check wdio options with TypeScript (v7) ([@rhysd](https://github.com/rhysd))
+
+#### Committers: 4
+- Boris Brtáň ([@boris-brtan](https://github.com/boris-brtan))
+- Karan Nagpal ([@nagpalkaran95](https://github.com/nagpalkaran95))
+- Linda_pp ([@rhysd](https://github.com/rhysd))
+- Tobias von Klipstein ([@klipstein](https://github.com/klipstein))
+
+
+## v7.25.0 (2022-09-23)
+
+#### :rocket: New Feature
+* `wdio-browserstack-service`
+  * [#8856](https://github.com/webdriverio/webdriverio/pull/8856) [Browserstack-service] Local App file upload to browserstack for Appium sessions ([@avinash-bharti](https://github.com/avinash-bharti))
+
+#### Committers: 1
+- Avinash Bharti ([@avinash-bharti](https://github.com/avinash-bharti))
+
+
+## v7.24.0 (2022-09-01)
+
+#### :rocket: New Feature
+* `webdriverio`
+  * [#8762](https://github.com/webdriverio/webdriverio/pull/8762) Allow fetching elements by a11y name ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :nail_care: Polish
+* `wdio-types`
+  * [#8791](https://github.com/webdriverio/webdriverio/pull/8791) (bug):fix missing capas for WinAPPDriver for v7 ([@lacell75](https://github.com/lacell75))
+
+#### :memo: Documentation
+* [#8736](https://github.com/webdriverio/webdriverio/pull/8736) Document new Chrome DevTools Recorder integration ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 4
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Fabien CELLIER ([@lacell75](https://github.com/lacell75))
+- Jecelyn Yeen ([@jecfish](https://github.com/jecfish))
+- Narin Luangrath ([@narinluangrath](https://github.com/narinluangrath))
+
+
+## v7.22.0 (2022-08-19)
+
+#### :boom: Breaking Change
+* `wdio-protocols`, `webdriverio`
+  * [#8692](https://github.com/webdriverio/webdriverio/pull/8692) Support detailed contexts in TypeScript ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :bug: Bug Fix
+* `devtools`
+  * [#8691](https://github.com/webdriverio/webdriverio/pull/8691) Support prefs when running devtools ([@christian-bromann](https://github.com/christian-bromann))
+* `webdriverio`
+  * [#8693](https://github.com/webdriverio/webdriverio/pull/8693) Support direct locators in Appium ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :nail_care: Polish
+* `wdio-cli`
+  * [#8630](https://github.com/webdriverio/webdriverio/pull/8630) Issue 8592: Detailed message for missing config ([@perillai](https://github.com/perillai))
+
+#### :memo: Documentation
+* `wdio-browserstack-service`
+  * [#8575](https://github.com/webdriverio/webdriverio/pull/8575) Update default env var and readme ([@Ankit098](https://github.com/Ankit098))
+
+#### Committers: 4
+- Ankit Singh ([@Ankit098](https://github.com/Ankit098))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Kyle Pittman ([@monkpit](https://github.com/monkpit))
+- Perillai ([@perillai](https://github.com/perillai))
+
+
+## v7.21.0 (2022-08-16)
+
+#### :nail_care: Polish
+* `wdio-cli`
+  * [#8633](https://github.com/webdriverio/webdriverio/pull/8633) Issue 8592: Detailed message for missing config - v7 ([@perillai](https://github.com/perillai))
+
+#### Committers: 7
+- Chandler Boone Ferry ([@ChandlerFerry](https://github.com/ChandlerFerry))
+- Erik B. ([@erborg](https://github.com/erborg))
+- Gencho Kerkeniakov ([@kerkeniakov](https://github.com/kerkeniakov))
+- Perillai ([@perillai](https://github.com/perillai))
+- Richard Roozenboom ([@Roozenboom](https://github.com/Roozenboom))
+- Sri Harsha ([@harsha509](https://github.com/harsha509))
+- [@olexme](https://github.com/olexme)
+
+
+## v7.20.9 (2022-07-29)
+
+#### :bug: Bug Fix
+* `wdio-sync`
+  * [#8611](https://github.com/webdriverio/webdriverio/pull/8611) fix: pin fibers version to 5.0.1 ([@harsha509](https://github.com/harsha509))
+
+#### Committers: 1
+- Sri Harsha ([@harsha509](https://github.com/harsha509))
+
+
+## v7.20.8 (2022-07-28)
+
+#### :bug: Bug Fix
+* `devtools`
+  * [#8542](https://github.com/webdriverio/webdriverio/pull/8542) Make WebDriverIO compatible with pnpm without hoisting ([@dgp1130](https://github.com/dgp1130))
+
+#### :nail_care: Polish
+* `wdio-browserstack-service`
+  * [#8498](https://github.com/webdriverio/webdriverio/pull/8498) Browserstack multiremote fix ([@Ankit098](https://github.com/Ankit098))
+
+#### Committers: 2
+- Ankit Singh ([@Ankit098](https://github.com/Ankit098))
+- Douglas Parker ([@dgp1130](https://github.com/dgp1130))
+
 
 ## v7.20.7 (2022-07-17)
 
