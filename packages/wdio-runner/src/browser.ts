@@ -76,9 +76,12 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
             /**
              * fetch page errors that are thrown during rendering and let spec file fail
              */
-            const jsErrors: WDIOErrorEvent[] = (await browser.execute(() => window.__wdioErrors__)) || ([])
+            const jsErrors: WDIOErrorEvent[] = (await browser.execute(() => window.__wdioErrors__ || [{
+                // if `__wdioErrors__` is not defined we ended up in on an error page
+                message: 'Failed to load test page'
+            }]))
             if (jsErrors.length) {
-                const errors = jsErrors.map((ev) => `${path.basename(ev.filename)}: ${ev.message}`)
+                const errors = jsErrors.map((ev) => `${path.basename(ev.filename || spec)}: ${ev.message}`)
                 const { name, message, stack } = new Error(`Test failed due to following error(s):${sep}${errors.join(sep)}`)
                 process.send!({
                     origin: 'worker',

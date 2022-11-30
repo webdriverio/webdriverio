@@ -42,9 +42,12 @@ export class ViteServer {
 
         this.#viteConfig = deepmerge(DEFAULT_VITE_CONFIG, {
             root: options.rootDir || process.cwd(),
-            plugins: [testrunner(options)],
-            ...(options.viteConfig ? options.viteConfig : {})
+            plugins: [testrunner(options)]
         })
+
+        if (options.viteConfig) {
+            this.#viteConfig = deepmerge(this.#viteConfig, options.viteConfig)
+        }
     }
 
     async start () {
