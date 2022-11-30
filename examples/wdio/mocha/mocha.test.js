@@ -1,3 +1,5 @@
+import { browser, expect } from '@wdio/globals'
+
 describe('webdriver.io page', () => {
     it('should be a pending test')
 

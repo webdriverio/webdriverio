@@ -1,4 +1,8 @@
-exports.config = {
+import url from 'node:url'
+
+const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
+
+export const config = {
     /**
      * specify test files
      */
