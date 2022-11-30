@@ -3,11 +3,32 @@ id: customcommands
 title: Custom Commands
 ---
 
-## Adding custom commands
-
 If you want to extend the `browser` instance with your own set of commands, the browser method  `addCommand` is here for you. You can write your command in a asynchronous way, just as in your specs.
 
-This example shows how to add a new command that returns the current URL and title as one result. The scope (`this`) is a [`WebdriverIO.Browser](/docs/api/browser) object.
+## Parameters
+
+### Command Name
+
+A name that defines the command and will be attached to the browser or element scope.
+
+Type: `String`
+
+### Custom Function
+
+A function that is being executed when the command is called. The `this` scope is either [`WebdriverIO.Browser`](/docs/api/browser) or [`WebdriverIO.Element`](/docs/api/element) depending whether the command gets attached to the browser or element scope.
+
+Type: `Function`
+
+### Target Scope
+
+Flag to decide whether to attach the command to the browser or element scope. If set to `true` the command will be an element command.
+
+Type: `Boolean`<br />
+Default: `false`
+
+## Examples
+
+This example shows how to add a new command that returns the current URL and title as one result. The scope (`this`) is a [`WebdriverIO.Browser`](/docs/api/browser) object.
 
 ```js
 browser.addCommand('getUrlAndTitle', async function (customVar) {
@@ -20,7 +41,7 @@ browser.addCommand('getUrlAndTitle', async function (customVar) {
 })
 ```
 
-Additionally, you can extend the element instance with your own set of commands, by passing `true` as the final argument. The scope (`this`) in this case is a [`WebdriverIO.Element](/docs/api/element) object.
+Additionally, you can extend the element instance with your own set of commands, by passing `true` as the final argument. The scope (`this`) in this case is a [`WebdriverIO.Element`](/docs/api/element) object.
 
 ```js
 browser.addCommand("waitAndClick", async function () {
@@ -167,7 +188,7 @@ declare namespace WebdriverIO {
 </TabItem>
 </Tabs>
 
-## Integrate 3rd party libraries
+## Integrate 3rd Party Libraries
 
 If you use external libraries (e.g., to do database calls) that support promises, a nice approach to integrate them is to wrap certain API methods with a custom command.
 
@@ -193,7 +214,7 @@ it('execute external library in a sync way', async () => {
 
 **Note:** The result of your custom command is the result of the promise you return.
 
-## Overwriting native commands
+## Overwriting Commands
 
 You can also overwrite native commands with `overwriteCommand`.
 
@@ -201,7 +222,7 @@ It is not recommended to do this, because it may lead to unpredictable behavior 
 
 The overall approach is similar to `addCommand`, the only difference is that the first argument in the command function is the original function that you are about to overwrite. Please see some examples below.
 
-### Overwriting browser commands
+### Overwriting Browser Commands
 
 ```js
 /**
@@ -219,7 +240,7 @@ browser.overwriteCommand('pause', async (origPauseFunction, ms) => {
 console.log(`was sleeping for ${await browser.pause(1000)}`)
 ```
 
-#### Overwriting element commands
+### Overwriting Element Commands
 
 Overwriting commands on element level is almost the same. Simply pass `true` as the third argument to `overwriteCommand`:
 

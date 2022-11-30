@@ -8,6 +8,8 @@ const getWdioMock = () => {
         debug: vi.fn(),
         on: vi.fn(),
         sessionId: 'fakeid',
+        addCommand: vi.fn(),
+        overwriteCommand: vi.fn(),
         react$: vi.fn(),
         react$$: vi.fn(),
         custom$: vi.fn(),

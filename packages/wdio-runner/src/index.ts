@@ -273,10 +273,27 @@ export default class Runner extends EventEmitter {
         caps: Capabilities.RemoteCapability
     ) {
         try {
+            /**
+             * get all custom or overwritten commands users tried to register before the
+             * test started, e.g. after all imports
+             */
+            const customStubCommands: [string, (...args: any[]) => any, boolean][] = (this._browser as any | undefined)?.customCommands || []
+            const overwrittenCommands: [any, (...args: any[]) => any, boolean][] = (this._browser as any | undefined)?.overwrittenCommands || []
+
             this._browser = await initialiseInstance(config, caps, this._isMultiremote)
             _setGlobal('browser', this._browser, config.injectGlobals)
             _setGlobal('driver', this._browser, config.injectGlobals)
             _setGlobal('expect', expect, config.injectGlobals)
+
+            /**
+             * re-assign previously registered custom commands to the actual instance
+             */
+            for (const params of customStubCommands) {
+                this._browser.addCommand(...params)
+            }
+            for (const params of overwrittenCommands) {
+                this._browser.overwriteCommand(...params)
+            }
 
             /**
              * import and set options for `expect-webdriverio` assertion lib once

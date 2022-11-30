@@ -187,10 +187,6 @@ describe('WebdriverIO module interface', () => {
 
             expect(browser.sessionId).toBeUndefined()
             expect(browser.capabilities).toEqual({ browserName: 'chrome', chrome: true })
-            // @ts-ignore test types
-            expect(() => browser.addCommand()).toThrow()
-            // @ts-ignore test types
-            expect(() => browser.overwriteCommand()).toThrow()
 
             const flags: any = {}
             Object.entries(browser).forEach(([key, value]) => {

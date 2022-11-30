@@ -502,6 +502,27 @@ describe('wdio-runner', () => {
         })
     })
 
+    describe('_startSession', () => {
+        it('can start a session', async () => {
+            const runner = new WDIORunner()
+            const browser = await runner['_startSession']({} as any, {} as any)
+            expect(typeof browser?.deleteSession).toBe('function')
+            expect(_setGlobal).toBeCalledTimes(3)
+            expect(setOptions).toBeCalledTimes(1)
+        })
+
+        it('transfers custom commands from old instance to new one', async () => {
+            const runner = new WDIORunner()
+            runner['_browser'] = {
+                customCommands: [[1, 2, 3]],
+                overwrittenCommands: [[3, 2, 1]]
+            } as any
+            const browser = await runner['_startSession']({} as any, {} as any)
+            expect(browser?.addCommand).toBeCalledWith(1, 2, 3)
+            expect(browser?.overwriteCommand).toBeCalledWith(3, 2, 1)
+        })
+    })
+
     describe('_shutdown', () => {
         it('should emit exit', async () => {
             const runner = new WDIORunner()

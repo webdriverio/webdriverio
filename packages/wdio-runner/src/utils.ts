@@ -91,7 +91,12 @@ export async function initialiseInstance (
     }
 
     const browser = await multiremote(options, config)
-    for (let browserName of Object.keys(capabilities)) {
+
+    /**
+     * only attach to global environment if `injectGlobals` is set to true
+     */
+    const browserNames = config.injectGlobals ? Object.keys(capabilities) : []
+    for (let browserName of browserNames) {
         // @ts-ignore allow random global browser names
         global[browserName] = browser[browserName]
     }

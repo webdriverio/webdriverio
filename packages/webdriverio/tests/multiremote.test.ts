@@ -59,13 +59,6 @@ test('should properly create stub instance', async () => {
     expect(browser.browserB).toBeDefined()
     expect(browser.browserA.$).toBeUndefined()
     expect(browser.browserA.$).toBeUndefined()
-
-    // @ts-expect-error invalid params
-    expect(() => browser.addCommand()).toThrow()
-    // @ts-expect-error invalid params
-    expect(() => browser.browserA.addCommand()).toThrow()
-    // @ts-expect-error invalid params
-    expect(() => browser.browserB.overwriteCommand()).toThrow()
 })
 
 test('should allow to call on elements', async () => {
