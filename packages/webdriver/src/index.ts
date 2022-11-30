@@ -14,7 +14,7 @@ import type { Client, AttachOptions, SessionFlags } from './types'
 const log = logger('webdriver')
 
 export default class WebDriver {
-    static async newSession(
+    static async newSession (
         options: Options.WebDriver,
         modifier?: (...args: any[]) => any,
         userPrototype = {},
@@ -74,7 +74,7 @@ export default class WebDriver {
     /**
      * allows user to attach to existing sessions
      */
-    static attachToSession(
+    static attachToSession (
         options?: AttachOptions,
         modifier?: (...args: any[]) => any,
         userPrototype = {},
@@ -127,7 +127,7 @@ export default class WebDriver {
         return sessionId
     }
 
-    static get WebDriver() {
+    static get WebDriver () {
         return WebDriver
     }
 }
