@@ -11,14 +11,15 @@ export async function getTemplate (options: WebdriverIO.BrowserRunnerOptions, en
     let vueDeps = ''
     if (options.preset === 'vue') {
         try {
-            const vueDir = path.dirname(url.fileURLToPath(await resolve('vue', url.pathToFileURL(root).href)))
+            const rootFileUrl = url.pathToFileURL(root).href
+            const vueDir = path.dirname(url.fileURLToPath(await resolve('vue', `${rootFileUrl}/node_modules`)))
             const vueScript = (await fs.readFile(path.join(vueDir, 'dist', 'vue.global.prod.js'), 'utf-8')).toString()
             vueDeps += /*html*/`
             <script type="module">
                 ${vueScript}
                 window.Vue = Vue
             </script>`
-            const vueCompilerDir = path.dirname(url.fileURLToPath(await resolve('@vue/compiler-dom', url.pathToFileURL(root).href)))
+            const vueCompilerDir = path.dirname(url.fileURLToPath(await resolve('@vue/compiler-dom', `${rootFileUrl}/node_modules`)))
             const vueCompilerScript = (await fs.readFile(path.join(vueCompilerDir, 'dist', 'compiler-dom.global.prod.js'))).toString()
             vueDeps += /*html*/`
             <script type="module">
@@ -49,6 +50,14 @@ export async function getTemplate (options: WebdriverIO.BrowserRunnerOptions, en
                 window.__wdioEnv__ = ${JSON.stringify(env)}
                 window.__wdioSpec__ = '${spec}'
                 window.__wdioEvents__ = []
+                /**
+                 * listen to window errors during bootstrap phase
+                 */
+                window.__wdioErrors__ = []
+                addEventListener('error', (ev) => window.__wdioErrors__.push({
+                    filename: ev.filename,
+                    message: ev.message
+                }))
             </script>
             ${vueDeps}
         </head>

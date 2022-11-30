@@ -79,11 +79,11 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
             const jsErrors: WDIOErrorEvent[] = (await browser.execute(() => window.__wdioErrors__)) || ([])
             if (jsErrors.length) {
                 const errors = jsErrors.map((ev) => `${path.basename(ev.filename)}: ${ev.message}`)
-                const envError = new Error(`Test failed due to following error(s):${sep}${errors.join(sep)}`)
-                this._reporter.emit('error', {
-                    cid: this._cid,
+                const { name, message, stack } = new Error(`Test failed due to following error(s):${sep}${errors.join(sep)}`)
+                process.send!({
+                    origin: 'worker',
                     name: 'error',
-                    content: envError.message
+                    content: { name, message, stack }
                 })
                 failures += 1
                 continue
@@ -111,7 +111,8 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
             }
             return true
         }, {
-            timeoutMsg: 'browser test timed out'
+            timeoutMsg: 'browser test timed out',
+            timeout: 15 * 1000
         })
 
         /**

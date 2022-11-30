@@ -38,8 +38,8 @@ const virtualModuleId = 'virtual:wdio'
 const resolvedVirtualModuleId = '\0' + virtualModuleId
 
 const MODULES_TO_MOCK = [
-    'node:module', 'node:events', 'node:path', 'node:url', 'puppeteer-core', 'archiver',
-    'glob', 'devtools', 'ws'
+    'node:url', 'node:module', 'node:events', 'node:path',
+    'import-meta-resolve', 'puppeteer-core', 'archiver', 'glob', 'devtools', 'ws'
 ]
 
 const FETCH_FROM_ESM = [

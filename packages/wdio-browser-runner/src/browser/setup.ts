@@ -19,15 +19,6 @@ declare global {
 }
 
 /**
- * listen to window errors during bootstrap phase
- */
-window.__wdioErrors__ = []
-addEventListener('error', (ev) => window.__wdioErrors__.push({
-    filename: ev.filename,
-    message: ev.message
-}))
-
-/**
  * create connection to Vite server
  */
 const wsUrl = 'ws://' + window.location.host + '/ws'
