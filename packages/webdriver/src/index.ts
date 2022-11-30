@@ -116,7 +116,7 @@ export default class WebDriver {
      * @param   {Object} instance  the object we get from a new browser session.
      * @returns {string}           the new session id of the browser
     */
-    static async reloadSession(instance: Client) {
+    static async reloadSession (instance: Client) {
         const params: Options.WebDriver = {
             ...instance.options,
             capabilities: instance.requestedCapabilities as Capabilities.DesiredCapabilities
