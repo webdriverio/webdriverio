@@ -14,7 +14,14 @@ export function makeHeadless (options: BrowserRunnerOptions, caps: Capabilities.
         )
     }
 
-    if ((typeof options.headless === 'boolean' && !options.headless) || !process.env.CI) {
+    if (
+        // either user sets headless option implicitly
+        (typeof options.headless === 'boolean' && !options.headless) ||
+        // or CI environment is set
+        (typeof process.env.CI !== 'undefined' && !process.env.CI) ||
+        // or non are set
+        (typeof options.headless !== 'boolean' && typeof process.env.CI === 'undefined')
+    ) {
         return caps
     }
 
@@ -30,7 +37,7 @@ export function makeHeadless (options: BrowserRunnerOptions, caps: Capabilities.
                 args: ['-headless']
             }
         })
-    } else if (capability.browserName === 'msedge') {
+    } else if (capability.browserName === 'msedge' || capability.browserName === 'edge') {
         return deepmerge(capability, {
             'ms:edgeOptions': {
                 args: ['--headless']

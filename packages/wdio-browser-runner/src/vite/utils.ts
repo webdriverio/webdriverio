@@ -83,7 +83,7 @@ export async function userfriendlyImport (preset: FrameworkPreset, pkg?: string)
     }
 }
 
-export async function getErrorTemplate (filename: string, error: Error) {
+export function getErrorTemplate (filename: string, error: Error) {
     return /*html*/`
         <pre>${error.stack}</pre>
         <script type="module">

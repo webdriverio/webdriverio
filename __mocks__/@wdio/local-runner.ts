@@ -1,5 +1,5 @@
 import { vi } from 'vitest'
-import WorkerInstance from '../../packages/wdio-local-runner/src/worker'
+import type WorkerInstance from '../../packages/wdio-local-runner/src/worker'
 
 export default class LocalRunnerMock {
     configFile: string
