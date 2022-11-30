@@ -3,10 +3,9 @@ import { Capabilities } from '../../../packages/wdio-types'
 
 describe('main suite 1', () => {
     it('foobar test', async () => {
-        const browserName = (browser.capabilities as Capabilities.Capabilities).browserName!
-            .replace('Headless', '').trim()
+        const browserName = (browser.capabilities as Capabilities.Capabilities).browserName
         await browser.url('http://guinea-pig.webdriver.io/')
-        await expect($('#useragent')).toHaveTextContaining(browserName)
+        await expect((await $('#useragent').getText()).toLowerCase()).toContain(browserName)
     })
 
     it('should allow to check for PWA', async () => {
