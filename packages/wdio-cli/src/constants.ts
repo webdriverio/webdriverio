@@ -16,9 +16,9 @@ export const EXCLUSIVE_SERVICES = {
 }
 
 export const CONFIG_HELPER_INTRO = `
-=========================
-WDIO Configuration Helper
-=========================
+===============================
+🤖 WDIO Configuration Wizard 🧙
+===============================
 `
 
 export const CONFIG_HELPER_SUCCESS_MESSAGE = `
