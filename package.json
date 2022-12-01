@@ -54,6 +54,7 @@
     "ts:cucumber": "cd tests/typings/cucumber && npx tsc --skipLibCheck",
     "watch": "node ./scripts/build.js --watch",
     "watch:docs": "npm run docs:generate && cd website && npm i && npm start",
+    "version": "npm run changelog && git add CHANGELOG.md",
     "postinstall": "run-s postinstall:*",
     "postinstall:husky": "husky install",
     "postinstall:vulnerabilities": "node ./.husky/postinstall.js"
