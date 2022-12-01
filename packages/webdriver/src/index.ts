@@ -14,7 +14,7 @@ import type { Client, AttachOptions, SessionFlags } from './types'
 const log = logger('webdriver')
 
 export default class WebDriver {
-    static async newSession (
+    static async newSession(
         options: Options.WebDriver,
         modifier?: (...args: any[]) => any,
         userPrototype = {},
@@ -74,7 +74,7 @@ export default class WebDriver {
     /**
      * allows user to attach to existing sessions
      */
-    static attachToSession (
+    static attachToSession(
         options?: AttachOptions,
         modifier?: (...args: any[]) => any,
         userPrototype = {},
@@ -88,12 +88,6 @@ export default class WebDriver {
         if (options.logLevel) {
             logger.setLevel('webdriver', options.logLevel)
         }
-        const cap = options.capabilities
-        if (cap && 'automationName' in cap) {
-            // Here we use the option.capabilities in both `capabilities` and `requestedCapabilities`
-            // and it is the users' responsibility to make sure they specify a valid capabilities if they want use attach feature.
-            Object.assign(options, sessionEnvironmentDetector({ capabilities: cap, requestedCapabilities: cap }))
-        }
 
         options.capabilities = options.capabilities || {}
         options.isW3C = options.isW3C === false ? false : true
@@ -101,6 +95,8 @@ export default class WebDriver {
         options.hostname = options.hostname || DEFAULTS.hostname.default
         options.port = options.port || DEFAULTS.port.default
         options.path = options.path || DEFAULTS.path.default
+        const environment = sessionEnvironmentDetector({ capabilities: options.capabilities, requestedCapabilities: options.capabilities })
+        Object.assign(options, environment)
 
         const environmentPrototype = getEnvironmentVars(options as Partial<SessionFlags>)
         const protocolCommands = getPrototype(options as Partial<SessionFlags>)
@@ -116,7 +112,7 @@ export default class WebDriver {
      * @param   {Object} instance  the object we get from a new browser session.
      * @returns {string}           the new session id of the browser
     */
-    static async reloadSession (instance: Client) {
+    static async reloadSession(instance: Client) {
         const params: Options.WebDriver = {
             ...instance.options,
             capabilities: instance.requestedCapabilities as Capabilities.DesiredCapabilities
@@ -127,7 +123,7 @@ export default class WebDriver {
         return sessionId
     }
 
-    static get WebDriver () {
+    static get WebDriver() {
         return WebDriver
     }
 }
