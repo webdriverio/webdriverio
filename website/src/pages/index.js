@@ -26,7 +26,7 @@ function Home() {
         }
 
         // eslint-disable-next-line no-undef
-        new window.Ribbons({
+        new Ribbons({
             colorSaturation: '60%',
             colorBrightness: '50%',
             colorAlpha: 0.2,
