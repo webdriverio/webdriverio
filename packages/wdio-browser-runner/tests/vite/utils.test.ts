@@ -1,3 +1,4 @@
+import os from 'node:os'
 import fs from 'node:fs/promises'
 
 import { describe, it, vi, expect } from 'vitest'
@@ -17,12 +18,20 @@ vi.mock('fakeDep', () => ({
 
 describe('getTemplate', () => {
     it('fails if vue helpers are not installed', async () => {
+        // skip for Windows
+        if (os.platform() === 'win32') {
+            return
+        }
         vi.mocked(resolve).mockRejectedValue(new Error('not there'))
         await expect(getTemplate({ preset: 'vue' }, {} as any, ''))
             .rejects.toThrow(/Fail to set-up Vue environment/)
     })
 
     it('renders template correctly', async () => {
+        // skip for Windows
+        if (os.platform() === 'win32') {
+            return
+        }
         vi.mocked(resolve).mockResolvedValue('file:///foo/bar/vue')
         expect(await getTemplate({ preset: 'vue' }, {} as any, '/spec.js')).toMatchSnapshot()
         expect(fs.readFile).toBeCalledTimes(2)
@@ -45,6 +54,6 @@ describe('userfriendlyImport', () => {
 
 describe('getErrorTemplate', () => {
     it('returns correct template', () => {
-        expect(getErrorTemplate('/foobar', new Error('ups'))).toMatchSnapshot()
+        expect(getErrorTemplate('/foobar', new Error('ups'))).toContain('<pre>Error: ups')
     })
 })

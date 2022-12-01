@@ -1,3 +1,4 @@
+import os from 'node:os'
 import path from 'node:path'
 import { test, vi, expect } from 'vitest'
 import { resolve } from 'import-meta-resolve'
@@ -27,6 +28,11 @@ test('exposes correct format', () => {
 })
 
 test('resolveId', async () => {
+    // skip for Windows
+    if (os.platform() === 'win32') {
+        return
+    }
+
     const plugin = testrunner({})
     expect(await (plugin.resolveId as Function)('virtual:wdio'))
         .toBe('\0virtual:wdio')

@@ -1,6 +1,6 @@
 import path from 'node:path'
 
-import { expect, describe, it, vi } from 'vitest'
+import { expect, describe, it, vi, beforeEach } from 'vitest'
 import LocalRunner from '@wdio/local-runner'
 
 import { SESSIONS, BROWSER_POOL } from '../src/constants.js'
@@ -18,6 +18,10 @@ vi.mock('../src/vite/server.js', () => ({
 }))
 
 describe('BrowserRunner', () => {
+    beforeEach(() => {
+        delete process.env.CI
+    })
+
     it('should throw if framework is not Mocha', () => {
         expect(() => new BrowserRunner({}, {} as any)).toThrow()
         expect(() => new BrowserRunner({}, {

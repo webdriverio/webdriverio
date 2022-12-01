@@ -1,8 +1,10 @@
-import { vi, describe, it, expect, afterEach } from 'vitest'
+import os from 'node:os'
 import url from 'node:url'
 import path from 'node:path'
 import chokidar from 'chokidar'
 import EventEmitter from 'node:events'
+
+import { vi, describe, it, expect, afterEach } from 'vitest'
 import type { Options, Workers } from '@wdio/types'
 
 import type { RunCommandArguments } from '../src/types'
@@ -80,6 +82,11 @@ describe('watcher', () => {
     })
 
     it('should run initial suite when starting watching', async () => {
+        // skip for Windows
+        if (os.platform() === 'win32') {
+            return
+        }
+
         const wdioConf = path.join(__dirname, '__fixtures__', 'wdio.conf')
         const watcher = new Watcher(wdioConf, {})
         watcher['_launcher'] = {
@@ -108,6 +115,10 @@ describe('watcher', () => {
     })
 
     it('should run initial suite when starting watching with grouped specs', async () => {
+        // skip for Windows
+        if (os.platform() === 'win32') {
+            return
+        }
         const wdioConf = path.join(__dirname, '__fixtures__', 'wdio.conf')
         const watcher = new Watcher(wdioConf, {})
         watcher['_launcher'] = {
@@ -133,6 +144,10 @@ describe('watcher', () => {
     })
 
     it('should run also watch `filesToWatch` files', async () => {
+        // skip for Windows
+        if (os.platform() === 'win32') {
+            return
+        }
         const wdioConf = path.join(__dirname, '__fixtures__', 'wdio.conf')
         const watcher = new Watcher(wdioConf, {})
         watcher['_launcher'] = {
@@ -170,6 +185,11 @@ describe('watcher', () => {
     })
 
     it('should call run with modifed path when a new file was changed or added', async () => {
+        // skip for Windows
+        if (os.platform() === 'win32') {
+            return
+        }
+
         const wdioConf = path.join(__dirname, '__fixtures__', 'wdio.conf')
         const watcher = new Watcher(wdioConf, {})
         watcher['_launcher'] = {
@@ -269,6 +289,11 @@ describe('watcher', () => {
     })
 
     it('should run all tests if `filesToWatch` entry was changed', () => {
+        // skip for Windows
+        if (os.platform() === 'win32') {
+            return
+        }
+
         const wdioConf = path.join(__dirname, '__fixtures__', 'wdio.conf')
         const watcher = new Watcher(wdioConf, {})
         watcher['_launcher'].interface!.totalWorkerCnt = 1
@@ -304,6 +329,10 @@ describe('watcher', () => {
     })
 
     it('should re-run all specs when the --spec command line option is set and a filesToWatch file is added or changed', async () => {
+        // skip for Windows
+        if (os.platform() === 'win32') {
+            return
+        }
         const spec = ['/some/path.js', '/some/other/path.js']
         const someOtherExcludedPath = '/some/other/excluded/path.js'
         const filesToWatch = ['/some/another/path.js']
@@ -359,6 +388,11 @@ describe('watcher', () => {
     })
 
     it('should re-run all specs, with grouped specs, when the --spec command line option is set and a filesToWatch file is added or changed', async () => {
+        // skip for Windows
+        if (os.platform() === 'win32') {
+            return
+        }
+
         const spec = ['/a.js', ['/b.js', '/c.js', '/d.js']]
         const someOtherExcludedPath = '/some/other/excluded/path.js'
         const filesToWatch = ['/some/another/path.js']

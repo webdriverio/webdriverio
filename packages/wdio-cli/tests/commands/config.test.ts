@@ -1,3 +1,4 @@
+import os from 'node:os'
 import path from 'node:path'
 import { vi, test, expect, afterEach, beforeEach } from 'vitest'
 import inquirer from 'inquirer'
@@ -50,6 +51,11 @@ test('builder', () => {
 })
 
 test('parseAnswers', async () => {
+    // skip for Windows
+    if (os.platform() === 'win32') {
+        return
+    }
+
     vi.mocked(getAnswers).mockResolvedValue({
         backend: 'On my local machine',
         specs: '/tmp/foobar/specs',
