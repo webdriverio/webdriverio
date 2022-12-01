@@ -202,12 +202,9 @@ export function capabilitiesEnvironmentDetector(capabilities: Capabilities.Capab
  */
 export function sessionEnvironmentDetector({ capabilities, requestedCapabilities }:
     { capabilities: Capabilities.RemoteCapability, requestedCapabilities: Capabilities.RemoteCapability }) {
-    let cap: Capabilities.DesiredCapabilities
-    if ('alwaysMatch' in capabilities) {
-        cap = capabilities.alwaysMatch
-    } else {
-        cap = capabilities
-    }
+    const cap: Capabilities.Capabilities = 'alwaysMatch' in capabilities
+        ? capabilities.alwaysMatch
+        : capabilities
     return {
         isW3C: isW3C(cap),
         isChrome: isChrome(cap),
