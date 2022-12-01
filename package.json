@@ -75,7 +75,7 @@
     "@types/lodash.zip": "^4.2.6",
     "@types/node": "^18.0.0",
     "@types/split2": "^3.2.1",
-    "@types/uuid": "^8.3.4",
+    "@types/uuid": "^9.0.0",
     "@typescript-eslint/eslint-plugin": "^5.22.0",
     "@typescript-eslint/parser": "^5.22.0",
     "@typescript-eslint/utils": "^5.14.0",
