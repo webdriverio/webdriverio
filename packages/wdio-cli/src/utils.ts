@@ -777,7 +777,7 @@ export async function createWDIOScript (parsedAnswers: ParsedAnswers) {
     try {
         console.log(`Adding ${chalk.bold('"wdio"')} script to package.json.`)
         const script = `wdio run ./${path.join('.', parsedAnswers.wdioConfigPath.replace(projectProps?.path || process.cwd(), ''))}`
-        await runProgram('npm', ['pkg', 'set', `scripts.wdio="${script}"`], { cwd: parsedAnswers.projectRootDir })
+        await runProgram('npm', ['pkg', 'set', `scripts.wdio=${script}`], { cwd: parsedAnswers.projectRootDir })
         console.log(chalk.green.bold('✔ Success!'))
     } catch (err: any) {
         throw new Error(`⚠️ Couldn't add script to package.json: ${err.stack}`)
