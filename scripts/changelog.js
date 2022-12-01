@@ -13,9 +13,10 @@ import { highlight } from 'cli-highlight'
 import { Changelog } from 'lerna-changelog'
 import { load } from 'lerna-changelog/lib/configuration.js'
 
+import pkg from '../lerna.json' assert { type: 'json' }
+
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 const root = path.resolve(__dirname, '..')
-const { version } = await import(path.join(root, 'lerna.json'))
 const changelogPath = path.join(root, 'CHANGELOG.md')
 
 if (!process.env.GITHUB_AUTH) {
@@ -27,7 +28,7 @@ if (!process.env.GITHUB_AUTH) {
 }
 
 const config = load({ nextVersionFromMetadata: false })
-config.nextVersion = version
+config.nextVersion = pkg.version
 const changelog = new Changelog(config)
 
 /**
@@ -63,7 +64,7 @@ changelog.createMarkdown({ tagFrom: `${latestRelease}` }).then((newChangelog) =>
         return 'No updates!'
     }
 
-    newChangelog = `## v${version} ${changes}\n`
+    newChangelog = `## v${pkg.version} ${changes}\n`
     let changelogContent = fs.readFileSync(changelogPath, 'utf8')
     changelogContent = changelogContent.replace('---', '---\n\n' + newChangelog)
     fs.writeFileSync(changelogPath, changelogContent, 'utf8')
@@ -95,8 +96,8 @@ changelog.createMarkdown({ tagFrom: `${latestRelease}` }).then((newChangelog) =>
     (releaseBody) => api.repos.createRelease({
         owner: 'webdriverio',
         repo: 'webdriverio',
-        tag_name: `v${version}`,
-        name: `v${version}`,
+        tag_name: `v${pkg.version}`,
+        name: `v${pkg.version}`,
         body: releaseBody
     })
 )
