@@ -1,13 +1,13 @@
 import React from 'react'
 import BrowserOnly from '@docusaurus/BrowserOnly'
+import { useColorMode } from '@docusaurus/theme-common'
 
 export default function CreateProjectAnimation () {
     return (
         <BrowserOnly>
             {() => {
-                // eslint-disable-next-line no-undef
-                const theme = document.querySelector('html').getAttribute('data-theme')
-                const src = theme === 'dark'
+                const { colorMode } = useColorMode()
+                const src = colorMode === 'dark'
                     ? '/img/create-wdio-dark.gif'
                     : '/img/create-wdio-light.gif'
                 return (
