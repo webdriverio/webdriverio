@@ -28,7 +28,8 @@ export const VENDOR_PROTOCOLS = ['chromium']
 export const IGNORED_SUBPACKAGES_FOR_DOCS = [
     'eslint-plugin-wdio',
     'wdio-smoke-test-service',
-    'wdio-smoke-test-reporter'
+    'wdio-smoke-test-reporter',
+    'wdio-smoke-test-cjs-service'
 ]
 
 export const EDIT_WARNING = `// -------------------- ATTENTION --------------------
