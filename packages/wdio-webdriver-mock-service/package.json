@@ -22,7 +22,7 @@
   "types": "./build/index.d.ts",
   "typeScriptVersion": "3.8.3",
   "dependencies": {
-    "@types/uuid": "^8.3.4",
+    "@types/uuid": "^9.0.0",
     "@wdio/protocols": "8.0.0",
     "@wdio/types": "8.0.0",
     "nock": "^13.2.4",
