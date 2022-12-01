@@ -94,6 +94,10 @@ test('runConfigCommand', async () => {
 })
 
 test('handler', async () => {
+    // skip for Windows
+    if (os.platform() === 'win32') {
+        return
+    }
     vi.mocked(getAnswers).mockResolvedValue({
         backend: 'On my local machine',
         generateTestFiles: false,

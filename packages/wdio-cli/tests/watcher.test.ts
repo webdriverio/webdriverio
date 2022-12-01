@@ -247,6 +247,10 @@ describe('watcher', () => {
     })
 
     it('should run workers on existing session', () => {
+        // skip for Windows
+        if (os.platform() === 'win32') {
+            return
+        }
         const wdioConf = path.join(__dirname, '__fixtures__', 'wdio.conf')
         const watcher = new Watcher(wdioConf, {})
         watcher['_launcher'].runner!.workerPool = {
