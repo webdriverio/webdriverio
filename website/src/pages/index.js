@@ -11,6 +11,7 @@ import Features from './components/Feature.js'
 import Section from './components/Section.js'
 import Highlight from './components/Highlight.js'
 import Robot from './components/Robot.js'
+import CreateProjectAnimation from './components/CreateProjectAnimation.js'
 
 import styles from './styles.module.css'
 import { logos, features, LHIntregrationExample, SetupExample, ComponentTestingExample } from '../constants.js'
@@ -107,7 +108,7 @@ function Home() {
                 />
                 <Highlight
                     img={
-                        <img src="/img/setup.gif" />
+                        <CreateProjectAnimation />
                     }
                     reversed
                     title="Get Started With WebdriverIO within Minutes"
