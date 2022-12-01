@@ -1,6 +1,6 @@
 {
   "name": "@wdio/browser-runner",
-  "version": "8.0.0",
+  "version": "8.0.1",
   "description": "A WebdriverIO runner to run unit tests tests in the browser.",
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-browser-runner",
@@ -31,12 +31,12 @@
     "@esbuild-plugins/node-globals-polyfill": "^0.1.1",
     "@originjs/vite-plugin-commonjs": "^1.0.3",
     "@types/mocha": "^10.0.0",
-    "@wdio/globals": "8.0.0",
-    "@wdio/local-runner": "8.0.0",
+    "@wdio/globals": "8.0.1",
+    "@wdio/local-runner": "8.0.1",
     "@wdio/logger": "8.0.0",
     "@wdio/mocha-framework": "8.0.0",
     "@wdio/protocols": "8.0.0",
-    "@wdio/runner": "8.0.0",
+    "@wdio/runner": "8.0.1",
     "@wdio/types": "8.0.0",
     "@wdio/utils": "8.0.0",
     "deepmerge-ts": "^4.2.2",
@@ -48,7 +48,7 @@
     "vite": "^3.1.7",
     "vite-plugin-top-level-await": "^1.2.1",
     "webdriver": "8.0.0",
-    "webdriverio": "8.0.0",
+    "webdriverio": "8.0.1",
     "ws": "^8.10.0"
   },
   "scripts": {
