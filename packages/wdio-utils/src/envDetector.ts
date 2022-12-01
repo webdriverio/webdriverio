@@ -201,7 +201,7 @@ export function capabilitiesEnvironmentDetector(capabilities: Capabilities.Capab
  * @return {Object}                         object with environment flags
  */
 export function sessionEnvironmentDetector({ capabilities, requestedCapabilities }:
-    { capabilities: Capabilities.DesiredCapabilities | Capabilities.W3CCapabilities, requestedCapabilities: Capabilities.DesiredCapabilities | Capabilities.W3CCapabilities }) {
+    { capabilities: Capabilities.RemoteCapability, requestedCapabilities: Capabilities.RemoteCapability }) {
     let cap: Capabilities.DesiredCapabilities
     if ('alwaysMatch' in capabilities) {
         cap = capabilities.alwaysMatch
