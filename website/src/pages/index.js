@@ -88,7 +88,7 @@ function Home() {
                             <p>
                                 WebdriverIO is an <b>all in one</b> framework for your web app development. It enables you to run
                                 small and leightweight component tests as well as running e2e test scenarios in the browser or on
-                                a mobile device. This guarantees that you do the testing in an environment <b>used by your users</b>.
+                                a mobile device. This guarantees that you to do the testing in an environment <b>used by your users</b>.
                             </p>
                             <p>
                                 It comes with smart selector strategies that simplify interacting e.g. with <b>React components</b> or
@@ -96,12 +96,13 @@ function Home() {
                                 automation protocol it is guaranteed they behave natively and aren't just JavaScript emulated.
                             </p>
                             <div>
-                                <h4>With presets available for:</h4>
+                                <h4>Easy setup for web component testing with:</h4>
                                 <a href="/docs/component-testing/react" className={styles.frameworkLogos}><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9Ii0xMS41IC0xMC4yMzE3NCAyMyAyMC40NjM0OCI+CiAgPHRpdGxlPlJlYWN0IExvZ288L3RpdGxlPgogIDxjaXJjbGUgY3g9IjAiIGN5PSIwIiByPSIyLjA1IiBmaWxsPSIjNjFkYWZiIi8+CiAgPGcgc3Ryb2tlPSIjNjFkYWZiIiBzdHJva2Utd2lkdGg9IjEiIGZpbGw9Im5vbmUiPgogICAgPGVsbGlwc2Ugcng9IjExIiByeT0iNC4yIi8+CiAgICA8ZWxsaXBzZSByeD0iMTEiIHJ5PSI0LjIiIHRyYW5zZm9ybT0icm90YXRlKDYwKSIvPgogICAgPGVsbGlwc2Ugcng9IjExIiByeT0iNC4yIiB0cmFuc2Zvcm09InJvdGF0ZSgxMjApIi8+CiAgPC9nPgo8L3N2Zz4K" alt="" /></a>
                                 <a href="/docs/component-testing/vue" className={styles.frameworkLogos}><img src="/img/icons/vue.png" alt="Vue.js" /></a>
                                 <a href="/docs/component-testing/svelte" className={styles.frameworkLogos}><img src="/img/icons/svelte.png" alt="Svelte" /></a>
                                 <a href="/docs/component-testing/preact" className={styles.frameworkLogos}><img src="/img/icons/preact.png" alt="Preact" /></a>
                                 <a href="/docs/component-testing/solid" className={styles.frameworkLogos}><img src="https://www.solidjs.com/assets/logo.123b04bc.svg" alt="SolidJS" /></a>
+                                <a href="/docs/component-testing/lit" className={styles.frameworkLogos}><img src="/img/icons/lit.svg" alt="Lit" /></a>
                             </div>
                         </>
                     }
@@ -116,10 +117,10 @@ function Home() {
                         <>
                             <p>
                                 The WebdriverIO testrunner comes with a command line interface that
-                                provides a nice configuration utility that helps you to create your
-                                config file in less than a minute. It also gives an overview of all
-                                available 3rd party packages like framework adaptions, reporter and
-                                services and installs them for you!<br />
+                                provides a nice configuration utility and helps you to create your
+                                test setup in less than a minute. It let's you pick from available
+                                test framework integrations and easily allows to add all supported
+                                reporter and service plugins!<br />
                                 <br />
                                 With just one simple command you can set up a complete test suite:
                             </p>
