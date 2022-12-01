@@ -263,6 +263,7 @@ module.exports = {
         'https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;700&display=block'
     ],
     scripts: [
-        'https://buttons.github.io/buttons.js'
+        'https://buttons.github.io/buttons.js',
+        '/js/ribbons.js'
     ]
 }

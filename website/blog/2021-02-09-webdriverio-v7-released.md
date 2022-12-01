@@ -76,7 +76,7 @@ You can read more about WebdriverIO TypeScript integration in our [docs](/docs/t
 
 ## Cucumber v7 Update
 
-The folks working on Cucumber have done a tremendous job moving their code base to TypeScript, which has made our lives tremendously easier. The new Cucumber integration required us to update the parameters within our [Cucumber hooks](/docs/options#beforefeature).
+The folks working on Cucumber have done a tremendous job moving their code base to TypeScript, which has made our lives tremendously easier. The new Cucumber integration required us to update the parameters within our [Cucumber hooks](/docs/configuration#beforefeature).
 
 If you have been using Cucumber, all you need to do to update to v7 is to update your Cucumber imports to their new package:
 

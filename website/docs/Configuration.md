@@ -259,7 +259,7 @@ Default: `{}`
 
 The same as the `capabilities` section described above, except with the option to specify either a [`multiremote`](Multiremote.md) object, or multiple WebDriver sessions in an array for parallel execution.
 
-You can apply the same vendor and browser specific capabilities as defined [above](/docs/options#capabilities).
+You can apply the same vendor and browser specific capabilities as defined [above](/docs/configuration#capabilities).
 
 Type: `Object`|`Object[]`<br />
 Default: `[{ maxInstances: 5, browserName: 'firefox' }]`
