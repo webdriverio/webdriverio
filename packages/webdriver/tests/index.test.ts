@@ -312,6 +312,18 @@ describe('WebDriver', () => {
             expect(client.options.path).toBe('/')
         })
 
+        it('should allow to attach to appium session', async () => {
+            const client = WebDriver.attachToSession({
+                ...sessionOptions,
+                capabilities: {
+                    'appium:automationName': 'foo',
+                }
+            }) as any as TestClient
+            expect(client.isMobile).toBe(true)
+            expect(client.isLocked).toBeTruthy()
+            expect(client.shake).toBeTruthy()
+        })
+
         it('should fail attaching to session if sessionId is not given', () => {
             // @ts-ignore
             expect(() => WebDriver.attachToSession({}))

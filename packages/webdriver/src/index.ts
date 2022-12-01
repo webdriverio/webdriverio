@@ -96,7 +96,7 @@ export default class WebDriver {
         options.port = options.port || DEFAULTS.port.default
         options.path = options.path || DEFAULTS.path.default
         const environment = sessionEnvironmentDetector({ capabilities: options.capabilities, requestedCapabilities: options.capabilities })
-        Object.assign(options, environment)
+        options = Object.assign(environment, options)
 
         const environmentPrototype = getEnvironmentVars(options as Partial<SessionFlags>)
         const protocolCommands = getPrototype(options as Partial<SessionFlags>)
