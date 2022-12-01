@@ -52,8 +52,9 @@ Here is an overview of running tests within JSDOM vs. WebdriverIOs Browser Runne
 |1.| Runs your tests within Node.js using a re-implementation of web standards, notably the WHATWG DOM and HTML Standards | Executes your test in an actual browser and runs the code in an environment that your users use |
 |2.| Interactions with components can only be imitated via JavaScript | You can use the [WebdriverIO API](api) to interact with elements through the WebDriver protocol |
 |3.| Canvas support requires [additional dependencies](https://www.npmjs.com/package/canvas) and [has limitations](https://github.com/Automattic/node-canvas/issues) | You have access to the real [Canvas API](https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API) |
-|4.| JSDOM has some [caveats](https://www.npmjs.com/package/jsdom#user-content-caveats) and unsupported Web APIs | All Web APIs are supported as test run in an actual browser |
+|4.| JSDOM has some [caveats](https://github.com/jsdom/jsdom#caveats) and unsupported Web APIs | All Web APIs are supported as test run in an actual browser |
 |5.| Impossible to detect errors cross browser | Support for all browsers including mobile browser |
+|6.| Can __not__ test for element pseudo states | Support for pseudo states such as `:hover` or `:active` |
 
 This runner uses [Vite](https://vitejs.dev/) to compile your test code and load it in the browser. It comes with presets for the following component frameworks:
 

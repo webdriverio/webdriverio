@@ -105,7 +105,6 @@ export class ViteServer {
         return (data: Buffer) => {
             try {
                 const payload: SocketMessage = JSON.parse(data.toString())
-
                 if (payload.type === MESSAGE_TYPES.consoleMessage) {
                     return this.#handleConsole(payload.value)
                 }

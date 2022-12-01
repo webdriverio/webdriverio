@@ -5,6 +5,7 @@ title: Getting Started
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
+import CreateProjectAnimation from '../src/pages/components/CreateProjectAnimation.js'
 
 Welcome to the WebdriverIO documentation. It will help you to get started fast. If you run into problems, you can find help and answers on our [Gitter Channel](https://gitter.im/webdriverio/webdriverio) or you can hit me on [Twitter](https://twitter.com/webdriverio).
 
@@ -69,7 +70,7 @@ pnpm create wdio ./path/to/new/project
 
 This single command downloads the WebdriverIO CLI tool and runs a configuration wizard that helps you to configure your test suite.
 
-![Set Up](../static/img/setup.gif)
+<CreateProjectAnimation />
 
 The wizard will prompt a set questions that guides you through the setup. You can pass a `--yes` parameter to pick a default set up which will use Mocha with Chrome using the [Page Object](https://martinfowler.com/bliki/PageObject.html) pattern.
 

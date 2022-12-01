@@ -45,7 +45,9 @@ export async function generate3rdPartyDocs (sidebars) {
     for (const { category, namePlural, nameSingular, packages3rdParty } of plugins) {
         const categoryDir = path.join(DOCS_ROOT_DIR, category === 'api' ? 'api' : '')
         await fs.mkdir(categoryDir, { recursive: true })
+        const sidebar = sidebars[category]
 
+        const items = []
         for (const { packageName, title, githubUrl, npmUrl, suppressBuildInfo, locations, location = githubReadme, branch = 'master' } of packages3rdParty) {
             const readme = locations
                 ? await Promise.all(locations.map((l) => downloadFromGitHub(githubUrl, branch, l)))
@@ -62,17 +64,13 @@ export async function generate3rdPartyDocs (sidebars) {
                 return
             }
 
-            if (!sidebars[category][namePlural]) {
-                sidebars[category][namePlural] = []
-            }
-
             // eslint-disable-next-line no-console
             console.log(`Generated docs for ${packageName}`)
-
-            sidebars[category][namePlural].push(
-                category === 'api' ? `${category}/${id}` : id
-            )
+            items.push(category === 'api' ? `${category}/${id}` : id)
         }
+
+        const section = sidebar.find((s) => s.label === namePlural)
+        section.items.push(...items)
     }
 }
 

@@ -20,6 +20,8 @@ export function generateReportersAndServicesDocs (sidebars) {
 
     for (const [type, [namePlural, nameSingular]] of Object.entries(plugins)) {
         const pkgs = packages.filter((pkg) => pkg.endsWith(`-${type}`) && pkg.split('-').length > 2)
+
+        let items = []
         for (const pkg of pkgs) {
             const name = pkg.split('-').slice(1, -1)
             const id = `${name.join('-')}-${type}`
@@ -29,14 +31,15 @@ export function generateReportersAndServicesDocs (sidebars) {
             const doc = [...preface, ...readme.split('\n').slice(3)].join('\n')
             fs.writeFileSync(path.join(__dirname, '..', '..', 'website', 'docs', `_${id}.md`), doc, { encoding: 'utf-8' })
 
-            if (!sidebars.docs[namePlural]) {
-                sidebars.docs[namePlural] = []
-            }
-
             // eslint-disable-next-line no-console
             console.log(`Generated docs for ${pkg}`)
-
-            sidebars.docs[namePlural].push(id)
+            items.push(id)
         }
+
+        sidebars.docs.push({
+            type: 'category',
+            label: namePlural,
+            items
+        })
     }
 }

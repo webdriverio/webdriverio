@@ -1,27 +1,5 @@
 // Vitest Snapshot v1
 
-exports[`getErrorTemplate > returns correct template 1`] = `
-"
-        <pre>Error: ups
-    at /Users/christianbromann/Sites/WebdriverIO/webdriverio/packages/wdio-browser-runner/tests/vite/utils.test.ts:48:44
-    at /Users/christianbromann/Sites/WebdriverIO/webdriverio/node_modules/vitest/dist/chunk-runtime-chain.f993b1dc.js:2293:13
-    at /Users/christianbromann/Sites/WebdriverIO/webdriverio/node_modules/vitest/dist/chunk-runtime-chain.f993b1dc.js:2170:26
-    at runTest (/Users/christianbromann/Sites/WebdriverIO/webdriverio/node_modules/vitest/dist/chunk-runtime-setup.667a5719.js:1102:42)
-    at runSuite (/Users/christianbromann/Sites/WebdriverIO/webdriverio/node_modules/vitest/dist/chunk-runtime-setup.667a5719.js:1200:15)
-    at runSuite (/Users/christianbromann/Sites/WebdriverIO/webdriverio/node_modules/vitest/dist/chunk-runtime-setup.667a5719.js:1200:15)
-    at runFiles (/Users/christianbromann/Sites/WebdriverIO/webdriverio/node_modules/vitest/dist/chunk-runtime-setup.667a5719.js:1335:5)
-    at startTestsNode (/Users/christianbromann/Sites/WebdriverIO/webdriverio/node_modules/vitest/dist/chunk-runtime-setup.667a5719.js:1353:3)
-    at /Users/christianbromann/Sites/WebdriverIO/webdriverio/node_modules/vitest/dist/entry.js:98:11
-    at Module.withEnv (/Users/christianbromann/Sites/WebdriverIO/webdriverio/node_modules/vitest/dist/chunk-runtime-setup.667a5719.js:890:5)</pre>
-        <script type=\\"module\\">
-            window.__wdioErrors__ = [{
-                filename: \\"/foobar\\",
-                message: \`ups\`
-            }]
-        </script>
-    "
-`;
-
 exports[`getTemplate > renders template correctly 1`] = `
 "
     <!doctype html>
