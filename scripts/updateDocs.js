@@ -16,7 +16,7 @@ const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 const { S3, CloudFront } = require('aws-sdk')
 
 const PKG_VERSION = pkg.version
-const PRODUCTION_VERSION = 'v7'
+const PRODUCTION_VERSION = 'v8'
 const DISTRIBUTION_ID = process.env.DISTRIBUTION_ID
 const BUCKET_NAME = 'webdriver.io'
 const BUILD_DIR = path.resolve(__dirname, '..', 'website', 'build')
