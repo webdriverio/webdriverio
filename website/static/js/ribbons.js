@@ -10,7 +10,6 @@
     }
 })('Ribbons', function () {
     var _w = window,
-        _b = document.body,
         _d = document.documentElement
 
     // random helper
@@ -38,17 +37,10 @@
 
     // screen helper
     var screenInfo = function () {
-        var width = Math.max(0, _w.innerWidth || _d.clientWidth || _b.clientWidth || 0),
-            height = Math.max(
-                0,
-                _w.innerHeight || _d.clientHeight || _b.clientHeight || 0
-            ),
-            scrollx =
-                Math.max(0, _w.pageXOffset || _d.scrollLeft || _b.scrollLeft || 0) -
-                (_d.clientLeft || 0),
-            scrolly =
-                Math.max(0, _w.pageYOffset || _d.scrollTop || _b.scrollTop || 0) -
-                (_d.clientTop || 0)
+        const width = Math.max(0, _w.innerWidth || _d.clientWidth || document.body.clientWidth || 0)
+        const height = Math.max(0, _w.innerHeight || _d.clientHeight || document.body.clientHeight || 0)
+        const scrollx = Math.max(0, _w.pageXOffset || _d.scrollLeft || document.body.scrollLeft || 0) - (_d.clientLeft || 0)
+        const scrolly = Math.max(0, _w.pageYOffset || _d.scrollTop || document.body.scrollTop || 0) - (_d.clientTop || 0)
 
         return {
             width: width,

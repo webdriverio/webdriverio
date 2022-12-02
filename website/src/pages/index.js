@@ -7,7 +7,7 @@ import useDocusaurusContext from '@docusaurus/useDocusaurusContext'
 import useBaseUrl from '@docusaurus/useBaseUrl'
 
 import LogoCarousel from './components/LogoCarousel.js'
-import Features from './components/Feature.js'
+import Features from './components/Features.js'
 import Section from './components/Section.js'
 import Highlight from './components/Highlight.js'
 import Robot from './components/Robot.js'
@@ -15,12 +15,16 @@ import CreateProjectAnimation from './components/CreateProjectAnimation.js'
 
 import styles from './styles.module.css'
 import { logos, features, LHIntregrationExample, SetupExample, ComponentTestingExample } from '../constants.js'
-import './libs/Ribbons.js'
 
 function Home() {
     const ref = useRef(null)
 
     useEffect(() => {
+        // eslint-disable-next-line no-undef
+        if (!window.Ribbons) {
+            return
+        }
+
         // eslint-disable-next-line no-undef
         new Ribbons({
             colorSaturation: '60%',

@@ -15,7 +15,7 @@ Starts a new session with specific capabilities. Based on the session response c
 
 ##### Paramaters
 
-- `options`: [WebDriver Options](/docs/options#webdriver-options)
+- `options`: [WebDriver Options](/docs/configuration#webdriver-options)
 - `modifier`: function that allows to modify the client instance before it is being returned
 - `userPrototype`: properties object that allows to extend the instance prototype
 - `customCommandWrapper`: function that allows to wrap functionality around function calls
@@ -79,7 +79,7 @@ Starts a WebdriverIO session. The instance contains all commands as the protocol
 
 ##### Paramaters
 
-- `options`: [WebdriverIO Options](/docs/options#webdriverio)
+- `options`: [WebdriverIO Options](/docs/configuration#webdriverio)
 - `modifier`: function that allows to modify the client instance before it is being returned
 
 ##### Returns
@@ -123,7 +123,7 @@ Initiates a multiremote instance which allows you to control multiple session wi
 
 ##### Paramaters
 
-- `multiremoteOptions`: an object with keys representing the browser name and their [WebdriverIO Options](/docs/options#webdriverio).
+- `multiremoteOptions`: an object with keys representing the browser name and their [WebdriverIO Options](/docs/configuration#webdriverio).
 
 ##### Returns
 

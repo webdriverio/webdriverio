@@ -33,3 +33,9 @@
     padding: 10px;
     margin: 0 0 15px;
 }
+
+@media (max-width: 550px) {
+    .feature {
+        width: 100%;
+    }
+}

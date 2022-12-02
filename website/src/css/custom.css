@@ -51,10 +51,6 @@ html[data-theme=dark] {
         width: 100%;
     }
 
-    .col {
-        --ifm-col-width: 30%;
-    }
-
     body .footer__bottom {
         width: 100%;
     }

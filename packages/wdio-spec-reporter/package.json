@@ -1,6 +1,6 @@
 {
   "name": "@wdio/spec-reporter",
-  "version": "7.20.7",
+  "version": "8.0.0",
   "description": "A WebdriverIO plugin to report in spec style",
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-spec-reporter",
@@ -26,8 +26,8 @@
   "types": "./build/index.d.ts",
   "typeScriptVersion": "3.8.3",
   "dependencies": {
-    "@wdio/reporter": "7.20.7",
-    "@wdio/types": "7.20.7",
+    "@wdio/reporter": "8.0.0",
+    "@wdio/types": "8.0.0",
     "chalk": "^5.1.2",
     "easy-table": "^1.2.0",
     "pretty-ms": "^7.0.0"
