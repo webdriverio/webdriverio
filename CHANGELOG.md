@@ -21,6 +21,21 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.0.2 (2022-12-02)
+
+#### :bug: Bug Fix
+* `wdio-browserstack-service`
+  * [#9282](https://github.com/webdriverio/webdriverio/pull/9282) @wdio/browserstack-service: update peer dependencies for v8 ([@SCG82](https://github.com/SCG82))
+
+#### :nail_care: Polish
+* `wdio-utils`, `webdriver`
+  * [#9261](https://github.com/webdriverio/webdriverio/pull/9261) draft: fix attach bug at #9260 ([@CNLHC](https://github.com/CNLHC))
+
+#### Committers: 2
+- LiuHanCheng ([@CNLHC](https://github.com/CNLHC))
+- [@SCG82](https://github.com/SCG82)
+
+
 ## v8.0.0 (2022-12-01)
 
 #### :boom: Breaking Change
