@@ -2,7 +2,7 @@ type BrowserType = import('webdriverio').Browser<'async'>
 type ElementType = import('webdriverio').Element<'async'>
 type ElementArrayType = import('webdriverio').ElementArray
 type MultiRemoteBrowserType = import('webdriverio').MultiRemoteBrowser<'async'>
-type ExpectWebdriverIO = import('expect-webdriverio')
+type Expect = import('expect-webdriverio').Expect
 
 declare namespace WebdriverIOAsync {
     interface Browser {}
@@ -24,7 +24,7 @@ declare module NodeJS {
         browser: WebdriverIO.Browser
         driver: WebdriverIO.Browser
         multiremotebrowser: WebdriverIO.MultiRemoteBrowser
-        expect: ExpectWebdriverIO.Expect
+        expect: Expect
     }
 }
 
@@ -33,4 +33,4 @@ declare function $$(...args: Parameters<WebdriverIO.Browser['$$']>): ReturnType<
 declare const browser: WebdriverIO.Browser
 declare const driver: WebdriverIO.Browser
 declare const multiremotebrowser: WebdriverIO.MultiRemoteBrowser
-declare const expect: ExpectWebdriverIO.Expect
+declare const expect: Expect
