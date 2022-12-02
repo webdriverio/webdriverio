@@ -116,12 +116,12 @@ function Home() {
                         <CreateProjectAnimation />
                     }
                     reversed
-                    title="Get Started With WebdriverIO within Minutes"
+                    title="Get Started With WebdriverIO within Seconds"
                     text={
                         <>
                             <p>
                                 The WebdriverIO testrunner comes with a command line interface that
-                                provides a nice configuration utility and helps you to create your
+                                provides a powerful configuration utility and helps you to create your
                                 test setup in less than a minute. It let's you pick from available
                                 test framework integrations and easily allows to add all supported
                                 reporter and service plugins!<br />
