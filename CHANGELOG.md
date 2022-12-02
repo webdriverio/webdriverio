@@ -21,6 +21,16 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.0.4 (2022-12-02)
+
+#### :house: Internal
+* `wdio-browser-runner`, `wdio-globals`, `wdio-jasmine-framework`, `wdio-runner`
+  * [#9292](https://github.com/webdriverio/webdriverio/pull/9292) expect-webdriverio: update packages to use 4.0.1 ([@SCG82](https://github.com/SCG82))
+
+#### Committers: 1
+- [@SCG82](https://github.com/SCG82)
+
+
 ## v8.0.3 (2022-12-02)
 
 #### :bug: Bug Fix
