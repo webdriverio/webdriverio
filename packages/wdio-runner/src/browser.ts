@@ -60,6 +60,7 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
          */
         let failures = 0
 
+        let uid = 0
         for (const spec of this._specs) {
             log.info(`Run spec file ${spec} for cid ${this._cid}`)
 
@@ -92,13 +93,13 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
                 continue
             }
 
-            failures += await this.#fetchEvents(browser, spec)
+            failures += await this.#fetchEvents(browser, spec, ++uid)
         }
 
         return failures
     }
 
-    async #fetchEvents (browser: Browser<'async'>, spec: string): Promise<number> {
+    async #fetchEvents (browser: Browser<'async'>, spec: string, uid: number): Promise<number> {
         /**
          * wait until tests have finished and results are emitted to the window scope
          */
@@ -129,7 +130,7 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
             this._reporter.emit(ev.type, {
                 ...ev,
                 file: spec,
-                uid: this._cid,
+                uid: `${this._cid}-${uid}`,
                 cid: this._cid
             })
         }
