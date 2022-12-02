@@ -25,7 +25,7 @@ runner.on('error', ({ name, message, stack }) => process.send!({
 }))
 
 process.on('message', (m: Workers.WorkerCommand) => {
-    if (!m || !m.command) {
+    if (!m || !m.command || !runner[m.command]) {
         return
     }
 

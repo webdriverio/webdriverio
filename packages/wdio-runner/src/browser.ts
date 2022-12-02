@@ -4,7 +4,7 @@ import path from 'node:path'
 import logger from '@wdio/logger'
 import { browser } from '@wdio/globals'
 import type { Browser } from 'webdriverio'
-import type { Capabilities } from '@wdio/types'
+import type { Capabilities, Workers } from '@wdio/types'
 
 import type BaseReporter from './reporter'
 import type { TestFramework } from './types'
@@ -25,13 +25,18 @@ declare global {
 const sleep = (ms = 100) => new Promise((resolve) => setTimeout(resolve, ms))
 
 export default class BrowserFramework implements Omit<TestFramework, 'init'> {
+    #inDebugMode = false
+
     constructor (
         private _cid: string,
         private _config: { sessionId?: string },
         private _specs: string[],
         private _capabilities: Capabilities.RemoteCapability,
         private _reporter: BaseReporter
-    ) {}
+    ) {
+        // listen on debug state switches
+        process.on('message', this.#switchDebugState.bind(this))
+    }
 
     /**
      * always return true as it is unrelevant for component testing
@@ -106,6 +111,14 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
         await browser.waitUntil(async () => {
             while (typeof failures !== 'number') {
                 await sleep()
+
+                /**
+                 * don't fetch events if user has called debug command
+                 */
+                if (this.#inDebugMode) {
+                    continue
+                }
+
                 failures = await browser?.execute(() => (
                     window.__wdioEvents__.length > 0
                         ? window.__wdioFailures__
@@ -135,6 +148,10 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
         }
 
         return failures! as number
+    }
+
+    #switchDebugState (cmd: Workers.WorkerCommand) {
+        this.#inDebugMode = cmd.args
     }
 
     static init (cid: string, config: any, specs: string[], caps: Capabilities.RemoteCapability, reporter: BaseReporter) {
