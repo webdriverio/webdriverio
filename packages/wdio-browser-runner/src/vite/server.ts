@@ -159,10 +159,23 @@ export class ViteServer {
             const error = serializeError(new Error(`Couldn't find browser with cid "${payload.cid}"`))
             return ws.send(JSON.stringify(this.#commandResponse({ id: payload.id, error })))
         }
-
         try {
+            /**
+             * emit debug state to be enabled to runner so it can be propagated to the worker
+             */
+            if (payload.commandName === 'debug') {
+                browser.emit('debugState', true)
+            }
             const result = await (browser[payload.commandName as keyof typeof browser] as Function)(...payload.args)
             const resultMsg = JSON.stringify(this.#commandResponse({ id: payload.id, result }))
+
+            /**
+             * emit debug state to be disabled to runner so it can be propagated to the worker
+             */
+            if (payload.commandName === 'debug') {
+                browser.emit('debugState', false)
+            }
+
             log.info(`Return command result: ${resultMsg}`)
             return ws.send(resultMsg)
         } catch (error: any) {

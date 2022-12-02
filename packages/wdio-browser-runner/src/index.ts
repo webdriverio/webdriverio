@@ -62,14 +62,19 @@ export default class BrowserRunner extends LocalRunner {
                     sessionId: payload.content.sessionId,
                     injectGlobals: payload.content.injectGlobals
                 })
-                BROWSER_POOL.set(payload.cid!, await attach({
+                const browser = await attach({
                     ...this.#config,
                     ...payload.content,
                     options: {
                         ...this.#config,
                         ...payload.content
                     }
-                }))
+                })
+                /**
+                 * propagate debug state to the worker
+                 */
+                browser.on('debugState', (state: boolean) => worker.postMessage('switchDebugState', state))
+                BROWSER_POOL.set(payload.cid!, browser)
             }
 
             if (payload.name === 'sessionEnded') {

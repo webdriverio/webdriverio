@@ -91,11 +91,17 @@ This will run through all tests initially and halt once all are run. You can the
 
 ## Debugging
 
-While it is not (yet) possible to set breakpoints in your IDE and have them being recognised by the remote browser, you can use the [`debug`](/docs/api/browser/debug) command to stop the test at any point. This allows you to open DevTools to then debug the test by setting breakpoints in the [sources tab](https://buddy.works/tutorials/debugging-javascript-efficiently-with-chrome-devtools). Within the Console Tab you will see a WebdriverIO message saying:
+While it is not (yet) possible to set breakpoints in your IDE and have them being recognised by the remote browser, you can use the [`debug`](/docs/api/browser/debug) command to stop the test at any point. This allows you to open DevTools to then debug the test by setting breakpoints in the [sources tab](https://buddy.works/tutorials/debugging-javascript-efficiently-with-chrome-devtools).
 
-> Debug Mode Enabled enter the command `wdioDebugContinue()` in the console to continue
+When the `debug` command is called, you will also get a Node.js repl interface in your terminal, saying:
 
-By calling `wdioDebugContinue()` in the Console you can continue the test.
+```
+The execution has stopped!
+You can now go into the browser or use the command line as REPL
+(To exit, press ^C again or type .exit)
+```
+
+Press `Ctrl` or `Command` + `c` or enter `.exit` to continue with the test.
 
 ## Examples
 

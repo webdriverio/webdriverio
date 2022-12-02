@@ -15,6 +15,7 @@ import RunnerStream from './stdStream.js'
 const log = logger('@wdio/local-runner')
 const replQueue = new ReplQueue()
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
+const ACCEPTABLE_BUSY_COMMANDS = ['switchDebugState', 'endSession']
 
 const stdOutStream = new RunnerStream()
 const stdErrStream = new RunnerStream()
@@ -210,7 +211,7 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
     postMessage (command: string, args: Workers.WorkerMessageArgs): void {
         const { cid, configFile, capabilities, specs, retries, isBusy } = this
 
-        if (isBusy && command !== 'endSession') {
+        if (isBusy && !ACCEPTABLE_BUSY_COMMANDS.includes(command)) {
             return log.info(`worker with cid ${cid} already busy and can't take new commands`)
         }
 

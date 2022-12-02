@@ -5,7 +5,6 @@ import { webdriverMonad } from '@wdio/utils'
 import { getEnvironmentVars } from 'webdriver'
 import type { ErrorObject } from 'serialize-error'
 
-import browserCommands from './commands/index.js'
 import { MESSAGE_TYPES } from '../constants.js'
 import type { SocketMessage, SocketMessagePayload, ConsoleEvent, CommandRequestEvent } from '../vite/types'
 
@@ -14,7 +13,7 @@ const CONSOLE_METHODS = ['log', 'info', 'warn', 'error', 'debug'] as const
 interface CommandMessagePromise {
     resolve: (value: unknown) => void
     reject: (err: ErrorObject) => void
-    commandTimeout: NodeJS.Timeout
+    commandTimeout?: NodeJS.Timeout
 }
 
 export default class ProxyDriver {
@@ -44,14 +43,25 @@ export default class ProxyDriver {
 
         let commandId = 0
         const environmentPrototype: Record<string, PropertyDescriptor> = getEnvironmentVars(params)
-        const protocolCommands = commands.reduce((prev, commandName) => {
+        // have debug command
+        const commandsProcessedInNodeWorld = [...commands, 'debug']
+        const protocolCommands = commandsProcessedInNodeWorld.reduce((prev, commandName) => {
+            const isDebugCommand = commandName === 'debug'
             prev[commandName] = {
                 value: async (...args: unknown[]) => {
                     if (socket.readyState !== 1) {
                         await connectPromise
                     }
                     commandId++
-                    console.log(`[WDIO] ${(new Date()).toISOString()} - id: ${commandId} - COMMAND: ${commandName}(${args.join(', ')})`)
+
+                    /**
+                     * print information which command is executed (except for debug commands)
+                     */
+                    console.log(...(isDebugCommand
+                        ? ['[WDIO] %cDebug Mode Enabled', 'background: #ea5906; color: #fff; padding: 3px; border-radius: 5px;']
+                        : [`[WDIO] ${(new Date()).toISOString()} - id: ${commandId} - COMMAND: ${commandName}(${args.join(', ')})`]
+                    ))
+
                     socket.send(JSON.stringify(this.#commandRequest({
                         commandName,
                         cid,
@@ -59,16 +69,25 @@ export default class ProxyDriver {
                         args
                     })))
                     return new Promise((resolve, reject) => {
-                        const commandTimeout = setTimeout(
-                            () => reject(new Error(`Command "${commandName}" timed out`)),
-                            COMMAND_TIMEOUT
-                        )
+                        let commandTimeout
+                        if (!isDebugCommand) {
+                            commandTimeout = setTimeout(
+                                () => reject(new Error(`Command "${commandName}" timed out`)),
+                                COMMAND_TIMEOUT
+                            )
+                        }
+
                         this.#commandMessages.set(commandId.toString(), { resolve, reject, commandTimeout })
                     })
                 }
             }
             return prev
         }, {} as Record<string, { value: Function }>)
+
+        /**
+         * handle debug command on the server side
+         */
+        delete userPrototype.debug
 
         const prototype = {
             /**
@@ -82,11 +101,7 @@ export default class ProxyDriver {
             /**
              * unmodified WebdriverIO commands
              */
-            ...userPrototype,
-            /**
-             * custom browser specific commands
-             */
-            ...browserCommands
+            ...userPrototype
         }
         prototype.emit = { writable: true, value: () => {} }
         prototype.on = { writable: true, value: () => {} }
@@ -114,8 +129,12 @@ export default class ProxyDriver {
                 console.log(`[WDIO] ${(new Date()).toISOString()} - id: ${value.id} - ERROR: ${JSON.stringify(value.result)}`)
                 return commandMessage.reject(value.error)
             }
+            if (commandMessage.commandTimeout) {
+                clearTimeout(commandMessage.commandTimeout)
+            }
             console.log(`[WDIO] ${(new Date()).toISOString()} - id: ${value.id} - RESULT: ${JSON.stringify(value.result)}`)
             commandMessage.resolve(value.result)
+            this.#commandMessages.delete(value.id)
         } catch (err: any) {
             console.error(`Failed handling command socket message "${err.message}"`)
         }
