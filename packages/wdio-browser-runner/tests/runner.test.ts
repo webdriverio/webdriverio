@@ -6,7 +6,7 @@ import LocalRunner from '@wdio/local-runner'
 import { SESSIONS, BROWSER_POOL } from '../src/constants.js'
 import BrowserRunner from '../src/index.js'
 
-vi.mock('webdriverio')
+vi.mock('webdriverio', () => import(path.join(process.cwd(), '__mocks__', 'webdriverio')))
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 vi.mock('@wdio/local-runner')
 vi.mock('../src/vite/server.js', () => ({
@@ -61,6 +61,11 @@ describe('BrowserRunner', () => {
         await on.mock.calls[0][1]({ name: 'sessionStarted', cid: '0-0', content: {} })
         expect(BROWSER_POOL.size).toBe(1)
         expect(SESSIONS.size).toBe(1)
+
+        // listens on debug state changes
+        const browser = BROWSER_POOL.get('0-0')
+        expect(browser?.on).toBeCalledWith('debugState', expect.any(Function))
+
         await on.mock.calls[0][1]({ name: 'sessionEnded', cid: '0-1', content: {} })
         expect(BROWSER_POOL.size).toBe(1)
         expect(SESSIONS.size).toBe(1)

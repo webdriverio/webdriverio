@@ -313,6 +313,34 @@ describe('ViteServer', () => {
         })
     })
 
+    it('handleCommand emits debug state change', async () => {
+        const server = new ViteServer({
+            preset: 'lit'
+        })
+        const viteServer = { listen: vi.fn(), close: vi.fn() }
+        vi.mocked(createServer).mockResolvedValue(viteServer as any)
+        await server.start()
+
+        const ws = { on: vi.fn(), close: vi.fn(), send: vi.fn() }
+        // @ts-ignore
+        vi.mocked(server.socketServer)!.on.mock.calls[0][1](ws)
+        const browser: any = { debug: vi.fn(), emit: vi.fn() }
+        BROWSER_POOL.set('1-2', browser)
+        await vi.mocked(ws.on).mock.calls[0][1](Buffer.from(JSON.stringify({
+            type: MESSAGE_TYPES.commandRequestMessage,
+            value: {
+                id: 123,
+                cid: '1-2',
+                commandName: 'debug',
+                args: []
+            }
+        })))
+        expect(browser.debug).toBeCalledTimes(1)
+        expect(browser.emit).toBeCalledTimes(2)
+        expect(browser.emit).toBeCalledWith('debugState', true)
+        expect(browser.emit).toBeCalledWith('debugState', false)
+    })
+
     it('handleCommand can execute command that fails', async () => {
         const server = new ViteServer({
             preset: 'lit'
