@@ -1,0 +1,187 @@
+// Vitest Snapshot v1
+
+exports[`template generation > lit 1`] = `
+"import { expect, $ } from '@wdio/globals'
+
+// ToDo: fix me
+import '/path/to/component.ts'
+
+describe('my component tests', () => {
+    it('should test my component', async () => {
+        const component = document.createElement('example-component')
+        component.setAttribute('prop', 'foobar')
+        document.body.appendChild(component)
+
+        const elem = await $(component)
+        await elem.click()
+        await expect(elem).toHaveText('Click me!')
+    })
+})
+
+"
+`;
+
+exports[`template generation > preact 1`] = `
+"import { expect, $ } from '@wdio/globals'
+import { render, screen } from '@testing-library/preact'
+
+import * as matchers from '@testing-library/jest-dom/matchers'
+expect.extend(matchers)
+
+// ToDo: fix me
+import Component from '/path/to/component.tsx'
+
+describe('preact component tests', () => {
+    it('should test my component', async () => {
+        render(<Component />)
+        const component = screen.getByText(/Click me!/i)
+
+        const elem = await $(component)
+        await elem.click()
+        expect(component).toContainText('Click me!')
+    })
+})
+
+"
+`;
+
+exports[`template generation > preact w/o testing library 1`] = `
+"import { expect, $ } from '@wdio/globals'
+
+import {h} from 'preact'
+
+// ToDo: fix me
+import Component from '/path/to/component.jsx'
+
+describe('preact component tests', () => {
+    it('should test my component', async () => {
+        // render component here...
+        const component = document.querySelector(\\"my-component\\")
+
+        const elem = await $(component)
+        await elem.click()
+        await expect(elem).toHaveText('Click me!')
+    })
+})
+
+"
+`;
+
+exports[`template generation > react 1`] = `
+"import { expect, $ } from '@wdio/globals'
+import { render, screen } from '@testing-library/react'
+
+import * as matchers from '@testing-library/jest-dom/matchers'
+expect.extend(matchers)
+
+// ToDo: fix me
+import Component from '/path/to/component.tsx'
+
+describe('react component tests', () => {
+    it('should test my component', async () => {
+        render(<Component />)
+        const component = screen.getByText(/Click me!/i)
+
+        const elem = await $(component)
+        await elem.click()
+        expect(component).toContainText('Click me!')
+    })
+})
+
+"
+`;
+
+exports[`template generation > react w/o testing library 1`] = `
+"import { expect, $ } from '@wdio/globals'
+
+// ToDo: fix me
+import Component from '/path/to/component.jsx'
+
+describe('react component tests', () => {
+    it('should test my component', async () => {
+        // render component here...
+        const component = document.querySelector(\\"my-component\\")
+
+        const elem = await $(component)
+        await elem.click()
+        await expect(elem).toHaveText('Click me!')
+    })
+})
+
+"
+`;
+
+exports[`template generation > solid 1`] = `
+"import { expect, $ } from '@wdio/globals'
+import { render } from 'solid-js/web'
+
+// ToDo: fix me
+import Component from '/path/to/component.solid'
+
+describe('solid component tests', () => {
+    const ref = document.createElement('div')
+
+    before(() => {
+        document.body.appendChild(ref);
+    })
+
+    after(() => {
+        document.body.removeChild(ref);
+    })
+    
+    it('should test my component', async () => {
+        render(() => <Component />, ref)
+        const component = '.someSelector'
+
+        const elem = await $(component)
+        await elem.click()
+        await expect(elem).toHaveText('Click me!')
+    })
+})
+
+"
+`;
+
+exports[`template generation > svelte 1`] = `
+"import { expect, $ } from '@wdio/globals'
+import { render, screen } from '@testing-library/svelte'
+
+import * as matchers from '@testing-library/jest-dom/matchers'
+expect.extend(matchers)
+
+// ToDo: fix me
+import Component from '/path/to/component.svelte'
+
+describe('svelte component tests', () => {
+    it('should test my component', async () => {
+        render(Component, { prop: 'foobar' })
+        const component = screen.getByText(/Click me!/i)
+
+        const elem = await $(component)
+        await elem.click()
+        expect(component).toContainText('Click me!')
+    })
+})
+
+"
+`;
+
+exports[`template generation > vue 1`] = `
+"import { expect, $ } from '@wdio/globals'
+
+// ToDo: fix me
+import Component from '/path/to/component.vue'
+
+describe('vue component tests', () => {
+    it('should test my component', async () => {
+        // render component here...
+        const component = document.querySelector(\\"my-component\\")
+
+        const elem = await $(component)
+        await elem.click()
+        await expect(elem).toHaveText('Click me!')
+    })
+})
+
+"
+`;

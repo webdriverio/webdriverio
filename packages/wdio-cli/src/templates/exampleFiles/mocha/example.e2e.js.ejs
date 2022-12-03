@@ -32,36 +32,64 @@ const importStatement = preset
     ? `import Component from '/path/to/component.${componentSuffix}'`
     : `import '/path/to/component.${componentSuffix}'`
 const renderStatement = (preset
-    ? [
-        preset.includes('react')
-            ? 'render(<Component />)'
-            : 'render(Component, { prop: \'foobar\' })',
-        'const component = screen.getByText(/Click me!/i)'
-    ]
+    ? installTestingLibrary
+        ? [
+            preset.includes('react')
+                ? 'render(<Component />)'
+                : 'render(Component, { prop: \'foobar\' })',
+            'const component = screen.getByText(/Click me!/i)'
+        ]
+        : preset === 'solid'
+            ? [
+                'render(() => <Component />, ref)',
+                'const component = \'.someSelector\''
+            ]
+            : [
+                '// render component here...',
+                'const component = document.querySelector("my-component")'
+            ]
     : [
         `const component = document.createElement('example-component')`,
         `component.setAttribute('prop', 'foobar')`,
         `document.body.appendChild(component)`
     ]
 ).join('\n        ')
-const assertionStatement = preset
-    ? `expect(elem).toContainText('Click me!')`
+const assertionStatement = preset && installTestingLibrary
+    ? `expect(component).toContainText('Click me!')`
     : `await expect(elem).toHaveText('Click me!')`
 
 /**
  * Component Testing
  */
 %>import { expect, $ } from '@wdio/globals'
-<%- preset && installTestingLibrary ? `import { render, screen } from '@testing-library/${preset}'` : '' %>
-<% if (installTestingLibrary) { %>
+<%- installTestingLibrary
+    ? `import { render, screen } from '@testing-library/${preset}'`
+    : preset === 'solid'
+        ? 'import { render } from \'solid-js/web\'\n'
+        : ''
+%><% if (installTestingLibrary) { %>
+
 import * as matchers from '@testing-library/jest-dom/matchers'
 expect.extend(matchers)
+<% } else if (preset === 'preact') { %>
+import {h} from 'preact'
 <% } %>
 // ToDo: fix me
 <%- importStatement %>
 
-describe('<%- (preset || 'my') %> component tests', () => {
-    it('should do something cool', async () => {
+describe('<%- (preset || 'my') %> component tests', () => {<%
+    if (preset === 'solid') { %>
+    const ref = document.createElement('div')
+
+    before(() => {
+        document.body.appendChild(ref);
+    })
+
+    after(() => {
+        document.body.removeChild(ref);
+    })
+    <% } %>
+    it('should test my component', async () => {
         <%- renderStatement %>
 
         const elem = await $(component)
