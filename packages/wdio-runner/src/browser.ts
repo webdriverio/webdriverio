@@ -12,7 +12,12 @@ import type { TestFramework } from './types'
 const log = logger('@wdio/runner')
 const sep = '\n  - '
 
-type WDIOErrorEvent = Pick<ErrorEvent, 'filename' | 'message'>
+type WDIOErrorEvent = Pick<ErrorEvent, 'filename' | 'message'> & { hasViteError?: boolean }
+interface TestState {
+    failures?: number
+    errors?: WDIOErrorEvent[]
+    hasViteError?: boolean
+}
 
 declare global {
     interface Window {
@@ -80,15 +85,53 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
             // await browser.debug()
 
             /**
-             * fetch page errors that are thrown during rendering and let spec file fail
+             * wait for test results or page errors
              */
-            const jsErrors: WDIOErrorEvent[] = (await browser.execute(() => window.__wdioErrors__ || [{
-                // if `__wdioErrors__` is not defined we ended up in on an error page
-                message: 'Failed to load test page'
-            }]))
-            if (jsErrors.length) {
-                const errors = jsErrors.map((ev) => `${path.basename(ev.filename || spec)}: ${ev.message}`)
-                const { name, message, stack } = new Error(`Test failed due to following error(s):${sep}${errors.join(sep)}`)
+            let state: TestState = {}
+            await browser.waitUntil(async () => {
+                while (typeof state.failures !== 'number' && (!state.errors || state.errors.length === 0)) {
+                    await sleep()
+
+                    /**
+                     * don't fetch events if user has called debug command
+                     */
+                    if (this.#inDebugMode) {
+                        continue
+                    }
+
+                    state = await browser?.execute(() => {
+                        const failures = window.__wdioEvents__ && window.__wdioEvents__.length > 0
+                            ? window.__wdioFailures__
+                            : null
+                        let viteError
+                        const viteErrorElem = document.querySelector('vite-error-overlay')
+                        if (viteErrorElem && viteErrorElem.shadowRoot) {
+                            const errorElems = Array.from(viteErrorElem.shadowRoot.querySelectorAll('pre'))
+                            if (errorElems.length) {
+                                viteError = errorElems.map((elem) => ({ message: elem.innerText }))
+                            }
+                        }
+                        const loadError = typeof window.__wdioErrors__ === 'undefined'
+                            ?  [{ message: 'Failed to load test page' }]
+                            : null
+                        const errors = viteError || window.__wdioErrors__ || loadError
+                        return { failures, errors, hasViteError: Boolean(viteError) }
+                    }).catch((err: any) => ({ errors: [{ message: err.message }] }))
+                }
+
+                return true
+            }, {
+                timeoutMsg: 'browser test timed out',
+                timeout: 15 * 1000
+            })
+
+            if (state.errors?.length) {
+                const errors = state.errors.map((ev) => state.hasViteError
+                    ? ev.message
+                    : `${path.basename(ev.filename || spec)}: ${ev.message}`)
+                const { name, message, stack } = new Error(state.hasViteError
+                    ? `Test failed due to the following error: ${errors.join('\n')}`
+                    : `Test failed due to following error(s):${sep}${errors.join(sep)}`)
                 process.send!({
                     origin: 'worker',
                     name: 'error',
@@ -98,40 +141,14 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
                 continue
             }
 
-            failures += await this.#fetchEvents(browser, spec, ++uid)
+            await this.#fetchEvents(browser, spec, ++uid)
+            failures += state.failures || 0
         }
 
         return failures
     }
 
-    async #fetchEvents (browser: Browser<'async'>, spec: string, uid: number): Promise<number> {
-        /**
-         * wait until tests have finished and results are emitted to the window scope
-         */
-        let failures: number | null = null
-        await browser.waitUntil(async () => {
-            while (typeof failures !== 'number') {
-                await sleep()
-
-                /**
-                 * don't fetch events if user has called debug command
-                 */
-                if (this.#inDebugMode) {
-                    continue
-                }
-
-                failures = await browser?.execute(() => (
-                    window.__wdioEvents__.length > 0
-                        ? window.__wdioFailures__
-                        : null
-                ))
-            }
-            return true
-        }, {
-            timeoutMsg: 'browser test timed out',
-            timeout: 15 * 1000
-        })
-
+    async #fetchEvents (browser: Browser<'async'>, spec: string, uid: number) {
         /**
          * populate events to the reporter
          */
@@ -147,8 +164,6 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
                 cid: this._cid
             })
         }
-
-        return failures! as number
     }
 
     #switchDebugState (cmd: Workers.WorkerCommand) {

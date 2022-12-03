@@ -399,13 +399,15 @@ export async function generateTestFiles (answers: ParsedAnswers) {
 
     for (const file of files) {
         const renderedTpl = await renderFile(file, answers)
+        const isJSX = answers.preset && ['preact', 'react'].includes(answers.preset)
+        const fileEnding = (answers.isUsingTypeScript ? '.ts' : '.js') + (isJSX ? 'x' : '')
         let destPath = (
             file.endsWith('page.js.ejs')
                 ? `${answers.destPageObjectRootPath}/${path.basename(file)}`
                 : file.includes('step_definition')
                     ? `${answers.stepDefinitions}`
                     : `${answers.destSpecRootPath}/${path.basename(file)}`
-        ).replace(/\.ejs$/, '').replace(/\.js$/, answers.isUsingTypeScript ? '.ts' : '.js')
+        ).replace(/\.ejs$/, '').replace(/\.js$/, fileEnding)
 
         await fs.mkdir(path.dirname(destPath), { recursive: true })
         await fs.writeFile(destPath, renderedTpl)
@@ -632,6 +634,13 @@ export function npmInstall (parsedAnswers: ParsedAnswers, useYarn: boolean, npmT
             TESTING_LIBRARY_PACKAGES[presetPackage.short],
             '@testing-library/jest-dom'
         )
+    }
+
+    /**
+     * add helper package for Solidjs testing
+     */
+    if (parsedAnswers.preset === 'solid') {
+        parsedAnswers.packagesToInstall.push('solid-js/web')
     }
 
     /**
