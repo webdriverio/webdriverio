@@ -28,36 +28,36 @@ function proxyHandler (key: SupportedGlobals) {
     }
 }
 
-export const browser: import('webdriverio').Browser<'async'> = new Proxy(
-    class Browser {} as any as import('webdriverio').Browser<'async'>,
+export const browser: WebdriverIO.Browser = new Proxy(
+    class Browser {} as any as WebdriverIO.Browser,
     proxyHandler('browser')
 )
-export const driver: import('webdriverio').Browser<'async'> = new Proxy(
-    class Browser {} as any as import('webdriverio').Browser<'async'>,
+export const driver: WebdriverIO.Browser = new Proxy(
+    class Browser {} as any as WebdriverIO.Browser,
     proxyHandler('driver')
 )
-export const multiremotebrowser: import('webdriverio').MultiRemoteBrowser<'async'> = new Proxy(
-    class Browser {} as any as import('webdriverio').MultiRemoteBrowser<'async'>,
+export const multiremotebrowser: WebdriverIO.MultiRemoteBrowser = new Proxy(
+    class Browser {} as any as WebdriverIO.MultiRemoteBrowser,
     proxyHandler('multiremotebrowser')
 )
-export const $: import('webdriverio').Browser<'async'>['$'] = (...args: any) => {
+export const $: WebdriverIO.Browser['$'] = (...args: any) => {
     if (!globals.has('$')) {
         throw new Error(GLOBALS_ERROR_MESSAGE)
     }
     return globals.get('$')(...args)
 }
-export const $$: import('webdriverio').Browser<'async'>['$$'] = (...args: any) => {
+export const $$: WebdriverIO.Browser['$$'] = (...args: any) => {
     if (!globals.has('$$')) {
         throw new Error(GLOBALS_ERROR_MESSAGE)
     }
     return globals.get('$$')(...args)
 }
-export const expect: import('expect-webdriverio').Expect = ((...args: any) => {
+export const expect: ExpectWebdriverIO.Expect = ((...args: any) => {
     if (!globals.has('expect')) {
         throw new Error(GLOBALS_ERROR_MESSAGE)
     }
     return globals.get('expect')(...args)
-}) as import('expect-webdriverio').Expect
+}) as ExpectWebdriverIO.Expect
 
 expect.extend = (...args: unknown[]) => {
     if (!globals.has('expect')) {
