@@ -30,7 +30,7 @@ declare module NodeJS {
 
 declare function $(...args: Parameters<WebdriverIO.Browser['$']>): ReturnType<WebdriverIO.Browser['$']>
 declare function $$(...args: Parameters<WebdriverIO.Browser['$$']>): ReturnType<WebdriverIO.Browser['$$']>
-declare const browser: WebdriverIO.Browser
-declare const driver: WebdriverIO.Browser
-declare const multiremotebrowser: WebdriverIO.MultiRemoteBrowser
-declare const expect: Expect
+declare var browser: WebdriverIO.Browser
+declare var driver: WebdriverIO.Browser
+declare var multiremotebrowser: WebdriverIO.MultiRemoteBrowser
+// declare var expect: Expect

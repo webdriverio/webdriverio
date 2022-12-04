@@ -52,7 +52,6 @@ export const handler = async (argv: ReplCommandArguments) => {
 
     global.$ = client.$.bind(client)
     global.$$ = client.$$.bind(client)
-    // @ts-expect-error global browser is for some reason not detected
     global.browser = client
 
     await client.debug()
