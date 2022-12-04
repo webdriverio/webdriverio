@@ -1,5 +1,5 @@
 import { touchAction as touchActionCommand } from '../constant.js'
-import type { TouchActions } from '../../types'
+import type { Browser, TouchActions } from '../../types'
 
 /**
  *
@@ -60,7 +60,7 @@ import type { TouchActions } from '../../types'
  *
  */
 export default function touchAction (
-    this: WebdriverIO.Browser,
+    this: Browser<'async'>,
     actions: TouchActions
 ) {
     return touchActionCommand.call(this, actions)

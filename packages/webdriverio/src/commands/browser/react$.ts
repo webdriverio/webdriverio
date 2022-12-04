@@ -6,7 +6,7 @@ import type { ElementReference } from '@wdio/protocols'
 
 import { getElement } from '../../utils/getElementObject.js'
 import { waitToLoadReact, react$ as react$Script } from '../../scripts/resq.js'
-import type { ReactSelectorOptions } from '../../types'
+import type { Browser, Element, ReactSelectorOptions } from '../../types'
 
 let resqScript: string
 
@@ -54,10 +54,10 @@ let resqScript: string
  *
  */
 export default async function react$ (
-    this: WebdriverIO.Browser,
+    this: Browser<'async'>,
     selector: string,
     { props = {}, state = {} }: ReactSelectorOptions = {}
-) {
+): Promise<Element<'async'>> {
     if (!resqScript) {
         const resqScriptPath = url.fileURLToPath(await resolve('resq', import.meta.url))
         resqScript = (await fs.readFile(resqScriptPath)).toString()

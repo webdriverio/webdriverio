@@ -1,5 +1,5 @@
 import { getBrowserObject } from '../../utils/index.js'
-import type { ClickOptions } from '../../types'
+import type { ClickOptions, Element } from '../../types'
 import type { Button } from '../../utils/actions'
 
 /**
@@ -82,7 +82,7 @@ import type { Button } from '../../utils/actions'
  * @param {number=}           options.skipRelease         Boolean (optional)
  */
 export default async function click(
-    this: WebdriverIO.Element,
+    this: Element<'async'>,
     options?: ClickOptions
 ) {
     if (typeof options === 'undefined') {

@@ -1,4 +1,4 @@
-import type { WaitForOptions } from '../../types'
+import type { Element, WaitForOptions } from '../../types'
 
 /**
  *
@@ -44,7 +44,7 @@ import type { WaitForOptions } from '../../types'
  *
  */
 export default function waitForExist (
-    this: WebdriverIO.Element,
+    this: Element<'async'>,
     {
         timeout = this.options.waitforTimeout,
         interval = this.options.waitforInterval,

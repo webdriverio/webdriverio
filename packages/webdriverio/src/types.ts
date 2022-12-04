@@ -34,7 +34,7 @@ export interface ChainablePromiseElement<T> extends AsyncElementProto, Promise<T
     /**
      * parent of the element if fetched via `$(parent).$(child)`
      */
-    parent: Promise<WebdriverIO.Element | WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser>
+    parent: Promise<Element<'async'> | Browser<'async'> | MultiRemoteBrowser<'async'>>
     /**
      * selector used to fetch this element, can be
      * - undefined if element was created via `$({ 'element-6066-11e4-a52e-4f735466cecf': 'ELEMENT-1' })`
@@ -66,30 +66,30 @@ export interface ChainablePromiseArray<T> extends Promise<T> {
     /**
      * parent of the element if fetched via `$(parent).$(child)`
      */
-    parent: Promise<WebdriverIO.Element | WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser>
+    parent: Promise<Element<'async'> | Browser<'async'> | MultiRemoteBrowser<'async'>>
     /**
      * allow to access a specific index of the element set
      */
-    [n: number]: ChainablePromiseElement<WebdriverIO.Element | undefined>
+    [n: number]: ChainablePromiseElement<Element<'async'> | undefined>
 
     /**
      * Unwrap the nth element of the element list.
      */
-    forEach: <T>(callback: (currentValue: WebdriverIO.Element, index: number, array: T[]) => void, thisArg?: any) => Promise<void>
-    forEachSeries: <T>(callback: (currentValue: WebdriverIO.Element, index: number, array: T[]) => void, thisArg?: any) => Promise<void>
-    map: <U>(callback: (currentValue: WebdriverIO.Element, index: number, array: T[]) => U | Promise<U>, thisArg?: any) => Promise<U[]>
-    mapSeries: <T, U>(callback: (currentValue: WebdriverIO.Element, index: number, array: T[]) => U | Promise<U>, thisArg?: any) => Promise<U[]>;
-    find: <T>(callback: (currentValue: WebdriverIO.Element, index: number, array: T[]) => boolean | Promise<boolean>, thisArg?: any) => Promise<T>;
-    findSeries: <T>(callback: (currentValue: WebdriverIO.Element, index: number, array: T[]) => boolean | Promise<boolean>, thisArg?: any) => Promise<T>;
-    findIndex: <T>(callback: (currentValue: WebdriverIO.Element, index: number, array: T[]) => boolean | Promise<boolean>, thisArg?: any) => Promise<number>;
-    findIndexSeries: <T>(callback: (currentValue: WebdriverIO.Element, index: number, array: T[]) => boolean | Promise<boolean>, thisArg?: any) => Promise<number>;
-    some: <T>(callback: (currentValue: WebdriverIO.Element, index: number, array: T[]) => boolean | Promise<boolean>, thisArg?: any) => Promise<boolean>;
-    someSeries: <T>(callback: (currentValue: WebdriverIO.Element, index: number, array: T[]) => boolean | Promise<boolean>, thisArg?: any) => Promise<boolean>;
-    every: <T>(callback: (currentValue: WebdriverIO.Element, index: number, array: T[]) => boolean | Promise<boolean>, thisArg?: any) => Promise<boolean>;
-    everySeries: <T>(callback: (currentValue: WebdriverIO.Element, index: number, array: T[]) => boolean | Promise<boolean>, thisArg?: any) => Promise<boolean>;
-    filter: <T>(callback: (currentValue: WebdriverIO.Element, index: number, array: T[]) => boolean | Promise<boolean>, thisArg?: any) => Promise<WebdriverIO.Element[]>;
-    filterSeries: <T>(callback: (currentValue: WebdriverIO.Element, index: number, array: T[]) => boolean | Promise<boolean>, thisArg?: any) => Promise<WebdriverIO.Element[]>;
-    reduce: <T, U>(callback: (accumulator: U, currentValue: WebdriverIO.Element, currentIndex: number, array: T[]) => U | Promise<U>, initialValue?: U) => Promise<U>;
+    forEach: <T>(callback: (currentValue: Element<'async'>, index: number, array: T[]) => void, thisArg?: any) => Promise<void>
+    forEachSeries: <T>(callback: (currentValue: Element<'async'>, index: number, array: T[]) => void, thisArg?: any) => Promise<void>
+    map: <U>(callback: (currentValue: Element<'async'>, index: number, array: T[]) => U | Promise<U>, thisArg?: any) => Promise<U[]>
+    mapSeries: <T, U>(callback: (currentValue: Element<'async'>, index: number, array: T[]) => U | Promise<U>, thisArg?: any) => Promise<U[]>;
+    find: <T>(callback: (currentValue: Element<'async'>, index: number, array: T[]) => boolean | Promise<boolean>, thisArg?: any) => Promise<T>;
+    findSeries: <T>(callback: (currentValue: Element<'async'>, index: number, array: T[]) => boolean | Promise<boolean>, thisArg?: any) => Promise<T>;
+    findIndex: <T>(callback: (currentValue: Element<'async'>, index: number, array: T[]) => boolean | Promise<boolean>, thisArg?: any) => Promise<number>;
+    findIndexSeries: <T>(callback: (currentValue: Element<'async'>, index: number, array: T[]) => boolean | Promise<boolean>, thisArg?: any) => Promise<number>;
+    some: <T>(callback: (currentValue: Element<'async'>, index: number, array: T[]) => boolean | Promise<boolean>, thisArg?: any) => Promise<boolean>;
+    someSeries: <T>(callback: (currentValue: Element<'async'>, index: number, array: T[]) => boolean | Promise<boolean>, thisArg?: any) => Promise<boolean>;
+    every: <T>(callback: (currentValue: Element<'async'>, index: number, array: T[]) => boolean | Promise<boolean>, thisArg?: any) => Promise<boolean>;
+    everySeries: <T>(callback: (currentValue: Element<'async'>, index: number, array: T[]) => boolean | Promise<boolean>, thisArg?: any) => Promise<boolean>;
+    filter: <T>(callback: (currentValue: Element<'async'>, index: number, array: T[]) => boolean | Promise<boolean>, thisArg?: any) => Promise<Element<'async'>[]>;
+    filterSeries: <T>(callback: (currentValue: Element<'async'>, index: number, array: T[]) => boolean | Promise<boolean>, thisArg?: any) => Promise<Element<'async'>[]>;
+    reduce: <T, U>(callback: (accumulator: U, currentValue: Element<'async'>, currentIndex: number, array: T[]) => U | Promise<U>, initialValue?: U) => Promise<U>;
 }
 
 export type BrowserCommandsType = Omit<$BrowserCommands, keyof ChainablePrototype> & ChainablePrototype
@@ -112,22 +112,22 @@ export type ElementCommandsTypeSync = {
     [K in keyof Omit<$ElementCommands, 'getLocation' | 'getSize'>]: (...args: Parameters<$ElementCommands[K]>) => ThenArg<ReturnType<$ElementCommands[K]>>
 } & {
     getLocation: ((
-        this: WebdriverIO.Element,
+        this: Element<'async'>,
     ) => Location) & ((
-        this: WebdriverIO.Element,
+        this: Element<'async'>,
         prop: keyof Location
     ) => number) & ((
-        this: WebdriverIO.Element,
+        this: Element<'async'>,
         prop?: keyof Location
     ) => Location | number),
 
     getSize: ((
-        this: WebdriverIO.Element,
+        this: Element<'async'>,
     ) => Size) & ((
-        this: WebdriverIO.Element,
+        this: Element<'async'>,
         prop: keyof RectReturn
     ) => number) & ((
-        this: WebdriverIO.Element,
+        this: Element<'async'>,
         prop?: keyof RectReturn
     ) => Size | number),
 }
@@ -168,18 +168,18 @@ export type MultiRemoteProtocolCommandsTypeSync = {
     [K in keyof ProtocolCommands]: (...args: Parameters<ProtocolCommands[K]>) => ThenArg<ReturnType<ProtocolCommands[K]>>[]
 }
 
-export interface ElementArray extends Array<WebdriverIO.Element> {
+export interface ElementArray extends Array<Element<'async'>> {
     selector: Selector
-    parent: WebdriverIO.Element | WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
+    parent: Element<'async'> | Browser<'async'> | MultiRemoteBrowser<'async'>
     foundWith: string
     props: any[]
 }
 
 type AddCommandFnScoped<
-    InstanceType = WebdriverIO.Browser,
+    InstanceType = Browser<'async'>,
     IsElement extends boolean = false
 > = (
-    this: IsElement extends true ? WebdriverIO.Element : InstanceType,
+    this: IsElement extends true ? Element<'async'> : InstanceType,
     ...args: any[]
 ) => any
 
@@ -190,8 +190,8 @@ type OverwriteCommandFnScoped<
     BrowserKey extends keyof $BrowserCommands,
     IsElement extends boolean = false
 > = (
-    this: IsElement extends true ? WebdriverIO.Element : WebdriverIO.Browser,
-    origCommand: (...args: any[]) => IsElement extends true ? WebdriverIO.Element[ElementKey] : WebdriverIO.Browser[BrowserKey],
+    this: IsElement extends true ? Element<'async'> : Browser<'async'>,
+    origCommand: (...args: any[]) => IsElement extends true ? Element<'async'>[ElementKey] : Browser<'async'>[BrowserKey],
     ...args: any[]
 ) => Promise<any>
 
@@ -200,7 +200,7 @@ type OverwriteCommandFn<
     BrowserKey extends keyof $BrowserCommands,
     IsElement extends boolean = false
 > = (
-    origCommand: (...args: any[]) => IsElement extends true ? WebdriverIO.Element[ElementKey] : WebdriverIO.Browser[BrowserKey],
+    origCommand: (...args: any[]) => IsElement extends true ? Element<'async'>[ElementKey] : Browser<'async'>[BrowserKey],
     ...args: any[]
 ) => Promise<any>
 
@@ -214,7 +214,7 @@ export interface CustomInstanceCommands<T> {
         func: AddCommandFn | AddCommandFnScoped<T, IsElement>,
         attachToElement?: IsElement,
         proto?: Record<string, any>,
-        instances?: Record<string, WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser>
+        instances?: Record<string, Browser<'async'> | MultiRemoteBrowser<'async'>>
     ): void;
 
     /**
@@ -225,7 +225,7 @@ export interface CustomInstanceCommands<T> {
         func: OverwriteCommandFn<ElementKey, BrowserKey, IsElement> | OverwriteCommandFnScoped<ElementKey, BrowserKey, IsElement>,
         attachToElement?: IsElement,
         proto?: Record<string, any>,
-        instances?: Record<string, WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser>
+        instances?: Record<string, Browser<'async'> | MultiRemoteBrowser<'async'>>
     ): void;
 
     /**
@@ -279,7 +279,7 @@ interface InstanceBase extends EventEmitter, SessionFlags {
 /**
  * a browser base that has everything besides commands which are defined for sync and async seperately
  */
-export interface BrowserBase extends InstanceBase, CustomInstanceCommands<WebdriverIO.Browser> {
+export interface BrowserBase extends InstanceBase, CustomInstanceCommands<Browser<'async'>> {
     isMultiremote: false
 }
 
@@ -290,7 +290,7 @@ interface BrowserAsync extends BrowserBase, BrowserCommandsType, ProtocolCommand
 interface BrowserSync extends BrowserBase, BrowserCommandsTypeSync, ProtocolCommands {}
 export type Browser<Mode extends 'sync' | 'async'> = Mode extends 'sync' ? BrowserSync : BrowserAsync
 
-export interface ElementBase extends InstanceBase, ElementReference, CustomInstanceCommands<WebdriverIO.Element> {
+export interface ElementBase extends InstanceBase, ElementReference, CustomInstanceCommands<Element<'async'>> {
     isMultiremote: false
     /**
      * WebDriver element reference
@@ -314,7 +314,7 @@ export interface ElementBase extends InstanceBase, ElementReference, CustomInsta
     /**
      * parent of the element if fetched via `$(parent).$(child)`
      */
-    parent: WebdriverIO.Element | WebdriverIO.Browser
+    parent: Element<'async'> | Browser<'async'>
     /**
      * true if element is a React component
      */
@@ -329,7 +329,7 @@ interface ElementAsync extends ElementBase, ProtocolCommandsAsync, Omit<BrowserC
 interface ElementSync extends ElementBase, ProtocolCommands, Omit<BrowserCommandsTypeSync, keyof ElementCommandsTypeSync>, ElementCommandsTypeSync {}
 export type Element<Mode extends 'sync' | 'async'> = Mode extends 'sync' ? ElementSync : ElementAsync
 
-interface MultiRemoteBase extends Omit<InstanceBase, 'sessionId'>, CustomInstanceCommands<WebdriverIO.MultiRemoteBrowser> {
+interface MultiRemoteBase extends Omit<InstanceBase, 'sessionId'>, CustomInstanceCommands<MultiRemoteBrowser<'async'>> {
     /**
      * multiremote browser instance names
      */
@@ -424,7 +424,7 @@ export interface TouchAction {
     action: ActionTypes,
     x?: number,
     y?: number,
-    element?: WebdriverIO.Element,
+    element?: Element<'async'>,
     ms?: number
 }
 export type TouchActionParameter = string | string[] | TouchAction | TouchAction[];

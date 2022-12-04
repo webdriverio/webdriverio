@@ -1,3 +1,5 @@
+import type { Browser } from '../../types'
+
 /**
  * Throttle the network capabilities of the browser. This can help to
  * emulate certain scenarios where a user loses their internet connection
@@ -111,7 +113,7 @@ const NETWORK_PRESETS = {
 const NETWORK_PRESET_TYPES = Object.keys(NETWORK_PRESETS)
 
 export default async function throttle (
-    this: WebdriverIO.Browser,
+    this: Browser<'async'>,
     params: ThrottleOptions
 ) {
     if (

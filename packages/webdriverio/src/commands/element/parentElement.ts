@@ -1,3 +1,5 @@
+import type { Element } from '../../types'
+
 /**
  *
  * Returns the parent element of the selected DOM-element.
@@ -21,7 +23,7 @@
  * @return {Element}
  * @type utility
  */
-export default function parentElement (this: WebdriverIO.Element) {
+export default function parentElement (this: Element<'async'>): Promise<Element<'async'>> {
     return this.$(/* istanbul ignore next */ function parentElement (this: HTMLElement) {
         return this.parentElement as HTMLElement
     })

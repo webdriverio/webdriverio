@@ -2,6 +2,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import archiver from 'archiver'
 import type { Capabilities } from '@wdio/types'
+import type { Browser } from '../../types'
 
 /**
  * Uploads a file to the Selenium Standalone server or other browser driver
@@ -34,7 +35,7 @@ import type { Capabilities } from '@wdio/types'
  * @return {String} remote URL
  */
 export default async function uploadFile (
-    this: WebdriverIO.Browser,
+    this: Browser<'async'>,
     localPath: string
 ): Promise<string> {
     /**

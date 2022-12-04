@@ -6,7 +6,7 @@ import { getBrowserObject, getPrototype as getWDIOPrototype, getElementFromRespo
 import { elementErrorHandler } from '../middlewares.js'
 import { ELEMENT_KEY } from '../constants.js'
 import * as browserCommands from '../commands/browser.js'
-import type { Selector, ElementArray } from '../types'
+import type { Selector, ElementArray, Browser, Element } from '../types'
 
 /**
  * transforms a findElement response into a WDIO element
@@ -15,11 +15,11 @@ import type { Selector, ElementArray } from '../types'
  * @return {Object}           WDIO element object
  */
 export const getElement = function findElement(
-    this: WebdriverIO.Browser | WebdriverIO.Element,
+    this: Browser<'async'> | Element<'async'>,
     selector?: Selector,
     res?: ElementReference | Error,
     isReactElement = false
-): WebdriverIO.Element {
+): Element<'async'> {
     const browser = getBrowserObject(this)
     const browserCommandKeys = Object.keys(browserCommands)
     const propertiesObject = {
@@ -36,7 +36,7 @@ export const getElement = function findElement(
         scope: { value: 'element' }
     }
 
-    const element = webdriverMonad(this.options, (client: WebdriverIO.Element) => {
+    const element = webdriverMonad(this.options, (client: Element<'async'>) => {
         const elementId = getElementFromResponse(res as ElementReference)
 
         if (elementId) {
@@ -83,12 +83,12 @@ export const getElement = function findElement(
  * @return {Array}            array of WDIO elements
  */
 export const getElements = function getElements(
-    this: WebdriverIO.Browser | WebdriverIO.Element,
-    selector: Selector | ElementReference[] | WebdriverIO.Element[],
+    this: Browser<'async'> | Element<'async'>,
+    selector: Selector | ElementReference[] | Element<'async'>[],
     elemResponse: ElementReference[],
     isReactElement = false
 ): ElementArray {
-    const browser = getBrowserObject(this as WebdriverIO.Element)
+    const browser = getBrowserObject(this as Element<'async'>)
     const browserCommandKeys = Object.keys(browserCommands)
     const propertiesObject = {
         /**
@@ -103,16 +103,16 @@ export const getElements = function getElements(
         ...getWDIOPrototype('element')
     }
 
-    const elements = elemResponse.map((res: ElementReference | WebdriverIO.Element | Error, i) => {
+    const elements = elemResponse.map((res: ElementReference | Element<'async'> | Error, i) => {
         /**
          * if we already deal with an element, just return it
          */
-        if ((res as WebdriverIO.Element).selector) {
+        if ((res as Element<'async'>).selector) {
             return res
         }
 
         propertiesObject.scope = { value: 'element' }
-        const element = webdriverMonad(this.options, (client: WebdriverIO.Element) => {
+        const element = webdriverMonad(this.options, (client: Element<'async'>) => {
             const elementId = getElementFromResponse(res as ElementReference)
 
             if (elementId) {
@@ -131,7 +131,7 @@ export const getElements = function getElements(
             }
 
             client.selector = Array.isArray(selector)
-                ? (selector[i] as WebdriverIO.Element).selector
+                ? (selector[i] as Element<'async'>).selector
                 : selector
             client.parent = this
             client.index = i
@@ -141,7 +141,7 @@ export const getElements = function getElements(
             return client
         }, propertiesObject)
 
-        const elementInstance = element((this as WebdriverIO.Browser).sessionId, elementErrorHandler(wrapCommand))
+        const elementInstance = element((this as Browser<'async'>).sessionId, elementErrorHandler(wrapCommand))
 
         const origAddCommand = elementInstance.addCommand.bind(elementInstance)
         elementInstance.addCommand = (name: string, fn: Function) => {

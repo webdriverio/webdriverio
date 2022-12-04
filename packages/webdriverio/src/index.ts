@@ -14,7 +14,7 @@ import {
     getPrototype, addLocatorStrategyHandler, isStub, getAutomationProtocol,
     updateCapabilities
 } from './utils/index.js'
-import type { AttachOptions } from './types'
+import type { AttachOptions, Browser, MultiRemoteBrowser } from './types'
 import type * as elementCommands from './commands/element.js'
 
 export type RemoteOptions = Options.WebdriverIO & Omit<Options.Testrunner, 'capabilities' | 'rootDir'>
@@ -33,7 +33,7 @@ export const Key = KeyConstant
  * @return {object}                   browser object with sessionId
  * @see <a href="https://webdriver.io/docs/typescript">Typescript setup</a>
  */
-export const remote = async function (params: RemoteOptions, remoteModifier?: Function): Promise<WebdriverIO.Browser> {
+export const remote = async function (params: RemoteOptions, remoteModifier?: Function): Promise<Browser<'async'>> {
     logger.setLogLevelsConfig(params.logLevels as any, params.logLevel)
 
     const config = validateConfig<RemoteOptions>(WDIO_DEFAULTS, params, Object.keys(DEFAULTS) as any)
@@ -59,7 +59,7 @@ export const remote = async function (params: RemoteOptions, remoteModifier?: Fu
 
     params = Object.assign({}, detectBackend(params), params)
     updateCapabilities(params, automationProtocol)
-    const instance: WebdriverIO.Browser = await ProtocolDriver.newSession(params, modifier, prototype, wrapCommand)
+    const instance: Browser<'async'> = await ProtocolDriver.newSession(params, modifier, prototype, wrapCommand)
 
     /**
      * we need to overwrite the original addCommand and overwriteCommand
@@ -80,7 +80,7 @@ export const remote = async function (params: RemoteOptions, remoteModifier?: Fu
     return instance
 }
 
-export const attach = async function (attachOptions: AttachOptions): Promise<WebdriverIO.Browser> {
+export const attach = async function (attachOptions: AttachOptions): Promise<Browser<'async'>> {
     /**
      * copy instances properties into new object
      */
@@ -93,7 +93,7 @@ export const attach = async function (attachOptions: AttachOptions): Promise<Web
     const prototype = getPrototype('browser')
     let automationProtocol = await getAutomationProtocol(params)
     const ProtocolDriver = (await import(automationProtocol)).default
-    return ProtocolDriver.attachToSession(params, undefined, prototype, wrapCommand) as WebdriverIO.Browser
+    return ProtocolDriver.attachToSession(params, undefined, prototype, wrapCommand) as Browser<'async'>
 }
 
 /**
@@ -118,7 +118,7 @@ export const attach = async function (attachOptions: AttachOptions): Promise<Web
 export const multiremote = async function (
     params: Capabilities.MultiRemoteCapabilities,
     { automationProtocol }: { automationProtocol?: string } = {}
-): Promise<WebdriverIO.MultiRemoteBrowser> {
+): Promise<MultiRemoteBrowser<'async'>> {
     const multibrowser = new MultiRemote()
     const browserNames = Object.keys(params)
 
@@ -150,7 +150,7 @@ export const multiremote = async function (
         multibrowser.modifier.bind(multibrowser),
         prototype,
         wrapCommand
-    ) as WebdriverIO.MultiRemoteBrowser
+    ) as MultiRemoteBrowser<'async'>
 
     /**
      * in order to get custom command overwritten or added to multiremote instance

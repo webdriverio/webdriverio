@@ -1,3 +1,5 @@
+import type { Element } from '../../types'
+
 /**
  *
  * Returns the previous sibling element of the selected DOM-element.
@@ -21,7 +23,7 @@
  * @return {Element}
  * @type utility
  */
-export default function previousElement (this: WebdriverIO.Element) {
+export default function previousElement (this: Element<'async'>): Promise<Element<'async'>> {
     return this.$(/* istanbul ignore next */ function previousElement (this: HTMLElement) {
         return this.previousElementSibling as HTMLElement
     })

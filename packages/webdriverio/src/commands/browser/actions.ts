@@ -1,3 +1,4 @@
+import type { Browser } from '../../types'
 import { KeyAction, PointerAction, WheelAction } from '../../utils/actions/index.js'
 
 /**
@@ -27,7 +28,7 @@ import { KeyAction, PointerAction, WheelAction } from '../../utils/actions/index
  *
  */
 export default async function actions (
-    this: WebdriverIO.Browser,
+    this: Browser<'async'>,
     actions: (KeyAction | PointerAction | WheelAction)[],
 ): Promise<void> {
     await this.performActions(actions.map((action) => action.toJSON()))

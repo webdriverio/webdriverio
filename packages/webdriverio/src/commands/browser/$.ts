@@ -1,7 +1,7 @@
 import { findElement } from '../../utils/index.js'
 import { getElement } from '../../utils/getElementObject.js'
 import { ELEMENT_KEY } from '../../constants.js'
-import type { Selector } from '../../types'
+import type { Browser, Element, Selector } from '../../types'
 import type { ElementReference } from '@wdio/protocols'
 
 /**
@@ -79,9 +79,9 @@ import type { ElementReference } from '@wdio/protocols'
  *
  */
 export default async function $ (
-    this: WebdriverIO.Browser | WebdriverIO.Element,
+    this: Browser<'async'> | Element<'async'>,
     selector: Selector
-) {
+): Promise<Element<'async'>> {
     /**
      * convert protocol result into WebdriverIO element
      * e.g. when element was fetched with `getActiveElement`

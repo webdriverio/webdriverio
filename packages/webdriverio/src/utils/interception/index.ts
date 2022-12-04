@@ -2,7 +2,7 @@ import minimatch from 'minimatch'
 
 import Timer from '../Timer.js'
 
-import type { WaitForOptions } from '../../types'
+import type { Browser, WaitForOptions } from '../../types'
 import type { MockFilterOptions, MockOverwrite, MockResponseParams, Matches } from './types'
 
 import type Protocol from 'devtools-protocol'
@@ -27,7 +27,7 @@ export default abstract class Interception {
     constructor (
         public url: string | RegExp,
         public filterOptions: MockFilterOptions = {},
-        public browser: WebdriverIO.Browser
+        public browser: Browser<'async'>
     ) {
     }
 

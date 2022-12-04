@@ -1,14 +1,14 @@
 import implicitWait from './implicitWait.js'
-import { Selector } from '../types.js'
+import { Element, Selector } from '../types.js'
 
 /**
  * helper utility to refetch an element and all its parent elements when running
  * into stale element exception errors
  */
 export default async function refetchElement (
-    currentElement: WebdriverIO.Element,
+    currentElement: Element<'async'>,
     commandName: string
-): Promise<WebdriverIO.Element> {
+): Promise<Element<'async'>> {
     let selectors: {
         selector: Selector
         index: number
@@ -17,7 +17,7 @@ export default async function refetchElement (
     //Crawl back to the browser object, and cache all selectors
     while (currentElement.elementId && currentElement.parent) {
         selectors.push({ selector: currentElement.selector, index: currentElement.index || 0 })
-        currentElement = currentElement.parent as WebdriverIO.Element
+        currentElement = currentElement.parent as Element<'async'>
     }
     selectors.reverse()
 

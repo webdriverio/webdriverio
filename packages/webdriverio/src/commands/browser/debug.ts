@@ -1,4 +1,5 @@
 import { serializeError } from 'serialize-error'
+import type { Browser } from '../../types'
 import WDIORepl from '@wdio/repl'
 
 /**
@@ -32,7 +33,7 @@ import WDIORepl from '@wdio/repl'
  *
  */
 export default function debug(
-    this: WebdriverIO.Browser,
+    this: Browser<'async'>,
     commandTimeout = 5000
 ) {
     const repl = new WDIORepl()

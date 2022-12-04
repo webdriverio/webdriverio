@@ -1,3 +1,4 @@
+import type { Browser, Element } from '../../types'
 import { verifyArgsAndStripIfElement } from '../../utils/index.js'
 
 /**
@@ -36,7 +37,7 @@ import { verifyArgsAndStripIfElement } from '../../utils/index.js'
  *
  */
 export default function execute<ReturnValue, InnerArguments extends any[]> (
-    this: WebdriverIO.Browser | WebdriverIO.Element,
+    this: Browser<'async'> | Element<'async'>,
     script: string | ((...innerArgs: InnerArguments) => ReturnValue),
     ...args: InnerArguments
 ): Promise<ReturnValue> {

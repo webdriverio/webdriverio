@@ -67,7 +67,6 @@
     "@types/aria-query": "^5.0.0",
     "@types/node": "^18.0.0",
     "@wdio/config": "8.0.2",
-    "@wdio/globals": "8.0.4",
     "@wdio/logger": "8.0.0",
     "@wdio/protocols": "8.0.0",
     "@wdio/repl": "8.0.0",

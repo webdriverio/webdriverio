@@ -1,3 +1,4 @@
+import type { Browser } from '../../types'
 import { getBrowserObject } from '../../utils/index.js'
 
 const minWindowSize = 0
@@ -22,7 +23,7 @@ const maxWindowSize = Number.MAX_SAFE_INTEGER
  *
  */
 export default async function setWindowSize(
-    this: WebdriverIO.Browser,
+    this: Browser<'async'>,
     width: number,
     height: number
 ) {

@@ -1,3 +1,4 @@
+import type { Browser } from '../../types'
 import { KeyAction, PointerAction, WheelAction, ActionType, BaseActionParams } from '../../utils/actions/index.js'
 
 /**
@@ -128,22 +129,22 @@ import { KeyAction, PointerAction, WheelAction, ActionType, BaseActionParams } f
  *
  */
 export default function action (
-    this: WebdriverIO.Browser,
+    this: Browser<'async'>,
     type: 'key',
     opts?: Pick<BaseActionParams, 'id'>
 ): KeyAction
 export default function action (
-    this: WebdriverIO.Browser,
+    this: Browser<'async'>,
     type: 'pointer',
     opts?: BaseActionParams
 ): PointerAction
 export default function action (
-    this: WebdriverIO.Browser,
+    this: Browser<'async'>,
     type: 'wheel',
     opts?: Pick<BaseActionParams, 'id'>
 ): WheelAction
 export default function action (
-    this: WebdriverIO.Browser,
+    this: Browser<'async'>,
     type: ActionType,
     opts?: BaseActionParams
 ): KeyAction | PointerAction | WheelAction {

@@ -1,7 +1,7 @@
 import { sleep } from '@wdio/utils'
 
 import newWindowHelper from '../../scripts/newWindow.js'
-import type { NewWindowOptions } from '../../types'
+import type { Browser, NewWindowOptions } from '../../types'
 
 const WAIT_FOR_NEW_HANDLE_TIMEOUT = 3000
 
@@ -44,7 +44,7 @@ const WAIT_FOR_NEW_HANDLE_TIMEOUT = 3000
  * @type window
  */
 export default async function newWindow (
-    this: WebdriverIO.Browser,
+    this: Browser<'async'>,
     url: string,
     { windowName = '', windowFeatures = '' }: NewWindowOptions = {}
 ) {

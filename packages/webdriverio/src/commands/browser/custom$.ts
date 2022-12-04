@@ -1,6 +1,6 @@
 import { getElement } from '../../utils/getElementObject.js'
 import { ELEMENT_KEY } from '../../constants.js'
-import type { CustomStrategyFunction } from '../../types'
+import type { Browser, CustomStrategyFunction, Element } from '../../types'
 
 /**
  *
@@ -26,10 +26,10 @@ import type { CustomStrategyFunction } from '../../types'
  * @return {Element}
  */
 export default async function custom$ (
-    this: WebdriverIO.Browser,
+    this: Browser<'async'>,
     strategyName: string,
     ...strategyArguments: any[]
-) {
+): Promise<Element<'async'>> {
     const strategy = this.strategies.get(strategyName) as CustomStrategyFunction
 
     if (!strategy) {

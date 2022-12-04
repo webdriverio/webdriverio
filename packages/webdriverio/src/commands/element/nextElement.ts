@@ -1,3 +1,5 @@
+import type { Element } from '../../types'
+
 /**
  *
  * Returns the next sibling element of the selected DOM-element.
@@ -22,7 +24,7 @@
  * @type utility
  */
 
-export default function nextElement (this: WebdriverIO.Element) {
+export default function nextElement (this: Element<'async'>): Promise<Element<'async'>> {
     return this.$(/* istanbul ignore next */ function nextElement (this: HTMLElement) {
         return this.nextElementSibling as HTMLElement
     })

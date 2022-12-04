@@ -1,12 +1,13 @@
 import type { RectReturn } from '@wdio/protocols'
 
 import { getElementRect } from '../../utils/index.js'
+import type { Element } from '../../types'
 
 export type Size = Pick<RectReturn, 'width' | 'height'>;
 
-function getSize (this: WebdriverIO.Element): Promise<Size>;
+function getSize (this: Element<'async'>): Promise<Size>;
 
-function getSize (this: WebdriverIO.Element, prop: keyof RectReturn): Promise<number>;
+function getSize (this: Element<'async'>, prop: keyof RectReturn): Promise<number>;
 
 /**
  *
@@ -36,7 +37,7 @@ function getSize (this: WebdriverIO.Element, prop: keyof RectReturn): Promise<nu
  *
  */
 async function getSize (
-    this: WebdriverIO.Element,
+    this: Element<'async'>,
     prop?: keyof RectReturn
 ): Promise<Size | number> {
     let rect: Partial<RectReturn> = {}

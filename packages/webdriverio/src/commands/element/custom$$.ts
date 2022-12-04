@@ -1,7 +1,7 @@
 import { getElements } from '../../utils/getElementObject.js'
 import { getBrowserObject, enhanceElementsArray } from '../../utils/index.js'
 import { ELEMENT_KEY } from '../../constants.js'
-import type { ElementArray, CustomStrategyFunction } from '../../types'
+import type { Element, ElementArray, CustomStrategyFunction } from '../../types'
 
 /**
  *
@@ -28,7 +28,7 @@ import type { ElementArray, CustomStrategyFunction } from '../../types'
  * @return {ElementArray}
  */
 async function custom$$ (
-    this: WebdriverIO.Element,
+    this: Element<'async'>,
     strategyName: string,
     ...strategyArguments: any[]
 ): Promise<ElementArray> {

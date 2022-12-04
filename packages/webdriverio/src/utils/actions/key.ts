@@ -1,7 +1,8 @@
 import BaseAction, { BaseActionParams } from './base.js'
+import type { Browser } from '../../types'
 
 export default class KeyAction extends BaseAction {
-    constructor (instance: WebdriverIO.Browser, params?: BaseActionParams) {
+    constructor (instance: Browser<'async'>, params?: BaseActionParams) {
         super(instance, 'key', params)
     }
 
