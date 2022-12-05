@@ -6,6 +6,7 @@ import { Browser, MultiRemoteBrowser } from 'webdriverio'
 
 import { BrowserstackConfig, TestData } from './types'
 import { getCloudProvider, uploadEventData, getHierarchy } from './util'
+import RequestQueueHandler from './request-handler'
 
 export default class TestReporter extends WDIOReporter {
     private _capabilities?: Capabilities.Capabilities
@@ -13,10 +14,12 @@ export default class TestReporter extends WDIOReporter {
     private _observability?: boolean = true
     private _sessionId?: string
     private _suiteName?: string
+    private requestQueueHandler: RequestQueueHandler
 
     constructor(options: Reporters.Options) {
         super(options)
         this._capabilities = {}
+        this.requestQueueHandler = RequestQueueHandler.getInstance()
     }
 
     onRunnerStart (runnerStats: RunnerStats) {
@@ -72,10 +75,15 @@ export default class TestReporter extends WDIOReporter {
                 platform: this._capabilities?.platformName,
             }
 
-            await uploadEventData({
+            const uploadData = {
                 event_type: 'TestRunFinished',
                 test_run: testData
-            })
+            }
+
+            const req = this.requestQueueHandler.add(uploadData)
+            if (req.proceed) {
+                await uploadEventData(req.data, req.url)
+            }
         }
     }
 }

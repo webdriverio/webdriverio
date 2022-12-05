@@ -177,6 +177,9 @@ export default class BrowserstackService implements Services.ServiceInstance {
                 ...(hasReasons ? { reason: this._failReasons.join('\n') } : {})
             })
         }
+
+        await this.insightsHandler?.uploadPending()
+        await this.insightsHandler?.teardown()
     }
 
     /**

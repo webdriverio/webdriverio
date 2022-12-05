@@ -5,6 +5,7 @@ import type { Browser } from 'webdriverio'
 // import BrowserstackService from '../src/service'
 import InsightsHandler from '../src/insights-handler'
 import * as utils from '../src/util'
+import RequestQueueHandler from '../src/request-handler'
 
 interface GotMock extends jest.Mock {
     put: jest.Mock
@@ -91,9 +92,11 @@ describe('setUp', () => {
 describe('sendTestRunEvent', () => {
     describe('calls uploadEventData', () => {
         const insightsHandler = new InsightsHandler('framework')
+        const requestQueueHandler = RequestQueueHandler.getInstance()
         const getUniqueIdentifierSpy = jest.spyOn(utils, 'getUniqueIdentifier').mockReturnValue('test title')
         jest.spyOn(insightsHandler, 'getHierarchy').mockImplementation(() => { return [] })
         jest.spyOn(utils, 'getHookType').mockReturnValue('BEFORE_EACH')
+        jest.spyOn(requestQueueHandler, 'add').mockImplementation(() => { return { proceed: true, data: [{}], url: '' } })
         const uploadEventDataSpy = jest.spyOn(utils, 'uploadEventData').mockImplementation()
         jest.spyOn(utils, 'getCloudProvider').mockImplementation( () => 'browserstack' )
         const test = {
@@ -152,10 +155,12 @@ describe('sendTestRunEvent', () => {
 describe('sendTestRunEventForCucumber', () => {
     describe('calls uploadEventData', () => {
         const insightsHandler = new InsightsHandler('framework')
+        const requestQueueHandler = RequestQueueHandler.getInstance()
         const getUniqueIdentifierForCucumberSpy = jest.spyOn(utils, 'getUniqueIdentifierForCucumber').mockReturnValue('test title')
         jest.spyOn(insightsHandler, 'getHierarchy').mockImplementation(() => { return [] })
         const uploadEventDataSpy = jest.spyOn(utils, 'uploadEventData').mockImplementation()
         const getScenarioExamplesSpy = jest.spyOn(utils, 'getScenarioExamples')
+        jest.spyOn(requestQueueHandler, 'add').mockImplementation(() => { return { proceed: true, data: [{}], url: '' } })
         jest.spyOn(utils, 'getCloudProvider').mockImplementation( () => 'browserstack' )
         insightsHandler['_tests'] = { 'test title': { uuid: 'uuid', startedAt: '', finishedAt: '', feature: { name: 'name', path: 'path' }, scenario: { name: 'name' } } }
         insightsHandler['_platformMeta'] = { caps: {},  sessionId: '', browserName: '', browserVersion: '', platformName: '', product: '' }

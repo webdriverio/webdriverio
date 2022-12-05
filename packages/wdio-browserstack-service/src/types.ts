@@ -28,6 +28,14 @@ export interface App {
     customId?: string
 }
 
+export interface TestObservabilityOptions {
+    buildName?: string,
+    projectName?: string,
+    buildTag?: string[],
+    user?: string,
+    key?: string
+}
+
 export interface BrowserstackConfig {
     /**
      * Set this to true to enable BrowserStack Test Observability which will collect test related data
@@ -35,6 +43,10 @@ export interface BrowserstackConfig {
      * and show all the data in a meaningful manner in BrowserStack Test Observability dashboards for faster test debugging and better insights.
      */
     testObservability?: boolean;
+    /**
+     * TODO: Add message
+     */
+    testObservabilityOptions?: TestObservabilityOptions;
     /**
      * Set this with app file path present locally on your device or
      * app hashed id returned after uploading app to BrowserStack or
@@ -156,13 +168,10 @@ export interface TestData {
 }
 
 export interface UserConfig {
-    username?: string,
-    password?: string,
     buildName?: string,
     projectName?: string,
     buildTag?: string,
     bstackServiceVersion?: string,
-    framework?: string
 }
 
 export interface UploadType {
@@ -174,7 +183,8 @@ export interface UploadType {
 
 export interface LaunchResponse {
     jwt: string,
-    build_hashed_id: string
+    build_hashed_id: string,
+    allow_screenshots?: boolean
 }
 
 interface IntegrationObject {

@@ -2,6 +2,7 @@ import { hostname, platform, type, version, arch } from 'os'
 import { promisify } from 'util'
 import * as http from 'http'
 import * as https from 'https'
+import path from 'path'
 
 import type { Browser, MultiRemoteBrowser } from 'webdriverio'
 import type { Capabilities, Frameworks, Options } from '@wdio/types'
@@ -13,8 +14,9 @@ import gitRepoInfo, { GitRepoInfo } from 'git-repo-info'
 import gitconfig from 'gitconfiglocal'
 import type { ITestCaseHookParameter } from './cucumber-types'
 
-import { UserConfig, UploadType, LaunchResponse } from './types'
-import { BROWSER_DESCRIPTION, DATA_ENDPOINT } from './constants'
+import { UserConfig, UploadType, LaunchResponse, BrowserstackConfig } from './types'
+import { BROWSER_DESCRIPTION, DATA_ENDPOINT, DATA_EVENT_ENDPOINT, DATA_SCREENSHOT_ENDPOINT } from './constants'
+import RequestQueueHandler from './request-handler'
 
 const pGitconfig = promisify(gitconfig)
 const log = logger('@wdio/browserstack-service')
@@ -84,13 +86,13 @@ export function getParentSuiteName(fullTitle: string, testSuiteTitle: string): s
     return parentSuiteName.trim()
 }
 
-export async function launchTestSession (userConfig: UserConfig) {
+export async function launchTestSession (options: BrowserstackConfig & Options.Testrunner, bsConfig: UserConfig) {
     const data = {
         'format': 'json',
-        'project_name': userConfig.projectName,
-        'name': userConfig.buildName,
+        'project_name': getObservabilityProject(options, bsConfig.projectName),
+        'name': getObservabilityBuild(options, bsConfig.buildName),
         'start_time': (new Date()).toISOString(),
-        'tags': [userConfig.buildTag],
+        'tags': getObservabilityBuildTags(options, bsConfig.buildTag),
         'host_info': {
             hostname: hostname(),
             platform: platform(),
@@ -102,13 +104,13 @@ export async function launchTestSession (userConfig: UserConfig) {
         'failed_tests_rerun': process.env.BROWSERSTACK_RERUN || false,
         'version_control': await getGitMetaData(),
         'observability_version': {
-            frameworkName: userConfig.framework,
-            sdkVersion: userConfig.bstackServiceVersion
+            frameworkName: options.framework,
+            sdkVersion: bsConfig.bstackServiceVersion
         }
     }
     const config = {
-        username: userConfig.username,
-        password: userConfig.password,
+        username: getObservabilityUser(options),
+        password: getObservabilityKey(options),
         agent: keepAliveAgent(),
         headers: {
             'Content-Type': 'application/json',
@@ -123,13 +125,13 @@ export async function launchTestSession (userConfig: UserConfig) {
         process.env.BS_TESTOPS_BUILD_COMPLETED = 'true'
         if (response.jwt) process.env.BS_TESTOPS_JWT = response.jwt
         if (response.build_hashed_id) process.env.BS_TESTOPS_BUILD_HASHED_ID = response.build_hashed_id
+        if (response.allow_screenshots) process.env.BS_TESTOPS_ALLOW_SCREENSHOTS = response.allow_screenshots.toString()
     } catch (error) {
         if (error instanceof got.HTTPError && error.response && error.response.statusCode == 401) {
             log.debug('Data upload to BrowserStack Test Observability failed either due to incorrect credentials or an unsupported SDK version or because you do not have access to the product.')
         } else {
             log.debug(`[Start_Build] Failed. Error: ${error}`)
         }
-        process.env.BS_TESTOPS_BUILD_COMPLETED = 'true'
     }
 }
 
@@ -138,7 +140,7 @@ export async function stopBuildUpstream () {
         return
     }
     if (!process.env.BS_TESTOPS_JWT) {
-        log.debug('[Stop_Build] Missing Authentication Token/ Build ID')
+        log.debug('[STOP_BUILD] Missing Authentication Token/ Build ID')
         return {
             status: 'error',
             message: 'Token/buildID is undefined, build creation might have failed'
@@ -159,13 +161,13 @@ export async function stopBuildUpstream () {
     try {
         const url = `${DATA_ENDPOINT}/api/v1/builds/${process.env.BS_TESTOPS_BUILD_HASHED_ID}/stop`
         const response = await got.put(url, { json: data, ...config }).json()
-        log.debug(`[Stop_Build] Success response: ${JSON.stringify(response)}`)
+        log.debug(`[STOP_BUILD] Success response: ${JSON.stringify(response)}`)
         return {
             status: 'success',
             message: ''
         }
     } catch (error: any) {
-        log.debug(`[Stop_Build] Failed. Error: ${error}`)
+        log.debug(`[STOP_BUILD] Failed. Error: ${error}`)
         return {
             status: 'error',
             message: error.message
@@ -371,35 +373,44 @@ function keepAliveAgent () {
     }
 }
 
-export async function uploadEventData (eventData: UploadType) {
-    const logTag: string = getLogTag(eventData.event_type)
+export async function uploadEventData (eventData: UploadType | Array<UploadType>, eventUrl: string = DATA_EVENT_ENDPOINT) {
+    let logTag: string = 'BATCH_UPLOAD'
+    if (!Array.isArray(eventData)) {
+        logTag = getLogTag(eventData.event_type)
+    }
 
-    if (eventData.event_type == 'ScreenshotCreated') eventData.event_type = 'LogCreated'
+    if (eventUrl == DATA_SCREENSHOT_ENDPOINT) logTag = 'screenshot_upload'
 
-    if (process.env.BS_TESTOPS_BUILD_COMPLETED) {
-        if (!process.env.BS_TESTOPS_JWT) {
-            log.debug(`[${logTag}] Missing Authentication Token/ Build ID`)
-            return {
-                status: 'error',
-                message: 'Token/buildID is undefined, build creation might have failed'
-            }
-        }
-        const config = {
-            agent: keepAliveAgent(),
-            headers: {
-                'Authorization': `Bearer ${process.env.BS_TESTOPS_JWT}`,
-                'Content-Type': 'application/json',
-                'X-BSTACK-OBS': 'true'
-            },
-        }
+    if (!process.env.BS_TESTOPS_BUILD_COMPLETED) {
+        return
+    }
 
-        try {
-            const url = `${DATA_ENDPOINT}/api/v1/event`
-            const data = await got.post(url, { json: eventData, ...config }).json()
-            log.debug(`[${logTag}] Success response: ${require('util').inspect(data, { depth: null })}`)
-        } catch (error) {
-            log.debug(`[${logTag}] Failed. Error: ${error}`)
+    if (!process.env.BS_TESTOPS_JWT) {
+        log.debug(`[${logTag}] Missing Authentication Token/ Build ID`)
+        return {
+            status: 'error',
+            message: 'Token/buildID is undefined, build creation might have failed'
         }
+    }
+
+    const config = {
+        agent: keepAliveAgent(),
+        headers: {
+            'Authorization': `Bearer ${process.env.BS_TESTOPS_JWT}`,
+            'Content-Type': 'application/json',
+            'X-BSTACK-OBS': 'true'
+        },
+    }
+
+    try {
+        const url = `${DATA_ENDPOINT}/${eventUrl}`
+        RequestQueueHandler.getInstance().pendingUploads += 1
+        const data = await got.post(url, { json: eventData, ...config }).json()
+        log.debug(`[${logTag}] Success response: ${JSON.stringify(data)}`)
+        RequestQueueHandler.getInstance().pendingUploads -= 1
+    } catch (error) {
+        log.debug(`[${logTag}] Failed. Error: ${error}`)
+        RequestQueueHandler.getInstance().pendingUploads -= 1
     }
 }
 
@@ -431,4 +442,79 @@ export function shouldAddServiceVersion(config: Options.Testrunner, testObservab
         return false
     }
     return true
+}
+
+export async function batchAndPostEvents (eventUrl: string, kind: string, data: UploadType[]) {
+    if (!process.env.BS_TESTOPS_BUILD_COMPLETED || !process.env.BS_TESTOPS_JWT) {
+        return
+    }
+
+    const config = {
+        headers: {
+            'Authorization': `Bearer ${process.env.BS_TESTOPS_JWT}`,
+            'Content-Type': 'application/json',
+            'X-BSTACK-TESTOPS': 'true'
+        }
+    }
+
+    try {
+        const url = `${DATA_ENDPOINT}/${eventUrl}`
+        const response = await got.post(url, { json: data, ...config }).json()
+        log.debug(`[${kind}] Success response: ${JSON.stringify(response)}`)
+    } catch (error) {
+        log.debug(`[${kind}] EXCEPTION IN ${kind} REQUEST TO TEST OBSERVABILITY : ${error}`)
+    }
+}
+
+function getObservabilityUser(options: BrowserstackConfig & Options.Testrunner) {
+    if (process.env.BROWSERSTACK_USERNAME) {
+        return process.env.BROWSERSTACK_USERNAME
+    }
+    if (options.testObservabilityOptions && options.testObservabilityOptions.user) {
+        return options.testObservabilityOptions.user
+    }
+    return options.user
+}
+
+function getObservabilityKey(options: BrowserstackConfig & Options.Testrunner) {
+    if (process.env.BROWSERSTACK_ACCESS_KEY) {
+        return process.env.BROWSERSTACK_ACCESS_KEY
+    }
+    if (options.testObservabilityOptions && options.testObservabilityOptions.key) {
+        return options.testObservabilityOptions.key
+    }
+    return options.key
+}
+
+function getObservabilityProject(options: BrowserstackConfig & Options.Testrunner, bstackProjectName?: string) {
+    if (process.env.TEST_OBSERVABILITY_PROJECT_NAME) {
+        return process.env.TEST_OBSERVABILITY_PROJECT_NAME
+    }
+    if (options.testObservabilityOptions && options.testObservabilityOptions.projectName) {
+        return options.testObservabilityOptions.projectName
+    }
+    return bstackProjectName
+}
+
+function getObservabilityBuild(options: BrowserstackConfig & Options.Testrunner, bstackBuildName?: string) {
+    if (process.env.TEST_OBSERVABILITY_BUILD_NAME) {
+        return process.env.TEST_OBSERVABILITY_BUILD_NAME
+    }
+    if (options.testObservabilityOptions && options.testObservabilityOptions.buildName) {
+        return options.testObservabilityOptions.buildName
+    }
+    return bstackBuildName || path.basename(path.resolve(process.cwd()))
+}
+
+function getObservabilityBuildTags(options: BrowserstackConfig & Options.Testrunner, bstackBuildTag?: string): string[] {
+    if (process.env.TEST_OBSERVABILITY_BUILD_TAG) {
+        return process.env.TEST_OBSERVABILITY_BUILD_TAG.split(',')
+    }
+    if (options.testObservabilityOptions && options.testObservabilityOptions.buildTag) {
+        return options.testObservabilityOptions.buildTag
+    }
+    if (bstackBuildTag) {
+        return [bstackBuildTag]
+    }
+    return []
 }

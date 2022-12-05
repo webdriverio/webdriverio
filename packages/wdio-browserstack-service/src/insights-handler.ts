@@ -9,6 +9,8 @@ import type { Pickle, ITestCaseHookParameter } from './cucumber-types'
 
 import { getCloudProvider, getGitMetaData, getHookType, getScenarioExamples, getUniqueIdentifier, getUniqueIdentifierForCucumber, isBrowserstackSession, isScreenshotCommand, removeAnsiColors, uploadEventData } from './util'
 import type { TestData, TestMeta, PlatformMeta, UploadType } from './types'
+import RequestQueueHandler from './request-handler'
+import { DATA_SCREENSHOT_ENDPOINT } from './constants'
 
 export default class InsightsHandler {
 
@@ -18,8 +20,11 @@ export default class InsightsHandler {
     private _platformMeta?: PlatformMeta
     private _commands: { [index: string]: BeforeCommandArgs & AfterCommandArgs } = {}
     private _gitConfigPath?: string
+    private requestQueueHandler: RequestQueueHandler
 
     constructor (private _framework?: string) {
+        this.requestQueueHandler = RequestQueueHandler.getInstance()
+        this.requestQueueHandler.start()
     }
 
     async setUp (browser: Browser<'async'> | MultiRemoteBrowser<'async'>, browserCaps?: Capabilities.Capabilities, isAppAutomate?: boolean, sessionId?: string) {
@@ -183,6 +188,28 @@ export default class InsightsHandler {
         this._tests[uniqueId] = testMetaData
     }
 
+    async uploadPending () {
+        if (this.requestQueueHandler.pendingUploads <= 0) {
+            return
+        }
+
+        await Promise.race([
+            new Promise(resolve => setTimeout(resolve, 5000)),
+            new Promise(resolve => {
+                if (this.requestQueueHandler.pendingUploads == 0) {
+                    resolve
+                }
+                while (this.requestQueueHandler.pendingUploads > 0) {
+                    // waiting for any pending uploads
+                }
+            }),
+        ])
+    }
+
+    async teardown () {
+        await this.requestQueueHandler.shutdown()
+    }
+
     /**
      * misc methods
      */
@@ -199,16 +226,16 @@ export default class InsightsHandler {
         const identifier = this.getIdentifier(test)
 
         // log screenshot
-        if (isScreenshotCommand(args) && args.result.value) {
-            await uploadEventData({
-                event_type: 'ScreenshotCreated',
+        if (process.env.BS_TESTOPS_ALLOW_SCREENSHOTS == 'true' && isScreenshotCommand(args) && args.result.value) {
+            await uploadEventData([{
+                event_type: 'LogCreated',
                 logs: [{
                     test_run_uuid: this._tests[identifier].uuid,
                     timestamp: new Date().toISOString(),
                     message: args.result.value,
                     kind: 'TEST_SCREENSHOT'
                 }]
-            })
+            }], DATA_SCREENSHOT_ENDPOINT)
         }
 
         const dataKey = `${args.sessionId}_${args.method}_${args.endpoint}`
@@ -227,13 +254,21 @@ export default class InsightsHandler {
             }
         }
 
-        await uploadEventData({
+        const uploadData = {
             event_type: 'LogCreated',
             logs: [log]
-        })
+        }
+
+        const req = this.requestQueueHandler.add(uploadData)
+
+        if (req.proceed) {
+            await uploadEventData(req.data, req.url)
+        }
     }
 
-    // private methods
+    /*
+     * private methods
+     */
 
     private attachHookData (context: any, hookId: string): void {
         if (!context.currentTest || !context.currentTest.parent) {
@@ -326,7 +361,12 @@ export default class InsightsHandler {
         } else {
             uploadData['test_run'] = testData
         }
-        await uploadEventData(uploadData)
+
+        const req = this.requestQueueHandler.add(uploadData)
+
+        if (req.proceed) {
+            await uploadEventData(req.data, req.url)
+        }
     }
 
     private async sendTestRunEventForCucumber (world: ITestCaseHookParameter, eventType: string) {
@@ -398,11 +438,16 @@ export default class InsightsHandler {
             testData.tags = world.pickle.tags.map( ({ name }: { name: string }) => (name) )
         }
 
-        let uploadData: UploadType = {
+        const uploadData: UploadType = {
             event_type: eventType,
             test_run: testData
         }
-        await uploadEventData(uploadData)
+
+        const req = this.requestQueueHandler.add(uploadData)
+
+        if (req.proceed) {
+            await uploadEventData(req.data, req.url)
+        }
     }
 
     private getIntegrationsObject () {

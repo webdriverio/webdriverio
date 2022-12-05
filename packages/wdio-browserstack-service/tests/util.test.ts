@@ -570,7 +570,7 @@ describe('launchTestSession', () => {
             json: () => Promise.resolve({ build_hashed_id: 'build_id', jwt: 'jwt' }),
         } as any)
 
-        const result: any = await launchTestSession( { username: 'username', password: 'password' } )
+        const result: any = await launchTestSession( { framework: 'framework' } as any, { } )
         expect(got.post).toBeCalledTimes(1)
         expect(result).toEqual(undefined)
     })

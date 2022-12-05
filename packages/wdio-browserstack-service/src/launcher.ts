@@ -120,15 +120,12 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             log.debug('Sending launch start event')
 
             const bsConfig = {
-                username : process.env.BROWSERSTACK_USERNAME || this._config.user,
-                password : process.env.BROWSERSTACK_ACCESS_KEY || this._config.key,
                 projectName: this._projectName,
-                buildName: this._buildName || path.basename(path.resolve(process.cwd())),
+                buildName: this._buildName,
                 buildTag: this._buildTag,
                 bstackServiceVersion: bstackServiceVersion,
-                framework: this._config.framework
             }
-            await launchTestSession(bsConfig)
+            await launchTestSession(this._options, bsConfig)
         }
 
         if (!this._options.browserstackLocal) {

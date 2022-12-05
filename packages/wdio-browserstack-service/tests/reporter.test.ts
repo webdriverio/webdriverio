@@ -1,5 +1,7 @@
-import TestReporter from '../src/reporter'
 import logger from '@wdio/logger'
+
+import TestReporter from '../src/reporter'
+import RequestQueueHandler from '../src/request-handler'
 import * as utils from '../src/util'
 
 const log = logger('test')
@@ -71,9 +73,11 @@ describe('test-reporter', () => {
 
     describe('onTestSkip', () => {
         const reporter = new TestReporter({})
+        const requestQueueHandler = RequestQueueHandler.getInstance()
         const uploadEventDataSpy = jest.spyOn(utils, 'uploadEventData').mockImplementation()
         const getCloudProviderSpy = jest.spyOn(utils, 'getCloudProvider').mockReturnValue('browserstack')
         const scopesSpy = jest.spyOn(utils, 'getHierarchy').mockImplementation(() => [])
+        jest.spyOn(requestQueueHandler, 'add').mockImplementation(() => { return { proceed: true, data: [{}], url: '' } })
 
         beforeEach(() => {
             uploadEventDataSpy.mockClear()
