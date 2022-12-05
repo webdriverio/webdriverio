@@ -12,9 +12,9 @@ import type { TestFramework } from './types'
 const log = logger('@wdio/runner')
 const sep = '\n  - '
 
-type WDIOErrorEvent = Pick<ErrorEvent, 'filename' | 'message'> & { hasViteError?: boolean }
+type WDIOErrorEvent = Partial<Pick<ErrorEvent, 'filename' | 'message'>> & { hasViteError?: boolean }
 interface TestState {
-    failures?: number
+    failures?: number | null
     errors?: WDIOErrorEvent[]
     hasViteError?: boolean
 }

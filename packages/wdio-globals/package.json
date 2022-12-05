@@ -11,11 +11,13 @@
   "exports": {
     ".": [
       {
+        "types": "./build/index.d.ts",
         "import": "./build/index.js",
         "require": "./cjs/index.js"
       },
       "./cjs/index.js"
-    ]
+    ],
+    "./types": "./types.d.ts"
   },
   "types": "./build/index.d.ts",
   "typeScriptVersion": "3.8.3",
