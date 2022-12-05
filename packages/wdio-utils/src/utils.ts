@@ -2,6 +2,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { createRequire } from 'node:module'
+import {resolve} from 'import-meta-resolve'
 
 import type { Services, Clients } from '@wdio/types'
 
@@ -166,6 +167,7 @@ export function getArgumentType (arg: any) {
  */
 export async function safeImport (name: string): Promise<Services.ServicePlugin | null> {
     let requirePath = name
+    let esmImportPath = name
     try {
         /**
          * Check if cli command was called from local directory, if not require
@@ -176,6 +178,21 @@ export async function safeImport (name: string): Promise<Services.ServicePlugin 
          * imported correctly (for dev purposes).
          */
         const localNodeModules = path.join(process.cwd(), 'node_modules')
+
+        /**
+         * Determine the ESM import path by first using import.meta.url and then 
+         * if not found by using the localNodeModules for the same reason as above.
+         */
+        try {
+            esmImportPath = await resolve(name, import.meta.url)
+        } catch (err: any) {
+            try {
+                esmImportPath = await resolve(name, pathToFileURL(localNodeModules).toString())
+            } catch (err: any) {
+                console.debug(`Could not determine esmImportPath using import.meta.url or localNodeModules for ${name}`)
+            }
+        }
+
         /* istanbul ignore if */
         if (!require.resolve.paths(name)?.includes(localNodeModules)) {
             const resolveLocation = [
@@ -203,7 +220,12 @@ export async function safeImport (name: string): Promise<Services.ServicePlugin 
     }
 
     try {
-        const pkg = await import(requirePath)
+        let pkg;
+        if (esmImportPath) { 
+            pkg = await import(esmImportPath);
+        } else {
+            pkg = await import(requirePath);
+        }
         /**
          * CJS packages build with TS imported through an ESM context can end up being this:
          *
