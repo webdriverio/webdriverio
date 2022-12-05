@@ -2,7 +2,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { createRequire } from 'node:module'
-import {resolve} from 'import-meta-resolve'
+import { resolve } from 'import-meta-resolve'
 
 import type { Services, Clients } from '@wdio/types'
 
@@ -180,7 +180,7 @@ export async function safeImport (name: string): Promise<Services.ServicePlugin 
         const localNodeModules = path.join(process.cwd(), 'node_modules')
 
         /**
-         * Determine the ESM import path by first using import.meta.url and then 
+         * Determine the ESM import path by first using import.meta.url and then
          * if not found by using the localNodeModules for the same reason as above.
          */
         try {
@@ -220,11 +220,11 @@ export async function safeImport (name: string): Promise<Services.ServicePlugin 
     }
 
     try {
-        let pkg;
-        if (esmImportPath) { 
-            pkg = await import(esmImportPath);
+        let pkg
+        if (esmImportPath) {
+            pkg = await import(esmImportPath)
         } else {
-            pkg = await import(requirePath);
+            pkg = await import(requirePath)
         }
         /**
          * CJS packages build with TS imported through an ESM context can end up being this:
