@@ -27,16 +27,13 @@
   "types": "./build/index.d.ts",
   "typeScriptVersion": "3.8.3",
   "dependencies": {
+    "@types/ip": "^1.1.0",
     "@wdio/logger": "8.0.0",
     "@wdio/types": "8.0.0",
     "@wdio/utils": "8.0.2",
     "ip": "^1.1.8",
     "saucelabs": "^7.1.3",
     "webdriverio": "8.0.2"
-  },
-  "devDependencies": {
-    "@types/ip": "^1.1.0",
-    "@types/node": "^18.0.0"
   },
   "publishConfig": {
     "access": "public"
