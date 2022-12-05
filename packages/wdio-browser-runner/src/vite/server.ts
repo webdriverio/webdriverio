@@ -1,3 +1,5 @@
+import { EventEmitter } from 'node:events'
+
 import getPort from 'get-port'
 import logger from '@wdio/logger'
 import { deepmerge } from 'deepmerge-ts'
@@ -17,8 +19,15 @@ import type { ConsoleEvent, HookTriggerEvent, CommandRequestEvent, CommandRespon
 import { BROWSER_POOL, SESSIONS } from '../constants.js'
 
 const log = logger('@wdio/browser-runner:ViteServer')
+const HOOK_TIMEOUT = 15 * 1000
 
-export class ViteServer {
+interface PendingHook {
+    hookExecutionTimeout: NodeJS.Timeout
+    resolveFn: Function
+}
+
+export class ViteServer extends EventEmitter {
+    #pendingHooks = new Map<string, PendingHook>()
     #connections = new Set<WebSocket>()
     #options: WebdriverIO.BrowserRunnerOptions
     #viteConfig: Partial<InlineConfig>
@@ -34,6 +43,7 @@ export class ViteServer {
     }
 
     constructor (options: WebdriverIO.BrowserRunnerOptions) {
+        super()
         this.#options = options
 
         if (options.preset && options.viteConfig) {
@@ -69,8 +79,9 @@ export class ViteServer {
          */
         this.#wss = new WebSocketServer({ port: wssPort })
         this.#wss.on('connection', this.#onConnect.bind(this))
-        this.#viteConfig = deepmerge(this.#viteConfig, {
+        this.#viteConfig = deepmerge(this.#viteConfig, <Partial<InlineConfig>>{
             server: {
+                host: '0.0.0.0',
                 port: vitePort,
                 proxy: {
                     '/ws': {
@@ -139,10 +150,26 @@ export class ViteServer {
             return ws.send(JSON.stringify(this.#hookResponse({ ...payload, error })))
         }
 
-        const result: HookResultEvent = await executeHooksWithArgs(payload.name, session.config[payload.name as keyof Services.HookFunctions], payload.args).then(
-            () => payload,
-            (error: Error) => ({ ...payload, error: serializeError(error) })
+        const result: HookResultEvent = await Promise.all([
+            /**
+             * run config file hooks
+             */
+            executeHooksWithArgs(payload.name, session.config[payload.name as keyof Services.HookFunctions], payload.args).then(
+                () => payload,
+                (error: Error) => ({ ...payload, error: serializeError(error) })
+            ),
+            /**
+             * run service hooks in worker process
+             */
+            this.runWorkerHooks(payload).catch((error: Error) => ({ ...payload, error: serializeError(error) }))
+        ]).then(
+            /**
+             * we don't propagate hook results from worker executions back
+             * as it doesn't seem to be necessary or relevant
+             */
+            ([result]) => result
         )
+
         return ws.send(JSON.stringify(this.#hookResponse(result)))
     }
 
@@ -164,7 +191,7 @@ export class ViteServer {
              * emit debug state to be enabled to runner so it can be propagated to the worker
              */
             if (payload.commandName === 'debug') {
-                browser.emit('debugState', true)
+                this.emit('debugState', true)
             }
             const result = await (browser[payload.commandName as keyof typeof browser] as Function)(...payload.args)
             const resultMsg = JSON.stringify(this.#commandResponse({ id: payload.id, result }))
@@ -173,7 +200,7 @@ export class ViteServer {
              * emit debug state to be disabled to runner so it can be propagated to the worker
              */
             if (payload.commandName === 'debug') {
-                browser.emit('debugState', false)
+                this.emit('debugState', false)
             }
 
             log.info(`Return command result: ${resultMsg}`)
@@ -198,5 +225,35 @@ export class ViteServer {
             type: MESSAGE_TYPES.hookResultMessage,
             value
         }
+    }
+
+    #getPendingHookId (payload: HookTriggerEvent) {
+        return `${payload.cid}-${payload.id}`
+    }
+
+    private runWorkerHooks (payload: HookTriggerEvent) {
+        const hookId = this.#getPendingHookId(payload)
+        if (this.#pendingHooks.has(hookId)) {
+            throw new Error(`There is still a hook running for runner with id ${hookId}`)
+        }
+
+        this.emit('workerHookExecution', payload)
+        return new Promise((resolve, reject) => {
+            const hookExecutionTimeout = setTimeout(
+                () => reject(new Error(`hook execution for runner with id ${hookId} timed out`)),
+                HOOK_TIMEOUT)
+            this.#pendingHooks.set(hookId, { hookExecutionTimeout, resolveFn: resolve })
+        })
+    }
+
+    resolveHook (result: HookTriggerEvent) {
+        const hookId = this.#getPendingHookId(result)
+        const pendingHook = this.#pendingHooks.get(hookId)
+        if (!pendingHook) {
+            return log.warn(`Tried to resolve hook for cid ${result.cid} with id ${result.id} that didn't exist`)
+        }
+
+        pendingHook.resolveFn()
+        this.#pendingHooks.delete(hookId)
     }
 }

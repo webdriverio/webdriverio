@@ -16,9 +16,11 @@ const featureObject = {
 const jasmineSuiteTitle = 'Jasmine__TopLevel__Suite'
 
 vi.mock('saucelabs', () => ({
-    default: class SauceLabsMock {
-        public uploadJobAssets = vi.fn()
-        public updateJob = vi.fn()
+    default: {
+        default: class SauceLabsMock {
+            public uploadJobAssets = vi.fn()
+            public updateJob = vi.fn()
+        }
     }
 }))
 vi.mock('fs/promises', () => ({
@@ -82,7 +84,7 @@ test('beforeSession should set to unknown creds if no sauce user and key are fou
     const service = new SauceService({}, {}, config)
     service['_browser'] = browser
     // @ts-expect-error
-    service.beforeSession()
+    service.beforeSession({})
     expect(config.user).toBe('unknown_user')
     expect(config.key).toBe('unknown_key')
 })
@@ -200,7 +202,7 @@ test('beforeTest should set context for jasmine test', async () => {
     service['_browser'] = browser
     service.setAnnotation = vi.fn()
     // @ts-expect-error
-    service.beforeSession()
+    service.beforeSession({})
     await service.beforeTest({
         fullName: 'my test can do something',
         description: 'foobar'
@@ -213,7 +215,7 @@ test('beforeTest should set context for mocha test', async () => {
     service['_browser'] = browser
     service.setAnnotation = vi.fn()
     // @ts-expect-error
-    service.beforeSession()
+    service.beforeSession({})
     await service.beforeTest({
         parent: 'foo',
         title: 'bar'
@@ -239,7 +241,7 @@ test('beforeTest should not set context if user does not use sauce', async () =>
     service['_browser'] = browser
     service.setAnnotation = vi.fn()
     // @ts-expect-error
-    service.beforeSession()
+    service.beforeSession({})
     await service.beforeTest({
         fullTitle: 'my test can do something'
     } as any)
@@ -250,7 +252,7 @@ test('afterSuite', () => {
     const service = new SauceService({}, {}, {} as any)
     service['_browser'] = browser
     // @ts-expect-error
-    service.beforeSession()
+    service.beforeSession({})
 
     expect(service['_failures']).toBe(0)
 
@@ -266,7 +268,7 @@ test('afterTest', () => {
     service['_browser'] = browser
     service.setAnnotation = vi.fn()
     // @ts-expect-error
-    service.beforeSession()
+    service.beforeSession({})
 
     expect(service['_failures']).toBe(0)
 
@@ -362,7 +364,7 @@ test('beforeFeature should set job-name', async () => {
     service['_browser'] = browser
     service.setAnnotation = vi.fn()
     // @ts-expect-error
-    service.beforeSession()
+    service.beforeSession({})
     await service.beforeFeature( uri, featureObject)
     expect(service.setAnnotation).toBeCalledWith('sauce:job-name=Create a feature')
 })
@@ -372,7 +374,7 @@ test('beforeFeature should set context', async () => {
     service['_browser'] = browser
     service.setAnnotation = vi.fn()
     // @ts-expect-error
-    service.beforeSession()
+    service.beforeSession({})
     await service.beforeFeature( uri, featureObject)
     expect(service.setAnnotation).toBeCalledWith('sauce:context=Feature: Create a feature')
 })
@@ -392,7 +394,7 @@ test('beforeFeature should not set context if no sauce user was applied', async 
     service['_browser'] = browser
     service.setAnnotation = vi.fn()
     // @ts-expect-error
-    service.beforeSession()
+    service.beforeSession({})
     await service.beforeFeature(uri, featureObject)
     expect(service.setAnnotation).not.toBeCalledWith('sauce:context=Feature: Create a feature')
 })
@@ -401,7 +403,7 @@ test('afterScenario', () => {
     const service = new SauceService({}, {}, {} as any)
     service['_browser'] = browser
     // @ts-expect-error
-    service.beforeSession()
+    service.beforeSession({})
 
     expect(service['_failures']).toBe(0)
 
@@ -423,7 +425,7 @@ test('beforeScenario should set context', () => {
     service['_browser'] = browser
     service.setAnnotation = vi.fn()
     // @ts-expect-error
-    service.beforeSession()
+    service.beforeSession({})
     service.beforeScenario({ pickle: { name: 'foobar' } })
     expect(service.setAnnotation).toBeCalledWith('sauce:context=-Scenario: foobar')
 })
@@ -433,7 +435,7 @@ test('beforeScenario should set context when no pickle name is provided', () => 
     service['_browser'] = browser
     service.setAnnotation = vi.fn()
     // @ts-expect-error
-    service.beforeSession()
+    service.beforeSession({})
     service.beforeScenario({ pickle: { } })
     expect(service.setAnnotation).toBeCalledWith('sauce:context=-Scenario: unknown scenario')
 })
@@ -443,7 +445,7 @@ test('beforeScenario should not set context if no sauce user was applied', () =>
     service['_browser'] = browser
     service.setAnnotation = vi.fn()
     // @ts-expect-error
-    service.beforeSession()
+    service.beforeSession({})
     service.beforeScenario({ pickle: { name: 'foobar' } })
     expect(service.setAnnotation).not.toBeCalledWith('sauce:context=-Scenario: foobar')
 })
@@ -459,7 +461,7 @@ test('beforeStep should set context', async () => {
     service['_browser'] = browser
     service.setAnnotation = vi.fn()
     // @ts-expect-error
-    service.beforeSession()
+    service.beforeSession({})
     await service.beforeStep(step)
     expect(service.setAnnotation).toBeCalledWith('sauce:context=--Step: Given I am a step')
 })
@@ -477,7 +479,7 @@ test('beforeStep should not set context for RDC', async () => {
     }
     service.setAnnotation = vi.fn()
     // @ts-expect-error
-    service.beforeSession()
+    service.beforeSession({})
     await service.beforeStep(step)
     expect(service.setAnnotation).not.toBeCalledWith('sauce:context=--Step: Given I am a step')
 })
@@ -486,7 +488,7 @@ test('after', async () => {
     const service = new SauceService({}, {}, { user: 'foobar', key: '123' } as any)
     service['_browser'] = browser
     // @ts-expect-error
-    service.beforeSession()
+    service.beforeSession({})
     service['_failures'] = 5
     service.updateJob = vi.fn()
     service['_uploadLogs'] = vi.fn()
@@ -530,7 +532,7 @@ test('after for RDC with multi remote', async () => {
     )
     service['_browser'] = browser
     // @ts-expect-error
-    service.beforeSession()
+    service.beforeSession({})
     browser.capabilities = {}
     service['_isServiceEnabled'] = true
     service['_isRDC'] = true
@@ -571,7 +573,7 @@ test('_uploadLogs should upload', async () => {
     )
     const api = { uploadJobAssets: vi.fn().mockResolvedValue({}) }
     service['_api'] = api as any
-    await service.beforeSession(null as never, null as never, null as never, '1-0')
+    await service.beforeSession({} as any, null as never, null as never, '1-0')
     await service['_uploadLogs']('123')
     expect(api.uploadJobAssets).toBeCalledTimes(1)
     expect(api.uploadJobAssets.mock.calls[0][1].files).toHaveLength(3)
@@ -599,7 +601,7 @@ test('after with bail set', async () => {
     const service = new SauceService({}, {}, { user: 'foobar', key: '123', mochaOpts: { bail: 1 } } as any)
     service['_browser'] = browser
     // @ts-expect-error
-    service.beforeSession()
+    service.beforeSession({})
     service['_failures'] = 5
     service.updateJob = vi.fn()
 
@@ -616,7 +618,7 @@ test('beforeScenario should not set context if no sauce user was applied', async
     const service = new SauceService({}, {}, {} as any)
     service['_browser'] = browser
     // @ts-expect-error
-    service.beforeSession()
+    service.beforeSession({})
     service['_failures'] = 5
     service.updateJob = vi.fn()
 
@@ -638,7 +640,7 @@ test('after in multiremote', async () => {
     const service = new SauceService({}, caps, { user: 'foobar', key: '123' } as any)
     service['_browser'] = browser
     // @ts-expect-error
-    service.beforeSession()
+    service.beforeSession({})
     service['_failures'] = 5
     service.updateJob = vi.fn()
 
@@ -656,7 +658,7 @@ test('onReload', () => {
     const service = new SauceService({}, {}, { user: 'foobar', key: '123' } as any)
     service['_browser'] = browser
     // @ts-expect-error
-    service.beforeSession()
+    service.beforeSession({})
     service['_failures'] = 5
     service.updateJob = vi.fn()
 
@@ -675,7 +677,7 @@ test('onReload without failures', () => {
     const service = new SauceService({}, {}, { user: 'foobar', key: '123' } as any)
     service['_browser'] = browser
     // @ts-expect-error
-    service.beforeSession()
+    service.beforeSession({})
     service['_failures'] = 0
     service.updateJob = vi.fn()
 
@@ -694,7 +696,7 @@ test('onReload should not set context if no sauce user was applied', () => {
     const service = new SauceService({}, {}, {} as any)
     service['_browser'] = browser
     // @ts-expect-error
-    service.beforeSession()
+    service.beforeSession({})
     service['_failures'] = 5
     service.updateJob = vi.fn()
 
@@ -716,7 +718,7 @@ test('after in multiremote', () => {
     const service = new SauceService({}, caps, { user: 'foobar', key: '123' } as any)
     service['_browser'] = browser
     // @ts-expect-error
-    service.beforeSession()
+    service.beforeSession({})
     service['_failures'] = 5
     service.updateJob = vi.fn()
 
@@ -733,7 +735,7 @@ test('updateJob for VMs', async () => {
     const service = new SauceService({}, {}, { user: 'foobar', key: '123' } as any)
     service['_browser'] = browser
     // @ts-expect-error
-    service.beforeSession()
+    service.beforeSession({})
     service['_suiteTitle'] = 'my test'
 
     await service.updateJob('12345', 23, true)
@@ -750,7 +752,7 @@ test('updateJob for VMs without calledOnReload', () => {
     const service = new SauceService({}, {}, { user: 'foobar', key: '123' } as any)
     service['_browser'] = browser
     // @ts-expect-error
-    service.beforeSession()
+    service.beforeSession({})
     service['_suiteTitle'] = 'my test'
 
     service.updateJob('12345', 23)
@@ -774,7 +776,7 @@ test('getBody', () => {
     service['_browser'] = browser
     service['_suiteTitle'] = 'jojo'
     // @ts-expect-error
-    service.beforeSession()
+    service.beforeSession({})
 
     expect(service.getBody(0)).toEqual({
         name: 'jobname',
@@ -820,7 +822,7 @@ test('getBody', () => {
     service['_browser'] = browser
     service['_suiteTitle'] = 'jojo'
     // @ts-expect-error
-    service.beforeSession()
+    service.beforeSession({})
 
     expect(service.getBody(0)).toEqual({
         name: 'jobname',
@@ -862,7 +864,7 @@ test('getBody with name Capability (JSON WP)', () => {
     service['_browser'] = browser
     service['_suiteTitle'] = 'jojo'
     // @ts-expect-error
-    service.beforeSession()
+    service.beforeSession({})
 
     expect(service.getBody(1)).toEqual({
         name: 'bizarre',
@@ -897,7 +899,7 @@ test('getBody with name Capability (W3C)', () => {
     service['_browser'] = browser
     service['_suiteTitle'] = 'jojo'
     // @ts-expect-error
-    service.beforeSession()
+    service.beforeSession({})
 
     expect(service.getBody(1)).toEqual({
         name: 'bizarre',
@@ -934,7 +936,7 @@ test('getBody with custom setJobName method', () => {
     service['_browser'] = browser
     service['_suiteTitle'] = 'jojo'
     // @ts-expect-error
-    service.beforeSession()
+    service.beforeSession({})
 
     expect(service.getBody(1)).toEqual({
         name: 'foobarloo',
@@ -952,7 +954,7 @@ test('getBody without multiremote', () => {
     service['_browser'] = browser
     service['_suiteTitle'] = 'jojo'
     // @ts-expect-error
-    service.beforeSession()
+    service.beforeSession({})
     service['_testCnt'] = 3
 
     // @ts-expect-error
