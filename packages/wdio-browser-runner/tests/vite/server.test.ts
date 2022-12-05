@@ -66,6 +66,7 @@ describe('ViteServer', () => {
             plugins: ['testrunner plugin'],
             root: expect.any(String),
             server: {
+                host: '0.0.0.0',
                 port: 1234,
                 proxy: {
                     '/ws': {
@@ -92,6 +93,7 @@ describe('ViteServer', () => {
             root: expect.any(String),
             server: {
                 port: 1234,
+                host: '0.0.0.0',
                 proxy: {
                     '/ws': {
                         target: 'ws://localhost:1234',
@@ -207,6 +209,7 @@ describe('ViteServer', () => {
         const server = new ViteServer({
             preset: 'lit'
         })
+        server['runWorkerHooks'] = vi.fn().mockResolvedValue({})
         const viteServer = { listen: vi.fn(), close: vi.fn() }
         vi.mocked(createServer).mockResolvedValue(viteServer as any)
         await server.start()
@@ -226,6 +229,7 @@ describe('ViteServer', () => {
             }
         }
         await vi.mocked(ws.on).mock.calls[0][1](Buffer.from(JSON.stringify(payload)))
+        expect(server['runWorkerHooks']).toBeCalledWith(payload.value)
         expect(executeHooksWithArgs).toBeCalledWith(
             'before',
             session.config.before,
@@ -317,6 +321,7 @@ describe('ViteServer', () => {
         const server = new ViteServer({
             preset: 'lit'
         })
+        server.emit = vi.fn()
         const viteServer = { listen: vi.fn(), close: vi.fn() }
         vi.mocked(createServer).mockResolvedValue(viteServer as any)
         await server.start()
@@ -336,9 +341,9 @@ describe('ViteServer', () => {
             }
         })))
         expect(browser.debug).toBeCalledTimes(1)
-        expect(browser.emit).toBeCalledTimes(2)
-        expect(browser.emit).toBeCalledWith('debugState', true)
-        expect(browser.emit).toBeCalledWith('debugState', false)
+        expect(server.emit).toBeCalledTimes(2)
+        expect(server.emit).toBeCalledWith('debugState', true)
+        expect(server.emit).toBeCalledWith('debugState', false)
     })
 
     it('handleCommand can execute command that fails', async () => {

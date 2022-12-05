@@ -14,6 +14,7 @@ vi.mock('../src/vite/server.js', () => ({
         start = vi.fn()
         close = vi.fn()
         config = { server: { port: 1234 } }
+        on = vi.fn()
     }
 }))
 
@@ -62,10 +63,6 @@ describe('BrowserRunner', () => {
         expect(BROWSER_POOL.size).toBe(1)
         expect(SESSIONS.size).toBe(1)
 
-        // listens on debug state changes
-        const browser = BROWSER_POOL.get('0-0')
-        expect(browser?.on).toBeCalledWith('debugState', expect.any(Function))
-
         await on.mock.calls[0][1]({ name: 'sessionEnded', cid: '0-1', content: {} })
         expect(BROWSER_POOL.size).toBe(1)
         expect(SESSIONS.size).toBe(1)
@@ -83,58 +80,3 @@ describe('BrowserRunner', () => {
         expect(LocalRunner.prototype.shutdown).toBeCalledTimes(1)
     })
 })
-
-// export default class BrowserRunner extends LocalRunner {
-
-//     run (runArgs: RunArgs) {
-//         runArgs.caps = makeHeadless(this.options, runArgs.caps)
-
-//         if (runArgs.command === 'run') {
-//             runArgs.args.baseUrl = this._config.baseUrl
-//         }
-
-//         const worker = super.run(runArgs)
-//         worker.on('message', async (payload: SessionStartedMessage | SessionEndedMessage) => {
-//             if (payload.name === 'sessionStarted' && !SESSIONS.has(payload.cid!)) {
-//                 SESSIONS.set(payload.cid!, {
-//                     args: this.#config.mochaOpts || {},
-//                     config: this.#config,
-//                     capabilities: payload.content.capabilities,
-//                     sessionId: payload.content.sessionId,
-//                     injectGlobals: payload.content.injectGlobals
-//                 })
-//                 BROWSER_POOL.set(payload.cid!, await attach({
-//                     ...this.#config,
-//                     ...payload.content,
-//                     options: {
-//                         ...this.#config,
-//                         ...payload.content
-//                     }
-//                 }))
-//             }
-
-//             if (payload.name === 'sessionEnded') {
-//                 SESSIONS.delete(payload.cid)
-//                 BROWSER_POOL.delete(payload.cid)
-//             }
-//         })
-
-//         return worker
-//     }
-
-//     /**
-//      * shutdown vite server
-//      *
-//      * @return {Promise}  resolves when vite server has been shutdown
-//      */
-//     async shutdown() {
-//         await super.shutdown()
-//         await this.#server.close()
-//     }
-// }
-
-// declare global {
-//     namespace WebdriverIO {
-//         interface BrowserRunnerOptions extends BrowserRunnerOptionsImport {}
-//     }
-// }

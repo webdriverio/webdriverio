@@ -161,7 +161,7 @@ export class ViteServer extends EventEmitter {
             /**
              * run service hooks in worker process
              */
-            this.#runWorkerHooks(payload).catch((error: Error) => ({ ...payload, error: serializeError(error) }))
+            this.runWorkerHooks(payload).catch((error: Error) => ({ ...payload, error: serializeError(error) }))
         ]).then(
             /**
              * we don't propagate hook results from worker executions back
@@ -231,7 +231,7 @@ export class ViteServer extends EventEmitter {
         return `${payload.cid}-${payload.id}`
     }
 
-    #runWorkerHooks (payload: HookTriggerEvent) {
+    private runWorkerHooks (payload: HookTriggerEvent) {
         const hookId = this.#getPendingHookId(payload)
         if (this.#pendingHooks.has(hookId)) {
             throw new Error(`There is still a hook running for runner with id ${hookId}`)
