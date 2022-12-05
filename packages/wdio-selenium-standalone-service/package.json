@@ -1,6 +1,6 @@
 {
   "name": "@wdio/selenium-standalone-service",
-  "version": "8.0.2",
+  "version": "8.0.6",
   "description": "A WebdriverIO service to start & stop Selenium Standalone",
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-selenium-standalone-service",
@@ -32,9 +32,9 @@
   "typeScriptVersion": "3.8.3",
   "dependencies": {
     "@types/selenium-standalone": "^7.0.0",
-    "@wdio/config": "8.0.2",
+    "@wdio/config": "8.0.6",
     "@wdio/logger": "8.0.0",
-    "@wdio/types": "8.0.0",
+    "@wdio/types": "8.0.6",
     "selenium-standalone": "^8.2.1"
   },
   "devDependencies": {
