@@ -21,6 +21,21 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.0.5 (2022-12-05)
+
+#### :bug: Bug Fix
+* `wdio-cli`, `wdio-globals`, `wdio-runner`
+  * [#9293](https://github.com/webdriverio/webdriverio/pull/9293) @wdio/globals: use declare var ([@SCG82](https://github.com/SCG82))
+
+#### :nail_care: Polish
+* `wdio-cli`, `wdio-runner`
+  * [#9295](https://github.com/webdriverio/webdriverio/pull/9295) DevX improvements for component testing ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 2
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- [@SCG82](https://github.com/SCG82)
+
+
 ## v8.0.4 (2022-12-02)
 
 #### :house: Internal
