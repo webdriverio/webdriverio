@@ -149,6 +149,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
         }
 
         await this._setSessionName(suiteTitle, test)
+        await this._setAnnotation(`Test: ${test.fullName ?? test.title}`)
         await this.insightsHandler?.beforeTest(test)
     }
 
@@ -186,14 +187,21 @@ export default class BrowserstackService implements Services.ServiceInstance {
      * For CucumberJS
      */
 
-    beforeFeature(uri: unknown, feature: Feature) {
+    async beforeFeature(uri: unknown, feature: Feature) {
         this._suiteTitle = feature.name
-        return this._setSessionName(feature.name)
+        await this._setSessionName(feature.name)
+        await this._setAnnotation(`Feature: ${feature.name}`)
     }
 
+    /**
+     * Runs before a Cucumber Scenario.
+     * @param world world object containing information on pickle and test step
+     */
     async beforeScenario (world: ITestCaseHookParameter) {
         this._currentTest = world
         await this.insightsHandler?.beforeScenario(world)
+        const scenarioName = world.pickle.name || 'unknown scenario'
+        await this._setAnnotation(`Scenario: ${scenarioName}`)
     }
 
     async afterScenario (world: ITestCaseHookParameter) {
@@ -218,7 +226,9 @@ export default class BrowserstackService implements Services.ServiceInstance {
     }
 
     async beforeStep (step: Frameworks.PickleStep, scenario: Pickle) {
+        const { keyword, text } = step
         await this.insightsHandler?.beforeStep(step, scenario)
+        await this._setAnnotation(`Step: ${keyword}${text}`)
     }
 
     async afterStep (step: Frameworks.PickleStep, scenario: Pickle, result: Frameworks.PickleResult) {
@@ -355,5 +365,31 @@ export default class BrowserstackService implements Services.ServiceInstance {
             this._fullTitle = name
             await this._updateJob({ name })
         }
+    }
+
+    private _setAnnotation(data: string) {
+        return this._executeCommand('annotate', { data, level: 'info' })
+    }
+
+    private async _executeCommand<T = any>(
+        action: string,
+        args?: object,
+    ) {
+        if (!this._browser) {
+            return Promise.resolve()
+        }
+
+        const cmd = { action, ...(args ? { arguments: args } : {}) }
+        const script = `browserstack_executor: ${JSON.stringify(cmd)}`
+
+        if (this._browser.isMultiremote) {
+            const multiRemoteBrowser = this._browser as MultiRemoteBrowser<'async'>
+            return Promise.all(Object.keys(this._caps).map(async (browserName) => {
+                const browser = multiRemoteBrowser[browserName]
+                return (await browser.execute<T, []>(script))
+            }))
+        }
+
+        return (await this._browser.execute<T, []>(script))
     }
 }
