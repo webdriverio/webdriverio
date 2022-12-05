@@ -16,6 +16,16 @@ export class MochaFramework {
     constructor (socket: WebSocket) {
         this.#socket = socket
         socket.addEventListener('message', this.#handleSocketMessage.bind(this))
+        const [cid] = window.location.pathname.slice(1).split('/')
+        if (!cid) {
+            throw new Error('"cid" query parameter is missing')
+        }
+
+        const beforeHook = this.#getHook('beforeHook')
+        const beforeTest = this.#getHook('beforeTest')
+        const afterHook = this.#getHook('afterHook')
+        const afterTest = this.#getHook('afterTest')
+        setupEnv(cid, window.__wdioEnv__.args, beforeTest, beforeHook, afterTest, afterHook)
 
         const self = this
         before(function () {
@@ -36,17 +46,6 @@ export class MochaFramework {
 
     run () {
         const runner = mocha.run(this.#onFinish.bind(this))
-        const [cid] = window.location.pathname.slice(1).split('/')
-        if (!cid) {
-            throw new Error('"cid" query parameter is missing')
-        }
-
-        const beforeHook = this.#getHook('beforeHook')
-        const beforeTest = this.#getHook('beforeTest')
-        const afterHook = this.#getHook('afterHook')
-        const afterTest = this.#getHook('afterTest')
-        setupEnv(cid, window.__wdioEnv__.args, beforeTest, beforeHook, afterTest, afterHook)
-
         Object.entries(EVENTS).map(([mochaEvent, wdioEvent]) => runner.on(mochaEvent, (payload: any) => {
             this.#runnerEvents.push(formatMessage({ type: wdioEvent, payload, err: payload.err }))
         }))

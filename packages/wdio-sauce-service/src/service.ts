@@ -1,6 +1,7 @@
 import fs from 'node:fs/promises'
 import path from 'node:path'
 
+import ip from 'ip'
 import SauceLabs, { SauceLabsOptions, Job } from 'saucelabs'
 import logger from '@wdio/logger'
 import type { Services, Capabilities, Options, Frameworks } from '@wdio/types'
@@ -34,14 +35,16 @@ export default class SauceService implements Services.ServiceInstance {
         private _config: Options.Testrunner
     ) {
         this._options = { ...DEFAULT_OPTIONS, ...options }
-        this._api = new SauceLabs(this._config as unknown as SauceLabsOptions)
+        // @ts-expect-error https://github.com/saucelabs/node-saucelabs/issues/153
+        this._api = new SauceLabs.default(this._config as unknown as SauceLabsOptions)
         this._maxErrorStackLength = this._options.maxErrorStackLength || this._maxErrorStackLength
     }
 
     /**
      * gather information about runner
      */
-    beforeSession (_: never, __: never, ___: never, cid: string) {
+    beforeSession (config: Options.Testrunner, __: never, ___: never, cid: string) {
+        console.log('beforeSession')
         this._cid = cid
 
         /**
@@ -56,6 +59,13 @@ export default class SauceService implements Services.ServiceInstance {
         if (!this._config.key) {
             this._isServiceEnabled = false
             this._config.key = 'unknown_key'
+        }
+
+        /**
+         * update baseUrl if localhost so it can be reached by Sauce Connect
+         */
+        if (config.baseUrl && config.baseUrl.includes('localhost')) {
+            config.baseUrl = config.baseUrl.replace(/(localhost|127\.0\.0\.1)/, ip.address())
         }
     }
 

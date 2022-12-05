@@ -2,12 +2,13 @@ import logger from '@wdio/logger'
 import LocalRunner, { RunArgs } from '@wdio/local-runner'
 import { attach } from 'webdriverio'
 
-import type { SessionStartedMessage, SessionEndedMessage } from '@wdio/runner'
+import type { SessionStartedMessage, SessionEndedMessage, WorkerHookResultMessage } from '@wdio/runner'
 import type { Options } from '@wdio/types'
 
 import { ViteServer } from './vite/server.js'
 import { FRAMEWORK_SUPPORT_ERROR, SESSIONS, BROWSER_POOL } from './constants.js'
 import { makeHeadless } from './utils.js'
+import type { HookTriggerEvent } from './vite/types'
 import type { BrowserRunnerOptions as BrowserRunnerOptionsImport } from './types'
 
 const log = logger('@wdio/browser-runner')
@@ -53,7 +54,14 @@ export default class BrowserRunner extends LocalRunner {
         }
 
         const worker = super.run(runArgs)
-        worker.on('message', async (payload: SessionStartedMessage | SessionEndedMessage) => {
+        this.#server.on('debugState', (state: boolean) => worker.postMessage('switchDebugState', state))
+        this.#server.on('workerHookExecution', (payload: HookTriggerEvent) => {
+            if (worker.cid !== payload.cid) {
+                return
+            }
+            return worker.postMessage('workerHookExecution', payload)
+        })
+        worker.on('message', async (payload: SessionStartedMessage | SessionEndedMessage | WorkerHookResultMessage) => {
             if (payload.name === 'sessionStarted' && !SESSIONS.has(payload.cid!)) {
                 SESSIONS.set(payload.cid!, {
                     args: this.#config.mochaOpts || {},
@@ -73,13 +81,16 @@ export default class BrowserRunner extends LocalRunner {
                 /**
                  * propagate debug state to the worker
                  */
-                browser.on('debugState', (state: boolean) => worker.postMessage('switchDebugState', state))
                 BROWSER_POOL.set(payload.cid!, browser)
             }
 
             if (payload.name === 'sessionEnded') {
                 SESSIONS.delete(payload.cid)
                 BROWSER_POOL.delete(payload.cid)
+            }
+
+            if (payload.name === 'workerHookResult') {
+                this.#server.resolveHook(payload.args)
             }
         })
 

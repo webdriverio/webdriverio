@@ -3,11 +3,12 @@ import path from 'node:path'
 
 import logger from '@wdio/logger'
 import { browser } from '@wdio/globals'
+import { executeHooksWithArgs } from '@wdio/utils'
 import type { Browser } from 'webdriverio'
-import type { Capabilities, Workers } from '@wdio/types'
+import type { Capabilities, Workers, Options, Services } from '@wdio/types'
 
 import type BaseReporter from './reporter'
-import type { TestFramework } from './types'
+import type { TestFramework, HookTriggerEvent, WorkerHookResultMessage } from './types'
 
 const log = logger('@wdio/runner')
 const sep = '\n  - '
@@ -34,13 +35,13 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
 
     constructor (
         private _cid: string,
-        private _config: { sessionId?: string },
+        private _config: Options.Testrunner & { sessionId?: string },
         private _specs: string[],
         private _capabilities: Capabilities.RemoteCapability,
         private _reporter: BaseReporter
     ) {
-        // listen on debug state switches
-        process.on('message', this.#switchDebugState.bind(this))
+        // listen on testrunner events
+        process.on('message', this.#handleProcessMessage.bind(this))
     }
 
     /**
@@ -59,7 +60,16 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
             const failures = await this.#loop()
             return failures
         } catch (err: any) {
+            if ((err as Error).message.includes('net::ERR_CONNECTION_REFUSE')) {
+                err.message = `Failed to load test page to run tests, make sure your browser can access "${browser.options.baseUrl}"`
+            }
+
             log.error(`Failed to run browser tests with cid ${this._cid}: ${err.stack}`)
+            process.send!({
+                origin: 'worker',
+                name: 'error',
+                content: { name: err.name, message: err.message, stack: err.stack }
+            })
             return 1
         }
     }
@@ -99,7 +109,7 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
                         continue
                     }
 
-                    state = await browser?.execute(() => {
+                    state = await browser?.execute(function fetchExecutionState () {
                         const failures = window.__wdioEvents__ && window.__wdioEvents__.length > 0
                             ? window.__wdioFailures__
                             : null
@@ -166,8 +176,21 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
         }
     }
 
-    #switchDebugState (cmd: Workers.WorkerCommand) {
-        this.#inDebugMode = cmd.args
+    async #handleProcessMessage (cmd: Workers.WorkerCommand) {
+        if (cmd.command === 'switchDebugState') {
+            this.#inDebugMode = cmd.args
+            return
+        }
+        if (cmd.command === 'workerHookExecution') {
+            const args = cmd.args as HookTriggerEvent
+            await executeHooksWithArgs(args.name, this._config[args.name as keyof Services.HookFunctions], args.args)
+                .catch((err) => log.warn(`Failed running "${args.name}" hook for cid ${args.cid}: ${err.message}`))
+            return process.send!(<WorkerHookResultMessage>{
+                origin: 'worker',
+                name: 'workerHookResult',
+                args
+            })
+        }
     }
 
     static init (cid: string, config: any, specs: string[], caps: Capabilities.RemoteCapability, reporter: BaseReporter) {

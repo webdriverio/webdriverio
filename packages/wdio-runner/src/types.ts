@@ -58,3 +58,20 @@ export interface SessionEndedMessage {
     name: 'sessionEnded',
     cid: string
 }
+
+export interface WorkerHookResultMessage {
+    origin: 'worker'
+    name: 'workerHookResult',
+    args: HookTriggerEvent
+}
+
+/**
+ * Duplicate of @wdio/browser-runner type, refactoring needed
+ * see https://github.com/webdriverio/webdriverio/issues/9299
+ */
+export interface HookTriggerEvent {
+    id: string
+    cid: string
+    name: string
+    args: unknown[]
+}
