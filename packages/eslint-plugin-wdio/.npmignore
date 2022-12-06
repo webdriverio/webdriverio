@@ -3,3 +3,4 @@ docs
 tests
 tsconfig.json
 tsconfig.prod.json
+tsconfig.cjs.json
