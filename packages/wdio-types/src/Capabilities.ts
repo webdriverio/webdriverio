@@ -162,21 +162,25 @@ export interface VendorExtensions extends EdgeCapabilities, AppiumW3CCapabilitie
      */
     'browserstack.wdioService'?: string
 
-    'goog:chromeOptions'?: ChromeOptions;
-    'moz:firefoxOptions'?: FirefoxOptions;
-    'moz:debuggerAddress'?: string;
+    'goog:chromeOptions'?: ChromeOptions
+    'moz:firefoxOptions'?: FirefoxOptions
+    // This capability is a boolean when send as part of the capabilities to Geckodrivr
+    // and is being returns as string (e.g. "<host>:<port>") when session capabilities
+    // are returned from the driver
+    // see https://firefox-source-docs.mozilla.org/testing/geckodriver/Capabilities.html#moz-debuggeraddress
+    'moz:debuggerAddress'?: string | number
     // eslint-disable-next-line
-    firefox_profile?: string;
-    'ms:edgeOptions'?: MicrosoftEdgeOptions;
-    'ms:edgeChromium'?: MicrosoftEdgeOptions;
+    firefox_profile?: string
+    'ms:edgeOptions'?: MicrosoftEdgeOptions
+    'ms:edgeChromium'?: MicrosoftEdgeOptions
 
     // Windows Application Driver
-    'ms:experimental-webdriver'?: boolean;
-    'ms:waitForAppLaunch'?: string;
+    'ms:experimental-webdriver'?: boolean
+    'ms:waitForAppLaunch'?: string
 
     // Safari specific
     'safari.options'?: {
-        [name: string]: any;
+        [name: string]: any
     };
 
     /**

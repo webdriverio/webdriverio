@@ -1,3 +1,5 @@
+import path from 'node:path'
+
 import { expect, describe, it, vi, beforeEach, beforeAll } from 'vitest'
 import puppeteer from 'puppeteer-core'
 
@@ -5,6 +7,7 @@ import { remote } from '../../../src/index.js'
 
 vi.mock('got')
 vi.mock('puppeteer-core')
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 const puppeteerConnect = vi.mocked(puppeteer.connect)
 
@@ -71,12 +74,47 @@ describe('attach Puppeteer', () => {
             },
             requestedCapabilities: {
                 'moz:firefoxOptions': {
-                    args: {}
+                    args: []
                 } as any
             }
         })
         expect(typeof pptr).toBe('object')
         expect(puppeteerConnect.mock.calls).toMatchSnapshot()
+    })
+
+    it('should pass for Firefox and moz:debuggerAddress flag enabled', async () => {
+        const pptr = await browser.getPuppeteer.call({
+            ...browser,
+            options: browser.options,
+            capabilities: {
+                browserName: 'firefox',
+                browserVersion: '79.0b',
+                'moz:debuggerAddress': 'localhost:1234'
+            },
+            requestedCapabilities: {
+                'moz:firefoxOptions': {
+                    args: []
+                } as any
+            }
+        })
+        expect(typeof pptr).toBe('object')
+        expect(puppeteerConnect.mock.calls).toMatchSnapshot()
+    })
+
+    it('should fail for Firefox if no info is given', async () => {
+        await expect(browser.getPuppeteer.call({
+            ...browser,
+            options: browser.options,
+            capabilities: {
+                browserName: 'firefox',
+                browserVersion: '79.0b'
+            },
+            requestedCapabilities: {
+                'moz:firefoxOptions': {
+                    args: []
+                } as any
+            }
+        })).rejects.toThrow('Could\'t find a websocket url')
     })
 
     it('should pass for Edge', async () => {

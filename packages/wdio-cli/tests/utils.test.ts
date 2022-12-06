@@ -324,7 +324,6 @@ describe('addServiceDeps', () => {
         const packages: any = []
         addServiceDeps([{ package: '@wdio/appium-service', short: 'appium' }], packages)
         expect(packages).toEqual(['appium'])
-        expect(global.console.log).not.toBeCalled()
     })
 
     it('should not add appium if globally installed', () => {
@@ -334,28 +333,24 @@ describe('addServiceDeps', () => {
         const packages: any = []
         addServiceDeps([{ package: '@wdio/appium-service', short: 'appium' }], packages)
         expect(packages).toEqual([])
-        expect(global.console.log).not.toBeCalled()
-    })
-
-    it('should add appium and print message if update and appium globally installed', () => {
-        const packages: any = []
-        addServiceDeps([{ package: '@wdio/appium-service', short: 'appium' }], packages, true)
-        expect(packages).toEqual([])
-        expect(global.console.log).toBeCalled()
     })
 
     it('should add chromedriver', () => {
         const packages: any = []
         addServiceDeps([{ package: 'wdio-chromedriver-service', short: 'chromedriver' }], packages)
         expect(packages).toEqual(['chromedriver'])
-        expect(global.console.log).not.toBeCalled()
     })
 
-    it('should add chromedriver and print message if update', () => {
+    it('should add geckodriver', () => {
         const packages: any = []
-        addServiceDeps([{ package: 'wdio-chromedriver-service', short: 'chromedriver' }], packages, true)
-        expect(packages).toEqual(['chromedriver'])
-        expect(global.console.log).toBeCalled()
+        addServiceDeps([{ package: 'wdio-geckodriver-service', short: 'geckodriver' }], packages)
+        expect(packages).toEqual(['geckodriver'])
+    })
+
+    it('should add edgedriver', () => {
+        const packages: any = []
+        addServiceDeps([{ package: 'wdio-edgedriver-service', short: 'edgedriver' }], packages)
+        expect(packages).toEqual(['msedgedriver'])
     })
 
     afterEach(() => {
