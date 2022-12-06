@@ -34,7 +34,6 @@ function throwBetterErrorMessageTearDown (err: Error) {
     throw new Error(
         util.format(ERROR_MESSAGE, 'Tear-down') +
         err.stack
-        '\n\nTo correct this error please check you have the file: "packages/webdriver/node_modules/got"\n'
     )
 }
 
