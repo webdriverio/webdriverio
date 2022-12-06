@@ -745,7 +745,8 @@ test('specifyVersionIfNeeded', () => {
 test('getProjectRoot', () => {
     expect(getProjectRoot({ projectRoot: '/foo/bar' } as any)).toBe('/foo/bar')
     expect(getProjectRoot({} as any, { path: '/bar/foo' } as any)).toBe('/bar/foo')
-    expect(getProjectRoot({} as any).includes(path.join('/webdriverio'))).toBe(true)
+    const projectDir = process.cwd().substring(process.cwd().lastIndexOf(path.sep) + 1)
+    expect(getProjectRoot({} as any).includes(path.join(projectDir))).toBe(true)
 })
 
 test('hasBabelConfig', async () => {
