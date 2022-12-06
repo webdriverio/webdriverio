@@ -1057,6 +1057,14 @@ export interface SauceLabsCapabilities {
      * @default *randomized string*
      */
     cacheId?: string
+    /**
+     * Specifies the Appium driver version you want to use. For most use cases,
+     * setting the appiumVersion is unnecessary because Sauce Labs defaults to
+     * the version that supports the broadest number of device combinations.
+     * Sauce Labs advises against setting this property unless you need to test
+     * a particular Appium feature or patch.
+     */
+    appiumVersion?: string
 }
 
 export interface BrowserStackCapabilities {
