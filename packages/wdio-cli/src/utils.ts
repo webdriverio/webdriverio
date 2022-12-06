@@ -205,19 +205,24 @@ export function replaceConfig (config: string, type: string, name: string) {
 
 export function addServiceDeps(names: SupportedPackage[], packages: string[], update = false) {
     /**
-     * automatically install latest Chromedriver if `wdio-chromedriver-service`
-     * was selected for install
+     * automatically install latest Chromedriver if `wdio-chromedriver-service` was selected for install
      */
     if (names.some(({ short }) => short === 'chromedriver')) {
         packages.push('chromedriver')
-        if (update) {
-            // eslint-disable-next-line no-console
-            console.log(
-                '\n=======',
-                '\nPlease change path to / in your wdio.conf.js:',
-                "\npath: '/'",
-                '\n=======\n')
-        }
+    }
+
+    /**
+     * automatically install latest Geckodriver if `wdio-geckodriver-service` was selected for install
+     */
+    if (names.some(({ short }) => short === 'geckodriver')) {
+        packages.push('geckodriver')
+    }
+
+    /**
+     * automatically install latest EdgeDriver if `wdio-edgedriver-service` was selected for install
+     */
+    if (names.some(({ short }) => short === 'edgedriver')) {
+        packages.push('msedgedriver')
     }
 
     /**
