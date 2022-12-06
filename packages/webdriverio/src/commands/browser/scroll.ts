@@ -1,4 +1,5 @@
 import logger from '@wdio/logger'
+import { sessionEnvironmentDetector } from '@wdio/utils'
 
 const log = logger('webdriverio')
 
@@ -32,6 +33,18 @@ export default function scroll (
 ) {
     if (!x && !y) {
         return log.warn('"scroll" command was called with no parameters, skipping execution')
+    }
+
+    const { isAppium } = sessionEnvironmentDetector({
+        capabilities: this.capabilities,
+        requestedCapabilities: this.requestedCapabilities
+    })
+
+    if (isAppium) {
+        // Appium does not support the "wheel" action
+        return this.execute(function (x, y) {
+            window.scrollBy(x, y)
+        }, x, y)
     }
 
     return this.action('wheel')

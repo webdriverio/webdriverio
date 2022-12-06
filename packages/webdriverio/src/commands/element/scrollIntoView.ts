@@ -1,3 +1,6 @@
+import { sessionEnvironmentDetector } from '@wdio/utils'
+
+import { ELEMENT_KEY } from '../../constants.js'
 import { getBrowserObject } from '../../utils/index.js'
 
 /**
@@ -48,6 +51,21 @@ export default async function scrollIntoView (
         } else if ((options as ScrollIntoViewOptions).block === 'center') {
             deltaX += Math.round((viewport.height - elemSize.height) / 2)
         }
+    }
+
+    const { isAppium } = sessionEnvironmentDetector({
+        capabilities: browser.capabilities,
+        requestedCapabilities: browser.requestedCapabilities
+    })
+
+    if (isAppium) {
+        // Appium does not support the "wheel" action
+        return this.parent.execute(function (elem: HTMLElement, options: boolean | ScrollIntoViewOptions) {
+            elem.scrollIntoView(options)
+        }, {
+            [ELEMENT_KEY]: this.elementId, // w3c compatible
+            ELEMENT: this.elementId // jsonwp compatible
+        } as any as HTMLElement, options)
     }
 
     return browser.action('wheel')

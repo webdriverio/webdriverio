@@ -121,6 +121,16 @@ describe('sessionEnvironmentDetector', () => {
         expect(sessionEnvironmentDetector({ capabilities: standalonev4Caps, requestedCapabilities }).isSeleniumStandalone).toBe(true)
     })
 
+    it('isAppium', () => {
+        const requestedCapabilities = { browserName: '' }
+        expect(sessionEnvironmentDetector({ capabilities: {}, requestedCapabilities: {} }).isAppium).toBe(false)
+        expect(sessionEnvironmentDetector({ capabilities: appiumCaps, requestedCapabilities }).isAppium).toBe(true)
+        expect(sessionEnvironmentDetector({ capabilities: chromeCaps, requestedCapabilities }).isAppium).toBe(false)
+        expect(sessionEnvironmentDetector({ capabilities: geckoCaps, requestedCapabilities }).isAppium).toBe(false)
+        expect(sessionEnvironmentDetector({ capabilities: standaloneCaps, requestedCapabilities }).isAppium).toBe(false)
+        expect(sessionEnvironmentDetector({ capabilities: standalonev4Caps, requestedCapabilities }).isAppium).toBe(false)
+    })
+
     it('should not detect mobile app for browserName===undefined', function () {
         const requestedCapabilities = { browserName: '' }
         const capabilities = {}
