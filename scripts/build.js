@@ -1,5 +1,6 @@
 #!/usr/bin/env node
-import fs from 'node:fs'
+import { accessSync } from 'node:fs'
+import { readFile, writeFile } from 'node:fs/promises'
 import url from 'node:url'
 import path from 'node:path'
 import shell from 'shelljs'
@@ -47,7 +48,7 @@ const packages = getSubPackages()
      */
     .filter((pkg) => {
         try {
-            fs.accessSync(`packages/${pkg}/${TSCONFIG_FILE}`)
+            accessSync(`packages/${pkg}/${TSCONFIG_FILE}`)
             return true
         } catch (err) {
             return false
@@ -104,8 +105,8 @@ if (!HAS_WATCH_FLAG) {
     console.log('Remove `export {}` from CJS files')
     for (const pkg of ['webdriver', 'devtools', 'webdriverio']) {
         const filePath = path.join(__dirname, '..', 'packages', pkg, 'build', 'cjs', 'index.js')
-        const fileContent = fs.readFileSync(filePath, 'utf8')
-        fs.writeFileSync(filePath, fileContent.toString().replace('export {};', ''), 'utf8')
+        const fileContent = await readFile(filePath, 'utf8')
+        await writeFile(filePath, fileContent.toString().replace('export {};', ''), 'utf8')
     }
 }
 
