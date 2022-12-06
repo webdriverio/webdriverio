@@ -1,5 +1,3 @@
-import { sessionEnvironmentDetector } from '@wdio/utils'
-
 import { ELEMENT_KEY } from '../../constants.js'
 import { getBrowserObject } from '../../utils/index.js'
 
@@ -53,12 +51,7 @@ export default async function scrollIntoView (
         }
     }
 
-    const { isAppium } = sessionEnvironmentDetector({
-        capabilities: browser.capabilities,
-        requestedCapabilities: browser.requestedCapabilities
-    })
-
-    if (isAppium) {
+    if (browser.isMobile) {
         // Appium does not support the "wheel" action
         return this.parent.execute(function (elem: HTMLElement, options: boolean | ScrollIntoViewOptions) {
             elem.scrollIntoView(options)

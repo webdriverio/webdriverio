@@ -183,26 +183,12 @@ function isSeleniumStandalone(capabilities?: Capabilities.DesiredCapabilities) {
 }
 
 /**
- * check if session is running on Appium
- * @param  {object}  capabilities  session capabilities
- * @return {boolean}               true if running on Appium
- */
-function isAppium(capabilities?: Capabilities.DesiredCapabilities) {
-    if (!capabilities) {
-        return false
-    }
-    return Boolean(capabilities.automationName ||
-        capabilities.deviceName ||
-        capabilities.appiumVersion)
-}
-
-/**
  * returns information about the environment before the session is created
  * @param  {Object}  capabilities           caps provided by user
  * @param  {string=} automationProtocol     `devtools`
  * @return {Object}                         object with environment flags
  */
-export function capabilitiesEnvironmentDetector(capabilities: Capabilities.Capabilities, automationProtocol?: string) {
+export function capabilitiesEnvironmentDetector(capabilities: Capabilities.Capabilities, automationProtocol: string) {
     return automationProtocol === 'devtools'
         ? devtoolsEnvironmentDetector(capabilities)
         : webdriverEnvironmentDetector(capabilities)
@@ -227,8 +213,7 @@ export function sessionEnvironmentDetector({ capabilities, requestedCapabilities
         isIOS: isIOS(cap),
         isAndroid: isAndroid(cap),
         isSauce: isSauce(requestedCapabilities),
-        isSeleniumStandalone: isSeleniumStandalone(cap),
-        isAppium: isAppium(cap),
+        isSeleniumStandalone: isSeleniumStandalone(cap)
     }
 }
 
@@ -264,7 +249,6 @@ export function webdriverEnvironmentDetector(capabilities: Capabilities.Capabili
         isMobile: isMobile(capabilities),
         isIOS: isIOS(capabilities),
         isAndroid: isAndroid(capabilities),
-        isSauce: isSauce(capabilities),
-        isAppium: isAppium(capabilities),
+        isSauce: isSauce(capabilities)
     }
 }
