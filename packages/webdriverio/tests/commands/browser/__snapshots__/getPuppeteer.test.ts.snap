@@ -66,6 +66,17 @@ exports[`attach Puppeteer > should pass for Firefox 1`] = `
 ]
 `;
 
+exports[`attach Puppeteer > should pass for Firefox and moz:debuggerAddress flag enabled 1`] = `
+[
+  [
+    {
+      "browserURL": "localhost:1234",
+      "defaultViewport": null,
+    },
+  ],
+]
+`;
+
 exports[`attach Puppeteer > should pass for Selenium CDP 1`] = `
 [
   [

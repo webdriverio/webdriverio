@@ -100,19 +100,31 @@ export default async function getPuppeteer (this: WebdriverIO.Browser) {
         const majorVersion = parseInt(caps.browserVersion.split('.').shift() || '', 10)
         if (majorVersion >= 79) {
             const reqCaps = (this.requestedCapabilities as Capabilities.W3CCapabilities).alwaysMatch || this.requestedCapabilities as Capabilities.DesiredCapabilities
-            const ffOptions = caps['moz:firefoxOptions']
-            const ffArgs = reqCaps['moz:firefoxOptions']?.args
+            let browserURL: string | undefined
 
-            const rdPort = ffOptions && ffOptions.debuggerAddress
-                ? ffOptions.debuggerAddress
-                : ffArgs?.[ffArgs.findIndex((arg: string) => arg === FF_REMOTE_DEBUG_ARG) + 1] ?? null
+            if (caps['moz:debuggerAddress']) {
+                browserURL = caps['moz:debuggerAddress'] as string
+            } else {
+                const ffOptions = caps['moz:firefoxOptions']
+                const ffArgs = reqCaps['moz:firefoxOptions']?.args || []
+                const rdPort = ffOptions && ffOptions.debuggerAddress
+                    ? ffOptions.debuggerAddress
+                    : ffArgs[ffArgs.findIndex((arg: string) => arg === FF_REMOTE_DEBUG_ARG) + 1]
 
-            if (!rdPort) {
-                throw new Error('Could\'t find remote debug port in Firefox options')
+                if (rdPort) {
+                    browserURL = `http://localhost:${rdPort}`
+                }
+            }
+
+            if (!browserURL) {
+                throw new Error(
+                    'Could\'t find a websocket url within returned capabilities to connect to! ' +
+                    'Make sure you have "moz:debuggerAddress" set to `true` in your Firefox capabilities'
+                )
             }
 
             this.puppeteer = await puppeteer.connect({
-                browserURL: `http://localhost:${rdPort}`,
+                browserURL,
                 defaultViewport: null
             }) as any as PuppeteerBrowser
             return this.puppeteer as any as PuppeteerBrowser
