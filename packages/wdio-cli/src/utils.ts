@@ -29,6 +29,7 @@ import type { ReplCommandArguments, Questionnair, SupportedPackage, OnCompleteRe
 const log = logger('@wdio/cli:utils')
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
+const NPM_COMMAND = /^win/.test(process.platform) ? 'npm.cmd' : 'npm'
 const VERSION_REGEXP = /(\d+)\.(\d+)\.(\d+)-(alpha|beta|)\.(\d+)\+(.+)/g
 const TEMPLATE_ROOT_DIR = path.join(__dirname, 'templates', 'exampleFiles')
 export const renderFile = promisify(ejs.renderFile) as (path: string, data: Record<string, any>) => Promise<string>
@@ -786,7 +787,7 @@ export async function createWDIOScript (parsedAnswers: ParsedAnswers) {
     try {
         console.log(`Adding ${chalk.bold('"wdio"')} script to package.json.`)
         const script = `wdio run ./${path.join('.', parsedAnswers.wdioConfigPath.replace(projectProps?.path || process.cwd(), ''))}`
-        await runProgram('npm', ['pkg', 'set', `scripts.wdio=${script}`], { cwd: parsedAnswers.projectRootDir })
+        await runProgram(NPM_COMMAND, ['pkg', 'set', `scripts.wdio=${script}`], { cwd: parsedAnswers.projectRootDir })
         console.log(chalk.green.bold('✔ Success!'))
     } catch (err: any) {
         throw new Error(`⚠️ Couldn't add script to package.json: ${err.stack}`)
