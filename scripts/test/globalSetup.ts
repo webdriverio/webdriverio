@@ -8,10 +8,15 @@ const nodeModulesPath = path.join(__dirname, '..', '..', 'packages', 'webdriver'
 const gotPath = path.join(nodeModulesPath, 'got')
 const tmpGotPath = path.join(nodeModulesPath, 'tmp_got')
 const ERROR_MESSAGE = `Renaming "got" dependency failed!
-'WebdriverIO needs to hide the "got" dependency (at "packages/webdriver/node_modules/got")
-'during the test to force Vitest to use our mocked version. WebdriverIO does this by
-'renaming "packages/webdriver/node_modules/got" to "packages/webdriver/node_modules/tmp_got"
-'during test setup and back again during test tear-down.
+
+WebdriverIO needs to hide the "got" dependency (at "packages/webdriver/node_modules/got")
+during the test to force Vitest to use our mocked version. WebdriverIO does this by renaming: 
+
+"packages/webdriver/node_modules/got"
+to
+"packages/webdriver/node_modules/tmp_got"
+
+during test setup and back again during test tear-down.
 
 '%s has failed.  Maybe because you are already running unit tests in a different
 'terminal.
