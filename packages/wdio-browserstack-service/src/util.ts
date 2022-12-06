@@ -30,7 +30,7 @@ export function getBrowserDescription(cap: Capabilities.DesiredCapabilities) {
  */
 export function getBrowserCapabilities(browser: Browser<'async'> | MultiRemoteBrowser<'async'>, caps?: Capabilities.RemoteCapability, browserName?: string) {
     if (!browser.isMultiremote) {
-        return { ...browser.capabilities, ...caps }
+        return { ...browser.capabilities, ...caps } as Capabilities.Capabilities
     }
 
     const multiCaps = caps as Capabilities.MultiRemoteCapabilities
