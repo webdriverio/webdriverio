@@ -21,7 +21,7 @@ function throwBetterErrorMessageSetup (err: Error) {
     throw new Error(
         util.format(ERROR_MESSAGE, 'Setup') +
         err.stack +
-        '\n\nTo correct this error please run:\n   mv packages/webdriver/node_modules/tmp_got packages/webdriver/node_modules/got\n'
+        '\n\nTo correct this error please run:\n\tmv packages/webdriver/node_modules/tmp_got packages/webdriver/node_modules/got\n'
     )
 }
 
