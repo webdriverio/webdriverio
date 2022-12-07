@@ -34,8 +34,8 @@ export default function scroll (
         return log.warn('"scroll" command was called with no parameters, skipping execution')
     }
 
-    if (browser.isMobile) {
-        // Appium does not support the "wheel" action
+    // Appium does not support the "wheel" action
+    if (this.isMobile) {
         return this.execute(function (x, y) {
             window.scrollBy(x, y)
         }, x, y)

@@ -28,6 +28,14 @@ export default async function scrollIntoView (
 ) {
     const browser = getBrowserObject(this)
 
+    // Appium does not support the "wheel" action
+    if (browser.isMobile) {
+        return browser.execute((elem: HTMLElement, options: ScrollIntoViewOptions | boolean) => elem.scrollIntoView(options), {
+            [ELEMENT_KEY]: this.elementId, // w3c compatible
+            ELEMENT: this.elementId // jsonwp compatible
+        } as any as HTMLElement, options)
+    }
+
     let deltaX = 0
     let deltaY = 0
     /**
@@ -49,16 +57,6 @@ export default async function scrollIntoView (
         } else if ((options as ScrollIntoViewOptions).block === 'center') {
             deltaX += Math.round((viewport.height - elemSize.height) / 2)
         }
-    }
-
-    if (browser.isMobile) {
-        // Appium does not support the "wheel" action
-        return this.parent.execute(function (elem: HTMLElement, options: boolean | ScrollIntoViewOptions) {
-            elem.scrollIntoView(options)
-        }, {
-            [ELEMENT_KEY]: this.elementId, // w3c compatible
-            ELEMENT: this.elementId // jsonwp compatible
-        } as any as HTMLElement, options)
     }
 
     return browser.action('wheel')
