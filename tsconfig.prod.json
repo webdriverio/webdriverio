@@ -12,7 +12,7 @@
     "esModuleInterop": true,
     "moduleResolution": "Node",
     "module": "ESNext",
-    "lib": ["dom", "es2019"],
+    "lib": ["dom", "es2021"],
     "types": ["node"]
   },
 

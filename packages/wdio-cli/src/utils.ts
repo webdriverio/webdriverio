@@ -409,10 +409,10 @@ export async function generateTestFiles (answers: ParsedAnswers) {
         const fileEnding = (answers.isUsingTypeScript ? '.ts' : '.js') + (isJSX ? 'x' : '')
         let destPath = (
             file.endsWith('page.js.ejs')
-                ? `${answers.destPageObjectRootPath}/${path.basename(file)}`
+                ? path.join(answers.destPageObjectRootPath, path.basename(file))
                 : file.includes('step_definition')
-                    ? `${answers.stepDefinitions}`
-                    : `${answers.destSpecRootPath}/${path.basename(file)}`
+                    ? answers.stepDefinitions!
+                    : path.join(answers.destSpecRootPath, path.basename(file))
         ).replace(/\.ejs$/, '').replace(/\.js$/, fileEnding)
 
         await fs.mkdir(path.dirname(destPath), { recursive: true })
@@ -514,18 +514,11 @@ export function getPathForFileGeneration (answers: Questionnair, projectRootDir:
             : path.relative(destStepRootPath, destPageObjectRootPath)
         : ''
 
-    /**
-    * On Windows, path.relative can return backslashes that could be interpreted as espace sequences in strings
-    */
-    if (process.platform === 'win32') {
-        relativePath = relativePath.replace(/\\/g, '/')
-    }
-
     return {
         destSpecRootPath : destSpecRootPath,
         destStepRootPath : destStepRootPath,
         destPageObjectRootPath : destPageObjectRootPath,
-        relativePath : relativePath
+        relativePath : relativePath.replaceAll(path.sep, '/')
     }
 }
 
