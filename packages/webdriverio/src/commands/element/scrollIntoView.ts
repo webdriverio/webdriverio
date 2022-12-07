@@ -30,10 +30,14 @@ export default async function scrollIntoView (
 
     // Appium does not support the "wheel" action
     if (browser.isMobile) {
-        return browser.execute((elem: HTMLElement, options: ScrollIntoViewOptions | boolean) => elem.scrollIntoView(options), {
-            [ELEMENT_KEY]: this.elementId, // w3c compatible
-            ELEMENT: this.elementId // jsonwp compatible
-        } as any as HTMLElement, options)
+        return browser.execute(
+            (elem: HTMLElement, options: ScrollIntoViewOptions | boolean) => elem.scrollIntoView(options),
+            {
+                [ELEMENT_KEY]: this.elementId, // w3c compatible
+                ELEMENT: this.elementId, // jsonwp compatible
+            } as any as HTMLElement,
+            options,
+        )
     }
 
     let deltaX = 0
