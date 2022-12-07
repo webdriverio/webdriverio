@@ -33,7 +33,7 @@ process.on('message', (m: Workers.WorkerCommand) => {
     runner[m.command](m).then(
         (result: any) => process.send!({
             origin: 'worker',
-            name: 'finisedCommand',
+            name: 'finishedCommand',
             content: {
                 command: m.command,
                 result

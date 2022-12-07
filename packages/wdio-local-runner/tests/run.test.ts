@@ -57,7 +57,7 @@ test('should call runner command on process message', async () => {
     await new Promise((resolve) => setTimeout(resolve, 10))
     expect(process.send).toHaveBeenCalledWith({
         origin: 'worker',
-        name: 'finisedCommand',
+        name: 'finishedCommand',
         content: { command: 'run', result: { foo: 'bar' } }
     })
 })
