@@ -186,6 +186,25 @@ module.exports = {
             '@docusaurus/plugin-client-redirects',
             {
                 fromExtensions: ['html'],
+                /**
+                 * v7 -> v8 doc redirects
+                 */
+                redirects: [{
+                    from: '/docs/browserobject',
+                    to: '/docs/api/browser'
+                }, {
+                    from: '/docs/options',
+                    to: '/docs/configuration'
+                }, {
+                    from: '/docs/what-is-webdriverio',
+                    to: '/docs/why-webdriverio'
+                }, {
+                    from: '/docs/sync-vs-async',
+                    to: '/docs/gettingstarted'
+                }, {
+                    from: '/docs/clioptions',
+                    to: '/docs/testrunner'
+                }]
             }
         ],
         [
