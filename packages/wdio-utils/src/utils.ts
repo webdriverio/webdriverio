@@ -182,14 +182,6 @@ export async function safeImport (name: string): Promise<Services.ServicePlugin 
          * Note that import-meta-resolve will resolve to CJS no ESM export is found
          */
 
-        // /**
-        //  * Check if cli command was called from local directory, if not require
-        //  * the plugin from the place where the command is called. This avoids
-        //  * issues where user have the @wdio/cli package installed globally
-        //  * but run on a project where wdio packages are installed locally. It
-        //  * also allows to link the package to a random place and have plugins
-        //  * imported correctly (for dev purposes).
-        //  */
         const localNodeModules = path.join(process.cwd(), 'node_modules')
 
         try {
