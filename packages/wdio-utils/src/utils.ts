@@ -1,11 +1,9 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { pathToFileURL } from 'node:url'
-import { createRequire } from 'node:module'
+import { resolve } from 'import-meta-resolve'
 
 import type { Services, Clients } from '@wdio/types'
-
-const require = createRequire(import.meta.url)
 
 const SCREENSHOT_REPLACEMENT = '"<Screenshot[base64]>"'
 const SCRIPT_PLACEHOLDER = '"<Script[base64]>"'
@@ -165,45 +163,43 @@ export function getArgumentType (arg: any) {
  * @return {object}       package content
  */
 export async function safeImport (name: string): Promise<Services.ServicePlugin | null> {
-    let requirePath = name
+    let importPath = name
     try {
         /**
-         * Check if cli command was called from local directory, if not require
-         * the plugin from the place where the command is called. This avoids
-         * issues where user have the @wdio/cli package installed globally
-         * but run on a project where wdio packages are installed locally. It
-         * also allows to link the package to a random place and have plugins
-         * imported correctly (for dev purposes).
+         * Initially we will search for the package by using the standard package
+         * resolution starting from the path given by 'import.meta.url' (which
+         * returns the path to this file). The default mechanism will then search
+         * upwards through the hierarchy in the file system in node_modules directories
+         * until it finds the package or reaches the root of the file system.
+         *
+         * In the case where a user has installed the @wdio/cli package globally,
+         * then clearly the search will be performed in the global area and not
+         * in the project specific area.  Consequently, if the package we are
+         * looking for is installed within the project it will not be found and
+         * then we also need to search in the project, we do that by defining
+         * 'localNodeModules' and searching from that also.
+         *
+         * Note that import-meta-resolve will resolve to CJS no ESM export is found
          */
+
         const localNodeModules = path.join(process.cwd(), 'node_modules')
-        /* istanbul ignore if */
-        if (!require.resolve.paths(name)?.includes(localNodeModules)) {
-            const resolveLocation = [
-                ...(require.resolve.paths(name) || []),
-                localNodeModules
-            ]
 
-            /**
-             * don't set requireOpts when running unit tests as it
-             * confuses Jest require magic
-             */
-            const requireOpts = process.env.VITEST_WORKER_ID
-                ? {}
-                : { paths: resolveLocation }
-            requirePath = require.resolve(name, requireOpts)
-        } else {
-            requirePath = require.resolve(name)
-        }
-
-        if (!requirePath.startsWith('file://')) {
-            requirePath = pathToFileURL(requirePath).href
+        try {
+            importPath = await resolve(name, import.meta.url)
+        } catch (err: any) {
+            try {
+                importPath = await resolve(name, pathToFileURL(localNodeModules).toString())
+            } catch (err: any) {
+                return null
+            }
         }
     } catch (err: any) {
         return null
     }
 
     try {
-        const pkg = await import(requirePath)
+        const pkg = await import(importPath)
+
         /**
          * CJS packages build with TS imported through an ESM context can end up being this:
          *
