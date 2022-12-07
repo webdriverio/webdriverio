@@ -21,6 +21,21 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.0.9 (2022-12-07)
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#9344](https://github.com/webdriverio/webdriverio/pull/9344) webdriverio: use v7 scrollIntoView implementation for mobile ([@SCG82](https://github.com/SCG82))
+
+#### :memo: Documentation
+* `wdio-cli`
+  * [#9347](https://github.com/webdriverio/webdriverio/pull/9347) Add Vitaq service to the v8 documentation ([@RossVertizan](https://github.com/RossVertizan))
+
+#### Committers: 2
+- Ross Addinall ([@RossVertizan](https://github.com/RossVertizan))
+- [@SCG82](https://github.com/SCG82)
+
+
 ## v8.0.8 (2022-12-07)
 
 #### :bug: Bug Fix
