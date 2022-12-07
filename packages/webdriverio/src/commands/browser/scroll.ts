@@ -36,9 +36,7 @@ export default function scroll (
 
     // Appium does not support the "wheel" action
     if (this.isMobile) {
-        return this.execute(function (x, y) {
-            window.scrollBy(x, y)
-        }, x, y)
+        return this.execute((x, y) => window.scrollBy(x, y), x, y)
     }
 
     return this.action('wheel')
