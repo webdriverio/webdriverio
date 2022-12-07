@@ -44,7 +44,8 @@ export interface BrowserstackConfig {
      */
     testObservability?: boolean;
     /**
-     * TODO: Add message
+     * Set the Test Observability related config options under this key.
+     * For e.g. buildName, projectName, BrowserStack access credentials, etc.
      */
     testObservabilityOptions?: TestObservabilityOptions;
     /**

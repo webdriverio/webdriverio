@@ -1,3 +1,5 @@
+import path from 'path'
+
 import type { Browser, MultiRemoteBrowser } from 'webdriverio'
 import got from 'got'
 import gitRepoInfo from 'git-repo-info'
@@ -20,7 +22,12 @@ import {
     uploadEventData,
     getLogTag,
     getHookType,
-    isScreenshotCommand
+    isScreenshotCommand,
+    getObservabilityUser,
+    getObservabilityKey,
+    getObservabilityBuild,
+    getObservabilityProject,
+    getObservabilityBuildTags
 } from '../src/util'
 
 jest.mock('got')
@@ -659,5 +666,120 @@ describe('isScreenshotCommand', () => {
     })
     it('get false if not a screenshot command', () => {
         expect(isScreenshotCommand({ endpoint: 'session/:sessionId/element/text' })).toEqual(false)
+    })
+})
+
+describe('getObservabilityUser', () => {
+    it('get env var', () => {
+        process.env.BROWSERSTACK_USERNAME = 'try'
+        expect(getObservabilityUser({})).toEqual('try')
+        delete process.env.BROWSERSTACK_USERNAME
+    })
+
+    it('get user passed in testObservabilityOptions', () => {
+        delete process.env.BROWSERSTACK_USERNAME
+        expect(getObservabilityUser({ testObservabilityOptions: { user: 'user' } } as any)).toEqual('user')
+    })
+
+    it('get user passed at root level', () => {
+        delete process.env.BROWSERSTACK_USERNAME
+        expect(getObservabilityUser({ user: 'user-root', testObservabilityOptions: { } } as any)).toEqual('user-root')
+    })
+
+    it('get undefined', () => {
+        delete process.env.BROWSERSTACK_USERNAME
+        expect(getObservabilityUser({})).toEqual(undefined)
+    })
+})
+
+describe('getObservabilityKey', () => {
+    it('get env var', () => {
+        process.env.BROWSERSTACK_ACCESS_KEY = 'try'
+        expect(getObservabilityKey({})).toEqual('try')
+        delete process.env.BROWSERSTACK_ACCESS_KEY
+    })
+
+    it('get key passed in testObservabilityOptions', () => {
+        delete process.env.BROWSERSTACK_ACCESS_KEY
+        expect(getObservabilityKey({ testObservabilityOptions: { key: 'user-key' } } as any)).toEqual('user-key')
+    })
+
+    it('get key passed at root level', () => {
+        delete process.env.BROWSERSTACK_ACCESS_KEY
+        expect(getObservabilityKey({ key: 'key-root', testObservabilityOptions: { } } as any)).toEqual('key-root')
+    })
+
+    it('get undefined', () => {
+        delete process.env.BROWSERSTACK_ACCESS_KEY
+        expect(getObservabilityKey({})).toEqual(undefined)
+    })
+})
+
+describe('getObservabilityBuild', () => {
+    it('get env var', () => {
+        process.env.TEST_OBSERVABILITY_BUILD_NAME = 'try'
+        expect(getObservabilityBuild({})).toEqual('try')
+        delete process.env.TEST_OBSERVABILITY_BUILD_NAME
+    })
+
+    it('get name passed in testObservabilityOptions', () => {
+        delete process.env.TEST_OBSERVABILITY_BUILD_NAME
+        expect(getObservabilityBuild({ testObservabilityOptions: { buildName: 'build' } } as any)).toEqual('build')
+    })
+
+    it('get name passed at root level', () => {
+        delete process.env.TEST_OBSERVABILITY_BUILD_NAME
+        expect(getObservabilityBuild({ key: 'key-root', testObservabilityOptions: { } } as any, 'build-name')).toEqual('build-name')
+    })
+
+    it('get default', () => {
+        delete process.env.TEST_OBSERVABILITY_BUILD_NAME
+        expect(getObservabilityBuild({})).toEqual(path.basename(path.resolve(process.cwd())))
+    })
+})
+
+describe('getObservabilityProject', () => {
+    it('get env var', () => {
+        process.env.TEST_OBSERVABILITY_PROJECT_NAME = 'try'
+        expect(getObservabilityProject({})).toEqual('try')
+        delete process.env.TEST_OBSERVABILITY_PROJECT_NAME
+    })
+
+    it('get name passed in testObservabilityOptions', () => {
+        delete process.env.TEST_OBSERVABILITY_PROJECT_NAME
+        expect(getObservabilityProject({ testObservabilityOptions: { projectName: 'project' } } as any)).toEqual('project')
+    })
+
+    it('get name passed at root level', () => {
+        delete process.env.TEST_OBSERVABILITY_PROJECT_NAME
+        expect(getObservabilityProject({ key: 'key-root', testObservabilityOptions: { } } as any, 'project-name')).toEqual('project-name')
+    })
+
+    it('get undefined', () => {
+        delete process.env.TEST_OBSERVABILITY_PROJECT_NAME
+        expect(getObservabilityProject({})).toEqual(undefined)
+    })
+})
+
+describe('getObservabilityBuildTags', () => {
+    it('get array from env var', () => {
+        process.env.TEST_OBSERVABILITY_BUILD_TAG = 'try,qa'
+        expect(getObservabilityBuildTags({})).toEqual(['try', 'qa'])
+        delete process.env.TEST_OBSERVABILITY_BUILD_TAG
+    })
+
+    it('get tags passed in testObservabilityOptions', () => {
+        delete process.env.TEST_OBSERVABILITY_BUILD_TAG
+        expect(getObservabilityBuildTags({ testObservabilityOptions: { buildTag: ['qa', 'test'] } } as any)).toEqual(['qa', 'test'])
+    })
+
+    it('get name passed at root level', () => {
+        delete process.env.TEST_OBSERVABILITY_BUILD_TAG
+        expect(getObservabilityBuildTags({ key: 'key-root', testObservabilityOptions: { } } as any, 'qa')).toEqual(['qa'])
+    })
+
+    it('get empty array', () => {
+        delete process.env.TEST_OBSERVABILITY_BUILD_TAG
+        expect(getObservabilityBuildTags({})).toEqual([])
     })
 })

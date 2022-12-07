@@ -466,7 +466,7 @@ export async function batchAndPostEvents (eventUrl: string, kind: string, data: 
     }
 }
 
-function getObservabilityUser(options: BrowserstackConfig & Options.Testrunner) {
+export function getObservabilityUser(options: BrowserstackConfig & Options.Testrunner) {
     if (process.env.BROWSERSTACK_USERNAME) {
         return process.env.BROWSERSTACK_USERNAME
     }
@@ -476,7 +476,7 @@ function getObservabilityUser(options: BrowserstackConfig & Options.Testrunner) 
     return options.user
 }
 
-function getObservabilityKey(options: BrowserstackConfig & Options.Testrunner) {
+export function getObservabilityKey(options: BrowserstackConfig & Options.Testrunner) {
     if (process.env.BROWSERSTACK_ACCESS_KEY) {
         return process.env.BROWSERSTACK_ACCESS_KEY
     }
@@ -486,7 +486,7 @@ function getObservabilityKey(options: BrowserstackConfig & Options.Testrunner) {
     return options.key
 }
 
-function getObservabilityProject(options: BrowserstackConfig & Options.Testrunner, bstackProjectName?: string) {
+export function getObservabilityProject(options: BrowserstackConfig & Options.Testrunner, bstackProjectName?: string) {
     if (process.env.TEST_OBSERVABILITY_PROJECT_NAME) {
         return process.env.TEST_OBSERVABILITY_PROJECT_NAME
     }
@@ -496,7 +496,7 @@ function getObservabilityProject(options: BrowserstackConfig & Options.Testrunne
     return bstackProjectName
 }
 
-function getObservabilityBuild(options: BrowserstackConfig & Options.Testrunner, bstackBuildName?: string) {
+export function getObservabilityBuild(options: BrowserstackConfig & Options.Testrunner, bstackBuildName?: string) {
     if (process.env.TEST_OBSERVABILITY_BUILD_NAME) {
         return process.env.TEST_OBSERVABILITY_BUILD_NAME
     }
@@ -506,7 +506,7 @@ function getObservabilityBuild(options: BrowserstackConfig & Options.Testrunner,
     return bstackBuildName || path.basename(path.resolve(process.cwd()))
 }
 
-function getObservabilityBuildTags(options: BrowserstackConfig & Options.Testrunner, bstackBuildTag?: string): string[] {
+export function getObservabilityBuildTags(options: BrowserstackConfig & Options.Testrunner, bstackBuildTag?: string): string[] {
     if (process.env.TEST_OBSERVABILITY_BUILD_TAG) {
         return process.env.TEST_OBSERVABILITY_BUILD_TAG.split(',')
     }
