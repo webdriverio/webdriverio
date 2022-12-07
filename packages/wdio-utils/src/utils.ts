@@ -190,7 +190,6 @@ export async function safeImport (name: string): Promise<Services.ServicePlugin 
             try {
                 importPath = await resolve(name, pathToFileURL(localNodeModules).toString())
             } catch (err: any) {
-                // console.debug(`Could not determine importPath using import.meta.url or localNodeModules for ${name}`)
                 return null
             }
         }
