@@ -594,7 +594,8 @@ describe('generateTestFiles', () => {
             framework: 'cucumber',
             stepDefinitions: '/some/step/defs',
             usePageObjects: false,
-            generateTestFiles: true
+            generateTestFiles: true,
+            destSpecRootPath: '/tests/specs'
         }
         await generateTestFiles(answers as any)
 
@@ -625,6 +626,7 @@ describe('generateTestFiles', () => {
             usePageObjects: true,
             isUsingTypeScript: true,
             stepDefinitions: '/some/step',
+            destSpecRootPath: '/tests/specs',
             destPageObjectRootPath: '/some/page/objects',
             relativePath: '../page/object'
         }
@@ -894,6 +896,9 @@ test('setup Babel', async () => {
 test('createWDIOConfig', async () => {
     const answers = await parseAnswers(true)
     answers.projectRootDir = '/foo/bar'
+    answers.destSpecRootPath = '/tests/specs'
+    answers.destPageObjectRootPath = '/tests/specs'
+    answers.stepDefinitions = './foo/bar'
     answers.specs = '/foo/bar/**'
     await createWDIOConfig(answers as any)
     expect(fs.writeFile).toBeCalledTimes(7)

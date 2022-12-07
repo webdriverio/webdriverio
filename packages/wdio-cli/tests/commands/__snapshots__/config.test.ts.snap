@@ -41,6 +41,7 @@ exports[`handler 1`] = `
     "runner": "@wdio/local-runner$--$local",
     "services": [],
     "specs": undefined,
+    "stepDefinitions": undefined,
     "tsConfigFilePath": "/foo/bar/tsconfig.json",
     "tsProject": "./tsconfig.json",
     "usePageObjects": false,
@@ -104,7 +105,8 @@ exports[`parseAnswers 1`] = `
   "services": [
     "@wdio/sauce-service$--$sauce",
   ],
-  "specs": "./tmp/foobar/specs",
+  "specs": "./../../tmp/foobar/specs",
+  "stepDefinitions": undefined,
   "tsConfigFilePath": "/foo/bar/tsconfig.json",
   "tsProject": "./tsconfig.json",
   "usePageObjects": true,
