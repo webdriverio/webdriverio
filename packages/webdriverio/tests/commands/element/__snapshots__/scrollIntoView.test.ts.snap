@@ -1,6 +1,6 @@
 // Vitest Snapshot v1
 
-exports[`scrollIntoView test > scrolls by default the element to the top 1`] = `
+exports[`scrollIntoView test > desktop > scrolls by default the element to the top 1`] = `
 {
   "actions": [
     {
@@ -25,7 +25,7 @@ exports[`scrollIntoView test > scrolls by default the element to the top 1`] = `
 }
 `;
 
-exports[`scrollIntoView test > scrolls element using scroll into view options 1`] = `
+exports[`scrollIntoView test > desktop > scrolls element using scroll into view options 1`] = `
 {
   "actions": [
     {
@@ -50,7 +50,7 @@ exports[`scrollIntoView test > scrolls element using scroll into view options 1`
 }
 `;
 
-exports[`scrollIntoView test > scrolls element when using boolean scroll options 1`] = `
+exports[`scrollIntoView test > desktop > scrolls element when using boolean scroll options 1`] = `
 {
   "actions": [
     {
@@ -75,7 +75,7 @@ exports[`scrollIntoView test > scrolls element when using boolean scroll options
 }
 `;
 
-exports[`scrollIntoView test > scrolls element when using boolean scroll options 2`] = `
+exports[`scrollIntoView test > desktop > scrolls element when using boolean scroll options 2`] = `
 {
   "actions": [
     {

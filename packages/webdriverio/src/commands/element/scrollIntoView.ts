@@ -1,3 +1,4 @@
+import { ELEMENT_KEY } from '../../constants.js'
 import { getBrowserObject } from '../../utils/index.js'
 
 /**
@@ -26,6 +27,18 @@ export default async function scrollIntoView (
     options: ScrollIntoViewOptions | boolean = { block: 'start', inline: 'nearest' }
 ) {
     const browser = getBrowserObject(this)
+
+    // Appium does not support the "wheel" action
+    if (browser.isMobile) {
+        return browser.execute(
+            (elem: HTMLElement, options: ScrollIntoViewOptions | boolean) => elem.scrollIntoView(options),
+            {
+                [ELEMENT_KEY]: this.elementId, // w3c compatible
+                ELEMENT: this.elementId, // jsonwp compatible
+            } as any as HTMLElement,
+            options,
+        )
+    }
 
     let deltaX = 0
     let deltaY = 0
