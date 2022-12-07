@@ -21,6 +21,7 @@ describe('template generation', () => {
     it('react', async () => {
         await generateTestFiles({
             framework: 'mocha',
+            destSpecRootPath: '/foo/bar',
             preset: 'react',
             usePageObjects: false,
             runner: 'browser',
@@ -34,6 +35,7 @@ describe('template generation', () => {
     it('react w/o testing library', async () => {
         await generateTestFiles({
             framework: 'mocha',
+            destSpecRootPath: '/foo/bar',
             preset: 'react',
             usePageObjects: false,
             runner: 'browser',
@@ -48,6 +50,7 @@ describe('template generation', () => {
     it('preact', async () => {
         await generateTestFiles({
             framework: 'mocha',
+            destSpecRootPath: '/foo/bar',
             preset: 'preact',
             usePageObjects: false,
             runner: 'browser',
@@ -61,6 +64,7 @@ describe('template generation', () => {
     it('preact w/o testing library', async () => {
         await generateTestFiles({
             framework: 'mocha',
+            destSpecRootPath: '/foo/bar',
             preset: 'preact',
             usePageObjects: false,
             runner: 'browser',
@@ -75,6 +79,7 @@ describe('template generation', () => {
     it('svelte', async () => {
         await generateTestFiles({
             framework: 'mocha',
+            destSpecRootPath: '/foo/bar',
             preset: 'svelte',
             usePageObjects: false,
             runner: 'browser',
@@ -88,6 +93,7 @@ describe('template generation', () => {
     it('vue', async () => {
         await generateTestFiles({
             framework: 'mocha',
+            destSpecRootPath: '/foo/bar',
             preset: 'vue',
             usePageObjects: false,
             runner: 'browser',
@@ -101,6 +107,7 @@ describe('template generation', () => {
     it('solid', async () => {
         await generateTestFiles({
             framework: 'mocha',
+            destSpecRootPath: '/foo/bar',
             preset: 'solid',
             usePageObjects: false,
             runner: 'browser',
@@ -114,6 +121,7 @@ describe('template generation', () => {
     it('lit', async () => {
         await generateTestFiles({
             framework: 'mocha',
+            destSpecRootPath: '/foo/bar',
             preset: null,
             usePageObjects: false,
             runner: 'browser',

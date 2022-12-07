@@ -6,7 +6,7 @@ import logger from '@wdio/logger'
 import { isCloudCapability } from '@wdio/config'
 import type { Capabilities, Options, Services } from '@wdio/types'
 
-import * as SeleniumStandalone from 'selenium-standalone'
+import SeleniumStandalone from 'selenium-standalone'
 
 import { getFilePath, hasCapsWithSupportedBrowser } from './utils.js'
 import type { SeleniumStandaloneOptions } from './types'

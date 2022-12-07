@@ -1,6 +1,6 @@
 // Vitest Snapshot v1
 
-exports[`action command > should be able to scroll 1`] = `
+exports[`scroll > desktop > should be able to scroll 1`] = `
 {
   "actions": [
     {

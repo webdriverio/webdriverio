@@ -1,6 +1,6 @@
 import path from 'node:path'
 import fs from 'node:fs'
-import * as SeleniumStandalone from 'selenium-standalone'
+import SeleniumStandalone from 'selenium-standalone'
 import { describe, expect, test, vi, beforeEach } from 'vitest'
 
 import SeleniumStandaloneLauncher from '../src/launcher.js'

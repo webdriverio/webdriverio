@@ -34,7 +34,7 @@ describe('handleMessage', () => {
     it('should un mark worker as busy if command is finished', () => {
         const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer())
         worker.isBusy = true
-        worker['_handleMessage']({ name: 'finisedCommand' } as unknown as Workers.WorkerMessage)
+        worker['_handleMessage']({ name: 'finishedCommand' } as unknown as Workers.WorkerMessage)
         expect(worker.isBusy).toBe(false)
     })
 

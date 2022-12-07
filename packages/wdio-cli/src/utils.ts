@@ -29,6 +29,7 @@ import type { ReplCommandArguments, Questionnair, SupportedPackage, OnCompleteRe
 const log = logger('@wdio/cli:utils')
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
+const NPM_COMMAND = /^win/.test(process.platform) ? 'npm.cmd' : 'npm'
 const VERSION_REGEXP = /(\d+)\.(\d+)\.(\d+)-(alpha|beta|)\.(\d+)\+(.+)/g
 const TEMPLATE_ROOT_DIR = path.join(__dirname, 'templates', 'exampleFiles')
 export const renderFile = promisify(ejs.renderFile) as (path: string, data: Record<string, any>) => Promise<string>
@@ -204,19 +205,24 @@ export function replaceConfig (config: string, type: string, name: string) {
 
 export function addServiceDeps(names: SupportedPackage[], packages: string[], update = false) {
     /**
-     * automatically install latest Chromedriver if `wdio-chromedriver-service`
-     * was selected for install
+     * automatically install latest Chromedriver if `wdio-chromedriver-service` was selected for install
      */
     if (names.some(({ short }) => short === 'chromedriver')) {
         packages.push('chromedriver')
-        if (update) {
-            // eslint-disable-next-line no-console
-            console.log(
-                '\n=======',
-                '\nPlease change path to / in your wdio.conf.js:',
-                "\npath: '/'",
-                '\n=======\n')
-        }
+    }
+
+    /**
+     * automatically install latest Geckodriver if `wdio-geckodriver-service` was selected for install
+     */
+    if (names.some(({ short }) => short === 'geckodriver')) {
+        packages.push('geckodriver')
+    }
+
+    /**
+     * automatically install latest EdgeDriver if `wdio-edgedriver-service` was selected for install
+     */
+    if (names.some(({ short }) => short === 'edgedriver')) {
+        packages.push('msedgedriver')
     }
 
     /**
@@ -403,10 +409,10 @@ export async function generateTestFiles (answers: ParsedAnswers) {
         const fileEnding = (answers.isUsingTypeScript ? '.ts' : '.js') + (isJSX ? 'x' : '')
         let destPath = (
             file.endsWith('page.js.ejs')
-                ? `${answers.destPageObjectRootPath}/${path.basename(file)}`
+                ? path.join(answers.destPageObjectRootPath, path.basename(file))
                 : file.includes('step_definition')
-                    ? `${answers.stepDefinitions}`
-                    : `${answers.destSpecRootPath}/${path.basename(file)}`
+                    ? answers.stepDefinitions!
+                    : path.join(answers.destSpecRootPath, path.basename(file))
         ).replace(/\.ejs$/, '').replace(/\.js$/, fileEnding)
 
         await fs.mkdir(path.dirname(destPath), { recursive: true })
@@ -508,18 +514,11 @@ export function getPathForFileGeneration (answers: Questionnair, projectRootDir:
             : path.relative(destStepRootPath, destPageObjectRootPath)
         : ''
 
-    /**
-    * On Windows, path.relative can return backslashes that could be interpreted as espace sequences in strings
-    */
-    if (process.platform === 'win32') {
-        relativePath = relativePath.replace(/\\/g, '/')
-    }
-
     return {
         destSpecRootPath : destSpecRootPath,
         destStepRootPath : destStepRootPath,
         destPageObjectRootPath : destPageObjectRootPath,
-        relativePath : relativePath
+        relativePath : relativePath.replaceAll(path.sep, '/')
     }
 }
 
@@ -786,7 +785,7 @@ export async function createWDIOScript (parsedAnswers: ParsedAnswers) {
     try {
         console.log(`Adding ${chalk.bold('"wdio"')} script to package.json.`)
         const script = `wdio run ./${path.join('.', parsedAnswers.wdioConfigPath.replace(projectProps?.path || process.cwd(), ''))}`
-        await runProgram('npm', ['pkg', 'set', `scripts.wdio=${script}`], { cwd: parsedAnswers.projectRootDir })
+        await runProgram(NPM_COMMAND, ['pkg', 'set', `scripts.wdio=${script}`], { cwd: parsedAnswers.projectRootDir })
         console.log(chalk.green.bold('✔ Success!'))
     } catch (err: any) {
         throw new Error(`⚠️ Couldn't add script to package.json: ${err.stack}`)

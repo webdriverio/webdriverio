@@ -1,5 +1,6 @@
 #!/usr/bin/env node
-import fs from 'node:fs'
+import { accessSync } from 'node:fs'
+import { readFile, writeFile } from 'node:fs/promises'
 import url from 'node:url'
 import path from 'node:path'
 import shell from 'shelljs'
@@ -36,13 +37,18 @@ const ROOT_PACKAGES = [
     'wdio-browser-runner'
 ]
 
+const BUILD_CJS = [
+    'wdio-globals',
+    'eslint-plugin-wdio',
+]
+
 const packages = getSubPackages()
     /**
      * Filter out packages that don't need compiling
      */
     .filter((pkg) => {
         try {
-            fs.accessSync(`packages/${pkg}/${TSCONFIG_FILE}`)
+            accessSync(`packages/${pkg}/${TSCONFIG_FILE}`)
             return true
         } catch (err) {
             return false
@@ -82,11 +88,13 @@ const packages = getSubPackages()
 shell.cd(path.join(__dirname, '..'))
 
 /**
- * add cjs compiling for @wdio/globals
+ * Add CJS compiling for packages in BUILD_CJS
  */
-if (packages.find((projectPath) => projectPath.includes('wdio-globals'))) {
-    packages.push('packages/wdio-globals/tsconfig.cjs.json')
-}
+BUILD_CJS.forEach((pkg) => {
+    if (packages.some((projectPath) => projectPath.split('/')[1] === pkg)) {
+        packages.push(`packages/${pkg}/tsconfig.cjs.json`)
+    }
+})
 
 const cmd = `npx tsc -b ${packages.join(' ')}${HAS_WATCH_FLAG ? ' --watch' : ''}`
 
@@ -97,8 +105,8 @@ if (!HAS_WATCH_FLAG) {
     console.log('Remove `export {}` from CJS files')
     for (const pkg of ['webdriver', 'devtools', 'webdriverio']) {
         const filePath = path.join(__dirname, '..', 'packages', pkg, 'build', 'cjs', 'index.js')
-        const fileContent = await fs.readFileSync(filePath, 'utf8')
-        await fs.writeFileSync(filePath, fileContent.toString().replace('export {};', ''), 'utf8')
+        const fileContent = await readFile(filePath, 'utf8')
+        await writeFile(filePath, fileContent.toString().replace('export {};', ''), 'utf8')
     }
 }
 

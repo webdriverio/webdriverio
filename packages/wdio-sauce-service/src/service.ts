@@ -44,7 +44,6 @@ export default class SauceService implements Services.ServiceInstance {
      * gather information about runner
      */
     beforeSession (config: Options.Testrunner, __: never, ___: never, cid: string) {
-        console.log('beforeSession')
         this._cid = cid
 
         /**
