@@ -496,9 +496,11 @@ describe('generateTestFiles', () => {
             expect.any(Function)
         )
         expect(fs.mkdir).toBeCalledTimes(4)
-        expect((vi.mocked(fs.writeFile).mock.calls[0][0] as string).endsWith('/page/objects/model/page.js'))
+        expect((vi.mocked(fs.writeFile).mock.calls[0][0] as string)
+            .endsWith(`${path.sep}page${path.sep}objects${path.sep}model${path.sep}page.js`))
             .toBe(true)
-        expect((vi.mocked(fs.writeFile).mock.calls[1][0] as string).endsWith('/example.e2e.js'))
+        expect((vi.mocked(fs.writeFile).mock.calls[1][0] as string)
+            .endsWith(`${path.sep}example.e2e.js`))
             .toBe(true)
     })
 
@@ -547,10 +549,10 @@ describe('generateTestFiles', () => {
         )
         expect(fs.mkdir).toBeCalledTimes(4)
         expect((vi.mocked(fs.writeFile).mock.calls[0][0] as string)
-            .endsWith('/page/objects/model/page.js'))
+            .endsWith(`${path.sep}page${path.sep}objects${path.sep}model${path.sep}page.js`))
             .toBe(true)
         expect((vi.mocked(fs.writeFile).mock.calls[1][0] as string)
-            .endsWith('/example.e2e.js'))
+            .endsWith(`${path.sep}example.e2e.js`))
             .toBe(true)
     })
 
@@ -594,7 +596,8 @@ describe('generateTestFiles', () => {
             framework: 'cucumber',
             stepDefinitions: '/some/step/defs',
             usePageObjects: false,
-            generateTestFiles: true
+            generateTestFiles: true,
+            destSpecRootPath: '/tests/specs'
         }
         await generateTestFiles(answers as any)
 
@@ -625,6 +628,7 @@ describe('generateTestFiles', () => {
             usePageObjects: true,
             isUsingTypeScript: true,
             stepDefinitions: '/some/step',
+            destSpecRootPath: '/tests/specs',
             destPageObjectRootPath: '/some/page/objects',
             relativePath: '../page/object'
         }
@@ -644,10 +648,14 @@ describe('generateTestFiles', () => {
             expect.any(Function)
         )
         expect(fs.mkdir).toBeCalledTimes(6)
-        expect((vi.mocked(fs.writeFile).mock.calls[0][0] as string).endsWith('/some/page/objects/page.ts'))
-            .toBe(true)
-        expect((vi.mocked(fs.writeFile).mock.calls[2][0] as string).endsWith('/example.feature'))
-            .toBe(true)
+        expect(
+            (vi.mocked(fs.writeFile).mock.calls[0][0] as string)
+                .endsWith(`${path.sep}some${path.sep}page${path.sep}objects${path.sep}page.ts`)
+        ).toBe(true)
+        expect(
+            (vi.mocked(fs.writeFile).mock.calls[2][0] as string)
+                .endsWith(`${path.sep}example.feature`)
+        ).toBe(true)
     })
 })
 
@@ -745,7 +753,8 @@ test('specifyVersionIfNeeded', () => {
 test('getProjectRoot', () => {
     expect(getProjectRoot({ projectRoot: '/foo/bar' } as any)).toBe('/foo/bar')
     expect(getProjectRoot({} as any, { path: '/bar/foo' } as any)).toBe('/bar/foo')
-    expect(getProjectRoot({} as any).includes(path.join('/webdriverio'))).toBe(true)
+    const projectDir = process.cwd().substring(process.cwd().lastIndexOf(path.sep) + 1)
+    expect(getProjectRoot({} as any).includes(path.join(projectDir))).toBe(true)
 })
 
 test('hasBabelConfig', async () => {
@@ -893,6 +902,9 @@ test('setup Babel', async () => {
 test('createWDIOConfig', async () => {
     const answers = await parseAnswers(true)
     answers.projectRootDir = '/foo/bar'
+    answers.destSpecRootPath = '/tests/specs'
+    answers.destPageObjectRootPath = '/tests/specs'
+    answers.stepDefinitions = './foo/bar'
     answers.specs = '/foo/bar/**'
     await createWDIOConfig(answers as any)
     expect(fs.writeFile).toBeCalledTimes(7)

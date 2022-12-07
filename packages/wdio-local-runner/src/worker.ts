@@ -142,7 +142,7 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
         /**
          * resolve pending commands
          */
-        if (payload.name === 'finisedCommand') {
+        if (payload.name === 'finishedCommand') {
             this.isBusy = false
         }
 
