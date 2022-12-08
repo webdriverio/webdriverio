@@ -1,3 +1,5 @@
+import type { Browser } from '../../types'
+
 /**
  *
  * Pauses execution for a specific amount of time. It is recommended to not use this command to wait for an
@@ -20,7 +22,7 @@
  *
  */
 export default function pause (
-    this: WebdriverIO.Browser,
+    this: Browser,
     milliseconds = 1000
 ) {
     return new Promise((resolve) => setTimeout(resolve, milliseconds))

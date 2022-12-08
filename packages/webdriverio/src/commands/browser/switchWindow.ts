@@ -1,3 +1,5 @@
+import type { Browser } from '../../types'
+
 /**
  *
  * Switch focus to a particular tab / window.
@@ -27,7 +29,7 @@
  *
  */
 export default async function switchWindow (
-    this: WebdriverIO.Browser,
+    this: Browser,
     matcher: string | RegExp
 ) {
     /**

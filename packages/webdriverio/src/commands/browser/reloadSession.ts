@@ -1,6 +1,8 @@
 import logger from '@wdio/logger'
 import type { Options } from '@wdio/types'
 
+import type { Browser } from '../../types'
+
 const log = logger('webdriverio')
 
 /**
@@ -24,8 +26,8 @@ const log = logger('webdriverio')
  * @type utility
  *
  */
-export default async function reloadSession (this: WebdriverIO.Browser) {
-    const oldSessionId = (this as WebdriverIO.Browser).sessionId
+export default async function reloadSession (this: Browser) {
+    const oldSessionId = (this as Browser).sessionId
 
     /**
      * end current running session, if session already gone suppress exceptions
@@ -51,7 +53,7 @@ export default async function reloadSession (this: WebdriverIO.Browser) {
 
     const options = this.options as Options.Testrunner
     if (Array.isArray(options.onReload) && options.onReload.length) {
-        await Promise.all(options.onReload.map((hook) => hook(oldSessionId, (this as WebdriverIO.Browser).sessionId)))
+        await Promise.all(options.onReload.map((hook) => hook(oldSessionId, (this as Browser).sessionId)))
     }
 
     return this.sessionId as string

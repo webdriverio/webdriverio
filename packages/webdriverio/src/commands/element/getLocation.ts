@@ -1,11 +1,11 @@
 import type { RectReturn } from '@wdio/protocols'
 import { getElementRect } from '../../utils/index.js'
+import type { Element } from '../../types'
 
 export type Location = Pick<RectReturn, 'x' | 'y'>;
 
-function getLocation (this: WebdriverIO.Element): Promise<Location>
-
-function getLocation (this: WebdriverIO.Element, prop: keyof Location): Promise<number>
+function getLocation (this: Element): Promise<Location>
+function getLocation (this: Element, prop: keyof Location): Promise<number>
 
 /**
  *
@@ -35,7 +35,7 @@ function getLocation (this: WebdriverIO.Element, prop: keyof Location): Promise<
  * @type property
  */
 async function getLocation (
-    this: WebdriverIO.Element,
+    this: Element,
     prop?: keyof Location
 ): Promise<Location | number> {
     let location: Partial<RectReturn> = {}

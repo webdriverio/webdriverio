@@ -4,13 +4,14 @@ import { expect, describe, it, vi, beforeAll, beforeEach } from 'vitest'
 // @ts-ignore mocked (original defined in webdriver package)
 import got from 'got'
 import { remote } from '../../../src/index.js'
+import type { Browser, Element } from '../../../src/types'
 
 vi.mock('got')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 describe('scrollIntoView test', () => {
-    let browser: WebdriverIO.Browser
-    let elem: WebdriverIO.Element
+    let browser: Browser
+    let elem: Element
 
     beforeEach(() => {
         vi.mocked(got).mockClear()

@@ -4,15 +4,16 @@ import { expect, describe, it, beforeEach, afterEach, vi } from 'vitest'
 // @ts-ignore mocked (original defined in webdriver package)
 import got from 'got'
 import { remote, Key } from '../../../src/index.js'
+import type { Browser } from '../../../src/types'
 
 vi.mock('got')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
-let browser: WebdriverIO.Browser
+let browser: Browser
 
 describe('addValue test', () => {
     afterEach(() => {
-        got.mockClear()
+        vi.mocked(got).mockClear()
     })
 
     describe('should allow to add value to an input element', () => {
@@ -28,19 +29,19 @@ describe('addValue test', () => {
         it('add string', async () => {
             const elem = await browser.$('#foo')
             await elem.addValue('foobar')
-            expect(got.mock.calls[2][0].pathname)
+            expect(vi.mocked(got).mock.calls[2][0]!.pathname)
                 .toBe('/session/foobar-123/element/some-elem-123/value')
-            expect(got.mock.calls[2][1].json.text).toEqual('foobar')
-            expect(got.mock.calls[2][1].json.value).toEqual(undefined)
+            expect(vi.mocked(got).mock.calls[2][1]!.json.text).toEqual('foobar')
+            expect(vi.mocked(got).mock.calls[2][1]!.json.value).toEqual(undefined)
         })
 
         it('add number', async () => {
             const elem = await browser.$('#foo')
             await elem.addValue(42)
-            expect(got.mock.calls[2][0].pathname)
+            expect(vi.mocked(got).mock.calls[2][0]!.pathname)
                 .toBe('/session/foobar-123/element/some-elem-123/value')
-            expect(got.mock.calls[2][1].json.text).toEqual('42')
-            expect(got.mock.calls[2][1].json.value).toEqual(undefined)
+            expect(vi.mocked(got).mock.calls[2][1]!.json.text).toEqual('42')
+            expect(vi.mocked(got).mock.calls[2][1]!.json.value).toEqual(undefined)
         })
     })
 
@@ -58,21 +59,21 @@ describe('addValue test', () => {
             const elem = await browser.$('#foo')
 
             await elem.addValue('foobar')
-            expect(got.mock.calls[2][0].pathname)
+            expect(vi.mocked(got).mock.calls[2][0]!.pathname)
                 .toBe('/session/foobar-123/element/some-elem-123/value')
-            expect(got.mock.calls[2][1].json.value)
+            expect(vi.mocked(got).mock.calls[2][1]!.json.value)
                 .toEqual(['foobar'])
-            expect(got.mock.calls[2][1].json.text).toEqual(undefined)
+            expect(vi.mocked(got).mock.calls[2][1]!.json.text).toEqual(undefined)
         })
 
         it('add number', async () => {
             const elem = await browser.$('#foo')
 
             await elem.addValue(42)
-            expect(got.mock.calls[2][0].pathname)
+            expect(vi.mocked(got).mock.calls[2][0]!.pathname)
                 .toBe('/session/foobar-123/element/some-elem-123/value')
-            expect(got.mock.calls[2][1].json.value).toEqual(['42'])
-            expect(got.mock.calls[2][1].json.text).toEqual(undefined)
+            expect(vi.mocked(got).mock.calls[2][1]!.json.value).toEqual(['42'])
+            expect(vi.mocked(got).mock.calls[2][1]!.json.text).toEqual(undefined)
         })
     })
 
@@ -90,8 +91,8 @@ describe('addValue test', () => {
             const elem = await browser.$('#foo')
 
             await elem.addValue('Delete')
-            expect(got.mock.calls[2][0].pathname).toBe('/session/foobar-123/element/some-elem-123/value')
-            expect(got.mock.calls[2][1].json.text).toEqual('Delete')
+            expect(vi.mocked(got).mock.calls[2][0]!.pathname).toBe('/session/foobar-123/element/some-elem-123/value')
+            expect(vi.mocked(got).mock.calls[2][1]!.json.text).toEqual('Delete')
         })
     })
 
@@ -109,15 +110,15 @@ describe('addValue test', () => {
             const elem = await browser.$('#foo')
 
             await elem.addValue('Delete')
-            expect(got.mock.calls[2][0].pathname).toBe('/session/foobar-123/element/some-elem-123/value')
-            expect(got.mock.calls[2][1].json.text).toEqual('Delete')
+            expect(vi.mocked(got).mock.calls[2][0]!.pathname).toBe('/session/foobar-123/element/some-elem-123/value')
+            expect(vi.mocked(got).mock.calls[2][1]!.json.text).toEqual('Delete')
         })
         it('should translate to unicode', async () => {
             const elem = await browser.$('#foo')
 
             await elem.addValue(Key.Delete)
-            expect(got.mock.calls[2][0].pathname).toBe('/session/foobar-123/element/some-elem-123/value')
-            expect(got.mock.calls[2][1].json.text).toEqual('\uE017')
+            expect(vi.mocked(got).mock.calls[2][0]!.pathname).toBe('/session/foobar-123/element/some-elem-123/value')
+            expect(vi.mocked(got).mock.calls[2][1]!.json.text).toEqual('\uE017')
         })
     })
 })

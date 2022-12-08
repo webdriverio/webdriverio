@@ -1,3 +1,5 @@
+import type { Element } from '../../types'
+
 /**
  *
  * Get the computed WAI-ARIA label of an element.
@@ -16,6 +18,6 @@
  * @type property
  *
  */
-export default function getComputedRole (this: WebdriverIO.Element) {
+export default function getComputedRole (this: Element) {
     return this.getElementComputedRole(this.elementId)
 }

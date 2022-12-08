@@ -1,3 +1,5 @@
+import type { Element } from '../../types'
+
 /**
  *
  * Get the value of a `<textarea>`, `<select>` or text `<input>` found by given selector.
@@ -21,7 +23,7 @@
  * @type property
  *
  */
-export default function getValue (this: WebdriverIO.Element) {
+export default function getValue (this: Element) {
     // `!this.isMobile` added to workaround https://github.com/appium/appium/issues/12218
     if (this.isW3C && !this.isMobile) {
         return this.getElementProperty(this.elementId, 'value')

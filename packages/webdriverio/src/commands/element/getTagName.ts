@@ -1,3 +1,5 @@
+import type { Element } from '../../types'
+
 /**
  *
  * Get tag name of a DOM-element.
@@ -21,6 +23,6 @@
  * @type property
  *
  */
-export default function getTagName (this: WebdriverIO.Element) {
+export default function getTagName (this: Element) {
     return this.getElementTagName(this.elementId)
 }

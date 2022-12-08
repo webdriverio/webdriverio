@@ -1,5 +1,3 @@
-import type { ChainablePromiseElement } from '../../types.js'
-
 /**
  *
  * Returns the parent element of the selected DOM-element.
@@ -23,7 +21,7 @@ import type { ChainablePromiseElement } from '../../types.js'
  * @return {Element}
  * @type utility
  */
-export default function parentElement (this: WebdriverIO.Element): ChainablePromiseElement<WebdriverIO.Element>  {
+export default function parentElement (this: WebdriverIO.Element) {
     return this.$(/* istanbul ignore next */ function parentElement (this: HTMLElement) {
         return this.parentElement as HTMLElement
     })

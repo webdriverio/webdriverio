@@ -1,4 +1,5 @@
 import type { Cookie } from '@wdio/protocols'
+import type { Browser } from '../../types'
 
 /**
  *
@@ -55,7 +56,7 @@ import type { Cookie } from '@wdio/protocols'
  *
  */
 export default async function setCookies(
-    this: WebdriverIO.Browser,
+    this: Browser,
     cookieObjs: Cookie | Cookie[]
 ) {
     const cookieObjsList = !Array.isArray(cookieObjs) ? [cookieObjs] : cookieObjs

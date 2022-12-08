@@ -1,6 +1,8 @@
 import type { UNICODE_CHARACTERS } from '@wdio/utils'
 
 import { checkUnicode } from '../../utils/index.js'
+import type { Browser } from '../../types'
+
 /**
  *
  * Send a sequence of key strokes to the "active" element. You can make an input element active by just clicking
@@ -38,7 +40,7 @@ import { checkUnicode } from '../../utils/index.js'
  *
  */
 export default function keys (
-    this: WebdriverIO.Browser,
+    this: Browser,
     value: string | string[]
 ) {
     let keySequence: string[] = []

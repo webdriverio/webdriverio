@@ -1,3 +1,5 @@
+import type { Element } from '../../types'
+
 /**
  *
  * Clear the value of an input or textarea element. Make sure you can interact with the
@@ -24,7 +26,6 @@
  * @type action
  *
  */
-
-export default function clearValue (this: WebdriverIO.Element) {
+export default function clearValue (this: Element) {
     return this.elementClear(this.elementId)
 }

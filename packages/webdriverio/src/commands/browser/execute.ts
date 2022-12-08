@@ -1,4 +1,5 @@
 import { verifyArgsAndStripIfElement } from '../../utils/index.js'
+import type { Browser, Element, MultiRemoteBrowser } from '../../types'
 
 /**
  *
@@ -36,7 +37,7 @@ import { verifyArgsAndStripIfElement } from '../../utils/index.js'
  *
  */
 export default function execute<ReturnValue, InnerArguments extends any[]> (
-    this: WebdriverIO.Browser | WebdriverIO.Element,
+    this: Browser | Element | MultiRemoteBrowser,
     script: string | ((...innerArgs: InnerArguments) => ReturnValue),
     ...args: InnerArguments
 ): Promise<ReturnValue> {

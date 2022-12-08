@@ -1,5 +1,6 @@
 import { beforeEach, test, expect, vi } from 'vitest'
 import NetworkInterception from '../../../src/utils/interception/webdriver.js'
+import type { Browser } from '../../../src/types'
 
 const browserMock = {
     mockRequest: vi.fn().mockReturnValue({ mockId: 123 }),
@@ -7,7 +8,7 @@ const browserMock = {
     clearMockCalls: vi.fn().mockReturnValue({}),
     respondMock: vi.fn().mockReturnValue({}),
     call: vi.fn((cb) => cb())
-} as any as WebdriverIO.Browser
+} as any as Browser
 
 beforeEach(() => {
     vi.mocked(browserMock.mockRequest).mockClear()

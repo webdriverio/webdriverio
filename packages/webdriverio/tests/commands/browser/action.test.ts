@@ -5,6 +5,7 @@ import { describe, it, expect, beforeAll, vi, beforeEach } from 'vitest'
 // @ts-expect-error
 import got from 'got'
 import { remote, Key } from '../../../src/index.js'
+import type { Browser } from '../../../src/types'
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 vi.mock('got')
@@ -13,7 +14,7 @@ vi.mock('node:os')
 vi.mocked(os.type).mockReturnValue('Darwin')
 
 describe('action command', () => {
-    let browser: WebdriverIO.Browser
+    let browser: Browser
 
     beforeAll(async () => {
         browser = await remote({

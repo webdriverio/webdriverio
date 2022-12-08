@@ -1,7 +1,9 @@
 import path from 'node:path'
 import { describe, test, expect, vi } from 'vitest'
 import type { Options, Capabilities } from '@wdio/types'
+
 import { remote, multiremote } from '../src/index.js'
+import type { Browser, Element } from '../src/types'
 
 vi.mock('got')
 vi.mock('devtools')
@@ -64,7 +66,7 @@ describe('addCommand', () => {
             const browser = await remote(remoteConfig)
             await browser.$('#foo')
 
-            browser.addCommand('myCustomElementCommand', async function (this: WebdriverIO.Browser) {
+            browser.addCommand('myCustomElementCommand', async function (this: Browser) {
                 return this.execute(function () { return 1 })
             })
 
@@ -75,7 +77,7 @@ describe('addCommand', () => {
         test('should be able to add a command to an element from the browser', async () => {
             const browser = await remote(remoteConfig)
 
-            browser.addCommand('myCustomElementCommand', async function (this: WebdriverIO.Element) {
+            browser.addCommand('myCustomElementCommand', async function (this: Element) {
                 const size = await this.getSize()
                 return size.width
             }, true)
@@ -89,7 +91,7 @@ describe('addCommand', () => {
         test('should allow to add custom commands to elements', async () => {
             const browser = await remote(remoteConfig)
             const elem = await browser.$('#foo')
-            elem.addCommand('myCustomElementCommand', async function (this: WebdriverIO.Element) {
+            elem.addCommand('myCustomElementCommand', async function (this: Element) {
                 const result = await new Promise(
                     (resolve) => setTimeout(() => resolve('foo'), 1))
                 return result + 'bar-' + this.selector
@@ -115,7 +117,7 @@ describe('addCommand', () => {
 
             // @ts-expect-error undefined custom command
             expect(typeof elem.myCustomElementCommand).toBe('undefined')
-            elem.addCommand('myCustomElementCommand', async function (this: WebdriverIO.Element) {
+            elem.addCommand('myCustomElementCommand', async function (this: Element) {
                 const result = await new Promise(
                     (resolve) => setTimeout(() => resolve('foo'), 1))
                 return result + 'bar-' + this.selector + this.index
@@ -142,7 +144,7 @@ describe('addCommand', () => {
 
             // @ts-expect-error undefined custom command
             expect(typeof elem.myCustomElementCommand).toBe('undefined')
-            elem.addCommand('myCustomElementCommand', async function (this: WebdriverIO.Element) {
+            elem.addCommand('myCustomElementCommand', async function (this: Element) {
                 const result = await new Promise(
                     (resolve) => setTimeout(() => resolve('foo'), 1))
                 return result + 'bar-' + this.selector
@@ -162,7 +164,7 @@ describe('addCommand', () => {
 
             // @ts-expect-error undefined custom command
             expect(typeof elem.myCustomElementCommand).toBe('undefined')
-            elem.addCommand('myCustomElementCommand', async function (this: WebdriverIO.Element) {
+            elem.addCommand('myCustomElementCommand', async function (this: Element) {
                 const result = await new Promise(
                     (resolve) => setTimeout(() => resolve('foo'), 1))
                 return result + 'bar-' + this.selector
@@ -183,7 +185,7 @@ describe('addCommand', () => {
 
             // @ts-expect-error undefined custom command
             expect(typeof subElem.myCustomElementCommand).toBe('undefined')
-            subElem.addCommand('myCustomElementCommand', async function (this: WebdriverIO.Element) {
+            subElem.addCommand('myCustomElementCommand', async function (this: Element) {
                 const result = await new Promise(
                     (resolve) => setTimeout(() => resolve('foo'), 1))
                 return result + 'bar-' + this.selector
@@ -204,7 +206,7 @@ describe('addCommand', () => {
             expect(typeof elem.myCustomElementCommand).toBe('undefined')
             // @ts-expect-error undefined custom command
             expect(typeof subElem.myCustomElementCommand).toBe('undefined')
-            subElem.addCommand('myCustomElementCommand', async function (this: WebdriverIO.Element) {
+            subElem.addCommand('myCustomElementCommand', async function (this: Element) {
                 const result = await new Promise(
                     (resolve) => setTimeout(() => resolve('foo'), 1))
                 return result + 'bar-' + this.selector
@@ -325,7 +327,7 @@ describe('addCommand', () => {
             const browser = await multiremote(multiremoteConfig)
 
             expect(typeof browser.myCustomCommand).toBe('undefined')
-            browser.addCommand('myCustomCommand', async function (this: WebdriverIO.Browser, param: any) {
+            browser.addCommand('myCustomCommand', async function (this: Browser, param: any) {
                 const commandResult = await this.execute(() => 'foobar')
                 return { param, commandResult }
             })
@@ -341,7 +343,7 @@ describe('addCommand', () => {
             const browser = await multiremote(multiremoteConfig)
 
             expect(typeof browser.myOtherCustomCommand).toBe('undefined')
-            browser.browserA.addCommand('myOtherCustomCommand', async function (this: WebdriverIO.Browser, param: any) {
+            browser.browserA.addCommand('myOtherCustomCommand', async function (this: Browser, param: any) {
                 const commandResult = await this.execute(() => 'foobar')
                 return { param, commandResult }
             })
@@ -359,7 +361,7 @@ describe('addCommand', () => {
 
         test('should not allow to call custom multi browser commands on elements', async () => {
             const browser = await multiremote(multiremoteConfig)
-            browser.addCommand('myCustomOtherOtherCommand', async function (this: WebdriverIO.Browser, param: any) {
+            browser.addCommand('myCustomOtherOtherCommand', async function (this: Browser, param: any) {
                 const commandResult = await this.execute(() => 'foobar')
                 return { param, commandResult }
             })

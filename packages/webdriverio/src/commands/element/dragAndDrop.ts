@@ -1,6 +1,7 @@
 import { ELEMENT_KEY } from '../../constants.js'
 import { getBrowserObject } from '../../utils/index.js'
 import type { ElementReference } from '@wdio/protocols'
+import type { Element } from '../../types'
 
 const ACTION_BUTTON = 0 as const
 
@@ -47,12 +48,12 @@ type ElementCoordinates = {
  * @param {Number=}             options.duration  how long the drag should take place
  */
 export default async function dragAndDrop (
-    this: WebdriverIO.Element,
-    target: WebdriverIO.Element | ElementCoordinates,
+    this: Element,
+    target: Element | ElementCoordinates,
     { duration = 10 }: DragAndDropOptions = {}
 ) {
     const moveToCoordinates = target as ElementCoordinates
-    const moveToElement = target as WebdriverIO.Element
+    const moveToElement = target as Element
 
     /**
      * fail if

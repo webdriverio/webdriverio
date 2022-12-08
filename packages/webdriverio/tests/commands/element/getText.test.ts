@@ -4,12 +4,13 @@ import { expect, describe, it, afterEach, beforeAll, vi } from 'vitest'
 // @ts-ignore mocked (original defined in webdriver package)
 import got from 'got'
 import { remote } from '../../../src/index.js'
+import type { Browser } from '../../../src/types'
 
 vi.mock('got')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 describe('getText test', () => {
-    let browser: WebdriverIO.Browser
+    let browser: Browser
     let elem: any
 
     beforeAll(async () => {
@@ -24,11 +25,11 @@ describe('getText test', () => {
 
     it('should allow to get the text of an element', async () => {
         await elem.getText()
-        expect(got.mock.calls[2][0].pathname)
+        expect(vi.mocked(got).mock.calls[2][0]!.pathname)
             .toBe('/session/foobar-123/element/some-elem-123/text')
     })
 
     afterEach(() => {
-        got.mockClear()
+        vi.mocked(got).mockClear()
     })
 })
