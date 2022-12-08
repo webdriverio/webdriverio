@@ -91,7 +91,7 @@ import { KeyAction, PointerAction, WheelAction, ActionType, BaseActionParams } f
             .move({ duration: 0, origin, x: 0, y: 0 })
             .down({ button: 0 }) // left button
             .pause(10)
-            .move({ duration, origin: targetOrigin })
+            .move({ duration: 0, origin: targetOrigin })
             .up({ button: 0 })
             .perform()
     });
