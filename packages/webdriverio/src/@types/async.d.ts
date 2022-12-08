@@ -5,9 +5,9 @@
  * and @wdio/globals
  */
 
-type BrowserSync = import('../types.js').Browser<'async'>
-type ElementSync = import('../types.js').Element<'async'>
-type MultiRemoteBrowserSync = import('../types.js').MultiRemoteBrowser<'async'>
+type BrowserImport = import('../types.js').Browser
+type ElementImport = import('../types.js').Element
+type MultiRemoteBrowserImport = import('../types.js').MultiRemoteBrowser
 
 declare namespace WebdriverIOAsync {
     interface Browser {}
@@ -16,10 +16,10 @@ declare namespace WebdriverIOAsync {
 }
 
 declare namespace WebdriverIO {
-    interface Browser extends BrowserSync, WebdriverIOAsync.Browser { }
-    interface Element extends ElementSync, WebdriverIOAsync.Element { }
+    interface Browser extends BrowserImport, WebdriverIOAsync.Browser { }
+    interface Element extends ElementImport, WebdriverIOAsync.Element { }
     // @ts-expect-error
-    interface MultiRemoteBrowser extends MultiRemoteBrowserSync, WebdriverIOAsync.MultiRemoteBrowser { }
+    interface MultiRemoteBrowser extends MultiRemoteBrowserImport, WebdriverIOAsync.MultiRemoteBrowser { }
 }
 
 declare module NodeJS {

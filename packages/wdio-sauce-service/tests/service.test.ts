@@ -52,7 +52,7 @@ vi.mock('../src/utils', async () => {
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
-let browser: MultiRemoteBrowser<'async'>
+let browser: MultiRemoteBrowser
 beforeEach(() => {
     browser = {
         execute: vi.fn(),
@@ -60,7 +60,7 @@ beforeEach(() => {
         chromeB: { sessionId: 'sessionChromeB' },
         chromeC: { sessionId: 'sessionChromeC' },
         instances: ['chromeA', 'chromeB', 'chromeC'],
-    } as any as MultiRemoteBrowser<'async'>
+    } as any as MultiRemoteBrowser
     vi.mocked(log.info).mockClear()
     vi.mocked(log.error).mockClear()
 })

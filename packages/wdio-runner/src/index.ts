@@ -23,7 +23,7 @@ import type {
 const log = logger('@wdio/runner')
 
 export default class Runner extends EventEmitter {
-    private _browser?: Browser<'async'> | MultiRemoteBrowser<'async'>
+    private _browser?: Browser | MultiRemoteBrowser
     private _configParser?: ConfigParser
     private _sigintWasCalled = false
     private _isMultiremote = false
@@ -130,7 +130,7 @@ export default class Runner extends EventEmitter {
         /**
          * initialisation successful, send start message
          */
-        const multiRemoteBrowser = browser as unknown as MultiRemoteBrowser<'async'>
+        const multiRemoteBrowser = browser as unknown as MultiRemoteBrowser
         this._reporter.emit('runner:start', {
             cid,
             specs,
@@ -233,7 +233,7 @@ export default class Runner extends EventEmitter {
         config: SingleConfigOption,
         caps: Capabilities.RemoteCapability
     ) {
-        const browser = await this._startSession(config, caps) as Browser<'async'>
+        const browser = await this._startSession(config, caps) as Browser
 
         // return null if session couldn't get established
         if (!browser) { return }
@@ -430,7 +430,7 @@ export default class Runner extends EventEmitter {
         /**
          * make sure instance(s) exist and have `sessionId`
          */
-        const multiremoteBrowser = this._browser as MultiRemoteBrowser<'async'>
+        const multiremoteBrowser = this._browser as MultiRemoteBrowser
         const hasSessionId = Boolean(this._browser) && (this._isMultiremote
             /**
              * every multiremote instance should exist and should have `sessionId`

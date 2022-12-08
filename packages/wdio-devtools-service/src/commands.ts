@@ -22,7 +22,7 @@ export default class CommandHandler {
     constructor (
         private _session: CDPSession,
         private _page: Page,
-        browser: Browser<'async'> | MultiRemoteBrowser<'async'>
+        browser: Browser | MultiRemoteBrowser
     ) {
         this._networkHandler = new NetworkHandler(_session)
 

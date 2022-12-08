@@ -2,7 +2,7 @@ import type { EventEmitter } from 'node:events'
 import type { AttachOptions as DevToolsAttachOptions } from 'devtools'
 import type { SessionFlags, AttachOptions as WebDriverAttachOptions } from 'webdriver'
 import type { Options, Capabilities, FunctionProperties, ThenArg } from '@wdio/types'
-import type { ElementReference, ProtocolCommandsAsync, ProtocolCommands, RectReturn } from '@wdio/protocols'
+import type { ElementReference, ProtocolCommands, RectReturn } from '@wdio/protocols'
 import type { Browser as PuppeteerBrowser } from 'puppeteer-core/lib/esm/puppeteer/api/Browser.js'
 
 import type * as BrowserCommands from './commands/browser.js'
@@ -109,30 +109,30 @@ export type BrowserCommandsTypeSync = {
     execute: <ReturnValue, InnerArguments extends any[] = any[], OuterArguments extends InnerArguments = any>(
         script: string | ((...innerArgs: OuterArguments) => ReturnValue),
         ...args: InnerArguments
-    ) => ReturnValue,
+    ) => Promise<ReturnValue>,
 }
 export type ElementCommandsTypeSync = {
     [K in keyof Omit<$ElementCommands, 'getLocation' | 'getSize'>]: (...args: Parameters<$ElementCommands[K]>) => ThenArg<ReturnType<$ElementCommands[K]>>
 } & {
     getLocation: ((
         this: WebdriverIO.Element,
-    ) => Location) & ((
+    ) => Promise<Location>) & ((
         this: WebdriverIO.Element,
         prop: keyof Location
-    ) => number) & ((
+    ) => Promise<number>) & ((
         this: WebdriverIO.Element,
         prop?: keyof Location
-    ) => Location | number),
+    ) => Promise<Location | number>),
 
     getSize: ((
         this: WebdriverIO.Element,
-    ) => Size) & ((
+    ) => Promise<Size>) & ((
         this: WebdriverIO.Element,
         prop: keyof RectReturn
-    ) => number) & ((
+    ) => Promise<number>) & ((
         this: WebdriverIO.Element,
         prop?: keyof RectReturn
-    ) => Size | number),
+    ) => Promise<Size | number>),
 }
 
 /**
@@ -142,33 +142,19 @@ type SingleElementCommandNames = '$' | 'custom$' | 'react$'
 type MultiElementCommandNames = '$$' | 'custom$$' | 'react$$'
 type ElementCommandNames = SingleElementCommandNames | MultiElementCommandNames
 type MultiRemoteElementCommands = {
-    [K in keyof Pick<BrowserCommandsType, SingleElementCommandNames>]: (...args: Parameters<BrowserCommandsType[K]>) => ThenArg<MultiRemoteElement<'async'>>
+    [K in keyof Pick<BrowserCommandsType, SingleElementCommandNames>]: (...args: Parameters<BrowserCommandsType[K]>) => ThenArg<MultiRemoteElement>
 } & {
-    [K in keyof Pick<BrowserCommandsType, MultiElementCommandNames>]: (...args: Parameters<BrowserCommandsType[K]>) => ThenArg<MultiRemoteElement<'async'>[]>
-}
-type MultiRemoteElementCommandsSync = {
-    [K in keyof Pick<BrowserCommandsTypeSync, SingleElementCommandNames>]: (...args: Parameters<BrowserCommandsTypeSync[K]>) => MultiRemoteElement<'sync'>
-} & {
-    [K in keyof Pick<BrowserCommandsTypeSync, MultiElementCommandNames>]: (...args: Parameters<BrowserCommandsTypeSync[K]>) => MultiRemoteElement<'sync'>[]
+    [K in keyof Pick<BrowserCommandsType, MultiElementCommandNames>]: (...args: Parameters<BrowserCommandsType[K]>) => ThenArg<MultiRemoteElement[]>
 }
 
 export type MultiRemoteBrowserCommandsType = {
     [K in keyof Omit<BrowserCommandsType, ElementCommandNames>]: (...args: Parameters<BrowserCommandsType[K]>) => Promise<ThenArg<ReturnType<BrowserCommandsType[K]>>[]>
 } & MultiRemoteElementCommands
-export type MultiRemoteBrowserCommandsTypeSync = {
-    [K in keyof Omit<BrowserCommandsTypeSync, ElementCommandNames>]: (...args: Parameters<BrowserCommandsTypeSync[K]>) => ThenArg<ReturnType<BrowserCommandsTypeSync[K]>>[]
-} & MultiRemoteElementCommandsSync
 export type MultiRemoteElementCommandsType = {
     [K in keyof Omit<ElementCommandsType, ElementCommandNames>]: (...args: Parameters<ElementCommandsType[K]>) => Promise<ThenArg<ReturnType<ElementCommandsType[K]>>[]>
 } & MultiRemoteElementCommands
-export type MultiRemoteElementCommandsTypeSync = {
-    [K in keyof Omit<ElementCommandsTypeSync, ElementCommandNames>]: (...args: Parameters<ElementCommandsTypeSync[K]>) => ThenArg<ReturnType<ElementCommandsTypeSync[K]>>[]
-} & MultiRemoteElementCommandsSync
 export type MultiRemoteProtocolCommandsType = {
-    [K in keyof ProtocolCommandsAsync]: (...args: Parameters<ProtocolCommandsAsync[K]>) => Promise<ThenArg<ReturnType<ProtocolCommandsAsync[K]>>[]>
-}
-export type MultiRemoteProtocolCommandsTypeSync = {
-    [K in keyof ProtocolCommands]: (...args: Parameters<ProtocolCommands[K]>) => ThenArg<ReturnType<ProtocolCommands[K]>>[]
+    [K in keyof ProtocolCommands]: (...args: Parameters<ProtocolCommands[K]>) => Promise<ThenArg<ReturnType<ProtocolCommands[K]>>[]>
 }
 
 export interface ElementArray extends Array<WebdriverIO.Element> {
@@ -194,7 +180,7 @@ type OverwriteCommandFnScoped<
     IsElement extends boolean = false
 > = (
     this: IsElement extends true ? WebdriverIO.Element : WebdriverIO.Browser,
-    origCommand: (...args: any[]) => IsElement extends true ? WebdriverIO.Element[ElementKey] : WebdriverIO.Browser[BrowserKey],
+    origCommand: (...args: any[]) => IsElement extends true ? $ElementCommands[ElementKey] : $BrowserCommands[BrowserKey],
     ...args: any[]
 ) => Promise<any>
 
@@ -203,7 +189,7 @@ type OverwriteCommandFn<
     BrowserKey extends keyof $BrowserCommands,
     IsElement extends boolean = false
 > = (
-    origCommand: (...args: any[]) => IsElement extends true ? WebdriverIO.Element[ElementKey] : WebdriverIO.Browser[BrowserKey],
+    origCommand: (...args: any[]) => IsElement extends true ? $ElementCommands[ElementKey] : $BrowserCommands[BrowserKey],
     ...args: any[]
 ) => Promise<any>
 
@@ -289,10 +275,7 @@ export interface BrowserBase extends InstanceBase, CustomInstanceCommands<Webdri
 /**
  * export a browser interface that can be used for typing plugins
  */
-interface BrowserAsync extends BrowserBase, BrowserCommandsType, ProtocolCommandsAsync {}
-interface BrowserSync extends BrowserBase, BrowserCommandsTypeSync, ProtocolCommands {}
-export type Browser<Mode extends 'sync' | 'async'> = Mode extends 'sync' ? BrowserSync : BrowserAsync
-
+export interface Browser extends BrowserBase, BrowserCommandsType, ProtocolCommands {}
 export interface ElementBase extends InstanceBase, ElementReference, CustomInstanceCommands<WebdriverIO.Element> {
     isMultiremote: false
     /**
@@ -328,10 +311,7 @@ export interface ElementBase extends InstanceBase, ElementReference, CustomInsta
     error?: Error
 }
 
-interface ElementAsync extends ElementBase, ProtocolCommandsAsync, Omit<BrowserCommandsType, keyof ElementCommandsType>, ElementCommandsType {}
-interface ElementSync extends ElementBase, ProtocolCommands, Omit<BrowserCommandsTypeSync, keyof ElementCommandsTypeSync>, ElementCommandsTypeSync {}
-export type Element<Mode extends 'sync' | 'async'> = Mode extends 'sync' ? ElementSync : ElementAsync
-
+export interface Element extends ElementBase, ProtocolCommands, Omit<BrowserCommandsType, keyof ElementCommandsType>, ElementCommandsType {}
 interface MultiRemoteBase extends Omit<InstanceBase, 'sessionId'>, CustomInstanceCommands<WebdriverIO.MultiRemoteBrowser> {
     /**
      * multiremote browser instance names
@@ -351,16 +331,12 @@ interface MultiRemoteElementBase {
     overwriteCommand: Function
 }
 
-type MultiRemoteBrowserReferenceAsync = Record<string, Browser<'async'>>
-type MultiRemoteBrowserReferenceSync = Record<string, Browser<'sync'>>
-type MultiRemoteElementReferenceAsync = Record<string, Element<'async'>>
-type MultiRemoteElementReferenceSync = Record<string, Element<'sync'>>
-interface MultiRemoteBrowserAsync extends MultiRemoteBase, MultiRemoteBrowserCommandsType, MultiRemoteProtocolCommandsType { }
-interface MultiRemoteBrowserSync extends MultiRemoteBase, MultiRemoteBrowserCommandsTypeSync, MultiRemoteProtocolCommandsTypeSync { }
-interface MultiRemoteElementAsync extends MultiRemoteElementBase, MultiRemoteProtocolCommandsType, Omit<MultiRemoteBrowserCommandsType, keyof MultiRemoteElementCommandsType>, MultiRemoteElementCommandsType {}
-interface MultiRemoteElementSync extends MultiRemoteElementBase, MultiRemoteProtocolCommandsTypeSync, Omit<MultiRemoteBrowserCommandsTypeSync, keyof MultiRemoteElementCommandsTypeSync>, MultiRemoteElementCommandsTypeSync {}
-export type MultiRemoteBrowser<Mode extends 'sync' | 'async'> = Mode extends 'sync' ? MultiRemoteBrowserReferenceSync & MultiRemoteBrowserSync : MultiRemoteBrowserReferenceAsync & MultiRemoteBrowserAsync
-export type MultiRemoteElement<Mode extends 'sync' | 'async'> = Mode extends 'sync' ? MultiRemoteElementReferenceSync & MultiRemoteElementSync : MultiRemoteElementReferenceAsync & MultiRemoteElementAsync
+type MultiRemoteBrowserReference = Record<string, Browser>
+type MultiRemoteElementReference = Record<string, Element>
+interface MultiRemoteBrowserType extends MultiRemoteBase, MultiRemoteBrowserCommandsType, MultiRemoteProtocolCommandsType { }
+interface MultiRemoteElementType extends MultiRemoteElementBase, MultiRemoteProtocolCommandsType, Omit<MultiRemoteBrowserCommandsType, keyof MultiRemoteElementCommandsType>, MultiRemoteElementCommandsType {}
+export type MultiRemoteBrowser = MultiRemoteBrowserReference & MultiRemoteBrowserType
+export type MultiRemoteElement = MultiRemoteElementReference & MultiRemoteElementType
 
 export type ElementFunction = ((elem: HTMLElement) => HTMLElement) | ((elem: HTMLElement) => HTMLElement[])
 export type CustomStrategyFunction = (...args: any) => ElementReference | ElementReference[]

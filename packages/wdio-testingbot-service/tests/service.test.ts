@@ -18,7 +18,7 @@ vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdi
 describe('wdio-testingbot-service', () => {
     const execute = vi.fn()
 
-    let browser: Browser<'async'> | MultiRemoteBrowser<'async'>
+    let browser: Browser | MultiRemoteBrowser
     beforeEach(() => {
         browser = {
             execute,

@@ -8,7 +8,7 @@ import type { SharedStoreServiceCapabilities } from './types.js'
 /**
  * ToDo(Christian): make this public accessible
  */
-interface ServiceBrowser extends Browser<'async'>, BrowserExtension { }
+interface ServiceBrowser extends Browser, BrowserExtension { }
 
 export default class SharedStoreService implements Services.ServiceInstance {
     private _browser?: ServiceBrowser

@@ -20,7 +20,7 @@ test('allow to attach to an existing session', async () => {
     await browser.url('http://guinea-pig.webdriver.io')
     expect(await browser.getTitle()).toBe('WebdriverJS Testpage')
 
-    const otherBrowser: Browser<'async'> = await attach(browser)
+    const otherBrowser = await attach(browser)
     expect(await otherBrowser.getTitle()).toBe('WebdriverJS Testpage')
 
     await otherBrowser.deleteSession()

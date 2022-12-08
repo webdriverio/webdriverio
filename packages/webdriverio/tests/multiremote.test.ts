@@ -98,7 +98,7 @@ test('should be able to fetch multiple elements', async () => {
 test('should be able to add a command to and element in multiremote', async () => {
     const browser = await multiremote(caps())
 
-    browser.addCommand('myCustomElementCommand', async function (this: MultiRemoteBrowser<'async'>) {
+    browser.addCommand('myCustomElementCommand', async function (this: MultiRemoteBrowser) {
         // @ts-expect-error invalid params
         const size = await this.getSize()
         return size.width

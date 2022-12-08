@@ -15,7 +15,7 @@ const ELEMENT_ALT = '8bf4d107-a363-40d1-b823-d94bdbc58afb'
 const ELEM_PROP = 'element-6066-11e4-a52e-4f735466cecf'
 
 export default class WebdriverMockService implements Services.ServiceInstance {
-    private _browser?: Browser<'async'> | MultiRemoteBrowser<'async'>
+    private _browser?: Browser | MultiRemoteBrowser
     private _mock = new WebDriverMock()
 
     constructor () {
@@ -41,7 +41,7 @@ export default class WebdriverMockService implements Services.ServiceInstance {
     before (
         caps: unknown,
         specs: unknown,
-        browser: Browser<'async'> | MultiRemoteBrowser<'async'>
+        browser: Browser | MultiRemoteBrowser
     ) {
         this._browser = browser
 

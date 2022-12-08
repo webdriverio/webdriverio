@@ -18,45 +18,7 @@ import GeckoProtocol from './protocols/gecko.js'
 import SauceLabsProtocol from './protocols/saucelabs.js'
 import SeleniumProtocol from './protocols/selenium.js'
 
-type WebDriverCommandsAsync = {
-    [K in keyof WebDriverCommands]:
-    (...args: Parameters<WebDriverCommands[K]>) => Promise<ReturnType<WebDriverCommands[K]>>
-}
-type WebDriverBidiCommandsAsync = {
-    [K in keyof WebDriverBidiCommands]:
-    (...args: Parameters<WebDriverBidiCommands[K]>) => Promise<ReturnType<WebDriverBidiCommands[K]>>
-}
-type AppiumCommandsAsync = {
-    [K in keyof AppiumCommands]:
-    (...args: Parameters<AppiumCommands[K]>) => Promise<ReturnType<AppiumCommands[K]>>
-}
-type ChromiumCommandsAsync = {
-    [K in keyof ChromiumCommands]:
-    (...args: Parameters<ChromiumCommands[K]>) => Promise<ReturnType<ChromiumCommands[K]>>
-}
-type GeckoCommandsAsync = {
-    [K in keyof GeckoCommands]:
-    (...args: Parameters<GeckoCommands[K]>) => Promise<ReturnType<GeckoCommands[K]>>
-}
-type JSONWPCommandsAsync = {
-    [K in keyof JSONWPCommands]:
-    (...args: Parameters<JSONWPCommands[K]>) => Promise<ReturnType<JSONWPCommands[K]>>
-}
-type MJSONWPCommandsAsync = {
-    [K in keyof MJSONWPCommands]:
-    (...args: Parameters<MJSONWPCommands[K]>) => Promise<ReturnType<MJSONWPCommands[K]>>
-}
-type SauceLabsCommandsAsync = {
-    [K in keyof SauceLabsCommands]:
-    (...args: Parameters<SauceLabsCommands[K]>) => Promise<ReturnType<SauceLabsCommands[K]>>
-}
-type SeleniumCommandsAsync = {
-    [K in keyof SeleniumCommands]:
-    (...args: Parameters<SeleniumCommands[K]>) => Promise<ReturnType<SeleniumCommands[K]>>
-}
-
 export interface ProtocolCommands extends WebDriverCommands, Omit<JSONWPCommands, keyof WebDriverCommands>, AppiumCommands, ChromiumCommands, Omit<MJSONWPCommands, keyof AppiumCommands | keyof ChromiumCommands>, SauceLabsCommands, SeleniumCommands {}
-export interface ProtocolCommandsAsync extends WebDriverCommandsAsync, Omit<JSONWPCommandsAsync, keyof WebDriverCommandsAsync>, AppiumCommandsAsync, ChromiumCommandsAsync, Omit<MJSONWPCommandsAsync, keyof AppiumCommandsAsync | keyof ChromiumCommandsAsync>, SauceLabsCommandsAsync, SeleniumCommandsAsync {}
 
 export * from './types.js'
 export {
@@ -64,15 +26,10 @@ export {
     WebDriverProtocol, MJsonWProtocol, JsonWProtocol, AppiumProtocol,
     ChromiumProtocol, SauceLabsProtocol, SeleniumProtocol, GeckoProtocol,
     WebDriverBidiProtocol,
-    // sync commands
+    // commands
     AppiumCommands, ChromiumCommands, JSONWPCommands, MJSONWPCommands,
     SauceLabsCommands, SeleniumCommands, WebDriverCommands, GeckoCommands,
-    WebDriverBidiCommands,
-    // async commands
-    WebDriverCommandsAsync, AppiumCommandsAsync, ChromiumCommandsAsync,
-    JSONWPCommandsAsync, MJSONWPCommandsAsync, SauceLabsCommandsAsync,
-    SeleniumCommandsAsync, GeckoCommandsAsync,
-    WebDriverBidiCommandsAsync
+    WebDriverBidiCommands
 }
 
 export const CAPABILITY_KEYS = [
