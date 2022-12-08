@@ -1074,70 +1074,54 @@ export interface SauceLabsCapabilities {
 }
 
 export interface LambdaTestCapabilities{
-    
     username?: string
     accessKey?: string
-
-
     platformName?: string
-
     browserName?: string
     browserVersion? : string
-
     /**
      * Set the resolution of the VM.
      */
     resolution?: string
-
     selenium_version?: string
-
     headless?: boolean
     seCdp?: boolean
-
     /**
      * Specify a name for a logical group of builds.
      */
-     project?: string
+    project?: string
     /**
      * Specify a name for a logical group of tests.
      */
     build?: string | number
-    
     /**
      * Use this capability to add a custom tag to the builds.
      * These tags can be used to filter the builds on the Automate dashboard.
      */
     buildTags?: Array<string>
     smartUiProject?: string
-
     /**
      * Use this capability to add names to the tests.
      */
     name?: string
-
     /**
      * Use this capability to add a custom tag to the tests.
      * These tags can be used to filter the tests on the Automate dashboard.
      */
     tags?: Array<string>
-
     visual?: boolean
     video?: boolean
-
     /**
      * Test locally hosted websites on LambdaTest.
      * To enable access to the local machine you need to setup the
      * LambdaTest Tunnel (https://www.lambdatest.com/support/docs/testing-locally-hosted-pages).
      */
     tunnel?: boolean
-    
     /**
      * Capture browser console logs at various steps in the test.
      */
     console?: "warn" | "error" | "warn" | "info" | "true" 
-
     network?: boolean
-
 }
 
 export interface BrowserStackCapabilities {
