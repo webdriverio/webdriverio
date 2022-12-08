@@ -183,7 +183,7 @@ export class ViteServer extends EventEmitter {
             return ws.send(JSON.stringify(this.#commandResponse({ id: payload.id, error })))
         }
 
-        const browser = await BROWSER_POOL.get(payload.cid) as Browser<'async'> | undefined
+        const browser = await BROWSER_POOL.get(payload.cid) as Browser | undefined
         if (!browser) {
             const error = serializeError(new Error(`Couldn't find browser with cid "${payload.cid}"`))
             return ws.send(JSON.stringify(this.#commandResponse({ id: payload.id, error })))

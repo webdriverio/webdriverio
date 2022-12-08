@@ -158,7 +158,7 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
         return failures
     }
 
-    async #fetchEvents (browser: Browser<'async'>, spec: string, uid: number) {
+    async #fetchEvents (browser: Browser, spec: string, uid: number) {
         /**
          * populate events to the reporter
          */

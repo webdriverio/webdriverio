@@ -115,7 +115,7 @@ export default class MultiRemote {
     commandWrapper (commandName: keyof (ProtocolCommands & BrowserCommandsType)) {
         const instances = this.instances
         const self = this
-        return wrapCommand(commandName, async function (this: MultiRemoteBrowser<'async'> | MultiRemoteElement, ...args: any[]) {
+        return wrapCommand(commandName, async function (this: MultiRemoteBrowser | MultiRemoteElement, ...args: any[]) {
             const mElem = this as MultiRemoteElement
             const scope = this.selector
                 ? Object.entries(mElem.instances.reduce((ins, instanceName) => (

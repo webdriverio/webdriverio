@@ -54,7 +54,7 @@ export async function initialiseInstance (
     config: ConfigWithSessionId,
     capabilities: Capabilities.RemoteCapability,
     isMultiremote?: boolean
-): Promise<Browser<'async'> | MultiRemoteBrowser<'async'>> {
+): Promise<Browser | MultiRemoteBrowser> {
     /**
      * check if config has sessionId and attach it to a running session if so
      */
@@ -144,14 +144,14 @@ type BrowserData = {
  * @return {object}
  */
 export function getInstancesData (
-    browser: Browser<'async'> | MultiRemoteBrowser<'async'>,
+    browser: Browser | MultiRemoteBrowser,
     isMultiremote: boolean
 ) {
     if (!isMultiremote) {
         return
     }
 
-    const multiRemoteBrowser = browser as MultiRemoteBrowser<'async'>
+    const multiRemoteBrowser = browser as MultiRemoteBrowser
     const instances: Record<string, Partial<BrowserData>> = {}
     multiRemoteBrowser.instances.forEach((browserName: string) => {
         const { protocol, hostname, port, path, queryParams } = multiRemoteBrowser[browserName].options

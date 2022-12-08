@@ -3,7 +3,6 @@ import path from 'node:path'
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
 import got from 'got'
 import logger from '@wdio/logger'
-import type { Browser, MultiRemoteBrowser } from 'webdriverio'
 
 import BrowserstackService from '../src/service.js'
 import * as utils from '../src/util.js'
@@ -21,7 +20,7 @@ vi.mock('uuid', () => ({ v4: () => '123456789' }))
 
 const log = logger('test')
 let service: BrowserstackService
-let browser: Browser<'async'> | MultiRemoteBrowser<'async'>
+let browser: Browser | MultiRemoteBrowser
 
 beforeEach(() => {
     vi.mocked(log.info).mockClear()
@@ -61,7 +60,7 @@ beforeEach(() => {
             }
         },
         browserB: {},
-    } as unknown as Browser<'async'> | MultiRemoteBrowser<'async'>
+    } as unknown as WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
     service = new BrowserstackService({ testObservability: false } as any, [] as any, { user: 'foo', key: 'bar' } as any)
 })
 

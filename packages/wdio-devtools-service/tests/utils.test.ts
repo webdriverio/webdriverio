@@ -40,7 +40,7 @@ test('sumByKey', () => {
 
 test('setUnsupportedCommand', () => {
     const browser = { addCommand: vi.fn() }
-    setUnsupportedCommand(browser as unknown as Browser<'async'>)
+    setUnsupportedCommand(browser as unknown as Browser)
     expect(browser.addCommand).toHaveBeenCalledWith('cdp', expect.any(Function))
     const fn = browser.addCommand.mock.calls[0][1]
     expect(fn).toThrow()

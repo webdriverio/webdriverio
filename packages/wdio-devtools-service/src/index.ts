@@ -45,7 +45,7 @@ export default class DevToolsService implements Services.ServiceInstance {
     private _devtoolsGatherer?: DevtoolsGatherer
     private _coverageGatherer?: CoverageGatherer
     private _pwaGatherer?: PWAGatherer
-    private _browser?: Browser<'async'> | MultiRemoteBrowser<'async'>
+    private _browser?: Browser | MultiRemoteBrowser
 
     constructor (private _options: DevtoolsConfig) {}
 
@@ -59,7 +59,7 @@ export default class DevToolsService implements Services.ServiceInstance {
     before (
         caps: Capabilities.RemoteCapability,
         specs: string[],
-        browser: Browser<'async'> | MultiRemoteBrowser<'async'>
+        browser: Browser | MultiRemoteBrowser
     ) {
         this._browser = browser
         this._isSupported = this._isSupported || Boolean(this._browser.puppeteer)
@@ -101,12 +101,12 @@ export default class DevToolsService implements Services.ServiceInstance {
          */
         this._traceGatherer.once('tracingComplete', (traceEvents) => {
             const auditor = new Auditor(traceEvents, this._devtoolsGatherer?.getLogs(), this._formFactor)
-            auditor.updateCommands(this._browser as Browser<'async'>)
+            auditor.updateCommands(this._browser as Browser)
         })
 
         this._traceGatherer.once('tracingError', (err: Error) => {
             const auditor = new Auditor()
-            auditor.updateCommands(this._browser as Browser<'async'>, /* istanbul ignore next */() => {
+            auditor.updateCommands(this._browser as Browser, /* istanbul ignore next */() => {
                 throw new Error(`Couldn't capture performance due to: ${err.message}`)
             })
         })
@@ -212,13 +212,13 @@ export default class DevToolsService implements Services.ServiceInstance {
 
     async _setupHandler () {
         if (!this._isSupported || !this._browser) {
-            return setUnsupportedCommand(this._browser as Browser<'async'>)
+            return setUnsupportedCommand(this._browser as Browser)
         }
 
         /**
          * casting is required as types differ between core and definitely typed types
          */
-        this._puppeteer = await (this._browser as Browser<'async'>).getPuppeteer() as any as PuppeteerBrowser
+        this._puppeteer = await (this._browser as Browser).getPuppeteer() as any as PuppeteerBrowser
 
         /* istanbul ignore next */
         if (!this._puppeteer) {

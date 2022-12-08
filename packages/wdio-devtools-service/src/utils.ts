@@ -31,7 +31,7 @@ const CUSTOM_COMMANDS = [
     'checkPWA'
 ]
 
-export function setUnsupportedCommand (browser: Browser<'async'> | MultiRemoteBrowser<'async'>) {
+export function setUnsupportedCommand (browser: Browser | MultiRemoteBrowser) {
     for (const command of CUSTOM_COMMANDS) {
         browser.addCommand(command, /* istanbul ignore next */() => {
             throw new Error(UNSUPPORTED_ERROR_MESSAGE)

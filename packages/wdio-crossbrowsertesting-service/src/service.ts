@@ -7,7 +7,7 @@ const log = logger('@wdio/crossbrowsertesting-service')
 const jobDataProperties = ['name', 'tags', 'public', 'build', 'extra']
 
 export default class CrossBrowserTestingService implements Services.ServiceInstance {
-    private _browser?: Browser<'async'> | MultiRemoteBrowser<'async'>
+    private _browser?: Browser | MultiRemoteBrowser
     private _testCnt = 0
     private _failures = 0
     private _isServiceEnabled: boolean
@@ -27,7 +27,7 @@ export default class CrossBrowserTestingService implements Services.ServiceInsta
     before (
         caps: Capabilities.Capabilities,
         specs: string[],
-        browser: Browser<'async'> | MultiRemoteBrowser<'async'>
+        browser: Browser | MultiRemoteBrowser
     ) {
         this._browser = browser
     }
@@ -150,7 +150,7 @@ export default class CrossBrowserTestingService implements Services.ServiceInsta
         }
 
         const browserName = this._browser.instances.filter(
-            (browserName: string) => (this._browser as MultiRemoteBrowser<'async'>)[browserName].sessionId === newSessionId)[0]
+            (browserName: string) => (this._browser as MultiRemoteBrowser)[browserName].sessionId === newSessionId)[0]
         log.info(`Update (reloaded) multiremote job for browser "${browserName}" and sessionId ${oldSessionId}, ${status}`)
         return this.updateJob(oldSessionId, this._failures, true, browserName)
     }
