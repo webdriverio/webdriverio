@@ -4,16 +4,17 @@ import { expect, describe, it, vi, beforeAll } from 'vitest'
 // @ts-ignore mocked (original defined in webdriver package)
 import got from 'got'
 import { remote } from '../../../src/index.js'
+import type { Browser, Element } from '../../../src/types'
 
 vi.mock('got')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 describe('waitForEnabled', () => {
     const timeout = 1000
-    let browser: WebdriverIO.Browser
+    let browser: Browser
 
     beforeAll(async () => {
-        got.mockClear()
+        vi.mocked(got).mockClear()
 
         browser = await remote({
             baseUrl: 'http://foobar.com',
@@ -31,7 +32,7 @@ describe('waitForEnabled', () => {
             elementId : null,
             waitUntil : vi.fn(),
             options : { waitforInterval: 5, waitforTimeout: timeout }
-        } as any as WebdriverIO.Element
+        } as any as Element
 
         await elem.waitForEnabled({ timeout })
         expect(elem.waitForExist).toBeCalled()
@@ -46,7 +47,7 @@ describe('waitForEnabled', () => {
             waitUntil : vi.fn(),
             isEnabled : vi.fn(() => Promise.resolve()),
             options : { waitforInterval: 5, waitforTimeout: timeout }
-        } as any as WebdriverIO.Element
+        } as any as Element
 
         await elem.waitForEnabled({ timeout })
         expect(elem.waitForExist).not.toBeCalled()
@@ -63,7 +64,7 @@ describe('waitForEnabled', () => {
             waitUntil : vi.fn(((cb))),
             isEnabled : vi.fn(() => Promise.resolve()),
             options : { waitforInterval: 5, waitforTimeout: timeout }
-        } as any as WebdriverIO.Element
+        } as any as Element
 
         await elem.waitForEnabled({ timeout })
 
@@ -81,7 +82,7 @@ describe('waitForEnabled', () => {
             waitUntil : tmpElem.waitUntil,
             isEnabled : vi.fn(() => true),
             options : { waitforInterval: 5, waitforTimeout: timeout }
-        } as any as WebdriverIO.Element
+        } as any as Element
 
         const result = await elem.waitForEnabled({ timeout })
         expect(result).toBe(true)
@@ -97,7 +98,7 @@ describe('waitForEnabled', () => {
             waitUntil : tmpElem.waitUntil,
             isEnabled : vi.fn(() => false),
             options : { waitforInterval: 5, waitforTimeout: timeout }
-        } as any as WebdriverIO.Element
+        } as any as Element
 
         try {
             await elem.waitForEnabled({ timeout })
@@ -117,7 +118,7 @@ describe('waitForEnabled', () => {
             waitUntil : vi.fn(((cb))),
             isEnabled : vi.fn(() => Promise.resolve()),
             options : { waitforInterval: 50, waitforTimeout: 500 }
-        } as any as WebdriverIO.Element
+        } as any as Element
 
         await elem.waitForEnabled({ reverse: true })
         expect(vi.mocked(elem.waitUntil).mock.calls).toMatchSnapshot()
@@ -133,7 +134,7 @@ describe('waitForEnabled', () => {
             waitUntil : tmpElem.waitUntil,
             isEnabled : vi.fn(() => false),
             options : { waitforTimeout : 500 },
-        } as any as WebdriverIO.Element
+        } as any as Element
 
         try {
             await elem.waitForEnabled({

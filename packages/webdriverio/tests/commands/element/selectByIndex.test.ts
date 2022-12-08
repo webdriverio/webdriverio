@@ -6,13 +6,14 @@ import got from 'got'
 import { remote } from '../../../src/index.js'
 import { ELEMENT_KEY } from '../../../src/constants.js'
 import * as utils from '../../../src/utils/index.js'
+import type { Browser } from '../../../src/types'
 
 vi.mock('got')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 describe('selectByIndex test', () => {
     const getElementFromResponseSpy = vi.spyOn(utils, 'getElementFromResponse')
-    let browser: WebdriverIO.Browser
+    let browser: Browser
     let elem: any
 
     beforeEach(async () => {
@@ -26,17 +27,17 @@ describe('selectByIndex test', () => {
     })
 
     afterEach(() => {
-        got.mockClear()
+        vi.mocked(got).mockClear()
     })
 
     it('should select by index', async () => {
         await elem.selectByIndex(1)
 
-        expect(got.mock.calls[1][0].pathname)
+        expect(vi.mocked(got).mock.calls[1][0]!.pathname)
             .toBe('/session/foobar-123/element')
-        expect(got.mock.calls[2][0].pathname)
+        expect(vi.mocked(got).mock.calls[2][0]!.pathname)
             .toBe('/session/foobar-123/element/some-elem-123/elements')
-        expect(got.mock.calls[3][0].pathname)
+        expect(vi.mocked(got).mock.calls[3][0]!.pathname)
             .toBe('/session/foobar-123/element/some-elem-456/click')
         expect(getElementFromResponseSpy).toBeCalledWith({
             [ELEMENT_KEY]: 'some-elem-456',

@@ -5,7 +5,7 @@ import got from 'got'
 import type { Capabilities } from '@wdio/types'
 
 import { multiremote } from '../src/index.js'
-import type { MultiRemoteBrowser } from '../src/index.js'
+import type { MultiRemoteBrowser } from '../src/types'
 
 vi.mock('got')
 vi.mock('devtools')
@@ -118,7 +118,7 @@ test('should be able to overwrite command to and element in multiremote', async 
     const browser = await multiremote(caps())
 
     browser.overwriteCommand('getSize', async function (
-        this: WebdriverIO.MultiRemoteBrowser,
+        this: MultiRemoteBrowser,
         origCmd: any
     ) {
         let size = await origCmd()

@@ -1,3 +1,5 @@
+import type { Element } from '../../types'
+
 /**
  * Send a sequence of key strokes to an element after the input has been cleared before. If the element doesn't need
  * to be cleared first then use [`addValue`](/docs/api/element/addValue).
@@ -25,7 +27,7 @@
  *
  */
 export default async function setValue (
-    this: WebdriverIO.Element,
+    this: Element,
     value: string | number
 ) {
     await this.clearValue()

@@ -1,5 +1,6 @@
 import cssShorthandProps from 'css-shorthand-properties'
 import { parseCSS } from '../../utils/index.js'
+import type { Element } from '../../types'
 
 /**
  *
@@ -71,7 +72,7 @@ import { parseCSS } from '../../utils/index.js'
  *
  */
 export default async function getCSSProperty (
-    this: WebdriverIO.Element,
+    this: Element,
     cssProperty: string
 ) {
     /**

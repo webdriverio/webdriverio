@@ -4,12 +4,13 @@ import { expect, describe, it, vi, beforeAll, beforeEach } from 'vitest'
 // @ts-ignore mocked (original defined in webdriver package)
 import got from 'got'
 import { remote } from '../../../src/index.js'
+import type { Browser } from '../../../src/types'
 
 vi.mock('got')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 describe('touchAction element test', () => {
-    let browser: WebdriverIO.Browser
+    let browser: Browser
     let elem: any
     let subElem: any
     let subSubElem: any
@@ -31,8 +32,8 @@ describe('touchAction element test', () => {
     describe('single touch', () => {
         it('should transform to array', async () => {
             await elem.touchAction('press')
-            expect(got.mock.calls[0][0].pathname).toContain('/touch/perform')
-            expect(got.mock.calls[0][1].json).toEqual({
+            expect(vi.mocked(got).mock.calls[0][0]!.pathname).toContain('/touch/perform')
+            expect(vi.mocked(got).mock.calls[0][1]!.json).toEqual({
                 actions: [
                     { action: 'press', options: { element: 'some-elem-123' } }
                 ]
@@ -45,8 +46,8 @@ describe('touchAction element test', () => {
                 x: 1,
                 y: 2
             })
-            expect(got.mock.calls[0][0].pathname).toContain('/touch/perform')
-            expect(got.mock.calls[0][1].json).toEqual({
+            expect(vi.mocked(got).mock.calls[0][0]!.pathname).toContain('/touch/perform')
+            expect(vi.mocked(got).mock.calls[0][1]!.json).toEqual({
                 actions: [
                     { action: 'press', options: { x: 1, y: 2, element: 'some-elem-123' } }
                 ]
@@ -55,8 +56,8 @@ describe('touchAction element test', () => {
 
         it('should transform object into array if no x and y options are given', async () => {
             await elem.touchAction({ action: 'press' })
-            expect(got.mock.calls[0][0].pathname).toContain('/touch/perform')
-            expect(got.mock.calls[0][1].json).toEqual({
+            expect(vi.mocked(got).mock.calls[0][0]!.pathname).toContain('/touch/perform')
+            expect(vi.mocked(got).mock.calls[0][1]!.json).toEqual({
                 actions: [
                     { action: 'press', options: { element: 'some-elem-123' } }
                 ]
@@ -69,8 +70,8 @@ describe('touchAction element test', () => {
                 x: 1,
                 y: 2
             }])
-            expect(got.mock.calls[0][0].pathname).toContain('/touch/perform')
-            expect(got.mock.calls[0][1].json).toEqual({
+            expect(vi.mocked(got).mock.calls[0][0]!.pathname).toContain('/touch/perform')
+            expect(vi.mocked(got).mock.calls[0][1]!.json).toEqual({
                 actions: [
                     { action: 'press', options: { x: 1, y: 2, element: 'some-elem-123' } }
                 ]
@@ -79,8 +80,8 @@ describe('touchAction element test', () => {
 
         it('should handle multiple actions as strings properly', async () => {
             await elem.touchAction(['wait', 'release'])
-            expect(got.mock.calls[0][0].pathname).toContain('/touch/perform')
-            expect(got.mock.calls[0][1].json).toEqual({
+            expect(vi.mocked(got).mock.calls[0][0]!.pathname).toContain('/touch/perform')
+            expect(vi.mocked(got).mock.calls[0][1]!.json).toEqual({
                 actions: [
                     { action: 'wait' },
                     { action: 'release' }
@@ -100,8 +101,8 @@ describe('touchAction element test', () => {
                 x: 3,
                 y: 4
             }])
-            expect(got.mock.calls[0][0].pathname).toContain('/touch/perform')
-            expect(got.mock.calls[0][1].json).toEqual({
+            expect(vi.mocked(got).mock.calls[0][0]!.pathname).toContain('/touch/perform')
+            expect(vi.mocked(got).mock.calls[0][1]!.json).toEqual({
                 actions: [{
                     action: 'press',
                     options: {
@@ -130,8 +131,8 @@ describe('touchAction element test', () => {
                 action: 'press',
                 element: subElem
             })
-            expect(got.mock.calls[0][0].pathname).toContain('/touch/perform')
-            expect(got.mock.calls[0][1].json).toEqual({
+            expect(vi.mocked(got).mock.calls[0][0]!.pathname).toContain('/touch/perform')
+            expect(vi.mocked(got).mock.calls[0][1]!.json).toEqual({
                 actions: [
                     { action: 'press', options: { element: 'some-sub-elem-321' } }
                 ]
@@ -149,8 +150,8 @@ describe('touchAction element test', () => {
                 element: subSubElem
             }])
 
-            expect(got.mock.calls[0][0].pathname).toContain('/touch/perform')
-            expect(got.mock.calls[0][1].json).toEqual({
+            expect(vi.mocked(got).mock.calls[0][0]!.pathname).toContain('/touch/perform')
+            expect(vi.mocked(got).mock.calls[0][1]!.json).toEqual({
                 actions: [
                     { action: 'press', options: { element: 'some-sub-elem-321', x: 1, y: 2 } },
                     { action: 'moveTo', options: { element: 'some-sub-sub-elem-231' } }
@@ -182,8 +183,8 @@ describe('touchAction element test', () => {
                 y: 2
             })
 
-            expect(got.mock.calls[0][0].pathname).toContain('/touch/perform')
-            expect(got.mock.calls[0][1].json).toEqual({
+            expect(vi.mocked(got).mock.calls[0][0]!.pathname).toContain('/touch/perform')
+            expect(vi.mocked(got).mock.calls[0][1]!.json).toEqual({
                 actions: [
                     { action: 'press', options: { x: 1, y: 2, element: 'some-elem-123' } }
                 ]
@@ -197,8 +198,8 @@ describe('touchAction element test', () => {
                 y: 0
             })
 
-            expect(got.mock.calls[0][0].pathname).toContain('/touch/perform')
-            expect(got.mock.calls[0][1].json).toEqual({
+            expect(vi.mocked(got).mock.calls[0][0]!.pathname).toContain('/touch/perform')
+            expect(vi.mocked(got).mock.calls[0][1]!.json).toEqual({
                 actions: [
                     { action: 'moveTo', options: { x: 0, y: 0, element: 'some-elem-123' } }
                 ]
@@ -209,8 +210,8 @@ describe('touchAction element test', () => {
     describe('multi touch', () => {
         it('should transform to array using element as first citizen', async () => {
             await elem.touchAction([['press'], ['release']])
-            expect(got.mock.calls[0][0].pathname).toContain('/touch/multi/perform')
-            expect(got.mock.calls[0][1].json).toEqual({
+            expect(vi.mocked(got).mock.calls[0][0]!.pathname).toContain('/touch/multi/perform')
+            expect(vi.mocked(got).mock.calls[0][1]!.json).toEqual({
                 actions: [
                     [{ action: 'press', options: { element: 'some-elem-123' } }],
                     [{ action: 'release' }]
@@ -228,7 +229,7 @@ describe('touchAction element test', () => {
                 x: 112,
                 y: 245
             }]])
-            expect(got.mock.calls[0][1].json).toEqual({
+            expect(vi.mocked(got).mock.calls[0][1]!.json).toEqual({
                 actions: [
                     [{ action: 'press', options: { element: 'some-elem-123', x: 1, y: 2 } }],
                     [{ action: 'tap', options: { element: 'some-elem-123', x: 112, y: 245 } }]
@@ -245,7 +246,7 @@ describe('touchAction element test', () => {
                     y: 4
                 }]
             ])
-            expect(got.mock.calls[0][1].json).toEqual({
+            expect(vi.mocked(got).mock.calls[0][1]!.json).toEqual({
                 actions: [
                     [{ action: 'press', options: { element: 'some-elem-123' } }],
                     [{ action: 'tap', options: { element: 'some-elem-123', x: 3, y: 4 } }]
@@ -270,7 +271,7 @@ describe('touchAction element test', () => {
                     y: 6
                 }]
             ])
-            expect(got.mock.calls[0][1].json).toEqual({
+            expect(vi.mocked(got).mock.calls[0][1]!.json).toEqual({
                 actions: [
                     [{ action: 'press', options: { element: 'some-elem-123', x: 1, y: 2 } }],
                     [
@@ -283,6 +284,6 @@ describe('touchAction element test', () => {
     })
 
     beforeEach(() => {
-        got.mockClear()
+        vi.mocked(got).mockClear()
     })
 })

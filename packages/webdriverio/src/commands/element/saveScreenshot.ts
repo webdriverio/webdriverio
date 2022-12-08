@@ -1,5 +1,6 @@
 import fs from 'node:fs/promises'
 import { getAbsoluteFilepath, assertDirectoryExists } from '../../utils/index.js'
+import type { Element } from '../../types'
 
 /**
  *
@@ -20,7 +21,7 @@ import { getAbsoluteFilepath, assertDirectoryExists } from '../../utils/index.js
  *
  */
 export default async function saveScreenshot (
-    this: WebdriverIO.Element,
+    this: Element,
     filepath: string
 ) {
     /**

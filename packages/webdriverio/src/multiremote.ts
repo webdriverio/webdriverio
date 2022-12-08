@@ -16,7 +16,7 @@ type MultiRemoteElement = {
     isMultiremote: boolean
     __propertiesObject__: Record<string, PropertyDescriptor>
 } & {
-    [instanceName: string]: WebdriverIO.Element
+    [instanceName: string]: Element
 }
 
 /**
@@ -90,7 +90,7 @@ export default class MultiRemote {
     ): MultiRemoteElement {
         const prototype = { ...propertiesObject, ...clone(getPrototype('element')), scope: { value: 'element' } }
 
-        const element = webdriverMonad({}, (client: WebdriverIO.MultiRemoteBrowser) => {
+        const element = webdriverMonad({}, (client: MultiRemoteBrowser) => {
             /**
              * attach instances to wrapper client
              */
@@ -120,7 +120,7 @@ export default class MultiRemote {
             const scope = this.selector
                 ? Object.entries(mElem.instances.reduce((ins, instanceName) => (
                     { ...ins, [instanceName]: mElem[instanceName] }
-                ), {} as Record<string, WebdriverIO.Element[]>))
+                ), {} as Record<string, Element[]>))
                 : Object.entries(instances)
 
             const result = await Promise.all(
@@ -163,41 +163,41 @@ export class MultiRemoteDriver {
         this.__propertiesObject__ = propertiesObject
     }
 
-    on (this: WebdriverIO.MultiRemoteBrowser, eventName: string, emitter: EventEmitter) {
+    on (this: MultiRemoteBrowser, eventName: string, emitter: EventEmitter) {
         this.instances.forEach((instanceName) => this[instanceName].on(eventName, emitter))
         return undefined as any
     }
 
-    once (this: WebdriverIO.MultiRemoteBrowser, eventName: string, emitter: EventEmitter) {
+    once (this: MultiRemoteBrowser, eventName: string, emitter: EventEmitter) {
         this.instances.forEach((instanceName) => this[instanceName].once(eventName, emitter))
         return undefined as any
     }
 
-    emit (this: WebdriverIO.MultiRemoteBrowser, eventName: string, emitter: EventEmitter) {
+    emit (this: MultiRemoteBrowser, eventName: string, emitter: EventEmitter) {
         return this.instances.map(
             (instanceName) => this[instanceName].emit(eventName, emitter)
         ).some(Boolean)
     }
 
-    eventNames (this: WebdriverIO.MultiRemoteBrowser) {
+    eventNames (this: MultiRemoteBrowser) {
         return this.instances.map(
             (instanceName) => this[instanceName].eventNames()
         ) as any // special behavior of event methods for multiremote
     }
 
-    getMaxListeners (this: WebdriverIO.MultiRemoteBrowser) {
+    getMaxListeners (this: MultiRemoteBrowser) {
         return this.instances.map(
             (instanceName) => this[instanceName].getMaxListeners()
         ) as any as number // special behavior of event methods for multiremote
     }
 
-    listenerCount (this: WebdriverIO.MultiRemoteBrowser, eventName: string) {
+    listenerCount (this: MultiRemoteBrowser, eventName: string) {
         return this.instances.map(
             (instanceName) => this[instanceName].listenerCount(eventName)
         ) as any as number // special behavior of event methods for multiremote
     }
 
-    listeners (this: WebdriverIO.MultiRemoteBrowser, eventName: string) {
+    listeners (this: MultiRemoteBrowser, eventName: string) {
         return this.instances.map(
             (instanceName) => this[instanceName].listeners(eventName)
         ).reduce((prev, cur) => {
@@ -206,12 +206,12 @@ export class MultiRemoteDriver {
         }, [])
     }
 
-    removeListener (this: WebdriverIO.MultiRemoteBrowser, eventName: string, emitter: EventEmitter) {
+    removeListener (this: MultiRemoteBrowser, eventName: string, emitter: EventEmitter) {
         this.instances.forEach((instanceName) => this[instanceName].removeListener(eventName, emitter))
         return undefined as any
     }
 
-    removeAllListeners (this: WebdriverIO.MultiRemoteBrowser, eventName: string) {
+    removeAllListeners (this: MultiRemoteBrowser, eventName: string) {
         this.instances.forEach((instanceName) => this[instanceName].removeAllListeners(eventName))
         return undefined as any
     }

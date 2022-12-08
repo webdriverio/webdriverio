@@ -3,12 +3,13 @@ import { describe, it, expect, beforeAll, vi, beforeEach } from 'vitest'
 // @ts-expect-error
 import got from 'got'
 import { remote } from '../../../src/index.js'
+import type { Browser } from '../../../src/types'
 
 vi.mock('got')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 describe('actions command', () => {
-    let browser: WebdriverIO.Browser
+    let browser: Browser
 
     beforeAll(async () => {
         browser = await remote({
@@ -20,7 +21,7 @@ describe('actions command', () => {
     })
 
     beforeEach(() => {
-        got.mockClear()
+        vi.mocked(got).mockClear()
     })
 
     it('should support multiple actions', async () => {

@@ -4,12 +4,13 @@ import { expect, describe, it, beforeAll, afterEach, vi } from 'vitest'
 // @ts-ignore mocked (original defined in webdriver package)
 import got from 'got'
 import { remote } from '../../../src/index.js'
+import type { Browser } from '../../../src/types'
 
 vi.mock('got')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 describe('clearValue test', () => {
-    let browser: WebdriverIO.Browser
+    let browser: Browser
     let elem: any
 
     beforeAll(async () => {
@@ -24,11 +25,11 @@ describe('clearValue test', () => {
 
     it('should allow to clear an input element', async () => {
         await elem.clearValue()
-        expect(got.mock.calls[2][0].pathname)
+        expect(vi.mocked(got).mock.calls[2][0]!.pathname)
             .toBe('/session/foobar-123/element/some-elem-123/clear')
     })
 
     afterEach(() => {
-        got.mockClear()
+        vi.mocked(got).mockClear()
     })
 })

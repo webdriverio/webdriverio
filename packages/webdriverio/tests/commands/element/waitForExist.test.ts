@@ -4,16 +4,17 @@ import { expect, describe, it, vi, beforeEach } from 'vitest'
 // @ts-ignore mocked (original defined in webdriver package)
 import got from 'got'
 import { remote } from '../../../src/index.js'
+import type { Browser, Element } from '../../../src/types'
 
 vi.mock('got')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 describe('waitForExists', () => {
     const timeout = 1000
-    let browser: WebdriverIO.Browser
+    let browser: Browser
 
     beforeEach(async () => {
-        got.mockClear()
+        vi.mocked(got).mockClear()
 
         browser = await remote({
             baseUrl: 'http://foobar.com',
@@ -29,7 +30,7 @@ describe('waitForExists', () => {
             waitForExist: tmpElem.waitForExist,
             waitUntil: vi.fn(),
             options: { waitforInterval: 5, waitforTimeout: timeout }
-        } as any as WebdriverIO.Element
+        } as any as Element
 
         await elem.waitForExist()
         expect(vi.mocked(elem.waitUntil).mock.calls).toMatchSnapshot()
@@ -41,7 +42,7 @@ describe('waitForExists', () => {
             waitForExist: tmpElem.waitForExist,
             waitUntil: vi.fn(),
             options: { waitforInterval: 5, waitforTimeout: timeout }
-        } as any as WebdriverIO.Element
+        } as any as Element
 
         await elem.waitForExist({
             timeout,
