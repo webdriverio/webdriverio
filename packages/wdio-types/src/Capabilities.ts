@@ -1120,7 +1120,7 @@ export interface LambdaTestCapabilities{
     /**
      * Capture browser console logs at various steps in the test.
      */
-    console?: "warn" | "error" | "warn" | "info" | "true" 
+    console?: 'warn' | 'error' | 'warn' | 'info' | 'true'
     network?: boolean
 }
 
