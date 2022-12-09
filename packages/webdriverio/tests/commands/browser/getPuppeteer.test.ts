@@ -23,6 +23,9 @@ describe('attach Puppeteer', () => {
             baseUrl: 'http://foobar.com',
             capabilities: {
                 browserName: 'foobar'
+            },
+            headers: {
+                Authorization: 'OAuth token'
             }
         })
     })
@@ -198,7 +201,10 @@ describe('attach Puppeteer', () => {
             options: {
                 hostname: 'my.grid',
                 port: 4444,
-                path: '/wd/hub'
+                path: '/wd/hub',
+                headers: {
+                    Authorization: 'OAuth token'
+                }
             } as any
         })
         expect(typeof pptr).toBe('object')
@@ -221,7 +227,10 @@ describe('attach Puppeteer', () => {
             options: {
                 hostname: 'my.grid',
                 port: 4444,
-                path: '/wd/hub'
+                path: '/wd/hub',
+                headers: {
+                    Authorization: 'OAuth token'
+                }
             } as any
         })
         expect(typeof pptr).toBe('object')

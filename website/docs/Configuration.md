@@ -135,7 +135,7 @@ Default:
 
 ### headers
 
-Specify custom `headers` to pass into every WebDriver request.
+Specify custom `headers` to pass into every WebDriver request and when connect to browser through Puppeteer using CDP protocol.
 
 :::caution
 
