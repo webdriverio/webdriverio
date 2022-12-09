@@ -46,20 +46,20 @@ export default class BrowserRunner extends LocalRunner {
         await super.initialise()
     }
 
-    run (runArgs: RunArgs) {
+    async run (runArgs: RunArgs) {
         runArgs.caps = makeHeadless(this.options, runArgs.caps)
 
         if (runArgs.command === 'run') {
             runArgs.args.baseUrl = this._config.baseUrl
         }
 
-        const worker = super.run(runArgs)
-        this.#server.on('debugState', (state: boolean) => worker.postMessage('switchDebugState', state))
-        this.#server.on('workerHookExecution', (payload: HookTriggerEvent) => {
+        const worker = await super.run(runArgs)
+        this.#server.on('debugState', async (state: boolean) => await worker.postMessage('switchDebugState', state))
+        this.#server.on('workerHookExecution', async (payload: HookTriggerEvent) => {
             if (worker.cid !== payload.cid) {
                 return
             }
-            return worker.postMessage('workerHookExecution', payload)
+            await worker.postMessage('workerHookExecution', payload)
         })
         worker.on('message', async (payload: SessionStartedMessage | SessionEndedMessage | WorkerHookResultMessage) => {
             if (payload.name === 'sessionStarted' && !SESSIONS.has(payload.cid!)) {

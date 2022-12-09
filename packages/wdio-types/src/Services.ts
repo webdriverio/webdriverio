@@ -7,7 +7,7 @@ export interface RunnerInstance {
     shutdown(): Promise<void>
     closeSession?: (cid: number) => Promise<void>
     getWorkerCount(): number
-    run(args: any): NodeJS.EventEmitter
+    run(args: any): Promise<NodeJS.EventEmitter>
     workerPool: any
     browserPool: any
 }

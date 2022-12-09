@@ -18,12 +18,12 @@ vi.mock('child_process', () => {
     }
 })
 
-test('should fork a new process', () => {
+test('should fork a new process', async () => {
     const runner = new LocalRunner(undefined as never, {
         outputDir: '/foo/bar',
         runnerEnv: { FORCE_COLOR: 1 }
     } as any)
-    const worker = runner.run({
+    const worker = await runner.run({
         cid: '0-5',
         command: 'run',
         configFile: '/path/to/wdio.conf.js',
@@ -54,7 +54,7 @@ test('should fork a new process', () => {
         specs: ['/foo/bar.test.js']
     })
 
-    worker.postMessage('runAgain', { foo: 'bar' })
+    await worker.postMessage('runAgain', { foo: 'bar' })
 })
 
 test('should shut down worker processes', async () => {
@@ -62,7 +62,7 @@ test('should shut down worker processes', async () => {
         outputDir: '/foo/bar',
         runnerEnv: { FORCE_COLOR: 1 }
     } as any)
-    const worker1 = runner.run({
+    const worker1 = await runner.run({
         cid: '0-4',
         command: 'run',
         configFile: '/path/to/wdio.conf.js',
@@ -72,7 +72,7 @@ test('should shut down worker processes', async () => {
         execArgv: [],
         retries: 0
     })
-    const worker2 = runner.run({
+    const worker2 = await runner.run({
         cid: '0-5',
         command: 'run',
         configFile: '/path/to/wdio.conf.js',
@@ -108,7 +108,7 @@ test('should avoid shutting down if worker is not busy', async () => {
         runnerEnv: { FORCE_COLOR: 1 }
     } as any)
 
-    runner.run({
+    await runner.run({
         cid: '0-8',
         command: 'run',
         configFile: '/path/to/wdio.conf.js',
@@ -132,7 +132,7 @@ test('should shut down worker processes in watch mode - regular', async () => {
         watch: true,
     } as any)
 
-    const worker = runner.run({
+    const worker = await runner.run({
         cid: '0-6',
         command: 'run',
         configFile: '/path/to/wdio.conf.js',
@@ -156,7 +156,7 @@ test('should shut down worker processes in watch mode - regular', async () => {
 
     expect(after - before).toBeGreaterThanOrEqual(300)
 
-    const call: any = vi.mocked(worker.childProcess?.send)!.mock.calls.pop()![0]
+    const call: any = vi.mocked(await worker.childProcess?.send)!.mock.calls.pop()![0]
     expect(call.cid).toBe('0-6')
     expect(call.command).toBe('endSession')
     expect(call.args.watch).toBe(true)
@@ -172,7 +172,7 @@ test('should shut down worker processes in watch mode - mutliremote', async () =
         watch: true,
     } as any)
 
-    const worker = runner.run({
+    const worker = await runner.run({
         cid: '0-7',
         command: 'run',
         configFile: '/path/to/wdio.conf.js',

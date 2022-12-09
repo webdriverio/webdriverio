@@ -2,6 +2,7 @@ import url from 'node:url'
 import path from 'node:path'
 import child from 'node:child_process'
 import { EventEmitter } from 'node:events'
+import { sleep } from '@wdio/utils'
 import type { ChildProcess } from 'node:child_process'
 import type { WritableStreamBuffer } from 'stream-buffers'
 import type { Capabilities, Options, Workers } from '@wdio/types'
@@ -81,7 +82,7 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
     /**
      * spawns process to kick of wdio-runner
      */
-    startProcess() {
+    async startProcess(): Promise<ChildProcess> {
         const { cid, execArgv } = this
         const argv = process.argv.slice(2)
 
@@ -118,6 +119,8 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
             stdio: ['inherit', 'pipe', 'pipe', 'ipc']
         })
 
+        await sleep(1 * 1000)
+
         childProcess.on('message', this._handleMessage.bind(this))
         childProcess.on('error', this._handleError.bind(this))
         childProcess.on('exit', this._handleExit.bind(this))
@@ -134,6 +137,31 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
         }
 
         return childProcess
+    }
+
+    /**
+     * sends message to sub process to execute functions in wdio-runner
+     * @param  command  method to run in wdio-runner
+     * @param  args     arguments for functions to call
+     */
+    async postMessage (command: string, args: Workers.WorkerMessageArgs): Promise<void> {
+        const { cid, configFile, capabilities, specs, retries, isBusy } = this
+
+        if (isBusy && !ACCEPTABLE_BUSY_COMMANDS.includes(command)) {
+            return log.info(`worker with cid ${cid} already busy and can't take new commands`)
+        }
+
+        /**
+         * start up process if worker hasn't done yet or if child process
+         * closes after running its job
+         */
+        if (!this.childProcess) {
+            this.childProcess = await this.startProcess()
+        }
+
+        const cmd: Workers.WorkerCommand = { cid, command, configFile, args, caps: capabilities, specs, retries }
+        this.childProcess.send(cmd)
+        this.isBusy = true
     }
 
     private _handleMessage (payload: Workers.WorkerMessage) {
@@ -201,30 +229,5 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
         if (childProcess) {
             childProcess.kill('SIGTERM')
         }
-    }
-
-    /**
-     * sends message to sub process to execute functions in wdio-runner
-     * @param  command  method to run in wdio-runner
-     * @param  args     arguments for functions to call
-     */
-    postMessage (command: string, args: Workers.WorkerMessageArgs): void {
-        const { cid, configFile, capabilities, specs, retries, isBusy } = this
-
-        if (isBusy && !ACCEPTABLE_BUSY_COMMANDS.includes(command)) {
-            return log.info(`worker with cid ${cid} already busy and can't take new commands`)
-        }
-
-        /**
-         * start up process if worker hasn't done yet or if child process
-         * closes after running its job
-         */
-        if (!this.childProcess) {
-            this.childProcess = this.startProcess()
-        }
-
-        const cmd: Workers.WorkerCommand = { cid, command, configFile, args, caps: capabilities, specs, retries }
-        this.childProcess.send(cmd)
-        this.isBusy = true
     }
 }

@@ -143,7 +143,7 @@ export default class Watcher {
      * run workers with params
      * @param  params parameters to run the worker with
      */
-    run (params: Partial<RunCommandArguments> = {}) {
+    async run (params: Partial<RunCommandArguments> = {}) {
         const workers = this.getWorkers(
             (params.spec
                 ? (worker) => Boolean(worker.specs.find((s) => params.spec?.includes(s)))
@@ -174,7 +174,7 @@ export default class Watcher {
         for (const [, worker] of Object.entries(workers)) {
             const { cid, capabilities, specs, sessionId } = worker
             const args = Object.assign({ sessionId, baseUrl: worker.config.baseUrl }, params)
-            worker.postMessage('run', args)
+            await worker.postMessage('run', args)
             this._launcher.interface.emit('job:start', { cid, caps: capabilities, specs })
         }
     }

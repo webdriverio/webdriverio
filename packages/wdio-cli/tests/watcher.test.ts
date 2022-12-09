@@ -246,7 +246,7 @@ describe('watcher', () => {
         ).toEqual({ '1-0': workerPool['1-0'] })
     })
 
-    it('should run workers on existing session', () => {
+    it('should run workers on existing session', async () => {
         // skip for Windows
         if (os.platform() === 'win32') {
             return
@@ -261,7 +261,7 @@ describe('watcher', () => {
             '1-0': new WorkerMock({ cid: '1-0', specs: ['/bar/foo.js'] })
         }
         watcher['_launcher'].interface!.emit = vi.fn()
-        watcher.run({ spec: 'file:///foo/bar.js' } as any)
+        await watcher.run({ spec: 'file:///foo/bar.js' } as any)
         expect(watcher['_launcher'].interface!.emit).toHaveBeenCalledWith('job:start', {
             cid: '0-0',
             caps: { browserName: 'chrome' },
@@ -277,7 +277,7 @@ describe('watcher', () => {
         expect(watcher['_launcher'].interface!.totalWorkerCnt).toBe(1)
     })
 
-    it('should not clean if no watcher is running', () => {
+    it('should not clean if no watcher is running', async () => {
         const wdioConf = path.join(__dirname, '__fixtures__', 'wdio.conf')
         const watcher = new Watcher(wdioConf, {})
         watcher['_launcher'].runner!.workerPool = {
@@ -288,11 +288,11 @@ describe('watcher', () => {
             '1-0': new WorkerMock({ cid: '1-0', specs: ['/bar/foo.js'] })
         }
         watcher['_launcher'].interface!.emit = vi.fn()
-        watcher.run({ spec: '/foo/bar2.js' } as any)
+        await watcher.run({ spec: '/foo/bar2.js' } as any)
         expect(watcher['_launcher'].interface!.emit).toHaveBeenCalledTimes(0)
     })
 
-    it('should run all tests if `filesToWatch` entry was changed', () => {
+    it('should run all tests if `filesToWatch` entry was changed', async () => {
         // skip for Windows
         if (os.platform() === 'win32') {
             return
@@ -309,7 +309,7 @@ describe('watcher', () => {
             // @ts-ignore mock feature
             '1-0': new WorkerMock({ cid: '1-0', specs: ['/bar/foo.js'] })
         }
-        watcher.run()
+        await watcher.run()
 
         expect(watcher['_launcher'].interface!.totalWorkerCnt).toBe(2)
 

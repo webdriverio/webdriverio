@@ -120,26 +120,26 @@ describe('handleExit', () => {
 })
 
 describe('postMessage', () => {
-    it('should log if the cid is busy and exit', () => {
+    it('should log if the cid is busy and exit', async () => {
         const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer())
         const log = logger('webdriver')
         vi.spyOn(log, 'info').mockImplementation((string) => string)
 
         worker.isBusy = true
-        worker.postMessage('test-message', {})
+        await worker.postMessage('test-message', {})
 
         expect(log.info)
             .toHaveBeenCalledWith('worker with cid 0-3 already busy and can\'t take new commands')
     })
 
-    it('should create a process if it does not have one', () => {
+    it('should create a process if it does not have one', async () => {
         const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer())
         worker.childProcess = undefined
         vi.spyOn(worker, 'startProcess').mockImplementation(
-            () => ({ send: vi.fn() }) as unknown as ChildProcess)
-        worker.postMessage('test-message', {})
+            () => ({ send: vi.fn() }) as unknown as Promise<ChildProcess>)
+        await worker.postMessage('test-message', {})
 
-        expect(worker.startProcess).toHaveBeenCalled()
+        expect(await worker.startProcess).toHaveBeenCalled()
         expect(worker.isBusy).toBeTruthy()
 
         vi.mocked(worker.startProcess).mockRestore()

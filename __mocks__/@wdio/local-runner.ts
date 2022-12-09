@@ -12,9 +12,9 @@ export default class LocalRunnerMock {
         this.config = config
     }
 
-    run ({ command, args, ...options }: any) {
+    async run ({ command, args, ...options }: any) {
         this.workerPool[options.cid as string] = { postMessage: vi.fn() } as unknown as WorkerInstance
-        this.workerPool[options.cid].postMessage(command, args)
+        await this.workerPool[options.cid].postMessage(command, args)
         return this.workerPool[options.cid]
     }
 }

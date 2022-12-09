@@ -32,7 +32,7 @@ export default class LocalRunner {
         return Object.keys(this.workerPool).length
     }
 
-    run ({ command, args, ...workerOptions }: RunArgs) {
+    async run ({ command, args, ...workerOptions }: RunArgs) {
         /**
          * adjust max listeners on stdout/stderr when creating listeners
          */
@@ -44,7 +44,7 @@ export default class LocalRunner {
 
         const worker = new WorkerInstance(this._config, workerOptions, this.stdout, this.stderr)
         this.workerPool[workerOptions.cid] = worker
-        worker.postMessage(command, args)
+        await worker.postMessage(command, args)
         return worker
     }
 
@@ -54,7 +54,7 @@ export default class LocalRunner {
      * @return {Promise}  resolves when all worker have been shutdown or
      *                    a timeout was reached
      */
-    shutdown () {
+    async shutdown () {
         log.info('Shutting down spawned worker')
 
         for (const [cid, worker] of Object.entries(this.workerPool)) {
@@ -78,7 +78,7 @@ export default class LocalRunner {
                 continue
             }
 
-            worker.postMessage('endSession', payload)
+            await worker.postMessage('endSession', payload)
         }
 
         return new Promise<void>((resolve) => {
