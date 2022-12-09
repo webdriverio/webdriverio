@@ -74,6 +74,37 @@ This single command downloads the WebdriverIO CLI tool and runs a configuration 
 
 The wizard will prompt a set questions that guides you through the setup. You can pass a `--yes` parameter to pick a default set up which will use Mocha with Chrome using the [Page Object](https://martinfowler.com/bliki/PageObject.html) pattern.
 
+<Tabs
+  defaultValue="npm"
+  values={[
+    {label: 'NPM', value: 'npm'},
+    {label: 'Yarn', value: 'yarn'},
+    {label: 'pnpm', value: 'pnpm'},
+  ]
+}>
+<TabItem value="npm">
+
+```sh
+npm init wdio . -- --yes
+```
+
+</TabItem>
+<TabItem value="yarn">
+
+```sh
+yarn create wdio . --yes
+```
+
+</TabItem>
+<TabItem value="pnpm">
+
+```sh
+pnpm create wdio . --yes
+```
+
+</TabItem>
+</Tabs>
+
 ## Run Test
 
 You can start your test suite by using the `run` command and pointing to the WebdriverIO config that you just created:
