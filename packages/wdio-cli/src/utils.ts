@@ -461,36 +461,48 @@ export async function getAnswers(yes: boolean): Promise<Questionnair> {
 
     const projectProps = await getProjectProps(process.cwd())
     const isProjectExisting = Boolean(projectProps)
-    const projectName = projectProps?.packageJson.name ? ` named "${projectProps?.packageJson.name}"` : ''
+    const projectName = projectProps?.packageJson?.name ? ` named "${projectProps.packageJson.name}"` : ''
     const questions = [
-        ...(!isProjectExisting ? [{
-            type: 'confirm',
-            name: 'createPackageJSON',
-            default: true,
-            message: `Couldn't find a package.json in "${process.cwd()}" or any of the parent directories, do you want to create one?`,
-        }, {
-            type: 'list',
-            name: 'moduleSystem',
-            message: 'Which module system should be used?',
-            choices: [
-                { name: 'esm', value: 'ESM (recommended)$--$esm' },
-                { name: 'commonjs', value: 'CommonJS$--$commonjs' }
-            ],
-            // only ask if there are more than 1 runner to pick from
-            when: /* istanbul ignore next */ (answers: Questionnair) => answers.createPackageJSON
-        }] : [{
-            type: 'confirm',
-            name: 'projectRootCorrect',
-            default: true,
-            message: `A project${projectName} was detected at "${projectProps?.path}", correct?`,
-        }, {
-            type: 'input',
-            name: 'projectRoot',
-            message: 'What is the project root for your test project?',
-            default: projectProps?.path,
-            // only ask if there are more than 1 runner to pick from
-            when: /* istanbul ignore next */ (answers: Questionnair) => !answers.projectRootCorrect
-        }]),
+        /**
+         * in case the `wdio config` was called using a global installed @wdio/cli package
+         */
+        ...(!isProjectExisting
+            ? [{
+                type: 'confirm',
+                name: 'createPackageJSON',
+                default: true,
+                message: `Couldn't find a package.json in "${process.cwd()}" or any of the parent directories, do you want to create one?`,
+            }, {
+                type: 'list',
+                name: 'moduleSystem',
+                message: 'Which module system should be used?',
+                choices: [
+                    { name: 'esm', value: 'ESM (recommended)$--$esm' },
+                    { name: 'commonjs', value: 'CommonJS$--$commonjs' }
+                ],
+                // only ask if there are more than 1 runner to pick from
+                when: /* istanbul ignore next */ (answers: Questionnair) => answers.createPackageJSON
+            }]
+            /**
+             * in case create-wdio was used which creates a package.json with name "my-new-project"
+             * we don't need to ask this question
+             */
+            : projectName !== 'my-new-project'
+                ? [{
+                    type: 'confirm',
+                    name: 'projectRootCorrect',
+                    default: true,
+                    message: `A project${projectName} was detected at "${projectProps?.path}", correct?`,
+                }, {
+                    type: 'input',
+                    name: 'projectRoot',
+                    message: 'What is the project root for your test project?',
+                    default: projectProps?.path,
+                    // only ask if there are more than 1 runner to pick from
+                    when: /* istanbul ignore next */ (answers: Questionnair) => !answers.projectRootCorrect
+                }]
+                : []
+        ),
         ...QUESTIONNAIRE
     ]
     return inquirer.prompt(questions)
