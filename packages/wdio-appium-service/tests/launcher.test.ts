@@ -22,7 +22,7 @@ vi.mock('node:fs/promises', () => ({
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 vi.mock('child_process', () => ({ spawn: vi.fn() }))
-vi.mock('import-meta-resolve', () => ({ resolve: vi.fn().mockResolvedValue('/foo/bar/appium') }))
+vi.mock('import-meta-resolve', () => ({ resolve: vi.fn().mockResolvedValue('file:///foo/bar/appium') }))
 
 class MockProcess {
     removeListener() {}
@@ -264,11 +264,11 @@ describe('Appium launcher', () => {
                 expect(spawn).toBeCalledWith(
                     'node',
                     [
+                        '/foo/bar/appium',
                         '--base-path',
                         '/',
                         '--foo',
-                        'bar',
-                        '/foo/bar/appium'
+                        'bar'
                     ],
                     expect.any(Object)
                 )
@@ -276,11 +276,11 @@ describe('Appium launcher', () => {
                 expect(spawn).toBeCalledWith(
                     'node',
                     [
+                        '/foo/bar/appium',
                         '--base-path',
                         '/',
                         '--foo',
-                        'bar',
-                        '/foo/bar/appium'
+                        'bar'
                     ],
                     expect.any(Object)
                 )
@@ -297,11 +297,11 @@ describe('Appium launcher', () => {
                 expect(spawn).toBeCalledWith(
                     'cmd',
                     [
+                        '/foo/bar/appium',
                         '/c',
                         'node',
                         '--base-path',
-                        '/',
-                        '/foo/bar/appium'
+                        '/'
                     ],
                     expect.any(Object)
                 )
@@ -309,9 +309,9 @@ describe('Appium launcher', () => {
                 expect(spawn).toBeCalledWith(
                     'node',
                     [
+                        '/foo/bar/appium',
                         '--base-path',
-                        '/',
-                        '/foo/bar/appium'
+                        '/'
                     ],
                     expect.any(Object)
                 )

@@ -59,7 +59,7 @@ export async function runServiceHook(
         } catch (err: any) {
             const message = `A service failed in the '${hookName}' hook\n${err.stack}\n\n`
 
-            if (err instanceof SevereServiceError) {
+            if (err instanceof SevereServiceError || err.name === 'SevereServiceError') {
                 return { status: 'rejected', reason: message, origin: hookName }
             }
 
