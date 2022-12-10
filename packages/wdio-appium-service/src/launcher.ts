@@ -1,5 +1,6 @@
 import fs from 'node:fs'
 import fsp from 'node:fs/promises'
+import url from 'node:url'
 import path from 'node:path'
 import { ChildProcessByStdio, spawn } from 'node:child_process'
 import { promisify } from 'node:util'
@@ -8,6 +9,7 @@ import { Readable } from 'node:stream'
 import logger from '@wdio/logger'
 import { resolve } from 'import-meta-resolve'
 import { isCloudCapability } from '@wdio/config'
+import { SevereServiceError } from 'webdriverio'
 import type { Services, Capabilities, Options } from '@wdio/types'
 
 import { getFilePath, formatCliArgs } from './utils.js'
@@ -49,7 +51,7 @@ export default class AppiumLauncher implements Services.ServiceInstance {
          */
         if (!command) {
             command = 'node'
-            this._appiumCliArgs.push(await AppiumLauncher._getAppiumCommand())
+            this._appiumCliArgs.unshift(await AppiumLauncher._getAppiumCommand())
         }
 
         /**
@@ -165,15 +167,17 @@ export default class AppiumLauncher implements Services.ServiceInstance {
 
     private static async _getAppiumCommand (command = 'appium') {
         try {
-            return await resolve(command, import.meta.url)
+            const entryPath = await resolve(command, import.meta.url)
+            return url.fileURLToPath(entryPath)
         } catch (err: any) {
-            log.error(
-                'Appium is not installed locally.\n' +
-                'If you use globally installed appium please add\n' +
-                "appium: { command: 'appium' }\n" +
-                'to your wdio.conf.js!'
+            const errorMessage = (
+                'Appium is not installed locally. Please install via e.g. `npm i --save-dev appium`.\n' +
+                'If you use globally installed appium please add: `appium: { command: \'appium\' }`\n' +
+                'to your wdio.conf.js!\n\n' +
+                err.stack
             )
-            throw err
+            log.error(errorMessage)
+            throw new SevereServiceError(errorMessage)
         }
     }
 }

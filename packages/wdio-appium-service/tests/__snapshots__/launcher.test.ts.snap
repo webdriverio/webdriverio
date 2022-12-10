@@ -13,11 +13,11 @@ exports[`Appium launcher > onPrepare > should set correct config properties for 
 
 exports[`Appium launcher > onPrepare > should set correct config properties for linux 1`] = `
 [
+  "/foo/bar/appium",
   "--base-path",
   "/",
   "--foo",
   "bar",
-  "/foo/bar/appium",
 ]
 `;
 
