@@ -21,6 +21,38 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.0.10 (2022-12-11)
+
+#### :rocket: New Feature
+* `devtools`, `wdio-devtools-service`, `webdriverio`
+  * [#9354](https://github.com/webdriverio/webdriverio/pull/9354) feat: ability to send headers when connect to browser using puppeteer ([@DudaGod](https://github.com/DudaGod))
+
+#### :bug: Bug Fix
+* `wdio-utils`
+  * [#9365](https://github.com/webdriverio/webdriverio/pull/9365) Explicitly fail if service initialisation fails ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-appium-service`, `wdio-cli`
+  * [#9364](https://github.com/webdriverio/webdriverio/pull/9364) Fix launching Appium in service ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :nail_care: Polish
+* `webdriverio`
+  * [#9366](https://github.com/webdriverio/webdriverio/pull/9366) Improve key actions ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-types`
+  * [#9353](https://github.com/webdriverio/webdriverio/pull/9353) Adding capability support for LambdaTest ([@Shahnawaz-LambdaTest](https://github.com/Shahnawaz-LambdaTest))
+
+#### :memo: Documentation
+* `webdriverio`
+  * [#9349](https://github.com/webdriverio/webdriverio/pull/9349) [📖 Docs]: Better Document `Key` import ([@christian-bromann](https://github.com/christian-bromann))
+  * [#9350](https://github.com/webdriverio/webdriverio/pull/9350) minor correction in Example ([@sankalpguptasymphony](https://github.com/sankalpguptasymphony))
+* Other
+  * [#9359](https://github.com/webdriverio/webdriverio/pull/9359) Switch to new Algolia bucket ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 4
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Dmitriy Dudkevich ([@DudaGod](https://github.com/DudaGod))
+- [@Shahnawaz-LambdaTest](https://github.com/Shahnawaz-LambdaTest)
+- [@sankalpguptasymphony](https://github.com/sankalpguptasymphony)
+
+
 ## v8.0.9 (2022-12-07)
 
 #### :bug: Bug Fix
