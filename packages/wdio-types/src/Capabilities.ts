@@ -1160,6 +1160,7 @@ export interface BrowserStackCapabilities {
     debug?: boolean
     networkLogs?: boolean
     seleniumVersion?: string
+    seleniumCdp?: boolean,
     ie?: {
         noFlash?: boolean,
         compatibility?: number
