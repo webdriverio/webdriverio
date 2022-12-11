@@ -126,7 +126,7 @@ import { KeyAction, PointerAction, WheelAction, ActionType, BaseActionParams } f
         console.log(await elem.getValue()) // returns "foo"
 
         // copy value out of input element
-        await browser.action('key)
+        await browser.action('key')
             .down(Key.Ctrl).down('c')
             .pause(10)
             .up(Key.Ctrl).up('c')
