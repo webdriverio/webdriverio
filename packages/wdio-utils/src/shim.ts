@@ -35,7 +35,7 @@ const ELEMENT_PROPS = [
 const ACTION_COMMANDS = ['action', 'actions']
 const PROMISE_METHODS = ['then', 'catch', 'finally']
 
-let executeHooksWithArgs = async function executeHooksWithArgsShim<T> (hookName: string, hooks: Function | Function[] = [], args: any[] = []): Promise<(T | Error)[]> {
+let executeHooksWithArgs = async function executeHooksWithArgsShim<T> (this: any, hookName: string, hooks: Function | Function[] = [], args: any[] = []): Promise<(T | Error)[]> {
     /**
      * make sure hooks are an array of functions
      */
@@ -54,7 +54,7 @@ let executeHooksWithArgs = async function executeHooksWithArgsShim<T> (hookName:
         let result
 
         try {
-            result = hook.apply(null, args)
+            result = hook.apply(this, args)
         } catch (e: any) {
             log.error(e.stack)
             return resolve(e)
