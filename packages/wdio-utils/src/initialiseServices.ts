@@ -95,48 +95,41 @@ export async function initialiseLauncherService (config: Omit<Options.Testrunner
     const ignoredWorkerServices = []
     const launcherServices: Services.ServiceInstance[] = []
 
-    try {
-        const services = await initialiseServices(config.services!.map(sanitizeServiceArray))
-        for (const [service, serviceConfig, serviceName] of services) {
-            /**
-             * add custom services as object or function
-             */
-            if (typeof service === 'object' && !serviceName) {
-                launcherServices.push(service as object)
-                continue
-            }
-
-            /**
-             * add class service from imported package
-             */
-            const Launcher = (service as Services.ServicePlugin).launcher
-            if (typeof Launcher === 'function' && serviceName) {
-                launcherServices.push(new Launcher(serviceConfig, caps, config))
-            }
-
-            /**
-             * add class service from passed in class
-             */
-            if (typeof service === 'function' && !serviceName) {
-                launcherServices.push(new service(serviceConfig, caps, config))
-            }
-
-            /**
-             * check if service has a default export
-             */
-            if (
-                serviceName &&
-                typeof (service as { default: Function }).default !== 'function' &&
-                typeof service !== 'function'
-            ) {
-                ignoredWorkerServices.push(serviceName)
-            }
-        }
-    } catch (err: any) {
+    const services = await initialiseServices(config.services!.map(sanitizeServiceArray))
+    for (const [service, serviceConfig, serviceName] of services) {
         /**
-         * don't break if service can't be initiated
+         * add custom services as object or function
          */
-        log.error(err)
+        if (typeof service === 'object' && !serviceName) {
+            launcherServices.push(service as object)
+            continue
+        }
+
+        /**
+         * add class service from imported package
+         */
+        const Launcher = (service as Services.ServicePlugin).launcher
+        if (typeof Launcher === 'function' && serviceName) {
+            launcherServices.push(new Launcher(serviceConfig, caps, config))
+        }
+
+        /**
+         * add class service from passed in class
+         */
+        if (typeof service === 'function' && !serviceName) {
+            launcherServices.push(new service(serviceConfig, caps, config))
+        }
+
+        /**
+         * check if service has a default export
+         */
+        if (
+            serviceName &&
+            typeof (service as { default: Function }).default !== 'function' &&
+            typeof service !== 'function'
+        ) {
+            ignoredWorkerServices.push(serviceName)
+        }
     }
 
     return { ignoredWorkerServices, launcherServices }
@@ -159,28 +152,20 @@ export async function initialiseWorkerService (
         .map(sanitizeServiceArray)
         .filter(([serviceName]) => !ignoredWorkerServices.includes(serviceName as string))
 
-    try {
-        const services = await initialiseServices(workerServices)
-        return services.map(([service, serviceConfig, serviceName]) => {
-            /**
-             * add object service
-             */
-            if (typeof service === 'object' && !serviceName) {
-                return service as Services.ServiceInstance
-            }
-
-            const Service = (service as Services.ServicePlugin).default || service as Services.ServiceClass
-            if (typeof Service === 'function') {
-                return new Service(serviceConfig, caps, config)
-            }
-        }).filter<Services.ServiceInstance>(
-            (service: Services.ServiceInstance | undefined): service is Services.ServiceInstance => Boolean(service)
-        )
-    } catch (err: any) {
+    const services = await initialiseServices(workerServices)
+    return services.map(([service, serviceConfig, serviceName]) => {
         /**
-         * don't break if service can't be initiated
+         * add object service
          */
-        log.error(err)
-        return []
-    }
+        if (typeof service === 'object' && !serviceName) {
+            return service as Services.ServiceInstance
+        }
+
+        const Service = (service as Services.ServicePlugin).default || service as Services.ServiceClass
+        if (typeof Service === 'function') {
+            return new Service(serviceConfig, caps, config)
+        }
+    }).filter<Services.ServiceInstance>(
+        (service: Services.ServiceInstance | undefined): service is Services.ServiceInstance => Boolean(service)
+    )
 }
