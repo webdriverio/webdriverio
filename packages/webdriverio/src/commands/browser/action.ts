@@ -39,6 +39,18 @@ import { KeyAction, PointerAction, WheelAction, ActionType, BaseActionParams } f
  * - `up(value: string)`: generates a key up action
  * - `pause(ms: number)`: indicate that an input source does nothing during a particular tick
  *
+ * #### Special Characters
+ *
+ * If you like to use special characters like e.g. `Control`, `Page Up` or `Shift`, make sure to import the
+ * [`Key`](https://github.com/webdriverio/webdriverio/blob/main/packages/webdriverio/src/constants.ts#L352-L417) object
+ * from the `webdriverio` package like so:
+ *
+ * ```ts
+ * import { Key } from 'webdriverio'
+ * ```
+ *
+ * The object allows you to access the unicode representation of the desired special character.
+ *
  * ### Pointer input source
  *
  * A pointer input source is an input source that is associated with a pointer-type input device. The type can be
@@ -96,6 +108,8 @@ import { KeyAction, PointerAction, WheelAction, ActionType, BaseActionParams } f
             .perform()
     });
     :key-action.js
+    import { Key } from 'webdriverio'
+
     it('should emit key events using key action commands', async () => {
         const elem = await $('input')
         await elem.click() // make element active
@@ -110,6 +124,13 @@ import { KeyAction, PointerAction, WheelAction, ActionType, BaseActionParams } f
             .perform()
 
         console.log(await elem.getValue()) // returns "foo"
+
+        // copy value out of input element
+        await browser.action('key)
+            .down(Key.Ctrl).down('c')
+            .pause(10)
+            .up(Key.Ctrl).up('c')
+            .perform()
     })
     :wheel-action.js
     it('should scroll using wheel action commands', async () => {
