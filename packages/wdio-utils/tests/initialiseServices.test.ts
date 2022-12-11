@@ -5,8 +5,12 @@ import logger from '@wdio/logger'
 import type { Capabilities, Options, Services } from '@wdio/types'
 
 import { initialiseLauncherService, initialiseWorkerService } from '../src/initialiseServices.js'
+import { safeImport } from '../src/utils.js'
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock('../src/utils.js', () => ({
+    safeImport: vi.fn()
+}))
 const log = logger('test')
 
 interface TestLauncherService extends Services.ServiceInstance {
@@ -28,6 +32,7 @@ class CustomService {
 
 beforeEach(() => {
     (log.error as MockedFunction<any>).mockClear()
+    vi.mocked(safeImport).mockClear()
 })
 
 describe('initialiseLauncherService', () => {
@@ -95,11 +100,12 @@ describe('initialiseLauncherService', () => {
         expect((launcherServices as CustomService[])[0].options).toEqual({})
     })
 
-    /**
-     * vitest can't load non existing packages
-     * https://github.com/vitest-dev/vitest/pull/1298
-     */
-    it.skip('should propagate services that have launcher only capabilities', async () => {
+    it('should propagate services that have launcher only capabilities', async () => {
+        vi.mocked(safeImport).mockResolvedValue({
+            launcher: class {
+                isLauncher = true
+            }
+        } as any)
         const {
             launcherServices,
             ignoredWorkerServices
@@ -109,31 +115,34 @@ describe('initialiseLauncherService', () => {
         expect(ignoredWorkerServices).toEqual(['launcher-only'])
     })
 
-    /**
-     * vitest can't load non existing packages
-     * https://github.com/vitest-dev/vitest/pull/1298
-     */
-    it.skip('should ignore worker services', async () => {
+    it('should ignore worker services', async () => {
+        vi.mocked(safeImport).mockResolvedValue({
+            default: class {
+                constructor () {
+                    // @ts-ignore
+                    globalThis.test = 'test'
+                }
+            }
+        } as any)
         const {
             launcherServices,
             ignoredWorkerServices
         } = await initialiseLauncherService({ services: ['scoped'] }, {})
         expect(launcherServices).toHaveLength(0)
         expect(ignoredWorkerServices).toHaveLength(0)
+        expect(globalThis.test).toBe(undefined)
     })
 
-    /**
-     * vitest can't load non existing packages
-     * https://github.com/vitest-dev/vitest/pull/1298
-     */
-    it.skip('should not fail if service is borked', async () => {
-        const {
-            launcherServices,
-            ignoredWorkerServices
-        } = await initialiseLauncherService({ services: ['borked'] }, {})
-        expect(launcherServices).toHaveLength(0)
-        expect(ignoredWorkerServices).toHaveLength(0)
-        expect(log.error).toHaveBeenCalledTimes(1)
+    it('should not fail if service is borked', async () => {
+        vi.mocked(safeImport).mockResolvedValue({
+            launcher: class {
+                constructor () {
+                    throw new Error('ups')
+                }
+            }
+        } as any)
+        await expect(() => initialiseLauncherService({ services: ['borked'] }, {}))
+            .rejects.toThrow(/Failed to initilialise launcher service "borked": Error: ups/)
     })
 })
 
@@ -172,11 +181,14 @@ describe('initialiseWorkerService', () => {
         expect((services as CustomService[])[0].config.baseUrl).toBe('foobar')
     })
 
-    /**
-     * vitest can't load non existing packages
-     * https://github.com/vitest-dev/vitest/pull/1298
-     */
-    it.skip('should ignore service with launcher only', async () => {
+    it('should ignore service with launcher only', async () => {
+        vi.mocked(safeImport).mockResolvedValue({
+            launcher: class {
+                constructor () {
+                    throw new Error('ups')
+                }
+            }
+        } as any)
         const services = await initialiseWorkerService(
             { services: ['launcher-only'] } as any,
             {}
@@ -185,16 +197,17 @@ describe('initialiseWorkerService', () => {
         expect(log.error).toHaveBeenCalledTimes(0)
     })
 
-    /**
-     * vitest can't load non existing packages
-     * https://github.com/vitest-dev/vitest/pull/1298
-     */
-    it.skip('should not fail if service is borked', async () => {
-        const services = await initialiseWorkerService(
+    it('should not fail if service is borked', async () => {
+        vi.mocked(safeImport).mockResolvedValue({
+            default: class {
+                constructor () {
+                    throw new Error('ups')
+                }
+            }
+        } as any)
+        await expect(initialiseWorkerService(
             { services: ['borked'] } as any,
             {}
-        )
-        expect(services).toHaveLength(0)
-        expect(log.error).toHaveBeenCalledTimes(1)
+        )).rejects.toThrow(/Failed to initilialise service borked: Error: ups/)
     })
 })

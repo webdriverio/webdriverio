@@ -94,6 +94,7 @@ function sanitizeServiceArray (service: Services.ServiceEntry): ServiceWithOptio
 export async function initialiseLauncherService (config: Omit<Options.Testrunner, 'capabilities' | keyof Services.HookFunctions>, caps: Capabilities.DesiredCapabilities) {
     const ignoredWorkerServices = []
     const launcherServices: Services.ServiceInstance[] = []
+    let serviceLabelToBeInitialised = 'unknown'
 
     try {
         const services = await initialiseServices(config.services!.map(sanitizeServiceArray))
@@ -102,6 +103,7 @@ export async function initialiseLauncherService (config: Omit<Options.Testrunner
              * add custom services as object or function
              */
             if (typeof service === 'object' && !serviceName) {
+                serviceLabelToBeInitialised = 'object'
                 launcherServices.push(service as object)
                 continue
             }
@@ -111,6 +113,7 @@ export async function initialiseLauncherService (config: Omit<Options.Testrunner
              */
             const Launcher = (service as Services.ServicePlugin).launcher
             if (typeof Launcher === 'function' && serviceName) {
+                serviceLabelToBeInitialised = `"${serviceName}"`
                 launcherServices.push(new Launcher(serviceConfig, caps, config))
             }
 
@@ -118,11 +121,13 @@ export async function initialiseLauncherService (config: Omit<Options.Testrunner
              * add class service from passed in class
              */
             if (typeof service === 'function' && !serviceName) {
+                serviceLabelToBeInitialised = `"${service.constructor?.name || service.toString()}"`
                 launcherServices.push(new service(serviceConfig, caps, config))
             }
 
             /**
-             * check if service has a default export
+             * check if service has a default export, if not we can later filter it out so the
+             * service module is not even loaded in the worker process
              */
             if (
                 serviceName &&
@@ -133,10 +138,7 @@ export async function initialiseLauncherService (config: Omit<Options.Testrunner
             }
         }
     } catch (err: any) {
-        /**
-         * don't break if service can't be initiated
-         */
-        log.error(err)
+        throw new Error(`Failed to initilialise launcher service ${serviceLabelToBeInitialised}: ${err.stack}`)
     }
 
     return { ignoredWorkerServices, launcherServices }
@@ -155,32 +157,34 @@ export async function initialiseWorkerService (
     caps: Capabilities.DesiredCapabilities,
     ignoredWorkerServices: string[] = []
 ): Promise<Services.ServiceInstance[]> {
+    let serviceLabelToBeInitialised = 'unknown'
+    const initialisedServices: Services.ServiceInstance[] = []
     const workerServices = config.services!
         .map(sanitizeServiceArray)
         .filter(([serviceName]) => !ignoredWorkerServices.includes(serviceName as string))
 
     try {
         const services = await initialiseServices(workerServices)
-        return services.map(([service, serviceConfig, serviceName]) => {
+        for (const [service, serviceConfig, serviceName] of services) {
             /**
              * add object service
              */
             if (typeof service === 'object' && !serviceName) {
-                return service as Services.ServiceInstance
+                serviceLabelToBeInitialised = 'object'
+                initialisedServices.push(service as Services.ServiceInstance)
+                continue
             }
 
             const Service = (service as Services.ServicePlugin).default || service as Services.ServiceClass
             if (typeof Service === 'function') {
-                return new Service(serviceConfig, caps, config)
+                serviceLabelToBeInitialised = serviceName || Service.constructor?.name || Service.toString()
+                initialisedServices.push(new Service(serviceConfig, caps, config))
+                continue
             }
-        }).filter<Services.ServiceInstance>(
-            (service: Services.ServiceInstance | undefined): service is Services.ServiceInstance => Boolean(service)
-        )
+        }
+
+        return initialisedServices
     } catch (err: any) {
-        /**
-         * don't break if service can't be initiated
-         */
-        log.error(err)
-        return []
+        throw new Error(`Failed to initilialise service ${serviceLabelToBeInitialised}: ${err.stack}`)
     }
 }
