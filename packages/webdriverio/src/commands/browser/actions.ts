@@ -2,7 +2,7 @@ import { KeyAction, PointerAction, WheelAction } from '../../utils/actions/index
 
 /**
  * Allows to run multiple action interaction at once, e.g. to simulate a pinch zoom.
- * For more information on the `action` command, check out the [docs](./action).
+ * For more information on the `action` command, check out the [docs](/docs/api/browser/action).
  *
  * <example>
     :action.js
