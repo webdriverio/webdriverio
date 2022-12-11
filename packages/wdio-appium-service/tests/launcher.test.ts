@@ -1,4 +1,5 @@
 import fs from 'node:fs'
+import url from 'node:url'
 import path from 'node:path'
 import { spawn, ChildProcess } from 'node:child_process'
 
@@ -22,7 +23,9 @@ vi.mock('node:fs/promises', () => ({
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 vi.mock('child_process', () => ({ spawn: vi.fn() }))
-vi.mock('import-meta-resolve', () => ({ resolve: vi.fn().mockResolvedValue('file:///foo/bar/appium') }))
+vi.mock('import-meta-resolve', () => ({ resolve: vi.fn().mockResolvedValue(
+    url.pathToFileURL(path.resolve(process.cwd(), '/', 'foo', 'bar', 'appium')))
+}))
 
 class MockProcess {
     removeListener() {}
@@ -264,7 +267,7 @@ describe('Appium launcher', () => {
                 expect(spawn).toBeCalledWith(
                     'node',
                     [
-                        '/foo/bar/appium',
+                        expect.any(String),
                         '--base-path',
                         '/',
                         '--foo',
@@ -285,7 +288,7 @@ describe('Appium launcher', () => {
                     expect.any(Object)
                 )
             }
-            expect(launcher['_appiumCliArgs']).toMatchSnapshot()
+            expect(launcher['_appiumCliArgs'].slice(1)).toMatchSnapshot()
         })
 
         test('should set correct config properties when empty', async () => {
@@ -297,9 +300,9 @@ describe('Appium launcher', () => {
                 expect(spawn).toBeCalledWith(
                     'cmd',
                     [
-                        '/foo/bar/appium',
                         '/c',
                         'node',
+                        expect.any(String),
                         '--base-path',
                         '/'
                     ],
@@ -389,7 +392,7 @@ describe('Appium launcher', () => {
 
     describe('_getAppiumCommand', () => {
         test('should return path to dependency', async () => {
-            await expect(AppiumLauncher['_getAppiumCommand']('appium')).resolves.toBe('/foo/bar/appium')
+            await expect(AppiumLauncher['_getAppiumCommand']('appium')).resolves.toMatch(/appium$/)
         })
 
         test('should throw if appium is not installed', async () => {
