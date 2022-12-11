@@ -94,42 +94,51 @@ function sanitizeServiceArray (service: Services.ServiceEntry): ServiceWithOptio
 export async function initialiseLauncherService (config: Omit<Options.Testrunner, 'capabilities' | keyof Services.HookFunctions>, caps: Capabilities.DesiredCapabilities) {
     const ignoredWorkerServices = []
     const launcherServices: Services.ServiceInstance[] = []
+    let serviceLabelToBeInitialised = 'unknown'
 
-    const services = await initialiseServices(config.services!.map(sanitizeServiceArray))
-    for (const [service, serviceConfig, serviceName] of services) {
-        /**
-         * add custom services as object or function
-         */
-        if (typeof service === 'object' && !serviceName) {
-            launcherServices.push(service as object)
-            continue
-        }
+    try {
+        const services = await initialiseServices(config.services!.map(sanitizeServiceArray))
+        for (const [service, serviceConfig, serviceName] of services) {
+            /**
+             * add custom services as object or function
+             */
+            if (typeof service === 'object' && !serviceName) {
+                serviceLabelToBeInitialised = 'object'
+                launcherServices.push(service as object)
+                continue
+            }
 
-        /**
-         * add class service from imported package
-         */
-        const Launcher = (service as Services.ServicePlugin).launcher
-        if (typeof Launcher === 'function' && serviceName) {
-            launcherServices.push(new Launcher(serviceConfig, caps, config))
-        }
+            /**
+             * add class service from imported package
+             */
+            const Launcher = (service as Services.ServicePlugin).launcher
+            if (typeof Launcher === 'function' && serviceName) {
+                serviceLabelToBeInitialised = `"${serviceName}"`
+                launcherServices.push(new Launcher(serviceConfig, caps, config))
+            }
 
-        /**
-         * add class service from passed in class
-         */
-        if (typeof service === 'function' && !serviceName) {
-            launcherServices.push(new service(serviceConfig, caps, config))
-        }
+            /**
+             * add class service from passed in class
+             */
+            if (typeof service === 'function' && !serviceName) {
+                serviceLabelToBeInitialised = `"${service.constructor?.name || service.toString()}"`
+                launcherServices.push(new service(serviceConfig, caps, config))
+            }
 
-        /**
-         * check if service has a default export
-         */
-        if (
-            serviceName &&
-            typeof (service as { default: Function }).default !== 'function' &&
-            typeof service !== 'function'
-        ) {
-            ignoredWorkerServices.push(serviceName)
+            /**
+             * check if service has a default export, if not we can later filter it out so the
+             * service module is not even loaded in the worker process
+             */
+            if (
+                serviceName &&
+                typeof (service as { default: Function }).default !== 'function' &&
+                typeof service !== 'function'
+            ) {
+                ignoredWorkerServices.push(serviceName)
+            }
         }
+    } catch (err: any) {
+        throw new Error(`Failed to initilialise launcher service ${serviceLabelToBeInitialised}: ${err.stack}`)
     }
 
     return { ignoredWorkerServices, launcherServices }
@@ -148,24 +157,34 @@ export async function initialiseWorkerService (
     caps: Capabilities.DesiredCapabilities,
     ignoredWorkerServices: string[] = []
 ): Promise<Services.ServiceInstance[]> {
+    let serviceLabelToBeInitialised = 'unknown'
+    const initialisedServices: Services.ServiceInstance[] = []
     const workerServices = config.services!
         .map(sanitizeServiceArray)
         .filter(([serviceName]) => !ignoredWorkerServices.includes(serviceName as string))
 
-    const services = await initialiseServices(workerServices)
-    return services.map(([service, serviceConfig, serviceName]) => {
-        /**
-         * add object service
-         */
-        if (typeof service === 'object' && !serviceName) {
-            return service as Services.ServiceInstance
+    try {
+        const services = await initialiseServices(workerServices)
+        for (const [service, serviceConfig, serviceName] of services) {
+            /**
+             * add object service
+             */
+            if (typeof service === 'object' && !serviceName) {
+                serviceLabelToBeInitialised = 'object'
+                initialisedServices.push(service as Services.ServiceInstance)
+                continue
+            }
+
+            const Service = (service as Services.ServicePlugin).default || service as Services.ServiceClass
+            if (typeof Service === 'function') {
+                serviceLabelToBeInitialised = serviceName || Service.constructor?.name || Service.toString()
+                initialisedServices.push(new Service(serviceConfig, caps, config))
+                continue
+            }
         }
 
-        const Service = (service as Services.ServicePlugin).default || service as Services.ServiceClass
-        if (typeof Service === 'function') {
-            return new Service(serviceConfig, caps, config)
-        }
-    }).filter<Services.ServiceInstance>(
-        (service: Services.ServiceInstance | undefined): service is Services.ServiceInstance => Boolean(service)
-    )
+        return initialisedServices
+    } catch (err: any) {
+        throw new Error(`Failed to initilialise service ${serviceLabelToBeInitialised}: ${err.stack}`)
+    }
 }

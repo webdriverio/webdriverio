@@ -163,6 +163,8 @@ export function getArgumentType (arg: any) {
  * @return {object}       package content
  */
 export async function safeImport (name: string): Promise<Services.ServicePlugin | null> {
+    console.info('AHHH', name)
+
     let importPath = name
     try {
         /**
