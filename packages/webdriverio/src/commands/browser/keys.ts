@@ -1,5 +1,4 @@
 import { UNICODE_CHARACTERS } from '@wdio/utils'
-import type { Capabilities } from '@wdio/types'
 
 import { checkUnicode } from '../../utils/index.js'
 /**
@@ -43,17 +42,16 @@ export default function keys (
     value: string | string[]
 ) {
     let keySequence: string[] = []
-    const platformName = (this.capabilities as Capabilities.Capabilities).platformName
 
     /**
      * replace key with corresponding unicode character
      */
     if (typeof value === 'string') {
-        keySequence = checkUnicode(value as keyof typeof UNICODE_CHARACTERS, this.isDevTools, platformName)
+        keySequence = checkUnicode(value as keyof typeof UNICODE_CHARACTERS, this.isDevTools)
     } else if (Array.isArray(value)) {
         const charArray: (keyof typeof UNICODE_CHARACTERS)[] = value as any
         for (const charSet of charArray) {
-            keySequence = keySequence.concat(checkUnicode(charSet, this.isDevTools, platformName))
+            keySequence = keySequence.concat(checkUnicode(charSet, this.isDevTools))
         }
     } else {
         throw new Error('"keys" command requires a string or array of strings as parameter')
@@ -71,6 +69,7 @@ export default function keys (
      */
     const keyAction = this.action('key')
     keySequence.forEach((value) => keyAction.down(value))
+    keyAction.pause(10)
     keySequence.forEach((value) => keyAction.up(value))
     return keyAction.perform()
 }

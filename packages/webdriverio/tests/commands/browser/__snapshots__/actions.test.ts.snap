@@ -7,7 +7,7 @@ exports[`actions command > should support multiple actions 1`] = `
       "actions": [
         {
           "type": "keyDown",
-          "value": "foo",
+          "value": "f",
         },
         {
           "duration": 100,
@@ -15,7 +15,7 @@ exports[`actions command > should support multiple actions 1`] = `
         },
         {
           "type": "keyUp",
-          "value": "bar",
+          "value": "b",
         },
       ],
       "id": "foobar",

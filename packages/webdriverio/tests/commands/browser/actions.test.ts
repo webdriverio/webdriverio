@@ -26,9 +26,9 @@ describe('actions command', () => {
     it('should support multiple actions', async () => {
         await browser.actions([
             browser.action('key', { id: 'foobar' })
-                .down('foo')
+                .down('f')
                 .pause(100)
-                .up('bar')
+                .up('b')
             ,
             browser.action(
                 'pointer',

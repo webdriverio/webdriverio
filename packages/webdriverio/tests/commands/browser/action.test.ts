@@ -1,12 +1,16 @@
+import os from 'node:os'
 import path from 'node:path'
 import { describe, it, expect, beforeAll, vi, beforeEach } from 'vitest'
 
 // @ts-expect-error
 import got from 'got'
-import { remote } from '../../../src/index.js'
+import { remote, Key } from '../../../src/index.js'
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 vi.mock('got')
+vi.mock('node:os')
+
+vi.mocked(os.type).mockReturnValue('Darwin')
 
 describe('action command', () => {
     let browser: WebdriverIO.Browser
@@ -26,9 +30,9 @@ describe('action command', () => {
 
     it('should support key actions', async () => {
         await browser.action('key', { id: 'foobar' })
-            .down('foo')
+            .down('f')
             .pause(100)
-            .up('bar')
+            .up('b')
             .perform()
 
         const calls = vi.mocked(got).mock.calls
@@ -43,6 +47,41 @@ describe('action command', () => {
         expect(performActionParam.method).toBe('POST')
         expect(releaseActionParam.method).toBe('DELETE')
         expect(performActionParam.json).toMatchSnapshot()
+    })
+
+    it('fails if user triggers more than one character', async () => {
+        await expect(async () => browser.action('key').down('foo').perform())
+            .rejects
+            .toMatch(/more than one/)
+    })
+
+    it('should trigger command key when Key.Ctrl is used', async () => {
+        vi.mocked(os.type).mockReturnValue('Darwin')
+        await browser.action('key', { id: 'foobar' })
+            .down(Key.Ctrl).perform()
+        const calls = vi.mocked(got).mock.calls
+        const [[, performActionParam]] = calls as any
+        expect(performActionParam.json.actions[0].actions[0].value).toBe(Key.Command)
+    })
+
+    it('should trigger control key when Key.Ctrl is used because we use Windows', async () => {
+        vi.mocked(os.type).mockReturnValue('Windows')
+        await browser.action('key', { id: 'foobar' })
+            .down(Key.Ctrl).perform()
+        const calls = vi.mocked(got).mock.calls
+        const [[, performActionParam]] = calls as any
+        expect(performActionParam.json.actions[0].actions[0].value).toBe(Key.Control)
+    })
+
+    it('should trigger command key when Key.Ctrl is used because platformName is mac', async () => {
+        vi.mocked(os.type).mockReturnValue('Windows')
+        // @ts-ignore
+        browser.capabilities.platformName = 'Mac OS'
+        await browser.action('key', { id: 'foobar' })
+            .down(Key.Ctrl).perform()
+        const calls = vi.mocked(got).mock.calls
+        const [[, performActionParam]] = calls as any
+        expect(performActionParam.json.actions[0].actions[0].value).toBe(Key.Command)
     })
 
     it('should support pointer actions', async () => {

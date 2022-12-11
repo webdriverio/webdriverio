@@ -25,7 +25,7 @@ exports[`action command > resolves not resolved wdio elements in pointer action 
           "y": 0,
         },
       ],
-      "id": "action1",
+      "id": "action2",
       "parameters": {
         "pointerType": "mouse",
       },
@@ -52,7 +52,7 @@ exports[`action command > resolves not resolved wdio elements in wheel action 1`
           "y": 0,
         },
       ],
-      "id": "action2",
+      "id": "action3",
       "parameters": {},
       "type": "wheel",
     },
@@ -67,7 +67,7 @@ exports[`action command > should support key actions 1`] = `
       "actions": [
         {
           "type": "keyDown",
-          "value": "foo",
+          "value": "f",
         },
         {
           "duration": 100,
@@ -75,7 +75,7 @@ exports[`action command > should support key actions 1`] = `
         },
         {
           "type": "keyUp",
-          "value": "bar",
+          "value": "b",
         },
       ],
       "id": "foobar",

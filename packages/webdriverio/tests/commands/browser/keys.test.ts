@@ -24,10 +24,10 @@ describe('keys', () => {
         expect(got.mock.calls[1][1].json.actions[0].type)
             .toBe('key')
         expect(got.mock.calls[1][1].json.actions[0].actions)
-            .toHaveLength('foobar'.length * 2)
+            .toHaveLength(('foobar'.length * 2) + 1 /* includes pause call */)
         expect(got.mock.calls[1][1].json.actions[0].actions[0])
             .toEqual({ type: 'keyDown', value: 'f' })
-        expect(got.mock.calls[1][1].json.actions[0].actions[11])
+        expect(got.mock.calls[1][1].json.actions[0].actions[12])
             .toEqual({ type: 'keyUp', value: 'r' })
     })
 
