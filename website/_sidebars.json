@@ -43,6 +43,7 @@
       "items": [
         "selectors",
         "timeouts",
+        "accessibility",
         "mocksandspies",
         "customcommands",
         "pageobjects",
