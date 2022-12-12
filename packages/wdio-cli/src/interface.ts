@@ -6,7 +6,7 @@ import type { Options, Capabilities, Workers } from '@wdio/types'
 import { getRunnerName, HookError } from './utils.js'
 
 const log = logger('@wdio/cli')
-const EVENT_FILTER = ['sessionStarted', 'sessionEnded', 'finishedCommand']
+const EVENT_FILTER = ['sessionStarted', 'sessionEnded', 'finishedCommand', 'ready']
 
 interface TestError {
     type: string

@@ -487,7 +487,7 @@ export async function getAnswers(yes: boolean): Promise<Questionnair> {
              * in case create-wdio was used which creates a package.json with name "my-new-project"
              * we don't need to ask this question
              */
-            : projectName !== 'my-new-project'
+            : projectProps?.packageJson?.name !== 'my-new-project'
                 ? [{
                     type: 'confirm',
                     name: 'projectRootCorrect',
