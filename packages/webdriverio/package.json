@@ -1,7 +1,7 @@
 {
   "name": "webdriverio",
   "description": "Next-gen browser and mobile automation test framework for Node.js",
-  "version": "8.0.11",
+  "version": "8.0.12",
   "homepage": "https://webdriver.io",
   "author": "Christian Bromann <mail@bromann.dev>",
   "license": "MIT",
@@ -67,7 +67,7 @@
     "@types/aria-query": "^5.0.0",
     "@types/node": "^18.0.0",
     "@wdio/config": "8.0.11",
-    "@wdio/globals": "8.0.11",
+    "@wdio/globals": "8.0.12",
     "@wdio/logger": "8.0.0",
     "@wdio/protocols": "8.0.0",
     "@wdio/repl": "8.0.0",

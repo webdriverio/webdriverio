@@ -21,6 +21,18 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.0.12 (2022-12-12)
+
+#### :bug: Bug Fix
+* `wdio-cli`, `wdio-local-runner`
+  * [#9369](https://github.com/webdriverio/webdriverio/pull/9369) Wait for worker to be ready to receive events ([@christian-bromann](https://github.com/christian-bromann))
+* `webdriverio`
+  * [#9368](https://github.com/webdriverio/webdriverio/pull/9368) Fix fetching shadow elements ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
 ## v8.0.10 (2022-12-11)
 
 #### :rocket: New Feature
