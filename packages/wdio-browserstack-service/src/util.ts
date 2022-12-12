@@ -104,7 +104,7 @@ export async function launchTestSession (options: BrowserstackConfig & Options.T
         'failed_tests_rerun': process.env.BROWSERSTACK_RERUN || false,
         'version_control': await getGitMetaData(),
         'observability_version': {
-            frameworkName: options.framework,
+            frameworkName: bsConfig.framework,
             sdkVersion: bsConfig.bstackServiceVersion
         }
     }
@@ -518,3 +518,5 @@ export function getObservabilityBuildTags(options: BrowserstackConfig & Options.
     }
     return []
 }
+
+export const sleep = (ms = 100) => new Promise((resolve) => setTimeout(resolve, ms))

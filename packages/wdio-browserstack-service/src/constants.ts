@@ -29,3 +29,5 @@ export const DATA_SCREENSHOT_ENDPOINT = 'api/v1/screenshots'
 export const DATA_BATCH_SIZE = 1000
 export const DATA_BATCH_INTERVAL = 2000
 export const BATCH_EVENT_TYPES = ['LogCreated', 'TestRunStarted', 'TestRunFinished', 'HookRunFinished', 'HookRunStarted', 'ScreenshotCreated']
+export const DEFAULT_WAIT_TIMEOUT_FOR_PENDING_UPLOADS = 5000 // 5s
+export const DEFAULT_WAIT_INTERVAL_FOR_PENDING_UPLOADS = 100 // 100ms

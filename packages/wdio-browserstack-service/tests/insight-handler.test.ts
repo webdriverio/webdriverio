@@ -58,19 +58,19 @@ beforeEach(() => {
         execute: jest.fn(),
         on: jest.fn(),
     } as any as Browser
-    insightsHandler = new InsightsHandler('framework')
+    insightsHandler = new InsightsHandler(browser, {} as any, false, 'sessionId', 'framework')
 })
 
 it('should initialize correctly', () => {
-    insightsHandler = new InsightsHandler('framework')
+    insightsHandler = new InsightsHandler(browser, {} as any, false, 'sessionId', 'framework')
     expect(insightsHandler['_tests']).toEqual({})
     expect(insightsHandler['_hooks']).toEqual({})
     expect(insightsHandler['_commands']).toEqual({})
     expect(insightsHandler['_framework']).toEqual('framework')
 })
 
-describe('setUp', () => {
-    insightsHandler = new InsightsHandler('framework')
+describe('before', () => {
+    insightsHandler = new InsightsHandler(browser, {} as any, false, 'sessionId', 'framework')
     const isBrowserstackSessionSpy = jest.spyOn(utils, 'isBrowserstackSession').mockImplementation()
 
     beforeEach(() => {
@@ -78,20 +78,20 @@ describe('setUp', () => {
     })
 
     it('calls isBrowserstackSession', () => {
-        insightsHandler.setUp(browser, {} as any, false, 'sessionId')
+        insightsHandler.before()
         expect(isBrowserstackSessionSpy).toBeCalledTimes(1)
     })
 
     it('isBrowserstackSession returns true', () => {
         isBrowserstackSessionSpy.mockReturnValue(true)
-        insightsHandler.setUp(browser, {} as any, false, 'sessionId')
+        insightsHandler.before()
         expect(isBrowserstackSessionSpy).toBeCalledTimes(1)
     })
 })
 
 describe('sendTestRunEvent', () => {
     describe('calls uploadEventData', () => {
-        const insightsHandler = new InsightsHandler('framework')
+        const insightsHandler = new InsightsHandler(browser, {} as any, false, 'sessionId', 'framework')
         const requestQueueHandler = RequestQueueHandler.getInstance()
         const getUniqueIdentifierSpy = jest.spyOn(utils, 'getUniqueIdentifier').mockReturnValue('test title')
         jest.spyOn(insightsHandler, 'getHierarchy').mockImplementation(() => { return [] })
@@ -154,7 +154,7 @@ describe('sendTestRunEvent', () => {
 
 describe('sendTestRunEventForCucumber', () => {
     describe('calls uploadEventData', () => {
-        const insightsHandler = new InsightsHandler('framework')
+        const insightsHandler = new InsightsHandler(browser, {} as any, false, 'sessionId', 'framework')
         const requestQueueHandler = RequestQueueHandler.getInstance()
         const getUniqueIdentifierForCucumberSpy = jest.spyOn(utils, 'getUniqueIdentifierForCucumber').mockReturnValue('test title')
         jest.spyOn(insightsHandler, 'getHierarchy').mockImplementation(() => { return [] })
@@ -234,7 +234,7 @@ describe('sendTestRunEventForCucumber', () => {
 })
 
 describe('beforeScenario', () => {
-    const insightsHandler = new InsightsHandler('framework')
+    const insightsHandler = new InsightsHandler(browser, {} as any, false, 'sessionId', 'framework')
     const getUniqueIdentifierForCucumberSpy = jest.spyOn(utils, 'getUniqueIdentifierForCucumber').mockReturnValue('test title')
     const sendSpy = jest.spyOn(insightsHandler, 'sendTestRunEventForCucumber').mockImplementation()
     insightsHandler['_tests'] = {}
@@ -259,7 +259,7 @@ describe('beforeScenario', () => {
 })
 
 describe('afterScenario', () => {
-    const insightsHandler = new InsightsHandler('framework')
+    const insightsHandler = new InsightsHandler(browser, {} as any, false, 'sessionId', 'framework')
     const sendSpy = jest.spyOn(insightsHandler, 'sendTestRunEventForCucumber').mockImplementation()
     insightsHandler['_tests'] = {}
     sendSpy.mockClear()
@@ -282,7 +282,7 @@ describe('afterScenario', () => {
 })
 
 describe('beforeStep', () => {
-    const insightsHandler = new InsightsHandler('framework')
+    const insightsHandler = new InsightsHandler(browser, {} as any, false, 'sessionId', 'framework')
     const getUniqueIdentifierForCucumberSpy = jest.spyOn(utils, 'getUniqueIdentifierForCucumber').mockReturnValue('test title')
     jest.spyOn(insightsHandler, 'getHierarchy').mockImplementation(() => { return [] })
 
@@ -308,7 +308,7 @@ describe('beforeStep', () => {
 })
 
 describe('afterStep', () => {
-    const insightsHandler = new InsightsHandler('framework')
+    const insightsHandler = new InsightsHandler(browser, {} as any, false, 'sessionId', 'framework')
     const getUniqueIdentifierForCucumberSpy = jest.spyOn(utils, 'getUniqueIdentifierForCucumber').mockReturnValue('test title')
     jest.spyOn(insightsHandler, 'getHierarchy').mockImplementation(() => { return [] })
 
@@ -362,7 +362,7 @@ describe('afterStep', () => {
 })
 
 describe('attachHookData', () => {
-    const insightsHandler = new InsightsHandler('framework')
+    const insightsHandler = new InsightsHandler(browser, {} as any, false, 'sessionId', 'framework')
 
     it('add hooks data in test', () => {
         insightsHandler['_hooks'] = {}
@@ -392,7 +392,7 @@ describe('attachHookData', () => {
 })
 
 describe('getHierarchy', () => {
-    const insightsHandler = new InsightsHandler('framework')
+    const insightsHandler = new InsightsHandler(browser, {} as any, false, 'sessionId', 'framework')
 
     it('return array of getHierarchy when context present', () => {
         expect(insightsHandler['getHierarchy']({
@@ -415,7 +415,7 @@ describe('getHierarchy', () => {
 })
 
 describe('beforeTest', () => {
-    const insightsHandler = new InsightsHandler('framework')
+    const insightsHandler = new InsightsHandler(browser, {} as any, false, 'sessionId', 'framework')
     const sendSpy = jest.spyOn(insightsHandler, 'sendTestRunEvent').mockImplementation(() => { return [] })
     const getUniqueIdentifierSpy = jest.spyOn(utils, 'getUniqueIdentifier').mockReturnValue('test title')
 
@@ -442,7 +442,7 @@ describe('beforeTest', () => {
 })
 
 describe('afterTest', () => {
-    const insightsHandler = new InsightsHandler('framework')
+    const insightsHandler = new InsightsHandler(browser, {} as any, false, 'sessionId', 'framework')
     const sendSpy = jest.spyOn(insightsHandler, 'sendTestRunEvent').mockImplementation(() => { return [] })
     const getUniqueIdentifierSpy = jest.spyOn(utils, 'getUniqueIdentifier').mockReturnValue('test title')
 
@@ -474,7 +474,7 @@ describe('afterTest', () => {
 })
 
 describe('beforeHook', () => {
-    const insightsHandler = new InsightsHandler('framework')
+    const insightsHandler = new InsightsHandler(browser, {} as any, false, 'sessionId', 'framework')
     const sendSpy = jest.spyOn(insightsHandler, 'sendTestRunEvent').mockImplementation(() => { return [] })
     const attachHookDataSpy = jest.spyOn(insightsHandler, 'attachHookData').mockImplementation(() => { return [] })
 
@@ -499,7 +499,7 @@ describe('beforeHook', () => {
 })
 
 describe('afterHook', () => {
-    const insightsHandler = new InsightsHandler('framework')
+    const insightsHandler = new InsightsHandler(browser, {} as any, false, 'sessionId', 'framework')
     const sendSpy = jest.spyOn(insightsHandler, 'sendTestRunEvent').mockImplementation(() => { return [] })
     const attachHookDataSpy = jest.spyOn(insightsHandler, 'attachHookData').mockImplementation(() => { return [] })
     const getUniqueIdentifierSpy = jest.spyOn(utils, 'getUniqueIdentifier').mockReturnValue('test title')
@@ -537,7 +537,7 @@ describe('afterHook', () => {
 })
 
 describe('getIntegrationsObject', () => {
-    const insightsHandler = new InsightsHandler('framework')
+    const insightsHandler = new InsightsHandler(browser, {} as any, false, 'sessionId', 'framework')
     insightsHandler['_platformMeta'] = { caps: {},  sessionId: '', browserName: '', browserVersion: '', platformName: '', product: '' }
 
     it('return hash', () => {
@@ -546,7 +546,7 @@ describe('getIntegrationsObject', () => {
 })
 
 describe('browserCommand', () => {
-    const insightsHandler = new InsightsHandler('framework')
+    const insightsHandler = new InsightsHandler(browser, {} as any, false, 'sessionId', 'framework')
     const uploadEventDataSpy = jest.spyOn(utils, 'uploadEventData').mockImplementation(() => { return [] })
     const getIdentifierSpy = jest.spyOn(insightsHandler, 'getIdentifier').mockImplementation(() => { return 'test title' })
     const commandSpy = jest.spyOn(utils, 'isScreenshotCommand')
@@ -588,7 +588,7 @@ describe('browserCommand', () => {
 })
 
 describe('getIdentifier', () => {
-    const insightsHandler = new InsightsHandler('framework')
+    const insightsHandler = new InsightsHandler(browser, {} as any, false, 'sessionId', 'framework')
     const getUniqueIdentifierSpy = jest.spyOn(utils, 'getUniqueIdentifier')
     const getUniqueIdentifierForCucumberSpy = jest.spyOn(utils, 'getUniqueIdentifierForCucumber')
 

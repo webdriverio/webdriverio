@@ -2,33 +2,27 @@ import path from 'path'
 
 import type { Capabilities, Frameworks } from '@wdio/types'
 import type { Browser, MultiRemoteBrowser } from 'webdriverio'
-import { BeforeCommandArgs, AfterCommandArgs } from '@wdio/reporter'
+import type { BeforeCommandArgs, AfterCommandArgs } from '@wdio/reporter'
 
 import { v4 as uuidv4 } from 'uuid'
 import type { Pickle, ITestCaseHookParameter } from './cucumber-types'
 
-import { getCloudProvider, getGitMetaData, getHookType, getScenarioExamples, getUniqueIdentifier, getUniqueIdentifierForCucumber, isBrowserstackSession, isScreenshotCommand, removeAnsiColors, uploadEventData } from './util'
+import { getCloudProvider, getGitMetaData, getHookType, getScenarioExamples, getUniqueIdentifier, getUniqueIdentifierForCucumber, isBrowserstackSession, isScreenshotCommand, removeAnsiColors, sleep, uploadEventData } from './util'
 import type { TestData, TestMeta, PlatformMeta, UploadType } from './types'
 import RequestQueueHandler from './request-handler'
-import { DATA_SCREENSHOT_ENDPOINT } from './constants'
+import { DATA_SCREENSHOT_ENDPOINT, DEFAULT_WAIT_INTERVAL_FOR_PENDING_UPLOADS, DEFAULT_WAIT_TIMEOUT_FOR_PENDING_UPLOADS } from './constants'
 
 export default class InsightsHandler {
 
-    private _browser?: Browser<'async'> | MultiRemoteBrowser<'async'>
-    private _tests: { [index: string]: TestMeta } = {}
-    private _hooks: { [index: string]: string[] } = {}
+    private _tests: Record<string, TestMeta> = {}
+    private _hooks: Record<string, string[]> = {}
     private _platformMeta?: PlatformMeta
-    private _commands: { [index: string]: BeforeCommandArgs & AfterCommandArgs } = {}
+    private _commands: Record<string, BeforeCommandArgs & AfterCommandArgs> = {}
     private _gitConfigPath?: string
-    private requestQueueHandler: RequestQueueHandler
+    private requestQueueHandler = RequestQueueHandler.getInstance()
 
-    constructor (private _framework?: string) {
-        this.requestQueueHandler = RequestQueueHandler.getInstance()
+    constructor (private _browser: Browser<'async'> | MultiRemoteBrowser<'async'>, browserCaps?: Capabilities.Capabilities, isAppAutomate?: boolean, sessionId?: string, private _framework?: string) {
         this.requestQueueHandler.start()
-    }
-
-    async setUp (browser: Browser<'async'> | MultiRemoteBrowser<'async'>, browserCaps?: Capabilities.Capabilities, isAppAutomate?: boolean, sessionId?: string) {
-        this._browser = browser
 
         /* istanbul ignore next */
         this._platformMeta = {
@@ -39,7 +33,9 @@ export default class InsightsHandler {
             sessionId: sessionId,
             product: isAppAutomate ? 'app-automate' : 'automate'
         }
+    }
 
+    async before () {
         if (isBrowserstackSession(this._browser)) {
             await this._browser.execute(`browserstack_executor: {"action": "annotate", "arguments": {"data": "ObservabilitySync:${Date.now()}","level": "debug"}}`)
         }
@@ -165,7 +161,7 @@ export default class InsightsHandler {
             }
         }
 
-        if (testMetaData && !testMetaData.steps) {
+        if (!testMetaData.steps) {
             testMetaData.steps = [{
                 id: step.id,
                 text: step.text,
@@ -175,35 +171,28 @@ export default class InsightsHandler {
                 duration: result.duration,
                 failure: result.error ? removeAnsiColors(result.error) : result.error
             }]
-        } else if (testMetaData){
-            const stepDetails = testMetaData['steps']?.find(item => item.id == step.id)
-            if (stepDetails) {
-                stepDetails.finished_at = (new Date()).toISOString()
-                stepDetails.result = result.passed ? 'PASSED' : 'FAILED'
-                stepDetails.duration = result.duration
-                stepDetails.failure = result.error ? removeAnsiColors(result.error) : result.error
-            }
+        }
+        const stepDetails = testMetaData['steps']?.find(item => item.id == step.id)
+        if (stepDetails) {
+            stepDetails.finished_at = (new Date()).toISOString()
+            stepDetails.result = result.passed ? 'PASSED' : 'FAILED'
+            stepDetails.duration = result.duration
+            stepDetails.failure = result.error ? removeAnsiColors(result.error) : result.error
         }
 
         this._tests[uniqueId] = testMetaData
     }
 
-    async uploadPending () {
-        if (this.requestQueueHandler.pendingUploads <= 0) {
+    async uploadPending (
+        waitTimeout = DEFAULT_WAIT_TIMEOUT_FOR_PENDING_UPLOADS,
+        waitInterval = DEFAULT_WAIT_INTERVAL_FOR_PENDING_UPLOADS
+    ) {
+        if (this.requestQueueHandler.pendingUploads <= 0 || waitTimeout <= 0) {
             return
         }
 
-        await Promise.race([
-            new Promise(resolve => setTimeout(resolve, 5000)),
-            new Promise(resolve => {
-                if (this.requestQueueHandler.pendingUploads == 0) {
-                    resolve
-                }
-                while (this.requestQueueHandler.pendingUploads > 0) {
-                    // waiting for any pending uploads
-                }
-            }),
-        ])
+        await sleep(waitInterval)
+        this.uploadPending(waitTimeout - waitInterval)
     }
 
     async teardown () {
@@ -215,7 +204,7 @@ export default class InsightsHandler {
      */
 
     async browserCommand (commandType: string, args: BeforeCommandArgs & AfterCommandArgs, test?: Frameworks.Test | ITestCaseHookParameter) {
-        if (commandType == 'client:beforeCommand') {
+        if (commandType === 'client:beforeCommand') {
             this._commands[`${args.sessionId}_${args.method}_${args.endpoint}`] = args
             return
         }
@@ -226,7 +215,7 @@ export default class InsightsHandler {
         const identifier = this.getIdentifier(test)
 
         // log screenshot
-        if (process.env.BS_TESTOPS_ALLOW_SCREENSHOTS == 'true' && isScreenshotCommand(args) && args.result.value) {
+        if (Boolean(process.env.BS_TESTOPS_ALLOW_SCREENSHOTS) && isScreenshotCommand(args) && args.result.value) {
             await uploadEventData([{
                 event_type: 'LogCreated',
                 logs: [{
@@ -242,24 +231,20 @@ export default class InsightsHandler {
         const requestData = this._commands[dataKey]
 
         // log http request
-        const log = {
-            test_run_uuid: this._tests[identifier].uuid,
-            timestamp: new Date().toISOString(),
-            kind: 'HTTP',
-            http_response: {
-                path: requestData.endpoint,
-                method: requestData.method,
-                body: requestData.body,
-                response: args.result
-            }
-        }
-
-        const uploadData = {
+        const req = this.requestQueueHandler.add({
             event_type: 'LogCreated',
-            logs: [log]
-        }
-
-        const req = this.requestQueueHandler.add(uploadData)
+            logs: [{
+                test_run_uuid: this._tests[identifier].uuid,
+                timestamp: new Date().toISOString(),
+                kind: 'HTTP',
+                http_response: {
+                    path: requestData.endpoint,
+                    method: requestData.method,
+                    body: requestData.body,
+                    response: args.result
+                }
+            }]
+        })
 
         if (req.proceed) {
             await uploadEventData(req.data, req.url)
@@ -275,11 +260,10 @@ export default class InsightsHandler {
             return
         }
         const parentTest = `${context.currentTest.parent.title} - ${context.currentTest.title}`
-        if (this._hooks[parentTest]) {
-            this._hooks[parentTest].push(hookId)
-        } else {
-            this._hooks[parentTest] = [hookId]
+        if (!this._hooks[parentTest]) {
+            this._hooks[parentTest] = []
         }
+        this._hooks[parentTest].push(hookId)
     }
 
     /*
@@ -295,7 +279,7 @@ export default class InsightsHandler {
             }
             return value.reverse()
         }
-        return value.reverse()
+        return value
     }
 
     private async sendTestRunEvent (test: Frameworks.Test, eventType: string, results?: Frameworks.TestResult) {
@@ -372,8 +356,7 @@ export default class InsightsHandler {
     private async sendTestRunEventForCucumber (world: ITestCaseHookParameter, eventType: string) {
         const uniqueId = getUniqueIdentifierForCucumber(world)
 
-        let testMetaData = this._tests[uniqueId]
-        if (!testMetaData) testMetaData = {}
+        let testMetaData = this._tests[uniqueId] || {}
 
         const { feature, scenario, steps } = testMetaData
 
@@ -412,25 +395,33 @@ export default class InsightsHandler {
 
         if (eventType == 'TestRunStarted') {
             testData['integrations'] = {}
-            if (this._browser && this._platformMeta) testData['integrations'][getCloudProvider(this._browser)] = this.getIntegrationsObject()
+            if (this._browser && this._platformMeta) {
+                testData['integrations'][getCloudProvider(this._browser)] = this.getIntegrationsObject()
+            }
         }
 
         /* istanbul ignore if */
         if (world.result) {
-            let result: string = world.result.status.toLowerCase()
-            if (result !== 'passed' && result !== 'failed') result = 'skipped' // mark UNKNOWN/UNDEFINED/AMBIGUOUS/PENDING as skipped
+            let result = world.result.status.toLowerCase()
+            if (result !== 'passed' && result !== 'failed') {
+                result = 'skipped' // mark UNKNOWN/UNDEFINED/AMBIGUOUS/PENDING as skipped
+            }
             testData.finished_at = (new Date()).toISOString()
             testData.result = result
             testData.duration_in_ms = world.result.duration.nanos / 1000000 // send duration in ms
 
-            if (result == 'failed') {
+            if (result === 'failed') {
                 testData.failure = [
                     {
                         'backtrace': [world.result.message ? removeAnsiColors(world.result.message) : 'unknown']
                     }
                 ],
-                testData.failure_reason = world.result.message ? removeAnsiColors(world.result.message) : world.result.message,
-                testData.failure_type = world.result.message == undefined ? null : world.result.message.toString().match(/AssertionError/) ? 'AssertionError' : 'UnhandledError'
+                testData.failure_reason = world.result.message ? removeAnsiColors(world.result.message) : world.result.message
+                if (world.result.message) {
+                    testData.failure_type = world.result.message.match(/AssertionError/)
+                        ? 'AssertionError'
+                        : 'UnhandledError'
+                }
             }
         }
 
