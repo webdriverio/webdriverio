@@ -37,7 +37,7 @@
     "@wdio/types": "8.0.11",
     "diff": "^5.0.0",
     "object-inspect": "^1.12.0",
-    "supports-color": "9.2.3"
+    "supports-color": "9.3.0"
   },
   "devDependencies": {
     "@types/node": "^18.0.0",
