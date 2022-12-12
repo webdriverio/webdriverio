@@ -19,7 +19,7 @@
     "clean:cache": "rimraf .eslintcache",
     "clean-full:package_modules": "rimraf ./packages/*/node_modules",
     "compile": "node ./scripts/build.js",
-    "copy": "lerna run --parallel copy",
+    "copy": "cd packages/wdio-cli && npm run copy && cd ../../",
     "generate:typings": "node ./scripts/type-generation/generate-all-typings.js",
     "link": "node ./scripts/link",
     "pushReleaseTag": "node ./scripts/pushTags.js",
