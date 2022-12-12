@@ -16,6 +16,16 @@ interface RunnerInterface extends NodeJS.EventEmitter {
     [key: string]: any
 }
 
+/**
+ * send ready event to testrunner to start receive command messages
+ */
+if (typeof process.send === 'function') {
+    process.send(<Workers.WorkerMessage>{
+        name: 'ready',
+        origin: 'worker'
+    })
+}
+
 export const runner = new Runner() as unknown as RunnerInterface
 runner.on('exit', process.exit.bind(process))
 runner.on('error', ({ name, message, stack }) => process.send!({
