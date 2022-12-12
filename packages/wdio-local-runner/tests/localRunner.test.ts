@@ -33,8 +33,7 @@ test('should fork a new process', () => {
         execArgv: [],
         retries: 0
     })
-    const childProcess = worker.childProcess
-    worker.emit = vi.fn()
+    worker.emit('message', { name: 'ready' })
 
     expect(worker.isBusy).toBe(true)
     expect(vi.mocked(child.fork).mock.calls[0][0].endsWith('run.js')).toBe(true)
@@ -42,9 +41,9 @@ test('should fork a new process', () => {
     const { env } = vi.mocked(child.fork).mock.calls[0][2]! as any
     expect(env.WDIO_LOG_PATH).toMatch(/(\\|\/)foo(\\|\/)bar(\\|\/)wdio-0-5\.log/)
     expect(env.FORCE_COLOR).toBe(1)
-    expect(childProcess?.on).toHaveBeenCalled()
+    expect(worker.childProcess?.on).toHaveBeenCalled()
 
-    expect(childProcess?.send).toHaveBeenCalledWith({
+    expect(worker.childProcess?.send).toHaveBeenCalledWith({
         args: {},
         caps: {},
         cid: '0-5',
@@ -72,6 +71,7 @@ test('should shut down worker processes', async () => {
         execArgv: [],
         retries: 0
     })
+    worker1.isReady = true
     const worker2 = runner.run({
         cid: '0-5',
         command: 'run',
@@ -82,6 +82,7 @@ test('should shut down worker processes', async () => {
         execArgv: [],
         retries: 0
     })
+    worker2.isReady = true
     setTimeout(() => {
         worker1.isBusy = false
         setTimeout(() => {
@@ -142,6 +143,7 @@ test('should shut down worker processes in watch mode - regular', async () => {
         execArgv: [],
         retries: 0
     })
+    worker['_handleMessage']({ name: 'ready' } as any)
     runner.workerPool['0-6'].sessionId = 'abc'
     runner.workerPool['0-6'].server = { host: 'foo' }
     runner.workerPool['0-6'].caps = { browser: 'chrome' } as any
@@ -182,6 +184,7 @@ test('should shut down worker processes in watch mode - mutliremote', async () =
         execArgv: [],
         retries: 0
     })
+    worker['_handleMessage']({ name: 'ready' } as any)
     runner.workerPool['0-7'].isMultiremote = true
     runner.workerPool['0-7'].instances = { foo: { sessionId: '123' } }
     runner.workerPool['0-7'].caps = {
