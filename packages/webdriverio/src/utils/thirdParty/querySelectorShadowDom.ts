@@ -312,5 +312,5 @@ export default function querySelectorAllDeep (findMany: boolean, s: string, r: E
         return selector ? allElements.filter(el => el.matches(selector)) : allElements
     }
 
-    return _querySelectorDeep(s, r)
+    return _querySelectorDeep(s, r || document)
 }

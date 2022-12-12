@@ -27,6 +27,12 @@ describe('main suite 1', () => {
         expect((await browser.checkPWA()).passed).toBe(false)
     })
 
+    it('can query shadow elements', async () => {
+        await browser.url('https://the-internet.herokuapp.com/shadowdom')
+        await $('h1').waitForDisplayed()
+        await expect($('>>>slot[name="my-text"]')).toHaveText('My default text')
+    })
+
     /**
      * fails due to "Unable to identify the main resource"
      * https://github.com/webdriverio/webdriverio/issues/8541
