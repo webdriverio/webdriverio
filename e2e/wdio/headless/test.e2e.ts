@@ -30,7 +30,7 @@ describe('main suite 1', () => {
     it('can query shadow elements', async () => {
         await browser.url('https://the-internet.herokuapp.com/shadowdom')
         await $('h1').waitForDisplayed()
-        await expect($('>>>slot[name="my-text"]')).toHaveText('My default text')
+        await expect($('>>>ul[slot="my-text"] li:last-child')).toHaveText('In a list!')
     })
 
     /**
