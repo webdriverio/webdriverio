@@ -200,7 +200,7 @@ export async function handler(argv: RunCommandArguments) {
             removeSignalListeners()
             if (tsProcess.pid) {
                 // gracefully kill child process
-                kill(tsProcess.pid, 'SIGINT')
+                process.kill(tsProcess.pid, 'SIGINT')
             }
         }
         const removeSignalListeners = () => {
