@@ -214,7 +214,6 @@ export async function handler(argv: RunCommandArguments) {
          * ensure process is killed according to result of new process
          */
         tsProcess.on('close', (code) => process.exit(code || 0))
-
         tsProcess.on('exit', removeSignalListeners)
         tsProcess.on('error', executeKill)
 
