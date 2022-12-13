@@ -1,7 +1,6 @@
 import path from 'node:path'
 import fs from 'node:fs/promises'
 import cp from 'node:child_process'
-import { kill } from 'node:process'
 import type { Argv } from 'yargs'
 
 import Launcher from '../launcher.js'
@@ -196,13 +195,13 @@ export async function handler(argv: RunCommandArguments) {
             }
         })
 
-        const executeKill = () => {
+        const executeKill = (data: NodeJS.Signals | number) => {
             removeSignalListeners()
-            if (tsProcess.pid) {
-                // gracefully kill child process
-                process.kill(tsProcess.pid, 'SIGINT')
-            }
+            if (!tsProcess.pid) return
+            const signal = data === 'SIGINT' ? 'SIGINT' : 'SIGTERM'
+            process.kill(tsProcess.pid, signal)
         }
+
         const removeSignalListeners = () => {
             process.removeListener('SIGINT', executeKill)
             process.removeListener('SIGTERM', executeKill)
