@@ -256,14 +256,14 @@ class Launcher {
      * @return {Boolean} true if all specs have been run and all instances have finished
      */
     runSpecs() {
-        const config = this.configParser.getConfig()
-
         /**
          * stop spawning new processes when CTRL+C was triggered
          */
         if (this._hasTriggeredExitRoutine) {
             return true
         }
+
+        const config = this.configParser.getConfig()
 
         while (this.getNumberOfRunningInstances() < config.maxInstances) {
             const schedulableCaps = this._schedule

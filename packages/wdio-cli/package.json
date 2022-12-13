@@ -33,6 +33,7 @@
   "types": "./build/index.d.ts",
   "typeScriptVersion": "3.8.3",
   "dependencies": {
+    "@types/async-exit-hook": "^2.0.0",
     "@types/ejs": "^3.1.1",
     "@types/inquirer": "^9.0.0",
     "@types/lodash.flattendeep": "^4.4.7",
