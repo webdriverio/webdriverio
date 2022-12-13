@@ -145,14 +145,8 @@ test('if supported by browser', async () => {
     expect(service['_browser']?.addCommand).toBeCalledWith(
         'checkPWA', expect.any(Function))
 
-    // @ts-ignore access private property
-    const rawEventListener = service['_puppeteer']['_connection']._transport._ws.addEventListener
-    expect(rawEventListener).toBeCalledTimes(1)
-    expect(rawEventListener).toBeCalledWith('message', expect.any(Function))
-
-    const rawWsEvent = rawEventListener.mock.calls.pop().pop()
     service['_devtoolsGatherer'] = { onMessage: jest.fn() } as any
-    rawWsEvent({ data: '{"method": "foo", "params": "bar"}' })
+    service['_propagateWSEvents']({ data: '{"method": "foo", "params": "bar"}' })
     expect(service['_devtoolsGatherer']?.onMessage).toBeCalledTimes(1)
     expect(service['_devtoolsGatherer']?.onMessage).toBeCalledWith({ method:'foo', params: 'bar' })
     expect((service['_browser'] as any).emit).toBeCalledTimes(1)

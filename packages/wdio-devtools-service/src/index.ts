@@ -1,11 +1,12 @@
 import logger from '@wdio/logger'
-import puppeteerCore from 'puppeteer-core'
+import { KnownDevices } from 'puppeteer-core'
+import WebSocket from 'ws'
 
 import type { Browser, MultiRemoteBrowser } from 'webdriverio'
 import type { Capabilities, Services, FunctionProperties, ThenArg } from '@wdio/types'
-import type { Page } from 'puppeteer-core/lib/cjs/puppeteer/common/Page'
+import type { Page } from 'puppeteer-core/lib/cjs/puppeteer/api/Page'
 import type { CDPSession } from 'puppeteer-core/lib/cjs/puppeteer/common/Connection'
-import type { Browser as PuppeteerBrowser } from 'puppeteer-core/lib/cjs/puppeteer/common/Browser'
+import type { Browser as PuppeteerBrowser } from 'puppeteer-core/lib/cjs/puppeteer/api/Browser'
 import type { Target } from 'puppeteer-core/lib/cjs/puppeteer/common/Target'
 
 import CommandHandler from './commands'
@@ -166,10 +167,10 @@ export default class DevToolsService implements Services.ServiceInstance {
         }
 
         if (typeof device === 'string') {
-            const deviceName = device + (inLandscape ? ' landscape' : '')
-            const deviceCapabilities = puppeteerCore.devices[deviceName]
+            const deviceName = device + (inLandscape ? ' landscape' : '') as keyof typeof KnownDevices
+            const deviceCapabilities = KnownDevices[deviceName]
             if (!deviceCapabilities) {
-                const deviceNames = Object.values(puppeteerCore.devices as any)
+                const deviceNames = Object.values(KnownDevices)
                     .map((device: Device) => device.name)
                     .filter((device: string) => !device.endsWith('landscape'))
                 throw new Error(`Unknown device, available options: ${deviceNames.join(', ')}`)
@@ -225,7 +226,7 @@ export default class DevToolsService implements Services.ServiceInstance {
 
         this._target = await this._puppeteer.waitForTarget(
             /* istanbul ignore next */
-            (t) => t.type() === 'page' || t['_targetInfo'].browserContextId)
+            (t) => t.type() === 'page' || Boolean(t._getTargetInfo().browserContextId))
         /* istanbul ignore next */
         if (!this._target) {
             throw new Error('No page target found')
@@ -267,16 +268,8 @@ export default class DevToolsService implements Services.ServiceInstance {
         }
 
         this._devtoolsGatherer = new DevtoolsGatherer()
-        this._puppeteer['_connection']._transport._ws.addEventListener('message', (event: { data: string }) => {
-            const data: CDPSessionOnMessageObject = JSON.parse(event.data)
-            this._devtoolsGatherer?.onMessage(data)
-            const method = data.method || 'event'
-            log.debug(`cdp event: ${method} with params ${JSON.stringify(data.params)}`)
-
-            if (this._browser) {
-                this._browser.emit(method, data.params)
-            }
-        })
+        const cdpWS = new WebSocket(this._puppeteer.wsEndpoint())
+        cdpWS.on('message', this._propagateWSEvents.bind(this))
 
         this._browser.addCommand('enablePerformanceAudits', this._enablePerformanceAudits.bind(this))
         this._browser.addCommand('disablePerformanceAudits', this._disablePerformanceAudits.bind(this))
@@ -284,6 +277,17 @@ export default class DevToolsService implements Services.ServiceInstance {
 
         this._pwaGatherer = new PWAGatherer(this._session, this._page, this._driver)
         this._browser.addCommand('checkPWA', this._checkPWA.bind(this))
+    }
+
+    private _propagateWSEvents (event: { data: string }) {
+        const data: CDPSessionOnMessageObject = JSON.parse(event.data)
+        this._devtoolsGatherer?.onMessage(data)
+        const method = data.method || 'event'
+        log.debug(`cdp event: ${method} with params ${JSON.stringify(data.params)}`)
+
+        if (this._browser) {
+            this._browser.emit(method, data.params)
+        }
     }
 }
 

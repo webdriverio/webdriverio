@@ -3,7 +3,7 @@ import type { AttachOptions as DevToolsAttachOptions } from 'devtools'
 import type { SessionFlags, AttachOptions as WebDriverAttachOptions } from 'webdriver'
 import type { Options, Capabilities, FunctionProperties, ThenArg } from '@wdio/types'
 import type { ElementReference, ProtocolCommandsAsync, ProtocolCommands, RectReturn } from '@wdio/protocols'
-import type { Browser as PuppeteerBrowser } from 'puppeteer-core/lib/cjs/puppeteer/common/Browser'
+import type { Browser as PuppeteerBrowser } from 'puppeteer-core/lib/cjs/puppeteer/api/Browser'
 
 import type BrowserCommands from './commands/browser'
 import type ElementCommands from './commands/element'

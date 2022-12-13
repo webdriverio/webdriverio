@@ -161,7 +161,7 @@ function isNotInFiber(context: Element<'async'>, fnName: string) {
 function inFiber (context: Browser<'async'> | Element<'async'> | MultiRemoteBrowser<'async'>) {
     const multiRemoteContext = context as MultiRemoteBrowser<'async'>
     if (multiRemoteContext.constructor.name === 'MultiRemoteDriver') {
-        return multiRemoteContext.instances.forEach(instance => {
+        return multiRemoteContext.instances.forEach((instance: string) => {
             multiRemoteContext[instance]._NOT_FIBER = false
             let parent = (multiRemoteContext[instance] as Element<'async'>).parent
             while (parent && parent._NOT_FIBER) {

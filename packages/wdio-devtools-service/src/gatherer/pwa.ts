@@ -10,7 +10,7 @@ import ViewportDimensions from 'lighthouse/lighthouse-core/gather/gatherers/view
 import serviceWorkers from 'lighthouse/lighthouse-core/gather/driver/service-workers'
 
 import type { CDPSession } from 'puppeteer-core/lib/cjs/puppeteer/common/Connection'
-import type { Page } from 'puppeteer-core/lib/cjs/puppeteer/common/Page'
+import type { Page } from 'puppeteer-core/lib/cjs/puppeteer/api/Page'
 
 import collectMetaElements from '../scripts/collectMetaElements'
 import { NETWORK_RECORDER_EVENTS } from '../constants'

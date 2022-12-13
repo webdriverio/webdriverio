@@ -50,7 +50,7 @@ Array [
     Object {
       "browserWSEndpoint": "http://my.grid:1234/session/mytestsession/se/cdp",
       "defaultViewport": null,
-      "headers": {
+      "headers": Object {
         "Authorization": "OAuth token",
       },
     },
@@ -63,7 +63,7 @@ Array [
     Object {
       "browserWSEndpoint": "ws://my.grid:4444/devtools/foobar-123",
       "defaultViewport": null,
-      "headers": {
+      "headers": Object {
         "Authorization": "OAuth token",
       },
     },
@@ -77,7 +77,7 @@ Array [
     Object {
       "browserWSEndpoint": "ws://my.grid:4444/devtools/foobar-123",
       "defaultViewport": null,
-      "headers": {
+      "headers": Object {
         "Authorization": "OAuth token",
       },
     },

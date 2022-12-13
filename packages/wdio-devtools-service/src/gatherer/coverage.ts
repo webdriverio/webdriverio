@@ -9,7 +9,7 @@ import reports from 'istanbul-reports'
 
 import logger from '@wdio/logger'
 
-import type { Page } from 'puppeteer-core/lib/cjs/puppeteer/common/Page'
+import type { Page } from 'puppeteer-core/lib/cjs/puppeteer/api/Page'
 import type { CDPSession } from 'puppeteer-core/lib/cjs/puppeteer/common/Connection'
 
 import type { CoverageReporterOptions, Coverage } from '../types'

@@ -1,6 +1,6 @@
 import type Protocol from 'devtools-protocol'
 import type { CDPSession } from 'puppeteer-core/lib/cjs/puppeteer/common/Connection'
-import type { Page } from 'puppeteer-core/lib/cjs/puppeteer/common/Page'
+import type { Page } from 'puppeteer-core/lib/cjs/puppeteer/api/Page'
 import type { HTTPRequest } from 'puppeteer-core/lib/cjs/puppeteer/common/HTTPRequest'
 
 import TraceGatherer from '../../src/gatherer/trace'
