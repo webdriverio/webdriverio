@@ -1,6 +1,7 @@
 import path from 'node:path'
 import fs from 'node:fs/promises'
 import cp from 'node:child_process'
+import { kill } from 'node:process'
 import type { Argv } from 'yargs'
 
 import Launcher from '../launcher.js'
@@ -183,6 +184,7 @@ export async function handler(argv: RunCommandArguments) {
             path.join(path.dirname(wdioConf), 'tsconfig.json')
         )
         const hasLocalTSConfig = await fs.access(localTSConfigPath).then(() => true, () => false)
+
         const tsProcess = cp.spawn(nodePath, process.argv.slice(1), {
             cwd: process.cwd(),
             detached: true,
@@ -194,10 +196,33 @@ export async function handler(argv: RunCommandArguments) {
             }
         })
 
+        const executeKill = () => {
+            removeSignalListeners()
+            if (tsProcess.pid) {
+                // gracefully kill child process
+                kill(tsProcess.pid, 'SIGINT')
+            }
+        }
+        const removeSignalListeners = () => {
+            process.removeListener('SIGINT', executeKill)
+            process.removeListener('SIGTERM', executeKill)
+            process.removeListener('exit', executeKill)
+            process.removeListener('beforeExit', executeKill)
+        }
+
         /**
          * ensure process is killed according to result of new process
          */
         tsProcess.on('close', (code) => process.exit(code || 0))
+
+        tsProcess.on('exit', removeSignalListeners)
+        tsProcess.on('error', executeKill)
+
+        process.prependOnceListener('SIGINT', executeKill)
+        process.prependOnceListener('SIGTERM', executeKill)
+        process.prependOnceListener('exit', executeKill)
+        process.prependOnceListener('beforeExit', executeKill)
+
         return tsProcess
     }
 
