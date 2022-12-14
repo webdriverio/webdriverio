@@ -21,7 +21,7 @@ import type { Element } from '../../types'
  * @type utility
  *
  */
-export default async function shadowRoot (
+export async function shadow$$ (
     this: Element,
     selector: string
 ) {

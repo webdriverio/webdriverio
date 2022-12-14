@@ -35,7 +35,7 @@ import type { Browser } from '../../types'
  * @uses protocol/file
  * @return {String} remote URL
  */
-export default async function uploadFile (
+export async function uploadFile (
     this: Browser,
     localPath: string
 ): Promise<string> {

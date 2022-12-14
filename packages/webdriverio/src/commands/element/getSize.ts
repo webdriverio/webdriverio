@@ -5,8 +5,8 @@ import type { Element } from '../../types'
 
 export type Size = Pick<RectReturn, 'width' | 'height'>;
 
-function getSize (this: Element): Promise<Size>;
-function getSize (this: Element, prop: keyof RectReturn): Promise<number>;
+export function getSize (this: Element): Promise<Size>;
+export function getSize (this: Element, prop: keyof RectReturn): Promise<number>;
 
 /**
  *
@@ -35,7 +35,7 @@ function getSize (this: Element, prop: keyof RectReturn): Promise<number>;
  * @type property
  *
  */
-async function getSize (
+export async function getSize (
     this: Element,
     prop?: keyof RectReturn
 ): Promise<Size | number> {
@@ -52,5 +52,3 @@ async function getSize (
         height: rect.height
     } as Size
 }
-
-export default getSize

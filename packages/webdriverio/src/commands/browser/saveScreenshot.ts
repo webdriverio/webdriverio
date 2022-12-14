@@ -21,7 +21,7 @@ import type { Browser } from '../../types'
  * @type utility
  *
  */
-export default async function saveScreenshot (
+export async function saveScreenshot (
     this: Browser,
     filepath: string
 ) {

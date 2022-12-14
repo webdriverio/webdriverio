@@ -27,7 +27,7 @@ import type { CustomStrategyFunction } from '../../types.js'
  * @param {Any} strategyArguments
  * @return {Element}
  */
-async function custom$ (
+export async function custom$ (
     this: WebdriverIO.Element,
     strategyName: string,
     ...strategyArguments: any[]
@@ -66,5 +66,3 @@ async function custom$ (
 
     throw Error('Your locator strategy script must return an element')
 }
-
-export default custom$

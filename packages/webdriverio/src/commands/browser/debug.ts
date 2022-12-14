@@ -33,7 +33,7 @@ import type { Browser } from '../../types'
  * @type utility
  *
  */
-export default function debug(
+export function debug(
     this: Browser,
     commandTimeout = 5000
 ) {

@@ -27,7 +27,7 @@ import type { ElementArray, CustomStrategyFunction } from '../../types.js'
  * @param {Any} strategyArguments
  * @return {ElementArray}
  */
-async function custom$$ (
+export async function custom$$ (
     this: WebdriverIO.Element,
     strategyName: string,
     ...strategyArguments: any[]
@@ -66,5 +66,3 @@ async function custom$$ (
     const elements = res.length ? await getElements.call(this, strategyRef, res) : [] as any as ElementArray
     return enhanceElementsArray(elements, this, strategyName, 'custom$$', strategyArguments)
 }
-
-export default custom$$

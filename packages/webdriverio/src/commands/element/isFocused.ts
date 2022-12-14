@@ -29,7 +29,7 @@ import type { Element } from '../../types'
  * @type state
  *
  */
-export default async function isFocused (this: Element) {
+export async function isFocused (this: Element) {
     const browser = await getBrowserObject(this)
     return browser.execute(isFocusedScript, {
         [ELEMENT_KEY]: this.elementId, // w3c compatible

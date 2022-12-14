@@ -4,8 +4,8 @@ import type { Element } from '../../types'
 
 export type Location = Pick<RectReturn, 'x' | 'y'>;
 
-function getLocation (this: Element): Promise<Location>
-function getLocation (this: Element, prop: keyof Location): Promise<number>
+export function getLocation (this: Element): Promise<Location>
+export function getLocation (this: Element, prop: keyof Location): Promise<number>
 
 /**
  *
@@ -34,7 +34,7 @@ function getLocation (this: Element, prop: keyof Location): Promise<number>
  * @uses protocol/elementIdLocation
  * @type property
  */
-async function getLocation (
+export async function getLocation (
     this: Element,
     prop?: keyof Location
 ): Promise<Location | number> {
@@ -54,5 +54,3 @@ async function getLocation (
 
     return location as Location
 }
-
-export default getLocation

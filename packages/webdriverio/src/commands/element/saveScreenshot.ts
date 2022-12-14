@@ -20,7 +20,7 @@ import type { Element } from '../../types'
  * @type utility
  *
  */
-export default async function saveScreenshot (
+export async function saveScreenshot (
     this: Element,
     filepath: string
 ) {

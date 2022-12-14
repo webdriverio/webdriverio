@@ -21,7 +21,7 @@ import type { Browser } from '../../types'
  * @type utility
  *
  */
-export default function pause (
+export function pause (
     this: Browser,
     milliseconds = 1000
 ) {

@@ -40,6 +40,6 @@ import type { Element } from '../../types'
  * @type property
  *
  */
-export default function getText (this: Element) {
+export function getText (this: Element) {
     return this.getElementText(this.elementId)
 }

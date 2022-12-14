@@ -2,14 +2,12 @@ import type { EventEmitter } from 'node:events'
 import type { AttachOptions as DevToolsAttachOptions } from 'devtools'
 import type { SessionFlags, AttachOptions as WebDriverAttachOptions } from 'webdriver'
 import type { Options, Capabilities, FunctionProperties, ThenArg } from '@wdio/types'
-import type { ElementReference, ProtocolCommands, RectReturn } from '@wdio/protocols'
+import type { ElementReference, ProtocolCommands } from '@wdio/protocols'
 import type { Browser as PuppeteerBrowser } from 'puppeteer-core/lib/esm/puppeteer/api/Browser.js'
 
 import type * as BrowserCommands from './commands/browser.js'
 import type * as ElementCommands from './commands/element.js'
 import type DevtoolsInterception from './utils/interception/devtools.js'
-import type { Location } from './commands/element/getLocation.js'
-import type { Size } from './commands/element/getSize.js'
 
 type $BrowserCommands = typeof BrowserCommands
 type $ElementCommands = typeof ElementCommands
@@ -98,43 +96,6 @@ export interface ChainablePromiseArray<T> extends Promise<T> {
 export type BrowserCommandsType = Omit<$BrowserCommands, keyof ChainablePrototype> & ChainablePrototype
 export type ElementCommandsType = Omit<$ElementCommands, keyof ChainablePrototype> & ChainablePrototype
 
-export type BrowserCommandsTypeSync = {
-    [K in keyof Omit<$BrowserCommands, 'execute' | 'call'>]: (...args: Parameters<$BrowserCommands[K]>) => ThenArg<ReturnType<$BrowserCommands[K]>>
-} & {
-    /**
-     * we need to copy type definitions for execute and executeAsync as we can't copy over
-     * generics with method used above
-     */
-    call: <T>(fn: () => T) => ThenArg<T>,
-    execute: <ReturnValue, InnerArguments extends any[] = any[], OuterArguments extends InnerArguments = any>(
-        script: string | ((...innerArgs: OuterArguments) => ReturnValue),
-        ...args: InnerArguments
-    ) => Promise<ReturnValue>,
-}
-export type ElementCommandsTypeSync = {
-    [K in keyof Omit<$ElementCommands, 'getLocation' | 'getSize'>]: (...args: Parameters<$ElementCommands[K]>) => ThenArg<ReturnType<$ElementCommands[K]>>
-} & {
-    getLocation: ((
-        this: Element,
-    ) => Promise<Location>) & ((
-        this: Element,
-        prop: keyof Location
-    ) => Promise<number>) & ((
-        this: Element,
-        prop?: keyof Location
-    ) => Promise<Location | number>),
-
-    getSize: ((
-        this: Element,
-    ) => Promise<Size>) & ((
-        this: Element,
-        prop: keyof RectReturn
-    ) => Promise<number>) & ((
-        this: Element,
-        prop?: keyof RectReturn
-    ) => Promise<Size | number>),
-}
-
 /**
  * Multiremote command definition
  */
@@ -148,7 +109,7 @@ type MultiRemoteElementCommands = {
 }
 
 export type MultiRemoteBrowserCommandsType = {
-    [K in keyof Omit<BrowserCommandsType, ElementCommandNames>]: (...args: Parameters<BrowserCommandsType[K]>) => Promise<ThenArg<ReturnType<BrowserCommandsType[K]>>[]>
+    [K in keyof Omit<BrowserCommandsType, ElementCommandNames | 'SESSION_MOCKS'>]: (...args: Parameters<BrowserCommandsType[K]>) => Promise<ThenArg<ReturnType<BrowserCommandsType[K]>>[]>
 } & MultiRemoteElementCommands
 export type MultiRemoteElementCommandsType = {
     [K in keyof Omit<ElementCommandsType, ElementCommandNames>]: (...args: Parameters<ElementCommandsType[K]>) => Promise<ThenArg<ReturnType<ElementCommandsType[K]>>[]>

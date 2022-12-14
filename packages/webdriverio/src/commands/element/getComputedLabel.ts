@@ -18,6 +18,6 @@ import type { Element } from '../../types'
  * @type property
  *
  */
-export default function getComputedLabel (this: Element) {
+export function getComputedLabel (this: Element) {
     return this.getElementComputedLabel(this.elementId)
 }

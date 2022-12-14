@@ -36,7 +36,7 @@ import type { Browser, Element, MultiRemoteBrowser } from '../../types'
  * @type protocol
  *
  */
-export default function execute<ReturnValue, InnerArguments extends any[]> (
+export function execute<ReturnValue, InnerArguments extends any[]> (
     this: Browser | Element | MultiRemoteBrowser,
     script: string | ((...innerArgs: InnerArguments) => ReturnValue),
     ...args: InnerArguments

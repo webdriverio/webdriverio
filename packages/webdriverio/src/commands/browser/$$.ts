@@ -59,7 +59,7 @@ import type { Selector, ElementArray } from '../../types.js'
  * @type utility
  *
  */
-export default async function $$ (
+export async function $$ (
     this: WebdriverIO.Browser | WebdriverIO.Element,
     selector: Selector | ElementReference[] | WebdriverIO.Element[]
 ) {

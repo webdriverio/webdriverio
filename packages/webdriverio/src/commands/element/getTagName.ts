@@ -23,6 +23,6 @@ import type { Element } from '../../types'
  * @type property
  *
  */
-export default function getTagName (this: Element) {
+export function getTagName (this: Element) {
     return this.getElementTagName(this.elementId)
 }

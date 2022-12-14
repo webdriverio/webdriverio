@@ -33,7 +33,7 @@ import type { Element } from '../../types'
  * @type property
  *
  */
-export default function getHTML (
+export function getHTML (
     this: Element,
     includeSelectorTag = true
 ) {

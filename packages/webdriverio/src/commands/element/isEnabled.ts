@@ -32,6 +32,6 @@ import type { Element } from '../../types'
  * @type state
  *
  */
-export default function isEnabled (this: Element) {
+export function isEnabled (this: Element) {
     return this.isElementEnabled(this.elementId)
 }

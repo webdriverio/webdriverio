@@ -42,7 +42,7 @@ function scrollIntoViewWeb (
  * @type utility
  *
  */
-export default async function scrollIntoView (
+export async function scrollIntoView (
     this: Element,
     options: ScrollIntoViewOptions | boolean = { block: 'start', inline: 'nearest' }
 ) {

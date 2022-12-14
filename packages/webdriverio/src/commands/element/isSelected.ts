@@ -29,6 +29,6 @@ import type { Element } from '../../types'
  * @type state
  *
  */
-export default function isSelected (this: Element) {
+export function isSelected (this: Element) {
     return this.isElementSelected(this.elementId)
 }

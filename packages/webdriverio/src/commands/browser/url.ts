@@ -37,7 +37,7 @@ import type { Browser } from '../../types'
  * @type protocol
  *
  */
-export default function url (
+export function url (
     this: Browser,
     path: string
 ) {

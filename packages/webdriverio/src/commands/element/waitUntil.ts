@@ -43,5 +43,5 @@
  * @type utility
  *
  */
-import waitUntil from '../browser/waitUntil.js'
-export default waitUntil
+import { waitUntil as waitUntilBrowser } from '../browser/waitUntil.js'
+export const waitUntil = waitUntilBrowser

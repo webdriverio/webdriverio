@@ -26,6 +26,6 @@ import type { Element } from '../../types'
  * @type action
  *
  */
-export default function clearValue (this: Element) {
+export function clearValue (this: Element) {
     return this.elementClear(this.elementId)
 }

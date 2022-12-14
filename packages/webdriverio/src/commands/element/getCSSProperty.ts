@@ -71,7 +71,7 @@ import type { Element } from '../../types'
  * @return {CSSProperty}             The specified css of the element
  *
  */
-export default async function getCSSProperty (
+export async function getCSSProperty (
     this: Element,
     cssProperty: string
 ) {

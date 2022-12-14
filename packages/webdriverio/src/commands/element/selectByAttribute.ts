@@ -36,7 +36,7 @@ import type { Element } from '../../types'
  * @type action
  *
  */
-export default async function selectByAttribute (
+export async function selectByAttribute (
     this: Element,
     attribute: string,
     value: string | number

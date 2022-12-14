@@ -32,7 +32,7 @@ import type { Browser } from '../../types'
  * @uses webdriver/getAllCookies
  *
  */
-export default async function getCookies(
+export async function getCookies(
     this: Browser,
     names?: string | string[]
 ) {

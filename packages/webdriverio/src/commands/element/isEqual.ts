@@ -29,7 +29,7 @@ const getWebElement = (el: Element) => ({
  * @return  {Boolean}   true if elements are equal
  *
  */
-export default async function isEqual (
+export async function isEqual (
     this: Element,
     el: Element
 ) {
