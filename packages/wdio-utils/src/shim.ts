@@ -1,4 +1,4 @@
-import * as iterators from 'p-iteration'
+import iterators from 'p-iteration'
 import logger from '@wdio/logger'
 import type { Clients } from '@wdio/types'
 
