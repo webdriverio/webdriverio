@@ -4,26 +4,18 @@ type ElementArrayType = import('webdriverio').ElementArray
 type MultiRemoteBrowserType = import('webdriverio').MultiRemoteBrowser
 type ExpectType = import('expect-webdriverio').Expect
 
-declare namespace WebdriverIOAsync {
-    interface Browser {}
-    interface Element {}
-    interface ElementArray {}
-    interface MultiRemoteBrowser {}
-}
-
 declare namespace WebdriverIO {
-    interface Browser extends BrowserType, WebdriverIOAsync.Browser { }
-    interface Element extends ElementType, WebdriverIOAsync.Element { }
-    interface ElementArray extends ElementArrayType, WebdriverIOAsync.ElementArray { }
-    // @ts-expect-error
-    interface MultiRemoteBrowser extends MultiRemoteBrowserType, WebdriverIOAsync.MultiRemoteBrowser { }
+    interface Browser extends BrowserType { }
+    interface Element extends ElementType { }
+    interface ElementArray extends ElementArrayType { }
+    interface MultiRemoteBrowser extends MultiRemoteBrowserType { }
 }
 
 declare module NodeJS {
     interface Global {
+        multiremotebrowser: WebdriverIO.MultiRemoteBrowser
         browser: WebdriverIO.Browser
         driver: WebdriverIO.Browser
-        multiremotebrowser: WebdriverIO.MultiRemoteBrowser
         expect: ExpectType
     }
 }
