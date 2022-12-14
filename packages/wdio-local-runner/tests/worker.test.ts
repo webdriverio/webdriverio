@@ -38,11 +38,10 @@ describe('handleMessage', () => {
         expect(worker.isBusy).toBe(false)
     })
 
-    it('should mark worker as ready if ready message was received', () => {
+    it('should mark worker as ready if ready message was received', async () => {
         const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer())
-        expect(worker.isReady).toBe(false)
         worker['_handleMessage']({ name: 'ready' } as unknown as Workers.WorkerMessage)
-        expect(worker.isReady).toBe(true)
+        expect(await worker.isReady).toBe(true)
     })
 
     it('stores sessionId and connection data to worker instance', () => {
@@ -82,7 +81,7 @@ describe('handleMessage', () => {
             name: 'start',
             content: {},
             params: {}
-        })
+        } as any)
         await new Promise((resolve) => setTimeout(resolve, 200))
 
         const expectedMessage = {
@@ -141,7 +140,7 @@ describe('postMessage', () => {
 
     it('should create a process if it does not have one', () => {
         const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer())
-        worker.isReady = true
+        worker.isReady = Promise.resolve(true)
         worker.childProcess = undefined
         vi.spyOn(worker, 'startProcess').mockImplementation(
             () => ({ send: vi.fn() }) as unknown as ChildProcess)
@@ -158,7 +157,8 @@ describe('postMessage', () => {
         worker.childProcess = { send: vi.fn() } as any
         worker.postMessage('test-message', {})
         expect(worker.childProcess!.send).toBeCalledTimes(0)
-        worker.emit('message', { name: 'ready' })
+        worker.isReadyResolver(true)
+        await worker.isReady
         expect(worker.childProcess!.send).toBeCalledTimes(1)
     })
 })

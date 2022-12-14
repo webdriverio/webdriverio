@@ -48,7 +48,8 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
     isMultiremote?: boolean
 
     isBusy = false
-    isReady = false
+    isReady: Promise<boolean>
+    isReadyResolver: (value: boolean | PromiseLike<boolean>) => void = () => {}
 
     /**
      * assigns paramters to scope of instance
@@ -77,6 +78,10 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
         this.retries = retries
         this.stdout = stdout
         this.stderr = stderr
+
+        this.isReady = new Promise((resolve) => {
+            this.isReadyResolver = resolve
+        })
     }
 
     /**
@@ -151,7 +156,7 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
          * mark worker process as ready to receive events
          */
         if (payload.name === 'ready') {
-            this.isReady = true
+            this.isReadyResolver(true)
         }
 
         /**
@@ -232,18 +237,8 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
         }
 
         const cmd: Workers.WorkerCommand = { cid, command, configFile, args, caps: capabilities, specs, retries }
-        if (!this.isReady) {
-            log.debug(`Worker with cid "${cid}" not ready yet to receive messages`)
-            this.on('message', (payload: Workers.WorkerMessage) => {
-                if (payload.name === 'ready') {
-                    log.debug(`Worker with cid "${cid}" now ready, sending ${command}`)
-                    this.childProcess!.send(cmd)
-                }
-            })
-        } else {
-            log.debug(`Send command ${command} to worker with cid "${cid}"`)
-            this.childProcess.send(cmd)
-        }
+        log.debug(`Send command ${command} to worker with cid "${cid}"`)
+        this.isReady.then(() => this.childProcess!.send(cmd))
         this.isBusy = true
     }
 }
