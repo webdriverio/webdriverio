@@ -184,6 +184,7 @@ export async function handler(argv: RunCommandArguments) {
         )
         const hasLocalTSConfig = await fs.access(localTSConfigPath).then(() => true, () => false)
         const p = await execa(nodePath, process.argv.slice(1), {
+            reject: false,
             cwd: process.cwd(),
             stdio: 'inherit',
             env: {
