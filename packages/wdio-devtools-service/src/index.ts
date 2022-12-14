@@ -355,13 +355,8 @@ declare global {
         interface ServiceOption extends DevtoolsConfig {}
     }
 
-    namespace WebdriverIOAsync {
+    namespace WebdriverIO {
         interface Browser extends BrowserExtension { }
         interface MultiRemoteBrowser extends BrowserExtension { }
-    }
-
-    namespace WebdriverIOSync {
-        interface Browser extends BrowserExtensionSync { }
-        interface MultiRemoteBrowser extends BrowserExtensionSync { }
     }
 }
