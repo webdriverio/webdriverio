@@ -21,6 +21,23 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.0.13 (2022-12-14)
+
+#### :bug: Bug Fix
+* `wdio-cli`
+  * [#9399](https://github.com/webdriverio/webdriverio/pull/9399) Kill worker process if parent shuts down ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-local-runner`
+  * [#9398](https://github.com/webdriverio/webdriverio/pull/9398) Fix watch mode by better resolving worker readiness ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-utils`
+  * [#9397](https://github.com/webdriverio/webdriverio/pull/9397) Fix async iterators ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* [#9392](https://github.com/webdriverio/webdriverio/pull/9392) Add docs for Accessibility Testing ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
 ## v8.0.12 (2022-12-12)
 
 #### :bug: Bug Fix
