@@ -39,7 +39,7 @@ import type { Browser } from '../../types'
  * @see https://w3c.github.io/webdriver/#dispatching-actions
  *
  */
-export default function keys (
+export function keys (
     this: Browser,
     value: string | string[]
 ) {

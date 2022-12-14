@@ -30,7 +30,7 @@ import type { Element } from '../../types'
  * @type action
  *
  */
-export default async function selectByIndex (
+export async function selectByIndex (
     this: Element,
     index: number
 ) {

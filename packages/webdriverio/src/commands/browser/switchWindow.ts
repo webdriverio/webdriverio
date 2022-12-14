@@ -28,7 +28,7 @@ import type { Browser } from '../../types'
  * @type window
  *
  */
-export default async function switchWindow (
+export async function switchWindow (
     this: Browser,
     matcher: string | RegExp
 ) {

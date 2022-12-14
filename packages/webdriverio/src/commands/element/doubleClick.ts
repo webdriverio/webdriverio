@@ -24,7 +24,7 @@ import type { Element } from '../../types'
  * @type action
  *
  */
-export default async function doubleClick (this: Element) {
+export async function doubleClick (this: Element) {
     /**
      * move to element
      */

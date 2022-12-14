@@ -18,7 +18,7 @@ import type { Element } from '../../types'
  * @param {String} property  name of the element property
  * @return {Object|String|Boolean|Number|null} the value of the property of the selected element
  */
-export default function getProperty (
+export function getProperty (
     this: Element,
     property: string
 ) {

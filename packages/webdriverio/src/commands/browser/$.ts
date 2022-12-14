@@ -78,7 +78,7 @@ import type { ElementReference } from '@wdio/protocols'
  * @type utility
  *
  */
-export default async function $ (
+export async function $ (
     this: WebdriverIO.Browser | WebdriverIO.Element,
     selector: Selector
 ) {

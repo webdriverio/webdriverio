@@ -38,7 +38,7 @@ import type { Browser } from '../../types'
  *
  */
 
-export default async function setTimeout(
+export async function setTimeout(
     this: Browser,
     timeouts: Partial<Timeouts>
 ): Promise<void> {

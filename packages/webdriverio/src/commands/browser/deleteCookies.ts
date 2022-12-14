@@ -43,7 +43,7 @@ import type { Browser } from '../../types'
  * @type cookie
  *
  */
-export default function deleteCookies(
+export function deleteCookies(
     this: Browser,
     names?: string | string[]
 ) {

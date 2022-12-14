@@ -24,7 +24,7 @@ interface BrowserSize {
  * @type window
  *
  */
-export default async function getWindowSize(this: Browser) {
+export async function getWindowSize(this: Browser) {
     const browser = getBrowserObject(this)
 
     if (!browser.isW3C) {

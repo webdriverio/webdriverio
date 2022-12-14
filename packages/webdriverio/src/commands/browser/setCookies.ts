@@ -55,7 +55,7 @@ import type { Browser } from '../../types'
  * @type cookie
  *
  */
-export default async function setCookies(
+export async function setCookies(
     this: Browser,
     cookieObjs: Cookie | Cookie[]
 ) {

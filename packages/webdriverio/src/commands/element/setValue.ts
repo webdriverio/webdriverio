@@ -26,7 +26,7 @@ import type { Element } from '../../types'
  * @param {string | number}  value  value to be added
  *
  */
-export default async function setValue (
+export async function setValue (
     this: Element,
     value: string | number
 ) {

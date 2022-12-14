@@ -29,7 +29,7 @@ const VALID_TYPES = ['string', 'number']
  * @param {string | number}  value  value to be added
  *
  */
-export default function addValue (
+export function addValue (
     this: Element,
     value: string | number
 ) {

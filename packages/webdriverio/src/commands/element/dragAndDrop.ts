@@ -47,7 +47,7 @@ type ElementCoordinates = {
  * @param {DragAndDropOptions=} options           dragAndDrop command options
  * @param {Number=}             options.duration  how long the drag should take place
  */
-export default async function dragAndDrop (
+export async function dragAndDrop (
     this: Element,
     target: Element | ElementCoordinates,
     { duration = 10 }: DragAndDropOptions = {}

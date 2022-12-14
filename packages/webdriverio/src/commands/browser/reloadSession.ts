@@ -26,7 +26,7 @@ const log = logger('webdriverio')
  * @type utility
  *
  */
-export default async function reloadSession (this: Browser) {
+export async function reloadSession (this: Browser) {
     const oldSessionId = (this as Browser).sessionId
 
     /**

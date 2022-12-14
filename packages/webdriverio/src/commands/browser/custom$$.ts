@@ -26,7 +26,7 @@ import type { ElementArray, CustomStrategyFunction, CustomStrategyReference } fr
  * @param {Any} strategyArguments
  * @return {ElementArray}
  */
-export default async function custom$$ (
+export async function custom$$ (
     this: WebdriverIO.Browser,
     strategyName: string,
     ...strategyArguments: any[]

@@ -44,7 +44,7 @@ import type { Browser, Element } from '../../types'
  * @type protocol
  *
  */
-export default function executeAsync<ReturnValue, InnerArguments extends any[]>(
+export function executeAsync<ReturnValue, InnerArguments extends any[]>(
     this: Browser | Element,
     script:
         string |

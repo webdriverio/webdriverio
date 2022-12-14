@@ -113,7 +113,7 @@ export const SESSION_MOCKS: Record<string, Set<Interception>> = {}
  * @type utility
  *
  */
-export default async function mock (
+export async function mock (
     this: WebdriverIO.Browser,
     url: string | RegExp,
     filterOptions?: MockFilterOptions

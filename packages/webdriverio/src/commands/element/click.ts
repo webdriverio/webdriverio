@@ -81,7 +81,7 @@ import type { Button } from '../../utils/actions/index.js'
  * @param {number=}           options.y      Number (optional)
  * @param {number=}           options.skipRelease         Boolean (optional)
  */
-export default async function click(
+export async function click(
     this: WebdriverIO.Element,
     options?: ClickOptions
 ) {

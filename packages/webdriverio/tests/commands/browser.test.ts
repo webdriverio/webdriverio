@@ -15,7 +15,7 @@ test(scope + ' commands list and strategies', () => {
     /**
      * ignored commands that are just there for documentation purposes
      */
-    const ignored = ['addCommand', 'overwriteCommand']
+    const ignored = ['addCommand', 'overwriteCommand', 'SESSION_MOCKS']
 
     expect(prototype).toEqual(expected.filter((cmd) => !ignored.includes(cmd)))
 })

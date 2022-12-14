@@ -27,7 +27,7 @@ import type { Browser } from '../../types'
  * @type utility
  *
  */
-export default async function saveRecordingScreen (
+export async function saveRecordingScreen (
     this: Browser,
     filepath: string
 ) {

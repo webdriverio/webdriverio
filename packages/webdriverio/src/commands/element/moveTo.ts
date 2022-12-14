@@ -20,7 +20,7 @@ type MoveToOptions = {
  * @see  https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidmoveto
  * @type protocol
  */
-export default async function moveTo (
+export async function moveTo (
     this: Element,
     { xOffset, yOffset }: MoveToOptions = {}
 ) {

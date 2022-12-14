@@ -18,6 +18,6 @@ import type { Element } from '../../types'
  * @type property
  *
  */
-export default function getComputedRole (this: Element) {
+export function getComputedRole (this: Element) {
     return this.getElementComputedRole(this.elementId)
 }

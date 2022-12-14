@@ -26,7 +26,7 @@ import type { Element } from '../../types'
  * @type property
  *
  */
-export default function getAttribute (
+export function getAttribute (
     this: Element,
     attributeName: string
 ) {

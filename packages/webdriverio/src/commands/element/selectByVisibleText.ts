@@ -30,7 +30,7 @@ import type { Element } from '../../types'
  * @type action
  *
  */
-export default async function selectByVisibleText (
+export async function selectByVisibleText (
     this: Element,
     text: string | number
 ) {

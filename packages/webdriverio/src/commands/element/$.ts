@@ -67,5 +67,5 @@
  * @type utility
  *
  */
-import $ from '../browser/$.js'
-export default $
+import { $ as browser$ } from '../browser/$.js'
+export const $ = browser$

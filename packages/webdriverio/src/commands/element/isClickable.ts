@@ -41,7 +41,7 @@ import type { Element } from '../../types'
  * @type state
  *
  */
-export default async function isClickable (this: Element) {
+export async function isClickable (this: Element) {
     if (!await this.isDisplayed()) {
         return false
     }

@@ -31,7 +31,7 @@ import type { WaitForOptions } from '../../types.js'
  * @return {Boolean} `true` if element is clickable (or doesn't if flag is set)
  *
  */
-export default async function waitForClickable (
+export async function waitForClickable (
     this: WebdriverIO.Element,
     {
         timeout = this.options.waitforTimeout,

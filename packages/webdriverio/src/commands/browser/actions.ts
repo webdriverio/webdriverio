@@ -26,7 +26,7 @@ import type { KeyAction, PointerAction, WheelAction } from '../../utils/actions/
  * @type utility
  *
  */
-export default async function actions (
+export async function actions (
     this: WebdriverIO.Browser,
     actions: (KeyAction | PointerAction | WheelAction)[],
 ): Promise<void> {
