@@ -1,5 +1,5 @@
-import type { Page } from 'puppeteer-core/lib/cjs/puppeteer/common/Page'
-import type { Frame } from 'puppeteer-core/lib/cjs/puppeteer/common/FrameManager'
+import type { Page } from 'puppeteer-core/lib/cjs/puppeteer/api/Page'
+import type { Frame } from 'puppeteer-core/lib/cjs/puppeteer/common/Frame'
 import type { ElementReference } from '@wdio/protocols'
 
 import { ELEMENT_KEY } from '../constants'

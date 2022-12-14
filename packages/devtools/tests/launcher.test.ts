@@ -1,4 +1,4 @@
-import puppeteer from 'puppeteer-core'
+import puppeteer, { Puppeteer } from 'puppeteer-core'
 import { launch as launchChromeBrowserImport } from 'chrome-launcher'
 
 import launch from '../src/launcher'
@@ -30,7 +30,7 @@ test('launch chrome with default values', async () => {
     })
     expect(launchChromeBrowser.mock.calls).toMatchSnapshot()
     expect((puppeteer.connect as jest.Mock).mock.calls).toMatchSnapshot()
-    expect(puppeteer.registerCustomQueryHandler).toBeCalledWith(
+    expect(Puppeteer.registerCustomQueryHandler).toBeCalledWith(
         'shadow',
         {
             queryAll: expect.any(Function),

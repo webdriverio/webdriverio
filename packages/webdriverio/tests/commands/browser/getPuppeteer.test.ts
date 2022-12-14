@@ -16,6 +16,9 @@ describe('attach Puppeteer', () => {
             baseUrl: 'http://foobar.com',
             capabilities: {
                 browserName: 'foobar'
+            },
+            headers: {
+                Authorization: 'OAuth token'
             }
         })
     })
@@ -23,6 +26,7 @@ describe('attach Puppeteer', () => {
     it('should pass for Chrome', async () => {
         const pptr = await browser.getPuppeteer.call({
             ...browser,
+            options: browser.options,
             capabilities: {
                 browserName: 'chrome',
                 'goog:chromeOptions': {
@@ -38,6 +42,7 @@ describe('attach Puppeteer', () => {
     it('should pass for Firefox', async () => {
         const pprt = await browser.getPuppeteer.call({
             ...browser,
+            options: browser.options,
             capabilities: {
                 browserName: 'firefox',
                 browserVersion: '79.0b'
@@ -55,6 +60,7 @@ describe('attach Puppeteer', () => {
     it('should pass for Firefox (DevTools)', async () => {
         const pptr = await browser.getPuppeteer.call({
             ...browser,
+            options: browser.options,
             capabilities: {
                 browserName: 'firefox',
                 browserVersion: '79.0b',
@@ -75,6 +81,7 @@ describe('attach Puppeteer', () => {
     it('should pass for Edge', async () => {
         const pptr = await browser.getPuppeteer.call({
             ...browser,
+            options: browser.options,
             capabilities: {
                 browserName: 'edge',
                 'ms:edgeOptions': {
@@ -90,6 +97,7 @@ describe('attach Puppeteer', () => {
     it('should fail for old Firefox version', async () => {
         const err = await browser.getPuppeteer.call({
             ...browser,
+            options: browser.options,
             capabilities: {
                 browserName: 'firefox',
                 browserVersion: '78.0b'
@@ -108,6 +116,7 @@ describe('attach Puppeteer', () => {
     it('should not re-attach if connection was already established', async () => {
         const pptr = await browser.getPuppeteer.call({
             ...browser,
+            options: browser.options,
             capabilities: {
                 browserName: 'chrome',
                 'goog:chromeOptions': {
@@ -125,6 +134,7 @@ describe('attach Puppeteer', () => {
     it('should pass for Selenium CDP', async () => {
         const pptr = await browser.getPuppeteer.call({
             ...browser,
+            options: browser.options,
             capabilities: {
                 'se:cdp': 'http://my.grid:1234/session/mytestsession/se/cdp'
             }
@@ -149,7 +159,10 @@ describe('attach Puppeteer', () => {
             options: {
                 hostname: 'my.grid',
                 port: 4444,
-                path: '/wd/hub'
+                path: '/wd/hub',
+                headers: {
+                    Authorization: 'OAuth token'
+                }
             }
         })
         expect(typeof pptr).toBe('object')
@@ -172,7 +185,10 @@ describe('attach Puppeteer', () => {
             options: {
                 hostname: 'my.grid',
                 port: 4444,
-                path: '/wd/hub'
+                path: '/wd/hub',
+                headers: {
+                    Authorization: 'OAuth token'
+                }
             }
         })
         expect(typeof pptr).toBe('object')

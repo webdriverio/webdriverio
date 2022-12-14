@@ -9,7 +9,7 @@ import type Protocol from 'devtools-protocol'
 import type { TraceEvent, TraceEventArgs } from '@tracerbench/trace-event'
 import type { HTTPRequest } from 'puppeteer-core/lib/cjs/puppeteer/common/HTTPRequest'
 import type { CDPSession } from 'puppeteer-core/lib/cjs/puppeteer/common/Connection'
-import type { Page } from 'puppeteer-core/lib/cjs/puppeteer/common/Page'
+import type { Page } from 'puppeteer-core/lib/cjs/puppeteer/api/Page'
 
 import registerPerformanceObserverInPage from '../scripts/registerPerformanceObserverInPage'
 

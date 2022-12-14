@@ -287,27 +287,28 @@ describe('elements', () => {
     })
 
     it('should support deep selectors', async () => {
-        await browser.navigateTo('https://www.chromestatus.com/feature/5191745052606464')
-        const headerSlot = await browser.findElement('shadow', '.details__header')
+        await browser.navigateTo('https://polymer-library.polymer-project.org/3.0/api/elements/array-selector')
+        await new Promise((resolve) => setTimeout(resolve, 1000))
+        const headerSlot = await browser.findElement('shadow', 'section[anchor-id="elementBase-properties"]')
         expect(
-            await browser.getElementAttribute(headerSlot[ELEMENT_KEY], 'role')
-        ).toBe('button')
+            (await browser.getElementText(headerSlot[ELEMENT_KEY])).trim()
+        ).toContain('Properties')
     })
 
     it('can fetch shadow elements', async () => {
-        await browser.navigateTo('https://www.chromestatus.com/feature/5191745052606464')
-        const element = await browser.findElement('tag name', 'chromedash-toast')
+        await browser.navigateTo('https://polymer-library.polymer-project.org/3.0/api/elements/array-selector')
+        await new Promise((resolve) => setTimeout(resolve, 1000))
+        const element = await browser.findElement('tag name', 'pw-footer')
         const shadowRoot = await browser.getElementShadowRoot(
             element['element-6066-11e4-a52e-4f735466cecf']
         )
-        console.log(shadowRoot['shadow-6066-11e4-a52e-4f735466cecf'])
         const elementRef = await browser.findElementFromShadowRoot(
             shadowRoot['shadow-6066-11e4-a52e-4f735466cecf'],
             'css selector',
-            '#msg'
+            '.copyright'
         )
         expect(await browser.getElementText(elementRef[ELEMENT_KEY]))
-            .toBe('Welcome to chromestatus.com!')
+            .toContain('Brought to you by The Polymer Project')
     })
 })
 

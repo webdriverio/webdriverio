@@ -1,7 +1,7 @@
 import { launch as launchChromeBrowser } from 'chrome-launcher'
-import puppeteer, { PuppeteerNodeLaunchOptions } from 'puppeteer-core'
+import puppeteer, { PuppeteerNodeLaunchOptions, KnownDevices, Puppeteer, ConnectOptions } from 'puppeteer-core'
 import logger from '@wdio/logger'
-import type { Browser } from 'puppeteer-core/lib/cjs/puppeteer/common/Browser'
+import type { Browser } from 'puppeteer-core/lib/cjs/puppeteer/api/Browser'
 import type { Capabilities } from '@wdio/types'
 import { QueryHandler } from 'query-selector-shadow-dom/plugins/puppeteer'
 
@@ -26,7 +26,7 @@ import type { ExtendedCapabilities, DevToolsOptions } from './types'
 
 const log = logger('devtools')
 
-const DEVICE_NAMES = Object.values(puppeteer.devices).map((device) => device.name)
+const DEVICE_NAMES = Object.keys(KnownDevices)
 
 /**
  * launches Chrome and returns a Puppeteer browser instance
@@ -51,7 +51,7 @@ async function launchChrome (capabilities: ExtendedCapabilities) {
     let headless = (chromeOptions as any).headless || devtoolsOptions.headless
 
     if (typeof mobileEmulation.deviceName === 'string') {
-        const deviceProperties = Object.values(puppeteer.devices).find(device => device.name === mobileEmulation.deviceName)
+        const deviceProperties = KnownDevices[mobileEmulation.deviceName as keyof typeof KnownDevices]
 
         if (!deviceProperties) {
             throw new Error(`Unknown device name "${mobileEmulation.deviceName}", available: ${DEVICE_NAMES.join(', ')}`)
@@ -199,7 +199,7 @@ function launchBrowser (capabilities: ExtendedCapabilities, browserType: 'edge' 
 function connectBrowser (connectionUrl: string, capabilities: ExtendedCapabilities) {
     const connectionProp = connectionUrl.startsWith('http') ? 'browserURL' : 'browserWSEndpoint'
     const devtoolsOptions = capabilities['wdio:devtoolsOptions']
-    const options: puppeteer.ConnectOptions = {
+    const options: ConnectOptions = {
         [connectionProp]: connectionUrl,
         ...devtoolsOptions
     }
@@ -207,8 +207,8 @@ function connectBrowser (connectionUrl: string, capabilities: ExtendedCapabiliti
 }
 
 export default async function launch (capabilities: ExtendedCapabilities) {
-    puppeteer.unregisterCustomQueryHandler('shadow')
-    puppeteer.registerCustomQueryHandler('shadow', QueryHandler)
+    Puppeteer.unregisterCustomQueryHandler('shadow')
+    Puppeteer.registerCustomQueryHandler('shadow', QueryHandler as any)
     const browserName = capabilities.browserName?.toLowerCase()
 
     /**

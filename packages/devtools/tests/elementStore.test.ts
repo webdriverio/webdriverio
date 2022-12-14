@@ -1,6 +1,6 @@
 import ElementStore from '../src/elementstore'
-import type { ElementHandle } from 'puppeteer-core/lib/cjs/puppeteer/common/JSHandle'
-import type { Frame } from 'puppeteer-core/lib/cjs/puppeteer/common/FrameManager'
+import type { ElementHandle } from 'puppeteer-core/lib/cjs/puppeteer/common/ElementHandle'
+import type { Frame } from 'puppeteer-core/lib/cjs/puppeteer/common/Frame'
 
 const elementHandleFactory = (
     { isConnected = true, frame = Symbol() }: { isConnected?: boolean, frame?: symbol } = {}
@@ -10,7 +10,7 @@ const elementHandleFactory = (
         return cb({ isConnected })
     },
     executionContext() {
-        return { frame: () => frame }
+        return { _world: { frame: () => frame } }
     }
 })
 
@@ -44,6 +44,8 @@ test('should clear elements of a specific frame', async () => {
     store.set(elementHandle1)
     const elementHandle2 = elementHandleFactory({ frame: frame2 }) as any as ElementHandle
     store.set(elementHandle2)
+    console.log("store['_frameMap'].size:", store['_frameMap'].size)
+
     expect(store['_frameMap'].size).toBe(2)
 
     store.clear(frame1 as any as Frame)

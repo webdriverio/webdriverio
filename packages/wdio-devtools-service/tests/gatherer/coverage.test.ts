@@ -5,7 +5,7 @@ import CoverageGatherer from '../../src/gatherer/coverage'
 import libReport from 'istanbul-lib-report'
 import reports from 'istanbul-reports'
 import { transformAsync as babelTransform } from '@babel/core'
-import type { Page } from 'puppeteer-core/lib/cjs/puppeteer/common/Page'
+import type { Page } from 'puppeteer-core/lib/cjs/puppeteer/api/Page'
 
 jest.useFakeTimers()
 jest.spyOn(global, 'setInterval')

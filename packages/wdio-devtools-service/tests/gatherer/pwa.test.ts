@@ -1,5 +1,5 @@
 import type { CDPSession } from 'puppeteer-core/lib/cjs/puppeteer/common/Connection'
-import type { Page } from 'puppeteer-core/lib/cjs/puppeteer/common/Page'
+import type { Page } from 'puppeteer-core/lib/cjs/puppeteer/api/Page'
 
 import PWAGatherer from '../../src/gatherer/pwa'
 import type { GathererDriver } from '../../src/types'
