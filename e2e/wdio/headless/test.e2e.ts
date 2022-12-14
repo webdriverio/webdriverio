@@ -1,5 +1,5 @@
 
-import { Capabilities } from '../../../packages/wdio-types'
+import type { Capabilities } from '../../../packages/wdio-types'
 
 describe('main suite 1', () => {
     it('foobar test', async () => {
@@ -31,6 +31,14 @@ describe('main suite 1', () => {
         await browser.url('https://the-internet.herokuapp.com/shadowdom')
         await $('h1').waitForDisplayed()
         await expect($('>>>ul[slot="my-text"] li:last-child')).toHaveText('In a list!')
+    })
+
+    it('should be able to use async-iterators', async () => {
+        await browser.url('https://webdriver.io')
+        const contributeLink = await browser.$$('a.navbar__item.navbar__link').find<WebdriverIO.Element>(
+            async (link) => await link.getText() === 'Contribute')
+        await contributeLink.click()
+        await expect(browser).toHaveTitle('Contribute | WebdriverIO')
     })
 
     /**
