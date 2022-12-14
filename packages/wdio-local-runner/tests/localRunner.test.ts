@@ -4,6 +4,8 @@ import { expect, test, vi } from 'vitest'
 
 import LocalRunner from '../src/index.js'
 
+const sleep = (ms = 100) => new Promise((resolve) => setTimeout(resolve, ms))
+
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 vi.mock('child_process', () => {
@@ -18,7 +20,7 @@ vi.mock('child_process', () => {
     }
 })
 
-test('should fork a new process', () => {
+test('should fork a new process', async () => {
     const runner = new LocalRunner(undefined as never, {
         outputDir: '/foo/bar',
         runnerEnv: { FORCE_COLOR: 1 }
@@ -33,7 +35,8 @@ test('should fork a new process', () => {
         execArgv: [],
         retries: 0
     })
-    worker.emit('message', { name: 'ready' })
+    worker['_handleMessage']({ name: 'ready' } as any)
+    await sleep()
 
     expect(worker.isBusy).toBe(true)
     expect(vi.mocked(child.fork).mock.calls[0][0].endsWith('run.js')).toBe(true)
@@ -71,7 +74,8 @@ test('should shut down worker processes', async () => {
         execArgv: [],
         retries: 0
     })
-    worker1.isReady = true
+    worker1['_handleMessage']({ name: 'ready' } as any)
+    await sleep()
     const worker2 = runner.run({
         cid: '0-5',
         command: 'run',
@@ -82,7 +86,8 @@ test('should shut down worker processes', async () => {
         execArgv: [],
         retries: 0
     })
-    worker2.isReady = true
+    worker2['_handleMessage']({ name: 'ready' } as any)
+    await sleep()
     setTimeout(() => {
         worker1.isBusy = false
         setTimeout(() => {
