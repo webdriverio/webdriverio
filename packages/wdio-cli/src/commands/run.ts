@@ -1,6 +1,6 @@
 import path from 'node:path'
 import fs from 'node:fs/promises'
-import cp from 'node:child_process'
+import { execa } from 'execa'
 import type { Argv } from 'yargs'
 
 import Launcher from '../launcher.js'
@@ -183,9 +183,9 @@ export async function handler(argv: RunCommandArguments) {
             path.join(path.dirname(wdioConf), 'tsconfig.json')
         )
         const hasLocalTSConfig = await fs.access(localTSConfigPath).then(() => true, () => false)
-        const tsProcess = cp.spawn(nodePath, process.argv.slice(1), {
+        const p = await execa(nodePath, process.argv.slice(1), {
+            reject: false,
             cwd: process.cwd(),
-            detached: true,
             stdio: 'inherit',
             env: {
                 ...process.env,
@@ -193,12 +193,7 @@ export async function handler(argv: RunCommandArguments) {
                 NODE_OPTIONS
             }
         })
-
-        /**
-         * ensure process is killed according to result of new process
-         */
-        tsProcess.on('close', (code) => process.exit(code || 0))
-        return tsProcess
+        return !process.env.VITEST_WORKER_ID && process.exit(p.exitCode)
     }
 
     /**

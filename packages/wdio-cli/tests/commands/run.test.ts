@@ -2,11 +2,12 @@ import { vi, describe, it, expect, afterEach, beforeEach } from 'vitest'
 // @ts-expect-error mock
 import { yargs } from 'yargs'
 import fs from 'node:fs/promises'
-import cp from 'node:child_process'
+import { execa } from 'execa'
 import * as runCmd from '../../src/commands/run.js'
 import * as configCmd from '../../src/commands/config.js'
 
 vi.mock('yargs')
+vi.mock('execa')
 vi.mock('node:child_process', () => ({
     default: {
         spawn: vi.fn()
@@ -102,25 +103,24 @@ describe('Command: run', () => {
 
     describe('launch', () => {
         afterEach(() => {
-            vi.mocked(cp.spawn).mockClear()
+            vi.mocked(execa).mockClear()
             delete process.env.NODE_OPTIONS
         })
 
         it('should restart process if esm loader if needed', async () => {
-            expect(cp.spawn).toBeCalledTimes(0)
-            vi.mocked(cp.spawn).mockReturnValue({ on: vi.fn() } as any)
-            const p = await runCmd.handler({ configPath: '/wdio.conf.ts' } as any)
-            expect(cp.spawn).toBeCalledTimes(1)
-            expect(vi.mocked(cp.spawn).mock.calls[0][2].env?.NODE_OPTIONS)
+            expect(execa).toBeCalledTimes(0)
+            vi.mocked(execa).mockReturnValue({ on: vi.fn() } as any)
+            await runCmd.handler({ configPath: '/wdio.conf.ts' } as any)
+            expect(execa).toBeCalledTimes(1)
+            expect(vi.mocked(execa).mock.calls[0][2]!.env?.NODE_OPTIONS)
                 .toContain('--loader ts-node/esm/transpile-only')
-            expect(p?.on).toBeCalledWith('close', expect.any(Function))
         })
 
         it('should not restart if loader is already provided', async () => {
-            expect(cp.spawn).toBeCalledTimes(0)
+            expect(execa).toBeCalledTimes(0)
             process.env.NODE_OPTIONS = '--loader ts-node/esm'
             await runCmd.handler({ configPath: '/wdio.conf.ts' } as any)
-            expect(cp.spawn).toBeCalledTimes(0)
+            expect(execa).toBeCalledTimes(0)
         })
     })
 
