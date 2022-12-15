@@ -12,14 +12,14 @@ type MultiRemoteBrowserImport = import('../types.js').MultiRemoteBrowser
 declare namespace WebdriverIO {
     interface Browser extends BrowserImport { }
     interface Element extends ElementImport { }
-    // @ts-expect-error
     interface MultiRemoteBrowser extends MultiRemoteBrowserImport { }
 }
 
 declare module NodeJS {
     interface Global {
-        browser: WebdriverIO.Browser
         multiremotebrowser: WebdriverIO.MultiRemoteBrowser
+        browser: WebdriverIO.Browser
+        driver: WebdriverIO.Browser
     }
 }
 

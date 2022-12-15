@@ -4,7 +4,7 @@ import logger from '@wdio/logger'
 // @ts-ignore mocked (original defined in webdriver package)
 import got from 'got'
 
-import waitForExist from '../src/commands/element/waitForExist.js'
+import { waitForExist } from '../src/commands/element/waitForExist.js'
 import { remote } from '../src/index.js'
 import type { Browser } from '../src/types'
 
@@ -12,19 +12,19 @@ vi.mock('got')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 vi.mock('../src/commands/element/waitUntil', () => ({
     __esModule: true,
-    default: vi.fn().mockImplementation(() => { return true })
+    waitUntil: vi.fn().mockImplementation(() => { return true })
 }))
 vi.mock('../src/commands/element/waitForDisplayed', () => ({
     __esModule: true,
-    default: vi.fn().mockImplementation(() => { return true })
+    waitForDisplayed: vi.fn().mockImplementation(() => { return true })
 }))
 vi.mock('../src/commands/element/waitForExist', () => ({
     __esModule: true,
-    default: vi.fn().mockImplementation(() => { return true })
+    waitForExist: vi.fn().mockImplementation(() => { return true })
 }))
 vi.mock('../src/commands/element/waitForEnabled', () => ({
     __esModule: true,
-    default: vi.fn().mockImplementation(() => { return true })
+    waitForEnabled: vi.fn().mockImplementation(() => { return true })
 }))
 
 const { warn } = logger('foobar')

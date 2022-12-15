@@ -32,7 +32,7 @@ export interface ChainablePromiseElement<T> extends AsyncElementProto, Promise<T
     /**
      * parent of the element if fetched via `$(parent).$(child)`
      */
-    parent: Promise<Element | Browser | MultiRemoteBrowser>
+    parent: Promise<WebdriverIO.Element | WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser>
     /**
      * selector used to fetch this element, can be
      * - undefined if element was created via `$({ 'element-6066-11e4-a52e-4f735466cecf': 'ELEMENT-1' })`
@@ -67,30 +67,30 @@ export interface ChainablePromiseArray<T> extends Promise<T> {
     /**
      * parent of the element if fetched via `$(parent).$(child)`
      */
-    parent: Promise<Element | Browser | MultiRemoteBrowser>
+    parent: Promise<WebdriverIO.Element | WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser>
     /**
      * allow to access a specific index of the element set
      */
-    [n: number]: ChainablePromiseElement<Element | undefined>
+    [n: number]: ChainablePromiseElement<Element | WebdriverIO.Element | undefined>
 
     /**
      * Unwrap the nth element of the element list.
      */
-    forEach: <T>(callback: (currentValue: Element, index: number, array: T[]) => void, thisArg?: any) => Promise<void>
-    forEachSeries: <T>(callback: (currentValue: Element, index: number, array: T[]) => void, thisArg?: any) => Promise<void>
-    map: <U>(callback: (currentValue: Element, index: number, array: T[]) => U | Promise<U>, thisArg?: any) => Promise<U[]>
-    mapSeries: <T, U>(callback: (currentValue: Element, index: number, array: T[]) => U | Promise<U>, thisArg?: any) => Promise<U[]>;
-    find: <T>(callback: (currentValue: Element, index: number, array: T[]) => boolean | Promise<boolean>, thisArg?: any) => Promise<T>;
-    findSeries: <T>(callback: (currentValue: Element, index: number, array: T[]) => boolean | Promise<boolean>, thisArg?: any) => Promise<T>;
-    findIndex: <T>(callback: (currentValue: Element, index: number, array: T[]) => boolean | Promise<boolean>, thisArg?: any) => Promise<number>;
-    findIndexSeries: <T>(callback: (currentValue: Element, index: number, array: T[]) => boolean | Promise<boolean>, thisArg?: any) => Promise<number>;
-    some: <T>(callback: (currentValue: Element, index: number, array: T[]) => boolean | Promise<boolean>, thisArg?: any) => Promise<boolean>;
-    someSeries: <T>(callback: (currentValue: Element, index: number, array: T[]) => boolean | Promise<boolean>, thisArg?: any) => Promise<boolean>;
-    every: <T>(callback: (currentValue: Element, index: number, array: T[]) => boolean | Promise<boolean>, thisArg?: any) => Promise<boolean>;
-    everySeries: <T>(callback: (currentValue: Element, index: number, array: T[]) => boolean | Promise<boolean>, thisArg?: any) => Promise<boolean>;
-    filter: <T>(callback: (currentValue: Element, index: number, array: T[]) => boolean | Promise<boolean>, thisArg?: any) => Promise<Element[]>;
-    filterSeries: <T>(callback: (currentValue: Element, index: number, array: T[]) => boolean | Promise<boolean>, thisArg?: any) => Promise<Element[]>;
-    reduce: <T, U>(callback: (accumulator: U, currentValue: Element, currentIndex: number, array: T[]) => U | Promise<U>, initialValue?: U) => Promise<U>;
+    forEach: <T>(callback: (currentValue: WebdriverIO.Element, index: number, array: T[]) => void, thisArg?: any) => Promise<void>
+    forEachSeries: <T>(callback: (currentValue: WebdriverIO.Element, index: number, array: T[]) => void, thisArg?: any) => Promise<void>
+    map: <U>(callback: (currentValue: WebdriverIO.Element, index: number, array: T[]) => U | Promise<U>, thisArg?: any) => Promise<U[]>
+    mapSeries: <T, U>(callback: (currentValue: WebdriverIO.Element, index: number, array: T[]) => U | Promise<U>, thisArg?: any) => Promise<U[]>;
+    find: <T>(callback: (currentValue: WebdriverIO.Element, index: number, array: T[]) => boolean | Promise<boolean>, thisArg?: any) => Promise<T>;
+    findSeries: <T>(callback: (currentValue: WebdriverIO.Element, index: number, array: T[]) => boolean | Promise<boolean>, thisArg?: any) => Promise<T>;
+    findIndex: <T>(callback: (currentValue: WebdriverIO.Element, index: number, array: T[]) => boolean | Promise<boolean>, thisArg?: any) => Promise<number>;
+    findIndexSeries: <T>(callback: (currentValue: WebdriverIO.Element, index: number, array: T[]) => boolean | Promise<boolean>, thisArg?: any) => Promise<number>;
+    some: <T>(callback: (currentValue: WebdriverIO.Element, index: number, array: T[]) => boolean | Promise<boolean>, thisArg?: any) => Promise<boolean>;
+    someSeries: <T>(callback: (currentValue: WebdriverIO.Element, index: number, array: T[]) => boolean | Promise<boolean>, thisArg?: any) => Promise<boolean>;
+    every: <T>(callback: (currentValue: WebdriverIO.Element, index: number, array: T[]) => boolean | Promise<boolean>, thisArg?: any) => Promise<boolean>;
+    everySeries: <T>(callback: (currentValue: WebdriverIO.Element, index: number, array: T[]) => boolean | Promise<boolean>, thisArg?: any) => Promise<boolean>;
+    filter: <T>(callback: (currentValue: WebdriverIO.Element, index: number, array: T[]) => boolean | Promise<boolean>, thisArg?: any) => Promise<WebdriverIO.Element[]>;
+    filterSeries: <T>(callback: (currentValue: WebdriverIO.Element, index: number, array: T[]) => boolean | Promise<boolean>, thisArg?: any) => Promise<WebdriverIO.Element[]>;
+    reduce: <T, U>(callback: (accumulator: U, currentValue: WebdriverIO.Element, currentIndex: number, array: T[]) => U | Promise<U>, initialValue?: U) => Promise<U>;
 }
 
 export type BrowserCommandsType = Omit<$BrowserCommands, keyof ChainablePrototype> & ChainablePrototype
@@ -118,9 +118,9 @@ export type MultiRemoteProtocolCommandsType = {
     [K in keyof ProtocolCommands]: (...args: Parameters<ProtocolCommands[K]>) => Promise<ThenArg<ReturnType<ProtocolCommands[K]>>[]>
 }
 
-export interface ElementArray extends Array<Element> {
+export interface ElementArray extends Array<WebdriverIO.Element> {
     selector: Selector
-    parent: Element | Browser | MultiRemoteBrowser
+    parent: WebdriverIO.Element | WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
     foundWith: string
     props: any[]
 }
@@ -364,7 +364,7 @@ export interface TouchAction {
     action: ActionTypes,
     x?: number,
     y?: number,
-    element?: Element,
+    element?: WebdriverIO.Element,
     ms?: number
 }
 export type TouchActionParameter = string | string[] | TouchAction | TouchAction[];
