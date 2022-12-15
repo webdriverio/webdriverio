@@ -19,7 +19,7 @@ export const getElement = function findElement(
     selector?: Selector,
     res?: ElementReference | Error,
     isReactElement = false
-): Element {
+): WebdriverIO.Element {
     const browser = getBrowserObject(this)
     const browserCommandKeys = Object.keys(browserCommands)
     const propertiesObject = {
