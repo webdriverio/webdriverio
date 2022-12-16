@@ -1,5 +1,3 @@
-import type { Element } from '../../types'
-
 /**
  *
  * Will return true or false whether or not an `<option>` or `<input>` element of type
@@ -29,6 +27,6 @@ import type { Element } from '../../types'
  * @type state
  *
  */
-export function isSelected (this: Element) {
+export function isSelected (this: WebdriverIO.Element) {
     return this.isElementSelected(this.elementId)
 }

@@ -4,13 +4,12 @@ import { expect, describe, it, afterEach, beforeAll, vi } from 'vitest'
 // @ts-ignore mocked (original defined in webdriver package)
 import got from 'got'
 import { remote } from '../../../src/index.js'
-import type { Browser } from '../../../src/types'
 
 vi.mock('got')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 describe('getText test', () => {
-    let browser: Browser
+    let browser: WebdriverIO.Browser
     let elem: any
 
     beforeAll(async () => {

@@ -1,6 +1,5 @@
 import path from 'node:path'
 import { describe, expect, test, vi } from 'vitest'
-import type { Browser } from 'webdriverio'
 
 import {
     sumByKey, isBrowserVersionLower, getBrowserMajorVersion,
@@ -40,7 +39,7 @@ test('sumByKey', () => {
 
 test('setUnsupportedCommand', () => {
     const browser = { addCommand: vi.fn() }
-    setUnsupportedCommand(browser as unknown as Browser)
+    setUnsupportedCommand(browser as unknown as WebdriverIO.Browser)
     expect(browser.addCommand).toHaveBeenCalledWith('cdp', expect.any(Function))
     const fn = browser.addCommand.mock.calls[0][1]
     expect(fn).toThrow()

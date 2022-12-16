@@ -1,5 +1,4 @@
 import { verifyArgsAndStripIfElement } from '../../utils/index.js'
-import type { Browser, Element } from '../../types'
 
 /**
  *
@@ -45,7 +44,7 @@ import type { Browser, Element } from '../../types'
  *
  */
 export function executeAsync<ReturnValue, InnerArguments extends any[]>(
-    this: Browser | Element,
+    this: WebdriverIO.Browser | WebdriverIO.Element,
     script:
         string |
         ((...args: [...innerArgs: InnerArguments, callback: (result?: ReturnValue) => void]) => void),

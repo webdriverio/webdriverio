@@ -1,5 +1,4 @@
 import logger from '@wdio/logger'
-import type { Browser } from '../../types'
 
 const log = logger('webdriverio')
 
@@ -27,7 +26,7 @@ const log = logger('webdriverio')
  *
  */
 export function scroll (
-    this: Browser,
+    this: WebdriverIO.Browser,
     x = 0,
     y = 0
 ) {

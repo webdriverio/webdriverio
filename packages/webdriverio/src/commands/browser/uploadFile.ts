@@ -3,8 +3,6 @@ import path from 'node:path'
 import archiver from 'archiver'
 import type { Capabilities } from '@wdio/types'
 
-import type { Browser } from '../../types'
-
 /**
  * Uploads a file to the Selenium Standalone server or other browser driver
  * (e.g. Chromedriver) by using the [`file`](https://webdriver.io/docs/api/selenium#file) command.
@@ -36,7 +34,7 @@ import type { Browser } from '../../types'
  * @return {String} remote URL
  */
 export async function uploadFile (
-    this: Browser,
+    this: WebdriverIO.Browser,
     localPath: string
 ): Promise<string> {
     /**

@@ -12,7 +12,7 @@ import TotalBlockingTime from 'lighthouse/lighthouse-core/audits/metrics/total-b
 import ReportScoring from 'lighthouse/lighthouse-core/scoring.js'
 import defaultConfig from 'lighthouse/lighthouse-core/config/default-config.js'
 import logger from '@wdio/logger'
-import type { Browser, CustomInstanceCommands } from 'webdriverio'
+import type { CustomInstanceCommands } from 'webdriverio'
 
 import { DEFAULT_FORM_FACTOR, PWA_AUDITS } from './constants.js'
 import type {
@@ -74,7 +74,7 @@ export default class Auditor {
      * an Auditor instance is created for every trace so provide an updateCommands
      * function to receive the latest performance metrics with the browser instance
      */
-    updateCommands (browser: Browser, customFn?: CustomInstanceCommands<Browser>['addCommand']) {
+    updateCommands (browser: WebdriverIO.Browser, customFn?: CustomInstanceCommands<WebdriverIO.Browser>['addCommand']) {
         const commands = Object.getOwnPropertyNames(Object.getPrototypeOf(this)).filter(
             fnName => fnName !== 'constructor' && fnName !== 'updateCommands' && !fnName.startsWith('_'))
         commands.forEach(fnName => browser.addCommand(fnName, customFn || (this[fnName as keyof Auditor] as any).bind(this)))

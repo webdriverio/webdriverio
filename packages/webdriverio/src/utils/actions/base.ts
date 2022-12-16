@@ -1,5 +1,4 @@
 import { ELEMENT_KEY } from '../../constants.js'
-import type { Browser } from '../../types'
 
 export type ActionType = 'key' | 'pointer' | 'wheel'
 export type KeyActionType = 'mouse' | 'pen' | 'touch'
@@ -17,11 +16,11 @@ export default class BaseAction {
     #id: string
     #type: ActionType
     #parameters: ActionParameters
-    #instance: Browser
+    #instance: WebdriverIO.Browser
     protected sequence: any[] = []
 
     constructor (
-        protected instance: Browser,
+        protected instance: WebdriverIO.Browser,
         type: ActionType,
         params?: BaseActionParams
     ) {

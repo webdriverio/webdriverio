@@ -4,7 +4,6 @@ import { expect, describe, it, vi, beforeEach, beforeAll } from 'vitest'
 import puppeteer from 'puppeteer-core'
 
 import { remote } from '../../../src/index.js'
-import type { Browser } from '../../../src/types'
 
 vi.mock('got')
 vi.mock('puppeteer-core')
@@ -13,7 +12,7 @@ vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdi
 const puppeteerConnect = vi.mocked(puppeteer.connect)
 
 describe('attach Puppeteer', () => {
-    let browser: Browser
+    let browser: WebdriverIO.Browser
 
     beforeEach(() => {
         puppeteerConnect.mockClear()

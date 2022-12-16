@@ -1,8 +1,6 @@
 import { serializeError } from 'serialize-error'
 import WDIORepl from '@wdio/repl'
 
-import type { Browser } from '../../types'
-
 /**
  *
  * This command helps you to debug your integration tests. It stops the running browser and gives
@@ -34,7 +32,7 @@ import type { Browser } from '../../types'
  *
  */
 export function debug(
-    this: Browser,
+    this: WebdriverIO.Browser,
     commandTimeout = 5000
 ) {
     const repl = new WDIORepl()

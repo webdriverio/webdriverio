@@ -4,7 +4,6 @@ import http from 'node:http'
 import https from 'node:https'
 import path from 'node:path'
 
-import type { Browser, MultiRemoteBrowser } from 'webdriverio'
 import type { Capabilities, Frameworks, Options } from '@wdio/types'
 import type { BeforeCommandArgs, AfterCommandArgs } from '@wdio/reporter'
 import logger from '@wdio/logger'
@@ -58,7 +57,7 @@ export function getBrowserDescription(cap: Capabilities.DesiredCapabilities) {
  * @param caps browser capbilities object. In case of multiremote, the object itself should have a property named 'capabilities'
  * @param browserName browser name in case of multiremote
  */
-export function getBrowserCapabilities(browser: Browser | MultiRemoteBrowser, caps?: Capabilities.RemoteCapability, browserName?: string) {
+export function getBrowserCapabilities(browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser, caps?: Capabilities.RemoteCapability, browserName?: string) {
     if (!browser.isMultiremote) {
         return { ...browser.capabilities, ...caps } as Capabilities.Capabilities
     }
@@ -319,14 +318,14 @@ export function getUniqueIdentifierForCucumber(world: ITestCaseHookParameter): s
     return world.pickle.uri + '_' + world.pickle.astNodeIds.join(',')
 }
 
-export function getCloudProvider(browser: Browser<'async'> | MultiRemoteBrowser<'async'>): string {
+export function getCloudProvider(browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser): string {
     if (browser.options && browser.options.hostname && browser.options.hostname.includes('browserstack')) {
         return 'browserstack'
     }
     return 'unknown_grid'
 }
 
-export function isBrowserstackSession(browser?: Browser<'async'> | MultiRemoteBrowser<'async'>) {
+export function isBrowserstackSession(browser?: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser) {
     return browser && getCloudProvider(browser).toLowerCase() === 'browserstack'
 }
 

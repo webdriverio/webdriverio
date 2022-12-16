@@ -1,5 +1,3 @@
-import type { Element } from '../../types'
-
 /**
  *
  * Get the text content from a DOM-element. Make sure the element
@@ -40,6 +38,6 @@ import type { Element } from '../../types'
  * @type property
  *
  */
-export function getText (this: Element) {
+export function getText (this: WebdriverIO.Element) {
     return this.getElementText(this.elementId)
 }

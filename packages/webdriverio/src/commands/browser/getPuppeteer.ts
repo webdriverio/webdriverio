@@ -4,7 +4,6 @@ import type { Browser as PuppeteerBrowser } from 'puppeteer-core/lib/esm/puppete
 import type { Capabilities } from '@wdio/types'
 
 import { FF_REMOTE_DEBUG_ARG } from '../../constants.js'
-import type { Browser } from '../../types'
 
 const log = logger('webdriverio')
 
@@ -43,7 +42,7 @@ const log = logger('webdriverio')
  *
  * @return {PuppeteerBrowser}  initiated puppeteer instance connected to the browser
  */
-export async function getPuppeteer (this: Browser) {
+export async function getPuppeteer (this: WebdriverIO.Browser) {
     /**
      * check if we already connected Puppeteer and if so return
      * that instance

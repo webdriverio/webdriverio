@@ -1,5 +1,3 @@
-import type { Element } from '../../types'
-
 /**
  *
  * Get an attribute from a DOM-element based on the attribute name.
@@ -27,7 +25,7 @@ import type { Element } from '../../types'
  *
  */
 export function getAttribute (
-    this: Element,
+    this: WebdriverIO.Element,
     attributeName: string
 ) {
     return this.getElementAttribute(this.elementId, attributeName)

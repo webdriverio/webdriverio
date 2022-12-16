@@ -1,4 +1,3 @@
-import type { Browser, MultiRemoteBrowser } from 'webdriverio'
 import type { Capabilities } from '@wdio/types'
 import type { CDPSession } from 'puppeteer-core/lib/esm/puppeteer/common/Connection.js'
 import type { Target } from 'puppeteer-core/lib/esm/puppeteer/common/Target.js'
@@ -31,7 +30,7 @@ const CUSTOM_COMMANDS = [
     'checkPWA'
 ]
 
-export function setUnsupportedCommand (browser: Browser | MultiRemoteBrowser) {
+export function setUnsupportedCommand (browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser) {
     for (const command of CUSTOM_COMMANDS) {
         browser.addCommand(command, /* istanbul ignore next */() => {
             throw new Error(UNSUPPORTED_ERROR_MESSAGE)

@@ -2,7 +2,6 @@ import logger from '@wdio/logger'
 
 import { ELEMENT_KEY } from '../../constants.js'
 import { getBrowserObject } from '../../utils/index.js'
-import type { Element } from '../../types'
 
 const log = logger('webdriverio')
 
@@ -43,7 +42,7 @@ function scrollIntoViewWeb (
  *
  */
 export async function scrollIntoView (
-    this: Element,
+    this: WebdriverIO.Element,
     options: ScrollIntoViewOptions | boolean = { block: 'start', inline: 'nearest' }
 ) {
     const browser = getBrowserObject(this)

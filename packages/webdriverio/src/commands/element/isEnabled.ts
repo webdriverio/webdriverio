@@ -1,5 +1,3 @@
-import type { Element } from '../../types'
-
 /**
  *
  * Return true or false if the selected DOM-element is enabled.
@@ -32,6 +30,6 @@ import type { Element } from '../../types'
  * @type state
  *
  */
-export function isEnabled (this: Element) {
+export function isEnabled (this: WebdriverIO.Element) {
     return this.isElementEnabled(this.elementId)
 }

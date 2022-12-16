@@ -4,12 +4,11 @@ import { expect, describe, it, beforeEach, afterEach, vi } from 'vitest'
 // @ts-ignore mocked (original defined in webdriver package)
 import got from 'got'
 import { remote, Key } from '../../../src/index.js'
-import type { Browser } from '../../../src/types'
 
 vi.mock('got')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
-let browser: Browser
+let browser: WebdriverIO.Browser
 
 describe('addValue test', () => {
     afterEach(() => {

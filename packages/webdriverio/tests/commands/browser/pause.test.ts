@@ -3,7 +3,6 @@ import { expect, describe, beforeEach, afterEach, it, vi } from 'vitest'
 // @ts-ignore mocked (original defined in webdriver package)
 import got from 'got'
 import { remote } from '../../../src/index.js'
-import type { Browser } from '../../../src/types'
 
 vi.mock('got')
 vi.useFakeTimers()
@@ -11,7 +10,7 @@ vi.spyOn(global, 'setTimeout')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 describe('pause test', () => {
-    let browser: Browser
+    let browser: WebdriverIO.Browser
     beforeEach(async () => {
         browser = await remote({
             baseUrl: 'http://foobar.com',
@@ -35,6 +34,6 @@ describe('pause test', () => {
     })
 
     afterEach(() => {
-        got.mockClear()
+        vi.mocked(got).mockClear()
     })
 })

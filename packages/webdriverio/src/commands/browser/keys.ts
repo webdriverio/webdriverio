@@ -1,7 +1,6 @@
 import type { UNICODE_CHARACTERS } from '@wdio/utils'
 
 import { checkUnicode } from '../../utils/index.js'
-import type { Browser } from '../../types'
 
 /**
  *
@@ -40,7 +39,7 @@ import type { Browser } from '../../types'
  *
  */
 export function keys (
-    this: Browser,
+    this: WebdriverIO.Browser,
     value: string | string[]
 ) {
     let keySequence: string[] = []

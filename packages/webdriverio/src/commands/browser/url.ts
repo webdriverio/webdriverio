@@ -1,5 +1,4 @@
 import { validateUrl } from '../../utils/index.js'
-import type { Browser } from '../../types'
 
 /**
  *
@@ -38,7 +37,7 @@ import type { Browser } from '../../types'
  *
  */
 export function url (
-    this: Browser,
+    this: WebdriverIO.Browser,
     path: string
 ) {
     if (typeof path !== 'string') {

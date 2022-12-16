@@ -1,6 +1,5 @@
 import fs from 'node:fs'
 import { getAbsoluteFilepath, assertDirectoryExists } from '../../utils/index.js'
-import type { Browser } from '../../types'
 
 type PDFPrintOptions = {
     orientation?: string,
@@ -46,7 +45,7 @@ type PDFPrintOptions = {
  *
  */
 export async function savePDF (
-    this: Browser,
+    this: WebdriverIO.Browser,
     filepath: string,
     options?: PDFPrintOptions
 ) {

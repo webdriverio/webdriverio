@@ -1,5 +1,3 @@
-import type { Browser } from '../../types'
-
 /**
  *
  * Retrieve a [cookie](https://w3c.github.io/webdriver/webdriver-spec.html#cookies)
@@ -33,7 +31,7 @@ import type { Browser } from '../../types'
  *
  */
 export async function getCookies(
-    this: Browser,
+    this: WebdriverIO.Browser,
     names?: string | string[]
 ) {
     if (names === undefined) {

@@ -1,7 +1,6 @@
 import { ELEMENT_KEY } from '../../constants.js'
 import { getBrowserObject } from '../../utils/index.js'
 import getHTMLScript from '../../scripts/getHTML.js'
-import type { Element } from '../../types'
 
 /**
  *
@@ -34,7 +33,7 @@ import type { Element } from '../../types'
  *
  */
 export function getHTML (
-    this: Element,
+    this: WebdriverIO.Element,
     includeSelectorTag = true
 ) {
     const browser = getBrowserObject(this)

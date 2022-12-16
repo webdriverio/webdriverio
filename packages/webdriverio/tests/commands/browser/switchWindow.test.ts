@@ -3,7 +3,6 @@ import { expect, describe, beforeEach, it, vi, beforeAll, afterAll } from 'vites
 // @ts-ignore mocked (original defined in webdriver package)
 import got from 'got'
 import { remote } from '../../../src/index.js'
-import type { Browser } from '../../../src/types'
 
 vi.mock('got')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
@@ -11,7 +10,7 @@ const webdriverResponses = [null, null, 'foo', 'bar', 'loo', null, 'hello', 'wor
 
 describe('switchWindow', () => {
     // @ts-ignore
-    let browser: Browser
+    let browser: WebdriverIO.Browser
 
     beforeAll(() => {
         // @ts-ignore

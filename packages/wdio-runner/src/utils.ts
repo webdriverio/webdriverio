@@ -4,7 +4,6 @@ import { remote, multiremote, attach } from 'webdriverio'
 import { DEFAULTS } from 'webdriver'
 import { DEFAULT_CONFIGS } from '@wdio/config'
 import type { Options, Capabilities } from '@wdio/types'
-import type { Browser, MultiRemoteBrowser } from 'webdriverio'
 
 const log = logger('@wdio/runner')
 
@@ -54,7 +53,7 @@ export async function initialiseInstance (
     config: ConfigWithSessionId,
     capabilities: Capabilities.RemoteCapability,
     isMultiremote?: boolean
-): Promise<Browser | MultiRemoteBrowser> {
+): Promise<WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser> {
     /**
      * check if config has sessionId and attach it to a running session if so
      */
@@ -144,14 +143,14 @@ type BrowserData = {
  * @return {object}
  */
 export function getInstancesData (
-    browser: Browser | MultiRemoteBrowser,
+    browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser,
     isMultiremote: boolean
 ) {
     if (!isMultiremote) {
         return
     }
 
-    const multiRemoteBrowser = browser as MultiRemoteBrowser
+    const multiRemoteBrowser = browser as WebdriverIO.MultiRemoteBrowser
     const instances: Record<string, Partial<BrowserData>> = {}
     multiRemoteBrowser.instances.forEach((browserName: string) => {
         const { protocol, hostname, port, path, queryParams } = multiRemoteBrowser[browserName].options

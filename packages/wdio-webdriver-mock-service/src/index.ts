@@ -1,7 +1,6 @@
 import nock from 'nock'
 import { v4 as uuidv4 } from 'uuid'
 import type { Services } from '@wdio/types'
-import type { Browser, MultiRemoteBrowser } from 'webdriverio'
 
 import WebDriverMock from './WebDriverMock.js'
 
@@ -15,7 +14,7 @@ const ELEMENT_ALT = '8bf4d107-a363-40d1-b823-d94bdbc58afb'
 const ELEM_PROP = 'element-6066-11e4-a52e-4f735466cecf'
 
 export default class WebdriverMockService implements Services.ServiceInstance {
-    private _browser?: Browser | MultiRemoteBrowser
+    private _browser?: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
     private _mock = new WebDriverMock()
 
     constructor () {
@@ -41,7 +40,7 @@ export default class WebdriverMockService implements Services.ServiceInstance {
     before (
         caps: unknown,
         specs: unknown,
-        browser: Browser | MultiRemoteBrowser
+        browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
     ) {
         this._browser = browser
 

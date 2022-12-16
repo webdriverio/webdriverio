@@ -6,7 +6,6 @@ import got from 'got'
 
 import { waitForExist } from '../src/commands/element/waitForExist.js'
 import { remote } from '../src/index.js'
-import type { Browser } from '../src/types'
 
 vi.mock('got')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
@@ -30,7 +29,7 @@ vi.mock('../src/commands/element/waitForEnabled', () => ({
 const { warn } = logger('foobar')
 
 describe('middleware', () => {
-    let browser: Browser
+    let browser: WebdriverIO.Browser
 
     beforeAll(async () => {
         browser = await remote({
