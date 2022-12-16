@@ -344,5 +344,6 @@ declare global {
 
     namespace WebdriverIO {
         interface Browser extends BrowserExtension { }
+        interface MultiRemoteBrowser extends BrowserExtension { }
     }
 }
