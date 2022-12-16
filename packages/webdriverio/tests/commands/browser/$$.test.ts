@@ -18,10 +18,10 @@ describe('elements', () => {
         })
 
         const elems = await browser.$$('.foo')
-        expect(got.mock.calls[1][1].method).toBe('POST')
-        expect(got.mock.calls[1][0].pathname)
+        expect(vi.mocked(got).mock.calls[1][1]!.method).toBe('POST')
+        expect(vi.mocked(got).mock.calls[1][0]!.pathname)
             .toBe('/session/foobar-123/elements')
-        expect(got.mock.calls[1][1].json)
+        expect(vi.mocked(got).mock.calls[1][1]!.json)
             .toEqual({ using: 'css selector', value: '.foo' })
         expect(elems).toHaveLength(3)
 
@@ -98,6 +98,6 @@ describe('elements', () => {
     })
 
     afterEach(() => {
-        got.mockClear()
+        vi.mocked(got).mockClear()
     })
 })

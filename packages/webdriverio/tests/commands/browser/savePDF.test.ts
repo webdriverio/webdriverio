@@ -6,14 +6,13 @@ import path from 'node:path'
 import got from 'got'
 import { remote } from '../../../src/index.js'
 import * as utils from '../../../src/utils/index.js'
-import type { Browser } from '../../../src/types'
 
 vi.mock('fs')
 vi.mock('got')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 describe('savePDF', () => {
-    let browser: Browser
+    let browser: WebdriverIO.Browser
     let getAbsoluteFilepathSpy: SpyInstance
     let assertDirectoryExistsSpy: SpyInstance
     let writeFileSyncSpy: SpyInstance

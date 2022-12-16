@@ -1,5 +1,4 @@
 import logger from '@wdio/logger'
-import type { Browser, MultiRemoteBrowser } from 'webdriverio'
 
 import type { TraceEvent } from '@tracerbench/trace-event'
 import type { CDPSession } from 'puppeteer-core/lib/esm/puppeteer/common/Connection.js'
@@ -22,7 +21,7 @@ export default class CommandHandler {
     constructor (
         private _session: CDPSession,
         private _page: Page,
-        browser: Browser | MultiRemoteBrowser
+        browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
     ) {
         this._networkHandler = new NetworkHandler(_session)
 

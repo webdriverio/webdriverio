@@ -26,7 +26,7 @@ describe('elem.react$', () => {
         }
         await elem.react$('MyComp', options)
         expect(elem.elementId).toBe('some-elem-123')
-        expect(got.mock.calls.pop()[1].json.args)
+        expect(vi.mocked(got).mock.calls.pop()![1]!.json.args)
             .toEqual([
                 'MyComp',
                 { some: 'props' },
@@ -50,7 +50,7 @@ describe('elem.react$', () => {
         await elem.react$('MyComp')
 
         expect(elem.elementId).toBe('some-elem-123')
-        expect(got.mock.calls.pop()[1].json.args).toEqual([
+        expect(vi.mocked(got).mock.calls.pop()![1]!.json.args).toEqual([
             'MyComp',
             {},
             {},

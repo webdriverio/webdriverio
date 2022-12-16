@@ -20,7 +20,7 @@ vi.mock('uuid', () => ({ v4: () => '123456789' }))
 
 const log = logger('test')
 let service: BrowserstackService
-let browser: Browser | MultiRemoteBrowser
+let browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
 
 beforeEach(() => {
     vi.mocked(log.info).mockClear()

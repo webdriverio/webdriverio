@@ -1,6 +1,5 @@
 import fs from 'node:fs'
 import { getAbsoluteFilepath, assertDirectoryExists } from '../../utils/index.js'
-import type { Browser } from '../../types'
 
 /**
  *
@@ -28,7 +27,7 @@ import type { Browser } from '../../types'
  *
  */
 export async function saveRecordingScreen (
-    this: Browser,
+    this: WebdriverIO.Browser,
     filepath: string
 ) {
     /**

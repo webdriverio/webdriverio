@@ -1,5 +1,4 @@
 import { getElementFromResponse } from '../../utils/index.js'
-import type { Element } from '../../types'
 
 /**
  *
@@ -31,7 +30,7 @@ import type { Element } from '../../types'
  *
  */
 export async function selectByVisibleText (
-    this: Element,
+    this: WebdriverIO.Element,
     text: string | number
 ) {
     /**

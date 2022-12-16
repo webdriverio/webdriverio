@@ -1,5 +1,4 @@
 import { getElementRect, getScrollPosition, getBrowserObject } from '../../utils/index.js'
-import type { Element } from '../../types'
 
 type MoveToOptions = {
     xOffset?: number,
@@ -21,7 +20,7 @@ type MoveToOptions = {
  * @type protocol
  */
 export async function moveTo (
-    this: Element,
+    this: WebdriverIO.Element,
     { xOffset, yOffset }: MoveToOptions = {}
 ) {
     if (!this.isW3C) {

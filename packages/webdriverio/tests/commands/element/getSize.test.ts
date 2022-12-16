@@ -19,7 +19,7 @@ describe('getSize test', () => {
         const elem = await browser.$('#foo')
         const size = await elem.getSize()
 
-        expect(got.mock.calls[2][0].pathname)
+        expect(vi.mocked(got).mock.calls[2][0]!.pathname)
             .toBe('/session/foobar-123/element/some-elem-123/rect')
         expect(size.width).toBe(50)
         expect(size.height).toBe(30)
@@ -37,7 +37,7 @@ describe('getSize test', () => {
         const elem = await browser.$('#foo')
         const size = await elem.getSize()
 
-        expect(got.mock.calls[2][0].pathname)
+        expect(vi.mocked(got).mock.calls[2][0]!.pathname)
             .toBe('/session/foobar-123/element/some-elem-123/size')
         expect(size.width).toBe(50)
         expect(size.height).toBe(30)
@@ -62,6 +62,6 @@ describe('getSize test', () => {
     })
 
     afterEach(() => {
-        got.mockClear()
+        vi.mocked(got).mockClear()
     })
 })

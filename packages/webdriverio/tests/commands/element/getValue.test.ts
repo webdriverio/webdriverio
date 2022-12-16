@@ -10,7 +10,7 @@ vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdi
 
 describe('getValue', () => {
     beforeEach(() => {
-        got.mockClear()
+        vi.mocked(got).mockClear()
     })
 
     it('should get the value using getElementProperty', async () => {
@@ -24,7 +24,7 @@ describe('getValue', () => {
         const elem = await browser.$('#foo')
 
         await elem.getValue()
-        expect(got.mock.calls[2][0].pathname)
+        expect(vi.mocked(got).mock.calls[2][0].pathname)
             .toBe('/session/foobar-123/element/some-elem-123/property/value')
     })
 
@@ -39,7 +39,7 @@ describe('getValue', () => {
         const elem = await browser.$('#foo')
 
         await elem.getValue()
-        expect(got.mock.calls[2][0].pathname)
+        expect(vi.mocked(got).mock.calls[2][0].pathname)
             .toBe('/session/foobar-123/element/some-elem-123/attribute/value')
     })
 
@@ -55,7 +55,7 @@ describe('getValue', () => {
         const elem = await browser.$('#foo')
 
         await elem.getValue()
-        expect(got.mock.calls[2][0].pathname)
+        expect(vi.mocked(got).mock.calls[2][0].pathname)
             .toBe('/session/foobar-123/element/some-elem-123/attribute/value')
     })
 })

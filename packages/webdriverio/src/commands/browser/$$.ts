@@ -64,7 +64,7 @@ export async function $$ (
     selector: Selector | ElementReference[] | WebdriverIO.Element[]
 ) {
     const res = Array.isArray(selector)
-        ? selector
+        ? selector as ElementReference[]
         : await findElements.call(this, selector)
     const elements = await getElements.call(this, selector, res)
     return enhanceElementsArray(elements, this, selector) as ElementArray

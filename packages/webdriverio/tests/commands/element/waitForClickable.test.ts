@@ -1,14 +1,13 @@
 import path from 'node:path'
 import { expect, describe, it, vi, beforeEach } from 'vitest'
 import { remote } from '../../../src/index.js'
-import type { Browser, Element } from '../../../src/types'
 
 vi.mock('got')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 describe('waitForClickable', () => {
     const duration = 1000
-    let browser: Browser
+    let browser: WebdriverIO.Browser
 
     beforeEach(async () => {
         browser = await remote({
@@ -28,7 +27,7 @@ describe('waitForClickable', () => {
             elementId : 123,
             waitUntil : vi.fn(((cb))),
             options : { waitforInterval: 5, waitforTimeout: duration }
-        } as any as Element
+        } as any as WebdriverIO.Element
 
         await elem.waitForClickable()
 
@@ -45,7 +44,7 @@ describe('waitForClickable', () => {
             waitUntil : tmpElem.waitUntil,
             isClickable : vi.fn(() => true),
             options : { waitforTimeout : 500, waitforInterval: 50 },
-        } as any as Element
+        } as any as WebdriverIO.Element
         const result = await elem.waitForClickable({ timeout: duration })
 
         expect(result).toBe(true)
@@ -63,7 +62,7 @@ describe('waitForClickable', () => {
                 .mockImplementationOnce(() => false)
                 .mockImplementationOnce(() => true),
             options : { waitforTimeout : 50, waitforInterval: 5 },
-        } as any as Element
+        } as any as WebdriverIO.Element
 
         const result = await elem.waitForClickable({ timeout: duration })
         expect(result).toBe(true)
@@ -80,7 +79,7 @@ describe('waitForClickable', () => {
             waitUntil : tmpElem.waitUntil,
             isClickable : vi.fn(() => false),
             options : { waitforTimeout : 500, waitforInterval: 50 },
-        } as any as Element
+        } as any as WebdriverIO.Element
 
         try {
             await elem.waitForClickable({ timeout: duration })
@@ -118,7 +117,7 @@ describe('waitForClickable', () => {
             waitUntil : vi.fn(((cb))),
             isClickable : vi.fn(() => true),
             options : { waitforTimeout : 500, waitforInterval: 50 },
-        } as any as Element
+        } as any as WebdriverIO.Element
 
         await elem.waitForClickable({ reverse: true })
 
@@ -136,7 +135,7 @@ describe('waitForClickable', () => {
             waitUntil : tmpElem.waitUntil,
             isClickable : vi.fn(() => false),
             options : { waitforTimeout : 500, waitforInterval: 50 },
-        } as any as Element
+        } as any as WebdriverIO.Element
 
         try {
             await elem.waitForClickable({ timeout: duration, timeoutMsg: 'Element foo never clickable' })

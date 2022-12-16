@@ -22,7 +22,7 @@ export interface ScrollParams {
     /**
      * element origin
      */
-    origin?: Element | WebdriverIO.Element | ChainablePromiseElement<Element> | ChainablePromiseElement<WebdriverIO.Element>
+    origin?: WebdriverIO.Element | ChainablePromiseElement<WebdriverIO.Element>
     /**
      * duration ratio be the ratio of time delta and duration
      */

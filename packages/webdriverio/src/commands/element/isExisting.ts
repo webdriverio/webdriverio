@@ -1,5 +1,3 @@
-import type { Element } from '../../types'
-
 /**
  *
  * Returns true if element exists in the DOM.
@@ -47,7 +45,7 @@ import type { Element } from '../../types'
  * @type state
  *
  */
-export async function isExisting (this: Element) {
+export async function isExisting (this: WebdriverIO.Element) {
     /**
      * if an element was composed via `const elem = $({ 'element-6066-11e4-a52e-4f735466cecf': <elementId> })`
      * we don't have any selector information. Therefore we can only check existance

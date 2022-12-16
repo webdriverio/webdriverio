@@ -11,7 +11,7 @@ vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdi
 
 describe('dragAndDrop', () => {
     beforeEach(() => {
-        got.mockClear()
+        vi.mocked(got).mockClear()
     })
 
     it('should throw when parameter are invalid', async () => {

@@ -1,5 +1,4 @@
 import { getElementFromResponse } from '../../utils/index.js'
-import type { Element } from '../../types'
 
 /**
  *
@@ -37,7 +36,7 @@ import type { Element } from '../../types'
  *
  */
 export async function selectByAttribute (
-    this: Element,
+    this: WebdriverIO.Element,
     attribute: string,
     value: string | number
 ) {

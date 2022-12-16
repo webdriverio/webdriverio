@@ -3,14 +3,13 @@ import { expect, describe, it, vi } from 'vitest'
 // @ts-ignore mocked (original defined in webdriver package)
 import got from 'got'
 import { remote } from '../../../src/index.js'
-import type { Browser } from '../../../src/types'
 
 vi.mock('got')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 describe('isEnabled test', () => {
     it('should allow to check if an element is enabled', async () => {
-        const browser: Browser = await remote({
+        const browser: WebdriverIO.Browser = await remote({
             baseUrl: 'http://foobar.com',
             capabilities: {
                 browserName: 'foobar'

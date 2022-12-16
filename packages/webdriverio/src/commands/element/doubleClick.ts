@@ -1,5 +1,4 @@
 import { getBrowserObject } from '../../utils/index.js'
-import type { Element } from '../../types'
 
 /**
  *
@@ -24,7 +23,7 @@ import type { Element } from '../../types'
  * @type action
  *
  */
-export async function doubleClick (this: Element) {
+export async function doubleClick (this: WebdriverIO.Element) {
     /**
      * move to element
      */

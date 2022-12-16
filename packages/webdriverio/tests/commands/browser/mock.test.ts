@@ -30,7 +30,7 @@ vi.mock('../../../src/utils/interception/webdriver', () => ({
 }))
 
 describe('mock', () => {
-    let browser
+    let browser: WebdriverIO.Browser
     beforeEach(async () => {
         clientMock.send.mockClear()
     })
@@ -64,13 +64,15 @@ describe('mock', () => {
 
         browser.puppeteer = puppeteerMock
 
-        got.setMockResponse('window-handle-2')
+        // @ts-expect-error mock feature
+        vi.mocked(got).setMockResponse('window-handle-2')
         expect(clientMock.send).toBeCalledTimes(0)
         await browser.mock('/foobar')
         expect(clientMock.send).toBeCalledTimes(1)
         expect(clientMock.send).toBeCalledWith('Fetch.enable', expect.any(Object))
         expect(clientMock.on).toBeCalledWith('Fetch.requestPaused', expect.any(Function))
-        got.setMockResponse('window-handle-3')
+        // @ts-expect-error mock feature
+        vi.mocked(got).setMockResponse('window-handle-3')
         await browser.mock('/foobar')
         expect(clientMock.send).toBeCalledTimes(2)
 
@@ -89,6 +91,7 @@ describe('mock', () => {
 
         browser.puppeteer = puppeteerMock
         const mock = await browser.mock('/foobar')
+        // @ts-expect-error mock feature
         expect(vi.mocked(mock.init)).toBeCalledWith()
     })
 })

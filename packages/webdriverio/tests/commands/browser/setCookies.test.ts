@@ -3,13 +3,12 @@ import { expect, describe, beforeAll, afterEach, it, vi } from 'vitest'
 // @ts-ignore mocked (original defined in webdriver package)
 import got from 'got'
 import { remote } from '../../../src/index.js'
-import type { Browser } from '../../../src/types'
 
 vi.mock('got')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 describe('setCookies', () => {
-    let browser: Browser
+    let browser: WebdriverIO.Browser
 
     beforeAll(async () => {
         browser = await remote({

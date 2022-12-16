@@ -1,7 +1,5 @@
 import type { Timeouts } from '@wdio/protocols'
 
-import type { Browser } from '../../types'
-
 /**
  *
  * Sets the timeouts associated with the current session, timeout durations control such
@@ -39,7 +37,7 @@ import type { Browser } from '../../types'
  */
 
 export async function setTimeout(
-    this: Browser,
+    this: WebdriverIO.Browser,
     timeouts: Partial<Timeouts>
 ): Promise<void> {
     if (typeof timeouts !== 'object') {

@@ -1,7 +1,6 @@
 import { ELEMENT_KEY } from '../../constants.js'
 import { getBrowserObject } from '../../utils/index.js'
 import isElementClickableScript from '../../scripts/isElementClickable.js'
-import type { Element } from '../../types'
 
 /**
  *
@@ -41,7 +40,7 @@ import type { Element } from '../../types'
  * @type state
  *
  */
-export async function isClickable (this: Element) {
+export async function isClickable (this: WebdriverIO.Element) {
     if (!await this.isDisplayed()) {
         return false
     }

@@ -1,5 +1,3 @@
-import type { Element } from '../../types'
-
 const VALID_TYPES = ['string', 'number']
 
 /**
@@ -30,7 +28,7 @@ const VALID_TYPES = ['string', 'number']
  *
  */
 export function addValue (
-    this: Element,
+    this: WebdriverIO.Element,
     value: string | number
 ) {
     /**

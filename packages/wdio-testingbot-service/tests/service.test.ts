@@ -2,7 +2,6 @@ import path from 'node:path'
 import got from 'got'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import type { Capabilities, Frameworks } from '@wdio/types'
-import type { Browser, MultiRemoteBrowser } from 'webdriverio'
 
 import TestingBotService from '../src/service.js'
 
@@ -18,7 +17,7 @@ vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdi
 describe('wdio-testingbot-service', () => {
     const execute = vi.fn()
 
-    let browser: Browser | MultiRemoteBrowser
+    let browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
     beforeEach(() => {
         browser = {
             execute,
