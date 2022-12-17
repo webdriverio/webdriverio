@@ -577,7 +577,7 @@ describe('launchTestSession', () => {
             json: () => Promise.resolve({ build_hashed_id: 'build_id', jwt: 'jwt' }),
         } as any)
 
-        const result: any = await launchTestSession( { framework: 'framework' } as any, { } )
+        const result: any = await launchTestSession( { framework: 'framework' } as any, { }, {})
         expect(got.post).toBeCalledTimes(1)
         expect(result).toEqual(undefined)
     })
@@ -672,46 +672,46 @@ describe('isScreenshotCommand', () => {
 describe('getObservabilityUser', () => {
     it('get env var', () => {
         process.env.BROWSERSTACK_USERNAME = 'try'
-        expect(getObservabilityUser({})).toEqual('try')
+        expect(getObservabilityUser({}, {})).toEqual('try')
         delete process.env.BROWSERSTACK_USERNAME
     })
 
     it('get user passed in testObservabilityOptions', () => {
         delete process.env.BROWSERSTACK_USERNAME
-        expect(getObservabilityUser({ testObservabilityOptions: { user: 'user' } } as any)).toEqual('user')
+        expect(getObservabilityUser({ testObservabilityOptions: { user: 'user' } } as any, {})).toEqual('user')
     })
 
     it('get user passed at root level', () => {
         delete process.env.BROWSERSTACK_USERNAME
-        expect(getObservabilityUser({ user: 'user-root', testObservabilityOptions: { } } as any)).toEqual('user-root')
+        expect(getObservabilityUser({ testObservabilityOptions: { } } as any, { user: 'user-root' })).toEqual('user-root')
     })
 
     it('get undefined', () => {
         delete process.env.BROWSERSTACK_USERNAME
-        expect(getObservabilityUser({})).toEqual(undefined)
+        expect(getObservabilityUser({}, {})).toEqual(undefined)
     })
 })
 
 describe('getObservabilityKey', () => {
     it('get env var', () => {
         process.env.BROWSERSTACK_ACCESS_KEY = 'try'
-        expect(getObservabilityKey({})).toEqual('try')
+        expect(getObservabilityKey({}, {})).toEqual('try')
         delete process.env.BROWSERSTACK_ACCESS_KEY
     })
 
     it('get key passed in testObservabilityOptions', () => {
         delete process.env.BROWSERSTACK_ACCESS_KEY
-        expect(getObservabilityKey({ testObservabilityOptions: { key: 'user-key' } } as any)).toEqual('user-key')
+        expect(getObservabilityKey({ testObservabilityOptions: { key: 'user-key' } } as any, {})).toEqual('user-key')
     })
 
     it('get key passed at root level', () => {
         delete process.env.BROWSERSTACK_ACCESS_KEY
-        expect(getObservabilityKey({ key: 'key-root', testObservabilityOptions: { } } as any)).toEqual('key-root')
+        expect(getObservabilityKey({ testObservabilityOptions: { } } as any, { key: 'key-root' })).toEqual('key-root')
     })
 
     it('get undefined', () => {
         delete process.env.BROWSERSTACK_ACCESS_KEY
-        expect(getObservabilityKey({})).toEqual(undefined)
+        expect(getObservabilityKey({}, {})).toEqual(undefined)
     })
 })
 

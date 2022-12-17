@@ -86,31 +86,32 @@ export function getParentSuiteName(fullTitle: string, testSuiteTitle: string): s
     return parentSuiteName.trim()
 }
 
-export async function launchTestSession (options: BrowserstackConfig & Options.Testrunner, bsConfig: UserConfig) {
+export async function launchTestSession (options: BrowserstackConfig & Options.Testrunner, config: Options.Testrunner, bsConfig: UserConfig) {
     const data = {
-        'format': 'json',
-        'project_name': getObservabilityProject(options, bsConfig.projectName),
-        'name': getObservabilityBuild(options, bsConfig.buildName),
-        'start_time': (new Date()).toISOString(),
-        'tags': getObservabilityBuildTags(options, bsConfig.buildTag),
-        'host_info': {
+        format: 'json',
+        project_name: getObservabilityProject(options, bsConfig.projectName),
+        name: getObservabilityBuild(options, bsConfig.buildName),
+        start_time: (new Date()).toISOString(),
+        tags: getObservabilityBuildTags(options, bsConfig.buildTag),
+        host_info: {
             hostname: hostname(),
             platform: platform(),
             type: type(),
             version: version(),
             arch: arch()
         },
-        'ci_info': getCiInfo(),
-        'failed_tests_rerun': process.env.BROWSERSTACK_RERUN || false,
-        'version_control': await getGitMetaData(),
-        'observability_version': {
-            frameworkName: bsConfig.framework,
+        ci_info: getCiInfo(),
+        build_run_identifier: process.env.BROWSERSTACK_BUILD_RUN_IDENTIFIER,
+        failed_tests_rerun: process.env.BROWSERSTACK_RERUN || false,
+        version_control: await getGitMetaData(),
+        observability_version: {
+            frameworkName: config.framework,
             sdkVersion: bsConfig.bstackServiceVersion
         }
     }
-    const config = {
-        username: getObservabilityUser(options),
-        password: getObservabilityKey(options),
+    const reqConfig = {
+        username: getObservabilityUser(options, config),
+        password: getObservabilityKey(options, config),
         agent: keepAliveAgent(),
         headers: {
             'Content-Type': 'application/json',
@@ -120,7 +121,7 @@ export async function launchTestSession (options: BrowserstackConfig & Options.T
 
     try {
         const url = `${DATA_ENDPOINT}/api/v1/builds`
-        const response: LaunchResponse = await got.post(url, { json: data, ...config }).json()
+        const response: LaunchResponse = await got.post(url, { json: data, ...reqConfig }).json()
         log.debug(`[Start_Build] Success response: ${JSON.stringify(response)}`)
         process.env.BS_TESTOPS_BUILD_COMPLETED = 'true'
         if (response.jwt) process.env.BS_TESTOPS_JWT = response.jwt
@@ -466,24 +467,24 @@ export async function batchAndPostEvents (eventUrl: string, kind: string, data: 
     }
 }
 
-export function getObservabilityUser(options: BrowserstackConfig & Options.Testrunner) {
+export function getObservabilityUser(options: BrowserstackConfig & Options.Testrunner, config: Options.Testrunner) {
     if (process.env.BROWSERSTACK_USERNAME) {
         return process.env.BROWSERSTACK_USERNAME
     }
     if (options.testObservabilityOptions && options.testObservabilityOptions.user) {
         return options.testObservabilityOptions.user
     }
-    return options.user
+    return config.user
 }
 
-export function getObservabilityKey(options: BrowserstackConfig & Options.Testrunner) {
+export function getObservabilityKey(options: BrowserstackConfig & Options.Testrunner, config: Options.Testrunner) {
     if (process.env.BROWSERSTACK_ACCESS_KEY) {
         return process.env.BROWSERSTACK_ACCESS_KEY
     }
     if (options.testObservabilityOptions && options.testObservabilityOptions.key) {
         return options.testObservabilityOptions.key
     }
-    return options.key
+    return config.key
 }
 
 export function getObservabilityProject(options: BrowserstackConfig & Options.Testrunner, bstackProjectName?: string) {

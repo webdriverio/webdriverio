@@ -123,10 +123,9 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                 projectName: this._projectName,
                 buildName: this._buildName,
                 buildTag: this._buildTag,
-                bstackServiceVersion: bstackServiceVersion,
-                framework: this._config.framework
+                bstackServiceVersion: bstackServiceVersion
             }
-            await launchTestSession(this._options, bsConfig)
+            await launchTestSession(this._options, this._config, bsConfig)
         }
 
         if (!this._options.browserstackLocal) {
