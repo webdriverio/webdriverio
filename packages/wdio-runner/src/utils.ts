@@ -178,7 +178,7 @@ export function getInstancesData (
 
     const multiRemoteBrowser = browser as MultiRemoteBrowser<'async'>
     const instances: Record<string, Partial<BrowserData>> = {}
-    multiRemoteBrowser.instances.forEach((browserName) => {
+    multiRemoteBrowser.instances.forEach((browserName: string) => {
         const { protocol, hostname, port, path, queryParams } = multiRemoteBrowser[browserName].options
         const { isW3C, sessionId } = multiRemoteBrowser[browserName]
 

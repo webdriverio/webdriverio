@@ -19,6 +19,17 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.28.0 (2022-12-15)
+
+#### :nail_care: Polish
+* `devtools`, `wdio-browserstack-service`, `wdio-devtools-service`, `wdio-runner`, `wdio-sync`, `webdriverio`
+  * [#9386](https://github.com/webdriverio/webdriverio/pull/9386) feat: ability to send headers when connect to browser using puppeteer ([@DudaGod](https://github.com/DudaGod))
+
+#### Committers: 2
+- Dmitriy Dudkevich ([@DudaGod](https://github.com/DudaGod))
+- [@SCG82](https://github.com/SCG82)
+
+
 ## v7.27.0 (2022-11-23)
 
 #### :eyeglasses: Spec Compliancy

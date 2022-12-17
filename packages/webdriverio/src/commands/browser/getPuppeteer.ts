@@ -1,7 +1,7 @@
 import puppeteer from 'puppeteer-core'
 import logger from '@wdio/logger'
 import { Capabilities } from '@wdio/types'
-import { Browser as PuppeteerBrowser } from 'puppeteer-core/lib/cjs/puppeteer/common/Browser'
+import { Browser as PuppeteerBrowser } from 'puppeteer-core/lib/cjs/puppeteer/api/Browser'
 
 import { FF_REMOTE_DEBUG_ARG } from '../../constants'
 
@@ -52,6 +52,7 @@ export default async function getPuppeteer (this: WebdriverIO.Browser) {
         return this.puppeteer
     }
 
+    const { headers } = this.options
     const caps = (this.capabilities as Capabilities.W3CCapabilities).alwaysMatch || this.capabilities as Capabilities.DesiredCapabilities
     /**
      * attach to a Selenium 4 CDP Session if it's returned in the capabilities
@@ -60,7 +61,8 @@ export default async function getPuppeteer (this: WebdriverIO.Browser) {
     if (cdpEndpoint) {
         this.puppeteer = await puppeteer.connect({
             browserWSEndpoint: cdpEndpoint,
-            defaultViewport: null
+            defaultViewport: null,
+            headers
         }) as any as PuppeteerBrowser
         return this.puppeteer
     }
@@ -73,7 +75,8 @@ export default async function getPuppeteer (this: WebdriverIO.Browser) {
         const { hostname, port } = this.options
         this.puppeteer = await puppeteer.connect({
             browserWSEndpoint: `ws://${hostname}:${port}/devtools/${this.sessionId}`,
-            defaultViewport: null
+            defaultViewport: null,
+            headers
         }) as any as PuppeteerBrowser
         return this.puppeteer
     }

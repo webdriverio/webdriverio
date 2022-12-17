@@ -4,7 +4,7 @@ import type { Browser, MultiRemoteBrowser } from 'webdriverio'
 
 import type { TraceEvent } from '@tracerbench/trace-event'
 import type { CDPSession } from 'puppeteer-core/lib/cjs/puppeteer/common/Connection'
-import type { Page } from 'puppeteer-core/lib/cjs/puppeteer/common/Page'
+import type { Page } from 'puppeteer-core/lib/cjs/puppeteer/api/Page'
 import type { TracingOptions } from 'puppeteer-core/lib/cjs/puppeteer/common/Tracing'
 
 import NetworkHandler, { RequestPayload } from './handler/network'
@@ -102,6 +102,9 @@ export default class CommandHandler {
 
         try {
             const traceBuffer = await this._page.tracing.stop()
+            if (!traceBuffer) {
+                throw new Error('No tracebuffer captured')
+            }
             this._traceEvents = JSON.parse(traceBuffer.toString('utf8'))
             this._isTracing = false
         } catch (err: any) {

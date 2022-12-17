@@ -11,9 +11,7 @@ jest.mock('../src/launcher', () => jest.fn().mockImplementation((capabilities) =
             off: jest.fn(),
             setDefaultTimeout: jest.fn()
         }])),
-        _connection: {
-            url: () => 'ws://localhost:49375/devtools/browser/c4b017ea-f476-4026-a699-bc5d4858cfe1'
-        },
+        wsEndpoint: jest.fn().mockReturnValue('ws://localhost:49375/devtools/browser/c4b017ea-f476-4026-a699-bc5d4858cfe1'),
         userAgent: jest.fn().mockReturnValue(Promise.resolve('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.149 Safari/537.36'))
     }
 }))

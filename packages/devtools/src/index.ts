@@ -8,7 +8,7 @@ import { webdriverMonad, devtoolsEnvironmentDetector } from '@wdio/utils'
 import { validateConfig } from '@wdio/config'
 import type { CommandEndpoint } from '@wdio/protocols'
 import type { Options, Capabilities } from '@wdio/types'
-import type { Browser } from 'puppeteer-core/lib/cjs/puppeteer/common/Browser'
+import type { Browser } from 'puppeteer-core/lib/cjs/puppeteer/api/Browser'
 
 import DevToolsDriver from './devtoolsdriver'
 import launch from './launcher'
@@ -82,7 +82,7 @@ export default class DevTools {
         if (vendorCapPrefix) {
             Object.assign(params.capabilities, {
                 [vendorCapPrefix]: Object.assign(
-                    { debuggerAddress: (browser as any)._connection.url().split('/')[2] },
+                    { debuggerAddress: browser.wsEndpoint().split('/')[2] },
                     params.capabilities[vendorCapPrefix]
                 )
             })
