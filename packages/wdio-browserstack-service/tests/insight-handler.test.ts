@@ -575,10 +575,11 @@ describe('browserCommand', () => {
     })
 
     it('client:afterCommand - screenshot', () => {
+        process.env.BS_TESTOPS_ALLOW_SCREENSHOTS = 'true'
         commandSpy.mockImplementation(() => { return true })
         insightsHandler.browserCommand('client:afterCommand', { sessionId: 's', method: 'm', endpoint: 'e', result: { value: 'random' } }, {})
         expect(uploadEventDataSpy).toBeCalled()
-        // commandSpy.mockRestore()
+        delete process.env.BS_TESTOPS_ALLOW_SCREENSHOTS
     })
 
     afterEach(() => {
