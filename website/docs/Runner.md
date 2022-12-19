@@ -132,6 +132,13 @@ If set to `true` the runner will update capabilities to run tests headless. By d
 __Type:__ `boolean`<br />
 __Default:__ `false`, set to `true` if `CI` environment variable is set
 
+#### `rootDir`
+
+Project root directory.
+
+__Type:__ `string`<br />
+__Default:__ `process.cwd()`
+
 ### Examples
 
 Make sure to check out the docs around [component testing](https://webdriver.io/docs/component-testing) and have a look into the [example repository](https://github.com/webdriverio/component-testing-examples) for examples using these and various other frameworks.
