@@ -375,7 +375,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
         action: string,
         args?: object,
     ) {
-        if (!this._browser) {
+        if (!this._browser || !isBrowserstackSession(this._browser)) {
             return Promise.resolve()
         }
 
