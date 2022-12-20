@@ -1,5 +1,5 @@
 import WDIOReporter, { SuiteStats, TestStats, RunnerStats } from '@wdio/reporter'
-import type { Capabilities, Options, Reporters } from '@wdio/types'
+import type { Capabilities, Options } from '@wdio/types'
 
 import { v4 as uuidv4 } from 'uuid'
 import { Browser, MultiRemoteBrowser } from 'webdriverio'
