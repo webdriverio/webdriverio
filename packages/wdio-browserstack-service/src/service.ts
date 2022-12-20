@@ -1,11 +1,19 @@
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
+
 import logger from '@wdio/logger'
 import got from 'got'
 import type { Services, Capabilities, Options, Frameworks } from '@wdio/types'
 import type { Browser, MultiRemoteBrowser } from 'webdriverio'
 
-import { getBrowserDescription, getBrowserCapabilities, isBrowserstackCapability, getParentSuiteName } from './util.js'
+import { getBrowserDescription, getBrowserCapabilities, isBrowserstackCapability, getParentSuiteName, isBrowserstackSession } from './util.js'
 import type { BrowserstackConfig, MultiRemoteAction, SessionResponse } from './types'
+import type { Pickle, Feature, ITestCaseHookParameter } from './cucumber-types'
+import InsightsHandler from './insights-handler.js'
 import { DEFAULT_OPTIONS } from './constants.js'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 const log = logger('@wdio/browserstack-service')
 
@@ -18,6 +26,9 @@ export default class BrowserstackService implements Services.ServiceInstance {
     private _suiteTitle?: string
     private _fullTitle?: string
     private _options: BrowserstackConfig & Options.Testrunner
+    private _observability?: boolean = true
+    private _currentTest?: Frameworks.Test | ITestCaseHookParameter
+    private _insightsHandler?: InsightsHandler
 
     constructor (
         options: BrowserstackConfig & Options.Testrunner,
@@ -27,6 +38,13 @@ export default class BrowserstackService implements Services.ServiceInstance {
         this._options = { ...DEFAULT_OPTIONS, ...options }
         // added to maintain backward compatibility with webdriverIO v5
         this._config || (this._config = this._options)
+        if (this._options.testObservability == false) { // keeping it true by default unless passed false explicitly
+            this._observability = false
+        }
+
+        if (this._observability) {
+            this._config.reporters ? this._config.reporters.push(path.join(__dirname, 'reporter.js')) : [path.join(__dirname, 'reporter.js')]
+        }
         // Cucumber specific
         const strict = Boolean(this._config.cucumberOpts && this._config.cucumberOpts.strict)
         // See https://github.com/cucumber/cucumber-js/blob/master/src/runtime/index.ts#L136
@@ -60,7 +78,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
         this._config.key = config.key
     }
 
-    before(caps: Capabilities.RemoteCapability, specs: string[], browser: Browser<'async'> | MultiRemoteBrowser<'async'>) {
+    async before(caps: Capabilities.RemoteCapability, specs: string[], browser: Browser<'async'> | MultiRemoteBrowser<'async'>) {
         // added to maintain backward compatibility with webdriverIO v5
         this._browser = browser ? browser : (global as any).browser
 
@@ -72,7 +90,29 @@ export default class BrowserstackService implements Services.ServiceInstance {
 
         this._scenariosThatRan = []
 
-        return this._printSessionURL()
+        if (this._observability && this._browser) {
+            this._insightsHandler = new InsightsHandler(this._browser, this._browser.capabilities as Capabilities.Capabilities, this._isAppAutomate(), this._browser.sessionId as string, this._config.framework)
+            await this._insightsHandler.before()
+
+            /**
+             * register command event
+             */
+            this._browser.on('command', async (command) => await this._insightsHandler?.browserCommand(
+                'client:beforeCommand',
+                Object.assign(command, { sessionId: this._browser?.sessionId }),
+                this._currentTest
+            ))
+            /**
+             * register result event
+             */
+            this._browser.on('result', async (result) => await this._insightsHandler?.browserCommand(
+                'client:afterCommand',
+                Object.assign(result, { sessionId: this._browser?.sessionId }),
+                this._currentTest
+            ))
+        }
+
+        return await this._printSessionURL()
     }
 
     /**
@@ -90,7 +130,17 @@ export default class BrowserstackService implements Services.ServiceInstance {
         }
     }
 
+    async beforeHook (test: Frameworks.Test, context: any) {
+        if (this._config.framework !== 'cucumber') this._currentTest = test // not update currentTest when this is called for cucumber step
+        await this._insightsHandler?.beforeHook(test, context)
+    }
+
+    async afterHook (test: Frameworks.Test, context: unknown, result: Frameworks.TestResult) {
+        await this._insightsHandler?.afterHook(test, result)
+    }
+
     async beforeTest (test: Frameworks.Test) {
+        this._currentTest = test
         let suiteTitle = this._suiteTitle
 
         if (test.fullName) {
@@ -106,39 +156,15 @@ export default class BrowserstackService implements Services.ServiceInstance {
 
         await this._setSessionName(suiteTitle, test)
         await this._setAnnotation(`Test: ${test.fullName ?? test.title}`)
+        await this._insightsHandler?.beforeTest(test)
     }
 
-    /**
-     * For CucumberJS
-     */
-    async beforeFeature(uri: unknown, feature: { name: string }) {
-        this._suiteTitle = feature.name
-        await this._setSessionName(feature.name)
-        await this._setAnnotation(`Feature: ${feature.name}`)
-    }
-
-    /**
-     * Runs before a Cucumber Scenario.
-     * @param world world object containing information on pickle and test step
-     */
-    async beforeScenario (world: Frameworks.World) {
-        const scenarioName = world.pickle.name || 'unknown scenario'
-        await this._setAnnotation(`Scenario: ${scenarioName}`)
-    }
-
-    /**
-     * For CucumberJS
-     */
-    async beforeStep (step: Frameworks.PickleStep) {
-        const { keyword, text } = step
-        await this._setAnnotation(`Step: ${keyword}${text}`)
-    }
-
-    afterTest(test: Frameworks.Test, context: never, results: Frameworks.TestResult) {
+    async afterTest(test: Frameworks.Test, context: never, results: Frameworks.TestResult) {
         const { error, passed } = results
         if (!passed) {
             this._failReasons.push((error && error.message) || 'Unknown Error')
         }
+        await this._insightsHandler?.afterTest(test, results)
     }
 
     async after (result: number) {
@@ -157,12 +183,33 @@ export default class BrowserstackService implements Services.ServiceInstance {
                 ...(hasReasons ? { reason: this._failReasons.join('\n') } : {})
             })
         }
+
+        await this._insightsHandler?.uploadPending()
+        await this._insightsHandler?.teardown()
     }
 
     /**
      * For CucumberJS
      */
-    afterScenario (world: Frameworks.World) {
+
+    async beforeFeature(uri: string, feature: Feature) {
+        this._suiteTitle = feature.name
+        await this._setSessionName(feature.name)
+        await this._setAnnotation(`Feature: ${feature.name}`)
+    }
+
+    /**
+     * Runs before a Cucumber Scenario.
+     * @param world world object containing information on pickle and test step
+     */
+    async beforeScenario (world: ITestCaseHookParameter) {
+        this._currentTest = world
+        await this._insightsHandler?.beforeScenario(world)
+        const scenarioName = world.pickle.name || 'unknown scenario'
+        await this._setAnnotation(`Scenario: ${scenarioName}`)
+    }
+
+    async afterScenario (world: ITestCaseHookParameter) {
         const status = world.result?.status.toLowerCase()
         if (status !== 'skipped') {
             this._scenariosThatRan.push(world.pickle.name || 'unknown pickle name')
@@ -179,6 +226,18 @@ export default class BrowserstackService implements Services.ServiceInstance {
 
             this._failReasons.push(exception)
         }
+
+        await this._insightsHandler?.afterScenario(world)
+    }
+
+    async beforeStep (step: Frameworks.PickleStep, scenario: Pickle) {
+        const { keyword, text } = step
+        await this._insightsHandler?.beforeStep(step, scenario)
+        await this._setAnnotation(`Step: ${keyword}${text}`)
+    }
+
+    async afterStep (step: Frameworks.PickleStep, scenario: Pickle, result: Frameworks.PickleResult) {
+        await this._insightsHandler?.afterStep(step, scenario, result)
     }
 
     async onReload(oldSessionId: string, newSessionId: string) {
@@ -252,6 +311,9 @@ export default class BrowserstackService implements Services.ServiceInstance {
     }
 
     _update(sessionId: string, requestBody: any) {
+        if (!this._browser || !isBrowserstackSession(this._browser)) {
+            return Promise.resolve()
+        }
         const sessionUrl = `${this._sessionBaseUrl}/${sessionId}.json`
         log.debug(`Updating Browserstack session at ${sessionUrl} with request body: `, requestBody)
         return got.put(sessionUrl, {
@@ -262,7 +324,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
     }
 
     async _printSessionURL() {
-        if (!this._browser) {
+        if (!this._browser || !isBrowserstackSession(this._browser)) {
             return Promise.resolve()
         }
         await this._multiRemoteAction(async (sessionId, browserName) => {
@@ -318,7 +380,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
         action: string,
         args?: object,
     ) {
-        if (!this._browser) {
+        if (!this._browser || !isBrowserstackSession(this._browser)) {
             return Promise.resolve()
         }
 

@@ -1,11 +1,13 @@
 import path from 'node:path'
 
-import { describe, expect, it, vi, beforeEach } from 'vitest'
+import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
 import got from 'got'
 import logger from '@wdio/logger'
 import type { Browser, MultiRemoteBrowser } from 'webdriverio'
 
 import BrowserstackService from '../src/service.js'
+import * as utils from '../src/util.js'
+import InsightsHandler from '../src/insights-handler.js'
 
 const jasmineSuiteTitle = 'Jasmine__TopLevel__Suite'
 const sessionBaseUrl = 'https://api.browserstack.com/automate/sessions'
@@ -14,6 +16,8 @@ const sessionIdA = 'session456'
 
 vi.mock('got')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.useFakeTimers().setSystemTime(new Date('2020-01-01'))
+vi.mock('uuid', () => ({ v4: () => '123456789' }))
 
 const log = logger('test')
 let service: BrowserstackService
@@ -34,6 +38,7 @@ beforeEach(() => {
 
     browser = {
         execute: vi.fn(),
+        on: vi.fn(),
         sessionId: sessionId,
         config: {},
         capabilities: {
@@ -55,9 +60,9 @@ beforeEach(() => {
                 }
             }
         },
-        browserB: {}
+        browserB: {},
     } as unknown as Browser<'async'> | MultiRemoteBrowser<'async'>
-    service = new BrowserstackService({} as any, [] as any, { user: 'foo', key: 'bar' } as any)
+    service = new BrowserstackService({ testObservability: false } as any, [] as any, { user: 'foo', key: 'bar' } as any)
 })
 
 it('should initialize correctly', () => {
@@ -67,15 +72,18 @@ it('should initialize correctly', () => {
 
 describe('onReload()', () => {
     it('should update and get session', async () => {
+        const isBrowserstackSessionSpy = vi.spyOn(utils, 'isBrowserstackSession').mockReturnValue(true)
         const updateSpy = vi.spyOn(service, '_update')
         service['_browser'] = browser
         await service.onReload('1', '2')
         expect(updateSpy).toHaveBeenCalled()
         expect(got.put).toHaveBeenCalled()
         expect(got).toHaveBeenCalled()
+        expect(isBrowserstackSessionSpy).toHaveBeenCalled()
     })
 
     it('should update and get multiremote session', async () => {
+        const isBrowserstackSessionSpy = vi.spyOn(utils, 'isBrowserstackSession').mockReturnValue(true)
         browser.isMultiremote = true as any
         service['_browser'] = browser
         const updateSpy = vi.spyOn(service, '_update')
@@ -83,6 +91,7 @@ describe('onReload()', () => {
         expect(updateSpy).toHaveBeenCalled()
         expect(got.put).toHaveBeenCalled()
         expect(got).toHaveBeenCalled()
+        expect(isBrowserstackSessionSpy).toHaveBeenCalled()
     })
 
     it('should reset failures', async () => {
@@ -96,6 +105,14 @@ describe('onReload()', () => {
             reason: 'Custom Error: Button should be enabled' + '\n' + 'Expected something'
         })
         expect(service['_failReasons']).toEqual([])
+    })
+
+    it('should return if no browser object', async () => {
+        const updateSpy = vi.spyOn(service, '_update')
+        service['_browser'] = undefined
+
+        await service.onReload('1', '2')
+        expect(updateSpy).toBeCalledTimes(0)
     })
 })
 
@@ -116,11 +133,52 @@ describe('beforeSession', () => {
     })
 })
 
+describe('_multiRemoteAction', () => {
+    it('resolve if no browser object', () => {
+        const tmpService = new BrowserstackService({ testObservability: false }, [] as any,
+            { user: 'foo', key: 'bar', cucumberOpts: { strict: false } } as any)
+        tmpService['_browser'] = undefined
+        expect(tmpService._multiRemoteAction({} as any)).toEqual(Promise.resolve())
+    })
+})
+
+describe('_update', () => {
+    const tmpService = new BrowserstackService({ testObservability: false }, [] as any,
+        { user: 'foo', key: 'bar', cucumberOpts: { strict: false } } as any)
+
+    describe('should return if not a browserstack session', () => {
+        const logDebugSpy = vi.spyOn(log, 'debug').mockImplementation((string) => string)
+        const isBrowserstackSessionSpy = vi.spyOn(utils, 'isBrowserstackSession').mockImplementation()
+        isBrowserstackSessionSpy.mockReturnValue(false)
+        const getCloudProviderSpy = vi.spyOn(utils, 'getCloudProvider').mockReturnValue('browserstack')
+
+        beforeEach(() => {
+            logDebugSpy.mockClear()
+            isBrowserstackSessionSpy.mockClear()
+            getCloudProviderSpy.mockClear()
+        })
+
+        it('should resolve if not a browserstack session', () => {
+            tmpService['_browser'] = undefined
+            tmpService._update('sessionId', {})
+            expect(isBrowserstackSessionSpy).toBeCalledTimes(0)
+            expect(logDebugSpy).toBeCalledTimes(0)
+        })
+
+        afterEach(() => {
+            logDebugSpy.mockClear()
+            isBrowserstackSessionSpy.mockClear()
+            getCloudProviderSpy.mockClear()
+        })
+    })
+})
+
 describe('_printSessionURL', () => {
     it('should get and log session details', async () => {
         browser.isMultiremote = false
         service['_browser'] = browser
         const logInfoSpy = vi.spyOn(log, 'info').mockImplementation((string) => string)
+        const isBrowserstackSessionSpy = vi.spyOn(utils, 'isBrowserstackSession').mockReturnValue(true)
         await service._printSessionURL()
         expect(got).toHaveBeenCalledWith(
             `${sessionBaseUrl}/${sessionId}.json`,
@@ -129,12 +187,14 @@ describe('_printSessionURL', () => {
         expect(logInfoSpy).toHaveBeenCalledWith(
             'OS X Sierra chrome session: https://www.browserstack.com/automate/builds/1/sessions/2'
         )
+        expect(isBrowserstackSessionSpy).toHaveBeenCalled()
     })
 
     it('should get and log multi remote session details', async () => {
         browser.isMultiremote = true as any
         service['_browser'] = browser
         const logInfoSpy = vi.spyOn(log, 'info').mockImplementation((string) => string)
+        const isBrowserstackSessionSpy = vi.spyOn(utils, 'isBrowserstackSession').mockReturnValue(true)
         await service._printSessionURL()
         expect(got).toHaveBeenCalledWith(
             `${sessionBaseUrl}/${sessionIdA}.json`,
@@ -143,6 +203,31 @@ describe('_printSessionURL', () => {
         expect(logInfoSpy).toHaveBeenCalledWith(
             'Windows 10 chrome session: https://www.browserstack.com/automate/builds/1/sessions/2'
         )
+        expect(isBrowserstackSessionSpy).toHaveBeenCalled()
+    })
+
+    describe('if cant print', () => {
+        describe('no browser object', () => {
+            const logInfoSpy = vi.spyOn(log, 'info').mockImplementation((string) => string)
+            const isBrowserstackSessionSpy = vi.spyOn(utils, 'isBrowserstackSession').mockReturnValue(true)
+
+            beforeEach(() => {
+                logInfoSpy.mockClear()
+                isBrowserstackSessionSpy.mockClear()
+            })
+
+            it('should resolve if not no browser object', async () => {
+                service['_browser'] = undefined
+                await service._printSessionURL()
+                expect(isBrowserstackSessionSpy).toBeCalledTimes(0)
+                expect(logInfoSpy).toBeCalledTimes(0)
+            })
+
+            afterEach(() => {
+                logInfoSpy.mockClear()
+                isBrowserstackSessionSpy.mockClear()
+            })
+        })
     })
 })
 
@@ -303,6 +388,77 @@ describe('before', () => {
         expect(log.info).toHaveBeenCalled()
         expect(log.info).toHaveBeenCalledWith(
             'OS X Sierra chrome session: https://www.browserstack.com/automate/builds/1/sessions/2')
+    })
+})
+
+describe('beforeHook', () => {
+    service = new BrowserstackService({}, [] as any,
+        { user: 'foo', key: 'bar', cucumberOpts: { strict: false } } as any)
+
+    it('call insightsHandler.beforeHook', () => {
+        service['_insightsHandler'] = new InsightsHandler()
+        const methodSpy = vi.spyOn(service['_insightsHandler'], 'beforeHook')
+        service.beforeHook({ title: 'foo2', parent: 'bar2' } as any,
+        {} as any)
+
+        expect(methodSpy).toBeCalled()
+    })
+})
+
+describe('afterHook', () => {
+    service = new BrowserstackService({}, [] as any,
+        { user: 'foo', key: 'bar', cucumberOpts: { strict: false } } as any)
+
+    it('call insightsHandler.afterHook', () => {
+        service['_insightsHandler'] = new InsightsHandler()
+        const methodSpy = vi.spyOn(service['_insightsHandler'], 'afterHook')
+        service.afterHook({ title: 'foo2', parent: 'bar2' } as any,
+        undefined as never, {} as any)
+
+        expect(methodSpy).toBeCalled()
+    })
+})
+
+describe('beforeStep', () => {
+    const service = new BrowserstackService({}, [] as any,
+        { user: 'foo', key: 'bar', cucumberOpts: { strict: false } } as any)
+
+    it('call insightsHandler.beforeStep', () => {
+        vi.spyOn(utils, 'getUniqueIdentifierForCucumber').mockReturnValue('test title')
+        service['_insightsHandler'] = new InsightsHandler()
+        const methodSpy = vi.spyOn(service['_insightsHandler'], 'beforeStep')
+        service.beforeStep({ keyword: 'Given', text: 'this is a test' } as any,
+        undefined as never)
+
+        expect(methodSpy).toBeCalled()
+    })
+})
+
+describe('afterStep', () => {
+    const service = new BrowserstackService({}, [] as any,
+        { user: 'foo', key: 'bar', cucumberOpts: { strict: false } } as any)
+
+    it('call insightsHandler.afterStep', () => {
+        vi.spyOn(utils, 'getUniqueIdentifierForCucumber').mockReturnValue('test title')
+        service['_insightsHandler'] = new InsightsHandler()
+        const methodSpy = vi.spyOn(service['_insightsHandler'], 'afterStep')
+        service.afterStep({ title: 'foo2', parent: 'bar2' } as any,
+        undefined as never, {} as any)
+
+        expect(methodSpy).toBeCalled()
+    })
+})
+
+describe('beforeScenario', () => {
+    const service = new BrowserstackService({}, [] as any, { user: 'foo', key: 'bar' } as any)
+
+    it('call insightsHandler.beforeScenario', () => {
+        service['_insightsHandler'] = new InsightsHandler()
+        vi.spyOn(utils, 'getUniqueIdentifierForCucumber').mockReturnValue('test title')
+        const methodSpy = vi.spyOn(service['_insightsHandler'], 'beforeScenario')
+        service.beforeScenario({ pickle: { name: '', tags: [] }, gherkinDocument: { uri: '', feature: { name: '', description: '' } } } as any)
+
+        expect(methodSpy).toBeCalled()
     })
 })
 
@@ -571,7 +727,7 @@ describe('afterTest', () => {
 
 describe('afterScenario', () => {
     it('should increment failure reasons on non-passing statuses (strict mode off)', () => {
-        service = new BrowserstackService({} as any, [] as any,
+        service = new BrowserstackService({ testObservability: false } as any, [] as any,
             { user: 'foo', key: 'bar', cucumberOpts: { strict: false } } as any)
 
         expect(service['_failReasons']).toEqual([])
@@ -614,7 +770,7 @@ describe('afterScenario', () => {
     })
 
     it('should increment failure reasons on non-passing statuses (strict mode on)', () => {
-        service = new BrowserstackService({} as any, [] as any,
+        service = new BrowserstackService({ testObservability: false } as any, [] as any,
             { user: 'foo', key: 'bar', cucumberOpts: { strict: true }, capabilities: {} })
 
         expect(service['_failReasons']).toEqual([])
@@ -736,7 +892,7 @@ describe('after', () => {
 
     describe('Cucumber only', function () {
         it('should call _update with status "failed" if strict mode is "on" and all tests are pending', async () => {
-            service = new BrowserstackService({} as any, [] as any,
+            service = new BrowserstackService({ testObservability: false } as any, [] as any,
                 { user: 'foo', key: 'bar', cucumberOpts: { strict: true } } as any)
 
             const updateSpy = vi.spyOn(service, '_update')
@@ -761,7 +917,7 @@ describe('after', () => {
         })
 
         it('should call _update with status "passed" when strict mode is "off" and only passed and pending tests ran', async () => {
-            service = new BrowserstackService({} as any, [] as any,
+            service = new BrowserstackService({ testObservability: false } as any, [] as any,
                 { user: 'foo', key: 'bar', cucumberOpts: { strict: false } } as any)
 
             const updateSpy = vi.spyOn(service, '_update')
@@ -783,7 +939,7 @@ describe('after', () => {
         })
 
         it('should call _update with status is "failed" when strict mode is "on" and only passed and pending tests ran', async () => {
-            service = new BrowserstackService({} as any, [] as any,
+            service = new BrowserstackService({ testObservability: false } as any, [] as any,
                 { user: 'foo', key: 'bar', cucumberOpts: { strict: true } } as any)
 
             const updateSpy = vi.spyOn(service, '_update')
@@ -824,7 +980,7 @@ describe('after', () => {
         })
 
         it('should call _update with status "failed" when strict mode is "on" and only failed and pending tests ran', async () => {
-            service = new BrowserstackService({} as any, [] as any,
+            service = new BrowserstackService({ testObservability: false } as any, [] as any,
                 { user: 'foo', key: 'bar', cucumberOpts: { strict: true } } as any)
 
             const updateSpy = vi.spyOn(service, '_update')
@@ -895,7 +1051,7 @@ describe('after', () => {
                     /*, 5, 4, 0*/
                 ].map(({ status, body }) =>
                     it(`should call _update /w status failed and name of Scenario when single "${status}" Scenario ran`, async () => {
-                        service = new BrowserstackService({ preferScenarioName : true } as any, [] as any,
+                        service = new BrowserstackService({ testObservability: false, preferScenarioName : true } as any, [] as any,
                             { user: 'foo', key: 'bar', cucumberOpts: { strict: false } } as any)
                         service.before({}, [], browser)
 
@@ -910,7 +1066,7 @@ describe('after', () => {
                 )
 
                 it('should call _update /w status passed and name of Scenario when single "passed" Scenario ran', async () => {
-                    service = new BrowserstackService({ preferScenarioName : true } as any, [] as any,
+                    service = new BrowserstackService({ testObservability: false, preferScenarioName : true } as any, [] as any,
                         { user: 'foo', key: 'bar', cucumberOpts: { strict: false } } as any)
                     service.before({}, [], browser)
 
@@ -935,7 +1091,7 @@ describe('after', () => {
             describe('disabled', () => {
                 ['FAILED', 'AMBIGUOUS', 'UNDEFINED', 'UNKNOWN'].map(status =>
                     it(`should call _update /w status failed and name of Feature when single "${status}" Scenario ran`, async () => {
-                        service = new BrowserstackService({ preferScenarioName : false } as any, [] as any,
+                        service = new BrowserstackService({ testObservability: false, preferScenarioName : false } as any, [] as any,
                             { user: 'foo', key: 'bar', cucumberOpts: { strict: false } } as any)
                         service.before({}, [], browser)
 
@@ -956,7 +1112,7 @@ describe('after', () => {
                 )
 
                 it('should call _update /w status passed and name of Feature when single "passed" Scenario ran', async () => {
-                    service = new BrowserstackService({ preferScenarioName : false } as any, [] as any,
+                    service = new BrowserstackService({ testObservability: false, preferScenarioName : false } as any, [] as any,
                         { user: 'foo', key: 'bar', cucumberOpts: { strict: false } } as any)
                     service.before({}, [], browser)
 
@@ -977,6 +1133,34 @@ describe('after', () => {
                 })
             })
         })
+    })
+
+    describe('Observability only', function () {
+        it('should call _update with status "failed" if strict mode is "on" and all tests are pending', async () => {
+            service = new BrowserstackService({ testObservability: true } as any, [] as any,
+                { user: 'foo', key: 'bar', cucumberOpts: { strict: true } } as any)
+
+            service['_failReasons'] = []
+            const updateSpy = vi.spyOn(service, '_updateJob')
+            await service.after(1)
+
+            expect(updateSpy).toHaveBeenCalled()
+        })
+    })
+})
+
+describe('_updateCaps', () => {
+    it('calls fn', () => {
+        const fnSpy = vi.fn()
+        service._updateCaps(fnSpy)
+        expect(fnSpy).toBeCalledTimes(1)
+    })
+
+    it('calls fn - caps present', () => {
+        const fnSpy = vi.fn()
+        service['_caps'] = { capabilities: { browserName: 'chrome' } } as any
+        service._updateCaps(fnSpy)
+        expect(fnSpy).toBeCalledTimes(1)
     })
 })
 

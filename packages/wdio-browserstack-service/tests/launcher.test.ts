@@ -8,6 +8,7 @@ import fs from 'node:fs'
 
 import BrowserstackLauncher from '../src/launcher.js'
 import type { BrowserstackConfig } from '../src/types'
+import * as utils from '../src/util.js'
 import { version as bstackServiceVersion } from '../package.json'
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
@@ -30,29 +31,31 @@ describe('onPrepare', () => {
         capabilities: []
     }
     const logInfoSpy = vi.spyOn(log, 'info').mockImplementation((string) => string)
+    vi.spyOn(utils, 'launchTestSession').mockImplementation(() => {})
 
     it('should not try to upload app is app is undefined', () => {
-        const service = new BrowserstackLauncher({} as any, caps, config)
+        const service = new BrowserstackLauncher({ testObservability: false } as any, caps, config)
         service.onPrepare()
 
         expect(logInfoSpy).toHaveBeenCalledWith('app is not defined in browserstack-service config, skipping ...')
     })
 
     it('should not call local if browserstackLocal is undefined', () => {
-        const service = new BrowserstackLauncher({} as any, caps, {
+        const service = new BrowserstackLauncher({ testObservability: false } as any, caps, {
             user: 'foobaruser',
             key: '12345',
             capabilities: []
         })
         service.onPrepare()
 
-        expect(logInfoSpy).toHaveBeenCalledWith('browserstackLocal is not enabled - skipping...')
+        expect(logInfoSpy).toHaveBeenNthCalledWith(2, 'browserstackLocal is not enabled - skipping...')
         expect(service.browserstackLocal).toBeUndefined()
     })
 
     it('should not call local if browserstackLocal is false', () => {
         const service = new BrowserstackLauncher({
-            browserstackLocal: false
+            browserstackLocal: false,
+            testObservability: false
         } as any, caps, {
             user: 'foobaruser',
             key: '12345',
@@ -60,7 +63,7 @@ describe('onPrepare', () => {
         })
         service.onPrepare()
 
-        expect(logInfoSpy).toHaveBeenCalledWith('browserstackLocal is not enabled - skipping...')
+        expect(logInfoSpy).toHaveBeenNthCalledWith(2, 'browserstackLocal is not enabled - skipping...')
         expect(service.browserstackLocal).toBeUndefined()
     })
 
@@ -201,6 +204,36 @@ describe('onPrepare', () => {
         ])
     })
 
+    it('should throw SevereServiceError if _validateApp fails', async () => {
+        const options: BrowserstackConfig = { app: 'bs://<app-id>' }
+        const service = new BrowserstackLauncher(options, caps, config)
+        const capabilities = { samsungGalaxy: { capabilities: {} } }
+
+        vi.spyOn(service, '_validateApp').mockImplementationOnce(() => { throw new Error() } )
+
+        try {
+            await service.onPrepare(config, capabilities)
+        } catch (e: any) {
+            expect(e.name).toEqual('SevereServiceError')
+        }
+    })
+
+    it('should throw SevereServiceError if fs.existsSync fails', async () => {
+        const options: BrowserstackConfig = { app: { path: '/path/to/app.apk', custom_id: 'custom_id' } }
+        const service = new BrowserstackLauncher(options, caps, config)
+        const capabilities = { samsungGalaxy: { capabilities: {} } }
+
+        vi.spyOn(service, '_validateApp').mockImplementation(() => Promise.resolve({ app: 'bs://<app-id>', customId: 'custom_id' }))
+        vi.spyOn(fs, 'existsSync').mockReturnValue(false)
+
+        try {
+            await service.onPrepare(config, capabilities)
+        } catch (e: any) {
+            expect(e.name).toEqual('SevereServiceError')
+            expect(e.message).toEqual('[Invalid app path] app path ${app.app} is not correct, Provide correct path to app under test')
+        }
+    })
+
     it('should initialize the opts object, and spawn a new Local instance', async () => {
         const service = new BrowserstackLauncher(options as any, caps, config)
         await service.onPrepare(config, caps)
@@ -277,6 +310,7 @@ describe('onPrepare', () => {
 
     it('should successfully resolve if local.start is successful', async () => {
         const logInfoMock = vi.spyOn(log, 'info')
+        const options: BrowserstackConfig = { browserstackLocal: true }
         const service = new BrowserstackLauncher(options as any, caps, config)
 
         await service.onPrepare(config, caps)
@@ -304,13 +338,13 @@ describe('onComplete', () => {
         expect(service.browserstackLocal.stop).not.toHaveBeenCalled()
     })
 
-    it('should kill the process if forcedStop is true', () => {
+    it('should kill the process if forcedStop is true', async () => {
         const service = new BrowserstackLauncher({ forcedStop: true } as any, [{}] as any, {} as any)
         service.browserstackLocal = new Browserstack.Local()
         service.browserstackLocal.pid = 102
 
         const killSpy = vi.spyOn(process, 'kill').mockImplementationOnce((pid) => pid as any)
-        expect(service.onComplete()).toEqual(102)
+        expect(await service.onComplete()).toEqual(102)
         expect(killSpy).toHaveBeenCalled()
         expect(service.browserstackLocal.stop).not.toHaveBeenCalled()
     })
@@ -337,7 +371,8 @@ describe('constructor', () => {
     const config = {
         user: 'foobaruser',
         key: '12345',
-        capabilities: []
+        capabilities: [],
+        specs: []
     }
 
     it('should add the "browserstack.wdioService" property to an array of capabilities if no "bstack:options"', async () => {
@@ -368,6 +403,40 @@ describe('constructor', () => {
             { 'bstack:options': { wdioService: bstackServiceVersion }, 'moz:firefoxOptions': {} },
             { 'bstack:options': { wdioService: bstackServiceVersion }, 'goog:chromeOptions': {} }
         ])
+    })
+
+    it('should add the "wdioService" property to object of capabilities inside "bstack:options" if "bstack:options" present', async () => {
+        const caps: any = { browserA: { capabilities: { 'goog:chromeOptions': {}, 'bstack:options': {} } } }
+        new BrowserstackLauncher(options, caps, config)
+
+        expect(caps).toEqual({ 'browserA': { 'capabilities': { 'bstack:options': { 'wdioService': bstackServiceVersion }, 'goog:chromeOptions': {} } } })
+    })
+
+    it('should add the "wdioService" property to object of capabilities inside "bstack:options" if any extension cap present', async () => {
+        const caps: any = { browserA: { capabilities: { 'goog:chromeOptions': {} } } }
+        new BrowserstackLauncher(options, caps, config)
+
+        expect(caps).toEqual({ 'browserA': { 'capabilities': { 'bstack:options': { 'wdioService': bstackServiceVersion }, 'goog:chromeOptions': {} } } })
+    })
+
+    it('should add the "wdioService" property to object of capabilities inside "bstack:options" if any extension cap not present', async () => {
+        const caps: any = { browserA: { capabilities: {} } }
+        new BrowserstackLauncher(options, caps, config)
+
+        expect(caps).toEqual({ 'browserA': { 'capabilities': { 'browserstack.wdioService': bstackServiceVersion } } })
+    })
+
+    it('update spec list if it is a rerun', async () => {
+        process.env.BROWSERSTACK_RERUN = 'true'
+        process.env.BROWSERSTACK_RERUN_TESTS = 'demo1.test.js,demo2.test.js'
+
+        const caps: any = [{ 'bstack:options': {} }, { 'bstack:options': {} }]
+        new BrowserstackLauncher(options, caps, config)
+
+        expect(config.specs).toEqual(['demo1.test.js', 'demo2.test.js'])
+
+        delete process.env.BROWSERSTACK_RERUN
+        delete process.env.BROWSERSTACK_RERUN_TESTS
     })
 })
 
@@ -428,6 +497,29 @@ describe('_validateApp', () => {
                             {id<string>, path<string>, custom_id<string>, shareable_id<string>}, only "path" and "custom_id" can co-exist.`)
         }
     })
+
+    it('should throw error if appConfig is invalid format', async() => {
+        const options: BrowserstackConfig = { app: {} }
+        const service = new BrowserstackLauncher(options, caps, config)
+
+        try {
+            await service._validateApp(options.app)
+        } catch (e: any){
+            expect(e.message).toEqual('[Invalid format] app should be string or an object')
+        }
+    })
+
+    it('should throw error if appConfig is invalid format', async() => {
+        const options: BrowserstackConfig = { app: { key1: '2' } }
+        const service = new BrowserstackLauncher(options, caps, config)
+
+        try {
+            await service._validateApp(options.app)
+        } catch (e: any){
+            expect(e.message).toEqual(`[Invalid app property] supported properties are {id<string>, path<string>, custom_id<string>, shareable_id<string>}.
+                        For more details please visit https://www.browserstack.com/docs/app-automate/appium/set-up-tests/specify-app ')`)
+        }
+    })
 })
 
 describe('_uploadApp', () => {
@@ -448,5 +540,23 @@ describe('_uploadApp', () => {
         const service = new BrowserstackLauncher(options as any, caps, config)
         const res = await service._uploadApp(options.app as any)
         expect(res).toEqual({ app_url: 'bs://<app-id>' })
+    })
+
+    it('throw SevereServiceError if upload fails', async() => {
+        vi.mock('got', () => ({
+            post: vi.fn().mockImplementation(() => new Promise(() => {}))
+        }))
+
+        got.post = vi.fn().mockReturnValue({
+            json: () => Promise.reject({})
+        })
+        const service = new BrowserstackLauncher(options, caps, config)
+
+        try {
+            await service._uploadApp(options.app)
+        } catch (e: any) {
+            expect(got.post).toHaveBeenCalled()
+            expect(e.name).toEqual('SevereServiceError')
+        }
     })
 })
