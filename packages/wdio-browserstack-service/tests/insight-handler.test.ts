@@ -2,7 +2,6 @@ import gotMock from 'got'
 import logger from '@wdio/logger'
 import type { Browser } from 'webdriverio'
 
-// import BrowserstackService from '../src/service'
 import InsightsHandler from '../src/insights-handler'
 import * as utils from '../src/util'
 import RequestQueueHandler from '../src/request-handler'

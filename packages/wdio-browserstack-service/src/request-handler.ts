@@ -7,7 +7,7 @@ import { batchAndPostEvents } from './util'
 const log = logger('@wdio/browserstack-service')
 
 export default class RequestQueueHandler {
-    private queue: any = []
+    private queue: UploadType[] = []
     private started: boolean = false
     private pollEventBatchInterval?: ReturnType<typeof setInterval>
     public pendingUploads: number = 0
@@ -25,14 +25,14 @@ export default class RequestQueueHandler {
         return RequestQueueHandler.instance
     }
 
-    start = () => {
+    start () {
         if (!this.started) {
             this.started = true
             this.startEventBatchPolling()
         }
     }
 
-    add = (event: UploadType) => {
+    add (event: UploadType) {
         if (!process.env.BS_TESTOPS_BUILD_COMPLETED) {
             return {
                 proceed: false
@@ -71,7 +71,7 @@ export default class RequestQueueHandler {
         }
     }
 
-    shutdown = async () => {
+    async shutdown () {
         this.removeEventBatchPolling('Shutting down')
         while (this.queue.length > 0) {
             const data = this.queue.splice(0, DATA_BATCH_SIZE)
@@ -79,7 +79,7 @@ export default class RequestQueueHandler {
         }
     }
 
-    startEventBatchPolling = () => {
+    startEventBatchPolling () {
         this.pollEventBatchInterval = setInterval(async () => {
             if (this.queue.length > 0) {
                 const data = this.queue.splice(0, DATA_BATCH_SIZE)
@@ -89,12 +89,12 @@ export default class RequestQueueHandler {
         }, DATA_BATCH_INTERVAL)
     }
 
-    resetEventBatchPolling = () => {
+    resetEventBatchPolling () {
         this.removeEventBatchPolling('Resetting')
         this.startEventBatchPolling()
     }
 
-    removeEventBatchPolling = (tag: string) => {
+    removeEventBatchPolling (tag: string) {
         if (this.pollEventBatchInterval) {
             log.debug(`${tag} request queue`)
             clearInterval(this.pollEventBatchInterval)
@@ -102,7 +102,7 @@ export default class RequestQueueHandler {
         }
     }
 
-    shouldProceed = () => {
+    shouldProceed () {
         return this.queue.length >= DATA_BATCH_SIZE
     }
 }

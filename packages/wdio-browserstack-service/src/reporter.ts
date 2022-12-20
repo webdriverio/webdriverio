@@ -9,18 +9,12 @@ import { getCloudProvider, uploadEventData, getHierarchy } from './util'
 import RequestQueueHandler from './request-handler'
 
 export default class TestReporter extends WDIOReporter {
-    private _capabilities?: Capabilities.Capabilities
+    private _capabilities?: Capabilities.Capabilities = {}
     private _config?: BrowserstackConfig & Options.Testrunner
     private _observability?: boolean = true
     private _sessionId?: string
     private _suiteName?: string
-    private requestQueueHandler: RequestQueueHandler
-
-    constructor(options: Reporters.Options) {
-        super(options)
-        this._capabilities = {}
-        this.requestQueueHandler = RequestQueueHandler.getInstance()
-    }
+    private _requestQueueHandler = RequestQueueHandler.getInstance()
 
     onRunnerStart (runnerStats: RunnerStats) {
         this._capabilities = runnerStats.capabilities as Capabilities.Capabilities
@@ -80,8 +74,8 @@ export default class TestReporter extends WDIOReporter {
                 test_run: testData
             }
 
-            const req = this.requestQueueHandler.add(uploadData)
-            if (req.proceed) {
+            const req = this._requestQueueHandler.add(uploadData)
+            if (req.proceed && req.data) {
                 await uploadEventData(req.data, req.url)
             }
         }

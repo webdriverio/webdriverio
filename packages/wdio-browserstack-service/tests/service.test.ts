@@ -400,8 +400,8 @@ describe('beforeHook', () => {
         { user: 'foo', key: 'bar', cucumberOpts: { strict: false } } as any)
 
     it('call insightsHandler.beforeHook', () => {
-        service['insightsHandler'] = new InsightsHandler()
-        const methodSpy = jest.spyOn(service['insightsHandler'], 'beforeHook')
+        service['_insightsHandler'] = new InsightsHandler()
+        const methodSpy = jest.spyOn(service['_insightsHandler'], 'beforeHook')
         service.beforeHook({ title: 'foo2', parent: 'bar2' } as any,
         {} as any)
 
@@ -414,8 +414,8 @@ describe('afterHook', () => {
         { user: 'foo', key: 'bar', cucumberOpts: { strict: false } } as any)
 
     it('call insightsHandler.afterHook', () => {
-        service['insightsHandler'] = new InsightsHandler()
-        const methodSpy = jest.spyOn(service['insightsHandler'], 'afterHook')
+        service['_insightsHandler'] = new InsightsHandler()
+        const methodSpy = jest.spyOn(service['_insightsHandler'], 'afterHook')
         service.afterHook({ title: 'foo2', parent: 'bar2' } as any,
         undefined as never, {} as any)
 
@@ -429,8 +429,8 @@ describe('beforeStep', () => {
 
     it('call insightsHandler.beforeStep', () => {
         jest.spyOn(utils, 'getUniqueIdentifierForCucumber').mockReturnValue('test title')
-        service['insightsHandler'] = new InsightsHandler()
-        const methodSpy = jest.spyOn(service['insightsHandler'], 'beforeStep')
+        service['_insightsHandler'] = new InsightsHandler()
+        const methodSpy = jest.spyOn(service['_insightsHandler'], 'beforeStep')
         service.beforeStep({ keyword: 'Given', text: 'this is a test' } as any,
         undefined as never)
 
@@ -444,8 +444,8 @@ describe('afterStep', () => {
 
     it('call insightsHandler.afterStep', () => {
         jest.spyOn(utils, 'getUniqueIdentifierForCucumber').mockReturnValue('test title')
-        service['insightsHandler'] = new InsightsHandler()
-        const methodSpy = jest.spyOn(service['insightsHandler'], 'afterStep')
+        service['_insightsHandler'] = new InsightsHandler()
+        const methodSpy = jest.spyOn(service['_insightsHandler'], 'afterStep')
         service.afterStep({ title: 'foo2', parent: 'bar2' } as any,
         undefined as never, {} as any)
 
@@ -457,9 +457,9 @@ describe('beforeScenario', () => {
     const service = new BrowserstackService({}, [] as any, { user: 'foo', key: 'bar' } as any)
 
     it('call insightsHandler.beforeScenario', () => {
-        service['insightsHandler'] = new InsightsHandler()
+        service['_insightsHandler'] = new InsightsHandler()
         jest.spyOn(utils, 'getUniqueIdentifierForCucumber').mockReturnValue('test title')
-        const methodSpy = jest.spyOn(service['insightsHandler'], 'beforeScenario')
+        const methodSpy = jest.spyOn(service['_insightsHandler'], 'beforeScenario')
         service.beforeScenario({ pickle: { name: '', tags: [] }, gherkinDocument: { uri: '', feature: { name: '', description: '' } } } as any)
 
         expect(methodSpy).toBeCalled()

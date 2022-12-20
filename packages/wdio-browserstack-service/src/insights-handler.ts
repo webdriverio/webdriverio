@@ -80,12 +80,9 @@ export default class InsightsHandler {
 
     async afterTest (test: Frameworks.Test, result: Frameworks.TestResult) {
         const fullTitle = getUniqueIdentifier(test)
-        if (this._tests[fullTitle]) {
-            this._tests[fullTitle].finishedAt = (new Date()).toISOString()
-        } else {
-            this._tests[fullTitle] = {
-                finishedAt: (new Date()).toISOString()
-            }
+        this._tests[fullTitle] = {
+            ...(this._tests[fullTitle] || {}),
+            finishedAt: (new Date()).toISOString()
         }
         await this.sendTestRunEvent(test, 'TestRunFinished', result)
     }
@@ -246,7 +243,7 @@ export default class InsightsHandler {
             }]
         })
 
-        if (req.proceed) {
+        if (req.proceed && req.data) {
             await uploadEventData(req.data, req.url)
         }
     }
@@ -270,16 +267,15 @@ export default class InsightsHandler {
      * Get hierarchy info
      */
     private getHierarchy (test: Frameworks.Test) {
-        let value: string[] = []
+        const value: string[] = []
         if (test.ctx && test.ctx.test) {
             let parent = test.ctx.test.parent
             while (parent && parent.title !== '') {
                 value.push(parent.title)
                 parent = parent.parent
             }
-            return value.reverse()
         }
-        return value
+        return value.reverse()
     }
 
     private async sendTestRunEvent (test: Frameworks.Test, eventType: string, results?: Frameworks.TestResult) {
@@ -348,7 +344,7 @@ export default class InsightsHandler {
 
         const req = this.requestQueueHandler.add(uploadData)
 
-        if (req.proceed) {
+        if (req.proceed && req.data) {
             await uploadEventData(req.data, req.url)
         }
     }
@@ -436,7 +432,7 @@ export default class InsightsHandler {
 
         const req = this.requestQueueHandler.add(uploadData)
 
-        if (req.proceed) {
+        if (req.proceed && req.data) {
             await uploadEventData(req.data, req.url)
         }
     }

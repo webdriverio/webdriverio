@@ -25,7 +25,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
     private _options: BrowserstackConfig & Options.Testrunner
     private _observability?: boolean = true
     private _currentTest?: Frameworks.Test | ITestCaseHookParameter
-    private insightsHandler?: InsightsHandler
+    private _insightsHandler?: InsightsHandler
 
     constructor (
         options: BrowserstackConfig & Options.Testrunner,
@@ -35,7 +35,9 @@ export default class BrowserstackService implements Services.ServiceInstance {
         this._options = { ...DEFAULT_OPTIONS, ...options }
         // added to maintain backward compatibility with webdriverIO v5
         this._config || (this._config = this._options)
-        if (this._options.testObservability == false) this._observability = false
+        if (this._options.testObservability == false) { // keeping it true by default unless passed false explicitly
+            this._observability = false
+        }
 
         if (this._observability) {
             this._config.reporters ? this._config.reporters.push(path.join(__dirname, 'reporter.js')) : [path.join(__dirname, 'reporter.js')]
@@ -87,13 +89,13 @@ export default class BrowserstackService implements Services.ServiceInstance {
         this._scenariosThatRan = []
 
         if (this._observability && this._browser) {
-            this.insightsHandler = new InsightsHandler(this._browser, this._browser.capabilities as Capabilities.Capabilities, this._isAppAutomate(), this._browser.sessionId as string, this._config.framework)
-            await this.insightsHandler.before()
+            this._insightsHandler = new InsightsHandler(this._browser, this._browser.capabilities as Capabilities.Capabilities, this._isAppAutomate(), this._browser.sessionId as string, this._config.framework)
+            await this._insightsHandler.before()
 
             /**
              * register command event
              */
-            this._browser.on('command', async (command) => await this.insightsHandler?.browserCommand(
+            this._browser.on('command', async (command) => await this._insightsHandler?.browserCommand(
                 'client:beforeCommand',
                 Object.assign(command, { sessionId: this._browser?.sessionId }),
                 this._currentTest
@@ -101,7 +103,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
             /**
              * register result event
              */
-            this._browser.on('result', async (result) => await this.insightsHandler?.browserCommand(
+            this._browser.on('result', async (result) => await this._insightsHandler?.browserCommand(
                 'client:afterCommand',
                 Object.assign(result, { sessionId: this._browser?.sessionId }),
                 this._currentTest
@@ -127,11 +129,11 @@ export default class BrowserstackService implements Services.ServiceInstance {
 
     async beforeHook (test: Frameworks.Test, context: any) {
         if (this._config.framework !== 'cucumber') this._currentTest = test // not update currentTest when this is called for cucumber step
-        await this.insightsHandler?.beforeHook(test, context)
+        await this._insightsHandler?.beforeHook(test, context)
     }
 
     async afterHook (test: Frameworks.Test, context: unknown, result: Frameworks.TestResult) {
-        await this.insightsHandler?.afterHook(test, result)
+        await this._insightsHandler?.afterHook(test, result)
     }
 
     async beforeTest (test: Frameworks.Test) {
@@ -150,7 +152,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
 
         await this._setSessionName(suiteTitle, test)
         await this._setAnnotation(`Test: ${test.fullName ?? test.title}`)
-        await this.insightsHandler?.beforeTest(test)
+        await this._insightsHandler?.beforeTest(test)
     }
 
     async afterTest(test: Frameworks.Test, context: never, results: Frameworks.TestResult) {
@@ -159,7 +161,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
             this._failReasons.push((error && error.message) || 'Unknown Error')
         }
 
-        await this.insightsHandler?.afterTest(test, results)
+        await this._insightsHandler?.afterTest(test, results)
     }
 
     async after (result: number) {
@@ -179,15 +181,15 @@ export default class BrowserstackService implements Services.ServiceInstance {
             })
         }
 
-        await this.insightsHandler?.uploadPending()
-        await this.insightsHandler?.teardown()
+        await this._insightsHandler?.uploadPending()
+        await this._insightsHandler?.teardown()
     }
 
     /**
      * For CucumberJS
      */
 
-    async beforeFeature(uri: unknown, feature: Feature) {
+    async beforeFeature(uri: string, feature: Feature) {
         this._suiteTitle = feature.name
         await this._setSessionName(feature.name)
         await this._setAnnotation(`Feature: ${feature.name}`)
@@ -199,7 +201,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
      */
     async beforeScenario (world: ITestCaseHookParameter) {
         this._currentTest = world
-        await this.insightsHandler?.beforeScenario(world)
+        await this._insightsHandler?.beforeScenario(world)
         const scenarioName = world.pickle.name || 'unknown scenario'
         await this._setAnnotation(`Scenario: ${scenarioName}`)
     }
@@ -222,17 +224,17 @@ export default class BrowserstackService implements Services.ServiceInstance {
             this._failReasons.push(exception)
         }
 
-        await this.insightsHandler?.afterScenario(world)
+        await this._insightsHandler?.afterScenario(world)
     }
 
     async beforeStep (step: Frameworks.PickleStep, scenario: Pickle) {
         const { keyword, text } = step
-        await this.insightsHandler?.beforeStep(step, scenario)
+        await this._insightsHandler?.beforeStep(step, scenario)
         await this._setAnnotation(`Step: ${keyword}${text}`)
     }
 
     async afterStep (step: Frameworks.PickleStep, scenario: Pickle, result: Frameworks.PickleResult) {
-        await this.insightsHandler?.afterStep(step, scenario, result)
+        await this._insightsHandler?.afterStep(step, scenario, result)
     }
 
     async onReload(oldSessionId: string, newSessionId: string) {

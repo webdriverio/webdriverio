@@ -25,9 +25,9 @@ type BrowserstackLocal = BrowserstackLocalLauncher.Local & {
 
 export default class BrowserstackLauncherService implements Services.ServiceInstance {
     browserstackLocal?: BrowserstackLocal
-    _buildName?: string
-    _projectName?: string
-    _buildTag?: string
+    private _buildName?: string
+    private _projectName?: string
+    private _buildTag?: string
 
     constructor (
         private _options: BrowserstackConfig & Options.Testrunner,
