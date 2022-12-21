@@ -6,6 +6,7 @@ let manualMockResponse: any
 
 const path = '/session'
 
+const customResponses = new Set<{ pattern, response }>()
 const defaultSessionId = 'foobar-123'
 let sessionId = defaultSessionId
 const genericElementId = 'some-elem-123'
@@ -26,6 +27,13 @@ const requestMock: any = vi.fn().mockImplementation((uri, params) => {
 
     if (typeof uri === 'string') {
         uri = new URL(uri)
+    }
+
+    for (const { pattern, response } of customResponses) {
+        if (!(uri as URL).pathname.match(pattern)) {
+            continue
+        }
+        return response
     }
 
     if (
@@ -425,6 +433,9 @@ requestMock.put = vi.fn().mockReturnValue(Promise.resolve({}))
 requestMock.retryCnt = 0
 requestMock.setMockResponse = (value: any) => {
     manualMockResponse = value
+}
+requestMock.customResponseFor = (pattern: RegExp, response: any) => {
+    customResponses.add({ pattern, response })
 }
 
 requestMock.getSessionId = () => sessionId

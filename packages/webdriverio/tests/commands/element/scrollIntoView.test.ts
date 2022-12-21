@@ -48,6 +48,15 @@ describe('scrollIntoView test', () => {
             const optionsCenter = vi.mocked(got).mock.calls.slice(-2, -1)[0][1] as any
             expect(optionsCenter.json).toMatchSnapshot()
         })
+
+        it('falls back using Web API if scroll action fails', async () => {
+            // @ts-expect-error mock feature
+            got.customResponseFor(/\/actions/, { error: 'invalid parameter' })
+            // @ts-expect-error mock feature
+            elem.elementId = { scrollIntoView: vi.fn() }
+            await elem.scrollIntoView({})
+            console.log(vi.mocked(got).mock.calls.pop()![0]!.href.endsWith('/execute/sync'))
+        })
     })
 
     describe('mobile', () => {
