@@ -451,17 +451,16 @@ export async function batchAndPostEvents (eventUrl: string, kind: string, data: 
         return
     }
 
-    const config = {
-        headers: {
-            'Authorization': `Bearer ${process.env.BS_TESTOPS_JWT}`,
-            'Content-Type': 'application/json',
-            'X-BSTACK-TESTOPS': 'true'
-        }
-    }
-
     try {
         const url = `${DATA_ENDPOINT}/${eventUrl}`
-        const response = await got.post(url, { json: data, ...config }).json()
+        const response = await got.post(url, {
+            agent: DEFAULT_REQUEST_CONFIG.agent,
+            headers: {
+                ...DEFAULT_REQUEST_CONFIG.headers,
+                'Authorization': `Bearer ${process.env.BS_TESTOPS_JWT}`
+            },
+            json: data
+        }).json()
         log.debug(`[${kind}] Success response: ${JSON.stringify(response)}`)
     } catch (error) {
         log.debug(`[${kind}] EXCEPTION IN ${kind} REQUEST TO TEST OBSERVABILITY : ${error}`)
