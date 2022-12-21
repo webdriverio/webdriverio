@@ -106,7 +106,7 @@ test('should throw if command is called that is not implemented', () => {
         ref: 'https://foobar.com',
         parameters: []
     })
-    expect(command).toThrow('Command "click" is not yet implemented')
+    expect(command).toThrow('Command "click" is not supported using the Devtools protocol.')
 })
 
 test('should return proper result', async () => {

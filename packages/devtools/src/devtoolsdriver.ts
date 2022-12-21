@@ -147,7 +147,13 @@ export default class DevToolsDriver {
          * check if command is implemented
          */
         if (typeof this.commands[command] !== 'function') {
-            return () => { throw new Error(`Command "${command}" is not yet implemented`) }
+            return () => {
+                throw new Error(
+                    `Command "${command}" is not supported using the Devtools protocol. ` +
+                    'You might want to use WebDriver as automation engine. For more ' +
+                    'information check out https://webdriver.io/docs/automationProtocols!'
+                )
+            }
         }
 
         /**
