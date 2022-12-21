@@ -11,7 +11,7 @@ import RequestQueueHandler from './request-handler'
 export default class TestReporter extends WDIOReporter {
     private _capabilities: Capabilities.Capabilities = {}
     private _config?: BrowserstackConfig & Options.Testrunner
-    private _observability: boolean = true
+    private _observability = true
     private _sessionId?: string
     private _suiteName?: string
     private _requestQueueHandler = RequestQueueHandler.getInstance()
