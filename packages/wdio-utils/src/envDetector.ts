@@ -106,6 +106,20 @@ function isMobile(capabilities: Capabilities.Capabilities) {
 }
 
 /**
+ * check if current platform is set to mobile emulation (chrome)
+ *
+ * @param  {Object}  caps  capabilities
+ * @return {Boolean}       true if platform is mobile emulation (chrome)
+ */
+function isMobileEmulationChrome(
+    capabilities: Capabilities.DesiredCapabilities
+) {
+    /**
+     * check if mobileEmulation is set
+     */
+    return Boolean(isChrome(capabilities) && capabilities['goog:chromeOptions']?.mobileEmulation)
+}
+/**
  * check if session is run on iOS device
  * @param  {Object}  capabilities  of session response
  * @return {Boolean}               true if run on iOS device
@@ -210,6 +224,7 @@ export function sessionEnvironmentDetector({ capabilities, requestedCapabilities
         isChrome: isChrome(cap),
         isFirefox: isFirefox(cap),
         isMobile: isMobile(cap),
+        isMobileEmulationChrome: isMobileEmulationChrome(cap),
         isIOS: isIOS(cap),
         isAndroid: isAndroid(cap),
         isSauce: isSauce(requestedCapabilities),
@@ -227,6 +242,7 @@ export function devtoolsEnvironmentDetector({ browserName }: Capabilities.Capabi
         isDevTools: true,
         isW3C: true,
         isMobile: false,
+        isMobileEmulationChrome: false,
         isIOS: false,
         isAndroid: false,
         isFirefox: false,
@@ -247,6 +263,7 @@ export function webdriverEnvironmentDetector(capabilities: Capabilities.Capabili
         isChrome: isChrome(capabilities),
         isFirefox: isFirefox(capabilities),
         isMobile: isMobile(capabilities),
+        isMobileEmulationChrome: isMobileEmulationChrome(capabilities),
         isIOS: isIOS(capabilities),
         isAndroid: isAndroid(capabilities),
         isSauce: isSauce(capabilities)

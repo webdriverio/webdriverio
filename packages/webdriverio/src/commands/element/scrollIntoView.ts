@@ -29,7 +29,7 @@ export default async function scrollIntoView (
     const browser = getBrowserObject(this)
 
     // Appium does not support the "wheel" action
-    if (browser.isMobile) {
+    if (browser.isMobile || browser.isMobileEmulationChrome) {
         return browser.execute(
             (elem: HTMLElement, options: ScrollIntoViewOptions | boolean) => elem.scrollIntoView(options),
             {

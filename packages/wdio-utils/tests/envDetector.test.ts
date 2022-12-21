@@ -6,6 +6,7 @@ import { sessionEnvironmentDetector, capabilitiesEnvironmentDetector } from '../
 import appiumResponse from './__fixtures__/appium.response.json'
 import experitestResponse from './__fixtures__/experitest.response.json'
 import chromedriverResponse from './__fixtures__/chromedriver.response.json'
+import chromedriverMobileEmulationResponse from './__fixtures__/chromedrivermobileemulation.response.json'
 import geckodriverResponse from './__fixtures__/geckodriver.response.json'
 import ghostdriverResponse from './__fixtures__/ghostdriver.response.json'
 import safaridriverResponse from './__fixtures__/safaridriver.response.json'
@@ -17,6 +18,7 @@ import seleniumstandaloneResponse from './__fixtures__/standaloneserver.response
 import seleniumstandalone4Response from './__fixtures__/standaloneserver4.response.json'
 
 describe('sessionEnvironmentDetector', () => {
+    const chromeMobileEmulationCaps = chromedriverMobileEmulationResponse.value as WebDriver.Capabilities
     const chromeCaps = chromedriverResponse.value as WebDriver.Capabilities
     const appiumCaps = appiumResponse.value.capabilities as WebDriver.Capabilities
     const experitestAppiumCaps = experitestResponse.appium.capabilities as WebDriver.Capabilities
@@ -43,6 +45,16 @@ describe('sessionEnvironmentDetector', () => {
         expect(sessionEnvironmentDetector({ capabilities: chromeCaps, requestedCapabilities: appiumW3CCaps }).isMobile).toBe(false)
         const newCaps = { ...chromeCaps, 'appium:options': {} }
         expect(sessionEnvironmentDetector({ capabilities: newCaps, requestedCapabilities }).isMobile).toBe(true)
+    })
+
+    it('isMobileEmulationChrome', () => {
+        expect(sessionEnvironmentDetector({ capabilities: {}, requestedCapabilities: {} }).isMobileEmulationChrome).toBe(false)
+
+        const requestedCapabilities = { browserName: '' }
+        expect(sessionEnvironmentDetector({ capabilities: chromeMobileEmulationCaps, requestedCapabilities }).isMobileEmulationChrome).toBe(true)
+        expect(sessionEnvironmentDetector({ capabilities: appiumCaps, requestedCapabilities }).isMobileEmulationChrome).toBe(false)
+        expect(sessionEnvironmentDetector({ capabilities: geckoCaps, requestedCapabilities }).isMobileEmulationChrome).toBe(false)
+        expect(sessionEnvironmentDetector({ capabilities: appiumCaps, requestedCapabilities }).isMobileEmulationChrome).toBe(false)
     })
 
     it('isW3C', () => {

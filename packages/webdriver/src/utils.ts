@@ -169,7 +169,7 @@ export function isSuccessfulResponse (statusCode?: number, body?: WebDriverRespo
 /**
  * creates the base prototype for the webdriver monad
  */
-export function getPrototype ({ isW3C, isChrome, isFirefox, isMobile, isSauce, isSeleniumStandalone }: Partial<SessionFlags>) {
+export function getPrototype ({ isW3C, isChrome, isMobileEmulationChrome, isFirefox, isMobile, isSauce, isSeleniumStandalone }: Partial<SessionFlags>) {
     const prototype: Record<string, PropertyDescriptor> = {}
     const ProtocolCommands: Protocols.Protocol = deepmerge(
         /**
@@ -192,6 +192,10 @@ export function getPrototype ({ isW3C, isChrome, isFirefox, isMobile, isSauce, i
          * only apply special Chrome commands if session is using Chrome
          */
         isChrome ? ChromiumProtocol : {},
+        /**
+         * same chrome protocol for mobile emulation
+         */
+        isMobileEmulationChrome ? ChromiumProtocol : {},
         /**
          * only apply special Firefox commands if session is using Firefox
          */
@@ -272,7 +276,7 @@ export class CustomRequestError extends Error {
  * @param  {Object} options   driver instance or option object containing these flags
  * @return {Object}           prototype object
  */
-export function getEnvironmentVars({ isW3C, isMobile, isIOS, isAndroid, isChrome, isFirefox, isSauce, isSeleniumStandalone }: Partial<SessionFlags>) {
+export function getEnvironmentVars({ isW3C, isMobile, isIOS, isAndroid, isChrome, isMobileEmulationChrome, isFirefox, isSauce, isSeleniumStandalone }: Partial<SessionFlags>) {
     return {
         isW3C: { value: isW3C },
         isMobile: { value: isMobile },
@@ -280,6 +284,7 @@ export function getEnvironmentVars({ isW3C, isMobile, isIOS, isAndroid, isChrome
         isAndroid: { value: isAndroid },
         isFirefox: { value: isFirefox },
         isChrome: { value: isChrome },
+        isMobileEmulationChrome: { value: isMobileEmulationChrome },
         isSauce: { value: isSauce },
         isSeleniumStandalone: { value: isSeleniumStandalone }
     }
