@@ -19,10 +19,10 @@ export default class InsightsHandler {
     private _platformMeta?: PlatformMeta
     private _commands: Record<string, BeforeCommandArgs & AfterCommandArgs> = {}
     private _gitConfigPath?: string
-    private requestQueueHandler = RequestQueueHandler.getInstance()
+    private _requestQueueHandler = RequestQueueHandler.getInstance()
 
     constructor (private _browser: Browser<'async'> | MultiRemoteBrowser<'async'>, browserCaps?: Capabilities.Capabilities, isAppAutomate?: boolean, sessionId?: string, private _framework?: string) {
-        this.requestQueueHandler.start()
+        this._requestQueueHandler.start()
 
         /* istanbul ignore next */
         this._platformMeta = {
@@ -184,16 +184,17 @@ export default class InsightsHandler {
         waitTimeout = DEFAULT_WAIT_TIMEOUT_FOR_PENDING_UPLOADS,
         waitInterval = DEFAULT_WAIT_INTERVAL_FOR_PENDING_UPLOADS
     ) {
-        if (this.requestQueueHandler.pendingUploads <= 0 || waitTimeout <= 0) {
+        if (this._requestQueueHandler.pendingUploads <= 0 || waitTimeout <= 0) {
             return
         }
 
         await sleep(waitInterval)
         this.uploadPending(waitTimeout - waitInterval)
+        return
     }
 
     async teardown () {
-        await this.requestQueueHandler.shutdown()
+        await this._requestQueueHandler.shutdown()
     }
 
     /**
@@ -228,7 +229,7 @@ export default class InsightsHandler {
         const requestData = this._commands[dataKey]
 
         // log http request
-        const req = this.requestQueueHandler.add({
+        const req = this._requestQueueHandler.add({
             event_type: 'LogCreated',
             logs: [{
                 test_run_uuid: this._tests[identifier].uuid,
@@ -280,9 +281,9 @@ export default class InsightsHandler {
 
     private async sendTestRunEvent (test: Frameworks.Test, eventType: string, results?: Frameworks.TestResult) {
         const fullTitle = getUniqueIdentifier(test)
-        let testMetaData = this._tests[fullTitle]
+        const testMetaData = this._tests[fullTitle]
 
-        let testData: TestData = {
+        const testData: TestData = {
             uuid: testMetaData.uuid,
             type: test.type,
             name: test.title,
@@ -305,8 +306,8 @@ export default class InsightsHandler {
         if ((eventType == 'TestRunFinished' || eventType == 'HookRunFinished') && results) {
             const { error, passed } = results
             if (!passed) {
-                testData['result'] = (error && error.message && error.message.includes('sync skip; aborting execution')) ? 'ignore' : 'failed'
-                if (error && testData['result'] != 'skipped') {
+                testData.result = (error && error.message && error.message.includes('sync skip; aborting execution')) ? 'ignore' : 'failed'
+                if (error && testData.result != 'skipped') {
                     testData.failure = [{ backtrace: [removeAnsiColors(error.message)] }] // add all errors here
                     testData.failure_reason = removeAnsiColors(error.message)
                     testData.failure_type = error.message == null ? null : error.message.toString().match(/AssertionError/) ? 'AssertionError' : 'UnhandledError' //verify if this is working
@@ -323,14 +324,14 @@ export default class InsightsHandler {
         }
 
         if (eventType == 'TestRunStarted') {
-            testData['integrations'] = {}
+            testData.integrations = {}
             if (this._browser && this._platformMeta) {
                 const provider = getCloudProvider(this._browser)
                 testData.integrations[provider] = this.getIntegrationsObject()
             }
         }
 
-        let uploadData: UploadType = {
+        const uploadData: UploadType = {
             event_type: eventType,
         }
 
@@ -339,10 +340,10 @@ export default class InsightsHandler {
             testData.hook_type = testData.name?.toLowerCase() ? getHookType(testData.name.toLowerCase()) : 'undefined'
             uploadData.hook_run = testData
         } else {
-            uploadData['test_run'] = testData
+            uploadData.test_run = testData
         }
 
-        const req = this.requestQueueHandler.add(uploadData)
+        const req = this._requestQueueHandler.add(uploadData)
 
         if (req.proceed && req.data) {
             await uploadEventData(req.data, req.url)
@@ -352,9 +353,7 @@ export default class InsightsHandler {
     private async sendTestRunEventForCucumber (world: ITestCaseHookParameter, eventType: string) {
         const uniqueId = getUniqueIdentifierForCucumber(world)
 
-        let testMetaData = this._tests[uniqueId] || {}
-
-        const { feature, scenario, steps } = testMetaData
+        const { feature, scenario, steps, uuid, startedAt, finishedAt } = this._tests[uniqueId] || {}
 
         let fullNameWithExamples = world.pickle.name
         const examples = getScenarioExamples(world)
@@ -364,9 +363,9 @@ export default class InsightsHandler {
 
         /* istanbul ignore next */
         let testData: TestData = {
-            uuid: testMetaData.uuid,
-            started_at: testMetaData.startedAt,
-            finished_at: testMetaData.finishedAt,
+            uuid: uuid,
+            started_at: startedAt,
+            finished_at: finishedAt,
             type: 'test',
             body: {
                 lang: 'webdriverio',
@@ -430,7 +429,7 @@ export default class InsightsHandler {
             test_run: testData
         }
 
-        const req = this.requestQueueHandler.add(uploadData)
+        const req = this._requestQueueHandler.add(uploadData)
 
         if (req.proceed && req.data) {
             await uploadEventData(req.data, req.url)

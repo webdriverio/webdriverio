@@ -19,7 +19,8 @@ export const VALID_APP_EXTENSION = [
 
 export const DEFAULT_OPTIONS: Partial<BrowserstackConfig> = {
     setSessionName: true,
-    setSessionStatus: true
+    setSessionStatus: true,
+    testObservability: true
 }
 
 export const DATA_ENDPOINT = 'https://collector-observability.browserstack.com'

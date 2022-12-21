@@ -23,7 +23,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
     private _suiteTitle?: string
     private _fullTitle?: string
     private _options: BrowserstackConfig & Options.Testrunner
-    private _observability?: boolean = true
+    private _observability
     private _currentTest?: Frameworks.Test | ITestCaseHookParameter
     private _insightsHandler?: InsightsHandler
 
@@ -35,9 +35,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
         this._options = { ...DEFAULT_OPTIONS, ...options }
         // added to maintain backward compatibility with webdriverIO v5
         this._config || (this._config = this._options)
-        if (this._options.testObservability == false) { // keeping it true by default unless passed false explicitly
-            this._observability = false
-        }
+        this._observability = this._options.testObservability
 
         if (this._observability) {
             this._config.reporters ? this._config.reporters.push(path.join(__dirname, 'reporter.js')) : [path.join(__dirname, 'reporter.js')]
@@ -308,7 +306,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
     }
 
     _update(sessionId: string, requestBody: any) {
-        if (!this._browser || !isBrowserstackSession(this._browser)) {
+        if (!isBrowserstackSession(this._browser)) {
             return Promise.resolve()
         }
         const sessionUrl = `${this._sessionBaseUrl}/${sessionId}.json`

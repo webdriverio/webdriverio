@@ -9,9 +9,9 @@ import { getCloudProvider, uploadEventData, getHierarchy } from './util'
 import RequestQueueHandler from './request-handler'
 
 export default class TestReporter extends WDIOReporter {
-    private _capabilities?: Capabilities.Capabilities = {}
+    private _capabilities: Capabilities.Capabilities = {}
     private _config?: BrowserstackConfig & Options.Testrunner
-    private _observability?: boolean = true
+    private _observability: boolean = true
     private _sessionId?: string
     private _suiteName?: string
     private _requestQueueHandler = RequestQueueHandler.getInstance()
@@ -21,7 +21,7 @@ export default class TestReporter extends WDIOReporter {
         this._config = runnerStats.config as BrowserstackConfig & Options.Testrunner
         this._sessionId = runnerStats.sessionId
         /* istanbul ignore next */
-        if (this._config?.testObservability == false) this._observability = false
+        if (this._config.testObservability == false) this._observability = false
     }
 
     onSuiteStart (suiteStats: SuiteStats) {
@@ -58,10 +58,10 @@ export default class TestReporter extends WDIOReporter {
 
             /* istanbul ignore next */
             const cloudProvider = getCloudProvider({ options: { hostname: this._config?.hostname } } as Browser<'async'> | MultiRemoteBrowser<'async'>)
-            testData['integrations'] = {}
+            testData.integrations = {}
 
             /* istanbul ignore next */
-            testData['integrations'][cloudProvider] = {
+            testData.integrations[cloudProvider] = {
                 capabilities: this._capabilities,
                 session_id: this._sessionId,
                 browser: this._capabilities?.browserName,

@@ -8,13 +8,13 @@ const log = logger('@wdio/browserstack-service')
 
 export default class RequestQueueHandler {
     private queue: UploadType[] = []
-    private started: boolean = false
+    private started = false
     private pollEventBatchInterval?: ReturnType<typeof setInterval>
-    public pendingUploads: number = 0
+    public pendingUploads = 0
 
     static instance: RequestQueueHandler
 
-    // making it private to user singleton pattern
+    // making it private to use singleton pattern
     private constructor() {
     }
 

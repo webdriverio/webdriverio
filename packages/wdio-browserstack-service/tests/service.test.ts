@@ -164,8 +164,8 @@ describe('_update', () => {
         it('should resolve if not a browserstack session', () => {
             tmpService['_browser'] = undefined
             tmpService._update('sessionId', {})
-            expect(isBrowserstackSessionSpy).toBeCalledTimes(0)
-            expect(logDebugSpy).toBeCalledTimes(0)
+            expect(isBrowserstackSessionSpy).toBeCalledTimes(1)
+            expect(logDebugSpy).toBeCalledTimes(1)
         })
 
         afterEach(() => {
