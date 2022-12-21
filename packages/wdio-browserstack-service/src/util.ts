@@ -22,6 +22,17 @@ import RequestQueueHandler from './request-handler.js'
 const pGitconfig = promisify(gitconfig)
 const log = logger('@wdio/browserstack-service')
 
+const DEFAULT_REQUEST_CONFIG = {
+    agent: {
+        http: new http.Agent({ keepAlive: true }),
+        https: new https.Agent({ keepAlive: true }),
+    },
+    headers: {
+        'Content-Type': 'application/json',
+        'X-BSTACK-OBS': 'true'
+    },
+}
+
 /**
  * get browser description for Browserstack service
  * @param cap browser capablities
@@ -110,19 +121,14 @@ export async function launchTestSession (options: BrowserstackConfig & Options.T
             sdkVersion: bsConfig.bstackServiceVersion
         }
     }
-    const reqConfig = {
-        username: getObservabilityUser(options, config),
-        password: getObservabilityKey(options, config),
-        agent: keepAliveAgent(),
-        headers: {
-            'Content-Type': 'application/json',
-            'X-BSTACK-OBS': 'true'
-        },
-    }
-
     try {
         const url = `${DATA_ENDPOINT}/api/v1/builds`
-        const response: LaunchResponse = await got.post(url, { json: data, ...reqConfig }).json()
+        const response: LaunchResponse = await got.post(url, {
+            ...DEFAULT_REQUEST_CONFIG,
+            username: getObservabilityUser(options, config),
+            password: getObservabilityKey(options, config),
+            json: data
+        }).json()
         log.debug(`[Start_Build] Success response: ${JSON.stringify(response)}`)
         process.env.BS_TESTOPS_BUILD_COMPLETED = 'true'
         if (response.jwt) process.env.BS_TESTOPS_JWT = response.jwt
@@ -151,18 +157,17 @@ export async function stopBuildUpstream () {
     const data = {
         'stop_time': (new Date()).toISOString()
     }
-    const config = {
-        agent: keepAliveAgent(),
-        headers: {
-            'Authorization': `Bearer ${process.env.BS_TESTOPS_JWT}`,
-            'Content-Type': 'application/json',
-            'X-BSTACK-OBS': 'true'
-        },
-    }
 
     try {
         const url = `${DATA_ENDPOINT}/api/v1/builds/${process.env.BS_TESTOPS_BUILD_HASHED_ID}/stop`
-        const response = await got.put(url, { json: data, ...config }).json()
+        const response = await got.put(url, {
+            agent: DEFAULT_REQUEST_CONFIG.agent,
+            headers: {
+                ...DEFAULT_REQUEST_CONFIG.headers,
+                'Authorization': `Bearer ${process.env.BS_TESTOPS_JWT}`
+            },
+            json: data
+        }).json()
         log.debug(`[STOP_BUILD] Success response: ${JSON.stringify(response)}`)
         return {
             status: 'success',
@@ -313,7 +318,10 @@ export function getCloudProvider(browser: Browser<'async'> | MultiRemoteBrowser<
     return 'unknown_grid'
 }
 
-export function isBrowserstackSession(browser: Browser<'async'> | MultiRemoteBrowser<'async'>): boolean {
+export function isBrowserstackSession(browser?: Browser<'async'> | MultiRemoteBrowser<'async'>): boolean {
+    if (!browser) {
+        return false
+    }
     return getCloudProvider(browser).toLowerCase() == 'browserstack'
 }
 
@@ -368,13 +376,6 @@ export function getLogTag(eventType: string): string {
     return 'undefined'
 }
 
-function keepAliveAgent () {
-    return {
-        http: new http.Agent({ keepAlive: true }),
-        https: new https.Agent({ keepAlive: true }),
-    }
-}
-
 export async function uploadEventData (eventData: UploadType | Array<UploadType>, eventUrl: string = DATA_EVENT_ENDPOINT) {
     let logTag: string = 'BATCH_UPLOAD'
     if (!Array.isArray(eventData)) {
@@ -395,19 +396,17 @@ export async function uploadEventData (eventData: UploadType | Array<UploadType>
         }
     }
 
-    const config = {
-        agent: keepAliveAgent(),
-        headers: {
-            'Authorization': `Bearer ${process.env.BS_TESTOPS_JWT}`,
-            'Content-Type': 'application/json',
-            'X-BSTACK-OBS': 'true'
-        },
-    }
-
     try {
         const url = `${DATA_ENDPOINT}/${eventUrl}`
         RequestQueueHandler.getInstance().pendingUploads += 1
-        const data = await got.post(url, { json: eventData, ...config }).json()
+        const data = await got.post(url, {
+            agent: DEFAULT_REQUEST_CONFIG.agent,
+            headers: {
+                ...DEFAULT_REQUEST_CONFIG.headers,
+                'Authorization': `Bearer ${process.env.BS_TESTOPS_JWT}`
+            },
+            json: eventData
+        }).json()
         log.debug(`[${logTag}] Success response: ${JSON.stringify(data)}`)
         RequestQueueHandler.getInstance().pendingUploads -= 1
     } catch (error) {
@@ -451,17 +450,16 @@ export async function batchAndPostEvents (eventUrl: string, kind: string, data: 
         return
     }
 
-    const config = {
-        headers: {
-            'Authorization': `Bearer ${process.env.BS_TESTOPS_JWT}`,
-            'Content-Type': 'application/json',
-            'X-BSTACK-TESTOPS': 'true'
-        }
-    }
-
     try {
         const url = `${DATA_ENDPOINT}/${eventUrl}`
-        const response = await got.post(url, { json: data, ...config }).json()
+        const response = await got.post(url, {
+            agent: DEFAULT_REQUEST_CONFIG.agent,
+            headers: {
+                ...DEFAULT_REQUEST_CONFIG.headers,
+                'Authorization': `Bearer ${process.env.BS_TESTOPS_JWT}`
+            },
+            json: data
+        }).json()
         log.debug(`[${kind}] Success response: ${JSON.stringify(response)}`)
     } catch (error) {
         log.debug(`[${kind}] EXCEPTION IN ${kind} REQUEST TO TEST OBSERVABILITY : ${error}`)

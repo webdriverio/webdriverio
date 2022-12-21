@@ -41,6 +41,7 @@ export interface BrowserstackConfig {
      * Set this to true to enable BrowserStack Test Observability which will collect test related data
      * (name, hierarchy, status, error stack trace, file name and hierarchy), test commands, etc.
      * and show all the data in a meaningful manner in BrowserStack Test Observability dashboards for faster test debugging and better insights.
+     * @default true
      */
     testObservability?: boolean;
     /**
