@@ -1,10 +1,12 @@
 import { EventEmitter } from 'node:events'
-import { Status, PickleFilter } from '@cucumber/cucumber'
-import { Feature, Pickle, PickleStep, TestStep, TestStepResult, TestCaseFinished, PickleTag, Tag } from '@cucumber/messages'
+
+import { Status } from '@cucumber/cucumber'
+import type { PickleFilter } from '@cucumber/cucumber'
+import type { Feature, Pickle, PickleStep, TestStep, TestStepResult, TestCaseFinished, PickleTag, Tag } from '@cucumber/messages'
 
 import CucumberEventListener from './cucumberEventListener.js'
 import { getFeatureId, formatMessage, getStepType, buildStepPayload } from './utils.js'
-import { ReporterScenario } from './constants.js'
+import type { ReporterScenario } from './constants.js'
 import type { ReporterOptions } from './types'
 
 export default class CucumberReporter {

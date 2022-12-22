@@ -1,6 +1,7 @@
-import type { Capabilities, Frameworks } from '@wdio/types'
+import type { ITestCaseHookParameter } from '@cucumber/cucumber'
 import type { Pickle, PickleStep, TestStep, Feature } from '@cucumber/messages'
-import type { ITestCaseHookParameter } from '@cucumber/cucumber/lib/support_code_library_builder/types'
+
+import type { Capabilities, Frameworks } from '@wdio/types'
 
 export interface CucumberOptions {
     /**
@@ -13,7 +14,7 @@ export interface CucumberOptions {
      * @default []
      * @example `['@babel/register']` or `[['@babel/register', { rootMode: 'upward', ignore: ['node_modules'] }]] or [() => { require('ts-node').register({ files: true }) }]`
      */
-    requireModule?: string[]
+    requireModule?: string[] | [string, Record<string, unknown>][] | [() => void]
     /**
      * Treat ambiguous definitions as errors.
      *
