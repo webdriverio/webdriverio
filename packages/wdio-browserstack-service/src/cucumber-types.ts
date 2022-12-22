@@ -195,3 +195,13 @@ export declare enum TestStepResultStatus {
     AMBIGUOUS = 'AMBIGUOUS',
     FAILED = 'FAILED'
 }
+
+export declare class Location {
+    line: number
+    column?: number
+}
+
+export declare class Comment {
+    location: Location
+    text: string
+}
