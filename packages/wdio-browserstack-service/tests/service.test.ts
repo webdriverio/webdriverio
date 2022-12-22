@@ -143,31 +143,22 @@ describe('_multiRemoteAction', () => {
 })
 
 describe('_update', () => {
-    const tmpService = new BrowserstackService({ testObservability: false }, [] as any,
-        { user: 'foo', key: 'bar', cucumberOpts: { strict: false } } as any)
-
-    describe('should return if not a browserstack session', () => {
-        const logDebugSpy = vi.spyOn(log, 'debug').mockImplementation((string) => string)
-        const isBrowserstackSessionSpy = vi.spyOn(utils, 'isBrowserstackSession').mockImplementation()
-        isBrowserstackSessionSpy.mockReturnValue(false)
+    describe('should call got.put', () => {
         const getCloudProviderSpy = vi.spyOn(utils, 'getCloudProvider').mockReturnValue('browserstack')
 
         beforeEach(() => {
-            logDebugSpy.mockClear()
-            isBrowserstackSessionSpy.mockClear()
+            vi.mocked(got.put).mockClear()
+            vi.mocked(got).mockClear()
             getCloudProviderSpy.mockClear()
         })
 
         it('should resolve if not a browserstack session', () => {
-            tmpService['_browser'] = undefined
-            tmpService._update('sessionId', {})
-            expect(isBrowserstackSessionSpy).toBeCalledTimes(1)
-            expect(logDebugSpy).toBeCalledTimes(1)
+            service['_browser'] = browser
+            service._update('sessionId', {})
+            expect(got.put).toBeCalledTimes(1)
         })
 
         afterEach(() => {
-            logDebugSpy.mockClear()
-            isBrowserstackSessionSpy.mockClear()
             getCloudProviderSpy.mockClear()
         })
     })
