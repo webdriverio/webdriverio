@@ -18,6 +18,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
     private _suiteTitle?: string
     private _fullTitle?: string
     private _options: BrowserstackConfig & Options.Testrunner
+    private _specsRan: boolean = false
 
     constructor (
         options: BrowserstackConfig & Options.Testrunner,
@@ -135,6 +136,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
     }
 
     afterTest(test: Frameworks.Test, context: never, results: Frameworks.TestResult) {
+        this._specsRan = true
         const { error, passed } = results
         if (!passed) {
             this._failReasons.push((error && error.message) || 'Unknown Error')
@@ -152,7 +154,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
         if (setSessionStatus) {
             const hasReasons = this._failReasons.length > 0
             await this._updateJob({
-                status: result === 0 ? 'passed' : 'failed',
+                status: result === 0 && this._specsRan ? 'passed' : 'failed',
                 ...(setSessionName ? { name: this._fullTitle } : {}),
                 ...(hasReasons ? { reason: this._failReasons.join('\n') } : {})
             })
