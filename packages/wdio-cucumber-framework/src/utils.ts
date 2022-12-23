@@ -1,12 +1,12 @@
 import path from 'node:path'
 
-import logger from '@wdio/logger'
-import { isFunctionAsync } from '@wdio/utils'
-
-import * as Cucumber from '@cucumber/cucumber'
 import { supportCodeLibraryBuilder } from '@cucumber/cucumber'
-import { TableRow, TableCell, PickleStep, TestStep, Feature, Pickle, TestStepResultStatus } from '@cucumber/messages'
+import type { World } from '@cucumber/cucumber'
+import type { TableRow, TableCell, PickleStep, TestStep, Feature, Pickle, TestStepResultStatus } from '@cucumber/messages'
+
+import logger from '@wdio/logger'
 import type { Capabilities } from '@wdio/types'
+import { isFunctionAsync } from '@wdio/utils'
 
 import { CUCUMBER_HOOK_DEFINITION_TYPES, ReporterStep } from './constants.js'
 import type { TestHookDefinitionConfig } from './types'
@@ -130,10 +130,10 @@ export function setUserHookNames (options: typeof supportCodeLibraryBuilder) {
         options[hookName].forEach((testRunHookDefinition: TestHookDefinitionConfig) => {
             const hookFn = testRunHookDefinition.code
             if (!hookFn.name.startsWith('wdioHook')) {
-                const userHookAsyncFn = async function (this: Cucumber.World, ...args: any) {
+                const userHookAsyncFn = async function (this: World, ...args: any) {
                     return hookFn.apply(this, args)
                 }
-                const userHookFn = function (this: Cucumber.World, ...args: any) {
+                const userHookFn = function (this: World, ...args: any) {
                     return hookFn.apply(this, args)
                 }
                 testRunHookDefinition.code = (isFunctionAsync(hookFn)) ? userHookAsyncFn : userHookFn

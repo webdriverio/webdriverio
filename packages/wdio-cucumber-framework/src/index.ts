@@ -26,9 +26,8 @@ import {
     Then,
     When
 } from '@cucumber/cucumber'
+import type { IRuntimeOptions, ITestCaseHookParameter } from '@cucumber/cucumber'
 import { GherkinStreams } from '@cucumber/gherkin-streams'
-import type { ITestCaseHookParameter } from '@cucumber/cucumber/lib/support_code_library_builder/types'
-import type { IRuntimeOptions } from '@cucumber/cucumber/lib/runtime'
 import { IdGenerator } from '@cucumber/messages'
 
 import { executeHooksWithArgs, testFnWrapper } from '@wdio/utils'
@@ -222,15 +221,15 @@ class CucumberAdapter {
      * Usage: `[() => { require('@babel/register')({ ignore: [] }) }]`
      */
     registerRequiredModules() {
-        return this._cucumberOpts.requireModule.map(async (requiredModule) => {
+        return Promise.all(this._cucumberOpts.requireModule.map(async (requiredModule) => {
             if (Array.isArray(requiredModule)) {
                 (await import(requiredModule[0]))(requiredModule[1])
             } else if (typeof requiredModule === 'function') {
-                (requiredModule as Function)()
+                requiredModule()
             } else {
                 await import(requiredModule)
             }
-        })
+        }))
     }
 
     requiredFiles() {
