@@ -26,7 +26,7 @@ export default function (docfile) {
     let tagType = ''
 
     for (const tag of javadoc.tags) {
-        if (tag.type == 'param') {
+        if (tag.type === 'param') {
             tag.joinedTypes = Array.isArray(tag.types)
                 ? tag.types.join('|').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
                 : 'any'
@@ -37,44 +37,44 @@ export default function (docfile) {
 
             paramTags.push(tag)
             paramStr.push(tag.name)
-        } else if (tag.type == 'property') {
+        } else if (tag.type === 'property') {
             tag.joinedTypes = Array.isArray(tag.types)
                 ? tag.types.join('|').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
                 : 'any'
             propertyTags.push(tag)
-        } else if (tag.type == 'return' || tag.type == 'returns') {
+        } else if (tag.type === 'return' || tag.type === 'returns') {
             tag.joinedTypes = Array.isArray(tag.types)
                 ? tag.types.join('|').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
                 : 'any'
             returnTags.push(tag)
-        } else if (tag.type == 'throws') {
+        } else if (tag.type === 'throws') {
             tag.joinedTypes = Array.isArray(tag.types)
                 ? tag.types.join('|').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
                 : 'any'
             throwsTags.push(tag)
-        } else if (tag.type == 'fires') {
+        } else if (tag.type === 'fires') {
             fires.push(tag.string)
-        } else if (tag.type == 'listens') {
+        } else if (tag.type === 'listens') {
             listens.push(tag.string)
-        } else if (tag.type == 'namespace') {
+        } else if (tag.type === 'namespace') {
             type = 'namespace'
-        } else if (tag.type == 'method') {
+        } else if (tag.type === 'method') {
             type = 'method'
-        } else if (tag.type == 'class') {
+        } else if (tag.type === 'class') {
             type = 'class'
-        } else if (tag.type == 'function') {
+        } else if (tag.type === 'function') {
             type = 'function'
-        } else if (tag.type == 'event') {
+        } else if (tag.type === 'event') {
             type = 'event'
-        } else if (tag.type == 'see') {
+        } else if (tag.type === 'see') {
             tagSee = tag.url ? tag.url : tag.local
-        } else if (tag.type == 'version') {
+        } else if (tag.type === 'version') {
             tagVersion = tag.string
-        } else if (tag.type == 'deprecated') {
+        } else if (tag.type === 'deprecated') {
             tagDeprecated = true
-        } else if (tag.type == 'author') {
+        } else if (tag.type === 'author') {
             tagAuthor = tag.string
-        } else if (tag.type == 'type') {
+        } else if (tag.type === 'type') {
             tagType = Array.isArray(tag.types)
                 ? tag.types.join('|').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
                 : 'any'

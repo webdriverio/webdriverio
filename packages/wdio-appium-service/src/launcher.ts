@@ -142,7 +142,7 @@ export default class AppiumLauncher implements Services.ServiceInstance {
 
         process.once('exit', exitCode => {
             let errorMessage = `Appium exited before timeout (exit code: ${exitCode})`
-            if (exitCode == 2) {
+            if (exitCode === 2) {
                 errorMessage += '\n' + (error || 'Check that you don\'t already have a running Appium service.')
                 log.error(errorMessage)
             }

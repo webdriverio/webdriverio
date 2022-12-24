@@ -275,7 +275,7 @@ export default class CucumberEventListener extends EventEmitter {
         const uri = doc?.uri
         const feature = doc?.feature
 
-        if (this._currentDoc.uri && this._currentDoc.feature && this.usesSpecGrouping() && doc != this._currentDoc && this.featureIsStarted(this._currentDoc.uri)) {
+        if (this._currentDoc.uri && this._currentDoc.feature && this.usesSpecGrouping() && doc !== this._currentDoc && this.featureIsStarted(this._currentDoc.uri)) {
             this.emit('after-feature', this._currentDoc.uri, this._currentDoc.feature)
         }
 

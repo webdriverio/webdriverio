@@ -288,7 +288,7 @@ export default class DevToolsDriver {
         }
 
         const pageloadTimeout = this.timeouts.get('pageLoad')
-        const pageloadTimeoutReached = pageloadTimeout != null
+        const pageloadTimeoutReached = pageloadTimeout
             ? Date.now() - pendingNavigationStart > pageloadTimeout
             : false
 

@@ -110,7 +110,7 @@ export default function (
         this.emit('command', { method, endpoint, body })
         log.info('COMMAND', commandCallStructure(command, args))
         return request.makeRequest(this.options, this.sessionId).then((result) => {
-            if (result.value != null) {
+            if (result.value) {
                 let resultLog = result.value
 
                 if (/screenshot|recording/i.test(command) && typeof result.value === 'string' && result.value.length > 64) {

@@ -4,7 +4,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-if (process.env.NODE_ENV == null) {
+if (!process.env.NODE_ENV) {
     process.env.NODE_ENV = 'test'
 }
 

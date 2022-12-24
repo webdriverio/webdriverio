@@ -167,7 +167,7 @@ class AllureReporter extends WDIOReporter {
 
         const testTitle = test.currentTest ? test.currentTest : test.title
 
-        if (this.isAnyTestRunning() && this._allure.getCurrentTest().name == testTitle) {
+        if (this.isAnyTestRunning() && this._allure.getCurrentTest().name === testTitle) {
             // Test already in progress, most likely started by a before each hook
             this.setCaseParameters(test.cid, test.parent)
             return

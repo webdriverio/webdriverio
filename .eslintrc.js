@@ -18,6 +18,7 @@ module.exports = {
         camelcase: ['error', { properties: 'never' }],
         semi: ['error', 'never'],
         indent: [2, 4],
+        eqeqeq: ['error', 'always'],
 
         'no-multiple-empty-lines': [2, { 'max': 1, 'maxEOF': 1 }],
         'array-bracket-spacing': ['error', 'never'],
