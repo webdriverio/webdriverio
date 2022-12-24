@@ -42,7 +42,7 @@ export default class InsightsHandler {
 
         const gitMeta = await getGitMetaData()
         if (gitMeta) {
-            this._gitConfigPath = gitMeta['root']
+            this._gitConfigPath = gitMeta.root
         }
     }
 
@@ -92,7 +92,7 @@ export default class InsightsHandler {
       */
 
     async beforeScenario (world: ITestCaseHookParameter) {
-        let pickleData = world.pickle
+        const pickleData = world.pickle
         const gherkinDocument = world.gherkinDocument
         const featureData = gherkinDocument.feature
 
@@ -135,11 +135,11 @@ export default class InsightsHandler {
             }
         }
 
-        if (testMetaData && !testMetaData['steps']) {
-            testMetaData['steps'] = []
+        if (testMetaData && !testMetaData.steps) {
+            testMetaData.steps = []
         }
 
-        testMetaData['steps']?.push({
+        testMetaData.steps?.push({
             id: step.id,
             text: step.text,
             keyword: step.keyword,
@@ -169,7 +169,7 @@ export default class InsightsHandler {
                 failure: result.error ? removeAnsiColors(result.error) : result.error
             }]
         }
-        const stepDetails = testMetaData['steps']?.find(item => item.id == step.id)
+        const stepDetails = testMetaData.steps?.find(item => item.id == step.id)
         if (stepDetails) {
             stepDetails.finished_at = (new Date()).toISOString()
             stepDetails.result = result.passed ? 'PASSED' : 'FAILED'
@@ -180,6 +180,7 @@ export default class InsightsHandler {
         this._tests[uniqueId] = testMetaData
     }
 
+    //@ts-ignore
     async uploadPending (
         waitTimeout = DEFAULT_WAIT_TIMEOUT_FOR_PENDING_UPLOADS,
         waitInterval = DEFAULT_WAIT_INTERVAL_FOR_PENDING_UPLOADS
@@ -189,8 +190,7 @@ export default class InsightsHandler {
         }
 
         await sleep(waitInterval)
-        this.uploadPending(waitTimeout - waitInterval)
-        return
+        return this.uploadPending(waitTimeout - waitInterval)
     }
 
     async teardown () {
@@ -389,9 +389,9 @@ export default class InsightsHandler {
         }
 
         if (eventType == 'TestRunStarted') {
-            testData['integrations'] = {}
+            testData.integrations = {}
             if (this._browser && this._platformMeta) {
-                testData['integrations'][getCloudProvider(this._browser)] = this.getIntegrationsObject()
+                testData.integrations[getCloudProvider(this._browser)] = this.getIntegrationsObject()
             }
         }
 
