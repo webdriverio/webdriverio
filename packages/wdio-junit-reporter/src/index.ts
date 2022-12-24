@@ -1,5 +1,6 @@
 import junit from 'junit-report-builder'
-import WDIOReporter, { SuiteStats, RunnerStats, TestStats } from '@wdio/reporter'
+import type { SuiteStats, RunnerStats, TestStats } from '@wdio/reporter'
+import WDIOReporter from '@wdio/reporter'
 import type { Capabilities } from '@wdio/types'
 
 import { limit } from './utils.js'

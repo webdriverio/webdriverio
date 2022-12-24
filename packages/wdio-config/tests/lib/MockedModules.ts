@@ -1,6 +1,6 @@
 import { vi } from 'vitest'
 
-import { ModuleImportService } from '../../src/index.js'
+import type { ModuleImportService } from '../../src/index.js'
 
 /**
  * Test implementation of ModuleImportService

@@ -1,4 +1,4 @@
-import { HookStats, SuiteStats, TestStats } from '@wdio/reporter'
+import type { HookStats, SuiteStats, TestStats } from '@wdio/reporter'
 
 const suite = (type = 'feature') => ({
     type,

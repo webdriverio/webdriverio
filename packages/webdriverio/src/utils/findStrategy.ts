@@ -1,5 +1,6 @@
 import fs from 'node:fs'
-import { roleElements, ARIARoleDefinitionKey, ARIARoleRelationConcept, ARIARoleRelationConceptAttribute } from 'aria-query'
+import type { ARIARoleDefinitionKey, ARIARoleRelationConcept, ARIARoleRelationConceptAttribute } from 'aria-query'
+import { roleElements } from 'aria-query'
 
 import { DEEP_SELECTOR, ARIA_SELECTOR } from '../constants.js'
 

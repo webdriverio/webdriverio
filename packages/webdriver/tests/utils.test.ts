@@ -1,6 +1,7 @@
 import path from 'node:path'
 import { URL } from 'node:url'
-import { describe, it, expect, MockedFunction, vi } from 'vitest'
+import type { MockedFunction } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { transformCommandLogResult } from '@wdio/utils'
 import type { Capabilities, Options } from '@wdio/types'
 

@@ -1,4 +1,4 @@
-import { Cookie } from '@wdio/protocols'
+import type { Cookie } from '@wdio/protocols'
 
 import type DevToolsDriver from '../devtoolsdriver'
 

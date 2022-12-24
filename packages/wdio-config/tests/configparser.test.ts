@@ -1,13 +1,15 @@
 import path from 'node:path'
 
-import { vi, MockedFunction, describe, it, expect, beforeEach } from 'vitest'
+import type { MockedFunction } from 'vitest'
+import { vi, describe, it, expect, beforeEach } from 'vitest'
 // @ts-expect-error
 import babelRegister from '@babel/register'
 import logger from '@wdio/logger'
 
 import ConfigParser from '../src/lib/ConfigParser.js'
-import MockFileContentBuilder, { MockFileContent } from './lib/MockFileContentBuilder.js'
-import { FilePathsAndContents, MockSystemFilePath, MockSystemFolderPath } from './lib/MockPathService.js'
+import type { MockFileContent } from './lib/MockFileContentBuilder.js'
+import MockFileContentBuilder from './lib/MockFileContentBuilder.js'
+import type { FilePathsAndContents, MockSystemFilePath, MockSystemFolderPath } from './lib/MockPathService.js'
 import ConfigParserBuilder from './lib/ConfigParserBuilder.js'
 import { FileNamed, realReadFilePair, realRequiredFilePair } from './lib/FileNamed.js'
 

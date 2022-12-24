@@ -1,9 +1,10 @@
 import { createRequire } from 'node:module'
 import { stringify } from 'csv-stringify/sync'
-import WDIOReporter, {
+import type {
     SuiteStats, Tag, HookStats, RunnerStats, TestStats, BeforeCommandArgs,
     AfterCommandArgs, CommandArgs, Argument
 } from '@wdio/reporter'
+import WDIOReporter from '@wdio/reporter'
 import type { Capabilities, Options } from '@wdio/types'
 
 import {
@@ -11,10 +12,12 @@ import {
     isMochaAllHooks, getLinkByTemplate, attachConsoleLogs
 } from './utils.js'
 import { events, PASSED, PENDING, SKIPPED, stepStatuses } from './constants.js'
-import {
+import type {
     AddAttachmentEventArgs, AddDescriptionEventArgs, AddEnvironmentEventArgs,
     AddFeatureEventArgs, AddIssueEventArgs, AddLabelEventArgs, AddSeverityEventArgs,
-    AddStoryEventArgs, AddTestIdEventArgs, AllureReporterOptions, Status
+    AddStoryEventArgs, AddTestIdEventArgs, Status
+} from './types.js'
+import { AllureReporterOptions
 } from './types.js'
 
 const require = createRequire(import.meta.url)

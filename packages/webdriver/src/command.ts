@@ -3,7 +3,7 @@ import { commandCallStructure, isValidParameter, getArgumentType } from '@wdio/u
 import type { CommandEndpoint, BidiResponse } from '@wdio/protocols'
 
 import RequestFactory from './request/factory.js'
-import { BidiHandler } from './bidi.js'
+import type { BidiHandler } from './bidi.js'
 import type { WebDriverResponse } from './request'
 import type { BaseClient } from './types'
 

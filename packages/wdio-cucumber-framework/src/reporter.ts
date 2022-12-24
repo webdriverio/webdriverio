@@ -1,4 +1,4 @@
-import { EventEmitter } from 'node:events'
+import type { EventEmitter } from 'node:events'
 
 import { Status } from '@cucumber/cucumber'
 import type { PickleFilter } from '@cucumber/cucumber'

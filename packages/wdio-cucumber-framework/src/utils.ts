@@ -1,6 +1,6 @@
 import path from 'node:path'
 
-import { supportCodeLibraryBuilder } from '@cucumber/cucumber'
+import type { supportCodeLibraryBuilder } from '@cucumber/cucumber'
 import type { World } from '@cucumber/cucumber'
 import type { TableRow, TableCell, PickleStep, TestStep, Feature, Pickle, TestStepResultStatus } from '@cucumber/messages'
 
@@ -8,7 +8,8 @@ import logger from '@wdio/logger'
 import type { Capabilities } from '@wdio/types'
 import { isFunctionAsync } from '@wdio/utils'
 
-import { CUCUMBER_HOOK_DEFINITION_TYPES, ReporterStep } from './constants.js'
+import type { ReporterStep } from './constants.js'
+import { CUCUMBER_HOOK_DEFINITION_TYPES } from './constants.js'
 import type { TestHookDefinitionConfig } from './types'
 
 const log = logger('@wdio/cucumber-framework:utils')

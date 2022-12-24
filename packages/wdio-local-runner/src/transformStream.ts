@@ -1,5 +1,6 @@
 import split from 'split2'
-import { Readable, Transform, TransformCallback } from 'node:stream'
+import type { Readable, TransformCallback } from 'node:stream'
+import { Transform } from 'node:stream'
 import { DEBUGGER_MESSAGES } from './constants.js'
 
 export default function runnerTransformStream(cid: string, inputStream: Readable): Readable {

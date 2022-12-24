@@ -3,7 +3,8 @@ import https from 'node:https'
 import { performance } from 'node:perf_hooks'
 import type { URL } from 'node:url'
 
-import got, { Options as GotOptions } from 'got'
+import type { Options as GotOptions } from 'got'
+import got from 'got'
 import type { Options } from '@wdio/types'
 
 import WebDriverRequest, { RequestLibError } from './index.js'

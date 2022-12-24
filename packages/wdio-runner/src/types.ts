@@ -1,5 +1,5 @@
 import type { Options, Capabilities, Services } from '@wdio/types'
-import BaseReporter from './reporter.js'
+import type BaseReporter from './reporter.js'
 
 export type BeforeArgs = Parameters<Required<Services.HookFunctions>['before']>
 export type AfterArgs = Parameters<Required<Services.HookFunctions>['after']>

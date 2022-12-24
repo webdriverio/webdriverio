@@ -1,6 +1,7 @@
 import fs from 'node:fs/promises'
 import path from 'node:path'
-import { expect, describe, it, vi, beforeEach, afterEach, SpyInstance } from 'vitest'
+import type { SpyInstance } from 'vitest'
+import { expect, describe, it, vi, beforeEach, afterEach } from 'vitest'
 
 // @ts-ignore mocked (original defined in webdriver package)
 import got from 'got'

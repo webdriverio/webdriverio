@@ -1,5 +1,5 @@
 import nock from 'nock'
-import { CommandEndpoint } from '@wdio/protocols'
+import type { CommandEndpoint } from '@wdio/protocols'
 
 import {
     WebDriverProtocol, MJsonWProtocol, JsonWProtocol, AppiumProtocol,

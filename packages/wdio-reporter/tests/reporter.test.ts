@@ -1,7 +1,8 @@
 import { describe, expect, vi, it, afterAll, afterEach } from 'vitest'
 
 import { EventEmitter } from 'node:events'
-import fs, { WriteStream } from 'node:fs'
+import type { WriteStream } from 'node:fs'
+import fs from 'node:fs'
 
 import WDIOReporter from '../src/index.js'
 

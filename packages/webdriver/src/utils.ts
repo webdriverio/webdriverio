@@ -1,7 +1,7 @@
 import { deepmergeCustom } from 'deepmerge-ts'
 
 import logger from '@wdio/logger'
-import Protocols from '@wdio/protocols'
+import type Protocols from '@wdio/protocols'
 import {
     WebDriverProtocol, MJsonWProtocol, JsonWProtocol, AppiumProtocol, ChromiumProtocol,
     SauceLabsProtocol, SeleniumProtocol, GeckoProtocol, WebDriverBidiProtocol

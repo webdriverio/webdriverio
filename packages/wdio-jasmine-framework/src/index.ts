@@ -1,5 +1,5 @@
 import url from 'node:url'
-import { EventEmitter } from 'node:events'
+import type { EventEmitter } from 'node:events'
 
 import Jasmine from 'jasmine'
 import logger from '@wdio/logger'

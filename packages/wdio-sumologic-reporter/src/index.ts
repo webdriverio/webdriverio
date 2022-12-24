@@ -2,7 +2,8 @@ import got from 'got'
 import dateFormat from 'dateformat'
 import stringify from 'json-stringify-safe'
 
-import WDIOReporter, { RunnerStats, SuiteStats, TestStats } from '@wdio/reporter'
+import type { RunnerStats, SuiteStats, TestStats } from '@wdio/reporter'
+import WDIOReporter from '@wdio/reporter'
 import logger from '@wdio/logger'
 
 import type { Options } from './types'
