@@ -33,6 +33,7 @@ module.exports = {
             skipBlankLines: false,
             ignoreComments: false
         }],
+        'no-var': 'error',
         'unicode-bom': ['error', 'never'],
         'object-curly-spacing': ['error', 'always'],
         'keyword-spacing':['error'],

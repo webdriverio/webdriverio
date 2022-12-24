@@ -38,7 +38,7 @@ const { multiremote } = require('../../packages/webdriverio/build/index.js')
         }
     })
 
-    var channel = Math.round(Math.random() * 10e10)
+    const channel = Math.round(Math.random() * 10e10)
 
     await matrix.url('https://apprtc.appspot.com/r/' + channel)
 

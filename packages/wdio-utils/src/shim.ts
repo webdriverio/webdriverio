@@ -12,6 +12,7 @@ interface Retries {
 }
 
 declare global {
+    // eslint-disable-next-line no-var
     var expectAsync: any
 }
 

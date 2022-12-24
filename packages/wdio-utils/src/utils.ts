@@ -249,7 +249,7 @@ export function filterSpecArgs (args: any[]) {
  * @return {Boolean} true if the provided string is Base64
  */
 export function isBase64(str: string) {
-    var notBase64 = new RegExp('[^A-Z0-9+\\/=]',  'i')
+    const notBase64 = new RegExp('[^A-Z0-9+\\/=]',  'i')
     if (typeof str !== 'string') {
         throw new Error('Expected string but received invalid type.')
     }

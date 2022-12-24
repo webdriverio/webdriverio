@@ -42,10 +42,12 @@ vi.mock('@cucumber/gherkin-streams', () => ({
 }))
 
 declare global {
+    /* eslint-disable no-var */
     var MODULE_A_WAS_LOADED: boolean
     var MODULE_B_WAS_LOADED_WITH: any
     var MODULE_INLINE_WAS_LOADED: boolean
     var MODULE_C_WAS_LOADED: boolean
+    /* eslint-enable no-var */
 }
 
 describe('CucumberAdapter', () => {

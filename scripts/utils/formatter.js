@@ -109,7 +109,7 @@ export default function (docfile) {
         example.forEach(function(line) {
             ++currentLine
 
-            var checkForFilenameExpression = line.match(/\s\s\s\s(:(\S)*\.(\S)*)/g)
+            const checkForFilenameExpression = line.match(/\s\s\s\s(:(\S)*\.(\S)*)/g)
             if ((checkForFilenameExpression && checkForFilenameExpression.length) || (currentLine === example.length)) {
 
                 if (exampleCodeLine.length) {
@@ -118,7 +118,7 @@ export default function (docfile) {
                      * remove filename expression in first line
                      */
                     exampleFilename = exampleCodeLine.shift().trim().substr(1)
-                    var code = exampleCodeLine.join('\n')
+                    const code = exampleCodeLine.join('\n')
 
                     /**
                      * add example
