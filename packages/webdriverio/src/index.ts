@@ -91,7 +91,7 @@ export const attach = async function (attachOptions: AttachOptions): Promise<Web
     } as Options.WebdriverIO
 
     const prototype = getPrototype('browser')
-    let automationProtocol = await getAutomationProtocol(params)
+    const automationProtocol = await getAutomationProtocol(params)
     const ProtocolDriver = (await import(automationProtocol)).default
     return ProtocolDriver.attachToSession(params, undefined, prototype, wrapCommand) as WebdriverIO.Browser
 }

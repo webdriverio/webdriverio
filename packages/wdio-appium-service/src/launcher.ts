@@ -125,7 +125,7 @@ export default class AppiumLauncher implements Services.ServiceInstance {
 
     private _startAppium(command: string, args: Array<string>, callback: (err: any, result: any) => void): void {
         log.debug(`Will spawn Appium process: ${command} ${args.join(' ')}`)
-        let process: ChildProcessByStdio<null, Readable, Readable> = spawn(command, args, { stdio: ['ignore', 'pipe', 'pipe'] })
+        const process: ChildProcessByStdio<null, Readable, Readable> = spawn(command, args, { stdio: ['ignore', 'pipe', 'pipe'] })
         let error: Error | undefined
 
         process.stdout.on('data', (data) => {

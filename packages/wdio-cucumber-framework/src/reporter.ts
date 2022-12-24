@@ -259,7 +259,7 @@ export default class CucumberReporter {
     }
 
     emit (event: string, payload: any) {
-        let message = formatMessage({ payload })
+        const message = formatMessage({ payload })
 
         message.cid = this._cid
         message.specs = this._specs

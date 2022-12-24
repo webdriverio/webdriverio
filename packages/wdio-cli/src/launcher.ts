@@ -194,7 +194,7 @@ class Launcher {
             /**
              * Regular mode
              */
-            for (let capabilities of caps as (Capabilities.DesiredCapabilities | Capabilities.W3CCapabilities)[]) {
+            for (const capabilities of caps as (Capabilities.DesiredCapabilities | Capabilities.W3CCapabilities)[]) {
                 /**
                  * when using browser runner we only allow one session per browser
                  */
@@ -255,7 +255,7 @@ class Launcher {
      * @return {Boolean} true if all specs have been run and all instances have finished
      */
     runSpecs() {
-        let config = this.configParser.getConfig()
+        const config = this.configParser.getConfig()
 
         /**
          * stop spawning new processes when CTRL+C was triggered
@@ -265,7 +265,7 @@ class Launcher {
         }
 
         while (this.getNumberOfRunningInstances() < config.maxInstances) {
-            let schedulableCaps = this._schedule
+            const schedulableCaps = this._schedule
                 /**
                  * bail if number of errors exceeds allowed
                  */
@@ -306,7 +306,7 @@ class Launcher {
                 break
             }
 
-            let specs = schedulableCaps[0].specs.shift() as NonNullable<WorkerSpecs>
+            const specs = schedulableCaps[0].specs.shift() as NonNullable<WorkerSpecs>
             this.startInstance(
                 specs.files,
                 schedulableCaps[0].caps as Capabilities.DesiredCapabilities,
@@ -355,7 +355,7 @@ class Launcher {
             throw new Error('Internal Error: no runner initialised, call run() first')
         }
 
-        let config = this.configParser.getConfig()
+        const config = this.configParser.getConfig()
 
         // wait before retrying the spec file
         if (typeof config.specFileRetriesDelay === 'number' && config.specFileRetries > 0 && config.specFileRetries !== retries) {
@@ -365,18 +365,18 @@ class Launcher {
         // Retried tests receive the cid of the failing test as rid
         // so they can run with the same cid of the failing test.
         const runnerId = rid || this.getRunnerId(cid)
-        let processNumber = this._runnerStarted + 1
+        const processNumber = this._runnerStarted + 1
 
         // process.debugPort defaults to 5858 and is set even when process
         // is not being debugged.
-        let debugArgs = []
+        const debugArgs = []
         let debugType
         let debugHost = ''
-        let debugPort = process.debugPort
-        for (let i in process.execArgv) {
+        const debugPort = process.debugPort
+        for (const i in process.execArgv) {
             const debugArgs = process.execArgv[i].match('--(debug|inspect)(?:-brk)?(?:=(.*):)?')
             if (debugArgs) {
-                let [, type, host] = debugArgs
+                const [, type, host] = debugArgs
                 if (type) {
                     debugType = type
                 }
@@ -391,14 +391,14 @@ class Launcher {
         }
 
         // if you would like to add --debug-brk, use a different port, etc...
-        let capExecArgs = [...(config.execArgv || [])]
+        const capExecArgs = [...(config.execArgv || [])]
 
         // The default value for child.fork execArgs is process.execArgs,
         // so continue to use this unless another value is specified in config.
-        let defaultArgs = (capExecArgs.length) ? process.execArgv : []
+        const defaultArgs = (capExecArgs.length) ? process.execArgv : []
 
         // If an arg appears multiple times the last occurrence is used
-        let execArgv = [...defaultArgs, ...debugArgs, ...capExecArgs]
+        const execArgv = [...defaultArgs, ...debugArgs, ...capExecArgs]
 
         // bump up worker count
         this._runnerStarted++

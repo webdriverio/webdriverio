@@ -22,7 +22,7 @@ type ServiceWithOptions = [Service, Services.ServiceOption]
  */
 async function initialiseServices (services: ServiceWithOptions[]): Promise<IntialisedService[]> {
     const initialisedServices: IntialisedService[] = []
-    for (let [serviceName, serviceConfig = {}] of services) {
+    for (const [serviceName, serviceConfig = {}] of services) {
         /**
          * allow custom services that are already initialised, e.g.
          *

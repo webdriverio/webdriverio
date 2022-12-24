@@ -67,7 +67,7 @@ export default class MockPathService implements PathService {
          * which is great, but will fail the simplistic exact string mock file matching,
          * so remove the duplication so this logic should stay simple
          */
-        let _path = path.normalize(filePath)
+        const _path = path.normalize(filePath)
         const filePathKey = this.lookupFilesIndex(_path)
         const found = this.files.find(a => a[0] === filePathKey)
         if (found) {
@@ -83,12 +83,12 @@ export default class MockPathService implements PathService {
     }
 
     private lookupFilesIndex(filePath: MockSystemFilePath) {
-        let _path = path.normalize(filePath)
+        const _path = path.normalize(filePath)
         return path.isAbsolute(_path) ? _path : path.resolve(this.cwd, _path)
     }
 
     isFile(filePath: MockSystemFilePath): boolean {
-        let _path = path.normalize(filePath)
+        const _path = path.normalize(filePath)
         const filePathKey = this.lookupFilesIndex(_path)
         return this.files.some(a => a[0] === filePathKey)
     }

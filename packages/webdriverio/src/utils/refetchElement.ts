@@ -9,7 +9,7 @@ export default async function refetchElement (
     currentElement: WebdriverIO.Element,
     commandName: string
 ): Promise<WebdriverIO.Element> {
-    let selectors: {
+    const selectors: {
         selector: Selector
         index: number
     }[] = []

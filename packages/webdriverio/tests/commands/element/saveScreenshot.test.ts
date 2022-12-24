@@ -17,7 +17,7 @@ vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdi
 describe('saveScreenshot', () => {
     let getAbsoluteFilepathSpy: SpyInstance
     let assertDirectoryExistsSpy: SpyInstance
-    let writeFileSyncSpy = vi.spyOn(fs, 'writeFile')
+    const writeFileSyncSpy = vi.spyOn(fs, 'writeFile')
 
     beforeEach(() => {
         getAbsoluteFilepathSpy = vi.spyOn(utils, 'getAbsoluteFilepath')

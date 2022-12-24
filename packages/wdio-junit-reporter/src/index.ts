@@ -99,7 +99,7 @@ class JunitReporter extends WDIOReporter {
 
             let stepsOutput = ''
             let isFailing = false
-            for (let stepKey of Object.keys(scenario.tests)) { // tests are trested as steps in Cucumber
+            for (const stepKey of Object.keys(scenario.tests)) { // tests are trested as steps in Cucumber
                 if (stepKey === 'undefined') { // fix cucumber hooks crashing reporter
                     continue
                 }
@@ -153,7 +153,7 @@ class JunitReporter extends WDIOReporter {
             ? this._prepareName(suite.title)
             : this.options.suiteNameFormat({ name: this.options.suiteNameFormat.name, suite })
 
-        let testSuite = builder.testSuite()
+        const testSuite = builder.testSuite()
             .name(suiteName)
             .timestamp(suite.start)
             .time(suite._duration / 1000)
@@ -164,7 +164,7 @@ class JunitReporter extends WDIOReporter {
 
         suite = this._addFailedHooks(suite)
 
-        for (let testKey of Object.keys(suite.tests)) {
+        for (const testKey of Object.keys(suite.tests)) {
             if (testKey === 'undefined') { // fix cucumber hooks crashing reporter (INFO: we may not need this anymore)
                 continue
             }
@@ -217,7 +217,7 @@ class JunitReporter extends WDIOReporter {
     }
 
     private _buildJunitXml (runner: RunnerStats) {
-        let builder = junit.newBuilder()
+        const builder = junit.newBuilder()
         if (runner.config.hostname !== undefined && runner.config.hostname.indexOf('browserstack') > -1) {
             // NOTE: deviceUUID is used to build sanitizedCapabilities resulting in a ever-changing package name in runner.sanitizedCapabilities when running Android tests under Browserstack. (i.e. ht79v1a03938.android.9)
             // NOTE: platformVersion is used to build sanitizedCapabilities which can be incorrect and includes a minor version for iOS which is not guaranteed to be the same under Browserstack.
@@ -256,7 +256,7 @@ class JunitReporter extends WDIOReporter {
     }
 
     private _buildOrderedReport(builder: any, runner: RunnerStats, specFileName: string, type: string, isCucumberFrameworkRunner: boolean) {
-        for (let suiteKey of Object.keys(this.suites)) {
+        for (const suiteKey of Object.keys(this.suites)) {
             /**
              * ignore root before all
              */
@@ -275,7 +275,7 @@ class JunitReporter extends WDIOReporter {
     }
 
     private _getStandardOutput (test: TestStats) {
-        let standardOutput: string[] = []
+        const standardOutput: string[] = []
         test.output.forEach((data) => {
             switch (data.type) {
             case 'command':

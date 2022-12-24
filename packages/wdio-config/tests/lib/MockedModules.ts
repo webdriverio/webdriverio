@@ -48,7 +48,7 @@ export default class MockedModules implements ModuleImportService {
     }
 
     static withModules(moduleAndValuesList: [string, any][], callThroughNotMockedModules = false) {
-        let instance = new MockedModules(callThroughNotMockedModules)
+        const instance = new MockedModules(callThroughNotMockedModules)
         return instance.withModules(moduleAndValuesList)
     }
 

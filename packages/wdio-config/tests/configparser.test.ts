@@ -208,7 +208,7 @@ describe('ConfigParser', () => {
 
             it('should not transpile via ts-node if we are within the worker', async function () {
                 process.env.WDIO_WORKER_ID = '0-0'
-                let configFileContents = (await MockFileContentBuilder.FromRealConfigFile(FIXTURES_CONF_RDC)).build()
+                const configFileContents = (await MockFileContentBuilder.FromRealConfigFile(FIXTURES_CONF_RDC)).build()
                 const tsNodeRegister = vi.fn()
                 const configParser = ConfigParserBuilder
                     .withBaseDir(path.join(FIXTURES_PATH, '/here'), 'cool.conf')
@@ -224,7 +224,7 @@ describe('ConfigParser', () => {
 
             it('when @babel/register package exists should merge config, preferring config, if present', async function () {
                 process.env.THROW_TSNODE_RESOLVE = '1'
-                let configFileContents = (await MockFileContentBuilder.FromRealConfigFile(FIXTURES_CONF_RDC)).build()
+                const configFileContents = (await MockFileContentBuilder.FromRealConfigFile(FIXTURES_CONF_RDC)).build()
                 const babelRegister = vi.fn()
                 const configParser = ConfigParserBuilder.withBaseDir(
                     path.join(__dirname, '/tests/'),
@@ -440,7 +440,7 @@ describe('ConfigParser', () => {
             const configParser = await ConfigParserForTestWithAllFiles(FIXTURES_CONF)
             await configParser.initialize({ suite: ['mobile'] })
 
-            let specs = configParser.getSpecs()
+            const specs = configParser.getSpecs()
             expect(specs).toHaveLength(1)
             expect(specs).toContain(path.join(__dirname, 'RequireLibrary.test.ts'))
         })
@@ -761,7 +761,7 @@ describe('ConfigParser', () => {
             const configParser = await ConfigParserForTestWithAllFiles(FIXTURES_CONF)
             await configParser.initialize({ suite: ['mobile'], spec: [INDEX_PATH] })
 
-            let specs = configParser.getSpecs()
+            const specs = configParser.getSpecs()
             expect(specs).toHaveLength(2)
             expect(specs).toContain(INDEX_PATH)
             expect(specs).toContain(path.join(__dirname, 'RequireLibrary.test.ts'))
@@ -799,7 +799,7 @@ describe('ConfigParser', () => {
 
             await configParser.initialize({ suite: ['mobile'], spec: [INDEX_PATH] })
 
-            let specs = configParser.getSpecs()
+            const specs = configParser.getSpecs()
             expect(specs).toHaveLength(3)
             expect(specs).toContain(INDEX_PATH)
             expect(specs).toContain(path.join(__dirname, 'RequireLibrary.test.ts'))

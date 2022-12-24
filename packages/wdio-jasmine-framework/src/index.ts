@@ -179,13 +179,13 @@ class JasmineAdapter {
          * wrap Suite and Spec prototypes to get access to their data
          */
         // @ts-ignore
-        let beforeAllMock = jasmine.Suite.prototype.beforeAll
+        const beforeAllMock = jasmine.Suite.prototype.beforeAll
         // @ts-ignore
         jasmine.Suite.prototype.beforeAll = function (...args) {
             self._lastSpec = this.result
             beforeAllMock.apply(this, args)
         }
-        let executeMock = jasmine.Spec.prototype.execute
+        const executeMock = jasmine.Spec.prototype.execute
         jasmine.Spec.prototype.execute = function (...args: any[]) {
             self._lastTest = this.result
             // @ts-ignore overwrite existing type
@@ -310,7 +310,7 @@ class JasmineAdapter {
     }
 
     formatMessage (params: FrameworkMessage) {
-        let message: FormattedMessage = {
+        const message: FormattedMessage = {
             type: params.type
         }
 
@@ -342,7 +342,7 @@ class JasmineAdapter {
     }
 
     getExpectationResultHandler (jasmine: jasmine.Jasmine) {
-        let { expectationResultHandler } = this._jasmineOpts
+        const { expectationResultHandler } = this._jasmineOpts
         const origHandler = jasmine.Spec.prototype.addExpectationResult
 
         if (typeof expectationResultHandler !== 'function') {

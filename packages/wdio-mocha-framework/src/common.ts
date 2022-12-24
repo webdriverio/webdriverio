@@ -16,7 +16,7 @@ const MOCHA_UI_TYPE_EXTRACTOR = /^(?:.*-)?([^-.]+)(?:.js)?$/
 const DEFAULT_INTERFACE_TYPE = 'bdd'
 
 export function formatMessage (params: FrameworkMessage) {
-    let message: FormattedMessage = {
+    const message: FormattedMessage = {
         type: params.type
     }
 
@@ -138,11 +138,11 @@ export function setupEnv (cid: string, options: MochaOpts, beforeTest: Hook, bef
         )
     })
 
-    let { require = [], compilers = [] } = options
+    let { require = [] } = options
     if (typeof require === 'string') {
         require = [require]
     }
-
+    const { compilers = [] } = options
     return requireExternalModules([...compilers, ...require])
 }
 

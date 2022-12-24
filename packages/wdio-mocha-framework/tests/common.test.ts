@@ -13,8 +13,8 @@ vi.mock('@wdio/utils')
 describe('formatMessage', () => {
     test('should do nothing if no error or params are given', () => {
         // @ts-ignore params not needed for test scenario
-        let params = { type: 'foobar' }
-        let message = formatMessage(params as any)
+        const params = { type: 'foobar' }
+        const message = formatMessage(params as any)
         expect(message).toMatchSnapshot()
     })
 

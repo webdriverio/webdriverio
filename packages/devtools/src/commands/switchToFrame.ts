@@ -68,7 +68,7 @@ export default async function switchToFrame (
         /**
          * `page` has `frames` method while `frame` has `childFrames` method
          */
-        let getFrames = (page as unknown as Page).frames || page.childFrames
+        const getFrames = (page as unknown as Page).frames || page.childFrames
         const childFrames = await getFrames.apply(page)
         const childFrame = childFrames[id]
 

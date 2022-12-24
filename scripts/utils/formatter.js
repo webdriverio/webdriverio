@@ -12,13 +12,13 @@ export default function (docfile) {
     const scope = docfile.filename.split('/').slice(-2, -1)[0]
 
     let description = ''
-    let paramStr = []
-    let propertyTags = []
-    let paramTags = []
-    let returnTags = []
-    let throwsTags = []
-    let fires = []
-    let listens = []
+    const paramStr = []
+    const propertyTags = []
+    const paramTags = []
+    const returnTags = []
+    const throwsTags = []
+    const fires = []
+    const listens = []
     let tagDeprecated = false
     let tagSee = ''
     let tagVersion = ''

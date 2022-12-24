@@ -94,7 +94,7 @@ export default async function click(
     }
 
     let button = (options.button || 0) as Button
-    let {
+    const {
         x: xoffset = 0,
         y: yoffset = 0,
         skipRelease = false

@@ -56,7 +56,7 @@ class AllureReporter extends WDIOReporter {
 
         this._lastScreenshot = undefined
 
-        let processObj:any = process
+        const processObj:any = process
         if (options.addConsoleLogs || this._addConsoleLogs) {
             processObj.stdout.write = (chunk: string, encoding: BufferEncoding, callback:  ((err?: Error) => void)) => {
                 if (typeof chunk === 'string' && !chunk.includes('mwebdriver')) {

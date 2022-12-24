@@ -125,7 +125,7 @@ export default class ConfigParser {
              * complications when using merge function
              */
             this.addService(fileConfig)
-            for (let hookName of SUPPORTED_HOOKS) {
+            for (const hookName of SUPPORTED_HOOKS) {
                 delete fileConfig[hookName]
             }
 
@@ -233,7 +233,7 @@ export default class ConfigParser {
         // specs matching the passed pattern else the specs defined inside the config are returned
         let specs = ConfigParser.getFilePaths(this._config.specs!, this._config.rootDir, this._pathService)
         let exclude = ConfigParser.getFilePaths(this._config.exclude!, this._config.rootDir, this._pathService)
-        let suites = Array.isArray(this._config.suite) ? this._config.suite : []
+        const suites = Array.isArray(this._config.suite) ? this._config.suite : []
 
         // only use capability excludes if (CLI) --exclude or config exclude are not defined
         if (Array.isArray(capExclude) && exclude.length === 0){
@@ -248,8 +248,8 @@ export default class ConfigParser {
         // handle case where user passes --suite via CLI
         if (suites.length > 0) {
             let suiteSpecs: Spec[] = []
-            for (let suiteName of suites) {
-                let suite = this._config.suites?.[suiteName]
+            for (const suiteName of suites) {
+                const suite = this._config.suites?.[suiteName]
                 if (!suite) {
                     log.warn(`No suite was found with name "${suiteName}"`)
                 }
@@ -289,7 +289,7 @@ export default class ConfigParser {
             filteredFile = removeLineNumbers(filteredFile)
             // Send single file/file glob to getFilePaths - not supporting hierarchy in spec/exclude
             // Return value will always be string[]
-            let globMatchedFiles = <string[]>ConfigParser.getFilePaths(
+            const globMatchedFiles = <string[]>ConfigParser.getFilePaths(
                 this._pathService.glob(filteredFile, path.dirname(this.#configFilePath)),
                 this._config.rootDir,
                 this._pathService

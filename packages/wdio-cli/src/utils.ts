@@ -165,7 +165,7 @@ function buildNewConfigArray (str: string, type: string, change: string) {
         .split(`${type}s: `)[1]
         .replace(/'/g, '')
 
-    let newArray = newStr.match(/(\w*)/gmi)?.filter(e => !!e).concat([change]) || []
+    const newArray = newStr.match(/(\w*)/gmi)?.filter(e => !!e).concat([change]) || []
 
     return str
         .replace('// ', '')
@@ -407,7 +407,7 @@ export async function generateTestFiles (answers: ParsedAnswers) {
         const renderedTpl = await renderFile(file, answers)
         const isJSX = answers.preset && ['preact', 'react'].includes(answers.preset)
         const fileEnding = (answers.isUsingTypeScript ? '.ts' : '.js') + (isJSX ? 'x' : '')
-        let destPath = (
+        const destPath = (
             file.endsWith('page.js.ejs')
                 ? path.join(answers.destPageObjectRootPath, path.basename(file))
                 : file.includes('step_definition')
@@ -520,7 +520,7 @@ export function getPathForFileGeneration (answers: Questionnair, projectRootDir:
             projectRootDir,
             path.dirname(answers.pages || '').replace(/\*\*$/, ''))
         : ''
-    let relativePath = (answers.generateTestFiles && answers.usePageObjects)
+    const relativePath = (answers.generateTestFiles && answers.usePageObjects)
         ? !(convertPackageHashToObject(answers.framework).short === 'cucumber')
             ? path.relative(destSpecRootPath, destPageObjectRootPath)
             : path.relative(destStepRootPath, destPageObjectRootPath)

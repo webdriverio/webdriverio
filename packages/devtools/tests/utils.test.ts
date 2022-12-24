@@ -71,7 +71,7 @@ const command = {
     }]
 }
 
-let pageMock = {
+const pageMock = {
     waitForSelector: vi.fn(),
     waitForXPath: vi.fn(),
     $$eval: vi.fn(),

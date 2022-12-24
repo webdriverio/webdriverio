@@ -44,8 +44,8 @@ async function launchChrome (capabilities: ExtendedCapabilities) {
      * This should be cleaned up for v7 release
      * ToDo(Christian): v7 cleanup
      */
-    let ignoreDefaultArgs = (capabilities as any).ignoreDefaultArgs || devtoolsOptions.ignoreDefaultArgs
-    let headless = (chromeOptions as any).headless || devtoolsOptions.headless
+    const ignoreDefaultArgs = (capabilities as any).ignoreDefaultArgs || devtoolsOptions.ignoreDefaultArgs
+    const headless = (chromeOptions as any).headless || devtoolsOptions.headless
 
     if (typeof mobileEmulation.deviceName === 'string') {
         const deviceProperties = KnownDevices[mobileEmulation.deviceName as keyof typeof KnownDevices]

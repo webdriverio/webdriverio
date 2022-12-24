@@ -161,7 +161,7 @@ export default function querySelectorAllDeep (findMany: boolean, s: string, r: E
 
     function _querySelectorDeep(selector: string, root: Element | Document, allElements = null) {
         selector = normalizeSelector(selector)
-        let lightElement = root.querySelector(selector)
+        const lightElement = root.querySelector(selector)
 
         // @ts-expect-error createShadowRoot does not exist in head
         if (document.head.createShadowRoot || document.head.attachShadow) {

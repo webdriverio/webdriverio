@@ -3,7 +3,7 @@ import TestStats from '../../src/stats/test.js'
 
 describe('RunnableStats', () => {
     let stat: TestStats
-    let DateOrig = Date
+    const DateOrig = Date
 
     beforeEach(() => {
         global.Date = vi.fn() as any

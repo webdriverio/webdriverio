@@ -20,6 +20,7 @@ module.exports = {
         indent: [2, 4],
         eqeqeq: ['error', 'always'],
 
+        'prefer-const': 'error',
         'no-multiple-empty-lines': [2, { 'max': 1, 'maxEOF': 1 }],
         'array-bracket-spacing': ['error', 'never'],
         'brace-style': ['error', '1tbs', { allowSingleLine: true }],

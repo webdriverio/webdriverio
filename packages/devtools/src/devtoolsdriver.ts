@@ -46,7 +46,7 @@ export default class DevToolsDriver {
             )
         )
 
-        for (let filename of files) {
+        for (const filename of files) {
             const commandName = path.basename(filename, path.extname(filename))
 
             if (!commandName) {

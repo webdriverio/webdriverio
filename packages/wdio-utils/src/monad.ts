@@ -118,7 +118,7 @@ export default function WebDriver (options: Record<string, any>, modifier?: Func
          * @param  {Object=}  instances         multiremote instances
          */
         client.overwriteCommand = function (name: string, func: Function, attachToElement = false, proto: Record<string, any>, instances?: Clients.Multiremote | Clients.Browser) {
-            let customCommand = typeof commandWrapper === 'function'
+            const customCommand = typeof commandWrapper === 'function'
                 ? commandWrapper(name, func)
                 : func
             if (attachToElement) {
@@ -183,7 +183,7 @@ export default function WebDriver (options: Record<string, any>, modifier?: Func
     /**
      * register event emitter
      */
-    for (let eventCommand in EVENTHANDLER_FUNCTIONS) {
+    for (const eventCommand in EVENTHANDLER_FUNCTIONS) {
         prototype[eventCommand] = function (...args: [any, any]) {
             eventHandler[eventCommand as keyof EventEmitter](...args as [never, any])
 

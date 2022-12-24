@@ -111,7 +111,7 @@ function findEdgeExecutables(folder: string) {
     const argumentsRegex = /(^[^ ]+).*/ // Take everything up to the first space
     const edgeExecRegex = '^Exec=/.*/(edge)-.*'
 
-    let installations: string[] = []
+    const installations: string[] = []
     if (canAccess(folder)) {
         let execPaths
 

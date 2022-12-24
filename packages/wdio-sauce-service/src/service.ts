@@ -362,7 +362,7 @@ export default class SauceService implements Services.ServiceInstance {
      * VM message data
      */
     getBody (failures: number, calledOnReload = false, browserName?: string) {
-        let body: Partial<Job> = {}
+        const body: Partial<Job> = {}
 
         /**
          * add reload count to title if reload is used
@@ -387,9 +387,9 @@ export default class SauceService implements Services.ServiceInstance {
             body.name += ` (${testCnt})`
         }
 
-        let caps = (this._capabilities as Capabilities.Capabilities)['sauce:options'] || this._capabilities as Capabilities.SauceLabsCapabilities
+        const caps = (this._capabilities as Capabilities.Capabilities)['sauce:options'] || this._capabilities as Capabilities.SauceLabsCapabilities
 
-        for (let prop of jobDataProperties) {
+        for (const prop of jobDataProperties) {
             if (!caps[prop]) {
                 continue
             }

@@ -338,7 +338,7 @@ describe('utils', () => {
         })
 
         it('should handle sessionRequest error', async () => {
-            let error = await startWebDriverSession({
+            const error = await startWebDriverSession({
                 logLevel: 'warn',
                 capabilities: {}
             }).catch((err) => err)

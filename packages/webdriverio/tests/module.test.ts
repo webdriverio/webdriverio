@@ -22,7 +22,7 @@ vi.mock('webdriver', () => {
     const newSessionMock = vi.fn()
     newSessionMock.mockReturnValue(new Promise((resolve) => resolve(client)))
     newSessionMock.mockImplementation((params, cb) => {
-        let result = cb(client, params)
+        const result = cb(client, params)
         // @ts-ignore mock feature
         if (params.test_multiremote) {
             result.options = { logLevel: 'error' }
@@ -44,7 +44,7 @@ vi.mock('devtools', () => {
     const newSessionMock = vi.fn()
     newSessionMock.mockReturnValue(new Promise((resolve) => resolve(client)))
     newSessionMock.mockImplementation((params, cb) => {
-        let result = cb(client, params)
+        const result = cb(client, params)
         // @ts-ignore mock feature
         if (params.test_multiremote) {
             result.options = { logLevel: 'error' }

@@ -177,7 +177,7 @@ export default class CrossBrowserTestingService implements Services.ServiceInsta
     }
 
     getBody (failures: number, calledOnReload = false, browserName?: string) {
-        let body = { test: {} as any }
+        const body = { test: {} as any }
 
         /**
          * set default values
@@ -196,7 +196,7 @@ export default class CrossBrowserTestingService implements Services.ServiceInsta
             body.test.name += ` (${testCnt})`
         }
 
-        for (let prop of jobDataProperties) {
+        for (const prop of jobDataProperties) {
             if (!(this._capabilities as Record<string, any>)[prop]) {
                 continue
             }
