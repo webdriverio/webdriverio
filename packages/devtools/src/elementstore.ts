@@ -9,7 +9,7 @@ export default class ElementStore {
     set (elementHandle: ElementHandle) {
         const index = `ELEMENT-${++this._index}`
         this._elementMap.set(index, elementHandle)
-        const frame = elementHandle.executionContext()['_world']?.frame()
+        const frame = elementHandle.executionContext()._world?.frame()
         if (frame) {
             let elementIndexes = this._frameMap.get(frame)
             if (!elementIndexes) {

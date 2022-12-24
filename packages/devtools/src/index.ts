@@ -39,7 +39,7 @@ export default class DevTools {
     ): Promise<Client> {
         const params = validateConfig(DEFAULTS, options)
 
-        if (params.logLevel && (!options.logLevels || !(options.logLevels as any)['devtools'])) {
+        if (params.logLevel && (!options.logLevels || !(options.logLevels as any).devtools)) {
             logger.setLevel('devtools', params.logLevel)
         }
 

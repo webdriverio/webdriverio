@@ -50,7 +50,7 @@ export default class MultiRemote {
             }
         }
 
-        propertiesObject['__propertiesObject__'] = {
+        propertiesObject.__propertiesObject__ = {
             value: propertiesObject
         }
 

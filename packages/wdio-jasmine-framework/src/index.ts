@@ -145,7 +145,7 @@ class JasmineAdapter {
         /**
          * wrap commands
          */
-        INTERFACES['bdd'].forEach((fnName) => {
+        INTERFACES.bdd.forEach((fnName) => {
             const isTest = TEST_INTERFACES.includes(fnName)
             const beforeHook = [...this._config.beforeHook]
             const afterHook = [...this._config.afterHook]

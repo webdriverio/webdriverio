@@ -70,7 +70,7 @@ export default function WebDriver (options: Record<string, any>, modifier?: Func
          */
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { puppeteer, ...propertiesObjectWithoutPuppeteer } = propertiesObject
-        propertiesObject['__propertiesObject__'] = { value: propertiesObjectWithoutPuppeteer }
+        propertiesObject.__propertiesObject__ = { value: propertiesObjectWithoutPuppeteer }
 
         let client = Object.create(prototype, propertiesObject)
         client.sessionId = sessionId

@@ -237,7 +237,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                     } else if (capType === 'local'){
                         capability['browserstack.local'] = true
                     } else if (capType === 'app') {
-                        capability['app'] = value
+                        capability.app = value
                     }
                 } else if (capType === 'local') {
                     capability['bstack:options'].local = true
@@ -258,7 +258,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                     } else if (capType === 'local'){
                         (caps.capabilities as Capabilities.Capabilities)['browserstack.local'] = true
                     } else if (capType === 'app') {
-                        (caps.capabilities as Capabilities.AppiumCapabilities)['app'] = value
+                        (caps.capabilities as Capabilities.AppiumCapabilities).app = value
                     }
                 } else if (capType === 'local'){
                     (caps.capabilities as Capabilities.Capabilities)['bstack:options']!.local = true

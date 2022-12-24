@@ -14,22 +14,23 @@ module.exports = {
         sourceType: 'module'
     },
     rules: {
+        quotes: ['error', 'single', { avoidEscape: true }],
+        camelcase: ['error', { properties: 'never' }],
         semi: ['error', 'never'],
         indent: [2, 4],
 
         'no-multiple-empty-lines': [2, { 'max': 1, 'maxEOF': 1 }],
         'array-bracket-spacing': ['error', 'never'],
         'brace-style': ['error', '1tbs', { allowSingleLine: true }],
-        camelcase: ['error', { properties: 'never' }],
         'comma-spacing': ['error', { before: false, after: true }],
         'no-lonely-if': 'error',
+        'dot-notation': 'error',
         'no-else-return': 'error',
         'no-tabs': 'error',
         'no-trailing-spaces': ['error', {
             skipBlankLines: false,
             ignoreComments: false
         }],
-        quotes: ['error', 'single', { avoidEscape: true }],
         'unicode-bom': ['error', 'never'],
         'object-curly-spacing': ['error', 'always'],
         'keyword-spacing':['error'],
@@ -47,6 +48,11 @@ module.exports = {
             'no-undef': 'off',
             // allow overloads
             'no-redeclare': 'off'
+        }
+    }, {
+        files: ['*.test.ts'],
+        rules: {
+            'dot-notation': 'off'
         }
     }]
 }

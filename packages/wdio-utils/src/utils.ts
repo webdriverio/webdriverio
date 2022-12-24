@@ -14,7 +14,9 @@ const REGEX_SCRIPT_NAME = /return \(function (\w+)/
  * @param {object} propertiesObject propertiesObject
  */
 export function overwriteElementCommands(propertiesObject: { '__elementOverrides__'?: { value: any }, [key: string]: any }) {
-    const elementOverrides = propertiesObject['__elementOverrides__'] ? propertiesObject['__elementOverrides__'].value : {}
+    const elementOverrides = propertiesObject.__elementOverrides__
+        ? propertiesObject.__elementOverrides__.value
+        : {}
 
     for (const [commandName, userDefinedCommand] of Object.entries(elementOverrides)) {
         if (typeof userDefinedCommand !== 'function') {
@@ -49,8 +51,8 @@ export function overwriteElementCommands(propertiesObject: { '__elementOverrides
         }
     }
 
-    delete propertiesObject['__elementOverrides__']
-    propertiesObject['__elementOverrides__'] = { value: {} }
+    delete propertiesObject.__elementOverrides__
+    propertiesObject.__elementOverrides__ = { value: {} }
 }
 
 /**

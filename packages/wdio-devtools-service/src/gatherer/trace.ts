@@ -245,8 +245,7 @@ export default class TraceGatherer extends EventEmitter {
             const mainFrame = (
                 startedInBrowserEvt &&
                 startedInBrowserEvt.args &&
-                (startedInBrowserEvt.args as StartedInBrowserEvent)['data']['frames'] &&
-                (startedInBrowserEvt.args as StartedInBrowserEvent)['data']['frames'].find((frame: any) => !frame.parent)
+                (startedInBrowserEvt.args as StartedInBrowserEvent).data.frames?.find((frame: any) => !frame.parent)
             )
             if (mainFrame && mainFrame.processId) {
                 const threadNameEvt = traceEvents.traceEvents.find(e => e.ph === 'R' &&
