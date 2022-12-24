@@ -2,9 +2,9 @@ import * as http from 'node:http'
 import * as https from 'node:https'
 import type { URL } from 'node:url'
 
-import type { W3CCapabilities, DesiredCapabilities, RemoteCapabilities, RemoteCapability, MultiRemoteCapabilities, Capabilities } from './Capabilities'
-import type { Hooks, ServiceEntry } from './Services'
-import type { ReporterEntry } from './Reporters'
+import type { W3CCapabilities, DesiredCapabilities, RemoteCapabilities, RemoteCapability, MultiRemoteCapabilities, Capabilities } from './Capabilities.js'
+import type { Hooks, ServiceEntry } from './Services.js'
+import type { ReporterEntry } from './Reporters.js'
 
 export type WebDriverLogTypes = 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'silent'
 export type SupportedProtocols = 'webdriver' | 'devtools' | './protocol-stub.js'

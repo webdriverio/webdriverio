@@ -1,6 +1,6 @@
 import type { WriteStream } from 'node:fs'
 import type { EventEmitter } from 'node:events'
-import type { RemoteCapability } from './Capabilities'
+import type { RemoteCapability } from './Capabilities.js'
 
 interface OutputFileFormatOptions {
     cid: string

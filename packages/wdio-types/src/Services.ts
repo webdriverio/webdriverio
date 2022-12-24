@@ -1,6 +1,6 @@
-import type { DesiredCapabilities, RemoteCapability, RemoteCapabilities } from './Capabilities'
-import type { Testrunner as TestrunnerOptions, WebdriverIO as WebdriverIOOptions } from './Options'
-import type { Suite, Test, TestResult } from './Frameworks'
+import type { DesiredCapabilities, RemoteCapability, RemoteCapabilities } from './Capabilities.js'
+import type { Testrunner as TestrunnerOptions, WebdriverIO as WebdriverIOOptions } from './Options.js'
+import type { Suite, Test, TestResult } from './Frameworks.js'
 
 export interface RunnerInstance {
     initialise(): Promise<void>

@@ -1,7 +1,7 @@
 import type {
     WebdriverIO as WebDriverIOOptions,
     Connection as ConnectionOptions
-} from './Options'
+} from './Options.js'
 
 export type PageLoadingStrategy = 'none' | 'eager' | 'normal';
 export type LoggingPreferenceType =
