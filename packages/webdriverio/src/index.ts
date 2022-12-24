@@ -44,7 +44,7 @@ export const remote = async function (params: RemoteOptions, remoteModifier?: Fu
          * package (without undefined properties)
          */
         Object.assign(options, Object.entries(config)
-            .reduce((a, [k, v]) => (!v ? a : { ...a, [k]: v }), {}))
+            .reduce((a, [k, v]) => (typeof v === 'undefined' ? a : { ...a, [k]: v }), {}))
 
         if (typeof remoteModifier === 'function') {
             client = remoteModifier(client, options)

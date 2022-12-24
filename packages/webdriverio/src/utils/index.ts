@@ -398,7 +398,7 @@ export async function getElementRect(scope: WebdriverIO.Element) {
 
         // try set proper value
         Object.keys(defaults).forEach((key: keyof typeof defaults) => {
-            if (!rect[key]) {
+            if (typeof rect[key] !== 'undefined') {
                 return
             }
             if (rectJs && typeof rectJs[key] === 'number') {
