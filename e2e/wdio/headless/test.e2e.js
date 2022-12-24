@@ -8,15 +8,7 @@ describe('main suite 1', () => {
     it('should allow to check for PWA', async () => {
         await browser.url('https://webdriver.io')
         await browser.pause(100)
-        expect((await browser.checkPWA([
-            'isInstallable',
-            'splashScreen',
-            'themedOmnibox',
-            'contentWith',
-            'viewport',
-            'appleTouchIcon',
-            'maskableIcon'
-        ])).passed).toBe(true)
+        expect((await browser.checkPWA()).passed).toBe(true)
     })
 
     it('should also detect non PWAs', async () => {
@@ -24,11 +16,7 @@ describe('main suite 1', () => {
         expect((await browser.checkPWA()).passed).toBe(false)
     })
 
-    /**
-     * fails due to "Unable to identify the main resource"
-     * https://github.com/webdriverio/webdriverio/issues/8541
-     */
-    it.skip('should allow to do performance tests', async () => {
+    it('should allow to do performance tests', async () => {
         await browser.enablePerformanceAudits()
         await browser.url('http://json.org')
         const metrics = await browser.getMetrics()

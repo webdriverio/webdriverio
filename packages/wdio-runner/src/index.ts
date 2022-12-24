@@ -194,7 +194,7 @@ export default class Runner extends EventEmitter {
             config: browser.options,
             isMultiremote,
             instanceOptions: isMultiremote
-                ? multiRemoteBrowser.instances.reduce((prev: any, browserName: string) => {
+                ? multiRemoteBrowser.instances.reduce((prev, browserName) => {
                     prev[multiRemoteBrowser[browserName].sessionId] = multiRemoteBrowser[browserName].options as Options.WebdriverIO
                     return prev
                 }, {} as Record<string, Options.WebdriverIO>)
@@ -203,7 +203,7 @@ export default class Runner extends EventEmitter {
                 },
             sessionId: browser.sessionId,
             capabilities: isMultiremote
-                ? multiRemoteBrowser.instances.reduce((caps: any, browserName: string) => {
+                ? multiRemoteBrowser.instances.reduce((caps, browserName) => {
                     caps[browserName] = multiRemoteBrowser[browserName].capabilities
                     caps[browserName].sessionId = multiRemoteBrowser[browserName].sessionId
                     return caps
@@ -285,7 +285,7 @@ export default class Runner extends EventEmitter {
         /**
          * register command event
          */
-        browser.on('command', (command: any) => this._reporter?.emit(
+        browser.on('command', (command) => this._reporter?.emit(
             'client:beforeCommand',
             Object.assign(command, { sessionId: browser.sessionId })
         ))
@@ -293,7 +293,7 @@ export default class Runner extends EventEmitter {
         /**
          * register result event
          */
-        browser.on('result', (result: any) => this._reporter?.emit(
+        browser.on('result', (result) => this._reporter?.emit(
             'client:afterCommand',
             Object.assign(result, { sessionId: browser.sessionId })
         ))
@@ -438,11 +438,7 @@ export default class Runner extends EventEmitter {
             /**
              * every multiremote instance should exist and should have `sessionId`
              */
-            ? !multiremoteBrowser.instances.some((browserName: string) => (
-                multiremoteBrowser[browserName] &&
-                !multiremoteBrowser[browserName].sessionId)
-            )
-
+            ? !multiremoteBrowser.instances.some(i => multiremoteBrowser[i] && !multiremoteBrowser[i].sessionId)
             /**
              * browser object should have `sessionId` in regular mode
              */
@@ -461,7 +457,7 @@ export default class Runner extends EventEmitter {
          */
         const capabilities: Capabilities.Capabilities | Capabilities.W3CCapabilities | MultiRemoteCaps = global.browser.capabilities || {}
         if (this._isMultiremote) {
-            multiremoteBrowser.instances.forEach((browserName: string) => {
+            multiremoteBrowser.instances.forEach((browserName) => {
                 (capabilities as MultiRemoteCaps)[browserName] = multiremoteBrowser[browserName].capabilities
             })
         }
@@ -472,9 +468,9 @@ export default class Runner extends EventEmitter {
          * delete session(s)
          */
         if (this._isMultiremote) {
-            multiremoteBrowser.instances.forEach((browserName: string) => {
+            multiremoteBrowser.instances.forEach(i => {
                 // @ts-ignore sessionId is usually required
-                delete multiremoteBrowser[browserName].sessionId
+                delete multiremoteBrowser[i].sessionId
             })
         } else {
             // @ts-ignore sessionId is usually required

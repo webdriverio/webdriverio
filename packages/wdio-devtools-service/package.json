@@ -29,7 +29,6 @@
     "@babel/core": "^7.12.10",
     "@tracerbench/trace-event": "^7.0.0",
     "@types/node": "^18.0.0",
-    "@types/ws": "^8.5.3",
     "@wdio/logger": "7.26.0",
     "@wdio/types": "7.26.0",
     "babel-plugin-istanbul": "^6.0.0",
@@ -39,11 +38,10 @@
     "istanbul-lib-report": "^3.0.0",
     "istanbul-reports": "^3.0.2",
     "lighthouse": "8.6.0",
-    "puppeteer-core": "^19.4.0",
+    "puppeteer-core": "^13.1.3",
     "speedline": "^1.4.1",
     "stable": "^0.1.8",
-    "webdriverio": "7.28.0",
-    "ws": "^8.8.1"
+    "webdriverio": "7.28.0"
   },
   "peerDependencies": {
     "@wdio/cli": "^7.0.0"
