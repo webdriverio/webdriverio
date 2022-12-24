@@ -1,5 +1,5 @@
 import implicitWait from './implicitWait.js'
-import { Selector } from '../types.js'
+import type { Selector } from '../types.js'
 
 /**
  * helper utility to refetch an element and all its parent elements when running
@@ -9,7 +9,7 @@ export default async function refetchElement (
     currentElement: WebdriverIO.Element,
     commandName: string
 ): Promise<WebdriverIO.Element> {
-    let selectors: {
+    const selectors: {
         selector: Selector
         index: number
     }[] = []

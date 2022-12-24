@@ -8,7 +8,7 @@ import {
     getAnswers, createPackageJSON, setupTypeScript, setupBabel, npmInstall, createWDIOConfig, createWDIOScript
 } from '../../src/utils.js'
 
-let consoleLog = console.log.bind(console)
+const consoleLog = console.log.bind(console)
 beforeEach(() => {
     console.log = vi.fn()
 })

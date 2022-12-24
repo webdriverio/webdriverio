@@ -1,9 +1,10 @@
 import { createRequire } from 'node:module'
 import { stringify } from 'csv-stringify/sync'
-import WDIOReporter, {
+import type {
     SuiteStats, Tag, HookStats, RunnerStats, TestStats, BeforeCommandArgs,
     AfterCommandArgs, CommandArgs, Argument
 } from '@wdio/reporter'
+import WDIOReporter from '@wdio/reporter'
 import type { Capabilities, Options } from '@wdio/types'
 
 import {
@@ -11,10 +12,12 @@ import {
     isMochaAllHooks, getLinkByTemplate, attachConsoleLogs
 } from './utils.js'
 import { events, PASSED, PENDING, SKIPPED, stepStatuses } from './constants.js'
-import {
+import type {
     AddAttachmentEventArgs, AddDescriptionEventArgs, AddEnvironmentEventArgs,
     AddFeatureEventArgs, AddIssueEventArgs, AddLabelEventArgs, AddSeverityEventArgs,
-    AddStoryEventArgs, AddTestIdEventArgs, AllureReporterOptions, Status
+    AddStoryEventArgs, AddTestIdEventArgs, Status
+} from './types.js'
+import { AllureReporterOptions
 } from './types.js'
 
 const require = createRequire(import.meta.url)
@@ -56,7 +59,7 @@ class AllureReporter extends WDIOReporter {
 
         this._lastScreenshot = undefined
 
-        let processObj:any = process
+        const processObj:any = process
         if (options.addConsoleLogs || this._addConsoleLogs) {
             processObj.stdout.write = (chunk: string, encoding: BufferEncoding, callback:  ((err?: Error) => void)) => {
                 if (typeof chunk === 'string' && !chunk.includes('mwebdriver')) {
@@ -167,7 +170,7 @@ class AllureReporter extends WDIOReporter {
 
         const testTitle = test.currentTest ? test.currentTest : test.title
 
-        if (this.isAnyTestRunning() && this._allure.getCurrentTest().name == testTitle) {
+        if (this.isAnyTestRunning() && this._allure.getCurrentTest().name === testTitle) {
             // Test already in progress, most likely started by a before each hook
             this.setCaseParameters(test.cid, test.parent)
             return

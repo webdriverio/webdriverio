@@ -55,7 +55,8 @@ describe('scrollIntoView test', () => {
             // @ts-expect-error mock feature
             elem.elementId = { scrollIntoView: vi.fn() }
             await elem.scrollIntoView({})
-            console.log(vi.mocked(got).mock.calls.pop()![0]!.href.endsWith('/execute/sync'))
+            expect(vi.mocked(got).mock.calls.pop()![0]!.href.endsWith('/execute/sync'))
+                .toBe(true)
         })
     })
 

@@ -57,7 +57,7 @@ export const parseAnswers = async function (yes: boolean): Promise<ParsedAnswers
     const projectProps = await getProjectProps(process.cwd())
     const projectRootDir = getProjectRoot(answers, projectProps)
 
-    let packagesToInstall: string[] = [
+    const packagesToInstall: string[] = [
         runnerPackage.package,
         frameworkPackage.package,
         presetPackage.package,

@@ -1,7 +1,7 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest'
 
 import WDIORunner from '../src/index.js'
-import BaseReporter from '../src/reporter.js'
+import type BaseReporter from '../src/reporter.js'
 import type { Options, Capabilities } from '@wdio/types'
 
 vi.mock('../src/utils', () => ({

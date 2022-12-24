@@ -1,4 +1,5 @@
-import got, { Response } from 'got'
+import type { Response } from 'got'
+import got from 'got'
 import logger from '@wdio/logger'
 
 import type { JsonCompatible, JsonPrimitive, JsonObject, JsonArray } from '@wdio/types'

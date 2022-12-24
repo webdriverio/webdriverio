@@ -45,7 +45,7 @@ for (const [protocolName, definition] of Object.entries(PROTOCOLS)) {
             }
             const vars = variables
                 // sessionId is handled by WebdriverIO for all protocol requests
-                .filter((v) => v.name != 'sessionId')
+                .filter((v) => v.name !== 'sessionId')
                 // url params are always type of string
                 .map((v) => `${v.name}: string`)
             const params = parameters.map((p, idx) => {

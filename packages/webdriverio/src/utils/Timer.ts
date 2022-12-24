@@ -102,8 +102,8 @@ class Timer {
         }
 
         // autocorrect timer
-        let diff = (Date.now() - (this._startTime || 0)) - (this._ticks++ * this._delay)
-        let delay = Math.max(0, this._delay - diff)
+        const diff = (Date.now() - (this._startTime || 0)) - (this._ticks++ * this._delay)
+        const delay = Math.max(0, this._delay - diff)
 
         // clear old timeoutID
         this._stop()

@@ -6,7 +6,8 @@ import logger from '@wdio/logger'
 import { validateConfig } from '@wdio/config'
 
 import detectBackend from '../src/utils/detectBackend.js'
-import { remote, multiremote, attach, RemoteOptions } from '../src/index.js'
+import type { RemoteOptions } from '../src/index.js'
+import { remote, multiremote, attach } from '../src/index.js'
 
 vi.mock('../src/utils/detectBackend', () => ({ default: vi.fn() }))
 
@@ -22,7 +23,7 @@ vi.mock('webdriver', () => {
     const newSessionMock = vi.fn()
     newSessionMock.mockReturnValue(new Promise((resolve) => resolve(client)))
     newSessionMock.mockImplementation((params, cb) => {
-        let result = cb(client, params)
+        const result = cb(client, params)
         // @ts-ignore mock feature
         if (params.test_multiremote) {
             result.options = { logLevel: 'error' }
@@ -44,7 +45,7 @@ vi.mock('devtools', () => {
     const newSessionMock = vi.fn()
     newSessionMock.mockReturnValue(new Promise((resolve) => resolve(client)))
     newSessionMock.mockImplementation((params, cb) => {
-        let result = cb(client, params)
+        const result = cb(client, params)
         // @ts-ignore mock feature
         if (params.test_multiremote) {
             result.options = { logLevel: 'error' }

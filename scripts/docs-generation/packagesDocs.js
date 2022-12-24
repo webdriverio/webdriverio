@@ -21,7 +21,7 @@ export function generateReportersAndServicesDocs (sidebars) {
     for (const [type, [namePlural, nameSingular]] of Object.entries(plugins)) {
         const pkgs = packages.filter((pkg) => pkg.endsWith(`-${type}`) && pkg.split('-').length > 2)
 
-        let items = []
+        const items = []
         for (const pkg of pkgs) {
             const name = pkg.split('-').slice(1, -1)
             const id = `${name.join('-')}-${type}`

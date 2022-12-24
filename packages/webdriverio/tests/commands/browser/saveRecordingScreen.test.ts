@@ -1,4 +1,5 @@
-import { expect, describe, beforeEach, afterEach, it, vi, SpyInstance } from 'vitest'
+import type { SpyInstance } from 'vitest'
+import { expect, describe, beforeEach, afterEach, it, vi } from 'vitest'
 import fs from 'node:fs'
 import path from 'node:path'
 // @ts-ignore mocked (original defined in webdriver package)

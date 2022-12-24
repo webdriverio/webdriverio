@@ -7,6 +7,7 @@ import { isCloudCapability } from '@wdio/config'
 import type { Capabilities, Options, Services } from '@wdio/types'
 
 import SeleniumStandalone from 'selenium-standalone'
+import type { StartOpts, InstallOpts } from 'selenium-standalone'
 
 import { getFilePath, hasCapsWithSupportedBrowser } from './utils.js'
 import type { SeleniumStandaloneOptions } from './types'
@@ -21,8 +22,8 @@ const DEFAULT_CONNECTION = {
     path: '/wd/hub'
 }
 
-type SeleniumStartArgs = Partial<import('selenium-standalone').StartOpts>
-type SeleniumInstallArgs = Partial<import('selenium-standalone').InstallOpts>
+type SeleniumStartArgs = Partial<StartOpts>
+type SeleniumInstallArgs = Partial<InstallOpts>
 type BrowserDrivers = {
     chrome?: string | boolean
     firefox?: string | boolean

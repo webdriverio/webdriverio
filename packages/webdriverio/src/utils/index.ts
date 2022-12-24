@@ -130,16 +130,16 @@ export function parseCSS (cssPropertyValue: string, cssProperty?: string) {
         /**
          * parse color values
          */
-        let color = parsedValue.value
+        const color = parsedValue.value
         parsedValue.parsed = rgb2hex(parsedValue.value)
         parsedValue.parsed.type = 'color'
 
         const colorType = /[rgba]+/g.exec(color) || []
         parsedValue.parsed[colorType[0] as 'rgb' | 'rgba'] = color
     } else if (parsedValue.property === 'font-family') {
-        let font = cssValue(cssPropertyValue)
-        let string = parsedValue.value
-        let value = cssPropertyValue.split(/,/).map(sanitizeCSS)
+        const font = cssValue(cssPropertyValue)
+        const string = parsedValue.value
+        const value = cssPropertyValue.split(/,/).map(sanitizeCSS)
 
         parsedValue.value = sanitizeCSS(font[0].value || font[0].string)
         parsedValue.parsed = { value, type: 'font', string }
@@ -375,13 +375,13 @@ export function verifyArgsAndStripIfElement(args: any) {
 export async function getElementRect(scope: WebdriverIO.Element) {
     const rect = await scope.getElementRect(scope.elementId)
 
-    let defaults = { x: 0, y: 0, width: 0, height: 0 }
+    const defaults = { x: 0, y: 0, width: 0, height: 0 }
 
     /**
      * getElementRect workaround for Safari 12.0.3
      * if one of [x, y, height, width] is undefined get rect with javascript
      */
-    if (Object.keys(defaults).some((key: keyof typeof defaults) => rect[key] == null)) {
+    if (Object.keys(defaults).some((key: keyof typeof defaults) => !rect[key])) {
         /* istanbul ignore next */
         const rectJs = await getBrowserObject(scope).execute(function (this: Window, el: HTMLElement) {
             if (!el || !el.getBoundingClientRect) {
@@ -398,7 +398,7 @@ export async function getElementRect(scope: WebdriverIO.Element) {
 
         // try set proper value
         Object.keys(defaults).forEach((key: keyof typeof defaults) => {
-            if (rect[key] != null) {
+            if (typeof rect[key] !== 'undefined') {
                 return
             }
             if (rectJs && typeof rectJs[key] === 'number') {

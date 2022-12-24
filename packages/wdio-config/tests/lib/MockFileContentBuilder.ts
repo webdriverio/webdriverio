@@ -1,7 +1,7 @@
 import fs from 'node:fs'
 import { deepmerge } from 'deepmerge-ts'
 
-import { MockSystemFilePath } from './MockPathService.js'
+import type { MockSystemFilePath } from './MockPathService.js'
 
 export type MockFileContent = string | object;
 export type FilePathAndContent = [MockSystemFilePath, MockFileContent];

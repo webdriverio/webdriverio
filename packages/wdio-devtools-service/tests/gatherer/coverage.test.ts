@@ -237,7 +237,7 @@ describe('CoverageGatherer', () => {
 
     it('_getCoverageMap', async () => {
         const gatherer = new CoverageGatherer(pageMock, {})
-        let map = gatherer['_getCoverageMap']()
+        const map = gatherer['_getCoverageMap']()
         vi.advanceTimersByTime(1000)
         gatherer['_coverageMap'] = 'foobar' as any
         vi.advanceTimersByTime(1000)

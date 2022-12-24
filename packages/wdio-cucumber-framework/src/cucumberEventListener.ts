@@ -275,7 +275,7 @@ export default class CucumberEventListener extends EventEmitter {
         const uri = doc?.uri
         const feature = doc?.feature
 
-        if (this._currentDoc.uri && this._currentDoc.feature && this.usesSpecGrouping() && doc != this._currentDoc && this.featureIsStarted(this._currentDoc.uri)) {
+        if (this._currentDoc.uri && this._currentDoc.feature && this.usesSpecGrouping() && doc !== this._currentDoc && this.featureIsStarted(this._currentDoc.uri)) {
             this.emit('after-feature', this._currentDoc.uri, this._currentDoc.feature)
         }
 
@@ -295,7 +295,7 @@ export default class CucumberEventListener extends EventEmitter {
 
         this._currentPickle = { uri, feature, scenario }
 
-        let reporterScenario: ReporterScenario = scenario
+        const reporterScenario: ReporterScenario = scenario
         reporterScenario.rule = getRule(doc?.feature!, this._pickleMap.get(scenario.id)!)
 
         this.emit('before-scenario', scenario.uri, doc?.feature, reporterScenario)

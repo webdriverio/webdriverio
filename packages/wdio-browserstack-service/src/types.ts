@@ -1,4 +1,5 @@
 import type { Capabilities, Options } from '@wdio/types'
+import type { Options as BSOptions } from 'browserstack-local'
 
 export interface SessionResponse {
     // eslint-disable-next-line camelcase
@@ -62,7 +63,7 @@ export interface BrowserstackConfig {
      * ```
      * @default {}
      */
-    opts?: Partial<import('browserstack-local').Options>
+    opts?: Partial<BSOptions>
     /**
      * Cucumber only. Set the BrowserStack Automate session name to the Scenario name if only a single Scenario ran.
      * Useful when running in parallel with [wdio-cucumber-parallel-execution](https://github.com/SimitTomar/wdio-cucumber-parallel-execution).

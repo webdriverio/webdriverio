@@ -1,5 +1,5 @@
-import * as http from 'node:http'
-import * as https from 'node:https'
+import type * as http from 'node:http'
+import type * as https from 'node:https'
 import type { URL } from 'node:url'
 
 import type { W3CCapabilities, DesiredCapabilities, RemoteCapabilities, RemoteCapability, MultiRemoteCapabilities, Capabilities } from './Capabilities'

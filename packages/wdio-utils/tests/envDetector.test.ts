@@ -97,7 +97,7 @@ describe('sessionEnvironmentDetector', () => {
 
     it('isSauce (w3c)', () => {
         const capabilities = { browserName: 'chrome' }
-        let requestedCapabilities: Capabilities.W3CCapabilities = {
+        const requestedCapabilities: Capabilities.W3CCapabilities = {
             alwaysMatch: {},
             firstMatch: []
         }

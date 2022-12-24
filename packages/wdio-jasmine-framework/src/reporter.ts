@@ -158,7 +158,7 @@ export default class JasmineReporter {
     }
 
     emit (event: string, payload: SuiteEvent | TestEvent) {
-        let message = {
+        const message = {
             cid: this._cid,
             uid: this.getUniqueIdentifier(payload),
             event: event,

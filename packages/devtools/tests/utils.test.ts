@@ -1,6 +1,6 @@
 import { describe, it, expect, afterEach, vi, test } from 'vitest'
 
-import path from 'node:path'
+import type path from 'node:path'
 // @ts-ignore no types needed
 import debug from 'debug'
 import which from 'which'
@@ -71,7 +71,7 @@ const command = {
     }]
 }
 
-let pageMock = {
+const pageMock = {
     waitForSelector: vi.fn(),
     waitForXPath: vi.fn(),
     $$eval: vi.fn(),

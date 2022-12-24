@@ -1,7 +1,7 @@
 import type { Browser } from 'webdriverio'
 import type { JsonCompatible, JsonPrimitive, Services } from '@wdio/types'
 
-import { BrowserExtension } from './index.js'
+import type { BrowserExtension } from './index.js'
 import { getValue, setValue, setPort } from './client.js'
 import type { SharedStoreServiceCapabilities } from './types'
 

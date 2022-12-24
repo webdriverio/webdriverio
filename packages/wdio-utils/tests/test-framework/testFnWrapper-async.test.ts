@@ -1,4 +1,5 @@
-import { vi, MockedFunction, describe, it, expect, afterEach } from 'vitest'
+import type { MockedFunction } from 'vitest'
+import { vi, describe, it, expect, afterEach } from 'vitest'
 
 import * as shim from '../../src/shim.js'
 import { testFnWrapper, filterStackTrace } from '../../src/test-framework/testFnWrapper.js'

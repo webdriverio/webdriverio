@@ -1,6 +1,6 @@
 import path from 'node:path'
 
-import { supportCodeLibraryBuilder } from '@cucumber/cucumber'
+import type { supportCodeLibraryBuilder } from '@cucumber/cucumber'
 import type { World } from '@cucumber/cucumber'
 import type { TableRow, TableCell, PickleStep, TestStep, Feature, Pickle, TestStepResultStatus } from '@cucumber/messages'
 
@@ -8,7 +8,8 @@ import logger from '@wdio/logger'
 import type { Capabilities } from '@wdio/types'
 import { isFunctionAsync } from '@wdio/utils'
 
-import { CUCUMBER_HOOK_DEFINITION_TYPES, ReporterStep } from './constants.js'
+import type { ReporterStep } from './constants.js'
+import { CUCUMBER_HOOK_DEFINITION_TYPES } from './constants.js'
 import type { TestHookDefinitionConfig } from './types'
 
 const log = logger('@wdio/cucumber-framework:utils')
@@ -43,7 +44,7 @@ export function createStepArgument ({ argument }: PickleStep) {
  * @param {object} message { type: string, payload: object }
  */
 export function formatMessage ({ payload = {} }: any) {
-    let content = { ...payload }
+    const content = { ...payload }
 
     /**
      * need to convert Error to plain object, otherwise it is lost on process.send
@@ -189,7 +190,7 @@ export function filterPickles (capabilities: Capabilities.RemoteCapability, pick
 export function getRule(feature: Feature, scenarioId: string){
     const rules = feature.children?.filter((child) => Object.keys(child)[0] === 'rule')
     const rule = rules.find((rule) => {
-        let scenarioRule = rule.rule?.children?.find((child) => child.scenario?.id === scenarioId)
+        const scenarioRule = rule.rule?.children?.find((child) => child.scenario?.id === scenarioId)
         if (scenarioRule) {
             return rule
         }

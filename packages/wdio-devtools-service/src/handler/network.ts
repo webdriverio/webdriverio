@@ -61,7 +61,7 @@ export default class NetworkHandler {
     }
 
     onDataReceived (params: Protocol.Network.DataReceivedEvent) {
-        let request = this.findRequest(params)
+        const request = this.findRequest(params)
 
         /**
          * ensure that
@@ -79,7 +79,7 @@ export default class NetworkHandler {
     }
 
     onNetworkResponseReceived (params: Protocol.Network.ResponseReceivedEvent) {
-        let request = this.findRequest(params)
+        const request = this.findRequest(params)
         /**
          * ensure that a requestWillBeSent event was triggered before
          */

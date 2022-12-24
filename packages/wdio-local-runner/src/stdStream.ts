@@ -1,4 +1,5 @@
-import { Transform, TransformCallback } from 'node:stream'
+import type { TransformCallback } from 'node:stream'
+import { Transform } from 'node:stream'
 import { removeLastListener } from './utils.js'
 
 export default class RunnerStream extends Transform {

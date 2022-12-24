@@ -20,13 +20,8 @@ export default function querySelectorAllDeep (findMany: boolean, s: string, r: E
             }
         }
 
-        var tokens: string[] = [],
-            match,
-            unmatched: string,
-            regex: RegExp,
+        const tokens: string[] = [],
             state = [0],
-            next_match_idx = 0,
-            prev_match_idx,
             not_escaped_pattern = /(?:[^\\]|(?:^|[^\\])(?:\\\\)+)$/,
             whitespace_pattern = /^\s+$/,
             state_patterns = [
@@ -36,6 +31,11 @@ export default function querySelectorAllDeep (findMany: boolean, s: string, r: E
                 null, // string literal (placeholder)
                 /\*\//g, // comment
             ] as RegExp[]
+        let match,
+            unmatched: string,
+            regex: RegExp,
+            next_match_idx = 0,
+            prev_match_idx
         sel = sel.trim()
 
         // eslint-disable-next-line no-constant-condition
@@ -161,7 +161,7 @@ export default function querySelectorAllDeep (findMany: boolean, s: string, r: E
 
     function _querySelectorDeep(selector: string, root: Element | Document, allElements = null) {
         selector = normalizeSelector(selector)
-        let lightElement = root.querySelector(selector)
+        const lightElement = root.querySelector(selector)
 
         // @ts-expect-error createShadowRoot does not exist in head
         if (document.head.createShadowRoot || document.head.attachShadow) {

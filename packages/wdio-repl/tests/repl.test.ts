@@ -2,7 +2,8 @@ import vm from 'node:vm'
 import replMock from 'node:repl'
 
 import { describe, expect, it, vi } from 'vitest'
-import WDIORepl, { ReplConfig } from '../src/index.js'
+import type { ReplConfig } from '../src/index.js'
+import WDIORepl from '../src/index.js'
 
 let runInContextFail = false
 vi.mock('vm', () => {

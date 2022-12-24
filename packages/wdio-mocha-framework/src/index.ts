@@ -1,5 +1,6 @@
 import url from 'node:url'
-import Mocha, { Runner } from 'mocha'
+import type { Runner } from 'mocha'
+import Mocha from 'mocha'
 
 import logger from '@wdio/logger'
 import { executeHooksWithArgs } from '@wdio/utils'
@@ -170,7 +171,7 @@ class MochaAdapter {
          */
         if (payload.root) return
 
-        let message = formatMessage({ type: event, payload, err })
+        const message = formatMessage({ type: event, payload, err })
 
         message.cid = this._cid
         message.specs = this._specs

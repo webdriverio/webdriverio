@@ -1,4 +1,5 @@
-import { describe, expect, test, beforeEach, vi, SpyInstance, afterEach } from 'vitest'
+import type { SpyInstance } from 'vitest'
+import { describe, expect, test, beforeEach, vi, afterEach } from 'vitest'
 import RunnerStream from '../src/stdStream.js'
 
 describe('RunnerStream', () => {

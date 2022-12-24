@@ -1,6 +1,7 @@
 import fs from 'node:fs/promises'
 import path from 'node:path'
-import { expect, describe, it, vi, beforeEach, afterEach, SpyInstance } from 'vitest'
+import type { SpyInstance } from 'vitest'
+import { expect, describe, it, vi, beforeEach, afterEach } from 'vitest'
 
 // @ts-ignore mocked (original defined in webdriver package)
 import got from 'got'
@@ -17,7 +18,7 @@ vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdi
 describe('saveScreenshot', () => {
     let getAbsoluteFilepathSpy: SpyInstance
     let assertDirectoryExistsSpy: SpyInstance
-    let writeFileSyncSpy = vi.spyOn(fs, 'writeFile')
+    const writeFileSyncSpy = vi.spyOn(fs, 'writeFile')
 
     beforeEach(() => {
         getAbsoluteFilepathSpy = vi.spyOn(utils, 'getAbsoluteFilepath')

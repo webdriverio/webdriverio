@@ -1,6 +1,7 @@
-import vm from 'node:vm'
+import type vm from 'node:vm'
 
-import WDIORepl, { ReplConfig, ReplCallback } from '@wdio/repl'
+import type { ReplConfig, ReplCallback } from '@wdio/repl'
+import WDIORepl from '@wdio/repl'
 import type { ChildProcess } from 'node:child_process'
 
 export default class WDIORunnerRepl extends WDIORepl {

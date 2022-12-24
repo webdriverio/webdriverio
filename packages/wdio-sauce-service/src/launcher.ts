@@ -1,7 +1,8 @@
 import { performance, PerformanceObserver } from 'node:perf_hooks'
 
 import ip from 'ip'
-import SauceLabs, { SauceLabsOptions, SauceConnectOptions, SauceConnectInstance } from 'saucelabs'
+import type { SauceLabsOptions, SauceConnectOptions, SauceConnectInstance } from 'saucelabs'
+import SauceLabs from 'saucelabs'
 import logger from '@wdio/logger'
 import type { Services, Capabilities, Options } from '@wdio/types'
 

@@ -1,4 +1,4 @@
-import { EventEmitter } from 'node:events'
+import type { EventEmitter } from 'node:events'
 
 import { Status } from '@cucumber/cucumber'
 import type { PickleFilter } from '@cucumber/cucumber'
@@ -259,7 +259,7 @@ export default class CucumberReporter {
     }
 
     emit (event: string, payload: any) {
-        let message = formatMessage({ payload })
+        const message = formatMessage({ payload })
 
         message.cid = this._cid
         message.specs = this._specs

@@ -2,9 +2,10 @@ import fs from 'node:fs'
 import fsp from 'node:fs/promises'
 import url from 'node:url'
 import path from 'node:path'
-import { ChildProcessByStdio, spawn } from 'node:child_process'
+import type { ChildProcessByStdio } from 'node:child_process'
+import { spawn } from 'node:child_process'
 import { promisify } from 'node:util'
-import { Readable } from 'node:stream'
+import type { Readable } from 'node:stream'
 
 import logger from '@wdio/logger'
 import { resolve } from 'import-meta-resolve'
@@ -125,7 +126,7 @@ export default class AppiumLauncher implements Services.ServiceInstance {
 
     private _startAppium(command: string, args: Array<string>, callback: (err: any, result: any) => void): void {
         log.debug(`Will spawn Appium process: ${command} ${args.join(' ')}`)
-        let process: ChildProcessByStdio<null, Readable, Readable> = spawn(command, args, { stdio: ['ignore', 'pipe', 'pipe'] })
+        const process: ChildProcessByStdio<null, Readable, Readable> = spawn(command, args, { stdio: ['ignore', 'pipe', 'pipe'] })
         let error: Error | undefined
 
         process.stdout.on('data', (data) => {
@@ -142,7 +143,7 @@ export default class AppiumLauncher implements Services.ServiceInstance {
 
         process.once('exit', exitCode => {
             let errorMessage = `Appium exited before timeout (exit code: ${exitCode})`
-            if (exitCode == 2) {
+            if (exitCode === 2) {
                 errorMessage += '\n' + (error || 'Check that you don\'t already have a running Appium service.')
                 log.error(errorMessage)
             }

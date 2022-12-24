@@ -81,7 +81,7 @@ export const testFrameworkFnWrapper = async function (
         error = err
     }
     const duration = Date.now() - testStart
-    let afterArgs = afterFnArgs(this)
+    const afterArgs = afterFnArgs(this)
 
     /**
      * ensure errors are caught in Jasmine tests too

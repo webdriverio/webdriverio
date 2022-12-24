@@ -1,7 +1,8 @@
 import fs from 'node:fs'
 import url from 'node:url'
 import path from 'node:path'
-import { spawn, ChildProcess } from 'node:child_process'
+import type { ChildProcess } from 'node:child_process'
+import { spawn } from 'node:child_process'
 
 import { describe, expect, beforeEach, afterEach, test, vi } from 'vitest'
 import { resolve } from 'import-meta-resolve'

@@ -1,6 +1,7 @@
 import { EventEmitter } from 'node:events'
 import { describe, expect, it, vi, afterEach, beforeEach, beforeAll } from 'vitest'
-import { TestStepFinished, TestStepResultStatus, TestStepStarted } from '@cucumber/messages'
+import type { TestStepFinished, TestStepStarted } from '@cucumber/messages'
+import { TestStepResultStatus } from '@cucumber/messages'
 
 import CucumberReporter from '../src/reporter.js'
 import {

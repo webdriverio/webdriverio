@@ -1,4 +1,5 @@
-import WDIOReporter, { SuiteStats, RunnerStats } from '@wdio/reporter'
+import type { SuiteStats, RunnerStats } from '@wdio/reporter'
+import WDIOReporter from '@wdio/reporter'
 import chalk from 'chalk'
 
 import type { Capabilities, Reporters } from '@wdio/types'

@@ -1,4 +1,5 @@
-import ky, { Options as KyOptions } from 'ky'
+import type { Options as KyOptions } from 'ky'
+import ky from 'ky'
 import logger from '@wdio/logger'
 import type { Options } from '@wdio/types'
 

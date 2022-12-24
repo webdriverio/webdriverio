@@ -44,7 +44,7 @@ async function runTests (tests) {
         }
 
         // sequential
-        for (let test of testsFiltered) {
+        for (const test of testsFiltered) {
             await test()
         }
     } else {
@@ -368,10 +368,10 @@ const retryFail = async () => {
  * specfile-level retries (pass)
  */
 const retryPass = async () => {
-    let retryFilename = path.join(__dirname, '.retry_succeeded')
-    let logfiles = ['wdio-0-0.log', 'wdio-0-1.log'].map(f => path.join(__dirname, f))
-    let rmfiles = [retryFilename, ...logfiles]
-    for (let filename of rmfiles) {
+    const retryFilename = path.join(__dirname, '.retry_succeeded')
+    const logfiles = ['wdio-0-0.log', 'wdio-0-1.log'].map(f => path.join(__dirname, f))
+    const rmfiles = [retryFilename, ...logfiles]
+    for (const filename of rmfiles) {
         if (await fileExists(filename)) {
             fs.unlink(filename, err => {
                 if (err) {

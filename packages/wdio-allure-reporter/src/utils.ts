@@ -1,11 +1,11 @@
 import process from 'node:process'
 import stripAnsi from 'strip-ansi'
-import { HookStats, TestStats } from '@wdio/reporter'
+import type { HookStats, TestStats } from '@wdio/reporter'
 import type { Options } from '@wdio/types'
 
 import CompoundError from './compoundError.js'
 import { mochaEachHooks, mochaAllHooks, linkPlaceholder } from './constants.js'
-import AllureReporter from './index.js'
+import type AllureReporter from './index.js'
 import type { Status } from './types'
 
 /**

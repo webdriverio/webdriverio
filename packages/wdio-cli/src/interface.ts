@@ -3,7 +3,8 @@ import chalk, { supportsColor } from 'chalk'
 import logger from '@wdio/logger'
 import type { Options, Capabilities, Workers } from '@wdio/types'
 
-import { getRunnerName, HookError } from './utils.js'
+import type { HookError } from './utils.js'
+import { getRunnerName } from './utils.js'
 
 const log = logger('@wdio/cli')
 const EVENT_FILTER = ['sessionStarted', 'sessionEnded', 'finishedCommand', 'ready']
