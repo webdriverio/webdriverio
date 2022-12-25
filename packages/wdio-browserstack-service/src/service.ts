@@ -248,7 +248,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
             log.info(`Update (reloaded) job with sessionId ${oldSessionId}, ${status}`)
         } else {
             const browserName = (this._browser as MultiRemoteBrowser<'async'>).instances.filter(
-                (browserName: string) => this._browser && (this._browser as MultiRemoteBrowser<'async'>)[browserName].sessionId === newSessionId)[0]
+                (browserName) => this._browser && (this._browser as MultiRemoteBrowser<'async'>)[browserName].sessionId === newSessionId)[0]
             log.info(`Update (reloaded) multiremote job for browser "${browserName}" and sessionId ${oldSessionId}, ${status}`)
         }
 
@@ -295,7 +295,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
         }
 
         return Promise.all(_browser.instances
-            .filter((browserName: string) => {
+            .filter(browserName => {
                 const cap = getBrowserCapabilities(_browser, (this._caps as Capabilities.MultiRemoteCapabilities), browserName)
                 return isBrowserstackCapability(cap)
             })
