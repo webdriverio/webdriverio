@@ -29,7 +29,8 @@ import {
     getObservabilityProject,
     getObservabilityBuildTags,
     getHierarchy,
-    batchAndPostEvents
+    batchAndPostEvents,
+    shouldAddServiceVersion
 } from '../src/util'
 
 jest.mock('got')
@@ -853,5 +854,16 @@ describe('getObservabilityBuildTags', () => {
     it('get empty array', () => {
         delete process.env.TEST_OBSERVABILITY_BUILD_TAG
         expect(getObservabilityBuildTags({})).toEqual([])
+    })
+})
+
+describe('shouldAddServiceVersion', () => {
+    it('return true', () => {
+        expect(shouldAddServiceVersion({}, false)).toEqual(true)
+        expect(shouldAddServiceVersion({ services: ['chromedriver'] }, false)).toEqual(true)
+    })
+
+    it('return false', () => {
+        expect(shouldAddServiceVersion({ services: ['chromedriver'] }, true)).toEqual(false)
     })
 })
