@@ -7,7 +7,7 @@ With WebdriverIOs [Browser Runner](/docs/runner#browser-runner) you can run test
 
 ## How does it Work?
 
-The Browser Runner uses [Vite](https://vitejs.dev/) to render a test page and intialize a test framework to run your tests in the browser. Currently it only supports Mocha but Jasmine and Cucumber are [on the roadmap](https://github.com/orgs/webdriverio/projects/1). This allows to test any kind of components even for projects that don't use Vite.
+The Browser Runner uses [Vite](https://vitejs.dev/) to render a test page and initialize a test framework to run your tests in the browser. Currently it only supports Mocha but Jasmine and Cucumber are [on the roadmap](https://github.com/orgs/webdriverio/projects/1). This allows to test any kind of components even for projects that don't use Vite.
 
 The Vite server is started by the WebdriverIO testrunner and configured so that you can use all reporter and services as you used to for normal e2e tests. Furthermore initialises the runner a [`browser`](/docs/api/browser) instance within the global scope that allows you to access a subset of the [WebdriverIO API](/docs/api).
 
