@@ -389,7 +389,8 @@ export default class InsightsHandler {
         if (eventType == 'TestRunStarted') {
             testData.integrations = {}
             if (this._browser && this._platformMeta) {
-                testData.integrations[getCloudProvider(this._browser)] = this.getIntegrationsObject()
+                const provider = getCloudProvider(this._browser)
+                testData.integrations[provider] = this.getIntegrationsObject()
             }
         }
 

@@ -211,6 +211,7 @@ describe('sendTestRunEventForCucumber', () => {
 
         it('for passed - examples', async () => {
             getScenarioExamplesSpy.mockReturnValue(['1', '2'])
+            insightsHandler['_browser'] = browser
             await insightsHandler.sendTestRunEventForCucumber({
                 pickle: {
                     tags: []
@@ -220,7 +221,7 @@ describe('sendTestRunEventForCucumber', () => {
                     retries: { limit: 0, attempts: 0 },
                     status: 'passed'
                 }
-            } as any, 'TestRunFinished')
+            } as any, 'TestRunStarted')
             expect(uploadEventDataSpy).toBeCalledTimes(1)
         })
 
