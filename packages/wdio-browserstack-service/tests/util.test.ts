@@ -27,7 +27,9 @@ import {
     getObservabilityKey,
     getObservabilityBuild,
     getObservabilityProject,
-    getObservabilityBuildTags
+    getObservabilityBuildTags,
+    getHierarchy,
+    batchAndPostEvents
 } from '../src/util'
 
 jest.mock('got')
@@ -274,6 +276,9 @@ describe('getCloudProvider', () => {
 })
 
 describe('isBrowserstackSession', () => {
+    it('return false if browser not defined', () => {
+        expect(isBrowserstackSession(undefined)).toEqual(false)
+    })
     it('return false if run locally', () => {
         expect(isBrowserstackSession({})).toEqual(false)
     })
@@ -618,6 +623,63 @@ describe('uploadEventData', () => {
         await uploadEventData( { event_type: 'testRunStarted' } )
         expect(got.post).toBeCalledTimes(0)
     })
+
+    it('return if BS_TESTOPS_BUILD_COMPLETED not defined', async () => {
+        delete process.env.BS_TESTOPS_BUILD_COMPLETED
+        mockedGot.post = jest.fn().mockReturnValue({
+            json: () => Promise.resolve({ }),
+        } as any)
+
+        await uploadEventData( { event_type: 'testRunStarted' } )
+        expect(got.post).toBeCalledTimes(0)
+    })
+})
+
+describe('batchAndPostEvents', () => {
+    const mockedGot = jest.mocked(got)
+
+    it('got.post called', async () => {
+        process.env.BS_TESTOPS_BUILD_COMPLETED = 'true'
+        process.env.BS_TESTOPS_JWT = 'jwt'
+        mockedGot.post = jest.fn().mockReturnValue({
+            json: () => Promise.resolve({ }),
+        } as any)
+
+        await batchAndPostEvents('', 'kind', [{ event_type: 'testRunStarted' }] )
+        expect(got.post).toBeCalledTimes(1)
+    })
+
+    it('got.post failed', async () => {
+        process.env.BS_TESTOPS_BUILD_COMPLETED = 'true'
+        process.env.BS_TESTOPS_JWT = 'jwt'
+        mockedGot.post = jest.fn().mockReturnValue({
+            json: () => Promise.reject({ }),
+        } as any)
+
+        await batchAndPostEvents('', 'kind', [{ event_type: 'testRunStarted' }] )
+        expect(got.post).toBeCalledTimes(1)
+    })
+
+    it('got.post not called', async () => {
+        process.env.BS_TESTOPS_BUILD_COMPLETED = 'true'
+        delete process.env.BS_TESTOPS_JWT
+        mockedGot.post = jest.fn().mockReturnValue({
+            json: () => Promise.resolve({ }),
+        } as any)
+
+        await batchAndPostEvents('', 'kind', [{ event_type: 'testRunStarted' }] )
+        expect(got.post).toBeCalledTimes(0)
+    })
+
+    it('return if BS_TESTOPS_BUILD_COMPLETED not defined', async () => {
+        delete process.env.BS_TESTOPS_BUILD_COMPLETED
+        mockedGot.post = jest.fn().mockReturnValue({
+            json: () => Promise.resolve({ }),
+        } as any)
+
+        await batchAndPostEvents('', 'kind', [{ event_type: 'testRunStarted' }] )
+        expect(got.post).toBeCalledTimes(0)
+    })
 })
 
 describe('getLogTag', () => {
@@ -627,7 +689,17 @@ describe('getLogTag', () => {
         expect(getLogTag('TestRunFinished')).toEqual('Test_Upload')
         expect(getLogTag('HookRunStarted')).toEqual('Hook_Upload')
         expect(getLogTag('HookRunFinished')).toEqual('Hook_Upload')
+        expect(getLogTag('ScreenshotCreated')).toEqual('Screenshot_Upload')
         expect(getLogTag('LogCreated')).toEqual('Log_Upload')
+    })
+})
+
+describe('getHierarchy', () => {
+    it('return empty if fullTitle not defined', () => {
+        expect(getHierarchy(undefined)).toEqual([])
+    })
+    it('return array', () => {
+        expect(getHierarchy('describe.context.test')).toEqual(['describe', 'context'])
     })
 })
 

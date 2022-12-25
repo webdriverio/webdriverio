@@ -671,6 +671,24 @@ describe('beforeTest', () => {
             )
         })
     })
+
+    describe('Non Jasmine only', () => {
+        it('should set suite name of first test as title', async () => {
+            await service.before(service['_config'] as any, [], browser)
+            await service.beforeSuite({ title: 'nonJasmineSuiteTitle' } as any)
+            await service.beforeTest({ fullName: 'foo bar baz', description: 'baz' } as any)
+            service.afterTest({ fullName: 'foo bar baz', description: 'baz' } as any, undefined as never, {} as any)
+            expect(service['_fullTitle']).toBe('nonJasmineSuiteTitle')
+            expect(got.put).toBeCalledWith(
+                `${sessionBaseUrl}/${sessionId}.json`,
+                {
+                    json: { name: 'nonJasmineSuiteTitle' },
+                    username: 'foo',
+                    password: 'bar'
+                }
+            )
+        })
+    })
 })
 
 describe('afterTest', () => {

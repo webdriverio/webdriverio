@@ -24,7 +24,6 @@ export default class InsightsHandler {
     constructor (private _browser: Browser<'async'> | MultiRemoteBrowser<'async'>, browserCaps?: Capabilities.Capabilities, isAppAutomate?: boolean, sessionId?: string, private _framework?: string) {
         this._requestQueueHandler.start()
 
-        /* istanbul ignore next */
         this._platformMeta = {
             browserName: browserCaps?.browserName,
             browserVersion: browserCaps?.browserVersion,
@@ -361,7 +360,6 @@ export default class InsightsHandler {
             fullNameWithExamples = world.pickle.name + ' (' + examples.join(', ')  + ')'
         }
 
-        /* istanbul ignore next */
         let testData: TestData = {
             uuid: uuid,
             started_at: startedAt,
@@ -437,7 +435,6 @@ export default class InsightsHandler {
     }
 
     private getIntegrationsObject () {
-        /* istanbul ignore next */
         return {
             capabilities: this._platformMeta?.caps,
             session_id: this._platformMeta?.sessionId,
