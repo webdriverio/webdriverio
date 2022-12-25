@@ -95,7 +95,7 @@ export class ViteServer extends EventEmitter {
         })
 
         /**
-         * intialize Vite
+         * initialize Vite
          */
         this.#server = await createServer(this.#viteConfig)
         await this.#server.listen()

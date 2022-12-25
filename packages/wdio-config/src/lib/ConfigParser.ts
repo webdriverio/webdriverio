@@ -67,7 +67,7 @@ export default class ConfigParser {
     }
 
     /**
-     * intializes the config object
+     * initializes the config object
      */
     async initialize (object: MergeConfig = {}) {
         /**
