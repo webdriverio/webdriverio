@@ -331,6 +331,10 @@ export default class BrowserstackService implements Services.ServiceInstance {
                 responseType: 'json'
             })
 
+            if (!this._browser) {
+                return
+            }
+
             const capabilities = getBrowserCapabilities(this._browser, this._caps, browserName)
             const browserString = getBrowserDescription(capabilities)
             log.info(`${browserString} session: ${response.body.automation_session.browser_url}`)
