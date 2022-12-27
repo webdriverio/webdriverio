@@ -34,6 +34,7 @@ export interface ProxyObject {
     socksVersion?: string;
     socksUsername?: string;
     socksPassword?: string;
+    noProxy?: string[];
 }
 
 export interface Capabilities extends VendorExtensions, ConnectionOptions {
