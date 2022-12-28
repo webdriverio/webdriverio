@@ -42,9 +42,11 @@ export default class WDIOReporter extends EventEmitter {
 
         // ensure the report directory exists
         if (this.options.outputDir) {
-            fs.mkdir(this.options.outputDir, { recursive: true }, (err) => {
-                err && log.error(`Couldn't create output dir: ${err.stack}`)
-            })
+            try {
+                fs.mkdirSync(this.options.outputDir, { recursive: true })
+            } catch (err: any) {
+                log.error(`Couldn't create output dir: ${err.stack}`)
+            }
         }
 
         this.outputStream = (this.options.stdout || !this.options.logFile) && this.options.writeStream
