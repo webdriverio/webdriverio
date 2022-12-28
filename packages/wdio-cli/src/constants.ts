@@ -179,7 +179,8 @@ export const BACKEND_CHOICES = [
     'On my local machine',
     'In the cloud using Experitest',
     'In the cloud using Sauce Labs',
-    'In the cloud using Browserstack or Testingbot or LambdaTest or a different service',
+    'In the cloud using Browserstack',
+    'In the cloud using Testingbot or LambdaTest or a different service',
     'I have my own Selenium cloud'
 ] as const
 
@@ -300,13 +301,13 @@ export const QUESTIONNAIRE = [{
     name: 'env_user',
     message: 'Environment variable for username',
     default: 'BROWSERSTACK_USERNAME',
-    when: /* istanbul ignore next */ (answers: Questionnair) => answers.backend.toString().startsWith('In the cloud using Browserstack')
+    when: /* istanbul ignore next */ (answers: Questionnair) => answers.backend === 'In the cloud using Browserstack'
 }, {
     type: 'input',
     name: 'env_key',
     message: 'Environment variable for access key',
     default: 'BROWSERSTACK_ACCESS_KEY',
-    when: /* istanbul ignore next */ (answers: Questionnair) => answers.backend.toString().startsWith('In the cloud using Browserstack')
+    when: /* istanbul ignore next */ (answers: Questionnair) => answers.backend === 'In the cloud using Browserstack'
 }, {
     type: 'input',
     name: 'env_user',
@@ -431,8 +432,18 @@ export const QUESTIONNAIRE = [{
     // @ts-ignore
     default: [SUPPORTED_PACKAGES.service.find(
         /* istanbul ignore next */
-        ({ name }) => name === 'chromedriver').value
-    ],
+        ({ name }) => name === 'browserstack').value],
+    when: /* istanbul ignore next */ (answers: Questionnair) => answers.backend === 'In the cloud using Browserstack',
+    validate: /* istanbul ignore next */ (answers: string[]) => validateServiceAnswers(answers)
+}, {
+    type: 'checkbox',
+    name: 'services',
+    message: 'Do you want to add a service to your test setup?',
+    choices: SUPPORTED_PACKAGES.service,
+    // @ts-ignore
+    default: [SUPPORTED_PACKAGES.service.find(
+        /* istanbul ignore next */
+        ({ name }) => name === 'chromedriver').value],
     validate: /* istanbul ignore next */ (answers: string[]) => validateServiceAnswers(answers)
 }, {
     type: 'input',
