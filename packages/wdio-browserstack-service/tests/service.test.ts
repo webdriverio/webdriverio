@@ -669,6 +669,7 @@ describe('after', () => {
 
         service['_failReasons'] = []
         service['_fullTitle'] = 'foo - bar'
+        service['_specsRan'] = true
 
         await service.after(0)
 
@@ -708,6 +709,28 @@ describe('after', () => {
             }, username: 'foo', password: 'bar' })
     })
 
+    it('should call _update with failed when session has no errors (exit code 0) but no tests ran', async () => {
+        const updateSpy = jest.spyOn(service, '_update')
+        await service.before(service['_config'], [], browser)
+
+        service['_failReasons'] = []
+        service['_fullTitle'] = 'foo - bar'
+
+        await service.after(0)
+
+        expect(updateSpy).toHaveBeenCalledWith(service['_browser']?.sessionId,
+            {
+                status: 'failed',
+                name: 'foo - bar'
+            })
+        expect(got.put).toHaveBeenCalledWith(
+            `${sessionBaseUrl}/${sessionId}.json`,
+            { json: {
+                status: 'failed',
+                name: 'foo - bar'
+            }, username: 'foo', password: 'bar' })
+    })
+
     it('should not set session status if option setSessionStatus is false', async () => {
         const service = new BrowserstackService({ setSessionStatus: false } as any, [] as any, { user: 'foo', key: 'bar' } as any)
         const updateSpy = jest.spyOn(service, '_update')
@@ -728,6 +751,7 @@ describe('after', () => {
 
         service['_failReasons'] = []
         service['_fullTitle'] = 'foo - bar'
+        service['_specsRan'] = true
 
         await service.after(0)
 
