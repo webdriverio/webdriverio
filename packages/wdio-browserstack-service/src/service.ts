@@ -226,9 +226,8 @@ export default class BrowserstackService implements Services.ServiceInstance {
     }
 
     async beforeStep (step: Frameworks.PickleStep, scenario: Pickle) {
-        const { keyword, text } = step
         await this._insightsHandler?.beforeStep(step, scenario)
-        await this._setAnnotation(`Step: ${keyword}${text}`)
+        await this._setAnnotation(`Step: ${step.keyword}${step.text}`)
     }
 
     async afterStep (step: Frameworks.PickleStep, scenario: Pickle, result: Frameworks.PickleResult) {
