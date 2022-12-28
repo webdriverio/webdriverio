@@ -20,8 +20,7 @@ export default class TestReporter extends WDIOReporter {
         this._capabilities = runnerStats.capabilities as Capabilities.Capabilities
         this._config = runnerStats.config as BrowserstackConfig & Options.Testrunner
         this._sessionId = runnerStats.sessionId
-        /* istanbul ignore next */
-        if (this._config.testObservability == false) this._observability = false
+        if (typeof this._config.testObservability !== 'undefined') this._observability = this._config.testObservability
     }
 
     onSuiteStart (suiteStats: SuiteStats) {
@@ -30,11 +29,9 @@ export default class TestReporter extends WDIOReporter {
 
     async onTestSkip (testStats: TestStats) {
         // cucumber steps call this method. We don't want step skipped state so skip for cucumber
-
-        /* istanbul ignore next */
         const framework = this._config?.framework
 
-        if (this._observability && framework != 'cucumber') {
+        if (this._observability && framework !== 'cucumber') {
             let testData: TestData = {
                 uuid: uuidv4(),
                 type: testStats.type,

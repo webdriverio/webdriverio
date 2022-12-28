@@ -41,7 +41,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
         this._observability = this._options.testObservability
 
         if (this._observability) {
-            this._config.reporters ? this._config.reporters.push(path.join(__dirname, 'reporter.js')) : [path.join(__dirname, 'reporter.js')]
+            this._config.reporters?.push(path.join(__dirname, 'reporter.js'))
         }
         // Cucumber specific
         const strict = Boolean(this._config.cucumberOpts && this._config.cucumberOpts.strict)
@@ -229,9 +229,8 @@ export default class BrowserstackService implements Services.ServiceInstance {
     }
 
     async beforeStep (step: Frameworks.PickleStep, scenario: Pickle) {
-        const { keyword, text } = step
         await this._insightsHandler?.beforeStep(step, scenario)
-        await this._setAnnotation(`Step: ${keyword}${text}`)
+        await this._setAnnotation(`Step: ${step.keyword}${step.text}`)
     }
 
     async afterStep (step: Frameworks.PickleStep, scenario: Pickle, result: Frameworks.PickleResult) {

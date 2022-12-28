@@ -9,8 +9,7 @@ import type { Capabilities, Frameworks, Options } from '@wdio/types'
 import type { BeforeCommandArgs, AfterCommandArgs } from '@wdio/reporter'
 import logger from '@wdio/logger'
 
-import got from 'got'
-import { HTTPError } from 'got'
+import got, { HTTPError } from 'got'
 import gitRepoInfo, { GitRepoInfo } from 'git-repo-info'
 import gitconfig from 'gitconfiglocal'
 
