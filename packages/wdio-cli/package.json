@@ -33,14 +33,6 @@
   "types": "./build/index.d.ts",
   "typeScriptVersion": "3.8.3",
   "dependencies": {
-    "@types/async-exit-hook": "^2.0.0",
-    "@types/ejs": "^3.1.1",
-    "@types/inquirer": "^9.0.0",
-    "@types/lodash.flattendeep": "^4.4.7",
-    "@types/lodash.pickby": "^4.6.7",
-    "@types/lodash.union": "^4.6.7",
-    "@types/recursive-readdir": "^2.2.1",
-    "@types/yargs": "^17.0.10",
     "@wdio/config": "8.0.14",
     "@wdio/globals": "8.0.14",
     "@wdio/logger": "8.0.14",
@@ -65,10 +57,18 @@
     "yargs": "^17.5.1",
     "yarn-install": "^1.0.0"
   },
+  "devDependencies": {
+    "@types/async-exit-hook": "^2.0.0",
+    "@types/ejs": "^3.1.1",
+    "@types/inquirer": "^9.0.0",
+    "@types/lodash.flattendeep": "^4.4.7",
+    "@types/lodash.pickby": "^4.6.7",
+    "@types/lodash.union": "^4.6.7",
+    "@types/node": "^18.0.0",
+    "@types/recursive-readdir": "^2.2.1",
+    "@types/yargs": "^17.0.10"
+  },
   "publishConfig": {
     "access": "public"
-  },
-  "devDependencies": {
-    "@types/node": "^18.0.0"
   }
 }
