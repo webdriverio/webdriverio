@@ -40,7 +40,8 @@ module.exports = {
         'require-atomic-updates': 0,
         'linebreak-style': ['error', 'unix'],
         'unicorn/prefer-node-protocol': ['error'],
-        'import/extensions': ['error', 'ignorePackages']
+        'import/extensions': ['error', 'ignorePackages'],
+        'no-restricted-syntax': ['error', 'IfStatement > ExpressionStatement > AssignmentExpression']
     },
     overrides: [{
         files: ['*.ts'],
