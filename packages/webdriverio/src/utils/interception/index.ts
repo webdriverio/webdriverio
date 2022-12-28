@@ -5,7 +5,7 @@ import Timer from '../Timer.js'
 import type { WaitForOptions } from '../../types.js'
 import type { MockFilterOptions, MockOverwrite, MockResponseParams, Matches } from './types.js'
 
-import type Protocol from 'devtools-protocol'
+import type { Protocol } from 'devtools-protocol'
 
 export default abstract class Interception {
     abstract calls: Matches[] | Promise<Matches[]>
