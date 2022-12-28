@@ -165,6 +165,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
      * For CucumberJS
      */
     afterScenario (world: Frameworks.World) {
+        this._specsRan = true
         const status = world.result?.status.toLowerCase()
         if (status !== 'skipped') {
             this._scenariosThatRan.push(world.pickle.name || 'unknown pickle name')
