@@ -23,7 +23,7 @@ import type { ChainablePromiseElement } from '../../types.js'
  * @return {Element}
  * @type utility
  */
-export default function parentElement (this: WebdriverIO.Element): ChainablePromiseElement<any>  {
+export default function parentElement (this: WebdriverIO.Element): ChainablePromiseElement<WebdriverIO.Element>  {
     return this.$(/* istanbul ignore next */ function parentElement (this: HTMLElement) {
         return this.parentElement as HTMLElement
     })
