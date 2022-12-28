@@ -88,11 +88,9 @@ export default async function dragAndDrop (
         await this.moveTo()
         await this.buttonDown(ACTION_BUTTON)
 
-        if (isMovingToElement) {
-            await moveToElement.moveTo()
-        } else {
-            await this.moveToElement(null, moveToCoordinates.x, moveToCoordinates.y)
-        }
+        isMovingToElement
+            ? await moveToElement.moveTo()
+            : await this.moveToElement(null, moveToCoordinates.x, moveToCoordinates.y)
 
         await sleep(duration)
         return this.buttonUp(ACTION_BUTTON)

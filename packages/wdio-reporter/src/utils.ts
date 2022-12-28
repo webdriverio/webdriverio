@@ -34,21 +34,19 @@ export function sanitizeCaps (caps?: Capabilities.DesiredCapabilities) {
     /**
      * mobile caps
      */
-    if (caps.deviceName) {
-        result = [
+    result = caps.deviceName
+        ? [
             sanitizeString(caps.deviceName),
             sanitizeString(caps.platformName),
             sanitizeString(caps.platformVersion),
             sanitizeString(caps.app)
         ]
-    } else {
-        result = [
+        : [
             sanitizeString(caps.browserName),
             sanitizeString(caps.version || caps.browserVersion),
             sanitizeString(caps.platform || caps.platformName),
             sanitizeString(caps.app)
         ]
-    }
 
     result = result.filter(n => n !== undefined && n !== '')
     return result.join('.')

@@ -330,11 +330,9 @@ describe('ConfigParser', () => {
             const specs = configParser.getSpecs()
             expect(specs).toHaveLength(1)
             let featureFileWithoutLine = ''
-            if (isWindows) {
-                featureFileWithoutLine = FIXTURES_CUCUMBER_FEATURE_A_LINE_2.split(':')[0] + ':' + FIXTURES_CUCUMBER_FEATURE_A_LINE_2.split(':')[1]
-            } else {
-                featureFileWithoutLine = FIXTURES_CUCUMBER_FEATURE_A_LINE_2.split(':')[0]
-            }
+            featureFileWithoutLine = isWindows
+                ? FIXTURES_CUCUMBER_FEATURE_A_LINE_2.split(':')[0] + ':' + FIXTURES_CUCUMBER_FEATURE_A_LINE_2.split(':')[1]
+                : FIXTURES_CUCUMBER_FEATURE_A_LINE_2.split(':')[0]
             expect(specs).toContain(featureFileWithoutLine)
         })
 
@@ -346,11 +344,9 @@ describe('ConfigParser', () => {
             const specs = configParser.getSpecs()
             expect(specs).toHaveLength(1)
             let featureFileWithoutLine = ''
-            if (isWindows) {
-                featureFileWithoutLine = FIXTURES_CUCUMBER_FEATURE_A_LINE_2_AND_12.split(':')[0] + ':' + FIXTURES_CUCUMBER_FEATURE_A_LINE_2_AND_12.split(':')[1]
-            } else {
-                featureFileWithoutLine = FIXTURES_CUCUMBER_FEATURE_A_LINE_2_AND_12.split(':')[0]
-            }
+            featureFileWithoutLine = isWindows
+                ? FIXTURES_CUCUMBER_FEATURE_A_LINE_2_AND_12.split(':')[0] + ':' + FIXTURES_CUCUMBER_FEATURE_A_LINE_2_AND_12.split(':')[1]
+                : FIXTURES_CUCUMBER_FEATURE_A_LINE_2_AND_12.split(':')[0]
             expect(specs).toContain(featureFileWithoutLine)
         })
 

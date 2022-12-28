@@ -118,13 +118,9 @@ export function filterLogTypes(
 
     if (Array.isArray(excludeDriverLogs)) {
         log.debug('filtering logTypes', logTypes)
-
-        if (excludeDriverLogs.length === 1 && excludeDriverLogs[0] === '*') { // exclude all logTypes
-            logTypes = []
-        } else {
-            logTypes = logTypes.filter(x => !excludeDriverLogs.includes(x)) // exclude specific logTypes
-        }
-
+        logTypes = excludeDriverLogs.length === 1 && excludeDriverLogs[0] === '*'
+            ? []
+            : logTypes.filter(x => !excludeDriverLogs.includes(x)) // exclude specific logTypes
         log.debug('filtered logTypes', logTypes)
     }
 

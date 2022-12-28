@@ -41,7 +41,8 @@ module.exports = {
         'linebreak-style': ['error', 'unix'],
         'unicorn/prefer-node-protocol': ['error'],
         'import/extensions': ['error', 'ignorePackages'],
-        'no-restricted-syntax': ['error', 'IfStatement > ExpressionStatement > AssignmentExpression']
+        'no-restricted-syntax': ['error', 'IfStatement > ExpressionStatement > AssignmentExpression'],
+        'unicorn/prefer-ternary': 'error'
     },
     overrides: [{
         files: ['*.ts'],
