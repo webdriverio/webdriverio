@@ -7,13 +7,13 @@ export const PENDING = 'pending'
 export const CANCELED = 'canceled'
 export const SKIPPED = 'skipped'
 
-const testStatuses: Record<string, Status> = {
+export const testStatuses: Record<string, Status> = {
     PASSED,
     FAILED,
     BROKEN,
     PENDING
 } as const
-const stepStatuses: Record<string, Status> = {
+export const stepStatuses: Record<string, Status> = {
     PASSED,
     FAILED,
     BROKEN,
@@ -21,7 +21,7 @@ const stepStatuses: Record<string, Status> = {
     SKIPPED
 } as const
 
-const events = {
+export const events = {
     addLabel: 'allure:addLabel',
     addFeature: 'allure:addFeature',
     addStory: 'allure:addStory',
@@ -37,8 +37,6 @@ const events = {
     addArgument: 'allure:addArgument'
 } as const
 
-const mochaEachHooks = ['"before each" hook', '"after each" hook'] as const
-const mochaAllHooks = ['"before all" hook', '"after all" hook'] as const
-const linkPlaceholder = '{}'
-
-export { testStatuses, stepStatuses, events, mochaEachHooks, mochaAllHooks, linkPlaceholder }
+export const mochaEachHooks = ['"before each" hook', '"after each" hook'] as const
+export const mochaAllHooks = ['"before all" hook', '"after all" hook'] as const
+export const linkPlaceholder = '{}'
