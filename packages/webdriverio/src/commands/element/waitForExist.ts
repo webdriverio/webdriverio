@@ -1,4 +1,4 @@
-import type { WaitForOptions } from '../../types'
+import type { WaitForOptions } from '../../types.js'
 
 /**
  *

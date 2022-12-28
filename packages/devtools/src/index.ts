@@ -8,7 +8,7 @@ import { webdriverMonad, devtoolsEnvironmentDetector } from '@wdio/utils'
 import { validateConfig } from '@wdio/config'
 import type { CommandEndpoint } from '@wdio/protocols'
 import type { Options, Capabilities } from '@wdio/types'
-import type { Browser } from 'puppeteer-core/lib/cjs/puppeteer/api/Browser'
+import type { Browser } from 'puppeteer-core/lib/cjs/puppeteer/api/Browser.js'
 
 import DevToolsDriver from './devtoolsdriver.js'
 import launch from './launcher.js'
@@ -19,7 +19,7 @@ import type {
     AttachOptions,
     ExtendedCapabilities,
     WDIODevtoolsOptions as WDIODevtoolsOptionsExtension
-} from './types'
+} from './types.js'
 
 const log = logger('devtools:puppeteer')
 

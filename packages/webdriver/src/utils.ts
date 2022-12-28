@@ -14,7 +14,7 @@ import RequestFactory from './request/factory.js'
 import command from './command.js'
 import { REG_EXPS } from './constants.js'
 import type { WebDriverResponse } from './request/index.js'
-import type { Client, JSONWPCommandError, SessionFlags } from './types'
+import type { Client, JSONWPCommandError, SessionFlags } from './types.js'
 
 const log = logger('webdriver')
 const deepmerge = deepmergeCustom({ mergeArrays: false })

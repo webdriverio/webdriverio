@@ -4,8 +4,8 @@ import type { CommandEndpoint, BidiResponse } from '@wdio/protocols'
 
 import RequestFactory from './request/factory.js'
 import type { BidiHandler } from './bidi.js'
-import type { WebDriverResponse } from './request'
-import type { BaseClient } from './types'
+import type { WebDriverResponse } from './request/index.js'
+import type { BaseClient } from './types.js'
 
 const log = logger('webdriver')
 const BIDI_COMMANDS = ['send', 'sendAsync'] as const

@@ -2,7 +2,7 @@ import type { ElementReference } from '@wdio/protocols'
 
 import { findElements, enhanceElementsArray } from '../../utils/index.js'
 import { getElements } from '../../utils/getElementObject.js'
-import type { Selector, ElementArray } from '../../types'
+import type { Selector, ElementArray } from '../../types.js'
 
 /**
  * The `$$` command is a short way to call the [`findElements`](/docs/api/webdriver#findelements) command in order

@@ -1,6 +1,6 @@
 import { getBrowserObject } from '../../utils/index.js'
-import type { ClickOptions } from '../../types'
-import type { Button } from '../../utils/actions'
+import type { ClickOptions } from '../../types.js'
+import type { Button } from '../../utils/actions/index.js'
 
 /**
  *

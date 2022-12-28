@@ -1,3 +1,5 @@
+import type { ChainablePromiseElement } from '../../types.js'
+
 /**
  *
  * Returns the next sibling element of the selected DOM-element.
@@ -22,7 +24,7 @@
  * @type utility
  */
 
-export default function nextElement (this: WebdriverIO.Element) {
+export default function nextElement (this: WebdriverIO.Element): ChainablePromiseElement<WebdriverIO.Element>  {
     return this.$(/* istanbul ignore next */ function nextElement (this: HTMLElement) {
         return this.nextElementSibling as HTMLElement
     })

@@ -2,7 +2,7 @@
 import type { ElementReference } from '@wdio/protocols'
 import type { BaseActionParams, KeyActionType } from './base.js'
 import BaseAction from './base.js'
-import type { ChainablePromiseElement } from '../../types'
+import type { ChainablePromiseElement } from '../../types.js'
 
 export type ButtonNames = 'left' | 'middle' | 'right'
 export type Button = 0 | 1 | 2
