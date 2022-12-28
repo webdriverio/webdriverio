@@ -1,7 +1,7 @@
 import path from 'node:path'
 import { expect, test, vi, beforeEach, afterEach } from 'vitest'
 import logger from '@wdio/logger'
-import { EventEmitter } from 'node:events'
+import type { EventEmitter } from 'node:events'
 
 import JasmineReporter from '../src/reporter.js'
 

@@ -63,7 +63,7 @@ describe('reloadSession test', () => {
     })
 
     it('should be ok even if deleteSession throws an exception (JSONWP)', async () => {
-        let scenario = {
+        const scenario = {
             sessionIdMock: 'foobar-234',
             requestMock: [{}, {}],
             newSessionId: 'foobar-234',
@@ -96,7 +96,7 @@ describe('reloadSession test', () => {
     })
 
     it('should be ok even if deleteSession throws an exception (non-JSONWP)', async () => {
-        let scenario = {
+        const scenario = {
             sessionIdMock: 'ignored if jsonwpMode is false',
             requestMock: [{}, {}],
             newSessionId: undefined,
@@ -149,7 +149,7 @@ describe('reloadSession test', () => {
         }
         const hook = vi.fn()
 
-        let browser = await remote({
+        const browser = await remote({
             baseUrl: 'http://foobar.com',
             capabilities: {
                 // @ts-ignore mock feature

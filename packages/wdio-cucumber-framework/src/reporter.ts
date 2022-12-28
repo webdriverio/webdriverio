@@ -1,10 +1,12 @@
-import { EventEmitter } from 'node:events'
-import { Status, PickleFilter } from '@cucumber/cucumber'
-import { Feature, Pickle, PickleStep, TestStep, TestStepResult, TestCaseFinished, PickleTag, Tag } from '@cucumber/messages'
+import type { EventEmitter } from 'node:events'
+
+import { Status } from '@cucumber/cucumber'
+import type { PickleFilter } from '@cucumber/cucumber'
+import type { Feature, Pickle, PickleStep, TestStep, TestStepResult, TestCaseFinished, PickleTag, Tag } from '@cucumber/messages'
 
 import CucumberEventListener from './cucumberEventListener.js'
 import { getFeatureId, formatMessage, getStepType, buildStepPayload } from './utils.js'
-import { ReporterScenario } from './constants.js'
+import type { ReporterScenario } from './constants.js'
 import type { ReporterOptions } from './types'
 
 export default class CucumberReporter {
@@ -257,7 +259,7 @@ export default class CucumberReporter {
     }
 
     emit (event: string, payload: any) {
-        let message = formatMessage({ payload })
+        const message = formatMessage({ payload })
 
         message.cid = this._cid
         message.specs = this._specs
@@ -269,7 +271,9 @@ export default class CucumberReporter {
     getTitle (featureOrScenario: Feature | Pickle) {
         const name = featureOrScenario.name
         const tags = featureOrScenario.tags
-        if (!this._tagsInTitle || !tags || !tags.length) return name
+        if (!this._tagsInTitle || !tags || !tags.length) {
+            return name
+        }
         return `${tags.map((tag: PickleTag | Tag) => tag.name).join(', ')}: ${name}`
     }
 }

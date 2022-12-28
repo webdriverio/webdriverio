@@ -1,4 +1,4 @@
-import { Rule } from 'eslint'
+import type { Rule } from 'eslint'
 import { isCommand } from '../utils/helpers.js'
 
 const rule: Rule.RuleModule = {

@@ -4,8 +4,10 @@ import { logMock } from '@wdio/logger'
 import { attach, remote, multiremote } from 'webdriverio'
 import { describe, expect, it, vi, afterEach, beforeEach } from 'vitest'
 
+import type { ConfigWithSessionId
+} from '../src/utils.js'
 import {
-    initialiseInstance, sanitizeCaps, getInstancesData, ConfigWithSessionId
+    initialiseInstance, sanitizeCaps, getInstancesData
 } from '../src/utils.js'
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))

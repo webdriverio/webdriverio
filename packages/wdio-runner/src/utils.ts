@@ -83,7 +83,7 @@ export async function initialiseInstance (
     log.debug('init multiremote session')
     // @ts-expect-error ToDo(Christian): can be removed?
     delete config.capabilities
-    for (let browserName of Object.keys(capabilities)) {
+    for (const browserName of Object.keys(capabilities)) {
         options[browserName] = deepmerge(
             config,
             (capabilities as Capabilities.MultiRemoteCapabilities)[browserName]
@@ -96,7 +96,7 @@ export async function initialiseInstance (
      * only attach to global environment if `injectGlobals` is set to true
      */
     const browserNames = config.injectGlobals ? Object.keys(capabilities) : []
-    for (let browserName of browserNames) {
+    for (const browserName of browserNames) {
         // @ts-ignore allow random global browser names
         global[browserName] = browser[browserName]
     }
@@ -118,13 +118,9 @@ export function filterLogTypes(
 
     if (Array.isArray(excludeDriverLogs)) {
         log.debug('filtering logTypes', logTypes)
-
-        if (excludeDriverLogs.length === 1 && excludeDriverLogs[0] === '*') { // exclude all logTypes
-            logTypes = []
-        } else {
-            logTypes = logTypes.filter(x => !excludeDriverLogs.includes(x)) // exclude specific logTypes
-        }
-
+        logTypes = excludeDriverLogs.length === 1 && excludeDriverLogs[0] === '*'
+            ? []
+            : logTypes.filter(x => !excludeDriverLogs.includes(x)) // exclude specific logTypes
         log.debug('filtered logTypes', logTypes)
     }
 

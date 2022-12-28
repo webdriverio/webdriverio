@@ -39,13 +39,9 @@ async function getSize (
     this: WebdriverIO.Element,
     prop?: keyof RectReturn
 ): Promise<Size | number> {
-    let rect: Partial<RectReturn> = {}
-
-    if (this.isW3C) {
-        rect = await getElementRect(this)
-    } else {
-        rect = await this.getElementSize(this.elementId) as RectReturn
-    }
+    const rect = this.isW3C
+        ? await getElementRect(this)
+        : await this.getElementSize(this.elementId) as RectReturn
 
     if (prop && typeof rect[prop] === 'number') {
         return rect[prop] as number

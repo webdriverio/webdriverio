@@ -1,4 +1,5 @@
-import { KeyAction, PointerAction, WheelAction, ActionType, BaseActionParams } from '../../utils/actions/index.js'
+import type { ActionType, BaseActionParams } from '../../utils/actions/index.js'
+import { KeyAction, PointerAction, WheelAction } from '../../utils/actions/index.js'
 
 /**
  * The action command is a low-level interface for providing virtualized device input actions to the web browser.

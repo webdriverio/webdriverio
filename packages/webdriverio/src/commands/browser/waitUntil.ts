@@ -1,5 +1,5 @@
 import Timer from '../../utils/Timer.js'
-import type { WaitUntilOptions } from '../../types'
+import type { WaitUntilOptions } from '../../types.js'
 
 /**
  *
@@ -66,7 +66,7 @@ export default function waitUntil(
     }
 
     const fn = condition.bind(this)
-    let timer = new Timer(interval as number, timeout as number, fn, true)
+    const timer = new Timer(interval as number, timeout as number, fn, true)
     return (timer as any).catch((e: Error) => {
         if (e.message === 'timeout') {
             if (typeof timeoutMsg === 'string') {

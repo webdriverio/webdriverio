@@ -3,10 +3,12 @@ import { EventEmitter } from 'node:events'
 import getPort from 'get-port'
 import logger from '@wdio/logger'
 import { deepmerge } from 'deepmerge-ts'
-import { WebSocketServer, WebSocket } from 'ws'
+import type { WebSocket } from 'ws'
+import { WebSocketServer } from 'ws'
 import { serializeError } from 'serialize-error'
 import { executeHooksWithArgs } from '@wdio/utils'
-import { createServer, ViteDevServer, InlineConfig } from 'vite'
+import type { ViteDevServer, InlineConfig } from 'vite'
+import { createServer } from 'vite'
 import type { Browser } from 'webdriverio'
 import type { Services } from '@wdio/types'
 
@@ -93,7 +95,7 @@ export class ViteServer extends EventEmitter {
         })
 
         /**
-         * intialize Vite
+         * initialize Vite
          */
         this.#server = await createServer(this.#viteConfig)
         await this.#server.listen()

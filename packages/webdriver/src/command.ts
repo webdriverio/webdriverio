@@ -3,9 +3,9 @@ import { commandCallStructure, isValidParameter, getArgumentType } from '@wdio/u
 import type { CommandEndpoint, BidiResponse } from '@wdio/protocols'
 
 import RequestFactory from './request/factory.js'
-import { BidiHandler } from './bidi.js'
-import type { WebDriverResponse } from './request'
-import type { BaseClient } from './types'
+import type { BidiHandler } from './bidi.js'
+import type { WebDriverResponse } from './request/index.js'
+import type { BaseClient } from './types.js'
 
 const log = logger('webdriver')
 const BIDI_COMMANDS = ['send', 'sendAsync'] as const
@@ -110,7 +110,7 @@ export default function (
         this.emit('command', { method, endpoint, body })
         log.info('COMMAND', commandCallStructure(command, args))
         return request.makeRequest(this.options, this.sessionId).then((result) => {
-            if (result.value != null) {
+            if (typeof result.value !== 'undefined') {
                 let resultLog = result.value
 
                 if (/screenshot|recording/i.test(command) && typeof result.value === 'string' && result.value.length > 64) {

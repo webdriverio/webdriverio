@@ -1,15 +1,15 @@
 import { createRequire } from 'node:module'
 
-import type { Protocol } from './types'
-import type AppiumCommands from './commands/appium'
-import type ChromiumCommands from './commands/chromium'
-import type GeckoCommands from './commands/gecko'
-import type JSONWPCommands from './commands/jsonwp'
-import type MJSONWPCommands from './commands/mjsonwp'
-import type SauceLabsCommands from './commands/saucelabs'
-import type SeleniumCommands from './commands/selenium'
-import type WebDriverCommands from './commands/webdriver'
-import type WebDriverBidiCommands from './commands/webdriverBidi'
+import type { Protocol } from './types.js'
+import type AppiumCommands from './commands/appium.js'
+import type ChromiumCommands from './commands/chromium.js'
+import type GeckoCommands from './commands/gecko.js'
+import type JSONWPCommands from './commands/jsonwp.js'
+import type MJSONWPCommands from './commands/mjsonwp.js'
+import type SauceLabsCommands from './commands/saucelabs.js'
+import type SeleniumCommands from './commands/selenium.js'
+import type WebDriverCommands from './commands/webdriver.js'
+import type WebDriverBidiCommands from './commands/webdriverBidi.js'
 
 const require = createRequire(import.meta.url)
 const WebDriverProtocol: Protocol = require('../protocols/webdriver.json')

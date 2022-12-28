@@ -1,5 +1,24 @@
+import logger from '@wdio/logger'
+
 import { ELEMENT_KEY } from '../../constants.js'
 import { getBrowserObject } from '../../utils/index.js'
+
+const log = logger('webdriverio')
+
+function scrollIntoViewWeb (
+    this: WebdriverIO.Element,
+    options: ScrollIntoViewOptions | boolean = { block: 'start', inline: 'nearest' }
+) {
+    const browser = getBrowserObject(this)
+    return browser.execute(
+        (elem: HTMLElement, options: ScrollIntoViewOptions | boolean) => elem.scrollIntoView(options),
+        {
+            [ELEMENT_KEY]: this.elementId, // w3c compatible
+            ELEMENT: this.elementId, // jsonwp compatible
+        } as any as HTMLElement,
+        options,
+    )
+}
 
 /**
  *
@@ -28,16 +47,11 @@ export default async function scrollIntoView (
 ) {
     const browser = getBrowserObject(this)
 
-    // Appium does not support the "wheel" action
+    /**
+     * Appium does not support the "wheel" action
+     */
     if (browser.isMobile) {
-        return browser.execute(
-            (elem: HTMLElement, options: ScrollIntoViewOptions | boolean) => elem.scrollIntoView(options),
-            {
-                [ELEMENT_KEY]: this.elementId, // w3c compatible
-                ELEMENT: this.elementId, // jsonwp compatible
-            } as any as HTMLElement,
-            options,
-        )
+        return scrollIntoViewWeb.call(this, options)
     }
 
     let deltaX = 0
@@ -63,7 +77,15 @@ export default async function scrollIntoView (
         }
     }
 
-    return browser.action('wheel')
-        .scroll({ origin: this, duration: 200, deltaY, deltaX })
-        .perform()
+    try {
+        return await browser.action('wheel')
+            .scroll({ origin: this, duration: 200, deltaY, deltaX })
+            .perform()
+    } catch (err: any) {
+        log.warn(
+            `Failed to execute "scrollIntoView" using WebDriver Actions API: ${err.message}!\n` +
+            'Re-attempting using `Element.scrollIntoView` via Web API.'
+        )
+        return scrollIntoViewWeb.call(this, options)
+    }
 }

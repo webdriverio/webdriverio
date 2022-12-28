@@ -1,7 +1,8 @@
 import { format } from 'node:util'
 import chalk from 'chalk'
 import prettyMs from 'pretty-ms'
-import WDIOReporter, { SuiteStats, HookStats, RunnerStats, TestStats, Argument } from '@wdio/reporter'
+import type { SuiteStats, HookStats, RunnerStats, TestStats, Argument } from '@wdio/reporter'
+import WDIOReporter from '@wdio/reporter'
 import type { Capabilities } from '@wdio/types'
 
 import { buildTableData, printTable, getFormattedRows, sauceAuthenticationToken } from './utils.js'
@@ -59,7 +60,7 @@ export default class SpecReporter extends WDIOReporter {
         this._sauceLabsSharableLinks = 'sauceLabsSharableLinks' in options
             ? options.sauceLabsSharableLinks as boolean
             : this._sauceLabsSharableLinks
-        let processObj:any = process
+        const processObj:any = process
         if (options.addConsoleLogs || this._addConsoleLogs) {
             processObj.stdout.write = (chunk: string, encoding: BufferEncoding, callback:  ((err?: Error) => void)) => {
                 if (typeof chunk === 'string' && !chunk.includes('mwebdriver')) {

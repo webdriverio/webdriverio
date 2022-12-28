@@ -1,11 +1,10 @@
-import process from 'node:process'
 import stripAnsi from 'strip-ansi'
-import { HookStats, TestStats } from '@wdio/reporter'
+import type { HookStats, TestStats } from '@wdio/reporter'
 import type { Options } from '@wdio/types'
 
 import CompoundError from './compoundError.js'
 import { mochaEachHooks, mochaAllHooks, linkPlaceholder } from './constants.js'
-import AllureReporter from './index.js'
+import type AllureReporter from './reporter.js'
 import type { Status } from './types'
 
 /**
@@ -57,17 +56,6 @@ export const isMochaEachHooks = (title: string) => mochaEachHooks.some(hook => t
 export const isMochaAllHooks = (title: string) => mochaAllHooks.some(hook => title.includes(hook))
 
 /**
- * Call reporter
- * @param {string} event  - event name
- * @param {Object} msg - event payload
- * @private
- */
-export const tellReporter = (event: string, msg: any = {}) => {
-    // Node 14 typings does not accept string in process.emit, but allow string in process.on
-    process.emit(event as any, msg)
-}
-
-/**
  * Properly format error from different test runners
  * @param {Object} test - TestStat object
  * @returns {Object} - error object
@@ -76,15 +64,23 @@ export const tellReporter = (event: string, msg: any = {}) => {
 export const getErrorFromFailedTest = (test: TestStats | HookStats) : Error | CompoundError | undefined  => {
     if (test.errors && Array.isArray(test.errors)) {
         for (let i = 0; i < test.errors.length; i += 1){
-            if (test.errors[i].message) test.errors[i].message = stripAnsi(test.errors[i].message)
-            if (test.errors[i].stack) test.errors[i].stack = stripAnsi(test.errors[i].stack!)
+            if (test.errors[i].message) {
+                test.errors[i].message = stripAnsi(test.errors[i].message)
+            }
+            if (test.errors[i].stack) {
+                test.errors[i].stack = stripAnsi(test.errors[i].stack!)
+            }
         }
         return test.errors.length === 1 ? test.errors[0] : new CompoundError(...test.errors as Error[])
     }
 
     if (test.error) {
-        if (test.error.message) test.error.message = stripAnsi(test.error.message)
-        if (test.error.stack) test.error.stack = stripAnsi(test.error.stack)
+        if (test.error.message) {
+            test.error.message = stripAnsi(test.error.message)
+        }
+        if (test.error.stack) {
+            test.error.stack = stripAnsi(test.error.stack)
+        }
     }
 
     return test.error

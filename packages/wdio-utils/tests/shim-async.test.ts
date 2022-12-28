@@ -294,7 +294,7 @@ describe('wrapCommand', () => {
 
         const expectedResults = ['foobarA', 'foobarB', 'foobarC']
         let i = 0
-        for await (let elem of commandA('selector')) {
+        for await (const elem of commandA('selector')) {
             expect(expectedResults[i++]).toBe(elem.selector)
         }
     })
@@ -314,7 +314,7 @@ describe('wrapCommand', () => {
         const commandA = wrapCommand('$', rawCommand).bind(scope) as any as (sel: string) => Promise<any>[]
 
         try {
-            for await (let elem of commandA('selector')) {
+            for await (const elem of commandA('selector')) {
                 console.log(elem)
             }
         } catch (err: any) {

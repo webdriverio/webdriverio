@@ -6,7 +6,8 @@ import type { CDPSession } from 'puppeteer-core/lib/cjs/puppeteer/common/Connect
 import type { Page } from 'puppeteer-core/lib/cjs/puppeteer/api/Page.js'
 import type { TracingOptions } from 'puppeteer-core/lib/cjs/puppeteer/common/Tracing.js'
 
-import NetworkHandler, { RequestPayload } from './handler/network.js'
+import type { RequestPayload } from './handler/network.js'
+import NetworkHandler from './handler/network.js'
 
 import { DEFAULT_TRACING_CATEGORIES } from './constants.js'
 import { sumByKey } from './utils.js'

@@ -13,7 +13,7 @@ describe('Mocha smoke test', () => {
         // @ts-expect-error custom command
         const expectedResults = await browser.asyncIterationScenario()
         let i = 0
-        for await (let elem of browser.$$('elems')) {
+        for await (const elem of browser.$$('elems')) {
             assert.equal(expectedResults[i++], elem.elementId)
         }
     })

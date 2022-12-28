@@ -95,7 +95,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             log.info('app is not defined in browserstack-service config, skipping ...')
         } else {
             let app: App = {}
-            let appConfig: AppConfig | string = this._options.app
+            const appConfig: AppConfig | string = this._options.app
 
             try {
                 app = await this._validateApp(appConfig)
@@ -105,8 +105,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
 
             if (VALID_APP_EXTENSION.includes(path.extname(app.app!))){
                 if (fs.existsSync(app.app!)) {
-                    let data: AppUploadResponse
-                    data = await this._uploadApp(app)
+                    const data: AppUploadResponse = await this._uploadApp(app)
                     log.info(`app upload completed: ${JSON.stringify(data)}`)
                     app.app = data.app_url
                 } else if (app.customId){
@@ -221,8 +220,12 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         log.info(`uploading app ${app.app} ${app.customId? `and custom_id: ${app.customId}` : ''} to browserstack`)
 
         const form = new FormData()
-        if (app.app) form.append('file', fs.createReadStream(app.app))
-        if (app.customId) form.append('custom_id', app.customId)
+        if (app.app) {
+            form.append('file', fs.createReadStream(app.app))
+        }
+        if (app.customId) {
+            form.append('custom_id', app.customId)
+        }
 
         const res = await got.post('https://api-cloud.browserstack.com/app-automate/upload', {
             body: form,
@@ -240,7 +243,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
      *                                            <object>: only "path" and "custom_id" should coexist as multiple properties.
      */
     async _validateApp (appConfig: AppConfig | string): Promise<App> {
-        let app: App = {}
+        const app: App = {}
 
         if (typeof appConfig === 'string'){
             app.app = appConfig
@@ -278,7 +281,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                     } else if (capType === 'local'){
                         capability['browserstack.local'] = true
                     } else if (capType === 'app') {
-                        capability['app'] = value
+                        capability.app = value
                     }
                 } else if (capType === 'local') {
                     capability['bstack:options'].local = true
@@ -299,7 +302,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                     } else if (capType === 'local'){
                         (caps.capabilities as Capabilities.Capabilities)['browserstack.local'] = true
                     } else if (capType === 'app') {
-                        (caps.capabilities as Capabilities.AppiumCapabilities)['app'] = value
+                        (caps.capabilities as Capabilities.AppiumCapabilities).app = value
                     }
                 } else if (capType === 'local'){
                     (caps.capabilities as Capabilities.Capabilities)['bstack:options']!.local = true

@@ -1,5 +1,6 @@
 import path from 'node:path'
-import { vi, MockedFunction, describe, it, expect, beforeEach } from 'vitest'
+import type { MockedFunction } from 'vitest'
+import { vi, describe, it, expect, beforeEach } from 'vitest'
 
 import logger from '@wdio/logger'
 import type { Capabilities, Options, Services } from '@wdio/types'

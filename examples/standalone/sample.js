@@ -4,7 +4,7 @@ let browser
 
 ;(async () => {
     /**
-     * intiate browser
+     * initiate browser
      * As we use this script in our dev environments which has no
      * browser driver nor xfvb set up we have to make sure to set
      * the headless flag for running with devtools

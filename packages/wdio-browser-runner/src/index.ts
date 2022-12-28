@@ -1,5 +1,6 @@
 import logger from '@wdio/logger'
-import LocalRunner, { RunArgs } from '@wdio/local-runner'
+import type { RunArgs } from '@wdio/local-runner'
+import LocalRunner from '@wdio/local-runner'
 import { attach } from 'webdriverio'
 
 import type { SessionStartedMessage, SessionEndedMessage, WorkerHookResultMessage } from '@wdio/runner'

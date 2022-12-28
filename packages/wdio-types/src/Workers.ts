@@ -1,11 +1,11 @@
 import type { EventEmitter } from 'node:events'
-import type { Testrunner as TestrunnerOptions } from './Options'
+import type { Testrunner as TestrunnerOptions } from './Options.js'
 import type {
     DesiredCapabilities,
     MultiRemoteCapabilities,
     RemoteCapability,
     W3CCapabilities,
-} from './Capabilities'
+} from './Capabilities.js'
 
 export interface Job {
     caps: DesiredCapabilities | W3CCapabilities | MultiRemoteCapabilities;

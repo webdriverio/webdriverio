@@ -14,7 +14,7 @@ import {
     getPrototype, addLocatorStrategyHandler, isStub, getAutomationProtocol,
     updateCapabilities
 } from './utils/index.js'
-import type { AttachOptions } from './types'
+import type { AttachOptions } from './types.js'
 import type * as elementCommands from './commands/element.js'
 
 export type RemoteOptions = Options.WebdriverIO & Omit<Options.Testrunner, 'capabilities' | 'rootDir'>
@@ -44,7 +44,7 @@ export const remote = async function (params: RemoteOptions, remoteModifier?: Fu
          * package (without undefined properties)
          */
         Object.assign(options, Object.entries(config)
-            .reduce((a, [k, v]) => (v == null ? a : { ...a, [k]: v }), {}))
+            .reduce((a, [k, v]) => (typeof v === 'undefined' ? a : { ...a, [k]: v }), {}))
 
         if (typeof remoteModifier === 'function') {
             client = remoteModifier(client, options)
@@ -91,7 +91,7 @@ export const attach = async function (attachOptions: AttachOptions): Promise<Web
     } as Options.WebdriverIO
 
     const prototype = getPrototype('browser')
-    let automationProtocol = await getAutomationProtocol(params)
+    const automationProtocol = await getAutomationProtocol(params)
     const ProtocolDriver = (await import(automationProtocol)).default
     return ProtocolDriver.attachToSession(params, undefined, prototype, wrapCommand) as WebdriverIO.Browser
 }

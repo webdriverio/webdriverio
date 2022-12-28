@@ -7,7 +7,8 @@ import { initialiseWorkerService, initialisePlugin, executeHooksWithArgs } from 
 import { ConfigParser } from '@wdio/config'
 import { _setGlobal } from '@wdio/globals'
 import { expect, setOptions } from 'expect-webdriverio'
-import { Selector, Browser, MultiRemoteBrowser, attach } from 'webdriverio'
+import type { Selector, Browser, MultiRemoteBrowser } from 'webdriverio'
+import { attach } from 'webdriverio'
 import type { Options, Capabilities } from '@wdio/types'
 
 import BrowserFramework from './browser.js'

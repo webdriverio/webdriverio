@@ -52,7 +52,7 @@ export default async function savePDF (
     /**
      * type check
      */
-    if (typeof filepath != 'string' || !filepath.endsWith('.pdf')) {
+    if (typeof filepath !== 'string' || !filepath.endsWith('.pdf')) {
         throw new Error('savePDF expects a filepath of type string and ".pdf" file ending')
     }
 

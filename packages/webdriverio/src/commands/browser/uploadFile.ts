@@ -51,8 +51,8 @@ export default async function uploadFile (
         throw new Error(`The uploadFile command is not available in ${(this.capabilities as Capabilities.Capabilities).browserName}`)
     }
 
-    let zipData: Uint8Array[] = []
-    let source = fs.createReadStream(localPath)
+    const zipData: Uint8Array[] = []
+    const source = fs.createReadStream(localPath)
 
     return new Promise((resolve, reject) => {
         archiver('zip')

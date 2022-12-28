@@ -1,4 +1,5 @@
-import { _keyDefinitions, KeyInput } from 'puppeteer-core/lib/cjs/puppeteer/common/USKeyboardLayout.js'
+import type { KeyInput } from 'puppeteer-core/lib/cjs/puppeteer/common/USKeyboardLayout.js'
+import { _keyDefinitions } from 'puppeteer-core/lib/cjs/puppeteer/common/USKeyboardLayout.js'
 import type { Keyboard, Mouse } from 'puppeteer-core/lib/cjs/puppeteer/common/Input.js'
 
 import getElementRect from './getElementRect.js'
@@ -133,8 +134,9 @@ export default async function performActions(
 
                 const cmd = singleAction.type.slice(POINTER.length).toLowerCase()
                 const keyboardFn = (page.mouse[cmd as keyof Mouse] as Function).bind(page.mouse)
-                let { x, y, duration, button, origin } = singleAction
+                const { duration, button, origin } = singleAction
 
+                let { x, y } = singleAction
                 if (cmd === 'move') {
                     /**
                      * set location relative from last position if origin is set to pointer

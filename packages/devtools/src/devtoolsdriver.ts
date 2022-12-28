@@ -15,7 +15,7 @@ import * as commands from './commands/index.js'
 import ElementStore from './elementstore.js'
 import { validate, sanitizeError } from './utils.js'
 import { DEFAULT_IMPLICIT_TIMEOUT, DEFAULT_PAGELOAD_TIMEOUT, DEFAULT_SCRIPT_TIMEOUT } from './constants.js'
-import { ActiveListener } from './types.js'
+import type { ActiveListener } from './types.js'
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 const log = logger('devtools')
@@ -46,7 +46,7 @@ export default class DevToolsDriver {
             )
         )
 
-        for (let filename of files) {
+        for (const filename of files) {
             const commandName = path.basename(filename, path.extname(filename))
 
             if (!commandName) {
@@ -147,7 +147,13 @@ export default class DevToolsDriver {
          * check if command is implemented
          */
         if (typeof this.commands[command] !== 'function') {
-            return () => { throw new Error(`Command "${command}" is not yet implemented`) }
+            return () => {
+                throw new Error(
+                    `Command "${command}" is not supported using the Devtools protocol. ` +
+                    'You might want to use WebDriver as automation engine. For more ' +
+                    'information check out https://webdriver.io/docs/automationProtocols!'
+                )
+            }
         }
 
         /**
@@ -282,7 +288,7 @@ export default class DevToolsDriver {
         }
 
         const pageloadTimeout = this.timeouts.get('pageLoad')
-        const pageloadTimeoutReached = pageloadTimeout != null
+        const pageloadTimeoutReached = typeof pageloadTimeout !== 'undefined'
             ? Date.now() - pendingNavigationStart > pageloadTimeout
             : false
 

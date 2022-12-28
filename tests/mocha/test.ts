@@ -1,7 +1,7 @@
 import assert from 'node:assert'
 
 describe('Mocha smoke test', () => {
-    let testJs = 'tests/mocha/test.ts:'
+    const testJs = 'tests/mocha/test.ts:'
 
     it('has globals set up', async () => {
         expect(1).toBe(1) // has non wdio matcher support

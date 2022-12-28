@@ -1,7 +1,7 @@
 import type {
     WebdriverIO as WebDriverIOOptions,
     Connection as ConnectionOptions
-} from './Options'
+} from './Options.js'
 
 export type PageLoadingStrategy = 'none' | 'eager' | 'normal';
 export type LoggingPreferenceType =
@@ -34,6 +34,7 @@ export interface ProxyObject {
     socksVersion?: string;
     socksUsername?: string;
     socksPassword?: string;
+    noProxy?: string[];
 }
 
 export interface Capabilities extends VendorExtensions, ConnectionOptions {

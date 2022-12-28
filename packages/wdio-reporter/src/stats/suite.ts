@@ -1,6 +1,6 @@
-import HookStats from './hook.js'
+import type HookStats from './hook.js'
 import RunnableStats from './runnable.js'
-import TestStats from './test.js'
+import type TestStats from './test.js'
 import type { Tag } from '../types'
 
 export interface Suite {

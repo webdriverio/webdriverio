@@ -1,6 +1,6 @@
 import { getBrowserObject } from '../../utils/index.js'
-import type { ClickOptions } from '../../types'
-import type { Button } from '../../utils/actions'
+import type { ClickOptions } from '../../types.js'
+import type { Button } from '../../utils/actions/index.js'
 
 /**
  *
@@ -94,7 +94,7 @@ export default async function click(
     }
 
     let button = (options.button || 0) as Button
-    let {
+    const {
         x: xoffset = 0,
         y: yoffset = 0,
         skipRelease = false

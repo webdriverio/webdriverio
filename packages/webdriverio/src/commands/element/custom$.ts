@@ -1,7 +1,7 @@
 import { getElement } from '../../utils/getElementObject.js'
 import { getBrowserObject } from '../../utils/index.js'
 import { ELEMENT_KEY } from '../../constants.js'
-import type { CustomStrategyFunction } from '../../types'
+import type { CustomStrategyFunction } from '../../types.js'
 
 /**
  *

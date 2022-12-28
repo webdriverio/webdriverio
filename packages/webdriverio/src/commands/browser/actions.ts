@@ -1,4 +1,4 @@
-import { KeyAction, PointerAction, WheelAction } from '../../utils/actions/index.js'
+import type { KeyAction, PointerAction, WheelAction } from '../../utils/actions/index.js'
 
 /**
  * Allows to run multiple action interaction at once, e.g. to simulate a pinch zoom.

@@ -1,7 +1,8 @@
 import os from 'node:os'
 import type { Capabilities } from '@wdio/types'
 
-import BaseAction, { BaseActionParams } from './base.js'
+import type { BaseActionParams } from './base.js'
+import BaseAction from './base.js'
 import { Key } from '../../constants.js'
 
 export default class KeyAction extends BaseAction {

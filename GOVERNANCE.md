@@ -131,6 +131,6 @@ This governance model necessarily leaves many situations unspecified. If questio
 
 ----
 
-This work is a derivative of the [ESLint Project Governance Model](https://github.com/eslint/eslint/blob/master/docs/maintainer-guide/governance.md).
+This work is a derivative of the [ESLint Project Governance Model](https://github.com/eslint/eslint/blob/main/docs/src/maintainer-guide/governance.md).
 
 This work is licensed under a [Creative Commons Attribution-ShareAlike 2.0 UK: England & Wales License](https://creativecommons.org/licenses/by-sa/2.0/uk/).

@@ -2,7 +2,7 @@
 
 import { describe, expect, vi, beforeAll, afterAll, afterEach, it } from 'vitest'
 import { startServer, __store } from '../src/server.js'
-import gotType from 'got'
+import type gotType from 'got'
 
 vi.mock('got')
 

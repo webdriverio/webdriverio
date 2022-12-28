@@ -106,3 +106,9 @@ export interface Attachment {
     end(status: Status, error: Error, timestamp?: number): void;
     toXML(): string;
 }
+
+declare global {
+    namespace WebdriverIO {
+        interface ReporterOption extends AllureReporterOptions { }
+    }
+}

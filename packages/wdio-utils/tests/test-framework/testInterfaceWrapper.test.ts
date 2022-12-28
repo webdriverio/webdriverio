@@ -1,4 +1,5 @@
-import { MockedFunction, vi, describe, it, expect, afterEach, beforeEach } from 'vitest'
+import type { MockedFunction } from 'vitest'
+import { vi, describe, it, expect, afterEach, beforeEach } from 'vitest'
 
 import { testFnWrapper as testFnWrapperImport } from '../../src/test-framework/testFnWrapper.js'
 import { runHook, runSpec, wrapTestFunction, wrapGlobalTestMethod } from '../../src/test-framework/testInterfaceWrapper.js'

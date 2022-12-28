@@ -2,10 +2,11 @@ import { describe, expect, vi, it, afterEach, beforeEach } from 'vitest'
 
 import WDIOReporter from '../src/index.js'
 import tmp from 'tmp'
-import TestStats, { Test } from '../src/stats/test.js'
-import RunnerStats from '../src/stats/runner.js'
-import { Suite } from '../src/stats/suite.js'
-import { Hook } from '../src/stats/hook.js'
+import type { Test } from '../src/stats/test.js'
+import TestStats from '../src/stats/test.js'
+import type RunnerStats from '../src/stats/runner.js'
+import type { Suite } from '../src/stats/suite.js'
+import type { Hook } from '../src/stats/hook.js'
 
 const runnerSpecs = ['/path/to/fileA.js', '/path/to/fileA.js']
 

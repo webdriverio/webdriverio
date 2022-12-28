@@ -1,4 +1,4 @@
-import type { WaitForOptions } from '../../types'
+import type { WaitForOptions } from '../../types.js'
 
 /**
  * Wait for an element for the provided amount of milliseconds to be clickable or not clickable.

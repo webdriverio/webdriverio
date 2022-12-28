@@ -4,6 +4,7 @@ import { wrapGlobalTestMethod } from '@wdio/utils'
 
 import { loadModule, formatMessage, setupEnv, requireExternalModules } from '../src/common.js'
 declare global {
+    // eslint-disable-next-line no-var
     var foo: string | undefined
 }
 
@@ -13,8 +14,8 @@ vi.mock('@wdio/utils')
 describe('formatMessage', () => {
     test('should do nothing if no error or params are given', () => {
         // @ts-ignore params not needed for test scenario
-        let params = { type: 'foobar' }
-        let message = formatMessage(params as any)
+        const params = { type: 'foobar' }
+        const message = formatMessage(params as any)
         expect(message).toMatchSnapshot()
     })
 

@@ -62,7 +62,7 @@ export default class BaseReporter {
 
     getLogFile (name: string) {
         // clone the config to avoid changing original properties
-        let options = Object.assign({}, this._config) as Omit<Options.Testrunner, 'capabilities'> & {
+        const options = Object.assign({}, this._config) as Omit<Options.Testrunner, 'capabilities'> & {
             cid: string
             capabilities: Capabilities.RemoteCapability
         }

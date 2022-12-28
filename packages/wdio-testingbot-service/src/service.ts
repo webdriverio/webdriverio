@@ -219,12 +219,12 @@ export default class TestingBotService implements Services.ServiceInstance {
     }
 
     getBody (failures: number, calledOnReload = false, browserName?: string) {
-        let body = { test: {} as any }
+        const body = { test: {} as any }
 
         /**
          * set default values
          */
-        body.test['name'] = this._suiteTitle
+        body.test.name = this._suiteTitle
 
         /**
          * add reload count to title if reload is used
@@ -235,10 +235,10 @@ export default class TestingBotService implements Services.ServiceInstance {
                 testCnt = Math.ceil(testCnt / (this._browser as MultiRemoteBrowser<'async'>).instances.length)
             }
 
-            body.test['name'] += ` (${testCnt})`
+            body.test.name += ` (${testCnt})`
         }
 
-        for (let prop of jobDataProperties) {
+        for (const prop of jobDataProperties) {
             if (!(this._capabilities as Record<string, any>)[prop]) {
                 continue
             }
@@ -247,10 +247,10 @@ export default class TestingBotService implements Services.ServiceInstance {
         }
 
         if (browserName) {
-            body.test['name'] = `${browserName}: ${body.test['name']}`
+            body.test.name = `${browserName}: ${body.test.name}`
         }
 
-        body.test['success'] = failures === 0 ? '1' : '0'
+        body.test.success = failures === 0 ? '1' : '0'
         return body
     }
 }

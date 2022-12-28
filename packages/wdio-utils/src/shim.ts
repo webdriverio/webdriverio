@@ -12,6 +12,7 @@ interface Retries {
 }
 
 declare global {
+    // eslint-disable-next-line no-var
     var expectAsync: any
 }
 
@@ -35,7 +36,7 @@ const ELEMENT_PROPS = [
 const ACTION_COMMANDS = ['action', 'actions']
 const PROMISE_METHODS = ['then', 'catch', 'finally']
 
-let executeHooksWithArgs = async function executeHooksWithArgsShim<T> (this: any, hookName: string, hooks: Function | Function[] = [], args: any[] = []): Promise<(T | Error)[]> {
+const executeHooksWithArgs = async function executeHooksWithArgsShim<T> (this: any, hookName: string, hooks: Function | Function[] = [], args: any[] = []): Promise<(T | Error)[]> {
     /**
      * make sure hooks are an array of functions
      */
@@ -87,7 +88,7 @@ let executeHooksWithArgs = async function executeHooksWithArgsShim<T> (this: any
  * @param commandName name of the command (e.g. getTitle)
  * @param fn          command function
  */
-let wrapCommand = function wrapCommand<T>(commandName: string, fn: Function): (...args: any) => Promise<T> {
+const wrapCommand = function wrapCommand<T>(commandName: string, fn: Function): (...args: any) => Promise<T> {
     async function wrapCommandFn(this: any, ...args: any[]) {
         const beforeHookArgs = [commandName, args]
         if (!inCommandHook && this.options.beforeCommand) {

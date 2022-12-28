@@ -21,6 +21,59 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.0.15 (2022-12-28)
+
+#### :house: Internal
+* Other
+  * [#9476](https://github.com/webdriverio/webdriverio/pull/9476) ci: install package devDependencies ([@SCG82](https://github.com/SCG82))
+* `wdio-cli`
+  * [#9394](https://github.com/webdriverio/webdriverio/pull/9394) @wdio/cli: refactor ([@SCG82](https://github.com/SCG82))
+* `devtools`, `wdio-protocols`, `webdriver`, `webdriverio`
+  * [#9474](https://github.com/webdriverio/webdriverio/pull/9474) Add extension to type imports for nodenext module resolution ([@kyryloonufriiev](https://github.com/kyryloonufriiev))
+
+#### Committers: 2
+- Kyrylo ([@kyryloonufriiev](https://github.com/kyryloonufriiev))
+- [@SCG82](https://github.com/SCG82)
+
+
+## v8.0.14 (2022-12-28)
+
+#### :bug: Bug Fix
+* `wdio-allure-reporter`
+  * [#9472](https://github.com/webdriverio/webdriverio/pull/9472) Create CJS export for Allure Reporter ([@christian-bromann](https://github.com/christian-bromann))
+* `webdriverio`
+  * [#9435](https://github.com/webdriverio/webdriverio/pull/9435) Have fallback for `scrollIntoView` if actions command fails ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :nail_care: Polish
+* `wdio-browserstack-service`
+  * [#9437](https://github.com/webdriverio/webdriverio/pull/9437) update: mark session as failed if no specs ran ([@Ankit098](https://github.com/Ankit098))
+* `wdio-types`
+  * [#9441](https://github.com/webdriverio/webdriverio/pull/9441) Add missing noProxy typing for Capabilities ProxyObject ([@taina0407](https://github.com/taina0407))
+* `wdio-cucumber-framework`
+  * [#9438](https://github.com/webdriverio/webdriverio/pull/9438) @wdio/cucumber-framework: add missing Promise.all in registerRequired… ([@SCG82](https://github.com/SCG82))
+
+#### :memo: Documentation
+* [#9448](https://github.com/webdriverio/webdriverio/pull/9448) docs: Fix a few typos ([@timgates42](https://github.com/timgates42))
+* [#9403](https://github.com/webdriverio/webdriverio/pull/9403) fix: updated wdio execution command in proxy setup ([@vjuturu](https://github.com/vjuturu))
+
+#### :house: Internal
+* `wdio-types`
+  * [#9444](https://github.com/webdriverio/webdriverio/pull/9444) @wdio/types: node16 module resolution compatibility ([@SCG82](https://github.com/SCG82))
+* `devtools`, `eslint-plugin-wdio`, `wdio-allure-reporter`, `wdio-appium-service`, `wdio-browser-runner`, `wdio-browserstack-service`, `wdio-cli`, `wdio-concise-reporter`, `wdio-config`, `wdio-crossbrowsertesting-service`, `wdio-cucumber-framework`, `wdio-devtools-service`, `wdio-globals`, `wdio-jasmine-framework`, `wdio-junit-reporter`, `wdio-local-runner`, `wdio-logger`, `wdio-mocha-framework`, `wdio-repl`, `wdio-reporter`, `wdio-runner`, `wdio-sauce-service`, `wdio-selenium-standalone-service`, `wdio-shared-store-service`, `wdio-spec-reporter`, `wdio-sumologic-reporter`, `wdio-testingbot-service`, `wdio-types`, `wdio-utils`, `wdio-webdriver-mock-service`, `webdriver`, `webdriverio`
+  * [#9445](https://github.com/webdriverio/webdriverio/pull/9445) Adding new EsLint rules ([@christian-bromann](https://github.com/christian-bromann))
+* Other
+  * [#9429](https://github.com/webdriverio/webdriverio/pull/9429) Update reference link to eslint governance file ([@Relequestual](https://github.com/Relequestual))
+
+#### Committers: 7
+- Ankit Singh ([@Ankit098](https://github.com/Ankit098))
+- Ben Hutton ([@Relequestual](https://github.com/Relequestual))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Tim Gates ([@timgates42](https://github.com/timgates42))
+- Vampire ([@taina0407](https://github.com/taina0407))
+- [@SCG82](https://github.com/SCG82)
+- [@vjuturu](https://github.com/vjuturu)
+
+
 ## v8.0.13 (2022-12-14)
 
 #### :bug: Bug Fix

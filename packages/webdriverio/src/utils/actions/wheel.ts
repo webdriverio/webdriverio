@@ -1,5 +1,6 @@
-import BaseAction, { BaseActionParams } from './base.js'
-import type { ChainablePromiseElement } from '../../types'
+import type { BaseActionParams } from './base.js'
+import BaseAction from './base.js'
+import type { ChainablePromiseElement } from '../../types.js'
 
 export interface ScrollParams {
     /**

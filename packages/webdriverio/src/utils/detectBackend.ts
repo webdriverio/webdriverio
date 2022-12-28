@@ -45,7 +45,7 @@ function getSauceEndpoint (
  * helper to detect the Selenium backend according to given capabilities
  */
 export default function detectBackend(options: BackendConfigurations = {}) {
-    let { port, hostname, user, key, protocol, region, headless, path, capabilities } = options
+    const { port, hostname, user, key, protocol, region, headless, path, capabilities } = options
 
     /**
      * browserstack

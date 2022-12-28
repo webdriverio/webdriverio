@@ -1,6 +1,6 @@
 {
   "name": "@wdio/cli",
-  "version": "8.0.13",
+  "version": "8.0.15",
   "description": "WebdriverIO testrunner command line interface",
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-cli",
@@ -33,19 +33,12 @@
   "types": "./build/index.d.ts",
   "typeScriptVersion": "3.8.3",
   "dependencies": {
-    "@types/ejs": "^3.1.1",
-    "@types/inquirer": "^9.0.0",
-    "@types/lodash.flattendeep": "^4.4.7",
-    "@types/lodash.pickby": "^4.6.7",
-    "@types/lodash.union": "^4.6.7",
-    "@types/recursive-readdir": "^2.2.1",
-    "@types/yargs": "^17.0.10",
-    "@wdio/config": "8.0.13",
-    "@wdio/globals": "8.0.13",
-    "@wdio/logger": "8.0.0",
-    "@wdio/protocols": "8.0.0",
-    "@wdio/types": "8.0.11",
-    "@wdio/utils": "8.0.13",
+    "@wdio/config": "8.0.14",
+    "@wdio/globals": "8.0.15",
+    "@wdio/logger": "8.0.14",
+    "@wdio/protocols": "8.0.15",
+    "@wdio/types": "8.0.14",
+    "@wdio/utils": "8.0.14",
     "async-exit-hook": "^2.0.1",
     "chalk": "^5.0.1",
     "chokidar": "^3.5.3",
@@ -60,14 +53,22 @@
     "mkdirp": "^1.0.4",
     "read-pkg-up": "9.1.0",
     "recursive-readdir": "^2.2.2",
-    "webdriverio": "8.0.13",
+    "webdriverio": "8.0.15",
     "yargs": "^17.5.1",
     "yarn-install": "^1.0.0"
   },
+  "devDependencies": {
+    "@types/async-exit-hook": "^2.0.0",
+    "@types/ejs": "^3.1.1",
+    "@types/inquirer": "^9.0.0",
+    "@types/lodash.flattendeep": "^4.4.7",
+    "@types/lodash.pickby": "^4.6.7",
+    "@types/lodash.union": "^4.6.7",
+    "@types/node": "^18.0.0",
+    "@types/recursive-readdir": "^2.2.1",
+    "@types/yargs": "^17.0.10"
+  },
   "publishConfig": {
     "access": "public"
-  },
-  "devDependencies": {
-    "@types/node": "^18.0.0"
   }
 }

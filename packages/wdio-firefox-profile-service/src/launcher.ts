@@ -16,11 +16,9 @@ export default class FirefoxProfileLauncher {
             return
         }
 
-        if (this._options.profileDirectory) {
-            this._profile = await promisify(Profile.copy)(this._options.profileDirectory)
-        } else {
-            this._profile = new Profile()
-        }
+        this._profile = this._options.profileDirectory
+            ? await promisify(Profile.copy)(this._options.profileDirectory)
+            : new Profile()
 
         if (!this._profile) {
             return

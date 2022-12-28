@@ -1,8 +1,8 @@
 import type { URL as URLType } from 'node:url'
-import type NodeJSRequest from './node'
-import type BrowserRequest from './browser'
+import type NodeJSRequest from './node.js'
+import type BrowserRequest from './browser.js'
 
-import WebDriverRequest from './index.js'
+import type WebDriverRequest from './index.js'
 
 interface Request {
     new (method: string, endpoint: string, body?: Record<string, unknown>, isHubCommand?: boolean): NodeJSRequest | BrowserRequest;

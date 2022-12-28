@@ -1,7 +1,7 @@
 import { EventEmitter } from 'node:events'
 import WebSocket from 'ws'
 import logger from '@wdio/logger'
-import { BidiRequest, BidiResponse } from '@wdio/protocols'
+import type { BidiRequest, BidiResponse } from '@wdio/protocols'
 
 const log = logger('webdriver:BidiHandler')
 const RESPONSE_TIMEOUT = 1000 * 60

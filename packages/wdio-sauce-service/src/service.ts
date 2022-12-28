@@ -2,7 +2,8 @@ import fs from 'node:fs/promises'
 import path from 'node:path'
 
 import ip from 'ip'
-import SauceLabs, { SauceLabsOptions, Job } from 'saucelabs'
+import type { SauceLabsOptions, Job } from 'saucelabs'
+import SauceLabs from 'saucelabs'
 import logger from '@wdio/logger'
 import type { Services, Capabilities, Options, Frameworks } from '@wdio/types'
 import type { Browser, MultiRemoteBrowser } from 'webdriverio'
@@ -362,7 +363,7 @@ export default class SauceService implements Services.ServiceInstance {
      * VM message data
      */
     getBody (failures: number, calledOnReload = false, browserName?: string) {
-        let body: Partial<Job> = {}
+        const body: Partial<Job> = {}
 
         /**
          * add reload count to title if reload is used
@@ -387,9 +388,9 @@ export default class SauceService implements Services.ServiceInstance {
             body.name += ` (${testCnt})`
         }
 
-        let caps = (this._capabilities as Capabilities.Capabilities)['sauce:options'] || this._capabilities as Capabilities.SauceLabsCapabilities
+        const caps = (this._capabilities as Capabilities.Capabilities)['sauce:options'] || this._capabilities as Capabilities.SauceLabsCapabilities
 
-        for (let prop of jobDataProperties) {
+        for (const prop of jobDataProperties) {
             if (!caps[prop]) {
                 continue
             }
@@ -432,7 +433,9 @@ export default class SauceService implements Services.ServiceInstance {
     }
 
     private async _setJobName(suiteTitle: string | undefined) {
-        if (!suiteTitle) return
+        if (!suiteTitle) {
+            return
+        }
         let jobName = suiteTitle
         if (this._options.setJobName) {
             jobName = this._options.setJobName(

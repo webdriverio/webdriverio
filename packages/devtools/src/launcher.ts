@@ -1,5 +1,7 @@
-import { launch as launchChromeBrowser, Options } from 'chrome-launcher'
-import puppeteer, { PuppeteerLaunchOptions, KnownDevices, Puppeteer, ConnectOptions } from 'puppeteer-core'
+import type { Options } from 'chrome-launcher'
+import { launch as launchChromeBrowser } from 'chrome-launcher'
+import type { PuppeteerLaunchOptions, ConnectOptions } from 'puppeteer-core'
+import puppeteer, { KnownDevices, Puppeteer } from 'puppeteer-core'
 import logger from '@wdio/logger'
 import type { Browser } from 'puppeteer-core/lib/cjs/puppeteer/api/Browser'
 import type { Capabilities } from '@wdio/types'
@@ -44,8 +46,8 @@ async function launchChrome (capabilities: ExtendedCapabilities) {
      * This should be cleaned up for v7 release
      * ToDo(Christian): v7 cleanup
      */
-    let ignoreDefaultArgs = (capabilities as any).ignoreDefaultArgs || devtoolsOptions.ignoreDefaultArgs
-    let headless = (chromeOptions as any).headless || devtoolsOptions.headless
+    const ignoreDefaultArgs = (capabilities as any).ignoreDefaultArgs || devtoolsOptions.ignoreDefaultArgs
+    const headless = (chromeOptions as any).headless || devtoolsOptions.headless
 
     if (typeof mobileEmulation.deviceName === 'string') {
         const deviceProperties = KnownDevices[mobileEmulation.deviceName as keyof typeof KnownDevices]
@@ -223,8 +225,8 @@ export default async function launch (capabilities: ExtendedCapabilities) {
      * This fixes running e2e tests on Windows. For some reason within a Vitest environment
      * capitalization matters for environment variables.
      */
-    if (!process.env.PROGRAMFILES && process.env['ProgramFiles']) {
-        process.env.PROGRAMFILES = process.env['ProgramFiles']
+    if (!process.env.PROGRAMFILES && process.env.ProgramFiles) {
+        process.env.PROGRAMFILES = process.env.ProgramFiles
     }
     const programFiles86 = process.env['ProgramFiles(X86)'] || process.env['ProgramFiles(x86)']
     if (!process.env['PROGRAMFILES(X86)'] && programFiles86) {
