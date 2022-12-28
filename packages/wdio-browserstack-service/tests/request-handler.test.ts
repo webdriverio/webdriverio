@@ -4,7 +4,7 @@ import { DATA_BATCH_ENDPOINT, DATA_SCREENSHOT_ENDPOINT } from '../src/constants.
 import RequestQueueHandler from '../src/request-handler.js'
 import * as utils from '../src/util.js'
 
-let requestQueueHandler = RequestQueueHandler.getInstance()
+const requestQueueHandler = RequestQueueHandler.getInstance()
 
 describe('RequestQueueHandler', () => {
     const startEventBatchPollingSpy = vi.spyOn(requestQueueHandler, 'startEventBatchPolling').mockImplementation()

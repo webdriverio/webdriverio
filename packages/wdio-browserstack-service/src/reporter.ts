@@ -1,5 +1,6 @@
 import type { Browser, MultiRemoteBrowser } from 'webdriverio'
-import WDIOReporter, { SuiteStats, TestStats, RunnerStats } from '@wdio/reporter'
+import type { SuiteStats, TestStats, RunnerStats } from '@wdio/reporter'
+import WDIOReporter from '@wdio/reporter'
 import type { Capabilities, Options } from '@wdio/types'
 
 import { v4 as uuidv4 } from 'uuid'
@@ -20,7 +21,9 @@ export default class TestReporter extends WDIOReporter {
         this._capabilities = runnerStats.capabilities as Capabilities.Capabilities
         this._config = runnerStats.config as BrowserstackConfig & Options.Testrunner
         this._sessionId = runnerStats.sessionId
-        if (typeof this._config.testObservability !== 'undefined') this._observability = this._config.testObservability
+        if (typeof this._config.testObservability !== 'undefined') {
+            this._observability = this._config.testObservability
+        }
     }
 
     onSuiteStart (suiteStats: SuiteStats) {
@@ -32,7 +35,7 @@ export default class TestReporter extends WDIOReporter {
         const framework = this._config?.framework
 
         if (this._observability && framework !== 'cucumber') {
-            let testData: TestData = {
+            const testData: TestData = {
                 uuid: uuidv4(),
                 type: testStats.type,
                 name: testStats.title,
@@ -53,11 +56,9 @@ export default class TestReporter extends WDIOReporter {
                 result: testStats.state,
             }
 
-            /* istanbul ignore next */
             const cloudProvider = getCloudProvider({ options: { hostname: this._config?.hostname } } as Browser<'async'> | MultiRemoteBrowser<'async'>)
             testData.integrations = {}
 
-            /* istanbul ignore next */
             testData.integrations[cloudProvider] = {
                 capabilities: this._capabilities,
                 session_id: this._sessionId,

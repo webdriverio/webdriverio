@@ -75,7 +75,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         }
 
         // by default observability will be true unless specified as false
-        this._options.testObservability = this._options.testObservability == false ? false : true
+        this._options.testObservability = this._options.testObservability === false ? false : true
 
         if (this._options.testObservability
             &&

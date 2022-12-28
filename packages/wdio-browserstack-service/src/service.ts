@@ -130,7 +130,9 @@ export default class BrowserstackService implements Services.ServiceInstance {
     }
 
     async beforeHook (test: Frameworks.Test, context: any) {
-        if (this._config.framework !== 'cucumber') this._currentTest = test // not update currentTest when this is called for cucumber step
+        if (this._config.framework !== 'cucumber') {
+            this._currentTest = test // not update currentTest when this is called for cucumber step
+        }
         await this._insightsHandler?.beforeHook(test, context)
     }
 

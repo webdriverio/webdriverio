@@ -10,7 +10,8 @@ import type { BeforeCommandArgs, AfterCommandArgs } from '@wdio/reporter'
 import logger from '@wdio/logger'
 
 import got, { HTTPError } from 'got'
-import gitRepoInfo, { GitRepoInfo } from 'git-repo-info'
+import type { GitRepoInfo } from 'git-repo-info'
+import gitRepoInfo from 'git-repo-info'
 import gitconfig from 'gitconfiglocal'
 
 import type { UserConfig, UploadType, LaunchResponse, BrowserstackConfig } from './types'
@@ -130,11 +131,17 @@ export async function launchTestSession (options: BrowserstackConfig & Options.T
         }).json()
         log.debug(`[Start_Build] Success response: ${JSON.stringify(response)}`)
         process.env.BS_TESTOPS_BUILD_COMPLETED = 'true'
-        if (response.jwt) process.env.BS_TESTOPS_JWT = response.jwt
-        if (response.build_hashed_id) process.env.BS_TESTOPS_BUILD_HASHED_ID = response.build_hashed_id
-        if (response.allow_screenshots) process.env.BS_TESTOPS_ALLOW_SCREENSHOTS = response.allow_screenshots.toString()
+        if (response.jwt) {
+            process.env.BS_TESTOPS_JWT = response.jwt
+        }
+        if (response.build_hashed_id) {
+            process.env.BS_TESTOPS_BUILD_HASHED_ID = response.build_hashed_id
+        }
+        if (response.allow_screenshots) {
+            process.env.BS_TESTOPS_ALLOW_SCREENSHOTS = response.allow_screenshots.toString()
+        }
     } catch (error) {
-        if (error instanceof HTTPError && error.response && error.response.statusCode == 401) {
+        if (error instanceof HTTPError && error.response && error.response.statusCode === 401) {
             log.debug('Data upload to BrowserStack Test Observability failed either due to incorrect credentials or an unsupported SDK version or because you do not have access to the product.')
         } else {
             log.debug(`[Start_Build] Failed. Error: ${error}`)
@@ -182,7 +189,7 @@ export async function stopBuildUpstream () {
 }
 
 export function getCiInfo () {
-    var env = process.env
+    const env = process.env
     // Jenkins
     if ((typeof env.JENKINS_URL === 'string' && env.JENKINS_URL.length > 0) || (typeof env.JENKINS_HOME === 'string' && env.JENKINS_HOME.length > 0)) {
         return {
@@ -278,10 +285,12 @@ export function getCiInfo () {
 }
 
 export async function getGitMetaData () {
-    var info: GitRepoInfo = gitRepoInfo()
-    if (!info.commonGitDir) return {}
+    const info: GitRepoInfo = gitRepoInfo()
+    if (!info.commonGitDir) {
+        return {}
+    }
     const { remote } = await pGitconfig(info.commonGitDir)
-    const remotes = Object.keys(remote).map(remoteName =>  ({ name: remoteName, url: remote[remoteName]['url'] }))
+    const remotes = Object.keys(remote).map(remoteName =>  ({ name: remoteName, url: remote[remoteName].url }))
     return {
         name: 'git',
         sha: info.sha,
@@ -321,14 +330,16 @@ export function isBrowserstackSession(browser?: Browser<'async'> | MultiRemoteBr
     if (!browser) {
         return false
     }
-    return getCloudProvider(browser).toLowerCase() == 'browserstack'
+    return getCloudProvider(browser).toLowerCase() === 'browserstack'
 }
 
 export function getScenarioExamples(world: ITestCaseHookParameter) {
     const scenario = world.pickle
 
     // no examples present
-    if ((scenario.astNodeIds && scenario.astNodeIds.length <= 1) || scenario.astNodeIds == undefined) return
+    if ((scenario.astNodeIds && scenario.astNodeIds.length <= 1) || scenario.astNodeIds === undefined) {
+        return
+    }
 
     const pickleId: string = scenario.astNodeIds[0]
     const examplesId: string = scenario.astNodeIds[1]
@@ -340,19 +351,25 @@ export function getScenarioExamples(world: ITestCaseHookParameter) {
         if (child.rule) {
             // handle if rule is present
             child.rule.children.forEach(childLevel2 => {
-                if (childLevel2.scenario && childLevel2.scenario.id == pickleId && childLevel2.scenario.examples) {
-                    const passedExamples = childLevel2.scenario.examples.flatMap((val) => (val.tableBody)).find((item) => item.id == examplesId)?.cells.map((val) => (val.value))
-                    if (passedExamples) examples = passedExamples
+                if (childLevel2.scenario && childLevel2.scenario.id === pickleId && childLevel2.scenario.examples) {
+                    const passedExamples = childLevel2.scenario.examples.flatMap((val) => (val.tableBody)).find((item) => item.id === examplesId)?.cells.map((val) => (val.value))
+                    if (passedExamples) {
+                        examples = passedExamples
+                    }
                 }
             })
-        } else if (child.scenario && child.scenario.id == pickleId && child.scenario.examples) {
+        } else if (child.scenario && child.scenario.id === pickleId && child.scenario.examples) {
             // handle if scenario outside rule
-            const passedExamples = child.scenario.examples.flatMap((val) => (val.tableBody)).find((item) => item.id == examplesId)?.cells.map((val) => (val.value))
-            if (passedExamples) examples = passedExamples
+            const passedExamples = child.scenario.examples.flatMap((val) => (val.tableBody)).find((item) => item.id === examplesId)?.cells.map((val) => (val.value))
+            if (passedExamples) {
+                examples = passedExamples
+            }
         }
     })
 
-    if (examples.length) return examples
+    if (examples.length) {
+        return examples
+    }
     return
 }
 
@@ -363,13 +380,13 @@ export function removeAnsiColors(message: string): string {
 }
 
 export function getLogTag(eventType: string): string {
-    if (eventType == 'TestRunStarted' || eventType == 'TestRunFinished') {
+    if (eventType === 'TestRunStarted' || eventType === 'TestRunFinished') {
         return 'Test_Upload'
-    } else if (eventType == 'HookRunStarted' || eventType == 'HookRunFinished') {
+    } else if (eventType === 'HookRunStarted' || eventType === 'HookRunFinished') {
         return 'Hook_Upload'
-    } else if (eventType == 'ScreenshotCreated') {
+    } else if (eventType === 'ScreenshotCreated') {
         return 'Screenshot_Upload'
-    } else if (eventType == 'LogCreated') {
+    } else if (eventType === 'LogCreated') {
         return 'Log_Upload'
     }
     return 'undefined'
@@ -381,7 +398,9 @@ export async function uploadEventData (eventData: UploadType | Array<UploadType>
         logTag = getLogTag(eventData.event_type)
     }
 
-    if (eventUrl == DATA_SCREENSHOT_ENDPOINT) logTag = 'screenshot_upload'
+    if (eventUrl === DATA_SCREENSHOT_ENDPOINT) {
+        logTag = 'screenshot_upload'
+    }
 
     if (!process.env.BS_TESTOPS_BUILD_COMPLETED) {
         return
@@ -416,7 +435,9 @@ export async function uploadEventData (eventData: UploadType | Array<UploadType>
 
 // get hierarchy for a particular test (called by reporter for skipped tests)
 export function getHierarchy(fullTitle?: string) {
-    if (!fullTitle) return []
+    if (!fullTitle) {
+        return []
+    }
     return fullTitle.split('.').slice(0, -1)
 }
 
@@ -438,7 +459,7 @@ export function isScreenshotCommand (args: BeforeCommandArgs & AfterCommandArgs)
 }
 
 export function shouldAddServiceVersion(config: Options.Testrunner, testObservability?: boolean): boolean {
-    if (config.services && config.services.toString().includes('chromedriver') && testObservability != false) {
+    if (config.services && config.services.toString().includes('chromedriver') && testObservability !== false) {
         return false
     }
     return true

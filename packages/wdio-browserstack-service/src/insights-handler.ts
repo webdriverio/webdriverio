@@ -53,7 +53,9 @@ export default class InsightsHandler {
             startedAt: (new Date()).toISOString()
         }
         this.attachHookData(context, hookId)
-        if (this._framework == 'mocha') await this.sendTestRunEvent(test, 'HookRunStarted')
+        if (this._framework === 'mocha') {
+            await this.sendTestRunEvent(test, 'HookRunStarted')
+        }
     }
 
     async afterHook (test: Frameworks.Test, result: Frameworks.TestResult) {
@@ -65,7 +67,9 @@ export default class InsightsHandler {
                 finishedAt: (new Date()).toISOString()
             }
         }
-        if (this._framework == 'mocha') await this.sendTestRunEvent(test, 'HookRunFinished', result)
+        if (this._framework === 'mocha') {
+            await this.sendTestRunEvent(test, 'HookRunFinished', result)
+        }
     }
 
     async beforeTest (test: Frameworks.Test) {
@@ -97,7 +101,7 @@ export default class InsightsHandler {
 
         const uniqueId = getUniqueIdentifierForCucumber(world)
 
-        let testMetaData: TestMeta = {
+        const testMetaData: TestMeta = {
             uuid: uuidv4(),
             startedAt: (new Date()).toISOString()
         }
@@ -168,7 +172,7 @@ export default class InsightsHandler {
                 failure: result.error ? removeAnsiColors(result.error) : result.error
             }]
         }
-        const stepDetails = testMetaData.steps?.find(item => item.id == step.id)
+        const stepDetails = testMetaData.steps?.find(item => item.id === step.id)
         if (stepDetails) {
             stepDetails.finished_at = (new Date()).toISOString()
             stepDetails.result = result.passed ? 'PASSED' : 'FAILED'
@@ -302,14 +306,14 @@ export default class InsightsHandler {
             framework: this._framework
         }
 
-        if ((eventType == 'TestRunFinished' || eventType == 'HookRunFinished') && results) {
+        if ((eventType === 'TestRunFinished' || eventType === 'HookRunFinished') && results) {
             const { error, passed } = results
             if (!passed) {
                 testData.result = (error && error.message && error.message.includes('sync skip; aborting execution')) ? 'ignore' : 'failed'
-                if (error && testData.result != 'skipped') {
+                if (error && testData.result !== 'skipped') {
                     testData.failure = [{ backtrace: [removeAnsiColors(error.message)] }] // add all errors here
                     testData.failure_reason = removeAnsiColors(error.message)
-                    testData.failure_type = error.message == null ? null : error.message.toString().match(/AssertionError/) ? 'AssertionError' : 'UnhandledError' //verify if this is working
+                    testData.failure_type = error.message === null ? null : error.message.toString().match(/AssertionError/) ? 'AssertionError' : 'UnhandledError' //verify if this is working
                 }
             } else {
                 testData.result = 'passed'
@@ -322,7 +326,7 @@ export default class InsightsHandler {
             }
         }
 
-        if (eventType == 'TestRunStarted') {
+        if (eventType === 'TestRunStarted') {
             testData.integrations = {}
             if (this._browser && this._platformMeta) {
                 const provider = getCloudProvider(this._browser)
@@ -359,7 +363,7 @@ export default class InsightsHandler {
             fullNameWithExamples = world.pickle.name + ' (' + examples.join(', ')  + ')'
         }
 
-        let testData: TestData = {
+        const testData: TestData = {
             uuid: uuid,
             started_at: startedAt,
             finished_at: finishedAt,
@@ -385,7 +389,7 @@ export default class InsightsHandler {
             }
         }
 
-        if (eventType == 'TestRunStarted') {
+        if (eventType === 'TestRunStarted') {
             testData.integrations = {}
             if (this._browser && this._platformMeta) {
                 const provider = getCloudProvider(this._browser)
