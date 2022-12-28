@@ -21,6 +21,21 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.0.15 (2022-12-28)
+
+#### :house: Internal
+* Other
+  * [#9476](https://github.com/webdriverio/webdriverio/pull/9476) ci: install package devDependencies ([@SCG82](https://github.com/SCG82))
+* `wdio-cli`
+  * [#9394](https://github.com/webdriverio/webdriverio/pull/9394) @wdio/cli: refactor ([@SCG82](https://github.com/SCG82))
+* `devtools`, `wdio-protocols`, `webdriver`, `webdriverio`
+  * [#9474](https://github.com/webdriverio/webdriverio/pull/9474) Add extension to type imports for nodenext module resolution ([@kyryloonufriiev](https://github.com/kyryloonufriiev))
+
+#### Committers: 2
+- Kyrylo ([@kyryloonufriiev](https://github.com/kyryloonufriiev))
+- [@SCG82](https://github.com/SCG82)
+
+
 ## v8.0.14 (2022-12-28)
 
 #### :bug: Bug Fix
