@@ -58,10 +58,11 @@ export default function isElementDisplayed (element: Element): boolean {
             let node: ParentNode = targetNode;
             node && node !== (targetNode as Node).ownerDocument;
             node = (node as HTMLElement).parentNode as ParentNode
-        )
+        ) {
             if (predicate(node)) {
                 return node
             }
+        }
 
         return null
     }
@@ -71,10 +72,11 @@ export default function isElementDisplayed (element: Element): boolean {
             let element: HTMLElement | ParentNode = targetElement;
             element && element !== targetElement.ownerDocument;
             element = parentElementForElement(element as HTMLElement) as HTMLElement
-        )
+        ) {
             if (predicate(element)) {
                 return element
             }
+        }
 
         return null
     }

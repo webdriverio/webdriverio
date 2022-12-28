@@ -433,7 +433,9 @@ export default class SauceService implements Services.ServiceInstance {
     }
 
     private async _setJobName(suiteTitle: string | undefined) {
-        if (!suiteTitle) return
+        if (!suiteTitle) {
+            return
+        }
         let jobName = suiteTitle
         if (this._options.setJobName) {
             jobName = this._options.setJobName(

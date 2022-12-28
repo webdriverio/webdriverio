@@ -271,7 +271,9 @@ export default class CucumberReporter {
     getTitle (featureOrScenario: Feature | Pickle) {
         const name = featureOrScenario.name
         const tags = featureOrScenario.tags
-        if (!this._tagsInTitle || !tags || !tags.length) return name
+        if (!this._tagsInTitle || !tags || !tags.length) {
+            return name
+        }
         return `${tags.map((tag: PickleTag | Tag) => tag.name).join(', ')}: ${name}`
     }
 }

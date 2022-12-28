@@ -7,7 +7,9 @@ const STRINGLIMIT = 1000
 const STRINGTRUNCATE = 200
 
 export const limit = function (rawVal?: any) {
-    if (!rawVal) return rawVal
+    if (!rawVal) {
+        return rawVal
+    }
 
     // Ensure we're working with a copy
     let val = JSON.parse(stringify(rawVal))

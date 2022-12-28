@@ -169,7 +169,9 @@ class MochaAdapter {
          * For some reason, Mocha fires a second 'suite:end' event for the root suite,
          * with no matching 'suite:start', so this can be ignored.
          */
-        if (payload.root) return
+        if (payload.root) {
+            return
+        }
 
         const message = formatMessage({ type: event, payload, err })
 

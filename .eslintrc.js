@@ -35,6 +35,7 @@ module.exports = {
         }],
         'no-var': 'error',
         'unicode-bom': ['error', 'never'],
+        'curly': ['error', 'all'],
         'object-curly-spacing': ['error', 'always'],
         'keyword-spacing':['error'],
         'require-atomic-updates': 0,

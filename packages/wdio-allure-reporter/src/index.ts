@@ -389,11 +389,9 @@ class AllureReporter extends WDIOReporter {
 
         // set beforeEach / afterEach hook (step) status
         if (this._options.disableMochaHooks && isMochaEachHooks(hook.title)) {
-            if (hook.error) {
-                this._allure.endStep('failed')
-            } else {
-                this._allure.endStep('passed')
-            }
+            hook.error
+                ? this._allure.endStep('failed')
+                : this._allure.endStep('passed')
             return
         }
 
@@ -404,26 +402,29 @@ class AllureReporter extends WDIOReporter {
                 this.attachScreenshot()
             }
             this.onTestFail(hook)
-        } else if (this._options.disableMochaHooks || this._options.useCucumberStepReporter) {
-            if (!isMochaAllHooks(hook.title)) {
-                this.onTestPass()
+        } else if (
+            (this._options.disableMochaHooks || this._options.useCucumberStepReporter) &&
+            !isMochaAllHooks(hook.title)
+        ) {
+            this.onTestPass()
 
-                // remove hook from suite if it has no steps
-                if (this._allure.getCurrentTest().steps.length === 0 && !this._options.useCucumberStepReporter) {
-                    this._allure.getCurrentSuite().testcases.pop()
-                } else if (this._options.useCucumberStepReporter) {
-                    // remove hook when it's registered as a step and if it's passed
-                    const step = this._allure.getCurrentTest().steps.pop()
+            // remove hook from suite if it has no steps
+            if (this._allure.getCurrentTest().steps.length === 0 && !this._options.useCucumberStepReporter) {
+                this._allure.getCurrentSuite().testcases.pop()
+            } else if (this._options.useCucumberStepReporter) {
+                // remove hook when it's registered as a step and if it's passed
+                const step = this._allure.getCurrentTest().steps.pop()
 
-                    // if it had any attachments, reattach them to current test
-                    if (step && step.attachments.length >= 1) {
-                        step.attachments.forEach((attachment: any) => {
-                            this._allure.getCurrentTest().addAttachment(attachment)
-                        })
-                    }
+                // if it had any attachments, reattach them to current test
+                if (step && step.attachments.length >= 1) {
+                    step.attachments.forEach((attachment: any) => {
+                        this._allure.getCurrentTest().addAttachment(attachment)
+                    })
                 }
             }
-        } else if (!this._options.disableMochaHooks) this.onTestPass()
+        } else if (!this._options.disableMochaHooks) {
+            this.onTestPass()
+        }
     }
 
     addLabel({

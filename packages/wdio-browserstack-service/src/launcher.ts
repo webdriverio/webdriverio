@@ -179,8 +179,12 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         log.info(`uploading app ${app.app} ${app.customId? `and custom_id: ${app.customId}` : ''} to browserstack`)
 
         const form = new FormData()
-        if (app.app) form.append('file', fs.createReadStream(app.app))
-        if (app.customId) form.append('custom_id', app.customId)
+        if (app.app) {
+            form.append('file', fs.createReadStream(app.app))
+        }
+        if (app.customId) {
+            form.append('custom_id', app.customId)
+        }
 
         const res = await got.post('https://api-cloud.browserstack.com/app-automate/upload', {
             body: form,

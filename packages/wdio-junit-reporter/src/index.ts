@@ -212,7 +212,9 @@ class JunitReporter extends WDIOReporter {
             }
 
             const output = this._getStandardOutput(test)
-            if (output) testCase.standardOutput(`\n${output}\n`)
+            if (output) {
+                testCase.standardOutput(`\n${output}\n`)
+            }
         }
         return builder
     }

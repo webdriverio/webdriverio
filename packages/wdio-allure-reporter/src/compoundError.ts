@@ -11,10 +11,10 @@ export default class CompoundError extends Error {
 
     constructor(...innerErrors: Error[]) {
         const message = ['CompoundError: One or more errors occurred. ---\n'].
-            concat(innerErrors.map(x => {
-                if (x.stack) return `${indentAll(x.stack)}\n--- End of stack trace ---\n`
-                return `   ${x.message}\n--- End of error message ---\n`
-            })).join('\n')
+            concat(innerErrors.map(x => x.stack
+                ? `${indentAll(x.stack)}\n--- End of stack trace ---\n`
+                : `   ${x.message}\n--- End of error message ---\n`
+            )).join('\n')
 
         super(message)
         this.innerErrors = innerErrors

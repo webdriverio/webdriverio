@@ -34,8 +34,9 @@ const defineStrategy = function (selector: SelectorStrategy) {
     // an error like "selector.match is not a function"
     // Use '-android datamatcher' or '-android viewmatcher' strategy if selector is a plain object (Android only)
     if (typeof selector === 'object') {
-        if (JSON.stringify(selector).indexOf('test.espresso.matcher.ViewMatchers') < 0)
+        if (JSON.stringify(selector).indexOf('test.espresso.matcher.ViewMatchers') < 0) {
             return '-android datamatcher'
+        }
         return '-android viewmatcher'
     }
 
