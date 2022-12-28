@@ -20,8 +20,19 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "type": "module",
-  "exports": "./build/index.js",
+  "main": "./cjs/common/api.js",
+  "module": "./build/index.js",
   "types": "./build/index.d.ts",
+  "exports": {
+    ".": [
+      {
+        "types": "./build/index.d.ts",
+        "import": "./build/index.js",
+        "require": "./cjs/common/api.js"
+      },
+      "./cjs/common/api.js"
+    ]
+  },
   "typeScriptVersion": "3.8.3",
   "engines": {
     "node": "^16.13 || >=18"

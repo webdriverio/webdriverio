@@ -1,9 +1,8 @@
-import { describe, it, expect, afterEach, beforeAll, afterAll, vi } from 'vitest'
+import { describe, it, expect, afterEach, beforeAll, vi } from 'vitest'
 import process from 'node:process'
 import CompoundError from '../src/compoundError.js'
 import {
-    getTestStatus, isEmpty, tellReporter, isMochaEachHooks,
-    getErrorFromFailedTest, isMochaAllHooks, getLinkByTemplate
+    getTestStatus, isEmpty, isMochaEachHooks, getErrorFromFailedTest, isMochaAllHooks, getLinkByTemplate
 } from '../src/utils.js'
 import { linkPlaceholder, testStatuses } from '../src/constants.js'
 
@@ -14,7 +13,7 @@ describe('utils', () => {
         process.emit = vi.fn() as any
     })
 
-    afterAll(() => {
+    afterEach(() => {
         process.emit = processEmit
     })
 
@@ -88,24 +87,6 @@ describe('utils', () => {
             expect(isMochaAllHooks('"after all" hook')).toEqual(true)
             expect(isMochaAllHooks('"before each" hook')).toEqual(false)
             expect(isMochaAllHooks('"after each" hook')).toEqual(false)
-        })
-    })
-
-    describe('tellReporter', () => {
-        afterEach(() => {
-            vi.mocked(process.emit).mockClear()
-        })
-
-        it('should accept message', () => {
-            tellReporter('foo', { bar: 'baz' })
-            expect(process.emit).toHaveBeenCalledTimes(1)
-            expect(process.emit).toHaveBeenCalledWith('foo', { bar: 'baz' })
-        })
-
-        it('should accept no message', () => {
-            tellReporter('foo')
-            expect(process.emit).toHaveBeenCalledTimes(1)
-            expect(process.emit).toHaveBeenCalledWith('foo', {})
         })
     })
 

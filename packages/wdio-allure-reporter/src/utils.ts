@@ -1,11 +1,10 @@
-import process from 'node:process'
 import stripAnsi from 'strip-ansi'
 import type { HookStats, TestStats } from '@wdio/reporter'
 import type { Options } from '@wdio/types'
 
 import CompoundError from './compoundError.js'
 import { mochaEachHooks, mochaAllHooks, linkPlaceholder } from './constants.js'
-import type AllureReporter from './index.js'
+import type AllureReporter from './reporter.js'
 import type { Status } from './types'
 
 /**
@@ -55,17 +54,6 @@ export const isMochaEachHooks = (title: string) => mochaEachHooks.some(hook => t
  * @private
  */
 export const isMochaAllHooks = (title: string) => mochaAllHooks.some(hook => title.includes(hook))
-
-/**
- * Call reporter
- * @param {string} event  - event name
- * @param {Object} msg - event payload
- * @private
- */
-export const tellReporter = (event: string, msg: any = {}) => {
-    // Node 14 typings does not accept string in process.emit, but allow string in process.on
-    process.emit(event as any, msg)
-}
 
 /**
  * Properly format error from different test runners

@@ -1,7 +1,7 @@
 import path from 'node:path'
 import { describe, it, expect, beforeEach, vi, beforeAll, afterAll } from 'vitest'
 import type { CommandArgs, SuiteStats, TestStats } from '@wdio/reporter'
-import AllureReporter from '../src/index.js'
+import AllureReporter from '../src/reporter.js'
 import { linkPlaceholder } from '../src/constants.js'
 import { TYPE } from '../src/types.js'
 

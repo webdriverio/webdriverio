@@ -39,6 +39,7 @@ const ROOT_PACKAGES = [
 
 const BUILD_CJS = [
     'wdio-globals',
+    'wdio-allure-reporter',
     'eslint-plugin-wdio',
 ]
 

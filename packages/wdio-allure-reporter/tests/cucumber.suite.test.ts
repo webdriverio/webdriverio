@@ -10,7 +10,7 @@ import { temporaryDirectory } from 'tempy'
 // eslint-disable-next-line
 import { clean, getResults } from './helpers/wdio-allure-helper'
 
-import AllureReporter from '../src/index.js'
+import AllureReporter from '../src/reporter.js'
 import { runnerEnd, runnerStart } from './__fixtures__/runner.js'
 import * as cucumberHelper from './__fixtures__/cucumber.js'
 import * as attachmentHelper from './__fixtures__/attachment.js'

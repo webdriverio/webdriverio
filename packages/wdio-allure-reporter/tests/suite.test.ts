@@ -3,7 +3,7 @@ import { log } from 'node:console'
 import { describe, it, expect, afterEach, beforeEach, beforeAll, afterAll, vi } from 'vitest'
 import { temporaryDirectory } from 'tempy'
 
-import AllureReporter from '../src/index.js'
+import AllureReporter from '../src/reporter.js'
 import { TYPE } from '../src/types.js'
 
 /**
