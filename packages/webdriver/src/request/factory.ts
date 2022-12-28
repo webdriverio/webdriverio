@@ -1,6 +1,6 @@
 import type { URL as URLType } from 'node:url'
-import type NodeJSRequest from './node'
-import type BrowserRequest from './browser'
+import type NodeJSRequest from './node.js'
+import type BrowserRequest from './browser.js'
 
 import type WebDriverRequest from './index.js'
 

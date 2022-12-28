@@ -7,7 +7,7 @@ import type { ElementReference } from '@wdio/protocols'
 import { enhanceElementsArray } from '../../utils/index.js'
 import { getElements } from '../../utils/getElementObject.js'
 import { waitToLoadReact, react$$ as react$$Script } from '../../scripts/resq.js'
-import type { ReactSelectorOptions, ElementArray } from '../../types'
+import type { ReactSelectorOptions, ElementArray } from '../../types.js'
 
 let resqScript: string
 

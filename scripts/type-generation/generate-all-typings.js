@@ -94,7 +94,7 @@ for (const [protocolName, definition] of Object.entries(PROTOCOLS)) {
      * import missing protocol types
      */
     if (customTypes.size) {
-        lines.unshift(`import type { ${[...customTypes].join(', ')} } from '../types'`)
+        lines.unshift(`import type { ${[...customTypes].join(', ')} } from '../types.js'`)
     }
 
     lines.push('}')

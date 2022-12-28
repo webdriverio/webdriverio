@@ -2,8 +2,8 @@ import minimatch from 'minimatch'
 
 import Timer from '../Timer.js'
 
-import type { WaitForOptions } from '../../types'
-import type { MockFilterOptions, MockOverwrite, MockResponseParams, Matches } from './types'
+import type { WaitForOptions } from '../../types.js'
+import type { MockFilterOptions, MockOverwrite, MockResponseParams, Matches } from './types.js'
 
 import type Protocol from 'devtools-protocol'
 

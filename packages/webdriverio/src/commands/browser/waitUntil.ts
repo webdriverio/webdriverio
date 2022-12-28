@@ -1,5 +1,5 @@
 import Timer from '../../utils/Timer.js'
-import type { WaitUntilOptions } from '../../types'
+import type { WaitUntilOptions } from '../../types.js'
 
 /**
  *

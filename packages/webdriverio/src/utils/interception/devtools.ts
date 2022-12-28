@@ -1,11 +1,11 @@
 import fs from 'node:fs/promises'
 import path from 'node:path'
 import logger from '@wdio/logger'
-import type { CDPSession } from 'puppeteer-core/lib/cjs/puppeteer/common/Connection'
+import type { CDPSession } from 'puppeteer-core/lib/cjs/puppeteer/common/Connection.js'
 import type Protocol from 'devtools-protocol'
 
 import Interception from './index.js'
-import type { Matches, MockOverwrite, MockResponseParams } from './types'
+import type { Matches, MockOverwrite, MockResponseParams } from './types.js'
 import { containsHeaderObject } from '../index.js'
 import { ERROR_REASON } from '../../constants.js'
 

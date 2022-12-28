@@ -1,7 +1,7 @@
 import { sleep } from '@wdio/utils'
 
 import newWindowHelper from '../../scripts/newWindow.js'
-import type { NewWindowOptions } from '../../types'
+import type { NewWindowOptions } from '../../types.js'
 
 const WAIT_FOR_NEW_HANDLE_TIMEOUT = 3000
 
