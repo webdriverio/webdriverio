@@ -38,7 +38,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
         this._observability = this._options.testObservability
 
         if (this._observability) {
-            this._config.reporters ? this._config.reporters.push(path.join(__dirname, 'reporter.js')) : [path.join(__dirname, 'reporter.js')]
+            this._config.reporters.push(path.join(__dirname, 'reporter.js'))
         }
 
         // Cucumber specific
