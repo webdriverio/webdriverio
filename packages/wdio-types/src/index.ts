@@ -1,10 +1,10 @@
-import type * as Capabilities from './Capabilities'
-import type * as Clients from './Clients'
-import type * as Options from './Options'
-import type * as Services from './Services'
-import type * as Reporters from './Reporters'
-import type * as Frameworks from './Frameworks'
-import type * as Workers from './Workers'
+import type * as Capabilities from './Capabilities.js'
+import type * as Clients from './Clients.js'
+import type * as Options from './Options.js'
+import type * as Services from './Services.js'
+import type * as Reporters from './Reporters.js'
+import type * as Frameworks from './Frameworks.js'
+import type * as Workers from './Workers.js'
 
 export type { Capabilities, Clients, Options, Services, Frameworks, Reporters, Workers }
 
@@ -32,7 +32,7 @@ declare global {
     }
 
     namespace WebDriver {
-        type Capabilities = Capabilities.Capabilities
-        type DesiredCapabilities = Capabilities.DesiredCapabilities
+        interface Capabilities extends Capabilities.Capabilities {}
+        interface DesiredCapabilities extends Capabilities.DesiredCapabilities {}
     }
 }
