@@ -65,12 +65,12 @@ export const remote = async function (params: RemoteOptions, remoteModifier?: Fu
      * we need to overwrite the original addCommand and overwriteCommand
      */
     if ((params as Options.Testrunner).framework && !isStub(automationProtocol)) {
-        const origAddCommand = instance.addCommand.bind(instance)
+        const origAddCommand = instance.addCommand.bind(instance) as typeof instance.addCommand
         instance.addCommand = (name: string, fn: (...args: any[]) => any, attachToElement) => (
             origAddCommand(name, fn, attachToElement)
         )
 
-        const origOverwriteCommand = instance.overwriteCommand.bind(instance)
+        const origOverwriteCommand = instance.overwriteCommand.bind(instance) as typeof instance.overwriteCommand
         instance.overwriteCommand = (name: string, fn: (...args: any[]) => any, attachToElement) => (
             origOverwriteCommand<keyof typeof elementCommands, any, any>(name, fn, attachToElement)
         )
@@ -168,7 +168,7 @@ export const multiremote = async function (
             )
         }
 
-        const origOverwriteCommand = driver.overwriteCommand.bind(driver)
+        const origOverwriteCommand = driver.overwriteCommand.bind(driver) as typeof driver.overwriteCommand
         driver.overwriteCommand = (name: string, fn: (...args: any[]) => any, attachToElement) => {
             return origOverwriteCommand<keyof typeof elementCommands, any, any>(
                 name,
