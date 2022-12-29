@@ -2,6 +2,7 @@
   "extends": "@tsconfig/node18/tsconfig.json",
 
   "compilerOptions": {
+    "outDir": "./build",
     "allowJs": true,
     "declaration": true,
     "declarationMap": true,
