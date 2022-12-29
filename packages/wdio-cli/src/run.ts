@@ -61,31 +61,26 @@ export default async function run() {
         .readdirSync(commandDir)
         .map((file) => file.slice(0, -3))
 
-    if (!params._ || params._.find((param: string) => supportedCommands.includes(param))) {
-        return
-    }
-
-    const args: RunCommandArguments = {
-        ...params,
-        configPath: path.resolve(process.cwd(), params._[0] && params._[0].toString() || DEFAULT_CONFIG_FILENAME)
-    }
-
-    try {
-        const cp = await handler(args)
-        return cp
-    } catch (err: any) {
-        const output = await new Promise((resolve) => (
-            yargs(hideBin(process.argv)).parse('--help', (
-                err: Error,
-                argv: Record<string, any>,
-                output: string
-            ) => resolve(output)))
-        )
-
-        console.error(`${output}\n\n${err.stack}`)
-        /* istanbul ignore if */
-        if (!process.env.VITEST_WORKER_ID) {
-            process.exit(1)
+    if (params._ && !params._.find((param: string) => supportedCommands.includes(param))) {
+        const args: RunCommandArguments = {
+            ...params,
+            configPath: path.resolve(process.cwd(), params._[0] && params._[0].toString() || DEFAULT_CONFIG_FILENAME)
         }
+
+        return handler(args).catch(async (err) => {
+            const output = await new Promise((resolve) => (
+                yargs(hideBin(process.argv)).parse('--help', (
+                    err: Error,
+                    argv: Record<string, any>,
+                    output: string
+                ) => resolve(output)))
+            )
+
+            console.error(`${output}\n\n${err.stack}`)
+            /* istanbul ignore if */
+            if (!process.env.VITEST_WORKER_ID) {
+                process.exit(1)
+            }
+        })
     }
 }
