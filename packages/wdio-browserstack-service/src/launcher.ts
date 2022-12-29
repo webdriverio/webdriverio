@@ -4,17 +4,17 @@ import fs from 'fs'
 import path from 'path'
 import { promisify } from 'util'
 import { performance, PerformanceObserver } from 'perf_hooks'
-import { SevereServiceError } from 'webdriverio'
 
+import { SevereServiceError } from 'webdriverio'
 import * as BrowserstackLocalLauncher from 'browserstack-local'
 import logger from '@wdio/logger'
 import type { Capabilities, Services, Options } from '@wdio/types'
-import { App, AppConfig, AppUploadResponse } from './types'
 
 // @ts-ignore
 import { version as bstackServiceVersion } from '../package.json'
-import { BrowserstackConfig } from './types'
+import type { App, AppConfig, AppUploadResponse, BrowserstackConfig } from './types'
 import { VALID_APP_EXTENSION } from './constants'
+import { launchTestSession, shouldAddServiceVersion, stopBuildUpstream } from './util'
 
 const log = logger('@wdio/browserstack-service')
 
@@ -25,6 +25,9 @@ type BrowserstackLocal = BrowserstackLocalLauncher.Local & {
 
 export default class BrowserstackLauncherService implements Services.ServiceInstance {
     browserstackLocal?: BrowserstackLocal
+    private _buildName?: string
+    private _projectName?: string
+    private _buildTag?: string
 
     constructor (
         private _options: BrowserstackConfig & Options.Testrunner,
@@ -39,11 +42,14 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                     const extensionCaps = Object.keys(capability).filter((cap) => cap.includes(':'))
                     if (extensionCaps.length) {
                         capability['bstack:options'] = { wdioService: bstackServiceVersion }
-                    } else {
+                    } else if (shouldAddServiceVersion(this._config, this._options.testObservability)) {
                         capability['browserstack.wdioService'] = bstackServiceVersion
                     }
                 } else {
                     capability['bstack:options'].wdioService = bstackServiceVersion
+                    this._buildName = capability['bstack:options'].buildName
+                    this._projectName = capability['bstack:options'].projectName
+                    this._buildTag = capability['bstack:options'].buildTag
                 }
             })
         } else if (typeof capabilities === 'object') {
@@ -52,13 +58,27 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                     const extensionCaps = Object.keys(caps.capabilities).filter((cap) => cap.includes(':'))
                     if (extensionCaps.length) {
                         (caps.capabilities as Capabilities.Capabilities)['bstack:options'] = { wdioService: bstackServiceVersion }
-                    } else {
+                    } else if (shouldAddServiceVersion(this._config, this._options.testObservability)) {
                         (caps.capabilities as Capabilities.Capabilities)['browserstack.wdioService'] = bstackServiceVersion
                     }
                 } else {
-                    (caps.capabilities as Capabilities.Capabilities)['bstack:options']!.wdioService = bstackServiceVersion
+                    const bstackOptions = (caps.capabilities as Capabilities.Capabilities)['bstack:options']
+                    bstackOptions!.wdioService = bstackServiceVersion
+                    this._buildName = bstackOptions!.buildName
+                    this._projectName = bstackOptions!.projectName
+                    this._buildTag = bstackOptions!.buildTag
                 }
             })
+        }
+
+        // by default observability will be true unless specified as false
+        this._options.testObservability = this._options.testObservability == false ? false : true
+
+        if (this._options.testObservability &&
+            // update files to run if it's a rerun
+            process.env.BROWSERSTACK_RERUN && process.env.BROWSERSTACK_RERUN_TESTS
+        ) {
+            this._config.specs = process.env.BROWSERSTACK_RERUN_TESTS.split(',')
         }
     }
 
@@ -94,6 +114,17 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
 
             log.info(`Using app: ${app.app}`)
             this._updateCaps(capabilities, 'app', app.app)
+        }
+
+        if (this._options.testObservability) {
+            log.debug('Sending launch start event')
+
+            await launchTestSession(this._options, this._config, {
+                projectName: this._projectName,
+                buildName: this._buildName,
+                buildTag: this._buildTag,
+                bstackServiceVersion: bstackServiceVersion
+            })
         }
 
         if (!this._options.browserstackLocal) {
@@ -139,7 +170,15 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         })
     }
 
-    onComplete () {
+    async onComplete () {
+        if (this._options.testObservability) {
+            log.debug('Sending stop launch event')
+            await stopBuildUpstream()
+            if (process.env.BS_TESTOPS_BUILD_HASHED_ID) {
+                console.log(`\nVisit https://observability.browserstack.com/builds/${process.env.BS_TESTOPS_BUILD_HASHED_ID} to view build report, insights, and many more debugging information all at one place!\n`)
+            }
+        }
+
         if (!this.browserstackLocal || !this.browserstackLocal.isRunning()) {
             return
         }
@@ -185,7 +224,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             body: form,
             username : this._config.user,
             password : this._config.key
-        }).json().catch((err) => {
+        }).json().catch((err: any) => {
             throw new SevereServiceError(`app upload failed ${(err as Error).message}`)
         })
 
