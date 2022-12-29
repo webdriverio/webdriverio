@@ -386,11 +386,6 @@ describe('browserCommand', () => {
         expect(uploadEventDataSpy).toBeCalledTimes(0)
     })
 
-    // it('client:afterCommand', () => {
-    //     insightsHandler.browserCommand('client:afterCommand', { sessionId: 's', method: 'm', endpoint: 'e' }, {})
-    //     expect(uploadEventDataSpy).toBeCalledTimes(1)
-    // })
-
     it('client:afterCommand - test not defined', () => {
         insightsHandler.browserCommand('client:afterCommand', { sessionId: 's', method: 'm', endpoint: 'e', result: {} }, undefined)
         expect(uploadEventDataSpy).toBeCalledTimes(0)

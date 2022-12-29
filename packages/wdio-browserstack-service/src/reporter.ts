@@ -5,7 +5,7 @@ import type { Capabilities, Options } from '@wdio/types'
 
 import { v4 as uuidv4 } from 'uuid'
 
-import type { BrowserstackConfig, TestData } from './types'
+import type { BrowserstackConfig, TestData } from './types.js'
 import { getCloudProvider, uploadEventData, getHierarchy } from './util.js'
 import RequestQueueHandler from './request-handler.js'
 
@@ -21,9 +21,7 @@ export default class TestReporter extends WDIOReporter {
         this._capabilities = runnerStats.capabilities as Capabilities.Capabilities
         this._config = runnerStats.config as BrowserstackConfig & Options.Testrunner
         this._sessionId = runnerStats.sessionId
-        if (typeof this._config.testObservability !== 'undefined') {
-            this._observability = this._config.testObservability
-        }
+        this._observability = Boolean(this._config.testObservability)
     }
 
     onSuiteStart (suiteStats: SuiteStats) {

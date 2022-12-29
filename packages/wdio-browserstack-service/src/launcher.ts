@@ -12,7 +12,7 @@ import * as BrowserstackLocalLauncher from 'browserstack-local'
 import logger from '@wdio/logger'
 import type { Capabilities, Services, Options } from '@wdio/types'
 
-import type { BrowserstackConfig, App, AppConfig, AppUploadResponse } from './types'
+import type { BrowserstackConfig, App, AppConfig, AppUploadResponse } from './types.js'
 import { VALID_APP_EXTENSION } from './constants.js'
 import { launchTestSession, shouldAddServiceVersion, stopBuildUpstream } from './util.js'
 

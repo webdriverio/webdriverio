@@ -122,7 +122,9 @@ export interface BrowserstackConfig {
     setSessionStatus?: boolean
 }
 
-// Observability types
+/**
+ * Observability types
+ */
 
 export interface PlatformMeta {
     sessionId?: string,

@@ -7,8 +7,8 @@ import type { Services, Capabilities, Options, Frameworks } from '@wdio/types'
 import type { Browser, MultiRemoteBrowser } from 'webdriverio'
 
 import { getBrowserDescription, getBrowserCapabilities, isBrowserstackCapability, getParentSuiteName, isBrowserstackSession } from './util.js'
-import type { BrowserstackConfig, MultiRemoteAction, SessionResponse } from './types'
-import type { Pickle, Feature, ITestCaseHookParameter } from './cucumber-types'
+import type { BrowserstackConfig, MultiRemoteAction, SessionResponse } from './types.js'
+import type { Pickle, Feature, ITestCaseHookParameter } from './cucumber-types.js'
 import InsightsHandler from './insights-handler.js'
 import { DEFAULT_OPTIONS } from './constants.js'
 

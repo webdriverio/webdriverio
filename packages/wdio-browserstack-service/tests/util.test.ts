@@ -633,10 +633,10 @@ describe('getLogTag', () => {
 
 describe('getGitMetaData', () => {
 
-    it('return empty object', async () => {
+    it('return undefined', async () => {
         vi.mocked(gitRepoInfo).mockReturnValue({} as any)
         const result: any = await getGitMetaData()
-        expect(result).toEqual({})
+        expect(result).toEqual(undefined)
     })
 
     it('return non empty object', async () => {

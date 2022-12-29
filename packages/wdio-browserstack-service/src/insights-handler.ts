@@ -5,10 +5,10 @@ import type { Browser, MultiRemoteBrowser } from 'webdriverio'
 import type { BeforeCommandArgs, AfterCommandArgs } from '@wdio/reporter'
 
 import { v4 as uuidv4 } from 'uuid'
-import type { Pickle, ITestCaseHookParameter } from './cucumber-types'
+import type { Pickle, ITestCaseHookParameter } from './cucumber-types.js'
 
 import { getCloudProvider, getGitMetaData, getHookType, getScenarioExamples, getUniqueIdentifier, getUniqueIdentifierForCucumber, isBrowserstackSession, isScreenshotCommand, removeAnsiColors, sleep, uploadEventData } from './util.js'
-import type { TestData, TestMeta, PlatformMeta, UploadType } from './types'
+import type { TestData, TestMeta, PlatformMeta, UploadType } from './types.js'
 import RequestQueueHandler from './request-handler.js'
 import { DATA_SCREENSHOT_ENDPOINT, DEFAULT_WAIT_INTERVAL_FOR_PENDING_UPLOADS, DEFAULT_WAIT_TIMEOUT_FOR_PENDING_UPLOADS } from './constants.js'
 
@@ -16,7 +16,7 @@ export default class InsightsHandler {
 
     private _tests: Record<string, TestMeta> = {}
     private _hooks: Record<string, string[]> = {}
-    private _platformMeta?: PlatformMeta
+    private _platformMeta: PlatformMeta
     private _commands: Record<string, BeforeCommandArgs & AfterCommandArgs> = {}
     private _gitConfigPath?: string
     private _requestQueueHandler = RequestQueueHandler.getInstance()
@@ -36,7 +36,14 @@ export default class InsightsHandler {
 
     async before () {
         if (isBrowserstackSession(this._browser)) {
-            await this._browser.execute(`browserstack_executor: {"action": "annotate", "arguments": {"data": "ObservabilitySync:${Date.now()}","level": "debug"}}`)
+            // await this._browser.execute(`browserstack_executor: {"action": "annotate", "arguments": {"data": "ObservabilitySync:${Date.now()}","level": "debug"}}`)
+            await this._browser.execute(`browserstack_executor: ${JSON.stringify({
+                action: 'annotate',
+                arguments: {
+                    data: `ObservabilitySync:${Date.now()}`,
+                    level: 'debug'
+                }
+            })}`)
         }
 
         const gitMeta = await getGitMetaData()
@@ -121,7 +128,6 @@ export default class InsightsHandler {
         }
 
         this._tests[uniqueId] = testMetaData
-
         await this.sendTestRunEventForCucumber(world, 'TestRunStarted')
     }
 
@@ -131,12 +137,7 @@ export default class InsightsHandler {
 
     async beforeStep (step: Frameworks.PickleStep, scenario: Pickle) {
         const uniqueId = getUniqueIdentifierForCucumber({ pickle: scenario } as ITestCaseHookParameter)
-        let testMetaData = this._tests[uniqueId]
-        if (!testMetaData) {
-            testMetaData = {
-                steps: []
-            }
-        }
+        const testMetaData = this._tests[uniqueId] || { steps: [] }
 
         if (testMetaData && !testMetaData.steps) {
             testMetaData.steps = []
@@ -154,12 +155,7 @@ export default class InsightsHandler {
 
     async afterStep (step: Frameworks.PickleStep, scenario: Pickle, result: Frameworks.PickleResult) {
         const uniqueId = getUniqueIdentifierForCucumber({ pickle: scenario } as ITestCaseHookParameter)
-        let testMetaData = this._tests[uniqueId]
-        if (!testMetaData) {
-            testMetaData = {
-                steps: []
-            }
-        }
+        const testMetaData = this._tests[uniqueId] || { steps: [] }
 
         if (!testMetaData.steps) {
             testMetaData.steps = [{
@@ -205,8 +201,9 @@ export default class InsightsHandler {
      */
 
     async browserCommand (commandType: string, args: BeforeCommandArgs & AfterCommandArgs, test?: Frameworks.Test | ITestCaseHookParameter) {
+        const dataKey = `${args.sessionId}_${args.method}_${args.endpoint}`
         if (commandType === 'client:beforeCommand') {
-            this._commands[`${args.sessionId}_${args.method}_${args.endpoint}`] = args
+            this._commands[dataKey] = args
             return
         }
 
@@ -228,7 +225,6 @@ export default class InsightsHandler {
             }], DATA_SCREENSHOT_ENDPOINT)
         }
 
-        const dataKey = `${args.sessionId}_${args.method}_${args.endpoint}`
         const requestData = this._commands[dataKey]
 
         // log http request
@@ -347,7 +343,6 @@ export default class InsightsHandler {
         }
 
         const req = this._requestQueueHandler.add(uploadData)
-
         if (req.proceed && req.data) {
             await uploadEventData(req.data, req.url)
         }
@@ -357,11 +352,10 @@ export default class InsightsHandler {
         const uniqueId = getUniqueIdentifierForCucumber(world)
         const { feature, scenario, steps, uuid, startedAt, finishedAt } = this._tests[uniqueId] || {}
 
-        let fullNameWithExamples = world.pickle.name
         const examples = getScenarioExamples(world)
-        if (examples) {
-            fullNameWithExamples = world.pickle.name + ' (' + examples.join(', ')  + ')'
-        }
+        const fullNameWithExamples = examples
+            ? world.pickle.name + ' (' + examples.join(', ')  + ')'
+            : world.pickle.name
 
         const testData: TestData = {
             uuid: uuid,
@@ -432,7 +426,6 @@ export default class InsightsHandler {
         }
 
         const req = this._requestQueueHandler.add(uploadData)
-
         if (req.proceed && req.data) {
             await uploadEventData(req.data, req.url)
         }

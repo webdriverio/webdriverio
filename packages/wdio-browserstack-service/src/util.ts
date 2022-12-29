@@ -14,8 +14,8 @@ import type { GitRepoInfo } from 'git-repo-info'
 import gitRepoInfo from 'git-repo-info'
 import gitconfig from 'gitconfiglocal'
 
-import type { UserConfig, UploadType, LaunchResponse, BrowserstackConfig } from './types'
-import type { ITestCaseHookParameter } from './cucumber-types'
+import type { UserConfig, UploadType, LaunchResponse, BrowserstackConfig } from './types.js'
+import type { ITestCaseHookParameter } from './cucumber-types.js'
 import { BROWSER_DESCRIPTION, DATA_ENDPOINT, DATA_EVENT_ENDPOINT, DATA_SCREENSHOT_ENDPOINT } from './constants.js'
 import RequestQueueHandler from './request-handler.js'
 
@@ -287,7 +287,7 @@ export function getCiInfo () {
 export async function getGitMetaData () {
     const info: GitRepoInfo = gitRepoInfo()
     if (!info.commonGitDir) {
-        return {}
+        return
     }
     const { remote } = await pGitconfig(info.commonGitDir)
     const remotes = Object.keys(remote).map(remoteName =>  ({ name: remoteName, url: remote[remoteName].url }))
@@ -326,11 +326,8 @@ export function getCloudProvider(browser: Browser<'async'> | MultiRemoteBrowser<
     return 'unknown_grid'
 }
 
-export function isBrowserstackSession(browser?: Browser<'async'> | MultiRemoteBrowser<'async'>): boolean {
-    if (!browser) {
-        return false
-    }
-    return getCloudProvider(browser).toLowerCase() === 'browserstack'
+export function isBrowserstackSession(browser?: Browser<'async'> | MultiRemoteBrowser<'async'>) {
+    return browser && getCloudProvider(browser).toLowerCase() === 'browserstack'
 }
 
 export function getScenarioExamples(world: ITestCaseHookParameter) {
