@@ -19,6 +19,17 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.29.0 (2022-12-29)
+
+#### :nail_care: Polish
+* `wdio-browserstack-service`
+  * [#9471](https://github.com/webdriverio/webdriverio/pull/9471) update: mark session as failed if no specs ran v7 ([@Ankit098](https://github.com/Ankit098))
+
+#### Committers: 2
+- Ankit Singh ([@Ankit098](https://github.com/Ankit098))
+- Karan Nagpal ([@nagpalkaran95](https://github.com/nagpalkaran95))
+
+
 ## v7.28.0 (2022-12-15)
 
 #### :nail_care: Polish
