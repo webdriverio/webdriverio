@@ -51,10 +51,18 @@ export const config = {
 };
 ```
 
-If you want to use an existing Sauce Connect tunnel you only need to provide or the `tunnelIdentifier`, or if you are using a parent tunnel the `parentTunnel` into you capabilities like this:
+If you want to use an existing Sauce Connect tunnel you only need to provide a `tunnelIdentifier`, or if you are using a parent tunnel, include the `parentTunnel` in the capabilities like this:
 
-<!--DOCUSAURUS_CODE_TABS-->
-<!--Tunnel Identifier-->
+
+<Tabs
+  defaultValue="tunnelidentifier"
+  values={[
+    {label: 'Tunnel Identifier', value: 'tunnelidentifier'},
+    {label: 'Parent Tunnel', value: 'parenttunnel'}
+  ]
+}>
+<TabItem value="tunnelidentifier">
+
 ```js
 export const config = {
     // ...
@@ -75,7 +83,10 @@ export const config = {
     // ...
 };
 ```
-<!--Parent Tunnel-->
+
+</TabItem>
+<TabItem value="parenttunnel">
+
 ```js
 export const config = {
     // ...
@@ -97,7 +108,9 @@ export const config = {
     // ...
 };
 ```
-<!--END_DOCUSAURUS_CODE_TABS-->
+
+</TabItem>
+</Tabs>
 
 If you want to use the Real Device cloud pass the `testobject_api_key` in the capabilities like this:
 
