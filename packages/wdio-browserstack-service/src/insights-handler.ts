@@ -177,11 +177,10 @@ export default class InsightsHandler {
         this._tests[uniqueId] = testMetaData
     }
 
-    //@ts-ignore
     async uploadPending (
         waitTimeout = DEFAULT_WAIT_TIMEOUT_FOR_PENDING_UPLOADS,
         waitInterval = DEFAULT_WAIT_INTERVAL_FOR_PENDING_UPLOADS
-    ) {
+    ): Promise<unknown> {
         if (this._requestQueueHandler.pendingUploads <= 0 || waitTimeout <= 0) {
             return
         }
