@@ -29,7 +29,27 @@ export interface App {
     customId?: string
 }
 
+export interface TestObservabilityOptions {
+    buildName?: string,
+    projectName?: string,
+    buildTag?: string[],
+    user?: string,
+    key?: string
+}
+
 export interface BrowserstackConfig {
+    /**
+     * Set this to true to enable BrowserStack Test Observability which will collect test related data
+     * (name, hierarchy, status, error stack trace, file name and hierarchy), test commands, etc.
+     * and show all the data in a meaningful manner in BrowserStack Test Observability dashboards for faster test debugging and better insights.
+     * @default true
+     */
+    testObservability?: boolean;
+    /**
+     * Set the Test Observability related config options under this key.
+     * For e.g. buildName, projectName, BrowserStack access credentials, etc.
+     */
+    testObservabilityOptions?: TestObservabilityOptions;
     /**
      * Set this with app file path present locally on your device or
      * app hashed id returned after uploading app to BrowserStack or
@@ -100,4 +120,102 @@ export interface BrowserstackConfig {
      * @default true
      */
     setSessionStatus?: boolean
+}
+
+/**
+ * Observability types
+ */
+export interface PlatformMeta {
+    sessionId?: string,
+    browserName?: string,
+    browserVersion?: string,
+    platformName?: string,
+    caps?: Capabilities.Capabilities,
+    product?: string
+}
+
+export interface TestMeta {
+    uuid?: string,
+    startedAt?: string,
+    finishedAt?: string,
+    steps?: StepData[],
+    feature?: { name: string, path?: string, description: string | null },
+    scenario?: { name: string },
+    examples?: string[]
+}
+
+export interface TestData {
+    uuid?: string,
+    type?: string,
+    name?: string,
+    scope?: string,
+    scopes?: string[],
+    identifier?: string,
+    file_name?: string,
+    vc_filepath?: string,
+    location?: string,
+    started_at?: string,
+    finished_at?: string,
+    framework?: string,
+    body?: TestCodeBody,
+    result?: string,
+    failure?: Failure[],
+    failure_reason?: string,
+    failure_type?: string | null,
+    retries?: { limit: number, attempts: number },
+    duration_in_ms?: number,
+    integrations?: { [index: string]: IntegrationObject },
+    hook_type?: string,
+    hooks?: string[],
+    meta?: TestMeta,
+    tags?: string[]
+}
+
+export interface UserConfig {
+    buildName?: string,
+    projectName?: string,
+    buildTag?: string,
+    bstackServiceVersion?: string
+}
+
+export interface UploadType {
+    event_type: string,
+    hook_run?: TestData,
+    test_run?: TestData,
+    logs?: any[]
+}
+
+export interface LaunchResponse {
+    jwt: string,
+    build_hashed_id: string,
+    allow_screenshots?: boolean
+}
+
+interface IntegrationObject {
+    capabilities?: Capabilities.Capabilities,
+    session_id?: string
+    browser?: string
+    browser_version?: string
+    platform?: string
+    product?: string
+}
+
+interface TestCodeBody {
+    lang: string,
+    code?: string | null
+}
+
+interface StepData {
+    id?: string,
+    text?: string,
+    keyword?: string,
+    started_at?: string,
+    finished_at?: string,
+    result?: string,
+    duration?: number,
+    failure?: string
+}
+
+interface Failure {
+    backtrace: string[]
 }
