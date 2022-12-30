@@ -3,7 +3,10 @@ import { accessSync } from 'node:fs'
 import { readFile, writeFile } from 'node:fs/promises'
 import url from 'node:url'
 import path from 'node:path'
-import { execSync } from 'node:child_process'
+
+import chalk from 'chalk'
+import shell from 'shelljs'
+
 import { getSubPackages } from './utils/helpers.js'
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
@@ -37,12 +40,14 @@ const ROOT_PACKAGES = [
     'wdio-browser-runner'
 ]
 
-const BUILD_CJS = [
+const ESM_CJS_PACKAGES = [
     'eslint-plugin-wdio',
     'wdio-allure-reporter',
     'wdio-globals',
     'webdriver'
 ]
+
+const CJS_PACKAGES = ['wdio-smoke-test-cjs-service']
 
 const packages = getSubPackages()
     /**
@@ -87,24 +92,32 @@ const packages = getSubPackages()
      */
     .map((pkg) => `packages/${pkg}/${TSCONFIG_FILE}`)
 
-// shell.cd(path.join(__dirname, '..'))
+shell.cd(path.join(__dirname, '..'))
 
-/**
- * Add CJS compiling for packages in BUILD_CJS
- */
-BUILD_CJS.forEach((pkg) => {
+const esmPackages = packages.filter((pkg) => !CJS_PACKAGES.includes(pkg.split('/')[1]))
+const cjsPackages = packages.filter((pkg) => CJS_PACKAGES.includes(pkg.split('/')[1]))
+
+ESM_CJS_PACKAGES.forEach((pkg) => {
     if (packages.some((projectPath) => projectPath.split('/')[1] === pkg)) {
-        packages.push(`packages/${pkg}/tsconfig.cjs.json`)
+        cjsPackages.push(`packages/${pkg}/tsconfig.cjs.json`)
     }
 })
 
-const cmd = `npx tsc -b ${packages.join(' ')}${HAS_WATCH_FLAG ? ' --watch' : ''}`
+const cmd = (packages) => `npx tsc -b ${packages.join(' ')}${HAS_WATCH_FLAG ? ' --watch' : ''}`
 
-console.log(cmd)
-const { code } = execSync(cmd)
+const esmCmd = cmd(esmPackages)
+const cjsCmd = cmd(cjsPackages)
+
+console.log('\n' + chalk.cyan('Compiling ESM packages\n'))
+console.log(esmCmd)
+const { code: esmCode } = shell.exec(esmCmd)
+
+console.log('\n' + chalk.cyan('Compiling CJS packages\n'))
+console.log(cjsCmd)
+const { code: cjsCode } = shell.exec(cjsCmd)
 
 if (!HAS_WATCH_FLAG) {
-    console.log('\nRemoving `export {}` from CJS files')
+    console.log('\n' + chalk.grey('Removing `export {}` from CJS files'))
     for (const pkg of ['devtools', 'webdriverio']) {
         const filePath = path.join(__dirname, '..', 'packages', pkg, 'build', 'cjs', 'index.js')
         const fileContent = await readFile(filePath, 'utf8')
@@ -112,6 +125,6 @@ if (!HAS_WATCH_FLAG) {
     }
 }
 
-if (code) {
+if (esmCode || cjsCode) {
     throw new Error('Failed compiling TypeScript files!')
 }
