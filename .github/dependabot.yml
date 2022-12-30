@@ -15,6 +15,9 @@ updates:
     # Chalk v5 is ESM only
     - dependency-name: "chalk"
       update-types: ["version-update:semver-major"]
+    # fs-extra v11 >= is node14 >=
+    - dependency-name: "fs-extra"
+      update-types: ["version-update:semver-major"]
 - package-ecosystem: github-actions
   directory: "/"
   schedule:

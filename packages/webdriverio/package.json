@@ -69,7 +69,7 @@
     "css-value": "^0.0.1",
     "devtools": "7.28.1",
     "devtools-protocol": "^0.0.1085790",
-    "fs-extra": "^11.1.0",
+    "fs-extra": "^10.0.0",
     "grapheme-splitter": "^1.0.2",
     "lodash.clonedeep": "^4.5.0",
     "lodash.isobject": "^3.0.2",
