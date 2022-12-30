@@ -125,7 +125,6 @@ export interface BrowserstackConfig {
 /**
  * Observability types
  */
-
 export interface PlatformMeta {
     sessionId?: string,
     browserName?: string,
