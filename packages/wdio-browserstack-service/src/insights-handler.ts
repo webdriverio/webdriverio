@@ -105,9 +105,7 @@ export default class InsightsHandler {
         const pickleData = world.pickle
         const gherkinDocument = world.gherkinDocument
         const featureData = gherkinDocument.feature
-
         const uniqueId = getUniqueIdentifierForCucumber(world)
-
         const testMetaData: TestMeta = {
             uuid: uuidv4(),
             startedAt: (new Date()).toISOString()
