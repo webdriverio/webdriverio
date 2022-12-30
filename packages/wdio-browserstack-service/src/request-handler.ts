@@ -1,7 +1,7 @@
 import logger from '@wdio/logger'
 
 import { DATA_BATCH_SIZE, DATA_BATCH_INTERVAL, DATA_BATCH_ENDPOINT, BATCH_EVENT_TYPES, DATA_SCREENSHOT_ENDPOINT } from './constants.js'
-import type { UploadType } from './types'
+import type { UploadType } from './types.js'
 import { batchAndPostEvents } from './util.js'
 
 const log = logger('@wdio/browserstack-service')
