@@ -36,7 +36,7 @@ import type { Capabilities, Options, Frameworks } from '@wdio/types'
 import CucumberReporter from './reporter.js'
 import { DEFAULT_OPTS } from './constants.js'
 import { setUserHookNames } from './utils.js'
-import type { CucumberOptions, StepDefinitionOptions, HookFunctionExtension as HookFunctionExtensionImport } from './types'
+import type { CucumberOptions, StepDefinitionOptions, HookFunctionExtension as HookFunctionExtensionImport } from './types.js'
 
 const require = createRequire(import.meta.url)
 const EventDataCollector = require('@cucumber/cucumber/lib/formatter/helpers/event_data_collector').default

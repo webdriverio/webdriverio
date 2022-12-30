@@ -7,7 +7,7 @@ import type { Feature, Pickle, PickleStep, TestStep, TestStepResult, TestCaseFin
 import CucumberEventListener from './cucumberEventListener.js'
 import { getFeatureId, formatMessage, getStepType, buildStepPayload } from './utils.js'
 import type { ReporterScenario } from './constants.js'
-import type { ReporterOptions } from './types'
+import type { ReporterOptions } from './types.js'
 
 export default class CucumberReporter {
     public eventListener: CucumberEventListener

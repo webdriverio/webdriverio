@@ -1,7 +1,7 @@
 import path from 'node:path'
 import { expect, test, vi, beforeEach } from 'vitest'
 import logger from '@wdio/logger'
-import type { Trace } from '../src/gatherer/trace'
+import type { Trace } from '../src/gatherer/trace.js'
 
 import Auditor from '../src/auditor.js'
 

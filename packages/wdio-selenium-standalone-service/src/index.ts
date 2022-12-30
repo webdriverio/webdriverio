@@ -1,7 +1,7 @@
 /* istanbul ignore file */
 
 import SeleniumStandaloneLauncher from './launcher.js'
-import type { SeleniumStandaloneOptions } from './types'
+import type { SeleniumStandaloneOptions } from './types.js'
 
 export default class SeleniumStandaloneService {}
 export const launcher = SeleniumStandaloneLauncher

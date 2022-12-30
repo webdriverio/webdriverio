@@ -6,7 +6,7 @@ import type { RunnerStats, SuiteStats, TestStats } from '@wdio/reporter'
 import WDIOReporter from '@wdio/reporter'
 import logger from '@wdio/logger'
 
-import type { Options } from './types'
+import type { Options } from './types.js'
 
 const log = logger('@wdio/sumologic-reporter')
 

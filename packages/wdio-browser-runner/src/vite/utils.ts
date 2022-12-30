@@ -3,7 +3,7 @@ import url from 'node:url'
 import path from 'node:path'
 import { resolve } from 'import-meta-resolve'
 
-import type { Environment, FrameworkPreset } from '../types'
+import type { Environment, FrameworkPreset } from '../types.js'
 
 export async function getTemplate (options: WebdriverIO.BrowserRunnerOptions, env: Environment, spec: string) {
     const root = options.rootDir || process.cwd()

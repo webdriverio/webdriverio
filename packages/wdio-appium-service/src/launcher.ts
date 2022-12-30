@@ -14,7 +14,7 @@ import { SevereServiceError } from 'webdriverio'
 import type { Services, Capabilities, Options } from '@wdio/types'
 
 import { getFilePath, formatCliArgs } from './utils.js'
-import type { AppiumServerArguments, AppiumServiceConfig } from './types'
+import type { AppiumServerArguments, AppiumServiceConfig } from './types.js'
 
 const log = logger('@wdio/appium-service')
 const DEFAULT_LOG_FILENAME = 'wdio-appium.log'

@@ -1,6 +1,3 @@
-import { createRequire } from 'node:module'
-
-import type { Protocol } from './types.js'
 import type AppiumCommands from './commands/appium.js'
 import type ChromiumCommands from './commands/chromium.js'
 import type GeckoCommands from './commands/gecko.js'
@@ -11,16 +8,15 @@ import type SeleniumCommands from './commands/selenium.js'
 import type WebDriverCommands from './commands/webdriver.js'
 import type WebDriverBidiCommands from './commands/webdriverBidi.js'
 
-const require = createRequire(import.meta.url)
-const WebDriverProtocol: Protocol = require('../protocols/webdriver.json')
-const WebDriverBidiProtocol: Protocol = require('../protocols/webdriverBidi.json')
-const MJsonWProtocol: Protocol = require('../protocols/mjsonwp.json')
-const JsonWProtocol: Protocol = require('../protocols/jsonwp.json')
-const AppiumProtocol: Protocol = require('../protocols/appium.json')
-const ChromiumProtocol: Protocol = require('../protocols/chromium.json')
-const GeckoProtocol: Protocol = require('../protocols/gecko.json')
-const SauceLabsProtocol: Protocol = require('../protocols/saucelabs.json')
-const SeleniumProtocol: Protocol = require('../protocols/selenium.json')
+import WebDriverProtocol from './protocols/webdriver.json' assert { type: 'json' }
+import WebDriverBidiProtocol from './protocols/webdriverBidi.json' assert { type: 'json' }
+import MJsonWProtocol from './protocols/mjsonwp.json' assert { type: 'json' }
+import JsonWProtocol from './protocols/jsonwp.json' assert { type: 'json' }
+import AppiumProtocol from './protocols/appium.json' assert { type: 'json' }
+import ChromiumProtocol from './protocols/chromium.json' assert { type: 'json' }
+import GeckoProtocol from './protocols/gecko.json' assert { type: 'json' }
+import SauceLabsProtocol from './protocols/saucelabs.json' assert { type: 'json' }
+import SeleniumProtocol from './protocols/selenium.json' assert { type: 'json' }
 
 type WebDriverCommandsAsync = {
     [K in keyof WebDriverCommands]:

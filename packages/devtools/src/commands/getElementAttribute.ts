@@ -1,6 +1,6 @@
 import command from '../scripts/getElementAttribute.js'
 import { getStaleElementError } from '../utils.js'
-import type DevToolsDriver from '../devtoolsdriver'
+import type DevToolsDriver from '../devtoolsdriver.js'
 
 /**
  * The Get Element Attribute command will return the attribute of a web element.

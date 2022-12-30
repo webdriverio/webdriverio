@@ -6,7 +6,7 @@ import { getEnvironmentVars } from 'webdriver'
 import type { ErrorObject } from 'serialize-error'
 
 import { MESSAGE_TYPES } from '../constants.js'
-import type { SocketMessage, SocketMessagePayload, ConsoleEvent, CommandRequestEvent } from '../vite/types'
+import type { SocketMessage, SocketMessagePayload, ConsoleEvent, CommandRequestEvent } from '../vite/types.js'
 
 const COMMAND_TIMEOUT = 30 * 1000 // 30s
 const CONSOLE_METHODS = ['log', 'info', 'warn', 'error', 'debug'] as const

@@ -7,7 +7,7 @@ import logger from '@wdio/logger'
 import type { Services, Capabilities, Options } from '@wdio/types'
 
 import { makeCapabilityFactory } from './utils.js'
-import type { SauceServiceConfig } from './types'
+import type { SauceServiceConfig } from './types.js'
 import path from 'node:path'
 
 const MAX_SC_START_TRIALS = 3

@@ -3,7 +3,7 @@ import { esbuildCommonjs } from '@originjs/vite-plugin-commonjs'
 import { NodeGlobalsPolyfillPlugin } from '@esbuild-plugins/node-globals-polyfill'
 import type { InlineConfig } from 'vite'
 
-import type { FrameworkPreset } from '../types'
+import type { FrameworkPreset } from '../types.js'
 
 export const PRESET_DEPENDENCIES: Record<FrameworkPreset, [string, string, any] | undefined> = {
     react: ['@vitejs/plugin-react', 'default', {

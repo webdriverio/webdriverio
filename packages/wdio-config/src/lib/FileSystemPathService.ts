@@ -4,7 +4,7 @@ import path from 'node:path'
 import glob from 'glob'
 
 import RequireLibrary from './RequireLibrary.js'
-import type { PathService, ModuleImportService } from '../types'
+import type { PathService, ModuleImportService } from '../types.js'
 
 export default class FileSystemPathService implements PathService {
     #moduleRequireService: ModuleImportService = new RequireLibrary()

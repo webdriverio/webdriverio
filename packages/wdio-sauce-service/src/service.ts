@@ -10,7 +10,7 @@ import type { Browser, MultiRemoteBrowser } from 'webdriverio'
 
 import { isRDC, ansiRegex } from './utils.js'
 import { DEFAULT_OPTIONS } from './constants.js'
-import type { SauceServiceConfig } from './types'
+import type { SauceServiceConfig } from './types.js'
 
 const jobDataProperties = ['name', 'tags', 'public', 'build', 'custom-data'] as const
 

@@ -1,4 +1,4 @@
-import type { TouchAction, TouchActions } from '../types'
+import type { TouchAction, TouchActions } from '../types.js'
 
 /**
  * Constants around commands

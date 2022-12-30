@@ -1,4 +1,4 @@
-import type { executeHooksWithArgs, executeAsync } from '../shim'
+import type { executeHooksWithArgs, executeAsync } from '../shim.js'
 
 export type HookFnArgs<T> = (ctx: T) => [unknown, T]
 

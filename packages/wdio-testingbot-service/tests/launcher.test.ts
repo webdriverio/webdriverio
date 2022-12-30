@@ -4,7 +4,7 @@ import logger from '@wdio/logger'
 import type { Capabilities } from '@wdio/types'
 
 import TestingBotLauncher from '../src/launcher.js'
-import type { TestingbotOptions } from '../src/types'
+import type { TestingbotOptions } from '../src/types.js'
 
 vi.mock('testingbot-tunnel-launcher')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))

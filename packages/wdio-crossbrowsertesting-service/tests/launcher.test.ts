@@ -5,7 +5,7 @@ import logger from '@wdio/logger'
 import type { Capabilities, Options } from '@wdio/types'
 
 import CrossBrowserTestingLauncher from '../src/launcher.js'
-import type { CrossBrowserTestingConfig } from '../src/types'
+import type { CrossBrowserTestingConfig } from '../src/types.js'
 
 vi.mock('cbt_tunnels')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))

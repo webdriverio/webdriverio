@@ -9,16 +9,16 @@ import type { CommandParameters, CommandPathVariables, ElementReference } from '
 import { WebDriverProtocol } from '@wdio/protocols'
 import type { Options } from 'chrome-launcher'
 import { launch as launchChromeBrowser } from 'chrome-launcher'
-import type { Logger } from '@wdio/logger/build/node'
-import type { ElementHandle } from 'puppeteer-core/lib/cjs/puppeteer/common/ElementHandle'
-import type { Browser } from 'puppeteer-core/lib/cjs/puppeteer/api/Browser'
-import type { Frame } from 'puppeteer-core/lib/cjs/puppeteer/common/Frame'
-import type { Page } from 'puppeteer-core/lib/cjs/puppeteer/api/Page'
+import type { Logger } from '@wdio/logger'
+import type { ElementHandle } from 'puppeteer-core/lib/esm/puppeteer/common/ElementHandle.js'
+import type { Browser } from 'puppeteer-core/lib/esm/puppeteer/api/Browser.js'
+import type { Frame } from 'puppeteer-core/lib/esm/puppeteer/common/Frame.js'
+import type { Page } from 'puppeteer-core/lib/esm/puppeteer/api/Page.js'
 
 import cleanUp from './scripts/cleanUpSerializationSelector.js'
 import { ELEMENT_KEY, SERIALIZE_PROPERTY, SERIALIZE_FLAG, ERROR_MESSAGES } from './constants.js'
-import type { Priorities } from './finder/firefox'
-import type DevToolsDriver from './devtoolsdriver'
+import type { Priorities } from './finder/firefox.js'
+import type DevToolsDriver from './devtoolsdriver.js'
 
 const log = logger('devtools')
 

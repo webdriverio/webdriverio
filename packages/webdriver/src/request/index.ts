@@ -1,6 +1,5 @@
 import path from 'node:path'
 import { EventEmitter } from 'node:events'
-import { createRequire } from 'node:module'
 import type { URL } from 'node:url'
 
 import logger from '@wdio/logger'
@@ -10,8 +9,7 @@ import type { Options } from '@wdio/types'
 import { URLFactory } from './factory.js'
 import { isSuccessfulResponse, getErrorFromResponseBody, getTimeoutError } from '../utils.js'
 
-const require = createRequire(import.meta.url)
-const pkg = require('../../package.json')
+import pkg from 'webdriver/package.json'
 
 type Agents = Options.Agents
 type RequestLibOptions = Options.RequestLibOptions

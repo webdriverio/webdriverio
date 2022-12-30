@@ -18,11 +18,8 @@ EventEmitter.defaultMaxListeners = packages.length + 3
 const ROOT_DIR = path.join(__dirname, '..')
 const EXEC_OPTIONS = { silent: true, async: true }
 const IGNORE_PACKAGES = {
-    'wdio-reporter': ['cucumber'],
-    'wdio-cli': ['ts-node', '@babel/register'],
-    'wdio-config': ['ts-node', '@babel/register'],
-    'wdio-types': ['ts-node'],
-    'wdio-browser-runner': ['vue', '@vue/compiler-dom', 'virtual:wdio', 'mocha']
+    'wdio-browser-runner': ['virtual:wdio', 'mocha'],
+    'webdriver': ['webdriver']
 }
 
 shell.cd(ROOT_DIR)

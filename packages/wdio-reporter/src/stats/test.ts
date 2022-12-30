@@ -6,7 +6,7 @@ import objectInspect from 'object-inspect'
 
 import RunnableStats from './runnable.js'
 import { pad, color, colorLines } from '../utils.js'
-import type { Argument } from '../types'
+import type { Argument } from '../types.js'
 
 const maxStringLength = 2048
 

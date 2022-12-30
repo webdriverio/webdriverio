@@ -7,7 +7,7 @@ import got from 'got'
 import fs from 'node:fs'
 
 import BrowserstackLauncher from '../src/launcher.js'
-import type { BrowserstackConfig } from '../src/types'
+import type { BrowserstackConfig } from '../src/types.js'
 import * as utils from '../src/util.js'
 import { version as bstackServiceVersion } from '../package.json'
 

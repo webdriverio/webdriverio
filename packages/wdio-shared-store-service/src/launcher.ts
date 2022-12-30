@@ -1,7 +1,7 @@
 import logger from '@wdio/logger'
 
 import { setPort } from './client.js'
-import type { SharedStoreServiceCapabilities } from './types'
+import type { SharedStoreServiceCapabilities } from './types.js'
 
 const log = logger('@wdio/shared-store-service')
 

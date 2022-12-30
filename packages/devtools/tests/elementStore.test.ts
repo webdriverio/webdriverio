@@ -1,8 +1,8 @@
 import path from 'node:path'
 import { expect, test, vi } from 'vitest'
 import ElementStore from '../src/elementstore.js'
-import type { ElementHandle } from 'puppeteer-core/lib/cjs/puppeteer/common/ElementHandle'
-import type { Frame } from 'puppeteer-core/lib/cjs/puppeteer/common/Frame'
+import type { ElementHandle } from 'puppeteer-core/lib/esm/puppeteer/common/ElementHandle.js'
+import type { Frame } from 'puppeteer-core/lib/esm/puppeteer/common/Frame.js'
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 

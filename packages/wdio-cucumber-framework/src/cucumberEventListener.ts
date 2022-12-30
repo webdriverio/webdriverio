@@ -12,7 +12,7 @@ import type { Capabilities } from '@wdio/types'
 
 import { addKeywordToStep, filterPickles, getRule } from './utils.js'
 import type { ReporterScenario } from './constants.js'
-import type { HookParams } from './types'
+import type { HookParams } from './types.js'
 
 const log = logger('CucumberEventListener')
 

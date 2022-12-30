@@ -5,7 +5,7 @@ import { describe, expect, it, vi, beforeEach } from 'vitest'
 import libReport from 'istanbul-lib-report'
 import reports from 'istanbul-reports'
 import { transformAsync as babelTransform } from '@babel/core'
-import type { Page } from 'puppeteer-core/lib/cjs/puppeteer/api/Page'
+import type { Page } from 'puppeteer-core/lib/esm/puppeteer/api/Page.js'
 
 import CoverageGatherer from '../../src/gatherer/coverage.js'
 

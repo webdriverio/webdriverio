@@ -1,12 +1,12 @@
-import type { KeyInput } from 'puppeteer-core/lib/cjs/puppeteer/common/USKeyboardLayout.js'
-import { _keyDefinitions } from 'puppeteer-core/lib/cjs/puppeteer/common/USKeyboardLayout.js'
-import type { Keyboard, Mouse } from 'puppeteer-core/lib/cjs/puppeteer/common/Input.js'
+import type { KeyInput } from 'puppeteer-core/lib/esm/puppeteer/common/USKeyboardLayout.js'
+import { _keyDefinitions } from 'puppeteer-core/lib/esm/puppeteer/common/USKeyboardLayout.js'
+import type { Keyboard, Mouse } from 'puppeteer-core/lib/esm/puppeteer/common/Input.js'
 
 import getElementRect from './getElementRect.js'
 import getWindowRect from './getWindowRect.js'
 import { ELEMENT_KEY } from '../constants.js'
 import { sleep } from '../utils.js'
-import type DevToolsDriver from '../devtoolsdriver'
+import type DevToolsDriver from '../devtoolsdriver.js'
 
 const KEY = 'key'
 const POINTER = 'pointer'

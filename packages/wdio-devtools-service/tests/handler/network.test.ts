@@ -1,12 +1,12 @@
 import { EventEmitter } from 'node:events'
 import { expect, test, vi } from 'vitest'
-import type { CDPSession } from 'puppeteer-core/lib/cjs/puppeteer/common/Connection'
+import type { CDPSession } from 'puppeteer-core/lib/esm/puppeteer/common/Connection.js'
 
 import NetworkHandler from '../../src/handler/network.js'
 
 import eventLog from '../__fixtures__/events.json'
 
-vi.mock('puppeteer-core/lib/cjs/puppeteer/common/Connection')
+vi.mock('puppeteer-core/lib/esm/puppeteer/common/Connection.js')
 
 class MyEmitter extends EventEmitter {}
 

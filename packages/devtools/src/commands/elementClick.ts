@@ -1,7 +1,7 @@
 import getElementTagName from './getElementTagName.js'
 import selectOptionScript from '../scripts/selectOption.js'
 import { getStaleElementError } from '../utils.js'
-import type DevToolsDriver from '../devtoolsdriver'
+import type DevToolsDriver from '../devtoolsdriver.js'
 
 /**
  * The Element Click command scrolls into view the element if it is not already pointer-interactable,

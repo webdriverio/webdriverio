@@ -356,7 +356,7 @@ export interface Testrunner extends Hooks, Omit<WebdriverIO, 'capabilities'>, We
      * An object describing various of suites, which you can then specify
      * with the --suite option on the wdio CLI.
      */
-    suites?: Record<string, string[]>
+    suites?: Record<string, string[] | string[][]>
     /**
      * Maximum number of total parallel running workers.
      */

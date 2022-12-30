@@ -5,7 +5,7 @@ import type { Capabilities, Options } from '@wdio/types'
 import { expect, test, vi, afterEach } from 'vitest'
 
 import SauceServiceLauncher from '../src/launcher.js'
-import type { SauceServiceConfig } from '../src/types'
+import type { SauceServiceConfig } from '../src/types.js'
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 vi.mock('saucelabs', () => ({

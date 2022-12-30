@@ -9,10 +9,10 @@ import reports from 'istanbul-reports'
 
 import logger from '@wdio/logger'
 
-import type { Page } from 'puppeteer-core/lib/cjs/puppeteer/api/Page'
-import type { CDPSession } from 'puppeteer-core/lib/cjs/puppeteer/common/Connection'
+import type { Page } from 'puppeteer-core/lib/esm/puppeteer/api/Page.js'
+import type { CDPSession } from 'puppeteer-core/lib/esm/puppeteer/common/Connection.js'
 
-import type { CoverageReporterOptions, Coverage } from '../types'
+import type { CoverageReporterOptions, Coverage } from '../types.js'
 
 const log = logger('@wdio/devtools-service:CoverageGatherer')
 

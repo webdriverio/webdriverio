@@ -6,7 +6,7 @@ import type { ProtocolCommands } from '@wdio/protocols'
 
 import { multiremoteHandler } from './middlewares.js'
 import { getPrototype } from './utils/index.js'
-import type { BrowserCommandsType, MultiRemoteBrowser } from './types'
+import type { BrowserCommandsType, MultiRemoteBrowser } from './types.js'
 
 type EventEmitter = (args: any) => void
 

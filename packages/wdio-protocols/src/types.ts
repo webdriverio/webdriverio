@@ -4,7 +4,7 @@ export interface ProtocolCommandResponse {
 }
 
 // webdriver.json
-export interface SessionReturn extends /* DesiredCapabilities, */ ProtocolCommandResponse { }
+export interface SessionReturn extends ProtocolCommandResponse { }
 
 export interface StatusReturn extends ProtocolCommandResponse {
     ready?: boolean,
@@ -99,7 +99,7 @@ export interface Cookie {
 
 export type CommandPath = 'string'
 export type CommandMethod = 'POST' | 'GET' | 'DELETE'
-export type Protocol = Record<CommandPath, Record<CommandMethod, CommandEndpoint>>
+export type Protocol = Record<string, Partial<Record<CommandMethod, CommandEndpoint>>>
 
 /**
  * describes a command endpoint
@@ -112,7 +112,7 @@ export interface CommandEndpoint {
     /**
      * command description
      */
-    description: string
+    description?: string
     /**
      * link to specification reference
      */
@@ -132,17 +132,18 @@ export interface CommandEndpoint {
     /**
      * set to true if command is only supported in Selenium Hub Node
      */
-    isHubCommand?: boolean,
+    isHubCommand?: boolean
     /**
      * information on return data
      */
     returns?: CommandReturnObject
+    examples?: string[][]
 }
 
 export interface CommandReturnObject {
     type: string
     name: string
-    description: string
+    description?: string
 }
 
 export interface CommandPathVariables {
@@ -161,7 +162,7 @@ export interface CommandParameters {
     name: string,
     type: string,
     description: string,
-    required: boolean
+    required?: boolean
 }
 
 export type Platform = 'ios' | 'android'
@@ -175,7 +176,7 @@ export type Environments = 'XCUITest' | 'UIAutomation' | 'UiAutomator'
  * }
  * ```
  */
-export type SupportedEnvironments = Record<Platform, Record<Environments, string>>
+export type SupportedEnvironments = Partial<Record<Platform, Partial<Record<Environments, string>>>>
 
 export type SupportedMethods = (
     'session.status' |

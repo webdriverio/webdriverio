@@ -1,7 +1,7 @@
 import logger from '@wdio/logger'
 import type { EventEmitter } from 'node:events'
 
-import type { ReporterOptions, ParentSuite, TestEvent, SuiteEvent } from './types'
+import type { ReporterOptions, ParentSuite, TestEvent, SuiteEvent } from './types.js'
 
 const log = logger('@wdio/jasmine-framework')
 

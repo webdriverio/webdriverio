@@ -1,12 +1,12 @@
-import webdriver from '../packages/wdio-protocols/protocols/webdriver.json' assert { type: 'json' }
-import webdriverBidi from '../packages/wdio-protocols/protocols/webdriverBidi.json' assert { type: 'json' }
-import appium from '../packages/wdio-protocols/protocols/appium.json' assert { type: 'json' }
-import mjsonwp from '../packages/wdio-protocols/protocols/mjsonwp.json' assert { type: 'json' }
-import chromium from '../packages/wdio-protocols/protocols/chromium.json' assert { type: 'json' }
-import gecko from '../packages/wdio-protocols/protocols/gecko.json' assert { type: 'json' }
-import saucelabs from '../packages/wdio-protocols/protocols/saucelabs.json' assert { type: 'json' }
-import selenium from '../packages/wdio-protocols/protocols/selenium.json' assert { type: 'json' }
-import jsonwp from '../packages/wdio-protocols/protocols/jsonwp.json' assert { type: 'json' }
+import webdriver from '../packages/wdio-protocols/src/protocols/webdriver.json' assert { type: 'json' }
+import webdriverBidi from '../packages/wdio-protocols/src/protocols/webdriverBidi.json' assert { type: 'json' }
+import appium from '../packages/wdio-protocols/src/protocols/appium.json' assert { type: 'json' }
+import mjsonwp from '../packages/wdio-protocols/src/protocols/mjsonwp.json' assert { type: 'json' }
+import chromium from '../packages/wdio-protocols/src/protocols/chromium.json' assert { type: 'json' }
+import gecko from '../packages/wdio-protocols/src/protocols/gecko.json' assert { type: 'json' }
+import saucelabs from '../packages/wdio-protocols/src/protocols/saucelabs.json' assert { type: 'json' }
+import selenium from '../packages/wdio-protocols/src/protocols/selenium.json' assert { type: 'json' }
+import jsonwp from '../packages/wdio-protocols/src/protocols/jsonwp.json' assert { type: 'json' }
 
 export const PROTOCOLS = {
     webdriver, webdriverBidi, appium, chromium,

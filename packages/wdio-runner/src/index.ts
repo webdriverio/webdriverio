@@ -18,7 +18,7 @@ import type {
     BeforeArgs, AfterArgs, BeforeSessionArgs, AfterSessionArgs, RunParams,
     TestFramework, SingleConfigOption, MultiRemoteCaps, SessionStartedMessage,
     SessionEndedMessage
-} from './types'
+} from './types.js'
 
 const log = logger('@wdio/runner')
 

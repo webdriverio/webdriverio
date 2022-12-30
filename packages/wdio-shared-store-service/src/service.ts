@@ -3,7 +3,7 @@ import type { JsonCompatible, JsonPrimitive, Services } from '@wdio/types'
 
 import type { BrowserExtension } from './index.js'
 import { getValue, setValue, setPort } from './client.js'
-import type { SharedStoreServiceCapabilities } from './types'
+import type { SharedStoreServiceCapabilities } from './types.js'
 
 /**
  * ToDo(Christian): make this public accessible
