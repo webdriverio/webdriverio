@@ -28,13 +28,15 @@
   "types": "./build/index.d.ts",
   "typeScriptVersion": "3.8.3",
   "dependencies": {
-    "@types/json-stringify-safe": "^5.0.0",
-    "@types/validator": "^13.7.2",
     "@wdio/reporter": "8.0.14",
     "@wdio/types": "8.0.14",
     "json-stringify-safe": "^5.0.1",
     "junit-report-builder": "^3.0.0",
     "validator": "^13.7.0"
+  },
+  "devDependencies": {
+    "@types/json-stringify-safe": "^5.0.0",
+    "@types/validator": "^13.7.2"
   },
   "publishConfig": {
     "access": "public"

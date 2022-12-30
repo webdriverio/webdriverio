@@ -26,6 +26,9 @@
   "exports": "./build/index.js",
   "types": "./build/index.d.ts",
   "typeScriptVersion": "3.8.3",
+  "dependencies": {
+    "@types/node": "^18.0.0"
+  },
   "publishConfig": {
     "access": "public"
   }

@@ -50,6 +50,7 @@
   "exports": {
     ".": [
       {
+        "types": "./build/index.d.ts",
         "import": "./build/index.js",
         "require": "./build/cjs/index.js"
       },
@@ -60,14 +61,13 @@
   "typeScriptVersion": "3.8.3",
   "devDependencies": {
     "@types/archiver": "^5.1.0",
+    "@types/aria-query": "^5.0.0",
     "@types/lodash.clonedeep": "^4.5.6",
     "@types/lodash.zip": "^4.2.6"
   },
   "dependencies": {
-    "@types/aria-query": "^5.0.0",
     "@types/node": "^18.0.0",
     "@wdio/config": "8.0.14",
-    "@wdio/globals": "8.0.15",
     "@wdio/logger": "8.0.14",
     "@wdio/protocols": "8.0.15",
     "@wdio/repl": "8.0.14",

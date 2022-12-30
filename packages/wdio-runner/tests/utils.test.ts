@@ -1,5 +1,5 @@
 import path from 'node:path'
-// @ts-ignore mock feature
+// @ts-expect-error - mock
 import { logMock } from '@wdio/logger'
 import { attach, remote, multiremote } from 'webdriverio'
 import { describe, expect, it, vi, afterEach, beforeEach } from 'vitest'
