@@ -15,8 +15,7 @@ export default class RequestQueueHandler {
     static instance: RequestQueueHandler
 
     // making it private to use singleton pattern
-    private constructor() {
-    }
+    private constructor() {}
 
     public static getInstance(): RequestQueueHandler {
         if (!RequestQueueHandler.instance) {
