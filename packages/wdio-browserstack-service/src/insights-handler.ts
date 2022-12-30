@@ -197,7 +197,6 @@ export default class InsightsHandler {
     /**
      * misc methods
      */
-
     async browserCommand (commandType: string, args: BeforeCommandArgs & AfterCommandArgs, test?: Frameworks.Test | ITestCaseHookParameter) {
         const dataKey = `${args.sessionId}_${args.method}_${args.endpoint}`
         if (commandType === 'client:beforeCommand') {
