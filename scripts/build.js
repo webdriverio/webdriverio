@@ -3,7 +3,7 @@ import { accessSync } from 'node:fs'
 import { readFile, writeFile } from 'node:fs/promises'
 import url from 'node:url'
 import path from 'node:path'
-import shell from 'shelljs'
+import { execSync } from 'node:child_process'
 import { getSubPackages } from './utils/helpers.js'
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
@@ -87,7 +87,7 @@ const packages = getSubPackages()
      */
     .map((pkg) => `packages/${pkg}/${TSCONFIG_FILE}`)
 
-shell.cd(path.join(__dirname, '..'))
+// shell.cd(path.join(__dirname, '..'))
 
 /**
  * Add CJS compiling for packages in BUILD_CJS
@@ -101,7 +101,7 @@ BUILD_CJS.forEach((pkg) => {
 const cmd = `npx tsc -b ${packages.join(' ')}${HAS_WATCH_FLAG ? ' --watch' : ''}`
 
 console.log(cmd)
-const { code } = shell.exec(cmd)
+const { code } = execSync(cmd)
 
 if (!HAS_WATCH_FLAG) {
     console.log('\nRemoving `export {}` from CJS files')

@@ -6,8 +6,9 @@
 import fs from 'node:fs'
 import url from 'node:url'
 import path from 'node:path'
+import { execSync } from 'node:child_process'
+
 import chalk from 'chalk'
-import shell from 'shelljs'
 import { Octokit } from '@octokit/rest'
 import { highlight } from 'cli-highlight'
 import { Changelog } from 'lerna-changelog'
@@ -20,7 +21,7 @@ const root = path.resolve(__dirname, '..')
 const changelogPath = path.join(root, 'CHANGELOG.md')
 
 if (!process.env.GITHUB_AUTH) {
-    shell.exec('git checkout -- .')
+    execSync('git checkout -- .')
     throw new Error(
         'Please export a "GITHUB_AUTH" access token to generate the changelog.\n' +
         'See also https://github.com/webdriverio/webdriverio/blob/main/CONTRIBUTING.md#release-new-version'
@@ -34,8 +35,8 @@ const changelog = new Changelog(config)
 /**
  * update local tags
  */
-shell.exec('git fetch --tags --force')
-const latestRelease = shell.exec('git describe --abbrev=0 --tags').stdout.trim()
+execSync('git fetch --tags --force')
+const latestRelease = execSync('git describe --abbrev=0 --tags').trim()
 const BANNER = `
 #######################
 ###                 ###

@@ -2,10 +2,18 @@
 
 import url from 'node:url'
 import path from 'node:path'
-import shell from 'shelljs'
 import { EventEmitter } from 'node:events'
 
+import depcheck from 'depcheck'
+import type { Options, Results } from 'depcheck'
+
 import { getSubPackages } from './utils/helpers.js'
+
+type IgnoredPackages = Record<string, string[]>
+interface BrokenPackages extends Results {
+    package?: string
+    packagePath?: string
+}
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 const packages = getSubPackages()
@@ -16,30 +24,24 @@ const packages = getSubPackages()
 EventEmitter.defaultMaxListeners = packages.length + 3
 
 const ROOT_DIR = path.join(__dirname, '..')
-const EXEC_OPTIONS = { silent: true, async: true }
-const IGNORE_PACKAGES = {
+
+const IGNORE_PACKAGES: IgnoredPackages = {
     'wdio-browser-runner': ['virtual:wdio', 'mocha'],
     'webdriver': ['webdriver']
 }
 
-shell.cd(ROOT_DIR)
 const brokenPackages = (await Promise.all(packages.map(async (pkg) => {
     const packagePath = path.join(ROOT_DIR, 'packages', pkg)
-    let shellScript = `npx depcheck ${packagePath} --json --ignore-dirs build,tests`
+    const depcheckOptions: Options = {
+        ignorePatterns: ['build', 'tests'],
+    }
 
     // Workaround for depcheck issue: https://github.com/depcheck/depcheck/issues/526
     if (IGNORE_PACKAGES[pkg]) {
-        shellScript += ` --ignores="${IGNORE_PACKAGES[pkg].join(',')}"`
+        depcheckOptions.ignoreMatches = IGNORE_PACKAGES[pkg]
     }
-    const shellResult = await new Promise((resolve, reject) => shell.exec(shellScript, EXEC_OPTIONS, (code, stdout, stderr) => {
-        if (stderr) {
-            console.error('Error :', stderr)
-            return reject(new Error(stderr))
-        }
-        return resolve(stdout)
-    }))
 
-    const result = JSON.parse(shellResult)
+    const result: BrokenPackages = await depcheck(packagePath, depcheckOptions)
     result.package = pkg
     result.packagePath = packagePath
     return result

@@ -1,5 +1,5 @@
+import { execSync } from 'node:child_process'
 import chalk from 'chalk'
-import sh from 'shelljs'
 
 const orange = chalk.hex('#ea5906')
 
@@ -59,10 +59,10 @@ ${chalk.bold('$ npm run test:mocha')}
 
 The following environments are available for you:
     - Preview of the documentation page
-      ${chalk.blue.bold(await sh.exec('gp url 3000')).trim()}
+      ${chalk.blue.bold(execSync('gp url 3000')).trim()}
 
     - Code Coverage Overview
-      ${chalk.blue.bold(await sh.exec('gp url 8000')).trim()}
+      ${chalk.blue.bold(execSync('gp url 8000')).trim()}
 
 For more information, go to: ${chalk.blue.bold('https://webdriver.io/docs/contribute')}!
 

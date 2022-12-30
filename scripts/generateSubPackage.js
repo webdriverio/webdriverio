@@ -1,12 +1,14 @@
 #!/usr/bin/env node
+
 /**
  * This script generates new sub package with initial structure and files
  */
 
 import fs from 'node:fs'
+import { mkdir, writeFile } from 'node:fs/promises'
 import url from 'node:url'
 import path from 'node:path'
-import shell from 'shelljs'
+
 import inquirer from 'inquirer'
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
@@ -118,11 +120,6 @@ const existingPackages = fs.readdirSync(packagesDir)
     .map(name => path.join(packagesDir, name))
     .filter(source => fs.lstatSync(source).isDirectory())
 
-const createFile = (file, content) => {
-    shell.touch(file)
-    shell.ShellString(content).to(file)
-}
-
 if (packageName === '') {
     throw new Error('Package name can not be empty')
 }
@@ -132,13 +129,13 @@ if (existingPackages.includes(mainPackageFolder)) {
 }
 
 // create package structure
-[mainPackageFolder, srcPackageFolder, testsPackageFolder].map(folder => shell.mkdir(folder))
+await Promise.all([mainPackageFolder, srcPackageFolder, testsPackageFolder].map(folder => mkdir(folder, { recursive: true })))
 
 // create main folder files
-mainPackageFolderFiles.map(file => createFile(path.join(mainPackageFolder, file.name), file.content))
+await Promise.all(mainPackageFolderFiles.map(file => writeFile(path.join(mainPackageFolder, file.name), file.content)))
 
 // create src folder files
-srcPackageFolderFiles.map(file => createFile(path.join(srcPackageFolder, file.name), file.content))
+await Promise.all(srcPackageFolderFiles.map(file => writeFile(path.join(srcPackageFolder, file.name), file.content)))
 
 // create tests folder files
-testsPackageFolderFiles.map(file => createFile(path.join(testsPackageFolder, file.name), file.content))
+await Promise.all(testsPackageFolderFiles.map(file => writeFile(path.join(testsPackageFolder, file.name), file.content)))
