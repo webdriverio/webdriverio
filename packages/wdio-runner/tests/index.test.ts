@@ -1,5 +1,3 @@
-/// <reference path="../../webdriverio/src/@types/async.d.ts" />
-
 import path from 'node:path'
 import fs from 'node:fs/promises'
 
@@ -8,6 +6,7 @@ import { describe, expect, it, vi, afterEach, beforeEach } from 'vitest'
 import { executeHooksWithArgs } from '@wdio/utils'
 import { ConfigParser } from '@wdio/config'
 import { attach } from 'webdriverio'
+import type { Browser, MultiRemoteBrowser } from 'webdriverio'
 import { _setGlobal } from '@wdio/globals'
 import { setOptions } from 'expect-webdriverio'
 
@@ -25,7 +24,8 @@ vi.mock('@wdio/globals', () => ({
     _setGlobal: vi.fn()
 }))
 
-type BrowserObject = WebdriverIO.Browser
+type BrowserObject = Browser<'async'>
+type MultiRemoteBrowserObject = MultiRemoteBrowser<'async'>
 
 describe('wdio-runner', () => {
     beforeEach(() => {
@@ -215,8 +215,8 @@ describe('wdio-runner', () => {
                 [hook],
                 [{ logLevel: 'error', afterSession: [hook] }, { foo: undefined, bar: undefined }, undefined])
             expect(runner['_browser']!.deleteSession).toBeCalledTimes(1)
-            expect(!(runner['_browser'] as any as WebdriverIO.MultiRemoteBrowser).foo.sessionId).toBe(true)
-            expect(!(runner['_browser'] as any as WebdriverIO.MultiRemoteBrowser).bar.sessionId).toBe(true)
+            expect(!(runner['_browser'] as any as MultiRemoteBrowserObject).foo.sessionId).toBe(true)
+            expect(!(runner['_browser'] as any as MultiRemoteBrowserObject).bar.sessionId).toBe(true)
             expect(runner['_shutdown']).toBeCalledTimes(0)
         })
 
@@ -558,7 +558,7 @@ describe('wdio-runner', () => {
 
         it('should emit runner:start if the initialisation failed', async () => {
             const runner = new WDIORunner()
-            runner['_configParser'] = { getCapabilities: vi.fn().mockReturnValue([{ browserName: 'safari' }]) }
+            runner['_configParser'] = { getCapabilities: vi.fn().mockReturnValue([{ browserName: 'safari' }]) } as any
             runner['_browser'] = {} as any as BrowserObject
             runner['_reporter'] = {
                 waitForSync: vi.fn().mockReturnValue(Promise.resolve()),

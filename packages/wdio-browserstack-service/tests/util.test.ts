@@ -1,6 +1,5 @@
-/// <reference path="../../webdriverio/src/@types/async.d.ts" />
-
 import { describe, expect, it } from 'vitest'
+import type { Browser, MultiRemoteBrowser } from 'webdriverio'
 import {
     getBrowserDescription,
     getBrowserCapabilities,
@@ -14,7 +13,7 @@ describe('getBrowserCapabilities', () => {
             capabilities: {
                 browser: 'browser'
             }
-        } as WebdriverIO.Browser
+        } as Browser<'async'>
         expect(getBrowserCapabilities(browser))
             .toEqual(browser.capabilities as any)
     })
@@ -27,7 +26,7 @@ describe('getBrowserCapabilities', () => {
                     browser: 'browser'
                 }
             }
-        } as any as WebdriverIO.MultiRemoteBrowser
+        } as any as MultiRemoteBrowser<'async'>
         expect(getBrowserCapabilities(browser, {}, 'browserA'))
             .toEqual(browser.browserA.capabilities as any)
     })
@@ -36,7 +35,7 @@ describe('getBrowserCapabilities', () => {
         const browser = {
             isMultiremote: true,
             browserA: {}
-        } as any as WebdriverIO.MultiRemoteBrowser
+        } as any as MultiRemoteBrowser<'async'>
         expect(getBrowserCapabilities(browser, {}, 'browserB')).toEqual({})
     })
 
@@ -46,7 +45,7 @@ describe('getBrowserCapabilities', () => {
                 browser: 'browser',
                 os: 'OS X',
             }
-        } as any as WebdriverIO.Browser
+        } as any as Browser<'async'>
         expect(getBrowserCapabilities(browser, { os: 'Windows' }))
             .toEqual({ os:'Windows', browser: 'browser' } as any)
     })
@@ -60,7 +59,7 @@ describe('getBrowserCapabilities', () => {
                     os: 'OS X',
                 }
             }
-        } as any as WebdriverIO.MultiRemoteBrowser
+        } as any as MultiRemoteBrowser<'async'>
         expect(getBrowserCapabilities(browser, { browserA: { capabilities: { os: 'Windows' } } }, 'browserA'))
             .toEqual({ os:'Windows', browser: 'browser' } as any)
     })
@@ -69,7 +68,7 @@ describe('getBrowserCapabilities', () => {
         const browser = {
             isMultiremote: true,
             browserA: {}
-        } as any as WebdriverIO.MultiRemoteBrowser
+        } as any as MultiRemoteBrowser<'async'>
         expect(getBrowserCapabilities(browser, {}, 'browserB'))
             .toEqual({})
     })
@@ -78,7 +77,7 @@ describe('getBrowserCapabilities', () => {
         const browser = {
             isMultiremote: true,
             browserA: {}
-        } as any as WebdriverIO.MultiRemoteBrowser
+        } as any as MultiRemoteBrowser<'async'>
         expect(getBrowserCapabilities(browser, { browserB: {} } as any, 'browserB'))
             .toEqual({})
     })
