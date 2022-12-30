@@ -26,7 +26,7 @@ export interface RectReturn {
     height: number
 }
 
-// appium.json
+// appium protocol
 export interface StringsReturn {
     [key: string]: string
 }
@@ -98,7 +98,7 @@ export interface Cookie {
 }
 
 export type CommandPath = 'string'
-export type CommandMethod = 'POST' | 'GET' | 'DELETE'
+export type CommandMethod = 'POST' | 'GET' | 'DELETE' | 'socket'
 export type Protocol = Record<string, Partial<Record<CommandMethod, CommandEndpoint>>>
 
 /**

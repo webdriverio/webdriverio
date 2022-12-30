@@ -1,17 +1,14 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import url from 'node:url'
-import { createRequire } from 'node:module'
 
 import ejs from 'ejs'
 
+import { repoUrl } from '../constants.js'
 import {
     PROTOCOLS, PROTOCOL_NAMES, MOBILE_PROTOCOLS, VENDOR_PROTOCOLS,
     PROTOCOL_API_DESCRIPTION
-} from '../constants.js'
-
-const require = createRequire(import.meta.url)
-const { repoUrl } = require('../../website/docusaurus.config.js')
+} from '../protocols.js'
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 const TEMPLATE_PATH = path.join(__dirname, '..', 'templates', 'api.tpl.ejs')
@@ -59,7 +56,7 @@ export function generateProtocolDocs (sidebars) {
                 description.returnTags = [] // tbd
                 description.throwsTags = [] // tbd
                 description.isMobile = MOBILE_PROTOCOLS.includes(protocolName)
-                description.customEditUrl = `${repoUrl}/edit/main/packages/wdio-protocols/src/protocols/${protocolName}.json`
+                description.customEditUrl = `${repoUrl}/edit/main/packages/wdio-protocols/src/protocols/${protocolName}.ts`
 
                 let protocolNote
                 if (VENDOR_PROTOCOLS.includes(protocolName)) {
@@ -83,7 +80,7 @@ export function generateProtocolDocs (sidebars) {
                         '---',
                         `id: ${protocolName}`,
                         `title: ${protocol}`,
-                        `custom_edit_url: https://github.com/webdriverio/webdriverio/edit/main/packages/wdio-protocols/src/protocols/${protocolName}.json`,
+                        `custom_edit_url: https://github.com/webdriverio/webdriverio/edit/main/packages/wdio-protocols/src/protocols/${protocolName}.ts`,
                         '---\n',
                         'import Tabs from \'@theme/Tabs\';',
                         'import TabItem from \'@theme/TabItem\';\n'

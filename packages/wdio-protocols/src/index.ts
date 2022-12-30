@@ -8,15 +8,15 @@ import type SeleniumCommands from './commands/selenium.js'
 import type WebDriverCommands from './commands/webdriver.js'
 import type WebDriverBidiCommands from './commands/webdriverBidi.js'
 
-import WebDriverProtocol from './protocols/webdriver.json' assert { type: 'json' }
-import WebDriverBidiProtocol from './protocols/webdriverBidi.json' assert { type: 'json' }
-import MJsonWProtocol from './protocols/mjsonwp.json' assert { type: 'json' }
-import JsonWProtocol from './protocols/jsonwp.json' assert { type: 'json' }
-import AppiumProtocol from './protocols/appium.json' assert { type: 'json' }
-import ChromiumProtocol from './protocols/chromium.json' assert { type: 'json' }
-import GeckoProtocol from './protocols/gecko.json' assert { type: 'json' }
-import SauceLabsProtocol from './protocols/saucelabs.json' assert { type: 'json' }
-import SeleniumProtocol from './protocols/selenium.json' assert { type: 'json' }
+import WebDriverProtocol from './protocols/webdriver.js'
+import WebDriverBidiProtocol from './protocols/webdriverBidi.js'
+import MJsonWProtocol from './protocols/mjsonwp.js'
+import JsonWProtocol from './protocols/jsonwp.js'
+import AppiumProtocol from './protocols/appium.js'
+import ChromiumProtocol from './protocols/chromium.js'
+import GeckoProtocol from './protocols/gecko.js'
+import SauceLabsProtocol from './protocols/saucelabs.js'
+import SeleniumProtocol from './protocols/selenium.js'
 
 type WebDriverCommandsAsync = {
     [K in keyof WebDriverCommands]:
