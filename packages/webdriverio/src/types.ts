@@ -51,7 +51,10 @@ export interface ChainablePromiseElement<T> extends AsyncElementProto, Promise<T
      */
     index?: Promise<number>
 }
+
 export interface ChainablePromiseArray<T> extends Promise<T> {
+    [Symbol.asyncIterator](): AsyncIterableIterator<WebdriverIO.Element>
+
     /**
      * Amount of element fetched.
      */
