@@ -134,9 +134,6 @@ export default function getLogger (name: string) {
     })
     return loggers[name]
 }
-
-export type LoggerType = typeof getLogger
-
 /**
  * Wait for writable stream to be flushed.
  * Calling this prevents part of the logs in the very env to be lost.

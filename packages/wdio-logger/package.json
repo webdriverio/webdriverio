@@ -6,18 +6,7 @@
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-logger",
   "license": "MIT",
   "type": "module",
-  "main": "./build/cjs/index.js",
-  "module": "./build/index.js",
-  "exports": {
-    ".": [
-      {
-        "types": "./build/index.d.ts",
-        "import": "./build/index.js",
-        "require": "./build/cjs/index.js"
-      },
-      "./build/cjs/index.js"
-    ]
-  },
+  "exports": "./build/index.js",
   "types": "./build/index.d.ts",
   "typeScriptVersion": "3.8.3",
   "engines": {

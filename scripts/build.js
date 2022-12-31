@@ -48,7 +48,7 @@ const ESM_CJS_PACKAGES = [
 
 const CJS_PACKAGES = ['wdio-smoke-test-cjs-service']
 
-const ESM_PACKAGES_WITH_CJS_FOLDER = ['devtools', 'wdio-logger', 'webdriver', 'webdriverio']
+const ESM_PACKAGES_WITH_CJS_FOLDER = ['devtools', 'webdriver', 'webdriverio']
 
 const packages = getSubPackages()
     /**
