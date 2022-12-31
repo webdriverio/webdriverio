@@ -27,7 +27,6 @@ const ROOT_DIR = path.join(__dirname, '..')
 
 const IGNORE_PACKAGES: IgnoredPackages = {
     'wdio-browser-runner': ['virtual:wdio', 'mocha'],
-    'webdriver': ['webdriver']
 }
 
 const brokenPackages = (await Promise.all(packages.map(async (pkg) => {
