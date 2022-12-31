@@ -1,6 +1,7 @@
 /* istanbul ignore file */
 
 import type loggerType from './node.js'
+export type { Logger } from './node.js'
 
 /**
  * environment check to allow to use this package in a web context
@@ -22,5 +23,3 @@ if (typeof process !== 'undefined' && typeof process.release !== 'undefined' && 
 // required the web file, thus ensuring that the Node file and related
 // dependencies will not be bundled inadvertently.
 export default mode.default as typeof loggerType
-
-export type { Logger } from './node.js'
