@@ -108,11 +108,11 @@ const cmd = (packages) => `npx tsc -b ${packages.join(' ')}${HAS_WATCH_FLAG ? ' 
 const esmCmd = cmd(esmPackages)
 const cjsCmd = cmd(cjsPackages)
 
-console.log('\n' + chalk.cyan('Compiling ESM packages\n'))
+console.log('\n' + chalk.cyan('Compiling ESM packages'))
 console.log(esmCmd)
 const { code: esmCode } = shell.exec(esmCmd)
 
-console.log('\n' + chalk.cyan('Compiling CJS packages\n'))
+console.log('\n' + chalk.cyan('Compiling CJS packages'))
 console.log(cjsCmd)
 const { code: cjsCode } = shell.exec(cjsCmd)
 

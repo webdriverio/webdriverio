@@ -1,6 +1,7 @@
 import path from 'node:path'
 import { EventEmitter } from 'node:events'
 import type { URL } from 'node:url'
+import { createRequire } from 'node:module'
 
 import logger from '@wdio/logger'
 import { transformCommandLogResult } from '@wdio/utils'
@@ -9,7 +10,25 @@ import type { Options } from '@wdio/types'
 import { URLFactory } from './factory.js'
 import { isSuccessfulResponse, getErrorFromResponseBody, getTimeoutError } from '../utils.js'
 
-import pkg from 'webdriver/package.json'
+function getPackageVersion(): string {
+    let pkg = undefined
+    try {
+        (pkg = require('../../package.json'))
+        return pkg.version
+    } catch {
+        try {
+            // @ts-ignore - this will never run in a CJS environment, but TypeScript doesn't know that
+            const esmRequire = createRequire(import.meta.url);
+            (pkg = esmRequire('../../package.json'))
+            return pkg.version
+        } catch {
+            // ignore
+        }
+    }
+    return 'next'
+}
+
+const pkgVersion = getPackageVersion()
 
 type Agents = Options.Agents
 type RequestLibOptions = Options.RequestLibOptions
@@ -43,7 +62,7 @@ const DEFAULT_HEADERS = {
     'Content-Type': 'application/json; charset=utf-8',
     'Connection': 'keep-alive',
     'Accept': 'application/json',
-    'User-Agent': 'webdriver/' + pkg.version
+    'User-Agent': 'webdriver/' + pkgVersion
 }
 
 const log = logger('webdriver')
