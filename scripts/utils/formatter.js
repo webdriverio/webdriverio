@@ -1,6 +1,8 @@
 import path from 'node:path'
+import { createRequire } from 'node:module'
 
-import { repoUrl } from '../constants.js'
+const require = createRequire(import.meta.url)
+const { customFields } = require('../../website/docusaurus.config.js')
 
 export default function (docfile) {
     const javadoc = docfile.javadoc[0]
@@ -195,7 +197,7 @@ export default function (docfile) {
         description: description,
         ignore: javadoc.ignore,
         examples: files,
-        customEditUrl: `${repoUrl}/edit/main/packages/webdriverio/src/commands/${scope}/${name}.ts`,
+        customEditUrl: `${customFields.repoUrl}/edit/main/packages/webdriverio/src/commands/${scope}/${name}.ts`,
         hasDocusaurusHeader: true,
         originalId: `api/${scope}/${name}`,
         isElementScope : scope === 'element',

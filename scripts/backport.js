@@ -1,9 +1,8 @@
 #!/usr/bin/env node
 
-import { execSync } from 'node:child_process'
-
 import Octokit from '@octokit/rest'
 import inquirer from 'inquirer'
+import shell from 'shelljs'
 
 const activeLTSVersion = 'v6'
 const maintenanceLTSVersion = 'v5'
@@ -21,7 +20,7 @@ if (!process.env.GITHUB_AUTH) {
 /**
  * check if user is in right branch
  */
-const { stdout: branch } = execSync('git rev-parse --abbrev-ref HEAD')
+const { stdout: branch } = shell.exec('git rev-parse --abbrev-ref HEAD', { silent: true })
 if (branch.trim() !== maintenanceLTSVersion) {
     throw new Error(
         'In order to start backport process witch to the maintenance LTS branch via:\n' +
@@ -81,7 +80,7 @@ const api = new Octokit({ auth: process.env.GITHUB_AUTH })
         }
 
         console.log(`Backporting sha ${prToBackport.merge_commit_sha} from ${activeLTSVersion} to ${maintenanceLTSVersion}`)
-        const cherryPickResult = execSync(`git cherry-pick ${prToBackport.merge_commit_sha}`)
+        const cherryPickResult = shell.exec(`git cherry-pick ${prToBackport.merge_commit_sha}`)
 
         /**
          * handle failing cherry-pick

@@ -5,9 +5,9 @@
  * and @wdio/globals
  */
 
-type BrowserSync = import('../types').Browser<'async'>
-type ElementSync = import('../types').Element<'async'>
-type MultiRemoteBrowserSync = import('../types').MultiRemoteBrowser<'async'>
+type BrowserSync = import('../types.js').Browser<'async'>
+type ElementSync = import('../types.js').Element<'async'>
+type MultiRemoteBrowserSync = import('../types.js').MultiRemoteBrowser<'async'>
 
 declare namespace WebdriverIOAsync {
     interface Browser {}
