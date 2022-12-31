@@ -37,14 +37,13 @@ const ROOT_PACKAGES = [
     'wdio-runner',
     'wdio-local-runner',
     'wdio-mocha-framework',
-    'wdio-browser-runner'
+    'wdio-browser-runner',
 ]
 
 const ESM_CJS_PACKAGES = [
     'eslint-plugin-wdio',
     'wdio-allure-reporter',
     'wdio-globals',
-    'webdriver'
 ]
 
 const CJS_PACKAGES = ['wdio-smoke-test-cjs-service']
@@ -118,7 +117,7 @@ const { code: cjsCode } = shell.exec(cjsCmd)
 
 if (!HAS_WATCH_FLAG) {
     console.log('\n' + chalk.grey('Removing `export {}` from CJS files'))
-    for (const pkg of ['devtools', 'webdriverio']) {
+    for (const pkg of ['devtools', 'webdriver', 'webdriverio']) {
         const filePath = path.join(__dirname, '..', 'packages', pkg, 'build', 'cjs', 'index.js')
         const fileContent = await readFile(filePath, 'utf8')
         await writeFile(filePath, fileContent.toString().replace('export {};', ''), 'utf8')
