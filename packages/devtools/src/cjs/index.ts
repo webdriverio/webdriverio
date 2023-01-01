@@ -1,7 +1,9 @@
+// @ts-expect-error
 import type { Options } from '@wdio/types'
+// @ts-expect-error
 import type { Client, AttachOptions } from '../types'
 
-module.exports = class Devtools {
+export default class Devtools {
     static async newSession (
         options: Options.WebDriver,
         modifier?: (...args: any[]) => any,
@@ -31,7 +33,7 @@ module.exports = class Devtools {
      *
      * @param   {Object} instance  the object we get from a new browser session.
      * @returns {string}           the new session id of the browser
-    */
+     */
     static async reloadSession (instance: Client) {
         const Devtools = (await import('../index.js')).default
         return Devtools.reloadSession(instance)

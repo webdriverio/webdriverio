@@ -116,6 +116,13 @@ export default class DevTools {
         return monad(sessionId, customCommandWrapper)
     }
 
+    /**
+     * Changes The instance session id and browser capabilities for the new session
+     * directly into the passed in browser object
+     *
+     * @param   {object} instance  the object we get from a new browser session.
+     * @returns {string}           the new session id of the browser
+     */
     static async reloadSession (instance: any): Promise<string> {
         const { session } = sessionMap.get(instance.sessionId)
         const browser = await launch(instance.requestedCapabilities)
