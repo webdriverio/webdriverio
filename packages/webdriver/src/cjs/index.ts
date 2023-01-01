@@ -3,7 +3,7 @@ import type { Options } from '@wdio/types'
 // @ts-expect-error
 import type { Client, AttachOptions } from '../types.js'
 
-export default class WebDriver {
+class WebDriver {
     static async newSession(
         options: Options.WebDriver,
         modifier?: (...args: any[]) => any,
@@ -43,3 +43,5 @@ export default class WebDriver {
         return WebDriver
     }
 }
+
+export = WebDriver

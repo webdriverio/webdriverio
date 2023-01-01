@@ -3,7 +3,7 @@ import type { Options } from '@wdio/types'
 // @ts-expect-error
 import type { Client, AttachOptions } from '../types'
 
-export default class Devtools {
+class Devtools {
     static async newSession (
         options: Options.WebDriver,
         modifier?: (...args: any[]) => any,
@@ -43,3 +43,5 @@ export default class Devtools {
         return Devtools
     }
 }
+
+export = Devtools

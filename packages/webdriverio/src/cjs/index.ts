@@ -2,17 +2,10 @@
 import type { Options, Capabilities } from '@wdio/types'
 // @ts-expect-error
 import type * as WebDriverTypes from 'webdriver'
-
-// @ts-expect-error
-import SevereServiceErrorImport from '../utils/SevereServiceError.js'
-// @ts-expect-error
-import { Key as KeyConstant } from '../constants.js'
 // @ts-expect-error
 import type { AttachOptions } from '../types.js'
 
 export type RemoteOptions = Options.WebdriverIO & Omit<Options.Testrunner, 'capabilities' | 'rootDir'>
-export const Key = KeyConstant
-export const SevereServiceError = SevereServiceErrorImport
 
 /**
  * A method to create a new session with WebdriverIO.
