@@ -1,8 +1,10 @@
+// @ts-expect-error
 import type { Options } from '@wdio/types'
+// @ts-expect-error
 import type { Client, AttachOptions } from '../types.js'
 
-module.exports = class WebDriver {
-    static async newSession (
+export default class WebDriver {
+    static async newSession(
         options: Options.WebDriver,
         modifier?: (...args: any[]) => any,
         userPrototype = {},
@@ -15,7 +17,7 @@ module.exports = class WebDriver {
     /**
      * allows user to attach to existing sessions
      */
-    static async attachToSession (
+    static async attachToSession(
         options?: AttachOptions,
         modifier?: (...args: any[]) => any,
         userPrototype = {},
@@ -29,15 +31,15 @@ module.exports = class WebDriver {
      * Changes The instance session id and browser capabilities for the new session
      * directly into the passed in browser object
      *
-     * @param   {Object} instance  the object we get from a new browser session.
+     * @param   {object} instance  the object we get from a new browser session.
      * @returns {string}           the new session id of the browser
-    */
-    static async reloadSession (instance: Client) {
+     */
+    static async reloadSession(instance: Client) {
         const WebDriver = (await import('../index.js')).default
         return WebDriver.reloadSession(instance)
     }
 
-    static get WebDriver () {
+    static get WebDriver() {
         return WebDriver
     }
 }
