@@ -3,9 +3,7 @@
   "compilerOptions": {
     "baseUrl": ".",
     "outDir": "./build",
-    "rootDir": "./src",
-    "module": "ESNext",
-    "moduleResolution": "Node"
+    "rootDir": "./src"
   },
   "include": [
     "src/**/*",

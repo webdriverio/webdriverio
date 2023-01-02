@@ -1,5 +1,5 @@
 import logger from '@wdio/logger'
-import type { RunArgs } from '@wdio/local-runner'
+import type { RunArgs, WorkerInstance } from '@wdio/local-runner'
 import LocalRunner from '@wdio/local-runner'
 import { attach } from 'webdriverio'
 
@@ -47,7 +47,7 @@ export default class BrowserRunner extends LocalRunner {
         await super.initialise()
     }
 
-    run (runArgs: RunArgs) {
+    run (runArgs: RunArgs): WorkerInstance {
         runArgs.caps = makeHeadless(this.options, runArgs.caps)
 
         if (runArgs.command === 'run') {
