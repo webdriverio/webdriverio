@@ -4,8 +4,6 @@
     "baseUrl": ".",
     "outDir": "./build",
     "rootDir": "./src",
-    "module": "ESNext",
-    "moduleResolution": "Node",
     "types": ["@wdio/globals/types"]
   },
   "include": [
