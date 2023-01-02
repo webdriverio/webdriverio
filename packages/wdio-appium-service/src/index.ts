@@ -6,7 +6,7 @@ export default class AppiumService {}
 export const launcher = AppiumLauncher
 
 export * from './types.js'
-import type { AppiumServiceConfig } from './types'
+import type { AppiumServiceConfig } from './types.js'
 
 declare global {
     namespace WebdriverIO {

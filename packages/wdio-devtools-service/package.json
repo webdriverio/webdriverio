@@ -1,6 +1,6 @@
 {
   "name": "@wdio/devtools-service",
-  "version": "8.0.14",
+  "version": "8.1.0",
   "description": "A WebdriverIO service that allows you to run Chrome DevTools commands in your tests",
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-devtools-service",
@@ -33,8 +33,8 @@
     "@babel/core": "^7.18.0",
     "@tracerbench/trace-event": "^8.0.0",
     "@types/node": "^18.0.0",
-    "@wdio/logger": "8.0.14",
-    "@wdio/types": "8.0.14",
+    "@wdio/logger": "8.1.0",
+    "@wdio/types": "8.1.0",
     "babel-plugin-istanbul": "^6.1.1",
     "devtools-protocol": "^0.0.1087818",
     "istanbul-lib-coverage": "^3.2.0",

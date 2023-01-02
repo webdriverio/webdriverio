@@ -15,7 +15,7 @@ import type {
     BeforeHookParam,
     AfterHookParam,
     SpecArguments
-} from './types'
+} from './types.js'
 
 const MOCHA_COMMANDS: ['skip', 'only'] = ['skip', 'only']
 

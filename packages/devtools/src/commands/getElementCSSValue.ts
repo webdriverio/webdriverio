@@ -1,6 +1,6 @@
 import command from '../scripts/getElementCSSValue.js'
 import { getStaleElementError } from '../utils.js'
-import type DevToolsDriver from '../devtoolsdriver'
+import type DevToolsDriver from '../devtoolsdriver.js'
 
 /**
  * The Get Element CSS Value command retrieves the computed value

@@ -1,6 +1,6 @@
 import type { Options, Reporters } from '@wdio/types'
 import type { NormalizedPackageJson } from 'read-pkg-up'
-import type { BACKEND_CHOICES, REGION_OPTION, COMPILER_OPTION_ANSWERS } from './constants'
+import type { BACKEND_CHOICES, REGION_OPTION, COMPILER_OPTION_ANSWERS } from './constants.js'
 
 type ValueOf<T> = T[keyof T]
 

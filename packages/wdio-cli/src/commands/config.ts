@@ -11,7 +11,7 @@ import {
     getProjectRoot, createPackageJSON, setupTypeScript, setupBabel, npmInstall,
     createWDIOConfig, createWDIOScript
 } from '../utils.js'
-import type { ConfigCommandArguments, ParsedAnswers } from '../types'
+import type { ConfigCommandArguments, ParsedAnswers } from '../types.js'
 
 const hasYarnLock = await fs.access('yarn.lock').then(() => true, () => false)
 

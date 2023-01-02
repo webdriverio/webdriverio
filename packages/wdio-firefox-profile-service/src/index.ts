@@ -1,7 +1,7 @@
 /* istanbul ignore file */
 
 import FirefoxProfileLauncher from './launcher.js'
-import type { FirefoxProfileOptions } from './types'
+import type { FirefoxProfileOptions } from './types.js'
 
 export const launcher = FirefoxProfileLauncher
 export * from './types.js'

@@ -2,7 +2,7 @@
 
 import TestingBotLauncher from './launcher.js'
 import TestingBotService from './service.js'
-import type { TestingbotOptions } from './types'
+import type { TestingbotOptions } from './types.js'
 
 export default TestingBotService
 export const launcher = TestingBotLauncher

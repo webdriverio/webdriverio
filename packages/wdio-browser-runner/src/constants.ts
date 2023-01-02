@@ -1,5 +1,5 @@
 import type { Browser } from 'webdriverio'
-import type { Environment } from './types'
+import type { Environment } from './types.js'
 
 export const SESSIONS = new Map<string, Environment>()
 export const BROWSER_POOL: Map<string, Browser<'async'>> = new Map()

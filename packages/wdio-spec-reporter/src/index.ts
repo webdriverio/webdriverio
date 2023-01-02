@@ -6,7 +6,7 @@ import WDIOReporter from '@wdio/reporter'
 import type { Capabilities } from '@wdio/types'
 
 import { buildTableData, printTable, getFormattedRows, sauceAuthenticationToken } from './utils.js'
-import type { StateCount, Symbols, SpecReporterOptions, TestLink } from './types'
+import type { StateCount, Symbols, SpecReporterOptions, TestLink } from './types.js'
 
 const DEFAULT_INDENT = '   '
 

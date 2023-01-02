@@ -1,4 +1,4 @@
-import type { Status } from './types'
+import type { Status } from './types.js'
 
 export const PASSED = 'passed'
 export const FAILED = 'failed'

@@ -2,7 +2,7 @@
 
 import CrossBrowserTestingLauncher from './launcher.js'
 import CrossBrowserTestingService from './service.js'
-import type { CrossBrowserTestingConfig } from './types'
+import type { CrossBrowserTestingConfig } from './types.js'
 
 export default CrossBrowserTestingService
 export const launcher = CrossBrowserTestingLauncher

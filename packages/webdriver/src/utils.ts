@@ -1,7 +1,7 @@
 import { deepmergeCustom } from 'deepmerge-ts'
 
 import logger from '@wdio/logger'
-import type Protocols from '@wdio/protocols'
+import type { Protocol } from '@wdio/protocols'
 import {
     WebDriverProtocol, MJsonWProtocol, JsonWProtocol, AppiumProtocol, ChromiumProtocol,
     SauceLabsProtocol, SeleniumProtocol, GeckoProtocol, WebDriverBidiProtocol
@@ -171,7 +171,7 @@ export function isSuccessfulResponse (statusCode?: number, body?: WebDriverRespo
  */
 export function getPrototype ({ isW3C, isChrome, isFirefox, isMobile, isSauce, isSeleniumStandalone }: Partial<SessionFlags>) {
     const prototype: Record<string, PropertyDescriptor> = {}
-    const ProtocolCommands: Protocols.Protocol = deepmerge(
+    const ProtocolCommands: Protocol = deepmerge(
         /**
          * if mobile apply JSONWire and WebDriver protocol because
          * some legacy JSONWire commands are still used in Appium
@@ -204,7 +204,8 @@ export function getPrototype ({ isW3C, isChrome, isFirefox, isMobile, isSauce, i
          * only apply special commands when running tests using
          * Selenium Grid or Selenium Standalone server
          */
-        isSeleniumStandalone ? SeleniumProtocol : {}
+        isSeleniumStandalone ? SeleniumProtocol : {},
+        {} as Protocol
     )
 
     for (const [endpoint, methods] of Object.entries(ProtocolCommands)) {

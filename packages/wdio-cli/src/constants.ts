@@ -1,7 +1,7 @@
 import { createRequire } from 'node:module'
 
 import { validateServiceAnswers, detectCompiler, getDefaultFiles, convertPackageHashToObject } from './utils.js'
-import type { Questionnair } from './types'
+import type { Questionnair } from './types.js'
 
 const require = createRequire(import.meta.url)
 export const pkg = require('../package.json')

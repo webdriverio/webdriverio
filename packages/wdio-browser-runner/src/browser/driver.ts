@@ -6,7 +6,7 @@ import { getEnvironmentVars } from 'webdriver'
 import type { ErrorObject } from 'serialize-error'
 
 import { MESSAGE_TYPES } from '../constants.js'
-import type { SocketMessage, SocketMessagePayload, ConsoleEvent, CommandRequestEvent } from '../vite/types'
+import type { SocketMessage, SocketMessagePayload, ConsoleEvent, CommandRequestEvent } from '../vite/types.js'
 
 const COMMAND_TIMEOUT = 30 * 1000 // 30s
 const CONSOLE_METHODS = ['log', 'info', 'warn', 'error', 'debug'] as const
@@ -145,7 +145,7 @@ export default class ProxyDriver {
         for (const method of CONSOLE_METHODS) {
             const origCommand = console[method].bind(console)
             console[method] = (...args: unknown[]) => {
-                socket.send(stringify(this.#consoleMessage({
+                socket.send(stringify.default(this.#consoleMessage({
                     name: 'consoleEvent',
                     type: method,
                     args,

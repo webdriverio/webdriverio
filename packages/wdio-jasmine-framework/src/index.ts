@@ -11,7 +11,7 @@ import type { Options, Services, Capabilities } from '@wdio/types'
 import JasmineReporter from './reporter.js'
 import type {
     JasmineOpts as jasmineNodeOpts, ResultHandlerPayload, FrameworkMessage, FormattedMessage
-} from './types'
+} from './types.js'
 
 const INTERFACES = {
     bdd: ['beforeAll', 'beforeEach', 'it', 'xit', 'fit', 'afterEach', 'afterAll']

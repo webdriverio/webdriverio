@@ -1,6 +1,6 @@
 {
   "name": "@wdio/static-server-service",
-  "version": "8.0.14",
+  "version": "8.1.0",
   "description": "A WebdriverIO service that can serve your static websites",
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-static-server-service",
@@ -31,8 +31,8 @@
   "types": "./build/index.d.ts",
   "typeScriptVersion": "3.8.3",
   "dependencies": {
-    "@wdio/logger": "8.0.14",
-    "@wdio/types": "8.0.14",
+    "@wdio/logger": "8.1.0",
+    "@wdio/types": "8.1.0",
     "express": "^4.14.0",
     "morgan": "^1.7.0"
   },

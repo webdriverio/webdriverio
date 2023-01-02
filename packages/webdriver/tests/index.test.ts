@@ -9,7 +9,7 @@ import type { Capabilities } from '@wdio/types'
 import WebDriver, { getPrototype, DEFAULTS, command } from '../src/index.js'
 // @ts-expect-error mock feature
 import { initCount } from '../src/bidi.js'
-import type { Client } from '../src/types'
+import type { Client } from '../src/types.js'
 
 vi.mock('@wdio/utils', () => import(path.join(process.cwd(), '__mocks__', '@wdio/utils')))
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))

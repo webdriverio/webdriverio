@@ -7,9 +7,9 @@ import got from 'got'
 import fs from 'node:fs'
 
 import BrowserstackLauncher from '../src/launcher.js'
-import type { BrowserstackConfig } from '../src/types'
+import type { BrowserstackConfig } from '../src/types.js'
 import * as utils from '../src/util.js'
-import { version as bstackServiceVersion } from '../package.json'
+import { version as bstackServiceVersion } from '../package.json' assert { type: 'json' }
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 vi.mock('browserstack-local')
@@ -480,7 +480,8 @@ describe('_validateApp', () => {
 
         try {
             await service._validateApp(options.app as any)
-        } catch (e){
+        } catch (err) {
+            const e = err as Error
             expect(e.message).toEqual(`keys ${Object.keys(options.app as any)} can't co-exist as app values, use any one property from
                             {id<string>, path<string>, custom_id<string>, shareable_id<string>}, only "path" and "custom_id" can co-exist.`)
         }
@@ -492,7 +493,8 @@ describe('_validateApp', () => {
 
         try {
             await service._validateApp(options.app as any)
-        } catch (e){
+        } catch (err) {
+            const e = err as Error
             expect(e.message).toEqual(`keys ${Object.keys(options.app as any)} can't co-exist as app values, use any one property from
                             {id<string>, path<string>, custom_id<string>, shareable_id<string>}, only "path" and "custom_id" can co-exist.`)
         }

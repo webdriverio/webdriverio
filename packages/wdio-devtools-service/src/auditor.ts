@@ -19,9 +19,9 @@ import type {
     FormFactor, Audit, AuditResults, AuditRef, MainThreadWorkBreakdownResult,
     DiagnosticsResults, ResponseTimeResult, MetricsResult, MetricsResults,
     AuditResult, LHAuditResult, ErrorAudit, PWAAudits
-} from './types'
-import type { Trace } from './gatherer/trace'
-import type { CDPSessionOnMessageObject } from './gatherer/devtools'
+} from './types.js'
+import type { Trace } from './gatherer/trace.js'
+import type { CDPSessionOnMessageObject } from './gatherer/devtools.js'
 
 const log = logger('@wdio/devtools-service:Auditor')
 

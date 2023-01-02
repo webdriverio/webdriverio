@@ -1,6 +1,7 @@
 /* istanbul ignore file */
 
-import type loggerType from './node'
+import type loggerType from './node.js'
+export type { Logger } from './node.js'
 
 /**
  * environment check to allow to use this package in a web context

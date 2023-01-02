@@ -10,7 +10,7 @@ import { isFunctionAsync } from '@wdio/utils'
 
 import type { ReporterStep } from './constants.js'
 import { CUCUMBER_HOOK_DEFINITION_TYPES } from './constants.js'
-import type { TestHookDefinitionConfig } from './types'
+import type { TestHookDefinitionConfig } from './types.js'
 
 const log = logger('@wdio/cucumber-framework:utils')
 

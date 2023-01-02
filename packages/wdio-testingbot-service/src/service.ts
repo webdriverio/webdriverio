@@ -3,7 +3,7 @@ import logger from '@wdio/logger'
 import type { Capabilities, Options, Services, Frameworks } from '@wdio/types'
 import type { Browser, MultiRemoteBrowser } from 'webdriverio'
 
-import type { TestingbotOptions } from './types'
+import type { TestingbotOptions } from './types.js'
 
 const log = logger('@wdio/testingbot-service')
 const jobDataProperties = ['name', 'tags', 'public', 'build', 'extra']

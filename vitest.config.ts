@@ -13,7 +13,7 @@ export default defineConfig({
         ],
         coverage: {
             enabled: true,
-            exclude: ['**/build/**', '**/*.test.ts'],
+            exclude: ['**/build/**', '**/cjs/*.js', '**/*.test.ts'],
             lines: 94,
             functions: 88,
             branches: 93,

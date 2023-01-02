@@ -5,11 +5,11 @@ import ProtocolSession from 'lighthouse/lighthouse-core/fraggle-rock/gather/sess
 import { waitForFullyLoaded } from 'lighthouse/lighthouse-core/gather/driver/wait-for-condition.js'
 import logger from '@wdio/logger'
 
-import type Protocol from 'devtools-protocol'
+import type { Protocol } from 'devtools-protocol'
 import type { TraceEvent, TraceEventArgs } from '@tracerbench/trace-event'
-import type { HTTPRequest } from 'puppeteer-core/lib/cjs/puppeteer/common/HTTPRequest'
-import type { CDPSession } from 'puppeteer-core/lib/cjs/puppeteer/common/Connection'
-import type { Page } from 'puppeteer-core/lib/cjs/puppeteer/api/Page'
+import type { HTTPRequest } from 'puppeteer-core/lib/esm/puppeteer/common/HTTPRequest.js'
+import type { CDPSession } from 'puppeteer-core/lib/esm/puppeteer/common/Connection.js'
+import type { Page } from 'puppeteer-core/lib/esm/puppeteer/api/Page.js'
 
 import registerPerformanceObserverInPage from '../scripts/registerPerformanceObserverInPage.js'
 
@@ -18,7 +18,7 @@ import {
     CLICK_TRANSITION, NETWORK_RECORDER_EVENTS
 } from '../constants.js'
 import { isSupportedUrl } from '../utils.js'
-import type { GathererDriver } from '../types'
+import type { GathererDriver } from '../types.js'
 
 const log = logger('@wdio/devtools-service:TraceGatherer')
 

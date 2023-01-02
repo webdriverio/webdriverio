@@ -7,7 +7,7 @@ import Launcher from '../launcher.js'
 import Watcher from '../watcher.js'
 import { missingConfigurationPrompt } from './config.js'
 import { CLI_EPILOGUE } from '../constants.js'
-import type { RunCommandArguments } from '../types'
+import type { RunCommandArguments } from '../types.js'
 
 export const command = 'run <configPath>'
 

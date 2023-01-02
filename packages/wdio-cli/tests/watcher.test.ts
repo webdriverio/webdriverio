@@ -7,7 +7,7 @@ import EventEmitter from 'node:events'
 import { vi, describe, it, expect, afterEach } from 'vitest'
 import type { Options, Workers } from '@wdio/types'
 
-import type { RunCommandArguments } from '../src/types'
+import type { RunCommandArguments } from '../src/types.js'
 import Watcher from '../src/watcher.js'
 
 vi.mock('chokidar')

@@ -16,7 +16,7 @@ import { testrunner } from './plugins/testrunner.js'
 import { userfriendlyImport } from './utils.js'
 import { PRESET_DEPENDENCIES, DEFAULT_VITE_CONFIG } from './constants.js'
 import { MESSAGE_TYPES } from '../constants.js'
-import type { ConsoleEvent, HookTriggerEvent, CommandRequestEvent, CommandResponseEvent, SocketMessage, HookResultEvent } from './types'
+import type { ConsoleEvent, HookTriggerEvent, CommandRequestEvent, CommandResponseEvent, SocketMessage, HookResultEvent } from './types.js'
 
 import { BROWSER_POOL, SESSIONS } from '../constants.js'
 

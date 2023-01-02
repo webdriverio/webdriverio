@@ -1,6 +1,3 @@
-import { createRequire } from 'node:module'
-
-import type { Protocol } from './types.js'
 import type AppiumCommands from './commands/appium.js'
 import type ChromiumCommands from './commands/chromium.js'
 import type GeckoCommands from './commands/gecko.js'
@@ -11,16 +8,15 @@ import type SeleniumCommands from './commands/selenium.js'
 import type WebDriverCommands from './commands/webdriver.js'
 import type WebDriverBidiCommands from './commands/webdriverBidi.js'
 
-const require = createRequire(import.meta.url)
-const WebDriverProtocol: Protocol = require('../protocols/webdriver.json')
-const WebDriverBidiProtocol: Protocol = require('../protocols/webdriverBidi.json')
-const MJsonWProtocol: Protocol = require('../protocols/mjsonwp.json')
-const JsonWProtocol: Protocol = require('../protocols/jsonwp.json')
-const AppiumProtocol: Protocol = require('../protocols/appium.json')
-const ChromiumProtocol: Protocol = require('../protocols/chromium.json')
-const GeckoProtocol: Protocol = require('../protocols/gecko.json')
-const SauceLabsProtocol: Protocol = require('../protocols/saucelabs.json')
-const SeleniumProtocol: Protocol = require('../protocols/selenium.json')
+import WebDriverProtocol from './protocols/webdriver.js'
+import WebDriverBidiProtocol from './protocols/webdriverBidi.js'
+import MJsonWProtocol from './protocols/mjsonwp.js'
+import JsonWProtocol from './protocols/jsonwp.js'
+import AppiumProtocol from './protocols/appium.js'
+import ChromiumProtocol from './protocols/chromium.js'
+import GeckoProtocol from './protocols/gecko.js'
+import SauceLabsProtocol from './protocols/saucelabs.js'
+import SeleniumProtocol from './protocols/selenium.js'
 
 type WebDriverCommandsAsync = {
     [K in keyof WebDriverCommands]:

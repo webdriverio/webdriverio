@@ -1,5 +1,5 @@
 import logger from '@wdio/logger'
-import type { RunArgs } from '@wdio/local-runner'
+import type { RunArgs, WorkerInstance } from '@wdio/local-runner'
 import LocalRunner from '@wdio/local-runner'
 import { attach } from 'webdriverio'
 
@@ -9,8 +9,8 @@ import type { Options } from '@wdio/types'
 import { ViteServer } from './vite/server.js'
 import { FRAMEWORK_SUPPORT_ERROR, SESSIONS, BROWSER_POOL } from './constants.js'
 import { makeHeadless } from './utils.js'
-import type { HookTriggerEvent } from './vite/types'
-import type { BrowserRunnerOptions as BrowserRunnerOptionsImport } from './types'
+import type { HookTriggerEvent } from './vite/types.js'
+import type { BrowserRunnerOptions as BrowserRunnerOptionsImport } from './types.js'
 
 const log = logger('@wdio/browser-runner')
 
@@ -47,7 +47,7 @@ export default class BrowserRunner extends LocalRunner {
         await super.initialise()
     }
 
-    run (runArgs: RunArgs) {
+    run (runArgs: RunArgs): WorkerInstance {
         runArgs.caps = makeHeadless(this.options, runArgs.caps)
 
         if (runArgs.command === 'run') {

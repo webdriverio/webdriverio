@@ -4,7 +4,7 @@ import WDIOReporter from '@wdio/reporter'
 import type { Capabilities } from '@wdio/types'
 
 import { limit } from './utils.js'
-import type { JUnitReporterOptions } from './types'
+import type { JUnitReporterOptions } from './types.js'
 
 const ansiRegex = new RegExp([
     '[\\u001B\\u009B][[\\]()#;?]*(?:(?:(?:[a-zA-Z\\d]*(?:;[-a-zA-Z\\d\\/#&.:=?%@~_]*)*)?\\u0007)',

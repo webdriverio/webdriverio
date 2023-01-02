@@ -5,7 +5,7 @@ import type { Argv, Options } from 'yargs'
 import { cmdArgs as runCmdArgs } from './run.js'
 import { getCapabilities } from '../utils.js'
 import { CLI_EPILOGUE } from '../constants.js'
-import type { ReplCommandArguments } from '../types'
+import type { ReplCommandArguments } from '../types.js'
 
 const IGNORED_ARGS = [
     'bail', 'framework', 'reporters', 'suite', 'spec', 'exclude',
