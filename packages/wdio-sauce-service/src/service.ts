@@ -24,7 +24,7 @@ export default class SauceService implements Services.ServiceInstance {
     private _isJobNameSet = false
 
     private _options: SauceServiceConfig
-    private _api: SauceLabs
+    private _api: SauceLabs.default
     private _browser?: Browser<'async'> | MultiRemoteBrowser<'async'>
     private _isRDC?: boolean
     private _suiteTitle?: string
@@ -36,7 +36,6 @@ export default class SauceService implements Services.ServiceInstance {
         private _config: Options.Testrunner
     ) {
         this._options = { ...DEFAULT_OPTIONS, ...options }
-        // @ts-expect-error https://github.com/saucelabs/node-saucelabs/issues/153
         this._api = new SauceLabs.default(this._config as unknown as SauceLabsOptions)
         this._maxErrorStackLength = this._options.maxErrorStackLength || this._maxErrorStackLength
     }
