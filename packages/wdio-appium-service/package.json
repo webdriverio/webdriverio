@@ -30,7 +30,7 @@
     "@wdio/config": "7.26.0",
     "@wdio/logger": "7.26.0",
     "@wdio/types": "7.26.0",
-    "fs-extra": "^10.0.0",
+    "fs-extra": "^11.1.0",
     "param-case": "^3.0.0"
   },
   "peerDependencies": {

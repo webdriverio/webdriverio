@@ -36,7 +36,7 @@
     "@types/tmp": "^0.2.0",
     "@wdio/types": "7.26.0",
     "diff": "^5.0.0",
-    "fs-extra": "^10.0.0",
+    "fs-extra": "^11.1.0",
     "object-inspect": "^1.10.3",
     "supports-color": "8.1.1"
   },
