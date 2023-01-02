@@ -6,7 +6,7 @@ import { getBrowserObject, getPrototype as getWDIOPrototype, getElementFromRespo
 import { elementErrorHandler } from '../middlewares.js'
 import { ELEMENT_KEY } from '../constants.js'
 import * as browserCommands from '../commands/browser.js'
-import type { Selector, ElementArray } from '../types'
+import type { Selector, ElementArray } from '../types.js'
 
 /**
  * transforms a findElement response into a WDIO element

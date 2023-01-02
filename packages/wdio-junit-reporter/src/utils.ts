@@ -1,5 +1,5 @@
 import stringify from 'json-stringify-safe'
-import validator from 'validator'
+import validator from 'validator/es/index.js'
 
 const OBJLENGTH = 10
 const ARRLENGTH = 10

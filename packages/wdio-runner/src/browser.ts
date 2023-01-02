@@ -7,8 +7,8 @@ import { executeHooksWithArgs } from '@wdio/utils'
 import type { Browser } from 'webdriverio'
 import type { Capabilities, Workers, Options, Services } from '@wdio/types'
 
-import type BaseReporter from './reporter'
-import type { TestFramework, HookTriggerEvent, WorkerHookResultMessage } from './types'
+import type BaseReporter from './reporter.js'
+import type { TestFramework, HookTriggerEvent, WorkerHookResultMessage } from './types.js'
 
 const log = logger('@wdio/runner')
 const sep = '\n  - '

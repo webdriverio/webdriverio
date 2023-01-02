@@ -3,7 +3,7 @@ import { launch as launchChromeBrowser } from 'chrome-launcher'
 import type { PuppeteerLaunchOptions, ConnectOptions } from 'puppeteer-core'
 import puppeteer, { KnownDevices, Puppeteer } from 'puppeteer-core'
 import logger from '@wdio/logger'
-import type { Browser } from 'puppeteer-core/lib/cjs/puppeteer/api/Browser'
+import type { Browser } from 'puppeteer-core/lib/esm/puppeteer/api/Browser.js'
 import type { Capabilities } from '@wdio/types'
 import { QueryHandler } from 'query-selector-shadow-dom/plugins/puppeteer/index.js'
 
@@ -21,7 +21,7 @@ import {
     DEFAULT_Y_POSITION,
     VENDOR_PREFIX
 } from './constants.js'
-import type { ExtendedCapabilities, DevToolsOptions } from './types'
+import type { ExtendedCapabilities, DevToolsOptions } from './types.js'
 
 const log = logger('devtools')
 

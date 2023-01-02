@@ -7,7 +7,7 @@ import type {
     BeforeHookParam,
     AfterHookParam,
     JasmineContext
-} from './types'
+} from './types.js'
 
 const STACKTRACE_FILTER = [
     'node_modules/webdriver/',

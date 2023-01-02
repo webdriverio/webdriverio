@@ -11,7 +11,7 @@ import {
     getTimeoutError,
     setupDirectConnect
 } from '../src/utils.js'
-import type { Client } from '../src/types'
+import type { Client } from '../src/types.js'
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 vi.mock('@wdio/utils')

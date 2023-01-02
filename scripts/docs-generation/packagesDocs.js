@@ -2,7 +2,7 @@ import fs from 'node:fs'
 import url from 'node:url'
 import path from 'node:path'
 
-import { IGNORED_SUBPACKAGES_FOR_DOCS } from '../constants.js'
+import { IGNORED_SUBPACKAGES_FOR_DOCS } from '../protocols.js'
 import { getSubPackages, buildPreface } from '../utils/helpers.js'
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))

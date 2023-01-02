@@ -4,12 +4,13 @@ import path from 'node:path'
 import { v4 as uuidv4 } from 'uuid'
 
 import logger from '@wdio/logger'
-import type { Browser } from 'puppeteer-core/lib/cjs/puppeteer/api/Browser'
-import type { Dialog } from 'puppeteer-core/lib/cjs/puppeteer/common/Dialog'
-import type { Page } from 'puppeteer-core/lib/cjs/puppeteer/api/Page'
-import type { Target } from 'puppeteer-core/lib/cjs/puppeteer/common/Target'
 import type { CommandEndpoint } from '@wdio/protocols'
-import type { Frame } from 'puppeteer-core/lib/cjs/puppeteer/common/Frame'
+
+import type { Browser } from 'puppeteer-core/lib/esm/puppeteer/api/Browser.js'
+import type { Dialog } from 'puppeteer-core/lib/esm/puppeteer/common/Dialog.js'
+import type { Page } from 'puppeteer-core/lib/esm/puppeteer/api/Page.js'
+import type { Target } from 'puppeteer-core/lib/esm/puppeteer/common/Target.js'
+import type { Frame } from 'puppeteer-core/lib/esm/puppeteer/common/Frame.js'
 
 import * as commands from './commands/index.js'
 import ElementStore from './elementstore.js'

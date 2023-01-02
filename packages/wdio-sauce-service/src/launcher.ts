@@ -7,14 +7,14 @@ import logger from '@wdio/logger'
 import type { Services, Capabilities, Options } from '@wdio/types'
 
 import { makeCapabilityFactory } from './utils.js'
-import type { SauceServiceConfig } from './types'
+import type { SauceServiceConfig } from './types.js'
 import path from 'node:path'
 
 const MAX_SC_START_TRIALS = 3
 
 const log = logger('@wdio/sauce-service')
 export default class SauceLauncher implements Services.ServiceInstance {
-    private _api: SauceLabs
+    private _api: SauceLabs.default
     private _sauceConnectProcess?: SauceConnectInstance
 
     constructor (
@@ -22,7 +22,6 @@ export default class SauceLauncher implements Services.ServiceInstance {
         private _capabilities: unknown,
         private _config: Options.Testrunner
     ) {
-        // @ts-expect-error https://github.com/saucelabs/node-saucelabs/issues/153
         this._api = new SauceLabs.default(this._config as unknown as SauceLabsOptions)
     }
 

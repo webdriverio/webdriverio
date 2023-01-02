@@ -3,7 +3,10 @@ import { accessSync } from 'node:fs'
 import { readFile, writeFile } from 'node:fs/promises'
 import url from 'node:url'
 import path from 'node:path'
+
+import chalk from 'chalk'
 import shell from 'shelljs'
+
 import { getSubPackages } from './utils/helpers.js'
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
@@ -34,14 +37,18 @@ const ROOT_PACKAGES = [
     'wdio-runner',
     'wdio-local-runner',
     'wdio-mocha-framework',
-    'wdio-browser-runner'
+    'wdio-browser-runner',
 ]
 
-const BUILD_CJS = [
-    'wdio-globals',
-    'wdio-allure-reporter',
+const ESM_CJS_PACKAGES = [
     'eslint-plugin-wdio',
+    'wdio-allure-reporter',
+    'wdio-globals',
 ]
+
+const CJS_PACKAGES = ['wdio-smoke-test-cjs-service']
+
+const ESM_PACKAGES_WITH_CJS_FOLDER = ['devtools', 'webdriver', 'webdriverio']
 
 const packages = getSubPackages()
     /**
@@ -88,29 +95,37 @@ const packages = getSubPackages()
 
 shell.cd(path.join(__dirname, '..'))
 
-/**
- * Add CJS compiling for packages in BUILD_CJS
- */
-BUILD_CJS.forEach((pkg) => {
+const esmPackages = packages.filter((pkg) => !CJS_PACKAGES.includes(pkg.split('/')[1]))
+const cjsPackages = packages.filter((pkg) => CJS_PACKAGES.includes(pkg.split('/')[1]))
+
+ESM_CJS_PACKAGES.forEach((pkg) => {
     if (packages.some((projectPath) => projectPath.split('/')[1] === pkg)) {
-        packages.push(`packages/${pkg}/tsconfig.cjs.json`)
+        cjsPackages.push(`packages/${pkg}/tsconfig.cjs.json`)
     }
 })
 
-const cmd = `npx tsc -b ${packages.join(' ')}${HAS_WATCH_FLAG ? ' --watch' : ''}`
+const cmd = (packages) => `npx tsc -b ${packages.join(' ')}${HAS_WATCH_FLAG ? ' --watch' : ''}`
 
-console.log(cmd)
-const { code } = shell.exec(cmd)
+const esmCmd = cmd(esmPackages)
+const cjsCmd = cmd(cjsPackages)
+
+console.log('\n' + chalk.cyan('Compiling ESM packages'))
+console.log(esmCmd)
+const { code: esmCode } = shell.exec(esmCmd)
+
+console.log('\n' + chalk.cyan('Compiling CJS packages'))
+console.log(cjsCmd)
+const { code: cjsCode } = shell.exec(cjsCmd)
 
 if (!HAS_WATCH_FLAG) {
-    console.log('Remove `export {}` from CJS files')
-    for (const pkg of ['webdriver', 'devtools', 'webdriverio']) {
+    console.log('\n' + chalk.grey('Removing `export {}` from CJS files compiled using module ESNext'))
+    for (const pkg of ESM_PACKAGES_WITH_CJS_FOLDER) {
         const filePath = path.join(__dirname, '..', 'packages', pkg, 'build', 'cjs', 'index.js')
         const fileContent = await readFile(filePath, 'utf8')
         await writeFile(filePath, fileContent.toString().replace('export {};', ''), 'utf8')
     }
 }
 
-if (code) {
+if (esmCode || cjsCode) {
     throw new Error('Failed compiling TypeScript files!')
 }

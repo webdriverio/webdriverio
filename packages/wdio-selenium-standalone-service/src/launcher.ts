@@ -10,7 +10,7 @@ import SeleniumStandalone from 'selenium-standalone'
 import type { StartOpts, InstallOpts } from 'selenium-standalone'
 
 import { getFilePath, hasCapsWithSupportedBrowser } from './utils.js'
-import type { SeleniumStandaloneOptions } from './types'
+import type { SeleniumStandaloneOptions } from './types.js'
 
 const DEFAULT_LOG_FILENAME = 'wdio-selenium-standalone.log'
 const log = logger('@wdio/selenium-standalone-service')

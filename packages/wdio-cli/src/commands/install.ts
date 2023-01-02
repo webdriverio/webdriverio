@@ -13,7 +13,7 @@ import {
 } from '../utils.js'
 import { missingConfigurationPrompt } from './config.js'
 import { SUPPORTED_PACKAGES, CLI_EPILOGUE } from '../constants.js'
-import type { InstallCommandArguments, SupportedPackage } from '../types'
+import type { InstallCommandArguments, SupportedPackage } from '../types.js'
 
 const supportedInstallations = {
     runner: SUPPORTED_PACKAGES.runner.map(({ value }) => convertPackageHashToObject(value)),

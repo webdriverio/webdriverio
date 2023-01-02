@@ -2,7 +2,7 @@ import http from 'node:http'
 import path from 'node:path'
 import { describe, expect, it, vi, beforeEach } from 'vitest'
 
-import type { Element } from '../src/types'
+import type { Element } from '../src/types.js'
 import type { Capabilities, Options } from '@wdio/types'
 import type { ElementReference } from '@wdio/protocols'
 

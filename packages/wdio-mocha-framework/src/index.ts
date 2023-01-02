@@ -8,7 +8,7 @@ import type { Capabilities, Services } from '@wdio/types'
 
 import { formatMessage, setupEnv } from './common.js'
 import { EVENTS, NOOP } from './constants.js'
-import type { MochaConfig, MochaOpts as MochaOptsImport, FrameworkMessage, MochaError } from './types'
+import type { MochaConfig, MochaOpts as MochaOptsImport, FrameworkMessage, MochaError } from './types.js'
 import type { EventEmitter } from 'node:events'
 
 const log = logger('@wdio/mocha-framework')

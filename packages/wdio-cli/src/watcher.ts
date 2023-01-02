@@ -8,7 +8,7 @@ import union from 'lodash.union'
 import type { Capabilities, Workers } from '@wdio/types'
 
 import Launcher from './launcher.js'
-import type { RunCommandArguments, ValueKeyIteratee } from './types'
+import type { RunCommandArguments, ValueKeyIteratee } from './types.js'
 
 const log = logger('@wdio/cli:watch')
 

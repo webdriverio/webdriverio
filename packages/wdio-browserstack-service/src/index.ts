@@ -2,7 +2,7 @@
 
 import BrowserstackLauncher from './launcher.js'
 import BrowserstackService from './service.js'
-import type { BrowserstackConfig } from './types'
+import type { BrowserstackConfig } from './types.js'
 
 export default BrowserstackService
 export const launcher = BrowserstackLauncher

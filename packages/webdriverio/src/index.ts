@@ -17,8 +17,12 @@ import {
 import type { AttachOptions } from './types.js'
 import type * as elementCommands from './commands/element.js'
 
+export * from './types.js'
+export * from './utils/interception/types.js'
+
 export type RemoteOptions = Options.WebdriverIO & Omit<Options.Testrunner, 'capabilities' | 'rootDir'>
 export const Key = KeyConstant
+export const SevereServiceError = SevereServiceErrorImport
 
 /**
  * A method to create a new session with WebdriverIO.
@@ -28,12 +32,15 @@ export const Key = KeyConstant
  * add "@wdio/globals/types" into tsconfig.json's "types" array will solve it: <code> { "compilerOptions": { "types": ["@wdio/globals/types"] } } </code>
  * </b>
  *
- * @param  {Object} [params={}]       Options to create the session with
- * @param  {function} remoteModifier  Modifier function to change the monad object
- * @return {object}                   browser object with sessionId
+ * @param params Options to create the session with
+ * @param remoteModifier Modifier function to change the monad object
+ * @return browser object with sessionId
  * @see <a href="https://webdriver.io/docs/typescript">Typescript setup</a>
  */
-export const remote = async function (params: RemoteOptions, remoteModifier?: Function): Promise<WebdriverIO.Browser> {
+export const remote = async function(
+    params: RemoteOptions,
+    remoteModifier?: (client: WebDriverTypes.Client, options: Options.WebdriverIO) => WebDriverTypes.Client
+): Promise<WebdriverIO.Browser> {
     logger.setLogLevelsConfig(params.logLevels as any, params.logLevel)
 
     const config = validateConfig<RemoteOptions>(WDIO_DEFAULTS, params, Object.keys(DEFAULTS) as any)
@@ -184,6 +191,3 @@ export const multiremote = async function (
     return driver
 }
 
-export const SevereServiceError = SevereServiceErrorImport
-export * from './types.js'
-export * from './utils/interception/types.js'

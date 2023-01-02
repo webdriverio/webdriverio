@@ -5,3 +5,4 @@
 /packages/**/coverage
 /tests/typings
 *.d.ts
+!packages/**/src/cjs

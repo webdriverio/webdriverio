@@ -10,7 +10,7 @@ import type { Options, Capabilities, Services } from '@wdio/types'
 import CLInterface from './interface.js'
 import type { HookError } from './utils.js'
 import { runLauncherHook, runOnCompleteHook, runServiceHook } from './utils.js'
-import type { RunCommandArguments } from './types'
+import type { RunCommandArguments } from './types.js'
 
 const log = logger('@wdio/cli:launcher')
 

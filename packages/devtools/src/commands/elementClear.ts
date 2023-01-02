@@ -1,6 +1,6 @@
 import command from '../scripts/elementClear.js'
 import { getStaleElementError } from '../utils.js'
-import type DevToolsDriver from '../devtoolsdriver'
+import type DevToolsDriver from '../devtoolsdriver.js'
 
 /**
  * The Element Clear command scrolls into view an editable or resettable element and then attempts

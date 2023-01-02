@@ -6,7 +6,7 @@ import getFinder from '../../src/finder/index.js'
 import edgeFinder from '../../src/finder/edge.js'
 import { darwinGetAppPaths, darwinGetInstallations } from '../../src/finder/finder.js'
 
-import systemProfiler from './systemProfiler.json'
+import systemProfiler from './systemProfiler.json' assert { type: 'json' }
 
 vi.mock('@wdio/utils', () => import(path.join(process.cwd(), '__mocks__', '@wdio/utils')))
 

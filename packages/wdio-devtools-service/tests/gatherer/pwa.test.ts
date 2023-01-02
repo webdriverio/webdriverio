@@ -1,9 +1,9 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest'
-import type { CDPSession } from 'puppeteer-core/lib/cjs/puppeteer/common/Connection'
-import type { Page } from 'puppeteer-core/lib/cjs/puppeteer/api/Page'
+import type { CDPSession } from 'puppeteer-core/lib/esm/puppeteer/common/Connection.js'
+import type { Page } from 'puppeteer-core/lib/esm/puppeteer/api/Page.js'
 
 import PWAGatherer from '../../src/gatherer/pwa.js'
-import type { GathererDriver } from '../../src/types'
+import type { GathererDriver } from '../../src/types.js'
 
 vi.mock('lighthouse/lighthouse-core/fraggle-rock/gather/session')
 vi.mock('lighthouse/lighthouse-core/gather/gatherers/installability-errors')

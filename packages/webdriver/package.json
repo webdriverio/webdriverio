@@ -11,6 +11,7 @@
   "exports": {
     ".": [
       {
+        "types": "./build/index.d.ts",
         "import": "./build/index.js",
         "require": "./build/cjs/index.js"
       },

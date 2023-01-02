@@ -6,7 +6,7 @@ import morgan from 'morgan'
 import logger from '@wdio/logger'
 import type { Services } from '@wdio/types'
 
-import type { FolderOption, MiddleWareOption } from './types'
+import type { FolderOption, MiddleWareOption } from './types.js'
 
 const log = logger('@wdio/static-server-service')
 

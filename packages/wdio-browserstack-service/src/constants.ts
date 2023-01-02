@@ -1,4 +1,4 @@
-import type { BrowserstackConfig } from './types'
+import type { BrowserstackConfig } from './types.js'
 
 export const BROWSER_DESCRIPTION = [
     'device',

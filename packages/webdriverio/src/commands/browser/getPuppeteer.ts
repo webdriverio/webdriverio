@@ -1,6 +1,6 @@
 import puppeteer from 'puppeteer-core'
 import logger from '@wdio/logger'
-import type { Browser as PuppeteerBrowser } from 'puppeteer-core/lib/cjs/puppeteer/api/Browser.js'
+import type { Browser as PuppeteerBrowser } from 'puppeteer-core/lib/esm/puppeteer/api/Browser.js'
 import type { Capabilities } from '@wdio/types'
 
 import { FF_REMOTE_DEBUG_ARG } from '../../constants.js'

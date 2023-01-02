@@ -1,5 +1,5 @@
 import { getStaleElementError } from '../utils.js'
-import type DevToolsDriver from '../devtoolsdriver'
+import type DevToolsDriver from '../devtoolsdriver.js'
 
 /**
  * The Take Element Screenshot command takes a screenshot of the visible region

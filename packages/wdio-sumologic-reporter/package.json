@@ -23,6 +23,7 @@
   },
   "type": "module",
   "exports": "./build/index.js",
+  "module": "./build/index.js",
   "types": "./build/index.d.ts",
   "typeScriptVersion": "3.8.3",
   "dependencies": {

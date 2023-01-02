@@ -1,7 +1,7 @@
 import { deepmerge } from 'deepmerge-ts'
 import logger from '@wdio/logger'
 import type { Capabilities } from '@wdio/types'
-import type { BrowserRunnerOptions } from './types'
+import type { BrowserRunnerOptions } from './types.js'
 
 const log = logger('@wdio/browser-runner')
 

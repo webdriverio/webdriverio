@@ -1,13 +1,13 @@
 import type { Browser, MultiRemoteBrowser } from 'webdriverio'
 import type { Capabilities } from '@wdio/types'
-import type { CDPSession } from 'puppeteer-core/lib/cjs/puppeteer/common/Connection'
-import type { Target } from 'puppeteer-core/lib/cjs/puppeteer/common/Target'
+import type { CDPSession } from 'puppeteer-core/lib/esm/puppeteer/common/Connection.js'
+import type { Target } from 'puppeteer-core/lib/esm/puppeteer/common/Target.js'
 import Driver from 'lighthouse/lighthouse-core/gather/driver.js'
 
 import ChromeProtocol from './lighthouse/cri.js'
 import { IGNORED_URLS, UNSUPPORTED_ERROR_MESSAGE } from './constants.js'
 import type { RequestPayload } from './handler/network.js'
-import type { GathererDriver } from './types'
+import type { GathererDriver } from './types.js'
 
 const VERSION_PROPS = ['browserVersion', 'browser_version', 'version']
 const SUPPORTED_BROWSERS_AND_MIN_VERSIONS = {

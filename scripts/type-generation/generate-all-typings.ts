@@ -6,7 +6,7 @@ import path from 'node:path'
 import camelCase from 'camelcase'
 
 import { paramTypeMap, returnTypeMap } from './constants.js'
-import { PROTOCOLS } from '../constants.js'
+import { PROTOCOLS } from '../protocols.js'
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 const TYPINGS_PATH = path.join(__dirname, '..', '..', 'packages', 'wdio-protocols', 'src', 'commands')
@@ -37,8 +37,8 @@ for (const [protocolName, definition] of Object.entries(PROTOCOLS)) {
     lines.push(`// ${protocolName} types`)
     lines.push(`export default interface ${interfaceName}Commands {`)
 
-    for (const [, methods] of Object.entries(definition)) {
-        for (const [, description] of Object.entries(methods)) {
+    for (const methods of Object.values(definition)) {
+        for (const description of Object.values(methods)) {
             const { command, parameters = [], variables = [], returns, ref, examples } = description
             if (!ref) {
                 throw new Error(`missing ref for command ${command} in ${protocolName}`)
@@ -49,17 +49,20 @@ for (const [protocolName, definition] of Object.entries(PROTOCOLS)) {
                 // url params are always type of string
                 .map((v) => `${v.name}: string`)
             const params = parameters.map((p, idx) => {
-                const paramType = paramTypeMap[command] && paramTypeMap[command][idx] && paramTypeMap[command][idx].name === p.name
-                    ? paramTypeMap[command][idx].type
-                    : p.type.toLowerCase()
+                const paramType =
+                    paramTypeMap[command as keyof typeof paramTypeMap] &&
+                    paramTypeMap[command as keyof typeof paramTypeMap][idx] &&
+                    paramTypeMap[command as keyof typeof paramTypeMap][idx].name === p.name
+                        ? paramTypeMap[command as keyof typeof paramTypeMap][idx].type
+                        : p.type.toLowerCase()
                 return `${camelCase(p.name)}${p.required === false ? '?' : ''}: ${paramType}`
             })
             const varsAndParams = vars.concat(params)
             let returnValue = returns ? returns.type.toLowerCase() : 'void'
             returnValue = returnValue === '*' ? 'any' : returnValue
-            if (returnTypeMap[command]) {
-                returnValue = returnTypeMap[command]
-                customTypes.add(returnTypeMap[command].replace('[]', ''))
+            if (returnTypeMap[command as keyof typeof returnTypeMap]) {
+                returnValue = returnTypeMap[command as keyof typeof returnTypeMap]
+                customTypes.add(returnTypeMap[command as keyof typeof returnTypeMap].replace('[]', ''))
             }
             if (returnValue === 'object') {
                 returnValue = 'ProtocolCommandResponse'
