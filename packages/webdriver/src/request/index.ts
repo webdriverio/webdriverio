@@ -56,9 +56,8 @@ export default abstract class WebDriverRequest extends EventEmitter {
     endpoint: string
     isHubCommand: boolean
     requiresSessionId: boolean
-    defaultAgents: Agents | null
+    defaultAgents?: Agents
     defaultOptions: RequestLibOptions = {
-        retry: { limit: 0 }, // we have our own retry mechanism
         followRedirect: true,
         responseType: 'json',
         throwHttpErrors: false
@@ -70,7 +69,6 @@ export default abstract class WebDriverRequest extends EventEmitter {
         this.method = method
         this.endpoint = endpoint
         this.isHubCommand = isHubCommand
-        this.defaultAgents = null
         this.requiresSessionId = Boolean(this.endpoint.match(/:sessionId/))
     }
 
@@ -101,6 +99,7 @@ export default abstract class WebDriverRequest extends EventEmitter {
                 ...(typeof options.headers === 'object' ? options.headers : {})
             },
             searchParams,
+            retry: { limit: options.connectionRetryCount! },
             timeout: { response: options.connectionRetryTimeout as number }
         }
 
@@ -176,10 +175,7 @@ export default abstract class WebDriverRequest extends EventEmitter {
         const { url, ...requestLibOptions } = fullRequestOptions
         const startTime = this._libPerformanceNow()
         let response = await this._libRequest(url!, requestLibOptions)
-            // @ts-ignore
-            .catch((err: RequestLibError) => {
-                return err
-            })
+            .catch((err: RequestLibError) => err)
         const durationMillisecond = this._libPerformanceNow() - startTime
 
         /**
