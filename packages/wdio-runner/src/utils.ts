@@ -153,8 +153,8 @@ export function getInstancesData (
     const multiRemoteBrowser = browser as WebdriverIO.MultiRemoteBrowser
     const instances: Record<string, Partial<BrowserData>> = {}
     multiRemoteBrowser.instances.forEach((browserName: string) => {
-        const { protocol, hostname, port, path, queryParams } = multiRemoteBrowser[browserName].options
-        const { isW3C, sessionId } = multiRemoteBrowser[browserName]
+        const { protocol, hostname, port, path, queryParams } = multiRemoteBrowser.getInstance(browserName).options
+        const { isW3C, sessionId } = multiRemoteBrowser.getInstance(browserName)
 
         instances[browserName] = { sessionId, isW3C, protocol, hostname, port, path, queryParams }
     })
