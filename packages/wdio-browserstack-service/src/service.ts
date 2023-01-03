@@ -1,5 +1,3 @@
-import path from 'path'
-
 import logger from '@wdio/logger'
 import type { Services, Capabilities, Options, Frameworks } from '@wdio/types'
 import type { Browser, MultiRemoteBrowser } from 'webdriverio'
@@ -11,6 +9,7 @@ import type { Pickle, Feature, ITestCaseHookParameter } from './cucumber-types'
 
 import InsightsHandler from './insights-handler'
 import { getBrowserDescription, getBrowserCapabilities, isBrowserstackCapability, getParentSuiteName, isBrowserstackSession } from './util'
+import TestReporter from './reporter'
 
 const log = logger('@wdio/browserstack-service')
 
@@ -39,7 +38,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
         this._observability = this._options.testObservability
 
         if (this._observability) {
-            this._config.reporters?.push(path.join(__dirname, 'reporter.js'))
+            this._config.reporters?.push(TestReporter)
         }
 
         // Cucumber specific
