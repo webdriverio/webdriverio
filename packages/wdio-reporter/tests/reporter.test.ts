@@ -12,7 +12,7 @@ vi.mock('node:fs', () => ({
             write: vi.fn(),
             end: vi.fn((cb) => cb())
         }),
-        mkdir: vi.fn()
+        mkdirSync: vi.fn()
     }
 }))
 
@@ -79,12 +79,12 @@ describe('WDIOReporter', () => {
             const options = { outputDir: './tempDir', logFile: '' }
             new WDIOReporter(options)
 
-            expect(fs.mkdir).toHaveBeenCalled()
-            expect(fs.mkdir).toHaveBeenCalledWith('./tempDir', { recursive: true }, expect.any(Function))
+            expect(fs.mkdirSync).toHaveBeenCalled()
+            expect(fs.mkdirSync).toHaveBeenCalledWith('./tempDir', { recursive: true })
         })
 
         afterEach(() => {
-            vi.mocked(fs.mkdir).mockClear()
+            vi.mocked(fs.mkdirSync).mockClear()
         })
     })
 
