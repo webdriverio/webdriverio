@@ -13,11 +13,19 @@ export default defineConfig({
         ],
         coverage: {
             enabled: true,
-            exclude: ['**/build/**', '**/cjs/*.js', '**/*.test.ts'],
-            lines: 94,
-            functions: 88,
+            exclude: [
+                '**/build/**',
+                '**/cjs/*.js',
+                '**/*.test.ts',
+                // we are using e2e tests for ensuring the functionality works
+                // check out the ./e2e folder
+                'packages/devtools/src/commands',
+                'packages/devtools/src/scripts'
+            ],
+            lines: 93,
+            functions: 89,
             branches: 93,
-            statements: 94
+            statements: 93
         },
         globalSetup: [
             'scripts/test/globalSetup.ts'

@@ -2,7 +2,7 @@ import path from 'node:path'
 import logger from '@wdio/logger'
 import SauceLabs from 'saucelabs'
 import type { Capabilities, Options } from '@wdio/types'
-import { expect, test, vi, afterEach } from 'vitest'
+import { expect, test, vi, beforeEach } from 'vitest'
 
 import SauceServiceLauncher from '../src/launcher.js'
 import type { SauceServiceConfig } from '../src/types.js'
@@ -546,7 +546,7 @@ test('onComplete', async () => {
     expect(service['_sauceConnectProcess']?.close).toBeCalled()
 })
 
-afterEach(async () => {
+beforeEach(async () => {
     vi.mocked(log.info).mockClear()
     // @ts-ignore mock feature
     SauceLabs.default.instances = []

@@ -1,4 +1,4 @@
-import { describe, it, afterEach, expect, vi } from 'vitest'
+import { describe, it, beforeEach, expect, vi } from 'vitest'
 import Timer from '../../src/utils/Timer.js'
 
 vi.useFakeTimers()
@@ -73,7 +73,7 @@ describe('timer', () => {
         await expect(wasExecuted).toBeTruthy
     })
 
-    afterEach(() => {
+    beforeEach(() => {
         processEmitSpy.mockClear()
     })
 })
