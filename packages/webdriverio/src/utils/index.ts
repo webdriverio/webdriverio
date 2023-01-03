@@ -110,9 +110,9 @@ function sanitizeCSS (value?: string) {
 
 /**
  * parse css values to a better format
- * @param  {Object} cssPropertyValue result of WebDriver call
- * @param  {String} cssProperty      name of css property to parse
- * @return {Object}                  parsed css property
+ * @param  {string} cssPropertyValue result of WebDriver call
+ * @param  {string} cssProperty      name of css property to parse
+ * @return {object}                  parsed css property
  */
 export function parseCSS (cssPropertyValue: string, cssProperty?: string) {
     const parsedValue: ParsedCSSValue = {
@@ -141,7 +141,7 @@ export function parseCSS (cssPropertyValue: string, cssProperty?: string) {
         const string = parsedValue.value
         const value = cssPropertyValue.split(/,/).map(sanitizeCSS)
 
-        parsedValue.value = sanitizeCSS(font[0].value || font[0].string)
+        parsedValue.value = sanitizeCSS(font[0].value as string || font[0].string)
         parsedValue.parsed = { value, type: 'font', string }
     } else {
         /**

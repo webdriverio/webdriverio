@@ -3,7 +3,7 @@ declare module "junit-report-builder" {
         build: () => void
     }
 
-    declare const cssValue: {
+    const cssValue: {
         newBuilder: () => Builder
     }
 
