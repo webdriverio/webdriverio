@@ -7,6 +7,7 @@ import { run } from '../src/index.js'
 import { handler } from '../src/commands/run.js'
 
 vi.mock('yargs')
+vi.mock('yargs/helpers', () => ({ hideBin: vi.fn() }))
 vi.mock('./../src/commands/run', async () => ({
     ...(await vi.importActual('./../src/commands/run')) as object,
     handler: vi.fn().mockReturnValue(Promise.resolve('success'))

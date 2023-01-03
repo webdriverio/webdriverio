@@ -1,12 +1,11 @@
-/// <reference path="../src/@types/polka-stub.d.ts" />
-
 import { describe, expect, vi, beforeAll, afterAll, afterEach, it } from 'vitest'
 import { startServer, __store } from '../src/server.js'
 import type gotType from 'got'
 
 vi.mock('got')
 
-const got = await vi.importActual('got') as typeof gotType
+const got = (await vi.importActual('got') as { default: typeof gotType }).default
+
 const errHandler = vi.fn()
 
 describe('WdioSharedStoreService exports', () => {

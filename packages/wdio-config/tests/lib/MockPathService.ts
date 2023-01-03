@@ -1,6 +1,6 @@
 import path from 'node:path'
 import { vi } from 'vitest'
-import { Minimatch } from 'minimatch'
+import Minimatch from 'minimatch'
 
 import type { FilePathAndContent } from './MockFileContentBuilder.js'
 import type { PathService } from '../../src/types.js'
@@ -94,7 +94,7 @@ export default class MockPathService implements PathService {
     }
 
     glob(pattern: string): string[] {
-        const mm = new Minimatch(pattern)
+        const mm = new Minimatch.Minimatch(pattern)
         return this.files.filter(a => mm.match(a[0])).map(result => result[0])
     }
 

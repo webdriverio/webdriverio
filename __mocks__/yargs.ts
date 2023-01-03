@@ -2,6 +2,7 @@ import { vi } from 'vitest'
 const yargs: any = {}
 yargs.command = vi.fn(() => yargs)
 yargs.example = vi.fn(() => yargs)
+yargs.hideBin = vi.fn(() => yargs)
 yargs.argv = { _: ['wdio.conf.js'] }
 yargs.epilogue = vi.fn().mockReturnValue(yargs)
 yargs.options = vi.fn(() => yargs)
