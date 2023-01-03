@@ -30,7 +30,7 @@
     "@wdio/types": "8.1.0",
     "cbt_tunnels": "^1.2.2",
     "got": "^12.1.0",
-    "webdriverio": "8.0.2"
+    "webdriverio": "8.1.0"
   },
   "devDependencies": {
     "@types/node": "^18.0.0"

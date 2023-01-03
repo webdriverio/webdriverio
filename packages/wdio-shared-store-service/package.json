@@ -32,7 +32,7 @@
     "@wdio/types": "8.1.0",
     "got": "^12.1.0",
     "polka": "^0.5.2",
-    "webdriverio": "8.0.2"
+    "webdriverio": "8.1.0"
   },
   "publishConfig": {
     "access": "public"
