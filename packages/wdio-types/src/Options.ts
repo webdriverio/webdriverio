@@ -1,5 +1,5 @@
-import type * as http from 'node:http'
-import type * as https from 'node:https'
+import type http from 'node:http'
+import type https from 'node:https'
 import type { URL } from 'node:url'
 
 import type { W3CCapabilities, DesiredCapabilities, RemoteCapabilities, RemoteCapability, MultiRemoteCapabilities, Capabilities } from './Capabilities.js'
@@ -8,18 +8,18 @@ import type { ReporterEntry } from './Reporters.js'
 
 export type WebDriverLogTypes = 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'silent'
 export type SupportedProtocols = 'webdriver' | 'devtools' | './protocol-stub.js'
-export type Agents = {http?: any, https?: any}
+export type Agents = { http?: any, https?: any }
 
 export interface RequestLibOptions {
-    agent?: Agents | null
+    agent?: Agents
     followRedirect?: boolean
-    headers?: Record<string, unknown>
+    headers?: Record<string, string | string[] | undefined>
     https?: Record<string, unknown>
     json?: Record<string, unknown>
-    method?: string
-    responseType?: string
+    method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'HEAD' | 'DELETE' | 'OPTIONS' | 'TRACE' | 'get' | 'post' | 'put' | 'patch' | 'head' | 'delete' | 'options' | 'trace'
+    responseType?: 'json' | 'buffer' | 'text'
     retry?: { limit: number }
-    searchParams?: Record<string, unknown>
+    searchParams?: Record<string, string | number | boolean | null | undefined> | URLSearchParams
     throwHttpErrors?: boolean
     timeout?: { response: number }
     url?: URL

@@ -3,7 +3,6 @@ import https from 'node:https'
 import { performance } from 'node:perf_hooks'
 import type { URL } from 'node:url'
 
-import type { Options as GotOptions } from 'got'
 import got from 'got'
 import type { Options } from '@wdio/types'
 
@@ -22,7 +21,7 @@ export default class NodeJSRequest extends WebDriverRequest {
 
     protected async _libRequest (url: URL, opts: Options.RequestLibOptions) {
         try {
-            return (await got(url, opts as any as GotOptions)) as Options.RequestLibResponse
+            return (await got(url, opts)) as Options.RequestLibResponse
         } catch (err: any) {
             if (!(err instanceof Error)) {
                 throw new RequestLibError(err.message || err)
