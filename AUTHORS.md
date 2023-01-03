@@ -25,6 +25,7 @@ For information about the governance of the WebdriverIO project, see [GOVERNANCE
 [jankcat](https://github.com/jankcat) - __Tim Watkins__ <[timothy.watkins@gmail.com](timothy.watkins@gmail.com)><br />
 [lgandecki](https://github.com/lgandecki) - __Łukasz Gandecki__ <_tbd_><br />
 [Praveen](https://github.com/praveendvd) - __Praveen Mathew__<br />
+[SCG82](https://github.com/SCG82) - __SCG82__<br />
 [Sri Harsha](https://github.com/harsha509) - __Sri Harsha__<br />
 [tborys](https://github.com/tborys) - __Tomasz Borys__ <[tboryss@gmail.com](tboryss@gmail.com)><br />
 [TheSavior](https://github.com/TheSavior) - __Eli White__ <_tbd_><br />
