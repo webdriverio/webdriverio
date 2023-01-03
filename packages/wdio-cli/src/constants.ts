@@ -179,7 +179,7 @@ export const BACKEND_CHOICES = [
     'On my local machine',
     'In the cloud using Experitest',
     'In the cloud using Sauce Labs',
-    'In the cloud using Browserstack',
+    'In the cloud using BrowserStack',
     'In the cloud using Testingbot or LambdaTest or a different service',
     'I have my own Selenium cloud'
 ] as const
@@ -301,13 +301,13 @@ export const QUESTIONNAIRE = [{
     name: 'env_user',
     message: 'Environment variable for username',
     default: 'BROWSERSTACK_USERNAME',
-    when: /* istanbul ignore next */ (answers: Questionnair) => answers.backend === 'In the cloud using Browserstack'
+    when: /* istanbul ignore next */ (answers: Questionnair) => answers.backend === 'In the cloud using BrowserStack'
 }, {
     type: 'input',
     name: 'env_key',
     message: 'Environment variable for access key',
     default: 'BROWSERSTACK_ACCESS_KEY',
-    when: /* istanbul ignore next */ (answers: Questionnair) => answers.backend === 'In the cloud using Browserstack'
+    when: /* istanbul ignore next */ (answers: Questionnair) => answers.backend === 'In the cloud using BrowserStack'
 }, {
     type: 'input',
     name: 'env_user',
@@ -428,12 +428,14 @@ export const QUESTIONNAIRE = [{
     type: 'checkbox',
     name: 'services',
     message: 'Do you want to add a service to your test setup?',
-    choices: SUPPORTED_PACKAGES.service,
+    choices: SUPPORTED_PACKAGES.service.slice(
+        SUPPORTED_PACKAGES.service.findIndex(({ name }) => name ==='browserstack')).concat(
+            SUPPORTED_PACKAGES.service.slice(0, SUPPORTED_PACKAGES.service.findIndex(({ name }) => name ==='browserstack'))),
     // @ts-ignore
     default: [SUPPORTED_PACKAGES.service.find(
         /* istanbul ignore next */
         ({ name }) => name === 'browserstack').value],
-    when: /* istanbul ignore next */ (answers: Questionnair) => answers.backend === 'In the cloud using Browserstack',
+    when: /* istanbul ignore next */ (answers: Questionnair) => answers.backend === 'In the cloud using BrowserStack',
     validate: /* istanbul ignore next */ (answers: string[]) => validateServiceAnswers(answers)
 }, {
     type: 'checkbox',
