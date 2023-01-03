@@ -54,11 +54,11 @@ beforeEach(() => {
         execute: vi.fn(),
         on: vi.fn(),
     } as any as WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
-    insightsHandler = new InsightsHandler(browser, {} as any, false, 'sessionId', 'framework')
+    insightsHandler = new InsightsHandler(browser, false, 'framework')
 })
 
 it('should initialize correctly', () => {
-    insightsHandler = new InsightsHandler(browser, {} as any, false, 'sessionId', 'framework')
+    insightsHandler = new InsightsHandler(browser, false, 'framework')
     expect(insightsHandler['_tests']).toEqual({})
     expect(insightsHandler['_hooks']).toEqual({})
     expect(insightsHandler['_commands']).toEqual({})
@@ -66,7 +66,7 @@ it('should initialize correctly', () => {
 })
 
 describe('before', () => {
-    insightsHandler = new InsightsHandler(browser, {} as any, false, 'sessionId', 'framework')
+    insightsHandler = new InsightsHandler(browser, false, 'framework')
     const isBrowserstackSessionSpy = vi.spyOn(utils, 'isBrowserstackSession')
 
     beforeEach(() => {
@@ -86,7 +86,7 @@ describe('before', () => {
 })
 
 describe('beforeScenario', () => {
-    const insightsHandler = new InsightsHandler(browser, {} as any, false, 'sessionId', 'framework')
+    const insightsHandler = new InsightsHandler(browser, false, 'framework')
     const getUniqueIdentifierForCucumberSpy = vi.spyOn(utils, 'getUniqueIdentifierForCucumber').mockReturnValue('test title')
     insightsHandler['sendTestRunEventForCucumber'] = vi.fn()
     insightsHandler['_tests'] = {}
@@ -111,7 +111,7 @@ describe('beforeScenario', () => {
 })
 
 describe('afterScenario', () => {
-    const insightsHandler = new InsightsHandler(browser, {} as any, false, 'sessionId', 'framework')
+    const insightsHandler = new InsightsHandler(browser, false, 'framework')
     insightsHandler['sendTestRunEventForCucumber'] = vi.fn()
     insightsHandler['_tests'] = {}
 
@@ -134,7 +134,7 @@ describe('afterScenario', () => {
 })
 
 describe('beforeStep', () => {
-    const insightsHandler = new InsightsHandler(browser, {} as any, false, 'sessionId', 'framework')
+    const insightsHandler = new InsightsHandler(browser, false, 'framework')
     const getUniqueIdentifierForCucumberSpy = vi.spyOn(utils, 'getUniqueIdentifierForCucumber').mockReturnValue('test title')
     insightsHandler['getHierarchy'] = vi.fn().mockImplementation(() => { return [] })
 
@@ -177,7 +177,7 @@ describe('beforeStep', () => {
 })
 
 describe('afterStep', () => {
-    const insightsHandler = new InsightsHandler(browser, {} as any, false, 'sessionId', 'framework')
+    const insightsHandler = new InsightsHandler(browser, false, 'framework')
     const getUniqueIdentifierForCucumberSpy = vi.spyOn(utils, 'getUniqueIdentifierForCucumber').mockReturnValue('test title')
     insightsHandler['getHierarchy'] = vi.fn().mockImplementation(() => { return [] })
 
@@ -289,7 +289,7 @@ describe('afterStep', () => {
 })
 
 describe('attachHookData', () => {
-    const insightsHandler = new InsightsHandler(browser, {} as any, false, 'sessionId', 'framework')
+    const insightsHandler = new InsightsHandler(browser, false, 'framework')
 
     it('add hooks data in test', () => {
         insightsHandler['_hooks'] = {}
@@ -319,7 +319,7 @@ describe('attachHookData', () => {
 })
 
 describe('getHierarchy', () => {
-    const insightsHandler = new InsightsHandler(browser, {} as any, false, 'sessionId', 'framework')
+    const insightsHandler = new InsightsHandler(browser, false, 'framework')
 
     it('return array of getHierarchy when context present', () => {
         expect(insightsHandler['getHierarchy']({
@@ -342,7 +342,7 @@ describe('getHierarchy', () => {
 })
 
 describe('beforeTest', () => {
-    const insightsHandler = new InsightsHandler(browser, {} as any, false, 'sessionId', 'framework')
+    const insightsHandler = new InsightsHandler(browser, false, 'framework')
     insightsHandler['sendTestRunEvent'] = vi.fn().mockImplementation(() => { return [] })
     const getUniqueIdentifierSpy = vi.spyOn(utils, 'getUniqueIdentifier').mockReturnValue('test title')
 
@@ -368,7 +368,7 @@ describe('beforeTest', () => {
 })
 
 describe('beforeHook', () => {
-    const insightsHandler = new InsightsHandler(browser, {} as any, false, 'sessionId', 'framework')
+    const insightsHandler = new InsightsHandler(browser, false, 'framework')
     insightsHandler['sendTestRunEvent'] = vi.fn().mockImplementation(() => { return [] })
     insightsHandler['attachHookData'] = vi.fn().mockImplementation(() => { return [] })
 
@@ -388,7 +388,7 @@ describe('beforeHook', () => {
 })
 
 describe('afterHook', () => {
-    const insightsHandler = new InsightsHandler(browser, {} as any, false, 'sessionId', 'framework')
+    const insightsHandler = new InsightsHandler(browser, false, 'framework')
     insightsHandler['sendTestRunEvent'] = vi.fn().mockImplementation(() => { return [] })
     insightsHandler['attachHookData'] = vi.fn().mockImplementation(() => { return [] })
     const getUniqueIdentifierSpy = vi.spyOn(utils, 'getUniqueIdentifier').mockReturnValue('test title')
@@ -419,7 +419,7 @@ describe('afterHook', () => {
 })
 
 describe('getIntegrationsObject', () => {
-    const insightsHandler = new InsightsHandler(browser, {} as any, false, 'sessionId', 'framework')
+    const insightsHandler = new InsightsHandler(browser, false, 'framework')
     insightsHandler['_platformMeta'] = { caps: {},  sessionId: '', browserName: '', browserVersion: '', platformName: '', product: '' }
 
     it('return hash', () => {
@@ -428,7 +428,7 @@ describe('getIntegrationsObject', () => {
 })
 
 describe('browserCommand', () => {
-    const insightsHandler = new InsightsHandler(browser, {} as any, false, 'sessionId', 'framework')
+    const insightsHandler = new InsightsHandler(browser, false, 'framework')
     const uploadEventDataSpy = vi.spyOn(utils, 'uploadEventData').mockImplementation(() => { return [] as any })
     insightsHandler['getIdentifier'] = vi.fn().mockImplementation(() => { return 'test title' })
     const commandSpy = vi.spyOn(utils, 'isScreenshotCommand')
@@ -461,7 +461,7 @@ describe('browserCommand', () => {
 })
 
 describe('getIdentifier', () => {
-    const insightsHandler = new InsightsHandler(browser, {} as any, false, 'sessionId', 'framework')
+    const insightsHandler = new InsightsHandler(browser, false, 'framework')
     const getUniqueIdentifierSpy = vi.spyOn(utils, 'getUniqueIdentifier')
     const getUniqueIdentifierForCucumberSpy = vi.spyOn(utils, 'getUniqueIdentifierForCucumber')
 

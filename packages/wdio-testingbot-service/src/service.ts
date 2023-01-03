@@ -169,8 +169,8 @@ export default class TestingBotService implements Services.ServiceInstance {
 
         const browser = this._browser as WebdriverIO.MultiRemoteBrowser
         return Promise.all(Object.keys(this._capabilities).map((browserName) => {
-            log.info(`Update multiremote job for browser "${browserName}" and sessionId ${browser[browserName].sessionId}, ${status}`)
-            return this.updateJob(browser[browserName].sessionId, failures, false, browserName)
+            log.info(`Update multiremote job for browser "${browserName}" and sessionId ${browser.getInstance(browserName).sessionId}, ${status}`)
+            return this.updateJob(browser.getInstance(browserName).sessionId, failures, false, browserName)
         }))
     }
 
@@ -187,7 +187,7 @@ export default class TestingBotService implements Services.ServiceInstance {
 
         const browser = this._browser as WebdriverIO.MultiRemoteBrowser
         const browserName = browser.instances.filter(
-            (browserName: string) => browser[browserName].sessionId === newSessionId)[0]
+            (browserName: string) => browser.getInstance(browserName).sessionId === newSessionId)[0]
         log.info(`Update (reloaded) multiremote job for browser "${browserName}" and sessionId ${oldSessionId}, ${status}`)
         return this.updateJob(oldSessionId, this._failures, true, browserName)
     }

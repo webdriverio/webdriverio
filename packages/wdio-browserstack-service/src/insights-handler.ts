@@ -19,15 +19,17 @@ export default class InsightsHandler {
     private _gitConfigPath?: string
     private _requestQueueHandler = RequestQueueHandler.getInstance()
 
-    constructor (private _browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser, browserCaps?: Capabilities.Capabilities, isAppAutomate?: boolean, sessionId?: string, private _framework?: string) {
+    constructor (private _browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser, isAppAutomate?: boolean, private _framework?: string) {
         this._requestQueueHandler.start()
+        const caps = (this._browser as WebdriverIO.Browser).capabilities as Capabilities.Capabilities
+        const sessionId = (this._browser as WebdriverIO.Browser).sessionId
 
         this._platformMeta = {
-            browserName: browserCaps?.browserName,
-            browserVersion: browserCaps?.browserVersion,
-            platformName: browserCaps?.platformName,
-            caps: browserCaps,
-            sessionId: sessionId,
+            browserName: caps.browserName,
+            browserVersion: caps?.browserVersion,
+            platformName: caps?.platformName,
+            caps: caps,
+            sessionId,
             product: isAppAutomate ? 'app-automate' : 'automate'
         }
     }
