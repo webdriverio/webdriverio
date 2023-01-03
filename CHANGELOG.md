@@ -21,6 +21,16 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.1.1 (2023-01-02)
+
+#### :bug: Bug Fix
+* `wdio-browserstack-service`
+  * [#9512](https://github.com/webdriverio/webdriverio/pull/9512) browserstack-service: fix reporter ([@SCG82](https://github.com/SCG82))
+
+#### Committers: 1
+- [@SCG82](https://github.com/SCG82)
+
+
 ## v8.1.0 (2023-01-02)
 
 #### :rocket: New Feature

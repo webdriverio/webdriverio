@@ -1,6 +1,3 @@
-import path from 'node:path'
-import { fileURLToPath } from 'node:url'
-
 import logger from '@wdio/logger'
 import got from 'got'
 import type { Services, Capabilities, Options, Frameworks } from '@wdio/types'
@@ -10,10 +7,8 @@ import { getBrowserDescription, getBrowserCapabilities, isBrowserstackCapability
 import type { BrowserstackConfig, MultiRemoteAction, SessionResponse } from './types.js'
 import type { Pickle, Feature, ITestCaseHookParameter } from './cucumber-types.js'
 import InsightsHandler from './insights-handler.js'
+import TestReporter from './reporter.js'
 import { DEFAULT_OPTIONS } from './constants.js'
-
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
 
 const log = logger('@wdio/browserstack-service')
 
@@ -42,7 +37,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
         this._observability = this._options.testObservability
 
         if (this._observability) {
-            this._config.reporters?.push(path.join(__dirname, 'reporter.js'))
+            this._config.reporters?.push(TestReporter)
         }
         // Cucumber specific
         const strict = Boolean(this._config.cucumberOpts && this._config.cucumberOpts.strict)
