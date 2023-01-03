@@ -86,11 +86,9 @@ describe('FileSystemPathService', () => {
 
         it('should throw on non present files', async function () {
             const svc = new FileSystemPathService()
-            await expect(async () => await svc.loadFile(INDEX_PATH + '.tar.gz.non-existent'))
-                .rejects
-                .toThrowError(expect.objectContaining({
-                    message: expect.stringContaining('Failed to load')
-                }))
+            const error = await svc.loadFile(INDEX_PATH + '.tar.gz.non-existent')
+                .catch((err) => err) as Error
+            expect(error.message).toContain('Failed to load')
         })
     })
 })
