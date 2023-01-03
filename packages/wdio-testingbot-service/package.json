@@ -31,7 +31,7 @@
     "@wdio/types": "8.1.0",
     "got": "^12.1.0",
     "testingbot-tunnel-launcher": "^1.1.7",
-    "webdriverio": "8.0.2"
+    "webdriverio": "8.1.0"
   },
   "devDependencies": {
     "@types/node": "^18.0.0"

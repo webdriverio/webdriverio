@@ -18,7 +18,8 @@ vi.mock('node:fs', () => ({
 
 vi.mock('node:fs/promises', () => ({
     default: {
-        mkdir: vi.fn()
+        mkdir: vi.fn(),
+        access: vi.fn().mockResolvedValue(true),
     }
 }))
 
