@@ -47,6 +47,7 @@ describe('getBrowserCapabilities', () => {
     it('should get multiremote browser capabilities', () => {
         const browser = {
             isMultiremote: true,
+            getInstance: vi.fn().mockImplementation((browserName: string) => browser[browserName]),
             browserA: {
                 capabilities: {
                     browser: 'browser'
@@ -60,6 +61,7 @@ describe('getBrowserCapabilities', () => {
     it('should handle null multiremote browser capabilities', () => {
         const browser = {
             isMultiremote: true,
+            getInstance: vi.fn().mockImplementation((browserName: string) => browser[browserName]),
             browserA: {}
         } as any as WebdriverIO.MultiRemoteBrowser
         expect(getBrowserCapabilities(browser, {}, 'browserB')).toEqual({})
@@ -79,6 +81,7 @@ describe('getBrowserCapabilities', () => {
     it('should merge multiremote service capabilities and browser capabilities', () => {
         const browser = {
             isMultiremote: true,
+            getInstance: vi.fn().mockImplementation((browserName: string) => browser[browserName]),
             browserA: {
                 capabilities: {
                     browser: 'browser',
@@ -86,13 +89,15 @@ describe('getBrowserCapabilities', () => {
                 }
             }
         } as any as WebdriverIO.MultiRemoteBrowser
-        expect(getBrowserCapabilities(browser, { browserA: { capabilities: { os: 'Windows' } } }, 'browserA'))
+        expect(getBrowserCapabilities(browser, {
+            browserA: { capabilities: { os: 'Windows' } } }, 'browserA'))
             .toEqual({ os:'Windows', browser: 'browser' } as any)
     })
 
     it('should handle null multiremote browser capabilities', () => {
         const browser = {
             isMultiremote: true,
+            getInstance: vi.fn().mockImplementation((browserName: string) => browser[browserName]),
             browserA: {}
         } as any as WebdriverIO.MultiRemoteBrowser
         expect(getBrowserCapabilities(browser, {}, 'browserB'))
@@ -102,6 +107,7 @@ describe('getBrowserCapabilities', () => {
     it('should handle null multiremote browser capabilities', () => {
         const browser = {
             isMultiremote: true,
+            getInstance: vi.fn().mockImplementation((browserName: string) => browser[browserName]),
             browserA: {}
         } as any as WebdriverIO.MultiRemoteBrowser
         expect(getBrowserCapabilities(browser, { browserB: {} } as any, 'browserB'))

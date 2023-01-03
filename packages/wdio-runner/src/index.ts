@@ -488,7 +488,7 @@ export default class Runner extends EventEmitter {
         if (this._isMultiremote) {
             multiremoteBrowser.instances.forEach((browserName: string) => {
                 // @ts-ignore sessionId is usually required
-                delete multiremoteBrowser[browserName].sessionId
+                delete multiremoteBrowser.getInstance(browserName).sessionId
             })
         } else if (browser) {
             browser.sessionId = undefined as any as string

@@ -48,7 +48,7 @@ type ElementCoordinates = {
  */
 export async function dragAndDrop (
     this: WebdriverIO.Element,
-    target: Element | ElementCoordinates,
+    target: WebdriverIO.Element | ElementCoordinates,
     { duration = 10 }: DragAndDropOptions = {}
 ) {
     const moveToCoordinates = target as ElementCoordinates

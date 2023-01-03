@@ -40,6 +40,7 @@ describe('wdio-crossbrowsertesting-service', () => {
                 }
             },
             config: {},
+            getInstance: vi.fn().mockImplementation((browserName: string) => browser[browserName]),
             chromeA: { sessionId: 'sessionChromeA' },
             chromeB: { sessionId: 'sessionChromeB' },
             chromeC: { sessionId: 'sessionChromeC' },
