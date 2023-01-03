@@ -795,12 +795,18 @@ export async function createWDIOConfig (parsedAnswers: ParsedAnswers) {
 export async function createWDIOScript (parsedAnswers: ParsedAnswers) {
     const projectProps = await getProjectProps(process.cwd())
 
+    const script = `wdio run ./${path.join('.', parsedAnswers.wdioConfigPath.replace(projectProps?.path || process.cwd(), ''))}`
+    const args = ['pkg', 'set', `scripts.wdio=${script}`]
     try {
         console.log(`Adding ${chalk.bold('"wdio"')} script to package.json.`)
-        const script = `wdio run ./${path.join('.', parsedAnswers.wdioConfigPath.replace(projectProps?.path || process.cwd(), ''))}`
-        await runProgram(NPM_COMMAND, ['pkg', 'set', `scripts.wdio=${script}`], { cwd: parsedAnswers.projectRootDir })
+        await runProgram(NPM_COMMAND, args, { cwd: parsedAnswers.projectRootDir })
         console.log(chalk.green.bold('✔ Success!'))
+        return true
     } catch (err: any) {
-        throw new Error(`⚠️ Couldn't add script to package.json: ${err.stack}`)
+        console.error(
+            `⚠️ Couldn't add script to package.json: "${err.message}", you can add it manually ` +
+            `by running:\n\n\t${NPM_COMMAND} ${args.join(' ')}`
+        )
+        return false
     }
 }
