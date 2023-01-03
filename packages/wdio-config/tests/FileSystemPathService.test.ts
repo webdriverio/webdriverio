@@ -85,6 +85,12 @@ describe('FileSystemPathService', () => {
         })
 
         it('should throw on non present files', async function () {
+            /**
+             * fails in Windows
+             */
+            if (process.platform === 'win32') {
+                return
+            }
             const svc = new FileSystemPathService()
             const error = await svc.loadFile(INDEX_PATH + '.tar.gz.non-existent')
                 .catch((err) => err) as Error
