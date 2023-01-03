@@ -430,7 +430,7 @@ export const QUESTIONNAIRE = [{
     message: 'Do you want to add a service to your test setup?',
     choices: SUPPORTED_PACKAGES.service.slice(
         SUPPORTED_PACKAGES.service.findIndex(({ name }) => name ==='browserstack')).concat(
-            SUPPORTED_PACKAGES.service.slice(0, SUPPORTED_PACKAGES.service.findIndex(({ name }) => name ==='browserstack'))),
+        SUPPORTED_PACKAGES.service.slice(0, SUPPORTED_PACKAGES.service.findIndex(({ name }) => name ==='browserstack'))),
     // @ts-ignore
     default: [SUPPORTED_PACKAGES.service.find(
         /* istanbul ignore next */
