@@ -8,6 +8,9 @@ updates:
   open-pull-requests-limit: 10
   versioning-strategy: increase-if-necessary
   ignore:
+    # no support for v7 anymore
+    - dependency-name: "expect-webdriverio"
+      update-types: ["version-update:semver-major"]
     # moved to ESM only
     - dependency-name: "tempy"
     # requires manual upgrade as we use internal interfaces
