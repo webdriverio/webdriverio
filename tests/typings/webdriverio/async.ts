@@ -46,7 +46,7 @@ async function bar() {
     }).then(() => {}, () => {})
 
     // interact with specific instance
-    const mrSingleElem = await mr.myBrowserInstance.$('')
+    const mrSingleElem = await mr.getInstance('myBrowserInstance').$('')
     await mrSingleElem.click()
 
     // interact with all instances

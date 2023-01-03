@@ -2,7 +2,6 @@ import path from 'node:path'
 
 import { expect, test, vi, beforeEach, afterEach } from 'vitest'
 import logger from '@wdio/logger'
-import type { MultiRemoteBrowser } from 'webdriverio'
 import type { Capabilities, Options } from '@wdio/types'
 
 import SauceService from '../src/index.js'
@@ -52,15 +51,18 @@ vi.mock('../src/utils', async () => {
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
-let browser: MultiRemoteBrowser
+let browser: WebdriverIO.MultiRemoteBrowser
 beforeEach(() => {
     browser = {
         execute: vi.fn(),
+        getInstance: vi.fn().mockImplementation((browserName: string) => {
+            return browser[browserName]
+        }),
         chromeA: { sessionId: 'sessionChromeA' },
         chromeB: { sessionId: 'sessionChromeB' },
         chromeC: { sessionId: 'sessionChromeC' },
         instances: ['chromeA', 'chromeB', 'chromeC'],
-    } as any as MultiRemoteBrowser
+    } as any as WebdriverIO.MultiRemoteBrowser
     vi.mocked(log.info).mockClear()
     vi.mocked(log.error).mockClear()
 })
@@ -725,7 +727,7 @@ test('after in multiremote', () => {
     browser.isMultiremote = true
     // @ts-expect-error
     browser.sessionId = 'foobar'
-    browser.chromeB.sessionId = 'newSessionChromeB'
+    browser.getInstance('chromeB').sessionId = 'newSessionChromeB'
     service.onReload('sessionChromeB', 'newSessionChromeB')
 
     expect(service.updateJob).toBeCalledWith('sessionChromeB', 5, true, 'chromeB')
