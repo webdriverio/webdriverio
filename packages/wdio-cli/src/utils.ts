@@ -803,9 +803,10 @@ export async function createWDIOScript (parsedAnswers: ParsedAnswers) {
         console.log(chalk.green.bold('✔ Success!'))
         return true
     } catch (err: any) {
+        const [preArgs, scriptPath] = args.join(' ').split('=')
         console.error(
-            `⚠️ Couldn't add script to package.json: "${err.message}", you can add it manually ` +
-            `by running:\n\n\t${NPM_COMMAND} ${args.join(' ')}`
+            `⚠️  Couldn't add script to package.json: "${err.message}", you can add it manually ` +
+            `by running:\n\n\t${NPM_COMMAND} ${preArgs}="${scriptPath}"`
         )
         return false
     }
