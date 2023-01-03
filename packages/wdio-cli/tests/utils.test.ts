@@ -50,7 +50,7 @@ vi.mock('child_process', () => {
     const m = {
         execSyncRes: 'APPIUM_MISSING',
         execSync: () => m.execSyncRes,
-        spawn: vi.fn().mockReturnValue({ on: vi.fn() })
+        spawn: vi.fn().mockReturnValue({ on: vi.fn().mockImplementation((ev, fn) => fn(0)) })
     }
     return m
 })
@@ -915,9 +915,19 @@ test('createWDIOConfig', async () => {
     ).toBe(true)
 })
 
-test('createWDIOScript', async () => {
-    createWDIOScript({ wdioConfigPath: '/foo/bar/wdio.conf.js' } as any)
-    expect(cp.spawn).toBeCalledTimes(1)
+describe('createWDIOScript', () => {
+    it('can run with success', async () => {
+        expect(await createWDIOScript({ wdioConfigPath: '/foo/bar/wdio.conf.js' } as any))
+            .toBe(true)
+        expect(cp.spawn).toBeCalledTimes(1)
+    })
+
+    it('does not fail the process if spawn errors out', async () => {
+        vi.mocked(cp.spawn).mockReturnValue({ on: vi.fn().mockImplementation((ev, fn) => fn(1)) } as any)
+        expect(await createWDIOScript({ wdioConfigPath: '/foo/bar/wdio.conf.js' } as any))
+            .toBe(false)
+        expect(cp.spawn).toBeCalledTimes(1)
+    })
 })
 
 afterEach(() => {
@@ -925,6 +935,7 @@ afterEach(() => {
     vi.mocked(console.log).mockRestore()
     vi.mocked(readDir).mockClear()
     vi.mocked(fs.writeFile).mockClear()
+    vi.mocked(cp.spawn).mockClear()
     vi.mocked(fs.mkdir).mockClear()
     vi.mocked(ejs.renderFile).mockClear()
     vi.mocked(yarnInstall).mockClear()
