@@ -298,17 +298,17 @@ export default class SauceService implements Services.ServiceInstance {
                 this.updateJob(this._browser.sessionId, failures)
         }
 
-        const multiRemoteBrowser = this._browser as WebdriverIO.MultiRemoteBrowser
         return Promise.all(Object.keys(this._capabilities).map(async (browserName) => {
-            const isMultiRemoteRDC = isRDC(multiRemoteBrowser[browserName].capabilities as Capabilities.Capabilities)
-            log.info(`Update multiRemote job for browser "${browserName}" and sessionId ${multiRemoteBrowser[browserName].sessionId}, ${status}`)
+            const multiRemoteBrowser = (this._browser as WebdriverIO.MultiRemoteBrowser).getInstance(browserName)
+            const isMultiRemoteRDC = isRDC(multiRemoteBrowser.capabilities as Capabilities.Capabilities)
+            log.info(`Update multiRemote job for browser "${browserName}" and sessionId ${multiRemoteBrowser.sessionId}, ${status}`)
             // Sauce Unified Platform (RDC) can not be updated with an API.
             // The logs can also not be uploaded
             if (isMultiRemoteRDC) {
                 return this.setAnnotation(`sauce:job-result=${failures === 0}`)
             }
-            await this._uploadLogs(multiRemoteBrowser[browserName].sessionId)
-            return this.updateJob(multiRemoteBrowser[browserName].sessionId, failures, false, browserName)
+            await this._uploadLogs(multiRemoteBrowser.sessionId)
+            return this.updateJob(multiRemoteBrowser.sessionId, failures, false, browserName)
         }))
     }
 
@@ -346,7 +346,7 @@ export default class SauceService implements Services.ServiceInstance {
 
         const mulitremoteBrowser = this._browser as WebdriverIO.MultiRemoteBrowser
         const browserName = mulitremoteBrowser.instances.filter(
-            (browserName: string) => mulitremoteBrowser[browserName].sessionId === newSessionId)[0]
+            (browserName: string) => mulitremoteBrowser.getInstance(browserName).sessionId === newSessionId)[0]
         log.info(`Update (reloaded) multiremote job for browser "${browserName}" and sessionId ${oldSessionId}, ${status}`)
         return this.updateJob(oldSessionId, this._failures, true, browserName)
     }
@@ -420,7 +420,7 @@ export default class SauceService implements Services.ServiceInstance {
             const multiRemoteBrowser = this._browser as WebdriverIO.MultiRemoteBrowser
 
             return Promise.all(Object.keys(this._capabilities).map(async (browserName) => {
-                const isMultiRemoteRDC = isRDC(multiRemoteBrowser[browserName].capabilities as Capabilities.Capabilities)
+                const isMultiRemoteRDC = isRDC(multiRemoteBrowser.getInstance(browserName).capabilities as Capabilities.Capabilities)
                 if ((isMultiRemoteRDC && !annotation.includes('sauce:context')) || !isMultiRemoteRDC) {
                     return (this._browser as WebdriverIO.Browser).execute(annotation)
                 }
