@@ -1,7 +1,6 @@
 import got from 'got'
 import logger from '@wdio/logger'
 import type { Capabilities, Options, Services, Frameworks } from '@wdio/types'
-import 'webdriverio'
 
 import type { TestingbotOptions } from './types.js'
 
