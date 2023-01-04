@@ -146,7 +146,7 @@ export async function launchTestSession (options: BrowserstackConfig & Options.T
             if (error.response.statusCode === 401) {
                 log.error(errorMessageJson)
             } else if (error.response.statusCode === 403) {
-                log.trace(errorMessageJson)
+                log.info(errorMessageJson)
             } else if (error.response.statusCode === 400) {
                 log.error(errorMessageJson)
             } else {
