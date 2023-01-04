@@ -32,9 +32,16 @@ export const cmdArgs: { [k in keyof ReplCommandArguments]?: Options } = {
     }
 } as const
 
+const unfilteredCmdArgs = { ...cmdArgs, ...runCmdArgs }
+type UnfilteredCmdArgs = typeof unfilteredCmdArgs
+
+function narrowedPickBy<T extends object>(object: T | null | undefined, predicate: (_: never, key: string) => boolean): Partial<T> {
+    return pickBy<T>(object, predicate)
+}
+
 export const builder = (yargs: Argv) => {
     return yargs
-        .options(pickBy({ ...cmdArgs, ...runCmdArgs }, (_, key) => !IGNORED_ARGS.includes(key)))
+        .options(narrowedPickBy<UnfilteredCmdArgs>(unfilteredCmdArgs, (_, key) => !IGNORED_ARGS.includes(key)))
         .example('$0 repl firefox --path /', 'Run repl locally')
         .example('$0 repl chrome -u <SAUCE_USERNAME> -k <SAUCE_ACCESS_KEY>', 'Run repl in Sauce Labs cloud')
         .example('$0 repl android', 'Run repl browser on launched Android device')

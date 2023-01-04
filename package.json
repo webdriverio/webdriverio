@@ -5,7 +5,7 @@
   "scripts": {
     "create": "node ./scripts/generateSubPackage",
     "backport": "node ./scripts/backport.js",
-    "bootstrap-full": "npm run clean && lerna bootstrap --no-ci && npm run link",
+    "bootstrap-full": "npm run clean && lerna bootstrap --no-ci && npm run test:bootstrap && npm run link",
     "bootstrap": "run-p clean:* && lerna bootstrap --force-local && npm run link",
     "build": "run-s clean:build generate:typings compile copy",
     "changelog": "node ./scripts/changelog.js",
@@ -32,6 +32,7 @@
     "docs:build": "cd ./website && npm run build && cd ..",
     "docs:deploy": "node ./scripts/updateDocs.js",
     "test": "run-s test:eslint test:ejslint test:typings test:unit:run test:smoke",
+    "test:bootstrap": "ts-node-esm ./scripts/checkSymlinks.ts",
     "test:depcheck": "ts-node-esm ./scripts/depcheck.ts",
     "test:eslint": "eslint --cache packages examples scripts tests",
     "test:ejslint": "ejslint packages/wdio-cli/src/templates/**/*",
