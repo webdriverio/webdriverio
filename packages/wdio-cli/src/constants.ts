@@ -428,24 +428,25 @@ export const QUESTIONNAIRE = [{
     type: 'checkbox',
     name: 'services',
     message: 'Do you want to add a service to your test setup?',
-    choices: SUPPORTED_PACKAGES.service.slice(
-        SUPPORTED_PACKAGES.service.findIndex(({ name }) => name ==='browserstack')).concat(
-        SUPPORTED_PACKAGES.service.slice(0, SUPPORTED_PACKAGES.service.findIndex(({ name }) => name ==='browserstack'))),
+    choices: (answers: Questionnair) => {
+        if (answers.backend === 'In the cloud using BrowserStack') {
+            return SUPPORTED_PACKAGES.service.slice(
+                SUPPORTED_PACKAGES.service.findIndex(({ name }) => name ==='browserstack')).concat(
+                SUPPORTED_PACKAGES.service.slice(0, SUPPORTED_PACKAGES.service.findIndex(({ name }) => name ==='browserstack')))
+        }
+        return SUPPORTED_PACKAGES.service
+    },
     // @ts-ignore
-    default: [SUPPORTED_PACKAGES.service.find(
+    default: (answers: Questionnair) => {
+        if (answers.backend === 'In the cloud using BrowserStack') {
+            return [SUPPORTED_PACKAGES.service.find(
+                /* istanbul ignore next */
+                ({ name }) => name === 'browserstack')?.value]
+        }
+        return [SUPPORTED_PACKAGES.service.find(
         /* istanbul ignore next */
-        ({ name }) => name === 'browserstack').value],
-    when: /* istanbul ignore next */ (answers: Questionnair) => answers.backend === 'In the cloud using BrowserStack',
-    validate: /* istanbul ignore next */ (answers: string[]) => validateServiceAnswers(answers)
-}, {
-    type: 'checkbox',
-    name: 'services',
-    message: 'Do you want to add a service to your test setup?',
-    choices: SUPPORTED_PACKAGES.service,
-    // @ts-ignore
-    default: [SUPPORTED_PACKAGES.service.find(
-        /* istanbul ignore next */
-        ({ name }) => name === 'chromedriver').value],
+            ({ name }) => name === 'chromedriver')?.value]
+    },
     validate: /* istanbul ignore next */ (answers: string[]) => validateServiceAnswers(answers)
 }, {
     type: 'input',
