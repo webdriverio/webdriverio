@@ -141,8 +141,17 @@ export async function launchTestSession (options: BrowserstackConfig & Options.T
             process.env.BS_TESTOPS_ALLOW_SCREENSHOTS = response.allow_screenshots.toString()
         }
     } catch (error) {
-        if (error instanceof HTTPError && error.response && error.response.statusCode === 401) {
-            log.debug('Data upload to BrowserStack Test Observability failed either due to incorrect credentials or an unsupported SDK version or because you do not have access to the product.')
+        if (error instanceof HTTPError && error.response) {
+            const errorMessageJson = error.response.body ? JSON.parse(error.response.body.toString()).message : null
+            if (error.response.statusCode === 401) {
+                log.error(errorMessageJson)
+            } else if (error.response.statusCode === 403) {
+                log.trace(errorMessageJson)
+            } else if (error.response.statusCode === 400) {
+                log.error(errorMessageJson)
+            } else {
+                log.debug('Data upload to BrowserStack Test Observability failed either due to incorrect credentials or an unsupported SDK version or because you do not have access to the product.')
+            }
         } else {
             log.debug(`[Start_Build] Failed. Error: ${error}`)
         }
