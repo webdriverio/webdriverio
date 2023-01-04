@@ -136,16 +136,16 @@ export async function launchTestSession (options: BrowserstackConfig & Options.T
         if (response.allow_screenshots) process.env.BS_TESTOPS_ALLOW_SCREENSHOTS = response.allow_screenshots.toString()
     } catch (error) {
         if (error instanceof HTTPError && error.response) {
-          const errorMessage = error.response.body ? JSON.parse(error.response.body.toString()).message : null
-          if (error.response.statusCode === 401) {
-              log.error(errorMessage)
-          } else if (error.response.statusCode === 403) {
-              log.info(errorMessage)
-          } else if (error.response.statusCode === 400) {
-              log.error(errorMessage)
-          } else {
-              log.error(`Data upload to BrowserStack Test Observability failed due to ${errorMessage}`)
-          }
+            const errorMessage = error.response.body ? JSON.parse(error.response.body.toString()).message : null
+            if (error.response.statusCode === 401) {
+                log.error(errorMessage)
+            } else if (error.response.statusCode === 403) {
+                log.info(errorMessage)
+            } else if (error.response.statusCode === 400) {
+                log.error(errorMessage)
+            } else {
+                log.error(`Data upload to BrowserStack Test Observability failed due to ${errorMessage}`)
+            }
         } else {
             log.error(`Data upload to BrowserStack Test Observability failed due to ${error}`)
         }
