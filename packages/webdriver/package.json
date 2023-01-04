@@ -36,6 +36,7 @@
   },
   "dependencies": {
     "@types/node": "^18.0.0",
+    "@types/ws": "^8.5.3",
     "@wdio/config": "8.1.2",
     "@wdio/logger": "8.1.0",
     "@wdio/protocols": "8.1.0",
@@ -45,8 +46,5 @@
     "got": "^12.1.0",
     "ky": "^0.33.0",
     "ws": "^8.8.0"
-  },
-  "devDependencies": {
-    "@types/ws": "^8.5.3"
   }
 }
