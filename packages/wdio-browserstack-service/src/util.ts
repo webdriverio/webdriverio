@@ -142,18 +142,18 @@ export async function launchTestSession (options: BrowserstackConfig & Options.T
         }
     } catch (error) {
         if (error instanceof HTTPError && error.response) {
-            const errorMessageJson = error.response.body ? JSON.parse(error.response.body.toString()).message : null
+            const errorMessage = error.response.body ? JSON.parse(error.response.body.toString()).message : null
             if (error.response.statusCode === 401) {
-                log.error(errorMessageJson)
+                log.error(errorMessage)
             } else if (error.response.statusCode === 403) {
-                log.info(errorMessageJson)
+                log.info(errorMessage)
             } else if (error.response.statusCode === 400) {
-                log.error(errorMessageJson)
+                log.error(errorMessage)
             } else {
-                log.debug('Data upload to BrowserStack Test Observability failed either due to incorrect credentials or an unsupported SDK version or because you do not have access to the product.')
+                log.error(`Data upload to BrowserStack Test Observability failed due to ${errorMessage}`)
             }
         } else {
-            log.debug(`[Start_Build] Failed. Error: ${error}`)
+            log.error(`Data upload to BrowserStack Test Observability failed due to ${error}`)
         }
     }
 }
