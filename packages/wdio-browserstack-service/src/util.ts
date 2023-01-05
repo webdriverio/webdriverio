@@ -143,7 +143,7 @@ export async function launchTestSession (options: BrowserstackConfig & Options.T
     } catch (error) {
         if (error instanceof HTTPError && error.response) {
             const errorMessageJson = error.response.body ? JSON.parse(error.response.body.toString()) : null
-            const errorMessage = errorMessageJson ? errorMessageJson.message : null, errorType = errorMessageJson ? errorMessageJson.ErrorType : null
+            const errorMessage = errorMessageJson ? errorMessageJson.message : null, errorType = errorMessageJson ? errorMessageJson.errorType : null
             switch (errorType) {
             case 'ERROR_INVALID_CREDENTIALS':
                 log.error(errorMessage)
