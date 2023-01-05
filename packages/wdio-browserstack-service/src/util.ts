@@ -136,21 +136,21 @@ export async function launchTestSession (options: BrowserstackConfig & Options.T
         if (response.allow_screenshots) process.env.BS_TESTOPS_ALLOW_SCREENSHOTS = response.allow_screenshots.toString()
     } catch (error) {
         if (error instanceof HTTPError && error.response) {
-          const errorMessageJson = error.response.body ? JSON.parse(error.response.body.toString()) : null
-          const errorMessage = errorMessageJson ? errorMessageJson.message : null, errorType = errorMessageJson ? errorMessageJson.errorType : null
-          switch (errorType) {
-          case 'ERROR_INVALID_CREDENTIALS':
-              log.error(errorMessage)
-              break
-          case 'ERROR_ACCESS_DENIED':
-              log.info(errorMessage)
-              break
-          case 'ERROR_SDK_DEPRECATED':
-              log.info(errorMessage)
-              break
-          default:
-              log.error(errorMessage)
-          }
+            const errorMessageJson = error.response.body ? JSON.parse(error.response.body.toString()) : null
+            const errorMessage = errorMessageJson ? errorMessageJson.message : null, errorType = errorMessageJson ? errorMessageJson.errorType : null
+            switch (errorType) {
+            case 'ERROR_INVALID_CREDENTIALS':
+                log.error(errorMessage)
+                break
+            case 'ERROR_ACCESS_DENIED':
+                log.info(errorMessage)
+                break
+            case 'ERROR_SDK_DEPRECATED':
+                log.info(errorMessage)
+                break
+            default:
+                log.error(errorMessage)
+            }
         } else {
             log.error(`Data upload to BrowserStack Test Observability failed due to ${error}`)
         }
