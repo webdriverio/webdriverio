@@ -117,7 +117,7 @@ export async function launchTestSession (options: BrowserstackConfig & Options.T
         failed_tests_rerun: process.env.BROWSERSTACK_RERUN || false,
         version_control: await getGitMetaData(),
         observability_version: {
-            frameworkName: config.framework,
+            frameworkName: 'WebdriverIO-' + config.framework,
             sdkVersion: bsConfig.bstackServiceVersion
         }
     }
@@ -142,15 +142,20 @@ export async function launchTestSession (options: BrowserstackConfig & Options.T
         }
     } catch (error) {
         if (error instanceof HTTPError && error.response) {
-            const errorMessage = error.response.body ? JSON.parse(error.response.body.toString()).message : null
-            if (error.response.statusCode === 401) {
+            const errorMessageJson = error.response.body ? JSON.parse(error.response.body.toString()) : null
+            const errorMessage = errorMessageJson ? errorMessageJson.message : null, errorType = errorMessageJson ? errorMessageJson.ErrorType : null
+            switch (errorType) {
+            case 'ERROR_INVALID_CREDENTIALS':
                 log.error(errorMessage)
-            } else if (error.response.statusCode === 403) {
+                break
+            case 'ERROR_ACCESS_DENIED':
                 log.info(errorMessage)
-            } else if (error.response.statusCode === 400) {
+                break
+            case 'ERROR_SDK_DEPRECATED':
+                log.info(errorMessage)
+                break
+            default:
                 log.error(errorMessage)
-            } else {
-                log.error(`Data upload to BrowserStack Test Observability failed due to ${errorMessage}`)
             }
         } else {
             log.error(`Data upload to BrowserStack Test Observability failed due to ${error}`)
