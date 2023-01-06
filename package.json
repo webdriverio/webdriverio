@@ -5,7 +5,7 @@
   "scripts": {
     "create": "node ./scripts/generateSubPackage",
     "backport": "node ./scripts/backport.js",
-    "bootstrap-full": "npm run clean && lerna bootstrap --no-ci && npm run test:bootstrap && npm run link",
+    "bootstrap-full": "npm run clean && lerna bootstrap --no-ci --force-local && npm run test:bootstrap && npm run link",
     "bootstrap": "run-p clean:* && lerna bootstrap --force-local && npm run link",
     "build": "run-s clean:build generate:typings compile copy",
     "changelog": "node ./scripts/changelog.js",
