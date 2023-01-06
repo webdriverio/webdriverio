@@ -433,6 +433,10 @@ export const QUESTIONNAIRE = [{
             return SUPPORTED_PACKAGES.service.slice(
                 SUPPORTED_PACKAGES.service.findIndex(({ name }) => name ==='browserstack')).concat(
                 SUPPORTED_PACKAGES.service.slice(0, SUPPORTED_PACKAGES.service.findIndex(({ name }) => name ==='browserstack')))
+        } else if (answers.backend === 'In the cloud using Sauce Labs') {
+            return SUPPORTED_PACKAGES.service.slice(
+                SUPPORTED_PACKAGES.service.findIndex(({ name }) => name ==='sauce')).concat(
+                SUPPORTED_PACKAGES.service.slice(0, SUPPORTED_PACKAGES.service.findIndex(({ name }) => name ==='browserstack')))
         }
         return SUPPORTED_PACKAGES.service
     },
@@ -442,6 +446,10 @@ export const QUESTIONNAIRE = [{
             return [SUPPORTED_PACKAGES.service.find(
                 /* istanbul ignore next */
                 ({ name }) => name === 'browserstack')?.value]
+        } else if (answers.backend === 'In the cloud using Sauce Labs') {
+            return [SUPPORTED_PACKAGES.service.find(
+                /* istanbul ignore next */
+                ({ name }) => name === 'sauce')?.value]
         }
         return [SUPPORTED_PACKAGES.service.find(
         /* istanbul ignore next */
