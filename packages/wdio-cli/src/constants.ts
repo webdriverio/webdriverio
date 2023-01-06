@@ -436,7 +436,7 @@ export const QUESTIONNAIRE = [{
         } else if (answers.backend === 'In the cloud using Sauce Labs') {
             return SUPPORTED_PACKAGES.service.slice(
                 SUPPORTED_PACKAGES.service.findIndex(({ name }) => name ==='sauce')).concat(
-                SUPPORTED_PACKAGES.service.slice(0, SUPPORTED_PACKAGES.service.findIndex(({ name }) => name ==='browserstack')))
+                SUPPORTED_PACKAGES.service.slice(0, SUPPORTED_PACKAGES.service.findIndex(({ name }) => name ==='sauce')))
         }
         return SUPPORTED_PACKAGES.service
     },
