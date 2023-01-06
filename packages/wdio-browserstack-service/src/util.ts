@@ -146,7 +146,7 @@ export async function launchTestSession (options: BrowserstackConfig & Options.T
                 log.info(errorMessage)
                 break
             case 'ERROR_SDK_DEPRECATED':
-                log.info(errorMessage)
+                log.error(errorMessage)
                 break
             default:
                 log.error(errorMessage)
