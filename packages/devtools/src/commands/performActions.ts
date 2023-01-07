@@ -4,7 +4,7 @@ import type { Keyboard, Mouse } from 'puppeteer-core/lib/esm/puppeteer/common/In
 
 import getElementRect from './getElementRect.js'
 import getWindowRect from './getWindowRect.js'
-import { ELEMENT_KEY } from '../constants.js'
+import { ELEMENT_KEY, UNICODE_CHARACTERS } from '../constants.js'
 import { sleep } from '../utils.js'
 import type DevToolsDriver from '../devtoolsdriver.js'
 
@@ -85,13 +85,20 @@ export default async function performActions(
                  * for special characters like emojis 😉 we need to
                  * send in the value as text because it is not unicode
                  */
-                if (!_keyDefinitions[singleAction.value as unknown as KeyInput]) {
+                const [key] = (Object.entries(UNICODE_CHARACTERS)
+                    .find(([, charValue]) => charValue === singleAction.value) || []) as [KeyInput | undefined, never]
+                const pptrKey = key && _keyDefinitions[key]
+                    ? key
+                    : _keyDefinitions[singleAction.value as unknown as KeyInput]
+                        ? singleAction.value as KeyInput
+                        : undefined
+                if (!pptrKey) {
                     await page.keyboard.sendCharacter(singleAction.value as unknown as KeyInput)
                     skipChars.push(singleAction.value)
                     continue
                 }
 
-                await keyboardFn(singleAction.value)
+                await keyboardFn(pptrKey)
                 continue
             }
             continue
