@@ -81,7 +81,7 @@ import type { ElementReference } from '@wdio/protocols'
 export async function $ (
     this: WebdriverIO.Browser | WebdriverIO.Element,
     selector: Selector
-) {
+): Promise<WebdriverIO.Element> {
     /**
      * convert protocol result into WebdriverIO element
      * e.g. when element was fetched with `getActiveElement`

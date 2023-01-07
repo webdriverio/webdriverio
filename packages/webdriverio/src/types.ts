@@ -215,6 +215,7 @@ interface InstanceBase extends EventEmitter, SessionFlags {
      */
     puppeteer?: PuppeteerBrowser
     strategies: Map<any, any>
+    commandList: string[]
 
     /**
      * @private
@@ -293,6 +294,7 @@ interface MultiRemoteElementBase {
      * multiremote browser instance names
      */
     instances: string[]
+    commandList: string[]
     addCommand: Function
     overwriteCommand: Function
     /**
@@ -302,7 +304,7 @@ interface MultiRemoteElementBase {
     /**
      * get a specific instance to run commands on it
      */
-    getInstance: (browserName: string) => WebdriverIO.Browser
+    getInstance: (browserName: string) => WebdriverIO.Element
     // @private
     __propertiesObject__: never
 }

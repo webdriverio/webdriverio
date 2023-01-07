@@ -4,7 +4,6 @@ import { expect, describe, it, vi } from 'vitest'
 import got from 'got'
 import { ELEMENT_KEY } from '../../../src/constants.js'
 import { remote } from '../../../src/index.js'
-import type { Element } from '../../../src/types'
 
 vi.mock('got')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
@@ -67,7 +66,7 @@ describe('react$', () => {
 
         const elems = await browser.react$$('myComp')
 
-        expect(elems.filter((elem: Element) => elem.isReactElement
+        expect(elems.filter((elem: WebdriverIO.Element) => elem.isReactElement
         ).length).toBe(3)
         expect(elems.foundWith).toBe('react$$')
     })
