@@ -117,7 +117,7 @@ export async function launchTestSession (options: BrowserstackConfig & Options.T
         failed_tests_rerun: process.env.BROWSERSTACK_RERUN || false,
         version_control: await getGitMetaData(),
         observability_version: {
-            frameworkName: config.framework,
+            frameworkName: 'WebdriverIO-' + config.framework,
             sdkVersion: bsConfig.bstackServiceVersion
         }
     }
@@ -141,10 +141,24 @@ export async function launchTestSession (options: BrowserstackConfig & Options.T
             process.env.BS_TESTOPS_ALLOW_SCREENSHOTS = response.allow_screenshots.toString()
         }
     } catch (error) {
-        if (error instanceof HTTPError && error.response && error.response.statusCode === 401) {
-            log.debug('Data upload to BrowserStack Test Observability failed either due to incorrect credentials or an unsupported SDK version or because you do not have access to the product.')
+        if (error instanceof HTTPError && error.response) {
+            const errorMessageJson = error.response.body ? JSON.parse(error.response.body.toString()) : null
+            const errorMessage = errorMessageJson ? errorMessageJson.message : null, errorType = errorMessageJson ? errorMessageJson.errorType : null
+            switch (errorType) {
+            case 'ERROR_INVALID_CREDENTIALS':
+                log.error(errorMessage)
+                break
+            case 'ERROR_ACCESS_DENIED':
+                log.info(errorMessage)
+                break
+            case 'ERROR_SDK_DEPRECATED':
+                log.error(errorMessage)
+                break
+            default:
+                log.error(errorMessage)
+            }
         } else {
-            log.debug(`[Start_Build] Failed. Error: ${error}`)
+            log.error(`Data upload to BrowserStack Test Observability failed due to ${error}`)
         }
     }
 }
