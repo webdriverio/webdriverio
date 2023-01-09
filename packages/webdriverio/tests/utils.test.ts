@@ -469,6 +469,17 @@ describe('utils', () => {
             expect(fakeScope.getElementRect).toHaveBeenCalled()
             expect(fakeScope.execute).toHaveBeenCalled()
         })
+
+        it('does not use getBoundingClientRect if a value is 0', async () => {
+            const fakeScope = {
+                elementId: 123,
+                getElementRect: vi.fn(() => Promise.resolve({ x: 10, y: 0, width: 300, height: 400 })),
+                execute: vi.fn(() => Promise.reject(new Error('Method is not implemented')))
+            } as any as Element<'async'>
+            expect(await getElementRect(fakeScope as any)).toEqual({ x: 10, y: 0, width: 300, height: 400 })
+            expect(fakeScope.getElementRect).toHaveBeenCalled()
+            expect(fakeScope.execute).not.toHaveBeenCalled()
+        })
     })
 
     describe('getAbsoluteFilepath', () => {
