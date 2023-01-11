@@ -381,7 +381,7 @@ export async function getElementRect(scope: WebdriverIO.Element) {
      * getElementRect workaround for Safari 12.0.3
      * if one of [x, y, height, width] is undefined get rect with javascript
      */
-    if (Object.keys(defaults).some((key: keyof typeof defaults) => !rect[key])) {
+    if (Object.keys(defaults).some((key: keyof typeof defaults) => rect[key] === undefined)) {
         /* istanbul ignore next */
         const rectJs = await getBrowserObject(scope).execute(function (this: Window, el: HTMLElement) {
             if (!el || !el.getBoundingClientRect) {
