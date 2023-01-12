@@ -5,8 +5,7 @@ import type {
     WrapperMethods,
     SpecFunction,
     BeforeHookParam,
-    AfterHookParam,
-    JasmineContext
+    AfterHookParam
 } from './types.js'
 
 const STACKTRACE_FILTER = [
@@ -82,15 +81,6 @@ export const testFrameworkFnWrapper = async function (
     }
     const duration = Date.now() - testStart
     const afterArgs = afterFnArgs(this)
-
-    /**
-     * ensure errors are caught in Jasmine tests too
-     * (in Jasmine failing assertions are not causing the test to throw as
-     * oppose to other common assertion libraries like chai)
-     */
-    if (!error && afterArgs[0] && (afterArgs as [JasmineContext, unknown])[0].failedExpectations && (afterArgs as [JasmineContext, unknown])[0].failedExpectations.length) {
-        error = (afterArgs as [JasmineContext, unknown])[0].failedExpectations[0]
-    }
 
     afterArgs.push({
         retries,
