@@ -133,7 +133,14 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         if (!this._options.browserstackLocal) {
             return log.info('browserstackLocal is not enabled - skipping...')
         }
+        try {
+            return await this.launchLocal(capabilities)
+        } catch (error: any) {
+            throw new SevereServiceError(error)
+        }
+    }
 
+    private launchLocal (capabilities?: Capabilities.RemoteCapabilities) {
         const opts = {
             key: this._config.key,
             ...this._options.opts

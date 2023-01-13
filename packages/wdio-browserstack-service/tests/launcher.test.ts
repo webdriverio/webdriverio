@@ -10,6 +10,7 @@ import BrowserstackLauncher from '../src/launcher.js'
 import type { BrowserstackConfig } from '../src/types.js'
 import * as utils from '../src/util.js'
 import { version as bstackServiceVersion } from '../package.json' assert { type: 'json' }
+import { SevereServiceError } from 'webdriverio'
 
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 vi.mock('browserstack-local')
@@ -304,7 +305,7 @@ describe('onPrepare', () => {
         const service = new BrowserstackLauncher(options as any, caps, config)
         mockStart.mockImplementationOnce((_: never, cb: Function) => cb(error))
 
-        return expect(service.onPrepare(config, caps)).rejects.toThrow(error)
+        return expect(service.onPrepare(config, caps)).rejects.toThrow(new SevereServiceError(error as any))
             .then(() => expect(service.browserstackLocal?.start).toHaveBeenCalled())
     })
 
