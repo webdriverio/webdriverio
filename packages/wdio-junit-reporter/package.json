@@ -31,12 +31,10 @@
     "@wdio/reporter": "8.1.2",
     "@wdio/types": "8.1.2",
     "json-stringify-safe": "^5.0.1",
-    "junit-report-builder": "^3.0.0",
-    "validator": "^13.7.0"
+    "junit-report-builder": "^3.0.0"
   },
   "devDependencies": {
-    "@types/json-stringify-safe": "^5.0.0",
-    "@types/validator": "^13.7.2"
+    "@types/json-stringify-safe": "^5.0.0"
   },
   "publishConfig": {
     "access": "public"

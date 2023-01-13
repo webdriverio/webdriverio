@@ -1,5 +1,4 @@
 import stringify from 'json-stringify-safe'
-import validator from 'validator/es/index.js'
 
 const OBJLENGTH = 10
 const ARRLENGTH = 10
@@ -16,7 +15,7 @@ export const limit = function (rawVal?: any) {
     const type = Object.prototype.toString.call(val)
 
     if (type === '[object String]') {
-        if (val.length > 100 && validator.isBase64(val)) {
+        if (val.length > 100 && isBase64(val)) {
             return `[base64] ${val.length} bytes`
         }
 
@@ -49,4 +48,26 @@ export const limit = function (rawVal?: any) {
         return val
     }
     return val
+}
+
+/**
+ * checks if provided string is Base64
+ * @param {string} str string to check
+ * @return {boolean} `true` if the provided string is Base64
+ */
+export function isBase64(str: string) {
+    if (typeof str !== 'string') {
+        throw new Error('Expected string but received invalid type.')
+    }
+    const len = str.length
+    const notBase64 = /[^A-Z0-9+/=]/i
+    if (!len || len % 4 !== 0 || notBase64.test(str)) {
+        return false
+    }
+    const firstPaddingChar = str.indexOf('=')
+    return (
+        firstPaddingChar === -1 ||
+        firstPaddingChar === len - 1 ||
+        (firstPaddingChar === len - 2 && str[len - 1] === '=')
+    )
 }

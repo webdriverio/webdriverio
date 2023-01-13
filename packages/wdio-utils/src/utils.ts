@@ -245,22 +245,24 @@ export function filterSpecArgs (args: any[]) {
 
 /**
  * checks if provided string is Base64
- * @param  {String} str  string in base64 to check
- * @return {Boolean} true if the provided string is Base64
+ * @param {string} str string to check
+ * @return {boolean} `true` if the provided string is Base64
  */
 export function isBase64(str: string) {
-    const notBase64 = new RegExp('[^A-Z0-9+\\/=]',  'i')
     if (typeof str !== 'string') {
         throw new Error('Expected string but received invalid type.')
     }
     const len = str.length
+    const notBase64 = /[^A-Z0-9+/=]/i
     if (!len || len % 4 !== 0 || notBase64.test(str)) {
         return false
     }
     const firstPaddingChar = str.indexOf('=')
-    return firstPaddingChar === -1 ||
-      firstPaddingChar === len - 1 ||
-      (firstPaddingChar === len - 2 && str[len - 1] === '=')
+    return (
+        firstPaddingChar === -1 ||
+        firstPaddingChar === len - 1 ||
+        (firstPaddingChar === len - 2 && str[len - 1] === '=')
+    )
 }
 
 /**
