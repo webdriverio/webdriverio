@@ -29,6 +29,46 @@ Boilerplate project to run WebdriverIO tests with Jasmine using Babel features a
     - Page Object Pattern
     - Sauce Labs integration
 
+## [amiya-pattnaik/webdriverIO-with-cucumberBDD](https://github.com/amiya-pattnaik/webdriverIO-with-cucumberBDD)
+
+- Framework: WDIO-V8 with Cucumber (V8x).
+- Features:
+    - Page Objects Model uses with ES6 /ES7 style class base approach and TypeScript support
+    - Examples of multi selector option to query element with more than one selector at a time
+    - Examples of multi browser and headless browser execution using - Chrome and Firefox
+    - Cloud testing Integration with BrowserStack, Sauce Labs, LambdaTest
+    - Examples of read/write data from MS-Excel for easy test data management from external data sources with examples
+    - Database support to any RDBMS (Oracle, MySql, TeraData, Vertica etc.), executing any queries / fetching result set etc. with examples for E2E testing
+    - Multiple reporting (Spec, Xunit/Junit, Allure, JSON) and Hosting Allure and Xunit/Junit reporting on WebServer.
+    - Examples with demo app https://search.yahoo.com/  and http://the-internet.herokuapp.com.
+    - BrowserStack, Sauce Labs, LambdTest and Appium specific .config file ( for playback on mobile device.)` For one click Appium setup on local machine for iOS and Android refer to [appium-setup-made-easy-OSX](https://github.com/amiya-pattnaik/appium-setup-made-easy-OSX)
+
+## [amiya-pattnaik/webdriverIO-with-mochaBDD](https://github.com/amiya-pattnaik/webdriverIO-with-mochaBDD)
+
+- Framework: WDIO-V8 with Mocha (V10x).
+- Features:
+    -  Page Objects Model uses with ES6 /ES7 style class base approach and TypeScript support
+    -  Examples with demo app https://search.yahoo.com  and http://the-internet.herokuapp.com
+    -  Examples of multi browser and headless browser execution using - Chrome and Firefox
+    -  Cloud testing Integration with BrowserStack, Sauce Labs, LambdaTest
+    -  Multiple reporting (Spec, Xunit/Junit, Allure, JSON) and Hosting Allure and Xunit/Junit reporting on WebServer.
+    -  Examples of read/write data from MS-Excel for easy test data management from external data sources with examples
+    -  Examples of DB connect to any RDBMS (Oracle, MySql, TeraData, Vertica etc.), any query execution / fetching result set etc. with examples for E2E testing
+    -  BrowserStack, Sauce Labs, LambdTest and Appium specific .config file ( for playback on mobile device.)` For one click Appium setup on local machine for iOS and Android refer to [appium-setup-made-easy-OSX](https://github.com/amiya-pattnaik/appium-setup-made-easy-OSX)
+
+## [amiya-pattnaik/webdriverIO-with-jasmineBDD](https://github.com/amiya-pattnaik/webdriverIO-with-jasmineBDD)
+
+- Framework: WDIO-V8 with Jasmine (V4x).
+- Features:
+    -  Page Objects Model uses with ES6 /ES7 style class base approach and TypeScript support
+    -  Examples with demo app https://search.yahoo.com  and http://the-internet.herokuapp.com
+    -  Examples of multi browser and headless browser execution using - Chrome and Firefox
+    -  Cloud testing Integration with BrowserStack, Sauce Labs, LambdaTest
+    -  Multiple reporting (Spec, Xunit/Junit, Allure, JSON) and Hosting Allure and Xunit/Junit reporting on WebServer.
+    -  Examples of read/write data from MS-Excel for easy test data management from external data sources with examples
+    -  Examples of DB connect to any RDBMS (Oracle, MySql, TeraData, Vertica etc.), any query execution / fetching result set etc. with examples for E2E testing
+     -  BrowserStack, Sauce Labs, LambdTest and Appium specific .config file ( for playback on mobile device.)` For one click Appium setup on local machine for iOS and Android refer to [appium-setup-made-easy-OSX](https://github.com/amiya-pattnaik/appium-setup-made-easy-OSX)
+
 # v7 Boilerplate Projects
 
 ## [webdriverio/appium-boilerplate](https://github.com/webdriverio/appium-boilerplate/)
@@ -57,6 +97,10 @@ This boilerplate includes the following:
         - Forms
         - Swipe
         - Browsers
+
+## [amiya-pattnaik/webdriverIO-with-cucumberBDD-V7](https://github.com/amiya-pattnaik/webdriverIO-with-cucumberBDD/tree/wdio-v7)
+## [amiya-pattnaik/webdriverIO-with-mochaBDD-V7](https://github.com/amiya-pattnaik/webdriverIO-with-mochaBDD/tree/wdio-v7)
+## [amiya-pattnaik/webdriverIO-with-jasmineBDD-V7](https://github.com/amiya-pattnaik/webdriverIO-with-jasmineBDD/tree/wdio-v7)
 
 ## [serhatbolsu/webdriverio-mocha-uiautomation-boiler](https://github.com/serhatbolsu/webdriverio-mocha-uiautomation-boiler)
 ATDD WEB tests with Mocha, WebdriverIO v6 with PageObject
