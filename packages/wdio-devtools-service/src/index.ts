@@ -1,6 +1,5 @@
 import logger from '@wdio/logger'
 import { KnownDevices } from 'puppeteer-core'
-import WebSocket from 'ws'
 
 import type { Browser, MultiRemoteBrowser } from 'webdriverio'
 import type { Capabilities, Services, FunctionProperties, ThenArg } from '@wdio/types'
@@ -25,6 +24,17 @@ import type {
 
 const log = logger('@wdio/devtools-service')
 const TRACE_COMMANDS = ['click', 'navigateTo', 'url']
+
+function isCDPSessionOnMessageObject(
+    data: any
+): data is CDPSessionOnMessageObject {
+    return (
+        data !== null &&
+        typeof data === 'object' &&
+        Object.prototype.hasOwnProperty.call(data, 'params') &&
+        Object.prototype.hasOwnProperty.call(data, 'method')
+    )
+}
 
 export default class DevToolsService implements Services.ServiceInstance {
     private _isSupported = false
@@ -270,8 +280,7 @@ export default class DevToolsService implements Services.ServiceInstance {
         }
 
         this._devtoolsGatherer = new DevtoolsGatherer()
-        const cdpWS = new WebSocket(this._puppeteer.wsEndpoint())
-        cdpWS.on('message', this._propagateWSEvents.bind(this))
+        this._session.on('*', this._propagateWSEvents.bind(this))
 
         this._browser.addCommand('enablePerformanceAudits', this._enablePerformanceAudits.bind(this))
         this._browser.addCommand('disablePerformanceAudits', this._disablePerformanceAudits.bind(this))
@@ -281,8 +290,11 @@ export default class DevToolsService implements Services.ServiceInstance {
         this._browser.addCommand('checkPWA', this._checkPWA.bind(this))
     }
 
-    private _propagateWSEvents (event: { data: string }) {
-        const data: CDPSessionOnMessageObject = JSON.parse(event.data)
+    private _propagateWSEvents (data: any) {
+        if (!isCDPSessionOnMessageObject(data)) {
+            return
+        }
+
         this._devtoolsGatherer?.onMessage(data)
         const method = data.method || 'event'
         log.debug(`cdp event: ${method} with params ${JSON.stringify(data.params)}`)
