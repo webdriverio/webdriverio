@@ -98,10 +98,6 @@ This boilerplate includes the following:
         - Swipe
         - Browsers
 
-## [amiya-pattnaik/webdriverIO-with-cucumberBDD-V7](https://github.com/amiya-pattnaik/webdriverIO-with-cucumberBDD/tree/wdio-v7)
-## [amiya-pattnaik/webdriverIO-with-mochaBDD-V7](https://github.com/amiya-pattnaik/webdriverIO-with-mochaBDD/tree/wdio-v7)
-## [amiya-pattnaik/webdriverIO-with-jasmineBDD-V7](https://github.com/amiya-pattnaik/webdriverIO-with-jasmineBDD/tree/wdio-v7)
-
 ## [serhatbolsu/webdriverio-mocha-uiautomation-boiler](https://github.com/serhatbolsu/webdriverio-mocha-uiautomation-boiler)
 ATDD WEB tests with Mocha, WebdriverIO v6 with PageObject
 
