@@ -54,7 +54,7 @@ Boilerplate project to run WebdriverIO tests with Jasmine using Babel features a
     -  Multiple reporting (Spec, Xunit/Junit, Allure, JSON) and Hosting Allure and Xunit/Junit reporting on WebServer.
     -  Examples of read/write data from MS-Excel for easy test data management from external data sources with examples
     -  Examples of DB connect to any RDBMS (Oracle, MySql, TeraData, Vertica etc.), any query execution / fetching result set etc. with examples for E2E testing
-    -  BrowserStack, Sauce Labs, LambdTest and Appium specific .config file ( for playback on mobile device.)` For one click Appium setup on local machine for iOS and Android refer to [appium-setup-made-easy-OSX](https://github.com/amiya-pattnaik/appium-setup-made-easy-OSX)
+    -  BrowserStack, Sauce Labs, LambdTest and Appium specific `.config` file (for playback on mobile device). For one click Appium setup on local machine for iOS and Android refer to [appium-setup-made-easy-OSX](https://github.com/amiya-pattnaik/appium-setup-made-easy-OSX).
 
 ## [amiya-pattnaik/webdriverIO-with-jasmineBDD](https://github.com/amiya-pattnaik/webdriverIO-with-jasmineBDD)
 
