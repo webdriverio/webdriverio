@@ -27,7 +27,7 @@
   },
   "dependencies": {
     "chalk": "^5.1.2",
-    "loglevel": "^1.6.0",
+    "loglevel": "^1.8.1",
     "loglevel-plugin-prefix": "^0.8.4",
     "strip-ansi": "^6.0.0"
   },

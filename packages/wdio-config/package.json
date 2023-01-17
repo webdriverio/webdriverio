@@ -39,6 +39,7 @@
     "access": "public"
   },
   "devDependencies": {
+    "@types/glob": "^8.0.0",
     "minimatch": "^6.1.4",
     "tsconfig-paths": "^4.1.0"
   }

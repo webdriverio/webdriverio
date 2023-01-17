@@ -38,7 +38,6 @@ export const DEFAULT_VITE_CONFIG: Partial<InlineConfig> = {
             },
             // Enable esbuild polyfill plugins
             plugins: [
-                // @ts-expect-error see https://github.com/webdriverio/webdriverio/pull/9593
                 NodeGlobalsPolyfillPlugin({
                     process: true,
                     buffer: true

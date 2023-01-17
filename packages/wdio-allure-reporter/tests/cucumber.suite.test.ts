@@ -8,7 +8,7 @@ import { temporaryDirectory } from 'tempy'
  * methods without having to ignore them for test coverage
  */
 // eslint-disable-next-line
-import { clean, getResults } from './helpers/wdio-allure-helper'
+import { clean, getResults } from './helpers/wdio-allure-helper.js'
 
 import AllureReporter from '../src/reporter.js'
 import { runnerEnd, runnerStart } from './__fixtures__/runner.js'
