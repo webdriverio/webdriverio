@@ -63,7 +63,8 @@
     "@types/archiver": "^5.1.0",
     "@types/aria-query": "^5.0.0",
     "@types/lodash.clonedeep": "^4.5.6",
-    "@types/lodash.zip": "^4.2.6"
+    "@types/lodash.zip": "^4.2.6",
+    "@types/minimatch": "^5.1.2"
   },
   "dependencies": {
     "@types/node": "^18.0.0",

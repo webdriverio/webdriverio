@@ -1,7 +1,6 @@
 import { describe, it, expect, afterEach, vi, test } from 'vitest'
 
 import type path from 'node:path'
-// @ts-ignore no types needed
 import debug from 'debug'
 import which from 'which'
 import { launch } from 'chrome-launcher'

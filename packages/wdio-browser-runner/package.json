@@ -50,9 +50,6 @@
     "webdriverio": "8.1.3",
     "ws": "^8.12.0"
   },
-  "scripts": {
-    "prepare": "rimraf node_modules/@wdio/config node_modules/@wdio/repl node_modules/@wdio/utils"
-  },
   "publishConfig": {
     "access": "public"
   },

@@ -54,14 +54,16 @@ jobs:
         run: |
           git config --global user.email "bot@webdriver.io"
           git config --global user.name "WebdriverIO Release Bot"
+      - name: Install pnpm
+        run: npm install -g pnpm
       - name: Install Dependencies
-        run: npm ci
+        run: pnpm install --prefer-frozen-lockfile
       - name: Release
         run: |
-          npm run setup-full
-          npm run generate:typings
+          pnpm run setup
+          pnpm run generate:typings
           npx lerna publish ${{github.event.inputs.releaseType}} --exact --yes --dist-tag ${{github.event.inputs.distTag}}
-          npm run pushReleaseTag
+          pnpm run pushReleaseTag
         env:
           NODE_ENV: production
           GITHUB_AUTH: ${{ secrets.GITHUB_TOKEN }}

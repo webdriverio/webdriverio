@@ -11,7 +11,7 @@ import { TYPE } from '../src/types.js'
  * methods without having to ignore them for test coverage
  */
 // eslint-disable-next-line
-import { clean, getResults } from './helpers/wdio-allure-helper'
+import { clean, getResults } from './helpers/wdio-allure-helper.js'
 
 import { runnerEnd, runnerStart } from './__fixtures__/runner.js'
 import { suiteEnd, suiteStart } from './__fixtures__/suite.js'

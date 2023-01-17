@@ -21,6 +21,8 @@ import type {
     WDIODevtoolsOptions as WDIODevtoolsOptionsExtension
 } from './types.js'
 
+export * from './constants.js'
+
 const log = logger('devtools:puppeteer')
 
 /**

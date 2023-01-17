@@ -50,6 +50,7 @@
     "mockery": "^2.1.0"
   },
   "devDependencies": {
+    "@types/glob": "^8.0.0",
     "@types/is-glob": "^4.0.1",
     "@types/mockery": "^1.4.29"
   },
