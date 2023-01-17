@@ -13,14 +13,14 @@ import { downloadAwesomeResources } from './downloadAwesomeResources.js'
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 
-function print (title) {
+function print (title: string) {
     console.log(`
 //////////////////////////////////////////////////
 ${title}
 //////////////////////////////////////////////////`)
 }
 
-function writeSidebars(sidebars) {
+function writeSidebars(sidebars: any) {
     fs.writeFileSync(
         path.join(__dirname, '..', '..', 'website', 'sidebars.json'),
         JSON.stringify(sidebars, null, 2),
