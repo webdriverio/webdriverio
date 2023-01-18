@@ -21,10 +21,10 @@ const API_DOCS_ROOT_DIR = path.join(PROJECT_ROOT_DIR, 'docs', category)
  * Generate Protocol docs
  * @param {object} sidebars website/sidebars
  */
-export function generateProtocolDocs (sidebars) {
+export function generateProtocolDocs (sidebars: any) {
     fs.mkdir(API_DOCS_ROOT_DIR, { recursive: true }, (err) => console.error(err))
     const template = fs.readFileSync(TEMPLATE_PATH, 'utf8')
-    const protocolDocs = {}
+    const protocolDocs: any = {}
 
     const protocolDocEntry = {
         type: 'category',
@@ -33,21 +33,21 @@ export function generateProtocolDocs (sidebars) {
             type: 'doc',
             id: 'api/protocols'
         },
-        items: []
+        items: [] as any[]
     }
 
     for (const [protocolName, definition] of Object.entries(PROTOCOLS)) {
-        const protocol = PROTOCOL_NAMES[protocolName]
+        const protocol = PROTOCOL_NAMES[protocolName as any as keyof typeof PROTOCOL_NAMES] as string
 
         for (const [, methods] of Object.entries(definition)) {
-            for (const [, description] of Object.entries(methods)) {
-                description.paramTags = [...(description.variables || []).map((variable) => {
+            for (const [, description] of Object.entries(methods) as any) {
+                description.paramTags = [...(description.variables || []).map((variable: any) => {
                     return Object.assign(variable, { required: true, type: 'String' })
                 }), ...description.parameters || []]
 
                 description.hasHeader = true
-                description.paramString = description.paramTags.map((param) => param.name).join(', ')
-                description.examples = (description.examples || []).map((example) => {
+                description.paramString = description.paramTags.map((param: any) => param.name).join(', ')
+                description.examples = (description.examples || []).map((example: any) => {
                     return {
                         code: Array.isArray(example) ? example.join('\n') : example,
                         format: 'js'
@@ -90,7 +90,7 @@ export function generateProtocolDocs (sidebars) {
                      * include API description if existent
                      */
                     if (Object.keys(PROTOCOL_API_DESCRIPTION).includes(protocolName)) {
-                        protocolDocs[protocolName].push(PROTOCOL_API_DESCRIPTION[protocolName])
+                        protocolDocs[protocolName].push(PROTOCOL_API_DESCRIPTION[protocolName as keyof typeof PROTOCOL_API_DESCRIPTION])
                     }
                 }
                 protocolDocs[protocolName].push(markdown)

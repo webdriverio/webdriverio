@@ -159,7 +159,7 @@ test('if supported by browser', async () => {
         'checkPWA', expect.any(Function))
 
     service['_devtoolsGatherer'] = { onMessage: vi.fn() } as any
-    service['_propagateWSEvents']({ data: '{"method": "foo", "params": "bar"}' })
+    service['_propagateWSEvents']({ method: 'foo', params: 'bar' })
     expect(service['_devtoolsGatherer']?.onMessage).toBeCalledTimes(1)
     expect(service['_devtoolsGatherer']?.onMessage).toBeCalledWith({ method:'foo', params: 'bar' })
     expect((service['_browser'] as any).emit).toBeCalledTimes(1)

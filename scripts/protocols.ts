@@ -20,7 +20,7 @@ export const PROTOCOL_NAMES = {
     selenium: 'Selenium Standalone',
     webdriver: 'WebDriver Protocol',
     webdriverBidi: 'WebDriver Bidi Protocol'
-}
+} as const
 
 export type { Protocol }
 export type ProtocolKeys = keyof typeof PROTOCOL_NAMES
