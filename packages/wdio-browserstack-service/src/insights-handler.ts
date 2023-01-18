@@ -208,6 +208,10 @@ export default class InsightsHandler {
         }
         const identifier = this.getIdentifier(test)
 
+        if (!this._tests[identifier]) {
+            return
+        }
+
         // log screenshot
         if (Boolean(process.env.BS_TESTOPS_ALLOW_SCREENSHOTS) && isScreenshotCommand(args) && args.result.value) {
             await uploadEventData([{

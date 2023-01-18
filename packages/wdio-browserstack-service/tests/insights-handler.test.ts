@@ -399,6 +399,12 @@ describe('browserCommand', () => {
         delete process.env.BS_TESTOPS_ALLOW_SCREENSHOTS
     })
 
+    it('return if test not in _tests', () => {
+        insightsHandler.browserCommand('client:afterCommand', { sessionId: 's', method: 'm', endpoint: 'e', result: { value: 'random' } }, {})
+        insightsHandler['_tests'] = { 'test title not there': { 'uuid': 'uuid' } }
+        expect(uploadEventDataSpy).toBeCalledTimes(0)
+    })
+
     afterEach(() => {
         uploadEventDataSpy.mockClear()
         getIdentifierSpy.mockClear()
