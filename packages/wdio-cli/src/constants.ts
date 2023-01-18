@@ -179,7 +179,8 @@ export const BACKEND_CHOICES = [
     'On my local machine',
     'In the cloud using Experitest',
     'In the cloud using Sauce Labs',
-    'In the cloud using Browserstack or Testingbot or LambdaTest or a different service',
+    'In the cloud using BrowserStack',
+    'In the cloud using Testingbot or LambdaTest or a different service',
     'I have my own Selenium cloud'
 ] as const
 
@@ -255,19 +256,19 @@ export const QUESTIONNAIRE = [{
     name: 'expEnvAccessKey',
     message: 'Access key from Experitest Cloud',
     default: 'EXPERITEST_ACCESS_KEY',
-    when: /* istanbul ignore next */ (answers: Questionnair) => answers.backend === 'In the cloud using Experitest'
+    when: /* istanbul ignore next */ (answers: Questionnair) => answers.backend === BACKEND_CHOICES[1]
 }, {
     type: 'input',
     name: 'expEnvHostname',
     message: 'Environment variable for cloud url',
     default: 'example.experitest.com',
-    when: /* istanbul ignore next */ (answers: Questionnair) => answers.backend === 'In the cloud using Experitest'
+    when: /* istanbul ignore next */ (answers: Questionnair) => answers.backend === BACKEND_CHOICES[1]
 }, {
     type: 'input',
     name: 'expEnvPort',
     message: 'Environment variable for port',
     default: '443',
-    when: /* istanbul ignore next */ (answers: Questionnair) => answers.backend === 'In the cloud using Experitest'
+    when: /* istanbul ignore next */ (answers: Questionnair) => answers.backend === BACKEND_CHOICES[1]
 }, {
     type: 'list',
     name: 'expEnvProtocol',
@@ -275,7 +276,7 @@ export const QUESTIONNAIRE = [{
     default: 'https',
     choices: PROTOCOL_OPTIONS,
     when: /* istanbul ignore next */ (answers: Questionnair) => {
-        return answers.backend === 'In the cloud using Experitest' && answers.expEnvPort !== '80' && answers.expEnvPort !== '443'
+        return answers.backend === BACKEND_CHOICES[1] && answers.expEnvPort !== '80' && answers.expEnvPort !== '443'
     }
 }, {
     type: 'input',
@@ -300,31 +301,31 @@ export const QUESTIONNAIRE = [{
     name: 'env_user',
     message: 'Environment variable for username',
     default: 'BROWSERSTACK_USERNAME',
-    when: /* istanbul ignore next */ (answers: Questionnair) => answers.backend.toString().startsWith('In the cloud using Browserstack')
+    when: /* istanbul ignore next */ (answers: Questionnair) => answers.backend === BACKEND_CHOICES[3]
 }, {
     type: 'input',
     name: 'env_key',
     message: 'Environment variable for access key',
     default: 'BROWSERSTACK_ACCESS_KEY',
-    when: /* istanbul ignore next */ (answers: Questionnair) => answers.backend.toString().startsWith('In the cloud using Browserstack')
+    when: /* istanbul ignore next */ (answers: Questionnair) => answers.backend === BACKEND_CHOICES[3]
 }, {
     type: 'input',
     name: 'env_user',
     message: 'Environment variable for username',
     default: 'SAUCE_USERNAME',
-    when: /* istanbul ignore next */ (answers: Questionnair) => answers.backend === 'In the cloud using Sauce Labs'
+    when: /* istanbul ignore next */ (answers: Questionnair) => answers.backend === BACKEND_CHOICES[2]
 }, {
     type: 'input',
     name: 'env_key',
     message: 'Environment variable for access key',
     default: 'SAUCE_ACCESS_KEY',
-    when: /* istanbul ignore next */ (answers: Questionnair) => answers.backend === 'In the cloud using Sauce Labs'
+    when: /* istanbul ignore next */ (answers: Questionnair) => answers.backend === BACKEND_CHOICES[2]
 }, {
     type: 'list',
     name: 'region',
     message: 'In which region do you want to run your Sauce Labs tests in?',
     choices: REGION_OPTION,
-    when: /* istanbul ignore next */ (answers: Questionnair) => answers.backend === 'In the cloud using Sauce Labs'
+    when: /* istanbul ignore next */ (answers: Questionnair) => answers.backend === BACKEND_CHOICES[2]
 }, {
     type: 'input',
     name: 'hostname',
@@ -427,12 +428,33 @@ export const QUESTIONNAIRE = [{
     type: 'checkbox',
     name: 'services',
     message: 'Do you want to add a service to your test setup?',
-    choices: SUPPORTED_PACKAGES.service,
+    choices: (answers: Questionnair) => {
+        if (answers.backend === BACKEND_CHOICES[3]) {
+            const index = SUPPORTED_PACKAGES.service.findIndex(({ name }) => name === 'browserstack')
+            return SUPPORTED_PACKAGES.service.slice(index)
+                .concat(SUPPORTED_PACKAGES.service.slice(0, index))
+        } else if (answers.backend === BACKEND_CHOICES[2]) {
+            const index = SUPPORTED_PACKAGES.service.findIndex(({ name }) => name ==='sauce')
+            return SUPPORTED_PACKAGES.service.slice(index)
+                .concat(SUPPORTED_PACKAGES.service.slice(0, index))
+        }
+        return SUPPORTED_PACKAGES.service
+    },
     // @ts-ignore
-    default: [SUPPORTED_PACKAGES.service.find(
+    default: (answers: Questionnair) => {
+        if (answers.backend === BACKEND_CHOICES[3]) {
+            return [SUPPORTED_PACKAGES.service.find(
+                /* istanbul ignore next */
+                ({ name }) => name === 'browserstack')?.value]
+        } else if (answers.backend === BACKEND_CHOICES[2]) {
+            return [SUPPORTED_PACKAGES.service.find(
+                /* istanbul ignore next */
+                ({ name }) => name === 'sauce')?.value]
+        }
+        return [SUPPORTED_PACKAGES.service.find(
         /* istanbul ignore next */
-        ({ name }) => name === 'chromedriver').value
-    ],
+            ({ name }) => name === 'chromedriver')?.value]
+    },
     validate: /* istanbul ignore next */ (answers: string[]) => validateServiceAnswers(answers)
 }, {
     type: 'input',
