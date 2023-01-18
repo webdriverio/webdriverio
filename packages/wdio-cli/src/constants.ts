@@ -430,13 +430,13 @@ export const QUESTIONNAIRE = [{
     message: 'Do you want to add a service to your test setup?',
     choices: (answers: Questionnair) => {
         if (answers.backend === BACKEND_CHOICES[3]) {
-            return SUPPORTED_PACKAGES.service.slice(
-                SUPPORTED_PACKAGES.service.findIndex(({ name }) => name ==='browserstack')).concat(
-                SUPPORTED_PACKAGES.service.slice(0, SUPPORTED_PACKAGES.service.findIndex(({ name }) => name ==='browserstack')))
+            const index = SUPPORTED_PACKAGES.service.findIndex(({ name }) => name === 'browserstack')
+            return SUPPORTED_PACKAGES.service.slice(index)
+                .concat(SUPPORTED_PACKAGES.service.slice(0, index))
         } else if (answers.backend === BACKEND_CHOICES[2]) {
-            return SUPPORTED_PACKAGES.service.slice(
-                SUPPORTED_PACKAGES.service.findIndex(({ name }) => name ==='sauce')).concat(
-                SUPPORTED_PACKAGES.service.slice(0, SUPPORTED_PACKAGES.service.findIndex(({ name }) => name ==='sauce')))
+            const index = SUPPORTED_PACKAGES.service.findIndex(({ name }) => name ==='sauce')
+            return SUPPORTED_PACKAGES.service.slice(index)
+                .concat(SUPPORTED_PACKAGES.service.slice(0, index))
         }
         return SUPPORTED_PACKAGES.service
     },
