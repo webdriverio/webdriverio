@@ -20,13 +20,15 @@ jobs:
         node-version: [16.x, 18.x]
     steps:
       - uses: actions/checkout@v3
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 7
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
-      - name: Install pnpm
-        run: npm install -g pnpm
+          cache: 'pnpm'
       - name: Install Dependencies
-        run: pnpm install --prefer-frozen-lockfile
+        run: pnpm install
       - name: Bootstrap Packages
         run: pnpm run setup
       - name: Dependency Check
@@ -43,13 +45,15 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v3
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 7
       - uses: actions/setup-node@v3
         with:
           node-version: 18.x
-      - name: Install pnpm
-        run: npm install -g pnpm
+          cache: 'pnpm'
       - name: Install Dependencies
-        run: pnpm install --prefer-frozen-lockfile
+        run: pnpm install
       - name: Bootstrap Packages
         run: pnpm run setup
       - name: Link Packages
@@ -77,13 +81,15 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v3
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 7
       - uses: actions/setup-node@v3
         with:
           node-version: 18.x
-      - name: Install pnpm
-        run: npm install -g pnpm
+          cache: 'pnpm'
       - name: Install Dependencies
-        run: pnpm install --prefer-frozen-lockfile
+        run: pnpm install
       - name: Bootstrap Packages
         run: pnpm run setup
       - name: Link Packages

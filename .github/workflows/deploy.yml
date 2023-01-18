@@ -12,13 +12,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 7
       - uses: actions/setup-node@v3
         with:
           node-version: '18.x'
-      - name: Install pnpm
-        run: npm install -g pnpm
+          cache: 'pnpm'
       - name: Install Dependencies
-        run: pnpm install --prefer-frozen-lockfile
+        run: pnpm install
       - run: pnpm run docs
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
