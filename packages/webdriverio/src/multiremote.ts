@@ -29,7 +29,7 @@ export default class MultiRemote {
     /**
      * modifier for multibrowser instance
      */
-    modifier (wrapperClient: { options: Options.WebdriverIO, commandList: (keyof (ProtocolCommands & BrowserCommandsType))[] }) {
+    modifier (wrapperClient: { options: Options.WebdriverIO, commandList: (keyof (ProtocolCommands & BrowserCommandsType) & 'getInstance')[] }) {
         const propertiesObject: Record<string, PropertyDescriptor> = {}
         propertiesObject.commandList = { value: wrapperClient.commandList }
         propertiesObject.options = { value: wrapperClient.options }
@@ -109,9 +109,19 @@ export default class MultiRemote {
     /**
      * handle commands for multiremote instances
      */
-    commandWrapper (commandName: keyof (ProtocolCommands & BrowserCommandsType)) {
+    commandWrapper (commandName: keyof (ProtocolCommands & BrowserCommandsType) & 'getInstance') {
         const instances = this.instances
         const self = this
+
+        if (commandName === 'getInstance') {
+            return function (this: Record<string, WebdriverIO.Browser | WebdriverIO.Element>, browserName: string) {
+                if (!this[browserName]) {
+                    throw new Error(`Multiremote object has no instance named "${browserName}"`)
+                }
+                return this[browserName]
+            }
+        }
+
         return wrapCommand(commandName, async function (this: WebdriverIO.MultiRemoteBrowser | WebdriverIO.MultiRemoteElement, ...args: any[]) {
             const mElem = this as WebdriverIO.MultiRemoteElement
             const scope = (this as WebdriverIO.MultiRemoteElement).selector
