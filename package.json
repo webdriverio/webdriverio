@@ -35,7 +35,6 @@
     "docs:build": "cd ./website && npm run build && cd ..",
     "docs:deploy": "node ./scripts/updateDocs.js",
     "pretest": "pnpm link:packages",
-    "posttest": "pnpm clean:node_modules",
     "test": "run-s test:eslint test:ejslint test:typings test:unit:run test:smoke",
     "test:depcheck": "ts-node-esm ./scripts/depcheck.ts",
     "test:eslint": "eslint --cache packages examples scripts tests",
