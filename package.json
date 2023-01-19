@@ -2,6 +2,7 @@
   "name": "webdriverio-monorepo",
   "private": true,
   "type": "module",
+  "packageManager": "pnpm@7.25.0",
   "scripts": {
     "create": "node ./scripts/generateSubPackage",
     "backport": "node ./scripts/backport.js",
@@ -16,7 +17,9 @@
     "clean:tgz": "rimraf ./packages/*/*.tgz",
     "clean:node_modules": "rimraf ./packages/node_modules",
     "clean:website": "rimraf website/docs/_*.md website/docs/api/_*.md website/docs/api/**/_*.md website/sidebars.json",
-    "clean:tests": "rimraf e2e/**/node_modules tests/**/node_modules tests/typings/**/dist ./coverage",
+    "clean:e2e": "rimraf e2e/node_modules",
+    "clean:test:tests": "rimraf tests/node_modules ./coverage",
+    "clean:test:typings": "rimraf tests/typings/**/node_modules tests/typings/**/dist",
     "clean:cache": "rimraf .eslintcache",
     "clean-full:package_modules": "rimraf ./packages/*/node_modules",
     "compile": "node ./scripts/build.js",
@@ -29,7 +32,7 @@
     "docs": "run-s docs:*",
     "docs:setup": "cd ./website && npm install && cd ..",
     "docs:generate": "pnpm clean:website && ts-node-esm ./scripts/docs-generation/generateDocs.ts",
-    "docs:build": "cd ./website && pnpm build && cd ..",
+    "docs:build": "cd ./website && npm run build && cd ..",
     "docs:deploy": "node ./scripts/updateDocs.js",
     "pretest": "pnpm link:packages",
     "posttest": "pnpm clean:node_modules",
@@ -39,8 +42,8 @@
     "test:ejslint": "ejslint packages/wdio-cli/src/templates/**/*",
     "test:typings": "run-s test:typings:*",
     "test:typings:setup": "node tests/typings/setup.js && cd ./tests && npm i --no-save tsd",
-    "test:typings:test": "pnpm ts && pnpm clean:tests && node tests/typings/setup.js --ts=3.9 && pnpm ts && pnpm clean:tests",
-    "test:typings:recover": "pwd && rimraf ./node_modules/.bin/tsc && shx ln -s ../typescript/bin/tsc node_modules/.bin/tsc && rimraf @tsd/typescript",
+    "test:typings:test": "run-s ts clean:test:typings && node tests/typings/setup.js --ts=3.9 && run-s ts clean:test:typings",
+    "test:typings:recover": "rimraf ./node_modules/.bin/tsc && shx ln -s ../typescript/bin/tsc node_modules/.bin/tsc && rimraf @tsd/typescript",
     "test:unit": "vitest --config vitest.config.mts",
     "test:unit:run": "vitest --config vitest.config.mts --run",
     "test:unit:watch": "vitest --config vitest.config.mts --watch",
@@ -60,7 +63,7 @@
     "watch": "node ./scripts/build.js --watch",
     "watch:docs": "pnpm docs:generate && cd website && npm i && npm start",
     "version": "pnpm changelog && git add CHANGELOG.md",
-    "preinstall": "npx only-allow pnpm",
+    "preinstall": "only-allow pnpm",
     "postinstall": "run-s postinstall:*",
     "postinstall:husky": "husky install",
     "postinstall:vulnerabilities": "node ./.husky/postinstall.js"
@@ -121,6 +124,5 @@
   },
   "engines": {
     "pnpm": ">=7.25.0"
-  },
-  "packageManager": "pnpm@7.25.0"
+  }
 }
