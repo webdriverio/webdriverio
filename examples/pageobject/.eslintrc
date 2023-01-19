@@ -1,9 +1,9 @@
 {
-  env: {
-    jasmine: true
+  "env": {
+    "jasmine": true
   },
-  globals: {
-    browser: true,
-    $: true
+  "globals": {
+    "browser": true,
+    "$": true
   }
 }
