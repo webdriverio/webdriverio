@@ -30,12 +30,12 @@
   "types": "./build/index.d.ts",
   "typeScriptVersion": "3.8.3",
   "dependencies": {
-    "@wdio/config": "workspace:*",
-    "@wdio/logger": "workspace:*",
-    "@wdio/types": "workspace:*",
+    "@wdio/config": "8.1.2",
+    "@wdio/logger": "8.1.0",
+    "@wdio/types": "8.1.2",
     "import-meta-resolve": "^2.1.0",
     "param-case": "^3.0.4",
-    "webdriverio": "workspace:*"
+    "webdriverio": "8.1.3"
   },
   "publishConfig": {
     "access": "public"

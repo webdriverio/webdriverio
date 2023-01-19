@@ -39,11 +39,11 @@
   "typeScriptVersion": "3.8.3",
   "dependencies": {
     "@types/node": "^18.0.0",
-    "@wdio/config": "workspace:*",
-    "@wdio/logger": "workspace:*",
-    "@wdio/protocols": "workspace:*",
-    "@wdio/types": "workspace:*",
-    "@wdio/utils": "workspace:*",
+    "@wdio/config": "8.1.2",
+    "@wdio/logger": "8.1.0",
+    "@wdio/protocols": "8.1.0",
+    "@wdio/types": "8.1.2",
+    "@wdio/utils": "8.1.2",
     "chrome-launcher": "^0.15.0",
     "debug": "^4.0.0",
     "edge-paths": "^3.0.5",
@@ -59,6 +59,6 @@
     "@types/ua-parser-js": "^0.7.33",
     "@types/uuid": "^9.0.0",
     "@types/which": "^2.0.1",
-    "@wdio/globals": "workspace:*"
+    "@wdio/globals": "8.1.3"
   }
 }

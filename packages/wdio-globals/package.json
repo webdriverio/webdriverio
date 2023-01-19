@@ -42,6 +42,6 @@
   },
   "optionalDependencies": {
     "expect-webdriverio": "^4.0.1",
-    "webdriverio": "workspace:*"
+    "webdriverio": "8.1.3"
   }
 }

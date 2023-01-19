@@ -23,14 +23,14 @@
   "typeScriptVersion": "3.8.3",
   "dependencies": {
     "@types/uuid": "^9.0.0",
-    "@wdio/protocols": "workspace:*",
-    "@wdio/types": "workspace:*",
+    "@wdio/protocols": "8.1.0",
+    "@wdio/types": "8.1.2",
     "nock": "^13.2.4",
     "uuid": "^9.0.0",
-    "webdriverio": "workspace:*"
+    "webdriverio": "8.1.3"
   },
   "devDependencies": {
-    "@wdio/globals": "workspace:*"
+    "@wdio/globals": "8.1.3"
   },
   "publishConfig": {
     "access": "public"

@@ -26,9 +26,9 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "dependencies": {
-    "@wdio/logger": "workspace:*",
-    "@wdio/types": "workspace:*",
-    "@wdio/utils": "workspace:*",
+    "@wdio/logger": "8.1.0",
+    "@wdio/types": "8.1.2",
+    "@wdio/utils": "8.1.2",
     "decamelize": "^6.0.0",
     "deepmerge-ts": "^4.2.2",
     "glob": "^8.0.3",

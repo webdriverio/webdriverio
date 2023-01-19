@@ -39,8 +39,8 @@
   },
   "dependencies": {
     "@types/node": "^18.0.0",
-    "@wdio/reporter": "workspace:*",
-    "@wdio/types": "workspace:*",
+    "@wdio/reporter": "8.1.2",
+    "@wdio/types": "8.1.2",
     "allure-js-commons": "^1.3.2",
     "csv-stringify": "^6.0.4",
     "strip-ansi": "^6.0.0"

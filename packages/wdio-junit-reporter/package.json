@@ -28,8 +28,8 @@
   "types": "./build/index.d.ts",
   "typeScriptVersion": "3.8.3",
   "dependencies": {
-    "@wdio/reporter": "workspace:*",
-    "@wdio/types": "workspace:*",
+    "@wdio/reporter": "8.1.2",
+    "@wdio/types": "8.1.2",
     "json-stringify-safe": "^5.0.1",
     "junit-report-builder": "^3.0.0"
   },

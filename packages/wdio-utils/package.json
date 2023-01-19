@@ -28,8 +28,8 @@
   },
   "dependencies": {
     "@types/node": "^18.11.18",
-    "@wdio/logger": "workspace:*",
-    "@wdio/types": "workspace:*",
+    "@wdio/logger": "8.1.0",
+    "@wdio/types": "8.1.2",
     "import-meta-resolve": "^2.2.0",
     "p-iteration": "^1.1.8"
   },
