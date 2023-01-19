@@ -583,8 +583,8 @@ describe('browserCommand', () => {
     })
 
     it('return if test not in _tests', () => {
-        insightsHandler.browserCommand('client:afterCommand', { sessionId: 's', method: 'm', endpoint: 'e', result: { value: 'random' } }, {})
         insightsHandler['_tests'] = { 'test title not there': { 'uuid': 'uuid' } }
+        insightsHandler.browserCommand('client:afterCommand', { sessionId: 's', method: 'm', endpoint: 'e', result: { value: 'random' } }, {})
         expect(uploadEventDataSpy).toBeCalledTimes(0)
     })
 
