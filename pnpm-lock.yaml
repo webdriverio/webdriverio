@@ -439,7 +439,7 @@ importers:
       '@wdio/logger': workspace:*
       '@wdio/types': workspace:*
       babel-plugin-istanbul: ^6.1.1
-      devtools-protocol: ^0.0.1092731
+      devtools-protocol: ^0.0.1093722
       istanbul-lib-coverage: ^3.2.0
       istanbul-lib-report: ^3.0.0
       istanbul-reports: ^3.1.4
@@ -455,7 +455,7 @@ importers:
       '@wdio/logger': link:../wdio-logger
       '@wdio/types': link:../wdio-types
       babel-plugin-istanbul: 6.1.1
-      devtools-protocol: 0.0.1092731
+      devtools-protocol: 0.0.1093722
       istanbul-lib-coverage: 3.2.0
       istanbul-lib-report: 3.0.0
       istanbul-reports: 3.1.5
@@ -873,7 +873,7 @@ importers:
       css-shorthand-properties: ^1.1.1
       css-value: ^0.0.1
       devtools: workspace:*
-      devtools-protocol: ^0.0.1092731
+      devtools-protocol: ^0.0.1093722
       grapheme-splitter: ^1.0.2
       import-meta-resolve: ^2.1.0
       is-plain-obj: ^4.1.0
@@ -899,7 +899,7 @@ importers:
       css-shorthand-properties: 1.1.1
       css-value: 0.0.1
       devtools: link:../devtools
-      devtools-protocol: 0.0.1092731
+      devtools-protocol: 0.0.1093722
       grapheme-splitter: 1.0.4
       import-meta-resolve: 2.2.1
       is-plain-obj: 4.1.0
@@ -5908,8 +5908,8 @@ packages:
     dev: false
     optional: true
 
-  /devtools-protocol/0.0.1092731:
-    resolution: {integrity: sha512-T2LOqvUUDLB24Nr0krEjltTREnlPYSh2FeWuYRH1S8Y4KeUDvW30djvs4H7rNB1xtNAbYeRaF5J3G1LNnPQh7A==}
+  /devtools-protocol/0.0.1093722:
+    resolution: {integrity: sha512-rYNQDkrHplPFjalku7sAFU3ak2rodq7hHMeViJ3t/oBS3KTyZcPxrwaMGZh7IN58yXM99QUp3G4hQGb4LTh+1g==}
     dev: false
 
   /devtools/8.1.3:
