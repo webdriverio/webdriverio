@@ -31,7 +31,7 @@ import WDIORepl from '@wdio/repl'
  * @type utility
  *
  */
-export default function debug(
+export function debug(
     this: WebdriverIO.Browser,
     commandTimeout = 5000
 ) {

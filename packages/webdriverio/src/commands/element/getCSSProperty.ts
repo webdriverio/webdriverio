@@ -70,7 +70,7 @@ import { parseCSS } from '../../utils/index.js'
  * @return {CSSProperty}             The specified css of the element
  *
  */
-export default async function getCSSProperty (
+export async function getCSSProperty (
     this: WebdriverIO.Element,
     cssProperty: string
 ) {

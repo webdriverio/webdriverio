@@ -13,7 +13,7 @@ describe('waitForEnabled', () => {
     let browser: WebdriverIO.Browser
 
     beforeAll(async () => {
-        got.mockClear()
+        vi.mocked(got).mockClear()
 
         browser = await remote({
             baseUrl: 'http://foobar.com',

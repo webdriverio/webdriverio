@@ -149,22 +149,22 @@ import { KeyAction, PointerAction, WheelAction } from '../../utils/actions/index
  * @type utility
  *
  */
-export default function action (
+export function action (
     this: WebdriverIO.Browser,
     type: 'key',
     opts?: Pick<BaseActionParams, 'id'>
 ): KeyAction
-export default function action (
+export function action (
     this: WebdriverIO.Browser,
     type: 'pointer',
     opts?: BaseActionParams
 ): PointerAction
-export default function action (
+export function action (
     this: WebdriverIO.Browser,
     type: 'wheel',
     opts?: Pick<BaseActionParams, 'id'>
 ): WheelAction
-export default function action (
+export function action (
     this: WebdriverIO.Browser,
     type: ActionType,
     opts?: BaseActionParams

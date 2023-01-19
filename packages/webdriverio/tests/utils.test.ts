@@ -2,7 +2,6 @@ import http from 'node:http'
 import path from 'node:path'
 import { describe, expect, it, vi, beforeEach } from 'vitest'
 
-import type { Element } from '../src/types.js'
 import type { Capabilities, Options } from '@wdio/types'
 import type { ElementReference } from '@wdio/protocols'
 
@@ -185,7 +184,7 @@ describe('utils', () => {
             { [ELEMENT_KEY]: 'foobar' },
             { [ELEMENT_KEY]: 'barfoo' }
         ]
-        let scope: Element<'async'>
+        let scope: WebdriverIO.Element
 
         beforeEach(() => {
             scope = {
@@ -194,7 +193,7 @@ describe('utils', () => {
                 findElements: vi.fn(),
                 findElement: vi.fn(),
                 execute: vi.fn()
-            } as any as Element<'async'>
+            } as any as WebdriverIO.Element
         })
 
         it('fetches element using a selector string with browser scope', async () => {
@@ -213,7 +212,7 @@ describe('utils', () => {
 
         it('fetches element using a function with browser scope', async () => {
             vi.mocked(scope.execute).mockResolvedValue(elementResponse)
-            const elem = await findElement.call(scope as any, () => { return global.document.body }) as Element<'async'>
+            const elem = await findElement.call(scope as any, () => { return global.document.body }) as Element
             expect(scope.findElement).not.toBeCalled()
             expect(scope.findElementFromElement).not.toBeCalled()
             expect(scope.execute).toBeCalled()
@@ -223,7 +222,7 @@ describe('utils', () => {
         it('fetches element using a function with element scope', async () => {
             scope.elementId = 'foobar'
             vi.mocked(scope.execute).mockResolvedValue(elementResponse)
-            const elem = await findElement.call(scope as any, () => { return global.document.body }) as Element<'async'>
+            const elem = await findElement.call(scope as any, () => { return global.document.body }) as Element
             expect(scope.findElement).not.toBeCalled()
             expect(scope.findElementFromElement).not.toBeCalled()
             expect(scope.execute).toBeCalled()
@@ -236,7 +235,7 @@ describe('utils', () => {
             const elem = await findElement.call(
                 scope as any,
                 (() => { return global.document.body as any as ElementReference }) as any
-            ) as Element<'async'>
+            ) as Element
             expect(scope.findElement).not.toBeCalled()
             expect(scope.findElementFromElement).not.toBeCalled()
             expect(scope.execute).toBeCalled()
@@ -260,7 +259,7 @@ describe('utils', () => {
 
         it('should use execute if shadow selector is used', async () => {
             vi.mocked(scope.execute).mockResolvedValue(elementResponse)
-            const elem = await findElement.call(scope as any, '>>>.foobar') as Element<'async'>
+            const elem = await findElement.call(scope as any, '>>>.foobar') as Element
             expect(scope.findElement).not.toBeCalled()
             expect(scope.findElementFromElement).not.toBeCalled()
             expect(scope.execute).toBeCalledWith(
@@ -275,7 +274,7 @@ describe('utils', () => {
         it('should use execute if shadow selector is used with element scope', async () => {
             vi.mocked(scope.execute).mockResolvedValue(elementResponse)
             scope.elementId = 'foobar'
-            const elem = await findElement.call(scope as any, '>>>.foobar') as Element<'async'>
+            const elem = await findElement.call(scope as any, '>>>.foobar') as Element
             expect(scope.findElement).not.toBeCalled()
             expect(scope.findElementFromElement).not.toBeCalled()
             expect(scope.execute).toBeCalledWith(
@@ -295,7 +294,7 @@ describe('utils', () => {
             { [ELEMENT_KEY]: 'foobar' },
             { [ELEMENT_KEY]: 'barfoo' }
         ]
-        let scope: Element<'async'>
+        let scope: WebdriverIO.Element
 
         beforeEach(() => {
             scope = {
@@ -304,7 +303,7 @@ describe('utils', () => {
                 findElements: vi.fn(),
                 findElement: vi.fn(),
                 execute: vi.fn()
-            } as any as Element<'async'>
+            } as any as WebdriverIO.Element
         })
 
         it('fetches element using a selector string with browser scope', async () => {
@@ -464,7 +463,7 @@ describe('utils', () => {
                 elementId: 123,
                 getElementRect: vi.fn(() => Promise.resolve({ x: 10, width: 300, height: 400 })),
                 execute: vi.fn(() => Promise.resolve({ x: 11, y: 22, width: 333, height: 444 }))
-            } as any as Element<'async'>
+            } as any as WebdriverIO.Element
             expect(await getElementRect(fakeScope as any)).toEqual({ x: 10, y: 22, width: 300, height: 400 })
             expect(fakeScope.getElementRect).toHaveBeenCalled()
             expect(fakeScope.execute).toHaveBeenCalled()

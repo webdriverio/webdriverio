@@ -1,7 +1,6 @@
 import path from 'node:path'
 
 import type { Capabilities, Frameworks } from '@wdio/types'
-import type { Browser, MultiRemoteBrowser } from 'webdriverio'
 import type { BeforeCommandArgs, AfterCommandArgs } from '@wdio/reporter'
 
 import { v4 as uuidv4 } from 'uuid'
@@ -13,7 +12,6 @@ import RequestQueueHandler from './request-handler.js'
 import { DATA_SCREENSHOT_ENDPOINT, DEFAULT_WAIT_INTERVAL_FOR_PENDING_UPLOADS, DEFAULT_WAIT_TIMEOUT_FOR_PENDING_UPLOADS } from './constants.js'
 
 export default class InsightsHandler {
-
     private _tests: Record<string, TestMeta> = {}
     private _hooks: Record<string, string[]> = {}
     private _platformMeta: PlatformMeta
@@ -21,23 +19,24 @@ export default class InsightsHandler {
     private _gitConfigPath?: string
     private _requestQueueHandler = RequestQueueHandler.getInstance()
 
-    constructor (private _browser: Browser<'async'> | MultiRemoteBrowser<'async'>, browserCaps?: Capabilities.Capabilities, isAppAutomate?: boolean, sessionId?: string, private _framework?: string) {
+    constructor (private _browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser, isAppAutomate?: boolean, private _framework?: string) {
         this._requestQueueHandler.start()
+        const caps = (this._browser as WebdriverIO.Browser).capabilities as Capabilities.Capabilities
+        const sessionId = (this._browser as WebdriverIO.Browser).sessionId
 
         this._platformMeta = {
-            browserName: browserCaps?.browserName,
-            browserVersion: browserCaps?.browserVersion,
-            platformName: browserCaps?.platformName,
-            caps: browserCaps,
-            sessionId: sessionId,
+            browserName: caps.browserName,
+            browserVersion: caps?.browserVersion,
+            platformName: caps?.platformName,
+            caps: caps,
+            sessionId,
             product: isAppAutomate ? 'app-automate' : 'automate'
         }
     }
 
     async before () {
         if (isBrowserstackSession(this._browser)) {
-            // await this._browser.execute(`browserstack_executor: {"action": "annotate", "arguments": {"data": "ObservabilitySync:${Date.now()}","level": "debug"}}`)
-            await this._browser.execute(`browserstack_executor: ${JSON.stringify({
+            await (this._browser as WebdriverIO.Browser).execute(`browserstack_executor: ${JSON.stringify({
                 action: 'annotate',
                 arguments: {
                     data: `ObservabilitySync:${Date.now()}`,

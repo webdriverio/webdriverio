@@ -7,7 +7,6 @@ import { test, expect } from 'vitest'
  *
  */
 import { remote, attach } from '../packages/webdriverio/build/index.js'
-import type { Browser } from '../packages/webdriverio/build/index.js'
 
 test('allow to attach to an existing session', async () => {
     const browser = await remote({
@@ -20,7 +19,7 @@ test('allow to attach to an existing session', async () => {
     await browser.url('http://guinea-pig.webdriver.io')
     expect(await browser.getTitle()).toBe('WebdriverJS Testpage')
 
-    const otherBrowser: Browser<'async'> = await attach(browser)
+    const otherBrowser = await attach(browser)
     expect(await otherBrowser.getTitle()).toBe('WebdriverJS Testpage')
 
     await otherBrowser.deleteSession()

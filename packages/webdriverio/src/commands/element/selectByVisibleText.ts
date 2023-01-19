@@ -29,7 +29,7 @@ import { getElementFromResponse } from '../../utils/index.js'
  * @type action
  *
  */
-export default async function selectByVisibleText (
+export async function selectByVisibleText (
     this: WebdriverIO.Element,
     text: string | number
 ) {

@@ -54,7 +54,7 @@ import type { Cookie } from '@wdio/protocols'
  * @type cookie
  *
  */
-export default async function setCookies(
+export async function setCookies(
     this: WebdriverIO.Browser,
     cookieObjs: Cookie | Cookie[]
 ) {

@@ -3,9 +3,8 @@ import { getElementRect } from '../../utils/index.js'
 
 export type Location = Pick<RectReturn, 'x' | 'y'>;
 
-function getLocation (this: WebdriverIO.Element): Promise<Location>
-
-function getLocation (this: WebdriverIO.Element, prop: keyof Location): Promise<number>
+export function getLocation (this: WebdriverIO.Element): Promise<Location>
+export function getLocation (this: WebdriverIO.Element, prop: keyof Location): Promise<number>
 
 /**
  *
@@ -34,7 +33,7 @@ function getLocation (this: WebdriverIO.Element, prop: keyof Location): Promise<
  * @uses protocol/elementIdLocation
  * @type property
  */
-async function getLocation (
+export async function getLocation (
     this: WebdriverIO.Element,
     prop?: keyof Location
 ): Promise<Location | number> {
@@ -54,5 +53,3 @@ async function getLocation (
 
     return location as Location
 }
-
-export default getLocation

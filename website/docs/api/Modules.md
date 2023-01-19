@@ -3,6 +3,9 @@ id: modules
 title: Modules
 ---
 
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 WebdriverIO publishes various of modules to NPM and other registries that you can use to build your own automation framework. See more documentation on WebdriverIO setup types [here](/docs/setuptypes).
 
 ## `webdriver` and `devtools`
@@ -143,7 +146,7 @@ const matrix = await multiremote({
     }
 })
 await matrix.url('http://json.org')
-await matrix.browserA.url('https://google.com')
+await matrix.getInstance('browserA').url('https://google.com')
 
 console.log(await matrix.getTitle())
 // returns ['Google', 'JSON']
@@ -153,16 +156,28 @@ console.log(await matrix.getTitle())
 
 Instead of calling the `wdio` command, you can also include the test runner as module and run it in an arbitrary environment. For that, you'll need to require the `@wdio/cli` package as module, like this:
 
-<!--DOCUSAURUS_CODE_TABS-->
-<!--Using EcmaScript Modules-->
+<Tabs
+  defaultValue="mocha"
+  values={[
+    {label: 'EcmaScript Modules', value: 'esm'},
+    {label: 'CommonJS', value: 'cjs'}
+  ]
+}>
+<TabItem value="esm">
+
 ```js
 import Launcher from '@wdio/cli'
 ```
-<!--Using CommonJS-->
+
+</TabItem>
+<TabItem value="cjs">
+
 ```js
 const Launcher = require('@wdio/cli').default
 ```
-<!--END_DOCUSAURUS_CODE_TABS-->
+
+</TabItem>
+</Tabs>
 
 After that, create an instance of the launcher, and run the test.
 

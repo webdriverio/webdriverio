@@ -24,7 +24,6 @@
  * @type action
  *
  */
-
-export default function clearValue (this: WebdriverIO.Element) {
+export function clearValue (this: WebdriverIO.Element) {
     return this.elementClear(this.elementId)
 }

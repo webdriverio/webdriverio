@@ -24,11 +24,11 @@ describe('isSelected test', () => {
 
     it('should allow to check if element is selected', async () => {
         await elem.isSelected()
-        expect(got.mock.calls[2][0].pathname)
+        expect(vi.mocked(got).mock.calls[2][0]!.pathname)
             .toBe('/session/foobar-123/element/some-elem-123/selected')
     })
 
     afterEach(() => {
-        got.mockClear()
+        vi.mocked(got).mockClear()
     })
 })

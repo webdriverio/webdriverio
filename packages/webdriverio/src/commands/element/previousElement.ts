@@ -1,5 +1,3 @@
-import type { ChainablePromiseElement } from '../../types.js'
-
 /**
  *
  * Returns the previous sibling element of the selected DOM-element.
@@ -23,7 +21,7 @@ import type { ChainablePromiseElement } from '../../types.js'
  * @return {Element}
  * @type utility
  */
-export default function previousElement (this: WebdriverIO.Element): ChainablePromiseElement<WebdriverIO.Element> {
+export function previousElement (this: WebdriverIO.Element) {
     return this.$(/* istanbul ignore next */ function previousElement (this: HTMLElement) {
         return this.previousElementSibling as HTMLElement
     })

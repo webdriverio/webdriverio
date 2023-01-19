@@ -29,7 +29,7 @@ import { getElementFromResponse } from '../../utils/index.js'
  * @type action
  *
  */
-export default async function selectByIndex (
+export async function selectByIndex (
     this: WebdriverIO.Element,
     index: number
 ) {

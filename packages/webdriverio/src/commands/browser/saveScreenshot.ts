@@ -20,7 +20,7 @@ import { getAbsoluteFilepath, assertDirectoryExists } from '../../utils/index.js
  * @type utility
  *
  */
-export default async function saveScreenshot (
+export async function saveScreenshot (
     this: WebdriverIO.Browser,
     filepath: string
 ) {

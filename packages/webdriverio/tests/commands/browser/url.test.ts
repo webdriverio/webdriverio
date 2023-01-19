@@ -22,15 +22,15 @@ describe('url', () => {
 
     it('should accept a full url', async () => {
         await browser.url('http://google.com')
-        expect(got.mock.calls[1][0].pathname)
+        expect(vi.mocked(got).mock.calls[1][0]!.pathname)
             .toBe('/session/foobar-123/url')
-        expect(got.mock.calls[1][1].json)
+        expect(vi.mocked(got).mock.calls[1][1]!.json)
             .toEqual({ url: 'http://google.com/' })
     })
 
     it('should accept a relative url', async () => {
         await browser.url('/foobar')
-        expect(got.mock.calls[0][1].json)
+        expect(vi.mocked(got).mock.calls[0][1]!.json)
             .toEqual({ url: 'http://foobar.com/foobar' })
     })
 
@@ -55,11 +55,11 @@ describe('url', () => {
         })
 
         await browser.url('/foobar')
-        expect(got.mock.calls[1][1].json)
+        expect(vi.mocked(got).mock.calls[1][1]!.json)
             .toEqual({ url: 'http://foobar/' })
     })
 
     afterEach(() => {
-        got.mockClear()
+        vi.mocked(got).mockClear()
     })
 })

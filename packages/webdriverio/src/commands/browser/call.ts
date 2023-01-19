@@ -40,7 +40,7 @@
  * @type utility
  *
  */
-export default function call<T> (fn: () => T): T | Promise<T> {
+export function call<T> (fn: () => T): T | Promise<T> {
     if (typeof fn === 'function') {
         return fn()
     }

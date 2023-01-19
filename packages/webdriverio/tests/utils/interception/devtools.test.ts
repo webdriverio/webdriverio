@@ -1,6 +1,7 @@
 import { test, expect, vi, beforeEach, describe } from 'vitest'
 import fs from 'node:fs/promises'
 import NetworkInterception from '../../../src/utils/interception/devtools.js'
+import type { Browser } from '../../../src/types'
 
 vi.mock('node:fs/promise', () => ({
     default: {
@@ -20,7 +21,7 @@ const cdpClient: any = {
     }))
 }
 
-const browserMock = {} as any as WebdriverIO.Browser
+const browserMock = {} as any as Browser
 
 const fetchListener = async (mock: any, params: any, client = cdpClient) => {
     const reponseParams = Object.entries(params).reduce((acc, [key, val]) => {

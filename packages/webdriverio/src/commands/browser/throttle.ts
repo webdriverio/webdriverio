@@ -110,7 +110,7 @@ const NETWORK_PRESETS = {
 
 const NETWORK_PRESET_TYPES = Object.keys(NETWORK_PRESETS)
 
-export default async function throttle (
+export async function throttle (
     this: WebdriverIO.Browser,
     params: ThrottleOptions
 ) {

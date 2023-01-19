@@ -1,7 +1,6 @@
 import got from 'got'
 import logger from '@wdio/logger'
 import type { Capabilities, Options, Services, Frameworks } from '@wdio/types'
-import type { Browser, MultiRemoteBrowser } from 'webdriverio'
 
 import type { TestingbotOptions } from './types.js'
 
@@ -9,7 +8,7 @@ const log = logger('@wdio/testingbot-service')
 const jobDataProperties = ['name', 'tags', 'public', 'build', 'extra']
 
 export default class TestingBotService implements Services.ServiceInstance {
-    private _browser?: Browser<'async'> | MultiRemoteBrowser<'async'>
+    private _browser?: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
     private _isServiceEnabled?: boolean
     private _suiteTitle?: string
     private _tbSecret?: string
@@ -31,7 +30,7 @@ export default class TestingBotService implements Services.ServiceInstance {
     before (
         caps: unknown,
         specs: unknown,
-        browser: Browser<'async'> | MultiRemoteBrowser<'async'>
+        browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
     ) {
         this._browser = browser
     }
@@ -167,10 +166,10 @@ export default class TestingBotService implements Services.ServiceInstance {
             return this.updateJob(this._browser.sessionId, failures)
         }
 
-        const browser = this._browser as MultiRemoteBrowser<'async'>
+        const browser = this._browser as WebdriverIO.MultiRemoteBrowser
         return Promise.all(Object.keys(this._capabilities).map((browserName) => {
-            log.info(`Update multiremote job for browser "${browserName}" and sessionId ${browser[browserName].sessionId}, ${status}`)
-            return this.updateJob(browser[browserName].sessionId, failures, false, browserName)
+            log.info(`Update multiremote job for browser "${browserName}" and sessionId ${browser.getInstance(browserName).sessionId}, ${status}`)
+            return this.updateJob(browser.getInstance(browserName).sessionId, failures, false, browserName)
         }))
     }
 
@@ -185,9 +184,9 @@ export default class TestingBotService implements Services.ServiceInstance {
             return this.updateJob(oldSessionId, this._failures, true)
         }
 
-        const browser = this._browser as MultiRemoteBrowser<'async'>
+        const browser = this._browser as WebdriverIO.MultiRemoteBrowser
         const browserName = browser.instances.filter(
-            (browserName: string) => browser[browserName].sessionId === newSessionId)[0]
+            (browserName: string) => browser.getInstance(browserName).sessionId === newSessionId)[0]
         log.info(`Update (reloaded) multiremote job for browser "${browserName}" and sessionId ${oldSessionId}, ${status}`)
         return this.updateJob(oldSessionId, this._failures, true, browserName)
     }
@@ -232,7 +231,7 @@ export default class TestingBotService implements Services.ServiceInstance {
         if ((calledOnReload || this._testCnt) && this._browser) {
             let testCnt = ++this._testCnt
             if (this._browser.isMultiremote) {
-                testCnt = Math.ceil(testCnt / (this._browser as MultiRemoteBrowser<'async'>).instances.length)
+                testCnt = Math.ceil(testCnt / (this._browser as WebdriverIO.MultiRemoteBrowser).instances.length)
             }
 
             body.test.name += ` (${testCnt})`

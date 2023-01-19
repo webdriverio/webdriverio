@@ -54,7 +54,7 @@ const noW3CEndpoint = ['microsoftedge', 'msedge', 'safari', 'chrome', 'safari te
  * @type state
  *
  */
-export default async function isDisplayed (this: WebdriverIO.Element) {
+export async function isDisplayed (this: WebdriverIO.Element) {
     const browser = getBrowserObject(this)
 
     if (!await hasElementId(this)) {

@@ -1,17 +1,10 @@
-import type { Browser } from 'webdriverio'
 import type { JsonCompatible, JsonPrimitive, Services } from '@wdio/types'
 
-import type { BrowserExtension } from './index.js'
 import { getValue, setValue, setPort } from './client.js'
 import type { SharedStoreServiceCapabilities } from './types.js'
 
-/**
- * ToDo(Christian): make this public accessible
- */
-interface ServiceBrowser extends Browser<'async'>, BrowserExtension { }
-
 export default class SharedStoreService implements Services.ServiceInstance {
-    private _browser?: ServiceBrowser
+    private _browser?: WebdriverIO.Browser
 
     constructor(_: never, caps: SharedStoreServiceCapabilities) {
         setPort(caps['wdio:sharedStoreServicePort']!)
@@ -20,7 +13,7 @@ export default class SharedStoreService implements Services.ServiceInstance {
     before (
         caps: never,
         specs: never,
-        browser: ServiceBrowser
+        browser: WebdriverIO.Browser
     ) {
         this._browser = browser
         const sharedStore = Object.create({}, {

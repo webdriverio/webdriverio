@@ -46,7 +46,7 @@ async function bar() {
     }).then(() => {}, () => {})
 
     // interact with specific instance
-    const mrSingleElem = await mr.myBrowserInstance.$('')
+    const mrSingleElem = await mr.getInstance('myBrowserInstance').$('')
     await mrSingleElem.click()
 
     // interact with all instances
@@ -420,7 +420,7 @@ async function bar() {
 
     // async chain API
     expectType<WebdriverIO.Element>(
-        await (await browser.$('foo').$('bar').$$('loo')[2]).$('foo').$('bar'))
+        await browser.$('foo').$('bar').$$('loo')[2].$('foo').$('bar'))
     expectType<Selector>(
         await browser.$('foo').$('bar').selector)
     expectType<Error>(
@@ -481,7 +481,7 @@ async function bar() {
         }, {} as Random)
     )
 
-    const elemArrayTest: WebdriverIO.ElementArray = {} as any
+    const elemArrayTest: ElementArray = {} as any
     expectType<string>(elemArrayTest.foundWith)
     expectType<WebdriverIO.Element>(elemArrayTest[123])
 }

@@ -24,7 +24,7 @@ describe('getHTML test', () => {
         }
 
         let result = await elem.getHTML()
-        expect(got.mock.calls[2][0].pathname)
+        expect(vi.mocked(got).mock.calls[2][0].pathname)
             .toBe('/session/foobar-123/execute/sync')
         expect(result).toBe('<some>outer html</some>')
 
@@ -33,6 +33,6 @@ describe('getHTML test', () => {
     })
 
     afterEach(() => {
-        got.mockClear()
+        vi.mocked(got).mockClear()
     })
 })

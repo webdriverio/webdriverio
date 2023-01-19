@@ -42,7 +42,7 @@ const log = logger('webdriverio')
  *
  * @return {PuppeteerBrowser}  initiated puppeteer instance connected to the browser
  */
-export default async function getPuppeteer (this: WebdriverIO.Browser) {
+export async function getPuppeteer (this: WebdriverIO.Browser) {
     /**
      * check if we already connected Puppeteer and if so return
      * that instance

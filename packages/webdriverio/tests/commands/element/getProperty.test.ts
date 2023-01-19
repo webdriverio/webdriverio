@@ -19,7 +19,7 @@ describe('getProperty test', () => {
         const elem = await browser.$('#foo')
         const property = await elem.getProperty('tagName')
 
-        expect(got.mock.calls[2][0].pathname)
+        expect(vi.mocked(got).mock.calls[2][0]!.pathname)
             .toBe('/session/foobar-123/element/some-elem-123/property/tagName')
         expect(property).toBe('BODY')
     })
@@ -36,12 +36,12 @@ describe('getProperty test', () => {
         elem.elementId = { tagName: 'BODY' }
         const property = await elem.getProperty('tagName')
 
-        expect(got.mock.calls[2][0].pathname)
+        expect(vi.mocked(got).mock.calls[2][0]!.pathname)
             .toBe('/session/foobar-123/execute')
         expect(property).toBe('BODY')
     })
 
     afterEach(() => {
-        got.mockClear()
+        vi.mocked(got).mockClear()
     })
 })

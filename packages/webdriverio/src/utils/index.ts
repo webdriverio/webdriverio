@@ -23,6 +23,7 @@ import type { CustomStrategyReference } from '../types.js'
 
 const log = logger('webdriverio')
 const INVALID_SELECTOR_ERROR = 'selector needs to be typeof `string` or `function`'
+const IGNORED_COMMAND_FILE_EXPORTS = ['SESSION_MOCKS']
 
 declare global {
     interface Window { __wdio_element: Record<string, HTMLElement> }
@@ -36,9 +37,11 @@ const scopes = {
 const applyScopePrototype = (
     prototype: Record<string, PropertyDescriptor>,
     scope: 'browser' | 'element') => {
-    Object.entries(scopes[scope]).forEach(([commandName, command]) => {
-        prototype[commandName] = { value: command }
-    })
+    Object.entries(scopes[scope])
+        .filter(([exportName]) => !IGNORED_COMMAND_FILE_EXPORTS.includes(exportName))
+        .forEach(([commandName, command]) => {
+            prototype[commandName] = { value: command }
+        })
 }
 
 /**

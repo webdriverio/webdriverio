@@ -4,7 +4,6 @@ import path from 'node:path'
 import logger from '@wdio/logger'
 import { browser } from '@wdio/globals'
 import { executeHooksWithArgs } from '@wdio/utils'
-import type { Browser } from 'webdriverio'
 import type { Capabilities, Workers, Options, Services } from '@wdio/types'
 
 import type BaseReporter from './reporter.js'
@@ -158,7 +157,7 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
         return failures
     }
 
-    async #fetchEvents (browser: Browser<'async'>, spec: string, uid: number) {
+    async #fetchEvents (browser: WebdriverIO.Browser, spec: string, uid: number) {
         /**
          * populate events to the reporter
          */

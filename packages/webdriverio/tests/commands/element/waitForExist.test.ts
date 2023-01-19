@@ -13,7 +13,7 @@ describe('waitForExists', () => {
     let browser: WebdriverIO.Browser
 
     beforeEach(async () => {
-        got.mockClear()
+        vi.mocked(got).mockClear()
 
         browser = await remote({
             baseUrl: 'http://foobar.com',

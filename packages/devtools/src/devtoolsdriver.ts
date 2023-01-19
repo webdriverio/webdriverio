@@ -1,6 +1,8 @@
 import fs from 'node:fs'
 import url from 'node:url'
 import path from 'node:path'
+import type { EventEmitter } from 'node:events'
+
 import { v4 as uuidv4 } from 'uuid'
 
 import logger from '@wdio/logger'
@@ -161,7 +163,7 @@ export default class DevToolsDriver {
          * within here you find the webdriver scope
          */
         let retries = 0
-        const wrappedCommand = async function (this: Browser, ...args: any[]): Promise<any> {
+        const wrappedCommand = async function (this: EventEmitter, ...args: any[]): Promise<any> {
             await self.checkPendingNavigations()
             const params = validate(command, parameters, variables as any, ref, args)
             let result

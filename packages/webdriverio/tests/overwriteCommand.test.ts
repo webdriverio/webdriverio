@@ -138,7 +138,7 @@ describe('overwriteCommand', () => {
 
         test('should allow to overwrite commands for a single multiremote instance', async () => {
             const browser = await multiremote(multiremoteConfig as any)
-            browser.browserA.overwriteCommand('pause', customBrowserCommand)
+            browser.getInstance('browserA').overwriteCommand('pause', customBrowserCommand)
 
             // @ts-expect-error command overwritten
             expect(await browser.browserA.pause(10, 10)).toBeGreaterThanOrEqual(20)

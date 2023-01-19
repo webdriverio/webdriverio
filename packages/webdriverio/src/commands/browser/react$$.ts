@@ -44,7 +44,7 @@ let resqScript: string
  * @return {ElementArray}
  *
  */
-export default async function react$$ (
+export async function react$$ (
     this: WebdriverIO.Browser,
     selector: string,
     { props = {}, state = {} }: ReactSelectorOptions = {}

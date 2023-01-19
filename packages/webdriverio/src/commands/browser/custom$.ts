@@ -25,7 +25,7 @@ import type { CustomStrategyFunction } from '../../types.js'
  * @param {Any} strategyArguments
  * @return {Element}
  */
-export default async function custom$ (
+export async function custom$ (
     this: WebdriverIO.Browser,
     strategyName: string,
     ...strategyArguments: any[]

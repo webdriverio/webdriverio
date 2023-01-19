@@ -5,7 +5,6 @@ import got from 'got'
 import type { Capabilities } from '@wdio/types'
 
 import { multiremote } from '../src/index.js'
-import type { MultiRemoteBrowser } from '../src/index.js'
 
 vi.mock('got')
 vi.mock('devtools')
@@ -30,8 +29,8 @@ const caps = (): Capabilities.MultiRemoteCapabilities => ({
 test('should run command on all instances', async () => {
     const browser = await multiremote(caps())
 
-    expect(browser.browserA).toBeDefined()
-    expect(browser.browserB).toBeDefined()
+    expect(browser.getInstance('browserA')).toBeDefined()
+    expect(browser.getInstance('browserB')).toBeDefined()
 
     const result = await browser.execute(() => 'foobar')
     expect(result).toEqual(['foobar', 'foobar'])
@@ -55,20 +54,20 @@ test('should properly create stub instance', async () => {
     expect(browser.$).toBeUndefined()
     expect(browser.options).toBeUndefined()
     expect(browser.commandList).toHaveLength(0)
-    expect(browser.browserA).toBeDefined()
-    expect(browser.browserB).toBeDefined()
-    expect(browser.browserA.$).toBeUndefined()
-    expect(browser.browserA.$).toBeUndefined()
+    expect(browser.getInstance('browserA')).toBeDefined()
+    expect(browser.getInstance('browserB')).toBeDefined()
+    expect(browser.getInstance('browserA').$).toBeUndefined()
+    expect(browser.getInstance('browserA').$).toBeUndefined()
 })
 
 test('should allow to call on elements', async () => {
     const browser = await multiremote(caps())
 
     const elem = await browser.$('#foo')
-    expect(elem.browserA).toBeDefined()
-    expect(elem.browserB).toBeDefined()
-    expect(elem.browserA.elementId).toBe('some-elem-123')
-    expect(elem.browserB.elementId).toBe('some-elem-123')
+    expect(elem.getInstance('browserA')).toBeDefined()
+    expect(elem.getInstance('browserB')).toBeDefined()
+    expect(elem.getInstance('browserA').elementId).toBe('some-elem-123')
+    expect(elem.getInstance('browserB').elementId).toBe('some-elem-123')
 
     // @ts-expect-error invalid params
     const result = await elem.getSize()
@@ -98,7 +97,7 @@ test('should be able to fetch multiple elements', async () => {
 test('should be able to add a command to and element in multiremote', async () => {
     const browser = await multiremote(caps())
 
-    browser.addCommand('myCustomElementCommand', async function (this: MultiRemoteBrowser<'async'>) {
+    browser.addCommand('myCustomElementCommand', async function (this: WebdriverIO.MultiRemoteBrowser) {
         // @ts-expect-error invalid params
         const size = await this.getSize()
         return size.width
@@ -130,8 +129,8 @@ test('should be able to overwrite command to and element in multiremote', async 
 
     // @ts-expect-error invalid params
     const sizes = await elem.getSize()
-    const sizeA = await elem.browserA.getSize()
-    const sizeB = await elem.browserB.getSize()
+    const sizeA = await elem.getInstance('browserA').getSize()
+    const sizeB = await elem.getInstance('browserB').getSize()
     const result = { width: 5, height: 3 }
 
     expect(sizes).toEqual([result, result])
