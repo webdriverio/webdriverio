@@ -42,9 +42,13 @@ jobs:
         with:
           ref: 'main'
           fetch-depth: 0
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 7
       - uses: actions/setup-node@v3
         with:
           node-version: 18.x
+          cache: 'pnpm'
       - name: NPM Setup
         run: |
           npm set registry "https://registry.npmjs.org/"
@@ -54,10 +58,8 @@ jobs:
         run: |
           git config --global user.email "bot@webdriver.io"
           git config --global user.name "WebdriverIO Release Bot"
-      - name: Install pnpm
-        run: npm install -g pnpm
       - name: Install Dependencies
-        run: pnpm install --prefer-frozen-lockfile
+        run: pnpm install
       - name: Release
         run: |
           pnpm run setup
