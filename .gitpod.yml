@@ -5,7 +5,8 @@ tasks:
   - name: Unit Test Coverage
     init: gp sync-await installation
     command: |
-      npm run test:unit
+      pnpm link:packages
+      pnpm test:unit
       cd coverage/lcov-report/
       http-server -p 8000 &
       cd ../../
@@ -19,8 +20,8 @@ tasks:
       npm start
   - name: Setup WebdriverIO Development Environment
     init: |
-      npm install
-      npm run setup-full
+      pnpm install
+      pnpm build
       gp sync-done installation
     command: npm run watch
   - name: Welcome Bash

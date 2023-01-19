@@ -33,14 +33,13 @@ jobs:
         run: pnpm build
       - name: Dependency Check
         run: pnpm test:depcheck
+      - name: Link Packages
+        run: pnpm link:packages
       - name: Lint / Typings / Unit / Smoke Tests
-        run: |
-          pnpm link:packages
-          pnpm test
+        run: pnpm test
       - name: Interop Tests
         run: |
           pnpm add -w chromedriver@109
-          pnpm link:packages
           pnpm test:e2e:cjs
   e2e-windows:
     runs-on: windows-latest
@@ -57,10 +56,10 @@ jobs:
         run: pnpm install
       - name: Build Packages
         run: pnpm build
-      - name: Lint / Dependencies / Unit / Smoke Tests
-        run: |
-          pnpm link:packages
-          pnpm test
+      - name: Link Packages
+        run: pnpm link:packages
+      - name: Lint / Typings / Unit / Smoke Tests
+        run: pnpm test
       - name: Setup Chrome Browser
         uses: browser-actions/setup-chrome@latest
       - name: E2E Protocol Tests
@@ -68,7 +67,7 @@ jobs:
         with:
           timeout_minutes: 20
           max_attempts: 3
-          command: pnpm link:packages && pnpm test:e2e
+          command: pnpm test:e2e
       - name: E2E Edge Launch Tests
         run: pnpm test:e2e:edge
       - uses: actions/upload-artifact@v3
@@ -93,12 +92,14 @@ jobs:
         run: pnpm install
       - name: Build Packages
         run: pnpm build
+      - name: Link Packages
+        run: pnpm link:packages
       - name: E2E Protocol Tests
         uses: nick-fields/retry@v2
         with:
           timeout_minutes: 20
           max_attempts: 3
-          command: pnpm link:packages && pnpm test:e2e
+          command: pnpm test:e2e
       # Disable Firefox tests due to https://github.com/puppeteer/puppeteer/issues/8923
       # - name: Setup Firefox
       #   uses: browser-actions/setup-firefox@latest
