@@ -29,18 +29,19 @@ jobs:
           cache: 'pnpm'
       - name: Install Dependencies
         run: pnpm install
-      - name: Bootstrap Packages
-        run: pnpm run setup
+      - name: Build Packages
+        run: pnpm build
       - name: Dependency Check
-        run: pnpm run test:depcheck
-      - name: Link Packages
-        run: pnpm run link
+        run: pnpm test:depcheck
       - name: Lint / Typings / Unit / Smoke Tests
-        run: pnpm run test
+        run: |
+          pnpm link:packages
+          pnpm test
       - name: Interop Tests
         run: |
           pnpm add -w chromedriver@109
-          pnpm run test:e2e:cjs
+          pnpm link:packages
+          pnpm test:e2e:cjs
   e2e-windows:
     runs-on: windows-latest
     steps:
@@ -54,12 +55,12 @@ jobs:
           cache: 'pnpm'
       - name: Install Dependencies
         run: pnpm install
-      - name: Bootstrap Packages
-        run: pnpm run setup
-      - name: Link Packages
-        run: pnpm run link
+      - name: Build Packages
+        run: pnpm build
       - name: Lint / Dependencies / Unit / Smoke Tests
-        run: pnpm run test
+        run: |
+          pnpm link:packages
+          pnpm test
       - name: Setup Chrome Browser
         uses: browser-actions/setup-chrome@latest
       - name: E2E Protocol Tests
@@ -67,9 +68,9 @@ jobs:
         with:
           timeout_minutes: 20
           max_attempts: 3
-          command: pnpm run test:e2e
+          command: pnpm link:packages && pnpm test:e2e
       - name: E2E Edge Launch Tests
-        run: pnpm run test:e2e:edge
+        run: pnpm test:e2e:edge
       - uses: actions/upload-artifact@v3
         if: failure()
         with:
@@ -90,16 +91,14 @@ jobs:
           cache: 'pnpm'
       - name: Install Dependencies
         run: pnpm install
-      - name: Bootstrap Packages
-        run: pnpm run setup
-      - name: Link Packages
-        run: pnpm run link
+      - name: Build Packages
+        run: pnpm build
       - name: E2E Protocol Tests
         uses: nick-fields/retry@v2
         with:
           timeout_minutes: 20
           max_attempts: 3
-          command: pnpm run test:e2e
+          command: pnpm link:packages && pnpm test:e2e
       # Disable Firefox tests due to https://github.com/puppeteer/puppeteer/issues/8923
       # - name: Setup Firefox
       #   uses: browser-actions/setup-firefox@latest
@@ -109,15 +108,15 @@ jobs:
       #     export FIREFOX_BINARY=$(which firefox)
       #     echo "FIREFOX_BINARY=$FIREFOX_BINARY" >> $GITHUB_ENV
       # - name: E2E Firefox Launch Tests
-      #   run: pnpm run test:e2e:firefox
+      #   run: pnpm test:e2e:firefox
       - name: E2E Connection Test
-        run: npm run test:e2e:cloud
+        run: pnpm test:e2e:cloud
         if: github.ref == 'refs/heads/main'
         env:
           SAUCE_USERNAME: ${{secrets.SAUCE_USERNAME}}
           SAUCE_ACCESS_KEY: ${{secrets.SAUCE_ACCESS_KEY}}
       - name: E2E Connection Test w/ Params
-        run: pnpm run test:e2e:cloud -- --user $SAUCE_USERNAME_PARAM --key $SAUCE_ACCESS_KEY_PARAM
+        run: pnpm test:e2e:cloud -- --user $SAUCE_USERNAME_PARAM --key $SAUCE_ACCESS_KEY_PARAM
         if: github.ref == 'refs/heads/main'
         env:
           SAUCE_USERNAME_PARAM: ${{secrets.SAUCE_USERNAME}}

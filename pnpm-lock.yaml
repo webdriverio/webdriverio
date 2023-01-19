@@ -45,7 +45,6 @@ importers:
       mime-types: ^2.1.35
       npm-run-all: ^4.1.5
       only-allow: ^1.1.1
-      pnpm: ^7.25.0
       recursive-readdir: ^2.2.3
       request: ^2.88.2
       rimraf: ^3.0.2
@@ -98,7 +97,6 @@ importers:
       mime-types: 2.1.35
       npm-run-all: 4.1.5
       only-allow: 1.1.1
-      pnpm: 7.25.0
       recursive-readdir: 2.2.3
       request: 2.88.2
       rimraf: 3.0.2
@@ -4406,7 +4404,7 @@ packages:
     engines: {node: ^6 || ^7 || ^8 || ^9 || ^10 || ^11 || ^12 || >=13.7}
     hasBin: true
     dependencies:
-      caniuse-lite: 1.0.30001445
+      caniuse-lite: 1.0.30001446
       electron-to-chromium: 1.4.284
       node-releases: 2.0.8
       update-browserslist-db: 1.0.10_browserslist@4.21.4
@@ -4716,8 +4714,8 @@ packages:
     engines: {node: '>=14.16'}
     dev: true
 
-  /caniuse-lite/1.0.30001445:
-    resolution: {integrity: sha512-8sdQIdMztYmzfTMO6KfLny878Ln9c2M0fc7EH60IjlP4Dc4PiCy7K2Vl3ITmWgOyPgVQKa5x+UP/KqFsxj4mBg==}
+  /caniuse-lite/1.0.30001446:
+    resolution: {integrity: sha512-fEoga4PrImGcwUUGEol/PoFCSBnSkA9drgdkxXkJLsUBOnJ8rs3zDv6ApqYXGQFOyMPsjh79naWhF4DAxbF8rw==}
     dev: false
 
   /capital-case/1.0.4:
@@ -11206,12 +11204,6 @@ packages:
   /pluralize/8.0.0:
     resolution: {integrity: sha512-Nc3IT5yHzflTfbjgqWcCPpo7DaKy4FnpB0l/zCAW0Tc7jxAiuqSxHasntB3D7887LSrA93kDJ9IXovxJYxyLCA==}
     engines: {node: '>=4'}
-    dev: true
-
-  /pnpm/7.25.0:
-    resolution: {integrity: sha512-FGFQUON8kJ6ma39elJ8lyD8wPIfgp3opGJD9sX0TgIJk4zSr556qCgC8AN+3BFHe4yuRkEauf4JVLW2RKyyEcA==}
-    engines: {node: '>=14.6'}
-    hasBin: true
     dev: true
 
   /polka/0.5.2:

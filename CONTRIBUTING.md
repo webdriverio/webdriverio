@@ -129,6 +129,15 @@ You can immediately start working on the code using [a pre-setup Gitpod environm
 
 * Run Tests to ensure that everything is set up correctly
 
+    First, set up the test environment by running:
+
+    ```sh
+    pnpm link:tests
+    ```
+    This will link the packages to the test environment.
+
+    Then, run the tests:
+
     ```sh
     # run the complete unit test suite
     pnpm test

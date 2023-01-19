@@ -60,12 +60,13 @@ jobs:
           git config --global user.name "WebdriverIO Release Bot"
       - name: Install Dependencies
         run: pnpm install
+      - name: Build Packages
+        run: pnpm build
       - name: Release
         run: |
-          pnpm run setup
-          pnpm run generate:typings
+          pnpm generate:typings
           npx lerna publish ${{github.event.inputs.releaseType}} --exact --yes --dist-tag ${{github.event.inputs.distTag}}
-          pnpm run pushReleaseTag
+          pnpm pushReleaseTag
         env:
           NODE_ENV: production
           GITHUB_AUTH: ${{ secrets.GITHUB_TOKEN }}
