@@ -1,0 +1,6 @@
+{
+  "name": "ts3.9",
+  "devDependencies": {
+    "typescript": "^3.9.10"
+  }
+}
