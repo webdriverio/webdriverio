@@ -27,9 +27,9 @@
   "types": "./build/index.d.ts",
   "typeScriptVersion": "3.8.3",
   "dependencies": {
-    "@wdio/logger": "8.1.0",
-    "@wdio/reporter": "8.1.2",
-    "@wdio/types": "8.1.2",
+    "@wdio/logger": "workspace:*",
+    "@wdio/reporter": "workspace:*",
+    "@wdio/types": "workspace:*",
     "dateformat": "4.5.1",
     "got": "^12.1.0",
     "json-stringify-safe": "^5.0.1"

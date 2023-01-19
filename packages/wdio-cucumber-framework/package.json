@@ -42,9 +42,9 @@
     "@cucumber/gherkin-streams": "^5.0.0",
     "@cucumber/messages": "21.0.1",
     "@types/node": "^18.0.0",
-    "@wdio/logger": "8.1.0",
-    "@wdio/types": "8.1.2",
-    "@wdio/utils": "8.1.2",
+    "@wdio/logger": "workspace:*",
+    "@wdio/types": "workspace:*",
+    "@wdio/utils": "workspace:*",
     "glob": "^8.0.3",
     "is-glob": "^4.0.0",
     "mockery": "^2.1.0"
