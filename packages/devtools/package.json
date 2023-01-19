@@ -53,11 +53,13 @@
     "uuid": "^9.0.0",
     "which": "^3.0.0"
   },
+  "peerDependencies": {
+    "@types/debug": "*",
+    "debug": "*"
+  },
   "devDependencies": {
-    "@types/debug": "^4.1.7",
     "@types/ua-parser-js": "^0.7.33",
     "@types/uuid": "^9.0.0",
-    "@types/which": "^2.0.1",
-    "debug": "^4.3.4"
+    "@types/which": "^2.0.1"
   }
 }

@@ -110,7 +110,6 @@ importers:
 
   packages/devtools:
     specifiers:
-      '@types/debug': ^4.1.7
       '@types/node': ^18.0.0
       '@types/ua-parser-js': ^0.7.33
       '@types/uuid': ^9.0.0
@@ -121,7 +120,6 @@ importers:
       '@wdio/types': 8.1.2
       '@wdio/utils': 8.1.2
       chrome-launcher: ^0.15.0
-      debug: ^4.3.4
       edge-paths: ^3.0.5
       import-meta-resolve: ^2.1.0
       puppeteer-core: 19.5.2
@@ -145,11 +143,9 @@ importers:
       uuid: 9.0.0
       which: 3.0.0
     devDependencies:
-      '@types/debug': 4.1.7
       '@types/ua-parser-js': 0.7.36
       '@types/uuid': 9.0.0
       '@types/which': 2.0.1
-      debug: 4.3.4
 
   packages/eslint-plugin-wdio:
     specifiers:
@@ -3202,12 +3198,6 @@ packages:
     resolution: {integrity: sha512-SZg4JdHIWHQGEokbYGZSDvo5wA4TLYPXaqhigs/wH+REDOejcJzgH+qyY+HtEUtWOZxEUkbhbdYPqQDiEgrXeA==}
     dev: true
 
-  /@types/debug/4.1.7:
-    resolution: {integrity: sha512-9AonUzyTjXXhEOa0DnqpzZi6VHlqKMswga9EXjpXnnqxwLtdvPPtlO8evrI5D9S6asFRCQ6v+wpiUKbw+vKqyg==}
-    dependencies:
-      '@types/ms': 0.7.31
-    dev: true
-
   /@types/diff/5.0.2:
     resolution: {integrity: sha512-uw8eYMIReOwstQ0QKF0sICefSy8cNO/v7gOTiIy9SbwuHyEecJUm7qlgueOO5S1udZ5I/irVydHVwMchgzbKTg==}
     dev: true
@@ -3376,10 +3366,6 @@ packages:
     resolution: {integrity: sha512-cXoc4k+6+YAllH3ZHmx4hf7La1dzUk6keTR4bF4b4Sc0mZxU/zK4wO7l+ZzezXm/jkYj/qC+uYGZrarZdIVvyQ==}
     dependencies:
       '@types/node': 18.11.18
-    dev: true
-
-  /@types/ms/0.7.31:
-    resolution: {integrity: sha512-iiUgKzV9AuaEkZqkOLDIvlQiL6ltuZd9tGcW3gwpnX8JbuiuhFlEGmmFXEXkN50Cvq7Os88IY2v0dkDqXYWVgA==}
     dev: true
 
   /@types/node/18.11.18:
