@@ -12,6 +12,12 @@ const suite = (type = 'feature') => ({
         type: 'Tag',
         location: { line: 5, column: 3 },
         name: '@severity=critical'
+    }, {
+        type: 'Tag',
+        name: '@issue=BUG-987'
+    }, {
+        type: 'Tag',
+        name: '@testId=TST-123'
     }],
     tests: [],
     parent: type === 'feature' ? undefined : 'MyFeature1',
