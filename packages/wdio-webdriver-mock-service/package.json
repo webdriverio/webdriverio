@@ -29,6 +29,9 @@
     "uuid": "^9.0.0",
     "webdriverio": "workspace:*"
   },
+  "devDependencies": {
+    "@wdio/globals": "workspace:*"
+  },
   "publishConfig": {
     "access": "public"
   }

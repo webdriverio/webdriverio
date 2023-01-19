@@ -34,6 +34,9 @@
     "polka": "^0.5.2",
     "webdriverio": "workspace:*"
   },
+  "devDependencies": {
+    "@wdio/globals": "workspace:*"
+  },
   "publishConfig": {
     "access": "public"
   }

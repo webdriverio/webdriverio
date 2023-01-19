@@ -118,6 +118,7 @@ importers:
       '@types/uuid': ^9.0.0
       '@types/which': ^2.0.1
       '@wdio/config': workspace:*
+      '@wdio/globals': workspace:*
       '@wdio/logger': workspace:*
       '@wdio/protocols': workspace:*
       '@wdio/types': workspace:*
@@ -152,6 +153,7 @@ importers:
       '@types/ua-parser-js': 0.7.36
       '@types/uuid': 9.0.0
       '@types/which': 2.0.1
+      '@wdio/globals': link:../wdio-globals
 
   packages/eslint-plugin-wdio:
     specifiers:
@@ -250,6 +252,7 @@ importers:
     specifiers:
       '@types/gitconfiglocal': ^2.0.1
       '@types/node': ^18.0.0
+      '@wdio/globals': workspace:*
       '@wdio/logger': workspace:*
       '@wdio/reporter': workspace:*
       '@wdio/types': workspace:*
@@ -274,6 +277,7 @@ importers:
       webdriverio: link:../webdriverio
     devDependencies:
       '@types/node': 18.11.18
+      '@wdio/globals': link:../wdio-globals
 
   packages/wdio-cli:
     specifiers:
@@ -386,6 +390,7 @@ importers:
   packages/wdio-crossbrowsertesting-service:
     specifiers:
       '@types/node': ^18.0.0
+      '@wdio/globals': workspace:*
       '@wdio/logger': workspace:*
       '@wdio/types': workspace:*
       cbt_tunnels: ^1.2.2
@@ -399,6 +404,7 @@ importers:
       webdriverio: link:../webdriverio
     devDependencies:
       '@types/node': 18.11.18
+      '@wdio/globals': link:../wdio-globals
 
   packages/wdio-cucumber-framework:
     specifiers:
@@ -442,6 +448,7 @@ importers:
       '@types/istanbul-lib-report': ^3.0.0
       '@types/istanbul-reports': ^3.0.1
       '@types/node': ^18.0.0
+      '@wdio/globals': workspace:*
       '@wdio/logger': workspace:*
       '@wdio/types': workspace:*
       babel-plugin-istanbul: ^6.1.1
@@ -475,6 +482,7 @@ importers:
       '@types/istanbul-lib-coverage': 2.0.4
       '@types/istanbul-lib-report': 3.0.0
       '@types/istanbul-reports': 3.0.1
+      '@wdio/globals': link:../wdio-globals
 
   packages/wdio-dot-reporter:
     specifiers:
@@ -662,6 +670,7 @@ importers:
   packages/wdio-sauce-service:
     specifiers:
       '@types/ip': ^1.1.0
+      '@wdio/globals': workspace:*
       '@wdio/logger': workspace:*
       '@wdio/types': workspace:*
       '@wdio/utils': workspace:*
@@ -677,6 +686,7 @@ importers:
       webdriverio: link:../webdriverio
     devDependencies:
       '@types/ip': 1.1.0
+      '@wdio/globals': link:../wdio-globals
 
   packages/wdio-selenium-standalone-service:
     specifiers:
@@ -698,6 +708,7 @@ importers:
   packages/wdio-shared-store-service:
     specifiers:
       '@polka/parse': ^1.0.0-next.0
+      '@wdio/globals': workspace:*
       '@wdio/logger': workspace:*
       '@wdio/types': workspace:*
       got: ^12.1.0
@@ -710,6 +721,8 @@ importers:
       got: 12.5.3
       polka: 0.5.2
       webdriverio: link:../webdriverio
+    devDependencies:
+      '@wdio/globals': link:../wdio-globals
 
   packages/wdio-smoke-test-cjs-service:
     specifiers:
@@ -784,6 +797,7 @@ importers:
   packages/wdio-testingbot-service:
     specifiers:
       '@types/node': ^18.0.0
+      '@wdio/globals': workspace:*
       '@wdio/logger': workspace:*
       '@wdio/types': workspace:*
       got: ^12.1.0
@@ -797,6 +811,7 @@ importers:
       webdriverio: link:../webdriverio
     devDependencies:
       '@types/node': 18.11.18
+      '@wdio/globals': link:../wdio-globals
 
   packages/wdio-types:
     specifiers:
@@ -821,6 +836,7 @@ importers:
   packages/wdio-webdriver-mock-service:
     specifiers:
       '@types/uuid': ^9.0.0
+      '@wdio/globals': workspace:*
       '@wdio/protocols': workspace:*
       '@wdio/types': workspace:*
       nock: ^13.2.4
@@ -833,6 +849,8 @@ importers:
       nock: 13.3.0
       uuid: 9.0.0
       webdriverio: link:../webdriverio
+    devDependencies:
+      '@wdio/globals': link:../wdio-globals
 
   packages/webdriver:
     specifiers:

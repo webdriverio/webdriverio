@@ -53,6 +53,7 @@
     "@types/babel__core": "^7.1.19",
     "@types/istanbul-lib-coverage": "^2.0.4",
     "@types/istanbul-lib-report": "^3.0.0",
-    "@types/istanbul-reports": "^3.0.1"
+    "@types/istanbul-reports": "^3.0.1",
+    "@wdio/globals": "workspace:*"
   }
 }
