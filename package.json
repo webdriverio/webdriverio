@@ -16,7 +16,7 @@
     "clean:tgz": "rimraf ./packages/*/*.tgz",
     "clean:node_modules": "rimraf ./packages/node_modules",
     "clean:website": "rimraf website/docs/_*.md website/docs/api/_*.md website/docs/api/**/_*.md website/sidebars.json",
-    "clean:tests": "rimraf tests/typings/**/node_modules tests/typings/**/dist ./coverage",
+    "clean:tests": "rimraf e2e/**/node_modules tests/**/node_modules tests/typings/**/dist ./coverage",
     "clean:cache": "rimraf .eslintcache",
     "clean-full:package_modules": "rimraf ./packages/*/node_modules",
     "compile": "node ./scripts/build.js",
@@ -97,7 +97,7 @@
     "eslint": "^8.32.0",
     "eslint-plugin-import": "^2.27.5",
     "eslint-plugin-unicorn": "^45.0.2",
-    "eslint-plugin-wdio": "^8.0.14",
+    "eslint-plugin-wdio": "workspace:*",
     "husky": "^8.0.3",
     "inquirer": "^9.1.4",
     "jsdom": "^21.0.0",
@@ -116,6 +116,7 @@
     "ts-node": "^10.9.1",
     "typescript": "^4.9.4",
     "url-join": "^5.0.0",
+    "vite": ">=3.0.0",
     "vitest": "0.27.2"
   },
   "engines": {
