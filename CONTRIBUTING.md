@@ -62,11 +62,18 @@ Like in many Open Source projects we ask you to sign a __CLA__ which is a Contri
 
 The WebdriverIO maintainer will review your pull request as soon as possible. They will then either approve and merge your changes, request modifications or close with an explanation.
 
-#### Set Up Project
+## Development Environment
 
 You can immediately start working on the code using [a pre-setup Gitpod environment](https://gitpod.io/#https://github.com/webdriverio/webdriverio) (read more on this [here](https://bromann.dev/post/development-environment-for-webdriverio/)). If you like to develop on the project locally follow this step by step guide:
 
+* Switch to the most recent Node LTS (you should be able to use older/newer versions of Node but we recommend to use v18 LTS so all developers are on the same side) or to the one denoted in `.nvmrc`. We recommend to use [`nvm`](https://github.com/nvm-sh/nvm) to switch between Node.js versions. Once you have `nvm` installed you can run the following command to switch to the correct Node.js version:
+
+    ```sh
+    nvm install
+    ```
+
 * Fork the project.
+
 * Clone the project somewhere on your computer
 
     ```sh
@@ -81,49 +88,50 @@ You can immediately start working on the code using [a pre-setup Gitpod environm
 
 * If you need to update your fork you can do so following the steps [here](https://help.github.com/en/github/collaborating-with-issues-and-pull-requests/syncing-a-fork)
 
-* Switch to the most recent Node LTS (you should be able to use older/newer versions of Node but we recommend to use v18 LTS so all developers are on the same side) or to the one denoted in `.nvmrc`. We recommend to use [`nvm`](https://github.com/nvm-sh/nvm) to switch between Node.js versions.
 
-* Set up the project:
-    First make sure you have the right Node.js version installed. You can find the current defined development version in `.nvmrc` within the root directory of the project. The easiest way to handle multiple Node.js versions is by using [NVM](https://github.com/nvm-sh/nvm). After it is installed you can run:
+* Enable/install pnpm:
+
+  - Node 16.17 and above:
     ```sh
-    nvm install
+    corepack prepare pnpm@latest --activate
     ```
 
-    This will install the defined Node.js version for you. You can then go ahead and set-up the project:
-
-    Enable pnpm:
+  - Node 16.16 and below:
     ```sh
-    corepack enable pnpm
+    npm install -g pnpm
     ```
 
-    Install dependencies and build the project:
+* Install dependencies and build all sub-packages:
 
     ```sh
     pnpm install
-    npm run setup
+    pnpm build
+    ```
+    WebdriverIO uses [TypeScript](https://www.typescriptlang.org/) as a compiler.
+    Now you have a working development environment.
+
+    Note: building all sub-packages is necessary (even if working on a single package) in order to resolve the internal dependencies.
+
+* To reset your environment to a clean state you can run the following command:
+
+    ```sh
+    pnpm bootstrap
+    pnpm build
     ```
 
-    The second command does four things:
+    The first command does two things:
 
-    * Cleans (possible) existing build artifacts via ```npm run clean```
+    * Cleans (possible) existing build artifacts via ```pnpm clean```
 
         If you have compiled the code this command will remove them as well as all dependencies of the subpackages.
 
-    * Installs all dependencies via ```pnpm install```
-
-    * Bootstraps sub-projects via ```npm run bootstrap```
-
-        Many packages depend on each other, in order to properly set up the dependency tree you need to run the [Lerna Bootstrap](https://github.com/lerna/lerna#bootstrap) command to create all necessary links. As this project also does some other house keeping tasks, it is recommended to use the package bootstrap command.
-
-    * Builds all subpackages via ```npm run build```
-
-        As the last step you need to build all sub-packages in order to resolve the internal dependencies. WebdriverIO uses [TypeScript](https://www.typescriptlang.org/) as a compiler.
+    * Installs dependencies of all sub-packages via ```pnpm install```
 
 * Run Tests to ensure that everything is set up correctly
 
     ```sh
     # run the complete unit test suite
-    npm run test
+    pnpm test
 
     # run test for a specific sub project (e.g. webdriver)
     npx vitest ./packages/webdriver/tests
@@ -136,14 +144,14 @@ You can immediately start working on the code using [a pre-setup Gitpod environm
 If you start making changes to specific packages, make sure you listen to file changes and transpile the code every time you press save. To do that for all packages, run:
 
 ```sh
-npm run watch
+pnpm watch
 ```
 
 If you only work on a single package, you can watch only for that one by calling:
 
 ```sh
-# e.g. `npm run watch wdio-runner`
-npm run watch <package-name>
+# e.g. `pnpm watch wdio-runner`
+pnpm watch <package-name>
 ```
 
 It is also a good idea to run vitest in watch mode while developing on a single package to see if changes affect any tests:
@@ -167,7 +175,7 @@ All type definitions are generated by the TypeScript compiler. There are some es
 You can find all files responsible for the generating the typings [here](https://github.com/webdriverio/webdriverio/tree/main/scripts/type-generation). You can trigger the process by calling:
 
 ```sh
-npm run generate:typings
+pnpm generate:typings
 ```
 
 This will run the scripts in the directory shown above and generate the typings for all protocol commands. Whenever you change those [protocol commands](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-protocols/src/protocols), make sure you re-generate the types with the command shown above.
@@ -178,7 +186,7 @@ For the development on the WebdriverIO code base you can use examples files that
 
 ```sh
 cd ./examples/wdio
-npm run test:mocha
+pnpm test:mocha
 ```
 
 This will run a simple test suite using the testrunner with Mochajs. There are similar examples for other frameworks, custom services and reporters as well as using the devtools protocol as the automation engine. Feel free to add examples if they help testing features you are working on.
@@ -191,27 +199,27 @@ When a PR gets submitted, WebdriverIO runs the following checks:
   We automatically check if every sub-package has all the dependencies from its `package.json` installed.
   You can manually trigger this check by calling:
   ```sh
-  npm run test:depcheck
+  pnpm test:depcheck
   ```
 - *ESLint*
   A common ESLint test to align code styles and detect syntax errors early.
   You can manually trigger this check by calling:
   ```sh
-  npm run test:eslint
+  pnpm test:eslint
   ```
 - *TypeScript Definition Tests*
   As we generate our type definitions, we want to be cautious that the generated definitions actually define the interface as expected. Read more
   on that at [Testing Type Definitions](#testing-type-definitions).
   You can manually trigger this check by calling:
   ```sh
-  npm run test:typings
+  pnpm test:typings
   ```
 - *Unit Tests*
   Like every project we unit-test our code and ensure that new patches are properly tested. The coverage threshold is pretty high so ensure that
   your changes cover all necessary code paths. We are using [Vitest](https://vitest.dev/) as a unit test framework here.
   You can manually trigger this check by calling:
   ```sh
-  npm run test:unit
+  pnpm test:unit
   ```
 - *Smoke Tests*
   While unit tests already cover a lot of cases, we run in addition to that smoke tests that simulate test scenarios which are difficult to test
@@ -219,7 +227,7 @@ When a PR gets submitted, WebdriverIO runs the following checks:
   test retries or failure handling. Smoke tests run actual e2e tests where the driver is being stubbed (via [`@wdio/smoke-test-service`](https://github.com/webdriverio/webdriverio/blob/main/packages/wdio-smoke-test-service/package.json)) to return fake results.
   You can manually trigger this check by calling:
   ```sh
-  npm run test:smoke
+  pnpm test:smoke
   ```
 - *e2e Tests*
   Last but not least, we run actual e2e tests with a real browser to ensure that our WebDriver DevTools implementation is working as expected. These
@@ -228,7 +236,7 @@ When a PR gets submitted, WebdriverIO runs the following checks:
   In order to run these tests, an installation of [Firefox Nightly](https://www.mozilla.org/en-US/firefox/channel/desktop/#nightly) and [Google Chrome](https://www.google.com/chrome/) is required.
   You can manually trigger this check by calling:
   ```sh
-  npm run test:e2e
+  pnpm test:e2e
   ```
 
 #### Unit Tests
@@ -260,13 +268,13 @@ With the `--watch` flag the unit tests will be re-run as soon as you change some
 WebdriverIO maintains a set of smoke test suites that allows to represent the full e2e experience of a user running the wdio testrunner. It is set up in a way so it doesn't require an actual browser driver since all requests are mocked using the [`@wdio/webdriver-mock-service`](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-webdriver-mock-service). This offers you an opportunity to run a wdio test suite without setting up a browser driver and a test page. You can run all smoke tests via:
 
 ```sh
-npm run test:smoke
+pnpm test:smoke
 ```
 
 There is one [`smoke.runner.js`](https://github.com/webdriverio/webdriverio/blob/main/tests/smoke.runner.js) file that triggers all tests. It contains several [test suites](https://github.com/webdriverio/webdriverio/blob/main/tests/smoke.runner.js#L365-L384) defined that run in different environments, e.g. Mocha, Jasmine and Cucumber. You can run a specific test suite by calling, e.g.:
 
 ```sh
-npm run test:smoke mochaTestrunner
+pnpm test:smoke mochaTestrunner
 ```
 
 Every of these test suites are functions that trigger the wdio testrunner programmatically using the [`launch`](https://github.com/webdriverio/webdriverio/blob/main/tests/helpers/launch.js) helper method. All you need to pass in is a path to your config file and with what you want to overwrite the config. Most of the smoke test use a [common config file](https://github.com/webdriverio/webdriverio/blob/main/tests/helpers/config.js) and overwrite properties specific for their use case.
@@ -278,7 +286,7 @@ If you test custom WebDriver commands, you can define your own scenario of mock 
 To make sure that we don't accidentally change the types and cause users' test to break, we run some simple TypeScript checks. You can run all the type definition tests by running:
 
 ```sh
-npm run test:typings
+pnpm test:typings
 ```
 
 This will run all the tests for all the type definitions WebdriverIO provides. These tests just check if TypeScript can compile them according to the generated type definitions. All the type checks are located in `/webdriverio/tests/typings`. If you extend a WebdriverIO command or interfaces for other type definitions, please ensure that you have used it in these files. The directory contains tests for the asynchronous usage of WebdriverIO.
@@ -349,7 +357,7 @@ Every time a new release is pushed to GitHub the WebdriverIO docs need to be bui
 All WebdriverIO sub packages require a certain structure to work within the wdio ecosystem. To simplify the process of creating a new sub package, we built an NPM script that does all the boilerplate work for you. Just run:
 
 ```sh
-npm run create
+pnpm create
 ```
 
 It will ask you about the type and name of the new package and create all the files for you.
@@ -375,13 +383,13 @@ $ git checkout v6
 Before you can start, please export an `GITHUB_AUTH` token into your environment in order to allow the executing script to fetch data about pull requests and set proper labels. Go to your [personal access token](https://github.com/settings/tokens) settings page and generate such a token with only having the `public_repo` field enabled. Then export it into your environment and run the backport script. It fetches all commits connected with PRs that are labeled with `backport-requested` and cherry-picks them into the maintenance branch. Via an interactive console you can get the chance to review the PR again and whether you want to backport it or not. To start the process, just execute:
 
 ```sh
-npm run backport
+pnpm backport
 ```
 
 If during the process a cherry-pick fails, you can always abort and manually troubleshoot. If you are not able to resolve the problem, create an issue in the repo and include the author of that PR. A successful backport of two PRs will look like this:
 
 ```
-npm run backport
+pnpm backport
 
 > webdriverio-monorepo@ backport /path/to/webdriverio/webdriverio
 > node ./scripts/backport.js
