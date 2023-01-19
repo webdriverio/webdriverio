@@ -5,6 +5,7 @@
     "lib": ["es2018", "dom"],
     "esModuleInterop": true,
     "resolveJsonModule": true,
+    "skipLibCheck": true,
     "types": [
       "@wdio/globals/types",
       "@wdio/cucumber-framework"

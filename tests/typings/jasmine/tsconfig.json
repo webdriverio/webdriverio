@@ -4,6 +4,7 @@
     "noImplicitAny": true,
     "lib": ["es2018", "dom"],
     "esModuleInterop": true,
+    "skipLibCheck": true,
     "types": [
       "@wdio/globals/types",
       "@wdio/jasmine-framework"
