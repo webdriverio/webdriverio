@@ -11,6 +11,7 @@ import { temporaryDirectory } from 'tempy'
 import { clean, getResults } from './helpers/wdio-allure-helper'
 
 import AllureReporter from '../src/reporter.js'
+import { linkPlaceholder } from '../src/constants.js'
 import { runnerEnd, runnerStart } from './__fixtures__/runner.js'
 import * as cucumberHelper from './__fixtures__/cucumber.js'
 import * as attachmentHelper from './__fixtures__/attachment.js'
@@ -36,7 +37,13 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
             let allureXml: any
 
             beforeAll(() => {
-                const reporter = new AllureReporter({ outputDir, useCucumberStepReporter: true, disableWebdriverStepsReporting: true })
+                const reporter = new AllureReporter({
+                    outputDir,
+                    useCucumberStepReporter: true,
+                    disableWebdriverStepsReporting: true,
+                    issueLinkTemplate: `https://github.com/webdriverio/webdriverio/issues/${linkPlaceholder}`,
+                    tmsLinkTemplate: `https://webdriver.io/${linkPlaceholder}`
+                })
 
                 reporter.onRunnerStart(runnerStart())
                 reporter.onSuiteStart(cucumberHelper.featureStart())
@@ -99,6 +106,14 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
 
             it('should detect tags labels on top in test case', () => {
                 expect(allureXml('test-case label[name="severity"]').eq(0).attr('value')).toEqual('critical')
+            })
+
+            it('should convert tag label "issue" to allure link', () => {
+                expect(allureXml('test-case label[name="issue"]').eq(0).attr('value')).toEqual('https://github.com/webdriverio/webdriverio/issues/BUG-987')
+            })
+
+            it('should convert tag label "testId" to allure link', () => {
+                expect(allureXml('test-case label[name="testId"]').eq(0).attr('value')).toEqual('https://webdriver.io/TST-123')
             })
 
             it('should detect description on top in test case', () => {
@@ -200,6 +215,14 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
 
         it('should detect tags labels on top in test case', () => {
             expect(allureXml('test-case label[name="severity"]').eq(0).attr('value')).toEqual('critical')
+        })
+
+        it('should keep tag label "issue" as is if issue link template is not configured', () => {
+            expect(allureXml('test-case label[name="issue"]').eq(0).attr('value')).toEqual('BUG-987')
+        })
+
+        it('should keep tag label "testId" as is if tms link template is not configured', () => {
+            expect(allureXml('test-case label[name="testId"]').eq(0).attr('value')).toEqual('TST-123')
         })
 
         it('should detect description on top in test case', () => {
