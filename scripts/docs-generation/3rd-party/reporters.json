@@ -54,6 +54,12 @@
     "npmUrl": "https://www.npmjs.com/package/wdio-teamcity-reporter"
   },
   {
+    "packageName": "@wdio/testrail-reporter",
+    "title": "Testrail Reporter",
+    "githubUrl": "https://github.com/webdriverio-community/wdio-testrail-reporter",
+    "npmUrl": "https://www.npmjs.com/package/@wdio/testrail-reporter"
+  },
+  {
     "packageName": "wdio-slack-reporter",
     "title": "Slack Reporter",
     "githubUrl": "https://github.com/morooLee/wdio-slack-reporter",
