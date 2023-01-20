@@ -19,6 +19,35 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.30.0 (2023-01-20)
+
+#### :rocket: New Feature
+* `wdio-allure-reporter`
+  * [#9633](https://github.com/webdriverio/webdriverio/pull/9633) Map Cucumber tags with special names to Allure links ([@valfirst](https://github.com/valfirst))
+
+#### :bug: Bug Fix
+* `wdio-browserstack-service`
+  * [#9622](https://github.com/webdriverio/webdriverio/pull/9622) [v7] Bug fix: TypeError: Cannot read properties of undefined (reading 'uuid') ([@nagpalkaran95](https://github.com/nagpalkaran95))
+  * [#9526](https://github.com/webdriverio/webdriverio/pull/9526) browserstack-service: fix reporter on v7 ([@alk-sdavid](https://github.com/alk-sdavid))
+
+#### :nail_care: Polish
+* `wdio-browserstack-service`
+  * [#9538](https://github.com/webdriverio/webdriverio/pull/9538) Update wdio-browserstack-service logging for http status codes V7 ([@amaanbs](https://github.com/amaanbs))
+* `wdio-cli`
+  * [#9629](https://github.com/webdriverio/webdriverio/pull/9629) Select default service when env is selected ([@agarneha1331](https://github.com/agarneha1331))
+
+#### :house: Internal
+* `wdio-browserstack-service`
+  * [#9634](https://github.com/webdriverio/webdriverio/pull/9634) Fix failing unit test ([@valfirst](https://github.com/valfirst))
+
+#### Committers: 5
+- Amaan Hakim ([@amaanbs](https://github.com/amaanbs))
+- Karan Nagpal ([@nagpalkaran95](https://github.com/nagpalkaran95))
+- Neha Agarwal ([@agarneha1331](https://github.com/agarneha1331))
+- Sébastien David (seb) ([@alk-sdavid](https://github.com/alk-sdavid))
+- Valery Yatsynovich ([@valfirst](https://github.com/valfirst))
+
+
 ## v7.29.0 (2022-12-29)
 
 #### :nail_care: Polish
