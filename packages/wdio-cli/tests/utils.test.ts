@@ -745,7 +745,7 @@ test('specifyVersionIfNeeded', () => {
     )).toEqual([
         'webdriverio@^8.0.0-alpha.249',
         '@wdio/spec-reporter@^8.0.0-alpha.249',
-        'wdio-chromedriver-service@next',
+        'wdio-chromedriver-service',
         'wdio-geckodriver-service'
     ])
 })
