@@ -711,6 +711,7 @@ export async function setupTypeScript (parsedAnswers: ParsedAnswers) {
     const config = {
         compilerOptions: {
             moduleResolution: 'node',
+            module: 'ESNext',
             types,
             target: 'es2022',
         }

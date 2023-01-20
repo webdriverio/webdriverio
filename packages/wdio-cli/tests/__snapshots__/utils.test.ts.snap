@@ -134,6 +134,7 @@ exports[`setupTypeScript 1`] = `
 "{
     \\"compilerOptions\\": {
         \\"moduleResolution\\": \\"node\\",
+        \\"module\\": \\"ESNext\\",
         \\"types\\": [
             \\"node\\",
             \\"@wdio/globals/types\\",
