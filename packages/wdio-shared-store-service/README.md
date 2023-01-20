@@ -5,7 +5,7 @@ WebdriverIO Shared Store Service
 
 ## Installation
 
-The easiest way is to keep `@wdio/shared-store-service` as a devDependency in your `package.json`, via:
+The easiest way is to keep `@wdio/shared-store-service` as a dev dependency in your `package.json`, via:
 
 ```sh
 npm install @wdio/shared-store-service --save-dev
@@ -47,12 +47,19 @@ You could also directly access to `setValue` and `getValue` async handlers.
 Make sure you properly call them with the `await` keyword.
 
 ```js
-import { setValue } from '@wdio/shared-store-service'
+// wdio.conf.js
+import { setValue, getValue } from '@wdio/shared-store-service'
 
-// ...
-onPrepare: [async function (config, capabilities) {
-    await setValue('foo', 'bar')
-}],
+export const config = {
+    // ...
+    onPrepare: [async function (config, capabilities) {
+        await setValue('foo', 'bar')
+    }],
+    // ...
+    after: async () => {
+        const value = await getValue('foo')
+        // ...
+    }
 ```
 
 IMPORTANT! Every spec file should be atomic and isolated from others' specs.
@@ -61,7 +68,7 @@ Please avoid sharing test execution data!
 
 ## Configuration
 
-Add `shared-store` to the services list and the `sharedStore` object will be accessible to you in your test.
+Add `shared-store` to the services list and the `sharedStore` object will be accessible to you on the [`browser` scope](https://webdriver.io/docs/api/browser) in your test.
 
 ```js
 // wdio.conf.js
