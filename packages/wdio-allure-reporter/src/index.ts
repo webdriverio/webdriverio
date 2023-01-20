@@ -111,7 +111,13 @@ class AllureReporter extends WDIOReporter {
         const currentTest = this._allure.getCurrentTest()
 
         this.getLabels(suite).forEach(({ name, value }) => {
-            currentTest.addLabel(name, value)
+            if (name === 'issue') {
+                this.addIssue({ issue: value })
+            } else if (name === 'testId') {
+                this.addTestId({ testId: value })
+            } else {
+                currentTest.addLabel(name, value)
+            }
         })
 
         if (suite.description) {

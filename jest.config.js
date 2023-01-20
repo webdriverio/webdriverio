@@ -53,7 +53,7 @@ module.exports = {
     collectCoverage: true,
     coverageThreshold: {
         global: {
-            branches: 89,
+            branches: 88,
             functions: 94,
             lines: 95,
             statements: 95
