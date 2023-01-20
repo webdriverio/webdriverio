@@ -22,7 +22,7 @@ import { CAPABILITY_KEYS } from '@wdio/protocols'
 import type { Options, Capabilities, Services } from '@wdio/types'
 
 import {
-    EXCLUSIVE_SERVICES, ANDROID_CONFIG, IOS_CONFIG, QUESTIONNAIRE, COMMUNITY_PACKAGES_WITH_V8_SUPPORT, pkg,
+    EXCLUSIVE_SERVICES, ANDROID_CONFIG, IOS_CONFIG, QUESTIONNAIRE, pkg,
     COMPILER_OPTIONS, TESTING_LIBRARY_PACKAGES, DEPENDENCIES_INSTALLATION_MESSAGE
 } from './constants.js'
 import type { ReplCommandArguments, Questionnair, SupportedPackage, OnCompleteResult, ParsedAnswers, ProjectProps } from './types.js'
@@ -560,9 +560,6 @@ export function specifyVersionIfNeeded (packagesToInstall: string[], version: st
                 ? `^${major}.${minor}.${patch}-${tagName}.${build}`
                 : npmTag
             return `${p}@${tag}`
-        }
-        if (major && COMMUNITY_PACKAGES_WITH_V8_SUPPORT.includes(p)) {
-            return `${p}@next`
         }
         return p
     })
