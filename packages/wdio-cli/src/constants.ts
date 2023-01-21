@@ -98,7 +98,8 @@ export const SUPPORTED_PACKAGES = {
         { name: 'slack', value: '@moroo/wdio-slack-reporter$--$slack' },
         { name: 'teamcity', value: 'wdio-teamcity-reporter$--$teamcity' },
         { name: 'delta', value: '@delta-reporter/wdio-delta-reporter-service' },
-        { name: 'light', value: '@wdio-light-reporter--$light' }
+        { name: 'testrail', value: '@wdio/testrail-reporter$--$testrail' },
+        { name: 'light', value: 'wdio-light-reporter--$light' }
     ],
     plugin: [
         { name: 'wait-for', value: 'wdio-wait-for$--$wait-for' },
@@ -122,6 +123,7 @@ export const SUPPORTED_PACKAGES = {
         { name: 'crossbrowsertesting', value: '@wdio/crossbrowsertesting-service$--$crossbrowsertesting' },
         { name: 'browserstack', value: '@wdio/browserstack-service$--$browserstack' },
         { name: 'firefox-profile', value: '@wdio/firefox-profile-service$--$firefox-profile' },
+        { name: 'gmail', value: '@wdio/gmail-service$--$gmail' },
         // external
         { name: 'eslinter-service', value: 'wdio-eslinter-service$--$eslinter' },
         { name: 'lambdatest', value: 'wdio-lambdatest-service$--$lambdatest' },
@@ -152,11 +154,6 @@ export const SUPPORTED_PACKAGES = {
         { name: 'vitaqai', value: 'wdio-vitaqai-service$--$vitaqai' }
     ]
 } as const
-
-export const COMMUNITY_PACKAGES_WITH_V8_SUPPORT = [
-    'wdio-chromedriver-service',
-    'expect-webdriverio'
-]
 
 export const SUPPORTED_BROWSER_RUNNER_PRESETS = [
     { name: 'Lit (https://lit.dev/)', value: '' },

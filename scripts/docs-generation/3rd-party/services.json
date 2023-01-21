@@ -36,6 +36,12 @@
     "npmUrl": "https://www.npmjs.com/package/wdio-edgedriver-service"
   },
   {
+    "packageName": "wdio-gmail-service",
+    "title": "Gmail",
+    "githubUrl": "https://github.com/webdriverio-community/wdio-gmail-service",
+    "npmUrl": "https://www.npmjs.com/package/wdio-gmail-service"
+  },
+  {
     "packageName": "wdio-zafira-listener-service",
     "title": "Zafira Listener",
     "githubUrl": "https://github.com/shashidharus/wdio-zafira-listener-service",

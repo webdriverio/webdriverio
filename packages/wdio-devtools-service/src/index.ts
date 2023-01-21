@@ -296,8 +296,12 @@ export default class DevToolsService implements Services.ServiceInstance {
 
         this._devtoolsGatherer?.onMessage(data)
         const method = data.method || 'event'
-        log.debug(`cdp event: ${method} with params ${JSON.stringify(data.params)}`)
-
+        try {
+            // can fail due to "Cannot convert a Symbol value to a string"
+            log.debug(`cdp event: ${method} with params ${JSON.stringify(data.params)}`)
+        } catch {
+            // ignore
+        }
         if (this._browser) {
             this._browser.emit(method, data.params)
         }
