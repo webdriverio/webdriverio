@@ -91,7 +91,7 @@ function Home() {
                         <>
                             <p>
                                 WebdriverIO is an <b>all in one</b> framework for your web app development. It enables you to run
-                                small and leightweight component tests as well as running e2e test scenarios in the browser or on
+                                small and lightweight component tests as well as running e2e test scenarios in the browser or on
                                 a mobile device. This guarantees that you to do the testing in an environment <b>used by your users</b>.
                             </p>
                             <p>
