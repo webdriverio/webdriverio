@@ -21,6 +21,17 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.2.2 (2023-01-23)
+
+#### :memo: Documentation
+* [#9638](https://github.com/webdriverio/webdriverio/pull/9638) docs: fix the name of the Stack Overflow tag ([@andrii-bodnar](https://github.com/andrii-bodnar))
+
+#### Committers: 3
+- Andrii Bodnar ([@andrii-bodnar](https://github.com/andrii-bodnar))
+- Hagai Shatz ([@bh-shatz](https://github.com/bh-shatz))
+- [@IgorSasovets](https://github.com/IgorSasovets)
+
+
 ## v8.2.1 (2023-01-20)
 
 #### :bug: Bug Fix
