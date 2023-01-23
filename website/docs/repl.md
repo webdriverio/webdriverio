@@ -115,7 +115,7 @@ Capabilities for iOS device can be passed with arguments:
 Usage:
 
 <Tabs
-  defaultValue="mocha"
+  defaultValue="long"
   values={[
     {label: 'Long Parameter Names', value: 'long'},
     {label: 'Short Parameter Names', value: 'short'}
