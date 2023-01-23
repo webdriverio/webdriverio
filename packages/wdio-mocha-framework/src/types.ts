@@ -1,5 +1,4 @@
 export { default } from 'mocha'
-import type { Options } from '@wdio/types'
 
 export interface MochaOpts {
     /**
@@ -72,10 +71,6 @@ export interface MochaOpts {
      * Set test UI to one of the built-in test interfaces.
      */
     ui?: 'bdd' | 'tdd' | 'qunit' | 'exports';
-}
-
-export interface MochaConfig extends Required<Options.Testrunner> {
-    mochaOpts: MochaOpts
 }
 
 export interface MochaError {

@@ -683,7 +683,7 @@ describe('ConfigParser', () => {
 
             // verify that the capability exclude is applied successfully
             // when the config exclude is not defined
-            configParser.getConfig().exclude = []
+            configParser['_config'].exclude = []
             expect(getSpecs()).not.toContain(requireLibPath)
             expect(getSpecs()).toContain(configParserPath)
         })

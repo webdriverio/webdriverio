@@ -1,4 +1,5 @@
 import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest'
+import url from 'node:url'
 import path from 'node:path'
 import Mocha from 'mocha'
 import logger from '@wdio/logger'
@@ -6,6 +7,8 @@ import { wrapGlobalTestMethod, executeHooksWithArgs } from '@wdio/utils'
 
 import MochaAdapterFactory, { MochaAdapter } from '../src/index.js'
 import { EVENTS } from '../src/constants.js'
+
+const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
 
 vi.mock('mocha')
 vi.mock('@wdio/utils')
@@ -49,7 +52,6 @@ test('comes with a factory', async () => {
 
 test('should properly set up mocha', async () => {
     // @ts-ignore params not needed for test scenario
-    // @ts-ignore params not needed for test scenario
     const adapter = adapterFactory()
     await adapter.init()
     const result = await adapter.run()
@@ -73,6 +75,25 @@ test('should properly set up mocha', async () => {
     expect(adapter['_mocha']!.addFile).toBeCalledWith('/foo/bar.test.js')
 })
 
+test('should properly load mocha hooks', async () => {
+    const adapter = adapterFactory({
+        rootDir: __dirname,
+        mochaOpts: {
+            require: ['./__fixtures__/mochaHooks.js']
+        }
+    })
+    await adapter.init()
+    expect(adapter['_config'].mochaOpts).toEqual({
+        require: ['./__fixtures__/mochaHooks.js'],
+        rootHooks: {
+            beforeAll: [],
+            beforeEach: [expect.any(Function)],
+            afterAll: [],
+            afterEach: []
+        }
+    })
+})
+
 test('should return amount of errors', async () => {
     const adapter = adapterFactory({ mochaOpts: { mockFailureCount: 42 } })
     await adapter.init()
@@ -94,20 +115,6 @@ test('should throw runtime error if spec could not be loaded', async () => {
     adapter['_specLoadError'] = runtimeError
     await expect(adapter.run()).rejects.toEqual(runtimeError)
 })
-
-// test('custom ui', () => {
-//     const mochaOpts = { ui: 'custom-qunit' }
-//     const adapter = adapterFactory({ mochaOpts })
-//     adapter.preRequire()
-//     expect(wrapGlobalTestMethod).toBeCalledWith(
-//         false, undefined, expect.any(Function), undefined, expect.any(Function), 'after', '0-2')
-//     expect(wrapGlobalTestMethod).toBeCalledWith(
-//         false, undefined, expect.any(Function), undefined, expect.any(Function), 'afterEach', '0-2')
-//     expect(wrapGlobalTestMethod).toBeCalledWith(
-//         false, undefined, expect.any(Function), undefined, expect.any(Function), 'beforeEach', '0-2')
-//     expect(wrapGlobalTestMethod).toBeCalledWith(
-//         false, undefined, expect.any(Function), undefined, expect.any(Function), 'before', '0-2')
-// })
 
 test('wrapHook if successful', async () => {
     const config = { beforeAll: 'somehook' }

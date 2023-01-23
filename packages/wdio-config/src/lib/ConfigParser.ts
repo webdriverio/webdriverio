@@ -331,7 +331,7 @@ export default class ConfigParser {
     /**
      * return configs
      */
-    getConfig() {
+    getConfig () {
         if (!this.#isInitialised) {
             throw new Error('ConfigParser was not initialised, call "await config.initialize()" first!')
         }
