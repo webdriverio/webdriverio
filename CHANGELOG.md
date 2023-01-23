@@ -21,6 +21,20 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.2.3 (2023-01-23)
+
+#### :bug: Bug Fix
+* `wdio-config`, `wdio-mocha-framework`, `wdio-runner`
+  * [#9663](https://github.com/webdriverio/webdriverio/pull/9663) Support Mocha Root Hook Plugins ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :nail_care: Polish
+* `wdio-utils`
+  * [#9664](https://github.com/webdriverio/webdriverio/pull/9664) Improve wdio logging on browser/element objects ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
 ## v8.2.2 (2023-01-23)
 
 #### :memo: Documentation
