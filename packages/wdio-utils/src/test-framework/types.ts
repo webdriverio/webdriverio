@@ -22,10 +22,6 @@ export interface AfterHookParam<T> {
     afterFnArgs: HookFnArgs<T>
 }
 
-export interface JasmineContext {
-    failedExpectations: Array<Record<string, unknown>>
-}
-
 export type SpecArguments = (
     /**
      * e.g. before(() => { ... })

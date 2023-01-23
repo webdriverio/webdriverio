@@ -185,6 +185,46 @@ const jasmineTimeout = async () => {
 }
 
 /**
+ * Jasmine afterAll is wrongly reported as a failing test - issue #8979
+ * https://github.com/webdriverio/webdriverio/issues/8979
+ */
+const jasmineAfterAll = async () => {
+    const logFile = path.join(__dirname, 'jasmineAfterAll.spec.log')
+    await launch('jasmineAfterAll', baseConfig, {
+        autoCompileOpts: { autoCompile: false },
+        specs: [path.resolve(__dirname, 'jasmine', 'afterAll-report.js')],
+        reporters: [
+            ['spec', {
+                outputDir: __dirname,
+                stdout: false,
+                logFile
+            }]
+        ],
+        framework: 'jasmine'
+    }).catch((err) => err) // error expected
+
+    // eslint-disable-next-line no-control-regex
+    const specLogs = (await fs.readFile(logFile)).toString().replace(/[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g, '')
+
+    assert.ok(
+        specLogs.includes('Testing after all hook'),
+        'spec did not execute the expected describe'
+    )
+    assert.ok(
+        specLogs.includes('Error: expect(received).toBe(expected)'),
+        'spec did not fail with the expected check'
+    )
+    assert.ok(
+        specLogs.includes('✖ Should fail'),
+        'spec did not fail on the expected test'
+    )
+    assert.ok(
+        !specLogs.includes('✖ "after all" hook'),
+        'spec reported the after all hook as a failed test'
+    )
+}
+
+/**
  * Cucumber wdio testrunner tests
  */
 const cucumberTestrunner = async () => {
@@ -544,6 +584,7 @@ const nonGlobalTestrunner = async () => {
         jasmineSpecFiltering,
         jasmineReporter,
         jasmineTimeout,
+        jasmineAfterAll,
         retryFail,
         retryPass,
         customReporterString,
