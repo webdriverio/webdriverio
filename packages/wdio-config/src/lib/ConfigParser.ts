@@ -12,7 +12,7 @@ import {
 } from '../utils.js'
 import { SUPPORTED_HOOKS, SUPPORTED_FILE_EXTENSIONS, DEFAULT_CONFIGS, NO_NAMED_CONFIG_EXPORT } from '../constants.js'
 
-import type { PathService, ModuleImportService } from '../types.js'
+import type { PathService, ModuleImportService, ParsedConfiguration } from '../types.js'
 
 const log = logger('@wdio/config:ConfigParser')
 
@@ -331,11 +331,14 @@ export default class ConfigParser {
     /**
      * return configs
      */
-    getConfig() {
+    getConfig (): ParsedConfiguration {
         if (!this.#isInitialised) {
             throw new Error('ConfigParser was not initialised, call "await config.initialize()" first!')
         }
-        return this._config as Required<Options.Testrunner>
+        return {
+            configFilePath: this.#configFilePath,
+            ...(this._config as Required<Options.Testrunner>)
+        }
     }
 
     /**

@@ -4,7 +4,7 @@ import { EventEmitter } from 'node:events'
 
 import logger from '@wdio/logger'
 import { initialiseWorkerService, initialisePlugin, executeHooksWithArgs } from '@wdio/utils'
-import { ConfigParser } from '@wdio/config'
+import { ConfigParser, type ParsedConfiguration } from '@wdio/config'
 import { _setGlobal } from '@wdio/globals'
 import { expect, setOptions } from 'expect-webdriverio'
 import { attach } from 'webdriverio'
@@ -31,7 +31,7 @@ export default class Runner extends EventEmitter {
 
     private _reporter?: BaseReporter
     private _framework?: TestFramework
-    private _config?: Options.Testrunner
+    private _config?: ParsedConfiguration
     private _cid?: string
     private _specs?: string[]
     private _caps?: Capabilities.RemoteCapability
@@ -42,7 +42,7 @@ export default class Runner extends EventEmitter {
      * @param  {Object}    args           config arguments passed into worker process
      * @param  {String[]}  specs          list of spec files to run
      * @param  {Object}    caps           capabilities to run session with
-     * @param  {String}    configFile     path to config file to get config from
+     * @param  {String}    configFile      path to config file to get config from
      * @param  {Number}    retries        number of retries remaining
      * @return {Promise}                  resolves in number of failures for testrun
      */
@@ -196,7 +196,7 @@ export default class Runner extends EventEmitter {
 
     async #initFramework (
         cid: string,
-        config: Options.Testrunner,
+        config: ParsedConfiguration,
         capabilities: Capabilities.RemoteCapability,
         reporter: BaseReporter,
         specs: string[]

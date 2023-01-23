@@ -1,3 +1,5 @@
+import type { Options } from '@wdio/types'
+
 export interface PathService {
     // Require a .js/.json/dotfile config file
     loadFile<T>(path: string): Promise<T>
@@ -10,4 +12,8 @@ export interface PathService {
 
 export interface ModuleImportService {
     import<T>(module: string): Promise<T>
+}
+
+export interface ParsedConfiguration extends Required<Options.Testrunner> {
+    configFilePath: string
 }

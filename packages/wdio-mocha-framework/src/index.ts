@@ -1,14 +1,17 @@
 import url from 'node:url'
+import path from 'node:path'
 import type { Runner } from 'mocha'
 import Mocha from 'mocha'
+// @ts-expect-error not exposed from package yet, see https://github.com/mochajs/mocha/issues/4961
+import { handleRequires } from 'mocha/lib/cli/run-helpers.js'
 
 import logger from '@wdio/logger'
 import { executeHooksWithArgs } from '@wdio/utils'
-import type { Capabilities, Services } from '@wdio/types'
+import type { Capabilities, Services, Options } from '@wdio/types'
 
 import { formatMessage, setupEnv } from './common.js'
 import { EVENTS, NOOP } from './constants.js'
-import type { MochaConfig, MochaOpts as MochaOptsImport, FrameworkMessage, MochaError } from './types.js'
+import type { MochaOpts as MochaOptsImport, FrameworkMessage, MochaError } from './types.js'
 import type { EventEmitter } from 'node:events'
 
 const log = logger('@wdio/mocha-framework')
@@ -16,6 +19,9 @@ const FILE_PROTOCOL = 'file://'
 
 type EventTypes = 'hook' | 'test' | 'suite'
 type EventTypeProps = '_hookCnt' | '_testCnt' | '_suiteCnt'
+interface ParsedConfiguration extends Required<Options.Testrunner> {
+    configFilePath: string
+}
 
 /**
  * Mocha runner
@@ -35,7 +41,7 @@ class MochaAdapter {
 
     constructor(
         private _cid: string,
-        private _config: MochaConfig,
+        private _config: ParsedConfiguration,
         private _specs: string[],
         private _capabilities: Capabilities.RemoteCapability,
         private _reporter: EventEmitter
@@ -47,6 +53,15 @@ class MochaAdapter {
 
     async init() {
         const { mochaOpts } = this._config
+        if (Array.isArray(mochaOpts.require)) {
+            const plugins = await handleRequires(
+                mochaOpts.require
+                    .filter((p) => typeof p === 'string')
+                    .map((p) => path.resolve(path.dirname(this._config.configFilePath), p))
+            )
+            Object.assign(mochaOpts, plugins)
+        }
+
         const mocha = this._mocha = new Mocha(mochaOpts)
         await mocha.loadFilesAsync()
         mocha.reporter(NOOP as any)
