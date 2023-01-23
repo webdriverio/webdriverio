@@ -4,7 +4,7 @@ import { EventEmitter } from 'node:events'
 
 import logger from '@wdio/logger'
 import { initialiseWorkerService, initialisePlugin, executeHooksWithArgs } from '@wdio/utils'
-import { ConfigParser, type ParsedConfiguration } from '@wdio/config'
+import { ConfigParser } from '@wdio/config'
 import { _setGlobal } from '@wdio/globals'
 import { expect, setOptions } from 'expect-webdriverio'
 import { attach } from 'webdriverio'
@@ -31,7 +31,7 @@ export default class Runner extends EventEmitter {
 
     private _reporter?: BaseReporter
     private _framework?: TestFramework
-    private _config?: ParsedConfiguration
+    private _config?: Options.Testrunner
     private _cid?: string
     private _specs?: string[]
     private _caps?: Capabilities.RemoteCapability
@@ -196,7 +196,7 @@ export default class Runner extends EventEmitter {
 
     async #initFramework (
         cid: string,
-        config: ParsedConfiguration,
+        config: Options.Testrunner,
         capabilities: Capabilities.RemoteCapability,
         reporter: BaseReporter,
         specs: string[]

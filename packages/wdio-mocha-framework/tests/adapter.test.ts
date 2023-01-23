@@ -77,7 +77,7 @@ test('should properly set up mocha', async () => {
 
 test('should properly load mocha hooks', async () => {
     const adapter = adapterFactory({
-        configFilePath: path.join(__dirname, 'wdio.conf.js'),
+        rootDir: __dirname,
         mochaOpts: {
             require: ['./__fixtures__/mochaHooks.js']
         }

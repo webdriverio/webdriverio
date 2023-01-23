@@ -20,7 +20,7 @@ const FILE_PROTOCOL = 'file://'
 type EventTypes = 'hook' | 'test' | 'suite'
 type EventTypeProps = '_hookCnt' | '_testCnt' | '_suiteCnt'
 interface ParsedConfiguration extends Required<Options.Testrunner> {
-    configFilePath: string
+    rootDir: string
 }
 
 /**
@@ -57,7 +57,7 @@ class MochaAdapter {
             const plugins = await handleRequires(
                 mochaOpts.require
                     .filter((p) => typeof p === 'string')
-                    .map((p) => path.resolve(path.dirname(this._config.configFilePath), p))
+                    .map((p) => path.resolve(this._config.rootDir, p))
             )
             Object.assign(mochaOpts, plugins)
         }
