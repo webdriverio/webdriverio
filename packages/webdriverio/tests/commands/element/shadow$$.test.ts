@@ -1,6 +1,6 @@
 import { expect, describe, it, vi } from 'vitest'
 
-import $$ from '../../../src/commands/element/$$.js'
+import { $$ } from '../../../src/commands/element/$$.js'
 import { remote } from '../../../src/index.js'
 
 vi.mock('got')

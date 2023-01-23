@@ -25,7 +25,7 @@ const log = logger('webdriverio')
  * @type utility
  *
  */
-export default function scroll (
+export function scroll (
     this: WebdriverIO.Browser,
     x = 0,
     y = 0

@@ -27,6 +27,6 @@ describe('waitUntil', () => {
     })
 
     afterEach(() => {
-        got.mockClear()
+        vi.mocked(got).mockClear()
     })
 })

@@ -52,7 +52,7 @@ import type { TouchActions } from '../../types.js'
  * @for android, ios
  *
  */
-export default function touchAction (
+export function touchAction (
     this: WebdriverIO.Element,
     actions: TouchActions
 ) {

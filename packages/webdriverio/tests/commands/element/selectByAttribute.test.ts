@@ -26,20 +26,20 @@ describe('selectByAttribute test', () => {
     })
 
     afterEach(() => {
-        got.mockClear()
+        vi.mocked(got).mockClear()
         getElementFromResponseSpy.mockClear()
     })
 
     it('should select value by attribute when value is string', async () => {
         await elem.selectByAttribute('value', ' someValue1 ')
 
-        expect(got.mock.calls[1][0].pathname)
+        expect(vi.mocked(got).mock.calls[1][0]!.pathname)
             .toBe('/session/foobar-123/element')
-        expect(got.mock.calls[2][0].pathname)
+        expect(vi.mocked(got).mock.calls[2][0]!.pathname)
             .toBe('/session/foobar-123/element/some-elem-123/element')
-        expect(got.mock.calls[2][1].json.value)
+        expect(vi.mocked(got).mock.calls[2][1]!.json.value)
             .toBe('./option[normalize-space(@value) = "someValue1"]|./optgroup/option[normalize-space(@value) = "someValue1"]')
-        expect(got.mock.calls[3][0].pathname)
+        expect(vi.mocked(got).mock.calls[3][0]!.pathname)
             .toBe('/session/foobar-123/element/some-sub-elem-321/click')
         expect(getElementFromResponseSpy).toBeCalledWith({
             [ELEMENT_KEY]: 'some-sub-elem-321'
@@ -49,13 +49,13 @@ describe('selectByAttribute test', () => {
     it('should select value by attribute when value is number', async () => {
         await elem.selectByAttribute('value', 123)
 
-        expect(got.mock.calls[1][0].pathname)
+        expect(vi.mocked(got).mock.calls[1][0]!.pathname)
             .toBe('/session/foobar-123/element')
-        expect(got.mock.calls[2][0].pathname)
+        expect(vi.mocked(got).mock.calls[2][0]!.pathname)
             .toBe('/session/foobar-123/element/some-elem-123/element')
-        expect(got.mock.calls[2][1].json.value)
+        expect(vi.mocked(got).mock.calls[2][1]!.json.value)
             .toBe('./option[normalize-space(@value) = "123"]|./optgroup/option[normalize-space(@value) = "123"]')
-        expect(got.mock.calls[3][0].pathname)
+        expect(vi.mocked(got).mock.calls[3][0]!.pathname)
             .toBe('/session/foobar-123/element/some-sub-elem-321/click')
         expect(getElementFromResponseSpy).toBeCalledWith({
             [ELEMENT_KEY]: 'some-sub-elem-321'

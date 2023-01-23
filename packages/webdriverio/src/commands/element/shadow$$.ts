@@ -20,7 +20,7 @@ import { shadowFnFactory } from '../../scripts/shadowFnFactory.js'
  * @type utility
  *
  */
-export default async function shadowRoot (
+export async function shadow$$ (
     this: WebdriverIO.Element,
     selector: string
 ) {

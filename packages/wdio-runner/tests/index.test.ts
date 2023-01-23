@@ -6,7 +6,6 @@ import { describe, expect, it, vi, afterEach, beforeEach } from 'vitest'
 import { executeHooksWithArgs } from '@wdio/utils'
 import { ConfigParser } from '@wdio/config'
 import { attach } from 'webdriverio'
-import type { Browser, MultiRemoteBrowser } from 'webdriverio'
 import { _setGlobal } from '@wdio/globals'
 import { setOptions } from 'expect-webdriverio'
 
@@ -24,8 +23,8 @@ vi.mock('@wdio/globals', () => ({
     _setGlobal: vi.fn()
 }))
 
-type BrowserObject = Browser<'async'>
-type MultiRemoteBrowserObject = MultiRemoteBrowser<'async'>
+type BrowserObject = WebdriverIO.Browser
+type MultiRemoteBrowserObject = WebdriverIO.MultiRemoteBrowser
 
 describe('wdio-runner', () => {
     beforeEach(() => {
@@ -192,12 +191,9 @@ describe('wdio-runner', () => {
             runner['_browser'] = {
                 deleteSession: vi.fn(),
                 instances: ['foo', 'bar'],
-                foo: {
+                getInstance: vi.fn().mockReturnValue({
                     sessionId: '123',
-                },
-                bar: {
-                    sessionId: '456',
-                },
+                }),
                 capabilities: {
                     foo: {
                         browserName: 'Chrome'
@@ -215,8 +211,8 @@ describe('wdio-runner', () => {
                 [hook],
                 [{ logLevel: 'error', afterSession: [hook] }, { foo: undefined, bar: undefined }, undefined])
             expect(runner['_browser']!.deleteSession).toBeCalledTimes(1)
-            expect(!(runner['_browser'] as any as MultiRemoteBrowserObject).foo.sessionId).toBe(true)
-            expect(!(runner['_browser'] as any as MultiRemoteBrowserObject).bar.sessionId).toBe(true)
+            expect(!(runner['_browser'] as any as MultiRemoteBrowserObject).getInstance('foo').sessionId).toBe(true)
+            expect(!(runner['_browser'] as any as MultiRemoteBrowserObject).getInstance('bar').sessionId).toBe(true)
             expect(runner['_shutdown']).toBeCalledTimes(0)
         })
 
@@ -332,7 +328,7 @@ describe('wdio-runner', () => {
             const failures = await runner.run({ args: { watch: true }, caps: {}, configFile: '/foo/bar' } as any)
 
             expect(failures).toBe(0)
-            expect(runner['_browser'].url).not.toBeCalled()
+            expect(runner['_browser']?.url).not.toBeCalled()
         })
 
         it('should set failures to 1 in case of error', async () => {

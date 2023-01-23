@@ -1,4 +1,3 @@
-import type { Browser, MultiRemoteBrowser } from 'webdriverio'
 import type { SuiteStats, TestStats, RunnerStats } from '@wdio/reporter'
 import WDIOReporter from '@wdio/reporter'
 import type { Capabilities, Options } from '@wdio/types'
@@ -56,7 +55,7 @@ export default class TestReporter extends WDIOReporter {
                 result: testStats.state,
             }
 
-            const cloudProvider = getCloudProvider({ options: { hostname: this._config?.hostname } } as Browser<'async'> | MultiRemoteBrowser<'async'>)
+            const cloudProvider = getCloudProvider({ options: { hostname: this._config?.hostname } } as WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser)
             testData.integrations = {}
 
             testData.integrations[cloudProvider] = {

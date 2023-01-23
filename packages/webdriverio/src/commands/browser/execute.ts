@@ -35,8 +35,8 @@ import { verifyArgsAndStripIfElement } from '../../utils/index.js'
  * @type protocol
  *
  */
-export default function execute<ReturnValue, InnerArguments extends any[]> (
-    this: WebdriverIO.Browser | WebdriverIO.Element,
+export function execute<ReturnValue, InnerArguments extends any[]> (
+    this: WebdriverIO.Browser | WebdriverIO.Element | WebdriverIO.MultiRemoteBrowser,
     script: string | ((...innerArgs: InnerArguments) => ReturnValue),
     ...args: InnerArguments
 ): Promise<ReturnValue> {

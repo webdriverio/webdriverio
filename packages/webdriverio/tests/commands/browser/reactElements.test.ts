@@ -40,7 +40,7 @@ describe('react$', () => {
         expect(elems[2].selector).toBe('myComp')
         expect(elems[2].index).toBe(2)
         expect(got).toBeCalledTimes(4)
-        expect(got.mock.calls.pop()[1].json.args)
+        expect(vi.mocked(got).mock.calls.pop()![1]!.json.args)
             .toEqual(['myComp', { some: 'props' }, { some: 'state' }])
     })
 
@@ -53,7 +53,7 @@ describe('react$', () => {
         })
 
         await browser.react$$('myComp')
-        expect(got.mock.calls.pop()[1].json.args).toEqual(['myComp', {}, {}])
+        expect(vi.mocked(got).mock.calls.pop()![1]!.json.args).toEqual(['myComp', {}, {}])
     })
 
     it('should call getElements with React flag true', async () => {
@@ -66,8 +66,7 @@ describe('react$', () => {
 
         const elems = await browser.react$$('myComp')
 
-        expect(elems.filter(
-            (elem: WebdriverIO.Element) => elem.isReactElement
+        expect(elems.filter((elem: WebdriverIO.Element) => elem.isReactElement
         ).length).toBe(3)
         expect(elems.foundWith).toBe('react$$')
     })

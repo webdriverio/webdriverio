@@ -41,7 +41,7 @@
  * @type cookie
  *
  */
-export default function deleteCookies(
+export function deleteCookies(
     this: WebdriverIO.Browser,
     names?: string | string[]
 ) {

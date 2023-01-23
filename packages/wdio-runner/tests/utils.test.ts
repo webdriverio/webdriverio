@@ -128,49 +128,6 @@ describe('utils', () => {
         })).toEqual(validCaps)
     })
 
-    // describe('sendFailureMessage', () => {
-    //     const scenarios = [{
-    //         name: 'should send message on test fail',
-    //         event: 'test:fail',
-    //         calls: 1
-    //     }, {
-    //         name: 'should not send message on any other event',
-    //         event: 'test:pass',
-    //         calls: 0
-    //     }, {
-    //         name: 'should send message on before all hook failure',
-    //         event: 'hook:end',
-    //         payload: { error: true, title: '"before all" hook foobar' },
-    //         calls: 1
-    //     }, {
-    //         name: 'should send message on after all hook failure',
-    //         event: 'hook:end',
-    //         payload: { error: true, title: '"before all" hook foobar' },
-    //         calls: 1
-    //     }, {
-    //         name: 'should not send message on after all hook success',
-    //         event: 'hook:end',
-    //         payload: { error: false, title: '"before all" hook foobar' },
-    //         calls: 0
-    //     }, {
-    //         name: 'should not send message for other hooks',
-    //         event: 'hook:end',
-    //         payload: { error: true, title: '"after each" hook foobar' },
-    //         calls: 0
-    //     }]
-
-    //     scenarios.forEach(scenario => {
-    //         it(scenario.name, () => {
-    //             sendFailureMessage(scenario.event, scenario.payload)
-    //             expect(process.send).toHaveBeenCalledTimes(scenario.calls)
-    //         })
-    //     })
-
-    //     afterEach(() => {
-    //         vi.mocked(process.send)!.mockClear()
-    //     })
-    // })
-
     describe('getInstancesData', () => {
         it('isMultiremote = true', () => {
             const { sessionId, isW3C, protocol, hostname, port, path, queryParams } = {
@@ -185,11 +142,11 @@ describe('utils', () => {
 
             expect(getInstancesData({
                 instances: ['foo'],
-                foo: {
+                getInstance: vi.fn().mockReturnValue({
                     isW3C,
                     sessionId,
                     options: { protocol, hostname, port, path, queryParams }
-                }
+                })
             // @ts-expect-error
             } as any as WebdriverIO.MultiRemoteBrowserObject, true))
                 .toEqual({ foo: { sessionId, isW3C, protocol, hostname, port, path, queryParams } })

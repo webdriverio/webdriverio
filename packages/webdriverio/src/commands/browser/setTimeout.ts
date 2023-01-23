@@ -36,7 +36,7 @@ import type { Timeouts } from '@wdio/protocols'
  *
  */
 
-export default async function setTimeout(
+export async function setTimeout(
     this: WebdriverIO.Browser,
     timeouts: Partial<Timeouts>
 ): Promise<void> {

@@ -1,16 +1,16 @@
+/// <reference path="../../webdriverio/src/@types/async.d.ts" />
 import path from 'node:path'
 
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
 import got from 'got'
 import logger from '@wdio/logger'
-import type { Browser, MultiRemoteBrowser } from 'webdriverio'
 
 import InsightsHandler from '../src/insights-handler.js'
 import * as utils from '../src/util.js'
 
 const log = logger('test')
 let insightsHandler: InsightsHandler
-let browser: Browser<'async'> | MultiRemoteBrowser<'async'>
+let browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
 
 vi.mock('got')
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
@@ -50,15 +50,16 @@ beforeEach(() => {
                 browserName: 'chrome'
             } }
         },
+        getInstance: vi.fn().mockImplementation((browserName: string) => browser[browserName]),
         browserB: {},
         execute: vi.fn(),
         on: vi.fn(),
-    } as any as Browser<'async'> | MultiRemoteBrowser<'async'>
-    insightsHandler = new InsightsHandler(browser, {} as any, false, 'sessionId', 'framework')
+    } as any as WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
+    insightsHandler = new InsightsHandler(browser, false, 'framework')
 })
 
 it('should initialize correctly', () => {
-    insightsHandler = new InsightsHandler(browser, {} as any, false, 'sessionId', 'framework')
+    insightsHandler = new InsightsHandler(browser, false, 'framework')
     expect(insightsHandler['_tests']).toEqual({})
     expect(insightsHandler['_hooks']).toEqual({})
     expect(insightsHandler['_commands']).toEqual({})
@@ -66,10 +67,10 @@ it('should initialize correctly', () => {
 })
 
 describe('before', () => {
-    insightsHandler = new InsightsHandler(browser, {} as any, false, 'sessionId', 'framework')
-    const isBrowserstackSessionSpy = vi.spyOn(utils, 'isBrowserstackSession').mockImplementation()
+    const isBrowserstackSessionSpy = vi.spyOn(utils, 'isBrowserstackSession')
 
     beforeEach(() => {
+        insightsHandler = new InsightsHandler(browser, false, 'framework')
         isBrowserstackSessionSpy.mockClear()
     })
 
@@ -86,12 +87,14 @@ describe('before', () => {
 })
 
 describe('beforeScenario', () => {
-    const insightsHandler = new InsightsHandler(browser, {} as any, false, 'sessionId', 'framework')
-    const getUniqueIdentifierForCucumberSpy = vi.spyOn(utils, 'getUniqueIdentifierForCucumber').mockReturnValue('test title')
-    const sendSpy = vi.spyOn(insightsHandler, 'sendTestRunEventForCucumber').mockImplementation()
-    insightsHandler['_tests'] = {}
-    getUniqueIdentifierForCucumberSpy.mockClear()
-    sendSpy.mockClear()
+    let insightsHandler
+
+    beforeEach(() => {
+        insightsHandler = new InsightsHandler(browser, false, 'framework')
+        vi.spyOn(utils, 'getUniqueIdentifierForCucumber').mockReturnValue('test title')
+        insightsHandler['sendTestRunEventForCucumber'] = vi.fn()
+        insightsHandler['_tests'] = {}
+    })
 
     it('sendTestRunEventForCucumber called', () => {
         insightsHandler.beforeScenario({
@@ -107,15 +110,18 @@ describe('beforeScenario', () => {
                 }
             }
         } as any)
-        expect(sendSpy).toBeCalledTimes(1)
+        expect(insightsHandler['sendTestRunEventForCucumber']).toBeCalledTimes(1)
     })
 })
 
 describe('afterScenario', () => {
-    const insightsHandler = new InsightsHandler(browser, {} as any, false, 'sessionId', 'framework')
-    const sendSpy = vi.spyOn(insightsHandler, 'sendTestRunEventForCucumber').mockImplementation()
-    insightsHandler['_tests'] = {}
-    sendSpy.mockClear()
+    let insightsHandler
+
+    beforeEach(() => {
+        insightsHandler = new InsightsHandler(browser, false, 'framework')
+        insightsHandler['sendTestRunEventForCucumber'] = vi.fn()
+        insightsHandler['_tests'] = {}
+    })
 
     it('sendTestRunEventForCucumber called', () => {
         insightsHandler.afterScenario({
@@ -131,63 +137,139 @@ describe('afterScenario', () => {
                 }
             }
         } as any)
-        expect(sendSpy).toBeCalledTimes(1)
+        expect(insightsHandler['sendTestRunEventForCucumber']).toBeCalledTimes(1)
     })
 })
 
 describe('beforeStep', () => {
-    const insightsHandler = new InsightsHandler(browser, {} as any, false, 'sessionId', 'framework')
-    const getUniqueIdentifierForCucumberSpy = vi.spyOn(utils, 'getUniqueIdentifierForCucumber').mockReturnValue('test title')
-    vi.spyOn(insightsHandler, 'getHierarchy').mockImplementation(() => { return [] })
+    let insightsHandler
 
     beforeEach(() => {
-        getUniqueIdentifierForCucumberSpy.mockClear()
+        insightsHandler = new InsightsHandler(browser, false, 'framework')
+        vi.spyOn(utils, 'getUniqueIdentifierForCucumber').mockReturnValue('test title')
+        insightsHandler['getHierarchy'] = vi.fn().mockImplementation(() => { return [] })
     })
 
     it('update test data', () => {
-        insightsHandler['_tests'] = { 'test title': { uuid: 'uuid', startedAt: '', finishedAt: '', feature: { name: 'name', path: 'path' }, scenario: { name: 'name' } } }
+        insightsHandler['_tests'] = {
+            'test title': {
+                uuid: 'uuid',
+                startedAt: '',
+                finishedAt: '',
+                feature: { name: 'name', path: 'path', description: 'description' },
+                scenario: { name: 'name' }
+            }
+        }
         insightsHandler.beforeStep({ id: 'step_id', text: 'this is step', keyword: 'Given' } as any, {} as any)
-        expect(insightsHandler['_tests']).toEqual({ 'test title': { uuid: 'uuid', startedAt: '', finishedAt: '', feature: { name: 'name', path: 'path' }, scenario: { name: 'name' }, steps: [{ id: 'step_id', text: 'this is step', keyword: 'Given', started_at: '2020-01-01T00:00:00.000Z' }] } })
+        expect(insightsHandler['_tests']).toEqual({
+            'test title': {
+                uuid: 'uuid',
+                startedAt: '',
+                finishedAt: '',
+                feature: { name: 'name', path: 'path', description: 'description' },
+                scenario: { name: 'name' },
+                steps: [{
+                    id: 'step_id',
+                    text: 'this is step',
+                    keyword: 'Given',
+                    started_at: '2020-01-01T00:00:00.000Z'
+                }]
+            }
+        })
     })
 
     it('add test data', () => {
         insightsHandler['_tests'] = { }
         insightsHandler.beforeStep({ id: 'step_id', text: 'this is step', keyword: 'Given' } as any, {} as any)
-        expect(insightsHandler['_tests']).toEqual({ 'test title': { steps: [{ id: 'step_id', text: 'this is step', keyword: 'Given', started_at: '2020-01-01T00:00:00.000Z' }] } })
-    })
-
-    afterEach(() => {
-        getUniqueIdentifierForCucumberSpy.mockClear()
+        expect(insightsHandler['_tests']).toEqual({
+            'test title': {
+                steps: [{
+                    id: 'step_id',
+                    text: 'this is step',
+                    keyword: 'Given',
+                    started_at: '2020-01-01T00:00:00.000Z'
+                }]
+            }
+        })
     })
 })
 
 describe('afterStep', () => {
-    const insightsHandler = new InsightsHandler(browser, {} as any, false, 'sessionId', 'framework')
-    const getUniqueIdentifierForCucumberSpy = vi.spyOn(utils, 'getUniqueIdentifierForCucumber').mockReturnValue('test title')
-    vi.spyOn(insightsHandler, 'getHierarchy').mockImplementation(() => { return [] })
+    let insightsHandler
 
     beforeEach(() => {
-        getUniqueIdentifierForCucumberSpy.mockClear()
+        insightsHandler = new InsightsHandler(browser, false, 'framework')
+        vi.spyOn(utils, 'getUniqueIdentifierForCucumber').mockReturnValue('test title')
+        insightsHandler['getHierarchy'] = vi.fn().mockImplementation(() => { return [] })
     })
 
     it('update test data - passed case', () => {
-        insightsHandler['_tests'] = { 'test title': { uuid: 'uuid', startedAt: '', finishedAt: '', feature: { name: 'name', path: 'path' }, scenario: { name: 'name' } } }
+        insightsHandler['_tests'] = {
+            'test title': {
+                uuid: 'uuid',
+                startedAt: '',
+                finishedAt: '',
+                feature: { name: 'name', path: 'path', description: 'description' },
+                scenario: { name: 'name' }
+            }
+        }
         insightsHandler.afterStep({ id: 'step_id', text: 'this is step', keyword: 'Given' } as any, {} as any, {
             passed: true,
             duration: 10,
             error: undefined
         })
-        expect(insightsHandler['_tests']).toEqual({ 'test title': { uuid: 'uuid', startedAt: '', finishedAt: '', feature: { name: 'name', path: 'path' }, scenario: { name: 'name' }, steps: [{ id: 'step_id', text: 'this is step', keyword: 'Given', 'result': 'PASSED', duration: 10, failure: undefined, finished_at: '2020-01-01T00:00:00.000Z' }] } })
+        expect(insightsHandler['_tests']).toEqual({
+            'test title': {
+                uuid: 'uuid',
+                startedAt: '',
+                finishedAt: '',
+                feature: { name: 'name', path: 'path', description: 'description' },
+                scenario: { name: 'name' },
+                steps: [{
+                    id: 'step_id',
+                    text: 'this is step',
+                    keyword: 'Given',
+                    'result': 'PASSED',
+                    duration: 10,
+                    failure: undefined,
+                    finished_at: '2020-01-01T00:00:00.000Z'
+                }]
+            }
+        })
     })
 
     it('update test data - step present', () => {
-        insightsHandler['_tests'] = { 'test title': { uuid: 'uuid', startedAt: '', finishedAt: '', feature: { name: 'name', path: 'path' }, scenario: { name: 'name' }, steps: [{ id: 'step_id' }] } }
+        insightsHandler['_tests'] = {
+            'test title': {
+                uuid: 'uuid',
+                startedAt: '',
+                finishedAt: '',
+                feature: { name: 'name', path: 'path', description: 'description' },
+                scenario: { name: 'name' },
+                steps: [{ id: 'step_id' }]
+            }
+        }
         insightsHandler.afterStep({ id: 'step_id', text: 'this is step', keyword: 'Given' } as any, {} as any, {
             passed: true,
             duration: 10,
             error: undefined
         })
-        expect(insightsHandler['_tests']).toEqual({ 'test title': { uuid: 'uuid', startedAt: '', finishedAt: '', feature: { name: 'name', path: 'path' }, scenario: { name: 'name' }, steps: [{ id: 'step_id', 'result': 'PASSED', duration: 10, failure: undefined, finished_at: '2020-01-01T00:00:00.000Z' }] } })
+        expect(insightsHandler['_tests']).toEqual({
+            'test title': {
+                uuid: 'uuid',
+                startedAt: '',
+                finishedAt: '',
+                feature: { name: 'name', path: 'path', description: 'description' },
+                scenario: { name: 'name' },
+                steps: [{
+                    id: 'step_id',
+                    result: 'PASSED',
+                    duration: 10,
+                    failure: undefined,
+                    finished_at: '2020-01-01T00:00:00.000Z'
+                }]
+            }
+        })
     })
 
     it('add test data', () => {
@@ -201,22 +283,46 @@ describe('afterStep', () => {
     })
 
     it('failed case', () => {
-        insightsHandler['_tests'] = { 'test title': { uuid: 'uuid', startedAt: '', finishedAt: '', feature: { name: 'name', path: 'path' }, scenario: { name: 'name' }, steps: [{ id: 'step_id' }] } }
+        insightsHandler['_tests'] = {
+            'test title': {
+                uuid: 'uuid',
+                startedAt: '',
+                finishedAt: '',
+                feature: { name: 'name', path: 'path', description: 'description' },
+                scenario: { name: 'name' },
+                steps: [{ id: 'step_id' }]
+            }
+        }
         insightsHandler.afterStep({ id: 'step_id', text: 'this is step', keyword: 'Given' } as any, {} as any, {
             passed: false,
             duration: 10,
             error: 'this is a error'
         })
-        expect(insightsHandler['_tests']).toEqual({ 'test title': { uuid: 'uuid', startedAt: '', finishedAt: '', feature: { name: 'name', path: 'path' }, scenario: { name: 'name' }, steps: [{ id: 'step_id', 'result': 'FAILED', duration: 10, failure: 'this is a error', finished_at: '2020-01-01T00:00:00.000Z' }] } })
-    })
-
-    afterEach(() => {
-        getUniqueIdentifierForCucumberSpy.mockClear()
+        expect(insightsHandler['_tests']).toEqual({
+            'test title': {
+                uuid: 'uuid',
+                startedAt: '',
+                finishedAt: '',
+                feature: { name: 'name', path: 'path', description: 'description' },
+                scenario: { name: 'name' },
+                steps: [{
+                    id: 'step_id',
+                    result: 'FAILED',
+                    duration: 10,
+                    failure: 'this is a error',
+                    finished_at: '2020-01-01T00:00:00.000Z'
+                }]
+            }
+        })
     })
 })
 
 describe('attachHookData', () => {
-    const insightsHandler = new InsightsHandler(browser, {} as any, false, 'sessionId', 'framework')
+    let insightsHandler
+
+    beforeEach(() => {
+        insightsHandler = new InsightsHandler(browser, false, 'framework')
+    })
 
     it('add hooks data in test', () => {
         insightsHandler['_hooks'] = {}
@@ -246,7 +352,11 @@ describe('attachHookData', () => {
 })
 
 describe('getHierarchy', () => {
-    const insightsHandler = new InsightsHandler(browser, {} as any, false, 'sessionId', 'framework')
+    let insightsHandler
+
+    beforeEach(() => {
+        insightsHandler = new InsightsHandler(browser, false, 'framework')
+    })
 
     it('return array of getHierarchy when context present', () => {
         expect(insightsHandler['getHierarchy']({
@@ -269,161 +379,150 @@ describe('getHierarchy', () => {
 })
 
 describe('beforeTest', () => {
-    const insightsHandler = new InsightsHandler(browser, {} as any, false, 'sessionId', 'framework')
-    const sendSpy = vi.spyOn(insightsHandler, 'sendTestRunEvent').mockImplementation(() => { return [] })
-    const getUniqueIdentifierSpy = vi.spyOn(utils, 'getUniqueIdentifier').mockReturnValue('test title')
-
-    insightsHandler['_tests'] = {}
-    insightsHandler['_hooks'] = {
-        'test title': ['hook_id']
-    }
+    let insightsHandler
 
     beforeEach(() => {
-        sendSpy.mockClear()
-        getUniqueIdentifierSpy.mockClear()
+        insightsHandler = new InsightsHandler(browser, false, 'framework')
+        insightsHandler['sendTestRunEvent'] = vi.fn().mockImplementation(() => { return [] })
+        vi.spyOn(utils, 'getUniqueIdentifier').mockReturnValue('test title')
+        insightsHandler['_tests'] = {}
+        insightsHandler['_hooks'] = {
+            'test title': ['hook_id']
+        }
     })
 
     it('update test data', async () => {
-        await insightsHandler.beforeTest({ parent: 'parent', title: 'test' } as any, {} as any)
+        await insightsHandler.beforeTest({ parent: 'parent', title: 'test' } as any)
         expect(insightsHandler['_tests']).toEqual({ 'test title': { uuid: '123456789', startedAt: '2020-01-01T00:00:00.000Z' } })
-        expect(sendSpy).toBeCalledTimes(1)
-    })
-
-    afterEach(() => {
-        sendSpy.mockClear()
-        getUniqueIdentifierSpy.mockClear()
+        expect(insightsHandler['sendTestRunEvent']).toBeCalledTimes(1)
     })
 })
 
 describe('beforeHook', () => {
-    const insightsHandler = new InsightsHandler(browser, {} as any, false, 'sessionId', 'framework')
-    const sendSpy = vi.spyOn(insightsHandler, 'sendTestRunEvent').mockImplementation(() => { return [] })
-    const attachHookDataSpy = vi.spyOn(insightsHandler, 'attachHookData').mockImplementation(() => { return [] })
-
-    insightsHandler['_tests'] = {}
-    insightsHandler['_framework'] = 'mocha'
+    let insightsHandler
 
     beforeEach(() => {
-        sendSpy.mockClear()
-        attachHookDataSpy.mockClear()
+        insightsHandler = new InsightsHandler(browser, false, 'framework')
+        insightsHandler['sendTestRunEvent'] = vi.fn().mockImplementation(() => { return [] })
+        insightsHandler['attachHookData'] = vi.fn().mockImplementation(() => { return [] })
+        insightsHandler['_tests'] = {}
+        insightsHandler['_framework'] = 'mocha'
     })
 
-    afterEach(() => {
-        sendSpy.mockClear()
-        attachHookDataSpy.mockClear()
+    beforeEach(() => {
+        vi.mocked(insightsHandler['sendTestRunEvent']).mockClear()
+        vi.mocked(insightsHandler['attachHookData']).mockClear()
     })
 
     it('update hook data', async () => {
         await insightsHandler.beforeHook({ parent: 'parent', title: 'test' } as any, {} as any)
         expect(insightsHandler['_tests']).toEqual({ 'parent - test': { uuid: '123456789', startedAt: '2020-01-01T00:00:00.000Z' } })
-        expect(sendSpy).toBeCalledTimes(1)
+        expect(insightsHandler['sendTestRunEvent']).toBeCalledTimes(1)
     })
 })
 
 describe('afterHook', () => {
-    const insightsHandler = new InsightsHandler(browser, {} as any, false, 'sessionId', 'framework')
-    const sendSpy = vi.spyOn(insightsHandler, 'sendTestRunEvent').mockImplementation(() => { return [] })
-    const attachHookDataSpy = vi.spyOn(insightsHandler, 'attachHookData').mockImplementation(() => { return [] })
-    const getUniqueIdentifierSpy = vi.spyOn(utils, 'getUniqueIdentifier').mockReturnValue('test title')
-    const getUniqueIdentifierForCucumberSpy = vi.spyOn(utils, 'getUniqueIdentifierForCucumber').mockReturnValue('test title')
-
-    insightsHandler['_framework'] = 'mocha'
+    let insightsHandler
 
     beforeEach(() => {
-        sendSpy.mockClear()
-        attachHookDataSpy.mockClear()
-        getUniqueIdentifierForCucumberSpy.mockClear()
-        getUniqueIdentifierSpy.mockClear()
+        insightsHandler = new InsightsHandler(browser, false, 'mocha')
+        insightsHandler['sendTestRunEvent'] = vi.fn().mockImplementation(() => { return [] })
+        insightsHandler['attachHookData'] = vi.fn().mockImplementation(() => { return [] })
+
+        vi.spyOn(utils, 'getUniqueIdentifier').mockReturnValue('test title')
+        vi.spyOn(utils, 'getUniqueIdentifierForCucumber').mockReturnValue('test title')
+        vi.mocked(insightsHandler['sendTestRunEvent']).mockClear()
+        vi.mocked(insightsHandler['attachHookData']).mockClear()
     })
 
     it('add hook data', async () => {
         insightsHandler['_tests'] = {}
-        await insightsHandler.afterHook({ parent: 'parent', title: 'test' } as any, {} as any, {} as any)
+        await insightsHandler.afterHook({ parent: 'parent', title: 'test' } as any, {} as any)
         expect(insightsHandler['_tests']).toEqual({ 'test title': { finishedAt: '2020-01-01T00:00:00.000Z', } })
-        expect(sendSpy).toBeCalledTimes(1)
+        expect(insightsHandler['sendTestRunEvent']).toBeCalledTimes(1)
     })
 
     it('update hook data', async () => {
         insightsHandler['_tests'] = { 'test title': {} }
-        await insightsHandler.afterHook({ parent: 'parent', title: 'test' } as any, {} as any, {} as any)
+        await insightsHandler.afterHook({ parent: 'parent', title: 'test' } as any, {} as any)
         expect(insightsHandler['_tests']).toEqual({ 'test title': { finishedAt: '2020-01-01T00:00:00.000Z', } })
-        expect(sendSpy).toBeCalledTimes(1)
-    })
-
-    afterEach(() => {
-        sendSpy.mockClear()
-        attachHookDataSpy.mockClear()
-        getUniqueIdentifierForCucumberSpy.mockClear()
-        getUniqueIdentifierSpy.mockClear()
+        expect(insightsHandler['sendTestRunEvent']).toBeCalledTimes(1)
     })
 })
 
 describe('getIntegrationsObject', () => {
-    const insightsHandler = new InsightsHandler(browser, {} as any, false, 'sessionId', 'framework')
-    insightsHandler['_platformMeta'] = { caps: {},  sessionId: '', browserName: '', browserVersion: '', platformName: '', product: '' }
+    let insightsHandler
+
+    beforeEach(() => {
+        insightsHandler = new InsightsHandler(browser, false, 'framework')
+        insightsHandler['_platformMeta'] = { caps: {},  sessionId: '', browserName: '', browserVersion: '', platformName: '', product: '' }
+    })
 
     it('return hash', () => {
-        expect(insightsHandler.getIntegrationsObject()).toBeInstanceOf(Object)
+        expect(insightsHandler['getIntegrationsObject']()).toBeInstanceOf(Object)
     })
 })
 
 describe('browserCommand', () => {
-    const insightsHandler = new InsightsHandler(browser, {} as any, false, 'sessionId', 'framework')
-    const uploadEventDataSpy = vi.spyOn(utils, 'uploadEventData').mockImplementation(() => { return [] })
-    const getIdentifierSpy = vi.spyOn(insightsHandler, 'getIdentifier').mockImplementation(() => { return 'test title' })
-    const commandSpy = vi.spyOn(utils, 'isScreenshotCommand')
-
-    insightsHandler['_tests'] = { 'test title': { 'uuid': 'uuid' } }
-    insightsHandler['_commands'] = { 's_m_e': {} }
+    let insightsHandler
+    let uploadEventDataSpy
+    let commandSpy
 
     beforeEach(() => {
-        uploadEventDataSpy.mockClear()
-        getIdentifierSpy.mockClear()
+        insightsHandler = new InsightsHandler(browser, false, 'framework')
+        insightsHandler['getIdentifier'] = vi.fn().mockImplementation(() => { return 'test title' })
+        insightsHandler['_tests'] = { 'test title': { 'uuid': 'uuid' } }
+        insightsHandler['_commands'] = { 's_m_e': {} as any }
+
+        uploadEventDataSpy = vi.spyOn(utils, 'uploadEventData').mockImplementation(() => { return [] as any })
+        commandSpy = vi.spyOn(utils, 'isScreenshotCommand')
     })
 
     it('client:beforeCommand', () => {
-        insightsHandler.browserCommand('client:beforeCommand', {}, {})
+        insightsHandler.browserCommand('client:beforeCommand', {} as any, {} as any)
         expect(uploadEventDataSpy).toBeCalledTimes(0)
     })
 
     it('client:afterCommand - test not defined', () => {
-        insightsHandler.browserCommand('client:afterCommand', { sessionId: 's', method: 'm', endpoint: 'e', result: {} }, undefined)
+        insightsHandler.browserCommand('client:afterCommand', { sessionId: 's', method: 'm', endpoint: 'e', result: {} } as any, undefined)
         expect(uploadEventDataSpy).toBeCalledTimes(0)
     })
 
     it('client:afterCommand - screenshot', () => {
         process.env.BS_TESTOPS_ALLOW_SCREENSHOTS = 'true'
         commandSpy.mockImplementation(() => { return true })
-        insightsHandler.browserCommand('client:afterCommand', { sessionId: 's', method: 'm', endpoint: 'e', result: { value: 'random' } }, {})
+        insightsHandler.browserCommand('client:afterCommand', { sessionId: 's', method: 'm', endpoint: 'e', result: { value: 'random' } } as any, {} as any)
         expect(uploadEventDataSpy).toBeCalled()
         delete process.env.BS_TESTOPS_ALLOW_SCREENSHOTS
     })
 
-    afterEach(() => {
-        uploadEventDataSpy.mockClear()
-        getIdentifierSpy.mockClear()
+    it('return if test not in _tests', () => {
+        insightsHandler.browserCommand('client:afterCommand', { sessionId: 's', method: 'm', endpoint: 'e', result: { value: 'random' } } as any, {} as any)
+        insightsHandler['_tests'] = { 'test title not there': { 'uuid': 'uuid' } }
+        expect(uploadEventDataSpy).toBeCalledTimes(0)
     })
 })
 
 describe('getIdentifier', () => {
-    const insightsHandler = new InsightsHandler(browser, {} as any, false, 'sessionId', 'framework')
-    const getUniqueIdentifierSpy = vi.spyOn(utils, 'getUniqueIdentifier')
-    const getUniqueIdentifierForCucumberSpy = vi.spyOn(utils, 'getUniqueIdentifierForCucumber')
-
-    insightsHandler['_tests'] = { 'test title': { 'uuid': 'uuid' } }
+    let insightsHandler
+    let getUniqueIdentifierSpy
+    let getUniqueIdentifierForCucumberSpy
 
     beforeEach(() => {
-        getUniqueIdentifierSpy.mockClear()
-        getUniqueIdentifierForCucumberSpy.mockClear()
+        insightsHandler = new InsightsHandler(browser, false, 'framework')
+        insightsHandler['_tests'] = { 'test title': { 'uuid': 'uuid' } }
+
+        getUniqueIdentifierSpy = vi.spyOn(utils, 'getUniqueIdentifier')
+        getUniqueIdentifierForCucumberSpy = vi.spyOn(utils, 'getUniqueIdentifierForCucumber')
     })
 
     it('non cucumber', () => {
-        insightsHandler['getIdentifier']({ parent: 'parent', title: 'title' })
+        insightsHandler['getIdentifier']({ parent: 'parent', title: 'title' } as any)
         expect(getUniqueIdentifierSpy).toBeCalledTimes(1)
     })
 
     it('cucumber', () => {
-        insightsHandler['getIdentifier']({ pickle: { uri: 'uri', astNodeIds: ['9', '8'] } })
+        insightsHandler['getIdentifier']({ pickle: { uri: 'uri', astNodeIds: ['9', '8'] } } as any)
         expect(getUniqueIdentifierForCucumberSpy).toBeCalledTimes(1)
     })
 

@@ -3,6 +3,9 @@ id: repl
 title: REPL interface
 ---
 
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 With `v4.5.0`, WebdriverIO introduced a [REPL](https://en.wikipedia.org/wiki/Read%E2%80%93eval%E2%80%93print_loop) interface that helps you to not only learn the framework API, but also debug and inspect your tests. It can be used in multiple ways.
 
 First you can use it as CLI command by installing `npm install -g @wdio/cli` and spawn a WebDriver session from the command line, e.g.
@@ -72,16 +75,28 @@ wdio repl "./path/to/wdio.config.js" "myChromeBrowser" -p 9515
 
 Or if you want to run local mobile tests using Appium:
 
-<!--DOCUSAURUS_CODE_TABS-->
-<!--Android-->
+<Tabs
+  defaultValue="mocha"
+  values={[
+    {label: 'Android', value: 'android'},
+    {label: 'iOS', value: 'ios'}
+  ]
+}>
+<TabItem value="android">
+
 ```sh
 wdio repl android
 ```
-<!--iOS-->
+
+</TabItem>
+<TabItem value="ios">
+
 ```sh
 wdio repl ios
 ```
-<!--END_DOCUSAURUS_CODE_TABS-->
+
+</TabItem>
+</Tabs>
 
 This would open Chrome/Safari session on connected device/emulator/simulator. Make sure Appium running on port `4444` in order to initiate the session.
 
@@ -99,16 +114,28 @@ Capabilities for iOS device can be passed with arguments:
 
 Usage:
 
-<!--DOCUSAURUS_CODE_TABS-->
-<!--Long Parameter Names-->
+<Tabs
+  defaultValue="mocha"
+  values={[
+    {label: 'Long Parameter Names', value: 'long'},
+    {label: 'Short Parameter Names', value: 'short'}
+  ]
+}>
+<TabItem value="long">
+
 ```sh
 wdio repl ios --platformVersion 11.3 --deviceName 'iPhone 7' --udid 123432abc
 ```
-<!--Short Parameter Names-->
+
+</TabItem>
+<TabItem value="short">
+
 ```sh
 wdio repl ios -v 11.3 -d 'iPhone 7' -u 123432abc
 ```
-<!--END_DOCUSAURUS_CODE_TABS-->
+
+</TabItem>
+</Tabs>
 
 You can apply any options (see `wdio repl --help`) available for your REPL session.
 

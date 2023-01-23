@@ -26,17 +26,17 @@ describe('selectByIndex test', () => {
     })
 
     afterEach(() => {
-        got.mockClear()
+        vi.mocked(got).mockClear()
     })
 
     it('should select by index', async () => {
         await elem.selectByIndex(1)
 
-        expect(got.mock.calls[1][0].pathname)
+        expect(vi.mocked(got).mock.calls[1][0]!.pathname)
             .toBe('/session/foobar-123/element')
-        expect(got.mock.calls[2][0].pathname)
+        expect(vi.mocked(got).mock.calls[2][0]!.pathname)
             .toBe('/session/foobar-123/element/some-elem-123/elements')
-        expect(got.mock.calls[3][0].pathname)
+        expect(vi.mocked(got).mock.calls[3][0]!.pathname)
             .toBe('/session/foobar-123/element/some-elem-456/click')
         expect(getElementFromResponseSpy).toBeCalledWith({
             [ELEMENT_KEY]: 'some-elem-456',

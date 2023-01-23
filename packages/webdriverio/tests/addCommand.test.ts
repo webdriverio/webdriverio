@@ -1,6 +1,7 @@
 import path from 'node:path'
 import { describe, test, expect, vi } from 'vitest'
 import type { Options, Capabilities } from '@wdio/types'
+
 import { remote, multiremote } from '../src/index.js'
 
 vi.mock('got')
@@ -11,6 +12,23 @@ const remoteConfig: Options.WebdriverIO = {
     baseUrl: 'http://foobar.com',
     capabilities: {
         browserName: 'foobar-noW3C'
+    }
+}
+
+declare global {
+    namespace WebdriverIO {
+        interface Browser {
+            myOtherCustomCommand: (param: string) => Promise<{ param: string, commandResult: string }>
+        }
+
+        interface MultiRemoteBrowser {
+            myCustomCommand: (arg: any) => Promise<void>
+            myOtherCustomCommand: (param: string) => Promise<{ param: string, commandResult: string }>
+        }
+
+        interface MultiRemoteElement {
+            myCustomOtherOtherCommand: (param: string) => Promise<{ param: string, commandResult: string }>
+        }
     }
 }
 
@@ -341,18 +359,15 @@ describe('addCommand', () => {
             const browser = await multiremote(multiremoteConfig)
 
             expect(typeof browser.myOtherCustomCommand).toBe('undefined')
-            browser.browserA.addCommand('myOtherCustomCommand', async function (this: WebdriverIO.Browser, param: any) {
+            browser.getInstance('browserA').addCommand('myOtherCustomCommand', async function (this: WebdriverIO.Browser, param: string) {
                 const commandResult = await this.execute(() => 'foobar')
                 return { param, commandResult }
             })
 
             expect(typeof browser.myOtherCustomCommand).toBe('undefined')
-            // @ts-expect-error undefined custom command
-            expect(typeof browser.browserB.myOtherCustomCommand).toBe('undefined')
-            // @ts-expect-error undefined custom command
-            expect(typeof browser.browserA.myOtherCustomCommand).toBe('function')
-            // @ts-expect-error undefined custom command
-            const { param, commandResult } = await browser.browserA.myOtherCustomCommand('barfoo')
+            expect(typeof browser.getInstance('browserB').myOtherCustomCommand).toBe('undefined')
+            expect(typeof browser.getInstance('browserA').myOtherCustomCommand).toBe('function')
+            const { param, commandResult } = await browser.getInstance('browserA').myOtherCustomCommand('barfoo')
             expect(param).toBe('barfoo')
             expect(commandResult).toEqual('foobar')
         })

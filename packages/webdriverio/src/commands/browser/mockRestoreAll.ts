@@ -28,7 +28,7 @@ const log = logger('webdriverio:mockRestoreAll')
  *
  * @alias browser.mockRestoreAll
  */
-export default async function mockRestoreAll () {
+export async function mockRestoreAll () {
     for (const [handle, mocks] of Object.entries(SESSION_MOCKS)) {
         log.trace(`Clearing mocks for ${handle}`)
         for (const mock of mocks) {

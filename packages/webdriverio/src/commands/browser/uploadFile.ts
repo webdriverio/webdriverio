@@ -33,7 +33,7 @@ import type { Capabilities } from '@wdio/types'
  * @uses protocol/file
  * @return {String} remote URL
  */
-export default async function uploadFile (
+export async function uploadFile (
     this: WebdriverIO.Browser,
     localPath: string
 ): Promise<string> {

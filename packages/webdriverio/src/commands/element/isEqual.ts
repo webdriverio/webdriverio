@@ -28,7 +28,7 @@ const getWebElement = (el: WebdriverIO.Element) => ({
  * @return  {Boolean}   true if elements are equal
  *
  */
-export default async function isEqual (
+export async function isEqual (
     this: WebdriverIO.Element,
     el: WebdriverIO.Element
 ) {

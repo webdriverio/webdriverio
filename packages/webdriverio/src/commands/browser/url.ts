@@ -36,7 +36,7 @@ import { validateUrl } from '../../utils/index.js'
  * @type protocol
  *
  */
-export default function url (
+export function url (
     this: WebdriverIO.Browser,
     path: string
 ) {

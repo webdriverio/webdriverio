@@ -45,7 +45,7 @@
  * @type state
  *
  */
-export default async function isExisting (this: WebdriverIO.Element) {
+export async function isExisting (this: WebdriverIO.Element) {
     /**
      * if an element was composed via `const elem = $({ 'element-6066-11e4-a52e-4f735466cecf': <elementId> })`
      * we don't have any selector information. Therefore we can only check existance

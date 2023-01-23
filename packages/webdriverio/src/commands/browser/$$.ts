@@ -59,12 +59,12 @@ import type { Selector, ElementArray } from '../../types.js'
  * @type utility
  *
  */
-export default async function $$ (
+export async function $$ (
     this: WebdriverIO.Browser | WebdriverIO.Element,
     selector: Selector | ElementReference[] | WebdriverIO.Element[]
 ) {
     const res = Array.isArray(selector)
-        ? selector
+        ? selector as ElementReference[]
         : await findElements.call(this, selector)
     const elements = await getElements.call(this, selector, res)
     return enhanceElementsArray(elements, this, selector) as ElementArray

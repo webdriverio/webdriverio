@@ -24,7 +24,7 @@
  * @type property
  *
  */
-export default function getAttribute (
+export function getAttribute (
     this: WebdriverIO.Element,
     attributeName: string
 ) {

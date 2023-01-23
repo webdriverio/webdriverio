@@ -21,7 +21,7 @@ const maxWindowSize = Number.MAX_SAFE_INTEGER
  * @type window
  *
  */
-export default async function setWindowSize(
+export async function setWindowSize(
     this: WebdriverIO.Browser,
     width: number,
     height: number

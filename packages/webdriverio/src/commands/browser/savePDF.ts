@@ -44,7 +44,7 @@ type PDFPrintOptions = {
  * @type utility
  *
  */
-export default async function savePDF (
+export async function savePDF (
     this: WebdriverIO.Browser,
     filepath: string,
     options?: PDFPrintOptions

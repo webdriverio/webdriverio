@@ -40,8 +40,14 @@ export const config = {
 ```
 - `outputDir` defaults to `./allure-results`. After a test run is complete, you will find that this directory has been populated with an `.xml` file for each spec, plus a number of `.txt` and `.png` files and other attachments.
 - `disableWebdriverStepsReporting` - optional parameter(`false` by default), in order to log only custom steps to the reporter.
-- `issueLinkTemplate` - optional parameter, in order to specify the issue link pattern. Reporter will replace `{}` placeholder with value specified in `addIssue(value)` call parameter. Example `https://example.org/issue/{}`
-- `tmsLinkTemplate` - optional parameter, in order to specify the tms link pattern. Reporter will replace `{}` placeholder with value specified in `addTestId(value)` call parameter. Example `https://example.org/tms/{}`
+- `issueLinkTemplate` - optional parameter, in order to specify the issue link pattern. Reporter will replace `{}` placeholder with value specified in `addIssue(value)` call parameter. The same logic is applied if Cucumber is used and tag `issue` is set at any level, it will be converted to the link in the report. The parameter value example:
+  ```
+  https://example.org/issue/{}
+  ```
+- `tmsLinkTemplate` - optional parameter, in order to specify TMS (Test Management System) link pattern. Reporter will replace `{}` placeholder with value specified in `addTestId(value)` call parameter. The same logic is applied if Cucumber is used and tag `testId` is set at any level, it will be converted to the link in the report. The parameter value example:
+  ```
+  https://example.org/tms/{}
+  ```
 - `disableWebdriverScreenshotsReporting` - optional parameter(`false` by default), in order to not attach screenshots to the reporter.
 - `useCucumberStepReporter` - optional parameter (`false` by default), set it to true in order to change the report hierarchy when using cucumber. Try it for yourself and see how it looks.
 - `disableMochaHooks` - optional parameter (`false` by default), set it to true in order to not fetch the `before/after` stacktrace/screenshot/result hooks into the Allure Reporter.
@@ -105,6 +111,18 @@ Given('I include feature and story name', () => {
     allureReporter.addFeature('Feature_name');
     allureReporter.addStory('Story_name');
 })
+```
+
+Cucumber tags converted to the links example (the corresponding link templates must be configured):
+```gherkin
+@issue=BUG-1
+@testId=TST-2
+Feature: This is a feature with global tags that will be converted to Allure links
+
+  @issue=BUG-3
+  @testId=TST-4
+  Scenario: This is a scenario with tags that will be converted to Allure links
+    Given I do something
 ```
 
 ## Displaying the report

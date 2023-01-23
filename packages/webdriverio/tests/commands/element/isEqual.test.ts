@@ -21,7 +21,7 @@ describe('isEqual test', () => {
                 }
             })
             elem = await browser.$('#foo')
-            got.mockClear()
+            vi.mocked(got).mockClear()
         })
 
         it('should return true if elements are equal', async () => {
@@ -53,25 +53,25 @@ describe('isEqual test', () => {
                 } as any
             })
             elem = await browser.$('#foo')
-            got.mockClear()
+            vi.mocked(got).mockClear()
         })
 
         it('should return true if elements are equal', async () => {
             // @ts-ignore mock feature
-            got.setMockResponse(['NATIVE_APP'])
+            vi.mocked(got).setMockResponse(['NATIVE_APP'])
             expect(await elem.isEqual(elem)).toBe(true)
         })
 
         it('should return false if elements are NOT equal', async () => {
             const elements = await browser.$$('#bar')
             // @ts-ignore mock feature
-            got.setMockResponse(['NATIVE_APP'])
+            vi.mocked(got).setMockResponse(['NATIVE_APP'])
             expect(await elem.isEqual(elements[1])).toBe(false)
         })
 
         it('should call execute if in webview', async () => {
             // @ts-ignore mock feature
-            got.setMockResponse(['WEBVIEW'])
+            vi.mocked(got).setMockResponse(['WEBVIEW'])
             const execute = browser.execute
             // @ts-ignore remove command to make it fail
             delete browser.execute
@@ -87,6 +87,6 @@ describe('isEqual test', () => {
     })
 
     afterEach(() => {
-        got.mockClear()
+        vi.mocked(got).mockClear()
     })
 })

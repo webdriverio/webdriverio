@@ -41,7 +41,7 @@ import type { WaitUntilOptions } from '../../types.js'
  * @type utility
  *
  */
-export default function waitUntil(
+export function waitUntil(
     this: WebdriverIO.Browser | WebdriverIO.Element,
     condition: () => boolean | Promise<boolean>,
     {

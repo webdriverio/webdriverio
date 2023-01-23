@@ -32,7 +32,7 @@ import getHTMLScript from '../../scripts/getHTML.js'
  * @type property
  *
  */
-export default function getHTML (
+export function getHTML (
     this: WebdriverIO.Element,
     includeSelectorTag = true
 ) {

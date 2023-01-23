@@ -21,10 +21,10 @@ describe('setWindowSize', () => {
 
     it('should resize W3C browser window', async () => {
         await browser.setWindowSize(777, 888)
-        expect(got.mock.calls[1][1].method).toBe('POST')
-        expect(got.mock.calls[1][0].pathname)
+        expect(vi.mocked(got).mock.calls[1][1]!.method).toBe('POST')
+        expect(vi.mocked(got).mock.calls[1][0]!.pathname)
             .toBe('/session/foobar-123/window/rect')
-        expect(got.mock.calls[1][1].json)
+        expect(vi.mocked(got).mock.calls[1][1]!.json)
             .toEqual({ x: null, y: null, width: 777, height: 888 })
     })
 
@@ -37,10 +37,10 @@ describe('setWindowSize', () => {
         })
 
         await browser.setWindowSize(999, 1111)
-        expect(got.mock.calls[1][1].method).toBe('POST')
-        expect(got.mock.calls[1][0].pathname)
+        expect(vi.mocked(got).mock.calls[1][1]!.method).toBe('POST')
+        expect(vi.mocked(got).mock.calls[1][0]!.pathname)
             .toBe('/session/foobar-123/window/current/size')
-        expect(got.mock.calls[1][1].json)
+        expect(vi.mocked(got).mock.calls[1][1]!.json)
             .toEqual({ width: 999, height: 1111 })
     })
 
@@ -72,6 +72,6 @@ describe('setWindowSize', () => {
     })
 
     afterEach(() => {
-        got.mockClear()
+        vi.mocked(got).mockClear()
     })
 })

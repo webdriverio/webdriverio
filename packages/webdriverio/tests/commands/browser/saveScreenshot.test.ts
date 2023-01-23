@@ -47,8 +47,8 @@ describe('saveScreenshot', () => {
         expect(assertDirectoryExistsSpy).toHaveBeenCalledWith(getAbsoluteFilepathSpy.mock.results[0].value)
 
         // request
-        expect(got.mock.calls[1][1].method).toBe('GET')
-        expect(got.mock.calls[1][0].pathname)
+        expect(vi.mocked(got).mock.calls[1][1]!.method).toBe('GET')
+        expect(vi.mocked(got).mock.calls[1][0]!.pathname)
             .toBe('/session/foobar-123/screenshot')
         expect(screenshot.toString()).toBe('some screenshot')
 

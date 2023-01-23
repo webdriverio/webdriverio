@@ -103,7 +103,7 @@ export const getElements = function getElements(
         ...getWDIOPrototype('element')
     }
 
-    const elements = elemResponse.map((res: ElementReference | WebdriverIO.Element | Error, i) => {
+    const elements = elemResponse.map((res: ElementReference | Element | Error, i) => {
         /**
          * if we already deal with an element, just return it
          */

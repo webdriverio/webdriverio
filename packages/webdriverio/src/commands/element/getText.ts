@@ -38,6 +38,6 @@
  * @type property
  *
  */
-export default function getText (this: WebdriverIO.Element) {
+export function getText (this: WebdriverIO.Element) {
     return this.getElementText(this.elementId)
 }

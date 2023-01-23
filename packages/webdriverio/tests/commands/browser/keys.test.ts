@@ -17,17 +17,17 @@ describe('keys', () => {
         })
 
         await browser.keys('foobar')
-        expect(got.mock.calls[1][0].pathname)
+        expect(vi.mocked(got).mock.calls[1][0]!.pathname)
             .toContain('/actions')
-        expect(got.mock.calls[1][1].json.actions)
+        expect(vi.mocked(got).mock.calls[1][1]!.json.actions)
             .toHaveLength(1)
-        expect(got.mock.calls[1][1].json.actions[0].type)
+        expect(vi.mocked(got).mock.calls[1][1]!.json.actions[0].type)
             .toBe('key')
-        expect(got.mock.calls[1][1].json.actions[0].actions)
+        expect(vi.mocked(got).mock.calls[1][1]!.json.actions[0].actions)
             .toHaveLength(('foobar'.length * 2) + 1 /* includes pause call */)
-        expect(got.mock.calls[1][1].json.actions[0].actions[0])
+        expect(vi.mocked(got).mock.calls[1][1]!.json.actions[0].actions[0])
             .toEqual({ type: 'keyDown', value: 'f' })
-        expect(got.mock.calls[1][1].json.actions[0].actions[12])
+        expect(vi.mocked(got).mock.calls[1][1]!.json.actions[0].actions[12])
             .toEqual({ type: 'keyUp', value: 'r' })
     })
 
@@ -40,12 +40,12 @@ describe('keys', () => {
         })
 
         await browser.keys('foobar')
-        expect(got.mock.calls[1][0].pathname).toContain('/keys')
-        expect(got.mock.calls[1][1].json.value).toEqual(['f', 'o', 'o', 'b', 'a', 'r'])
+        expect(vi.mocked(got).mock.calls[1][0]!.pathname).toContain('/keys')
+        expect(vi.mocked(got).mock.calls[1][1]!.json.value).toEqual(['f', 'o', 'o', 'b', 'a', 'r'])
 
         await browser.keys('Enter')
-        expect(got.mock.calls[2][0].pathname).toContain('/keys')
-        expect(got.mock.calls[2][1].json.value).toEqual(['\uE007'])
+        expect(vi.mocked(got).mock.calls[2][0]!.pathname).toContain('/keys')
+        expect(vi.mocked(got).mock.calls[2][1]!.json.value).toEqual(['\uE007'])
     })
 
     it('should allow send keys as array', async () => {
@@ -57,12 +57,12 @@ describe('keys', () => {
         })
 
         await browser.keys(['f', 'o', 'Enter', 'b', 'a', 'r'])
-        expect(got.mock.calls[1][0].pathname).toContain('/keys')
-        expect(got.mock.calls[1][1].json.value).toEqual(['f', 'o', '\uE007', 'b', 'a', 'r'])
+        expect(vi.mocked(got).mock.calls[1][0]!.pathname).toContain('/keys')
+        expect(vi.mocked(got).mock.calls[1][1]!.json.value).toEqual(['f', 'o', '\uE007', 'b', 'a', 'r'])
 
         await browser.keys('Enter')
-        expect(got.mock.calls[2][0].pathname).toContain('/keys')
-        expect(got.mock.calls[2][1].json.value).toEqual(['\uE007'])
+        expect(vi.mocked(got).mock.calls[2][0]!.pathname).toContain('/keys')
+        expect(vi.mocked(got).mock.calls[2][1]!.json.value).toEqual(['\uE007'])
     })
 
     it('should throw if invalid character was provided', async () => {
@@ -82,6 +82,6 @@ describe('keys', () => {
     })
 
     afterEach(() => {
-        got.mockClear()
+        vi.mocked(got).mockClear()
     })
 })

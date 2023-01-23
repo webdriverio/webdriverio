@@ -17,7 +17,7 @@ import getPropertyScript from '../../scripts/getProperty.js'
  * @param {String} property  name of the element property
  * @return {Object|String|Boolean|Number|null} the value of the property of the selected element
  */
-export default function getProperty (
+export function getProperty (
     this: WebdriverIO.Element,
     property: string
 ) {

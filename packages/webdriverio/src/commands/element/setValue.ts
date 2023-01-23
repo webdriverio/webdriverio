@@ -24,7 +24,7 @@
  * @param {string | number}  value  value to be added
  *
  */
-export default async function setValue (
+export async function setValue (
     this: WebdriverIO.Element,
     value: string | number
 ) {

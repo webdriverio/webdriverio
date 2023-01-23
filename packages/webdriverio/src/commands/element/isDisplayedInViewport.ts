@@ -38,7 +38,7 @@ import isElementInViewportScript from '../../scripts/isElementInViewport.js'
  * @type state
  *
  */
-export default async function isDisplayedInViewport (this: WebdriverIO.Element) {
+export async function isDisplayedInViewport (this: WebdriverIO.Element) {
     if (!await this.isDisplayed()) {
         return false
     }

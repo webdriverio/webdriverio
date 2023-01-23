@@ -13,7 +13,7 @@ describe('waitForDisplayed', () => {
     let browser: WebdriverIO.Browser
 
     beforeEach(async () => {
-        got.mockClear()
+        vi.mocked(got).mockClear()
 
         browser = await remote({
             baseUrl: 'http://foobar.com',
@@ -44,7 +44,7 @@ describe('waitForDisplayed', () => {
         const result = await elem.waitForDisplayed({ timeout })
 
         expect(result).toBe(true)
-        expect(got.mock.calls[2][0].pathname)
+        expect(vi.mocked(got).mock.calls[2][0]!.pathname)
             .toBe('/session/foobar-123/element/some-elem-123/displayed')
     })
 

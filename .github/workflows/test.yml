@@ -33,7 +33,7 @@ jobs:
         run: npm run test
       - name: Interop Tests
         run: |
-          npm i chromedriver@107
+          npm i chromedriver@109
           npm run test:e2e:cjs
   e2e-windows:
     runs-on: windows-latest
@@ -51,7 +51,7 @@ jobs:
       - name: Setup Chrome Browser
         uses: browser-actions/setup-chrome@latest
       - name: E2E Protocol Tests
-        uses: nick-invision/retry@v2
+        uses: nick-fields/retry@v2
         with:
           timeout_minutes: 20
           max_attempts: 3
@@ -77,7 +77,7 @@ jobs:
       - name: Bootstrap Packages
         run: npm run setup-full
       - name: E2E Protocol Tests
-        uses: nick-invision/retry@v2
+        uses: nick-fields/retry@v2
         with:
           timeout_minutes: 20
           max_attempts: 3

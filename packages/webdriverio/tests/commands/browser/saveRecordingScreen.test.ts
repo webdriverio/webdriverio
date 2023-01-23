@@ -51,8 +51,8 @@ describe('saveRecordingScreen', () => {
         expect(assertDirectoryExistsSpy).toHaveBeenCalledWith(getAbsoluteFilepathSpy.mock.results[0].value)
 
         // request
-        expect(got.mock.calls[1][1].method).toBe('POST')
-        expect(got.mock.calls[1][0].pathname)
+        expect(vi.mocked(got).mock.calls[1][1]!.method).toBe('POST')
+        expect(vi.mocked(got).mock.calls[1][0]!.pathname)
             .toBe('/session/foobar-123/appium/stop_recording_screen')
         expect(video.toString()).toBe('some screenshot')
 

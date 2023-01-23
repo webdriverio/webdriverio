@@ -1,13 +1,12 @@
 import got from 'got'
 import logger from '@wdio/logger'
 import type { Capabilities, Services, Options, Frameworks } from '@wdio/types'
-import type { Browser, MultiRemoteBrowser } from 'webdriverio'
 
 const log = logger('@wdio/crossbrowsertesting-service')
 const jobDataProperties = ['name', 'tags', 'public', 'build', 'extra']
 
 export default class CrossBrowserTestingService implements Services.ServiceInstance {
-    private _browser?: Browser<'async'> | MultiRemoteBrowser<'async'>
+    private _browser?: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
     private _testCnt = 0
     private _failures = 0
     private _isServiceEnabled: boolean
@@ -27,7 +26,7 @@ export default class CrossBrowserTestingService implements Services.ServiceInsta
     before (
         caps: Capabilities.Capabilities,
         specs: string[],
-        browser: Browser<'async'> | MultiRemoteBrowser<'async'>
+        browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
     ) {
         this._browser = browser
     }
@@ -133,8 +132,8 @@ export default class CrossBrowserTestingService implements Services.ServiceInsta
         }
         const browser = this._browser
         return Promise.all(Object.keys(this._capabilities).map((browserName) => {
-            log.info(`Update multiremote job for browser "${browserName}" and sessionId ${browser[browserName].sessionId}, ${status}`)
-            return this.updateJob(browser[browserName].sessionId, failures, false, browserName)
+            log.info(`Update multiremote job for browser "${browserName}" and sessionId ${browser.getInstance(browserName).sessionId}, ${status}`)
+            return this.updateJob(browser.getInstance(browserName).sessionId, failures, false, browserName)
         }))
     }
 
@@ -150,7 +149,7 @@ export default class CrossBrowserTestingService implements Services.ServiceInsta
         }
 
         const browserName = this._browser.instances.filter(
-            (browserName: string) => (this._browser as MultiRemoteBrowser<'async'>)[browserName].sessionId === newSessionId)[0]
+            (browserName: string) => (this._browser as WebdriverIO.MultiRemoteBrowser).getInstance(browserName).sessionId === newSessionId)[0]
         log.info(`Update (reloaded) multiremote job for browser "${browserName}" and sessionId ${oldSessionId}, ${status}`)
         return this.updateJob(oldSessionId, this._failures, true, browserName)
     }

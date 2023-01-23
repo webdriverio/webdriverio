@@ -54,7 +54,7 @@ let resqScript: string
  * @return {Element}
  *
  */
-export default async function react$(
+export async function react$(
     this: WebdriverIO.Element,
     selector: string,
     { props = {}, state = {} }: ReactSelectorOptions = {}

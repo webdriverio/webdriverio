@@ -1,6 +1,7 @@
 import type { UNICODE_CHARACTERS } from '@wdio/utils'
 
 import { checkUnicode } from '../../utils/index.js'
+
 /**
  *
  * Send a sequence of key strokes to the "active" element. You can make an input element active by just clicking
@@ -37,7 +38,7 @@ import { checkUnicode } from '../../utils/index.js'
  * @see https://w3c.github.io/webdriver/#dispatching-actions
  *
  */
-export default function keys (
+export function keys (
     this: WebdriverIO.Browser,
     value: string | string[]
 ) {

@@ -25,7 +25,7 @@ describe('action command', () => {
     })
 
     beforeEach(() => {
-        got.mockClear()
+        vi.mocked(got).mockClear()
     })
 
     it('should support key actions', async () => {

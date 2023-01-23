@@ -21,6 +21,63 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.2.1 (2023-01-20)
+
+#### :bug: Bug Fix
+* `wdio-shared-store-service`
+  * [#9641](https://github.com/webdriverio/webdriverio/pull/9641) Implement CJS export for shared-store service ([@christian-bromann](https://github.com/christian-bromann))
+* `webdriverio`
+  * [#9640](https://github.com/webdriverio/webdriverio/pull/9640) Export browser and element type primitives in webdriverio package ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
+## v8.2.0 (2023-01-20)
+
+#### :rocket: New Feature
+* `wdio-allure-reporter`
+  * [#9630](https://github.com/webdriverio/webdriverio/pull/9630) Map Cucumber tags with special names to Allure links ([@valfirst](https://github.com/valfirst))
+
+#### :bug: Bug Fix
+* `wdio-browserstack-service`
+  * [#9621](https://github.com/webdriverio/webdriverio/pull/9621) Bug fix: TypeError: Cannot read properties of undefined (reading 'uuid') ([@nagpalkaran95](https://github.com/nagpalkaran95))
+* `wdio-devtools-service`
+  * [#9588](https://github.com/webdriverio/webdriverio/pull/9588) fix devtools-service browser.cdp events (#9348 #9545) ([@pedrorfernandes](https://github.com/pedrorfernandes))
+* `wdio-cli`
+  * [#9615](https://github.com/webdriverio/webdriverio/pull/9615) Remove 'module: ESNext' from config wizard's tsconfig.json template ([@Jmcosel](https://github.com/Jmcosel))
+* `wdio-junit-reporter`, `wdio-utils`
+  * [#9586](https://github.com/webdriverio/webdriverio/pull/9586) @wdio/junit-reporter: remove validator dependency ([@SCG82](https://github.com/SCG82))
+* `webdriverio`
+  * [#9496](https://github.com/webdriverio/webdriverio/pull/9496) fix workaround for Safari 12.0.3 ([@kyryloonufriiev](https://github.com/kyryloonufriiev))
+
+#### :nail_care: Polish
+* `wdio-cli`
+  * [#9477](https://github.com/webdriverio/webdriverio/pull/9477) Make Browserstack service default when browserstack is selected in env ([@agarneha1331](https://github.com/agarneha1331))
+
+#### :memo: Documentation
+* [#9587](https://github.com/webdriverio/webdriverio/pull/9587) Update BoilerplateProjects.md ([@amiya-pattnaik](https://github.com/amiya-pattnaik))
+
+#### :house: Internal
+* Other
+  * [#9632](https://github.com/webdriverio/webdriverio/pull/9632) CI: Bump chromedriver from `107` to `109` ([@valfirst](https://github.com/valfirst))
+  * [#9631](https://github.com/webdriverio/webdriverio/pull/9631) CI: Update reference of GH Action retrying steps due to ownership transfer ([@valfirst](https://github.com/valfirst))
+  * [#9590](https://github.com/webdriverio/webdriverio/pull/9590) pre-commit: don't run eslint if no files to lint ([@SCG82](https://github.com/SCG82))
+* `devtools`, `wdio-browser-runner`, `wdio-browserstack-service`, `wdio-crossbrowsertesting-service`, `wdio-devtools-service`, `wdio-globals`, `wdio-protocols`, `wdio-runner`, `wdio-sauce-service`, `wdio-shared-store-service`, `wdio-testingbot-service`, `wdio-webdriver-mock-service`, `webdriver`, `webdriverio`
+  * [#9256](https://github.com/webdriverio/webdriverio/pull/9256) Refactor type generation after killing sync mode ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 9
+- Amiya Pattanaik ([@amiya-pattnaik](https://github.com/amiya-pattnaik))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Jeremy Elwood ([@Jmcosel](https://github.com/Jmcosel))
+- Karan Nagpal ([@nagpalkaran95](https://github.com/nagpalkaran95))
+- Kyrylo ([@kyryloonufriiev](https://github.com/kyryloonufriiev))
+- Neha Agarwal ([@agarneha1331](https://github.com/agarneha1331))
+- Pedro Fernandes ([@pedrorfernandes](https://github.com/pedrorfernandes))
+- Valery Yatsynovich ([@valfirst](https://github.com/valfirst))
+- [@SCG82](https://github.com/SCG82)
+
+
 ## v8.1.3 (2023-01-07)
 
 #### :bug: Bug Fix

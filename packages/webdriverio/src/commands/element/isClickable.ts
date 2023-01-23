@@ -40,7 +40,7 @@ import isElementClickableScript from '../../scripts/isElementClickable.js'
  * @type state
  *
  */
-export default async function isClickable (this: WebdriverIO.Element) {
+export async function isClickable (this: WebdriverIO.Element) {
     if (!await this.isDisplayed()) {
         return false
     }

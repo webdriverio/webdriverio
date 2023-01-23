@@ -1,7 +1,7 @@
 import type { EventEmitter } from 'node:events'
 
 import type { Options, Capabilities } from '@wdio/types'
-import type { ProtocolCommandsAsync } from '@wdio/protocols'
+import type { ProtocolCommands } from '@wdio/protocols'
 import type { LaunchOptions, BrowserLaunchArgumentOptions, BrowserConnectOptions, ConnectOptions } from 'puppeteer-core'
 import type { EventEmitter as PuppeteerEventEmitter } from 'puppeteer-core/lib/esm/puppeteer/common/EventEmitter.js'
 export interface ExtendedCapabilities extends Capabilities.Capabilities, WDIODevtoolsOptions {}
@@ -40,7 +40,7 @@ export interface BaseClient extends EventEmitter {
     options: Options.WebDriver
 }
 
-export interface Client extends BaseClient, ProtocolCommandsAsync {}
+export interface Client extends BaseClient, ProtocolCommands {}
 
 /**
  * Interface keeping together information allowing to remove active listener from emitter.

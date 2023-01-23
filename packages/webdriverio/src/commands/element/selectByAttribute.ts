@@ -35,7 +35,7 @@ import { getElementFromResponse } from '../../utils/index.js'
  * @type action
  *
  */
-export default async function selectByAttribute (
+export async function selectByAttribute (
     this: WebdriverIO.Element,
     attribute: string,
     value: string | number

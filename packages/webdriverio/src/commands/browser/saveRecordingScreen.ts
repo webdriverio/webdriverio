@@ -26,7 +26,7 @@ import { getAbsoluteFilepath, assertDirectoryExists } from '../../utils/index.js
  * @type utility
  *
  */
-export default async function saveRecordingScreen (
+export async function saveRecordingScreen (
     this: WebdriverIO.Browser,
     filepath: string
 ) {

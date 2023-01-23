@@ -3,7 +3,6 @@ import path from 'node:path'
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
 import got from 'got'
 import logger from '@wdio/logger'
-import type { Browser, MultiRemoteBrowser } from 'webdriverio'
 
 import BrowserstackService from '../src/service.js'
 import * as utils from '../src/util.js'
@@ -21,7 +20,7 @@ vi.mock('uuid', () => ({ v4: () => '123456789' }))
 
 const log = logger('test')
 let service: BrowserstackService
-let browser: Browser<'async'> | MultiRemoteBrowser<'async'>
+let browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
 
 beforeEach(() => {
     vi.mocked(log.info).mockClear()
@@ -49,6 +48,7 @@ beforeEach(() => {
         },
         instances: ['browserA', 'browserB'],
         isMultiremote: false,
+        getInstance: vi.fn().mockImplementation((browserName: string) => browser[browserName]),
         browserA: {
             sessionId: sessionIdA,
             capabilities: {
@@ -61,7 +61,7 @@ beforeEach(() => {
             }
         },
         browserB: {},
-    } as unknown as Browser<'async'> | MultiRemoteBrowser<'async'>
+    } as unknown as WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
     service = new BrowserstackService({ testObservability: false } as any, [] as any, { user: 'foo', key: 'bar' } as any)
 })
 
@@ -387,7 +387,7 @@ describe('beforeHook', () => {
         { user: 'foo', key: 'bar', cucumberOpts: { strict: false } } as any)
 
     it('call insightsHandler.beforeHook', () => {
-        service['_insightsHandler'] = new InsightsHandler()
+        service['_insightsHandler'] = new InsightsHandler(browser)
         const methodSpy = vi.spyOn(service['_insightsHandler'], 'beforeHook')
         service.beforeHook({ title: 'foo2', parent: 'bar2' } as any,
         {} as any)
@@ -401,7 +401,7 @@ describe('afterHook', () => {
         { user: 'foo', key: 'bar', cucumberOpts: { strict: false } } as any)
 
     it('call insightsHandler.afterHook', () => {
-        service['_insightsHandler'] = new InsightsHandler()
+        service['_insightsHandler'] = new InsightsHandler(browser)
         const methodSpy = vi.spyOn(service['_insightsHandler'], 'afterHook')
         service.afterHook({ title: 'foo2', parent: 'bar2' } as any,
         undefined as never, {} as any)
@@ -416,7 +416,7 @@ describe('beforeStep', () => {
 
     it('call insightsHandler.beforeStep', () => {
         vi.spyOn(utils, 'getUniqueIdentifierForCucumber').mockReturnValue('test title')
-        service['_insightsHandler'] = new InsightsHandler()
+        service['_insightsHandler'] = new InsightsHandler(browser)
         const methodSpy = vi.spyOn(service['_insightsHandler'], 'beforeStep')
         service.beforeStep({ keyword: 'Given', text: 'this is a test' } as any,
         undefined as never)
@@ -431,7 +431,7 @@ describe('afterStep', () => {
 
     it('call insightsHandler.afterStep', () => {
         vi.spyOn(utils, 'getUniqueIdentifierForCucumber').mockReturnValue('test title')
-        service['_insightsHandler'] = new InsightsHandler()
+        service['_insightsHandler'] = new InsightsHandler(browser)
         const methodSpy = vi.spyOn(service['_insightsHandler'], 'afterStep')
         service.afterStep({ title: 'foo2', parent: 'bar2' } as any,
         undefined as never, {} as any)
@@ -444,7 +444,7 @@ describe('beforeScenario', () => {
     const service = new BrowserstackService({}, [] as any, { user: 'foo', key: 'bar' } as any)
 
     it('call insightsHandler.beforeScenario', () => {
-        service['_insightsHandler'] = new InsightsHandler()
+        service['_insightsHandler'] = new InsightsHandler(browser)
         vi.spyOn(utils, 'getUniqueIdentifierForCucumber').mockReturnValue('test title')
         const methodSpy = vi.spyOn(service['_insightsHandler'], 'beforeScenario')
         service.beforeScenario({ pickle: { name: '', tags: [] }, gherkinDocument: { uri: '', feature: { name: '', description: '' } } } as any)
