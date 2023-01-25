@@ -90,7 +90,7 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
              * is no need to call the url command again
              */
             if (!this._config.sessionId) {
-                await browser.url(`/${this._cid}/test.html?spec=${url.fileURLToPath(spec)}`)
+                await browser.url(`/${this._cid}/test.html?spec=${url.parse(spec).pathname}`)
             }
             // await browser.debug()
 

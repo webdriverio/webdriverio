@@ -50,7 +50,7 @@ const FETCH_FROM_ESM = [
 ]
 
 export function testrunner (options: WebdriverIO.BrowserRunnerOptions): Plugin {
-    const automationProtocolPath = path.resolve(__dirname, '..', '..', 'browser', 'driver.js')
+    const automationProtocolPath = `/@fs${url.pathToFileURL(path.resolve(__dirname, '..', '..', 'browser', 'driver.js')).pathname}`
     const mockModulePath = path.resolve(__dirname, '..', '..', 'browser', 'mock.js')
     const setupModulePath = path.resolve(__dirname, '..', '..', 'browser', 'setup.js')
     return {
