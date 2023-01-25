@@ -171,8 +171,15 @@ export default function WebDriver (options: Record<string, any>, modifier?: Func
             /**
              * always transform result into promise
              */
-            Promise.resolve(result).then((res) => {
-                log.info('RESULT', res)
+            Promise.resolve(result).then((res: unknown) => {
+                let resultLog = res
+                if (res instanceof SCOPE_TYPES.element) {
+                    resultLog = `WebdriverIO.Element<${(res as { elementId: string }).elementId}>`
+                } else if (res instanceof SCOPE_TYPES.browser) {
+                    resultLog = 'WebdriverIO.Browser'
+                }
+
+                log.info('RESULT', resultLog)
                 this.emit('result', { name, result: res })
             }).catch(() => {})
 

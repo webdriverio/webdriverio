@@ -76,7 +76,7 @@ wdio repl "./path/to/wdio.config.js" "myChromeBrowser" -p 9515
 Or if you want to run local mobile tests using Appium:
 
 <Tabs
-  defaultValue="mocha"
+  defaultValue="android"
   values={[
     {label: 'Android', value: 'android'},
     {label: 'iOS', value: 'ios'}
@@ -115,7 +115,7 @@ Capabilities for iOS device can be passed with arguments:
 Usage:
 
 <Tabs
-  defaultValue="mocha"
+  defaultValue="long"
   values={[
     {label: 'Long Parameter Names', value: 'long'},
     {label: 'Short Parameter Names', value: 'short'}

@@ -157,7 +157,7 @@ console.log(await matrix.getTitle())
 Instead of calling the `wdio` command, you can also include the test runner as module and run it in an arbitrary environment. For that, you'll need to require the `@wdio/cli` package as module, like this:
 
 <Tabs
-  defaultValue="mocha"
+  defaultValue="esm"
   values={[
     {label: 'EcmaScript Modules', value: 'esm'},
     {label: 'CommonJS', value: 'cjs'}

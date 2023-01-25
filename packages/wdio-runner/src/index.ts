@@ -42,7 +42,7 @@ export default class Runner extends EventEmitter {
      * @param  {Object}    args           config arguments passed into worker process
      * @param  {String[]}  specs          list of spec files to run
      * @param  {Object}    caps           capabilities to run session with
-     * @param  {String}    configFile     path to config file to get config from
+     * @param  {String}    configFile      path to config file to get config from
      * @param  {Number}    retries        number of retries remaining
      * @return {Promise}                  resolves in number of failures for testrun
      */
