@@ -23,7 +23,8 @@
     "@testing-library/vue": "^6.6.1",
     "@types/testing-library__jest-dom": "^5.14.5",
     "babel-plugin-transform-hook-names": "^1.0.2",
-    "expect": "^29.1.2"
+    "expect": "^29.1.2",
+    "wdio-chromedriver-service": "^8.0.1"
   },
   "dependencies": {
     "lit": "^2.4.0",
