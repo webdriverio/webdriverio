@@ -54,6 +54,6 @@
     "@types/istanbul-lib-coverage": "^2.0.4",
     "@types/istanbul-lib-report": "^3.0.0",
     "@types/istanbul-reports": "^3.0.1",
-    "@wdio/globals": "8.1.3"
+    "@wdio/globals": "8.2.3"
   }
 }
