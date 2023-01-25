@@ -23,6 +23,13 @@ exports[`getTemplate > renders template correctly 1`] = `
                     filename: ev.filename,
                     message: ev.message
                 }))
+                /**
+                 * mock process
+                 */
+                window.process = {
+                    platform: 'browser',
+                    env: {}
+                }
             </script>
             
             <script type=\\"module\\">

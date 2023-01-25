@@ -7,7 +7,6 @@ import type { Options, Capabilities, Services, Reporters } from '@wdio/types'
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const require = createRequire(import.meta.url)
 enum SupportedAutomationProtocols {
-    browser = 'browser-runner/build/browser/driver.js',
     webdriver = 'webdriver',
     devtools = 'devtools',
     stub = './protocol-stub.js'
@@ -51,7 +50,7 @@ export const WDIO_DEFAULTS: Options.Definition<Options.WebdriverIO & Options.Tes
             /**
              * path when proxy is used for browser testing
              */
-            if (param.endsWith(SupportedAutomationProtocols.browser)) {
+            if (param.endsWith('driver.js')) {
                 return
             }
 
