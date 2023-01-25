@@ -839,6 +839,8 @@ test('npmInstall', async () => {
             services: ['foo$--$bar'],
             preset: 'barfoo$--$vue'
         },
+        isUsingTypeScript: true,
+        framework: 'jasmine',
         installTestingLibrary: true,
         packagesToInstall: ['foo$--$bar', 'bar$--$foo'],
         npmInstall: true
