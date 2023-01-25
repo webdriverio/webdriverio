@@ -109,6 +109,7 @@ exports[`npmInstall 1`] = `
     "bar$--$foo",
     "@testing-library/vue",
     "@testing-library/jest-dom",
+    "@types/jasmine",
   ],
   "dev": true,
   "respectNpm5": false,

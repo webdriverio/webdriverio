@@ -653,6 +653,13 @@ export function npmInstall (parsedAnswers: ParsedAnswers, useYarn: boolean, npmT
     }
 
     /**
+     * add Jasmine types if necessary
+     */
+    if (parsedAnswers.framework === 'jasmine' && parsedAnswers.isUsingTypeScript) {
+        parsedAnswers.packagesToInstall.push('@types/jasmine')
+    }
+
+    /**
      * add packages that are required by services
      */
     addServiceDeps(servicePackages, parsedAnswers.packagesToInstall)
