@@ -1,5 +1,5 @@
 import { fileURLToPath } from 'node:url'
-import { dirname, resolve, sep } from 'node:path'
+import { dirname, resolve } from 'node:path'
 import { createRequire } from 'node:module'
 import { UNICODE_CHARACTERS } from '@wdio/utils'
 import type { Options, Capabilities, Services, Reporters } from '@wdio/types'
@@ -11,7 +11,6 @@ enum SupportedAutomationProtocols {
     devtools = 'devtools',
     stub = './protocol-stub.js'
 }
-const BROWSER_PROXY = `browser-runner${sep}build${sep}browser${sep}driver.js`
 
 /* istanbul ignore next */
 const HOOK_DEFINITION = {
@@ -51,7 +50,7 @@ export const WDIO_DEFAULTS: Options.Definition<Options.WebdriverIO & Options.Tes
             /**
              * path when proxy is used for browser testing
              */
-            if (param.endsWith(BROWSER_PROXY)) {
+            if (param.endsWith('driver.js')) {
                 return
             }
 
