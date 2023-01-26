@@ -61,12 +61,15 @@ import type { Selector, ElementArray } from '../../types.js'
  */
 export async function $$ (
     this: WebdriverIO.Browser | WebdriverIO.Element,
-    selector: Selector | ElementReference[] | WebdriverIO.Element[]
+    selector: Selector | ElementReference[] | WebdriverIO.Element[] | HTMLElement[]
 ) {
     let res: (ElementReference | Error)[] = Array.isArray(selector)
         ? selector as ElementReference[]
         : await findElements.call(this, selector)
 
+    /**
+     * allow user to transform a set of HTMLElements into a set of WebdriverIO elements
+     */
     if (Array.isArray(selector) && isElement(selector[0])) {
         res = []
         for (const el of selector) {
@@ -74,6 +77,6 @@ export async function $$ (
         }
     }
 
-    const elements = await getElements.call(this, selector, res)
-    return enhanceElementsArray(elements, this, selector) as ElementArray
+    const elements = await getElements.call(this, selector as Selector, res)
+    return enhanceElementsArray(elements, this, selector as Selector) as ElementArray
 }
