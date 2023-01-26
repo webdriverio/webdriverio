@@ -81,7 +81,7 @@ export const getElementFromResponse = (res: ElementReference) => {
      * deprecated JSONWireProtocol response
      */
     if ((res as any).ELEMENT) {
-        return (res as any).ELEMENT
+        return (res as any as { ELEMENT: string }).ELEMENT
     }
 
     /**
@@ -207,7 +207,7 @@ function fetchElementByJSFunction (
     return getBrowserObject(scope).execute(`return (${script}).apply(null, arguments)`, scope, referenceId)
 }
 
-function isElement (o: Selector){
+export function isElement (o: Selector){
     return (
         typeof HTMLElement === 'object'
             ? o instanceof HTMLElement

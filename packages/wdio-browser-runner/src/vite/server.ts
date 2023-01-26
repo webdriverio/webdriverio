@@ -175,7 +175,7 @@ export class ViteServer extends EventEmitter {
     }
 
     async #handleCommand (ws: WebSocket, payload: CommandRequestEvent) {
-        log.info(`Received browser message: ${payload}`)
+        log.debug(`Received browser message: ${JSON.stringify(payload)}`)
         const cid = payload.cid
         if (typeof cid !== 'string') {
             const error = serializeError(new Error(`No "cid" property passed into command message with id "${payload.id}"`))
@@ -194,6 +194,14 @@ export class ViteServer extends EventEmitter {
             if (payload.commandName === 'debug') {
                 this.emit('debugState', true)
             }
+
+            /**
+             * double check if function is registered
+             */
+            if (typeof browser[payload.commandName as keyof typeof browser] !== 'function') {
+                throw new Error(`browser.${payload.commandName} is not a function`)
+            }
+
             const result = await (browser[payload.commandName as keyof typeof browser] as Function)(...payload.args)
             const resultMsg = JSON.stringify(this.#commandResponse({ id: payload.id, result }))
 

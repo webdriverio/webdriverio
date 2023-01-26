@@ -7,7 +7,7 @@ import { hideBin } from 'yargs/helpers'
 
 import { commands } from './commands/index.js'
 import { handler, cmdArgs } from './commands/run.js'
-import { CLI_EPILOGUE } from './constants.js'
+import { CLI_EPILOGUE, pkg } from './constants.js'
 import type { RunCommandArguments } from './types.js'
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
@@ -37,6 +37,7 @@ export default async function run() {
         .example('wdio install reporter spec', 'Install @wdio/spec-reporter')
         .example('wdio repl chrome -u <SAUCE_USERNAME> -k <SAUCE_ACCESS_KEY>', 'Run repl in Sauce Labs cloud')
         .updateStrings({ 'Commands:': `${DESCRIPTION.join('\n')}\n\nCommands:` })
+        .version(pkg.version)
         .epilogue(CLI_EPILOGUE)
 
     /**
