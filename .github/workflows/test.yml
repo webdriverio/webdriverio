@@ -35,7 +35,7 @@ jobs:
         run: pnpm test:depcheck
       - name: Link Packages
         run: pnpm link:packages
-      - name: Lint / Typings / Unit / Smoke Tests
+      - name: Lint / Typings / Unit / Smoke / Component Tests
         run: pnpm test
       - name: Interop Tests
         run: |
@@ -58,7 +58,7 @@ jobs:
         run: pnpm build
       - name: Link Packages
         run: pnpm link:packages
-      - name: Lint / Typings / Unit / Smoke Tests
+      - name: Lint / Typings / Unit / Smoke / Component Tests
         run: pnpm test
       - name: Setup Chrome Browser
         uses: browser-actions/setup-chrome@latest

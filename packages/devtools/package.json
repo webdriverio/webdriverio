@@ -59,6 +59,6 @@
     "@types/ua-parser-js": "^0.7.33",
     "@types/uuid": "^9.0.0",
     "@types/which": "^2.0.1",
-    "@wdio/globals": "8.2.3"
+    "@wdio/globals": "8.2.4"
   }
 }

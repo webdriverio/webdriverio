@@ -1,6 +1,6 @@
 {
   "lerna": "3.4.3",
-  "version": "8.2.3",
+  "version": "8.2.4",
   "npmClient": "pnpm",
   "useWorkspaces": true,
   "command": {

@@ -28,6 +28,7 @@ declare global {
 }
 
 const sleep = (ms = 100) => new Promise((resolve) => setTimeout(resolve, ms))
+const TEST_TIMEOUT = 15 * 1000
 
 export default class BrowserFramework implements Omit<TestFramework, 'init'> {
     #inDebugMode = false
@@ -89,7 +90,7 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
              * is no need to call the url command again
              */
             if (!this._config.sessionId) {
-                await browser.url(`/${this._cid}/test.html?spec=${url.fileURLToPath(spec)}`)
+                await browser.url(`/${this._cid}/test.html?spec=${url.parse(spec).pathname}`)
             }
             // await browser.debug()
 
@@ -97,8 +98,13 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
              * wait for test results or page errors
              */
             let state: TestState = {}
+            const now = Date.now()
             await browser.waitUntil(async () => {
                 while (typeof state.failures !== 'number' && (!state.errors || state.errors.length === 0)) {
+                    if ((Date.now() - now) > TEST_TIMEOUT) {
+                        return false
+                    }
+
                     await sleep()
 
                     /**
@@ -131,7 +137,7 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
                 return true
             }, {
                 timeoutMsg: 'browser test timed out',
-                timeout: 15 * 1000
+                timeout: TEST_TIMEOUT
             })
 
             if (state.errors?.length) {

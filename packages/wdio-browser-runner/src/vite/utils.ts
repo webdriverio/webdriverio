@@ -58,6 +58,13 @@ export async function getTemplate (options: WebdriverIO.BrowserRunnerOptions, en
                     filename: ev.filename,
                     message: ev.message
                 }))
+                /**
+                 * mock process
+                 */
+                window.process = {
+                    platform: 'browser',
+                    env: {}
+                }
             </script>
             ${vueDeps}
         </head>

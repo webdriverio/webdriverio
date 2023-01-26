@@ -1,6 +1,19 @@
-const path = require('node:path')
+import os from 'node:os'
+import url from 'node:url'
+import path from 'node:path'
 
-exports.config = {
+/**
+ * WebdriverIO is using this example to test its component testing features
+ * and we have experienced issues with Vue when running in Windows,
+ * see https://github.com/testing-library/vue-testing-library/issues/292
+ * Please ignore and remove this in your project!
+ */
+if (process.env.CI && process.env.WDIO_PRESET === 'vue' && os.platform() === 'win32') {
+    process.exit(0)
+}
+
+const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
+export const config = {
     /**
      * specify test files
      */
@@ -14,12 +27,7 @@ exports.config = {
      */
     capabilities: [{
         browserName: 'chrome',
-        acceptInsecureCerts: true,
-        // 'wdio:devtoolsOptions': { headless: true }
-    // }, {
-    //     browserName: 'chrome',
-    //     acceptInsecureCerts: true,
-    //     'wdio:devtoolsOptions': { headless: true }
+        acceptInsecureCerts: true
     }],
 
     /**
@@ -28,26 +36,14 @@ exports.config = {
     logLevel: 'trace',
     framework: 'mocha',
     outputDir: __dirname,
+    reporters: ['spec', 'dot', 'junit'],
+    services: ['chromedriver'],
     runner: ['browser', {
         preset: process.env.WDIO_PRESET
     }],
 
-    reporters: ['spec', 'dot', 'junit'],
-
     mochaOpts: {
         ui: 'bdd',
         timeout: 150000
-    },
-
-    /**
-     * hooks
-     */
-    onPrepare: function() {
-        // eslint-disable-next-line
-        console.log('let\'s go')
-    },
-    onComplete: function() {
-        // eslint-disable-next-line
-        console.log('that\'s it')
     }
 }

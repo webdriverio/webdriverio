@@ -15,4 +15,5 @@ export const pathToFileURL = () => ''
 export const fileURLToPath = () => ''
 export const dirname = () => ''
 export const resolve = () => ''
+export const sep = '/'
 export default () => {}

@@ -1,6 +1,5 @@
 import topLevelAwait from 'vite-plugin-top-level-await'
 import { esbuildCommonjs } from '@originjs/vite-plugin-commonjs'
-import { NodeGlobalsPolyfillPlugin } from '@esbuild-plugins/node-globals-polyfill'
 import type { InlineConfig } from 'vite'
 
 import type { FrameworkPreset } from '../types.js'
@@ -38,10 +37,6 @@ export const DEFAULT_VITE_CONFIG: Partial<InlineConfig> = {
             },
             // Enable esbuild polyfill plugins
             plugins: [
-                NodeGlobalsPolyfillPlugin({
-                    process: true,
-                    buffer: true
-                }),
                 esbuildCommonjs(['@testing-library/vue'])
             ],
         },
