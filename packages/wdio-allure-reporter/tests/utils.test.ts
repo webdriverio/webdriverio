@@ -2,7 +2,7 @@ import { describe, it, expect, afterEach, beforeAll, vi } from 'vitest'
 import process from 'node:process'
 import CompoundError from '../src/compoundError.js'
 import {
-    getTestStatus, isEmpty, isMochaEachHooks, getErrorFromFailedTest, isMochaAllHooks, getLinkByTemplate
+    getTestStatus, isEmpty, isMochaEachHooks, getErrorFromFailedTest, isMochaAllHooks, getLinkByTemplate, findLast
 } from '../src/utils.js'
 import { linkPlaceholder, testStatuses } from '../src/constants.js'
 
@@ -140,6 +140,18 @@ describe('utils', () => {
             const template = 'foo'
             expect(() => getLinkByTemplate(template, id))
                 .toThrow(`The link template "${template}" must contain ${linkPlaceholder} substring.`)
+        })
+    })
+
+    describe('findLast', () => {
+        const arr = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+
+        it('should return last matched element', () => {
+            expect(findLast(arr, (el) => el % 2 === 0)).toEqual(8)
+        })
+
+        it('should return undefind when nothing matched', () => {
+            expect(findLast(arr, (el) => el === 10)).toEqual(undefined)
         })
     })
 })
