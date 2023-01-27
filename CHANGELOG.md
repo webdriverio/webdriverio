@@ -21,6 +21,17 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.2.5 (2023-01-27)
+
+#### :bug: Bug Fix
+* `wdio-browser-runner`, `wdio-cli`, `wdio-runner`, `webdriverio`
+  * [#9673](https://github.com/webdriverio/webdriverio/pull/9673) Various browser runner improvements ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 2
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Pedro Bravo ([@pmlbravo](https://github.com/pmlbravo))
+
+
 ## v8.2.4 (2023-01-25)
 
 #### :bug: Bug Fix
