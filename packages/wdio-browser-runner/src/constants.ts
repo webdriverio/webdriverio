@@ -1,4 +1,5 @@
 import type { Environment } from './types.js'
+import type { ReportOptions } from 'istanbul-reports'
 
 export const SESSIONS = new Map<string, Environment>()
 export const BROWSER_POOL: Map<string, WebdriverIO.Browser> = new Map()
@@ -25,3 +26,6 @@ export enum MESSAGE_TYPES {
     hookTriggerMessage,
     hookResultMessage
 }
+
+export const DEFAULT_COVERAGE_REPORTS: (keyof ReportOptions)[] = ['text', 'html', 'clover', 'json-summary']
+export const TRESHOLD_REPORTING = 'ERROR: Coverage for %s (%s%) does not meet global threshold (%s%)'

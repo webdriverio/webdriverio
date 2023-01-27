@@ -1,19 +1,26 @@
+import fs from 'node:fs/promises'
+import path from 'node:path'
+import util from 'node:util'
+
 import logger from '@wdio/logger'
 import type { RunArgs, WorkerInstance } from '@wdio/local-runner'
 import LocalRunner from '@wdio/local-runner'
 import { attach } from 'webdriverio'
+import libCoverage from 'istanbul-lib-coverage'
+import libReport from 'istanbul-lib-report'
+import reports from 'istanbul-reports'
 
 import type { SessionStartedMessage, SessionEndedMessage, WorkerHookResultMessage } from '@wdio/runner'
 import type { Options } from '@wdio/types'
 
 import { ViteServer } from './vite/server.js'
-import { FRAMEWORK_SUPPORT_ERROR, SESSIONS, BROWSER_POOL } from './constants.js'
+import { FRAMEWORK_SUPPORT_ERROR, SESSIONS, BROWSER_POOL, DEFAULT_COVERAGE_REPORTS, TRESHOLD_REPORTING } from './constants.js'
 import { makeHeadless } from './utils.js'
 import type { HookTriggerEvent } from './vite/types.js'
 import type { BrowserRunnerOptions as BrowserRunnerOptionsImport } from './types.js'
 
 const log = logger('@wdio/browser-runner')
-
+const COVERAGE_FACTORS = ['lines', 'functions', 'branches', 'statements'] as const
 export default class BrowserRunner extends LocalRunner {
     #config: Options.Testrunner
     #server: ViteServer
@@ -28,7 +35,7 @@ export default class BrowserRunner extends LocalRunner {
             throw new Error(FRAMEWORK_SUPPORT_ERROR)
         }
 
-        this.#server = new ViteServer(options)
+        this.#server = new ViteServer(options, _config)
         this.#config = _config
     }
 
@@ -106,6 +113,58 @@ export default class BrowserRunner extends LocalRunner {
     async shutdown() {
         await super.shutdown()
         await this.#server.close()
+        return this._generateCoverageReports()
+    }
+
+    private async _generateCoverageReports () {
+        if (!this.options.coverage?.enabled) {
+            return true
+        }
+
+        const reportsDirectory = this.options.coverage.reportsDirectory || path.join(this.#config.rootDir!, '.coverage')
+        try {
+            const globalCoverageVar = JSON.parse((await fs.readFile(path.join(reportsDirectory, 'out.json'))).toString())
+            const coverageMap = libCoverage.createCoverageMap(globalCoverageVar)
+
+            const context = libReport.createContext({
+                dir: reportsDirectory,
+                defaultSummarizer: 'nested',
+                coverageMap
+            })
+
+            const reporters = this.options.coverage.reporter
+                ? Array.isArray(this.options.coverage.reporter) ? this.options.coverage.reporter : [this.options.coverage.reporter]
+                : DEFAULT_COVERAGE_REPORTS
+            const reportBases = reporters.map((reporter) => reports.create(reporter, {
+                projectRoot: this.#config.rootDir,
+                subdir: 'html'
+            }))
+            reportBases.map((reportBase) => reportBase.execute(context))
+            log.info(`Successfully created coverage reports for ${reporters.join(', ')}`)
+        } catch (err: unknown) {
+            console.error(`Failed to generate code coverage report: ${(err as Error).message}`)
+            return false
+        }
+
+        const summary = JSON.parse((await fs.readFile(path.join(reportsDirectory, 'coverage-summary.json'))).toString())
+        const coverageIssues = COVERAGE_FACTORS.map((factor) => {
+            const treshold = this.options.coverage![factor]
+            if (!treshold) {
+                return
+            }
+            if (summary.total[factor].pct > treshold) {
+                return
+            }
+
+            return util.format(TRESHOLD_REPORTING, factor, summary.total[factor].pct, treshold)
+        }).filter(Boolean) as string[]
+
+        if (coverageIssues.length) {
+            console.log(coverageIssues.join('\n'))
+            return false
+        }
+
+        return true
     }
 }
 
