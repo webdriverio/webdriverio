@@ -10,6 +10,7 @@ import type { Capabilities, Workers, Options, Services } from '@wdio/types'
 import type BaseReporter from './reporter.js'
 import type { TestFramework, HookTriggerEvent, WorkerHookResultMessage } from './types.js'
 
+const DEFAULT_REPORTS_DIRECTORY = 'coverage'
 const log = logger('@wdio/runner')
 const sep = '\n  - '
 
@@ -181,7 +182,7 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
         const filesWithCoverageReports = Object.keys(coverage).length
         if (filesWithCoverageReports > 0) {
             log.info(`Found ${filesWithCoverageReports} file with a test coverage report`)
-            const reportsDirectory = this.#runnerOptions.coverage?.reportsDirectory || path.join(this._config.rootDir!, '.coverage')
+            const reportsDirectory = this.#runnerOptions.coverage?.reportsDirectory || path.join(this._config.rootDir!, DEFAULT_REPORTS_DIRECTORY)
             await fs.mkdir(reportsDirectory, { recursive: true })
             await fs.writeFile(path.join(reportsDirectory, 'out.json'), JSON.stringify(coverage, null, 2))
         }

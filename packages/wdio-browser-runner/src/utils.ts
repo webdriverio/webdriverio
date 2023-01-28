@@ -64,7 +64,7 @@ export function getCoverageByFactor (
         if (!treshold) {
             return
         }
-        if (summary[factor].pct > treshold) {
+        if (summary[factor].pct >= treshold) {
             return
         }
 

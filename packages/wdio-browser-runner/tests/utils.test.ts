@@ -67,7 +67,7 @@ it('getCoverageByFactor', () => {
         },
         {
             statements: { pct: 33 } as any,
-            lines: { pct: 93 } as any,
+            lines: { pct: 88 } as any,
             functions: { pct: 23 } as any,
             branches: { pct: 100 } as any
         },

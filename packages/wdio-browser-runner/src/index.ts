@@ -14,15 +14,20 @@ import type { SessionStartedMessage, SessionEndedMessage, WorkerHookResultMessag
 import type { Options } from '@wdio/types'
 
 import { ViteServer } from './vite/server.js'
-import { FRAMEWORK_SUPPORT_ERROR, SESSIONS, BROWSER_POOL, DEFAULT_COVERAGE_REPORTS, SUMMARY_REPORTER } from './constants.js'
+import {
+    FRAMEWORK_SUPPORT_ERROR, SESSIONS, BROWSER_POOL, DEFAULT_COVERAGE_REPORTS, SUMMARY_REPORTER,
+    DEFAULT_REPORTS_DIRECTORY
+} from './constants.js'
 import { makeHeadless, getCoverageByFactor } from './utils.js'
 import type { HookTriggerEvent } from './vite/types.js'
-import type { BrowserRunnerOptions as BrowserRunnerOptionsImport } from './types.js'
+import type { BrowserRunnerOptions as BrowserRunnerOptionsImport, CoverageOptions } from './types.js'
 
 const log = logger('@wdio/browser-runner')
 export default class BrowserRunner extends LocalRunner {
     #config: Options.Testrunner
     #server: ViteServer
+    #coverageOptions: CoverageOptions
+    #reportsDirectory: string
 
     constructor(
         private options: BrowserRunnerOptionsImport,
@@ -36,6 +41,8 @@ export default class BrowserRunner extends LocalRunner {
 
         this.#server = new ViteServer(options, _config)
         this.#config = _config
+        this.#coverageOptions = options.coverage || <CoverageOptions>{}
+        this.#reportsDirectory = this.#coverageOptions.reportsDirectory || path.join(this.#config.rootDir!, DEFAULT_REPORTS_DIRECTORY)
     }
 
     /**
@@ -48,6 +55,14 @@ export default class BrowserRunner extends LocalRunner {
             this._config.baseUrl = `http://localhost:${this.#server.config.server?.port}`
         } catch (err: any) {
             throw new Error(`Vite server failed to start: ${err.stack}`)
+        }
+
+        if (typeof this.#coverageOptions.clean === 'undefined' || this.#coverageOptions.clean) {
+            const reportsDirectoryExist = await fs.access(this.#reportsDirectory)
+                .then(() => true, () => false)
+            if (reportsDirectoryExist) {
+                await fs.rm(this.#reportsDirectory, { recursive: true })
+            }
         }
 
         await super.initialise()
@@ -116,24 +131,32 @@ export default class BrowserRunner extends LocalRunner {
     }
 
     private async _generateCoverageReports () {
-        if (!this.options.coverage?.enabled) {
+        if (!this.#coverageOptions.enabled) {
+            return true
+        }
+
+        /**
+         * skip if no coverage directory was created
+         */
+        const reportsDirectoryExist = await fs.access(this.#reportsDirectory)
+            .then(() => true, () => false)
+        if (!reportsDirectoryExist) {
             return true
         }
 
         const coverageIssues: string[] = []
         try {
-            const reportsDirectory = this.options.coverage.reportsDirectory || path.join(this.#config.rootDir!, '.coverage')
-            const globalCoverageVar: CoverageMapData = JSON.parse((await fs.readFile(path.join(reportsDirectory, 'out.json'))).toString())
+            const globalCoverageVar: CoverageMapData = JSON.parse((await fs.readFile(path.join(this.#reportsDirectory, 'out.json'))).toString())
             const mapStore = libSourceMap.createSourceMapStore()
             const coverageMap = await mapStore.transformCoverage(libCoverage.createCoverageMap(globalCoverageVar))
             const context = libReport.createContext({
-                dir: reportsDirectory,
+                dir: this.#reportsDirectory,
                 defaultSummarizer: 'nested',
                 coverageMap
             })
 
-            const reporter = this.options.coverage.reporter
-                ? Array.isArray(this.options.coverage.reporter) ? this.options.coverage.reporter : [this.options.coverage.reporter]
+            const reporter = this.#coverageOptions.reporter
+                ? Array.isArray(this.#coverageOptions.reporter) ? this.#coverageOptions.reporter : [this.#coverageOptions.reporter]
                 : DEFAULT_COVERAGE_REPORTS
 
             /**
@@ -150,17 +173,17 @@ export default class BrowserRunner extends LocalRunner {
             reportBases.map((reportBase) => reportBase.execute(context))
             log.info(`Successfully created coverage reports for ${reporter.join(', ')}`)
 
-            const summaryFilePath = path.join(reportsDirectory, 'coverage-summary.json')
+            const summaryFilePath = path.join(this.#reportsDirectory, 'coverage-summary.json')
             const summary = JSON.parse((await fs.readFile(summaryFilePath)).toString())
             coverageIssues.push(
-                ...this.options.coverage.perFile
+                ...this.#coverageOptions.perFile
                     ? Object.entries(summary)
                         .filter(([source]) => source !== 'total')
                         .map(([source, summary]: any) => (
-                            getCoverageByFactor(this.options.coverage!, summary, source.replace(this.#config.rootDir, '')))
+                            getCoverageByFactor(this.#coverageOptions, summary, source.replace(this.#config.rootDir, '')))
                         )
                         .flat()
-                    : getCoverageByFactor(this.options.coverage!, summary.total)
+                    : getCoverageByFactor(this.#coverageOptions, summary.total)
             )
         } catch (err: unknown) {
             console.error(`Failed to generate code coverage report: ${(err as Error).message}`)

@@ -41,6 +41,12 @@ export interface CoverageOptions extends Omit<IstanbulPluginOptions, 'cypress' |
      */
     perFile?: boolean
     /**
+     * Clean coverage results before running tests.
+     *
+     * @default true
+     */
+    clean?: boolean
+    /**
      * Threshold for lines
      *
      * @default undefined

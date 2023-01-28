@@ -27,6 +27,9 @@ export enum MESSAGE_TYPES {
     hookResultMessage
 }
 
+export const DEFAULT_INCLUDE = ['**']
+export const DEFAULT_FILE_EXTENSIONS = ['.js', '.cjs', '.mjs', '.ts', '.mts', '.cts', '.tsx', '.jsx', '.vue', '.svelte']
+export const DEFAULT_REPORTS_DIRECTORY = 'coverage'
 export const SUMMARY_REPORTER = 'json-summary'
 export const COVERAGE_FACTORS = ['lines', 'functions', 'branches', 'statements'] as const
 export const DEFAULT_COVERAGE_REPORTS: (keyof ReportOptions)[] = ['text', 'html', 'clover', SUMMARY_REPORTER]

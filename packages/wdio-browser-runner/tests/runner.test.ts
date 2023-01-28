@@ -1,3 +1,4 @@
+import fs from 'node:fs/promises'
 import path from 'node:path'
 
 import { expect, describe, it, vi, beforeEach, afterEach } from 'vitest'
@@ -39,7 +40,9 @@ vi.mock('node:fs/promises', async () => {
     const coverageResult: any = await vi.importActual('./__fixtures__/coverage-summary.json')
     return {
         default: {
-            readFile: vi.fn().mockReturnValue(JSON.stringify(coverageResult.default))
+            readFile: vi.fn().mockReturnValue(JSON.stringify(coverageResult.default)),
+            access: vi.fn().mockResolvedValue(false),
+            rm: vi.fn()
         }
     }
 })
@@ -52,23 +55,28 @@ describe('BrowserRunner', () => {
     it('should throw if framework is not Mocha', () => {
         expect(() => new BrowserRunner({}, {} as any)).toThrow()
         expect(() => new BrowserRunner({}, {
+            rootDir: '/foo/bar',
             framework: 'jasmine'
         } as any)).toThrow()
         expect(() => new BrowserRunner({}, {
+            rootDir: '/foo/bar',
             framework: 'mocha'
         } as any)).not.toThrow()
     })
 
     it('initialise', async () => {
         const runner = new BrowserRunner({}, {
+            rootDir: '/foo/bar',
             framework: 'mocha'
         } as any)
         await runner.initialise()
         expect(runner['_config'].baseUrl).toBe('http://localhost:1234')
+        expect(fs.rm).toBeCalledWith('/foo/bar/coverage', { recursive: true })
     })
 
     it('run', async () => {
         const runner = new BrowserRunner({}, {
+            rootDir: '/foo/bar',
             framework: 'mocha'
         } as any)
         await runner.initialise()
@@ -99,6 +107,7 @@ describe('BrowserRunner', () => {
 
     it('shutdown', async () => {
         const runner = new BrowserRunner({}, {
+            rootDir: '/foo/bar',
             framework: 'mocha'
         } as any)
         runner['_generateCoverageReports'] = vi.fn()
@@ -124,9 +133,25 @@ describe('BrowserRunner', () => {
 
         it('should do nothing if coverage is not enabled', async () => {
             const runner = new BrowserRunner({}, {
+                rootDir: '/foo/bar',
                 framework: 'mocha'
             } as any)
             expect(await runner['_generateCoverageReports']()).toBe(true)
+            expect(libCoverage.createCoverageMap).toBeCalledTimes(0)
+        })
+
+        it('should do nothing if no coverage dir exists', async () => {
+            const runner = new BrowserRunner({
+                coverage: {
+                    enabled: true,
+                }
+            }, {
+                rootDir: '/foo/bar',
+                framework: 'mocha'
+            } as any)
+            vi.mocked(fs.access).mockRejectedValueOnce(new Error('not existing'))
+            expect(await runner['_generateCoverageReports']()).toBe(true)
+            expect(libCoverage.createCoverageMap).toBeCalledTimes(0)
         })
 
         it('should generate reports', async () => {

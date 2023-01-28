@@ -139,6 +139,118 @@ Project root directory.
 __Type:__ `string`<br />
 __Default:__ `process.cwd()`
 
+#### `coverage`
+
+WebdriverIO supports test coverage reporting through [`istanbul`](https://istanbul.js.org/). See [Coverage Options](#coverage-options) for more details.
+
+__Type:__ `object`<br />
+__Default:__ `undefined`
+
+### Coverage Options
+
+The following options allow to configure coverage reporting.
+
+#### `enabled`
+
+Enables coverage collection.
+
+__Type:__ `boolean`<br />
+__Default:__ `false`
+
+#### `include`
+
+List of files included in coverage as glob patterns.
+
+__Type:__ `string[]`<br />
+__Default:__ `[**]`
+
+#### `exclude`
+
+List of files excluded in coverage as glob patterns.
+
+__Type:__ `string[]`<br />
+__Default:__
+
+```
+[
+  'coverage/**',
+  'dist/**',
+  'packages/*/test{,s}/**',
+  '**/*.d.ts',
+  'cypress/**',
+  'test{,s}/**',
+  'test{,-*}.{js,cjs,mjs,ts,tsx,jsx}',
+  '**/*{.,-}test.{js,cjs,mjs,ts,tsx,jsx}',
+  '**/*{.,-}spec.{js,cjs,mjs,ts,tsx,jsx}',
+  '**/__tests__/**',
+  '**/{karma,rollup,webpack,vite,vitest,jest,ava,babel,nyc,cypress,tsup,build}.config.*',
+  '**/.{eslint,mocha,prettier}rc.{js,cjs,yml}',
+]
+```
+
+#### `extension`
+
+List of file extensions the report should include.
+
+__Type:__ `string | string[]`<br />
+__Default:__ `['.js', '.cjs', '.mjs', '.ts', '.mts', '.cts', '.tsx', '.jsx', '.vue', '.svelte']`
+
+#### `reportsDirectory`
+
+Directory to write coverage report to.
+
+__Type:__ `string`<br />
+__Default:__ `./coverage`
+
+#### `reporter`
+
+Coverage reporters to use. See [istanbul documentation](https://istanbul.js.org/docs/advanced/alternative-reporters/) for detailed list of all reporters.
+
+__Type:__ `string[]`<br />
+__Default:__ `['text', 'html', 'clover', 'json-summary']`
+
+#### `perFile`
+
+Check thresholds per file. See `lines`, `functions`, `branches` and `statements` for the actual thresholds.
+
+__Type:__ `boolean`<br />
+__Default:__ `false`
+
+#### `clean`
+
+Clean coverage results before running tests.
+
+__Type:__ `boolean`<br />
+__Default:__ `true`
+
+#### `lines`
+
+Threshold for lines.
+
+__Type:__ `number`<br />
+__Default:__ `undefined`
+
+#### `functions`
+
+Threshold for functions.
+
+__Type:__ `number`<br />
+__Default:__ `undefined`
+
+#### `branches`
+
+Threshold for branches.
+
+__Type:__ `number`<br />
+__Default:__ `undefined`
+
+#### `statements`
+
+Threshold for statements.
+
+__Type:__ `number`<br />
+__Default:__ `undefined`
+
 ### Examples
 
 Make sure to check out the docs around [component testing](https://webdriver.io/docs/component-testing) and have a look into the [example repository](https://github.com/webdriverio/component-testing-examples) for examples using these and various other frameworks.
