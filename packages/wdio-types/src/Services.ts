@@ -4,7 +4,7 @@ import type { Suite, Test, TestResult } from './Frameworks.js'
 
 export interface RunnerInstance {
     initialise(): Promise<void>
-    shutdown(): Promise<void>
+    shutdown(): Promise<boolean>
     closeSession?: (cid: number) => Promise<void>
     getWorkerCount(): number
     run(args: any): NodeJS.EventEmitter

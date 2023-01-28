@@ -1,5 +1,6 @@
 import url from 'node:url'
 import path from 'node:path'
+import fs from 'node:fs/promises'
 
 import logger from '@wdio/logger'
 import { browser } from '@wdio/globals'
@@ -9,6 +10,7 @@ import type { Capabilities, Workers, Options, Services } from '@wdio/types'
 import type BaseReporter from './reporter.js'
 import type { TestFramework, HookTriggerEvent, WorkerHookResultMessage } from './types.js'
 
+const DEFAULT_REPORTS_DIRECTORY = 'coverage'
 const log = logger('@wdio/runner')
 const sep = '\n  - '
 
@@ -24,6 +26,7 @@ declare global {
         __wdioErrors__: WDIOErrorEvent[]
         __wdioEvents__: any[]
         __wdioFailures__: number
+        __coverage__?: unknown
     }
 }
 
@@ -31,6 +34,7 @@ const sleep = (ms = 100) => new Promise((resolve) => setTimeout(resolve, ms))
 
 export default class BrowserFramework implements Omit<TestFramework, 'init'> {
     #inDebugMode = false
+    #runnerOptions: any // `any` here because we don't want to create a dependency to @wdio/browser-runner
 
     constructor (
         private _cid: string,
@@ -41,6 +45,9 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
     ) {
         // listen on testrunner events
         process.on('message', this.#handleProcessMessage.bind(this))
+
+        const [, runnerOptions] = Array.isArray(_config.runner) ? _config.runner : []
+        this.#runnerOptions = runnerOptions || {}
     }
 
     /**
@@ -81,6 +88,7 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
          */
         let failures = 0
         let uid = 0
+        let coverage: Record<string, unknown> = {}
         for (const spec of this._specs) {
             log.info(`Run spec file ${spec} for cid ${this._cid}`)
 
@@ -140,6 +148,14 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
                 timeout
             })
 
+            /**
+             * capture coverage if enabled
+             */
+            if (this.#runnerOptions.coverage?.enabled) {
+                const coverageJson = await browser.execute(() => window.__coverage__ || {}) as Record<string, unknown>
+                coverage = { ...coverage, ...coverageJson }
+            }
+
             if (state.errors?.length) {
                 const errors = state.errors.map((ev) => state.hasViteError
                     ? ev.message
@@ -158,6 +174,17 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
 
             await this.#fetchEvents(browser, spec, ++uid)
             failures += state.failures || 0
+        }
+
+        /**
+         * write coverage results
+         */
+        const filesWithCoverageReports = Object.keys(coverage).length
+        if (filesWithCoverageReports > 0) {
+            log.info(`Found ${filesWithCoverageReports} file with a test coverage report`)
+            const reportsDirectory = this.#runnerOptions.coverage?.reportsDirectory || path.join(this._config.rootDir!, DEFAULT_REPORTS_DIRECTORY)
+            await fs.mkdir(reportsDirectory, { recursive: true })
+            await fs.writeFile(path.join(reportsDirectory, 'out.json'), JSON.stringify(coverage, null, 2))
         }
 
         return failures

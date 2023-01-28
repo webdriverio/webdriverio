@@ -25,7 +25,7 @@ class DotReporter {
 }
 
 class RunnerMock {
-    shutdown = vi.fn()
+    shutdown = vi.fn().mockResolvedValue(true)
     initialise = vi.fn()
 }
 class FoobarServiceMock {

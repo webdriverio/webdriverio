@@ -146,7 +146,10 @@ class Launcher {
         } finally {
             if (!this._hasTriggeredExitRoutine) {
                 this._hasTriggeredExitRoutine = true
-                await this.runner.shutdown()
+                const passesCodeCoverage = await this.runner.shutdown()
+                if (!passesCodeCoverage) {
+                    exitCode = exitCode || 1
+                }
             }
         }
 
@@ -525,13 +528,13 @@ class Launcher {
      * having dead driver processes. To do so let the runner end its Selenium
      * session first before killing
      */
-    exitHandler (callback?: (value: void) => void) {
+    exitHandler (callback?: (value: boolean) => void) {
         if (!callback || !this.runner || !this.interface) {
             return
         }
 
         if (this._hasTriggeredExitRoutine) {
-            return callback()
+            return callback(true)
         }
 
         this._hasTriggeredExitRoutine = true

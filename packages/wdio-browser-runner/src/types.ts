@@ -1,6 +1,7 @@
 import type { InlineConfig } from 'vite'
 import type { Workers, Capabilities, Options } from '@wdio/types'
 import type { MochaOpts } from '@wdio/mocha-framework'
+import type { IstanbulPluginOptions } from 'vite-plugin-istanbul'
 
 declare global {
     interface Window {
@@ -10,6 +11,66 @@ declare global {
 }
 
 export type FrameworkPreset = 'react' | 'preact' | 'vue' | 'svelte' | 'lit' | 'solid'
+type Arrayable<T> = T | Array<T>
+type CoverageReporter = 'clover' | 'cobertura' | 'html-spa' | 'html' | 'json-summary' | 'json' | 'lcov' | 'lcovonly' | 'none' | 'teamcity' | 'text-lcov' | 'text-summary' | 'text'
+export interface CoverageOptions extends Omit<IstanbulPluginOptions, 'cypress' | 'checkProd' | 'forceBuildInstrument'> {
+    /**
+     * Enables coverage collection.
+     *
+     * @default false
+     */
+    enabled: boolean
+    /**
+     * Directory to write coverage report to.
+     *
+     * @default ./coverage
+     */
+    reportsDirectory?: string
+    /**
+     * Coverage reporters to use.
+     * See [istanbul documentation](https://istanbul.js.org/docs/advanced/alternative-reporters/) for detailed list of all reporters.
+     *
+     * @default ['text', 'html', 'clover', 'json-summary']
+     */
+    reporter?: Arrayable<CoverageReporter>
+    /**
+     * Check thresholds per file.
+     * See `lines`, `functions`, `branches` and `statements` for the actual thresholds.
+     *
+     * @default false
+     */
+    perFile?: boolean
+    /**
+     * Clean coverage results before running tests.
+     *
+     * @default true
+     */
+    clean?: boolean
+    /**
+     * Threshold for lines
+     *
+     * @default undefined
+     */
+    lines?: number
+    /**
+     * Threshold for functions
+     *
+     * @default undefined
+     */
+    functions?: number
+    /**
+     * Threshold for branches
+     *
+     * @default undefined
+     */
+    branches?: number
+    /**
+     * Threshold for statements
+     *
+     * @default undefined
+     */
+    statements?: number
+}
 
 export interface BrowserRunnerOptions {
     /**
@@ -30,6 +91,10 @@ export interface BrowserRunnerOptions {
      * @default false // true in CI environment
      */
     headless?: boolean
+    /**
+     * test coverage settings
+     */
+    coverage?: CoverageOptions
 }
 
 export interface RunArgs extends Workers.WorkerRunPayload {

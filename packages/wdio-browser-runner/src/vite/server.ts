@@ -9,12 +9,13 @@ import { serializeError } from 'serialize-error'
 import { executeHooksWithArgs } from '@wdio/utils'
 import type { ViteDevServer, InlineConfig } from 'vite'
 import { createServer } from 'vite'
-import type { Services } from '@wdio/types'
+import istanbulPlugin, { type IstanbulPluginOptions } from 'vite-plugin-istanbul'
+import type { Services, Options } from '@wdio/types'
 
 import { testrunner } from './plugins/testrunner.js'
 import { userfriendlyImport } from './utils.js'
 import { PRESET_DEPENDENCIES, DEFAULT_VITE_CONFIG } from './constants.js'
-import { MESSAGE_TYPES } from '../constants.js'
+import { MESSAGE_TYPES, DEFAULT_INCLUDE, DEFAULT_FILE_EXTENSIONS } from '../constants.js'
 import type { ConsoleEvent, HookTriggerEvent, CommandRequestEvent, CommandResponseEvent, SocketMessage, HookResultEvent } from './types.js'
 
 import { BROWSER_POOL, SESSIONS } from '../constants.js'
@@ -43,7 +44,7 @@ export class ViteServer extends EventEmitter {
         return this.#viteConfig
     }
 
-    constructor (options: WebdriverIO.BrowserRunnerOptions) {
+    constructor (options: WebdriverIO.BrowserRunnerOptions, config: Options.Testrunner) {
         super()
         this.#options = options
 
@@ -55,6 +56,17 @@ export class ViteServer extends EventEmitter {
             root: options.rootDir || process.cwd(),
             plugins: [testrunner(options)]
         })
+
+        if (options.coverage && options.coverage.enabled) {
+            log.info('Capturing test coverage enabled')
+            // @ts-expect-error
+            this.#viteConfig.plugins?.push(istanbulPlugin(<IstanbulPluginOptions>{
+                cwd: config.rootDir,
+                include: DEFAULT_INCLUDE,
+                extension: DEFAULT_FILE_EXTENSIONS,
+                ...options.coverage
+            }))
+        }
 
         if (options.viteConfig) {
             this.#viteConfig = deepmerge(this.#viteConfig, options.viteConfig)
