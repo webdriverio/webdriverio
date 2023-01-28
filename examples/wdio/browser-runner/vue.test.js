@@ -1,3 +1,4 @@
+// @ts-expect-error resolved by vite
 import { $, expect } from '@wdio/globals'
 import { render } from '@testing-library/vue'
 import Component from './components/Component.vue'

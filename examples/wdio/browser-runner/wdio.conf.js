@@ -27,7 +27,17 @@ export const config = {
      */
     capabilities: [{
         browserName: 'chrome',
-        acceptInsecureCerts: true
+        acceptInsecureCerts: true,
+        'goog:chromeOptions': {
+            args: [
+                'disable-gpu',
+                'disable-infobars',
+                'headless',
+                'ignore-gpu-blacklist',
+                'start-maximized',
+                'test-type',
+            ]
+        }
     }],
 
     /**
