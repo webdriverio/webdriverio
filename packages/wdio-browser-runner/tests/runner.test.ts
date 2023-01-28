@@ -71,7 +71,10 @@ describe('BrowserRunner', () => {
         } as any)
         await runner.initialise()
         expect(runner['_config'].baseUrl).toBe('http://localhost:1234')
-        expect(fs.rm).toBeCalledWith('/foo/bar/coverage', { recursive: true })
+        expect(fs.rm).toBeCalledWith(
+            path.join('/foo/bar', 'coverage'),
+            { recursive: true }
+        )
     })
 
     it('run', async () => {
