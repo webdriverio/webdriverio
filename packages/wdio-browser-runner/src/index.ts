@@ -5,8 +5,9 @@ import logger from '@wdio/logger'
 import type { RunArgs, WorkerInstance } from '@wdio/local-runner'
 import LocalRunner from '@wdio/local-runner'
 import { attach } from 'webdriverio'
-import libCoverage from 'istanbul-lib-coverage'
+import libCoverage, { type CoverageMapData } from 'istanbul-lib-coverage'
 import libReport from 'istanbul-lib-report'
+import libSourceMap from 'istanbul-lib-source-maps'
 import reports from 'istanbul-reports'
 
 import type { SessionStartedMessage, SessionEndedMessage, WorkerHookResultMessage } from '@wdio/runner'
@@ -122,9 +123,9 @@ export default class BrowserRunner extends LocalRunner {
         const coverageIssues: string[] = []
         try {
             const reportsDirectory = this.options.coverage.reportsDirectory || path.join(this.#config.rootDir!, '.coverage')
-            const globalCoverageVar = JSON.parse((await fs.readFile(path.join(reportsDirectory, 'out.json'))).toString())
-            const coverageMap = libCoverage.createCoverageMap(globalCoverageVar)
-
+            const globalCoverageVar: CoverageMapData = JSON.parse((await fs.readFile(path.join(reportsDirectory, 'out.json'))).toString())
+            const mapStore = libSourceMap.createSourceMapStore()
+            const coverageMap = await mapStore.transformCoverage(libCoverage.createCoverageMap(globalCoverageVar))
             const context = libReport.createContext({
                 dir: reportsDirectory,
                 defaultSummarizer: 'nested',

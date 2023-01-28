@@ -4,6 +4,7 @@ import { expect, describe, it, vi, beforeEach, afterEach } from 'vitest'
 import LocalRunner from '@wdio/local-runner'
 import libCoverage from 'istanbul-lib-coverage'
 import libReport from 'istanbul-lib-report'
+import libSourceMap from 'istanbul-lib-source-maps'
 import reports from 'istanbul-reports'
 
 import { SESSIONS, BROWSER_POOL } from '../src/constants.js'
@@ -28,6 +29,11 @@ vi.mock('istanbul-lib-report', () => ({
 }))
 vi.mock('istanbul-reports', () => ({
     default: { create: vi.fn().mockReturnValue({ execute: vi.fn() }) }
+}))
+vi.mock('istanbul-lib-source-maps', () => ({
+    default: { createSourceMapStore: vi.fn().mockReturnValue({
+        transformCoverage: vi.fn().mockReturnValue('coverageMap')
+    }) }
 }))
 vi.mock('node:fs/promises', async () => {
     const coverageResult: any = await vi.importActual('./__fixtures__/coverage-summary.json')
@@ -136,6 +142,7 @@ describe('BrowserRunner', () => {
             expect(console.log).toBeCalledTimes(0)
             expect(libCoverage.createCoverageMap).toBeCalledTimes(1)
             expect(libReport.createContext).toBeCalledTimes(1)
+            expect(libSourceMap.createSourceMapStore).toBeCalledTimes(1)
             expect(reports.create).toBeCalledTimes(4)
         })
 
