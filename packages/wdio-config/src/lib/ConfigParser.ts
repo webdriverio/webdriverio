@@ -85,15 +85,15 @@ export default class ConfigParser {
         /**
          * enable/disable coverage reporting
          */
-        if (this._initialConfig.coverage) {
+        if (Object.keys(this._initialConfig || {}).includes('coverage')) {
             if (this._config.runner === 'browser') {
                 this._config.runner = ['browser', {
-                    coverage: { enabled: true }
+                    coverage: { enabled: this._initialConfig.coverage }
                 }]
             } else if (Array.isArray(this._config.runner) && this._config.runner[0] === 'browser') {
                 (this._config.runner[1] as any).coverage = {
                     ...(this._config.runner[1] as any).coverage,
-                    enabled: true
+                    enabled: this._initialConfig.coverage
                 }
             }
         }
