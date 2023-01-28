@@ -23,7 +23,7 @@ vi.mock('../src/vite/server.js', () => ({
     }
 }))
 vi.mock('istanbul-lib-coverage', () => ({
-    default: { createCoverageMap: vi.fn().mockReturnValue('coverageMap') }
+    default: { createCoverageMap: vi.fn().mockReturnValue({ map: vi.fn() }) }
 }))
 vi.mock('istanbul-lib-report', () => ({
     default: { createContext: vi.fn().mockReturnValue('context') }
@@ -143,7 +143,7 @@ describe('BrowserRunner', () => {
             expect(libCoverage.createCoverageMap).toBeCalledTimes(0)
         })
 
-        it('should do nothing if no coverage dir exists', async () => {
+        it('should do nothing if no coverage was collected', async () => {
             const runner = new BrowserRunner({
                 coverage: {
                     enabled: true,
@@ -152,7 +152,6 @@ describe('BrowserRunner', () => {
                 rootDir: '/foo/bar',
                 framework: 'mocha'
             } as any)
-            vi.mocked(fs.access).mockRejectedValueOnce(new Error('not existing'))
             expect(await runner['_generateCoverageReports']()).toBe(true)
             expect(libCoverage.createCoverageMap).toBeCalledTimes(0)
         })
@@ -166,6 +165,7 @@ describe('BrowserRunner', () => {
                 rootDir: '/foo/bar',
                 framework: 'mocha'
             } as any)
+            runner['_coverageMaps'].push({} as any)
             expect(await runner['_generateCoverageReports']()).toBe(true)
             expect(console.log).toBeCalledTimes(0)
             expect(libCoverage.createCoverageMap).toBeCalledTimes(1)
@@ -186,6 +186,7 @@ describe('BrowserRunner', () => {
                 rootDir: '/foo/bar',
                 framework: 'mocha'
             } as any)
+            runner['_coverageMaps'].push({} as any)
             expect(await runner['_generateCoverageReports']()).toBe(false)
             expect(console.log).toBeCalledWith([
                 'ERROR: Coverage for functions (50%) does not meet global threshold (70%)',
@@ -209,6 +210,7 @@ describe('BrowserRunner', () => {
                 rootDir: '/foo/bar',
                 framework: 'mocha'
             } as any)
+            runner['_coverageMaps'].push({} as any)
             expect(await runner['_generateCoverageReports']()).toBe(false)
             expect(console.log).toBeCalledWith([
                 'ERROR: Coverage for functions (50%) does not meet threshold (70%) for /components/ReactComponent.jsx',
@@ -229,9 +231,8 @@ describe('BrowserRunner', () => {
                 rootDir: '/foo/bar',
                 framework: 'mocha'
             } as any)
-            vi.mocked(libCoverage.createCoverageMap).mockImplementationOnce(() => {
-                throw new Error('ups')
-            })
+            vi.mocked(fs.readFile).mockRejectedValueOnce(new Error('ups'))
+            runner['_coverageMaps'].push({} as any)
             expect(await runner['_generateCoverageReports']()).toBe(false)
             expect(console.log).toBeCalledTimes(0)
         })
