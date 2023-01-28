@@ -38,6 +38,14 @@ export const config = {
     runner: ['browser', {
         // runner options
         preset: 'svelte' // setup WebdriverIOs Vite server for a Svelte project
+        // define code coverage options, see more https://webdriver.io/docs/runner#coverage-options
+        coverage: {
+            enabled: true,
+            statements: 90,
+            branches: 90,
+            functions: 90,
+            lines: 90
+        }
     }]
 }
 ```
