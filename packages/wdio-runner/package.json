@@ -35,8 +35,12 @@
     "deepmerge-ts": "^4.2.2",
     "expect-webdriverio": "^4.0.1",
     "gaze": "^1.1.2",
+    "istanbul-lib-coverage": "^3.2.0",
     "webdriver": "8.3.1",
     "webdriverio": "8.3.1"
+  },
+  "devDependencies": {
+    "@types/istanbul-lib-coverage": "^2.0.4"
   },
   "publishConfig": {
     "access": "public"
