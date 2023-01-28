@@ -64,6 +64,7 @@ export interface ParsedAnswers extends Omit<Questionnair, 'runner' | 'framework'
 }
 
 export interface RunCommandArguments {
+    coverage?: boolean
     watch?: boolean
     hostname?: string
     port?: number

@@ -93,6 +93,9 @@ export const cmdArgs = {
     },
     autoCompileOpts: {
         desc: 'Auto compilation options'
+    },
+    coverage: {
+        desc: 'Enable coverage for browser runner'
     }
 } as const
 

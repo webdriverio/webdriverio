@@ -154,6 +154,27 @@ describe('ConfigParser', () => {
         expect(() => ConfigParser.getFilePaths(123 as any, '/foo/bar')).toThrow()
     })
 
+    it('enables/disables coverage', async () => {
+        const c1 = new ConfigParser('/wdio.conf.js', { coverage: true })
+        c1['addConfigFile'] = vi.fn()
+        c1['merge'] = vi.fn()
+        c1['_config'] = { runner: 'browser', autoCompileOpts: { autoCompile: false } } as any
+        await c1.initialize({})
+        expect(c1['_config']).toMatchSnapshot()
+
+        const c2 = new ConfigParser('/wdio.conf.js', { coverage: true })
+        c2['addConfigFile'] = vi.fn()
+        c2['merge'] = vi.fn()
+        c2['_config'] = {
+            runner: ['browser', {
+                coverage: { enabled: false, statements: 100 }
+            }],
+            autoCompileOpts: { autoCompile: false }
+        } as any
+        await c2.initialize({})
+        expect(c2['_config']).toMatchSnapshot()
+    })
+
     describe('addConfigFile', () => {
         it('should throw if config file is not a string', async () => {
             const configParser = await ConfigParserForTest()
