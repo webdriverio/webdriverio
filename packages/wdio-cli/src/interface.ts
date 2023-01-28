@@ -7,7 +7,10 @@ import type { HookError } from './utils.js'
 import { getRunnerName } from './utils.js'
 
 const log = logger('@wdio/cli')
-const EVENT_FILTER = ['sessionStarted', 'sessionEnded', 'finishedCommand', 'ready', 'workerHookResult']
+const EVENT_FILTER = [
+    'sessionStarted', 'sessionEnded', 'finishedCommand', 'ready', 'workerHookResult',
+    'coverageMap'
+]
 
 interface TestError {
     type: string
