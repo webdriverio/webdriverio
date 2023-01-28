@@ -36,7 +36,7 @@
   },
   "devDependencies": {
     "@types/ip": "^1.1.0",
-    "@wdio/globals": "8.3.0"
+    "@wdio/globals": "8.3.1"
   },
   "publishConfig": {
     "access": "public"
