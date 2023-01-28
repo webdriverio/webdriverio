@@ -1,6 +1,5 @@
 import fs from 'node:fs/promises'
 import path from 'node:path'
-import util from 'node:util'
 
 import logger from '@wdio/logger'
 import type { RunArgs, WorkerInstance } from '@wdio/local-runner'
@@ -14,13 +13,12 @@ import type { SessionStartedMessage, SessionEndedMessage, WorkerHookResultMessag
 import type { Options } from '@wdio/types'
 
 import { ViteServer } from './vite/server.js'
-import { FRAMEWORK_SUPPORT_ERROR, SESSIONS, BROWSER_POOL, DEFAULT_COVERAGE_REPORTS, TRESHOLD_REPORTING } from './constants.js'
-import { makeHeadless } from './utils.js'
+import { FRAMEWORK_SUPPORT_ERROR, SESSIONS, BROWSER_POOL, DEFAULT_COVERAGE_REPORTS, SUMMARY_REPORTER } from './constants.js'
+import { makeHeadless, getCoverageByFactor } from './utils.js'
 import type { HookTriggerEvent } from './vite/types.js'
 import type { BrowserRunnerOptions as BrowserRunnerOptionsImport } from './types.js'
 
 const log = logger('@wdio/browser-runner')
-const COVERAGE_FACTORS = ['lines', 'functions', 'branches', 'statements'] as const
 export default class BrowserRunner extends LocalRunner {
     #config: Options.Testrunner
     #server: ViteServer
@@ -132,32 +130,35 @@ export default class BrowserRunner extends LocalRunner {
                 coverageMap
             })
 
-            const reporters = this.options.coverage.reporter
+            const reporter = this.options.coverage.reporter
                 ? Array.isArray(this.options.coverage.reporter) ? this.options.coverage.reporter : [this.options.coverage.reporter]
                 : DEFAULT_COVERAGE_REPORTS
-            const reportBases = reporters.map((reporter) => reports.create(reporter, {
+
+            /**
+             * ensure summary reporter is set as we need it for treshold comparison
+             */
+            if (!reporter.includes(SUMMARY_REPORTER)) {
+                reporter.push(SUMMARY_REPORTER)
+            }
+
+            const reportBases = reporter.map((r) => reports.create(r, {
                 projectRoot: this.#config.rootDir,
                 subdir: 'html'
             }))
             reportBases.map((reportBase) => reportBase.execute(context))
-            log.info(`Successfully created coverage reports for ${reporters.join(', ')}`)
+            log.info(`Successfully created coverage reports for ${reporter.join(', ')}`)
         } catch (err: unknown) {
             console.error(`Failed to generate code coverage report: ${(err as Error).message}`)
             return false
         }
 
         const summary = JSON.parse((await fs.readFile(path.join(reportsDirectory, 'coverage-summary.json'))).toString())
-        const coverageIssues = COVERAGE_FACTORS.map((factor) => {
-            const treshold = this.options.coverage![factor]
-            if (!treshold) {
-                return
-            }
-            if (summary.total[factor].pct > treshold) {
-                return
-            }
-
-            return util.format(TRESHOLD_REPORTING, factor, summary.total[factor].pct, treshold)
-        }).filter(Boolean) as string[]
+        const coverageIssues = this.options.coverage.perFile
+            ? Object.entries(summary)
+                .filter(([source]) => source !== 'total')
+                .map(([source, summary]: any) => getCoverageByFactor(this.options, summary, source.replace(this.#config.rootDir, '')))
+                .flat()
+            : getCoverageByFactor(this.options, summary.total)
 
         if (coverageIssues.length) {
             console.log(coverageIssues.join('\n'))

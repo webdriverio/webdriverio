@@ -34,6 +34,13 @@ export interface CoverageOptions extends Omit<IstanbulPluginOptions, 'cypress' |
      */
     reporter?: Arrayable<CoverageReporter>
     /**
+     * Check thresholds per file.
+     * See `lines`, `functions`, `branches` and `statements` for the actual thresholds.
+     *
+     * @default false
+     */
+    perFile?: boolean
+    /**
      * Threshold for lines
      *
      * @default undefined

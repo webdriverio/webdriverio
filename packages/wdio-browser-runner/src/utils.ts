@@ -1,6 +1,11 @@
+import util from 'node:util'
+
 import { deepmerge } from 'deepmerge-ts'
 import logger from '@wdio/logger'
 import type { Capabilities } from '@wdio/types'
+import type { CoverageSummary } from 'istanbul-lib-coverage'
+
+import { COVERAGE_FACTORS, GLOBAL_TRESHOLD_REPORTING, FILE_TRESHOLD_REPORTING } from './constants.js'
 import type { BrowserRunnerOptions } from './types.js'
 
 const log = logger('@wdio/browser-runner')
@@ -47,4 +52,24 @@ export function makeHeadless (options: BrowserRunnerOptions, caps: Capabilities.
 
     log.error(`Headless mode not supported for browser "${capability.browserName}"`)
     return caps
+}
+
+export function getCoverageByFactor (
+    options: BrowserRunnerOptions,
+    summary: Pick<CoverageSummary, (typeof COVERAGE_FACTORS)[number]>,
+    fileName?: string
+) {
+    return COVERAGE_FACTORS.map((factor) => {
+        const treshold = options.coverage![factor]
+        if (!treshold) {
+            return
+        }
+        if (summary[factor].pct > treshold) {
+            return
+        }
+
+        return fileName
+            ? util.format(FILE_TRESHOLD_REPORTING, factor, summary[factor].pct, treshold, fileName)
+            : util.format(GLOBAL_TRESHOLD_REPORTING, factor, summary[factor].pct, treshold)
+    }).filter(Boolean) as string[]
 }

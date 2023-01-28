@@ -27,5 +27,8 @@ export enum MESSAGE_TYPES {
     hookResultMessage
 }
 
-export const DEFAULT_COVERAGE_REPORTS: (keyof ReportOptions)[] = ['text', 'html', 'clover', 'json-summary']
-export const TRESHOLD_REPORTING = 'ERROR: Coverage for %s (%s%) does not meet global threshold (%s%)'
+export const SUMMARY_REPORTER = 'json-summary'
+export const COVERAGE_FACTORS = ['lines', 'functions', 'branches', 'statements'] as const
+export const DEFAULT_COVERAGE_REPORTS: (keyof ReportOptions)[] = ['text', 'html', 'clover', SUMMARY_REPORTER]
+export const GLOBAL_TRESHOLD_REPORTING = 'ERROR: Coverage for %s (%s%) does not meet global threshold (%s%)'
+export const FILE_TRESHOLD_REPORTING = 'ERROR: Coverage for %s (%s%) does not meet threshold (%s%) for %s'
