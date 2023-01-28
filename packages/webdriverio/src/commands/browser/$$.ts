@@ -1,6 +1,6 @@
 import type { ElementReference } from '@wdio/protocols'
 
-import { findElements, enhanceElementsArray } from '../../utils/index.js'
+import { findElements, enhanceElementsArray, isElement, findElement } from '../../utils/index.js'
 import { getElements } from '../../utils/getElementObject.js'
 import type { Selector, ElementArray } from '../../types.js'
 
@@ -61,11 +61,22 @@ import type { Selector, ElementArray } from '../../types.js'
  */
 export async function $$ (
     this: WebdriverIO.Browser | WebdriverIO.Element,
-    selector: Selector | ElementReference[] | WebdriverIO.Element[]
+    selector: Selector | ElementReference[] | WebdriverIO.Element[] | HTMLElement[]
 ) {
-    const res = Array.isArray(selector)
+    let res: (ElementReference | Error)[] = Array.isArray(selector)
         ? selector as ElementReference[]
         : await findElements.call(this, selector)
-    const elements = await getElements.call(this, selector, res)
-    return enhanceElementsArray(elements, this, selector) as ElementArray
+
+    /**
+     * allow user to transform a set of HTMLElements into a set of WebdriverIO elements
+     */
+    if (Array.isArray(selector) && isElement(selector[0])) {
+        res = []
+        for (const el of selector) {
+            res.push(await findElement.call(this, el))
+        }
+    }
+
+    const elements = await getElements.call(this, selector as Selector, res)
+    return enhanceElementsArray(elements, this, selector as Selector) as ElementArray
 }

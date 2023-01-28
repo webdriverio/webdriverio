@@ -85,7 +85,7 @@ export const getElement = function findElement(
 export const getElements = function getElements(
     this: WebdriverIO.Browser | WebdriverIO.Element,
     selector: Selector | ElementReference[] | WebdriverIO.Element[],
-    elemResponse: ElementReference[],
+    elemResponse: (ElementReference | Error)[],
     isReactElement = false
 ): ElementArray {
     const browser = getBrowserObject(this as WebdriverIO.Element)

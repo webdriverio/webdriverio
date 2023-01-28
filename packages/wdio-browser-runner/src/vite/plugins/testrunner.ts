@@ -2,6 +2,7 @@ import url from 'node:url'
 import path from 'node:path'
 
 import logger from '@wdio/logger'
+import { deepmerge } from 'deepmerge-ts'
 import { resolve } from 'import-meta-resolve'
 
 import type { Plugin } from 'vite'
@@ -17,17 +18,11 @@ import { getTemplate, getErrorTemplate } from '../utils.js'
 const log = logger('@wdio/browser-runner:plugin')
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
 
-const commands = {
-    ...WebDriverProtocol,
-    ...MJsonWProtocol,
-    ...JsonWProtocol,
-    ...AppiumProtocol,
-    ...ChromiumProtocol,
-    ...SauceLabsProtocol,
-    ...SeleniumProtocol,
-    ...GeckoProtocol,
-    ...WebDriverBidiProtocol
-}
+const commands = deepmerge(
+    WebDriverProtocol, MJsonWProtocol, JsonWProtocol, AppiumProtocol,
+    ChromiumProtocol, SauceLabsProtocol, SeleniumProtocol, GeckoProtocol,
+    WebDriverBidiProtocol
+)
 const protocolCommandList = Object.values(commands).map(
     (endpoint) => Object.values(endpoint).map(
         ({ command }) => command
