@@ -5,12 +5,12 @@ import logger from '@wdio/logger'
 import type { RunArgs, WorkerInstance } from '@wdio/local-runner'
 import LocalRunner from '@wdio/local-runner'
 import { attach } from 'webdriverio'
-import libCoverage, { type CoverageMapData } from 'istanbul-lib-coverage'
+import libCoverage, { type CoverageMap, type CoverageMapData } from 'istanbul-lib-coverage'
 import libReport from 'istanbul-lib-report'
 import libSourceMap from 'istanbul-lib-source-maps'
 import reports from 'istanbul-reports'
 
-import type { SessionStartedMessage, SessionEndedMessage, WorkerHookResultMessage } from '@wdio/runner'
+import type { SessionStartedMessage, SessionEndedMessage, WorkerHookResultMessage, WorkerCoverageMapMessage } from '@wdio/runner'
 import type { Options } from '@wdio/types'
 
 import { ViteServer } from './vite/server.js'
@@ -28,6 +28,7 @@ export default class BrowserRunner extends LocalRunner {
     #server: ViteServer
     #coverageOptions: CoverageOptions
     #reportsDirectory: string
+    private _coverageMaps: CoverageMap[] = []
 
     constructor(
         private options: BrowserRunnerOptionsImport,
@@ -83,7 +84,9 @@ export default class BrowserRunner extends LocalRunner {
             }
             return worker.postMessage('workerHookExecution', payload)
         })
-        worker.on('message', async (payload: SessionStartedMessage | SessionEndedMessage | WorkerHookResultMessage) => {
+
+        const mapStore = libSourceMap.createSourceMapStore()
+        worker.on('message', async (payload: SessionStartedMessage | SessionEndedMessage | WorkerHookResultMessage | WorkerCoverageMapMessage) => {
             if (payload.name === 'sessionStarted' && !SESSIONS.has(payload.cid!)) {
                 SESSIONS.set(payload.cid!, {
                     args: this.#config.mochaOpts || {},
@@ -114,6 +117,13 @@ export default class BrowserRunner extends LocalRunner {
             if (payload.name === 'workerHookResult') {
                 this.#server.resolveHook(payload.args)
             }
+
+            if (payload.name === 'coverageMap') {
+                const cmd = payload.content.coverageMap as CoverageMapData
+                this._coverageMaps.push(
+                    await mapStore.transformCoverage(libCoverage.createCoverageMap(cmd))
+                )
+            }
         })
 
         return worker
@@ -131,24 +141,16 @@ export default class BrowserRunner extends LocalRunner {
     }
 
     private async _generateCoverageReports () {
-        if (!this.#coverageOptions.enabled) {
+        if (!this.#coverageOptions.enabled || this._coverageMaps.length === 0) {
             return true
         }
 
-        /**
-         * skip if no coverage directory was created
-         */
-        const reportsDirectoryExist = await fs.access(this.#reportsDirectory)
-            .then(() => true, () => false)
-        if (!reportsDirectoryExist) {
-            return true
-        }
+        const firstCoverageMapEntry = this._coverageMaps.shift() as CoverageMap
+        const coverageMap = libCoverage.createCoverageMap(firstCoverageMapEntry)
+        this._coverageMaps.forEach((cm) => coverageMap.merge(cm))
 
         const coverageIssues: string[] = []
         try {
-            const globalCoverageVar: CoverageMapData = JSON.parse((await fs.readFile(path.join(this.#reportsDirectory, 'out.json'))).toString())
-            const mapStore = libSourceMap.createSourceMapStore()
-            const coverageMap = await mapStore.transformCoverage(libCoverage.createCoverageMap(globalCoverageVar))
             const context = libReport.createContext({
                 dir: this.#reportsDirectory,
                 defaultSummarizer: 'nested',
