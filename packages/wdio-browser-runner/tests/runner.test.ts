@@ -1,7 +1,10 @@
 import path from 'node:path'
 
-import { expect, describe, it, vi, beforeEach } from 'vitest'
+import { expect, describe, it, vi, beforeEach, afterEach } from 'vitest'
 import LocalRunner from '@wdio/local-runner'
+import libCoverage from 'istanbul-lib-coverage'
+import libReport from 'istanbul-lib-report'
+import reports from 'istanbul-reports'
 
 import { SESSIONS, BROWSER_POOL } from '../src/constants.js'
 import BrowserRunner from '../src/index.js'
@@ -17,6 +20,23 @@ vi.mock('../src/vite/server.js', () => ({
         on = vi.fn()
     }
 }))
+vi.mock('istanbul-lib-coverage', () => ({
+    default: { createCoverageMap: vi.fn().mockReturnValue('coverageMap') }
+}))
+vi.mock('istanbul-lib-report', () => ({
+    default: { createContext: vi.fn().mockReturnValue('context') }
+}))
+vi.mock('istanbul-reports', () => ({
+    default: { create: vi.fn().mockReturnValue({ execute: vi.fn() }) }
+}))
+vi.mock('node:fs/promises', async () => {
+    const coverageResult: any = await vi.importActual('./__fixtures__/coverage-summary.json')
+    return {
+        default: {
+            readFile: vi.fn().mockReturnValue(JSON.stringify(coverageResult.default))
+        }
+    }
+})
 
 describe('BrowserRunner', () => {
     beforeEach(() => {
@@ -75,8 +95,110 @@ describe('BrowserRunner', () => {
         const runner = new BrowserRunner({}, {
             framework: 'mocha'
         } as any)
+        runner['_generateCoverageReports'] = vi.fn()
         await runner.initialise()
         await runner.shutdown()
         expect(LocalRunner.prototype.shutdown).toBeCalledTimes(1)
+        expect(runner['_generateCoverageReports']).toBeCalledTimes(1)
+    })
+
+    describe('_generateCoverageReports', async () => {
+        const logOrig = console.log.bind(console)
+
+        beforeEach(() => {
+            vi.mocked(libCoverage.createCoverageMap).mockClear()
+            vi.mocked(libReport.createContext).mockClear()
+            vi.mocked(reports.create).mockClear()
+            console.log = vi.fn()
+        })
+
+        afterEach(() => {
+            console.log = logOrig
+        })
+
+        it('should do nothing if coverage is not enabled', async () => {
+            const runner = new BrowserRunner({}, {
+                framework: 'mocha'
+            } as any)
+            expect(await runner['_generateCoverageReports']()).toBe(true)
+        })
+
+        it('should generate reports', async () => {
+            const runner = new BrowserRunner({
+                coverage: {
+                    enabled: true,
+                }
+            }, {
+                rootDir: '/foo/bar',
+                framework: 'mocha'
+            } as any)
+            expect(await runner['_generateCoverageReports']()).toBe(true)
+            expect(console.log).toBeCalledTimes(0)
+            expect(libCoverage.createCoverageMap).toBeCalledTimes(1)
+            expect(libReport.createContext).toBeCalledTimes(1)
+            expect(reports.create).toBeCalledTimes(4)
+        })
+
+        it('should fail if coverage global treshold is not met', async () => {
+            const runner = new BrowserRunner({
+                coverage: {
+                    enabled: true,
+                    statements: 90,
+                    functions: 70,
+                    reporter: 'lcov'
+                }
+            }, {
+                rootDir: '/foo/bar',
+                framework: 'mocha'
+            } as any)
+            expect(await runner['_generateCoverageReports']()).toBe(false)
+            expect(console.log).toBeCalledWith([
+                'ERROR: Coverage for functions (50%) does not meet global threshold (70%)',
+                'ERROR: Coverage for statements (47.82%) does not meet global threshold (90%)'
+            ].join('\n'))
+            expect(reports.create).toBeCalledTimes(2)
+            expect(reports.create).toBeCalledWith('lcov', expect.any(Object))
+            expect(reports.create).toBeCalledWith('json-summary', expect.any(Object))
+        })
+
+        it('should fail if coverage file based treshold is not met', async () => {
+            const runner = new BrowserRunner({
+                coverage: {
+                    enabled: true,
+                    perFile: true,
+                    statements: 90,
+                    functions: 70,
+                    reporter: 'lcov'
+                }
+            }, {
+                rootDir: '/foo/bar',
+                framework: 'mocha'
+            } as any)
+            expect(await runner['_generateCoverageReports']()).toBe(false)
+            expect(console.log).toBeCalledWith([
+                'ERROR: Coverage for functions (50%) does not meet threshold (70%) for /components/ReactComponent.jsx',
+                'ERROR: Coverage for statements (47.82%) does not meet threshold (90%) for /components/ReactComponent.jsx'
+            ].join('\n'))
+        })
+
+        it('should return false if generating the report failed', async () => {
+            const runner = new BrowserRunner({
+                coverage: {
+                    enabled: true,
+                    perFile: true,
+                    statements: 90,
+                    functions: 70,
+                    reporter: 'lcov'
+                }
+            }, {
+                rootDir: '/foo/bar',
+                framework: 'mocha'
+            } as any)
+            vi.mocked(libCoverage.createCoverageMap).mockImplementationOnce(() => {
+                throw new Error('ups')
+            })
+            expect(await runner['_generateCoverageReports']()).toBe(false)
+            expect(console.log).toBeCalledTimes(0)
+        })
     })
 })

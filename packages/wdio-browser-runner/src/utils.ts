@@ -6,7 +6,7 @@ import type { Capabilities } from '@wdio/types'
 import type { CoverageSummary } from 'istanbul-lib-coverage'
 
 import { COVERAGE_FACTORS, GLOBAL_TRESHOLD_REPORTING, FILE_TRESHOLD_REPORTING } from './constants.js'
-import type { BrowserRunnerOptions } from './types.js'
+import type { BrowserRunnerOptions, CoverageOptions } from './types.js'
 
 const log = logger('@wdio/browser-runner')
 
@@ -55,12 +55,12 @@ export function makeHeadless (options: BrowserRunnerOptions, caps: Capabilities.
 }
 
 export function getCoverageByFactor (
-    options: BrowserRunnerOptions,
+    options: Partial<CoverageOptions>,
     summary: Pick<CoverageSummary, (typeof COVERAGE_FACTORS)[number]>,
     fileName?: string
 ) {
     return COVERAGE_FACTORS.map((factor) => {
-        const treshold = options.coverage![factor]
+        const treshold = options![factor]
         if (!treshold) {
             return
         }

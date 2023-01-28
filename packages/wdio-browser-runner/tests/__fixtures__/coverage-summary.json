@@ -1,0 +1,60 @@
+{
+    "total": {
+        "lines": {
+            "total": 46,
+            "covered": 22,
+            "skipped": 0,
+            "pct": 47.82
+        },
+        "statements": {
+            "total": 46,
+            "covered": 22,
+            "skipped": 0,
+            "pct": 47.82
+        },
+        "functions": {
+            "total": 6,
+            "covered": 3,
+            "skipped": 0,
+            "pct": 50
+        },
+        "branches": {
+            "total": 28,
+            "covered": 4,
+            "skipped": 0,
+            "pct": 14.28
+        },
+        "branchesTrue": {
+            "total": 0,
+            "covered": 0,
+            "skipped": 0,
+            "pct": "Unknown"
+        }
+    },
+    "/foo/bar/components/ReactComponent.jsx": {
+        "lines": {
+            "total": 46,
+            "covered": 22,
+            "skipped": 0,
+            "pct": 47.82
+        },
+        "functions": {
+            "total": 6,
+            "covered": 3,
+            "skipped": 0,
+            "pct": 50
+        },
+        "statements": {
+            "total": 46,
+            "covered": 22,
+            "skipped": 0,
+            "pct": 47.82
+        },
+        "branches": {
+            "total": 28,
+            "covered": 4,
+            "skipped": 0,
+            "pct": 14.28
+        }
+    }
+}

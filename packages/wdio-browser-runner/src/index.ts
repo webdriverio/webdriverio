@@ -119,8 +119,9 @@ export default class BrowserRunner extends LocalRunner {
             return true
         }
 
-        const reportsDirectory = this.options.coverage.reportsDirectory || path.join(this.#config.rootDir!, '.coverage')
+        const coverageIssues: string[] = []
         try {
+            const reportsDirectory = this.options.coverage.reportsDirectory || path.join(this.#config.rootDir!, '.coverage')
             const globalCoverageVar = JSON.parse((await fs.readFile(path.join(reportsDirectory, 'out.json'))).toString())
             const coverageMap = libCoverage.createCoverageMap(globalCoverageVar)
 
@@ -147,18 +148,23 @@ export default class BrowserRunner extends LocalRunner {
             }))
             reportBases.map((reportBase) => reportBase.execute(context))
             log.info(`Successfully created coverage reports for ${reporter.join(', ')}`)
+
+            const summaryFilePath = path.join(reportsDirectory, 'coverage-summary.json')
+            const summary = JSON.parse((await fs.readFile(summaryFilePath)).toString())
+            coverageIssues.push(
+                ...this.options.coverage.perFile
+                    ? Object.entries(summary)
+                        .filter(([source]) => source !== 'total')
+                        .map(([source, summary]: any) => (
+                            getCoverageByFactor(this.options.coverage!, summary, source.replace(this.#config.rootDir, '')))
+                        )
+                        .flat()
+                    : getCoverageByFactor(this.options.coverage!, summary.total)
+            )
         } catch (err: unknown) {
             console.error(`Failed to generate code coverage report: ${(err as Error).message}`)
             return false
         }
-
-        const summary = JSON.parse((await fs.readFile(path.join(reportsDirectory, 'coverage-summary.json'))).toString())
-        const coverageIssues = this.options.coverage.perFile
-            ? Object.entries(summary)
-                .filter(([source]) => source !== 'total')
-                .map(([source, summary]: any) => getCoverageByFactor(this.options, summary, source.replace(this.#config.rootDir, '')))
-                .flat()
-            : getCoverageByFactor(this.options, summary.total)
 
         if (coverageIssues.length) {
             console.log(coverageIssues.join('\n'))
