@@ -207,7 +207,10 @@ importers:
     specifiers:
       '@babel/plugin-proposal-class-properties': ^7.18.6
       '@originjs/vite-plugin-commonjs': ^1.0.3
+      '@types/istanbul-lib-coverage': ^2.0.4
+      '@types/istanbul-lib-report': ^3.0.0
       '@types/istanbul-lib-source-maps': ^4.0.1
+      '@types/istanbul-reports': ^3.0.1
       '@types/node': ^18.11.18
       '@types/ws': ^8.5.4
       '@wdio/globals': 8.3.0
@@ -237,7 +240,8 @@ importers:
     dependencies:
       '@babel/plugin-proposal-class-properties': 7.18.6
       '@originjs/vite-plugin-commonjs': 1.0.3
-      '@types/istanbul-lib-source-maps': 4.0.1
+      '@types/istanbul-lib-coverage': 2.0.4
+      '@types/istanbul-reports': 3.0.1
       '@types/node': 18.11.18
       '@wdio/globals': link:../wdio-globals
       '@wdio/local-runner': link:../wdio-local-runner
@@ -263,6 +267,8 @@ importers:
       webdriverio: link:../webdriverio
       ws: 8.12.0
     devDependencies:
+      '@types/istanbul-lib-report': 3.0.0
+      '@types/istanbul-lib-source-maps': 4.0.1
       '@types/ws': 8.5.4
       '@wdio/runner': link:../wdio-runner
 
@@ -3439,7 +3445,7 @@ packages:
     dependencies:
       '@types/istanbul-lib-coverage': 2.0.4
       source-map: 0.6.1
-    dev: false
+    dev: true
 
   /@types/istanbul-reports/3.0.1:
     resolution: {integrity: sha512-c3mAZEuK0lvBp8tmuL74XRKn1+y2dcwOUpH7x4WrF6gk1GIgiluDRgMYQtw2OFcBvAJWlt6ASU3tSqxp0Uu0Aw==}
