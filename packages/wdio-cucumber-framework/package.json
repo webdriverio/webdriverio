@@ -33,7 +33,7 @@
     "@wdio/logger": "7.26.0",
     "@wdio/types": "7.26.0",
     "@wdio/utils": "7.26.0",
-    "expect-webdriverio": "^3.0.0",
+    "expect-webdriverio": "^4.1.1",
     "glob": "^8.0.3",
     "is-glob": "^4.0.0",
     "long": "^4.0.0",
