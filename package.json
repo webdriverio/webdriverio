@@ -2,7 +2,7 @@
   "name": "webdriverio-monorepo",
   "private": true,
   "type": "module",
-  "packageManager": "pnpm@7.25.0",
+  "packageManager": "pnpm@7.26.3",
   "scripts": {
     "create": "node ./scripts/generateSubPackage",
     "backport": "node ./scripts/backport.js",

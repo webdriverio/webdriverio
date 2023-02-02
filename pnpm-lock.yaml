@@ -135,7 +135,7 @@ importers:
       debug: ^4.0.0
       edge-paths: ^3.0.5
       import-meta-resolve: ^2.1.0
-      puppeteer-core: 19.6.0
+      puppeteer-core: 19.6.3
       query-selector-shadow-dom: ^1.0.0
       ua-parser-js: ^1.0.1
       uuid: ^9.0.0
@@ -151,7 +151,7 @@ importers:
       debug: 4.3.4
       edge-paths: 3.0.5
       import-meta-resolve: 2.2.1
-      puppeteer-core: 19.6.0
+      puppeteer-core: 19.6.3
       query-selector-shadow-dom: 1.0.1
       ua-parser-js: 1.0.32
       uuid: 9.0.0
@@ -482,12 +482,12 @@ importers:
       '@wdio/logger': 8.1.0
       '@wdio/types': 8.3.0
       babel-plugin-istanbul: ^6.1.1
-      devtools-protocol: ^0.0.1094867
+      devtools-protocol: ^0.0.1099658
       istanbul-lib-coverage: ^3.2.0
       istanbul-lib-report: ^3.0.0
       istanbul-reports: ^3.1.4
       lighthouse: 8.6.0
-      puppeteer-core: 19.6.0
+      puppeteer-core: 19.6.3
       speedline: ^1.4.3
       stable: ^0.1.8
       webdriverio: 8.3.2
@@ -498,12 +498,12 @@ importers:
       '@wdio/logger': link:../wdio-logger
       '@wdio/types': link:../wdio-types
       babel-plugin-istanbul: 6.1.1
-      devtools-protocol: 0.0.1094867
+      devtools-protocol: 0.0.1099658
       istanbul-lib-coverage: 3.2.0
       istanbul-lib-report: 3.0.0
       istanbul-reports: 3.1.5
       lighthouse: 8.6.0
-      puppeteer-core: 19.6.0
+      puppeteer-core: 19.6.3
       speedline: 1.4.3
       stable: 0.1.8
       webdriverio: link:../webdriverio
@@ -931,14 +931,14 @@ importers:
       css-shorthand-properties: ^1.1.1
       css-value: ^0.0.1
       devtools: 8.3.2
-      devtools-protocol: ^0.0.1094867
+      devtools-protocol: ^0.0.1099658
       grapheme-splitter: ^1.0.2
       import-meta-resolve: ^2.1.0
       is-plain-obj: ^4.1.0
       lodash.clonedeep: ^4.5.0
       lodash.zip: ^4.2.0
       minimatch: ^6.1.4
-      puppeteer-core: 19.6.0
+      puppeteer-core: 19.6.3
       query-selector-shadow-dom: ^1.0.0
       resq: ^1.9.1
       rgb2hex: 0.2.5
@@ -957,14 +957,14 @@ importers:
       css-shorthand-properties: 1.1.1
       css-value: 0.0.1
       devtools: link:../devtools
-      devtools-protocol: 0.0.1094867
+      devtools-protocol: 0.0.1099658
       grapheme-splitter: 1.0.4
       import-meta-resolve: 2.2.1
       is-plain-obj: 4.1.0
       lodash.clonedeep: 4.5.0
       lodash.zip: 4.2.0
       minimatch: 6.1.5
-      puppeteer-core: 19.6.0
+      puppeteer-core: 19.6.3
       query-selector-shadow-dom: 1.0.1
       resq: 1.11.0
       rgb2hex: 0.2.5
@@ -6140,8 +6140,8 @@ packages:
     resolution: {integrity: sha512-RqoZ2GmqaNxyx+99L/RemY5CkwG9D0WEfOKxekwCRXOGrDCep62ngezEJUVMq6rISYQ+085fJnWDQqGHlxVNww==}
     dev: false
 
-  /devtools-protocol/0.0.1094867:
-    resolution: {integrity: sha512-pmMDBKiRVjh0uKK6CT1WqZmM3hBVSgD+N2MrgyV1uNizAZMw4tx6i/RTc+/uCsKSCmg0xXx7arCP/OFcIwTsiQ==}
+  /devtools-protocol/0.0.1099658:
+    resolution: {integrity: sha512-TLmb9K05SMQkuzy09XvVoNcy65EXplu6r6U9FOP/7wBB7cuhPmvI4evHYWED0uswC6ifnKN5ECobdFP8Q8/bEg==}
     dev: false
 
   /dezalgo/1.0.4:
@@ -11600,8 +11600,8 @@ packages:
       escape-goat: 2.1.1
     dev: false
 
-  /puppeteer-core/19.6.0:
-    resolution: {integrity: sha512-GvqWdHr9eY/MFR5pXf9o0apnrTmG0hhS7/TtCPfeAvCbaUS1bsLMZWxNGvI/QbviRu4xxi6HrR7VW4x/4esq1Q==}
+  /puppeteer-core/19.6.3:
+    resolution: {integrity: sha512-8MbhioSlkDaHkmolpQf9Z7ui7jplFfOFTnN8d5kPsCazRRTNIH6/bVxPskn0v5Gh9oqOBlknw0eHH0/OBQAxpQ==}
     engines: {node: '>=14.1.0'}
     dependencies:
       cross-fetch: 3.1.5
