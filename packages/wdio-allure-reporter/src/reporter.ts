@@ -12,13 +12,15 @@ import {
 } from './common/api.js'
 import {
     getTestStatus, isEmpty, isMochaEachHooks, getErrorFromFailedTest,
-    isMochaAllHooks, getLinkByTemplate, attachConsoleLogs, findLast,
+    isMochaAllHooks, getLinkByTemplate, findLast,
 } from './utils.js'
 import { events, PASSED, FAILED, PENDING, SKIPPED, stepStatuses } from './constants.js'
 import type {
     AddAttachmentEventArgs, AddDescriptionEventArgs, AddEnvironmentEventArgs,
     AddFeatureEventArgs, AddIssueEventArgs, AddLabelEventArgs, AddSeverityEventArgs,
-    AddStoryEventArgs, AddTestIdEventArgs, Status, AllureReporterOptions
+    AddStoryEventArgs, AddTestIdEventArgs, Status, AllureReporterOptions } from './types.js'
+import {
+    TYPE as DescriptionType
 } from './types.js'
 
 export default class AllureReporter extends WDIOReporter {
@@ -26,13 +28,9 @@ export default class AllureReporter extends WDIOReporter {
     private _capabilities: Capabilities.RemoteCapability
     private _isMultiremote?: boolean
     private _config?: Options.Testrunner
-    private _lastScreenshot?: string
     private _options: AllureReporterOptions
     private _consoleOutput: string
     private _originalStdoutWrite: Function
-    private _addConsoleLogs: boolean
-    private _startedFeatures: SuiteStats[] = []
-
     private _runningUnits: Array<AllureGroup | AllureTest | AllureStep> = []
 
     constructor(options: AllureReporterOptions = {}) {
@@ -42,7 +40,6 @@ export default class AllureReporter extends WDIOReporter {
             ...options,
             outputDir,
         })
-        this._addConsoleLogs = false
         this._consoleOutput = ''
         this._originalStdoutWrite = process.stdout.write.bind(process.stdout)
         this._allure = new AllureRuntime({
@@ -50,17 +47,17 @@ export default class AllureReporter extends WDIOReporter {
         })
         this._capabilities = {}
         this._options = options
-        this._lastScreenshot = undefined
 
         this.registerListeners()
 
         const processObj:any = process
 
-        if (options.addConsoleLogs || this._addConsoleLogs) {
+        if (options.addConsoleLogs) {
             processObj.stdout.write = (chunk: string, encoding: BufferEncoding, callback:  ((err?: Error) => void)) => {
                 if (typeof chunk === 'string' && !chunk.includes('mwebdriver')) {
                     this._consoleOutput += chunk
                 }
+
                 return this._originalStdoutWrite(chunk, encoding, callback)
             }
         }
@@ -74,38 +71,43 @@ export default class AllureReporter extends WDIOReporter {
         return findLast(this._runningUnits, (unit) => unit instanceof AllureGroup) as AllureGroup | undefined
     }
 
-    private get currentTest(): AllureTest | AllureStep | undefined {
+    private get currentTest(): AllureTest | undefined {
+        return findLast(this._runningUnits, (unit) => unit instanceof AllureTest) as AllureTest | undefined
+    }
+
+    private get currentStep(): AllureStep | undefined {
+        return findLast(this._runningUnits, (unit) => unit instanceof AllureStep) as AllureStep | undefined
+    }
+
+    private get currentAllureSpec(): AllureTest | AllureStep | undefined {
         return findLast(this._runningUnits, (unit) => unit instanceof AllureTest || unit instanceof AllureStep) as AllureTest | AllureStep | undefined
     }
 
-    // TODO: ?
-    // private get isAnyTestRunning() {
-    //     return Boolean(this.currentTest || this.currentSuite)
-    // }
-
-    private attachLogs(unit: AllureTest | AllureStep) {
-        if (!this._consoleOutput) return
+    private _attachLogs() {
+        if (!this._consoleOutput || !this.currentAllureSpec) {
+            return
+        }
 
         const logsContent = `.........Console Logs.........\n\n${this._consoleOutput}`
         const attachmentFilename = this._allure.writeAttachment(logsContent, ContentType.TEXT)
 
-        // unit.addAttachment(
-        //     'Console Logs',
-        //     {
-        //         contentType: ContentType.TEXT
-        //     },
-        //     attachmentFilename
-        // )
+        this.currentAllureSpec.addAttachment(
+            'Console Logs',
+            {
+                contentType: ContentType.TEXT,
+            },
+            attachmentFilename,
+        )
     }
 
-    private attachJSON(name: string, json: any) {
-        const content = JSON.stringify(json, null, 2)
-        const isStr = typeof json === 'string'
-        const contentType = isStr ? ContentType.JSON : ContentType.TEXT
-        // TODO: research, when it possible
-        const attachmentFilename = this._allure.writeAttachment(isStr ? content : `${content}`, contentType)
+    private _attachFile(name: string, content: string | Buffer, contentType: ContentType) {
+        if (!this.currentAllureSpec) {
+            throw new Error("There isn't any active test!")
+        }
 
-        this.currentTest!.addAttachment(
+        const attachmentFilename = this._allure.writeAttachment(content, contentType)
+
+        this.currentAllureSpec.addAttachment(
             name,
             {
                 contentType,
@@ -114,17 +116,16 @@ export default class AllureReporter extends WDIOReporter {
         )
     }
 
-    // TODO
-    private attachScreenshot(unit: AllureTest | AllureStep, name: string, content: Buffer) {
-        const attachmentFilename = this._allure.writeAttachment(content, ContentType.PNG)
+    private _attachJSON(name: string, json: any) {
+        const content = JSON.stringify(json, null, 2)
+        const isStr = typeof json === 'string'
+        const contentType = isStr ? ContentType.JSON : ContentType.TEXT
 
-        // unit.addAttachment(
-        //     name,
-        //     {
-        //         contentType: ContentType.PNG,
-        //     },
-        //     attachmentFilename
-        // )
+        this._attachFile(name, isStr ? content : `${content}`, contentType)
+    }
+
+    private _attachScreenshot(name: string, content: Buffer) {
+        this._attachFile(name, content, ContentType.PNG)
     }
 
     private _startSuite(suiteTitle: string) {
@@ -140,26 +141,33 @@ export default class AllureReporter extends WDIOReporter {
             throw new Error("There isn't any active suite!")
         }
 
+        // TODO:
+        // while (this.currentTest) {
+        //     const currentTest = this._runningUnits.pop() as AllureTest | AllureStep
+
+        //     if (currentTest instanceof AllureTest) {
+        //         currentTest.endTest()
+        //     } else {
+        //         currentTest.endStep()
+        //     }
+        // }
+
         const currentSuite = this._runningUnits.pop() as AllureGroup
 
         currentSuite.endGroup()
     }
 
-    // TODO:
-    private _startTest(testTitle: string) {
+    private _startTest(testTitle: string, cid?: string) {
         const newTest = this.currentSuite ? this.currentSuite.startTest() : new AllureTest(this._allure)
 
         newTest.name = testTitle
 
-        // const newTest = new AllureTest(this._allure)
-        // this._allure.startCase(testTitle)
-        //this.setCaseParameters(test.cid, test.parent)
-
+        this.setCaseParameters(cid)
         this._runningUnits.push(newTest)
     }
 
     private _skipTest() {
-        if (!this.currentTest) {
+        if (!this.currentAllureSpec) {
             return
         }
 
@@ -176,7 +184,7 @@ export default class AllureReporter extends WDIOReporter {
     }
 
     private _endTest(status: AllureStatus, error?: Error) {
-        if (!this.currentTest) {
+        if (!this.currentAllureSpec) {
             return
         }
 
@@ -198,48 +206,66 @@ export default class AllureReporter extends WDIOReporter {
     }
 
     private _startStep(testTitle: string) {
-        if (!this.currentTest) {
+        if (!this.currentAllureSpec) {
             throw new Error("There isn't any active test!")
         }
 
-        const newStep = this.currentTest!.startStep(testTitle)
+        const newStep = this.currentAllureSpec!.startStep(testTitle)
 
         this._runningUnits.push(newStep)
     }
 
-    // private _endStep() {
+    setCaseParameters(cid: string | undefined) {
+        if (!this.currentTest) {
+            return
+        }
 
-    // }
+        if (!this._isMultiremote) {
+            const caps = this._capabilities as Capabilities.DesiredCapabilities
+            const { browserName, deviceName, desired, device } = caps
+            let targetName = device || browserName || deviceName || cid
 
-    setCaseParameters(cid: string | undefined, parentUid: string | undefined) {
-        // const parentSuite = this.getParentSuite(parentUid)
-        // const currentTest = this._allure.getCurrentTest()
+            // custom mobile grids can have device information in a `desired` cap
+            if (desired && desired.deviceName && desired.platformVersion) {
+                targetName = `${device || desired.deviceName} ${desired.platformVersion}`
+            }
 
-        // if (!this._isMultiremote) {
-        //     const caps = this._capabilities as Capabilities.DesiredCapabilities
-        //     const { browserName, deviceName, desired, device } = caps
-        //     let targetName = device || browserName || deviceName || cid
-        //     // custom mobile grids can have device information in a `desired` cap
-        //     if (desired && desired.deviceName && desired.platformVersion) {
-        //         targetName = `${device || desired.deviceName} ${desired.platformVersion}`
-        //     }
-        //     const browserstackVersion = caps.os_version || caps.osVersion
-        //     const version = browserstackVersion || caps.browserVersion || caps.version || caps.platformVersion || ''
-        //     const paramName = (deviceName || device) ? 'device' : 'browser'
-        //     const paramValue = version ? `${targetName}-${version}` : targetName
-        //     currentTest.addParameter('argument', paramName, paramValue)
-        // } else {
-        //     currentTest.addParameter('argument', 'isMultiremote', 'true')
-        // }
+            const browserstackVersion = caps.os_version || caps.osVersion
+            const version = browserstackVersion || caps.browserVersion || caps.version || caps.platformVersion || ''
+            const paramName = (deviceName || device) ? 'device' : 'browser'
+            const paramValue = version ? `${targetName}-${version}` : targetName
 
-        // // Allure analytics labels. See https://github.com/allure-framework/allure2/blob/master/Analytics.md
-        // currentTest.addLabel('language', 'javascript')
-        // currentTest.addLabel('framework', 'wdio')
-        // currentTest.addLabel('thread', cid)
+            if (!paramValue) {
+                return
+            }
 
-        // if (parentSuite?.title) {
-        //     currentTest.addLabel('feature', parentSuite?.title)
-        // }
+            this.currentTest.addParameter(paramName, paramValue)
+        } else {
+            this.currentTest.addParameter('isMultiremote', 'true')
+        }
+
+        // Allure analytics labels. See https://github.com/allure-framework/allure2/blob/master/Analytics.md
+        this.currentTest.addLabel('language', 'javascript')
+        this.currentTest.addLabel('framework', 'wdio')
+
+        if (cid) {
+            this.currentTest.addLabel('thread', cid)
+        }
+
+        if (this.currentSuite?.name) {
+            this.currentTest.addLabel('feature', this.currentSuite.name)
+        }
+    }
+
+    isScreenshotCommand(command: CommandArgs) {
+        const isScrenshotEndpoint = /\/session\/[^/]*(\/element\/[^/]*)?\/screenshot/
+
+        return (
+            // WebDriver protocol
+            (command.endpoint && isScrenshotEndpoint.test(command.endpoint)) ||
+            // DevTools protocol
+            command.command === 'takeScreenshot'
+        )
     }
 
     getLabels({
@@ -286,26 +312,21 @@ export default class AllureReporter extends WDIOReporter {
 
         if (useCucumberStepReporter && isScenario) {
             // handle cucumber scenario as allure "case" instead of "suite"
-            this._startTest(suite.title)
+            this._startTest(suite.title, suite.cid)
+            this.getLabels(suite).forEach(({ name, value }) => {
+                if (name === 'issue') {
+                    this.addIssue({ issue: value })
+                } else if (name === 'testId') {
+                    this.addTestId({ testId: value })
+                } else {
+                    this.addLabel({ name, value })
+                }
+            })
+
+            if (suite.description) {
+                this.addDescription(suite)
+            }
             return
-            // TODO:
-            // this.getLabels(suite).forEach(({ name, value }) => {
-            //     if (name === 'issue') {
-            //         this.addIssue({ issue: value })
-            //     } else if (name === 'testId') {
-            //         this.addTestId({ testId: value })
-            //     } else {
-            //         this.addLabel({ name, value })
-
-            //         // newTest.addLabel(name, value)
-            //     }
-            // })
-
-            // if (suite.description) {
-            //     this.addDescription(suite)
-            // }
-
-            // this.setCaseParameters(suite.cid, suite.parent)
         }
 
         const prefix = this.currentSuite ? this.currentSuite.name + ': ' : ''
@@ -318,12 +339,6 @@ export default class AllureReporter extends WDIOReporter {
         const { useCucumberStepReporter } = this._options
         const isFeature = suite.type === 'feature'
         const isScenario = suite.type === 'scenario'
-
-        // TODO:
-        // cleanup suites index to prevent resource leaks
-        // if (isFeature) {
-        //     this._startedFeatures = this._startedFeatures.filter((suite) => suite.uid !== suite.uid)
-        // }
 
         if (useCucumberStepReporter && isScenario) {
             // passing hooks are missing the 'state' property
@@ -378,68 +393,56 @@ export default class AllureReporter extends WDIOReporter {
 
         const testTitle = test.currentTest ? test.currentTest : test.title
 
-        if (this.currentTest?.name === testTitle) {
-            // TODO
+        if (this.currentAllureSpec?.name === testTitle) {
             // Test already in progress, most likely started by a before each hook
-            this.setCaseParameters(test.cid, test.parent)
+            this.setCaseParameters(test.cid)
             return
         }
 
         if (useCucumberStepReporter) {
-            // const newStep = this.currentTest!.startStep(testTitle)
-            // const testObj = test as TestStats
-            // const argument = testObj?.argument as Argument
-            // const dataTable = argument?.rows?.map((a: { cells: string[] }) => a?.cells)
+            const testObj = test as TestStats
+            const argument = testObj?.argument as Argument
+            const dataTable = argument?.rows?.map((a: { cells: string[] }) => a?.cells)
 
             this._startStep(testTitle)
 
-            // TODO
-            // if (dataTable) {
-            //     this._allure.addAttachment('Data Table', stringify(dataTable), 'text/csv')
-            // }
+            if (dataTable) {
+                this._attachFile('Data Table', stringify(dataTable), ContentType.CSV)
+            }
             return
         }
 
-        // const newTest = this.currentSuite ? this.currentSuite.startTest() : new AllureTest(this._allure)
-
-        // newTest.name = testTitle
-
-        // const newTest = new AllureTest(this._allure)
-        // this._allure.startCase(testTitle)
-        //this.setCaseParameters(test.cid, test.parent)
-
-        // this._runningUnits.push(newTest)
-        this._startTest(testTitle)
+        this._startTest(testTitle, test.cid)
     }
 
     onTestPass() {
-        // TODO
-        // attachConsoleLogs(this._consoleOutput, this._allure)
+        this._attachLogs()
         this._endTest(AllureStatus.PASSED)
     }
 
     onTestFail(test: TestStats | HookStats) {
         const { useCucumberStepReporter } = this._options
 
+        console.log('test fail', test)
+
         if (useCucumberStepReporter) {
-            // TODO
-            // attachConsoleLogs(this._consoleOutput, this._allure)
+            this._attachLogs()
             const testStatus = getTestStatus(test, this._config)
 
             this._endTest(testStatus, getErrorFromFailedTest(test))
             return
         }
 
-        if (!this.currentTest) {
+        if (!this.currentAllureSpec) {
             this.onTestStart(test)
         } else {
-            this.currentTest.name = test.title
+            this.currentAllureSpec.name = test.title
         }
 
-        // TODO
-        // attachConsoleLogs(this._consoleOutput, this._allure)
+        this._attachLogs()
+
         const status = getTestStatus(test, this._config)
-        // TODO
+        // TODO:
         // while (this._allure.getCurrentSuite().currentStep instanceof Step) {
         //     this._allure.endStep(status)
         // }
@@ -448,13 +451,12 @@ export default class AllureReporter extends WDIOReporter {
     }
 
     onTestSkip(test: TestStats) {
-        // TODO:
-        // attachConsoleLogs(this._consoleOutput, this._allure)
+        this._attachLogs()
         this._skipTest()
     }
 
     onBeforeCommand(command: BeforeCommandArgs) {
-        if (!this.currentTest) {
+        if (!this.currentAllureSpec) {
             return
         }
 
@@ -469,110 +471,103 @@ export default class AllureReporter extends WDIOReporter {
         const payload = command.body || command.params
 
         if (!isEmpty(payload)) {
-            this.attachJSON('Request', payload)
+            this._attachJSON('Request', payload)
         }
     }
 
     onAfterCommand(command: AfterCommandArgs) {
         const { disableWebdriverStepsReporting, disableWebdriverScreenshotsReporting } = this._options
 
-        // if (this.isScreenshotCommand(command) && command.result.value) {
-        //     if (!disableWebdriverScreenshotsReporting) {
-        //         this._lastScreenshot = command.result.value
-        //     }
-        // }
-
-        if (!this.currentTest) {
+        if (disableWebdriverStepsReporting || !this.currentAllureSpec || this._isMultiremote) {
             return
         }
 
-        // this.attachScreenshot()
+        const isScreenshotCommand = this.isScreenshotCommand(command)
+        const { value: commandResult } = command.result
 
-        if (this._isMultiremote) {
-            return
+        if (!disableWebdriverScreenshotsReporting && isScreenshotCommand && commandResult) {
+            this._attachScreenshot('Screenshot', Buffer.from(commandResult, 'base64'))
         }
 
-        if (!disableWebdriverStepsReporting) {
-            // if (command.result && command.result.value && !this.isScreenshotCommand(command)) {
-            //     this.attachJSON('Response', command.result.value)
-            // }
-
-            // if (!this.currentSuite || !(suite.currentStep instanceof Step)) {
-            //     return
-            // }
-
-            // this._allure.endStep('passed')
-            this._endTest(AllureStatus.PASSED)
+        if (!isScreenshotCommand && commandResult) {
+            this._attachJSON('Response', commandResult)
         }
+
+        this._endTest(AllureStatus.PASSED)
     }
 
     onHookStart(hook: HookStats) {
-        // // ignore global hooks
-        // if (!hook.parent || !this._allure.getCurrentSuite()) {
-        //     return false
-        // }
+        const { disableMochaHooks } = this._options
 
-        // // add beforeEach / afterEach hook as step to test
-        // if (this._options.disableMochaHooks && isMochaEachHooks(hook.title)) {
-        //     if (this._allure.getCurrentTest()) {
-        //         this._allure.startStep(hook.title)
-        //     }
-        //     return
-        // }
+        // ignore global hooks
+        if (!hook.parent || !this.currentSuite) {
+            return
+        }
 
-        // // don't add hook as test to suite for mocha All hooks
-        // if (this._options.disableMochaHooks && isMochaAllHooks(hook.title)) {
-        //     return
-        // }
+        // add beforeEach / afterEach hook as step to test
+        if (disableMochaHooks && isMochaEachHooks(hook.title) && this.currentAllureSpec) {
+            this._startStep(hook.title)
+            return
+        }
 
-        // // add hook as test to suite
-        // this.onTestStart(hook)
+        // don't add hook as test to suite for mocha All hooks
+        if (disableMochaHooks && isMochaAllHooks(hook.title)) {
+            return
+        }
+
+        // add hook as test to suite
+        this.onTestStart(hook)
     }
 
     onHookEnd(hook: HookStats) {
-        // // ignore global hooks
-        // if (!hook.parent || !this._allure.getCurrentSuite() || (this._options.disableMochaHooks && !isMochaAllHooks(hook.title) && !this._allure.getCurrentTest())) {
-        //     return false
-        // }
+        const { disableMochaHooks, useCucumberStepReporter } = this._options
 
-        // // set beforeEach / afterEach hook (step) status
-        // if (this._options.disableMochaHooks && isMochaEachHooks(hook.title)) {
-        //     hook.error
-        //         ? this._allure.endStep('failed')
-        //         : this._allure.endStep('passed')
-        //     return
-        // }
+        // ignore global hooks
+        if (!hook.parent || !this.currentSuite) {
+            return
+        }
 
-        // // set hook (test) status
-        // if (hook.error) {
-        //     if (this._options.disableMochaHooks && isMochaAllHooks(hook.title)) {
-        //         this.onTestStart(hook)
-        //         this.attachScreenshot()
-        //     }
-        //     this.onTestFail(hook)
-        // } else if (
-        //     (this._options.disableMochaHooks || this._options.useCucumberStepReporter) &&
-        //     !isMochaAllHooks(hook.title)
-        // ) {
-        //     this.onTestPass()
+        const isMochaAllHook = isMochaAllHooks(hook.title)
+        const isMochaEachHook = isMochaEachHooks(hook.title)
 
-        //     // remove hook from suite if it has no steps
-        //     if (this._allure.getCurrentTest().steps.length === 0 && !this._options.useCucumberStepReporter) {
-        //         this._allure.getCurrentSuite().testcases.pop()
-        //     } else if (this._options.useCucumberStepReporter) {
-        //         // remove hook when it's registered as a step and if it's passed
-        //         const step = this._allure.getCurrentTest().steps.pop()
+        if (disableMochaHooks && !isMochaAllHook && !this.currentAllureSpec) {
+            return
+        }
 
-        //         // if it had any attachments, reattach them to current test
-        //         if (step && step.attachments.length >= 1) {
-        //             step.attachments.forEach((attachment: any) => {
-        //                 this._allure.getCurrentTest().addAttachment(attachment)
-        //             })
-        //         }
-        //     }
-        // } else if (!this._options.disableMochaHooks) {
-        //     this.onTestPass()
-        // }
+        // set beforeEach / afterEach hook (step) status
+        if (disableMochaHooks && isMochaEachHook) {
+            this._endTest(hook.error ? AllureStatus.FAILED : AllureStatus.PASSED, hook.error)
+            return
+        }
+
+        // set hook (test) status
+        if (hook.error) {
+            if (disableMochaHooks && isMochaAllHooks(hook.title)) {
+                this.onTestStart(hook)
+                // this.attachScreenshot()
+            }
+            this.onTestFail(hook)
+        } else if ((disableMochaHooks || useCucumberStepReporter) && !isMochaAllHook) {
+            console.log('special case fired')
+            this.onTestPass()
+
+            // remove hook from suite if it has no steps
+            // if (this._allure.getCurrentTest().steps.length === 0 && !useCucumberStepReporter) {
+            //     this._allure.getCurrentSuite().testcases.pop()
+            // } else if (useCucumberStepReporter) {
+            //     // remove hook when it's registered as a step and if it's passed
+            //     const step = this._allure.getCurrentTest().steps.pop()
+
+            //     // if it had any attachments, reattach them to current test
+            //     if (step && step.attachments.length >= 1) {
+            //         step.attachments.forEach((attachment: any) => {
+            //             this._allure.getCurrentTest().addAttachment(attachment)
+            //         })
+            //     }
+            // }
+        } else if (!disableMochaHooks) {
+            this.onTestPass()
+        }
     }
 
     addLabel({
@@ -623,6 +618,11 @@ export default class AllureReporter extends WDIOReporter {
     addIssue({
         issue
     }: AddIssueEventArgs) {
+        if (!this.currentAllureSpec) {
+            return
+        }
+
+        // this.currentTest.add
         // if (!this.isAnyTestRunning()) {
         //     return false
         // }
@@ -660,28 +660,33 @@ export default class AllureReporter extends WDIOReporter {
         description,
         descriptionType
     }: AddDescriptionEventArgs) {
-        // if (!this.isAnyTestRunning()) {
-        //     return false
-        // }
+        if (!this.currentAllureSpec) {
+            return
+        }
 
-        // const test = this._allure.getCurrentTest()
-        // test.setDescription(description, descriptionType)
+        if (descriptionType === DescriptionType.HTML) {
+            this.currentAllureSpec.descriptionHtml = description
+            return
+        }
+
+        this.currentAllureSpec.description = description
     }
 
     addAttachment({
         name,
         content,
-        type = 'text/plain'
+        type = ContentType.TEXT
     }: AddAttachmentEventArgs) {
-        // if (!this.isAnyTestRunning()) {
-        //     return false
-        // }
+        if (!this.currentAllureSpec) {
+            return
+        }
 
-        // if (type === 'application/json') {
-        //     this.dumpJSON(name, content as object)
-        // } else {
-        //     this._allure.addAttachment(name, Buffer.from(content as string), type)
-        // }
+        if (type === ContentType.JSON) {
+            this._attachJSON(name, content)
+            return
+        }
+
+        this._attachFile(name, Buffer.from(content as string), type as ContentType)
     }
 
     startStep(title: string) {
@@ -727,16 +732,6 @@ export default class AllureReporter extends WDIOReporter {
     //     return this._allure.getCurrentSuite() && this._allure.getCurrentTest()
     // }
 
-    isScreenshotCommand(command: CommandArgs) {
-        // const isScrenshotEndpoint = /\/session\/[^/]*(\/element\/[^/]*)?\/screenshot/
-        // return (
-        //     // WebDriver protocol
-        //     (command.endpoint && isScrenshotEndpoint.test(command.endpoint)) ||
-        //     // DevTools protocol
-        //     command.command === 'takeScreenshot'
-        // )
-    }
-
     // dumpJSON(name: string, json: object) {
     //     const content = JSON.stringify(json, null, 2)
     //     const isStr = typeof content === 'string'
@@ -754,6 +749,8 @@ export default class AllureReporter extends WDIOReporter {
      * public API attached to the reporter
      * deprecated approach and only here for backwards compatibility
      */
+    // TODO:
+    // static addAllureId = addAllureId
     static addFeature = addFeature
     static addLabel = addLabel
     static addSeverity = addSeverity
