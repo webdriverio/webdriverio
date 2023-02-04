@@ -16,4 +16,5 @@ export const fileURLToPath = () => ''
 export const dirname = () => ''
 export const resolve = () => ''
 export const sep = '/'
+export const type = 'browser'
 export default () => {}

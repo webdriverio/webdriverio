@@ -33,7 +33,7 @@ const virtualModuleId = 'virtual:wdio'
 const resolvedVirtualModuleId = '\0' + virtualModuleId
 
 const MODULES_TO_MOCK = [
-    'node:url', 'node:module', 'node:events', 'node:path',
+    'node:url', 'node:module', 'node:events', 'node:path', 'node:os',
     'import-meta-resolve', 'puppeteer-core', 'archiver', 'glob', 'devtools', 'ws'
 ]
 
