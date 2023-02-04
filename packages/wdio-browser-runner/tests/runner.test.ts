@@ -9,7 +9,7 @@ import libSourceMap from 'istanbul-lib-source-maps'
 import reports from 'istanbul-reports'
 
 import { SESSIONS, BROWSER_POOL } from '../src/constants.js'
-import BrowserRunner, { fn, spyOn } from '../src/index.js'
+import BrowserRunner from '../src/index.js'
 
 vi.mock('webdriverio', () => import(path.join(process.cwd(), '__mocks__', 'webdriverio')))
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
@@ -51,11 +51,6 @@ describe('BrowserRunner', () => {
     beforeEach(() => {
         delete process.env.CI
         vi.mocked(libSourceMap.createSourceMapStore).mockClear()
-    })
-
-    it('it should re-export @vitest/spy', () => {
-        expect(typeof fn).toBe('function')
-        expect(typeof spyOn).toBe('function')
     })
 
     it('should throw if framework is not Mocha', () => {

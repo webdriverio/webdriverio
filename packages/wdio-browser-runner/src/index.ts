@@ -87,7 +87,7 @@ export default class BrowserRunner extends LocalRunner {
             return worker.postMessage('workerHookExecution', payload)
         })
 
-        worker.on('message', this._onWorkerMessage.bind(this))
+        worker.on('message', this.#onWorkerMessage.bind(this))
         return worker
     }
 
@@ -102,7 +102,7 @@ export default class BrowserRunner extends LocalRunner {
         return this._generateCoverageReports()
     }
 
-    private async _onWorkerMessage (payload: SessionStartedMessage | SessionEndedMessage | WorkerHookResultMessage | WorkerCoverageMapMessage) {
+    async #onWorkerMessage (payload: SessionStartedMessage | SessionEndedMessage | WorkerHookResultMessage | WorkerCoverageMapMessage) {
         if (payload.name === 'sessionStarted' && !SESSIONS.has(payload.cid!)) {
             SESSIONS.set(payload.cid!, {
                 args: this.#config.mochaOpts || {},
