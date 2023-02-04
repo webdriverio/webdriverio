@@ -16,6 +16,10 @@ export class SimpleGreeting extends LitElement {
 
     // Render the UI as a function of component state
     render() {
-        return html`<p>Hello, ${this.name}!</p>`
+        return html`<p>Hello, ${this.name}! ${this.getQuestion()}</p>`
+    }
+
+    getQuestion () {
+        return 'How are you today?'
     }
 }
