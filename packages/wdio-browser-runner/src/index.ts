@@ -208,8 +208,3 @@ declare global {
         interface BrowserRunnerOptions extends BrowserRunnerOptionsImport {}
     }
 }
-
-/**
- * re-export mock module
- */
-export * from '@vitest/spy'
