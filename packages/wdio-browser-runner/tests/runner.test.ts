@@ -50,6 +50,7 @@ vi.mock('node:fs/promises', async () => {
 describe('BrowserRunner', () => {
     beforeEach(() => {
         delete process.env.CI
+        vi.mocked(libSourceMap.createSourceMapStore).mockClear()
     })
 
     it('should throw if framework is not Mocha', () => {

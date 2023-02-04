@@ -28,6 +28,8 @@ export default class BrowserRunner extends LocalRunner {
     #server: ViteServer
     #coverageOptions: CoverageOptions
     #reportsDirectory: string
+
+    #mapStore = libSourceMap.createSourceMapStore()
     private _coverageMaps: CoverageMap[] = []
 
     constructor(
@@ -85,47 +87,7 @@ export default class BrowserRunner extends LocalRunner {
             return worker.postMessage('workerHookExecution', payload)
         })
 
-        const mapStore = libSourceMap.createSourceMapStore()
-        worker.on('message', async (payload: SessionStartedMessage | SessionEndedMessage | WorkerHookResultMessage | WorkerCoverageMapMessage) => {
-            if (payload.name === 'sessionStarted' && !SESSIONS.has(payload.cid!)) {
-                SESSIONS.set(payload.cid!, {
-                    args: this.#config.mochaOpts || {},
-                    config: this.#config,
-                    capabilities: payload.content.capabilities,
-                    sessionId: payload.content.sessionId,
-                    injectGlobals: payload.content.injectGlobals
-                })
-                const browser = await attach({
-                    ...this.#config,
-                    ...payload.content,
-                    options: {
-                        ...this.#config,
-                        ...payload.content
-                    }
-                })
-                /**
-                 * propagate debug state to the worker
-                 */
-                BROWSER_POOL.set(payload.cid!, browser)
-            }
-
-            if (payload.name === 'sessionEnded') {
-                SESSIONS.delete(payload.cid)
-                BROWSER_POOL.delete(payload.cid)
-            }
-
-            if (payload.name === 'workerHookResult') {
-                this.#server.resolveHook(payload.args)
-            }
-
-            if (payload.name === 'coverageMap') {
-                const cmd = payload.content.coverageMap as CoverageMapData
-                this._coverageMaps.push(
-                    await mapStore.transformCoverage(libCoverage.createCoverageMap(cmd))
-                )
-            }
-        })
-
+        worker.on('message', this.#onWorkerMessage.bind(this))
         return worker
     }
 
@@ -138,6 +100,46 @@ export default class BrowserRunner extends LocalRunner {
         await super.shutdown()
         await this.#server.close()
         return this._generateCoverageReports()
+    }
+
+    async #onWorkerMessage (payload: SessionStartedMessage | SessionEndedMessage | WorkerHookResultMessage | WorkerCoverageMapMessage) {
+        if (payload.name === 'sessionStarted' && !SESSIONS.has(payload.cid!)) {
+            SESSIONS.set(payload.cid!, {
+                args: this.#config.mochaOpts || {},
+                config: this.#config,
+                capabilities: payload.content.capabilities,
+                sessionId: payload.content.sessionId,
+                injectGlobals: payload.content.injectGlobals
+            })
+            const browser = await attach({
+                ...this.#config,
+                ...payload.content,
+                options: {
+                    ...this.#config,
+                    ...payload.content
+                }
+            })
+            /**
+             * propagate debug state to the worker
+             */
+            BROWSER_POOL.set(payload.cid!, browser)
+        }
+
+        if (payload.name === 'sessionEnded') {
+            SESSIONS.delete(payload.cid)
+            BROWSER_POOL.delete(payload.cid)
+        }
+
+        if (payload.name === 'workerHookResult') {
+            this.#server.resolveHook(payload.args)
+        }
+
+        if (payload.name === 'coverageMap') {
+            const cmd = payload.content.coverageMap as CoverageMapData
+            this._coverageMaps.push(
+                await this.#mapStore.transformCoverage(libCoverage.createCoverageMap(cmd))
+            )
+        }
     }
 
     private async _generateCoverageReports () {
@@ -206,3 +208,8 @@ declare global {
         interface BrowserRunnerOptions extends BrowserRunnerOptionsImport {}
     }
 }
+
+/**
+ * re-export mock types
+ */
+export * from '@vitest/spy'

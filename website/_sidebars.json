@@ -79,12 +79,19 @@
         "id": "component-testing"
       },
       "items": [
-        "component-testing/lit",
-        "component-testing/vue",
-        "component-testing/svelte",
-        "component-testing/solid",
-        "component-testing/react",
-        "component-testing/preact"
+        {
+          "type": "category",
+          "label": "Framework Setup",
+          "items": [
+            "component-testing/lit",
+            "component-testing/vue",
+            "component-testing/svelte",
+            "component-testing/solid",
+            "component-testing/react",
+            "component-testing/preact"
+          ]
+        },
+        "component-testing/mocks-and-spies"
       ]
     },
     {

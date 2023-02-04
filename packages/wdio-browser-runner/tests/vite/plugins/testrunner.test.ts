@@ -40,6 +40,9 @@ test('resolveId', async () => {
     expect(await (plugin.resolveId as Function)('@wdio/browser-runner/setup'))
         .toContain(path.join('browser', 'setup.js'))
 
+    expect(await (plugin.resolveId as Function)('@wdio/browser-runner'))
+        .toContain(path.join('browser', 'spy.js'))
+
     vi.mocked(resolve).mockResolvedValue('file:///foo/bar')
     expect(await (plugin.resolveId as Function)('@wdio/config'))
         .toBe('/foo/bar')
