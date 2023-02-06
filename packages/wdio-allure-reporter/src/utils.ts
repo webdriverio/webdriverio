@@ -99,9 +99,11 @@ export const getLinkByTemplate = (template: string | undefined, id: string) => {
     if (typeof template !== 'string') {
         return id
     }
+
     if (!template.includes(linkPlaceholder)) {
         throw Error(`The link template "${template}" must contain ${linkPlaceholder} substring.`)
     }
+
     return template.replace(linkPlaceholder, id)
 }
 

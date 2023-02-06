@@ -23,10 +23,18 @@ export const stepStatuses: Record<string, Status> = {
 
 export const events = {
     addLabel: 'allure:addLabel',
+    addLink: 'allure:addLink',
     addFeature: 'allure:addFeature',
     addStory: 'allure:addStory',
+    addEpic: 'allure:addEpic',
+    addSuite: 'allure:addSuite',
+    addSubSuite: 'allure:addSubSuite',
+    addParentSuite: 'allure:addParentSuite',
+    addOwner: 'allure:addOwner',
     addSeverity: 'allure:addSeverity',
+    addTag: 'allure:addTag',
     addIssue: 'allure:addIssue',
+    addTms: 'allure:addTms',
     addTestId: 'allure:addTestId',
     addEnvironment: 'allure:addEnvironment',
     addDescription: 'allure:addDescription',

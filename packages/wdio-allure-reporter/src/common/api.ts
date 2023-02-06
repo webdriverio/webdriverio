@@ -1,3 +1,4 @@
+import { LabelName, LinkType } from "allure-js-commons"
 import { events, stepStatuses } from '../constants.js'
 import type { Status } from '../types.js'
 
@@ -12,15 +13,6 @@ const tellReporter = (event: string, msg: any = {}) => {
 }
 
 /**
- * Assign feature to test
- * @name addFeature
- * @param {(string)} featureName - feature name or an array of names
- */
-export function addFeature (featureName: string) {
-    tellReporter(events.addFeature, { featureName })
-}
-
-/**
  * Assign label to test
  * @name addLabel
  * @param {string} name - label name
@@ -29,6 +21,27 @@ export function addFeature (featureName: string) {
 export function addLabel (name: string, value: string) {
     tellReporter(events.addLabel, { name, value })
 }
+
+/**
+ * Assign link to test
+ * @name addLink
+ * @param {string} url - link name
+ * @param {string} [name] - link name
+ * @param {string} [type] - link type
+ */
+export function addLink(url: string, name?: string, type?: string) {
+    tellReporter(events.addLink, { url, name, type })
+}
+
+/**
+ * Assign feature to test
+ * @name addFeature
+ * @param {(string)} featureName - feature name or an array of names
+ */
+export function addFeature (featureName: string) {
+    tellReporter(events.addFeature, { featureName })
+}
+
 /**
  * Assign severity to test
  * @name addSeverity
@@ -48,6 +61,15 @@ export function addIssue (issue: string) {
 }
 
 /**
+ * Assign tms id to test
+ * @name addTms
+ * @param {string} tms - tms id value
+ */
+export function addTms(tms: string) {
+    tellReporter(events.addTms, { tms })
+}
+
+/**
  * Assign TMS test id to test
  * @name addTestId
  * @param {string} testId - test id value
@@ -57,12 +79,66 @@ export function addTestId (testId: string) {
 }
 
 /**
- * Assign story to test
+ * Assign story label to test
  * @name addStory
  * @param {string} storyName - story name for test
  */
 export function addStory (storyName: string) {
     tellReporter(events.addStory, { storyName })
+}
+
+/**
+ * Assign suite label to test
+ * @name addSuite
+ * @param {string} suiteName - story name for test
+ */
+export function addSuite(suiteName: string) {
+    tellReporter(events.addSuite, { suiteName })
+}
+
+/**
+ * Assign parent suite label to test
+ * @name addParentSuite
+ * @param {string} suiteName - suite name
+ */
+export function addParentSuite(suiteName: string) {
+    tellReporter(events.addParentSuite, { suiteName })
+}
+
+/**
+ * Assign sub-suite label to test
+ * @name addSubSuite
+ * @param {string} suiteName - sub-suite name
+ */
+export function addSubSuite(suiteName: string) {
+    tellReporter(events.addSubSuite, { suiteName })
+}
+
+/**
+ * Assign epic label to test
+ * @name addEpic
+ * @param {string} epicName - the epic name
+ */
+export function addEpic(epicName: string) {
+    tellReporter(events.addSubSuite, { epicName })
+}
+
+/**
+ * Assign owner label to test
+ * @name addOwner
+ * @param {string} owner - the owner name
+ */
+export function addOwner(owner: string) {
+    tellReporter(events.addOwner, { owner })
+}
+
+/**
+ * Assign tag label to test
+ * @name addTag
+ * @param {string} tag - the tag name
+ */
+export function addTag(tag: string) {
+    tellReporter(events.addTag, { tag })
 }
 
 /**

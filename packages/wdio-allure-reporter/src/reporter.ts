@@ -5,7 +5,7 @@ import type {
 } from '@wdio/reporter'
 import WDIOReporter from '@wdio/reporter'
 import type { Capabilities, Options } from '@wdio/types'
-import { AllureRuntime, AllureGroup, AllureTest, AllureStep, Status as AllureStatus, Stage, LabelName, md5, ContentType } from 'allure-js-commons'
+import { AllureRuntime, AllureGroup, AllureTest, AllureStep, Status as AllureStatus, Stage, LabelName, LinkType, md5, ContentType } from 'allure-js-commons'
 import {
     addFeature, addLabel, addSeverity, addIssue, addTestId, addStory, addEnvironment,
     addDescription, addAttachment, startStep, endStep, addStep, addArgument
@@ -18,6 +18,9 @@ import { events, PASSED, FAILED, PENDING, SKIPPED, stepStatuses } from './consta
 import type {
     AddAttachmentEventArgs, AddDescriptionEventArgs, AddEnvironmentEventArgs,
     AddFeatureEventArgs, AddIssueEventArgs, AddLabelEventArgs, AddSeverityEventArgs,
+    AddEpicEventArgs, AddOwnerEventArgs, AddParentSuiteEventArgs, AddSubSuiteEventArgs,
+    AddLinkEventArgs,
+    AddSuiteEventArgs, AddTagEventArgs, AddTmsEventArgs,
     AddStoryEventArgs, AddTestIdEventArgs, Status, AllureReporterOptions } from './types.js'
 import {
     TYPE as DescriptionType
@@ -63,6 +66,7 @@ export default class AllureReporter extends WDIOReporter {
         }
     }
 
+    // TODO:
     private get runningChain() {
         return this._runningUnits.map(unit => unit.constructor.name).join(' -> ')
     }
@@ -284,10 +288,18 @@ export default class AllureReporter extends WDIOReporter {
     }
 
     registerListeners() {
+        process.on(events.addLink, this.addLink.bind(this))
         process.on(events.addLabel, this.addLabel.bind(this))
         process.on(events.addFeature, this.addFeature.bind(this))
         process.on(events.addStory, this.addStory.bind(this))
         process.on(events.addSeverity, this.addSeverity.bind(this))
+        process.on(events.addSuite, this.addSuite.bind(this))
+        process.on(events.addSubSuite, this.addSubSuite.bind(this))
+        process.on(events.addOwner, this.addOwner.bind(this))
+        process.on(events.addTag, this.addTag.bind(this))
+        process.on(events.addParentSuite, this.addParentSuite.bind(this))
+        process.on(events.addTms, this.addTms.bind(this))
+        process.on(events.addEpic, this.addEpic.bind(this))
         process.on(events.addIssue, this.addIssue.bind(this))
         process.on(events.addTestId, this.addTestId.bind(this))
         process.on(events.addEnvironment, this.addEnvironment.bind(this))
@@ -422,8 +434,6 @@ export default class AllureReporter extends WDIOReporter {
 
     onTestFail(test: TestStats | HookStats) {
         const { useCucumberStepReporter } = this._options
-
-        console.log('test fail', test)
 
         if (useCucumberStepReporter) {
             this._attachLogs()
@@ -574,102 +584,164 @@ export default class AllureReporter extends WDIOReporter {
         name,
         value
     }: AddLabelEventArgs) {
-        // if (!this.isAnyTestRunning()) {
-        //     return false
-        // }
+        if (!this.currentTest) {
+            return
+        }
 
-        // const test = this._allure.getCurrentTest()
-        // test.addLabel(name, value)
+        this.currentTest.addLabel(name, value)
+    }
+
+    addLink({
+        name,
+        url,
+        type,
+    }: AddLinkEventArgs) {
+        if (!this.currentTest) {
+            return
+        }
+
+        this.currentTest.addLink(url, name, type)
     }
 
     addStory({
         storyName
     }: AddStoryEventArgs) {
-        // if (!this.isAnyTestRunning()) {
-        //     return false
-        // }
-
-        // const test = this._allure.getCurrentTest()
-        // test.addLabel('story', storyName)
+        this.addLabel({
+            name: LabelName.STORY,
+            value: storyName,
+        })
     }
 
     addFeature({
         featureName
     }: AddFeatureEventArgs) {
-        // if (!this.isAnyTestRunning()) {
-        //     return false
-        // }
-
-        // const test = this._allure.getCurrentTest()
-        // test.addLabel('feature', featureName)
+        this.addLabel({
+            name: LabelName.FEATURE,
+            value: featureName,
+        })
     }
 
     addSeverity({
         severity
     }: AddSeverityEventArgs) {
-        // if (!this.isAnyTestRunning()) {
-        //     return false
-        // }
-
-        // const test = this._allure.getCurrentTest()
-        // test.addLabel('severity', severity)
+        this.addLabel({
+            name: LabelName.SEVERITY,
+            value: severity,
+        })
     }
 
-    addIssue({
-        issue
-    }: AddIssueEventArgs) {
-        if (!this.currentAllureSpec) {
-            return
-        }
+    addEpic({
+        epicName,
+    }: AddEpicEventArgs) {
+        this.addLabel({
+            name: LabelName.EPIC,
+            value: epicName,
+        })
+    }
 
-        // this.currentTest.add
-        // if (!this.isAnyTestRunning()) {
-        //     return false
-        // }
+    addOwner({
+        owner,
+    }: AddOwnerEventArgs) {
+        this.addLabel({
+            name: LabelName.OWNER,
+            value: owner,
+        })
+    }
 
-        // const test = this._allure.getCurrentTest()
-        // const issueLink = getLinkByTemplate(this._options.issueLinkTemplate, issue)
-        // test.addLabel('issue', issueLink)
+    addSuite({
+        suiteName,
+    }: AddSuiteEventArgs) {
+        this.addLabel({
+            name: LabelName.SUITE,
+            value: suiteName,
+        })
+    }
+
+    addParentSuite({
+        suiteName,
+    }: AddParentSuiteEventArgs) {
+        this.addLabel({
+            name: LabelName.PARENT_SUITE,
+            value: suiteName,
+        })
+    }
+
+    addSubSuite({
+        suiteName,
+    }: AddSubSuiteEventArgs) {
+        this.addLabel({
+            name: LabelName.SUB_SUITE,
+            value: suiteName,
+        })
+    }
+
+    addTag({
+        tag,
+    }: AddTagEventArgs) {
+        this.addLabel({
+            name: LabelName.TAG,
+            value: tag,
+        })
     }
 
     addTestId({
         testId
     }: AddTestIdEventArgs) {
-        // if (!this.isAnyTestRunning()) {
-        //     return false
-        // }
+        this.addLabel({
+            name: LabelName.AS_ID,
+            value: testId,
+        })
+    }
 
-        // const test = this._allure.getCurrentTest()
-        // const tmsLink = getLinkByTemplate(this._options.tmsLinkTemplate, testId)
-        // test.addLabel('testId', tmsLink)
+    addIssue({
+        issue,
+        linkName,
+    }: AddIssueEventArgs) {
+        const issueLink = getLinkByTemplate(this._options.issueLinkTemplate, issue)
+
+        this.addLink({
+            url: issueLink,
+            name: linkName,
+            type: LinkType.ISSUE
+        })
+    }
+
+    addTms({
+        tms,
+        linkName,
+    }: AddTmsEventArgs) {
+        const tmsLink = getLinkByTemplate(this._options.tmsLinkTemplate, tms)
+
+        this.addLink({
+            url: tmsLink,
+            name: linkName,
+            type: LinkType.TMS
+        })
     }
 
     addEnvironment({
         name,
         value
     }: AddEnvironmentEventArgs) {
-        // if (!this.isAnyTestRunning()) {
-        //     return false
-        // }
-
-        // const test = this._allure.getCurrentTest()
-        // test.addParameter('environment-variable', name, value)
+        this._allure.writeEnvironmentInfo({
+            [name]: value,
+        })
     }
 
     addDescription({
         description,
         descriptionType
     }: AddDescriptionEventArgs) {
-        if (!this.currentAllureSpec) {
+        if (!this.currentTest) {
             return
         }
 
         if (descriptionType === DescriptionType.HTML) {
-            this.currentAllureSpec.descriptionHtml = description
+            this.currentTest.descriptionHtml = description
             return
         }
 
-        this.currentAllureSpec.description = description
+        this.currentTest.description = description
     }
 
     addAttachment({
@@ -677,7 +749,7 @@ export default class AllureReporter extends WDIOReporter {
         content,
         type = ContentType.TEXT
     }: AddAttachmentEventArgs) {
-        if (!this.currentAllureSpec) {
+        if (!this.currentTest) {
             return
         }
 
@@ -730,19 +802,6 @@ export default class AllureReporter extends WDIOReporter {
 
     // isAnyTestRunning() {
     //     return this._allure.getCurrentSuite() && this._allure.getCurrentTest()
-    // }
-
-    // dumpJSON(name: string, json: object) {
-    //     const content = JSON.stringify(json, null, 2)
-    //     const isStr = typeof content === 'string'
-    //     this._allure.addAttachment(name, isStr ? content : `${content}`, isStr ? 'application/json' : 'text/plain')
-    // }
-
-    // attachScreenshot() {
-    //     if (this._lastScreenshot && !this._options.disableWebdriverScreenshotsReporting) {
-    //         this._allure.addAttachment('Screenshot', Buffer.from(this._lastScreenshot, 'base64'))
-    //         this._lastScreenshot = undefined
-    //     }
     // }
 
     /**

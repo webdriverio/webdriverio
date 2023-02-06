@@ -61,8 +61,44 @@ export interface AddSeverityEventArgs {
     severity: string
 }
 
+export interface AddEpicEventArgs {
+    epicName: string
+}
+
+export interface AddSuiteEventArgs {
+    suiteName: string
+}
+
+export interface AddParentSuiteEventArgs {
+    suiteName: string
+}
+
+export interface AddSubSuiteEventArgs {
+    suiteName: string
+}
+
+export interface AddOwnerEventArgs {
+    owner: string
+}
+
+export interface AddTagEventArgs {
+    tag: string
+}
+
+export interface AddLinkEventArgs {
+    url: string
+    name?: string
+    type?: string
+}
+
 export interface AddIssueEventArgs {
     issue: string
+    linkName?: string
+}
+
+export interface AddTmsEventArgs {
+    tms: string
+    linkName?: string
 }
 
 export interface AddTestIdEventArgs {
