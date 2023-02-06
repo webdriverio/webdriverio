@@ -126,7 +126,7 @@ importers:
       '@types/uuid': ^9.0.0
       '@types/which': ^2.0.1
       '@wdio/config': 8.3.2
-      '@wdio/globals': 8.3.2
+      '@wdio/globals': 8.3.3
       '@wdio/logger': 8.1.0
       '@wdio/protocols': 8.2.0
       '@wdio/types': 8.3.0
@@ -194,7 +194,7 @@ importers:
       '@wdio/types': 8.3.0
       import-meta-resolve: ^2.1.0
       param-case: ^3.0.4
-      webdriverio: 8.3.2
+      webdriverio: 8.3.3
     dependencies:
       '@wdio/config': link:../wdio-config
       '@wdio/logger': link:../wdio-logger
@@ -214,12 +214,13 @@ importers:
       '@types/istanbul-reports': ^3.0.1
       '@types/node': ^18.11.18
       '@types/ws': ^8.5.4
-      '@wdio/globals': 8.3.2
-      '@wdio/local-runner': 8.3.2
+      '@vitest/spy': ^0.28.4
+      '@wdio/globals': 8.3.3
+      '@wdio/local-runner': 8.3.3
       '@wdio/logger': 8.1.0
       '@wdio/mocha-framework': 8.3.0
       '@wdio/protocols': 8.2.0
-      '@wdio/runner': 8.3.2
+      '@wdio/runner': 8.3.3
       '@wdio/types': 8.3.0
       '@wdio/utils': 8.3.0
       deepmerge-ts: ^4.2.2
@@ -236,7 +237,7 @@ importers:
       vite-plugin-istanbul: ^4.0.0
       vite-plugin-top-level-await: ^1.2.2
       webdriver: 8.3.2
-      webdriverio: 8.3.2
+      webdriverio: 8.3.3
       ws: ^8.12.0
     dependencies:
       '@babel/plugin-proposal-class-properties': 7.18.6_@babel+core@7.20.12
@@ -244,6 +245,7 @@ importers:
       '@types/istanbul-lib-coverage': 2.0.4
       '@types/istanbul-reports': 3.0.1
       '@types/node': 18.11.18
+      '@vitest/spy': 0.28.4
       '@wdio/globals': link:../wdio-globals
       '@wdio/local-runner': link:../wdio-local-runner
       '@wdio/logger': link:../wdio-logger
@@ -279,7 +281,7 @@ importers:
       '@types/gitconfiglocal': ^2.0.1
       '@types/node': ^18.0.0
       '@wdio/cli': ^5.0.0 || ^6.0.0 || ^7.0.0 || ^8.0.0
-      '@wdio/globals': 8.3.2
+      '@wdio/globals': 8.3.3
       '@wdio/logger': 8.1.0
       '@wdio/reporter': 8.3.0
       '@wdio/types': 8.3.0
@@ -289,7 +291,7 @@ importers:
       gitconfiglocal: ^2.1.0
       got: ^12.1.0
       uuid: ^8.3.2
-      webdriverio: 8.3.2
+      webdriverio: 8.3.3
     dependencies:
       '@types/gitconfiglocal': 2.0.1
       '@wdio/cli': link:../wdio-cli
@@ -319,7 +321,7 @@ importers:
       '@types/recursive-readdir': ^2.2.1
       '@types/yargs': ^17.0.10
       '@wdio/config': 8.3.2
-      '@wdio/globals': 8.3.2
+      '@wdio/globals': 8.3.3
       '@wdio/logger': 8.1.0
       '@wdio/protocols': 8.2.0
       '@wdio/types': 8.3.0
@@ -338,7 +340,7 @@ importers:
       mkdirp: ^2.0.0
       read-pkg-up: 9.1.0
       recursive-readdir: ^2.2.2
-      webdriverio: 8.3.2
+      webdriverio: 8.3.3
       yargs: ^17.5.1
       yarn-install: ^1.0.0
     dependencies:
@@ -418,12 +420,12 @@ importers:
   packages/wdio-crossbrowsertesting-service:
     specifiers:
       '@types/node': ^18.0.0
-      '@wdio/globals': 8.3.2
+      '@wdio/globals': 8.3.3
       '@wdio/logger': 8.1.0
       '@wdio/types': 8.3.0
       cbt_tunnels: ^1.2.2
       got: ^12.1.0
-      webdriverio: 8.3.2
+      webdriverio: 8.3.3
     dependencies:
       '@wdio/logger': link:../wdio-logger
       '@wdio/types': link:../wdio-types
@@ -478,7 +480,7 @@ importers:
       '@types/istanbul-lib-report': ^3.0.0
       '@types/istanbul-reports': ^3.0.1
       '@types/node': ^18.0.0
-      '@wdio/globals': 8.3.2
+      '@wdio/globals': 8.3.3
       '@wdio/logger': 8.1.0
       '@wdio/types': 8.3.0
       babel-plugin-istanbul: ^6.1.1
@@ -490,7 +492,7 @@ importers:
       puppeteer-core: 19.6.3
       speedline: ^1.4.3
       stable: ^0.1.8
-      webdriverio: 8.3.2
+      webdriverio: 8.3.3
     dependencies:
       '@babel/core': 7.20.12
       '@tracerbench/trace-event': 8.0.0
@@ -540,7 +542,7 @@ importers:
   packages/wdio-globals:
     specifiers:
       expect-webdriverio: ^4.0.1
-      webdriverio: 8.3.2
+      webdriverio: 8.3.3
     optionalDependencies:
       expect-webdriverio: 4.1.0
       webdriverio: link:../webdriverio
@@ -549,7 +551,7 @@ importers:
     specifiers:
       '@types/jasmine': 4.3.1
       '@types/node': ^18.0.0
-      '@wdio/globals': 8.3.2
+      '@wdio/globals': 8.3.3
       '@wdio/logger': 8.1.0
       '@wdio/types': 8.3.0
       '@wdio/utils': 8.3.0
@@ -588,7 +590,7 @@ importers:
       '@types/stream-buffers': ^3.0.4
       '@wdio/logger': 8.1.0
       '@wdio/repl': 8.1.0
-      '@wdio/runner': 8.3.2
+      '@wdio/runner': 8.3.3
       '@wdio/types': 8.3.0
       async-exit-hook: ^2.0.1
       split2: ^4.1.0
@@ -675,7 +677,7 @@ importers:
       '@types/istanbul-lib-coverage': ^2.0.4
       '@types/node': ^18.0.0
       '@wdio/config': 8.3.2
-      '@wdio/globals': 8.3.2
+      '@wdio/globals': 8.3.3
       '@wdio/logger': 8.1.0
       '@wdio/types': 8.3.0
       '@wdio/utils': 8.3.0
@@ -684,7 +686,7 @@ importers:
       gaze: ^1.1.2
       istanbul-lib-coverage: ^3.2.0
       webdriver: 8.3.2
-      webdriverio: 8.3.2
+      webdriverio: 8.3.3
     dependencies:
       '@types/node': 18.11.18
       '@wdio/config': link:../wdio-config
@@ -704,13 +706,13 @@ importers:
   packages/wdio-sauce-service:
     specifiers:
       '@types/ip': ^1.1.0
-      '@wdio/globals': 8.3.2
+      '@wdio/globals': 8.3.3
       '@wdio/logger': 8.1.0
       '@wdio/types': 8.3.0
       '@wdio/utils': 8.3.0
       ip: ^1.1.8
       saucelabs: ^7.1.3
-      webdriverio: 8.3.2
+      webdriverio: 8.3.3
     dependencies:
       '@wdio/logger': link:../wdio-logger
       '@wdio/types': link:../wdio-types
@@ -742,12 +744,12 @@ importers:
   packages/wdio-shared-store-service:
     specifiers:
       '@polka/parse': ^1.0.0-next.0
-      '@wdio/globals': 8.3.2
+      '@wdio/globals': 8.3.3
       '@wdio/logger': 8.1.0
       '@wdio/types': 8.3.0
       got: ^12.1.0
       polka: ^0.5.2
-      webdriverio: 8.3.2
+      webdriverio: 8.3.3
     dependencies:
       '@polka/parse': 1.0.0-next.0
       '@wdio/logger': link:../wdio-logger
@@ -831,12 +833,12 @@ importers:
   packages/wdio-testingbot-service:
     specifiers:
       '@types/node': ^18.0.0
-      '@wdio/globals': 8.3.2
+      '@wdio/globals': 8.3.3
       '@wdio/logger': 8.1.0
       '@wdio/types': 8.3.0
       got: ^12.1.0
       testingbot-tunnel-launcher: ^1.1.7
-      webdriverio: 8.3.2
+      webdriverio: 8.3.3
     dependencies:
       '@wdio/logger': link:../wdio-logger
       '@wdio/types': link:../wdio-types
@@ -870,12 +872,12 @@ importers:
   packages/wdio-webdriver-mock-service:
     specifiers:
       '@types/uuid': ^9.0.0
-      '@wdio/globals': 8.3.2
+      '@wdio/globals': 8.3.3
       '@wdio/protocols': 8.2.0
       '@wdio/types': 8.3.0
       nock: ^13.2.4
       uuid: ^9.0.0
-      webdriverio: 8.3.2
+      webdriverio: 8.3.3
     dependencies:
       '@types/uuid': 9.0.0
       '@wdio/protocols': link:../wdio-protocols
@@ -930,7 +932,7 @@ importers:
       aria-query: ^5.0.0
       css-shorthand-properties: ^1.1.1
       css-value: ^0.0.1
-      devtools: 8.3.2
+      devtools: 8.3.3
       devtools-protocol: ^0.0.1099658
       grapheme-splitter: ^1.0.2
       import-meta-resolve: ^2.1.0
@@ -3888,6 +3890,12 @@ packages:
     dependencies:
       tinyspy: 1.0.2
     dev: true
+
+  /@vitest/spy/0.28.4:
+    resolution: {integrity: sha512-8WuhfXLlvCXpNXEGJW6Gc+IKWI32435fQJLh43u70HnZ1otJOa2Cmg2Wy2Aym47ZnNCP4NolF+8cUPwd0MigKQ==}
+    dependencies:
+      tinyspy: 1.0.2
+    dev: false
 
   /@vitest/utils/0.28.3:
     resolution: {integrity: sha512-YHiQEHQqXyIbhDqETOJUKx9/psybF7SFFVCNfOvap0FvyUqbzTSDCa3S5lL4C0CLXkwVZttz9xknDoyHMguFRQ==}
@@ -13233,7 +13241,6 @@ packages:
   /tinyspy/1.0.2:
     resolution: {integrity: sha512-bSGlgwLBYf7PnUsQ6WOc6SJ3pGOcd+d8AA6EUnLDDM0kWEstC1JIlSZA3UNliDXhd9ABoS7hiRBDCu+XP/sf1Q==}
     engines: {node: '>=14.0.0'}
-    dev: true
 
   /tmp/0.0.33:
     resolution: {integrity: sha512-jRCJlojKnZ3addtTOjdIqoRuPEKBvNXcGYqzO6zWZX8KfKEpnGY5jfggJQ3EjKuu8D4bJRr0y+cYJFmYbImXGw==}

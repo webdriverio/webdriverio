@@ -33,7 +33,7 @@ const virtualModuleId = 'virtual:wdio'
 const resolvedVirtualModuleId = '\0' + virtualModuleId
 
 const MODULES_TO_MOCK = [
-    'node:url', 'node:module', 'node:events', 'node:path',
+    'node:url', 'node:module', 'node:events', 'node:path', 'node:os',
     'import-meta-resolve', 'puppeteer-core', 'archiver', 'glob', 'devtools', 'ws'
 ]
 
@@ -48,12 +48,17 @@ export function testrunner (options: WebdriverIO.BrowserRunnerOptions): Plugin {
     const automationProtocolPath = `/@fs${url.pathToFileURL(path.resolve(__dirname, '..', '..', 'browser', 'driver.js')).pathname}`
     const mockModulePath = path.resolve(__dirname, '..', '..', 'browser', 'mock.js')
     const setupModulePath = path.resolve(__dirname, '..', '..', 'browser', 'setup.js')
+    const spyModulePath = path.resolve(__dirname, '..', '..', 'browser', 'spy.js')
     return {
         name: 'wdio:testrunner',
         enforce: 'pre',
         resolveId: async (id) => {
             if (id === virtualModuleId) {
                 return resolvedVirtualModuleId
+            }
+
+            if (id === '@wdio/browser-runner') {
+                return spyModulePath
             }
 
             if (id.endsWith('@wdio/browser-runner/setup')) {

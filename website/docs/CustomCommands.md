@@ -80,12 +80,12 @@ console.log(typeof elem.myCustomBrowserCommand()) // outputs "undefined"
 browser.addCommand("myCustomElementCommand", () => { return 1 }, true)
 const elem2 = await $('body')
 console.log(typeof browser.myCustomElementCommand) // outputs "undefined"
-console.log(elem2.myCustomElementCommand('foobar')) // outputs "function"
+console.log(await elem2.myCustomElementCommand('foobar')) // outputs "1"
 
 const elem3 = await $('body')
-elem3.addCommand("myCustomElementCommand2", () => { return 1 })
+elem3.addCommand("myCustomElementCommand2", () => { return 2 })
 console.log(typeof browser.myCustomElementCommand2) // outputs "undefined"
-console.log(elem3.myCustomElementCommand2('foobar')) // outputs "function"
+console.log(await elem3.myCustomElementCommand2('foobar')) // outputs "2"
 ```
 
 __Note:__ If you need to chain a custom command, the command should end with `$`,
