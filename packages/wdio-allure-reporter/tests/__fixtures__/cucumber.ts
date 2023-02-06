@@ -35,8 +35,15 @@ const error = {
     actual: 'bar'
 }
 
-export function featureStart() {
-    return Object.assign(suite('feature'))
+export function featureStart(featureLabel?: string) {
+    const feature = Object.assign(suite('feature'))
+    if (featureLabel) {
+        feature.tags.push({
+            type: 'Tag',
+            name: '@feature=' + featureLabel
+        })
+    }
+    return feature
 }
 
 export function featureEnd(results = { tests: [], hooks: [] }) {
@@ -47,8 +54,15 @@ export function featureEnd(results = { tests: [], hooks: [] }) {
     })
 }
 
-export function scenarioStart() {
-    return Object.assign(suite('scenario'))
+export function scenarioStart(featureLabel?: string) {
+    const scenario = Object.assign(suite('scenario'))
+    if (featureLabel) {
+        scenario.tags.push({
+            type: 'Tag',
+            name: '@feature=' + featureLabel
+        })
+    }
+    return scenario
 }
 
 export function scenarioEnd({ tests = [], hooks = [] }): SuiteStats {
