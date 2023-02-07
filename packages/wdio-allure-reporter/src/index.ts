@@ -110,12 +110,17 @@ class AllureReporter extends WDIOReporter {
 
         const currentTest = this._allure.getCurrentTest()
 
+        let featureLabelPresent = false
+
         this.getLabels(suite).forEach(({ name, value }) => {
             if (name === 'issue') {
                 this.addIssue({ issue: value })
             } else if (name === 'testId') {
                 this.addTestId({ testId: value })
             } else {
+                if (name === 'feature') {
+                    featureLabelPresent = true
+                }
                 currentTest.addLabel(name, value)
             }
         })
@@ -124,7 +129,7 @@ class AllureReporter extends WDIOReporter {
             this.addDescription(suite)
         }
 
-        this.setCaseParameters(suite.cid, suite.parent)
+        this.setCaseParameters(suite.cid, suite.parent, !featureLabelPresent)
     }
 
     onSuiteEnd(suite: SuiteStats) {
@@ -194,7 +199,7 @@ class AllureReporter extends WDIOReporter {
         this.setCaseParameters(test.cid, test.parent)
     }
 
-    setCaseParameters(cid: string | undefined, parentUid: string | undefined) {
+    setCaseParameters(cid: string | undefined, parentUid: string | undefined, addFeatureLabel: boolean = true) {
         const parentSuite = this.getParentSuite(parentUid)
         const currentTest = this._allure.getCurrentTest()
 
@@ -220,8 +225,11 @@ class AllureReporter extends WDIOReporter {
         currentTest.addLabel('framework', 'wdio')
         currentTest.addLabel('thread', cid)
 
-        if (parentSuite?.title) {
-            currentTest.addLabel('feature', parentSuite?.title)
+        if (addFeatureLabel && parentSuite) {
+            const labelValue = this.getLabels(parentSuite).find(label => label.name === 'feature')?.value ?? parentSuite.title
+            if (labelValue) {
+                currentTest.addLabel('feature', labelValue)
+            }
         }
     }
 
