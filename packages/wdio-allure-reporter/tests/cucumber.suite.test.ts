@@ -137,7 +137,7 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
 
             reporter.onRunnerStart(runnerStart())
             reporter.onSuiteStart(cucumberHelper.featureStart())
-            reporter.onSuiteStart(cucumberHelper.scenarioStart())
+            reporter.onSuiteStart(cucumberHelper.scenarioStart('my-awesome-feature-at-scenario-level'))
             reporter.onHookStart(cucumberHelper.hookStart())
             reporter.onHookEnd(cucumberHelper.hookEnd())
             reporter.onTestStart(cucumberHelper.testStart())
@@ -204,6 +204,7 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
         })
 
         it('should detect analytics labels in test case', () => {
+            expect(allureXml('test-case label[name="feature"]').eq(0).attr('value')).toEqual('my-awesome-feature-at-scenario-level')
             expect(allureXml('test-case label[name="language"]').eq(0).attr('value')).toEqual('javascript')
             expect(allureXml('test-case label[name="framework"]').eq(0).attr('value')).toEqual('wdio')
         })
@@ -255,7 +256,7 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
             reporter = new AllureReporter({ outputDir, useCucumberStepReporter: true })
 
             reporter.onRunnerStart(runnerStart())
-            reporter.onSuiteStart(cucumberHelper.featureStart())
+            reporter.onSuiteStart(cucumberHelper.featureStart('my-awesome-feature-at-feature-level'))
             reporter.onSuiteStart(cucumberHelper.scenarioStart())
             reporter.onTestStart(cucumberHelper.testStart())
             reporter._consoleOutput = 'some console output'
@@ -273,6 +274,12 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
         afterAll(() => {
             clean(outputDir)
             vi.resetAllMocks()
+        })
+
+        it('should detect analytics labels in test case', () => {
+            expect(allureXml('test-case label[name="feature"]').eq(0).attr('value')).toEqual('my-awesome-feature-at-feature-level')
+            expect(allureXml('test-case label[name="language"]').eq(0).attr('value')).toEqual('javascript')
+            expect(allureXml('test-case label[name="framework"]').eq(0).attr('value')).toEqual('wdio')
         })
 
         it('should report one suite', () => {
@@ -313,8 +320,8 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
             const reporter = new AllureReporter({ outputDir, useCucumberStepReporter: true })
 
             reporter.onRunnerStart(runnerStart())
-            reporter.onSuiteStart(cucumberHelper.featureStart())
-            reporter.onSuiteStart(cucumberHelper.scenarioStart())
+            reporter.onSuiteStart(cucumberHelper.featureStart('my-awesome-feature-at-feature-level'))
+            reporter.onSuiteStart(cucumberHelper.scenarioStart('my-awesome-feature-at-scenario-level'))
             reporter.onTestStart(cucumberHelper.testStart())
             reporter.onTestPass()
             reporter.onTestStart(cucumberHelper.test2start())
@@ -331,6 +338,12 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
 
         afterAll(() => {
             clean(outputDir)
+        })
+
+        it('should detect analytics labels in test case', () => {
+            expect(allureXml('test-case label[name="feature"]').eq(0).attr('value')).toEqual('my-awesome-feature-at-scenario-level')
+            expect(allureXml('test-case label[name="language"]').eq(0).attr('value')).toEqual('javascript')
+            expect(allureXml('test-case label[name="framework"]').eq(0).attr('value')).toEqual('wdio')
         })
 
         it('should report one suite', () => {
