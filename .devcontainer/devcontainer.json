@@ -1,0 +1,25 @@
+{
+    "build": {
+        "context": ".",
+        "dockerfile": "Dockerfile"
+    },
+    "features": {
+        "ghcr.io/devcontainers/features/desktop-lite:1": {}
+    },
+    // Use 'forwardPorts' to make a list of ports inside the container available locally.
+    "forwardPorts": [
+        // code coverage page
+        8000,
+        // website
+        3000
+    ],
+    "portsAttributes": {
+        "3000": {
+            "label": "Code Coverage Site"
+        },
+        "8000": {
+            "label": "Project Documentation"
+        }
+    },
+    "postCreateCommand": "npm install && npm run setup-full && node ./scripts/welcome.js"
+}
