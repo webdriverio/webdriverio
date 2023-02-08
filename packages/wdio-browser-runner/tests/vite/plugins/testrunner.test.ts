@@ -13,18 +13,22 @@ vi.mock('import-meta-resolve', () => ({
 }))
 vi.mock('../../../src/vite/utils.js', () => ({
     getTemplate: vi.fn(),
-    getErrorTemplate: vi.fn()
+    getErrorTemplate: vi.fn(),
+    normalizeId: vi.fn((id) => id)
 }))
 
 test('exposes correct format', () => {
-    expect(testrunner({})).toEqual({
+    expect(testrunner({})).toEqual([{
         name: 'wdio:testrunner',
         enforce: 'pre',
         resolveId: expect.any(Function),
         load: expect.any(Function),
         transform: expect.any(Function),
         configureServer: expect.any(Function)
-    })
+    }, {
+        name: 'modern-node-polyfills',
+        resolveId: expect.any(Function)
+    }])
 })
 
 test('resolveId', async () => {
@@ -34,50 +38,50 @@ test('resolveId', async () => {
     }
 
     const plugin = testrunner({})
-    expect(await (plugin.resolveId as Function)('virtual:wdio'))
+    expect(await (plugin[0].resolveId as Function)('virtual:wdio'))
         .toBe('\0virtual:wdio')
 
-    expect(await (plugin.resolveId as Function)('@wdio/browser-runner/setup'))
+    expect(await (plugin[0].resolveId as Function)('@wdio/browser-runner/setup'))
         .toContain(path.join('browser', 'setup.js'))
 
-    expect(await (plugin.resolveId as Function)('@wdio/browser-runner'))
+    expect(await (plugin[0].resolveId as Function)('@wdio/browser-runner'))
         .toContain(path.join('browser', 'spy.js'))
 
     vi.mocked(resolve).mockResolvedValue('file:///foo/bar')
-    expect(await (plugin.resolveId as Function)('@wdio/config'))
+    expect(await (plugin[0].resolveId as Function)('@wdio/config'))
         .toBe('/foo/bar')
 
-    expect(await (plugin.resolveId as Function)('node:module'))
-        .toContain(path.join('browser', 'mock.js'))
+    expect(await (plugin[0].resolveId as Function)('node:module'))
+        .toContain(path.join('nodelibs', 'browser', 'module.js'))
 
-    expect(await (plugin.resolveId as Function)('mocha'))
+    expect(await (plugin[0].resolveId as Function)('mocha'))
         .toBe('https://esm.sh/mocha')
 })
 
 test('load', () => {
     const plugin = testrunner({})
-    const js = (plugin.load as Function)('\0virtual:wdio')
+    const js = (plugin[0].load as Function)('\0virtual:wdio')
     expect(js).toContain('export const commands = ["newSession","deleteSession","getSession"')
     expect(js).toContain('export const automationProtocolPath =')
-    expect((plugin.load as Function)('something else')).toBe(undefined)
+    expect((plugin[0].load as Function)('something else')).toBe(undefined)
 })
 
 test('transform', () => {
     const plugin = testrunner({})
-    expect((plugin.transform as Function)('foobar', 'barfoo')).toEqual({ code: 'foobar' })
+    expect((plugin[0].transform as Function)('foobar', 'barfoo')).toEqual({ code: 'foobar' })
 
     const expectJS = `
         var fs = _interopRequireWildcard(require_graceful_fs());
         var expect_default = require_build11();
         process.stdout.isTTY
     `
-    expect((plugin.transform as Function)(expectJS, '.vite/deps/expect.js')).toMatchSnapshot()
+    expect((plugin[0].transform as Function)(expectJS, '.vite/deps/expect.js')).toMatchSnapshot()
 })
 
 test('configureServer continues if no url given', async () => {
     const plugin = testrunner({})
     const server = { middlewares: { use: vi.fn() }, transformIndexHtml: vi.fn((...args) => args) }
-    ;(plugin.configureServer as Function)(server)()
+    ;(plugin[0].configureServer as Function)(server)()
     expect(server.middlewares.use).toBeCalledWith('/', expect.any(Function))
 
     const middleware = vi.mocked(server.middlewares.use).mock.calls[0][1]
