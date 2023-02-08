@@ -21,6 +21,24 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.3.5 (2023-02-08)
+
+#### :bug: Bug Fix
+* `wdio-protocols`
+  * [#9731](https://github.com/webdriverio/webdriverio/pull/9731) extend webdriverbidi command to protocolCommands ([@harsha509](https://github.com/harsha509))
+
+#### :nail_care: Polish
+* `wdio-browser-runner`, `webdriverio`
+  * [#9733](https://github.com/webdriverio/webdriverio/pull/9733) Use 'modern-node-polyfills' to polyfill node modules ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-allure-reporter`
+  * [#9721](https://github.com/webdriverio/webdriverio/pull/9721) Use available Cucumber tag `feature` for Allure label instead of Feature name ([@valfirst](https://github.com/valfirst))
+
+#### Committers: 3
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Sri Harsha ([@harsha509](https://github.com/harsha509))
+- Valery Yatsynovich ([@valfirst](https://github.com/valfirst))
+
+
 ## v8.3.3 (2023-02-04)
 
 #### :rocket: New Feature
