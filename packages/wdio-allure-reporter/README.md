@@ -104,7 +104,9 @@ describe('Suite', () => {
 })
 ```
 
-Cucumber example:
+#### Cucumber
+
+Basic Cucumber example:
 
 ```js
 Given('I include feature and story name', () => {
@@ -113,7 +115,9 @@ Given('I include feature and story name', () => {
 })
 ```
 
-Cucumber tags converted to the links example (the corresponding link templates must be configured):
+##### Cucumber Tags
+
+Cucumber tags with special names (`issue` and `testId`) are converted to the links (the corresponding link templates must be configured before):
 ```gherkin
 @issue=BUG-1
 @testId=TST-2
@@ -123,6 +127,16 @@ Feature: This is a feature with global tags that will be converted to Allure lin
   @testId=TST-4
   Scenario: This is a scenario with tags that will be converted to Allure links
     Given I do something
+```
+
+Cucumber tags with special names (`feature`) are mapped to Allure labels:
+
+```gherkin
+Feature: Test user role
+
+  @feature=login
+  Scenario: Login
+    Given I test login
 ```
 
 ## Displaying the report
