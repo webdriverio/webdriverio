@@ -48,6 +48,7 @@
     "istanbul-lib-report": "^3.0.0",
     "istanbul-lib-source-maps": "^4.0.1",
     "istanbul-reports": "^3.1.5",
+    "modern-node-polyfills": "^0.0.9",
     "serialize-error": "^11.0.0",
     "vite": "^4.0.4",
     "vite-plugin-istanbul": "^4.0.0",
