@@ -18,7 +18,7 @@ import GeckoProtocol from './protocols/gecko.js'
 import SauceLabsProtocol from './protocols/saucelabs.js'
 import SeleniumProtocol from './protocols/selenium.js'
 
-export interface ProtocolCommands extends WebDriverCommands, Omit<JSONWPCommands, keyof WebDriverCommands>, AppiumCommands, ChromiumCommands, Omit<MJSONWPCommands, keyof AppiumCommands | keyof ChromiumCommands>, SauceLabsCommands, SeleniumCommands {}
+export interface ProtocolCommands extends WebDriverCommands, Omit<JSONWPCommands, keyof WebDriverCommands>, AppiumCommands, ChromiumCommands, Omit<MJSONWPCommands, keyof AppiumCommands | keyof ChromiumCommands>, SauceLabsCommands, SeleniumCommands, WebDriverBidiCommands {}
 
 export * from './types.js'
 export {
