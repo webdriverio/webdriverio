@@ -5,7 +5,7 @@ import { resolve } from 'import-meta-resolve'
 
 import type { Environment, FrameworkPreset } from '../types.js'
 
-export async function getTemplate(options: WebdriverIO.BrowserRunnerOptions, env: Environment, spec: string) {
+export async function getTemplate(options: WebdriverIO.BrowserRunnerOptions, env: Environment, spec: string, processEnv = process.env) {
     const root = options.rootDir || process.cwd()
     const rootFileUrl = url.pathToFileURL(root).href
 
@@ -48,6 +48,11 @@ export async function getTemplate(options: WebdriverIO.BrowserRunnerOptions, env
             <title>WebdriverIO Browser Test</title>
             <link rel="icon" type="image/x-icon" href="https://webdriver.io/img/favicon.png">
             <link rel="stylesheet" href="${mochaCSSHref}">
+            <script type="module">
+                window.process = {
+                    env: ${JSON.stringify(processEnv)}
+                }
+            </script>
             <script type="module">
                 /**
                  * Inject environment variables
