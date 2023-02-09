@@ -19,6 +19,16 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.30.1 (2023-02-09)
+
+#### :nail_care: Polish
+* `wdio-allure-reporter`
+  * [#9727](https://github.com/webdriverio/webdriverio/pull/9727) Use available Cucumber tag `feature` for Allure label instead of Feature name ([@valfirst](https://github.com/valfirst))
+
+#### Committers: 1
+- Valery Yatsynovich ([@valfirst](https://github.com/valfirst))
+
+
 ## v7.30.0 (2023-01-20)
 
 #### :rocket: New Feature
