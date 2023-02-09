@@ -34,21 +34,13 @@ const WDIO_PACKAGES = ['webdriverio', 'expect-webdriverio']
 const virtualModuleId = 'virtual:wdio'
 const resolvedVirtualModuleId = '\0' + virtualModuleId
 
-const MODULES_TO_MOCK = [
-    'import-meta-resolve', 'puppeteer-core', 'archiver', 'glob', 'devtools', 'ws'
-]
+const MODULES_TO_MOCK = ['import-meta-resolve', 'puppeteer-core', 'archiver', 'glob', 'devtools', 'ws']
+const FETCH_FROM_ESM = ['mocha']
 
 const POLYFILLS = [
     ...builtinModules,
     ...builtinModules.map((m) => `node:${m}`)
 ].map((m) => m.replace('/promises', ''))
-
-const FETCH_FROM_ESM = [
-    'serialize-error', 'minimatch', 'css-shorthand-properties', 'lodash.merge', 'lodash.zip',
-    'lodash.clonedeep', 'lodash.pickby', 'lodash.flattendeep', 'aria-query', 'grapheme-splitter',
-    'css-value', 'rgb2hex', 'p-iteration', 'fast-safe-stringify', 'deepmerge-ts',
-    'mocha'
-]
 
 export function testrunner(options: WebdriverIO.BrowserRunnerOptions): Plugin[] {
     const automationProtocolPath = `/@fs${url.pathToFileURL(path.resolve(__dirname, '..', '..', 'browser', 'driver.js')).pathname}`

@@ -33,7 +33,7 @@ describe('getTemplate', () => {
             return
         }
         vi.mocked(resolve).mockResolvedValue('file:///foo/bar/vue')
-        expect(await getTemplate({ preset: 'vue' }, {} as any, '/spec.js')).toMatchSnapshot()
+        expect(await getTemplate({ preset: 'vue' }, {} as any, '/spec.js', { some: 'env' })).toMatchSnapshot()
         expect(fs.readFile).toBeCalledTimes(2)
     })
 })

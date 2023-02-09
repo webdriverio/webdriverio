@@ -9,6 +9,11 @@ exports[`getTemplate > renders template correctly 1`] = `
             <link rel=\\"icon\\" type=\\"image/x-icon\\" href=\\"https://webdriver.io/img/favicon.png\\">
             <link rel=\\"stylesheet\\" href=\\"/foo/bar/mocha.css\\">
             <script type=\\"module\\">
+                window.process = {
+                    env: {\\"some\\":\\"env\\"}
+                }
+            </script>
+            <script type=\\"module\\">
                 /**
                  * Inject environment variables
                  */
