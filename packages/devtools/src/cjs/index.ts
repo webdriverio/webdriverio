@@ -1,6 +1,4 @@
-// @ts-expect-error
 import type { Options } from '@wdio/types'
-// @ts-expect-error
 import type { Client, AttachOptions } from '../types'
 
 class Devtools {
@@ -44,4 +42,5 @@ class Devtools {
     }
 }
 
+// @ts-expect-error
 export = Devtools

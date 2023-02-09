@@ -59,7 +59,6 @@ export class ViteServer extends EventEmitter {
 
         if (options.coverage && options.coverage.enabled) {
             log.info('Capturing test coverage enabled')
-            // @ts-expect-error
             this.#viteConfig.plugins?.push(istanbulPlugin(<IstanbulPluginOptions>{
                 cwd: config.rootDir,
                 include: DEFAULT_INCLUDE,

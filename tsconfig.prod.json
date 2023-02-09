@@ -11,8 +11,8 @@
     "strictFunctionTypes": false,
     "experimentalDecorators": true,
     "esModuleInterop": true,
-    "moduleResolution": "Node16",
-    "module": "NodeNext",
+    "moduleResolution": "Node",
+    "module": "ESNext",
     "lib": ["dom", "es2021"],
     "types": ["node"]
   },
