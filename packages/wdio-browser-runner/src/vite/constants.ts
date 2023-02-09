@@ -28,7 +28,10 @@ export const DEFAULT_VITE_CONFIG: Partial<InlineConfig> = {
     logLevel: 'silent',
     plugins: [topLevelAwait()],
     build: {
-        sourcemap: 'inline'
+        sourcemap: 'inline',
+        commonjsOptions: {
+            include: [/node_modules/],
+        }
     },
     optimizeDeps: {
         include: ['expect', 'jest-matcher-utils'],
