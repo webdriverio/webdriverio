@@ -40,6 +40,7 @@ export async function getTemplate(options: WebdriverIO.BrowserRunnerOptions, env
         (p) => path.join(url.fileURLToPath(path.dirname(p)), 'mocha.css'),
         () => 'https://unpkg.com/mocha@10.0.0/mocha.css'
     )
+    const processEnv = JSON.stringify(process.env)
 
     return /* html */`
     <!doctype html>
@@ -48,6 +49,11 @@ export async function getTemplate(options: WebdriverIO.BrowserRunnerOptions, env
             <title>WebdriverIO Browser Test</title>
             <link rel="icon" type="image/x-icon" href="https://webdriver.io/img/favicon.png">
             <link rel="stylesheet" href="${mochaCSSHref}">
+            <script type="module">
+                window.process = {
+                    env: ${processEnv}
+                }
+            </script>
             <script type="module">
                 /**
                  * Inject environment variables
