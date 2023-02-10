@@ -14,7 +14,7 @@ const MAX_SC_START_TRIALS = 3
 
 const log = logger('@wdio/sauce-service')
 export default class SauceLauncher implements Services.ServiceInstance {
-    private _api: SauceLabs.default
+    private _api: SauceLabs
     private _sauceConnectProcess?: SauceConnectInstance
 
     constructor (
@@ -22,6 +22,7 @@ export default class SauceLauncher implements Services.ServiceInstance {
         private _capabilities: unknown,
         private _config: Options.Testrunner
     ) {
+        // @ts-expect-error https://github.com/saucelabs/node-saucelabs/issues/153
         this._api = new SauceLabs.default(this._config as unknown as SauceLabsOptions)
     }
 
