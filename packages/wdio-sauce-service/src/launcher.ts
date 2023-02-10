@@ -22,7 +22,8 @@ export default class SauceLauncher implements Services.ServiceInstance {
         private _capabilities: unknown,
         private _config: Options.Testrunner
     ) {
-        this._api = new SauceLabs(this._config as unknown as SauceLabsOptions)
+        // @ts-expect-error https://github.com/saucelabs/node-saucelabs/issues/153
+        this._api = new SauceLabs.default(this._config as unknown as SauceLabsOptions)
     }
 
     /**

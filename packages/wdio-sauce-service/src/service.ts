@@ -35,7 +35,8 @@ export default class SauceService implements Services.ServiceInstance {
         private _config: Options.Testrunner
     ) {
         this._options = { ...DEFAULT_OPTIONS, ...options }
-        this._api = new SauceLabs(this._config as unknown as SauceLabsOptions)
+        // @ts-expect-error https://github.com/saucelabs/node-saucelabs/issues/153
+        this._api = new SauceLabs.default(this._config as unknown as SauceLabsOptions)
         this._maxErrorStackLength = this._options.maxErrorStackLength || this._maxErrorStackLength
     }
 
