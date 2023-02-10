@@ -225,6 +225,9 @@ export default class InsightsHandler {
         }
 
         const requestData = this._commands[dataKey]
+        if (!requestData) {
+            return
+        }
 
         // log http request
         const req = this._requestQueueHandler.add({

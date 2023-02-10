@@ -501,6 +501,12 @@ describe('browserCommand', () => {
         insightsHandler['_tests'] = { 'test title not there': { 'uuid': 'uuid' } }
         expect(uploadEventDataSpy).toBeCalledTimes(0)
     })
+
+    it('return if command not in _commands', () => {
+        insightsHandler['_commands'] = { 'command not here': {} }
+        insightsHandler.browserCommand('client:afterCommand', { sessionId: 's', method: 'm', endpoint: 'e', result: { value: 'random' } }, {})
+        expect(uploadEventDataSpy).toBeCalledTimes(0)
+    })
 })
 
 describe('getIdentifier', () => {
