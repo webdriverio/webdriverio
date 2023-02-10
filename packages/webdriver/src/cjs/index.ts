@@ -42,5 +42,4 @@ class WebDriver {
     }
 }
 
-// @ts-expect-error
-export = WebDriver
+module.exports = WebDriver

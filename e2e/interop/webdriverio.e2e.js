@@ -1,10 +1,10 @@
 const assert = require('node:assert')
 const chromedriver = require('chromedriver')
-const { remote } = require('../../packages/webdriverio')
+const WebDriverIO = require('../../packages/webdriverio')
 
 ;(async () => {
     await chromedriver.start(['--port=4444'])
-    const client = await remote({
+    const client = await WebDriverIO.remote({
         capabilities: {
             browserName: 'chrome',
             'goog:chromeOptions': { args: ['headless', 'disable-gpu'] }

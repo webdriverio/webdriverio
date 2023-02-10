@@ -42,5 +42,4 @@ class Devtools {
     }
 }
 
-// @ts-expect-error
-export = Devtools
+module.exports = Devtools
