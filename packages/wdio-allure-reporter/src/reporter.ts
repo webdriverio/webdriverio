@@ -5,23 +5,22 @@ import type {
 } from '@wdio/reporter'
 import WDIOReporter from '@wdio/reporter'
 import type { Capabilities, Options } from '@wdio/types'
-import { AllureRuntime, AllureGroup, AllureTest, AllureStep, Status as AllureStatus, Stage, LabelName, LinkType, md5, ContentType } from 'allure-js-commons'
+import { AllureRuntime, AllureGroup, AllureTest, AllureStep, AllureCommandStepExecutable, Status as AllureStatus, Stage, LabelName, LinkType, md5, ContentType } from 'allure-js-commons'
 import {
-    addFeature, addLabel, addSeverity, addIssue, addTestId, addStory, addEnvironment,
+    addFeature, addLink, addOwner, addEpic, addSuite, addSubSuite, addParentSuite, addTag, addLabel, addSeverity, addIssue, addTestId, addStory, addEnvironment, addAllureId,
     addDescription, addAttachment, startStep, endStep, addStep, addArgument
 } from './common/api.js'
 import {
     getTestStatus, isEmpty, isMochaEachHooks, getErrorFromFailedTest,
-    isMochaAllHooks, getLinkByTemplate, findLast,
+    isMochaAllHooks, getLinkByTemplate, findLast, takeWhile,
 } from './utils.js'
 import { events, PASSED, FAILED, PENDING, SKIPPED, stepStatuses } from './constants.js'
 import type {
     AddAttachmentEventArgs, AddDescriptionEventArgs, AddEnvironmentEventArgs,
     AddFeatureEventArgs, AddIssueEventArgs, AddLabelEventArgs, AddSeverityEventArgs,
     AddEpicEventArgs, AddOwnerEventArgs, AddParentSuiteEventArgs, AddSubSuiteEventArgs,
-    AddLinkEventArgs,
-    AddSuiteEventArgs, AddTagEventArgs, AddTmsEventArgs,
-    AddStoryEventArgs, AddTestIdEventArgs, Status, AllureReporterOptions } from './types.js'
+    AddLinkEventArgs, AddAllureIdEventArgs, AddSuiteEventArgs, AddTagEventArgs,
+    AddStoryEventArgs, AddTestIdEventArgs, AllureReporterOptions } from './types.js'
 import {
     TYPE as DescriptionType
 } from './types.js'
@@ -34,13 +33,15 @@ export default class AllureReporter extends WDIOReporter {
     private _options: AllureReporterOptions
     private _consoleOutput: string
     private _originalStdoutWrite: Function
-    private _runningUnits: Array<AllureGroup | AllureTest | AllureStep> = []
+
+    // TODO: i guess better to rename the property to make it easy to understand that we actually work with stack
+    _runningUnits: Array<AllureGroup | AllureTest | AllureStep> = []
 
     constructor(options: AllureReporterOptions = {}) {
-        const outputDir = options.outputDir || 'allure-results'
+        const { outputDir = 'allure-results', ...rest } = options
 
         super({
-            ...options,
+            ...rest,
             outputDir,
         })
         this._consoleOutput = ''
@@ -66,28 +67,37 @@ export default class AllureReporter extends WDIOReporter {
         }
     }
 
-    // TODO:
-    private get runningChain() {
-        return this._runningUnits.map(unit => unit.constructor.name).join(' -> ')
-    }
-
-    private get currentSuite(): AllureGroup | undefined {
+    get currentSuite(): AllureGroup | undefined {
         return findLast(this._runningUnits, (unit) => unit instanceof AllureGroup) as AllureGroup | undefined
     }
 
-    private get currentTest(): AllureTest | undefined {
+    get currentTest(): AllureTest | undefined {
         return findLast(this._runningUnits, (unit) => unit instanceof AllureTest) as AllureTest | undefined
     }
 
-    private get currentStep(): AllureStep | undefined {
+    get currentStep(): AllureStep | undefined {
         return findLast(this._runningUnits, (unit) => unit instanceof AllureStep) as AllureStep | undefined
     }
 
-    private get currentAllureSpec(): AllureTest | AllureStep | undefined {
+    // TODO: review the method purporse
+    get currentTestSteps(): AllureStep[] {
+        if (!this.currentTest) {
+            return []
+        }
+
+        const currentTestIdx = this._runningUnits.findIndex(unit => unit === this.currentTest)
+
+        return takeWhile(
+            this._runningUnits.slice(currentTestIdx + 1),
+            (el: AllureGroup | AllureTest | AllureStep) => el instanceof AllureStep,
+        ) as AllureStep[]
+    }
+
+    get currentAllureSpec(): AllureTest | AllureStep | undefined {
         return findLast(this._runningUnits, (unit) => unit instanceof AllureTest || unit instanceof AllureStep) as AllureTest | AllureStep | undefined
     }
 
-    private _attachLogs() {
+    attachLogs() {
         if (!this._consoleOutput || !this.currentAllureSpec) {
             return
         }
@@ -104,7 +114,7 @@ export default class AllureReporter extends WDIOReporter {
         )
     }
 
-    private _attachFile(name: string, content: string | Buffer, contentType: ContentType) {
+    attachFile(name: string, content: string | Buffer, contentType: ContentType) {
         if (!this.currentAllureSpec) {
             throw new Error("There isn't any active test!")
         }
@@ -120,19 +130,17 @@ export default class AllureReporter extends WDIOReporter {
         )
     }
 
-    private _attachJSON(name: string, json: any) {
-        const content = JSON.stringify(json, null, 2)
-        const isStr = typeof json === 'string'
-        const contentType = isStr ? ContentType.JSON : ContentType.TEXT
+    attachJSON(name: string, json: any) {
+        const content = typeof json === 'string' ? json : JSON.stringify(json, null, 2)
 
-        this._attachFile(name, isStr ? content : `${content}`, contentType)
+        this.attachFile(name, content, ContentType.JSON)
     }
 
-    private _attachScreenshot(name: string, content: Buffer) {
-        this._attachFile(name, content, ContentType.PNG)
+    attachScreenshot(name: string, content: Buffer) {
+        this.attachFile(name, content, ContentType.PNG)
     }
 
-    private _startSuite(suiteTitle: string) {
+    _startSuite(suiteTitle: string) {
         const newSuite: AllureGroup = this.currentSuite ? this.currentSuite.startGroup() : new AllureGroup(this._allure)
 
         newSuite.name = suiteTitle
@@ -140,37 +148,36 @@ export default class AllureReporter extends WDIOReporter {
         this._runningUnits.push(newSuite)
     }
 
-    private _endSuite() {
+    _endSuite() {
         if (!this.currentSuite) {
             throw new Error("There isn't any active suite!")
         }
 
-        // TODO:
-        // while (this.currentTest) {
-        //     const currentTest = this._runningUnits.pop() as AllureTest | AllureStep
+        while (this.currentAllureSpec) {
+            const currentTest = this._runningUnits.pop() as AllureTest | AllureStep
 
-        //     if (currentTest instanceof AllureTest) {
-        //         currentTest.endTest()
-        //     } else {
-        //         currentTest.endStep()
-        //     }
-        // }
+            if (currentTest instanceof AllureTest) {
+                currentTest.endTest()
+            } else {
+                currentTest.endStep()
+            }
+        }
 
         const currentSuite = this._runningUnits.pop() as AllureGroup
 
         currentSuite.endGroup()
     }
 
-    private _startTest(testTitle: string, cid?: string) {
+    _startTest(testTitle: string, cid?: string) {
         const newTest = this.currentSuite ? this.currentSuite.startTest() : new AllureTest(this._allure)
 
         newTest.name = testTitle
 
-        this.setCaseParameters(cid)
         this._runningUnits.push(newTest)
+        this.setCaseParameters(cid)
     }
 
-    private _skipTest() {
+    _skipTest() {
         if (!this.currentAllureSpec) {
             return
         }
@@ -187,29 +194,43 @@ export default class AllureReporter extends WDIOReporter {
         }
     }
 
-    private _endTest(status: AllureStatus, error?: Error) {
+    _endTest(status: AllureStatus, error?: Error) {
         if (!this.currentAllureSpec) {
             return
         }
 
-        const currentTest = this._runningUnits.pop() as AllureTest | AllureStep
+        const currentSpec = this._runningUnits.pop() as AllureTest | AllureStep
 
-        currentTest.stage = Stage.FINISHED
-        currentTest.status = status
+        // TODO: we need to end all children steps
+        // if (currentSpec instanceof AllureTest) {
+        //     while (this.currentTestSteps().length > 0) {
+        //         this._endTest(status)
+        //         // console.log('running steps', this.currentTestSteps.length)
+
+        //         // const currentStep = this._runningUnits.pop() as AllureStep
+
+        //         // currentStep.stage = Stage.FINISHED
+        //         // currentStep.status = status
+        //         // currentStep.endStep()
+        //     }
+        // }
+
+        currentSpec.stage = Stage.FINISHED
+        currentSpec.status = status
 
         if (error) {
-            currentTest.detailsMessage = error.message
-            currentTest.detailsTrace = error.stack
+            currentSpec.detailsMessage = error.message
+            currentSpec.detailsTrace = error.stack
         }
 
-        if (currentTest instanceof AllureTest) {
-            currentTest.endTest()
+        if (currentSpec instanceof AllureTest) {
+            currentSpec.endTest()
         } else {
-            currentTest.endStep()
+            currentSpec.endStep()
         }
     }
 
-    private _startStep(testTitle: string) {
+    _startStep(testTitle: string) {
         if (!this.currentAllureSpec) {
             throw new Error("There isn't any active test!")
         }
@@ -290,6 +311,7 @@ export default class AllureReporter extends WDIOReporter {
     registerListeners() {
         process.on(events.addLink, this.addLink.bind(this))
         process.on(events.addLabel, this.addLabel.bind(this))
+        process.on(events.addAllureId, this.addAllureId.bind(this))
         process.on(events.addFeature, this.addFeature.bind(this))
         process.on(events.addStory, this.addStory.bind(this))
         process.on(events.addSeverity, this.addSeverity.bind(this))
@@ -298,7 +320,6 @@ export default class AllureReporter extends WDIOReporter {
         process.on(events.addOwner, this.addOwner.bind(this))
         process.on(events.addTag, this.addTag.bind(this))
         process.on(events.addParentSuite, this.addParentSuite.bind(this))
-        process.on(events.addTms, this.addTms.bind(this))
         process.on(events.addEpic, this.addEpic.bind(this))
         process.on(events.addIssue, this.addIssue.bind(this))
         process.on(events.addTestId, this.addTestId.bind(this))
@@ -349,7 +370,6 @@ export default class AllureReporter extends WDIOReporter {
 
     onSuiteEnd(suite: SuiteStats) {
         const { useCucumberStepReporter } = this._options
-        const isFeature = suite.type === 'feature'
         const isScenario = suite.type === 'scenario'
 
         if (useCucumberStepReporter && isScenario) {
@@ -419,7 +439,7 @@ export default class AllureReporter extends WDIOReporter {
             this._startStep(testTitle)
 
             if (dataTable) {
-                this._attachFile('Data Table', stringify(dataTable), ContentType.CSV)
+                this.attachFile('Data Table', stringify(dataTable), ContentType.CSV)
             }
             return
         }
@@ -428,7 +448,7 @@ export default class AllureReporter extends WDIOReporter {
     }
 
     onTestPass() {
-        this._attachLogs()
+        this.attachLogs()
         this._endTest(AllureStatus.PASSED)
     }
 
@@ -436,7 +456,7 @@ export default class AllureReporter extends WDIOReporter {
         const { useCucumberStepReporter } = this._options
 
         if (useCucumberStepReporter) {
-            this._attachLogs()
+            this.attachLogs()
             const testStatus = getTestStatus(test, this._config)
 
             this._endTest(testStatus, getErrorFromFailedTest(test))
@@ -449,19 +469,15 @@ export default class AllureReporter extends WDIOReporter {
             this.currentAllureSpec.name = test.title
         }
 
-        this._attachLogs()
+        this.attachLogs()
 
         const status = getTestStatus(test, this._config)
-        // TODO:
-        // while (this._allure.getCurrentSuite().currentStep instanceof Step) {
-        //     this._allure.endStep(status)
-        // }
 
         this._endTest(status, getErrorFromFailedTest(test))
     }
 
-    onTestSkip(test: TestStats) {
-        this._attachLogs()
+    onTestSkip() {
+        this.attachLogs()
         this._skipTest()
     }
 
@@ -481,7 +497,7 @@ export default class AllureReporter extends WDIOReporter {
         const payload = command.body || command.params
 
         if (!isEmpty(payload)) {
-            this._attachJSON('Request', payload)
+            this.attachJSON('Request', payload)
         }
     }
 
@@ -496,11 +512,11 @@ export default class AllureReporter extends WDIOReporter {
         const { value: commandResult } = command.result
 
         if (!disableWebdriverScreenshotsReporting && isScreenshotCommand && commandResult) {
-            this._attachScreenshot('Screenshot', Buffer.from(commandResult, 'base64'))
+            this.attachScreenshot('Screenshot', Buffer.from(commandResult, 'base64'))
         }
 
         if (!isScreenshotCommand && commandResult) {
-            this._attachJSON('Response', commandResult)
+            this.attachJSON('Response', commandResult)
         }
 
         this._endTest(AllureStatus.PASSED)
@@ -514,14 +530,18 @@ export default class AllureReporter extends WDIOReporter {
             return
         }
 
+        const isMochaAllHook = isMochaAllHooks(hook.title)
+        const isMochaEachHook = isMochaEachHooks(hook.title)
+
         // add beforeEach / afterEach hook as step to test
-        if (disableMochaHooks && isMochaEachHooks(hook.title) && this.currentAllureSpec) {
+        // TODO: is it possible to have unfinished step, when we try to start hook?
+        if (disableMochaHooks && isMochaEachHook && this.currentAllureSpec) {
             this._startStep(hook.title)
             return
         }
 
         // don't add hook as test to suite for mocha All hooks
-        if (disableMochaHooks && isMochaAllHooks(hook.title)) {
+        if (disableMochaHooks && isMochaAllHook) {
             return
         }
 
@@ -556,26 +576,35 @@ export default class AllureReporter extends WDIOReporter {
                 this.onTestStart(hook)
                 // this.attachScreenshot()
             }
+
             this.onTestFail(hook)
-        } else if ((disableMochaHooks || useCucumberStepReporter) && !isMochaAllHook) {
-            console.log('special case fired')
+            return
+        }
+
+        if ((disableMochaHooks || useCucumberStepReporter) && !isMochaAllHook) {
             this.onTestPass()
 
-            // remove hook from suite if it has no steps
-            // if (this._allure.getCurrentTest().steps.length === 0 && !useCucumberStepReporter) {
-            //     this._allure.getCurrentSuite().testcases.pop()
-            // } else if (useCucumberStepReporter) {
-            //     // remove hook when it's registered as a step and if it's passed
-            //     const step = this._allure.getCurrentTest().steps.pop()
+            if (this.currentTestSteps.length === 0 && !useCucumberStepReporter) {
+                console.log('remove hook without steps', hook)
 
-            //     // if it had any attachments, reattach them to current test
-            //     if (step && step.attachments.length >= 1) {
-            //         step.attachments.forEach((attachment: any) => {
-            //             this._allure.getCurrentTest().addAttachment(attachment)
-            //         })
-            //     }
-            // }
-        } else if (!disableMochaHooks) {
+                this._runningUnits.pop()
+            } else if (useCucumberStepReporter) {
+                console.log('much more special case fired')
+                // remove hook when it's registered as a step and if it's passed
+                // const step = this._allure.getCurrentTest().steps.pop()
+                // const step = this._runningUnits.pop()
+
+                // if it had any attachments, reattach them to current test
+                // if (step && step.attachments.length >= 1) {
+                //     step.attachments.forEach((attachment: any) => {
+                //         this.currentTest?.addAttachment(attachment)
+                //     })
+                // }
+            }
+            return
+        }
+
+        if (!disableMochaHooks) {
             this.onTestPass()
         }
     }
@@ -601,6 +630,15 @@ export default class AllureReporter extends WDIOReporter {
         }
 
         this.currentTest.addLink(url, name, type)
+    }
+
+    addAllureId({
+        id,
+    }: AddAllureIdEventArgs) {
+        this.addLabel({
+            name: LabelName.AS_ID,
+            value: id,
+        })
     }
 
     addStory({
@@ -685,11 +723,15 @@ export default class AllureReporter extends WDIOReporter {
     }
 
     addTestId({
-        testId
+        testId,
+        linkName,
     }: AddTestIdEventArgs) {
-        this.addLabel({
-            name: LabelName.AS_ID,
-            value: testId,
+        const tmsLink = getLinkByTemplate(this._options.tmsLinkTemplate, testId)
+
+        this.addLink({
+            url: tmsLink,
+            name: linkName,
+            type: LinkType.TMS
         })
     }
 
@@ -703,19 +745,6 @@ export default class AllureReporter extends WDIOReporter {
             url: issueLink,
             name: linkName,
             type: LinkType.ISSUE
-        })
-    }
-
-    addTms({
-        tms,
-        linkName,
-    }: AddTmsEventArgs) {
-        const tmsLink = getLinkByTemplate(this._options.tmsLinkTemplate, tms)
-
-        this.addLink({
-            url: tmsLink,
-            name: linkName,
-            type: LinkType.TMS
         })
     }
 
@@ -754,66 +783,72 @@ export default class AllureReporter extends WDIOReporter {
         }
 
         if (type === ContentType.JSON) {
-            this._attachJSON(name, content)
+            this.attachJSON(name, content)
             return
         }
 
-        this._attachFile(name, Buffer.from(content as string), type as ContentType)
+        this.attachFile(name, Buffer.from(content as string), type as ContentType)
     }
 
     startStep(title: string) {
-        // if (!this.isAnyTestRunning()) {
-        //     return false
-        // }
-        // this._allure.startStep(title)
+        if (!this.currentAllureSpec) {
+            return
+        }
+
+        this._startStep(title)
     }
 
-    endStep(status: Status) {
-        // if (!this.isAnyTestRunning()) {
-        //     return false
-        // }
-        // this._allure.endStep(status)
+    endStep(status: AllureStatus) {
+        if (!this.currentAllureSpec) {
+            return
+        }
+
+        this._endTest(status)
     }
 
     addStep({
         step
     }: any) {
-        // if (!this.isAnyTestRunning()) {
-        //     return false
-        // }
-        // this.startStep(step.title)
-        // if (step.attachment) {
-        //     this.addAttachment(step.attachment)
-        // }
-        // this.endStep(step.status)
+        if (!this.currentAllureSpec) {
+            return
+        }
+
+        this._startStep(step.title)
+
+        if (step.attachment) {
+            this.attachFile(step.attachment.name, step.attachment.content, step.attachment.type || ContentType.TEXT)
+        }
+
+        this._endTest(step.status)
     }
 
     addArgument({
         name,
         value
     }: any) {
-        // if (!this.isAnyTestRunning) {
-        //     return false
-        // }
+        if (!this.currentTest) {
+            return
+        }
 
-        // const test = this._allure.getCurrentTest()
-        // test.addParameter('argument', name, value)
+        this.currentTest.addParameter(name, value)
     }
-
-    // isAnyTestRunning() {
-    //     return this._allure.getCurrentSuite() && this._allure.getCurrentTest()
-    // }
 
     /**
      * public API attached to the reporter
      * deprecated approach and only here for backwards compatibility
      */
-    // TODO:
-    // static addAllureId = addAllureId
+    // TODO: add attachment method
     static addFeature = addFeature
+    static addLink = addLink
+    static addEpic = addEpic
+    static addOwner = addOwner
+    static addTag = addTag
     static addLabel = addLabel
     static addSeverity = addSeverity
     static addIssue = addIssue
+    static addSuite = addSuite
+    static addSubSuite = addSubSuite
+    static addParentSuite = addParentSuite
     static addTestId = addTestId
     static addStory = addStory
     static addEnvironment = addEnvironment
@@ -823,4 +858,5 @@ export default class AllureReporter extends WDIOReporter {
     static endStep = endStep
     static addStep = addStep
     static addArgument = addArgument
+    static addAllureId = addAllureId
 }

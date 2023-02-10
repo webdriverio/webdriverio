@@ -53,6 +53,10 @@ export interface AddStoryEventArgs {
     storyName: string
 }
 
+export interface AddAllureIdEventArgs {
+    id: string
+}
+
 export interface AddFeatureEventArgs {
     featureName: string
 }
@@ -96,13 +100,9 @@ export interface AddIssueEventArgs {
     linkName?: string
 }
 
-export interface AddTmsEventArgs {
-    tms: string
-    linkName?: string
-}
-
 export interface AddTestIdEventArgs {
     testId: string
+    linkName?: string
 }
 
 export interface AddEnvironmentEventArgs {

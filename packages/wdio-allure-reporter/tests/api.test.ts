@@ -1,15 +1,31 @@
 import path from 'node:path'
+import type { SpyInstance } from 'vitest'
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
+import { ContentType } from 'allure-js-commons'
 
 import reporter, {
+    addEpic, addOwner, addSuite, addSubSuite, addParentSuite, addLink, addTag,
     addFeature, addLabel, addSeverity, addIssue, addTestId, addStory,
     addEnvironment, addDescription, addAttachment, startStep, endStep,
-    addStep, addArgument
+    addStep, addArgument, addAllureId,
 } from '../src/index.js'
 import { events, stepStatuses } from '../src/constants.js'
 
 vi.mock('@wdio/reporter', () => import(path.join(process.cwd(), '__mocks__', '@wdio/reporter')))
-vi.mock('../src/utils')
+
+const fixtures = {
+    testStats: {
+        uid: '1',
+        cid: '0-0',
+        title: 'my test',
+        duration: 0,
+        _duration: 0,
+        parent: undefined,
+        type: 'scenario',
+        start: new Date(),
+        complete: vi.fn(),
+    }
+}
 
 describe('reporter reporter api', () => {
     const processEmit = process.emit.bind(process)
@@ -22,6 +38,14 @@ describe('reporter reporter api', () => {
     })
 
     it('exports correct API', () => {
+        expect(typeof addEpic).toBe('function')
+        expect(typeof addOwner).toBe('function')
+        expect(typeof addSuite).toBe('function')
+        expect(typeof addSubSuite).toBe('function')
+        expect(typeof addParentSuite).toBe('function')
+        expect(typeof addLink).toBe('function')
+        expect(typeof addAllureId).toBe('function')
+        expect(typeof addTag).toBe('function')
         expect(typeof addFeature).toBe('function')
         expect(typeof addLabel).toBe('function')
         expect(typeof addSeverity).toBe('function')
@@ -35,6 +59,48 @@ describe('reporter reporter api', () => {
         expect(typeof endStep).toBe('function')
         expect(typeof addStep).toBe('function')
         expect(typeof addArgument).toBe('function')
+    })
+
+    it('should pass correct data from addEpic', () => {
+        reporter.addEpic('EpicName')
+        expect(process.emit).toHaveBeenCalledTimes(1)
+        expect(process.emit).toHaveBeenCalledWith(events.addEpic, { epicName: 'EpicName' })
+    })
+
+    it('should pass correct data from addOwner', () => {
+        reporter.addOwner('Owner')
+        expect(process.emit).toHaveBeenCalledTimes(1)
+        expect(process.emit).toHaveBeenCalledWith(events.addOwner, { owner: 'Owner' })
+    })
+
+    it('should pass correct data from addSuite', () => {
+        reporter.addSuite('Suite')
+        expect(process.emit).toHaveBeenCalledTimes(1)
+        expect(process.emit).toHaveBeenCalledWith(events.addSuite, { suiteName: 'Suite' })
+    })
+
+    it('should pass correct data from addSubSuite', () => {
+        reporter.addSubSuite('SubSuite')
+        expect(process.emit).toHaveBeenCalledTimes(1)
+        expect(process.emit).toHaveBeenCalledWith(events.addSubSuite, { suiteName: 'SubSuite' })
+    })
+
+    it('should pass correct data from addParentSuite', () => {
+        reporter.addParentSuite('ParentSuite')
+        expect(process.emit).toHaveBeenCalledTimes(1)
+        expect(process.emit).toHaveBeenCalledWith(events.addParentSuite, { suiteName: 'ParentSuite' })
+    })
+
+    it('should pass correct data from addLink', () => {
+        reporter.addLink('http://example.org', 'LinkName', 'LinkType')
+        expect(process.emit).toHaveBeenCalledTimes(1)
+        expect(process.emit).toHaveBeenCalledWith(events.addLink, { name: 'LinkName', type: 'LinkType', url: 'http://example.org' })
+    })
+
+    it('should pass correct data from addTag', () => {
+        reporter.addTag('Tag')
+        expect(process.emit).toHaveBeenCalledTimes(1)
+        expect(process.emit).toHaveBeenCalledWith(events.addTag, { tag: 'Tag' })
     })
 
     it('should pass correct data from addLabel', () => {
@@ -67,6 +133,12 @@ describe('reporter reporter api', () => {
         expect(process.emit).toHaveBeenCalledWith(events.addIssue, { issue: '1' })
     })
 
+    it('should pass correct data from addAllureId', () => {
+        reporter.addAllureId('1')
+        expect(process.emit).toHaveBeenCalledTimes(1)
+        expect(process.emit).toHaveBeenCalledWith(events.addAllureId, { id: '1' })
+    })
+
     it('should pass correct data from addTestId', () => {
         reporter.addTestId('2')
         expect(process.emit).toHaveBeenCalledTimes(1)
@@ -85,6 +157,7 @@ describe('reporter reporter api', () => {
         expect(process.emit).toHaveBeenCalledWith(events.addDescription, { description: 'foo', descriptionType: 'html' })
     })
 
+    // TODO:
     it('should pass correct data from addStep', () => {
         reporter.addStep('foo', { name: 'bar', content: 'baz', type: 'text/plain' }, stepStatuses.FAILED )
         expect(process.emit).toHaveBeenCalledTimes(1)
@@ -196,19 +269,116 @@ describe('event listeners', () => {
     })
 })
 
-describe('dumpJSON', () => {
-    const reporterInstance = new reporter({})
-    reporterInstance['_allure'].addAttachment = vi.fn()
+describe('attachJSON', () => {
+    let reporterInstance: reporter
+    let writeAttachmentSpy: SpyInstance
 
-    it('valid json', () => {
-        reporterInstance.dumpJSON('foobar', { foo: 'bar' })
-        expect(reporterInstance['_allure'].addAttachment).toBeCalledWith('foobar', '{\n  "foo": "bar"\n}', 'application/json')
+    beforeEach(() => {
+        reporterInstance = new reporter({})
+        writeAttachmentSpy = vi.spyOn(reporterInstance['_allure'], 'writeAttachment')
+        reporterInstance.onTestStart({
+            uid: '1',
+            cid: '0-0',
+            title: 'my test',
+            duration: 0,
+            _duration: 0,
+            parent: undefined,
+            type: 'scenario',
+            start: new Date(),
+            complete: vi.fn(),
+        })
     })
 
-    it('undefined value', () => {
-        // @ts-expect-error type test
-        reporterInstance.dumpJSON('barfoo', undefined)
-        expect(reporterInstance['_allure'].addAttachment).toBeCalledWith('barfoo', 'undefined', 'text/plain')
+    it('writes json file for string content', () => {
+        const fixture = JSON.stringify({ foo: 'bar' })
+
+        reporterInstance.attachJSON('foobar', fixture)
+
+        expect(writeAttachmentSpy).toBeCalledWith(fixture, ContentType.JSON)
+    })
+
+    it('writes txt file for rest content types', () => {
+        reporterInstance.attachJSON('foobar', { foo: 'bar' })
+
+        expect(writeAttachmentSpy).toBeCalledWith(JSON.stringify({ foo: 'bar' }, null, 2), ContentType.TEXT)
+    })
+
+    it('writes txt file for undefined value', () => {
+        reporterInstance.attachJSON('foobar', undefined)
+
+        expect(writeAttachmentSpy).toBeCalledWith('undefined', ContentType.TEXT)
+    })
+})
+
+describe('attachScreenshot', () => {
+    let reporterInstance: reporter
+    let writeAttachmentSpy: SpyInstance
+
+    beforeEach(() => {
+        reporterInstance = new reporter({})
+        writeAttachmentSpy = vi.spyOn(reporterInstance['_allure'], 'writeAttachment')
+        reporterInstance.onTestStart({
+            uid: '1',
+            cid: '0-0',
+            title: 'my test',
+            duration: 0,
+            _duration: 0,
+            parent: undefined,
+            type: 'scenario',
+            start: new Date(),
+            complete: vi.fn(),
+        })
+    })
+
+    it('writes content as png file', () => {
+        const fixture = Buffer.from('0x1')
+
+        reporterInstance.attachScreenshot('foobar', fixture)
+
+        expect(writeAttachmentSpy).toBeCalledWith(fixture, ContentType.PNG)
+    })
+
+    // it('writes txt file for rest content types', () => {
+    //     reporterInstance.attachJSON('foobar', { foo: 'bar' })
+
+    //     expect(writeAttachmentSpy).toBeCalledWith(JSON.stringify({ foo: 'bar' }, null, 2), ContentType.TEXT)
+    // })
+
+    // it('writes txt file for undefined value', () => {
+    //     reporterInstance.attachJSON('foobar', undefined)
+
+    //     expect(writeAttachmentSpy).toBeCalledWith('undefined', ContentType.TEXT)
+    // })
+})
+
+describe('attachLogs', () => {
+    let reporterInstance: reporter
+    let writeAttachmentSpy: SpyInstance
+
+    it('doesn\'t write console logs when they\'re disabled', () => {
+        reporterInstance = new reporter({
+            addConsoleLogs: false
+        })
+        writeAttachmentSpy = vi.spyOn(reporterInstance['_allure'], 'writeAttachment')
+
+        reporterInstance.onTestStart(fixtures.testStats)
+        process.stdout.write('hello world')
+        reporterInstance.attachLogs()
+
+        expect(writeAttachmentSpy).not.toBeCalled()
+    })
+
+    it('writes console logs as text file when they\'re enabled', () => {
+        reporterInstance = new reporter({
+            addConsoleLogs: true
+        })
+        writeAttachmentSpy = vi.spyOn(reporterInstance['_allure'], 'writeAttachment')
+
+        reporterInstance.onTestStart(fixtures.testStats)
+        process.stdout.write('hello world')
+        reporterInstance.attachLogs()
+
+        expect(writeAttachmentSpy).toBeCalledWith('.........Console Logs.........\n\nhello world', ContentType.TEXT)
     })
 })
 

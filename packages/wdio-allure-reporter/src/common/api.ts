@@ -1,4 +1,3 @@
-import { LabelName, LinkType } from "allure-js-commons"
 import { events, stepStatuses } from '../constants.js'
 import type { Status } from '../types.js'
 
@@ -34,6 +33,15 @@ export function addLink(url: string, name?: string, type?: string) {
 }
 
 /**
+ * Assign allure id label to test to link test to existing entity inside the test ops
+ * @name addAllureId
+ * @param {string} id - inner allure test ops id
+ */
+export function addAllureId(id: string) {
+    tellReporter(events.addAllureId, { id })
+}
+
+/**
  * Assign feature to test
  * @name addFeature
  * @param {(string)} featureName - feature name or an array of names
@@ -60,14 +68,6 @@ export function addIssue (issue: string) {
     tellReporter(events.addIssue, { issue })
 }
 
-/**
- * Assign tms id to test
- * @name addTms
- * @param {string} tms - tms id value
- */
-export function addTms(tms: string) {
-    tellReporter(events.addTms, { tms })
-}
 
 /**
  * Assign TMS test id to test
@@ -120,7 +120,7 @@ export function addSubSuite(suiteName: string) {
  * @param {string} epicName - the epic name
  */
 export function addEpic(epicName: string) {
-    tellReporter(events.addSubSuite, { epicName })
+    tellReporter(events.addEpic, { epicName })
 }
 
 /**

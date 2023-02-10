@@ -34,7 +34,7 @@ export const events = {
     addSeverity: 'allure:addSeverity',
     addTag: 'allure:addTag',
     addIssue: 'allure:addIssue',
-    addTms: 'allure:addTms',
+    addAllureId: 'allure:addAllureId',
     addTestId: 'allure:addTestId',
     addEnvironment: 'allure:addEnvironment',
     addDescription: 'allure:addDescription',

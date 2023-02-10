@@ -2,7 +2,7 @@ import { describe, it, expect, afterEach, beforeAll, vi } from 'vitest'
 import process from 'node:process'
 import CompoundError from '../src/compoundError.js'
 import {
-    getTestStatus, isEmpty, isMochaEachHooks, getErrorFromFailedTest, isMochaAllHooks, getLinkByTemplate, findLast
+    getTestStatus, isEmpty, isMochaEachHooks, getErrorFromFailedTest, isMochaAllHooks, getLinkByTemplate, findLast, takeWhile,
 } from '../src/utils.js'
 import { linkPlaceholder, testStatuses } from '../src/constants.js'
 
@@ -152,6 +152,14 @@ describe('utils', () => {
 
         it('should return undefind when nothing matched', () => {
             expect(findLast(arr, (el) => el === 10)).toEqual(undefined)
+        })
+    })
+
+    describe('takeWhile', () => {
+        const arr = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+
+        it('should array elements while the predicate is truthy', () => {
+            expect(takeWhile(arr, (el) => el <= 5)).toEqual([1, 2, 3, 4, 5])
         })
     })
 })
