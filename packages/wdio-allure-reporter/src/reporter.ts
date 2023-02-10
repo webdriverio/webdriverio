@@ -131,9 +131,10 @@ export default class AllureReporter extends WDIOReporter {
     }
 
     attachJSON(name: string, json: any) {
-        const content = typeof json === 'string' ? json : JSON.stringify(json, null, 2)
+        const isStr = typeof json === 'string'
+        const content = isStr ? json : JSON.stringify(json, null, 2)
 
-        this.attachFile(name, content, ContentType.JSON)
+        this.attachFile(name, String(content), isStr ? ContentType.JSON : ContentType.TEXT)
     }
 
     attachScreenshot(name: string, content: Buffer) {

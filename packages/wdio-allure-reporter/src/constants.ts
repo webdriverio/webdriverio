@@ -1,26 +1,3 @@
-import type { Status } from './types.js'
-
-export const PASSED = 'passed'
-export const FAILED = 'failed'
-export const BROKEN = 'broken'
-export const PENDING = 'pending'
-export const CANCELED = 'canceled'
-export const SKIPPED = 'skipped'
-
-export const testStatuses: Record<string, Status> = {
-    PASSED,
-    FAILED,
-    BROKEN,
-    PENDING
-} as const
-export const stepStatuses: Record<string, Status> = {
-    PASSED,
-    FAILED,
-    BROKEN,
-    CANCELED,
-    SKIPPED
-} as const
-
 export const events = {
     addLabel: 'allure:addLabel',
     addLink: 'allure:addLink',

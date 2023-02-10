@@ -157,7 +157,6 @@ describe('reporter reporter api', () => {
         expect(process.emit).toHaveBeenCalledWith(events.addDescription, { description: 'foo', descriptionType: 'html' })
     })
 
-    // TODO:
     it('should pass correct data from addStep', () => {
         reporter.addStep('foo', { name: 'bar', content: 'baz', type: 'text/plain' }, stepStatuses.FAILED )
         expect(process.emit).toHaveBeenCalledTimes(1)
@@ -337,18 +336,6 @@ describe('attachScreenshot', () => {
 
         expect(writeAttachmentSpy).toBeCalledWith(fixture, ContentType.PNG)
     })
-
-    // it('writes txt file for rest content types', () => {
-    //     reporterInstance.attachJSON('foobar', { foo: 'bar' })
-
-    //     expect(writeAttachmentSpy).toBeCalledWith(JSON.stringify({ foo: 'bar' }, null, 2), ContentType.TEXT)
-    // })
-
-    // it('writes txt file for undefined value', () => {
-    //     reporterInstance.attachJSON('foobar', undefined)
-
-    //     expect(writeAttachmentSpy).toBeCalledWith('undefined', ContentType.TEXT)
-    // })
 })
 
 describe('attachLogs', () => {
