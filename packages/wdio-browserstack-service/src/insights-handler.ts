@@ -230,6 +230,9 @@ export default class InsightsHandler {
 
         const dataKey = `${args.sessionId}_${args.method}_${args.endpoint}`
         const requestData = this._commands[dataKey]
+        if (!requestData) {
+            return
+        }
 
         // log http request
         const req = this._requestQueueHandler.add({
