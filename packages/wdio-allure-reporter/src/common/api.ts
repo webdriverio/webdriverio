@@ -1,5 +1,5 @@
-import { events, stepStatuses } from '../constants.js'
-import type { Status } from '../types.js'
+import { Status } from 'allure-js-commons'
+import { events } from '../constants.js'
 
 /**
  * Call reporter
@@ -67,7 +67,6 @@ export function addSeverity (severity: string) {
 export function addIssue (issue: string) {
     tellReporter(events.addIssue, { issue })
 }
-
 
 /**
  * Assign TMS test id to test
@@ -189,9 +188,9 @@ export function startStep (title: string) {
  * @name endStep
  * @param {StepStatus} [status='passed'] - step status
  */
-export function endStep (status: Status = 'passed') {
-    if (!Object.values(stepStatuses).includes(status)) {
-        throw new Error(`Step status must be ${Object.values(stepStatuses).join(' or ')}. You tried to set "${status}"`)
+export function endStep (status: Status = Status.PASSED) {
+    if (!Object.values(Status).includes(status)) {
+        throw new Error(`Step status must be ${Object.values(Status).join(' or ')}. You tried to set "${status}"`)
     }
     tellReporter(events.endStep, status)
 }
@@ -213,10 +212,10 @@ export function addStep (
         name = 'attachment',
         type = 'text/plain'
     }: any = {},
-    status: Status = 'passed'
+    status: Status = Status.PASSED
 ) {
-    if (!Object.values(stepStatuses).includes(status)) {
-        throw new Error(`Step status must be ${Object.values(stepStatuses).join(' or ')}. You tried to set "${status}"`)
+    if (!Object.values(Status).includes(status)) {
+        throw new Error(`Step status must be ${Object.values(Status).join(' or ')}. You tried to set "${status}"`)
     }
 
     const step = content ? { title, attachment: { content, name, type }, status } : { title, status }

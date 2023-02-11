@@ -1,15 +1,14 @@
 import path from 'node:path'
 import type { SpyInstance } from 'vitest'
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { ContentType } from 'allure-js-commons'
-
+import { Status, ContentType } from 'allure-js-commons'
 import reporter, {
     addEpic, addOwner, addSuite, addSubSuite, addParentSuite, addLink, addTag,
     addFeature, addLabel, addSeverity, addIssue, addTestId, addStory,
     addEnvironment, addDescription, addAttachment, startStep, endStep,
     addStep, addArgument, addAllureId,
 } from '../src/index.js'
-import { events, stepStatuses } from '../src/constants.js'
+import { events } from '../src/constants.js'
 
 vi.mock('@wdio/reporter', () => import(path.join(process.cwd(), '__mocks__', '@wdio/reporter')))
 
@@ -158,14 +157,14 @@ describe('reporter reporter api', () => {
     })
 
     it('should pass correct data from addStep', () => {
-        reporter.addStep('foo', { name: 'bar', content: 'baz', type: 'text/plain' }, stepStatuses.FAILED )
+        reporter.addStep('foo', { name: 'bar', content: 'baz', type: 'text/plain' }, Status.FAILED )
         expect(process.emit).toHaveBeenCalledTimes(1)
         const step = { 'step': { 'attachment': { 'content': 'baz', 'name': 'bar', 'type': 'text/plain' }, 'status': 'failed', 'title': 'foo' } }
         expect(process.emit).toHaveBeenCalledWith(events.addStep, step)
     })
 
     it('should support default attachment name for addStep', () => {
-        reporter.addStep('foo', { content: 'baz' }, stepStatuses.FAILED )
+        reporter.addStep('foo', { content: 'baz' }, Status.FAILED )
         expect(process.emit).toHaveBeenCalledTimes(1)
         const step = { 'step': { 'attachment': { 'content': 'baz', 'name': 'attachment', 'type': 'text/plain' }, 'status': 'failed', 'title': 'foo' } }
         expect(process.emit).toHaveBeenCalledWith(events.addStep, step)
@@ -174,7 +173,7 @@ describe('reporter reporter api', () => {
     it('should support default attachment type for addStep', () => {
         reporter.addStep('foo', { content: 'baz' })
         expect(process.emit).toHaveBeenCalledTimes(1)
-        const step = { 'step': { 'attachment': { 'content': 'baz', 'name': 'attachment', 'type': 'text/plain' }, 'status': 'passed', 'title': 'foo' } }
+        const step = { 'step': { 'attachment': { 'content': 'baz', 'name': 'attachment', 'type': 'text/plain' }, 'status': Status.PASSED, 'title': 'foo' } }
         expect(process.emit).toHaveBeenCalledWith(events.addStep, step)
     })
 
@@ -185,35 +184,35 @@ describe('reporter reporter api', () => {
     })
 
     it('should support end step', () => {
-        reporter.endStep('passed')
+        reporter.endStep(Status.PASSED)
         expect(process.emit).toHaveBeenCalledTimes(1)
-        expect(process.emit).toHaveBeenCalledWith(events.endStep, 'passed')
+        expect(process.emit).toHaveBeenCalledWith(events.endStep, Status.PASSED)
     })
 
     it('should support addStep without attachment', () => {
         reporter.addStep('foo')
         expect(process.emit).toHaveBeenCalledTimes(1)
-        const step = { 'step': { 'status': 'passed', 'title': 'foo' } }
+        const step = { 'step': { 'status': Status.PASSED, 'title': 'foo' } }
         expect(process.emit).toHaveBeenCalledWith(events.addStep, step)
     })
 
     it('should support default step status for addStep', () => {
         reporter.addStep('foo', { content: 'baz' } )
         expect(process.emit).toHaveBeenCalledTimes(1)
-        const step = { 'step': { 'attachment': { 'content': 'baz', 'name': 'attachment', 'type': 'text/plain' }, 'status': 'passed', 'title': 'foo' } }
+        const step = { 'step': { 'attachment': { 'content': 'baz', 'name': 'attachment', 'type': 'text/plain' }, 'status': Status.PASSED, 'title': 'foo' } }
         expect(process.emit).toHaveBeenCalledWith(events.addStep, step)
     })
 
     it('should throw exception for incorrect status for addStep', () => {
         // @ts-expect-error invalid param
         const cb = () => { reporter.addStep('foo', { content: 'baz' }, 'invalid-status')}
-        expect(cb).toThrowError('Step status must be passed or failed or broken or canceled or skipped. You tried to set "invalid-status"')
+        expect(cb).toThrowError('Step status must be failed or broken or passed or skipped. You tried to set "invalid-status"')
     })
 
     it('should throw exception for incorrect status for endStep', () => {
         // @ts-expect-error invalid param
         const cb = () => { reporter.endStep('invalid-status') }
-        expect(cb).toThrowError('Step status must be passed or failed or broken or canceled or skipped. You tried to set "invalid-status"')
+        expect(cb).toThrowError('Step status must be failed or broken or passed or skipped. You tried to set "invalid-status"')
     })
 
     it('should pass correct data from addArgument', () => {
