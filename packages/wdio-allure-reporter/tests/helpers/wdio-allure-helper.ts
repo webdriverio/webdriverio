@@ -1,23 +1,50 @@
 import fs from 'node:fs'
+import os from 'node:os'
 import path from 'node:path'
 import rimraf from 'rimraf'
-import { load } from 'cheerio'
 import { AllureGroup, AllureTest, AllureStep } from 'allure-js-commons'
 import AllureReporter from '../../src/reporter.js'
 
-export function getResults (resultsDir: any) {
-    return getResultFiles(resultsDir, 'xml').map((file) => {
-        const fileContent = fs.readFileSync(path.join(resultsDir, file), 'utf-8')
-        return load(fileContent)
-    })
+export function parseEnvInfo (info: string): Record<string, any> {
+    return info.split(os.EOL).reduce((acc, line) => {
+        const [key, value] = line.split(' = ')
+
+        return Object.assign(acc, {
+            [key]: value,
+        })
+    }, {})
 }
 
-export function getResultFiles (resultsDir: any, patterns: any) {
+export function getResults (resultsDir: any) {
+    const results = getResultFiles(resultsDir, [/-result\.json$/]).map((file) => {
+        const fileContent = fs.readFileSync(path.join(resultsDir, file), 'utf-8')
+
+        return JSON.parse(fileContent)
+    })
+    const containers = getResultFiles(resultsDir, [/-container\.json$/]).map((file) => {
+        const fileContent = fs.readFileSync(path.join(resultsDir, file), 'utf-8')
+
+        return JSON.parse(fileContent)
+    })
+    const environmentInfo = getResultFiles(resultsDir, [/environment\.properties/]).reduce((acc, file) => {
+        const fileContent = fs.readFileSync(path.join(resultsDir, file), 'utf-8')
+
+        return Object.assign(acc, parseEnvInfo(fileContent))
+    }, {})
+
+    return {
+        results,
+        containers,
+        environmentInfo,
+    }
+}
+
+export function getResultFiles (resultsDir: any, patterns: RegExp[]) {
     if (!Array.isArray(patterns)) {
         patterns = [patterns]
     }
-    return fs.readdirSync(resultsDir).filter((file) =>
-        patterns.some((pattern: any) => file.endsWith('.' + pattern)))
+
+    return fs.readdirSync(resultsDir).filter((file) => patterns.some((pattern) => pattern.test(file)))
 }
 
 export function clean (resultsDir: any) {

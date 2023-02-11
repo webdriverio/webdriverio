@@ -14,7 +14,7 @@ import {
     getTestStatus, isEmpty, isMochaEachHooks, getErrorFromFailedTest,
     isMochaAllHooks, getLinkByTemplate, findLast, takeWhile,
 } from './utils.js'
-import { events, PASSED, FAILED, PENDING, SKIPPED, stepStatuses } from './constants.js'
+import { events } from './constants.js'
 import type {
     AddAttachmentEventArgs, AddDescriptionEventArgs, AddEnvironmentEventArgs,
     AddFeatureEventArgs, AddIssueEventArgs, AddLabelEventArgs, AddSeverityEventArgs,
@@ -376,19 +376,19 @@ export default class AllureReporter extends WDIOReporter {
         if (useCucumberStepReporter && isScenario) {
             // passing hooks are missing the 'state' property
             suite.hooks = suite.hooks!.map((hook) => {
-                hook.state = hook.state || PASSED
+                hook.state = hook.state || AllureStatus.PASSED
                 return hook
             })
 
             const suiteChildren = [...suite.tests!, ...suite.hooks]
-            const isFailed = suiteChildren.some(item => item.state === FAILED)
+            const isFailed = suiteChildren.some(item => item.state === AllureStatus.FAILED)
 
             if (isFailed) {
                 this._endTest(AllureStatus.FAILED)
                 return
             }
 
-            const isPassed = suiteChildren.every(item => item.state === PASSED)
+            const isPassed = suiteChildren.every(item => item.state === AllureStatus.PASSED)
 
             if (isPassed) {
                 this._endTest(AllureStatus.PASSED)
@@ -396,7 +396,7 @@ export default class AllureReporter extends WDIOReporter {
             }
 
             // A scenario is it skipped if every steps are skipped and hooks are passed or skipped
-            const isSkipped = suite.tests.every(item => [SKIPPED].includes(item.state)) && suite.hooks.every(item => [PASSED, SKIPPED].includes(item.state as string))
+            const isSkipped = suite.tests.every(item => [AllureStatus.SKIPPED].includes(item.state as AllureStatus)) && suite.hooks.every(item => [AllureStatus.PASSED, AllureStatus.SKIPPED].includes(item.state as AllureStatus))
 
             if (isSkipped) {
                 this._skipTest()
@@ -404,7 +404,7 @@ export default class AllureReporter extends WDIOReporter {
             }
 
             // A scenario is it passed if certain steps are passed and all other are skipped and every hooks are passed or skipped
-            const isPartiallySkipped = suiteChildren.every(item => [PASSED, SKIPPED].includes(item.state as string))
+            const isPartiallySkipped = suiteChildren.every(item => [AllureStatus.PASSED, AllureStatus.SKIPPED].includes(item.state as AllureStatus))
 
             if (isPartiallySkipped) {
                 this._endTest(AllureStatus.PASSED)
@@ -426,7 +426,7 @@ export default class AllureReporter extends WDIOReporter {
 
         const testTitle = test.currentTest ? test.currentTest : test.title
 
-        if (this.currentAllureSpec?.name === testTitle) {
+        if (this.currentAllureSpec?.wrappedItem?.name === testTitle) {
             // Test already in progress, most likely started by a before each hook
             this.setCaseParameters(test.cid)
             return
@@ -477,8 +477,15 @@ export default class AllureReporter extends WDIOReporter {
         this._endTest(status, getErrorFromFailedTest(test))
     }
 
-    onTestSkip() {
+    onTestSkip(test: TestStats) {
         this.attachLogs()
+
+        if (!this.currentAllureSpec || this.currentAllureSpec.wrappedItem.name !== test.title) {
+            this._startTest(test.title, test.cid)
+            this._skipTest()
+            return
+        }
+
         this._skipTest()
     }
 
