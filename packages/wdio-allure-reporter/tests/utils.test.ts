@@ -1,10 +1,11 @@
 import { describe, it, expect, afterEach, beforeAll, vi } from 'vitest'
 import process from 'node:process'
+import { Status } from 'allure-js-commons'
 import CompoundError from '../src/compoundError.js'
 import {
     getTestStatus, isEmpty, isMochaEachHooks, getErrorFromFailedTest, isMochaAllHooks, getLinkByTemplate, findLast, takeWhile,
 } from '../src/utils.js'
-import { linkPlaceholder, testStatuses } from '../src/constants.js'
+import { linkPlaceholder } from '../src/constants.js'
 
 describe('utils', () => {
     let processEmit: any
@@ -20,42 +21,42 @@ describe('utils', () => {
     describe('getTestStatus', () => {
         it('return  status for jasmine', () => {
             const config: any = { framework: 'jasmine' }
-            expect(getTestStatus({} as any, config)).toEqual(testStatuses.FAILED)
+            expect(getTestStatus({} as any, config)).toEqual(Status.FAILED)
         })
 
         it('broken for test with no error', () => {
             const config: any = { framework: 'mocha' }
-            expect(getTestStatus({} as any, config)).toEqual(testStatuses.BROKEN)
+            expect(getTestStatus({} as any, config)).toEqual(Status.BROKEN)
         })
 
         it('failed for AssertionError', () => {
             const config: any = { framework: 'mocha' }
             const test = { error: { name: 'Error', message: 'AssertionError' } }
-            expect(getTestStatus(test as any, config)).toEqual(testStatuses.FAILED)
+            expect(getTestStatus(test as any, config)).toEqual(Status.FAILED)
         })
 
         it('failed for AssertionError stacktrace', () => {
             const config: any = { framework: 'mocha' }
             const test = { error: { stack: 'AssertionError' } }
-            expect(getTestStatus(test as any, config)).toEqual(testStatuses.FAILED)
+            expect(getTestStatus(test as any, config)).toEqual(Status.FAILED)
         })
 
         it('broken for not AssertionError', () => {
             const config: any = { framework: 'mocha' }
             const test = { error: { name: 'MyError' } }
-            expect(getTestStatus(test as any, config)).toEqual(testStatuses.BROKEN)
+            expect(getTestStatus(test as any, config)).toEqual(Status.BROKEN)
         })
 
         it('broken for error without stacktrace', () => {
             const config: any = { framework: 'mocha' }
             const test = { error: {} }
-            expect(getTestStatus(test as any, config)).toEqual(testStatuses.BROKEN)
+            expect(getTestStatus(test as any, config)).toEqual(Status.BROKEN)
         })
 
         it('failed status for not AssertionError stacktrace', () => {
             const config: any = { framework: 'mocha' }
             const test = { error: { stack: 'MyError stack trace' } }
-            expect(getTestStatus(test as any, config)).toEqual(testStatuses.BROKEN)
+            expect(getTestStatus(test as any, config)).toEqual(Status.BROKEN)
         })
     })
 
