@@ -390,9 +390,10 @@ export default class SauceService implements Services.ServiceInstance {
         }
 
         if (this._browser.isMultiremote) {
-            return Promise.all(Object.keys(this._capabilities).map(async () =>
-                (this._browser as WebdriverIO.Browser).execute(annotation)
-            ))
+            return Promise.all(Object.keys(this._capabilities).map(async (browserName) => {
+                const multiRemoteBrowser = (this._browser as WebdriverIO.MultiRemoteBrowser).getInstance(browserName)
+                return multiRemoteBrowser.execute(annotation)
+            }))
         }
 
         return (this._browser as WebdriverIO.Browser).execute(annotation)

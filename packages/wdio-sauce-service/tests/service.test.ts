@@ -56,11 +56,12 @@ beforeEach(() => {
     browser = {
         execute: vi.fn(),
         getInstance: vi.fn().mockImplementation((browserName: string) => {
-            return browser[browserName]
+            // @ts-expect-error
+            return browser[browserName] as WebdriverIO.Browser
         }),
-        chromeA: { sessionId: 'sessionChromeA' },
-        chromeB: { sessionId: 'sessionChromeB' },
-        chromeC: { sessionId: 'sessionChromeC' },
+        chromeA: { sessionId: 'sessionChromeA', execute: vi.fn() },
+        chromeB: { sessionId: 'sessionChromeB', execute: vi.fn() },
+        chromeC: { sessionId: 'sessionChromeC', execute: vi.fn() },
         instances: ['chromeA', 'chromeB', 'chromeC'],
     } as any as WebdriverIO.MultiRemoteBrowser
     vi.mocked(log.info).mockClear()
@@ -1017,9 +1018,13 @@ test('setAnnotation for VDC and RDC with multi remote', async () => {
     browser.sessionId = 'foobar'
     await service.setAnnotation('sauce:context=foo')
 
-    expect(browser.execute).toBeCalledTimes(3)
-    expect(browser.execute).toBeCalledWith('sauce:context=foo')
-    expect(browser.execute).toBeCalledWith('sauce:context=foo')
+    const browserChromeA = browser.getInstance('chromeA')
+    const browserChromeB = browser.getInstance('chromeB')
+    const browserChromeC = browser.getInstance('chromeC')
+
+    expect(browserChromeA.execute).toBeCalledWith('sauce:context=foo')
+    expect(browserChromeB.execute).toBeCalledWith('sauce:context=foo')
+    expect(browserChromeC.execute).toBeCalledWith('sauce:context=foo')
 })
 
 afterEach(() => {
