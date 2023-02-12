@@ -225,19 +225,6 @@ test('beforeTest should set context for mocha test', async () => {
     expect(service.setAnnotation).toBeCalledWith('sauce:context=foo - bar')
 })
 
-test('beforeTest should not set context for RDC test', async () => {
-    // not for RDC since sauce:context is not available there
-    const upService = new SauceService({}, {}, {} as any)
-    upService['_browser'] = browser
-    upService['_isRDC'] = true
-    upService['_isJobNameSet'] = true
-    upService.setAnnotation = vi.fn()
-    await upService.beforeTest({
-        title: 'update up job name'
-    } as any)
-    expect(upService.setAnnotation).toBeCalledTimes(0)
-})
-
 test('beforeTest should not set context if user does not use sauce', async () => {
     const service = new SauceService({}, {}, {} as any)
     service['_browser'] = browser
@@ -313,7 +300,7 @@ test('afterTest', () => {
             actual: true
         }
     } as any)
-    expect(service.setAnnotation).toBeCalledTimes(0)
+    expect(service.setAnnotation).toBeCalledTimes(5)
     vi.mocked(service.setAnnotation).mockClear()
     service['_isRDC'] = false
     service.afterTest({} as any, {}, {
@@ -379,16 +366,6 @@ test('beforeFeature should set context', async () => {
     service.beforeSession({})
     await service.beforeFeature( uri, featureObject)
     expect(service.setAnnotation).toBeCalledWith('sauce:context=Feature: Create a feature')
-})
-
-test('beforeFeature should not set context if RDC test', async () => {
-    const upService = new SauceService({}, {}, {} as any)
-    upService['_browser'] = browser
-    upService['_isRDC'] = true
-    upService['_isServiceEnabled'] = true
-    upService.setAnnotation = vi.fn()
-    await upService.beforeFeature(uri, featureObject)
-    expect(upService.setAnnotation).not.toBeCalledWith('sauce:context=Feature: Create a feature')
 })
 
 test('beforeFeature should not set context if no sauce user was applied', async () => {
@@ -468,22 +445,22 @@ test('beforeStep should set context', async () => {
     expect(service.setAnnotation).toBeCalledWith('sauce:context=--Step: Given I am a step')
 })
 
-test('beforeStep should not set context for RDC', async () => {
-    const service = new SauceService({}, {}, {} as any)
-    service['_browser'] = browser
-    service['_isRDC'] = true
-    service['_isServiceEnabled'] = true
+test('beforeStep should not set context if no sauce user was applied', async () => {
+    const service = new SauceService({}, {}, {} as any);
     const step = {
         id: '5',
         text: 'I am a step',
         astNodeIds: ['0'],
         keyword: 'Given ',
-    }
+    };
+    service['_browser'] = browser
     service.setAnnotation = vi.fn()
     // @ts-expect-error
     service.beforeSession({})
     await service.beforeStep(step)
-    expect(service.setAnnotation).not.toBeCalledWith('sauce:context=--Step: Given I am a step')
+    expect(service.setAnnotation).not.toBeCalledWith(
+        'sauce:context=--Step: Given I am a step'
+    )
 })
 
 test('after', async () => {
@@ -552,7 +529,7 @@ test('after for RDC with multi remote', async () => {
     expect(service.setAnnotation).toBeCalledWith('sauce:job-result=true')
     expect(service.setAnnotation).toBeCalledWith('sauce:job-result=true')
     expect(service.setAnnotation).toBeCalledWith('sauce:job-result=true')
-    expect(service['_uploadLogs']).toBeCalledTimes(0)
+    expect(service['_uploadLogs']).toBeCalledTimes(3)
     vi.mocked(isRDC).mockImplementation(() => false)
 })
 
@@ -1040,7 +1017,7 @@ test('setAnnotation for VDC and RDC with multi remote', async () => {
     browser.sessionId = 'foobar'
     await service.setAnnotation('sauce:context=foo')
 
-    expect(browser.execute).toBeCalledTimes(2)
+    expect(browser.execute).toBeCalledTimes(3)
     expect(browser.execute).toBeCalledWith('sauce:context=foo')
     expect(browser.execute).toBeCalledWith('sauce:context=foo')
 })

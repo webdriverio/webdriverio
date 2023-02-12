@@ -91,7 +91,7 @@ export default class SauceService implements Services.ServiceInstance {
          * Don't do this for Jasmine because `suite.title` is `Jasmine__TopLevel__Suite`
          * and `suite.fullTitle` is `undefined`, so no alternative to use for the job name.
          */
-        if (this._browser && !this._isRDC && !this._isJobNameSet && this._suiteTitle !== 'Jasmine__TopLevel__Suite') {
+        if (this._browser && !this._isJobNameSet && this._suiteTitle !== 'Jasmine__TopLevel__Suite') {
             await this._setJobName(this._suiteTitle)
         }
     }
@@ -113,14 +113,6 @@ export default class SauceService implements Services.ServiceInstance {
 
         if (this._browser && !this._isJobNameSet) {
             await this._setJobName(this._suiteTitle)
-        }
-
-        /**
-         * Date:    20200714
-         * Remark:  Sauce Unified Platform doesn't support updating the context yet.
-         */
-        if (this._isRDC) {
-            return
         }
 
         const fullTitle = (
@@ -150,10 +142,8 @@ export default class SauceService implements Services.ServiceInstance {
     afterTest (test: Frameworks.Test, context: unknown, results: Frameworks.TestResult) {
         /**
          * If the test failed push the stack to Sauce Labs in separate lines
-         * This should not be done for UP because it's not supported yet and
-         * should be removed when UP supports `sauce:context`
          */
-        if (results.error && results.error.stack && !this._isRDC){
+        if (results.error && results.error.stack){
             this._reportErrorLog(results.error)
         }
 
@@ -191,10 +181,8 @@ export default class SauceService implements Services.ServiceInstance {
     afterHook (test: never, context: never, results: Frameworks.TestResult) {
         /**
          * If the test failed push the stack to Sauce Labs in separate lines
-         * This should not be done for UP because it's not supported yet and
-         * should be removed when UP supports `sauce:context`
          */
-        if (results.error && !this._isRDC){
+        if (results.error){
             this._reportErrorLog(results.error)
         }
 
@@ -217,14 +205,6 @@ export default class SauceService implements Services.ServiceInstance {
             await this._setJobName(this._suiteTitle)
         }
 
-        /**
-         * Date:    20200714
-         * Remark:  Sauce Unified Platform doesn't support updating the context yet.
-         */
-        if (this._isRDC) {
-            return
-        }
-
         return this.setAnnotation(`sauce:context=Feature: ${this._suiteTitle}`)
     }
 
@@ -233,11 +213,7 @@ export default class SauceService implements Services.ServiceInstance {
      * @param world world object containing information on pickle and test step
      */
     beforeScenario (world: Frameworks.World) {
-        /**
-         * Date:    20200714
-         * Remark:  Sauce Unified Platform doesn't support updating the context yet.
-         */
-        if (!this._isServiceEnabled || this._isRDC || !this._browser) {
+        if (!this._isServiceEnabled || !this._browser) {
             return
         }
 
@@ -246,10 +222,7 @@ export default class SauceService implements Services.ServiceInstance {
     }
 
     async beforeStep (step: Frameworks.PickleStep) {
-        /**
-         * Remark:  Sauce Unified Platform doesn't support updating the context yet.
-         */
-        if (!this._isServiceEnabled || this._isRDC || !this._browser) {
+        if (!this._isServiceEnabled || !this._browser) {
             return
         }
 
@@ -303,12 +276,11 @@ export default class SauceService implements Services.ServiceInstance {
             const multiRemoteBrowser = (this._browser as WebdriverIO.MultiRemoteBrowser).getInstance(browserName)
             const isMultiRemoteRDC = isRDC(multiRemoteBrowser.capabilities as Capabilities.Capabilities)
             log.info(`Update multiRemote job for browser "${browserName}" and sessionId ${multiRemoteBrowser.sessionId}, ${status}`)
+            await this._uploadLogs(multiRemoteBrowser.sessionId)
             // Sauce Unified Platform (RDC) can not be updated with an API.
-            // The logs can also not be uploaded
             if (isMultiRemoteRDC) {
                 return this.setAnnotation(`sauce:job-result=${failures === 0}`)
             }
-            await this._uploadLogs(multiRemoteBrowser.sessionId)
             return this.updateJob(multiRemoteBrowser.sessionId, failures, false, browserName)
         }))
     }
@@ -418,14 +390,9 @@ export default class SauceService implements Services.ServiceInstance {
         }
 
         if (this._browser.isMultiremote) {
-            const multiRemoteBrowser = this._browser as WebdriverIO.MultiRemoteBrowser
-
-            return Promise.all(Object.keys(this._capabilities).map(async (browserName) => {
-                const isMultiRemoteRDC = isRDC(multiRemoteBrowser.getInstance(browserName).capabilities as Capabilities.Capabilities)
-                if ((isMultiRemoteRDC && !annotation.includes('sauce:context')) || !isMultiRemoteRDC) {
-                    return (this._browser as WebdriverIO.Browser).execute(annotation)
-                }
-            }))
+            return Promise.all(Object.keys(this._capabilities).map(async () =>
+                (this._browser as WebdriverIO.Browser).execute(annotation)
+            ))
         }
 
         return (this._browser as WebdriverIO.Browser).execute(annotation)
