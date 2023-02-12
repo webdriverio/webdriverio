@@ -446,13 +446,13 @@ test('beforeStep should set context', async () => {
 })
 
 test('beforeStep should not set context if no sauce user was applied', async () => {
-    const service = new SauceService({}, {}, {} as any);
+    const service = new SauceService({}, {}, {} as any)
     const step = {
         id: '5',
         text: 'I am a step',
         astNodeIds: ['0'],
         keyword: 'Given ',
-    };
+    }
     service['_browser'] = browser
     service.setAnnotation = vi.fn()
     // @ts-expect-error
