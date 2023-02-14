@@ -2,7 +2,7 @@ import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 import rimraf from 'rimraf'
-import { AllureGroup, AllureTest, AllureStep } from 'allure-js-commons'
+import { Attachment, AllureGroup, AllureTest, AllureStep, TestResult } from 'allure-js-commons'
 import AllureReporter from '../../src/reporter.js'
 
 export function parseEnvInfo (info: string): Record<string, any> {
@@ -13,6 +13,20 @@ export function parseEnvInfo (info: string): Record<string, any> {
             [key]: value,
         })
     }, {})
+}
+
+export function getAllAttachments(test: TestResult): Attachment[] {
+    let attachments = []
+
+    if (test.attachments) {
+        attachments = attachments.concat(test.attachments)
+    }
+
+    if (test.steps) {
+        attachments = attachments.concat(test.steps.flatMap(step => getAllAttachments(step as TestResult)))
+    }
+
+    return attachments
 }
 
 export function getResults (resultsDir: any) {
@@ -31,8 +45,10 @@ export function getResults (resultsDir: any) {
 
         return Object.assign(acc, parseEnvInfo(fileContent))
     }, {})
+    const attachments = results.flatMap((test) => getAllAttachments(test))
 
     return {
+        attachments,
         results,
         containers,
         environmentInfo,

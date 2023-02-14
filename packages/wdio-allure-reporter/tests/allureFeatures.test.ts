@@ -414,10 +414,10 @@ describe('auxiliary methods', () => {
         const json = { bar: 'baz' }
 
         reporter.onTestStart(fixtures.testStats)
-        reporter.attachJSON('foo', json)
+        reporter.attachJSON('foo', JSON.stringify(json))
 
         expect(attachFileSpy).toHaveBeenCalledTimes(1)
-        expect(attachFileSpy).toHaveBeenCalledWith('foo', JSON.stringify(json, null, 2), ContentType.JSON)
+        expect(attachFileSpy).toHaveBeenCalledWith('foo', JSON.stringify(json), ContentType.JSON)
     })
 
     it('should populate the correct deviceName', () => {
