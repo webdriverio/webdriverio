@@ -39,7 +39,7 @@ export default class FileSystemPathService implements PathService {
          * and globResult doest contain the fileName
          * and file should be available
          */
-        if (!pattern.includes('*') && !globResult.includes(fileName) && fs.existsSync(fileName)) {
+        if (!pattern.includes('*') && globResult.includes(fileName) && fs.existsSync(fileName)) {
             globResult.push(fileName)
         }
         return globResult
