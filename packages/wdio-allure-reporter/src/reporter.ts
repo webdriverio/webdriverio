@@ -381,33 +381,40 @@ export default class AllureReporter extends WDIOReporter {
             })
 
             const suiteChildren = [...suite.tests!, ...suite.hooks]
-            const isFailed = suiteChildren.some(item => item.state === AllureStatus.FAILED)
-
-            if (isFailed) {
-                this._endTest(AllureStatus.FAILED)
-                return
-            }
-
-            const isPassed = suiteChildren.every(item => item.state === AllureStatus.PASSED)
-
-            if (isPassed) {
-                this._endTest(AllureStatus.PASSED)
-                return
-            }
 
             // A scenario is it skipped if every steps are skipped and hooks are passed or skipped
             const isSkipped = suite.tests.every(item => [AllureStatus.SKIPPED].includes(item.state as AllureStatus)) && suite.hooks.every(item => [AllureStatus.PASSED, AllureStatus.SKIPPED].includes(item.state as AllureStatus))
 
             if (isSkipped) {
-                this._skipTest()
+                const currentTest = this._runningUnits.pop() as AllureTest
+
+                currentTest.status = AllureStatus.SKIPPED
+                currentTest.stage = Stage.PENDING
+                currentTest.endTest()
                 return
             }
 
+            const isFailed = suiteChildren.some(item => item.state === AllureStatus.FAILED)
+
+            if (isFailed) {
+                const currentTest = this._runningUnits.pop() as AllureTest
+
+                currentTest.status = AllureStatus.FAILED
+                currentTest.stage = Stage.FINISHED
+                currentTest.endTest()
+                return
+            }
+
+            const isPassed = suiteChildren.every(item => item.state === AllureStatus.PASSED)
             // A scenario is it passed if certain steps are passed and all other are skipped and every hooks are passed or skipped
             const isPartiallySkipped = suiteChildren.every(item => [AllureStatus.PASSED, AllureStatus.SKIPPED].includes(item.state as AllureStatus))
 
-            if (isPartiallySkipped) {
-                this._endTest(AllureStatus.PASSED)
+            if (isPassed || isPartiallySkipped) {
+                const currentTest = this._runningUnits.pop() as AllureTest
+
+                currentTest.status = AllureStatus.PASSED
+                currentTest.stage = Stage.FINISHED
+                currentTest.endTest()
                 return
             }
 
@@ -426,7 +433,7 @@ export default class AllureReporter extends WDIOReporter {
 
         const testTitle = test.currentTest ? test.currentTest : test.title
 
-        if (this.currentAllureSpec?.wrappedItem?.name === testTitle) {
+        if (this.currentAllureSpec?.wrappedItem.name === testTitle) {
             // Test already in progress, most likely started by a before each hook
             this.setCaseParameters(test.cid)
             return
@@ -458,6 +465,7 @@ export default class AllureReporter extends WDIOReporter {
 
         if (useCucumberStepReporter) {
             this.attachLogs()
+
             const testStatus = getTestStatus(test, this._config)
 
             this._endTest(testStatus, getErrorFromFailedTest(test))
@@ -558,7 +566,7 @@ export default class AllureReporter extends WDIOReporter {
     }
 
     onHookEnd(hook: HookStats) {
-        const { disableMochaHooks, useCucumberStepReporter } = this._options
+        const { disableMochaHooks } = this._options
 
         // ignore global hooks
         if (!hook.parent || !this.currentSuite) {
@@ -589,32 +597,7 @@ export default class AllureReporter extends WDIOReporter {
             return
         }
 
-        if ((disableMochaHooks || useCucumberStepReporter) && !isMochaAllHook) {
-            this.onTestPass()
-
-            if (this.currentTestSteps.length === 0 && !useCucumberStepReporter) {
-                console.log('remove hook without steps', hook)
-
-                this._runningUnits.pop()
-            } else if (useCucumberStepReporter) {
-                console.log('much more special case fired')
-                // remove hook when it's registered as a step and if it's passed
-                // const step = this._allure.getCurrentTest().steps.pop()
-                // const step = this._runningUnits.pop()
-
-                // if it had any attachments, reattach them to current test
-                // if (step && step.attachments.length >= 1) {
-                //     step.attachments.forEach((attachment: any) => {
-                //         this.currentTest?.addAttachment(attachment)
-                //     })
-                // }
-            }
-            return
-        }
-
-        if (!disableMochaHooks) {
-            this.onTestPass()
-        }
+        this.onTestPass()
     }
 
     addLabel({
