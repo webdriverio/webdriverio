@@ -98,7 +98,7 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
             if (!this._config.sessionId) {
                 await browser.url(`/${this._cid}/test.html?spec=${url.parse(spec).pathname}`)
             }
-            await browser.debug()
+            // await browser.debug()
 
             /**
              * wait for test results or page errors
