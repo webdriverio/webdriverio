@@ -21,6 +21,95 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.3.8 (2023-02-14)
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#9767](https://github.com/webdriverio/webdriverio/pull/9767) Have the return type of waitUntil be the return type of the condition ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :nail_care: Polish
+* `wdio-sauce-service`
+  * [#9743](https://github.com/webdriverio/webdriverio/pull/9743) [sauce-service] Add RDC update job support ([@wswebcreation](https://github.com/wswebcreation))
+
+#### :house: Internal
+* `devtools`, `wdio-browser-runner`, `wdio-sauce-service`, `webdriver`, `webdriverio`
+  * [#9736](https://github.com/webdriverio/webdriverio/pull/9736) build: change module from NodeNext to ESNext, module resolution from Node16 to Node ([@SCG82](https://github.com/SCG82))
+
+#### Committers: 3
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Wim Selles ([@wswebcreation](https://github.com/wswebcreation))
+- [@SCG82](https://github.com/SCG82)
+
+
+## v8.3.6 (2023-02-09)
+
+#### :nail_care: Polish
+* `wdio-browser-runner`
+  * [#9735](https://github.com/webdriverio/webdriverio/pull/9735) Transform CJS deps to ESM through Vite ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
+## v8.3.5 (2023-02-08)
+
+#### :bug: Bug Fix
+* `wdio-protocols`
+  * [#9731](https://github.com/webdriverio/webdriverio/pull/9731) extend webdriverbidi command to protocolCommands ([@harsha509](https://github.com/harsha509))
+
+#### :nail_care: Polish
+* `wdio-browser-runner`, `webdriverio`
+  * [#9733](https://github.com/webdriverio/webdriverio/pull/9733) Use 'modern-node-polyfills' to polyfill node modules ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-allure-reporter`
+  * [#9721](https://github.com/webdriverio/webdriverio/pull/9721) Use available Cucumber tag `feature` for Allure label instead of Feature name ([@valfirst](https://github.com/valfirst))
+
+#### Committers: 3
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Sri Harsha ([@harsha509](https://github.com/harsha509))
+- Valery Yatsynovich ([@valfirst](https://github.com/valfirst))
+
+
+## v8.3.3 (2023-02-04)
+
+#### :rocket: New Feature
+* `wdio-browser-runner`
+  * [#9706](https://github.com/webdriverio/webdriverio/pull/9706) Provide mock primitives from `@vitest/spy` ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
+## v8.3.1 (2023-01-28)
+
+#### :bug: Bug Fix
+* `wdio-browser-runner`, `wdio-cli`, `wdio-config`, `wdio-runner`
+  * [#9677](https://github.com/webdriverio/webdriverio/pull/9677) [🐛 Bug]: Properly merge coverage reports within `@wdio/runner` ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
+## v8.3.0 (2023-01-28)
+
+#### :rocket: New Feature
+* `wdio-browser-runner`, `wdio-cli`, `wdio-local-runner`, `wdio-runner`, `wdio-types`
+  * [#9676](https://github.com/webdriverio/webdriverio/pull/9676) Support test coverage reporting and assertion for browser runner ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
+## v8.2.5 (2023-01-27)
+
+#### :bug: Bug Fix
+* `wdio-browser-runner`, `wdio-cli`, `wdio-runner`, `webdriverio`
+  * [#9673](https://github.com/webdriverio/webdriverio/pull/9673) Various browser runner improvements ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 2
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Pedro Bravo ([@pmlbravo](https://github.com/pmlbravo))
+
+
 ## v8.2.4 (2023-01-25)
 
 #### :bug: Bug Fix

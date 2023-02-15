@@ -65,6 +65,12 @@ export interface WorkerHookResultMessage {
     args: HookTriggerEvent
 }
 
+export interface WorkerCoverageMapMessage {
+    origin: 'worker'
+    name: 'coverageMap',
+    content: { coverageMap: unknown }
+}
+
 /**
  * Duplicate of @wdio/browser-runner type, refactoring needed
  * see https://github.com/webdriverio/webdriverio/issues/9299

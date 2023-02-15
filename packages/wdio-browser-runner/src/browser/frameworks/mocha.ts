@@ -97,7 +97,7 @@ export class MochaFramework {
             }
 
             this.#hookResolver.set(id.toString(), { resolve, reject })
-            this.#socket.send(stringify.default(this.#hookTrigger({ name, id, cid, args })))
+            this.#socket.send(stringify(this.#hookTrigger({ name, id, cid, args })))
         })
     }
 

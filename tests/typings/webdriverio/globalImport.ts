@@ -1,5 +1,6 @@
 import { expectType } from 'tsd'
 import { $, $$, browser, driver, multiremotebrowser } from '@wdio/globals'
+import { fn, spyOn } from '@wdio/browser-runner'
 
 ;(async () => {
     const elem = await $('foo')
@@ -19,4 +20,7 @@ import { $, $$, browser, driver, multiremotebrowser } from '@wdio/globals'
 
     const multiTitle = await multiremotebrowser.getTitle()
     expectType<string[]>(multiTitle)
+
+    expectType<Function>(fn)
+    expectType<Function>(spyOn)
 })

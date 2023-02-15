@@ -4,6 +4,7 @@ import path from 'node:path'
 import logger from '@wdio/logger'
 import { browser } from '@wdio/globals'
 import { executeHooksWithArgs } from '@wdio/utils'
+import type { CoverageMap } from 'istanbul-lib-coverage'
 import type { Capabilities, Workers, Options, Services } from '@wdio/types'
 
 import type BaseReporter from './reporter.js'
@@ -24,14 +25,15 @@ declare global {
         __wdioErrors__: WDIOErrorEvent[]
         __wdioEvents__: any[]
         __wdioFailures__: number
+        __coverage__?: unknown
     }
 }
 
 const sleep = (ms = 100) => new Promise((resolve) => setTimeout(resolve, ms))
-const TEST_TIMEOUT = 15 * 1000
 
 export default class BrowserFramework implements Omit<TestFramework, 'init'> {
     #inDebugMode = false
+    #runnerOptions: any // `any` here because we don't want to create a dependency to @wdio/browser-runner
 
     constructor (
         private _cid: string,
@@ -42,6 +44,9 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
     ) {
         // listen on testrunner events
         process.on('message', this.#handleProcessMessage.bind(this))
+
+        const [, runnerOptions] = Array.isArray(_config.runner) ? _config.runner : []
+        this.#runnerOptions = runnerOptions || {}
     }
 
     /**
@@ -75,11 +80,12 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
     }
 
     async #loop () {
+        const timeout = this._config.mochaOpts!.timeout
+
         /**
          * start tests
          */
         let failures = 0
-
         let uid = 0
         for (const spec of this._specs) {
             log.info(`Run spec file ${spec} for cid ${this._cid}`)
@@ -101,7 +107,7 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
             const now = Date.now()
             await browser.waitUntil(async () => {
                 while (typeof state.failures !== 'number' && (!state.errors || state.errors.length === 0)) {
-                    if ((Date.now() - now) > TEST_TIMEOUT) {
+                    if ((Date.now() - now) > timeout) {
                         return false
                     }
 
@@ -137,8 +143,21 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
                 return true
             }, {
                 timeoutMsg: 'browser test timed out',
-                timeout: TEST_TIMEOUT
+                timeout
             })
+
+            /**
+             * capture coverage if enabled
+             */
+            if (this.#runnerOptions.coverage?.enabled && process.send) {
+                const coverageMap = await browser.execute(
+                    () => (window.__coverage__ || {})  as CoverageMap)
+                process.send({
+                    origin: 'worker',
+                    name: 'coverageMap',
+                    content: { coverageMap }
+                })
+            }
 
             if (state.errors?.length) {
                 const errors = state.errors.map((ev) => state.hasViteError

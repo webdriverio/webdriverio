@@ -241,6 +241,41 @@ export default class AllureReporter extends WDIOReporter {
         this._runningUnits.push(newStep)
     }
 
+    // TODO
+    // setCaseParameters(cid: string | undefined, parentUid: string | undefined, addFeatureLabel: boolean = true ) {
+    //     const parentSuite = this.getParentSuite(parentUid)
+    //     const currentTest = this._allure.getCurrentTest()
+
+    //     if (!this._isMultiremote) {
+    //         const caps = this._capabilities as Capabilities.DesiredCapabilities
+    //         const { browserName, deviceName, desired, device } = caps
+    //         let targetName = device || browserName || deviceName || cid
+    //         // custom mobile grids can have device information in a `desired` cap
+    //         if (desired && desired.deviceName && desired.platformVersion) {
+    //             targetName = `${device || desired.deviceName} ${desired.platformVersion}`
+    //         }
+    //         const browserstackVersion = caps.os_version || caps.osVersion
+    //         const version = browserstackVersion || caps.browserVersion || caps.version || caps.platformVersion || ''
+    //         const paramName = (deviceName || device) ? 'device' : 'browser'
+    //         const paramValue = version ? `${targetName}-${version}` : targetName
+    //         currentTest.addParameter('argument', paramName, paramValue)
+    //     } else {
+    //         currentTest.addParameter('argument', 'isMultiremote', 'true')
+    //     }
+
+    //     // Allure analytics labels. See https://github.com/allure-framework/allure2/blob/master/Analytics.md
+    //     currentTest.addLabel('language', 'javascript')
+    //     currentTest.addLabel('framework', 'wdio')
+    //     currentTest.addLabel('thread', cid)
+
+    //     if (addFeatureLabel && parentSuite) {
+    //         const labelValue = this.getLabels(parentSuite).find(label => label.name === 'feature')?.value ?? parentSuite.title
+    //         if (labelValue) {
+    //             currentTest.addLabel('feature', labelValue)
+    //         }
+    //     }
+    // }
+
     setCaseParameters(cid: string | undefined) {
         if (!this.currentTest) {
             return
@@ -344,6 +379,42 @@ export default class AllureReporter extends WDIOReporter {
         const isScenario = suite.type === 'scenario'
         const isFeature = suite.type === 'feature'
 
+        // if (!this._options.useCucumberStepReporter) {
+        //     const currentSuite = this._allure.getCurrentSuite()
+        //     const prefix = currentSuite ? currentSuite.name + ': ' : ''
+
+        //     this._allure.startSuite(prefix + suite.title)
+        //     return
+        // }
+
+        // // handle cucumber features as allure "suite"
+        // if (isFeature) {
+        //     // temp solution to keep suites stats index for saving allure test ops feature based structure
+        //     this._startedFeatures.push(suite)
+        //     this._allure.startSuite(suite.title)
+        //     return
+        // }
+
+        // // handle cucumber scenario as allure "case" instead of "suite"
+        // this._allure.startCase(suite.title)
+
+        // const currentTest = this._allure.getCurrentTest()
+
+        // let featureLabelPresent = false
+
+        // this.getLabels(suite).forEach(({ name, value }) => {
+        //     if (name === 'issue') {
+        //         this.addIssue({ issue: value })
+        //     } else if (name === 'testId') {
+        //         this.addTestId({ testId: value })
+        //     } else {
+        //         if (name === 'feature') {
+        //             featureLabelPresent = true
+        //         }
+        //         currentTest.addLabel(name, value)
+        //     }
+        // })
+
         if (useCucumberStepReporter && isScenario) {
             // handle cucumber scenario as allure "case" instead of "suite"
             this._startTest(suite.title, suite.cid)
@@ -367,6 +438,7 @@ export default class AllureReporter extends WDIOReporter {
         const suiteTitle = isFeature ? suite.title : prefix + suite.title
 
         this._startSuite(suiteTitle)
+        // this.setCaseParameters(suite.cid, suite.parent, !featureLabelPresent)
     }
 
     onSuiteEnd(suite: SuiteStats) {

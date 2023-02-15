@@ -39,7 +39,11 @@ export const config = {
     reporters: ['spec', 'dot', 'junit'],
     services: ['chromedriver'],
     runner: ['browser', {
-        preset: process.env.WDIO_PRESET
+        preset: process.env.WDIO_PRESET,
+        coverage: {
+            enabled: true,
+            functions: 100
+        }
     }],
 
     mochaOpts: {

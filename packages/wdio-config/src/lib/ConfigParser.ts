@@ -23,6 +23,7 @@ type ImportedConfigModule = ESMImport | DefaultImport
 
 interface TestrunnerOptionsWithParameters extends Omit<Options.Testrunner, 'capabilities'> {
     watch?: boolean
+    coverage?: boolean
     spec?: string[]
     suite?: string[]
     capabilities?: Capabilities.RemoteCapabilities
@@ -46,7 +47,7 @@ export default class ConfigParser {
          * config options parsed in via CLI arguments and applied before
          * trying to compile config file
          */
-        initialConfig: Partial<TestrunnerOptionsWithParameters> = {},
+        private _initialConfig: Partial<TestrunnerOptionsWithParameters> = {},
         private _pathService: PathService = new FileSystemPathService(),
         private _moduleRequireService: ModuleImportService = new RequireLibrary()
     ) {
@@ -60,10 +61,10 @@ export default class ConfigParser {
          * specs applied as CLI arguments should be relative from CWD
          * rather than relative to the config file
          */
-        if (initialConfig.spec) {
-            initialConfig.spec = makeRelativeToCWD(initialConfig.spec) as string[]
+        if (_initialConfig.spec) {
+            _initialConfig.spec = makeRelativeToCWD(_initialConfig.spec) as string[]
         }
-        this.merge(initialConfig)
+        this.merge(_initialConfig)
     }
 
     /**
@@ -80,6 +81,23 @@ export default class ConfigParser {
         }
 
         this.merge({ ...object })
+
+        /**
+         * enable/disable coverage reporting
+         */
+        if (Object.keys(this._initialConfig || {}).includes('coverage')) {
+            if (this._config.runner === 'browser') {
+                this._config.runner = ['browser', {
+                    coverage: { enabled: this._initialConfig.coverage }
+                }]
+            } else if (Array.isArray(this._config.runner) && this._config.runner[0] === 'browser') {
+                (this._config.runner[1] as any).coverage = {
+                    ...(this._config.runner[1] as any).coverage,
+                    enabled: this._initialConfig.coverage
+                }
+            }
+        }
+
         this.#isInitialised = true
     }
 

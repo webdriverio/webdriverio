@@ -1,8 +1,5 @@
-// @ts-expect-error
 import type { Options, Capabilities } from '@wdio/types'
-// @ts-expect-error
 import type * as WebDriverTypes from 'webdriver'
-// @ts-expect-error
 import type { AttachOptions } from '../types.js'
 
 export type RemoteOptions = Options.WebdriverIO & Omit<Options.Testrunner, 'capabilities' | 'rootDir'>
@@ -20,7 +17,7 @@ export type RemoteOptions = Options.WebdriverIO & Omit<Options.Testrunner, 'capa
  * @return browser object with sessionId
  * @see <a href="https://webdriver.io/docs/typescript">Typescript setup</a>
  */
-export const remote = async function(
+exports.remote = async function(
     params: RemoteOptions,
     remoteModifier?: (client: WebDriverTypes.Client, options: Options.WebdriverIO) => WebDriverTypes.Client
 ): Promise<WebdriverIO.Browser> {
@@ -28,7 +25,7 @@ export const remote = async function(
     return remote(params, remoteModifier)
 }
 
-export const attach = async function(attachOptions: AttachOptions): Promise<WebdriverIO.Browser> {
+exports.attach = async function(attachOptions: AttachOptions): Promise<WebdriverIO.Browser> {
     const { attach } = await import('../index.js')
     return attach(attachOptions)
 }
@@ -52,7 +49,7 @@ export const attach = async function(attachOptions: AttachOptions): Promise<Webd
  *
  * @see <a href="https://webdriver.io/docs/multiremote">External document and example usage</a>.
  */
-export const multiremote = async function(
+exports.multiremote = async function(
     params: Capabilities.MultiRemoteCapabilities,
     { automationProtocol }: { automationProtocol?: string } = {}
 ): Promise<WebdriverIO.MultiRemoteBrowser> {

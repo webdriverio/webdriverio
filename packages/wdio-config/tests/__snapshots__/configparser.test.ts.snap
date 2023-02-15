@@ -1,0 +1,67 @@
+// Vitest Snapshot v1
+
+exports[`ConfigParser > disables coverage 1`] = `
+{
+  "autoCompileOpts": {
+    "autoCompile": false,
+  },
+  "runner": [
+    "browser",
+    {
+      "coverage": {
+        "enabled": false,
+      },
+    },
+  ],
+}
+`;
+
+exports[`ConfigParser > disables coverage 2`] = `
+{
+  "autoCompileOpts": {
+    "autoCompile": false,
+  },
+  "runner": [
+    "browser",
+    {
+      "coverage": {
+        "enabled": false,
+        "statements": 100,
+      },
+    },
+  ],
+}
+`;
+
+exports[`ConfigParser > enables coverage 1`] = `
+{
+  "autoCompileOpts": {
+    "autoCompile": false,
+  },
+  "runner": [
+    "browser",
+    {
+      "coverage": {
+        "enabled": true,
+      },
+    },
+  ],
+}
+`;
+
+exports[`ConfigParser > enables coverage 2`] = `
+{
+  "autoCompileOpts": {
+    "autoCompile": false,
+  },
+  "runner": [
+    "browser",
+    {
+      "coverage": {
+        "enabled": true,
+        "statements": 100,
+      },
+    },
+  ],
+}
+`;

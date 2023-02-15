@@ -1,7 +1,10 @@
 import url from 'node:url'
 import path from 'node:path'
+import { builtinModules } from 'node:module'
 
 import logger from '@wdio/logger'
+import { polyfillPath } from 'modern-node-polyfills'
+import { deepmerge } from 'deepmerge-ts'
 import { resolve } from 'import-meta-resolve'
 
 import type { Plugin } from 'vite'
@@ -12,22 +15,16 @@ import {
 } from '@wdio/protocols'
 
 import { SESSIONS } from '../../constants.js'
-import { getTemplate, getErrorTemplate } from '../utils.js'
+import { getTemplate, getErrorTemplate, normalizeId } from '../utils.js'
 
 const log = logger('@wdio/browser-runner:plugin')
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
 
-const commands = {
-    ...WebDriverProtocol,
-    ...MJsonWProtocol,
-    ...JsonWProtocol,
-    ...AppiumProtocol,
-    ...ChromiumProtocol,
-    ...SauceLabsProtocol,
-    ...SeleniumProtocol,
-    ...GeckoProtocol,
-    ...WebDriverBidiProtocol
-}
+const commands = deepmerge(
+    WebDriverProtocol, MJsonWProtocol, JsonWProtocol, AppiumProtocol,
+    ChromiumProtocol, SauceLabsProtocol, SeleniumProtocol, GeckoProtocol,
+    WebDriverBidiProtocol
+)
 const protocolCommandList = Object.values(commands).map(
     (endpoint) => Object.values(endpoint).map(
         ({ command }) => command
@@ -38,27 +35,40 @@ const virtualModuleId = 'virtual:wdio'
 const resolvedVirtualModuleId = '\0' + virtualModuleId
 
 const MODULES_TO_MOCK = [
-    'node:url', 'node:module', 'node:events', 'node:path',
     'import-meta-resolve', 'puppeteer-core', 'archiver', 'glob', 'devtools', 'ws'
 ]
+
+const POLYFILLS = [
+    ...builtinModules,
+    ...builtinModules.map((m) => `node:${m}`)
+].map((m) => m.replace('/promises', ''))
 
 const FETCH_FROM_ESM = [
     'serialize-error', 'minimatch', 'css-shorthand-properties', 'lodash.merge', 'lodash.zip',
     'lodash.clonedeep', 'lodash.pickby', 'lodash.flattendeep', 'aria-query', 'grapheme-splitter',
-    'css-value', 'rgb2hex', 'p-iteration', 'fast-safe-stringify', 'deepmerge-ts', 'is-plain-obj',
+    'css-value', 'rgb2hex', 'p-iteration', 'fast-safe-stringify', 'deepmerge-ts',
     'mocha'
 ]
 
-export function testrunner (options: WebdriverIO.BrowserRunnerOptions): Plugin {
+export function testrunner(options: WebdriverIO.BrowserRunnerOptions): Plugin[] {
     const automationProtocolPath = `/@fs${url.pathToFileURL(path.resolve(__dirname, '..', '..', 'browser', 'driver.js')).pathname}`
     const mockModulePath = path.resolve(__dirname, '..', '..', 'browser', 'mock.js')
     const setupModulePath = path.resolve(__dirname, '..', '..', 'browser', 'setup.js')
-    return {
+    const spyModulePath = path.resolve(__dirname, '..', '..', 'browser', 'spy.js')
+    return [{
         name: 'wdio:testrunner',
         enforce: 'pre',
         resolveId: async (id) => {
             if (id === virtualModuleId) {
                 return resolvedVirtualModuleId
+            }
+
+            if (POLYFILLS.includes(id)) {
+                return polyfillPath(normalizeId(id))
+            }
+
+            if (id === '@wdio/browser-runner') {
+                return spyModulePath
             }
 
             if (id.endsWith('@wdio/browser-runner/setup')) {
@@ -115,7 +125,7 @@ export function testrunner (options: WebdriverIO.BrowserRunnerOptions): Plugin {
             }
             return { code }
         },
-        configureServer (server) {
+        configureServer(server) {
             return () => {
                 server.middlewares.use('/', async (req, res, next) => {
                     log.info(`Received request for: ${req.url}`)
@@ -157,5 +167,15 @@ export function testrunner (options: WebdriverIO.BrowserRunnerOptions): Plugin {
                 })
             }
         }
-    }
+    }, {
+        name: 'modern-node-polyfills',
+        async resolveId(id, _, ctx) {
+            if (ctx.ssr || !builtinModules.includes(id)) {
+                return
+            }
+
+            id = normalizeId(id)
+            return { id: await polyfillPath(id), moduleSideEffects: false }
+        },
+    }]
 }

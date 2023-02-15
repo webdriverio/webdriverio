@@ -5,15 +5,15 @@ import {
     getArgumentType as getArgumentTypeOrig,
     isValidParameter as isValidParameterOrig,
     commandCallStructure as commandCallStructureOrig
-} from '../../packages/wdio-utils/src/utils'
-import webdriverMonadOrig from '../../packages/wdio-utils/src/monad'
+} from '../../packages/wdio-utils/src/utils.js'
+import webdriverMonadOrig from '../../packages/wdio-utils/src/monad.js'
 import {
     isW3C as isW3cOrig,
     sessionEnvironmentDetector as sessionEnvDetector,
     capabilitiesEnvironmentDetector as capabilitiesEnvDetector,
     devtoolsEnvironmentDetector as devtoolsEnvDetector
-} from '../../packages/wdio-utils/src/envDetector'
-import { UNICODE_CHARACTERS as UNICODE_CHARACTERS_ORIG } from '../../packages/wdio-utils/src/constants'
+} from '../../packages/wdio-utils/src/envDetector.js'
+import { UNICODE_CHARACTERS as UNICODE_CHARACTERS_ORIG } from '../../packages/wdio-utils/src/constants.js'
 
 class DotReporter {
     options: any
@@ -25,7 +25,7 @@ class DotReporter {
 }
 
 class RunnerMock {
-    shutdown = vi.fn()
+    shutdown = vi.fn().mockResolvedValue(true)
     initialise = vi.fn()
 }
 class FoobarServiceMock {

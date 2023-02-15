@@ -1,6 +1,4 @@
-// @ts-expect-error
 import type { Options } from '@wdio/types'
-// @ts-expect-error
 import type { Client, AttachOptions } from '../types.js'
 
 class WebDriver {
@@ -44,4 +42,4 @@ class WebDriver {
     }
 }
 
-export = WebDriver
+module.exports = WebDriver

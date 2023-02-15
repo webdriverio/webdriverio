@@ -5,13 +5,13 @@ import { resolve } from 'import-meta-resolve'
 
 import type { Environment, FrameworkPreset } from '../types.js'
 
-export async function getTemplate (options: WebdriverIO.BrowserRunnerOptions, env: Environment, spec: string) {
+export async function getTemplate(options: WebdriverIO.BrowserRunnerOptions, env: Environment, spec: string) {
     const root = options.rootDir || process.cwd()
+    const rootFileUrl = url.pathToFileURL(root).href
 
     let vueDeps = ''
     if (options.preset === 'vue') {
         try {
-            const rootFileUrl = url.pathToFileURL(root).href
             const vueDir = path.dirname(url.fileURLToPath(await resolve('vue', `${rootFileUrl}/node_modules`)))
             const vueScript = (await fs.readFile(path.join(vueDir, 'dist', 'vue.global.prod.js'), 'utf-8')).toString()
             vueDeps += /*html*/`
@@ -36,13 +36,18 @@ export async function getTemplate (options: WebdriverIO.BrowserRunnerOptions, en
 
     }
 
+    const mochaCSSHref = await resolve('mocha', `${rootFileUrl}/node_modules`).then(
+        (p) => path.join(url.fileURLToPath(path.dirname(p)), 'mocha.css'),
+        () => 'https://unpkg.com/mocha@10.0.0/mocha.css'
+    )
+
     return /* html */`
     <!doctype html>
     <html>
         <head>
             <title>WebdriverIO Browser Test</title>
             <link rel="icon" type="image/x-icon" href="https://webdriver.io/img/favicon.png">
-            <link rel="stylesheet" href="https://unpkg.com/mocha@10.0.0/mocha.css">
+            <link rel="stylesheet" href="${mochaCSSHref}">
             <script type="module">
                 /**
                  * Inject environment variables
@@ -75,7 +80,7 @@ export async function getTemplate (options: WebdriverIO.BrowserRunnerOptions, en
     </html>`
 }
 
-export async function userfriendlyImport (preset: FrameworkPreset, pkg?: string) {
+export async function userfriendlyImport(preset: FrameworkPreset, pkg?: string) {
     if (!pkg) {
         return {}
     }
@@ -90,7 +95,21 @@ export async function userfriendlyImport (preset: FrameworkPreset, pkg?: string)
     }
 }
 
-export function getErrorTemplate (filename: string, error: Error) {
+export function normalizeId(id: string, base?: string): string {
+    if (base && id.startsWith(base)) {
+        id = `/${id.slice(base.length)}`
+    }
+
+    return id
+        .replace(/^\/@id\/__x00__/, '\0') // virtual modules start with `\0`
+        .replace(/^\/@id\//, '')
+        .replace(/^__vite-browser-external:/, '')
+        .replace(/^node:/, '')
+        .replace(/[?&]v=\w+/, '?') // remove ?v= query
+        .replace(/\?$/, '') // remove end query mark
+}
+
+export function getErrorTemplate(filename: string, error: Error) {
     return /*html*/`
         <pre>${error.stack}</pre>
         <script type="module">

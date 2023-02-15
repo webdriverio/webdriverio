@@ -1,9 +1,8 @@
 import stringify from 'fast-safe-stringify'
 
 import { commands } from 'virtual:wdio'
-import { webdriverMonad } from '@wdio/utils'
+import { webdriverMonad, sessionEnvironmentDetector } from '@wdio/utils'
 import { getEnvironmentVars } from 'webdriver'
-import type { ErrorObject } from 'serialize-error'
 
 import { MESSAGE_TYPES } from '../constants.js'
 import type { SocketMessage, SocketMessagePayload, ConsoleEvent, CommandRequestEvent } from '../vite/types.js'
@@ -12,7 +11,7 @@ const COMMAND_TIMEOUT = 30 * 1000 // 30s
 const CONSOLE_METHODS = ['log', 'info', 'warn', 'error', 'debug'] as const
 interface CommandMessagePromise {
     resolve: (value: unknown) => void
-    reject: (err: ErrorObject) => void
+    reject: (err: Error) => void
     commandTimeout?: NodeJS.Timeout
 }
 
@@ -42,7 +41,8 @@ export default class ProxyDriver {
         socket.addEventListener('message', this.#handleServerMessage.bind(this))
 
         let commandId = 0
-        const environmentPrototype: Record<string, PropertyDescriptor> = getEnvironmentVars(params)
+        const environment = sessionEnvironmentDetector({ capabilities: params.capabilities, requestedCapabilities: {} })
+        const environmentPrototype: Record<string, PropertyDescriptor> = getEnvironmentVars(environment)
         // have debug command
         const commandsProcessedInNodeWorld = [...commands, 'debug']
         const protocolCommands = commandsProcessedInNodeWorld.reduce((prev, commandName) => {
@@ -126,8 +126,8 @@ export default class ProxyDriver {
                 return console.error(`Unknown command id "${value.id}"`)
             }
             if (value.error) {
-                console.log(`[WDIO] ${(new Date()).toISOString()} - id: ${value.id} - ERROR: ${JSON.stringify(value.result)}`)
-                return commandMessage.reject(value.error)
+                console.log(`[WDIO] ${(new Date()).toISOString()} - id: ${value.id} - ERROR: ${JSON.stringify(value.error.message)}`)
+                return commandMessage.reject(new Error(value.error.message || 'unknown error'))
             }
             if (commandMessage.commandTimeout) {
                 clearTimeout(commandMessage.commandTimeout)
@@ -145,7 +145,7 @@ export default class ProxyDriver {
         for (const method of CONSOLE_METHODS) {
             const origCommand = console[method].bind(console)
             console[method] = (...args: unknown[]) => {
-                socket.send(stringify.default(this.#consoleMessage({
+                socket.send(stringify(this.#consoleMessage({
                     name: 'consoleEvent',
                     type: method,
                     args,
