@@ -53,7 +53,8 @@ export async function getTemplate(options: WebdriverIO.BrowserRunnerOptions, env
         <head>
             <title>WebdriverIO Browser Test</title>
             <link rel="icon" type="image/x-icon" href="https://webdriver.io/img/favicon.png">
-            <link rel="stylesheet" href="${mochaCSSHref}"><script type="module" src="${mochaJSSrc}"></script>
+            <link rel="stylesheet" href="${mochaCSSHref}">
+            <script type="module" src="${mochaJSSrc}"></script>
             <script src="/@fs/${sourceMapSupportDir}/browser-source-map-support.js"></script>
             <script type="module">
                 sourceMapSupport.install()

@@ -34,8 +34,15 @@ const WDIO_PACKAGES = ['webdriverio', 'expect-webdriverio']
 const virtualModuleId = 'virtual:wdio'
 const resolvedVirtualModuleId = '\0' + virtualModuleId
 
-const MODULES_TO_MOCK = ['import-meta-resolve', 'puppeteer-core', 'archiver', 'glob', 'devtools', 'ws']
-const FETCH_FROM_ESM = ['mocha']
+/**
+ * these modules are used in Node.js environments only and
+ * don't need to be compiled, we just have them point to a
+ * mocked module that returns a matching interface without
+ * functionality
+ */
+const MODULES_TO_MOCK = [
+    'import-meta-resolve', 'puppeteer-core', 'archiver', 'glob', 'devtools', 'ws'
+]
 
 const POLYFILLS = [
     ...builtinModules,
@@ -79,14 +86,6 @@ export function testrunner(options: WebdriverIO.BrowserRunnerOptions): Plugin[] 
              */
             if (MODULES_TO_MOCK.includes(id)) {
                 return mockModulePath
-            }
-
-            /**
-             * some dependencies used by WebdriverIO packages are still using CJS
-             * so we need to pull them from esm.sh to have them run in the browser
-             */
-            if (FETCH_FROM_ESM.includes(id)) {
-                return `https://esm.sh/${id}`
             }
         },
         load(id) {
