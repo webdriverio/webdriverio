@@ -286,6 +286,10 @@ async function bar() {
     const el2result = await el3.elementCustomCommand(4)
     expectType<number>(el2result)
 
+    // chainable promise element custom command
+    const elcResult = await $('foo').$('bar').elementCustomCommand(4)
+    expectType<number>(elcResult)
+
     // $$
     const elems = await $$('')
     const el4 = elems[0]
