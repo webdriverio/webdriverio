@@ -28,6 +28,7 @@ import {
 vi.mock('@wdio/reporter', () => import(path.join(process.cwd(), '__mocks__', '@wdio/reporter')))
 
 let processOn: any
+
 beforeAll(() => {
     processOn = process.on.bind(process)
     process.on = vi.fn()
@@ -367,7 +368,6 @@ describe('Pending tests', () => {
 
 describe('Hook start', () => {
     let outputDir: any
-    let allureXml
 
     beforeEach(() => {
         outputDir = temporaryDirectory()

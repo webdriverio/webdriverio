@@ -2,7 +2,9 @@ import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 import rimraf from 'rimraf'
-import { Attachment, AllureGroup, AllureTest, AllureStep, TestResult } from 'allure-js-commons'
+import type { Attachment, TestResult } from 'allure-js-commons'
+import { AllureGroup, AllureTest, AllureStep } from 'allure-js-commons'
+// eslint-disable-next-line
 import AllureReporter from '../../src/reporter.js'
 
 export function parseEnvInfo (info: string): Record<string, any> {

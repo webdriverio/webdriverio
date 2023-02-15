@@ -5,7 +5,7 @@ import type {
 } from '@wdio/reporter'
 import WDIOReporter from '@wdio/reporter'
 import type { Capabilities, Options } from '@wdio/types'
-import { AllureRuntime, AllureGroup, AllureTest, AllureStep, AllureCommandStepExecutable, Status as AllureStatus, Stage, LabelName, LinkType, md5, ContentType } from 'allure-js-commons'
+import { AllureRuntime, AllureGroup, AllureTest, AllureStep, Status as AllureStatus, Stage, LabelName, LinkType, ContentType } from 'allure-js-commons'
 import {
     addFeature, addLink, addOwner, addEpic, addSuite, addSubSuite, addParentSuite, addTag, addLabel, addSeverity, addIssue, addTestId, addStory, addEnvironment, addAllureId,
     addDescription, addAttachment, startStep, endStep, addStep, addArgument
@@ -525,7 +525,7 @@ export default class AllureReporter extends WDIOReporter {
         }
 
         const isScreenshotCommand = this.isScreenshotCommand(command)
-        const { value: commandResult } = command.result
+        const { value: commandResult } = command?.result || {}
 
         if (!disableWebdriverScreenshotsReporting && isScreenshotCommand && commandResult) {
             this.attachScreenshot('Screenshot', Buffer.from(commandResult, 'base64'))
@@ -549,8 +549,12 @@ export default class AllureReporter extends WDIOReporter {
         const isMochaAllHook = isMochaAllHooks(hook.title)
         const isMochaEachHook = isMochaEachHooks(hook.title)
 
+        // don't add hook as test to suite for mocha each hooks if no current test
+        if (disableMochaHooks && isMochaEachHook && !this.currentAllureSpec) {
+            return
+        }
+
         // add beforeEach / afterEach hook as step to test
-        // TODO: is it possible to have unfinished step, when we try to start hook?
         if (disableMochaHooks && isMochaEachHook && this.currentAllureSpec) {
             this._startStep(hook.title)
             return
@@ -586,11 +590,10 @@ export default class AllureReporter extends WDIOReporter {
             return
         }
 
-        // set hook (test) status
         if (hook.error) {
+            // add hook as test to suite for mocha all hooks, when it didn't start before
             if (disableMochaHooks && isMochaAllHooks(hook.title)) {
                 this.onTestStart(hook)
-                // this.attachScreenshot()
             }
 
             this.onTestFail(hook)
