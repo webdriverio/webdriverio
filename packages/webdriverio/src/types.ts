@@ -24,7 +24,7 @@ type AsyncElementProto = {
     [K in keyof Omit<$ElementCommands, keyof ChainablePrototype>]: OmitThisParameter<$ElementCommands[K]>
 } & ChainablePrototype
 
-export interface ChainablePromiseElement<T> extends AsyncElementProto, Promise<T> {
+interface ChainablePromiseBaseElement {
     /**
      * WebDriver element reference
      */
@@ -49,6 +49,11 @@ export interface ChainablePromiseElement<T> extends AsyncElementProto, Promise<T
      */
     index?: Promise<number>
 }
+export interface ChainablePromiseElement<T> extends
+    ChainablePromiseBaseElement,
+    AsyncElementProto,
+    Promise<T>,
+    Omit<WebdriverIO.Element, keyof ChainablePromiseBaseElement | keyof AsyncElementProto> {}
 
 export interface ChainablePromiseArray<T> extends Promise<T> {
     [Symbol.asyncIterator](): AsyncIterableIterator<WebdriverIO.Element>
