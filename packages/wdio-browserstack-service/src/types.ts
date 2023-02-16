@@ -173,7 +173,8 @@ export interface UserConfig {
     buildName?: string,
     projectName?: string,
     buildTag?: string,
-    bstackServiceVersion?: string
+    bstackServiceVersion?: string,
+    buildIdentifier?: string
 }
 
 export interface UploadType {
