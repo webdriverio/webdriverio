@@ -3,7 +3,7 @@ import { events } from '../src/constants.js'
 
 describe('Important constants', () => {
     it('should have correct events', () => {
-        expect(Object.values(events)).toHaveLength(21)
+        expect(Object.values(events)).toHaveLength(22)
         expect(events.addLabel).toEqual('allure:addLabel')
         expect(events.addLink).toEqual('allure:addLink')
         expect(events.addFeature).toEqual('allure:addFeature')
@@ -25,5 +25,6 @@ describe('Important constants', () => {
         expect(events.endStep).toEqual('allure:endStep')
         expect(events.addStep).toEqual('allure:addStep')
         expect(events.addArgument).toEqual('allure:addArgument')
+        expect(events.addAllureStep).toEqual('allure:addAllureStep')
     })
 })

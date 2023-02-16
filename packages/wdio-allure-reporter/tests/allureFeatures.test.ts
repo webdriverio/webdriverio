@@ -513,6 +513,151 @@ describe('reporter runtime implementation', () => {
             expect(results[0].parameters[0]).toEqual({ name: 'isMultiremote', value: 'true' })
         })
     })
+
+    describe.only('add allure step', () => {
+        it('should add labels from custom steps', () => {
+            const reporter = new AllureReporter({ outputDir })
+
+            reporter.onRunnerStart({
+                ...runnerStart(),
+                isMultiremote: true,
+                capabilities: { myBrowser: { browserName: 'chrome' } },
+            })
+            reporter.onTestStart(testStart())
+            reporter.addAllureStep({
+                labels: [{ name: 'foo', value: 'bar' }],
+            })
+            reporter.onTestPass()
+            reporter.onRunnerEnd(runnerEnd())
+
+            const { results } = getResults(outputDir)
+            const childStepLabel = results[0].labels.find((label: Label) => label.name === 'foo')
+
+            expect(results).toHaveLength(1)
+            expect(childStepLabel.value).toEqual('bar')
+        })
+
+        it('should add parameters from custom steps', () => {
+            const reporter = new AllureReporter({ outputDir })
+
+            reporter.onRunnerStart({
+                ...runnerStart(),
+                isMultiremote: true,
+                capabilities: { myBrowser: { browserName: 'chrome' } },
+            })
+            reporter.onTestStart(testStart())
+            reporter.addAllureStep({
+                parameter: [{ name: 'foo', value: 'bar' }],
+            })
+            reporter.onTestPass()
+            reporter.onRunnerEnd(runnerEnd())
+
+            const { results } = getResults(outputDir)
+            const childStepParameter = results[0].parameters.find((param: Parameter) => param.name === 'foo')
+
+            expect(results).toHaveLength(1)
+            expect(childStepParameter.value).toEqual('bar')
+        })
+
+        it('should add links from custom steps', () => {
+            const reporter = new AllureReporter({ outputDir })
+
+            reporter.onRunnerStart({
+                ...runnerStart(),
+                isMultiremote: true,
+                capabilities: { myBrowser: { browserName: 'chrome' } },
+            })
+            reporter.onTestStart(testStart())
+            reporter.addAllureStep({
+                links: [{ name: 'foo', url: 'http://example.org', type: 'type' }],
+            })
+            reporter.onTestPass()
+            reporter.onRunnerEnd(runnerEnd())
+
+            const { results } = getResults(outputDir)
+            const childStepLink = results[0].links.find((link: Link) => link.name === 'foo')
+
+            expect(results).toHaveLength(1)
+            expect(childStepLink.url).toEqual('http://example.org')
+            expect(childStepLink.type).toEqual('type')
+        })
+
+        it('should add description from custom steps', () => {
+            const reporter = new AllureReporter({ outputDir })
+
+            reporter.onRunnerStart({
+                ...runnerStart(),
+                isMultiremote: true,
+                capabilities: { myBrowser: { browserName: 'chrome' } },
+            })
+            reporter.onTestStart(testStart())
+            reporter.addAllureStep({
+                description: 'foo'
+            })
+            reporter.onTestPass()
+            reporter.onRunnerEnd(runnerEnd())
+
+            const { results } = getResults(outputDir)
+
+            expect(results).toHaveLength(1)
+            expect(results[0].description).toEqual('foo')
+        })
+
+        it('should add html description from custom steps', () => {
+            const reporter = new AllureReporter({ outputDir })
+
+            reporter.onRunnerStart({
+                ...runnerStart(),
+                isMultiremote: true,
+                capabilities: { myBrowser: { browserName: 'chrome' } },
+            })
+            reporter.onTestStart(testStart())
+            reporter.addAllureStep({
+                descriptionHtml: 'foo'
+            })
+            reporter.onTestPass()
+            reporter.onRunnerEnd(runnerEnd())
+
+            const { results } = getResults(outputDir)
+
+            expect(results).toHaveLength(1)
+            expect(results[0].descriptionHtml).toEqual('foo')
+        })
+
+        it('should add custom steps as children to current test', () => {
+            const reporter = new AllureReporter({ outputDir })
+
+            reporter.onRunnerStart({
+                ...runnerStart(),
+                isMultiremote: true,
+                capabilities: { myBrowser: { browserName: 'chrome' } },
+            })
+            reporter.onTestStart(testStart())
+            reporter.addAllureStep({
+                steps: [
+                    {
+                        name: 'custom step',
+                        attachments: [],
+                        parameters: [],
+                        steps: [],
+                        status: Status.PASSED,
+                        statusDetails: {
+                            message: undefined,
+                            trace: undefined,
+                        },
+                        stage: Stage.FINISHED,
+                    }
+                ]
+            })
+            reporter.onTestPass()
+            reporter.onRunnerEnd(runnerEnd())
+
+            const { results } = getResults(outputDir)
+
+            expect(results).toHaveLength(1)
+            expect(results[0].steps).toHaveLength(1)
+        })
+    })
 })
 
 describe('auxiliary methods', () => {

@@ -1,4 +1,5 @@
-import { Status } from 'allure-js-commons'
+import type { StepBodyFunction } from 'allure-js-commons'
+import { Status, AllureCommandStepExecutable } from 'allure-js-commons'
 import { events } from '../constants.js'
 
 /**
@@ -230,6 +231,13 @@ export function addStep (
  */
 export function addArgument (name: string, value: string) {
     tellReporter(events.addArgument, { name, value })
+}
+
+export async function step(name: string, body: StepBodyFunction) {
+    const runningStep = new AllureCommandStepExecutable(name)
+    const result = await runningStep.start(body)
+
+    tellReporter(events.addAllureStep, result)
 }
 
 export default {

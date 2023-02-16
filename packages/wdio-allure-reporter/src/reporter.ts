@@ -5,11 +5,11 @@ import type {
 } from '@wdio/reporter'
 import WDIOReporter from '@wdio/reporter'
 import type { Capabilities, Options } from '@wdio/types'
-import type { Label } from 'allure-js-commons'
-import { AllureRuntime, AllureGroup, AllureTest, AllureStep, Status as AllureStatus, Stage, LabelName, LinkType, ContentType } from 'allure-js-commons'
+import type { Label, MetadataMessage } from 'allure-js-commons'
+import { AllureRuntime, AllureGroup, AllureTest, AllureStep, Status as AllureStatus, Stage, LabelName, LinkType, ContentType, AllureCommandStepExecutable } from 'allure-js-commons'
 import {
     addFeature, addLink, addOwner, addEpic, addSuite, addSubSuite, addParentSuite, addTag, addLabel, addSeverity, addIssue, addTestId, addStory, addEnvironment, addAllureId,
-    addDescription, addAttachment, startStep, endStep, addStep, addArgument
+    addDescription, addAttachment, startStep, endStep, addStep, addArgument, step,
 } from './common/api.js'
 import {
     getTestStatus, isEmpty, isMochaEachHooks, getErrorFromFailedTest,
@@ -317,6 +317,7 @@ export default class AllureReporter extends WDIOReporter {
         process.on(events.endStep, this.endStep.bind(this))
         process.on(events.addStep, this.addStep.bind(this))
         process.on(events.addArgument, this.addArgument.bind(this))
+        process.on(events.addAllureStep, this.addAllureStep.bind(this))
     }
 
     onRunnerStart(runner: RunnerStats) {
@@ -834,6 +835,49 @@ export default class AllureReporter extends WDIOReporter {
         this.currentTest.addParameter(name, value)
     }
 
+    // TODO:
+    addAllureStep(metadata: MetadataMessage) {
+        const {
+            attachments = [],
+            labels = [],
+            links = [],
+            parameter = [],
+            steps = [],
+            description,
+            descriptionHtml,
+        } = metadata
+
+        if (description) {
+            this.addDescription({
+                description,
+                descriptionType: DescriptionType.MARKDOWN
+            })
+        }
+
+        if (descriptionHtml) {
+            this.addDescription({
+                description: descriptionHtml,
+                descriptionType: DescriptionType.HTML
+            })
+        }
+
+        labels.forEach((label) => {
+            this.addLabel(label)
+        })
+        parameter.forEach((param) => {
+            this.addArgument(param)
+        })
+        links.forEach((link) => {
+            this.addLink(link)
+        })
+        attachments.forEach((attachment) => {
+            this.addAttachment(attachment)
+        })
+        steps.forEach((step) => {
+            this.currentAllureSpec!.addStep(AllureCommandStepExecutable.toExecutableItem(this._allure, step))
+        })
+    }
+
     /**
      * public API attached to the reporter
      * deprecated approach and only here for backwards compatibility
@@ -859,4 +903,5 @@ export default class AllureReporter extends WDIOReporter {
     static addStep = addStep
     static addArgument = addArgument
     static addAllureId = addAllureId
+    static step = step
 }
