@@ -14,7 +14,7 @@ import type { Capabilities, Services, Options } from '@wdio/types'
 
 import type { BrowserstackConfig, App, AppConfig, AppUploadResponse } from './types.js'
 import { VALID_APP_EXTENSION } from './constants.js'
-import { launchTestSession, shouldAddServiceVersion, stopBuildUpstream } from './util.js'
+import { launchTestSession, shouldAddServiceVersion, stopBuildUpstream, getCiInfo } from './util.js'
 
 const require = createRequire(import.meta.url)
 const { version: bstackServiceVersion } = require('../package.json')
@@ -31,6 +31,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
     private _buildName?: string
     private _projectName?: string
     private _buildTag?: string
+    private _buildIdentifier?: string
 
     constructor (
         private _options: BrowserstackConfig & Options.Testrunner,
@@ -45,14 +46,18 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                     const extensionCaps = Object.keys(capability).filter((cap) => cap.includes(':'))
                     if (extensionCaps.length) {
                         capability['bstack:options'] = { wdioService: bstackServiceVersion }
-                    } else if (shouldAddServiceVersion(this._config, this._options.testObservability)) {
-                        capability['browserstack.wdioService'] = bstackServiceVersion
+                    } else {
+                        if (shouldAddServiceVersion(this._config, this._options.testObservability)) {
+                            capability['browserstack.wdioService'] = bstackServiceVersion
+                        }
+                        this._buildIdentifier = capability['browserstack.buildIdentifier']
                     }
                 } else {
                     capability['bstack:options'].wdioService = bstackServiceVersion
                     this._buildName = capability['bstack:options'].buildName
                     this._projectName = capability['bstack:options'].projectName
                     this._buildTag = capability['bstack:options'].buildTag
+                    this._buildIdentifier = capability['bstack:options'].buildIdentifier
                 }
             })
         } else if (typeof capabilities === 'object') {
@@ -61,8 +66,11 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                     const extensionCaps = Object.keys(caps.capabilities).filter((cap) => cap.includes(':'))
                     if (extensionCaps.length) {
                         (caps.capabilities as Capabilities.Capabilities)['bstack:options'] = { wdioService: bstackServiceVersion }
-                    } else if (shouldAddServiceVersion(this._config, this._options.testObservability)) {
-                        (caps.capabilities as Capabilities.Capabilities)['browserstack.wdioService'] = bstackServiceVersion
+                    } else {
+                        if (shouldAddServiceVersion(this._config, this._options.testObservability)) {
+                            (caps.capabilities as Capabilities.Capabilities)['browserstack.wdioService'] = bstackServiceVersion
+                        }
+                        this._buildIdentifier = (caps.capabilities as Capabilities.Capabilities)['browserstack.buildIdentifier']
                     }
                 } else {
                     const bstackOptions = (caps.capabilities as Capabilities.Capabilities)['bstack:options']
@@ -70,6 +78,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                     this._buildName = bstackOptions!.buildName
                     this._projectName = bstackOptions!.projectName
                     this._buildTag = bstackOptions!.buildTag
+                    this._buildIdentifier = bstackOptions!.buildIdentifier
                 }
             })
         }
@@ -119,6 +128,16 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             this._updateCaps(capabilities, 'app', app.app)
         }
 
+        /**
+         * evaluate buildIdentifier in case unique execution identifiers are present
+         * e.g., ${BUILD_NUMBER} and ${DATE_TIME}
+        */
+        try {
+            this._handleBuildIdentifier(capabilities)
+        } catch (error: any) {
+            log.error(`Error while processing buildIdentifier, stacktrace: ${error}`)
+        }
+
         if (this._options.testObservability) {
             log.debug('Sending launch start event')
 
@@ -126,7 +145,8 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                 projectName: this._projectName,
                 buildName: this._buildName,
                 buildTag: this._buildTag,
-                bstackServiceVersion: bstackServiceVersion
+                bstackServiceVersion: bstackServiceVersion,
+                buildIdentifier: this._buildIdentifier
             })
         }
 
@@ -140,7 +160,12 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         }
 
         this.browserstackLocal = new BrowserstackLocalLauncher.Local()
-        this._updateCaps(capabilities, 'local')
+
+        if (opts.localIdentifier) {
+            this._updateCaps(capabilities, 'local', 'true', opts.localIdentifier)
+        } else {
+            this._updateCaps(capabilities, 'local')
+        }
 
         /**
          * measure BrowserStack tunnel boot time
@@ -267,26 +292,46 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         return app
     }
 
-    _updateCaps(capabilities?: Capabilities.RemoteCapabilities, capType?: string, value?:string) {
+    _updateCaps(capabilities?: Capabilities.RemoteCapabilities, capType?: string, value?:string, localId?:string) {
         if (Array.isArray(capabilities)) {
             capabilities.forEach((capability: Capabilities.DesiredCapabilities) => {
                 if (!capability['bstack:options']) {
                     const extensionCaps = Object.keys(capability).filter((cap) => cap.includes(':'))
                     if (extensionCaps.length) {
                         if (capType === 'local') {
-                            capability['bstack:options'] = { local: true }
+                            capability['bstack:options'] = localId ? { local: true } : { local: true, localIdentifier : localId }
                         } else if (capType === 'app') {
                             capability['appium:app'] = value
+                        } else if (capType === 'buildIdentifier' && value) {
+                            capability['bstack:options'] = { buildIdentifier: value }
                         }
                     } else if (capType === 'local'){
                         capability['browserstack.local'] = true
+                        if (localId) {
+                            capability['browserstack.localIdentifier'] = localId
+                        }
                     } else if (capType === 'app') {
                         capability.app = value
+                    } else if (capType === 'buildIdentifier') {
+                        if (value) {
+                            capability['browserstack.buildIdentifier'] = value
+                        } else {
+                            delete capability['browserstack.buildIdentifier']
+                        }
                     }
                 } else if (capType === 'local') {
                     capability['bstack:options'].local = true
+                    if (localId) {
+                        capability['bstack:options'].localIdentifier = localId
+                    }
                 } else if (capType === 'app') {
                     capability['appium:app'] = value
+                } else if (capType === 'buildIdentifier') {
+                    if (value) {
+                        capability['bstack:options'].buildIdentifier = value
+                    } else {
+                        delete capability['bstack:options'].buildIdentifier
+                    }
                 }
             })
         } else if (typeof capabilities === 'object') {
@@ -295,23 +340,124 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                     const extensionCaps = Object.keys(caps.capabilities).filter((cap) => cap.includes(':'))
                     if (extensionCaps.length) {
                         if (capType === 'local') {
-                            (caps.capabilities as Capabilities.Capabilities)['bstack:options'] = { local: true }
+                            (caps.capabilities as Capabilities.Capabilities)['bstack:options'] = localId ? { local: true } : { local: true, localIdentifier : localId }
                         } else if (capType === 'app') {
                             (caps.capabilities as Capabilities.Capabilities)['appium:app'] = value
+                        } else if (capType === 'buildIdentifier' && value) {
+                            (caps.capabilities as Capabilities.Capabilities)['bstack:options'] = { buildIdentifier: value }
                         }
                     } else if (capType === 'local'){
                         (caps.capabilities as Capabilities.Capabilities)['browserstack.local'] = true
+                        if (localId) {
+                            (caps.capabilities as Capabilities.Capabilities)['browserstack.localIdentifier'] = localId
+                        }
                     } else if (capType === 'app') {
                         (caps.capabilities as Capabilities.AppiumCapabilities).app = value
+                    } else if (capType === 'buildIdentifier') {
+                        if (value) {
+                            (caps.capabilities as Capabilities.Capabilities)['browserstack.buildIdentifier'] = value
+                        } else {
+                            delete (caps.capabilities as Capabilities.Capabilities)['browserstack.buildIdentifier']
+                        }
                     }
                 } else if (capType === 'local'){
                     (caps.capabilities as Capabilities.Capabilities)['bstack:options']!.local = true
+                    if (localId) {
+                        (caps.capabilities as Capabilities.Capabilities)['bstack:options']!.localIdentifier = localId
+                    }
                 } else if (capType === 'app') {
                     (caps.capabilities as Capabilities.Capabilities)['appium:app'] = value
+                } else if (capType === 'buildIdentifier') {
+                    if (value) {
+                        (caps.capabilities as Capabilities.Capabilities)['bstack:options']!.buildIdentifier = value
+                    } else {
+                        delete (caps.capabilities as Capabilities.Capabilities)['bstack:options']!.buildIdentifier
+                    }
                 }
             })
         } else {
             throw new SevereServiceError('Capabilities should be an object or Array!')
+        }
+    }
+
+    _handleBuildIdentifier(capabilities?: Capabilities.RemoteCapabilities) {
+        if (!this._buildIdentifier) {
+            this._updateCaps(capabilities, 'buildIdentifier')
+            return
+        }
+
+        if (!this._buildName || process.env.BROWSERSTACK_BUILD_NAME) {
+            if (this._buildIdentifier) {
+                this._updateCaps(capabilities, 'buildIdentifier')
+                return
+            }
+        }
+
+        if (this._buildIdentifier && this._buildIdentifier.includes('${DATE_TIME}')){
+            const dateObj = new Date()
+            const date = ('0' + dateObj.getDate()).slice(-2)
+            const month = dateObj.toLocaleString('default', { month: 'short' })
+            const hours = ('0' + dateObj.getHours()).slice(-2)
+            const minutes = ('0' + dateObj.getMinutes()).slice(-2)
+            const formattedDate = date + '-' + month + '-' + hours + ':' + minutes
+            this._buildIdentifier = this._buildIdentifier.replace('${DATE_TIME}', formattedDate)
+            this._updateCaps(capabilities, 'buildIdentifier', this._buildIdentifier)
+        }
+
+        if (!this._buildIdentifier.includes('${BUILD_NUMBER}')) { return }
+
+        const ciInfo = getCiInfo()
+        if (ciInfo !== null) {
+            const ciBuildNumber = ciInfo.build_number
+            if (ciBuildNumber !== null) {
+                this._buildIdentifier = this._buildIdentifier.replace('${BUILD_NUMBER}', 'CI '+ ciBuildNumber)
+                this._updateCaps(capabilities, 'buildIdentifier', this._buildIdentifier)
+            }
+        } else {
+            const localBuildNumber = this._getLocalBuildNumber()
+            if (localBuildNumber !== '-1') {
+                this._buildIdentifier = this._buildIdentifier.replace('${BUILD_NUMBER}', localBuildNumber)
+                this._updateCaps(capabilities, 'buildIdentifier', this._buildIdentifier)
+            } else {
+                return
+            }
+        }
+    }
+
+    _getLocalBuildNumber() {
+        const browserstackFolderPath = path.join(require('node:os').homedir(), '.browserstack')
+        try {
+            if (!fs.existsSync(browserstackFolderPath)){
+                fs.mkdirSync(browserstackFolderPath)
+            }
+
+            const filePath = path.join(browserstackFolderPath, '.build-name-cache.json')
+            if (!fs.existsSync(filePath)) {
+                fs.appendFileSync(filePath, JSON.stringify({}))
+            }
+
+            const buildCacheFileData = fs.readFileSync(filePath)
+            const parsedBuildCacheFileData = JSON.parse(buildCacheFileData.toString())
+
+            if (this._buildName && this._buildName in parsedBuildCacheFileData) {
+                const prevIdentifier = parseInt((parsedBuildCacheFileData[this._buildName].identifier))
+                const newIdentifier = prevIdentifier + 1
+                this._updateLocalBuildCache(filePath, this._buildName, newIdentifier.toString())
+                return newIdentifier.toString()
+            }
+            this._updateLocalBuildCache(filePath, this._buildName, '1')
+            return '1'
+        } catch (error: any) {
+            return '-1'
+        }
+    }
+
+    _updateLocalBuildCache(filePath?:string, buildName?:string, buildIdentifier?:string) {
+        const newIdentifier = { 'identifier': buildIdentifier }
+        if (buildName && filePath) {
+            const jsonContent = JSON.parse(fs.readFileSync(filePath).toString())
+            jsonContent[buildName] = newIdentifier
+            fs.writeFileSync(filePath, JSON.stringify(jsonContent))
         }
     }
 }

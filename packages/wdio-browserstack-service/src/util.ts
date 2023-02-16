@@ -102,6 +102,7 @@ export async function launchTestSession (options: BrowserstackConfig & Options.T
         format: 'json',
         project_name: getObservabilityProject(options, bsConfig.projectName),
         name: getObservabilityBuild(options, bsConfig.buildName),
+        build_identifier: bsConfig.buildIdentifier,
         start_time: (new Date()).toISOString(),
         tags: getObservabilityBuildTags(options, bsConfig.buildTag),
         host_info: {
