@@ -13,7 +13,7 @@ import {
 } from './common/api.js'
 import {
     getTestStatus, isEmpty, isMochaEachHooks, getErrorFromFailedTest,
-    isMochaAllHooks, getLinkByTemplate, findLast, takeWhile,
+    isMochaAllHooks, getLinkByTemplate, findLast,
 } from './utils.js'
 import { events } from './constants.js'
 import type {
@@ -78,20 +78,6 @@ export default class AllureReporter extends WDIOReporter {
 
     get currentStep(): AllureStep | undefined {
         return findLast(this._runningUnits, (unit) => unit instanceof AllureStep) as AllureStep | undefined
-    }
-
-    // TODO: review the method purporse
-    get currentTestSteps(): AllureStep[] {
-        if (!this.currentTest) {
-            return []
-        }
-
-        const currentTestIdx = this._runningUnits.findIndex(unit => unit === this.currentTest)
-
-        return takeWhile(
-            this._runningUnits.slice(currentTestIdx + 1),
-            (el: AllureGroup | AllureTest | AllureStep) => el instanceof AllureStep,
-        ) as AllureStep[]
     }
 
     get currentAllureSpec(): AllureTest | AllureStep | undefined {
@@ -202,20 +188,6 @@ export default class AllureReporter extends WDIOReporter {
         }
 
         const currentSpec = this._runningUnits.pop() as AllureTest | AllureStep
-
-        // TODO: we need to end all children steps
-        // if (currentSpec instanceof AllureTest) {
-        //     while (this.currentTestSteps().length > 0) {
-        //         this._endTest(status)
-        //         // console.log('running steps', this.currentTestSteps.length)
-
-        //         // const currentStep = this._runningUnits.pop() as AllureStep
-
-        //         // currentStep.stage = Stage.FINISHED
-        //         // currentStep.status = status
-        //         // currentStep.endStep()
-        //     }
-        // }
 
         currentSpec.stage = Stage.FINISHED
         currentSpec.status = status
@@ -866,7 +838,6 @@ export default class AllureReporter extends WDIOReporter {
      * public API attached to the reporter
      * deprecated approach and only here for backwards compatibility
      */
-    // TODO: add attachment method
     static addFeature = addFeature
     static addLink = addLink
     static addEpic = addEpic

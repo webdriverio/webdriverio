@@ -118,16 +118,3 @@ export const findLast = <T>(arr: Array<T>, predicate: (el: T) => boolean): T | u
     return result
 }
 
-export const takeWhile = <T>(arr: Array<T>, predicate: (el: T) => boolean): T[] => {
-    const result: T[] = []
-
-    for (let i = 0; i < arr.length; i++) {
-        if (!predicate(arr[i])) {
-            break
-        }
-
-        result.push(arr[i])
-    }
-
-    return result
-}
