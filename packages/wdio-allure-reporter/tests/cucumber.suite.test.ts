@@ -92,13 +92,15 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
             })
 
             it('should detect analytics labels in test case', () => {
-                const feature = allureResult.labels.find((label: Label) => label.name === LabelName.FEATURE)
+                const features = allureResult.labels
+                    .filter((label: Label) => label.name === LabelName.FEATURE)
+                    .map((label: Label) => label.value)
                 const language = allureResult.labels.find((label: Label) => label.name === LabelName.LANGUAGE)
                 const framework = allureResult.labels.find((label: Label) => label.name === LabelName.FRAMEWORK)
 
-                expect(feature.value).toEqual('MyFeature')
                 expect(language.value).toEqual('javascript')
                 expect(framework.value).toEqual('wdio')
+                expect(features).toContain('MyFeature')
             })
 
             it('should add browser name as test argument', () => {
@@ -209,13 +211,14 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
         })
 
         it('should detect analytics labels in test case', () => {
-            const feature = allureResult.labels.find((label: Label) => label.name === LabelName.FEATURE)
+            const features = allureResult.labels.filter((label: Label) => label.name === LabelName.FEATURE).map((label: Label) => label.value)
             const language = allureResult.labels.find((label: Label) => label.name === LabelName.LANGUAGE)
             const framework = allureResult.labels.find((label: Label) => label.name === LabelName.FRAMEWORK)
 
-            expect(feature.value).toEqual('my-awesome-feature-at-scenario-level')
             expect(language.value).toEqual('javascript')
             expect(framework.value).toEqual('wdio')
+            expect(features).toContain('MyFeature')
+            expect(features).toContain('my-awesome-feature-at-scenario-level')
         })
 
         it('should add browser name as test argument', () => {
@@ -231,15 +234,15 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
         })
 
         it('should keep tag label "issue" as is if issue link template is not configured', () => {
-            const issueLink = allureResult.links.find((link: Link) => link.type === LinkType.ISSUE)
+            const issueLabel = allureResult.labels.find((label: Label) => label.name === 'issue')
 
-            expect(issueLink.url).toEqual('BUG-987')
+            expect(issueLabel.value).toEqual('BUG-987')
         })
 
         it('should keep tag label "testId" as is if tms link template is not configured', () => {
-            const tmsLink = allureResult.links.find((link: Link) => link.type === LinkType.TMS)
+            const tmsLabel = allureResult.labels.find((label: Label) => label.name === 'tms')
 
-            expect(tmsLink.url).toEqual('TST-123')
+            expect(tmsLabel.value).toEqual('TST-123')
         })
 
         it('should detect description on top in test case', () => {
@@ -281,9 +284,13 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
         })
 
         it('should detect analytics labels in test case', () => {
-            expect(allureXml('test-case label[name="feature"]').eq(0).attr('value')).toEqual('my-awesome-feature-at-feature-level')
-            expect(allureXml('test-case label[name="language"]').eq(0).attr('value')).toEqual('javascript')
-            expect(allureXml('test-case label[name="framework"]').eq(0).attr('value')).toEqual('wdio')
+            const languageLabel = allureResult.labels.find((label: Label) => label.name === LabelName.LANGUAGE)
+            const frameworkLabel = allureResult.labels.find((label: Label) => label.name === LabelName.FRAMEWORK)
+            const featureLabels = allureResult.labels.filter((label: Label) => label.name === LabelName.FEATURE).map((label: Label) => label.value)
+
+            expect(languageLabel.value).toEqual('javascript')
+            expect(frameworkLabel.value).toEqual('wdio')
+            expect(featureLabels).toContain('MyFeature')
         })
 
         it('should report one suite', () => {
@@ -328,9 +335,6 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
             reporter.onSuiteEnd(cucumberHelper.featureEnd(suiteResults))
             reporter.onRunnerEnd(runnerEnd())
 
-            // const results = getResults(outputDir)
-            // expect(results).toHaveLength(1)
-
             const { results, containers } = getResults(outputDir)
 
             allureResult = results[0]
@@ -345,9 +349,14 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
         })
 
         it('should detect analytics labels in test case', () => {
-            expect(allureXml('test-case label[name="feature"]').eq(0).attr('value')).toEqual('my-awesome-feature-at-scenario-level')
-            expect(allureXml('test-case label[name="language"]').eq(0).attr('value')).toEqual('javascript')
-            expect(allureXml('test-case label[name="framework"]').eq(0).attr('value')).toEqual('wdio')
+            const languageLabel = allureResult.labels.find((label: Label) => label.name === LabelName.LANGUAGE)
+            const frameworkLabel = allureResult.labels.find((label: Label) => label.name === LabelName.FRAMEWORK)
+            const featureLabels = allureResult.labels.filter((label: Label) => label.name === LabelName.FEATURE).map((label: Label) => label.value)
+
+            expect(languageLabel.value).toEqual('javascript')
+            expect(frameworkLabel.value).toEqual('wdio')
+            expect(featureLabels).toContain('MyFeature')
+            expect(featureLabels).toContain('my-awesome-feature-at-scenario-level')
         })
 
         it('should report one suite', () => {
