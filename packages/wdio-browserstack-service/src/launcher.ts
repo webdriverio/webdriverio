@@ -161,11 +161,8 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
 
         this.browserstackLocal = new BrowserstackLocalLauncher.Local()
 
-        if (opts.localIdentifier) {
-            this._updateCaps(capabilities, 'local', 'true', opts.localIdentifier)
-        } else {
-            this._updateCaps(capabilities, 'local')
-        }
+        this._updateCaps(capabilities, 'local')
+        this._updateCaps(capabilities, 'localIdentifier', opts.localIdentifier)
 
         /**
          * measure BrowserStack tunnel boot time
@@ -292,24 +289,23 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         return app
     }
 
-    _updateCaps(capabilities?: Capabilities.RemoteCapabilities, capType?: string, value?:string, localId?:string) {
+    _updateCaps(capabilities?: Capabilities.RemoteCapabilities, capType?: string, value?:string) {
         if (Array.isArray(capabilities)) {
             capabilities.forEach((capability: Capabilities.DesiredCapabilities) => {
                 if (!capability['bstack:options']) {
                     const extensionCaps = Object.keys(capability).filter((cap) => cap.includes(':'))
                     if (extensionCaps.length) {
                         if (capType === 'local') {
-                            capability['bstack:options'] = localId ? { local: true } : { local: true, localIdentifier : localId }
+                            capability['bstack:options'] = { local: true }
                         } else if (capType === 'app') {
                             capability['appium:app'] = value
                         } else if (capType === 'buildIdentifier' && value) {
                             capability['bstack:options'] = { buildIdentifier: value }
+                        } else if (capType === 'localIdentifier') {
+                            capability['bstack:options'] = { local: true, localIdentifier: value }
                         }
                     } else if (capType === 'local'){
                         capability['browserstack.local'] = true
-                        if (localId) {
-                            capability['browserstack.localIdentifier'] = localId
-                        }
                     } else if (capType === 'app') {
                         capability.app = value
                     } else if (capType === 'buildIdentifier') {
@@ -318,12 +314,11 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                         } else {
                             delete capability['browserstack.buildIdentifier']
                         }
+                    } else if (capType === 'localIdentifier') {
+                        capability['browserstack.localIdentifier'] = value
                     }
                 } else if (capType === 'local') {
                     capability['bstack:options'].local = true
-                    if (localId) {
-                        capability['bstack:options'].localIdentifier = localId
-                    }
                 } else if (capType === 'app') {
                     capability['appium:app'] = value
                 } else if (capType === 'buildIdentifier') {
@@ -332,6 +327,8 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                     } else {
                         delete capability['bstack:options'].buildIdentifier
                     }
+                } else if (capType === 'localIdentifier') {
+                    capability['bstack:options'].localIdentifier = value
                 }
             })
         } else if (typeof capabilities === 'object') {
@@ -340,17 +337,16 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                     const extensionCaps = Object.keys(caps.capabilities).filter((cap) => cap.includes(':'))
                     if (extensionCaps.length) {
                         if (capType === 'local') {
-                            (caps.capabilities as Capabilities.Capabilities)['bstack:options'] = localId ? { local: true } : { local: true, localIdentifier : localId }
+                            (caps.capabilities as Capabilities.Capabilities)['bstack:options'] = { local: true }
                         } else if (capType === 'app') {
                             (caps.capabilities as Capabilities.Capabilities)['appium:app'] = value
                         } else if (capType === 'buildIdentifier' && value) {
                             (caps.capabilities as Capabilities.Capabilities)['bstack:options'] = { buildIdentifier: value }
+                        } else if (capType === 'localIdentifier') {
+                            (caps.capabilities as Capabilities.Capabilities)['bstack:options'] = { local: true, localIdentifier : value }
                         }
                     } else if (capType === 'local'){
                         (caps.capabilities as Capabilities.Capabilities)['browserstack.local'] = true
-                        if (localId) {
-                            (caps.capabilities as Capabilities.Capabilities)['browserstack.localIdentifier'] = localId
-                        }
                     } else if (capType === 'app') {
                         (caps.capabilities as Capabilities.AppiumCapabilities).app = value
                     } else if (capType === 'buildIdentifier') {
@@ -359,12 +355,11 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                         } else {
                             delete (caps.capabilities as Capabilities.Capabilities)['browserstack.buildIdentifier']
                         }
+                    } else if (capType === 'localIdentifier') {
+                        (caps.capabilities as Capabilities.Capabilities)['browserstack.localIdentifier'] = value
                     }
                 } else if (capType === 'local'){
                     (caps.capabilities as Capabilities.Capabilities)['bstack:options']!.local = true
-                    if (localId) {
-                        (caps.capabilities as Capabilities.Capabilities)['bstack:options']!.localIdentifier = localId
-                    }
                 } else if (capType === 'app') {
                     (caps.capabilities as Capabilities.Capabilities)['appium:app'] = value
                 } else if (capType === 'buildIdentifier') {
@@ -373,6 +368,8 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                     } else {
                         delete (caps.capabilities as Capabilities.Capabilities)['bstack:options']!.buildIdentifier
                     }
+                } else if (capType === 'localIdentifier') {
+                    (caps.capabilities as Capabilities.Capabilities)['bstack:options']!.localIdentifier = value
                 }
             })
         } else {
@@ -394,12 +391,14 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         }
 
         if (this._buildIdentifier && this._buildIdentifier.includes('${DATE_TIME}')){
-            const dateObj = new Date()
-            const date = ('0' + dateObj.getDate()).slice(-2)
-            const month = dateObj.toLocaleString('default', { month: 'short' })
-            const hours = ('0' + dateObj.getHours()).slice(-2)
-            const minutes = ('0' + dateObj.getMinutes()).slice(-2)
-            const formattedDate = date + '-' + month + '-' + hours + ':' + minutes
+            const formattedDate = new Intl.DateTimeFormat('en-GB', {
+                month: 'short',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: false })
+                .format(new Date())
+                .replace(/ |, /g, '-')
             this._buildIdentifier = this._buildIdentifier.replace('${DATE_TIME}', formattedDate)
             this._updateCaps(capabilities, 'buildIdentifier', this._buildIdentifier)
         }
