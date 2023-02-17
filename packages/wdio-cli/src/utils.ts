@@ -473,16 +473,6 @@ export async function getAnswers(yes: boolean): Promise<Questionnair> {
                 name: 'createPackageJSON',
                 default: true,
                 message: `Couldn't find a package.json in "${process.cwd()}" or any of the parent directories, do you want to create one?`,
-            }, {
-                type: 'list',
-                name: 'moduleSystem',
-                message: 'Which module system should be used?',
-                choices: [
-                    { name: 'esm', value: 'ESM (recommended)$--$esm' },
-                    { name: 'commonjs', value: 'CommonJS$--$commonjs' }
-                ],
-                // only ask if there are more than 1 runner to pick from
-                when: /* istanbul ignore next */ (answers: Questionnair) => answers.createPackageJSON
             }]
             /**
              * in case create-wdio was used which creates a package.json with name "my-new-project"
@@ -611,21 +601,36 @@ export function runProgram (command: string, args: string[], options: SpawnOptio
  * create package.json if not already existing
  */
 export async function createPackageJSON (parsedAnswers: ParsedAnswers) {
-    if (!parsedAnswers.createPackageJSON) {
-        return
+    const packageJsonExists = await fs.access(path.resolve(process.cwd(), 'package.json')).then(() => true, () => false)
+
+    // Use the exisitng package.json if it already exists.
+    if (packageJsonExists) { return }
+
+    // If a user said no to creating a package.json, but it doesn't exist, abort.
+    if (parsedAnswers.createPackageJSON === false) {
+        if (!packageJsonExists) {
+            /* istanbul ignore next */
+            console.log(`No WebdriverIO configuration found in "${parsedAnswers.wdioConfigPath}"`)
+
+            /* istanbul ignore next */
+            return !process.env.VITEST_WORKER_ID && process.exit(0)
+        } return
     }
 
-    console.log(`Creating a ${chalk.bold('package.json')} for the directory...`)
-    await fs.writeFile(path.resolve(process.cwd(), 'package.json'), JSON.stringify({
-        name: 'webdriverio-tests',
-        version: '0.0.0',
-        private: true,
-        license: 'ISC',
-        type: parsedAnswers.moduleSystem,
-        dependencies: {},
-        devDependencies: {}
-    }, null, 2))
-    console.log(chalk.green.bold('✔ Success!\n'))
+    // Only create if the user gave explicit permission to
+    if (parsedAnswers.createPackageJSON) {
+        console.log(`Creating a ${chalk.bold('package.json')} for the directory...`)
+        await fs.writeFile(path.resolve(process.cwd(), 'package.json'), JSON.stringify({
+            name: 'webdriverio-tests',
+            version: '0.0.0',
+            private: true,
+            license: 'ISC',
+            type: 'module',
+            dependencies: {},
+            devDependencies: {}
+        }, null, 2))
+        console.log(chalk.green.bold('✔ Success!\n'))
+    }
 }
 
 /**
@@ -712,20 +717,22 @@ export async function setupTypeScript (parsedAnswers: ParsedAnswers) {
             .filter(service => service.startsWith('@wdio'))
     ]
 
-    const config = {
-        compilerOptions: {
-            moduleResolution: 'node',
-            module: 'ESNext',
-            types,
-            target: 'es2022',
+    if (!parsedAnswers.hasRootTSConfig) {
+        const config = {
+            compilerOptions: {
+                moduleResolution: 'node',
+                module: !parsedAnswers.esmSupport ? 'commonjs' : 'ESNext',
+                types,
+                target: 'es2022',
+            }
         }
+        await fs.mkdir(path.dirname(parsedAnswers.tsConfigFilePath), { recursive: true })
+        await fs.writeFile(
+            parsedAnswers.tsConfigFilePath,
+            JSON.stringify(config, null, 4)
+        )
     }
 
-    await fs.mkdir(path.dirname(parsedAnswers.tsConfigFilePath), { recursive: true })
-    await fs.writeFile(
-        parsedAnswers.tsConfigFilePath,
-        JSON.stringify(config, null, 4)
-    )
     console.log(chalk.green.bold('✔ Success!\n'))
 }
 

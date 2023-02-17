@@ -826,11 +826,9 @@ test('createPackageJSON', async () => {
     await createPackageJSON({} as any)
     expect(fs.writeFile).toBeCalledTimes(0)
     await createPackageJSON({
-        createPackageJSON: true,
-        moduleSystem: 'foobar'
+        createPackageJSON: true
     } as any)
     expect(console.log).toBeCalledTimes(2)
-    expect(vi.mocked(fs.writeFile).mock.calls[0][1]).toContain('"type": "foobar"')
 })
 
 test('npmInstall', async () => {
@@ -870,6 +868,7 @@ test('setupTypeScript', async () => {
     expect(fs.writeFile).toBeCalledTimes(0)
     const parsedAnswers = {
         isUsingTypeScript: true,
+        esmSupport: true,
         rawAnswers: {
             framework: 'foo',
             services: []

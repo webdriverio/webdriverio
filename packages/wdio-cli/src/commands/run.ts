@@ -146,22 +146,21 @@ export async function launch(wdioConfPath: string, params: Partial<RunCommandArg
 }
 
 export async function handler(argv: RunCommandArguments) {
-    const { configPath, ...params } = argv
+    const { configPath = 'wdio.conf.js', ...params } = argv
+    const configPathNoExtension = configPath.substring(0, configPath.lastIndexOf('.'))
 
-    const canAccessConfigPath = await fs.access(configPath).then(
+    const canAccessConfigPath = await fs.access(`${configPathNoExtension}.js`).then(
         () => true,
-        () => false
+        () => fs.access(`${configPathNoExtension}.ts`).then(
+            () => true, () => false
+        )
     )
-    if (!canAccessConfigPath) {
-        const configFullPath = path.join(process.cwd(), configPath)
-        await missingConfigurationPrompt('run', configFullPath)
-    }
+    const wdioConf = configPath.includes(process.cwd())
+        ? configPath : path.join(process.cwd(), configPath)
 
-    const localConf = path.join(process.cwd(), 'wdio.conf.js')
-    const wdioConf = configPath || ((await fs.access(localConf).then(() => true, () => false))
-        ? localConf
-        : undefined
-    ) as string
+    if (!canAccessConfigPath) {
+        await missingConfigurationPrompt('run', wdioConf)
+    }
 
     /**
      * In order to load TypeScript files in ESM we need to apply the ts-node loader.
