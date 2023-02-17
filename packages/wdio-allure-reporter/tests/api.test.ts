@@ -2,7 +2,9 @@ import path from 'node:path'
 import type { SpyInstance, MockedFunction } from 'vitest'
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { Stage, Status, ContentType } from 'allure-js-commons'
-import reporter, {
+import { temporaryDirectory } from 'tempy'
+import { clean } from './helpers/wdio-allure-helper.js'
+import AllureReporter, {
     addEpic, addOwner, addSuite, addSubSuite, addParentSuite, addLink, addTag,
     addFeature, addLabel, addSeverity, addIssue, addTestId, addStory,
     addEnvironment, addDescription, addAttachment, startStep, endStep,
@@ -26,8 +28,9 @@ const fixtures = {
     }
 }
 
-describe('reporter reporter api', () => {
+describe('reporter api', () => {
     const processEmit = process.emit.bind(process)
+
     beforeEach(() => {
         process.emit = vi.fn() as any
     })
@@ -62,143 +65,143 @@ describe('reporter reporter api', () => {
     })
 
     it('should pass correct data from addEpic', () => {
-        reporter.addEpic('EpicName')
+        AllureReporter.addEpic('EpicName')
         expect(process.emit).toHaveBeenCalledTimes(1)
         expect(process.emit).toHaveBeenCalledWith(events.addEpic, { epicName: 'EpicName' })
     })
 
     it('should pass correct data from addOwner', () => {
-        reporter.addOwner('Owner')
+        AllureReporter.addOwner('Owner')
         expect(process.emit).toHaveBeenCalledTimes(1)
         expect(process.emit).toHaveBeenCalledWith(events.addOwner, { owner: 'Owner' })
     })
 
     it('should pass correct data from addSuite', () => {
-        reporter.addSuite('Suite')
+        AllureReporter.addSuite('Suite')
         expect(process.emit).toHaveBeenCalledTimes(1)
         expect(process.emit).toHaveBeenCalledWith(events.addSuite, { suiteName: 'Suite' })
     })
 
     it('should pass correct data from addSubSuite', () => {
-        reporter.addSubSuite('SubSuite')
+        AllureReporter.addSubSuite('SubSuite')
         expect(process.emit).toHaveBeenCalledTimes(1)
         expect(process.emit).toHaveBeenCalledWith(events.addSubSuite, { suiteName: 'SubSuite' })
     })
 
     it('should pass correct data from addParentSuite', () => {
-        reporter.addParentSuite('ParentSuite')
+        AllureReporter.addParentSuite('ParentSuite')
         expect(process.emit).toHaveBeenCalledTimes(1)
         expect(process.emit).toHaveBeenCalledWith(events.addParentSuite, { suiteName: 'ParentSuite' })
     })
 
     it('should pass correct data from addLink', () => {
-        reporter.addLink('http://example.org', 'LinkName', 'LinkType')
+        AllureReporter.addLink('http://example.org', 'LinkName', 'LinkType')
         expect(process.emit).toHaveBeenCalledTimes(1)
         expect(process.emit).toHaveBeenCalledWith(events.addLink, { name: 'LinkName', type: 'LinkType', url: 'http://example.org' })
     })
 
     it('should pass correct data from addTag', () => {
-        reporter.addTag('Tag')
+        AllureReporter.addTag('Tag')
         expect(process.emit).toHaveBeenCalledTimes(1)
         expect(process.emit).toHaveBeenCalledWith(events.addTag, { tag: 'Tag' })
     })
 
     it('should pass correct data from addLabel', () => {
-        reporter.addLabel('customLabel', 'Label')
+        AllureReporter.addLabel('customLabel', 'Label')
         expect(process.emit).toHaveBeenCalledTimes(1)
         expect(process.emit).toHaveBeenCalledWith(events.addLabel, { name: 'customLabel', value: 'Label' })
     })
 
     it('should pass correct data from addStory', () => {
-        reporter.addStory('Story')
+        AllureReporter.addStory('Story')
         expect(process.emit).toHaveBeenCalledTimes(1)
         expect(process.emit).toHaveBeenCalledWith(events.addStory, { storyName: 'Story' })
     })
 
     it('should pass correct data from addFeature', () => {
-        reporter.addFeature('foo')
+        AllureReporter.addFeature('foo')
         expect(process.emit).toHaveBeenCalledTimes(1)
         expect(process.emit).toHaveBeenCalledWith(events.addFeature, { featureName: 'foo' })
     })
 
     it('should pass correct data from addSeverity', () => {
-        reporter.addSeverity('foo')
+        AllureReporter.addSeverity('foo')
         expect(process.emit).toHaveBeenCalledTimes(1)
         expect(process.emit).toHaveBeenCalledWith(events.addSeverity, { severity: 'foo' })
     })
 
     it('should pass correct data from addIssue', () => {
-        reporter.addIssue('1')
+        AllureReporter.addIssue('1')
         expect(process.emit).toHaveBeenCalledTimes(1)
         expect(process.emit).toHaveBeenCalledWith(events.addIssue, { issue: '1' })
     })
 
     it('should pass correct data from addAllureId', () => {
-        reporter.addAllureId('1')
+        AllureReporter.addAllureId('1')
         expect(process.emit).toHaveBeenCalledTimes(1)
         expect(process.emit).toHaveBeenCalledWith(events.addAllureId, { id: '1' })
     })
 
     it('should pass correct data from addTestId', () => {
-        reporter.addTestId('2')
+        AllureReporter.addTestId('2')
         expect(process.emit).toHaveBeenCalledTimes(1)
         expect(process.emit).toHaveBeenCalledWith(events.addTestId, { testId: '2' })
     })
 
     it('should pass correct data from addEnvironment', () => {
-        reporter.addEnvironment('foo', 'bar')
+        AllureReporter.addEnvironment('foo', 'bar')
         expect(process.emit).toHaveBeenCalledTimes(1)
         expect(process.emit).toHaveBeenCalledWith(events.addEnvironment, { name: 'foo', value: 'bar' })
     })
 
     it('should pass correct data from addDescription', () => {
-        reporter.addDescription('foo', 'html')
+        AllureReporter.addDescription('foo', 'html')
         expect(process.emit).toHaveBeenCalledTimes(1)
         expect(process.emit).toHaveBeenCalledWith(events.addDescription, { description: 'foo', descriptionType: 'html' })
     })
 
     it('should pass correct data from addStep', () => {
-        reporter.addStep('foo', { name: 'bar', content: 'baz', type: 'text/plain' }, Status.FAILED )
+        AllureReporter.addStep('foo', { name: 'bar', content: 'baz', type: 'text/plain' }, Status.FAILED )
         expect(process.emit).toHaveBeenCalledTimes(1)
         const step = { 'step': { 'attachment': { 'content': 'baz', 'name': 'bar', 'type': 'text/plain' }, 'status': 'failed', 'title': 'foo' } }
         expect(process.emit).toHaveBeenCalledWith(events.addStep, step)
     })
 
     it('should support default attachment name for addStep', () => {
-        reporter.addStep('foo', { content: 'baz' }, Status.FAILED )
+        AllureReporter.addStep('foo', { content: 'baz' }, Status.FAILED )
         expect(process.emit).toHaveBeenCalledTimes(1)
         const step = { 'step': { 'attachment': { 'content': 'baz', 'name': 'attachment', 'type': 'text/plain' }, 'status': 'failed', 'title': 'foo' } }
         expect(process.emit).toHaveBeenCalledWith(events.addStep, step)
     })
 
     it('should support default attachment type for addStep', () => {
-        reporter.addStep('foo', { content: 'baz' })
+        AllureReporter.addStep('foo', { content: 'baz' })
         expect(process.emit).toHaveBeenCalledTimes(1)
         const step = { 'step': { 'attachment': { 'content': 'baz', 'name': 'attachment', 'type': 'text/plain' }, 'status': Status.PASSED, 'title': 'foo' } }
         expect(process.emit).toHaveBeenCalledWith(events.addStep, step)
     })
 
     it('should support start step', () => {
-        reporter.startStep('foo')
+        AllureReporter.startStep('foo')
         expect(process.emit).toHaveBeenCalledTimes(1)
         expect(process.emit).toHaveBeenCalledWith(events.startStep, 'foo')
     })
 
     it('should support end step', () => {
-        reporter.endStep(Status.PASSED)
+        AllureReporter.endStep(Status.PASSED)
         expect(process.emit).toHaveBeenCalledTimes(1)
         expect(process.emit).toHaveBeenCalledWith(events.endStep, Status.PASSED)
     })
 
     it('should support addStep without attachment', () => {
-        reporter.addStep('foo')
+        AllureReporter.addStep('foo')
         expect(process.emit).toHaveBeenCalledTimes(1)
         const step = { 'step': { 'status': Status.PASSED, 'title': 'foo' } }
         expect(process.emit).toHaveBeenCalledWith(events.addStep, step)
     })
 
     it('should support default step status for addStep', () => {
-        reporter.addStep('foo', { content: 'baz' } )
+        AllureReporter.addStep('foo', { content: 'baz' } )
         expect(process.emit).toHaveBeenCalledTimes(1)
         const step = { 'step': { 'attachment': { 'content': 'baz', 'name': 'attachment', 'type': 'text/plain' }, 'status': Status.PASSED, 'title': 'foo' } }
         expect(process.emit).toHaveBeenCalledWith(events.addStep, step)
@@ -206,25 +209,25 @@ describe('reporter reporter api', () => {
 
     it('should throw exception for incorrect status for addStep', () => {
         // @ts-expect-error invalid param
-        const cb = () => { reporter.addStep('foo', { content: 'baz' }, 'invalid-status')}
+        const cb = () => { AllureReporter.addStep('foo', { content: 'baz' }, 'invalid-status')}
         expect(cb).toThrowError('Step status must be failed or broken or passed or skipped. You tried to set "invalid-status"')
     })
 
     it('should throw exception for incorrect status for endStep', () => {
         // @ts-expect-error invalid param
-        const cb = () => { reporter.endStep('invalid-status') }
+        const cb = () => { AllureReporter.endStep('invalid-status') }
         expect(cb).toThrowError('Step status must be failed or broken or passed or skipped. You tried to set "invalid-status"')
     })
 
     it('should pass correct data from addArgument', () => {
-        reporter.addArgument('os', 'osx')
+        AllureReporter.addArgument('os', 'osx')
         expect(process.emit).toHaveBeenCalledTimes(1)
         expect(process.emit).toHaveBeenCalledWith(events.addArgument, { name: 'os', value: 'osx' })
     })
 
     describe('step', () => {
         it('should add custom step', async () => {
-            await reporter.step('custom step', (step) => {
+            await AllureReporter.step('custom step', (step) => {
                 step.label('foo', 'bar')
                 step.attach(JSON.stringify({ foo: 'bar' }), ContentType.JSON)
             })
@@ -279,7 +282,7 @@ describe('reporter reporter api', () => {
 
         scenarios.forEach(({ title, actualType, content, name, type }) => {
             it(title, () => {
-                reporter.addAttachment(name, content, actualType!)
+                AllureReporter.addAttachment(name, content, actualType!)
                 expect(process.emit).toBeCalledWith(events.addAttachment, { name, content, type })
             })
         })
@@ -287,7 +290,7 @@ describe('reporter reporter api', () => {
 })
 
 describe('event listeners', () => {
-    new reporter({})
+    new AllureReporter({})
 
     Object.values(events).forEach((eventName: any) => {
         it(`${eventName} should have listener defined`, () => {
@@ -297,11 +300,13 @@ describe('event listeners', () => {
 })
 
 describe('attachJSON', () => {
-    let reporterInstance: reporter
+    const outputDir = temporaryDirectory()
+    let reporterInstance: AllureReporter
     let writeAttachmentSpy: SpyInstance
 
     beforeEach(() => {
-        reporterInstance = new reporter({})
+        clean(outputDir)
+        reporterInstance = new AllureReporter({ outputDir })
         writeAttachmentSpy = vi.spyOn(reporterInstance['_allure'], 'writeAttachment')
         reporterInstance.onTestStart({
             uid: '1',
@@ -338,11 +343,13 @@ describe('attachJSON', () => {
 })
 
 describe('attachScreenshot', () => {
-    let reporterInstance: reporter
+    const outputDir = temporaryDirectory()
+    let reporterInstance: AllureReporter
     let writeAttachmentSpy: SpyInstance
 
     beforeEach(() => {
-        reporterInstance = new reporter({})
+        clean(outputDir)
+        reporterInstance = new AllureReporter({ outputDir })
         writeAttachmentSpy = vi.spyOn(reporterInstance['_allure'], 'writeAttachment')
         reporterInstance.onTestStart({
             uid: '1',
@@ -367,12 +374,18 @@ describe('attachScreenshot', () => {
 })
 
 describe('attachLogs', () => {
-    let reporterInstance: reporter
+    const outputDir = temporaryDirectory()
+    let reporterInstance: AllureReporter
     let writeAttachmentSpy: SpyInstance
 
+    beforeEach(() => {
+        clean(outputDir)
+    })
+
     it('doesn\'t write console logs when they\'re disabled', () => {
-        reporterInstance = new reporter({
-            addConsoleLogs: false
+        reporterInstance = new AllureReporter({
+            addConsoleLogs: false,
+            outputDir,
         })
         writeAttachmentSpy = vi.spyOn(reporterInstance['_allure'], 'writeAttachment')
 
@@ -384,8 +397,9 @@ describe('attachLogs', () => {
     })
 
     it('writes console logs as text file when they\'re enabled', () => {
-        reporterInstance = new reporter({
-            addConsoleLogs: true
+        reporterInstance = new AllureReporter({
+            addConsoleLogs: true,
+            outputDir,
         })
         writeAttachmentSpy = vi.spyOn(reporterInstance['_allure'], 'writeAttachment')
 

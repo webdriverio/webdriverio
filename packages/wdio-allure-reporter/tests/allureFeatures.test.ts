@@ -514,7 +514,7 @@ describe('reporter runtime implementation', () => {
         })
     })
 
-    describe.only('add allure step', () => {
+    describe('add allure step', () => {
         it('should add labels from custom steps', () => {
             const reporter = new AllureReporter({ outputDir })
 

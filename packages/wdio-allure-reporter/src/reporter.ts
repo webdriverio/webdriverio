@@ -835,7 +835,6 @@ export default class AllureReporter extends WDIOReporter {
         this.currentTest.addParameter(name, value)
     }
 
-    // TODO:
     addAllureStep(metadata: MetadataMessage) {
         const {
             attachments = [],
