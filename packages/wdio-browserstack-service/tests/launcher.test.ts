@@ -595,6 +595,24 @@ describe('_updateCaps', () => {
         expect(caps[0]['bstack:options']['buildIdentifier']).toEqual('#1')
     })
 
+    it('should update buildidentifier in caps object if bstack:options is present', () => {
+        const options: BrowserstackConfig = { browserstackLocal: true }
+        const caps = { chromeBrowser: { capabilities: { 'goog:chromeOptions': {}, 'bstack:options': { buildIdentifier: '123' } } } }
+        const service = new BrowserstackLauncher(options, caps, config)
+
+        service._updateCaps(caps, 'buildIdentifier', '#1')
+        expect(caps.chromeBrowser.capabilities['bstack:options']).toEqual({ 'wdioService': bstackServiceVersion, buildIdentifier: '#1' })
+    })
+
+    it('should update buildidentifier in caps object if bstack:options is not present', () => {
+        const options: BrowserstackConfig = { browserstackLocal: true }
+        const caps = { chromeBrowser: { capabilities: {} } }
+        const service = new BrowserstackLauncher(options, caps, config)
+
+        service._updateCaps(caps, 'buildIdentifier', '#1')
+        expect(caps.chromeBrowser.capabilities).toEqual({ 'browserstack.wdioService': bstackServiceVersion, 'browserstack.buildIdentifier': '#1' })
+    })
+
     it('should delete buildidentifier in caps array if value not passed in _updateCaps', () => {
         const options: BrowserstackConfig = { browserstackLocal: true }
         const caps = [{ 'bstack:options': { buildIdentifier: '1234' } }]

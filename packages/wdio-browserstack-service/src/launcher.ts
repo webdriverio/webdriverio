@@ -43,12 +43,10 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                     const extensionCaps = Object.keys(capability).filter((cap) => cap.includes(':'))
                     if (extensionCaps.length) {
                         capability['bstack:options'] = { wdioService: bstackServiceVersion }
-                    } else {
-                        if (shouldAddServiceVersion(this._config, this._options.testObservability)) {
-                            capability['browserstack.wdioService'] = bstackServiceVersion
-                        }
-                        this._buildIdentifier = capability['browserstack.buildIdentifier']
+                    } else if (shouldAddServiceVersion(this._config, this._options.testObservability)) {
+                        capability['browserstack.wdioService'] = bstackServiceVersion
                     }
+                    this._buildIdentifier = capability['browserstack.buildIdentifier']
                 } else {
                     capability['bstack:options'].wdioService = bstackServiceVersion
                     this._buildName = capability['bstack:options'].buildName
@@ -63,12 +61,10 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                     const extensionCaps = Object.keys(caps.capabilities).filter((cap) => cap.includes(':'))
                     if (extensionCaps.length) {
                         (caps.capabilities as Capabilities.Capabilities)['bstack:options'] = { wdioService: bstackServiceVersion }
-                    } else {
-                        if (shouldAddServiceVersion(this._config, this._options.testObservability)) {
-                            (caps.capabilities as Capabilities.Capabilities)['browserstack.wdioService'] = bstackServiceVersion
-                        }
-                        this._buildIdentifier = (caps.capabilities as Capabilities.Capabilities)['browserstack.buildIdentifier']
+                    } else if (shouldAddServiceVersion(this._config, this._options.testObservability)) {
+                        (caps.capabilities as Capabilities.Capabilities)['browserstack.wdioService'] = bstackServiceVersion
                     }
+                    this._buildIdentifier = (caps.capabilities as Capabilities.Capabilities)['browserstack.buildIdentifier']
                 } else {
                     const bstackOptions = (caps.capabilities as Capabilities.Capabilities)['bstack:options']
                     bstackOptions!.wdioService = bstackServiceVersion
