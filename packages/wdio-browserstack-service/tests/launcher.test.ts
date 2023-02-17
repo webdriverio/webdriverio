@@ -350,6 +350,17 @@ describe('onPrepare', () => {
         ])
     })
 
+    it('should add the "localIdentifier" property to a multiremote capability inside "bstack:options" if any extension cap present', async () => {
+        const service = new BrowserstackLauncher({
+            browserstackLocal: true,
+            opts: { localIdentifier: 'wdio1' }
+        }, caps, config)
+        const capabilities = { chromeBrowser: { capabilities: { 'goog:chromeOptions': {} } } }
+
+        await service.onPrepare(config, capabilities)
+        expect(capabilities.chromeBrowser.capabilities).toEqual({ 'bstack:options': { local: true, localIdentifier: 'wdio1' }, 'goog:chromeOptions': {} })
+    })
+
     it('should add the "buildIdentifier" property to a multiremote capability inside "bstack:options" if "bstack:options" present', async () => {
         const caps: any = { chromeBrowser: { capabilities: { 'bstack:options': { buildName: 'browserstack wdio build', buildIdentifier: '#${BUILD_NUMBER}' } } } }
         const service = new BrowserstackLauncher({}, caps, config)
@@ -563,7 +574,7 @@ describe('_updateCaps', () => {
         const options: BrowserstackConfig = { browserstackLocal: true, opts: { localIdentifier: 'wdio1' } }
         const service = new BrowserstackLauncher(options, caps, config)
 
-        service._updateCaps(caps, 'local', 'true', 'wdio1')
+        service._updateCaps(caps, 'localIdentifier', 'wdio1')
         expect(caps[0]['browserstack.localIdentifier']).toContain('wdio1')
     })
 
