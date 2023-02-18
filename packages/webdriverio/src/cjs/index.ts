@@ -2,6 +2,12 @@ import type { Options, Capabilities } from '@wdio/types'
 import type * as WebDriverTypes from 'webdriver'
 import type { AttachOptions } from '../types.js'
 
+import SevereServiceError from '../utils/SevereServiceError.js'
+import { Key } from '../constants.js'
+
+exports.SevereServiceError = SevereServiceError
+exports.Key = Key
+
 export type RemoteOptions = Options.WebdriverIO & Omit<Options.Testrunner, 'capabilities' | 'rootDir'>
 
 /**
