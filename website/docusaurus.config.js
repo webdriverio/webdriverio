@@ -110,7 +110,7 @@ module.exports = {
                     href: 'https://stackoverflow.com/questions/tagged/webdriver-io',
                 }, {
                     label: 'Support Chat',
-                    href: `https://gitter.im/${organizationName}/${projectName}`,
+                    href: 'https://matrix.to/#/#webdriver.io:gitter.im',
                 }, {
                     label: 'Slack',
                     href: 'https://seleniumhq.slack.com/join/shared_invite/zt-f7jwg1n7-RVw4v4sMA7Zjufira_~EVw#/'

@@ -20,7 +20,7 @@ With that, the project offers not only the ability of automating user agents usi
 - automated debugging in the browser (e.g. using the [Chrome DevTools Protocol](https://chromedevtools.github.io/devtools-protocol/))
 - scraping of websites
 - providing technical content and best practices in form of [boilerplates](https://webdriver.io/) and [blog posts](https://webdriver.io/blog/)
-- providing technical help in form of a [community channel](https://gitter.im/webdriverio/webdriverio)
+- providing technical help in form of a [community channel](https://matrix.to/#/#webdriver.io:gitter.im)
 
 ### 1.2: Out-of-Scope
 
@@ -59,7 +59,7 @@ Leadership roles in the WebdriverIO project will be peer elected representatives
 
 The WebdriverIO git repository is maintained by the TSC and additional Collaborators who are added by the TSC on an ongoing basis.
 
-Individuals making significant and valuable contributions, “Contributor(s)”, are made Collaborators and given commit-access to the project. These individuals are identified by the TSC and their addition as Collaborators is discussed in the TSC Gitter channel. Modifications of the contents of the git repository are made on a collaborative basis as defined in the development process.
+Individuals making significant and valuable contributions, “Contributor(s)”, are made Collaborators and given commit-access to the project. These individuals are identified by the TSC and their addition as Collaborators is discussed in the TSC Matrix channel. Modifications of the contents of the git repository are made on a collaborative basis as defined in the development process.
 
 Collaborators may opt to elevate significant or controversial modifications, or modifications that have not found consensus to the TSC for discussion. The TSC should serve as the final arbiter where required. The TSC will maintain and publish a list of current Collaborators, as well as a development process guide for Collaborators and Contributors looking to participate in the development effort.
 
@@ -68,5 +68,4 @@ Collaborators may opt to elevate significant or controversial modifications, or 
 Definitions on `Collaborators` and `TSC` can be found in the [Governance](/GOVERNANCE.md) document.
 
 * **Contributors**: contribute code or other artifacts, but do not have the right to commit to the code base. Contributors work with the project’s Collaborators to have code committed to the code base. A Contributor may be promoted to a Collaborator by the TSC. Contributors should rarely be encumbered by the TSC and never by the CPC or OpenJS Foundation Board.
-
 * **Project**: a technical collaboration effort, e.g. a subsystem, that is organized through the project creation process and approved by the TSC.
