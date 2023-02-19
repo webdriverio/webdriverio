@@ -21,6 +21,20 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.3.10 (2023-02-19)
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#9775](https://github.com/webdriverio/webdriverio/pull/9775) Have same exports for webdriverio cjs and esm module ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* `wdio-cli`
+  * [#9776](https://github.com/webdriverio/webdriverio/pull/9776) RIP Gitter, welcome to the Matrix ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
 ## v8.3.9 (2023-02-15)
 
 #### :nail_care: Polish
