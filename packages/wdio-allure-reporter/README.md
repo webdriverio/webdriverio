@@ -85,7 +85,7 @@ export const config = {
     * `title` (*String*) - name of the step.
 * `endStep(status)` - end with a step
     * `status` (*String*, optional) - step status, `passed` by default. Must be "failed", "passed" or "broken"
-* `step(name, body)` - starts step with content function inside. Allows to create steps with infitite ierarchy
+* `step(name, body)` - starts step with content function inside. Allows to create steps with infinite hierarchy
     * `body` (*Function*) - the step body async function
 
 ### Usage
