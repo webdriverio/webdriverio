@@ -58,7 +58,7 @@ import { KeyAction, PointerAction, WheelAction } from '../../utils/actions/index
  * specified when invoking the `action` command, e.g.:
  *
  * ```ts
- * browser.action('pointer'. {
+ * browser.action('pointer', {
  *     parameters: { pointerType: 'mouse' } // "mouse" is default value, also possible: "pen" or "touch"
  * })
  * ```
