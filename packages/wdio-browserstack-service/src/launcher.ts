@@ -386,6 +386,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         if (!this._buildName || process.env.BROWSERSTACK_BUILD_NAME) {
             if (this._buildIdentifier) {
                 this._updateCaps(capabilities, 'buildIdentifier')
+                log.warn('Skipping buildIdentifier as buildName is not passed.')
                 return
             }
         }
