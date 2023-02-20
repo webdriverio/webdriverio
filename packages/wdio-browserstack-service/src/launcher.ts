@@ -89,6 +89,10 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         ) {
             this._config.specs = process.env.BROWSERSTACK_RERUN_TESTS.split(',')
         }
+
+        if (this._options.buildIdentifier) {
+            this._buildIdentifier = this._options.buildIdentifier
+        }
     }
 
     async onPrepare (config?: Options.Testrunner, capabilities?: Capabilities.RemoteCapabilities) {
