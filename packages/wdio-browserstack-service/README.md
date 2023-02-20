@@ -184,7 +184,7 @@ Default: `true`
 **buildIdentifier** is a unique id to differentiate every execution that gets appended to
 buildName. Choose your buildIdentifier format from the available expressions:
 
-* ${BUILD_NUMBER} (Default): Generates an incremental counter with every execution
+* ${BUILD_NUMBER}: Generates an incremental counter with every execution
 * ${DATE_TIME}: Generates a Timestamp with every execution. Eg. 05-Nov-19:30
 
 ```js
