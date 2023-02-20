@@ -120,8 +120,7 @@ Because you created a clean project you can now easily do the following:
 And you're done, time to party.
 
 # Support
-If you need support you can find us on the `WebdriverIO`- Gitter channel by clicking on this link [![Gitter chat](https://badges.gitter.im/webdriverio/webdriverio.svg)](https://gitter.im/webdriverio/webdriverio "Gitter chat").
-When you ask for support we only have 1 question for you, please provide us a detailed description of your issue, what you already did and so on. Otherwise you ask us to find a needle in a haystack and trust me, that will be very hard for us.
+If you need support you can find help in the community [Matrix](https://matrix.to/#/#webdriver.io:gitter.im) channel. When you ask for support we only have 1 question for you, please provide us a detailed description of your issue, what you already did and so on. Otherwise you ask us to find a needle in a haystack and trust me, that will be very hard for us.
 
 Happy testing!
 

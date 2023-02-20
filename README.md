@@ -20,8 +20,8 @@
     <a href="https://bestpractices.coreinfrastructure.org/en/projects/5589">
         <img alt="OpenSSF Best Practices" src="https://bestpractices.coreinfrastructure.org/projects/5589/badge">
     </a>
-    <a href="https://gitter.im/webdriverio/webdriverio">
-        <img alt="Gitter" src="https://badges.gitter.im/webdriverio/webdriverio.svg">
+    <a href="https://matrix.to/#/#webdriver.io:gitter.im">
+        <img alt="Support Channel" src="https://img.shields.io/badge/Join-on%20Matrix-4FB898">
     </a>
     <a href="https://github.com/webdriverio/webdriverio/issues?q=is%3Aissue+is%3Aopen+sort%3Aupdated-desc">
         <img alt="Issue Resolution time" src="http://isitmaintained.com/badge/resolution/webdriverio/webdriverio.svg">
@@ -53,7 +53,7 @@ Do you like WebdriverIO and want to help make it better? Awesome! Have a look in
 
 to get a ready-to-use development environment for you to start working on this code base.
 
-If you're looking for issues to help out with, check out [the issues labeled "good first pick"](https://github.com/webdriverio/webdriverio/issues?q=is%3Aopen+is%3Aissue+label%3A"good+first+pick"). You can also reach out to our [Gitter Channel](https://gitter.im/webdriverio/webdriverio) if you have questions on where to start contributing.
+If you're looking for issues to help out with, check out [the issues labeled "good first pick"](https://github.com/webdriverio/webdriverio/issues?q=is%3Aopen+is%3Aissue+label%3A"good+first+pick"). You can also reach out to our [Matrix Channel](https://matrix.to/#/#webdriver.io:gitter.im) if you have questions on where to start contributing.
 
 ## :office: WebdriverIO for Enterprise
 

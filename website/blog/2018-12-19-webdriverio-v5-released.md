@@ -32,7 +32,7 @@ Looking into the history of the project, it is humbling to see how much it has b
 
 The next step was to implement a technical infrastructure that would allow the project to grow. By reviewing other successful open source projects such as e.g. [Jest](https://jestjs.io/) or [Babel](https://babeljs.io/), we adapted a monolithic project structure to simplify the process of contributing to WebdriverIO.<br />
 <br />
-We wanted to start this effort completely community driven, and began to gather [feedback](https://github.com/webdriverio/webdriverio/issues/2403) from everyone who was using WebdriverIO on daily basis. We created a [Gitter channel](https://gitter.im/webdriverio/webdriverio) in order to discuss architectural changes, and to organize the work of porting the packages into the new tech stack that was [Lerna](https://lernajs.io/).
+We wanted to start this effort completely community driven, and began to gather [feedback](https://github.com/webdriverio/webdriverio/issues/2403) from everyone who was using WebdriverIO on daily basis. We created a [Matrix channel](https://matrix.to/#/#webdriver.io:gitter.im) in order to discuss architectural changes, and to organize the work of porting the packages into the new tech stack that was [Lerna](https://lernajs.io/).
 
 ## New Package Structure
 
@@ -71,7 +71,7 @@ We are still in the process of finalizing this effort, as we want to continue pr
 
 There are significantly more things that we have been working on over the last year that you might like to read about. Check out the official [changelog](https://github.com/webdriverio/webdriverio/blob/main/CHANGELOG.md#v500-2018-12-20) to find all of the changes that describe the new version. We will probably continue to update this over time, as we weren't able to keep a list of every detail that changed. We would also like to ask you to have a look into the new [guide section](https://webdriver.io/docs/gettingstarted.html) and our updated docs in general.<br />
 <br />
-There is unfortunately no easy upgrade tool that you can download and run to update your test suites from v4 to v5 (even though we would love to have such a thing, PRs are welcome 😉). If you run into any issues upgrading to v5 please join our support [![Gitter](https://badges.gitter.im/webdriverio/webdriverio.svg)](https://gitter.im/webdriverio/webdriverio?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) and reach out to us.<br />
+There is unfortunately no easy upgrade tool that you can download and run to update your test suites from v4 to v5 (even though we would love to have such a thing, PRs are welcome 😉). If you run into any issues upgrading to v5 please join our support [![Matrix](https://img.shields.io/badge/Join-on%20Matrix-4FB898)](https://matrix.to/#/#webdriver.io:gitter.im) and reach out to us.<br />
 <br />
 Every project is different, so it is impossible to have one single guide for everyone. However, the following step by step description will help you get closer to where you need to be:<br />
 <br />
@@ -89,7 +89,7 @@ Every project is different, so it is impossible to have one single guide for eve
 - repeat on your remaining test files
 - add reporters and services back into your `wdio.conf.js`, and see if they work as expected (__Note:__ it is possible that services or reporters that you have used aren't ported to v5 yet, if so, please raise an issue in the repository of that community package or try to port it)
 
-<br />If you have issues porting your test suite, check the issues thread to see if someone has already reported the same problem; and then reach out to us on our gitter channel. We may have missed porting / not yet ported a functionality that you have been using in your test. Thanks to the new project structure, we can quickly fix this and provide an update version for you!<br />
+<br />If you have issues porting your test suite, check the issues thread to see if someone has already reported the same problem; and then reach out to us on our Matrix channel. We may have missed porting / not yet ported a functionality that you have been using in your test. Thanks to the new project structure, we can quickly fix this and provide an update version for you!<br />
 <br />
 We will release further blog articles in our new blog with tutorials on how to upgrade WebdriverIO to v5 soon. You can also checkout the excellent [video series](https://www.youtube.com/watch?v=MO8xeC-w2Og&list=PL8HowI-L-3_9Ep7lxVrRDF-az5ku4sur_) from our beloved [Will Brock](https://twitter.com/willbrock) on the new release. An update to the [WebdriverIO Learning Course](https://learn.webdriver.io/) is also already in work.
 
