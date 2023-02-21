@@ -69,6 +69,13 @@ describe('FileSystemPathService', () => {
             expect(svc.glob('./examples/wdio/mocha/[test].js', '/foo/bar'))
                 .toEqual([path.resolve('/foo', 'bar', 'examples', 'wdio', 'mocha', '[test].js')])
         })
+        it('should return glob if pattern does not contains []', function () {
+            vi.mocked(glob.sync).mockReturnValue(['C:\\foo\\bar\\examples\\wdio\\mocha\\test.js'])
+            vi.mocked(fs.existsSync).mockReturnValue(true)
+            const svc = new FileSystemPathService()
+            expect(svc.glob('./examples/wdio/mocha/[test].js', '/foo/bar'))
+                .toEqual([path.resolve('/foo', 'bar', 'examples', 'wdio', 'mocha', 'test.js')])
+        })
     })
 
     describe('loadFile', function () {

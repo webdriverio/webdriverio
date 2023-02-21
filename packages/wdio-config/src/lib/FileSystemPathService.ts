@@ -34,12 +34,9 @@ export default class FileSystemPathService implements PathService {
         /**
          * given that glob treats characters like `[` or `{` in a special way
          * and we also want to be able to find files with these characters included
-         * we add an additional check to see if the file as pattern exists.
-         * add file to globResult only if filename doesn't include pattern(*)
-         * and globResult doest contain the fileName
-         * and file should be available
+         * we add an additional check to see if globResult array length is equal to 0.
          */
-        if (!pattern.includes('*') && globResult.includes(fileName) && fs.existsSync(fileName)) {
+        if (globResult.length === 0 && fs.existsSync(fileName)) {
             globResult.push(fileName)
         }
         return globResult
