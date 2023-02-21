@@ -9,7 +9,7 @@ import { serializeError } from 'serialize-error'
 import { executeHooksWithArgs } from '@wdio/utils'
 import type { ViteDevServer, InlineConfig } from 'vite'
 import { createServer } from 'vite'
-import istanbulPlugin, { type IstanbulPluginOptions } from 'vite-plugin-istanbul'
+import istanbulPlugin from 'vite-plugin-istanbul'
 import type { Services, Options } from '@wdio/types'
 
 import { testrunner } from './plugins/testrunner.js'
@@ -59,10 +59,11 @@ export class ViteServer extends EventEmitter {
 
         if (options.coverage && options.coverage.enabled) {
             log.info('Capturing test coverage enabled')
-            this.#viteConfig.plugins?.push(istanbulPlugin(<IstanbulPluginOptions>{
+            this.#viteConfig.plugins?.push(istanbulPlugin({
                 cwd: config.rootDir,
                 include: DEFAULT_INCLUDE,
                 extension: DEFAULT_FILE_EXTENSIONS,
+                forceBuildInstrument: true,
                 ...options.coverage
             }))
         }
