@@ -1,4 +1,4 @@
-import type { ElementHandle } from 'puppeteer-core/lib/esm/puppeteer/common/ElementHandle.js'
+import type { ElementHandle } from 'puppeteer-core/lib/esm/puppeteer/api/ElementHandle.js'
 import type { Frame } from 'puppeteer-core/lib/esm/puppeteer/common/Frame.js'
 
 export default class ElementStore {

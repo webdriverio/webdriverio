@@ -2,9 +2,8 @@ import Timer from '../../utils/Timer.js'
 import type { WaitUntilOptions } from '../../types.js'
 
 /**
- *
  * This wait command is your universal weapon if you want to wait on something. It expects a condition
- * and waits until that condition is fulfilled with a truthy value.
+ * and waits until that condition is fulfilled with a truthy value to be returned.
  *
  * A common example is to wait until a certain element contains a certain text (see example).
  *
@@ -31,7 +30,7 @@ import type { WaitUntilOptions } from '../../types.js'
  *
  *
  * @alias browser.waitUntil
- * @param {Function#Boolean}  condition  condition to wait on
+ * @param {Function}          condition  condition to wait on until returning a truthy value
  * @param {WaitUntilOptions=} options    command options
  * @param {Number=}           options.timeout     timeout in ms (default: 5000)
  * @param {String=}           options.timeoutMsg  error message to throw when waitUntil times out
@@ -41,15 +40,15 @@ import type { WaitUntilOptions } from '../../types.js'
  * @type utility
  *
  */
-export function waitUntil(
+export function waitUntil<ReturnValue>(
     this: WebdriverIO.Browser | WebdriverIO.Element,
-    condition: () => boolean | Promise<boolean>,
+    condition: () => ReturnValue | Promise<ReturnValue>,
     {
         timeout = this.options.waitforTimeout,
         interval = this.options.waitforInterval,
         timeoutMsg
     }: Partial<WaitUntilOptions> = {}
-): Promise<true | void> {
+): Promise<Exclude<ReturnValue, boolean>> {
     if (typeof condition !== 'function') {
         throw new Error('Condition is not a function')
     }

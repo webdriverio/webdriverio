@@ -21,7 +21,7 @@ Stack Overflow is a popular forum to ask code-level questions or if you’re stu
 There are many online forums which are a great place for discussion about WebdriverIO features, problems and bugs, e.g.:
 
 - [GitHub Discussions](https://github.com/webdriverio/webdriverio/discussions)
-- [Community Channel](https://gitter.im/webdriverio/webdriverio)
+- [Community Channel](https://matrix.to/#/#webdriver.io:gitter.im)
 - [#webdriverio Channel on SeleniumHQ Slack](https://join.slack.com/t/seleniumhq/shared_invite/zt-vv33sc0w-VKKQop3WDV_lfrLXGGHvDw)
 
 ## News

@@ -46,7 +46,7 @@ export const features = [{
     title: 'Committed Community',
     description: (
         <>
-            Running a <a href="https://gitter.im/webdriverio/webdriverio">support channel</a> with over 8k members and a rich ecosystem of community maintained plugins.
+            Running a <a href="https://matrix.to/#/#webdriver.io:gitter.im">support channel</a> with over 8k members and a rich ecosystem of community maintained plugins.
         </>
     ),
 }]

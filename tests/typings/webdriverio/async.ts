@@ -123,7 +123,7 @@ async function bar() {
     await browser.createWindow('window')
 
     const waitUntil = await browser.waitUntil(
-        () => Promise.resolve(true),
+        () => Promise.resolve(true as const),
         {
             timeout: 1,
             timeoutMsg: '',
@@ -131,6 +131,14 @@ async function bar() {
         }
     )
     expectType<true | void>(waitUntil)
+    const waitUntilElems = await browser.waitUntil(async () => {
+        const elems = await $$('elems')
+        if (elems.length < 2) {
+            return false
+        }
+        return elems
+    })
+    expectType<WebdriverIO.ElementArray>(waitUntilElems)
 
     await browser.getCookies()
     await browser.getCookies('foobar')
@@ -277,6 +285,10 @@ async function bar() {
     // element custom command
     const el2result = await el3.elementCustomCommand(4)
     expectType<number>(el2result)
+
+    // chainable promise element custom command
+    const elcResult = await $('foo').$('bar').elementCustomCommand(4)
+    expectType<number>(elcResult)
 
     // $$
     const elems = await $$('')

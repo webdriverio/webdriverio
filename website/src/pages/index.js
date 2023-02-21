@@ -105,7 +105,7 @@ function Home() {
                                 <a href="/docs/component-testing/vue" className={styles.frameworkLogos}><img src="/img/icons/vue.png" alt="Vue.js" /></a>
                                 <a href="/docs/component-testing/svelte" className={styles.frameworkLogos}><img src="/img/icons/svelte.png" alt="Svelte" /></a>
                                 <a href="/docs/component-testing/preact" className={styles.frameworkLogos}><img src="/img/icons/preact.png" alt="Preact" /></a>
-                                <a href="/docs/component-testing/solid" className={styles.frameworkLogos}><img src="https://www.solidjs.com/assets/logo.123b04bc.svg" alt="SolidJS" /></a>
+                                <a href="/docs/component-testing/solid" className={styles.frameworkLogos}><img src="/img/icons/solidjs.svg" alt="SolidJS" /></a>
                                 <a href="/docs/component-testing/lit" className={styles.frameworkLogos}><img src="/img/icons/lit.svg" alt="Lit" /></a>
                             </div>
                         </>
