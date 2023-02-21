@@ -1,9 +1,10 @@
 import { describe, it, expect, afterEach, beforeAll, vi } from 'vitest'
+import type { CommandArgs } from '@wdio/type'
 import process from 'node:process'
 import { Status } from 'allure-js-commons'
 import CompoundError from '../src/compoundError.js'
 import {
-    getTestStatus, isEmpty, isMochaEachHooks, getErrorFromFailedTest, isMochaAllHooks, getLinkByTemplate, findLast,
+    getTestStatus, isEmpty, isMochaEachHooks, getErrorFromFailedTest, isMochaAllHooks, getLinkByTemplate, findLast, isScreenshotCommand,
 } from '../src/utils.js'
 import { linkPlaceholder } from '../src/constants.js'
 
@@ -16,6 +17,17 @@ describe('utils', () => {
 
     afterEach(() => {
         process.emit = processEmit
+    })
+
+    describe('isScreenshotCommand', () => {
+        it('isScreenshotCommand', () => {
+            expect(isScreenshotCommand({ endpoint: '/session/id/screenshot' } as CommandArgs)).toEqual(true)
+            expect(isScreenshotCommand({ endpoint: '/wdu/hub/session/id/screenshot' } as CommandArgs)).toEqual(true)
+            expect(isScreenshotCommand({ endpoint: '/session/id/click' } as CommandArgs)).toEqual(false)
+            expect(isScreenshotCommand({ command: 'takeScreenshot' } as CommandArgs)).toEqual(true)
+            expect(isScreenshotCommand({ command: 'elementClick' } as CommandArgs)).toEqual(false)
+            expect(isScreenshotCommand({ endpoint: '/session/id/element/id/screenshot' } as CommandArgs)).toEqual(true)
+        })
     })
 
     describe('getTestStatus', () => {

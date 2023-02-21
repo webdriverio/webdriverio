@@ -1,6 +1,6 @@
 import path from 'node:path'
 import { describe, it, expect, beforeEach, vi, beforeAll, afterAll } from 'vitest'
-import type { CommandArgs, HookStats } from '@wdio/types'
+import type { HookStats } from '@wdio/types'
 import type { Parameter, Label, Link } from 'allure-js-commons'
 import { Stage, Status, LabelName, LinkType, ContentType } from 'allure-js-commons'
 import AllureReporter from '../src/reporter.js'
@@ -665,17 +665,6 @@ describe('auxiliary methods', () => {
 
     beforeEach(() => {
         clean(outputDir)
-    })
-
-    it('isScreenshotCommand', () => {
-        const reporter = new AllureReporter()
-
-        expect(reporter.isScreenshotCommand({ endpoint: '/session/id/screenshot' } as CommandArgs)).toEqual(true)
-        expect(reporter.isScreenshotCommand({ endpoint: '/wdu/hub/session/id/screenshot' } as CommandArgs)).toEqual(true)
-        expect(reporter.isScreenshotCommand({ endpoint: '/session/id/click' } as CommandArgs)).toEqual(false)
-        expect(reporter.isScreenshotCommand({ command: 'takeScreenshot' } as CommandArgs)).toEqual(true)
-        expect(reporter.isScreenshotCommand({ command: 'elementClick' } as CommandArgs)).toEqual(false)
-        expect(reporter.isScreenshotCommand({ endpoint: '/session/id/element/id/screenshot' } as CommandArgs)).toEqual(true)
     })
 
     it('should populate the correct deviceName', () => {
