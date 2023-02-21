@@ -133,7 +133,7 @@ The first argument of the function is the current step, that has most of the all
 allureReporter.step('my step name', async (s1) => {
     s1.label('foo', 'bar')
     await s1.step('my child step name', async (s2) => {
-        // you ca
+        // you can add any combination of steps in the body function
     })
 })
 ```

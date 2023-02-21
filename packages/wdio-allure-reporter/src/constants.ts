@@ -20,7 +20,7 @@ export const events = {
     endStep: 'allure:endStep',
     addStep: 'allure:addStep',
     addArgument: 'allure:addArgument',
-    addAllureStep: 'allure:addAllureStep',
+    addAllureStep: 'allure:addAllureStep'
 } as const
 
 export const mochaEachHooks = ['"before each" hook', '"after each" hook'] as const

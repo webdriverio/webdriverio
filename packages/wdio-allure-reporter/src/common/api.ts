@@ -242,5 +242,5 @@ export async function step(name: string, body: StepBodyFunction) {
 
 export default {
     addFeature, addAllureId, addLabel, addSeverity, addIssue, addTestId, addStory, addEnvironment,
-    addDescription, addAttachment, startStep, endStep, addStep, addArgument
+    addDescription, addAttachment, startStep, endStep, addStep, addArgument, step,
 }

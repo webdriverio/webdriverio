@@ -201,9 +201,11 @@ describe('Failed tests', () => {
         reporter.onRunnerEnd(runnerEnd())
 
         const { results } = getResults(outputDir)
-        const browserParameter = results[0].parameters.find((param: Parameter) => param.name === 'browser')
 
         expect(results).toHaveLength(1)
+
+        const browserParameter = results[0].parameters.find((param: Parameter) => param.name === 'browser')
+
         expect(results[0].name).toEqual('should can do something')
         expect(results[0].status).toEqual(Status.FAILED)
         expect(results[0].parameters).toHaveLength(1)
@@ -534,12 +536,14 @@ for (const protocol of ['webdriver', 'devtools']) {
             reporter.onRunnerEnd(runnerEnd())
 
             const { results } = getResults(outputDir)
+
+            expect(results).toHaveLength(1)
+            expect(results[0].steps).toHaveLength(1)
+
             const responseAttachments = results[0].steps[0].attachments.filter(
                 (attachment: Attachment) => attachment.name === 'Response'
             )
 
-            expect(results).toHaveLength(1)
-            expect(results[0].steps).toHaveLength(1)
             expect(results[0].steps[0].name).toEqual(assertionResults[protocol].commandTitle)
             expect(responseAttachments).toHaveLength(1)
             expect(results[0].steps[0].status).toEqual(Status.PASSED)
@@ -567,12 +571,14 @@ for (const protocol of ['webdriver', 'devtools']) {
             reporter.onRunnerEnd(runnerEnd())
 
             const { results } = getResults(outputDir)
+
+            expect(results).toHaveLength(1)
+            expect(results[0].steps).toHaveLength(1)
+
             const requestAttachments = results[0].steps[0].attachments.filter(
                 (attachment: Attachment) => attachment.name === 'Request'
             )
 
-            expect(results).toHaveLength(1)
-            expect(results[0].steps).toHaveLength(1)
             expect(results[0].steps[0].name).toEqual(assertionResults[protocol].commandTitle)
             expect(results[0].steps[0].status).toEqual(Status.PASSED)
             expect(requestAttachments).toHaveLength(0)
@@ -595,12 +601,14 @@ for (const protocol of ['webdriver', 'devtools']) {
             reporter.onRunnerEnd(runnerEnd())
 
             const { results } = getResults(outputDir)
+
+            expect(results).toHaveLength(1)
+            expect(results[0].steps).toHaveLength(1)
+
             const screenshotAttachments = results[0].steps[0].attachments.filter(
                 (attachment: Attachment) => attachment.name === 'Screenshot'
             )
 
-            expect(results).toHaveLength(1)
-            expect(results[0].steps).toHaveLength(1)
             expect(results[0].steps[0].name).toEqual(assertionResults[protocol].screenshotTitle)
             expect(results[0].steps[0].status).toEqual(Status.PASSED)
             expect(screenshotAttachments).toHaveLength(1)
@@ -624,12 +632,14 @@ for (const protocol of ['webdriver', 'devtools']) {
             reporter.onRunnerEnd(runnerEnd())
 
             const { results } = getResults(outputDir)
+
+            expect(results).toHaveLength(1)
+            expect(results[0].steps).toHaveLength(1)
+
             const screenshotAttachments = results[0].steps[0].attachments.filter(
                 (attachment: Attachment) => attachment.name === 'Screenshot'
             )
 
-            expect(results).toHaveLength(1)
-            expect(results[0].steps).toHaveLength(1)
             expect(results[0].steps[0].name).toEqual(assertionResults[protocol].screenshotTitle)
             expect(results[0].steps[0].status).toEqual(Status.PASSED)
             expect(screenshotAttachments).toHaveLength(0)
@@ -653,11 +663,13 @@ for (const protocol of ['webdriver', 'devtools']) {
             reporter.onRunnerEnd(runnerEnd())
 
             const { results } = getResults(outputDir)
+
+            expect(results).toHaveLength(1)
+
             const screenshotAttachments = results[0].attachments.filter(
                 (attachment: Attachment) => attachment.name === 'Screenshot'
             )
 
-            expect(results).toHaveLength(1)
             expect(screenshotAttachments).toHaveLength(0)
         })
 
@@ -684,11 +696,13 @@ for (const protocol of ['webdriver', 'devtools']) {
             reporter.onRunnerEnd(runnerEnd())
 
             const { results } = getResults(outputDir)
+
+            expect(results).toHaveLength(1)
+
             const consoleAttachments = results[0].attachments.filter(
                 (attachment: Attachment) => attachment.name === 'Console Logs'
             )
 
-            expect(results).toHaveLength(1)
             expect(consoleAttachments).toHaveLength(1)
         })
 
@@ -715,11 +729,13 @@ for (const protocol of ['webdriver', 'devtools']) {
             reporter.onRunnerEnd(runnerEnd())
 
             const { results } = getResults(outputDir)
+
+            expect(results).toHaveLength(1)
+
             const consoleAttachments = results[0].attachments.filter(
                 (attachment: Attachment) => attachment.name === 'Console Logs'
             )
 
-            expect(results).toHaveLength(1)
             expect(consoleAttachments).toHaveLength(1)
         })
 
