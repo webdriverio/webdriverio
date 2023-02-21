@@ -18,7 +18,7 @@ export function parseEnvInfo (info: string): Record<string, any> {
 }
 
 export function getAllAttachments(test: TestResult): Attachment[] {
-    let attachments = []
+    let attachments: Attachment[] = []
 
     if (test.attachments) {
         attachments = attachments.concat(test.attachments)
@@ -79,4 +79,20 @@ export function getTestsFromReporter(reporter: AllureReporter): AllureTest[] {
 
 export function getStepsFromReporter(reporter: AllureReporter): AllureStep[] {
     return reporter._runningUnits.filter(unit => unit instanceof AllureStep) as AllureStep[]
+}
+
+export function mapBy<T>(arr: T[], key: keyof T): Record<any, T[]> {
+    return arr.reduce<Record<any, T[]>>((acc, item) => {
+        const value = item[key]
+
+        if (!acc[value]) {
+            Object.assign(acc, {
+                [String(value)]: []
+            })
+        }
+
+        acc[value].push(item)
+
+        return acc
+    }, {})
 }

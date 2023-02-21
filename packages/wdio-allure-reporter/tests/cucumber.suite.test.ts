@@ -1,6 +1,6 @@
 import path from 'node:path'
 import { describe, it, expect, beforeEach, vi, beforeAll, afterAll, afterEach } from 'vitest'
-import type { Label, Parameter, Link } from 'allure-js-commons'
+import type { Label, Parameter, Link, StepResult } from 'allure-js-commons'
 import { Status, LabelName, LinkType, Stage } from 'allure-js-commons'
 
 import { temporaryDirectory } from 'tempy'
@@ -10,7 +10,7 @@ import { temporaryDirectory } from 'tempy'
  * methods without having to ignore them for test coverage
  */
 // eslint-disable-next-line
-import { clean, getResults } from './helpers/wdio-allure-helper'
+import { clean, getResults, mapBy } from './helpers/wdio-allure-helper'
 
 import AllureReporter from '../src/reporter.js'
 import { linkPlaceholder } from '../src/constants.js'
@@ -22,6 +22,7 @@ import { commandStart, commandEnd } from './__fixtures__/command.js'
 vi.mock('@wdio/reporter', () => import(path.join(process.cwd(), '__mocks__', '@wdio/reporter')))
 
 let processOn: any
+
 beforeAll(() => {
     processOn = process.on.bind(process)
     process.on = vi.fn()
@@ -71,11 +72,12 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
 
                 const { results, attachments, containers } = getResults(outputDir)
 
-                allureResult = results[0]
-                allureContainer = containers[0]
-
                 expect(results).toHaveLength(1)
                 expect(attachments).toHaveLength(1)
+                expect(containers).toHaveLength(1)
+
+                allureResult = results[0]
+                allureContainer = containers[0]
             })
 
             afterAll(() => {
@@ -92,39 +94,49 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
             })
 
             it('should detect analytics labels in test case', () => {
-                const features = allureResult.labels
-                    .filter((label: Label) => label.name === LabelName.FEATURE)
-                    .map((label: Label) => label.value)
-                const language = allureResult.labels.find((label: Label) => label.name === LabelName.LANGUAGE)
-                const framework = allureResult.labels.find((label: Label) => label.name === LabelName.FRAMEWORK)
+                const labels = mapBy<Label>(allureResult.labels, 'name')
+                const features = labels[LabelName.FEATURE]
+                const languages = labels[LabelName.LANGUAGE]
+                const frameworks = labels[LabelName.FRAMEWORK]
 
-                expect(language.value).toEqual('javascript')
-                expect(framework.value).toEqual('wdio')
-                expect(features).toContain('MyFeature')
+                expect(features).toHaveLength(1)
+                expect(languages).toHaveLength(1)
+                expect(frameworks).toHaveLength(1)
+                expect(features[0].value).toEqual('MyFeature')
+                expect(languages[0].value).toEqual('javascript')
+                expect(frameworks[0].value).toEqual('wdio')
             })
 
             it('should add browser name as test argument', () => {
-                const browserParameter = allureResult.parameters.find((param: Parameter) => param.name === 'browser')
+                const params = mapBy<Parameter>(allureResult.parameters, 'name')
+                const browserParameters = params.browser
 
-                expect(browserParameter.value).toEqual('chrome-68')
+                expect(browserParameters).toHaveLength(1)
+                expect(browserParameters[0].value).toEqual('chrome-68')
             })
 
             it('should detect tags labels on top in test case', () => {
-                const severity = allureResult.labels.find((label: Label) => label.name === LabelName.SEVERITY)
+                const labels = mapBy<Label>(allureResult.labels, 'name')
+                const severityLabels = labels[LabelName.SEVERITY]
 
-                expect(severity.value).toEqual('critical')
+                expect(severityLabels).toHaveLength(1)
+                expect(severityLabels[0].value).toEqual('critical')
             })
 
             it('should convert tag label "issue" to allure link', () => {
-                const issueLink = allureResult.links.find((link: Link) => link.type === LinkType.ISSUE)
+                const links = mapBy<Link>(allureResult.links, 'type')
+                const issueLinks = links[LinkType.ISSUE]
 
-                expect(issueLink.url).toEqual('https://github.com/webdriverio/webdriverio/issues/BUG-987')
+                expect(issueLinks).toHaveLength(1)
+                expect(issueLinks[0].url).toEqual('https://github.com/webdriverio/webdriverio/issues/BUG-987')
             })
 
             it('should convert tag label "testId" to allure link', () => {
-                const tmsLink = allureResult.links.find((link: Link) => link.type === LinkType.TMS)
+                const links = mapBy<Link>(allureResult.links, 'type')
+                const tmsLinks = links[LinkType.TMS]
 
-                expect(tmsLink.url).toEqual('https://webdriver.io/TST-123')
+                expect(tmsLinks).toHaveLength(1)
+                expect(tmsLinks[0].url).toEqual('https://webdriver.io/TST-123')
             })
 
             it('should detect description on top in test case', () => {
@@ -161,13 +173,11 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
 
             const { results, containers } = getResults(outputDir)
 
-            allureResult = results[0]
-            allureContainer = containers[0]
-
-            // console.log({ allureResult: allureResult.steps[1].steps })
-
             expect(results).toHaveLength(1)
             expect(containers).toHaveLength(1)
+
+            allureResult = results[0]
+            allureContainer = containers[0]
         })
 
         afterAll(() => {
@@ -176,6 +186,7 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
         })
 
         it('should have the console log add', () => {
+            expect(allureResult.steps).toHaveLength(3)
             expect(allureResult.steps[1].attachments).toHaveLength(1)
             expect(allureResult.steps[1].attachments[0].name).toEqual('Console Logs')
         })
@@ -190,59 +201,76 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
         })
 
         describe('steps', () => {
-            it('should report one passing non-hook step for test', () => {
-                const nonHookSteps = allureResult.steps.filter((step) => step.name !== 'Hook')
+            let nonHookSteps: StepResult[]
+
+            beforeEach(() => {
+                nonHookSteps = allureResult.steps.filter((step: StepResult) => step.name !== 'Hook')
 
                 expect(nonHookSteps).toHaveLength(1)
+            })
+
+            it('should report one passing non-hook step for test', () => {
                 expect(nonHookSteps[0].name).toEqual('I do something')
                 expect(nonHookSteps[0].status).toEqual(Status.PASSED)
                 expect(nonHookSteps[0].stage).toEqual(Stage.FINISHED)
             })
 
             it('should add step from command for test', () => {
-                const [test] = allureResult.steps.filter((step) => step.name !== 'Hook')
-
-                expect(test.steps).toHaveLength(1)
-                expect(test.steps[0].name).toEqual('GET /session/:sessionId/element')
-                expect(test.steps[0].status).toEqual(Status.PASSED)
-                expect(test.steps[0].stage).toEqual(Stage.FINISHED)
-                expect(test.steps[0].attachments).toHaveLength(2)
+                expect(nonHookSteps[0].steps).toHaveLength(1)
+                expect(nonHookSteps[0].steps[0].name).toEqual('GET /session/:sessionId/element')
+                expect(nonHookSteps[0].steps[0].status).toEqual(Status.PASSED)
+                expect(nonHookSteps[0].steps[0].stage).toEqual(Stage.FINISHED)
+                expect(nonHookSteps[0].steps[0].attachments).toHaveLength(2)
             })
         })
 
         it('should detect analytics labels in test case', () => {
-            const features = allureResult.labels.filter((label: Label) => label.name === LabelName.FEATURE).map((label: Label) => label.value)
-            const language = allureResult.labels.find((label: Label) => label.name === LabelName.LANGUAGE)
-            const framework = allureResult.labels.find((label: Label) => label.name === LabelName.FRAMEWORK)
+            const labels = mapBy<Label>(allureResult.labels, 'name')
+            const features = labels[LabelName.FEATURE]
+            const languages = labels[LabelName.LANGUAGE]
+            const frameworks = labels[LabelName.FRAMEWORK]
 
-            expect(language.value).toEqual('javascript')
-            expect(framework.value).toEqual('wdio')
-            expect(features).toContain('MyFeature')
-            expect(features).toContain('my-awesome-feature-at-scenario-level')
+            expect(languages).toHaveLength(1)
+            expect(languages[0].value).toEqual('javascript')
+            expect(frameworks).toHaveLength(1)
+            expect(frameworks[0].value).toEqual('wdio')
+            expect(features).toHaveLength(2)
+            expect(features).toEqual(expect.arrayContaining([
+                { name: LabelName.FEATURE, value: 'MyFeature' },
+                { name: LabelName.FEATURE, value: 'my-awesome-feature-at-scenario-level' }
+            ]))
         })
 
         it('should add browser name as test argument', () => {
-            const browserParameter = allureResult.parameters.find((param: Parameter) => param.name === 'browser')
+            const params = mapBy<Parameter>(allureResult.parameters, 'name')
+            const browserParameters = params.browser
 
-            expect(browserParameter.value).toEqual('chrome-68')
+            expect(browserParameters).toHaveLength(1)
+            expect(browserParameters[0].value).toEqual('chrome-68')
         })
 
         it('should detect tags labels on top in test case', () => {
-            const severity = allureResult.labels.find((label: Label) => label.name === LabelName.SEVERITY)
+            const labels = mapBy<Label>(allureResult.labels, 'name')
+            const severityLabels = labels[LabelName.SEVERITY]
 
-            expect(severity.value).toEqual('critical')
+            expect(severityLabels).toHaveLength(1)
+            expect(severityLabels[0].value).toEqual('critical')
         })
 
         it('should keep tag label "issue" as is if issue link template is not configured', () => {
-            const issueLabel = allureResult.labels.find((label: Label) => label.name === 'issue')
+            const labels = mapBy<Label>(allureResult.labels, 'name')
+            const issueLabels = labels.issue
 
-            expect(issueLabel.value).toEqual('BUG-987')
+            expect(issueLabels).toHaveLength(1)
+            expect(issueLabels[0].value).toEqual('BUG-987')
         })
 
         it('should keep tag label "testId" as is if tms link template is not configured', () => {
-            const tmsLabel = allureResult.labels.find((label: Label) => label.name === 'tms')
+            const labels = mapBy<Label>(allureResult.labels, 'name')
+            const tmsLabels = labels.tms
 
-            expect(tmsLabel.value).toEqual('TST-123')
+            expect(tmsLabels).toHaveLength(1)
+            expect(tmsLabels[0].value).toEqual('TST-123')
         })
 
         it('should detect description on top in test case', () => {
@@ -271,11 +299,11 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
 
             const { results, containers } = getResults(outputDir)
 
-            allureResult = results[0]
-            allureContainer = containers[0]
-
             expect(results).toHaveLength(1)
             expect(containers).toHaveLength(1)
+
+            allureResult = results[0]
+            allureContainer = containers[0]
         })
 
         afterAll(() => {
@@ -284,13 +312,17 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
         })
 
         it('should detect analytics labels in test case', () => {
-            const languageLabel = allureResult.labels.find((label: Label) => label.name === LabelName.LANGUAGE)
-            const frameworkLabel = allureResult.labels.find((label: Label) => label.name === LabelName.FRAMEWORK)
-            const featureLabels = allureResult.labels.filter((label: Label) => label.name === LabelName.FEATURE).map((label: Label) => label.value)
+            const labels = mapBy<Label>(allureResult.labels, 'name')
+            const features = labels[LabelName.FEATURE]
+            const languages = labels[LabelName.LANGUAGE]
+            const frameworks = labels[LabelName.FRAMEWORK]
 
-            expect(languageLabel.value).toEqual('javascript')
-            expect(frameworkLabel.value).toEqual('wdio')
-            expect(featureLabels).toContain('MyFeature')
+            expect(languages).toHaveLength(1)
+            expect(languages[0].value).toEqual('javascript')
+            expect(frameworks).toHaveLength(1)
+            expect(frameworks[0].value).toEqual('wdio')
+            expect(features).toHaveLength(1)
+            expect(features[0].value).toEqual('MyFeature')
         })
 
         it('should report one suite', () => {
@@ -337,11 +369,11 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
 
             const { results, containers } = getResults(outputDir)
 
-            allureResult = results[0]
-            allureContainer = containers[0]
-
             expect(results).toHaveLength(1)
             expect(containers).toHaveLength(1)
+
+            allureResult = results[0]
+            allureContainer = containers[0]
         })
 
         afterAll(() => {
@@ -349,14 +381,20 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
         })
 
         it('should detect analytics labels in test case', () => {
-            const languageLabel = allureResult.labels.find((label: Label) => label.name === LabelName.LANGUAGE)
-            const frameworkLabel = allureResult.labels.find((label: Label) => label.name === LabelName.FRAMEWORK)
-            const featureLabels = allureResult.labels.filter((label: Label) => label.name === LabelName.FEATURE).map((label: Label) => label.value)
+            const labels = mapBy<Label>(allureResult.labels, 'name')
+            const features = labels[LabelName.FEATURE]
+            const languages = labels[LabelName.LANGUAGE]
+            const frameworks = labels[LabelName.FRAMEWORK]
 
-            expect(languageLabel.value).toEqual('javascript')
-            expect(frameworkLabel.value).toEqual('wdio')
-            expect(featureLabels).toContain('MyFeature')
-            expect(featureLabels).toContain('my-awesome-feature-at-scenario-level')
+            expect(languages).toHaveLength(1)
+            expect(languages[0].value).toEqual('javascript')
+            expect(frameworks).toHaveLength(1)
+            expect(frameworks[0].value).toEqual('wdio')
+            expect(features).toHaveLength(2)
+            expect(features).toEqual(expect.arrayContaining([
+                { name: LabelName.FEATURE, value: 'MyFeature' },
+                { name: LabelName.FEATURE, value: 'my-awesome-feature-at-scenario-level' }
+            ]))
         })
 
         it('should report one suite', () => {
@@ -413,13 +451,14 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
 
             const { results, containers } = getResults(outputDir)
 
+            expect(results).toHaveLength(1)
+            expect(containers).toHaveLength(1)
+
             allureResult = results[0]
             allureContainer = containers[0]
 
             const browserParameter = allureResult.parameters.find((param: Parameter) => param.name === 'browser')
 
-            expect(results).toHaveLength(1)
-            expect(containers).toHaveLength(1)
             expect(allureContainer.name).toEqual('MyFeature')
             expect(allureResult.name).toEqual('MyScenario')
             expect(browserParameter.value).toEqual('chrome-68')
@@ -448,16 +487,19 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
 
             const { results, containers } = getResults(outputDir)
 
+            expect(results).toHaveLength(1)
+            expect(containers).toHaveLength(1)
+
             allureResult = results[0]
             allureContainer = containers[0]
 
-            const browserParameter = allureResult.parameters.find((param: Parameter) => param.name === 'browser')
+            const params = mapBy<Parameter>(allureResult.parameters, 'name')
+            const browserParameters = params.browser
 
-            expect(results).toHaveLength(1)
-            expect(containers).toHaveLength(1)
+            expect(browserParameters).toHaveLength(1)
+            expect(browserParameters[0].value).toEqual('chrome-68')
             expect(allureContainer.name).toEqual('MyFeature')
             expect(allureResult.name).toEqual('MyScenario')
-            expect(browserParameter.value).toEqual('chrome-68')
             expect(allureResult.steps).toHaveLength(2)
             expect(allureResult.steps[0].name).toEqual('Hook')
             expect(allureResult.steps[0].status).toEqual(Status.FAILED)
@@ -495,9 +537,9 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
 
             const { results } = getResults(outputDir)
 
-            allureResult = results[0]
-
             expect(results).toHaveLength(1)
+
+            allureResult = results[0]
         })
 
         afterAll(() => {

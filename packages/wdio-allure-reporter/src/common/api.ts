@@ -233,6 +233,12 @@ export function addArgument (name: string, value: string) {
     tellReporter(events.addArgument, { name, value })
 }
 
+/**
+ * Starts allure step execution with any content
+ * Can be used to generate any hierarchy of steps
+ * @param {string} name - the step name
+ * @param {StepBodyFunction} body - the step content function
+ */
 export async function step(name: string, body: StepBodyFunction) {
     const runningStep = new AllureCommandStepExecutable(name)
     const result = await runningStep.start(body)
