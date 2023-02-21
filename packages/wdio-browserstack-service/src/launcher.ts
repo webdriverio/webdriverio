@@ -442,17 +442,17 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             if (this._buildName && this._buildName in parsedBuildCacheFileData) {
                 const prevIdentifier = parseInt((parsedBuildCacheFileData[this._buildName].identifier))
                 const newIdentifier = prevIdentifier + 1
-                this._updateLocalBuildCache(filePath, this._buildName, newIdentifier.toString())
+                this._updateLocalBuildCache(filePath, this._buildName, newIdentifier)
                 return newIdentifier.toString()
             }
-            this._updateLocalBuildCache(filePath, this._buildName, '1')
+            this._updateLocalBuildCache(filePath, this._buildName, 1)
             return '1'
         } catch (error: any) {
             return '-1'
         }
     }
 
-    _updateLocalBuildCache(filePath?:string, buildName?:string, buildIdentifier?:string) {
+    _updateLocalBuildCache(filePath?:string, buildName?:string, buildIdentifier?:number) {
         const newIdentifier = { 'identifier': buildIdentifier }
         if (buildName && filePath) {
             const jsonContent = JSON.parse(fs.readFileSync(filePath).toString())
