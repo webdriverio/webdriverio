@@ -27,7 +27,7 @@ export class AllureReporterState {
             return undefined
         }
 
-        return this.currentFile.replace(sep, '.')
+        return this.currentFile.replaceAll(sep, '.')
     }
 
     push(unit: AllureGroup | AllureTest | AllureStep) {

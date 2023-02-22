@@ -17,23 +17,23 @@ describe('state', () => {
     })
 
     it('allows to add units', () => {
-        expect(state._runningUnits).toHaveLength(0)
+        expect(state.runningUnits).toHaveLength(0)
 
         state.push(new AllureGroup(runtime))
 
-        expect(state._runningUnits).toHaveLength(1)
+        expect(state.runningUnits).toHaveLength(1)
     })
 
     it('allows to pop units keeping the order', () => {
         state.push(new AllureGroup(runtime))
         state.push(new AllureTest(runtime))
 
-        expect(state._runningUnits).toHaveLength(2)
+        expect(state.runningUnits).toHaveLength(2)
 
         const test = state.pop()
         const suite = state.pop()
 
-        expect(state._runningUnits).toHaveLength(0)
+        expect(state.runningUnits).toHaveLength(0)
         expect(test).toBeInstanceOf(AllureTest)
         expect(suite).toBeInstanceOf(AllureGroup)
     })
@@ -108,6 +108,22 @@ describe('state', () => {
             state.push(firstTest)
 
             expect(state.currentStep).toBeUndefined()
+        })
+    })
+
+    describe('with current file', () => {
+        it('returns package label', () => {
+            state.currentFile = 'foo/bar/baz.test.js'
+
+            expect(state.currentPackageLabel).toEqual('foo.bar.baz.test.js')
+        })
+    })
+
+    describe('without current file', () => {
+        it('returns undefined instead of package label', () => {
+            state.currentFile = undefined
+
+            expect(state.currentPackageLabel).toEqual(undefined)
         })
     })
 })
