@@ -10,7 +10,7 @@ The [WebDriver Protocol](https://w3c.github.io/webdriver/) provides several sele
 If not indicated otherwise, WebdriverIO will query elements using the [CSS selector](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Selectors) pattern, e.g.:
 
 ```js reference
-https://github.com/webdriverio/example-recipes/blob/044c1763b810607353d8b8a137f1888ef469af8c/selectors/example.js#L7-L8
+https://github.com/webdriverio/example-recipes/blob/eebf07d12a22554365a0227ae9efae6fbc22ec2f/selectors/example.js#L7-L8
 ```
 
 ## Link Text
@@ -20,13 +20,13 @@ To get an anchor element with a specific text in it, query the text starting wit
 For example:
 
 ```html reference
-https://github.com/webdriverio/example-recipes/blob/044c1763b810607353d8b8a137f1888ef469af8c/selectors/example.html#L3
+https://github.com/webdriverio/example-recipes/blob/eebf07d12a22554365a0227ae9efae6fbc22ec2f/selectors/example.html#L3
 ```
 
 You can query this element by calling:
 
 ```js reference
-https://github.com/webdriverio/example-recipes/blob/044c1763b810607353d8b8a137f1888ef469af8c/selectors/example.js#L16-L18
+https://github.com/webdriverio/example-recipes/blob/eebf07d12a22554365a0227ae9efae6fbc22ec2f/selectors/example.js#L16-L18
 ```
 
 ## Partial Link Text
@@ -37,7 +37,7 @@ query it by using `*=` in front of the query string (e.g. `*=driver`).
 You can query the element from the example above by also calling:
 
 ```js reference
-https://github.com/webdriverio/example-recipes/blob/044c1763b810607353d8b8a137f1888ef469af8c/selectors/example.js#L24-L26
+https://github.com/webdriverio/example-recipes/blob/eebf07d12a22554365a0227ae9efae6fbc22ec2f/selectors/example.js#L24-L26
 ```
 
 __Note:__ You can't mix multiple selector strategies in one selector. Use multiple chained element queries to reach the same goal, e.g.:
@@ -55,31 +55,31 @@ The same technique can be applied to elements as well.
 For example, here's a query for a level 1 heading with the text "Welcome to my Page":
 
 ```html reference
-https://github.com/webdriverio/example-recipes/blob/044c1763b810607353d8b8a137f1888ef469af8c/selectors/example.html#L2
+https://github.com/webdriverio/example-recipes/blob/eebf07d12a22554365a0227ae9efae6fbc22ec2f/selectors/example.html#L2
 ```
 
 You can query this element by calling:
 
 ```js reference
-https://github.com/webdriverio/example-recipes/blob/044c1763b810607353d8b8a137f1888ef469af8c/selectors/example.js#L35-L36
+https://github.com/webdriverio/example-recipes/blob/eebf07d12a22554365a0227ae9efae6fbc22ec2f/selectors/example.js#L35-L36
 ```
 
 Or using query partial text:
 
 ```js reference
-https://github.com/webdriverio/example-recipes/blob/044c1763b810607353d8b8a137f1888ef469af8c/selectors/example.js#L42-L43
+https://github.com/webdriverio/example-recipes/blob/eebf07d12a22554365a0227ae9efae6fbc22ec2f/selectors/example.js#L42-L43
 ```
 
 The same works for `id` and `class` names:
 
 ```html reference
-https://github.com/webdriverio/example-recipes/blob/044c1763b810607353d8b8a137f1888ef469af8c/selectors/example.html#L4
+https://github.com/webdriverio/example-recipes/blob/eebf07d12a22554365a0227ae9efae6fbc22ec2f/selectors/example.html#L4
 ```
 
 You can query this element by calling:
 
 ```js reference
-https://github.com/webdriverio/example-recipes/blob/044c1763b810607353d8b8a137f1888ef469af8c/selectors/example.js#L45-L55
+https://github.com/webdriverio/example-recipes/blob/eebf07d12a22554365a0227ae9efae6fbc22ec2f/selectors/example.js#L45-L55
 ```
 
 __Note:__ You can't mix multiple selector strategies in one selector. Use multiple chained element queries to reach the same goal, e.g.:
@@ -95,13 +95,13 @@ const elem = await $('header').$('h1*=Welcome')
 To query an element with a specific tag name, use `<tag>` or `<tag />`.
 
 ```html reference
-https://github.com/webdriverio/example-recipes/blob/044c1763b810607353d8b8a137f1888ef469af8c/selectors/example.html#L5
+https://github.com/webdriverio/example-recipes/blob/eebf07d12a22554365a0227ae9efae6fbc22ec2f/selectors/example.html#L5
 ```
 
 You can query this element by calling:
 
 ```js reference
-https://github.com/webdriverio/example-recipes/blob/044c1763b810607353d8b8a137f1888ef469af8c/selectors/example.js#L61-L62
+https://github.com/webdriverio/example-recipes/blob/eebf07d12a22554365a0227ae9efae6fbc22ec2f/selectors/example.js#L61-L62
 ```
 
 ## Name Attribute
@@ -109,11 +109,11 @@ https://github.com/webdriverio/example-recipes/blob/044c1763b810607353d8b8a137f1
 For querying elements with a specific name attribute you can either use a normal CSS3 selector or the provided name strategy from the [JSONWireProtocol](https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol) by passing something like [name="some-name"] as selector parameter:
 
 ```html reference
-https://github.com/webdriverio/example-recipes/blob/044c1763b810607353d8b8a137f1888ef469af8c/selectors/example.html#L6
+https://github.com/webdriverio/example-recipes/blob/eebf07d12a22554365a0227ae9efae6fbc22ec2f/selectors/example.html#L6
 ```
 
 ```js reference
-https://github.com/webdriverio/example-recipes/blob/044c1763b810607353d8b8a137f1888ef469af8c/selectors/example.js#L68-L69
+https://github.com/webdriverio/example-recipes/blob/eebf07d12a22554365a0227ae9efae6fbc22ec2f/selectors/example.js#L68-L69
 ```
 
 __Note:__ This selector strategy it deprecated and only works in old browser that are run by the JSONWireProtocol protocol or by using Appium.
@@ -125,19 +125,19 @@ It is also possible to query elements via a specific [xPath](https://developer.m
 An xPath selector has a format like `//body/div[6]/div[1]/span[1]`.
 
 ```html reference
-https://github.com/webdriverio/example-recipes/blob/044c1763b810607353d8b8a137f1888ef469af8c/selectors/xpath.html
+https://github.com/webdriverio/example-recipes/blob/eebf07d12a22554365a0227ae9efae6fbc22ec2f/selectors/xpath.html
 ```
 
 You can query the second paragraph by calling:
 
 ```js reference
-https://github.com/webdriverio/example-recipes/blob/044c1763b810607353d8b8a137f1888ef469af8c/selectors/example.js#L75-L76
+https://github.com/webdriverio/example-recipes/blob/eebf07d12a22554365a0227ae9efae6fbc22ec2f/selectors/example.js#L75-L76
 ```
 
 You can use xPath to also traverse up and down the DOM tree:
 
 ```js reference
-https://github.com/webdriverio/example-recipes/blob/044c1763b810607353d8b8a137f1888ef469af8c/selectors/example.js#L78-L79
+https://github.com/webdriverio/example-recipes/blob/eebf07d12a22554365a0227ae9efae6fbc22ec2f/selectors/example.js#L78-L79
 ```
 
 ## Accessibility Name Selector
@@ -153,61 +153,61 @@ You can read more about this selector in our [release blog post](/blog/2022/09/0
 ### Fetch by `aria-label`
 
 ```html reference
-https://github.com/webdriverio/example-recipes/blob/044c1763b810607353d8b8a137f1888ef469af8c/selectors/aria.html#L1
+https://github.com/webdriverio/example-recipes/blob/eebf07d12a22554365a0227ae9efae6fbc22ec2f/selectors/aria.html#L1
 ```
 
 ```js reference
-https://github.com/webdriverio/example-recipes/blob/044c1763b810607353d8b8a137f1888ef469af8c/selectors/example.js#L86-L87
+https://github.com/webdriverio/example-recipes/blob/eebf07d12a22554365a0227ae9efae6fbc22ec2f/selectors/example.js#L86-L87
 ```
 
 ### Fetch by `aria-labelledby`
 
 ```html reference
-https://github.com/webdriverio/example-recipes/blob/044c1763b810607353d8b8a137f1888ef469af8c/selectors/aria.html#L2-L3
+https://github.com/webdriverio/example-recipes/blob/eebf07d12a22554365a0227ae9efae6fbc22ec2f/selectors/aria.html#L2-L3
 ```
 
 ```js reference
-https://github.com/webdriverio/example-recipes/blob/044c1763b810607353d8b8a137f1888ef469af8c/selectors/example.js#L93-L94
+https://github.com/webdriverio/example-recipes/blob/eebf07d12a22554365a0227ae9efae6fbc22ec2f/selectors/example.js#L93-L94
 ```
 
 ### Fetch by content
 
 ```html reference
-https://github.com/webdriverio/example-recipes/blob/044c1763b810607353d8b8a137f1888ef469af8c/selectors/aria.html#L4
+https://github.com/webdriverio/example-recipes/blob/eebf07d12a22554365a0227ae9efae6fbc22ec2f/selectors/aria.html#L4
 ```
 
 ```js reference
-https://github.com/webdriverio/example-recipes/blob/044c1763b810607353d8b8a137f1888ef469af8c/selectors/example.js#L100-L101
+https://github.com/webdriverio/example-recipes/blob/eebf07d12a22554365a0227ae9efae6fbc22ec2f/selectors/example.js#L100-L101
 ```
 
 ### Fetch by title
 
 ```html reference
-https://github.com/webdriverio/example-recipes/blob/044c1763b810607353d8b8a137f1888ef469af8c/selectors/aria.html#L5
+https://github.com/webdriverio/example-recipes/blob/eebf07d12a22554365a0227ae9efae6fbc22ec2f/selectors/aria.html#L5
 ```
 
 ```js reference
-https://github.com/webdriverio/example-recipes/blob/044c1763b810607353d8b8a137f1888ef469af8c/selectors/example.js#L107-L108
+https://github.com/webdriverio/example-recipes/blob/eebf07d12a22554365a0227ae9efae6fbc22ec2f/selectors/example.js#L107-L108
 ```
 
 ### Fetch by `alt` property
 
 ```html reference
-https://github.com/webdriverio/example-recipes/blob/044c1763b810607353d8b8a137f1888ef469af8c/selectors/aria.html#L6
+https://github.com/webdriverio/example-recipes/blob/eebf07d12a22554365a0227ae9efae6fbc22ec2f/selectors/aria.html#L6
 ```
 
 ```js reference
-https://github.com/webdriverio/example-recipes/blob/044c1763b810607353d8b8a137f1888ef469af8c/selectors/example.js#L114-L115
+https://github.com/webdriverio/example-recipes/blob/eebf07d12a22554365a0227ae9efae6fbc22ec2f/selectors/example.js#L114-L115
 ```
 
 ### Fetch by `for` property
 
 ```html reference
-https://github.com/webdriverio/example-recipes/blob/044c1763b810607353d8b8a137f1888ef469af8c/selectors/aria.html#L9-L10
+https://github.com/webdriverio/example-recipes/blob/eebf07d12a22554365a0227ae9efae6fbc22ec2f/selectors/aria.html#L9-L10
 ```
 
 ```js reference
-https://github.com/webdriverio/example-recipes/blob/044c1763b810607353d8b8a137f1888ef469af8c/selectors/example.js#L124-L125
+https://github.com/webdriverio/example-recipes/blob/eebf07d12a22554365a0227ae9efae6fbc22ec2f/selectors/example.js#L124-L125
 ```
 
 ## ARIA - Role Attribute
@@ -215,11 +215,11 @@ https://github.com/webdriverio/example-recipes/blob/044c1763b810607353d8b8a137f1
 For querying elements based on [ARIA roles](https://www.w3.org/TR/html-aria/#docconformance), you can directly specify role of the element like `[role=button]` as selector parameter:
 
 ```html reference
-https://github.com/webdriverio/example-recipes/blob/044c1763b810607353d8b8a137f1888ef469af8c/selectors/aria.html#L13
+https://github.com/webdriverio/example-recipes/blob/eebf07d12a22554365a0227ae9efae6fbc22ec2f/selectors/aria.html#L13
 ```
 
 ```js reference
-https://github.com/webdriverio/example-recipes/blob/044c1763b810607353d8b8a137f1888ef469af8c/selectors/example.js#L131-L132
+https://github.com/webdriverio/example-recipes/blob/eebf07d12a22554365a0227ae9efae6fbc22ec2f/selectors/example.js#L131-L132
 ```
 
 ## ID Attribute
@@ -247,13 +247,13 @@ You can also use JavaScript functions to fetch elements using web native APIs. O
 Given the following HTML structure:
 
 ```html reference
-https://github.com/webdriverio/example-recipes/blob/044c1763b810607353d8b8a137f1888ef469af8c/selectors/js.html
+https://github.com/webdriverio/example-recipes/blob/eebf07d12a22554365a0227ae9efae6fbc22ec2f/selectors/js.html
 ```
 
 You can query the sibling element of `#elem` as follows:
 
 ```js reference
-https://github.com/webdriverio/example-recipes/blob/044c1763b810607353d8b8a137f1888ef469af8c/selectors/example.js#L139-L143
+https://github.com/webdriverio/example-recipes/blob/eebf07d12a22554365a0227ae9efae6fbc22ec2f/selectors/example.js#L139-L143
 ```
 
 ## Deep Selectors
@@ -267,7 +267,7 @@ Given we have an application with the following structure:
 With this selector you can query the `<button />` element that is nested within another shadow DOM, e.g.:
 
 ```js reference
-https://github.com/webdriverio/example-recipes/blob/044c1763b810607353d8b8a137f1888ef469af8c/selectors/example.js#L147-L149
+https://github.com/webdriverio/example-recipes/blob/eebf07d12a22554365a0227ae9efae6fbc22ec2f/selectors/example.js#L147-L149
 ```
 
 ## Mobile Selectors

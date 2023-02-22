@@ -38,7 +38,7 @@ export default {
                 'The Status command returns information about whether a remote end is in a state in which it can create new sessions and can additionally include arbitrary meta information that is specific to the implementation.',
             ref: 'https://w3c.github.io/webdriver/#dfn-status',
             parameters: [],
-            exampleReferences: ['https://github.com/webdriverio/example-recipes/blob/64d5ba76ec29f85d94fa76046346b15611903be2/api/webdriver/examples.js#L5-L16'],
+            exampleReferences: ['https://github.com/webdriverio/example-recipes/blob/eebf07d12a22554365a0227ae9efae6fbc22ec2f/api/webdriver/examples.js#L5-L16'],
             returns: {
                 type: 'Object',
                 name: 'status',
@@ -53,7 +53,7 @@ export default {
                 'The Get Timeouts command gets timeout durations associated with the current session.',
             ref: 'https://w3c.github.io/webdriver/#dfn-get-timeouts',
             parameters: [],
-            exampleReferences: ['https://github.com/webdriverio/example-recipes/blob/64d5ba76ec29f85d94fa76046346b15611903be2/api/webdriver/examples.js#L20-L24'],
+            exampleReferences: ['https://github.com/webdriverio/example-recipes/blob/eebf07d12a22554365a0227ae9efae6fbc22ec2f/api/webdriver/examples.js#L20-L24'],
             returns: {
                 type: 'Object',
                 name: 'timeouts',
@@ -87,7 +87,7 @@ export default {
                     required: false,
                 },
             ],
-            exampleReferences: ['https://github.com/webdriverio/example-recipes/blob/64d5ba76ec29f85d94fa76046346b15611903be2/api/webdriver/examples.js#L28-L33']
+            exampleReferences: ['https://github.com/webdriverio/example-recipes/blob/eebf07d12a22554365a0227ae9efae6fbc22ec2f/api/webdriver/examples.js#L28-L33']
         },
     },
     '/session/:sessionId/url': {
@@ -97,7 +97,7 @@ export default {
                 'The Get Current URL command returns the URL of the current top-level browsing context.',
             ref: 'https://w3c.github.io/webdriver/#dfn-get-current-url',
             parameters: [],
-            exampleReferences: ['https://github.com/webdriverio/example-recipes/blob/64d5ba76ec29f85d94fa76046346b15611903be2/api/webdriver/examples.js#L39-L43'],
+            exampleReferences: ['https://github.com/webdriverio/example-recipes/blob/eebf07d12a22554365a0227ae9efae6fbc22ec2f/api/webdriver/examples.js#L39-L43'],
             returns: {
                 type: 'string',
                 name: 'url',
@@ -119,7 +119,7 @@ export default {
                     required: true,
                 },
             ],
-            exampleReferences: ['https://github.com/webdriverio/example-recipes/blob/64d5ba76ec29f85d94fa76046346b15611903be2/api/webdriver/examples.js#L47-L51'],
+            exampleReferences: ['https://github.com/webdriverio/example-recipes/blob/eebf07d12a22554365a0227ae9efae6fbc22ec2f/api/webdriver/examples.js#L47-L51'],
             alternativeCommands: ['browser/url'],
             returns: {
                 type: 'string',
@@ -136,7 +136,7 @@ export default {
                 'The Back command causes the browser to traverse one step backward in the joint session history of the current top-level browsing context. This is equivalent to pressing the back button in the browser chrome or calling `window.history.back`.',
             ref: 'https://w3c.github.io/webdriver/#dfn-back',
             parameters: [],
-            exampleReferences: ['https://github.com/webdriverio/example-recipes/blob/64d5ba76ec29f85d94fa76046346b15611903be2/api/webdriver/examples.js#L55-L59'],
+            exampleReferences: ['https://github.com/webdriverio/example-recipes/blob/eebf07d12a22554365a0227ae9efae6fbc22ec2f/api/webdriver/examples.js#L55-L59'],
         },
     },
     '/session/:sessionId/forward': {
@@ -146,7 +146,7 @@ export default {
                 'The Forward command causes the browser to traverse one step forwards in the joint session history of the current top-level browsing context.',
             ref: 'https://w3c.github.io/webdriver/#dfn-forward',
             parameters: [],
-            exampleReferences: ['https://github.com/webdriverio/example-recipes/blob/64d5ba76ec29f85d94fa76046346b15611903be2/api/webdriver/examples.js#L63-L69']
+            exampleReferences: ['https://github.com/webdriverio/example-recipes/blob/eebf07d12a22554365a0227ae9efae6fbc22ec2f/api/webdriver/examples.js#L63-L69']
         },
     },
     '/session/:sessionId/refresh': {
@@ -156,7 +156,7 @@ export default {
                 'The Refresh command causes the browser to reload the page in current top-level browsing context.',
             ref: 'https://w3c.github.io/webdriver/#dfn-refresh',
             parameters: [],
-            exampleReferences: ['https://github.com/webdriverio/example-recipes/blob/64d5ba76ec29f85d94fa76046346b15611903be2/api/webdriver/examples.js#L73-L78']
+            exampleReferences: ['https://github.com/webdriverio/example-recipes/blob/eebf07d12a22554365a0227ae9efae6fbc22ec2f/api/webdriver/examples.js#L73-L78']
         },
     },
     '/session/:sessionId/title': {
@@ -172,7 +172,7 @@ export default {
                 description:
                     'Returns a string which is the same as `document.title` of the current top-level browsing context.',
             },
-            exampleReferences: ['https://github.com/webdriverio/example-recipes/blob/64d5ba76ec29f85d94fa76046346b15611903be2/api/webdriver/examples.js#L82-L86']
+            exampleReferences: ['https://github.com/webdriverio/example-recipes/blob/eebf07d12a22554365a0227ae9efae6fbc22ec2f/api/webdriver/examples.js#L82-L86']
         },
     },
     '/session/:sessionId/window': {
@@ -188,7 +188,7 @@ export default {
                 description:
                     'Returns a string which is the window handle for the current top-level browsing context.',
             },
-            exampleReferences: ['https://github.com/webdriverio/example-recipes/blob/64d5ba76ec29f85d94fa76046346b15611903be2/api/webdriver/examples.js#L90-L93']
+            exampleReferences: ['https://github.com/webdriverio/example-recipes/blob/eebf07d12a22554365a0227ae9efae6fbc22ec2f/api/webdriver/examples.js#L90-L93']
         },
         DELETE: {
             command: 'closeWindow',
@@ -196,7 +196,7 @@ export default {
                 'The Close Window command closes the current top-level browsing context. Once done, if there are no more top-level browsing contexts open, the WebDriver session itself is closed.',
             ref: 'https://w3c.github.io/webdriver/#dfn-close-window',
             parameters: [],
-            exampleReferences: ['https://github.com/webdriverio/example-recipes/blob/64d5ba76ec29f85d94fa76046346b15611903be2/api/webdriver/examples.js#L97-L117']
+            exampleReferences: ['https://github.com/webdriverio/example-recipes/blob/eebf07d12a22554365a0227ae9efae6fbc22ec2f/api/webdriver/examples.js#L97-L117']
         },
         POST: {
             command: 'switchToWindow',
@@ -213,7 +213,7 @@ export default {
                 },
             ],
             alternativeCommands: ['browser/switchWindow'],
-            exampleReferences: ['https://github.com/webdriverio/example-recipes/blob/64d5ba76ec29f85d94fa76046346b15611903be2/api/webdriver/examples.js#L121-L130']
+            exampleReferences: ['https://github.com/webdriverio/example-recipes/blob/eebf07d12a22554365a0227ae9efae6fbc22ec2f/api/webdriver/examples.js#L121-L130']
         },
     },
     '/session/:sessionId/window/new': {
@@ -236,7 +236,7 @@ export default {
                 description:
                     "New window object containing 'handle' with the value of the handle and 'type' with the value of the created window type",
             },
-            exampleReferences: ['https://github.com/webdriverio/example-recipes/blob/64d5ba76ec29f85d94fa76046346b15611903be2/api/webdriver/examples.js#L134-L136']
+            exampleReferences: ['https://github.com/webdriverio/example-recipes/blob/eebf07d12a22554365a0227ae9efae6fbc22ec2f/api/webdriver/examples.js#L134-L136']
         },
     },
     '/session/:sessionId/window/handles': {
@@ -251,7 +251,7 @@ export default {
                 name: 'handles',
                 description: 'An array which is a list of window handles.',
             },
-            exampleReferences: ['https://github.com/webdriverio/example-recipes/blob/64d5ba76ec29f85d94fa76046346b15611903be2/api/webdriver/examples.js#L140-L143']
+            exampleReferences: ['https://github.com/webdriverio/example-recipes/blob/eebf07d12a22554365a0227ae9efae6fbc22ec2f/api/webdriver/examples.js#L140-L143']
         },
     },
     '/session/:sessionId/print': {
@@ -339,7 +339,7 @@ export default {
                 description:
                     'The base64-encoded PDF representation of the paginated document.',
             },
-            exampleReferences: ['https://github.com/webdriverio/example-recipes/blob/64d5ba76ec29f85d94fa76046346b15611903be2/api/webdriver/examples.js#L150-L151']
+            exampleReferences: ['https://github.com/webdriverio/example-recipes/blob/eebf07d12a22554365a0227ae9efae6fbc22ec2f/api/webdriver/examples.js#L150-L151']
         },
     },
     '/session/:sessionId/frame': {
@@ -357,7 +357,7 @@ export default {
                     required: true,
                 },
             ],
-            exampleReferences: ['https://github.com/webdriverio/example-recipes/blob/64d5ba76ec29f85d94fa76046346b15611903be2/api/webdriver/examples.js#L155-L168']
+            exampleReferences: ['https://github.com/webdriverio/example-recipes/blob/eebf07d12a22554365a0227ae9efae6fbc22ec2f/api/webdriver/examples.js#L155-L168']
         },
     },
     '/session/:sessionId/frame/parent': {
@@ -367,7 +367,7 @@ export default {
                 'The Switch to Parent Frame command sets the current browsing context for future commands to the parent of the current browsing context.',
             ref: 'https://w3c.github.io/webdriver/#dfn-switch-to-parent-frame',
             parameters: [],
-            exampleReferences: ['https://github.com/webdriverio/example-recipes/blob/64d5ba76ec29f85d94fa76046346b15611903be2/api/webdriver/examples.js#L172-L189']
+            exampleReferences: ['https://github.com/webdriverio/example-recipes/blob/eebf07d12a22554365a0227ae9efae6fbc22ec2f/api/webdriver/examples.js#L172-L189']
         },
     },
     '/session/:sessionId/window/rect': {
@@ -384,7 +384,7 @@ export default {
                     'A JSON representation of a "window rect" object. This has 4 properties: `x`, `y`, `width` and `height`.',
             },
             alternativeCommands: ['browser/getWindowSize'],
-            exampleReferences: ['https://github.com/webdriverio/example-recipes/blob/64d5ba76ec29f85d94fa76046346b15611903be2/api/webdriver/examples.js#L193-L196']
+            exampleReferences: ['https://github.com/webdriverio/example-recipes/blob/eebf07d12a22554365a0227ae9efae6fbc22ec2f/api/webdriver/examples.js#L193-L196']
         },
         POST: {
             command: 'setWindowRect',
@@ -426,7 +426,7 @@ export default {
                 description:
                     'A JSON representation of a "window rect" object based on the new window state.',
             },
-            exampleReferences: ['https://github.com/webdriverio/example-recipes/blob/64d5ba76ec29f85d94fa76046346b15611903be2/api/webdriver/examples.js#L200-L204']
+            exampleReferences: ['https://github.com/webdriverio/example-recipes/blob/eebf07d12a22554365a0227ae9efae6fbc22ec2f/api/webdriver/examples.js#L200-L204']
         },
     },
     '/session/:sessionId/window/maximize': {
@@ -442,7 +442,7 @@ export default {
                 description:
                     'A JSON representation of a "window rect" object based on the new window state.',
             },
-            exampleReferences: ['https://github.com/webdriverio/example-recipes/blob/64d5ba76ec29f85d94fa76046346b15611903be2/api/webdriver/examples.js#L208-L212']
+            exampleReferences: ['https://github.com/webdriverio/example-recipes/blob/eebf07d12a22554365a0227ae9efae6fbc22ec2f/api/webdriver/examples.js#L208-L212']
         },
     },
     '/session/:sessionId/window/minimize': {
@@ -503,7 +503,7 @@ export default {
                     "A JSON representation of an element object, e.g. `{ 'element-6066-11e4-a52e-4f735466cecf': 'ELEMENT_1' }`.",
             },
             alternativeCommands: ['browser/$'],
-            exampleReferences: ['https://github.com/webdriverio/example-recipes/blob/64d5ba76ec29f85d94fa76046346b15611903be2/api/webdriver/examples.js#L226-L232']
+            exampleReferences: ['https://github.com/webdriverio/example-recipes/blob/eebf07d12a22554365a0227ae9efae6fbc22ec2f/api/webdriver/examples.js#L226-L232']
         },
     },
     '/session/:sessionId/shadow/:shadowId/element': {
@@ -540,7 +540,7 @@ export default {
                 description:
                     "A JSON representation of an element shadow object, e.g. `{ 'element-6066-11e4-a52e-4f735466cecf': 'ELEMENT_1' }`.",
             },
-            exampleReferences: ['https://github.com/webdriverio/example-recipes/blob/64d5ba76ec29f85d94fa76046346b15611903be2/api/webdriver/examples.js#L236-L248']
+            exampleReferences: ['https://github.com/webdriverio/example-recipes/blob/eebf07d12a22554365a0227ae9efae6fbc22ec2f/api/webdriver/examples.js#L236-L248']
         },
     },
     '/session/:sessionId/elements': {
@@ -571,7 +571,7 @@ export default {
                 description:
                     "A (possibly empty) JSON list of representations of an element object, e.g. `[{ 'element-6066-11e4-a52e-4f735466cecf': 'ELEMENT_1' }]`.",
             },
-            exampleReferences: ['https://github.com/webdriverio/example-recipes/blob/64d5ba76ec29f85d94fa76046346b15611903be2/api/webdriver/examples.js#L252-L254']
+            exampleReferences: ['https://github.com/webdriverio/example-recipes/blob/eebf07d12a22554365a0227ae9efae6fbc22ec2f/api/webdriver/examples.js#L252-L254']
         },
     },
     '/session/:sessionId/shadow/:shadowId/elements': {
@@ -602,7 +602,7 @@ export default {
                     required: true,
                 },
             ],
-            exampleReferences: ['https://github.com/webdriverio/example-recipes/blob/64d5ba76ec29f85d94fa76046346b15611903be2/api/webdriver/examples.js#L258-L268'],
+            exampleReferences: ['https://github.com/webdriverio/example-recipes/blob/eebf07d12a22554365a0227ae9efae6fbc22ec2f/api/webdriver/examples.js#L258-L268'],
             returns: {
                 type: 'object[]',
                 name: 'elements',
@@ -646,7 +646,7 @@ export default {
                 description:
                     "A JSON representation of an element object, e.g. `{ 'element-6066-11e4-a52e-4f735466cecf': 'ELEMENT_1' }`.",
             },
-            exampleReferences: ['https://github.com/webdriverio/example-recipes/blob/64d5ba76ec29f85d94fa76046346b15611903be2/api/webdriver/examples.js#L272-L279']
+            exampleReferences: ['https://github.com/webdriverio/example-recipes/blob/eebf07d12a22554365a0227ae9efae6fbc22ec2f/api/webdriver/examples.js#L272-L279']
         },
     },
     '/session/:sessionId/element/:elementId/elements': {
@@ -684,7 +684,7 @@ export default {
                 description:
                     "A (possibly empty) JSON list of representations of an element object, e.g. `[{ 'element-6066-11e4-a52e-4f735466cecf': 'ELEMENT_1' }]`.",
             },
-            exampleReferences: ['https://github.com/webdriverio/example-recipes/blob/64d5ba76ec29f85d94fa76046346b15611903be2/api/webdriver/examples.js#L283-L290']
+            exampleReferences: ['https://github.com/webdriverio/example-recipes/blob/eebf07d12a22554365a0227ae9efae6fbc22ec2f/api/webdriver/examples.js#L283-L290']
         },
     },
     '/session/:sessionId/element/:elementId/shadow': {
@@ -708,7 +708,7 @@ export default {
                     "A JSON representation of an element shadow root, e.g. `{ 'shadow-6066-11e4-a52e-4f735466cecf': 'ELEMENT_1' }`.",
             },
             alternativeCommands: ['element/shadow$'],
-            exampleReferences: ['https://github.com/webdriverio/example-recipes/blob/64d5ba76ec29f85d94fa76046346b15611903be2/api/webdriver/examples.js#L294-L305']
+            exampleReferences: ['https://github.com/webdriverio/example-recipes/blob/eebf07d12a22554365a0227ae9efae6fbc22ec2f/api/webdriver/examples.js#L294-L305']
         },
     },
     '/session/:sessionId/element/active': {
@@ -724,7 +724,7 @@ export default {
                 description:
                     "A JSON representation of an element object, e.g. `{ 'element-6066-11e4-a52e-4f735466cecf': 'ELEMENT_1' }`.",
             },
-            exampleReferences: ['https://github.com/webdriverio/example-recipes/blob/64d5ba76ec29f85d94fa76046346b15611903be2/api/webdriver/examples.js#L309-L316']
+            exampleReferences: ['https://github.com/webdriverio/example-recipes/blob/eebf07d12a22554365a0227ae9efae6fbc22ec2f/api/webdriver/examples.js#L309-L316']
         },
     },
     '/session/:sessionId/element/:elementId/selected': {
@@ -747,7 +747,7 @@ export default {
                 description: '`true` or `false` based on the selected state.',
             },
             alternativeCommands: ['element/isSelected'],
-            exampleReferences: ['https://github.com/webdriverio/example-recipes/blob/64d5ba76ec29f85d94fa76046346b15611903be2/api/webdriver/examples.js#L322-L325']
+            exampleReferences: ['https://github.com/webdriverio/example-recipes/blob/eebf07d12a22554365a0227ae9efae6fbc22ec2f/api/webdriver/examples.js#L322-L325']
         },
     },
     '/session/:sessionId/element/:elementId/displayed': {
@@ -770,7 +770,7 @@ export default {
                 description: '`true` or `false` based on the visible state.',
             },
             alternativeCommands: ['element/isDisplayed'],
-            exampleReferences: ['https://github.com/webdriverio/example-recipes/blob/64d5ba76ec29f85d94fa76046346b15611903be2/api/webdriver/examples.js#L331-L333']
+            exampleReferences: ['https://github.com/webdriverio/example-recipes/blob/eebf07d12a22554365a0227ae9efae6fbc22ec2f/api/webdriver/examples.js#L331-L333']
         },
     },
     '/session/:sessionId/element/:elementId/attribute/:name': {
@@ -797,7 +797,7 @@ export default {
                 description: 'The named attribute of the element.',
             },
             alternativeCommands: ['element/getAttribute'],
-            exampleReferences: ['https://github.com/webdriverio/example-recipes/blob/64d5ba76ec29f85d94fa76046346b15611903be2/api/webdriver/examples.js#L339-L341']
+            exampleReferences: ['https://github.com/webdriverio/example-recipes/blob/eebf07d12a22554365a0227ae9efae6fbc22ec2f/api/webdriver/examples.js#L339-L341']
         },
     },
     '/session/:sessionId/element/:elementId/property/:name': {
@@ -825,7 +825,7 @@ export default {
                     'The named property of the element, accessed by calling GetOwnProperty on the element object.',
             },
             alternativeCommands: ['element/getProperty'],
-            exampleReferences: ['https://github.com/webdriverio/example-recipes/blob/64d5ba76ec29f85d94fa76046346b15611903be2/api/webdriver/examples.js#L347-L349']
+            exampleReferences: ['https://github.com/webdriverio/example-recipes/blob/eebf07d12a22554365a0227ae9efae6fbc22ec2f/api/webdriver/examples.js#L347-L349']
         },
     },
     '/session/:sessionId/element/:elementId/css/:propertyName': {
@@ -853,7 +853,7 @@ export default {
                 description:
                     "The computed value of the parameter corresponding to property name from the element's style declarations (unless the document type is xml, in which case the return value is simply the empty string).",
             },
-            exampleReferences: ['https://github.com/webdriverio/example-recipes/blob/64d5ba76ec29f85d94fa76046346b15611903be2/api/webdriver/examples.js#L355-L357']
+            exampleReferences: ['https://github.com/webdriverio/example-recipes/blob/eebf07d12a22554365a0227ae9efae6fbc22ec2f/api/webdriver/examples.js#L355-L357']
         },
     },
     '/session/:sessionId/element/:elementId/text': {
@@ -876,7 +876,7 @@ export default {
                 description:
                     'The visible text of the element (including child elements), following the algorithm defined in the Selenium Atoms for [`bot.dom.getVisibleText`](https://github.com/SeleniumHQ/selenium/blob/e09e28f016c9f53196cf68d6f71991c5af4a35d4/javascript/atoms/dom.js#L981).',
             },
-            exampleReferences: ['https://github.com/webdriverio/example-recipes/blob/64d5ba76ec29f85d94fa76046346b15611903be2/api/webdriver/examples.js#L363-L365']
+            exampleReferences: ['https://github.com/webdriverio/example-recipes/blob/eebf07d12a22554365a0227ae9efae6fbc22ec2f/api/webdriver/examples.js#L363-L365']
         },
     },
     '/session/:sessionId/element/:elementId/name': {
@@ -899,7 +899,7 @@ export default {
                 description: 'The tagName attribute of the element.',
             },
             alternativeCommands: ['element/getTagName'],
-            exampleReferences: ['https://github.com/webdriverio/example-recipes/blob/64d5ba76ec29f85d94fa76046346b15611903be2/api/webdriver/examples.js#L371-L373']
+            exampleReferences: ['https://github.com/webdriverio/example-recipes/blob/eebf07d12a22554365a0227ae9efae6fbc22ec2f/api/webdriver/examples.js#L371-L373']
         },
     },
     '/session/:sessionId/element/:elementId/rect': {
@@ -923,7 +923,7 @@ export default {
                     'A JSON object representing the position and bounding rect of the element.',
             },
             alternativeCommands: ['element/getSize', 'element/getLocation'],
-            exampleReferences: ['https://github.com/webdriverio/example-recipes/blob/64d5ba76ec29f85d94fa76046346b15611903be2/api/webdriver/examples.js#L379-L381']
+            exampleReferences: ['https://github.com/webdriverio/example-recipes/blob/eebf07d12a22554365a0227ae9efae6fbc22ec2f/api/webdriver/examples.js#L379-L381']
         },
     },
     '/session/:sessionId/element/:elementId/enabled': {
@@ -947,7 +947,7 @@ export default {
                     'If the element is in an xml document, or is a disabled form control: `false`, otherwise, `true`.',
             },
             alternativeCommands: ['element/isEnabled'],
-            exampleReferences: ['https://github.com/webdriverio/example-recipes/blob/64d5ba76ec29f85d94fa76046346b15611903be2/api/webdriver/examples.js#L387-L390']
+            exampleReferences: ['https://github.com/webdriverio/example-recipes/blob/eebf07d12a22554365a0227ae9efae6fbc22ec2f/api/webdriver/examples.js#L387-L390']
         },
     },
     '/session/:sessionId/element/:elementId/click': {
@@ -965,7 +965,7 @@ export default {
             ],
             parameters: [],
             alternativeCommands: ['element/click'],
-            exampleReferences: ['https://github.com/webdriverio/example-recipes/blob/64d5ba76ec29f85d94fa76046346b15611903be2/api/webdriver/examples.js#L396-L398']
+            exampleReferences: ['https://github.com/webdriverio/example-recipes/blob/eebf07d12a22554365a0227ae9efae6fbc22ec2f/api/webdriver/examples.js#L396-L398']
         },
     },
     '/session/:sessionId/element/:elementId/clear': {
@@ -983,7 +983,7 @@ export default {
             ],
             parameters: [],
             alternativeCommands: ['element/clearValue'],
-            exampleReferences: ['https://github.com/webdriverio/example-recipes/blob/64d5ba76ec29f85d94fa76046346b15611903be2/api/webdriver/examples.js#L404-L407']
+            exampleReferences: ['https://github.com/webdriverio/example-recipes/blob/eebf07d12a22554365a0227ae9efae6fbc22ec2f/api/webdriver/examples.js#L404-L407']
         },
     },
     '/session/:sessionId/element/:elementId/value': {
@@ -1008,7 +1008,7 @@ export default {
                 },
             ],
             alternativeCommands: ['element/addValue', 'element/setValue'],
-            exampleReferences: ['https://github.com/webdriverio/example-recipes/blob/64d5ba76ec29f85d94fa76046346b15611903be2/api/webdriver/examples.js#L413-L416']
+            exampleReferences: ['https://github.com/webdriverio/example-recipes/blob/eebf07d12a22554365a0227ae9efae6fbc22ec2f/api/webdriver/examples.js#L413-L416']
         },
     },
     '/session/:sessionId/source': {
@@ -1024,7 +1024,7 @@ export default {
                 description:
                     'the DOM of the current browsing context active document',
             },
-            exampleReferences: ['https://github.com/webdriverio/example-recipes/blob/64d5ba76ec29f85d94fa76046346b15611903be2/api/webdriver/examples.js#L420-L421']
+            exampleReferences: ['https://github.com/webdriverio/example-recipes/blob/eebf07d12a22554365a0227ae9efae6fbc22ec2f/api/webdriver/examples.js#L420-L421']
         },
     },
     '/session/:sessionId/execute/sync': {
@@ -1056,7 +1056,7 @@ export default {
                     "Either the return value of your script, the fulfillment of the Promise returned by your script, or the error which was the reason for your script's returned Promise's rejection.",
             },
             alternativeCommands: ['browser/execute'],
-            exampleReferences: ['https://github.com/webdriverio/example-recipes/blob/64d5ba76ec29f85d94fa76046346b15611903be2/api/webdriver/examples.js#L425-L426']
+            exampleReferences: ['https://github.com/webdriverio/example-recipes/blob/eebf07d12a22554365a0227ae9efae6fbc22ec2f/api/webdriver/examples.js#L425-L426']
         },
     },
     '/session/:sessionId/execute/async': {
@@ -1088,7 +1088,7 @@ export default {
                     "Either the return value of your script, the fulfillment of the Promise returned by your script, or the error which was the reason for your script's returned Promise's rejection.",
             },
             alternativeCommands: ['browser/executeAsync'],
-            exampleReferences: ['https://github.com/webdriverio/example-recipes/blob/64d5ba76ec29f85d94fa76046346b15611903be2/api/webdriver/examples.js#L430-L434']
+            exampleReferences: ['https://github.com/webdriverio/example-recipes/blob/eebf07d12a22554365a0227ae9efae6fbc22ec2f/api/webdriver/examples.js#L430-L434']
         },
     },
     '/session/:sessionId/cookie': {
@@ -1104,7 +1104,7 @@ export default {
                 description:
                     'A list of serialized cookies. Each serialized cookie has a number of optional fields which may or may not be returned in addition to `name` and `value`.',
             },
-            exampleReferences: ['https://github.com/webdriverio/example-recipes/blob/64d5ba76ec29f85d94fa76046346b15611903be2/api/webdriver/examples.js#L438-L455']
+            exampleReferences: ['https://github.com/webdriverio/example-recipes/blob/eebf07d12a22554365a0227ae9efae6fbc22ec2f/api/webdriver/examples.js#L438-L455']
         },
         POST: {
             command: 'addCookie',
@@ -1120,7 +1120,7 @@ export default {
                     required: true,
                 },
             ],
-            exampleReferences: ['https://github.com/webdriverio/example-recipes/blob/64d5ba76ec29f85d94fa76046346b15611903be2/api/webdriver/examples.js#L459-L477']
+            exampleReferences: ['https://github.com/webdriverio/example-recipes/blob/eebf07d12a22554365a0227ae9efae6fbc22ec2f/api/webdriver/examples.js#L459-L477']
         },
         DELETE: {
             command: 'deleteAllCookies',
@@ -1128,7 +1128,7 @@ export default {
                 "The Delete All Cookies command allows deletion of all cookies associated with the active document's address.",
             ref: 'https://w3c.github.io/webdriver/#dfn-delete-all-cookies',
             parameters: [],
-            exampleReferences: ['https://github.com/webdriverio/example-recipes/blob/64d5ba76ec29f85d94fa76046346b15611903be2/api/webdriver/examples.js#L481-L485']
+            exampleReferences: ['https://github.com/webdriverio/example-recipes/blob/eebf07d12a22554365a0227ae9efae6fbc22ec2f/api/webdriver/examples.js#L481-L485']
         },
     },
     '/session/:sessionId/cookie/:name': {
@@ -1150,7 +1150,7 @@ export default {
                 description:
                     'A serialized cookie, with name and value fields. There are a number of optional fields like `path`, `domain`, and `expiry-time` which may also be present.',
             },
-            exampleReferences: ['https://github.com/webdriverio/example-recipes/blob/64d5ba76ec29f85d94fa76046346b15611903be2/api/webdriver/examples.js#L489-L503']
+            exampleReferences: ['https://github.com/webdriverio/example-recipes/blob/eebf07d12a22554365a0227ae9efae6fbc22ec2f/api/webdriver/examples.js#L489-L503']
         },
         DELETE: {
             command: 'deleteCookie',
@@ -1164,7 +1164,7 @@ export default {
                 },
             ],
             parameters: [],
-            exampleReferences: ['https://github.com/webdriverio/example-recipes/blob/64d5ba76ec29f85d94fa76046346b15611903be2/api/webdriver/examples.js#L507-L512']
+            exampleReferences: ['https://github.com/webdriverio/example-recipes/blob/eebf07d12a22554365a0227ae9efae6fbc22ec2f/api/webdriver/examples.js#L507-L512']
         },
     },
     '/session/:sessionId/actions': {
@@ -1198,7 +1198,7 @@ export default {
                 'The Dismiss Alert command dismisses a simple dialog if present, otherwise error. A request to dismiss an alert user prompt, which may not necessarily have a dismiss button, has the same effect as accepting it.',
             ref: 'https://w3c.github.io/webdriver/#dfn-dismiss-alert',
             parameters: [],
-            exampleReferences: ['https://github.com/webdriverio/example-recipes/blob/64d5ba76ec29f85d94fa76046346b15611903be2/api/webdriver/examples.js#L516-L517']
+            exampleReferences: ['https://github.com/webdriverio/example-recipes/blob/eebf07d12a22554365a0227ae9efae6fbc22ec2f/api/webdriver/examples.js#L516-L517']
         },
     },
     '/session/:sessionId/alert/accept': {
@@ -1222,7 +1222,7 @@ export default {
                 name: 'alertText',
                 description: 'The message of the user prompt.',
             },
-            exampleReferences: ['https://github.com/webdriverio/example-recipes/blob/64d5ba76ec29f85d94fa76046346b15611903be2/api/webdriver/examples.js#L521-L522']
+            exampleReferences: ['https://github.com/webdriverio/example-recipes/blob/eebf07d12a22554365a0227ae9efae6fbc22ec2f/api/webdriver/examples.js#L521-L522']
         },
         POST: {
             command: 'sendAlertText',
