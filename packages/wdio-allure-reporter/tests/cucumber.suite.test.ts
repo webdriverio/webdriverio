@@ -96,13 +96,16 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
             it('should detect analytics labels in test case', () => {
                 const labels = mapBy<Label>(allureResult.labels, 'name')
                 const features = labels[LabelName.FEATURE]
+                const suites = labels[LabelName.SUITE]
                 const languages = labels[LabelName.LANGUAGE]
                 const frameworks = labels[LabelName.FRAMEWORK]
 
                 expect(features).toHaveLength(1)
                 expect(languages).toHaveLength(1)
                 expect(frameworks).toHaveLength(1)
+                expect(suites).toHaveLength(1)
                 expect(features[0].value).toEqual('MyFeature')
+                expect(suites[0].value).toEqual('MyFeature')
                 expect(languages[0].value).toEqual('javascript')
                 expect(frameworks[0].value).toEqual('wdio')
             })
@@ -227,6 +230,7 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
         it('should detect analytics labels in test case', () => {
             const labels = mapBy<Label>(allureResult.labels, 'name')
             const features = labels[LabelName.FEATURE]
+            const suites = labels[LabelName.SUITE]
             const languages = labels[LabelName.LANGUAGE]
             const frameworks = labels[LabelName.FRAMEWORK]
 
@@ -234,6 +238,8 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
             expect(languages[0].value).toEqual('javascript')
             expect(frameworks).toHaveLength(1)
             expect(frameworks[0].value).toEqual('wdio')
+            expect(suites).toHaveLength(1)
+            expect(suites[0].value).toEqual('MyFeature')
             expect(features).toHaveLength(2)
             expect(features).toEqual(expect.arrayContaining([
                 { name: LabelName.FEATURE, value: 'MyFeature' },
@@ -314,6 +320,7 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
         it('should detect analytics labels in test case', () => {
             const labels = mapBy<Label>(allureResult.labels, 'name')
             const features = labels[LabelName.FEATURE]
+            const suites = labels[LabelName.SUITE]
             const languages = labels[LabelName.LANGUAGE]
             const frameworks = labels[LabelName.FRAMEWORK]
 
@@ -321,6 +328,8 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
             expect(languages[0].value).toEqual('javascript')
             expect(frameworks).toHaveLength(1)
             expect(frameworks[0].value).toEqual('wdio')
+            expect(suites).toHaveLength(1)
+            expect(suites[0].value).toEqual('MyFeature')
             expect(features).toHaveLength(1)
             expect(features[0].value).toEqual('MyFeature')
         })
@@ -383,6 +392,7 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
         it('should detect analytics labels in test case', () => {
             const labels = mapBy<Label>(allureResult.labels, 'name')
             const features = labels[LabelName.FEATURE]
+            const suites = labels[LabelName.SUITE]
             const languages = labels[LabelName.LANGUAGE]
             const frameworks = labels[LabelName.FRAMEWORK]
 
@@ -390,6 +400,8 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
             expect(languages[0].value).toEqual('javascript')
             expect(frameworks).toHaveLength(1)
             expect(frameworks[0].value).toEqual('wdio')
+            expect(suites).toHaveLength(1)
+            expect(suites[0].value).toEqual('MyFeature')
             expect(features).toHaveLength(2)
             expect(features).toEqual(expect.arrayContaining([
                 { name: LabelName.FEATURE, value: 'MyFeature' },

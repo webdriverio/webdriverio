@@ -150,7 +150,7 @@ export default class AllureReporter extends WDIOReporter {
         newTest.name = testTitle
 
         this._state.push(newTest)
-        this.setCaseParameters(cid)
+        this.setTestParameters(cid)
     }
 
     _skipTest() {
@@ -202,7 +202,7 @@ export default class AllureReporter extends WDIOReporter {
         this._state.push(newStep)
     }
 
-    setCaseParameters(cid: string | undefined) {
+    setTestParameters(cid?: string) {
         if (!this._state.currentTest) {
             return
         }
@@ -235,6 +235,10 @@ export default class AllureReporter extends WDIOReporter {
         this._state.currentTest.addLabel(LabelName.LANGUAGE, 'javascript')
         this._state.currentTest.addLabel(LabelName.FRAMEWORK, 'wdio')
 
+        if (this._state.currentPackageLabel) {
+            this._state.currentTest.addLabel(LabelName.PACKAGE, this._state.currentPackageLabel)
+        }
+
         if (cid) {
             this._state.currentTest.addLabel(LabelName.THREAD, cid)
         }
@@ -246,6 +250,8 @@ export default class AllureReporter extends WDIOReporter {
         // TODO: need to add ability to get labels from allure entitites
         // @ts-ignore
         const isFeaturePresent = this._state.currentTest.wrappedItem.labels.some((label: Label) => label.name === LabelName.FEATURE)
+
+        this._state.currentTest.addLabel(LabelName.SUITE, this._state.currentSuite.name)
 
         if (isFeaturePresent) {
             return
@@ -290,6 +296,8 @@ export default class AllureReporter extends WDIOReporter {
         const isScenario = suite.type === 'scenario'
         const isFeature = suite.type === 'feature'
 
+        this._state.currentFile = suite.file
+
         // handle cucumber scenario as allure "case" instead of "suite"
         if (useCucumberStepReporter && isScenario) {
             this._startTest(suite.title, suite.cid)
@@ -322,6 +330,8 @@ export default class AllureReporter extends WDIOReporter {
     onSuiteEnd(suite: SuiteStats) {
         const { useCucumberStepReporter } = this._options
         const isScenario = suite.type === 'scenario'
+
+        this._state.currentFile = undefined
 
         if (useCucumberStepReporter && isScenario) {
             // passing hooks are missing the 'state' property
@@ -385,7 +395,7 @@ export default class AllureReporter extends WDIOReporter {
 
         if (this._state.currentAllureTestOrStep?.wrappedItem.name === testTitle) {
             // Test already in progress, most likely started by a before each hook
-            this.setCaseParameters(test.cid)
+            this.setTestParameters(test.cid)
             return
         }
 
