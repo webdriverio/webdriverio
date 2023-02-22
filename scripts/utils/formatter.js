@@ -155,6 +155,10 @@ export default function (docfile) {
         description = description.substr(0, description.indexOf('<example>'))
     }
 
+    const exampleReferences = javadoc.tags
+        .filter((tag) => tag.type === 'example' && typeof tag.string === 'string')
+        .map((tag) => tag.string)
+
     /**
      * format param strings, from
      * ```
@@ -197,6 +201,7 @@ export default function (docfile) {
         description: description,
         ignore: javadoc.ignore,
         examples: files,
+        exampleReferences,
         customEditUrl: `${customFields.repoUrl}/edit/main/packages/webdriverio/src/commands/${scope}/${name}.ts`,
         hasDocusaurusHeader: true,
         originalId: `api/${scope}/${name}`,

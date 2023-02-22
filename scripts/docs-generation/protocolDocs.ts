@@ -55,6 +55,7 @@ export function generateProtocolDocs (sidebars: any) {
                 })
                 description.returnTags = [] // tbd
                 description.throwsTags = [] // tbd
+                description.exampleReferences = description.exampleReferences || []
                 description.isMobile = MOBILE_PROTOCOLS.includes(protocolName)
                 description.customEditUrl = `${repoUrl}/edit/main/packages/wdio-protocols/src/protocols/${protocolName}.ts`
 
@@ -74,7 +75,7 @@ export function generateProtocolDocs (sidebars: any) {
                     description.description = protocolNote
                 }
 
-                const markdown = ejs.render(template, { docfiles: [description] }, { delimiter: '?' })
+                const markdown = ejs.render(template, { docfiles: [description], path }, { delimiter: '?' })
                 if (!protocolDocs[protocolName]) {
                     protocolDocs[protocolName] = [[
                         '---',

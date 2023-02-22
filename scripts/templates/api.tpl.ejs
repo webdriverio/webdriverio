@@ -38,7 +38,7 @@ title: <?= method.command ?>
 <? }) ?>
 <? } ?>
 
-<? if (method.examples.length) { ?>
+<? if (method.examples.length || method.exampleReferences.length) { ?>
 ##### Example<? if (method.examples.length > 1) { ?>s<? } ?>
 
 <? method.examples.forEach(function(example) { ?>
@@ -46,6 +46,17 @@ title: <?= method.command ?>
 <?- example.code ?>
 ```
 <? }); ?>
+
+<? method.exampleReferences.forEach(function(ref) {
+    console.log(ref, filename, ext)
+    var filename = path.basename(ref.split('#')[0])
+    var ext = path.extname(filename).slice(1)
+?>
+```<?= ext ?> reference title="<?= filename ?>"
+<?= ref ?>
+```
+<? }); ?>
+
 <? } ?>
 
 <? if (method.returns) { ?>

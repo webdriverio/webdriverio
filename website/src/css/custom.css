@@ -2,6 +2,7 @@
 @import url(docsearch.css);
 @import url(hero.css);
 @import url(buttons.css);
+@import url(codeblock.css);
 
 :root {
     --ifm-color-primary: #ea5906;
