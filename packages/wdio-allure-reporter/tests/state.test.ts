@@ -1,3 +1,4 @@
+import { sep } from 'node:path'
 import { describe, it, expect, beforeEach } from 'vitest'
 import { temporaryDirectory } from 'tempy'
 import { AllureRuntime, AllureTest, AllureGroup } from 'allure-js-commons'
@@ -113,7 +114,7 @@ describe('state', () => {
 
     describe('with current file', () => {
         it('returns package label', () => {
-            state.currentFile = 'foo/bar/baz.test.js'
+            state.currentFile = ['foo', 'bar', 'baz.test.js'].join(sep)
 
             expect(state.currentPackageLabel).toEqual('foo.bar.baz.test.js')
         })

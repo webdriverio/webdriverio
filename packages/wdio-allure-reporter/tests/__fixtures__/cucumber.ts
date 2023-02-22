@@ -1,3 +1,4 @@
+import { sep } from 'node:path'
 import type { HookStats, SuiteStats, TestStats } from '@wdio/reporter'
 
 const suite = (type = 'feature') => ({
@@ -8,7 +9,7 @@ const suite = (type = 'feature') => ({
     cid: '0-0',
     title: type === 'feature' ? 'MyFeature' : 'MyScenario',
     fullTitle: type === 'feature' ? undefined : 'MyFeature1: My Scenario',
-    file: 'foo/bar.feature',
+    file: ['foo', 'bar.feature'].join(sep),
     tags: [{
         type: 'Tag',
         location: { line: 5, column: 3 },
