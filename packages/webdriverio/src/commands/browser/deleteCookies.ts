@@ -5,8 +5,8 @@
  * @alias browser.deleteCookies
  * @param {String | String[]} names  names of cookies to be deleted
  * @uses webdriver/deleteAllCookies,webdriver/deleteCookie
- * @example https://github.com/webdriverio/example-recipes/blob/eebf07d12a22554365a0227ae9efae6fbc22ec2f/deleteCookies/example.js#L9-L29
- * @example https://github.com/webdriverio/example-recipes/blob/eebf07d12a22554365a0227ae9efae6fbc22ec2f/deleteCookies/example.js#L31-L35
+ * @example https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/deleteCookies/example.js#L9-L29
+ * @example https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/deleteCookies/example.js#L31-L35
  */
 export function deleteCookies(
     this: WebdriverIO.Browser,

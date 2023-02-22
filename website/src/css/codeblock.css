@@ -10,17 +10,22 @@
     border: 1px solid rgba(27, 31, 36, 0.15);
     border-radius: 5px;
     padding: 5px 10px;
-    right: 6px;
+    right: 0;
     transition: none;
     text-decoration: none;
     box-shadow: 0 1px 0 rgb(27 31 36 / 4%), inset 0 1px 0 rgb(255 255 255 / 25%);
+}
+html[data-theme="dark"] .docusaurus-theme-github-codeblock .githubLink,
+html[data-theme="dark"] .docusaurus-theme-github-codeblock .runmeLink {
+    border: 1px solid var(--ifm-color-emphasis-300);
+    box-shadow: none;
 }
 .docusaurus-theme-github-codeblock .githubLink:hover,
 .docusaurus-theme-github-codeblock .runmeLink:hover {
     opacity: 1;
 }
 .docusaurus-theme-github-codeblock .runmeLink {
-    right: 146px;
+    right: 140px;
 }
 
 .docusaurus-theme-github-codeblock .runmeLink:before {
