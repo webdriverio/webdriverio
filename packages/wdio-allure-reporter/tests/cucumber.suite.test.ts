@@ -233,6 +233,7 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
             const suites = labels[LabelName.SUITE]
             const languages = labels[LabelName.LANGUAGE]
             const frameworks = labels[LabelName.FRAMEWORK]
+            const packages = labels[LabelName.PACKAGE]
 
             expect(languages).toHaveLength(1)
             expect(languages[0].value).toEqual('javascript')
@@ -245,6 +246,8 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
                 { name: LabelName.FEATURE, value: 'MyFeature' },
                 { name: LabelName.FEATURE, value: 'my-awesome-feature-at-scenario-level' }
             ]))
+            expect(packages).toHaveLength(1)
+            expect(packages[0].value).toEqual('foo.bar.feature')
         })
 
         it('should add browser name as test argument', () => {
@@ -395,6 +398,7 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
             const suites = labels[LabelName.SUITE]
             const languages = labels[LabelName.LANGUAGE]
             const frameworks = labels[LabelName.FRAMEWORK]
+            const packages = labels[LabelName.PACKAGE]
 
             expect(languages).toHaveLength(1)
             expect(languages[0].value).toEqual('javascript')
@@ -407,6 +411,8 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
                 { name: LabelName.FEATURE, value: 'MyFeature' },
                 { name: LabelName.FEATURE, value: 'my-awesome-feature-at-scenario-level' }
             ]))
+            expect(packages).toHaveLength(1)
+            expect(packages[0].value).toEqual('foo.bar.feature')
         })
 
         it('should report one suite', () => {

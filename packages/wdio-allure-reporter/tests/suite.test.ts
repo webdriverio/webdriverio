@@ -2,6 +2,7 @@ import path from 'node:path'
 import { log } from 'node:console'
 import { describe, it, expect, afterEach, beforeEach, beforeAll, afterAll, vi } from 'vitest'
 import type { Label, Parameter, Link, Attachment } from 'allure-js-commons'
+import { LabelName } from 'allure-js-commons'
 import { Status, LinkType, Stage } from 'allure-js-commons'
 import { temporaryDirectory } from 'tempy'
 
@@ -13,7 +14,7 @@ import { TYPE } from '../src/types.js'
  * methods without having to ignore them for test coverage
  */
 // eslint-disable-next-line
-import { clean, getResults } from './helpers/wdio-allure-helper'
+import { clean, getResults, mapBy } from './helpers/wdio-allure-helper'
 
 import { runnerEnd, runnerStart } from './__fixtures__/runner.js'
 import { suiteEnd, suiteStart } from './__fixtures__/suite.js'
@@ -106,41 +107,59 @@ describe('Passing tests', () => {
     })
 
     it('should detect analytics labels in test case', () => {
-        const languageLabel = allureResult.labels.find((label: Label) => label.name === 'language')
-        const frameworkLabel = allureResult.labels.find((label: Label) => label.name === 'framework')
+        const labels = mapBy<Label>(allureResult.labels, 'name')
+        const languages = labels[LabelName.LANGUAGE]
+        const frameworks = labels[LabelName.FRAMEWORK]
 
-        expect(languageLabel.value).toEqual('javascript')
-        expect(frameworkLabel.value).toEqual('wdio')
+        expect(languages).toHaveLength(1)
+        expect(languages[0].value).toEqual('javascript')
+        expect(frameworks).toHaveLength(1)
+        expect(frameworks[0].value).toEqual('wdio')
     })
 
     it('should add browser name as test argument', () => {
-        const browserParameter = allureResult.parameters.find((param: Parameter) => param.name === 'browser')
+        const params = mapBy<Parameter>(allureResult.parameters, 'name')
+        const browsers = params.browser
 
-        expect(browserParameter.value).toEqual('chrome-68')
+        expect(browsers).toHaveLength(1)
+        expect(browsers[0].value).toEqual('chrome-68')
     })
 
-    it('should add label, story, feature, severity, issue, testId labels, thread', () => {
-        const customLabel = allureResult.labels.find((label: Label) => label.name === 'customLabel')
-        const features = allureResult.labels.filter((label: Label) => label.name === 'feature')
-        const story = allureResult.labels.find((label: Label) => label.name === 'story')
-        const severity = allureResult.labels.find((label: Label) => label.name === 'severity')
-        const thread = allureResult.labels.find((label: Label) => label.name === 'thread')
+    it('should add label, story, feature, severity, issue, testId, thread and package labels', () => {
+        const labels = mapBy<Label>(allureResult.labels, 'name')
+        const customLabels = labels.customLabel
+        const features = labels[LabelName.FEATURE]
+        const stories = labels[LabelName.STORY]
+        const severities = labels[LabelName.SEVERITY]
+        const threads = labels[LabelName.THREAD]
+        const packages = labels[LabelName.PACKAGE]
 
         expect(features).toHaveLength(2)
-        expect(features[0].value).toEqual('A passing Suite')
-        expect(features[1].value).toEqual('foo')
-        expect(customLabel.value).toEqual('Label')
-        expect(story.value).toEqual('Story')
-        expect(severity.value).toEqual('baz')
-        expect(thread.value).toEqual(testStart().cid)
+        expect(features).toEqual(expect.arrayContaining([
+            { name: LabelName.FEATURE, value: 'A passing Suite' },
+            { name: LabelName.FEATURE, value: 'foo' }
+        ]))
+        expect(customLabels).toHaveLength(1)
+        expect(customLabels[0].value).toEqual('Label')
+        expect(stories).toHaveLength(1)
+        expect(stories[0].value).toEqual('Story')
+        expect(severities).toHaveLength(1)
+        expect(severities[0].value).toEqual('baz')
+        expect(threads).toHaveLength(1)
+        expect(threads[0].value).toEqual(testStart().cid)
+        expect(packages).toHaveLength(1)
+        expect(packages[0].value).toEqual('foo.bar.test.js')
     })
 
     it('should add issue and tms links', () => {
-        const issueLink = allureResult.links.find((link: Link) => link.type === LinkType.ISSUE)
-        const tmsLink = allureResult.links.find((link: Link) => link.type === LinkType.TMS)
+        const links = mapBy<Link>(allureResult.links, 'type')
+        const issues = links[LinkType.ISSUE]
+        const tms = links[LinkType.TMS]
 
-        expect(issueLink.url).toEqual('https://example.org/issues/1')
-        expect(tmsLink.url).toEqual('https://example.org/tests/2')
+        expect(issues).toHaveLength(1)
+        expect(issues[0].url).toEqual('https://example.org/issues/1')
+        expect(tms).toHaveLength(1)
+        expect(tms[0].url).toEqual('https://example.org/tests/2')
     })
 
     it('should add environment variable', () => {
@@ -168,9 +187,11 @@ describe('Passing tests', () => {
     })
 
     it('should add additional argument', () => {
-        const osParameter = allureResult.parameters.find((param: Parameter) => param.name === 'os')
+        const params = mapBy<Parameter>(allureResult.parameters, 'name')
+        const osParams = params.os
 
-        expect(osParameter.value).toEqual('osx')
+        expect(osParams).toHaveLength(1)
+        expect(osParams[0].value).toEqual('osx')
     })
 })
 

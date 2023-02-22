@@ -6,6 +6,7 @@ const suite = () => ({
     cid: '0-0',
     title: 'A passing Suite',
     fullTitle: 'A passing Suite',
+    file: 'foo/bar.test.js',
     tests: [],
     hooks: [],
     suites: []
