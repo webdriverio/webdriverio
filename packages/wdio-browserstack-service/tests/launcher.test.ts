@@ -2,6 +2,7 @@ import Browserstack from 'browserstack-local'
 import logger from '@wdio/logger'
 import got from 'got'
 import path from 'path'
+import os from 'os'
 
 import BrowserstackLauncher from '../src/launcher'
 import { BrowserstackConfig } from '../src/types'
@@ -361,6 +362,21 @@ describe('onPrepare', () => {
         expect(capabilities.chromeBrowser.capabilities).toEqual({ 'bstack:options': { local: true, localIdentifier: 'wdio1' }, 'goog:chromeOptions': {} })
     })
 
+    it('should add the "localIdentifier" property to an array of capabilities inside "bstack:options" if "bstack:options" present', async () => {
+        const service = new BrowserstackLauncher({
+            browserstackLocal: true,
+            opts: { localIdentifier: 'wdio1' }
+        }, caps, config)
+        const capabilities = [{ 'bstack:options': {} }, { 'bstack:options': {} }, { 'bstack:options': {} }]
+
+        await service.onPrepare(config, capabilities)
+        expect(capabilities).toEqual([
+            { 'bstack:options': { local: true, localIdentifier: 'wdio1' } },
+            { 'bstack:options': { local: true, localIdentifier: 'wdio1' } },
+            { 'bstack:options': { local: true, localIdentifier: 'wdio1' } }
+        ])
+    })
+
     it('should add the "buildIdentifier" property to a multiremote capability inside "bstack:options" if "bstack:options" present', async () => {
         const caps: any = { chromeBrowser: { capabilities: { 'bstack:options': { buildName: 'browserstack wdio build', buildIdentifier: '#${BUILD_NUMBER}' } } } }
         const service = new BrowserstackLauncher({}, caps, config)
@@ -640,6 +656,33 @@ describe('_updateCaps', () => {
         service._updateCaps(caps, 'buildIdentifier')
         expect(caps.chromeBrowser.capabilities['bstack:options']).toEqual({ 'wdioService': bstackServiceVersion })
     })
+
+    it('should delete buildidentifier in caps object if value not passed in _updateCaps', () => {
+        const options: BrowserstackConfig = { browserstackLocal: true }
+        const caps = { chromeBrowser: { capabilities: { 'browserstack.buildIdentifier': '#1' } } }
+        const service = new BrowserstackLauncher(options, caps, config)
+
+        service._updateCaps(caps, 'buildIdentifier')
+        expect(caps.chromeBrowser.capabilities).toEqual({ 'browserstack.wdioService': bstackServiceVersion })
+    })
+
+    it('should delete buildidentifier in caps object if value not passed in _updateCaps', () => {
+        const options: BrowserstackConfig = { browserstackLocal: true }
+        const caps = [{ 'browserstack.buildIdentifier': '#1' }]
+        const service = new BrowserstackLauncher(options, caps, config)
+
+        service._updateCaps(caps, 'buildIdentifier')
+        expect(caps[0]).toEqual({ 'browserstack.wdioService': bstackServiceVersion })
+    })
+
+    it('should update localIdentifier in caps object if extension cap is present', () => {
+        const options: BrowserstackConfig = { browserstackLocal: true, opts: { localIdentifier: 'wdio1' }  }
+        const caps = { chromeBrowser: { capabilities: { 'goog:chromeOptions': {} } } }
+        const service = new BrowserstackLauncher(options, caps, config)
+
+        service._updateCaps(caps, 'localIdentifier', 'wdio1')
+        expect(caps.chromeBrowser.capabilities['bstack:options']).toEqual({ 'wdioService': bstackServiceVersion, localIdentifier: 'wdio1' })
+    })
 })
 
 describe('_validateApp', () => {
@@ -902,7 +945,7 @@ describe('_getLocalBuildNumber', () => {
 
     it('returns 1 in case of buildName key not present in json file', async() => {
         jest.spyOn(fs, 'existsSync').mockReturnValue(true)
-        jest.spyOn(fs, 'readFileSync').mockReset().mockReturnValue(JSON.stringify({ 'browserstack wdio build test': { 'identifier':'2' } }))
+        jest.spyOn(fs, 'readFileSync').mockReset().mockReturnValue(JSON.stringify({ 'browserstack wdio build test': { 'identifier':2 } }))
         jest.spyOn(service, '_updateLocalBuildCache').mockImplementation(() => {})
         const buildNumber = service._getLocalBuildNumber()
         expect(buildNumber).toEqual('1')
@@ -910,7 +953,7 @@ describe('_getLocalBuildNumber', () => {
 
     it('returns new identifier in case of buildName key is present in json file', async() => {
         jest.spyOn(fs, 'existsSync').mockReturnValue(true)
-        jest.spyOn(fs, 'readFileSync').mockReset().mockReturnValue(JSON.stringify({ 'browserstack wdio build': { 'identifier':'2' } }))
+        jest.spyOn(fs, 'readFileSync').mockReset().mockReturnValue(JSON.stringify({ 'browserstack wdio build': { 'identifier':2 } }))
         jest.spyOn(service, '_updateLocalBuildCache').mockImplementation(() => {})
         const buildNumber = service._getLocalBuildNumber()
         expect(buildNumber).toEqual('3')
@@ -941,14 +984,25 @@ describe('_updateLocalBuildCache', () => {
 
     it('updates buildIdentifier in json file', async() => {
         jest.spyOn(fs, 'writeFileSync').mockImplementation(() => {})
-        jest.spyOn(fs, 'readFileSync').mockReset().mockReturnValue(JSON.stringify({ 'browserstack wdio build test' : { 'identifier' : '3' } }))
-        const browserstackFolderPath = path.join(require('os').homedir(), '.browserstack')
+        jest.spyOn(fs, 'readFileSync').mockReset().mockReturnValue(JSON.stringify({ 'browserstack wdio build test' : { 'identifier' : 3 } }))
+        const browserstackFolderPath = path.join(os.homedir(), '.browserstack')
         const filePath = path.join(browserstackFolderPath, '.build-name-cache.json')
 
-        service._updateLocalBuildCache(filePath, 'browserstack wdio build test', '3')
+        service._updateLocalBuildCache(filePath, 'browserstack wdio build test', 3)
         const buildCacheFileData = fs.readFileSync(filePath)
 
         const parsedBuildCacheFileData = JSON.parse(buildCacheFileData.toString())
-        expect(parsedBuildCacheFileData['browserstack wdio build test']['identifier']).toEqual('3')
+        expect(parsedBuildCacheFileData['browserstack wdio build test']['identifier']).toEqual(3)
+    })
+
+    it('updates buildIdentifier in json file', async() => {
+        const writeFileSyncSpy = jest.spyOn(fs, 'writeFileSync')
+        writeFileSyncSpy.mockImplementation(() => {})
+        jest.spyOn(fs, 'readFileSync').mockReset().mockReturnValue(JSON.stringify({ 'browserstack wdio build test' : { 'identifier' : 3 } }))
+        const browserstackFolderPath = path.join(os.homedir(), '.browserstack')
+        const filePath = path.join(browserstackFolderPath, '.build-name-cache.json')
+
+        service._updateLocalBuildCache(filePath, undefined, 3)
+        expect(writeFileSyncSpy).not.toHaveBeenCalled()
     })
 })

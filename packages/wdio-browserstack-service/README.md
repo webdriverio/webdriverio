@@ -183,9 +183,8 @@ Default: `true`
 
 **buildIdentifier** is a unique id to differentiate every execution that gets appended to
 buildName. Choose your buildIdentifier format from the available expressions:
-
-* ${BUILD_NUMBER}: Generates an incremental counter with every execution
-* ${DATE_TIME}: Generates a Timestamp with every execution. Eg. 05-Nov-19:30
+* `${BUILD_NUMBER}`: Generates an incremental counter with every execution
+* `${DATE_TIME}`: Generates a Timestamp with every execution. Eg. 05-Nov-19:30
 
 ```js
 services: [
@@ -194,6 +193,7 @@ services: [
   }]
 ]
 ```
+Build Identifier supports usage of either or both expressions along with any other characters enabling custom formatting options.
 
 ### opts
 
