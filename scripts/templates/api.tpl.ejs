@@ -14,6 +14,18 @@ title: <?= method.command ?>
 
 <?- method.description ?>
 
+<? if (method.alternativeCommands && method.alternativeCommands.length) { ?>
+:::info
+
+This protocol command is embedded in the following convinient method<?- method.alternativeCommands.length > 1 ? 's' : '' ?>: <?-
+method.alternativeCommands
+    .map((command) => `[\`${command.split('/').pop()}\`](/docs/api/${command})`)
+    .join(', ')
+?>. It is recommended to use <?- method.alternativeCommands.length > 1 ? 'these commands' : 'this command' ?> instead.
+
+:::
+<? } ?>
+
 ##### Usage
 
 ```js
@@ -38,7 +50,7 @@ title: <?= method.command ?>
 <? }) ?>
 <? } ?>
 
-<? if (method.examples.length) { ?>
+<? if (method.examples.length || method.exampleReferences.length) { ?>
 ##### Example<? if (method.examples.length > 1) { ?>s<? } ?>
 
 <? method.examples.forEach(function(example) { ?>
@@ -46,6 +58,16 @@ title: <?= method.command ?>
 <?- example.code ?>
 ```
 <? }); ?>
+
+<? method.exampleReferences.forEach(function(ref) {
+    var filename = path.basename(ref.split('#')[0])
+    var ext = path.extname(filename).slice(1)
+?>
+```<?= ext ?> reference title="<?= filename ?>"
+<?= ref ?>
+```
+<? }); ?>
+
 <? } ?>
 
 <? if (method.returns) { ?>

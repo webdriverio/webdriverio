@@ -1,0 +1,34 @@
+.docusaurus-theme-github-codeblock {
+    position: relative;
+}
+.docusaurus-theme-github-codeblock .githubLink,
+.docusaurus-theme-github-codeblock .runmeLink {
+    position: absolute;
+    top: 7px;
+    color: var(--ifm-color-primary);
+    opacity: .5;
+    border: 1px solid rgba(27, 31, 36, 0.15);
+    border-radius: 5px;
+    padding: 5px 10px;
+    right: 6px;
+    transition: none;
+    text-decoration: none;
+    box-shadow: 0 1px 0 rgb(27 31 36 / 4%), inset 0 1px 0 rgb(255 255 255 / 25%);
+}
+.docusaurus-theme-github-codeblock .githubLink:hover,
+.docusaurus-theme-github-codeblock .runmeLink:hover {
+    opacity: 1;
+}
+.docusaurus-theme-github-codeblock .runmeLink {
+    right: 146px;
+}
+
+.docusaurus-theme-github-codeblock .runmeLink:before {
+    content: '';
+    background: url(https://runme.dev/img/logo.svg) no-repeat;
+    width: 20px;
+    height: 15px;
+    display: inline-block;
+    background-size: contain;
+    transform: translateY(2px);
+}
