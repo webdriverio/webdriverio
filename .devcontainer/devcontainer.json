@@ -6,6 +6,7 @@
     "features": {
         "ghcr.io/devcontainers/features/desktop-lite:1": {}
     },
+    "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
     // Use 'forwardPorts' to make a list of ports inside the container available locally.
     "forwardPorts": [
         // code coverage page
