@@ -145,7 +145,8 @@ module.exports = {
             copyright: `Copyright © ${new Date().getFullYear()} OpenJS Foundation`,
         },
         codeblock: {
-            showRunmeLink: true
+            showRunmeLink: true,
+            runmeLinkLabel: 'Run Example'
         },
     },
     presets: [

@@ -37,3 +37,34 @@ html[data-theme="dark"] .docusaurus-theme-github-codeblock .runmeLink {
     background-size: contain;
     transform: translateY(2px);
 }
+.docusaurus-theme-github-codeblock .runmeLink::after {
+    content: 'This will check out the WebdriverIO example repository and will allow you to run the example locally using the VS Code Runme extension.';
+    position: absolute;
+    width: 240px;
+    color: #ea9d71;
+    text-align: left;
+    font-size: .7em;
+    left: 0;
+    top: 45px;
+    padding-left: 30px;
+    margin-top: 10px;
+    background-color: #F6F8FA;
+    background-image: url('/img/icons/info-icon.svg');
+    background-size: 15px;
+    background-repeat: no-repeat;
+    background-position: 10px 2px;
+    -webkit-font-smoothing: subpixel-antialiased;
+    opacity: 0;
+    transition: opacity 0.2s;
+    z-index: 1;
+}
+html[data-theme="dark"] .docusaurus-theme-github-codeblock .runmeLink::after {
+    background-color: #282A36!important;
+}
+.docusaurus-theme-github-codeblock .runmeLink:hover::after {
+    opacity: 1;
+    z-index: 10;
+}
+.codeBlockContent_node_modules-\@docusaurus-theme-classic-lib-theme-CodeBlock-Content-styles-module:hover {
+    z-index: 20;
+}
