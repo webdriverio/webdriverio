@@ -16,3 +16,4 @@
         Open the port forwarded URL labeled with "Code Coverage Overview".
 
 ℹ️ For more information, navigate to https://webdriver.io/docs/contribute
+
