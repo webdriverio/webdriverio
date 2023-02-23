@@ -400,13 +400,17 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             this._updateCaps(capabilities, 'buildIdentifier', this._buildIdentifier)
         } else {
             const localBuildNumber = this._getLocalBuildNumber()
-            if (localBuildNumber != '-1') {
+            if (localBuildNumber) {
                 this._buildIdentifier = this._buildIdentifier.replace('${BUILD_NUMBER}', localBuildNumber)
                 this._updateCaps(capabilities, 'buildIdentifier', this._buildIdentifier)
             }
         }
     }
 
+    /**
+     * @return {string} if buildName doesn't exist in json file, it will return 1
+     *                  else returns corresponding value in json file (e.g. { "wdio-build": { "identifier" : 2 } } => 2 in this case)
+     */
     _getLocalBuildNumber() {
         let browserstackFolderPath = path.join(os.homedir(), '.browserstack')
         try {
@@ -432,7 +436,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             this._updateLocalBuildCache(filePath, this._buildName, 1)
             return newIdentifier.toString()
         } catch (error: any) {
-            return '-1'
+            return null
         }
     }
 

@@ -823,7 +823,7 @@ describe('_handleBuildIdentifier', () => {
         }]
         const service = new BrowserstackLauncher(options, caps, config)
 
-        jest.spyOn(service, '_getLocalBuildNumber').mockReturnValueOnce('-1')
+        jest.spyOn(service, '_getLocalBuildNumber').mockReturnValueOnce(null)
         jest.spyOn(service, '_updateLocalBuildCache').mockImplementation(() => {})
         service._handleBuildIdentifier(caps)
 
@@ -912,7 +912,7 @@ describe('_handleBuildIdentifier', () => {
         expect(caps[0]).toMatchObject(updatedcaps[0])
     })
 
-    it('should return if localBuildNumber is -1', async() => {
+    it('should return if localBuildNumber is null', async() => {
         const caps: any = [{
             'bstack:options': {
                 buildName: 'browserstack wdio build',
@@ -920,7 +920,7 @@ describe('_handleBuildIdentifier', () => {
             }
         }]
         const service = new BrowserstackLauncher(options, caps, config)
-        jest.spyOn(service, '_getLocalBuildNumber').mockReturnValueOnce('-1')
+        jest.spyOn(service, '_getLocalBuildNumber').mockReturnValueOnce(null)
 
         service._handleBuildIdentifier(caps)
         expect(caps[0]['bstack:options']?.buildIdentifier).toEqual('#${BUILD_NUMBER}')
@@ -959,11 +959,11 @@ describe('_getLocalBuildNumber', () => {
         expect(buildNumber).toEqual('3')
     })
 
-    it('returns -1 in case of caught exception', async() => {
+    it('returns null in case of caught exception', async() => {
         jest.spyOn(fs, 'existsSync').mockReturnValue(true)
         jest.spyOn(service, '_updateLocalBuildCache').mockImplementation(() => { throw new Error('Unable to parse JSON file') })
         const buildNumber = service._getLocalBuildNumber()
-        expect(buildNumber).toEqual('-1')
+        expect(buildNumber).toEqual(null)
     })
 })
 
