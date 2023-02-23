@@ -3,7 +3,7 @@ import sh from 'shelljs'
 
 const orange = chalk.hex('#ea5906')
 const urlToDocs = process.env.IS_DEVCONTAINER
-    ? `https://${process.env.CODESPACE_NAME || 'locahost'}-${3000}.githubpreview.dev`
+    ? `https://${process.env.CODESPACE_NAME || 'locahost'}-${3000}.preview.app.github.dev`
     : await sh.exec('gp url 3000')
 
 const urlToCoverage = process.env.IS_DEVCONTAINER
@@ -53,7 +53,7 @@ console.log(`
 ${orange(robot)}
 ${chalk.bold('     Welcome to the WebdriverIO Development Environment 👋')}
 
-Thanks to Gitpod everything is set-up and ready for you, so you can start making
+Thanks to GitHub Codespaces, everything is set-up and ready for you, so you can start making
 changes to the package files and test them. There is a sample standalone script
 you can run via:
 

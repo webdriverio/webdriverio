@@ -14,12 +14,18 @@
         3000
     ],
     "portsAttributes": {
-        "3000": {
+        "8000": {
             "label": "Code Coverage Site"
         },
-        "8000": {
+        "3000": {
             "label": "Project Documentation"
         }
     },
-    "postCreateCommand": "npm install && npm run setup-full && node ./scripts/welcome.js"
+    "postCreateCommand": "npm install && npm run setup-full",
+
+    "postAttachCommand": {
+        "Welcome Script": "node scripts/welcome.js",
+        "Preview of the Documentation Page": "cd website && npm install && npm start -- --host 0.0.0.0",
+        "Code Coverage Overview": "npm run test:unit && cd coverage && http-server -p 8000"
+    }
 }
