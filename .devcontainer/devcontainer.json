@@ -1,17 +1,22 @@
+// For more details, see https://aka.ms/devcontainer.json.
 {
+    "name": "WebdriverIO Development Environment",
+
     "build": {
         "context": ".",
         "dockerfile": "Dockerfile"
     },
+
+    // Features to add to the dev container. More info: https://containers.dev/features.
     "features": {
         "ghcr.io/devcontainers/features/desktop-lite:1": {}
     },
+
     "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
+
     // Use 'forwardPorts' to make a list of ports inside the container available locally.
     "forwardPorts": [
-        // code coverage page
         8000,
-        // website
         3000
     ],
     "portsAttributes": {
@@ -22,6 +27,7 @@
             "label": "Project Documentation"
         }
     },
+
     "postCreateCommand": "npm install && npm run setup-full",
     "waitFor": "postCreateCommand",
     "postAttachCommand": {
@@ -29,6 +35,8 @@
         "Preview of the Documentation Page": "cd website && npm install && npm start -- --host 0.0.0.0",
         "Code Coverage Overview": "npm run test:unit && cd coverage && http-server -p 8000"
     },
+
+    // Configure tool-specific properties.
     "customizations": {
         "vscode": {
             "extensions": [
