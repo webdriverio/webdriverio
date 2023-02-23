@@ -1,0 +1,17 @@
+👋 Welcome to the "WebdriverIO Development Environment" in GitHub Codespaces!
+
+🛠️  Your environment is fully setup with all the required software, so you can start making changes to the package files and test them.
+
+There is a sample standalone script you can run via: '$ node ./examples/standalone/sample.js'
+
+If you want to test changes for the testrunner (e.g. using Mocha), run:
+
+$ cd ./examples/wdio
+$ npm run test:mocha
+
+🚀 Once the process in the terminals finish, following environments are available for you:
+    - Preview of the documentation page: Open the portforwarded URL labelled with "Project Documentation"
+
+    - Code Coverage Overview: Open the portforwarded URL labelled with "Code Coverage Site"
+
+ℹ️ For more information, navigate to 'https://webdriver.io/docs/contribute

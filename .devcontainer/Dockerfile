@@ -7,6 +7,5 @@ RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
     && apt-get -y install /tmp/chrome.deb
 
 ENV PATH="/opt/google/chrome:${PATH}"
-ENV IS_DEVCONTAINER=1
 
 RUN npm i -g http-server diff-so-fancy chromedriver@105 geckodriver
