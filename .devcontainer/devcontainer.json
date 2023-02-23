@@ -21,9 +21,10 @@
             "label": "Project Documentation"
         }
     },
-    "postCreateCommand": ["npm install", "npm run setup-full", "sudo cp .devcontainer/welcome-message.txt /usr/local/etc/vscode-dev-containers/first-run-notice.txt"],
+    "postCreateCommand": [
+        "npm install && npm run setup-full"
+    ],
     "waitFor": "postCreateCommand",
-
     "postAttachCommand": {
         "Welcome Script": "node .devcontainer/welcome.js",
         "Preview of the Documentation Page": "cd website && npm install && npm start -- --host 0.0.0.0",
