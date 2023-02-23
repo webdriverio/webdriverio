@@ -28,5 +28,13 @@
         "Welcome Script": "node .devcontainer/welcome.js",
         "Preview of the Documentation Page": "cd website && npm install && npm start -- --host 0.0.0.0",
         "Code Coverage Overview": "npm run test:unit && cd coverage && http-server -p 8000"
+    },
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "editorconfig.editorconfig",
+                "eamodio.gitlens"
+            ]
+        }
     }
 }
