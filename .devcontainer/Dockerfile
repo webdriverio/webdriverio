@@ -16,8 +16,11 @@ RUN curl https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > mic
     apt-get install -y \
         microsoft-edge-stable
 
+RUN npm i -g \
+    http-server \
+    diff-so-fancy \
+    chromedriver@105 \
+    geckodriver
+
 ENV PATH="/opt/google/chrome:${PATH}"
-
-RUN npm i -g http-server diff-so-fancy chromedriver@105 geckodriver
-
 COPY welcome-message.txt /usr/local/etc/vscode-dev-containers/first-run-notice.txt

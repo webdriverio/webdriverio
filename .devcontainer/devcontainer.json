@@ -27,7 +27,7 @@
     ],
     "waitFor": "postCreateCommand",
     "postAttachCommand": {
-        "Welcome Script": "node .devcontainer/welcome.js",
+        "WebdriverIO Development Environment": "npm run watch",
         "Preview of the Documentation Page": "cd website && npm install && npm start -- --host 0.0.0.0",
         "Code Coverage Overview": "npm run test:unit && cd coverage && http-server -p 8000"
     },
