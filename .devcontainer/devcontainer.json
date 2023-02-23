@@ -22,6 +22,7 @@
         }
     },
     "postCreateCommand": "npm install && npm run setup-full",
+    "waitFor": "postCreateCommand",
 
     "postAttachCommand": {
         "Welcome Script": "node scripts/welcome.js",
