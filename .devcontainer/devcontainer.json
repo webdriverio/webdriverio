@@ -22,9 +22,7 @@
             "label": "Project Documentation"
         }
     },
-    "postCreateCommand": [
-        "npm install && npm run setup-full"
-    ],
+    "postCreateCommand": "npm install && npm run setup-full",
     "waitFor": "postCreateCommand",
     "postAttachCommand": {
         "WebdriverIO Development Environment": "npm run watch",
