@@ -50,14 +50,10 @@ method.alternativeCommands
 <? }) ?>
 <? } ?>
 
-<? if (method.examples.length || method.exampleReferences.length) { ?>
-##### Example<? if (method.examples.length > 1) { ?>s<? } ?>
-
-<? method.examples.forEach(function(example) { ?>
-```<?= example.format ?><? if (example.file) { ?> title="<?= example.file ?>"<? } ?>
-<?- example.code ?>
-```
-<? }); ?>
+<?
+const allExamples = [...method.examples, ...method.exampleReferences]
+if (method.examples.length || method.exampleReferences.length) { ?>
+##### Example<? if (allExamples.length > 1) { ?>s<? } ?>
 
 <? method.exampleReferences.forEach(function(ref) {
     var filename = path.basename(ref.split('#')[0])
@@ -65,6 +61,12 @@ method.alternativeCommands
 ?>
 ```<?= ext ?> reference title="<?= filename ?>"
 <?= ref ?>
+```
+<? }); ?>
+
+<? method.examples.forEach(function(example) { ?>
+```<?= example.format ?><? if (example.file) { ?> title="<?= example.file ?>"<? } ?>
+<?- example.code ?>
 ```
 <? }); ?>
 
