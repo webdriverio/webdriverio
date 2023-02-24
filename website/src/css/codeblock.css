@@ -63,8 +63,9 @@ html[data-theme="dark"] .docusaurus-theme-github-codeblock .runmeLink::after {
 }
 .docusaurus-theme-github-codeblock .runmeLink:hover::after {
     opacity: 1;
-    z-index: 10;
-}
-.codeBlockContent_node_modules-\@docusaurus-theme-classic-lib-theme-CodeBlock-Content-styles-module:hover {
     z-index: 20;
+}
+
+.docusaurus-theme-github-codeblock .theme-code-block>div:last-child:hover {
+    z-index: 10;
 }
