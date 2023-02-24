@@ -61,7 +61,8 @@ export async function getTemplate(options: WebdriverIO.BrowserRunnerOptions, env
                 window.__wdioErrors__ = []
                 addEventListener('error', (ev) => window.__wdioErrors__.push({
                     filename: ev.filename,
-                    message: ev.message
+                    message: ev.message,
+                    error: ev.error.stack
                 }))
                 /**
                  * mock process
@@ -107,6 +108,21 @@ export function normalizeId(id: string, base?: string): string {
         .replace(/^node:/, '')
         .replace(/[?&]v=\w+/, '?') // remove ?v= query
         .replace(/\?$/, '') // remove end query mark
+}
+
+export async function getFilesFromDirectory (dir: string) {
+    let files = await fs.readdir(dir)
+    files = (await Promise.all(files.map(async file => {
+        const filePath = path.join(dir, file)
+        const stats = await fs.stat(filePath)
+        if (stats.isDirectory()) {
+            return getFilesFromDirectory(filePath)
+        } else if (stats.isFile()) {
+            return filePath
+        }
+    }))).filter(Boolean) as string[]
+
+    return files.reduce((all, folderContents) => all.concat(folderContents), [] as string[])
 }
 
 export function getErrorTemplate(filename: string, error: Error) {

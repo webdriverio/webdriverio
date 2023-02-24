@@ -13,9 +13,10 @@ import {
     ChromiumProtocol, SauceLabsProtocol, SeleniumProtocol, GeckoProtocol,
     WebDriverBidiProtocol
 } from '@wdio/protocols'
+import type { Options } from '@wdio/types'
 
-import { SESSIONS } from '../../constants.js'
-import { getTemplate, getErrorTemplate, normalizeId } from '../utils.js'
+import { SESSIONS, DEFAULT_MOCK_DIRECTORY } from '../../constants.js'
+import { getTemplate, getErrorTemplate, normalizeId, getFilesFromDirectory } from '../utils.js'
 
 const log = logger('@wdio/browser-runner:plugin')
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
@@ -50,11 +51,14 @@ const FETCH_FROM_ESM = [
     'mocha'
 ]
 
-export function testrunner(options: WebdriverIO.BrowserRunnerOptions): Plugin[] {
+export function testrunner(options: WebdriverIO.BrowserRunnerOptions, config: Options.Testrunner): Plugin[] {
+    const autoMockDir = path.resolve(config.rootDir!, options.autoMockDir || DEFAULT_MOCK_DIRECTORY)
     const automationProtocolPath = `/@fs${url.pathToFileURL(path.resolve(__dirname, '..', '..', 'browser', 'driver.js')).pathname}`
     const mockModulePath = path.resolve(__dirname, '..', '..', 'browser', 'mock.js')
     const setupModulePath = path.resolve(__dirname, '..', '..', 'browser', 'setup.js')
     const spyModulePath = path.resolve(__dirname, '..', '..', 'browser', 'spy.js')
+
+    let mockedModulesList: ([string, string])[]
     return [{
         name: 'wdio:testrunner',
         enforce: 'pre',
@@ -95,6 +99,24 @@ export function testrunner(options: WebdriverIO.BrowserRunnerOptions): Plugin[] 
              */
             if (FETCH_FROM_ESM.includes(id)) {
                 return `https://esm.sh/${id}`
+            }
+
+            /**
+             * check if modules should be mocked out
+             */
+            if (!mockedModulesList) {
+                mockedModulesList = (await getFilesFromDirectory(autoMockDir))
+                    /**
+                     * seperate to module name and actual path
+                     */
+                    .map((filePath) => [
+                        filePath,
+                        filePath.slice(autoMockDir.length + 1).slice(0, -path.extname(filePath).length)
+                    ])
+            }
+            const mockedModule = mockedModulesList.find(([, mod]) => mod === id)
+            if (mockedModule) {
+                return mockedModule[0]
             }
         },
         load(id) {

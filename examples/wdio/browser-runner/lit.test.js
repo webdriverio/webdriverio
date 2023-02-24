@@ -1,7 +1,12 @@
 import { expect, $ } from '@wdio/globals'
 import { spyOn } from '@wdio/browser-runner'
 import { html, render } from 'lit'
+
+import defaultExport, { namedExportValue } from 'someModule'
+
 import { SimpleGreeting } from './components/LitComponent.ts'
+
+console.log()
 
 const getQuestionFn = spyOn(SimpleGreeting.prototype, 'getQuestion')
 
@@ -25,5 +30,10 @@ describe('Lit Component testing', () => {
 
         const innerElem = await $('simple-greeting').$('>>> p')
         expect(await innerElem.getText()).toBe('Hello, WebdriverIO! Does this work?')
+    })
+
+    it('should allow to mock dependencies', () => {
+        expect(defaultExport).toBe('barfoo')
+        expect(namedExportValue).toBe('foobar')
     })
 })

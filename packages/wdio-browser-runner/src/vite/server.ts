@@ -54,7 +54,7 @@ export class ViteServer extends EventEmitter {
 
         this.#viteConfig = deepmerge(DEFAULT_VITE_CONFIG, {
             root: options.rootDir || process.cwd(),
-            plugins: [testrunner(options)]
+            plugins: [testrunner(options, config)]
         })
 
         if (options.coverage && options.coverage.enabled) {
