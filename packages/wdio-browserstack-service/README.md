@@ -28,6 +28,11 @@ export const config = {
     key: process.env.BROWSERSTACK_ACCESS_KEY,
     services: [
         ['browserstack', {
+            testObservability: true,
+            testObservabilityOptions: {
+                projectName: "Your project name goes here",
+                buildName: "The static build job name goes here e.g. Nightly regression"
+            },
             browserstackLocal: true
         }]
     ],
@@ -38,6 +43,35 @@ export const config = {
 ## Options
 
 In order to authorize to the BrowserStack service your config needs to contain a [`user`](https://webdriver.io/docs/options#user) and [`key`](https://webdriver.io/docs/options#key) option.
+
+### testObservability
+
+By default, [`testObservability`](https://observability.browserstack.com/) is also enabled when you use the browserstack-service. You can read more about the advanced reporting and analytics functionalities of [`Test Observability`](https://browserstack.com/docs/test-observability) and also read about [`how it works`](https://browserstack.com/docs/test-observability/references/terms-and-conditions). You can visit the Test Observability dashboard after running your tests and also choose to disable it by setting the key to `false`.
+
+You can use Test Observability even if you do not want to run your tests on the BrowserStack infrastructure. You could be running your tests on CI or on your laptop or even on other cloud service providers like Sauce Labs, Test Observability could still work and give you all the intelligent test reports and advanced analytics.
+
+You can set your config in the following manner if you do not want to run tests on BrowserStack Automate or App Automate (infrastructure) but still want to use Test Observability (note that `user` and `key` are now defined under the scope of the `browserstack` service):
+
+```js
+// wdio.conf.js
+export const config = {
+    // ...
+    services: [
+        ['browserstack', {
+            testObservability: true,
+            testObservabilityOptions: {
+                user: process.env.BROWSERSTACK_USERNAME,
+                key: process.env.BROWSERSTACK_ACCESS_KEY,
+                projectName: "Your project name goes here",
+                buildName: "The static build job name goes here e.g. Nightly regression"
+            }
+        }]
+    ],
+    // ...
+};
+```
+
+[`Read more`](https://www.browserstack.com/docs/test-observability/quick-start/webdriverio#Tests_running_locally_or_elsewhere) in BrowserStack documentation about how to get started with Test Observability.
 
 ### browserstackLocal
 Set this to true to enable routing connections from BrowserStack cloud through your computer.
