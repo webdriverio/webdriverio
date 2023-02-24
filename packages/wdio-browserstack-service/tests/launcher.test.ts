@@ -429,6 +429,72 @@ describe('onPrepare', () => {
         expect(capabilities.chromeBrowser.capabilities).toEqual({ 'bstack:options': { buildName: 'browserstack wdio build', buildIdentifier: '#1' } })
     })
 
+    it('should add "browserstack.buildIdentifier" property in capabilities if no "bstack:options" and buildIdentifier present in capabilities', async () => {
+        const capabilities = [{ build: 'browserstack wdio build', 'browserstack.buildIdentifier': '#${BUILD_NUMBER}' }]
+        const service = new BrowserstackLauncher(options, capabilities, {
+            user: 'foobaruser',
+            key: '12345',
+            capabilities: []
+        })
+        jest.spyOn(service, '_getLocalBuildNumber').mockImplementation(() => { return '1' })
+
+        await service.onPrepare(config, capabilities)
+        expect(capabilities).toEqual([
+            { build: 'browserstack wdio build', 'browserstack.buildIdentifier': '#1', 'browserstack.local': true, 'browserstack.wdioService': bstackServiceVersion }
+        ])
+    })
+
+    it('should add the "browserstack.buildIdentifier" property in capabilities if no "bstack:options" and passing buildIdentifier in service options', async () => {
+        const capabilities = [{ build: 'browserstack wdio build' }]
+        const service = new BrowserstackLauncher({
+            buildIdentifier: '#${BUILD_NUMBER}',
+        }, capabilities, {
+            user: 'foobaruser',
+            key: '12345',
+            capabilities: []
+        })
+        jest.spyOn(service, '_getLocalBuildNumber').mockImplementation(() => { return '1' })
+
+        await service.onPrepare(config, capabilities)
+        expect(capabilities).toEqual([
+            { build: 'browserstack wdio build', 'browserstack.buildIdentifier': '#1', 'browserstack.wdioService': bstackServiceVersion }
+        ])
+    })
+
+    it('should not add "browserstack.buildIdentifier" property in capabilities if no "bstack:options" and "build" not present', async () => {
+        const capabilities = [{}]
+        const service = new BrowserstackLauncher({
+            buildIdentifier: '#${BUILD_NUMBER}',
+        }, capabilities, {
+            user: 'foobaruser',
+            key: '12345',
+            capabilities: []
+        })
+        jest.spyOn(service, '_getLocalBuildNumber').mockImplementation(() => { return '1' })
+
+        await service.onPrepare(config, capabilities)
+        expect(capabilities).toEqual([
+            { 'browserstack.wdioService': bstackServiceVersion }
+        ])
+    })
+
+    it('should delete "browserstack.buildIdentifier" property from capabilities if no "bstack:options" and "build" not present', async () => {
+        const capabilities = [{ 'browserstack.buildIdentifier': '#${BUILD_NUMBER}' }]
+        const service = new BrowserstackLauncher({
+            buildIdentifier: '#${BUILD_NUMBER}',
+        }, capabilities, {
+            user: 'foobaruser',
+            key: '12345',
+            capabilities: []
+        })
+        jest.spyOn(service, '_getLocalBuildNumber').mockImplementation(() => { return '1' })
+
+        await service.onPrepare(config, capabilities)
+        expect(capabilities).toEqual([
+            { 'browserstack.wdioService': bstackServiceVersion }
+        ])
+    })
+
     it('should reject if local.start throws an error', () => {
         const service = new BrowserstackLauncher(options, caps, config)
         const BrowserstackLocalStartSpy = jest.spyOn(new Browserstack.Local(), 'start')
