@@ -16,7 +16,7 @@ import type { Options, Capabilities } from '@wdio/types'
 import * as browserCommands from '../commands/browser.js'
 import * as elementCommands from '../commands/element.js'
 import querySelectorAllDeep from './thirdParty/querySelectorShadowDom.js'
-import { ELEMENT_KEY, DRIVER_DEFAULT_ENDPOINT, DEEP_SELECTOR } from '../constants.js'
+import { ELEMENT_KEY, DRIVER_DEFAULT_ENDPOINT, DEEP_SELECTOR, Key } from '../constants.js'
 import { findStrategy } from './findStrategy.js'
 import type { ElementArray, ElementFunction, Selector, ParsedCSSValue, CustomLocatorReturnValue } from '../types.js'
 import type { CustomStrategyReference } from '../types.js'
@@ -175,6 +175,12 @@ export function parseCSS (cssPropertyValue: string, cssProperty?: string) {
  * @return {Array}         set of characters or unicode symbols
  */
 export function checkUnicode (value: string, isDevTools = false) {
+    /**
+     * "Ctrl" key is specially handled based on OS in action class
+     */
+    if (value === Key.Ctrl) {
+        return [value]
+    }
     /**
      * when sending emoji characters like 😄 or a value that is not a special character defined
      * by the WebDriver protocol

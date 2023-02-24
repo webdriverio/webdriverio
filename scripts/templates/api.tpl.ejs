@@ -14,6 +14,18 @@ title: <?= method.command ?>
 
 <?- method.description ?>
 
+<? if (method.alternativeCommands && method.alternativeCommands.length) { ?>
+:::info
+
+This protocol command is embedded in the following convinient method<?- method.alternativeCommands.length > 1 ? 's' : '' ?>: <?-
+method.alternativeCommands
+    .map((command) => `[\`${command.split('/').pop()}\`](/docs/api/${command})`)
+    .join(', ')
+?>. It is recommended to use <?- method.alternativeCommands.length > 1 ? 'these commands' : 'this command' ?> instead.
+
+:::
+<? } ?>
+
 ##### Usage
 
 ```js
@@ -38,14 +50,26 @@ title: <?= method.command ?>
 <? }) ?>
 <? } ?>
 
-<? if (method.examples.length) { ?>
-##### Example<? if (method.examples.length > 1) { ?>s<? } ?>
+<?
+const allExamples = [...method.examples, ...method.exampleReferences]
+if (method.examples.length || method.exampleReferences.length) { ?>
+##### Example<? if (allExamples.length > 1) { ?>s<? } ?>
+
+<? method.exampleReferences.forEach(function(ref) {
+    var filename = path.basename(ref.split('#')[0])
+    var ext = path.extname(filename).slice(1)
+?>
+```<?= ext ?> reference title="<?= filename ?>"
+<?= ref ?>
+```
+<? }); ?>
 
 <? method.examples.forEach(function(example) { ?>
 ```<?= example.format ?><? if (example.file) { ?> title="<?= example.file ?>"<? } ?>
 <?- example.code ?>
 ```
 <? }); ?>
+
 <? } ?>
 
 <? if (method.returns) { ?>

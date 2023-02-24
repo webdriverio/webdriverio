@@ -31,23 +31,8 @@ __Note:__ WebdriverIO by default will run browser tests in CI headlessly, e.g. a
 
 At the end of this process you should find a `wdio.conf.js` that contains various WebdriverIO configurations, including a `runner` property, e.g.:
 
-```js
-// wdio.conf.js
-export const config = {
-    // ...
-    runner: ['browser', {
-        // runner options
-        preset: 'svelte' // setup WebdriverIOs Vite server for a Svelte project
-        // define code coverage options, see more https://webdriver.io/docs/runner#coverage-options
-        coverage: {
-            enabled: true,
-            statements: 90,
-            branches: 90,
-            functions: 90,
-            lines: 90
-        }
-    }]
-}
+```ts reference runmeRepository="git@github.com:webdriverio/example-recipes.git" runmeFileToOpen="component-testing%2FREADME.md"
+https://github.com/webdriverio/example-recipes/blob/fd54f94306ed8e7b40f967739164dfe4d6d76b41/wdio.comp.conf.js
 ```
 
 By defining different [capabilities](http://localhost:3000/docs/configuration#capabilities) you can run your tests in different browser, in parallel if desired.
@@ -58,31 +43,8 @@ It is totally up to you what you want to run in your tests and how you like to r
 
 You can mix Testing Library primitives with WebdriverIO commands as you wish, e.g.:
 
-```ts
-import { expect, $ } from '@wdio/globals'
-import * as matchers from '@testing-library/jest-dom/matchers'
-expect.extend(matchers)
-
-import { render, fireEvent, screen } from '@testing-library/svelte'
-import '@testing-library/jest-dom'
-
-// see implementation here: examples/wdio/browser-runner/components/Component.svelte
-import Component from './components/Component.svelte'
-
-describe('Svelte Component Testing', () => {
-    it('shows proper heading when rendered using Testing Library primitives', () => {
-        render(Component, { name: 'World' })
-        const heading = screen.getByText('Hello World!')
-        expect(heading).toBeInTheDocument()
-    })
-
-    it('changes button text on click', async () => {
-        render(Component, { name: 'World' })
-        const button = await $('button')
-        await button.click()
-        await expect(button).toHaveText('Button Clicked')
-    })
-})
+```js reference
+https://github.com/webdriverio/example-recipes/blob/fd54f94306ed8e7b40f967739164dfe4d6d76b41/component-testing/svelte-example.js
 ```
 
 __Note:__ using render methods from Testing Library helps remove created components between the tests. If you don't use Testing Library ensure to attach your test components to a container that gets cleaned up between tests.

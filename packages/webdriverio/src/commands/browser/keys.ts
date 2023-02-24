@@ -18,24 +18,9 @@ import { checkUnicode } from '../../utils/index.js'
  *
  * :::
  *
- * <example>
-    :keys.js
-    import { Key } from 'webdriverio'
-
-    it('copies text out of active element', async () => {
-        await $('#username').setValue('anonymous')
-
-        // copies text from an input element
-        await browser.keys([Key.Ctrl, 'a', 'c])
-
-        // inserts text from clipboard into input element
-        await $('#username').click() // make input active element
-        await browser.keys([Key.Ctrl, 'v'])
-    });
- * </example>
- *
  * @param {String|String[]} value  The sequence of keys to type. An array or string must be provided.
  * @see https://w3c.github.io/webdriver/#dispatching-actions
+ * @example https://github.com/webdriverio/example-recipes/blob/355434bdef13d29608d6d5fbfbeaa034c8a2aa74/keys/keys.js#L1-L17
  *
  */
 export function keys (

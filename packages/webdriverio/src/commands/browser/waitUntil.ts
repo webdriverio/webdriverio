@@ -7,28 +7,6 @@ import type { WaitUntilOptions } from '../../types.js'
  *
  * A common example is to wait until a certain element contains a certain text (see example).
  *
- * <example>
-    :example.html
-    <div id="someText">I am some text</div>
-    <script>
-      setTimeout(() => {
-        await $('#someText').html('I am now different');
-      }, 1000);
-    </script>
-
-    :waitUntil.js
-    it('should wait until text has changed', async () => {
-        await browser.waitUntil(
-            async () => (await $('#someText').getText()) === 'I am now different',
-            {
-                timeout: 5000,
-                timeoutMsg: 'expected text to be different after 5s'
-            }
-        );
-    });
- * </example>
- *
- *
  * @alias browser.waitUntil
  * @param {Function}          condition  condition to wait on until returning a truthy value
  * @param {WaitUntilOptions=} options    command options
@@ -37,6 +15,8 @@ import type { WaitUntilOptions } from '../../types.js'
  * @param {Number=}           options.interval    interval between condition checks (default: 500)
  * @return {Boolean} true if condition is fulfilled
  * @uses utility/pause
+ * @example https://github.com/webdriverio/example-recipes/blob/0bfb2b8d212b627a2659b10f4449184b657e1d59/waitUntil/index.html#L3-L8
+ * @example https://github.com/webdriverio/example-recipes/blob/0bfb2b8d212b627a2659b10f4449184b657e1d59/waitUntil/waitUntilExample.js#L6-L14
  * @type utility
  *
  */

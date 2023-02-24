@@ -21,47 +21,15 @@ For basic interactions with the WebDriver and other automation protocols Webdriv
 }>
 <TabItem value="webdriver">
 
-```js
-import WebDriver from 'webdriver'
-
-const client = await WebDriver.newSession({
-    capabilities: { browserName: 'firefox' }
-})
-
-await client.navigateTo('https://www.google.com/ncr')
-
-const searchInput = await client.findElement('css selector', '#lst-ib')
-await client.elementSendKeys(searchInput['element-6066-11e4-a52e-4f735466cecf'], 'WebDriver')
-
-const searchBtn = await client.findElement('css selector', 'input[value="Google Search"]')
-await client.elementClick(searchBtn['element-6066-11e4-a52e-4f735466cecf'])
-
-console.log(await client.getTitle()) // outputs "WebDriver - Google Search"
-
-await client.deleteSession()
+```js reference
+https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/setup/webdriver.js#L5-L20
 ```
 
 </TabItem>
 <TabItem value="devtools">
 
-```js
-import DevTools from 'devtools'
-
-const client = await DevTools.newSession({
-    capabilities: { browserName: 'firefox' }
-})
-
-await client.navigateTo('https://www.google.com/ncr')
-
-const searchInput = await client.findElement('css selector', '#lst-ib')
-await client.elementSendKeys(searchInput['element-6066-11e4-a52e-4f735466cecf'], 'WebDriver')
-
-const searchBtn = await client.findElement('css selector', 'input[value="Google Search"]')
-await client.elementClick(searchBtn['element-6066-11e4-a52e-4f735466cecf'])
-
-console.log(await client.getTitle()) // outputs "WebDriver - Google Search"
-
-await client.deleteSession()
+```js reference
+https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/setup/devtools.js#L2-L17
 ```
 
 </TabItem>
@@ -79,27 +47,8 @@ For more information on these package interfaces, see [Modules API](/docs/api/mo
 
 To simplify the interaction with the WebDriver protocol the `webdriverio` package implements a variety of commands on top of the protocol (e.g. the [`dragAndDrop`](./api/element/_dragAndDrop.md) command) and core concepts such as [smart selectors](./Selectors.md) or [auto-waits](./AutoWait.md). The example from above can be simplified like this:
 
-```js
-import { remote } from 'webdriverio'
-
-const browser = await remote({
-    logLevel: 'trace',
-    capabilities: {
-        browserName: 'chrome'
-    }
-})
-
-await browser.url('https://duckduckgo.com')
-
-const inputElem = await browser.$('#search_form_input_homepage')
-await inputElem.setValue('WebdriverIO')
-
-const submitBtn = await browser.$('#search_button_homepage')
-await submitBtn.click()
-
-console.log(await browser.getTitle()) // outputs: "Title is: WebdriverIO (Software) at DuckDuckGo"
-
-await browser.deleteSession()
+```js reference
+https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/setup/standalone.js#L2-L19
 ```
 
 Using WebdriverIO in standalone mode still gives you access to all protocol commands but provides a super set of additional commands that provide a higher level interaction with the browser. It allows you to integrate this automation tool in your own (test) project to create a new automation library. Popular examples include [Spectron](https://www.electronjs.org/spectron) or [CodeceptJS](http://codecept.io). You can also write plain Node scripts to scrape the web for content (or anything else that requires a running browser).
@@ -116,19 +65,8 @@ The test runner takes care of many problems that are common when working with pl
 
 Here is the same example from above, written as a test spec and executed by WDIO:
 
-```js
-describe('DuckDuckGo search', () => {
-    it('searches for WebdriverIO', async () => {
-        await browser.url('https://duckduckgo.com/')
-
-        await $('#search_form_input_homepage').setValue('WebdriverIO')
-        await $('#search_button_homepage').click()
-
-        const title = await browser.getTitle()
-        console.log('Title is: ' + title)
-        // outputs: "Title is: WebdriverIO (Software) at DuckDuckGo"
-    })
-})
+```js reference
+https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/setup/testrunner.js
 ```
 
 The test runner is an abstraction of popular test frameworks like Mocha, Jasmine, or Cucumber. To run your tests using the WDIO test runner, check out the [Getting Started](GettingStarted.md) section for more information.

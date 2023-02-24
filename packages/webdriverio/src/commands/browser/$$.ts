@@ -20,42 +20,13 @@ import type { Selector, ElementArray } from '../../types.js'
  *
  * :::
  *
- * <example>
-    :index.html
-    <ul id="menu">
-        <li><a href="/">Home</a></li>
-        <li><a href="/">Developer Guide</a></li>
-        <li><a href="/">API</a></li>
-        <li><a href="/">Contribute</a></li>
-    </ul>
-    :$.js
-    it('should get text a menu link', async () => {
-        const text = await $$('#menu')[0];
-        console.log(await text.$$('li')[2].$('a').getText()); // outputs: "API"
-    });
-
-    it('should get text a menu link - JS Function', async () => {
-        const text = await $$(function() { // Arrow function is not allowed here.
-            // this is Window https://developer.mozilla.org/en-US/docs/Web/API/Window
-            // TypeScript users may do something like this
-            // return (this as Window).document.querySelectorAll('#menu')
-            return this.document.querySelectorAll('#menu'); // Element[]
-        })[0];
-        console.log(await text.$$('li')[2].$('a').getText()); // outputs: "API"
-    });
-
-    it('can create element array out of single elements', async () => {
-        const red = await $('.red');
-        const green = await $('.green');
-        const elems = $$([red, green]);
-        console.log(await elems.map((e) => e.getAttribute('class')));
-        // returns "[ 'box red ui-droppable', 'box green' ]"
-    });
- * </example>
- *
  * @alias $$
  * @param {String|Function} selector  selector or JS Function to fetch multiple elements
  * @return {ElementArray}
+ * @example https://github.com/webdriverio/example-recipes/blob/59c122c809d44d343c231bde2af7e8456c8f086c/queryElements/example.html
+ * @example https://github.com/webdriverio/example-recipes/blob/59c122c809d44d343c231bde2af7e8456c8f086c/queryElements/multipleElements.js#L6-L7
+ * @example https://github.com/webdriverio/example-recipes/blob/59c122c809d44d343c231bde2af7e8456c8f086c/queryElements/multipleElements.js#L15-L24
+ * @example https://github.com/webdriverio/example-recipes/blob/59c122c809d44d343c231bde2af7e8456c8f086c/queryElements/multipleElements.js#L32-L39
  * @type utility
  *
  */

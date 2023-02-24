@@ -10,7 +10,7 @@ import CreateProjectAnimation from '../src/pages/components/CreateProjectAnimati
 Welcome to the WebdriverIO documentation. It will help you to get started fast. If you run into problems, you can find help and answers on our [Matrix Support Channel](https://matrix.to/#/#webdriver.io:gitter.im) or you can hit me on [Twitter](https://twitter.com/webdriverio).
 
 :::info
-These are the docs for the latest version (__>=7.x__) of WebdriverIO. If you are still using an older version, please visit the [old documentation websites](/versions)!
+These are the docs for the latest version (__>=8.x__) of WebdriverIO. If you are still using an older version, please visit the [old documentation websites](/versions)!
 :::
 
 ## Initiate a WebdriverIO Setup
@@ -129,22 +129,8 @@ npx wdio run ./wdio.conf.js --suite exampleSuiteName
 
 If you would like to use WebdriverIO as an automation engine in [Standalone Mode](/docs/setuptypes#standalone-mode) within a Node.JS script you can also directly install WebdriverIO and use it as a package, e.g. to generate a screenshot of a website:
 
-```js
-import { remote } from 'webdriverio'
-
-const browser = await remote({
-    capabilities: {
-        browserName: 'chrome'
-    }
-})
-
-await browser.url('https://webdriver.io')
-
-const apiLink = await browser.$('=API')
-await apiLink.click()
-
-await browser.saveScreenshot('./screenshot.png')
-await browser.deleteSession()
+```js reference
+https://github.com/webdriverio/example-recipes/blob/fc362f2f8dd823d294b9bb5f92bd5991339d4591/getting-started/run-in-script.js#L2-L19
 ```
 
 __Note:__ all WebdriverIO commands are asynchronous and need to be properly handled using [`async/await`](https://javascript.info/async-await).
