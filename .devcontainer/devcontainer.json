@@ -21,10 +21,10 @@
 	],
 	"portsAttributes": {
 		"8000": {
-			"label": "Code Coverage Site"
+			"label": "Code Coverage Overview"
 		},
 		"3000": {
-			"label": "Project Documentation"
+			"label": "Preview of the Documentation Page"
 		}
 	},
 
