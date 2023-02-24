@@ -79,7 +79,7 @@ export async function scrollIntoView (
 
     try {
         return await browser.action('wheel')
-            .scroll({ origin: this, duration: 200, deltaY, deltaX })
+            .scroll({ origin: browser, duration: 200, deltaY, deltaX })
             .perform()
     } catch (err: any) {
         log.warn(
