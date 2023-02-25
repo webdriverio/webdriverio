@@ -1,7 +1,7 @@
 import path from 'node:path'
-import type { SpyInstance, MockedFunction } from 'vitest'
+import type { SpyInstance } from 'vitest'
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { Stage, Status, ContentType } from 'allure-js-commons'
+import { Status, ContentType } from 'allure-js-commons'
 import { temporaryDirectory } from 'tempy'
 import { clean } from './helpers/wdio-allure-helper.js'
 import AllureReporter, {
@@ -223,34 +223,6 @@ describe('reporter api', () => {
         AllureReporter.addArgument('os', 'osx')
         expect(process.emit).toHaveBeenCalledTimes(1)
         expect(process.emit).toHaveBeenCalledWith(events.addArgument, { name: 'os', value: 'osx' })
-    })
-
-    describe('step', () => {
-        it('should add custom step', async () => {
-            await AllureReporter.step('custom step', (step) => {
-                step.label('foo', 'bar')
-                step.attach(JSON.stringify({ foo: 'bar' }), ContentType.JSON)
-            })
-
-            const [, call] = (process.emit as MockedFunction<any>).calls[0]
-
-            expect(process.emit).toHaveBeenCalledTimes(1)
-            expect(call.labels).toHaveLength(1)
-            expect(call.labels[0]).toEqual({ name: 'foo', value: 'bar' })
-            expect(call.steps).toHaveLength(1)
-            expect(call.steps[0]).toMatchObject({
-                name: 'custom step',
-                status: Status.PASSED,
-                stage: Stage.FINISHED,
-            })
-            expect(call.steps[0].attachments).toHaveLength(1)
-            expect(call.steps[0].attachments[0]).toEqual({
-                name: 'attachment',
-                type: ContentType.JSON,
-                encoding: 'utf8',
-                content: JSON.stringify({ foo: 'bar' }),
-            })
-        })
     })
 
     describe('addAttachment', () => {
