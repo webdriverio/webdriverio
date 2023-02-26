@@ -17,8 +17,12 @@ vi.mock('../../../src/vite/utils.js', () => ({
     normalizeId: vi.fn((id) => id)
 }))
 
+const config: any = {
+    rootDir: '/foo/bar'
+}
+
 test('exposes correct format', () => {
-    expect(testrunner({})).toEqual([{
+    expect(testrunner({}, config)).toEqual([{
         name: 'wdio:testrunner',
         enforce: 'pre',
         resolveId: expect.any(Function),
@@ -37,7 +41,7 @@ test('resolveId', async () => {
         return
     }
 
-    const plugin = testrunner({})
+    const plugin = testrunner({}, config)
     expect(await (plugin[0].resolveId as Function)('virtual:wdio'))
         .toBe('\0virtual:wdio')
 
@@ -59,7 +63,7 @@ test('resolveId', async () => {
 })
 
 test('load', () => {
-    const plugin = testrunner({})
+    const plugin = testrunner({}, config)
     const js = (plugin[0].load as Function)('\0virtual:wdio')
     expect(js).toContain('export const commands = ["newSession","deleteSession","getSession"')
     expect(js).toContain('export const automationProtocolPath =')
@@ -67,7 +71,7 @@ test('load', () => {
 })
 
 test('transform', () => {
-    const plugin = testrunner({})
+    const plugin = testrunner({}, config)
     expect((plugin[0].transform as Function)('foobar', 'barfoo')).toEqual({ code: 'foobar' })
 
     const expectJS = `
@@ -79,7 +83,7 @@ test('transform', () => {
 })
 
 test('configureServer continues if no url given', async () => {
-    const plugin = testrunner({})
+    const plugin = testrunner({}, config)
     const server = { middlewares: { use: vi.fn() }, transformIndexHtml: vi.fn((...args) => args) }
     ;(plugin[0].configureServer as Function)(server)()
     expect(server.middlewares.use).toBeCalledWith('/', expect.any(Function))

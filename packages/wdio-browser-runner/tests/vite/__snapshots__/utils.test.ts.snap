@@ -21,7 +21,8 @@ exports[`getTemplate > renders template correctly 1`] = `
                 window.__wdioErrors__ = []
                 addEventListener('error', (ev) => window.__wdioErrors__.push({
                     filename: ev.filename,
-                    message: ev.message
+                    message: ev.message,
+                    error: ev.error.stack
                 }))
                 /**
                  * mock process

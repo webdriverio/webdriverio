@@ -1,0 +1,60 @@
+// Vitest Snapshot v1
+
+exports[`returns mock file 1`] = `
+"export const foo = window.__wdioMockFactories__['mocked']['foo'];
+export const bar = window.__wdioMockFactories__['mocked']['bar'];
+export default window.__wdioMockFactories__['mocked'].default;"
+`;
+
+exports[`transforms test file properly for mocking 1`] = `
+{
+  "code": "import { spyOn, mock, fn } from '@wdio/browser-runner'
+
+await mock('./components/constants.ts', async (getOrigModule) => {
+    const mod = await getOrigModule()
+    return {
+        GREETING: mod.GREETING + ' Sir'
+    }
+});
+
+await mock('graphql-request', () => ({
+    gql: fn(),
+    GraphQLClient: class GraphQLClientMock {
+        request = fn().mockResolvedValue({ result: 'Thanks for your answer!' })
+    }
+}));
+
+const {
+    default: React,
+    FC: FC
+} = await import(\\"react\\");
+
+const {
+    expect: expect,
+    $: $
+} = await import(\\"@wdio/globals\\");
+
+const {
+    html: html,
+    render: render
+} = await import(\\"lit\\");
+
+const {
+    default: defaultExport,
+    namedExportValue: namedExportValue
+} = await import(\\"someModule\\");
+
+const {
+    SimpleGreeting: SimpleGreeting
+} = await import(\\"./components/LitComponent.ts\\");
+
+const getQuestionFn = spyOn(SimpleGreeting.prototype, 'getQuestion')
+
+describe('Some test', () => {
+    it('should tests something', async () => {
+        // ...
+    })
+})
+",
+}
+`;
