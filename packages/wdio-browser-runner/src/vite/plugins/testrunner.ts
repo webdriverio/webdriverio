@@ -52,7 +52,7 @@ const FETCH_FROM_ESM = [
 ]
 
 export function testrunner(options: WebdriverIO.BrowserRunnerOptions, config: Options.Testrunner): Plugin[] {
-    const autoMockDir = path.resolve(config.rootDir!, options.autoMockDir || DEFAULT_MOCK_DIRECTORY)
+    const automockDir = path.resolve(config.rootDir!, options.automockDir || DEFAULT_MOCK_DIRECTORY)
     const automationProtocolPath = `/@fs${url.pathToFileURL(path.resolve(__dirname, '..', '..', 'browser', 'driver.js')).pathname}`
     const mockModulePath = path.resolve(__dirname, '..', '..', 'browser', 'mock.js')
     const setupModulePath = path.resolve(__dirname, '..', '..', 'browser', 'setup.js')
@@ -105,13 +105,13 @@ export function testrunner(options: WebdriverIO.BrowserRunnerOptions, config: Op
              * check if modules should be mocked out
              */
             if (!mockedModulesList) {
-                mockedModulesList = (await getFilesFromDirectory(autoMockDir))
+                mockedModulesList = (await getFilesFromDirectory(automockDir))
                     /**
                      * seperate to module name and actual path
                      */
                     .map((filePath) => [
                         filePath,
-                        filePath.slice(autoMockDir.length + 1).slice(0, -path.extname(filePath).length)
+                        filePath.slice(automockDir.length + 1).slice(0, -path.extname(filePath).length)
                     ])
             }
             const mockedModule = mockedModulesList.find(([, mod]) => mod === id)

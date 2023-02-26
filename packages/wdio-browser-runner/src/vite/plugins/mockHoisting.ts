@@ -1,4 +1,5 @@
 import url from 'node:url'
+import path from 'node:path'
 import fs from 'node:fs/promises'
 
 import logger from '@wdio/logger'
@@ -18,7 +19,7 @@ export function mockHoisting(mockHandler: MockHandler): Plugin[] {
     return [{
         name: 'wdio:mockHoisting:pre',
         enforce: 'pre',
-        load: async (id) => {
+        load: async function (id) {
             if (id.startsWith(MOCK_PREFIX)) {
                 try {
                     const orig = await fs.readFile(id.slice(MOCK_PREFIX.length))
@@ -28,20 +29,28 @@ export function mockHoisting(mockHandler: MockHandler): Plugin[] {
                     return ''
                 }
             }
-        },
-        transform(code, id) {
-            const mockedFile = mockHandler.mocks.get(id)
-            if (mockedFile) {
-                const newCode = mockedFile.namedExports.map((ne) => {
-                    if (ne === 'default') {
-                        return `export default window.__wdioMockFactories__['${mockedFile.path}'].default;`
-                    }
-                    return `export const ${ne} = window.__wdioMockFactories__['${mockedFile.path}']['${ne}'];`
-                }).join('\n')
-                return { code: newCode }
-            }
 
-            return { code }
+            const mockedMod = (
+                // mocked file
+                mockHandler.mocks.get(id) ||
+                // mocked dependency
+                mockHandler.mocks.get(path.basename(id, path.extname(id)))
+            )
+            if (mockedMod) {
+                const newCode = mockedMod.namedExports.map((ne) => {
+                    if (ne === 'default') {
+                        return /*js*/`export default window.__wdioMockFactories__['${mockedMod.path}'].default;`
+                    }
+                    return /*js*/`export const ${ne} = window.__wdioMockFactories__['${mockedMod.path}']['${ne}'];`
+                })
+
+                if (!mockedMod.namedExports.includes('default')) {
+                    newCode.push(/*js*/`export default window.__wdioMockFactories__['${mockedMod.path}'];`)
+                }
+
+                log.debug(`Resolve mock for module "${mockedMod.path}"`)
+                return newCode.join('\n')
+            }
         }
     }, {
         name: 'wdio:mockHoisting',

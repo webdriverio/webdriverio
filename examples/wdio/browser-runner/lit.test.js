@@ -1,5 +1,5 @@
 import { expect, $ } from '@wdio/globals'
-import { spyOn, mock } from '@wdio/browser-runner'
+import { spyOn, mock, fn } from '@wdio/browser-runner'
 import { html, render } from 'lit'
 
 import defaultExport, { namedExportValue } from 'someModule'
@@ -13,6 +13,13 @@ mock('./components/constants.ts', async (getOrigModule) => {
         GREETING: mod.GREETING + ' Sir'
     }
 })
+
+mock('graphql-request', () => ({
+    gql: fn(),
+    GraphQLClient: class GraphQLClientMock {
+        request = fn().mockResolvedValue({ result: 'Thanks for your answer!' })
+    }
+}))
 
 describe('Lit Component testing', () => {
     it('should render component', async () => {
@@ -36,8 +43,17 @@ describe('Lit Component testing', () => {
         expect(await innerElem.getText()).toBe('Hello Sir, WebdriverIO! Does this work?')
     })
 
-    it('should allow to mock dependencies', () => {
+    it('should allow to auto mock dependencies', () => {
         expect(defaultExport).toBe('barfoo')
         expect(namedExportValue).toBe('foobar')
+    })
+
+    it('should allow to manual mock dependencies', async () => {
+        render(
+            html`<simple-greeting name="WebdriverIO" />`,
+            document.body
+        )
+        await $('simple-greeting').$('>>> button').click()
+        await expect($('simple-greeting').$('>>> em')).toHaveText('Thanks for your answer!')
     })
 })

@@ -20,11 +20,15 @@ const mockResolver = new Map<string, (value: unknown) => void>()
 const origin = window.__wdioSpec__.split('/').slice(0, -1).join('/')
 window.__wdioMockFactories__ = []
 export async function mock (path: string, factory: MockFactoryWithHelper) {
-    const importPath = resolveUrl(window.__wdioSpec__.split('/').slice(0, -1).join('/') + '/' + path)
-    const mockPath = (new URL(importPath)).pathname
+    const mockLocalFile = path.startsWith('/') || path.startsWith('./')
+    const mockPath = mockLocalFile
+        ? (new URL(resolveUrl(window.__wdioSpec__.split('/').slice(0, -1).join('/') + '/' + path))).pathname
+        : path
 
     try {
-        const resolvedMock = await factory(() => import(`/@mock${mockPath}`))
+        const resolvedMock = await factory(() => (
+            import(mockLocalFile ? `/@mock${mockPath}` : `/node_modules/.vite/deps/${mockPath}.js`)
+        ))
         socket.send(JSON.stringify(<SocketMessage>{
             type: MESSAGE_TYPES.mockRequest,
             value: { path: mockPath, origin, namedExports: Object.keys(resolvedMock) }
