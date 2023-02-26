@@ -87,10 +87,6 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         ) {
             this._config.specs = process.env.BROWSERSTACK_RERUN_TESTS.split(',')
         }
-
-        if (this._options.buildIdentifier) {
-            this._buildIdentifier = this._options.buildIdentifier
-        }
     }
 
     async onPrepare (config?: Options.Testrunner, capabilities?: Capabilities.RemoteCapabilities) {
@@ -125,6 +121,14 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
 
             log.info(`Using app: ${app.app}`)
             this._updateCaps(capabilities, 'app', app.app)
+        }
+
+        /**
+         * buildIdentifier in service options will take precedence over specified in capabilities
+        */
+        if (this._options.buildIdentifier) {
+            this._buildIdentifier = this._options.buildIdentifier
+            this._updateCaps(capabilities, 'buildIdentifier', this._buildIdentifier)
         }
 
         /**
