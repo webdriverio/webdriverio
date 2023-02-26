@@ -6,6 +6,7 @@ import { createRequire } from 'node:module'
 import { promisify } from 'node:util'
 import { performance, PerformanceObserver } from 'node:perf_hooks'
 import { SevereServiceError } from 'webdriverio'
+import os from 'node:os'
 
 import * as BrowserstackLocalLauncher from 'browserstack-local'
 
@@ -49,7 +50,8 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                     } else if (shouldAddServiceVersion(this._config, this._options.testObservability)) {
                         capability['browserstack.wdioService'] = bstackServiceVersion
                     }
-                    this._buildIdentifier = capability['browserstack.buildIdentifier']
+                    this._buildIdentifier = capability['browserstack.buildIdentifier']?.toString()
+                    this._buildName = capability.build?.toString()
                 } else {
                     capability['bstack:options'].wdioService = bstackServiceVersion
                     this._buildName = capability['bstack:options'].buildName
@@ -89,10 +91,6 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         ) {
             this._config.specs = process.env.BROWSERSTACK_RERUN_TESTS.split(',')
         }
-
-        if (this._options.buildIdentifier) {
-            this._buildIdentifier = this._options.buildIdentifier
-        }
     }
 
     async onPrepare (config?: Options.Testrunner, capabilities?: Capabilities.RemoteCapabilities) {
@@ -129,14 +127,18 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         }
 
         /**
+         * buildIdentifier in service options will take precedence over specified in capabilities
+        */
+        if (this._options.buildIdentifier) {
+            this._buildIdentifier = this._options.buildIdentifier
+            this._updateCaps(capabilities, 'buildIdentifier', this._buildIdentifier)
+        }
+
+        /**
          * evaluate buildIdentifier in case unique execution identifiers are present
          * e.g., ${BUILD_NUMBER} and ${DATE_TIME}
         */
-        try {
-            this._handleBuildIdentifier(capabilities)
-        } catch (error: any) {
-            log.error(`Error while processing buildIdentifier, stacktrace: ${error}`)
-        }
+        this._handleBuildIdentifier(capabilities)
 
         if (this._options.testObservability) {
             log.debug('Sending launch start event')
@@ -162,7 +164,9 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         this.browserstackLocal = new BrowserstackLocalLauncher.Local()
 
         this._updateCaps(capabilities, 'local')
-        this._updateCaps(capabilities, 'localIdentifier', opts.localIdentifier)
+        if (opts.localIdentifier) {
+            this._updateCaps(capabilities, 'localIdentifier', opts.localIdentifier)
+        }
 
         /**
          * measure BrowserStack tunnel boot time
@@ -301,8 +305,6 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                             capability['appium:app'] = value
                         } else if (capType === 'buildIdentifier' && value) {
                             capability['bstack:options'] = { buildIdentifier: value }
-                        } else if (capType === 'localIdentifier') {
-                            capability['bstack:options'] = { local: true, localIdentifier: value }
                         }
                     } else if (capType === 'local'){
                         capability['browserstack.local'] = true
@@ -342,8 +344,6 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                             (caps.capabilities as Capabilities.Capabilities)['appium:app'] = value
                         } else if (capType === 'buildIdentifier' && value) {
                             (caps.capabilities as Capabilities.Capabilities)['bstack:options'] = { buildIdentifier: value }
-                        } else if (capType === 'localIdentifier') {
-                            (caps.capabilities as Capabilities.Capabilities)['bstack:options'] = { local: true, localIdentifier : value }
                         }
                     } else if (capType === 'local'){
                         (caps.capabilities as Capabilities.Capabilities)['browserstack.local'] = true
@@ -379,16 +379,13 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
 
     _handleBuildIdentifier(capabilities?: Capabilities.RemoteCapabilities) {
         if (!this._buildIdentifier) {
-            this._updateCaps(capabilities, 'buildIdentifier')
             return
         }
 
-        if (!this._buildName || process.env.BROWSERSTACK_BUILD_NAME) {
-            if (this._buildIdentifier) {
-                this._updateCaps(capabilities, 'buildIdentifier')
-                log.warn('Skipping buildIdentifier as buildName is not passed.')
-                return
-            }
+        if ((!this._buildName || process.env.BROWSERSTACK_BUILD_NAME) && this._buildIdentifier) {
+            this._updateCaps(capabilities, 'buildIdentifier')
+            log.warn('Skipping buildIdentifier as buildName is not passed.')
+            return
         }
 
         if (this._buildIdentifier && this._buildIdentifier.includes('${DATE_TIME}')){
@@ -404,28 +401,29 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             this._updateCaps(capabilities, 'buildIdentifier', this._buildIdentifier)
         }
 
-        if (!this._buildIdentifier.includes('${BUILD_NUMBER}')) { return }
+        if (!this._buildIdentifier.includes('${BUILD_NUMBER}')) {
+            return
+        }
 
         const ciInfo = getCiInfo()
-        if (ciInfo !== null) {
-            const ciBuildNumber = ciInfo.build_number
-            if (ciBuildNumber !== null) {
-                this._buildIdentifier = this._buildIdentifier.replace('${BUILD_NUMBER}', 'CI '+ ciBuildNumber)
-                this._updateCaps(capabilities, 'buildIdentifier', this._buildIdentifier)
-            }
+        if (ciInfo !== null && ciInfo.build_number) {
+            this._buildIdentifier = this._buildIdentifier.replace('${BUILD_NUMBER}', 'CI '+ ciInfo.build_number)
+            this._updateCaps(capabilities, 'buildIdentifier', this._buildIdentifier)
         } else {
             const localBuildNumber = this._getLocalBuildNumber()
-            if (localBuildNumber !== '-1') {
+            if (localBuildNumber) {
                 this._buildIdentifier = this._buildIdentifier.replace('${BUILD_NUMBER}', localBuildNumber)
                 this._updateCaps(capabilities, 'buildIdentifier', this._buildIdentifier)
-            } else {
-                return
             }
         }
     }
 
+    /**
+     * @return {string} if buildName doesn't exist in json file, it will return 1
+     *                  else returns corresponding value in json file (e.g. { "wdio-build": { "identifier" : 2 } } => 2 in this case)
+     */
     _getLocalBuildNumber() {
-        const browserstackFolderPath = path.join(require('node:os').homedir(), '.browserstack')
+        const browserstackFolderPath = path.join(os.homedir(), '.browserstack')
         try {
             if (!fs.existsSync(browserstackFolderPath)){
                 fs.mkdirSync(browserstackFolderPath)
@@ -445,19 +443,20 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                 this._updateLocalBuildCache(filePath, this._buildName, newIdentifier)
                 return newIdentifier.toString()
             }
+            const newIdentifier = 1
             this._updateLocalBuildCache(filePath, this._buildName, 1)
-            return '1'
+            return newIdentifier.toString()
         } catch (error: any) {
-            return '-1'
+            return null
         }
     }
 
     _updateLocalBuildCache(filePath?:string, buildName?:string, buildIdentifier?:number) {
-        const newIdentifier = { 'identifier': buildIdentifier }
-        if (buildName && filePath) {
-            const jsonContent = JSON.parse(fs.readFileSync(filePath).toString())
-            jsonContent[buildName] = newIdentifier
-            fs.writeFileSync(filePath, JSON.stringify(jsonContent))
+        if (!buildName || !filePath) {
+            return
         }
+        const jsonContent = JSON.parse(fs.readFileSync(filePath).toString())
+        jsonContent[buildName] = { 'identifier': buildIdentifier }
+        fs.writeFileSync(filePath, JSON.stringify(jsonContent))
     }
 }
