@@ -1,11 +1,14 @@
 import url from 'node:url'
 import fs from 'node:fs/promises'
 
+import logger from '@wdio/logger'
 import { parse, print, visit, types } from 'recast'
 import typescriptParser from 'recast/parsers/typescript.js'
 import type { Plugin } from 'vite'
 
 import type { MockHandler } from '../mock.js'
+
+const log = logger('@wdio/browser-runner:mockHoisting')
 
 const b = types.builders
 const MOCK_PREFIX = '/@mock'
@@ -17,8 +20,13 @@ export function mockHoisting(mockHandler: MockHandler): Plugin[] {
         enforce: 'pre',
         load: async (id) => {
             if (id.startsWith(MOCK_PREFIX)) {
-                const orig = await fs.readFile(id.slice(MOCK_PREFIX.length))
-                return orig.toString()
+                try {
+                    const orig = await fs.readFile(id.slice(MOCK_PREFIX.length))
+                    return orig.toString()
+                } catch (err: unknown) {
+                    log.error(`Failed to read file (${id}) for mocking: ${(err as Error).message}`)
+                    return ''
+                }
             }
         },
         transform(code, id) {
@@ -30,7 +38,6 @@ export function mockHoisting(mockHandler: MockHandler): Plugin[] {
                     }
                     return `export const ${ne} = window.__wdioMockFactories__['${mockedFile.path}']['${ne}'];`
                 }).join('\n')
-                console.log('RETURN MOCK', newCode)
                 return { code: newCode }
             }
 

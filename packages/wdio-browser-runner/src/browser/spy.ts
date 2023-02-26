@@ -14,6 +14,7 @@ function resolveUrl(path: string) {
     return a.href
 }
 
+const ERROR_MESSAGE = '[wdio] There was an error, when mocking a module. If you are using the "mock" factory, make sure there are no top level variables inside, since this call is hoisted to top of the file. Read more: https://webdriver.io/docs/component-testing/mocks-and-spies'
 const socket = window.__wdioSocket__
 const mockResolver = new Map<string, (value: unknown) => void>()
 const origin = window.__wdioSpec__.split('/').slice(0, -1).join('/')
@@ -21,14 +22,19 @@ window.__wdioMockFactories__ = []
 export async function mock (path: string, factory: MockFactoryWithHelper) {
     const importPath = resolveUrl(window.__wdioSpec__.split('/').slice(0, -1).join('/') + '/' + path)
     const mockPath = (new URL(importPath)).pathname
-    const resolvedMock = await factory(() => import(`/@mock${mockPath}`))
-    socket.send(JSON.stringify(<SocketMessage>{
-        type: MESSAGE_TYPES.mockRequest,
-        value: { path: mockPath, origin, namedExports: Object.keys(resolvedMock) }
-    }))
 
-    window.__wdioMockFactories__[mockPath] = resolvedMock
-    return new Promise((resolve) => mockResolver.set(mockPath, resolve))
+    try {
+        const resolvedMock = await factory(() => import(`/@mock${mockPath}`))
+        socket.send(JSON.stringify(<SocketMessage>{
+            type: MESSAGE_TYPES.mockRequest,
+            value: { path: mockPath, origin, namedExports: Object.keys(resolvedMock) }
+        }))
+
+        window.__wdioMockFactories__[mockPath] = resolvedMock
+        return new Promise((resolve) => mockResolver.set(mockPath, resolve))
+    } catch (err: unknown) {
+        throw new Error(ERROR_MESSAGE + '\n' + (err as Error).stack)
+    }
 }
 
 socket.addEventListener('message', (ev) => {
