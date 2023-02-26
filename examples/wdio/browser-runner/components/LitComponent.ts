@@ -1,6 +1,8 @@
 import { LitElement, css, html } from 'lit'
 import { customElement, property } from 'lit/decorators.js'
 
+import { GREETING } from './constants.js'
+
 @customElement('simple-greeting')
 export class SimpleGreeting extends LitElement {
     // Define scoped styles right with your component, in plain CSS
@@ -16,7 +18,7 @@ export class SimpleGreeting extends LitElement {
 
     // Render the UI as a function of component state
     render() {
-        return html`<p>Hello, ${this.name}! ${this.getQuestion()}</p>`
+        return html`<p>${GREETING}, ${this.name}! ${this.getQuestion()}</p>`
     }
 
     getQuestion () {

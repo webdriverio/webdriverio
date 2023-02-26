@@ -13,10 +13,15 @@ import istanbulPlugin from 'vite-plugin-istanbul'
 import type { Services, Options } from '@wdio/types'
 
 import { testrunner } from './plugins/testrunner.js'
+import { mockHoisting } from './plugins/mockHoisting.js'
 import { userfriendlyImport } from './utils.js'
+import { MockHandler } from './mock.js'
 import { PRESET_DEPENDENCIES, DEFAULT_VITE_CONFIG } from './constants.js'
 import { MESSAGE_TYPES, DEFAULT_INCLUDE, DEFAULT_FILE_EXTENSIONS } from '../constants.js'
-import type { ConsoleEvent, HookTriggerEvent, CommandRequestEvent, CommandResponseEvent, SocketMessage, HookResultEvent } from './types.js'
+import type {
+    ConsoleEvent, HookTriggerEvent, CommandRequestEvent, CommandResponseEvent, SocketMessage,
+    HookResultEvent, SocketMessagePayload
+} from './types.js'
 
 import { BROWSER_POOL, SESSIONS } from '../constants.js'
 
@@ -35,6 +40,7 @@ export class ViteServer extends EventEmitter {
     #viteConfig: Partial<InlineConfig>
     #wss?: WebSocketServer
     #server?: ViteDevServer
+    #mockHandler = new MockHandler
 
     get socketServer () {
         return this.#wss
@@ -54,7 +60,10 @@ export class ViteServer extends EventEmitter {
 
         this.#viteConfig = deepmerge(DEFAULT_VITE_CONFIG, {
             root: options.rootDir || process.cwd(),
-            plugins: [testrunner(options, config)]
+            plugins: [
+                testrunner(options, config),
+                mockHoisting(this.#mockHandler)
+            ]
         })
 
         if (options.coverage && options.coverage.enabled) {
@@ -137,6 +146,13 @@ export class ViteServer extends EventEmitter {
                 }
                 if (payload.type === MESSAGE_TYPES.commandRequestMessage) {
                     return this.#handleCommand(ws, payload.value)
+                }
+                if (payload.type === MESSAGE_TYPES.mockRequest) {
+                    this.#mockHandler.addMock(payload.value)
+                    return ws.send(JSON.stringify(<SocketMessagePayload<MESSAGE_TYPES.mockResponse>>{
+                        type: MESSAGE_TYPES.mockResponse,
+                        value: payload.value
+                    }))
                 }
 
                 throw new Error(`Unknown socket message ${JSON.stringify(payload)}`)

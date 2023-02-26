@@ -24,7 +24,9 @@ export enum MESSAGE_TYPES {
     commandRequestMessage,
     commandResponseMessage,
     hookTriggerMessage,
-    hookResultMessage
+    hookResultMessage,
+    mockRequest,
+    mockResponse
 }
 
 export const DEFAULT_INCLUDE = ['**']

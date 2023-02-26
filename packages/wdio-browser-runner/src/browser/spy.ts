@@ -1,4 +1,45 @@
+import { MESSAGE_TYPES } from '../constants.js'
+import type { SocketMessage, SocketMessagePayload } from '../vite/types.js'
+
 /**
  * re-export mock module
  */
 export * from '@vitest/spy'
+
+type MockFactoryWithHelper = (importOriginal: <T = unknown>() => Promise<T>) => any;
+
+const a = document.createElement('a')
+function resolveUrl(path: string) {
+    a.href = path
+    return a.href
+}
+
+const socket = window.__wdioSocket__
+const mockResolver = new Map<string, (value: unknown) => void>()
+const origin = window.__wdioSpec__.split('/').slice(0, -1).join('/')
+window.__wdioMockFactories__ = []
+export async function mock (path: string, factory: MockFactoryWithHelper) {
+    const importPath = resolveUrl(window.__wdioSpec__.split('/').slice(0, -1).join('/') + '/' + path)
+    const mockPath = (new URL(importPath)).pathname
+    const resolvedMock = await factory(() => import(`/@mock${mockPath}`))
+    socket.send(JSON.stringify(<SocketMessage>{
+        type: MESSAGE_TYPES.mockRequest,
+        value: { path: mockPath, origin, namedExports: Object.keys(resolvedMock) }
+    }))
+
+    window.__wdioMockFactories__[mockPath] = resolvedMock
+    return new Promise((resolve) => mockResolver.set(mockPath, resolve))
+}
+
+socket.addEventListener('message', (ev) => {
+    try {
+        const { type, value } = JSON.parse(ev.data) as SocketMessagePayload<MESSAGE_TYPES.mockResponse>
+        const resolver = mockResolver.get(value.path)
+        if (type !== MESSAGE_TYPES.mockResponse || !resolver) {
+            return
+        }
+        return resolver(null)
+    } catch {
+        // ignore
+    }
+})

@@ -1,14 +1,18 @@
 import { expect, $ } from '@wdio/globals'
-import { spyOn } from '@wdio/browser-runner'
+import { spyOn, mock } from '@wdio/browser-runner'
 import { html, render } from 'lit'
 
 import defaultExport, { namedExportValue } from 'someModule'
 
 import { SimpleGreeting } from './components/LitComponent.ts'
 
-console.log()
-
 const getQuestionFn = spyOn(SimpleGreeting.prototype, 'getQuestion')
+mock('./components/constants.ts', async (getOrigModule) => {
+    const mod = await getOrigModule()
+    return {
+        GREETING: mod.GREETING + ' Sir'
+    }
+})
 
 describe('Lit Component testing', () => {
     it('should render component', async () => {
@@ -18,7 +22,7 @@ describe('Lit Component testing', () => {
         )
 
         const innerElem = await $('simple-greeting').$('>>> p')
-        expect(await innerElem.getText()).toBe('Hello, WebdriverIO! How are you today?')
+        expect(await innerElem.getText()).toBe('Hello Sir, WebdriverIO! How are you today?')
     })
 
     it('should render with mocked component function', async () => {
@@ -29,7 +33,7 @@ describe('Lit Component testing', () => {
         )
 
         const innerElem = await $('simple-greeting').$('>>> p')
-        expect(await innerElem.getText()).toBe('Hello, WebdriverIO! Does this work?')
+        expect(await innerElem.getText()).toBe('Hello Sir, WebdriverIO! Does this work?')
     })
 
     it('should allow to mock dependencies', () => {
