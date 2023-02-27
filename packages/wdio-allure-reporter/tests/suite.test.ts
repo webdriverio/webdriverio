@@ -402,7 +402,6 @@ describe('Hook start', () => {
 
     for (const hookFirst of [true, false]) {
         it(`should use currentTest if provided by hook and not report multiple tests when start hook comes ${hookFirst ? 'first' : 'second'}`, () => {
-
             const reporter = new AllureReporter({ outputDir })
             const runnerEvent = runnerStart()
 

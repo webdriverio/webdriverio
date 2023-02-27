@@ -38,7 +38,6 @@ export default class AllureReporter extends WDIOReporter {
 
     _state: AllureReporterState
 
-    // TODO: i guess better to rename the property to make it easy to understand that we actually work with stack
     _runningUnits: Array<AllureGroup | AllureTest | AllureStep> = []
 
     constructor(options: AllureReporterOptions = {}) {
@@ -318,6 +317,7 @@ export default class AllureReporter extends WDIOReporter {
             if (suite.description) {
                 this.addDescription(suite)
             }
+
             return
         }
 
@@ -393,9 +393,8 @@ export default class AllureReporter extends WDIOReporter {
 
         const testTitle = test.currentTest ? test.currentTest : test.title
 
-        if (this._state.currentAllureTestOrStep?.wrappedItem.name === testTitle) {
+        if (this._state.currentTest?.wrappedItem.name === testTitle) {
             // Test already in progress, most likely started by a before each hook
-            this.setTestParameters(test.cid)
             return
         }
 
