@@ -39,6 +39,8 @@ const {
     render: render
 } = await import(\\"lit\\");
 
+const matchers = await import(\\"@testing-library/jest-dom/matchers\\");
+
 const {
     default: defaultExport,
     namedExportValue: namedExportValue

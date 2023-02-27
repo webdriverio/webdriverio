@@ -108,12 +108,24 @@ export function mockHoisting(mockHandler: MockHandler): Plugin[] {
 
                     const newNode = b.variableDeclaration('const', [
                         b.variableDeclarator(
-                            b.objectPattern(dec.specifiers!.map((s) => {
-                                if (s.type === types.namedTypes.ImportDefaultSpecifier.toString()) {
-                                    return b.property('init', b.identifier('default'), b.identifier(s.local!.name))
-                                }
-                                return b.property('init', b.identifier(s.local!.name), b.identifier(s.local!.name))
-                            })),
+                            (dec.specifiers?.length === 1 && dec.specifiers[0].type === types.namedTypes.ImportNamespaceSpecifier.toString())
+                                /**
+                                 * we deal with a ImportNamespaceSpecifier, e.g.:
+                                 * import * as foo from 'bar'
+                                 */
+                                ? dec.specifiers[0].local as types.namedTypes.Identifier
+                                /**
+                                 * we deal with default or named import, e.g.
+                                 * import foo from 'bar'
+                                 * or
+                                 * import { foo } from 'bar'
+                                 */
+                                : b.objectPattern(dec.specifiers!.map((s) => {
+                                    if (s.type === types.namedTypes.ImportDefaultSpecifier.toString()) {
+                                        return b.property('init', b.identifier('default'), b.identifier(s.local!.name))
+                                    }
+                                    return b.property('init', b.identifier(s.local!.name), b.identifier(s.local!.name))
+                                })),
                             b.awaitExpression(b.importExpression(b.literal(source)))
                         )
                     ])
@@ -127,36 +139,34 @@ export function mockHoisting(mockHandler: MockHandler): Plugin[] {
                     }
 
                     const callExp = exp.expression as types.namedTypes.CallExpression
+                    const isUnmockCall = unmockFunctionName && (callExp.callee as types.namedTypes.Identifier).name === unmockFunctionName
+                    const isMockCall = mockFunctionName && (callExp.callee as types.namedTypes.Identifier).name === mockFunctionName
+
+                    if (!isMockCall && !isUnmockCall) {
+                        return this.traverse(path)
+                    }
 
                     /**
                      * hoist unmock calls
                      */
-                    if (!unmockFunctionName || (callExp.callee as types.namedTypes.Identifier).name === unmockFunctionName) {
-                        if (callExp.arguments[0] && typeof (callExp.arguments[0] as types.namedTypes.Literal).value === 'string') {
-                            mockHandler.unmock((callExp.arguments[0] as types.namedTypes.Literal).value as string)
+                    if (isUnmockCall && callExp.arguments[0] && typeof (callExp.arguments[0] as types.namedTypes.Literal).value === 'string') {
+                        mockHandler.unmock((callExp.arguments[0] as types.namedTypes.Literal).value as string)
+                    } else if (isMockCall) {
+                        /**
+                         * if only one mock argument is set, we take the fixture from the automock directory
+                         */
+                        const mockCall = exp.expression as types.namedTypes.CallExpression
+                        if (mockCall.arguments.length === 1) {
+                            /**
+                             * enable manual mock
+                             */
+                            mockHandler.manualMocks.push((mockCall.arguments[0] as types.namedTypes.StringLiteral).value)
+                        } else {
+                            /**
+                             * hoist mock calls
+                             */
+                            mockCalls.push(exp)
                         }
-                        path.prune()
-                        return this.traverse(path)
-                    }
-
-                    if (!mockFunctionName || (callExp.callee as types.namedTypes.Identifier).name !== mockFunctionName) {
-                        return this.traverse(path)
-                    }
-
-                    /**
-                     * if only one mock argument is set, we take the fixture from the automock directory
-                     */
-                    const mockCall = exp.expression as types.namedTypes.CallExpression
-                    if (mockCall.arguments.length === 1) {
-                        /**
-                         * enable manual mock
-                         */
-                        mockHandler.manualMocks.push((mockCall.arguments[0] as types.namedTypes.StringLiteral).value)
-                    } else {
-                        /**
-                         * hoist mock calls
-                         */
-                        mockCalls.push(exp)
                     }
 
                     path.prune()

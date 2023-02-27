@@ -3,6 +3,7 @@ import React, { FC } from 'react'
 import { expect, $ } from '@wdio/globals'
 import { spyOn, mock, unmock as foobar, fn } from '@wdio/browser-runner'
 import { html, render } from 'lit'
+import * as matchers from '@testing-library/jest-dom/matchers'
 
 import defaultExport, { namedExportValue } from 'someModule'
 
