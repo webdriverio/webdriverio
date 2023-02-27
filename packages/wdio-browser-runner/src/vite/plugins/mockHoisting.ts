@@ -19,6 +19,7 @@ export function mockHoisting(mockHandler: MockHandler): Plugin[] {
     return [{
         name: 'wdio:mockHoisting:pre',
         enforce: 'pre',
+        resolveId: mockHandler.resolveId.bind(mockHandler),
         load: async function (id) {
             if (id.startsWith(MOCK_PREFIX)) {
                 try {
@@ -122,7 +123,16 @@ export function mockHoisting(mockHandler: MockHandler): Plugin[] {
                         return this.traverse(path)
                     }
 
-                    mockCalls.push(exp)
+                    /**
+                     * if only one mock argument is set, we take the fixture from the automock directory
+                     */
+                    const mockCall = exp.expression as types.namedTypes.CallExpression
+                    if (mockCall.arguments.length === 1) {
+                        mockHandler.manualMocks.push((mockCall.arguments[0] as types.namedTypes.StringLiteral).value)
+                    } else {
+                        mockCalls.push(exp)
+                    }
+
                     path.prune()
                     this.traverse(path)
                 }
@@ -148,6 +158,11 @@ export function mockHoisting(mockHandler: MockHandler): Plugin[] {
                     const urlParsed = url.parse(req.url)
                     const urlParamString = new URLSearchParams(urlParsed.query || '')
                     spec = urlParamString.get('spec')
+
+                    if (spec) {
+                        mockHandler.resetMocks()
+                    }
+
                     return next()
                 })
             }

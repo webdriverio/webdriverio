@@ -9,11 +9,21 @@ const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
 const fixturePath = path.join(__dirname, '__fixtures__', 'test.js')
 const TESTFILE = (await fs.readFile(fixturePath)).toString()
 
+const mockHandler: any = {
+    resolveId: vi.fn(),
+    resetMocks: vi.fn(),
+    mocks: { get: vi.fn().mockReturnValue({
+        namedExports: ['foo', 'bar', 'default'],
+        path: 'mocked'
+    }) }
+}
+
 test('exposes correct format', () => {
-    expect(mockHoisting({} as any)).toEqual([{
+    expect(mockHoisting(mockHandler)).toEqual([{
         name: 'wdio:mockHoisting:pre',
         enforce: 'pre',
-        load: expect.any(Function)
+        load: expect.any(Function),
+        resolveId: expect.any(Function)
     }, {
         name: 'wdio:mockHoisting',
         enforce: 'post',
@@ -23,31 +33,26 @@ test('exposes correct format', () => {
 })
 
 test('does not transform if file is not within spec', () => {
-    const postPlugin = mockHoisting({} as any).pop()!
+    const postPlugin = mockHoisting(mockHandler).pop()!
     expect((postPlugin.transform as Function)('foobar', 'barforr')).toEqual({ code: 'foobar' })
 })
 
 test('transforms test file properly for mocking', () => {
-    const postPlugin = mockHoisting({} as any).pop()!
+    const postPlugin = mockHoisting(mockHandler).pop()!
     const server = {
         middlewares: { use: (_: never, cb: Function) => cb({ url: '/foo?spec=/sometest.ts' }, {}, vi.fn()) }
     }
     ;(postPlugin.configureServer as Function)(server)()
     expect((postPlugin.transform as Function)(TESTFILE, '/sometest.ts')).toMatchSnapshot()
+    expect(mockHandler.resetMocks).toBeCalledTimes(1)
 })
 
 test('returns original file', async () => {
-    const prePlugin = mockHoisting({} as any).shift()!
+    const prePlugin = mockHoisting(mockHandler).shift()!
     expect(await (prePlugin.load as Function)(`/@mock${fixturePath}`)).toBe(TESTFILE)
 })
 
 test('returns mock file', async () => {
-    const mockHandler: any = {
-        mocks: { get: vi.fn().mockReturnValue({
-            namedExports: ['foo', 'bar', 'default'],
-            path: 'mocked'
-        }) }
-    }
     const prePlugin = mockHoisting(mockHandler).shift()!
     expect(await (prePlugin.load as Function)('foobar')).toMatchSnapshot()
 })

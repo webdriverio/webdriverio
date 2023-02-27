@@ -19,7 +19,15 @@ const socket = window.__wdioSocket__
 const mockResolver = new Map<string, (value: unknown) => void>()
 const origin = window.__wdioSpec__.split('/').slice(0, -1).join('/')
 window.__wdioMockFactories__ = []
-export async function mock (path: string, factory: MockFactoryWithHelper) {
+export async function mock (path: string, factory?: MockFactoryWithHelper) {
+    /**
+     * mock calls without factory parameter should get removed from the source code
+     * by the mock hoisting plugin
+     */
+    if (!factory) {
+        return
+    }
+
     const mockLocalFile = path.startsWith('/') || path.startsWith('./')
     const mockPath = mockLocalFile
         ? (new URL(resolveUrl(window.__wdioSpec__.split('/').slice(0, -1).join('/') + '/' + path))).pathname

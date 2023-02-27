@@ -125,6 +125,25 @@ export async function getFilesFromDirectory (dir: string) {
     return files.reduce((all, folderContents) => all.concat(folderContents), [] as string[])
 }
 
+let mockedModulesList: ([string, string])[]
+export async function getManualMocks(automockDir: string) {
+    /**
+     * read available mocks only one time
+     */
+    if (!mockedModulesList) {
+        mockedModulesList = (await getFilesFromDirectory(automockDir))
+            /**
+             * seperate to module name and actual path
+             */
+            .map((filePath) => [
+                filePath,
+                filePath.slice(automockDir.length + 1).slice(0, -path.extname(filePath).length)
+            ])
+    }
+
+    return mockedModulesList
+}
+
 export function getErrorTemplate(filename: string, error: Error) {
     return /*html*/`
         <pre>${error.stack}</pre>

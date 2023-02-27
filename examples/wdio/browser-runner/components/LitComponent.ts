@@ -43,7 +43,7 @@ export class SimpleGreeting extends LitElement {
     async #handleClick (answer: number) {
         const mutation = gql`
             mutation AddMood($mood: Number!) {
-                insert_movies_one(object: { mood: $mood }) {
+                insert_mood_one(object: { mood: $mood }) {
                     mood
                 }
             }

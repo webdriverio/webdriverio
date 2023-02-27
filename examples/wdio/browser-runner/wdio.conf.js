@@ -40,6 +40,7 @@ export const config = {
     services: ['chromedriver'],
     runner: ['browser', {
         preset: process.env.WDIO_PRESET,
+        automock: false,
         coverage: {
             enabled: true,
             functions: 100

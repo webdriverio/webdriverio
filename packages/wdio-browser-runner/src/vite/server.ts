@@ -40,7 +40,7 @@ export class ViteServer extends EventEmitter {
     #viteConfig: Partial<InlineConfig>
     #wss?: WebSocketServer
     #server?: ViteDevServer
-    #mockHandler = new MockHandler
+    #mockHandler: MockHandler
 
     get socketServer () {
         return this.#wss
@@ -53,6 +53,7 @@ export class ViteServer extends EventEmitter {
     constructor (options: WebdriverIO.BrowserRunnerOptions, config: Options.Testrunner) {
         super()
         this.#options = options
+        this.#mockHandler = new MockHandler(options, config)
 
         if (options.preset && options.viteConfig) {
             throw new Error('Invalid runner configuration: "preset" and "viteConfig" options are defined but only one of each can be used at the same time')
@@ -61,7 +62,7 @@ export class ViteServer extends EventEmitter {
         this.#viteConfig = deepmerge(DEFAULT_VITE_CONFIG, {
             root: options.rootDir || process.cwd(),
             plugins: [
-                testrunner(options, config),
+                testrunner(options),
                 mockHoisting(this.#mockHandler)
             ]
         })

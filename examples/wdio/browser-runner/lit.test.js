@@ -3,6 +3,7 @@ import { spyOn, mock, fn } from '@wdio/browser-runner'
 import { html, render } from 'lit'
 
 import defaultExport, { namedExportValue } from 'someModule'
+import namespacedModule from '@namespace/module'
 
 import { SimpleGreeting } from './components/LitComponent.ts'
 
@@ -20,6 +21,9 @@ mock('graphql-request', () => ({
         request = fn().mockResolvedValue({ result: 'Thanks for your answer!' })
     }
 }))
+
+mock('someModule')
+mock('@namespace/module')
 
 describe('Lit Component testing', () => {
     it('should render component', async () => {
@@ -46,6 +50,7 @@ describe('Lit Component testing', () => {
     it('should allow to auto mock dependencies', () => {
         expect(defaultExport).toBe('barfoo')
         expect(namedExportValue).toBe('foobar')
+        expect(namespacedModule).toBe('some value')
     })
 
     it('should allow to manual mock dependencies', async () => {

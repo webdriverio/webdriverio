@@ -19,6 +19,9 @@ vi.mock('../../src/vite/constants.js', () => ({
 vi.mock('@wdio/utils', () => ({
     executeHooksWithArgs: vi.fn().mockResolvedValue('hook result')
 }))
+vi.mock('../../src/vite/mock.js', () => ({
+    MockHandler: class {}
+}))
 vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 vi.mock('ws', () => ({
     WebSocketServer: class {
@@ -30,6 +33,7 @@ vi.mock('vite')
 vi.mock('get-port', () => ({ default: vi.fn().mockResolvedValue(1234) }))
 
 const consoleLog = console.log.bind(console)
+const config: any = { rootDir: '/foo/bar' }
 
 describe('ViteServer', () => {
     beforeEach(() => {
@@ -40,13 +44,13 @@ describe('ViteServer', () => {
         expect(() => new ViteServer({
             preset: 'lit',
             viteConfig: {}
-        }, {} as any)).toThrow()
+        }, config)).toThrow()
     })
 
     it('constructor sets config properly', () => {
         const server = new ViteServer({
             viteConfig: { foo: 'bar' } as any
-        }, {} as any)
+        }, config)
         expect(server.config).toEqual({
             foo: 'bar',
             plugins: ['testrunner plugin', 'mock hoisting plugin'],
@@ -58,7 +62,7 @@ describe('ViteServer', () => {
     it('start', async () => {
         const server = new ViteServer({
             viteConfig: { foo: 'bar' } as any
-        }, {} as any)
+        }, config)
         const viteServer = { listen: vi.fn() }
         vi.mocked(createServer).mockResolvedValue(viteServer as any)
         await server.start()
@@ -85,7 +89,7 @@ describe('ViteServer', () => {
     it('start with a preset', async () => {
         const server = new ViteServer({
             preset: 'lit'
-        }, {} as any)
+        }, config)
         const viteServer = { listen: vi.fn() }
         vi.mocked(createServer).mockResolvedValue(viteServer as any)
         await server.start()
@@ -111,7 +115,7 @@ describe('ViteServer', () => {
     it('connect/close', async () => {
         const server = new ViteServer({
             preset: 'lit'
-        }, {} as any)
+        }, config)
         const viteServer = { listen: vi.fn(), close: vi.fn() }
         vi.mocked(createServer).mockResolvedValue(viteServer as any)
         await server.start()
@@ -127,7 +131,7 @@ describe('ViteServer', () => {
     it('handleConsole when parsing fails', async () => {
         const server = new ViteServer({
             preset: 'lit'
-        }, {} as any)
+        }, config)
         const viteServer = { listen: vi.fn(), close: vi.fn() }
         vi.mocked(createServer).mockResolvedValue(viteServer as any)
         await server.start()
@@ -142,7 +146,7 @@ describe('ViteServer', () => {
     it('handleConsole', async () => {
         const server = new ViteServer({
             preset: 'lit'
-        }, {} as any)
+        }, config)
         const viteServer = { listen: vi.fn(), close: vi.fn() }
         vi.mocked(createServer).mockResolvedValue(viteServer as any)
         await server.start()
@@ -165,7 +169,7 @@ describe('ViteServer', () => {
     it('handleConsole but not wdio logs', async () => {
         const server = new ViteServer({
             preset: 'lit'
-        }, {} as any)
+        }, config)
         const viteServer = { listen: vi.fn(), close: vi.fn() }
         vi.mocked(createServer).mockResolvedValue(viteServer as any)
         await server.start()
@@ -188,7 +192,7 @@ describe('ViteServer', () => {
     it('hookTriggerMessage fails if no session found', async () => {
         const server = new ViteServer({
             preset: 'lit'
-        }, {} as any)
+        }, config)
         const viteServer = { listen: vi.fn(), close: vi.fn() }
         vi.mocked(createServer).mockResolvedValue(viteServer as any)
         await server.start()
@@ -211,7 +215,7 @@ describe('ViteServer', () => {
     it('hookTriggerMessage runs hook if session found', async () => {
         const server = new ViteServer({
             preset: 'lit'
-        }, {} as any)
+        }, config)
         server['runWorkerHooks'] = vi.fn().mockResolvedValue({})
         const viteServer = { listen: vi.fn(), close: vi.fn() }
         vi.mocked(createServer).mockResolvedValue(viteServer as any)
@@ -247,7 +251,7 @@ describe('ViteServer', () => {
     it('handleCommand fails if no cid given', async () => {
         const server = new ViteServer({
             preset: 'lit'
-        }, {} as any)
+        }, config)
         const viteServer = { listen: vi.fn(), close: vi.fn() }
         vi.mocked(createServer).mockResolvedValue(viteServer as any)
         await server.start()
@@ -270,7 +274,7 @@ describe('ViteServer', () => {
     it('handleCommand fails if no browser with cid given', async () => {
         const server = new ViteServer({
             preset: 'lit'
-        }, {} as any)
+        }, config)
         const viteServer = { listen: vi.fn(), close: vi.fn() }
         vi.mocked(createServer).mockResolvedValue(viteServer as any)
         await server.start()
@@ -294,7 +298,7 @@ describe('ViteServer', () => {
     it('handleCommand can execute command', async () => {
         const server = new ViteServer({
             preset: 'lit'
-        }, {} as any)
+        }, config)
         const viteServer = { listen: vi.fn(), close: vi.fn() }
         vi.mocked(createServer).mockResolvedValue(viteServer as any)
         await server.start()
@@ -323,7 +327,7 @@ describe('ViteServer', () => {
     it('handleCommand emits debug state change', async () => {
         const server = new ViteServer({
             preset: 'lit'
-        }, {} as any)
+        }, config)
         server.emit = vi.fn()
         const viteServer = { listen: vi.fn(), close: vi.fn() }
         vi.mocked(createServer).mockResolvedValue(viteServer as any)
@@ -352,7 +356,7 @@ describe('ViteServer', () => {
     it('handleCommand can execute command that fails', async () => {
         const server = new ViteServer({
             preset: 'lit'
-        }, {} as any)
+        }, config)
         const viteServer = { listen: vi.fn(), close: vi.fn() }
         vi.mocked(createServer).mockResolvedValue(viteServer as any)
         await server.start()
