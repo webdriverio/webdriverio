@@ -1,3 +1,4 @@
+import os from 'node:os'
 import url from 'node:url'
 import path from 'node:path'
 import fs from 'node:fs/promises'
@@ -23,7 +24,7 @@ export function mockHoisting(mockHandler: MockHandler): Plugin[] {
         load: async function (id) {
             if (id.startsWith(MOCK_PREFIX)) {
                 try {
-                    const orig = await fs.readFile(id.slice(MOCK_PREFIX.length))
+                    const orig = await fs.readFile(id.slice(MOCK_PREFIX.length + (os.platform() === 'win32' ? 1 : 0)))
                     return orig.toString()
                 } catch (err: unknown) {
                     log.error(`Failed to read file (${id}) for mocking: ${(err as Error).message}`)
@@ -33,7 +34,7 @@ export function mockHoisting(mockHandler: MockHandler): Plugin[] {
 
             const mockedMod = (
                 // mocked file
-                mockHandler.mocks.get(id) ||
+                mockHandler.mocks.get(os.platform() === 'win32' ? `/${id}` : id) ||
                 // mocked dependency
                 mockHandler.mocks.get(path.basename(id, path.extname(id)))
             )
@@ -201,10 +202,11 @@ export function mockHoisting(mockHandler: MockHandler): Plugin[] {
 
                     const urlParsed = url.parse(req.url)
                     const urlParamString = new URLSearchParams(urlParsed.query || '')
-                    spec = urlParamString.get('spec')
+                    const specParam = urlParamString.get('spec')
 
-                    if (spec) {
+                    if (specParam) {
                         mockHandler.resetMocks()
+                        spec = os.platform() === 'win32' ? specParam.slice(1) : specParam
                     }
 
                     return next()

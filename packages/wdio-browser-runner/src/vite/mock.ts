@@ -39,9 +39,9 @@ export class MockHandler {
         const manualMocksList = await this.#manualMocksList
         const mockPath = manualMocksList.find((m) => (
             // e.g. someModule
-            id === m[1] ||
+            id === m[1].replace(path.sep, '/') ||
             // e.g. @some/module
-            id.slice(1) === m[1]
+            id.slice(1) === m[1].replace(path.sep, '/')
         ))
 
         /**

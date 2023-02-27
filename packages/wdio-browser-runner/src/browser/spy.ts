@@ -61,7 +61,6 @@ socket.addEventListener('message', (ev) => {
         if (type !== MESSAGE_TYPES.mockResponse || !resolver) {
             return
         }
-        console.log('Be DONE WITH', value.path)
         return resolver(null)
     } catch {
         // ignore
