@@ -35,7 +35,7 @@ At the end of this process you should find a `wdio.conf.js` that contains variou
 https://github.com/webdriverio/example-recipes/blob/fd54f94306ed8e7b40f967739164dfe4d6d76b41/wdio.comp.conf.js
 ```
 
-By defining different [capabilities](http://localhost:3000/docs/configuration#capabilities) you can run your tests in different browser, in parallel if desired.
+By defining different [capabilities](/docs/configuration#capabilities) you can run your tests in different browser, in parallel if desired.
 
 ## Test Harness
 
