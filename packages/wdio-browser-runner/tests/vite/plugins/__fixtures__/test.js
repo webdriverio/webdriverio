@@ -1,7 +1,7 @@
 /* eslint-disable */
 import React, { FC } from 'react'
 import { expect, $ } from '@wdio/globals'
-import { spyOn, mock, fn } from '@wdio/browser-runner'
+import { spyOn, mock, unmock as foobar, fn } from '@wdio/browser-runner'
 import { html, render } from 'lit'
 
 import defaultExport, { namedExportValue } from 'someModule'
@@ -22,6 +22,9 @@ mock('graphql-request', () => ({
         request = fn().mockResolvedValue({ result: 'Thanks for your answer!' })
     }
 }))
+mock('foobar')
+
+foobar('hello')
 
 describe('Some test', () => {
     it('should tests something', async () => {

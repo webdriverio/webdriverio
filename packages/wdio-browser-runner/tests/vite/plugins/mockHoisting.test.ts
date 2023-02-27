@@ -12,6 +12,8 @@ const TESTFILE = (await fs.readFile(fixturePath)).toString()
 const mockHandler: any = {
     resolveId: vi.fn(),
     resetMocks: vi.fn(),
+    manualMocks: [],
+    unmock: vi.fn(),
     mocks: { get: vi.fn().mockReturnValue({
         namedExports: ['foo', 'bar', 'default'],
         path: 'mocked'

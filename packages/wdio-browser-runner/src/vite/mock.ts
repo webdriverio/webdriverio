@@ -13,6 +13,7 @@ export class MockHandler {
     #automockDir: string
     #manualMocksList: Promise<[string, string][]>
     #mocks = new Map<string, MockRequestEvent>()
+    #unmocked: string[] = []
 
     manualMocks: string[] = []
 
@@ -30,6 +31,10 @@ export class MockHandler {
         this.#mocks.set(mock.path, mock)
     }
 
+    unmock (moduleName: string) {
+        this.#unmocked.push(moduleName)
+    }
+
     async resolveId (id: string) {
         const manualMocksList = await this.#manualMocksList
         const mockPath = manualMocksList.find((m) => (
@@ -42,7 +47,7 @@ export class MockHandler {
         /**
          * return manual mock if `automock` is enabled or a manual mock was set via `mock('module')`
          */
-        if ((this.manualMocks.includes(id) || this.#automock) && mockPath) {
+        if ((this.manualMocks.includes(id) || this.#automock) && mockPath && !this.#unmocked.includes(id)) {
             return mockPath[0]
         }
 
@@ -59,5 +64,6 @@ export class MockHandler {
      */
     resetMocks () {
         this.manualMocks = []
+        this.#unmocked = []
     }
 }

@@ -1,6 +1,7 @@
 import { expect, $ } from '@wdio/globals'
-import { spyOn, mock, fn } from '@wdio/browser-runner'
+import { spyOn, mock, fn, unmock } from '@wdio/browser-runner'
 import { html, render } from 'lit'
+import isUrl from 'is-url'
 
 import defaultExport, { namedExportValue } from 'someModule'
 import namespacedModule from '@namespace/module'
@@ -22,7 +23,7 @@ mock('graphql-request', () => ({
     }
 }))
 
-mock('someModule')
+unmock('is-url')
 mock('@namespace/module')
 
 describe('Lit Component testing', () => {
@@ -51,6 +52,10 @@ describe('Lit Component testing', () => {
         expect(defaultExport).toBe('barfoo')
         expect(namedExportValue).toBe('foobar')
         expect(namespacedModule).toBe('some value')
+    })
+
+    it('should allow to unmock', () => {
+        expect(isUrl).not.toBe('mocked value')
     })
 
     it('should allow to manual mock dependencies', async () => {

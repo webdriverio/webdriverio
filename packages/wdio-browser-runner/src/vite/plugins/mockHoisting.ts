@@ -66,6 +66,7 @@ export function mockHoisting(mockHandler: MockHandler): Plugin[] {
 
             const ast = parse(code, { parser: typescriptParser }) as types.namedTypes.File
             let mockFunctionName: string
+            let unmockFunctionName: string
             const mockCalls: (types.namedTypes.ExpressionStatement | types.namedTypes.ImportDeclaration)[] = []
 
             /**
@@ -93,6 +94,13 @@ export function mockHoisting(mockHandler: MockHandler): Plugin[] {
                         if (mockSpecifier && mockSpecifier.local) {
                             mockFunctionName = mockSpecifier.local.name
                         }
+
+                        const unmockSpecifier = (dec.specifiers as types.namedTypes.ImportSpecifier[])
+                            .filter((s) => s.type === types.namedTypes.ImportSpecifier.toString())
+                            .find((s) => s.imported.name === 'unmock')
+                        if (unmockSpecifier && unmockSpecifier.local) {
+                            unmockFunctionName = unmockSpecifier.local.name
+                        }
                         mockCalls.push(dec)
                         path.prune()
                         return this.traverse(path)
@@ -119,6 +127,18 @@ export function mockHoisting(mockHandler: MockHandler): Plugin[] {
                     }
 
                     const callExp = exp.expression as types.namedTypes.CallExpression
+
+                    /**
+                     * hoist unmock calls
+                     */
+                    if (!unmockFunctionName || (callExp.callee as types.namedTypes.Identifier).name === unmockFunctionName) {
+                        if (callExp.arguments[0] && typeof (callExp.arguments[0] as types.namedTypes.Literal).value === 'string') {
+                            mockHandler.unmock((callExp.arguments[0] as types.namedTypes.Literal).value as string)
+                        }
+                        path.prune()
+                        return this.traverse(path)
+                    }
+
                     if (!mockFunctionName || (callExp.callee as types.namedTypes.Identifier).name !== mockFunctionName) {
                         return this.traverse(path)
                     }
@@ -128,8 +148,14 @@ export function mockHoisting(mockHandler: MockHandler): Plugin[] {
                      */
                     const mockCall = exp.expression as types.namedTypes.CallExpression
                     if (mockCall.arguments.length === 1) {
+                        /**
+                         * enable manual mock
+                         */
                         mockHandler.manualMocks.push((mockCall.arguments[0] as types.namedTypes.StringLiteral).value)
                     } else {
+                        /**
+                         * hoist mock calls
+                         */
                         mockCalls.push(exp)
                     }
 

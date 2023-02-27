@@ -14,7 +14,7 @@ function resolveUrl(path: string) {
     return a.href
 }
 
-const ERROR_MESSAGE = '[wdio] There was an error, when mocking a module. If you are using the "mock" factory, make sure there are no top level variables inside, since this call is hoisted to top of the file. Read more: https://webdriver.io/docs/component-testing/mocks-and-spies'
+const ERROR_MESSAGE = '[wdio] There was an error, when mocking a module. If you are using the "mock" factory, make sure there are no top level variables inside, since this call is hoisted to top of the file. Read more: https://webdriver.io/docs/component-testing/mocking'
 const socket = window.__wdioSocket__
 const mockResolver = new Map<string, (value: unknown) => void>()
 const origin = window.__wdioSpec__.split('/').slice(0, -1).join('/')
@@ -49,6 +49,11 @@ export async function mock (path: string, factory?: MockFactoryWithHelper) {
     }
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export function unmock(moduleName: string) {
+    // NO-OP: call gets removed by recast
+}
+
 socket.addEventListener('message', (ev) => {
     try {
         const { type, value } = JSON.parse(ev.data) as SocketMessagePayload<MESSAGE_TYPES.mockResponse>
@@ -56,6 +61,7 @@ socket.addEventListener('message', (ev) => {
         if (type !== MESSAGE_TYPES.mockResponse || !resolver) {
             return
         }
+        console.log('Be DONE WITH', value.path)
         return resolver(null)
     } catch {
         // ignore

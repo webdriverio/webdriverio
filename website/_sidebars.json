@@ -91,7 +91,7 @@
             "component-testing/preact"
           ]
         },
-        "component-testing/mocks-and-spies"
+        "component-testing/mocking"
       ]
     },
     {
