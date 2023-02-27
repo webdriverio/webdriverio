@@ -38,6 +38,13 @@ export interface TestObservabilityOptions {
 
 export interface BrowserstackConfig {
     /**
+     *`buildIdentifier` is a unique id to differentiate every execution that gets appended to
+     * buildName. Choose your buildIdentifier format from the available expressions:
+     * ${BUILD_NUMBER} (Default): Generates an incremental counter with every execution
+     * ${DATE_TIME}: Generates a Timestamp with every execution. Eg. 05-Nov-19:30
+     */
+    buildIdentifier?: string;
+    /**
      * Set this to true to enable BrowserStack Test Observability which will collect test related data
      * (name, hierarchy, status, error stack trace, file name and hierarchy), test commands, etc.
      * and show all the data in a meaningful manner in BrowserStack Test Observability dashboards for faster test debugging and better insights.
@@ -173,7 +180,8 @@ export interface UserConfig {
     buildName?: string,
     projectName?: string,
     buildTag?: string,
-    bstackServiceVersion?: string
+    bstackServiceVersion?: string,
+    buildIdentifier?: string
 }
 
 export interface UploadType {
