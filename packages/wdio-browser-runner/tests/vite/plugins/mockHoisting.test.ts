@@ -1,4 +1,5 @@
 import fs from 'node:fs/promises'
+import os from 'node:os'
 import url from 'node:url'
 import path from 'node:path'
 import { test, vi, expect } from 'vitest'
@@ -41,17 +42,26 @@ test('does not transform if file is not within spec', () => {
 
 test('transforms test file properly for mocking', () => {
     const postPlugin = mockHoisting(mockHandler).pop()!
+    const testfilePath = os.platform() === 'win32' ? '/C:/sometest.ts' : 'sometest.ts'
+    const url = `/foo?spec=/${testfilePath}`
     const server = {
-        middlewares: { use: (_: never, cb: Function) => cb({ url: '/foo?spec=/sometest.ts' }, {}, vi.fn()) }
+        middlewares: { use: (_: never, cb: Function) => cb({ url }, {}, vi.fn()) }
     }
     ;(postPlugin.configureServer as Function)(server)()
-    expect((postPlugin.transform as Function)(TESTFILE, '/sometest.ts')).toMatchSnapshot()
+    const newCode = (postPlugin.transform as Function)(TESTFILE, os.platform() === 'win32' ? testfilePath : `/${testfilePath}`)
+
+    delete newCode.map.file
+    delete newCode.map.sources
+
+    expect(newCode).toMatchSnapshot()
     expect(mockHandler.resetMocks).toBeCalledTimes(1)
 })
 
 test('returns original file', async () => {
     const prePlugin = mockHoisting(mockHandler).shift()!
-    expect(await (prePlugin.load as Function)(`/@mock${fixturePath}`)).toBe(TESTFILE)
+    expect(await (prePlugin.load as Function)(
+        `/@mock${os.platform() === 'win32' ? '/' : ''}${fixturePath}`
+    )).toBe(TESTFILE)
 })
 
 test('returns mock file', async () => {
