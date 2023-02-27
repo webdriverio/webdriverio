@@ -141,12 +141,12 @@ import { html, render } from 'lit'
 import { SimpleButton } from './LitComponent.ts'
 import { handleClick } from './utils.js'
 
-mock('./utils.ts', () => {
-    const mod = await getOrigModule()
-    return {
-        handleClick: fn()
-    }
-})
+/**
+ * mock named export "handleClick" of `utils.ts` file
+ */
+mock('./utils.ts', () => ({
+    handleClick: fn()
+}))
 
 describe('Simple Button Component Test', () => {
     it('call click handler', async () => {
@@ -178,11 +178,14 @@ Now, in order to test this method without actually hitting the API (and thus cre
 Once we mock the module we can provide a [`mockResolvedValue`](https://vitest.dev/api/mock.html#mockresolvedvalue) for `.get` that returns the data we want our test to assert against. In effect, we are saying that we want `axios.get('/users.json')` to return a fake response.
 
 ```js title=users.test.js
-import axios from 'axios';
+import axios from 'axios'; // imports defined mock
 import { mock, fn } from '@wdio/browser-runner'
 
 import Users from './users.js'
 
+/**
+ * mock default export of `axios` dependency
+ */
 mock('axios', () => ({
     default: {
         get: fn()
