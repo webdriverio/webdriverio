@@ -64,7 +64,11 @@ export function mockHoisting(mockHandler: MockHandler): Plugin[] {
                 return { code }
             }
 
-            const ast = parse(code, { parser: typescriptParser }) as types.namedTypes.File
+            const ast = parse(code, {
+                parser: typescriptParser,
+                sourceFileName: id,
+                sourceRoot: path.dirname(id)
+            }) as types.namedTypes.File
             let mockFunctionName: string
             let unmockFunctionName: string
             const mockCalls: (types.namedTypes.ExpressionStatement | types.namedTypes.ImportDeclaration)[] = []
@@ -120,11 +124,11 @@ export function mockHoisting(mockHandler: MockHandler): Plugin[] {
                                  * or
                                  * import { foo } from 'bar'
                                  */
-                                : b.objectPattern(dec.specifiers!.map((s) => {
+                                : b.objectPattern(dec.specifiers!.map((s: types.namedTypes.ImportSpecifier) => {
                                     if (s.type === types.namedTypes.ImportDefaultSpecifier.toString()) {
                                         return b.property('init', b.identifier('default'), b.identifier(s.local!.name))
                                     }
-                                    return b.property('init', b.identifier(s.local!.name), b.identifier(s.local!.name))
+                                    return b.property('init', b.identifier(s.imported.name), b.identifier(s.local!.name))
                                 })),
                             b.awaitExpression(b.importExpression(b.literal(source)))
                         )
@@ -182,7 +186,11 @@ export function mockHoisting(mockHandler: MockHandler): Plugin[] {
 
                 return mc
             }))
-            return { code: print(ast).code }
+
+            const newCode = print(ast, {
+                sourceMapName: id
+            })
+            return newCode
         },
         configureServer(server) {
             return () => {
