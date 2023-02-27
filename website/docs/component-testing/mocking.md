@@ -255,6 +255,7 @@ Scoped modules (also known as scoped packages) can be mocked by creating a file 
 ├── config
 ├── __mocks__
 │   ├── axios.js
+│   ├── lodash.js
 │   └── @scope
 │       └── project-name.js
 ├── node_modules
@@ -266,7 +267,7 @@ When a manual mock exists for a given module, WebdriverIO will use that module w
 ```js
 import { unmock } from '@wdio/browser-runner'
 
-unmock('moduleName')
+unmock('lodash')
 ```
 
 ## Hoisting
