@@ -95,6 +95,16 @@ export interface BrowserRunnerOptions {
      * test coverage settings
      */
     coverage?: CoverageOptions
+    /**
+     * If set to `true` WebdriverIO will automatically mock dependencies within the `automockDir` directory
+     * @default true
+     */
+    automock?: boolean
+    /**
+     * Path of auto-mock directory. This tells WebdriverIO where to look for dependencies to mock out.
+     * @default ./__mocks__
+     */
+    automockDir?: string
 }
 
 export interface RunArgs extends Workers.WorkerRunPayload {

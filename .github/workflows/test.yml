@@ -35,6 +35,11 @@ jobs:
         run: |
           npm i chromedriver@109
           npm run test:e2e:cjs
+      - uses: actions/upload-artifact@v3
+        if: failure()
+        with:
+          name: logs
+          path: examples/wdio/browser-runner/logs
   e2e-windows:
     runs-on: windows-latest
     steps:
@@ -65,6 +70,7 @@ jobs:
           path: |
             e2e/wdio/*.log
             e2e/*.log
+            examples/wdio/browser-runner/logs
   e2e-mac:
     runs-on: macos-latest
     steps:

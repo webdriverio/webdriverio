@@ -46,8 +46,7 @@ const POLYFILLS = [
 const FETCH_FROM_ESM = [
     'serialize-error', 'minimatch', 'css-shorthand-properties', 'lodash.merge', 'lodash.zip',
     'lodash.clonedeep', 'lodash.pickby', 'lodash.flattendeep', 'aria-query', 'grapheme-splitter',
-    'css-value', 'rgb2hex', 'p-iteration', 'fast-safe-stringify', 'deepmerge-ts',
-    'mocha'
+    'css-value', 'rgb2hex', 'p-iteration', 'fast-safe-stringify', 'deepmerge-ts'
 ]
 
 export function testrunner(options: WebdriverIO.BrowserRunnerOptions): Plugin[] {

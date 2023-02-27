@@ -1,9 +1,30 @@
 import { expect, $ } from '@wdio/globals'
-import { spyOn } from '@wdio/browser-runner'
+import { spyOn, mock, fn, unmock } from '@wdio/browser-runner'
 import { html, render } from 'lit'
+import isUrl from 'is-url'
+
+import defaultExport, { namedExportValue } from 'someModule'
+import namespacedModule from '@namespace/module'
+
 import { SimpleGreeting } from './components/LitComponent.ts'
 
 const getQuestionFn = spyOn(SimpleGreeting.prototype, 'getQuestion')
+mock('./components/constants.ts', async (getOrigModule) => {
+    const mod = await getOrigModule()
+    return {
+        GREETING: mod.GREETING + ' Sir'
+    }
+})
+
+mock('graphql-request', () => ({
+    gql: fn(),
+    GraphQLClient: class GraphQLClientMock {
+        request = fn().mockResolvedValue({ result: 'Thanks for your answer!' })
+    }
+}))
+
+unmock('is-url')
+mock('@namespace/module')
 
 describe('Lit Component testing', () => {
     it('should render component', async () => {
@@ -13,7 +34,7 @@ describe('Lit Component testing', () => {
         )
 
         const innerElem = await $('simple-greeting').$('>>> p')
-        expect(await innerElem.getText()).toBe('Hello, WebdriverIO! How are you today?')
+        expect(await innerElem.getText()).toBe('Hello Sir, WebdriverIO! How are you today?')
     })
 
     it('should render with mocked component function', async () => {
@@ -24,6 +45,29 @@ describe('Lit Component testing', () => {
         )
 
         const innerElem = await $('simple-greeting').$('>>> p')
-        expect(await innerElem.getText()).toBe('Hello, WebdriverIO! Does this work?')
+        expect(await innerElem.getText()).toBe('Hello Sir, WebdriverIO! Does this work?')
+    })
+
+    it('should allow to auto mock dependencies', () => {
+        expect(defaultExport).toBe('barfoo')
+        expect(namedExportValue).toBe('foobar')
+        expect(namespacedModule).toBe('some value')
+    })
+
+    it('should allow to unmock', () => {
+        expect(isUrl).not.toBe('mocked value')
+    })
+
+    it('should have access to globals', () => {
+        expect(process.env.WDIO_PRESET).toBe('lit')
+    })
+
+    it('should allow to manual mock dependencies', async () => {
+        render(
+            html`<simple-greeting name="WebdriverIO" />`,
+            document.body
+        )
+        await $('simple-greeting').$('>>> button').click()
+        await expect($('simple-greeting').$('>>> em')).toHaveText('Thanks for your answer!')
     })
 })

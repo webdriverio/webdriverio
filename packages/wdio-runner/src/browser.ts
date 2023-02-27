@@ -13,7 +13,7 @@ import type { TestFramework, HookTriggerEvent, WorkerHookResultMessage } from '.
 const log = logger('@wdio/runner')
 const sep = '\n  - '
 
-type WDIOErrorEvent = Partial<Pick<ErrorEvent, 'filename' | 'message'>> & { hasViteError?: boolean }
+type WDIOErrorEvent = Partial<Pick<ErrorEvent, 'filename' | 'message' | 'error'>> & { hasViteError?: boolean }
 interface TestState {
     failures?: number | null
     errors?: WDIOErrorEvent[]
@@ -129,7 +129,7 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
                         if (viteErrorElem && viteErrorElem.shadowRoot) {
                             const errorElems = Array.from(viteErrorElem.shadowRoot.querySelectorAll('pre'))
                             if (errorElems.length) {
-                                viteError = errorElems.map((elem) => ({ message: elem.innerText }))
+                                viteError = [{ message: errorElems.map((elem) => elem.innerText).join('\n') }]
                             }
                         }
                         const loadError = typeof window.__wdioErrors__ === 'undefined'
@@ -161,10 +161,10 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
 
             if (state.errors?.length) {
                 const errors = state.errors.map((ev) => state.hasViteError
-                    ? ev.message
-                    : `${path.basename(ev.filename || spec)}: ${ev.message}`)
+                    ? `${ev.message}\n${(ev.error ? ev.error.split('\n').slice(1).join('\n') : '')}`
+                    : `${path.basename(ev.filename || spec)}: ${ev.message}\n${(ev.error ? ev.error.split('\n').slice(1).join('\n') : '')}`)
                 const { name, message, stack } = new Error(state.hasViteError
-                    ? `Test failed due to the following error: ${errors.join('\n')}`
+                    ? `Test failed due to the following error: ${errors.join('\n\n')}`
                     : `Test failed due to following error(s):${sep}${errors.join(sep)}`)
                 process.send!({
                     origin: 'worker',
