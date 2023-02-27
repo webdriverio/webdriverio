@@ -41,6 +41,8 @@ export async function getTemplate(options: WebdriverIO.BrowserRunnerOptions, env
         () => 'https://unpkg.com/mocha@10.0.0/mocha.css'
     )
 
+    const sourceMapSupportDir = path.dirname(url.fileURLToPath(await resolve('source-map-support', import.meta.url)))
+
     return /* html */`
     <!doctype html>
     <html>
@@ -48,7 +50,10 @@ export async function getTemplate(options: WebdriverIO.BrowserRunnerOptions, env
             <title>WebdriverIO Browser Test</title>
             <link rel="icon" type="image/x-icon" href="https://webdriver.io/img/favicon.png">
             <link rel="stylesheet" href="${mochaCSSHref}">
+            <script src="${sourceMapSupportDir}/browser-source-map-support.js"></script>
             <script type="module">
+                sourceMapSupport.install()
+
                 /**
                  * Inject environment variables
                  */
