@@ -49,9 +49,7 @@ exports[`getTemplate > renders template correctly 1`] = `
             <div id=\\"mocha\\"></div>
             <script async type=\\"module\\" src=\\"@wdio/browser-runner/setup\\"></script>
             <script type=\\"module\\">
-                window.process = {
-                    env: {\\"some\\":\\"env\\"}
-                }
+                window.process.env = {\\"some\\":\\"env\\"}
             </script>
         </body>
     </html>"
