@@ -58,6 +58,10 @@ describe('Lit Component testing', () => {
         expect(isUrl).not.toBe('mocked value')
     })
 
+    it('should have access to globals', () => {
+        expect(process.env.WDIO_PRESET).toBe('lit')
+    })
+
     it('should allow to manual mock dependencies', async () => {
         render(
             html`<simple-greeting name="WebdriverIO" />`,
