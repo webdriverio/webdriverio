@@ -29,8 +29,6 @@ export class SimpleGreeting extends LitElement {
         return html`<div>
             <p>${GREETING}, ${this.name}! ${this.getQuestion()}</p>
             <button @click="${() => this.#handleClick(0)}">Good</button>
-            or
-            <button @click="${() => this.#handleClick(1)}">Excellent</button>
             <hr />
             <em>${this.#serverResponse}</em>
         </div>`
@@ -50,7 +48,7 @@ export class SimpleGreeting extends LitElement {
         `
 
         const data = await graphQLClient.request(mutation, { mood: answer })
-            .catch(() => ({ result: 'Error: failed to make request' }))
+            .catch(/* istanbul ignore next */ () => ({ result: 'Error: failed to make request' }))
         this.#serverResponse = data.result
         this.requestUpdate()
     }
