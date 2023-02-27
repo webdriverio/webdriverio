@@ -21,6 +21,31 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.4.0 (2023-02-27)
+
+#### :rocket: New Feature
+* `wdio-browser-runner`, `wdio-runner`, `webdriverio`
+  * [#9821](https://github.com/webdriverio/webdriverio/pull/9821) Component Testing: Support mocking of modules and external dependencies ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-browserstack-service`, `wdio-types`
+  * [#9806](https://github.com/webdriverio/webdriverio/pull/9806) [Browserstack-service] Support for BuildIdentifier and Fix for LocalIdentifier not adding in BrowserStack Capabilities ([@kamal-kaur04](https://github.com/kamal-kaur04))
+
+#### :memo: Documentation
+* Other
+  * [#9848](https://github.com/webdriverio/webdriverio/pull/9848) fix capabilities link in component testing docs ([@dannyfink](https://github.com/dannyfink))
+* `wdio-browserstack-service`
+  * [#9817](https://github.com/webdriverio/webdriverio/pull/9817) Updated Readme - added testObservability docs ([@sourav-kundu](https://github.com/sourav-kundu))
+
+#### :house: Internal
+* [#9823](https://github.com/webdriverio/webdriverio/pull/9823) Adds a dev container to help get started with GitHub Codespaces ([@samruddhikhandale](https://github.com/samruddhikhandale))
+
+#### Committers: 5
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Kamalpreet Kaur ([@kamal-kaur04](https://github.com/kamal-kaur04))
+- Samruddhi Khandale ([@samruddhikhandale](https://github.com/samruddhikhandale))
+- Sourav Kundu ([@sourav-kundu](https://github.com/sourav-kundu))
+- [@dannyfink](https://github.com/dannyfink)
+
+
 ## v8.3.11 (2023-02-24)
 
 #### :memo: Documentation
