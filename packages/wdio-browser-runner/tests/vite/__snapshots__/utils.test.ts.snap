@@ -7,8 +7,8 @@ exports[`getTemplate > renders template correctly 1`] = `
         <head>
             <title>WebdriverIO Browser Test</title>
             <link rel=\\"icon\\" type=\\"image/x-icon\\" href=\\"https://webdriver.io/img/favicon.png\\">
-            <link rel=\\"stylesheet\\" href=\\"/foo/bar/mocha.css\\">
-            <script src=\\"/foo/bar/browser-source-map-support.js\\"></script>
+            <link rel=\\"stylesheet\\" href=\\"/foo/bar/mocha.css\\"><script type=\\"module\\" src=\\"/foo/bar/mocha.js\\"></script>
+            <script src=\\"/@fs//foo/bar/browser-source-map-support.js\\"></script>
             <script type=\\"module\\">
                 sourceMapSupport.install()
 
@@ -48,6 +48,11 @@ exports[`getTemplate > renders template correctly 1`] = `
         <body>
             <div id=\\"mocha\\"></div>
             <script async type=\\"module\\" src=\\"@wdio/browser-runner/setup\\"></script>
+            <script type=\\"module\\">
+                window.process = {
+                    env: {\\"some\\":\\"env\\"}
+                }
+            </script>
         </body>
     </html>"
 `;

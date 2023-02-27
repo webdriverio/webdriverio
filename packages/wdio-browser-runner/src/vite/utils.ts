@@ -5,7 +5,7 @@ import { resolve } from 'import-meta-resolve'
 
 import type { Environment, FrameworkPreset } from '../types.js'
 
-export async function getTemplate(options: WebdriverIO.BrowserRunnerOptions, env: Environment, spec: string) {
+export async function getTemplate(options: WebdriverIO.BrowserRunnerOptions, env: Environment, spec: string, processEnv = process.env) {
     const root = options.rootDir || process.cwd()
     const rootFileUrl = url.pathToFileURL(root).href
 
@@ -40,6 +40,10 @@ export async function getTemplate(options: WebdriverIO.BrowserRunnerOptions, env
         (p) => path.join(url.fileURLToPath(path.dirname(p)), 'mocha.css'),
         () => 'https://unpkg.com/mocha@10.0.0/mocha.css'
     )
+    const mochaJSSrc = await resolve('mocha', `${rootFileUrl}/node_modules`).then(
+        (p) => path.join(url.fileURLToPath(path.dirname(p)), 'mocha.js'),
+        () => 'https://unpkg.com/mocha@10.0.0/mocha.js'
+    )
 
     const sourceMapSupportDir = path.dirname(url.fileURLToPath(await resolve('source-map-support', import.meta.url)))
 
@@ -49,7 +53,7 @@ export async function getTemplate(options: WebdriverIO.BrowserRunnerOptions, env
         <head>
             <title>WebdriverIO Browser Test</title>
             <link rel="icon" type="image/x-icon" href="https://webdriver.io/img/favicon.png">
-            <link rel="stylesheet" href="${mochaCSSHref}">
+            <link rel="stylesheet" href="${mochaCSSHref}"><script type="module" src="${mochaJSSrc}"></script>
             <script src="/@fs/${sourceMapSupportDir}/browser-source-map-support.js"></script>
             <script type="module">
                 sourceMapSupport.install()
@@ -82,6 +86,11 @@ export async function getTemplate(options: WebdriverIO.BrowserRunnerOptions, env
         <body>
             <div id="mocha"></div>
             <script async type="module" src="@wdio/browser-runner/setup"></script>
+            <script type="module">
+                window.process = {
+                    env: ${JSON.stringify(processEnv)}
+                }
+            </script>
         </body>
     </html>`
 }

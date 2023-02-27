@@ -53,9 +53,6 @@ test('resolveId', async () => {
 
     expect(await (plugin[0].resolveId as Function)('node:module'))
         .toContain(path.join('nodelibs', 'browser', 'module.js'))
-
-    expect(await (plugin[0].resolveId as Function)('mocha'))
-        .toBe('https://esm.sh/mocha')
 })
 
 test('load', () => {
