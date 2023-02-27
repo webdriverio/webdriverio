@@ -254,11 +254,9 @@ Scoped modules (also known as scoped packages) can be mocked by creating a file 
 .
 ├── config
 ├── __mocks__
-│   └── fs.js
-├── models
-│   ├── __mocks__
-│   │   └── user.js
-│   └── user.js
+│   ├── axios.js
+│   └── @scope
+│       └── project-name.js
 ├── node_modules
 └── views
 ```
