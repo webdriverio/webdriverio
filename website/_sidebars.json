@@ -91,6 +91,7 @@
             "component-testing/preact"
           ]
         },
+        "component-testing/coverage",
         "component-testing/mocking"
       ]
     },
