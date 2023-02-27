@@ -8,7 +8,7 @@ exports[`getTemplate > renders template correctly 1`] = `
             <title>WebdriverIO Browser Test</title>
             <link rel=\\"icon\\" type=\\"image/x-icon\\" href=\\"https://webdriver.io/img/favicon.png\\">
             <link rel=\\"stylesheet\\" href=\\"/foo/bar/mocha.css\\"><script type=\\"module\\" src=\\"/foo/bar/mocha.js\\"></script>
-            <script src=\\"/@fs/foo/bar/browser-source-map-support.js\\"></script>
+            <script src=\\"/@fs//foo/bar/browser-source-map-support.js\\"></script>
             <script type=\\"module\\">
                 sourceMapSupport.install()
 
