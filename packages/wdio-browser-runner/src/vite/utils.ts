@@ -87,9 +87,7 @@ export async function getTemplate(options: WebdriverIO.BrowserRunnerOptions, env
             <div id="mocha"></div>
             <script async type="module" src="@wdio/browser-runner/setup"></script>
             <script type="module">
-                window.process = {
-                    env: ${JSON.stringify(processEnv)}
-                }
+                window.process.env = ${JSON.stringify(processEnv)}
             </script>
         </body>
     </html>`
