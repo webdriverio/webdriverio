@@ -58,7 +58,14 @@ export const config = {
 * `addFeature(featureName)` – assign features to test
 * `addStory(storyName)` – assign user story to test
 * `addSeverity(value)` – assign severity to test, accepts one of these values: blocker, critical, normal, minor, trivial
+* `addTag(value)` – assign a tag label to test
+* `addEpic(value)` – assign an epic label to test
+* `addOwner(value)` – assign an owner label to test
+* `addSuite(value)` – assign a suite label to test
+* `addSubSuite(value)` – assign a sub suite label to test
+* `addParentSuite(value)` – assign a parent suite label to test
 * `addIssue(value)` – assign issue id to test
+* `addAllureId(value)` – assign allure test ops id label to test
 * `addTestId(value)` – assign TMS test id to test
 * `addEnvironment(name, value)` – save environment value
 * `addAttachment(name, content, [type])` – save attachment to test.
@@ -78,6 +85,8 @@ export const config = {
     * `title` (*String*) - name of the step.
 * `endStep(status)` - end with a step
     * `status` (*String*, optional) - step status, `passed` by default. Must be "failed", "passed" or "broken"
+* `step(name, body)` - starts step with content function inside. Allows to create steps with infinite hierarchy
+    * `body` (*Function*) - the step body async function
 
 ### Usage
 Allure Api can be accessed using:
@@ -112,6 +121,20 @@ Basic Cucumber example:
 Given('I include feature and story name', () => {
     allureReporter.addFeature('Feature_name');
     allureReporter.addStory('Story_name');
+})
+```
+
+#### Custom steps
+
+`step` method simplifies dealing with steps because each step present as an async function with any content inside.
+The first argument of the function is the current step, that has most of the allure API methods (such as `label`, `epic`, `attach` etc):
+
+```js
+allureReporter.step('my step name', async (s1) => {
+    s1.label('foo', 'bar')
+    await s1.step('my child step name', async (s2) => {
+        // you can add any combination of steps in the body function
+    })
 })
 ```
 
