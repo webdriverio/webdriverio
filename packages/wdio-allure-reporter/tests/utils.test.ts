@@ -4,8 +4,9 @@ import process from 'node:process'
 import { Status } from 'allure-js-commons'
 import CompoundError from '../src/compoundError.js'
 import {
-    getTestStatus, isEmpty, isMochaEachHooks, getErrorFromFailedTest, isMochaAllHooks, getLinkByTemplate, findLast, isScreenshotCommand,
+    getTestStatus, isEmpty, isMochaEachHooks, getErrorFromFailedTest, isMochaAllHooks, getLinkByTemplate, findLast, isScreenshotCommand, getSuiteLabels,
 } from '../src/utils.js'
+import { suiteStart } from './__fixtures__/suite.js'
 import { linkPlaceholder } from '../src/constants.js'
 
 describe('utils', () => {
@@ -112,25 +113,34 @@ describe('utils', () => {
         // wdio-mocha-framework returns a single 'error', while wdio-jasmine-framework returns an array of 'errors'
         it('should return just the error property when there is no errors property', () => {
             const testStat = {
-                error: new Error('Everything is Broken Forever')
+                error: new Error('Everything is Broken Forever'),
             }
-            expect(getErrorFromFailedTest(testStat as any)!.message).toBe('Everything is Broken Forever')
+            expect(getErrorFromFailedTest(testStat as any)!.message).toBe(
+                'Everything is Broken Forever'
+            )
         })
 
         it('should return a single error when there is an errors array with one error', () => {
             const testStat = {
                 errors: [new Error('Everything is Broken Forever')],
-                error: new Error('Everything is Broken Forever')
+                error: new Error('Everything is Broken Forever'),
             }
-            expect(getErrorFromFailedTest(testStat as any)!.message).toBe('Everything is Broken Forever')
+            expect(getErrorFromFailedTest(testStat as any)!.message).toBe(
+                'Everything is Broken Forever'
+            )
         })
 
         it('should return a CompoundError of the errors when there is more than one error', () => {
             const testStat = {
-                errors: [new Error('Everything is Broken Forever'), new Error('Additional things are broken')],
-                error: new Error('Everything is Broken Forever')
+                errors: [
+                    new Error('Everything is Broken Forever'),
+                    new Error('Additional things are broken'),
+                ],
+                error: new Error('Everything is Broken Forever'),
             }
-            const error = getErrorFromFailedTest(testStat as any) as CompoundError
+            const error = getErrorFromFailedTest(
+                testStat as any
+            ) as CompoundError
             expect(error instanceof CompoundError).toBe(true)
             expect(error.innerErrors).toEqual(testStat.errors)
         })
@@ -141,7 +151,9 @@ describe('utils', () => {
         const id = 'JIRA-42'
         it('should return link with task id', () => {
             const link = getLinkByTemplate(template, id)
-            expect(link).toEqual('https://youtrack.jetbrains.com/issue/JIRA-42')
+            expect(link).toEqual(
+                'https://youtrack.jetbrains.com/issue/JIRA-42'
+            )
         })
 
         it('should return id if template is not a string', () => {
@@ -151,8 +163,9 @@ describe('utils', () => {
 
         it('should throw error if template is invalid', () => {
             const template = 'foo'
-            expect(() => getLinkByTemplate(template, id))
-                .toThrow(`The link template "${template}" must contain ${linkPlaceholder} substring.`)
+            expect(() => getLinkByTemplate(template, id)).toThrow(
+                `The link template "${template}" must contain ${linkPlaceholder} substring.`
+            )
         })
     })
 
@@ -161,11 +174,59 @@ describe('utils', () => {
 
         it('should return last matched element', () => {
             expect(findLast(arr, (el) => el % 2 === 0)).toEqual(8)
+
         })
 
         it('should return undefind when nothing matched', () => {
             expect(findLast(arr, (el) => el === 10)).toEqual(undefined)
         })
     })
-})
 
+    describe('getSuiteLabels', () => {
+        describe('suite stats with tags', () => {
+            it('returns allure labels', () => {
+                expect(
+                    getSuiteLabels({
+                        ...suiteStart(),
+                        tags: [
+                            {
+                                name: '@foo=bar',
+                            }
+                        ]
+                    })
+                ).toEqual([
+                    {
+                        name: 'foo',
+                        value: 'bar',
+                    },
+                ])
+            })
+        })
+
+        describe('suite stats with invalid tags', () => {
+            it('returns empty array', () => {
+                expect(
+                    getSuiteLabels({
+                        ...suiteStart(),
+                        tags: [
+                            {
+                                name: 'foo bar',
+                            },
+                            {
+                                name: 'foo,bar',
+                            }
+                        ]
+                    })
+                ).toEqual([])
+            })
+        })
+
+        describe('suite stats without tags', () => {
+            it('returns empty array', () => {
+                expect(getSuiteLabels({ ...suiteStart(), tags: undefined })).toEqual(
+                    []
+                )
+            })
+        })
+    })
+})

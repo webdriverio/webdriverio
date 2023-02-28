@@ -29,6 +29,7 @@ export const getTestStatus = (
                 ? AllureStatus.FAILED
                 : AllureStatus.BROKEN
         }
+
         if (test.error.stack) {
             const stackTrace = test.error.stack.trim().toLowerCase()
 
