@@ -120,3 +120,5 @@ export interface Environment {
     sessionId: string
     injectGlobals: boolean
 }
+
+export type MockFactoryWithHelper = (importOriginal: <T = unknown>() => Promise<T>) => any;

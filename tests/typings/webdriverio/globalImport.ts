@@ -1,6 +1,6 @@
 import { expectType } from 'tsd'
 import { $, $$, browser, driver, multiremotebrowser } from '@wdio/globals'
-import { fn, spyOn } from '@wdio/browser-runner'
+import { fn, spyOn, mock, unmock, mocked } from '@wdio/browser-runner'
 
 ;(async () => {
     const elem = await $('foo')
@@ -23,4 +23,11 @@ import { fn, spyOn } from '@wdio/browser-runner'
 
     expectType<Function>(fn)
     expectType<Function>(spyOn)
+
+    mock('foobar', (importOrig) => {
+        expectType<Promise<unknown>>(importOrig())
+        return { default: 'foobar' }
+    })
+    unmock('foobar')
+    expectType<[string][]>(mocked((foo: string) => 'bar').mock.calls)
 })

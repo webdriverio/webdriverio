@@ -1,12 +1,13 @@
+import type { MaybeMocked } from '@vitest/spy'
+
 import { MESSAGE_TYPES } from '../constants.js'
-import type { SocketMessage, SocketMessagePayload } from '../vite/types.js'
+import type { MockFactoryWithHelper } from '../types'
+import type { SocketMessage, SocketMessagePayload } from '../vite/types'
 
 /**
  * re-export mock module
  */
 export * from '@vitest/spy'
-
-type MockFactoryWithHelper = (importOriginal: <T = unknown>() => Promise<T>) => any;
 
 const a = document.createElement('a')
 function resolveUrl(path: string) {
@@ -66,3 +67,8 @@ socket.addEventListener('message', (ev) => {
         // ignore
     }
 })
+
+/**
+ * utility helper for type conversions
+ */
+export function mocked<T>(item: T) { return item as any as MaybeMocked<T> }
