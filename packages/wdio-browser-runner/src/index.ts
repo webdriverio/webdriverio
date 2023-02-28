@@ -12,7 +12,7 @@ import reports from 'istanbul-reports'
 import type { RunArgs, WorkerInstance } from '@wdio/local-runner'
 import type { SessionStartedMessage, SessionEndedMessage, WorkerHookResultMessage, WorkerCoverageMapMessage } from '@wdio/runner'
 import type { Options } from '@wdio/types'
-import type { MaybeMocked } from '@vitest/spy'
+import type { MaybeMocked, MaybeMockedDeep, MaybePartiallyMocked, MaybePartiallyMockedDeep } from '@vitest/spy'
 
 import { ViteServer } from './vite/server.js'
 import {
@@ -261,4 +261,23 @@ export function unmock(moduleName: string) {}
  * @param item Anything that can be mocked
  * @returns
  */
-export function mocked<T>(item: T) { return item as any as MaybeMocked<T> }
+export function mocked<T>(item: T, deep?: true): MaybeMockedDeep<T>
+export function mocked<T>(item: T, deep?: false): MaybeMockedDeep<T>
+export function mocked<T>(item: T, options: {
+    partial?: false;
+    deep?: false;
+}): MaybeMocked<T>;
+export function mocked<T>(item: T, options: {
+    partial?: false;
+    deep: true;
+}): MaybeMockedDeep<T>;
+export function mocked<T>(item: T, options: {
+    partial: true;
+    deep?: false;
+}): MaybePartiallyMocked<T>;
+export function mocked<T>(item: T, options: {
+    partial: true;
+    deep: true;
+}): MaybePartiallyMockedDeep<T>
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export function mocked (item: any, options: any) {}
