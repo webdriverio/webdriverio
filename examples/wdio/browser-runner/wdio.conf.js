@@ -35,7 +35,7 @@ export const config = {
      */
     logLevel: 'trace',
     framework: 'mocha',
-    outputDir: __dirname,
+    outputDir: path.join(__dirname, 'logs', process.env.WDIO_PRESET),
     reporters: ['spec', 'dot', 'junit'],
     services: ['chromedriver'],
     runner: ['browser', {

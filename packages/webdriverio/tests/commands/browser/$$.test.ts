@@ -94,7 +94,7 @@ describe('elements', () => {
         const elemA = await browser.$('#foo')
         const elemB = { [ELEMENT_KEY]: 'foobar' }
         const elems = await browser.$$([elemA, elemB])
-        console.log(await elems.map((e) => e.elementId))
+        expect(await elems.map((e) => e.elementId)).toEqual(['some-elem-123', 'foobar'])
     })
 
     afterEach(() => {

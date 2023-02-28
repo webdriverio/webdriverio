@@ -9,14 +9,19 @@ import { serializeError } from 'serialize-error'
 import { executeHooksWithArgs } from '@wdio/utils'
 import type { ViteDevServer, InlineConfig } from 'vite'
 import { createServer } from 'vite'
-import istanbulPlugin, { type IstanbulPluginOptions } from 'vite-plugin-istanbul'
+import istanbulPlugin from 'vite-plugin-istanbul'
 import type { Services, Options } from '@wdio/types'
 
 import { testrunner } from './plugins/testrunner.js'
+import { mockHoisting } from './plugins/mockHoisting.js'
 import { userfriendlyImport } from './utils.js'
+import { MockHandler } from './mock.js'
 import { PRESET_DEPENDENCIES, DEFAULT_VITE_CONFIG } from './constants.js'
 import { MESSAGE_TYPES, DEFAULT_INCLUDE, DEFAULT_FILE_EXTENSIONS } from '../constants.js'
-import type { ConsoleEvent, HookTriggerEvent, CommandRequestEvent, CommandResponseEvent, SocketMessage, HookResultEvent } from './types.js'
+import type {
+    ConsoleEvent, HookTriggerEvent, CommandRequestEvent, CommandResponseEvent, SocketMessage,
+    HookResultEvent, SocketMessagePayload
+} from './types.js'
 
 import { BROWSER_POOL, SESSIONS } from '../constants.js'
 
@@ -35,6 +40,7 @@ export class ViteServer extends EventEmitter {
     #viteConfig: Partial<InlineConfig>
     #wss?: WebSocketServer
     #server?: ViteDevServer
+    #mockHandler: MockHandler
 
     get socketServer () {
         return this.#wss
@@ -47,6 +53,7 @@ export class ViteServer extends EventEmitter {
     constructor (options: WebdriverIO.BrowserRunnerOptions, config: Options.Testrunner) {
         super()
         this.#options = options
+        this.#mockHandler = new MockHandler(options, config)
 
         if (options.preset && options.viteConfig) {
             throw new Error('Invalid runner configuration: "preset" and "viteConfig" options are defined but only one of each can be used at the same time')
@@ -54,15 +61,19 @@ export class ViteServer extends EventEmitter {
 
         this.#viteConfig = deepmerge(DEFAULT_VITE_CONFIG, {
             root: options.rootDir || process.cwd(),
-            plugins: [testrunner(options)]
+            plugins: [
+                testrunner(options),
+                mockHoisting(this.#mockHandler)
+            ]
         })
 
         if (options.coverage && options.coverage.enabled) {
             log.info('Capturing test coverage enabled')
-            this.#viteConfig.plugins?.push(istanbulPlugin(<IstanbulPluginOptions>{
+            this.#viteConfig.plugins?.push(istanbulPlugin({
                 cwd: config.rootDir,
                 include: DEFAULT_INCLUDE,
                 extension: DEFAULT_FILE_EXTENSIONS,
+                forceBuildInstrument: true,
                 ...options.coverage
             }))
         }
@@ -136,6 +147,13 @@ export class ViteServer extends EventEmitter {
                 }
                 if (payload.type === MESSAGE_TYPES.commandRequestMessage) {
                     return this.#handleCommand(ws, payload.value)
+                }
+                if (payload.type === MESSAGE_TYPES.mockRequest) {
+                    this.#mockHandler.addMock(payload.value)
+                    return ws.send(JSON.stringify(<SocketMessagePayload<MESSAGE_TYPES.mockResponse>>{
+                        type: MESSAGE_TYPES.mockResponse,
+                        value: payload.value
+                    }))
                 }
 
                 throw new Error(`Unknown socket message ${JSON.stringify(payload)}`)

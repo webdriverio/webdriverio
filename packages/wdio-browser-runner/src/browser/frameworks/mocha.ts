@@ -1,4 +1,3 @@
-import Mocha from 'mocha'
 import stringify from 'fast-safe-stringify'
 
 import { setupEnv, formatMessage } from '@wdio/mocha-framework/common'
@@ -115,7 +114,7 @@ class HTMLReporter extends BaseReporter {
     addCodeToggle () {}
 }
 
-Mocha.setup({
+mocha.setup({
     ...window.__wdioEnv__.args,
     reporter: HTMLReporter
 } as any)

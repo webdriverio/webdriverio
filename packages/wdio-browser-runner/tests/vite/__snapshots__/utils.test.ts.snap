@@ -7,8 +7,11 @@ exports[`getTemplate > renders template correctly 1`] = `
         <head>
             <title>WebdriverIO Browser Test</title>
             <link rel=\\"icon\\" type=\\"image/x-icon\\" href=\\"https://webdriver.io/img/favicon.png\\">
-            <link rel=\\"stylesheet\\" href=\\"/foo/bar/mocha.css\\">
+            <link rel=\\"stylesheet\\" href=\\"/foo/bar/mocha.css\\"><script type=\\"module\\" src=\\"/foo/bar/mocha.js\\"></script>
+            <script src=\\"/@fs//foo/bar/browser-source-map-support.js\\"></script>
             <script type=\\"module\\">
+                sourceMapSupport.install()
+
                 /**
                  * Inject environment variables
                  */
@@ -21,7 +24,8 @@ exports[`getTemplate > renders template correctly 1`] = `
                 window.__wdioErrors__ = []
                 addEventListener('error', (ev) => window.__wdioErrors__.push({
                     filename: ev.filename,
-                    message: ev.message
+                    message: ev.message,
+                    error: ev.error.stack
                 }))
                 /**
                  * mock process
@@ -44,6 +48,9 @@ exports[`getTemplate > renders template correctly 1`] = `
         <body>
             <div id=\\"mocha\\"></div>
             <script async type=\\"module\\" src=\\"@wdio/browser-runner/setup\\"></script>
+            <script type=\\"module\\">
+                window.process.env = {\\"some\\":\\"env\\"}
+            </script>
         </body>
     </html>"
 `;

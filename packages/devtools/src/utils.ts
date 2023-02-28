@@ -10,7 +10,7 @@ import { WebDriverProtocol } from '@wdio/protocols'
 import type { Options } from 'chrome-launcher'
 import { launch as launchChromeBrowser } from 'chrome-launcher'
 import type { Logger } from '@wdio/logger'
-import type { ElementHandle } from 'puppeteer-core/lib/esm/puppeteer/common/ElementHandle.js'
+import type { ElementHandle } from 'puppeteer-core/lib/esm/puppeteer/api/ElementHandle.js'
 import type { Browser } from 'puppeteer-core/lib/esm/puppeteer/api/Browser.js'
 import type { Frame } from 'puppeteer-core/lib/esm/puppeteer/common/Frame.js'
 import type { Page } from 'puppeteer-core/lib/esm/puppeteer/api/Page.js'
@@ -327,27 +327,27 @@ export async function patchDebug (scoppedLogger: Logger) {
      */
     const pkgName = 'debug'
 
-    /**
-     * log puppeteer messages
-     * resolve debug *from* puppeteer-core to make sure we monkey patch the version
-     * it will use
-     */
-    const puppeteerPkg = await resolve('puppeteer-core', import.meta.url)
-    let puppeteerDebugPkg = await resolve(pkgName, puppeteerPkg)
-
-    /**
-     * check if Puppeteer has its own version of debug, if not use the
-     * one that is installed for all packages
-     */
-    if (!await fs.access(puppeteerDebugPkg).then(() => true, () => false)) {
-        /**
-         * let's not get caught by our dep checker, therefor
-         * define package name in variable first
-         */
-        puppeteerDebugPkg = await resolve(pkgName, import.meta.url)
-    }
-
     try {
+        /**
+         * log puppeteer messages
+         * resolve debug *from* puppeteer-core to make sure we monkey patch the version
+         * it will use
+         */
+        const puppeteerPkg = await resolve('puppeteer-core', import.meta.url)
+        let puppeteerDebugPkg = await resolve(pkgName, puppeteerPkg)
+
+        /**
+         * check if Puppeteer has its own version of debug, if not use the
+         * one that is installed for all packages
+         */
+        if (!await fs.access(puppeteerDebugPkg).then(() => true, () => false)) {
+            /**
+             * let's not get caught by our dep checker, therefor
+             * define package name in variable first
+             */
+            puppeteerDebugPkg = await resolve(pkgName, import.meta.url)
+        }
+
         const debug = (await import(puppeteerDebugPkg)).default
         debug.log = (msg: string) => {
             if (msg.includes('puppeteer:protocol')) {
