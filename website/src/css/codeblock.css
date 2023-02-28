@@ -3,6 +3,7 @@
 }
 .docusaurus-theme-github-codeblock .githubLink,
 .docusaurus-theme-github-codeblock .runmeLink {
+    font-family: var(--ifm-font-family-monospace);
     position: absolute;
     top: 7px;
     color: var(--ifm-color-primary);
@@ -25,7 +26,7 @@ html[data-theme="dark"] .docusaurus-theme-github-codeblock .runmeLink {
     opacity: 1;
 }
 .docusaurus-theme-github-codeblock .runmeLink {
-    right: 140px;
+    right: 150px;
 }
 
 .docusaurus-theme-github-codeblock .runmeLink:before {
