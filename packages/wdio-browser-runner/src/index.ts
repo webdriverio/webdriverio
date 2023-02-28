@@ -2,7 +2,6 @@ import fs from 'node:fs/promises'
 import path from 'node:path'
 
 import logger from '@wdio/logger'
-import type { RunArgs, WorkerInstance } from '@wdio/local-runner'
 import LocalRunner from '@wdio/local-runner'
 import { attach } from 'webdriverio'
 import libCoverage, { type CoverageMap, type CoverageMapData } from 'istanbul-lib-coverage'
@@ -10,8 +9,10 @@ import libReport from 'istanbul-lib-report'
 import libSourceMap from 'istanbul-lib-source-maps'
 import reports from 'istanbul-reports'
 
+import type { RunArgs, WorkerInstance } from '@wdio/local-runner'
 import type { SessionStartedMessage, SessionEndedMessage, WorkerHookResultMessage, WorkerCoverageMapMessage } from '@wdio/runner'
 import type { Options } from '@wdio/types'
+import type { MaybeMocked, MaybeMockedDeep, MaybePartiallyMocked, MaybePartiallyMockedDeep } from '@vitest/spy'
 
 import { ViteServer } from './vite/server.js'
 import {
@@ -20,7 +21,7 @@ import {
 } from './constants.js'
 import { makeHeadless, getCoverageByFactor } from './utils.js'
 import type { HookTriggerEvent } from './vite/types.js'
-import type { BrowserRunnerOptions as BrowserRunnerOptionsImport, CoverageOptions } from './types.js'
+import type { BrowserRunnerOptions as BrowserRunnerOptionsImport, CoverageOptions, MockFactoryWithHelper } from './types.js'
 
 const log = logger('@wdio/browser-runner')
 export default class BrowserRunner extends LocalRunner {
@@ -213,3 +214,70 @@ declare global {
  * re-export mock types
  */
 export * from '@vitest/spy'
+
+/**
+ * The following exports are meaningless and only there to allow proper type support.
+ * The actual implementation can be found in /src/browser.spy.ts
+ */
+
+/**
+ * Makes all imports to passed module to be mocked.
+ *
+ * If there is a factory, will return it's result. The call to `mock` is hoisted to the top of the file,
+ * so you don't have access to variables declared in the global file scope, if you didn't put them before imports!
+ *
+ * If __mocks__ folder with file of the same name exist, all imports will return it.
+ *
+ * If there is no __mocks__ folder or a file with the same name inside, will call original module and mock it.
+ *
+ * @param {string} path Path to the module.
+ * @param {MockFactoryWithHelper} factory (optional) Factory for the mocked module. Has the highest priority.
+ */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export function mock (path: string, factory?: MockFactoryWithHelper) {}
+
+/**
+ * Removes module from mocked registry. All subsequent calls to import will return original module even if it was mocked.
+ *
+ * @param path Path to the module.
+ */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export function unmock(moduleName: string) {}
+
+/**
+ * Type helpers for TypeScript. In reality just returns the object that was passed.
+ * @example
+ * import example from './example'
+ * vi.mock('./example')
+ *
+ * test('1+1 equals 2' async () => {
+ *  vi.mocked(example.calc).mockRestore()
+ *
+ *  const res = example.calc(1, '+', 1)
+ *
+ *  expect(res).toBe(2)
+ * })
+ *
+ * @param item Anything that can be mocked
+ * @returns
+ */
+export function mocked<T>(item: T, deep?: true): MaybeMockedDeep<T>
+export function mocked<T>(item: T, deep?: false): MaybeMockedDeep<T>
+export function mocked<T>(item: T, options: {
+    partial?: false;
+    deep?: false;
+}): MaybeMocked<T>;
+export function mocked<T>(item: T, options: {
+    partial?: false;
+    deep: true;
+}): MaybeMockedDeep<T>;
+export function mocked<T>(item: T, options: {
+    partial: true;
+    deep?: false;
+}): MaybePartiallyMocked<T>;
+export function mocked<T>(item: T, options: {
+    partial: true;
+    deep: true;
+}): MaybePartiallyMockedDeep<T>
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export function mocked (item: any, options: any) {}

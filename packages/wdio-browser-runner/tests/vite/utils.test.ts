@@ -16,27 +16,22 @@ vi.mock('fakeDep', () => ({
     default: 'I am fake'
 }))
 
-describe('getTemplate', () => {
-    it('fails if vue helpers are not installed', async () => {
-        // skip for Windows
-        if (os.platform() === 'win32') {
-            return
-        }
-        vi.mocked(resolve).mockRejectedValue(new Error('not there'))
-        await expect(getTemplate({ preset: 'vue' }, {} as any, ''))
-            .rejects.toThrow(/Fail to set-up Vue environment/)
-    })
+// skip for Windows
+if (os.platform() !== 'win32') {
+    describe('getTemplate', () => {
+        it('fails if vue helpers are not installed', async () => {
+            vi.mocked(resolve).mockRejectedValue(new Error('not there'))
+            await expect(getTemplate({ preset: 'vue' }, {} as any, ''))
+                .rejects.toThrow(/Fail to set-up Vue environment/)
+        })
 
-    it('renders template correctly', async () => {
-        // skip for Windows
-        if (os.platform() === 'win32') {
-            return
-        }
-        vi.mocked(resolve).mockResolvedValue('file:///foo/bar/vue')
-        expect(await getTemplate({ preset: 'vue' }, {} as any, '/spec.js', { some: 'env' })).toMatchSnapshot()
-        expect(fs.readFile).toBeCalledTimes(2)
+        it('renders template correctly', async () => {
+            vi.mocked(resolve).mockResolvedValue('file:///foo/bar/vue')
+            expect(await getTemplate({ preset: 'vue' }, {} as any, '/spec.js', { some: 'env' })).toMatchSnapshot()
+            expect(fs.readFile).toBeCalledTimes(2)
+        })
     })
-})
+}
 
 describe('userfriendlyImport', () => {
     it('returns nothing if pkg is empty', async () => {

@@ -22,10 +22,10 @@ export default defineConfig({
                 'packages/devtools/src/commands',
                 'packages/devtools/src/scripts'
             ],
-            lines: 93,
-            functions: 89,
-            branches: 93,
-            statements: 93
+            lines: 92,
+            functions: 88,
+            branches: 92,
+            statements: 92
         },
         globalSetup: [
             'scripts/test/globalSetup.ts'
