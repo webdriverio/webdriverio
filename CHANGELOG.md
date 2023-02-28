@@ -21,6 +21,27 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.5.0 (2023-02-28)
+
+#### :rocket: New Feature
+* `wdio-allure-reporter`
+  * [#9704](https://github.com/webdriverio/webdriverio/pull/9704) Allure2 ([@epszaw](https://github.com/epszaw))
+
+#### :bug: Bug Fix
+* `wdio-browser-runner`
+  * [#9853](https://github.com/webdriverio/webdriverio/pull/9853) Fixes for module mocking ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-browserstack-service`
+  * [#9857](https://github.com/webdriverio/webdriverio/pull/9857) Cope with missing command ([@tjoris](https://github.com/tjoris))
+
+#### :memo: Documentation
+* [#9851](https://github.com/webdriverio/webdriverio/pull/9851) Blog post: "Our Approach to Interactive and Tested Documentation" ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 3
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Konstantin Epishev ([@epszaw](https://github.com/epszaw))
+- [@tjoris](https://github.com/tjoris)
+
+
 ## v8.4.0 (2023-02-27)
 
 #### :rocket: New Feature
