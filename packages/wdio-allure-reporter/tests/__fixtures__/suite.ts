@@ -1,3 +1,5 @@
+import { sep } from 'node:path'
+
 const suite = () => ({
     type: 'suite',
     start: '2018-05-14T15:17:18.914Z',
@@ -6,6 +8,7 @@ const suite = () => ({
     cid: '0-0',
     title: 'A passing Suite',
     fullTitle: 'A passing Suite',
+    file: ['foo', 'bar.test.js'].join(sep),
     tests: [],
     hooks: [],
     suites: []

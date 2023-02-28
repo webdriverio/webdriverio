@@ -1,5 +1,6 @@
-import { events, stepStatuses } from '../constants.js'
-import type { Status } from '../types.js'
+import type { StepBodyFunction } from 'allure-js-commons'
+import { Status, AllureCommandStepExecutable } from 'allure-js-commons'
+import { events } from '../constants.js'
 
 /**
  * Call reporter
@@ -12,15 +13,6 @@ const tellReporter = (event: string, msg: any = {}) => {
 }
 
 /**
- * Assign feature to test
- * @name addFeature
- * @param {(string)} featureName - feature name or an array of names
- */
-export function addFeature (featureName: string) {
-    tellReporter(events.addFeature, { featureName })
-}
-
-/**
  * Assign label to test
  * @name addLabel
  * @param {string} name - label name
@@ -29,6 +21,36 @@ export function addFeature (featureName: string) {
 export function addLabel (name: string, value: string) {
     tellReporter(events.addLabel, { name, value })
 }
+
+/**
+ * Assign link to test
+ * @name addLink
+ * @param {string} url - link name
+ * @param {string} [name] - link name
+ * @param {string} [type] - link type
+ */
+export function addLink(url: string, name?: string, type?: string) {
+    tellReporter(events.addLink, { url, name, type })
+}
+
+/**
+ * Assign allure id label to test to link test to existing entity inside the test ops
+ * @name addAllureId
+ * @param {string} id - inner allure test ops id
+ */
+export function addAllureId(id: string) {
+    tellReporter(events.addAllureId, { id })
+}
+
+/**
+ * Assign feature to test
+ * @name addFeature
+ * @param {(string)} featureName - feature name or an array of names
+ */
+export function addFeature (featureName: string) {
+    tellReporter(events.addFeature, { featureName })
+}
+
 /**
  * Assign severity to test
  * @name addSeverity
@@ -57,12 +79,66 @@ export function addTestId (testId: string) {
 }
 
 /**
- * Assign story to test
+ * Assign story label to test
  * @name addStory
  * @param {string} storyName - story name for test
  */
 export function addStory (storyName: string) {
     tellReporter(events.addStory, { storyName })
+}
+
+/**
+ * Assign suite label to test
+ * @name addSuite
+ * @param {string} suiteName - story name for test
+ */
+export function addSuite(suiteName: string) {
+    tellReporter(events.addSuite, { suiteName })
+}
+
+/**
+ * Assign parent suite label to test
+ * @name addParentSuite
+ * @param {string} suiteName - suite name
+ */
+export function addParentSuite(suiteName: string) {
+    tellReporter(events.addParentSuite, { suiteName })
+}
+
+/**
+ * Assign sub-suite label to test
+ * @name addSubSuite
+ * @param {string} suiteName - sub-suite name
+ */
+export function addSubSuite(suiteName: string) {
+    tellReporter(events.addSubSuite, { suiteName })
+}
+
+/**
+ * Assign epic label to test
+ * @name addEpic
+ * @param {string} epicName - the epic name
+ */
+export function addEpic(epicName: string) {
+    tellReporter(events.addEpic, { epicName })
+}
+
+/**
+ * Assign owner label to test
+ * @name addOwner
+ * @param {string} owner - the owner name
+ */
+export function addOwner(owner: string) {
+    tellReporter(events.addOwner, { owner })
+}
+
+/**
+ * Assign tag label to test
+ * @name addTag
+ * @param {string} tag - the tag name
+ */
+export function addTag(tag: string) {
+    tellReporter(events.addTag, { tag })
 }
 
 /**
@@ -113,9 +189,9 @@ export function startStep (title: string) {
  * @name endStep
  * @param {StepStatus} [status='passed'] - step status
  */
-export function endStep (status: Status = 'passed') {
-    if (!Object.values(stepStatuses).includes(status)) {
-        throw new Error(`Step status must be ${Object.values(stepStatuses).join(' or ')}. You tried to set "${status}"`)
+export function endStep (status: Status = Status.PASSED) {
+    if (!Object.values(Status).includes(status)) {
+        throw new Error(`Step status must be ${Object.values(Status).join(' or ')}. You tried to set "${status}"`)
     }
     tellReporter(events.endStep, status)
 }
@@ -137,10 +213,10 @@ export function addStep (
         name = 'attachment',
         type = 'text/plain'
     }: any = {},
-    status: Status = 'passed'
+    status: Status = Status.PASSED
 ) {
-    if (!Object.values(stepStatuses).includes(status)) {
-        throw new Error(`Step status must be ${Object.values(stepStatuses).join(' or ')}. You tried to set "${status}"`)
+    if (!Object.values(Status).includes(status)) {
+        throw new Error(`Step status must be ${Object.values(Status).join(' or ')}. You tried to set "${status}"`)
     }
 
     const step = content ? { title, attachment: { content, name, type }, status } : { title, status }
@@ -157,7 +233,20 @@ export function addArgument (name: string, value: string) {
     tellReporter(events.addArgument, { name, value })
 }
 
+/**
+ * Starts allure step execution with any content
+ * Can be used to generate any hierarchy of steps
+ * @param {string} name - the step name
+ * @param {StepBodyFunction} body - the step content function
+ */
+export async function step(name: string, body: StepBodyFunction) {
+    const runningStep = new AllureCommandStepExecutable(name)
+    const result = await runningStep.start(body)
+
+    tellReporter(events.addAllureStep, result)
+}
+
 export default {
-    addFeature, addLabel, addSeverity, addIssue, addTestId, addStory, addEnvironment,
-    addDescription, addAttachment, startStep, endStep, addStep, addArgument
+    addFeature, addAllureId, addLabel, addSeverity, addIssue, addTestId, addStory, addEnvironment,
+    addDescription, addAttachment, startStep, endStep, addStep, addArgument, step,
 }
