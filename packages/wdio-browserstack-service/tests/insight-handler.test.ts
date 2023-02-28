@@ -551,10 +551,9 @@ describe('browserCommand', () => {
     const getIdentifierSpy = jest.spyOn(insightsHandler, 'getIdentifier').mockImplementation(() => { return 'test title' })
     const commandSpy = jest.spyOn(utils, 'isScreenshotCommand')
 
-    insightsHandler['_tests'] = { 'test title': { 'uuid': 'uuid' } }
-    insightsHandler['_commands'] = { 's_m_e': {} }
-
     beforeEach(() => {
+        insightsHandler['_tests'] = { 'test title': { 'uuid': 'uuid' } }
+        insightsHandler['_commands'] = { 's_m_e': {} }
         uploadEventDataSpy.mockClear()
         getIdentifierSpy.mockClear()
     })
@@ -584,6 +583,12 @@ describe('browserCommand', () => {
 
     it('return if test not in _tests', () => {
         insightsHandler['_tests'] = { 'test title not there': { 'uuid': 'uuid' } }
+        insightsHandler.browserCommand('client:afterCommand', { sessionId: 's', method: 'm', endpoint: 'e', result: { value: 'random' } }, {})
+        expect(uploadEventDataSpy).toBeCalledTimes(0)
+    })
+
+    it('return if command not in _commands', () => {
+        insightsHandler['_commands'] = { 'command not here': {} }
         insightsHandler.browserCommand('client:afterCommand', { sessionId: 's', method: 'm', endpoint: 'e', result: { value: 'random' } }, {})
         expect(uploadEventDataSpy).toBeCalledTimes(0)
     })
