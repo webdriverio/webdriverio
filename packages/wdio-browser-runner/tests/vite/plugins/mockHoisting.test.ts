@@ -15,10 +15,17 @@ const mockHandler: any = {
     resetMocks: vi.fn(),
     manualMocks: [],
     unmock: vi.fn(),
-    mocks: { get: vi.fn().mockReturnValue({
-        namedExports: ['foo', 'bar', 'default'],
-        path: 'mocked'
-    }) }
+    mocks: {
+        get: vi.fn().mockReturnValue({
+            namedExports: ['foo', 'bar', 'default'],
+            path: 'mocked'
+        }),
+        values: vi.fn().mockReturnValue([{
+            path: 'algoliasearch/lite',
+            origin: '/some/path',
+            namedExports: ['default']
+        }])
+    }
 }
 
 test('exposes correct format', () => {
@@ -67,4 +74,11 @@ test('returns original file', async () => {
 test('returns mock file', async () => {
     const prePlugin = mockHoisting(mockHandler).shift()!
     expect(await (prePlugin.load as Function)('foobar')).toMatchSnapshot()
+})
+
+test('returns mock for prebundled dep', async () => {
+    vi.mocked(mockHandler.mocks.get).mockReturnValue()
+    const id = '/path/to/project/node_modules/.vite/deps/algoliasearch_lite.js?v=e31c24e7'
+    const prePlugin = mockHoisting(mockHandler).shift()!
+    expect(await (prePlugin.load as Function)(id)).toMatchSnapshot()
 })

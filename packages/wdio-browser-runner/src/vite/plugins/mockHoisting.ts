@@ -32,11 +32,14 @@ export function mockHoisting(mockHandler: MockHandler): Plugin[] {
                 }
             }
 
+            const preBundledDepName = path.basename(id).split('?')[0]
             const mockedMod = (
                 // mocked file
                 mockHandler.mocks.get(os.platform() === 'win32' ? `/${id}` : id) ||
                 // mocked dependency
-                mockHandler.mocks.get(path.basename(id, path.extname(id)))
+                mockHandler.mocks.get(path.basename(id, path.extname(id))) ||
+                // pre-bundled deps e.g. /node_modules/.vite/deps/algoliasearch_lite.js?v=e31c24e
+                [...mockHandler.mocks.values()].find((mock) => `${mock.path.replace('/', '_')}.js` === preBundledDepName)
             )
             if (mockedMod) {
                 const newCode = mockedMod.namedExports.map((ne) => {
