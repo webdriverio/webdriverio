@@ -7,7 +7,7 @@ authorImageURL: https://s.gravatar.com/avatar/d98b16d7c93d15865f34a225dd4b1254?s
 
 The WebdriverIO framework is a versatile tool that offers a lot of features for you to play around with. The goal of our [project documentation](https://webdriver.io) is to communicate these features well and give you an understanding, on how they could be applied in your project. A central contributor to this are code examples. Many times they can convey the principle idea of a feature like a picture that is worth a thousand words.
 
-It is not a suprise that many projects out there have code examples embedded in their project documentation. Many of them are even interactive and allow users to fiddle around with the code in real time, e.g. the [new React Docs](https://beta.reactjs.org/learn/adding-interactivity), or provide "playgrounds" with live examples, like on [svelte.dev](https://svelte.dev/examples/hello-world).
+It is not a surprise that many projects out there have code examples embedded in their project documentation. Many of them are even interactive and allow users to fiddle around with the code in real time, e.g. the [new React Docs](https://beta.reactjs.org/learn/adding-interactivity), or provide "playgrounds" with live examples, like on [svelte.dev](https://svelte.dev/examples/hello-world).
 
 ![Live Examples on the new React docs](assets/react-live.gif)
 <center><em>Live Examples on the <a href="https://beta.reactjs.org/learn/adding-interactivity" target="_blank">new React docs</a></em></center>
@@ -125,7 +125,7 @@ Many surveys have shown that VS Code is the dominant IDE for many developers aro
 
 <br />
 
-Once the repository is checked out, Runme will open a dedicated `README.md` for the example in an interactive notebook experience. It will explain the example and walks you through it. It allows to execute the code cells within the VS Code termninal securely so that setting up and running the example is done with a simple click and requires no additional application to be opened.
+Once the repository is checked out, Runme will open a dedicated `README.md` for the example in an interactive notebook experience. It will explain the example and walks you through it. It allows to execute the code cells within the VS Code terminal securely so that setting up and running the example is done with a simple click and requires no additional application to be opened.
 
 For folks that don't have VS Code installed can still access the repository, check it out manually and run the examples as well.
 
