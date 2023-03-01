@@ -25,7 +25,7 @@ const mockHandler: any = {
             origin: '/some/path',
             namedExports: ['default']
         }, {
-            path: '../../constants',
+            path: '/path/to/project/constants',
             origin: '/path/to/project/src/components',
             namedExports: ['HEADING']
         }])

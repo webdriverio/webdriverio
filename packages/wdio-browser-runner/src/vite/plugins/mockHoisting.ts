@@ -41,11 +41,10 @@ export function mockHoisting(mockHandler: MockHandler): Plugin[] {
                 mockHandler.mocks.get(path.basename(id, path.extname(id))) ||
                 // pre-bundled deps e.g. /node_modules/.vite/deps/algoliasearch_lite.js?v=e31c24e
                 mocks.find((mock) => `${mock.path.replace('/', '_')}.js` === preBundledDepName) ||
-                // relative file imports, e.g. `mock('../../constants.ts', () => { ... })`
-                mocks.filter((m) => m.path.startsWith('.')).find((mock) => {
-                    const fileToMock = path.resolve(mock.origin, mock.path)
-                    const mockFileExtLength = path.extname(fileToMock).length
-                    const toCompare = mockFileExtLength > 0 ? fileToMock.slice(0, -mockFileExtLength) : fileToMock
+                // relative file imports ignoring file extension, e.g. `mock('../../constants.ts', () => { ... })`
+                mocks.find((mock) => {
+                    const mockFileExtLength = path.extname(mock.path).length
+                    const toCompare = mockFileExtLength > 0 ? mock.path.slice(0, -mockFileExtLength) : mock.path
                     // compare without file extension as we don't know if users use them or not
                     return toCompare === id.slice(0, -path.extname(id).length)
                 })
