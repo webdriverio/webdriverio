@@ -123,6 +123,14 @@ export function normalizeId(id: string, base?: string): string {
 }
 
 export async function getFilesFromDirectory (dir: string) {
+    /**
+     * check if dir exists
+     */
+    const isExisting = await fs.access(dir).then(() => true, () => false)
+    if (!isExisting) {
+        return []
+    }
+
     let files = await fs.readdir(dir)
     files = (await Promise.all(files.map(async file => {
         const filePath = path.join(dir, file)
