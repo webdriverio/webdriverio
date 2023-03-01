@@ -29,7 +29,7 @@ export async function mock (path: string, factory?: MockFactoryWithHelper) {
         return
     }
 
-    const mockLocalFile = path.startsWith('/') || path.startsWith('./')
+    const mockLocalFile = path.startsWith('/') || path.startsWith('./') || path.startsWith('../')
     const mockPath = mockLocalFile
         ? (new URL(resolveUrl(window.__wdioSpec__.split('/').slice(0, -1).join('/') + '/' + path))).pathname
         : path

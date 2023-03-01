@@ -8,6 +8,11 @@ export default window.__wdioMockFactories__['mocked'].default;"
 
 exports[`returns mock for prebundled dep 1`] = `"export default window.__wdioMockFactories__['algoliasearch/lite'].default;"`;
 
+exports[`returns mock for relative file import 1`] = `
+"export const HEADING = window.__wdioMockFactories__['/path/to/project/constants']['HEADING'];
+export default window.__wdioMockFactories__['/path/to/project/constants'];"
+`;
+
 exports[`transforms test file properly for mocking 1`] = `
 PrintResult {
   "code": "import { spyOn, mock, unmock as foobar, fn } from '@wdio/browser-runner'

@@ -24,6 +24,10 @@ const mockHandler: any = {
             path: 'algoliasearch/lite',
             origin: '/some/path',
             namedExports: ['default']
+        }, {
+            path: '/path/to/project/constants',
+            origin: '/path/to/project/src/components',
+            namedExports: ['HEADING']
         }])
     }
 }
@@ -79,6 +83,13 @@ test('returns mock file', async () => {
 test('returns mock for prebundled dep', async () => {
     vi.mocked(mockHandler.mocks.get).mockReturnValue()
     const id = '/path/to/project/node_modules/.vite/deps/algoliasearch_lite.js?v=e31c24e7'
+    const prePlugin = mockHoisting(mockHandler).shift()!
+    expect(await (prePlugin.load as Function)(id)).toMatchSnapshot()
+})
+
+test('returns mock for relative file import', async () => {
+    vi.mocked(mockHandler.mocks.get).mockReturnValue()
+    const id = '/path/to/project/constants.ts'
     const prePlugin = mockHoisting(mockHandler).shift()!
     expect(await (prePlugin.load as Function)(id)).toMatchSnapshot()
 })
