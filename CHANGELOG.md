@@ -21,6 +21,16 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.5.2 (2023-03-01)
+
+#### :nail_care: Polish
+* `wdio-browser-runner`
+  * [#9867](https://github.com/webdriverio/webdriverio/pull/9867) Ignore file extension of mocked files ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
 ## v8.5.1 (2023-03-01)
 
 #### :bug: Bug Fix
