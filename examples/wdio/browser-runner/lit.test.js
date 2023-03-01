@@ -5,6 +5,7 @@ import isUrl from 'is-url'
 
 import defaultExport, { namedExportValue } from 'someModule'
 import namespacedModule from '@namespace/module'
+import { someExport, namedExports } from '@testing-library/user-event'
 
 import { SimpleGreeting } from './components/LitComponent.ts'
 
@@ -22,6 +23,14 @@ mock('graphql-request', () => ({
         request = fn().mockResolvedValue({ result: 'Thanks for your answer!' })
     }
 }))
+
+mock('@testing-library/user-event', async (getOrigModule) => {
+    const mod = await getOrigModule()
+    return {
+        someExport: 'foobarloo',
+        namedExports: Object.keys(mod)
+    }
+})
 
 unmock('is-url')
 mock('@namespace/module')
@@ -52,6 +61,11 @@ describe('Lit Component testing', () => {
         expect(defaultExport).toBe('barfoo')
         expect(namedExportValue).toBe('foobar')
         expect(namespacedModule).toBe('some value')
+    })
+
+    it('should allow to manual mock namespaces deps', async () => {
+        expect(someExport).toBe('foobarloo')
+        expect(namedExports).toEqual(['PointerEventsCheckLevel', 'default'])
     })
 
     it('should allow to unmock', () => {
