@@ -32,6 +32,7 @@ export function mockHoisting(mockHandler: MockHandler): Plugin[] {
                 }
             }
 
+            const mocks = [...mockHandler.mocks.values()]
             const preBundledDepName = path.basename(id).split('?')[0]
             const mockedMod = (
                 // mocked file
@@ -39,7 +40,15 @@ export function mockHoisting(mockHandler: MockHandler): Plugin[] {
                 // mocked dependency
                 mockHandler.mocks.get(path.basename(id, path.extname(id))) ||
                 // pre-bundled deps e.g. /node_modules/.vite/deps/algoliasearch_lite.js?v=e31c24e
-                [...mockHandler.mocks.values()].find((mock) => `${mock.path.replace('/', '_')}.js` === preBundledDepName)
+                mocks.find((mock) => `${mock.path.replace('/', '_')}.js` === preBundledDepName) ||
+                // relative file imports, e.g. `mock('../../constants.ts', () => { ... })`
+                mocks.filter((m) => m.path.startsWith('.')).find((mock) => {
+                    const fileToMock = path.resolve(mock.origin, mock.path)
+                    const mockFileExtLength = path.extname(fileToMock).length
+                    const toCompare = mockFileExtLength > 0 ? fileToMock.slice(0, -mockFileExtLength) : fileToMock
+                    // compare without file extension as we don't know if users use them or not
+                    return toCompare === id.slice(0, -path.extname(id).length)
+                })
             )
             if (mockedMod) {
                 const newCode = mockedMod.namedExports.map((ne) => {
