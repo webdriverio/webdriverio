@@ -10,6 +10,8 @@
  */
 
 const { Given, When, Then } = require('@cucumber/cucumber')
+// eslint-disable-next-line import/extensions
+const { Key } = require('../../../packages/webdriverio')
 
 Given(/^I go on the website "([^"]*)"$/, async (url) => {
     await browser.url(url)
@@ -20,9 +22,8 @@ When(/^I add the following groceries$/, async (table) => {
     table.rawTable.shift()
 
     for (const [item, amount] of table.rawTable) {
-        await newTodo.click()
-        await browser.keys(`${item} (${amount}x)`)
-        await browser.keys('Enter')
+        await newTodo.addValue(`${item} (${amount}x)`)
+        await browser.keys(Key.Enter)
         await browser.pause(100) // for demo purposes
     }
 })
