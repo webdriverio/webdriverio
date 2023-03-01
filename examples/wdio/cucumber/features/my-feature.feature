@@ -10,7 +10,7 @@ Feature: Example feature
   Rule: Business rule 1
     Scenario: Get title of website
       Given I go on the website "https://github.com/"
-      Then  should the title of the page be "GitHub: Where the world builds software · GitHub"
+      Then  should the title of the page be "GitHub: Let’s build from here · GitHub"
 
   Rule: Business rule 2
     Scenario: Data Tables
