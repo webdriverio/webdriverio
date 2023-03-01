@@ -133,7 +133,7 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
                             }
                         }
                         const loadError = typeof window.__wdioErrors__ === 'undefined'
-                            ?  [{ message: 'Failed to load test page' }]
+                            ?  [{ message: `Failed to load test page (title = ${document.title})` }]
                             : null
                         const errors = viteError || window.__wdioErrors__ || loadError
                         return { failures, errors, hasViteError: Boolean(viteError) }
