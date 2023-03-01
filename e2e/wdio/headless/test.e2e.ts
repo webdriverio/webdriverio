@@ -94,4 +94,25 @@ describe('main suite 1', () => {
         ])
         expect(oldScrollPosition).toEqual([x, y])
     })
+
+    it('should be able to handle successive scrollIntoView', async () => {
+        await browser.url('http://guinea-pig.webdriver.io')
+        await browser.setWindowSize(500, 500)
+        const searchInput = await $('.searchinput')
+
+        await searchInput.scrollIntoView({ block: 'center' })
+        await browser.pause(500)
+        const [x1, y1] = await browser.execute(() => [
+            window.scrollX, window.scrollY
+        ])
+
+        await searchInput.scrollIntoView()
+        await searchInput.scrollIntoView({ block: 'center' })
+        await browser.pause(500)
+        const [x2, y2] = await browser.execute(() => [
+            window.scrollX, window.scrollY
+        ])
+
+        expect([x1, y1]).toEqual([x2, y2])
+    })
 })

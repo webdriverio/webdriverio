@@ -56,14 +56,15 @@ export async function scrollIntoView (
 
     let deltaX = 0
     let deltaY = 0
+    let origin = this
     /**
      * by default the WebDriver action scrolls the element just into the
-     * viewport. In order to stay complaint with `Element.scrollIntoView()`
+     * viewport. In order to stay compliant with `Element.scrollIntoView()`
      * we need to adjust the values a bit.
      */
     if (typeof options === 'boolean' || typeof options.block === 'string' || typeof options.inline === 'string') {
-        const htmlElem = await browser.$('html')
-        const viewport = await htmlElem.getSize()
+        origin = await browser.$('html')
+        const viewport = await origin.getSize()
         const elemSize = await this.getSize()
         if (options === true || (options as ScrollIntoViewOptions).block === 'start') {
             deltaY += viewport.height - elemSize.height
@@ -71,15 +72,15 @@ export async function scrollIntoView (
             deltaY += Math.round((viewport.height - elemSize.height) / 2)
         }
         if ((options as ScrollIntoViewOptions).inline === 'start') {
-            deltaX += viewport.height - elemSize.height
+            deltaX += viewport.width - elemSize.width
         } else if ((options as ScrollIntoViewOptions).block === 'center') {
-            deltaX += Math.round((viewport.height - elemSize.height) / 2)
+            deltaX += Math.round((viewport.width - elemSize.width) / 2)
         }
     }
 
     try {
         return await browser.action('wheel')
-            .scroll({ origin: this, duration: 200, deltaY, deltaX })
+            .scroll({ origin, duration: 200, deltaY, deltaX })
             .perform()
     } catch (err: any) {
         log.warn(
