@@ -1,14 +1,24 @@
 import os from 'node:os'
+import url from 'node:url'
+import path from 'node:path'
 import fs from 'node:fs/promises'
 
 import { describe, it, vi, expect } from 'vitest'
 import { resolve } from 'import-meta-resolve'
 
-import { getTemplate, userfriendlyImport, getErrorTemplate } from '../../src/vite/utils.js'
+import { getTemplate, userfriendlyImport, getErrorTemplate, getFilesFromDirectory } from '../../src/vite/utils.js'
 
-vi.mock('node:fs/promises', () => ({
-    default: { readFile: vi.fn().mockResolvedValue('some code') }
-}))
+const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
+
+vi.mock('node:fs/promises', async (orig) => {
+    const { readdir, stat, access } = await orig() as typeof fs
+    return {
+        default: {
+            readFile: vi.fn().mockResolvedValue('some code'),
+            readdir, stat, access
+        }
+    }
+})
 vi.mock('import-meta-resolve', () => ({
     resolve: vi.fn()
 }))
@@ -50,5 +60,16 @@ describe('userfriendlyImport', () => {
 describe('getErrorTemplate', () => {
     it('returns correct template', () => {
         expect(getErrorTemplate('/foobar', new Error('ups'))).toContain('<pre>Error: ups')
+    })
+})
+
+describe('getFilesFromDirectory', () => {
+    it('does not fail if directory does not exist', async () => {
+        expect(await getFilesFromDirectory('./foo/bar')).toEqual([])
+    })
+
+    it('returns all files and subfiles', async () => {
+        const files = await getFilesFromDirectory(path.join(__dirname, '..', '__fixtures__', '__mocks__'))
+        expect(files.map((f) => path.basename(f))).toEqual(['otherModule.js', 'someModule.ts'])
     })
 })
