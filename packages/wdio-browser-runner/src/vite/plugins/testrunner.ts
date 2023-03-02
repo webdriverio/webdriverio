@@ -118,20 +118,15 @@ export function testrunner(options: WebdriverIO.BrowserRunnerOptions): Plugin[] 
         },
         configureServer(server) {
             return () => {
-                server.middlewares.use('/', async (req, res, next) => {
-                    log.info(`Received request for: ${req.url}`)
-                    if (!req.url) {
+                server.middlewares.use(async (req, res, next) => {
+                    log.info(`Received request for: ${req.originalUrl}`)
+                    if (!req.originalUrl) {
                         return next()
                     }
 
-                    const urlParsed = url.parse(req.url)
-                    // if request is not html , directly return next()
-                    if (!urlParsed.pathname || !urlParsed.path || !urlParsed.pathname.endsWith('test.html')) {
-                        return next()
-                    }
-
+                    const urlParsed = url.parse(req.originalUrl)
                     const urlParamString = new URLSearchParams(urlParsed.query || '')
-                    const [cid] = urlParsed.pathname.slice(1).split('/')
+                    const cid = urlParamString.get('cid')
                     const spec = urlParamString.get('spec')
                     if (!cid || !SESSIONS.has(cid)) {
                         log.error(`No environment found for ${cid || 'non determined environment'}`)
@@ -146,12 +141,12 @@ export function testrunner(options: WebdriverIO.BrowserRunnerOptions): Plugin[] 
                     const env = SESSIONS.get(cid)!
                     try {
                         const template = await getTemplate(options, env, spec)
-                        log.debug(`Render template for ${req.url}`)
-                        res.end(await server.transformIndexHtml(`${req.url}`, template))
+                        log.debug(`Render template for ${req.originalUrl}`)
+                        res.end(await server.transformIndexHtml(`${req.originalUrl}`, template))
                     } catch (err: any) {
-                        const template = getErrorTemplate(req.url, err)
+                        const template = getErrorTemplate(req.originalUrl, err)
                         log.error(`Failed to render template: ${err.message}`)
-                        res.end(await server.transformIndexHtml(`${req.url}`, template))
+                        res.end(await server.transformIndexHtml(`${req.originalUrl}`, template))
                     }
 
                     return next()
