@@ -24,7 +24,8 @@ export default class ProxyDriver {
         userPrototype: Record<string, PropertyDescriptor>,
         commandWrapper: any
     ) {
-        const [cid] = window.location.pathname.slice(1).split('/')
+        const urlParamString = new URLSearchParams(window.location.search)
+        const cid = urlParamString.get('cid')
         if (!cid) {
             throw new Error('"cid" query parameter is missing')
         }

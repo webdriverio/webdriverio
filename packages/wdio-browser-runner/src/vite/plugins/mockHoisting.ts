@@ -207,11 +207,11 @@ export function mockHoisting(mockHandler: MockHandler): Plugin[] {
         configureServer(server) {
             return () => {
                 server.middlewares.use('/', async (req, res, next) => {
-                    if (!req.url) {
+                    if (!req.originalUrl) {
                         return next()
                     }
 
-                    const urlParsed = url.parse(req.url)
+                    const urlParsed = url.parse(req.originalUrl)
                     const urlParamString = new URLSearchParams(urlParsed.query || '')
                     const specParam = urlParamString.get('spec')
 
