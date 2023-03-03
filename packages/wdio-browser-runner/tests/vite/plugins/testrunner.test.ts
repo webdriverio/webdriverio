@@ -79,34 +79,34 @@ test('configureServer continues if no url given', async () => {
     const plugin = testrunner({})
     const server = { middlewares: { use: vi.fn() }, transformIndexHtml: vi.fn((...args) => args) }
     ;(plugin[0].configureServer as Function)(server)()
-    expect(server.middlewares.use).toBeCalledWith('/', expect.any(Function))
+    expect(server.middlewares.use).toBeCalledWith(expect.any(Function))
 
-    const middleware = vi.mocked(server.middlewares.use).mock.calls[0][1]
+    const middleware = vi.mocked(server.middlewares.use).mock.calls[0][0]
     const next = vi.fn()
     const res = { end: vi.fn() }
     middleware({}, {}, next)
     expect(next).toBeCalledWith()
     next.mockClear()
 
-    middleware({ url: 'https://google.com' }, {}, next)
+    middleware({ originalUrl: 'https://google.com' }, {}, next)
     expect(next).toBeCalledWith()
     next.mockClear()
 
-    middleware({ url: 'http://localhost:1234/1-2/test.html?spec=foobar' }, {}, next)
+    middleware({ originalUrl: 'http://localhost:1234/?cid=1-2&spec=foobar' }, {}, next)
     expect(next).toBeCalledWith()
     next.mockClear()
 
     SESSIONS.set('1-2', {} as any)
-    middleware({ url: 'http://localhost:1234/1-2/test.html' }, {}, next)
+    middleware({ originalUrl: 'http://localhost:1234/?cid=1-2' }, {}, next)
     expect(next).toBeCalledWith()
     next.mockClear()
 
     vi.mocked(getTemplate).mockResolvedValue('some html')
-    await middleware({ url: 'http://localhost:1234/1-2/test.html?spec=foobar' }, res, next)
+    await middleware({ originalUrl: 'http://localhost:1234/?cid=1-2&spec=foobar' }, res, next)
     expect(getTemplate).toBeCalledTimes(1)
     expect(next).toBeCalledWith()
     expect(res.end).toBeCalledWith([
-        'http://localhost:1234/1-2/test.html?spec=foobar',
+        'http://localhost:1234/?cid=1-2&spec=foobar',
         'some html'
     ])
     next.mockClear()
@@ -114,12 +114,12 @@ test('configureServer continues if no url given', async () => {
 
     vi.mocked(getTemplate).mockRejectedValue(new Error('ups'))
     vi.mocked(getErrorTemplate).mockReturnValue('some error html')
-    await middleware({ url: 'http://localhost:1234/1-2/test.html?spec=foobar' }, res, next)
+    await middleware({ originalUrl: 'http://localhost:1234/?cid=1-2&spec=foobar' }, res, next)
     expect(getTemplate).toBeCalledTimes(1)
     expect(getErrorTemplate).toBeCalledTimes(1)
     expect(next).toBeCalledWith()
     expect(res.end).toBeCalledWith([
-        'http://localhost:1234/1-2/test.html?spec=foobar',
+        'http://localhost:1234/?cid=1-2&spec=foobar',
         'some error html'
     ])
 })

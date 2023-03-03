@@ -15,7 +15,8 @@ export class MochaFramework {
     constructor (socket: WebSocket) {
         this.#socket = socket
         socket.addEventListener('message', this.#handleSocketMessage.bind(this))
-        const [cid] = window.location.pathname.slice(1).split('/')
+        const urlParamString = new URLSearchParams(window.location.search)
+        const cid = urlParamString.get('cid')
         if (!cid) {
             throw new Error('"cid" query parameter is missing')
         }
@@ -90,7 +91,8 @@ export class MochaFramework {
     #getHook (name: string) {
         return (...args: any[]) => new Promise((resolve, reject) => {
             const id = (this.#hookResolver.size + 1).toString()
-            const [cid] = window.location.pathname.slice(1).split('/')
+            const urlParamString = new URLSearchParams(window.location.search)
+            const cid = urlParamString.get('cid')
             if (!cid) {
                 return reject(new Error('"cid" query parameter is missing'))
             }
