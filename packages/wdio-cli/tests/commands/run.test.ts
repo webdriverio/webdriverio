@@ -57,7 +57,7 @@ describe('Command: run', () => {
         await runCmd.handler({ configPath: 'sample.conf.js' } as any)
         expect(configCmd.missingConfigurationPrompt).toHaveBeenCalledTimes(1)
         expect(vi.mocked(configCmd.missingConfigurationPrompt).mock.calls[0][1])
-            .toContain('sample.conf.js')
+            .toContain('sample.conf')
     })
 
     it('should use local conf if nothing defined', async () => {

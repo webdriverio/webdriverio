@@ -77,8 +77,8 @@ vi.mock('node:fs/promises', () => ({
 
 vi.mock('@wdio/config', () => ({
     ConfigParser: class ConfigParserMock {
-        initialize () {}
-        getCapabilities () {}
+        initialize() { }
+        getCapabilities() { }
     }
 }))
 
@@ -437,7 +437,7 @@ describe('getCapabilities', () => {
                 maxInstances: 5,
                 browserName: 'chrome',
                 acceptInsecureCerts: true,
-                'goog:chromeOptions' : { 'args' : ['window-size=8000,1200'] }
+                'goog:chromeOptions': { 'args': ['window-size=8000,1200'] }
             }
         ])
         expect(await getCapabilities({ option: '/path/to/config.js', capabilities: 2 } as any))

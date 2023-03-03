@@ -10,7 +10,7 @@ vi.mock('../src/launcher', () => ({
 
 describe('launch', () => {
     beforeEach(() => {
-        vi.spyOn(console, 'error').mockImplementation(() => {})
+        vi.spyOn(console, 'error').mockImplementation(() => { })
     })
 
     it('should exit with code 0', async () => {

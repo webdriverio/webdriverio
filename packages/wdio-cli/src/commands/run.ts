@@ -5,7 +5,7 @@ import type { Argv } from 'yargs'
 
 import Launcher from '../launcher.js'
 import Watcher from '../watcher.js'
-import { missingConfigurationPrompt } from './config.js'
+import { formatConfigFilePaths, canAccessConfigPath, missingConfigurationPrompt } from './config.js'
 import { CLI_EPILOGUE } from '../constants.js'
 import type { RunCommandArguments } from '../types.js'
 
@@ -147,19 +147,15 @@ export async function launch(wdioConfPath: string, params: Partial<RunCommandArg
 
 export async function handler(argv: RunCommandArguments) {
     const { configPath = 'wdio.conf.js', ...params } = argv
-    const configPathNoExtension = configPath.substring(0, configPath.lastIndexOf('.'))
 
-    const canAccessConfigPath = await fs.access(`${configPathNoExtension}.js`).then(
-        () => true,
-        () => fs.access(`${configPathNoExtension}.ts`).then(
-            () => true, () => false
-        )
-    )
-    const wdioConf = configPath.includes(process.cwd())
-        ? configPath : path.join(process.cwd(), configPath)
-
-    if (!canAccessConfigPath) {
-        await missingConfigurationPrompt('run', wdioConf)
+    const wdioConf = await formatConfigFilePaths(configPath)
+    const confAccess = await canAccessConfigPath(wdioConf.fullPathNoExtension)
+    if (!confAccess) {
+        try {
+            await missingConfigurationPrompt('run', wdioConf.fullPathNoExtension)
+        } catch {
+            process.exit(1)
+        }
     }
 
     /**
@@ -175,14 +171,14 @@ export async function handler(argv: RunCommandArguments) {
         ) ||
         NODE_OPTIONS?.includes('ts-node/esm')
     )
-    if (wdioConf.endsWith('.ts') && !runsWithLoader && nodePath) {
+    if (wdioConf.fullPath.endsWith('.ts') && !runsWithLoader && nodePath) {
         NODE_OPTIONS += ' --loader ts-node/esm/transpile-only --no-warnings'
         const localTSConfigPath = (
             (
                 params.autoCompileOpts?.tsNodeOpts?.project &&
                 path.resolve(process.cwd(), params.autoCompileOpts?.tsNodeOpts?.project)
             ) ||
-            path.join(path.dirname(wdioConf), 'tsconfig.json')
+            path.join(path.dirname(wdioConf.fullPath), 'tsconfig.json')
         )
         const hasLocalTSConfig = await fs.access(localTSConfigPath).then(() => true, () => false)
         const p = await execa(nodePath, process.argv.slice(1), {
@@ -202,7 +198,7 @@ export async function handler(argv: RunCommandArguments) {
      * if `--watch` param is set, run launcher in watch mode
      */
     if (params.watch) {
-        const watcher = new Watcher(wdioConf, params)
+        const watcher = new Watcher(wdioConf.fullPath, params)
         return watcher.watch()
     }
 
@@ -214,12 +210,12 @@ export async function handler(argv: RunCommandArguments) {
      * stdin.isTTY is false when command is from nodes spawn since it's treated as a pipe
      */
     if (process.stdin.isTTY || !process.stdout.isTTY) {
-        return launch(wdioConf, params)
+        return launch(wdioConf.fullPath, params)
     }
 
     /*
      * get a list of spec files to run from stdin, overriding any other
      * configuration suite or specs.
      */
-    launchWithStdin(wdioConf, params)
+    launchWithStdin(wdioConf.fullPath, params)
 }
