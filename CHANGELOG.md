@@ -21,6 +21,19 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.5.5 (2023-03-03)
+
+#### :bug: Bug Fix
+* `wdio-config`
+  * [#9879](https://github.com/webdriverio/webdriverio/pull/9879) fix: duplicated suite ([@vladkosinov](https://github.com/vladkosinov))
+* `webdriverio`
+  * [#9883](https://github.com/webdriverio/webdriverio/pull/9883) Aria selector improvements ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 2
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Vlad Kosinov ([@vladkosinov](https://github.com/vladkosinov))
+
+
 ## v8.5.4 (2023-03-02)
 
 #### :nail_care: Polish
