@@ -100,19 +100,23 @@ describe('main suite 1', () => {
         await browser.setWindowSize(500, 500)
         const searchInput = await $('.searchinput')
 
-        await searchInput.scrollIntoView({ block: 'center' })
-        await browser.pause(500)
-        const [x1, y1] = await browser.execute(() => [
-            window.scrollX, window.scrollY
-        ])
-
         await searchInput.scrollIntoView()
+        await browser.pause(500)
         await searchInput.scrollIntoView({ block: 'center' })
         await browser.pause(500)
-        const [x2, y2] = await browser.execute(() => [
+        const [wdioX, wdioY] = await browser.execute(() => [
             window.scrollX, window.scrollY
         ])
 
-        expect([x1, y1]).toEqual([x2, y2])
+        await browser.execute((elem) => elem.scrollIntoView({ block: 'center' }), searchInput)
+        await browser.pause(500)
+        const [windowX, windowY] = await browser.execute(() => [
+            window.scrollX, window.scrollY
+        ])
+
+        const failureMessage = `scrollIntoView failed, expected ${[wdioX, wdioY]} to equal ${[windowX, windowY]} ±10px`
+        expect(Math.abs(wdioX - windowX)).toBeLessThan(10, failureMessage)
+        expect(Math.abs(wdioY - windowY)).toBeLessThan(10, failureMessage)
     })
+
 })
