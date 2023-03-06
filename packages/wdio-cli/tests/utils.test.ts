@@ -77,8 +77,8 @@ vi.mock('node:fs/promises', () => ({
 
 vi.mock('@wdio/config', () => ({
     ConfigParser: class ConfigParserMock {
-        initialize () {}
-        getCapabilities () {}
+        initialize() { }
+        getCapabilities() { }
     }
 }))
 
@@ -437,7 +437,7 @@ describe('getCapabilities', () => {
                 maxInstances: 5,
                 browserName: 'chrome',
                 acceptInsecureCerts: true,
-                'goog:chromeOptions' : { 'args' : ['window-size=8000,1200'] }
+                'goog:chromeOptions': { 'args': ['window-size=8000,1200'] }
             }
         ])
         expect(await getCapabilities({ option: '/path/to/config.js', capabilities: 2 } as any))
@@ -826,11 +826,9 @@ test('createPackageJSON', async () => {
     await createPackageJSON({} as any)
     expect(fs.writeFile).toBeCalledTimes(0)
     await createPackageJSON({
-        createPackageJSON: true,
-        moduleSystem: 'foobar'
+        createPackageJSON: true
     } as any)
     expect(console.log).toBeCalledTimes(2)
-    expect(vi.mocked(fs.writeFile).mock.calls[0][1]).toContain('"type": "foobar"')
 })
 
 test('npmInstall', async () => {
@@ -870,6 +868,7 @@ test('setupTypeScript', async () => {
     expect(fs.writeFile).toBeCalledTimes(0)
     const parsedAnswers = {
         isUsingTypeScript: true,
+        esmSupport: true,
         rawAnswers: {
             framework: 'foo',
             services: []

@@ -53,11 +53,11 @@ describe('Command: run', () => {
     })
 
     it('should call missingConfigurationPrompt if no config found', async () => {
-        vi.mocked(fs.access).mockRejectedValueOnce('not found')
+        vi.mocked(fs.access).mockRejectedValue('not found')
         await runCmd.handler({ configPath: 'sample.conf.js' } as any)
         expect(configCmd.missingConfigurationPrompt).toHaveBeenCalledTimes(1)
         expect(vi.mocked(configCmd.missingConfigurationPrompt).mock.calls[0][1])
-            .toContain('sample.conf.js')
+            .toContain('sample.conf')
     })
 
     it('should use local conf if nothing defined', async () => {

@@ -35,7 +35,6 @@ export interface Questionnair {
     baseUrl: string
     npmInstall: boolean
     createPackageJSON?: boolean
-    moduleSystem?: 'esm' | 'commonjs'
     projectRootCorrect?: boolean
     projectRoot?: string
 }
@@ -58,6 +57,7 @@ export interface ParsedAnswers extends Omit<Questionnair, 'runner' | 'framework'
     destSpecRootPath: string
     destPageObjectRootPath: string
     relativePath: string
+    hasRootTSConfig: boolean
     tsConfigFilePath: string
     tsProject: string
     wdioConfigPath: string

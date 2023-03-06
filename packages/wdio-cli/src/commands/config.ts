@@ -51,7 +51,7 @@ export const parseAnswers = async function (yes: boolean): Promise<ParsedAnswers
     const frameworkPackage = convertPackageHashToObject(answers.framework)
     const runnerPackage = convertPackageHashToObject(answers.runner || SUPPORTED_PACKAGES.runner[0].value)
     const servicePackages = answers.services.map((service) => convertPackageHashToObject(service))
-    const pluginPackages = answers.plugins.map((plugin)=> convertPackageHashToObject(plugin))
+    const pluginPackages = answers.plugins.map((plugin) => convertPackageHashToObject(plugin))
     const reporterPackages = answers.reporters.map((reporter) => convertPackageHashToObject(reporter))
     const presetPackage = convertPackageHashToObject(answers.preset || '')
     const projectProps = await getProjectProps(process.cwd())
@@ -76,7 +76,7 @@ export const parseAnswers = async function (yes: boolean): Promise<ParsedAnswers
          */
         ? path.resolve(projectRootDir, 'tsconfig.json')
         /**
-         * otherwise make it dependant whether user wants to autogenerate files
+         * otherwise make it dependent on whether the user wants to autogenerate files
          */
         : answers.specs
             /**
@@ -114,7 +114,7 @@ export const parseAnswers = async function (yes: boolean): Promise<ParsedAnswers
         packagesToInstall,
         isUsingTypeScript,
         isUsingBabel: answers.isUsingCompiler === COMPILER_OPTIONS.babel,
-        esmSupport: projectProps?.esmSupported || answers.moduleSystem === 'esm' || answers.isUsingCompiler === COMPILER_OPTIONS.babel,
+        esmSupport: projectProps && !(projectProps.esmSupported) ? false : true,
         isSync: false,
         _async: 'async ',
         _await: 'await ',
@@ -122,13 +122,14 @@ export const parseAnswers = async function (yes: boolean): Promise<ParsedAnswers
         destSpecRootPath: parsedPaths.destSpecRootPath,
         destPageObjectRootPath: parsedPaths.destPageObjectRootPath,
         relativePath: parsedPaths.relativePath,
+        hasRootTSConfig,
         tsConfigFilePath,
         tsProject: `./${path.relative(projectRootDir, tsConfigFilePath).replaceAll(path.sep, '/')}`,
         wdioConfigPath
     }
 }
 
-export async function runConfigCommand (parsedAnswers: ParsedAnswers, useYarn: boolean, npmTag: string) {
+export async function runConfigCommand(parsedAnswers: ParsedAnswers, useYarn: boolean, npmTag: string) {
     console.log('\n')
 
     await createPackageJSON(parsedAnswers)
@@ -159,21 +160,52 @@ export async function handler(argv: ConfigCommandArguments, runConfigCmd = runCo
 }
 
 /**
+ * Helper utility used in `run` and `install` command to format a provided config path,
+ * giving it back as an absolute path, and a version without the file extension
+ * @param config the initially given file path to the WDIO config file
+ */
+export async function formatConfigFilePaths(config: string) {
+    const fullPath = config.includes(process.cwd())
+        ? config
+        : path.join(process.cwd(), config)
+
+    const fullPathNoExtension = fullPath.substring(0, fullPath.lastIndexOf('.'))
+
+    return { fullPath, fullPathNoExtension }
+}
+
+/**
+ * Helper utility used in `run` and `install` command to check whether a config file currently exists
+ * @param configPath the file path to the WDIO config file
+ */
+export async function canAccessConfigPath(configPath: string) {
+    return await fs.access(`${configPath}.js`).then(
+        () => true,
+        () => fs.access(`${configPath}.ts`).then(
+            () => true, () => false
+        )
+    )
+}
+
+/**
  * Helper utility used in `run` and `install` command to create config if none exist
  * @param {string}   command        to be executed by user
- * @param {string}   message        to show when no config is suppose to be created
+ * @param {string}   configPath     the path to a wdio.conf.[js/ts] file
  * @param {boolean}  useYarn        parameter set to true if yarn is used
  * @param {Function} runConfigCmd   runConfig method to be replaceable for unit testing
  */
-export async function missingConfigurationPrompt(command: string, message: string, useYarn = false, runConfigCmd = runConfigCommand) {
-    const configMessage = command === 'run'
-        ? `Error: Could not execute "run" due to missing configuration, file "${message}" not found! Would you like to create one?`
-        : `Error: Could not execute "${command}" due to missing configuration. Would you like to create one?`
+export async function missingConfigurationPrompt(command: string, configPath: string, useYarn = false, runConfigCmd = runConfigCommand) {
+
+    const message = (
+        `Could not execute "${command}" due to missing configuration, file ` +
+        `"${path.parse(configPath).name}[.js/.ts]" not found! ` +
+        'Would you like to create one?'
+    )
 
     const { config } = await inquirer.prompt([{
         type: 'confirm',
         name: 'config',
-        message: configMessage,
+        message: message,
         default: false
     }])
 
@@ -182,9 +214,7 @@ export async function missingConfigurationPrompt(command: string, message: strin
      */
     if (!config) {
         /* istanbul ignore next */
-        console.log(command === 'run'
-            ? `No WebdriverIO configuration found in "${process.cwd()}"`
-            : message)
+        console.log(`No WebdriverIO configuration found in "${process.cwd()}"`)
 
         /* istanbul ignore next */
         return !process.env.VITEST_WORKER_ID && process.exit(0)

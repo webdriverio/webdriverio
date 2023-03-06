@@ -141,7 +141,7 @@ export async function runOnCompleteHook(
 /**
  * get runner identification by caps
  */
-export function getRunnerName (caps: Capabilities.DesiredCapabilities = {}) {
+export function getRunnerName(caps: Capabilities.DesiredCapabilities = {}) {
     let runner =
         caps.browserName ||
         caps.appPackage ||
@@ -161,7 +161,7 @@ export function getRunnerName (caps: Capabilities.DesiredCapabilities = {}) {
     return runner
 }
 
-function buildNewConfigArray (str: string, type: string, change: string) {
+function buildNewConfigArray(str: string, type: string, change: string) {
     const newStr = str
         .split(`${type}s: `)[1]
         .replace(/'/g, '')
@@ -175,11 +175,11 @@ function buildNewConfigArray (str: string, type: string, change: string) {
         )
 }
 
-function buildNewConfigString (str: string, type: string, change: string) {
+function buildNewConfigString(str: string, type: string, change: string) {
     return str.replace(new RegExp(`(${type}: )('\\w*')`), `$1'${change}'`)
 }
 
-export function findInConfig (config: string, type: string) {
+export function findInConfig(config: string, type: string) {
     let regexStr = `[\\/\\/]*[\\s]*${type}s: [\\s]*\\[([\\s]*['|"]\\w*['|"],*)*[\\s]*\\]`
 
     if (type === 'framework') {
@@ -190,7 +190,7 @@ export function findInConfig (config: string, type: string) {
     return config.match(regex)
 }
 
-export function replaceConfig (config: string, type: string, name: string) {
+export function replaceConfig(config: string, type: string, name: string) {
     if (type === 'framework') {
         return buildNewConfigString(config, type, name)
     }
@@ -302,7 +302,7 @@ export async function getCapabilities(arg: ReplCommandArguments) {
         try {
             await config.initialize()
         } catch (e) {
-            throw Error((e as any).code === 'MODULE_NOT_FOUND' ? `Config File not found: ${arg.option}`:
+            throw Error((e as any).code === 'MODULE_NOT_FOUND' ? `Config File not found: ${arg.option}` :
                 `Could not parse ${arg.option}, failed with error : ${(e as Error).message}`)
         }
         if (typeof arg.capabilities === 'undefined') {
@@ -330,7 +330,7 @@ export async function getCapabilities(arg: ReplCommandArguments) {
  * @param projectProps project properties received via `getProjectProps`
  * @returns project root path
  */
-export function getProjectRoot (answers: Questionnair, projectProps?: ProjectProps) {
+export function getProjectRoot(answers: Questionnair, projectProps?: ProjectProps) {
     return (
         answers.projectRoot ||
         (
@@ -346,7 +346,7 @@ export function getProjectRoot (answers: Questionnair, projectProps?: ProjectPro
  * @param rootDir directory where this function checks for Babel signs
  * @returns true, if a babel config was found, otherwise false
  */
-export function hasBabelConfig (rootDir: string) {
+export function hasBabelConfig(rootDir: string) {
     return Promise.all([
         fs.access(path.join(rootDir, 'babel.js')),
         fs.access(path.join(rootDir, 'babel.cjs')),
@@ -361,7 +361,7 @@ export function hasBabelConfig (rootDir: string) {
 /**
  * detect if project has a compiler file
  */
-export async function detectCompiler (answers: Questionnair) {
+export async function detectCompiler(answers: Questionnair) {
     const projectProps = await getProjectProps(process.cwd())
     const root = getProjectRoot(answers, projectProps)
     const rootTSConfigExist = await fs.access(path.resolve(root, 'tsconfig.json')).then(() => true, () => false)
@@ -376,7 +376,7 @@ export async function detectCompiler (answers: Questionnair) {
  * Check if package is installed
  * @param {string} package to check existance for
  */
-export async function hasPackage (pkg: string) {
+export async function hasPackage(pkg: string) {
     try {
         await resolve(pkg, import.meta.url)
         return true
@@ -388,7 +388,7 @@ export async function hasPackage (pkg: string) {
 /**
  * generate test files based on CLI answers
  */
-export async function generateTestFiles (answers: ParsedAnswers) {
+export async function generateTestFiles(answers: ParsedAnswers) {
     const testFiles = answers.framework === 'cucumber'
         ? [path.join(TEMPLATE_ROOT_DIR, 'cucumber')]
         : (answers.framework === 'mocha'
@@ -430,25 +430,26 @@ export async function getAnswers(yes: boolean): Promise<Questionnair> {
                  * set nothing if question doesn't apply
                  */
                 ? {}
-                : { [question.name]: typeof question.default !== 'undefined'
-                    /**
-                     * set default value if existing
-                     */
-                    ? typeof question.default === 'function'
-                        ? question.default(answers)
-                        : question.default
-                    : question.choices && question.choices.length
-                    /**
-                     * pick first choice, select value if it exists
-                     */
-                        ? typeof question.choices === 'function'
-                            ? (question.choices(answers)[0] as any as { value: any }).value
+                : {
+                    [question.name]: typeof question.default !== 'undefined'
+                        /**
+                         * set default value if existing
+                         */
+                        ? typeof question.default === 'function'
+                            ? question.default(answers)
+                            : question.default
+                        : question.choices && question.choices.length
+                            /**
+                             * pick first choice, select value if it exists
+                             */
+                            ? typeof question.choices === 'function'
                                 ? (question.choices(answers)[0] as any as { value: any }).value
-                                : question.choices(answers)[0]
-                            : (question.choices[0] as { value: any }).value
-                                ? (question.choices[0] as { value: any }).value
-                                : question.choices[0]
-                        : {}
+                                    ? (question.choices(answers)[0] as any as { value: any }).value
+                                    : question.choices(answers)[0]
+                                : (question.choices[0] as { value: any }).value
+                                    ? (question.choices[0] as { value: any }).value
+                                    : question.choices[0]
+                            : {}
                 }
         ), {} as Questionnair)
         /**
@@ -473,16 +474,6 @@ export async function getAnswers(yes: boolean): Promise<Questionnair> {
                 name: 'createPackageJSON',
                 default: true,
                 message: `Couldn't find a package.json in "${process.cwd()}" or any of the parent directories, do you want to create one?`,
-            }, {
-                type: 'list',
-                name: 'moduleSystem',
-                message: 'Which module system should be used?',
-                choices: [
-                    { name: 'esm', value: 'ESM (recommended)$--$esm' },
-                    { name: 'commonjs', value: 'CommonJS$--$commonjs' }
-                ],
-                // only ask if there are more than 1 runner to pick from
-                when: /* istanbul ignore next */ (answers: Questionnair) => answers.createPackageJSON
             }]
             /**
              * in case create-wdio was used which creates a package.json with name "my-new-project"
@@ -509,7 +500,7 @@ export async function getAnswers(yes: boolean): Promise<Questionnair> {
     return inquirer.prompt(questions)
 }
 
-export function getPathForFileGeneration (answers: Questionnair, projectRootDir: string) {
+export function getPathForFileGeneration(answers: Questionnair, projectRootDir: string) {
     const destSpecRootPath = path.resolve(
         projectRootDir,
         path.dirname(answers.specs || '').replace(/\*\*$/, ''))
@@ -517,7 +508,7 @@ export function getPathForFileGeneration (answers: Questionnair, projectRootDir:
     const destStepRootPath = path.resolve(projectRootDir, path.dirname(answers.stepDefinitions || ''))
 
     const destPageObjectRootPath = answers.usePageObjects
-        ?  path.resolve(
+        ? path.resolve(
             projectRootDir,
             path.dirname(answers.pages || '').replace(/\*\*$/, ''))
         : ''
@@ -528,14 +519,14 @@ export function getPathForFileGeneration (answers: Questionnair, projectRootDir:
         : ''
 
     return {
-        destSpecRootPath : destSpecRootPath,
-        destStepRootPath : destStepRootPath,
-        destPageObjectRootPath : destPageObjectRootPath,
-        relativePath : relativePath.replaceAll(path.sep, '/')
+        destSpecRootPath: destSpecRootPath,
+        destStepRootPath: destStepRootPath,
+        destPageObjectRootPath: destPageObjectRootPath,
+        relativePath: relativePath.replaceAll(path.sep, '/')
     }
 }
 
-export async function getDefaultFiles (answers: Questionnair, pattern: string) {
+export async function getDefaultFiles(answers: Questionnair, pattern: string) {
     const projectProps = await getProjectProps()
     const rootdir = getProjectRoot(answers, projectProps)
     return pattern.endsWith('.feature')
@@ -551,7 +542,7 @@ export async function getDefaultFiles (answers: Questionnair, pattern: string) {
  * running `matchAll` to a version like "8.0.0-alpha.249+4bc237701", results in:
  * ['8.0.0-alpha.249+4bc237701', '8', '0', '0', 'alpha', '249', '4bc237701']
  */
-export function specifyVersionIfNeeded (packagesToInstall: string[], version: string, npmTag: string) {
+export function specifyVersionIfNeeded(packagesToInstall: string[], version: string, npmTag: string) {
     const { value } = version.matchAll(VERSION_REGEXP).next()
     const [major, minor, patch, tagName, build] = (value || []).slice(1, -1) // drop commit bit
     return packagesToInstall.map((p) => {
@@ -570,7 +561,7 @@ export function specifyVersionIfNeeded (packagesToInstall: string[], version: st
  * @returns {@type ProjectProps} if a package.json can be found in cwd or parent directories, otherwise undefined
  *                               which means that a new project can be created
  */
-export async function getProjectProps (cwd = process.cwd()): Promise<ProjectProps | undefined> {
+export async function getProjectProps(cwd = process.cwd()): Promise<ProjectProps | undefined> {
     try {
         const { packageJson, path: packageJsonPath } = await readPackageUp({ cwd }) || {}
         if (!packageJson || !packageJsonPath) {
@@ -590,7 +581,7 @@ export async function getProjectProps (cwd = process.cwd()): Promise<ProjectProp
     }
 }
 
-export function runProgram (command: string, args: string[], options: SpawnOptions) {
+export function runProgram(command: string, args: string[], options: SpawnOptions) {
     const child = spawn(command, args, { stdio: 'inherit', ...options })
     return new Promise<void>((resolve, reject) => {
         let error: Error
@@ -610,28 +601,44 @@ export function runProgram (command: string, args: string[], options: SpawnOptio
 /**
  * create package.json if not already existing
  */
-export async function createPackageJSON (parsedAnswers: ParsedAnswers) {
-    if (!parsedAnswers.createPackageJSON) {
+export async function createPackageJSON(parsedAnswers: ParsedAnswers) {
+    const packageJsonExists = await fs.access(path.resolve(process.cwd(), 'package.json')).then(() => true, () => false)
+
+    // Use the exisitng package.json if it already exists.
+    if (packageJsonExists) {
         return
     }
 
-    console.log(`Creating a ${chalk.bold('package.json')} for the directory...`)
-    await fs.writeFile(path.resolve(process.cwd(), 'package.json'), JSON.stringify({
-        name: 'webdriverio-tests',
-        version: '0.0.0',
-        private: true,
-        license: 'ISC',
-        type: parsedAnswers.moduleSystem,
-        dependencies: {},
-        devDependencies: {}
-    }, null, 2))
-    console.log(chalk.green.bold('✔ Success!\n'))
+    // If a user said no to creating a package.json, but it doesn't exist, abort.
+    if (parsedAnswers.createPackageJSON === false) {
+        /* istanbul ignore if */
+        if (!packageJsonExists) {
+            console.log(`No WebdriverIO configuration found in "${parsedAnswers.wdioConfigPath}"`)
+            return !process.env.VITEST_WORKER_ID && process.exit(0)
+        }
+        return
+    }
+
+    // Only create if the user gave explicit permission to
+    if (parsedAnswers.createPackageJSON) {
+        console.log(`Creating a ${chalk.bold('package.json')} for the directory...`)
+        await fs.writeFile(path.resolve(process.cwd(), 'package.json'), JSON.stringify({
+            name: 'webdriverio-tests',
+            version: '0.0.0',
+            private: true,
+            license: 'ISC',
+            type: 'module',
+            dependencies: {},
+            devDependencies: {}
+        }, null, 2))
+        console.log(chalk.green.bold('✔ Success!\n'))
+    }
 }
 
 /**
  * run npm install only if required by the user
  */
-export function npmInstall (parsedAnswers: ParsedAnswers, useYarn: boolean, npmTag: string) {
+export function npmInstall(parsedAnswers: ParsedAnswers, useYarn: boolean, npmTag: string) {
     const servicePackages = parsedAnswers.rawAnswers.services.map((service) => convertPackageHashToObject(service))
     const presetPackage = convertPackageHashToObject(parsedAnswers.rawAnswers.preset || '')
 
@@ -669,7 +676,7 @@ export function npmInstall (parsedAnswers: ParsedAnswers, useYarn: boolean, npmT
       */
     parsedAnswers.packagesToInstall = specifyVersionIfNeeded(parsedAnswers.packagesToInstall, pkg.version, npmTag)
 
-    if (parsedAnswers.npmInstall){
+    if (parsedAnswers.npmInstall) {
         console.log('Installing wdio packages:\n-', parsedAnswers.packagesToInstall.join('\n- '))
         const result = yarnInstall({ deps: parsedAnswers.packagesToInstall, dev: true, respectNpm5: !useYarn })
         if (result.status !== 0) {
@@ -688,7 +695,7 @@ export function npmInstall (parsedAnswers: ParsedAnswers, useYarn: boolean, npmT
 /**
  * add ts-node if TypeScript is desired but not installed
  */
-export async function setupTypeScript (parsedAnswers: ParsedAnswers) {
+export async function setupTypeScript(parsedAnswers: ParsedAnswers) {
     if (!parsedAnswers.isUsingTypeScript) {
         return
     }
@@ -712,27 +719,29 @@ export async function setupTypeScript (parsedAnswers: ParsedAnswers) {
             .filter(service => service.startsWith('@wdio'))
     ]
 
-    const config = {
-        compilerOptions: {
-            moduleResolution: 'node',
-            module: 'ESNext',
-            types,
-            target: 'es2022',
+    if (!parsedAnswers.hasRootTSConfig) {
+        const config = {
+            compilerOptions: {
+                moduleResolution: 'node',
+                module: !parsedAnswers.esmSupport ? 'commonjs' : 'ESNext',
+                types,
+                target: 'es2022',
+            }
         }
+        await fs.mkdir(path.dirname(parsedAnswers.tsConfigFilePath), { recursive: true })
+        await fs.writeFile(
+            parsedAnswers.tsConfigFilePath,
+            JSON.stringify(config, null, 4)
+        )
     }
 
-    await fs.mkdir(path.dirname(parsedAnswers.tsConfigFilePath), { recursive: true })
-    await fs.writeFile(
-        parsedAnswers.tsConfigFilePath,
-        JSON.stringify(config, null, 4)
-    )
     console.log(chalk.green.bold('✔ Success!\n'))
 }
 
 /**
  * add @babel/register package if not installed
  */
-export async function setupBabel (parsedAnswers: ParsedAnswers) {
+export async function setupBabel(parsedAnswers: ParsedAnswers) {
     if (!parsedAnswers.isUsingBabel) {
         return
     }
@@ -778,7 +787,7 @@ export async function setupBabel (parsedAnswers: ParsedAnswers) {
     }
 }
 
-export async function createWDIOConfig (parsedAnswers: ParsedAnswers) {
+export async function createWDIOConfig(parsedAnswers: ParsedAnswers) {
     try {
         console.log('Creating a WebdriverIO config file...')
         const tplPath = path.resolve(__dirname, 'templates', 'wdio.conf.tpl.ejs')
@@ -796,7 +805,7 @@ export async function createWDIOConfig (parsedAnswers: ParsedAnswers) {
     }
 }
 
-export async function createWDIOScript (parsedAnswers: ParsedAnswers) {
+export async function createWDIOScript(parsedAnswers: ParsedAnswers) {
     const projectProps = await getProjectProps(process.cwd())
 
     const script = `wdio run ./${path.join('.', parsedAnswers.wdioConfigPath.replace(projectProps?.path || process.cwd(), ''))}`
