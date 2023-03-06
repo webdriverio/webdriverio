@@ -21,6 +21,18 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.5.6 (2023-03-06)
+
+#### :nail_care: Polish
+* `wdio-browser-runner`
+  * [#9882](https://github.com/webdriverio/webdriverio/pull/9882) [💡 Feature]: Put Mocha setup into a web component ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-browser-runner`, `wdio-protocols`, `wdio-runner`, `wdio-utils`, `webdriverio`
+  * [#9884](https://github.com/webdriverio/webdriverio/pull/9884) [💡 Feature]: Receive spec and cid properties from browser session ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
 ## v8.5.5 (2023-03-03)
 
 #### :bug: Bug Fix
