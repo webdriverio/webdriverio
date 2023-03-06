@@ -3,11 +3,13 @@ import url from 'node:url'
 import path from 'node:path'
 import { resolve } from 'import-meta-resolve'
 
+import { MOCHA_VARIABELS } from '../constants.js'
 import type { Environment, FrameworkPreset } from '../types.js'
 
 export async function getTemplate(options: WebdriverIO.BrowserRunnerOptions, env: Environment, spec: string, processEnv = process.env) {
     const root = options.rootDir || process.cwd()
     const rootFileUrl = url.pathToFileURL(root).href
+    const sourceMapSupportDir = path.dirname(url.fileURLToPath(await resolve('source-map-support', import.meta.url)))
 
     let vueDeps = ''
     if (options.preset === 'vue') {
@@ -33,19 +35,7 @@ export async function getTemplate(options: WebdriverIO.BrowserRunnerOptions, env
                 `Error: ${err.stack}`
             )
         }
-
     }
-
-    const mochaCSSHref = await resolve('mocha', `${rootFileUrl}/node_modules`).then(
-        (p) => path.join(url.fileURLToPath(path.dirname(p)), 'mocha.css'),
-        () => 'https://unpkg.com/mocha@10.0.0/mocha.css'
-    )
-    const mochaJSSrc = await resolve('mocha', `${rootFileUrl}/node_modules`).then(
-        (p) => path.join(url.fileURLToPath(path.dirname(p)), 'mocha.js'),
-        () => 'https://unpkg.com/mocha@10.0.0/mocha.js'
-    )
-
-    const sourceMapSupportDir = path.dirname(url.fileURLToPath(await resolve('source-map-support', import.meta.url)))
 
     return /* html */`
     <!doctype html>
@@ -53,8 +43,7 @@ export async function getTemplate(options: WebdriverIO.BrowserRunnerOptions, env
         <head>
             <title>WebdriverIO Browser Test</title>
             <link rel="icon" type="image/x-icon" href="https://webdriver.io/img/favicon.png">
-            <link rel="stylesheet" href="${mochaCSSHref}">
-            <script type="module" src="${mochaJSSrc}"></script>
+            <script type="module" src="/node_modules/mocha/mocha.js"></script>
             <script src="/@fs/${sourceMapSupportDir}/browser-source-map-support.js"></script>
             <script type="module">
                 sourceMapSupport.install()
@@ -79,14 +68,16 @@ export async function getTemplate(options: WebdriverIO.BrowserRunnerOptions, env
                  */
                 window.process = {
                     platform: 'browser',
-                    env: {}
+                    env: {},
+                    stdout: {}
                 }
             </script>
+            <script type="module" src="@wdio/browser-runner/setup"></script>
+            <style>${MOCHA_VARIABELS}</style>
             ${vueDeps}
         </head>
-        <body>
-            <div id="mocha"></div>
-            <script async type="module" src="@wdio/browser-runner/setup"></script>
+        <body style="width: calc(100% - 500px); padding: 0; margin: 0;">
+            <mocha-framework spec="${spec}" ${process.env.CI ? 'minified' : ''}></mocha-framework>
             <script type="module">
                 window.process.env = ${JSON.stringify(processEnv)}
             </script>
