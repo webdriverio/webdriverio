@@ -6,7 +6,11 @@ import { MESSAGE_TYPES, EVENTS } from '../../constants.js'
 import type { HookResultEvent, HookTriggerEvent, SocketMessage } from '../../vite/types.js'
 
 const startTime = Date.now()
-// @ts-expect-error
+
+if (!window.Mocha) {
+    throw new Error('Can\'t find Mocha attached to the `window` scope, was it installed? Run `npm install mocha` and run again!')
+}
+
 const BaseReporter = window.Mocha.reporters.html
 class HTMLReporter extends BaseReporter {
     constructor (runner: never, options: never) {

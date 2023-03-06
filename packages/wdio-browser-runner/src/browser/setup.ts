@@ -10,6 +10,7 @@ import type { MochaFramework } from './frameworks/mocha'
 type WDIOErrorEvent = Pick<ErrorEvent, 'filename' | 'message'>
 declare global {
     interface Window {
+        Mocha?: any
         __wdioErrors__: WDIOErrorEvent[]
         __wdioSpec__: string
         __wdioFailures__: number
