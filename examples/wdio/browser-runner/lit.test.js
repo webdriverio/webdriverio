@@ -74,6 +74,8 @@ describe('Lit Component testing', () => {
 
     it('should have access to globals', () => {
         expect(process.env.WDIO_PRESET).toBe('lit')
+        expect(window.WDIO_ENV_TEST).toBe('passed')
+        expect(window.TEST_COMMAND).toBe('serve')
     })
 
     it('should allow to manual mock dependencies', async () => {

@@ -1,4 +1,4 @@
-import type { InlineConfig } from 'vite'
+import type { ConfigEnv, InlineConfig } from 'vite'
 import type { Workers, Capabilities, Options } from '@wdio/types'
 import type { MochaOpts } from '@wdio/mocha-framework'
 import type { IstanbulPluginOptions } from 'vite-plugin-istanbul'
@@ -85,7 +85,7 @@ export interface BrowserRunnerOptions {
     /**
      * Vite configuration to overwrite the preset
      */
-    viteConfig?: string | InlineConfig
+    viteConfig?: string | InlineConfig | ((env: ConfigEnv) => InlineConfig | Promise<InlineConfig>)
     /**
      * Run tests in headless mode
      * @default false // true in CI environment
