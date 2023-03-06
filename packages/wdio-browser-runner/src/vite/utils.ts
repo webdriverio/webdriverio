@@ -1,15 +1,17 @@
 import fs from 'node:fs/promises'
 import url from 'node:url'
 import path from 'node:path'
+import logger from '@wdio/logger'
 import { resolve } from 'import-meta-resolve'
 
 import { MOCHA_VARIABELS } from '../constants.js'
 import type { Environment, FrameworkPreset } from '../types.js'
 
+const log = logger('@wdio/browser-runner')
+
 export async function getTemplate(options: WebdriverIO.BrowserRunnerOptions, env: Environment, spec: string, processEnv = process.env) {
     const root = options.rootDir || process.cwd()
     const rootFileUrl = url.pathToFileURL(root).href
-    const sourceMapSupportDir = path.dirname(url.fileURLToPath(await resolve('source-map-support', import.meta.url)))
 
     let vueDeps = ''
     if (options.preset === 'vue') {
@@ -37,6 +39,15 @@ export async function getTemplate(options: WebdriverIO.BrowserRunnerOptions, env
         }
     }
 
+    let sourceMapScript = ''
+    let sourceMapSetupCommand = ''
+    await resolve('source-map-supposrt', import.meta.url).then((sourceMapSupportDir) => {
+        sourceMapScript = /*html*/`<script src="/@fs/${url.fileURLToPath(path.dirname(sourceMapSupportDir))}/browser-source-map-support.js"></script>`
+        sourceMapSetupCommand = 'sourceMapSupport.install()'
+    }, (err) => {
+        log.error(`Failed to setup source-map-support: ${err.message}`)
+    })
+
     return /* html */`
     <!doctype html>
     <html>
@@ -44,9 +55,9 @@ export async function getTemplate(options: WebdriverIO.BrowserRunnerOptions, env
             <title>WebdriverIO Browser Test</title>
             <link rel="icon" type="image/x-icon" href="https://webdriver.io/img/favicon.png">
             <script type="module" src="/node_modules/mocha/mocha.js"></script>
-            <script src="/@fs/${sourceMapSupportDir}/browser-source-map-support.js"></script>
+            ${sourceMapScript}
             <script type="module">
-                sourceMapSupport.install()
+                ${sourceMapSetupCommand}
 
                 /**
                  * Inject environment variables
