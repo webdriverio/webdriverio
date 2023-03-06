@@ -27,7 +27,7 @@
     "@wdio/types": "7.26.0",
     "@wdio/utils": "7.26.0",
     "deepmerge": "^4.0.0",
-    "glob": "^8.0.3"
+    "glob": "^9.2.1"
   },
   "publishConfig": {
     "access": "public"
