@@ -188,7 +188,7 @@ template.innerHTML = /*html*/`
 
     .reporter {
         transition: width .3s;
-        box-shadow: -5px 0px 10px #aaa;
+        box-shadow: -5px 0px 10px rgb(0 0 0 / 30%);
         position: absolute;
         top: 0;
         right: 0;
