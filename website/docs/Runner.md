@@ -112,7 +112,7 @@ export const {
 
 Define your own [Vite configuration](https://vitejs.dev/config/). You can either pass in a custom object or import an existing `vite.conf.ts` file if you use Vite.js for development. Note that WebdriverIO keeps custom Vite configurations to set up the test harness.
 
-__Type:__ `string` or [`UserConfig`](https://github.com/vitejs/vite/blob/52e64eb43287d241f3fd547c332e16bd9e301e95/packages/vite/src/node/config.ts#L119-L272)<br />
+__Type:__ `string` or [`UserConfig`](https://github.com/vitejs/vite/blob/52e64eb43287d241f3fd547c332e16bd9e301e95/packages/vite/src/node/config.ts#L119-L272) or `(env: ConfigEnv) => UserConfig | Promise<UserConfig>`<br />
 __Example:__
 
 ```js title="wdio.conf.ts"
@@ -123,6 +123,13 @@ export const {
     runner: ['browser', { viteConfig }],
     // or just:
     runner: ['browser', { viteConfig: '../vites.config.ts' }],
+    // or use a function if your vite config contains a lot of plugins
+    // which you only want to resolve when value is read
+    runner: ['browser', {
+        viteConfig: () => ({
+            // ...
+        })
+    }],
     // ...
 }
 ```

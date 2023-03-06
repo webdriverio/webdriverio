@@ -4,11 +4,13 @@ import { expect } from 'expect-webdriverio'
 import { remote } from 'webdriverio'
 import { _setGlobal } from '@wdio/globals'
 
-import { MochaFramework } from './frameworks/mocha.js'
+import './frameworks/mocha.js'
+import type { MochaFramework } from './frameworks/mocha'
 
 type WDIOErrorEvent = Pick<ErrorEvent, 'filename' | 'message'>
 declare global {
     interface Window {
+        Mocha?: any
         __wdioErrors__: WDIOErrorEvent[]
         __wdioSpec__: string
         __wdioFailures__: number
@@ -43,11 +45,8 @@ _setGlobal('expect', expect, window.__wdioEnv__.injectGlobals)
 _setGlobal('$', browser.$.bind(browser), window.__wdioEnv__.injectGlobals)
 _setGlobal('$$', browser.$$.bind(browser), window.__wdioEnv__.injectGlobals)
 
-/**
- * execute test framework after socket connection was established
- */
-await connectPromise.then(async () => {
-    const framework = new MochaFramework(socket)
-    await import(window.__wdioSpec__)
-    framework.run()
-})
+const mochaFramework = document.querySelector('mocha-framework') as MochaFramework
+if (mochaFramework) {
+    await connectPromise
+    mochaFramework.run(socket)
+}

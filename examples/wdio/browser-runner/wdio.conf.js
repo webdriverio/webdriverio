@@ -1,6 +1,7 @@
 import os from 'node:os'
 import url from 'node:url'
 import path from 'node:path'
+import { loadEnv } from 'vite'
 
 /**
  * WebdriverIO is using this example to test its component testing features
@@ -40,6 +41,16 @@ export const config = {
     services: ['chromedriver'],
     runner: ['browser', {
         preset: process.env.WDIO_PRESET,
+        viteConfig: ({ command, mode }) => {
+            const env = loadEnv(mode, __dirname, '')
+            return {
+                // vite config
+                define: {
+                    WDIO_ENV_TEST: `${JSON.stringify(env.WDIO_ENV_TEST)}`,
+                    TEST_COMMAND: `${JSON.stringify(command)}`
+                },
+            }
+        },
         coverage: {
             enabled: true,
             functions: 100

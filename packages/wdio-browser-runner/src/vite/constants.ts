@@ -41,7 +41,7 @@ export const DEFAULT_VITE_CONFIG: Partial<InlineConfig> = {
             'expect', 'jest-matcher-utils', 'serialize-error', 'minimatch', 'css-shorthand-properties',
             'lodash.merge', 'lodash.zip', 'lodash.clonedeep', 'lodash.pickby', 'lodash.flattendeep',
             'aria-query', 'grapheme-splitter', 'css-value', 'rgb2hex', 'p-iteration', 'fast-safe-stringify',
-            'deepmerge-ts'
+            'deepmerge-ts', 'jest-util'
         ],
         esbuildOptions: {
             logLevel: 'silent',

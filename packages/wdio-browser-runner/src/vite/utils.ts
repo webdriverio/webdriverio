@@ -1,9 +1,13 @@
 import fs from 'node:fs/promises'
 import url from 'node:url'
 import path from 'node:path'
+import logger from '@wdio/logger'
 import { resolve } from 'import-meta-resolve'
 
+import { MOCHA_VARIABELS } from '../constants.js'
 import type { Environment, FrameworkPreset } from '../types.js'
+
+const log = logger('@wdio/browser-runner')
 
 export async function getTemplate(options: WebdriverIO.BrowserRunnerOptions, env: Environment, spec: string, processEnv = process.env) {
     const root = options.rootDir || process.cwd()
@@ -33,19 +37,16 @@ export async function getTemplate(options: WebdriverIO.BrowserRunnerOptions, env
                 `Error: ${err.stack}`
             )
         }
-
     }
 
-    const mochaCSSHref = await resolve('mocha', `${rootFileUrl}/node_modules`).then(
-        (p) => path.join(url.fileURLToPath(path.dirname(p)), 'mocha.css'),
-        () => 'https://unpkg.com/mocha@10.0.0/mocha.css'
-    )
-    const mochaJSSrc = await resolve('mocha', `${rootFileUrl}/node_modules`).then(
-        (p) => path.join(url.fileURLToPath(path.dirname(p)), 'mocha.js'),
-        () => 'https://unpkg.com/mocha@10.0.0/mocha.js'
-    )
-
-    const sourceMapSupportDir = path.dirname(url.fileURLToPath(await resolve('source-map-support', import.meta.url)))
+    let sourceMapScript = ''
+    let sourceMapSetupCommand = ''
+    await resolve('source-map-supposrt', import.meta.url).then((sourceMapSupportDir) => {
+        sourceMapScript = /*html*/`<script src="/@fs/${url.fileURLToPath(path.dirname(sourceMapSupportDir))}/browser-source-map-support.js"></script>`
+        sourceMapSetupCommand = 'sourceMapSupport.install()'
+    }, (err) => {
+        log.error(`Failed to setup source-map-support: ${err.message}`)
+    })
 
     return /* html */`
     <!doctype html>
@@ -53,11 +54,10 @@ export async function getTemplate(options: WebdriverIO.BrowserRunnerOptions, env
         <head>
             <title>WebdriverIO Browser Test</title>
             <link rel="icon" type="image/x-icon" href="https://webdriver.io/img/favicon.png">
-            <link rel="stylesheet" href="${mochaCSSHref}">
-            <script type="module" src="${mochaJSSrc}"></script>
-            <script src="/@fs/${sourceMapSupportDir}/browser-source-map-support.js"></script>
+            <script type="module" src="/node_modules/mocha/mocha.js"></script>
+            ${sourceMapScript}
             <script type="module">
-                sourceMapSupport.install()
+                ${sourceMapSetupCommand}
 
                 /**
                  * Inject environment variables
@@ -79,14 +79,16 @@ export async function getTemplate(options: WebdriverIO.BrowserRunnerOptions, env
                  */
                 window.process = {
                     platform: 'browser',
-                    env: {}
+                    env: {},
+                    stdout: {}
                 }
             </script>
+            <script type="module" src="@wdio/browser-runner/setup"></script>
+            <style>${MOCHA_VARIABELS}</style>
             ${vueDeps}
         </head>
-        <body>
-            <div id="mocha"></div>
-            <script async type="module" src="@wdio/browser-runner/setup"></script>
+        <body style="width: calc(100% - 500px); padding: 0; margin: 0;">
+            <mocha-framework spec="${spec}" ${process.env.CI ? 'minified' : ''}></mocha-framework>
             <script type="module">
                 window.process.env = ${JSON.stringify(processEnv)}
             </script>

@@ -8,7 +8,7 @@ import type { WebSocket } from 'ws'
 import { WebSocketServer } from 'ws'
 import { serializeError } from 'serialize-error'
 import { executeHooksWithArgs } from '@wdio/utils'
-import type { ViteDevServer, InlineConfig } from 'vite'
+import type { ViteDevServer, InlineConfig, ConfigEnv } from 'vite'
 import { createServer } from 'vite'
 import istanbulPlugin from 'vite-plugin-istanbul'
 import type { Services, Options } from '@wdio/types'
@@ -28,6 +28,10 @@ import { BROWSER_POOL, SESSIONS } from '../constants.js'
 
 const log = logger('@wdio/browser-runner:ViteServer')
 const HOOK_TIMEOUT = 15 * 1000
+const DEFAULT_CONFIG_ENV: ConfigEnv = {
+    command: 'serve',
+    mode: process.env.NODE_ENV === 'production' ? 'production' : 'development'
+}
 
 interface PendingHook {
     hookExecutionTimeout: NodeJS.Timeout
@@ -111,7 +115,9 @@ export class ViteServer extends EventEmitter {
                 ? (
                     await import(path.resolve(this.#config.rootDir || process.cwd(), this.#options.viteConfig))
                 ).default
-                : this.#options.viteConfig
+                : typeof this.#options.viteConfig === 'function'
+                    ? await this.#options.viteConfig(DEFAULT_CONFIG_ENV)
+                    : this.#options.viteConfig
             this.#viteConfig = deepmerge(this.#viteConfig, configToMerge)
         }
 
@@ -172,7 +178,7 @@ export class ViteServer extends EventEmitter {
     }
 
     #handleConsole (message: ConsoleEvent) {
-        const isWDIOLog = Boolean(typeof message.args[0] === 'string' && message.args[0].startsWith('[WDIO]'))
+        const isWDIOLog = Boolean(typeof message.args[0] === 'string' && message.args[0].startsWith('[WDIO]') && message.type !== 'error')
         if (message.name !== 'consoleEvent' || isWDIOLog) {
             return
         }
