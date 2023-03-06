@@ -47,5 +47,6 @@ _setGlobal('$$', browser.$$.bind(browser), window.__wdioEnv__.injectGlobals)
 
 const mochaFramework = document.querySelector('mocha-framework') as MochaFramework
 if (mochaFramework) {
+    await connectPromise
     mochaFramework.run(socket)
 }
