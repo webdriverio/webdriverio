@@ -4,6 +4,7 @@ import { commands } from 'virtual:wdio'
 import { webdriverMonad, sessionEnvironmentDetector } from '@wdio/utils'
 import { getEnvironmentVars } from 'webdriver'
 
+import { getCID } from './utils.js'
 import { MESSAGE_TYPES } from '../constants.js'
 import type { SocketMessage, SocketMessagePayload, ConsoleEvent, CommandRequestEvent } from '../vite/types.js'
 
@@ -24,8 +25,7 @@ export default class ProxyDriver {
         userPrototype: Record<string, PropertyDescriptor>,
         commandWrapper: any
     ) {
-        const urlParamString = new URLSearchParams(window.location.search)
-        const cid = urlParamString.get('cid')
+        const cid = getCID()
         if (!cid) {
             throw new Error('"cid" query parameter is missing')
         }

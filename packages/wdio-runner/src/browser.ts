@@ -101,6 +101,15 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
             // await browser.debug()
 
             /**
+             * set spec and cid as cookie so the Vite plugin can detect session even without
+             * query parameters
+             */
+            await browser.setCookies([
+                { name: 'WDIO_SPEC', value: url.fileURLToPath(spec) },
+                { name: 'WDIO_CID', value: this._cid }
+            ])
+
+            /**
              * wait for test results or page errors
              */
             let state: TestState = {}

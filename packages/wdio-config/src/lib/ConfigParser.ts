@@ -178,6 +178,13 @@ export default class ConfigParser {
         }
 
         /**
+         * cleanup duplicated "suite" if the same value was provided
+         */
+        if (object.suite && object.suite.length > 0) {
+            this._config.suite = this._config.suite?.filter((suite, idx, suites) => suites.indexOf(suite) === idx)
+        }
+
+        /**
          * overwrite capabilities
          */
         this._capabilities = validObjectOrArray(this._config.capabilities) ? this._config.capabilities : this._capabilities

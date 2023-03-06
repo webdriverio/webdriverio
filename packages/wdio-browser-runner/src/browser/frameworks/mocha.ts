@@ -2,6 +2,7 @@ import stringify from 'fast-safe-stringify'
 
 import { setupEnv, formatMessage } from '@wdio/mocha-framework/common'
 
+import { getCID } from '../utils.js'
 import { MESSAGE_TYPES, EVENTS } from '../../constants.js'
 import type { HookResultEvent, HookTriggerEvent, SocketMessage } from '../../vite/types.js'
 
@@ -88,9 +89,8 @@ export class MochaFramework extends HTMLElement {
         await import(file)
 
         this.#socket = socket
-        this.#socket.addEventListener('message', this.#handleSocketMessage.bind(this))
-        const urlParamString = new URLSearchParams(window.location.search)
-        const cid = urlParamString.get('cid')
+        socket.addEventListener('message', this.#handleSocketMessage.bind(this))
+        const cid = getCID()
         if (!cid) {
             throw new Error('"cid" query parameter is missing')
         }
@@ -163,8 +163,7 @@ export class MochaFramework extends HTMLElement {
     #getHook (name: string) {
         return (...args: any[]) => new Promise((resolve, reject) => {
             const id = (this.#hookResolver.size + 1).toString()
-            const urlParamString = new URLSearchParams(window.location.search)
-            const cid = urlParamString.get('cid')
+            const cid = getCID()
             if (!cid) {
                 return reject(new Error('"cid" query parameter is missing'))
             }

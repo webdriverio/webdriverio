@@ -75,6 +75,7 @@ test('transform', () => {
     expect((plugin[0].transform as Function)(expectJS, '.vite/deps/expect.js')).toMatchSnapshot()
 })
 
+const req = { headers: { cookie: '' } }
 test('configureServer continues if no url given', async () => {
     const plugin = testrunner({})
     const server = { middlewares: { use: vi.fn() }, transformIndexHtml: vi.fn((...args) => args) }
@@ -88,21 +89,21 @@ test('configureServer continues if no url given', async () => {
     expect(next).toBeCalledWith()
     next.mockClear()
 
-    middleware({ originalUrl: 'https://google.com' }, {}, next)
+    middleware({ ...req, originalUrl: 'https://google.com' }, {}, next)
     expect(next).toBeCalledWith()
     next.mockClear()
 
-    middleware({ originalUrl: 'http://localhost:1234/?cid=1-2&spec=foobar' }, {}, next)
+    middleware({ ...req, originalUrl: 'http://localhost:1234/?cid=1-2&spec=foobar' }, {}, next)
     expect(next).toBeCalledWith()
     next.mockClear()
 
     SESSIONS.set('1-2', {} as any)
-    middleware({ originalUrl: 'http://localhost:1234/?cid=1-2' }, {}, next)
+    middleware({ ...req, originalUrl: 'http://localhost:1234/?cid=1-2' }, {}, next)
     expect(next).toBeCalledWith()
     next.mockClear()
 
     vi.mocked(getTemplate).mockResolvedValue('some html')
-    await middleware({ originalUrl: 'http://localhost:1234/?cid=1-2&spec=foobar' }, res, next)
+    await middleware({ ...req, originalUrl: 'http://localhost:1234/?cid=1-2&spec=foobar' }, res, next)
     expect(getTemplate).toBeCalledTimes(1)
     expect(next).toBeCalledWith()
     expect(res.end).toBeCalledWith([
@@ -114,7 +115,7 @@ test('configureServer continues if no url given', async () => {
 
     vi.mocked(getTemplate).mockRejectedValue(new Error('ups'))
     vi.mocked(getErrorTemplate).mockReturnValue('some error html')
-    await middleware({ originalUrl: 'http://localhost:1234/?cid=1-2&spec=foobar' }, res, next)
+    await middleware({ ...req, originalUrl: 'http://localhost:1234/?cid=1-2&spec=foobar' }, res, next)
     expect(getTemplate).toBeCalledTimes(1)
     expect(getErrorTemplate).toBeCalledTimes(1)
     expect(next).toBeCalledWith()

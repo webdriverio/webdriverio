@@ -142,8 +142,8 @@ function ConfigParserForTest(config = FIXTURES_CONF) {
         ).build()
 }
 
-async function ConfigParserForTestWithAllFiles(configPath: string) {
-    return ConfigParserBuilder.withBaseDir(FIXTURES_PATH, configPath)
+async function ConfigParserForTestWithAllFiles(configPath: string, args = {}) {
+    return ConfigParserBuilder.withBaseDir(FIXTURES_PATH, configPath, args)
         .withFiles(
             await MockedFileSystem_LoadingAsMuchAsCanFromFileSystem()
         ).build()
@@ -477,10 +477,13 @@ describe('ConfigParser', () => {
         })
 
         it('should allow to specify a single suite', async () => {
-            const configParser = await ConfigParserForTestWithAllFiles(FIXTURES_CONF)
+            const configParser = await ConfigParserForTestWithAllFiles(FIXTURES_CONF, { suite: ['mobile'] })
             await configParser.initialize({ suite: ['mobile'] })
 
             const specs = configParser.getSpecs()
+            const suite = configParser.getConfig().suite
+
+            expect(suite).toHaveLength(1)
             expect(specs).toHaveLength(1)
             expect(specs).toContain(path.join(__dirname, 'RequireLibrary.test.ts'))
         })

@@ -124,10 +124,11 @@ export function testrunner(options: WebdriverIO.BrowserRunnerOptions): Plugin[] 
                         return next()
                     }
 
+                    const cookies = ((req.headers.cookie && req.headers.cookie.split(';')) || []).map((c) => c.trim())
                     const urlParsed = url.parse(req.originalUrl)
                     const urlParamString = new URLSearchParams(urlParsed.query || '')
-                    const cid = urlParamString.get('cid')
-                    const spec = urlParamString.get('spec')
+                    const cid = urlParamString.get('cid') || cookies.find((c) => c.includes('WDIO_CID'))?.split('=').pop()
+                    const spec = urlParamString.get('spec') || cookies.find((c) => c.includes('WDIO_SPEC'))?.split('=').pop()
                     if (!cid || !SESSIONS.has(cid)) {
                         log.error(`No environment found for ${cid || 'non determined environment'}`)
                         return next()

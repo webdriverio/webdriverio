@@ -210,7 +210,11 @@ function fetchElementByJSFunction (
     const script = (function (elem: HTMLElement, id: string) {
         return (selector as any as Function).call(elem, id)
     }).toString().replace('selector', `(${selector.toString()})`)
-    return getBrowserObject(scope).execute(`return (${script}).apply(null, arguments)`, scope, referenceId)
+    const args: (WebdriverIO.Element | string)[] = [scope as WebdriverIO.Element]
+    if (referenceId) {
+        args.push(referenceId)
+    }
+    return getBrowserObject(scope).execute(`return (${script}).apply(null, arguments)`, ...args)
 }
 
 export function isElement (o: Selector){
