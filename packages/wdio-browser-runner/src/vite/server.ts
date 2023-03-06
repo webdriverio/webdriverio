@@ -172,7 +172,7 @@ export class ViteServer extends EventEmitter {
     }
 
     #handleConsole (message: ConsoleEvent) {
-        const isWDIOLog = Boolean(typeof message.args[0] === 'string' && message.args[0].startsWith('[WDIO]'))
+        const isWDIOLog = Boolean(typeof message.args[0] === 'string' && message.args[0].startsWith('[WDIO]') && message.type !== 'error')
         if (message.name !== 'consoleEvent' || isWDIOLog) {
             return
         }

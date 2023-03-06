@@ -35,6 +35,7 @@ export default class ProxyDriver {
          */
         const connectPromise = window.__wdioConnectPromise__
         connectPromise.then(this.#wrapConsolePrototype.bind(this, cid))
+
         /**
          * handle Vite server socket messages
          */
