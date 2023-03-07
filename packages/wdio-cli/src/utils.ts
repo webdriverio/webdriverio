@@ -206,9 +206,11 @@ export function replaceConfig(config: string, type: string, name: string) {
 
 export function addServiceDeps(names: SupportedPackage[], packages: string[], update = false) {
     /**
-     * automatically install latest Chromedriver if `wdio-chromedriver-service` was selected for install
+     * Automatically install latest Chromedriver if `wdio-chromedriver-service` was selected for install.
+     * Also, set `DETECT_CHROMEDRIVER_VERSION` flag to have package install the right driver version.
      */
     if (names.some(({ short }) => short === 'chromedriver')) {
+        process.env.DETECT_CHROMEDRIVER_VERSION = '1'
         packages.push('chromedriver')
     }
 
