@@ -4,7 +4,7 @@ import { render } from '@testing-library/vue'
 import * as matchers from '@testing-library/jest-dom/matchers'
 expect.extend(matchers as any)
 
-import Component from '../../src/components/HelloWorld.vue'
+import Component from './HelloWorld.vue'
 
 describe('vue component tests', () => {
     it('should do something cool', async () => {
