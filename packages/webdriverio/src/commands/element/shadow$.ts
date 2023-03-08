@@ -1,7 +1,12 @@
+import logger from '@wdio/logger'
+
+import { shadowFnFactory } from '../../scripts/shadowFnFactory.js'
 import { getElement } from '../../utils/getElementObject.js'
 import { getBrowserObject } from '../../utils/index.js'
 import { findStrategy } from '../../utils/findStrategy.js'
 import { SHADOW_ELEMENT_KEY } from '../../constants.js'
+
+const log = logger('webdriverio')
 
 /**
  *
@@ -28,8 +33,16 @@ export async function shadow$ (
     selector: string
 ) {
     const browser = getBrowserObject(this)
-    const shadowRoot = await browser.getElementShadowRoot(this.elementId)
-    const { using, value } = findStrategy(selector as string, this.isW3C, this.isMobile)
-    const res = await browser.findElementFromShadowRoot(shadowRoot[SHADOW_ELEMENT_KEY], using, value)
-    return getElement.call(this, selector as string, res)
+    try {
+        const shadowRoot = await browser.getElementShadowRoot(this.elementId)
+        const { using, value } = findStrategy(selector as string, this.isW3C, this.isMobile)
+        const res = await browser.findElementFromShadowRoot(shadowRoot[SHADOW_ELEMENT_KEY], using, value)
+        return getElement.call(this, selector as string, res)
+    } catch (err: unknown) {
+        log.warn(
+            `Failed to fetch element within shadow DOM using WebDriver command: ${(err as Error).message}!\n` +
+            'Falling back to JavaScript shim.'
+        )
+        return this.$(shadowFnFactory(selector))
+    }
 }

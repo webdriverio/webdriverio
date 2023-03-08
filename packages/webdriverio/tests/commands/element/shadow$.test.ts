@@ -55,4 +55,28 @@ describe('shadow$', () => {
         const subElem = await el.shadow$('#shadowfoo')
         expect(subElem.isMobile).toBe(true)
     })
+
+    it('fails back to JS for browser that dont have shadow support in WebDriver', async () => {
+        const browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                browserName: 'foobar'
+            }
+        })
+        const errorResponse = { error: 'ups' }
+        const el = await browser.$('#foo')
+        got.setMockResponse([errorResponse, errorResponse, errorResponse, errorResponse])
+        const mock: any = {
+            $: vi.fn().mockReturnValue({ elem: 123 }),
+            options: {},
+            selector: 'foo',
+        }
+        mock.parent = { $: vi.fn().mockReturnValue({}) }
+        mock.waitForExist = vi.fn().mockResolvedValue(mock)
+        const elem = await el.shadow$.call(mock, '#shadowfoo')
+        expect(elem).toEqual({ elem: 123 })
+
+        expect(vi.mocked(got).mock.calls[1][0]!.pathname)
+            .toBe('/session/foobar-123/element')
+    })
 })
