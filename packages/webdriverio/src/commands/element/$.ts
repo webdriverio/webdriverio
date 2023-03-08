@@ -1,13 +1,26 @@
 /**
- * The `$` command is a short way to call the [`findElement`](/docs/api/webdriver#findelement) command in order
- * to fetch a single element on the page similar to the `$` command from the browser scope. The difference when calling
- * it from an element scope is that the driver will look within the children of that element. You can also pass in an object as selector
- * where the object contains a property `element-6066-11e4-a52e-4f735466cecf` with the value of a reference
- * to an element. The command will then transform the reference to an extended WebdriverIO element.
+ * The `$` command is a short and handy way in order to fetch a single element on the page.
+ *
+ * :::info
+ *
+ * As opposed to the [`$`](/docs/api/browser/$) attached to the [browser object](/docs/api/browser)
+ * this command queries an element based on a root element.
+ *
+ * :::
+ *
+ * You can also pass in an object as selector where the object contains a property `element-6066-11e4-a52e-4f735466cecf`
+ * with the value of a reference to an element. The command will then transform the reference to an extended WebdriverIO element.
  *
  * Note: chaining `$` and `$$` commands only make sense when you use multiple selector strategies. You will otherwise
  * make unnecessary requests that slow down the test (e.g. `$('body').$('div')` will trigger two request whereas
  * `$('body div')` does literally the same with just one request)
+ *
+ * You can chain `$` or `$$` together without wrapping individual commands into `await` in order
+ * to walk down the DOM tree, e.g.:
+ *
+ * ```js
+ * const imageSrc = await $$('div')[1].nextElement().$$('img')[2].getAttribute('src)
+ * ```
  *
  * :::info
  *

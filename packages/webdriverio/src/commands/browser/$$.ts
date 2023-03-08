@@ -5,14 +5,28 @@ import { getElements } from '../../utils/getElementObject.js'
 import type { Selector, ElementArray } from '../../types.js'
 
 /**
- * The `$$` command is a short way to call the [`findElements`](/docs/api/webdriver#findelements) command in order
- * to fetch multiple elements on the page. It returns an array with element results that will have an
- * extended prototype to call action commands without passing in a selector. However if you still pass
- * in a selector it will look for that element first and call the action on that element.
+ * The `$$` command is a short and handy way in order to fetch multiple elements on the page.
+ * It returns a `ChainablePromiseArray` containing a set of WebdriverIO elements.
  *
- * Using the wdio testrunner this command is a global variable else it will be located on the browser object instead.
+ * Using the wdio testrunner this command is a global variable, see [Globals](https://webdriver.io/docs/api/globals)
+ * for more information. Using WebdriverIO within a [standalone](https://webdriver.io/docs/setuptypes#standalone-mode)
+ * script it will be located on the browser object instead (e.g. `browser.$$`).
  *
- * You can chain `$` or `$$` together in order to walk down the DOM tree.
+ * You can chain `$` or `$$` together without wrapping individual commands into `await` in order
+ * to walk down the DOM tree, e.g.:
+ *
+ * ```js
+ * const imageSrc = await $$('div')[1].nextElement().$$('img')[2].getAttribute('src)
+ * ```
+ *
+ * It is also possible to use async iterators to loop over the result of the query, e.g.:
+ *
+ * ```js
+ * // print all image sources
+ * for await (const img of $$('img')) {
+ *   console.log(await img.getAttribute('src))
+ * }
+ * ```
  *
  * :::info
  *
