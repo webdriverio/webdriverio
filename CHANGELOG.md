@@ -19,6 +19,26 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.30.2 (2023-03-08)
+
+#### :bug: Bug Fix
+* `wdio-browserstack-service`
+  * [#9741](https://github.com/webdriverio/webdriverio/pull/9741) Cope with missing requestData ([@tjoris](https://github.com/tjoris))
+
+#### :nail_care: Polish
+* `wdio-browserstack-service`, `wdio-types`
+  * [#9807](https://github.com/webdriverio/webdriverio/pull/9807) [Browserstack-service] Support for BuildIdentifier and Fix for LocalIdentifier not adding in BrowserStack Capabilities ([@kamal-kaur04](https://github.com/kamal-kaur04))
+
+#### :memo: Documentation
+* `wdio-browserstack-service`
+  * [#9818](https://github.com/webdriverio/webdriverio/pull/9818) Updated Readme - added testObservability docs ([@sourav-kundu](https://github.com/sourav-kundu))
+
+#### Committers: 3
+- Kamalpreet Kaur ([@kamal-kaur04](https://github.com/kamal-kaur04))
+- Sourav Kundu ([@sourav-kundu](https://github.com/sourav-kundu))
+- [@tjoris](https://github.com/tjoris)
+
+
 ## v7.30.1 (2023-02-09)
 
 #### :nail_care: Polish
