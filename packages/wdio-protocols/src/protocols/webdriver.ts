@@ -703,7 +703,7 @@ export default {
             parameters: [],
             returns: {
                 type: 'string',
-                name: 'element',
+                name: 'shadowRoot',
                 description:
                     "A JSON representation of an element shadow root, e.g. `{ 'shadow-6066-11e4-a52e-4f735466cecf': 'ELEMENT_1' }`.",
             },

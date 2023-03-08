@@ -1,4 +1,7 @@
-import { shadowFnFactory } from '../../scripts/shadowFnFactory.js'
+import { getElement } from '../../utils/getElementObject.js'
+import { getBrowserObject } from '../../utils/index.js'
+import { findStrategy } from '../../utils/findStrategy.js'
+import { SHADOW_ELEMENT_KEY } from '../../constants.js'
 
 /**
  *
@@ -9,7 +12,7 @@ import { shadowFnFactory } from '../../scripts/shadowFnFactory.js'
  * <example>
     :shadow$$.js
     it('should return an element inside a shadowRoot', async () => {
-        const innerEl = await $('.input').shadow$('#innerEl');
+        const innerEl = await $('custom-component').shadow$('#innerEl');
         console.log(await innerEl.getValue()); // outputs: 'test123'
     });
  * </example>
@@ -24,5 +27,9 @@ export async function shadow$ (
     this: WebdriverIO.Element,
     selector: string
 ) {
-    return await this.$(shadowFnFactory(selector))
+    const browser = getBrowserObject(this)
+    const shadowRoot = await browser.getElementShadowRoot(this.elementId)
+    const { using, value } = findStrategy(selector as string, this.isW3C, this.isMobile)
+    const res = await browser.findElementFromShadowRoot(shadowRoot[SHADOW_ELEMENT_KEY], using, value)
+    return getElement.call(this, selector as string, res)
 }

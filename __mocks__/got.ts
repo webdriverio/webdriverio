@@ -1,6 +1,7 @@
 import { vi } from 'vitest'
 
 export const ELEMENT_KEY = 'element-6066-11e4-a52e-4f735466cecf'
+export const SHADOW_ELEMENT_KEY = 'shadow-6066-11e4-a52e-4f735466cecf'
 
 let manualMockResponse: any
 
@@ -12,6 +13,8 @@ let sessionId = defaultSessionId
 const genericElementId = 'some-elem-123'
 const genericSubElementId = 'some-sub-elem-321'
 const genericSubSubElementId = 'some-sub-sub-elem-231'
+const genericShadowElementId = 'some-shadow-elem-123'
+const genericSubShadowElementId = 'some-shadow-sub-elem-321'
 const requestMock: any = vi.fn().mockImplementation((uri, params) => {
     let value: any = {}
     let jsonwpMode = false
@@ -112,9 +115,19 @@ const requestMock: any = vi.fn().mockImplementation((uri, params) => {
         }
 
         break
-    case `${path}/${sessionId}/element/some-elem-123/element`:
+    case `${path}/${sessionId}/element/${genericElementId}/element`:
         value = {
             [ELEMENT_KEY]: genericSubElementId
+        }
+        break
+    case `${path}/${sessionId}/shadow/${genericShadowElementId}/element`:
+        value = {
+            [ELEMENT_KEY]: genericSubShadowElementId
+        }
+        break
+    case `${path}/${sessionId}/element/${genericElementId}/shadow`:
+        value = {
+            [SHADOW_ELEMENT_KEY]: genericShadowElementId
         }
         break
     case `${path}/${sessionId}/element/${genericSubElementId}/element`:
@@ -225,7 +238,7 @@ const requestMock: any = vi.fn().mockImplementation((uri, params) => {
                 ? { [ELEMENT_KEY]: 'some-parent-elem' }
                 : {}
         } else if (params.json.script.includes('nextElementSibling')) {
-            result = params.json.args[0][ELEMENT_KEY] === 'some-elem-123'
+            result = params.json.args[0][ELEMENT_KEY] === genericElementId
                 ? { [ELEMENT_KEY]: 'some-next-elem' }
                 : {}
         } else if (params.json.script.includes('function isFocused')) {
@@ -248,6 +261,13 @@ const requestMock: any = vi.fn().mockImplementation((uri, params) => {
             { [ELEMENT_KEY]: genericSubElementId, index: 0 },
             { [ELEMENT_KEY]: 'some-elem-456', index: 1 },
             { [ELEMENT_KEY]: 'some-elem-789', index: 2 },
+        ]
+        break
+    case `${path}/${sessionId}/shadow/${genericShadowElementId}/elements`:
+        value = [
+            { [ELEMENT_KEY]: genericSubShadowElementId, index: 0 },
+            { [ELEMENT_KEY]: 'some-sub-shadow-elem-456', index: 1 },
+            { [ELEMENT_KEY]: 'some-sub-shadow-elem-789', index: 2 },
         ]
         break
     case `${path}/${sessionId}/cookie`:
@@ -333,7 +353,7 @@ const requestMock: any = vi.fn().mockImplementation((uri, params) => {
         }
 
         // https://www.w3.org/TR/webdriver1/#handling-errors
-        let error = {
+        const error = {
             value: {
                 'error': 'stale element reference',
                 'message': 'element is not attached to the page document'
