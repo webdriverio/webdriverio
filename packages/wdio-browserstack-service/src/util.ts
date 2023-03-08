@@ -542,7 +542,16 @@ export function getObservabilityBuildTags(options: BrowserstackConfig & Options.
         return process.env.TEST_OBSERVABILITY_BUILD_TAG.split(',')
     }
     if (options.testObservabilityOptions && options.testObservabilityOptions.buildTag) {
-        return options.testObservabilityOptions.buildTag
+        const testObservabilitybuildTags = options.testObservabilityOptions.buildTag
+        if (Array.isArray(testObservabilitybuildTags) &&
+            testObservabilitybuildTags.length > 0 &&
+            testObservabilitybuildTags.every((value) => {
+                return typeof value === 'string'
+            })
+        ) {
+            return testObservabilitybuildTags
+        }
+        log.debug('[Start_Build] Observability build tags not detected, ensure that the buildTag capability under testObservabilityOptions is passed an array of strings')
     }
     if (bstackBuildTag) {
         return [bstackBuildTag]
