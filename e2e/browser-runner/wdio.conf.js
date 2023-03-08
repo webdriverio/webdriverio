@@ -41,6 +41,7 @@ export const config = {
     services: ['chromedriver'],
     runner: ['browser', {
         preset: process.env.WDIO_PRESET,
+        rootDir: path.resolve(__dirname, '..'),
         viteConfig: ({ command, mode }) => {
             const env = loadEnv(mode, __dirname, '')
             return {

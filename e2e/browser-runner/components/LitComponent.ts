@@ -9,6 +9,16 @@ const graphQLClient = new GraphQLClient(endpoint, {
     headers: { authorization: 'Bearer MY_TOKEN' }
 })
 
+@customElement('sub-elem')
+export class SubElem extends LitElement {
+    render() {
+        return html`<div>
+            <p class="selectMe">I am within another shadow root element</p>
+            <p class="selectMeToo">I am within another shadow root element as well</p>
+        </div>`
+    }
+}
+
 @customElement('simple-greeting')
 export class SimpleGreeting extends LitElement {
     #serverResponse?: string
@@ -31,6 +41,7 @@ export class SimpleGreeting extends LitElement {
             <button @click="${() => this.#handleClick(0)}">Good</button>
             <hr />
             <em>${this.#serverResponse}</em>
+            <sub-elem></sub-elem>
         </div>`
     }
 
@@ -47,7 +58,7 @@ export class SimpleGreeting extends LitElement {
             }
         `
 
-        const data = await graphQLClient.request(mutation, { mood: answer })
+        const data: any = await graphQLClient.request(mutation, { mood: answer })
             .catch(/* istanbul ignore next */ () => ({ result: 'Error: failed to make request' }))
         this.#serverResponse = data.result
         this.requestUpdate()

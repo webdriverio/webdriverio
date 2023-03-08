@@ -86,4 +86,22 @@ describe('Lit Component testing', () => {
         await $('simple-greeting').$('>>> button').click()
         await expect($('simple-greeting').$('>>> em')).toHaveText('Thanks for your answer!')
     })
+
+    it('should be able to chain shadow$ commands', async () => {
+        render(
+            html`<simple-greeting name="WebdriverIO" />`,
+            document.body
+        )
+        await expect($('simple-greeting').shadow$('sub-elem').shadow$('.selectMe'))
+            .toHaveText('I am within another shadow root element')
+
+        const pText = await $('simple-greeting')
+            .shadow$('sub-elem')
+            .shadow$$('p')
+            .map((elem) => elem.getText())
+        expect(pText).toEqual([
+            'I am within another shadow root element',
+            'I am within another shadow root element as well'
+        ])
+    })
 })
