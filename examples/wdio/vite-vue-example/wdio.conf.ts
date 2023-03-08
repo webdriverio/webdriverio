@@ -1,6 +1,9 @@
+import url from 'node:url'
 import type { Options } from '@wdio/types'
 
-import viteConfig from '../vite.config.js'
+import viteConfig from './vite.config.js'
+
+const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
 
 export const config: Options.Testrunner = {
     //
@@ -36,7 +39,7 @@ export const config: Options.Testrunner = {
     // will be called from there.
     //
     specs: [
-        './specs/**/*.ts'
+        './src/**/*.test.ts'
     ],
     // Patterns to exclude.
     exclude: [
@@ -47,7 +50,10 @@ export const config: Options.Testrunner = {
     // Runner
     // ======
     // WebdriverIO supports running e2e tests as well as unit and component tests.
-    runner: ['browser', { viteConfig }],
+    runner: ['browser', {
+        viteConfig,
+        rootDir: __dirname
+    }],
     //
     // ============
     // Capabilities

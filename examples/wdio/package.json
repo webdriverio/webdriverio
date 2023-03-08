@@ -6,6 +6,6 @@
     "test:multiremote": "../../packages/wdio-cli/bin/wdio.js ./multiremote/wdio.conf.js",
     "test:customReporter": "../../packages/wdio-cli/bin/wdio.js ./custom-reporter/wdio.conf.js",
     "test:customService": "../../packages/wdio-cli/bin/wdio.js ./custom-service/wdio.conf.js",
-    "test:viteVue": "../../packages/wdio-cli/bin/wdio.js ./vite-vue-example/wdio.conf.js"
+    "test:viteVue": "cd ./vite-vue-example && npm install && npm run wdio"
   }
 }
