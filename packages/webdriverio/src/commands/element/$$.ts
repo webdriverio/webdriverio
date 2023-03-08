@@ -1,7 +1,29 @@
 /**
- * The `$$` command is a short way to call the [`findElements`](/docs/api/webdriver#findelements) command in order
- * to fetch multiple elements on the page similar to the `$$` command from the browser scope. The difference when calling
- * it from an element scope is that the driver will look within the children of that element.
+ * The `$$` command is a short and handy way in order to fetch multiple elements on the page.
+ * It returns a `ChainablePromiseArray` containing a set of WebdriverIO elements.
+ *
+ * :::info
+ *
+ * As opposed to the [`$$`](/docs/api/browser/$$) attached to the [browser object](/docs/api/browser)
+ * this command queries elements based on a root element.
+ *
+ * :::
+ *
+ * You can chain `$` or `$$` together without wrapping individual commands into `await` in order
+ * to walk down the DOM tree, e.g.:
+ *
+ * ```js
+ * const imageSrc = await $$('div')[1].nextElement().$$('img')[2].getAttribute('src)
+ * ```
+ *
+ * It is also possible to use async iterators to loop over the result of the query, e.g.:
+ *
+ * ```js
+ * // print all image sources
+ * for await (const img of $$('img')) {
+ *   console.log(await img.getAttribute('src))
+ * }
+ * ```
  *
  * :::info
  *
