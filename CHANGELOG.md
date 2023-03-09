@@ -19,6 +19,16 @@ See [CHANGELOG - v6](https://github.com/webdriverio/webdriverio/blob/v6/CHANGELO
 
 ---
 
+## v7.30.3 (2023-03-09)
+
+#### :bug: Bug Fix
+* `wdio-browserstack-service`
+  * [#9918](https://github.com/webdriverio/webdriverio/pull/9918) check for mocha in hook ([@nurdtechie98](https://github.com/nurdtechie98))
+
+#### Committers: 1
+- Chirag Shetty ([@nurdtechie98](https://github.com/nurdtechie98))
+
+
 ## v7.30.2 (2023-03-08)
 
 #### :bug: Bug Fix
