@@ -21,6 +21,20 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.5.8 (2023-03-09)
+
+#### :bug: Bug Fix
+* `wdio-browserstack-service`
+  * [#9917](https://github.com/webdriverio/webdriverio/pull/9917) check for mocha in hook ([@nurdtechie98](https://github.com/nurdtechie98))
+
+#### :memo: Documentation
+* [#9915](https://github.com/webdriverio/webdriverio/pull/9915) chore(docs): fix broken anchor link pointing to localhost in runner doc ([@olivier-martin-sf](https://github.com/olivier-martin-sf))
+
+#### Committers: 2
+- Chirag Shetty ([@nurdtechie98](https://github.com/nurdtechie98))
+- Olivier Martin ([@olivier-martin-sf](https://github.com/olivier-martin-sf))
+
+
 ## v8.5.7 (2023-03-08)
 
 #### :eyeglasses: Spec Compliancy
