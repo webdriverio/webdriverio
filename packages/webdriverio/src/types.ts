@@ -212,10 +212,6 @@ interface InstanceBase extends EventEmitter, SessionFlags {
      */
     options: Options.WebdriverIO | Options.Testrunner
     /**
-     * Given WebdriverIO options (including custom configurations)
-     */
-    config: Options.WebdriverIO | Options.Testrunner
-    /**
      * Puppeteer instance
      */
     puppeteer?: PuppeteerBrowser
