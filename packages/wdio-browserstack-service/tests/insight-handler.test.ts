@@ -479,10 +479,9 @@ describe('beforeHook', () => {
     const attachHookDataSpy = jest.spyOn(insightsHandler, 'attachHookData').mockImplementation(() => { return [] })
 
     describe('mocha', () => {
-        insightsHandler['_tests'] = {}
-        insightsHandler['_framework'] = 'mocha'
-
         beforeEach(() => {
+            insightsHandler['_tests'] = {}
+            insightsHandler['_framework'] = 'mocha'
             sendSpy.mockClear()
             attachHookDataSpy.mockClear()
         })
@@ -500,10 +499,9 @@ describe('beforeHook', () => {
     })
 
     describe('cucumber', () => {
-        insightsHandler['_tests'] = {}
-        insightsHandler['_framework'] = 'cucumber'
-
         beforeEach(() => {
+            insightsHandler['_tests'] = {}
+            insightsHandler['_framework'] = 'cucumber'
             sendSpy.mockClear()
             attachHookDataSpy.mockClear()
         })
@@ -528,9 +526,9 @@ describe('afterHook', () => {
     const getUniqueIdentifierForCucumberSpy = jest.spyOn(utils, 'getUniqueIdentifierForCucumber').mockReturnValue('test title')
 
     describe('mocha', () => {
-        insightsHandler['_framework'] = 'mocha'
 
         beforeEach(() => {
+            insightsHandler['_framework'] = 'mocha'
             sendSpy.mockClear()
             attachHookDataSpy.mockClear()
             getUniqueIdentifierForCucumberSpy.mockClear()
@@ -560,9 +558,9 @@ describe('afterHook', () => {
     })
 
     describe('cucumber', () => {
-        insightsHandler['_framework'] = 'cucumber'
 
         beforeEach(() => {
+            insightsHandler['_framework'] = 'cucumber'
             sendSpy.mockClear()
             attachHookDataSpy.mockClear()
             getUniqueIdentifierForCucumberSpy.mockClear()
