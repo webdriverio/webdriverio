@@ -21,6 +21,16 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.5.9 (2023-03-10)
+
+#### :nail_care: Polish
+* `devtools`
+  * [#9927](https://github.com/webdriverio/webdriverio/pull/9927) [🐛 Bug]: Improve typing for `switchToFrame` command ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
 ## v8.5.8 (2023-03-09)
 
 #### :bug: Bug Fix
