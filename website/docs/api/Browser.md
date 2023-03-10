@@ -9,9 +9,9 @@ The browser object is the session instance you use to control the browser or mob
 
 The session is initialized by the test runner. The same goes for ending the session. This is also done by the test runner process.
 
-The browser object provides all methods from the [communication protocol](Protocols.md) section, e.g. [Chromium](/docs/api/chromium) communication protocol (if you are using Chromedriver) as well as commands listed within this section. Available protocol commands depend on the type of session. If you run an automated browser session, none of the Appium [commands](/docs/api/appium) will be available on the browser object and vice versa.
+The browser object provides all methods from the [communication protocol](Protocols.md) section, e.g. [Chromium](/docs/api/chromium) communication protocol (if you are using Chromedriver) as well as methods listed within this section. Available methods depend on the type of session. If you run an Chrome test session, none of the Appium [methods](/docs/api/appium) will be available on the browser object and vice versa.
 
-Besides all commands from the [API](API.md), the `browser` object provides some more information you might be interested in during your test run:
+Besides all methods from the [API](API.md), the `browser` object provides some more information you might be interested in during your test run:
 
 ## Properties
 
