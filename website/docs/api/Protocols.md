@@ -1,9 +1,9 @@
 ---
 id: protocols
-title: Protocol Commands
+title: Communication Protocols
 ---
 
-WebdriverIO is an automation framework that relies on various of automation protocols to control a remote agent, e.g. a browser, mobile device or television. Based on the remote device different protocols come into play. These commands are assigned to the [Browser](/docs/api/browser) or [Element](/docs/api/element) Object depending on the session information by the remote server (e.g. browser driver).
+WebdriverIO is an automation framework that relies on various of protocols to control a remote agent, e.g. a browser, mobile device or television. Based on the remote device different protocols come into play. These commands are assigned to the [Browser](/docs/api/browser) or [Element](/docs/api/element) Object depending on the session information by the remote server (e.g. browser driver) automatically.
 
 Internally WebdriverIO uses protocol commands for almost all interactions with the remote agent. However additional commands assigned to the [Browser](/docs/api/browser) or [Element](/docs/api/element) Object simplify the usage of WebdriverIO, e.g. getting the text of an element using protocol commands would look like this:
 
@@ -18,7 +18,7 @@ Using the convenient commands of the [Browser](/docs/api/browser) or [Element](/
 $('#lst-ib').getText()
 ```
 
-The following section explain each individual protocol.
+The following section explain each individual internal protocol.
 
 ## WebDriver Protocol
 
