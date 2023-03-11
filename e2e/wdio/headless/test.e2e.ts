@@ -100,23 +100,30 @@ describe('main suite 1', () => {
         await browser.setWindowSize(500, 500)
         const searchInput = await $('.searchinput')
 
-        await searchInput.scrollIntoView()
-        await browser.pause(500)
-        await searchInput.scrollIntoView({ block: 'center' })
-        await browser.pause(500)
-        const [wdioX, wdioY] = await browser.execute(() => [
-            window.scrollX, window.scrollY
-        ])
+        const scrollAndCheck = async (params?: ScrollIntoViewOptions | boolean) => {
+            await searchInput.scrollIntoView(params)
+            await browser.pause(500)
+            const [wdioX, wdioY] = await browser.execute(() => [
+                window.scrollX, window.scrollY
+            ])
 
-        await browser.execute((elem) => elem.scrollIntoView({ block: 'center' }), searchInput)
-        await browser.pause(500)
-        const [windowX, windowY] = await browser.execute(() => [
-            window.scrollX, window.scrollY
-        ])
+            await browser.execute((elem, _params) => elem.scrollIntoView(_params), searchInput, params)
+            await browser.pause(500)
+            const [windowX, windowY] = await browser.execute(() => [
+                window.scrollX, window.scrollY
+            ])
 
-        const failureMessage = `scrollIntoView failed, expected ${[wdioX, wdioY]} to equal ${[windowX, windowY]} ±10px`
-        expect(Math.abs(wdioX - windowX)).toBeLessThan(10, failureMessage)
-        expect(Math.abs(wdioY - windowY)).toBeLessThan(10, failureMessage)
+            const failureMessage = `scrollIntoView failed, expected ${[wdioX, wdioY]} to equal ${[windowX, windowY]} ±10px`
+            expect(Math.abs(wdioX - windowX)).toBeLessThan(10, failureMessage)
+            expect(Math.abs(wdioY - windowY)).toBeLessThan(10, failureMessage)
+        }
+
+        await scrollAndCheck({ block: 'nearest', inline: 'nearest' })
+        await scrollAndCheck()
+        await scrollAndCheck({ block: 'center', inline: 'center' })
+        await scrollAndCheck({ block: 'end', inline: 'end' })
+        await scrollAndCheck(true)
+        await scrollAndCheck({ block: 'nearest', inline: 'nearest' })
     })
 
 })

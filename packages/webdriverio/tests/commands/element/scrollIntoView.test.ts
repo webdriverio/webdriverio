@@ -21,10 +21,17 @@ describe('scrollIntoView test', () => {
             browser = await remote({
                 baseUrl: 'http://foobar.com',
                 capabilities: {
-                    browserName: 'foobar'
-                }
+                    browserName: 'foobar',
+                },
             })
             elem = await browser.$('#foo')
+            vi.spyOn(browser, 'getWindowSize').mockResolvedValue({ height: 800, width: 600 })
+            vi.spyOn(browser, 'getElementRect').mockImplementation(() =>
+                elem.getElementRect(elem.elementId).catch(() =>
+                    // there is a test forcing `elementId` to be invalid to check the fallback to the web API
+                    ({ x: 15, y: 20, height: 30, width: 50 })
+                )
+            )
         })
 
         it('scrolls by default the element to the top', async () => {

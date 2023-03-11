@@ -54,27 +54,38 @@ export async function scrollIntoView (
         return scrollIntoViewWeb.call(this, options)
     }
 
-    const elemRect = await browser.getElementRect(this.elementId)
-    let deltaX = 0
-    let deltaY = 0
     /**
      * by default the WebDriver action scrolls the element just into the
      * viewport. In order to stay complaint with `Element.scrollIntoView()`
      * we need to adjust the values a bit.
      */
-    if (typeof options === 'boolean' || typeof options.block === 'string' || typeof options.inline === 'string') {
-        const viewport = await browser.getWindowSize()
-        if ((options as ScrollIntoViewOptions).block === 'center') {
-            deltaY -= Math.round((viewport.height - elemRect.height) / 2)
+    const elemRect = await browser.getElementRect(this.elementId)
+    const viewport = await browser.getWindowSize()
+    const deltaByOption = {
+        start: { y: elemRect.y, x: elemRect.x },
+        center: { y: elemRect.y - Math.round((viewport.height - elemRect.height) / 2), x: elemRect.x - Math.round((viewport.width - elemRect.width) / 2) },
+        end: { y: elemRect.y - (viewport.height - elemRect.height), x: elemRect.x - (viewport.width - elemRect.width) }
+    }
+    let [deltaX, deltaY] = [deltaByOption.start.x, deltaByOption.start.y]
+    if (options && typeof options !== 'boolean') {
+        const { block, inline } = options
+        if (block === 'nearest') {
+            const nearestDistance = Math.min(...Object.values(deltaByOption).map(delta => Math.abs(delta.y)))
+            deltaY = Object.values(deltaByOption).find(delta => Math.abs(delta.y) === nearestDistance)!.y
+        } else if (block) {
+            deltaY = deltaByOption[block].y
         }
-        if ((options as ScrollIntoViewOptions).inline === 'center') {
-            deltaX -= Math.round((viewport.width - elemRect.width) / 2)
+        if (inline === 'nearest') {
+            const nearestDistance = Math.min(...Object.values(deltaByOption).map(delta => Math.abs(delta.x)))
+            deltaX = Object.values(deltaByOption).find(delta => Math.abs(delta.x) === nearestDistance)!.x
+        } else if (inline) {
+            deltaX = deltaByOption[inline].x
         }
     }
 
     try {
         return await browser.action('wheel')
-            .scroll({ duration: 200, x: elemRect.x, y: elemRect.y, deltaX, deltaY })
+            .scroll({ duration: 200, deltaX, deltaY })
             .perform()
     } catch (err: any) {
         log.warn(
