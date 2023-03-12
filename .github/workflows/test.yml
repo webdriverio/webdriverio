@@ -70,7 +70,7 @@ jobs:
           path: |
             e2e/wdio/*.log
             e2e/*.log
-            examples/wdio/browser-runner/logs
+            e2e/browser-runner/logs
   e2e-mac:
     runs-on: macos-latest
     steps:
