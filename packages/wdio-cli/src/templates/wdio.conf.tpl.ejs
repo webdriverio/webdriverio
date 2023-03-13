@@ -27,10 +27,10 @@ export const config: Options.Testrunner = {<%
     %>,<%
     if (answers.isUsingTypeScript) { %>
     autoCompileOpts: {
-        autoCompile: 'true',
+        autoCompile: true,
         tsNodeOpts: {
             project: '<%- answers.tsProject %>',
-            transpileOnly: 'true'
+            transpileOnly: true
         }
     },
     <% } %>
