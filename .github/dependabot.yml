@@ -27,11 +27,13 @@ updates:
     - dependency-name: "jasmine"
     - dependency-name: "puppeteer-core"
     - dependency-name: "serialize-error"
+    - dependency-name: "expect-webdriverio"
     # moved to ESM only
     - dependency-name: "del"
     - dependency-name: "got"
     - dependency-name: "long"
     - dependency-name: "tempy"
+    - dependency-name: "rimraf"
     - dependency-name: "inquirer"
     - dependency-name: "url-join"
     - dependency-name: "camelcase"
