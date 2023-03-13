@@ -25,6 +25,7 @@ updates:
     - dependency-name: "@types/jasmine"
     - dependency-name: "ky"
     - dependency-name: "jasmine"
+    - dependency-name: "minimatch"
     - dependency-name: "puppeteer-core"
     - dependency-name: "serialize-error"
     - dependency-name: "expect-webdriverio"
