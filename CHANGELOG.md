@@ -21,6 +21,16 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.6.0 (2023-03-13)
+
+#### :rocket: New Feature
+* `wdio-cli`, `wdio-config`
+  * [#9947](https://github.com/webdriverio/webdriverio/pull/9947) wdio-config: Add multi-run cli flag ([@WillBrock](https://github.com/WillBrock))
+
+#### Committers: 1
+- Will Brock ([@WillBrock](https://github.com/WillBrock))
+
+
 ## v8.5.9 (2023-03-10)
 
 #### :nail_care: Polish
