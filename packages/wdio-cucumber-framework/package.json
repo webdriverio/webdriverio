@@ -32,7 +32,8 @@
         "require": "./build/cjs/index.js"
       },
       "./build/cjs/index.js"
-    ]
+    ],
+    "./package.json": "./package.json"
   },
   "types": "./build/index.d.ts",
   "typeScriptVersion": "3.8.3",
