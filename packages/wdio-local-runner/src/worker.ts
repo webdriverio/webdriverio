@@ -168,6 +168,7 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
             } else {
                 this.sessionId = payload.content.sessionId
                 this.capabilities = payload.content.capabilities
+                Object.assign(this.config, payload.content)
             }
         }
 

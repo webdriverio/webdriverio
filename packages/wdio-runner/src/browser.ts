@@ -110,6 +110,17 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
             ])
 
             /**
+             * start framework execution
+             */
+            await browser.execute(() => {
+                const mochaFramework: any = document.querySelector('mocha-framework')
+                if (!mochaFramework) {
+                    throw new Error('Mocha framework not set-up in the browser!')
+                }
+                mochaFramework.run()
+            })
+
+            /**
              * wait for test results or page errors
              */
             let state: TestState = {}
