@@ -71,7 +71,7 @@ export const config = {
             logPath: './temp',
             args: {
                 version: "3.141.59",
-                seleniumArgs: ['-host', '127.0.0.1','-port', '5555']
+                seleniumArgs: ['--host', '127.0.0.1','--port', '5555']
             },
         }]
     ],
