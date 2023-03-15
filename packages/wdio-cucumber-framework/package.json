@@ -45,7 +45,7 @@
     "@wdio/logger": "8.1.0",
     "@wdio/types": "8.4.0",
     "@wdio/utils": "8.6.1",
-    "glob": "^8.0.3",
+    "glob": "^9.3.0",
     "is-glob": "^4.0.0",
     "mockery": "^2.1.0"
   },
