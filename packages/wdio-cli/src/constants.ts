@@ -214,7 +214,7 @@ export const QUESTIONNAIRE = [{
     type: 'confirm',
     name: 'installTestingLibrary',
     message: 'Do you like to use Testing Library (https://testing-library.com/) as test utility?',
-    default: false,
+    default: true,
     // only ask if there are more than 1 runner to pick from
     when: /* istanbul ignore next */ (answers: Questionnair) => (
         isBrowserRunner(answers) &&

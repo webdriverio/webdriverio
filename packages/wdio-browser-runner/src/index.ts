@@ -80,12 +80,16 @@ export default class BrowserRunner extends LocalRunner {
         }
 
         const worker = super.run(runArgs)
-        this.#server.on('debugState', (state: boolean) => worker.postMessage('switchDebugState', state))
+        this.#server.on('debugState', (state: boolean) => worker.postMessage('switchDebugState', state, true))
         this.#server.on('workerHookExecution', (payload: HookTriggerEvent) => {
             if (worker.cid !== payload.cid) {
                 return
             }
-            return worker.postMessage('workerHookExecution', payload)
+            if (worker.isKilled) {
+                log.debug(`Worker with cid ${payload.cid} was killed, skipping hook execution`)
+                return process.nextTick(() => this.#server.resolveHook(payload))
+            }
+            return worker.postMessage('workerHookExecution', payload, true)
         })
 
         worker.on('message', this.#onWorkerMessage.bind(this))

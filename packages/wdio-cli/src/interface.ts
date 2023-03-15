@@ -265,9 +265,6 @@ export default class WDIOCLInterface extends EventEmitter {
         }
 
         this._messages[event.origin][event.name].push(event.content)
-        if (this._isWatchMode) {
-            this.printReporters()
-        }
     }
 
     sigintTrigger() {
@@ -278,7 +275,7 @@ export default class WDIOCLInterface extends EventEmitter {
             return false
         }
 
-        const isRunning = this._jobs.size !== 0
+        const isRunning = this._jobs.size !== 0 || this._isWatchMode
         const shutdownMessage = isRunning
             ? 'Ending WebDriver sessions gracefully ...\n' +
             '(press ctrl+c again to hard kill the runner)'
@@ -312,10 +309,6 @@ export default class WDIOCLInterface extends EventEmitter {
     }
 
     finalise() {
-        if (this._isWatchMode) {
-            return
-        }
-
         this.printReporters()
         this.printSummary()
     }

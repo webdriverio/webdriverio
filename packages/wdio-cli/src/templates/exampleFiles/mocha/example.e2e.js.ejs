@@ -24,9 +24,9 @@ describe('My Login application', () => {
 <% } else if (runner === 'browser') {
 
 const componentSuffix = preset
-    ? preset.includes('react')
-        ? isUsingTypeScript ? 'tsx' : 'jsx'
-        : preset
+    ? ['svelte', 'vue'].includes(preset)
+        ? preset
+        : isUsingTypeScript ? 'tsx' : 'jsx'
     : isUsingTypeScript ? 'ts' : 'js'
 const importStatement = preset
     ? `import Component from '/path/to/component.${componentSuffix}'`

@@ -173,7 +173,8 @@ export default class Watcher {
          */
         for (const [, worker] of Object.entries(workers)) {
             const { cid, capabilities, specs, sessionId } = worker
-            const args = Object.assign({ sessionId, baseUrl: worker.config.baseUrl }, params)
+            const { hostname, path, port, protocol, automationProtocol } = worker.config
+            const args = Object.assign({ sessionId, baseUrl: worker.config.baseUrl, hostname, path, port, protocol, automationProtocol }, params)
             worker.postMessage('run', args)
             this._launcher.interface.emit('job:start', { cid, caps: capabilities, specs })
         }

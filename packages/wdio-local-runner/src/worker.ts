@@ -48,8 +48,11 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
     isMultiremote?: boolean
 
     isBusy = false
+    isKilled = false
     isReady: Promise<boolean>
+    isSetup: Promise<boolean>
     isReadyResolver: (value: boolean | PromiseLike<boolean>) => void = () => {}
+    isSetupResolver: (value: boolean | PromiseLike<boolean>) => void = () => {}
 
     /**
      * assigns paramters to scope of instance
@@ -79,9 +82,8 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
         this.stdout = stdout
         this.stderr = stderr
 
-        this.isReady = new Promise((resolve) => {
-            this.isReadyResolver = resolve
-        })
+        this.isReady = new Promise((resolve) => { this.isReadyResolver = resolve })
+        this.isSetup = new Promise((resolve) => { this.isSetupResolver = resolve })
     }
 
     /**
@@ -163,11 +165,13 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
          * store sessionId and connection data to worker instance
          */
         if (payload.name === 'sessionStarted') {
+            this.isSetupResolver(true)
             if (payload.content.isMultiremote) {
                 Object.assign(this, payload.content)
             } else {
                 this.sessionId = payload.content.sessionId
                 this.capabilities = payload.content.capabilities
+                Object.assign(this.config, payload.content)
             }
         }
 
@@ -207,6 +211,7 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
          */
         delete this.childProcess
         this.isBusy = false
+        this.isKilled = true
 
         log.debug(`Runner ${cid} finished with exit code ${exitCode}`)
         this.emit('exit', { cid, exitCode, specs, retries })
@@ -221,7 +226,7 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
      * @param  command  method to run in wdio-runner
      * @param  args     arguments for functions to call
      */
-    postMessage (command: string, args: Workers.WorkerMessageArgs): void {
+    postMessage (command: string, args: Workers.WorkerMessageArgs, requiresSetup = false): void {
         const { cid, configFile, capabilities, specs, retries, isBusy } = this
 
         if (isBusy && !ACCEPTABLE_BUSY_COMMANDS.includes(command)) {
@@ -238,7 +243,13 @@ export default class WorkerInstance extends EventEmitter implements Workers.Work
 
         const cmd: Workers.WorkerCommand = { cid, command, configFile, args, caps: capabilities, specs, retries }
         log.debug(`Send command ${command} to worker with cid "${cid}"`)
-        this.isReady.then(() => this.childProcess!.send(cmd))
+        this.isReady.then(async () => {
+            if (requiresSetup) {
+                await this.isSetup
+            }
+
+            this.childProcess!.send(cmd)
+        })
         this.isBusy = true
     }
 }

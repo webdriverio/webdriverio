@@ -35,6 +35,7 @@ describe('launcher', () => {
         launcher = new Launcher('./')
         launcher.interface = {
             onMessage: vi.fn(),
+            finalise: vi.fn(),
             emit: vi.fn(),
             sigintTrigger: vi.fn()
         } as any
@@ -200,6 +201,7 @@ describe('launcher', () => {
             launcher['_resolve'] = vi.fn()
             await launcher.endHandler({ cid: '0-1', exitCode: 0 } as any)
             expect(launcher.interface!.emit).toBeCalledWith('job:end', { cid: '0-1', passed: true })
+            expect(launcher.interface?.finalise).toBeCalledTimes(0)
             expect(launcher['_resolve']).toBeCalledTimes(0)
         })
 
@@ -211,6 +213,7 @@ describe('launcher', () => {
             launcher['_resolve'] = vi.fn()
             await launcher.endHandler({ cid: '0-1', exitCode: 1 } as any)
             expect(launcher.interface!.emit).toBeCalledWith('job:end', { cid: '0-1', passed: false })
+            expect(launcher.interface?.finalise).toBeCalledTimes(1)
             expect(launcher['_resolve']).toBeCalledTimes(0)
         })
 

@@ -116,7 +116,7 @@ exports[`template generation > solid 1`] = `
 import { render } from 'solid-js/web'
 
 // ToDo: fix me
-import Component from '/path/to/component.solid'
+import Component from '/path/to/component.tsx'
 
 describe('solid component tests', () => {
     const ref = document.createElement('div')

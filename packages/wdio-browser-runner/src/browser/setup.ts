@@ -45,8 +45,11 @@ _setGlobal('expect', expect, window.__wdioEnv__.injectGlobals)
 _setGlobal('$', browser.$.bind(browser), window.__wdioEnv__.injectGlobals)
 _setGlobal('$$', browser.$$.bind(browser), window.__wdioEnv__.injectGlobals)
 
+/**
+ * run framework immediatelly on page load
+ */
 const mochaFramework = document.querySelector('mocha-framework') as MochaFramework
 if (mochaFramework) {
-    await connectPromise
+    const socket = await connectPromise
     mochaFramework.run(socket)
 }
