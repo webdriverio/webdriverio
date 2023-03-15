@@ -33,7 +33,7 @@ jobs:
         run: npm run test
       - name: Interop Tests
         run: |
-          npm i chromedriver@110
+          npm i chromedriver --detect_chromedriver_version
           npm run test:e2e:cjs
       - uses: actions/upload-artifact@v3
         if: failure()
