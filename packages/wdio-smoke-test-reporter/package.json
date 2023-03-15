@@ -17,8 +17,17 @@
     "url": "https://github.com/webdriverio/webdriverio/issues"
   },
   "type": "module",
-  "exports": "./build/index.js",
   "types": "./build/index.d.ts",
+  "exports": {
+    ".": [
+      {
+        "import": "./build/index.js",
+        "types": "./build/index.d.ts"
+      },
+      "./build/index.js"
+    ],
+    "./package.json": "./package.json"
+  },
   "typeScriptVersion": "3.8.3",
   "dependencies": {
     "@wdio/reporter": "8.4.0"

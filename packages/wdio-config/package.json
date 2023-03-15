@@ -6,8 +6,17 @@
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-config",
   "license": "MIT",
   "type": "module",
-  "exports": "./build/index.js",
   "types": "./build/index.d.ts",
+  "exports": {
+    ".": [
+      {
+        "import": "./build/index.js",
+        "types": "./build/index.d.ts"
+      },
+      "./build/index.js"
+    ],
+    "./package.json": "./package.json"
+  },
   "typeScriptVersion": "3.8.3",
   "engines": {
     "node": "^16.13 || >=18"

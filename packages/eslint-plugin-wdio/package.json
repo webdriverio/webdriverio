@@ -17,8 +17,7 @@
         "require": "./cjs/index.js"
       },
       "./cjs/index.js"
-    ],
-    "./package.json": "./package.json"
+    ]
   },
   "typeScriptVersion": "3.8.3",
   "engines": {
