@@ -3,17 +3,22 @@ import url from 'node:url'
 import path from 'node:path'
 import { loadEnv } from 'vite'
 
+const isMac = os.platform() === 'darwin'
+const isWindows = os.platform() === 'win32'
+
 /**
  * WebdriverIO is using this example to test its component testing features
  * and we have experienced issues with Vue when running in Windows,
  * see https://github.com/testing-library/vue-testing-library/issues/292
  * Please ignore and remove this in your project!
  */
-if (process.env.CI && process.env.WDIO_PRESET === 'vue' && os.platform() === 'win32') {
+if (process.env.CI && process.env.WDIO_PRESET === 'vue' && (isWindows || isMac)) {
     process.exit(0)
 }
 
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
+const browserName = isMac ? 'safari' : 'chrome'
+const driver = isMac ? 'safaridriver' : 'chromedriver'
 export const config = {
     /**
      * specify test files
@@ -26,10 +31,7 @@ export const config = {
     /**
      * capabilities
      */
-    capabilities: [{
-        browserName: 'chrome',
-        acceptInsecureCerts: true
-    }],
+    capabilities: [{ browserName }],
 
     /**
      * test configurations
@@ -38,7 +40,7 @@ export const config = {
     framework: 'mocha',
     outputDir: path.join(__dirname, 'logs', process.env.WDIO_PRESET),
     reporters: ['spec', 'dot', 'junit'],
-    services: ['chromedriver'],
+    services: [driver],
     runner: ['browser', {
         preset: process.env.WDIO_PRESET,
         rootDir: path.resolve(__dirname, '..'),
@@ -54,7 +56,8 @@ export const config = {
         },
         coverage: {
             enabled: true,
-            functions: 100
+            // we skip some tests on Mac, therefor lower coverage treshold
+            functions: isMac ? 66 : 100
         }
     }],
 

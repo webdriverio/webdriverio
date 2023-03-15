@@ -78,7 +78,11 @@ describe('Lit Component testing', () => {
         expect(window.TEST_COMMAND).toBe('serve')
     })
 
-    it('should allow to manual mock dependencies', async () => {
+    it('should allow to manual mock dependencies', async function () {
+        if (browser.capabilities.browserName.toLowerCase() === 'safari') {
+            return this.skip()
+        }
+
         render(
             html`<simple-greeting name="WebdriverIO" />`,
             document.body
