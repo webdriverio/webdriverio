@@ -41,8 +41,7 @@ const resolvedVirtualModuleId = '\0' + virtualModuleId
  * functionality
  */
 const MODULES_TO_MOCK = [
-    'import-meta-resolve', 'puppeteer-core', 'archiver', 'glob', 'devtools', 'ws',
-    'jest-matcher-utils', 'decamelize'
+    'import-meta-resolve', 'puppeteer-core', 'archiver', 'glob', 'devtools', 'ws', 'decamelize'
 ]
 
 const POLYFILLS = [
