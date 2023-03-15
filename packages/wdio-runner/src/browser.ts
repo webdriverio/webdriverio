@@ -142,7 +142,7 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
                             }
                         }
                         const loadError = typeof window.__wdioErrors__ === 'undefined' && !document.querySelector('mocha-framework')
-                            ?  [{ message: `Failed to load test page (title = ${document.title})` }]
+                            ?  [{ message: `Failed to load test page (title = "${document.title}", source: ${document.documentElement.innerHTML})` }]
                             : null
                         const errors = viteError || window.__wdioErrors__ || loadError
                         return { failures, errors, hasViteError: Boolean(viteError) }
