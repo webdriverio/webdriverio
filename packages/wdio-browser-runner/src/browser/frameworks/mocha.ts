@@ -79,12 +79,7 @@ export class MochaFramework extends HTMLElement {
         }
     }
 
-    async run () {
-        /**
-         * wait for socket to be connected
-         */
-        const socket = await window.__wdioConnectPromise__
-
+    async run (socket: WebSocket) {
         /**
          * import test case (order is important here)
          */
@@ -92,6 +87,8 @@ export class MochaFramework extends HTMLElement {
         await import(file)
 
         this.#socket = socket
+        console.log('SOO', socket)
+
         socket.addEventListener('message', this.#handleSocketMessage.bind(this))
         const cid = getCID()
         if (!cid) {
