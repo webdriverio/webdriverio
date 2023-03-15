@@ -87,8 +87,6 @@ export class MochaFramework extends HTMLElement {
         await import(file)
 
         this.#socket = socket
-        console.log('SOO', socket)
-
         socket.addEventListener('message', this.#handleSocketMessage.bind(this))
         const cid = getCID()
         if (!cid) {
