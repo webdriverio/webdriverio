@@ -21,6 +21,16 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.6.1 (2023-03-15)
+
+#### :nail_care: Polish
+* `wdio-browser-runner`, `wdio-cli`, `wdio-local-runner`, `wdio-runner`
+  * [#9968](https://github.com/webdriverio/webdriverio/pull/9968) Watch mode improvements for browser runner ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
 ## v8.6.0 (2023-03-13)
 
 #### :rocket: New Feature
