@@ -141,7 +141,11 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
                                 viteError = [{ message: errorElems.map((elem) => elem.innerText).join('\n') }]
                             }
                         }
-                        const loadError = typeof window.__wdioErrors__ === 'undefined' && !document.querySelector('mocha-framework')
+                        const loadError = (
+                            typeof window.__wdioErrors__ === 'undefined' &&
+                            document.title !== 'WebdriverIO Browser Test' &&
+                            !document.querySelector('mocha-framework')
+                        )
                             ?  [{ message: `Failed to load test page (title = "${document.title}", source: ${document.documentElement.innerHTML})` }]
                             : null
                         const errors = viteError || window.__wdioErrors__ || loadError
