@@ -265,7 +265,7 @@ export const findStrategy = function (selector: SelectorStrategy, isW3C?: boolea
             )
         }
         conditions.push(
-            partial ? `contains(., "${query}")` : `normalize-space() = "${query}"`
+            partial ? `contains(., "${query}")` : `normalize-space(text()) = "${query}"`
         )
         value = `.//${tag || '*'}[${conditions.join(' and ')}]`
         break
