@@ -97,7 +97,17 @@ export function getParentSuiteName(fullTitle: string, testSuiteTitle: string): s
     return parentSuiteName.trim()
 }
 
-export async function launchTestSession (options: BrowserstackConfig & Options.Testrunner, config: Options.Testrunner, bsConfig: UserConfig) {
+function o11yAsyncErrorHandler(fn: Function) {
+    return async (...args : any) => {
+        try {
+            return await fn(...args)
+        } catch (err) {
+            log.error(`Error in ${fn.name}: ${err} `)
+        }
+    }
+}
+
+export const launchTestSession = o11yAsyncErrorHandler(async function (options: BrowserstackConfig & Options.Testrunner, config: Options.Testrunner, bsConfig: UserConfig) {
     const data = {
         format: 'json',
         project_name: getObservabilityProject(options, bsConfig.projectName),
@@ -161,9 +171,9 @@ export async function launchTestSession (options: BrowserstackConfig & Options.T
             log.error(`Data upload to BrowserStack Test Observability failed due to ${error}`)
         }
     }
-}
+})
 
-export async function stopBuildUpstream () {
+export const stopBuildUpstream = o11yAsyncErrorHandler(async function () {
     if (!process.env.BS_TESTOPS_BUILD_COMPLETED) {
         return
     }
@@ -200,7 +210,7 @@ export async function stopBuildUpstream () {
             message: error.message
         }
     }
-}
+})
 
 export function getCiInfo () {
     const env = process.env
