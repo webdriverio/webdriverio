@@ -53,6 +53,7 @@ export const DEFAULT_VITE_CONFIG: Partial<InlineConfig> = {
             // Enable esbuild polyfill plugins
             plugins: [
                 esbuildCommonjs(['@testing-library/vue']),
+                // @ts-expect-error issue between esbuild dep from WebdriverIO vs Vite
                 codeFrameFix()
             ],
         },
