@@ -69,6 +69,20 @@ Boilerplate project to run WebdriverIO tests with Jasmine using Babel features a
     -  Examples of DB connect to any RDBMS (Oracle, MySql, TeraData, Vertica etc.), any query execution / fetching result set etc. with examples for E2E testing
     -  BrowserStack, Sauce Labs, LambdTest and Appium specific `.config` file ( for playback on mobile device). For one click Appium setup on local machine for iOS and Android refer to [appium-setup-made-easy-OSX](https://github.com/amiya-pattnaik/appium-setup-made-easy-OSX).
 
+## [webdriverio/klassijs-boilerplate](https://github.com/klassijs/klassi-example-test-suite.git)
+
+- Frameworks
+    - WebdriverIO (v8)
+    - Cucumber (v8)
+
+- Features
+    - Contain sample test scenario in cucumber
+    - Integrates cucumber html reports with Embedded videos on failures
+    - Integrates Lambdatest and CircleCI services
+    - Integrates Visual, Accessibility and API testing
+    - Integrates Email functionality
+    - Integrates s3 bucket for test reports storage and retrieval
+
 # v7 Boilerplate Projects
 
 ## [webdriverio/appium-boilerplate](https://github.com/webdriverio/appium-boilerplate/)
@@ -164,28 +178,6 @@ Boilerplate project to run appium tests for native and mobile browser using cucu
     - Page Object Model
     - Contains sample test scenarios in cucumber
     - Integrated with multiple cucumber html reports
-
-## [larryg01/klassi-test-suite](https://github.com/larryg01/klassi-test-suite.git)
-
-Boilerplate test suite to run E2E Tests using WebdriverIO v7 and Cucumber v7 with page object model.
-
-- Frameworks
-    - WebdriverIO v7
-    - Cucumber v7
-
-- Features
-    - Page Object Model
-    - ESlint
-    - Contain sample test scenario in cucumber
-    - Integrated cucumber html reports
-    - Integrated Lambdatest, Browserstack services
-    - Integrated Visual Regression testing
-    - CircleCI Integration
-    - Integrated Email functionality
-    - Embedded video on failure from lambdatest/browserstack in reports
-    - Integrated Accessibility testing
-    - Integrated API testing
-    - Integrated s3 bucket for test reports storage and retrieval
 
 ## [serenity-js/serenity-js-mocha-webdriverio-template/](https://github.com/serenity-js/serenity-js-mocha-webdriverio-template/)
 
