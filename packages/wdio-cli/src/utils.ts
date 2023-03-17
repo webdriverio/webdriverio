@@ -405,6 +405,7 @@ export async function generateBrowserRunnerTestFiles(answers: ParsedAnswers) {
         ? answers.preset || 'lit'
         : ''
     const tplRootDir = path.join(TEMPLATE_ROOT_DIR, 'browser')
+    await fs.mkdir(answers.destSpecRootPath, { recursive: true })
 
     /**
      * render css file
