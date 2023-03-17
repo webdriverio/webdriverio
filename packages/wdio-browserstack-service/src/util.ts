@@ -102,7 +102,7 @@ function o11yAsyncErrorHandler(fn: Function) {
         try {
             return await fn(...args)
         } catch (err) {
-            log.error(`Error in ${fn.name}: ${err} `)
+            log.error(`Error in executing ${fn.name}: ${err} `)
         }
     }
 }
