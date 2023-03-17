@@ -1,7 +1,8 @@
-import { vi, describe, it, expect, afterEach, beforeEach, test } from 'vitest'
 import path from 'node:path'
 import * as cp from 'node:child_process'
 import fs from 'node:fs/promises'
+
+import { vi, describe, it, expect, afterEach, beforeEach, test } from 'vitest'
 import ejs from 'ejs'
 import inquirer from 'inquirer'
 import readDir from 'recursive-readdir'

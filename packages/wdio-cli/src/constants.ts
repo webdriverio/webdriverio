@@ -162,7 +162,7 @@ export const SUPPORTED_BROWSER_RUNNER_PRESETS = [
     { name: 'SolidJS (https://www.solidjs.com/)', value: 'vite-plugin-solid$--$solid' },
     { name: 'React (https://reactjs.org/)', value: '@vitejs/plugin-react$--$react' },
     { name: 'Preact (https://preactjs.com/)', value: '@preact/preset-vite$--$preact' },
-    { name: 'Other', value: '' }
+    { name: 'Other', value: false }
 ]
 
 export const TESTING_LIBRARY_PACKAGES: Record<string, string> = {
