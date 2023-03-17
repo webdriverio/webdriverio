@@ -459,6 +459,7 @@ describe('generateTestFiles', () => {
             '/foo/bar/example.e2e.js'
         ] as any)
         const answers = {
+            runner: 'local',
             framework: 'mocha',
             usePageObjects: true,
             generateTestFiles: true,
@@ -511,6 +512,7 @@ describe('generateTestFiles', () => {
             '/foo/bar/example.e2e.js'
         ] as any)
         const answers = {
+            runner: 'local',
             framework: 'jasmine',
             usePageObjects: true,
             generateTestFiles: true,
@@ -560,6 +562,7 @@ describe('generateTestFiles', () => {
     it('Jasmine with page generation and no pageObjects', async () => {
         vi.mocked(readDir).mockResolvedValue([] as any)
         const answers = {
+            runner: 'local',
             specs: './tests/e2e/**/*.js',
             framework: 'jasmine',
             generateTestFiles: false,
@@ -575,6 +578,7 @@ describe('generateTestFiles', () => {
     it('Cucumber with page generation and no pageObjects', async () => {
         vi.mocked(readDir).mockResolvedValue([] as any)
         const answers = {
+            runner: 'local',
             specs: './tests/e2e/**/*.js',
             framework: 'cucumber',
             generateTestFiles: false,
@@ -593,6 +597,7 @@ describe('generateTestFiles', () => {
             '/foo/bar/example.feature'
         ] as any)
         const answers = {
+            runner: 'local',
             specs: './tests/e2e/*.js',
             framework: 'cucumber',
             stepDefinitions: '/some/step/defs',
@@ -625,6 +630,7 @@ describe('generateTestFiles', () => {
             '/foo/bar/example.feature'
         ] as any)
         const answers = {
+            runner: 'local',
             framework: 'cucumber',
             usePageObjects: true,
             isUsingTypeScript: true,
@@ -663,6 +669,7 @@ describe('generateTestFiles', () => {
 describe('getPathForFileGeneration', () => {
     it('Cucumber with pageobjects default values', () => {
         const generatedPaths = getPathForFileGeneration({
+            runner: 'local',
             stepDefinitions: './features/step-definitions/steps.js',
             pages: './features/pageobjects/**/*.js',
             generateTestFiles: true,
@@ -674,6 +681,7 @@ describe('getPathForFileGeneration', () => {
 
     it('Cucumber with pageobjects default different path', () => {
         const generatedPaths = getPathForFileGeneration({
+            runner: 'local',
             stepDefinitions: './features/step-definitions/steps.js',
             pages: './features/page/objects/**/*.js',
             generateTestFiles: true,
@@ -685,6 +693,7 @@ describe('getPathForFileGeneration', () => {
 
     it('Mocha with pageobjects default values', () => {
         const generatedPaths = getPathForFileGeneration({
+            runner: 'local',
             specs: './test/specs/**/*.js',
             pages: './test/pageobjects/**/*.js',
             generateTestFiles: true,
@@ -696,6 +705,7 @@ describe('getPathForFileGeneration', () => {
 
     it('Mocha with pageobjects different path', () => {
         const generatedPaths = getPathForFileGeneration({
+            runner: 'local',
             specs: './test/specs/files/**/*.js',
             pages: './test/pageobjects/**/*.js',
             generateTestFiles: true,
@@ -707,6 +717,7 @@ describe('getPathForFileGeneration', () => {
 
     it('Do not auto generate file', () => {
         const generatedPaths = getPathForFileGeneration({
+            runner: 'local',
             specs: './test/specs/files/**/*.js',
             pages: './test/pageobjects/**/*.js',
             generateTestFiles: false,
@@ -718,6 +729,7 @@ describe('getPathForFileGeneration', () => {
 
     it('Do not use PageObjects', () => {
         const generatedPaths = getPathForFileGeneration({
+            runner: 'local',
             specs: './test/specs/files/**/*.js',
             pages: './test/pageobjects/**/*.js',
             generateTestFiles: true,

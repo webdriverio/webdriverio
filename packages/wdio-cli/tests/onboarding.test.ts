@@ -6,7 +6,8 @@ import { generateBrowserRunnerTestFiles } from '../src/utils.js'
 
 vi.mock('node:fs/promises', () => ({
     default: {
-        writeFile: vi.fn().mockReturnValue(Promise.resolve())
+        writeFile: vi.fn().mockReturnValue(Promise.resolve()),
+        mkdir: vi.fn().mockReturnValue(Promise.resolve('/foo/bar'))
     }
 }))
 
