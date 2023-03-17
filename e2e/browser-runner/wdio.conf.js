@@ -3,7 +3,7 @@ import url from 'node:url'
 import path from 'node:path'
 import { loadEnv } from 'vite'
 
-const isMac = os.platform() === 'darwin'
+const isMac = os.platform() === 'darwin' && process.env.CI
 const isWindows = os.platform() === 'win32'
 
 /**

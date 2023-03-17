@@ -111,4 +111,126 @@ describe('Lit Component testing', () => {
             'I am within another shadow root element as well'
         ])
     })
+
+    describe('Selector Tests', () => {
+        it('fetches element by content correctly', async () => {
+            render(
+                html`<div><div><div>Find me</div></div></div>`,
+                document.body
+            )
+            expect(await $('div=Find me').getHTML(false)).toBe('Find me')
+            expect(await $('div*=me').getHTML(false)).toBe('Find me')
+        })
+
+        it('fetches element by JS function', async () => {
+            expect(await $(() => document.body).getTagName()).toBe('body')
+        })
+
+        describe('a11y selectors', () => {
+            it('aria label is received from element content', async () => {
+                // https://www.w3.org/TR/accname-1.1/#step2B
+                render(
+                    html`<div><div><div>Find me</div></div></div>`,
+                    document.body
+                )
+                expect(await $('aria/Find me').getHTML(false)).toBe('Find me')
+            })
+
+            it(' images with an alt tag', async () => {
+                // https://www.w3.org/TR/accname-1.1/#step2D
+                render(
+                    html`<img alt="foo" src="Find me">`,
+                    document.body
+                )
+                await expect($('aria/foo')).toHaveAttribute('src', 'Find me')
+            })
+
+            it('aria label is received by its title attribute', async () => {
+                // https://www.a11yproject.com/posts/title-attributes/
+                render(
+                    html`<img src="/you/got/it.png" alt="" title="Find me" />`,
+                    document.body
+                )
+                await expect($('aria/Find me')).toHaveAttribute('src', '/you/got/it.png')
+            })
+
+            it('aria label is received by an input placeholder', async () => {
+                // https://www.w3.org/TR/accname-1.1/#step2D
+                render(
+                    html`
+                        <input type="text" placeholder="Find me" />
+                        <textarea placeholder="Find me" />
+                    `,
+                    document.body
+                )
+                expect(await $$('aria/Find me').length).toBe(2)
+            })
+
+            it('aria label is received by an input aria-placeholder', async () => {
+                // https://www.w3.org/TR/accname-1.1/#step2D
+                render(
+                    html`
+                        <input type="text" aria-placeholder="Find me" />
+                        <textarea aria-placeholder="Find me" />
+                    `,
+                    document.body
+                )
+                expect(await $$('aria/Find me').length).toBe(2)
+            })
+
+            /**
+             * fails due to https://github.com/webdriverio/webdriverio/issues/8826
+             */
+            it.skip('inputs with a label', async () => {
+                // https://www.w3.org/TR/accname-1.1/#step2D
+                render(
+                    html`
+                        <label for="search">Search</label>
+                        <input id="search" type="text" value="Hello World!" />
+                    `,
+                    document.body
+                )
+                const elem = await $('aria/Search')
+                await expect(elem).toHaveValue('Hello World!')
+            })
+
+            it('aria label is recevied by other element with aria-labelledBy', async () => {
+                // https://www.w3.org/TR/accname-1.1/#step2B
+                render(
+                    html`
+                        <button aria-labelledby="ref-1">Click Me!</button>
+                        <div id="ref-1">Some Button</div>
+                    `,
+                    document.body
+                )
+                const elem = await $('aria/Some Button')
+                await expect(elem).toHaveText('Click Me!')
+            })
+
+            it('aria label is recevied by other element with aria-describedby', async () => {
+                // https://www.w3.org/TR/accname-1.1/#step2B
+                render(
+                    html`
+                        <button aria-describedby="ref-1">Click Me!</button>
+                        <div id="ref-1">Some Button</div>
+                    `,
+                    document.body
+                )
+                const elem = await $('aria/Some Button')
+                await expect(elem).toHaveText('Click Me!')
+            })
+
+            it('element has direct aria label', async () => {
+                // https://www.w3.org/TR/accname-1.1/#step2C
+                render(
+                    html`<div>
+                        <button aria-label="FindMe">Click Me!</button>
+                    </div>`,
+                    document.body
+                )
+                const elem = await $('aria/FindMe')
+                await expect(elem).toHaveText('Click Me!')
+            })
+        })
+    })
 })
