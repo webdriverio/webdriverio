@@ -123,7 +123,7 @@ describe('Lit Component testing', () => {
         })
 
         it('fetches element by JS function', async () => {
-            expect(await $(() => document.body).getTagName()).toBe('body')
+            expect((await $(() => document.body).getTagName()).toLowerCase()).toBe('body')
         })
 
         describe('a11y selectors', () => {
