@@ -1,6 +1,6 @@
 {
   "name": "@wdio/config",
-  "version": "8.6.1",
+  "version": "8.6.2",
   "description": "A helper utility to parse and validate WebdriverIO options",
   "author": "Christian Bromann <mail@bromann.dev>",
   "homepage": "https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-config",

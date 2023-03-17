@@ -41,7 +41,8 @@
     "expect": "^29.1.2",
     "graphql-request": "^5.1.0",
     "mocha": "^10.2.0",
-    "wdio-chromedriver-service": "^8.0.1"
+    "wdio-chromedriver-service": "^8.0.1",
+    "wdio-safaridriver-service": "^2.1.0"
   },
   "dependencies": {
     "lit": "^2.4.0",
