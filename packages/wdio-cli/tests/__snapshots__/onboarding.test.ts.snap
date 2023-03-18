@@ -29,13 +29,14 @@ describe('Svelte Component Testing', () => {
     it('should test component with WebdriverIO', async () => {
         render(ExampleComponent)
 
-        const component = await $('button=count is 0')
+        const component = await $('button*=count is')
         await expect(component).toBePresent()
+        await expect(component).toHaveText('count is 0')
 
         await component.click()
         await component.click()
 
-        await expect($('button=count is 2')).toBePresent()
+        await expect(component).toHaveText('count is 2')
     })
 })
 "
@@ -66,13 +67,14 @@ describe('Svelte Component Testing', () => {
     it('should test component with WebdriverIO', async () => {
         new ExampleComponent({ target: container, props: {} })
 
-        const component = await $('button=count is 0')
+        const component = await $('button*=count is')
         await expect(component).toBePresent()
+        await expect(component).toHaveText('count is 0')
 
         await component.click()
         await component.click()
 
-        await expect($('button=count is 2')).toBePresent()
+        await expect(component).toHaveText('count is 2')
     })
 })
 "
@@ -110,13 +112,14 @@ describe('Vue Component Testing', () => {
     it('should test component with WebdriverIO', async () => {
         render(ExampleComponent, { props: { msg: 'WebdriverIO Component Testing' } })
 
-        const component = await $('button=count is 0')
+        const component = await $('button*=count is')
         await expect(component).toBePresent()
+        await expect(component).toHaveText('count is 2')
 
         await component.click()
         await component.click()
 
-        await expect($('button=count is 2')).toBePresent()
+        await expect(component).toHaveText('count is 2')
     })
 })
 "
@@ -148,13 +151,14 @@ describe('Vue Component Testing', () => {
     it('should test component with WebdriverIO', async () => {
         createApp(ExampleComponent, { msg: 'WebdriverIO Component Testing' }).mount(container)
 
-        const component = await $('button=count is 0')
+        const component = await $('button*=count is')
         await expect(component).toBePresent()
+        await expect(component).toHaveText('count is 2')
 
         await component.click()
         await component.click()
 
-        await expect($('button=count is 2')).toBePresent()
+        await expect(component).toHaveText('count is 2')
     })
 })
 "
@@ -214,13 +218,14 @@ describe('Preact Component Tests', () => {
     it('should test component with WebdriverIO', async () => {
         render(<ExampleComponent />)
 
-        const component = await $('button=count is 0')
+        const component = await $('button*=count is')
         await expect(component).toBePresent()
+        await expect(component).toHaveText('count is 0')
 
         await component.click()
         await component.click()
 
-        await expect($('button=count is 2')).toBePresent()
+        await expect(component).toHaveText('count is 2')
     })
 })
 "
@@ -255,13 +260,14 @@ describe('Preact Component Tests', () => {
         const root = createRoot(container)
         root.render(<ExampleComponent />)
 
-        const component = await $('button=count is 0')
+        const component = await $('button*=count is')
         await expect(component).toBePresent()
+        await expect(component).toHaveText('count is 0')
 
         await component.click()
         await component.click()
 
-        await expect($('button=count is 2')).toBePresent()
+        await expect(component).toHaveText('count is 2')
     })
 })
 "
@@ -295,13 +301,14 @@ describe('React Component Tests', () => {
     it('should test component with WebdriverIO', async () => {
         render(<ExampleComponent />)
 
-        const component = await $('button=count is 0')
+        const component = await $('button*=count is')
         await expect(component).toBePresent()
+        await expect(component).toHaveText('count is 0')
 
         await component.click()
         await component.click()
 
-        await expect($('button=count is 2')).toBePresent()
+        await expect(component).toHaveText('count is 2')
     })
 })
 "
@@ -333,13 +340,14 @@ describe('React Component Tests', () => {
         const root = createRoot(container)
         root.render(<ExampleComponent />)
 
-        const component = await $('button=count is 0')
+        const component = await $('button*=count is')
         await expect(component).toBePresent()
+        await expect(component).toHaveText('count is 0')
 
         await component.click()
         await component.click()
 
-        await expect($('button=count is 2')).toBePresent()
+        await expect(component).toHaveText('count is 2')
     })
 })
 "
@@ -374,13 +382,14 @@ describe('Preact Component Tests', () => {
     it('should test component with WebdriverIO', async () => {
         render(() => <ExampleComponent />)
 
-        const component = await $('button=count is 0')
+        const component = await $('button*=count is')
         await expect(component).toBePresent()
+        await expect(component).toHaveText('count is 0')
 
         await component.click()
         await component.click()
 
-        await expect($('button=count is 2')).toBePresent()
+        await expect(component).toHaveText('count is 2')
     })
 })
 "
@@ -410,13 +419,14 @@ describe('Preact Component Tests', () => {
     it('should test component with WebdriverIO', async () => {
         render(<ExampleComponent />, container)
 
-        const component = await $('button=count is 0')
+        const component = await $('button*=count is')
         await expect(component).toBePresent()
+        await expect(component).toHaveText('count is 0')
 
         await component.click()
         await component.click()
 
-        await expect($('button=count is 2')).toBePresent()
+        await expect(component).toHaveText('count is 2')
     })
 })
 "

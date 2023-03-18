@@ -577,13 +577,14 @@ export function getPathForFileGeneration(answers: Questionnair, projectRootDir: 
 export async function getDefaultFiles(answers: Questionnair, pattern: string) {
     const projectProps = await getProjectProps()
     const rootdir = getProjectRoot(answers, projectProps)
-    const isJSX = TSX_BASED_FRAMEWORKS.includes(answers.preset || '')
+    const presetPackage = convertPackageHashToObject(answers.preset || '')
+    const isJSX = TSX_BASED_FRAMEWORKS.includes(presetPackage.short || '')
     const val = pattern.endsWith('.feature')
         ? path.join(rootdir, pattern)
         : answers?.isUsingCompiler?.toString().includes('TypeScript')
-            ? `${path.join(rootdir, pattern)}.ts`
-            : `${path.join(rootdir, pattern)}.js`
-    return val + (isJSX ? 'x' : '')
+            ? `${path.join(rootdir, pattern)}.ts${isJSX ? 'x' : ''}`
+            : `${path.join(rootdir, pattern)}.js${isJSX ? 'x' : ''}`
+    return val
 }
 
 /**
