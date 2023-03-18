@@ -1,6 +1,6 @@
 // Vitest Snapshot v1
 
-exports[`Svelte > with testing-library 1`] = `
+exports[`onboarding templates > Svelte > with testing-library 1`] = `
 "
 import { $, expect } from '@wdio/globals'
 import { render, fireEvent } from '@testing-library/svelte'
@@ -41,7 +41,7 @@ describe('Svelte Component Testing', () => {
 "
 `;
 
-exports[`Svelte > without testing-library 1`] = `
+exports[`onboarding templates > Svelte > without testing-library 1`] = `
 "
 import { $, expect } from '@wdio/globals'
 
@@ -78,7 +78,7 @@ describe('Svelte Component Testing', () => {
 "
 `;
 
-exports[`Vue > with testing-library 1`] = `
+exports[`onboarding templates > Vue > with testing-library 1`] = `
 "
 import { $, expect } from '@wdio/globals'
 import { render, fireEvent } from '@testing-library/vue'
@@ -122,7 +122,7 @@ describe('Vue Component Testing', () => {
 "
 `;
 
-exports[`Vue > without testing-library 1`] = `
+exports[`onboarding templates > Vue > without testing-library 1`] = `
 "
 import { $, expect } from '@wdio/globals'
 import { createApp } from 'vue'
@@ -160,7 +160,7 @@ describe('Vue Component Testing', () => {
 "
 `;
 
-exports[`lit > without testing-library 1`] = `
+exports[`onboarding templates > lit > without testing-library 1`] = `
 "import { html, render } from 'lit'
 import { $, expect } from '@wdio/globals'
 
@@ -186,7 +186,7 @@ describe('Lit component testing', () => {
 "
 `;
 
-exports[`preact > with testing-library 1`] = `
+exports[`onboarding templates > preact > with testing-library 1`] = `
 "
 import { expect, $ } from '@wdio/globals'
 import { h } from 'preact'
@@ -226,7 +226,7 @@ describe('Preact Component Tests', () => {
 "
 `;
 
-exports[`preact > without testing-library 1`] = `
+exports[`onboarding templates > preact > without testing-library 1`] = `
 "
 import { expect, $ } from '@wdio/globals'
 import { render, h } from 'preact'
@@ -267,7 +267,7 @@ describe('Preact Component Tests', () => {
 "
 `;
 
-exports[`react > with testing-library 1`] = `
+exports[`onboarding templates > react > with testing-library 1`] = `
 "
 import React from 'react'
 import { expect, $ } from '@wdio/globals'
@@ -307,7 +307,7 @@ describe('React Component Tests', () => {
 "
 `;
 
-exports[`react > without testing-library 1`] = `
+exports[`onboarding templates > react > without testing-library 1`] = `
 "
 import React from 'react'
 import { expect, $ } from '@wdio/globals'
@@ -345,7 +345,7 @@ describe('React Component Tests', () => {
 "
 `;
 
-exports[`solid > with testing-library 1`] = `
+exports[`onboarding templates > solid > with testing-library 1`] = `
 "
 import { expect, $ } from '@wdio/globals'
 import { cleanup, render, screen } from 'solid-testing-library'
@@ -386,7 +386,7 @@ describe('Preact Component Tests', () => {
 "
 `;
 
-exports[`solid > without testing-library 1`] = `
+exports[`onboarding templates > solid > without testing-library 1`] = `
 "
 import { expect, $ } from '@wdio/globals'
 import { render } from 'solid-js/web'

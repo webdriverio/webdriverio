@@ -14,7 +14,7 @@ vi.mock('node:fs/promises', () => ({
 
 const destSpecRootPath = path.resolve(path.sep, 'foo', 'bar')
 
-describe.only('', () => {
+describe('onboarding templates', () => {
     beforeEach(async () => {
         vi.mocked(fs.writeFile).mockClear()
     })
@@ -28,12 +28,12 @@ describe.only('', () => {
                 isUsingTypeScript: true
             } as any)
             expect(fs.writeFile).toBeCalledTimes(3)
-            let [filePath, content] = vi.mocked(fs.writeFile).mock.calls[0] as string[]
-            expect(filePath).toBe(path.resolve(path.sep, 'foo', 'bar', 'Component.css'))
-            ;[filePath] = vi.mocked(fs.writeFile).mock.calls[1] as string[]
-            expect(filePath).toBe(path.resolve(path.sep, 'foo', 'bar', 'Component.tsx'))
-            ;[filePath, content] = vi.mocked(fs.writeFile).mock.calls[2] as string[]
-            expect(filePath).toBe(path.resolve(path.sep, 'foo', 'bar', 'Component.test.tsx'))
+            const [cssFilePath] = vi.mocked(fs.writeFile).mock.calls[0] as string[]
+            expect(cssFilePath).toBe(path.resolve(path.sep, 'foo', 'bar', 'Component.css'))
+            const [componentFilePath] = vi.mocked(fs.writeFile).mock.calls[1] as string[]
+            expect(componentFilePath).toBe(path.resolve(path.sep, 'foo', 'bar', 'Component.tsx'))
+            const [testFilePath, content] = vi.mocked(fs.writeFile).mock.calls[2] as string[]
+            expect(testFilePath).toBe(path.resolve(path.sep, 'foo', 'bar', 'Component.test.tsx'))
             expect(content).toMatchSnapshot()
         })
 
@@ -45,12 +45,12 @@ describe.only('', () => {
                 isUsingTypeScript: true
             } as any)
             expect(fs.writeFile).toBeCalledTimes(3)
-            let [filePath, content] = vi.mocked(fs.writeFile).mock.calls[0] as string[]
-            expect(filePath).toBe(path.resolve(path.sep, 'foo', 'bar', 'Component.css'))
-            ;[filePath] = vi.mocked(fs.writeFile).mock.calls[1] as string[]
-            expect(filePath).toBe(path.resolve(path.sep, 'foo', 'bar', 'Component.tsx'))
-            ;[filePath, content] = vi.mocked(fs.writeFile).mock.calls[2] as string[]
-            expect(filePath).toBe(path.resolve(path.sep, 'foo', 'bar', 'Component.test.tsx'))
+            const [cssFilePath] = vi.mocked(fs.writeFile).mock.calls[0] as string[]
+            expect(cssFilePath).toBe(path.resolve(path.sep, 'foo', 'bar', 'Component.css'))
+            const [componentFilePath] = vi.mocked(fs.writeFile).mock.calls[1] as string[]
+            expect(componentFilePath).toBe(path.resolve(path.sep, 'foo', 'bar', 'Component.tsx'))
+            const [testFilePath, content] = vi.mocked(fs.writeFile).mock.calls[2] as string[]
+            expect(testFilePath).toBe(path.resolve(path.sep, 'foo', 'bar', 'Component.test.tsx'))
             expect(content).toMatchSnapshot()
         })
 
@@ -61,10 +61,10 @@ describe.only('', () => {
                 installTestingLibrary: false,
                 isUsingTypeScript: false
             } as any)
-            let [filePath] = vi.mocked(fs.writeFile).mock.calls[1] as string[]
-            expect(filePath).toBe(path.resolve(path.sep, 'foo', 'bar', 'Component.jsx'))
-            ;[filePath] = vi.mocked(fs.writeFile).mock.calls[2] as string[]
-            expect(filePath).toBe(path.resolve(path.sep, 'foo', 'bar', 'Component.test.jsx'))
+            const [componentFilePath] = vi.mocked(fs.writeFile).mock.calls[1] as string[]
+            expect(componentFilePath).toBe(path.resolve(path.sep, 'foo', 'bar', 'Component.jsx'))
+            const [testFilePath] = vi.mocked(fs.writeFile).mock.calls[2] as string[]
+            expect(testFilePath).toBe(path.resolve(path.sep, 'foo', 'bar', 'Component.test.jsx'))
         })
     })
 
@@ -77,12 +77,12 @@ describe.only('', () => {
                 isUsingTypeScript: true
             } as any)
             expect(fs.writeFile).toBeCalledTimes(3)
-            let [filePath, content] = vi.mocked(fs.writeFile).mock.calls[0] as string[]
-            expect(filePath).toBe(path.resolve(path.sep, 'foo', 'bar', 'Component.css'))
-            ;[filePath] = vi.mocked(fs.writeFile).mock.calls[1] as string[]
-            expect(filePath).toBe(path.resolve(path.sep, 'foo', 'bar', 'Component.tsx'))
-            ;[filePath, content] = vi.mocked(fs.writeFile).mock.calls[2] as string[]
-            expect(filePath).toBe(path.resolve(path.sep, 'foo', 'bar', 'Component.test.tsx'))
+            const [cssFilePath] = vi.mocked(fs.writeFile).mock.calls[0] as string[]
+            expect(cssFilePath).toBe(path.resolve(path.sep, 'foo', 'bar', 'Component.css'))
+            const [componentFilePath] = vi.mocked(fs.writeFile).mock.calls[1] as string[]
+            expect(componentFilePath).toBe(path.resolve(path.sep, 'foo', 'bar', 'Component.tsx'))
+            const [testFilePath, content] = vi.mocked(fs.writeFile).mock.calls[2] as string[]
+            expect(testFilePath).toBe(path.resolve(path.sep, 'foo', 'bar', 'Component.test.tsx'))
             expect(content).toMatchSnapshot()
         })
 
@@ -94,12 +94,12 @@ describe.only('', () => {
                 isUsingTypeScript: true
             } as any)
             expect(fs.writeFile).toBeCalledTimes(3)
-            let [filePath, content] = vi.mocked(fs.writeFile).mock.calls[0] as string[]
-            expect(filePath).toBe(path.resolve(path.sep, 'foo', 'bar', 'Component.css'))
-            ;[filePath] = vi.mocked(fs.writeFile).mock.calls[1] as string[]
-            expect(filePath).toBe(path.resolve(path.sep, 'foo', 'bar', 'Component.tsx'))
-            ;[filePath, content] = vi.mocked(fs.writeFile).mock.calls[2] as string[]
-            expect(filePath).toBe(path.resolve(path.sep, 'foo', 'bar', 'Component.test.tsx'))
+            const [cssFilePath] = vi.mocked(fs.writeFile).mock.calls[0] as string[]
+            expect(cssFilePath).toBe(path.resolve(path.sep, 'foo', 'bar', 'Component.css'))
+            const [componentFilePath] = vi.mocked(fs.writeFile).mock.calls[1] as string[]
+            expect(componentFilePath).toBe(path.resolve(path.sep, 'foo', 'bar', 'Component.tsx'))
+            const [testFilePath, content] = vi.mocked(fs.writeFile).mock.calls[2] as string[]
+            expect(testFilePath).toBe(path.resolve(path.sep, 'foo', 'bar', 'Component.test.tsx'))
             expect(content).toMatchSnapshot()
         })
 
@@ -110,10 +110,10 @@ describe.only('', () => {
                 installTestingLibrary: false,
                 isUsingTypeScript: false
             } as any)
-            let [filePath] = vi.mocked(fs.writeFile).mock.calls[1] as string[]
-            expect(filePath.endsWith('Component.jsx')).toBe(true)
-            ;[filePath] = vi.mocked(fs.writeFile).mock.calls[2] as string[]
-            expect(filePath.endsWith('Component.test.jsx')).toBe(true)
+            const [componentFilePath] = vi.mocked(fs.writeFile).mock.calls[1] as string[]
+            expect(componentFilePath).toBe(path.resolve(path.sep, 'foo', 'bar', 'Component.jsx'))
+            const [testFilePath] = vi.mocked(fs.writeFile).mock.calls[2] as string[]
+            expect(testFilePath).toBe(path.resolve(path.sep, 'foo', 'bar', 'Component.test.jsx'))
         })
     })
 
@@ -126,12 +126,12 @@ describe.only('', () => {
                 isUsingTypeScript: true
             } as any)
             expect(fs.writeFile).toBeCalledTimes(3)
-            let [filePath, content] = vi.mocked(fs.writeFile).mock.calls[0] as string[]
-            expect(filePath).toBe(path.resolve(path.sep, 'foo', 'bar', 'Component.css'))
-            ;[filePath] = vi.mocked(fs.writeFile).mock.calls[1] as string[]
-            expect(filePath).toBe(path.resolve(path.sep, 'foo', 'bar', 'Component.tsx'))
-            ;[filePath, content] = vi.mocked(fs.writeFile).mock.calls[2] as string[]
-            expect(filePath).toBe(path.resolve(path.sep, 'foo', 'bar', 'Component.test.tsx'))
+            const [cssFilePath] = vi.mocked(fs.writeFile).mock.calls[0] as string[]
+            expect(cssFilePath).toBe(path.resolve(path.sep, 'foo', 'bar', 'Component.css'))
+            const [componentFilePath] = vi.mocked(fs.writeFile).mock.calls[1] as string[]
+            expect(componentFilePath).toBe(path.resolve(path.sep, 'foo', 'bar', 'Component.tsx'))
+            const [testFilePath, content] = vi.mocked(fs.writeFile).mock.calls[2] as string[]
+            expect(testFilePath).toBe(path.resolve(path.sep, 'foo', 'bar', 'Component.test.tsx'))
             expect(content).toMatchSnapshot()
         })
 
@@ -143,12 +143,12 @@ describe.only('', () => {
                 isUsingTypeScript: true
             } as any)
             expect(fs.writeFile).toBeCalledTimes(3)
-            let [filePath, content] = vi.mocked(fs.writeFile).mock.calls[0] as string[]
-            expect(filePath).toBe(path.resolve(path.sep, 'foo', 'bar', 'Component.css'))
-            ;[filePath] = vi.mocked(fs.writeFile).mock.calls[1] as string[]
-            expect(filePath).toBe(path.resolve(path.sep, 'foo', 'bar', 'Component.tsx'))
-            ;[filePath, content] = vi.mocked(fs.writeFile).mock.calls[2] as string[]
-            expect(filePath).toBe(path.resolve(path.sep, 'foo', 'bar', 'Component.test.tsx'))
+            const [cssFilePath] = vi.mocked(fs.writeFile).mock.calls[0] as string[]
+            expect(cssFilePath).toBe(path.resolve(path.sep, 'foo', 'bar', 'Component.css'))
+            const [componentFilePath] = vi.mocked(fs.writeFile).mock.calls[1] as string[]
+            expect(componentFilePath).toBe(path.resolve(path.sep, 'foo', 'bar', 'Component.tsx'))
+            const [testFilePath, content] = vi.mocked(fs.writeFile).mock.calls[2] as string[]
+            expect(testFilePath).toBe(path.resolve(path.sep, 'foo', 'bar', 'Component.test.tsx'))
             expect(content).toMatchSnapshot()
         })
 
@@ -159,10 +159,10 @@ describe.only('', () => {
                 installTestingLibrary: false,
                 isUsingTypeScript: false
             } as any)
-            let [filePath] = vi.mocked(fs.writeFile).mock.calls[1] as string[]
-            expect(filePath.endsWith('Component.jsx')).toBe(true)
-            ;[filePath] = vi.mocked(fs.writeFile).mock.calls[2] as string[]
-            expect(filePath.endsWith('Component.test.jsx')).toBe(true)
+            const [componentFilePath] = vi.mocked(fs.writeFile).mock.calls[1] as string[]
+            expect(componentFilePath).toBe(path.resolve(path.sep, 'foo', 'bar', 'Component.jsx'))
+            const [testFilePath] = vi.mocked(fs.writeFile).mock.calls[2] as string[]
+            expect(testFilePath).toBe(path.resolve(path.sep, 'foo', 'bar', 'Component.test.jsx'))
         })
     })
 
@@ -175,12 +175,12 @@ describe.only('', () => {
                 isUsingTypeScript: true
             } as any)
             expect(fs.writeFile).toBeCalledTimes(3)
-            let [filePath, content] = vi.mocked(fs.writeFile).mock.calls[0] as string[]
-            expect(filePath.endsWith('Component.css')).toBe(true)
-            ;[filePath] = vi.mocked(fs.writeFile).mock.calls[1] as string[]
-            expect(filePath.endsWith('Component.ts')).toBe(true)
-            ;[filePath, content] = vi.mocked(fs.writeFile).mock.calls[2] as string[]
-            expect(filePath.endsWith('Component.test.ts')).toBe(true)
+            const [cssFilePath] = vi.mocked(fs.writeFile).mock.calls[0] as string[]
+            expect(cssFilePath.endsWith('Component.css')).toBe(true)
+            const [componentFilePath] = vi.mocked(fs.writeFile).mock.calls[1] as string[]
+            expect(componentFilePath.endsWith('Component.ts')).toBe(true)
+            const [testFilePath, content] = vi.mocked(fs.writeFile).mock.calls[2] as string[]
+            expect(testFilePath.endsWith('Component.test.ts')).toBe(true)
             expect(content).toMatchSnapshot()
         })
 
@@ -191,10 +191,10 @@ describe.only('', () => {
                 installTestingLibrary: false,
                 isUsingTypeScript: false
             } as any)
-            let [filePath] = vi.mocked(fs.writeFile).mock.calls[1] as string[]
-            expect(filePath).toBe(path.resolve(path.sep, 'foo', 'bar', 'Component.js'))
-            ;[filePath] = vi.mocked(fs.writeFile).mock.calls[2] as string[]
-            expect(filePath).toBe(path.resolve(path.sep, 'foo', 'bar', 'Component.test.js'))
+            const [componentFilePath] = vi.mocked(fs.writeFile).mock.calls[1] as string[]
+            expect(componentFilePath).toBe(path.resolve(path.sep, 'foo', 'bar', 'Component.js'))
+            const [testFilePath] = vi.mocked(fs.writeFile).mock.calls[2] as string[]
+            expect(testFilePath).toBe(path.resolve(path.sep, 'foo', 'bar', 'Component.test.js'))
         })
     })
 
@@ -207,12 +207,12 @@ describe.only('', () => {
                 isUsingTypeScript: true
             } as any)
             expect(fs.writeFile).toBeCalledTimes(3)
-            let [filePath, content] = vi.mocked(fs.writeFile).mock.calls[0] as string[]
-            expect(filePath).toBe(path.resolve(path.sep, 'foo', 'bar', 'Component.css'))
-            ;[filePath] = vi.mocked(fs.writeFile).mock.calls[1] as string[]
-            expect(filePath).toBe(path.resolve(path.sep, 'foo', 'bar', 'Component.vue'))
-            ;[filePath, content] = vi.mocked(fs.writeFile).mock.calls[2] as string[]
-            expect(filePath).toBe(path.resolve(path.sep, 'foo', 'bar', 'Component.test.ts'))
+            const [cssFilePath] = vi.mocked(fs.writeFile).mock.calls[0] as string[]
+            expect(cssFilePath).toBe(path.resolve(path.sep, 'foo', 'bar', 'Component.css'))
+            const [componentFilePath] = vi.mocked(fs.writeFile).mock.calls[1] as string[]
+            expect(componentFilePath).toBe(path.resolve(path.sep, 'foo', 'bar', 'Component.vue'))
+            const [testFilePath, content] = vi.mocked(fs.writeFile).mock.calls[2] as string[]
+            expect(testFilePath).toBe(path.resolve(path.sep, 'foo', 'bar', 'Component.test.ts'))
             expect(content).toMatchSnapshot()
         })
 
@@ -224,12 +224,12 @@ describe.only('', () => {
                 isUsingTypeScript: true
             } as any)
             expect(fs.writeFile).toBeCalledTimes(3)
-            let [filePath, content] = vi.mocked(fs.writeFile).mock.calls[0] as string[]
-            expect(filePath).toBe(path.resolve(path.sep, 'foo', 'bar', 'Component.css'))
-            ;[filePath] = vi.mocked(fs.writeFile).mock.calls[1] as string[]
-            expect(filePath).toBe(path.resolve(path.sep, 'foo', 'bar', 'Component.vue'))
-            ;[filePath, content] = vi.mocked(fs.writeFile).mock.calls[2] as string[]
-            expect(filePath).toBe(path.resolve(path.sep, 'foo', 'bar', 'Component.test.ts'))
+            const [cssFilePath] = vi.mocked(fs.writeFile).mock.calls[0] as string[]
+            expect(cssFilePath).toBe(path.resolve(path.sep, 'foo', 'bar', 'Component.css'))
+            const [componentFilePath] = vi.mocked(fs.writeFile).mock.calls[1] as string[]
+            expect(componentFilePath).toBe(path.resolve(path.sep, 'foo', 'bar', 'Component.vue'))
+            const [testFilePath, content] = vi.mocked(fs.writeFile).mock.calls[2] as string[]
+            expect(testFilePath).toBe(path.resolve(path.sep, 'foo', 'bar', 'Component.test.ts'))
             expect(content).toMatchSnapshot()
         })
 
@@ -240,10 +240,10 @@ describe.only('', () => {
                 installTestingLibrary: false,
                 isUsingTypeScript: false
             } as any)
-            let [filePath] = vi.mocked(fs.writeFile).mock.calls[1] as string[]
-            expect(filePath.endsWith('Component.vue')).toBe(true)
-            ;[filePath] = vi.mocked(fs.writeFile).mock.calls[2] as string[]
-            expect(filePath.endsWith('Component.test.js')).toBe(true)
+            const [componentFilePath] = vi.mocked(fs.writeFile).mock.calls[1] as string[]
+            expect(componentFilePath).toBe(path.resolve(path.sep, 'foo', 'bar', 'Component.vue'))
+            const [testFilePath] = vi.mocked(fs.writeFile).mock.calls[2] as string[]
+            expect(testFilePath).toBe(path.resolve(path.sep, 'foo', 'bar', 'Component.test.js'))
         })
     })
 
@@ -256,12 +256,12 @@ describe.only('', () => {
                 isUsingTypeScript: true
             } as any)
             expect(fs.writeFile).toBeCalledTimes(3)
-            let [filePath, content] = vi.mocked(fs.writeFile).mock.calls[0] as string[]
-            expect(filePath).toBe(path.resolve(path.sep, 'foo', 'bar', 'Component.css'))
-            ;[filePath] = vi.mocked(fs.writeFile).mock.calls[1] as string[]
-            expect(filePath).toBe(path.resolve(path.sep, 'foo', 'bar', 'Component.svelte'))
-            ;[filePath, content] = vi.mocked(fs.writeFile).mock.calls[2] as string[]
-            expect(filePath).toBe(path.resolve(path.sep, 'foo', 'bar', 'Component.test.ts'))
+            const [cssFilePath] = vi.mocked(fs.writeFile).mock.calls[0] as string[]
+            expect(cssFilePath).toBe(path.resolve(path.sep, 'foo', 'bar', 'Component.css'))
+            const [componentFilePath] = vi.mocked(fs.writeFile).mock.calls[1] as string[]
+            expect(componentFilePath).toBe(path.resolve(path.sep, 'foo', 'bar', 'Component.svelte'))
+            const [testFilePath, content] = vi.mocked(fs.writeFile).mock.calls[2] as string[]
+            expect(testFilePath).toBe(path.resolve(path.sep, 'foo', 'bar', 'Component.test.ts'))
             expect(content).toMatchSnapshot()
         })
 
@@ -273,12 +273,12 @@ describe.only('', () => {
                 isUsingTypeScript: true
             } as any)
             expect(fs.writeFile).toBeCalledTimes(3)
-            let [filePath, content] = vi.mocked(fs.writeFile).mock.calls[0] as string[]
-            expect(filePath).toBe(path.resolve(path.sep, 'foo', 'bar', 'Component.css'))
-            ;[filePath] = vi.mocked(fs.writeFile).mock.calls[1] as string[]
-            expect(filePath).toBe(path.resolve(path.sep, 'foo', 'bar', 'Component.svelte'))
-            ;[filePath, content] = vi.mocked(fs.writeFile).mock.calls[2] as string[]
-            expect(filePath).toBe(path.resolve(path.sep, 'foo', 'bar', 'Component.test.ts'))
+            const [cssFilePath] = vi.mocked(fs.writeFile).mock.calls[0] as string[]
+            expect(cssFilePath).toBe(path.resolve(path.sep, 'foo', 'bar', 'Component.css'))
+            const [componentFilePath] = vi.mocked(fs.writeFile).mock.calls[1] as string[]
+            expect(componentFilePath).toBe(path.resolve(path.sep, 'foo', 'bar', 'Component.svelte'))
+            const [testFilePath, content] = vi.mocked(fs.writeFile).mock.calls[2] as string[]
+            expect(testFilePath).toBe(path.resolve(path.sep, 'foo', 'bar', 'Component.test.ts'))
             expect(content).toMatchSnapshot()
         })
 
@@ -289,10 +289,10 @@ describe.only('', () => {
                 installTestingLibrary: false,
                 isUsingTypeScript: false
             } as any)
-            let [filePath] = vi.mocked(fs.writeFile).mock.calls[1] as string[]
-            expect(filePath.endsWith('Component.svelte')).toBe(true)
-            ;[filePath] = vi.mocked(fs.writeFile).mock.calls[2] as string[]
-            expect(filePath.endsWith('Component.test.js')).toBe(true)
+            const [componentFilePath] = vi.mocked(fs.writeFile).mock.calls[1] as string[]
+            expect(componentFilePath).toBe(path.resolve(path.sep, 'foo', 'bar', 'Component.svelte'))
+            const [testFilePath] = vi.mocked(fs.writeFile).mock.calls[2] as string[]
+            expect(testFilePath).toBe(path.resolve(path.sep, 'foo', 'bar', 'Component.test.js'))
         })
     })
 
