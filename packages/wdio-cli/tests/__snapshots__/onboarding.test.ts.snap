@@ -195,7 +195,7 @@ import { render, screen, fireEvent } from '@testing-library/preact'
 import * as matchers from '@testing-library/jest-dom/matchers'
 expect.extend(matchers)
 
-import ExampleComponent from './Component.js'
+import ExampleComponent from './Component'
 
 describe('Preact Component Tests', () => {
     
@@ -235,7 +235,7 @@ import htm from 'https://esm.sh/htm'
 // Initialize htm with Preact
 const html = htm.bind(h);
 
-import ExampleComponent from './Component.js'
+import ExampleComponent from './Component'
 
 describe('Preact Component Tests', () => {
     
@@ -276,7 +276,7 @@ import { render, screen, fireEvent } from '@testing-library/react'
 import * as matchers from '@testing-library/jest-dom/matchers'
 expect.extend(matchers)
 
-import ExampleComponent from './Component.js'
+import ExampleComponent from './Component'
 
 describe('React Component Tests', () => {
     
@@ -313,7 +313,7 @@ import React from 'react'
 import { expect, $ } from '@wdio/globals'
 import { createRoot } from 'react-dom/client'
 
-import ExampleComponent from './Component.js'
+import ExampleComponent from './Component'
 
 describe('React Component Tests', () => {
     
@@ -353,7 +353,7 @@ import { cleanup, render, screen } from 'solid-testing-library'
 import * as matchers from '@testing-library/jest-dom/matchers'
 expect.extend(matchers)
 
-import ExampleComponent from './Component.js'
+import ExampleComponent from './Component'
 
 describe('Preact Component Tests', () => {
     
@@ -391,7 +391,7 @@ exports[`onboarding templates > solid > without testing-library 1`] = `
 import { expect, $ } from '@wdio/globals'
 import { render } from 'solid-js/web'
 
-import ExampleComponent from './Component.js'
+import ExampleComponent from './Component'
 
 describe('Preact Component Tests', () => {
     
