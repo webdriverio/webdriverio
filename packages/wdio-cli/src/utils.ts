@@ -391,6 +391,52 @@ export async function hasPackage(pkg: string) {
  * generate test files based on CLI answers
  */
 export async function generateTestFiles(answers: ParsedAnswers) {
+    if (answers.runner === 'local') {
+        return generateLocalRunnerTestFiles(answers)
+    }
+
+    return generateBrowserRunnerTestFiles(answers)
+}
+
+const TSX_BASED_FRAMEWORKS = ['react', 'preact', 'solid']
+export async function generateBrowserRunnerTestFiles(answers: ParsedAnswers) {
+    const isUsingFramework = typeof answers.preset === 'string'
+    const preset = isUsingFramework
+        ? answers.preset || 'lit'
+        : ''
+    const tplRootDir = path.join(TEMPLATE_ROOT_DIR, 'browser')
+    await fs.mkdir(answers.destSpecRootPath, { recursive: true })
+
+    /**
+     * render css file
+     */
+    if (isUsingFramework) {
+        const renderedCss = await renderFile(path.join(tplRootDir, 'Component.css.ejs'), answers)
+        await fs.writeFile(path.join(answers.destSpecRootPath, 'Component.css'), renderedCss)
+    }
+
+    /**
+     * render component file
+     */
+    const testExt = `${(answers.isUsingTypeScript ? 'ts' : 'js')}${TSX_BASED_FRAMEWORKS.includes(preset) ? 'x' : ''}`
+    const fileExt = ['svelte', 'vue'].includes(preset as 'svelte' | 'vue')
+        ? preset!
+        : testExt
+    if (preset) {
+        const componentOutFileName = `Component.${fileExt}`
+        const renderedComponent = await renderFile(path.join(tplRootDir, `Component.${preset}.ejs`), answers)
+        await fs.writeFile(path.join(answers.destSpecRootPath, componentOutFileName), renderedComponent)
+    }
+
+    /**
+     * render test file
+     */
+    const componentFileName = preset ? `Component.${preset}.test.ejs` : 'standalone.test.ejs'
+    const renderedTest = await renderFile(path.join(tplRootDir, componentFileName), answers)
+    await fs.writeFile(path.join(answers.destSpecRootPath, `Component.test.${testExt}`), renderedTest)
+}
+
+async function generateLocalRunnerTestFiles(answers: ParsedAnswers) {
     const testFiles = answers.framework === 'cucumber'
         ? [path.join(TEMPLATE_ROOT_DIR, 'cucumber')]
         : (answers.framework === 'mocha'

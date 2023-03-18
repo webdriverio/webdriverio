@@ -16,7 +16,9 @@ export const config: Options.Testrunner = {<%
     if (answers.runner === 'browser') {
         if (answers.preset) {
             %>['browser', {
-        preset: '<%- answers.preset %>'
+        preset: '<%- answers.preset %>',
+        // start browser window when `DEBUG` environment variable is set
+        headless: !Boolean(process.env.DEBUG)
     }]<%
         } else {
             %>'browser'<%

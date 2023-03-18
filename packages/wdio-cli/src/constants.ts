@@ -162,14 +162,15 @@ export const SUPPORTED_BROWSER_RUNNER_PRESETS = [
     { name: 'SolidJS (https://www.solidjs.com/)', value: 'vite-plugin-solid$--$solid' },
     { name: 'React (https://reactjs.org/)', value: '@vitejs/plugin-react$--$react' },
     { name: 'Preact (https://preactjs.com/)', value: '@preact/preset-vite$--$preact' },
-    { name: 'Other', value: '' }
+    { name: 'Other', value: false }
 ]
 
 export const TESTING_LIBRARY_PACKAGES: Record<string, string> = {
     react: '@testing-library/react',
     preact: '@testing-library/preact',
     vue: '@testing-library/vue',
-    svelte: '@testing-library/svelte'
+    svelte: '@testing-library/svelte',
+    solid: 'solid-testing-library'
 }
 
 export const BACKEND_CHOICES = [
@@ -369,7 +370,10 @@ export const QUESTIONNAIRE = [{
     type: 'input',
     name: 'specs',
     message: 'Where should these files be located?',
-    default: /* istanbul ignore next */ (answers: Questionnair) => getDefaultFiles(answers, 'test/specs/**/*'),
+    default: /* istanbul ignore next */ (answers: Questionnair) => {
+        const pattern = isBrowserRunner(answers) ? 'src/**/*.test' : 'test/specs/**/*'
+        return getDefaultFiles(answers, pattern)
+    },
     when: /* istanbul ignore next */ (answers: Questionnair) => answers.generateTestFiles && answers.framework.match(/(mocha|jasmine)/)
 }, {
     type: 'input',
