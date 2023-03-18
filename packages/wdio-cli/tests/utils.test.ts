@@ -746,6 +746,8 @@ test('getDefaultFiles', async () => {
         .toBe(path.join('/bar', 'foo', 'bar.js'))
     expect(await getDefaultFiles({ projectRootCorrect: false, projectRoot: '/bar', isUsingCompiler: COMPILER_OPTION_ANSWERS[1] } as any, files))
         .toBe(path.join('/bar', 'foo', 'bar.ts'))
+    expect(await getDefaultFiles({ projectRootCorrect: false, projectRoot: '/bar', isUsingCompiler: COMPILER_OPTION_ANSWERS[1], preset: 'react' } as any, files))
+        .toBe(path.join('/bar', 'foo', 'bar.tsx'))
     expect(await getDefaultFiles({ projectRootCorrect: false, projectRoot: '/bar', isUsingCompiler: COMPILER_OPTION_ANSWERS[2] } as any, files))
         .toBe(path.join('/bar', 'foo', 'bar.js'))
 })

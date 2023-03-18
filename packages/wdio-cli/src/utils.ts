@@ -577,11 +577,13 @@ export function getPathForFileGeneration(answers: Questionnair, projectRootDir: 
 export async function getDefaultFiles(answers: Questionnair, pattern: string) {
     const projectProps = await getProjectProps()
     const rootdir = getProjectRoot(answers, projectProps)
-    return pattern.endsWith('.feature')
+    const isJSX = TSX_BASED_FRAMEWORKS.includes(answers.preset || '')
+    const val = pattern.endsWith('.feature')
         ? path.join(rootdir, pattern)
         : answers?.isUsingCompiler?.toString().includes('TypeScript')
             ? `${path.join(rootdir, pattern)}.ts`
             : `${path.join(rootdir, pattern)}.js`
+    return val + (isJSX ? 'x' : '')
 }
 
 /**
@@ -704,7 +706,7 @@ export function npmInstall(parsedAnswers: ParsedAnswers, useYarn: boolean, npmTa
      * add helper package for Solidjs testing
      */
     if (parsedAnswers.preset === 'solid') {
-        parsedAnswers.packagesToInstall.push('solid-js/web')
+        parsedAnswers.packagesToInstall.push('solid-js')
     }
 
     /**
