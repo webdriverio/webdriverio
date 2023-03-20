@@ -18,7 +18,6 @@ export const newSession = {
             'moz:processID': 15867,
             'moz:profile': '/var/folders/ns/8mj2mh0x27b_gsdddy1knnsm0000gn/T/rust_mozprofile.yUuH0ktcRJPN',
             'moz:shutdownTimeout': 60000,
-            'moz:useNonSpecCompliantPointerOrigin': false,
             'moz:webdriverClick': true
         }
     }

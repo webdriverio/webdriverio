@@ -162,10 +162,10 @@ export const findStrategy = function (selector: SelectorStrategy, isW3C?: boolea
         const conditions = [
             // aria label is recevied by other element with aria-labelledBy
             // https://www.w3.org/TR/accname-1.1/#step2B
-            `.//*[@aria-labelledby=(//*[normalize-space() = "${label}"]/@id)]`,
+            `.//*[@aria-labelledby=(//*[normalize-space(text()) = "${label}"]/@id)]`,
             // aria label is recevied by other element with aria-labelledBy
             // https://www.w3.org/TR/accname-1.1/#step2B
-            `.//*[@aria-describedby=(//*[normalize-space() = "${label}"]/@id)]`,
+            `.//*[@aria-describedby=(//*[normalize-space(text()) = "${label}"]/@id)]`,
             // element has direct aria label
             // https://www.w3.org/TR/accname-1.1/#step2C
             `.//*[@aria-label = "${label}"]`,
@@ -175,9 +175,11 @@ export const findStrategy = function (selector: SelectorStrategy, isW3C?: boolea
             // aria label is received by an input placeholder
             // https://www.w3.org/TR/accname-1.1/#step2D
             `.//input[@placeholder="${label}"]`,
+            `.//textarea[@placeholder="${label}"]`,
             // aria label is received by an input placeholder
             // https://www.w3.org/TR/accname-1.1/#step2D
             `.//input[@aria-placeholder="${label}"]`,
+            `.//textarea[@aria-placeholder="${label}"]`,
             // aria label is received by its title attribute
             // https://www.w3.org/TR/accname-1.1/#step2D
             `.//*[@title="${label}"]`,
@@ -186,10 +188,10 @@ export const findStrategy = function (selector: SelectorStrategy, isW3C?: boolea
             `.//img[@alt="${label}"]`,
             // aria label is received from element content
             // https://www.w3.org/TR/accname-1.1/#step2G
-            `.//*[normalize-space() = "${label}"]`
+            `.//*[normalize-space(text()) = "${label}"]`
         ]
         using = 'xpath'
-        value = `(${conditions.join(' | ')})[1]`
+        value = conditions.join(' | ')
         break
     }
     case '-android uiautomator': {
@@ -263,7 +265,7 @@ export const findStrategy = function (selector: SelectorStrategy, isW3C?: boolea
             )
         }
         conditions.push(
-            partial ? `contains(., "${query}")` : `normalize-space() = "${query}"`
+            partial ? `contains(text(), "${query}")` : `normalize-space(text()) = "${query}"`
         )
         value = `.//${tag || '*'}[${conditions.join(' and ')}]`
         break

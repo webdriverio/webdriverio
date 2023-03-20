@@ -21,6 +21,144 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.6.3 (2023-03-18)
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#9992](https://github.com/webdriverio/webdriverio/pull/9992) Improve selector for finding elements by tag and content ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :nail_care: Polish
+* `wdio-cli`
+  * [#9967](https://github.com/webdriverio/webdriverio/pull/9967) [💡 Feature]: Improve onboarding experience for browser tests ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* [#9991](https://github.com/webdriverio/webdriverio/pull/9991) chore(): updating webdriverio/klassijs-boilerplate ([@larryg01](https://github.com/larryg01))
+
+#### Committers: 2
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- LarryG ([@larryg01](https://github.com/larryg01))
+
+
+## v8.6.2 (2023-03-15)
+
+#### :bug: Bug Fix
+* `wdio-browser-runner`, `wdio-runner`
+  * [#9985](https://github.com/webdriverio/webdriverio/pull/9985) Improve stability of component tests for Safari ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
+## v8.6.1 (2023-03-15)
+
+#### :nail_care: Polish
+* `wdio-browser-runner`, `wdio-cli`, `wdio-local-runner`, `wdio-runner`
+  * [#9968](https://github.com/webdriverio/webdriverio/pull/9968) Watch mode improvements for browser runner ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
+## v8.6.0 (2023-03-13)
+
+#### :rocket: New Feature
+* `wdio-cli`, `wdio-config`
+  * [#9947](https://github.com/webdriverio/webdriverio/pull/9947) wdio-config: Add multi-run cli flag ([@WillBrock](https://github.com/WillBrock))
+
+#### Committers: 1
+- Will Brock ([@WillBrock](https://github.com/WillBrock))
+
+
+## v8.5.9 (2023-03-10)
+
+#### :nail_care: Polish
+* `devtools`
+  * [#9927](https://github.com/webdriverio/webdriverio/pull/9927) [🐛 Bug]: Improve typing for `switchToFrame` command ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
+## v8.5.8 (2023-03-09)
+
+#### :bug: Bug Fix
+* `wdio-browserstack-service`
+  * [#9917](https://github.com/webdriverio/webdriverio/pull/9917) check for mocha in hook ([@nurdtechie98](https://github.com/nurdtechie98))
+
+#### :memo: Documentation
+* [#9915](https://github.com/webdriverio/webdriverio/pull/9915) chore(docs): fix broken anchor link pointing to localhost in runner doc ([@olivier-martin-sf](https://github.com/olivier-martin-sf))
+
+#### Committers: 2
+- Chirag Shetty ([@nurdtechie98](https://github.com/nurdtechie98))
+- Olivier Martin ([@olivier-martin-sf](https://github.com/olivier-martin-sf))
+
+
+## v8.5.7 (2023-03-08)
+
+#### :eyeglasses: Spec Compliancy
+* `wdio-browser-runner`, `wdio-protocols`, `webdriverio`
+  * [#9911](https://github.com/webdriverio/webdriverio/pull/9911) [💡 Feature]: Replace `shadowFnFactory` with WebDriver shadow command ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :bug: Bug Fix
+* `wdio-cli`
+  * [#9771](https://github.com/webdriverio/webdriverio/pull/9771) #9539 Support various configurations of CJS/ESM with(out) TS ([@Jmcosel](https://github.com/Jmcosel))
+
+#### :memo: Documentation
+* `webdriverio`
+  * [#9910](https://github.com/webdriverio/webdriverio/pull/9910) [💡 Feature]: Make `ChainablePromiseArray` and `ElementArray` iterable ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 2
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Jeremy Elwood ([@Jmcosel](https://github.com/Jmcosel))
+
+
+## v8.5.6 (2023-03-06)
+
+#### :nail_care: Polish
+* `wdio-browser-runner`
+  * [#9882](https://github.com/webdriverio/webdriverio/pull/9882) [💡 Feature]: Put Mocha setup into a web component ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-browser-runner`, `wdio-protocols`, `wdio-runner`, `wdio-utils`, `webdriverio`
+  * [#9884](https://github.com/webdriverio/webdriverio/pull/9884) [💡 Feature]: Receive spec and cid properties from browser session ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
+## v8.5.5 (2023-03-03)
+
+#### :bug: Bug Fix
+* `wdio-config`
+  * [#9879](https://github.com/webdriverio/webdriverio/pull/9879) fix: duplicated suite ([@vladkosinov](https://github.com/vladkosinov))
+* `webdriverio`
+  * [#9883](https://github.com/webdriverio/webdriverio/pull/9883) Aria selector improvements ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 2
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Vlad Kosinov ([@vladkosinov](https://github.com/vladkosinov))
+
+
+## v8.5.4 (2023-03-02)
+
+#### :nail_care: Polish
+* `wdio-browser-runner`, `wdio-runner`
+  * [#9878](https://github.com/webdriverio/webdriverio/pull/9878) Ignore path for browser tests ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-browser-runner`
+  * [#9880](https://github.com/webdriverio/webdriverio/pull/9880) Allow preset and ViteConfig at the same time ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
+## v8.5.3 (2023-03-01)
+
+#### :bug: Bug Fix
+* `wdio-browser-runner`
+  * [#9872](https://github.com/webdriverio/webdriverio/pull/9872) Improve mocking of namespaced dependencies ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
 ## v8.5.2 (2023-03-01)
 
 #### :nail_care: Polish

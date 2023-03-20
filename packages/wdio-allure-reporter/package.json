@@ -31,7 +31,8 @@
         "require": "./cjs/common/api.js"
       },
       "./cjs/common/api.js"
-    ]
+    ],
+    "./package.json": "./package.json"
   },
   "typeScriptVersion": "3.8.3",
   "engines": {

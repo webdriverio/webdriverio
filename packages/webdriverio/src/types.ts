@@ -212,10 +212,6 @@ interface InstanceBase extends EventEmitter, SessionFlags {
      */
     options: Options.WebdriverIO | Options.Testrunner
     /**
-     * Given WebdriverIO options (including custom configurations)
-     */
-    config: Options.WebdriverIO | Options.Testrunner
-    /**
      * Puppeteer instance
      */
     puppeteer?: PuppeteerBrowser
@@ -319,7 +315,7 @@ export interface MultiRemoteBrowser extends MultiRemoteBrowserType {}
 interface MultiRemoteElementType extends MultiRemoteElementBase, MultiRemoteProtocolCommandsType, Omit<MultiRemoteBrowserCommandsType, keyof MultiRemoteElementCommandsType>, MultiRemoteElementCommandsType {}
 export interface MultiRemoteElement extends MultiRemoteElementType {}
 
-export type ElementFunction = ((elem: HTMLElement) => HTMLElement) | ((elem: HTMLElement) => HTMLElement[])
+export type ElementFunction = ((elem: HTMLElement) => HTMLElement | undefined) | ((elem: HTMLElement) => (HTMLElement | undefined)[])
 export type CustomStrategyFunction = (...args: any) => ElementReference | ElementReference[]
 export type CustomStrategyReference = {
     strategy: CustomStrategyFunction

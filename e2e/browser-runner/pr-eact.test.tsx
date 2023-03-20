@@ -2,7 +2,7 @@ import { expect } from 'expect'
 import { render, fireEvent, screen, waitFor } from '@testing-library/preact'
 import '@testing-library/jest-dom'
 
-import { Counter } from './components/PreactComponent.js'
+import { Counter } from './components/PreactComponent.jsx'
 
 describe('Preact Component Testing', () => {
     it('should display initial count', () => {

@@ -26,6 +26,7 @@ interface TestrunnerOptionsWithParameters extends Omit<Options.Testrunner, 'capa
     coverage?: boolean
     spec?: string[]
     suite?: string[]
+    multiRun?: number
     capabilities?: Capabilities.RemoteCapabilities
     rootDir: string
 }
@@ -178,6 +179,13 @@ export default class ConfigParser {
         }
 
         /**
+         * cleanup duplicated "suite" if the same value was provided
+         */
+        if (object.suite && object.suite.length > 0) {
+            this._config.suite = this._config.suite?.filter((suite, idx, suites) => suites.indexOf(suite) === idx)
+        }
+
+        /**
          * overwrite capabilities
          */
         this._capabilities = validObjectOrArray(this._config.capabilities) ? this._config.capabilities : this._capabilities
@@ -247,6 +255,7 @@ export default class ConfigParser {
      */
     getSpecs(capSpecs?: Spec[], capExclude?: Spec[]) {
         const isSpecParamPassed = Array.isArray(this._config.spec)
+        const multiRun = this._config.multiRun
         // when CLI --spec is explicitly specified, this._config.specs contains the filtered
         // specs matching the passed pattern else the specs defined inside the config are returned
         let specs = ConfigParser.getFilePaths(this._config.specs!, this._config.rootDir, this._pathService)
@@ -287,6 +296,15 @@ export default class ConfigParser {
 
         // Remove any duplicate tests from the final specs array
         specs = [...new Set(specs)]
+
+        // If the --multi-run flag is set, duplicate the specs array
+        // Ensure that when --multi-run is set that either --spec or --suite is also set
+        const hasSubsetOfSpecsDefined = isSpecParamPassed || suites.length > 0
+        if (multiRun && hasSubsetOfSpecsDefined) {
+            specs = specs.flatMap(i => Array.from({ length: multiRun }).fill(i)) as Spec[]
+        } else if (multiRun && !hasSubsetOfSpecsDefined) {
+            throw new Error('The --multi-run flag requires that either the --spec or --suite flag is also set')
+        }
 
         return this.filterSpecs(specs, <string[]>exclude)
     }

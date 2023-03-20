@@ -4,6 +4,7 @@ import { commands } from 'virtual:wdio'
 import { webdriverMonad, sessionEnvironmentDetector } from '@wdio/utils'
 import { getEnvironmentVars } from 'webdriver'
 
+import { getCID } from './utils.js'
 import { MESSAGE_TYPES } from '../constants.js'
 import type { SocketMessage, SocketMessagePayload, ConsoleEvent, CommandRequestEvent } from '../vite/types.js'
 
@@ -24,7 +25,7 @@ export default class ProxyDriver {
         userPrototype: Record<string, PropertyDescriptor>,
         commandWrapper: any
     ) {
-        const [cid] = window.location.pathname.slice(1).split('/')
+        const cid = getCID()
         if (!cid) {
             throw new Error('"cid" query parameter is missing')
         }
@@ -34,6 +35,7 @@ export default class ProxyDriver {
          */
         const connectPromise = window.__wdioConnectPromise__
         connectPromise.then(this.#wrapConsolePrototype.bind(this, cid))
+
         /**
          * handle Vite server socket messages
          */

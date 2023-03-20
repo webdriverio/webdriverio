@@ -31,7 +31,7 @@ __Note:__ WebdriverIO by default will run browser tests in CI headlessly, e.g. a
 
 At the end of this process you should find a `wdio.conf.js` that contains various WebdriverIO configurations, including a `runner` property, e.g.:
 
-```ts reference runmeRepository="git@github.com:webdriverio/example-recipes.git" runmeFileToOpen="component-testing%2FREADME.md"
+```ts reference useHTTPS runmeRepository="git@github.com:webdriverio/example-recipes.git" runmeFileToOpen="component-testing%2FREADME.md"
 https://github.com/webdriverio/example-recipes/blob/fd54f94306ed8e7b40f967739164dfe4d6d76b41/wdio.comp.conf.js
 ```
 
@@ -43,7 +43,7 @@ It is totally up to you what you want to run in your tests and how you like to r
 
 You can mix Testing Library primitives with WebdriverIO commands as you wish, e.g.:
 
-```js reference
+```js reference useHTTPS
 https://github.com/webdriverio/example-recipes/blob/fd54f94306ed8e7b40f967739164dfe4d6d76b41/component-testing/svelte-example.js
 ```
 

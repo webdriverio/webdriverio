@@ -52,28 +52,28 @@ export default class InsightsHandler {
     }
 
     async beforeHook (test: Frameworks.Test, context: any) {
-        const fullTitle = `${test.parent} - ${test.title}`
-        const hookId = uuidv4()
-        this._tests[fullTitle] = {
-            uuid: hookId,
-            startedAt: (new Date()).toISOString()
-        }
-        this.attachHookData(context, hookId)
         if (this._framework === 'mocha') {
+            const fullTitle = `${test.parent} - ${test.title}`
+            const hookId = uuidv4()
+            this._tests[fullTitle] = {
+                uuid: hookId,
+                startedAt: (new Date()).toISOString()
+            }
+            this.attachHookData(context, hookId)
             await this.sendTestRunEvent(test, 'HookRunStarted')
         }
     }
 
     async afterHook (test: Frameworks.Test, result: Frameworks.TestResult) {
-        const fullTitle = getUniqueIdentifier(test)
-        if (this._tests[fullTitle]) {
-            this._tests[fullTitle].finishedAt = (new Date()).toISOString()
-        } else {
-            this._tests[fullTitle] = {
-                finishedAt: (new Date()).toISOString()
-            }
-        }
         if (this._framework === 'mocha') {
+            const fullTitle = getUniqueIdentifier(test)
+            if (this._tests[fullTitle]) {
+                this._tests[fullTitle].finishedAt = (new Date()).toISOString()
+            } else {
+                this._tests[fullTitle] = {
+                    finishedAt: (new Date()).toISOString()
+                }
+            }
             await this.sendTestRunEvent(test, 'HookRunFinished', result)
         }
     }

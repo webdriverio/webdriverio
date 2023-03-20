@@ -11,7 +11,7 @@ import {
     addServiceDeps,
     convertPackageHashToObject
 } from '../utils.js'
-import { missingConfigurationPrompt } from './config.js'
+import { formatConfigFilePaths, canAccessConfigPath, missingConfigurationPrompt } from './config.js'
 import { SUPPORTED_PACKAGES, CLI_EPILOGUE } from '../constants.js'
 import type { InstallCommandArguments, SupportedPackage } from '../types.js'
 
@@ -83,22 +83,18 @@ export async function handler(argv: InstallCommandArguments) {
         return
     }
 
-    const localConfPath = path.join(process.cwd(), config)
-    const localConfExists = await fs.access(localConfPath).then(() => true, () => false)
-    if (!localConfExists) {
+    const wdioConf = await formatConfigFilePaths(config)
+    const confAccess = await canAccessConfigPath(wdioConf.fullPathNoExtension)
+    if (!confAccess) {
         try {
-            const promptMessage = (
-                'Cannot install packages without a WebdriverIO configuration. ' +
-                'You can create one by running \'wdio config\''
-            )
-            await missingConfigurationPrompt('install', promptMessage, yarn)
+            await missingConfigurationPrompt('install', wdioConf.fullPathNoExtension, yarn)
         } catch {
             process.exit(1)
             return
         }
     }
 
-    const configFile = await fs.readFile(localConfPath, { encoding: 'utf-8' })
+    const configFile = await fs.readFile(wdioConf.fullPath, { encoding: 'utf-8' })
     const match = findInConfig(configFile, type)
 
     if (match && match[0].includes(name)) {
@@ -125,10 +121,10 @@ export async function handler(argv: InstallCommandArguments) {
     const newConfig = replaceConfig(configFile, type, name)
 
     if (!newConfig) {
-        throw new Error(`Couldn't find "${type}" property in ${path.basename(localConfPath)}`)
+        throw new Error(`Couldn't find "${type}" property in ${path.basename(wdioConf.fullPath)}`)
     }
 
-    await fs.writeFile(localConfPath, newConfig, { encoding: 'utf-8' })
+    await fs.writeFile(wdioConf.fullPath, newConfig, { encoding: 'utf-8' })
     console.log('Your wdio.conf.js file has been updated.')
 
     process.exit(0)

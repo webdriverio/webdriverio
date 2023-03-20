@@ -23,7 +23,7 @@ When it comes to having code examples on a documentation page, a common problem 
 
 As an attempt to improve our code examples on this project page we started to roll out some changes to the documentation that hopefully addresses these issues:
 
-```ts reference
+```ts reference useHTTPS
 https://github.com/webdriverio/example-recipes/blob/main/queryElements/singleElements.js#L9-L10
 ```
 
@@ -44,13 +44,13 @@ You can see that every example is self contained in its own directory to keep ev
 
 In order to embed the examples back into the website, we are using a [plugin for Docusaurus](https://github.com/christian-bromann/docusaurus-theme-github-codeblock) that downloads the code based on a simple GitHub reference link. So instead of having code within our markdown files, we just reference the location on Github, e.g.:
 
-    ```ts reference
+    ```ts reference useHTTPS
     https://github.com/webdriverio/example-recipes/blob/main/setup/testrunner.js#L5-L8
     ```
 
 The plugin then downloads the code and only shows provided code lines of that file. Here is the final result of that:
 
-```ts reference
+```ts reference useHTTPS
 https://github.com/webdriverio/example-recipes/blob/main/setup/testrunner.js#L5-L8
 ```
 
@@ -99,7 +99,7 @@ it('should get the text of a menu link', async () => {
 
 With the ability to reference certain code lines we can just strip out the testing part of the example and focus on what's important:
 
-```ts reference
+```ts reference useHTTPS
 https://github.com/webdriverio/example-recipes/blob/main/queryElements/singleElements.js#L9-L10
 ```
 

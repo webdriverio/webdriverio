@@ -513,7 +513,15 @@ class Launcher {
          * - we are running watch mode
          */
         const shouldRunSpecs = this.runSpecs()
-        if (!shouldRunSpecs || (this._isWatchMode && !this._hasTriggeredExitRoutine)) {
+        const inWatchMode = this._isWatchMode && !this._hasTriggeredExitRoutine
+        if (!shouldRunSpecs || inWatchMode) {
+            /**
+             * print reporter results when in watch mode
+             */
+            if (inWatchMode) {
+                this.interface?.finalise()
+            }
+
             return
         }
 

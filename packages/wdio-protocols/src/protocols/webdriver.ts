@@ -703,7 +703,7 @@ export default {
             parameters: [],
             returns: {
                 type: 'string',
-                name: 'element',
+                name: 'shadowRoot',
                 description:
                     "A JSON representation of an element shadow root, e.g. `{ 'shadow-6066-11e4-a52e-4f735466cecf': 'ELEMENT_1' }`.",
             },
@@ -1043,7 +1043,7 @@ export default {
                 },
                 {
                     name: 'args',
-                    type: '(string|object|number|boolean|undefined)[]',
+                    type: '(string|object|number|boolean|null|undefined)[]',
                     description:
                         'an array of JSON values which will be deserialized and passed as arguments to your function',
                     required: true,
@@ -1075,7 +1075,7 @@ export default {
                 },
                 {
                     name: 'args',
-                    type: '(string|object|number|boolean|undefined)[]',
+                    type: '(string|object|number|boolean|null|undefined)[]',
                     description:
                         'an array of JSON values which will be deserialized and passed as arguments to your function',
                     required: true,

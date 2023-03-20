@@ -54,9 +54,9 @@ test('does not transform if file is not within spec', () => {
 test('transforms test file properly for mocking', () => {
     const postPlugin = mockHoisting(mockHandler).pop()!
     const testfilePath = os.platform() === 'win32' ? '/C:/sometest.ts' : 'sometest.ts'
-    const url = `/foo?spec=/${testfilePath}`
+    const originalUrl = `/foo?spec=/${testfilePath}`
     const server = {
-        middlewares: { use: (_: never, cb: Function) => cb({ url }, {}, vi.fn()) }
+        middlewares: { use: (_: never, cb: Function) => cb({ originalUrl }, {}, vi.fn()) }
     }
     ;(postPlugin.configureServer as Function)(server)()
     const newCode = (postPlugin.transform as Function)(TESTFILE, os.platform() === 'win32' ? testfilePath : `/${testfilePath}`)

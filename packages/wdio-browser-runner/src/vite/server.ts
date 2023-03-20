@@ -1,3 +1,4 @@
+import path from 'node:path'
 import { EventEmitter } from 'node:events'
 
 import getPort from 'get-port'
@@ -7,7 +8,7 @@ import type { WebSocket } from 'ws'
 import { WebSocketServer } from 'ws'
 import { serializeError } from 'serialize-error'
 import { executeHooksWithArgs } from '@wdio/utils'
-import type { ViteDevServer, InlineConfig } from 'vite'
+import type { ViteDevServer, InlineConfig, ConfigEnv } from 'vite'
 import { createServer } from 'vite'
 import istanbulPlugin from 'vite-plugin-istanbul'
 import type { Services, Options } from '@wdio/types'
@@ -27,6 +28,10 @@ import { BROWSER_POOL, SESSIONS } from '../constants.js'
 
 const log = logger('@wdio/browser-runner:ViteServer')
 const HOOK_TIMEOUT = 15 * 1000
+const DEFAULT_CONFIG_ENV: ConfigEnv = {
+    command: 'serve',
+    mode: process.env.NODE_ENV === 'production' ? 'production' : 'development'
+}
 
 interface PendingHook {
     hookExecutionTimeout: NodeJS.Timeout
@@ -37,6 +42,7 @@ export class ViteServer extends EventEmitter {
     #pendingHooks = new Map<string, PendingHook>()
     #connections = new Set<WebSocket>()
     #options: WebdriverIO.BrowserRunnerOptions
+    #config: Options.Testrunner
     #viteConfig: Partial<InlineConfig>
     #wss?: WebSocketServer
     #server?: ViteDevServer
@@ -53,12 +59,8 @@ export class ViteServer extends EventEmitter {
     constructor (options: WebdriverIO.BrowserRunnerOptions, config: Options.Testrunner) {
         super()
         this.#options = options
+        this.#config = config
         this.#mockHandler = new MockHandler(options, config)
-
-        if (options.preset && options.viteConfig) {
-            throw new Error('Invalid runner configuration: "preset" and "viteConfig" options are defined but only one of each can be used at the same time')
-        }
-
         this.#viteConfig = deepmerge(DEFAULT_VITE_CONFIG, {
             root: options.rootDir || process.cwd(),
             plugins: [
@@ -77,14 +79,22 @@ export class ViteServer extends EventEmitter {
                 ...options.coverage
             }))
         }
-
-        if (options.viteConfig) {
-            this.#viteConfig = deepmerge(this.#viteConfig, options.viteConfig)
-        }
     }
 
     async start () {
         const [vitePort, wssPort] = await Promise.all([getPort(), getPort()])
+        this.#viteConfig = deepmerge(this.#viteConfig, <Partial<InlineConfig>>{
+            server: {
+                host: '0.0.0.0',
+                port: vitePort,
+                proxy: {
+                    '/ws': {
+                        target: `ws://localhost:${wssPort}`,
+                        ws: true
+                    }
+                }
+            }
+        })
 
         /**
          * load additional Vite plugins for framework
@@ -98,22 +108,24 @@ export class ViteServer extends EventEmitter {
         }
 
         /**
+         * merge custom `viteConfig` last into the object
+         */
+        if (this.#options.viteConfig) {
+            const configToMerge = typeof this.#options.viteConfig === 'string'
+                ? (
+                    await import(path.resolve(this.#config.rootDir || process.cwd(), this.#options.viteConfig))
+                ).default
+                : typeof this.#options.viteConfig === 'function'
+                    ? await this.#options.viteConfig(DEFAULT_CONFIG_ENV)
+                    : this.#options.viteConfig
+            this.#viteConfig = deepmerge(this.#viteConfig, configToMerge)
+        }
+
+        /**
          * initialize Socket server on top of vite server
          */
         this.#wss = new WebSocketServer({ port: wssPort })
         this.#wss.on('connection', this.#onConnect.bind(this))
-        this.#viteConfig = deepmerge(this.#viteConfig, <Partial<InlineConfig>>{
-            server: {
-                host: '0.0.0.0',
-                port: vitePort,
-                proxy: {
-                    '/ws': {
-                        target: `ws://localhost:${wssPort}`,
-                        ws: true
-                    }
-                }
-            }
-        })
 
         /**
          * initialize Vite
@@ -166,7 +178,7 @@ export class ViteServer extends EventEmitter {
     }
 
     #handleConsole (message: ConsoleEvent) {
-        const isWDIOLog = Boolean(typeof message.args[0] === 'string' && message.args[0].startsWith('[WDIO]'))
+        const isWDIOLog = Boolean(typeof message.args[0] === 'string' && message.args[0].startsWith('[WDIO]') && message.type !== 'error')
         if (message.name !== 'consoleEvent' || isWDIOLog) {
             return
         }

@@ -401,52 +401,94 @@ describe('beforeTest', () => {
 describe('beforeHook', () => {
     let insightsHandler
 
-    beforeEach(() => {
-        insightsHandler = new InsightsHandler(browser, false, 'framework')
-        insightsHandler['sendTestRunEvent'] = vi.fn().mockImplementation(() => { return [] })
-        insightsHandler['attachHookData'] = vi.fn().mockImplementation(() => { return [] })
-        insightsHandler['_tests'] = {}
-        insightsHandler['_framework'] = 'mocha'
+    describe('mocha', () => {
+        beforeEach(() => {
+            insightsHandler = new InsightsHandler(browser, false, 'framework')
+            insightsHandler['sendTestRunEvent'] = vi.fn().mockImplementation(() => { return [] })
+            insightsHandler['attachHookData'] = vi.fn().mockImplementation(() => { return [] })
+            insightsHandler['_tests'] = {}
+            insightsHandler['_framework'] = 'mocha'
+        })
+
+        beforeEach(() => {
+            vi.mocked(insightsHandler['sendTestRunEvent']).mockClear()
+            vi.mocked(insightsHandler['attachHookData']).mockClear()
+        })
+
+        it('update hook data', async () => {
+            await insightsHandler.beforeHook({ parent: 'parent', title: 'test' } as any, {} as any)
+            expect(insightsHandler['_tests']).toEqual({ 'parent - test': { uuid: '123456789', startedAt: '2020-01-01T00:00:00.000Z' } })
+            expect(insightsHandler['sendTestRunEvent']).toBeCalledTimes(1)
+        })
     })
 
-    beforeEach(() => {
-        vi.mocked(insightsHandler['sendTestRunEvent']).mockClear()
-        vi.mocked(insightsHandler['attachHookData']).mockClear()
-    })
+    describe('cucumber', () => {
+        beforeEach(() => {
+            insightsHandler = new InsightsHandler(browser, false, 'framework')
+            insightsHandler['sendTestRunEvent'] = vi.fn().mockImplementation(() => { return [] })
+            insightsHandler['attachHookData'] = vi.fn().mockImplementation(() => { return [] })
+            insightsHandler['_tests'] = {}
+            insightsHandler['_framework'] = 'cucumber'
+        })
 
-    it('update hook data', async () => {
-        await insightsHandler.beforeHook({ parent: 'parent', title: 'test' } as any, {} as any)
-        expect(insightsHandler['_tests']).toEqual({ 'parent - test': { uuid: '123456789', startedAt: '2020-01-01T00:00:00.000Z' } })
-        expect(insightsHandler['sendTestRunEvent']).toBeCalledTimes(1)
+        beforeEach(() => {
+            vi.mocked(insightsHandler['sendTestRunEvent']).mockClear()
+            vi.mocked(insightsHandler['attachHookData']).mockClear()
+        })
+
+        it('doesn\'t update hook data', async () => {
+            await insightsHandler.beforeHook(undefined as any, {} as any)
+            expect(insightsHandler['sendTestRunEvent']).toBeCalledTimes(0)
+        })
     })
 })
 
 describe('afterHook', () => {
     let insightsHandler
 
-    beforeEach(() => {
-        insightsHandler = new InsightsHandler(browser, false, 'mocha')
-        insightsHandler['sendTestRunEvent'] = vi.fn().mockImplementation(() => { return [] })
-        insightsHandler['attachHookData'] = vi.fn().mockImplementation(() => { return [] })
+    describe('mocha', () => {
+        beforeEach(() => {
+            insightsHandler = new InsightsHandler(browser, false, 'mocha')
+            insightsHandler['sendTestRunEvent'] = vi.fn().mockImplementation(() => { return [] })
+            insightsHandler['attachHookData'] = vi.fn().mockImplementation(() => { return [] })
 
-        vi.spyOn(utils, 'getUniqueIdentifier').mockReturnValue('test title')
-        vi.spyOn(utils, 'getUniqueIdentifierForCucumber').mockReturnValue('test title')
-        vi.mocked(insightsHandler['sendTestRunEvent']).mockClear()
-        vi.mocked(insightsHandler['attachHookData']).mockClear()
+            vi.spyOn(utils, 'getUniqueIdentifier').mockReturnValue('test title')
+            vi.spyOn(utils, 'getUniqueIdentifierForCucumber').mockReturnValue('test title')
+            vi.mocked(insightsHandler['sendTestRunEvent']).mockClear()
+            vi.mocked(insightsHandler['attachHookData']).mockClear()
+        })
+
+        it('add hook data', async () => {
+            insightsHandler['_tests'] = {}
+            await insightsHandler.afterHook({ parent: 'parent', title: 'test' } as any, {} as any)
+            expect(insightsHandler['_tests']).toEqual({ 'test title': { finishedAt: '2020-01-01T00:00:00.000Z', } })
+            expect(insightsHandler['sendTestRunEvent']).toBeCalledTimes(1)
+        })
+
+        it('update hook data', async () => {
+            insightsHandler['_tests'] = { 'test title': {} }
+            await insightsHandler.afterHook({ parent: 'parent', title: 'test' } as any, {} as any)
+            expect(insightsHandler['_tests']).toEqual({ 'test title': { finishedAt: '2020-01-01T00:00:00.000Z', } })
+            expect(insightsHandler['sendTestRunEvent']).toBeCalledTimes(1)
+        })
     })
 
-    it('add hook data', async () => {
-        insightsHandler['_tests'] = {}
-        await insightsHandler.afterHook({ parent: 'parent', title: 'test' } as any, {} as any)
-        expect(insightsHandler['_tests']).toEqual({ 'test title': { finishedAt: '2020-01-01T00:00:00.000Z', } })
-        expect(insightsHandler['sendTestRunEvent']).toBeCalledTimes(1)
-    })
+    describe('cucumber', () => {
+        beforeEach(() => {
+            insightsHandler = new InsightsHandler(browser, false, 'cucumber')
+            insightsHandler['sendTestRunEvent'] = vi.fn().mockImplementation(() => { return [] })
+            insightsHandler['attachHookData'] = vi.fn().mockImplementation(() => { return [] })
 
-    it('update hook data', async () => {
-        insightsHandler['_tests'] = { 'test title': {} }
-        await insightsHandler.afterHook({ parent: 'parent', title: 'test' } as any, {} as any)
-        expect(insightsHandler['_tests']).toEqual({ 'test title': { finishedAt: '2020-01-01T00:00:00.000Z', } })
-        expect(insightsHandler['sendTestRunEvent']).toBeCalledTimes(1)
+            vi.spyOn(utils, 'getUniqueIdentifier').mockReturnValue('test title')
+            vi.spyOn(utils, 'getUniqueIdentifierForCucumber').mockReturnValue('test title')
+            vi.mocked(insightsHandler['sendTestRunEvent']).mockClear()
+            vi.mocked(insightsHandler['attachHookData']).mockClear()
+        })
+
+        it('doesn\'t update hook data', async () => {
+            await insightsHandler.afterHook(undefined as any, {} as any)
+            expect(insightsHandler['sendTestRunEvent']).toBeCalledTimes(0)
+        })
     })
 })
 

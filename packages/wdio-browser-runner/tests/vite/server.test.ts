@@ -1,3 +1,4 @@
+import url from 'node:url'
 import path from 'node:path'
 import { describe, it, vi, expect, afterEach, beforeEach } from 'vitest'
 import { createServer } from 'vite'
@@ -32,31 +33,13 @@ vi.mock('foobar', () => ({ default: vi.fn().mockReturnValue('foobar') }))
 vi.mock('vite')
 vi.mock('get-port', () => ({ default: vi.fn().mockResolvedValue(1234) }))
 
+const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
 const consoleLog = console.log.bind(console)
 const config: any = { rootDir: '/foo/bar' }
 
 describe('ViteServer', () => {
     beforeEach(() => {
         console.log = vi.fn()
-    })
-
-    it('constructor throws if preset and viteConfig is set at the same time', () => {
-        expect(() => new ViteServer({
-            preset: 'lit',
-            viteConfig: {}
-        }, config)).toThrow()
-    })
-
-    it('constructor sets config properly', () => {
-        const server = new ViteServer({
-            viteConfig: { foo: 'bar' } as any
-        }, config)
-        expect(server.config).toEqual({
-            foo: 'bar',
-            plugins: ['testrunner plugin', 'mock hoisting plugin'],
-            root: expect.any(String),
-            someDefault: 'config'
-        })
     })
 
     it('start', async () => {
@@ -100,6 +83,60 @@ describe('ViteServer', () => {
             root: expect.any(String),
             server: {
                 port: 1234,
+                host: '0.0.0.0',
+                proxy: {
+                    '/ws': {
+                        target: 'ws://localhost:1234',
+                        ws: true
+                    }
+                }
+            },
+            someDefault: 'config'
+        })
+    })
+
+    it('start with a preset and custom viteConfig as string', async () => {
+        const server = new ViteServer({
+            preset: 'lit',
+            viteConfig: './__fixtures__/vite.conf.ts'
+        }, { rootDir: __dirname } as any)
+        const viteServer = { listen: vi.fn() }
+        vi.mocked(createServer).mockResolvedValue(viteServer as any)
+        await server.start()
+
+        expect(viteServer.listen).toBeCalledTimes(1)
+        expect(createServer).toBeCalledWith({
+            plugins: ['testrunner plugin', 'mock hoisting plugin', 'foobar'],
+            root: expect.any(String),
+            server: {
+                port: 3210,
+                host: '0.0.0.0',
+                proxy: {
+                    '/ws': {
+                        target: 'ws://localhost:1234',
+                        ws: true
+                    }
+                }
+            },
+            someDefault: 'config'
+        })
+    })
+
+    it('start with a preset and custom viteConfig as object', async () => {
+        const server = new ViteServer({
+            preset: 'lit',
+            viteConfig: { server: { port: 3210 } }
+        }, { rootDir: __dirname } as any)
+        const viteServer = { listen: vi.fn() }
+        vi.mocked(createServer).mockResolvedValue(viteServer as any)
+        await server.start()
+
+        expect(viteServer.listen).toBeCalledTimes(1)
+        expect(createServer).toBeCalledWith({
+            plugins: ['testrunner plugin', 'mock hoisting plugin', 'foobar'],
+            root: expect.any(String),
+            server: {
+                port: 3210,
                 host: '0.0.0.0',
                 proxy: {
                     '/ws': {

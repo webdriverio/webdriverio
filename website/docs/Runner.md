@@ -14,7 +14,7 @@ The [Local Runner](https://www.npmjs.com/package/@wdio/local-runner) initiates y
 Given every test is run in its own isolated process, it is not possible to share data across test files. There are two ways to work around this:
 
 - use the [`@wdio/shared-store-service`](https://www.npmjs.com/package/@wdio/shared-store-service) to share data across all workers
-- group spec files (read more in [Organizing Test Suite](http://localhost:3000/docs/organizingsuites#grouping-test-specs-to-run-sequentially))
+- group spec files (read more in [Organizing Test Suite](https://webdriver.io/docs/organizingsuites#grouping-test-specs-to-run-sequentially))
 
 If nothing else is defined in the `wdio.conf.js` the Local Runner is the default runner in WebdriverIO.
 
@@ -110,9 +110,9 @@ export const {
 
 #### `viteConfig`
 
-Define your own [Vite configuration](https://vitejs.dev/config/). You can either pass in a custom object or import an existing `vite.conf.ts` file if you use Vite.js for development. Note that WebdriverIO merges custom configurations to set up framework and runner objects. This option can't be used together with `preset`.
+Define your own [Vite configuration](https://vitejs.dev/config/). You can either pass in a custom object or import an existing `vite.conf.ts` file if you use Vite.js for development. Note that WebdriverIO keeps custom Vite configurations to set up the test harness.
 
-__Type:__ [`UserConfig`](https://github.com/vitejs/vite/blob/52e64eb43287d241f3fd547c332e16bd9e301e95/packages/vite/src/node/config.ts#L119-L272)<br />
+__Type:__ `string` or [`UserConfig`](https://github.com/vitejs/vite/blob/52e64eb43287d241f3fd547c332e16bd9e301e95/packages/vite/src/node/config.ts#L119-L272) or `(env: ConfigEnv) => UserConfig | Promise<UserConfig>`<br />
 __Example:__
 
 ```js title="wdio.conf.ts"
@@ -121,6 +121,15 @@ import viteConfig from '../vite.config.ts'
 export const {
     // ...
     runner: ['browser', { viteConfig }],
+    // or just:
+    runner: ['browser', { viteConfig: '../vites.config.ts' }],
+    // or use a function if your vite config contains a lot of plugins
+    // which you only want to resolve when value is read
+    runner: ['browser', {
+        viteConfig: () => ({
+            // ...
+        })
+    }],
     // ...
 }
 ```

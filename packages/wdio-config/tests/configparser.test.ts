@@ -142,8 +142,8 @@ function ConfigParserForTest(config = FIXTURES_CONF) {
         ).build()
 }
 
-async function ConfigParserForTestWithAllFiles(configPath: string) {
-    return ConfigParserBuilder.withBaseDir(FIXTURES_PATH, configPath)
+async function ConfigParserForTestWithAllFiles(configPath: string, args = {}) {
+    return ConfigParserBuilder.withBaseDir(FIXTURES_PATH, configPath, args)
         .withFiles(
             await MockedFileSystem_LoadingAsMuchAsCanFromFileSystem()
         ).build()
@@ -477,10 +477,13 @@ describe('ConfigParser', () => {
         })
 
         it('should allow to specify a single suite', async () => {
-            const configParser = await ConfigParserForTestWithAllFiles(FIXTURES_CONF)
+            const configParser = await ConfigParserForTestWithAllFiles(FIXTURES_CONF, { suite: ['mobile'] })
             await configParser.initialize({ suite: ['mobile'] })
 
             const specs = configParser.getSpecs()
+            const suite = configParser.getConfig().suite
+
+            expect(suite).toHaveLength(1)
             expect(specs).toHaveLength(1)
             expect(specs).toContain(path.join(__dirname, 'RequireLibrary.test.ts'))
         })
@@ -805,6 +808,34 @@ describe('ConfigParser', () => {
             expect(specs).toHaveLength(2)
             expect(specs).toContain(INDEX_PATH)
             expect(specs).toContain(path.join(__dirname, 'RequireLibrary.test.ts'))
+        })
+
+        it('should include spec 3 times with mulit-run', async () => {
+            const configParser = await ConfigParserForTestWithAllFiles(FIXTURES_CONF)
+            await configParser.initialize({ spec: [INDEX_PATH], multiRun: 3 })
+
+            const specs = configParser.getSpecs()
+            expect(specs).toHaveLength(3)
+            expect(specs).toStrictEqual([
+                INDEX_PATH,
+                INDEX_PATH,
+                INDEX_PATH,
+            ])
+        })
+
+        it('should include specs from suite 3 times with mulit-run', async () => {
+            const configParser = await ConfigParserForTestWithAllFiles(FIXTURES_CONF)
+            await configParser.initialize({ suite: ['functional'], multiRun: 3 })
+
+            const specs = configParser.getSpecs()
+            expect(specs).toHaveLength(3)
+        })
+
+        it('should throw an error if multi-run is set but no spec or suite is specified', async () => {
+            const configParser = await ConfigParserForTestWithAllFiles(FIXTURES_CONF)
+            await configParser.initialize({ multiRun: 3 })
+
+            expect(() => configParser.getSpecs()).toThrow('The --multi-run flag requires that either the --spec or --suite flag is also set')
         })
 
         it('should include spec when specifying a suite unless excluded', async () => {

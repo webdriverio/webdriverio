@@ -37,6 +37,12 @@ if (os.platform() !== 'win32') {
 
         it('renders template correctly', async () => {
             vi.mocked(resolve).mockResolvedValue('file:///foo/bar/vue')
+            /**
+             * ensure we have CI env set so local and CI test pass
+             */
+            if (!process.env.CI) {
+                process.env.CI = '1'
+            }
             expect(await getTemplate({ preset: 'vue' }, {} as any, '/spec.js', { some: 'env' })).toMatchSnapshot()
             expect(fs.readFile).toBeCalledTimes(2)
         })

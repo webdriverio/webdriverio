@@ -123,23 +123,6 @@ describe('cli interface', () => {
         expect(wdioClInterface.emit).toBeCalledWith('job:start', 'content')
     })
 
-    it('should print reporter messages in watch mode', () => {
-        wdioClInterface['_isWatchMode'] = true
-        wdioClInterface.printReporters = vi.fn()
-
-        wdioClInterface.onMessage({
-            origin: 'reporter',
-            name: 'foo',
-            content: 'bar'
-        })
-
-        expect(wdioClInterface.printReporters).toBeCalledTimes(1)
-        expect(wdioClInterface['_messages']).toEqual({
-            ...EMPTY_INTERFACE_MESSAGE_OBJECT,
-            reporter: { foo: ['bar'] }
-        })
-    })
-
     it('should not store any other messages', () => {
         wdioClInterface.printReporters = vi.fn()
 
@@ -344,17 +327,26 @@ describe('cli interface', () => {
     })
 
     describe('sigintTrigger', () => {
+        const runningErrorMessage = 'Ending WebDriver sessions gracefully'
         it('should print message with jobs', () => {
             wdioClInterface['_jobs'].set('0-0', {
                 caps: { browserName: 'foo' },
                 specs: ['bar'],
                 hasTests: true
             })
-            expect(wdioClInterface.sigintTrigger()[0]).toContain('Ending WebDriver sessions gracefully')
+            expect((wdioClInterface.sigintTrigger() as any)[0])
+                .toContain(runningErrorMessage)
+        })
+
+        it('should print message when in watch mode', () => {
+            wdioClInterface['_isWatchMode'] = true
+            expect((wdioClInterface.sigintTrigger() as any)[0])
+                .toContain(runningErrorMessage)
         })
 
         it('should print message without jobs', () => {
-            expect(wdioClInterface.sigintTrigger()[0]).toContain('Ended WebDriver sessions gracefully')
+            expect((wdioClInterface.sigintTrigger() as any)[0])
+                .toContain('Ended WebDriver sessions gracefully')
         })
 
         it('should do nothing in debug mode', () => {
@@ -386,15 +378,6 @@ describe('cli interface', () => {
             wdioClInterface.finalise()
             expect(wdioClInterface.printReporters).toBeCalledTimes(1)
             expect(wdioClInterface.printSummary).toBeCalledTimes(1)
-        })
-
-        it('finalise should do nothing in watch mode', () => {
-            wdioClInterface['_isWatchMode'] = true
-            wdioClInterface.printReporters = vi.fn()
-            wdioClInterface.printSummary = vi.fn()
-            wdioClInterface.finalise()
-            expect(wdioClInterface.printReporters).toBeCalledTimes(0)
-            expect(wdioClInterface.printSummary).toBeCalledTimes(0)
         })
     })
 

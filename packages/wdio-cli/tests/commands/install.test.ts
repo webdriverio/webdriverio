@@ -50,6 +50,7 @@ describe('Command: install', () => {
     })
 
     it('should prompt missing configuration', async () => {
+        vi.spyOn(configCmd, 'formatConfigFilePaths').mockReturnValue({ fullPath: '/absolute/path/to/wdio.conf.js', fullPathNoExtension: '/absolute/path/to/wdio.conf' } as any)
         vi.spyOn(configCmd, 'missingConfigurationPrompt').mockImplementation(() => Promise.reject())
         vi.mocked(fs.access).mockRejectedValue(new Error('Doesn\'t exist'))
 
@@ -57,7 +58,7 @@ describe('Command: install', () => {
 
         expect(configCmd.missingConfigurationPrompt).toHaveBeenCalledWith(
             'install',
-            'Cannot install packages without a WebdriverIO configuration. You can create one by running \'wdio config\'',
+            '/absolute/path/to/wdio.conf',
             undefined
         )
     })
