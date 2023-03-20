@@ -29,7 +29,7 @@ describe('React Component Tests', () => {
         expect(screen.getByText(/count is 2/i)).toBeInTheDocument()
     })
     <% } else { %>
-    let container: Element
+    let container<%- isUsingTypeScript ? `: Element` : '' %>
 
     beforeEach(() => {
         container = document.createElement('div')

@@ -222,7 +222,7 @@ export const QUESTIONNAIRE = [{
         /**
          * Only show if Testing Library has an add-on for framework
          */
-        TESTING_LIBRARY_PACKAGES[convertPackageHashToObject(answers.preset!).short]
+        answers.preset && TESTING_LIBRARY_PACKAGES[convertPackageHashToObject(answers.preset!).short]
     )
 }, {
     type: 'list',

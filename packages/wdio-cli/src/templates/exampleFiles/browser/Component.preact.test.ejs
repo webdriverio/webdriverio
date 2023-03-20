@@ -1,11 +1,10 @@
 <%
 const harnessImport = installTestingLibrary
     ? `import { h } from 'preact'\nimport { render, screen, fireEvent } from '@testing-library/preact'`
-    : `import { render, h } from 'preact'\nimport htm from 'https://esm.sh/htm'`
+    : `import { h, render } from 'preact'\nimport htm from 'https://esm.sh/htm'`
 const renderCommand = installTestingLibrary
     ? `render(<ExampleComponent />)`
-    : `const root = createRoot(container)
-        root.render(<ExampleComponent />)`
+    : "render(html`<${ExampleComponent} />`, container)"
 %>
 import { expect, $ } from '@wdio/globals'
 <%- harnessImport %>
@@ -31,7 +30,7 @@ describe('Preact Component Tests', () => {
         expect(screen.getByText(/count is 2/i)).toBeInTheDocument()
     })
     <% } else { %>
-    let container: Element
+    let container<%- isUsingTypeScript ? `: Element` : '' %>
 
     beforeEach(() => {
         container = document.createElement('div')
