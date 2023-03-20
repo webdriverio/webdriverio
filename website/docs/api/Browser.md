@@ -9,8 +9,6 @@ The browser object is the session instance you use to control the browser or mob
 
 The session is initialized by the test runner. The same goes for ending the session. This is also done by the test runner process.
 
-Besides all commands from the [API](API.md), the `browser` object provides some more information you might be interested in during your test run:
-
 ## Properties
 
 A browser object has the following properties:
@@ -28,7 +26,9 @@ A browser object has the following properties:
 
 ## Methods
 
-A browser object provides all methods from the protocol section, e.g. [WebDriver](/docs/api/webdriver) protocol as well as commands listed within the browser section. Available protocol commands depend on the type of session. If you run an automated browser session, none of the Appium [commands](/docs/api/appium) will be available vice versa.
+Based on the automation backend used for your session, WebdriverIO identifies which [Protocol Commands](/docs/api/protocols) will be attached to the [browser object](/docs/api/browser). For example if you run an automated session in Chrome, you will have access to Chromium specific commands like [`elementHover`](/docs/api/chromium#elementhover) but not any of the [Appium commands](/docs/api/appium).
+
+Furthermore WebdriverIO provides a set of convenient methods that are recommended to use, to interact with the [browser](/docs/api/browser) or [elements](/docs/api/element) on the page.
 
 In addition to that the following commands are available:
 
@@ -36,6 +36,7 @@ In addition to that the following commands are available:
 | ---- | ---------- | ------- |
 | `addCommand` | - `commandName` (Type: `String`)<br />- `fn` (Type: `Function`)<br />- `attachToElement` (Type: `boolean`) | Allows to define custom commands that can be called from the browser object for compisition purposes. Read more in the [Custom Command](/docs/customcommands) guide. |
 | `overwriteCommand` | - `commandName` (Type: `String`)<br />- `fn` (Type: `Function`)<br />- `attachToElement` (Type: `boolean`) | Allows to overwite any browser command with custom functionality. Use carefully as it can confuse framework users. Read more in the [Custom Command](/docs/customcommands#overwriting-native-commands) guide. |
+| `addLocatorStrategy` | - `strategyName` (Type: `String`)<br />- `fn` (Type: `(selector: string, root?: Element) => Element | Element[]`) | Allos to define a custom selector strategy, read more in the [Selectors](/docs/selectors#custom-selector-strategies) guide. |
 
 ## Remarks
 
