@@ -313,7 +313,8 @@ export const WDIO_DEFAULTS: Options.Definition<Options.WebdriverIO & Options.Tes
      * Whether or not retried specfiles should be retried immediately or deferred to the end of the queue
      */
     specFileRetriesDeferred: {
-        type: 'boolean'
+        type: 'boolean',
+        default: true
     },
     /**
      * list of strings to watch of `wdio` command is called with `--watch` flag
