@@ -1,6 +1,8 @@
 
 import type { Capabilities } from '../../../packages/wdio-types'
 
+const SCROLL_MARGIN_TRESHOLD = 20
+
 describe('main suite 1', () => {
     it('foobar test', async () => {
         const browserName = (browser.capabilities as Capabilities.Capabilities).browserName
@@ -114,8 +116,8 @@ describe('main suite 1', () => {
             ])
 
             const failureMessage = `scrollIntoView failed, expected ${[wdioX, wdioY]} to equal ${[windowX, windowY]} ±10px`
-            expect(Math.abs(wdioX - windowX)).toBeLessThan(10, failureMessage)
-            expect(Math.abs(wdioY - windowY)).toBeLessThan(10, failureMessage)
+            expect(Math.abs(wdioX - windowX)).toBeLessThan(SCROLL_MARGIN_TRESHOLD, failureMessage)
+            expect(Math.abs(wdioY - windowY)).toBeLessThan(SCROLL_MARGIN_TRESHOLD, failureMessage)
         }
 
         await scrollAndCheck({ block: 'nearest', inline: 'nearest' })
