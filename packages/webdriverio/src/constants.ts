@@ -306,7 +306,8 @@ export const WDIO_DEFAULTS: Options.Definition<Options.WebdriverIO & Options.Tes
      * Delay in seconds between the spec file retry attempts
      */
     specFileRetriesDelay: {
-        type: 'number'
+        type: 'number',
+        default: 0
     },
     /**
      * Whether or not retried specfiles should be retried immediately or deferred to the end of the queue
