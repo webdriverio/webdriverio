@@ -40,7 +40,7 @@
     "@wdio/types": "8.4.0",
     "@wdio/utils": "8.6.1",
     "ast-types": "^0.14.2",
-    "deepmerge-ts": "^4.3.0",
+    "deepmerge-ts": "^5.0.0",
     "expect-webdriverio": "^4.1.2",
     "fast-safe-stringify": "^2.1.1",
     "get-port": "^6.1.2",
