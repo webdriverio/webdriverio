@@ -325,7 +325,10 @@ export async function getGitMetaData () {
     }
 }
 
-export function getUniqueIdentifier(test: Frameworks.Test): string {
+export function getUniqueIdentifier(test: Frameworks.Test, framework?: string): string {
+    if (framework === 'jasmine') {
+        return test.fullName
+    }
     return `${test.parent} - ${test.title}`
 }
 
@@ -548,6 +551,19 @@ export function getObservabilityBuildTags(options: BrowserstackConfig & Options.
         return [bstackBuildTag]
     }
     return []
+}
+
+export function frameworkSupportsHook(hook: string, framework?: string) {
+    if (framework === 'mocha') {
+        if (hook === 'before' || hook === 'after' || hook === 'beforeEach' || hook === 'afterEach') {
+            return true
+        }
+    } else if (framework === 'jasmine') {
+        if (hook === 'beforeEach' || hook === 'afterEach') {
+            return true
+        }
+    }
+    return false
 }
 
 export const sleep = (ms = 100) => new Promise((resolve) => setTimeout(resolve, ms))
