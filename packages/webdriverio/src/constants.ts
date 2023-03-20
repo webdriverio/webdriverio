@@ -296,6 +296,24 @@ export const WDIO_DEFAULTS: Options.Definition<Options.WebdriverIO & Options.Tes
         type: 'boolean'
     },
     /**
+     * The number of times to retry the entire specfile when it fails as a whole
+     */
+    specFileRetries: {
+        type: 'number'
+    },
+    /**
+     * Delay in seconds between the spec file retry attempts
+     */
+    specFileRetriesDelay: {
+        type: 'number'
+    },
+    /**
+     * Whether or not retried specfiles should be retried immediately or deferred to the end of the queue
+     */
+    specFileRetriesDeferred: {
+        type: 'boolean'
+    },
+    /**
      * list of strings to watch of `wdio` command is called with `--watch` flag
      */
     filesToWatch: {
