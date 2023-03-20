@@ -30,7 +30,8 @@
     "./common": {
       "import": "./build/common.js",
       "types": "./build/common.d.ts"
-    }
+    },
+    "./package.json": "./package.json"
   },
   "types": "./build/index.d.ts",
   "typeScriptVersion": "3.8.3",

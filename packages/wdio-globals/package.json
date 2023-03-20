@@ -17,7 +17,8 @@
       },
       "./cjs/index.js"
     ],
-    "./types": "./types.d.ts"
+    "./types": "./types.d.ts",
+    "./package.json": "./package.json"
   },
   "types": "./build/index.d.ts",
   "typeScriptVersion": "3.8.3",
