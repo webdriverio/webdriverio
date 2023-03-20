@@ -299,7 +299,8 @@ export const WDIO_DEFAULTS: Options.Definition<Options.WebdriverIO & Options.Tes
      * The number of times to retry the entire specfile when it fails as a whole
      */
     specFileRetries: {
-        type: 'number'
+        type: 'number',
+        default: 0
     },
     /**
      * Delay in seconds between the spec file retry attempts
