@@ -21,6 +21,21 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.6.6 (2023-03-20)
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#9874](https://github.com/webdriverio/webdriverio/pull/9874) fix(commands): successive scrollIntoView ([@OBe95](https://github.com/OBe95))
+
+#### :house: Internal
+* `wdio-allure-reporter`, `wdio-appium-service`, `wdio-browser-runner`, `wdio-browserstack-service`, `wdio-cli`, `wdio-concise-reporter`, `wdio-config`, `wdio-crossbrowsertesting-service`, `wdio-cucumber-framework`, `wdio-devtools-service`, `wdio-dot-reporter`, `wdio-firefox-profile-service`, `wdio-globals`, `wdio-jasmine-framework`, `wdio-junit-reporter`, `wdio-local-runner`, `wdio-logger`, `wdio-mocha-framework`, `wdio-protocols`, `wdio-repl`, `wdio-reporter`, `wdio-runner`, `wdio-sauce-service`, `wdio-selenium-standalone-service`, `wdio-shared-store-service`, `wdio-smoke-test-reporter`, `wdio-smoke-test-service`, `wdio-spec-reporter`, `wdio-static-server-service`, `wdio-sumologic-reporter`, `wdio-testingbot-service`, `wdio-utils`, `wdio-webdriver-mock-service`, `webdriver`, `webdriverio`
+  * [#9973](https://github.com/webdriverio/webdriverio/pull/9973) feat: export package.json ([@itsjwala](https://github.com/itsjwala))
+
+#### Committers: 2
+- Jigar wala ([@itsjwala](https://github.com/itsjwala))
+- Othmane BENTALEB ([@OBe95](https://github.com/OBe95))
+
+
 ## v8.6.3 (2023-03-18)
 
 #### :bug: Bug Fix
