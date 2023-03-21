@@ -88,7 +88,7 @@ import { render, fireEvent } from '@testing-library/vue'
 import * as matchers from '@testing-library/jest-dom/matchers'
 expect.extend(matchers)
 
-import ExampleComponent from './Component.vue.ejs'
+import ExampleComponent from './Component.vue'
 import './Component.css'
 
 describe('Vue Component Testing', () => {
@@ -114,7 +114,7 @@ describe('Vue Component Testing', () => {
 
         const component = await $('button*=count is')
         await expect(component).toBePresent()
-        await expect(component).toHaveText('count is 2')
+        await expect(component).toHaveText('count is 0')
 
         await component.click()
         await component.click()
@@ -130,7 +130,7 @@ exports[`onboarding templates > Vue > without testing-library 1`] = `
 import { $, expect } from '@wdio/globals'
 import { createApp } from 'vue'
 
-import ExampleComponent from './Component.vue.ejs'
+import ExampleComponent from './Component.vue'
 import './Component.css'
 
 describe('Vue Component Testing', () => {
@@ -153,7 +153,7 @@ describe('Vue Component Testing', () => {
 
         const component = await $('button*=count is')
         await expect(component).toBePresent()
-        await expect(component).toHaveText('count is 2')
+        await expect(component).toHaveText('count is 0')
 
         await component.click()
         await component.click()
@@ -234,7 +234,7 @@ describe('Preact Component Tests', () => {
 exports[`onboarding templates > preact > without testing-library 1`] = `
 "
 import { expect, $ } from '@wdio/globals'
-import { render, h } from 'preact'
+import { h, render } from 'preact'
 import htm from 'https://esm.sh/htm'
 
 // Initialize htm with Preact
@@ -257,8 +257,7 @@ describe('Preact Component Tests', () => {
     
 
     it('should test component with WebdriverIO', async () => {
-        const root = createRoot(container)
-        root.render(<ExampleComponent />)
+        render(html\`<\${ExampleComponent} />\`, container)
 
         const component = await $('button*=count is')
         await expect(component).toBePresent()
@@ -356,7 +355,7 @@ describe('React Component Tests', () => {
 exports[`onboarding templates > solid > with testing-library 1`] = `
 "
 import { expect, $ } from '@wdio/globals'
-import { cleanup, render, screen } from 'solid-testing-library'
+import { cleanup, render, screen, fireEvent } from 'solid-testing-library'
 
 import * as matchers from '@testing-library/jest-dom/matchers'
 expect.extend(matchers)

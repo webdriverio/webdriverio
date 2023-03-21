@@ -12,7 +12,7 @@ import { $, expect } from '@wdio/globals'
 import * as matchers from '@testing-library/jest-dom/matchers'
 expect.extend(matchers)
 <% } %>
-import ExampleComponent from './Component.vue.ejs'
+import ExampleComponent from './Component.vue'
 import './Component.css'
 
 describe('Vue Component Testing', () => {
@@ -32,7 +32,7 @@ describe('Vue Component Testing', () => {
         expect(getByText(/count is 2/i)).toBeInTheDocument()
     })
     <% } else { %>
-    let container: Element
+    let container<%- isUsingTypeScript ? `: Element` : '' %>
 
     beforeEach(() => {
         container = document.createElement('div')
@@ -50,7 +50,7 @@ describe('Vue Component Testing', () => {
 
         const component = await $('button*=count is')
         await expect(component).toBePresent()
-        await expect(component).toHaveText('count is 2')
+        await expect(component).toHaveText('count is 0')
 
         await component.click()
         await component.click()

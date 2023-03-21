@@ -706,8 +706,18 @@ export function npmInstall(parsedAnswers: ParsedAnswers, useYarn: boolean, npmTa
     /**
      * add helper package for Solidjs testing
      */
-    if (parsedAnswers.preset === 'solid') {
+    if (presetPackage.short === 'solid') {
         parsedAnswers.packagesToInstall.push('solid-js')
+    }
+
+    /**
+     * add helper for React rendering when not using Testing Library
+     */
+    if (presetPackage.short === 'react') {
+        parsedAnswers.packagesToInstall.push('react')
+        if (!parsedAnswers.installTestingLibrary) {
+            parsedAnswers.packagesToInstall.push('react-dom')
+        }
     }
 
     /**
@@ -828,7 +838,7 @@ export async function setupBabel(parsedAnswers: ParsedAnswers) {
                 presets: [
                     ['@babel/preset-env', {
                         targets: {
-                            node: 16
+                            node: 18
                         }
                     }]
                 ]
