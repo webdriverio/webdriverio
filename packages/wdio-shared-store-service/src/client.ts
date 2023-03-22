@@ -6,12 +6,21 @@ import type { JsonCompatible, JsonPrimitive, JsonObject, JsonArray } from '@wdio
 
 const log = logger('@wdio/shared-store-service')
 
-const WAIT_INTERVAL = 100
-const pendingValues = new Map<string, any>()
-let waitTimeout: NodeJS.Timer
+let baseUrlResolve: Parameters<ConstructorParameters<typeof Promise>[0]>[0]
+const baseUrlPromise = new Promise<string>((resolve) => {
+    baseUrlResolve = resolve
+})
 
-let baseUrl: string | undefined
-export const setPort = (port: number) => { baseUrl = `http://localhost:${port}` }
+let isBaseUrlReady = false
+export const setPort = (port: number) => {
+    /**
+     * if someone calls `setValue` in `onPrepare` we don't have a base url
+     * set as the launcher is called after user hooks. In this case we need
+     * to wait until it is set and flush all messages.
+     */
+    baseUrlResolve(`http://localhost:${port}`)
+    isBaseUrlReady = true
+}
 
 /**
  * make a request to the server to get a value from the store
@@ -19,6 +28,7 @@ export const setPort = (port: number) => { baseUrl = `http://localhost:${port}` 
  * @returns {*}
  */
 export const getValue = async (key: string): Promise<string | number | boolean | JsonObject | JsonArray | null | undefined> => {
+    const baseUrl = await baseUrlPromise
     const res = await got.post(`${baseUrl}/get`, { json: { key }, responseType: 'json' }).catch(errHandler)
     return res?.body ? (res.body as JsonObject).value : undefined
 }
@@ -29,38 +39,46 @@ export const getValue = async (key: string): Promise<string | number | boolean |
  * @param {*}       value `store[key]` value (plain object)
  */
 export const setValue = async (key: string, value: JsonCompatible | JsonPrimitive) => {
-    /**
-     * if someone calls `setValue` in `onPrepare` we don't have a base url
-     * set as the launcher is called after user hooks. In this case we need
-     * to wait until it is set and flush all messages.
-     */
-    if (baseUrl) {
+    const setPromise = baseUrlPromise.then((baseUrl) => {
         return got.post(`${baseUrl}/set`, { json: { key, value } }).catch(errHandler)
-    }
+    })
 
-    log.info('Shared store server not yet started, collecting value')
-    pendingValues.set(key, value)
+    return isBaseUrlReady ? setPromise : Promise.resolve()
+}
 
-    if (waitTimeout) {
-        return
-    }
+/**
+ *
+ * @param {string}  key
+ * @param {*}       value
+ */
+export const setResourcePool = async (key: string, value: JsonArray) => {
+    const setPromise = baseUrlPromise.then((baseUrl) => {
+        return got.post(`${baseUrl}/setResourcePool`, { json: { key, value } }).catch(errHandler)
+    })
 
-    log.info('Check shared store server to start')
-    waitTimeout = setInterval(async () => {
-        if (!baseUrl) {
-            return
-        }
+    return isBaseUrlReady ? setPromise : Promise.resolve()
+}
 
-        log.info(`Shared store server started, flushing ${pendingValues.size} values`)
-        clearInterval(waitTimeout)
-        await Promise.all([...pendingValues.entries()].map(async ([key, value]) => {
-            await got.post(`${baseUrl}/set`, { json: { key, value } }).catch(errHandler)
-            pendingValues.delete(key)
-        })).then(
-            () => log.info('All pending values were successfully stored'),
-            (err) => log.error(`Failed to store all values: ${err.stack}`)
-        )
-    }, WAIT_INTERVAL)
+/**
+ *
+ * @param {string}  key
+ * @param {*}       value
+ */
+export const takeValueFromPool = async (key: string) => {
+    const baseUrl = await baseUrlPromise
+    const res = await got.post(`${baseUrl}/takeValueFromPool`, { json: { key }, responseType: 'json' }).catch(errHandler)
+    return res?.body ? (res.body as JsonObject).value : undefined
+}
+
+/**
+ *
+ * @param {string}  key
+ * @param {*}       value
+ */
+export const addValueToPool = async (key: string, value: JsonPrimitive | JsonCompatible) => {
+    const baseUrl = await baseUrlPromise
+    const res = await got.post(`${baseUrl}/addValueToPool`, { json: { key, value }, responseType: 'json' }).catch(errHandler)
+    return res?.body ? (res.body as JsonObject).value : undefined
 }
 
 const errHandler = (err: Response<Error>) => {

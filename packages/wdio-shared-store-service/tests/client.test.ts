@@ -30,12 +30,11 @@ const baseUrl = `http://localhost:${port}`
 describe('client', () => {
     describe('when used in launcher process', () => {
         it('should not post before server has started', async () => {
-            await setValue('foo', 'bar')
-            await setValue('bar', 'foo')
+            setValue('foo', 'bar')
+            setValue('bar', 'foo')
             expect(got.post).toBeCalledTimes(0)
-            await new Promise((resolve) => setTimeout(resolve, 300))
             setPort(port)
-            await new Promise((resolve) => setTimeout(resolve, 300))
+            await Promise.resolve()
             expect(got.post).toBeCalledTimes(2)
             await setValue('another', 'item')
             expect(got.post).toBeCalledTimes(3)

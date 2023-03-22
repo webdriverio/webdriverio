@@ -2,9 +2,12 @@ import type { AddressInfo } from 'node:net'
 import polka from 'polka'
 import { json } from '@polka/parse'
 
-import type { JsonCompatible, JsonPrimitive, JsonObject } from '@wdio/types'
+import type { JsonCompatible, JsonPrimitive, JsonObject, JsonArray } from '@wdio/types'
+
+export type ResourcePoolStore = { [x: string]: JsonArray }
 
 const store: JsonObject = {}
+const resourcePoolStore: ResourcePoolStore = {}
 /**
  * @private
  */
@@ -44,6 +47,44 @@ export const startServer = () => new Promise<{ port: number, app: PolkaInstance 
             }
 
             store[key] = req.body.value as JsonCompatible | JsonPrimitive
+            return res.end()
+        })
+        .post('/setResourcePool', (req, res) => {
+            const key = req.body.key as string
+            const value = req.body.value as JsonCompatible | JsonPrimitive
+
+            if (!Array.isArray(value)) {
+                throw new Error('Resource pool must be an array of values')
+            }
+
+            resourcePoolStore[key] = value
+            return res.end()
+        })
+        .post('/takeValueFromPool', (req, res) => {
+            const key = req.body.key as string
+            const pool = resourcePoolStore[key]
+
+            if (!pool) {
+                throw new Error(`'${key}' resource pool is does not exist. Set it first`)
+            }
+
+            if (pool.length === 0) {
+                throw new Error(`'${key}' resource pool is empty. Return values to it first`)
+            }
+
+            const value = pool.shift()
+            res.end(JSON.stringify({ value }))
+        })
+        .post('/addValueToPool', (req, res) => {
+            const key = req.body.key as string
+            const value = req.body.value as JsonCompatible | JsonPrimitive
+            const pool = resourcePoolStore[key]
+
+            if (!pool) {
+                throw new Error(`'${key}' resource pool is does not exist. Set it first`)
+            }
+
+            pool.push(value)
             return res.end()
         })
 
