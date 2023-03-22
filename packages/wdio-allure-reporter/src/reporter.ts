@@ -354,13 +354,20 @@ export default class AllureReporter extends WDIOReporter {
                 return
             }
 
-            const isFailed = suiteChildren.some(item => item.state === AllureStatus.FAILED)
+            const isFailed = suiteChildren.find(item => item.state === AllureStatus.FAILED)
 
             if (isFailed) {
                 const currentTest = this._state.pop() as AllureTest
 
-                currentTest.status = AllureStatus.FAILED
+                currentTest.status = getTestStatus(isFailed)
                 currentTest.stage = Stage.FINISHED
+                const error = getErrorFromFailedTest(isFailed)
+
+                if (error) {
+                    currentTest.detailsMessage = error.message
+                    currentTest.detailsTrace = error.stack
+                }
+
                 currentTest.endTest()
                 return
             }
