@@ -16,6 +16,7 @@ import { version as bstackServiceVersion } from '../package.json'
 import type { App, AppConfig, AppUploadResponse, BrowserstackConfig } from './types'
 import { VALID_APP_EXTENSION } from './constants'
 import { launchTestSession, shouldAddServiceVersion, stopBuildUpstream, getCiInfo } from './util'
+import {isBStackSession} from "../build/util";
 
 const log = logger('@wdio/browserstack-service')
 
@@ -41,11 +42,13 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         if (Array.isArray(capabilities)) {
             capabilities.forEach((capability: Capabilities.DesiredCapabilities) => {
                 if (!capability['bstack:options']) {
-                    const extensionCaps = Object.keys(capability).filter((cap) => cap.includes(':'))
-                    if (extensionCaps.length) {
-                        capability['bstack:options'] = { wdioService: bstackServiceVersion }
-                    } else if (shouldAddServiceVersion(this._config, this._options.testObservability)) {
-                        capability['browserstack.wdioService'] = bstackServiceVersion
+                    if (isBStackSession(this._config)) {
+                        const extensionCaps = Object.keys(capability).filter((cap) => cap.includes(':'))
+                        if (extensionCaps.length) {
+                            capability['bstack:options'] = {wdioService: bstackServiceVersion}
+                        } else if (shouldAddServiceVersion(this._config, this._options.testObservability)) {
+                            capability['browserstack.wdioService'] = bstackServiceVersion
+                        }
                     }
                     this._buildIdentifier = capability['browserstack.buildIdentifier']?.toString()
                     this._buildName = capability['build']?.toString()
@@ -60,11 +63,13 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         } else if (typeof capabilities === 'object') {
             Object.entries(capabilities as Capabilities.MultiRemoteCapabilities).forEach(([, caps]) => {
                 if (!(caps.capabilities as Capabilities.Capabilities)['bstack:options']) {
-                    const extensionCaps = Object.keys(caps.capabilities).filter((cap) => cap.includes(':'))
-                    if (extensionCaps.length) {
-                        (caps.capabilities as Capabilities.Capabilities)['bstack:options'] = { wdioService: bstackServiceVersion }
-                    } else if (shouldAddServiceVersion(this._config, this._options.testObservability)) {
-                        (caps.capabilities as Capabilities.Capabilities)['browserstack.wdioService'] = bstackServiceVersion
+                    if (isBStackSession(this._config)) {
+                        const extensionCaps = Object.keys(caps.capabilities).filter((cap) => cap.includes(':'))
+                        if (extensionCaps.length) {
+                            (caps.capabilities as Capabilities.Capabilities)['bstack:options'] = {wdioService: bstackServiceVersion}
+                        } else if (shouldAddServiceVersion(this._config, this._options.testObservability)) {
+                            (caps.capabilities as Capabilities.Capabilities)['browserstack.wdioService'] = bstackServiceVersion
+                        }
                     }
                     this._buildIdentifier = (caps.capabilities as Capabilities.Capabilities)['browserstack.buildIdentifier']
                 } else {
