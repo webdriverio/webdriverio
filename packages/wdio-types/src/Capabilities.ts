@@ -296,7 +296,7 @@ export interface ChromeOptions {
      * These preferences are only applied to the user profile in use. See the 'Preferences'
      * file in Chrome's user data directory for examples.
      */
-    prefs?: JSONLike
+    prefs?: Record<string, JSONLike>
     /**
      * A list of window types that will appear in the list of window handles. For access
      * to <webview> elements, include "webview" in this list.
