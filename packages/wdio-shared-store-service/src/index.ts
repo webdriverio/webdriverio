@@ -3,7 +3,7 @@ import type { JsonPrimitive, JsonCompatible, JsonArray } from '@wdio/types'
 import SharedStoreLauncher from './launcher.js'
 import SharedStoreService from './service.js'
 
-export { getValue, setValue, setResourcePool, takeValueFromPool, addValueToPool } from './client.js'
+export { getValue, setValue, setResourcePool, getValueFromPool, addValueToPool } from './client.js'
 export default SharedStoreService
 export const launcher = SharedStoreLauncher
 
@@ -12,7 +12,7 @@ export interface BrowserExtension {
         get: (key: string) => JsonPrimitive | JsonCompatible;
         set: (key: string, value: JsonPrimitive | JsonCompatible) => void;
         setResourcePool: (key: string, value: JsonArray) => void;
-        takeValueFromPool: (key: string) => JsonPrimitive | JsonCompatible;
+        getValueFromPool: (key: string) => JsonPrimitive | JsonCompatible;
         addValueToPool: (key: string, value: JsonPrimitive | JsonCompatible) => void;
     }
 }

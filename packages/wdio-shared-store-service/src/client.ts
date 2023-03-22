@@ -64,9 +64,9 @@ export const setResourcePool = async (key: string, value: JsonArray) => {
  * @param {string}  key
  * @param {*}       value
  */
-export const takeValueFromPool = async (key: string) => {
+export const getValueFromPool = async (key: string) => {
     const baseUrl = await baseUrlPromise
-    const res = await got.post(`${baseUrl}/takeValueFromPool`, { json: { key }, responseType: 'json' }).catch(errHandler)
+    const res = await got.get(`${baseUrl}/getValueFromPool`, { json: { key }, responseType: 'json' }).catch(errHandler)
     return res?.body ? (res.body as JsonObject).value : undefined
 }
 

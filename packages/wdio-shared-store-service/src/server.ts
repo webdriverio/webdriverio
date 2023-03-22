@@ -2,12 +2,10 @@ import type { AddressInfo } from 'node:net'
 import polka from 'polka'
 import { json } from '@polka/parse'
 
-import type { JsonCompatible, JsonPrimitive, JsonObject, JsonArray } from '@wdio/types'
-
-export type ResourcePoolStore = { [x: string]: JsonArray }
+import type { JsonCompatible, JsonPrimitive, JsonObject } from '@wdio/types'
 
 const store: JsonObject = {}
-const resourcePoolStore: ResourcePoolStore = {}
+const resourcePoolStore: Map<string, any[]> = new Map()
 /**
  * @private
  */
@@ -57,19 +55,19 @@ export const startServer = () => new Promise<{ port: number, app: PolkaInstance 
                 throw new Error('Resource pool must be an array of values')
             }
 
-            resourcePoolStore[key] = value
+            resourcePoolStore.set(key, value)
             return res.end()
         })
-        .post('/takeValueFromPool', (req, res) => {
+        .get('/getValueFromPool', (req, res) => {
             const key = req.body.key as string
-            const pool = resourcePoolStore[key]
+            const pool = resourcePoolStore.get(key)
 
             if (!pool) {
                 throw new Error(`'${key}' resource pool is does not exist. Set it first`)
             }
 
             if (pool.length === 0) {
-                throw new Error(`'${key}' resource pool is empty. Return values to it first`)
+                throw new Error(`'${key}' resource pool is empty. Set values to it first using 'setResourcePool'`)
             }
 
             const value = pool.shift()
@@ -78,10 +76,10 @@ export const startServer = () => new Promise<{ port: number, app: PolkaInstance 
         .post('/addValueToPool', (req, res) => {
             const key = req.body.key as string
             const value = req.body.value as JsonCompatible | JsonPrimitive
-            const pool = resourcePoolStore[key]
+            const pool = resourcePoolStore.get(key)
 
             if (!pool) {
-                throw new Error(`'${key}' resource pool is does not exist. Set it first`)
+                throw new Error(`'${key}' resource pool is empty. Set values to it first using 'setResourcePool'`)
             }
 
             pool.push(value)

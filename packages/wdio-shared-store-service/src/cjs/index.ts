@@ -15,9 +15,9 @@ exports.setResourcePool = async function (key: string, value: never) {
     return m.setResourcePool(key, value)
 }
 
-exports.takeValueFromPool = async function (key: string) {
+exports.getValueFromPool = async function (key: string) {
     const m = await esmModule
-    return m.takeValueFromPool(key)
+    return m.getValueFromPool(key)
 }
 
 exports.addValueToPool = async function (key: string, value: never) {

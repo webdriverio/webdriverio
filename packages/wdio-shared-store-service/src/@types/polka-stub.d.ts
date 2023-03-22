@@ -25,6 +25,10 @@ interface PolkaInstance {
         path: string,
         cb: (req: PolkaRequest, res: PolkaResponse) => void
     ) => PolkaInstance;
+    get: (
+        path: string,
+        cb: (req: PolkaRequest, res: PolkaResponse) => void
+    ) => PolkaInstance;
     listen: Function;
     server: Partial<import("http").Server> & { address(): { post: string } };
 }
