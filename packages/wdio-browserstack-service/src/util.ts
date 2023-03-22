@@ -477,9 +477,6 @@ export function isBStackSession(config: Options.Testrunner) {
 }
 
 export function shouldAddServiceVersion(config: Options.Testrunner, testObservability?: boolean): boolean {
-    if (!isBStackSession(config)) {
-        return false
-    }
     if (config.services && config.services.toString().includes('chromedriver') && testObservability !== false) {
         return false
     }
