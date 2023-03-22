@@ -304,10 +304,10 @@ export default class AllureReporter extends WDIOReporter {
             getSuiteLabels(suite).forEach((label: Label) => {
                 switch (label.name) {
                 case 'issue':
-                    this.addIssue({ issue: label.value })
+                    this.addIssue({ issue: label.value, linkName: label.value  })
                     break
                 case 'testId':
-                    this.addTestId({ testId: label.value })
+                    this.addTestId({ testId: label.value, linkName: label.value  })
                     break
                 default:
                     this.addLabel(label)
