@@ -115,6 +115,34 @@ describe('wdio-junit-reporter', () => {
         expect(reporter['_buildJunitXml'](mochaRunnerLog as any).replace(/\s/g, '')).toMatchSnapshot()
     })
 
+    it('generates xml output (Cucumber-style) when feature has file:// protocol', () => {
+
+        reporter = new WDIOJunitReporter({ stdout: true })
+
+        reporter.suites = { ...featuresLog } as any
+
+        const runner = { ...cucumberRunnerLog }
+
+        runner.specs = runner.specs.map(s => `file://${s}`)
+
+        // verifies the content of the report but omits format by stripping all whitespace and new lines
+        expect(reporter['_buildJunitXml'](runner as any).replace(/\s/g, '')).toMatchSnapshot()
+    })
+
+    it('generates xml output (Cucumber-style) when feature has file:// protocol and the addFileAttribute option is set', () => {
+
+        reporter = new WDIOJunitReporter({ stdout: true, addFileAttribute: true })
+
+        reporter.suites = { ...featuresLog } as any
+
+        const runner = { ...cucumberRunnerLog }
+
+        runner.specs = runner.specs.map(s => `file://${s}`)
+
+        // verifies the content of the report but omits format by stripping all whitespace and new lines
+        expect(reporter['_buildJunitXml'](runner as any).replace(/\s/g, '')).toMatchSnapshot()
+    })
+
     it('generates xml output (Cucumber-style)', () => {
         reporter.suites = featuresLog as any
 
