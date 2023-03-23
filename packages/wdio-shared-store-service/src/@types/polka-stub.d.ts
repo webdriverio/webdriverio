@@ -13,6 +13,8 @@ type PolkaRequest = {
     path: string;
     method: string;
     body: Record<string, unknown>;
+    params: Record<string, unknown>;
+    query: Record<string, unknown>;
 };
 
 type PolkaResponse = {

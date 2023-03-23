@@ -3,6 +3,7 @@ import got from 'got'
 import logger from '@wdio/logger'
 
 import type { JsonCompatible, JsonPrimitive, JsonObject, JsonArray } from '@wdio/types'
+import type { GetValueOptions } from 'src'
 
 const log = logger('@wdio/shared-store-service')
 
@@ -64,9 +65,9 @@ export const setResourcePool = async (key: string, value: JsonArray) => {
  * @param {string}  key
  * @param {*}       value
  */
-export const getValueFromPool = async (key: string) => {
+export const getValueFromPool = async (key: string, options: GetValueOptions) => {
     const baseUrl = await baseUrlPromise
-    const res = await got.get(`${baseUrl}/getValueFromPool`, { json: { key }, responseType: 'json' }).catch(errHandler)
+    const res = await got.get(`${baseUrl}/getValueFromPool/${key}${options?.timeout ? `?timeout=${options.timeout}` : '' }`, { responseType: 'json' }).catch(errHandler)
     return res?.body ? (res.body as JsonObject).value : undefined
 }
 

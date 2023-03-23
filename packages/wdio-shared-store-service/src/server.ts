@@ -21,6 +21,23 @@ const validateBody: NextFn = (req, res, next) => {
     next()
 }
 
+function getValueFromPool(key: string) {
+    const pool = resourcePoolStore.get(key)
+
+    if (!pool) {
+        throw new Error(`'${key}' resource pool is does not exist. Set it first using 'setResourcePool'`)
+    }
+
+    if (pool.length === 0) {
+        return null
+    }
+
+    return pool.shift()
+}
+
+const MAX_TIMEOUT = 15000
+const DEFAULT_TIMEOUT = 1000
+
 export const startServer = () => new Promise<{ port: number, app: PolkaInstance }>((resolve, reject) => {
     const app = polka()
         /**
@@ -58,20 +75,24 @@ export const startServer = () => new Promise<{ port: number, app: PolkaInstance 
             resourcePoolStore.set(key, value)
             return res.end()
         })
-        .get('/getValueFromPool', (req, res) => {
-            const key = req.body.key as string
-            const pool = resourcePoolStore.get(key)
+        .get('/getValueFromPool/:key', (req, res) => {
+            const key = req.params.key as string
+            let value = getValueFromPool(key)
 
-            if (!pool) {
-                throw new Error(`'${key}' resource pool is does not exist. Set it first`)
+            if (value) {
+                res.end(JSON.stringify({ value }))
+                return
             }
 
-            if (pool.length === 0) {
-                throw new Error(`'${key}' resource pool is empty. Set values to it first using 'setResourcePool'`)
-            }
+            const timeout = Math.min(parseInt(req.query.timeout as string) || DEFAULT_TIMEOUT, MAX_TIMEOUT)
 
-            const value = pool.shift()
-            res.end(JSON.stringify({ value }))
+            setTimeout(function secondAttempt() {
+                value = getValueFromPool(key)
+                if (!value) {
+                    throw new Error(`'${key}' resource pool is empty. Set values to it first using 'setResourcePool'`)
+                }
+                res.end(JSON.stringify({ value }))
+            }, timeout)
         })
         .post('/addValueToPool', (req, res) => {
             const key = req.body.key as string

@@ -3,6 +3,7 @@ import type { JsonCompatible, JsonPrimitive, Services } from '@wdio/types'
 import { getValue, setValue, setPort, setResourcePool, getValueFromPool, addValueToPool } from './client.js'
 import type { SharedStoreServiceCapabilities } from './types.js'
 import type { JsonArray } from '@wdio/types'
+import type { GetValueOptions } from './index.js'
 
 export default class SharedStoreService implements Services.ServiceInstance {
     private _browser?: WebdriverIO.Browser
@@ -35,8 +36,9 @@ export default class SharedStoreService implements Services.ServiceInstance {
             },
             getValueFromPool: {
                 value: (
-                    key: string
-                ) => this._browser?.call(() => getValueFromPool(key))
+                    key: string,
+                    options: GetValueOptions
+                ) => this._browser?.call(() => getValueFromPool(key, options))
             },
             addValueToPool: {
                 value: (
