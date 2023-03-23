@@ -33,6 +33,7 @@ describe('onPrepare', () => {
     }
     const logInfoSpy = vi.spyOn(log, 'info').mockImplementation((string) => string)
     vi.spyOn(utils, 'launchTestSession').mockImplementation(() => {})
+    vi.spyOn(utils, 'isBStackSession').mockImplementation(() => {return true})
 
     it('should not try to upload app is app is undefined', () => {
         const service = new BrowserstackLauncher({ testObservability: false } as any, caps, config)
@@ -631,6 +632,17 @@ describe('constructor', () => {
 
         delete process.env.BROWSERSTACK_RERUN
         delete process.env.BROWSERSTACK_RERUN_TESTS
+    })
+
+    describe('#non-bstack session', () => {
+        const spy = vi.spyOn(utils, 'isBStackSession')
+        it('should not add service version to caps', async () => {
+            spy.mockImplementationOnce(() => false)
+            const caps: any = [{}]
+            new BrowserstackLauncher(options as any, caps, config)
+            expect(caps).toEqual([{}])
+        })
+        spy.mockImplementation(() => true)
     })
 })
 
