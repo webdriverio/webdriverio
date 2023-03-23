@@ -97,17 +97,42 @@ export function getParentSuiteName(fullTitle: string, testSuiteTitle: string): s
     return parentSuiteName.trim()
 }
 
-function o11yAsyncErrorHandler(fn: Function) {
-    return async (...args : any) => {
+function o11yErrorHandler(fn: Function) {
+    return function (...args: any) {
         try {
-            return await fn(...args)
+            // @ts-ignore
+            return fn.apply(this, arguments)
         } catch (err) {
-            log.error(`Error in executing ${fn.name}: ${err} `)
+            log.error(`Error in executing ${fn.name} with args ${args} : ${err} `)
         }
     }
 }
 
-export const launchTestSession = o11yAsyncErrorHandler(async function (options: BrowserstackConfig & Options.Testrunner, config: Options.Testrunner, bsConfig: UserConfig) {
+// https://tugayilik.medium.com/error-handling-via-try-catch-proxy-in-javascript-54116dbf783f
+type ClassType = { new(...args: any[]): any; };
+export function o11yClassErrorHandler<T extends ClassType>(errorClass: T): T {
+    const prototype = errorClass.prototype
+
+    if (Object.getOwnPropertyNames(prototype).length < 2) {
+        return errorClass
+    }
+
+    Object.getOwnPropertyNames(prototype).forEach((methodName) => {
+        const method = prototype[methodName]
+        if (typeof method === 'function' && methodName !== 'constructor') {
+            // In order to preserve this context, need to define like this
+            Object.defineProperty(prototype, methodName, {
+                get() {
+                    return o11yErrorHandler(method).bind(this)
+                }
+            })
+        }
+    })
+
+    return errorClass
+}
+
+export const launchTestSession = o11yErrorHandler(async function (options: BrowserstackConfig & Options.Testrunner, config: Options.Testrunner, bsConfig: UserConfig) {
     const data = {
         format: 'json',
         project_name: getObservabilityProject(options, bsConfig.projectName),
@@ -173,7 +198,7 @@ export const launchTestSession = o11yAsyncErrorHandler(async function (options: 
     }
 })
 
-export const stopBuildUpstream = o11yAsyncErrorHandler(async function () {
+export const stopBuildUpstream = o11yErrorHandler(async function () {
     if (!process.env.BS_TESTOPS_BUILD_COMPLETED) {
         return
     }
