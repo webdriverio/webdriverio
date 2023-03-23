@@ -304,10 +304,10 @@ export default class AllureReporter extends WDIOReporter {
             getSuiteLabels(suite).forEach((label: Label) => {
                 switch (label.name) {
                 case 'issue':
-                    this.addIssue({ issue: label.value })
+                    this.addIssue({ issue: label.value, linkName: label.value  })
                     break
                 case 'testId':
-                    this.addTestId({ testId: label.value })
+                    this.addTestId({ testId: label.value, linkName: label.value  })
                     break
                 default:
                     this.addLabel(label)
@@ -354,13 +354,20 @@ export default class AllureReporter extends WDIOReporter {
                 return
             }
 
-            const isFailed = suiteChildren.some(item => item.state === AllureStatus.FAILED)
+            const isFailed = suiteChildren.find(item => item.state === AllureStatus.FAILED)
 
             if (isFailed) {
                 const currentTest = this._state.pop() as AllureTest
 
-                currentTest.status = AllureStatus.FAILED
+                currentTest.status = getTestStatus(isFailed)
                 currentTest.stage = Stage.FINISHED
+                const error = getErrorFromFailedTest(isFailed)
+
+                if (error) {
+                    currentTest.detailsMessage = error.message
+                    currentTest.detailsTrace = error.stack
+                }
+
                 currentTest.endTest()
                 return
             }
