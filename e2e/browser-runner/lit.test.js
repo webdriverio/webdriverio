@@ -122,6 +122,27 @@ describe('Lit Component testing', () => {
             expect(await $('div*=me').getHTML(false)).toBe('Find me')
         })
 
+        it('fetches the parent element by content correctly', async () => {
+            render(
+                html`<button><span>Click Me!</span></button>`,
+                document.body
+            )
+            expect(await $('span=Click Me!').getHTML(false)).toBe('Click Me!')
+            expect(await $('button=Click Me!').getHTML(false)).toBe('<span>Click Me!</span>')
+            const elem = $('button=Click Me!')
+            await expect(elem).toHaveText('Click Me!')
+        })
+
+        it('fetches the element with multiple text nodes by the content', async () => {
+            render(
+                html`<p>
+                Find
+                me</p>`, document.body
+            )
+            const elem = await $('p=Find me')
+            await expect(elem).toHaveText('Find me')
+        })
+
         it('fetches element by JS function', async () => {
             expect((await $(() => document.body).getTagName()).toLowerCase()).toBe('body')
         })
