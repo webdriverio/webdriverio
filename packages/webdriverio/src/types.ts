@@ -269,6 +269,10 @@ export interface ElementBase extends InstanceBase, ElementReference, CustomInsta
      */
     isReactElement?: boolean
     /**
+     * true if element is a shadow root element
+     */
+    isShadowElement?: boolean
+    /**
      * error response if element was not found
      */
     error?: Error
