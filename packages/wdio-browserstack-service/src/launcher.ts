@@ -50,6 +50,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         if (Array.isArray(capabilities)) {
             capabilities.forEach((capability: Capabilities.DesiredCapabilities) => {
                 if (!capability['bstack:options']) {
+                    // Skipping adding of service version if session is not of browserstack
                     if (isBStackSession(this._config)) {
                         const extensionCaps = Object.keys(capability).filter((cap) => cap.includes(':'))
                         if (extensionCaps.length) {
@@ -58,6 +59,8 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                             capability['browserstack.wdioService'] = bstackServiceVersion
                         }
                     }
+                    
+                    // Need this details for sending data to Observability
                     this._buildIdentifier = capability['browserstack.buildIdentifier']?.toString()
                     this._buildName = capability.build?.toString()
                 } else {
