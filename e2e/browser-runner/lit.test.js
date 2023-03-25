@@ -134,11 +134,10 @@ describe('Lit Component testing', () => {
         })
 
         it('fetches the element with multiple text nodes by the content', async () => {
-            render(
-                html`<p>
-                Find
-                me</p>`, document.body
-            )
+            const container = document.createElement('p')
+            container.appendChild(document.createTextNode('Find'))
+            container.appendChild(document.createTextNode(' me'))
+            render(container, document.body)
             const elem = await $('p=Find me')
             await expect(elem).toHaveText('Find me')
         })
