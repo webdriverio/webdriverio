@@ -121,6 +121,13 @@ describe('Lit Component testing', () => {
         await expect($('simple-greeting').shadow$('sub-elem').shadow$$('.selectMe')[0]).toBePresent()
     })
 
+    it('should not stale process due to alert or prompt', async () => {
+        alert('test')
+        prompt('test')
+        confirm('test')
+        await expect(browser).toHaveTitle('WebdriverIO Browser Test')
+    })
+
     describe('Selector Tests', () => {
         it('fetches element by content correctly', async () => {
             render(
@@ -129,6 +136,26 @@ describe('Lit Component testing', () => {
             )
             expect(await $('div=Find me').getHTML(false)).toBe('Find me')
             expect(await $('div*=me').getHTML(false)).toBe('Find me')
+        })
+
+        it('fetches the parent element by content correctly', async () => {
+            render(
+                html`<button><span>Click Me!</span></button>`,
+                document.body
+            )
+            expect(await $('span=Click Me!').getHTML(false)).toBe('Click Me!')
+            expect(await $('button=Click Me!').getHTML(false)).toBe('<span>Click Me!</span>')
+            const elem = $('button=Click Me!')
+            await expect(elem).toHaveText('Click Me!')
+        })
+
+        it('fetches the element with multiple text nodes by the content', async () => {
+            const container = document.createElement('p')
+            container.appendChild(document.createTextNode('Find'))
+            container.appendChild(document.createTextNode(' me'))
+            render(container, document.body)
+            const elem = await $('p=Find me')
+            await expect(elem).toHaveText('Find me')
         })
 
         it('fetches element by JS function', async () => {

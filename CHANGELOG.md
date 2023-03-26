@@ -21,6 +21,25 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.6.8 (2023-03-24)
+
+#### :bug: Bug Fix
+* `wdio-junit-reporter`
+  * [#10035](https://github.com/webdriverio/webdriverio/pull/10035) Handle `file://` in specs of junit reporter - Closes [#9352](https://github.com/webdriverio/webdriverio/issues/9352) ([@nextlevelbeard](https://github.com/nextlevelbeard))
+
+#### :nail_care: Polish
+* `wdio-allure-reporter`
+  * [#10032](https://github.com/webdriverio/webdriverio/pull/10032) Add missing information and fix allure global result for cucumber tests ([@lacell75](https://github.com/lacell75))
+
+#### :memo: Documentation
+* [#10041](https://github.com/webdriverio/webdriverio/pull/10041) [Docs] Fixes to Lit component testing page ([@augustjk](https://github.com/augustjk))
+
+#### Committers: 3
+- Augustine Kim ([@augustjk](https://github.com/augustjk))
+- Fabien CELLIER ([@lacell75](https://github.com/lacell75))
+- Ricardo Barbosa ([@nextlevelbeard](https://github.com/nextlevelbeard))
+
+
 ## v8.6.7 (2023-03-20)
 
 #### :bug: Bug Fix
