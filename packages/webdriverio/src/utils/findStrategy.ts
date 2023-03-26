@@ -246,7 +246,7 @@ export const findStrategy = function (selector: SelectorStrategy, isW3C?: boolea
             throw new Error(`InvalidSelectorMatch: Strategy 'xpath extended' has failed to match '${stringSelector}'`)
         }
         const PREFIX_NAME: Record<string, string> = { '.': 'class', '#': 'id' }
-        const conditions = []
+        const conditions: Array<string> = []
         const [
             tag,
             prefix, name,
@@ -267,7 +267,16 @@ export const findStrategy = function (selector: SelectorStrategy, isW3C?: boolea
         conditions.push(
             partial ? `contains(text(), "${query}")` : `normalize-space(text()) = "${query}"`
         )
-        value = `.//${tag || '*'}[${conditions.join(' and ')}]`
+        const getValue = () => `.//${tag || '*'}[${conditions.join(' and ')}]`
+        value = getValue()
+        if (!partial) {
+            conditions.pop()
+            conditions.push(
+                `not(${value})`,
+                `normalize-space() = "${query}"`
+            )
+            value = value + ' | ' + getValue()
+        }
         break
     }
     case '-image': {
