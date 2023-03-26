@@ -112,6 +112,13 @@ describe('Lit Component testing', () => {
         ])
     })
 
+    it('should not stale process due to alert or prompt', async () => {
+        alert('test')
+        prompt('test')
+        confirm('test')
+        await expect(browser).toHaveTitle('WebdriverIO Browser Test')
+    })
+
     describe('Selector Tests', () => {
         it('fetches element by content correctly', async () => {
             render(
