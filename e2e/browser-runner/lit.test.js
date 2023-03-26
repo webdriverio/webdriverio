@@ -112,6 +112,15 @@ describe('Lit Component testing', () => {
         ])
     })
 
+    it('should be able to check if element found by shadow$ is present', async () => {
+        render(
+            html`<simple-greeting name="WebdriverIO" />`,
+            document.body
+        )
+        await expect($('simple-greeting').shadow$('sub-elem').shadow$('.selectMe')).toBePresent()
+        await expect($('simple-greeting').shadow$('sub-elem').shadow$$('.selectMe')[0]).toBePresent()
+    })
+
     describe('Selector Tests', () => {
         it('fetches element by content correctly', async () => {
             render(
