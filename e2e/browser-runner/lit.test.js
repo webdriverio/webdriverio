@@ -8,7 +8,6 @@ import namespacedModule from '@namespace/module'
 import { someExport, namedExports } from '@testing-library/user-event'
 
 import { SimpleGreeting } from './components/LitComponent.ts'
-import { it } from 'node:test'
 
 const getQuestionFn = spyOn(SimpleGreeting.prototype, 'getQuestion')
 mock('./components/constants.ts', async (getOrigModule) => {
