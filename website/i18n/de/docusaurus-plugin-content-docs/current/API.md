@@ -1,14 +1,13 @@
 ---
 id: api
-title: Introduction
+title: Einleitung
 ---
 
-Welcome to the WebdriverIO API docs. These pages contain reference materials for all implemented protocol bindings and convenience commands. Protocol commands, including [WebDriver](/docs/api/webdriver), [WebDriver Bidi](/docs/api/webdriverBidi) or mobile commands like [Appium](http://appium.io) are commands that are directly send to the underlying driver backend. Convenience commands provided by the [`browser`](/docs/api/browser), [`element`](/docs/api/element) or [`mock`](/docs/api/mock) object offer higher level interactivity.
+Willkommen zur WebdriverIO API Dokumentation. Diese Seiten enthalten Referenzmaterialien für alle implementierten Protokoll und Helfer Befehle. Protokollbefehle, einschließlich [WebDriver](/docs/api/webdriver), [WebDriver Bidi](/docs/api/webdriverBidi) oder mobile Befehle wie [Appium](http://appium.io) sind Befehle, die direkt an das zugrunde liegende Automatisierungs-Backend gesendet werden. Helfer-Befehle des [`Browsers`](/docs/api/browser), [`Element`](/docs/api/element) oder [`Mock`](/docs/api/mock) Objektes bieten einfache Interaktionen basierend auf den Protokoll-Befehlen.
 
-:::info
-These are the docs for the latest version (__>=8.x__) of WebdriverIO. If you are still using an older version, please visit the [old documentation websites](/versions)!
+:::info Dies sind die Dokumentation für die aktuelle Version (__v8.x__) von WebdriverIO. Wenn Sie noch eine ältere Version verwenden, besuchen Sie bitte die [alten Dokumentations-Webseiten](/versions)!
 :::
 
-## Contribute
+## Unterstützen Sie
 
-If you feel like you have a good example for a command, don't hesitate to open a PR and submit it. Just click on the orange link on the bottom left with the label _“Edit this page”_. Make sure you understand the way we write these docs by checking the [Contributing](https://github.com/webdriverio/webdriverio/blob/main/CONTRIBUTING.md) section.
+Wenn Sie das Gefühl haben, dass Sie ein gutes Beispiel für einen Befehl haben, zögern Sie nicht, einen Pull Request einzureichen. Klicken Sie einfach auf den orangefarbenen Link unten links mit dem Label _„Diese Seite bearbeiten“_. Vergewissern Sie sich, dass Sie verstanden haben, wie man dieses Projekt unterstützt, indem Sie das Dokument [Projekt Unterstützen](https://github.com/webdriverio/webdriverio/blob/master/CONTRIBUTING.md) lesen.
