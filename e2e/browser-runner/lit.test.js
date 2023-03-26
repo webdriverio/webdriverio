@@ -8,6 +8,7 @@ import namespacedModule from '@namespace/module'
 import { someExport, namedExports } from '@testing-library/user-event'
 
 import { SimpleGreeting } from './components/LitComponent.ts'
+import { it } from 'node:test'
 
 const getQuestionFn = spyOn(SimpleGreeting.prototype, 'getQuestion')
 mock('./components/constants.ts', async (getOrigModule) => {
@@ -110,6 +111,13 @@ describe('Lit Component testing', () => {
             'I am within another shadow root element',
             'I am within another shadow root element as well'
         ])
+    })
+
+    it('should not stale process due to alert or prompt', async () => {
+        alert('test')
+        prompt('test')
+        confirm('test')
+        await expect(browser).toHaveTitle('WebdriverIO Browser Test')
     })
 
     describe('Selector Tests', () => {
