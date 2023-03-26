@@ -112,7 +112,7 @@ describe('Lit Component testing', () => {
         ])
     })
 
-    it('should be able to check if element found by shadow$ is present', async () => {
+    it('should be able to check if element found by shadow$ and shadow$$ is present', async () => {
         render(
             html`<simple-greeting name="WebdriverIO" />`,
             document.body
