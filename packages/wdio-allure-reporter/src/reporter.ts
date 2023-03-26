@@ -240,6 +240,8 @@ export default class AllureReporter extends WDIOReporter {
 
         if (cid) {
             this._state.currentTest.addLabel(LabelName.THREAD, cid)
+            this._state.currentTest.historyId = cid
+            this._state.currentTest.testCaseId = cid
         }
 
         if (!this._state.currentSuite) {
