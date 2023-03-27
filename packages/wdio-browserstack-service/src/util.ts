@@ -122,8 +122,13 @@ export function o11yClassErrorHandler<T extends ClassType>(errorClass: T): T {
         if (typeof method === 'function' && methodName !== 'constructor') {
             // In order to preserve this context, need to define like this
             Object.defineProperty(prototype, methodName, {
-                get() {
-                    return o11yErrorHandler(method).bind(this)
+                writable: true,
+                value: function() {
+                    try {
+                        return method.apply(this, arguments)
+                    } catch (err) {
+                        log.error(`Error in executing ${method.name} with args ${arguments} : ${err} `)
+                    }
                 }
             })
         }
