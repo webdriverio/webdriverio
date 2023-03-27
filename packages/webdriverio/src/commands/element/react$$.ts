@@ -61,6 +61,6 @@ export async function react$$(
         react$$Script as any, selector, props, state, this
     ) as ElementReference[]
 
-    const elements = await getElements.call(this, selector, res, true)
+    const elements = await getElements.call(this, selector, res, { isReactElement: true })
     return enhanceElementsArray(elements, this, selector, 'react$$', [props, state])
 }
