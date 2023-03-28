@@ -59,7 +59,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                             capability['browserstack.wdioService'] = bstackServiceVersion
                         }
                     }
-                    
+
                     // Need this details for sending data to Observability
                     this._buildIdentifier = capability['browserstack.buildIdentifier']?.toString()
                     this._buildName = capability.build?.toString()
