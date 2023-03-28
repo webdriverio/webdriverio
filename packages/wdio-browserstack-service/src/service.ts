@@ -20,6 +20,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
     private _failureStatuses: string[] = ['failed', 'ambiguous', 'undefined', 'unknown']
     private _browser?: Browser<'async'> | MultiRemoteBrowser<'async'>
     private _suiteTitle?: string
+    private _suiteFile?: string
     private _fullTitle?: string
     private _options: BrowserstackConfig & Options.Testrunner
     private _specsRan: boolean = false
@@ -120,6 +121,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
      */
     async beforeSuite (suite: Frameworks.Suite) {
         this._suiteTitle = suite.title
+        this._insightsHandler?.setSuiteFile(suite.file)
         if (suite.title && suite.title !== 'Jasmine__TopLevel__Suite') {
             await this._setSessionName(suite.title)
         }
@@ -264,6 +266,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
         this._scenariosThatRan = []
         delete this._suiteTitle
         delete this._fullTitle
+        delete this._suiteFile
         this._failReasons = []
         await this._printSessionURL()
     }
