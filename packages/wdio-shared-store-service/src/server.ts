@@ -10,6 +10,7 @@ const resourcePoolStore: Map<string, any[]> = new Map()
  * @private
  */
 export const __store = store
+export const __resourcePoolStore = resourcePoolStore
 
 const validateBody: NextFn = (req, res, next) => {
     if (!req.path.endsWith('/get') && !req.path.endsWith('/set')) {
@@ -19,20 +20,6 @@ const validateBody: NextFn = (req, res, next) => {
         res.end(JSON.stringify({ error: 'Invalid payload, key is required.' }))
     }
     next()
-}
-
-function getValueFromPool(key: string) {
-    const pool = resourcePoolStore.get(key)
-
-    if (!pool) {
-        throw new Error(`'${key}' resource pool is does not exist. Set it first using 'setResourcePool'`)
-    }
-
-    if (pool.length === 0) {
-        return null
-    }
-
-    return pool.shift()
 }
 
 const MAX_TIMEOUT = 15000
@@ -64,43 +51,52 @@ export const startServer = () => new Promise<{ port: number, app: PolkaInstance 
             store[key] = req.body.value as JsonCompatible | JsonPrimitive
             return res.end()
         })
-        .post('/setResourcePool', (req, res) => {
+        .post('/setResourcePool', (req, res, next) => {
             const key = req.body.key as string
             const value = req.body.value as JsonCompatible | JsonPrimitive
 
             if (!Array.isArray(value)) {
-                throw new Error('Resource pool must be an array of values')
+                next(new Error('Resource pool must be an array of values'))
+                return
             }
 
             resourcePoolStore.set(key, value)
             return res.end()
         })
-        .get('/getValueFromPool/:key', (req, res) => {
+        .post('/getValueFromPool/:key', async (req, res, next) => {
             const key = req.params.key as string
-            let value = getValueFromPool(key)
 
-            if (value) {
-                res.end(JSON.stringify({ value }))
+            if (!resourcePoolStore.has(key)) {
+                next(new Error(`'${key}' resource pool does not exist. Set it first using 'setResourcePool'`))
+            }
+
+            let pool = resourcePoolStore.get(key) || []
+
+            if (pool.length > 0) {
+                res.end(JSON.stringify({ value: pool.shift() }))
                 return
             }
 
             const timeout = Math.min(parseInt(req.query.timeout as string) || DEFAULT_TIMEOUT, MAX_TIMEOUT)
 
             setTimeout(function secondAttempt() {
-                value = getValueFromPool(key)
-                if (!value) {
-                    throw new Error(`'${key}' resource pool is empty. Set values to it first using 'setResourcePool'`)
+                pool = resourcePoolStore.get(key) || []
+                if (pool.length > 0) {
+                    res.end(JSON.stringify({ value: pool.shift() }))
+                    return
                 }
-                res.end(JSON.stringify({ value }))
+
+                next(new Error(`'${key}' resource pool is empty. Set values to it first using 'setResourcePool'`))
             }, timeout)
         })
-        .post('/addValueToPool', (req, res) => {
+        .post('/addValueToPool', (req, res, next) => {
             const key = req.body.key as string
             const value = req.body.value as JsonCompatible | JsonPrimitive
             const pool = resourcePoolStore.get(key)
 
             if (!pool) {
-                throw new Error(`'${key}' resource pool is empty. Set values to it first using 'setResourcePool'`)
+                next(new Error(`'${key}' resource pool is empty. Set values to it first using 'setResourcePool'`))
+                return
             }
 
             pool.push(value)

@@ -1,7 +1,10 @@
 const assert = require('node:assert')
-const { getValue, setValue } = require('../../packages/wdio-shared-store-service')
+const { getValue, setValue, setResourcePool, getValueFromPool, addValueToPool } = require('../../packages/wdio-shared-store-service')
 
 console.log('Test Shared Store exports')
 assert.equal(typeof getValue, 'function')
 assert.equal(typeof setValue, 'function')
+assert.equal(typeof setResourcePool, 'function')
+assert.equal(typeof getValueFromPool, 'function')
+assert.equal(typeof addValueToPool, 'function')
 console.log('Test Shared Store exports Test Passed!')
