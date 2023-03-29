@@ -3,6 +3,8 @@ import type {
     Connection as ConnectionOptions
 } from './Options.js'
 
+type JSONLike = | { [property: string]: JSONLike } | readonly JSONLike[] | string | number | boolean | null
+
 export type PageLoadingStrategy = 'none' | 'eager' | 'normal';
 export type LoggingPreferenceType =
     'OFF' | 'SEVERE' | 'WARNING' |
@@ -205,48 +207,48 @@ export interface ChromeOptions {
      * associated value should be separated by a '=' sign (e.g., `['start-maximized', 'user-data-dir=/tmp/temp_profile']`).
      * See here for a list of Chrome arguments.
      */
-    args?: string[];
+    args?: string[]
     /**
      * Path to the Chrome executable to use (on Mac OS X, this should be the actual binary,
      * not just the app. e.g., '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome')
      */
-    binary?: string;
+    binary?: string
     /**
      * A list of Chrome extensions to install on startup. Each item in the list should
      * be a base-64 encoded packed Chrome extension (.crx)
      */
-    extensions?: string[];
+    extensions?: string[]
     /**
      * A dictionary with each entry consisting of the name of the preference and its value.
      * These preferences are applied to the Local State file in the user data folder.
      */
     localState?: {
-        [name: string]: any;
-    };
+        [name: string]: any
+    }
     /**
      * If false, Chrome will be quit when ChromeDriver is killed, regardless of whether
      * the session is quit. If true, Chrome will only be quit if the session is quit
      * (or closed). Note, if true, and the session is not quit, ChromeDriver cannot clean
      * up the temporary user data directory that the running Chrome instance is using.
      */
-    detach?: boolean;
+    detach?: boolean
     /**
      * An address of a Chrome debugger server to connect to, in the form of `<hostname/ip:port>`,
      * e.g. '127.0.0.1:38947'
      */
-    debuggerAddress?: string;
+    debuggerAddress?: string
     /**
      * List of Chrome command line switches to exclude that ChromeDriver by default passes
      * when starting Chrome.  Do not prefix switches with --.
      */
-    excludeSwitches?: string[];
+    excludeSwitches?: string[]
     /**
      * Directory to store Chrome minidumps . (Supported only on Linux.)
      */
-    minidumpPath?: string;
+    minidumpPath?: string
     /**
-     * A dictionary with either a value for “deviceName,” or values for “deviceMetrics” and
-     * “userAgent.” Refer to Mobile Emulation for more information.
+     * A dictionary with either a value for "deviceName", or values for "deviceMetrics" and
+     * "userAgent". Refer to Mobile Emulation for more information.
      */
     mobileEmulation?: {
         userAgent?: string
@@ -257,7 +259,7 @@ export interface ChromeOptions {
             pixelRatio?: number
             touch?: boolean
         }
-    };
+    }
     /**
      * An optional dictionary that specifies performance logging preferences. See
      * [Chromedriver docs](http://chromedriver.chromium.org/capabilities) for
@@ -268,18 +270,18 @@ export interface ChromeOptions {
          * Whether or not to collect events from Network domain.
          * @default true
          */
-        enableNetwork?: boolean;
+        enableNetwork?: boolean
         /**
          * Whether or not to collect events from Page domain.
          * @default true
          */
-        enablePage?: boolean;
+        enablePage?: boolean
         /**
          * A comma-separated string of Chrome tracing categories for which trace events
          * should be collected. An unspecified or empty string disables tracing.
          * @default ''
          */
-        tracingCategories?: string;
+        tracingCategories?: string
         /**
          * The requested number of milliseconds between DevTools trace buffer
          * usage events. For example, if 1000, then once per second, DevTools
@@ -287,21 +289,19 @@ export interface ChromeOptions {
          * buffer usage is 100%, a warning will be issued.
          * @default 1000
          */
-        bufferUsageReportingInterval?: number;
-    };
+        bufferUsageReportingInterval?: number
+    }
     /**
      * A dictionary with each entry consisting of the name of the preference and its value.
      * These preferences are only applied to the user profile in use. See the 'Preferences'
      * file in Chrome's user data directory for examples.
      */
-    prefs?: {
-        [name: string]: string[] | string | number | boolean;
-    };
+    prefs?: Record<string, JSONLike>
     /**
      * A list of window types that will appear in the list of window handles. For access
      * to <webview> elements, include "webview" in this list.
      */
-    windowTypes?: string[];
+    windowTypes?: string[]
 }
 
 /**
@@ -578,7 +578,7 @@ export interface AppiumAndroidCapabilities {
     skipLogcatCapture?: boolean;
     uninstallOtherPackages?: string;
     disableWindowAnimation?: boolean;
-    otherApps?: string;
+    otherApps?: string | string[];
     uiautomator2ServerLaunchTimeout?: number;
     uiautomator2ServerInstallTimeout?: number;
     skipServerInstallation?: boolean;
@@ -722,7 +722,7 @@ export interface AppiumXCUITestCapabilities {
     'appium:permissions'?: string;
     'appium:screenshotQuality'?: number;
     'appium:wdaEventloopIdleDelay'?: number;
-    'appium:otherApps'?: string;
+    'appium:otherApps'?: string | string[];
     'appium:includeSafariInWebviews'?: boolean;
     'appium:additionalWebviewBundleIds'?: Array<string>;
     'appium:webviewConnectTimeout'?: number;

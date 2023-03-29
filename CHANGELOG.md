@@ -21,6 +21,44 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.6.9 (2023-03-27)
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#10045](https://github.com/webdriverio/webdriverio/pull/10045) Fix handling existence checks for shadow elements ([@christian-bromann](https://github.com/christian-bromann))
+  * [#10046](https://github.com/webdriverio/webdriverio/pull/10046) Allow selectors to further search for elements by text and tag name ([@RahulARanger](https://github.com/RahulARanger))
+
+#### :nail_care: Polish
+* `devtools`
+  * [#10068](https://github.com/webdriverio/webdriverio/pull/10068) devtools: Attempt to rerun command before waiting for a page load (that might timeout) ([@nextlevelbeard](https://github.com/nextlevelbeard))
+* `wdio-browser-runner`
+  * [#10048](https://github.com/webdriverio/webdriverio/pull/10048) [🐛 Bug]: browser runner - `alert` or `confirm` stales execution of runner ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 3
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Ricardo Barbosa ([@nextlevelbeard](https://github.com/nextlevelbeard))
+- Sai Hanuma Rahul ([@RahulARanger](https://github.com/RahulARanger))
+
+
+## v8.6.8 (2023-03-24)
+
+#### :bug: Bug Fix
+* `wdio-junit-reporter`
+  * [#10035](https://github.com/webdriverio/webdriverio/pull/10035) Handle `file://` in specs of junit reporter - Closes [#9352](https://github.com/webdriverio/webdriverio/issues/9352) ([@nextlevelbeard](https://github.com/nextlevelbeard))
+
+#### :nail_care: Polish
+* `wdio-allure-reporter`
+  * [#10032](https://github.com/webdriverio/webdriverio/pull/10032) Add missing information and fix allure global result for cucumber tests ([@lacell75](https://github.com/lacell75))
+
+#### :memo: Documentation
+* [#10041](https://github.com/webdriverio/webdriverio/pull/10041) [Docs] Fixes to Lit component testing page ([@augustjk](https://github.com/augustjk))
+
+#### Committers: 3
+- Augustine Kim ([@augustjk](https://github.com/augustjk))
+- Fabien CELLIER ([@lacell75](https://github.com/lacell75))
+- Ricardo Barbosa ([@nextlevelbeard](https://github.com/nextlevelbeard))
+
+
 ## v8.6.7 (2023-03-20)
 
 #### :bug: Bug Fix

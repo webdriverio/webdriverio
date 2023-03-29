@@ -461,7 +461,7 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
             reporter._consoleOutput = 'some console output'
             reporter.onTestFail(cucumberHelper.testFail())
 
-            const suiteResults: any = { tests: [{ state: 'failed' }] }
+            const suiteResults: any = { tests: [{ state: 'failed', error: { message: 'assertionerror' } }] }
 
             reporter.onSuiteEnd(cucumberHelper.scenarioEnd(suiteResults))
             reporter.onSuiteEnd(cucumberHelper.featureEnd(suiteResults))
@@ -484,6 +484,43 @@ describe('reporter option "useCucumberStepReporter" set to true', () => {
             expect(allureResult.steps[0].attachments).toHaveLength(1)
             expect(allureResult.steps[0].attachments[0].name).toEqual('Console Logs')
             expect(allureResult.status).toEqual(Status.FAILED)
+        })
+
+        it('should handle broken test', () => {
+            reporter = new AllureReporter({ outputDir, useCucumberStepReporter: true })
+
+            reporter.onRunnerStart(runnerStart())
+            reporter.onSuiteStart(cucumberHelper.featureStart())
+            reporter.onSuiteStart(cucumberHelper.scenarioStart())
+            reporter.onTestStart(cucumberHelper.testStart())
+            reporter.onBeforeCommand(commandStart())
+            reporter.onAfterCommand(commandEnd())
+            reporter._consoleOutput = 'some console output'
+            reporter.onTestFail(cucumberHelper.testFail())
+
+            const suiteResults: any = { tests: [{ state: 'failed', error: { message: 'element ("mwc-checkbox") still not existing after 10000ms' } }] }
+
+            reporter.onSuiteEnd(cucumberHelper.scenarioEnd(suiteResults))
+            reporter.onSuiteEnd(cucumberHelper.featureEnd(suiteResults))
+            reporter.onRunnerEnd(runnerEnd())
+
+            const { results, containers } = getResults(outputDir)
+
+            expect(results).toHaveLength(1)
+            expect(containers).toHaveLength(1)
+
+            allureResult = results[0]
+            allureContainer = containers[0]
+
+            const browserParameter = allureResult.parameters.find((param: Parameter) => param.name === 'browser')
+
+            expect(allureContainer.name).toEqual('MyFeature')
+            expect(allureResult.name).toEqual('MyScenario')
+            expect(browserParameter.value).toEqual('chrome-68')
+            expect(allureResult.steps).toHaveLength(1)
+            expect(allureResult.steps[0].attachments).toHaveLength(1)
+            expect(allureResult.steps[0].attachments[0].name).toEqual('Console Logs')
+            expect(allureResult.status).toEqual(Status.BROKEN)
         })
 
         it('should handle failed hook', () => {
