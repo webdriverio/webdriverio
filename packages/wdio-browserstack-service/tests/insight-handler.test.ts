@@ -5,7 +5,7 @@ import type { Browser } from 'webdriverio'
 import InsightsHandler from '../src/insights-handler'
 import * as utils from '../src/util'
 import RequestQueueHandler from '../src/request-handler'
-import {getUniqueIdentifier} from "../src/util";
+import { getUniqueIdentifier } from '../src/util'
 
 interface GotMock extends jest.Mock {
     put: jest.Mock
@@ -440,7 +440,7 @@ describe('beforeTest', () => {
             sendSpy.mockClear()
             getUniqueIdentifierSpy.mockClear()
         })
-    });
+    })
 
     describe('jasmine', () => {
         beforeEach(() => {
@@ -464,7 +464,7 @@ describe('beforeTest', () => {
             sendSpy.mockClear()
             getUniqueIdentifierSpy.mockClear()
         })
-    });
+    })
 })
 
 describe('afterTest', () => {
