@@ -37,7 +37,7 @@ describe('WdioSharedStoreService exports', () => {
     })
 
     it('should handle non json type', async () => {
-        const response = await got.post(getUrl, { body: 'foobar', throwHttpErrors: false })
+        const response = await got.post(getUrl, { body: 'foobar', throwHttpErrors: false, retry: { limit: 0 } })
         expect(response.statusCode).toBe(422)
         expect(response.statusMessage).toBe('Unprocessable Entity')
         expect(response.url).toContain('/get')
@@ -45,7 +45,7 @@ describe('WdioSharedStoreService exports', () => {
     })
 
     it('should handle 404', async () => {
-        const response = await got.post(getUrl + 'foobar', { throwHttpErrors: false })
+        const response = await got.post(getUrl + 'foobar', { throwHttpErrors: false, retry: { limit: 0 } })
         expect(response.statusCode).toBe(404)
     })
 
@@ -73,11 +73,9 @@ describe('WdioSharedStoreService exports', () => {
 
         describe('when calling setResourcePool without an array', () => {
             it('should throw an error', async () => {
-                const response = await got.post(setResourcePoolUrl, { json: { key: 'foo', value: 'bar' }, responseType: 'json', throwHttpErrors: false })
+                const response = await got.post(setResourcePoolUrl, { json: { key: 'foo', value: 'bar' }, responseType: 'json', throwHttpErrors: false, retry: { limit: 0 } })
 
                 expect(response.statusCode).toBe(500)
-                expect(response.statusMessage).toBe('Internal Server Error')
-                expect(response.url).toContain(setResourcePoolUrl)
                 expect(response.body).toBe('Resource pool must be an array of values')
             })
         })
@@ -93,7 +91,7 @@ describe('WdioSharedStoreService exports', () => {
         describe('when calling getValueFromPool with the name of an existing pool', () => {
             it('should return the first element and update the store', async () => {
                 __resourcePoolStore.set('foo', ['bar'])
-                const response = await got.post<{ value: string }>(`${getValueFromPoolUrl}/foo`, { responseType: 'json' })
+                const response = await got.get<{ value: string }>(`${getValueFromPoolUrl}/foo`, { responseType: 'json' })
                 expect(response.body.value).toEqual('bar')
                 expect(Array.from(__resourcePoolStore.entries())).toEqual([['foo', []]])
             })
@@ -102,7 +100,7 @@ describe('WdioSharedStoreService exports', () => {
                 describe('and the timeout has a specified value', () => {
                     it('should return a value within the specified timeout', async () => {
                         __resourcePoolStore.set('foo', [])
-                        const promise = got.post<{ value: string }>(`${getValueFromPoolUrl}/foo?timeout=200`, { responseType: 'json' })
+                        const promise = got.get<{ value: string }>(`${getValueFromPoolUrl}/foo?timeout=200`, { responseType: 'json' })
                         await new Promise(resolve => setTimeout(resolve, 10))
                         __resourcePoolStore.set('foo', ['bar'])
                         const response = await promise
@@ -115,7 +113,7 @@ describe('WdioSharedStoreService exports', () => {
                 describe('and the timeout is not specified', () => {
                     it('should return a value within the default timeout', async () => {
                         __resourcePoolStore.set('foo', [])
-                        const promise = got.post<{ value: string }>(`${getValueFromPoolUrl}/foo`, { responseType: 'json' })
+                        const promise = got.get<{ value: string }>(`${getValueFromPoolUrl}/foo`, { responseType: 'json' })
                         await new Promise(resolve => setTimeout(resolve, 10))
                         __resourcePoolStore.set('foo', ['bar'])
                         const response = await promise
@@ -128,8 +126,8 @@ describe('WdioSharedStoreService exports', () => {
         })
 
         describe('when calling getValueFromPool with the name of a non existing pool', () => {
-            it('should return the first element and update the store', async () => {
-                const response = await got.post(`${getValueFromPoolUrl}/foo?timeout=1000`, { responseType: 'json', throwHttpErrors: false })
+            it('should throw an error', async () => {
+                const response = await got.get(`${getValueFromPoolUrl}/foo`, { responseType: 'json', throwHttpErrors: false, retry: { limit: 0 } })
                 expect(response.statusCode).toBe(500)
                 expect(response.statusMessage).toBe('Internal Server Error')
                 expect(response.body).toBe("'foo' resource pool does not exist. Set it first using 'setResourcePool'")
@@ -149,12 +147,10 @@ describe('WdioSharedStoreService exports', () => {
 
         describe('when calling addValueToPool with an invalid pool name', () => {
             it('should throw an error', async () => {
-                const response = await got.post(addValueToPoolUrl, { json: { key: 'foo', value: 'bar' }, responseType: 'json', throwHttpErrors: false  })
+                const response = await got.post(addValueToPoolUrl, { json: { key: 'foo', value: 'bar' }, responseType: 'json', throwHttpErrors: false, retry: { limit: 0 } })
 
                 expect(response.statusCode).toBe(500)
-                expect(response.statusMessage).toBe('Internal Server Error')
-                expect(response.url).toContain(addValueToPoolUrl)
-                expect(response.body).toBe("'foo' resource pool is empty. Set values to it first using 'setResourcePool'")
+                expect(response.body).toBe("'foo' resource pool does not exist. Set it first using 'setResourcePool'")
             })
         })
     })

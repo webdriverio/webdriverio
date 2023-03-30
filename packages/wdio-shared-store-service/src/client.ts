@@ -1,11 +1,8 @@
-import type { Response } from 'got'
+import type { RequestError } from 'got'
 import got from 'got'
-import logger from '@wdio/logger'
 
 import type { JsonCompatible, JsonPrimitive, JsonObject, JsonArray } from '@wdio/types'
 import type { GetValueOptions } from 'src'
-
-const log = logger('@wdio/shared-store-service')
 
 let baseUrlResolve: Parameters<ConstructorParameters<typeof Promise>[0]>[0]
 const baseUrlPromise = new Promise<string>((resolve) => {
@@ -82,6 +79,6 @@ export const addValueToPool = async (key: string, value: JsonPrimitive | JsonCom
     return res?.body ? (res.body as JsonObject).value : undefined
 }
 
-const errHandler = (err: Response<Error>) => {
-    log.warn(err.statusCode, err.statusMessage, err.url, err.body)
+const errHandler = (err: RequestError) => {
+    throw new Error(`${err.response?.body || 'Shared store server threw an error'}`)
 }

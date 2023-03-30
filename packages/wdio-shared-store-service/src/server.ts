@@ -56,38 +56,42 @@ export const startServer = () => new Promise<{ port: number, app: PolkaInstance 
             const value = req.body.value as JsonCompatible | JsonPrimitive
 
             if (!Array.isArray(value)) {
-                next(new Error('Resource pool must be an array of values'))
-                return
+                return next('Resource pool must be an array of values')
             }
 
             resourcePoolStore.set(key, value)
             return res.end()
         })
-        .post('/getValueFromPool/:key', async (req, res, next) => {
+        .get('/getValueFromPool/:key', async (req, res, next) => {
             const key = req.params.key as string
 
             if (!resourcePoolStore.has(key)) {
-                next(new Error(`'${key}' resource pool does not exist. Set it first using 'setResourcePool'`))
+                return next(`'${key}' resource pool does not exist. Set it first using 'setResourcePool'`)
             }
 
             let pool = resourcePoolStore.get(key) || []
 
             if (pool.length > 0) {
-                res.end(JSON.stringify({ value: pool.shift() }))
-                return
+                return res.end(JSON.stringify({ value: pool.shift() }))
             }
 
             const timeout = Math.min(parseInt(req.query.timeout as string) || DEFAULT_TIMEOUT, MAX_TIMEOUT)
 
-            setTimeout(function secondAttempt() {
-                pool = resourcePoolStore.get(key) || []
-                if (pool.length > 0) {
-                    res.end(JSON.stringify({ value: pool.shift() }))
-                    return
-                }
+            try {
+                const result = await new Promise((resolve, reject) => {
+                    setTimeout(function secondAttempt() {
+                        pool = resourcePoolStore.get(key) || []
+                        if (pool.length > 0) {
+                            resolve({ value: pool.shift() })
+                        }
 
-                next(new Error(`'${key}' resource pool is empty. Set values to it first using 'setResourcePool'`))
-            }, timeout)
+                        reject(`'${key}' resource pool is empty. Set values to it first using 'setResourcePool' or 'addValueToPool'`)
+                    }, timeout)
+                })
+                res.end(JSON.stringify(result))
+            } catch (err) {
+                return next(err)
+            }
         })
         .post('/addValueToPool', (req, res, next) => {
             const key = req.body.key as string
@@ -95,8 +99,7 @@ export const startServer = () => new Promise<{ port: number, app: PolkaInstance 
             const pool = resourcePoolStore.get(key)
 
             if (!pool) {
-                next(new Error(`'${key}' resource pool is empty. Set values to it first using 'setResourcePool'`))
-                return
+                return next(`'${key}' resource pool does not exist. Set it first using 'setResourcePool'`)
             }
 
             pool.push(value)
