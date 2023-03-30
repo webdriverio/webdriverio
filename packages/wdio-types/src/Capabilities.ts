@@ -578,7 +578,7 @@ export interface AppiumAndroidCapabilities {
     skipLogcatCapture?: boolean;
     uninstallOtherPackages?: string;
     disableWindowAnimation?: boolean;
-    otherApps?: string;
+    otherApps?: string | string[];
     uiautomator2ServerLaunchTimeout?: number;
     uiautomator2ServerInstallTimeout?: number;
     skipServerInstallation?: boolean;
@@ -722,7 +722,7 @@ export interface AppiumXCUITestCapabilities {
     'appium:permissions'?: string;
     'appium:screenshotQuality'?: number;
     'appium:wdaEventloopIdleDelay'?: number;
-    'appium:otherApps'?: string;
+    'appium:otherApps'?: string | string[];
     'appium:includeSafariInWebviews'?: boolean;
     'appium:additionalWebviewBundleIds'?: Array<string>;
     'appium:webviewConnectTimeout'?: number;
