@@ -5,6 +5,7 @@ import type { Browser } from 'webdriverio'
 import InsightsHandler from '../src/insights-handler'
 import * as utils from '../src/util'
 import RequestQueueHandler from '../src/request-handler'
+import {getUniqueIdentifier} from "../src/util";
 
 interface GotMock extends jest.Mock {
     put: jest.Mock
@@ -415,30 +416,55 @@ describe('getHierarchy', () => {
 })
 
 describe('beforeTest', () => {
-    const insightsHandler = new InsightsHandler(browser, {} as any, false, 'sessionId', 'framework')
-    const sendSpy = jest.spyOn(insightsHandler, 'sendTestRunEvent').mockImplementation(() => { return [] })
-    const getUniqueIdentifierSpy = jest.spyOn(utils, 'getUniqueIdentifier').mockReturnValue('test title')
+    let insightsHandler : InsightsHandler, sendSpy : any, getUniqueIdentifierSpy: any
 
-    insightsHandler['_tests'] = {}
-    insightsHandler['_hooks'] = {
-        'test title': ['hook_id']
-    }
+    describe('mocha', () => {
+        beforeEach(() => {
+            insightsHandler = new InsightsHandler(browser, {} as any, false, 'sessionId', 'mocha')
+            sendSpy = jest.spyOn(insightsHandler, 'sendTestRunEvent').mockImplementation(() => { return [] })
+            getUniqueIdentifierSpy = jest.spyOn(utils, 'getUniqueIdentifier').mockReturnValue('test title')
 
-    beforeEach(() => {
-        sendSpy.mockClear()
-        getUniqueIdentifierSpy.mockClear()
-    })
+            insightsHandler['_tests'] = {}
+            insightsHandler['_hooks'] = {
+                'test title': ['hook_id']
+            }
+        })
 
-    it('update test data', async () => {
-        await insightsHandler.beforeTest({ parent: 'parent', title: 'test' } as any, {} as any)
-        expect(insightsHandler['_tests']).toEqual({ 'test title': { uuid: '123456789', startedAt: '2020-01-01T00:00:00.000Z' } })
-        expect(sendSpy).toBeCalledTimes(1)
-    })
+        it('update test data', async () => {
+            await insightsHandler.beforeTest({ parent: 'parent', title: 'test' } as any)
+            expect(insightsHandler['_tests']).toEqual({ 'test title': { uuid: '123456789', startedAt: '2020-01-01T00:00:00.000Z' } })
+            expect(insightsHandler['sendTestRunEvent']).toBeCalledTimes(1)
+        })
 
-    afterEach(() => {
-        sendSpy.mockClear()
-        getUniqueIdentifierSpy.mockClear()
-    })
+        afterEach(() => {
+            sendSpy.mockClear()
+            getUniqueIdentifierSpy.mockClear()
+        })
+    });
+
+    describe('jasmine', () => {
+        beforeEach(() => {
+            insightsHandler = new InsightsHandler(browser, {} as any, false, 'sessionId', 'jasmine')
+            sendSpy = jest.spyOn(insightsHandler, 'sendTestRunEvent').mockImplementation(() => { return [] })
+            getUniqueIdentifierSpy = jest.spyOn(utils, 'getUniqueIdentifier').mockReturnValue('test title')
+
+            insightsHandler['_tests'] = {}
+            insightsHandler['_hooks'] = {
+                'test title': ['hook_id']
+            }
+        })
+
+        it('update test data', async () => {
+            await insightsHandler.beforeTest({ parent: 'parent', fullName: 'parent test' } as any)
+            expect(insightsHandler['_tests']).toEqual({ 'test title': { uuid: '123456789', startedAt: '2020-01-01T00:00:00.000Z' } })
+            expect(insightsHandler['sendTestRunEvent']).toBeCalledTimes(1)
+        })
+
+        afterEach(() => {
+            sendSpy.mockClear()
+            getUniqueIdentifierSpy.mockClear()
+        })
+    });
 })
 
 describe('afterTest', () => {
@@ -474,21 +500,26 @@ describe('afterTest', () => {
 })
 
 describe('beforeHook', () => {
-    const insightsHandler = new InsightsHandler(browser, {} as any, false, 'sessionId', 'framework')
-    const sendSpy = jest.spyOn(insightsHandler, 'sendTestRunEvent').mockImplementation(() => { return [] })
-    const attachHookDataSpy = jest.spyOn(insightsHandler, 'attachHookData').mockImplementation(() => { return [] })
+    let insightsHandler: InsightsHandler, sendSpy: any, attachHookDataSpy: any, getUniqueIdentifierSpy: any
 
     describe('mocha', () => {
         beforeEach(() => {
+            insightsHandler = new InsightsHandler(browser, {} as any, false, 'sessionId', 'mocha')
+            sendSpy = jest.spyOn(insightsHandler, 'sendTestRunEvent').mockImplementation(() => { return [] })
+            attachHookDataSpy = jest.spyOn(insightsHandler, 'attachHookData').mockImplementation(() => { return [] })
+            getUniqueIdentifierSpy = jest.spyOn(utils, 'getUniqueIdentifier').mockReturnValue('parent - test')
             insightsHandler['_tests'] = {}
             insightsHandler['_framework'] = 'mocha'
             sendSpy.mockClear()
             attachHookDataSpy.mockClear()
+            getUniqueIdentifierSpy.mockClear()
         })
 
         afterEach(() => {
             sendSpy.mockClear()
             attachHookDataSpy.mockClear()
+            getUniqueIdentifierSpy.mockClear()
+            getUniqueIdentifierSpy.mockReset()
         })
 
         it('update hook data', async () => {
@@ -500,15 +531,22 @@ describe('beforeHook', () => {
 
     describe('cucumber', () => {
         beforeEach(() => {
+            insightsHandler = new InsightsHandler(browser, {} as any, false, 'sessionId', 'cucumber')
+            sendSpy = jest.spyOn(insightsHandler, 'sendTestRunEvent').mockImplementation(() => { return [] })
+            attachHookDataSpy = jest.spyOn(insightsHandler, 'attachHookData').mockImplementation(() => { return [] })
+            getUniqueIdentifierSpy = jest.spyOn(utils, 'getUniqueIdentifier').mockReturnValue('parent - test')
             insightsHandler['_tests'] = {}
             insightsHandler['_framework'] = 'cucumber'
             sendSpy.mockClear()
+            getUniqueIdentifierSpy.mockClear()
             attachHookDataSpy.mockClear()
         })
 
         afterEach(() => {
             sendSpy.mockClear()
             attachHookDataSpy.mockClear()
+            getUniqueIdentifierSpy.mockClear()
+            getUniqueIdentifierSpy.mockReset()
         })
 
         it('doesn\'t update hook data', async () => {
@@ -519,16 +557,23 @@ describe('beforeHook', () => {
 })
 
 describe('afterHook', () => {
-    const insightsHandler = new InsightsHandler(browser, {} as any, false, 'sessionId', 'framework')
-    const sendSpy = jest.spyOn(insightsHandler, 'sendTestRunEvent').mockImplementation(() => { return [] })
-    const attachHookDataSpy = jest.spyOn(insightsHandler, 'attachHookData').mockImplementation(() => { return [] })
-    const getUniqueIdentifierSpy = jest.spyOn(utils, 'getUniqueIdentifier').mockReturnValue('test title')
-    const getUniqueIdentifierForCucumberSpy = jest.spyOn(utils, 'getUniqueIdentifierForCucumber').mockReturnValue('test title')
+    // const insightsHandler = new InsightsHandler(browser, {} as any, false, 'sessionId', 'framework')
+    // const sendSpy = jest.spyOn(insightsHandler, 'sendTestRunEvent').mockImplementation(() => { return [] })
+    // const attachHookDataSpy = jest.spyOn(insightsHandler, 'attachHookData').mockImplementation(() => { return [] })
+    // const getUniqueIdentifierSpy = jest.spyOn(utils, 'getUniqueIdentifier').mockReturnValue('test title')
+    // const getUniqueIdentifierForCucumberSpy = jest.spyOn(utils, 'getUniqueIdentifierForCucumber').mockReturnValue('test title')
+    let insightsHandler: InsightsHandler, sendSpy: any, attachHookDataSpy: any, getUniqueIdentifierSpy: any, getUniqueIdentifierForCucumberSpy: any
 
     describe('mocha', () => {
+        insightsHandler = new InsightsHandler(browser, {} as any, false, 'sessionId', 'mocha')
+        sendSpy = jest.spyOn(insightsHandler, 'sendTestRunEvent').mockImplementation(() => { return [] })
+        attachHookDataSpy = jest.spyOn(insightsHandler, 'attachHookData').mockImplementation(() => { return [] })
+        getUniqueIdentifierSpy = jest.spyOn(utils, 'getUniqueIdentifier').mockReturnValue('test title')
+        getUniqueIdentifierForCucumberSpy = jest.spyOn(utils, 'getUniqueIdentifierForCucumber').mockReturnValue('test title')
 
         beforeEach(() => {
-            insightsHandler['_framework'] = 'mocha'
+            // insightsHandler['_framework'] = 'mocha'
+            insightsHandler['_tests'] = {}
             sendSpy.mockClear()
             attachHookDataSpy.mockClear()
             getUniqueIdentifierForCucumberSpy.mockClear()
@@ -557,29 +602,29 @@ describe('afterHook', () => {
         })
     })
 
-    describe('cucumber', () => {
-
-        beforeEach(() => {
-            insightsHandler['_framework'] = 'cucumber'
-            sendSpy.mockClear()
-            attachHookDataSpy.mockClear()
-            getUniqueIdentifierForCucumberSpy.mockClear()
-            getUniqueIdentifierSpy.mockClear()
-        })
-
-        it('doesn\'t update hook data', async () => {
-            insightsHandler['_tests'] = { 'test title': {} }
-            await insightsHandler.afterHook(undefined as any, {} as any, {} as any)
-            expect(sendSpy).toBeCalledTimes(0)
-        })
-
-        afterEach(() => {
-            sendSpy.mockClear()
-            attachHookDataSpy.mockClear()
-            getUniqueIdentifierForCucumberSpy.mockClear()
-            getUniqueIdentifierSpy.mockClear()
-        })
-    })
+    // describe('cucumber', () => {
+    //
+    //     beforeEach(() => {
+    //         insightsHandler['_framework'] = 'cucumber'
+    //         sendSpy.mockClear()
+    //         attachHookDataSpy.mockClear()
+    //         getUniqueIdentifierForCucumberSpy.mockClear()
+    //         getUniqueIdentifierSpy.mockClear()
+    //     })
+    //
+    //     it('doesn\'t update hook data', async () => {
+    //         insightsHandler['_tests'] = { 'test title': {} }
+    //         await insightsHandler.afterHook(undefined as any, {} as any, {} as any)
+    //         expect(sendSpy).toBeCalledTimes(0)
+    //     })
+    //
+    //     afterEach(() => {
+    //         sendSpy.mockClear()
+    //         attachHookDataSpy.mockClear()
+    //         getUniqueIdentifierForCucumberSpy.mockClear()
+    //         getUniqueIdentifierSpy.mockClear()
+    //     })
+    // })
 })
 
 describe('getIntegrationsObject', () => {

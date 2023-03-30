@@ -319,6 +319,7 @@ export async function getGitMetaData () {
 }
 
 export function getUniqueIdentifier(test: Frameworks.Test, framework?: string): string {
+    console.log("came getIsdsdsdgs")
     if (framework === 'jasmine') {
         return test.fullName
     }
