@@ -25,9 +25,9 @@ describe('WdioSharedStoreService exports', () => {
         const baseUrl = `http://localhost:${result.port}`
         setUrl = `${baseUrl}/set`
         getUrl = `${baseUrl}/get`
-        setResourcePoolUrl = `${baseUrl}/setResourcePool`
-        getValueFromPoolUrl = `${baseUrl}/getValueFromPool`
-        addValueToPoolUrl = `${baseUrl}/addValueToPool`
+        setResourcePoolUrl = `${baseUrl}/pool/set`
+        getValueFromPoolUrl = `${baseUrl}/pool/get`
+        addValueToPoolUrl = `${baseUrl}/pool/add`
     })
 
     it('should not fail if payload has no key/value', async () => {

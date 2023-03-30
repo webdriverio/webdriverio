@@ -72,7 +72,7 @@ If the worker threads are competing for resources that must be assigned for each
 
 ```js
 // wdio.conf.js
-import { setResourcePool, getValueFromPool, addValueToPool} from '@wdio/shared-store-service'
+import { setResourcePool, getValueFromPool, addValueToPool } from '@wdio/shared-store-service'
 
 export const config = {
     maxInstances: 2,

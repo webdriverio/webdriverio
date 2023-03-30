@@ -51,7 +51,7 @@ export const startServer = () => new Promise<{ port: number, app: PolkaInstance 
             store[key] = req.body.value as JsonCompatible | JsonPrimitive
             return res.end()
         })
-        .post('/setResourcePool', (req, res, next) => {
+        .post('/pool/set', (req, res, next) => {
             const key = req.body.key as string
             const value = req.body.value as JsonCompatible | JsonPrimitive
 
@@ -62,7 +62,7 @@ export const startServer = () => new Promise<{ port: number, app: PolkaInstance 
             resourcePoolStore.set(key, value)
             return res.end()
         })
-        .get('/getValueFromPool/:key', async (req, res, next) => {
+        .get('/pool/get/:key', async (req, res, next) => {
             const key = req.params.key as string
 
             if (!resourcePoolStore.has(key)) {
@@ -93,7 +93,7 @@ export const startServer = () => new Promise<{ port: number, app: PolkaInstance 
                 return next(err)
             }
         })
-        .post('/addValueToPool', (req, res, next) => {
+        .post('/pool/add', (req, res, next) => {
             const key = req.body.key as string
             const value = req.body.value as JsonCompatible | JsonPrimitive
             const pool = resourcePoolStore.get(key)

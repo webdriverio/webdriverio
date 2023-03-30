@@ -84,15 +84,15 @@ describe('client', () => {
 
     describe('when calling setResourcePool', () => {
         describe('and after setPort is called', () => {
-            it("should call /setResourcePool and return it's response", async () => {
+            it("should call /pool/set and return it's response", async () => {
                 mockedPost.mockResolvedValue({ body: { value: 'postResult' } })
                 const result = await setResourcePool('foo', ['bar'])
-                expect(got.post).toBeCalledWith(`${baseUrl}/setResourcePool`, { json: { key: 'foo', value: ['bar'] } })
+                expect(got.post).toBeCalledWith(`${baseUrl}/pool/set`, { json: { key: 'foo', value: ['bar'] } })
                 expect(result).toEqual({ body: { value: 'postResult' } })
             })
         })
 
-        describe('and when /setResourcePool fails', () => {
+        describe('and when /pool/set fails', () => {
             it('should throw the error', async () => {
                 mockedPost.mockRejectedValue({ response: { body: 'postError' } })
 
@@ -103,15 +103,15 @@ describe('client', () => {
 
     describe('when calling getValueFromPool', () => {
         describe('and after setPort is called', () => {
-            it("should call /getValueFromPool and return it's response", async () => {
+            it("should call /pool/get and return it's response", async () => {
                 mockedGet.mockResolvedValue({ body: { value: 'getResult' } })
                 const result = await getValueFromPool('foo', { timeout: 100 })
-                expect(got.get).toBeCalledWith(`${baseUrl}/getValueFromPool/foo?timeout=100`, { responseType: 'json' })
+                expect(got.get).toBeCalledWith(`${baseUrl}/pool/get/foo?timeout=100`, { responseType: 'json' })
                 expect(result).toEqual('getResult')
             })
         })
 
-        describe('and when /getValueFromPool fails', () => {
+        describe('and when /pool/get fails', () => {
             it('should throw the error', async () => {
                 mockedGet.mockRejectedValue({ response: { body: 'getError' } })
 
@@ -122,15 +122,15 @@ describe('client', () => {
 
     describe('when calling addValueToPool', () => {
         describe('and after setPort is called', () => {
-            it("should call /addValueToPool and return it's response", async () => {
+            it("should call /pool/add and return it's response", async () => {
                 mockedPost.mockResolvedValue({ body: { value: 'postResult' } })
                 const result = await addValueToPool('foo', 'bar')
-                expect(got.post).toBeCalledWith(`${baseUrl}/addValueToPool`, { json: { key: 'foo', value: 'bar' }, responseType: 'json' })
+                expect(got.post).toBeCalledWith(`${baseUrl}/pool/add`, { json: { key: 'foo', value: 'bar' }, responseType: 'json' })
                 expect(result).toEqual('postResult')
             })
         })
 
-        describe('and when /addValueToPool fails', () => {
+        describe('and when /pool/add fails', () => {
             it('should throw the error', async () => {
                 mockedPost.mockRejectedValue({ response: { body: 'postError' } })
 
