@@ -1,26 +1,30 @@
-import TestStats from '@wdio/reporter/src/stats/test'
+import path from 'node:path'
+import { describe, expect, it, vi, beforeEach } from 'vitest'
+import { TestStats } from '@wdio/reporter'
 
-import WDIOJunitReporter from '../src'
+import WDIOJunitReporter from '../src/index.js'
 
-import mochaRunnerLog from './__fixtures__/mocha-runner.json'
-import cucumberRunnerLog from './__fixtures__/cucumber-runner.json'
-import cucumberRunnerBrowserstackIosLog from './__fixtures__/cucumber-runner-browserstack-ios.json'
-import cucumberRunnerBrowserstackAndroidLog from './__fixtures__/cucumber-runner-browserstack-android.json'
-import cucumberRunnerBrowserstackAndroidLogMissingOS from './__fixtures__/cucumber-runner-browserstack-android-missing-os.json'
-import suitesLog from './__fixtures__/suites.json'
-import suitesWithNoErrorObjectLog from './__fixtures__/suites-with-no-error-object.json'
-import featuresLog from './__fixtures__/cucumber-features.json'
-import featuresWithFailingThenSkipStepLog from './__fixtures__/cucumber-features-with-failed-then-skipped-steps.json'
-import featuresWithPendingStepLog from './__fixtures__/cucumber-features-with-pending-step.json'
-import featuresWithErrorStepAndNoErrorObjectLog from './__fixtures__/cucumber-features-with-error-step-and-no-error-object.json'
-import nestedSuites from './__fixtures__/nested-suites.json'
-import unorderedFeatureAndScenarioWithError from './__fixtures__/cucumber-features-with-error-step-and-no-error-object-unordered.json'
-import suitesWithFailedBeforeEachHookLog from './__fixtures__/suites-with-failed-before-each-hook.json'
-import suitesWithFailedAfterEachHookLog from './__fixtures__/suites-with-failed-after-each-hook.json'
-import suitesHooksLog from './__fixtures__/suites-hooks.json'
-import suiteTestRetry from './__fixtures__/suite-test-retry.json'
-import suitesMultipleLog from './__fixtures__/suites-multiple.json'
-import suitesErrorLog from './__fixtures__/suites-error.json'
+import mochaRunnerLog from './__fixtures__/mocha-runner.json' assert { type: 'json' }
+import cucumberRunnerLog from './__fixtures__/cucumber-runner.json' assert { type: 'json' }
+import cucumberRunnerBrowserstackIosLog from './__fixtures__/cucumber-runner-browserstack-ios.json' assert { type: 'json' }
+import cucumberRunnerBrowserstackAndroidLog from './__fixtures__/cucumber-runner-browserstack-android.json' assert { type: 'json' }
+import cucumberRunnerBrowserstackAndroidLogMissingOS from './__fixtures__/cucumber-runner-browserstack-android-missing-os.json' assert { type: 'json' }
+import suitesLog from './__fixtures__/suites.json' assert { type: 'json' }
+import suitesWithNoErrorObjectLog from './__fixtures__/suites-with-no-error-object.json' assert { type: 'json' }
+import featuresLog from './__fixtures__/cucumber-features.json' assert { type: 'json' }
+import featuresWithFailingThenSkipStepLog from './__fixtures__/cucumber-features-with-failed-then-skipped-steps.json' assert { type: 'json' }
+import featuresWithPendingStepLog from './__fixtures__/cucumber-features-with-pending-step.json' assert { type: 'json' }
+import featuresWithErrorStepAndNoErrorObjectLog from './__fixtures__/cucumber-features-with-error-step-and-no-error-object.json' assert { type: 'json' }
+import nestedSuites from './__fixtures__/nested-suites.json' assert { type: 'json' }
+import unorderedFeatureAndScenarioWithError from './__fixtures__/cucumber-features-with-error-step-and-no-error-object-unordered.json' assert { type: 'json' }
+import suitesWithFailedBeforeEachHookLog from './__fixtures__/suites-with-failed-before-each-hook.json' assert { type: 'json' }
+import suitesWithFailedAfterEachHookLog from './__fixtures__/suites-with-failed-after-each-hook.json' assert { type: 'json' }
+import suitesHooksLog from './__fixtures__/suites-hooks.json' assert { type: 'json' }
+import suiteTestRetry from './__fixtures__/suite-test-retry.json' assert { type: 'json' }
+import suitesMultipleLog from './__fixtures__/suites-multiple.json' assert { type: 'json' }
+import suitesErrorLog from './__fixtures__/suites-error.json' assert { type: 'json' }
+
+vi.mock('@wdio/reporter', () => import(path.join(process.cwd(), '__mocks__', '@wdio/reporter')))
 
 describe('wdio-junit-reporter', () => {
     let reporter: WDIOJunitReporter
@@ -30,10 +34,10 @@ describe('wdio-junit-reporter', () => {
     })
 
     it('should write to output stream on runnerEnd', () => {
-        reporter['_buildJunitXml'] = jest.fn().mockReturnValue(undefined)
-        reporter.write = jest.fn()
+        reporter['_buildJunitXml'] = vi.fn().mockReturnValue(undefined)
+        reporter.write = vi.fn()
         reporter.onRunnerEnd({} as any)
-        expect((reporter.write as jest.Mock).mock.calls[0][0]).toMatchSnapshot()
+        expect(vi.mocked(reporter.write).mock.calls[0][0]).toMatchSnapshot()
     })
 
     it('should prepare name', () => {
@@ -89,14 +93,15 @@ describe('wdio-junit-reporter', () => {
 
     it('test is marked as skipped when is retried', () => {
         const testStats = new TestStats({
-            'type': 'test:start',
-            'uid': 'test-00-0',
-            'cid': '0-0',
-            'title': 'test',
-            'fullTitle': 'suite test',
-            'retries': 0,
-            'parent': 'suite',
-            'state': 'failed'
+            type: 'test:start',
+            uid: 'test-00-0',
+            cid: '0-0',
+            title: 'test',
+            fullTitle: 'suite test',
+            retries: 0,
+            parent: 'suite',
+            pending: false,
+            specs: []
         })
         reporter['onTestRetry'](testStats)
 
@@ -108,6 +113,26 @@ describe('wdio-junit-reporter', () => {
 
         // verifies the content of the report but omits format by stripping all whitespace and new lines
         expect(reporter['_buildJunitXml'](mochaRunnerLog as any).replace(/\s/g, '')).toMatchSnapshot()
+    })
+
+    it('generates xml output (Cucumber-style) when feature has file:// protocol', () => {
+        reporter = new WDIOJunitReporter({ stdout: true })
+        reporter.suites = { ...featuresLog } as any
+        const runner = { ...cucumberRunnerLog }
+        runner.specs = runner.specs.map(s => `file://${s}`)
+
+        // verifies the content of the report but omits format by stripping all whitespace and new lines
+        expect(reporter['_buildJunitXml'](runner as any).replace(/\s/g, '')).toMatchSnapshot()
+    })
+
+    it('generates xml output (Cucumber-style) when feature has file:// protocol and the addFileAttribute option is set', () => {
+        reporter = new WDIOJunitReporter({ stdout: true, addFileAttribute: true })
+        reporter.suites = { ...featuresLog } as any
+        const runner = { ...cucumberRunnerLog }
+        runner.specs = runner.specs.map(s => `file://${s}`)
+
+        // verifies the content of the report but omits format by stripping all whitespace and new lines
+        expect(reporter['_buildJunitXml'](runner as any).replace(/\s/g, '')).toMatchSnapshot()
     })
 
     it('generates xml output (Cucumber-style)', () => {
@@ -273,7 +298,7 @@ describe('wdio-junit-reporter', () => {
     })
 
     it( 'generates xml output correctly when having classNameFormat override with mocha',  () => {
-        reporter = new WDIOJunitReporter({ stdout: true, classNameFormat: ({ packageName, suite }) => `foo-${packageName}-${suite.fullTitle}` })
+        reporter = new WDIOJunitReporter({ stdout: true, classNameFormat: ({ packageName, suite }) => `foo-${packageName}-${suite!.fullTitle}` })
         reporter.suites = suitesErrorLog as any
         expect(reporter['_buildJunitXml'](mochaRunnerLog as any).replace(/\s/g, '')).toMatchSnapshot()
     })

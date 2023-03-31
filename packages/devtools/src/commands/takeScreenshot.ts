@@ -1,4 +1,4 @@
-import type DevToolsDriver from '../devtoolsdriver'
+import type DevToolsDriver from '../devtoolsdriver.js'
 
 /**
  * The Take Screenshot command takes a screenshot of the top-level browsing context's viewport.
@@ -11,7 +11,7 @@ export default async function takeScreenshot (this: DevToolsDriver) {
     const page = this.getPageHandle()
     return page.screenshot({
         encoding: 'base64',
-        fullPage: true,
+        fullPage: false, // limit to viewport
         type: 'png'
     })
 }

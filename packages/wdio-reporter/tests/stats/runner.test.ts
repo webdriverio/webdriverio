@@ -1,4 +1,5 @@
-import RunnerStats from '../../src/stats/runner'
+import { test, expect } from 'vitest'
+import RunnerStats from '../../src/stats/runner.js'
 
 test('should get initialised', () => {
     const capabilities = { browserName: 'chrome' }

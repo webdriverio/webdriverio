@@ -1,4 +1,4 @@
-import { verifyArgsAndStripIfElement } from '../../utils'
+import { verifyArgsAndStripIfElement } from '../../utils/index.js'
 
 /**
  *
@@ -43,7 +43,7 @@ import { verifyArgsAndStripIfElement } from '../../utils'
  * @type protocol
  *
  */
-export default function executeAsync<ReturnValue, InnerArguments extends any[]>(
+export function executeAsync<ReturnValue, InnerArguments extends any[]>(
     this: WebdriverIO.Browser | WebdriverIO.Element,
     script:
         string |

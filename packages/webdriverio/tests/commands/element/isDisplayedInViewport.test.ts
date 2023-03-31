@@ -1,12 +1,16 @@
-// @ts-ignore mocked (original defined in webdriver package)
-import gotMock from 'got'
-import { remote } from '../../../src'
+import path from 'node:path'
+import { expect, describe, it, beforeAll, afterEach, vi } from 'vitest'
 
-const got = gotMock as any as jest.Mock
+// @ts-ignore mocked (original defined in webdriver package)
+import got from 'got'
+import { remote } from '../../../src/index.js'
+
+vi.mock('got')
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 describe('isDisplayedInViewport test', () => {
     let browser: WebdriverIO.Browser
-    let elem: WebdriverIO.Element
+    let elem: any
 
     beforeAll(async () => {
         browser = await remote({
@@ -16,16 +20,16 @@ describe('isDisplayedInViewport test', () => {
             }
         })
         elem = await browser.$('#foo')
-        got.mockClear()
+        vi.mocked(got).mockClear()
     })
 
     it('should allow to check if element is displayed', async () => {
         await elem.isDisplayedInViewport()
-        expect(got.mock.calls[0][0].pathname)
+        expect(vi.mocked(got).mock.calls[0][0]!.pathname)
             .toBe('/session/foobar-123/element/some-elem-123/displayed')
-        expect(got.mock.calls[1][0].pathname)
+        expect(vi.mocked(got).mock.calls[1][0]!.pathname)
             .toBe('/session/foobar-123/execute/sync')
-        expect(got.mock.calls[1][1].json.args[0]).toEqual({
+        expect(vi.mocked(got).mock.calls[1][1]!.json.args[0]).toEqual({
             'element-6066-11e4-a52e-4f735466cecf': 'some-elem-123',
             ELEMENT: 'some-elem-123'
         })
@@ -38,6 +42,6 @@ describe('isDisplayedInViewport test', () => {
     })
 
     afterEach(() => {
-        got.mockClear()
+        vi.mocked(got).mockClear()
     })
 })

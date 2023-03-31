@@ -1,5 +1,5 @@
-import { Reporters } from '@wdio/types'
-import { SuiteStats } from '@wdio/reporter'
+import type { Reporters } from '@wdio/types'
+import type { SuiteStats } from '@wdio/reporter'
 
 type TestSuiteNameFunction = (options: TestSuiteNameFormatOptions) => string
 
@@ -24,23 +24,6 @@ interface TestSuiteNameFormatOptions {
 }
 
 export interface JUnitReporterOptions extends Reporters.Options {
-    /**
-     * Define the xml files created after the test execution.
-     *
-     * > Note: `options.capabilities` is your capabilities object for that runner, so specifying
-     * `${options.capabilities}` in your string will return [Object object]. You must specify which
-     * properties of capabilities you want in your filename.
-     *
-     * @example
-     * outputFileFormat: function (options) {
-     *     return 'mycustomfilename.xml'
-     * }
-     * @default
-     * outputFileFormat: function (options) {
-     *     return `wdio-${this.cid}-${opts.name}-reporter.log`
-     * }
-     */
-    outputFileFormat?: (opts: any) => string
     /**
      * Gives the ability to provide custom regex for formatting test suite name (e.g. in output xml ) or
      * override the generated name of a test suite.

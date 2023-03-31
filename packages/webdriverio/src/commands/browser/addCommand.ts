@@ -1,5 +1,5 @@
 /**
- * The browser method  `addCommand` helps you to write your own set of commands. You can write your command in a synchronous way or in an asynchronous way.
+ * The browser method  `addCommand` helps you to write your own set of commands.
  *
  * :::info
  *

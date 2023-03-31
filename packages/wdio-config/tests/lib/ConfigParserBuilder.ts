@@ -1,64 +1,78 @@
-import ConfigParser from '../../src/lib/ConfigParser'
-import MockedModules from './MockedModules'
-import MockPathService, { FilePathsAndContents, MockSystemFolderPath } from './MockPathService'
+import { vi } from 'vitest'
+
+import ConfigParser from '../../src/lib/ConfigParser.js'
+import MockedModules from './MockedModules.js'
+import type { FilePathsAndContents, MockSystemFolderPath } from './MockPathService.js'
+import MockPathService from './MockPathService.js'
 
 export default class ConfigParserBuilder {
-    private f : MockPathService
-    private m : MockedModules
+    #args: any
+    #configPath: string
+    #f : MockPathService
+    #m : MockedModules
 
-    public constructor(baseDir: string, files: FilePathsAndContents = [], modules:[string, any][] = []) {
-        this.f = MockPathService.inWorkingDirectoryWithFiles({ cwd: baseDir, files })
-        this.m = MockedModules.withNoModules()
+    public constructor(baseDir: string, configPath: string, args: any, files: FilePathsAndContents = [], modules:[string, any][] = []) {
+        this.#args = args
+        this.#configPath = configPath
+        this.#f = MockPathService.inWorkingDirectoryWithFiles({ cwd: baseDir, files })
+        this.#m = MockedModules.withNoModules()
         this.withBaseDir(baseDir)
         this.withFiles(files)
         this.withModules(modules)
     }
 
-    static withBaseDir(baseDir: MockSystemFolderPath) : ConfigParserBuilder {
-        return new ConfigParserBuilder(baseDir)
+    static withBaseDir(baseDir: MockSystemFolderPath, configPath: string, args: any = {}) : ConfigParserBuilder {
+        return new ConfigParserBuilder(baseDir, configPath, args)
     }
 
     withBaseDir(baseDir: MockSystemFolderPath):ConfigParserBuilder {
-        this.f.withCwd(baseDir)
+        this.#f.withCwd(baseDir)
         return this
     }
 
     withFiles(files : FilePathsAndContents) :ConfigParserBuilder {
-        this.f.withFiles(files)
+        this.#f.withFiles(files)
         return this
     }
 
     withNoModules():ConfigParserBuilder {
-        this.m.resetModules()
+        this.#m.resetModules()
         return this
     }
 
     withModules(modulesAndValuesList: [string, any][]):ConfigParserBuilder {
-        this.m.withModules(modulesAndValuesList)
+        this.#m.withModules(modulesAndValuesList)
         return this
     }
 
-    withTsNodeModule(registerMock = jest.fn()) {
-        this.m.withTsNodeModule(registerMock)
+    withTsNodeModule(registerMock = vi.fn()) {
+        this.#m.withTsNodeModule(registerMock)
         return this
     }
 
-    withBabelModule(registerMock = jest.fn()) {
-        this.m.withBabelModule(registerMock)
+    withTsconfigPathModule(registerMock = vi.fn()) {
+        this.#m.withTsconfigPathModule(registerMock)
+        return this
+    }
+
+    withBabelModule(registerMock = vi.fn()) {
+        this.#m.withBabelModule(registerMock)
         return this
     }
 
     getMocks() {
         return {
-            finder: this.f,
-            modules: this.m
+            finder: this.#f,
+            modules: this.#m
         }
     }
 
     build(): ConfigParser {
         return new ConfigParser(
-            this.f,
-            this.m
+            this.#configPath,
+            this.#args,
+            this.#f,
+            this.#m
         )
     }
 }

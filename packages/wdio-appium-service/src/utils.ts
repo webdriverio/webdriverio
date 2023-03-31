@@ -1,7 +1,7 @@
-import { basename, join, resolve } from 'path'
+import { basename, join, resolve } from 'node:path'
 import { paramCase } from 'param-case'
 
-import { ArgValue, KeyValueArgs } from './types'
+import type { ArgValue, KeyValueArgs } from './types.js'
 
 const FILE_EXTENSION_REGEX = /\.[0-9a-z]+$/i
 
@@ -30,7 +30,7 @@ export function formatCliArgs(args: KeyValueArgs | ArgValue[]): string[] {
 
     const cliArgs = []
     for (const key in args) {
-        let value: ArgValue | ArgValue[] = args[key]
+        const value: ArgValue | ArgValue[] = args[key]
         // If the value is false or null the argument is discarded
         if ((typeof value === 'boolean' && !value) || value === null) {
             continue

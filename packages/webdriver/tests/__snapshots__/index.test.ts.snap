@@ -1,21 +1,21 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Vitest Snapshot v1
 
-exports[`WebDriver newSession should allow to create a new session using w3c compliant caps 1`] = `
-Array [
-  Array [
-    Object {
-      "capabilities": Object {
+exports[`WebDriver > newSession > should allow to create a new session using w3c compliant caps 1`] = `
+[
+  [
+    {
+      "capabilities": {
         "browserName": "mockBrowser",
         "browserVersion": "1234",
         "platformName": "node",
         "setWindowRect": true,
       },
-      "requestedCapabilities": Object {
-        "alwaysMatch": Object {
+      "requestedCapabilities": {
+        "alwaysMatch": {
           "browserName": "firefox",
         },
-        "firstMatch": Array [
-          Object {},
+        "firstMatch": [
+          {},
         ],
       },
     },

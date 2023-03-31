@@ -1,19 +1,21 @@
-import NetworkInterception from '../../../src/utils/interception/webdriver'
+import { beforeEach, test, expect, vi } from 'vitest'
+import NetworkInterception from '../../../src/utils/interception/webdriver.js'
+import type { Browser } from '../../../src/types'
 
 const browserMock = {
-    mockRequest: jest.fn().mockReturnValue({ mockId: 123 }),
-    getMockCalls: jest.fn().mockReturnValue([1, 2, 3]),
-    clearMockCalls: jest.fn().mockReturnValue({}),
-    respondMock: jest.fn().mockReturnValue({}),
-    call: jest.fn((cb) => cb())
-} as any as WebdriverIO.Browser
+    mockRequest: vi.fn().mockReturnValue({ mockId: 123 }),
+    getMockCalls: vi.fn().mockReturnValue([1, 2, 3]),
+    clearMockCalls: vi.fn().mockReturnValue({}),
+    respondMock: vi.fn().mockReturnValue({}),
+    call: vi.fn((cb) => cb())
+} as any as Browser
 
 beforeEach(() => {
-    (browserMock.mockRequest as jest.Mock).mockClear()
-    ;(browserMock.getMockCalls as jest.Mock).mockClear()
-    ;(browserMock.clearMockCalls as jest.Mock).mockClear()
-    ;(browserMock.respondMock as jest.Mock).mockClear()
-    ;(browserMock.call as jest.Mock).mockClear()
+    vi.mocked(browserMock.mockRequest).mockClear()
+    vi.mocked(browserMock.getMockCalls).mockClear()
+    vi.mocked(browserMock.clearMockCalls).mockClear()
+    vi.mocked(browserMock.respondMock).mockClear()
+    vi.mocked(browserMock.call).mockClear()
 })
 
 test('init', async () => {

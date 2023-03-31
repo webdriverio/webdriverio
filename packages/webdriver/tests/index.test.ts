@@ -1,18 +1,34 @@
-jest.unmock('@wdio/config')
-
-import path from 'path'
-import gotMock from 'got'
+import path from 'node:path'
+import got from 'got'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 // @ts-ignore mock feature
 import logger, { logMock } from '@wdio/logger'
-import * as wdioUtils from '@wdio/utils'
-import { Capabilities } from '@wdio/types'
+import { sessionEnvironmentDetector } from '@wdio/utils'
+import type { Capabilities } from '@wdio/types'
 
-import WebDriver, { getPrototype, DEFAULTS, command } from '../src'
-import { Client } from '../src/types'
+import WebDriver, { getPrototype, DEFAULTS, command } from '../src/index.js'
+// @ts-expect-error mock feature
+import { initCount } from '../src/bidi.js'
+import type { Client } from '../src/types.js'
 
-const expect = global.expect as unknown as jest.Expect
-const got = gotMock as unknown as jest.Mock
-const sessionEnvironmentDetector = wdioUtils.sessionEnvironmentDetector as jest.Mock
+vi.mock('@wdio/utils', () => import(path.join(process.cwd(), '__mocks__', '@wdio/utils')))
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock('fs')
+vi.mock('ws')
+vi.mock('got')
+
+vi.mock('../src/bidi', () => {
+    let initCount = 0
+    return {
+        BidiHandler: class BidiHandlerMock {
+            connect = vi.fn()
+            constructor () {
+                ++initCount
+            }
+        },
+        initCount: () => initCount
+    }
+})
 
 const sessionOptions = {
     protocol: 'http',
@@ -43,6 +59,7 @@ const setUpLogCheck = (conditionFunction: () => boolean) => {
     logMock.debug.mockImplementation(logCheck)
 }
 
+// @ts-expect-error
 interface TestClient extends Client {
     getUrl (): string
     getApplicationCacheStatus (): void
@@ -51,11 +68,11 @@ interface TestClient extends Client {
 }
 
 beforeEach(() => {
-    sessionEnvironmentDetector.mockClear()
+    vi.mocked(sessionEnvironmentDetector).mockClear()
 })
 
 describe('WebDriver', () => {
-    test('exports getPrototype, DEFAULTS', () => {
+    it('exports getPrototype, DEFAULTS', () => {
         expect(typeof getPrototype).toBe('function')
         expect(typeof DEFAULTS).toBe('object')
         expect(typeof command).toBe('function')
@@ -79,16 +96,16 @@ describe('WebDriver', () => {
                 capabilities: { browserName: 'firefox' }
             })
 
-            const url = got.mock.calls[0][0]
-            const req = got.mock.calls[0][1]
-            expect(url.pathname).toBe('/session')
-            expect(req.json).toEqual({
-                capabilities: {
-                    alwaysMatch: { browserName: 'firefox' },
-                    firstMatch: [{}]
-                },
-                desiredCapabilities: { browserName: 'firefox' }
-            })
+            expect(got).toHaveBeenCalledWith(
+                expect.objectContaining({ pathname: '/session' }),
+                expect.objectContaining({ json: {
+                    capabilities: {
+                        alwaysMatch: { browserName: 'firefox' },
+                        firstMatch: [{}]
+                    },
+                    desiredCapabilities: { browserName: 'firefox' }
+                } })
+            )
             expect(process.env.WDIO_LOG_PATH).toEqual(path.join(testDirPath, 'wdio.log'))
         })
 
@@ -101,18 +118,18 @@ describe('WebDriver', () => {
                 }
             })
 
-            const url = got.mock.calls[0][0]
-            const req = got.mock.calls[0][1]
-            expect(url.pathname).toBe('/session')
-            expect(req.json).toEqual({
-                capabilities: {
-                    alwaysMatch: { browserName: 'firefox' },
-                    firstMatch: [{}]
-                },
-                desiredCapabilities: { browserName: 'firefox' }
-            })
+            expect(got).toHaveBeenCalledWith(
+                expect.objectContaining({ pathname: '/session' }),
+                expect.objectContaining({ json: {
+                    capabilities: {
+                        alwaysMatch: { browserName: 'firefox' },
+                        firstMatch: [{}]
+                    },
+                    desiredCapabilities: { browserName: 'firefox' }
+                } })
+            )
 
-            expect(sessionEnvironmentDetector.mock.calls)
+            expect(vi.mocked(sessionEnvironmentDetector).mock.calls)
                 .toMatchSnapshot()
         })
 
@@ -180,27 +197,42 @@ describe('WebDriver', () => {
             expect((browser.capabilities as Capabilities.DesiredCapabilities).browserName).toBe('mockBrowser')
             expect((browser.requestedCapabilities as Capabilities.DesiredCapabilities).browserName).toBe('firefox')
         })
+
+        it('attaches bidi handler if socket url is given', async () => {
+            vi.mocked(got).mockResolvedValue({
+                body: { value: { webSocketUrl: 'ws://foo/bar' } }
+            })
+            await WebDriver.newSession({
+                path: '/',
+                capabilities: { browserName: 'firefox' }
+            })
+            expect(initCount()).toBe(1)
+        })
     })
 
     describe('attachToSession', () => {
         it('should allow to attach to existing session', async () => {
-            const client = WebDriver.attachToSession({ ...sessionOptions, logLevel: 'error' }) as TestClient
+            const client = WebDriver.attachToSession({ ...sessionOptions, logLevel: 'error' }) as any as TestClient
             await client.getUrl()
-            const url = got.mock.calls[0][0]
-            expect(url.href).toBe('http://localhost:4444/session/foobar/url')
+            expect(got).toHaveBeenCalledWith(
+                expect.objectContaining({ href: 'http://localhost:4444/session/foobar/url' }),
+                expect.anything()
+            )
             expect(logger.setLevel).toBeCalled()
         })
 
         it('should allow to attach to existing session2', async () => {
-            const client = WebDriver.attachToSession({ ...sessionOptions }) as TestClient
+            const client = WebDriver.attachToSession({ ...sessionOptions }) as any as TestClient
             await client.getUrl()
-            const url = got.mock.calls[0][0]
-            expect(url.href).toBe('http://localhost:4444/session/foobar/url')
+            expect(got).toHaveBeenCalledWith(
+                expect.objectContaining({ href: 'http://localhost:4444/session/foobar/url' }),
+                expect.anything()
+            )
             expect(logger.setLevel).not.toBeCalled()
         })
 
         it('should allow to attach to existing session - W3C', async () => {
-            const client = WebDriver.attachToSession({ ...sessionOptions }) as TestClient
+            const client = WebDriver.attachToSession({ ...sessionOptions }) as any as TestClient
             await client.getUrl()
 
             expect(client.isChrome).toBeFalsy()
@@ -215,7 +247,7 @@ describe('WebDriver', () => {
             const client = WebDriver.attachToSession({ ...sessionOptions,
                 isW3C: false,
                 isSauce: true,
-            }) as TestClient
+            }) as any as TestClient
 
             await client.getUrl()
 
@@ -229,7 +261,7 @@ describe('WebDriver', () => {
             const client = WebDriver.attachToSession({ ...sessionOptions,
                 isChrome: true,
                 isMobile: true
-            }) as TestClient
+            }) as any as TestClient
 
             await client.getUrl()
 
@@ -280,6 +312,18 @@ describe('WebDriver', () => {
             expect(client.options.path).toBe('/')
         })
 
+        it('should allow to attach to appium session', async () => {
+            const client = WebDriver.attachToSession({
+                ...sessionOptions,
+                capabilities: {
+                    'appium:automationName': 'foo',
+                }
+            }) as any as TestClient
+            expect(client.isMobile).toBe(true)
+            expect(client.isLocked).toBeTruthy()
+            expect(client.shake).toBeTruthy()
+        })
+
         it('should fail attaching to session if sessionId is not given', () => {
             // @ts-ignore
             expect(() => WebDriver.attachToSession({}))
@@ -294,7 +338,7 @@ describe('WebDriver', () => {
                 capabilities: { browserName: 'firefox' }
             })
             await WebDriver.reloadSession(session)
-            expect(got.mock.calls).toHaveLength(2)
+            expect(got).toHaveBeenCalledTimes(2)
         })
     })
 
@@ -303,8 +347,8 @@ describe('WebDriver', () => {
     })
 
     afterEach(() => {
-        (logger.setLevel as jest.Mock).mockClear()
-        got.mockClear()
-        sessionEnvironmentDetector.mockClear()
+        vi.mocked(logger.setLevel).mockClear()
+        vi.mocked(got).mockClear()
+        vi.mocked(sessionEnvironmentDetector).mockClear()
     })
 })

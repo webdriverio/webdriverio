@@ -1,7 +1,12 @@
+import path from 'node:path'
+import { expect, describe, it, vi } from 'vitest'
 // @ts-ignore mocked (original defined in webdriver package)
 import got from 'got'
-import { ELEMENT_KEY } from '../../../src/constants'
-import { remote } from '../../../src'
+import { ELEMENT_KEY } from '../../../src/constants.js'
+import { remote } from '../../../src/index.js'
+
+vi.mock('got')
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 describe('react$', () => {
     it('should fetch an React component', async () => {
@@ -35,7 +40,7 @@ describe('react$', () => {
         expect(elems[2].selector).toBe('myComp')
         expect(elems[2].index).toBe(2)
         expect(got).toBeCalledTimes(4)
-        expect(got.mock.calls.pop()[1].json.args)
+        expect(vi.mocked(got).mock.calls.pop()![1]!.json.args)
             .toEqual(['myComp', { some: 'props' }, { some: 'state' }])
     })
 
@@ -48,7 +53,7 @@ describe('react$', () => {
         })
 
         await browser.react$$('myComp')
-        expect(got.mock.calls.pop()[1].json.args).toEqual(['myComp', {}, {}])
+        expect(vi.mocked(got).mock.calls.pop()![1]!.json.args).toEqual(['myComp', {}, {}])
     })
 
     it('should call getElements with React flag true', async () => {
@@ -61,8 +66,7 @@ describe('react$', () => {
 
         const elems = await browser.react$$('myComp')
 
-        expect(elems.filter(
-            (elem: WebdriverIO.Element) => elem.isReactElement
+        expect(elems.filter((elem: WebdriverIO.Element) => elem.isReactElement
         ).length).toBe(3)
         expect(elems.foundWith).toBe('react$$')
     })

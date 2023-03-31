@@ -1,13 +1,18 @@
+import path from 'node:path'
 import tmp from 'tmp'
+import { describe, expect, it, vi } from 'vitest'
 
-import DotReporter from '../src'
+import DotReporter from '../src/index.js'
+
+vi.mock('chalk')
+vi.mock('@wdio/reporter', () => import(path.join(process.cwd(), '__mocks__', '@wdio/reporter')))
 
 describe('Dot Reporter', () => {
     it('should write proper symbols', () => {
         const logFile = tmp.fileSync()
         const reporter = new DotReporter({ logFile: logFile.name })
-        reporter.write = jest.fn()
-        const mockReporter = reporter.write as jest.Mock
+        reporter.write = vi.fn()
+        const mockReporter = vi.mocked(reporter.write)
 
         reporter.onTestSkip()
         expect(mockReporter.mock.calls[0][0]).toBe('cyanBright .')
@@ -34,6 +39,6 @@ describe('Dot Reporter', () => {
             stdout: false
         })
         reporter.write(1)
-        expect((reporter.outputStream.write as jest.Mock).mock.calls[0]).toEqual([1])
+        expect(vi.mocked(reporter.outputStream.write).mock.calls[0]).toEqual([1])
     })
 })

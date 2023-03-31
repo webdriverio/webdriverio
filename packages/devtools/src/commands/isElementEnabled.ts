@@ -1,5 +1,5 @@
-import getElementAttribute from './getElementAttribute'
-import type DevToolsDriver from '../devtoolsdriver'
+import getElementAttribute from './getElementAttribute.js'
+import type DevToolsDriver from '../devtoolsdriver.js'
 
 /**
  * Is Element Enabled determines if the referenced element is enabled or not.

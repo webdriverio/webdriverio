@@ -1,7 +1,29 @@
 /**
- * The `$$` command is a short way to call the [`findElements`](/docs/api/webdriver#findelements) command in order
- * to fetch multiple elements on the page similar to the `$$` command from the browser scope. The difference when calling
- * it from an element scope is that the driver will look within the children of that element.
+ * The `$$` command is a short and handy way in order to fetch multiple elements on the page.
+ * It returns a `ChainablePromiseArray` containing a set of WebdriverIO elements.
+ *
+ * :::info
+ *
+ * As opposed to the [`$$`](/docs/api/browser/$$) attached to the [browser object](/docs/api/browser)
+ * this command queries elements based on a root element.
+ *
+ * :::
+ *
+ * You can chain `$` or `$$` together without wrapping individual commands into `await` in order
+ * to walk down the DOM tree, e.g.:
+ *
+ * ```js
+ * const imageSrc = await $$('div')[1].nextElement().$$('img')[2].getAttribute('src)
+ * ```
+ *
+ * It is also possible to use async iterators to loop over the result of the query, e.g.:
+ *
+ * ```js
+ * // print all image sources
+ * for await (const img of $$('img')) {
+ *   console.log(await img.getAttribute('src))
+ * }
+ * ```
  *
  * :::info
  *
@@ -9,37 +31,15 @@
  *
  * :::
  *
- * <example>
-    :index.html
-    <ul id="menu">
-        <li><a href="/">Home</a></li>
-        <li><a href="/">Developer Guide</a></li>
-        <li><a href="/">API</a></li>
-        <li><a href="/">Contribute</a></li>
-    </ul>
-    :$.js
-    it('should get text a menu link', async () => {
-        const text = await $('#menu');
-        console.log(await text.$$('li')[2].$('a').getText()); // outputs: "API"
-    });
-
-    it('should get text a menu link - JS Function', async () => {
-        const text = await $('#menu');
-        console.log(await text.$$(function() { // Arrow function is not allowed here.
-            // this is Element https://developer.mozilla.org/en-US/docs/Web/API/Element
-            // in this particular example it is HTMLUListElement
-            // TypeScript users may do something like this
-            // return (this as Element).querySelectorAll('li')
-            return this.querySelectorAll('li'); // Element[]
-        })[2].$('a').getText()); // outputs: "API"
-    });
- * </example>
- *
  * @alias $$
  * @param {String|Function|Matcher} selector  selector, JS Function, or Matcher object to fetch multiple elements
  * @return {ElementArray}
+ * @example https://github.com/webdriverio/example-recipes/blob/59c122c809d44d343c231bde2af7e8456c8f086c/queryElements/example.html
+ * @example https://github.com/webdriverio/example-recipes/blob/59c122c809d44d343c231bde2af7e8456c8f086c/queryElements/multipleElements.js#L6-L7
+ * @example https://github.com/webdriverio/example-recipes/blob/59c122c809d44d343c231bde2af7e8456c8f086c/queryElements/multipleElements.js#L15-L24
+ * @example https://github.com/webdriverio/example-recipes/blob/59c122c809d44d343c231bde2af7e8456c8f086c/queryElements/multipleElements.js#L32-L39
  * @type utility
  *
  */
-import $$ from '../browser/$$'
-export default $$
+import { $$ as browser$$ } from '../browser/$$.js'
+export const $$ = browser$$

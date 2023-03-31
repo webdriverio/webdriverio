@@ -1,0 +1,3 @@
+// Vitest Snapshot v1
+
+exports[`selector strategies helper > should be able to fetch element by aria label 1`] = `".//*[@aria-labelledby=(//*[normalize-space(text()) = \\"foobar\\"]/@id)] | .//*[@aria-describedby=(//*[normalize-space(text()) = \\"foobar\\"]/@id)] | .//*[@aria-label = \\"foobar\\"] | .//input[@id = (//label[normalize-space() = \\"foobar\\"]/@for)] | .//input[@placeholder=\\"foobar\\"] | .//textarea[@placeholder=\\"foobar\\"] | .//input[@aria-placeholder=\\"foobar\\"] | .//textarea[@aria-placeholder=\\"foobar\\"] | .//*[@title=\\"foobar\\"] | .//img[@alt=\\"foobar\\"] | .//*[normalize-space(text()) = \\"foobar\\"]"`;

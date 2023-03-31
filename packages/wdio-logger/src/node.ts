@@ -1,7 +1,9 @@
-import fs from 'fs'
+import fs from 'node:fs'
+import util from 'node:util'
+
 import log from 'loglevel'
-import util from 'util'
-import chalk, { Color } from 'chalk'
+import type { ColorName } from 'chalk'
+import chalk from 'chalk'
 import prefix from 'loglevel-plugin-prefix'
 import ansiStrip from 'strip-ansi'
 
@@ -10,7 +12,7 @@ prefix.reg(log)
 const DEFAULT_LEVEL = process.env.WDIO_DEBUG
     ? 'trace'
     : 'info'
-const COLORS: Record<string, typeof Color> = {
+const COLORS: Record<string, ColorName> = {
     error: 'red',
     warn: 'yellow',
     info: 'cyanBright',
@@ -56,7 +58,7 @@ const logCache = new Set()
 let logFile: fs.WriteStream | null
 
 const originalFactory = log.methodFactory
-const wdioLoggerMethodFactory = function (this: log.Logger, methodName: string, logLevel: log.LogLevelNumbers, loggerName: string) {
+const wdioLoggerMethodFactory = function (this: log.Logger, methodName: log.LogLevelNames, logLevel: log.LogLevelNumbers, loggerName: string) {
     const rawMethod = originalFactory(methodName, logLevel, loggerName)
     return (...args: string[]) => {
         /**

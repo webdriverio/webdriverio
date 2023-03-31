@@ -3,23 +3,23 @@
  * test with page objects
  */
 if (usePageObjects) {
-%><%- isUsingTypeScript || isUsingBabel
-    ? `import LoginPage from  '${relativePath}/login.page';`
-    : `const LoginPage = require('${relativePath}/login.page');` %>
-<%- isUsingTypeScript || isUsingBabel
-    ? `import SecurePage from '${relativePath}/secure.page';`
-    : `const SecurePage = require('${relativePath}/secure.page');` %>
+%><%- isUsingTypeScript || esmSupport
+    ? `import LoginPage from '${relativePath}/login.page${esmSupport && isUsingTypeScript ? '.ts' : esmSupport ? '.js' : ''}'`
+    : `const LoginPage = require('${relativePath}/login.page')` %>
+<%- isUsingTypeScript || esmSupport
+    ? `import SecurePage from '${relativePath}/secure.page${esmSupport && isUsingTypeScript ? '.ts' : esmSupport ? '.js' : ''}'`
+    : `const SecurePage = require('${relativePath}/secure.page')` %>
 
 describe('My Login application', () => {
     it('should login with valid credentials', async () => {
-        await LoginPage.open();
+        await LoginPage.open()
 
-        await LoginPage.login('tomsmith', 'SuperSecretPassword!');
-        await expect(SecurePage.flashAlert).toBeExisting();
+        await LoginPage.login('tomsmith', 'SuperSecretPassword!')
+        await expect(SecurePage.flashAlert).toBeExisting()
         await expect(SecurePage.flashAlert).toHaveTextContaining(
-            'You logged into a secure area!');
-    });
-});
+            'You logged into a secure area!')
+    })
+})
 
 <% } else {
 
@@ -28,15 +28,15 @@ describe('My Login application', () => {
  */
 %>describe('My Login application', () => {
     it('should login with valid credentials', async () => {
-        await browser.url(`https://the-internet.herokuapp.com/login`);
+        await browser.url(`https://the-internet.herokuapp.com/login`)
 
-        await $('#username').setValue('tomsmith');
-        await $('#password').setValue('SuperSecretPassword!');
-        await $('button[type="submit"]').click();
+        await $('#username').setValue('tomsmith')
+        await $('#password').setValue('SuperSecretPassword!')
+        await $('button[type="submit"]').click()
 
-        await expect($('#flash')).toBeExisting();
+        await expect($('#flash')).toBeExisting()
         await expect($('#flash')).toHaveTextContaining(
-            'You logged into a secure area!');
-    });
-});
+            'You logged into a secure area!')
+    })
+})
 <% } %>

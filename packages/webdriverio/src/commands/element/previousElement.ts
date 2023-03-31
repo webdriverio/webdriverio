@@ -21,8 +21,8 @@
  * @return {Element}
  * @type utility
  */
-export default function previousElement (this: WebdriverIO.Element) {
-    return this.$(/* istanbul ignore next */ function (this: HTMLElement) {
+export function previousElement (this: WebdriverIO.Element) {
+    return this.$(/* istanbul ignore next */ function previousElement (this: HTMLElement) {
         return this.previousElementSibling as HTMLElement
     })
 }

@@ -1,5 +1,5 @@
-import fs from 'fs'
-import path from 'path'
+import fs from 'node:fs'
+import path from 'node:path'
 import archiver from 'archiver'
 import type { Capabilities } from '@wdio/types'
 
@@ -14,7 +14,7 @@ import type { Capabilities } from '@wdio/types'
  *
  * <example>
     :uploadFile.js
-    const path = require('path');
+    import path from 'node:path'
 
     it('should upload a file', async () => {
         await browser.url('https://the-internet.herokuapp.com/upload')
@@ -33,7 +33,7 @@ import type { Capabilities } from '@wdio/types'
  * @uses protocol/file
  * @return {String} remote URL
  */
-export default async function uploadFile (
+export async function uploadFile (
     this: WebdriverIO.Browser,
     localPath: string
 ): Promise<string> {
@@ -51,16 +51,17 @@ export default async function uploadFile (
         throw new Error(`The uploadFile command is not available in ${(this.capabilities as Capabilities.Capabilities).browserName}`)
     }
 
-    let zipData: Uint8Array[] = []
-    let source = fs.createReadStream(localPath)
+    const zipData: Uint8Array[] = []
+    const source = fs.createReadStream(localPath)
 
     return new Promise((resolve, reject) => {
         archiver('zip')
             .on('error', (err: Error) => reject(err))
             .on('data', (data: Uint8Array) => zipData.push(data))
-            .on('end', () => this.file(
-                Buffer.concat(zipData).toString('base64')
-            ).then((localPath) => resolve(localPath), reject))
+            .on('end', () => (
+                this.file(Buffer.concat(zipData).toString('base64'))
+                    .then((localPath) => resolve(localPath), reject)
+            ))
             .append(source, { name: path.basename(localPath) })
             .finalize()
     })

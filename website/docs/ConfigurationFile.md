@@ -1,14 +1,14 @@
 ---
 id: configurationfile
-title: Testrunner Configuration
+title: Configuration File
 ---
 
-The configuration file contains all necessary information to run your test suite. It’s just a NodeJS module that exports a JSON.
+The configuration file contains all necessary information to run your test suite. It’s a NodeJS module that exports a JSON.
 
 Here is an example configuration with all supported properties and additional information:
 
 ```js
-exports.config = {
+export const config = {
 
     // ==================================
     // Where should your test be launched
@@ -51,18 +51,18 @@ exports.config = {
     // Sauce Labs provides a [headless offering](https://saucelabs.com/products/web-testing/sauce-headless-testing)
     // that allows you to run Chrome and Firefox tests headless.
     //
-    headless: false
+    headless: false,
     //
     // ==================
     // Specify Test Files
     // ==================
     // Define which test specs should run. The pattern is relative to the directory
-    // from which `wdio` was called.
+    // of the configuration file being run.
     //
     // The specs are defined as an array of spec files (optionally using wildcards
     // that will be expanded). The test for each spec file will be run in a separate
     // worker process. In order to have a group of spec files run in the same worker
-    // process simply enclose them in an array within the specs array.
+    // process enclose them in an array within the specs array.
     //
     // If you are calling `wdio` from an NPM script (see https://docs.npmjs.com/cli/run-script),
     // then the current working directory is where your `package.json` resides, so `wdio`
@@ -93,16 +93,22 @@ exports.config = {
     // Therefore, if you have 10 spec files and you set `maxInstances` to 10, all spec files
     // will be tested at the same time and 30 processes will be spawned.
     //
-    // The property basically handles how many capabilities from the same test should run tests.
+    // The property handles how many capabilities from the same test should run tests.
     //
     maxInstances: 10,
     //
     // Or set a limit to run tests with a specific capability.
     maxInstancesPerCapability: 10,
     //
+    // Inserts WebdriverIO's globals (e.g. `browser`, `$` and `$$`) into the global environment.
+    // If you set to `false`, you should import from `@wdio/globals`. Note: WebdriverIO doesn't
+    // handle injection of test framework specific globals.
+    //
+    injectGlobals: true,
+    //
     // If you have trouble getting all important capabilities together, check out the
     // Sauce Labs platform configurator - a great tool to configure your capabilities:
-    // https://docs.saucelabs.com/reference/platforms-configurator
+    // https://docs.saucelabs.com/basics/platform-configurator
     //
     capabilities: [{
         browserName: 'chrome',
@@ -272,12 +278,6 @@ exports.config = {
             transpileOnly: true,
             project: 'tsconfig.json'
         },
-        // If you have tsconfig-paths installed and provide a tsConfigPathsOpts
-        // option, it will be automatically registered during bootstrap.
-        tsConfigPathsOpts: {
-            baseUrl: './'
-        },
-        //
         // If @babel/register is installed, you can customize how options are passed to it here:
         // Any valid @babel/register config option is allowed.
         // https://babeljs.io/docs/en/babel-register#specifying-options
@@ -313,7 +313,16 @@ exports.config = {
     onWorkerStart: function (cid, caps, specs, args, execArgv) {
     },
     /**
-     * Gets executed just before initializing the webdriver session and test framework. It allows you
+     * Gets executed after a worker process has exited.
+     * @param  {String} cid      capability id (e.g 0-0)
+     * @param  {Number} exitCode 0 - success, 1 - fail
+     * @param  {[type]} specs    specs to be run in the worker process
+     * @param  {Number} retries  number of retries used
+     */
+    onWorkerEnd: function (cid, exitCode, specs, retries) {
+    },
+    /**
+     * Gets executed before initializing the webdriver session and test framework. It allows you
      * to manipulate configurations depending on the capability or spec.
      * @param {Object} config wdio configuration object
      * @param {Array.<Object>} capabilities list of capabilities details

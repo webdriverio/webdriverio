@@ -1,16 +1,17 @@
+import { types as nodeUtilTypes } from 'node:util'
+import type { AssertionError } from 'node:assert'
+
 import { diffWordsWithSpace } from 'diff'
 import objectInspect from 'object-inspect'
 
-import RunnableStats from './runnable'
-import { Argument } from '../types'
-import { pad, color, colorLines } from '../utils'
-import { AssertionError } from 'assert'
-import { types as nodeUtilTypes } from 'util'
+import RunnableStats from './runnable.js'
+import { pad, color, colorLines } from '../utils.js'
+import type { Argument } from '../types.js'
 
 const maxStringLength = 2048
 
 export interface Test {
-    type: 'test:start' | 'test:pass' | 'test:fail' | 'test:retry' | 'test:pending' | 'test:end'
+    type: 'test:start' | 'test:pass' | 'test:fail' | 'test:retry' | 'test:pending' | 'test:end' | 'test:skip'
     title: string
     parent: string
     fullTitle: string

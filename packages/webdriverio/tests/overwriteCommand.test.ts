@@ -1,14 +1,19 @@
-import type { MultiRemoteOptions, Options } from '../src/types'
-import { remote, multiremote } from '../src'
+import path from 'node:path'
+import { describe, expect, test, vi } from 'vitest'
+import { remote, multiremote } from '../src/index.js'
 
-const remoteConfig: Options = {
+vi.mock('got')
+vi.mock('devtools')
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+
+const remoteConfig = {
     baseUrl: 'http://foobar.com',
     capabilities: {
         browserName: 'foobar-noW3C'
     }
 }
 
-const multiremoteConfig: MultiRemoteOptions = {
+const multiremoteConfig = {
     browserA: {
         logLevel: 'debug',
         capabilities: {
@@ -27,13 +32,13 @@ const multiremoteConfig: MultiRemoteOptions = {
 const error1 = Error('Thrown 1!')
 const error2 = new Error('Thrown 2!')
 
-const customElementCommand = async (origCmd, origCmdArg, arg) => {
+const customElementCommand = async (origCmd: Function, origCmdArg: any[], arg: any) => {
     const result = await new Promise(
         (resolve) => setTimeout(async () => resolve(await origCmd(origCmdArg)), 1))
     return `${result} ${origCmdArg} ${arg}`
 }
 
-const customBrowserCommand = async (origCmd, origCmdArg, arg = 0) => {
+const customBrowserCommand = async (origCmd: Function, origCmdArg: number, arg = 0) => {
     const start = Date.now() - 1
     await origCmd(origCmdArg + arg)
     return Date.now() - start
@@ -45,6 +50,7 @@ describe('overwriteCommand', () => {
             const browser = await remote(remoteConfig)
             browser.overwriteCommand('pause', customBrowserCommand)
 
+            // @ts-expect-error command overwritten
             expect(await browser.pause(10, 10)).toBeGreaterThanOrEqual(20)
         })
 
@@ -61,6 +67,7 @@ describe('overwriteCommand', () => {
             browser.overwriteCommand('getAttribute', customElementCommand, true)
             const elem = await browser.$('#foo')
 
+            // @ts-expect-error command overwritten
             expect(await elem.getAttribute('foo', 'bar')).toBe('foo-value foo bar')
         })
 
@@ -69,8 +76,11 @@ describe('overwriteCommand', () => {
             browser.overwriteCommand('getAttribute', customElementCommand, true)
             const elems = await browser.$$('.someRandomElement')
 
+            // @ts-expect-error command overwritten
             expect(await elems[0].getAttribute('0', 'q')).toBe('0-value 0 q')
+            // @ts-expect-error command overwritten
             expect(await elems[1].getAttribute('1', 'w')).toBe('1-value 1 w')
+            // @ts-expect-error command overwritten
             expect(await elems[2].getAttribute('2', 'e')).toBe('2-value 2 e')
         })
 
@@ -80,6 +90,7 @@ describe('overwriteCommand', () => {
             const elem = await browser.$('#foo')
             const subElem = await elem.$('.subElem')
 
+            // @ts-expect-error command overwritten
             expect(await subElem.getAttribute('bar', 'foo')).toBe('bar-value bar foo')
         })
 
@@ -94,7 +105,9 @@ describe('overwriteCommand', () => {
                 throw error2
             })
 
-            await expect(() => browser.waitUntil()).toThrow(error1)
+            // @ts-expect-error command overwritten
+            await expect(() => browser.waitUntil()).rejects.toThrow(error1)
+            // @ts-expect-error command overwritten
             await expect(browser.url()).rejects.toThrow(error2)
         })
 
@@ -109,24 +122,27 @@ describe('overwriteCommand', () => {
             }, true)
             const elem = await browser.$('#foo')
 
-            await expect(() => elem.click()).toThrow(error1)
+            await expect(() => elem.click()).rejects.toThrow(error1)
             await expect(elem.waitForDisplayed()).rejects.toThrow(error2)
         })
     })
 
     describe('multiremote', () => {
         test('should allow to overwrite commands', async () => {
-            const browser = await multiremote(multiremoteConfig)
+            const browser = await multiremote(multiremoteConfig as any)
             browser.overwriteCommand('pause', customBrowserCommand)
 
+            // @ts-expect-error command overwritten
             expect(await browser.pause(10, 10)).toBeGreaterThanOrEqual(20)
         })
 
         test('should allow to overwrite commands for a single multiremote instance', async () => {
-            const browser = await multiremote(multiremoteConfig)
-            browser.browserA.overwriteCommand('pause', customBrowserCommand)
+            const browser = await multiremote(multiremoteConfig as any)
+            browser.getInstance('browserA').overwriteCommand('pause', customBrowserCommand)
 
+            // @ts-expect-error command overwritten
             expect(await browser.browserA.pause(10, 10)).toBeGreaterThanOrEqual(20)
+            // @ts-expect-error command overwritten
             expect(await browser.browserB.pause(10)).toBe(undefined)
 
             const results = await browser.pause(10)
@@ -135,10 +151,11 @@ describe('overwriteCommand', () => {
         })
 
         test('should be able to overwrite element command in multiremote mode', async () => {
-            const browser = await multiremote(multiremoteConfig)
+            const browser = await multiremote(multiremoteConfig as any)
             browser.overwriteCommand('getAttribute', customElementCommand, true)
             const elem = await browser.$('#foo')
 
+            // @ts-expect-error command overwritten
             expect(await elem.getAttribute('foo', 'bar')).toEqual([
                 'foo-value foo bar', 'foo-value foo bar'
             ])

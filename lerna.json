@@ -3,11 +3,12 @@
   "packages": [
     "packages/*"
   ],
-  "version": "7.16.16",
+  "version": "8.6.9",
   "command": {
     "bootstrap": {
       "npmClientArgs": [
-        "--no-package-lock"
+        "--no-package-lock",
+        "--include=dev"
       ]
     }
   },

@@ -1,5 +1,3 @@
-import { hasWdioSyncSupport, runFnInFiberContext } from '@wdio/utils'
-
 const TIMEOUT_ERROR = 'timeout'
 const NOOP = () => {}
 
@@ -29,16 +27,6 @@ class Timer {
         private _fn: Function,
         private _leading = false
     ) {
-        /**
-         * only wrap waitUntil condition if:
-         *  - wdio-sync is installed
-         *  - function name is not async
-         *  - we run with the wdio testrunner
-         */
-        if (hasWdioSyncSupport && !_fn.name.includes('async') && Boolean((global as any).browser)) {
-            this._fn = () => runFnInFiberContext(_fn)()
-        }
-
         const retPromise = new Promise<boolean>((resolve, reject) => {
             this._resolve = resolve
             this._reject = reject
@@ -51,7 +39,6 @@ class Timer {
 
     private _start () {
         this._startTime = Date.now()
-        emitTimerEvent({ id: this._startTime, start: true })
         if (this._leading) {
             this._tick()
         } else {
@@ -66,7 +53,6 @@ class Timer {
                 return
             }
 
-            emitTimerEvent({ id: this._startTime, timeout: true })
             const reason = this._lastError || new Error(TIMEOUT_ERROR)
             this._reject(reason)
             this._stop()
@@ -81,7 +67,6 @@ class Timer {
     }
 
     private _stopMain () {
-        emitTimerEvent({ id: this._startTime })
         if (this._mainTimeoutId) {
             clearTimeout(this._mainTimeoutId)
         }
@@ -117,8 +102,8 @@ class Timer {
         }
 
         // autocorrect timer
-        let diff = (Date.now() - (this._startTime || 0)) - (this._ticks++ * this._delay)
-        let delay = Math.max(0, this._delay - diff)
+        const diff = (Date.now() - (this._startTime || 0)) - (this._ticks++ * this._delay)
+        const delay = Math.max(0, this._delay - diff)
 
         // clear old timeoutID
         this._stop()
@@ -139,16 +124,6 @@ class Timer {
 
     private _wasConditionExecuted () {
         return this._conditionExecutedCnt > 0
-    }
-}
-
-/**
- * emit `WDIO_TIMER` event
- * @param   {object}  payload
- */
-function emitTimerEvent(payload: any) {
-    if (hasWdioSyncSupport) {
-        process.emit('WDIO_TIMER' as any, payload)
     }
 }
 

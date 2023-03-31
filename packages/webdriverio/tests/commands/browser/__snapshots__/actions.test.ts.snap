@@ -1,0 +1,96 @@
+// Vitest Snapshot v1
+
+exports[`actions command > should support multiple actions 1`] = `
+{
+  "actions": [
+    {
+      "actions": [
+        {
+          "type": "keyDown",
+          "value": "f",
+        },
+        {
+          "duration": 100,
+          "type": "pause",
+        },
+        {
+          "type": "keyUp",
+          "value": "b",
+        },
+      ],
+      "id": "foobar",
+      "parameters": {},
+      "type": "key",
+    },
+    {
+      "actions": [
+        {
+          "altitudeAngle": 9,
+          "azimuthAngle": 10,
+          "button": 1,
+          "height": 3,
+          "pressure": 4,
+          "tangentialPressure": 5,
+          "tiltX": 6,
+          "tiltY": 7,
+          "twist": 8,
+          "type": "pointerDown",
+          "width": 2,
+        },
+        {
+          "duration": 100,
+          "type": "pause",
+        },
+        {
+          "altitudeAngle": 8,
+          "azimuthAngle": 9,
+          "button": 0,
+          "duration": 12,
+          "height": 2,
+          "origin": "viewport",
+          "pressure": 3,
+          "tangentialPressure": 4,
+          "tiltX": 5,
+          "tiltY": 6,
+          "twist": 7,
+          "type": "pointerMove",
+          "width": 1,
+          "x": 10,
+          "y": 11,
+        },
+        {
+          "button": 2,
+          "type": "pointerUp",
+        },
+        {
+          "type": "pointerCancel",
+        },
+      ],
+      "id": "foobar",
+      "parameters": {
+        "pointerType": "pen",
+      },
+      "type": "pointer",
+    },
+    {
+      "actions": [
+        {
+          "duration": 100,
+          "type": "pause",
+        },
+        {
+          "deltaX": 2,
+          "deltaY": 3,
+          "duration": 4,
+          "type": "scroll",
+          "x": 0,
+          "y": 1,
+        },
+      ],
+      "id": "foobar",
+      "parameters": {},
+      "type": "wheel",
+    },
+  ],
+}
+`;

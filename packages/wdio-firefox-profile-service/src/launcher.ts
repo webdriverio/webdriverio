@@ -1,8 +1,8 @@
 import Profile from 'firefox-profile'
-import { promisify } from 'util'
+import { promisify } from 'node:util'
 import type { Capabilities } from '@wdio/types'
 
-import { FirefoxProfileOptions } from './types'
+import type { FirefoxProfileOptions } from './types.js'
 
 export default class FirefoxProfileLauncher {
     private _profile?: Profile
@@ -16,11 +16,9 @@ export default class FirefoxProfileLauncher {
             return
         }
 
-        if (this._options.profileDirectory) {
-            this._profile = await promisify(Profile.copy)(this._options.profileDirectory)
-        } else {
-            this._profile = new Profile()
-        }
+        this._profile = this._options.profileDirectory
+            ? await promisify(Profile.copy)(this._options.profileDirectory)
+            : new Profile()
 
         if (!this._profile) {
             return

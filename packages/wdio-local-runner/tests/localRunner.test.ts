@@ -1,19 +1,27 @@
-import child from 'child_process'
+import path from 'node:path'
+import child from 'node:child_process'
+import { expect, test, vi } from 'vitest'
 
-import LocalRunner from '../src'
+import LocalRunner from '../src/index.js'
 
-jest.mock('child_process', () => {
+const sleep = (ms = 100) => new Promise((resolve) => setTimeout(resolve, ms))
+
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+
+vi.mock('child_process', () => {
     const childProcessMock = {
-        on: jest.fn(),
-        send: jest.fn(),
-        kill: jest.fn()
+        on: vi.fn(),
+        send: vi.fn(),
+        kill: vi.fn()
     }
 
-    return { fork: jest.fn().mockReturnValue(childProcessMock) }
+    return {
+        default: { fork: vi.fn().mockReturnValue(childProcessMock) }
+    }
 })
 
-test('should fork a new process', () => {
-    const runner = new LocalRunner('/path/to/wdio.conf.js', {
+test('should fork a new process', async () => {
+    const runner = new LocalRunner(undefined as never, {
         outputDir: '/foo/bar',
         runnerEnv: { FORCE_COLOR: 1 }
     } as any)
@@ -27,18 +35,18 @@ test('should fork a new process', () => {
         execArgv: [],
         retries: 0
     })
-    const childProcess = worker.childProcess
-    worker.emit = jest.fn()
+    worker['_handleMessage']({ name: 'ready' } as any)
+    await sleep()
 
     expect(worker.isBusy).toBe(true)
-    expect((child.fork as jest.Mock).mock.calls[0][0].endsWith('run.js')).toBe(true)
+    expect(vi.mocked(child.fork).mock.calls[0][0].endsWith('run.js')).toBe(true)
 
-    const { env } = (child.fork as jest.Mock).mock.calls[0][2]
+    const { env } = vi.mocked(child.fork).mock.calls[0][2]! as any
     expect(env.WDIO_LOG_PATH).toMatch(/(\\|\/)foo(\\|\/)bar(\\|\/)wdio-0-5\.log/)
     expect(env.FORCE_COLOR).toBe(1)
-    expect(childProcess?.on).toHaveBeenCalled()
+    expect(worker.childProcess?.on).toHaveBeenCalled()
 
-    expect(childProcess?.send).toHaveBeenCalledWith({
+    expect(worker.childProcess?.send).toHaveBeenCalledWith({
         args: {},
         caps: {},
         cid: '0-5',
@@ -52,7 +60,7 @@ test('should fork a new process', () => {
 })
 
 test('should shut down worker processes', async () => {
-    const runner = new LocalRunner('/path/to/wdio.conf.js', {
+    const runner = new LocalRunner(undefined as never, {
         outputDir: '/foo/bar',
         runnerEnv: { FORCE_COLOR: 1 }
     } as any)
@@ -66,6 +74,8 @@ test('should shut down worker processes', async () => {
         execArgv: [],
         retries: 0
     })
+    worker1['_handleMessage']({ name: 'ready' } as any)
+    await sleep()
     const worker2 = runner.run({
         cid: '0-5',
         command: 'run',
@@ -76,6 +86,8 @@ test('should shut down worker processes', async () => {
         execArgv: [],
         retries: 0
     })
+    worker2['_handleMessage']({ name: 'ready' } as any)
+    await sleep()
     setTimeout(() => {
         worker1.isBusy = false
         setTimeout(() => {
@@ -88,16 +100,16 @@ test('should shut down worker processes', async () => {
     const after = Date.now()
 
     expect(after - before).toBeGreaterThanOrEqual(750)
-    const call1 = (worker1.childProcess?.send as jest.Mock).mock.calls.pop()[0]
+    const call1: any = vi.mocked(worker1.childProcess?.send)!.mock.calls.pop()![0]
     expect(call1.cid).toBe('0-5')
     expect(call1.command).toBe('endSession')
-    const call2 = (worker1.childProcess?.send as jest.Mock).mock.calls.pop()[0]
+    const call2: any = vi.mocked(worker1.childProcess?.send)!.mock.calls.pop()![0]
     expect(call2.cid).toBe('0-4')
     expect(call2.command).toBe('endSession')
 })
 
 test('should avoid shutting down if worker is not busy', async () => {
-    const runner = new LocalRunner('/path/to/wdio.conf.js', {
+    const runner = new LocalRunner(undefined as never, {
         outputDir: '/foo/bar',
         runnerEnv: { FORCE_COLOR: 1 }
     } as any)
@@ -120,7 +132,7 @@ test('should avoid shutting down if worker is not busy', async () => {
 })
 
 test('should shut down worker processes in watch mode - regular', async () => {
-    const runner = new LocalRunner('/path/to/wdio.conf.js', {
+    const runner = new LocalRunner(undefined as never, {
         outputDir: '/foo/bar',
         runnerEnv: { FORCE_COLOR: 1 },
         watch: true,
@@ -136,6 +148,7 @@ test('should shut down worker processes in watch mode - regular', async () => {
         execArgv: [],
         retries: 0
     })
+    worker['_handleMessage']({ name: 'ready' } as any)
     runner.workerPool['0-6'].sessionId = 'abc'
     runner.workerPool['0-6'].server = { host: 'foo' }
     runner.workerPool['0-6'].caps = { browser: 'chrome' } as any
@@ -150,18 +163,17 @@ test('should shut down worker processes in watch mode - regular', async () => {
 
     expect(after - before).toBeGreaterThanOrEqual(300)
 
-    const call2 = (worker.childProcess?.send as jest.Mock).mock.calls.pop()[0]
-    expect(call2.cid).toBe('0-6')
-    expect(call2.command).toBe('endSession')
-    expect(call2.args.watch).toBe(true)
-    expect(call2.args.isMultiremote).toBeFalsy()
-    expect(call2.args.config.sessionId).toBe('abc')
-    expect(call2.args.config.host).toEqual('foo')
-    expect(call2.args.caps).toEqual({ browser: 'chrome' })
+    const call: any = vi.mocked(worker.childProcess?.send)!.mock.calls.pop()![0]
+    expect(call.cid).toBe('0-6')
+    expect(call.command).toBe('endSession')
+    expect(call.args.watch).toBe(true)
+    expect(call.args.isMultiremote).toBeFalsy()
+    expect(call.args.config.sessionId).toBe('abc')
+    expect(call.args.config.host).toEqual('foo')
 })
 
 test('should shut down worker processes in watch mode - mutliremote', async () => {
-    const runner = new LocalRunner('/path/to/wdio.conf.js', {
+    const runner = new LocalRunner(undefined as never, {
         outputDir: '/foo/bar',
         runnerEnv: { FORCE_COLOR: 1 },
         watch: true,
@@ -177,6 +189,7 @@ test('should shut down worker processes in watch mode - mutliremote', async () =
         execArgv: [],
         retries: 0
     })
+    worker['_handleMessage']({ name: 'ready' } as any)
     runner.workerPool['0-7'].isMultiremote = true
     runner.workerPool['0-7'].instances = { foo: { sessionId: '123' } }
     runner.workerPool['0-7'].caps = {
@@ -195,16 +208,15 @@ test('should shut down worker processes in watch mode - mutliremote', async () =
 
     expect(after - before).toBeGreaterThanOrEqual(300)
 
-    const call1 = (worker.childProcess?.send as jest.Mock).mock.calls.pop()[0]
-    expect(call1.cid).toBe('0-7')
-    expect(call1.command).toBe('endSession')
-    expect(call1.args.watch).toBe(true)
-    expect(call1.args.isMultiremote).toBe(true)
-    expect(call1.args.instances).toEqual({ foo: { sessionId: '123' } })
-    expect(call1.args.caps).toEqual({ foo: { capabilities: { browser: 'chrome' } } })
+    const call: any = vi.mocked(worker.childProcess?.send)!.mock.calls.pop()![0]
+    expect(call.cid).toBe('0-7')
+    expect(call.command).toBe('endSession')
+    expect(call.args.watch).toBe(true)
+    expect(call.args.isMultiremote).toBe(true)
+    expect(call.args.instances).toEqual({ foo: { sessionId: '123' } })
 })
 
 test('should avoid shutting down if worker is not busy', async () => {
-    const runner = new LocalRunner('/path/to/wdio.conf.js', {} as any)
+    const runner = new LocalRunner(undefined as never, {} as any)
     expect(runner.initialise()).toBe(undefined)
 })

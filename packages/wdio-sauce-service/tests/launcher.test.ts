@@ -1,24 +1,29 @@
+import path from 'node:path'
 import logger from '@wdio/logger'
 import SauceLabs from 'saucelabs'
 import type { Capabilities, Options } from '@wdio/types'
+import { expect, test, vi, beforeEach } from 'vitest'
 
-import SauceServiceLauncher from '../src/launcher'
-import type { SauceServiceConfig } from '../src/types'
+import SauceServiceLauncher from '../src/launcher.js'
+import type { SauceServiceConfig } from '../src/types.js'
 
-jest.mock('saucelabs', () => {
-    return class SauceLabsMock {
-        static instances: SauceLabsMock[] = []
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock('saucelabs', () => ({
+    default: {
+        default: class SauceLabsMock {
+            static instances: SauceLabsMock[] = []
 
-        stop: Function
-        startSauceConnect: Function
+            stop: Function
+            startSauceConnect: Function
 
-        constructor (public options: SauceServiceConfig) {
-            this.stop = jest.fn()
-            this.startSauceConnect = jest.fn().mockReturnValue(this)
-            SauceLabsMock.instances.push(this)
+            constructor (public options: SauceServiceConfig) {
+                this.stop = vi.fn()
+                this.startSauceConnect = vi.fn().mockReturnValue(this)
+                SauceLabsMock.instances.push(this)
+            }
         }
     }
-})
+}))
 
 const log = logger('')
 
@@ -39,12 +44,16 @@ test('onPrepare w/ SauceConnect w/ tunnelIdentifier w/ JWP', async () => {
     expect(service['_sauceConnectProcess']).toBeUndefined()
     await service.onPrepare(config, caps)
 
-    expect(caps).toEqual([{ tunnelIdentifier: 'my-tunnel' }])
+    expect(caps).toEqual([{
+        'sauce:options': {
+            tunnelIdentifier: 'my-tunnel'
+        }
+    }])
 
     // @ts-ignore mock feature
-    expect(SauceLabs.instances).toHaveLength(1)
+    expect(SauceLabs.default.instances).toHaveLength(1)
     // @ts-ignore mock feature
-    expect(SauceLabs.instances[0].startSauceConnect).toBeCalledTimes(1)
+    expect(SauceLabs.default.instances[0].startSauceConnect).toBeCalledTimes(1)
     expect(service['_sauceConnectProcess']).not.toBeUndefined()
 })
 
@@ -64,12 +73,12 @@ test('onPrepare w/ SauceConnect w/o tunnelIdentifier w/ JWP', async () => {
     expect(service['_sauceConnectProcess']).toBeUndefined()
     await service.onPrepare(config, caps)
 
-    expect(caps[0]?.tunnelIdentifier).toContain('SC-tunnel-')
+    expect(caps[0]['sauce:options']?.tunnelIdentifier).toContain('SC-tunnel-')
 
     // @ts-ignore mock feature
-    expect(SauceLabs.instances).toHaveLength(1)
+    expect(SauceLabs.default.instances).toHaveLength(1)
     // @ts-ignore mock feature
-    expect(SauceLabs.instances[0].startSauceConnect).toBeCalledTimes(1)
+    expect(SauceLabs.default.instances[0].startSauceConnect).toBeCalledTimes(1)
     expect(service['_sauceConnectProcess']).not.toBeUndefined()
 })
 
@@ -93,11 +102,11 @@ test('onPrepare w/ SauceConnect w/ tunnelIdentifier w/ W3C', async () => {
     expect(service['_sauceConnectProcess']).not.toBeUndefined()
 
     // @ts-ignore mock feature
-    expect(SauceLabs.instances).toHaveLength(1)
+    expect(SauceLabs.default.instances).toHaveLength(1)
     // @ts-ignore mock feature
-    expect(SauceLabs.instances[0].startSauceConnect).toBeCalledTimes(1)
+    expect(SauceLabs.default.instances[0].startSauceConnect).toBeCalledTimes(1)
     await new Promise((resolve) => setTimeout(resolve, 100))
-    expect((log.info as jest.Mock).mock.calls[0][0]).toContain('Sauce Connect successfully started after')
+    expect(vi.mocked(log.info).mock.calls[2][0]).toContain('Sauce Connect successfully started after')
 })
 
 test('onPrepare w/ SauceConnect w/o identifier w/ W3C', async () => {
@@ -117,11 +126,11 @@ test('onPrepare w/ SauceConnect w/o identifier w/ W3C', async () => {
     expect(service['_sauceConnectProcess']).not.toBeUndefined()
 
     // @ts-ignore mock feature
-    expect(SauceLabs.instances).toHaveLength(1)
+    expect(SauceLabs.default.instances).toHaveLength(1)
     // @ts-ignore mock feature
-    expect(SauceLabs.instances[0].startSauceConnect).toBeCalledTimes(1)
+    expect(SauceLabs.default.instances[0].startSauceConnect).toBeCalledTimes(1)
     await new Promise((resolve) => setTimeout(resolve, 100))
-    expect((log.info as jest.Mock).mock.calls[0][0]).toContain('Sauce Connect successfully started after')
+    expect(vi.mocked(log.info).mock.calls[2][0]).toContain('Sauce Connect successfully started after')
 })
 
 test('onPrepare w/ SauceConnect w/o scRelay', async () => {
@@ -157,15 +166,14 @@ test('onPrepare w/ SauceConnect w/ scRelay w/ default port', async () => {
 
     expect(service['_sauceConnectProcess']).not.toBeUndefined()
     // @ts-ignore mock feature
-    expect(SauceLabs.instances).toHaveLength(1)
+    expect(SauceLabs.default.instances).toHaveLength(1)
     // @ts-ignore mock feature
-    expect(SauceLabs.instances[0].startSauceConnect).toBeCalledWith({
+    expect(SauceLabs.default.instances[0].startSauceConnect).toBeCalledWith({
+        logger: expect.any(Function),
         noAutodetect: true,
-        sePort: 4445,
+        noSslBumpDomains: expect.any(String),
         tunnelIdentifier: 'test123',
     })
-    // @ts-ignore
-    expect(caps[0].port).toEqual(4445)
 })
 
 test('onPrepare w/ SauceConnect w/ region EU', async () => {
@@ -184,9 +192,9 @@ test('onPrepare w/ SauceConnect w/ region EU', async () => {
 
     expect(service['_sauceConnectProcess']).not.toBeUndefined()
     // @ts-ignore mock feature
-    expect(SauceLabs.instances).toHaveLength(1)
+    expect(SauceLabs.default.instances).toHaveLength(1)
     // @ts-ignore mock feature
-    expect(SauceLabs.instances[0].options.region).toBe('eu')
+    expect(SauceLabs.default.instances[0].options.region).toBe('eu')
 })
 
 test('onPrepare multiremote', async () => {
@@ -203,7 +211,10 @@ test('onPrepare multiremote', async () => {
             capabilities: { browserName: 'chrome' }
         },
         browserB: {
-            capabilities: { browserName: 'firefox', tunnelIdentifier: 'fish' }
+            capabilities: {
+                browserName: 'firefox',
+                'sauce:options': { tunnelIdentifier: 'fish' }
+            }
         }
     }
     const config = {
@@ -218,19 +229,13 @@ test('onPrepare multiremote', async () => {
         browserA: {
             capabilities: {
                 browserName: 'chrome',
-                protocol: 'http',
-                hostname: 'localhost',
-                port: 4446,
-                tunnelIdentifier: 'my-tunnel'
+                'sauce:options': { tunnelIdentifier: 'my-tunnel' }
             }
         },
         browserB: {
             capabilities: {
                 browserName: 'firefox',
-                protocol: 'http',
-                hostname: 'localhost',
-                port: 4446,
-                tunnelIdentifier: 'fish'
+                'sauce:options': { tunnelIdentifier: 'fish' }
             },
         }
     })
@@ -256,9 +261,9 @@ test('onPrepare if sauceTunnel is not set', async () => {
     expect(caps).toEqual([{}])
     expect(service['_sauceConnectProcess']).toBeUndefined()
     // @ts-ignore mock feature
-    expect(SauceLabs.instances).toHaveLength(1)
+    expect(SauceLabs.default.instances).toHaveLength(1)
     // @ts-ignore mock feature
-    expect(SauceLabs.instances[0].startSauceConnect).toBeCalledTimes(0)
+    expect(SauceLabs.default.instances[0].startSauceConnect).toBeCalledTimes(0)
 })
 
 test('onPrepare multiremote with tunnel identifier and with w3c caps ', async () => {
@@ -414,18 +419,12 @@ test('onPrepare with tunnel identifier and with w3c caps ', async () => {
     await service.onPrepare(config, caps)
 
     expect(caps).toEqual([{
-        protocol: 'http',
-        hostname: 'localhost',
-        port: 4446,
         browserName: 'chrome',
         'sauce:options': {
             commandTimeout: 600,
             tunnelIdentifier: 'fish'
         }
     }, {
-        protocol: 'http',
-        hostname: 'localhost',
-        port: 4446,
         browserName: 'firefox',
         'sauce:options': {
             commandTimeout: 600,
@@ -447,21 +446,21 @@ test('onPrepare with tunnel identifier and without w3c caps ', async () => {
     const caps: Capabilities.DesiredCapabilities[] = [{
         browserName: 'internet explorer',
         platform: 'Windows 7',
-        tunnelIdentifier: 'fish'
+        'sauce:options': { tunnelIdentifier: 'fish' }
     }, {
         browserName: 'internet explorer',
         version: '9'
     }, {
         deviceName: 'iPhone',
         platformName: 'iOS',
-        tunnelIdentifier: 'fish-bar'
+        'sauce:options': { tunnelIdentifier: 'fish-bar' }
     }, {
         deviceName: 'iPhone',
         platformName: 'iOS',
     }, {
         deviceName: 'iPhone Simulator',
         platformName: 'iOS',
-        tunnelIdentifier: 'foo-bar'
+        'sauce:options': { tunnelIdentifier: 'foo-bar' }
     }, {
         deviceName: 'iPhone Simulator',
         platformName: 'iOS',
@@ -475,47 +474,29 @@ test('onPrepare with tunnel identifier and without w3c caps ', async () => {
     await service.onPrepare(config, caps)
 
     expect(caps).toEqual([{
-        protocol: 'http',
-        hostname: 'localhost',
-        port: 4446,
         browserName: 'internet explorer',
         platform: 'Windows 7',
-        tunnelIdentifier: 'fish'
+        'sauce:options': { tunnelIdentifier: 'fish' }
     }, {
-        protocol: 'http',
-        hostname: 'localhost',
-        port: 4446,
         browserName: 'internet explorer',
         version: '9',
-        tunnelIdentifier: 'my-tunnel'
+        'sauce:options': { tunnelIdentifier: 'my-tunnel' }
     }, {
-        protocol: 'http',
-        hostname: 'localhost',
-        port: 4446,
         deviceName: 'iPhone',
         platformName: 'iOS',
-        tunnelIdentifier: 'fish-bar'
+        'sauce:options': { tunnelIdentifier: 'fish-bar' }
     }, {
-        protocol: 'http',
-        hostname: 'localhost',
-        port: 4446,
         deviceName: 'iPhone',
         platformName: 'iOS',
-        tunnelIdentifier: 'my-tunnel'
+        'sauce:options': { tunnelIdentifier: 'my-tunnel' }
     }, {
-        protocol: 'http',
-        hostname: 'localhost',
-        port: 4446,
         deviceName: 'iPhone Simulator',
         platformName: 'iOS',
-        tunnelIdentifier: 'foo-bar'
+        'sauce:options': { tunnelIdentifier: 'foo-bar' }
     }, {
-        protocol: 'http',
-        hostname: 'localhost',
-        port: 4446,
         deviceName: 'iPhone Simulator',
         platformName: 'iOS',
-        tunnelIdentifier: 'my-tunnel'
+        'sauce:options': { tunnelIdentifier: 'my-tunnel' }
     }])
     expect(service['_sauceConnectProcess']).not.toBeUndefined()
 })
@@ -528,13 +509,13 @@ test('startTunnel fail twice and recover', async ()=> {
         }
     }
     const service = new SauceServiceLauncher(options, [{}], {} as Options.Testrunner)
-    ;(service['_api'].startSauceConnect as jest.Mock)
+    vi.mocked(service['_api'].startSauceConnect)
         .mockRejectedValueOnce(new Error('ENOENT'))
         .mockRejectedValueOnce(new Error('ENOENT'))
     await service.startTunnel({})
 
     // @ts-ignore mock feature
-    expect(SauceLabs.instances[0].startSauceConnect).toBeCalledTimes(3)
+    expect(SauceLabs.default.instances[0].startSauceConnect).toBeCalledTimes(3)
 })
 
 test('startTunnel fail three and throws error', async ()=> {
@@ -545,7 +526,7 @@ test('startTunnel fail three and throws error', async ()=> {
         }
     }
     const service = new SauceServiceLauncher(options, [{}], {} as Options.Testrunner)
-    ;(service['_api'].startSauceConnect as jest.Mock)
+    vi.mocked(service['_api'].startSauceConnect)
         .mockRejectedValueOnce(new Error('ENOENT'))
         .mockRejectedValueOnce(new Error('ENOENT'))
         .mockRejectedValueOnce(new Error('ENOENT'))
@@ -560,12 +541,13 @@ test('onComplete', async () => {
     const service = new SauceServiceLauncher({}, [], {} as Options.Testrunner)
     expect(service.onComplete()).toBeUndefined()
 
-    service['_sauceConnectProcess'] = { close: jest.fn() } as any
+    service['_sauceConnectProcess'] = { close: vi.fn() } as any
     service.onComplete()
     expect(service['_sauceConnectProcess']?.close).toBeCalled()
 })
 
-afterEach(async () => {
+beforeEach(async () => {
+    vi.mocked(log.info).mockClear()
     // @ts-ignore mock feature
-    SauceLabs.instances = []
+    SauceLabs.default.instances = []
 })

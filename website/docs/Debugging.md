@@ -5,13 +5,14 @@ title: Debugging
 
 Debugging is significantly more difficult when several processes spawn dozens of tests in multiple browsers.
 
-For starters, it is extremely helpful to limit parallelism by setting `maxInstances` to `1`, and targeting only those specs and browsers that need to be debugged.
+<iframe width="560" height="315" src="https://www.youtube.com/embed/_bw_VWn5IzU" frameborder="0" allowFullScreen></iframe>
 
+For starters, it is extremely helpful to limit parallelism by setting `maxInstances` to `1`, and targeting only those specs and browsers that need to be debugged.
 
 In `wdio.conf`:
 
 ```js
-exports.config = {
+export const config = {
     // ...
     maxInstances: 1,
     specs: [
@@ -28,7 +29,7 @@ exports.config = {
 
 In many cases, you can use [`browser.debug()`](/docs/api/browser/debug) to pause your test and inspect the browser.
 
-Your command line interface will also switch into REPL mode. This mode allows you to fiddle around with commands and elements on the page. In REPL mode, you can access the `browser` object&mdash;or `$` and `$$` functions&mdash;just like you can in your tests.
+Your command line interface will also switch into REPL mode. This mode allows you to fiddle around with commands and elements on the page. In REPL mode, you can access the `browser` object&mdash;or `$` and `$$` functions&mdash;like you can in your tests.
 
 When using `browser.debug()`, you will likely need to increase the timeout of the test runner to prevent the test runner from failing the test for taking to long.  For example:
 
@@ -55,7 +56,7 @@ const defaultCapabilities = ...
 const defaultTimeoutInterval = ...
 const defaultSpecs = ...
 
-exports.config = {
+export const config = {
     // ...
     maxInstances: debug ? 1 : 100,
     capabilities: debug ? [{ browserName: 'chrome' }] : defaultCapabilities,
@@ -112,5 +113,5 @@ If you are an [Atom](https://atom.io/) hacker you can try [`wdio-repl`](https://
 
 ## Debugging with WebStorm / Intellij
 You can create a node.js debug configuration like this:
-![Screenshot from 2021-05-29 17-33-33](https://user-images.githubusercontent.com/18728354/120088460-81844c00-c0a5-11eb-916b-50f21c8472a8.png)  
+![Screenshot from 2021-05-29 17-33-33](https://user-images.githubusercontent.com/18728354/120088460-81844c00-c0a5-11eb-916b-50f21c8472a8.png)
 Watch this [YouTube Video](https://www.youtube.com/watch?v=Qcqnmle6Wu8) for more information about how to make a configuration.

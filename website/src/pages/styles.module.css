@@ -10,11 +10,28 @@
     text-align: center;
     position: relative;
     overflow: hidden;
+    background: transparent;
+}
+
+html[data-theme=dark] .heroBanner  {
+    background: radial-gradient( circle, rgba(  0, 0, 0, 0 ) 0%, rgba( 0, 0, 0, .8 ) 100% );
 }
 
 @media screen and (max-width: 966px) {
     .heroBanner {
         padding: 2rem;
+    }
+}
+
+@media (max-width: 550px) {
+    body .buttons a {
+        width: 100%;
+        margin-bottom: 10px!important;
+    }
+
+    body .frameworkLogos img {
+        padding: 0 20px 0 0;
+        height: 30px;
     }
 }
 
@@ -26,6 +43,12 @@
     margin: 30px 0 0;
 }
 
+body .getStarted {
+    padding: 10px 15px;
+    border-radius: 30px;
+    margin: 0 10px!important;
+}
+
 .buttons > a {
     margin: 0 5px;
 }
@@ -35,8 +58,8 @@
     border-bottom: 0!important;
 }
 .frameworkLogos img {
-    height: 60px;
-    padding: 0 10px 0 0;
+    height: 40px;
+    padding: 0 20px 0 0;
 }
 
 .reactImage {

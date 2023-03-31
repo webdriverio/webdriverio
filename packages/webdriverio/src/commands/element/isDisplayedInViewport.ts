@@ -1,6 +1,6 @@
-import { ELEMENT_KEY } from '../../constants'
-import { getBrowserObject } from '../../utils'
-import isElementInViewportScript from '../../scripts/isElementInViewport'
+import { ELEMENT_KEY } from '../../constants.js'
+import { getBrowserObject } from '../../utils/index.js'
+import isElementInViewportScript from '../../scripts/isElementInViewport.js'
 
 /**
  *
@@ -38,7 +38,7 @@ import isElementInViewportScript from '../../scripts/isElementInViewport'
  * @type state
  *
  */
-export default async function isDisplayedInViewport (this: WebdriverIO.Element) {
+export async function isDisplayedInViewport (this: WebdriverIO.Element) {
     if (!await this.isDisplayed()) {
         return false
     }

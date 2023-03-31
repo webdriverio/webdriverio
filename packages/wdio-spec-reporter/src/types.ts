@@ -1,4 +1,4 @@
-import { Capabilities } from '@wdio/types'
+import type { Capabilities } from '@wdio/types'
 
 export interface StateCount {
     passed: number
@@ -48,6 +48,12 @@ export interface SpecReporterOptions {
      * @default: `false`
      */
      realtimeReporting?: boolean
+    /**
+     * Ability to show or hide preface on each line of the report ('[MultiRemote ...]')
+     *
+     * @default: `true`
+     */
+     showPreface?: boolean
 }
 
 export interface TestLink {

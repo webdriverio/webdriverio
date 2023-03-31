@@ -19,7 +19,7 @@
  * @type utility
  *
  */
-export default function pause (
+export function pause (
     this: WebdriverIO.Browser,
     milliseconds = 1000
 ) {

@@ -1,14 +1,16 @@
-import { EventEmitter } from 'events'
-import path from 'path'
-import type { URL } from 'url'
-import { URLFactory } from './factory'
+import path from 'node:path'
+import { EventEmitter } from 'node:events'
+import { createRequire } from 'node:module'
+import type { URL } from 'node:url'
 
 import logger from '@wdio/logger'
 import { transformCommandLogResult } from '@wdio/utils'
 import type { Options } from '@wdio/types'
 
-import { isSuccessfulResponse, getErrorFromResponseBody, getTimeoutError } from '../utils'
+import { URLFactory } from './factory.js'
+import { isSuccessfulResponse, getErrorFromResponseBody, getTimeoutError } from '../utils.js'
 
+const require = createRequire(import.meta.url)
 const pkg = require('../../package.json')
 
 type Agents = Options.Agents
@@ -54,9 +56,8 @@ export default abstract class WebDriverRequest extends EventEmitter {
     endpoint: string
     isHubCommand: boolean
     requiresSessionId: boolean
-    defaultAgents: Agents | null
+    defaultAgents?: Agents
     defaultOptions: RequestLibOptions = {
-        retry: 0, // we have our own retry mechanism
         followRedirect: true,
         responseType: 'json',
         throwHttpErrors: false
@@ -68,14 +69,15 @@ export default abstract class WebDriverRequest extends EventEmitter {
         this.method = method
         this.endpoint = endpoint
         this.isHubCommand = isHubCommand
-        this.defaultAgents = null
         this.requiresSessionId = Boolean(this.endpoint.match(/:sessionId/))
     }
 
-    makeRequest (options: RequestOptions, sessionId?: string) {
-        let fullRequestOptions: RequestLibOptions = Object.assign({
-            method: this.method
-        }, this.defaultOptions, this._createOptions(options, sessionId))
+    async makeRequest (options: RequestOptions, sessionId?: string) {
+        let fullRequestOptions: RequestLibOptions = Object.assign(
+            { method: this.method },
+            this.defaultOptions,
+            await this._createOptions(options, sessionId)
+        )
         if (typeof options.transformRequest === 'function') {
             fullRequestOptions = options.transformRequest(fullRequestOptions)
         }
@@ -84,7 +86,7 @@ export default abstract class WebDriverRequest extends EventEmitter {
         return this._request(fullRequestOptions, options.transformResponse, options.connectionRetryCount, 0)
     }
 
-    protected _createOptions (options: RequestOptions, sessionId?: string, isBrowser: boolean = false): RequestLibOptions {
+    protected async _createOptions (options: RequestOptions, sessionId?: string, isBrowser: boolean = false): Promise<RequestLibOptions> {
         const agent = isBrowser ? undefined : (options.agent || this.defaultAgents)
         const searchParams = isBrowser ?
             undefined :
@@ -97,7 +99,8 @@ export default abstract class WebDriverRequest extends EventEmitter {
                 ...(typeof options.headers === 'object' ? options.headers : {})
             },
             searchParams,
-            timeout: options.connectionRetryTimeout
+            retry: { limit: options.connectionRetryCount! },
+            timeout: { response: options.connectionRetryTimeout as number }
         }
 
         /**
@@ -122,7 +125,7 @@ export default abstract class WebDriverRequest extends EventEmitter {
             endpoint = endpoint.replace(':sessionId', sessionId)
         }
 
-        requestOptions.url = URLFactory.getInstance(
+        requestOptions.url = await URLFactory.getInstance(
             `${options.protocol}://` +
             `${options.hostname}:${options.port}` +
             (this.isHubCommand ? this.endpoint : path.join(options.path || '', endpoint))
@@ -153,6 +156,10 @@ export default abstract class WebDriverRequest extends EventEmitter {
         throw new Error('This function must be implemented')
     }
 
+    protected _libPerformanceNow(): number {
+        throw new Error('This function must be implemented')
+    }
+
     private async _request (
         fullRequestOptions: RequestLibOptions,
         transformResponse?: (response: RequestLibResponse, requestOptions: RequestLibOptions) => RequestLibResponse,
@@ -166,11 +173,10 @@ export default abstract class WebDriverRequest extends EventEmitter {
         }
 
         const { url, ...requestLibOptions } = fullRequestOptions
+        const startTime = this._libPerformanceNow()
         let response = await this._libRequest(url!, requestLibOptions)
-            // @ts-ignore
-            .catch((err: RequestLibError) => {
-                return err
-            })
+            .catch((err: RequestLibError) => err)
+        const durationMillisecond = this._libPerformanceNow() - startTime
 
         /**
          * handle retries for requests
@@ -185,11 +191,13 @@ export default abstract class WebDriverRequest extends EventEmitter {
             if (retryCount >= totalRetryCount || error.message.includes('invalid session id')) {
                 log.error(`Request failed with status ${response.statusCode} due to ${error}`)
                 this.emit('response', { error })
+                this.emit('performance', { request: fullRequestOptions, durationMillisecond, success: false, error, retryCount })
                 throw error
             }
 
             ++retryCount
             this.emit('retry', { error, retryCount })
+            this.emit('performance', { request: fullRequestOptions, durationMillisecond, success: false, error, retryCount })
             log.warn(msg)
             log.info(`Retrying ${retryCount}/${totalRetryCount}`)
             return this._request(fullRequestOptions, transformResponse, totalRetryCount, retryCount)
@@ -211,6 +219,7 @@ export default abstract class WebDriverRequest extends EventEmitter {
             /**
              * throw if request error is unknown
              */
+            this.emit('performance', { request: fullRequestOptions, durationMillisecond, success: false, error: response, retryCount })
             throw response
         }
 
@@ -218,7 +227,7 @@ export default abstract class WebDriverRequest extends EventEmitter {
             response = transformResponse(response, fullRequestOptions) as RequestLibResponse
         }
 
-        const error = getErrorFromResponseBody(response.body)
+        const error = getErrorFromResponseBody(response.body, fullRequestOptions.json)
 
         /**
          * retry connection refused errors
@@ -237,6 +246,7 @@ export default abstract class WebDriverRequest extends EventEmitter {
              * directly without using a hub, therefore throw
              */
             if (typeof response.body === 'string' && response.body.startsWith('<!DOCTYPE html>')) {
+                this.emit('performance', { request: fullRequestOptions, durationMillisecond, success: false, error, retryCount })
                 return Promise.reject(new Error('Command can only be called to a Selenium Hub'))
             }
 
@@ -248,6 +258,7 @@ export default abstract class WebDriverRequest extends EventEmitter {
          */
         if (isSuccessfulResponse(response.statusCode, response.body)) {
             this.emit('response', { result: response.body })
+            this.emit('performance', { request: fullRequestOptions, durationMillisecond, success: true, retryCount })
             return response.body
         }
 
@@ -258,6 +269,7 @@ export default abstract class WebDriverRequest extends EventEmitter {
         if (error.name === 'stale element reference') {
             log.warn('Request encountered a stale element - terminating request')
             this.emit('response', { error })
+            this.emit('performance', { request: fullRequestOptions, durationMillisecond, success: false, error, retryCount })
             throw error
         }
 

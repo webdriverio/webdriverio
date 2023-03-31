@@ -1,7 +1,9 @@
-import { ModuleRequireService } from '../../src'
+import { vi } from 'vitest'
+
+import type { ModuleImportService } from '../../src/index.js'
 
 /**
- * Test implementation of ModuleRequireService
+ * Test implementation of ModuleImportService
  *
  * Avoids the SUT from actually requiring files at all, instead using a small in-memory array representing virtual
  * modules present in a virtual node_modules for the SUT.
@@ -9,28 +11,32 @@ import { ModuleRequireService } from '../../src'
  * Normally will never call the real require functions and will throw if SUT requires something not mocked.
  * Provide callThroughNotMockedModules as true to call through to real require function when not mocked instead of throwing.
  */
-export default class MockedModules implements ModuleRequireService {
+export default class MockedModules implements ModuleImportService {
+    mockLoadedModules: Record<string, any>
+    requireMock: Function
+    resolveMock: Function
+
     private constructor(callThroughNotMockedModules = false) {
-        this.mockLoadedModules = []
-        this.requireMock = jest.fn((m:string) => {
+        this.mockLoadedModules = {}
+        this.requireMock = vi.fn((m:string) => {
             try {
                 return this.getModule(m)
             } catch (err: any) {
                 if ( callThroughNotMockedModules ) {
                     return require(m)
                 }
-                throw e
+                throw err
 
             }
         })
-        this.resolveMock = jest.fn((m:string) => {
+        this.resolveMock = vi.fn((m:string) => {
             try {
                 return this.hasModule(m)
             } catch (err: any) {
                 if ( callThroughNotMockedModules ) {
                     return require.resolve(m)
                 }
-                throw e
+                throw err
 
             }
         })
@@ -42,14 +48,14 @@ export default class MockedModules implements ModuleRequireService {
     }
 
     static withModules(moduleAndValuesList: [string, any][], callThroughNotMockedModules = false) {
-        let instance = new MockedModules(callThroughNotMockedModules)
+        const instance = new MockedModules(callThroughNotMockedModules)
         return instance.withModules(moduleAndValuesList)
     }
 
     /**
      * Use the mocks if interested in low-level calls being made.
      *
-     * A mock for each aspect of ModuleRequireService is provided.
+     * A mock for each aspect of ModuleImportService is provided.
      */
     getMocks() {
         return {
@@ -78,25 +84,31 @@ export default class MockedModules implements ModuleRequireService {
         this.mockLoadedModules = []
     }
 
-    withTsNodeModule(registerMock = jest.fn()) {
+    withTsNodeModule(registerMock = vi.fn()) {
         return this.withModule(
             'ts-node', { register: registerMock }
         )
     }
 
-    withBabelModule(registerMock = jest.fn()) {
+    withTsconfigPathModule(registerMock = vi.fn()) {
+        return this.withModule(
+            'tsconfig-paths', { register: registerMock }
+        )
+    }
+
+    withBabelModule(registerMock = vi.fn()) {
         return this.withModule('@babel/register', registerMock)
     }
 
     // Helpers for resembling real implementation behavior respective to tests
     private getModule(module: string) {
-        if ( this.hasModule(module) ) {
+        if (this.hasModule(module)) {
             return this.mockLoadedModules[module]
         }
         throw new Error('FAKE_MODULE_NOT_FOUND')
     }
     private hasModule(module: string) {
-        if ( this.mockLoadedModules[module] ) {
+        if (this.mockLoadedModules[module]) {
             return true
         }
         throw new Error('FAKE_MODULE_NOT_FOUND')
@@ -104,15 +116,8 @@ export default class MockedModules implements ModuleRequireService {
 
     // Interface
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    require<T>(module: string): T {
-        // forward to jest mock
+    import <T>(module: string): Promise<T> {
+        // forward to vi mock
         return this.requireMock.apply(this, arguments)
     }
-
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    resolve(request: string, options: { paths?: string[] }): string {
-        // forward to jest mock
-        return this.resolveMock.apply(this, arguments)
-    }
-
 }

@@ -1,4 +1,5 @@
-import isElementInViewport from '../../src/scripts/isElementInViewport'
+import { describe, it, expect, beforeAll, afterAll } from 'vitest'
+import isElementInViewport from '../../src/scripts/isElementInViewport.js'
 
 describe('isElementInViewport script', () => {
     beforeAll(() => {
@@ -33,6 +34,7 @@ describe('isElementInViewport script', () => {
     })
 
     it('should detect if in viewport (window)', () => {
+        // @ts-expect-error
         delete global.document
         // @ts-ignore
         global.window.innerWidth = 800
@@ -104,6 +106,7 @@ describe('isElementInViewport script', () => {
     })
 
     afterAll(() => {
+        // @ts-expect-error
         delete global.window
     })
 })

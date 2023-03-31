@@ -1,3 +1,3 @@
 #!/bin/sh
 
-git diff-index --name-only --diff-filter=d HEAD | grep -E "(.*)\\.js$" | xargs node_modules/eslint/bin/eslint.js -c .eslintrc.js
+git diff-index --cached --name-only --diff-filter=d HEAD | grep -E ".*\\.[cm]?[jt]sx?$" | xargs -r node_modules/eslint/bin/eslint.js

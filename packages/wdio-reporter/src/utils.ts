@@ -1,7 +1,7 @@
-import * as supportsColor from 'supports-color'
-import { Capabilities } from '@wdio/types'
+import supportsColor from 'supports-color'
+import type { Capabilities } from '@wdio/types'
 
-import { COLORS } from './constants'
+import { COLORS } from './constants.js'
 
 /**
  * replaces whitespaces with underscore and removes dots
@@ -34,21 +34,19 @@ export function sanitizeCaps (caps?: Capabilities.DesiredCapabilities) {
     /**
      * mobile caps
      */
-    if (caps.deviceName) {
-        result = [
+    result = caps.deviceName
+        ? [
             sanitizeString(caps.deviceName),
             sanitizeString(caps.platformName),
             sanitizeString(caps.platformVersion),
             sanitizeString(caps.app)
         ]
-    } else {
-        result = [
+        : [
             sanitizeString(caps.browserName),
             sanitizeString(caps.version || caps.browserVersion),
             sanitizeString(caps.platform || caps.platformName),
             sanitizeString(caps.app)
         ]
-    }
 
     result = result.filter(n => n !== undefined && n !== '')
     return result.join('.')
@@ -63,8 +61,12 @@ export function sanitizeCaps (caps?: Capabilities.DesiredCapabilities) {
  * @param {*} e  An event emitted by a framework adapter
  */
 export function getErrorsFromEvent(e: { errors?: any; error?: any }) {
-    if (e.errors) return e.errors
-    if (e.error) return [e.error]
+    if (e.errors) {
+        return e.errors
+    }
+    if (e.error) {
+        return [e.error]
+    }
     return []
 }
 

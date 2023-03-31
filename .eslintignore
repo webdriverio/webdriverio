@@ -1,6 +1,8 @@
 /packages/**/build
+/packages/**/cjs
 /packages/**/node_modules
 /packages/node_modules
 /packages/**/coverage
 /tests/typings
 *.d.ts
+!packages/**/src/cjs

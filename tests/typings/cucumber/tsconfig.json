@@ -6,7 +6,7 @@
     "esModuleInterop": true,
     "resolveJsonModule": true,
     "types": [
-      "webdriverio/async",
+      "@wdio/globals/types",
       "@wdio/cucumber-framework"
     ]
   }

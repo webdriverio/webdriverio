@@ -1,5 +1,5 @@
-import os from 'os'
-import path from 'path'
+import os from 'node:os'
+import path from 'node:path'
 import UAParser from 'ua-parser-js'
 import { v4 as uuidv4 } from 'uuid'
 
@@ -8,25 +8,25 @@ import { webdriverMonad, devtoolsEnvironmentDetector } from '@wdio/utils'
 import { validateConfig } from '@wdio/config'
 import type { CommandEndpoint } from '@wdio/protocols'
 import type { Options, Capabilities } from '@wdio/types'
-import type { Browser } from 'puppeteer-core/lib/cjs/puppeteer/common/Browser'
+import type { Browser } from 'puppeteer-core/lib/esm/puppeteer/api/Browser.js'
 
-import DevToolsDriver from './devtoolsdriver'
-import launch from './launcher'
-import { DEFAULTS, SUPPORTED_BROWSER, VENDOR_PREFIX } from './constants'
-import { getPrototype, patchDebug } from './utils'
+import DevToolsDriver from './devtoolsdriver.js'
+import launch from './launcher.js'
+import { DEFAULTS, SUPPORTED_BROWSER, VENDOR_PREFIX } from './constants.js'
+import { getPrototype, patchDebug } from './utils.js'
 import type {
     Client,
     AttachOptions,
     ExtendedCapabilities,
     WDIODevtoolsOptions as WDIODevtoolsOptionsExtension
-} from './types'
+} from './types.js'
 
 const log = logger('devtools:puppeteer')
 
 /**
  * patch debug package to log Puppeteer CDP messages
  */
-patchDebug(log)
+await patchDebug(log)
 
 export const sessionMap = new Map()
 
@@ -39,7 +39,7 @@ export default class DevTools {
     ): Promise<Client> {
         const params = validateConfig(DEFAULTS, options)
 
-        if (params.logLevel && (!options.logLevels || !(options.logLevels as any)['devtools'])) {
+        if (params.logLevel && (!options.logLevels || !(options.logLevels as any).devtools)) {
             logger.setLevel('devtools', params.logLevel)
         }
 
@@ -72,8 +72,9 @@ export default class DevTools {
             ||
             VENDOR_PREFIX[userAgent.browser.name?.toLocaleLowerCase() as keyof typeof VENDOR_PREFIX]
 
+        const { browserName } = (requestedCapabilities as Capabilities.W3CCapabilities).alwaysMatch || requestedCapabilities
         params.capabilities = {
-            browserName: userAgent.browser.name,
+            browserName: (userAgent.browser.name || browserName || 'unknown').split(' ').shift()?.toLowerCase(),
             browserVersion: userAgent.browser.version,
             platformName: os.platform(),
             platformVersion: os.release()
@@ -82,7 +83,7 @@ export default class DevTools {
         if (vendorCapPrefix) {
             Object.assign(params.capabilities, {
                 [vendorCapPrefix]: Object.assign(
-                    { debuggerAddress: (browser as any)._connection.url().split('/')[2] },
+                    { debuggerAddress: browser.wsEndpoint().split('/')[2] },
                     params.capabilities[vendorCapPrefix]
                 )
             })
@@ -115,22 +116,19 @@ export default class DevTools {
         return monad(sessionId, customCommandWrapper)
     }
 
+    /**
+     * Changes The instance session id and browser capabilities for the new session
+     * directly into the passed in browser object
+     *
+     * @param   {object} instance  the object we get from a new browser session.
+     * @returns {string}           the new session id of the browser
+     */
     static async reloadSession (instance: any): Promise<string> {
         const { session } = sessionMap.get(instance.sessionId)
         const browser = await launch(instance.requestedCapabilities)
         const pages = await browser.pages()
-
-        session.elementStore.clear()
-        session.windows = new Map()
-        session.browser = browser
+        session.initBrowser.call(session, browser, pages)
         instance.puppeteer = browser
-
-        for (const page of pages) {
-            const pageId = uuidv4()
-            session.windows.set(pageId, page)
-            session.currentWindowHandle = pageId
-        }
-
         sessionMap.set(instance.sessionId, { browser, session })
         return instance.sessionId
     }
@@ -179,7 +177,7 @@ export default class DevTools {
 }
 
 export { SUPPORTED_BROWSER }
-export * from './types'
+export * from './types.js'
 
 declare global {
     namespace WebdriverIO {

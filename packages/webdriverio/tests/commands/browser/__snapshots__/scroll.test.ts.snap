@@ -1,0 +1,23 @@
+// Vitest Snapshot v1
+
+exports[`scroll > desktop > should be able to scroll 1`] = `
+{
+  "actions": [
+    {
+      "actions": [
+        {
+          "deltaX": 10,
+          "deltaY": 100,
+          "duration": 200,
+          "type": "scroll",
+          "x": 0,
+          "y": 0,
+        },
+      ],
+      "id": "action1",
+      "parameters": {},
+      "type": "wheel",
+    },
+  ],
+}
+`;

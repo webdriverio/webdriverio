@@ -1,0 +1,121 @@
+// Vitest Snapshot v1
+
+exports[`getTemplate > renders template correctly 1`] = `
+"
+    <!doctype html>
+    <html>
+        <head>
+            <title>WebdriverIO Browser Test</title>
+            <link rel=\\"icon\\" type=\\"image/x-icon\\" href=\\"https://webdriver.io/img/favicon.png\\">
+            <script type=\\"module\\" src=\\"/node_modules/mocha/mocha.js\\"></script>
+            <script src=\\"/@fs//foo/bar/browser-source-map-support.js\\"></script>
+            <script type=\\"module\\">
+                sourceMapSupport.install()
+
+                /**
+                 * Inject environment variables
+                 */
+                window.__wdioEnv__ = {}
+                window.__wdioSpec__ = '/spec.js'
+                window.__wdioEvents__ = []
+                /**
+                 * listen to window errors during bootstrap phase
+                 */
+                window.__wdioErrors__ = []
+                addEventListener('error', (ev) => window.__wdioErrors__.push({
+                    filename: ev.filename,
+                    message: ev.message,
+                    error: ev.error.stack
+                }))
+                /**
+                 * mock process
+                 */
+                window.process = {
+                    platform: 'browser',
+                    env: {},
+                    stdout: {}
+                }
+            </script>
+            <script type=\\"module\\" src=\\"@wdio/browser-runner/setup\\"></script>
+            <style>:root {
+    --mocha-color: #000;
+    --mocha-bg-color: #fff;
+    --mocha-pass-icon-color: #00d6b2;
+    --mocha-pass-color: #fff;
+    --mocha-pass-shadow-color: rgba(0, 0, 0, .2);
+    --mocha-pass-mediump-color: #c09853;
+    --mocha-pass-slow-color: #b94a48;
+    --mocha-test-pending-color: #0b97c4;
+    --mocha-test-pending-icon-color: #0b97c4;
+    --mocha-test-fail-color: #c00;
+    --mocha-test-fail-icon-color: #c00;
+    --mocha-test-fail-pre-color: #000;
+    --mocha-test-fail-pre-error-color: #c00;
+    --mocha-test-html-error-color: #000;
+    --mocha-box-shadow-color: #eee;
+    --mocha-box-bottom-color: #ddd;
+    --mocha-test-replay-color: #000;
+    --mocha-test-replay-bg-color: #eee;
+    --mocha-stats-color: #888;
+    --mocha-stats-em-color: #000;
+    --mocha-stats-hover-color: #eee;
+    --mocha-error-color: #c00;
+
+    --mocha-code-comment: #ddd;
+    --mocha-code-init: #2f6fad;
+    --mocha-code-string: #5890ad;
+    --mocha-code-keyword: #8a6343;
+    --mocha-code-number: #2f6fad;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --mocha-color: #fff;
+        --mocha-bg-color: #222;
+        --mocha-pass-icon-color: #00d6b2;
+        --mocha-pass-color: #222;
+        --mocha-pass-shadow-color: rgba(255, 255, 255, .2);
+        --mocha-pass-mediump-color: #f1be67;
+        --mocha-pass-slow-color: #f49896;
+        --mocha-test-pending-color: #0b97c4;
+        --mocha-test-pending-icon-color: #0b97c4;
+        --mocha-test-fail-color: #f44;
+        --mocha-test-fail-icon-color: #f44;
+        --mocha-test-fail-pre-color: #fff;
+        --mocha-test-fail-pre-error-color: #f44;
+        --mocha-test-html-error-color: #fff;
+        --mocha-box-shadow-color: #444;
+        --mocha-box-bottom-color: #555;
+        --mocha-test-replay-color: #fff;
+        --mocha-test-replay-bg-color: #444;
+        --mocha-stats-color: #aaa;
+        --mocha-stats-em-color: #fff;
+        --mocha-stats-hover-color: #444;
+        --mocha-error-color: #f44;
+
+        --mocha-code-comment: #ddd;
+        --mocha-code-init: #9cc7f1;
+        --mocha-code-string: #80d4ff;
+        --mocha-code-keyword: #e3a470;
+        --mocha-code-number: #4ca7ff;
+    }
+}
+</style>
+            
+            <script type=\\"module\\">
+                some code
+                window.Vue = Vue
+            </script>
+            <script type=\\"module\\">
+                some code
+                window.VueCompilerDOM = VueCompilerDOM
+            </script>
+        </head>
+        <body style=\\"width: calc(100% - 500px); padding: 0; margin: 0;\\">
+            <mocha-framework spec=\\"/spec.js\\" minified></mocha-framework>
+            <script type=\\"module\\">
+                window.process.env = {\\"some\\":\\"env\\"}
+            </script>
+        </body>
+    </html>"
+`;

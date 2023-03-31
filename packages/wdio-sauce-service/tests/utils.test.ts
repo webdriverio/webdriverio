@@ -1,4 +1,5 @@
-import { isEmuSim, isRDC } from '../src/utils'
+import { expect, test } from 'vitest'
+import { isEmuSim, isRDC } from '../src/utils.js'
 
 test('isRDC should be false for no provided deviceName and platformName', () => {
     expect(isRDC({})).toEqual(false)

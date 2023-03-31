@@ -1,7 +1,7 @@
 import logger from '@wdio/logger'
-import type { EventEmitter } from 'events'
+import type { EventEmitter } from 'node:events'
 
-import type { ReporterOptions, ParentSuite, TestEvent, SuiteEvent } from './types'
+import type { ReporterOptions, ParentSuite, TestEvent, SuiteEvent } from './types.js'
 
 const log = logger('@wdio/jasmine-framework')
 
@@ -134,7 +134,8 @@ export default class JasmineReporter {
                 deprecationWarnings: [],
                 passedExpectations: [],
                 status: 'unknown',
-                pendingReason: ''
+                pendingReason: '',
+                debugLogs: null
             })
             this.specDone({
                 id,
@@ -146,7 +147,8 @@ export default class JasmineReporter {
                 status: 'failed',
                 duration: null,
                 properties: {},
-                pendingReason: ''
+                pendingReason: '',
+                debugLogs: null
             })
         }
 
@@ -156,7 +158,7 @@ export default class JasmineReporter {
     }
 
     emit (event: string, payload: SuiteEvent | TestEvent) {
-        let message = {
+        const message = {
             cid: this._cid,
             uid: this.getUniqueIdentifier(payload),
             event: event,

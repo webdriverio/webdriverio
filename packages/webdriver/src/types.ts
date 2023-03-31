@@ -1,6 +1,6 @@
-import { EventEmitter } from 'events'
+import type { EventEmitter } from 'node:events'
 import type { Options, Capabilities } from '@wdio/types'
-import type { ProtocolCommands, ProtocolCommandsAsync } from '@wdio/protocols'
+import type { ProtocolCommands } from '@wdio/protocols'
 
 export interface JSONWPCommandError extends Error {
     code?: string
@@ -31,8 +31,7 @@ export interface BaseClient extends EventEmitter, SessionFlags {
     options: Options.WebDriver
 }
 
-export interface Client extends BaseClient, ProtocolCommandsAsync {}
-export interface ClientSync extends BaseClient, ProtocolCommands {}
+export interface Client extends BaseClient, ProtocolCommands {}
 
 export interface AttachOptions extends Partial<SessionFlags>, Partial<Options.WebDriver> {
     sessionId: string

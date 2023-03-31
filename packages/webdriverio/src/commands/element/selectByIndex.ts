@@ -1,4 +1,4 @@
-import { getElementFromResponse } from '../../utils'
+import { getElementFromResponse } from '../../utils/index.js'
 
 /**
  *
@@ -29,7 +29,7 @@ import { getElementFromResponse } from '../../utils'
  * @type action
  *
  */
-export default async function selectByIndex (
+export async function selectByIndex (
     this: WebdriverIO.Element,
     index: number
 ) {

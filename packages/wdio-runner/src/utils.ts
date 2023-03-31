@@ -1,15 +1,11 @@
-import merge from 'deepmerge'
+import { deepmerge } from 'deepmerge-ts'
 import logger from '@wdio/logger'
 import { remote, multiremote, attach } from 'webdriverio'
 import { DEFAULTS } from 'webdriver'
 import { DEFAULT_CONFIGS } from '@wdio/config'
 import type { Options, Capabilities } from '@wdio/types'
-import type { Browser, MultiRemoteBrowser } from 'webdriverio'
 
-const log = logger('@wdio/local-runner:utils')
-
-const MERGE_OPTIONS = { clone: false }
-const mochaAllHooks = ['"before all" hook', '"after all" hook']
+const log = logger('@wdio/runner')
 
 export interface ConfigWithSessionId extends Omit<Options.Testrunner, 'capabilities'> {
     sessionId?: string,
@@ -57,7 +53,7 @@ export async function initialiseInstance (
     config: ConfigWithSessionId,
     capabilities: Capabilities.RemoteCapability,
     isMultiremote?: boolean
-): Promise<Browser<'async'> | MultiRemoteBrowser<'async'>> {
+): Promise<WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser> {
     /**
      * check if config has sessionId and attach it to a running session if so
      */
@@ -68,8 +64,14 @@ export async function initialiseInstance (
         /**
          * propagate connection details defined by services or user in capabilities
          */
-        const { protocol, hostname, port, path } = capabilities as Capabilities.Capabilities
-        return attach({ ...config, ...{ protocol, hostname, port, path } } as Required<ConfigWithSessionId>)
+        const caps = capabilities as Capabilities.Capabilities
+        const connectionProps = {
+            protocol: caps.protocol || config.protocol,
+            hostname: caps.hostname || config.hostname,
+            port: caps.port || config.port,
+            path: caps.path || config.path
+        }
+        return attach({ ...config, ...connectionProps, capabilities } as Required<ConfigWithSessionId>)
     }
 
     if (!isMultiremote) {
@@ -86,16 +88,20 @@ export async function initialiseInstance (
     log.debug('init multiremote session')
     // @ts-expect-error ToDo(Christian): can be removed?
     delete config.capabilities
-    for (let browserName of Object.keys(capabilities)) {
-        options[browserName] = merge(
+    for (const browserName of Object.keys(capabilities)) {
+        options[browserName] = deepmerge(
             config,
-            (capabilities as Capabilities.MultiRemoteCapabilities)[browserName],
-            MERGE_OPTIONS
+            (capabilities as Capabilities.MultiRemoteCapabilities)[browserName]
         )
     }
 
     const browser = await multiremote(options, config)
-    for (let browserName of Object.keys(capabilities)) {
+
+    /**
+     * only attach to global environment if `injectGlobals` is set to true
+     */
+    const browserNames = config.injectGlobals ? Object.keys(capabilities) : []
+    for (const browserName of browserNames) {
         // @ts-ignore allow random global browser names
         global[browserName] = browser[browserName]
     }
@@ -117,39 +123,13 @@ export function filterLogTypes(
 
     if (Array.isArray(excludeDriverLogs)) {
         log.debug('filtering logTypes', logTypes)
-
-        if (excludeDriverLogs.length === 1 && excludeDriverLogs[0] === '*') { // exclude all logTypes
-            logTypes = []
-        } else {
-            logTypes = logTypes.filter(x => !excludeDriverLogs.includes(x)) // exclude specific logTypes
-        }
-
+        logTypes = excludeDriverLogs.length === 1 && excludeDriverLogs[0] === '*'
+            ? []
+            : logTypes.filter(x => !excludeDriverLogs.includes(x)) // exclude specific logTypes
         log.debug('filtered logTypes', logTypes)
     }
 
     return logTypes
-}
-
-/**
- * Send event to WDIOCLInterface if test or before/after all hook failed
- * @param {string} e        event
- * @param {object} payload  payload
- */
-export function sendFailureMessage(e: string, payload: any) {
-    if (
-        e === 'test:fail' ||
-        (
-            e === 'hook:end' &&
-            payload.error &&
-            mochaAllHooks.some(hook => payload.title.startsWith(hook))
-        )
-    ) {
-        process.send!({
-            origin: 'reporter',
-            name: 'printFailureMessage',
-            content: payload
-        })
-    }
 }
 
 type BrowserData = {
@@ -169,18 +149,18 @@ type BrowserData = {
  * @return {object}
  */
 export function getInstancesData (
-    browser: Browser<'async'> | MultiRemoteBrowser<'async'>,
+    browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser,
     isMultiremote: boolean
 ) {
     if (!isMultiremote) {
         return
     }
 
-    const multiRemoteBrowser = browser as MultiRemoteBrowser<'async'>
+    const multiRemoteBrowser = browser as WebdriverIO.MultiRemoteBrowser
     const instances: Record<string, Partial<BrowserData>> = {}
-    multiRemoteBrowser.instances.forEach((browserName) => {
-        const { protocol, hostname, port, path, queryParams } = multiRemoteBrowser[browserName].options
-        const { isW3C, sessionId } = multiRemoteBrowser[browserName]
+    multiRemoteBrowser.instances.forEach((browserName: string) => {
+        const { protocol, hostname, port, path, queryParams } = multiRemoteBrowser.getInstance(browserName).options
+        const { isW3C, sessionId } = multiRemoteBrowser.getInstance(browserName)
 
         instances[browserName] = { sessionId, isW3C, protocol, hostname, port, path, queryParams }
     })

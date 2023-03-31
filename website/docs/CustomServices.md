@@ -7,7 +7,7 @@ You can write your own custom service for the WDIO test runner to custom-fit you
 
 Services are add-ons that are created for reusable logic to simplify tests, manage your test suite and integrate results. Services have access to all the same [hooks](/docs/configurationfile) available in the `wdio.conf.js`.
 
-There are two types of services that can be defined: a launcher service that only has access to the `onPrepare`, `onWorkerStart` and `onComplete` hook which are only executed once per test run, and a worker service that has access to all other hooks and is being executed for each worker. Note that you can not share (global) variables between both types of services as worker services run in a different (worker) process.
+There are two types of services that can be defined: a launcher service that only has access to the `onPrepare`, `onWorkerStart`, `onWorkerEnd` and `onComplete` hook which are only executed once per test run, and a worker service that has access to all other hooks and is being executed for each worker. Note that you can not share (global) variables between both types of services as worker services run in a different (worker) process.
 
 A launcher service can be defined as follows:
 
@@ -83,7 +83,7 @@ export const launcher = CustomLauncherService
 If you are using TypeScript and want to make sure that hook methods parameter are type safe, you can define your service class as follows:
 
 ```ts
-import { Capabilities, Options, Services } from '@wdio/types'
+import type { Capabilities, Options, Services } from '@wdio/types'
 
 export default class CustomWorkerService implements Services.ServiceInstance {
     constructor (
@@ -103,9 +103,7 @@ export default class CustomWorkerService implements Services.ServiceInstance {
 An Error thrown during a service hook will be logged while the runner continues. If a hook in your service is critical to the setup or teardown of the test runner, the `SevereServiceError` exposed from the `webdriverio` package can be used to stop the runner.
 
 ```js
-// use `require` here to avoid type collision when using TypeScript
-// and WebdriverIO in sync mode
-const { SevereServiceError } = require('webdriverio')
+import { SevereServiceError } from 'webdriverio'
 
 export default class CustomServiceLauncher {
     async onPrepare(config, capabilities) {
@@ -127,7 +125,7 @@ Modify your `wdio.conf.js` file to look like this:
 ```js
 import CustomService from './service/my.custom.service'
 
-exports.config = {
+export const config = {
     // ...
     services: [
         /**
@@ -160,7 +158,7 @@ Following the recommended naming pattern allows services to be added by name:
 
 ```js
 // Add wdio-custom-service
-exports.config = {
+export const config = {
     // ...
     services: ['custom'],
     // ...

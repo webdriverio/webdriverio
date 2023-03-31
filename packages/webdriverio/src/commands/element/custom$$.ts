@@ -1,9 +1,7 @@
-import { ElementReference } from '@wdio/protocols'
-
-import { getElements } from '../../utils/getElementObject'
-import { getBrowserObject, enhanceElementsArray } from '../../utils'
-import { ELEMENT_KEY } from '../../constants'
-import type { ElementArray } from '../../types'
+import { getElements } from '../../utils/getElementObject.js'
+import { getBrowserObject, enhanceElementsArray } from '../../utils/index.js'
+import { ELEMENT_KEY } from '../../constants.js'
+import type { ElementArray, CustomStrategyFunction } from '../../types.js'
 
 /**
  *
@@ -29,13 +27,13 @@ import type { ElementArray } from '../../types'
  * @param {Any} strategyArguments
  * @return {ElementArray}
  */
-async function custom$$ (
+export async function custom$$ (
     this: WebdriverIO.Element,
     strategyName: string,
-    strategyArguments: string
+    ...strategyArguments: any[]
 ): Promise<ElementArray> {
     const browserObject = getBrowserObject(this)
-    const strategy = browserObject.strategies.get(strategyName) as (arg: string, context: any) => HTMLElement[]
+    const strategy = browserObject.strategies.get(strategyName) as CustomStrategyFunction
 
     if (!strategy) {
         /* istanbul ignore next */
@@ -50,7 +48,9 @@ async function custom$$ (
         throw Error(`Can't call custom$ on element with selector "${this.selector}" because element wasn't found`)
     }
 
-    let res = await this.execute(strategy, strategyArguments, this) as any as ElementReference[]
+    const strategyRef = { strategy, strategyName, strategyArguments: [...strategyArguments, this] }
+
+    let res = await browserObject.execute(strategy, ...strategyArguments, this)
 
     /**
      * if the user's script return just one element
@@ -63,8 +63,6 @@ async function custom$$ (
 
     res = res.filter((el) => !!el && typeof el[ELEMENT_KEY] === 'string')
 
-    const elements = res.length ? await getElements.call(this, strategy as any, res) : [] as any as ElementArray
-    return enhanceElementsArray(elements, this, strategy as any, 'custom$$', [strategyArguments])
+    const elements = res.length ? await getElements.call(this, strategyRef, res) : [] as any as ElementArray
+    return enhanceElementsArray(elements, this, strategyName, 'custom$$', strategyArguments)
 }
-
-export default custom$$

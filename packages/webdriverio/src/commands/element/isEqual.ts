@@ -1,5 +1,5 @@
-import { ELEMENT_KEY } from '../../constants'
-import { getBrowserObject } from '../../utils'
+import { ELEMENT_KEY } from '../../constants.js'
+import { getBrowserObject } from '../../utils/index.js'
 
 const getWebElement = (el: WebdriverIO.Element) => ({
     [ELEMENT_KEY]: el.elementId, // w3c compatible
@@ -28,7 +28,7 @@ const getWebElement = (el: WebdriverIO.Element) => ({
  * @return  {Boolean}   true if elements are equal
  *
  */
-export default async function isEqual (
+export async function isEqual (
     this: WebdriverIO.Element,
     el: WebdriverIO.Element
 ) {
@@ -37,7 +37,11 @@ export default async function isEqual (
     // mobile native
     if (browser.isMobile) {
         const context = await browser.getContext()
-        if (context?.toLowerCase().includes('native')) {
+        const contextId = typeof context === 'string'
+            ? context
+            : context?.id
+
+        if (contextId && contextId.toLowerCase().includes('native')) {
             return this.elementId === el.elementId
         }
     }
@@ -47,7 +51,7 @@ export default async function isEqual (
     try {
         result = await browser.execute(
             /* istanbul ignore next */
-            (el1: WebdriverIO.Element, el2: WebdriverIO.Element) => el1 === el2,
+            function (el1: WebdriverIO.Element, el2: WebdriverIO.Element) { return el1 === el2 },
             getWebElement(this), getWebElement(el))
     } catch (err: any) {
         result = false

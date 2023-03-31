@@ -1,7 +1,7 @@
-import command from '../scripts/executeScript'
-import { transformExecuteArgs, transformExecuteResult } from '../utils'
-import { SERIALIZE_PROPERTY, SERIALIZE_FLAG } from '../constants'
-import type DevToolsDriver from '../devtoolsdriver'
+import command from '../scripts/executeScript.js'
+import { transformExecuteArgs, transformExecuteResult } from '../utils.js'
+import { SERIALIZE_PROPERTY, SERIALIZE_FLAG } from '../constants.js'
+import type DevToolsDriver from '../devtoolsdriver.js'
 
 /**
  * The Execute Script command executes a JavaScript function in the context of the
@@ -38,7 +38,7 @@ export default async function executeScript (
         ...(await transformExecuteArgs.call(this, args))
     )
 
-    let executeTimeout
+    let executeTimeout: undefined | ReturnType<typeof setTimeout>
     const timeoutPromise = new Promise((_, reject) => {
         executeTimeout = setTimeout(() => {
             const timeoutError = `script timeout${
@@ -51,7 +51,9 @@ export default async function executeScript (
         }, scriptTimeout)
     })
 
-    const result = await Promise.race([executePromise, timeoutPromise])
-    clearTimeout(executeTimeout)
+    const result = await Promise.race([executePromise, timeoutPromise]).finally(() => {
+        clearTimeout(executeTimeout)
+    })
+
     return transformExecuteResult.call(this, page, result)
 }

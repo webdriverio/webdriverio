@@ -26,7 +26,7 @@
  * @type window
  *
  */
-export default async function switchWindow (
+export async function switchWindow (
     this: WebdriverIO.Browser,
     matcher: string | RegExp
 ) {

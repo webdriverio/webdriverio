@@ -1,12 +1,14 @@
+import type { Options } from 'chrome-launcher'
 import { launch as launchChromeBrowser } from 'chrome-launcher'
-import puppeteer from 'puppeteer-core'
+import type { PuppeteerLaunchOptions, ConnectOptions } from 'puppeteer-core'
+import puppeteer, { KnownDevices, Puppeteer } from 'puppeteer-core'
 import logger from '@wdio/logger'
-import type { Browser } from 'puppeteer-core/lib/cjs/puppeteer/common/Browser'
+import type { Browser } from 'puppeteer-core/lib/esm/puppeteer/api/Browser.js'
 import type { Capabilities } from '@wdio/types'
-import { QueryHandler } from 'query-selector-shadow-dom/plugins/puppeteer'
+import { QueryHandler } from 'query-selector-shadow-dom/plugins/puppeteer/index.js'
 
-import browserFinder from './finder'
-import { getPages } from './utils'
+import browserFinder from './finder/index.js'
+import { getPages, launchChromeUsingWhich } from './utils.js'
 import {
     CHROME_NAMES,
     FIREFOX_NAMES,
@@ -17,16 +19,13 @@ import {
     DEFAULT_HEIGHT,
     DEFAULT_X_POSITION,
     DEFAULT_Y_POSITION,
-    VENDOR_PREFIX,
-    CHANNEL_FIREFOX_NIGHTLY,
-    CHANNEL_FIREFOX_TRUNK,
-    BROWSER_ERROR_MESSAGES
-} from './constants'
-import type { ExtendedCapabilities, DevToolsOptions } from './types'
+    VENDOR_PREFIX
+} from './constants.js'
+import type { ExtendedCapabilities, DevToolsOptions } from './types.js'
 
 const log = logger('devtools')
 
-const DEVICE_NAMES = Object.values(puppeteer.devices).map((device) => device.name)
+const DEVICE_NAMES = Object.keys(KnownDevices)
 
 /**
  * launches Chrome and returns a Puppeteer browser instance
@@ -47,11 +46,11 @@ async function launchChrome (capabilities: ExtendedCapabilities) {
      * This should be cleaned up for v7 release
      * ToDo(Christian): v7 cleanup
      */
-    let ignoreDefaultArgs = (capabilities as any).ignoreDefaultArgs || devtoolsOptions.ignoreDefaultArgs
-    let headless = (chromeOptions as any).headless || devtoolsOptions.headless
+    const ignoreDefaultArgs = (capabilities as any).ignoreDefaultArgs || devtoolsOptions.ignoreDefaultArgs
+    const headless = (chromeOptions as any).headless || devtoolsOptions.headless
 
     if (typeof mobileEmulation.deviceName === 'string') {
-        const deviceProperties = Object.values(puppeteer.devices).find(device => device.name === mobileEmulation.deviceName)
+        const deviceProperties = KnownDevices[mobileEmulation.deviceName as keyof typeof KnownDevices]
 
         if (!deviceProperties) {
             throw new Error(`Unknown device name "${mobileEmulation.deviceName}", available: ${DEVICE_NAMES.join(', ')}`)
@@ -108,22 +107,25 @@ async function launchChrome (capabilities: ExtendedCapabilities) {
         )
     }
 
-    log.info(`Launch Google Chrome with flags: ${chromeFlags.join(' ')}`)
-    const chrome = await launchChromeBrowser({
+    log.info(`Launch Google Chrome (${chromeOptions.binary}) with flags: ${chromeFlags.join(' ')}`)
+    const launchOptions: Options = {
+        prefs: chromeOptions.prefs,
         chromePath: chromeOptions.binary,
         ignoreDefaultFlags: true,
         chromeFlags,
         userDataDir,
         envVars: devtoolsOptions.env,
         ...(devtoolsOptions.customPort ? { port: devtoolsOptions.customPort } : {})
-    })
+    }
+    const chrome = await launchChromeBrowser(launchOptions).catch(
+        (err: Error) => launchChromeUsingWhich(err, launchOptions))
 
     log.info(`Connect Puppeteer with browser on port ${chrome.port}`)
     const browser = await puppeteer.connect({
         ...chromeOptions,
         ...devtoolsOptions,
         defaultViewport: null,
-        browserURL: `http://localhost:${chrome.port}`
+        browserURL: `http://127.0.0.1:${chrome.port}`
     }) as unknown as Browser // casting from @types/puppeteer to built in type
 
     /**
@@ -168,7 +170,7 @@ function launchBrowser (capabilities: ExtendedCapabilities, browserType: 'edge' 
         browserFinderMethod()[0]
     )
 
-    const puppeteerOptions = Object.assign({
+    const puppeteerOptions: PuppeteerLaunchOptions = Object.assign(<PuppeteerLaunchOptions>{
         product,
         executablePath,
         ignoreDefaultArgs,
@@ -176,18 +178,12 @@ function launchBrowser (capabilities: ExtendedCapabilities, browserType: 'edge' 
         defaultViewport: {
             width: DEFAULT_WIDTH,
             height: DEFAULT_HEIGHT
-        }
+        },
+        prefs: capabilities[vendorCapKey]?.prefs
     }, capabilities[vendorCapKey] || {}, devtoolsOptions || {})
 
     if (!executablePath) {
         throw new Error('Couldn\'t find executable for browser')
-    } else if (
-        browserType === BROWSER_TYPE.firefox &&
-        executablePath !== 'firefox' &&
-        !executablePath.toLowerCase().includes(CHANNEL_FIREFOX_NIGHTLY) &&
-        !executablePath.toLowerCase().includes(CHANNEL_FIREFOX_TRUNK)
-    ) {
-        throw new Error(BROWSER_ERROR_MESSAGES.firefoxNightly)
     }
 
     log.info(`Launch ${executablePath} with config: ${JSON.stringify(puppeteerOptions)}`)
@@ -197,7 +193,7 @@ function launchBrowser (capabilities: ExtendedCapabilities, browserType: 'edge' 
 function connectBrowser (connectionUrl: string, capabilities: ExtendedCapabilities) {
     const connectionProp = connectionUrl.startsWith('http') ? 'browserURL' : 'browserWSEndpoint'
     const devtoolsOptions = capabilities['wdio:devtoolsOptions']
-    const options: puppeteer.ConnectOptions = {
+    const options: ConnectOptions = {
         [connectionProp]: connectionUrl,
         ...devtoolsOptions
     }
@@ -205,8 +201,14 @@ function connectBrowser (connectionUrl: string, capabilities: ExtendedCapabiliti
 }
 
 export default async function launch (capabilities: ExtendedCapabilities) {
-    puppeteer.unregisterCustomQueryHandler('shadow')
-    puppeteer.registerCustomQueryHandler('shadow', QueryHandler)
+    try {
+        Puppeteer.unregisterCustomQueryHandler('shadow')
+    } catch {
+        // ignore
+    }
+
+    // ToDo(Christian): fix types (https://github.com/Georgegriff/query-selector-shadow-dom/issues/77)
+    Puppeteer.registerCustomQueryHandler('shadow', QueryHandler as any)
     const browserName = capabilities.browserName?.toLowerCase()
 
     /**
@@ -222,6 +224,18 @@ export default async function launch (capabilities: ExtendedCapabilities) {
     )
     if (connectionUrl) {
         return connectBrowser(connectionUrl, capabilities)
+    }
+
+    /**
+     * This fixes running e2e tests on Windows. For some reason within a Vitest environment
+     * capitalization matters for environment variables.
+     */
+    if (!process.env.PROGRAMFILES && process.env.ProgramFiles) {
+        process.env.PROGRAMFILES = process.env.ProgramFiles
+    }
+    const programFiles86 = process.env['ProgramFiles(X86)'] || process.env['ProgramFiles(x86)']
+    if (!process.env['PROGRAMFILES(X86)'] && programFiles86) {
+        process.env['PROGRAMFILES(X86)'] = programFiles86
     }
 
     if (browserName && CHROME_NAMES.includes(browserName)) {

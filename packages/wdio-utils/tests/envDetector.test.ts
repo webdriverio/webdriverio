@@ -1,18 +1,20 @@
-import { Capabilities } from '@wdio/types'
-import { sessionEnvironmentDetector, capabilitiesEnvironmentDetector } from '../src/envDetector'
+import { describe, it, expect } from 'vitest'
+import type { Capabilities } from '@wdio/types'
 
-import appiumResponse from './__fixtures__/appium.response.json'
-import experitestResponse from './__fixtures__/experitest.response.json'
-import chromedriverResponse from './__fixtures__/chromedriver.response.json'
-import geckodriverResponse from './__fixtures__/geckodriver.response.json'
-import ghostdriverResponse from './__fixtures__/ghostdriver.response.json'
-import safaridriverResponse from './__fixtures__/safaridriver.response.json'
-import safaridriverdockerNpNResponse from './__fixtures__/safaridriverdockerNpN.response.json'
-import safaridriverdockerNbVResponse from './__fixtures__/safaridriverdockerNbV.response.json'
-import safaridriverLegacyResponse from './__fixtures__/safaridriver.legacy.response.json'
-import edgedriverResponse from './__fixtures__/edgedriver.response.json'
-import seleniumstandaloneResponse from './__fixtures__/standaloneserver.response.json'
-import seleniumstandalone4Response from './__fixtures__/standaloneserver4.response.json'
+import { sessionEnvironmentDetector, capabilitiesEnvironmentDetector } from '../src/envDetector.js'
+
+import appiumResponse from './__fixtures__/appium.response.json' assert { type: 'json' }
+import experitestResponse from './__fixtures__/experitest.response.json' assert { type: 'json' }
+import chromedriverResponse from './__fixtures__/chromedriver.response.json' assert { type: 'json' }
+import geckodriverResponse from './__fixtures__/geckodriver.response.json' assert { type: 'json' }
+import ghostdriverResponse from './__fixtures__/ghostdriver.response.json' assert { type: 'json' }
+import safaridriverResponse from './__fixtures__/safaridriver.response.json' assert { type: 'json' }
+import safaridriverdockerNpNResponse from './__fixtures__/safaridriverdockerNpN.response.json' assert { type: 'json' }
+import safaridriverdockerNbVResponse from './__fixtures__/safaridriverdockerNbV.response.json' assert { type: 'json' }
+import safaridriverLegacyResponse from './__fixtures__/safaridriver.legacy.response.json' assert { type: 'json' }
+import edgedriverResponse from './__fixtures__/edgedriver.response.json' assert { type: 'json' }
+import seleniumstandaloneResponse from './__fixtures__/standaloneserver.response.json' assert { type: 'json' }
+import seleniumstandalone4Response from './__fixtures__/standaloneserver4.response.json' assert { type: 'json' }
 
 describe('sessionEnvironmentDetector', () => {
     const chromeCaps = chromedriverResponse.value as WebDriver.Capabilities
@@ -95,7 +97,7 @@ describe('sessionEnvironmentDetector', () => {
 
     it('isSauce (w3c)', () => {
         const capabilities = { browserName: 'chrome' }
-        let requestedCapabilities: Capabilities.W3CCapabilities = {
+        const requestedCapabilities: Capabilities.W3CCapabilities = {
             alwaysMatch: {},
             firstMatch: []
         }

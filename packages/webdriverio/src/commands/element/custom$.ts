@@ -1,8 +1,7 @@
-import type { ElementReference } from '@wdio/protocols'
-
-import { getElement } from '../../utils/getElementObject'
-import { getBrowserObject } from '../../utils'
-import { ELEMENT_KEY } from '../../constants'
+import { getElement } from '../../utils/getElementObject.js'
+import { getBrowserObject } from '../../utils/index.js'
+import { ELEMENT_KEY } from '../../constants.js'
+import type { CustomStrategyFunction } from '../../types.js'
 
 /**
  *
@@ -28,13 +27,13 @@ import { ELEMENT_KEY } from '../../constants'
  * @param {Any} strategyArguments
  * @return {Element}
  */
-async function custom$ (
+export async function custom$ (
     this: WebdriverIO.Element,
     strategyName: string,
-    strategyArguments: string
+    ...strategyArguments: any[]
 ) {
     const browserObject = getBrowserObject(this)
-    const strategy = browserObject.strategies.get(strategyName) as (arg: string, context: any) => HTMLElement
+    const strategy = browserObject.strategies.get(strategyName) as CustomStrategyFunction
 
     if (!strategy) {
         throw Error('No strategy found for ' + strategyName)
@@ -48,7 +47,9 @@ async function custom$ (
         throw Error(`Can't call custom$ on element with selector "${this.selector}" because element wasn't found`)
     }
 
-    let res = await this.execute(strategy, strategyArguments, this) as any as ElementReference | undefined
+    const strategyRef = { strategy, strategyName, strategyArguments: [...strategyArguments, this] }
+
+    let res = await browserObject.execute(strategy, ...strategyArguments, this)
 
     /**
      * if the user's script returns multiple elements
@@ -60,10 +61,8 @@ async function custom$ (
     }
 
     if (res && typeof res[ELEMENT_KEY] === 'string') {
-        return await getElement.call(this, strategy as any, res)
+        return await getElement.call(this, strategyRef, res)
     }
 
     throw Error('Your locator strategy script must return an element')
 }
-
-export default custom$

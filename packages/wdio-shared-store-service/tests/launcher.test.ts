@@ -1,44 +1,26 @@
-import { writeFile, deleteFile } from '../src/utils'
-import { setPort } from '../src/client'
-import SharedStoreLauncher from '../src/launcher'
-import StoreServerType from '../src/server'
-const StoreServer: typeof StoreServerType = require('../src/server').default
+import path from 'node:path'
+import { describe, expect, vi, it } from 'vitest'
 
-const { stopServer } = StoreServer
+import { setPort } from '../src/client.js'
+import SharedStoreLauncher from '../src/launcher.js'
+import type { SharedStoreServiceCapabilities } from '../src/types.js'
 
-jest.mock('../src/server', () => ({
-    default: {
-        startServer: async () => ({ port: 3000 }),
-        stopServer: jest.fn(),
-    }
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+
+vi.mock('../src/server', () => ({
+    startServer: () => Promise.resolve({ port: 3000 })
 }))
-jest.mock('../src/utils', () => ({
-    writeFile: jest.fn(),
-    deleteFile: jest.fn(),
-    getPidPath: (pid: number) => pid,
-}))
-jest.mock('../src/client', () => ({
-    setPort: jest.fn()
+
+vi.mock('../src/client', () => ({
+    setPort: vi.fn()
 }))
 
 const storeLauncher = new SharedStoreLauncher()
 
 describe('SharedStoreService', () => {
     it('onPrepare', async () => {
-        await storeLauncher.onPrepare()
-        expect(writeFile).toBeCalledWith(process.pid, '3000')
+        const capabilities = [{ browserName: 'chrome', acceptInsecureCerts: true }] as SharedStoreServiceCapabilities[]
+        await storeLauncher.onPrepare(null as never, capabilities)
         expect(setPort).toBeCalledWith(3000)
-    })
-
-    it('onComplete', async () => {
-        await storeLauncher.onComplete()
-        expect(stopServer).toBeCalled()
-        expect(deleteFile).toBeCalledWith(process.pid)
-    })
-
-    afterEach(() => {
-        (writeFile as jest.Mock).mockClear()
-        ;(deleteFile as jest.Mock).mockClear()
-        ;(stopServer as jest.Mock).mockClear()
     })
 })

@@ -28,26 +28,14 @@ We recommend using [NVM](https://github.com/nvm-sh/nvm) (Node Version Manager) t
 
 We have rewritten the complete code base and almost touched all files to add type safety and to fix a lot of bugs on the way. This was a true community effort and would have taken much longer if we didn’t have so many people helping with code contributions. Thank you all for that ❤️! Before, WebdriverIO auto-generated all type definitions, which caused the creation of a lot of duplicate types and inconsistency. With this overhaul, all types are directly taken from the code itself and centralized in a single new helper package called [`@wdio/types`](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-types). If you have been using TypeScript, you will now have much better type support for various commands and the configuration file.
 
-There are two significant changes how this TypeScript rewrite will impact you. While in v6 you would set `@wdio/sync` in your types of your `tsconfig.json`, this will now change to be `webdriverio/sync`. Similar for running WebdriverIO asynchronously. Instead of just defining `webdriverio` in your types you now need to set `webdriverio/async`:
-
-```git
-// tsconfig.json
-"types": [
-  "node",
--  "@wdio/sync",
-+  "webdriverio/sync",
-  "@wdio/mocha-framework"
-],
-```
-
-or
+There are two significant changes how this TypeScript rewrite will impact you. Instead of just defining `webdriverio` in your types you now need to set `@wdio/globals/types`:
 
 ```git
 // tsconfig.json
 "types": [
   "node",
 -  "webdriverio",
-+  "webdriverio/async",
++  "@wdio/globals/types",
   "@wdio/mocha-framework"
 ],
 ```
@@ -88,7 +76,7 @@ You can read more about WebdriverIO TypeScript integration in our [docs](/docs/t
 
 ## Cucumber v7 Update
 
-The folks working on Cucumber have done a tremendous job moving their code base to TypeScript, which has made our lives tremendously easier. The new Cucumber integration required us to update the parameters within our [Cucumber hooks](/docs/options#beforefeature).
+The folks working on Cucumber have done a tremendous job moving their code base to TypeScript, which has made our lives tremendously easier. The new Cucumber integration required us to update the parameters within our [Cucumber hooks](/docs/configuration#beforefeature).
 
 If you have been using Cucumber, all you need to do to update to v7 is to update your Cucumber imports to their new package:
 
@@ -183,4 +171,4 @@ expect(coverage.branches.total).toBeAbove(0.9)
 
 As you might already have seen, we have updated our [docs](https://webdriver.io) to give this new release a brand new face. We've upgraded our Docusaurus setup to v2 and gave the whole design a new touch. Big shout out to [Anton Meier](https://www.linkedin.com/in/antoschka-kartoschka) for helping us out and making our robot on the front page so lively.
 
-That's it! We hope you enjoy the new version and update your framework soon-ish to get all these new features, type safety and bug fixes for your projects. If you have any questions don't hesitate to start a conversation on the [discussions page](https://github.com/webdriverio/webdriverio/discussions) or join our growing [support chat](https://gitter.im/webdriverio/webdriverio) that has already reached 6.7k active members.
+That's it! We hope you enjoy the new version and update your framework soon-ish to get all these new features, type safety and bug fixes for your projects. If you have any questions don't hesitate to start a conversation on the [discussions page](https://github.com/webdriverio/webdriverio/discussions) or join our growing [support chat](https://matrix.to/#/#webdriver.io:gitter.im) that has already reached 6.7k active members.

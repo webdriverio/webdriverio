@@ -1,0 +1,12 @@
+{
+  "extends": "../../tsconfig.prod",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "module": "CommonJS",
+    "outDir": "./build",
+    "rootDir": "./src"
+  },
+  "include": [
+    "src/**/*"
+  ]
+}

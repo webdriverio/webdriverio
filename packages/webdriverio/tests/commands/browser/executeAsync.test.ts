@@ -1,6 +1,11 @@
+import path from 'node:path'
+import { expect, describe, it, vi } from 'vitest'
 // @ts-ignore mocked (original defined in webdriver package)
 import got from 'got'
-import { remote } from '../../../src'
+import { remote } from '../../../src/index.js'
+
+vi.mock('got')
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 describe('isEnabled test', () => {
     it('should allow to check if an element is enabled', async () => {
@@ -12,11 +17,11 @@ describe('isEnabled test', () => {
         })
 
         await browser.executeAsync(() => 'foobar', 1, 2, 3)
-        expect(got.mock.calls[1][0].pathname)
+        expect(vi.mocked(got).mock.calls[1][0]!.pathname)
             .toBe('/session/foobar-123/execute/async')
-        expect(got.mock.calls[1][1].json.script)
-            .toBe('return (() => \'foobar\').apply(null, arguments)')
-        expect(got.mock.calls[1][1].json.args)
+        expect(vi.mocked(got).mock.calls[1][1]!.json.script)
+            .toBe('return (() => "foobar").apply(null, arguments)')
+        expect(vi.mocked(got).mock.calls[1][1]!.json.args)
             .toEqual([1, 2, 3])
     })
 
@@ -35,15 +40,16 @@ describe('isEnabled test', () => {
     })
 
     it('should throw if script is wrong type', async () => {
-        const browser: WebdriverIO.Browser = await remote({
+        const browser = await remote({
             baseUrl: 'http://foobar.com',
             capabilities: {
                 browserName: 'foobar'
             }
         })
 
-        expect(() => browser.executeAsync(null)).toThrow()
-        // @ts-ignore test invalid parameter
-        expect(() => browser.executeAsync(1234)).toThrow()
+        // @ts-expect-error test invalid parameter
+        await expect(() => browser.executeAsync(null)).rejects.toThrow()
+        // @ts-expect-error test invalid parameter
+        await expect(() => browser.executeAsync(1234)).rejects.toThrow()
     })
 })

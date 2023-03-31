@@ -1,6 +1,7 @@
-import fs from 'fs'
-import path from 'path'
-import { getPrototype } from '../../src/utils'
+import fs from 'node:fs'
+import path from 'node:path'
+import { test, expect } from 'vitest'
+import { getPrototype } from '../../src/utils/index.js'
 
 const scope = 'browser'
 const dir = path.resolve(__dirname, '../..', 'src', 'commands', scope)
@@ -10,11 +11,10 @@ const files = fs
 
 test(scope + ' commands list and strategies', () => {
     const prototype = Object.keys(getPrototype(scope))
-    const expected = ['puppeteer', '_NOT_FIBER', ...files, 'strategies']
+    const expected = ['puppeteer', ...files, 'strategies']
     /**
      * ignored commands that are just there for documentation purposes
      */
     const ignored = ['addCommand', 'overwriteCommand']
-
     expect(prototype).toEqual(expected.filter((cmd) => !ignored.includes(cmd)))
 })

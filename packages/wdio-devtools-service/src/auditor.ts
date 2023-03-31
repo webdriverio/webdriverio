@@ -1,27 +1,27 @@
-import Diagnostics from 'lighthouse/lighthouse-core/audits/diagnostics'
-import MainThreadWorkBreakdown from 'lighthouse/lighthouse-core/audits/mainthread-work-breakdown'
-import Metrics from 'lighthouse/lighthouse-core/audits/metrics'
-import ServerResponseTime from 'lighthouse/lighthouse-core/audits/server-response-time'
-import CumulativeLayoutShift from 'lighthouse/lighthouse-core/audits/metrics/cumulative-layout-shift'
-import FirstContentfulPaint from 'lighthouse/lighthouse-core/audits/metrics/first-contentful-paint'
-import LargestContentfulPaint from 'lighthouse/lighthouse-core/audits/metrics/largest-contentful-paint'
-import SpeedIndex from 'lighthouse/lighthouse-core/audits/metrics/speed-index'
-import InteractiveMetric from 'lighthouse/lighthouse-core/audits/metrics/interactive'
-import TotalBlockingTime from 'lighthouse/lighthouse-core/audits/metrics/total-blocking-time'
+import Diagnostics from 'lighthouse/lighthouse-core/audits/diagnostics.js'
+import MainThreadWorkBreakdown from 'lighthouse/lighthouse-core/audits/mainthread-work-breakdown.js'
+import Metrics from 'lighthouse/lighthouse-core/audits/metrics.js'
+import ServerResponseTime from 'lighthouse/lighthouse-core/audits/server-response-time.js'
+import CumulativeLayoutShift from 'lighthouse/lighthouse-core/audits/metrics/cumulative-layout-shift.js'
+import FirstContentfulPaint from 'lighthouse/lighthouse-core/audits/metrics/first-contentful-paint.js'
+import LargestContentfulPaint from 'lighthouse/lighthouse-core/audits/metrics/largest-contentful-paint.js'
+import SpeedIndex from 'lighthouse/lighthouse-core/audits/metrics/speed-index.js'
+import InteractiveMetric from 'lighthouse/lighthouse-core/audits/metrics/interactive.js'
+import TotalBlockingTime from 'lighthouse/lighthouse-core/audits/metrics/total-blocking-time.js'
 
-import ReportScoring from 'lighthouse/lighthouse-core/scoring'
-import defaultConfig from 'lighthouse/lighthouse-core/config/default-config'
+import ReportScoring from 'lighthouse/lighthouse-core/scoring.js'
+import defaultConfig from 'lighthouse/lighthouse-core/config/default-config.js'
 import logger from '@wdio/logger'
-import type { Browser, CustomInstanceCommands } from 'webdriverio'
+import type { CustomInstanceCommands } from 'webdriverio'
 
-import { DEFAULT_FORM_FACTOR, PWA_AUDITS } from './constants'
+import { DEFAULT_FORM_FACTOR, PWA_AUDITS } from './constants.js'
 import type {
     FormFactor, Audit, AuditResults, AuditRef, MainThreadWorkBreakdownResult,
     DiagnosticsResults, ResponseTimeResult, MetricsResult, MetricsResults,
     AuditResult, LHAuditResult, ErrorAudit, PWAAudits
-} from './types'
-import type { Trace } from './gatherer/trace'
-import type { CDPSessionOnMessageObject } from './gatherer/devtools'
+} from './types.js'
+import type { Trace } from './gatherer/trace.js'
+import type { CDPSessionOnMessageObject } from './gatherer/devtools.js'
 
 const log = logger('@wdio/devtools-service:Auditor')
 
@@ -74,7 +74,7 @@ export default class Auditor {
      * an Auditor instance is created for every trace so provide an updateCommands
      * function to receive the latest performance metrics with the browser instance
      */
-    updateCommands (browser: Browser<'async'>, customFn?: CustomInstanceCommands<Browser<'async'>>['addCommand']) {
+    updateCommands (browser: WebdriverIO.Browser, customFn?: CustomInstanceCommands<WebdriverIO.Browser>['addCommand']) {
         const commands = Object.getOwnPropertyNames(Object.getPrototypeOf(this)).filter(
             fnName => fnName !== 'constructor' && fnName !== 'updateCommands' && !fnName.startsWith('_'))
         commands.forEach(fnName => browser.addCommand(fnName, customFn || (this[fnName as keyof Auditor] as any).bind(this)))

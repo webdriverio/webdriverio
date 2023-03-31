@@ -1,6 +1,6 @@
-import { Cookie } from '@wdio/protocols'
+import type { Cookie } from '@wdio/protocols'
 
-import type DevToolsDriver from '../devtoolsdriver'
+import type DevToolsDriver from '../devtoolsdriver.js'
 
 /**
  * The Add Cookie command adds a single cookie to the cookie store

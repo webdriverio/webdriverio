@@ -1,13 +1,13 @@
-import fse from 'fs-extra'
-import path from 'path'
-import type { CDPSession } from 'puppeteer-core/lib/cjs/puppeteer/common/Connection'
-import type Protocol from 'devtools-protocol'
-
+import fs from 'node:fs/promises'
+import path from 'node:path'
 import logger from '@wdio/logger'
-import Interception from '.'
-import type { Matches, MockOverwrite, MockResponseParams } from './types'
-import { containsHeaderObject } from '..'
-import { ERROR_REASON } from '../../constants'
+import type { CDPSession } from 'puppeteer-core/lib/esm/puppeteer/common/Connection.js'
+import type { Protocol } from 'devtools-protocol'
+
+import Interception from './index.js'
+import type { Matches, MockOverwrite, MockResponseParams } from './types.js'
+import { containsHeaderObject } from '../index.js'
+import { ERROR_REASON } from '../../constants.js'
 
 const log = logger('webdriverio')
 
@@ -136,8 +136,9 @@ export default class DevtoolsInterception extends Interception {
                      * check if local file and load it
                      */
                     const responseFilePath = path.isAbsolute(newBody) ? newBody : path.join(process.cwd(), newBody)
-                    if (newBody.length > 0 && await fse.pathExists(responseFilePath) && await canAccess(responseFilePath)) {
-                        newBody = await fse.readFile(responseFilePath)
+                    const responseFileAccessible = await fs.access(responseFilePath).then(() => true, () => false)
+                    if (newBody.length > 0 && responseFileAccessible) {
+                        newBody = (await fs.readFile(responseFilePath))
                     } else if (newBody.startsWith('http')) {
                         responseCode = 301
                         /**
@@ -272,20 +273,6 @@ const filterStatusCode = (statusCode: number, expected?: ExpectParameter<number>
         return expected(statusCode) !== true
     }
     return statusCode !== expected
-}
-
-/**
- * Helper utility to check file access
- * @param {String} file file to check access for
- * @return              Promise<true> if file can be accessed
- */
-const canAccess = async (filepath: fse.PathLike) => {
-    try {
-        await fse.access(filepath)
-        return true
-    } catch {
-        return false
-    }
 }
 
 const tryParseJson = (body: string) => {

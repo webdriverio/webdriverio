@@ -1,9 +1,9 @@
 import puppeteer from 'puppeteer-core'
 import logger from '@wdio/logger'
-import { Capabilities } from '@wdio/types'
-import { Browser as PuppeteerBrowser } from 'puppeteer-core/lib/cjs/puppeteer/common/Browser'
+import type { Browser as PuppeteerBrowser } from 'puppeteer-core/lib/esm/puppeteer/api/Browser.js'
+import type { Capabilities } from '@wdio/types'
 
-import { FF_REMOTE_DEBUG_ARG } from '../../constants'
+import { FF_REMOTE_DEBUG_ARG } from '../../constants.js'
 
 const log = logger('webdriverio')
 
@@ -42,7 +42,7 @@ const log = logger('webdriverio')
  *
  * @return {PuppeteerBrowser}  initiated puppeteer instance connected to the browser
  */
-export default async function getPuppeteer (this: WebdriverIO.Browser) {
+export async function getPuppeteer (this: WebdriverIO.Browser) {
     /**
      * check if we already connected Puppeteer and if so return
      * that instance
@@ -52,6 +52,7 @@ export default async function getPuppeteer (this: WebdriverIO.Browser) {
         return this.puppeteer
     }
 
+    const { headers } = this.options
     const caps = (this.capabilities as Capabilities.W3CCapabilities).alwaysMatch || this.capabilities as Capabilities.DesiredCapabilities
     /**
      * attach to a Selenium 4 CDP Session if it's returned in the capabilities
@@ -60,7 +61,8 @@ export default async function getPuppeteer (this: WebdriverIO.Browser) {
     if (cdpEndpoint) {
         this.puppeteer = await puppeteer.connect({
             browserWSEndpoint: cdpEndpoint,
-            defaultViewport: null
+            defaultViewport: null,
+            headers
         }) as any as PuppeteerBrowser
         return this.puppeteer
     }
@@ -73,7 +75,8 @@ export default async function getPuppeteer (this: WebdriverIO.Browser) {
         const { hostname, port } = this.options
         this.puppeteer = await puppeteer.connect({
             browserWSEndpoint: `ws://${hostname}:${port}/devtools/${this.sessionId}`,
-            defaultViewport: null
+            defaultViewport: null,
+            headers
         }) as any as PuppeteerBrowser
         return this.puppeteer
     }
@@ -100,19 +103,31 @@ export default async function getPuppeteer (this: WebdriverIO.Browser) {
         const majorVersion = parseInt(caps.browserVersion.split('.').shift() || '', 10)
         if (majorVersion >= 79) {
             const reqCaps = (this.requestedCapabilities as Capabilities.W3CCapabilities).alwaysMatch || this.requestedCapabilities as Capabilities.DesiredCapabilities
-            const ffOptions = caps['moz:firefoxOptions']
-            const ffArgs = reqCaps['moz:firefoxOptions']?.args
+            let browserURL: string | undefined
 
-            const rdPort = ffOptions && ffOptions.debuggerAddress
-                ? ffOptions.debuggerAddress
-                : ffArgs?.[ffArgs.findIndex((arg: string) => arg === FF_REMOTE_DEBUG_ARG) + 1] ?? null
+            if (caps['moz:debuggerAddress']) {
+                browserURL = caps['moz:debuggerAddress'] as string
+            } else {
+                const ffOptions = caps['moz:firefoxOptions']
+                const ffArgs = reqCaps['moz:firefoxOptions']?.args || []
+                const rdPort = ffOptions && ffOptions.debuggerAddress
+                    ? ffOptions.debuggerAddress
+                    : ffArgs[ffArgs.findIndex((arg: string) => arg === FF_REMOTE_DEBUG_ARG) + 1]
 
-            if (!rdPort) {
-                throw new Error('Could\'t find remote debug port in Firefox options')
+                if (rdPort) {
+                    browserURL = `http://localhost:${rdPort}`
+                }
+            }
+
+            if (!browserURL) {
+                throw new Error(
+                    'Could\'t find a websocket url within returned capabilities to connect to! ' +
+                    'Make sure you have "moz:debuggerAddress" set to `true` in your Firefox capabilities'
+                )
             }
 
             this.puppeteer = await puppeteer.connect({
-                browserURL: `http://localhost:${rdPort}`,
+                browserURL,
                 defaultViewport: null
             }) as any as PuppeteerBrowser
             return this.puppeteer as any as PuppeteerBrowser

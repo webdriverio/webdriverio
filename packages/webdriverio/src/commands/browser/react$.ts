@@ -1,11 +1,14 @@
-import fs from 'fs'
-import { ElementReference } from '@wdio/protocols'
+import fs from 'node:fs/promises'
+import url from 'node:url'
 
-import { getElement } from '../../utils/getElementObject'
-import { waitToLoadReact, react$ as react$Script } from '../../scripts/resq'
-import type { ReactSelectorOptions } from '../../types'
+import { resolve } from 'import-meta-resolve'
+import type { ElementReference } from '@wdio/protocols'
 
-const resqScript = fs.readFileSync(require.resolve('resq'))
+import { getElement } from '../../utils/getElementObject.js'
+import { waitToLoadReact, react$ as react$Script } from '../../scripts/resq.js'
+import type { ReactSelectorOptions } from '../../types.js'
+
+let resqScript: string
 
 /**
  *
@@ -50,16 +53,21 @@ const resqScript = fs.readFileSync(require.resolve('resq'))
  * @return {Element}
  *
  */
-export default async function react$ (
+export async function react$ (
     this: WebdriverIO.Browser,
     selector: string,
     { props = {}, state = {} }: ReactSelectorOptions = {}
 ) {
+    if (!resqScript) {
+        const resqScriptPath = url.fileURLToPath(await resolve('resq', import.meta.url))
+        resqScript = (await fs.readFile(resqScriptPath)).toString()
+    }
+
     await this.executeScript(resqScript.toString(), [])
     await this.execute(waitToLoadReact)
     const res = await this.execute(
         react$Script as any, selector, props, state
     ) as any as ElementReference
 
-    return getElement.call(this, selector, res, true)
+    return getElement.call(this, selector, res, { isReactElement: true })
 }

@@ -1,40 +1,69 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Vitest Snapshot v1
 
-exports[`dragAndDrop should allow drag and drop to 0 coordinates 1`] = `
-Array [
-  Object {
-    "actions": Array [
-      Object {
+exports[`dragAndDrop > should allow drag and drop to 0 coordinates 1`] = `
+[
+  {
+    "actions": [
+      {
+        "altitudeAngle": 0,
+        "azimuthAngle": 0,
+        "button": 0,
         "duration": 0,
-        "origin": Object {
+        "height": 0,
+        "origin": {
           "element-6066-11e4-a52e-4f735466cecf": "some-elem-123",
         },
+        "pressure": 0,
+        "tangentialPressure": 0,
+        "tiltX": 0,
+        "tiltY": 0,
+        "twist": 0,
         "type": "pointerMove",
+        "width": 0,
         "x": 0,
         "y": 0,
       },
-      Object {
+      {
+        "altitudeAngle": 0,
+        "azimuthAngle": 0,
         "button": 0,
+        "height": 0,
+        "pressure": 0,
+        "tangentialPressure": 0,
+        "tiltX": 0,
+        "tiltY": 0,
+        "twist": 0,
         "type": "pointerDown",
+        "width": 0,
       },
-      Object {
+      {
         "duration": 10,
         "type": "pause",
       },
-      Object {
+      {
+        "altitudeAngle": 0,
+        "azimuthAngle": 0,
+        "button": 0,
         "duration": 10,
+        "height": 0,
         "origin": "pointer",
+        "pressure": 0,
+        "tangentialPressure": 0,
+        "tiltX": 0,
+        "tiltY": 0,
+        "twist": 0,
         "type": "pointerMove",
+        "width": 0,
         "x": 0,
         "y": 0,
       },
-      Object {
+      {
         "button": 0,
         "type": "pointerUp",
       },
     ],
-    "id": "finger1",
-    "parameters": Object {
+    "id": "action3",
+    "parameters": {
       "pointerType": "mouse",
     },
     "type": "pointer",
@@ -42,43 +71,72 @@ Array [
 ]
 `;
 
-exports[`dragAndDrop should do a dragAndDrop 1`] = `
-Array [
-  Object {
-    "actions": Array [
-      Object {
+exports[`dragAndDrop > should do a dragAndDrop 1`] = `
+[
+  {
+    "actions": [
+      {
+        "altitudeAngle": 0,
+        "azimuthAngle": 0,
+        "button": 0,
         "duration": 0,
-        "origin": Object {
+        "height": 0,
+        "origin": {
           "element-6066-11e4-a52e-4f735466cecf": "some-elem-123",
         },
+        "pressure": 0,
+        "tangentialPressure": 0,
+        "tiltX": 0,
+        "tiltY": 0,
+        "twist": 0,
         "type": "pointerMove",
+        "width": 0,
         "x": 0,
         "y": 0,
       },
-      Object {
+      {
+        "altitudeAngle": 0,
+        "azimuthAngle": 0,
         "button": 0,
+        "height": 0,
+        "pressure": 0,
+        "tangentialPressure": 0,
+        "tiltX": 0,
+        "tiltY": 0,
+        "twist": 0,
         "type": "pointerDown",
+        "width": 0,
       },
-      Object {
+      {
         "duration": 10,
         "type": "pause",
       },
-      Object {
+      {
+        "altitudeAngle": 0,
+        "azimuthAngle": 0,
+        "button": 0,
         "duration": 10,
-        "origin": Object {
+        "height": 0,
+        "origin": {
           "element-6066-11e4-a52e-4f735466cecf": "some-sub-elem-321",
         },
+        "pressure": 0,
+        "tangentialPressure": 0,
+        "tiltX": 0,
+        "tiltY": 0,
+        "twist": 0,
         "type": "pointerMove",
+        "width": 0,
         "x": 0,
         "y": 0,
       },
-      Object {
+      {
         "button": 0,
         "type": "pointerUp",
       },
     ],
-    "id": "finger1",
-    "parameters": Object {
+    "id": "action1",
+    "parameters": {
       "pointerType": "mouse",
     },
     "type": "pointer",
@@ -86,41 +144,70 @@ Array [
 ]
 `;
 
-exports[`dragAndDrop should do a dragAndDrop with coordinates 1`] = `
-Array [
-  Object {
-    "actions": Array [
-      Object {
+exports[`dragAndDrop > should do a dragAndDrop with coordinates 1`] = `
+[
+  {
+    "actions": [
+      {
+        "altitudeAngle": 0,
+        "azimuthAngle": 0,
+        "button": 0,
         "duration": 0,
-        "origin": Object {
+        "height": 0,
+        "origin": {
           "element-6066-11e4-a52e-4f735466cecf": "some-elem-123",
         },
+        "pressure": 0,
+        "tangentialPressure": 0,
+        "tiltX": 0,
+        "tiltY": 0,
+        "twist": 0,
         "type": "pointerMove",
+        "width": 0,
         "x": 0,
         "y": 0,
       },
-      Object {
+      {
+        "altitudeAngle": 0,
+        "azimuthAngle": 0,
         "button": 0,
+        "height": 0,
+        "pressure": 0,
+        "tangentialPressure": 0,
+        "tiltX": 0,
+        "tiltY": 0,
+        "twist": 0,
         "type": "pointerDown",
+        "width": 0,
       },
-      Object {
+      {
         "duration": 10,
         "type": "pause",
       },
-      Object {
+      {
+        "altitudeAngle": 0,
+        "azimuthAngle": 0,
+        "button": 0,
         "duration": 10,
+        "height": 0,
         "origin": "pointer",
+        "pressure": 0,
+        "tangentialPressure": 0,
+        "tiltX": 0,
+        "tiltY": 0,
+        "twist": 0,
         "type": "pointerMove",
+        "width": 0,
         "x": 123,
         "y": 321,
       },
-      Object {
+      {
         "button": 0,
         "type": "pointerUp",
       },
     ],
-    "id": "finger1",
-    "parameters": Object {
+    "id": "action2",
+    "parameters": {
       "pointerType": "mouse",
     },
     "type": "pointer",

@@ -28,43 +28,16 @@ Visual Studio Code usually has type support automatically integrated and there i
 
 ![Autocompletion](/img/autocompletion/14.png)
 
-If you use vanilla JavaScript and want to have proper type support for synchronous commands you have to create a `jsconfig.json` in your project root and refer to used wdio packages, e.g.:
-
-<Tabs
-  defaultValue="async"
-  values={[
-    {label: 'Synchronous Mode w/ Mocha Example', value: 'sync'},
-    {label: 'Asynchronous Mode w/ Cucumber Example', value: 'async'}
-  ]
-}>
-<TabItem value="sync">
+If you use vanilla JavaScript and want to have proper type support you have to create a `jsconfig.json` in your project root and refer to used wdio packages, e.g.:
 
 ```json title="jsconfig.json"
 {
     "compilerOptions": {
         "types": [
             "node",
-            "webdriverio/sync",
+            "@wdio/globals/types",
             "@wdio/mocha-framework"
         ]
     }
 }
 ```
-
-</TabItem>
-<TabItem value="async">
-
-```json title="jsconfig.json"
-{
-    "compilerOptions": {
-        "types": [
-            "node",
-            "webdriverio/async",
-            "@wdio/cucumber-framework"
-        ]
-    }
-}
-```
-
-</TabItem>
-</Tabs>

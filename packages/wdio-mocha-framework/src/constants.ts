@@ -1,7 +1,13 @@
 export const INTERFACES = {
-    bdd: ['it', 'before', 'beforeEach', 'after', 'afterEach'],
+    bdd: ['it', 'specify', 'before', 'beforeEach', 'after', 'afterEach'],
     tdd: ['test', 'suiteSetup', 'setup', 'suiteTeardown', 'teardown'],
     qunit: ['test', 'before', 'beforeEach', 'after', 'afterEach']
+} as const
+
+export const TEST_INTERFACES = {
+    bdd: ['it', 'specify'],
+    tdd: ['test'],
+    qunit: ['test']
 } as const
 
 /**
@@ -22,7 +28,3 @@ export const EVENTS = {
 
 export const NOOP = /* istanbul ignore next */ function () { }
 export const MOCHA_TIMEOUT_MESSAGE = 'For async tests and hooks, ensure "done()" is called; if returning a Promise, ensure it resolves.'
-export const MOCHA_TIMEOUT_MESSAGE_REPLACEMENT = [
-    'The execution in the test "%s %s" took too long. Try to reduce the run time or',
-    'increase your timeout for test specs (https://webdriver.io/docs/timeouts).'
-].join(' ')

@@ -1,13 +1,13 @@
 /**
  * used to wrap mocha, jasmine test frameworks functions (`it`, `beforeEach` and other)
  * with WebdriverIO before/after Test/Hook hooks.
- * Entrypoint is `runTestInFiberContext`, other functions are exported for testing purposes.
+ * Entrypoint is `wrapGlobalTestMethod`, other functions are exported for testing purposes.
  *
  * NOTE: not used by cucumber test framework. `testFnWrapper` is called directly there
  */
 
-import { filterSpecArgs } from '../utils'
-import { testFnWrapper } from './testFnWrapper'
+import { filterSpecArgs } from '../utils.js'
+import { testFnWrapper } from './testFnWrapper.js'
 
 import type {
     HookFnArgs,
@@ -15,13 +15,12 @@ import type {
     BeforeHookParam,
     AfterHookParam,
     SpecArguments
-} from './types'
+} from './types.js'
 
 const MOCHA_COMMANDS: ['skip', 'only'] = ['skip', 'only']
 
 /**
- * runs a hook within fibers context (if function name is not async)
- * it also executes before/after hook
+ * runs a hook and execute before/after hook
  *
  * @param  {Function} hookFn        function that was passed to the framework hook
  * @param  {Function} origFn        original framework hook function
@@ -78,7 +77,7 @@ export const runHook = function (
 }
 
 /**
- * runs a spec function (test function) within the fibers context
+ * runs a spec function (test function)
  *
  * @param  {string}   specTitle     test description
  * @param  {Function} specFn        test function that got passed in from the user
@@ -173,8 +172,10 @@ export const wrapTestFunction = function (
          * Jasmine uses a timeout value as last parameter, in this case the arguments
          * should be [title, fn, timeout, retryCnt]
          */
-        let timeout = global.jasmine?.DEFAULT_TIMEOUT_INTERVAL
-        if (global.jasmine) {
+        // @ts-expect-error
+        let timeout = globalThis.jasmine?.DEFAULT_TIMEOUT_INTERVAL
+        // @ts-expect-error
+        if (globalThis.jasmine) {
             // if we have [title, fn, timeout, retryCnt]
             if (typeof specArguments[specArguments.length - 1] === 'number') {
                 timeout = specArguments.pop() as number
@@ -226,7 +227,7 @@ export const wrapTestFunction = function (
 }
 
 /**
- * Wraps global test function like `it` so that commands can run synchronouse
+ * Wraps global test function like `it`.
  *
  * The scope parameter is used in the qunit framework since all functions are bound to global.QUnit instead of global
  *
@@ -239,7 +240,7 @@ export const wrapTestFunction = function (
  * @param  {String}   cid           cid
  * @param  {Object}   scope         the scope to run command from, defaults to global
  */
-export const runTestInFiberContext = function (
+export const wrapGlobalTestMethod = function (
     this: unknown,
     isSpec: boolean,
     beforeFn: Function | Function[],
@@ -248,7 +249,7 @@ export const runTestInFiberContext = function (
     afterArgsFn: HookFnArgs<unknown>,
     fnName: string,
     cid: string,
-    scope = global
+    scope = globalThis
 ) {
     const origFn = (scope as any)[fnName];
     (scope as any)[fnName] = wrapTestFunction(

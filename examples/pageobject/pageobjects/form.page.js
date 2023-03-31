@@ -1,4 +1,4 @@
-import Page from './page'
+import Page from './page/index.js'
 
 class FormPage extends Page {
     /**
@@ -13,11 +13,11 @@ class FormPage extends Page {
      * define or overwrite page methods
      */
     open () {
-        super.open('login')
+        return super.open('login')
     }
 
     submit () {
-        this.submitButton.click()
+        return this.submitButton.click()
     }
 }
 

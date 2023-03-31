@@ -2,14 +2,44 @@
   {
     "packageName": "wdio-chromedriver-service",
     "title": "ChromeDriver",
-    "githubUrl": "https://github.com/atti187/wdio-chromedriver-service",
+    "githubUrl": "https://github.com/webdriverio-community/wdio-chromedriver-service",
     "npmUrl": "https://www.npmjs.com/package/wdio-chromedriver-service"
+  },
+  {
+    "packageName": "wdio-vscode-service",
+    "title": "VSCode Extension Testing",
+    "githubUrl": "https://github.com/webdriverio-community/wdio-vscode-service",
+    "npmUrl": "https://www.npmjs.com/package/wdio-vscode-service"
   },
   {
     "packageName": "wdio-intercept-service",
     "title": "Intercept",
-    "githubUrl": "https://github.com/chmanie/wdio-intercept-service",
+    "githubUrl": "https://github.com/webdriverio-community/wdio-intercept-service",
     "npmUrl": "https://www.npmjs.com/package/wdio-intercept-service"
+  },
+  {
+    "packageName": "wdio-electron-service",
+    "title": "Electron",
+    "githubUrl": "https://github.com/webdriverio-community/wdio-electron-service",
+    "npmUrl": "https://www.npmjs.com/package/wdio-electron-service"
+  },
+  {
+    "packageName": "wdio-geckodriver-service",
+    "title": "Geckodriver",
+    "githubUrl": "https://github.com/webdriverio-community/wdio-geckodriver-service",
+    "npmUrl": "https://www.npmjs.com/package/wdio-geckodriver-service"
+  },
+  {
+    "packageName": "wdio-edgedriver-service",
+    "title": "EdgeDriver",
+    "githubUrl": "https://github.com/webdriverio-community/wdio-edgedriver-service",
+    "npmUrl": "https://www.npmjs.com/package/wdio-edgedriver-service"
+  },
+  {
+    "packageName": "wdio-gmail-service",
+    "title": "Gmail",
+    "githubUrl": "https://github.com/webdriverio-community/wdio-gmail-service",
+    "npmUrl": "https://www.npmjs.com/package/wdio-gmail-service"
   },
   {
     "packageName": "wdio-zafira-listener-service",
@@ -33,9 +63,7 @@
     "packageName": "wdio-ui5-service",
     "title": "UI5",
     "githubUrl": "https://github.com/js-soft/wdi5",
-    "branch": "develop",
-    "npmUrl": "https://www.npmjs.com/package/wdio-ui5-service",
-    "location": "/wdio-ui5-service/README.md"
+    "npmUrl": "https://www.npmjs.com/package/wdio-ui5-service"
   },
   {
     "packageName": "wdio-wiremock-service",
@@ -141,5 +169,40 @@
     "title": "Microsoft Teams",
     "githubUrl": "https://github.com/marcelblijleven/wdio-ms-teams-service",
     "npmUrl": "https://www.npmjs.com/package/wdio-ms-teams-service"
+  },
+  {
+    "packageName": "wdio-cucumber-viewport-logger-service",
+    "title": "Cucumber Viewport Logger",
+    "githubUrl": "https://github.com/viktor-silakov/wdio-cucumber-viewport-logger-service",
+    "npmUrl": "https://www.npmjs.com/package/wdio-cucumber-viewport-logger-service"
+  },
+  {
+    "packageName": "wdio-tesults-service",
+    "title": "Tesults",
+    "githubUrl": "https://github.com/tesults/wdio-tesults-service",
+    "npmUrl": "https://www.npmjs.com/package/wdio-tesults-service"
+  },
+  {
+    "packageName": "@gmangiapelo/wdio-azure-devops-service",
+    "title": "Azure DevOps Test Plans",
+    "githubUrl": "https://github.com/gianlucamangiapelo/wdio-azure-devops-service",
+    "npmUrl": "https://www.npmjs.com/package/@gmangiapelo/wdio-azure-devops-service"
+  },  {
+    "packageName": "@qajonatasmartins/wdio-google-chat-service",
+    "title": "Google Chat",
+    "githubUrl": "https://github.com/qajonatasmartins/wdio-google-chat-service",
+    "npmUrl": "https://www.npmjs.com/package/wdio-google-chat-service"
+  },
+  {
+    "packageName": "@sap_oss/wdio-qmate-service",
+    "title": "Qmate",
+    "githubUrl": "https://github.com/SAP/wdio-qmate-service",
+    "npmUrl": "https://www.npmjs.com/package/@sap_oss/wdio-qmate-service"
+  },
+  {
+    "packageName": "wdio-vitaqai-service",
+    "title": "Vitaq AI",
+    "githubUrl": "https://github.com/RossVertizan/wdio-vitaqai-service",
+    "npmUrl": "https://www.npmjs.com/package/wdio-vitaqai-service"
   }
 ]

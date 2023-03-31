@@ -1,33 +1,27 @@
-import path from 'path'
-import Mocha, { Runner } from 'mocha'
-import { format } from 'util'
+import url from 'node:url'
+import path from 'node:path'
+import type { Runner } from 'mocha'
+import Mocha from 'mocha'
+// @ts-expect-error not exposed from package yet, see https://github.com/mochajs/mocha/issues/4961
+import { handleRequires } from 'mocha/lib/cli/run-helpers.js'
 
 import logger from '@wdio/logger'
-import { runTestInFiberContext, executeHooksWithArgs } from '@wdio/utils'
-import type { Capabilities, Services } from '@wdio/types'
+import { executeHooksWithArgs } from '@wdio/utils'
+import type { Capabilities, Services, Options } from '@wdio/types'
 
-import { loadModule } from './utils'
-import { INTERFACES, EVENTS, NOOP, MOCHA_TIMEOUT_MESSAGE, MOCHA_TIMEOUT_MESSAGE_REPLACEMENT } from './constants'
-import type { MochaConfig, MochaOpts as MochaOptsImport, FrameworkMessage, FormattedMessage, MochaContext, MochaError } from './types'
-import type { EventEmitter } from 'events'
-import type ExpectWebdriverIO from 'expect-webdriverio'
+import { formatMessage, setupEnv } from './common.js'
+import { EVENTS, NOOP } from './constants.js'
+import type { MochaOpts as MochaOptsImport, FrameworkMessage, MochaError } from './types.js'
+import type { EventEmitter } from 'node:events'
 
 const log = logger('@wdio/mocha-framework')
-
-/**
-* Extracts the mocha UI type following this convention:
-*  - If the mochaOpts.ui provided doesn't contain a '-' then the full name
-*      is taken as ui type (i.e. 'bdd','tdd','qunit')
-*  - If it contains a '-' then it asumes we are providing a custom ui for
-*      mocha. Then it extracts the text after the last '-' (ignoring .js if
-*      provided) as the interface type. (i.e. strong-bdd in
-*      https://github.com/strongloop/strong-mocha-interfaces)
-*/
-const MOCHA_UI_TYPE_EXTRACTOR = /^(?:.*-)?([^-.]+)(?:.js)?$/
-const DEFAULT_INTERFACE_TYPE = 'bdd'
+const FILE_PROTOCOL = 'file://'
 
 type EventTypes = 'hook' | 'test' | 'suite'
 type EventTypeProps = '_hookCnt' | '_testCnt' | '_suiteCnt'
+interface ParsedConfiguration extends Required<Options.Testrunner> {
+    rootDir: string
+}
 
 /**
  * Mocha runner
@@ -47,7 +41,7 @@ class MochaAdapter {
 
     constructor(
         private _cid: string,
-        private _config: MochaConfig,
+        private _config: ParsedConfiguration,
         private _specs: string[],
         private _capabilities: Capabilities.RemoteCapability,
         private _reporter: EventEmitter
@@ -59,25 +53,34 @@ class MochaAdapter {
 
     async init() {
         const { mochaOpts } = this._config
+        if (Array.isArray(mochaOpts.require)) {
+            const plugins = await handleRequires(
+                mochaOpts.require
+                    .filter((p) => typeof p === 'string')
+                    .map((p) => path.resolve(this._config.rootDir, p))
+            )
+            Object.assign(mochaOpts, plugins)
+        }
+
         const mocha = this._mocha = new Mocha(mochaOpts)
         await mocha.loadFilesAsync()
         mocha.reporter(NOOP as any)
         mocha.fullTrace()
 
-        this._specs.forEach((spec) => mocha.addFile(spec))
-        mocha.suite.on('pre-require', this.preRequire.bind(this))
-        await this._loadFiles(mochaOpts)
-
         /**
-         * import and set options for `expect-webdriverio` assertion lib once
-         * the framework was initiated so that it can detect the environment
+         * as Mocha doesn't support file:// formats yet we have to
+         * remove it before adding it to Mocha
          */
-        const { setOptions } = require('expect-webdriverio')
-        setOptions({
-            wait: this._config.waitforTimeout, // ms to wait for expectation to succeed
-            interval: this._config.waitforInterval, // interval between attempts
-        })
+        this._specs.forEach((spec) => mocha.addFile(
+            spec.startsWith(FILE_PROTOCOL)
+                ? url.fileURLToPath(spec)
+                : spec
+        ))
 
+        const { beforeTest, beforeHook, afterTest, afterHook } = this._config
+        mocha.suite.on('pre-require', () =>
+            setupEnv(this._cid, this._config.mochaOpts, beforeTest, beforeHook, afterTest, afterHook))
+        await this._loadFiles(mochaOpts)
         return this
     }
 
@@ -140,51 +143,6 @@ class MochaAdapter {
         return result
     }
 
-    options (
-        options: MochaOptsImport,
-        context: MochaContext
-    ) {
-        let { require = [], compilers = [] } = options
-
-        if (typeof require === 'string') {
-            require = [require]
-        }
-
-        this.requireExternalModules([...compilers, ...require], context)
-    }
-
-    preRequire (
-        context: Mocha.MochaGlobals,
-        file: string,
-        mocha: Mocha
-    ) {
-        const options = this._config.mochaOpts
-
-        const match = MOCHA_UI_TYPE_EXTRACTOR.exec(options.ui!) as any as [string, keyof typeof INTERFACES]
-        const type: keyof typeof INTERFACES = (match && INTERFACES[match[1]] && match[1]) || DEFAULT_INTERFACE_TYPE
-
-        const hookArgsFn = (context: Mocha.Context) => {
-            return [{ ...context.test, parent: context.test?.parent?.title }, context]
-        }
-
-        INTERFACES[type].forEach((fnName: string) => {
-            let testCommand = INTERFACES[type][0]
-            const isTest = [testCommand, testCommand + '.only'].includes(fnName)
-
-            runTestInFiberContext(
-                isTest,
-                isTest ? this._config.beforeTest! : this._config.beforeHook!,
-                // @ts-ignore
-                hookArgsFn,
-                isTest ? this._config.afterTest : this._config.afterHook,
-                hookArgsFn,
-                fnName,
-                this._cid
-            )
-        })
-        this.options(options, { context, file, mocha, options })
-    }
-
     /**
      * Hooks which are added as true Mocha hooks need to call done() to notify async
      */
@@ -208,7 +166,9 @@ class MochaAdapter {
             break
         case 'afterSuite':
             params.payload = this._runner?.suite.suites[0]
-            params.payload.duration = params.payload.duration || (Date.now() - this._suiteStartDate)
+            if (params.payload) {
+                params.payload.duration = params.payload.duration || (Date.now() - this._suiteStartDate)
+            }
             break
         case 'beforeTest':
         case 'afterTest':
@@ -216,98 +176,7 @@ class MochaAdapter {
             break
         }
 
-        return this.formatMessage(params)
-    }
-
-    formatMessage (params: FrameworkMessage) {
-        let message: FormattedMessage = {
-            type: params.type
-        }
-
-        const mochaAllHooksIfPresent = params.payload?.title?.match(/^"(before|after)( all| each)?" hook/)
-
-        if (params.err) {
-            /**
-             * replace "Ensure the done() callback is being called in this test." with a more meaningful message
-             */
-            if (params.err && params.err.message && params.err.message.includes(MOCHA_TIMEOUT_MESSAGE)) {
-                const replacement = format(MOCHA_TIMEOUT_MESSAGE_REPLACEMENT, params.payload.parent.title, params.payload.title)
-                params.err.message = params.err.message.replace(MOCHA_TIMEOUT_MESSAGE, replacement)
-                params.err.stack = params.err.stack.replace(MOCHA_TIMEOUT_MESSAGE, replacement)
-            }
-
-            message.error = {
-                name: params.err.name,
-                message: params.err.message,
-                stack: params.err.stack,
-                type: params.err.type || params.err.name,
-                expected: params.err.expected,
-                actual: params.err.actual
-            }
-
-            /**
-             * hook failures are emitted as "test:fail"
-             */
-            if (mochaAllHooksIfPresent) {
-                message.type = 'hook:end'
-            }
-        }
-
-        if (params.payload) {
-            message.title = params.payload.title
-            message.parent = params.payload.parent ? params.payload.parent.title : null
-
-            let fullTitle = message.title
-            if (params.payload.parent) {
-                let parent = params.payload.parent
-                while (parent && parent.title) {
-                    fullTitle = parent.title + '.' + fullTitle
-                    parent = parent.parent
-                }
-            }
-
-            message.fullTitle = fullTitle
-            message.pending = params.payload.pending || false
-            message.file = params.payload.file
-            message.duration = params.payload.duration
-
-            /**
-             * Add the current test title to the payload for cases where it helps to
-             * identify the test, e.g. when running inside a beforeEach hook
-             */
-            if (params.payload.ctx && params.payload.ctx.currentTest) {
-                message.currentTest = params.payload.ctx.currentTest.title
-            }
-
-            if (params.type.match(/Test/)) {
-                message.passed = (params.payload.state === 'passed')
-            }
-
-            if (params.payload.parent?.title && mochaAllHooksIfPresent) {
-                const hookName = mochaAllHooksIfPresent[0]
-                message.title = `${hookName} for ${params.payload.parent.title}`
-            }
-
-            if (params.payload.context) { message.context = params.payload.context }
-        }
-
-        return message
-    }
-
-    requireExternalModules (modules: string[], context: MochaContext) {
-        modules.forEach(module => {
-            if (!module) {
-                return
-            }
-
-            module = module.replace(/.*:/, '')
-
-            if (module.substr(0, 1) === '.') {
-                module = path.join(process.cwd(), module)
-            }
-
-            loadModule(module, context)
-        })
+        return formatMessage(params)
     }
 
     emit (event: string, payload: any, err?: MochaError) {
@@ -315,9 +184,11 @@ class MochaAdapter {
          * For some reason, Mocha fires a second 'suite:end' event for the root suite,
          * with no matching 'suite:start', so this can be ignored.
          */
-        if (payload.root) return
+        if (payload.root) {
+            return
+        }
 
-        let message = this.formatMessage({ type: event, payload, err })
+        const message = formatMessage({ type: event, payload, err })
 
         message.cid = this._cid
         message.specs = this._specs
@@ -396,14 +267,10 @@ adapterFactory.init = async function (...args: any[]) {
 
 export default adapterFactory
 export { MochaAdapter, adapterFactory }
+export * from './types.js'
 
 declare global {
     namespace WebdriverIO {
         interface MochaOpts extends MochaOptsImport {}
-    }
-    namespace NodeJS {
-        interface Global {
-            expect: ExpectWebdriverIO.Expect
-        }
     }
 }

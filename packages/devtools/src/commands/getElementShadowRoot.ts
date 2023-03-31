@@ -1,6 +1,6 @@
-import { getStaleElementError } from '../utils'
-import { SHADOW_ELEMENT_KEY } from '../constants'
-import type DevToolsDriver from '../devtoolsdriver'
+import { getStaleElementError } from '../utils.js'
+import { SHADOW_ELEMENT_KEY } from '../constants.js'
+import type DevToolsDriver from '../devtoolsdriver.js'
 
 /**
  * Get the shadow root object of an element. The result object can be used to fetch

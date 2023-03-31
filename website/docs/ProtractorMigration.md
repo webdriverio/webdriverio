@@ -9,7 +9,7 @@ While we would love to have a fully automated process for this the reality looks
 
 ## Setup
 
-The Protractor and WebdriverIO API is actually very similar, to a point where the majority of commands can be rewritten in an automted way through a [codemod](https://github.com/webdriverio/codemod). For this tutorial we use a Protractor [boilerplate project](https://github.com/webdriverio/protractor-jasmine-typescript) and fully migrate it to WebdriverIO.
+The Protractor and WebdriverIO API is actually very similar, to a point where the majority of commands can be rewritten in an automted way through a [codemod](https://github.com/webdriverio/codemod).
 
 To install the codemod, run:
 
@@ -17,17 +17,13 @@ To install the codemod, run:
 npm install jscodeshift @wdio/codemod
 ```
 
-#### Commits:
-
-- _install codemod_ [[0fdc214]](https://github.com/webdriverio/protractor-jasmine-typescript/commit/0fdc2146bd74e5ff9e8478c2836ae9454b0e2fb1)
-
 ## Strategy
 
 There are many migration strategies. Depending on the size of your team, amount of test files and the urgency to migrate you can try to transform all tests at once or file by file. Given that Protractor will continued to be maintained until Angular version 15 (end of 2022) you still have enough time. You can have Protractor and WebdriverIO tests running at the same time and start writing new tests in WebdriverIO. Given your time budget you can then start migrating the important test cases first and work your way down to tests you might even can delete.
 
 ## First the Config File
 
-After we have installed the codemod we can start transforming the first file. Have a look first into [WebdriverIOs configuration options](./Options.md). Config files can become very complex and it might make sense to only port the essential parts and see how the rest can be added once the corresponding tests that need certain options are being migrated.
+After we have installed the codemod we can start transforming the first file. Have a look first into [WebdriverIOs configuration options](Configuration.md). Config files can become very complex and it might make sense to only port the essential parts and see how the rest can be added once the corresponding tests that need certain options are being migrated.
 
 For the first migration we only transform the config file and run:
 
@@ -37,13 +33,9 @@ npx jscodeshift -t ./node_modules/@wdio/codemod/protractor ./conf.ts
 
 :::info
 
-This migration tutorial uses an example Protractor [boilerplate project](https://github.com/webdriverio/protractor-jasmine-typescript). Your config can be named differently, however the principle should be the same: start migration the config first.
+ Your config can be named differently, however the principle should be the same: start migration the config first.
 
 :::
-
-#### Commits:
-
-- _transform config_ [[1107f9d]](https://github.com/webdriverio/protractor-jasmine-typescript/commit/1107f9d1e0a94c3de4c78e7fa1c43e5129500b52)
 
 ## Install WebdriverIO Dependencies
 
@@ -71,21 +63,11 @@ Even though you might have been using Protractor with Jasmine before, Mocha howe
 
 After the little questionaire the wizard will install all necessary packages and stores them in your `package.json`.
 
-#### Commits:
-
-- _install @wdio/cli_ [[d02c69a]](https://github.com/webdriverio/protractor-jasmine-typescript/commit/d02c69a7122417e99ae05b9863f4ff714acf2ae7)
-- _setup wdio framework_ [[a8e1d36]](https://github.com/webdriverio/protractor-jasmine-typescript/commit/a8e1d36f4c74409bfa8b572b784c9e6765e1d346)
-
 ## Migrate Configuration File
 
 After we have a transformed `conf.ts` and a new `wdio.conf.ts`, it is now time to migrate the configuration from one config to another. Make sure to only port code that is essential for all tests to be able to run. In ours we port the hook function and framework timeout.
 
 We will now continue with our `wdio.conf.ts` file only and therefore won't need any changes to the original Protractor config anymore. We can revert those so that both frameworks can run next to each other and we can port on file at the time.
-
-#### Commits:
-
-- _migrate config properties_ [[44f44fa]](https://github.com/webdriverio/protractor-jasmine-typescript/commit/44f44fa0e09adba5e54d3b0e8baf04dc832ac741)
-- _Revert "transform config"_ [[5af0269]](https://github.com/webdriverio/protractor-jasmine-typescript/commit/5af02696b371423ed931e82cad5da9c484e84638)
 
 ## Migrate Test File
 
@@ -109,11 +91,6 @@ npx wdio run wdio.conf.ts
 ```
 
 Congratulations 🥳 you just migrated the first file!
-
-#### Commits:
-
-- _move 1st Protractor test file into wdio directory_ [[29c4d49]](https://github.com/webdriverio/protractor-jasmine-typescript/commit/29c4d49c3e64a455c412ab7ce2c49e3c0fb59faf)
-- _transform first test file_ [[1af0478]](https://github.com/webdriverio/protractor-jasmine-typescript/commit/1af04786348a7549a29a4448cfc8474669e40b30)
 
 ## Next Steps
 

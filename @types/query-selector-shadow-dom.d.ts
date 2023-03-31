@@ -1,4 +1,4 @@
-const ExecuteMethod = (element: Element | Document, selector: string) => Element | null;
+declare function ExecuteMethod(element: Element | Document, selector: string): Element | null;
 
 /**
  * Contains two functions `queryOne` and `queryAll` that can
@@ -12,19 +12,15 @@ const ExecuteMethod = (element: Element | Document, selector: string) => Element
  * @public
  */
 interface CustomQueryHandler {
-    queryOne?: ExecuteMethod
+    queryOne?: typeof ExecuteMethod
     queryAll?: (element: Element | Document, selector: string) => Element[] | NodeListOf<Element>;
 }
 
 declare const querySelectorShadowDom: {
     QueryHandler: CustomQueryHandler
-    locatorStrategy: ExecuteMethod
+    locatorStrategy: typeof ExecuteMethod
 }
 
-declare module "query-selector-shadow-dom/plugins/puppeteer" {
-    export = querySelectorShadowDom
-}
-
-declare module "query-selector-shadow-dom/plugins/webdriverio" {
+declare module "query-selector-shadow-dom/plugins/puppeteer/index.js" {
     export = querySelectorShadowDom
 }

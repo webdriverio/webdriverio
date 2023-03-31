@@ -1,19 +1,27 @@
-import path from 'path'
-import fs from 'fs-extra'
-import Selenium from 'selenium-standalone'
-import SeleniumStandaloneLauncher from '../src/launcher'
+import path from 'node:path'
+import fs from 'node:fs'
+import SeleniumStandalone from 'selenium-standalone'
+import { describe, expect, test, vi, beforeEach } from 'vitest'
 
-const expect = global.expect as any as jest.Expect
+import SeleniumStandaloneLauncher from '../src/launcher.js'
 
-jest.mock('fs-extra', () => ({
-    createWriteStream: jest.fn(),
-    ensureFileSync: jest.fn(),
+vi.mock('node:fs', () => ({
+    default: {
+        createWriteStream: vi.fn(),
+    }
 }))
+vi.mock('node:fs/promises', () => ({
+    default: {
+        mkdir: vi.fn(),
+    }
+}))
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock('selenium-standalone')
 
 describe('Selenium standalone launcher', () => {
     beforeEach(() => {
-        (Selenium.install as jest.Mock).mockClear();
-        (Selenium.start as jest.Mock).mockClear()
+        vi.mocked(SeleniumStandalone.install).mockClear()
+        vi.mocked(SeleniumStandalone.start).mockClear()
     })
 
     describe('onPrepare', () => {
@@ -25,7 +33,7 @@ describe('Selenium standalone launcher', () => {
             }
             const capabilities: any = [{ port: 1234, browserName: 'firefox' }]
             const launcher = new SeleniumStandaloneLauncher(options, capabilities, {} as any)
-            launcher._redirectLogStream = jest.fn()
+            launcher._redirectLogStream = vi.fn()
             await launcher.onPrepare({ watch: true } as never)
 
             expect(launcher.installArgs).toBe(options.installArgs)
@@ -49,7 +57,7 @@ describe('Selenium standalone launcher', () => {
                 browserB: { port: 4321, browserName: 'edge' }
             }
             const launcher = new SeleniumStandaloneLauncher(options, capabilities, {} as any)
-            launcher._redirectLogStream = jest.fn()
+            launcher._redirectLogStream = vi.fn()
             await launcher.onPrepare({ watch: true } as never)
             expect(capabilities.browserA.protocol).toBe('http')
             expect(capabilities.browserA.hostname).toBe('localhost')
@@ -78,7 +86,7 @@ describe('Selenium standalone launcher', () => {
                 browserB: { port: 4321, capabilities: { 'bstack:options': {} } }
             }
             const launcher = new SeleniumStandaloneLauncher(options, capabilities, {} as any)
-            launcher._redirectLogStream = jest.fn()
+            launcher._redirectLogStream = vi.fn()
             await launcher.onPrepare({ watch: true } as never)
             expect(capabilities.browserA.protocol).toBe('http')
             expect(capabilities.browserA.hostname).toBe('localhost')
@@ -112,7 +120,7 @@ describe('Selenium standalone launcher', () => {
                 }
             }
             const launcher = new SeleniumStandaloneLauncher(options, capabilities, {} as any)
-            launcher._redirectLogStream = jest.fn()
+            launcher._redirectLogStream = vi.fn()
             await launcher.onPrepare({ watch: true } as never)
             expect(capabilities.browserB.protocol).toBeUndefined()
             expect(capabilities.browserB.hostname).toBeUndefined()
@@ -144,11 +152,11 @@ describe('Selenium standalone launcher', () => {
                 }
             }
             const launcher = new SeleniumStandaloneLauncher(options, [], { outputDir: '/foo/bar' })
-            launcher._redirectLogStream = jest.fn()
+            launcher._redirectLogStream = vi.fn()
             await launcher.onPrepare({} as any)
 
-            expect((Selenium.install as jest.Mock).mock.calls[0][0]).toBe(options.installArgs)
-            expect((Selenium.start as jest.Mock).mock.calls[0][0]).toBe(options.args)
+            expect(vi.mocked(SeleniumStandalone.install).mock.calls[0][0]).toBe(options.installArgs)
+            expect(vi.mocked(SeleniumStandalone.start).mock.calls[0][0]).toBe(options.args)
             expect(launcher._redirectLogStream).toBeCalled()
         })
 
@@ -166,11 +174,11 @@ describe('Selenium standalone launcher', () => {
                 skipSeleniumInstall: true
             }
             const launcher = new SeleniumStandaloneLauncher(options, [], { outputDir: '/foo/bar' })
-            launcher._redirectLogStream = jest.fn()
+            launcher._redirectLogStream = vi.fn()
             await launcher.onPrepare({} as any)
 
-            expect(Selenium.install).not.toBeCalled()
-            expect((Selenium.start as jest.Mock).mock.calls[0][0]).toBe(options.args)
+            expect(SeleniumStandalone.install).not.toBeCalled()
+            expect(vi.mocked(SeleniumStandalone.start).mock.calls[0][0]).toBe(options.args)
             expect(launcher._redirectLogStream).toBeCalled()
         })
 
@@ -179,20 +187,20 @@ describe('Selenium standalone launcher', () => {
                 installArgs: {},
                 args: {},
             }, [], {} as any)
-            launcher._redirectLogStream = jest.fn()
+            launcher._redirectLogStream = vi.fn()
             await launcher.onPrepare({} as any)
 
             expect(launcher._redirectLogStream).not.toBeCalled()
         })
 
         test('should add exit listeners to kill process in watch mode', async () => {
-            const processOnSpy = jest.spyOn(process, 'on')
+            const processOnSpy = vi.spyOn(process, 'on')
 
             const launcher = new SeleniumStandaloneLauncher({
                 installArgs: {},
                 args: {}
             }, [], {} as any)
-            launcher._redirectLogStream = jest.fn()
+            launcher._redirectLogStream = vi.fn()
             await launcher.onPrepare({ watch: true } as never)
 
             expect(processOnSpy).toHaveBeenCalledWith('SIGINT', launcher._stopProcess)
@@ -246,7 +254,7 @@ describe('Selenium standalone launcher', () => {
                 installArgs: {},
                 args: {},
             }, [], {} as any)
-            launcher._redirectLogStream = jest.fn()
+            launcher._redirectLogStream = vi.fn()
             await launcher.onPrepare({} as any)
             launcher.onComplete()
 
@@ -265,7 +273,7 @@ describe('Selenium standalone launcher', () => {
                 installArgs: {},
                 args: {}
             }, [], {} as any)
-            launcher._redirectLogStream = jest.fn()
+            launcher._redirectLogStream = vi.fn()
             await launcher.onPrepare({ watch: true } as never)
             launcher.onComplete()
 
@@ -281,7 +289,7 @@ describe('Selenium standalone launcher', () => {
             }, [], { outputDir: './' } as any)
             await launcher.onPrepare({} as any)
 
-            expect((fs.createWriteStream as jest.Mock).mock.calls[0][0])
+            expect(vi.mocked(fs.createWriteStream).mock.calls[0][0])
                 .toBe(path.join(process.cwd(), 'wdio-selenium-standalone.log'))
             expect(launcher.process.stdout?.pipe).toBeCalled()
             expect(launcher.process.stderr?.pipe).toBeCalled()

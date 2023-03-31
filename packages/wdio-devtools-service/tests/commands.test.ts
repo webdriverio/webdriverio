@@ -1,28 +1,32 @@
-import type { CDPSession } from 'puppeteer-core/lib/cjs/puppeteer/common/Connection'
-import type { Page } from 'puppeteer-core/lib/cjs/puppeteer/common/Page'
+import path from 'node:path'
+import { expect, test, vi, beforeEach } from 'vitest'
+import type { CDPSession } from 'puppeteer-core/lib/esm/puppeteer/common/Connection.js'
+import type { Page } from 'puppeteer-core/lib/esm/puppeteer/api/Page.js'
 
-import CommandHandler from '../src/commands'
+import CommandHandler from '../src/commands.js'
 
-jest.mock('../src/utils', () => ({
-    readIOStream: jest.fn().mockReturnValue('foobar'),
-    sumByKey: jest.fn().mockReturnValue('foobar')
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+
+vi.mock('../src/utils', () => ({
+    readIOStream: vi.fn().mockReturnValue('foobar'),
+    sumByKey: vi.fn().mockReturnValue('foobar')
 }))
 
 const pageMock = {
     tracing: {
-        start: jest.fn(),
-        stop: jest.fn()
+        start: vi.fn(),
+        stop: vi.fn()
     }
 }
 
 const sessionMock = {
-    on: jest.fn(),
-    emit: jest.fn(),
-    send: jest.fn()
+    on: vi.fn(),
+    emit: vi.fn(),
+    send: vi.fn()
 }
 
-const browser = {
-    addCommand: jest.fn()
+const browser: any = {
+    addCommand: vi.fn()
 }
 
 beforeEach(() => {

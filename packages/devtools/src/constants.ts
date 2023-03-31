@@ -112,22 +112,6 @@ export const ERROR_MESSAGES = {
     }
 }
 
-export const BROWSER_ERROR_MESSAGES = {
-    firefoxNightly: `Only Nightly release channel is supported in Devtools/Puppeteer for Firefox. Refer to the following issue:
-        https://bugzilla.mozilla.org/show_bug.cgi?id=1606604
-
-        You can use the following link to download Firefox Nightly edition:
-        https://www.mozilla.org/en-US/firefox/channel/desktop/
-
-        Adding the following binary capability in Firefox Options is mandatory to run with Nightly edition:
-
-        'moz:firefoxOptions': {
-            binary: '/path/to/firefox'
-        }
-
-        Note: "Nightly" as a term should be present in the "Firefox Application Name" across all OS's in binary path mentioned above for this to work.`
-}
-
 export const VENDOR_PREFIX: {
     chrome: 'goog:chromeOptions',
     'chrome headless': 'goog:chromeOptions',
@@ -140,5 +124,63 @@ export const VENDOR_PREFIX: {
     edge: 'ms:edgeOptions'
 }
 
-export const CHANNEL_FIREFOX_NIGHTLY = 'nightly'
-export const CHANNEL_FIREFOX_TRUNK = 'trunk'
+/**
+ * unicode chars mapped to Puppeteer key map
+ */
+export const UNICODE_CHARACTERS = {
+    'Cancel': '\uE001',
+    'Help': '\uE002',
+    'Backspace': '\uE003',
+    'Tab': '\uE004',
+    'Clear': '\uE005',
+    'Enter': '\uE006',
+    'NumpadEnter': '\uE007',
+    'ShiftLeft': '\uE008',
+    'ControlLeft': '\uE009',
+    'ControlRight': '\uE051',
+    'AltLeft': '\uE00A',
+    'Pause': '\uE00B',
+    'Escape': '\uE00C',
+    'Space': '\uE00D',
+    'PageUp': '\uE00E',
+    'PageDown': '\uE00F',
+    'End': '\uE010',
+    'Home': '\uE011',
+    'ArrowLeft': '\uE012',
+    'ArrowUp': '\uE013',
+    'ArrowRight': '\uE014',
+    'ArrowDown': '\uE015',
+    'Insert': '\uE016',
+    'Delete': '\uE017',
+    'Semicolon': '\uE018',
+    '=': '\uE019',
+    'Numpad0': '\uE01A',
+    'Numpad1': '\uE01B',
+    'Numpad2': '\uE01C',
+    'Numpad3': '\uE01D',
+    'Numpad4': '\uE01E',
+    'Numpad5': '\uE01F',
+    'Numpad6': '\uE020',
+    'Numpad7': '\uE021',
+    'Numpad8': '\uE022',
+    'Numpad9': '\uE023',
+    'NumpadMultiply': '\uE024',
+    'NumpadAdd': '\uE025',
+    'Separator': '\uE026',
+    'NumpadSubtract': '\uE027',
+    'NumpadDecimal': '\uE028',
+    'NumpadDivide': '\uE029',
+    'F1': '\uE031',
+    'F2': '\uE032',
+    'F3': '\uE033',
+    'F4': '\uE034',
+    'F5': '\uE035',
+    'F6': '\uE036',
+    'F7': '\uE037',
+    'F8': '\uE038',
+    'F9': '\uE039',
+    'F10': '\uE03A',
+    'F11': '\uE03B',
+    'F12': '\uE03C',
+    'MetaLeft': '\uE03D'
+}

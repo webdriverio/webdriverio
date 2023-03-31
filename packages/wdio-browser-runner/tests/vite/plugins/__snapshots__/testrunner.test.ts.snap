@@ -1,0 +1,12 @@
+// Vitest Snapshot v1
+
+exports[`transform 1`] = `
+{
+  "code": "
+        var fs = {};
+        var expect_default = require_build11();
+window.expect = expect_default.default;
+        false
+    ",
+}
+`;

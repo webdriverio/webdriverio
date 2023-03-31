@@ -1,0 +1,72 @@
+.docusaurus-theme-github-codeblock {
+    position: relative;
+}
+.docusaurus-theme-github-codeblock .githubLink,
+.docusaurus-theme-github-codeblock .runmeLink {
+    font-family: var(--ifm-font-family-monospace);
+    position: absolute;
+    top: 7px;
+    color: var(--ifm-color-primary);
+    opacity: .5;
+    border: 1px solid rgba(27, 31, 36, 0.15);
+    border-radius: 5px;
+    padding: 5px 10px;
+    right: 0;
+    transition: none;
+    text-decoration: none;
+    box-shadow: 0 1px 0 rgb(27 31 36 / 4%), inset 0 1px 0 rgb(255 255 255 / 25%);
+}
+html[data-theme="dark"] .docusaurus-theme-github-codeblock .githubLink,
+html[data-theme="dark"] .docusaurus-theme-github-codeblock .runmeLink {
+    border: 1px solid var(--ifm-color-emphasis-300);
+    box-shadow: none;
+}
+.docusaurus-theme-github-codeblock .githubLink:hover,
+.docusaurus-theme-github-codeblock .runmeLink:hover {
+    opacity: 1;
+}
+.docusaurus-theme-github-codeblock .runmeLink {
+    right: 150px;
+}
+
+.docusaurus-theme-github-codeblock .runmeLink:before {
+    content: '';
+    background: url(https://runme.dev/img/logo.svg) no-repeat;
+    width: 20px;
+    height: 15px;
+    display: inline-block;
+    background-size: contain;
+    transform: translateY(2px);
+}
+.docusaurus-theme-github-codeblock .runmeLink::after {
+    content: 'This will check out the WebdriverIO example repository and will allow you to run the example locally using the VS Code Runme extension.';
+    position: absolute;
+    width: 240px;
+    color: #ea9d71;
+    text-align: left;
+    font-size: .7em;
+    left: 0;
+    top: 45px;
+    padding-left: 30px;
+    margin-top: 10px;
+    background-color: #F6F8FA;
+    background-image: url('/img/icons/info-icon.svg');
+    background-size: 15px;
+    background-repeat: no-repeat;
+    background-position: 10px 2px;
+    -webkit-font-smoothing: subpixel-antialiased;
+    opacity: 0;
+    transition: opacity 0.2s;
+    z-index: 1;
+}
+html[data-theme="dark"] .docusaurus-theme-github-codeblock .runmeLink::after {
+    background-color: #282A36!important;
+}
+.docusaurus-theme-github-codeblock .runmeLink:hover::after {
+    opacity: 1;
+    z-index: 20;
+}
+
+.docusaurus-theme-github-codeblock .theme-code-block>div:last-child:hover {
+    z-index: 10;
+}

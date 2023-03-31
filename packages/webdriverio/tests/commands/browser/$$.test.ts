@@ -1,7 +1,12 @@
+import path from 'node:path'
 // @ts-ignore mocked (original defined in webdriver package)
 import got from 'got'
-import { remote } from '../../../src'
-import { ELEMENT_KEY } from '../../../src/constants'
+import { describe, it, afterEach, expect, vi } from 'vitest'
+import { remote } from '../../../src/index.js'
+import { ELEMENT_KEY } from '../../../src/constants.js'
+
+vi.mock('got')
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
 
 describe('elements', () => {
     it('should fetch elements', async () => {
@@ -13,10 +18,10 @@ describe('elements', () => {
         })
 
         const elems = await browser.$$('.foo')
-        expect(got.mock.calls[1][1].method).toBe('POST')
-        expect(got.mock.calls[1][0].pathname)
+        expect(vi.mocked(got).mock.calls[1][1]!.method).toBe('POST')
+        expect(vi.mocked(got).mock.calls[1][0]!.pathname)
             .toBe('/session/foobar-123/elements')
-        expect(got.mock.calls[1][1].json)
+        expect(vi.mocked(got).mock.calls[1][1]!.json)
             .toEqual({ using: 'css selector', value: '.foo' })
         expect(elems).toHaveLength(3)
 
@@ -70,7 +75,7 @@ describe('elements', () => {
                 // @ts-ignore mock feature
                 mobileMode: true,
                 'appium-version': '1.9.2'
-            }
+            } as any
         })
 
         const elems = await browser.$$('.foo')
@@ -79,7 +84,20 @@ describe('elements', () => {
         expect(elems[2].isMobile).toBe(true)
     })
 
+    it('it can create an element array based on single elements', async () => {
+        const browser = await remote({
+            baseUrl: 'http://foobar.com',
+            capabilities: {
+                browserName: 'foobar'
+            }
+        })
+        const elemA = await browser.$('#foo')
+        const elemB = { [ELEMENT_KEY]: 'foobar' }
+        const elems = await browser.$$([elemA, elemB])
+        expect(await elems.map((e) => e.elementId)).toEqual(['some-elem-123', 'foobar'])
+    })
+
     afterEach(() => {
-        got.mockClear()
+        vi.mocked(got).mockClear()
     })
 })

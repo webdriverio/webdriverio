@@ -1,21 +1,26 @@
+import { describe, expect, vi, it, afterAll } from 'vitest'
+
 import supportsColor from 'supports-color'
-import { sanitizeString, sanitizeCaps, pad, color, colorLines } from '../src/utils'
+import { sanitizeString, sanitizeCaps, pad, color, colorLines } from '../src/utils.js'
 
-jest.mock('supports-color', () => (
-    new Proxy({
-        stdout: false
-    }, {
-        get: (ctx, prop) => {
-            if (prop === 'stdout') {
-                return ctx.stdout
+vi.mock('supports-color', () => {
+    return {
+        default: new Proxy({
+            stdout: false
+        }, {
+            get: (ctx, prop) => {
+                if (prop === 'stdout') {
+                    return ctx.stdout
+                }
+                if (prop === 'set') {
+                    return (val: boolean) => {
+                        ctx.stdout = val
+                    }
+                }
             }
-
-            return (val: boolean) => {
-                ctx.stdout = val
-            }
-        }
-    })
-))
+        })
+    }
+})
 
 describe('utils', () => {
     it('sanitizeString', () => {
@@ -51,18 +56,18 @@ describe('utils', () => {
     it('color', () => {
         expect(color('fast', 'foobar')).toBe('foobar')
         // @ts-ignore
-        supportsColor(true)
+        supportsColor.set(true)
         expect(color('fast', 'foobar')).toBe('\u001b[90mfoobar\u001b[0m')
     })
 
     it('colorLines', () => {
         // @ts-ignore
-        supportsColor(false)
+        supportsColor.set(false)
         expect(colorLines('fast', 'foo\nbar\nloo')).toBe('foo\nbar\nloo')
     })
 
     afterAll(() => {
         // @ts-ignore
-        supportsColor(true)
+        supportsColor.set(true)
     })
 })

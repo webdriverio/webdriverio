@@ -1,10 +1,10 @@
-import os from 'os'
+import os from 'node:os'
 import { v4 as uuidv4 } from 'uuid'
 
-import launch from '../launcher'
-import { sessionMap } from '../index'
-import type { ExtendedCapabilities } from '../types'
-import type DevToolsDriver from '../devtoolsdriver'
+import launch from '../launcher.js'
+import { sessionMap } from '../index.js'
+import type { ExtendedCapabilities } from '../types.js'
+import type DevToolsDriver from '../devtoolsdriver.js'
 
 /**
  * The New Session command creates a new WebDriver session with the endpoint node.

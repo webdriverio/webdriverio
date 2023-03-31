@@ -1,4 +1,4 @@
-import { verifyArgsAndStripIfElement } from '../../utils'
+import { verifyArgsAndStripIfElement } from '../../utils/index.js'
 
 /**
  *
@@ -26,8 +26,8 @@ import { verifyArgsAndStripIfElement } from '../../utils'
     });
  * </example>
  *
- * @param {String|Function} script                     The script to execute.
- * @param {*=}               arguments  script arguments
+ * @param {String|Function} script     The script to execute.
+ * @param {*=}              arguments  script arguments
  *
  * @return {*}             The script result.
  *
@@ -35,8 +35,8 @@ import { verifyArgsAndStripIfElement } from '../../utils'
  * @type protocol
  *
  */
-export default function execute<ReturnValue, InnerArguments extends any[]> (
-    this: WebdriverIO.Browser | WebdriverIO.Element,
+export function execute<ReturnValue, InnerArguments extends any[]> (
+    this: WebdriverIO.Browser | WebdriverIO.Element | WebdriverIO.MultiRemoteBrowser,
     script: string | ((...innerArgs: InnerArguments) => ReturnValue),
     ...args: InnerArguments
 ): Promise<ReturnValue> {

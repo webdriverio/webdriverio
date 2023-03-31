@@ -1,33 +1,34 @@
-import { getPidPath } from '../src/utils'
-import { getValue, setValue, setPort } from '../src/client'
-import SharedStoreService from '../src/service'
+import { describe, expect, vi, beforeEach, afterEach, it } from 'vitest'
 
-jest.mock('../src/client', () => ({
-    getValue: jest.fn(),
-    setValue: jest.fn(),
-    setPort: jest.fn(),
-}))
-jest.mock('../src/utils', () => ({
-    readFile: () => 44444,
-    getPidPath: jest.fn(),
+import { getValue, setValue, setPort } from '../src/client.js'
+import SharedStoreService from '../src/service.js'
+import type { SharedStoreServiceCapabilities } from '../build/types.js'
+
+vi.mock('../src/client', () => ({
+    getValue: vi.fn(),
+    setValue: vi.fn(),
+    setPort: vi.fn(),
 }))
 
 describe('SharedStoreService', () => {
     let storeService: SharedStoreService
 
     beforeEach(() => {
-        storeService = new SharedStoreService()
+        const capabilities = {
+            browserName: 'chrome',
+            acceptInsecureCerts: true,
+            'wdio:sharedStoreServicePort': 65209
+        } as SharedStoreServiceCapabilities
+        storeService = new SharedStoreService(null as never, capabilities)
     })
 
-    it('beforeSession', async () => {
-        await storeService.beforeSession()
-        expect(getPidPath).toBeCalledWith(process.ppid)
-        expect(setPort).toBeCalledWith('44444')
+    it('constructor', async () => {
+        expect(setPort).toBeCalledWith(65209)
     })
 
     it('beforeSession', () => {
-        const browser = { call: (fn: Function) => fn() } as WebdriverIO.Browser
-        storeService.before({}, [], browser)
+        const browser = { call: (fn: Function) => fn() }
+        storeService.before({} as never, [] as never, browser as any)
         storeService['_browser']?.sharedStore.get('foobar')
         storeService['_browser']?.sharedStore.set('foo', 'bar')
         expect(getValue).toBeCalledWith('foobar')
@@ -35,9 +36,8 @@ describe('SharedStoreService', () => {
     })
 
     afterEach(() => {
-        (getPidPath as jest.Mock).mockClear()
-        ;(setPort as jest.Mock).mockClear()
-        ;(getValue as jest.Mock).mockClear()
-        ;(setValue as jest.Mock).mockClear()
+        vi.mocked(setPort).mockClear()
+        vi.mocked(getValue).mockClear()
+        vi.mocked(setValue).mockClear()
     })
 })

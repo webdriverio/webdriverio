@@ -1,9 +1,37 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Vitest Snapshot v1
 
-exports[`attach Puppeteer should pass for Chrome 1`] = `
-Array [
-  Array [
-    Object {
+exports[`attach Puppeteer > should pass for Aerokube Moon CDP 1`] = `
+[
+  [
+    {
+      "browserWSEndpoint": "ws://my.grid:4444/devtools/foobar-123",
+      "defaultViewport": null,
+      "headers": {
+        "Authorization": "OAuth token",
+      },
+    },
+  ],
+]
+`;
+
+exports[`attach Puppeteer > should pass for Aerokube Selenoid CDP 1`] = `
+[
+  [
+    {
+      "browserWSEndpoint": "ws://my.grid:4444/devtools/foobar-123",
+      "defaultViewport": null,
+      "headers": {
+        "Authorization": "OAuth token",
+      },
+    },
+  ],
+]
+`;
+
+exports[`attach Puppeteer > should pass for Chrome 1`] = `
+[
+  [
+    {
       "browserURL": "http://localhost:1234",
       "defaultViewport": null,
     },
@@ -11,10 +39,10 @@ Array [
 ]
 `;
 
-exports[`attach Puppeteer should pass for Edge 1`] = `
-Array [
-  Array [
-    Object {
+exports[`attach Puppeteer > should pass for Edge 1`] = `
+[
+  [
+    {
       "browserURL": "http://localhost:1234",
       "defaultViewport": null,
     },
@@ -22,10 +50,10 @@ Array [
 ]
 `;
 
-exports[`attach Puppeteer should pass for Firefox (DevTools) 1`] = `
-Array [
-  Array [
-    Object {
+exports[`attach Puppeteer > should pass for Firefox (DevTools) 1`] = `
+[
+  [
+    {
       "browserURL": "http://localhost:localhost:1234",
       "defaultViewport": null,
     },
@@ -33,10 +61,10 @@ Array [
 ]
 `;
 
-exports[`attach Puppeteer should pass for Firefox 1`] = `
-Array [
-  Array [
-    Object {
+exports[`attach Puppeteer > should pass for Firefox 1`] = `
+[
+  [
+    {
       "browserURL": "http://localhost:4321",
       "defaultViewport": null,
     },
@@ -44,33 +72,26 @@ Array [
 ]
 `;
 
-exports[`attach Puppeteer should pass for Selenium CDP 1`] = `
-Array [
-  Array [
-    Object {
-      "browserWSEndpoint": "http://my.grid:1234/session/mytestsession/se/cdp",
-      "defaultViewport": null,
-    },
-  ],
-]
-`;
-exports[`attach Puppeteer should pass for Aerokube Moon CDP 1`] = `
-Array [
-  Array [
-    Object {
-      "browserWSEndpoint": "ws://my.grid:4444/devtools/foobar-123",
+exports[`attach Puppeteer > should pass for Firefox and moz:debuggerAddress flag enabled 1`] = `
+[
+  [
+    {
+      "browserURL": "localhost:1234",
       "defaultViewport": null,
     },
   ],
 ]
 `;
 
-exports[`attach Puppeteer should pass for Aerokube Selenoid CDP 1`] = `
-Array [
-  Array [
-    Object {
-      "browserWSEndpoint": "ws://my.grid:4444/devtools/foobar-123",
+exports[`attach Puppeteer > should pass for Selenium CDP 1`] = `
+[
+  [
+    {
+      "browserWSEndpoint": "http://my.grid:1234/session/mytestsession/se/cdp",
       "defaultViewport": null,
+      "headers": {
+        "Authorization": "OAuth token",
+      },
     },
   ],
 ]

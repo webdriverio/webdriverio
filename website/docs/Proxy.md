@@ -23,9 +23,10 @@ npm install global-agent --save-dev
 Add the following require statement to the top of your config file.
 
 ```js title="wdio.conf.js"
-require('global-agent/bootstrap')
+import { bootstrap } from 'global-agent';
+bootstrap();
 
-exports.config = {
+export const config = {
     // ...
 }
 ```
@@ -52,7 +53,7 @@ If necessary, you can specify `GLOBAL_AGENT_HTTPS_PROXY` to route HTTPS traffic 
 ```sh
 export GLOBAL_AGENT_HTTP_PROXY=http://my.corp.proxy.com:9090
 export GLOBAL_AGENT_HTTPS_PROXY=http://my.corp.proxy.com:9091
-wdio wdio.wdio.conf.js
+wdio wdio.conf.js
 ```
 
 `GLOBAL_AGENT_HTTP_PROXY` is used for both HTTP and HTTPS requests if `GLOBAL_AGENT_HTTPS_PROXY` is not set.
@@ -70,7 +71,7 @@ In order to tunnel the connection between the browser and the internet, you can 
 The `proxy` parameters can be applied via the standard capabilities the following way:
 
 ```js title="wdio.conf.js"
-exports.config = {
+export const config = {
     // ...
     capabilities: [{
         browserName: 'chrome',

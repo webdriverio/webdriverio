@@ -1,11 +1,11 @@
-import { EventEmitter } from 'events'
-import { Testrunner as TestrunnerOptions } from './Options'
-import {
+import type { EventEmitter } from 'node:events'
+import type { Testrunner as TestrunnerOptions } from './Options.js'
+import type {
     DesiredCapabilities,
     MultiRemoteCapabilities,
     RemoteCapability,
     W3CCapabilities,
-} from './Capabilities'
+} from './Capabilities.js'
 
 export interface Job {
     caps: DesiredCapabilities | W3CCapabilities | MultiRemoteCapabilities;
@@ -32,17 +32,19 @@ export interface WorkerCommand extends Omit<WorkerRunPayload, 'execArgv'> {
 export interface WorkerMessage {
     name: string;
     content: {
-        sessionId?: string;
-        isMultiremote?: boolean;
+        sessionId?: string
+        isMultiremote?: boolean
+        capabilities: RemoteCapability
     };
     origin: string;
     params: Record<string, string>;
 }
 
 export interface Worker
-    extends Omit<TestrunnerOptions, 'capabilities' | 'specs'>,
+    extends Omit<TestrunnerOptions, 'capabilities' | 'specs' | 'rootDir'>,
         EventEmitter {
     capabilities: RemoteCapability;
+    config: TestrunnerOptions,
     caps: RemoteCapability;
     cid: string;
     isBusy?: boolean;

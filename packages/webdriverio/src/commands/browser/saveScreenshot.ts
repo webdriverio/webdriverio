@@ -1,5 +1,5 @@
-import fs from 'fs'
-import { getAbsoluteFilepath, assertDirectoryExists } from '../../utils'
+import fs from 'node:fs'
+import { getAbsoluteFilepath, assertDirectoryExists } from '../../utils/index.js'
 
 /**
  *
@@ -20,7 +20,7 @@ import { getAbsoluteFilepath, assertDirectoryExists } from '../../utils'
  * @type utility
  *
  */
-export default async function saveScreenshot (
+export async function saveScreenshot (
     this: WebdriverIO.Browser,
     filepath: string
 ) {
@@ -32,7 +32,7 @@ export default async function saveScreenshot (
     }
 
     const absoluteFilepath = getAbsoluteFilepath(filepath)
-    assertDirectoryExists(absoluteFilepath)
+    await assertDirectoryExists(absoluteFilepath)
 
     const screenBuffer = await this.takeScreenshot()
     const screenshot = Buffer.from(screenBuffer, 'base64')

@@ -1,21 +1,27 @@
-import path from 'path'
+import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest'
+import url from 'node:url'
+import path from 'node:path'
 import Mocha from 'mocha'
 import logger from '@wdio/logger'
-import { runTestInFiberContext, executeHooksWithArgs } from '@wdio/utils'
-import { setOptions } from 'expect-webdriverio'
+import { wrapGlobalTestMethod, executeHooksWithArgs } from '@wdio/utils'
 
-import MochaAdapterFactory, { MochaAdapter } from '../src'
-import { loadModule } from '../src/utils'
-import { EVENTS } from '../src/constants'
+import MochaAdapterFactory, { MochaAdapter } from '../src/index.js'
+import { EVENTS } from '../src/constants.js'
 
-jest.mock('../src/utils', () => ({
-    loadModule: jest.fn()
+const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
+
+vi.mock('mocha')
+vi.mock('@wdio/utils')
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock('expect-webdriverio')
+vi.mock('../src/utils', () => ({
+    loadModule: vi.fn()
 }))
 
 const wdioReporter = {
-    write: jest.fn(),
-    emit: jest.fn(),
-    on: jest.fn()
+    write: vi.fn(),
+    emit: vi.fn(),
+    on: vi.fn()
 } as const
 const adapterFactory = (config: any) => new MochaAdapter(
     '0-2',
@@ -46,19 +52,17 @@ test('comes with a factory', async () => {
 
 test('should properly set up mocha', async () => {
     // @ts-ignore params not needed for test scenario
-    // @ts-ignore params not needed for test scenario
     const adapter = adapterFactory()
     await adapter.init()
     const result = await adapter.run()
     expect(result).toBe(0)
 
-    expect(setOptions).toBeCalledTimes(1)
     expect(adapter['_mocha']!['loadFiles']).not.toBeCalled()
     expect(adapter['_mocha']!.loadFilesAsync).toBeCalled()
     expect(adapter['_mocha']!.reporter).toBeCalled()
     expect(adapter['_mocha']!.fullTrace).toBeCalled()
     expect(adapter['_mocha']!.run).toBeCalled()
-    expect((executeHooksWithArgs as jest.Mock).mock.calls).toHaveLength(1)
+    expect(vi.mocked(executeHooksWithArgs).mock.calls).toHaveLength(1)
 
     // @ts-ignore outdated types
     const runner = adapter['_mocha']!['runner']
@@ -69,6 +73,25 @@ test('should properly set up mocha', async () => {
     expect(runner.suite.afterAll).toBeCalled()
 
     expect(adapter['_mocha']!.addFile).toBeCalledWith('/foo/bar.test.js')
+})
+
+test('should properly load mocha hooks', async () => {
+    const adapter = adapterFactory({
+        rootDir: __dirname,
+        mochaOpts: {
+            require: ['./__fixtures__/mochaHooks.js']
+        }
+    })
+    await adapter.init()
+    expect(adapter['_config'].mochaOpts).toEqual({
+        require: ['./__fixtures__/mochaHooks.js'],
+        rootHooks: {
+            beforeAll: [],
+            beforeEach: [expect.any(Function)],
+            afterAll: [],
+            afterEach: []
+        }
+    })
 })
 
 test('should return amount of errors', async () => {
@@ -93,61 +116,16 @@ test('should throw runtime error if spec could not be loaded', async () => {
     await expect(adapter.run()).rejects.toEqual(runtimeError)
 })
 
-test('options', () => {
-    // @ts-ignore params not needed for test scenario
-    const adapter = adapterFactory()
-    adapter.requireExternalModules = jest.fn()
-    adapter.options({
-        require: ['foo/bar.js'],
-        compilers: ['the/compiler.js']
-    }, 'context' as any)
-    expect(adapter.requireExternalModules).toBeCalledWith(['the/compiler.js', 'foo/bar.js'], 'context')
-})
-
-test('preRequire', () => {
-    const mochaOpts = { foo: 'bar', ui: 'tdd' }
-    const adapter = adapterFactory({ mochaOpts, beforeHook: 'beforeHook123', afterHook: 'afterHook123', beforeTest: 'beforeTest234', afterTest: 'afterTest234' })
-    adapter.preRequire('context' as any, 'file', 'mocha' as any)
-    expect(runTestInFiberContext).toBeCalledWith(
-        false, 'beforeHook123', expect.any(Function), 'afterHook123', expect.any(Function), 'suiteSetup', '0-2')
-    expect(runTestInFiberContext).toBeCalledWith(
-        false, 'beforeHook123', expect.any(Function), 'afterHook123', expect.any(Function), 'setup', '0-2')
-    expect(runTestInFiberContext).toBeCalledWith(
-        true, 'beforeTest234', expect.any(Function), 'afterTest234', expect.any(Function), 'test', '0-2')
-    expect(runTestInFiberContext).toBeCalledWith(
-        false, 'beforeHook123', expect.any(Function), 'afterHook123', expect.any(Function), 'suiteTeardown', '0-2')
-    expect(runTestInFiberContext).toBeCalledWith(
-        false, 'beforeHook123', expect.any(Function), 'afterHook123', expect.any(Function), 'teardown', '0-2')
-
-    const hookArgsFn = (runTestInFiberContext as jest.Mock).mock.calls[0][2]
-    expect(hookArgsFn({ test: { foo: 'bar', parent: { title: 'parent' } } }))
-        .toEqual([{ foo: 'bar', parent: 'parent' }, { test: { foo: 'bar', parent: { title: 'parent' } } }])
-})
-
-test('custom ui', () => {
-    const mochaOpts = { ui: 'custom-qunit' }
-    const adapter = adapterFactory({ mochaOpts })
-    adapter.preRequire('context' as any, 'file', 'mocha' as any)
-    expect(runTestInFiberContext).toBeCalledWith(
-        false, undefined, expect.any(Function), undefined, expect.any(Function), 'after', '0-2')
-    expect(runTestInFiberContext).toBeCalledWith(
-        false, undefined, expect.any(Function), undefined, expect.any(Function), 'afterEach', '0-2')
-    expect(runTestInFiberContext).toBeCalledWith(
-        false, undefined, expect.any(Function), undefined, expect.any(Function), 'beforeEach', '0-2')
-    expect(runTestInFiberContext).toBeCalledWith(
-        false, undefined, expect.any(Function), undefined, expect.any(Function), 'before', '0-2')
-})
-
 test('wrapHook if successful', async () => {
     const config = { beforeAll: 'somehook' }
     const adapter = adapterFactory(config)
     const wrappedHook = adapter.wrapHook('beforeAll' as any)
 
-    ;(executeHooksWithArgs as jest.Mock).mockImplementation((...args) => Promise.resolve(args))
+    vi.mocked(executeHooksWithArgs).mockImplementation((...args: any[]) => Promise.resolve(args))
     await wrappedHook()
-    expect((executeHooksWithArgs as jest.Mock).mock.calls[0][0]).toBe('beforeAll')
-    expect((executeHooksWithArgs as jest.Mock).mock.calls[0][1]).toBe('somehook')
-    expect((executeHooksWithArgs as jest.Mock).mock.calls[0][2][0].type).toBe('beforeAll')
+    expect(vi.mocked(executeHooksWithArgs).mock.calls[0][0]).toBe('beforeAll')
+    expect(vi.mocked(executeHooksWithArgs).mock.calls[0][1]).toBe('somehook')
+    expect((vi.mocked(executeHooksWithArgs).mock.calls[0][2] as any)[0].type).toBe('beforeAll')
 })
 
 test('wrapHook if failing', async () => {
@@ -155,201 +133,55 @@ test('wrapHook if failing', async () => {
     const adapter = adapterFactory(config)
     const wrappedHook = adapter.wrapHook('beforeAll' as any)
 
-    ;(executeHooksWithArgs as jest.Mock).mockImplementation(() => Promise.reject(new Error('uuuups')))
+    vi.mocked(executeHooksWithArgs).mockImplementation(() => Promise.reject(new Error('uuuups')))
     await wrappedHook()
-    expect((executeHooksWithArgs as jest.Mock).mock.calls[0][0])
+    expect(vi.mocked(executeHooksWithArgs).mock.calls[0][0])
         .toBe('beforeAll')
-    expect((executeHooksWithArgs as jest.Mock).mock.calls[0][1])
+    expect(vi.mocked(executeHooksWithArgs).mock.calls[0][1])
         .toBe('somehook')
-    expect((executeHooksWithArgs as jest.Mock).mock.calls[0][2][0].type)
+    expect((vi.mocked(executeHooksWithArgs).mock.calls[0][2] as any)[0].type)
         .toBe('beforeAll')
-    expect((logger('').error as jest.Mock).mock.calls[0][0]
+    expect(vi.mocked(logger('').error).mock.calls[0][0]
         .startsWith('Error in beforeAll hook: uuuups')).toBe(true)
 })
 
-test('prepareMessage', async () => {
-    // @ts-ignore params not needed for test scenario
-    const adapter = adapterFactory()
-    await adapter.init()
-    await adapter.run()
-
-    let result = adapter.prepareMessage('beforeSuite')
-    expect(result.type).toBe('beforeSuite')
-
-    adapter['_runner']!.test = { title: 'foobar', file: '/foo/bar.test.js' } as any
-    result = adapter.prepareMessage('afterTest')
-    expect(result.type).toBe('afterTest')
-    expect(result.title).toBe('foobar')
-    expect(result.file).toBe('/foo/bar.test.js')
-    adapter['_suiteStartDate'] = Date.now() - 5000
-    result = adapter.prepareMessage('afterSuite')
-    expect(result.type).toBe('afterSuite')
-    expect(result.title).toBe('first suite')
-    expect(result.duration).toBeDefined()
-    expect(result.duration >= 5000 && result.duration <= 5020).toBeTruthy()
-})
-
-describe('formatMessage', () => {
-    test('should do nothing if no error or params are given', () => {
+describe('prepareMessage', () => {
+    test('should prepare a message', async () => {
         // @ts-ignore params not needed for test scenario
         const adapter = adapterFactory()
-        let params = { type: 'foobar' }
-        let message = adapter.formatMessage(params as any)
-        expect(message).toMatchSnapshot()
+        await adapter.init()
+        await adapter.run()
+
+        let result = adapter.prepareMessage('beforeSuite')
+        expect(result.type).toBe('beforeSuite')
+
+        adapter['_runner']!.test = { title: 'foobar', file: '/foo/bar.test.js' } as any
+        result = adapter.prepareMessage('afterTest')
+        expect(result.type).toBe('afterTest')
+        expect(result.title).toBe('foobar')
+        expect(result.file).toBe('/foo/bar.test.js')
+        adapter['_suiteStartDate'] = Date.now() - 5000
+        result = adapter.prepareMessage('afterSuite')
+        expect(result.type).toBe('afterSuite')
+        expect(result.title).toBe('first suite')
+        expect(result.duration).toBeDefined()
+        expect(result.duration! >= 5000 && result.duration! <= 5020).toBeTruthy()
     })
 
-    test('should format an error message', () => {
+    test('should prepare a message when suites array is empty', async () => {
         // @ts-ignore params not needed for test scenario
         const adapter = adapterFactory()
-        const params = { type: 'foobar', err: new Error('uups') }
-        const message = adapter.formatMessage(params as any)
+        await adapter.init()
+        await adapter.run()
 
-        // delete stack to avoid differences in stack paths
-        // @ts-ignore test scenario
-        delete message.error.stack
+        adapter['_runner']!.suite.suites = []
+        adapter['_suiteStartDate'] = Date.now() - 5000
 
-        expect(message).toMatchSnapshot()
+        const result = adapter.prepareMessage('afterSuite')
+        expect(result.type).toBe('afterSuite')
+        expect(result.title).toBeUndefined()
+        expect(result.duration).toBeUndefined()
     })
-
-    test('should format an error message with timeout error', () => {
-        // @ts-ignore params not needed for test scenario
-        const adapter = adapterFactory()
-        const params = {
-            type: 'foobar',
-            payload: {
-                title: 'barfoo',
-                parent: { title: 'parentfoo' }
-            },
-            err: new Error('For async tests and hooks, ensure "done()" is called; if returning a Promise, ensure it resolves.')
-        }
-        const message = adapter.formatMessage(params as any)
-
-        // delete stack to avoid differences in stack paths
-        // @ts-ignore test scenario
-        delete message.error.stack
-
-        expect(message).toMatchSnapshot()
-    })
-
-    test('should format payload', () => {
-        // @ts-ignore params not needed for test scenario
-        const adapter = adapterFactory()
-        const params = { type: 'foobar', payload: {
-            title: 'barfoo',
-            parent: { title: 'parentfoo' },
-            context: 'some context',
-            ctx: { currentTest: { title: 'current test' } },
-            file: '/foo/bar.test.js'
-        } }
-        const message = adapter.formatMessage(params as any)
-        expect(message).toMatchSnapshot()
-    })
-
-    test('should format parent title', () => {
-        // @ts-ignore params not needed for test scenario
-        const adapter = adapterFactory()
-        const params = { type: 'foobar', payload: {
-            title: 'barfoo',
-            parent: { title: '', suites: [{ title: 'first suite' }] }
-        } }
-        const message = adapter.formatMessage(params as any)
-        expect(message.parent).toEqual('')
-    })
-
-    test('should format fullTitle', () => {
-        // @ts-ignore params not needed for test scenario
-        const adapter = adapterFactory()
-        const params = { type: 'foobar', payload: {
-            title: 'barfoo',
-            parent: {
-                title: 'Parent 2',
-                parent: {
-                    title: 'Parent 1'
-                }
-            }
-        } }
-        const message = adapter.formatMessage(params as any)
-        expect(message.fullTitle).toEqual('Parent 1.Parent 2.barfoo')
-    })
-
-    test('should format test status', () => {
-        // @ts-ignore params not needed for test scenario
-        const adapter = adapterFactory()
-        const params = { type: 'afterTest', payload: {
-            title: 'barfoo',
-            parent: {},
-            state: 'failed',
-            duration: 123
-        } }
-        const message = adapter.formatMessage(params as any)
-        expect(message.passed).toBe(false)
-        expect(message.duration).toBe(123)
-    })
-
-    test('should format title for mocha beforeAll hook if parent title is present', () => {
-        // @ts-ignore params not needed for test scenario
-        const adapter = adapterFactory()
-        const params = { type: 'beforeAll', payload: {
-            title: '"before all" hook',
-            parent: {
-                title: 'WebdriverIO'
-            },
-            state: 'failed',
-            duration: 123
-        } }
-        const message = adapter.formatMessage(params as any)
-        expect(message.title).toBe('"before all" hook for WebdriverIO')
-    })
-
-    test('should not format title for mocha beforeAll hook if parent title is not present', () => {
-        // @ts-ignore params not needed for test scenario
-        const adapter = adapterFactory()
-        const params = { type: 'beforeAll', payload: {
-            title: '"before all" hook',
-            parent: {},
-            state: 'failed',
-            duration: 123
-        } }
-        const message = adapter.formatMessage(params as any)
-        expect(message.title).toBe('"before all" hook')
-    })
-
-    test('should format title for mocha afterAll hook if parent title is present', () => {
-        // @ts-ignore params not needed for test scenario
-        const adapter = adapterFactory()
-        const params = { type: 'afterAll', payload: {
-            title: '"after all" hook',
-            parent: {
-                title: 'WebdriverIO'
-            },
-            state: 'failed',
-            duration: 123
-        } }
-        const message = adapter.formatMessage(params as any)
-        expect(message.title).toBe('"after all" hook for WebdriverIO')
-    })
-
-    test('should not format title for mocha afterAll hook if parent title is not present', () => {
-        // @ts-ignore params not needed for test scenario
-        const adapter = adapterFactory()
-        const params = { type: 'afterAll', payload: {
-            title: '"after all" hook',
-            parent: {},
-            state: 'failed',
-            duration: 123
-        } }
-        const message = adapter.formatMessage(params as any)
-        expect(message.title).toBe('"after all" hook')
-    })
-})
-
-test('requireExternalModules', () => {
-    // @ts-ignore params not needed for test scenario
-    const adapter = adapterFactory()
-    // @ts-ignore test invalid params
-    adapter.requireExternalModules(['/foo/bar.js', null, './bar/foo.js'], { myContext: 123 } as any)
-    expect(loadModule).toBeCalledWith('/foo/bar.js', { myContext: 123 })
-    expect(loadModule).toBeCalledWith(path.resolve(__dirname, '..', '..', '..', 'bar', 'foo.js'), { myContext: 123 })
 })
 
 test('emit does not emit anything on root level', () => {
@@ -471,7 +303,7 @@ describe('loadFiles', () => {
         const adapter = adapterFactory({})
         adapter['_hasTests'] = false
         adapter['_mocha']! = {
-            loadFilesAsync: jest.fn(),
+            loadFilesAsync: vi.fn(),
             suite: 1 // mochaRunner.total
         } as any
         await adapter._loadFiles({})
@@ -482,12 +314,12 @@ describe('loadFiles', () => {
         const adapter = adapterFactory({})
         adapter['_hasTests'] = false
         adapter['_mocha']! = {
-            loadFilesAsync: jest.fn(),
+            loadFilesAsync: vi.fn(),
             options: { grep: 'regexp foo' },
             suite: 0 // mochaRunner.total
         } as any
         await adapter._loadFiles({ grep: 'foo', invert: 'invert' as any })
-        expect((Mocha.Runner as any as jest.Mock).mock.results[0].value.grep).toBeCalledWith('regexp foo', 'invert')
+        expect(vi.mocked(Mocha.Runner).mock.results[0].value.grep).toBeCalledWith('regexp foo', 'invert')
         expect(adapter['_hasTests']).toBe(false)
     })
 
@@ -496,7 +328,7 @@ describe('loadFiles', () => {
         // @ts-ignore test scenario
         delete adapter['_hasTests']
         adapter['_mocha']! = {
-            loadFilesAsync: jest.fn().mockImplementation(
+            loadFilesAsync: vi.fn().mockImplementation(
                 () => Promise.reject(new Error('foo'))
             ),
         } as any
@@ -520,8 +352,7 @@ describe('hasTests', () => {
 })
 
 afterEach(() => {
-    (Mocha.Runner as any as jest.Mock).mockClear()
-    ;(runTestInFiberContext as jest.Mock).mockReset()
-    ;(executeHooksWithArgs as jest.Mock).mockReset()
-    ;(setOptions as jest.Mock).mockClear()
+    vi.mocked(Mocha.Runner).mockClear()
+    vi.mocked(wrapGlobalTestMethod).mockReset()
+    vi.mocked(executeHooksWithArgs).mockReset()
 })

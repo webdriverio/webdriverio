@@ -1,13 +1,11 @@
-import fs from 'fs'
-import path from 'path'
+import path from 'node:path'
 
-import got from 'got'
+import { expect, test, vi, beforeEach, afterEach } from 'vitest'
 import logger from '@wdio/logger'
-import type { MultiRemoteBrowser } from 'webdriverio'
 import type { Capabilities, Options } from '@wdio/types'
 
-import SauceService from '../src'
-import { isRDC } from '../src/utils'
+import SauceService from '../src/index.js'
+import { isRDC } from '../src/utils.js'
 
 const log = logger('test')
 const uri = '/some/uri'
@@ -16,41 +14,58 @@ const featureObject = {
 }
 const jasmineSuiteTitle = 'Jasmine__TopLevel__Suite'
 
-jest.createMockFromModule('fs')
-fs.createReadStream = jest.fn()
-fs.promises.stat = jest.fn().mockReturnValue(Promise.resolve({ size: 123 }))
-fs.promises.readdir = jest.fn().mockReturnValue(Promise.resolve([
-    'wdio-0-0-browser.log',
-    'wdio-0-0-driver.log',
-    'wdio-0-0.log',
-    'wdio-1-0-browser.log',
-    'wdio-1-0-driver.log',
-    'wdio-1-0.log',
-    'wdio.log'
-]))
-
-jest.mock('form-data', () => jest.fn().mockReturnValue({
-    append: jest.fn()
+vi.mock('saucelabs', () => ({
+    default: {
+        default: class SauceLabsMock {
+            public uploadJobAssets = vi.fn()
+            public updateJob = vi.fn()
+        }
+    }
+}))
+vi.mock('fs/promises', () => ({
+    default: {
+        createReadStream: vi.fn(),
+        stat: vi.fn().mockReturnValue(Promise.resolve({ size: 123 })),
+        readdir: vi.fn().mockReturnValue(Promise.resolve([
+            'wdio-0-0-browser.log',
+            'wdio-0-0-driver.log',
+            'wdio-0-0.log',
+            'wdio-1-0-browser.log',
+            'wdio-1-0-driver.log',
+            'wdio-1-0.log',
+            'wdio.log'
+        ]))
+    }
 }))
 
-jest.mock('../src/utils', () => {
+vi.mock('form-data', () => vi.fn().mockReturnValue({
+    append: vi.fn()
+}))
+
+vi.mock('../src/utils', async () => {
     return {
-        isRDC: jest.fn().mockReturnValue(false),
-        ansiRegex: jest.requireActual('../src/utils').ansiRegex
+        isRDC: vi.fn().mockReturnValue(false),
+        ansiRegex: (await vi.importActual('../src/utils') as any).ansiRegex
     }
 })
 
-let browser: MultiRemoteBrowser<'async'>
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+
+let browser: WebdriverIO.MultiRemoteBrowser
 beforeEach(() => {
     browser = {
-        execute: jest.fn(),
-        chromeA: { sessionId: 'sessionChromeA' },
-        chromeB: { sessionId: 'sessionChromeB' },
-        chromeC: { sessionId: 'sessionChromeC' },
+        execute: vi.fn(),
+        getInstance: vi.fn().mockImplementation((browserName: string) => {
+            // @ts-expect-error
+            return browser[browserName] as WebdriverIO.Browser
+        }),
+        chromeA: { sessionId: 'sessionChromeA', execute: vi.fn() },
+        chromeB: { sessionId: 'sessionChromeB', execute: vi.fn() },
+        chromeC: { sessionId: 'sessionChromeC', execute: vi.fn() },
         instances: ['chromeA', 'chromeB', 'chromeC'],
-    } as any as MultiRemoteBrowser<'async'>
-    ;(log.info as jest.Mock).mockClear()
-    ;(log.error as jest.Mock).mockClear()
+    } as any as WebdriverIO.MultiRemoteBrowser
+    vi.mocked(log.info).mockClear()
+    vi.mocked(log.error).mockClear()
 })
 
 test('before should call isRDC', () => {
@@ -71,7 +86,8 @@ test('beforeSession should set to unknown creds if no sauce user and key are fou
     const config: Options.Testrunner = { capabilities: [] }
     const service = new SauceService({}, {}, config)
     service['_browser'] = browser
-    service.beforeSession()
+    // @ts-expect-error
+    service.beforeSession({})
     expect(config.user).toBe('unknown_user')
     expect(config.key).toBe('unknown_key')
 })
@@ -79,7 +95,7 @@ test('beforeSession should set to unknown creds if no sauce user and key are fou
 test('beforeSuite should send request to set the job name as suite name', () => {
     const service = new SauceService({}, {}, {} as any)
     service['_browser'] = browser
-    service.setAnnotation = jest.fn()
+    service.setAnnotation = vi.fn()
     expect(service['_suiteTitle']).toBeUndefined()
     service.beforeSuite({ title: 'foobar' } as any)
     expect(service['_suiteTitle']).toBe('foobar')
@@ -89,18 +105,38 @@ test('beforeSuite should send request to set the job name as suite name', () => 
 test('beforeSuite should not send request to set the job name as suite name for Jasmine tests', () => {
     const service = new SauceService({}, {}, {} as any)
     service['_browser'] = browser
-    service.setAnnotation = jest.fn()
+    service.setAnnotation = vi.fn()
     expect(service['_suiteTitle']).toBeUndefined()
     service.beforeSuite({ title: jasmineSuiteTitle } as any)
     expect(service['_suiteTitle']).toBe(jasmineSuiteTitle)
     expect(service.setAnnotation).not.toBeCalled()
 })
 
+test('beforeSuite should set job-name via custom setJobName method', async () => {
+    const service = new SauceService({
+        setJobName: (config, caps, title) => {
+            return `${config.region} - ${(caps as any).browserName} - ${title}`
+        }
+    }, {
+        browserName: 'foobar'
+    }, {
+        user: 'foobar',
+        key: '123',
+        region: 'barfoo' as any
+    } as any)
+    service['_browser'] = browser
+    service.setAnnotation = vi.fn()
+    expect(service['_isJobNameSet']).toBe(false)
+    await service.beforeSuite({ title: 'Suite Title' } as any)
+    expect(service['_isJobNameSet']).toBe(true)
+    expect(service.setAnnotation).toBeCalledWith('sauce:job-name=barfoo - foobar - Suite Title')
+})
+
 test('beforeTest should send the job-name as suite name by default', async () => {
     const service = new SauceService({}, {}, { user: 'foobar', key: '123', capabilities: {} })
     service['_browser'] = browser
     service['_suiteTitle'] = 'Suite Title'
-    service.setAnnotation = jest.fn()
+    service.setAnnotation = vi.fn()
     expect(service['_isJobNameSet']).toBe(false)
     await service.beforeSuite({ title: 'foobar suite' } as any)
     expect(service['_isJobNameSet']).toBe(true)
@@ -128,7 +164,7 @@ test('beforeTest should mark job-name as set', async () => {
 test('beforeTest should set job-name via custom setJobName method', async () => {
     const service = new SauceService({
         setJobName: (config, caps, title) => {
-            return `${config.region}-${(caps as any).browserName}-${title}`
+            return `${config.region} - ${(caps as any).browserName} - ${title}`
         }
     }, {
         browserName: 'foobar'
@@ -139,22 +175,22 @@ test('beforeTest should set job-name via custom setJobName method', async () => 
     } as any)
     service['_browser'] = browser
     service['_suiteTitle'] = 'Suite Title'
-    service.setAnnotation = jest.fn()
+    service.setAnnotation = vi.fn()
     expect(service['_isJobNameSet']).toBe(false)
     await service.beforeTest({
         fullName: 'my test can do something',
         description: 'foobar'
     } as any)
     expect(service['_isJobNameSet']).toBe(true)
-    expect(service.setAnnotation).toBeCalledWith('sauce:job-name=barfoo-foobar-Suite Title')
+    expect(service.setAnnotation).toBeCalledWith('sauce:job-name=barfoo - foobar - Suite Title')
 })
 
-test('beforeTest not should set job-name when it has already been set', async () => {
+test('beforeTest should not set job-name when it has already been set', async () => {
     const service = new SauceService({}, {}, { user: 'foobar', key: '123', capabilities: {} })
     service['_browser'] = browser
     service['_suiteTitle'] = 'Suite Title'
     service['_isJobNameSet'] = true
-    service.setAnnotation = jest.fn()
+    service.setAnnotation = vi.fn()
     expect(service['_isJobNameSet']).toBe(true)
     await service.beforeTest({
         fullName: 'my test can do something',
@@ -167,8 +203,9 @@ test('beforeTest not should set job-name when it has already been set', async ()
 test('beforeTest should set context for jasmine test', async () => {
     const service = new SauceService({}, {}, { user: 'foobar', key: '123' } as any)
     service['_browser'] = browser
-    service.setAnnotation = jest.fn()
-    service.beforeSession()
+    service.setAnnotation = vi.fn()
+    // @ts-expect-error
+    service.beforeSession({})
     await service.beforeTest({
         fullName: 'my test can do something',
         description: 'foobar'
@@ -179,8 +216,9 @@ test('beforeTest should set context for jasmine test', async () => {
 test('beforeTest should set context for mocha test', async () => {
     const service = new SauceService({}, {}, { user: 'foobar', key: '123' } as any)
     service['_browser'] = browser
-    service.setAnnotation = jest.fn()
-    service.beforeSession()
+    service.setAnnotation = vi.fn()
+    // @ts-expect-error
+    service.beforeSession({})
     await service.beforeTest({
         parent: 'foo',
         title: 'bar'
@@ -188,24 +226,12 @@ test('beforeTest should set context for mocha test', async () => {
     expect(service.setAnnotation).toBeCalledWith('sauce:context=foo - bar')
 })
 
-test('beforeTest should not set context for RDC test', async () => {
-    // not for RDC since sauce:context is not available there
-    const upService = new SauceService({}, {}, {} as any)
-    upService['_browser'] = browser
-    upService['_isRDC'] = true
-    upService['_isJobNameSet'] = true
-    upService.setAnnotation = jest.fn()
-    await upService.beforeTest({
-        title: 'update up job name'
-    } as any)
-    expect(upService.setAnnotation).toBeCalledTimes(0)
-})
-
 test('beforeTest should not set context if user does not use sauce', async () => {
     const service = new SauceService({}, {}, {} as any)
     service['_browser'] = browser
-    service.setAnnotation = jest.fn()
-    service.beforeSession()
+    service.setAnnotation = vi.fn()
+    // @ts-expect-error
+    service.beforeSession({})
     await service.beforeTest({
         fullTitle: 'my test can do something'
     } as any)
@@ -215,7 +241,8 @@ test('beforeTest should not set context if user does not use sauce', async () =>
 test('afterSuite', () => {
     const service = new SauceService({}, {}, {} as any)
     service['_browser'] = browser
-    service.beforeSession()
+    // @ts-expect-error
+    service.beforeSession({})
 
     expect(service['_failures']).toBe(0)
 
@@ -229,8 +256,9 @@ test('afterSuite', () => {
 test('afterTest', () => {
     const service = new SauceService({}, {}, {} as any)
     service['_browser'] = browser
-    service.setAnnotation = jest.fn()
-    service.beforeSession()
+    service.setAnnotation = vi.fn()
+    // @ts-expect-error
+    service.beforeSession({})
 
     expect(service['_failures']).toBe(0)
 
@@ -273,8 +301,8 @@ test('afterTest', () => {
             actual: true
         }
     } as any)
-    expect(service.setAnnotation).toBeCalledTimes(0)
-    ;(service.setAnnotation as jest.Mock).mockClear()
+    expect(service.setAnnotation).toBeCalledTimes(5)
+    vi.mocked(service.setAnnotation).mockClear()
     service['_isRDC'] = false
     service.afterTest({} as any, {}, {
         error: {
@@ -288,7 +316,7 @@ test('afterTest', () => {
     } as any)
     expect(service.setAnnotation).toBeCalledTimes(5)
     stack.split(/\r?\n/).forEach((line:string) => expect(service.setAnnotation).toBeCalledWith(`sauce:context=${line}`))
-    ;(service.setAnnotation as jest.Mock).mockClear()
+    vi.mocked(service.setAnnotation).mockClear()
     const maxErrorStackLength = 3
     service['_maxErrorStackLength'] = maxErrorStackLength
     service.afterTest({} as any, {}, {
@@ -309,7 +337,7 @@ test('afterTest', () => {
 
 test('afterTest should not mark test as fail if pending was called in Jasmine', () => {
     const service = new SauceService({}, {}, {} as any)
-    service['_reportErrorLog'] = jest.fn()
+    service['_reportErrorLog'] = vi.fn()
     expect(service['_failures']).toBe(0)
     service.afterTest({} as any, {}, {
         retries: { attempts: 0, limit: 0 },
@@ -324,8 +352,9 @@ test('afterTest should not mark test as fail if pending was called in Jasmine', 
 test('beforeFeature should set job-name', async () => {
     const service = new SauceService({}, {}, { user: 'foobar', key: '123' } as any)
     service['_browser'] = browser
-    service.setAnnotation = jest.fn()
-    service.beforeSession()
+    service.setAnnotation = vi.fn()
+    // @ts-expect-error
+    service.beforeSession({})
     await service.beforeFeature( uri, featureObject)
     expect(service.setAnnotation).toBeCalledWith('sauce:job-name=Create a feature')
 })
@@ -333,27 +362,19 @@ test('beforeFeature should set job-name', async () => {
 test('beforeFeature should set context', async () => {
     const service = new SauceService({}, {}, { user: 'foobar', key: '123' } as any)
     service['_browser'] = browser
-    service.setAnnotation = jest.fn()
-    service.beforeSession()
+    service.setAnnotation = vi.fn()
+    // @ts-expect-error
+    service.beforeSession({})
     await service.beforeFeature( uri, featureObject)
     expect(service.setAnnotation).toBeCalledWith('sauce:context=Feature: Create a feature')
-})
-
-test('beforeFeature should not set context if RDC test', async () => {
-    const upService = new SauceService({}, {}, {} as any)
-    upService['_browser'] = browser
-    upService['_isRDC'] = true
-    upService['_isServiceEnabled'] = true
-    upService.setAnnotation = jest.fn()
-    await upService.beforeFeature(uri, featureObject)
-    expect(upService.setAnnotation).not.toBeCalledWith('sauce:context=Feature: Create a feature')
 })
 
 test('beforeFeature should not set context if no sauce user was applied', async () => {
     const service = new SauceService({}, {}, {} as any)
     service['_browser'] = browser
-    service.setAnnotation = jest.fn()
-    service.beforeSession()
+    service.setAnnotation = vi.fn()
+    // @ts-expect-error
+    service.beforeSession({})
     await service.beforeFeature(uri, featureObject)
     expect(service.setAnnotation).not.toBeCalledWith('sauce:context=Feature: Create a feature')
 })
@@ -361,7 +382,8 @@ test('beforeFeature should not set context if no sauce user was applied', async 
 test('afterScenario', () => {
     const service = new SauceService({}, {}, {} as any)
     service['_browser'] = browser
-    service.beforeSession()
+    // @ts-expect-error
+    service.beforeSession({})
 
     expect(service['_failures']).toBe(0)
 
@@ -381,8 +403,9 @@ test('afterScenario', () => {
 test('beforeScenario should set context', () => {
     const service = new SauceService({}, {}, { user: 'foobar', key: '123' } as any)
     service['_browser'] = browser
-    service.setAnnotation = jest.fn()
-    service.beforeSession()
+    service.setAnnotation = vi.fn()
+    // @ts-expect-error
+    service.beforeSession({})
     service.beforeScenario({ pickle: { name: 'foobar' } })
     expect(service.setAnnotation).toBeCalledWith('sauce:context=-Scenario: foobar')
 })
@@ -390,8 +413,9 @@ test('beforeScenario should set context', () => {
 test('beforeScenario should set context when no pickle name is provided', () => {
     const service = new SauceService({}, {}, { user: 'foobar', key: '123' } as any)
     service['_browser'] = browser
-    service.setAnnotation = jest.fn()
-    service.beforeSession()
+    service.setAnnotation = vi.fn()
+    // @ts-expect-error
+    service.beforeSession({})
     service.beforeScenario({ pickle: { } })
     expect(service.setAnnotation).toBeCalledWith('sauce:context=-Scenario: unknown scenario')
 })
@@ -399,8 +423,9 @@ test('beforeScenario should set context when no pickle name is provided', () => 
 test('beforeScenario should not set context if no sauce user was applied', () => {
     const service = new SauceService({}, {}, {} as any)
     service['_browser'] = browser
-    service.setAnnotation = jest.fn()
-    service.beforeSession()
+    service.setAnnotation = vi.fn()
+    // @ts-expect-error
+    service.beforeSession({})
     service.beforeScenario({ pickle: { name: 'foobar' } })
     expect(service.setAnnotation).not.toBeCalledWith('sauce:context=-Scenario: foobar')
 })
@@ -414,36 +439,39 @@ test('beforeStep should set context', async () => {
         keyword: 'Given ',
     }
     service['_browser'] = browser
-    service.setAnnotation = jest.fn()
-    service.beforeSession()
+    service.setAnnotation = vi.fn()
+    // @ts-expect-error
+    service.beforeSession({})
     await service.beforeStep(step)
     expect(service.setAnnotation).toBeCalledWith('sauce:context=--Step: Given I am a step')
 })
 
-test('beforeStep should not set context for RDC', async () => {
+test('beforeStep should not set context if no sauce user was applied', async () => {
     const service = new SauceService({}, {}, {} as any)
-    service['_browser'] = browser
-    service['_isRDC'] = true
-    service['_isServiceEnabled'] = true
     const step = {
         id: '5',
         text: 'I am a step',
         astNodeIds: ['0'],
         keyword: 'Given ',
     }
-    service.setAnnotation = jest.fn()
-    service.beforeSession()
+    service['_browser'] = browser
+    service.setAnnotation = vi.fn()
+    // @ts-expect-error
+    service.beforeSession({})
     await service.beforeStep(step)
-    expect(service.setAnnotation).not.toBeCalledWith('sauce:context=--Step: Given I am a step')
+    expect(service.setAnnotation).not.toBeCalledWith(
+        'sauce:context=--Step: Given I am a step'
+    )
 })
 
 test('after', async () => {
     const service = new SauceService({}, {}, { user: 'foobar', key: '123' } as any)
     service['_browser'] = browser
-    service.beforeSession()
+    // @ts-expect-error
+    service.beforeSession({})
     service['_failures'] = 5
-    service.updateJob = jest.fn()
-    service['_uploadLogs'] = jest.fn()
+    service.updateJob = vi.fn()
+    service['_uploadLogs'] = vi.fn()
 
     // @ts-expect-error
     browser.isMultiremote = false
@@ -459,7 +487,7 @@ test('after for RDC', async () => {
     const service = new SauceService({}, {}, {} as any)
     service['_browser'] = browser
     browser.capabilities = {}
-    service.setAnnotation = jest.fn()
+    service.setAnnotation = vi.fn()
     service['_isServiceEnabled'] = true
     service['_isRDC'] = true
     service['_failures'] = 5
@@ -483,14 +511,15 @@ test('after for RDC with multi remote', async () => {
         { user: 'foobar', key: '123' } as any
     )
     service['_browser'] = browser
-    service.beforeSession()
+    // @ts-expect-error
+    service.beforeSession({})
     browser.capabilities = {}
     service['_isServiceEnabled'] = true
     service['_isRDC'] = true
     service['_failures'] = 0
-    service['_uploadLogs'] = jest.fn()
-    service.setAnnotation = jest.fn()
-    ;(isRDC as jest.Mock).mockImplementation(() => true)
+    service['_uploadLogs'] = vi.fn()
+    service.setAnnotation = vi.fn()
+    vi.mocked(isRDC).mockImplementation(() => true)
 
     browser.isMultiremote = true
     // @ts-expect-error
@@ -501,8 +530,8 @@ test('after for RDC with multi remote', async () => {
     expect(service.setAnnotation).toBeCalledWith('sauce:job-result=true')
     expect(service.setAnnotation).toBeCalledWith('sauce:job-result=true')
     expect(service.setAnnotation).toBeCalledWith('sauce:job-result=true')
-    expect(service['_uploadLogs']).toBeCalledTimes(0)
-    ;(isRDC as jest.Mock).mockImplementation(() => false)
+    expect(service['_uploadLogs']).toBeCalledTimes(3)
+    vi.mocked(isRDC).mockImplementation(() => false)
 })
 
 test('_uploadLogs should not upload if option is not set in config', async () => {
@@ -512,7 +541,8 @@ test('_uploadLogs should not upload if option is not set in config', async () =>
         { outputDir: '/foo/bar' } as any
     )
     await service['_uploadLogs']('123')
-    expect((got as any as jest.Mock).mock.calls).toHaveLength(0)
+    expect(vi.mocked(service['_api'].uploadJobAssets).mock.calls)
+        .toHaveLength(0)
 })
 
 test('_uploadLogs should upload', async () => {
@@ -521,15 +551,18 @@ test('_uploadLogs should upload', async () => {
         {},
         { outputDir: '/foo/bar' } as any
     )
-    const api = { uploadJobAssets: jest.fn().mockResolvedValue({}) }
+    const api = { uploadJobAssets: vi.fn().mockResolvedValue({}) }
     service['_api'] = api as any
-    await service.beforeSession(null as never, null as never, null as never, '1-0')
+    await service.beforeSession({} as any, null as never, null as never, '1-0')
     await service['_uploadLogs']('123')
     expect(api.uploadJobAssets).toBeCalledTimes(1)
     expect(api.uploadJobAssets.mock.calls[0][1].files).toHaveLength(3)
-    expect(api.uploadJobAssets.mock.calls[0][1].files).toContain(path.sep + path.join('foo', 'bar', 'wdio-1-0-browser.log'))
-    expect(api.uploadJobAssets.mock.calls[0][1].files).toContain(path.sep + path.join('foo', 'bar', 'wdio-1-0-driver.log'))
-    expect(api.uploadJobAssets.mock.calls[0][1].files).toContain(path.sep + path.join('foo', 'bar', 'wdio-1-0.log'))
+    expect(api.uploadJobAssets.mock.calls[0][1].files)
+        .toContain(path.sep + path.join('foo', 'bar', 'wdio-1-0-browser.log'))
+    expect(api.uploadJobAssets.mock.calls[0][1].files)
+        .toContain(path.sep + path.join('foo', 'bar', 'wdio-1-0-driver.log'))
+    expect(api.uploadJobAssets.mock.calls[0][1].files)
+        .toContain(path.sep + path.join('foo', 'bar', 'wdio-1-0.log'))
 })
 
 test('_uploadLogs should not fail in case of a platform error', async () => {
@@ -538,7 +571,7 @@ test('_uploadLogs should not fail in case of a platform error', async () => {
         {},
         { outputDir: '/foo/bar' } as any
     )
-    ;(got as any as jest.Mock).mockRejectedValueOnce(new Error('upps'))
+    vi.mocked(service['_api'].uploadJobAssets).mockRejectedValueOnce(new Error('upps'))
     expect(log.error).toHaveBeenCalledTimes(0)
     await service['_uploadLogs']('123')
     expect(log.error).toHaveBeenCalledTimes(1)
@@ -547,9 +580,10 @@ test('_uploadLogs should not fail in case of a platform error', async () => {
 test('after with bail set', async () => {
     const service = new SauceService({}, {}, { user: 'foobar', key: '123', mochaOpts: { bail: 1 } } as any)
     service['_browser'] = browser
-    service.beforeSession()
+    // @ts-expect-error
+    service.beforeSession({})
     service['_failures'] = 5
-    service.updateJob = jest.fn()
+    service.updateJob = vi.fn()
 
     // @ts-expect-error
     browser.isMultiremote = false
@@ -563,9 +597,10 @@ test('after with bail set', async () => {
 test('beforeScenario should not set context if no sauce user was applied', async () => {
     const service = new SauceService({}, {}, {} as any)
     service['_browser'] = browser
-    service.beforeSession()
+    // @ts-expect-error
+    service.beforeSession({})
     service['_failures'] = 5
-    service.updateJob = jest.fn()
+    service.updateJob = vi.fn()
 
     // @ts-expect-error
     browser.isMultiremote = false
@@ -584,9 +619,10 @@ test('after in multiremote', async () => {
     }
     const service = new SauceService({}, caps, { user: 'foobar', key: '123' } as any)
     service['_browser'] = browser
-    service.beforeSession()
+    // @ts-expect-error
+    service.beforeSession({})
     service['_failures'] = 5
-    service.updateJob = jest.fn()
+    service.updateJob = vi.fn()
 
     browser.isMultiremote = true
     // @ts-expect-error
@@ -601,9 +637,10 @@ test('after in multiremote', async () => {
 test('onReload', () => {
     const service = new SauceService({}, {}, { user: 'foobar', key: '123' } as any)
     service['_browser'] = browser
-    service.beforeSession()
+    // @ts-expect-error
+    service.beforeSession({})
     service['_failures'] = 5
-    service.updateJob = jest.fn()
+    service.updateJob = vi.fn()
 
     // @ts-expect-error
     browser.isMultiremote = false
@@ -619,9 +656,10 @@ test('onReload', () => {
 test('onReload without failures', () => {
     const service = new SauceService({}, {}, { user: 'foobar', key: '123' } as any)
     service['_browser'] = browser
-    service.beforeSession()
+    // @ts-expect-error
+    service.beforeSession({})
     service['_failures'] = 0
-    service.updateJob = jest.fn()
+    service.updateJob = vi.fn()
 
     // @ts-expect-error
     browser.isMultiremote = false
@@ -637,9 +675,10 @@ test('onReload without failures', () => {
 test('onReload should not set context if no sauce user was applied', () => {
     const service = new SauceService({}, {}, {} as any)
     service['_browser'] = browser
-    service.beforeSession()
+    // @ts-expect-error
+    service.beforeSession({})
     service['_failures'] = 5
-    service.updateJob = jest.fn()
+    service.updateJob = vi.fn()
 
     // @ts-expect-error
     browser.isMultiremote = false
@@ -658,44 +697,51 @@ test('after in multiremote', () => {
     }
     const service = new SauceService({}, caps, { user: 'foobar', key: '123' } as any)
     service['_browser'] = browser
-    service.beforeSession()
+    // @ts-expect-error
+    service.beforeSession({})
     service['_failures'] = 5
-    service.updateJob = jest.fn()
+    service.updateJob = vi.fn()
 
     browser.isMultiremote = true
     // @ts-expect-error
     browser.sessionId = 'foobar'
-    browser.chromeB.sessionId = 'newSessionChromeB'
+    browser.getInstance('chromeB').sessionId = 'newSessionChromeB'
     service.onReload('sessionChromeB', 'newSessionChromeB')
 
     expect(service.updateJob).toBeCalledWith('sessionChromeB', 5, true, 'chromeB')
 })
 
-test('updateJob for VMs', () => {
+test('updateJob for VMs', async () => {
     const service = new SauceService({}, {}, { user: 'foobar', key: '123' } as any)
     service['_browser'] = browser
-    service.beforeSession()
+    // @ts-expect-error
+    service.beforeSession({})
     service['_suiteTitle'] = 'my test'
 
-    service.updateJob('12345', 23, true)
+    await service.updateJob('12345', 23, true)
 
-    const [reqUri, reqCall] = (got.put as jest.Mock).mock.calls[0]
-    expect(reqUri).toBe('https://api.us-west-1.saucelabs.com/rest/v1/foobar/jobs/12345')
-    expect(reqCall.json).toEqual({ name: 'my test (1)', passed: false })
+    expect(vi.mocked(service['_api'].updateJob)).toBeCalledWith(
+        'foobar',
+        '12345',
+        { name: 'my test (1)', passed: false }
+    )
     expect(service['_failures']).toBe(0)
 })
 
 test('updateJob for VMs without calledOnReload', () => {
     const service = new SauceService({}, {}, { user: 'foobar', key: '123' } as any)
     service['_browser'] = browser
-    service.beforeSession()
+    // @ts-expect-error
+    service.beforeSession({})
     service['_suiteTitle'] = 'my test'
 
     service.updateJob('12345', 23)
 
-    const [reqUri, reqCall] = (got.put as jest.Mock).mock.calls[0]
-    expect(reqUri).toBe('https://api.us-west-1.saucelabs.com/rest/v1/foobar/jobs/12345')
-    expect(reqCall.json).toEqual({ passed: false })
+    expect(vi.mocked(service['_api'].updateJob)).toBeCalledWith(
+        'foobar',
+        '12345',
+        { passed: false }
+    )
     expect(service['_failures']).toBe(0)
 })
 
@@ -709,7 +755,8 @@ test('getBody', () => {
     }, {} as any)
     service['_browser'] = browser
     service['_suiteTitle'] = 'jojo'
-    service.beforeSession()
+    // @ts-expect-error
+    service.beforeSession({})
 
     expect(service.getBody(0)).toEqual({
         name: 'jobname',
@@ -754,7 +801,8 @@ test('getBody', () => {
     }, {} as any)
     service['_browser'] = browser
     service['_suiteTitle'] = 'jojo'
-    service.beforeSession()
+    // @ts-expect-error
+    service.beforeSession({})
 
     expect(service.getBody(0)).toEqual({
         name: 'jobname',
@@ -795,7 +843,8 @@ test('getBody with name Capability (JSON WP)', () => {
     }, {} as any)
     service['_browser'] = browser
     service['_suiteTitle'] = 'jojo'
-    service.beforeSession()
+    // @ts-expect-error
+    service.beforeSession({})
 
     expect(service.getBody(1)).toEqual({
         name: 'bizarre',
@@ -829,7 +878,8 @@ test('getBody with name Capability (W3C)', () => {
     }, {} as any)
     service['_browser'] = browser
     service['_suiteTitle'] = 'jojo'
-    service.beforeSession()
+    // @ts-expect-error
+    service.beforeSession({})
 
     expect(service.getBody(1)).toEqual({
         name: 'bizarre',
@@ -865,7 +915,8 @@ test('getBody with custom setJobName method', () => {
     }, {} as any)
     service['_browser'] = browser
     service['_suiteTitle'] = 'jojo'
-    service.beforeSession()
+    // @ts-expect-error
+    service.beforeSession({})
 
     expect(service.getBody(1)).toEqual({
         name: 'foobarloo',
@@ -882,7 +933,8 @@ test('getBody without multiremote', () => {
     }, {} as any)
     service['_browser'] = browser
     service['_suiteTitle'] = 'jojo'
-    service.beforeSession()
+    // @ts-expect-error
+    service.beforeSession({})
     service['_testCnt'] = 3
 
     // @ts-expect-error
@@ -899,7 +951,7 @@ test('getBody without multiremote', () => {
 
 test('afterHook', () => {
     const service = new SauceService({}, {}, {} as any)
-    service['_reportErrorLog'] = jest.fn()
+    service['_reportErrorLog'] = vi.fn()
     expect(service['_failures']).toBe(0)
     expect(service['_reportErrorLog']).toHaveBeenCalledTimes(0)
 
@@ -919,8 +971,8 @@ test('afterHook', () => {
 
 test('strip ansi from _reportErrorLog', () => {
     const service = new SauceService({}, {}, {} as any)
-    service['_browser'] = { execute: jest.fn() } as any
-    service.setAnnotation = jest.fn()
+    service['_browser'] = { execute: vi.fn() } as any
+    service.setAnnotation = vi.fn()
     const error = new Error('Received: [31m""[39m')
     service['_reportErrorLog'](error)
     expect(service.setAnnotation).toBeCalledWith('sauce:context=Error: Received: ""')
@@ -928,8 +980,8 @@ test('strip ansi from _reportErrorLog', () => {
 
 test('_reportErrorLog without error stack', () => {
     const service = new SauceService({}, {}, {} as any)
-    service['_browser'] = { execute: jest.fn() } as any
-    service.setAnnotation = jest.fn()
+    service['_browser'] = { execute: vi.fn() } as any
+    service.setAnnotation = vi.fn()
     const error = { name: 'name', message: 'message' }
     service['_reportErrorLog'](error)
     expect(service.setAnnotation).toBeCalledWith('sauce:context=')
@@ -960,19 +1012,22 @@ test('setAnnotation for VDC and RDC with multi remote', async () => {
     }
     const service = new SauceService({}, caps, {} as any)
     service['_browser'] = browser
-    ;(isRDC as jest.Mock).mockReturnValueOnce(true)
+    vi.mocked(isRDC).mockReturnValueOnce(true)
     browser.isMultiremote = true
     // @ts-expect-error
     browser.sessionId = 'foobar'
     await service.setAnnotation('sauce:context=foo')
 
-    expect(browser.execute).toBeCalledTimes(2)
-    expect(browser.execute).toBeCalledWith('sauce:context=foo')
-    expect(browser.execute).toBeCalledWith('sauce:context=foo')
+    const browserChromeA = browser.getInstance('chromeA')
+    const browserChromeB = browser.getInstance('chromeB')
+    const browserChromeC = browser.getInstance('chromeC')
+
+    expect(browserChromeA.execute).toBeCalledWith('sauce:context=foo')
+    expect(browserChromeB.execute).toBeCalledWith('sauce:context=foo')
+    expect(browserChromeC.execute).toBeCalledWith('sauce:context=foo')
 })
 
 afterEach(() => {
     // @ts-ignore
     browser = undefined
-    ;(got.put as jest.Mock).mockClear()
 })

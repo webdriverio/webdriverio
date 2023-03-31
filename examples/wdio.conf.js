@@ -37,7 +37,7 @@ exports.config = {
     // Specify Test Files
     // ==================
     // Define which test specs should run. The pattern is relative to the directory
-    // from which `wdio` was called.
+    // of the configuration file being run.
     //
     // The specs are defined as an array of spec files (optionally using wildcards
     // that will be expanded). The test for each spec file will be run in a separate
@@ -72,6 +72,15 @@ exports.config = {
     // and 30 processes will get spawned. The property handles how many capabilities
     // from the same test should run tests.
     maxInstances: 10,
+    //
+    // Or set a limit to run tests with a specific capability.
+    maxInstancesPerCapability: 10,
+    //
+    // Inserts WebdriverIO's globals (e.g. `browser`, `$` and `$$`) into the global environment.
+    // If you set to `false`, you should import from `@wdio/globals`. Note: WebdriverIO doesn't
+    // handle injection of test framework specific globals.
+    //
+    injectGlobals: true,
     //
     // If you have trouble getting all important capabilities together, check out the
     // Sauce Labs platform configurator - a great tool to configure your capabilities:
@@ -195,7 +204,7 @@ exports.config = {
         // Configure how ts-node is automatically included when present
         tsNodeOpts: {
             transpileOnly: true,
-            project: 'tsconfig.json'
+            project: './path/to/tsconfig.json'
         },
 
         // If you have tsconfig-paths installed and provide a tsConfigPathsOpts
@@ -226,13 +235,22 @@ exports.config = {
     /**
      * Gets executed before a worker process is spawned and can be used to initialise specific service
      * for that worker as well as modify runtime environments in an async fashion.
-     * @param  {String} cid      capability id (e.g 0-0)
-     * @param  {[type]} caps     object containing capabilities for session that will be spawn in the worker
-     * @param  {[type]} specs    specs to be run in the worker process
-     * @param  {[type]} args     object that will be merged with the main configuration once worker is initialised
-     * @param  {[type]} execArgv list of string arguments passed to the worker process
+     * @param  {String}   cid      capability id (e.g 0-0)
+     * @param  {[type]}   caps     object containing capabilities for session that will be spawn in the worker
+     * @param  {String[]} specs    specs to be run in the worker process
+     * @param  {[type]}   args     object that will be merged with the main configuration once worker is initialised
+     * @param  {[type]}   execArgv list of string arguments passed to the worker process
      */
     onWorkerStart: function (cid, caps, specs, args, execArgv) {
+    },
+    /**
+     * Gets executed just after a worker process has exited.
+     * @param  {String}   cid      capability id (e.g 0-0)
+     * @param  {Number}   exitCode exit code returned from worker process
+     * @param  {String[]} specs    specs to be run in the worker process
+     * @param  {Number}   retries  number of retries used
+     */
+    onWorkerEnd: function (cid, exitCode, specs, retries) {
     },
     /**
      * Gets executed just before initialising the webdriver session and test framework. It allows you

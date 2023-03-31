@@ -1,11 +1,10 @@
-import type { executeHooksWithArgs, executeAsync, runSync } from '../shim'
+import type { executeHooksWithArgs, executeAsync } from '../shim.js'
 
 export type HookFnArgs<T> = (ctx: T) => [unknown, T]
 
 export interface WrapperMethods {
     executeHooksWithArgs: typeof executeHooksWithArgs
     executeAsync: typeof executeAsync
-    runSync: typeof runSync
 }
 
 export interface SpecFunction {
@@ -21,10 +20,6 @@ export interface BeforeHookParam<T> {
 export interface AfterHookParam<T> {
     afterFn: Function | Function[]
     afterFnArgs: HookFnArgs<T>
-}
-
-export interface JasmineContext {
-    failedExpectations: Array<Record<string, unknown>>
 }
 
 export type SpecArguments = (

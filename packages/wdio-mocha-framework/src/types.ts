@@ -1,5 +1,4 @@
-import type { Options } from '@wdio/types'
-import type Mocha from 'mocha'
+export { default } from 'mocha'
 
 export interface MochaOpts {
     /**
@@ -74,10 +73,6 @@ export interface MochaOpts {
     ui?: 'bdd' | 'tdd' | 'qunit' | 'exports';
 }
 
-export interface MochaConfig extends Required<Options.Testrunner> {
-    mochaOpts: MochaOpts
-}
-
 export interface MochaError {
     name: string
     message: string
@@ -108,11 +103,4 @@ export interface FormattedMessage {
     currentTest?: string
     error?: MochaError
     context?: any
-}
-
-export interface MochaContext {
-    context: Mocha.MochaGlobals
-    file: string
-    mocha: Mocha
-    options: MochaOpts
 }

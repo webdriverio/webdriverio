@@ -1,11 +1,12 @@
-import TestStats from '../../src/stats/test'
+import { describe, beforeEach, it, afterEach, expect, vi } from 'vitest'
+import TestStats from '../../src/stats/test.js'
 
 describe('RunnableStats', () => {
     let stat: TestStats
-    let DateOrig = Date
+    const DateOrig = Date
 
     beforeEach(() => {
-        global.Date = jest.fn() as any
+        global.Date = vi.fn() as any
         stat = new TestStats({
             type: 'test:start',
             title: 'should can do something',
@@ -15,7 +16,7 @@ describe('RunnableStats', () => {
             cid: '0-0',
             specs: ['/path/to/test/specs/sync.spec.js'],
             uid: 'should can do something3',
-            argument: { rows: [{ location: { column: 1, line: 1 }, value: 'hallo' }] }
+            argument: { rows: [{ location: { column: 1, line: 1 }, value: 'hallo' } as any] }
         })
     })
 
@@ -30,8 +31,8 @@ describe('RunnableStats', () => {
     })
 
     it('complete', () => {
-        stat.start = { getTime: jest.fn().mockReturnValue(3) } as any
-        global.Date = jest.fn().mockReturnValue({
+        stat.start = { getTime: vi.fn().mockReturnValue(3) } as any
+        global.Date = vi.fn().mockReturnValue({
             getTime: () => 45
         }) as any
         stat.complete()
@@ -40,8 +41,8 @@ describe('RunnableStats', () => {
     })
 
     it('duration', () => {
-        stat.start = { getTime: jest.fn().mockReturnValue(3) } as any
-        global.Date = jest.fn().mockReturnValue({
+        stat.start = { getTime: vi.fn().mockReturnValue(3) } as any
+        global.Date = vi.fn().mockReturnValue({
             getTime: () => 45
         }) as any
         expect(stat.duration).toBe(42)

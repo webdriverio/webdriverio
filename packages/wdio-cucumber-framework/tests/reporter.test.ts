@@ -1,7 +1,9 @@
-import { EventEmitter } from 'events'
-import { TestStepFinished, TestStepResultStatus, TestStepStarted } from '@cucumber/messages'
+import { EventEmitter } from 'node:events'
+import { describe, expect, it, vi, afterEach, beforeEach, beforeAll } from 'vitest'
+import type { TestStepFinished, TestStepStarted } from '@cucumber/messages'
+import { TestStepResultStatus } from '@cucumber/messages'
 
-import CucumberReporter from '../src/reporter'
+import CucumberReporter from '../src/reporter.js'
 import {
     gherkinDocument,
     pickle,
@@ -12,17 +14,31 @@ import {
     testStepFinished,
     testCaseFinished,
     testRunFinished
-} from './fixtures/envelopes'
+} from './fixtures/envelopes.js'
+
+vi.mock('@cucumber/messages', () => ({
+    IdGenerator: { incrementing: vi.fn() },
+    TestStepResultStatus: {
+        UNKNOWN: 'UNKNOWN',
+        PASSED: 'PASSED',
+        SKIPPED: 'SKIPPED',
+        PENDING: 'PENDING',
+        UNDEFINED: 'UNDEFINED',
+        AMBIGUOUS: 'AMBIGUOUS',
+        FAILED: 'FAILED'
+    }
+}))
 
 const wdioReporter = {
-    write: jest.fn(),
-    emit: jest.fn(),
-    on: jest.fn()
+    write: vi.fn(),
+    emit: vi.fn(),
+    on: vi.fn()
 }
 
 const buildGherkinDocEvent = () => gherkinDocument
 const gherkinDocEvent = buildGherkinDocEvent()
 const gherkinDocEventNoLine = buildGherkinDocEvent()
+// @ts-expect-error
 delete gherkinDocEventNoLine.feature?.location?.line
 
 const loadGherkin = (eventBroadcaster: EventEmitter) =>

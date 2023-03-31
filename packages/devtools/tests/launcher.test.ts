@@ -1,36 +1,43 @@
-import puppeteer from 'puppeteer-core'
-import { launch as launchChromeBrowserImport } from 'chrome-launcher'
+import path from 'node:path'
+import { expect, vi, beforeEach, test } from 'vitest'
+import puppeteer, { Puppeteer } from 'puppeteer-core'
+import { launch as launchChromeBrowser } from 'chrome-launcher'
 
-import launch from '../src/launcher'
+import launch from '../src/launcher.js'
 
-const launchChromeBrowser = launchChromeBrowserImport as jest.Mock
-const expect = global.expect as unknown as jest.Expect
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock('puppeteer-core', () => import(path.join(process.cwd(), '__mocks__', 'puppeteer-core')))
+vi.mock('chrome-launcher', () => import(path.join(process.cwd(), '__mocks__', 'chrome-launcher')))
 
-jest.mock('../src/finder/firefox', () => ({
-    darwin: jest.fn().mockReturnValue(['/path/to/firefox']),
-    linux: jest.fn().mockReturnValue(['/path/to/firefox']),
-    win32: jest.fn().mockReturnValue(['/path/to/firefox'])
+vi.mock('../src/finder/firefox', () => ({
+    default: {
+        darwin: vi.fn().mockReturnValue(['/path/to/firefox']),
+        linux: vi.fn().mockReturnValue(['/path/to/firefox']),
+        win32: vi.fn().mockReturnValue(['/path/to/firefox'])
+    }
 }))
 
-jest.mock('../src/finder/edge', () => ({
-    darwin: jest.fn().mockReturnValue(['/path/to/edge']),
-    linux: jest.fn().mockReturnValue(['/path/to/edge']),
-    win32: jest.fn().mockReturnValue(['/path/to/edge'])
+vi.mock('../src/finder/edge', () => ({
+    default: {
+        darwin: vi.fn().mockReturnValue(['/path/to/edge']),
+        linux: vi.fn().mockReturnValue(['/path/to/edge']),
+        win32: vi.fn().mockReturnValue(['/path/to/edge'])
+    }
 }))
 
 beforeEach(() => {
-    (puppeteer.connect as jest.Mock).mockClear()
-    ;(puppeteer.launch as jest.Mock).mockClear()
-    launchChromeBrowser.mockClear()
+    vi.mocked(puppeteer.connect).mockClear()
+    vi.mocked(puppeteer.launch).mockClear()
+    vi.mocked(launchChromeBrowser).mockClear()
 })
 
 test('launch chrome with default values', async () => {
     const browser = await launch({
         browserName: 'chrome'
     })
-    expect(launchChromeBrowser.mock.calls).toMatchSnapshot()
-    expect((puppeteer.connect as jest.Mock).mock.calls).toMatchSnapshot()
-    expect(puppeteer.registerCustomQueryHandler).toBeCalledWith(
+    expect(vi.mocked(launchChromeBrowser).mock.calls).toMatchSnapshot()
+    expect(vi.mocked(puppeteer.connect).mock.calls).toMatchSnapshot()
+    expect(Puppeteer.registerCustomQueryHandler).toBeCalledWith(
         'shadow',
         {
             queryAll: expect.any(Function),
@@ -58,7 +65,7 @@ test('launch chrome with chrome arguments', async () => {
             }
         }
     })
-    expect(launchChromeBrowser.mock.calls).toMatchSnapshot()
+    expect(vi.mocked(launchChromeBrowser).mock.calls).toMatchSnapshot()
     expect(puppeteer.launch).toBeCalledTimes(0)
 })
 
@@ -74,7 +81,7 @@ test('launch chrome with defaultViewport in wdio:devtoolsOptions', async () => {
             }
         }
     })
-    expect(launchChromeBrowser.mock.calls).toMatchSnapshot()
+    expect(vi.mocked(launchChromeBrowser).mock.calls).toMatchSnapshot()
     expect(puppeteer.launch).toBeCalledTimes(0)
 })
 
@@ -85,8 +92,8 @@ test('launch chrome without default flags and without puppeteer default args', a
             ignoreDefaultArgs: true
         }
     })
-    expect(launchChromeBrowser.mock.calls).toMatchSnapshot()
-    expect((puppeteer.connect as jest.Mock).mock.calls).toMatchSnapshot()
+    expect(vi.mocked(launchChromeBrowser).mock.calls).toMatchSnapshot()
+    expect(vi.mocked(puppeteer.connect).mock.calls).toMatchSnapshot()
 
     const pages = await browser.pages()
     expect(pages[0].close).toBeCalled()
@@ -103,7 +110,7 @@ test('overriding chrome default flags', async () => {
             args: ['--enable-features=NetworkService']
         }
     })
-    expect(launchChromeBrowser.mock.calls).toMatchSnapshot()
+    expect(vi.mocked(launchChromeBrowser).mock.calls).toMatchSnapshot()
 
     const pages = await browser.pages()
     expect(pages[0].close).toBeCalled()
@@ -122,10 +129,13 @@ test('overriding chrome default flags (backwards compat)', async () => {
             // possible with old format
             // @ts-ignore
             headless: true,
-            args: ['--enable-features=NetworkService']
+            args: ['--enable-features=NetworkService'],
+            prefs: {
+                bar: 'foo'
+            }
         }
     })
-    expect(launchChromeBrowser.mock.calls).toMatchSnapshot()
+    expect(vi.mocked(launchChromeBrowser).mock.calls).toMatchSnapshot()
 
     const pages = await browser.pages()
     expect(pages[0].close).toBeCalled()
@@ -139,7 +149,7 @@ test('launch chrome with custom user data dir', async () => {
             args: ['enable-features=NetworkService', 'someOtherFlag', 'user-data-dir=/foo/bar', 'anotherFlag']
         }
     })
-    expect(launchChromeBrowser.mock.calls).toMatchSnapshot()
+    expect(vi.mocked(launchChromeBrowser).mock.calls).toMatchSnapshot()
 })
 
 test('launch chrome with chrome port', async () => {
@@ -150,7 +160,7 @@ test('launch chrome with chrome port', async () => {
             customPort: 8041
         }
     })
-    expect(launchChromeBrowser.mock.calls).toMatchSnapshot()
+    expect(vi.mocked(launchChromeBrowser).mock.calls).toMatchSnapshot()
     expect(puppeteer.launch).toBeCalledTimes(0)
 
     const pages = await browser.pages()
@@ -163,52 +173,18 @@ test('throws an error if an unknown deviceName is picked', async () => {
         'goog:chromeOptions': {
             mobileEmulation: {
                 deviceName: 'Cool Nexus 5'
+            },
+            prefs: {
+                foo: 'bar'
             }
         }
     }).catch((err) => err)
     expect(err.message).toContain('Unknown device name "Cool Nexus 5"')
 })
 
-test('launch Firefox with default values', async () => {
-    expect.assertions(1)
-
-    try {
-        await launch({ browserName: 'firefox' })
-    } catch (err: any) {
-        expect(err.message).toContain('Only Nightly release channel is supported')
-    }
-})
-
 test('launch Firefox with custom arguments', async () => {
-    expect.assertions(1)
-
-    try {
-        await launch({
-            browserName: 'firefox',
-            'moz:firefoxOptions': {
-                args: ['foobar'],
-                binary: '/foo/bar'
-            },
-            'wdio:devtoolsOptions': {
-                headless: true,
-                defaultViewport: {
-                    width: 123,
-                    height: 456
-                }
-            }
-        })
-    } catch (err: any) {
-        expect(err.message).toContain('Only Nightly release channel is supported')
-    }
-})
-
-test('launch Firefox Nightly with custom arguments', async () => {
     await launch({
         browserName: 'firefox',
-        'moz:firefoxOptions': {
-            args: ['foobar'],
-            binary: '/foo/firefox-nightly'
-        },
         'wdio:devtoolsOptions': {
             headless: true,
             defaultViewport: {
@@ -217,14 +193,14 @@ test('launch Firefox Nightly with custom arguments', async () => {
             }
         }
     })
-    expect((puppeteer.launch as jest.Mock).mock.calls).toMatchSnapshot()
+    expect(vi.mocked(puppeteer.launch).mock.calls).toMatchSnapshot()
 })
 
 test('launch Edge with default values', async () => {
     await launch({
         browserName: 'edge'
     })
-    expect((puppeteer.launch as jest.Mock).mock.calls).toMatchSnapshot()
+    expect(vi.mocked(puppeteer.launch).mock.calls).toMatchSnapshot()
 })
 
 test('launch Edge with custom arguments', async () => {
@@ -241,7 +217,7 @@ test('launch Edge with custom arguments', async () => {
             }
         }
     })
-    expect((puppeteer.launch as jest.Mock).mock.calls).toMatchSnapshot()
+    expect(vi.mocked(puppeteer.launch).mock.calls).toMatchSnapshot()
 })
 
 test('throws if browser is unknown', async () => {
@@ -265,63 +241,24 @@ test('launch Firefox Nightly without Puppeteer default args', async () => {
             ignoreDefaultArgs: true
         }
     })
-    expect((puppeteer.launch as jest.Mock).mock.calls).toMatchSnapshot()
+    expect(vi.mocked(puppeteer.launch).mock.calls).toMatchSnapshot()
 })
 
 test('launch Firefox Nightly binary without Puppeteer default args', async () => {
     await launch({
         browserName: 'firefox',
         'moz:firefoxOptions': {
-            binary: 'firefox'
+            binary: 'firefox',
+            prefs: {
+                foo: 'bar'
+            }
         },
         'wdio:devtoolsOptions': {
             ignoreDefaultArgs: true,
             headless: true
         }
     })
-    expect((puppeteer.launch as jest.Mock).mock.calls).toMatchSnapshot()
-})
-
-test('launch Firefox without Puppeteer default args', async () => {
-    expect.assertions(1)
-
-    try {
-        await launch({
-            browserName: 'firefox',
-            'moz:firefoxOptions': {
-                binary: '/foo/firefox'
-            },
-            'wdio:devtoolsOptions': {
-                headless: true,
-                ignoreDefaultArgs: true
-            }
-        })
-    } catch (err: any) {
-        expect(err.message).toContain('Only Nightly release channel is supported')
-    }
-})
-
-test('launch Firefox without Puppeteer default args (backwards compat)', async () => {
-    expect.assertions(1)
-
-    try {
-        await launch({
-            browserName: 'firefox',
-            'moz:firefoxOptions': {
-                binary: '/foo/firefox',
-                // ignore type check as we want to test whether it is still
-                // possible with old format
-                // @ts-ignore
-                headless: true,
-            },
-            // ignore type check as we want to test whether it is still
-            // possible with old format
-            // @ts-ignore
-            ignoreDefaultArgs: true
-        })
-    } catch (err: any) {
-        expect(err.message).toContain('Only Nightly release channel is supported')
-    }
+    expect(vi.mocked(puppeteer.launch).mock.calls).toMatchSnapshot()
 })
 
 test('launch Edge without Puppeteer default args', async () => {
@@ -332,7 +269,7 @@ test('launch Edge without Puppeteer default args', async () => {
             headless: true
         }
     })
-    expect((puppeteer.launch as jest.Mock).mock.calls).toMatchSnapshot()
+    expect(vi.mocked(puppeteer.launch).mock.calls).toMatchSnapshot()
 })
 
 test('launch Edge without Puppeteer default args (backwards compat)', async () => {
@@ -346,10 +283,13 @@ test('launch Edge without Puppeteer default args (backwards compat)', async () =
             // ignore type check as we want to test whether it is still
             // possible with old format
             // @ts-ignore
-            headless: true
+            headless: true,
+            prefs: {
+                foo: 'bar'
+            }
         }
     })
-    expect((puppeteer.launch as jest.Mock).mock.calls).toMatchSnapshot()
+    expect(vi.mocked(puppeteer.launch).mock.calls).toMatchSnapshot()
 })
 
 test('connect to existing browser session', async () => {
@@ -360,7 +300,7 @@ test('connect to existing browser session', async () => {
         }
     })
     expect(puppeteer.launch).not.toBeCalled()
-    expect(puppeteer.connect as jest.Mock)
+    expect(vi.mocked(puppeteer.connect))
         .toBeCalledWith({ browserURL: 'http://localhost:12345' })
 })
 
@@ -373,7 +313,7 @@ test('connect to an existing devtools websocket', async () => {
         }
     })
     expect(puppeteer.launch).not.toBeCalled()
-    expect(puppeteer.connect as jest.Mock)
+    expect(vi.mocked(puppeteer.connect))
         .toBeCalledWith({ browserWSEndpoint: 'wss://cloud.vendor.com' })
 })
 
@@ -388,6 +328,6 @@ test('connect to an existing devtools browser url', async () => {
         'wdio:devtoolsOptions': devtoolsOptions
     })
     expect(puppeteer.launch).not.toBeCalled()
-    expect(puppeteer.connect as jest.Mock)
+    expect(vi.mocked(puppeteer.connect))
         .toBeCalledWith(devtoolsOptions)
 })

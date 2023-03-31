@@ -1,0 +1,111 @@
+// Vitest Snapshot v1
+
+exports[`returns mock file 1`] = `
+"export const foo = window.__wdioMockFactories__['mocked']['foo'];
+export const bar = window.__wdioMockFactories__['mocked']['bar'];
+export default window.__wdioMockFactories__['mocked'].default;"
+`;
+
+exports[`returns mock for prebundled dep 1`] = `"export default window.__wdioMockFactories__['algoliasearch/lite'].default;"`;
+
+exports[`returns mock for relative file import 1`] = `
+"export const HEADING = window.__wdioMockFactories__['/path/to/project/constants']['HEADING'];
+export default window.__wdioMockFactories__['/path/to/project/constants'];"
+`;
+
+exports[`transforms test file properly for mocking 1`] = `
+PrintResult {
+  "code": "import { spyOn, mock, unmock as foobar, fn } from '@wdio/browser-runner'
+
+await mock('./components/constants.ts', async (getOrigModule) => {
+    const mod = await getOrigModule()
+    return {
+        GREETING: mod.GREETING + ' Sir'
+    }
+});
+
+await mock('graphql-request', () => ({
+    gql: fn(),
+    GraphQLClient: class GraphQLClientMock {
+        request = fn().mockResolvedValue({ result: 'Thanks for your answer!' })
+    }
+}));
+
+const {
+    default: React,
+    FC: FC
+} = await import(\\"react\\");
+
+const {
+    expect: expect,
+    $: $
+} = await import(\\"@wdio/globals\\");
+
+const {
+    html: html,
+    render: render
+} = await import(\\"lit\\");
+
+const matchers = await import(\\"@testing-library/jest-dom/matchers\\");
+
+const {
+    default: defaultExport,
+    namedExportValue: namedExportValue
+} = await import(\\"someModule\\");
+
+const {
+    SimpleGreeting: SimpleGreeting
+} = await import(\\"./components/LitComponent.ts\\");
+
+const getQuestionFn = spyOn(SimpleGreeting.prototype, 'getQuestion')
+
+describe('Some test', () => {
+    it('should tests something', async () => {
+        // ...
+    })
+})
+",
+  "map": {
+    "mappings": "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",
+    "names": [],
+    "sourcesContent": [
+      "/* eslint-disable */
+import React, { FC } from 'react'
+import { expect, $ } from '@wdio/globals'
+import { spyOn, mock, unmock as foobar, fn } from '@wdio/browser-runner'
+import { html, render } from 'lit'
+import * as matchers from '@testing-library/jest-dom/matchers'
+
+import defaultExport, { namedExportValue } from 'someModule'
+
+import { SimpleGreeting } from './components/LitComponent.ts'
+
+const getQuestionFn = spyOn(SimpleGreeting.prototype, 'getQuestion')
+mock('./components/constants.ts', async (getOrigModule) => {
+    const mod = await getOrigModule()
+    return {
+        GREETING: mod.GREETING + ' Sir'
+    }
+})
+
+mock('graphql-request', () => ({
+    gql: fn(),
+    GraphQLClient: class GraphQLClientMock {
+        request = fn().mockResolvedValue({ result: 'Thanks for your answer!' })
+    }
+}))
+mock('foobar')
+
+foobar('hello')
+
+describe('Some test', () => {
+    it('should tests something', async () => {
+        // ...
+    })
+})
+",
+    ],
+    "version": 3,
+  },
+}
+`;

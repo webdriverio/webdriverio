@@ -7,7 +7,7 @@
  * $ npx babel-node ./examples/multiremote/webrtc.js
  */
 
-const { multiremote } = require('../../packages/webdriverio/build')
+const { multiremote } = require('../../packages/webdriverio/build/index.js')
 
 ;(async () => {
     const matrix = await multiremote({
@@ -38,7 +38,7 @@ const { multiremote } = require('../../packages/webdriverio/build')
         }
     })
 
-    var channel = Math.round(Math.random() * 10e10)
+    const channel = Math.round(Math.random() * 10e10)
 
     await matrix.url('https://apprtc.appspot.com/r/' + channel)
 

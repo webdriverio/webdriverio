@@ -1,5 +1,5 @@
-const path = require('path')
-const CustomService = require('./my.custom.service')
+const path = require('node:path')
+const CustomService = require('./my.custom.service.js')
 
 exports.config = {
     /**

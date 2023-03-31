@@ -1,16 +1,15 @@
-import 'core-js/modules/web.url'
 import logger from '@wdio/logger'
-import type { Browser, MultiRemoteBrowser } from 'webdriverio'
 
 import type { TraceEvent } from '@tracerbench/trace-event'
-import type { CDPSession } from 'puppeteer-core/lib/cjs/puppeteer/common/Connection'
-import type { Page } from 'puppeteer-core/lib/cjs/puppeteer/common/Page'
-import type { TracingOptions } from 'puppeteer-core/lib/cjs/puppeteer/common/Tracing'
+import type { CDPSession } from 'puppeteer-core/lib/esm/puppeteer/common/Connection.js'
+import type { Page } from 'puppeteer-core/lib/esm/puppeteer/api/Page.js'
+import type { TracingOptions } from 'puppeteer-core/lib/esm/puppeteer/common/Tracing.js'
 
-import NetworkHandler, { RequestPayload } from './handler/network'
+import type { RequestPayload } from './handler/network.js'
+import NetworkHandler from './handler/network.js'
 
-import { DEFAULT_TRACING_CATEGORIES } from './constants'
-import { sumByKey } from './utils'
+import { DEFAULT_TRACING_CATEGORIES } from './constants.js'
+import { sumByKey } from './utils.js'
 
 const log = logger('@wdio/devtools-service:CommandHandler')
 
@@ -22,7 +21,7 @@ export default class CommandHandler {
     constructor (
         private _session: CDPSession,
         private _page: Page,
-        browser: Browser<'async'> | MultiRemoteBrowser<'async'>
+        browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser
     ) {
         this._networkHandler = new NetworkHandler(_session)
 
@@ -102,6 +101,9 @@ export default class CommandHandler {
 
         try {
             const traceBuffer = await this._page.tracing.stop()
+            if (!traceBuffer) {
+                throw new Error('No tracebuffer captured')
+            }
             this._traceEvents = JSON.parse(traceBuffer.toString('utf8'))
             this._isTracing = false
         } catch (err: any) {

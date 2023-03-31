@@ -1,6 +1,5 @@
-import type DevToolsDriver from '../devtoolsdriver'
-
-import command from '../scripts/createWindow'
+import command from '../scripts/createWindow.js'
+import type DevToolsDriver from '../devtoolsdriver.js'
 
 const WINDOW_FEATURES = 'menubar=1,toolbar=1,location=1,resizable=1,scrollbars=1'
 const NEW_PAGE_URL = 'about:blank'

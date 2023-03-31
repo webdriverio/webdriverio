@@ -43,10 +43,10 @@ suite('my awesome website', () => {
 
 If you want to define other Mocha-specific settings, you can do it with the `mochaOpts` key in your configuration file. A list of all options can be found on the [Mocha project website](https://mochajs.org/api/mocha).
 
-__Note:__ Since all commands are running synchronously, there is no need to have async mode in Mocha enabled. Therefore, you can't use the `done` callback:
+__Note:__ WebdriverIO does not support the deprecated usage of `done` callbacks in Mocha:
 
 ```js
-it('should test something', () => {
+it('should test something', (done) => {
     done() // throws "done is not a function"
 })
 ```
@@ -187,7 +187,7 @@ commands the screenshot is taken anyway, which still gives _some_ valuable infor
 
 ### Jasmine Options
 
-The following options can be applied in your `wdio.conf.js` to configure your Jasmine environment using the `jasmineOpts` property:
+The following options can be applied in your `wdio.conf.js` to configure your Jasmine environment using the `jasmineOpts` property. For more information on these configuration options, check out the [Jasmine docs](https://jasmine.github.io/api/edge/Configuration).
 
 #### defaultTimeoutInterval
 Default Timeout Interval for Jasmine operations.
@@ -235,7 +235,7 @@ Default: `false`
 Function to use to filter specs.
 
 Type: `Function`<br />
-Default: `() => true`
+Default: `(spec) => true`
 
 #### grep
 Only run tests matching this string or regexp. (Only applicable if no custom `specFilter` function is set)
@@ -314,7 +314,7 @@ Treat undefined definitions as warnings. Please note that this is a @wdio/cucumb
 Type: `boolean`<br />
 Default: `false`
 
-#### name
+#### names
 Only execute the scenarios with name matching the expression (repeatable).
 
 Type: `RegExp[]`<br />

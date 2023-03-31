@@ -9,7 +9,6 @@ body .companyUsage h3 {
 
 .logos {
     overflow: hidden;
-    margin: 0 25px;
 }
 
 .logos ul {
@@ -17,12 +16,14 @@ body .companyUsage h3 {
     justify-content: space-around;
     width: 3200px;
     margin: 0;
+    padding: 0;
     transition: transform 1000ms ease;
 }
 
 @media screen and (max-width: 1100px) {
     .logos {
         margin: 0;
+        padding: 0;
     }
     .logos ul {
         padding: 0;

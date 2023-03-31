@@ -1,30 +1,36 @@
 import logger from '@wdio/logger'
 
-import { writeFile, deleteFile, getPidPath } from './utils'
-import { setPort } from './client'
+import { setPort } from './client.js'
+import type { SharedStoreServiceCapabilities } from './types.js'
 
 const log = logger('@wdio/shared-store-service')
 
 let server: SharedStoreServer
 
 export default class SharedStoreLauncher {
-    pidFile: string
-    constructor() {
-        // current process pid
-        this.pidFile = getPidPath(process.pid)
-    }
+    private _app?: PolkaInstance
 
-    async onPrepare () {
-        server = require('./server').default
-        const result = await server.startServer()
-        setPort(result.port)
+    async onPrepare (_: never, capabilities: SharedStoreServiceCapabilities[]) {
+        /**
+         * import during runtime to avoid unnecessary dependency loading
+         */
+        server = (await import('./server.js')) as SharedStoreServer
+        const { port, app } = await server.startServer()
+        this._app = app
+        setPort(port)
+        capabilities.forEach((capability) => {
+            capability['wdio:sharedStoreServicePort'] = port
+        })
 
-        log.info(`Started shared server on port ${result.port}`)
-        await writeFile(this.pidFile, result.port.toString())
+        log.info(`Started shared server on port ${port}`)
     }
 
     async onComplete () {
-        await server.stopServer()
-        await deleteFile(this.pidFile)
+        return new Promise<void>((resolve) => {
+            if (this._app && this._app.server.close) {
+                this._app.server.close(() => resolve())
+            }
+            return resolve()
+        })
     }
 }

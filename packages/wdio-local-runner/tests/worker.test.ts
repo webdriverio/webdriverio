@@ -1,12 +1,12 @@
-import type { ChildProcess } from 'child_process'
+import path from 'node:path'
+import type { ChildProcess } from 'node:child_process'
 import { WritableStreamBuffer } from 'stream-buffers'
+import { describe, expect, it, vi } from 'vitest'
 
 import logger from '@wdio/logger'
+import type { Workers } from '@wdio/types'
 
-import Worker from '../src/worker'
-import type { WorkerMessage } from '../src/types'
-
-const expect = global.expect as unknown as jest.Expect
+import Worker from '../src/worker.js'
 
 const workerConfig = {
     cid: '0-3',
@@ -17,12 +17,14 @@ const workerConfig = {
     retries: 0
 }
 
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+
 describe('handleMessage', () => {
     it('should emit payload with cid', () => {
         const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer())
-        worker.emit = jest.fn()
+        worker.emit = vi.fn()
 
-        worker['_handleMessage']({ foo: 'bar' } as unknown as WorkerMessage)
+        worker['_handleMessage']({ foo: 'bar' } as unknown as Workers.WorkerMessage)
         expect(worker.emit).toBeCalledWith('message', {
             foo: 'bar',
             cid: '0-3'
@@ -32,13 +34,19 @@ describe('handleMessage', () => {
     it('should un mark worker as busy if command is finished', () => {
         const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer())
         worker.isBusy = true
-        worker['_handleMessage']({ name: 'finisedCommand' } as unknown as WorkerMessage)
+        worker['_handleMessage']({ name: 'finishedCommand' } as unknown as Workers.WorkerMessage)
         expect(worker.isBusy).toBe(false)
+    })
+
+    it('should mark worker as ready if ready message was received', async () => {
+        const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer())
+        worker['_handleMessage']({ name: 'ready' } as unknown as Workers.WorkerMessage)
+        expect(await worker.isReady).toBe(true)
     })
 
     it('stores sessionId and connection data to worker instance', () => {
         const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer())
-        worker.emit = jest.fn()
+        worker.emit = vi.fn()
         const payload = {
             name: 'sessionStarted',
             content: {
@@ -46,10 +54,8 @@ describe('handleMessage', () => {
                 bar: 'foo'
             }
         }
-        worker['_handleMessage'](payload as unknown as WorkerMessage)
+        worker['_handleMessage'](payload as unknown as Workers.WorkerMessage)
         expect(worker.sessionId).toEqual('abc123')
-        expect(payload.content.sessionId).toBe(undefined)
-        expect(worker.emit).not.toBeCalled()
     })
 
     it('stores instances to worker instance in Multiremote mode', () => {
@@ -61,21 +67,21 @@ describe('handleMessage', () => {
                 isMultiremote: true
             }
         }
-        worker['_handleMessage'](payload as unknown as WorkerMessage)
+        worker['_handleMessage'](payload as unknown as Workers.WorkerMessage)
         expect(worker.instances).toEqual({ foo: { sessionId: 'abc123' } })
         expect(worker.isMultiremote).toEqual(true)
     })
 
     it('handle debug command called within worker process', async () => {
         const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer())
-        worker.emit = jest.fn()
-        worker.childProcess = { send: jest.fn() } as unknown as ChildProcess
+        worker.emit = vi.fn()
+        worker.childProcess = { send: vi.fn() } as unknown as ChildProcess
         worker['_handleMessage']({
             origin: 'debugger',
             name: 'start',
             content: {},
             params: {}
-        })
+        } as any)
         await new Promise((resolve) => setTimeout(resolve, 200))
 
         const expectedMessage = {
@@ -90,7 +96,7 @@ describe('handleMessage', () => {
 describe('handleError', () => {
     it('should emit error', () => {
         const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer())
-        worker.emit = jest.fn()
+        worker.emit = vi.fn()
         worker['_handleError']({ foo: 'bar' } as unknown as Error)
         expect(worker.emit).toBeCalledWith('error', {
             cid: '0-3',
@@ -102,10 +108,10 @@ describe('handleError', () => {
 describe('handleExit', () => {
     it('should handle it', () => {
         const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer())
-        const childProcess = { kill: jest.fn() }
+        const childProcess = { kill: vi.fn() }
         worker.childProcess = childProcess as unknown as ChildProcess
         worker.isBusy = true
-        worker.emit = jest.fn()
+        worker.emit = vi.fn()
         worker['_handleExit'](42)
 
         expect(worker.childProcess).toBe(undefined)
@@ -123,7 +129,7 @@ describe('postMessage', () => {
     it('should log if the cid is busy and exit', () => {
         const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer())
         const log = logger('webdriver')
-        jest.spyOn(log, 'info').mockImplementation((string) => string)
+        vi.spyOn(log, 'info').mockImplementation((string) => string)
 
         worker.isBusy = true
         worker.postMessage('test-message', {})
@@ -134,14 +140,25 @@ describe('postMessage', () => {
 
     it('should create a process if it does not have one', () => {
         const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer())
+        worker.isReady = Promise.resolve(true)
         worker.childProcess = undefined
-        jest.spyOn(worker, 'startProcess').mockImplementation(
-            () => ({ send: jest.fn() }) as unknown as ChildProcess)
+        vi.spyOn(worker, 'startProcess').mockImplementation(
+            () => ({ send: vi.fn() }) as unknown as ChildProcess)
         worker.postMessage('test-message', {})
 
         expect(worker.startProcess).toHaveBeenCalled()
         expect(worker.isBusy).toBeTruthy()
 
-        ;(worker.startProcess as jest.Mock).mockRestore()
+        vi.mocked(worker.startProcess).mockRestore()
+    })
+
+    it('should wait sending the command until worker is ready', async () => {
+        const worker = new Worker({} as any, workerConfig, new WritableStreamBuffer(), new WritableStreamBuffer())
+        worker.childProcess = { send: vi.fn() } as any
+        worker.postMessage('test-message', {})
+        expect(worker.childProcess!.send).toBeCalledTimes(0)
+        worker.isReadyResolver(true)
+        await worker.isReady
+        expect(worker.childProcess!.send).toBeCalledTimes(1)
     })
 })

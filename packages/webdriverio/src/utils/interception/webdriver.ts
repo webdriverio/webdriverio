@@ -1,6 +1,6 @@
-import Interception from '.'
-import { ERROR_REASON } from '../../constants'
-import type { Matches, MockResponseParams, MockOverwrite } from './types'
+import Interception from './index.js'
+import { ERROR_REASON } from '../../constants.js'
+import type { Matches, MockResponseParams, MockOverwrite } from './types.js'
 
 /**
  * Network interception class based on a WebDriver compliant endpoint.

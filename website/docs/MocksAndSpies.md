@@ -1,6 +1,6 @@
 ---
 id: mocksandspies
-title: Mocks and Spies
+title: Request Mocks and Spies
 ---
 
 WebdriverIO comes with built in support for modifying network responses that allows you to focus testing your frontend application without having to setup your backend or a mock server. You can define custom responses for web resources like REST API requests in your test and modify them dynamically.
@@ -62,7 +62,7 @@ console.log(await $$('#todo-list li').map(el => el.getText()))
 You can also modify the response headers as well as the status code by passing in some mock response params as follows:
 
 ```js
-mock.response({ ... }, {
+mock.respond({ ... }, {
     // respond with status code 404
     statusCode: 404,
     // merge response headers with following headers
@@ -73,7 +73,7 @@ mock.response({ ... }, {
 If you want the mock not to call the backend at all, you can pass `false` for the `fetchResponse` flag.
 
 ```js
-mock.response({ ... }, {
+mock.respond({ ... }, {
     // do not call the actual backend
     fetchResponse: false
 })
@@ -82,8 +82,9 @@ mock.response({ ... }, {
 It is recommend to store custom responses in fixture files so you can just require them in your test as follows:
 
 ```js
-const responseFixture = require('./__fixtures__/apiResponse.json')
-mock.response(responseFixture)
+// requires Node.js v16.14.0 or higher to support JSON import assertions
+import responseFixture from './__fixtures__/apiResponse.json' assert { type: 'json' }
+mock.respond(responseFixture)
 ```
 
 ### Mocking text resources

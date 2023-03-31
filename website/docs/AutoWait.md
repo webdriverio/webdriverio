@@ -29,7 +29,7 @@ We recommend __not__ using implicit waits at all and have WebdriverIO handle ele
 
 Using implicit waits is also problematic in cases you are interested to wait until an element disappears. WebdriverIO uses polls for the element until it receives an error. Having an implicit wait option set unnecessarily delays the execution of the command and can cause long test durations.
 
-You can set a default value for WebdriverIOs automatic explicit waiting by setting a [`waitforTimeout`](/docs/options#waitfortimeout) option in your configuration.
+You can set a default value for WebdriverIOs automatic explicit waiting by setting a [`waitforTimeout`](/docs/configuration#waitfortimeout) option in your configuration.
 
 ## Limitations
 

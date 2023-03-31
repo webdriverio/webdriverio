@@ -1,5 +1,5 @@
-import type { CDPSession } from 'puppeteer-core/lib/cjs/puppeteer/common/Connection'
-import { JsonCompatible } from '@wdio/types'
+import type { CDPSession } from 'puppeteer-core/lib/esm/puppeteer/common/Connection.js'
+import type { JsonCompatible } from '@wdio/types'
 
 /**
  * HTTP request data. (copied from the puppeteer-core package as there is currently

@@ -1,4 +1,5 @@
-import { SevereServiceError } from '../../src'
+import { describe, it, expect } from 'vitest'
+import { SevereServiceError } from '../../src/index.js'
 
 describe('SevereServiceError', () => {
     it('should provide unique error name', () => {

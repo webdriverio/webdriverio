@@ -8,13 +8,13 @@ Everyone who participates in this project, either as a user or a contributor, is
 
 ## Find A Way To Contribute
 
-The project offers a variety of ways to contribute. If you struggle to find something suited for you, join the WebdriverIO [support channel](https://gitter.im/webdriverio/webdriverio) on Gitter and reach out to the maintainer there. Don't be shy, they are there to help!
+The project offers a variety of ways to contribute. If you struggle to find something suited for you, join the WebdriverIO [support channel](https://matrix.to/#/#webdriver.io:gitter.im) on Matrix and reach out to the maintainer there. Don't be shy, they are there to help!
 
 You can participate by:
 
 - contributing code
 - improving documentation
-- help out in the [Gitter](https://gitter.im/webdriverio/webdriverio) support channel
+- help out in the [Matrix](https://matrix.to/#/#webdriver.io:gitter.im) support channel
 - create educational content (blog posts, tutorials, videos, etc.)
 - spread the good word about the project (e.g. via Twitter)
 - create bugs if you discover them while using WebdriverIO
@@ -27,7 +27,7 @@ If you want to contribute code, a general good first way to find a task to work 
 
 Often issues require some amount of context to the problem which makes it difficult to get an idea about what needs to be done. Depending on your experience using / working with the project this context can be missing. Often it helps to start with tasks around missing documentation or just increase test coverage of some parts in the code. After some time you will get more familiar with the codebase which allows you to pick up more difficult tasks.
 
-If you can't find something that suits you, look into the [project roadmap](https://github.com/webdriverio/webdriverio/blob/main/ROADMAP.md) to see if there is something interesting for you. At the end you can also _always_ reach out to the maintainers in the [Gitter](https://gitter.im/webdriverio/webdriverio) support channel. They are responsible to find a task for you.
+If you can't find something that suits you, look into the [project roadmap](https://github.com/webdriverio/webdriverio/blob/main/ROADMAP.md) to see if there is something interesting for you. At the end you can also _always_ reach out to the maintainers in the [Matrix](https://matrix.to/#/#webdriver.io:gitter.im) support channel. They are responsible to find a task for you.
 
 ## Reporting New Issues
 
@@ -38,7 +38,7 @@ When [opening a new issue](https://github.com/webdriverio/webdriverio/issues/new
 
 ### Security Bugs
 
-See [SECURITY.md](https://github.com/webdriverio/webdriverio/blob/main/SECURITY.md).
+See [SECURITY.md](https://github.com/webdriverio/webdriverio/blob/main/.github/SECURITY.md).
 
 ## Proposing a Change
 
@@ -64,7 +64,7 @@ The WebdriverIO maintainer will review your pull request as soon as possible. Th
 
 #### Set Up Project
 
-In order to set up this project and start contributing follow this step by step guide:
+You can immediately start working on the code using [a pre-setup Gitpod environment](https://gitpod.io/#https://github.com/webdriverio/webdriverio) (read more on this [here](https://bromann.dev/post/development-environment-for-webdriverio/)). If you like to develop on the project locally follow this step by step guide:
 
 * Fork the project.
 * Clone the project somewhere on your computer
@@ -81,9 +81,15 @@ In order to set up this project and start contributing follow this step by step 
 
 * If you need to update your fork you can do so following the steps [here](https://help.github.com/en/github/collaborating-with-issues-and-pull-requests/syncing-a-fork)
 
-* Switch to the most recent Node LTS (you should be able to use older/newer versions of Node but we recommend to use v14 LTS so all developers are on the same side) or to the one denoted in `.nvmrc`. We recommend to use [`nvm`](https://github.com/nvm-sh/nvm) to switch between Node.js versions.
+* Switch to the most recent Node LTS (you should be able to use older/newer versions of Node but we recommend to use v18 LTS so all developers are on the same side) or to the one denoted in `.nvmrc`. We recommend to use [`nvm`](https://github.com/nvm-sh/nvm) to switch between Node.js versions.
 
 * Set up the project:
+    First make sure you have the right Node.js version installed. You can find the current defined development version in `.nvmrc` within the root directory of the project. The easiest way to handle multiple Node.js versions is by using [NVM](https://github.com/nvm-sh/nvm). After it is installed you can run:
+    ```sh
+    $ nvm install
+    ```
+
+    This will install the defined Node.js version for you. You can then go ahead and set-up the project via:
 
     ```sh
     $ npm install
@@ -92,21 +98,26 @@ In order to set up this project and start contributing follow this step by step 
 
     The second command does two things:
 
+    * Cleans (possible) existing build artifacts via ```npm run clean```
+
+        If you have compiled the code this command will remove them as well as all dependencies of the subpackages.
+
     * Bootstraps sub-projects via ```npm run bootstrap```
 
         Many packages depend on each other, in order to properly set up the dependency tree you need to run the [Lerna Bootstrap](https://github.com/lerna/lerna#bootstrap) command to create all necessary links. As this project also does some other house keeping tasks, it is recommended to use the package bootstrap command.
 
     * Builds all subpackages via ```npm run build```
 
-        As the last step you need to build all sub-packages in order to resolve the internal dependencies. WebdriverIO uses [TypeScript](https://www.typescriptlang.org/) as a compiler. We are currently transitioning to TypeScript so you will see a mixture of normal JS files and TypeScript files.
+        As the last step you need to build all sub-packages in order to resolve the internal dependencies. WebdriverIO uses [TypeScript](https://www.typescriptlang.org/) as a compiler.
 
 * Run Tests to ensure that everything is set up correctly
 
     ```sh
+    # run the complete unit test suite
     $ npm run test
 
     # run test for a specific sub project (e.g. webdriver)
-    $ npx jest ./packages/webdriver/tests --collectCoverage=false
+    $ npx vitest ./packages/webdriver/tests
     ```
 
     It should give you a passing result. Now you can move on to set up your development environment and start working on some code. If tests do not pass please create an issue and provide logs to the error.
@@ -126,10 +137,10 @@ If you only work on a single package, you can watch only for that one by calling
 $ npm run watch <package-name>
 ```
 
-It is also a good idea to run jest in watch mode while developing on a single package to see if changes affect any tests:
+It is also a good idea to run vitest in watch mode while developing on a single package to see if changes affect any tests:
 
 ```sh
-npx jest ./packages/<package-name>/tests --watch --collectCoverage=false
+npx vitest ./packages/<package-name>/tests
 ```
 
 #### TypeScript Definitions
@@ -150,7 +161,7 @@ You can find all files responsible for the generating the typings [here](https:/
 npm run generate:typings
 ```
 
-This will run the scripts in the directory shown above and generate the typings for all protocol commands. Whenever you change those [protocol commands](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-protocols/protocols), make sure you re-generate the types with the command shown above.
+This will run the scripts in the directory shown above and generate the typings for all protocol commands. Whenever you change those [protocol commands](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-protocols/src/protocols), make sure you re-generate the types with the command shown above.
 
 ### Test Changes
 
@@ -188,10 +199,10 @@ When a PR gets submitted, WebdriverIO runs the following checks:
   ```
 - *Unit Tests*
   Like every project we unit-test our code and ensure that new patches are properly tested. The coverage threshold is pretty high so ensure that
-  your changes cover all necessary code paths. We are using [Jest](https://jestjs.io/) as a unit test framework here.
+  your changes cover all necessary code paths. We are using [Vitest](https://vitest.dev/) as a unit test framework here.
   You can manually trigger this check by calling:
   ```sh
-  $ npm run test:coverage
+  $ npm run test:unit
   ```
 - *Smoke Tests*
   While unit tests already cover a lot of cases, we run in addition to that smoke tests that simulate test scenarios which are difficult to test
@@ -225,12 +236,12 @@ are located in
 packages/webdriverio/tests/commands/element/getCSSProperty.test.ts
 ```
 
-If that is not the case the functionality of that file might be tested through a different file. We recommend to write unit tests for every new function being written in the code base. We advise to mock out every dependency to either other packages or modules using [Jests mock capabilities](https://jestjs.io/docs/manual-mocks).
+If that is not the case the functionality of that file might be tested through a different file. We recommend to write unit tests for every new function being written in the code base. We advise to mock out every dependency to either other packages or modules using [Vitests mock capabilities](https://vitest.dev/guide/mocking.html).
 
 During development it makes sense to focus running unit tests for a single file rather the whole code base. For example if you work on the `getCSSProperty` command it makes sense to run only the unit test for that specific command by calling:
 
 ```sh
-npx jest packages/webdriverio/tests/commands/element/getCSSProperty.test.ts --watch --collectCoverage=false
+npx vitest packages/webdriverio/tests/commands/element/getCSSProperty.test.ts
 ```
 
 With the `--watch` flag the unit tests will be re-run as soon as you change something within the file.
@@ -301,7 +312,7 @@ This repository contains everything to set up, build and deploy the WebdriverIO 
 - the guidelines pages from markdown files of the [docs directory](https://github.com/webdriverio/webdriverio/tree/main/website/docs)
 - service and reporter docs from the readme files of those packages within this repository
 - service and reporter docs from 3rd party plugins (defined in [these JSON files](https://github.com/webdriverio/webdriverio/tree/main/scripts/docs-generation/3rd-party)) that are downloaded from GitHub and parsed
-- the protocol APIs from the [`@wdio/protocols`](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-protocols/protocols) package
+- the protocol APIs from the [`@wdio/protocols`](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-protocols/src/protocols) package
 - the WebdriverIO API that is parsed out of the JSDoc comments of individual commands (e.g., [`execute`](https://github.com/webdriverio/webdriverio/blob/main/packages/webdriverio/src/commands/browser/execute.ts#L3-L37) command)
 
 Changes to the docs need to be done in one of these places. Please note that changes to e.g. the config file have to be updated in multiple places given that config files are wide spread (as examples or test files) within this repository. A good way to go about this is to look for all occurrences of a certain string of the config and update changes in all findings.
@@ -385,7 +396,7 @@ Successfully backported 2 PRs 👏!
 Please now push them to `v6` and make a new v6.x release!
 ```
 
-You can always reach out to the `webdriverio/ProjectCommitters` channel on Gitter for questions.
+You can always reach out to the `webdriverio/ProjectCommitters` channel on Matrix for questions.
 
 ## Release New Version
 
@@ -395,7 +406,7 @@ Package releases are made using Lerna's release capabilities as GitHub workflow 
 - __Minor Release__: minor releases are always required if a new, user focused feature was added to one of the packages. For example, if a command was added to WebdriverIO or if a service provides a new form of integration, a minor version bump would be appropriate. However if an internal package like `@wdio/local-runner` exposes a new interface that is solely used internally, we can consider that as a patch release.
 - __Patch Release__: every time a bug is fixed, documentation (this includes TypeScript definitions) gets updated or existing functionality is improved, we should do a patch release.
 
-If you are unsure about which release type to pick, reach out in the TSC Gitter channel. By setting an NPM tag you can also release a current version with e.g. a `next` tag to test changes before we roll them out to all users.
+If you are unsure about which release type to pick, reach out in the `webdriverio/TSC` Matrix channel. By setting an NPM tag you can also release a current version with e.g. a `next` tag to test changes before we roll them out to all users.
 
 ## Workshop
 

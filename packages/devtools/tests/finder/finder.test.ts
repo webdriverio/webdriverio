@@ -1,14 +1,16 @@
-import { canAccess as canAccessImport } from '@wdio/utils'
-import path from 'path'
+import path from 'node:path'
+import { expect, describe, beforeAll, test, vi } from 'vitest'
+import { canAccess } from '@wdio/utils'
 
-import getFinder from '../../src/finder'
-import edgeFinder from '../../src/finder/edge'
-import { darwinGetAppPaths, darwinGetInstallations } from '../../src/finder/finder'
+import getFinder from '../../src/finder/index.js'
+import edgeFinder from '../../src/finder/edge.js'
+import { darwinGetAppPaths, darwinGetInstallations } from '../../src/finder/finder.js'
 
-const systemProfiler = require('./systemProfiler.json')
-const canAccess = canAccessImport as jest.Mock
+import systemProfiler from './systemProfiler.json' assert { type: 'json' }
 
-jest.mock('child_process',  jest.fn().mockImplementation(() => ({
+vi.mock('@wdio/utils', () => import(path.join(process.cwd(), '__mocks__', '@wdio/utils')))
+
+vi.mock('child_process', vi.fn().mockImplementation(() => ({
     execSync() {
         return JSON.stringify(systemProfiler)
     }
@@ -31,7 +33,7 @@ describe('darwinGetAppPaths', () => {
 
 describe('darwinGetInstallations', () => {
     beforeAll(() => {
-        canAccess.mockImplementation((s = '') => s.startsWith(path.join('/', 'ok')))
+        vi.mocked(canAccess).mockImplementation((s = '') => s.startsWith(path.join('/', 'ok')))
     })
     test('darwinGetInstallations', () => {
         expect(darwinGetInstallations([path.join('/', 'ok'), path.join('/', 'not-ok')], ['foobar'])).toEqual([path.join('/ok', 'foobar')])

@@ -1,6 +1,6 @@
-import getElementProperty from './getElementProperty'
-import getElementTagName from './getElementTagName'
-import type DevToolsDriver from '../devtoolsdriver'
+import getElementProperty from './getElementProperty.js'
+import getElementTagName from './getElementTagName.js'
+import type DevToolsDriver from '../devtoolsdriver.js'
 
 /**
  * Is Element Selected determines if the referenced element is selected or not.

@@ -1,4 +1,4 @@
-import { Capabilities, Options } from '@wdio/types'
+import type { Capabilities, Options } from '@wdio/types'
 
 const DEFAULT_HOSTNAME = '127.0.0.1'
 const DEFAULT_PORT = 4444
@@ -45,7 +45,7 @@ function getSauceEndpoint (
  * helper to detect the Selenium backend according to given capabilities
  */
 export default function detectBackend(options: BackendConfigurations = {}) {
-    let { port, hostname, user, key, protocol, region, headless, path, capabilities } = options
+    const { port, hostname, user, key, protocol, region, headless, path, capabilities } = options
 
     /**
      * browserstack

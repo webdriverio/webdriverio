@@ -1,9 +1,9 @@
 import type { JsonPrimitive, JsonCompatible } from '@wdio/types'
 
-import SharedStoreLauncher from './launcher'
-import SharedStoreService from './service'
+import SharedStoreLauncher from './launcher.js'
+import SharedStoreService from './service.js'
 
-export { getValue, setValue } from './client'
+export { getValue, setValue } from './client.js'
 export default SharedStoreService
 export const launcher = SharedStoreLauncher
 
@@ -15,12 +15,7 @@ export interface BrowserExtension {
 }
 
 declare global {
-    namespace WebdriverIOAsync {
-        interface Browser extends BrowserExtension { }
-        interface MultiRemoteBrowser extends BrowserExtension { }
-    }
-
-    namespace WebdriverIOSync {
+    namespace WebdriverIO {
         interface Browser extends BrowserExtension { }
         interface MultiRemoteBrowser extends BrowserExtension { }
     }

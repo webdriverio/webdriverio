@@ -1,10 +1,12 @@
-import { format } from 'util'
-import WDIOReporter, { SuiteStats, HookStats, RunnerStats, TestStats, Argument } from '@wdio/reporter'
-import { Capabilities } from '@wdio/types'
-import chalk, { Chalk } from 'chalk'
+import { format } from 'node:util'
+import chalk from 'chalk'
 import prettyMs from 'pretty-ms'
-import { buildTableData, printTable, getFormattedRows, sauceAuthenticationToken } from './utils'
-import type { StateCount, Symbols, SpecReporterOptions, TestLink } from './types'
+import type { SuiteStats, HookStats, RunnerStats, TestStats, Argument } from '@wdio/reporter'
+import WDIOReporter from '@wdio/reporter'
+import type { Capabilities } from '@wdio/types'
+
+import { buildTableData, printTable, getFormattedRows, sauceAuthenticationToken } from './utils.js'
+import type { StateCount, Symbols, SpecReporterOptions, TestLink } from './types.js'
 
 const DEFAULT_INDENT = '   '
 
@@ -21,10 +23,12 @@ export default class SpecReporter extends WDIOReporter {
     private _suiteIndent = ''
     private _preface = ''
     private _consoleLogs: string[] = []
+    private _pendingReasons: string[] = []
     private _originalStdoutWrite = process.stdout.write.bind(process.stdout)
 
     private _addConsoleLogs = false
     private _realtimeReporting = false
+    private _showPreface = true
     private _suiteName = ''
     // Keep track of the order that suites were called
     private _stateCounts: StateCount = {
@@ -52,10 +56,11 @@ export default class SpecReporter extends WDIOReporter {
         this._symbols = { ...this._symbols, ...this.options.symbols || {} }
         this._onlyFailures = options.onlyFailures || false
         this._realtimeReporting = options.realtimeReporting || false
+        this._showPreface = options.showPreface !== false
         this._sauceLabsSharableLinks = 'sauceLabsSharableLinks' in options
             ? options.sauceLabsSharableLinks as boolean
             : this._sauceLabsSharableLinks
-        let processObj:any = process
+        const processObj:any = process
         if (options.addConsoleLogs || this._addConsoleLogs) {
             processObj.stdout.write = (chunk: string, encoding: BufferEncoding, callback:  ((err?: Error) => void)) => {
                 if (typeof chunk === 'string' && !chunk.includes('mwebdriver')) {
@@ -68,11 +73,11 @@ export default class SpecReporter extends WDIOReporter {
     }
 
     onRunnerStart (runner: RunnerStats) {
-        this._preface = `[${this.getEnviromentCombo(runner.capabilities, false, runner.isMultiremote).trim()} #${runner.cid}]`
+        this._preface = this._showPreface ? `[${this.getEnviromentCombo(runner.capabilities, false, runner.isMultiremote).trim()} #${runner.cid}]` : ''
     }
 
     onSuiteStart (suite: SuiteStats) {
-        this._suiteName = suite.file.replace(process.cwd(), '')
+        this._suiteName = suite.file?.replace(process.cwd(), '')
         this.printCurrentStats(suite)
         this._suiteUids.add(suite.uid)
         if (suite.type === 'feature') {
@@ -112,6 +117,7 @@ export default class SpecReporter extends WDIOReporter {
 
     onTestSkip (testStat: TestStats) {
         this.printCurrentStats(testStat)
+        this._pendingReasons.push(testStat.pendingReason as string)
         this._consoleLogs.push(this._consoleOutput)
         this._stateCounts.skipped++
     }
@@ -148,10 +154,12 @@ export default class SpecReporter extends WDIOReporter {
             `${chalk[this.getColor(state)](this.getSymbol(state))} ${title}` +
             ` » ${chalk[this.getColor(state)]('[')} ${this._suiteName} ${chalk[this.getColor(state)](']')}`
 
-        process.send!({
-            name: 'reporterRealTime',
-            content: stat.type === 'test' ? contentTest : contentNonTest
-        })
+        if (process.send) {
+            process.send({
+                name: 'reporterRealTime',
+                content: stat.type === 'test' ? contentTest : contentNonTest
+            })
+        }
     }
 
     /**
@@ -199,9 +207,9 @@ export default class SpecReporter extends WDIOReporter {
         ]
 
         // Prefix all values with the browser information
-        const prefacedOutput = output.map((value) => {
+        const prefacedOutput = this._showPreface ? output.map((value) => {
             return value ? `${preface} ${value}` : preface
-        })
+        }) : output
 
         // Output the results
         this.write(`${divider}\n${prefacedOutput.join('\n')}\n`)
@@ -298,8 +306,9 @@ export default class SpecReporter extends WDIOReporter {
      * @param  {Array} suites Runner suites
      * @return {Array}        Display output list
      */
-    getResultDisplay (preface?: string) {
+    getResultDisplay (prefaceString?: string) {
         const output = []
+        const preface = this._showPreface ? prefaceString : ''
         const suites = this.getOrderedSuites()
         const specFileReferences: string[] = []
 
@@ -350,6 +359,14 @@ export default class SpecReporter extends WDIOReporter {
                     const rawTable = printTable(data)
                     const table = getFormattedRows(rawTable, testIndent)
                     output.push(...table)
+                }
+
+                // print pending reasons
+                const pendingItem = this._pendingReasons.shift()
+                if (pendingItem) {
+                    output.push('')
+                    output.push(testIndent.repeat(2) + '.........Pending Reasons.........')
+                    output.push(testIndent.repeat(3) + pendingItem?.replace(/\n/g, '\n'.concat(preface + ' ', testIndent.repeat(3))))
                 }
 
                 // print console output
@@ -489,7 +506,7 @@ export default class SpecReporter extends WDIOReporter {
      */
     getColor (state?: string) {
         // In case of an unknown state
-        let color: keyof Chalk = 'gray'
+        let color: keyof typeof chalk = 'gray'
 
         switch (state) {
         case 'passed':

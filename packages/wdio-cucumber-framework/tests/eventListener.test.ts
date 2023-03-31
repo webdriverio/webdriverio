@@ -1,10 +1,11 @@
-import { EventEmitter } from 'events'
+import { EventEmitter } from 'node:events'
+import { test, expect, vi } from 'vitest'
 
-import CucumberEventListener from '../src/cucumberEventListener'
-import { gherkinDocument, pickle } from './fixtures/envelopes'
+import CucumberEventListener from '../src/cucumberEventListener.js'
+import { gherkinDocument, pickle } from './fixtures/envelopes.js'
 
 const pickleFilter = {
-    matches: jest.fn().mockReturnValue(true)
+    matches: vi.fn().mockReturnValue(true)
 }
 
 test('getHookParams', () => {

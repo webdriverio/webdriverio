@@ -1,20 +1,27 @@
+import fs from 'node:fs'
+import fsp from 'node:fs/promises'
+import url from 'node:url'
+import path from 'node:path'
+import type { ChildProcessByStdio } from 'node:child_process'
+import { spawn } from 'node:child_process'
+import { promisify } from 'node:util'
+import type { Readable } from 'node:stream'
+
 import logger from '@wdio/logger'
-import { ChildProcessByStdio, spawn } from 'child_process'
-import { createWriteStream, ensureFileSync } from 'fs-extra'
-import { promisify } from 'util'
-import { Readable } from 'stream'
+import { resolve } from 'import-meta-resolve'
 import { isCloudCapability } from '@wdio/config'
+import { SevereServiceError } from 'webdriverio'
 import type { Services, Capabilities, Options } from '@wdio/types'
 
-import { getFilePath, formatCliArgs } from './utils'
-import type { AppiumServerArguments, AppiumServiceConfig } from './types'
+import { getFilePath, formatCliArgs } from './utils.js'
+import type { AppiumServerArguments, AppiumServiceConfig } from './types.js'
 
 const log = logger('@wdio/appium-service')
 const DEFAULT_LOG_FILENAME = 'wdio-appium.log'
 
 const DEFAULT_CONNECTION = {
     protocol: 'http',
-    hostname: 'localhost',
+    hostname: '127.0.0.1',
     port: 4723,
     path: '/'
 }
@@ -23,7 +30,7 @@ export default class AppiumLauncher implements Services.ServiceInstance {
     private readonly _logPath?: string
     private readonly _appiumCliArgs: string[] = []
     private readonly _args: AppiumServerArguments
-    private _command: string
+    private _command?: string
     private _process?: ChildProcessByStdio<null, Readable, Readable>
 
     constructor(
@@ -36,17 +43,16 @@ export default class AppiumLauncher implements Services.ServiceInstance {
             ...(this._options.args || {})
         }
         this._logPath = _options.logPath || this._config?.outputDir
-        this._command = this._getCommand(_options.command)
     }
 
-    private _getCommand(command?: string) {
+    private async _getCommand(command?: string) {
         /**
          * Explicitly set node as command and appium
          * module path as it's first argument if it's not defined
          */
         if (!command) {
             command = 'node'
-            this._appiumCliArgs.push(AppiumLauncher._getAppiumCommand())
+            this._appiumCliArgs.unshift(await AppiumLauncher._getAppiumCommand())
         }
 
         /**
@@ -98,13 +104,13 @@ export default class AppiumLauncher implements Services.ServiceInstance {
          * Append remaining arguments
          */
         this._appiumCliArgs.push(...formatCliArgs(this._args))
-
         this._setCapabilities()
 
         /**
          * start Appium
          */
-        this._process = await promisify(this._startAppium)(this._command, this._appiumCliArgs)
+        const command = await this._getCommand(this._options.command)
+        this._process = await promisify(this._startAppium)(command, this._appiumCliArgs)
 
         if (this._logPath) {
             this._redirectLogStream(this._logPath)
@@ -120,7 +126,7 @@ export default class AppiumLauncher implements Services.ServiceInstance {
 
     private _startAppium(command: string, args: Array<string>, callback: (err: any, result: any) => void): void {
         log.debug(`Will spawn Appium process: ${command} ${args.join(' ')}`)
-        let process: ChildProcessByStdio<null, Readable, Readable> = spawn(command, args, { stdio: ['ignore', 'pipe', 'pipe'] })
+        const process: ChildProcessByStdio<null, Readable, Readable> = spawn(command, args, { stdio: ['ignore', 'pipe', 'pipe'] })
         let error: Error | undefined
 
         process.stdout.on('data', (data) => {
@@ -137,7 +143,7 @@ export default class AppiumLauncher implements Services.ServiceInstance {
 
         process.once('exit', exitCode => {
             let errorMessage = `Appium exited before timeout (exit code: ${exitCode})`
-            if (exitCode == 2) {
+            if (exitCode === 2) {
                 errorMessage += '\n' + (error || 'Check that you don\'t already have a running Appium service.')
                 log.error(errorMessage)
             }
@@ -145,32 +151,34 @@ export default class AppiumLauncher implements Services.ServiceInstance {
         })
     }
 
-    private _redirectLogStream(logPath: string) {
+    private async _redirectLogStream(logPath: string) {
         if (!this._process){
             throw Error('No Appium process to redirect log stream')
         }
         const logFile = getFilePath(logPath, DEFAULT_LOG_FILENAME)
 
         // ensure file & directory exists
-        ensureFileSync(logFile)
+        await fsp.mkdir(path.dirname(logFile), { recursive: true })
 
         log.debug(`Appium logs written to: ${logFile}`)
-        const logStream = createWriteStream(logFile, { flags: 'w' })
+        const logStream = fs.createWriteStream(logFile, { flags: 'w' })
         this._process.stdout.pipe(logStream)
         this._process.stderr.pipe(logStream)
     }
 
-    private static _getAppiumCommand (moduleName = 'appium') {
+    private static async _getAppiumCommand (command = 'appium') {
         try {
-            return require.resolve(moduleName)
+            const entryPath = await resolve(command, import.meta.url)
+            return url.fileURLToPath(entryPath)
         } catch (err: any) {
-            log.error(
-                'Appium is not installed locally.\n' +
-                'If you use globally installed appium please add\n' +
-                "appium: { command: 'appium' }\n" +
-                'to your wdio.conf.js!'
+            const errorMessage = (
+                'Appium is not installed locally. Please install via e.g. `npm i --save-dev appium`.\n' +
+                'If you use globally installed appium please add: `appium: { command: \'appium\' }`\n' +
+                'to your wdio.conf.js!\n\n' +
+                err.stack
             )
-            throw err
+            log.error(errorMessage)
+            throw new SevereServiceError(errorMessage)
         }
     }
 }

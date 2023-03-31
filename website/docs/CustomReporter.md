@@ -33,9 +33,9 @@ To use this reporter, all you need to do is assign it to the `reporter` property
 Your `wdio.conf.js` file should look like this:
 
 ```js
-const CustomReporter = require('./reporter/my.custom.reporter')
+import CustomReporter from './reporter/my.custom.reporter'
 
-exports.config = {
+export const config = {
     // ...
     reporters: [
         /**
@@ -101,7 +101,7 @@ export default class CustomReporter extends WDIOReporter {
 
 Note that you cannot defer the test execution in any way.
 
-All event handlers should execute synchronous routines (or you’ll run into race conditions).
+All event handlers should execute synchronous routines (or you'll run into race conditions).
 
 Be sure to check out the [example section](https://github.com/webdriverio/webdriverio/tree/main/examples/wdio) where you can find an example custom reporter that prints the event name for each event.
 
@@ -176,7 +176,7 @@ Following the recommended naming pattern allows services to be added by name:
 
 ```js
 // Add wdio-custom-reporter
-exports.config = {
+export const config = {
     // ...
     reporter: ['custom'],
     // ...

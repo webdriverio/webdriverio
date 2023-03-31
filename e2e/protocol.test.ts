@@ -1,13 +1,13 @@
-import DevTools from '../packages/devtools/src/index'
-import { ELEMENT_KEY } from '../packages/devtools/src/constants'
+import { beforeAll, afterAll, describe, it, expect, vi } from 'vitest'
 
-import type { Client } from '../packages/devtools/src/index'
+import DevTools from '../packages/devtools/build/index.js'
+import { ELEMENT_KEY } from '../packages/devtools/build/constants.js'
+
+import type { Client } from '../packages/devtools/build/index.js'
 
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
 
 let browser: Client
-
-jest.retryTimes(0)
 
 async function waitForElement (browser: Client, selectorStrategy: string, selector: string, retries = 10): Promise<string> {
     const elem = await browser.findElement(selectorStrategy, selector)
@@ -268,6 +268,7 @@ describe('frames', () => {
         const iframe = await browser.findElement('css selector', 'iframe')
         await browser.switchToFrame(iframe)
 
+        await sleep(1000)
         expect(await getDocumentText())
             .toContain('Your content goes here.')
 
@@ -307,9 +308,6 @@ describe('frames', () => {
     it('allows to switch to parent frame even if there isn\'t any', async () => {
         await browser.navigateTo('http://guinea-pig.webdriver.io/two.html')
         expect(await browser.getPageSource()).toContain('<title>two</title>')
-        const iframe = await browser.findElement('css selector', 'iframe')
-        await browser.switchToFrame(iframe)
-        expect(await browser.getPageSource()).toContain('<title>Light Bikes from Eric Corriel on Vimeo</title>')
         await browser.switchToFrame(null)
         expect(await browser.getPageSource()).toContain('<title>two</title>')
         await browser.switchToFrame(null)
@@ -327,6 +325,21 @@ describe('executeScript', () => {
             'return document.title + \' \' + arguments[0] + arguments[1]',
             ['Test', '!'])
         ).toBe('WebdriverJS Testpage Test!')
+    })
+
+    it('sync error', async () => {
+        const spy = vi.spyOn(global, 'clearTimeout')
+        spy.mockClear()
+
+        await expect(async () => {
+            await browser.executeScript(
+                'throw new Error(\'sync error\')',
+                []
+            )
+        }).rejects.toThrow('sync error')
+
+        expect(spy).toHaveBeenCalledTimes(5)
+        spy.mockClear()
     })
 
     it('async', async () => {

@@ -1,31 +1,19 @@
-import { Browser } from 'webdriverio'
-import { BrowserExtension } from './index'
-import { readFile, getPidPath } from './utils'
-import { getValue, setValue, setPort } from './client'
-
 import type { JsonCompatible, JsonPrimitive, Services } from '@wdio/types'
 
-/**
- * ToDo(Christian): make this public accessible
- */
-interface ServiceBrowser extends Browser<'async'>, BrowserExtension { }
+import { getValue, setValue, setPort } from './client.js'
+import type { SharedStoreServiceCapabilities } from './types.js'
 
 export default class SharedStoreService implements Services.ServiceInstance {
-    private _browser?: ServiceBrowser
+    private _browser?: WebdriverIO.Browser
 
-    async beforeSession () {
-        /**
-         * get port from parent's pid file saved in `onPrepare` hook
-         */
-        const port = await readFile(getPidPath(process.ppid))
-
-        setPort(port.toString())
+    constructor(_: never, caps: SharedStoreServiceCapabilities) {
+        setPort(caps['wdio:sharedStoreServicePort']!)
     }
 
     before (
-        caps: unknown,
-        specs: unknown,
-        browser: ServiceBrowser
+        caps: never,
+        specs: never,
+        browser: WebdriverIO.Browser
     ) {
         this._browser = browser
         const sharedStore = Object.create({}, {

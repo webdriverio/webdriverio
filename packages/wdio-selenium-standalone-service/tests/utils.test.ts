@@ -1,5 +1,7 @@
-import { getFilePath } from '../src/utils'
-import path from 'path'
+import path from 'node:path'
+import { describe, expect, test, beforeAll } from 'vitest'
+
+import { getFilePath } from '../src/utils.js'
 
 describe('getFilePath', () => {
     let basePath: string

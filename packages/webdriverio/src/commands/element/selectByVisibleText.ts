@@ -1,4 +1,4 @@
-import { getElementFromResponse } from '../../utils'
+import { getElementFromResponse } from '../../utils/index.js'
 
 /**
  *
@@ -29,7 +29,7 @@ import { getElementFromResponse } from '../../utils'
  * @type action
  *
  */
-export default async function selectByVisibleText (
+export async function selectByVisibleText (
     this: WebdriverIO.Element,
     text: string | number
 ) {

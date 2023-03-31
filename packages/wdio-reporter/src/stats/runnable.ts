@@ -1,6 +1,6 @@
-import { Hook } from './hook'
-import { Suite } from './suite'
-import { Test } from './test'
+import type { Hook } from './hook.js'
+import type { Suite } from './suite.js'
+import type { Test } from './test.js'
 
 /**
  * Main class for a runnable class (e.g. test, suite or a hook)

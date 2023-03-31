@@ -1,5 +1,5 @@
-import path from 'path'
-import fs from 'fs-extra'
+import fs from 'node:fs/promises'
+import path from 'node:path'
 import exitHook from 'async-exit-hook'
 
 import logger from '@wdio/logger'
@@ -7,9 +7,10 @@ import { ConfigParser } from '@wdio/config'
 import { initialisePlugin, initialiseLauncherService, sleep } from '@wdio/utils'
 import type { Options, Capabilities, Services } from '@wdio/types'
 
-import CLInterface from './interface'
-import { RunCommandArguments } from './types'
-import { runLauncherHook, runOnCompleteHook, runServiceHook } from './utils'
+import CLInterface from './interface.js'
+import type { HookError } from './utils.js'
+import { runLauncherHook, runOnCompleteHook, runServiceHook } from './utils.js'
+import type { RunCommandArguments } from './types.js'
 
 const log = logger('@wdio/cli:launcher')
 
@@ -35,10 +36,10 @@ interface EndMessage {
 }
 
 class Launcher {
-    configParser: ConfigParser
-    isMultiremote: boolean
-    runner: Services.RunnerInstance
-    interface: CLInterface
+    public configParser: ConfigParser
+    public isMultiremote = false
+    public runner?: Services.RunnerInstance
+    public interface?: CLInterface
 
     private _exitCode = 0
     private _hasTriggeredExitRoutine = false
@@ -55,19 +56,15 @@ class Launcher {
         private _args: Partial<RunCommandArguments> = {},
         private _isWatchMode = false
     ) {
-        this.configParser = new ConfigParser()
+        this.configParser = new ConfigParser(this._configFilePath, this._args)
+    }
 
-        /**
-         * merge auto compile opts to understand how to parse the config
-         */
-        if (_args.autoCompileOpts) {
-            this.configParser.merge({ autoCompileOpts: _args.autoCompileOpts })
-        }
-
-        this.configParser.autoCompile()
-
-        this.configParser.addConfigFile(_configFilePath)
-        this.configParser.merge(_args)
+    /**
+     * run sequence
+     * @return  {Promise}  that only gets resolves with either an exitCode or an error
+     */
+    async run() {
+        await this.configParser.initialize(this._args)
         const config = this.configParser.getConfig()
 
         /**
@@ -80,7 +77,7 @@ class Launcher {
         this.isMultiremote = !Array.isArray(capabilities)
 
         if (config.outputDir) {
-            fs.ensureDirSync(path.join(config.outputDir))
+            await fs.mkdir(path.join(config.outputDir), { recursive: true })
             process.env.WDIO_LOG_PATH = path.join(config.outputDir, 'wdio.log')
         }
 
@@ -92,29 +89,23 @@ class Launcher {
                 .reduce((a, b) => a + b, 0)
             : 1
 
-        const Runner = (initialisePlugin(config.runner!, 'runner') as Services.RunnerPlugin).default
-        this.runner = new Runner(_configFilePath, config)
-
         this.interface = new CLInterface(config, totalWorkerCnt, this._isWatchMode)
         config.runnerEnv!.FORCE_COLOR = Number(this.interface.hasAnsiSupport)
-    }
 
-    /**
-     * run sequence
-     * @return  {Promise}               that only gets resolves with either an exitCode or an error
-     */
-    async run() {
+        const [runnerName, runnerOptions] = Array.isArray(config.runner) ? config.runner : [config.runner, {} as WebdriverIO.BrowserRunnerOptions]
+        const Runner = (await initialisePlugin(runnerName, 'runner') as Services.RunnerPlugin).default
+        this.runner = new Runner(runnerOptions, config)
+
         /**
          * catches ctrl+c event
          */
         exitHook(this.exitHandler.bind(this))
         let exitCode = 0
-        let error: Error | undefined = undefined
+        let error: HookError | undefined = undefined
 
         try {
-            const config = this.configParser.getConfig()
             const caps = this.configParser.getCapabilities() as Capabilities.RemoteCapabilities
-            const { ignoredWorkerServices, launcherServices } = initialiseLauncherService(config, caps as Capabilities.DesiredCapabilities)
+            const { ignoredWorkerServices, launcherServices } = await initialiseLauncherService(config, caps as Capabilities.DesiredCapabilities)
             this._launcher = launcherServices
             this._args.ignoredWorkerServices = ignoredWorkerServices
 
@@ -135,11 +126,14 @@ class Launcher {
 
             /**
              * run onComplete hook
-             * even if it fails we still want to see result and end logger stream
+             * Even if it fails we still want to see result and end logger stream.
+             * Also ensure that user hooks are run before service hooks so that e.g.
+             * a user can use plugin service, e.g. shared store service is still
+             * available running hooks in this order
              */
             log.info('Run onComplete hook')
-            await runServiceHook(this._launcher, 'onComplete', exitCode, config, caps)
             const onCompleteResults = await runOnCompleteHook(config.onComplete!, config, caps, exitCode, this.interface.result)
+            await runServiceHook(this._launcher, 'onComplete', exitCode, config, caps)
 
             // if any of the onComplete hooks failed, update the exit code
             exitCode = onCompleteResults.includes(1) ? 1 : exitCode
@@ -147,16 +141,20 @@ class Launcher {
             await logger.waitForBuffer()
 
             this.interface.finalise()
-        } catch (err: any) {
-            error = err
+        } catch (err) {
+            error = err as HookError
         } finally {
             if (!this._hasTriggeredExitRoutine) {
                 this._hasTriggeredExitRoutine = true
-                await this.runner.shutdown()
+                const passesCodeCoverage = await this.runner.shutdown()
+                if (!passesCodeCoverage) {
+                    exitCode = exitCode || 1
+                }
             }
         }
 
         if (error) {
+            this.interface.logHookError(error)
             throw error
         }
         return exitCode
@@ -200,12 +198,19 @@ class Launcher {
             /**
              * Regular mode
              */
-            for (let capabilities of caps as (Capabilities.DesiredCapabilities | Capabilities.W3CCapabilities)[]) {
+            for (const capabilities of caps as (Capabilities.DesiredCapabilities | Capabilities.W3CCapabilities)[]) {
+                /**
+                 * when using browser runner we only allow one session per browser
+                 */
+                const availableInstances = config.runner === 'browser'
+                    ? 1
+                    : (capabilities as Capabilities.DesiredCapabilities).maxInstances || config.maxInstancesPerCapability
+
                 this._schedule.push({
                     cid: cid++,
                     caps: capabilities as Capabilities.Capabilities,
                     specs: this.formatSpecs(capabilities, specFileRetries),
-                    availableInstances: (capabilities as Capabilities.DesiredCapabilities).maxInstances || config.maxInstancesPerCapability,
+                    availableInstances,
                     runningInstances: 0
                 })
             }
@@ -235,9 +240,8 @@ class Launcher {
      * Format the specs into an array of objects with files and retries
      */
     formatSpecs(capabilities: (Capabilities.DesiredCapabilities | Capabilities.W3CCapabilities | Capabilities.RemoteCapabilities), specFileRetries: number) {
-        let files: (string | string[])[] = []
+        const files = this.configParser.getSpecs((capabilities as Capabilities.DesiredCapabilities).specs, (capabilities as Capabilities.DesiredCapabilities).exclude)
 
-        files = this.configParser.getSpecs((capabilities as Capabilities.DesiredCapabilities).specs, (capabilities as Capabilities.DesiredCapabilities).exclude)
         return files.map(file => {
             if (typeof file === 'string') {
                 return { files: [file], retries: specFileRetries }
@@ -255,8 +259,6 @@ class Launcher {
      * @return {Boolean} true if all specs have been run and all instances have finished
      */
     runSpecs() {
-        let config = this.configParser.getConfig()
-
         /**
          * stop spawning new processes when CTRL+C was triggered
          */
@@ -264,8 +266,10 @@ class Launcher {
             return true
         }
 
+        const config = this.configParser.getConfig()
+
         while (this.getNumberOfRunningInstances() < config.maxInstances) {
-            let schedulableCaps = this._schedule
+            const schedulableCaps = this._schedule
                 /**
                  * bail if number of errors exceeds allowed
                  */
@@ -306,7 +310,7 @@ class Launcher {
                 break
             }
 
-            let specs = schedulableCaps[0].specs.shift() as NonNullable<WorkerSpecs>
+            const specs = schedulableCaps[0].specs.shift() as NonNullable<WorkerSpecs>
             this.startInstance(
                 specs.files,
                 schedulableCaps[0].caps as Capabilities.DesiredCapabilities,
@@ -351,7 +355,11 @@ class Launcher {
         rid: string | undefined,
         retries: number
     ) {
-        let config = this.configParser.getConfig()
+        if (!this.runner || !this.interface) {
+            throw new Error('Internal Error: no runner initialised, call run() first')
+        }
+
+        const config = this.configParser.getConfig()
 
         // wait before retrying the spec file
         if (typeof config.specFileRetriesDelay === 'number' && config.specFileRetries > 0 && config.specFileRetries !== retries) {
@@ -361,18 +369,18 @@ class Launcher {
         // Retried tests receive the cid of the failing test as rid
         // so they can run with the same cid of the failing test.
         const runnerId = rid || this.getRunnerId(cid)
-        let processNumber = this._runnerStarted + 1
+        const processNumber = this._runnerStarted + 1
 
         // process.debugPort defaults to 5858 and is set even when process
         // is not being debugged.
-        let debugArgs = []
+        const debugArgs = []
         let debugType
         let debugHost = ''
-        let debugPort = process.debugPort
-        for (let i in process.execArgv) {
+        const debugPort = process.debugPort
+        for (const i in process.execArgv) {
             const debugArgs = process.execArgv[i].match('--(debug|inspect)(?:-brk)?(?:=(.*):)?')
             if (debugArgs) {
-                let [, type, host] = debugArgs
+                const [, type, host] = debugArgs
                 if (type) {
                     debugType = type
                 }
@@ -387,20 +395,14 @@ class Launcher {
         }
 
         // if you would like to add --debug-brk, use a different port, etc...
-        let capExecArgs = [...(config.execArgv || [])]
+        const capExecArgs = [...(config.execArgv || [])]
 
         // The default value for child.fork execArgs is process.execArgs,
         // so continue to use this unless another value is specified in config.
-        let defaultArgs = (capExecArgs.length) ? process.execArgv : []
+        const defaultArgs = (capExecArgs.length) ? process.execArgv : []
 
         // If an arg appears multiple times the last occurrence is used
-        let execArgv = [...defaultArgs, ...debugArgs, ...capExecArgs]
-
-        // set '--no-wasm-code-gc' deliberatively as it causes problems with
-        // @wdio/sync and recent TypeScript compiles
-        if (!execArgv.includes('--no-wasm-code-gc')) {
-            execArgv.push('--no-wasm-code-gc')
-        }
+        const execArgv = [...defaultArgs, ...debugArgs, ...capExecArgs]
 
         // bump up worker count
         this._runnerStarted++
@@ -408,14 +410,28 @@ class Launcher {
         // run worker hook to allow modify runtime and capabilities of a specific worker
         log.info('Run onWorkerStart hook')
         await runLauncherHook(config.onWorkerStart, runnerId, caps, specs, this._args, execArgv)
+            .catch((error) => this._workerHookError(error))
         await runServiceHook(this._launcher!, 'onWorkerStart', runnerId, caps, specs, this._args, execArgv)
+            .catch((error) => this._workerHookError(error))
 
         // prefer launcher settings in capabilities over general launcher
         const worker = this.runner.run({
             cid: runnerId,
             command: 'run',
             configFile: this._configFilePath,
-            args: { ...this._args, ...(config?.autoCompileOpts ? { autoCompileOpts: config.autoCompileOpts } : {}) },
+            args: {
+                ...this._args,
+                ...(config?.autoCompileOpts
+                    ? { autoCompileOpts: config.autoCompileOpts }
+                    : {}
+                ),
+                /**
+                 * Pass on user and key values to ensure they are available in the worker process when using
+                 * environment variables that were locally exported but not part of the environment.
+                 */
+                user: config.user,
+                key: config.key
+            },
             caps,
             specs,
             execArgv,
@@ -424,6 +440,17 @@ class Launcher {
         worker.on('message', this.interface.onMessage.bind(this.interface))
         worker.on('error', this.interface.onMessage.bind(this.interface))
         worker.on('exit', this.endHandler.bind(this))
+    }
+
+    private _workerHookError (error: HookError) {
+        if (!this.interface) {
+            throw new Error('Internal Error: no interface initialised, call run() first')
+        }
+
+        this.interface.logHookError(error)
+        if (this._resolve) {
+            this._resolve(1)
+        }
     }
 
     /**
@@ -445,7 +472,7 @@ class Launcher {
      * @param  {Array} specs      Specs that were run
      * @param  {Number} retries   Number or retries remaining
      */
-    endHandler({ cid: rid, exitCode, specs, retries }: EndMessage) {
+    async endHandler({ cid: rid, exitCode, specs, retries }: EndMessage) {
         const passed = this._isWatchModeHalted() || exitCode === 0
 
         if (!passed && retries > 0) {
@@ -460,18 +487,25 @@ class Launcher {
         /**
          * avoid emitting job:end if watch mode has been stopped by user
          */
-        if (!this._isWatchModeHalted()) {
+        if (!this._isWatchModeHalted() && this.interface) {
             this.interface.emit('job:end', { cid: rid, passed, retries })
         }
 
         /**
          * Update schedule now this process has ended
+         * get cid (capability id) from rid (runner id)
          */
-        // get cid (capability id) from rid (runner id)
         const cid = parseInt(rid, 10)
 
         this._schedule[cid].availableInstances++
         this._schedule[cid].runningInstances--
+
+        log.info('Run onWorkerEnd hook')
+        const config = this.configParser.getConfig()
+        await runLauncherHook(config.onWorkerEnd, rid, exitCode, specs, retries)
+            .catch((error) => this._workerHookError(error))
+        await runServiceHook(this._launcher!, 'onWorkerEnd', rid, exitCode, specs, retries)
+            .catch((error) => this._workerHookError(error))
 
         /**
          * do nothing if
@@ -479,7 +513,15 @@ class Launcher {
          * - we are running watch mode
          */
         const shouldRunSpecs = this.runSpecs()
-        if (!shouldRunSpecs || (this._isWatchMode && !this._hasTriggeredExitRoutine)) {
+        const inWatchMode = this._isWatchMode && !this._hasTriggeredExitRoutine
+        if (!shouldRunSpecs || inWatchMode) {
+            /**
+             * print reporter results when in watch mode
+             */
+            if (inWatchMode) {
+                this.interface?.finalise()
+            }
+
             return
         }
 
@@ -494,13 +536,13 @@ class Launcher {
      * having dead driver processes. To do so let the runner end its Selenium
      * session first before killing
      */
-    exitHandler (callback?: (value: void) => void) {
-        if (!callback) {
+    exitHandler (callback?: (value: boolean) => void) {
+        if (!callback || !this.runner || !this.interface) {
             return
         }
 
         if (this._hasTriggeredExitRoutine) {
-            return callback()
+            return callback(true)
         }
 
         this._hasTriggeredExitRoutine = true

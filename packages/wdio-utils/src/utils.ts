@@ -1,17 +1,22 @@
-import fs from 'fs'
-import path from 'path'
+import fs from 'node:fs'
+import path from 'node:path'
+import { pathToFileURL } from 'node:url'
+import { resolve } from 'import-meta-resolve'
 
 import type { Services, Clients } from '@wdio/types'
 
 const SCREENSHOT_REPLACEMENT = '"<Screenshot[base64]>"'
 const SCRIPT_PLACEHOLDER = '"<Script[base64]>"'
+const REGEX_SCRIPT_NAME = /return \(function (\w+)/
 
 /**
  * overwrite native element commands with user defined
  * @param {object} propertiesObject propertiesObject
  */
 export function overwriteElementCommands(propertiesObject: { '__elementOverrides__'?: { value: any }, [key: string]: any }) {
-    const elementOverrides = propertiesObject['__elementOverrides__'] ? propertiesObject['__elementOverrides__'].value : {}
+    const elementOverrides = propertiesObject.__elementOverrides__
+        ? propertiesObject.__elementOverrides__.value
+        : {}
 
     for (const [commandName, userDefinedCommand] of Object.entries(elementOverrides)) {
         if (typeof userDefinedCommand !== 'function') {
@@ -46,8 +51,8 @@ export function overwriteElementCommands(propertiesObject: { '__elementOverrides
         }
     }
 
-    delete propertiesObject['__elementOverrides__']
-    propertiesObject['__elementOverrides__'] = { value: {} }
+    delete propertiesObject.__elementOverrides__
+    propertiesObject.__elementOverrides__ = { value: {} }
 }
 
 /**
@@ -97,6 +102,11 @@ export function transformCommandLogResult (result: { file?: string, script?: str
         return SCREENSHOT_REPLACEMENT
     } else if (typeof result.script === 'string' && isBase64(result.script)) {
         return SCRIPT_PLACEHOLDER
+    } else if (typeof result.script === 'string' && result.script.match(REGEX_SCRIPT_NAME)) {
+        const newScript = result.script.match(REGEX_SCRIPT_NAME)![1]
+        return { ...result, script: `${newScript}(...) [${Buffer.byteLength(result.script, 'utf-8')} bytes]` }
+    } else if (typeof result.script === 'string' && result.script.startsWith('!function(')) {
+        return { ...result, script: `<minified function> [${Buffer.byteLength(result.script, 'utf-8')} bytes]` }
     }
 
     return result
@@ -154,39 +164,63 @@ export function getArgumentType (arg: any) {
  * @param  {string} name  of package
  * @return {object}       package content
  */
-export function safeRequire (name: string): Services.ServicePlugin | null {
-    let requirePath
+export async function safeImport (name: string): Promise<Services.ServicePlugin | null> {
+    let importPath = name
     try {
         /**
-         * Check if cli command was called from local directory, if not require
-         * the plugin from the place where the command is called. This avoids
-         * issues where user have the @wdio/cli package installed globally
-         * but run on a project where wdio packages are installed locally. It
-         * also allows to link the package to a random place and have plugins
-         * imported correctly (for dev purposes).
+         * Initially we will search for the package by using the standard package
+         * resolution starting from the path given by 'import.meta.url' (which
+         * returns the path to this file). The default mechanism will then search
+         * upwards through the hierarchy in the file system in node_modules directories
+         * until it finds the package or reaches the root of the file system.
+         *
+         * In the case where a user has installed the @wdio/cli package globally,
+         * then clearly the search will be performed in the global area and not
+         * in the project specific area.  Consequently, if the package we are
+         * looking for is installed within the project it will not be found and
+         * then we also need to search in the project, we do that by defining
+         * 'localNodeModules' and searching from that also.
+         *
+         * Note that import-meta-resolve will resolve to CJS no ESM export is found
          */
-        const localNodeModules = path.join(process.cwd(), '/node_modules')
-        /* istanbul ignore if */
-        if (!require?.main?.paths.includes(localNodeModules)) {
-            require?.main?.paths.push(localNodeModules)
 
-            /**
-             * don't set requireOpts when running unit tests as it
-             * confuses Jest require magic
-             */
-            const requireOpts = process.env.JEST_WORKER_ID
-                ? {}
-                : { paths: require?.main?.paths }
-            requirePath = require.resolve(name, requireOpts)
-        } else {
-            requirePath = require.resolve(name)
+        const localNodeModules = path.join(process.cwd(), 'node_modules')
+
+        try {
+            importPath = await resolve(name, import.meta.url)
+        } catch (err: any) {
+            try {
+                importPath = await resolve(name, pathToFileURL(localNodeModules).toString())
+            } catch (err: any) {
+                return null
+            }
         }
     } catch (err: any) {
         return null
     }
 
     try {
-        return require(requirePath)
+        const pkg = await import(importPath)
+
+        /**
+         * CJS packages build with TS imported through an ESM context can end up being this:
+         *
+         * [Module: null prototype] {
+         *   __esModule: true,
+         *   default: {
+         *       launcher: [class SmokeServiceLauncher],
+         *       default: [class SmokeService]
+         *   },
+         *   launcher: [class SmokeServiceLauncher]
+         * }
+         *
+         * In order to not have the testrunner ignore importing a service we should double check if
+         * a nested default is given and return that.
+         */
+        if (pkg.default && pkg.default.default) {
+            return pkg.default
+        }
+        return pkg
     } catch (e: any) {
         throw new Error(`Couldn't initialise "${name}".\n${e.stack}`)
     }
@@ -211,22 +245,24 @@ export function filterSpecArgs (args: any[]) {
 
 /**
  * checks if provided string is Base64
- * @param  {String} str  string in base64 to check
- * @return {Boolean} true if the provided string is Base64
+ * @param {string} str string to check
+ * @return {boolean} `true` if the provided string is Base64
  */
 export function isBase64(str: string) {
-    var notBase64 = new RegExp('[^A-Z0-9+\\/=]',  'i')
     if (typeof str !== 'string') {
         throw new Error('Expected string but received invalid type.')
     }
     const len = str.length
+    const notBase64 = /[^A-Z0-9+/=]/i
     if (!len || len % 4 !== 0 || notBase64.test(str)) {
         return false
     }
     const firstPaddingChar = str.indexOf('=')
-    return firstPaddingChar === -1 ||
-      firstPaddingChar === len - 1 ||
-      (firstPaddingChar === len - 2 && str[len - 1] === '=')
+    return (
+        firstPaddingChar === -1 ||
+        firstPaddingChar === len - 1 ||
+        (firstPaddingChar === len - 2 && str[len - 1] === '=')
+    )
 }
 
 /**
@@ -234,7 +270,7 @@ export function isBase64(str: string) {
  * @param {String} file file to check access for
  * @return              true if file can be accessed
  */
-export const canAccess = (file: string) => {
+export const canAccess = (file?: string) => {
     if (!file) {
         return false
     }

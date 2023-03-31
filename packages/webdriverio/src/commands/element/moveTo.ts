@@ -1,4 +1,4 @@
-import { getElementRect, getScrollPosition } from '../../utils'
+import { getElementRect, getScrollPosition, getBrowserObject } from '../../utils/index.js'
 
 type MoveToOptions = {
     xOffset?: number,
@@ -19,7 +19,7 @@ type MoveToOptions = {
  * @see  https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol#sessionsessionidmoveto
  * @type protocol
  */
-export default async function moveTo (
+export async function moveTo (
     this: WebdriverIO.Element,
     { xOffset, yOffset }: MoveToOptions = {}
 ) {
@@ -38,10 +38,8 @@ export default async function moveTo (
     /**
      * W3C way of handle the mouse move actions
      */
-    return this.performActions([{
-        type: 'pointer',
-        id: 'finger1',
-        parameters: { pointerType: 'mouse' },
-        actions: [{ type: 'pointerMove', duration: 0, x: newXOffset, y: newYOffset }]
-    }]).then(() => this.releaseActions())
+    const browser = getBrowserObject(this)
+    return browser.action('pointer', { parameters: { pointerType: 'mouse' } })
+        .move({ x: newXOffset, y: newYOffset })
+        .perform()
 }

@@ -1,11 +1,13 @@
-const path = require('path')
+import url from 'node:url'
 
-exports.config = {
+const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
+
+export const config = {
     /**
      * specify test files
      */
     specs: [
-        path.resolve(__dirname, 'mocha.test.js')
+        './mocha.test.js'
     ],
 
     /**

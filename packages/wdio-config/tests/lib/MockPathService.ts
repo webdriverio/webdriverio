@@ -1,7 +1,9 @@
-import { PathService } from '../../src/lib/ConfigParser'
-import path from 'path'
-import { FilePathAndContent } from './MockFileContentBuilder'
-var Minimatch = require('minimatch').Minimatch
+import path from 'node:path'
+import { vi } from 'vitest'
+import Minimatch from 'minimatch'
+
+import type { FilePathAndContent } from './MockFileContentBuilder.js'
+import type { PathService } from '../../src/types.js'
 
 export type MockSystemFolderPath = string;
 export type MockSystemFilePath = string;
@@ -17,18 +19,14 @@ export default class MockPathService implements PathService {
     private cwd : MockSystemFolderPath
     private files : FilePathsAndContents
 
-    getcwdMock: jest.SpyInstance
-    loadFileMock: jest.SpyInstance
-    isFileMock: jest.SpyInstance
-    globMock: jest.SpyInstance
+    getcwdMock = vi.spyOn(this, 'getcwd' as any)
+    loadFileMock = vi.spyOn(this, 'loadFile' as any)
+    isFileMock = vi.spyOn(this, 'isFile' as any)
+    globMock = vi.spyOn(this, 'glob' as any)
 
     private constructor({ cwd, files } : {cwd: MockSystemFolderPath, files: FilePathsAndContents}) {
         this.cwd = cwd
         this.files = files
-        this.getcwdMock = jest.spyOn(this, 'getcwd')
-        this.loadFileMock = jest.spyOn(this, 'loadFile')
-        this.isFileMock = jest.spyOn(this, 'isFile')
-        this.globMock = jest.spyOn(this, 'glob')
     }
 
     /**
@@ -38,10 +36,10 @@ export default class MockPathService implements PathService {
      */
     getMocks() {
         return {
-            getcwdMock : this.getcwdMock,
-            loadFileMock : this.loadFileMock,
-            isFileMock : this.isFileMock,
-            globMock : this.globMock
+            getcwdMock: this.getcwdMock as any as Function,
+            loadFileMock: this.loadFileMock as any as Function,
+            isFileMock: this.isFileMock as any as Function,
+            globMock: this.globMock as any as Function
         }
     }
 
@@ -69,34 +67,34 @@ export default class MockPathService implements PathService {
          * which is great, but will fail the simplistic exact string mock file matching,
          * so remove the duplication so this logic should stay simple
          */
-        let _path = path.normalize(filePath)
+        const _path = path.normalize(filePath)
         const filePathKey = this.lookupFilesIndex(_path)
         const found = this.files.find(a => a[0] === filePathKey)
         if (found) {
             try {
                 // JS's require on JS files auto-parses so let's emulate
                 // so that test file values don't matter if they are stringed json or objects
-                return JSON.parse(found[1])
+                return JSON.parse(found[1] as string) as T
             } catch (err: any) {
-                return found[1]
+                return found[1] as T
             }
         }
         throw new Error(`File "${filePathKey}" does not exist in fake file system!`)
     }
 
     private lookupFilesIndex(filePath: MockSystemFilePath) {
-        let _path = path.normalize(filePath)
+        const _path = path.normalize(filePath)
         return path.isAbsolute(_path) ? _path : path.resolve(this.cwd, _path)
     }
 
     isFile(filePath: MockSystemFilePath): boolean {
-        let _path = path.normalize(filePath)
+        const _path = path.normalize(filePath)
         const filePathKey = this.lookupFilesIndex(_path)
         return this.files.some(a => a[0] === filePathKey)
     }
 
     glob(pattern: string): string[] {
-        const mm = new Minimatch(pattern)
+        const mm = new Minimatch.Minimatch(pattern)
         return this.files.filter(a => mm.match(a[0])).map(result => result[0])
     }
 

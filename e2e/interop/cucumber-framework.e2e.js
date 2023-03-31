@@ -1,0 +1,11 @@
+const assert = require('node:assert')
+const FrameworkAdapter = require('../../packages/wdio-cucumber-framework')
+const { Given, When, Then } = require('../../packages/wdio-cucumber-framework')
+
+console.log('Test FrameworkAdapter.init')
+assert.equal(typeof FrameworkAdapter.init, 'function')
+console.log('Test Cucumber Exports', Given, When, Then)
+assert.equal(typeof When, 'function')
+assert.equal(typeof Then, 'function')
+assert.equal(typeof Given, 'function')
+console.log('Cucumber Adapter CJS Test Passed!')

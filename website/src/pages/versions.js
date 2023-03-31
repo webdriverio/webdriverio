@@ -14,9 +14,19 @@ function Version() {
     const { siteConfig } = useDocusaurusContext()
     const repoUrl = `https://github.com/${siteConfig.organizationName}/${siteConfig.projectName}`
     const pastVersions = [{
-        name: 'v7',
+        name: 'v8',
         path: 'https://webdriver.io',
         comment: 'Stable',
+        repoUrl
+    }, {
+        name: 'v7',
+        label: 'v7',
+        path: 'https://v7.webdriver.io',
+        comment: (
+            <div>
+                <b>LTS</b> (until October 2023)
+            </div>
+        ),
         repoUrl
     }, {
         name: 'v6',
@@ -24,7 +34,7 @@ function Version() {
         path: 'https://v6.webdriver.io',
         comment: (
             <div>
-                <b>LTS</b> (until February 2022)
+                <b>Deprecated</b> (since February 2022)
             </div>
         ),
         repoUrl

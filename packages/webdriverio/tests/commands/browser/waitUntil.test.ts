@@ -1,8 +1,9 @@
+import { expect, describe, it, beforeAll, afterEach, vi } from 'vitest'
 // @ts-ignore mocked (original defined in webdriver package)
 import got from 'got'
-import { remote } from '../../../src'
+import { remote } from '../../../src/index.js'
 
-jest.setTimeout(10 * 1000)
+vi.mock('got')
 
 describe('waitUntil', () => {
     let browser: WebdriverIO.Browser
@@ -123,6 +124,7 @@ describe('waitUntil', () => {
                         500
                     )
                 ), {
+                    // @ts-expect-error wrong parameter
                     timeout: 'blah',
                     interval: 200
                 }
@@ -151,6 +153,7 @@ describe('waitUntil', () => {
                 ), {
                     timeout: 1000,
                     timeoutMsg: 'Timed Out',
+                    // @ts-expect-error wrong parameter
                     interval: 'blah'
                 }
             )
@@ -189,6 +192,6 @@ describe('waitUntil', () => {
     })
 
     afterEach(() => {
-        got.mockClear()
+        vi.mocked(got).mockClear()
     })
 })

@@ -13,7 +13,7 @@ The following is only required for Mocha and Jasmine users who want to use the f
 - Enable the feature with a flag in `wdio.conf.js`
 ```js
 // wdio.conf.js
-export.config = {
+exports.config
     // ...
     featureFlags: {
         specFiltering: true
@@ -24,7 +24,7 @@ export.config = {
 - Move custom commands declaration to `before` hook, if you have such, example:
 ```js
 // wdio.conf.js
-export.config = {
+exports.config
     // ...
     mochaOpts: {
         /**

@@ -1,7 +1,5 @@
 import type { Capabilities } from '@wdio/types'
 
-import type { SauceServiceConfig } from './types'
-
 /**
  * Determine if the current instance is a RDC instance. RDC tests are Real Device tests
  * that can be started with different sets of capabilities. A deviceName is not mandatory, the only mandatory cap for
@@ -70,33 +68,18 @@ export function isEmuSim (caps: Capabilities.DesiredCapabilities){
  * @param {object} options - Additional options to set on the capability
  * @returns {function(object): void} - A function that mutates a single capability
  */
-export function makeCapabilityFactory(tunnelIdentifier: string, options: any) {
+export function makeCapabilityFactory(tunnelIdentifier: string) {
     return (capability: Capabilities.DesiredCapabilities) => {
-        // Check if this is a 'valid' W3C request, this is done with a simple check
-        // where we assume that if only one cap has `:` it's W3C, even if the request
-        // is a mix of JWP and W3C. This is hard to check
-        const isW3CRequest = Boolean(
-            Object.keys(capability).find((cap) => cap.includes(':'))
-        )
-
-        // If the `sauce:options` are not provided and it is a W3C session
-        // then add it
-        if (!capability['sauce:options'] && isW3CRequest) {
+        // If the `sauce:options` are not provided and it is a W3C session then add it
+        if (!capability['sauce:options']) {
             capability['sauce:options'] = {}
         }
 
-        Object.assign(capability, options)
-
-        const sauceOptions = (isW3CRequest ? capability['sauce:options'] : capability) as SauceServiceConfig
-        sauceOptions.tunnelIdentifier = (
+        capability['sauce:options'].tunnelIdentifier = (
             capability.tunnelIdentifier ||
-            sauceOptions.tunnelIdentifier ||
+            capability['sauce:options'].tunnelIdentifier ||
             tunnelIdentifier
         )
-
-        if (isW3CRequest) {
-            delete capability.tunnelIdentifier
-        }
     }
 }
 

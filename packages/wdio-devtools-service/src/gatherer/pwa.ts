@@ -1,24 +1,22 @@
-import FRGatherer from 'lighthouse/lighthouse-core/fraggle-rock/gather/session'
-import pageFunctions from 'lighthouse/lighthouse-core/lib/page-functions'
-import NetworkRecorder from 'lighthouse/lighthouse-core/lib/network-recorder'
-import ProtocolSession from 'lighthouse/lighthouse-core/fraggle-rock/gather/session'
+import FRGatherer from 'lighthouse/lighthouse-core/fraggle-rock/gather/session.js'
+import pageFunctions from 'lighthouse/lighthouse-core/lib/page-functions.js'
+import NetworkRecorder from 'lighthouse/lighthouse-core/lib/network-recorder.js'
 
-import InstallabilityErrors from 'lighthouse/lighthouse-core/gather/gatherers/installability-errors'
-import WebAppManifest from 'lighthouse/lighthouse-core/gather/gatherers/web-app-manifest'
-import LinkElements from 'lighthouse/lighthouse-core/gather/gatherers/link-elements'
-import ViewportDimensions from 'lighthouse/lighthouse-core/gather/gatherers/viewport-dimensions'
-import serviceWorkers from 'lighthouse/lighthouse-core/gather/driver/service-workers'
+import InstallabilityErrors from 'lighthouse/lighthouse-core/gather/gatherers/installability-errors.js'
+import WebAppManifest from 'lighthouse/lighthouse-core/gather/gatherers/web-app-manifest.js'
+import LinkElements from 'lighthouse/lighthouse-core/gather/gatherers/link-elements.js'
+import ViewportDimensions from 'lighthouse/lighthouse-core/gather/gatherers/viewport-dimensions.js'
+import serviceWorkers from 'lighthouse/lighthouse-core/gather/driver/service-workers.js'
 
-import type { CDPSession } from 'puppeteer-core/lib/cjs/puppeteer/common/Connection'
-import type { Page } from 'puppeteer-core/lib/cjs/puppeteer/common/Page'
+import type { CDPSession } from 'puppeteer-core/lib/esm/puppeteer/common/Connection.js'
+import type { Page } from 'puppeteer-core/lib/esm/puppeteer/api/Page.js'
 
-import collectMetaElements from '../scripts/collectMetaElements'
-import { NETWORK_RECORDER_EVENTS } from '../constants'
-import type { GathererDriver } from '../types'
+import collectMetaElements from '../scripts/collectMetaElements.js'
+import { NETWORK_RECORDER_EVENTS } from '../constants.js'
+import type { GathererDriver } from '../types.js'
 
 export default class PWAGatherer {
     private _frGatherer: typeof FRGatherer
-    private _protocolSession: typeof ProtocolSession
     private _networkRecorder: any
     private _networkRecords: any[] = []
 
@@ -28,7 +26,6 @@ export default class PWAGatherer {
         private _driver: GathererDriver
     ) {
         this._frGatherer = new FRGatherer(this._session)
-        this._protocolSession = new ProtocolSession(_session)
 
         /**
          * setup network recorder
@@ -60,8 +57,8 @@ export default class PWAGatherer {
 
         const linkElements = new LinkElements()
         const viewportDimensions = new ViewportDimensions()
-        const { registrations } = await serviceWorkers.getServiceWorkerRegistrations(this._protocolSession)
-        const { versions } = await serviceWorkers.getServiceWorkerVersions(this._protocolSession)
+        const { registrations } = await serviceWorkers.getServiceWorkerRegistrations(this._frGatherer)
+        const { versions } = await serviceWorkers.getServiceWorkerVersions(this._frGatherer)
         return {
             URL: { requestedUrl: pageUrl, finalUrl: pageUrl },
             WebAppManifest: await WebAppManifest.getWebAppManifest(this._frGatherer, pageUrl),

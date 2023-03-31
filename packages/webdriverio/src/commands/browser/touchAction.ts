@@ -1,5 +1,5 @@
-import { touchAction as touchActionCommand } from '../constant'
-import { TouchActions } from '../../types'
+import { touchAction as touchActionCommand } from '../constant.js'
+import type { TouchActions } from '../../types.js'
 
 /**
  *
@@ -59,7 +59,7 @@ import { TouchActions } from '../../types'
  * @for android, ios
  *
  */
-export default function touchAction (
+export function touchAction (
     this: WebdriverIO.Browser,
     actions: TouchActions
 ) {

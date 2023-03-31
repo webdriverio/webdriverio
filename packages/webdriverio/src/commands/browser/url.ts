@@ -1,4 +1,4 @@
-import { validateUrl } from '../../utils'
+import { validateUrl } from '../../utils/index.js'
 
 /**
  *
@@ -36,7 +36,7 @@ import { validateUrl } from '../../utils'
  * @type protocol
  *
  */
-export default function url (
+export function url (
     this: WebdriverIO.Browser,
     path: string
 ) {

@@ -24,7 +24,7 @@ const log = logger('webdriverio')
  * @type utility
  *
  */
-export default async function reloadSession (this: WebdriverIO.Browser) {
+export async function reloadSession (this: WebdriverIO.Browser) {
     const oldSessionId = (this as WebdriverIO.Browser).sessionId
 
     /**
@@ -46,7 +46,7 @@ export default async function reloadSession (this: WebdriverIO.Browser) {
         log.debug('Disconnected puppeteer session')
     }
 
-    const ProtocolDriver = require(this.options.automationProtocol!).default
+    const ProtocolDriver = (await import(this.options.automationProtocol!)).default
     await ProtocolDriver.reloadSession(this)
 
     const options = this.options as Options.Testrunner

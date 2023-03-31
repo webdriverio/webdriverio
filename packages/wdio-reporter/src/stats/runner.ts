@@ -1,7 +1,7 @@
 import type { Capabilities, Options } from '@wdio/types'
 
-import RunnableStats from './runnable'
-import { sanitizeCaps } from '../utils'
+import RunnableStats from './runnable.js'
+import { sanitizeCaps } from '../utils.js'
 
 /**
  * Class to capture statistics about a test run. A test run is a single instance that

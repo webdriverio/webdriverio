@@ -1,9 +1,12 @@
-jest.unmock('@wdio/config')
-
-import path from 'path'
+import path from 'node:path'
+import { expect, vi, describe, it, afterEach } from 'vitest'
 // @ts-ignore mock feature
 import { logMock } from '@wdio/logger'
-import DevTools from '../src'
+import DevTools from '../src/index.js'
+
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+vi.mock('puppeteer-core', () => import(path.join(process.cwd(), '__mocks__', 'puppeteer-core')))
+vi.mock('chrome-launcher', () => import(path.join(process.cwd(), '__mocks__', 'chrome-launcher')))
 
 const OUTPUT_DIR = path.join('some', 'output', 'dir')
 const OUTPUT_FILE = path.join(OUTPUT_DIR, 'wdio.log')
@@ -81,8 +84,10 @@ describe('DevTools', () => {
                 capabilities: { browserName: 'chrome' },
             })
 
+            // @ts-expect-error internal property
             expect(client.puppeteer).toBe(undefined)
             await DevTools.reloadSession(client)
+            // @ts-expect-error internal property
             expect(client.puppeteer).not.toBe(undefined)
         })
     })

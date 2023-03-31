@@ -1,7 +1,9 @@
-import {
+import type {
     WebdriverIO as WebDriverIOOptions,
     Connection as ConnectionOptions
-} from './Options'
+} from './Options.js'
+
+type JSONLike = | { [property: string]: JSONLike } | readonly JSONLike[] | string | number | boolean | null
 
 export type PageLoadingStrategy = 'none' | 'eager' | 'normal';
 export type LoggingPreferenceType =
@@ -34,6 +36,7 @@ export interface ProxyObject {
     socksVersion?: string;
     socksUsername?: string;
     socksPassword?: string;
+    noProxy?: string[];
 }
 
 export interface Capabilities extends VendorExtensions, ConnectionOptions {
@@ -77,6 +80,10 @@ export interface Capabilities extends VendorExtensions, ConnectionOptions {
      * Describes the current session’s user prompt handler. Defaults to the dismiss and notify state.
      */
     unhandledPromptBehavior?: string;
+    /**
+     * WebDriver clients opt in to a bidirectional connection by requesting a capability with the name "webSocketUrl" and value true.
+     */
+    webSocketUrl?: boolean
 }
 
 export interface W3CCapabilities {
@@ -95,7 +102,7 @@ export type RemoteCapability = DesiredCapabilities | W3CCapabilities | MultiRemo
 export interface DesiredCapabilities extends Capabilities, SauceLabsCapabilities, SauceLabsVisualCapabilities,
     TestingbotCapabilities, SeleniumRCCapabilities, AppiumIOSCapabilities, GeckodriverCapabilities, IECapabilities,
     AppiumAndroidCapabilities, AppiumCapabilities, AppiumW3CCapabilities, VendorExtensions, GridCapabilities,
-    ChromeCapabilities, BrowserStackCapabilities, AppiumXCUITestCapabilities {
+    ChromeCapabilities, BrowserStackCapabilities, AppiumXCUITestCapabilities, LambdaTestCapabilities {
 
     // Read-only capabilities
     cssSelectorsEnabled?: boolean;
@@ -137,7 +144,7 @@ export interface DesiredCapabilities extends Capabilities, SauceLabsCapabilities
     excludeDriverLogs?: string[];
 }
 
-export interface VendorExtensions extends EdgeCapabilities, AppiumW3CCapabilities, WebdriverIO.WDIODevtoolsOptions {
+export interface VendorExtensions extends EdgeCapabilities, AppiumW3CCapabilities, WebdriverIO.WDIODevtoolsOptions, WebdriverIO.WDIOVSCodeServiceOptions {
     // Aerokube Selenoid specific
     'selenoid:options'?: SelenoidOptions
     // Aerokube Moon specific
@@ -148,20 +155,39 @@ export interface VendorExtensions extends EdgeCapabilities, AppiumW3CCapabilitie
     'sauce:options'?: SauceLabsCapabilities
     // Sauce Labs Visual
     'sauce:visual'?: SauceLabsVisualCapabilities
+    // Experitest Access Keys
+    'experitest:accessKey'?: string
+    //LambdaTest w3c specific
+    'LT:Options'?: LambdaTestCapabilities
     // Browserstack w3c specific
     'bstack:options'?: BrowserStackCapabilities
     'browserstack.local'?: boolean
+    /**
+     * @private
+     */
+    'browserstack.wdioService'?: string
+    'browserstack.buildIdentifier'?: string
+    'browserstack.localIdentifier'?: string
 
-    'goog:chromeOptions'?: ChromeOptions;
-    'moz:firefoxOptions'?: FirefoxOptions;
+    'goog:chromeOptions'?: ChromeOptions
+    'moz:firefoxOptions'?: FirefoxOptions
+    // This capability is a boolean when send as part of the capabilities to Geckodrivr
+    // and is being returns as string (e.g. "<host>:<port>") when session capabilities
+    // are returned from the driver
+    // see https://firefox-source-docs.mozilla.org/testing/geckodriver/Capabilities.html#moz-debuggeraddress
+    'moz:debuggerAddress'?: string | number
     // eslint-disable-next-line
-    firefox_profile?: string;
-    'ms:edgeOptions'?: MicrosoftEdgeOptions;
-    'ms:edgeChromium'?: MicrosoftEdgeOptions;
+    firefox_profile?: string
+    'ms:edgeOptions'?: MicrosoftEdgeOptions
+    'ms:edgeChromium'?: MicrosoftEdgeOptions
+
+    // Windows Application Driver
+    'ms:experimental-webdriver'?: boolean
+    'ms:waitForAppLaunch'?: string
 
     // Safari specific
     'safari.options'?: {
-        [name: string]: any;
+        [name: string]: any
     };
 
     /**
@@ -181,48 +207,48 @@ export interface ChromeOptions {
      * associated value should be separated by a '=' sign (e.g., `['start-maximized', 'user-data-dir=/tmp/temp_profile']`).
      * See here for a list of Chrome arguments.
      */
-    args?: string[];
+    args?: string[]
     /**
      * Path to the Chrome executable to use (on Mac OS X, this should be the actual binary,
      * not just the app. e.g., '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome')
      */
-    binary?: string;
+    binary?: string
     /**
      * A list of Chrome extensions to install on startup. Each item in the list should
      * be a base-64 encoded packed Chrome extension (.crx)
      */
-    extensions?: string[];
+    extensions?: string[]
     /**
      * A dictionary with each entry consisting of the name of the preference and its value.
      * These preferences are applied to the Local State file in the user data folder.
      */
     localState?: {
-        [name: string]: any;
-    };
+        [name: string]: any
+    }
     /**
      * If false, Chrome will be quit when ChromeDriver is killed, regardless of whether
      * the session is quit. If true, Chrome will only be quit if the session is quit
      * (or closed). Note, if true, and the session is not quit, ChromeDriver cannot clean
      * up the temporary user data directory that the running Chrome instance is using.
      */
-    detach?: boolean;
+    detach?: boolean
     /**
      * An address of a Chrome debugger server to connect to, in the form of `<hostname/ip:port>`,
      * e.g. '127.0.0.1:38947'
      */
-    debuggerAddress?: string;
+    debuggerAddress?: string
     /**
      * List of Chrome command line switches to exclude that ChromeDriver by default passes
      * when starting Chrome.  Do not prefix switches with --.
      */
-    excludeSwitches?: string[];
+    excludeSwitches?: string[]
     /**
      * Directory to store Chrome minidumps . (Supported only on Linux.)
      */
-    minidumpPath?: string;
+    minidumpPath?: string
     /**
-     * A dictionary with either a value for “deviceName,” or values for “deviceMetrics” and
-     * “userAgent.” Refer to Mobile Emulation for more information.
+     * A dictionary with either a value for "deviceName", or values for "deviceMetrics" and
+     * "userAgent". Refer to Mobile Emulation for more information.
      */
     mobileEmulation?: {
         userAgent?: string
@@ -233,32 +259,49 @@ export interface ChromeOptions {
             pixelRatio?: number
             touch?: boolean
         }
-    };
+    }
     /**
      * An optional dictionary that specifies performance logging preferences. See
      * [Chromedriver docs](http://chromedriver.chromium.org/capabilities) for
      * more information.
      */
     perfLoggingPrefs?: {
-        enableNetwork?: boolean;
-        enablePage?: boolean;
-        enableTimeline?: boolean;
-        tracingCategories?: boolean;
-        bufferUsageReportingInterval?: boolean;
-    };
+        /**
+         * Whether or not to collect events from Network domain.
+         * @default true
+         */
+        enableNetwork?: boolean
+        /**
+         * Whether or not to collect events from Page domain.
+         * @default true
+         */
+        enablePage?: boolean
+        /**
+         * A comma-separated string of Chrome tracing categories for which trace events
+         * should be collected. An unspecified or empty string disables tracing.
+         * @default ''
+         */
+        tracingCategories?: string
+        /**
+         * The requested number of milliseconds between DevTools trace buffer
+         * usage events. For example, if 1000, then once per second, DevTools
+         * will report how full the trace buffer is. If a report indicates the
+         * buffer usage is 100%, a warning will be issued.
+         * @default 1000
+         */
+        bufferUsageReportingInterval?: number
+    }
     /**
      * A dictionary with each entry consisting of the name of the preference and its value.
      * These preferences are only applied to the user profile in use. See the 'Preferences'
      * file in Chrome's user data directory for examples.
      */
-    prefs?: {
-        [name: string]: string | number | boolean;
-    };
+    prefs?: Record<string, JSONLike>
     /**
      * A list of window types that will appear in the list of window handles. For access
      * to <webview> elements, include "webview" in this list.
      */
-    windowTypes?: string[];
+    windowTypes?: string[]
 }
 
 /**
@@ -293,7 +336,7 @@ export interface FirefoxOptions {
     profile?: string
     log?: FirefoxLogObject
     prefs?: {
-        [name: string]: string | number | boolean
+        [name: string]: string[] | string | number | boolean
     }
 }
 
@@ -451,13 +494,20 @@ export interface AppiumW3CCapabilities {
     'appium:printPageSourceOnFindFailure'?: boolean;
     'appium:nativeWebTap'?: boolean;
     'appium:options'?: AppiumCapabilities
-
-    // Users as directConnect feature by the server
-    // https://appiumpro.com/editions/86-connecting-directly-to-appium-hosts-in-distributed-environments
+    /**
+     * Users as directConnect feature by the server
+     * https://appiumpro.com/editions/86-connecting-directly-to-appium-hosts-in-distributed-environments
+     */
     'appium:directConnectProtocol'?: string;
     'appium:directConnectHost'?: string;
     'appium:directConnectPort'?: number;
     'appium:directConnectPath'?: string;
+    /**
+     * Windows-specific capability: Please see https://github.com/appium/appium-windows-driver#usage
+     * This is a hexadecimal handle of an existing application top level window to attach to. Either this
+     * capability or 'appium:app' must be provided on session startup.
+     */
+    'appium:appTopLevelWindow'?: string;
 }
 
 /**
@@ -528,11 +578,12 @@ export interface AppiumAndroidCapabilities {
     skipLogcatCapture?: boolean;
     uninstallOtherPackages?: string;
     disableWindowAnimation?: boolean;
-    otherApps?: string;
+    otherApps?: string | string[];
     uiautomator2ServerLaunchTimeout?: number;
     uiautomator2ServerInstallTimeout?: number;
     skipServerInstallation?: boolean;
     espressoServerLaunchTimeout?: number;
+    disableSuppressAccessibilityService?: boolean;
 }
 
 /**
@@ -671,7 +722,7 @@ export interface AppiumXCUITestCapabilities {
     'appium:permissions'?: string;
     'appium:screenshotQuality'?: number;
     'appium:wdaEventloopIdleDelay'?: number;
-    'appium:otherApps'?: string;
+    'appium:otherApps'?: string | string[];
     'appium:includeSafariInWebviews'?: boolean;
     'appium:additionalWebviewBundleIds'?: Array<string>;
     'appium:webviewConnectTimeout'?: number;
@@ -690,6 +741,10 @@ export interface AppiumXCUITestCapabilities {
     'appium:forceAppLaunch'?: boolean;
     'appium:useNativeCachingStrategy'?: boolean;
     'appium:appInstallStrategy'?: string;
+    /**
+     * Windows Application Driver capabilities
+     */
+    'appium:appArguments'?: string;
 }
 
 export interface AppiumXCUISafariGlobalPreferences {
@@ -1011,6 +1066,65 @@ export interface SauceLabsCapabilities {
      * @default *randomized string*
      */
     cacheId?: string
+    /**
+     * Specifies the Appium driver version you want to use. For most use cases,
+     * setting the appiumVersion is unnecessary because Sauce Labs defaults to
+     * the version that supports the broadest number of device combinations.
+     * Sauce Labs advises against setting this property unless you need to test
+     * a particular Appium feature or patch.
+     */
+    appiumVersion?: string
+}
+
+export interface LambdaTestCapabilities{
+    username?: string
+    accessKey?: string
+    platformName?: string
+    browserName?: string
+    browserVersion? : string
+    /**
+     * Set the resolution of the VM.
+     */
+    resolution?: string
+    selenium_version?: string
+    headless?: boolean
+    seCdp?: boolean
+    /**
+     * Specify a name for a logical group of builds.
+     */
+    project?: string
+    /**
+     * Specify a name for a logical group of tests.
+     */
+    build?: string | number
+    /**
+     * Use this capability to add a custom tag to the builds.
+     * These tags can be used to filter the builds on the Automate dashboard.
+     */
+    buildTags?: Array<string>
+    smartUiProject?: string
+    /**
+     * Use this capability to add names to the tests.
+     */
+    name?: string
+    /**
+     * Use this capability to add a custom tag to the tests.
+     * These tags can be used to filter the tests on the Automate dashboard.
+     */
+    tags?: Array<string>
+    visual?: boolean
+    video?: boolean
+    /**
+     * Test locally hosted websites on LambdaTest.
+     * To enable access to the local machine you need to setup the
+     * LambdaTest Tunnel (https://www.lambdatest.com/support/docs/testing-locally-hosted-pages).
+     */
+    tunnel?: boolean
+    /**
+     * Capture browser console logs at various steps in the test.
+     */
+    console?: 'warn' | 'error' | 'warn' | 'info' | 'true'
+    network?: boolean
 }
 
 export interface BrowserStackCapabilities {
@@ -1023,13 +1137,33 @@ export interface BrowserStackCapabilities {
     osVersion?: string
     desired?: DesiredCapabilities
     device?: string
+    /**
+     * Specify a name for a logical group of builds.
+     */
     projectName?: string
+    /**
+     * Specify a name for a logical group of tests.
+     */
     buildName?: string
+    /**
+     * Specify an identifier for the test run.
+     */
     sessionName?: string
+    /**
+     * Test locally hosted websites on BrowserStack.
+     * To enable access to the local machine you need to setup the
+     * [BrowserStack Local Binary](https://www.browserstack.com/local-testing/automate).
+     */
     local?: boolean
+    /**
+     * Generate screenshots at various steps of the test.
+     *
+     * @default false
+     */
     debug?: boolean
     networkLogs?: boolean
     seleniumVersion?: string
+    seleniumCdp?: boolean,
     ie?: {
         noFlash?: boolean,
         compatibility?: number
@@ -1040,21 +1174,96 @@ export interface BrowserStackCapabilities {
     userName?: string
     accessKey?: string
     localIdentifier?: string
+    /**
+     * Capture browser console logs at various steps in the test.
+     * Console Logs are available for Selenium tests on Desktop Chrome
+     * and Mobile Chrome (Android devices).
+     *
+     * @default 'errors'
+     */
     consoleLogs?: 'disable' | 'errors' | 'warnings' | 'info' | 'verbose'
     appiumLogs?: boolean
     video?: boolean
     seleniumLogs?: boolean
     geoLocation?: string
     timezone?: string
+    /**
+     * Set the resolution of the VM.
+     */
     resolution?: string
+    /**
+     * Mask the data sent or retrieved by certain commands.
+     *
+     * Note: Multiple commands can be passed in a single array, separated by commas.
+     */
     'browserstack.maskCommands'?: string[]
+    /**
+     * BrowerStack triggers `BROWSERSTACK_IDLE_TIMEOUT` error when a session
+     * is left idle for more than `idleTimeout` seconds. This happens as BrowserStack by
+     * default waits for the timeout duration for additional steps or commands
+     * to run. If no command is received during that time, the session is stopped,
+     * changing the session status to `TIMEOUT` on the Automate dashboard.
+     *
+     * Valid range: 0-300 seconds.
+     *
+     * @default 90
+     */
     idleTimeout?: number
+    /**
+     * Mask credentials from test logs if using basic authentication.
+     */
     maskBasicAuth?: boolean
+    /**
+     * Specify a custom delay between the execution of Selenium commands.
+     *
+     * @default 20
+     */
     autoWait?: number
+    /**
+     * Add a host entry (/etc/hosts) to the remote BrowserStack machine.
+     *
+     * Format: ip_address domain_name
+     * @example
+     * { "bstack:options": { hosts: "1.2.3.4 staging.website.com" } }
+     */
     hosts?: string
+    /**
+     * IE 11 uses cached pages when navigating using the backward or forward buttons.
+     * To disable page caching, set this value to 1.
+     *
+     * @default 0
+     */
     bfcache?: 0 | 1
+    /**
+     * Enable WSS (WebSocket Secure) connections to work with Network Logs
+     * on Chrome v71 and above.
+     *
+     * Note: if using `localhost` in your test, change it to `bs-local.com`.
+     *
+     * @default false
+     */
     wsLocalSupport?: boolean
+    /**
+     * Use this capability to disable cross origin restrictions in Safari.
+     * Available for Monterey, Big Sur, Catalina and Mojave.
+     *
+     * @default false
+     */
+    disableCorsRestrictions?: boolean
+    /**
+     * Use this capability to add a custom tag to the builds.
+     * These tags can be used to filter the builds on the Automate dashboard.
+     */
+    buildTag?: string
+    /**
+     * Specify a particular mobile device for the test environment.
+     */
     deviceName?: string
+    /**
+     * Use this flag to test on a physical mobile device.
+     *
+     * @default false
+     */
     realMobile?: boolean
     appiumVersion?: string
     deviceOrientation?: 'portrait' | 'landscape'
@@ -1070,14 +1279,28 @@ export interface BrowserStackCapabilities {
     safari?: {
         enablePopups?: boolean
         allowAllCookies?: boolean
-        driver?: string
     }
     firefox?: {
         driver?: string
     }
     browserName?: string
     browserVersion?: string
+    /**
+     * Ignore invalid certificate errors.
+     *
+     * @default false
+     */
     acceptSslCerts?: boolean
+    /**
+     * @private
+     */
+    wdioService?: string
+    /**
+     * Specify an identifier for a build consists group of tests.
+     */
+    buildIdentifier?: string
+    'browserstack.buildIdentifier'?: string
+    'browserstack.localIdentifier'?: string
 }
 
 export interface SauceLabsVisualCapabilities {

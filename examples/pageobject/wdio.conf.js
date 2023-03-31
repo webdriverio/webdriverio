@@ -4,7 +4,7 @@ exports.config = {
     // Specify Test Files
     // ==================
     // Define which test specs should run. The pattern is relative to the directory
-    // from which `wdio` was called.
+    // of the configuration file being run.
     //
     // The specs are defined as an array of spec files (optionally using wildcards
     // that will be expanded). The test for each spec file will be run in a separate
@@ -15,7 +15,7 @@ exports.config = {
     // then the current working directory is where your `package.json` resides, so `wdio`
     // will be called from there.
     //
-    specs: [__dirname + '/specs/dynamic.spec.js'],
+    specs: [__dirname + '/specs/*.spec.js'],
     //
     // ============
     // Capabilities
@@ -81,8 +81,7 @@ exports.config = {
     // See the full list at http://mochajs.org/
     mochaOpts: {
         ui: 'bdd',
-        timeout: 30000,
-        require: ['@babel/register']
+        timeout: 30000
     },
     //
     // =====
@@ -100,6 +99,10 @@ exports.config = {
     // Gets executed before a worker process is spawned and can be used to initialize specific service
     // for that worker as well as modify runtime environments in an async fashion.
     // onWorkerStart: function (cid, caps, specs, args, execArgv) {
+    // },
+    //
+    // Gets executed just after a worker process has exited.
+    // onWorkerEnd: function (cid, exitCode, specs, retries) {
     // },
     //
     // Gets executed before test execution begins. At this point you can access to all global

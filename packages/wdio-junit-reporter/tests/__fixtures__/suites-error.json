@@ -21,7 +21,8 @@
                 "end": "2018-04-17T09:10:10.999Z",
                 "error": {
                     "message": "Received: \u001b[31m\"5\"\u001b[39m",
-                    "type": "Error"
+                    "type": "Error",
+                    "stack": "Received: \u001b[31m\"5\"\u001b[39m\n  at Context.<anonymous> (/some/file.js:10:15)"
                 }
             }
         ],

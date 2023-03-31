@@ -1,5 +1,5 @@
-import fs from 'fs'
-import { getAbsoluteFilepath, assertDirectoryExists } from '../../utils'
+import fs from 'node:fs'
+import { getAbsoluteFilepath, assertDirectoryExists } from '../../utils/index.js'
 
 /**
  *
@@ -26,7 +26,7 @@ import { getAbsoluteFilepath, assertDirectoryExists } from '../../utils'
  * @type utility
  *
  */
-export default async function saveRecordingScreen (
+export async function saveRecordingScreen (
     this: WebdriverIO.Browser,
     filepath: string
 ) {
@@ -38,7 +38,7 @@ export default async function saveRecordingScreen (
     }
 
     const absoluteFilepath = getAbsoluteFilepath(filepath)
-    assertDirectoryExists(absoluteFilepath)
+    await assertDirectoryExists(absoluteFilepath)
 
     const videoBuffer = await this.stopRecordingScreen()
     const video = Buffer.from(videoBuffer, 'base64')

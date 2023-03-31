@@ -1,28 +1,36 @@
+import path from 'node:path'
+import { expect, describe, it, beforeEach, vi } from 'vitest'
 // @ts-ignore mocked (original defined in webdriver package)
 import got from 'got'
-import { remote } from '../../../src'
+import { remote } from '../../../src/index.js'
 
-const clientMock = {
-    send: jest.fn(),
-    on: jest.fn()
+vi.mock('got')
+vi.mock('devtools')
+vi.mock('@wdio/logger', () => import(path.join(process.cwd(), '__mocks__', '@wdio/logger')))
+
+const clientMock: any = {
+    send: vi.fn(),
+    on: vi.fn()
 }
-const pageMock = {
-    target: jest.fn().mockReturnValue({
-        createCDPSession: jest.fn().mockReturnValue(Promise.resolve(clientMock))
+const pageMock: any = {
+    target: vi.fn().mockReturnValue({
+        createCDPSession: vi.fn().mockReturnValue(Promise.resolve(clientMock))
     }),
-    evaluate: jest.fn().mockReturnValue(Promise.resolve(true))
+    evaluate: vi.fn().mockReturnValue(Promise.resolve(true))
 }
-const puppeteerMock = {
-    pages: jest.fn().mockReturnValue([pageMock]),
-    isConnected: jest.fn().mockReturnValue(true)
+const puppeteerMock: any = {
+    pages: vi.fn().mockReturnValue([pageMock]),
+    isConnected: vi.fn().mockReturnValue(true)
 }
 
-jest.mock('../../../src/utils/interception/webdriver', () => class {
-    init = jest.fn()
-})
+vi.mock('../../../src/utils/interception/webdriver', () => ({
+    default: class {
+        init = vi.fn()
+    }
+}))
 
 describe('mock', () => {
-    let browser
+    let browser: WebdriverIO.Browser
     beforeEach(async () => {
         clientMock.send.mockClear()
     })
@@ -56,13 +64,15 @@ describe('mock', () => {
 
         browser.puppeteer = puppeteerMock
 
-        got.setMockResponse('window-handle-2')
+        // @ts-expect-error mock feature
+        vi.mocked(got).setMockResponse('window-handle-2')
         expect(clientMock.send).toBeCalledTimes(0)
         await browser.mock('/foobar')
         expect(clientMock.send).toBeCalledTimes(1)
         expect(clientMock.send).toBeCalledWith('Fetch.enable', expect.any(Object))
         expect(clientMock.on).toBeCalledWith('Fetch.requestPaused', expect.any(Function))
-        got.setMockResponse('window-handle-3')
+        // @ts-expect-error mock feature
+        vi.mocked(got).setMockResponse('window-handle-3')
         await browser.mock('/foobar')
         expect(clientMock.send).toBeCalledTimes(2)
 
@@ -81,6 +91,7 @@ describe('mock', () => {
 
         browser.puppeteer = puppeteerMock
         const mock = await browser.mock('/foobar')
-        expect(mock.init).toBeCalledWith()
+        // @ts-expect-error mock feature
+        expect(vi.mocked(mock.init)).toBeCalledWith()
     })
 })

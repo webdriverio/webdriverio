@@ -1,15 +1,18 @@
-import { EventEmitter } from 'events'
-import { Status, PickleFilter } from '@cucumber/cucumber'
-import {
+import { EventEmitter } from 'node:events'
+
+import { Status } from '@cucumber/cucumber'
+import type { PickleFilter } from '@cucumber/cucumber'
+import type {
     Pickle, TestCase, Envelope, TestStepResult, TestCaseStarted, GherkinDocument,
     TestStepStarted, TestStepFinished, PickleStep
 } from '@cucumber/messages'
+
 import logger from '@wdio/logger'
 import type { Capabilities } from '@wdio/types'
 
-import { HookParams } from './types'
-import { addKeywordToStep, filterPickles, getRule } from './utils'
-import { ReporterScenario } from './constants'
+import { addKeywordToStep, filterPickles, getRule } from './utils.js'
+import type { ReporterScenario } from './constants.js'
+import type { HookParams } from './types.js'
 
 const log = logger('CucumberEventListener')
 
@@ -272,7 +275,7 @@ export default class CucumberEventListener extends EventEmitter {
         const uri = doc?.uri
         const feature = doc?.feature
 
-        if (this._currentDoc.uri && this._currentDoc.feature && this.usesSpecGrouping() && doc != this._currentDoc && this.featureIsStarted(this._currentDoc.uri)) {
+        if (this._currentDoc.uri && this._currentDoc.feature && this.usesSpecGrouping() && doc !== this._currentDoc && this.featureIsStarted(this._currentDoc.uri)) {
             this.emit('after-feature', this._currentDoc.uri, this._currentDoc.feature)
         }
 
@@ -292,7 +295,7 @@ export default class CucumberEventListener extends EventEmitter {
 
         this._currentPickle = { uri, feature, scenario }
 
-        let reporterScenario: ReporterScenario = scenario
+        const reporterScenario: ReporterScenario = scenario
         reporterScenario.rule = getRule(doc?.feature!, this._pickleMap.get(scenario.id)!)
 
         this.emit('before-scenario', scenario.uri, doc?.feature, reporterScenario)
