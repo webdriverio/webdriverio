@@ -83,6 +83,9 @@ export async function scrollIntoView (
         }
     }
 
+    deltaX = Math.round(deltaX)
+    deltaY = Math.round(deltaY)
+
     try {
         return await browser.action('wheel')
             .scroll({ duration: 200, deltaX, deltaY })
