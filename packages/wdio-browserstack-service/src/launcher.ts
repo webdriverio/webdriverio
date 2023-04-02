@@ -15,7 +15,7 @@ import type { Capabilities, Services, Options } from '@wdio/types'
 
 import type { BrowserstackConfig, App, AppConfig, AppUploadResponse } from './types.js'
 import { VALID_APP_EXTENSION } from './constants.js'
-import { launchTestSession, shouldAddServiceVersion, stopBuildUpstream, getCiInfo } from './util.js'
+import { launchTestSession, shouldAddServiceVersion, stopBuildUpstream, getCiInfo, setConfigDetails } from './util.js'
 
 const require = createRequire(import.meta.url)
 const { version: bstackServiceVersion } = require('../package.json')
@@ -90,6 +90,12 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
             process.env.BROWSERSTACK_RERUN && process.env.BROWSERSTACK_RERUN_TESTS
         ) {
             this._config.specs = process.env.BROWSERSTACK_RERUN_TESTS.split(',')
+        }
+
+        try {
+            setConfigDetails(this._config, capabilities, this._options)
+        } catch (error: any) {
+            log.error(`[Crash_Report_Upload] Config processing failed due to ${error}`)
         }
     }
 

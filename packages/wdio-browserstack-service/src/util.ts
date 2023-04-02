@@ -3,6 +3,7 @@ import { promisify } from 'node:util'
 import http from 'node:http'
 import https from 'node:https'
 import path from 'node:path'
+import { createRequire } from 'node:module'
 
 import type { Capabilities, Frameworks, Options } from '@wdio/types'
 import type { BeforeCommandArgs, AfterCommandArgs } from '@wdio/reporter'
@@ -18,8 +19,15 @@ import type { ITestCaseHookParameter } from './cucumber-types.js'
 import { BROWSER_DESCRIPTION, DATA_ENDPOINT, DATA_EVENT_ENDPOINT, DATA_SCREENSHOT_ENDPOINT } from './constants.js'
 import RequestQueueHandler from './request-handler.js'
 
+const require = createRequire(import.meta.url)
+const { version: bstackServiceVersion } = require('../package.json')
+
 const pGitconfig = promisify(gitconfig)
 const log = logger('@wdio/browserstack-service')
+
+/* User test config for build run minus PII */
+let userConfigForReporting: any = null
+let credentialsForCrashReportUpload = {}
 
 const DEFAULT_REQUEST_CONFIG = {
     agent: {
@@ -97,6 +105,49 @@ export function getParentSuiteName(fullTitle: string, testSuiteTitle: string): s
     return parentSuiteName.trim()
 }
 
+function filterPII(userConfig: Options.Testrunner) {
+    const configWithoutPII = JSON.parse(JSON.stringify(userConfig));
+    ['user', 'username', 'key', 'accessKey'].forEach(key => delete configWithoutPII[key])
+    const finalServices = []
+    try {
+        for (const serviceArray of configWithoutPII.services) {
+            if (Array.isArray(serviceArray) && serviceArray.length >= 2 && serviceArray[0] === 'browserstack') {
+                for (let idx=1; idx<serviceArray.length; idx++) {
+                    ['user', 'username', 'key', 'accessKey'].forEach(key => delete serviceArray[idx][key])
+                }
+                finalServices.push(serviceArray)
+                break
+            }
+        }
+    } catch (err) {
+        /* Wrong configuration like strings instead of json objects could break this method, needs no action */
+    }
+    configWithoutPII.services = finalServices
+    return configWithoutPII
+}
+
+function setCredentialsForCrashReportUpload(options: BrowserstackConfig & Options.Testrunner, config: Options.Testrunner) {
+    credentialsForCrashReportUpload = {
+        username: getObservabilityUser(options, config),
+        password: getObservabilityKey(options, config)
+    }
+}
+
+export function setConfigDetails(userConfig: Options.Testrunner, capabilities: Capabilities.RemoteCapability, options: BrowserstackConfig & Options.Testrunner) {
+    const configWithoutPII = filterPII(userConfig)
+    userConfigForReporting = {
+        framework: userConfig.framework,
+        services: configWithoutPII.services,
+        capabilities: capabilities,
+        env: {
+            'BROWSERSTACK_BUILD': process.env.BROWSERSTACK_BUILD,
+            'BROWSERSTACK_BUILD_NAME': process.env.BROWSERSTACK_BUILD_NAME,
+            'BUILD_TAG': process.env.BUILD_TAG
+        }
+    }
+    setCredentialsForCrashReportUpload(options, userConfig)
+}
+
 function o11yErrorHandler(fn: Function) {
     return function (...args: any) {
         try {
@@ -104,6 +155,7 @@ function o11yErrorHandler(fn: Function) {
             return fn.apply(this, arguments)
         } catch (err) {
             log.error(`Error in executing ${fn.name} with args ${args} : ${err} `)
+            uploadCrashReport(`Error in executing ${fn.name} with args ${args} : ${err} `)
         }
     }
 }
@@ -128,6 +180,7 @@ export function o11yClassErrorHandler<T extends ClassType>(errorClass: T): T {
                         return method.apply(this, arguments)
                     } catch (err) {
                         log.error(`Error in executing ${method.name} with args ${arguments} : ${err} `)
+                        uploadCrashReport(`Error in executing ${method.name} with args ${arguments} : ${err} `)
                     }
                 }
             })
@@ -135,6 +188,32 @@ export function o11yClassErrorHandler<T extends ClassType>(errorClass: T): T {
     })
 
     return errorClass
+}
+
+async function uploadCrashReport(exception: any) {
+    const data = {
+        hashed_id: process.env.BS_TESTOPS_BUILD_HASHED_ID,
+        observability_version: {
+            frameworkName: 'WebdriverIO-' + userConfigForReporting.framework,
+            sdkVersion: bstackServiceVersion
+        },
+        exception: {
+            error: exception.toString()
+        },
+        config: userConfigForReporting
+    }
+
+    try {
+        const url = `${DATA_ENDPOINT}/api/v1/analytics`
+        const response: string = await got.post(url, {
+            ...DEFAULT_REQUEST_CONFIG,
+            ...credentialsForCrashReportUpload,
+            json: data
+        }).text()
+        log.debug(`[Crash_Report_Upload] Success response: ${JSON.stringify(response)}`)
+    } catch (error) {
+        log.error(`[Crash_Report_Upload] Failed due to ${error}`)
+    }
 }
 
 export const launchTestSession = o11yErrorHandler(async function (options: BrowserstackConfig & Options.Testrunner, config: Options.Testrunner, bsConfig: UserConfig) {
@@ -159,7 +238,8 @@ export const launchTestSession = o11yErrorHandler(async function (options: Brows
         observability_version: {
             frameworkName: 'WebdriverIO-' + config.framework,
             sdkVersion: bsConfig.bstackServiceVersion
-        }
+        },
+        config: userConfigForReporting
     }
     try {
         const url = `${DATA_ENDPOINT}/api/v1/builds`
