@@ -12,11 +12,11 @@
     "description": "Navbar item with label Blog"
   },
   "item.label.Contribute": {
-    "message": "Contribute",
+    "message": "Contribuer",
     "description": "Navbar item with label Contribute"
   },
   "item.label.Community": {
-    "message": "Community",
+    "message": "Communauté",
     "description": "Navbar item with label Community"
   },
   "item.label.v8": {
