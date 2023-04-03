@@ -1,0 +1,51 @@
+name: 📽️ Video Suggestion
+description: Are you a creator and like to contribute a video for the project YouTube channel?
+title: "[📽️ Video Suggestion]: <title>"
+labels: [Video 📽️, Needs Triaging ⏳]
+body:
+
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to provide feedback on our YouTube channel! This is a community driven channel and everyone can partipate and help create content around it. Please suggest anything you like!
+
+  - type: textarea
+    id: suggestion
+    attributes:
+      label: Video Suggestion or Idea 💡
+      description: |
+        Describe what type of content you would like to see in the channel?
+      placeholder: |
+        It would be awesome to have a tutorial for ...
+    validations:
+      required: true
+
+  - type: dropdown
+    id: canContribute
+    attributes:
+      label: Do you like to contribute it?
+      description: |
+        Everyone in the WebdriverIO community can help create content for the channel, it is not a requirement though.
+      options:
+        - No, this is just a suggestion!
+        - Yes, but I don't know how 🤔
+        - Yes, I've done this before!
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Code of Conduct
+      description: By submitting this issue, you agree to follow our [Code of Conduct](https://github.com/webdriverio/webdriverio/blob/main/CODE_OF_CONDUCT.md)
+      options:
+        - label: I agree to follow this project's Code of Conduct
+          required: true
+
+  - type: checkboxes
+    attributes:
+      label: Is there an existing issue for this?
+      description: Please search to see if an issue already exists for the bug you encountered.
+      options:
+      - label: I have searched the existing issues
+        required: true
