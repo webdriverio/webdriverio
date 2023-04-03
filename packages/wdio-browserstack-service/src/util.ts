@@ -18,6 +18,7 @@ import type { UserConfig, UploadType, LaunchResponse, BrowserstackConfig } from 
 import type { ITestCaseHookParameter } from './cucumber-types.js'
 import { BROWSER_DESCRIPTION, DATA_ENDPOINT, DATA_EVENT_ENDPOINT, DATA_SCREENSHOT_ENDPOINT } from './constants.js'
 import RequestQueueHandler from './request-handler.js'
+import * as util from "util";
 
 const require = createRequire(import.meta.url)
 const { version: bstackServiceVersion } = require('../package.json')
@@ -148,9 +149,15 @@ export function setConfigDetails(userConfig: Options.Testrunner, capabilities: C
     setCredentialsForCrashReportUpload(options, userConfig)
 }
 
-function processError(error: unknown, fn: Function, args: any) {
+function processError(error: any, fn: Function, args: any) {
     log.error(`Error in executing ${fn.name} with args ${args}: ${error}`)
-    uploadCrashReport(`Error in executing ${fn.name} with args ${args} : ${error} `)
+    let argsString: string;
+    try {
+        argsString = JSON.stringify(args)
+    } catch (e) {
+        argsString = util.inspect(args, {depth: 2})
+    }
+    uploadCrashReport(`Error in executing ${fn.name} with args ${argsString} : ${error}`, error && error.stack)
 }
 
 function o11yErrorHandler(fn: Function) {
@@ -202,7 +209,7 @@ export function o11yClassErrorHandler<T extends ClassType>(errorClass: T): T {
     return errorClass
 }
 
-async function uploadCrashReport(exception: any) {
+async function uploadCrashReport(exception: any, stackTrace: string) {
     const data = {
         hashed_id: process.env.BS_TESTOPS_BUILD_HASHED_ID,
         observability_version: {
@@ -210,7 +217,8 @@ async function uploadCrashReport(exception: any) {
             sdkVersion: bstackServiceVersion
         },
         exception: {
-            error: exception.toString()
+            error: exception.toString(),
+            stackTrace: stackTrace
         },
         config: userConfigForReporting
     }
@@ -228,7 +236,7 @@ async function uploadCrashReport(exception: any) {
     }
 }
 
-export const launchTestSession = o11yErrorHandler(async function (options: BrowserstackConfig & Options.Testrunner, config: Options.Testrunner, bsConfig: UserConfig) {
+export const launchTestSession = o11yErrorHandler(async function launchTestSession(options: BrowserstackConfig & Options.Testrunner, config: Options.Testrunner, bsConfig: UserConfig) {
     const data = {
         format: 'json',
         project_name: getObservabilityProject(options, bsConfig.projectName),
@@ -295,7 +303,7 @@ export const launchTestSession = o11yErrorHandler(async function (options: Brows
     }
 })
 
-export const stopBuildUpstream = o11yErrorHandler(async function () {
+export const stopBuildUpstream = o11yErrorHandler(async function stopBuildUpstream() {
     if (!process.env.BS_TESTOPS_BUILD_COMPLETED) {
         return
     }
