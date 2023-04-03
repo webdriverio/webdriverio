@@ -42,7 +42,7 @@
     "access": "public"
   },
   "devDependencies": {
-    "minimatch": "^7.0.0",
+    "minimatch": "^8.0.2",
     "tsconfig-paths": "^4.1.0"
   }
 }
