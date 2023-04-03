@@ -554,11 +554,11 @@ export function getObservabilityBuildTags(options: BrowserstackConfig & Options.
 }
 
 export function frameworkSupportsHook(hook: string, framework?: string) {
-    if (framework === 'mocha' && hook === 'before' || hook === 'after' || hook === 'beforeEach' || hook === 'afterEach') {
+    if (framework === 'mocha' && (hook === 'before' || hook === 'after' || hook === 'beforeEach' || hook === 'afterEach')) {
         return true
     }
 
-    if (framework === 'jasmine' && hook === 'beforeEach' || hook === 'afterEach') {
+    if (framework === 'jasmine' && (hook === 'beforeEach' || hook === 'afterEach')) {
         return true
     }
 
