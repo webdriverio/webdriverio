@@ -21,6 +21,97 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.6.9 (2023-03-27)
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#10045](https://github.com/webdriverio/webdriverio/pull/10045) Fix handling existence checks for shadow elements ([@christian-bromann](https://github.com/christian-bromann))
+  * [#10046](https://github.com/webdriverio/webdriverio/pull/10046) Allow selectors to further search for elements by text and tag name ([@RahulARanger](https://github.com/RahulARanger))
+
+#### :nail_care: Polish
+* `devtools`
+  * [#10068](https://github.com/webdriverio/webdriverio/pull/10068) devtools: Attempt to rerun command before waiting for a page load (that might timeout) ([@nextlevelbeard](https://github.com/nextlevelbeard))
+* `wdio-browser-runner`
+  * [#10048](https://github.com/webdriverio/webdriverio/pull/10048) [🐛 Bug]: browser runner - `alert` or `confirm` stales execution of runner ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 3
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Ricardo Barbosa ([@nextlevelbeard](https://github.com/nextlevelbeard))
+- Sai Hanuma Rahul ([@RahulARanger](https://github.com/RahulARanger))
+
+
+## v8.6.8 (2023-03-24)
+
+#### :bug: Bug Fix
+* `wdio-junit-reporter`
+  * [#10035](https://github.com/webdriverio/webdriverio/pull/10035) Handle `file://` in specs of junit reporter - Closes [#9352](https://github.com/webdriverio/webdriverio/issues/9352) ([@nextlevelbeard](https://github.com/nextlevelbeard))
+
+#### :nail_care: Polish
+* `wdio-allure-reporter`
+  * [#10032](https://github.com/webdriverio/webdriverio/pull/10032) Add missing information and fix allure global result for cucumber tests ([@lacell75](https://github.com/lacell75))
+
+#### :memo: Documentation
+* [#10041](https://github.com/webdriverio/webdriverio/pull/10041) [Docs] Fixes to Lit component testing page ([@augustjk](https://github.com/augustjk))
+
+#### Committers: 3
+- Augustine Kim ([@augustjk](https://github.com/augustjk))
+- Fabien CELLIER ([@lacell75](https://github.com/lacell75))
+- Ricardo Barbosa ([@nextlevelbeard](https://github.com/nextlevelbeard))
+
+
+## v8.6.7 (2023-03-20)
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#10021](https://github.com/webdriverio/webdriverio/pull/10021) webdriverio: Add missing specFileRetries* to WDIO_DEFAULTS ([@WillBrock](https://github.com/WillBrock))
+
+#### Committers: 1
+- Will Brock ([@WillBrock](https://github.com/WillBrock))
+
+
+## v8.6.6 (2023-03-20)
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#9874](https://github.com/webdriverio/webdriverio/pull/9874) fix(commands): successive scrollIntoView ([@OBe95](https://github.com/OBe95))
+
+#### :house: Internal
+* `wdio-allure-reporter`, `wdio-appium-service`, `wdio-browser-runner`, `wdio-browserstack-service`, `wdio-cli`, `wdio-concise-reporter`, `wdio-config`, `wdio-crossbrowsertesting-service`, `wdio-cucumber-framework`, `wdio-devtools-service`, `wdio-dot-reporter`, `wdio-firefox-profile-service`, `wdio-globals`, `wdio-jasmine-framework`, `wdio-junit-reporter`, `wdio-local-runner`, `wdio-logger`, `wdio-mocha-framework`, `wdio-protocols`, `wdio-repl`, `wdio-reporter`, `wdio-runner`, `wdio-sauce-service`, `wdio-selenium-standalone-service`, `wdio-shared-store-service`, `wdio-smoke-test-reporter`, `wdio-smoke-test-service`, `wdio-spec-reporter`, `wdio-static-server-service`, `wdio-sumologic-reporter`, `wdio-testingbot-service`, `wdio-utils`, `wdio-webdriver-mock-service`, `webdriver`, `webdriverio`
+  * [#9973](https://github.com/webdriverio/webdriverio/pull/9973) feat: export package.json ([@itsjwala](https://github.com/itsjwala))
+
+#### Committers: 2
+- Jigar wala ([@itsjwala](https://github.com/itsjwala))
+- Othmane BENTALEB ([@OBe95](https://github.com/OBe95))
+
+
+## v8.6.3 (2023-03-18)
+
+#### :bug: Bug Fix
+* `webdriverio`
+  * [#9992](https://github.com/webdriverio/webdriverio/pull/9992) Improve selector for finding elements by tag and content ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :nail_care: Polish
+* `wdio-cli`
+  * [#9967](https://github.com/webdriverio/webdriverio/pull/9967) [💡 Feature]: Improve onboarding experience for browser tests ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :memo: Documentation
+* [#9991](https://github.com/webdriverio/webdriverio/pull/9991) chore(): updating webdriverio/klassijs-boilerplate ([@larryg01](https://github.com/larryg01))
+
+#### Committers: 2
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- LarryG ([@larryg01](https://github.com/larryg01))
+
+
+## v8.6.2 (2023-03-15)
+
+#### :bug: Bug Fix
+* `wdio-browser-runner`, `wdio-runner`
+  * [#9985](https://github.com/webdriverio/webdriverio/pull/9985) Improve stability of component tests for Safari ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
 ## v8.6.1 (2023-03-15)
 
 #### :nail_care: Polish

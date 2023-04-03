@@ -81,7 +81,6 @@ website/sidebars.json
 website/yarn.lock
 website/sidebars.json
 website/node_modules
-website/i18n/*
 website/docs/api/**/*.md
 !website/docs/api/Environment.md
 !website/docs/api/Globals.md

@@ -2,6 +2,7 @@ import topLevelAwait from 'vite-plugin-top-level-await'
 import { esbuildCommonjs } from '@originjs/vite-plugin-commonjs'
 import type { InlineConfig } from 'vite'
 
+import { codeFrameFix } from './plugins/esbuild.js'
 import type { FrameworkPreset } from '../types.js'
 
 export const PRESET_DEPENDENCIES: Record<FrameworkPreset, [string, string, any] | undefined> = {
@@ -41,7 +42,7 @@ export const DEFAULT_VITE_CONFIG: Partial<InlineConfig> = {
             'expect', 'serialize-error', 'minimatch', 'css-shorthand-properties',
             'lodash.merge', 'lodash.zip', 'lodash.clonedeep', 'lodash.pickby', 'lodash.flattendeep',
             'aria-query', 'grapheme-splitter', 'css-value', 'rgb2hex', 'p-iteration', 'fast-safe-stringify',
-            'deepmerge-ts', 'jest-util'
+            'deepmerge-ts', 'jest-util', 'jest-matcher-utils'
         ],
         esbuildOptions: {
             logLevel: 'silent',
@@ -51,7 +52,9 @@ export const DEFAULT_VITE_CONFIG: Partial<InlineConfig> = {
             },
             // Enable esbuild polyfill plugins
             plugins: [
-                esbuildCommonjs(['@testing-library/vue'])
+                esbuildCommonjs(['@testing-library/vue']),
+                // @ts-expect-error issue between esbuild dep from WebdriverIO vs Vite
+                codeFrameFix()
             ],
         },
     }

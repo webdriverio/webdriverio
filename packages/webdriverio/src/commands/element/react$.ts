@@ -71,5 +71,5 @@ export async function react$(
         react$Script as any, selector, props, state, this
     ) as any as ElementReference
 
-    return getElement.call(this, selector, res, true)
+    return getElement.call(this, selector, res, { isReactElement: true })
 }

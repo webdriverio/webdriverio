@@ -122,13 +122,10 @@ module.exports = {
                 title: 'More',
                 items: [{
                     label: 'Tidelift Subscription',
-                    to: 'https://webdriver.io/docs/enterprise.html',
+                    to: '/docs/enterprise/',
                 }, {
                     label: 'Donate to WebdriverIO',
                     href: 'https://opencollective.com/webdriverio',
-                }, {
-                    label: 'Swag Store',
-                    href: 'http://shop.webdriver.io',
                 }, {
                     label: 'Blog',
                     to: 'blog',

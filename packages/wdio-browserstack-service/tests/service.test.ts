@@ -117,19 +117,52 @@ describe('onReload()', () => {
 })
 
 describe('beforeSession', () => {
-    it('should set some default to make missing user and key parameter apparent', () => {
-        service.beforeSession({} as any)
-        expect(service['_config']).toEqual({ user: 'NotSetUser', key: 'NotSetKey' })
+    describe('testObservabilityOpts not passed', () => {
+        it('should set some default to make missing user and key parameter apparent', () => {
+            service.beforeSession({} as any)
+            expect(service['_config']).toEqual({ user: 'NotSetUser', key: 'NotSetKey' })
+        })
+
+        it('should set username default to make missing user parameter apparent', () => {
+            service.beforeSession({ user: 'foo' } as any)
+            expect(service['_config']).toEqual({ user: 'foo', key: 'NotSetKey' })
+        })
+
+        it('should set key default to make missing key parameter apparent', () => {
+            service.beforeSession({ key: 'bar' } as any)
+            expect(service['_config']).toEqual({ user: 'NotSetUser', key: 'bar' })
+        })
     })
 
-    it('should set username default to make missing user parameter apparent', () => {
-        service.beforeSession({ user: 'foo' } as any)
-        expect(service['_config']).toEqual({ user: 'foo', key: 'NotSetKey' })
-    })
+    describe('testObservabilityOpts passed', () => {
+        it('should not set some default value if user and key in observability options', () => {
+            const observabilityService = new BrowserstackService(
+                {
+                    testObservability: true,
+                    testObservabilityOptions: {
+                        user: 'foo',
+                        key: 'random',
+                    }
+                } as any,
+                [] as any,
+                { user: 'foo', key: 'bar' } as any
+            )
+            observabilityService.beforeSession({} as any)
+            expect(observabilityService['_config']).toEqual({ user: undefined, key: undefined })
+        })
 
-    it('should set key default to make missing key parameter apparent', () => {
-        service.beforeSession({ key: 'bar' } as any)
-        expect(service['_config']).toEqual({ user: 'NotSetUser', key: 'bar' })
+        it('should set set some default value if user and key not in observability options', () => {
+            const observabilityService = new BrowserstackService(
+                {
+                    testObservability: true,
+                    testObservabilityOptions: {}
+                } as any,
+                [] as any,
+                { user: 'foo', key: 'bar' } as any
+            )
+            observabilityService.beforeSession({} as any)
+            expect(observabilityService['_config']).toEqual({ user: 'NotSetUser', key: 'NotSetKey' })
+        })
     })
 })
 
