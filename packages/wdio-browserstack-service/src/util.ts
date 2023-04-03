@@ -469,6 +469,13 @@ export function isScreenshotCommand (args: BeforeCommandArgs & AfterCommandArgs)
     return args.endpoint && args.endpoint.includes('/screenshot')
 }
 
+export function isBStackSession(config: Options.Testrunner) {
+    if (typeof config.user === 'string' && typeof config.key === 'string' && config.key.length === 20) {
+        return true
+    }
+    return false
+}
+
 export function shouldAddServiceVersion(config: Options.Testrunner, testObservability?: boolean): boolean {
     if (config.services && config.services.toString().includes('chromedriver') && testObservability !== false) {
         return false
