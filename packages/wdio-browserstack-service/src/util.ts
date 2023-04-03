@@ -28,7 +28,7 @@ const log = logger('@wdio/browserstack-service')
 
 /* User test config for build run minus PII */
 let userConfigForReporting: any = null
-let credentialsForCrashReportUpload = {}
+let credentialsForCrashReportUpload: any = {}
 
 const DEFAULT_REQUEST_CONFIG = {
     agent: {
@@ -132,6 +132,7 @@ function setCredentialsForCrashReportUpload(options: BrowserstackConfig & Option
         username: getObservabilityUser(options, config),
         password: getObservabilityKey(options, config)
     }
+    process.env.CREDENTIALS_FOR_CRASH_REPORTING = JSON.stringify(credentialsForCrashReportUpload)
 }
 
 export function setConfigDetails(userConfig: Options.Testrunner, capabilities: Capabilities.RemoteCapability, options: BrowserstackConfig & Options.Testrunner) {
@@ -146,6 +147,7 @@ export function setConfigDetails(userConfig: Options.Testrunner, capabilities: C
             'BUILD_TAG': process.env.BUILD_TAG
         }
     }
+    process.env.USER_CONFIG_FOR_REPORTING = JSON.stringify(userConfigForReporting)
     setCredentialsForCrashReportUpload(options, userConfig)
 }
 
@@ -210,20 +212,38 @@ export function o11yClassErrorHandler<T extends ClassType>(errorClass: T): T {
 }
 
 async function uploadCrashReport(exception: any, stackTrace: string) {
-    const data = {
-        hashed_id: process.env.BS_TESTOPS_BUILD_HASHED_ID,
-        observability_version: {
-            frameworkName: 'WebdriverIO-' + userConfigForReporting.framework,
-            sdkVersion: bstackServiceVersion
-        },
-        exception: {
-            error: exception.toString(),
-            stackTrace: stackTrace
-        },
-        config: userConfigForReporting
+    try {
+        if (!credentialsForCrashReportUpload.username || !credentialsForCrashReportUpload.password) {
+            credentialsForCrashReportUpload = process.env.CREDENTIALS_FOR_CRASH_REPORTING !== undefined ? JSON.parse(process.env.CREDENTIALS_FOR_CRASH_REPORTING) : credentialsForCrashReportUpload
+        }
+    } catch (error) {
+        return log.error(`[Crash_Report_Upload] Failed to parse user credentials while reporting crash due to ${error}`)
+    }
+    if (!credentialsForCrashReportUpload.username || !credentialsForCrashReportUpload.password) {
+        return log.error('[Crash_Report_Upload] Failed to parse user credentials while reporting crash')
     }
 
     try {
+        if (!userConfigForReporting) {
+            userConfigForReporting = process.env.USER_CONFIG_FOR_REPORTING !== undefined ? JSON.parse(process.env.USER_CONFIG_FOR_REPORTING) : 'null'
+        }
+    } catch (error) {
+        log.error(`[Crash_Report_Upload] Failed to parse user config while reporting crash due to ${error}`)
+    }
+
+    try {
+        const data = {
+            hashed_id: process.env.BS_TESTOPS_BUILD_HASHED_ID,
+            observability_version: {
+                frameworkName: 'WebdriverIO-' + userConfigForReporting ? userConfigForReporting.framework : 'null',
+                sdkVersion: bstackServiceVersion
+            },
+            exception: {
+                error: exception.toString(),
+                stackTrace: stackTrace
+            },
+            config: userConfigForReporting
+        }
         const url = `${DATA_ENDPOINT}/api/v1/analytics`
         const response: string = await got.post(url, {
             ...DEFAULT_REQUEST_CONFIG,
@@ -259,8 +279,18 @@ export const launchTestSession = o11yErrorHandler(async function launchTestSessi
             frameworkName: 'WebdriverIO-' + config.framework,
             sdkVersion: bsConfig.bstackServiceVersion
         },
-        config: userConfigForReporting
+        config: null
     }
+
+    try {
+        if (!userConfigForReporting) {
+            userConfigForReporting = process.env.USER_CONFIG_FOR_REPORTING !== undefined ? JSON.parse(process.env.USER_CONFIG_FOR_REPORTING) : 'null'
+        }
+    } catch (error) {
+        return log.error(`[Crash_Report_Upload] Failed to parse user config while sending build start event due to ${error}`)
+    }
+    data.config = userConfigForReporting
+
     try {
         const url = `${DATA_ENDPOINT}/api/v1/builds`
         const response: LaunchResponse = await got.post(url, {
