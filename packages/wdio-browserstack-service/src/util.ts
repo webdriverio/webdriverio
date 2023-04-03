@@ -148,14 +148,22 @@ export function setConfigDetails(userConfig: Options.Testrunner, capabilities: C
     setCredentialsForCrashReportUpload(options, userConfig)
 }
 
+function processError(error: unknown, fn: Function, args: any) {
+    log.error(`Error in executing ${fn.name} with args ${args}: ${error}`)
+    uploadCrashReport(`Error in executing ${fn.name} with args ${args} : ${error} `)
+}
+
 function o11yErrorHandler(fn: Function) {
     return function (...args: any) {
         try {
             // @ts-ignore
-            return fn.apply(this, arguments)
-        } catch (err) {
-            log.error(`Error in executing ${fn.name} with args ${args} : ${err} `)
-            uploadCrashReport(`Error in executing ${fn.name} with args ${args} : ${err} `)
+            const result = fn(...args)
+            if (result instanceof Promise) {
+                return result.catch(error => processError(error, fn, args))
+            }
+            return result
+        } catch (error) {
+            processError(error, fn, args)
         }
     }
 }
@@ -175,12 +183,16 @@ export function o11yClassErrorHandler<T extends ClassType>(errorClass: T): T {
             // In order to preserve this context, need to define like this
             Object.defineProperty(prototype, methodName, {
                 writable: true,
-                value: function() {
+                value: function(...args: any) {
                     try {
-                        return method.apply(this, arguments)
+                        const result = method.call(this, ...args)
+                        if (result instanceof Promise) {
+                            return result.catch(error => processError(error, method, args))
+                        }
+                        return result
+
                     } catch (err) {
-                        log.error(`Error in executing ${method.name} with args ${arguments} : ${err} `)
-                        uploadCrashReport(`Error in executing ${method.name} with args ${arguments} : ${err} `)
+                        processError(err, method, args)
                     }
                 }
             })
