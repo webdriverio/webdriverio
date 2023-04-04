@@ -1,6 +1,6 @@
 ---
 id: autocompletion
-title: Autocompletion
+title: Auto-complétion
 ---
 
 import Tabs from '@theme/Tabs';
@@ -8,27 +8,27 @@ import TabItem from '@theme/TabItem';
 
 ## IntelliJ
 
-Autocompletion works out of the box in IDEA and WebStorm.
+L'autocomplétion fonctionne sans problème dans IDEA et WebStorm.
 
-If you have been writing program code for a while, you probably like autocompletion. Autocomplete is available out of the box in many code editors.
+Si vous écrivez du code du programme depuis un certain temps, vous aimez probablement l'auto-complétion. L'auto-complétion est disponible gratuitement dans de nombreux éditeurs de code.
 
-![Autocompletion](/img/autocompletion/0.png)
+![Auto-complétion](/img/autocompletion/0.png)
 
-Type definitions based on [JSDoc](http://usejsdoc.org/) is used for documenting code. It helps to see more additional details about parameters and their types.
+Les définitions de types basées sur [JSDoc](http://usejsdoc.org/) sont utilisées pour documenter du code. Il aide à voir plus de détails sur les paramètres et leurs types.
 
-![Autocompletion](/img/autocompletion/1.png)
+![Auto-complétion](/img/autocompletion/1.png)
 
-Use standard shortcuts <kbd>⇧ + ⌥ + SPACE</kbd> on IntelliJ Platform to see available documentation:
+Utilisez les raccourcis standards <kbd><unk> + <unk> + SPACE</kbd> sur la plate-forme IntelliJ pour voir la documentation disponible :
 
-![Autocompletion](/img/autocompletion/2.png)
+![Auto-complétion](/img/autocompletion/2.png)
 
-## Visual Studio Code (VSCode)
+## Code Visual Studio (VSCode)
 
-Visual Studio Code usually has type support automatically integrated and there is no action needed.
+Visual Studio Code a généralement la prise en charge automatique des types et il n'y a aucune action nécessaire.
 
-![Autocompletion](/img/autocompletion/14.png)
+![Auto-complétion](/img/autocompletion/14.png)
 
-If you use vanilla JavaScript and want to have proper type support you have to create a `jsconfig.json` in your project root and refer to used wdio packages, e.g.:
+Si vous utilisez JavaScript vanilla et que vous voulez avoir un support de type approprié, vous devez créer un jsconfig `. son` à la racine de votre projet et reportez-vous aux paquets wdio utilisés, par exemple:
 
 ```json title="jsconfig.json"
 {
