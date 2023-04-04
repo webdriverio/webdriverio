@@ -443,7 +443,7 @@ export function getPathForFileGeneration (answers: Questionnair) {
 }
 
 export function getDefaultFiles (answers: Partial<Questionnair>, filePath: string) {
-    return String(answers?.isUsingCompiler).includes('TypeScript')
+    return (answers?.isUsingCompiler as string).includes('TypeScript')
         ? `${filePath}.ts`
         : `${filePath}.js`
 }
