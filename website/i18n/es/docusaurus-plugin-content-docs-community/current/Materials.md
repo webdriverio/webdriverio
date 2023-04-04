@@ -1,24 +1,24 @@
 ---
 id: materials
-title: Materials
+title: Materiales
 ---
 
-If you want to use WebdriverIO materials for your own workshops or events feel free to grab them directly from here.
+Si desea utilizar los materiales de WebdriverIO para sus propios talleres o eventos, no dude en obtenerlos directamente desde aquí.
 
-## Workshops
+## Talleres
 
-The WebdriverIO community gives workshops around the world. Feel free to use these materials to host your own.
+La comunidad WebdriverIO imparte talleres en todo el mundo. No dude en utilizar estos materiales para organizar el suyo propio.
 
-- [webdriverio/workshop](https://github.com/webdriverio/workshop)
+- [webdriver/talleres](https://github.com/webdriverio/workshop)
 
-## Assets
+## Activos
 
-If you create your own WebdriverIO content for education purposes, feel free to grab these assets to include in your materials.
+Si crea su propio contenido WebdriverIO con fines educativos, no dude en tomar estos activos para incluirlos en sus materiales.
 
-### Roboter Logo
+### Logo Roboter
 
 ![Roboter Logo](/img/materials/robot.svg "Roboter Logo")
 
-### Project Logo
+### Logo del proyecto
 
 ![Roboter Logo](/img/materials/logo.svg "Project Logo")
