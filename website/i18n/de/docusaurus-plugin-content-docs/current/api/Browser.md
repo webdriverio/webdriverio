@@ -19,12 +19,12 @@ Ein Browser-Objekt hat folgende Eigenschaften:
 | `requestedCapabilities` | `Object`   | Angefragte Capabilities vom WebDriver Server.<br /><b>Beispiel:</b><pre>{ browserName: 'chrome' }</pre>                                                 |
 | `sessionId`             | `String`   | Session-Id vom Remote-Server zugewiesen.                                                                                                                    |
 | `options`               | `Object`   | WebdriverIO [Optionen](/docs/configuration) je nachdem, wie das Browserobjekt erstellt wurde. Weitere [Setup-Typen](http://localhost:3000/docs/setuptypes). |
-| `commandList`           | `String[]` | A list of commands registered to the browser instance                                                                                                       |
-| `isMobile`              | `Boolean`  | Indicates a mobile session. See more under [Mobile Flags](#mobile-flags).                                                                                   |
-| `isIOS`                 | `Boolean`  | Indicates an iOS session. See more under [Mobile Flags](#mobile-flags).                                                                                     |
-| `isAndroid`             | `Boolean`  | Indicates an Android session. See more under [Mobile Flags](#mobile-flags).                                                                                 |
+| `commandList`           | `String[]` | Eine Liste der Befehle, die in der Browser-Instanz registriert sind                                                                                         |
+| `isMobile`              | `Boolean`  | Zeigt eine mobile Session an. Mehr unter [Mobile Flags](#mobile-flags).                                                                                     |
+| `isIOS`                 | `Boolean`  | Zeigt eine iOS-Session an. Mehr unter [Mobile Flags](#mobile-flags).                                                                                        |
+| `isAndroid`             | `Boolean`  | Zeigt eine Android-Sitzung an. Mehr unter [Mobile Flags](#mobile-flags).                                                                                    |
 
-## Methods
+## Methoden
 
 Based on the automation backend used for your session, WebdriverIO identifies which [Protocol Commands](/docs/api/protocols) will be attached to the [browser object](/docs/api/browser). For example if you run an automated session in Chrome, you will have access to Chromium specific commands like [`elementHover`](/docs/api/chromium#elementhover) but not any of the [Appium commands](/docs/api/appium).
 
