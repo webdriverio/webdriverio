@@ -1,46 +1,46 @@
 ---
 id: browser
-title: The Browser Object
+title: El objeto navegador
 ---
 
 __Extends:__ [EventEmitter](https://nodejs.org/api/events.html#class-eventemitter)
 
-The browser object is the session instance you use to control the browser or mobile device with. If you use the WDIO test runner, you can access the WebDriver instance through the global `browser` or `driver` object or import it using [`@wdio/globals`](/docs/api/globals). If you use WebdriverIO in standalone mode the browser object is returned by the [`remote`](/docs/api/modules#remoteoptions-modifier) method.
+El objeto navegador es la instancia de sesión con la que se controla el navegador o el dispositivo móvil. Si utiliza el ejecutor de pruebas WDIO, puede acceder a la instancia WebDriver a través del objeto global `browser` o `driver` o importarlo utilizando [`@wdio/globals`](/docs/api/globals). Si utiliza WebdriverIO en modo autónomo, el objeto navegador es devuelto por el método [`remoto`](/docs/api/modules#remoteoptions-modifier).
 
-The session is initialized by the test runner. The same goes for ending the session. This is also done by the test runner process.
+La sesión es inicializada por el sistema de pruebas. Lo mismo ocurre para finalizar la sesión. Esto también lo hace el proceso de ejecución de pruebas.
 
-## Properties
+## Propiedades
 
-A browser object has the following properties:
+Un objeto navegador tiene las siguientes propiedades:
 
-| Name                    | Type       | Details                                                                                                                                                    |
-| ----------------------- | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `capabilities`          | `Object`   | Assigned capabilitie from the remote server.<br /><b>Example:</b><pre>{<br />  acceptInsecureCerts: false,<br />  browserName: 'chrome',<br />  browserVersion: '105.0.5195.125',<br />  chrome: {<br />    chromedriverVersion: '105.0.5195.52 (412c95e518836d8a7d97250d62b29c2ae6a26a85-refs/branch-heads/5195@{#853})',<br />    userDataDir: '/var/folders/3_/pzc_f56j15vbd9z3r0j050sh0000gn/T/.com.google.Chrome.76HD3S'<br />  },<br />  'goog:chromeOptions': { debuggerAddress: 'localhost:64679' },<br />  networkConnectionEnabled: false,<br />  pageLoadStrategy: 'normal',<br />  platformName: 'mac os x',<br />  proxy: {},<br />  setWindowRect: true,<br />  strictFileInteractability: false,<br />  timeouts: { implicit: 0, pageLoad: 300000, script: 30000 },<br />  unhandledPromptBehavior: 'dismiss and notify',<br />  'webauthn:extension:credBlob': true,<br />  'webauthn:extension:largeBlob': true,<br />  'webauthn:virtualAuthenticators': true<br />}</pre>                                                 |
-| `requestedCapabilities` | `Object`   | Capabilities requested from the remote server.<br /><b>Example:</b><pre>{ browserName: 'chrome' }</pre>                                               |
-| `sessionId`             | `String`   | Session id assigned from the remote server.                                                                                                                |
-| `options`               | `Object`   | WebdriverIO [options](/docs/configuration) depending on how the browser object was created. See more [setup types](http://localhost:3000/docs/setuptypes). |
-| `commandList`           | `String[]` | A list of commands registered to the browser instance                                                                                                      |
-| `isMobile`              | `Boolean`  | Indicates a mobile session. See more under [Mobile Flags](#mobile-flags).                                                                                  |
-| `isIOS`                 | `Boolean`  | Indicates an iOS session. See more under [Mobile Flags](#mobile-flags).                                                                                    |
-| `isAndroid`             | `Boolean`  | Indicates an Android session. See more under [Mobile Flags](#mobile-flags).                                                                                |
+| Nombre                   | Tipo       | Información                                                                                                                                                |
+| ------------------------ | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `capacidades`            | `Objeto`   | Capacidad asignada desde el servidor remoto.<br /><b>Ejemplo:</b><pre>{<br />  acceptInsecureCerts: false,<br />  browserName: 'chrome',<br />  browserVersion: '105.0.5195.125',<br />  chrome: {<br />    chromedriverVersion: '105.0.5195.52 (412c95e518836d8a7d97250d62b29c2ae6a26a85-refs/branch-heads/5195@{#853})',<br />    userDataDir: '/var/folders/3_/pzc_f56j15vbd9z3r0j050sh0000gn/T/.com.google.Chrome.76HD3S'<br />  },<br />  'goog:chromeOptions': { debuggerAddress: 'localhost:64679' },<br />  networkConnectionEnabled: false,<br />  pageLoadStrategy: 'normal',<br />  platformName: 'mac os x',<br />  proxy: {},<br />  setWindowRect: true,<br />  strictFileInteractability: false,<br />  timeouts: { implicit: 0, pageLoad: 300000, script: 30000 },<br />  unhandledPromptBehavior: 'dismiss and notify',<br />  'webauthn:extension:credBlob': true,<br />  'webauthn:extension:largeBlob': true,<br />  'webauthn:virtualAuthenticators': true<br />}</pre>                                                 |
+| `capacidadesSolicitadas` | `Objeto`   | Capacidades solicitadas al servidor remoto.<br /><b>Ejemplo:</b><pre>{ browserName: 'chrome' }</pre>                                                  |
+| `sessionId`              | `String`   | Session id assigned from the remote server.                                                                                                                |
+| `options`                | `Object`   | WebdriverIO [options](/docs/configuration) depending on how the browser object was created. See more [setup types](http://localhost:3000/docs/setuptypes). |
+| `commandList`            | `String[]` | A list of commands registered to the browser instance                                                                                                      |
+| `isMobile`               | `Boolean`  | Indicates a mobile session. See more under [Mobile Flags](#mobile-flags).                                                                                  |
+| `isIOS`                  | `Boolean`  | Indicates an iOS session. See more under [Mobile Flags](#mobile-flags).                                                                                    |
+| `isAndroid`              | `Boolean`  | Indicates an Android session. See more under [Mobile Flags](#mobile-flags).                                                                                |
 
-## Methods
+## Métodos
 
-Based on the automation backend used for your session, WebdriverIO identifies which [Protocol Commands](/docs/api/protocols) will be attached to the [browser object](/docs/api/browser). For example if you run an automated session in Chrome, you will have access to Chromium specific commands like [`elementHover`](/docs/api/chromium#elementhover) but not any of the [Appium commands](/docs/api/appium).
+En función del backend de automatización utilizado para su sesión, WebdriverIO identifica qué [comandos de protocolo](/docs/api/protocols) se adjuntarán al [objeto navegador](/docs/api/browser). Por ejemplo, si ejecuta una sesión automatizada en Chrome, tendrá acceso a comandos específicos de Chromium como [`elementHover`](/docs/api/chromium#elementhover) pero no a ninguno de los [comandos de Appium](/docs/api/appium).
 
-Furthermore WebdriverIO provides a set of convenient methods that are recommended to use, to interact with the [browser](/docs/api/browser) or [elements](/docs/api/element) on the page.
+Además WebdriverIO proporciona un conjunto de métodos convenientes que se recomienda utilizar, para interactuar con los [navegador](/docs/api/browser) o los[elementos](/docs/api/element) en la página.
 
-In addition to that the following commands are available:
+Además, dispone de los siguientes comandos:
 
-| Name                 | Parameters                                                                                                             | Details                                                                                                                                                                                                       |
-| -------------------- | ---------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `addCommand`         | - `commandName` (Type: `String`)<br />- `fn` (Type: `Function`)<br />- `attachToElement` (Type: `boolean`) | Allows to define custom commands that can be called from the browser object for compisition purposes. Read more in the [Custom Command](/docs/customcommands) guide.                                          |
-| `overwriteCommand`   | - `commandName` (Type: `String`)<br />- `fn` (Type: `Function`)<br />- `attachToElement` (Type: `boolean`) | Allows to overwite any browser command with custom functionality. Use carefully as it can confuse framework users. Read more in the [Custom Command](/docs/customcommands#overwriting-native-commands) guide. |
-| `addLocatorStrategy` | - `strategyName` (Type: `String`)<br />- `fn` (Type: `Function`)                                                 | Allos to define a custom selector strategy, read more in the [Selectors](/docs/selectors#custom-selector-strategies) guide.                                                                                   |
+| Nombre               | Parámetros                                                                                                             | Detalles                                                                                                                                                                                                                                         |
+| -------------------- | ---------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `addCommand`         | - `commandName` (Type: `String`)<br />- `fn` (Type: `Function`)<br />- `attachToElement` (Type: `boolean`) | Permite definir comandos personalizados que pueden ser llamados desde el objeto navegador con fines de compisición. Read more in the [Custom Command](/docs/customcommands) guide.                                                               |
+| `overwriteCommand`   | - `commandName` (Type: `String`)<br />- `fn` (Type: `Function`)<br />- `attachToElement` (Type: `boolean`) | Allows to overwite any browser command with custom functionality. Utilícelo con cuidado ya que puede confundir a los usuarios del marco. Más información en la guía [Comandos personalizados](/docs/customcommands#overwriting-native-commands). |
+| `addLocatorStrategy` | - `strategyName` (Type: `String`)<br />- `fn` (Type: `Function`)                                                 | Permite definir una estrategia de selector personalizada, lea más en la guía [Selectores](/docs/selectors#custom-selector-strategies).                                                                                                           |
 
-## Remarks
+## Avisos
 
-### Mobile Flags
+### Banderas móviles
 
 If you need to modify your test based on whether or not your session runs on a mobile device, you can access the mobile flags to check.
 
