@@ -13,31 +13,31 @@ Gracias a todos los que van a donar o han donado dinero al colectivo y, por tant
 
 Queremos ser transparentes en la forma en que aceptamos los gastos para el colectivo. Todo el mundo debería poder participar y enviar gastos para el desarrollo de determinadas funciones. También queremos retribuir a la comunidad permitiéndonos sufragar los gastos del evento. Los siguientes tipos de gastos podrán ser reembolsados con cargo al colectivo:
 
-### Event Expenses
+### Costes por evento
 
-If you host an event that has a speaker talking about using WebdriverIO and it's features you can expense up to __$100__. Reimbursement requirements for event expenses include:
+Si organiza un evento en el que un ponente hable sobre el uso de WebdriverIO y sus funciones, puede gastar hasta __$100__. Los requisitos de reembolso para los gastos del evento incluyen:
 
-- You or the event account must share the project on social media (Twitter, Facebook or LinkedIn) at least 3x
-- The event page must have the WebdriverIO logo and a link to the project page in your meetup description
-- You must use the funds for qualified event expenses such as food, beverage, room or equipment rental.
-- You must submit receipts with your reimbursement request.
+- Usted o la cuenta del evento deben compartir el proyecto en los medios sociales (Twitter, Facebook o LinkedIn) al menos 3 veces.
+- La página del evento debe tener el logotipo de WebdriverIO y un enlace a la página del proyecto en su descripción del meetup
+- Debe utilizar los fondos para gastos cualificados del evento, como comida, bebida, alquiler de salas o equipos.
+- Debe presentar los recibos con su solicitud de reembolso.
 
 ### Development Expenses
 
-If you have done development work on any of the repositories within the GitHub WebdriverIO organisation you may reimburse up to __$1000__ if the following requirements are met:
+Si ha realizado trabajos de desarrollo en cualquiera de los repositorios de la organización WebdriverIO de GitHub, puede reembolsar hasta __$1000__ si se cumplen los siguientes requisitos:
 
-- You must have submitted qualifying pull requests that have closed at least 10 issues that were labeled with [`Expensable 💸`](https://github.com/webdriverio/webdriverio/labels/Expensable%20%F0%9F%92%B8)
-- Every additional issue closed with that label can be expensed with $100
-- You must submit links to all issues you’ve closed due to your pull requests
-- In order to close the ticket automatically, you must have one commit message with the Fix keyword. For example, Fix #1234 to close ticket #1234.
-- Pull Requests must be merged by someone from the [core team](https://github.com/webdriverio/webdriverio/blob/main/AUTHORS.md#tsc-technical-steering-committee). If there are several Pull Requests, the core team member either selects the most recent one or the best one - that’s up to them to decide what is best for the project.
-- You must claim an [`Expensable 💸`](https://github.com/webdriverio/webdriverio/labels/Expensable%20%F0%9F%92%B8) issue by commenting to the issue thread to ensure that no one else is working on the same issue.
-- Anyone contributing to WebdriverIO is eligible to expense their work if the implemented features or bug fixes are not objectives of a commercial job.
+- Debe haber enviado pull requests que cumplan los requisitos y que hayan cerrado al menos 10 incidencias etiquetadas con [`Expensable 💸`](https://github.com/webdriverio/webdriverio/labels/Expensable%20%F0%9F%92%B8)
+- Cada incidencia adicional cerrada con esa etiqueta puede ser expensada con 100$.
+- Debe enviar enlaces a todas las incidencias que haya cerrado gracias a sus pull requests
+- Para cerrar el ticket automáticamente, debe tener un mensaje de confirmación con la palabra clave Fix. Por ejemplo, Fix #1234 para cerrar el ticket #1234.
+- Los Pull Requests deben ser fusionados por alguien del [core team](https://github.com/webdriverio/webdriverio/blob/main/AUTHORS.md#tsc-technical-steering-committee). Si hay varios Pull Requests, el miembro del equipo central seleccionará el más reciente o el mejor; es decisión suya decidir qué es lo mejor para el proyecto.
+- Debe reclamar un [`Expensable 💸`](https://github.com/webdriverio/webdriverio/labels/Expensable%20%F0%9F%92%B8) issue comentando en el hilo del issue para asegurarse de que nadie más está trabajando en el mismo issue.
+- Cualquier persona que contribuya a WebdriverIO tiene derecho a expensas de su trabajo si las características implementadas o las correcciones de errores no son objetivos de un trabajo comercial.
 
-### Travel Expenses
+### Costes de viaje
 
-If you are a member of the [Technical Steering Committee team](https://github.com/webdriverio/webdriverio/blob/main/AUTHORS.md#tsc-technical-steering-committee) you are eligible to expense flights and hotel accommodations for travel to conferences or meetups as part of a speaking engagement on WebdriverIO, not paid by the event itself or a company. You may expense up to $500. Reimbursement requirements for travel expenses include:
+Si es usted miembro del [Technical Steering Committee team](https://github.com/webdriverio/webdriverio/blob/main/AUTHORS.md#tsc-technical-steering-committee), puede gastar los vuelos y el alojamiento en hotel para viajar a conferencias o reuniones como parte de una ponencia sobre WebdriverIO, no pagada por el propio evento ni por una empresa. Puede gastar hasta 500 $. Los requisitos para el reembolso de los gastos de viaje incluyen:
 
-- You must send out a post from your main social media account (e.g. Twitter, LinkedIn or personal blog) thanking all contributors of the collective after the event took place.
-- You must use the funds for qualified travel expenses such as ground or air transportation to the event and hotel accomodations.
-- You must submit receipts with your reimbursement request.
+- Debe enviar un post desde su cuenta principal de redes sociales (por ejemplo, Twitter, LinkedIn o blog personal) dando las gracias a todos los colaboradores del colectivo tras la celebración del evento.
+- Debe utilizar los fondos para gastos de viaje cualificados, como el transporte terrestre o aéreo al evento y el alojamiento en un hotel.
+- Debe presentar los recibos con su solicitud de reembolso.
