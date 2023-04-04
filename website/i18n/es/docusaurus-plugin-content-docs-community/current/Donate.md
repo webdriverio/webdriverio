@@ -1,17 +1,17 @@
 ---
-id: donate
-title: Donate
+id: done
+title: Done
 ---
 
-If your company uses WebdriverIO and benefits from it, please ask your manager or your marketing team to support the project by donating to the collective. Support will allow the maintainers to dedicate more time for maintenance and new features for everyone.
+Si su empresa utiliza WebdriverIO y obtiene algún beneficio, solicite a su director o a su equipo de marketing que apoyen el proyecto haciendo una donación al colectivo. El apoyo permitirá a los mantenedores dedicar más tiempo al mantenimiento y a nuevas funciones para todos.
 
-Please checkout our [OpenCollective page](https://opencollective.com/webdriverio) for further information on how to donate to the project.
+Consulte nuestra [página OpenCollective](https://opencollective.com/webdriverio) para obtener más información sobre cómo realizar donaciones al proyecto.
 
-Thank you to everyone who will or has donated money to the collective and therefore has supported the project and everyone who contributed to it. It really means a lot ❤️
+Gracias a todos los que van a donar o han donado dinero al colectivo y, por tanto, han apoyado el proyecto y a todos los que han contribuido a él. De verdad que significa mucho ❤️
 
-## Expense Policies
+## Políticas de costes
 
-We want to be transparent in the way we accept expenses to the collective. Everyone should be eligible to participate and send in expenses for development on certain features. We also want to give back to the community by allowing us to expense event expenses. The following expense types may be eligible to be reimbursed from the collective:
+Queremos ser transparentes en la forma en que aceptamos los gastos para el colectivo. Todo el mundo debería poder participar y enviar gastos para el desarrollo de determinadas funciones. También queremos retribuir a la comunidad permitiéndonos sufragar los gastos del evento. Los siguientes tipos de gastos podrán ser reembolsados con cargo al colectivo:
 
 ### Event Expenses
 
