@@ -5,7 +5,7 @@ title: Team
 
 import Card from '../src/theme/card.jsx';
 
-The WebdriverIO development is led by a dedicated team of developers and SDETs from various companies as well contributions from people around the world.
+Die WebdriverIO Entwicklung wird von einem engagierten Team von Entwicklern und SDETs aus verschiedenen Unternehmen sowie von Menschen aus der ganzen Welt geleitet.
 
 ## Technical Steering Committee
 
@@ -32,6 +32,7 @@ The WebdriverIO development is led by a dedicated team of developers and SDETs f
     github="erwinheitzman"
 >
     Senior Test Automation Engineer at <a href="https://detesters.nl/">deTesters</a>.
+
 </Card>
 
 <Card
@@ -66,9 +67,10 @@ The WebdriverIO development is led by a dedicated team of developers and SDETs f
     twitter="wswebcreation"
 >
     Senior Solutions Architect <a href="https://saucelabs.com/">@saucelabs</a>.
+
 </Card>
 
-## Project Collaborators
+## Projektzusammenarbeit
 
 <Card
     name="Baruch Velez"
