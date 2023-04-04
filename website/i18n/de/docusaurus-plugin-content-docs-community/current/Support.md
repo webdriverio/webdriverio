@@ -1,9 +1,9 @@
 ---
 id: support
-title: Need Help?
+title: Brauchen Sie Hilfe?
 ---
 
-This project is maintained by a dedicated group of people.
+Dieses Projekt wird von einer engagierten Gruppe von Leuten betreut.
 
 If you're interested in making a contribution to the WebdriverIO project, check out [the free "Office Hours" program](/blog/2020/07/01/office-hours) to help you with your efforts.
 
