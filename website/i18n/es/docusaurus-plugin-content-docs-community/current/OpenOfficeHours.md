@@ -1,25 +1,25 @@
 ---
 id: openofficehours
-title: Office Hours
+title: Horarios de apertura
 ---
 
-Contributing to a big Open Source project can be hard. Especially if the codebase is large and requires a lot of context to understand what certain changes do. Then there is the possibility that tools or infrastructure is being used that are unknown. Nevertheless the project depends on your contributions and help to identify bugs and fix them. How can we overcome this hurdle?
+Contribuir a un gran proyecto de código abierto puede ser difícil. Sobre todo si el código base es extenso y requiere mucho contexto para entender lo que hacen ciertos cambios. Además, existe la posibilidad de que se utilicen herramientas o infraestructuras desconocidas. No obstante, el proyecto depende de sus contribuciones y de su ayuda para identificar errores y solucionarlos. ¿Cómo podemos superar este obstáculo?
 
-The WebdriverIO projects has introduced Open Office Hours that allow everyone to schedule individual 1:1 pairing sessions with the WebdriverIO contributors. This allows you to get started contributing to WebdriverIO easily with the help of people that know the code base well. We only ask you to pick [a task](https://github.com/webdriverio/webdriverio/issues?q=is%3Aissue+is%3Aopen+sort%3Aupdated-desc+label%3Afirst-timers-only) you would like to work on up-front so that the pairing partner can be prepared for the session to provide better guidance. This is a free opportunity for you to not only give back to the WebdriverIO community but also get to know the team behind the project.
+El proyecto WebdriverIO ha introducido Open Office Hours que permite a todo el mundo programar sesiones individuales de emparejamiento 1:1 con los colaboradores de WebdriverIO. Esto le permite empezar a contribuir a WebdriverIO fácilmente con la ayuda de personas que conocen bien la base de código. Sólo le pedimos que elija [una tarea](https://github.com/webdriverio/webdriverio/issues?q=is%3Aissue+is%3Aopen+sort%3Aupdated-desc+label%3Afirst-timers-only) en la que le gustaría trabajar por adelantado para que el compañero de emparejamiento pueda estar preparado para la sesión y ofrecerle una mejor orientación. Se trata de una oportunidad gratuita no sólo para devolver algo a la comunidad WebdriverIO, sino también para conocer al equipo que está detrás del proyecto.
 
-Currently we offer 4 slots a week from: every Wednesday 10am - 12am (CEST / GMT+2) for our European friends as well as: 11am - 13am (PDT / GMT -7) for people living on the west side of this hemisphere.
+Actualmente ofrecemos 4 slots a la semana de: todos los miércoles 10am - 12am (CEST / GMT+2) para nuestros amigos europeos así como: 11am - 13am (PDT / GMT -7) para las personas que viven en el lado oeste de este hemisferio.
 
-Before you book an appointment, make sure you can meet the following basic requirements needed to contribute to WebdriverIO:
+Antes de reservar una cita, asegúrese de que puede cumplir los siguientes requisitos básicos necesarios para contribuir a WebdriverIO:
 
-- you've found an issue you like to contribute to in the [issue tracker](https://github.com/webdriverio/webdriverio/issues) (without an issue, your appointment will be cancelled immediatelly)
-- you have been working on a Node.js project before (these sessions can't be used to learn Node.js fundamentals)
-- you've read the [Contribution Guidelines](https://github.com/webdriverio/webdriverio/blob/main/CONTRIBUTING.md#set-up-project) and have the project set-up locally or in an ephemeral workspace
-- you can run the projects unit tests, and they are passing
+- ha encontrado una incidencia a la que le gustaría contribuir en el [issue tracker](https://github.com/webdriverio/webdriverio/issues) (sin una incidencia, su cita se cancelará inmediatamente)
+- ha trabajado antes en un proyecto Node.js (estas sesiones no pueden utilizarse para aprender los fundamentos de Node.js)
+- ha leído las [Directrices de contribución](https://github.com/webdriverio/webdriverio/blob/main/CONTRIBUTING.md#set-up-project) y tiene el proyecto configurado localmente o en un espacio de trabajo efímero
+- puede ejecutar las pruebas unitarias del proyecto y éstas son aprobatorias
 
-After that, you can book an appointment at any time on:
+Después, puede reservar una cita en cualquier momento en
 
 [calendly.com/webdriverio/open-office-hours](https://calendly.com/webdriverio/open-office-hours)
 
-All sessions will be held over [Zoom](https://zoom.us/) or [Google Hangouts](https://hangouts.google.com/) but alternative platforms are possible, please let us know in the comment section. Also please note that this is not a way to get individual consulting for your own projects. The time is to be used to work on WebdriverIO related bugs or features. For support questions we still ask you to use our [Matrix Support Channel](https://matrix.to/#/#webdriver.io:gitter.im).
+Las sesiones se llevarán a cabo a través de [Zoom](https://zoom.us/) o [Google Hangouts](https://hangouts.google.com/), pero es posible utilizar plataformas alternativas, háganoslo saber en la sección de comentarios. Tenga también en cuenta que no se trata de obtener asesoramiento individual para sus propios proyectos. El tiempo se utilizará para trabajar en bugs o características relacionadas con WebdriverIO. Para preguntas de soporte le seguimos pidiendo que utilice nuestro [Canal de Soporte Matrix](https://matrix.to/#/#webdriver.io:gitter.im).
 
-We are looking forward to meet you all online and hope to find more collaborators helping us to push the project forward!
+Estamos deseando conocerles a todos en línea y esperamos encontrar más colaboradores que nos ayuden a impulsar el proyecto.
