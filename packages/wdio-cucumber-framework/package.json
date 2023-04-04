@@ -45,5 +45,8 @@
   "publishConfig": {
     "access": "public"
   },
-  "types": "./build/index.d.ts"
+  "types": "./build/index.d.ts",
+  "devDependencies": {
+    "@types/glob": "^8.1.0"
+  }
 }
