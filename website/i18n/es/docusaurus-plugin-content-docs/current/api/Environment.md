@@ -1,14 +1,14 @@
 ---
 id: environment
-title: Environment Variables
+title: Variables de entorno
 ---
 
-WebdriverIO sets the following environment variables within every worker:
+WebdriverIO establece las siguientes variables de entorno en cada trabajador:
 
 ## `NODE_ENV`
 
-Set to `'test'` if it's not already set to something else.
+Establezca el valor `'test'` si no se ha establecido ya a otra cosa.
 
 ## `WDIO_WORKER_ID`
 
-An unique id that helps identify the worker process. It has format of `{number}-{number}` where the first number identifies the capability and the second the spec file that capability is running, e.g. `0-5` indicates a worker the first running the 6th spec file for the first capability.
+Un id único que ayuda a identificar el proceso del trabajador. Tiene el formato de `{number}-{number}` donde el primer número identifica la capacidad y el segundo el archivo de especificaciones que esa capacidad está ejecutando, por ejemplo `0-5` indica un trabajador el primero ejecutando el 6º archivo de especificaciones para la primera capacidad.
