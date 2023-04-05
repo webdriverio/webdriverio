@@ -1,6 +1,5 @@
 import fs from 'node:fs'
-import url from 'node:url'
-import path, { dirname } from 'node:path'
+import path from 'node:path'
 
 import yargs from 'yargs'
 import { hideBin } from 'yargs/helpers'
@@ -9,8 +8,6 @@ import { commands } from './commands/index.js'
 import { handler, cmdArgs } from './commands/run.js'
 import { CLI_EPILOGUE, pkg } from './constants.js'
 import type { RunCommandArguments } from './types.js'
-
-const __dirname = path.dirname(url.fileURLToPath(dirname))
 
 const DEFAULT_CONFIG_FILENAME = 'wdio.conf.js'
 const DESCRIPTION = [
