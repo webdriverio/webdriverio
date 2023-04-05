@@ -26,6 +26,7 @@ import type {
 import {
     TYPE as DescriptionType
 } from './types.js'
+import { md5 } from 'allure-js-commons'
 
 export default class AllureReporter extends WDIOReporter {
     private _allure: AllureRuntime
@@ -237,7 +238,11 @@ export default class AllureReporter extends WDIOReporter {
         if (this._state.currentPackageLabel) {
             this._state.currentTest.addLabel(LabelName.PACKAGE, this._state.currentPackageLabel)
         }
-
+        if (this._state.currentSuite?.name || this._state.currentTest.wrappedItem?.name) {
+            const hash = md5(this._state.currentSuite?.name +
+                this._state.currentTest.wrappedItem?.name!)
+            this._state.currentTest.historyId = hash
+        }
         if (cid) {
             this._state.currentTest.addLabel(LabelName.THREAD, cid)
         }
