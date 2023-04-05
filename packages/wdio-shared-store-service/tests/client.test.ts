@@ -68,13 +68,13 @@ describe('client', () => {
 
         it('should get value', async () => {
             const result = await getValue('foo')
-            expect(got.get).toBeCalledWith(`${baseUrl}/foo`)
+            expect(got.get).toBeCalledWith(`${baseUrl}/foo`, { responseType: 'json' })
             expect(result).toBe('store value')
         })
 
         it('should not fail if key is not in store', async () => {
             const result = await getValue('not-present')
-            expect(got.get).toBeCalledWith(`${baseUrl}/not-present`)
+            expect(got.get).toBeCalledWith(`${baseUrl}/not-present`, { responseType: 'json' })
             expect(result).toBeUndefined()
         })
 
@@ -83,7 +83,7 @@ describe('client', () => {
         })
 
         it('should throw an error on set error', async () => {
-            await expect(() => setValue('fail')).rejects.toThrowError('Mock error')
+            await expect(() => setValue('fail', 'fail')).rejects.toThrowError('Mock error')
         })
     })
 
@@ -120,7 +120,7 @@ describe('client', () => {
             it('should throw the error', async () => {
                 mockedGet.mockRejectedValue({ response: { body: 'getError' } })
 
-                await expect(() => getValueFromPool('foo', {})).rejects.toThrowError('getError')
+                await expect(() => getValueFromPool('foo')).rejects.toThrowError('getError')
             })
         })
     })
