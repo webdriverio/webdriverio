@@ -2,7 +2,7 @@ import type { RequestError } from 'got'
 import got from 'got'
 
 import type { JsonCompatible, JsonPrimitive, JsonObject, JsonArray } from '@wdio/types'
-import type { GetValueOptions } from 'src'
+import type { GetValueOptions } from './types'
 
 let baseUrlResolve: Parameters<ConstructorParameters<typeof Promise>[0]>[0]
 const baseUrlPromise = new Promise<string>((resolve) => {
@@ -27,7 +27,7 @@ export const setPort = (port: number) => {
  */
 export const getValue = async (key: string): Promise<string | number | boolean | JsonObject | JsonArray | null | undefined> => {
     const baseUrl = await baseUrlPromise
-    const res = await got.post(`${baseUrl}/get`, { json: { key }, responseType: 'json' }).catch(errHandler)
+    const res = await got.get(`${baseUrl}/${key}`).catch(errHandler)
     return res?.body ? (res.body as JsonObject).value : undefined
 }
 
@@ -38,7 +38,7 @@ export const getValue = async (key: string): Promise<string | number | boolean |
  */
 export const setValue = async (key: string, value: JsonCompatible | JsonPrimitive) => {
     const setPromise = baseUrlPromise.then((baseUrl) => {
-        return got.post(`${baseUrl}/set`, { json: { key, value } }).catch(errHandler)
+        return got.post(`${baseUrl}/`, { json: { key, value } }).catch(errHandler)
     })
 
     return isBaseUrlReady ? setPromise : Promise.resolve()
@@ -51,7 +51,7 @@ export const setValue = async (key: string, value: JsonCompatible | JsonPrimitiv
  */
 export const setResourcePool = async (key: string, value: JsonArray) => {
     const setPromise = baseUrlPromise.then((baseUrl) => {
-        return got.post(`${baseUrl}/pool/set`, { json: { key, value } }).catch(errHandler)
+        return got.post(`${baseUrl}/pool`, { json: { key, value } }).catch(errHandler)
     })
 
     return isBaseUrlReady ? setPromise : Promise.resolve()
@@ -64,7 +64,7 @@ export const setResourcePool = async (key: string, value: JsonArray) => {
  */
 export const getValueFromPool = async (key: string, options: GetValueOptions) => {
     const baseUrl = await baseUrlPromise
-    const res = await got.get(`${baseUrl}/pool/get/${key}${options?.timeout ? `?timeout=${options.timeout}` : '' }`, { responseType: 'json' }).catch(errHandler)
+    const res = await got.get(`${baseUrl}/pool/${key}${options?.timeout ? `?timeout=${options.timeout}` : '' }`, { responseType: 'json' }).catch(errHandler)
     return res?.body ? (res.body as JsonObject).value : undefined
 }
 
@@ -75,7 +75,7 @@ export const getValueFromPool = async (key: string, options: GetValueOptions) =>
  */
 export const addValueToPool = async (key: string, value: JsonPrimitive | JsonCompatible) => {
     const baseUrl = await baseUrlPromise
-    const res = await got.post(`${baseUrl}/pool/add`, { json: { key, value }, responseType: 'json' }).catch(errHandler)
+    const res = await got.post(`${baseUrl}/pool/${key}`, { json: { value }, responseType: 'json' }).catch(errHandler)
     return res?.body ? (res.body as JsonObject).value : undefined
 }
 

@@ -2,8 +2,6 @@ import { describe, expect, vi, beforeAll, afterAll, afterEach, it } from 'vitest
 import { startServer, __store, __resourcePoolStore } from '../src/server.js'
 import type gotType from 'got'
 
-vi.mock('got')
-
 const got = (await vi.importActual('got') as { default: typeof gotType }).default
 
 const errHandler = vi.fn()
@@ -23,11 +21,11 @@ describe('WdioSharedStoreService exports', () => {
 
         result = await startServer()
         const baseUrl = `http://localhost:${result.port}`
-        setUrl = `${baseUrl}/set`
-        getUrl = `${baseUrl}/get`
-        setResourcePoolUrl = `${baseUrl}/pool/set`
-        getValueFromPoolUrl = `${baseUrl}/pool/get`
-        addValueToPoolUrl = `${baseUrl}/pool/add`
+        setUrl = `${baseUrl}/`
+        getUrl = `${baseUrl}`
+        setResourcePoolUrl = `${baseUrl}/pool/`
+        getValueFromPoolUrl = `${baseUrl}/pool`
+        addValueToPoolUrl = `${baseUrl}/pool`
     })
 
     it('should not fail if payload has no key/value', async () => {
@@ -40,12 +38,12 @@ describe('WdioSharedStoreService exports', () => {
         const response = await got.post(getUrl, { body: 'foobar', throwHttpErrors: false, retry: { limit: 0 } })
         expect(response.statusCode).toBe(422)
         expect(response.statusMessage).toBe('Unprocessable Entity')
-        expect(response.url).toContain('/get')
+        expect(response.url).toContain('/')
         expect(response.body).toBe('Invalid JSON')
     })
 
     it('should handle 404', async () => {
-        const response = await got.post(getUrl + 'foobar', { throwHttpErrors: false, retry: { limit: 0 } })
+        const response = await got.get(`${getUrl}/foo/bar`, { throwHttpErrors: false, retry: { limit: 0 } })
         expect(response.statusCode).toBe(404)
     })
 
@@ -57,7 +55,7 @@ describe('WdioSharedStoreService exports', () => {
 
         it('should get entry', async () => {
             __store.foobar = 'barfoo'
-            const res = await got.post<{ value: string }>(getUrl, { json: { key: 'foobar' }, responseType: 'json' })
+            const res = await got.get<{ value: string }>(`${getUrl}/foobar`, { responseType: 'json' })
             expect(res.body.value).toEqual('barfoo')
         })
     })
@@ -139,7 +137,7 @@ describe('WdioSharedStoreService exports', () => {
             it('should add that value to the pool', async () => {
                 __resourcePoolStore.set('foo', [])
 
-                const response = await got.post(addValueToPoolUrl, { json: { key: 'foo', value: 'bar' }, responseType: 'json' })
+                const response = await got.post(addValueToPoolUrl + '/foo', { json: { value: 'bar' }, responseType: 'json' })
                 expect(response.statusCode).toBe(200)
                 expect(Array.from(__resourcePoolStore.entries())).toEqual([['foo', ['bar']]])
             })
@@ -147,7 +145,7 @@ describe('WdioSharedStoreService exports', () => {
 
         describe('when calling addValueToPool with an invalid pool name', () => {
             it('should throw an error', async () => {
-                const response = await got.post(addValueToPoolUrl, { json: { key: 'foo', value: 'bar' }, responseType: 'json', throwHttpErrors: false, retry: { limit: 0 } })
+                const response = await got.post(addValueToPoolUrl + '/foo', { json: { value: 'bar' }, responseType: 'json', throwHttpErrors: false, retry: { limit: 0 } })
 
                 expect(response.statusCode).toBe(500)
                 expect(response.body).toBe("'foo' resource pool does not exist. Set it first using 'setResourcePool'")
