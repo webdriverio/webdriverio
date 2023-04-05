@@ -25,7 +25,6 @@ import {
 import type { ReplCommandArguments, Questionnair, SupportedPackage, OnCompleteResult, ParsedAnswers, ProjectProps } from './types.js'
 
 const log = logger('@wdio/cli:utils')
-const __dirname = dirname(fileURLToPath(import.meta.url))
 
 const NPM_COMMAND = /^win/.test(process.platform) ? 'npm.cmd' : 'npm'
 const VERSION_REGEXP = /(\d+)\.(\d+)\.(\d+)-(alpha|beta|)\.(\d+)\+(.+)/g
