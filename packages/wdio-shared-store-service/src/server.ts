@@ -5,10 +5,12 @@ import { json } from '@polka/parse'
 import type { JsonCompatible, JsonPrimitive, JsonObject } from '@wdio/types'
 
 const store: JsonObject = {}
+const resourcePoolStore: Map<string, any[]> = new Map()
 /**
  * @private
  */
 export const __store = store
+export const __resourcePoolStore = resourcePoolStore
 
 const validateBody: NextFn = (req, res, next) => {
     if (!req.path.endsWith('/get') && !req.path.endsWith('/set')) {
@@ -19,6 +21,9 @@ const validateBody: NextFn = (req, res, next) => {
     }
     next()
 }
+
+const MAX_TIMEOUT = 15000
+const DEFAULT_TIMEOUT = 1000
 
 export const startServer = () => new Promise<{ port: number, app: PolkaInstance }>((resolve, reject) => {
     const app = polka()
@@ -44,6 +49,60 @@ export const startServer = () => new Promise<{ port: number, app: PolkaInstance 
             }
 
             store[key] = req.body.value as JsonCompatible | JsonPrimitive
+            return res.end()
+        })
+        .post('/pool/set', (req, res, next) => {
+            const key = req.body.key as string
+            const value = req.body.value as JsonCompatible | JsonPrimitive
+
+            if (!Array.isArray(value)) {
+                return next('Resource pool must be an array of values')
+            }
+
+            resourcePoolStore.set(key, value)
+            return res.end()
+        })
+        .get('/pool/get/:key', async (req, res, next) => {
+            const key = req.params.key as string
+
+            if (!resourcePoolStore.has(key)) {
+                return next(`'${key}' resource pool does not exist. Set it first using 'setResourcePool'`)
+            }
+
+            let pool = resourcePoolStore.get(key) || []
+
+            if (pool.length > 0) {
+                return res.end(JSON.stringify({ value: pool.shift() }))
+            }
+
+            const timeout = Math.min(parseInt(req.query.timeout as string) || DEFAULT_TIMEOUT, MAX_TIMEOUT)
+
+            try {
+                const result = await new Promise((resolve, reject) => {
+                    setTimeout(function secondAttempt() {
+                        pool = resourcePoolStore.get(key) || []
+                        if (pool.length > 0) {
+                            resolve({ value: pool.shift() })
+                        }
+
+                        reject(`'${key}' resource pool is empty. Set values to it first using 'setResourcePool' or 'addValueToPool'`)
+                    }, timeout)
+                })
+                res.end(JSON.stringify(result))
+            } catch (err) {
+                return next(err)
+            }
+        })
+        .post('/pool/add', (req, res, next) => {
+            const key = req.body.key as string
+            const value = req.body.value as JsonCompatible | JsonPrimitive
+            const pool = resourcePoolStore.get(key)
+
+            if (!pool) {
+                return next(`'${key}' resource pool does not exist. Set it first using 'setResourcePool'`)
+            }
+
+            pool.push(value)
             return res.end()
         })
 
