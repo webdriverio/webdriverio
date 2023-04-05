@@ -37,7 +37,8 @@ exports[`getTemplate > renders template correctly 1`] = `
                 }
             </script>
             <script type=\\"module\\" src=\\"@wdio/browser-runner/setup\\"></script>
-            <style>:root {
+            <style>
+                :root {
     --mocha-color: #000;
     --mocha-bg-color: #fff;
     --mocha-pass-icon-color: #00d6b2;
@@ -100,7 +101,14 @@ exports[`getTemplate > renders template correctly 1`] = `
         --mocha-code-number: #4ca7ff;
     }
 }
-</style>
+
+
+                body {
+                    width: calc(100% - 500px);
+                    padding: 0;
+                    margin: 0;
+                }
+            </style>
             
             <script type=\\"module\\">
                 some code
@@ -111,7 +119,7 @@ exports[`getTemplate > renders template correctly 1`] = `
                 window.VueCompilerDOM = VueCompilerDOM
             </script>
         </head>
-        <body style=\\"width: calc(100% - 500px); padding: 0; margin: 0;\\">
+        <body>
             <mocha-framework spec=\\"/spec.js\\" minified></mocha-framework>
             <script type=\\"module\\">
                 window.process.env = {\\"some\\":\\"env\\"}
