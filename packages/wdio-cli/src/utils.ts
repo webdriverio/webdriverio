@@ -1,7 +1,5 @@
 import fs from 'node:fs/promises'
 import util from 'node:util'
-import { dirname } from 'node:path'
-import { fileURLToPath } from 'node:url'
 import type { SpawnOptions } from 'node:child_process'
 import { execSync, spawn } from 'node:child_process'
 import { promisify } from 'node:util'
@@ -15,7 +13,6 @@ import logger from '@wdio/logger'
 import readDir from 'recursive-readdir'
 import yarnInstall from 'yarn-install'
 import { readPackageUp } from 'read-pkg-up'
-import { resolve } from 'import-meta-resolve'
 import { SevereServiceError } from 'webdriverio'
 import { ConfigParser } from '@wdio/config'
 import { CAPABILITY_KEYS } from '@wdio/protocols'
@@ -376,11 +373,11 @@ export async function detectCompiler(answers: Questionnair) {
 
 /**
  * Check if package is installed
- * @param {string} package to check existance for
+ * @param {string} package to check existence for
  */
-export async function hasPackage(pkg: string) {
+export function hasPackage(pkg: string) {
     try {
-        await resolve(pkg, import.meta.url)
+        require.resolve(pkg)
         return true
     } catch (err: any) {
         return false
@@ -807,7 +804,7 @@ export async function setupBabel(parsedAnswers: ParsedAnswers) {
         return
     }
 
-    if (!await hasPackage('@babel/register')) {
+    if (!hasPackage('@babel/register')) {
         parsedAnswers.packagesToInstall.push('@babel/register')
     }
 
@@ -826,10 +823,10 @@ export async function setupBabel(parsedAnswers: ParsedAnswers) {
 
     if (!hasBabelConfig) {
         console.log('Setting up Babel project...')
-        if (!await hasPackage('@babel/core')) {
+        if (!hasPackage('@babel/core')) {
             parsedAnswers.packagesToInstall.push('@babel/core')
         }
-        if (!await hasPackage('@babel/preset-env')) {
+        if (!hasPackage('@babel/preset-env')) {
             parsedAnswers.packagesToInstall.push('@babel/preset-env')
         }
         await fs.writeFile(

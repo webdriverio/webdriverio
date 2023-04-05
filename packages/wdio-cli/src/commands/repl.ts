@@ -50,9 +50,15 @@ export const handler = async (argv: ReplCommandArguments) => {
     const caps = await getCapabilities(argv)
     const client = await remote({ ...argv, ...caps })
 
-    global.$ = client.$.bind(client)
-    global.$$ = client.$$.bind(client)
-    global.browser = client
+    const globalWithClient = global as typeof globalThis & {
+        $: any;
+        $$: any;
+        browser: any;
+    }
+
+    globalWithClient.$ = client.$.bind(client)
+    globalWithClient.$$ = client.$$.bind(client)
+    globalWithClient.browser = client
 
     await client.debug()
     return client.deleteSession()
