@@ -6,9 +6,13 @@ import type {
 import WDIOReporter from '@wdio/reporter'
 import type { Capabilities, Options } from '@wdio/types'
 import type { Label, MetadataMessage, AllureStep } from 'allure-js-commons'
-import { AllureRuntime, AllureGroup, AllureTest, Status as AllureStatus, Stage, LabelName, LinkType, ContentType, AllureCommandStepExecutable } from 'allure-js-commons'
 import {
-    addFeature, addLink, addOwner, addEpic, addSuite, addSubSuite, addParentSuite, addTag, addLabel, addSeverity, addIssue, addTestId, addStory, addEnvironment, addAllureId,
+    AllureRuntime, AllureGroup, AllureTest, Status as AllureStatus, Stage, LabelName,
+    LinkType, ContentType, AllureCommandStepExecutable, md5
+} from 'allure-js-commons'
+import {
+    addFeature, addLink, addOwner, addEpic, addSuite, addSubSuite, addParentSuite,
+    addTag, addLabel, addSeverity, addIssue, addTestId, addStory, addEnvironment, addAllureId,
     addDescription, addAttachment, startStep, endStep, addStep, addArgument, step,
 } from './common/api.js'
 import { AllureReporterState } from './state.js'
@@ -26,7 +30,6 @@ import type {
 import {
     TYPE as DescriptionType
 } from './types.js'
-import { md5 } from 'allure-js-commons'
 
 export default class AllureReporter extends WDIOReporter {
     private _allure: AllureRuntime
@@ -238,9 +241,8 @@ export default class AllureReporter extends WDIOReporter {
         if (this._state.currentPackageLabel) {
             this._state.currentTest.addLabel(LabelName.PACKAGE, this._state.currentPackageLabel)
         }
-        if (this._state.currentSuite?.name || this._state.currentTest.wrappedItem?.name) {
-            const hash = md5(this._state.currentSuite?.name +
-                this._state.currentTest.wrappedItem?.name!)
+        if (this._state.currentSuite?.name && this._state.currentTest.wrappedItem?.name) {
+            const hash = md5(this._state.currentSuite.name + this._state.currentTest.wrappedItem.name)
             this._state.currentTest.historyId = hash
         }
         if (cid) {
