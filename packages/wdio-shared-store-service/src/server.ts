@@ -34,14 +34,7 @@ export const startServer = () => new Promise<{ port: number, app: PolkaInstance 
         .use(json(), validateBody)
 
         // routes
-        .post('/get', (req, res) => {
-            const key = req.body.key as string
-            const value = key === '*'
-                ? store
-                : store[key]
-            res.end(JSON.stringify({ value }))
-        })
-        .post('/set', (req, res) => {
+        .post('/', (req, res) => {
             const key = req.body.key as string
 
             if (key === '*') {
@@ -51,7 +44,14 @@ export const startServer = () => new Promise<{ port: number, app: PolkaInstance 
             store[key] = req.body.value as JsonCompatible | JsonPrimitive
             return res.end()
         })
-        .post('/pool/set', (req, res, next) => {
+        .get('/:key', (req, res) => {
+            const key = req.params.key as string
+            const value = key === '*'
+                ? store
+                : store[key]
+            res.end(JSON.stringify({ value }))
+        })
+        .post('/pool', (req, res, next) => {
             const key = req.body.key as string
             const value = req.body.value as JsonCompatible | JsonPrimitive
 
@@ -62,7 +62,7 @@ export const startServer = () => new Promise<{ port: number, app: PolkaInstance 
             resourcePoolStore.set(key, value)
             return res.end()
         })
-        .get('/pool/get/:key', async (req, res, next) => {
+        .get('/pool/:key', async (req, res, next) => {
             const key = req.params.key as string
 
             if (!resourcePoolStore.has(key)) {
@@ -93,8 +93,8 @@ export const startServer = () => new Promise<{ port: number, app: PolkaInstance 
                 return next(err)
             }
         })
-        .post('/pool/add', (req, res, next) => {
-            const key = req.body.key as string
+        .post('/pool/:key', (req, res, next) => {
+            const key = req.params.key as string
             const value = req.body.value as JsonCompatible | JsonPrimitive
             const pool = resourcePoolStore.get(key)
 
