@@ -25,7 +25,7 @@ A mock object contains the following properties:
 | `url` | `String` | The url passed into the mock command |
 | `filterOptions` | `Object` | The resource filter options passed into the mock command |
 | `browser` | `Object` | The [Browser Object](/docs/api/browser) used to get the mock object. |
-| `matches` | `Object[]` | Information about matching browser requests, containing properties such as `url`, `method`, `headers`, `initialPriority`, `referrerPolic`, `statusCode`, `responseHeaders` and `body` |
+| `calls` | `Object[]` | Information about matching browser requests, containing properties such as `url`, `method`, `headers`, `initialPriority`, `referrerPolic`, `statusCode`, `responseHeaders` and `body` |
 
 ## Methods
 
