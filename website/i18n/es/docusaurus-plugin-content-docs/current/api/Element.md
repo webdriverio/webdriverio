@@ -19,7 +19,7 @@ Un objeto navegador tiene las siguientes propiedades:
 
 ## Métodos
 
-Un objeto de elemento proporciona todos los métodos de la sección de protocolo, por ejemplo, el protocolo [WebDriver](/docs/api/webdriver) , así como comandos listados dentro de la sección del elemento. Los comandos de protocolo disponibles dependen del tipo de sesión. Si ejecuta una sesión automatizada en el navegador, ninguno de los comandos [de Appium](/docs/api/appium) estará disponible y vice versa.
+Un objeto de elemento proporciona todos los métodos de la sección de protocolo, por ejemplo, el protocolo [WebDriver](/docs/api/webdriver) , así como comandos listados dentro de la sección del elemento. Los comandos de protocolo disponibles dependen del tipo de sesión. If you run an automated browser session, none of the Appium [commands](/docs/api/appium) will be available and vice versa.
 
 Además de que dispone de los siguientes comandos:
 
