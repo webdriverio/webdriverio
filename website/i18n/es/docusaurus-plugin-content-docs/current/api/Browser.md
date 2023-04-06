@@ -13,16 +13,16 @@ La sesión es inicializada por el sistema de pruebas. Lo mismo ocurre para final
 
 Un objeto navegador tiene las siguientes propiedades:
 
-| Nombre                   | Tipo       | Información                                                                                                                                                |
-| ------------------------ | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `capacidades`            | `Objeto`   | Capacidad asignada desde el servidor remoto.<br /><b>Ejemplo:</b><pre>{<br />  acceptInsecureCerts: false,<br />  browserName: 'chrome',<br />  browserVersion: '105.0.5195.125',<br />  chrome: {<br />    chromedriverVersion: '105.0.5195.52 (412c95e518836d8a7d97250d62b29c2ae6a26a85-refs/branch-heads/5195@{#853})',<br />    userDataDir: '/var/folders/3_/pzc_f56j15vbd9z3r0j050sh0000gn/T/.com.google.Chrome.76HD3S'<br />  },<br />  'goog:chromeOptions': { debuggerAddress: 'localhost:64679' },<br />  networkConnectionEnabled: false,<br />  pageLoadStrategy: 'normal',<br />  platformName: 'mac os x',<br />  proxy: {},<br />  setWindowRect: true,<br />  strictFileInteractability: false,<br />  timeouts: { implicit: 0, pageLoad: 300000, script: 30000 },<br />  unhandledPromptBehavior: 'dismiss and notify',<br />  'webauthn:extension:credBlob': true,<br />  'webauthn:extension:largeBlob': true,<br />  'webauthn:virtualAuthenticators': true<br />}</pre>                                                 |
-| `capacidadesSolicitadas` | `Objeto`   | Capacidades solicitadas al servidor remoto.<br /><b>Ejemplo:</b><pre>{ browserName: 'chrome' }</pre>                                                  |
-| `sessionId`              | `String`   | Id de sesión asignado desde el servidor remoto.                                                                                                            |
-| `opciones`               | `Objeto`   | WebdriverIO [options](/docs/configuration) depending on how the browser object was created. See more [setup types](http://localhost:3000/docs/setuptypes). |
-| `commandList`            | `String[]` | A list of commands registered to the browser instance                                                                                                      |
-| `isMobile`               | `Boolean`  | Indicates a mobile session. See more under [Mobile Flags](#mobile-flags).                                                                                  |
-| `isIOS`                  | `Boolean`  | Indicates an iOS session. See more under [Mobile Flags](#mobile-flags).                                                                                    |
-| `isAndroid`              | `Boolean`  | Indicates an Android session. See more under [Mobile Flags](#mobile-flags).                                                                                |
+| Nombre                   | Tipo       | Información                                                                                                                                            |
+| ------------------------ | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `capacidades`            | `Objeto`   | Capacidad asignada desde el servidor remoto.<br /><b>Ejemplo:</b><pre>{<br />  acceptInsecureCerts: false,<br />  browserName: 'chrome',<br />  browserVersion: '105.0.5195.125',<br />  chrome: {<br />    chromedriverVersion: '105.0.5195.52 (412c95e518836d8a7d97250d62b29c2ae6a26a85-refs/branch-heads/5195@{#853})',<br />    userDataDir: '/var/folders/3_/pzc_f56j15vbd9z3r0j050sh0000gn/T/.com.google.Chrome.76HD3S'<br />  },<br />  'goog:chromeOptions': { debuggerAddress: 'localhost:64679' },<br />  networkConnectionEnabled: false,<br />  pageLoadStrategy: 'normal',<br />  platformName: 'mac os x',<br />  proxy: {},<br />  setWindowRect: true,<br />  strictFileInteractability: false,<br />  timeouts: { implicit: 0, pageLoad: 300000, script: 30000 },<br />  unhandledPromptBehavior: 'dismiss and notify',<br />  'webauthn:extension:credBlob': true,<br />  'webauthn:extension:largeBlob': true,<br />  'webauthn:virtualAuthenticators': true<br />}</pre>                                             |
+| `capacidadesSolicitadas` | `Objeto`   | Capacidades solicitadas al servidor remoto.<br /><b>Ejemplo:</b><pre>{ browserName: 'chrome' }</pre>                                              |
+| `sessionId`              | `String`   | Id de sesión asignado desde el servidor remoto.                                                                                                        |
+| `opciones`               | `Objeto`   | Se crearon [opciones](/docs/configuration) WebdriverIO, dependiendo de cómo se creó el objeto del navegador. See more [setup types](/docs/setuptypes). |
+| `lista de comandos`      | `String[]` | Una lista de comandos registrados a la instancia del navegador                                                                                         |
+| `isMobile`               | `Boolean`  | Indicates a mobile session. See more under [Mobile Flags](#mobile-flags).                                                                              |
+| `isIOS`                  | `Boolean`  | Indicates an iOS session. See more under [Mobile Flags](#mobile-flags).                                                                                |
+| `isAndroid`              | `Boolean`  | Indicates an Android session. See more under [Mobile Flags](#mobile-flags).                                                                            |
 
 ## Métodos
 
@@ -32,17 +32,17 @@ Además WebdriverIO proporciona un conjunto de métodos convenientes que se reco
 
 Además, dispone de los siguientes comandos:
 
-| Nombre               | Parámetros                                                                                                             | Detalles                                                                                                                                                                                                                                         |
-| -------------------- | ---------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `addCommand`         | - `commandName` (Type: `String`)<br />- `fn` (Type: `Function`)<br />- `attachToElement` (Type: `boolean`) | Permite definir comandos personalizados que pueden ser llamados desde el objeto navegador con fines de compisición. Read more in the [Custom Command](/docs/customcommands) guide.                                                               |
-| `overwriteCommand`   | - `commandName` (Type: `String`)<br />- `fn` (Type: `Function`)<br />- `attachToElement` (Type: `boolean`) | Allows to overwite any browser command with custom functionality. Utilícelo con cuidado ya que puede confundir a los usuarios del marco. Más información en la guía [Comandos personalizados](/docs/customcommands#overwriting-native-commands). |
-| `addLocatorStrategy` | - `strategyName` (Type: `String`)<br />- `fn` (Type: `Function`)                                                 | Permite definir una estrategia de selector personalizada, lea más en la guía [Selectores](/docs/selectors#custom-selector-strategies).                                                                                                           |
+| Nombre               | Parámetros                                                                                                             | Detalles                                                                                                                                                                                                                                                                   |
+| -------------------- | ---------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `addCommand`         | - `commandName` (Type: `String`)<br />- `fn` (Type: `Function`)<br />- `attachToElement` (Type: `boolean`) | Permite definir comandos personalizados que pueden ser llamados desde el objeto navegador con fines de compisición. Más información en la guía [Comandos personalizados](/docs/customcommands).                                                                            |
+| `overwriteCommand`   | - `commandName` (Type: `String`)<br />- `fn` (Type: `Function`)<br />- `attachToElement` (Type: `boolean`) | Permite sobreescribir cualquier comando del navegador con una funcionalidad personalizada. Utilícelo con cuidado, ya que puede confundir a los usuarios del marco. Más información en la guía [Comandos personalizados](/docs/customcommands#overwriting-native-commands). |
+| `addLocatorStrategy` | - `strategyName` (Type: `String`)<br />- `fn` (Type: `Function`)                                                 | Permite definir una estrategia de selector personalizada, lea más en la guía [Selectores](/docs/selectors#custom-selector-strategies).                                                                                                                                     |
 
 ## Avisos
 
 ### Banderas móviles
 
-If you need to modify your test based on whether or not your session runs on a mobile device, you can access the mobile flags to check.
+Si necesita modificar su prueba basada en si su sesión se ejecuta o no en un dispositivo móvil, puede acceder a las banderas móviles para comprobar.
 
 For example, given this config:
 
@@ -71,7 +71,7 @@ console.log(driver.isIOS) // outputs: true
 console.log(driver.isAndroid) // outputs: false
 ```
 
-This can be useful if, for example, you want to define selectors in your [page objects](PageObjects.md) based on the device type, like this:
+Esto puede ser útil si, por ejemplo, quiere definir selectores en sus [objetos de página](PageObjects.md) basados en el tipo de dispositivo, de la siguiente manera:
 
 ```js
 // mypageobject.page.js
@@ -90,15 +90,15 @@ class LoginPage extends Page {
 }
 ```
 
-You can also use these flags to run only certain tests for certain device types:
+También puede utilizar estas banderas para ejecutar sólo ciertas pruebas para ciertos tipos de dispositivos:
 
 ```js
 // mytest.e2e.js
-describe('my test', () => {
+describe('mi test', () => {
     // ...
-    // only run test with Android devices
+    // sólo ejecutar pruebas con dispositivos Android
     if (driver.isAndroid) {
-        it('tests something only for Android', () => {
+        it('prueba algo sólo para Android', () => {
             // ...
         })
     }
@@ -106,21 +106,21 @@ describe('my test', () => {
 })
 ```
 
-### Events
+### Eventos
 The browser object is an EventEmitter and a couple of events are emitted for your use cases.
 
-Here is a list of events. Keep in mind that this is not the full list of available events yet. Feel free to contribute to update the document by adding descriptions of more events here.
+He aquí una lista de eventos. Tenga en cuenta que esta no es la lista completa de eventos disponibles todavía. Siéntase libre de contribuir a actualizar el documento añadiendo descripciones de más eventos aquí.
 
 #### `request.performance`
-This is an event to measure WebDriver level operations. Whenever WebDriverIO requests to your WebDriver endoints, this event will be emitted with some useful information:
+This is an event to measure WebDriver level operations. Cada vez que WebDriverIO solicite a sus endointes WebDriver este evento se emitirá con alguna información útil:
 
-- `durationMillisecond`: Time duration of the request in millisecond.
-- `error`: Error object if the request failed.
-- `request`: Request object. You can find url, method, headers, etc.
+- `durationMilisegundo`: Duración del tiempo de la solicitud en milisegundo.
+- `error`: Objeto de error si la solicitud falló.
+- `request`: Request object. Puede encontrar el url, método, cabezas, etc.
 - `retryCount`: If it's `0`, the request was the first attempt. It will increase when WebDriverIO retries under the hood.
 - `success`: Boolean to represent the request was succeeded or not. If it's `false`, `error` property will be provided as well.
 
-An example event:
+Un ejemplo de evento:
 ```js
 Object {
   "durationMillisecond": 0.01770925521850586,
@@ -131,6 +131,6 @@ Object {
 },
 ```
 
-### Custom Commands
+### Comandos personalizados
 
-You can set custom commands on the browser scope to abstract away workflows that are commonly used. Check out our guide on [Custom Commands](/docs/customcommands#adding-custom-commands) for more information.
+Puede configurar comandos personalizados en el ámbito del navegador para abstruir los flujos de trabajo que se utilizan comúnmente. Consulte nuestra guía en [Comandos personalizados](/docs/customcommands#adding-custom-commands) para más información.
