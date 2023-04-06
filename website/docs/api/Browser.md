@@ -113,8 +113,7 @@ Here is a list of events. Keep in mind that this is not the full list of availab
 Feel free to contribute to update the document by adding descriptions of more events here.
 
 #### `request.performance`
-This is an event to measure WebDriver level operations. Whenever WebDriverIO requests to your WebDriver endoints,
-this event will be emitted with some useful information:
+This is an event to measure WebDriver level operations. Whenever WebdriverIO sends a request to the WebDriver backend, this event will be emitted with some useful information:
 
 - `durationMillisecond`: Time duration of the request in millisecond.
 - `error`: Error object if the request failed.
