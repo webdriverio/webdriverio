@@ -34,7 +34,7 @@ Además, dispone de los siguientes comandos:
 
 | Nombre               | Parámetros                                                                                                             | Detalles                                                                                                                                                                                                                                                                   |
 | -------------------- | ---------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `addCommand`         | - `commandName` (Type: `String`)<br />- `fn` (Type: `Function`)<br />- `attachToElement` (Type: `boolean`) | Permite definir comandos personalizados que pueden ser llamados desde el objeto navegador con fines de compisición. Más información en la guía [Comandos personalizados](/docs/customcommands).                                                                            |
+| `addCommand`         | - `commandName` (Type: `String`)<br />- `fn` (Type: `Function`)<br />- `attachToElement` (Type: `boolean`) | Allows to define custom commands that can be called from the browser object for composition purposes. Más información en la guía [Comandos personalizados](/docs/customcommands).                                                                                          |
 | `overwriteCommand`   | - `commandName` (Type: `String`)<br />- `fn` (Type: `Function`)<br />- `attachToElement` (Type: `boolean`) | Permite sobreescribir cualquier comando del navegador con una funcionalidad personalizada. Utilícelo con cuidado, ya que puede confundir a los usuarios del marco. Más información en la guía [Comandos personalizados](/docs/customcommands#overwriting-native-commands). |
 | `addLocatorStrategy` | - `strategyName` (Type: `String`)<br />- `fn` (Type: `Function`)                                                 | Permite definir una estrategia de selector personalizada, lea más en la guía [Selectores](/docs/selectors#custom-selector-strategies).                                                                                                                                     |
 
@@ -112,7 +112,7 @@ The browser object is an EventEmitter and a couple of events are emitted for you
 He aquí una lista de eventos. Tenga en cuenta que esta no es la lista completa de eventos disponibles todavía. Siéntase libre de contribuir a actualizar el documento añadiendo descripciones de más eventos aquí.
 
 #### `request.performance`
-This is an event to measure WebDriver level operations. Cada vez que WebDriverIO solicite a sus endointes WebDriver este evento se emitirá con alguna información útil:
+This is an event to measure WebDriver level operations. Whenever WebdriverIO sends a request to the WebDriver backend, this event will be emitted with some useful information:
 
 - `durationMilisegundo`: Duración del tiempo de la solicitud en milisegundo.
 - `error`: Objeto de error si la solicitud falló.
