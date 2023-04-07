@@ -43,12 +43,7 @@ export default class FileSystemPathService implements PathService {
             globResult.push(fileName)
         }
 
-        // alphabetically sort spec files
-        if (Array.isArray(globResult) && globResult.length) {
-            globResult.sort()
-        }
-
-        return globResult
+        return globResult.sort()
     }
 
     ensureAbsolutePath(filepath: string, rootDir: string): string {

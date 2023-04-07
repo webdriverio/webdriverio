@@ -135,6 +135,23 @@ It is also possible to group specs defined in suites, so you can now also define
 ```
 and in this case all of the tests of the "end2end" suite would be run in a single instance.
 
+When running tests sequentially using a pattern, it will run the spec files in an alphabetical order
+
+```json
+    "suites": {
+        end2end: ["./test/specs/test_*.js"]
+},
+```
+
+This will run the files matching the pattern above in the following order:
+
+```
+  [
+      "./test/specs/test_checkout.js",
+      "./test/specs/test_login.js",
+      "./test/specs/test_product_order.js"
+  ]
+```
 
 ## Run Selected Tests
 

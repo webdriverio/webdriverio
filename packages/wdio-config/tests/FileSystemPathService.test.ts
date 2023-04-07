@@ -58,8 +58,9 @@ describe('FileSystemPathService', () => {
 
     describe('glob', function () {
         it('should pass calls to glob', function () {
+            vi.mocked(glob.sync).mockReturnValue(['glob result'])
             const svc = new FileSystemPathService()
-            expect(svc.glob('globtrotter', '/foo/bar')).toEqual('glob result')
+            expect(svc.glob('globtrotter', '/foo/bar')).toEqual(['glob result'])
             expect(glob.sync).toHaveBeenCalledWith('globtrotter', { cwd: '/foo/bar' })
         })
         it('should process file name with []', function () {
@@ -68,6 +69,14 @@ describe('FileSystemPathService', () => {
             const svc = new FileSystemPathService()
             expect(svc.glob('./examples/wdio/mocha/[test].js', '/foo/bar'))
                 .toEqual([path.resolve('/foo', 'bar', 'examples', 'wdio', 'mocha', '[test].js')])
+        })
+
+        it('should return files in sorted order', function () {
+            vi.mocked(glob.sync).mockReturnValue(['c.test.js', 'a.test.js', 'f.test.js'])
+            vi.mocked(fs.existsSync).mockReturnValue(true)
+            const svc = new FileSystemPathService()
+            expect(svc.glob('./examples/wdio/mocha/*.test.js', '/foo/bar'))
+                .toEqual(['a.test.js', 'c.test.js', 'f.test.js'])
         })
     })
 
