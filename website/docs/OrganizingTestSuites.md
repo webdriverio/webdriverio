@@ -138,9 +138,9 @@ and in this case all of the tests of the "end2end" suite would be run in a singl
 When running tests sequentially using a pattern, it will run the spec files in an alphabetical order
 
 ```json
-    "suites": {
-        end2end: ["./test/specs/test_*.js"]
-},
+  "suites": {
+    end2end: ["./test/specs/test_*.js"]
+  },
 ```
 
 This will run the files matching the pattern above in the following order:
