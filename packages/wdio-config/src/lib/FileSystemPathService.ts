@@ -36,13 +36,14 @@ export default class FileSystemPathService implements PathService {
          * and we also want to be able to find files with these characters included
          * we add an additional check to see if the file as pattern exists.
          * add file to globResult only if filename doesn't include pattern(*)
-         * and globResult doest contain the fileName
+         * and globResult doesn't contain the fileName
          * and file should be available
          */
         if (!pattern.includes('*') && !globResult.includes(pattern) && !globResult.includes(fileName) && fs.existsSync(fileName)) {
             globResult.push(fileName)
         }
 
+        // alphabetically sort spec files
         if (Array.isArray(globResult) && globResult.length) {
             globResult.sort()
         }
