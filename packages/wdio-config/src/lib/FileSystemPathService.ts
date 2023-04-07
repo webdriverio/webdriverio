@@ -42,6 +42,11 @@ export default class FileSystemPathService implements PathService {
         if (!pattern.includes('*') && !globResult.includes(pattern) && !globResult.includes(fileName) && fs.existsSync(fileName)) {
             globResult.push(fileName)
         }
+
+        if (Array.isArray(globResult) && globResult.length) {
+            globResult.sort()
+        }
+
         return globResult
     }
 
