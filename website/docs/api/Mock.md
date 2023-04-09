@@ -37,3 +37,77 @@ Mock objects provide various commands, listed in the `mock` section, that allow 
 - [`respond`](/docs/api/mock/respond)
 - [`respondOnce`](/docs/api/mock/respondOnce)
 - [`restore`](/docs/api/mock/restore)
+
+## Events
+
+The mock object is an EventEmitter and a couple of events are emitted for your use cases.
+
+Here is a list of events.
+
+### `request`
+
+This event is being emitted when launching a network request that matches mock patterns. Request is passed in event callback
+
+Request interface:
+```ts
+interface RequestEvent {
+    requestId: number
+    request: Matches
+    responseStatusCode: number
+    responseHeaders: Record<string, string>
+}
+```
+
+### `overwrite`
+
+This event is being emitted when network response is overwrited with [`respond`](/docs/api/mock/respond) or [`respondOnce`](/docs/api/mock/respondOnce). Response is passed in event callback
+
+Response interface:
+```ts
+interface OverwriteEvent {
+    requestId: number
+    responseCode: number
+    responseHeaders: Record<string, string>
+    body?: string | Record<string, any>
+}
+```
+
+### `fail`
+
+This event is being emitted when network request is aborted with [`abort`](/docs/api/mock/abort) or [`abortOnce`](/docs/api/mock/abortOnce). Fail is passed in event callback
+
+Fail interface:
+```ts
+interface FailEvent {
+    requestId: number
+    errorReason: Protocol.Network.ErrorReason
+}
+```
+
+### `match`
+
+This event is being emitted when new match is added. Match is passed in event callback
+
+Match interface:
+```ts
+interface MatchEvent {
+    url: string // Request URL (without fragment).
+    urlFragment?: string // Fragment of the requested URL starting with hash, if present.
+    method: string // HTTP request method.
+    headers: Record<string, string> // HTTP request headers.
+    postData?: string // HTTP POST request data.
+    hasPostData?: boolean // True when the request has POST data.
+    mixedContentType?: MixedContentType // The mixed content export type of the request.
+    initialPriority: ResourcePriority // Priority of the resource request at the time request is sent.
+    referrerPolicy: ReferrerPolicy // The referrer policy of the request, as defined in https://www.w3.org/TR/referrer-policy/
+    isLinkPreload?: boolean // Whether is loaded via link preload.
+    body: string | Buffer | JsonCompatible // Body response of actual resource.
+    responseHeaders: Record<string, string> // HTTP response headers.
+    statusCode: number // HTTP response status code.
+    mockedResponse?: string | Buffer // If mock, emitting the event, also modified it's response.
+}
+```
+
+### `continue`
+
+This event is being emitted when the network response has neither been overwritten nor interrupted, or if response was already sent by another mock. `requestId` is passed in event callback.

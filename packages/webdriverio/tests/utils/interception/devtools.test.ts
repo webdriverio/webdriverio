@@ -1,4 +1,4 @@
-import { test, expect, vi, beforeEach, describe } from 'vitest'
+import { test, expect, vi, beforeEach, describe, afterEach } from 'vitest'
 import fs from 'node:fs/promises'
 import NetworkInterception from '../../../src/utils/interception/devtools.js'
 import type { Browser } from '../../../src/types'
@@ -24,6 +24,7 @@ const cdpClient: any = {
 const browserMock = {} as any as Browser
 
 const fetchListener = async (mock: any, params: any, client = cdpClient) => {
+    const mocks = Array.isArray(mock) ? mock : [mock]
     const reponseParams = Object.entries(params).reduce((acc, [key, val]) => {
         if (!['responseHeaders', 'responseStatusCode'].includes(key)) {
             (acc as any)[key] = val
@@ -32,9 +33,9 @@ const fetchListener = async (mock: any, params: any, client = cdpClient) => {
     }, {}) as any
 
     // Request
-    await NetworkInterception.handleRequestInterception(client, [mock] as any)(reponseParams)
+    await NetworkInterception.handleRequestInterception(client, mocks as any)(reponseParams)
     // Response
-    return NetworkInterception.handleRequestInterception(client, [mock] as any)(params)
+    return NetworkInterception.handleRequestInterception(client, mocks as any)(params)
 }
 
 beforeEach(() => {
@@ -438,6 +439,197 @@ describe('stub request', () => {
         } as any)
 
         expect(cdpClient.send.mock.calls.pop()).toMatchSnapshot()
+    })
+})
+
+describe('emit events', () => {
+    let mock: NetworkInterception
+    const onRequestStub = vi.fn()
+    const onContinueStub = vi.fn()
+    const onOverwriteStub = vi.fn()
+    const onFailStub = vi.fn()
+    const onMatchStub = vi.fn()
+
+    const handleResponse = async (mocks: NetworkInterception[], event: any = {}) => {
+        event.requestId ||= 123
+        event.request ||= {}
+        event.request.url ||= 'http://test.com/foobar/test.html'
+        event.responseHeaders ||= []
+
+        await NetworkInterception.handleRequestInterception(cdpClient, mocks as any)(event)
+    }
+
+    beforeEach(() => {
+        mock = new NetworkInterception('**/foobar/**', undefined, browserMock)
+
+        mock
+            .on('request', onRequestStub)
+            .on('continue', onContinueStub)
+            .on('overwrite', onOverwriteStub)
+            .on('fail', onFailStub)
+            .on('match', onMatchStub)
+    })
+
+    afterEach(() => {
+        vi.clearAllMocks()
+    })
+
+    test('"request"', async () => {
+        await handleResponse([mock])
+
+        expect(onRequestStub).toHaveBeenCalledOnce()
+        expect(onRequestStub).toBeCalledWith({
+            requestId: 123,
+            request: {
+                body: '{"foo":"bar"}',
+                responseHeaders: {},
+                statusCode: 200,
+                url: 'http://test.com/foobar/test.html'
+            },
+            responseHeaders: [],
+            responseStatusCode: 200
+        })
+    })
+
+    test('"continue"', async () => {
+        await handleResponse([mock])
+
+        expect(onOverwriteStub).not.toBeCalled()
+        expect(onFailStub).not.toBeCalled()
+        expect(onContinueStub).toHaveBeenCalledOnce()
+        expect(onContinueStub).toBeCalledWith(123)
+    })
+
+    test('"overwrite"', async () => {
+        mock.respond({ bar: 'foo' })
+        await handleResponse([mock])
+
+        expect(onFailStub).not.toBeCalled()
+        expect(onContinueStub).not.toBeCalled()
+        expect(onOverwriteStub).toHaveBeenCalledOnce()
+        expect(onOverwriteStub).toBeCalledWith({
+            requestId: 123,
+            body: '{"bar":"foo"}',
+            responseCode: 200,
+            responseHeaders: []
+        })
+    })
+
+    test('"fail"', async () => {
+        mock.abort('ConnectionFailed')
+        await handleResponse([mock])
+
+        expect(onOverwriteStub).not.toBeCalled()
+        expect(onContinueStub).not.toBeCalled()
+        expect(onFailStub).toHaveBeenCalledOnce()
+        expect(onFailStub).toBeCalledWith({
+            requestId: 123,
+            errorReason: 'ConnectionFailed'
+        })
+    })
+
+    test('"match"', async () => {
+        await fetchListener(mock, {
+            request: { url: 'http://test.com/foobar/test.html' },
+            responseHeaders: [{ name: 'content-Type', value: 'application/json' }]
+        })
+
+        expect(onMatchStub).toHaveBeenCalledOnce()
+        expect(onMatchStub).toBeCalledWith({
+            body: { foo: 'bar' },
+            responseHeaders: {
+                'content-Type': 'application/json'
+            },
+            statusCode: 200,
+            url: 'http://test.com/foobar/test.html'
+        })
+    })
+
+    describe('multiple', () => {
+        let mockSecond: NetworkInterception
+        const onRequestSecondStub = vi.fn()
+        const onContinueSecondStub = vi.fn()
+        const onOverwriteSecondStub = vi.fn()
+        const onFailSecondStub = vi.fn()
+        const onMatchSecondStub = vi.fn()
+
+        beforeEach(() => {
+            mockSecond = new NetworkInterception('**/foobar/**', undefined, browserMock)
+
+            mockSecond
+                .on('request', onRequestSecondStub)
+                .on('continue', onContinueSecondStub)
+                .on('overwrite', onOverwriteSecondStub)
+                .on('fail', onFailSecondStub)
+                .on('match', onMatchSecondStub)
+        })
+
+        test('request spies', async () => {
+            await handleResponse([mock, mockSecond])
+
+            expect(onRequestStub).toHaveBeenCalledOnce()
+            expect(onRequestSecondStub).toHaveBeenCalledOnce()
+        })
+
+        test('response spies', async () => {
+            await handleResponse([mock, mockSecond])
+
+            expect(onContinueStub).toHaveBeenCalledOnce()
+            expect(onContinueSecondStub).toHaveBeenCalledOnce()
+            expect(onContinueStub).toBeCalledWith(123)
+            expect(onContinueSecondStub).toBeCalledWith(123)
+        })
+
+        test('match spies', async () => {
+            const match = {
+                body: { foo: 'bar' },
+                responseHeaders: {
+                    'content-Type': 'application/json'
+                },
+                statusCode: 200,
+                url: 'http://test.com/foobar/test.html'
+            }
+            await fetchListener([mock, mockSecond], {
+                request: { url: 'http://test.com/foobar/test.html' },
+                responseHeaders: [{ name: 'content-Type', value: 'application/json' }]
+            })
+
+            expect(onMatchStub).toHaveBeenCalledOnce()
+            expect(onMatchSecondStub).toHaveBeenCalledOnce()
+            expect(onMatchStub).toBeCalledWith(match)
+            expect(onMatchSecondStub).toBeCalledWith(match)
+        })
+
+        test('spy and respond mock', async () => {
+            mockSecond.respond({ bar: 'foo' })
+            await handleResponse([mock, mockSecond])
+
+            expect(onContinueSecondStub).not.toHaveBeenCalled()
+            expect(onContinueStub).toHaveBeenCalledOnce()
+            expect(onOverwriteSecondStub).toHaveBeenCalledOnce()
+            expect(onOverwriteStub).not.toBeCalled()
+        })
+
+        test('spy and abort mock', async () => {
+            mockSecond.abort('ConnectionFailed')
+            await handleResponse([mock, mockSecond])
+
+            expect(onContinueSecondStub).not.toHaveBeenCalled()
+            expect(onContinueStub).toHaveBeenCalledOnce()
+            expect(onFailSecondStub).toHaveBeenCalledOnce()
+            expect(onFailStub).not.toBeCalled()
+        })
+
+        test('two respond mocks', async () => {
+            mock.respond({ bar: 'foo1' })
+            mockSecond.respond({ bar: 'foo2' })
+            await handleResponse([mock, mockSecond])
+
+            expect(onContinueSecondStub).toHaveBeenCalled()
+            expect(onContinueStub).not.toHaveBeenCalledOnce()
+            expect(onOverwriteSecondStub).not.toHaveBeenCalledOnce()
+            expect(onOverwriteStub).toBeCalled()
+        })
     })
 })
 

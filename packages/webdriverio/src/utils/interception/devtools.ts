@@ -36,12 +36,16 @@ export default class DevtoolsInterception extends Interception {
             // responseHeaders and responseStatusCode are only present in Response stage
             // https://chromedevtools.github.io/devtools-protocol/tot/Fetch/#event-requestPaused
             const isRequest = !event.responseHeaders
-            const eventResponseHeaders = event.responseHeaders || []
-            const responseHeaders = eventResponseHeaders.reduce((headers, { name, value }) => {
+
+            event.responseStatusCode ||= 200
+            event.responseHeaders ||= []
+
+            const responseHeaders = event.responseHeaders.reduce((headers, { name, value }) => {
                 headers[name] = value
                 return headers
             }, {} as Record<string, string>)
-            const { requestId, request, responseStatusCode = 200 } = event
+
+            let mockResponded = false
 
             for (const mock of mocks) {
                 /**
@@ -60,29 +64,32 @@ export default class DevtoolsInterception extends Interception {
                 /**
                  * match mock url
                  */
-                if (!Interception.isMatchingRequest(mock.url, request.url)) {
+                if (!Interception.isMatchingRequest(mock.url, event.request.url)) {
                     continue
                 }
 
                 /**
                  * Add statusCode and responseHeaders to request to be used in expect-webdriverio
                  */
-                request.statusCode = responseStatusCode
-                request.responseHeaders = { ...responseHeaders }
+                event.request.statusCode = event.responseStatusCode
+                event.request.responseHeaders = { ...responseHeaders }
 
                 /**
                  * match filter options
                  */
                 if (
-                    filterMethod(request.method, mock.filterOptions.method) ||
-                    filterHeaders(request.headers, mock.filterOptions.requestHeaders) ||
+                    filterMethod(event.request.method, mock.filterOptions.method) ||
+                    filterHeaders(event.request.headers, mock.filterOptions.requestHeaders) ||
                     filterHeaders(responseHeaders, mock.filterOptions.headers) ||
-                    filterRequest(request.postData, mock.filterOptions.postData) ||
-                    filterStatusCode(responseStatusCode, mock.filterOptions.statusCode)
+                    filterRequest(event.request.postData, mock.filterOptions.postData) ||
+                    filterStatusCode(event.responseStatusCode, mock.filterOptions.statusCode)
                 ) {
                     continue
                 }
 
+                mock.emit('request', event)
+
+                const { requestId, request, responseStatusCode } = event
                 const { body, base64Encoded = undefined } = isRequest ? { body: '' } : await client.send(
                     'Fetch.getResponseBody',
                     { requestId }
@@ -100,7 +107,10 @@ export default class DevtoolsInterception extends Interception {
                 /**
                  * no stubbing if no overwrites were defined
                  */
-                if (mock.respondOverwrites.length === 0) {
+                if (mockResponded || mock.respondOverwrites.length === 0) {
+                    mock.emit('match', request)
+                    mock.emit('continue', requestId)
+
                     continue
                 }
 
@@ -128,7 +138,7 @@ export default class DevtoolsInterception extends Interception {
 
                     let responseCode = typeof params.statusCode === 'function' ? params.statusCode(request) : params.statusCode || responseStatusCode
                     let responseHeaders: HeaderEntry[] = [
-                        ...eventResponseHeaders,
+                        ...event.responseHeaders,
                         ...Object.entries(typeof params.headers === 'function' ? params.headers(request) : params.headers || {}).map(([name, value]) => ({ name, value }))
                     ]
 
@@ -150,27 +160,46 @@ export default class DevtoolsInterception extends Interception {
                     }
 
                     request.mockedResponse = newBody as string | Buffer
-                    return client.send('Fetch.fulfillRequest', {
-                        requestId,
-                        responseCode,
-                        responseHeaders,
-                        /** do not mock body if it's undefined */
-                        body: isBodyUndefined ? undefined : (newBody instanceof Buffer ? newBody : Buffer.from(newBody as string, 'utf8')).toString('base64')
+                    mock.emit('match', request)
+
+                    const overwriteData = { requestId, responseCode, responseHeaders, body: isBodyUndefined ? undefined : newBody }
+
+                    mock.emit('overwrite', overwriteData)
+                    mockResponded = true
+
+                    const body = typeof overwriteData.body === 'undefined'
+                        ? undefined
+                        : (overwriteData.body instanceof Buffer
+                            ? overwriteData.body
+                            : Buffer.from(overwriteData.body as string, 'utf8')
+                        ).toString('base64')
+
+                    await client.send('Fetch.fulfillRequest', {
+                        ...overwriteData,
+                        body
                     }).catch(/* istanbul ignore next */logFetchError)
+
+                    continue
                 }
 
                 /**
                  * when request is aborted
                  */
                 if (errorReason) {
-                    return client.send('Fetch.failRequest', {
-                        requestId,
-                        errorReason
-                    }).catch(/* istanbul ignore next */logFetchError)
+                    const failData = { requestId, errorReason }
+
+                    mock.emit('fail', failData)
+                    mockResponded = true
+
+                    await client.send('Fetch.failRequest', failData).catch(/* istanbul ignore next */logFetchError)
+
+                    continue
                 }
             }
 
-            return client.send('Fetch.continueRequest', { requestId }).catch(/* istanbul ignore next */logFetchError)
+            if (!mockResponded) {
+                return client.send('Fetch.continueRequest', { requestId: event.requestId }).catch(/* istanbul ignore next */logFetchError)
+            }
         }
     }
 

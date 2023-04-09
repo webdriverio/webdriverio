@@ -19,6 +19,13 @@ export default class WebDriverInterception extends Interception {
         this.mockId = mockId
     }
 
+    on() {
+        throw new Error('Not implemented')
+
+        // eslint-disable-next-line no-unreachable
+        return this
+    }
+
     /**
      * allows access to all requests made with given pattern
      */
