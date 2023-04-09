@@ -3,10 +3,10 @@ id: jenkins
 title: Jenkins
 ---
 
-WebdriverIO offers a tight integration to CI systems like [Jenkins](https://jenkins-ci.org). With the `junit` reporter, you can easily debug your tests as well as keep track of your test results. The integration is pretty easy.
+WebdriverIO offre une intégration étroite aux systèmes CI comme [Jenkins](https://jenkins-ci.org). Avec le reporteur `junit` , vous pouvez facilement déboguer vos tests et garder une trace de vos résultats de test. L'intégration est assez facile.
 
-1. Install the `junit` test reporter: `$ npm install @wdio/junit-reporter --save-dev`)
-1. Update your config to save your XUnit results where Jenkins can find them, (and specify the `junit` reporter):
+1. Installez le rapport de test `junit` : `$ npm install @wdio/junit-reporter --save-dev`)
+1. Mettez à jour votre configuration pour enregistrer vos résultats XUnit où Jenkins peut les trouver, (et spécifiez le reporteur `junit` ) :
 
 ```js
 // wdio.conf.js
@@ -22,17 +22,17 @@ module.exports = {
 }
 ```
 
-It is up to you which framework to choose. The reports will be similar. For this tutorial, we’ll use Jasmine.
+C'est à vous de choisir la méthode qui vous convient. Les rapports seront similaires. Pour ce tutoriel, nous utiliserons Jasmine.
 
-After you have written couple of tests, you can setup a new Jenkins job. Give it a name and a description:
+Une fois que vous avez écrit quelques tests, vous pouvez configurer une nouvelle tâche Jenkins. Donnez-lui un nom et une description :
 
 ![Name And Description](/img/jenkins/jobname.png "Name And Description")
 
-Then make sure it grabs always the newest version of your repository:
+Ensuite, assurez-vous qu'il récupère toujours la version la plus récente de votre dépôt :
 
 ![Jenkins Git Setup](/img/jenkins/gitsetup.png "Jenkins Git Setup")
 
-**Now the important part:** Create a `build` step to execute shell commands. The `build` step needs to build your project. Since this demo project only tests an external app, you don't need to build anything. Just install the node dependencies and run the command `npm test` (which is an alias for `node_modules/.bin/wdio test/wdio.conf.js`).
+**Maintenant la partie importante :** Créer une étape `build` pour exécuter des commandes shell. L'étape `de build` a besoin de construire votre projet. Puisque ce projet de démo ne teste qu'une application externe, vous n'avez pas besoin de construire quoi que ce soit. Installez simplement les dépendances du noeud et exécutez la commande `npm test` (qui est un alias pour `node_modules/.bin/wdio test/wdio.conf.js`).
 
 If you have installed a plugin like AnsiColor, but logs are still not colored, run tests with environment variable `FORCE_COLOR=1` (e.g., `FORCE_COLOR=1 npm test`).
 
