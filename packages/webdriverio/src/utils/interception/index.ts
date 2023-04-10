@@ -1,4 +1,4 @@
-import minimatch from 'minimatch'
+import { minimatch } from 'minimatch'
 
 import Timer from '../Timer.js'
 
