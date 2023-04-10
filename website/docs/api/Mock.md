@@ -132,7 +132,7 @@ mock.on('match', ({url}) => {
 Throwing an error on 404 network fail:
 
 ```js
-await browser.addCommand('loadPageWithout404', (url, {selector, predicate}) => new Promise(async (resolve, reject) => {
+browser.addCommand('loadPageWithout404', (url, {selector, predicate}) => new Promise(async (resolve, reject) => {
     const mock = await this.mock('**')
 
     mock.on('match', ({url, statusCode}) => {
