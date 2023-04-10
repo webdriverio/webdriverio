@@ -87,7 +87,7 @@
     "@typescript-eslint/utils": "^5.56.0",
     "@vitejs/plugin-react": "^3.1.0",
     "@vitejs/plugin-vue": "^4.1.0",
-    "@vitest/coverage-c8": "^0.28.1",
+    "@vitest/coverage-c8": "^0.29.8",
     "aws-sdk": "^2.1340.0",
     "c8": "^7.13.0",
     "camelcase": "^7.0.1",
