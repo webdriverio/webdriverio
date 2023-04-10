@@ -1,5 +1,5 @@
 import EventEmitter from 'node:events'
-import minimatch from 'minimatch'
+import { minimatch } from 'minimatch'
 
 import Timer from '../Timer.js'
 
