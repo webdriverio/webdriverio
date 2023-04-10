@@ -85,7 +85,7 @@
     "is-plain-obj": "^4.1.0",
     "lodash.clonedeep": "^4.5.0",
     "lodash.zip": "^4.2.0",
-    "minimatch": "^8.0.2",
+    "minimatch": "^9.0.0",
     "puppeteer-core": "19.8.5",
     "query-selector-shadow-dom": "^1.0.0",
     "resq": "^1.9.1",
