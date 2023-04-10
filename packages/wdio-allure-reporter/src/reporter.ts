@@ -206,7 +206,7 @@ export default class AllureReporter extends WDIOReporter {
     }
 
     _getParamNameAndValue(cid?: string) {
-        const caps = this._capabilities
+        const caps = this._capabilities as Capabilities.DesiredCapabilities
         const { browserName, deviceName, desired, device } = caps
         let targetName = device || browserName || deviceName || cid
         // custom mobile grids can have device information in a `desired` cap
