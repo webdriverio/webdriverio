@@ -1,6 +1,6 @@
 ---
 id: testexecution
-title: Test Execution
+title: Tests execution
 ---
 
-This flowchart explains the test execution process and the interaction between @wdio/runner and the most of the other WebdriverIO packages.
+Ce diagramme explique le processus d'exécution des tests et l'interaction entre @wdio/runner et la plupart des autres paquets WebdriverIO.
