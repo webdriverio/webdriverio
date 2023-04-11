@@ -13,6 +13,15 @@ vi.mock('./../src/commands/run', async () => ({
     handler: vi.fn().mockReturnValue(Promise.resolve('success'))
 }))
 
+vi.mock('../package.json', async () => {
+    // can import the same module inside and does not go into an infinite loop
+    const packageJson = await import('../package.json')
+    return {
+        ...packageJson,
+        version: '1.2.3'
+    }
+})
+
 const consoleError = console.error
 
 describe('index', () => {

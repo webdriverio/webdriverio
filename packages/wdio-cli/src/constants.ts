@@ -1,7 +1,9 @@
 import { validateServiceAnswers, detectCompiler, getDefaultFiles, convertPackageHashToObject } from './utils.js'
 import type { Questionnair } from './types.js'
 
-export const pkg = require('../package.json')
+import pkg from '../package.json'
+
+export const packageVersion = pkg.version
 
 export const CLI_EPILOGUE = `Documentation: https://webdriver.io\n@wdio/cli (v${pkg.version})`
 
