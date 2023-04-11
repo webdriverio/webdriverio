@@ -9,6 +9,9 @@ WebdriverIO sets the following environment variables within every worker:
 
 Set to `'test'` if it's not already set to something else.
 
+## `WDIO_LOG_LEVEL`
+
+Can be set to values `trace`, `debug`, `info`, `warn`, `error`, `silent` to write logs with corresponding details. Has priority over the passed `logLevel` value.
 
 ## `WDIO_WORKER_ID`
 
