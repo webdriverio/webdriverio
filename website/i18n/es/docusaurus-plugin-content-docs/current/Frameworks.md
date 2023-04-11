@@ -345,8 +345,10 @@ Note that if you want to skip a test using regular cucumber test filtering capab
 
 were condition is an optional combination of capabilities properties with their values that when **all** matched with cause the tagged scenario or feature to be skipped. Of course you can add several tags to scenarios and features to skip a tests under several different conditions.
 
+You can also use the '@skip' annotation to skip tests without changing `tagExpression'. In this case the skipped tests will be displayed in the test report.
+
 Here you have some examples of this syntax:
-- `@skip()`: will always skip the tagged item
+- `@skip` or `@skip()`: will always skip the tagged item
 - `@skip(browserName="chrome")`: the test will not be executed against chrome browsers.
 - `@skip(browserName="firefox";platformName="linux")`: will skip the test in firefox over linux executions.
 - `@skip(browserName=["chrome","firefox"])`: tagged items will be skipped for both chrome and firefox browsers.
