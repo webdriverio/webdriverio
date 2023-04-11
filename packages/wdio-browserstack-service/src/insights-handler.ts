@@ -83,10 +83,8 @@ export default class InsightsHandler {
         if (!frameworkSupportsHook('after', this._framework)) {
             return
         }
-        console.log('came heree')
 
         const fullTitle = getUniqueIdentifier(test, this._framework)
-        console.log('fulltitle is ', fullTitle)
 
         if (this._tests[fullTitle]) {
             this._tests[fullTitle].finishedAt = (new Date()).toISOString()
@@ -95,8 +93,6 @@ export default class InsightsHandler {
                 finishedAt: (new Date()).toISOString()
             }
         }
-
-        console.log('this._tests is ', this._tests)
         await this.sendTestRunEvent(test, 'HookRunFinished', result)
     }
 
