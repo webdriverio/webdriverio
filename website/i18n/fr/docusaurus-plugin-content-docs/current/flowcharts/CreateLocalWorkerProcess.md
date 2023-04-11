@@ -1,6 +1,6 @@
 ---
 id: createlocalworkerprocess
-title: Create worker process
+title: Créer un processus de travail
 ---
 
-This flowchart explains how a worker process is created.
+Ce diagramme explique comment un processus de travail est créé.
