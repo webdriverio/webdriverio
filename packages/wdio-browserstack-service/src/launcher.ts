@@ -15,8 +15,7 @@ import type { Capabilities, Services, Options } from '@wdio/types'
 import { version as bstackServiceVersion } from '../package.json'
 import type { App, AppConfig, AppUploadResponse, BrowserstackConfig } from './types'
 import { VALID_APP_EXTENSION } from './constants'
-import { launchTestSession, shouldAddServiceVersion, stopBuildUpstream, getCiInfo } from './util'
-import {isBStackSession} from "../build/util";
+import { launchTestSession, shouldAddServiceVersion, stopBuildUpstream, getCiInfo, isBStackSession } from './util'
 
 const log = logger('@wdio/browserstack-service')
 
@@ -45,7 +44,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                     if (isBStackSession(this._config)) {
                         const extensionCaps = Object.keys(capability).filter((cap) => cap.includes(':'))
                         if (extensionCaps.length) {
-                            capability['bstack:options'] = {wdioService: bstackServiceVersion}
+                            capability['bstack:options'] = { wdioService: bstackServiceVersion }
                         } else if (shouldAddServiceVersion(this._config, this._options.testObservability)) {
                             capability['browserstack.wdioService'] = bstackServiceVersion
                         }
@@ -66,7 +65,7 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
                     if (isBStackSession(this._config)) {
                         const extensionCaps = Object.keys(caps.capabilities).filter((cap) => cap.includes(':'))
                         if (extensionCaps.length) {
-                            (caps.capabilities as Capabilities.Capabilities)['bstack:options'] = {wdioService: bstackServiceVersion}
+                            (caps.capabilities as Capabilities.Capabilities)['bstack:options'] = { wdioService: bstackServiceVersion }
                         } else if (shouldAddServiceVersion(this._config, this._options.testObservability)) {
                             (caps.capabilities as Capabilities.Capabilities)['browserstack.wdioService'] = bstackServiceVersion
                         }

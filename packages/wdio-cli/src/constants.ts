@@ -186,13 +186,13 @@ export const QUESTIONNAIRE = [{
     type: 'input',
     name: 'hostname',
     message: 'What is the host address of that cloud service?',
-    when: /* istanbul ignore next */ (answers: Questionnair) => answers.backend.toString().indexOf('different service') > -1
+    when: /* istanbul ignore next */ (answers: Questionnair) => (answers.backend as string).indexOf('different service') > -1
 }, {
     type: 'input',
     name: 'port',
     message: 'What is the port on which that service is running?',
     default: '80',
-    when: /* istanbul ignore next */ (answers: Questionnair) => answers.backend.toString().indexOf('different service') > -1
+    when: /* istanbul ignore next */ (answers: Questionnair) => (answers.backend as string).indexOf('different service') > -1
 }, {
     type: 'input',
     name: 'expEnvAccessKey',
@@ -226,7 +226,7 @@ export const QUESTIONNAIRE = [{
     message: 'Environment variable for username',
     default: 'LT_USERNAME',
     when: /* istanbul ignore next */ (answers: Questionnair) => (
-        answers.backend.toString().indexOf('LambdaTest') > -1 &&
+        (answers.backend as string).indexOf('LambdaTest') > -1 &&
         answers.hostname.indexOf('lambdatest.com') > -1
     )
 }, {
@@ -235,7 +235,7 @@ export const QUESTIONNAIRE = [{
     message: 'Environment variable for access key',
     default: 'LT_ACCESS_KEY',
     when: /* istanbul ignore next */ (answers: Questionnair) => (
-        answers.backend.toString().indexOf('LambdaTest') > -1 &&
+        (answers.backend as string).indexOf('LambdaTest') > -1 &&
         answers.hostname.indexOf('lambdatest.com') > -1
     )
 }, {
@@ -279,19 +279,19 @@ export const QUESTIONNAIRE = [{
     name: 'hostname',
     message: 'What is the IP or URI to your Selenium standalone or grid server?',
     default: 'localhost',
-    when: /* istanbul ignore next */ (answers: Questionnair) => answers.backend.toString().indexOf('own Selenium cloud') > -1
+    when: /* istanbul ignore next */ (answers: Questionnair) => (answers.backend as string).indexOf('own Selenium cloud') > -1
 }, {
     type: 'input',
     name: 'port',
     message: 'What is the port which your Selenium standalone or grid server is running on?',
     default: '4444',
-    when: /* istanbul ignore next */ (answers: Questionnair) => answers.backend.toString().indexOf('own Selenium cloud') > -1
+    when: /* istanbul ignore next */ (answers: Questionnair) => (answers.backend as string).indexOf('own Selenium cloud') > -1
 }, {
     type: 'input',
     name: 'path',
     message: 'What is the path to your browser driver or grid server?',
     default: '/',
-    when: /* istanbul ignore next */ (answers: Questionnair) => answers.backend.toString().indexOf('own Selenium cloud') > -1
+    when: /* istanbul ignore next */ (answers: Questionnair) => (answers.backend as string).indexOf('own Selenium cloud') > -1
 }, {
     type: 'list',
     name: 'framework',
