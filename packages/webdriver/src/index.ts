@@ -20,10 +20,12 @@ export default class WebDriver {
         userPrototype = {},
         customCommandWrapper?: (...args: any[]) => any
     ): Promise<Client> {
+        const envLogLevel = process.env.WDIO_LOG_LEVEL as Options.WebDriverLogTypes | undefined
+        options.logLevel = envLogLevel ?? options.logLevel
         const params = validateConfig(DEFAULTS, options)
 
-        if (!options.logLevels || !options.logLevels.webdriver) {
-            logger.setLevel('webdriver', params.logLevel!)
+        if (params.logLevel && (!options.logLevels || !options.logLevels.webdriver)) {
+            logger.setLevel('webdriver', params.logLevel)
         }
 
         /**

@@ -156,7 +156,7 @@ export const SUPPORTED_PACKAGES = {
 } as const
 
 export const SUPPORTED_BROWSER_RUNNER_PRESETS = [
-    { name: 'Lit (https://lit.dev/)', value: '' },
+    { name: 'Lit (https://lit.dev/)', value: '$--$' },
     { name: 'Vue.js (https://vuejs.org/)', value: '@vitejs/plugin-vue$--$vue' },
     { name: 'Svelte (https://svelte.dev/)', value: '@sveltejs/vite-plugin-svelte$--$svelte' },
     { name: 'SolidJS (https://www.solidjs.com/)', value: 'vite-plugin-solid$--$solid' },

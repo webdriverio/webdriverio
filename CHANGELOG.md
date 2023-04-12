@@ -21,6 +21,91 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.8.1 (2023-04-12)
+
+#### :bug: Bug Fix
+* `wdio-cli`
+  * [#10171](https://github.com/webdriverio/webdriverio/pull/10171) added path.absolute check ([@praveendvd](https://github.com/praveendvd))
+
+#### :memo: Documentation
+* [#10129](https://github.com/webdriverio/webdriverio/pull/10129) docs(mock): 'matches' -> 'calls' property ([@KuznetsovRoman](https://github.com/KuznetsovRoman))
+
+#### Committers: 2
+- Roman Kuznetsov ([@KuznetsovRoman](https://github.com/KuznetsovRoman))
+- praveendvd ([@praveendvd](https://github.com/praveendvd))
+
+
+## v8.8.0 (2023-04-10)
+
+#### :rocket: New Feature
+* `wdio-cucumber-framework`
+  * [#10134](https://github.com/webdriverio/webdriverio/pull/10134) (feature) wdio-cucumber-framework: support `@skip` annotation without `()` for skip tests ([@egerix](https://github.com/egerix))
+* `webdriverio`
+  * [#10137](https://github.com/webdriverio/webdriverio/pull/10137) feat(mock): emit 'request', 'overwrite', 'fail', 'match', 'continue' events ([@KuznetsovRoman](https://github.com/KuznetsovRoman))
+
+#### :bug: Bug Fix
+* `wdio-config`
+  * [#10132](https://github.com/webdriverio/webdriverio/pull/10132) Alphabetically sort specs file ([@dilpreetj](https://github.com/dilpreetj))
+* `webdriverio`
+  * [#10130](https://github.com/webdriverio/webdriverio/pull/10130) Partial content selector improvements ([@christian-bromann](https://github.com/christian-bromann))
+
+#### :nail_care: Polish
+* `wdio-types`
+  * [#10126](https://github.com/webdriverio/webdriverio/pull/10126) Add more TestingbotCapabilities types ([@testingbot](https://github.com/testingbot))
+
+#### :memo: Documentation
+* `wdio-local-runner`
+  * [#10128](https://github.com/webdriverio/webdriverio/pull/10128) docs: fix localhost links ([@KuznetsovRoman](https://github.com/KuznetsovRoman))
+
+#### Committers: 5
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Dilpreet Johal ([@dilpreetj](https://github.com/dilpreetj))
+- Egor Ivanov ([@egerix](https://github.com/egerix))
+- Roman Kuznetsov ([@KuznetsovRoman](https://github.com/KuznetsovRoman))
+- TestingBot ([@testingbot](https://github.com/testingbot))
+
+
+## v8.7.0 (2023-04-05)
+
+#### :rocket: New Feature
+* `wdio-shared-store-service`
+  * [#10029](https://github.com/webdriverio/webdriverio/pull/10029) shared store resource pool #10010 ([@pedrorfernandes](https://github.com/pedrorfernandes))
+
+#### :bug: Bug Fix
+* `wdio-cli`
+  * [#10047](https://github.com/webdriverio/webdriverio/pull/10047) [🐛 Bug]: Selecting Lit as framework when selecting browser runner does not create example files for Lit ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-allure-reporter`
+  * [#10053](https://github.com/webdriverio/webdriverio/pull/10053) Added histroy and testcaseid ([@praveendvd](https://github.com/praveendvd))
+* `webdriverio`
+  * [#10091](https://github.com/webdriverio/webdriverio/pull/10091) Fix ScrollIntoView - DeltaX and DeltaY should be rounded ([@niklasschaeffer](https://github.com/niklasschaeffer))
+
+#### :nail_care: Polish
+* `wdio-shared-store-service`
+  * [#10121](https://github.com/webdriverio/webdriverio/pull/10121) Have better internal API for shared store ([@christian-bromann](https://github.com/christian-bromann))
+* `wdio-browserstack-service`
+  * [#10013](https://github.com/webdriverio/webdriverio/pull/10013) Support for Jasmine sessions for BrowserStack Test Observability ([@nagpalkaran95](https://github.com/nagpalkaran95))
+  * [#10037](https://github.com/webdriverio/webdriverio/pull/10037) added observability and session check in browserstack service ([@sriteja777](https://github.com/sriteja777))
+* `wdio-types`
+  * [#10081](https://github.com/webdriverio/webdriverio/pull/10081) Expand type of otherApps capability  ([@gjhughes](https://github.com/gjhughes))
+
+#### :memo: Documentation
+* [#10113](https://github.com/webdriverio/webdriverio/pull/10113) Docs -  Added Test Observability as a reporter ([@sourav-kundu](https://github.com/sourav-kundu))
+* [#10116](https://github.com/webdriverio/webdriverio/pull/10116) fix(footer): openjs-fondation logo ([@AugustinMauroy](https://github.com/AugustinMauroy))
+* [#10086](https://github.com/webdriverio/webdriverio/pull/10086) Include Volta for managing Node versions ([@degrammer](https://github.com/degrammer))
+
+#### Committers: 10
+- Augustin Mauroy ([@AugustinMauroy](https://github.com/AugustinMauroy))
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+- Gavin Hughes ([@gjhughes](https://github.com/gjhughes))
+- Karan Nagpal ([@nagpalkaran95](https://github.com/nagpalkaran95))
+- Niklas Schäffer ([@niklasschaeffer](https://github.com/niklasschaeffer))
+- Pedro Fernandes ([@pedrorfernandes](https://github.com/pedrorfernandes))
+- Ruben Restrepo ([@degrammer](https://github.com/degrammer))
+- Sourav Kundu ([@sourav-kundu](https://github.com/sourav-kundu))
+- Sriteja Sugoor ([@sriteja777](https://github.com/sriteja777))
+- praveendvd ([@praveendvd](https://github.com/praveendvd))
+
+
 ## v8.6.9 (2023-03-27)
 
 #### :bug: Bug Fix
