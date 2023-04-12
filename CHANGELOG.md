@@ -21,6 +21,20 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.8.1 (2023-04-12)
+
+#### :bug: Bug Fix
+* `wdio-cli`
+  * [#10171](https://github.com/webdriverio/webdriverio/pull/10171) added path.absolute check ([@praveendvd](https://github.com/praveendvd))
+
+#### :memo: Documentation
+* [#10129](https://github.com/webdriverio/webdriverio/pull/10129) docs(mock): 'matches' -> 'calls' property ([@KuznetsovRoman](https://github.com/KuznetsovRoman))
+
+#### Committers: 2
+- Roman Kuznetsov ([@KuznetsovRoman](https://github.com/KuznetsovRoman))
+- praveendvd ([@praveendvd](https://github.com/praveendvd))
+
+
 ## v8.8.0 (2023-04-10)
 
 #### :rocket: New Feature
