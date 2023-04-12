@@ -13,7 +13,7 @@ import {
 } from '../utils.js'
 import type { ConfigCommandArguments, ParsedAnswers } from '../types.js'
 
-const hasYarnLock = async () => {await fs.access('yarn.lock').then(() => true, () => false)}
+const hasYarnLock = () => fs.access('yarn.lock').then(() => true, () => false)
 
 export const command = 'config'
 export const desc = 'Initialize WebdriverIO and setup configuration in your current project.'
