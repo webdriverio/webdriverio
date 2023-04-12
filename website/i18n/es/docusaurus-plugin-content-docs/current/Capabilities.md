@@ -1,51 +1,51 @@
 ---
 id: capabilities
-title: Capabilities
+title: Capacidades
 ---
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-A capability is a definition for a remote interface. It helps WebdriverIO to understand in which browser or mobile environment you like to run your tests on. Capabilities are less crucial when developing tests locally as you run it on one remote interface most of the time but becomes more important when running a large set of integration tests in CI/CD.
+Una capacidad es la definición de una interfaz remota. Ayuda a WebdriverIO a comprender en qué navegador o entorno móvil le gusta ejecutar sus pruebas. Las capacidades son menos cruciales a la hora de desarrollar pruebas localmente a medida que se ejecuta en una interfaz remota la mayoría de las veces, pero se hace más importante cuando se ejecuta un amplio conjunto de pruebas de integración en CI/Cd.
 
 :::info
 
-The format of a capability object is well defined by the [WebDriver specification](https://w3c.github.io/webdriver/#capabilities). The WebdriverIO testrunner will fail early if user defined capabilities do not adhere to that specification.
+El formato de un objeto de capacidad está bien definido por la [especificación WebDriver](https://w3c.github.io/webdriver/#capabilities). El testrunner de WebdriverIO fallará temprano si las capacidades definidas por el usuario no se adhieren a esa especificación.
 
 :::
 
-## Custom Capabilities
+## Características personalizadas
 
-While the amount of fixed defined capabilities is verry low, everyone can provide and accept custom capabilities that are specific to the automation driver or remote interface:
+Mientras que la cantidad de capacidades definidas fijas es baja todo el mundo puede proporcionar y aceptar funciones personalizadas que son específicas del controlador de automatización o interfaz remota:
 
-### Browser Specific Capability Extensions
+### Extensiones de Capacidad Específica del Explorador
 
 - `goog:chromeOptions`: [Chromedriver](https://chromedriver.chromium.org/capabilities) extensions, only applicable for testing in Chrome
-- `moz:firefoxOptions`: [Geckodriver](https://firefox-source-docs.mozilla.org/testing/geckodriver/Capabilities.html) extensions, only applicable for testing in Firefox
-- `ms:edgeOptions`: [EdgeOptions](https://learn.microsoft.com/en-us/microsoft-edge/webdriver-chromium/capabilities-edge-options) for specifying the environment when using EdgeDriver for testing Chromium Edge
+- `moz:firefoxOptions`: [extensiones](https://firefox-source-docs.mozilla.org/testing/geckodriver/Capabilities.html) de Geckodriver solo aplicables para pruebas en Firefox
+- `ms:edgeOptions`: [EdgeOptions](https://learn.microsoft.com/en-us/microsoft-edge/webdriver-chromium/capabilities-edge-options) para especificar el entorno cuando se usa EdgeDriver para probar Chromium Edge
 
-### Cloud Vendor Capability Extensions
+### Extensiones de capacidad del vendedor en la nube
 
 - `sauce:options`: [Sauce Labs](https://docs.saucelabs.com/dev/test-configuration-options/#w3c-webdriver-browser-capabilities--optional)
 - `bstack:options`: [BrowserStack](https://www.browserstack.com/docs/automate/selenium/organize-tests)
 - `tb:options`: [TestingBot](https://testingbot.com/support/other/test-options)
 - and many more...
 
-### Automation Engine Capability Extensions
+### Extensiones de capacidad de Motor de Automatización
 
 - `appium:xxx`: [Appium](https://appium.io/docs/en/writing-running-appium/caps/)
 - `selenoid:xxx`: [Selenoid](https://github.com/aerokube/selenoid/blob/master/docs/special-capabilities.adoc)
-- and many more...
+- y mucho más...
 
-Have a look into WebdriverIOs [Capability TypeScript definition](https://github.com/aerokube/selenoid/blob/master/docs/special-capabilities.adoc) to find specific capabilities for your test. Note: not all of them are still valid and might not be supported anymore by the provider.
+Eche un vistazo a WebdriverIO [definición de TypeScript de capacidad](https://github.com/aerokube/selenoid/blob/master/docs/special-capabilities.adoc) para encontrar capacidades específicas para su prueba. Nota: no todos son válidos y es posible que el proveedor no lo admita.
 
-## Special Capabilities for Specific Use Cases
+## Capacidades especiales para Casos de Uso Específico
 
-This is a list of examples showing which capabilities need to be applied to achieve a certain use case.
+Esta es una lista de ejemplos que muestran qué capacidades se deben aplicar para lograr un caso de uso concreto.
 
-### Run Browser Headless
+### Ejecutar navegador remotamente
 
-Running a headless browser means to run a browser instance without window or UI. This is mostly used within CI/CD environments where no display is used. To run a browser in headless mode, apply the following capabilities:
+Ejecutar un navegador remotamente significa ejecutar una instancia del navegador sin ventana o IU. Esto se usa principalmente en entornos CI/CD en los que no se usa ninguna pantalla. Para ejecutar un navegador en modo remoto, aplique las siguientes capacidades:
 
 <Tabs
   defaultValue="chrome"
@@ -90,7 +90,7 @@ Running a headless browser means to run a browser instance without window or UI.
 </TabItem>
 <TabItem value="safari">
 
-It seems that Safari [doesn't support](https://discussions.apple.com/thread/251837694) running in headless mode.
+Parece que Safari [no admite](https://discussions.apple.com/thread/251837694) trabajar en modo remoto.
 
 </TabItem>
 </Tabs>
