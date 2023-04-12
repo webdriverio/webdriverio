@@ -52,7 +52,7 @@
     "lodash.flattendeep": "^4.4.0",
     "lodash.pickby": "^4.6.0",
     "lodash.union": "^4.6.0",
-    "mkdirp": "^2.1.5",
+    "mkdirp": "^3.0.0",
     "recursive-readdir": "^2.2.2",
     "webdriverio": "7.30.2",
     "yargs": "^17.0.0",
