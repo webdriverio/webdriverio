@@ -174,7 +174,7 @@ build: `myApp #${process.env.TRAVIS_BUILD_NUMBER}.${process.env.TRAVIS_JOB_NUMBE
 
 ## Perfecto
 
-When using wdio with [`Perfecto`](https://www.perfecto.io), you need to create a security token for each user and add this in the capabilities structure (in addition to other capabilities), as follows:
+Cuando utilice wdio con [`Perfecto`](https://www.perfecto.io), deberá crear un token de seguridad para cada usuario y añadirlo en la estructura de capacidades (además de otras capacidades), como se indica a continuación:
 
 ```js
 export const config = {
