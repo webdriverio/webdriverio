@@ -89,7 +89,7 @@ Inicia una sesión WebdriverIO. La instancia contiene todos los comandos como el
 
 - [Objeto del navegador](/docs/api/browser)
 
-##### Example
+##### Ejemplo
 
 ```js
 import { remote } from 'webdriverio'
@@ -109,9 +109,9 @@ Se adjunta a una sesión de WebDriver o DevTools en ejecución.
 
 ##### Returns
 
-- [Browser](/docs/api/browser) object
+- [Objeto del navegador](/docs/api/browser)
 
-##### Example
+##### Ejemplo
 
 ```js
 import { remote, attach } from 'webdriverio'
@@ -122,17 +122,17 @@ const newBrowser = await attach(browser)
 
 #### `multiremote(multiremoteOptions)`
 
-Initiates a multiremote instance which allows you to control multiple session within a single instance. Checkout our [multiremote examples](https://github.com/webdriverio/webdriverio/tree/main/examples/multiremote) for concrete use cases.
+Inicia una instancia multiremota que le permite controlar varias sesiones dentro de una sola instancia. Compruebe nuestros [ejemplos multiremotos](https://github.com/webdriverio/webdriverio/tree/main/examples/multiremote) para casos de uso de concreto.
 
-##### Paramaters
+##### Parámetros
 
-- `multiremoteOptions`: an object with keys representing the browser name and their [WebdriverIO Options](/docs/configuration#webdriverio).
+- `multiremoteOptions`: un objeto con claves que representan el nombre del navegador y sus [Opciones WebdriverIO](/docs/configuration#webdriverio).
 
 ##### Returns
 
-- [Browser](/docs/api/browser) object
+- [Objeto del navegador](/docs/api/browser)
 
-##### Example
+##### Ejemplo
 
 ```js
 import { multiremote } from 'webdriverio'
@@ -179,7 +179,7 @@ const Launcher = require('@wdio/cli').default
 </TabItem>
 </Tabs>
 
-After that, create an instance of the launcher, and run the test.
+Después de eso, cree una instancia del launcher, y ejecute la prueba.
 
 #### `Launcher(configPath, opts)`
 
@@ -206,7 +206,7 @@ wdio.run().then((exitCode) => {
 })
 ```
 
-The `run` command returns a [Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise). It is resolved if tests ran successfully or failed, and it is rejected if the launcher was unable to start run the tests.
+El comando `run` devuelve una [Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise). Se resuelve si las pruebas se ejecutaron con éxito o fallaron, y se rechaza si el lanzador no pudo iniciar las pruebas.
 
 ## `@wdio/browser-runner`
 
@@ -216,36 +216,36 @@ When running unit or component tests using WebdriverIO's [browser runner](/docs/
 import { fn, spyOn, mock, unmock } from '@wdio/browser-runner'
 ```
 
-The following named exports are available:
+Los siguientes eventos están disponibles:
 
 #### `fn`
 
-Mock function, see more in the official [Vitest docs](https://vitest.dev/api/mock.html#mock-functions).
+Función simulada, vea más en la documentación oficial de [Vitest](https://vitest.dev/api/mock.html#mock-functions).
 
 #### `spyOn`
 
-Spy function, see more in the official [Vitest docs](https://vitest.dev/api/mock.html#mock-functions).
+Función espía, vea más en la documentación oficial de [Vitest](https://vitest.dev/api/mock.html#mock-functions).
 
 #### `mock`
 
-Method to mock file or dependency module.
+Método para simular el archivo o módulo de dependencias.
 
 ##### Parámetros
 
-- `moduleName`: either a relative path to the file to be mocked or a module name.
-- `factory`: function to return the mocked value (optional)
+- `moduleName`: una ruta relativa al archivo a ser simulado o un nombre de módulo.
+- `factory`: función para devolver el valor simulado (opcional)
 
 ##### Ejemplo
 
 ```js
-mock('../src/constants.ts', () => ({
+mock('../src/constants. s', () => ({
     SOME_DEFAULT: 'mocked out'
 }))
 
 mock('lodash', (origModuleFactory) => {
     const origModule = await origModuleFactory()
     return {
-        ...origModule,
+        . .origModule,
         pick: fn()
     }
 })
@@ -257,7 +257,7 @@ Dependencia unmock definida dentro del directorio simulación manual (`__mocks__
 
 ##### Parámetros
 
-- `moduleName`: name of the module to be unmocked.
+- `moduleName`: nombre del módulo para ser desmontado.
 
 ##### Ejemplo
 
