@@ -27,20 +27,20 @@ Recomendamos __no__ usar esperas implícitas en absoluto y tener acciones de esp
 
 :::
 
-El uso de esperas implícitas también es problemático en los casos en que esté interesado en esperar hasta que desaparezca un elemento. WebdriverIO uses polls for the element until it receives an error. Having an implicit wait option set unnecessarily delays the execution of the command and can cause long test durations.
+El uso de esperas implícitas también es problemático en los casos en que esté interesado en esperar hasta que desaparezca un elemento. WebdriverIO utiliza encuestas para el elemento hasta que reciba un error. Tener una opción de espera implícita establece innecesariamente retrasa la ejecución del comando y puede causar largas duraciones de la prueba.
 
-You can set a default value for WebdriverIOs automatic explicit waiting by setting a [`waitforTimeout`](/docs/configuration#waitfortimeout) option in your configuration.
+Puede establecer un valor predeterminado para espera automática de WebdriverIOs estableciendo una opción [`waitforTimeout`](/docs/configuration#waitfortimeout) en su configuración.
 
-## Limitations
+## Limitaciones
 
-WebdriverIO can only wait for elements when they are implicitly defined. This is always the case when using the [`$`](/docs/api/browser/$) to fetch an element. It however is not supported when fetching a set of elements like this:
+WebdriverIO sólo puede esperar elementos cuando se definen implícitamente. Este es siempre el caso cuando se utiliza la [`$`](/docs/api/browser/$) para obtener un elemento. Sin embargo, no está soportado cuando se obtiene un conjunto de elementos como este:
 
 ```js
 const divs = await $$('div')
 await divs[2].click() // can throw "Cannot read property 'click' of undefined"
 ```
 
-It is an absolute legitimate action to fetch a set of elements and click on the nth element of that set. However WebdriverIO doesn't know how many elements you are expecting to show up. As [`$$`](/docs/api/browser/$$) returns an [array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array) of WebdriverIO elements you have to manually check if the return value contains enough items. We recommend using [`waitUntil`](/docs/api/browser/waitUntil) for this, e.g.:
+Es una acción absolutamente legítima buscar un conjunto de elementos y hacer clic en el elemento nº. de ese conjunto. Sin embargo, WebdriverIO no sabe cuántos elementos usted espera que aparezcan. Como [`$$`](/docs/api/browser/$$) devuelve un [array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array) de elementos WebdriverIO que tiene que comprobar manualmente si el valor de retorno contiene suficientes artículos. Recomendamos usar [`esperar hasta`](/docs/api/browser/waitUntil) para esto, por ejemplo:
 
 ```js
 const div = await browser.waitUntil(async () => {
