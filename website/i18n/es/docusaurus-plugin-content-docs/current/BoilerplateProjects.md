@@ -5,69 +5,69 @@ title: Proyectos de Boilerplate
 
 Con el tiempo, nuestra comunidad ha desarrollado varios proyectos que usted puede utilizar como inspiración para establecer su propia suite de pruebas.
 
-# v8 Boilerplate Projects
+# Proyectos de Boilerplate v8
 
 ## [webdriverio/cucumber-boilerplate](https://github.com/webdriverio/cucumber-boilerplate)
 
-Our very own boilerplate for Cucumber test suites. We created over 150 predefined step definitions for you, so you can start writing feature files in your project right away.
+Nuestra propia boilerplate para las salas de pruebas de pepinos. Hemos creado más de 150 definiciones de pasos predefinidos para usted, así que puede empezar a escribir archivos de características en su proyecto inmediatamente.
 
-- Framework:
+- Framework
     - Cucumber (v8)
     - WebdriverIO (v8)
-- Features:
-    - Over 150 predefined steps that cover almost everything you need
-    - Integrates WebdriverIO's Multiremote functionality
-    - Own demo app
+- Funcionalidades
+    - Más de 150 pasos predefinidos que cubren casi todo lo necesario
+    - Integra la funcionalidad multiremoto de WebdriverIO
+    - Aplicación de demo propia
 
 ## [webdriverio/jasmine-boilerplate](https://github.com/webdriverio/jasmine-boilerplate)
-Boilerplate project to run WebdriverIO tests with Jasmine using Babel features and the page objects pattern.
+Proyecto Boilerplate para ejecutar pruebas WebdriverIO con Jasmine usando las características Babel y el patrón de objetos de página.
 
 - Frameworks
     - WebdriverIO (v8)
     - Jasmine (v4)
-- Features
+- Funcionalidades
     - Page Object Pattern
     - Sauce Labs integration
 
 ## [amiya-pattnaik/webdriverIO-with-cucumberBDD](https://github.com/amiya-pattnaik/webdriverIO-with-cucumberBDD)
 
-- Framework: WDIO-V8 with Cucumber (V8x).
-- Features:
-    - Page Objects Model uses with ES6 /ES7 style class base approach and TypeScript support
-    - Examples of multi selector option to query element with more than one selector at a time
-    - Examples of multi browser and headless browser execution using - Chrome and Firefox
-    - Cloud testing Integration with BrowserStack, Sauce Labs, LambdaTest
-    - Examples of read/write data from MS-Excel for easy test data management from external data sources with examples
-    - Database support to any RDBMS (Oracle, MySql, TeraData, Vertica etc.), executing any queries / fetching result set etc. with examples for E2E testing
-    - Multiple reporting (Spec, Xunit/Junit, Allure, JSON) and Hosting Allure and Xunit/Junit reporting on WebServer.
-    - Examples with demo app https://search.yahoo.com/  and http://the-internet.herokuapp.com.
-    - BrowserStack, Sauce Labs, LambdTest and Appium specific `.config` file (for playback on mobile device). For one click Appium setup on local machine for iOS and Android refer to [appium-setup-made-easy-OSX](https://github.com/amiya-pattnaik/appium-setup-made-easy-OSX).
+- Framework: WDIO-V8 con pepino (V8x).
+- Funcionalidades
+    - Page Objects Modelo utiliza el estilo ES6 /ES7 y soporte de TypeScript
+    - Ejemplos de opción multiselector para consultar el elemento con más de un selector a la vez
+    - Ejemplos de ejecución de múltiples navegadores y navegadores sin cabecera usando - Chrome y Firefox
+    - Integración en pruebas en la nube con BrowserStack, Sauce Labs, LambdaTest
+    - Ejemplos de lectura/escritura de datos de MS-Excel para una fácil administración de datos de prueba desde fuentes externas de datos con ejemplos
+    - Soporte de base de datos a cualquier RDBMS (Oracle, MySql, TeraData, Vertica etc.), ejecutando cualquier consulta / obtención de resultados etc. con ejemplos de pruebas E2E
+    - Reportes Múltiples (Spec, Xunit/Junit, Allure, JSON) y reportes de Allure y Xunit/Junit en el servidor web.
+    - Ejemplos de aplicación de demostración https://search.yahoo.com/ y http://the-internet.herokuapp.com.
+    - BrowserStack, Sauce Labs, LambdTest y Appium específico `.config` archivo (para reproducción en el dispositivo móvil). Para hacer clic en la configuración de Appium en la máquina local para iOS y Android consulte [appium-setup-made easy-OSX](https://github.com/amiya-pattnaik/appium-setup-made-easy-OSX).
 
 ## [amiya-pattnaik/webdriverIO-with-mochaBDD](https://github.com/amiya-pattnaik/webdriverIO-with-mochaBDD)
 
 - Framework: WDIO-V8 with Mocha (V10x).
-- Features:
-    -  Page Objects Model uses with ES6 /ES7 style class base approach and TypeScript support
-    -  Examples with demo app https://search.yahoo.com  and http://the-internet.herokuapp.com
-    -  Examples of multi browser and headless browser execution using - Chrome and Firefox
-    -  Cloud testing Integration with BrowserStack, Sauce Labs, LambdaTest
-    -  Multiple reporting (Spec, Xunit/Junit, Allure, JSON) and Hosting Allure and Xunit/Junit reporting on WebServer.
-    -  Examples of read/write data from MS-Excel for easy test data management from external data sources with examples
-    -  Examples of DB connect to any RDBMS (Oracle, MySql, TeraData, Vertica etc.), any query execution / fetching result set etc. with examples for E2E testing
-    -  BrowserStack, Sauce Labs, LambdTest and Appium specific `.config` file (for playback on mobile device). For one click Appium setup on local machine for iOS and Android refer to [appium-setup-made-easy-OSX](https://github.com/amiya-pattnaik/appium-setup-made-easy-OSX).
+- Funcionalidades
+    -  El Modelo de objeto de página utiliza con enfoque base de clase de estilo ES6 /ES7 y soporte de TypeScript
+    -  Ejemplos con la aplicación de demostración https://search.yahoo.com y http://the-internet.herokuapp.com
+    -  Ejemplos de ejecución multinavegador y remotos usando - Chrome y Firefox
+    -  Integración de pruebas en la nube con BrowserStack, Sauce Labs, LambdaTest
+    -  Reportes Múltiples (Spec, Xunit/Junit, Allure, JSON) y Reportes Allure y Xunit/Junit en WebServer.
+    -  Ejemplos de lectura/escritura de datos de MS-Excel para una fácil administración de datos de prueba desde fuentes externas de datos con ejemplos
+    -  Ejemplos de conexión de DB a cualquier RDBMS (Oracle, MySql, TeraData, Vertica etc.), cualquier ejecución de consultas / obtención de resultados etc. con ejemplos para pruebas E2E
+    -  BrowserStack, Sauce Labs, LambdTest y Appium específico `.config` archivo (para la reproducción en dispositivo móvil). Para hacer clic en la configuración de Appium en máquina local para iOS y Android, consulte [appium-setup-made easy-OSX](https://github.com/amiya-pattnaik/appium-setup-made-easy-OSX).
 
 ## [amiya-pattnaik/webdriverIO-with-jasmineBDD](https://github.com/amiya-pattnaik/webdriverIO-with-jasmineBDD)
 
-- Framework: WDIO-V8 with Jasmine (V4x).
-- Features:
-    -  Page Objects Model uses with ES6 /ES7 style class base approach and TypeScript support
-    -  Examples with demo app https://search.yahoo.com  and http://the-internet.herokuapp.com
-    -  Examples of multi browser and headless browser execution using - Chrome and Firefox
-    -  Cloud testing Integration with BrowserStack, Sauce Labs, LambdaTest
-    -  Multiple reporting (Spec, Xunit/Junit, Allure, JSON) and Hosting Allure and Xunit/Junit reporting on WebServer.
-    -  Examples of read/write data from MS-Excel for easy test data management from external data sources with examples
-    -  Examples of DB connect to any RDBMS (Oracle, MySql, TeraData, Vertica etc.), any query execution / fetching result set etc. with examples for E2E testing
-    -  BrowserStack, Sauce Labs, LambdTest and Appium specific `.config` file ( for playback on mobile device). For one click Appium setup on local machine for iOS and Android refer to [appium-setup-made-easy-OSX](https://github.com/amiya-pattnaik/appium-setup-made-easy-OSX).
+- Framework: WDIO-V8 con Jasmine (V4x).
+- Funcionalidades
+    -  Page Objects Modelo utiliza con el enfoque base de clase de estilo ES6 /ES7 y soporte TypeScript
+    -  Ejemplos con la aplicación de demostración https://search.yahoo.com y http://the-internet.herokuapp.com
+    -  Ejemplos de ejecución multinavegador y sin cabeceras usando - Chrome y Firefox
+    -  Integración en pruebas en la nube con BrowserStack, Sauce Labs, LambdaTest
+    -  Reportes Múltiples (Spec, Xunit/Junit, Allure, JSON) y Reportes Allure y Xunit/Junit en WebServer.
+    -  Ejemplos de datos de lectura/escritura de MS-Excel para una fácil administración de datos de prueba desde fuentes externas de datos con ejemplos
+    -  Ejemplos de conexión de DB a cualquier RDBMS (Oracle, MySql, TeraData, Vertica etc.), cualquier ejecución de consultas / obtención de resultados etc. con ejemplos para pruebas E2E
+    -  BrowserStack, Sauce Labs, LambdTest y Appium específico `.config` archivo ( para reproducción en dispositivo móvil). Para hacer clic en la configuración de Appium en la máquina local para iOS y Android consulte [appium-setup-made easy-OSX](https://github.com/amiya-pattnaik/appium-setup-made-easy-OSX).
 
 ## [webdriverio/klassijs-boilerplate](https://github.com/klassijs/klassi-example-test-suite.git)
 
@@ -75,69 +75,69 @@ Boilerplate project to run WebdriverIO tests with Jasmine using Babel features a
     - WebdriverIO (v8)
     - Cucumber (v8)
 
-- Features
+- Funcionalidades
     - Contain sample test scenario in cucumber
-    - Integrates cucumber html reports with Embedded videos on failures
-    - Integrates Lambdatest and CircleCI services
-    - Integrates Visual, Accessibility and API testing
-    - Integrates Email functionality
-    - Integrates s3 bucket for test reports storage and retrieval
+    - Integra reportes de Cucumber html con videos incrustados en fallos
+    - Integra los servicios de Lambdatest y CircleCI
+    - Integra las pruebas Visual, Accesibilidad y API
+    - Integra la funcionalidad de Email
+    - Integra el cubo s3 para el almacenamiento de los informes de prueba y recuperarlos?
 
-# v7 Boilerplate Projects
+# Proyectos de Boilerplate v7
 
 ## [webdriverio/appium-boilerplate](https://github.com/webdriverio/appium-boilerplate/)
 
-Boilerplate project to run Appium tests with WebdriverIO for:
+Proyecto Boilerplate para ejecutar pruebas de Appium con WebdriverIO para:
 
-- iOS/Android Native Apps
-- iOS/Android Hybrid Apps
-- Android Chrome and iOS Safari browser
+- Aplicaciones nativas iOS/Android
+- Aplicaciones iOS/Android Hybrid
+- Navegador de Android Chrome e iOS Safari
 
-This boilerplate includes the following:
+Este calderero incluye lo siguiente:
 
 - Framework: Mocha
-- Features:
-    - Configs for:
-        - iOS and Android app
-        - iOS and Android browsers
-    - Helpers for:
+- Funcionalidades
+    - Configurar para:
+        - Apps para iOS y Android
+        - Navegadores iOS y Android
+    - Ayudantes para:
         - WebView
-        - Gestures
-        - Native alerts
-        - Pickers
-     - Tests examples for:
+        - Gestos
+        - Alertas nativas
+        - Selectores
+     - Ejemplos de pruebas para:
         - WebView
-        - Login
-        - Forms
-        - Swipe
-        - Browsers
+        - Iniciar Sesión
+        - Formularios
+        - Deslizar
+        - Navegadores
 
 ## [serhatbolsu/webdriverio-mocha-uiautomation-boiler](https://github.com/serhatbolsu/webdriverio-mocha-uiautomation-boiler)
-ATDD WEB tests with Mocha, WebdriverIO v6 with PageObject
+ATDD WEB prueba con Mocha, WebdriverIO v6 con PageObject
 
 - Frameworks
   - WebdriverIO (v7)
   - Mocha
-- Features
-  - [Page Object](PageObjects.md) Model
-  - Sauce Labs integration with [Sauce Service](https://github.com/webdriverio/webdriverio/blob/main/packages/wdio-sauce-service/README.md)
-  - Allure Report
-  - Automatic screenshots capture for failing tests
-  - CircleCI example
+- Funcionalidades
+  - Modelo [Objeto de página](PageObjects.md)
+  - Integración de Sauce Labs con [Servicio de Sauce](https://github.com/webdriverio/webdriverio/blob/main/packages/wdio-sauce-service/README.md)
+  - Informe Allure
+  - Captura automática de capturas de pantalla para pruebas fallidas
+  - Ejemplo CircleCI
   - ESLint
 
 ## [WarleyGabriel/demo-webdriverio-mocha](https://github.com/WarleyGabriel/demo-webdriverio-mocha)
 
-Boilerplate project to run E2E tests with Mocha.
+Proyecto Boilerplate para ejecutar pruebas E2E con Mocha.
 
 - Frameworks:
     - WebdriverIO (v7)
     - Mocha
-- Features:
+- Funcionalidades
     -   TypeScript
     -   [Expect-webdriverio](https://github.com/webdriverio/expect-webdriverio)
     -   [Visual regression tests](https://github.com/wswebcreation/wdio-image-comparison-service)
-    -   Page Object Pattern
+    -   Patrón de objetos de página
     -   [Commit lint](https://github.com/conventional-changelog/commitlint) and [Commitizen](https://github.com/commitizen/cz-cli#making-your-repo-commitizen-friendly)
     -   ESlint
     -   Prettier
@@ -147,14 +147,14 @@ Boilerplate project to run E2E tests with Mocha.
 
 ## [17thSep/WebdriverIO_Master](https://github.com/17thSep/WebdriverIO_Master)
 
-Boilerplate project to run **WebdriverIO v7** tests for the following:
+Proyecto Boilerplate para ejecutar pruebas **WebdriverIO v7** para lo siguiente:
 
 [WDIO 7 scripts with TypeScript in Cucumber Framework](https://github.com/17thSep/WebdriverIO_Master/tree/master/TypeScript/Cucumber) [WDIO 7 scripts with TypeScript in Mocha Framework](https://github.com/17thSep/WebdriverIO_Master/tree/master/TypeScript/Mocha) [Run WDIO 7 script in Docker](https://github.com/17thSep/WebdriverIO_Master/tree/master/TypeScript/Docker) [Network logs](https://github.com/17thSep/MonitorNetworkLogs/)
 
-Boiler plate project for:
+Proyectos de Boilerplate:
 
-- Capture Network Logs
-- Capture all GET/POST calls or a specific REST API
+- Capturar registros de red
+- Capturar todas las llamadas GET/POST o una API REST específica
 - Assert Request parameters
 - Assert Response parameters
 - Store all the response in a separate file
