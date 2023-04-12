@@ -1,7 +1,7 @@
 import { validateServiceAnswers, detectCompiler, getDefaultFiles, convertPackageHashToObject } from './utils.js'
 import type { Questionnair } from './types.js'
 
-import pkg from '../package.json'
+import pkg from '../package.json' assert { type: 'json' }
 
 export const packageVersion = pkg.version
 
