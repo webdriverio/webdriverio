@@ -230,6 +230,7 @@ describe('Failed tests', () => {
         expect(results[0].name).toEqual('should can do something')
         expect(results[0].status).toEqual(Status.FAILED)
         expect(results[0].parameters).toHaveLength(1)
+        expect(results[0].historyId).toEqual('607cb53d8a84b61120bbab44d5f01694')
         expect(browserParameter.value).toEqual(testStart().cid)
     })
 
@@ -247,6 +248,7 @@ describe('Failed tests', () => {
         expect(results).toHaveLength(1)
         expect(results[0].name).toEqual('should can do something')
         expect(results[0].status).toEqual(Status.FAILED)
+        expect(results[0].historyId).toEqual('2838a547ee87e372fadb8927d9efaad3')
     })
 
     it('should detect failed test case with multiple errors', () => {
@@ -333,6 +335,7 @@ describe('Pending tests', () => {
         expect(results[0].name).toEqual('should can do something')
         expect(results[0].status).toEqual(Status.SKIPPED)
         expect(results[0].stage).toEqual(Stage.PENDING)
+        expect(results[0].historyId).toEqual('2838a547ee87e372fadb8927d9efaad3')
     })
 
     it('should detect not started pending test case', () => {
@@ -352,6 +355,7 @@ describe('Pending tests', () => {
         expect(results[0].name).toEqual('should can do something')
         expect(results[0].status).toEqual(Status.SKIPPED)
         expect(results[0].stage).toEqual(Stage.PENDING)
+        expect(results[0].historyId).toEqual('2838a547ee87e372fadb8927d9efaad3')
     })
 
     it('should detect not started pending test case after completed test', () => {
