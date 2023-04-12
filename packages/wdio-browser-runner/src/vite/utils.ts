@@ -84,10 +84,18 @@ export async function getTemplate(options: WebdriverIO.BrowserRunnerOptions, env
                 }
             </script>
             <script type="module" src="@wdio/browser-runner/setup"></script>
-            <style>${MOCHA_VARIABELS}</style>
+            <style>
+                ${MOCHA_VARIABELS}
+
+                body {
+                    width: calc(100% - 500px);
+                    padding: 0;
+                    margin: 0;
+                }
+            </style>
             ${vueDeps}
         </head>
-        <body style="width: calc(100% - 500px); padding: 0; margin: 0;">
+        <body>
             <mocha-framework spec="${spec}" ${process.env.CI ? 'minified' : ''}></mocha-framework>
             <script type="module">
                 window.process.env = ${JSON.stringify(processEnv)}

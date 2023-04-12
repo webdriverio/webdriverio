@@ -165,12 +165,10 @@ export async function handler(argv: ConfigCommandArguments, runConfigCmd = runCo
  * @param config the initially given file path to the WDIO config file
  */
 export async function formatConfigFilePaths(config: string) {
-    const fullPath = config.includes(process.cwd())
+    const fullPath = path.isAbsolute(config)
         ? config
         : path.join(process.cwd(), config)
-
-    const fullPathNoExtension = fullPath.substring(0, fullPath.lastIndexOf('.'))
-
+    const fullPathNoExtension = fullPath.substring(0, fullPath.lastIndexOf(path.extname(fullPath)))
     return { fullPath, fullPathNoExtension }
 }
 

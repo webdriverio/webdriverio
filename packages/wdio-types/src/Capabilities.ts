@@ -1398,7 +1398,19 @@ export interface TestingbotCapabilities {
     tags?: string[];
     build?: string | number | number;
     public?: boolean;
-    'tunnel-identifier'?: string
+    'tunnel-identifier'?: string;
+    realDevice?: boolean;
+    'selenium-version'?: string;
+    chromedriverVersion?: string;
+    iedriverVersion?: string;
+    edgedriverVersion?: string;
+    geckodriverVersion?: string;
+    operaDriverVersion?: string;
+    timeZone?: string;
+    upload?: string;
+    'testingbot.geoCountryCode'?: string;
+    idletimeout?: number;
+    'load-extension'?: string;
 }
 
 export interface SeleniumRCCapabilities {

@@ -6,7 +6,7 @@ import type { BeforeCommandArgs, AfterCommandArgs } from '@wdio/reporter'
 import { v4 as uuidv4 } from 'uuid'
 import type { Pickle, ITestCaseHookParameter } from './cucumber-types.js'
 
-import { getCloudProvider, getGitMetaData, getHookType, getScenarioExamples, getUniqueIdentifier, getUniqueIdentifierForCucumber, isBrowserstackSession, isScreenshotCommand, removeAnsiColors, sleep, uploadEventData } from './util.js'
+import { frameworkSupportsHook, getCloudProvider, getGitMetaData, getHookType, getScenarioExamples, getUniqueIdentifier, getUniqueIdentifierForCucumber, isBrowserstackSession, isScreenshotCommand, removeAnsiColors, sleep, uploadEventData } from './util.js'
 import type { TestData, TestMeta, PlatformMeta, UploadType } from './types.js'
 import RequestQueueHandler from './request-handler.js'
 import { DATA_SCREENSHOT_ENDPOINT, DEFAULT_WAIT_INTERVAL_FOR_PENDING_UPLOADS, DEFAULT_WAIT_TIMEOUT_FOR_PENDING_UPLOADS } from './constants.js'
@@ -17,6 +17,7 @@ export default class InsightsHandler {
     private _platformMeta: PlatformMeta
     private _commands: Record<string, BeforeCommandArgs & AfterCommandArgs> = {}
     private _gitConfigPath?: string
+    private _suiteFile?: string
     private _requestQueueHandler = RequestQueueHandler.getInstance()
 
     constructor (private _browser: WebdriverIO.Browser | WebdriverIO.MultiRemoteBrowser, isAppAutomate?: boolean, private _framework?: string) {
@@ -32,6 +33,10 @@ export default class InsightsHandler {
             sessionId,
             product: isAppAutomate ? 'app-automate' : 'automate'
         }
+    }
+
+    setSuiteFile(filename: string) {
+        this._suiteFile = filename
     }
 
     async before () {
@@ -52,34 +57,39 @@ export default class InsightsHandler {
     }
 
     async beforeHook (test: Frameworks.Test, context: any) {
-        if (this._framework === 'mocha') {
-            const fullTitle = `${test.parent} - ${test.title}`
-            const hookId = uuidv4()
-            this._tests[fullTitle] = {
-                uuid: hookId,
-                startedAt: (new Date()).toISOString()
-            }
-            this.attachHookData(context, hookId)
-            await this.sendTestRunEvent(test, 'HookRunStarted')
+        if (!frameworkSupportsHook('before', this._framework)) {
+            return
         }
+
+        const fullTitle = getUniqueIdentifier(test, this._framework)
+
+        const hookId = uuidv4()
+        this._tests[fullTitle] = {
+            uuid: hookId,
+            startedAt: (new Date()).toISOString()
+        }
+        this.attachHookData(context, hookId)
+        await this.sendTestRunEvent(test, 'HookRunStarted')
     }
 
     async afterHook (test: Frameworks.Test, result: Frameworks.TestResult) {
-        if (this._framework === 'mocha') {
-            const fullTitle = getUniqueIdentifier(test)
-            if (this._tests[fullTitle]) {
-                this._tests[fullTitle].finishedAt = (new Date()).toISOString()
-            } else {
-                this._tests[fullTitle] = {
-                    finishedAt: (new Date()).toISOString()
-                }
-            }
-            await this.sendTestRunEvent(test, 'HookRunFinished', result)
+        if (!frameworkSupportsHook('after', this._framework)) {
+            return
         }
+
+        const fullTitle = getUniqueIdentifier(test, this._framework)
+        if (this._tests[fullTitle]) {
+            this._tests[fullTitle].finishedAt = (new Date()).toISOString()
+        } else {
+            this._tests[fullTitle] = {
+                finishedAt: (new Date()).toISOString()
+            }
+        }
+        await this.sendTestRunEvent(test, 'HookRunFinished', result)
     }
 
     async beforeTest (test: Frameworks.Test) {
-        const fullTitle = getUniqueIdentifier(test)
+        const fullTitle = getUniqueIdentifier(test, this._framework)
         this._tests[fullTitle] = {
             uuid: uuidv4(),
             startedAt: (new Date()).toISOString()
@@ -88,7 +98,7 @@ export default class InsightsHandler {
     }
 
     async afterTest (test: Frameworks.Test, result: Frameworks.TestResult) {
-        const fullTitle = getUniqueIdentifier(test)
+        const fullTitle = getUniqueIdentifier(test, this._framework)
         this._tests[fullTitle] = {
             ...(this._tests[fullTitle] || {}),
             finishedAt: (new Date()).toISOString()
@@ -276,18 +286,24 @@ export default class InsightsHandler {
                 value.push(parent.title)
                 parent = parent.parent
             }
+        } else if (test.description && test.fullName) {
+            // for Jasmine
+            value.push(test.description)
+            value.push(test.fullName.replace(new RegExp(' ' + test.description + '$'), ''))
         }
         return value.reverse()
     }
 
     private async sendTestRunEvent (test: Frameworks.Test, eventType: string, results?: Frameworks.TestResult) {
-        const fullTitle = getUniqueIdentifier(test)
+        const fullTitle = getUniqueIdentifier(test, this._framework)
         const testMetaData = this._tests[fullTitle]
+
+        const filename = test.file || this._suiteFile
 
         const testData: TestData = {
             uuid: testMetaData.uuid,
-            type: test.type,
-            name: test.title,
+            type: test.type || 'test',
+            name: test.title || test.description,
             body: {
                 lang: 'webdriverio',
                 code: test.body
@@ -295,9 +311,9 @@ export default class InsightsHandler {
             scope: fullTitle,
             scopes: this.getHierarchy(test),
             identifier: fullTitle,
-            file_name: test.file,
-            location: test.file,
-            vc_filepath: (this._gitConfigPath && test.file) ? path.relative(this._gitConfigPath, test.file) : undefined,
+            file_name: filename,
+            location: filename,
+            vc_filepath: (this._gitConfigPath && filename) ? path.relative(this._gitConfigPath, filename) : undefined,
             started_at: testMetaData.startedAt,
             finished_at: testMetaData.finishedAt,
             result: 'pending',
@@ -448,6 +464,6 @@ export default class InsightsHandler {
         if ('pickle' in test) {
             return getUniqueIdentifierForCucumber(test)
         }
-        return getUniqueIdentifier(test)
+        return getUniqueIdentifier(test, this._framework)
     }
 }

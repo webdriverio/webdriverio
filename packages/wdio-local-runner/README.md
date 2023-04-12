@@ -8,7 +8,7 @@ The [Local Runner](https://www.npmjs.com/package/@wdio/local-runner) initiates y
 Given every test is run in its own isolated process, it is not possible to share data across test files. There are two ways to work around this:
 
 - use the [`@wdio/shared-store-service`](https://www.npmjs.com/package/@wdio/shared-store-service) to share data across all workers
-- group spec files (read more in [Organizing Test Suite](http://localhost:3000/docs/organizingsuites#grouping-test-specs-to-run-sequentially))
+- group spec files (read more in [Organizing Test Suite](https://webdriver.io/docs/organizingsuites#grouping-test-specs-to-run-sequentially))
 
 If nothing else is defined in the `wdio.conf.js` the Local Runner is the default runner in WebdriverIO.
 

@@ -6,9 +6,13 @@ import type {
 import WDIOReporter from '@wdio/reporter'
 import type { Capabilities, Options } from '@wdio/types'
 import type { Label, MetadataMessage, AllureStep } from 'allure-js-commons'
-import { AllureRuntime, AllureGroup, AllureTest, Status as AllureStatus, Stage, LabelName, LinkType, ContentType, AllureCommandStepExecutable } from 'allure-js-commons'
 import {
-    addFeature, addLink, addOwner, addEpic, addSuite, addSubSuite, addParentSuite, addTag, addLabel, addSeverity, addIssue, addTestId, addStory, addEnvironment, addAllureId,
+    AllureRuntime, AllureGroup, AllureTest, Status as AllureStatus, Stage, LabelName,
+    LinkType, ContentType, AllureCommandStepExecutable, md5
+} from 'allure-js-commons'
+import {
+    addFeature, addLink, addOwner, addEpic, addSuite, addSubSuite, addParentSuite,
+    addTag, addLabel, addSeverity, addIssue, addTestId, addStory, addEnvironment, addAllureId,
     addDescription, addAttachment, startStep, endStep, addStep, addArgument, step,
 } from './common/api.js'
 import { AllureReporterState } from './state.js'
@@ -201,30 +205,33 @@ export default class AllureReporter extends WDIOReporter {
         this._state.push(newStep)
     }
 
+    _getParamNameAndValue(cid?: string) {
+        const caps = this._capabilities as Capabilities.DesiredCapabilities
+        const { browserName, deviceName, desired, device } = caps
+        let targetName = device || browserName || deviceName || cid
+        // custom mobile grids can have device information in a `desired` cap
+        if (desired && desired.deviceName && desired.platformVersion) {
+            targetName = `${device || desired.deviceName} ${desired.platformVersion}`
+        }
+        const browserstackVersion = caps.os_version || caps.osVersion
+        const version = browserstackVersion || caps.browserVersion || caps.version || caps.platformVersion || ''
+        const paramName = (deviceName || device) ? 'device' : 'browser'
+        const paramValue = version ? `${targetName}-${version}` : targetName
+        return { paramName, paramValue }
+    }
+
     setTestParameters(cid?: string) {
         if (!this._state.currentTest) {
             return
         }
 
         if (!this._isMultiremote) {
-            const caps = this._capabilities as Capabilities.DesiredCapabilities
-            const { browserName, deviceName, desired, device } = caps
-            let targetName = device || browserName || deviceName || cid
-
-            // custom mobile grids can have device information in a `desired` cap
-            if (desired && desired.deviceName && desired.platformVersion) {
-                targetName = `${device || desired.deviceName} ${desired.platformVersion}`
-            }
-
-            const browserstackVersion = caps.os_version || caps.osVersion
-            const version = browserstackVersion || caps.browserVersion || caps.version || caps.platformVersion || ''
-            const paramName = (deviceName || device) ? 'device' : 'browser'
-            const paramValue = version ? `${targetName}-${version}` : targetName
-
+            const paramObj = this._getParamNameAndValue(cid)
+            const paramName = paramObj.paramName
+            const paramValue = paramObj.paramValue
             if (!paramValue) {
                 return
             }
-
             this._state.currentTest.addParameter(paramName, paramValue)
         } else {
             this._state.currentTest.addParameter('isMultiremote', 'true')
@@ -237,7 +244,13 @@ export default class AllureReporter extends WDIOReporter {
         if (this._state.currentPackageLabel) {
             this._state.currentTest.addLabel(LabelName.PACKAGE, this._state.currentPackageLabel)
         }
-
+        if (this._state.currentSuite?.name && this._state.currentTest.wrappedItem?.name) {
+            const paramObj = this._getParamNameAndValue(cid)
+            const paramName = paramObj.paramName
+            const paramValue = paramObj.paramValue
+            const hash = md5(this._state.currentSuite.name + this._state.currentTest.wrappedItem.name + paramName + paramValue)
+            this._state.currentTest.historyId = hash
+        }
         if (cid) {
             this._state.currentTest.addLabel(LabelName.THREAD, cid)
         }
