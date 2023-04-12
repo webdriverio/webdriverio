@@ -18,14 +18,14 @@ Inicia una nueva sesión con capacidades específicas. Basado en los comandos de
 
 ##### Paramaters
 
-- `options`: [WebDriver Options](/docs/configuration#webdriver-options)
-- `modifier`: function that allows to modify the client instance before it is being returned
-- `userPrototype`: properties object that allows to extend the instance prototype
-- `customCommandWrapper`: function that allows to wrap functionality around function calls
+- `options`: [Opciones de WebDriver](/docs/configuration#webdriver-options)
+- `modifier`: función que permite modificar la instancia del cliente antes de que sea devuelta
+- `userPrototype`: objeto de propiedades que permite extender el prototipo de instancia
+- `customCommandWrapper`: función que permite envolver la funcionalidad alrededor de llamadas de función
 
 ##### Retornos
 
-- [Browser](/docs/api/browser) object
+- [Objeto del navegador](/docs/api/browser)
 
 ##### Ejemplo
 
@@ -41,10 +41,10 @@ Se adjunta a una sesión de WebDriver o DevTools en ejecución.
 
 ##### Parámetros
 
-- `attachInstance`: instance to attach a session to or at least an object with a property `sessionId` (e.g. `{ sessionId: 'xxx' }`)
-- `modifier`: function that allows to modify the client instance before it is being returned
-- `userPrototype`: properties object that allows to extend the instance prototype
-- `customCommandWrapper`: function that allows to wrap functionality around function calls
+- `attachInstance`: instancia para adjuntar una sesión a, o al menos un objeto con una propiedad `sessionId` (e. . `{ sessionId: 'xxx' }`)
+- `modifier`: función que permite modificar la instancia del cliente antes de que sea devuelta
+- `userPrototype`: objeto de propiedades que permite extender el prototipo de instancia
+- `customCommandWrapper`: función que permite envolver la funcionalidad alrededor de llamadas de función
 
 ##### Returns
 
@@ -63,7 +63,7 @@ Recarga una instancia proporcionada de sesión.
 
 ##### Parámetros
 
-- `instance`: package instance to reload
+- `instancia`: instancia de paquete para recargar
 
 ##### Ejemplo
 
@@ -74,20 +74,20 @@ await WebDriver.reloadSession(client)
 
 ## `webdriverio`
 
-Similar as to the protocol packages (`webdriver` and `devtools`) you can also use the WebdriverIO package APIs to manage sessions. The APIs can be imported using `import { remote, attach, multiremote } from 'webdriverio` and contain the following functionality:
+Similar en cuanto a los paquetes de protocolo (`webdriver` y `devtools`) también puede usar las API de paquetes WebdriverIO para administrar sesiones. Las APIs se pueden importar usando `importar { remote, attach, multiremote } de 'webdriverio` y contienen la siguiente funcionalidad:
 
 #### `remote(options, modifier)`
 
-Starts a WebdriverIO session. The instance contains all commands as the protocol package but with additional higher order functions, see [API docs](/docs/api).
+Inicia una sesión WebdriverIO. La instancia contiene todos los comandos como el paquete de protocolo, pero con funciones adicionales de orden superior, vea [API docs](/docs/api).
 
 ##### Parámetros
 
-- `options`: [WebdriverIO Options](/docs/configuration#webdriverio)
-- `modifier`: function that allows to modify the client instance before it is being returned
+- `options`: [Opciones de WebDriver](/docs/configuration#webdriverio)
+- `modifier`: función que permite modificar la instancia del cliente antes de que sea devuelta
 
 ##### Returns
 
-- [Browser](/docs/api/browser) object
+- [Objeto del navegador](/docs/api/browser)
 
 ##### Example
 
@@ -103,7 +103,7 @@ const browser = await remote({
 
 Se adjunta a una sesión de WebDriver o DevTools en ejecución.
 
-##### Paramaters
+##### Parámetros
 
 - `attachOptions`: instance to attach a session to or at least an object with a property `sessionId` (e.g. `{ sessionId: 'xxx' }`)
 
