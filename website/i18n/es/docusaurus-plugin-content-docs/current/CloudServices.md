@@ -119,38 +119,38 @@ Si está utilizando el testrunner WDIO, descargue y configure la [`@wdio/testing
 
 ## CrossBrowserTesting
 
-The only requirement is to set the `user` and `key` in your config (either exported by `wdio.conf.js` or passed into `webdriverio.remote(...)`) to your [CrossBrowserTesting](https://crossbrowsertesting.com/) username and authkey.
+El único requisito es establecer la clave `usuario`y `` en su configuración (ya sea exportada por `wdio. seguida. s` o pasado a `webdriverio.remote(...)`) a su nombre de usuario y autentificación [CrossBrowserTesting](https://crossbrowsertesting.com/)
 
-You can also pass in any optional [supported capabilities](https://help.crossbrowsertesting.com/selenium-testing/getting-started/crossbrowsertesting-automation-capabilities/) as a key/value in the capabilities for any browser.
+También puede pasar cualquier [capacidad compatible](https://help.crossbrowsertesting.com/selenium-testing/getting-started/crossbrowsertesting-automation-capabilities/) opcional como clave/valor en las capacidades de cualquier navegador.
 
-### Local Testing
+### Pruebas locales
 
-If you want to run tests against a server that is not accessible to the Internet (like on `localhost`), then you need to use [Local Testing](https://help.crossbrowsertesting.com/local-connection/general/local-tunnel-overview/). CrossBrowserTesting provides a tunnel to allow you to test websites not accessible from the internet.
+Si desea ejecutar pruebas contra un servidor que no es accesible a Internet (como en `localhost`), entonces necesita usar [Local Testing](https://help.crossbrowsertesting.com/local-connection/general/local-tunnel-overview/). CrossBrowserTesting proporciona un túnel que le permite probar sitios web que no son accesibles desde Internet.
 
-If you are using the WDIO testrunner, download and configure the [`@wdio/crossbrowsertesting-service`](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-crossbrowsertesting-service) in your `wdio.conf.js`. It helps get CrossBrowserTesting running and comes with additional features that better integrate your tests into the CrossBrowserTesting service.
+Si está utilizando el testrunner WDIO, descargue y configure el [`@wdio/crossbrowsertesting-service`](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-crossbrowsertesting-service) en su `wdio.conf.js`. Ayuda a ejecutar CrossBrowserTesting y viene con características adicionales que integran mejor sus pruebas en el servicio CrossBrowserTesting.
 
-## LambdaTest
+## Prueba de Lambda
 
-[LambdaTest](https://www.lambdatest.com) integration is also built-in.
+La integración con [LambdaTest](https://www.lambdatest.com) también está incorporada.
 
-The only requirement is to set the `user` and `key` in your config (either exported by `wdio.conf.js` or passed into `webdriverio.remote(...)`) to your LambdaTest account username and access key.
+El único requisito es establecer la clave `usuario` y `` en su configuración (ya sea exportada por `wdio. onf.js` o pasado a `webdriverio.remote(...)`) a su nombre de usuario y clave de acceso de su cuenta LambdaTest.
 
-You can also pass in any optional [supported capabilities](https://www.lambdatest.com/capabilities-generator/) as a key/value in the capabilities for any browser. If you set `visual` to `true` it will record a screencast of the session, which might be helpful.
+También puede pasar cualquier [capacidades soportadas](https://www.lambdatest.com/capabilities-generator/) opcional como clave/valor en las capacidades de cualquier navegador. Si establece `visual` a `verdadero` grabará una captura de pantalla de la sesión, lo que puede ser útil.
 
-### Tunnel for local testing
+### Túnel para pruebas locales
 
-If you want to run tests against a server that is not accessible to the Internet (like on `localhost`), then you need to use [Local Testing](https://www.lambdatest.com/support/docs/testing-locally-hosted-pages/).
+Si desea ejecutar pruebas contra un servidor que no es accesible a Internet (como en `localhost`), entonces necesita usar [Local Testing](https://www.lambdatest.com/support/docs/testing-locally-hosted-pages/).
 
-It is out of the scope of WebdriverIO to support this, so you must start it by yourself.
+Está fuera del alcance de WebdriverIO para apoyar esto, por lo que usted debe empezar por sí mismo.
 
-If you do use local, you should set `tunnel` to `true` in your capabilities.
+Si usa local, debería establecer `tunel` a `true` en sus capacidades.
 
-If you are using the WDIO testrunner, download and configure the [`wdio-lambdatest-service`](https://github.com/LambdaTest/wdio-lambdatest-service) in your `wdio.conf.js`. It helps get LambdaTest running, and comes with additional features that better integrate your tests into the LambdaTest service.
-### With Travis CI
+Si está utilizando el testrunner WDIO, descargue y configure el [`wdio-lambdatest-service`](https://github.com/LambdaTest/wdio-lambdatest-service) en su `wdio.conf.js`. Ayuda a que LambdaTest funcione, y viene con funciones adicionales que integran mejor sus pruebas en el servicio LambdaTest.
+### Con Travis CI
 
-If you want to add Local Testing in Travis, you have to start it by yourself.
+Si quieres añadir pruebas locales en Travis, tienes que iniciarlo tú mismo.
 
-The following script will download and start it in the background. You should run this in Travis before starting the tests.
+El siguiente script lo descargará y lo iniciará en segundo plano. Debería ejecutarlo en Travis antes de comenzar las pruebas.
 
 ```sh
 wget http://downloads.lambdatest.com/tunnel/linux/64bit/LT_Linux.zip
@@ -159,9 +159,9 @@ unzip LT_Linux.zip
 sleep 3
 ```
 
-Also, you might wish set the `build` to the Travis build number.
+También, puede desear establecer la compilación `` al número de compilación de Travis.
 
-Example `capabilities`:
+Ejemplo `capacidades`:
 
 ```javascript
 platform: 'Windows 10',
@@ -184,7 +184,7 @@ export const config = {
   }],
 ```
 
-In addition, you need to add cloud configuration, as follows:
+Además, necesita añadir la configuración de la nube, como sigue:
 
 ```js
   hostname: "your_cloud_name.perfectomobile.com",
