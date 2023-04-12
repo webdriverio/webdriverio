@@ -19,9 +19,10 @@ import { CAPABILITY_KEYS } from '@wdio/protocols'
 import type { Options, Capabilities, Services } from '@wdio/types'
 
 import {
-    EXCLUSIVE_SERVICES, ANDROID_CONFIG, IOS_CONFIG, QUESTIONNAIRE, packageVersion,
+    EXCLUSIVE_SERVICES, ANDROID_CONFIG, IOS_CONFIG, QUESTIONNAIRE,
     COMPILER_OPTIONS, TESTING_LIBRARY_PACKAGES, DEPENDENCIES_INSTALLATION_MESSAGE
 } from './constants.js'
+import { PKG_VERSION } from './version.js'
 import type { ReplCommandArguments, Questionnair, SupportedPackage, OnCompleteResult, ParsedAnswers, ProjectProps } from './types.js'
 
 const log = logger('@wdio/cli:utils')
@@ -731,7 +732,7 @@ export function npmInstall(parsedAnswers: ParsedAnswers, useYarn: boolean, npmTa
     /**
       * update package version if CLI is a pre release
       */
-    parsedAnswers.packagesToInstall = specifyVersionIfNeeded(parsedAnswers.packagesToInstall, packageVersion, npmTag)
+    parsedAnswers.packagesToInstall = specifyVersionIfNeeded(parsedAnswers.packagesToInstall, PKG_VERSION, npmTag)
 
     if (parsedAnswers.npmInstall) {
         console.log('Installing wdio packages:\n-', parsedAnswers.packagesToInstall.join('\n- '))

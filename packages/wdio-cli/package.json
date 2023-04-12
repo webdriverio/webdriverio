@@ -30,13 +30,13 @@
   },
   "type": "module",
   "main": "./cjs/index.js",
-  "module": "./build/src/index.js",
-  "types": "./build/src/index.d.ts",
+  "module": "./build/index.js",
+  "types": "./build/index.d.ts",
   "exports": {
     ".": [
       {
-        "types": "./build/src/index.d.ts",
-        "import": "./build/src/index.js",
+        "types": "./build/index.d.ts",
+        "import": "./build/index.js",
         "require": "./cjs/index.js"
       },
       "./cjs/index.js"

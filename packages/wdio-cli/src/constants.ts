@@ -1,11 +1,9 @@
 import { validateServiceAnswers, detectCompiler, getDefaultFiles, convertPackageHashToObject } from './utils.js'
 import type { Questionnair } from './types.js'
 
-import pkg from '../package.json' assert { type: 'json' }
+import { PKG_VERSION } from './version.js'
 
-export const packageVersion = pkg.version
-
-export const CLI_EPILOGUE = `Documentation: https://webdriver.io\n@wdio/cli (v${pkg.version})`
+export const CLI_EPILOGUE = `Documentation: https://webdriver.io\n@wdio/cli (v${PKG_VERSION})`
 
 export const EXCLUSIVE_SERVICES = {
     'wdio-chromedriver-service': {

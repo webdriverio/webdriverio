@@ -8,6 +8,7 @@ import chalk from 'chalk'
 import shell from 'shelljs'
 
 import { getSubPackages } from './utils/helpers.js'
+import { generatePackageVersion } from './createPkgVersion.js'
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 
@@ -30,6 +31,10 @@ const PKG_TO_COMPILE_FIRST = [
     'devtools',
     'webdriver',
     'webdriverio'
+]
+
+const PKG_REQUIRE_VERSION_NUMBER = [
+    'wdio-cli'
 ]
 
 // Order of packages:
@@ -110,7 +115,21 @@ ESM_CJS_PACKAGES.forEach((pkg) => {
     }
 })
 
+const requireVersionNumberPackages = []
+
+PKG_REQUIRE_VERSION_NUMBER.forEach((pkg) => {
+    if (packages.some((projectPath) => projectPath.split('/')[1] === pkg)) {
+        requireVersionNumberPackages.push(`packages/${pkg}`)
+    }
+})
+
 const cmd = (packages) => `npx tsc -b ${packages.join(' ')}${HAS_WATCH_FLAG ? ' --watch' : ''}`
+
+/**
+ * Run prebuild scripts to create version number constants for packages
+ */
+console.log('\n' + chalk.cyan('Creating versions for packages'))
+requireVersionNumberPackages.forEach(pkg => generatePackageVersion(pkg))
 
 /**
  * if we build the project make sure root packages are compiled first

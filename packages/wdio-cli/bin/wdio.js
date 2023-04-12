@@ -12,6 +12,6 @@ if (!process.env.NODE_ENV) {
  * use IIFE to allow running this within CJS and ESM context
  */
 (async () => {
-    const cli = await import('../build/src/index.js')
+    const cli = await import('../build/index.js')
     return cli.run()
 })()

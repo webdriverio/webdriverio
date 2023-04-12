@@ -41,7 +41,7 @@ import {
 } from '../src/utils.js'
 import { parseAnswers } from '../src/commands/config.js'
 import { COMPILER_OPTION_ANSWERS, COMPILER_OPTIONS } from '../src/constants.js'
-import { hasBabelConfig } from '../build/src/utils.js'
+import { hasBabelConfig } from '../build/utils.js'
 
 vi.mock('ejs')
 vi.mock('inquirer')

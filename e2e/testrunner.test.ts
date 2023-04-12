@@ -4,7 +4,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import url from 'node:url'
 
-import Launcher from '../packages/wdio-cli/build/src/launcher.js'
+import Launcher from '../packages/wdio-cli/build/launcher.js'
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 

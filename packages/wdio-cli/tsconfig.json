@@ -3,6 +3,7 @@
   "compilerOptions": {
     "baseUrl": ".",
     "outDir": "./build",
+    "rootDir": "./src",
     "types": ["@wdio/globals/types"]
   },
   "include": [

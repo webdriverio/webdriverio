@@ -13,8 +13,6 @@ vi.mock('./../src/commands/run', async () => ({
     handler: vi.fn().mockReturnValue(Promise.resolve('success'))
 }))
 
-vi.mock('../package.json', async () =>  await vi.importActual('../package.json'))
-
 const consoleError = console.error
 
 describe('index', () => {
