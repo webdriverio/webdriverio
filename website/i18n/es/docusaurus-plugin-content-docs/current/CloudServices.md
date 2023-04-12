@@ -1,11 +1,11 @@
 ---
 id: cloudservices
-title: Using Cloud Services
+title: Servicios en la Nube
 ---
 
-Using on-demand services like Sauce Labs, Browserstack, TestingBot, CrossBrowserTestin, LambdaTest or Perfecto with WebdriverIO is pretty simple. All you need to do is to set your service's `user` and `key` in your options.
+Utilizar servicios a la demanda como Sauce Labs, Browserstack, TestingBot, CrossBrowserTestin, LambdaTest o Perfecto con WebdriverIO es bastante simple. Todo lo que necesitas hacer es establecer el `usuario` y `clave` de tu servicio en tus opciones.
 
-Optionally, you can also parametrize your test by setting cloud-specific capabilities like `build`. If you only want to run cloud services in Travis, you can use the `CI` environment variable to check if you are in Travis and modify the config accordingly.
+Opcionalmente, también puede parametrizar su prueba configurando capacidades específicas de la nube como `compilación`. Si sólo desea ejecutar servicios en la nube en Travis, puede utilizar la variable de entorno `CI` para verificar si está en Travis y modificar la configuración en consecuencia.
 
 ```js
 // wdio.conf.js
@@ -18,11 +18,11 @@ if (process.env.CI) {
 
 ## Sauce Labs
 
-You can set up your tests to run remotely in [Sauce Labs](https://saucelabs.com).
+Puede configurar sus pruebas para ejecutar remotamente en [Sauce Labs](https://saucelabs.com).
 
-The only requirement is to set the `user` and `key` in your config (either exported by `wdio.conf.js` or passed into `webdriverio.remote(...)`) to your Sauce Labs username and access key.
+El único requisito es establecer la clave `usuario` y `` en su configuración (ya sea exportado por `wdio. onf.js` o pasado a `webdriverio.remote(...)`) al nombre de usuario y clave de acceso de Sauce Labs.
 
-You can also pass in any optional [test configuration option](https://docs.saucelabs.com/dev/test-configuration-options/) as a key/value in the capabilities for any browser.
+También puede pasar cualquier [opción opcional de configuración de prueba](https://docs.saucelabs.com/dev/test-configuration-options/) como clave / valor en las capacidades de cualquier navegador.
 
 ### Sauce Connect
 
