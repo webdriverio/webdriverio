@@ -1,15 +1,15 @@
 ---
 id: watcher
-title: Watch Test Files
+title: Ver archivos de prueba
 ---
 
-With the WDIO testrunner you can watch files while you are working on them. They automatically rerun if you change either something in your app or in your test files. By adding a `--watch` flag when calling the `wdio` command the testrunner will wait for file changes after it ran all tests, e.g.
+Con el testrunner de WDIO, puedes monitorear los archivos mientras trabajabas en ellos. Se vuelven a ejecutar automáticamente si cambia algo en su aplicación o en sus archivos de prueba. Añadiendo una bandera `--watch` cuando se llame al comando `wdio` el testrunner esperará los cambios de archivo después de que ejecute todas las pruebas, p.ej.
 
 ```sh
 wdio wdio.conf.js --watch
 ```
 
-By default it only watches for changes in your `specs` files. However by setting a `filesToWatch` property in your `wdio.conf.js` that contains a list of file paths (globbing supported) it will also watch for these files to be changed in order to rerun the whole suite. This is useful if you want to automatically rerun all your tests if you have changed your application code, e.g.
+Por defecto, sólo observa cambios en sus `especificaciones` archivos. Sin embargo, configurando una propiedad `filesToWatch` en tu `wdio.conf. s` que contiene una lista de rutas de archivos (soportado por globping), también observará que estos ficheros se cambien para volver a ejecutar la suite completa. Esto es útil si desea volver a ejecutar automáticamente todas sus pruebas si ha cambiado el código de su aplicación, p.ej.
 
 ```js
 // wdio.conf.js
@@ -24,5 +24,5 @@ export const config = {
 ```
 
 :::info
-Try to run tests in parallel as much as possible. E2E tests are, by nature, slow. Rerunning tests is only useful if you can keep the individual test run time short. In order to save time, the testrunner keeps WebDriver sessions alive while waiting for file changes. Make sure your WebDriver backend can be modified so that it doesn't automatically close the session if no command was executed after some duration of time.
+Trate de ejecutar pruebas en paralelo lo más posible Las pruebas de E2E son, por naturaleza, lentas. Volver a ejecutar pruebas sólo es útil si se puede mantener el tiempo de ejecución individual corto. Con el fin de ahorrar tiempo, el testrunner mantiene vivas las sesiones WebDriver mientras espera cambios en el archivo. Asegúrese de que su backend WebDriver puede ser modificado para que no cierre automáticamente la sesión si no se ejecutó ningún comando después de algún tiempo.
 :::
