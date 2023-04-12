@@ -395,6 +395,7 @@ describe('reporter runtime implementation', () => {
         const osParameter = results[0].parameters.find((parameter: Parameter) => parameter.name === 'os')
 
         expect(results).toHaveLength(1)
+        expect(results[0].historyId).toEqual('3cffc3d1d78d183463efee4c042f156c')
         expect(osParameter.value).toEqual('osx')
     })
 
