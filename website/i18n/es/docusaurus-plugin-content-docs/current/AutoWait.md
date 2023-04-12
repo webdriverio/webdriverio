@@ -1,33 +1,33 @@
 ---
 id: autowait
-title: Auto-waiting
+title: Auto-espera
 ---
 
-One of the most common reasons for flaky tests are interactions with elements that don't exist in your application at the time you want to interact with it. Modern web applications are very dynamic, elements show up and disappear. As a human we are waiting unconsciously for elements but in an automated script we don't consider this as an action. There are two ways to wait on an element to show up.
+Una de las razones más comunes para las pruebas defectuosas son las interacciones con elementos que no existen en su aplicación en el momento en que quiera interactuar con ella. Las aplicaciones web modernas son muy dinámicas, aparecen y desaparecen los elementos. Como humano esperamos inconscientemente por elementos, pero en un script automatizado no lo consideramos una acción. Hay dos formas de esperar en un elemento para aparecer.
 
-## Implicit vs. Explicit
+## Implícito vs. explícito
 
-The WebDriver protocol offers [implicit timeouts](https://w3c.github.io/webdriver/#timeouts) that allow specify how long the driver is suppose to wait for an element to show up. By default this timeout is set to `0` and therefore makes the driver return with an `no such element` error immediately if an element could not be found on the page. Increasing this timeout using the [`setTimeout`](/docs/api/browser/setTimeout) would make the driver wait and increases the chances that the element shows up eventually.
+El protocolo WebDriver ofrece [tiempos de espera implícitos](https://w3c.github.io/webdriver/#timeouts) que permiten especificar cuánto tiempo se supone que el controlador espera a que se muestre un elemento, Por defecto, este tiempo de espera se establece en `0` y por lo tanto hace que el controlador devuelva con un `no tal elemento` inmediatamente error si un elemento no se pudo encontrar en la página Aumentar este tiempo de espera usando la [`setTimeout`](/docs/api/browser/setTimeout) haría que el controlador esperara e incrementaría las posibilidades de que el elemento aparezca eventualmente.
 
 :::note
 
-Read more about WebDriver and framework related timeouts in the [timeouts guide](/docs/timeouts)
+Lea más sobre los tiempos de espera relacionados con WebDriver y framework en la guía [de tiempos de espera](/docs/timeouts)
 
 :::
 
-A different approach is to use explicit waiting which is built into the WebdriverIO framework in commands such as [`waitForExist`](/docs/api/element/waitForExist). With this technique the framework polls for the element by calling multiple [`findElements`](/docs/api/webdriver#findelements) commands until the timeout is reached.
+Un enfoque diferente es utilizar la espera explícita que está incluida en el framework WebdriverIO en comandos como [`waitForExist`](/docs/api/element/waitForExist). Con esta técnica, el framework sondea el elemento llamando a múltiples comandos [`findElements`](/docs/api/webdriver#findelements) hasta que se alcance el tiempo de espera.
 
-## Built-in Waiting
+## Esperas incorporadas
 
-Both waiting mechanisms are incompatible with each other and can cause longer wait times. As implicit waits are a global setting it is applied to all elements which is sometimes not the desired behavior. Therefore WebdriverIO provides a built-in wait mechanism that automatically explicitly waits on the element before interacting with it.
+Ambos mecanismos de espera son incompatibles entre sí y pueden causar un mayor tiempo de espera. Como las esperas implícitas son un ajuste global se aplica a todos los elementos que a veces no es el comportamiento deseado. Por lo tanto, WebdriverIO provee un mecanismo de espera integrado que automáticamente espera en el elemento antes de interactuar con él.
 
-:::info Recommendation
+:::información Recomendación
 
-We recommend __not__ using implicit waits at all and have WebdriverIO handle element wait actions.
+Recomendamos __no__ usar esperas implícitas en absoluto y tener acciones de espera del elemento WebdriverIO.
 
 :::
 
-Using implicit waits is also problematic in cases you are interested to wait until an element disappears. WebdriverIO uses polls for the element until it receives an error. Having an implicit wait option set unnecessarily delays the execution of the command and can cause long test durations.
+El uso de esperas implícitas también es problemático en los casos en que esté interesado en esperar hasta que desaparezca un elemento. WebdriverIO uses polls for the element until it receives an error. Having an implicit wait option set unnecessarily delays the execution of the command and can cause long test durations.
 
 You can set a default value for WebdriverIOs automatic explicit waiting by setting a [`waitforTimeout`](/docs/configuration#waitfortimeout) option in your configuration.
 
