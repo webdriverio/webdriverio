@@ -11,9 +11,9 @@ Para hacerlo, primero instale las dependencias necesarias de Babel:
 npm install --save-dev @babel/core @babel/cli @babel/preset-env @babel/register
 ```
 
-Make sure your [`babel.config.js`](https://babeljs.io/docs/en/config-files) is configured properly.
+Asegúrese de que su [`babel.config.js`](https://babeljs.io/docs/en/config-files) esté configurado correctamente.
 
-The simplest setup you can use is:
+La configuración más sencilla que puedes usar es:
 
 ```js title="babel.config.js"
 module.exports = {
@@ -27,6 +27,6 @@ module.exports = {
 }
 ```
 
-Once this is set up WebdriverIO will take care of the rest.
+Una vez que se haya configurado WebdriverIO se encargará del resto.
 
-Alternatively you can configure how @babel/register is run through the environment variables for [@babel/register](Babel.md) or using wdio config's [autoCompileOpts section](ConfigurationFile.md).
+Alternativamente, puede configurar cómo @babel/register se ejecuta a través de las variables de entorno para [@babel/register](Babel.md) o usando la sección [autoCompileOpts de la configuración de wdio](ConfigurationFile.md).
