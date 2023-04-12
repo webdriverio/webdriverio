@@ -3,11 +3,11 @@ id: react
 title: React
 ---
 
-[React](https://reactjs.org/) makes it painless to create interactive UIs. Design simple views for each state in your application, and React will efficiently update and render just the right components when your data changes. You can test React components directly in a real browser using WebdriverIO and its [browser runner](/docs/runner#browser-runner).
+[React](https://reactjs.org/) vuelve fácil crear interfaces de usuario interactivas. Diseñar vistas simples para cada estado en su aplicación, y React actualizará y renderizará eficientemente, solo los componentes correctos cuando tus datos cambien. Puede probar los componentes de React directamente en un navegador real usando WebdriverIO y su [gestor de navegadores](/docs/runner#browser-runner).
 
-## Setup
+## Configuración
 
-To setup WebdriverIO within your React project, follow the [instructions](/docs/component-testing#set-up) in our component testing docs. Make sure to select `react` as preset within your runner options, e.g.:
+Para configurar WebdriverIO dentro de su proyecto Lit, siga las [instrucciones](/docs/component-testing#set-up) en nuestros documentos de prueba de componentes. Asegúrese de seleccionar `preact` como preset dentro de sus opciones corredoras, por ejemplo:
 
 ```js
 // wdio.conf.js
@@ -22,25 +22,25 @@ export const config = {
 
 :::info
 
-If you are already using [Vite](https://vitejs.dev/) as development server you can also just re-use your configuration in `vite.config.ts` within your WebdriverIO config. For more information, see `viteConfig` in [runner options](/docs/runner#runner-options).
+Si ya está usando [Vite](https://vitejs.dev/) como servidor de desarrollo también puede volver a usar tu configuración en `vite. onfig.ts` dentro de su configuración WebdriverIO. Para más información, consulte `viteConfig` en [opciones de corredor](/docs/runner#runner-options).
 
 :::
 
-The React preset requires `@vitejs/plugin-react` to be installed. Also we recommend using [Testing Library](https://testing-library.com/) for rendering the component into the test page. Therefor you'll need to install the following additional dependencies:
+El preset React requiere `@preact/preset-vite` para ser instalado. También recomendamos utilizar [Testing Library](https://testing-library.com/) para renderizar el componente en la página de prueba. Por lo tanto, tendrá que instalar las siguientes dependencias adicionales:
 
 ```sh npm2yarn
 npm install --save-dev @testing-library/react @vitejs/plugin-react
 ```
 
-You can then start the tests by running:
+Luego puede iniciar las pruebas ejecutando:
 
 ```sh
 npx wdio run ./wdio.conf.js
 ```
 
-## Writing Tests
+## Tests de escritura
 
-Given you have the following React component:
+Dado que usted tiene el siguiente componente Lit:
 
 ```tsx title="./components/Component.jsx"
 import React, { useState } from 'react'
@@ -61,7 +61,7 @@ function App() {
 export default App
 ```
 
-In your test use the `render` method from `@testing-library/react` to attach the component to the test page. To interact with the component we recommend to use WebdriverIO commands as they behave more close to actual user interactions, e.g.:
+En su prueba utilice el método `render` de `@testing-library/preact` para adjuntar el componente a la página de prueba. Para interactuar con el componente recomendamos usar comandos WebdriverIO ya que se comportan más cerca de las interacciones reales del usuario, por ejemplo:
 
 ```ts title="app.test.tsx"
 import { expect } from '@wdio/globals'
@@ -84,5 +84,5 @@ describe('React Component Testing', () => {
 })
 ```
 
-You can find a full example of a WebdriverIO component test suite for React in our [example repository](https://github.com/webdriverio/component-testing-examples/tree/main/react-typescript-vite).
+Puede encontrar un ejemplo completo de una suite de pruebas de componentes WebdriverIO para Lit en nuestro [repositorio de ejemplo](https://github.com/webdriverio/component-testing-examples/tree/main/react-typescript-vite).
 
