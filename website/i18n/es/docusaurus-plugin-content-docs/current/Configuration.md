@@ -1,23 +1,23 @@
 ---
 id: configuration
-title: Configuration
+title: Configuración
 ---
 
-Based on the [setup type](./SetupTypes.md) (e.g. using the raw protocol bindings, WebdriverIO as standalone package or the WDIO testrunner) there is a different set of options available to control the environment.
+Basado en el tipo de configuración [](./SetupTypes.md) (p. ej. usando los enlaces de protocolo crudo, WebdriverIO como paquete independiente o el testrunner WDIo) hay un conjunto diferente de opciones disponibles para controlar el entorno.
 
-## WebDriver Options
+## Opciones de WebDriver
 
-The following options are defined when using the [`webdriver`](https://www.npmjs.com/package/webdriver) protocol package:
+Las siguientes opciones se definen al utilizar el paquete de protocolo [`webdriver`](https://www.npmjs.com/package/webdriver):
 
-### protocol
+### Protocolo
 
-Protocol to use when communicating with the driver server.
+Protocolo a usar para comunicarse con el servidor de controladores.
 
 Type: `String`<br /> Default: `http`
 
-### hostname
+### nombre del host
 
-Host of your driver server.
+Anfitrión de su servidor de controladores.
 
 Type: `String`<br /> Default: `localhost`
 
