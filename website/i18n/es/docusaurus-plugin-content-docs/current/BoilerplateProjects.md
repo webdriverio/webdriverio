@@ -1,9 +1,9 @@
 ---
 id: boilerplates
-title: Boilerplate Projects
+title: Proyectos de Boilerplate
 ---
 
-Over time, our community has developed several projects that you can use as inspiration to set up your own test suite.
+Con el tiempo, nuestra comunidad ha desarrollado varios proyectos que usted puede utilizar como inspiración para establecer su propia suite de pruebas.
 
 # v8 Boilerplate Projects
 
