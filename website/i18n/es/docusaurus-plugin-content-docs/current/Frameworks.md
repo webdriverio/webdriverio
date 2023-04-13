@@ -57,12 +57,12 @@ Si desea ejecutar algo asincrónicamente, puede usar el comando [`browser.call`]
 
 Las siguientes opciones se pueden aplicar en su `wdio.conf.js` para configurar su entorno Mocha. __Nota:__ no todas las opciones son compatibles, p. ej. aplicar la opción `paralela` causará un error ya que el testrunner WDIO tiene su propia manera de ejecutar pruebas en paralelo. Se pueden ejecutar las siguientes acciones:
 
-#### requerido
+#### require
 La opción `require` es útil cuando desea agregar o extender alguna funcionalidad básica (opción de framework WebdriverIo).
 
 Tipo: `String`<br /> Predeterminado: `localhost`
 
-#### compiladores
+#### compilers
 Use el/los módulo(s) dados para compilar archivos. Los compiladores serán incluidos antes de lo requerido (opción de framework WebdriverIo).
 
 Tipo: `String`<br /> Predeterminado: `localhost`
@@ -82,7 +82,7 @@ Comprobar las fugas globales de variables.
 
 Tipo: `String`<br /> Predeterminado: `localhost`
 
-#### retraso
+#### delay
 Retrasar la ejecución de la suite root.
 
 Tipo: `String`<br /> Predeterminado: `localhost`
@@ -170,7 +170,7 @@ jasmineOpts: {
 
 ### Opciones de Jasmine
 
-Las siguientes opciones pueden ser aplicadas en su `wdio.conf.js` para configurar su entorno de Jasmine utilizando la propiedad `jasmineOpts`. For more information on these configuration options, check out the [Jasmine docs](https://jasmine.github.io/api/edge/Configuration).
+Las siguientes opciones pueden ser aplicadas en su `wdio.conf.js` para configurar su entorno de Jasmine utilizando la propiedad `jasmineOpts`. Para obtener más información sobre estas opciones de configuración, consulte la [documentación de Jasmine](https://jasmine.github.io/api/edge/Configuration).
 
 #### defaultTimeoutInterval
 Intervalo de tiempo de espera por defecto para las operaciones de Jasmin.
@@ -182,17 +182,17 @@ Matriz de rutas de archivo (y globos) relativas a spec_dir para incluir antes de
 
 Tipo: `String`<br /> Predeterminado: `localhost`
 
-#### requerido
+#### requires
 La opción `requiere` es útil cuando desea agregar o ampliar alguna funcionalidad básica.
 
 Tipo: `String`<br /> Predeterminado: `localhost`
 
-#### aleatorio
+#### random
 Si aleatoriza o no el orden de ejecución de las especificaciones.
 
 Tipo: `boolean`<br /> Predeterminado: `false`
 
-#### semilla
+#### seed
 Semilla a utilizar como base de la aleatorización. Null hace que la semilla se determine aleatoriamente al inicio de la ejecución.
 
 Tipo: `String`<br /> Predeterminado: `localhost`
@@ -281,17 +281,17 @@ Tratar las definiciones indefinidas como advertencias. Tenga en cuenta que esta 
 
 Tipo: `boolean`<br /> Predeterminado: `false`
 
-#### nombre
+#### names
 Ejecutar sólo los escenarios con el nombre que coincide con la expresión (repetible).
 
 Tipo: `String`<br /> Predeterminado: `localhost`
 
-#### perfil
+#### profile
 Especifica la tabla de Cc para su uso.
 
 Tipo: `String`<br /> Predeterminado: `localhost`
 
-#### requerir
+#### require
 Requiere archivos que contengan sus definiciones de paso antes de ejecutar características. También puedes especificar un glob a tus definiciones de pasos.
 
 Tipo: `String`<br /> Predeterminado: `localhost`:
@@ -312,12 +312,12 @@ Ocultar fragmentos de definición de paso para pasos pendientes.
 
 Tipo: `boolean`<br /> Predeterminado: `false`
 
-#### origen
+#### source
 Ocultar uris de origen.
 
 Tipo: `boolean`<br /> Predeterminado: `false`
 
-#### estricto
+#### strict
 Fallo si hay algún paso indefinido o pendiente.
 
 Tipo: `boolean`<br /> Predeterminado: `false`
@@ -359,7 +359,7 @@ Aquí tienes algunos ejemplos de esta sintaxis:
 Para utilizar el ayudante de definición de pasos como `dado`, `Cuando` o `Luego` o ganchos, se supone que se importará desde `@cucumber/pepino`, e.. como esto:
 
 ```js
-importar { Given, When, Then } desde '@cucumber/cucumber'
+import { Given, When, Then } from '@cucumber/cucumber'
 ```
 
 Ahora, si usted usa Cucumber para otros tipos de pruebas no relacionadas con WebdriverIO para la cual usted utiliza una versión específica que necesita para importar estos ayudantes en sus pruebas e2e del paquete WebdriverIO Cupeber, p.ej.:
