@@ -1,16 +1,16 @@
 ---
 id: customcommands
-title: Custom Commands
+title: Comandos personalizados
 ---
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-If you want to extend the `browser` instance with your own set of commands, the browser method  `addCommand` is here for you. You can write your command in a asynchronous way, just as in your specs.
+Si quieres extender la instancia de `browser` con tu propio conjunto de comandos, el método navegador  `addCommand` está aquí para usted. Puede escribir su comando de una forma asíncrona, al igual que en sus especificaciones.
 
-## Parameters
+## Parámetros
 
-### Command Name
+### Nombre del comando
 
 A name that defines the command and will be attached to the browser or element scope.
 
