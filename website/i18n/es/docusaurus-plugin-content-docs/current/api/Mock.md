@@ -13,7 +13,7 @@ Tenga en cuenta que usar el comando `mock` requiere soporte para el protocolo de
 
 Puede leer más acerca de las solicitudes de simulación y respuestas en WebdriverIO en nuestra guía [Mocks y espías](/docs/mocksandspies).
 
-## Properties
+## Propiedades
 
 Un objeto simulado contiene las siguientes propiedades:
 
