@@ -13,19 +13,19 @@ Las siguientes opciones se definen al utilizar el paquete de protocolo [`webdriv
 
 Protocolo a usar para comunicarse con el servidor de controladores.
 
-Type: `String`<br /> Default: `http`
+Tipo: `String`<br /> Predeterminado: `localhost`
 
 ### nombre del host
 
 Anfitrión de su servidor de controladores.
 
-Type: `String`<br /> Default: `localhost`
+Tipo: `String`<br /> Predeterminado: `localhost`
 
 ### port
 
 Port your driver server is on.
 
-Type: `Number`<br /> Default: `4444`
+Tipo: `String`<br /> Predeterminado: `localhost`
 
 ### path
 
@@ -57,7 +57,7 @@ Defines the capabilities you want to run in your WebDriver session. Check out th
 
 Next to the WebDriver based capabilities you can apply browser and vendor specific options that allow deeper configuration to the remote browser or device. These are documented in the corresponding vendor docs, e.g.:
 
-- `goog:chromeOptions`: for [Google Chrome](https://chromedriver.chromium.org/capabilities#h.p_ID_106)
+- `goog:chromeOptions`: para [Google Chrome](https://chromedriver.chromium.org/capabilities#h.p_ID_106)
 - `moz:firefoxOptions`: for [Mozilla Firefox](https://firefox-source-docs.mozilla.org/testing/geckodriver/Capabilities.html)
 - `ms:edgeOptions`: for [Microsoft Edge](https://docs.microsoft.com/en-us/microsoft-edge/webdriver-chromium/capabilities-edge-options#using-the-edgeoptions-class)
 - `sauce:options`: for [Sauce Labs](https://docs.saucelabs.com/dev/test-configuration-options/#desktop-and-mobile-capabilities-sauce-specific--optional)
