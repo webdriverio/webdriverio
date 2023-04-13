@@ -7,6 +7,8 @@ on:
     branches:
       - main
       - v7
+    branches-ignore:
+      - l10n_main
   pull_request:
     branches-ignore:
       - l10n_main
