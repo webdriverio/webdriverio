@@ -87,7 +87,7 @@ cd $unzipped_file
 </TabItem>
 </Tabs>
 
-**Nota:** Otros `lanzamientos` geckodriver están disponibles [aquí](https://github.com/mozilla/geckodriver/releases). Después de la descarga puede iniciar el controlador vía:
+**Nota:** Otros lanzamientos `geckodriver` están disponibles [aquí](https://github.com/mozilla/geckodriver/releases). Después de la descarga puede iniciar el controlador vía:
 
 ```sh
 /path/to/binary/geckodriver --port 4444
