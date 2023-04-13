@@ -29,7 +29,7 @@ Mientras que la cantidad de capacidades definidas fijas es baja todo el mundo pu
 - `sauce:options`: [Sauce Labs](https://docs.saucelabs.com/dev/test-configuration-options/#w3c-webdriver-browser-capabilities--optional)
 - `bstack:options`: [BrowserStack](https://www.browserstack.com/docs/automate/selenium/organize-tests)
 - `tb:options`: [TestingBot](https://testingbot.com/support/other/test-options)
-- and many more...
+- y mucho más...
 
 ### Extensiones de capacidad de Motor de Automatización
 
