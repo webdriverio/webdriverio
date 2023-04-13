@@ -3,11 +3,11 @@ id: customreporter
 title: Custom Reporter
 ---
 
-You can write your own custom reporter for the WDIO test runner that is tailored to your needs. And it’s easy!
+Puede escribir su propio reportero personalizado para el corredor de pruebas WDIO que se adapte a sus necesidades. ¡Y es sencillo!
 
-All you need to do is to create a node module that inherits from the `@wdio/reporter` package, so it can receive messages from the test.
+Todo lo que necesitas hacer es crear un módulo de nodo que hereda del paquete `@wdio/reporter`. para que pueda recibir mensajes de la prueba.
 
-The basic setup should look like:
+La configuración básica debería ser así:
 
 ```js
 import WDIOReporter from '@wdio/reporter'
@@ -27,10 +27,10 @@ export default class CustomReporter extends WDIOReporter {
 }
 ```
 
-To use this reporter, all you need to do is assign it to the `reporter` property in your configuration.
+Para usar este reportero, todo lo que necesitas hacer es asignarlo a la propiedad de `reporter` en tu configuración.
 
 
-Your `wdio.conf.js` file should look like this:
+El archivo `mysite/urls.py` debería verse ahora así:
 
 ```js
 import CustomReporter from './reporter/my.custom.reporter'
@@ -55,15 +55,15 @@ export const config = {
 }
 ```
 
-You can also publish the reporter to NPM so everyone can use it. Name the package like other reporters `wdio-<reportername>-reporter`, and tag it with keywords like `wdio` or `wdio-reporter`.
+También puedes publicar el reportero en el NPM para que todos puedan usarlo. Nombra el paquete como otros reporteros `wdio-<reportername>-reportero`, y etiquetarlo con palabras clave como `wdio` o `wdio-reporter`.
 
-## Event Handler
+## Controladores de eventos
 
-You can register an event handler for several events which are triggered during testing. All of the following handlers will receive payloads with useful information about the current state and progress.
+Usted puede registrar un controlador de eventos para varios eventos que se activan durante la prueba. Todos los siguientes controladores recibirán cargas útiles con información útil sobre el estado actual y el progreso.
 
-The structure of these payload objects depend on the event, and are unified across the frameworks (Mocha, Jasmine, and Cucumber). Once you implement a custom reporter, it should work for all frameworks.
+La estructura de estos objetos de carga útil depende del evento, y están unificados a través de los marcos (Mocha, Jasmín y Cupeber). Una vez implementado un reportero personalizado, debería funcionar para todos los frameworks.
 
-The following list contains all possible methods you can add to your reporter class:
+La siguiente lista contiene todos los métodos posibles que puede añadir a su clase de reportero:
 
 ```js
 import WDIOReporter from '@wdio/reporter'
@@ -85,9 +85,9 @@ export default class CustomReporter extends WDIOReporter {
 }
 ```
 
-The method names are pretty self explanatory.
+Los nombres de los métodos son bastante autoexplicativos.
 
-To print something on a certain event, use the `this.write(...)` method, which is provided by the parent `WDIOReporter` class. It either streams the content to `stdout`, or to a log file (depending on the options of the reporter).
+Para imprimir algo en un evento determinado, usa el método `this.write(...)`, que es proporcionado por la clase padre `WDIOReporter`. Transmite el contenido a `stdout`, o a un archivo de registro (dependiendo de las opciones del reportero).
 
 ```js
 import WDIOReporter from '@wdio/reporter'
@@ -99,15 +99,15 @@ export default class CustomReporter extends WDIOReporter {
 }
 ```
 
-Note that you cannot defer the test execution in any way.
+Tenga en cuenta que no puede diferir de ninguna manera la ejecución de la prueba.
 
-All event handlers should execute synchronous routines (or you'll run into race conditions).
+Todos los controladores de eventos deben ejecutar rutinas sincrónicas (o se encontrarán en condiciones de carrera).
 
-Be sure to check out the [example section](https://github.com/webdriverio/webdriverio/tree/main/examples/wdio) where you can find an example custom reporter that prints the event name for each event.
+Asegúrate de revisar la sección de ejemplo de [](https://github.com/webdriverio/webdriverio/tree/main/examples/wdio) donde puedes encontrar un informador personalizado de ejemplo que imprime el nombre del evento para cada evento.
 
-If you have implemented a custom reporter that could be useful for the community, don't hesitate to make a Pull Request so we can make the reporter available for the public!
+Si has implementado un reportero personalizado que podría ser útil para la comunidad, no dude en hacer una Pull Request para que podamos poner el reportero a disposición del público!
 
-Also, if you run the WDIO testrunner via the `Launcher` interface, you can't apply a custom reporter as function as follows:
+Además, si ejecutas el testrunner WDIO a través de la interfaz `Launcher`, no puedes aplicar un reportero personalizado como función de la siguiente manera:
 
 ```js
 import Launcher from '@wdio/cli'
@@ -120,9 +120,9 @@ const launcher = new Launcher('/path/to/config.file.js', {
 })
 ```
 
-## Wait Until `isSynchronised`
+## Espera hasta que `se sincronice`
 
-If your reporter has to execute async operations to report the data (e.g. upload of log files or other assets) you can overwrite the `isSynchronised` method in your custom reporter to let the WebdriverIO runner wait until you have computed everything. An example of this can be seen in the [`@wdio/sumologic-reporter`](https://github.com/webdriverio/webdriverio/blob/main/packages/wdio-sumologic-reporter/src/index.js):
+Si su reportero tiene que ejecutar operaciones asíncronas para reportar los datos (p. ej. carga de archivos de registro u otros activos) puede sobrescribir el método `isSynchronised` en su reportero personalizado para permitir al corredor WebdriverIO esperar hasta que lo haya calculado todo. Un ejemplo de esto se puede ver en la [`@wdio/sumologic-reporter`](https://github.com/webdriverio/webdriverio/blob/main/packages/wdio-sumologic-reporter/src/index.js):
 
 ```js
 export default class SumoLogicReporter extends WDIOReporter {
@@ -161,18 +161,18 @@ export default class SumoLogicReporter extends WDIOReporter {
 }
 ```
 
-This way the runner will wait until all log information are uploaded.
+De esta manera, el corredor esperará hasta que toda la información de registro sea cargada.
 
-## Publish Reporter on NPM
+## Publicar el reporte en NPM
 
-To make reporter easier to consume and discover by the WebdriverIO community, please follow these recommendations:
+Para que el reportero sea más fácil de consumir y descubrir por la comunidad WebdriverIO, sigue estas recomendaciones:
 
-* Services should use this naming convention: `wdio-*-reporter`
-* Use NPM keywords: `wdio-plugin`, `wdio-reporter`
-* The `main` entry should `export` an instance of the reporter
-* Example reporter: [`@wdio/dot-service`](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-dot-reporter)
+* Los servicios deben usar esta convención de nombres: `wdio-*-reporter`
+* Usar palabras clave NPM: `wdio-plugin`, `wdio-reporter`
+* La entrada `main` entry debe `exportar` una instancia del reportero
+* Ejemplo de reportero: [`@wdio/dot-service`](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-dot-reporter)
 
-Following the recommended naming pattern allows services to be added by name:
+Siguiendo el patrón de nomenclatura recomendado permite que los servicios se añadan por nombre:
 
 ```js
 // Add wdio-custom-reporter
@@ -183,11 +183,11 @@ export const config = {
 }
 ```
 
-### Add Published Service to WDIO CLI and Docs
+### Añadir Servicio Publicado a WDIO CLI y Docs
 
-We really appreciate every new plugin that could help other people run better tests! If you have created such a plugin, please consider adding it to our CLI and docs to make it easier to be found.
+Realmente apreciamos cada nuevo plugin que podría ayudar a otras personas a hacer mejores pruebas! Si has creado un plugin de este tipo, por favor considera añadirlo a nuestro CLI y documentos para que sea más fácil de encontrar.
 
-Please raise a pull request with the following changes:
+Por favor, envíe un pull request con los siguientes cambios:
 
-- add your service to the list of [supported reporters](https://github.com/webdriverio/webdriverio/blob/main/packages/wdio-cli/src/constants.ts#L74-L91)) in the CLI module
-- enhance the [reporter list](https://github.com/webdriverio/webdriverio/blob/main/scripts/docs-generation/3rd-party/reporters.json) for adding your docs to the official Webdriver.io page
+- añade tu servicio a la lista de [reporters soportados](https://github.com/webdriverio/webdriverio/blob/main/packages/wdio-cli/src/constants.ts#L74-L91)) en el módulo CLI
+- mejorar la lista de reporteros [](https://github.com/webdriverio/webdriverio/blob/main/scripts/docs-generation/3rd-party/reporters.json) para añadir sus documentos a la página oficial de Webdriver.io
