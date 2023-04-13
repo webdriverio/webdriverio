@@ -34,6 +34,7 @@ describe('onPrepare', () => {
     }
     const logInfoSpy = jest.spyOn(log, 'info').mockImplementation((string) => string)
     jest.spyOn(utils, 'launchTestSession').mockImplementation(() => {})
+    jest.spyOn(utils, 'isBStackSession').mockImplementation(() => {return true})
 
     it('should not try to upload app is app is undefined', () => {
         const service = new BrowserstackLauncher({}, caps, config)
@@ -634,6 +635,17 @@ describe('constructor', () => {
 
         delete process.env.BROWSERSTACK_RERUN
         delete process.env.BROWSERSTACK_RERUN_TESTS
+    })
+
+    describe('#non-bstack session', () => {
+        const spy = jest.spyOn(utils, 'isBStackSession')
+        it('should not add service version to caps', async () => {
+            spy.mockImplementationOnce(() => false)
+            const caps: any = [{}]
+            new BrowserstackLauncher(options as any, caps, config)
+            expect(caps).toEqual([{}])
+        })
+        spy.mockImplementation(() => true)
     })
 })
 

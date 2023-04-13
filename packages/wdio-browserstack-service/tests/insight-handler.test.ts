@@ -478,23 +478,43 @@ describe('beforeHook', () => {
     const sendSpy = jest.spyOn(insightsHandler, 'sendTestRunEvent').mockImplementation(() => { return [] })
     const attachHookDataSpy = jest.spyOn(insightsHandler, 'attachHookData').mockImplementation(() => { return [] })
 
-    insightsHandler['_tests'] = {}
-    insightsHandler['_framework'] = 'mocha'
+    describe('mocha', () => {
+        beforeEach(() => {
+            insightsHandler['_tests'] = {}
+            insightsHandler['_framework'] = 'mocha'
+            sendSpy.mockClear()
+            attachHookDataSpy.mockClear()
+        })
 
-    beforeEach(() => {
-        sendSpy.mockClear()
-        attachHookDataSpy.mockClear()
+        afterEach(() => {
+            sendSpy.mockClear()
+            attachHookDataSpy.mockClear()
+        })
+
+        it('update hook data', async () => {
+            await insightsHandler.beforeHook({ parent: 'parent', title: 'test' } as any, {} as any)
+            expect(insightsHandler['_tests']).toEqual({ 'parent - test': { uuid: '123456789', startedAt: '2020-01-01T00:00:00.000Z' } })
+            expect(sendSpy).toBeCalledTimes(1)
+        })
     })
 
-    afterEach(() => {
-        sendSpy.mockClear()
-        attachHookDataSpy.mockClear()
-    })
+    describe('cucumber', () => {
+        beforeEach(() => {
+            insightsHandler['_tests'] = {}
+            insightsHandler['_framework'] = 'cucumber'
+            sendSpy.mockClear()
+            attachHookDataSpy.mockClear()
+        })
 
-    it('update hook data', async () => {
-        await insightsHandler.beforeHook({ parent: 'parent', title: 'test' } as any, {} as any)
-        expect(insightsHandler['_tests']).toEqual({ 'parent - test': { uuid: '123456789', startedAt: '2020-01-01T00:00:00.000Z' } })
-        expect(sendSpy).toBeCalledTimes(1)
+        afterEach(() => {
+            sendSpy.mockClear()
+            attachHookDataSpy.mockClear()
+        })
+
+        it('doesn\'t update hook data', async () => {
+            await insightsHandler.beforeHook(undefined as any, {} as any)
+            expect(sendSpy).toBeCalledTimes(0)
+        })
     })
 })
 
@@ -505,34 +525,60 @@ describe('afterHook', () => {
     const getUniqueIdentifierSpy = jest.spyOn(utils, 'getUniqueIdentifier').mockReturnValue('test title')
     const getUniqueIdentifierForCucumberSpy = jest.spyOn(utils, 'getUniqueIdentifierForCucumber').mockReturnValue('test title')
 
-    insightsHandler['_framework'] = 'mocha'
+    describe('mocha', () => {
 
-    beforeEach(() => {
-        sendSpy.mockClear()
-        attachHookDataSpy.mockClear()
-        getUniqueIdentifierForCucumberSpy.mockClear()
-        getUniqueIdentifierSpy.mockClear()
+        beforeEach(() => {
+            insightsHandler['_framework'] = 'mocha'
+            sendSpy.mockClear()
+            attachHookDataSpy.mockClear()
+            getUniqueIdentifierForCucumberSpy.mockClear()
+            getUniqueIdentifierSpy.mockClear()
+        })
+
+        it('add hook data', async () => {
+            insightsHandler['_tests'] = {}
+            await insightsHandler.afterHook({ parent: 'parent', title: 'test' } as any, {} as any, {} as any)
+            expect(insightsHandler['_tests']).toEqual({ 'test title': { finishedAt: '2020-01-01T00:00:00.000Z', } })
+            expect(sendSpy).toBeCalledTimes(1)
+        })
+
+        it('update hook data', async () => {
+            insightsHandler['_tests'] = { 'test title': {} }
+            await insightsHandler.afterHook({ parent: 'parent', title: 'test' } as any, {} as any, {} as any)
+            expect(insightsHandler['_tests']).toEqual({ 'test title': { finishedAt: '2020-01-01T00:00:00.000Z', } })
+            expect(sendSpy).toBeCalledTimes(1)
+        })
+
+        afterEach(() => {
+            sendSpy.mockClear()
+            attachHookDataSpy.mockClear()
+            getUniqueIdentifierForCucumberSpy.mockClear()
+            getUniqueIdentifierSpy.mockClear()
+        })
     })
 
-    it('add hook data', async () => {
-        insightsHandler['_tests'] = {}
-        await insightsHandler.afterHook({ parent: 'parent', title: 'test' } as any, {} as any, {} as any)
-        expect(insightsHandler['_tests']).toEqual({ 'test title': { finishedAt: '2020-01-01T00:00:00.000Z', } })
-        expect(sendSpy).toBeCalledTimes(1)
-    })
+    describe('cucumber', () => {
 
-    it('update hook data', async () => {
-        insightsHandler['_tests'] = { 'test title': {} }
-        await insightsHandler.afterHook({ parent: 'parent', title: 'test' } as any, {} as any, {} as any)
-        expect(insightsHandler['_tests']).toEqual({ 'test title': { finishedAt: '2020-01-01T00:00:00.000Z', } })
-        expect(sendSpy).toBeCalledTimes(1)
-    })
+        beforeEach(() => {
+            insightsHandler['_framework'] = 'cucumber'
+            sendSpy.mockClear()
+            attachHookDataSpy.mockClear()
+            getUniqueIdentifierForCucumberSpy.mockClear()
+            getUniqueIdentifierSpy.mockClear()
+        })
 
-    afterEach(() => {
-        sendSpy.mockClear()
-        attachHookDataSpy.mockClear()
-        getUniqueIdentifierForCucumberSpy.mockClear()
-        getUniqueIdentifierSpy.mockClear()
+        it('doesn\'t update hook data', async () => {
+            insightsHandler['_tests'] = { 'test title': {} }
+            await insightsHandler.afterHook(undefined as any, {} as any, {} as any)
+            expect(sendSpy).toBeCalledTimes(0)
+        })
+
+        afterEach(() => {
+            sendSpy.mockClear()
+            attachHookDataSpy.mockClear()
+            getUniqueIdentifierForCucumberSpy.mockClear()
+            getUniqueIdentifierSpy.mockClear()
+        })
     })
 })
 
