@@ -59,7 +59,7 @@ if (method.examples.length || method.exampleReferences.length) { ?>
     var filename = path.basename(ref.split('#')[0])
     var ext = path.extname(filename).slice(1)
 ?>
-```<?= ext ?> reference title="<?= filename ?>"
+```<?= ext ?> reference title="<?= filename ?>" useHTTPS
 <?= ref ?>
 ```
 <? }); ?>

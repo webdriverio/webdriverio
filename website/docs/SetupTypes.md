@@ -21,14 +21,14 @@ For basic interactions with the WebDriver and other automation protocols Webdriv
 }>
 <TabItem value="webdriver">
 
-```js reference
+```js reference useHTTPS
 https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/setup/webdriver.js#L5-L20
 ```
 
 </TabItem>
 <TabItem value="devtools">
 
-```js reference
+```js reference useHTTPS
 https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/setup/devtools.js#L2-L17
 ```
 
@@ -47,7 +47,7 @@ For more information on these package interfaces, see [Modules API](/docs/api/mo
 
 To simplify the interaction with the WebDriver protocol the `webdriverio` package implements a variety of commands on top of the protocol (e.g. the [`dragAndDrop`](./api/element/_dragAndDrop.md) command) and core concepts such as [smart selectors](./Selectors.md) or [auto-waits](./AutoWait.md). The example from above can be simplified like this:
 
-```js reference
+```js reference useHTTPS
 https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/setup/standalone.js#L2-L19
 ```
 
@@ -65,7 +65,7 @@ The test runner takes care of many problems that are common when working with pl
 
 Here is the same example from above, written as a test spec and executed by WDIO:
 
-```js reference
+```js reference useHTTPS
 https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/setup/testrunner.js
 ```
 

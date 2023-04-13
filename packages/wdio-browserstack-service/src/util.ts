@@ -325,7 +325,10 @@ export async function getGitMetaData () {
     }
 }
 
-export function getUniqueIdentifier(test: Frameworks.Test): string {
+export function getUniqueIdentifier(test: Frameworks.Test, framework?: string): string {
+    if (framework === 'jasmine') {
+        return test.fullName
+    }
     return `${test.parent} - ${test.title}`
 }
 
@@ -469,6 +472,13 @@ export function isScreenshotCommand (args: BeforeCommandArgs & AfterCommandArgs)
     return args.endpoint && args.endpoint.includes('/screenshot')
 }
 
+export function isBStackSession(config: Options.Testrunner) {
+    if (typeof config.user === 'string' && typeof config.key === 'string' && config.key.length === 20) {
+        return true
+    }
+    return false
+}
+
 export function shouldAddServiceVersion(config: Options.Testrunner, testObservability?: boolean): boolean {
     if (config.services && config.services.toString().includes('chromedriver') && testObservability !== false) {
         return false
@@ -548,6 +558,18 @@ export function getObservabilityBuildTags(options: BrowserstackConfig & Options.
         return [bstackBuildTag]
     }
     return []
+}
+
+export function frameworkSupportsHook(hook: string, framework?: string) {
+    if (framework === 'mocha' && (hook === 'before' || hook === 'after' || hook === 'beforeEach' || hook === 'afterEach')) {
+        return true
+    }
+
+    if (framework === 'jasmine' && (hook === 'beforeEach' || hook === 'afterEach')) {
+        return true
+    }
+
+    return false
 }
 
 export const sleep = (ms = 100) => new Promise((resolve) => setTimeout(resolve, ms))

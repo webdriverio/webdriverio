@@ -156,20 +156,21 @@ export const SUPPORTED_PACKAGES = {
 } as const
 
 export const SUPPORTED_BROWSER_RUNNER_PRESETS = [
-    { name: 'Lit (https://lit.dev/)', value: '' },
+    { name: 'Lit (https://lit.dev/)', value: '$--$' },
     { name: 'Vue.js (https://vuejs.org/)', value: '@vitejs/plugin-vue$--$vue' },
     { name: 'Svelte (https://svelte.dev/)', value: '@sveltejs/vite-plugin-svelte$--$svelte' },
     { name: 'SolidJS (https://www.solidjs.com/)', value: 'vite-plugin-solid$--$solid' },
     { name: 'React (https://reactjs.org/)', value: '@vitejs/plugin-react$--$react' },
     { name: 'Preact (https://preactjs.com/)', value: '@preact/preset-vite$--$preact' },
-    { name: 'Other', value: '' }
+    { name: 'Other', value: false }
 ]
 
 export const TESTING_LIBRARY_PACKAGES: Record<string, string> = {
     react: '@testing-library/react',
     preact: '@testing-library/preact',
     vue: '@testing-library/vue',
-    svelte: '@testing-library/svelte'
+    svelte: '@testing-library/svelte',
+    solid: 'solid-testing-library'
 }
 
 export const BACKEND_CHOICES = [
@@ -214,14 +215,14 @@ export const QUESTIONNAIRE = [{
     type: 'confirm',
     name: 'installTestingLibrary',
     message: 'Do you like to use Testing Library (https://testing-library.com/) as test utility?',
-    default: false,
+    default: true,
     // only ask if there are more than 1 runner to pick from
     when: /* istanbul ignore next */ (answers: Questionnair) => (
         isBrowserRunner(answers) &&
         /**
          * Only show if Testing Library has an add-on for framework
          */
-        TESTING_LIBRARY_PACKAGES[convertPackageHashToObject(answers.preset!).short]
+        answers.preset && TESTING_LIBRARY_PACKAGES[convertPackageHashToObject(answers.preset!).short]
     )
 }, {
     type: 'list',
@@ -369,7 +370,10 @@ export const QUESTIONNAIRE = [{
     type: 'input',
     name: 'specs',
     message: 'Where should these files be located?',
-    default: /* istanbul ignore next */ (answers: Questionnair) => getDefaultFiles(answers, 'test/specs/**/*'),
+    default: /* istanbul ignore next */ (answers: Questionnair) => {
+        const pattern = isBrowserRunner(answers) ? 'src/**/*.test' : 'test/specs/**/*'
+        return getDefaultFiles(answers, pattern)
+    },
     when: /* istanbul ignore next */ (answers: Questionnair) => answers.generateTestFiles && answers.framework.match(/(mocha|jasmine)/)
 }, {
     type: 'input',

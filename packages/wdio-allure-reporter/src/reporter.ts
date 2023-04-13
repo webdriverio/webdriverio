@@ -6,15 +6,19 @@ import type {
 import WDIOReporter from '@wdio/reporter'
 import type { Capabilities, Options } from '@wdio/types'
 import type { Label, MetadataMessage, AllureStep } from 'allure-js-commons'
-import { AllureRuntime, AllureGroup, AllureTest, Status as AllureStatus, Stage, LabelName, LinkType, ContentType, AllureCommandStepExecutable } from 'allure-js-commons'
 import {
-    addFeature, addLink, addOwner, addEpic, addSuite, addSubSuite, addParentSuite, addTag, addLabel, addSeverity, addIssue, addTestId, addStory, addEnvironment, addAllureId,
+    AllureRuntime, AllureGroup, AllureTest, Status as AllureStatus, Stage, LabelName,
+    LinkType, ContentType, AllureCommandStepExecutable,
+} from 'allure-js-commons'
+import {
+    addFeature, addLink, addOwner, addEpic, addSuite, addSubSuite, addParentSuite,
+    addTag, addLabel, addSeverity, addIssue, addTestId, addStory, addEnvironment, addAllureId,
     addDescription, addAttachment, startStep, endStep, addStep, addArgument, step,
 } from './common/api.js'
 import { AllureReporterState } from './state.js'
 import {
     getTestStatus, isEmpty, isMochaEachHooks, getErrorFromFailedTest,
-    isMochaAllHooks, getLinkByTemplate, isScreenshotCommand, getSuiteLabels,
+    isMochaAllHooks, getLinkByTemplate, isScreenshotCommand, getSuiteLabels, setHistoryId,
 } from './utils.js'
 import { events } from './constants.js'
 import type {
@@ -132,6 +136,7 @@ export default class AllureReporter extends WDIOReporter {
             const currentTest = this._state.pop() as AllureTest | AllureStep
 
             if (currentTest instanceof AllureTest) {
+                setHistoryId(currentTest, this._state.currentSuite)
                 currentTest.endTest()
             } else {
                 currentTest.endStep()
@@ -163,6 +168,7 @@ export default class AllureReporter extends WDIOReporter {
         currentTest.status = AllureStatus.SKIPPED
 
         if (currentTest instanceof AllureTest) {
+            setHistoryId(currentTest, this._state.currentSuite)
             currentTest.endTest()
         } else {
             currentTest.endStep()
@@ -185,6 +191,7 @@ export default class AllureReporter extends WDIOReporter {
         }
 
         if (currentSpec instanceof AllureTest) {
+            setHistoryId(currentSpec, this._state.currentSuite)
             currentSpec.endTest()
         } else {
             currentSpec.endStep()
@@ -304,10 +311,10 @@ export default class AllureReporter extends WDIOReporter {
             getSuiteLabels(suite).forEach((label: Label) => {
                 switch (label.name) {
                 case 'issue':
-                    this.addIssue({ issue: label.value })
+                    this.addIssue({ issue: label.value, linkName: label.value  })
                     break
                 case 'testId':
-                    this.addTestId({ testId: label.value })
+                    this.addTestId({ testId: label.value, linkName: label.value  })
                     break
                 default:
                     this.addLabel(label)
@@ -350,17 +357,26 @@ export default class AllureReporter extends WDIOReporter {
 
                 currentTest.status = AllureStatus.SKIPPED
                 currentTest.stage = Stage.PENDING
+                setHistoryId(currentTest, this._state.currentSuite)
                 currentTest.endTest()
                 return
             }
 
-            const isFailed = suiteChildren.some(item => item.state === AllureStatus.FAILED)
+            const isFailed = suiteChildren.find(item => item.state === AllureStatus.FAILED)
 
             if (isFailed) {
                 const currentTest = this._state.pop() as AllureTest
 
-                currentTest.status = AllureStatus.FAILED
+                currentTest.status = getTestStatus(isFailed)
                 currentTest.stage = Stage.FINISHED
+                const error = getErrorFromFailedTest(isFailed)
+
+                if (error) {
+                    currentTest.detailsMessage = error.message
+                    currentTest.detailsTrace = error.stack
+                }
+
+                setHistoryId(currentTest, this._state.currentSuite)
                 currentTest.endTest()
                 return
             }
@@ -374,6 +390,7 @@ export default class AllureReporter extends WDIOReporter {
 
                 currentTest.status = AllureStatus.PASSED
                 currentTest.stage = Stage.FINISHED
+                setHistoryId(currentTest, this._state.currentSuite)
                 currentTest.endTest()
                 return
             }

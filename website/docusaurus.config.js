@@ -122,13 +122,10 @@ module.exports = {
                 title: 'More',
                 items: [{
                     label: 'Tidelift Subscription',
-                    to: 'https://webdriver.io/docs/enterprise.html',
+                    to: '/docs/enterprise/',
                 }, {
                     label: 'Donate to WebdriverIO',
                     href: 'https://opencollective.com/webdriverio',
-                }, {
-                    label: 'Swag Store',
-                    href: 'http://shop.webdriver.io',
                 }, {
                     label: 'Blog',
                     to: 'blog',
@@ -139,7 +136,7 @@ module.exports = {
             }],
             logo: {
                 alt: 'OpenJS Foundation Logo',
-                src: '/img/open-jsf-logo.svg',
+                src: 'https://raw.githubusercontent.com/openjs-foundation/artwork/main/openjs_foundation/openjs_foundation-logo-horizontal-color-dark_background.svg',
                 href: 'https://openjsf.org/'
             },
             copyright: `Copyright © ${new Date().getFullYear()} OpenJS Foundation`,

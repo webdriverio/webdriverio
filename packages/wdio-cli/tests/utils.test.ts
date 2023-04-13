@@ -1,7 +1,8 @@
-import { vi, describe, it, expect, afterEach, beforeEach, test } from 'vitest'
 import path from 'node:path'
 import * as cp from 'node:child_process'
 import fs from 'node:fs/promises'
+
+import { vi, describe, it, expect, afterEach, beforeEach, test } from 'vitest'
 import ejs from 'ejs'
 import inquirer from 'inquirer'
 import readDir from 'recursive-readdir'
@@ -458,6 +459,7 @@ describe('generateTestFiles', () => {
             '/foo/bar/example.e2e.js'
         ] as any)
         const answers = {
+            runner: 'local',
             framework: 'mocha',
             usePageObjects: true,
             generateTestFiles: true,
@@ -510,6 +512,7 @@ describe('generateTestFiles', () => {
             '/foo/bar/example.e2e.js'
         ] as any)
         const answers = {
+            runner: 'local',
             framework: 'jasmine',
             usePageObjects: true,
             generateTestFiles: true,
@@ -559,6 +562,7 @@ describe('generateTestFiles', () => {
     it('Jasmine with page generation and no pageObjects', async () => {
         vi.mocked(readDir).mockResolvedValue([] as any)
         const answers = {
+            runner: 'local',
             specs: './tests/e2e/**/*.js',
             framework: 'jasmine',
             generateTestFiles: false,
@@ -574,6 +578,7 @@ describe('generateTestFiles', () => {
     it('Cucumber with page generation and no pageObjects', async () => {
         vi.mocked(readDir).mockResolvedValue([] as any)
         const answers = {
+            runner: 'local',
             specs: './tests/e2e/**/*.js',
             framework: 'cucumber',
             generateTestFiles: false,
@@ -592,6 +597,7 @@ describe('generateTestFiles', () => {
             '/foo/bar/example.feature'
         ] as any)
         const answers = {
+            runner: 'local',
             specs: './tests/e2e/*.js',
             framework: 'cucumber',
             stepDefinitions: '/some/step/defs',
@@ -624,6 +630,7 @@ describe('generateTestFiles', () => {
             '/foo/bar/example.feature'
         ] as any)
         const answers = {
+            runner: 'local',
             framework: 'cucumber',
             usePageObjects: true,
             isUsingTypeScript: true,
@@ -662,6 +669,7 @@ describe('generateTestFiles', () => {
 describe('getPathForFileGeneration', () => {
     it('Cucumber with pageobjects default values', () => {
         const generatedPaths = getPathForFileGeneration({
+            runner: 'local',
             stepDefinitions: './features/step-definitions/steps.js',
             pages: './features/pageobjects/**/*.js',
             generateTestFiles: true,
@@ -673,6 +681,7 @@ describe('getPathForFileGeneration', () => {
 
     it('Cucumber with pageobjects default different path', () => {
         const generatedPaths = getPathForFileGeneration({
+            runner: 'local',
             stepDefinitions: './features/step-definitions/steps.js',
             pages: './features/page/objects/**/*.js',
             generateTestFiles: true,
@@ -684,6 +693,7 @@ describe('getPathForFileGeneration', () => {
 
     it('Mocha with pageobjects default values', () => {
         const generatedPaths = getPathForFileGeneration({
+            runner: 'local',
             specs: './test/specs/**/*.js',
             pages: './test/pageobjects/**/*.js',
             generateTestFiles: true,
@@ -695,6 +705,7 @@ describe('getPathForFileGeneration', () => {
 
     it('Mocha with pageobjects different path', () => {
         const generatedPaths = getPathForFileGeneration({
+            runner: 'local',
             specs: './test/specs/files/**/*.js',
             pages: './test/pageobjects/**/*.js',
             generateTestFiles: true,
@@ -706,6 +717,7 @@ describe('getPathForFileGeneration', () => {
 
     it('Do not auto generate file', () => {
         const generatedPaths = getPathForFileGeneration({
+            runner: 'local',
             specs: './test/specs/files/**/*.js',
             pages: './test/pageobjects/**/*.js',
             generateTestFiles: false,
@@ -717,6 +729,7 @@ describe('getPathForFileGeneration', () => {
 
     it('Do not use PageObjects', () => {
         const generatedPaths = getPathForFileGeneration({
+            runner: 'local',
             specs: './test/specs/files/**/*.js',
             pages: './test/pageobjects/**/*.js',
             generateTestFiles: true,
@@ -733,6 +746,8 @@ test('getDefaultFiles', async () => {
         .toBe(path.join('/bar', 'foo', 'bar.js'))
     expect(await getDefaultFiles({ projectRootCorrect: false, projectRoot: '/bar', isUsingCompiler: COMPILER_OPTION_ANSWERS[1] } as any, files))
         .toBe(path.join('/bar', 'foo', 'bar.ts'))
+    expect(await getDefaultFiles({ projectRootCorrect: false, projectRoot: '/bar', isUsingCompiler: COMPILER_OPTION_ANSWERS[1], preset: 'vite-plugin-solid$--$solid' } as any, files))
+        .toBe(path.join('/bar', 'foo', 'bar.tsx'))
     expect(await getDefaultFiles({ projectRootCorrect: false, projectRoot: '/bar', isUsingCompiler: COMPILER_OPTION_ANSWERS[2] } as any, files))
         .toBe(path.join('/bar', 'foo', 'bar.js'))
 })

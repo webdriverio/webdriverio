@@ -482,7 +482,9 @@ export async function hasElementId (element: WebdriverIO.Element) {
     if (!element.elementId) {
         const command = element.isReactElement
             ? element.parent.react$.bind(element.parent)
-            : element.parent.$.bind(element.parent)
+            : element.isShadowElement
+                ? element.parent.shadow$.bind(element.parent)
+                : element.parent.$.bind(element.parent)
         element.elementId = (await command(element.selector as string)).elementId
     }
 

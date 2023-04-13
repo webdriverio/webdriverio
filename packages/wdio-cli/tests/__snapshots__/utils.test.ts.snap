@@ -1,4 +1,4 @@
-// Vitest Snapshot v1
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`getAnswers 1`] = `
 {
@@ -123,7 +123,7 @@ exports[`setup Babel 1`] = `
             \\"@babel/preset-env\\",
             {
                 \\"targets\\": {
-                    \\"node\\": 16
+                    \\"node\\": 18
                 }
             }
         ]

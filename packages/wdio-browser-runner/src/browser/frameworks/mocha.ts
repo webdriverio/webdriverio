@@ -28,8 +28,6 @@ class HTMLReporter extends BaseReporter {
     addCodeToggle () {}
 }
 
-//examples/wdio/node_modules/uuid/dist/esm-browser/index.js
-
 export class MochaFramework extends HTMLElement {
     #root: ShadowRoot
     #spec: string

@@ -82,6 +82,10 @@ export const cmdArgs = {
         desc: 'exclude certain spec file from the test run - overrides exclude piped from stdin',
         type: 'array'
     },
+    'multi-run': {
+        desc: 'Run individual spec files x amount of times',
+        type: 'number'
+    },
     mochaOpts: {
         desc: 'Mocha options'
     },

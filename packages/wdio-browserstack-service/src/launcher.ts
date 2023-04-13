@@ -15,7 +15,13 @@ import type { Capabilities, Services, Options } from '@wdio/types'
 
 import type { BrowserstackConfig, App, AppConfig, AppUploadResponse } from './types.js'
 import { VALID_APP_EXTENSION } from './constants.js'
-import { launchTestSession, shouldAddServiceVersion, stopBuildUpstream, getCiInfo } from './util.js'
+import {
+    launchTestSession,
+    shouldAddServiceVersion,
+    stopBuildUpstream,
+    getCiInfo,
+    isBStackSession
+} from './util.js'
 
 const require = createRequire(import.meta.url)
 const { version: bstackServiceVersion } = require('../package.json')
@@ -44,12 +50,17 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         if (Array.isArray(capabilities)) {
             capabilities.forEach((capability: Capabilities.DesiredCapabilities) => {
                 if (!capability['bstack:options']) {
-                    const extensionCaps = Object.keys(capability).filter((cap) => cap.includes(':'))
-                    if (extensionCaps.length) {
-                        capability['bstack:options'] = { wdioService: bstackServiceVersion }
-                    } else if (shouldAddServiceVersion(this._config, this._options.testObservability)) {
-                        capability['browserstack.wdioService'] = bstackServiceVersion
+                    // Skipping adding of service version if session is not of browserstack
+                    if (isBStackSession(this._config)) {
+                        const extensionCaps = Object.keys(capability).filter((cap) => cap.includes(':'))
+                        if (extensionCaps.length) {
+                            capability['bstack:options'] = { wdioService: bstackServiceVersion }
+                        } else if (shouldAddServiceVersion(this._config, this._options.testObservability)) {
+                            capability['browserstack.wdioService'] = bstackServiceVersion
+                        }
                     }
+
+                    // Need this details for sending data to Observability
                     this._buildIdentifier = capability['browserstack.buildIdentifier']?.toString()
                     this._buildName = capability.build?.toString()
                 } else {
@@ -63,11 +74,13 @@ export default class BrowserstackLauncherService implements Services.ServiceInst
         } else if (typeof capabilities === 'object') {
             Object.entries(capabilities as Capabilities.MultiRemoteCapabilities).forEach(([, caps]) => {
                 if (!(caps.capabilities as Capabilities.Capabilities)['bstack:options']) {
-                    const extensionCaps = Object.keys(caps.capabilities).filter((cap) => cap.includes(':'))
-                    if (extensionCaps.length) {
-                        (caps.capabilities as Capabilities.Capabilities)['bstack:options'] = { wdioService: bstackServiceVersion }
-                    } else if (shouldAddServiceVersion(this._config, this._options.testObservability)) {
-                        (caps.capabilities as Capabilities.Capabilities)['browserstack.wdioService'] = bstackServiceVersion
+                    if (isBStackSession(this._config)) {
+                        const extensionCaps = Object.keys(caps.capabilities).filter((cap) => cap.includes(':'))
+                        if (extensionCaps.length) {
+                            (caps.capabilities as Capabilities.Capabilities)['bstack:options'] = { wdioService: bstackServiceVersion }
+                        } else if (shouldAddServiceVersion(this._config, this._options.testObservability)) {
+                            (caps.capabilities as Capabilities.Capabilities)['browserstack.wdioService'] = bstackServiceVersion
+                        }
                     }
                     this._buildIdentifier = (caps.capabilities as Capabilities.Capabilities)['browserstack.buildIdentifier']
                 } else {

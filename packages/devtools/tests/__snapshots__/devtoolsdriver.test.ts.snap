@@ -1,4 +1,4 @@
-// Vitest Snapshot v1
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`setTimeouts with all timeouts 1`] = `
 Map {
@@ -22,6 +22,53 @@ Map {
   "pageLoad" => 100,
   "script" => 30000,
 }
+`;
+
+exports[`should rerun command 3 times before attempting to wait for page load 1`] = `
+[
+  [
+    "command",
+    {
+      "command": "elementClick",
+      "params": {
+        "elementId": "123",
+        "text": "some text",
+        "value": [
+          "some value",
+        ],
+      },
+      "retries": 0,
+    },
+  ],
+  [
+    "command",
+    {
+      "command": "elementClick",
+      "params": {
+        "elementId": "123",
+        "text": "some text",
+        "value": [
+          "some value",
+        ],
+      },
+      "retries": 1,
+    },
+  ],
+  [
+    "command",
+    {
+      "command": "elementClick",
+      "params": {
+        "elementId": "123",
+        "text": "some text",
+        "value": [
+          "some value",
+        ],
+      },
+      "retries": 2,
+    },
+  ],
+]
 `;
 
 exports[`should rerun command if it was executed within navigation 1`] = `

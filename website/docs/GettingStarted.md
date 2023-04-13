@@ -129,12 +129,11 @@ npx wdio run ./wdio.conf.js --suite exampleSuiteName
 
 If you would like to use WebdriverIO as an automation engine in [Standalone Mode](/docs/setuptypes#standalone-mode) within a Node.JS script you can also directly install WebdriverIO and use it as a package, e.g. to generate a screenshot of a website:
 
-```js reference
+```js reference useHTTPS
 https://github.com/webdriverio/example-recipes/blob/fc362f2f8dd823d294b9bb5f92bd5991339d4591/getting-started/run-in-script.js#L2-L19
 ```
 
 __Note:__ all WebdriverIO commands are asynchronous and need to be properly handled using [`async/await`](https://javascript.info/async-await).
-
 
 ## Record tests
 
@@ -147,4 +146,4 @@ You’ll need [Node.js](http://nodejs.org) installed.
 - Install at least v16.x or higher as this is the oldest active LTS version
 - Only releases that are or will become an LTS release are officially supported
 
-If you don't have Node installed, we recommend installing [NVM](https://github.com/creationix/nvm) to assist managing multiple active Node.js versions.
+If Node is not currently installed on your system, we suggest utilizing a tool such as [NVM](https://github.com/creationix/nvm) or [Volta](https://volta.sh/) to assist in managing multiple active Node.js versions. NVM is a popular choice, while Volta is also a good alternative.

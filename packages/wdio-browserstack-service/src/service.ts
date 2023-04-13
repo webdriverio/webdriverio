@@ -18,6 +18,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
     private _failureStatuses: string[] = ['failed', 'ambiguous', 'undefined', 'unknown']
     private _browser?: WebdriverIO.Browser
     private _suiteTitle?: string
+    private _suiteFile?: string
     private _fullTitle?: string
     private _options: BrowserstackConfig & Options.Testrunner
     private _specsRan: boolean = false
@@ -60,11 +61,12 @@ export default class BrowserstackService implements Services.ServiceInstance {
         // if no user and key is specified even though a browserstack service was
         // provided set user and key with values so that the session request
         // will fail
-        if (!config.user) {
+        const testObservabilityOptions = this._options.testObservabilityOptions
+        if (!config.user && !(testObservabilityOptions && testObservabilityOptions.user)) {
             config.user = 'NotSetUser'
         }
 
-        if (!config.key) {
+        if (!config.key && !(testObservabilityOptions && testObservabilityOptions.key)) {
             config.key = 'NotSetKey'
         }
         this._config.user = config.user
@@ -121,6 +123,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
      */
     async beforeSuite (suite: Frameworks.Suite) {
         this._suiteTitle = suite.title
+        this._insightsHandler?.setSuiteFile(suite.file)
 
         if (suite.title && suite.title !== 'Jasmine__TopLevel__Suite') {
             await this._setSessionName(suite.title)
@@ -268,6 +271,7 @@ export default class BrowserstackService implements Services.ServiceInstance {
         this._scenariosThatRan = []
         delete this._suiteTitle
         delete this._fullTitle
+        delete this._suiteFile
         this._failReasons = []
         await this._printSessionURL()
     }
