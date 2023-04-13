@@ -1,23 +1,23 @@
 ---
 id: gettingstarted
-title: Getting Started
+title: Primeros pasos
 ---
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 import CreateProjectAnimation from '../src/pages/components/CreateProjectAnimation.js'
 
-Welcome to the WebdriverIO documentation. It will help you to get started fast. If you run into problems, you can find help and answers on our [Matrix Support Channel](https://matrix.to/#/#webdriver.io:gitter.im) or you can hit me on [Twitter](https://twitter.com/webdriverio).
+Bienvenido a la página de documentación para WebdriverIO. Te ayudará a comenzar rápidamente. Si encuentras problemas puedes encontrar ayuda y respuestas en nuestro [Canal de Soporte Máximo](https://matrix.to/#/#webdriver.io:gitter.im) o puedes pulsarme en [Twitter](https://twitter.com/webdriverio).
 
 :::info
-These are the docs for the latest version (__>=8.x__) of WebdriverIO. If you are still using an older version, please visit the [old documentation websites](/versions)!
+Estos son los documentos de la última versión (__>=8.x__) de WebdriverIO. Si todavía está utilizando una versión anterior, por favor visite los [antiguos sitios web de documentación](/versions)!
 :::
 
-## Initiate a WebdriverIO Setup
+## Iniciar una configuración de WebdriverIO
 
-To add a full WebdriverIO setup to an existing or new project using the [WebdriverIO Starter Toolkit](https://www.npmjs.com/package/create-wdio), run:
+Para añadir una configuración completa de WebdriverIO a un proyecto existente o nuevo usando el [WebdriverIO Starter Toolkit](https://www.npmjs.com/package/create-wdio), ejecute:
 
-If you're in the root directory of an existing project, run:
+Si se encuentra en el directorio raíz de un proyecto existente, ejecute:
 
 <Tabs
   defaultValue="npm"
@@ -33,7 +33,7 @@ If you're in the root directory of an existing project, run:
 npm init wdio .
 ```
 
-or if you want to create a new project:
+o si desea crear un nuevo proyecto:
 
 ```sh
 npm init wdio ./path/to/new/project
@@ -46,10 +46,10 @@ npm init wdio ./path/to/new/project
 yarn create wdio .
 ```
 
-or if you want to create a new project:
+o si desea crear un nuevo proyecto:
 
 ```sh
-yarn create wdio ./path/to/new/project
+npm init wdio ./path/to/new/project
 ```
 
 </TabItem>
@@ -59,20 +59,20 @@ yarn create wdio ./path/to/new/project
 pnpm create wdio .
 ```
 
-or if you want to create a new project:
+o si desea crear un nuevo proyecto:
 
 ```sh
-pnpm create wdio ./path/to/new/project
+npm init wdio ./path/to/new/project
 ```
 
 </TabItem>
 </Tabs>
 
-This single command downloads the WebdriverIO CLI tool and runs a configuration wizard that helps you to configure your test suite.
+Este único comando descarga la herramienta CLI WebdriverIO y ejecuta un asistente de configuración que le ayuda a configurar su suite de pruebas.
 
 <CreateProjectAnimation />
 
-The wizard will prompt a set questions that guides you through the setup. You can pass a `--yes` parameter to pick a default set up which will use Mocha with Chrome using the [Page Object](https://martinfowler.com/bliki/PageObject.html) pattern.
+El asistente le preguntará a una serie de preguntas que le guiarán a través de la configuración. Puedes pasar un parámetro `--yes` para elegir una configuración predeterminada que usará Mocha con Chrome usando el patrón [Page Object](https://martinfowler.com/bliki/PageObject.html).
 
 <Tabs
   defaultValue="npm"
@@ -105,45 +105,45 @@ pnpm create wdio . --yes
 </TabItem>
 </Tabs>
 
-## Run Test
+## Ejecutar Prueba
 
-You can start your test suite by using the `run` command and pointing to the WebdriverIO config that you just created:
+Puede iniciar su suite de pruebas usando el comando `run` y apuntando a la configuración WebdriverIO que acaba de crear:
 
 ```sh
 npx wdio run ./wdio.conf.js
 ```
 
-If you like to run specific test files you can add a `--spec` parameter:
+Si quieres ejecutar archivos de prueba específicos puedes añadir un parámetro `--spec`:
 
 ```sh
 npx wdio run ./wdio.conf.js --spec example.e2e.js
 ```
 
-or define suites in your config file and run just the test files defined by in a suite:
+o definir suites en su archivo de configuración y ejecutar sólo los archivos de prueba definidos por una suite:
 
 ```sh
 npx wdio run ./wdio.conf.js --suite exampleSuiteName
 ```
 
-## Run in a script
+## Ejecutar en un script
 
-If you would like to use WebdriverIO as an automation engine in [Standalone Mode](/docs/setuptypes#standalone-mode) within a Node.JS script you can also directly install WebdriverIO and use it as a package, e.g. to generate a screenshot of a website:
+Si desea utilizar WebdriverIO como un motor de automatización en [Modo independiente](/docs/setuptypes#standalone-mode) dentro de un Nodo. Script S también puede instalar directamente WebdriverIO y usarlo como un paquete, por ejemplo, para generar una captura de pantalla de un sitio web:
 
 ```js reference useHTTPS
 https://github.com/webdriverio/example-recipes/blob/fc362f2f8dd823d294b9bb5f92bd5991339d4591/getting-started/run-in-script.js#L2-L19
 ```
 
-__Note:__ all WebdriverIO commands are asynchronous and need to be properly handled using [`async/await`](https://javascript.info/async-await).
+__Nota:__ todos los comandos WebdriverIO son asíncronos y necesitan ser manejados correctamente usando [`async/await`](https://javascript.info/async-await).
 
-## Record tests
+## Registrar pruebas
 
-WebdriverIO provides tools to help you get started by recording your test actions on screen and generate WebdriverIO test scripts automatically. See [Recorder tests with Chrome DevTools Recorder](/docs/record) for more information.
+WebdriverIO proporciona herramientas para ayudarle a comenzar grabando sus acciones de prueba en pantalla y generar scripts de prueba WebdriverIO automáticamente. Ver [Grabadoras con Chrome DevTools Recorder](/docs/record) para más información.
 
-## System Requirements
+## Requerimientos del sistema
 
-You’ll need [Node.js](http://nodejs.org) installed.
+Necesitará [Node.js](http://nodejs.org) instalado.
 
-- Install at least v16.x or higher as this is the oldest active LTS version
-- Only releases that are or will become an LTS release are officially supported
+- Instalar al menos v16.x o superior, ya que esta es la versión LTS más antigua
+- Solo los lanzamientos que se conviertan o se convertirán en una versión de LTS están oficialmente soportados
 
-If Node is not currently installed on your system, we suggest utilizing a tool such as [NVM](https://github.com/creationix/nvm) or [Volta](https://volta.sh/) to assist in managing multiple active Node.js versions. NVM is a popular choice, while Volta is also a good alternative.
+Si el nodo no está instalado en su sistema, sugerimos utilizar una herramienta como [NVM](https://github.com/creationix/nvm) o [Volta](https://volta.sh/) para ayudar a gestionar múltiples nodos activos. s versiones. NVM es una elección popular, mientras que Volta es también una buena alternativa.
