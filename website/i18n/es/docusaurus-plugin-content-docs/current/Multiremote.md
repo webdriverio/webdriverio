@@ -131,9 +131,9 @@ console.log(result[1]) // returns: 'Firefox 35 on Mac OS X (Yosemite)'
 
 Tenga en cuenta que cada comando se ejecuta uno por uno. Esto significa que el comando termina una vez que todos los navegadores lo han ejecutado. Esto es útil porque mantiene sincronizadas las acciones del navegador, lo que hace más fácil entender lo que está ocurriendo actualmente.
 
-Sometimes it is necessary to do different things in each browser in order to test something. For instance, if we want to test a chat application, there has to be one browser who sends a text message while another browser waits to receive it, and then run an assertion on it.
+A veces es necesario hacer diferentes cosas en cada navegador para probar algo. Por ejemplo, si queremos probar una aplicación de chat, tiene que haber un navegador que envíe un mensaje de texto mientras que otro navegador espera recibirlo, y luego ejecuta una afirmación en él.
 
-When using the WDIO testrunner, it registers the browser names with their instances to the global scope:
+Cuando se utiliza el testrunner WDIO, registra los nombres del navegador con sus instancias en el ámbito global:
 
 ```js
 const myChromeBrowser = browser.getInstance('myChromeBrowser')
@@ -150,12 +150,12 @@ assert.true(
 )
 ```
 
-In this example, the `myFirefoxBrowser` instance will start waiting on a message once the `myChromeBrowser` instance has clicked on `#send` button.
+En este ejemplo, la instancia `myFirefoxBrowser` comenzará a esperar en un mensaje una vez que la instancia `myChromeBrowser` haya hecho clic en el botón `#send`.
 
-Multiremote makes it easy and convenient to control multiple browsers, whether you want them doing the same thing in parallel, or different things in concert.
+Multiremote hace que sea fácil y conveniente controlar múltiples navegadores, ya sea que quieran hacer lo mismo en paralelo, o cosas diferentes en concierto.
 
-## Accessing browser instances using strings via the browser object
-In addition to accessing the browser instance via their global variables (e.g. `myChromeBrowser`, `myFirefoxBrowser`), you can also access them via the `browser` object, e.g. `browser["myChromeBrowser"]` or `browser["myFirefoxBrowser"]`. You can get a list of all your instances via `browser.instances`. This is especially useful when writing re-usable test steps that can be performed in either browser, e.g.:
+## Acceder a instancias del navegador usando cadenas a través del objeto del navegador
+Además de acceder a la instancia del navegador a través de sus variables globales (p. ej. `myChromeBrowser`, `myFirefoxBrowser`), también puede acceder a ellos a través del objeto `navegador`, e.. `navegador["myChromeBrowser"]` o `navegador["myFirefoxBrowser"]`. Puede obtener una lista de todas sus instancias a través de `browser.instances`. Esto es especialmente útil cuando se escriben pasos de prueba reutilizables que se pueden realizar en cualquiera de los dos navegadores, por ejemplo.:
 
 wdio.conf.js:
 ```js
@@ -173,12 +173,12 @@ wdio.conf.js:
     }
 ```
 
-Cucumber file:
+Archivo Cucumber:
     ```feature
-    When User A types a message into the chat
+    Cuando el usuario A escribe un mensaje en el chat
     ```
 
-Step definition file:
+Archivo de definición de paso:
 ```js
 When(/^User (.) types a message into the chat/, async (userId) => {
     await browser.getInstance(`user${userId}`).$('#message').setValue('Hi, I am Chrome')
