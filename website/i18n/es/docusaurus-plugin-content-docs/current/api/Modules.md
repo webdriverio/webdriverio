@@ -16,7 +16,7 @@ Los paquetes de protocolo ([`webdriver`](https://www.npmjs.com/package/webdriver
 
 Inicia una nueva sesión con capacidades específicas. Basado en los comandos de respuesta de sesión de diferentes protocolos serán proporcionados.
 
-##### Paramaters
+##### Parámetros
 
 - `options`: [Opciones de WebDriver](/docs/configuration#webdriver-options)
 - `modifier`: función que permite modificar la instancia del cliente antes de que sea devuelta
@@ -46,7 +46,7 @@ Se adjunta a una sesión de WebDriver o DevTools en ejecución.
 - `userPrototype`: objeto de propiedades que permite extender el prototipo de instancia
 - `customCommandWrapper`: función que permite envolver la funcionalidad alrededor de llamadas de función
 
-##### Returns
+##### Retornos
 
 - [Browser](/docs/api/browser) object
 
@@ -85,7 +85,7 @@ Inicia una sesión WebdriverIO. La instancia contiene todos los comandos como el
 - `options`: [Opciones de WebDriver](/docs/configuration#webdriverio)
 - `modifier`: función que permite modificar la instancia del cliente antes de que sea devuelta
 
-##### Returns
+##### Retornos
 
 - [Objeto del navegador](/docs/api/browser)
 
@@ -107,7 +107,7 @@ Se adjunta a una sesión de WebDriver o DevTools en ejecución.
 
 - `attachOptions`: instance to attach a session to or at least an object with a property `sessionId` (e.g. `{ sessionId: 'xxx' }`)
 
-##### Returns
+##### Retornos
 
 - [Objeto del navegador](/docs/api/browser)
 
@@ -128,7 +128,7 @@ Inicia una instancia multiremota que le permite controlar varias sesiones dentro
 
 - `multiremoteOptions`: un objeto con claves que representan el nombre del navegador y sus [Opciones WebdriverIO](/docs/configuration#webdriverio).
 
-##### Returns
+##### Retornos
 
 - [Objeto del navegador](/docs/api/browser)
 
