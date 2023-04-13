@@ -1,21 +1,21 @@
 ---
 id: githubactions
-title: Github Actions
+title: Acciones de Github
 ---
 
-If your repository is hosted on Github, you can use [Github Actions](https://docs.github.com/en/actions/getting-started-with-github-actions/about-github-actions#about-github-actions) to run your tests on Github's infrastructure.
+Si su repositorio está alojado en Github, puede usar [Github Actions](https://docs.github.com/en/actions/getting-started-with-github-actions/about-github-actions#about-github-actions) para ejecutar sus pruebas en la infraestructura de Github.
 
-1. everytime you push changes
-2. on every pull request creation
-3. on scheduled time
-4. by manual trigger
+1. cada vez que envíes cambios
+2. en cada creación del pull request
+3. tiempo programado
+4. por activación manual
 
-In the root of your repository, create a `.github/workflows` directory. Add a Yaml file, for example `.github/workflows/ci.yaml`. In there you will configure how to run your tests.
+En la raíz de su repositorio, cree un directorio `.github/workflows`. Añade un archivo Yaml, por ejemplo `.github/workflows/ci.yaml`. Allí se configurará cómo ejecutar las pruebas.
 
-See [jasmine-boilerplate](https://github.com/webdriverio/jasmine-boilerplate/blob/master/.github/workflows/ci.yaml) for reference implementation, and [sample test runs](https://github.com/webdriverio/jasmine-boilerplate/actions?query=workflow%3ACI).
+Vea [jasmine-boilerplate](https://github.com/webdriverio/jasmine-boilerplate/blob/master/.github/workflows/ci.yaml) para la implementación de referencia, y [prueba de muestra se ejecuta](https://github.com/webdriverio/jasmine-boilerplate/actions?query=workflow%3ACI).
 
 ```yaml reference
 https://github.com/webdriverio/jasmine-boilerplate/blob/master/.github/workflows/ci.yaml
 ```
 
-Find out in the [Github Docs](https://docs.github.com/en/actions/configuring-and-managing-workflows/configuring-a-workflow#creating-a-workflow-file) on more information about creating workflow files.
+Descubre en [Github Docs](https://docs.github.com/en/actions/configuring-and-managing-workflows/configuring-a-workflow#creating-a-workflow-file) sobre más información sobre cómo crear archivos de flujo de trabajo.
