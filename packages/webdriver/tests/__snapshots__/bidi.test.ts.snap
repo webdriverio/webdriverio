@@ -1,4 +1,4 @@
-// Vitest Snapshot v1
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`BidiHandler > send > fails if sending a message while not connected 1`] = `[Error: No connection to WebDriver Bidi was established]`;
 

@@ -264,8 +264,9 @@ export const findStrategy = function (selector: SelectorStrategy, isW3C?: boolea
                     : `@${attrName}`
             )
         }
+        const partialNot = ` and not(${`.//${tag || '*'}${conditions.length ? `[${conditions.join(' and ')}]` : ''}`})`
         conditions.push(
-            partial ? `contains(text(), "${query}")` : `normalize-space(text()) = "${query}"`
+            partial ? `contains(., "${query}")${partialNot}` : `normalize-space(text()) = "${query}"`
         )
         const getValue = () => `.//${tag || '*'}[${conditions.join(' and ')}]`
         value = getValue()

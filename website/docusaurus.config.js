@@ -136,7 +136,7 @@ module.exports = {
             }],
             logo: {
                 alt: 'OpenJS Foundation Logo',
-                src: '/img/open-jsf-logo.svg',
+                src: 'https://raw.githubusercontent.com/openjs-foundation/artwork/main/openjs_foundation/openjs_foundation-logo-horizontal-color-dark_background.svg',
                 href: 'https://openjsf.org/'
             },
             copyright: `Copyright © ${new Date().getFullYear()} OpenJS Foundation`,

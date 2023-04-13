@@ -150,7 +150,7 @@ export function setUserHookNames (options: typeof supportCodeLibraryBuilder) {
  * @param {*} testCase
  */
 export function filterPickles (capabilities: Capabilities.RemoteCapability, pickle?: Pickle) {
-    const skipTag = /^@skip\((.*)\)$/
+    const skipTag = /^@skip$|^@skip\((.*)\)$/
 
     const match = (value: string, expr: RegExp) => {
         if (Array.isArray(expr)) {

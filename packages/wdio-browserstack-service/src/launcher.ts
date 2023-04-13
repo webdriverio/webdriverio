@@ -15,7 +15,14 @@ import type { Capabilities, Services, Options } from '@wdio/types'
 
 import type { BrowserstackConfig, App, AppConfig, AppUploadResponse } from './types.js'
 import { VALID_APP_EXTENSION } from './constants.js'
-import { launchTestSession, shouldAddServiceVersion, stopBuildUpstream, getCiInfo, isBStackSession, setConfigDetails } from './util.js'
+import {
+    launchTestSession,
+    shouldAddServiceVersion,
+    stopBuildUpstream,
+    getCiInfo,
+    isBStackSession,
+    setConfigDetails
+} from './util.js'
 
 const require = createRequire(import.meta.url)
 const { version: bstackServiceVersion } = require('../package.json')

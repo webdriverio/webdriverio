@@ -161,6 +161,18 @@ describe('utils', () => {
             id: '123',
             tags: [{ name: '@skip(something=weird)' }]
         } as any)).toBe(false)
+        expect(filterPickles({
+            browserName: 'chrome'
+        }, {
+            id: '123',
+            tags: [{ name: '@skip(browserName="chrome")' }]
+        } as any)).toBe(false)
+        expect(filterPickles({
+            browserName: 'chrome'
+        }, {
+            id: '123',
+            tags: [{ name: '@skip_local' }]
+        } as any)).toBe(true)
     })
 
     it('addKeywordToStep should add keywords to the steps', () => {

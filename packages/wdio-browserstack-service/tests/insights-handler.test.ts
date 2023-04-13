@@ -381,20 +381,40 @@ describe('getHierarchy', () => {
 describe('beforeTest', () => {
     let insightsHandler
 
-    beforeEach(() => {
-        insightsHandler = new InsightsHandler(browser, false, 'framework')
-        insightsHandler['sendTestRunEvent'] = vi.fn().mockImplementation(() => { return [] })
-        vi.spyOn(utils, 'getUniqueIdentifier').mockReturnValue('test title')
-        insightsHandler['_tests'] = {}
-        insightsHandler['_hooks'] = {
-            'test title': ['hook_id']
-        }
+    describe('mocha', () => {
+        beforeEach(() => {
+            insightsHandler = new InsightsHandler(browser, false, 'mocha')
+            insightsHandler['sendTestRunEvent'] = vi.fn().mockImplementation(() => { return [] })
+            vi.spyOn(utils, 'getUniqueIdentifier').mockReturnValue('test title')
+            insightsHandler['_tests'] = {}
+            insightsHandler['_hooks'] = {
+                'test title': ['hook_id']
+            }
+        })
+
+        it('update test data', async () => {
+            await insightsHandler.beforeTest({ parent: 'parent', title: 'test' } as any)
+            expect(insightsHandler['_tests']).toEqual({ 'test title': { uuid: '123456789', startedAt: '2020-01-01T00:00:00.000Z' } })
+            expect(insightsHandler['sendTestRunEvent']).toBeCalledTimes(1)
+        })
     })
 
-    it('update test data', async () => {
-        await insightsHandler.beforeTest({ parent: 'parent', title: 'test' } as any)
-        expect(insightsHandler['_tests']).toEqual({ 'test title': { uuid: '123456789', startedAt: '2020-01-01T00:00:00.000Z' } })
-        expect(insightsHandler['sendTestRunEvent']).toBeCalledTimes(1)
+    describe('jasmine', () => {
+        beforeEach(() => {
+            insightsHandler = new InsightsHandler(browser, false, 'jasmine')
+            insightsHandler['sendTestRunEvent'] = vi.fn().mockImplementation(() => { return [] })
+            vi.spyOn(utils, 'getUniqueIdentifier').mockReturnValue('test title')
+            insightsHandler['_tests'] = {}
+            insightsHandler['_hooks'] = {
+                'test title': ['hook_id']
+            }
+        })
+
+        it('update test data', async () => {
+            await insightsHandler.beforeTest({ parent: 'parent', fullName: 'parent test' } as any)
+            expect(insightsHandler['_tests']).toEqual({ 'test title': { uuid: '123456789', startedAt: '2020-01-01T00:00:00.000Z' } })
+            expect(insightsHandler['sendTestRunEvent']).toBeCalledTimes(1)
+        })
     })
 })
 
@@ -403,7 +423,7 @@ describe('beforeHook', () => {
 
     describe('mocha', () => {
         beforeEach(() => {
-            insightsHandler = new InsightsHandler(browser, false, 'framework')
+            insightsHandler = new InsightsHandler(browser, false, 'mocha')
             insightsHandler['sendTestRunEvent'] = vi.fn().mockImplementation(() => { return [] })
             insightsHandler['attachHookData'] = vi.fn().mockImplementation(() => { return [] })
             insightsHandler['_tests'] = {}
@@ -413,6 +433,7 @@ describe('beforeHook', () => {
         beforeEach(() => {
             vi.mocked(insightsHandler['sendTestRunEvent']).mockClear()
             vi.mocked(insightsHandler['attachHookData']).mockClear()
+            vi.spyOn(utils, 'getUniqueIdentifier').mockReturnValue('parent - test')
         })
 
         it('update hook data', async () => {
@@ -424,7 +445,7 @@ describe('beforeHook', () => {
 
     describe('cucumber', () => {
         beforeEach(() => {
-            insightsHandler = new InsightsHandler(browser, false, 'framework')
+            insightsHandler = new InsightsHandler(browser, false, 'cucumber')
             insightsHandler['sendTestRunEvent'] = vi.fn().mockImplementation(() => { return [] })
             insightsHandler['attachHookData'] = vi.fn().mockImplementation(() => { return [] })
             insightsHandler['_tests'] = {}

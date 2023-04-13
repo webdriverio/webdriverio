@@ -37,6 +37,8 @@ export default class DevTools {
         userPrototype = {},
         customCommandWrapper?: Function
     ): Promise<Client> {
+        const envLogLevel = process.env.WDIO_LOG_LEVEL as Options.WebDriverLogTypes | undefined
+        options.logLevel = envLogLevel ?? options.logLevel
         const params = validateConfig(DEFAULTS, options)
 
         if (params.logLevel && (!options.logLevels || !(options.logLevels as any).devtools)) {
