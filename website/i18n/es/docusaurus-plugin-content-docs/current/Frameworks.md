@@ -1,23 +1,23 @@
 ---
 id: frameworks
-title: Frameworks
+title: Marcos de trabajo
 ---
 
-The WDIO runner currently supports [Mocha](http://mochajs.org/),  [Jasmine](http://jasmine.github.io/), and [Cucumber](https://cucumber.io/).
+El corredor WDIO actualmente soporta [Mocha](http://mochajs.org/),  [Jasmine](http://jasmine.github.io/), y [Cupeber](https://cucumber.io/).
 
-To integrate each framework with WebdriverIO, there are adapter packages on NPM which must be installed. You cannot install the adapters just anywhere; these packages must be installed in the same location WebdriverIO is installed. So, if you installed WebdriverIO globally, be sure to install the adapter package globally, too.
+Para integrar cada marco con WebdriverIO, hay paquetes adaptadores en NPM que deben ser instalados. No puede instalar los adaptadores en cualquier lugar; estos paquetes deben estar instalados en el mismo lugar en el que está instalado WebdriverIO. Por lo tanto, si ha instalado WebdriverIO globalmente, asegúrese de instalar el paquete adaptador a nivel global, también.
 
-Within your spec files (or step definitions), you can access the WebDriver instance using the global variable `browser`. (You don't need to initiate or end the Selenium session. This is taken care of by the `wdio` testrunner.)
+Dentro de sus archivos específicos (o definiciones de pasos), puede acceder a la instancia de WebDriver usando la variable global `browser`. (No es necesario iniciar o terminar la sesión de Selenium. Esto es tomado en cuenta por el testrunner `wdio`.)
 
-## Using Mocha
+## Uso de Mocha
 
-First, install the adapter package from NPM:
+Primero, instale el paquete adaptador desde NPM:
 
 ```bash npm2yarn
 npm install @wdio/mocha-framework --save-dev
 ```
 
-By default WebdriverIO provides an [assertion library](Assertion.md) that is built-in which you can start right away:
+Por defecto, WebdriverIO proporciona una librería de aserción [](Assertion.md) que está integrada y que puede comenzar de inmediato:
 
 ```js
 describe('my awesome website', () => {
@@ -28,9 +28,9 @@ describe('my awesome website', () => {
 })
 ```
 
-WebdriverIO supports Mocha's `BDD` (default), `TDD`, and `QUnit` [interfaces](https://mochajs.org/#interfaces).
+WebdriverIO soporta `BDD` de Mocha (por defecto), `TDD`y `QUnit` [interfaces](https://mochajs.org/#interfaces).
 
-If you like to write your specs in TDD style, set the `ui` property in your `mochaOpts` config to `tdd`. Now your test files should be written like this:
+Si te gusta escribir tus especificaciones en estilo TDD, establecer la propiedad `ui` en la configuración `mochaOpts` a `tdd`. Ahora los archivos de prueba deben ser escritos así:
 
 ```js
 suite('my awesome website', () => {
@@ -41,9 +41,9 @@ suite('my awesome website', () => {
 })
 ```
 
-If you want to define other Mocha-specific settings, you can do it with the `mochaOpts` key in your configuration file. A list of all options can be found on the [Mocha project website](https://mochajs.org/api/mocha).
+Si desea definir otras configuraciones específicas de Mocha, puede hacerlo con la clave `mochaOpts` en su archivo de configuración. Puede encontrar una lista de todas las opciones en el sitio web [del proyecto Mocha](https://mochajs.org/api/mocha).
 
-__Note:__ WebdriverIO does not support the deprecated usage of `done` callbacks in Mocha:
+__Nota:__ WebdriverIO no soporta el uso obsoleto de `done` callbacks en Mocha:
 
 ```js
 it('should test something', (done) => {
@@ -51,104 +51,104 @@ it('should test something', (done) => {
 })
 ```
 
-If you want to run something asynchronously, you can either use the [`browser.call`](/docs/api/browser/call) command or [custom commands](CustomCommands.md).
+Si desea ejecutar algo asincrónicamente, puede usar el comando [`browser.call`](/docs/api/browser/call) o [comandos personalizados](CustomCommands.md).
 
-### Mocha Options
+### Opciones de Mocha
 
-The following options can be applied in your `wdio.conf.js` to configure your Mocha environment. __Note:__ not all options are supported, e.g. applying the `parallel` option will cause an error as the WDIO testrunner has its own way to run tests in parallel. The following options however are supported:
+Las siguientes opciones se pueden aplicar en su `wdio.conf.js` para configurar su entorno Mocha. __Nota:__ no todas las opciones son compatibles, p. ej. aplicar la opción `paralela` causará un error ya que el testrunner WDIO tiene su propia manera de ejecutar pruebas en paralelo. Se pueden ejecutar las siguientes acciones:
 
-#### require
-The `require` option is useful when you want to add or extend some basic functionality (WebdriverIO framework option).
+#### requerido
+La opción `require` es útil cuando desea agregar o extender alguna funcionalidad básica (opción de framework WebdriverIo).
 
-Type: `string|string[]`<br /> Default: `[]`
+Tipo: `String`<br /> Predeterminado: `localhost`
 
-#### compilers
-Use the given module(s) to compile files. Compilers will be included before requires (WebdriverIO framework option).
+#### compiladores
+Use el/los módulo(s) dados para compilar archivos. Los compiladores serán incluidos antes de lo requerido (opción de framework WebdriverIo).
 
-Type: `string[]`<br /> Default: `[]`
+Tipo: `String`<br /> Predeterminado: `localhost`
 
 #### allowUncaught
-Propagate uncaught errors.
+Propagar errores no detectados.
 
-Type: `boolean`<br /> Default: `false`
+Tipo: `String`<br /> Predeterminado: `localhost`
 
 #### bail
-Bail after first test failure.
+Respuesta después de la primera prueba fallida.
 
-Type: `boolean`<br /> Default: `false`
+Tipo: `String`<br /> Predeterminado: `localhost`
 
 #### checkLeaks
-Check for global variable leaks.
+Comprobar las fugas globales de variables.
 
-Type: `boolean`<br /> Default: `false`
+Tipo: `String`<br /> Predeterminado: `localhost`
 
-#### delay
-Delay root suite execution.
+#### retraso
+Retrasar la ejecución de la suite root.
 
-Type: `boolean`<br /> Default: `false`
+Tipo: `String`<br /> Predeterminado: `localhost`
 
 #### fgrep
-Test filter given string.
+Evalúa el filtro dado de cadena.
 
-Type: `string`<br /> Default: `null`
+Tipo: `String`<br /> Predeterminado: `localhost`
 
 #### forbidOnly
-Tests marked `only` fail the suite.
+Las pruebas marcan `solo` fallaron en la suite.
 
-Type: `boolean`<br /> Default: `false`
+Tipo: `String`<br /> Predeterminado: `localhost`
 
 #### forbidPending
-Pending tests fail the suite.
+Las pruebas pendientes fallan en la suite.
 
-Type: `boolean`<br /> Default: `false`
+Tipo: `String`<br /> Predeterminado: `localhost`
 
 #### fullTrace
-Full stacktrace upon failure.
+Rastros completos en caso de falla.
 
-Type: `boolean`<br /> Default: `false`
+Tipo: `boolean`<br /> Predeterminado: `false`
 
 #### global
-Variables expected in global scope.
+Variables esperadas en el ámbito global.
 
 Type: `string[]`<br /> Default: `[]`
 
 #### grep
-Test filter given regular expression.
+Evalúa el filtro de expresión regular.
 
-Type: `RegExp|string`<br /> Default: `null`
+Tipo: `RegExp|string`<br /> Predeterminado: `null`
 
 #### invert
-Invert test filter matches.
+Invertir filtros de prueba.
 
-Type: `boolean`<br /> Default: `false`
+Tipo: `boolean`<br /> Predeterminado: `false`
 
 #### retries
-Number of times to retry failed tests.
+Número de veces para volver a intentar pruebas fallidas.
 
 Type: `number`<br /> Default: `0`
 
 #### timeout
-Timeout threshold value (in ms).
+Valor límite de tiempo de espera (en ms).
 
-Type: `number`<br /> Default: `30000`
+Tipo: `String`<br /> Predeterminado: `localhost`
 
-## Using Jasmine
+## Utilizando Jasmine
 
-First, install the adapter package from NPM:
+Primero, instale el paquete adaptador de NPM:
 
 ```bash npm2yarn
 npm install @wdio/jasmine-framework --save-dev
 ```
 
-You can then configure your Jasmine environment by setting a `jasmineOpts` property in your config. A list of all options can be found on the [Jasmine project website](https://jasmine.github.io/api/3.5/Configuration.html).
+A continuación, puede configurar su entorno Jasmine configurando una propiedad `jasmineOpts` en su configuración. Puede encontrar una lista de todas las opciones en el sitio web [del proyecto Mocha](https://jasmine.github.io/api/3.5/Configuration.html).
 
-### Intercept Assertion
+### Interceptar Aserción
 
-The Jasmine framework allows it to intercept each assertion in order to log the state of the application or website, depending on the result.
+El framework de Jasmine le permite interceptar cada afirmación para registrar el estado de la aplicación o sitio web, dependiendo del resultado.
 
-For example, it is pretty handy to take a screenshot every time an assertion fails. In your `jasmineOpts` you can add a property called `expectationResultHandler` that takes a function to execute. The function’s parameters provide information about the result of the assertion.
+Por ejemplo, es bastante práctico tomar una captura de pantalla cada vez que una afirmación falla. En tu `jasmineOpts` puedes añadir una propiedad llamada `expectationResultHandler` que toma una función para ejecutar. Los parámetros de la función proporcionan información acerca del resultado de la afirmación.
 
-The following example demonstrates how to take a screenshot if an assertion fails:
+El siguiente ejemplo muestra cómo tomar una captura de pantalla si una afirmación falla:
 
 ```js
 jasmineOpts: {
@@ -166,89 +166,89 @@ jasmineOpts: {
 },
 ```
 
-**Note:** You cannot stop test execution to do something async. It might happen that the command takes too much time and the website state has changed. (Though usually, after another 2 commands the screenshot is taken anyway, which still gives _some_ valuable information about the error.)
+**Nota:** No se puede detener la ejecución de la prueba para hacer algo asíncrono. Puede suceder que el comando tome demasiado tiempo y el estado del sitio web haya cambiado. (Aunque normalmente, después de otros 2 comandos se hace la captura de pantalla de todos modos, lo que sigue proporcionando _alguna información valiosa sobre el error_)
 
-### Jasmine Options
+### Opciones de Jasmine
 
-The following options can be applied in your `wdio.conf.js` to configure your Jasmine environment using the `jasmineOpts` property. For more information on these configuration options, check out the [Jasmine docs](https://jasmine.github.io/api/edge/Configuration).
+Las siguientes opciones pueden ser aplicadas en su `wdio.conf.js` para configurar su entorno de Jasmine utilizando la propiedad `jasmineOpts`. For more information on these configuration options, check out the [Jasmine docs](https://jasmine.github.io/api/edge/Configuration).
 
 #### defaultTimeoutInterval
-Default Timeout Interval for Jasmine operations.
+Intervalo de tiempo de espera por defecto para las operaciones de Jasmin.
 
-Type: `number`<br /> Default: `60000`
+Tipo: `String`<br /> Predeterminado: `localhost`
 
 #### helpers
-Array of filepaths (and globs) relative to spec_dir to include before jasmine specs.
+Matriz de rutas de archivo (y globos) relativas a spec_dir para incluir antes de jasmine specs.
 
-Type: `string[]`<br /> Default: `[]`
+Tipo: `String`<br /> Predeterminado: `localhost`
 
-#### requires
-The `requires` option is useful when you want to add or extend some basic functionality.
+#### requerido
+La opción `requiere` es útil cuando desea agregar o ampliar alguna funcionalidad básica.
 
-Type: `string[]`<br /> Default: `[]`
+Tipo: `String`<br /> Predeterminado: `localhost`
 
-#### random
-Whether to randomize spec execution order.
+#### aleatorio
+Si aleatoriza o no el orden de ejecución de las especificaciones.
 
-Type: `boolean`<br /> Default: `true`
+Tipo: `boolean`<br /> Predeterminado: `false`
 
-#### seed
-Seed to use as the basis of randomization. Null causes the seed to be determined randomly at the start of execution.
+#### semilla
+Semilla a utilizar como base de la aleatorización. Null hace que la semilla se determine aleatoriamente al inicio de la ejecución.
 
-Type: `Function`<br /> Default: `null`
+Tipo: `String`<br /> Predeterminado: `localhost`
 
 #### failSpecWithNoExpectations
-Whether to fail the spec if it ran no expectations. By default a spec that ran no expectations is reported as passed. Setting this to true will report such spec as a failure.
+Si falló o no la especificación si no cumplió ninguna expectativa. Por defecto se reporta una especificación que no ha ejecutado ninguna expectativa como se ha pasado. Establecer esto como verdadero reportará tal especificación como un fracaso.
 
-Type: `boolean`<br /> Default: `false`
+Tipo: `boolean`<br /> Predeterminado: `false`
 
 #### oneFailurePerSpec
-Whether to cause specs to only have one expectation failure.
+Si provocar que las especificaciones sólo tengan un fallo de expectativa.
 
-Type: `boolean`<br /> Default: `false`
+Tipo: `boolean`<br /> Predeterminado: `false`
 
 #### specFilter
-Function to use to filter specs.
+Función a utilizar para filtrar las especificaciones.
 
-Type: `Function`<br /> Default: `(spec) => true`
+Tipo: `Función`<br /> Predeterminada: `(spec) => true`
 
 #### grep
-Only run tests matching this string or regexp. (Only applicable if no custom `specFilter` function is set)
+Ejecute sólo pruebas que coincidan con esta cadena o regexp. (Sólo aplicable si no se establece ninguna función personalizada `specFilter`)
 
-Type: `string|Regexp`<br /> Default: `null`
+Tipo: `String`<br /> Predeterminado: `localhost`
 
 #### invertGrep
-If true it inverts the matching tests and only runs tests that don't match with the expression used in `grep`. (Only applicable if no custom `specFilter` function is set)
+Si es verdadero, invierte las pruebas coincidentes y solo ejecuta pruebas que no coincidan con la expresión usada en `grep`. (Sólo aplicable si no se establece ninguna función personalizada `specFilter`)
 
-Type: `boolean`<br /> Default: `false`
+Tipo: `boolean`<br /> Predeterminado: `false`
 
-## Using Cucumber
+## Utilizando Cucumber
 
-First, install the adapter package from NPM:
+Primero, instale el paquete adaptador de NPM:
 
 ```bash npm2yarn
 npm install @wdio/cucumber-framework --save-dev
 ```
 
-If you want to use Cucumber, set the `framework` property to `cucumber` by adding `framework: 'cucumber'` to the [config file](ConfigurationFile.md).
+Si quieres usar pepino, establece la propiedad `framework` a `cupeber` añadiendo `framework: 'cupeber'` al archivo de configuración [](ConfigurationFile.md).
 
-Options for Cucumber can be given in the config file with `cucumberOpts`. Check out the whole list of options [here](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-cucumber-framework#cucumberopts-options).
+Las opciones para Cucumber se pueden dar en el archivo de configuración con `cucumberOpts`. Echa un vistazo a la lista completa de opciones [aquí](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-cucumber-framework#cucumberopts-options).
 
-To get up and running quickly with Cucumber, have a look on our [`cucumber-boilerplate`](https://github.com/webdriverio/cucumber-boilerplate) project that comes with all the step definitions you need to get stared, and you'll be writing feature files right away.
+Para levantarse y funcionar rápidamente con Cupeber, échale un vistazo a nuestro proyecto [`pepino boilerplate`](https://github.com/webdriverio/cucumber-boilerplate) que viene con todas las definiciones de pasos que necesitas para empezar, y estarás escribiendo archivos de características de inmediato.
 
-### Cucumber Options
+### Opciones de Cucumber
 
-The following options can be applied in your `wdio.conf.js` to configure your Cucumber environment using the `cucumberOpts` property:
+Las siguientes opciones pueden ser aplicadas en su `wdio.conf.js` para configurar su entorno de Jasmine utilizando la propiedad `jasmineOpts`:
 
 #### backtrace
-Show full backtrace for errors.
+Mostrar el backtrace completo para errores.
 
-Type: `Boolean`<br /> Default: `true`
+Tipo: `boolean`<br /> Predeterminado: `false`
 
 #### requireModule
-Require modules prior to requiring any support files.
+Requiere módulos antes de requerir cualquier archivo de soporte.
 
-Type: `string[]`<br /> Default: `[]`<br /> Example:
+Tipo: `String`<br /> Predeterminado: `localhost`:
 
 ```js
 cucumberOpts: {
@@ -267,34 +267,34 @@ cucumberOpts: {
  ```
 
 #### failAmbiguousDefinitions
-Treat ambiguous definitions as errors. Please note that this is a `@wdio/cucumber-framework` specific option and not recognized by cucumber-js itself.
+Tratar definiciones ambigüas como errores. Tenga en cuenta que esta es una opción específica de `@wdio/cucumber-framework` y no reconocida por cucumber-js mismo.
 
-Type: `boolean`<br /> Default: `false`
+Tipo: `boolean`<br /> Predeterminado: `false`
 
 #### failFast
-Abort the run on first failure.
+Abordar la ejecución en el primer fallo.
 
-Type: `boolean`<br /> Default: `false`
+Tipo: `boolean`<br /> Predeterminado: `false`
 
 #### ignoreUndefinedDefinitions
-Treat undefined definitions as warnings. Please note that this is a @wdio/cucumber-framework specific option and not recognized by cucumber-js itself.
+Tratar las definiciones indefinidas como advertencias. Tenga en cuenta que esta es una opción específica @wdio/cucumber-framework y no reconocida por cucumber-js mismo.
 
-Type: `boolean`<br /> Default: `false`
+Tipo: `boolean`<br /> Predeterminado: `false`
 
-#### names
-Only execute the scenarios with name matching the expression (repeatable).
+#### nombre
+Ejecutar sólo los escenarios con el nombre que coincide con la expresión (repetible).
 
-Type: `RegExp[]`<br /> Default: `[]`
+Tipo: `String`<br /> Predeterminado: `localhost`
 
-#### profile
-Specify the profile to use.
+#### perfil
+Especifica la tabla de Cc para su uso.
 
-Type: `string[]`<br /> Default: `[]`
+Tipo: `String`<br /> Predeterminado: `localhost`
 
-#### require
-Require files containing your step definitions before executing features. You can also specify a glob to your step definitions.
+#### requerir
+Requiere archivos que contengan sus definiciones de paso antes de ejecutar características. También puedes especificar un glob a tus definiciones de pasos.
 
-Type: `string[]`<br /> Default: `[]` Example:
+Tipo: `String`<br /> Predeterminado: `localhost`:
 
 ```js
 cucumberOpts: {
@@ -303,69 +303,69 @@ cucumberOpts: {
 ```
 
 #### snippetSyntax
-Specify a custom snippet syntax.
+Especifica una sintaxis de fragmento personalizada.
 
-Type: `string`<br /> Default: `null`
+Tipo: `String`<br /> Predeterminado: `localhost`
 
 #### snippets
-Hide step definition snippets for pending steps.
+Ocultar fragmentos de definición de paso para pasos pendientes.
 
-Type: `boolean`<br /> Default: `true`
+Tipo: `boolean`<br /> Predeterminado: `false`
 
-#### source
-Hide source uris.
+#### origen
+Ocultar uris de origen.
 
-Type: `boolean`<br /> Default: `true`
+Tipo: `boolean`<br /> Predeterminado: `false`
 
-#### strict
-Fail if there are any undefined or pending steps.
+#### estricto
+Fallo si hay algún paso indefinido o pendiente.
 
-Type: `boolean`<br /> Default: `false`
+Tipo: `boolean`<br /> Predeterminado: `false`
 
 #### tagExpression
-Only execute the features or scenarios with tags matching the expression. Please see the [Cucumber documentation](https://docs.cucumber.io/cucumber/api/#tag-expressions) for more details.
+Sólo ejecutar las características o escenarios con etiquetas que coincidan con la expresión. Consulte la [documentación de Cucumber](https://docs.cucumber.io/cucumber/api/#tag-expressions) para más detalles.
 
-Type: `string`<br /> Default: `null`
+Tipo: `String`<br /> Predeterminado: `localhost`
 
 #### tagsInTitle
-Add cucumber tags to feature or scenario name.
+Añadir etiquetas de Cucumber a la característica o al nombre del escenario.
 
-Type: `boolean`<br /> Default: `false`
+Tipo: `boolean`<br /> Predeterminado: `false`
 
 #### timeout
-Timeout in milliseconds for step definitions.
+Tiempo de espera en milisegundos para definiciones de pasos.
 
-Type: `number`<br /> Default: `30000`
+Tipo: `String`<br /> Predeterminado: `localhost`
 
-### Skipping tests in cucumber
+### Omitiendo pruebas en Cucumber
 
-Note that if you want to skip a test using regular cucumber test filtering capabilities available in `cucumberOpts`, you will do it for all the browsers and devices configured in the capabilities. In order to be able to skip scenarios only for specific capabilities combinations without having a session started if not necessary, webdriverio provides the following specific tag syntax for cucumber:
+Ten en cuenta que si quieres saltar una prueba usando las capacidades de filtrado de pruebas de pepino regulares disponibles en `cucumberOpts`, lo haremos para todos los navegadores y dispositivos configurados en las capacidades. Para poder omitir escenarios sólo para combinaciones de capacidades específicas sin tener una sesión iniciada si no es necesario, webdriverio proporciona la siguiente sintaxis específica de etiquetas para pepinos:
 
 `@skip([condition])`
 
-were condition is an optional combination of capabilities properties with their values that when **all** matched with cause the tagged scenario or feature to be skipped. Of course you can add several tags to scenarios and features to skip a tests under several different conditions.
+cuando la condición es una combinación opcional de propiedades de capacidades con sus valores que cuando **todas** coinciden con hace que el escenario o la característica etiquetada se omita. Por supuesto, puede añadir varias etiquetas a escenarios y características para omitir una prueba bajo varias condiciones diferentes.
 
-You can also use the '@skip' annotation to skip tests without changing `tagExpression'. In this case the skipped tests will be displayed in the test report.
+También puede usar la anotación '@skip' para saltar pruebas sin cambiar 'tagExpression'. En este caso las pruebas omitidas se mostrarán en el informe de pruebas.
 
-Here you have some examples of this syntax:
-- `@skip` or `@skip()`: will always skip the tagged item
-- `@skip(browserName="chrome")`: the test will not be executed against chrome browsers.
-- `@skip(browserName="firefox";platformName="linux")`: will skip the test in firefox over linux executions.
-- `@skip(browserName=["chrome","firefox"])`: tagged items will be skipped for both chrome and firefox browsers.
-- `@skip(browserName=/i.*explorer/`: capabilities with browsers matching the regexp will be skipped (like `iexplorer`, `internet explorer`, `internet-explorer`, ...).
+Aquí tienes algunos ejemplos de esta sintaxis:
+- `@skip` o `@skip()`: siempre omitirá el elemento etiquetado
+- `@skip(browserName="chrome")`: la prueba no se ejecutará contra los navegadores chrome.
+- `@skip(browserName="firefox";platformName="linux")`: omitirá la prueba en firefox sobre ejecuciones de linux.
+- `@skip(browserName=["cromo","firefox"])`: los elementos etiquetados serán omitidos para los navegadores de cromo y firefox.
+- `@skip(browserName=/i. explorer/`: las capacidades con navegadores que coincidan con la expresión regular se omitirán (como `iexplorer`, `explorador de Internet`, `explorador de Internet`, . .).
 
-### Import Step Definition Helper
+### Importar ayuda de definición de pasos
 
-In order to use step definition helper like `Given`, `When` or `Then` or hooks, you are suppose to import then from `@cucumber/cucumber`, e.g. like this:
+Para utilizar el ayudante de definición de pasos como `dado`, `Cuando` o `Luego` o ganchos, se supone que se importará desde `@cucumber/pepino`, e.. como esto:
 
 ```js
-import { Given, When, Then } from '@cucumber/cucumber'
+importar { Given, When, Then } desde '@cucumber/cucumber'
 ```
 
-Now, if you use Cucumber already for other types of tests unrelated to WebdriverIO for which you use a specific version you need to import these helpers in your e2e tests from the WebdriverIO Cucumber package, e.g.:
+Ahora, si usted usa Cucumber para otros tipos de pruebas no relacionadas con WebdriverIO para la cual usted utiliza una versión específica que necesita para importar estos ayudantes en sus pruebas e2e del paquete WebdriverIO Cupeber, p.ej.:
 
 ```js
 import { Given, When, Then } from '@wdio/cucumber-framework'
 ```
 
-This ensures that you use the right helpers within the WebdriverIO framework and allows you to use an independant Cucumber version for other types of testing.
+Esto asegura que usted utilice los ayudantes adecuados dentro del framework WebdriverIO y le permite usar una versión independiente de Cupeber para otros tipos de pruebas.
