@@ -3,17 +3,17 @@ id: driverbinaries
 title: Driver Binaries
 ---
 
-To run automation based on the WebDriver protocol you need to have browser drivers set up that translate the automation commands and are able execute them in the browser. The following describes how you can set up each driver individually. You can find a list with all drivers in the [`awesome-selenium`](https://github.com/christian-bromann/awesome-selenium#driver) README.
+Para ejecutar la automatización basada en el protocolo WebDriver usted necesita tener los controladores del navegador configurados que traduzcan los comandos de automatización y son capaces de ejecutarlos en el navegador. A continuación se describe cómo puede configurar cada controlador de forma individual. Puedes encontrar una lista con todos los conductores en [`asombro-selenium`](https://github.com/christian-bromann/awesome-selenium#driver) README.
 
 ## Chromedriver
 
-To automate Chrome you can download Chromedriver directly on the [project website](http://chromedriver.chromium.org/downloads) or through the NPM package:
+Para automatizar Chrome puedes descargar Chromedriver directamente en el sitio web del proyecto [](http://chromedriver.chromium.org/downloads) o a través del paquete de NPM:
 
 ```bash npm2yarn
 npm install -g chromedriver
 ```
 
-You can then start it via:
+A continuación, puede iniciarlo vía:
 
 ```sh
 chromedriver --port=4444 --verbose
@@ -21,7 +21,7 @@ chromedriver --port=4444 --verbose
 
 ## Geckodriver
 
-To automate Firefox download the latest version of `geckodriver` for your environment and unpack it in your project directory:
+Para automatizar Firefox descarga la última versión de `geckodriver` para tu entorno y desempaquetarla en el directorio de tu proyecto:
 
 <Tabs
   defaultValue="curl"
@@ -87,7 +87,7 @@ cd $unzipped_file
 </TabItem>
 </Tabs>
 
-**Note:** Other `geckodriver` releases are available [here](https://github.com/mozilla/geckodriver/releases). After download you can start the driver via:
+**Nota:** Otros `lanzamientos` geckodriver están disponibles [aquí](https://github.com/mozilla/geckodriver/releases). Después de la descarga puede iniciar el controlador vía:
 
 ```sh
 /path/to/binary/geckodriver --port 4444
@@ -95,7 +95,7 @@ cd $unzipped_file
 
 ## Edgedriver
 
-You can download the driver for Microsoft Edge on the [project website](https://developer.microsoft.com/en-us/microsoft-edge/tools/webdriver/). After download you can start Edgedriver as follows:
+Puede descargar el controlador para Microsoft Edge en la página web del proyecto [](https://developer.microsoft.com/en-us/microsoft-edge/tools/webdriver/). Después de la descarga puede iniciar el controlador vía:
 
 ```sh
 ./path/to/edgedriver --port=4444 --verbose
@@ -103,7 +103,7 @@ You can download the driver for Microsoft Edge on the [project website](https://
 
 ## Safaridriver
 
-Safaridriver comes pre-installed on your MacOS and can be started directly via:
+Safaridriver viene preinstalado en tu MacOS y puede iniciarse directamente a través de:
 
 ```sh
 safaridriver -p 4444
