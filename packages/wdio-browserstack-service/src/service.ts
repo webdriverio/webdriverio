@@ -2,7 +2,14 @@ import logger from '@wdio/logger'
 import got from 'got'
 import type { Services, Capabilities, Options, Frameworks } from '@wdio/types'
 
-import { getBrowserDescription, getBrowserCapabilities, isBrowserstackCapability, getParentSuiteName, isBrowserstackSession } from './util.js'
+import {
+    getBrowserDescription,
+    getBrowserCapabilities,
+    isBrowserstackCapability,
+    getParentSuiteName,
+    isBrowserstackSession,
+    uploadCrashReport
+} from './util.js'
 import type { BrowserstackConfig, MultiRemoteAction, SessionResponse } from './types.js'
 import type { Pickle, Feature, ITestCaseHookParameter } from './cucumber-types.js'
 import InsightsHandler from './insights-handler.js'
@@ -111,7 +118,8 @@ export default class BrowserstackService implements Services.ServiceInstance {
                     this._currentTest
                 ))
             } catch (err) {
-                log.error(`Error in insights handling: ${err}`)
+                log.error(`Error in service class before function: ${err}`)
+                uploadCrashReport(`Error in service class before function: ${err}`, err && (err as any).stack)
             }
         }
 

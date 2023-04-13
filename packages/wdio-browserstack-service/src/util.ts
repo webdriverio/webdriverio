@@ -211,7 +211,7 @@ export function o11yClassErrorHandler<T extends ClassType>(errorClass: T): T {
     return errorClass
 }
 
-async function uploadCrashReport(exception: any, stackTrace: string) {
+export async function uploadCrashReport(exception: any, stackTrace: string) {
     try {
         if (!credentialsForCrashReportUpload.username || !credentialsForCrashReportUpload.password) {
             credentialsForCrashReportUpload = process.env.CREDENTIALS_FOR_CRASH_REPORTING !== undefined ? JSON.parse(process.env.CREDENTIALS_FOR_CRASH_REPORTING) : credentialsForCrashReportUpload
