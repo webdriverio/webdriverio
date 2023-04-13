@@ -23,7 +23,7 @@ Tipo: `String`<br /> Predeterminado: `localhost`
 
 ### port
 
-Port your driver server is on.
+Puerto en el que está el servidor del conductor.
 
 Tipo: `String`<br /> Predeterminado: `localhost`
 
