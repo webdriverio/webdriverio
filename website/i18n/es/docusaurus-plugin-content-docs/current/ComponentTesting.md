@@ -71,7 +71,7 @@ You can now go into the browser or use the command line as REPL
 (To exit, press ^C again or type .exit)
 ```
 
-Press `Ctrl` or `Command` + `c` or enter `.exit` to continue with the test.
+Pulsa `Ctrl` o `Comando` + `c` o entra `.exit` para continuar con la prueba.
 
 ## Ejemplos:
 
