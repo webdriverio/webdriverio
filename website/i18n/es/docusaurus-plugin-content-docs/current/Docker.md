@@ -3,7 +3,7 @@ id: docker
 title: Docker
 ---
 
-Docker is a powerful containerization technology that allows to encapsulate your test suite into a container that behaves the same on every system. This can avoid flakiness due to different browser or platform versions. In order to run your tests within a container, create a `Dockerfile` in your project directory, e.g.:
+Docker es una potente tecnología de containerización que permite encapsular su suite de pruebas en un contenedor que se comporta lo mismo en cada sistema. Esto puede evitar errores debido a diferentes versiones de navegador o plataforma. Para ejecutar tus pruebas dentro de un contenedor, crea un `Dockerfile` en el directorio de tu proyecto, por ejemplo.:
 
 ```Dockerfile
 FROM ianwalter/puppeteer:latest
@@ -15,17 +15,17 @@ RUN npm install
 CMD npx wdio
 ```
 
-Make sure you don't include your `node_modules` in your Docker image and have these installed when building the image. For that add a `.dockerignore` file with the following content:
+Asegúrate de no incluir tu `node_modules` en tu imagen de Docker y tener estos instalados al construir la imagen. Para eso añada un archivo `.dockerignore` con el siguiente contenido:
 
 ```
 node_modules
 ```
 
 :::info
-We are using a Docker image here that comes with Google Chrome pre-installed. There various of images available with different browser setups. Check out the images maintained by the Selenium project [on Docker Hub](https://hub.docker.com/u/selenium).
+Estamos usando una imagen de Docker que viene con Google Chrome preinstalado. Hay varias imágenes disponibles con diferentes configuraciones del navegador. Echa un vistazo a las imágenes mantenidas por el proyecto Selenium [en Docker Hub](https://hub.docker.com/u/selenium).
 :::
 
-As we can only run Google Chrome in headless mode in our Docker container we have to modify our `wdio.conf.js` to ensure we do that:
+Como sólo podemos ejecutar Google Chrome en modo sin cabeceras en nuestro contenedor Docker, tenemos que modificar nuestro `wdio. onf.js` para asegurar que hagamos eso:
 
 ```js title="wdio.conf.js"
 export const config = {
@@ -48,18 +48,18 @@ export const config = {
 }
 ```
 
-As mentioned in [Automation Protocols](/docs/automationProtocols) you can run WebdriverIO using the WebDriver protocol or Chrome DevTools. If you use WebDriver make sure that the Chrome version installed on your image matches the [Chromedriver](https://www.npmjs.com/package/chromedriver) version you have defined in your `package.json`.
+Como se menciona en [Protocolos de automatización](/docs/automationProtocols) puede ejecutar WebdriverIO usando el protocolo WebDriver o Chrome DevTools. Si utiliza WebDriver asegúrese de que la versión de Chrome instalada en su imagen coincide con la versión de [Chromedriver](https://www.npmjs.com/package/chromedriver) que ha definido en su paquete `. son`.
 
-To build the Docker container you can run:
+Para construir el contenedor Docker se puede ejecutar:
 
 ```sh
 docker build -t mytest -f Dockerfile .
 ```
 
-Then to run the tests, execute:
+Luego para ejecutar las pruebas, ejecuta:
 
 ```sh
 docker run -it mytest
 ```
 
-For more information on how to configure the Docker image, check out the [Docker docs](https://docs.docker.com/).
+Para obtener más información sobre cómo configurar la imagen de Docker, consulte la [documentación de Docker](https://docs.docker.com/).
