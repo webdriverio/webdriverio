@@ -3,7 +3,7 @@ id: browser
 title: El objeto navegador
 ---
 
-__Extends:__ [EventEmitter](https://nodejs.org/api/events.html#class-eventemitter)
+__Extensión:__ [EventEmitter](https://nodejs.org/api/events.html#class-eventemitter)
 
 El objeto navegador es la instancia de sesión con la que se controla el navegador o el dispositivo móvil. Si utiliza el ejecutor de pruebas WDIO, puede acceder a la instancia WebDriver a través del objeto global `browser` o `driver` o importarlo utilizando [`@wdio/globals`](/docs/api/globals). Si utiliza WebdriverIO en modo autónomo, el objeto navegador es devuelto por el método [`remoto`](/docs/api/modules#remoteoptions-modifier).
 
@@ -34,7 +34,7 @@ Además, dispone de los siguientes comandos:
 
 | Nombre               | Parámetros                                                                                                             | Detalles                                                                                                                                                                                                                                                                   |
 | -------------------- | ---------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `addCommand`         | - `commandName` (Type: `String`)<br />- `fn` (Type: `Function`)<br />- `attachToElement` (Type: `boolean`) | Allows to define custom commands that can be called from the browser object for composition purposes. Más información en la guía [Comandos personalizados](/docs/customcommands).                                                                                          |
+| `addCommand`         | - `commandName` (Type: `String`)<br />- `fn` (Type: `Function`)<br />- `attachToElement` (Type: `boolean`) | Permite definir comandos personalizados que pueden ser llamados desde el objeto navegador con fines de composición. Más información en la guía [Comandos personalizados](/docs/customcommands).                                                                            |
 | `overwriteCommand`   | - `commandName` (Type: `String`)<br />- `fn` (Type: `Function`)<br />- `attachToElement` (Type: `boolean`) | Permite sobreescribir cualquier comando del navegador con una funcionalidad personalizada. Utilícelo con cuidado, ya que puede confundir a los usuarios del marco. Más información en la guía [Comandos personalizados](/docs/customcommands#overwriting-native-commands). |
 | `addLocatorStrategy` | - `strategyName` (Type: `String`)<br />- `fn` (Type: `Function`)                                                 | Permite definir una estrategia de selector personalizada, lea más en la guía [Selectores](/docs/selectors#custom-selector-strategies).                                                                                                                                     |
 
@@ -44,7 +44,7 @@ Además, dispone de los siguientes comandos:
 
 Si necesita modificar su prueba basada en si su sesión se ejecuta o no en un dispositivo móvil, puede acceder a las banderas móviles para comprobar.
 
-For example, given this config:
+Por ejemplo, dado los dos archivos:
 
 ```js
 // wdio.conf.js
@@ -61,7 +61,7 @@ export const config = {
 }
 ```
 
-You can access these flags in your test like so:
+Puedes acceder a estas banderas en tu prueba así:
 
 ```js
 // Note: `driver` is the equivalent to the `browser` object but semantically more correct
@@ -107,7 +107,7 @@ describe('mi test', () => {
 ```
 
 ### Eventos
-The browser object is an EventEmitter and a couple of events are emitted for your use cases.
+El objeto del navegador es un EventEmitter y se emiten un par de eventos para sus casos de uso.
 
 He aquí una lista de eventos. Tenga en cuenta que esta no es la lista completa de eventos disponibles todavía. Siéntase libre de contribuir a actualizar el documento añadiendo descripciones de más eventos aquí.
 
