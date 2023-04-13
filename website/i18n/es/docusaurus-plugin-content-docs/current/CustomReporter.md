@@ -1,6 +1,6 @@
 ---
 id: customreporter
-title: Custom Reporter
+title: Reporte personalizado
 ---
 
 Puede escribir su propio reportero personalizado para el corredor de pruebas WDIO que se adapte a sus necesidades. ¡Y es sencillo!
