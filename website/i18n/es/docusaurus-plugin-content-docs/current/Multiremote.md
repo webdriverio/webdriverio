@@ -1,25 +1,25 @@
 ---
 id: multiremote
-title: Multiremote
+title: Multicontrol
 ---
 
-WebdriverIO allows you to run multiple automated sessions in a single test. This becomes handy when you’re testing features that require multiple users (for example, chat or WebRTC applications).
+WebdriverIO le permite ejecutar varias sesiones automatizadas en una sola prueba. Esto es práctico cuando estás probando características que requieren múltiples usuarios (por ejemplo, aplicaciones de chat o WebRTC).
 
-Instead of creating a couple of remote instances where you need to execute common commands like [`newSession`](/docs/api/webdriver#newsession) or [`url`](/docs/api/browser/url) on each instance, you can simply create a **multiremote** instance and control all browsers at the same time.
+En lugar de crear un par de instancias remotas donde se necesitan ejecutar comandos comunes como [`newSession`](/docs/api/webdriver#newsession) o [`url`](/docs/api/browser/url) en cada instancia, simplemente puedes crear una instancia **multiremoto** y controlar todos los navegadores al mismo tiempo.
 
-To do so, just use the `multiremote()` function, and pass in an object with names keyed to `capabilities` for values. By giving each capability a name, you can easily select and access that single instance when executing commands on a single instance.
+Para ello, simplemente utilice la función `multiremote()` y pase un objeto con nombres clave a `capacidades` para valores. Al dar un nombre a cada capacidad, puedes seleccionar y acceder fácilmente a esa única instancia cuando ejecutas comandos en una sola instancia.
 
 :::info
 
-Multiremote is _not_ meant to execute all your tests in parallel. It is intended to help coordinate multiple browsers and/or mobile devices for special integration tests (e.g. chat applications).
+Multiremoto _no_ está diseñado para ejecutar todas tus pruebas en paralelo. Está pensado para ayudar a coordinar múltiples navegadores y/o dispositivos móviles para pruebas especiales de integración (por ejemplo, aplicaciones de chat).
 
 :::
 
-All multiremote instances return an array of results. The first result represents the capability defined first in the capability object the second result the second capability and so on.
+Todas las instancias multiremotas devuelven una matriz de resultados. El primer resultado representa la capacidad definida primero en el objeto de capacidad el segundo resultado la segunda capacidad, etc.
 
-## Using Standalone Mode
+## Uso del modo independiente
 
-Here is an example of how to create a multiremote instance in __standalone mode__:
+Aquí hay un ejemplo de cómo crear una instancia multiremoto en __modo independiente__:
 
 ```js
 import { multiremote } from 'webdriverio'
@@ -54,9 +54,9 @@ import { multiremote } from 'webdriverio'
 })()
 ```
 
-## Using WDIO Testrunner
+## Utilizando WDIO Testrunner
 
-In order to use multiremote in the WDIO testrunner, just define the `capabilities` object in your `wdio.conf.js` as an object with the browser names as keys (instead of a list of capabilities):
+Para poder usar multiremoto en el testrunner WDIO, simplemente define el objeto `capacidades` en tu `wdio. onf.js` como un objeto con los nombres del navegador como claves (en vez de una lista de capacidades):
 
 ```js
 export const config = {
@@ -77,9 +77,9 @@ export const config = {
 }
 ```
 
-This will create two WebDriver sessions with Chrome and Firefox. Instead of just Chrome and Firefox you can also boot up two mobile devices using [Appium](http://appium.io) or one mobile device and one browser.
+Esto creará dos sesiones de WebDriver con Chrome y Firefox. En lugar de solo Chrome y Firefox también puedes arrancar dos dispositivos móviles usando [Appium](http://appium.io) o un dispositivo móvil y un navegador.
 
-You can even boot up one of the [cloud services backend](https://webdriver.io/docs/cloudservices.html) together with local Webdriver/Appium, or Selenium Standalone instances. WebdriverIO automatically detect cloud backend capabilities if you specified either of `bstack:options` ([Browserstack](https://webdriver.io/docs/browserstack-service.html)), `sauce:options` ([SauceLabs](https://webdriver.io/docs/sauce-service.html)), or `tb:options` ([TestingBot](https://webdriver.io/docs/testingbot-service.html)) in browser capabilities.
+Incluso puede iniciar uno de los [backend de los servicios en la nube](https://webdriver.io/docs/cloudservices.html) junto con instancias locales Webdriver/Appium, o Selenium Standalone instancias. WebdriverIO detecta automáticamente las capacidades de backend de la nube si especificas cualquiera de `bstack:options` ([Navegador](https://webdriver.io/docs/browserstack-service.html)), `sauce:options` ([SauceLabs](https://webdriver.io/docs/sauce-service.html)), o `tb:options` ([TestingBot](https://webdriver.io/docs/testingbot-service.html)) en las capacidades del navegador.
 
 ```js
 export const config = {
@@ -108,15 +108,15 @@ export const config = {
 }
 ```
 
-Any kind of OS/browser combination is possible here (including mobile and desktop browsers). All commands your tests call via the `browser` variable are executed in parallel with each instance. This helps streamline your integration tests and speed up their execution.
+Aquí es posible cualquier tipo de combinación de OS/navegador (incluyendo los navegadores móviles y de escritorio). Todos los comandos que tu llamada de prueba a través de la variable `browser` son ejecutados en paralelo con cada instancia. Esto ayuda a optimizar tus pruebas de integración y a acelerar su ejecución.
 
-For example, if you open up a URL:
+Por ejemplo, si se abre una URL:
 
 ```js
 browser.url('https://socketio-chat-h9jt.herokuapp.com/')
 ```
 
-Each command’s result will be an object with the browser names as the key, and the command result as value, like so:
+El resultado de cada comando será un objeto con los nombres del navegador como clave, y el resultado del comando como valor, así:
 
 ```js
 // wdio testrunner example
@@ -129,7 +129,7 @@ console.log(result[0]) // returns: 'Chrome 40 on Mac OS X (Yosemite)'
 console.log(result[1]) // returns: 'Firefox 35 on Mac OS X (Yosemite)'
 ```
 
-Notice that each command is executed one by one. This means that the command finishes once all browsers have executed it. This is helpful because it keeps the browser actions synced, which makes it easier to understand what’s currently happening.
+Tenga en cuenta que cada comando se ejecuta uno por uno. Esto significa que el comando termina una vez que todos los navegadores lo han ejecutado. Esto es útil porque mantiene sincronizadas las acciones del navegador, lo que hace más fácil entender lo que está ocurriendo actualmente.
 
 Sometimes it is necessary to do different things in each browser in order to test something. For instance, if we want to test a chat application, there has to be one browser who sends a text message while another browser waits to receive it, and then run an assertion on it.
 
