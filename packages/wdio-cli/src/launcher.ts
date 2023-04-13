@@ -28,7 +28,7 @@ interface WorkerSpecs {
     rid?: string
 }
 
-interface EndMessage {
+export interface EndMessage {
     cid: string, // is actually rid
     exitCode: number,
     specs: string[],

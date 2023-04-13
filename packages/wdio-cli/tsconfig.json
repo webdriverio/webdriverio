@@ -8,6 +8,7 @@
   },
   "include": [
     "src/**/*",
-    "../../@types"
+    "../../@types",
+    "src/cjs/package.json"
   ]
 }
