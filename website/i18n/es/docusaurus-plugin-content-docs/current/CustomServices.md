@@ -1,15 +1,15 @@
 ---
 id: customservices
-title: Custom Services
+title: Servicios personalizados
 ---
 
-You can write your own custom service for the WDIO test runner to custom-fit your needs.
+Puede escribir su propio servicio personalizado para que el corredor de pruebas WDIO se adapte a sus necesidades.
 
-Services are add-ons that are created for reusable logic to simplify tests, manage your test suite and integrate results. Services have access to all the same [hooks](/docs/configurationfile) available in the `wdio.conf.js`.
+Los servicios son complementos creados para la lógica reutilizable que simplifica las pruebas, administra tu suite de pruebas e integra resultados. Los servicios tienen acceso a todos los mismos [hooks](/docs/configurationfile) disponibles en `wdio.conf.js`.
 
-There are two types of services that can be defined: a launcher service that only has access to the `onPrepare`, `onWorkerStart`, `onWorkerEnd` and `onComplete` hook which are only executed once per test run, and a worker service that has access to all other hooks and is being executed for each worker. Note that you can not share (global) variables between both types of services as worker services run in a different (worker) process.
+Hay dos tipos de servicios que se pueden definir: un servicio de lanzador que sólo tiene acceso al `onPrepare`, `onWorkerStart`, `onWorkerEnd` y `onComplete` gancho que solo son ejecutados una vez por ejecución de prueba, y un servicio de trabajador que tiene acceso a todos los otros ganchos y que está siendo ejecutado por cada trabajador. Tenga en cuenta que no puede compartir variables (globales) entre ambos tipos de servicios mientras los servicios de worker se ejecutan en un proceso diferente (worker).
 
-A launcher service can be defined as follows:
+Un servicio de lanzador puede ser definido de la siguiente manera:
 
 ```js
 export default class CustomLauncherService {
@@ -26,7 +26,7 @@ export default class CustomLauncherService {
 }
 ```
 
-Whereas a worker service should look like this:
+Donde un servicio de trabajador debería verse así:
 
 ```js
 export default class CustomWorkerService {
@@ -70,7 +70,7 @@ export default class CustomWorkerService {
 }
 ```
 
-It is recommended to store the browser object through the passed in parameter in the constructor. Lastly expose both types of workers as following:
+Es recomendable almacenar el objeto del navegador a través del parámetro pasado en el constructor. Por último, exponer ambos tipos de trabajadores de la siguiente manera:
 
 ```js
 import CustomLauncherService from './launcher'
@@ -80,7 +80,7 @@ export default CustomWorkerService
 export const launcher = CustomLauncherService
 ```
 
-If you are using TypeScript and want to make sure that hook methods parameter are type safe, you can define your service class as follows:
+Si está utilizando TypeScript y quiere asegurarse de que el parámetro de métodos ganok son seguros, puede definir su clase de servicio de la siguiente manera:
 
 ```ts
 import type { Capabilities, Options, Services } from '@wdio/types'
@@ -98,9 +98,9 @@ export default class CustomWorkerService implements Services.ServiceInstance {
 }
 ```
 
-## Service Error Handling
+## Error de servicio
 
-An Error thrown during a service hook will be logged while the runner continues. If a hook in your service is critical to the setup or teardown of the test runner, the `SevereServiceError` exposed from the `webdriverio` package can be used to stop the runner.
+Un error arrojado durante un gancho de servicio será registrado mientras el corredor continúa. Si un gancho en su servicio es crítico para la configuración o desmontaje del corredor de pruebas, el `SevereServiceError` expuesto desde el paquete `webdriverio` se puede utilizar para detener el ejecutor.
 
 ```js
 import { SevereServiceError } from 'webdriverio'
@@ -116,11 +116,11 @@ export default class CustomServiceLauncher {
 }
 ```
 
-## Import Service from Module
+## Importar servicio desde el módulo
 
-The only thing to do now in order to use this service is to assign it to the `services` property.
+Lo único que hay que hacer ahora para usar este servicio es asignarlo a la propiedad de `services`.
 
-Modify your `wdio.conf.js` file to look like this:
+Modifique su archivo `wdio.conf.js` para que se vea así:
 
 ```js
 import CustomService from './service/my.custom.service'
@@ -145,16 +145,16 @@ export const config = {
 }
 ```
 
-## Publish Service on NPM
+## Publicar servicio en NPM
 
-To make services easier to consume and discover by the WebdriverIO community, please follow these recommendations:
+Para facilitar el consumo y descubrimiento de servicios por parte de la comunidad WebdriverIO, por favor sigue estas recomendaciones:
 
-* Services should use this naming convention: `wdio-*-service`
-* Use NPM keywords: `wdio-plugin`, `wdio-service`
-* The `main` entry should `export` an instance of the service
-* Example services: [`@wdio/sauce-service`](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-sauce-service)
+* Los servicios deben utilizar esta convención de nomenclatura: `wdio-*-service`
+* Usar palabras clave NPM: `wdio-plugin`, `wdio-service`
+* La entrada `principal` debería `exportar` una instancia del servicio
+* Ejemplo de reportero: [`@wdio/dot-service`](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-sauce-service)
 
-Following the recommended naming pattern allows services to be added by name:
+Siguiendo el patrón de nomenclatura recomendado permite que los servicios se añadan por nombre:
 
 ```js
 // Add wdio-custom-service
@@ -165,11 +165,11 @@ export const config = {
 }
 ```
 
-### Add Published Service to WDIO CLI and Docs
+### Añadir Servicio Publicado a WDIO CLI y Docs
 
-We really appreciate every new plugin that could help other people run better tests! If you have created such a plugin, please consider adding it to our CLI and docs to make it easier to be found.
+Realmente apreciamos cada nuevo plugin que podría ayudar a otras personas a hacer mejores pruebas! Si has creado un plugin de este tipo, por favor considera añadirlo a nuestro CLI y documentos para que sea más fácil de encontrar.
 
-Please raise a pull request with the following changes:
+Por favor, envíe un pull request con los siguientes cambios:
 
-- add your service to the list of [supported services](https://github.com/webdriverio/webdriverio/blob/main/packages/wdio-cli/src/constants.ts#L92-L128)) in the CLI module
-- enhance the [service list](https://github.com/webdriverio/webdriverio/blob/main/scripts/docs-generation/3rd-party/services.json) for adding your docs to the official Webdriver.io page
+- añade tu servicio a la lista de [reporters soportados](https://github.com/webdriverio/webdriverio/blob/main/packages/wdio-cli/src/constants.ts#L92-L128)) en el módulo CLI
+- mejorar la lista de reporteros [](https://github.com/webdriverio/webdriverio/blob/main/scripts/docs-generation/3rd-party/services.json) para añadir sus documentos a la página oficial de Webdriver.io
