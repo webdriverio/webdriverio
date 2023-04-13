@@ -97,6 +97,17 @@
     },
     {
       "type": "category",
+      "label": "Web Extension Testing",
+      "link": {
+        "type": "doc",
+        "id": "web-extension-testing"
+      },
+      "items": [
+        "web-extension-testing/tips-and-tricks"
+      ]
+    },
+    {
+      "type": "category",
       "label": "Migrate",
       "items": [
         "v6-migration",
