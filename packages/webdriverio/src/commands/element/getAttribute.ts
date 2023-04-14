@@ -18,7 +18,7 @@
  * </example>
  *
  * @alias element.getAttribute
- * @param {String} attributeName requested attribute
+ * @param {string} attributeName requested attribute
  * @return {String|null} The value of the attribute, or null if it is not set on the element.
  * @uses protocol/elements, protocol/elementIdAttribute
  * @type property

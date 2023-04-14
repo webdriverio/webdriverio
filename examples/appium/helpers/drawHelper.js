@@ -4,8 +4,8 @@ const r = 100
 
 /**
  * simple helper function to draw a circle
- * @param  {Number} h    horizontal center of the circle
- * @param  {Number} k    vertical center of the circle
+ * @param  {number} h    horizontal center of the circle
+ * @param  {number} k    vertical center of the circle
  * @return {Actions[]}   list of actions for touchAction command
  */
 export function circleAction (h, k) {
@@ -26,8 +26,8 @@ export function circleAction (h, k) {
 
 /**
  * helper function to draw an arc
- * @param  {Number} start start point
- * @param  {Number} end   end point
+ * @param  {number} start start point
+ * @param  {number} end   end point
  * @return {Actions[]}    list of action for touchAction command
  */
 export function arcAction(start, end) {
@@ -48,8 +48,8 @@ export function arcAction(start, end) {
 
 /**
  * helper function to draw an curved arc
- * @param  {Number} start start point
- * @param  {Number} end   end point
+ * @param  {number} start start point
+ * @param  {number} end   end point
  * @return {Actions[]}    list of action for touchAction command
  */
 export function innerArcAction(start, end) {

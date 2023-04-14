@@ -28,7 +28,7 @@ import type { Capabilities } from '@wdio/types'
  * </example>
  *
  * @alias browser.uploadFile
- * @param {String} localPath local path to file
+ * @param {string} localPath local path to file
  * @type utility
  * @uses protocol/file
  * @return {String} remote URL

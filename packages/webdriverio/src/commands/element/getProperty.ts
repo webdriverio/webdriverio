@@ -14,7 +14,7 @@ import getPropertyScript from '../../scripts/getProperty.js'
  * </example>
  *
  * @alias element.getProperty
- * @param {String} property  name of the element property
+ * @param {string} property  name of the element property
  * @return {Object|String|Boolean|Number|null} the value of the property of the selected element
  */
 export function getProperty (

@@ -344,9 +344,9 @@ class Launcher {
     /**
      * Start instance in a child process.
      * @param  {Array} specs  Specs to run
-     * @param  {Number} cid  Capabilities ID
-     * @param  {String} rid  Runner ID override
-     * @param  {Number} retries  Number of retries remaining
+     * @param  {number} cid  Capabilities ID
+     * @param  {string} rid  Runner ID override
+     * @param  {number} retries  Number of retries remaining
      */
     private async _startInstance(
         specs: string[],
@@ -455,7 +455,7 @@ class Launcher {
 
     /**
      * generates a runner id
-     * @param  {Number} cid capability id (unique identifier for a capability)
+     * @param  {number} cid capability id (unique identifier for a capability)
      * @return {String}     runner id (combination of cid and test id e.g. 0a, 0b, 1a, 1b ...)
      */
     private _getRunnerId (cid: number): string {
@@ -467,10 +467,10 @@ class Launcher {
 
     /**
      * Close test runner process once all child processes have exited
-     * @param  {Number} cid       Capabilities ID
-     * @param  {Number} exitCode  exit code of child process
+     * @param  {number} cid       Capabilities ID
+     * @param  {number} exitCode  exit code of child process
      * @param  {Array} specs      Specs that were run
-     * @param  {Number} retries   Number or retries remaining
+     * @param  {number} retries   Number or retries remaining
      */
     private async _endHandler({ cid: rid, exitCode, specs, retries }: EndMessage): Promise<void> {
         const passed = this._isWatchModeHalted() || exitCode === 0

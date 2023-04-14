@@ -81,8 +81,8 @@ export async function runServiceHook(
 /**
  * Run hook in service launcher
  * @param {Array|Function} hook - can be array of functions or single function
- * @param {Object} config
- * @param {Object} capabilities
+ * @param {object} config
+ * @param {object} capabilities
  */
 export async function runLauncherHook(hook: Function | Function[], ...args: any[]) {
     if (typeof hook === 'function') {

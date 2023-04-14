@@ -15,7 +15,7 @@ interface GetElementProps {
 
 /**
  * transforms a findElement response into a WDIO element
- * @param  {String} selector  selector that was used to query the element
+ * @param  {string} selector  selector that was used to query the element
  * @param  {Object} res       findElement response
  * @return {Object}           WDIO element object
  */
@@ -84,7 +84,7 @@ export const getElement = function findElement(
 
 /**
  * transforms a findElements response into an array of WDIO elements
- * @param  {String} selector  selector that was used to query the element
+ * @param  {string} selector  selector that was used to query the element
  * @param  {Object} res       findElements response
  * @return {Array}            array of WDIO elements
  */

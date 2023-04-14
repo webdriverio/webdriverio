@@ -66,7 +66,7 @@ import { parseCSS } from '../../utils/index.js'
  * </example>
  *
  * @alias element.getCSSProperty
- * @param  {String}      cssProperty css property name
+ * @param  {string}      cssProperty css property name
  * @return {CSSProperty}             The specified css of the element
  *
  */

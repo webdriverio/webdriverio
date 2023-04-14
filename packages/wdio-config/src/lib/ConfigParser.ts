@@ -104,7 +104,7 @@ export default class ConfigParser {
 
     /**
      * merges config file with default values
-     * @param {String} filename path of file relative to current directory
+     * @param {string} filename path of file relative to current directory
      */
     private async addConfigFile(filename: string) {
         if (typeof filename !== 'string') {
@@ -213,7 +213,7 @@ export default class ConfigParser {
 
     /**
      * Add hooks from an existing service to the runner config.
-     * @param {Object} service - an object that contains hook methods.
+     * @param {object} service - an object that contains hook methods.
      */
     addService(service: Services.Hooks) {
         const addHook = (hookName: string, hook: Function) => {
@@ -313,7 +313,7 @@ export default class ConfigParser {
      * sets config attribute with file paths from filtering
      * options from cli argument
      *
-     * @param  {String[]} cliArgFileList  list of files in a string form
+     * @param  {string[]} cliArgFileList  list of files in a string form
      * @param  {Object} config  config object that stores the spec and exclude attributes
      * cli argument
      * @return {String[]} List of files that should be included or excluded
@@ -452,7 +452,7 @@ export default class ConfigParser {
      * returns specs files with the excludes filtered
      *
      * @param  {String[] | String[][]} spec files -  list of spec files
-     * @param  {String[]} exclude files -  list of exclude files
+     * @param  {string[]} exclude files -  list of exclude files
      * @return {String[] | String[][]} list of spec files with excludes removed
      */
     filterSpecs(specs: Spec[], exclude: string[]) {

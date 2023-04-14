@@ -21,8 +21,8 @@ import type { CustomStrategyFunction } from '../../types.js'
  * </example>
  *
  * @alias custom$
- * @param {String} strategyName
- * @param {Any} strategyArguments
+ * @param {string} strategyName
+ * @param {*} strategyArguments
  * @return {Element}
  */
 export async function custom$ (

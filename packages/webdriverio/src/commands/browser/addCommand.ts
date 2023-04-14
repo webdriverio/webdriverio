@@ -28,7 +28,7 @@
     })
  * </example>
  * @alias browser.addCommand
- * @param {String} name name of the custom command
+ * @param {string} name name of the custom command
  * @param {Function} callback  function to be called
  * @param {Boolean=} elementScope extend the Element object instead of the Browser object
  * @type utility

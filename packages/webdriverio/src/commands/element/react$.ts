@@ -47,7 +47,7 @@ let resqScript: string
  * </example>
  *
  * @alias react$
- * @param {String}  selector        of React component
+ * @param {string}  selector        of React component
  * @param {ReactSelectorOptions=}                    options         React selector options
  * @param {Object=}                                  options.props   React props the element should contain
  * @param {Array<any>|number|string|object|boolean=} options.state  React state the element should be in

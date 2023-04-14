@@ -100,7 +100,7 @@ export async function startWebDriverSession (params: Options.WebDriver): Promise
 
 /**
  * check if WebDriver requests was successful
- * @param  {Number}  statusCode status code of request
+ * @param  {number}  statusCode status code of request
  * @param  {Object}  body       body payload of response
  * @return {Boolean}            true if request was successful
  */

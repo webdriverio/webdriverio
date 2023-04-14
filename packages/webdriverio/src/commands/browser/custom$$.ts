@@ -22,8 +22,8 @@ import type { ElementArray, CustomStrategyFunction, CustomStrategyReference } fr
  * </example>
  *
  * @alias custom$$
- * @param {String} strategyName
- * @param {Any} strategyArguments
+ * @param {string} strategyName
+ * @param {*} strategyArguments
  * @return {ElementArray}
  */
 export async function custom$$ (
