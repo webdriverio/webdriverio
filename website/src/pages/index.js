@@ -76,6 +76,13 @@ function Home() {
                                 styles.getStarted,
                             )}
                         >View on GitHub</Link>
+                        <Link
+                            to="https://youtube.com/@webdriverio"
+                            className={clsx(
+                                'button button--outline button--secondary button--lg',
+                                styles.getStarted,
+                            )}
+                        >Watch on YouTube</Link>
                     </div>
                     <Features features={features} />
                 </div>
