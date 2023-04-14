@@ -1,33 +1,33 @@
 ---
 id: modules
-title: Modules
+title: Module
 ---
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-WebdriverIO publishes various of modules to NPM and other registries that you can use to build your own automation framework. See more documentation on WebdriverIO setup types [here](/docs/setuptypes).
+WebdriverIO veröffentlicht verschiedene Module für NPM und andere Anbieter, die Sie verwenden können, um Ihr eigenes Automatisierungs-Framework zu erstellen. Weitere Dokumentation zu WebdriverIO Einrichtungstypen [finden Sie hier](/docs/setuptypes).
 
-## `webdriver` and `devtools`
+## `webdriver` und `devtools`
 
-The protocol packages ([`webdriver`](https://www.npmjs.com/package/webdriver) and [`devtools`](https://www.npmjs.com/package/devtools)) expose a class with the following static functions attached that allow you to initiate sessions:
+Die Protokollpakete ([`webdriver`](https://www.npmjs.com/package/webdriver) und [`devtools`](https://www.npmjs.com/package/devtools)) exportieren eine Klasse mit den folgenden statischen Funktionen, die Ihnen erlauben, Sitzungen zu initiieren:
 
 #### `newSession(options, modifier, userPrototype, customCommandWrapper)`
 
-Starts a new session with specific capabilities. Based on the session response commands from different protocols will be provided.
+Startet eine neue Sitzung mit bestimmten Fähigkeiten. Basierend auf der Session-Antwort stehen Ihnen verschiedene Befehle zu Verfügung.
 
-##### Paramaters
+##### Parameter
 
-- `options`: [WebDriver Options](/docs/configuration#webdriver-options)
-- `modifier`: function that allows to modify the client instance before it is being returned
-- `userPrototype`: properties object that allows to extend the instance prototype
-- `customCommandWrapper`: function that allows to wrap functionality around function calls
+- `options`: [WebDriver Optionen](/docs/configuration#webdriver-options)
+- `modifier`: Funktion, die es erlaubt, die Client-Instanz zu modifizieren, bevor sie zurückgegeben wird
+- `userPrototype`: Prototyp-Objekt, mit dem der Prototyp der Instanz erweitert werden kann
+- `customCommandWrapper`: Funktion, die die Funktionalität von Protokoll-Befehle beeinflussen kann.
 
-##### Returns
+##### Rückgabewert:
 
-- [Browser](/docs/api/browser) object
+- [Browser](/docs/api/browser) Objekt
 
-##### Example
+##### Beispiel
 
 ```js
 const client = await WebDriver.newSession({
@@ -37,20 +37,20 @@ const client = await WebDriver.newSession({
 
 #### `attachSession(attachInstance, modifier, userPrototype, customCommandWrapper)`
 
-Attaches to a running WebDriver or DevTools session.
+Verbindet sich mit einer bereits laufenden Automatisierungs-Session.
 
-##### Paramaters
+##### Parameter
 
-- `attachInstance`: instance to attach a session to or at least an object with a property `sessionId` (e.g. `{ sessionId: 'xxx' }`)
-- `modifier`: function that allows to modify the client instance before it is being returned
-- `userPrototype`: properties object that allows to extend the instance prototype
-- `customCommandWrapper`: function that allows to wrap functionality around function calls
+- `attachInstance`: Instanz, um eine Sitzung mit einer Eigenschaft `sessionId` (z.B. `{ sessionId: 'xxx' }`)
+- `modifier`: Funktion, die es erlaubt, die Client-Instanz zu modifizieren, bevor sie zurückgegeben wird
+- `userPrototype`: Prototyp-Objekt, mit dem der Prototyp der Instanz erweitert werden kann
+- `customCommandWrapper`: Funktion, die die Funktionalität von Protokoll-Befehle beeinflussen kann.
 
-##### Returns
+##### Rückgabewert:
 
 - [Browser](/docs/api/browser) object
 
-##### Example
+##### Beispiel
 
 ```js
 const client = await WebDriver.newSession({...})
@@ -59,13 +59,13 @@ const clonedClient = await WebDriver.attachSession(client)
 
 #### `reloadSession(instance)`
 
-Reloads a session given provided instance.
+Lädt eine angegebene Instanz neu.
 
-##### Paramaters
+##### Parameter
 
-- `instance`: package instance to reload
+- `instance`: Paket Instanz, die neu geladen werden soll
 
-##### Example
+##### Beispiel
 
 ```js
 const client = await WebDriver.newSession({...})
@@ -74,22 +74,22 @@ await WebDriver.reloadSession(client)
 
 ## `webdriverio`
 
-Similar as to the protocol packages (`webdriver` and `devtools`) you can also use the WebdriverIO package APIs to manage sessions. The APIs can be imported using `import { remote, attach, multiremote } from 'webdriverio` and contain the following functionality:
+Ähnlich wie bei den Protokollpaketen (`webdriver` und `devtools`) können Sie auch die APIs des WebdriverIO-Pakets zur Verwaltung von Sessions verwenden. Die APIs können mit `import { remote, attach, multiremote } from 'webdriverio'` importiert werden und enthalten folgende Funktionalität:
 
 #### `remote(options, modifier)`
 
-Starts a WebdriverIO session. The instance contains all commands as the protocol package but with additional higher order functions, see [API docs](/docs/api).
+Startet eine WebdriverIO-Sitzung. Die Instanz enthält alle Protokoll befehle, jedoch mit zusätzlichen Funktionen, siehe [API-Dokumentation](/docs/api).
 
-##### Paramaters
+##### Parameter
 
-- `options`: [WebdriverIO Options](/docs/configuration#webdriverio)
-- `modifier`: function that allows to modify the client instance before it is being returned
+- `Optionen`: [WebdriverIO-Optionen](/docs/configuration#webdriverio)
+- `modifier`: Funktion, die es erlaubt, die Client-Instanz zu modifizieren, bevor sie zurückgegeben wird
 
-##### Returns
+##### Rückgabewert:
 
-- [Browser](/docs/api/browser) object
+- [Browser](/docs/api/browser) Objekt
 
-##### Example
+##### Beispiel
 
 ```js
 import { remote } from 'webdriverio'
@@ -101,17 +101,17 @@ const browser = await remote({
 
 #### `attach(attachOptions)`
 
-Attaches to a running WebdriverIO session.
+Verbindet sich mit einer bereits laufenden Automatisierungs-Session.
 
-##### Paramaters
+##### Parameter
 
-- `attachOptions`: instance to attach a session to or at least an object with a property `sessionId` (e.g. `{ sessionId: 'xxx' }`)
+- `attachInstance`: Instanz, um eine Sitzung mit einer Eigenschaft `sessionId` (z.B. `{ sessionId: 'xxx' }`)
 
-##### Returns
+##### Rückgabewert:
 
-- [Browser](/docs/api/browser) object
+- [Browser](/docs/api/browser) Objekt
 
-##### Example
+##### Beispiel
 
 ```js
 import { remote, attach } from 'webdriverio'
@@ -122,17 +122,17 @@ const newBrowser = await attach(browser)
 
 #### `multiremote(multiremoteOptions)`
 
-Initiates a multiremote instance which allows you to control multiple session within a single instance. Checkout our [multiremote examples](https://github.com/webdriverio/webdriverio/tree/main/examples/multiremote) for concrete use cases.
+Startet eine Multi-Remote-Instanz, mit der Sie mehrere Browser oder Mobile Endgeräte innerhalb einer Instanz steuern können. Schauen Sie sich unsere [Multiremote Beispiele](https://github.com/webdriverio/webdriverio/tree/main/examples/multiremote) für konkrete Anwendungsfälle an.
 
-##### Paramaters
+##### Parameter
 
-- `multiremoteOptions`: an object with keys representing the browser name and their [WebdriverIO Options](/docs/configuration#webdriverio).
+- `multiremoteOptions`: ein Objekt mit Eigenschaften, die den Browsernamen und seine [WebdriverIO Optionen repräsentieren](/docs/configuration#webdriverio).
 
-##### Returns
+##### Rückgabewert:
 
-- [Browser](/docs/api/browser) object
+- [Browser](/docs/api/browser) Objekt
 
-##### Example
+##### Beispiel
 
 ```js
 import { multiremote } from 'webdriverio'
