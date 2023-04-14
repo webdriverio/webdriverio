@@ -314,7 +314,7 @@ List of reporters to use. A reporter can be either a string, or an array of `['r
 
 Type: `String[]|Object[]`<br /> Default: `[]`
 
-Example:
+Ejemplo:
 
 ```js
 reporters: [
@@ -385,7 +385,7 @@ Every hook has as parameter specific information about the lifecycle (e.g. infor
 
 Gets executed once before all workers get launched.
 
-Parameters:
+Parámetros:
 
 - `config` (`object`): WebdriverIO configuration object
 - `param` (`object[]`): list of capabilities details
@@ -394,7 +394,7 @@ Parameters:
 
 Gets executed before a worker process is spawned and can be used to initialize specific service for that worker as well as modify runtime environments in an async fashion.
 
-Parameters:
+Parámetros:
 
 - `cid` (`string`): capability id (e.g 0-0)
 - `caps` (`object`): containing capabilities for session that will be spawn in the worker
@@ -406,7 +406,7 @@ Parameters:
 
 Gets executed just after a worker process has exited.
 
-Parameters:
+Parámetros:
 
 - `cid` (`string`): capability id (e.g 0-0)
 - `exitCode` (`number`): 0 - success, 1 - fail
@@ -417,7 +417,7 @@ Parameters:
 
 Gets executed just before initializing the webdriver session and test framework. It allows you to manipulate configurations depending on the capability or spec.
 
-Parameters:
+Parámetros:
 
 - `config` (`object`): WebdriverIO configuration object
 - `caps` (`object`): containing capabilities for session that will be spawn in the worker
@@ -427,7 +427,7 @@ Parameters:
 
 Gets executed before test execution begins. At this point you can access to all global variables like `browser`. It is the perfect place to define custom commands.
 
-Parameters:
+Parámetros:
 
 - `caps` (`object`): containing capabilities for session that will be spawn in the worker
 - `specs` (`string[]`): specs to be run in the worker process
@@ -437,7 +437,7 @@ Parameters:
 
 Hook that gets executed before the suite starts
 
-Parameters:
+Parámetros:
 
 - `suite` (`object`): suite details
 
@@ -445,7 +445,7 @@ Parameters:
 
 Hook that gets executed *before* a hook within the suite starts (e.g. runs before calling beforeEach in Mocha)
 
-Parameters:
+Parámetros:
 
 - `test` (`object`): test details
 - `context` (`object`): test context (represents World object in Cucumber)
@@ -454,7 +454,7 @@ Parameters:
 
 Hook that gets executed *after* a hook within the suite ends (e.g. runs after calling afterEach in Mocha)
 
-Parameters:
+Parámetros:
 
 - `test` (`object`): test details
 - `context` (`object`): test context (represents World object in Cucumber)
@@ -464,7 +464,7 @@ Parameters:
 
 Function to be executed before a test (in Mocha/Jasmine only).
 
-Parameters:
+Parámetros:
 
 - `test` (`object`): test details
 - `context` (`object`): scope object the test was executed with
@@ -473,7 +473,7 @@ Parameters:
 
 Runs before a WebdriverIO command gets executed.
 
-Parameters:
+Parámetros:
 
 - `commandName` (`string`): command name
 - `args` (`*`): arguments that command would receive
@@ -482,7 +482,7 @@ Parameters:
 
 Runs after a WebdriverIO command gets executed.
 
-Parameters:
+Parámetros:
 
 - `commandName` (`string`): command name
 - `args` (`*`): arguments that command would receive
@@ -493,7 +493,7 @@ Parameters:
 
 Function to be executed after a test (in Mocha/Jasmine) ends.
 
-Parameters:
+Parámetros:
 
 - `test` (`object`): test details
 - `context` (`object`): scope object the test was executed with
@@ -508,7 +508,7 @@ Parameters:
 
 Hook that gets executed after the suite has ended
 
-Parameters:
+Parámetros:
 
 - `suite` (`object`): suite details
 
@@ -516,7 +516,7 @@ Parameters:
 
 Gets executed after all tests are done. You still have access to all global variables from the test.
 
-Parameters:
+Parámetros:
 
 - `result` (`number`): 0 - test pass, 1 - test fail
 - `caps` (`object`): containing capabilities for session that will be spawn in the worker
@@ -526,7 +526,7 @@ Parameters:
 
 Gets executed right after terminating the webdriver session.
 
-Parameters:
+Parámetros:
 
 - `config` (`object`): WebdriverIO configuration object
 - `caps` (`object`): containing capabilities for session that will be spawn in the worker
@@ -536,7 +536,7 @@ Parameters:
 
 Gets executed after all workers got shut down and the process is about to exit. An error thrown in the onComplete hook will result in the test run failing.
 
-Parameters:
+Parámetros:
 
 - `exitCode` (`number`): 0 - success, 1 - fail
 - `config` (`object`): WebdriverIO configuration object
@@ -547,7 +547,7 @@ Parameters:
 
 Gets executed when a refresh happens.
 
-Parameters:
+Parámetros:
 
 - `oldSessionId` (`string`): session ID of the old session
 - `newSessionId` (`string`): session ID of the new session
@@ -556,7 +556,7 @@ Parameters:
 
 Runs before a Cucumber Feature.
 
-Parameters:
+Parámetros:
 
 - `uri` (`string`): path to feature file
 - `feature` ([`GherkinDocument.IFeature`](https://github.com/cucumber/common/blob/b94ce625967581de78d0fc32d84c35b46aa5a075/json-to-messages/javascript/src/cucumber-generic/JSONSchema.ts#L8-L17)): Cucumber feature object
@@ -565,7 +565,7 @@ Parameters:
 
 Runs after a Cucumber Feature.
 
-Parameters:
+Parámetros:
 
 - `uri` (`string`): path to feature file
 - `feature` ([`GherkinDocument.IFeature`](https://github.com/cucumber/common/blob/b94ce625967581de78d0fc32d84c35b46aa5a075/json-to-messages/javascript/src/cucumber-generic/JSONSchema.ts#L8-L17)): Cucumber feature object
@@ -574,7 +574,7 @@ Parameters:
 
 Runs before a Cucumber Scenario.
 
-Parameters:
+Parámetros:
 
 - `world` ([`ITestCaseHookParameter`](https://github.com/cucumber/cucumber-js/blob/ac124f7b2be5fa54d904c7feac077a2657b19440/src/support_code_library_builder/types.ts#L10-L15)): world object containing information on pickle and test step
 - `context` (`object`): Cucumber World object
@@ -583,7 +583,7 @@ Parameters:
 
 Runs after a Cucumber Scenario.
 
-Parameters:
+Parámetros:
 
 - `world` ([`ITestCaseHookParameter`](https://github.com/cucumber/cucumber-js/blob/ac124f7b2be5fa54d904c7feac077a2657b19440/src/support_code_library_builder/types.ts#L10-L15)): world object containing information on pickle and test step
 - `result` (`object`): results object containing scenario results
@@ -596,7 +596,7 @@ Parameters:
 
 Runs before a Cucumber Step.
 
-Parameters:
+Parámetros:
 
 - `step` ([`Pickle.IPickleStep`](https://github.com/cucumber/common/blob/b94ce625967581de78d0fc32d84c35b46aa5a075/messages/jsonschema/Pickle.json#L20-L49)): Cucumber step object
 - `scenario` ([`IPickle`](https://github.com/cucumber/common/blob/b94ce625967581de78d0fc32d84c35b46aa5a075/messages/jsonschema/Pickle.json#L137-L175)): Cucumber scenario object
@@ -606,7 +606,7 @@ Parameters:
 
 Runs after a Cucumber Step.
 
-Parameters:
+Parámetros:
 
 - `step` ([`Pickle.IPickleStep`](https://github.com/cucumber/common/blob/b94ce625967581de78d0fc32d84c35b46aa5a075/messages/jsonschema/Pickle.json#L20-L49)): Cucumber step object
 - `scenario` ([`IPickle`](https://github.com/cucumber/common/blob/b94ce625967581de78d0fc32d84c35b46aa5a075/messages/jsonschema/Pickle.json#L137-L175)): Cucumber scenario object
