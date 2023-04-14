@@ -30,7 +30,7 @@ Si desea ejecutar pruebas contra un servidor que no es accesible a Internet (com
 
 Está fuera del alcance de WebdriverIO apoyar esto, por lo que tendrá que iniciarlo por sí mismo.
 
-If you are using the WDIO testrunner download and configure the [`@wdio/sauce-service`](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-sauce-service) in your `wdio.conf.js`. Ayuda a que Sauce Connect esté funcionando y viene con características adicionales que integran mejor tus pruebas en el servicio de Sauce.
+Si está utilizando el testrunner WDIO, descargue y configure la [`@wdio/sauce-service`](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-sauce-service) en su `wdio.conf.js`. Ayuda a que Sauce Connect esté funcionando y viene con características adicionales que integran mejor tus pruebas en el servicio de Sauce.
 
 ### Con Travis CI
 
