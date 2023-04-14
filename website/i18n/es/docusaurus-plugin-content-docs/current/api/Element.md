@@ -9,17 +9,17 @@ Un Objeto Elemento es un objeto que representa un Elemento en el agente de usuar
 
 Un objeto navegador tiene las siguientes propiedades:
 
-| Nombre      | Tipo     | Información                                                                                                                                                                                                                                   |
-| ----------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `sessionId` | `String` | Session id assigned from the remote server.                                                                                                                                                                                                   |
-| `elementId` | `String` | Associated [web element reference](https://w3c.github.io/webdriver/#elements) that can be used to interact with the element on the protocol level                                                                                             |
-| `selector`  | `String` | [Selector](/docs/selectors) used to query the element.                                                                                                                                                                                        |
-| `parent`    | `Object` | Either the [Browser Object](/docs/api/browser) when element was fetched from the it (e.g. `const elem = browser.$('selector')`) or an [Element Object](/docs/api/element) if it was fetched from an element scope (e.g. `elem.$('selector')`) |
-| `options`   | `Object` | WebdriverIO [options](/docs/configuration) depending on how the browser object was created. See more [setup types](/docs/setuptypes).                                                                                                         |
+| Nombre      | Tipo     | Información                                                                                                                                                                                                                                                                    |
+| ----------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `sessionId` | `String` | Id de sesión asignado desde el servidor remoto.                                                                                                                                                                                                                                |
+| `elementId` | `String` | [referencia de elemento web](https://w3c.github.io/webdriver/#elements) asociada que puede ser usada para interactuar con el elemento en el nivel del protocolo                                                                                                                |
+| `selector`  | `String` | [Selector](/docs/selectors) utilizado para consultar el elemento.                                                                                                                                                                                                              |
+| `parent`    | `Object` | O bien el [objeto del navegador](/docs/api/browser) cuando el elemento fue obtenido de él (por ejemplo, `const elem = browser. ('selector')`) o un [Objeto de Elementos](/docs/api/element) si fue obtenido desde un ámbito de un elemento (por ejemplo, `elem.$('selector')`) |
+| `options`   | `Object` | Se crearon [opciones](/docs/configuration) WebdriverIO, dependiendo de cómo se creó el objeto del navegador. Ver más [tipos de configuración](/docs/setuptypes).                                                                                                               |
 
 ## Métodos
 
-Un objeto de elemento proporciona todos los métodos de la sección de protocolo, por ejemplo, el protocolo [WebDriver](/docs/api/webdriver) , así como comandos listados dentro de la sección del elemento. Los comandos de protocolo disponibles dependen del tipo de sesión. If you run an automated browser session, none of the Appium [commands](/docs/api/appium) will be available and vice versa.
+Un objeto de elemento proporciona todos los métodos de la sección de protocolo, por ejemplo, el protocolo [WebDriver](/docs/api/webdriver) , así como comandos listados dentro de la sección del elemento. Los comandos de protocolo disponibles dependen del tipo de sesión. Si ejecuta una sesión automatizada en el navegador, ninguno de los comandos [de Appium](/docs/api/appium) estará disponible y vice versa.
 
 Además de que dispone de los siguientes comandos:
 
@@ -46,7 +46,7 @@ Con estructuras anidadas profundas asignando cualquier elemento anidado a una ma
 console.log(await $('#header').$('#headline').getText())
 ```
 
-This also works when fetching a set of elements, e.g.:
+Esto también funciona cuando se obtiene un conjunto de elementos, por ejemplo.:
 
 ```js
 // get the text of the 3rd headline within the 2nd header
