@@ -26,25 +26,25 @@ Ein Browser-Objekt hat folgende Eigenschaften:
 
 ## Methoden
 
-Based on the automation backend used for your session, WebdriverIO identifies which [Protocol Commands](/docs/api/protocols) will be attached to the [browser object](/docs/api/browser). For example if you run an automated session in Chrome, you will have access to Chromium specific commands like [`elementHover`](/docs/api/chromium#elementhover) but not any of the [Appium commands](/docs/api/appium).
+Basierend auf dem für Ihre Sitzung verwendeten Automatisierungs-Backend WebdriverIO identifiziert welche [Protokollbefehle](/docs/api/protocols) dem [Browser-Objekt](/docs/api/browser) hinzugefügt werden. Zum Beispiel, bei einer automatisierten Sitzung in Chrome haben Sie Zugriff auf Chrome-spezifische Befehle wie [`elementHover`](/docs/api/chromium#elementhover) , aber keine der [Appium Befehle](/docs/api/appium).
 
-Furthermore WebdriverIO provides a set of convenient methods that are recommended to use, to interact with the [browser](/docs/api/browser) or [elements](/docs/api/element) on the page.
+Außerdem bietet WebdriverIO eine Reihe von praktischen Methoden, die zur Verwendung empfohlen werden um mit dem [Browser](/docs/api/browser) oder [Elementen](/docs/api/element) auf der Seite zu interagieren.
 
-In addition to that the following commands are available:
+Zusätzlich stehen folgende Befehle zur Verfügung:
 
-| Name                 | Parameters                                                                                                             | Details                                                                                                                                                                                                       |
-| -------------------- | ---------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `addCommand`         | - `commandName` (Type: `String`)<br />- `fn` (Type: `Function`)<br />- `attachToElement` (Type: `boolean`) | Allows to define custom commands that can be called from the browser object for composition purposes. Read more in the [Custom Command](/docs/customcommands) guide.                                          |
-| `overwriteCommand`   | - `commandName` (Type: `String`)<br />- `fn` (Type: `Function`)<br />- `attachToElement` (Type: `boolean`) | Allows to overwite any browser command with custom functionality. Use carefully as it can confuse framework users. Read more in the [Custom Command](/docs/customcommands#overwriting-native-commands) guide. |
-| `addLocatorStrategy` | - `strategyName` (Type: `String`)<br />- `fn` (Type: `Function`)                                                 | Allos to define a custom selector strategy, read more in the [Selectors](/docs/selectors#custom-selector-strategies) guide.                                                                                   |
+| Namen                | Parameter                                                                                                              | Details                                                                                                                                                                                                                                                                                   |
+| -------------------- | ---------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `addCommand`         | - `commandName` (Type: `String`)<br />- `fn` (Type: `Function`)<br />- `attachToElement` (Type: `boolean`) | Ermöglicht die Definition benutzerdefinierter Befehle, die aus dem Browser-Objekt für Kompositionszwecke aufgerufen werden können. Lesen Sie mehr in der [Benutzerdefinierte Anleitung](/docs/customcommands)                                                                             |
+| `overwriteCommand`   | - `commandName` (Type: `String`)<br />- `fn` (Type: `Function`)<br />- `attachToElement` (Type: `boolean`) | Ermöglicht das Überschreiben eines Browser-Befehls mit benutzerdefinierter Funktionalität. Verwenden Sie diese Funktionalität sorgfältig, da es Framework-Benutzer verwirren kann. Lesen Sie mehr in der [Benutzerdefinierte Anleitung](/docs/customcommands#overwriting-native-commands) |
+| `addLocatorStrategy` | - `strategyName` (Type: `String`)<br />- `fn` (Type: `Function`)                                                 | Befehl um eine benutzerdefinierte Selektorstrategie zu definieren, lesen Sie mehr in der [Selectors](/docs/selectors#custom-selector-strategies) Anleitung.                                                                                                                               |
 
-## Remarks
+## Bemerkungen
 
-### Mobile Flags
+### Mobile Markierungen
 
-If you need to modify your test based on whether or not your session runs on a mobile device, you can access the mobile flags to check.
+Wenn sich Ihr Test anders verhalten soll, basierend darauf, ob dieser auf einem Mobilen-Endgerät ausgeführt wird oder nicht, können Sie auf die mobilen Attribute der Session zurückgreifen.
 
-For example, given this config:
+Zum Beispiel mit dieser Konfiguration:
 
 ```js
 // wdio.conf.js
@@ -61,7 +61,7 @@ export const config = {
 }
 ```
 
-You can access these flags in your test like so:
+Sie können auf diese Markierungen in Ihrem Test wie folgt zugreifen:
 
 ```js
 // Note: `driver` is the equivalent to the `browser` object but semantically more correct
@@ -71,7 +71,7 @@ console.log(driver.isIOS) // outputs: true
 console.log(driver.isAndroid) // outputs: false
 ```
 
-This can be useful if, for example, you want to define selectors in your [page objects](PageObjects.md) based on the device type, like this:
+Dies kann nützlich sein, um zum Beispiel Selektoren basierend vom Device Typ im [Page Objekt](PageObjects.md) zu definieren:
 
 ```js
 // mypageobject.page.js
@@ -90,7 +90,7 @@ class LoginPage extends Page {
 }
 ```
 
-You can also use these flags to run only certain tests for certain device types:
+Sie können ebenfalls bestimmte mobile Markierungen (z.B. isAndroid oder isIOS) verwenden, um Tests nur auf bestimmten Gerätetypen auszuführen:
 
 ```js
 // mytest.e2e.js
@@ -107,20 +107,20 @@ describe('my test', () => {
 ```
 
 ### Events
-The browser object is an EventEmitter and a couple of events are emitted for your use cases.
+Das Browser-Objekt ist ein EventEmitter und ein paar Ereignisse werden für Ihren Gebrauch emittiert.
 
-Here is a list of events. Keep in mind that this is not the full list of available events yet. Feel free to contribute to update the document by adding descriptions of more events here.
+Hier ist eine Liste der Ereignisse. Beachten Sie, dass dies noch nicht die vollständige Liste der verfügbaren Events ist. Zögern Sie nicht, das Dokument zu aktualisieren, indem Sie hier Beschreibungen von weiteren Events hinzufügen.
 
 #### `request.performance`
-This is an event to measure WebDriver level operations. Whenever WebdriverIO sends a request to the WebDriver backend, this event will be emitted with some useful information:
+Dies ist ein Ereignis, um Operationen auf WebDriver Ebene zu messen. Immer wenn WebdriverIO eine Anfrage an das WebDriver-Backend sendet, wird dieses Ereignis mit einigen nützlichen Informationen emittiert:
 
-- `durationMillisecond`: Time duration of the request in millisecond.
-- `error`: Error object if the request failed.
-- `request`: Request object. You can find url, method, headers, etc.
-- `retryCount`: If it's `0`, the request was the first attempt. It will increase when WebDriverIO retries under the hood.
-- `success`: Boolean to represent the request was succeeded or not. If it's `false`, `error` property will be provided as well.
+- `durationMillisecond`: Zeitdauer der Anfrage in Millisekunden.
+- `error`: Fehlerobjekt wenn die Anfrage fehlgeschlagen ist.
+- `request`: Request Objekt. Hier finden Sie Url, Methode, Header, etc.
+- `retryCount`: Wenn es `0`ist, war die Anfrage der erste Versuch. Die Zahl erhöht sich, wenn WebDriverIO unter der Haube den Befehl erneut ausführt.
+- `success`: Boolean die anzeigt, ob der Befehl erfolgreich ausgeführt wurde. Wenn es `false`ist, wird eine `error` Eigenschaft ebenfalls zur Verfügung gestellt.
 
-An example event:
+Ein Beispielereignis:
 ```js
 Object {
   "durationMillisecond": 0.01770925521850586,
@@ -131,6 +131,6 @@ Object {
 },
 ```
 
-### Custom Commands
+### Benutzerdefinierte Befehle
 
-You can set custom commands on the browser scope to abstract away workflows that are commonly used. Check out our guide on [Custom Commands](/docs/customcommands#adding-custom-commands) for more information.
+Sie können benutzerdefinierte Befehle dem Browser Objekt hinzufügen, um Workflows, die häufig verwendet werden, in einzelne Befehle zu verpacken. Schauen Sie sich unsere Anleitung unter [Benutzerdefinierte Befehle](/docs/customcommands#adding-custom-commands) für weitere Informationen an.
