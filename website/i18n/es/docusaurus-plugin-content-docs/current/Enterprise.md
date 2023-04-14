@@ -1,6 +1,6 @@
 ---
 id: enterprise
-title: WebdriverIO for Enterprise
+title: WebdriverIO para Enterprise
 ---
 
 ## Disponible como parte de la suscripción Tidelift
