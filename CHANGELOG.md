@@ -21,6 +21,19 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.8.3 (2023-04-14)
+
+#### :bug: Bug Fix
+* `wdio-cli`
+  * [#10188](https://github.com/webdriverio/webdriverio/pull/10188) feat: export cjs interface for wdio-cli ([@DirkoOdendaal](https://github.com/DirkoOdendaal))
+* `wdio-browserstack-service`
+  * [#10186](https://github.com/webdriverio/webdriverio/pull/10186) OBS 807 Fix Filepath V8 ([@amaanbs](https://github.com/amaanbs))
+
+#### Committers: 2
+- Amaan Hakim ([@amaanbs](https://github.com/amaanbs))
+- Dirko Odendaal ([@DirkoOdendaal](https://github.com/DirkoOdendaal))
+
+
 ## v8.8.2 (2023-04-12)
 
 #### :bug: Bug Fix
