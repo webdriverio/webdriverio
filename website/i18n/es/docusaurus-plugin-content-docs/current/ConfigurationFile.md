@@ -495,4 +495,4 @@ export const config = {
 }
 ```
 
-You can also find a file with all possible options and variations in the [example folder](https://github.com/webdriverio/webdriverio/blob/main/examples/wdio.conf.js).
+También puede encontrar un archivo con todas las opciones y variaciones posibles en la [carpeta de ejemplo](https://github.com/webdriverio/webdriverio/blob/main/examples/wdio.conf.js).
