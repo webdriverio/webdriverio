@@ -1,17 +1,17 @@
 ---
 id: globals
-title: Globals
+title: Globale Variablen
 ---
 
-In your test files, WebdriverIO puts each of these methods and objects into the global environment. You don't have to import anything to use them. However, if you prefer explicit imports, you can do `import { browser, $, $$, expect } from '@wdio/globals'` and set `injectGlobals: false` in your WDIO configuration.
+In Ihren Testdateien definiert WebdriverIO jeder dieser Methoden und Objekte in die globale Umgebung. Sie müssen nichts importieren, um sie zu verwenden. Wenn Sie aber explizite Importe bevorzugen, können Sie `import { browser, $, $, expect } von '@wdio/globals'` nutzen und `injectGlobals: false` in Ihrer WDIO-Konfiguration setzen.
 
-The following global objects are set if not configured otherwise:
+Die folgenden globalen Objekte sind gesetzt, wenn nicht anders konfiguriert:
 
-- `browser`: WebdriverIO [Browser object](https://webdriver.io/docs/api/browser)
-- `driver`: alias to `browser` (used when running mobile tests)
-- `multiremotebrowser`: alias to `browser` or `driver` but only set for [Multiremote](/docs/multiremote) sessions
-- `$`: command to fetch an element (see more in [API docs](/docs/api/browser/$))
-- `$$`: command to fetch elements (see more in [API docs](/docs/api/browser/$$))
-- `expect`: assertion framework for WebdriverIO (see [API docs](/docs/api/expect-webdriverio))
+- `browser`: WebdriverIO [Browser-Objekt](https://webdriver.io/docs/api/browser)
+- `driver`: Alias für `browser` (Wird beim Ausführen von mobilen Tests verwendet)
+- `multiremotebrowser`: Alias für `browser` oder `driver` aber nur für [Multiremote](/docs/multiremote) Sitzungen gesetzt
+- `$`: Befehl zum Finden eines Elements (mehr in der [API Dokumentation](/docs/api/browser/$))
+- `$$`: Befehl zum Finden von Elementen (mehr in [API-Dokumentation](/docs/api/browser/$$))
+- `expect`: Assertion Framework für WebdriverIO (siehe [API Dokumentation](/docs/api/expect-webdriverio))
 
-__Note:__ WebdriverIO has no control of used frameworks (e.g. Mocha or Jasmine) setting global variables when bootstrapping their environment.
+__Hinweis:__ WebdriverIO hat keine Kontrolle über verwendete Frameworks (z.B. Mocha oder Jasmin), die globale Variablen beim Bootstrappen ihrer Umgebung einstellen.
