@@ -175,7 +175,7 @@ wdio.conf.js:
 
 Archivo Cucumber:
     ```feature
-    Cuando el usuario A escribe un mensaje en el chat
+    When User A types a message into the chat
     ```
 
 Archivo de definición de paso:
