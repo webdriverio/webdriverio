@@ -48,23 +48,23 @@ describe('launcher', () => {
 
     describe('capabilities', () => {
         it('should NOT fail when capabilities are passed', async () => {
-            launcher.runSpecs = vi.fn().mockReturnValue(1)
+            launcher['_runSpecs'] = vi.fn().mockReturnValue(1)
             const exitCode = await launcher.runMode({ specs: ['./'] } as any, [caps])
-            expect(launcher.runSpecs).toBeCalled()
+            expect(launcher['_runSpecs']).toBeCalled()
             expect(exitCode).toEqual(0)
             expect(logger('').error).not.toBeCalled()
         })
 
         it('should fail if no specs were found', async () => {
-            launcher.runSpecs = vi.fn()
+            launcher['_runSpecs'] = vi.fn()
             launcher.configParser.getSpecs = vi.fn().mockReturnValue([])
             const exitCode = await launcher.runMode({ specs: ['./'] } as any, [caps])
-            expect(launcher.runSpecs).toBeCalledTimes(0)
+            expect(launcher['_runSpecs']).toBeCalledTimes(0)
             expect(exitCode).toBe(1)
         })
 
         it('should fail when no capabilities are passed', async () => {
-            launcher.runSpecs = vi.fn().mockReturnValue(1)
+            launcher['_runSpecs'] = vi.fn().mockReturnValue(1)
             // @ts-ignore test invalid parameter
             const exitCode = await launcher.runMode({ specs: ['./'] as any })
             expect(exitCode).toEqual(1)
@@ -72,14 +72,14 @@ describe('launcher', () => {
         })
 
         it('should fail when no capabilities are set', async () => {
-            launcher.runSpecs = vi.fn().mockReturnValue(1)
+            launcher['_runSpecs'] = vi.fn().mockReturnValue(1)
             const exitCode = await launcher.runMode({ specs: ['./'] } as any, undefined as any)
             expect(exitCode).toEqual(1)
             expect(logger('').error).toBeCalledWith('Missing capabilities, exiting with failure')
         })
 
         it('should start instance in multiremote', () => {
-            launcher.runSpecs = vi.fn()
+            launcher['_runSpecs'] = vi.fn()
             launcher.isMultiremote = true
             launcher.runMode(
                 { specs: ['./'], specFileRetries: 2 } as any,
@@ -90,11 +90,11 @@ describe('launcher', () => {
             expect(launcher['_schedule'][0].specs[0].retries).toBe(2)
 
             expect(typeof launcher['_resolve']).toBe('function')
-            expect(launcher.runSpecs).toBeCalledTimes(1)
+            expect(launcher['_runSpecs']).toBeCalledTimes(1)
         })
 
         it('should start instance with grouped specs', () => {
-            launcher.runSpecs = vi.fn()
+            launcher['_runSpecs'] = vi.fn()
             launcher.isMultiremote = false
             launcher.runMode(
                 { specs: [['/a.js', '/b.js']], specFileRetries: 2 } as any,
@@ -105,11 +105,11 @@ describe('launcher', () => {
             expect(launcher['_schedule'][0].specs[0].retries).toBe(2)
 
             expect(typeof launcher['_resolve']).toBe('function')
-            expect(launcher.runSpecs).toBeCalledTimes(1)
+            expect(launcher['_runSpecs']).toBeCalledTimes(1)
         })
 
         it('should start instance in multiremote with grouped specs', () => {
-            launcher.runSpecs = vi.fn()
+            launcher['_runSpecs'] = vi.fn()
             launcher.isMultiremote = true
             launcher.runMode(
                 { specs: [['/a.js', '/b.js']], specFileRetries: 2 } as any,
@@ -120,11 +120,11 @@ describe('launcher', () => {
             expect(launcher['_schedule'][0].specs[0].retries).toBe(2)
 
             expect(typeof launcher['_resolve']).toBe('function')
-            expect(launcher.runSpecs).toBeCalledTimes(1)
+            expect(launcher['_runSpecs']).toBeCalledTimes(1)
         })
 
         it('should ignore specFileRetries in watch mode', () => {
-            launcher.runSpecs = vi.fn()
+            launcher['_runSpecs'] = vi.fn()
             launcher['_isWatchMode'] = true
             launcher.runMode({ specs: ['./'], specFileRetries: 2 } as any, [caps, caps])
 
@@ -132,11 +132,11 @@ describe('launcher', () => {
             expect(launcher['_schedule'][0].specs[0].retries).toBe(0)
             expect(launcher['_schedule'][1].specs[0].retries).toBe(0)
 
-            expect(launcher.runSpecs).toBeCalledTimes(1)
+            expect(launcher['_runSpecs']).toBeCalledTimes(1)
         })
 
         it('should apply maxInstancesPerCapability if maxInstances is not passed', () => {
-            launcher.runSpecs = vi.fn()
+            launcher['_runSpecs'] = vi.fn()
             launcher.runMode(
                 { specs: ['./'], specFileRetries: 3, maxInstancesPerCapability: 4 } as any,
                 [{ browserName: 'chrome' }]
@@ -146,7 +146,7 @@ describe('launcher', () => {
             expect(launcher['_schedule'][0].specs[0].retries).toBe(3)
             expect(launcher['_schedule'][0].availableInstances).toBe(4)
 
-            expect(launcher.runSpecs).toBeCalledTimes(1)
+            expect(launcher['_runSpecs']).toBeCalledTimes(1)
         })
     })
 
@@ -154,14 +154,14 @@ describe('launcher', () => {
         it('should return false if there are specs left of running when hasTriggeredExitRoutine is false', () => {
             launcher['_getNumberOfRunningInstances'] = vi.fn().mockReturnValue(1)
             launcher['_hasTriggeredExitRoutine'] = false
-            const returnValue = launcher.runSpecs()
+            const returnValue = launcher['_runSpecs']()
             expect(returnValue).toEqual(false)
         })
 
         it('should return true when hasTriggeredExitRoutine is true', () => {
             launcher['_getNumberOfRunningInstances'] = vi.fn().mockReturnValue(1)
             launcher['_hasTriggeredExitRoutine'] = true
-            const returnValue = launcher.runSpecs()
+            const returnValue = launcher['_runSpecs']()
             expect(returnValue).toEqual(true)
         })
     })
@@ -176,7 +176,7 @@ describe('launcher', () => {
 
         it('should emit and resolve failed status', async () => {
             launcher['_getNumberOfRunningInstances'] = vi.fn().mockReturnValue(1)
-            launcher.runSpecs = vi.fn().mockReturnValue(1)
+            launcher['_runSpecs'] = vi.fn().mockReturnValue(1)
             launcher['_schedule'] = [{ cid: 1 } as any, { cid: 2 }]
             launcher['_resolve'] = vi.fn()
             await launcher['_endHandler']({ cid: '0-1', exitCode: 1, specs: [], retries: 0 } as any)
@@ -187,7 +187,7 @@ describe('launcher', () => {
 
         it('should emit and resolve passed status', async () => {
             launcher['_getNumberOfRunningInstances'] = vi.fn().mockReturnValue(1)
-            launcher.runSpecs = vi.fn().mockReturnValue(1)
+            launcher['_runSpecs'] = vi.fn().mockReturnValue(1)
             launcher['_schedule'] = [{ cid: 1 } as any, { cid: 2 }]
             launcher['_resolve'] = vi.fn()
             await launcher['_endHandler']({ cid: '0-1', exitCode: 0 } as any)
@@ -197,7 +197,7 @@ describe('launcher', () => {
 
         it('should do nothing if not all specs are run', async () => {
             launcher['_getNumberOfRunningInstances'] = vi.fn().mockReturnValue(1)
-            launcher.runSpecs = vi.fn().mockReturnValue(0)
+            launcher['_runSpecs'] = vi.fn().mockReturnValue(0)
             launcher['_schedule'] = [{ cid: 1 } as any, { cid: 2 }]
             launcher['_resolve'] = vi.fn()
             await launcher['_endHandler']({ cid: '0-1', exitCode: 0 } as any)
@@ -209,7 +209,7 @@ describe('launcher', () => {
         it('should do nothing if watch mode is still running', async () => {
             launcher['_getNumberOfRunningInstances'] = vi.fn().mockReturnValue(1)
             launcher['_isWatchMode'] = true
-            launcher.runSpecs = vi.fn().mockReturnValue(1)
+            launcher['_runSpecs'] = vi.fn().mockReturnValue(1)
             launcher['_schedule'] = [{ cid: 1 } as any, { cid: 2 }]
             launcher['_resolve'] = vi.fn()
             await launcher['_endHandler']({ cid: '0-1', exitCode: 1 } as any)
@@ -222,7 +222,7 @@ describe('launcher', () => {
             launcher['_getNumberOfRunningInstances'] = vi.fn().mockReturnValue(1)
             launcher['_isWatchMode'] = true
             launcher['_hasTriggeredExitRoutine'] = true
-            launcher.runSpecs = vi.fn().mockReturnValue(1)
+            launcher['_runSpecs'] = vi.fn().mockReturnValue(1)
             launcher['_schedule'] = [{ cid: 1 } as any, { cid: 2 }]
             launcher['_resolve'] = vi.fn()
             await launcher['_endHandler']({ cid: '0-1', exitCode: 1 } as any)
@@ -328,11 +328,11 @@ describe('launcher', () => {
             launcher.configParser = { getSpecs: vi.fn().mockReturnValue(
                 ['/a.js', ['/b.js', '/c.js', '/d.js'], '/e.js']
             ) } as any
-            expect(launcher.formatSpecs(capabilities as any, specFileRetries)).toStrictEqual(expected)
+            expect(launcher['_formatSpecs'](capabilities as any, specFileRetries)).toStrictEqual(expected)
         })
     })
 
-    describe('runSpecs', () => {
+    describe('_runSpecs', () => {
         beforeEach(() => {
             launcher.startInstance = vi.fn()
         })
@@ -342,7 +342,7 @@ describe('launcher', () => {
                 maxInstances: 100
             }) } as any
             launcher['_hasTriggeredExitRoutine'] = true
-            expect(launcher.runSpecs()).toBe(true)
+            expect(launcher['_runSpecs']()).toBe(true)
             expect(launcher.startInstance).toBeCalledTimes(0)
         })
 
@@ -372,7 +372,7 @@ describe('launcher', () => {
                 runningInstances: 0,
                 seleniumServer: {}
             }] as any
-            expect(launcher.runSpecs()).toBe(false)
+            expect(launcher['_runSpecs']()).toBe(false)
             expect(launcher['_getNumberOfRunningInstances']()).toBe(9)
             expect(launcher['_getNumberOfSpecsLeft']()).toBe(0)
             expect(launcher['_schedule'][0].runningInstances).toBe(3)
@@ -409,7 +409,7 @@ describe('launcher', () => {
                 runningInstances: 0,
                 seleniumServer: {}
             }] as any
-            expect(launcher.runSpecs()).toBe(false)
+            expect(launcher['_runSpecs']()).toBe(false)
             expect(launcher['_getNumberOfRunningInstances']()).toBe(5)
             expect(launcher['_getNumberOfSpecsLeft']()).toBe(0)
             expect(launcher['_schedule'][0].runningInstances).toBe(2)
@@ -448,7 +448,7 @@ describe('launcher', () => {
                 runningInstances: 0,
                 seleniumServer: {}
             }] as any
-            expect(launcher.runSpecs()).toBe(true)
+            expect(launcher['_runSpecs']()).toBe(true)
             expect(launcher['_getNumberOfRunningInstances']()).toBe(0)
             expect(launcher['_getNumberOfSpecsLeft']()).toBe(0)
         })
@@ -479,7 +479,7 @@ describe('launcher', () => {
                 runningInstances: 0,
                 seleniumServer: {}
             }] as any
-            expect(launcher.runSpecs()).toBe(false)
+            expect(launcher['_runSpecs']()).toBe(false)
             expect(launcher['_getNumberOfRunningInstances']()).toBe(5)
             expect(launcher['_getNumberOfSpecsLeft']()).toBe(4)
         })
@@ -510,7 +510,7 @@ describe('launcher', () => {
                 runningInstances: 2,
                 seleniumServer: {}
             }] as any
-            expect(launcher.runSpecs()).toBe(false)
+            expect(launcher['_runSpecs']()).toBe(false)
             expect(launcher['_getNumberOfRunningInstances']()).toBe(19)
             expect(launcher['_getNumberOfSpecsLeft']()).toBe(6)
             expect(launcher['_schedule'][0].runningInstances).toBe(11)
@@ -533,7 +533,7 @@ describe('launcher', () => {
                 runningInstances: 0,
                 seleniumServer: {}
             }] as any
-            expect(launcher.runSpecs()).toBe(true)
+            expect(launcher['_runSpecs']()).toBe(true)
             expect(launcher['_getNumberOfRunningInstances']()).toBe(0)
             expect(launcher['_getNumberOfSpecsLeft']()).toBe(0)
         })

@@ -36,21 +36,6 @@ export class Launcher {
     }
 
     /**
-     * Format the specs into an array of objects with files and retries
-     */
-    formatSpecs(capabilities: (Capabilities.DesiredCapabilities | Capabilities.W3CCapabilities | Capabilities.RemoteCapabilities), specFileRetries: number) {
-        this.#esmLauncher.formatSpecs(capabilities, specFileRetries)
-    }
-
-    /**
-     * run multiple single remote tests
-     * @return {Boolean} true if all specs have been run and all instances have finished
-     */
-    runSpecs(): boolean {
-        return this.#esmLauncher.runSpecs()
-    }
-
-    /**
      * Start instance in a child process.
      * @param  {Array} specs  Specs to run
      * @param  {Number} cid  Capabilities ID

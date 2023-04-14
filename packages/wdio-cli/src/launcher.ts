@@ -190,7 +190,7 @@ class Launcher {
             this._schedule.push({
                 cid: cid++,
                 caps: caps as Capabilities.MultiRemoteCapabilities,
-                specs: this.formatSpecs(caps, specFileRetries),
+                specs: this._formatSpecs(caps, specFileRetries),
                 availableInstances: config.maxInstances || 1,
                 runningInstances: 0
             })
@@ -209,7 +209,7 @@ class Launcher {
                 this._schedule.push({
                     cid: cid++,
                     caps: capabilities as Capabilities.Capabilities,
-                    specs: this.formatSpecs(capabilities, specFileRetries),
+                    specs: this._formatSpecs(capabilities, specFileRetries),
                     availableInstances,
                     runningInstances: 0
                 })
@@ -230,7 +230,7 @@ class Launcher {
             /**
              * return immediately if no spec was run
              */
-            if (this.runSpecs()) {
+            if (this._runSpecs()) {
                 resolve(0)
             }
         })
@@ -239,7 +239,7 @@ class Launcher {
     /**
      * Format the specs into an array of objects with files and retries
      */
-    formatSpecs(capabilities: (Capabilities.DesiredCapabilities | Capabilities.W3CCapabilities | Capabilities.RemoteCapabilities), specFileRetries: number) {
+    private _formatSpecs(capabilities: (Capabilities.DesiredCapabilities | Capabilities.W3CCapabilities | Capabilities.RemoteCapabilities), specFileRetries: number) {
         const files = this.configParser.getSpecs((capabilities as Capabilities.DesiredCapabilities).specs, (capabilities as Capabilities.DesiredCapabilities).exclude)
 
         return files.map(file => {
@@ -258,7 +258,7 @@ class Launcher {
      * run multiple single remote tests
      * @return {Boolean} true if all specs have been run and all instances have finished
      */
-    runSpecs(): boolean {
+    private _runSpecs(): boolean {
         /**
          * stop spawning new processes when CTRL+C was triggered
          */
@@ -512,7 +512,7 @@ class Launcher {
          * - there are specs to be executed
          * - we are running watch mode
          */
-        const shouldRunSpecs = this.runSpecs()
+        const shouldRunSpecs = this._runSpecs()
         const inWatchMode = this._isWatchMode && !this._hasTriggeredExitRoutine
         if (!shouldRunSpecs || inWatchMode) {
             /**
