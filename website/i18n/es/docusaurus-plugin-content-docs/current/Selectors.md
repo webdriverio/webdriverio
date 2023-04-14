@@ -277,7 +277,7 @@ Many frontend applications heavily rely on elements with [shadow DOM](https://de
 
 Given we have an application with the following structure:
 
-![Chrome Example](https://github.com/Georgegriff/query-selector-shadow-dom/raw/main/Chrome-example.png "Chrome Example")
+![Ejemplo Chrome](https://github.com/Georgegriff/query-selector-shadow-dom/raw/main/Chrome-example.png "Ejemplo Chrome")
 
 With this selector you can query the `<button />` element that is nested within another shadow DOM, e.g.:
 
@@ -301,7 +301,7 @@ const button = await $(`android=${selector}`)
 await button.click()
 ```
 
-### Android DataMatcher and ViewMatcher (Espresso only)
+### Android DataMatcher y ViewMatcher (sólo Espresso)
 
 Android's DataMatcher strategy provides a way to find elements by [Data Matcher](https://developer.android.com/reference/android/support/test/espresso/DataInteraction)
 
@@ -324,7 +324,7 @@ const menuItem = await $({
 await menuItem.click()
 ```
 
-### Android View Tag (Espresso only)
+### Etiqueta de vista Android (sólo Espresso)
 
 The view tag strategy provides a convenient way to find elements by their [tag](https://developer.android.com/reference/android/support/test/espresso/matcher/ViewMatchers.html#withTagValue%28org.hamcrest.Matcher%3Cjava.lang.Object%3E%29).
 
