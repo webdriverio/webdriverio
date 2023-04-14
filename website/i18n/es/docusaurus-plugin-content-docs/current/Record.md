@@ -28,7 +28,7 @@ The _"Export as a WebdriverIO Test Script"_ option only available if you install
 
 ![Chrome DevTools Recorder](/img/recorder/export.gif)
 
-That's it!
+¡Eso es todo!
 
 ## Export Recording
 
