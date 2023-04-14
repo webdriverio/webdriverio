@@ -22,7 +22,7 @@ Si organiza un evento en el que un ponente hable sobre el uso de WebdriverIO y s
 - Debe utilizar los fondos para gastos cualificados del evento, como comida, bebida, alquiler de salas o equipos.
 - Debe presentar los recibos con su solicitud de reembolso.
 
-### Development Expenses
+### Gastos de Desarrollo
 
 Si ha realizado trabajos de desarrollo en cualquiera de los repositorios de la organización WebdriverIO de GitHub, puede reembolsar hasta __$1000__ si se cumplen los siguientes requisitos:
 
