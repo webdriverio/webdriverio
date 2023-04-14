@@ -1,11 +1,11 @@
 ---
 id: configurationfile
-title: Configuration File
+title: Archivo de Configuración
 ---
 
-The configuration file contains all necessary information to run your test suite. It’s a NodeJS module that exports a JSON.
+El archivo de configuración contiene toda la información necesaria para ejecutar su suite de pruebas. Es un módulo NodeJS que exporta un JSON.
 
-Here is an example configuration with all supported properties and additional information:
+Aquí hay un ejemplo de configuración con todas las propiedades soportadas e información adicional:
 
 ```js
 export const config = {
