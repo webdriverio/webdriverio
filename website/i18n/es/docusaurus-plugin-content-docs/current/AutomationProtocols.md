@@ -162,11 +162,11 @@ Al acceder a la interfaz de Puppeteer, usted tiene acceso a una variedad de nuev
 Si ejecuta pruebas WebdriverIO a través del paquete DevTools, puede aplicar [opciones de Puppeteer personalizadas](https://pptr.dev/#?product=Puppeteer&version=v8.0.0&show=api-puppeteerlaunchoptions). Estas opciones serán pasadas directamente al [`launch`](https://pptr.dev/#?product=Puppeteer&version=v8.0.0&show=api-puppeteerlaunchoptions) o [`connect`](https://pptr.dev/#?product=Puppeteer&version=v8.0.0&show=api-puppeteerconnectoptions) métodos de Puppeteer. Otras opciones de devtools personalizadas son las siguiente:
 
 #### customPort
-Start Chrome on a custom port.
+Iniciar Chrome en un puerto personalizado.
 
 Type: `number`<br /> Default: `9222` (default of Puppeteer)
 
-Note: if you pass in `goog:chromeOptions/debuggerAddress`, `wdio:devtoolsOptions/browserWSEndpoint` or `wdio:devtoolsOptions/browserURL` options, WebdriverIO will try to connect with given connection details rather than starting a browser. For example you can connect to Testingbots cloud via:
+Nota: si pasas `goog:chromeOptions/debuggerAddress`, `wdio:devtoolsOptions/browserWSEndpoint` o `wdio:devtoolsOptions/browserURL` opciones, WebdriverIO intentará conectarse con determinados detalles de conexión en lugar de iniciar un navegador. Por ejemplo, puede conectarse a la nube de Testingbots vía:
 
 ```js
 import { format } from 'util'
