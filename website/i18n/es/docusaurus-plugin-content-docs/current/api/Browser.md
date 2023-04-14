@@ -13,16 +13,16 @@ La sesión es inicializada por el sistema de pruebas. Lo mismo ocurre para final
 
 Un objeto navegador tiene las siguientes propiedades:
 
-| Nombre                   | Tipo       | Información                                                                                                                                            |
-| ------------------------ | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `capacidades`            | `Objeto`   | Capacidad asignada desde el servidor remoto.<br /><b>Ejemplo:</b><pre>{<br />  acceptInsecureCerts: false,<br />  browserName: 'chrome',<br />  browserVersion: '105.0.5195.125',<br />  chrome: {<br />    chromedriverVersion: '105.0.5195.52 (412c95e518836d8a7d97250d62b29c2ae6a26a85-refs/branch-heads/5195@{#853})',<br />    userDataDir: '/var/folders/3_/pzc_f56j15vbd9z3r0j050sh0000gn/T/.com.google.Chrome.76HD3S'<br />  },<br />  'goog:chromeOptions': { debuggerAddress: 'localhost:64679' },<br />  networkConnectionEnabled: false,<br />  pageLoadStrategy: 'normal',<br />  platformName: 'mac os x',<br />  proxy: {},<br />  setWindowRect: true,<br />  strictFileInteractability: false,<br />  timeouts: { implicit: 0, pageLoad: 300000, script: 30000 },<br />  unhandledPromptBehavior: 'dismiss and notify',<br />  'webauthn:extension:credBlob': true,<br />  'webauthn:extension:largeBlob': true,<br />  'webauthn:virtualAuthenticators': true<br />}</pre>                                             |
-| `capacidadesSolicitadas` | `Objeto`   | Capacidades solicitadas al servidor remoto.<br /><b>Ejemplo:</b><pre>{ browserName: 'chrome' }</pre>                                              |
-| `sessionId`              | `String`   | Id de sesión asignado desde el servidor remoto.                                                                                                        |
-| `opciones`               | `Objeto`   | Se crearon [opciones](/docs/configuration) WebdriverIO, dependiendo de cómo se creó el objeto del navegador. See more [setup types](/docs/setuptypes). |
-| `lista de comandos`      | `String[]` | Una lista de comandos registrados a la instancia del navegador                                                                                         |
-| `isMobile`               | `Boolean`  | Indicates a mobile session. See more under [Mobile Flags](#mobile-flags).                                                                              |
-| `isIOS`                  | `Boolean`  | Indicates an iOS session. See more under [Mobile Flags](#mobile-flags).                                                                                |
-| `isAndroid`              | `Boolean`  | Indicates an Android session. See more under [Mobile Flags](#mobile-flags).                                                                            |
+| Nombre                   | Tipo       | Información                                                                                                                                                      |
+| ------------------------ | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `capacidades`            | `Objeto`   | Capacidad asignada desde el servidor remoto.<br /><b>Ejemplo:</b><pre>{<br />  acceptInsecureCerts: false,<br />  browserName: 'chrome',<br />  browserVersion: '105.0.5195.125',<br />  chrome: {<br />    chromedriverVersion: '105.0.5195.52 (412c95e518836d8a7d97250d62b29c2ae6a26a85-refs/branch-heads/5195@{#853})',<br />    userDataDir: '/var/folders/3_/pzc_f56j15vbd9z3r0j050sh0000gn/T/.com.google.Chrome.76HD3S'<br />  },<br />  'goog:chromeOptions': { debuggerAddress: 'localhost:64679' },<br />  networkConnectionEnabled: false,<br />  pageLoadStrategy: 'normal',<br />  platformName: 'mac os x',<br />  proxy: {},<br />  setWindowRect: true,<br />  strictFileInteractability: false,<br />  timeouts: { implicit: 0, pageLoad: 300000, script: 30000 },<br />  unhandledPromptBehavior: 'dismiss and notify',<br />  'webauthn:extension:credBlob': true,<br />  'webauthn:extension:largeBlob': true,<br />  'webauthn:virtualAuthenticators': true<br />}</pre>                                                       |
+| `capacidadesSolicitadas` | `Objeto`   | Capacidades solicitadas al servidor remoto.<br /><b>Ejemplo:</b><pre>{ browserName: 'chrome' }</pre>                                                        |
+| `sessionId`              | `String`   | Id de sesión asignado desde el servidor remoto.                                                                                                                  |
+| `opciones`               | `Object`   | Se crearon [opciones](/docs/configuration) WebdriverIO, dependiendo de cómo se creó el objeto del navegador. Ver más [tipos de configuración](/docs/setuptypes). |
+| `commandList`            | `String[]` | Una lista de comandos registrados a la instancia del navegador                                                                                                   |
+| `isMobile`               | `Boolean`  | Indica una sesión móvil. Vea más en [Banderas móviles](#mobile-flags).                                                                                           |
+| `isIOS`                  | `Boolean`  | Indica una sesión de iOS. Vea más en [Banderas móviles](#mobile-flags).                                                                                          |
+| `isAndroid`              | `Boolean`  | Indica una sesión Android. Vea más en [Banderas móviles](#mobile-flags).                                                                                         |
 
 ## Métodos
 
@@ -112,13 +112,13 @@ El objeto del navegador es un EventEmitter y se emiten un par de eventos para su
 He aquí una lista de eventos. Tenga en cuenta que esta no es la lista completa de eventos disponibles todavía. Siéntase libre de contribuir a actualizar el documento añadiendo descripciones de más eventos aquí.
 
 #### `request.performance`
-This is an event to measure WebDriver level operations. Whenever WebdriverIO sends a request to the WebDriver backend, this event will be emitted with some useful information:
+Este es un evento para medir las operaciones de nivel de WebDriver. Cada vez que WebdriverIO envíe una solicitud al backend de WebDriver, este evento se emitirá con alguna información útil:
 
 - `durationMilisegundo`: Duración del tiempo de la solicitud en milisegundo.
 - `error`: Objeto de error si la solicitud falló.
-- `request`: Request object. Puede encontrar el url, método, cabezas, etc.
-- `retryCount`: If it's `0`, the request was the first attempt. It will increase when WebDriverIO retries under the hood.
-- `success`: Boolean to represent the request was succeeded or not. If it's `false`, `error` property will be provided as well.
+- `request`: Solicitar objeto. Puede encontrar el url, método, cabezas, etc.
+- `retryCount`: Si es `0`, la solicitud fue el primer intento. Se incrementará cuando WebDriverIO vuelva a intentarlo bajo el capó.
+- `success`: Booleano para representar la solicitud fue exitoso o no. Si es `false`, `error` propiedad también será proporcionada.
 
 Un ejemplo de evento:
 ```js
