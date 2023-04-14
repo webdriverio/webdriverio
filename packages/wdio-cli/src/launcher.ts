@@ -61,9 +61,9 @@ class Launcher {
 
     /**
      * run sequence
-     * @return  {Promise}  that only gets resolves with either an exitCode or an error
+     * @return  {Promise}  that only gets resolved with either an exitCode or an error
      */
-    async run() {
+    async run(): Promise<undefined | number> {
         await this.configParser.initialize(this._args)
         const config = this.configParser.getConfig()
 
@@ -99,7 +99,7 @@ class Launcher {
         /**
          * catches ctrl+c event
          */
-        exitHook(this.exitHandler.bind(this))
+        exitHook(this._exitHandler.bind(this))
         let exitCode = 0
         let error: HookError | undefined = undefined
 
@@ -258,7 +258,7 @@ class Launcher {
      * run multiple single remote tests
      * @return {Boolean} true if all specs have been run and all instances have finished
      */
-    runSpecs() {
+    runSpecs(): boolean {
         /**
          * stop spawning new processes when CTRL+C was triggered
          */
@@ -268,7 +268,7 @@ class Launcher {
 
         const config = this.configParser.getConfig()
 
-        while (this.getNumberOfRunningInstances() < config.maxInstances) {
+        while (this._getNumberOfRunningInstances() < config.maxInstances) {
             const schedulableCaps = this._schedule
                 /**
                  * bail if number of errors exceeds allowed
@@ -289,7 +289,7 @@ class Launcher {
                 /**
                  * make sure complete number of running instances is not higher than general maxInstances number
                  */
-                .filter(() => this.getNumberOfRunningInstances() < config.maxInstances)
+                .filter(() => this._getNumberOfRunningInstances() < config.maxInstances)
                 /**
                  * make sure the capability has available capacities
                  */
@@ -322,14 +322,14 @@ class Launcher {
             schedulableCaps[0].runningInstances++
         }
 
-        return this.getNumberOfRunningInstances() === 0 && this.getNumberOfSpecsLeft() === 0
+        return this._getNumberOfRunningInstances() === 0 && this._getNumberOfSpecsLeft() === 0
     }
 
     /**
      * gets number of all running instances
      * @return {number} number of running instances
      */
-    getNumberOfRunningInstances() {
+    private _getNumberOfRunningInstances(): number {
         return this._schedule.map((a) => a.runningInstances).reduce((a, b) => a + b)
     }
 
@@ -337,7 +337,7 @@ class Launcher {
      * get number of total specs left to complete whole suites
      * @return {number} specs left to complete suite
      */
-    getNumberOfSpecsLeft() {
+    private _getNumberOfSpecsLeft(): number {
         return this._schedule.map((a) => a.specs.length).reduce((a, b) => a + b)
     }
 
@@ -368,7 +368,7 @@ class Launcher {
 
         // Retried tests receive the cid of the failing test as rid
         // so they can run with the same cid of the failing test.
-        const runnerId = rid || this.getRunnerId(cid)
+        const runnerId = rid || this._getRunnerId(cid)
         const processNumber = this._runnerStarted + 1
 
         // process.debugPort defaults to 5858 and is set even when process
@@ -439,7 +439,7 @@ class Launcher {
         })
         worker.on('message', this.interface.onMessage.bind(this.interface))
         worker.on('error', this.interface.onMessage.bind(this.interface))
-        worker.on('exit', this.endHandler.bind(this))
+        worker.on('exit', this._endHandler.bind(this))
     }
 
     private _workerHookError (error: HookError) {
@@ -458,7 +458,7 @@ class Launcher {
      * @param  {Number} cid capability id (unique identifier for a capability)
      * @return {String}     runner id (combination of cid and test id e.g. 0a, 0b, 1a, 1b ...)
      */
-    getRunnerId (cid: number) {
+    private _getRunnerId (cid: number): string {
         if (!this._rid[cid]) {
             this._rid[cid] = 0
         }
@@ -472,7 +472,7 @@ class Launcher {
      * @param  {Array} specs      Specs that were run
      * @param  {Number} retries   Number or retries remaining
      */
-    async endHandler({ cid: rid, exitCode, specs, retries }: EndMessage) {
+    private async _endHandler({ cid: rid, exitCode, specs, retries }: EndMessage): Promise<void> {
         const passed = this._isWatchModeHalted() || exitCode === 0
 
         if (!passed && retries > 0) {
@@ -536,7 +536,7 @@ class Launcher {
      * having dead driver processes. To do so let the runner end its Selenium
      * session first before killing
      */
-    exitHandler (callback?: (value: boolean) => void) {
+    private _exitHandler (callback?: (value: boolean) => void): void | Promise<void> {
         if (!callback || !this.runner || !this.interface) {
             return
         }
@@ -554,7 +554,7 @@ class Launcher {
      * returns true if user stopped watch mode, ex with ctrl+c
      * @returns {boolean}
      */
-    private _isWatchModeHalted () {
+    private _isWatchModeHalted(): boolean {
         return this._isWatchMode && this._hasTriggeredExitRoutine
     }
 }
