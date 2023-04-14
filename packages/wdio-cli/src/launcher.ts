@@ -122,7 +122,7 @@ class Launcher {
             await runLauncherHook(config.onPrepare, config, caps)
             await runServiceHook(this._launcher, 'onPrepare', config, caps)
 
-            exitCode = await this.runMode(config, caps)
+            exitCode = await this._runMode(config, caps)
 
             /**
              * run onComplete hook
@@ -163,7 +163,7 @@ class Launcher {
     /**
      * run without triggering onPrepare/onComplete hooks
      */
-    runMode (config: Required<Options.Testrunner>, caps: Capabilities.RemoteCapabilities): Promise<number> {
+    private _runMode (config: Required<Options.Testrunner>, caps: Capabilities.RemoteCapabilities): Promise<number> {
         /**
          * fail if no caps were found
          */
@@ -311,7 +311,7 @@ class Launcher {
             }
 
             const specs = schedulableCaps[0].specs.shift() as NonNullable<WorkerSpecs>
-            this.startInstance(
+            this._startInstance(
                 specs.files,
                 schedulableCaps[0].caps as Capabilities.DesiredCapabilities,
                 schedulableCaps[0].cid,
@@ -348,7 +348,7 @@ class Launcher {
      * @param  {String} rid  Runner ID override
      * @param  {Number} retries  Number of retries remaining
      */
-    async startInstance(
+    private async _startInstance(
         specs: string[],
         caps: Capabilities.DesiredCapabilities | Capabilities.W3CCapabilities | Capabilities.MultiRemoteCapabilities,
         cid: number,

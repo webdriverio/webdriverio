@@ -49,7 +49,7 @@ describe('launcher', () => {
     describe('capabilities', () => {
         it('should NOT fail when capabilities are passed', async () => {
             launcher['_runSpecs'] = vi.fn().mockReturnValue(1)
-            const exitCode = await launcher.runMode({ specs: ['./'] } as any, [caps])
+            const exitCode = await launcher['_runMode']({ specs: ['./'] } as any, [caps])
             expect(launcher['_runSpecs']).toBeCalled()
             expect(exitCode).toEqual(0)
             expect(logger('').error).not.toBeCalled()
@@ -58,7 +58,7 @@ describe('launcher', () => {
         it('should fail if no specs were found', async () => {
             launcher['_runSpecs'] = vi.fn()
             launcher.configParser.getSpecs = vi.fn().mockReturnValue([])
-            const exitCode = await launcher.runMode({ specs: ['./'] } as any, [caps])
+            const exitCode = await launcher['_runMode']({ specs: ['./'] } as any, [caps])
             expect(launcher['_runSpecs']).toBeCalledTimes(0)
             expect(exitCode).toBe(1)
         })
@@ -66,14 +66,14 @@ describe('launcher', () => {
         it('should fail when no capabilities are passed', async () => {
             launcher['_runSpecs'] = vi.fn().mockReturnValue(1)
             // @ts-ignore test invalid parameter
-            const exitCode = await launcher.runMode({ specs: ['./'] as any })
+            const exitCode = await launcher['_runMode']({ specs: ['./'] as any })
             expect(exitCode).toEqual(1)
             expect(logger('').error).toBeCalledWith('Missing capabilities, exiting with failure')
         })
 
         it('should fail when no capabilities are set', async () => {
             launcher['_runSpecs'] = vi.fn().mockReturnValue(1)
-            const exitCode = await launcher.runMode({ specs: ['./'] } as any, undefined as any)
+            const exitCode = await launcher['_runMode']({ specs: ['./'] } as any, undefined as any)
             expect(exitCode).toEqual(1)
             expect(logger('').error).toBeCalledWith('Missing capabilities, exiting with failure')
         })
@@ -81,7 +81,7 @@ describe('launcher', () => {
         it('should start instance in multiremote', () => {
             launcher['_runSpecs'] = vi.fn()
             launcher.isMultiremote = true
-            launcher.runMode(
+            launcher['_runMode'](
                 { specs: ['./'], specFileRetries: 2 } as any,
                 { foo: { capabilities: { browserName: 'chrome' } } }
             )
@@ -96,7 +96,7 @@ describe('launcher', () => {
         it('should start instance with grouped specs', () => {
             launcher['_runSpecs'] = vi.fn()
             launcher.isMultiremote = false
-            launcher.runMode(
+            launcher['_runMode'](
                 { specs: [['/a.js', '/b.js']], specFileRetries: 2 } as any,
                 [caps]
             )
@@ -111,7 +111,7 @@ describe('launcher', () => {
         it('should start instance in multiremote with grouped specs', () => {
             launcher['_runSpecs'] = vi.fn()
             launcher.isMultiremote = true
-            launcher.runMode(
+            launcher['_runMode'](
                 { specs: [['/a.js', '/b.js']], specFileRetries: 2 } as any,
                 { foo: { capabilities: { browserName: 'chrome' } } }
             )
@@ -126,7 +126,7 @@ describe('launcher', () => {
         it('should ignore specFileRetries in watch mode', () => {
             launcher['_runSpecs'] = vi.fn()
             launcher['_isWatchMode'] = true
-            launcher.runMode({ specs: ['./'], specFileRetries: 2 } as any, [caps, caps])
+            launcher['_runMode']({ specs: ['./'], specFileRetries: 2 } as any, [caps, caps])
 
             expect(launcher['_schedule']).toHaveLength(2)
             expect(launcher['_schedule'][0].specs[0].retries).toBe(0)
@@ -137,7 +137,7 @@ describe('launcher', () => {
 
         it('should apply maxInstancesPerCapability if maxInstances is not passed', () => {
             launcher['_runSpecs'] = vi.fn()
-            launcher.runMode(
+            launcher['_runMode'](
                 { specs: ['./'], specFileRetries: 3, maxInstancesPerCapability: 4 } as any,
                 [{ browserName: 'chrome' }]
             )
@@ -334,7 +334,7 @@ describe('launcher', () => {
 
     describe('_runSpecs', () => {
         beforeEach(() => {
-            launcher.startInstance = vi.fn()
+            launcher['_startInstance'] = vi.fn()
         })
 
         it('should not start running anything if exit routine is triggered', () => {
@@ -343,7 +343,7 @@ describe('launcher', () => {
             }) } as any
             launcher['_hasTriggeredExitRoutine'] = true
             expect(launcher['_runSpecs']()).toBe(true)
-            expect(launcher.startInstance).toBeCalledTimes(0)
+            expect(launcher['_startInstance']).toBeCalledTimes(0)
         })
 
         it('should run all specs', () => {
@@ -559,7 +559,7 @@ describe('launcher', () => {
             launcher['_args'].hostname = '127.0.0.2'
 
             expect(launcher['_runnerStarted']).toBe(0)
-            await launcher.startInstance(
+            await launcher['_startInstance'](
                 ['/foo.test.js'],
                 caps,
                 0,
@@ -593,7 +593,7 @@ describe('launcher', () => {
             }) } as any
             launcher['_args'].hostname = '127.0.0.3'
 
-            await launcher.startInstance(
+            await launcher['_startInstance'](
                 ['/foo.test.js'],
                 caps,
                 0,
@@ -625,7 +625,7 @@ describe('launcher', () => {
             }) } as any
             launcher['_args'].hostname = '127.0.0.4'
 
-            await launcher.startInstance(
+            await launcher['_startInstance'](
                 ['/foo.test.js'],
                 caps,
                 0,
@@ -666,7 +666,7 @@ describe('launcher', () => {
                 initialize: vi.fn()
             } as any
             launcher.runner = { initialise: vi.fn(), shutdown: vi.fn() } as any
-            launcher.runMode = vi.fn().mockImplementation((config, caps) => caps)
+            launcher['_runMode'] = vi.fn().mockImplementation((config, caps) => caps)
         })
 
         it('exit code 0', async () => {
@@ -680,7 +680,7 @@ describe('launcher', () => {
             expect(launcher.configParser.getConfig).toBeCalledTimes(1)
             expect(launcher.runner!.initialise).toBeCalledTimes(1)
             expect(config.onPrepare![0]).toBeCalledTimes(1)
-            expect(launcher.runMode).toBeCalledTimes(1)
+            expect(launcher['_runMode']).toBeCalledTimes(1)
             expect(config.onPrepare![0]).toBeCalledTimes(1)
             expect(launcher.interface!.finalise).toBeCalledTimes(1)
         })
