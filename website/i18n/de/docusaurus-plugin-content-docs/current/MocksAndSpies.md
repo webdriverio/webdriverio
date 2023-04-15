@@ -62,21 +62,13 @@ console.log(await $$('#todo-list li').map(el => el.getText()))
 You can also modify the response headers as well as the status code by passing in some mock response params as follows:
 
 ```js
-mock.respond({ ... }, {
-    // respond with status code 404
-    statusCode: 404,
-    // merge response headers with following headers
-    headers: { 'x-custom-header': 'foobar' }
-})
+ 
 ```
 
 If you want the mock not to call the backend at all, you can pass `false` for the `fetchResponse` flag.
 
 ```js
-mock.respond({ ... }, {
-    // do not call the actual backend
-    fetchResponse: false
-})
+ 
 ```
 
 It is recommend to store custom responses in fixture files so you can just require them in your test as follows:
