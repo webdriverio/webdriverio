@@ -122,13 +122,7 @@ This is an event to measure WebDriver level operations. Whenever WebdriverIO sen
 
 An example event:
 ```js
-Object {
-  "durationMillisecond": 0.01770925521850586,
-  "error": [Error: Timeout],
-  "request": Object { ... },
-  "retryCount": 0,
-  "success": false,
-},
+ 
 ```
 
 ### Custom Commands
