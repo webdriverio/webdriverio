@@ -3,8 +3,6 @@ id: configuration
 title: Configuración
 ---
 
-Basado en el tipo de configuración [](./SetupTypes.md) (p. ej. usando los enlaces de protocolo crudo, WebdriverIO como paquete independiente o el testrunner WDIo) hay un conjunto diferente de opciones disponibles para controlar el entorno.
-
 ## Opciones de WebDriver
 
 Las siguientes opciones se definen al utilizar el paquete de protocolo [`webdriver`](https://www.npmjs.com/package/webdriver):
@@ -329,8 +327,6 @@ reporters: [
 
 ### reporterSyncInterval
 
-Determines in which interval the reporter should check if they are synchronized if they report their logs asynchronously (e.g. if logs are streamed to a 3rd party vendor).
-
 Type: `Number`<br /> Default: `100` (ms)
 
 ### reporterSyncTimeout
@@ -443,16 +439,12 @@ Parámetros:
 
 ### beforeHook
 
-Hook that gets executed *before* a hook within the suite starts (e.g. runs before calling beforeEach in Mocha)
-
 Parámetros:
 
 - `test` (`object`): test details
 - `context` (`object`): test context (represents World object in Cucumber)
 
 ### afterHook
-
-Hook that gets executed *after* a hook within the suite ends (e.g. runs after calling afterEach in Mocha)
 
 Parámetros:
 
@@ -501,7 +493,7 @@ Parámetros:
 - `result.result` (`Any`): return object of test function
 - `result.duration` (`Number`): duration of test
 - `result.passed` (`Boolean`): true if test has passed, otherwise false
-- `result.retries` (`Object`): informations to spec related retries, e.g. `{ attempts: 0, limit: 0 }`
+-
 - `result` (`object`): hook result (contains `error`, `result`, `duration`, `passed`, `retries` properties)
 
 ### afterSuite
