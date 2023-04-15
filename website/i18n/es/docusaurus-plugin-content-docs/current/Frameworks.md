@@ -356,8 +356,6 @@ Aquí tienes algunos ejemplos de esta sintaxis:
 
 ### Importar ayuda de definición de pasos
 
-Para utilizar el ayudante de definición de pasos como `dado`, `Cuando` o `Luego` o ganchos, se supone que se importará desde `@cucumber/pepino`, e.. como esto:
-
 ```js
 import { Given, When, Then } from '@cucumber/cucumber'
 ```
