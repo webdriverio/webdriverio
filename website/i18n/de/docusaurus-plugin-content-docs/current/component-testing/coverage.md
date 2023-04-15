@@ -3,11 +3,11 @@ id: coverage
 title: Coverage
 ---
 
-WebdriverIO's browser runner supports code coverage reporting using [`istanbul`](https://istanbul.js.org/). The testrunner will automatically instrument your code and and capture code coverage for you.
+Der Browser-Runner von WebdriverIO unterstützt die Berichterstellung zur Codeabdeckung mit [`istanbul`](https://istanbul.js.org/). Der Testrunner instrumentiert automatisch Ihren Code und erfasst die Codeabdeckung für Sie.
 
 ## Setup
 
-In order to enable code coverage reporting, enable it through the WebdriverIO browser runner configuration, e.g.:
+Um das Code-Coverage-Reporting zu aktivieren, aktivieren Sie es über die WebdriverIO Browser-Runner-Konfiguration, z.B.:
 
 ```js title=wdio.conf.js
 export const config = {
@@ -22,20 +22,20 @@ export const config = {
 }
 ```
 
-Checkout all [coverage options](/docs/runner#coverage-options), to learn how to properly configure it.
+Schauen Sie sich alle [Deckungsoptionen](/docs/runner#coverage-options)an, um zu erfahren, wie man sie richtig konfiguriert.
 
-## Ignoring Code
+## Code ignorieren
 
-There may be some sections of your codebase that you wish to purposefully exclude from coverage tracking, to do so you can use the following parsing hints:
+Möglicherweise gibt es einige Abschnitte Ihrer Codebasis, die Sie absichtlich von der Abdeckungsverfolgung ausschließen möchten. Dazu können Sie die folgenden Parsing-Hinweise verwenden:
 
-- `/* istanbul ignore if */`: ignore the next if statement.
-- `/* istanbul ignore else */`: ignore the else portion of an if statement.
-- `/* istanbul ignore next */`: ignore the next thing in the source-code ( functions, if statements, classes, you name it).
-- `/* istanbul ignore file */`: ignore an entire source-file (this should be placed at the top of the file).
+- `/* istanbul Ignoriere if */`: Ignoriere die nächste if-Anweisung.
+- `/* istanbul ignore else */`: Ignoriere den else-Teil einer if-Anweisung.
+- `/* istanbul ignore next */`: Ignoriere das Nächste im Quellcode (Funktionen, if-Anweisungen, Klassen, was auch immer).
+- `/* istanbul ignore file */`: Ignoriere eine komplette Quelldatei (diese sollte am Anfang der Datei platziert werden).
 
 :::info
 
-It is recommended to exclude your test files from the coverage reporting as it could cause errors, e.g. when calling `execute` or `executeAsync` commands. If you like to keep them in your report, ensure your exclude instrumenting them via:
+Es wird empfohlen, Ihre Testdateien vom Coverage-Reporting auszuschließen, da dies Fehler verursachen könnte, z. B. beim Aufrufen von `execute` oder `executeAsync` Befehlen. Wenn Sie sie in Ihrem Bericht behalten möchten, stellen Sie sicher, dass Sie sie über Folgendes ausschließen:
 
 ```ts
 await browser.execute(/* istanbul ignore next */() => {
