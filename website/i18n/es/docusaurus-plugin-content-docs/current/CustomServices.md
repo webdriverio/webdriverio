@@ -66,8 +66,8 @@ export default class CustomWorkerService {
         // TODO: something before each Cucumber scenario run
     }
 
-    // other hooks or custom service methods ...
-}
+    // other hooks or custom service methods ... }
+
 ```
 
 Es recomendable almacenar el objeto del navegador a través del parámetro pasado en el constructor. Por último, exponer ambos tipos de trabajadores de la siguiente manera:
