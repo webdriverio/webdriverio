@@ -40,11 +40,7 @@ export const config = {
 
 :::info
 
-If you automate a different browser than Chrome, e.g. Brave, Edge or Opera, chances are that the browser option match with the example above, just using a different capability name, e.g. `ms:edgeOptions`.
-
 :::
-
-If you compile your extension as `.crx` file using e.g. the [crx](https://www.npmjs.com/package/crx) NPM package, you can also inject the bundled extension via:
 
 ```js wdio.conf.js
 import path from 'node:path'
