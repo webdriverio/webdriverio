@@ -41,7 +41,7 @@ Verbindet sich mit einer bereits laufenden Automatisierungs-Session.
 
 ##### Parameter
 
--
+- `attachInstance`: Instanz, um eine Sitzung mit einer Eigenschaft `sessionId` (z.B. `{ sessionId: 'xxx' }`)
 - `modifier`: Funktion, die es erlaubt, die Client-Instanz zu modifizieren, bevor sie zurückgegeben wird
 - `userPrototype`: Prototyp-Objekt, mit dem der Prototyp der Instanz erweitert werden kann
 - `customCommandWrapper`: Funktion, die die Funktionalität von Protokoll-Befehle beeinflussen kann.
@@ -105,7 +105,7 @@ Verbindet sich mit einer bereits laufenden Automatisierungs-Session.
 
 ##### Parameter
 
--
+- `attachInstance`: Instanz, um eine Sitzung mit einer Eigenschaft `sessionId` (z.B. `{ sessionId: 'xxx' }`)
 
 ##### Rückgabewert:
 
@@ -154,7 +154,7 @@ console.log(await matrix.getTitle())
 
 ## `@wdio/cli`
 
-Instead of calling the `wdio` command, you can also include the test runner as module and run it in an arbitrary environment. For that, you'll need to require the `@wdio/cli` package as module, like this:
+Anstatt den Befehl `wdio` aufzurufen, können Sie den Testrunner auch als Modul einbinden und in einer beliebigen Umgebung ausführen. Dazu benötigen Sie das Paket `@wdio/cli` als Modul, etwa so:
 
 <Tabs
   defaultValue="esm"
@@ -179,18 +179,18 @@ const Launcher = require('@wdio/cli').default
 </TabItem>
 </Tabs>
 
-After that, create an instance of the launcher, and run the test.
+Erstellen Sie danach eine Instanz des Launchers und führen Sie den Test aus.
 
 #### `Launcher(configPath, opts)`
 
-The `Launcher` class constructor expects the URL to the config file, and an `opts` object with settings that will overwrite those in the config.
+Der `Launcher` Klassenkonstruktor erwartet die URL zur Konfigurationsdatei und ein `opts` Objekt mit Einstellungen, die diejenigen in der Konfiguration überschreiben.
 
-##### Paramaters
+##### Parameter
 
-- `configPath`: path to the `wdio.conf.js` to run
-- `opts`: arguments ([`<RunCommandArguments>`](https://github.com/webdriverio/webdriverio/blob/main/packages/wdio-cli/src/types.ts#L51-L77)) to overwrite values from the config file
+- `configPath`: Pfad zu `wdio.conf.js` zum Ausführen
+- `opt`: Argumente ([`<RunCommandArguments>`](https://github.com/webdriverio/webdriverio/blob/main/packages/wdio-cli/src/types.ts#L51-L77)) um Werte aus der Konfigurationsdatei zu überschreiben
 
-##### Example
+##### Beispiel
 
 ```js
 const wdio = new Launcher(
@@ -206,36 +206,36 @@ wdio.run().then((exitCode) => {
 })
 ```
 
-The `run` command returns a [Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise). It is resolved if tests ran successfully or failed, and it is rejected if the launcher was unable to start run the tests.
+Der Befehl `run` gibt ein [Promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise)zurück. Es wird resolved, wenn Tests erfolgreich ausgeführt oder fehlgeschlagen sind, und ein Fehler wird geworfen, wenn der Launcher die Tests nicht starten konnte.
 
 ## `@wdio/browser-runner`
 
-When running unit or component tests using WebdriverIO's [browser runner](/docs/runner#browser-runner) you can import mocking utilities for your tests, e.g.:
+Wenn Sie Unit- oder Komponententests mit WebdriverIOs [Browser Runner](/docs/runner#browser-runner) ausführen, können Sie Mocking Funktionalitäten für Ihre Tests importieren, z.B.:
 
 ```ts
 import { fn, spyOn, mock, unmock } from '@wdio/browser-runner'
 ```
 
-The following named exports are available:
+Die folgenden Variablen stehen zur Verfügung:
 
 #### `fn`
 
-Mock function, see more in the official [Vitest docs](https://vitest.dev/api/mock.html#mock-functions).
+Mock-Funktion, siehe mehr in den offiziellen [Vitest-Dokumenten](https://vitest.dev/api/mock.html#mock-functions).
 
 #### `spyOn`
 
-Spy function, see more in the official [Vitest docs](https://vitest.dev/api/mock.html#mock-functions).
+Spionagefunktion, siehe mehr in den offiziellen [Vitest-Dokumenten](https://vitest.dev/api/mock.html#mock-functions).
 
 #### `mock`
 
-Method to mock file or dependency module.
+Methode zum Mocken einer Datei oder einer Dependency.
 
-##### Paramaters
+##### Parameter
 
-- `moduleName`: either a relative path to the file to be mocked or a module name.
-- `factory`: function to return the mocked value (optional)
+- `moduleName`: entweder ein relativer Pfad zu der Datei, die gemockt werden soll, oder ein Modulname.
+- `Factory`: Funktion zum Zurückgeben des gemockten Modules (optional)
 
-##### Example
+##### Beispiel
 
 ```js
 mock('../src/constants.ts', () => ({
@@ -253,13 +253,13 @@ mock('lodash', (origModuleFactory) => {
 
 #### `unmock`
 
-Unmock dependency that is defined within the manual mock (`__mocks__`) directory.
+Mock Setting aufheben, die im manuellen Mock-Verzeichnis (`__mocks__`) definiert ist.
 
-##### Paramaters
+##### Parameter
 
-- `moduleName`: name of the module to be unmocked.
+- `moduleName`: Name des zu entmockenden Moduls.
 
-##### Example
+##### Beispiel
 
 ```js
 unmock('lodash')
