@@ -122,13 +122,7 @@ Este es un evento para medir las operaciones de nivel de WebDriver. Cada vez que
 
 Un ejemplo de evento:
 ```js
-Object {
-  "durationMillisecond": 0.01770925521850586,
-  "error": [Error: Timeout],
-  "request": Object { ... },
-  "retryCount": 0,
-  "success": false,
-},
+ 
 ```
 
 ### Comandos personalizados
