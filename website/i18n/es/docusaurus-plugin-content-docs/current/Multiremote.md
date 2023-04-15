@@ -180,8 +180,5 @@ Archivo Cucumber:
 
 Archivo de definición de paso:
 ```js
-When(/^User (.) types a message into the chat/, async (userId) => {
-    await browser.getInstance(`user${userId}`).$('#message').setValue('Hi, I am Chrome')
-    await browser.getInstance(`user${userId}`).$('#send').click()
-})
+ 
 ```
