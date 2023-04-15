@@ -127,8 +127,6 @@ npx wdio run ./wdio.conf.js --suite exampleSuiteName
 
 ## Ejecutar en un script
 
-Si desea utilizar WebdriverIO como un motor de automatización en [Modo independiente](/docs/setuptypes#standalone-mode) dentro de un Nodo. Script S también puede instalar directamente WebdriverIO y usarlo como un paquete, por ejemplo, para generar una captura de pantalla de un sitio web:
-
 ```js reference useHTTPS
 https://github.com/webdriverio/example-recipes/blob/fc362f2f8dd823d294b9bb5f92bd5991339d4591/getting-started/run-in-script.js#L2-L19
 ```
