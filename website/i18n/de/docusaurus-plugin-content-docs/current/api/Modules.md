@@ -41,7 +41,7 @@ Verbindet sich mit einer bereits laufenden Automatisierungs-Session.
 
 ##### Parameter
 
-- `attachInstance`: Instanz, um eine Sitzung mit einer Eigenschaft `sessionId` (z.B. `{ sessionId: 'xxx' }`)
+-
 - `modifier`: Funktion, die es erlaubt, die Client-Instanz zu modifizieren, bevor sie zurückgegeben wird
 - `userPrototype`: Prototyp-Objekt, mit dem der Prototyp der Instanz erweitert werden kann
 - `customCommandWrapper`: Funktion, die die Funktionalität von Protokoll-Befehle beeinflussen kann.
@@ -105,7 +105,7 @@ Verbindet sich mit einer bereits laufenden Automatisierungs-Session.
 
 ##### Parameter
 
-- `attachInstance`: Instanz, um eine Sitzung mit einer Eigenschaft `sessionId` (z.B. `{ sessionId: 'xxx' }`)
+-
 
 ##### Rückgabewert:
 
