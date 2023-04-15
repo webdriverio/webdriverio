@@ -122,13 +122,7 @@ Dies ist ein Ereignis, um Operationen auf WebDriver Ebene zu messen. Immer wenn 
 
 Ein Beispielereignis:
 ```js
-Object {
-  "durationMillisecond": 0.01770925521850586,
-  "error": [Error: Timeout],
-  "request": Object { ... },
-  "retryCount": 0,
-  "success": false,
-},
+ 
 ```
 
 ### Benutzerdefinierte Befehle
