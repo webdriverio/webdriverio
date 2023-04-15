@@ -100,8 +100,6 @@ describe('Lit Component testing', () => {
 
 WebdriverIO solo reexporta [`@vitest/spy`](https://www.npmjs.com/package/@vitest/spy) aquí que es una implementación de espía compatible con Jest ligera que puede ser usada con WebdriverIOs [`esperan`](/docs/api/expect-webdriverio) matchers. Puede encontrar más documentación sobre estas funciones simuladas en la página del proyecto [Vitest](https://vitest.dev/api/mock.html).
 
-Por supuesto, también puedes instalar e importar cualquier otro entorno espía, por ejemplo [SinonJS](https://sinonjs.org/), siempre y cuando sea compatible con el entorno del navegador.
-
 ## Módulos
 
 Simula módulos locales o observa bibliotecas de terceros, que se invocan en algún otro código, permitiendo probar argumentos, salida o incluso redeclarar su implementación.
@@ -308,5 +306,3 @@ mock('./some/module.ts', async () => {
 ```
 
 ## Solicitudes
-
-Si está buscando solicitudes de mocking del navegador, por ejemplo, llamadas API, diríjase a la sección [Solicitar Mock y Spies](/docs/mocksandspies).
