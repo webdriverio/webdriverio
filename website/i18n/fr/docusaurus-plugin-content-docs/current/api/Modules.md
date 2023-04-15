@@ -41,7 +41,7 @@ Attaches to a running WebDriver or DevTools session.
 
 ##### Paramaters
 
-- `attachInstance`: instance to attach a session to or at least an object with a property `sessionId` (e.g. `{ sessionId: 'xxx' }`)
+-
 - `modifier`: function that allows to modify the client instance before it is being returned
 - `userPrototype`: properties object that allows to extend the instance prototype
 - `customCommandWrapper`: function that allows to wrap functionality around function calls
@@ -105,7 +105,7 @@ Attaches to a running WebdriverIO session.
 
 ##### Paramaters
 
-- `attachOptions`: instance to attach a session to or at least an object with a property `sessionId` (e.g. `{ sessionId: 'xxx' }`)
+-
 
 ##### Returns
 
