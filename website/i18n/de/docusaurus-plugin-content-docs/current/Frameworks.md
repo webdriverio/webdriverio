@@ -356,8 +356,6 @@ Here you have some examples of this syntax:
 
 ### Import Step Definition Helper
 
-In order to use step definition helper like `Given`, `When` or `Then` or hooks, you are suppose to import then from `@cucumber/cucumber`, e.g. like this:
-
 ```js
 import { Given, When, Then } from '@cucumber/cucumber'
 ```
