@@ -9,13 +9,13 @@ An Element Object is an object representing a Element on the remote user agent, 
 
 An element object has the following properties:
 
-| Name        | Type     | Details                                                                                                                                                                                                                                       |
-| ----------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `sessionId` | `String` | Session id assigned from the remote server.                                                                                                                                                                                                   |
-| `elementId` | `String` | Associated [web element reference](https://w3c.github.io/webdriver/#elements) that can be used to interact with the element on the protocol level                                                                                             |
-| `selector`  | `String` | [Selector](/docs/selectors) used to query the element.                                                                                                                                                                                        |
-| `parent`    | `Object` | Either the [Browser Object](/docs/api/browser) when element was fetched from the it (e.g. `const elem = browser.$('selector')`) or an [Element Object](/docs/api/element) if it was fetched from an element scope (e.g. `elem.$('selector')`) |
-| `options`   | `Object` | WebdriverIO [options](/docs/configuration) depending on how the browser object was created. See more [setup types](/docs/setuptypes).                                                                                                         |
+| Name        | Type     | Details                                                                                                                                           |
+| ----------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `sessionId` | `String` | Session id assigned from the remote server.                                                                                                       |
+| `elementId` | `String` | Associated [web element reference](https://w3c.github.io/webdriver/#elements) that can be used to interact with the element on the protocol level |
+| `selector`  | `String` | [Selector](/docs/selectors) used to query the element.                                                                                            |
+| `parent`    | `Object` |                                                                                                                                                   |
+| `options`   | `Object` | WebdriverIO [options](/docs/configuration) depending on how the browser object was created. See more [setup types](/docs/setuptypes).             |
 
 ## Methods
 
