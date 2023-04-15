@@ -41,7 +41,7 @@ Se adjunta a una sesión de WebDriver o DevTools en ejecución.
 
 ##### Parámetros
 
-- `attachInstance`: instancia para adjuntar una sesión a, o al menos un objeto con una propiedad `sessionId` (e. . `{ sessionId: 'xxx' }`)
+-
 - `modifier`: función que permite modificar la instancia del cliente antes de que sea devuelta
 - `userPrototype`: objeto de propiedades que permite extender el prototipo de instancia
 - `customCommandWrapper`: función que permite envolver la funcionalidad alrededor de llamadas de función
@@ -105,7 +105,7 @@ Se adjunta a una sesión de WebDriver o DevTools en ejecución.
 
 ##### Parámetros
 
-- `attachOptions`: instance to attach a session to or at least an object with a property `sessionId` (e.g. `{ sessionId: 'xxx' }`)
+-
 
 ##### Retornos
 
