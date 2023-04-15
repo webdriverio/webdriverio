@@ -5,7 +5,7 @@ title: Auto-espera
 
 Una de las razones más comunes para las pruebas defectuosas son las interacciones con elementos que no existen en su aplicación en el momento en que quiera interactuar con ella. Las aplicaciones web modernas son muy dinámicas, aparecen y desaparecen los elementos. Como humano esperamos inconscientemente por elementos, pero en un script automatizado no lo consideramos una acción. Hay dos formas de esperar en un elemento para aparecer.
 
-## Implícito vs. explícito
+##
 
 El protocolo WebDriver ofrece [tiempos de espera implícitos](https://w3c.github.io/webdriver/#timeouts) que permiten especificar cuánto tiempo se supone que el controlador espera a que se muestre un elemento, Por defecto, este tiempo de espera se establece en `0` y por lo tanto hace que el controlador devuelva con un `no tal elemento` inmediatamente error si un elemento no se pudo encontrar en la página Aumentar este tiempo de espera usando la [`setTimeout`](/docs/api/browser/setTimeout) haría que el controlador esperara e incrementaría las posibilidades de que el elemento aparezca eventualmente.
 
