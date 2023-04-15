@@ -10,8 +10,6 @@ You can tunnel two different types of request through a proxy:
 
 ## Proxy Between Driver And Test
 
-If your company has a corporate proxy (e.g. on `http://my.corp.proxy.com:9090`) for all outgoing requests, follow the below steps to install and configure [global-agent](https://github.com/gajus/global-agent).
-
 ### Install global-agent
 
 ```bash npm2yarn
