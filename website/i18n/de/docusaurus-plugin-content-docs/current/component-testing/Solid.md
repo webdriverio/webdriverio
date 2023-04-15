@@ -3,11 +3,11 @@ id: solid
 title: SolidJS
 ---
 
-[SolidJS](https://www.solidjs.com/) is a framework to build user interfaces with simple and performant reactivity. You can test SolidJS components directly in a real browser using WebdriverIO and its [browser runner](/docs/runner#browser-runner).
+[SolidJS](https://www.solidjs.com/) ist ein Framework zum Erstellen von Benutzeroberflächen mit einfacher und performanter Reaktivität. Sie können SolidJS-Komponenten mit WebdriverIO und seinem [Browser Runner](/docs/runner#browser-runner)direkt in einem echten Browser testen.
 
 ## Setup
 
-To setup WebdriverIO within your SolidJS project, follow the [instructions](/docs/component-testing#set-up) in our component testing docs. Make sure to select `solid` as preset within your runner options, e.g.:
+Um WebdriverIO in Ihrem SolidJS-Projekt einzurichten, befolgen Sie die [Anweisungen](/docs/component-testing#set-up) in unseren Komponententestdokumenten. Stellen Sie sicher, dass Sie `solide` als Voreinstellung in Ihren Runner-Optionen auswählen, z. B.:
 
 ```js
 // wdio.conf.js
@@ -22,25 +22,25 @@ export const config = {
 
 :::info
 
-If you are already using [Vite](https://vitejs.dev/) as development server you can also just re-use your configuration in `vite.config.ts` within your WebdriverIO config. For more information, see `viteConfig` in [runner options](/docs/runner#runner-options).
+Wenn Sie bereits [Vite](https://vitejs.dev/) als Entwicklungsserver verwenden, können Sie auch einfach Ihre Konfiguration in `vite.config.ts` in Ihrer WebdriverIO-Konfiguration wiederverwenden. Weitere Informationen finden Sie unter `viteConfig` in [Runner-Optionen](/docs/runner#runner-options).
 
 :::
 
-The SolidJS preset requires `vite-plugin-solid` to be installed:
+Die SolidJS-Voreinstellung erfordert die Installation von `vite-plugin-solid`:
 
 ```sh npm2yarn
 npm install --save-dev vite-plugin-solid
 ```
 
-You can then start the tests by running:
+Sie können die Tests dann starten, indem Sie Folgendes ausführen:
 
 ```sh
 npx wdio run ./wdio.conf.js
 ```
 
-## Writing Tests
+## Tests schreiben
 
-Given you have the following SolidJS component:
+Vorausgesetzt, Sie haben die folgende SolidJS-Komponente:
 
 ```html title="./components/Component.tsx"
 import { createSignal } from 'solid-js'
@@ -61,7 +61,7 @@ function App() {
 export default App
 ```
 
-In your test use the `render` method from `solid-js/web` to attach the component to the test page. To interact with the component we recommend to use WebdriverIO commands as they behave more close to actual user interactions, e.g.:
+Verwenden Sie in Ihrem Test die Methode `render` aus `solid-js/web` , um die Komponente an die Testseite anzuhängen. Um mit der Komponente zu interagieren, empfehlen wir die Verwendung von WebdriverIO-Befehlen, da sie sich näher an tatsächlichen Benutzerinteraktionen verhalten, z.B.:
 
 ```ts title="app.test.tsx"
 import { expect } from '@wdio/globals'
@@ -94,5 +94,5 @@ describe('React Component Testing', () => {
 })
 ```
 
-You can find a full example of a WebdriverIO component test suite for SolidJS in our [example repository](https://github.com/webdriverio/component-testing-examples/tree/main/solidjs-typescript-vite).
+Ein vollständiges Beispiel einer Testsuite für WebdriverIO-Komponenten für SolidJS finden Sie in unserem [Beispiel-Repository](https://github.com/webdriverio/component-testing-examples/tree/main/solidjs-typescript-vite).
 
