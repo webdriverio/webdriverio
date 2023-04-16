@@ -7,19 +7,19 @@ title: स्वतः-प्रतीक्षा
 
 ## अंतर्निहित बनाम स्पष्ट
 
-वेबड्राइवर प्रोटोकॉल [अंतर्निहित टाइमआउट](https://w3c.github.io/webdriver/#timeouts) प्रदान करता है जो यह निर्दिष्ट करने की अनुमति देता है कि ड्राइवर को किसी एलिमेंट को दिखाने के लिए कितने समय तक प्रतीक्षा करनी चाहिए। डिफ़ॉल्ट रूप से यह टाइमआउट `0` पर सेट होता है और इसलिए यदि पृष्ठ पर कोई तत्व नहीं पाया जा सकता है तो ड्राइवर तुरंत `no such element` त्रुटि के साथ वापस आ जाता है। Increasing this timeout using the [`setTimeout`](/docs/api/browser/setTimeout) would make the driver wait and increases the chances that the element shows up eventually.
+वेबड्राइवर प्रोटोकॉल [अंतर्निहित टाइमआउट](https://w3c.github.io/webdriver/#timeouts) प्रदान करता है जो यह निर्दिष्ट करने की अनुमति देता है कि ड्राइवर को किसी एलिमेंट को दिखाने के लिए कितने समय तक प्रतीक्षा करनी चाहिए। डिफ़ॉल्ट रूप से यह टाइमआउट `0` पर सेट होता है और इसलिए यदि पृष्ठ पर कोई तत्व नहीं पाया जा सकता है तो ड्राइवर तुरंत `no such element` त्रुटि के साथ वापस आ जाता है। [`setTimeout`](/docs/api/browser/setTimeout) का उपयोग करके इस टाइमआउट को बढ़ाने से ड्राइवर प्रतीक्षा करेगा और इस बात की संभावना बढ़ जाएगी कि तत्व अंततः दिखाई देगा।
 
 :::note
 
-Read more about WebDriver and framework related timeouts in the [timeouts guide](/docs/timeouts)
+[टाइमआउट गाइड](/docs/timeouts)में वेबड्राइवर और फ्रेमवर्क संबंधित टाइमआउट के बारे में और पढ़ें
 
 :::
 
-A different approach is to use explicit waiting which is built into the WebdriverIO framework in commands such as [`waitForExist`](/docs/api/element/waitForExist). With this technique the framework polls for the element by calling multiple [`findElements`](/docs/api/webdriver#findelements) commands until the timeout is reached.
+स्पष्ट प्रतीक्षा का उपयोग करने के लिए एक अलग दृष्टिकोण है जो WebdriverIO फ्रेमवर्क में [`WaitForExist`](/docs/api/element/waitForExist)जैसे कमांड में बनाया गया है। इस तकनीक के साथ फ़्रेमवर्क कई [`FindElements`](/docs/api/webdriver#findelements) कमांड को कॉल करके एलिमेंट के लिए चुनाव करता है जब तक कि समय समाप्त नहीं हो जाता।
 
-## Built-in Waiting
+## बिल्ट-इन वेटिंग
 
-Both waiting mechanisms are incompatible with each other and can cause longer wait times. As implicit waits are a global setting it is applied to all elements which is sometimes not the desired behavior. इसलिए WebdriverIO एक अंतर्निहित प्रतीक्षा तंत्र प्रदान करता है जो तत्व के साथ जुड़ने से पहले स्वचालित और स्पष्ट रूप से प्रतीक्षा करता है।
+दोनों प्रतीक्षा तंत्र एक दूसरे के साथ असंगत हैं और लंबे समय तक प्रतीक्षा कर सकते हैं। जैसा कि अंतर्निहित प्रतीक्षा एक वैश्विक सेटिंग है, यह उन सभी एलिमेंट पर लागू होती है जो कभी-कभी वांछित व्यवहार नहीं होते हैं। इसलिए WebdriverIO एक अंतर्निहित प्रतीक्षा तंत्र प्रदान करता है जो तत्व के साथ जुड़ने से पहले स्वचालित और स्पष्ट रूप से प्रतीक्षा करता है।
 
 ::: जानकारी की सिफारिश
 
