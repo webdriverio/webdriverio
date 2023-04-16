@@ -1,11 +1,11 @@
 ---
 id: babel
-title: Babel Setup
+title: बेबेल सेटअप
 ---
 
-To write tests using next-generation JavaScript features, you can use [Babel](https://babeljs.io) to compile your test files.
+अगली पीढ़ी की जावास्क्रिप्ट सुविधाओं का उपयोग करके टेस्ट लिखने के लिए, आप अपनी परीक्षण फ़ाइलों को संकलित करने के लिए [Babel](https://babeljs.io) का उपयोग कर सकते हैं।
 
-To do so, first install the necessary Babel dependencies:
+ऐसा करने के लिए, पहले आवश्यक बाबेल निर्भरताओं को इंस्टाल करें:
 
 ```bash npm2yarn
 npm install --save-dev @babel/core @babel/cli @babel/preset-env @babel/register
