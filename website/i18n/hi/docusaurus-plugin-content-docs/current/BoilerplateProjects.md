@@ -1,23 +1,23 @@
 ---
 id: boilerplates
-title: Boilerplate Projects
+title: बॉयलरप्लेट प्रोजेक्ट्स
 ---
 
-Over time, our community has developed several projects that you can use as inspiration to set up your own test suite.
+समय के साथ, हमारे समुदाय ने कई प्रोजेक्ट विकसित किए हैं जिनका उपयोग आप अपना टेस्ट सूट सेट करने के लिए प्रेरणा के रूप में कर सकते हैं।
 
-# v8 Boilerplate Projects
+# v7 बॉयलरप्लेट प्रोजेक्ट्स
 
 ## [webdriverio/cucumber-boilerplate](https://github.com/webdriverio/cucumber-boilerplate)
 
-Our very own boilerplate for Cucumber test suites. We created over 150 predefined step definitions for you, so you can start writing feature files in your project right away.
+कुकुम्बर टेस्ट सूट के लिए हमारा अपना बॉयलरप्लेट। हमने आपके लिए 150 से अधिक पूर्वनिर्धारित चरण परिभाषाएं बनाई हैं, ताकि आप तुरंत अपने प्रोजेक्ट में फीचर फाइल लिखना शुरू कर सकें।
 
-- Framework:
-    - Cucumber (v8)
+- फ्रेमवर्क:
+    - कुकुम्बर (v8)
     - WebdriverIO (v8)
-- Features:
-    - Over 150 predefined steps that cover almost everything you need
-    - Integrates WebdriverIO's Multiremote functionality
-    - Own demo app
+- विशेषताएँ:
+    - 150 से अधिक पूर्वनिर्धारित चरण जो आपकी ज़रूरत की लगभग हर चीज़ को कवर करते हैं
+    - WebdriverIO की मल्टीरिमोट कार्यक्षमता को एकीकृत करता है
+    - खुद का डेमो ऐप
 
 ## [webdriverio/jasmine-boilerplate](https://github.com/webdriverio/jasmine-boilerplate)
 जैस्मीन के साथ WebdriverIO टेस्ट चलाने के लिए बॉयलरप्लेट प्रोजेक्ट, बेबेल सुविधाओं और पेज ऑब्जेक्ट पैटर्न का उपयोग कर रहा है।
@@ -87,165 +87,165 @@ Our very own boilerplate for Cucumber test suites. We created over 150 predefine
 
 ## [webdriverio/appium-boilerplate](https://github.com/webdriverio/appium-boilerplate/)
 
-Boilerplate project to run Appium tests with WebdriverIO for:
+WebdriverIO के साथ एपियम टेस्ट चलाने के लिए बॉयलरप्लेट प्रोजेक्ट:
 
-- iOS/Android Native Apps
-- iOS/Android Hybrid Apps
-- Android Chrome and iOS Safari browser
+- iOS/Android नेटिव ऐप्स
+- आईओएस/एंड्रॉयड हाइब्रिड ऐप्स
+- Android क्रोम और iOS सफारी ब्राउज़र
 
-This boilerplate includes the following:
+इस बॉयलरप्लेट में निम्न शामिल हैं:
 
-- Framework: Mocha
-- Features:
-    - Configs for:
-        - iOS and Android app
-        - iOS and Android browsers
-    - Helpers for:
-        - WebView
-        - Gestures
-        - Native alerts
-        - Pickers
-     - Tests examples for:
-        - WebView
-        - Login
-        - Forms
-        - Swipe
-        - Browsers
+- फ्रेमवर्क: मोचा
+- विशेषताएँ:
+    - इसके लिए कॉन्फिग:
+        - आईओएस और एंड्रॉइड ऐप
+        - iOS और Android ब्राउज़र
+    - के लिए मददगार:
+        - वेबव्यू
+        - गेस्चर्स
+        - नेटिव अलर्ट
+        - पिकर्स
+     - इसके लिए टेस्ट उदाहरण:
+        - वेबव्यू
+        - लॉग इन करें
+        - फॉर्म
+        - स्वाइप
+        - ब्राउज़र्स
 
 ## [serhatbolsu/webdriverio-mocha-uiautomation-boiler](https://github.com/serhatbolsu/webdriverio-mocha-uiautomation-boiler)
-ATDD WEB tests with Mocha, WebdriverIO v6 with PageObject
+Mocha के साथ ATDD वेब परीक्षण, PageObject के साथ WebdriverIO v6
 
-- Frameworks
-  - WebdriverIO (v7)
-  - Mocha
-- Features
-  - [Page Object](PageObjects.md) Model
-  - Sauce Labs integration with [Sauce Service](https://github.com/webdriverio/webdriverio/blob/main/packages/wdio-sauce-service/README.md)
-  - Allure Report
-  - Automatic screenshots capture for failing tests
-  - CircleCI example
+- फ्रेमवर्क
+  - WebdriverIO (v8)
+  - मोचा
+- विशेतएं
+  - [पेज ऑब्जेक्ट](PageObjects.md) मॉडल
+  - सॉस लैब्स [सॉस सेवा](https://github.com/webdriverio/webdriverio/blob/main/packages/wdio-sauce-service/README.md)के साथ एकीकरण
+  - आकर्षण रिपोर्ट
+  - असफल परीक्षणों के लिए स्वचालित स्क्रीनशॉट कैप्चर करें
+  - सर्कलसीआई उदाहरण
   - ESLint
 
-## [WarleyGabriel/demo-webdriverio-mocha](https://github.com/WarleyGabriel/demo-webdriverio-mocha)
+## [वार्ली गेब्रियल/डेमो-वेबड्राइवरियो-मोचा](https://github.com/WarleyGabriel/demo-webdriverio-mocha)
 
-Boilerplate project to run E2E tests with Mocha.
+मोचा के साथ E2E परीक्षण चलाने के लिए बॉयलरप्लेट परियोजना।
 
-- Frameworks:
-    - WebdriverIO (v7)
-    - Mocha
-- Features:
-    -   TypeScript
-    -   [Expect-webdriverio](https://github.com/webdriverio/expect-webdriverio)
-    -   [Visual regression tests](https://github.com/wswebcreation/wdio-image-comparison-service)
-    -   Page Object Pattern
-    -   [Commit lint](https://github.com/conventional-changelog/commitlint) and [Commitizen](https://github.com/commitizen/cz-cli#making-your-repo-commitizen-friendly)
-    -   ESlint
-    -   Prettier
-    -   Husky
-    -   Github Actions example
-    -   Allure report (screenshots on failure)
+- फ्रेमवर्क:
+    - WebdriverIO (v8)
+    - मोचा
+- विशेषताएँ:
+    -   टाइपस्क्रिप्ट
+    -   [एक्स्पेक्ट-वेबड्राइवरियो](https://github.com/webdriverio/expect-webdriverio)
+    -   [विसुअल प्रतिगमन टेस्ट](https://github.com/wswebcreation/wdio-image-comparison-service)
+    -   पेज ऑब्जेक्ट पैटर्न
+    -   [प्रतिबद्ध लिंट](https://github.com/conventional-changelog/commitlint) और [प्रतिबद्ध](https://github.com/commitizen/cz-cli#making-your-repo-commitizen-friendly)
+    -   ESLint
+    -   खूबसूरत
+    -   हस्की
+    -   गीथूब एक्शन उदाहरण
+    -   आकर्षण रिपोर्ट (विफलता पर स्क्रीनशॉट)
 
 ## [17thSep/WebdriverIO_Master](https://github.com/17thSep/WebdriverIO_Master)
 
-Boilerplate project to run **WebdriverIO v7** tests for the following:
+निम्नलिखित के लिए **WebdriverIO v7** परीक्षण चलाने के लिए बॉयलरप्लेट प्रोजेक्ट:
 
 [क्यूकंबर फ्रेमवर्क में टाइपस्क्रिप्ट के साथ WDIO 7 स्क्रिप्ट्स](https://github.com/17thSep/WebdriverIO_Master/tree/master/TypeScript/Cucumber) [WDIO 7 स्क्रिप्ट्स मोचा फ्रेमवर्क में टाइपस्क्रिप्ट के साथ](https://github.com/17thSep/WebdriverIO_Master/tree/master/TypeScript/Mocha) [डॉकर](https://github.com/17thSep/WebdriverIO_Master/tree/master/TypeScript/Docker) [नेटवर्क लॉग्स में WDIO 7 स्क्रिप्ट चलाएं](https://github.com/17thSep/MonitorNetworkLogs/)
 
-Boiler plate project for:
+बॉयलर प्लेट परियोजना के लिए:
 
-- Capture Network Logs
-- Capture all GET/POST calls or a specific REST API
-- Assert Request parameters
-- Assert Response parameters
-- Store all the response in a separate file
+- नेटवर्क लॉग कैप्चर करें
+- सभी GET/POST कॉल या एक विशिष्ट REST API कैप्चर करें
+- असर्ट रिक्वेस्ट पैरामीटर
+- असर्ट रेस्पोंस पैरामीटर
+- सभी प्रतिक्रियाओं को एक अलग फाइल में स्टोर करें
 
 ## [Arjun-Ar91/Wdio7-appium-cucumber](https://github.com/Arjun-Ar91/Wdio7-appium-cucumber.git)
 
-Boilerplate project to run appium tests for native and mobile browser using cucumber v7 and wdio v7 with page object pattern.
+पेज ऑब्जेक्ट पैटर्न के साथ कुकुम्बर v7 और wdio v7 का उपयोग करके देशी और मोबाइल ब्राउज़र के लिए एपियम परीक्षण चलाने के लिए बॉयलरप्लेट प्रोजेक्ट।
 
-- Frameworks
+- फ्रेमवर्क
     - WebdriverIO v7
-    - Cucumber v7
-    - Appium
+    - कुकुम्बर v7
+    - एपियम
 
-- Features
-    - Native Android and iOS apps
-    - Android Chrome browser
-    - iOS Safari browser
-    - Page Object Model
-    - Contains sample test scenarios in cucumber
-    - Integrated with multiple cucumber html reports
+- विशेतएं
+    - नेटिव एंड्राइड और आईओएस ऐप
+    - एंड्राइड क्रोम ब्राउज़र
+    - आईओएस सफारी ब्राउज़र
+    - पेज ऑब्जेक्ट मॉडल
+    - कुकुम्बर में सैंपल टेस्ट परिदृश्य शामिल करें
+    - एकाधिक कुकुम्बर एचटीएमएल रिपोर्ट के साथ एकीकृत
 
 ## [serenity-js/serenity-js-mocha-webdriverio-template/](https://github.com/serenity-js/serenity-js-mocha-webdriverio-template/)
 
-[Serenity/JS](https://serenity-js.org) template project to help you get started with acceptance testing your Web applications using the latest WebdriverIO, Mocha, and Serenity/JS
+[Serenity/JS](https://serenity-js.org) टेम्प्लेट प्रोजेक्ट आपको नवीनतम WebdriverIO, Mocha, और Serenity/JS का उपयोग करके अपने वेब अनुप्रयोगों की स्वीकृति परीक्षण के साथ आरंभ करने में मदद करने के लिए
 
-- Frameworks
+- फ्रेमवर्क
     - WebdriverIO
-    - Mocha
-    - Serenity/JS
-    - Serenity BDD reporting
+    - मोचा
+    - शांति/जेएस
+    - शांति बीडीडी रिपोर्टिंग
 
-- Features
-  - [Screenplay Pattern](https://serenity-js.org/handbook/design/screenplay-pattern.html)
-  - Automatic screenshots on test failure, embedded in reports
-  - Continuous Integration (CI) setup using [GitHub Actions](https://github.com/serenity-js/serenity-js-mocha-webdriverio-template/blob/master/.github/workflows/build.yml)
-  - [Demo Serenity BDD reports](https://serenity-js.github.io/serenity-js-mocha-webdriverio-template/) published to GitHub Pages
-  - TypeScript
+- विशेतएं
+  - [स्क्रीनप्ले पैटर्न](https://serenity-js.org/handbook/design/screenplay-pattern.html)
+  - परीक्षण विफलता पर स्वत: स्क्रीनशॉट, रिपोर्ट में एम्बेड किया गया
+  - [GitHub Actions](https://github.com/serenity-js/serenity-js-mocha-webdriverio-template/blob/master/.github/workflows/build.yml)का उपयोग करके सतत एकीकरण (CI) सेटअप
+  - [डेमो Serenity BDD रिपोर्ट](https://serenity-js.github.io/serenity-js-mocha-webdriverio-template/) गिटहब पेजों पर प्रकाशित
+  - टाइपस्क्रिप्ट
   - ESLint
 
 ## [serenity-js/serenity-js-cucumber-webdriverio-template/](https://github.com/serenity-js/serenity-js-cucumber-webdriverio-template/)
 
-[Serenity/JS](https://serenity-js.org) template project to help you get started with acceptance testing your Web applications using the latest WebdriverIO, Cucumber, and Serenity/JS
+[Serenity/JS](https://serenity-js.org) टेम्प्लेट प्रोजेक्ट आपको नवीनतम WebdriverIO, Mocha, और Serenity/JS का उपयोग करके अपने वेब अनुप्रयोगों की स्वीकृति परीक्षण के साथ आरंभ करने में मदद करने के लिए
 
-- Frameworks
+- फ्रेमवर्क
     - WebdriverIO
-    - Cucumber
-    - Serenity/JS
-    - Serenity BDD reporting
+    - कुकुम्बर
+    - शांति/जेएस
+    - शांति बीडीडी रिपोर्टिंग
 
-- Features
-    - [Screenplay Pattern](https://serenity-js.org/handbook/design/screenplay-pattern.html)
-    - Automatic screenshots on test failure, embedded in reports
-    - Continuous Integration (CI) setup using [GitHub Actions](https://github.com/serenity-js/serenity-js-mocha-webdriverio-template/blob/master/.github/workflows/build.yml)
-    - [Demo Serenity BDD reports](https://serenity-js.github.io/serenity-js-mocha-webdriverio-template/) published to GitHub Pages
-    - TypeScript
+- विशेतएं
+    - [स्क्रीनप्ले पैटर्न](https://serenity-js.org/handbook/design/screenplay-pattern.html)
+    - परीक्षण विफलता पर स्वत: स्क्रीनशॉट, रिपोर्ट में एम्बेड किया गया
+    - [GitHub Actions](https://github.com/serenity-js/serenity-js-mocha-webdriverio-template/blob/master/.github/workflows/build.yml)का उपयोग करके सतत एकीकरण (CI) सेटअप
+    - [डेमो Serenity BDD रिपोर्ट](https://serenity-js.github.io/serenity-js-mocha-webdriverio-template/) गिटहब पेजों पर प्रकाशित
+    - टाइपस्क्रिप्ट
     - ESLint
 
 ## [praveendvd/webdriverIODockerBoilerplate/](https://github.com/praveendvd/webdriverIODockerBoilerplate)
 
-This a template project to help you show how you can run webdriverio test from Web applications using the latest WebdriverIO, and Cucumber framework. This project intends to act as a baseline image that you can use to understand how to run WebdriverIO tests in docker
+यह एक टेम्प्लेट प्रोजेक्ट है जो आपको यह दिखाने में मदद करता है कि आप नवीनतम WebdriverIO और जैस्मीन फ्रेमवर्क के साथ वेबड्राइवरियो मल्टीरिमोट क्षमता कैसे चला सकते हैं। यह प्रोजेक्ट बेसलाइन इमेज के रूप में कार्य करने का इरादा रखता है जिसका उपयोग आप यह समझने के लिए कर सकते हैं कि विंडएपड्राइवर और वेबड्राइवरियो टेस्ट कैसे चलाना है।
 
-This project includes:
+यह परियोजना में शामिल है:
 
-- DockerFile
-- cucumber Project
+- डॉकरफाइल
+- कुकुम्बर परियोजना
 
-Read more at: [Medium Blog](https://praveendavidmathew.medium.com/running-webdriverio-in-wsl2-windows-91d3a0dc7746)
+अधिक पढ़ें: [मध्यम ब्लॉग](https://praveendavidmathew.medium.com/running-webdriverio-in-wsl2-windows-91d3a0dc7746)
 
 ## [praveendvd/WebdriverIO_electronAppAutomation_boilerplate/](https://github.com/praveendvd/WebdriverIO_electronAppAutomation_boilerplate)
 
-This a template project to help you show how you can run electronJS tests using WebdriverIO. This project intends to act as a baseline image that you can use to understand how to run WebdriverIO electronJS tests.
+यह एक टेम्प्लेट प्रोजेक्ट है जो आपको यह दिखाने में मदद करता है कि आप WebdriverIO का उपयोग करके इलेक्ट्रॉनजेएस परीक्षण कैसे चला सकते हैं। यह प्रोजेक्ट बेसलाइन इमेज के रूप में कार्य करने का इरादा रखता है जिसका उपयोग आप यह समझने के लिए कर सकते हैं कि विंडएपड्राइवर और वेबड्राइवरियो टेस्ट कैसे चलाना है।
 
-This project include:
+यह परियोजना में शामिल है:
 
-- Sample electronjs app
-- Sample cucumber testscripts
+- नमूना इलेक्ट्रॉनज ऐप
+- सैंपल कुकुम्बर टेस्टस्क्रिप्ट
 
-Read more at: [Medium Blog](https://praveendavidmathew.medium.com/first-step-into-automation-of-electronjs-applications-ef89b7423ddd)
+अधिक पढ़ें: [मध्यम ब्लॉग](https://praveendavidmathew.medium.com/first-step-into-automation-of-electronjs-applications-ef89b7423ddd)
 
 ## [praveendvd/webdriverIO_winappdriver_boilerplate/](https://github.com/praveendvd/webdriverIO_winappdriver_boilerplate)
 
-This a template project to help you show how you can automate windows application using winappdriver and  WebdriverIO . This project intends to act as a baseline image that you can use to understand how to run windappdriver and WebdriverIO tests.
+यह एक टेम्प्लेट प्रोजेक्ट है जो आपको यह दिखाने में मदद करता है कि आप winappdriver और WebdriverIO का उपयोग करके विंडोज़ एप्लिकेशन को कैसे स्वचालित कर सकते हैं। यह प्रोजेक्ट बेसलाइन इमेज के रूप में कार्य करने का इरादा रखता है जिसका उपयोग आप यह समझने के लिए कर सकते हैं कि विंडएपड्राइवर और वेबड्राइवरियो टेस्ट कैसे चलाना है।
 
-Read more at: [Medium Blog](https://praveendavidmathew.medium.com/winappdriver-first-step-into-windows-app-test-automation-using-webdriverio-and-winappdriver-46320d89570b)
+अधिक पढ़ें: [मध्यम ब्लॉग](https://praveendavidmathew.medium.com/winappdriver-first-step-into-windows-app-test-automation-using-webdriverio-and-winappdriver-46320d89570b)
 
 ## [praveendvd/appium-chromedriver-multiremote-wdio-boilerplate/](https://github.com/praveendvd/appium-chromedriver-multiremote-wdio-boilerplate)
 
 
-This a template project to help you show how you can run webdriverio multiremote capability with latest WebdriverIO, and Jasmine framework. This project intends to act as a baseline image that you can use to understand how to run WebdriverIO tests in docker
+यह एक टेम्प्लेट प्रोजेक्ट है जो आपको यह दिखाने में मदद करता है कि आप नवीनतम WebdriverIO और जैस्मीन फ्रेमवर्क के साथ वेबड्राइवरियो मल्टीरिमोट क्षमता कैसे चला सकते हैं। यह प्रोजेक्ट बेसलाइन इमेज के रूप में कार्य करने का इरादा रखता है जिसका उपयोग आप यह समझने के लिए कर सकते हैं कि विंडएपड्राइवर और वेबड्राइवरियो टेस्ट कैसे चलाना है।
 
-This project uses:
+यह परियोजना उपयोग करती है:
 
      - chromedriver
      - jasmine
@@ -253,16 +253,16 @@ This project uses:
 
 ## [webdriverio-roku-appium-boilerplate](https://github.com/AntonKostenko/webdriverIO-roku-appium)
 
-Template project to run appium tests on real Roku devices using mocha with page object pattern.
+पेज ऑब्जेक्ट पैटर्न के साथ मोचा का उपयोग करके वास्तविक रोकू उपकरणों पर ऐपियम परीक्षण चलाने के लिए टेम्प्लेट प्रोजेक्ट।
 
-- Frameworks
+- फ्रेमवर्क
     - WebdriverIO Async v7
-    - Appium 2.0
-    - Mocha v7
-    - Allure Reporting
+    - एपियम 2.0
+    - मोचा v7
+    - आकर्षण रिपोर्ट
 
-- Features
-    - Page Object Model
-    - Typescript
-    - Screenshot on failure
-    - Example tests using a sample Roku channel
+- विशेतएं
+    - पेज ऑब्जेक्ट मॉडल
+    - टाइपस्क्रिप्ट
+    - विफलता पर स्क्रीनशॉट
+    - नमूना रोकू चैनल का उपयोग करके उदाहरण टेस्ट
