@@ -1,15 +1,15 @@
 ---
 id: tips-and-tricks
-title: Tips and Tricks
+title: Tipps und Tricks
 ---
 
-This page contains a set useful tips and tricks that can be helpful when testing a web extension.
+Diese Seite enthält eine Reihe nützlicher Tipps und Tricks, die beim Testen eines Browser Plugin hilfreich sein können.
 
-## Test Popup Modal in Chrome
+## Testen des Popup-Modal in Chrome
 
-If you define a `default_popup` browser action entry in your [extension manifest](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/manifest.json/browser_action) you can test that HTML page directly, since clicking on the extension icon in the browser top bar won't work. Instead, you have to open the popup html file directly.
+Wenn Sie in Ihrem [Erweiterungsmanifest](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/manifest.json/browser_action) einen Browseraktionseintrag `default_popup` definieren, können Sie diese HTML-Seite direkt testen, da das Klicken auf das Erweiterungssymbol in der oberen Leiste des Browsers nicht funktioniert. Stattdessen müssen Sie die Popup-HTML-Datei direkt öffnen.
 
-In Chrome this works by retrieving the extension ID and opening the popup page through `browser.url('...')`. The behavior on that page will be the same as within the popup. To do so we recommend to write the following custom command:
+In Chrome funktioniert dies, indem die Erweiterungs-ID abgerufen und die Popup-Seite über `browser.url('...')`geöffnet wird. Das Verhalten auf dieser Seite ist das gleiche wie im Popup. Dazu empfehlen wir, den folgenden benutzerdefinierten Befehl zu schreiben:
 
 ```ts customCommand.ts
 export async function openExtensionPopup (this: WebdriverIO.Browser, extensionName: string, popupUrl = 'index.html') {
@@ -41,7 +41,7 @@ declare global {
 }
 ```
 
-In your `wdio.conf.js` you can import this file and register the custom command in your `before` hook, e.g.:
+In Ihre `wdio.conf.js` können Sie diese Datei importieren und den benutzerdefinierten Befehl in Ihrem `before` Hook registrieren, z.B.:
 
 ```ts wdio.conf.ts
 import type { Options } from '@wdio/testrunner'
@@ -57,7 +57,7 @@ export const config: Options.Testrunner = {
 }
 ```
 
-Now, in your test, you can access the popup page via:
+Jetzt können Sie in Ihrem Test auf die Popup-Seite zugreifen über:
 
 ```ts
 await browser.openExtensionPopup('My Web Extension')
