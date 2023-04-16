@@ -1,34 +1,33 @@
 ---
 id: autocompletion
-title: Autocompletion
+title: 'स्वत: पूर्ण'
 ---
 
-import Tabs from '@theme/Tabs';
-import TabItem from '@theme/TabItem';
+'@theme/Tabs'; से टैब इम्पोर्ट करें; '@theme/TabItem' से टैबआइटम इम्पोर्ट करें;
 
-## IntelliJ
+## इंटेलीजे
 
-Autocompletion works out of the box in IDEA and WebStorm.
+आईडिया और वेबस्टॉर्म में स्वत: पूर्णता बेहतर तरीके से काम करती है।
 
-If you have been writing program code for a while, you probably like autocompletion. Autocomplete is available out of the box in many code editors.
+यदि आप कुछ समय से प्रोग्राम कोड लिख रहे हैं, तो शायद आपको स्वत: पूर्णता पसंद है। कई कोड संपादकों में स्वत: पूर्ण उपलब्ध है।
 
-![Autocompletion](/img/autocompletion/0.png)
+![स्वत: पूर्ण](/img/autocompletion/0.png)
 
-Type definitions based on [JSDoc](http://usejsdoc.org/) is used for documenting code. It helps to see more additional details about parameters and their types.
+[JSDoc](http://usejsdoc.org/) पर आधारित प्रकार की परिभाषाएँ कोड के दस्तावेजीकरण के लिए उपयोग की जाती हैं। यह मापदंडों और उनके प्रकारों के बारे में अधिक अतिरिक्त विवरण देखने में मदद करता है।
 
-![Autocompletion](/img/autocompletion/1.png)
+![स्वत: पूर्ण](/img/autocompletion/1.png)
 
-Use standard shortcuts <kbd>⇧ + ⌥ + SPACE</kbd> on IntelliJ Platform to see available documentation:
+उपलब्ध दस्तावेज़ देखने के लिए इंटेलीजे प्लेटफ़ॉर्म पर मानक शॉर्टकट <kbd>⇧ + ⌥ + SPACE</kbd> का उपयोग करें:
 
-![Autocompletion](/img/autocompletion/2.png)
+![स्वत: पूर्ण](/img/autocompletion/2.png)
 
-## Visual Studio Code (VSCode)
+## विजुअल स्टूडियो कोड (VSCode)
 
-Visual Studio Code usually has type support automatically integrated and there is no action needed.
+विज़ुअल स्टूडियो कोड में आमतौर पर टाइप सपोर्ट स्वचालित रूप से एकीकृत होता है और इसके लिए किसी कार्रवाई की आवश्यकता नहीं होती है।
 
-![Autocompletion](/img/autocompletion/14.png)
+![स्वत: पूर्ण](/img/autocompletion/14.png)
 
-If you use vanilla JavaScript and want to have proper type support you have to create a `jsconfig.json` in your project root and refer to used wdio packages, e.g.:
+यदि आप वेनिला जावास्क्रिप्ट का उपयोग करते हैं और उचित प्रकार का समर्थन चाहते हैं तो आपको अपने प्रोजेक्ट रूट में `jsconfig.json` बनाना होगा और उपयोग किए गए wdio पैकेजों को देखें, उदाहरण के लिए:
 
 ```json title="jsconfig.json"
 {
