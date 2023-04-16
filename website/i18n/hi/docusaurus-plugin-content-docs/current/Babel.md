@@ -11,9 +11,9 @@ title: बेबेल सेटअप
 npm install --save-dev @babel/core @babel/cli @babel/preset-env @babel/register
 ```
 
-Make sure your [`babel.config.js`](https://babeljs.io/docs/en/config-files) is configured properly.
+सुनिश्चित करें कि आपका [`babel.config.js`](https://babeljs.io/docs/en/config-files) ठीक से कॉन्फ़िगर किया गया है।
 
-The simplest setup you can use is:
+सबसे सरल सेटअप आप उपयोग कर सकते हैं है:
 
 ```js title="babel.config.js"
 module.exports = {
@@ -27,6 +27,6 @@ module.exports = {
 }
 ```
 
-Once this is set up WebdriverIO will take care of the rest.
+एक बार यह सेट हो जाने के बाद WebdriverIO बाकी का ध्यान रखेगा।
 
-Alternatively you can configure how @babel/register is run through the environment variables for [@babel/register](Babel.md) or using wdio config's [autoCompileOpts section](ConfigurationFile.md).
+वैकल्पिक रूप से आप कॉन्फ़िगर कर सकते हैं कि कैसे @babel/register [@babel/register](Babel.md) के लिए पर्यावरण वेरिएबल के माध्यम से चलाया जाता है या wdio कॉन्फ़िगरेशन के [autoCompileOpts section](ConfigurationFile.md)का उपयोग कर रहा है।
