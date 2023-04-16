@@ -598,20 +598,20 @@ Runs after a Cucumber Feature.
 
 पैरामीटर:
 
-- `step` ([`Pickle.IPickleStep`](https://github.com/cucumber/common/blob/b94ce625967581de78d0fc32d84c35b46aa5a075/messages/jsonschema/Pickle.json#L20-L49)): Cucumber step object
-- `scenario` ([`IPickle`](https://github.com/cucumber/common/blob/b94ce625967581de78d0fc32d84c35b46aa5a075/messages/jsonschema/Pickle.json#L137-L175)): Cucumber scenario object
-- `context` (`object`): Cucumber World object
+- `step` ([`Pickle.IPickleStep`](https://github.com/cucumber/common/blob/b94ce625967581de78d0fc32d84c35b46aa5a075/messages/jsonschema/Pickle.json#L20-L49)): कुकुम्बर स्टेप ऑब्जेक्ट
+- `scenario` ([`IPickle`](https://github.com/cucumber/common/blob/b94ce625967581de78d0fc32d84c35b46aa5a075/messages/jsonschema/Pickle.json#L137-L175)): कुकुम्बर परिदृश्य वस्तु
+- `context` (`object`): कुकुम्बर विश्व ऑब्जेक्ट
 
 ### afterStep
 
-Runs after a Cucumber Step.
+कुकुम्बर स्टेप से बाद में रन करता है।
 
-Parameters:
+पैरामीटर:
 
-- `step` ([`Pickle.IPickleStep`](https://github.com/cucumber/common/blob/b94ce625967581de78d0fc32d84c35b46aa5a075/messages/jsonschema/Pickle.json#L20-L49)): Cucumber step object
-- `scenario` ([`IPickle`](https://github.com/cucumber/common/blob/b94ce625967581de78d0fc32d84c35b46aa5a075/messages/jsonschema/Pickle.json#L137-L175)): Cucumber scenario object
-- `result`: (`object`): results object containing step results
-- `result.passed` (`boolean`): true if scenario has passed
-- `result.error` (`string`): error stack if scenario failed
-- `result.duration` (`number`): duration of scenario in milliseconds
-- `context` (`object`): Cucumber World object
+- `step` ([`Pickle.IPickleStep`](https://github.com/cucumber/common/blob/b94ce625967581de78d0fc32d84c35b46aa5a075/messages/jsonschema/Pickle.json#L20-L49)): कुकुम्बर स्टेप ऑब्जेक्ट
+- `scenario` ([`IPickle`](https://github.com/cucumber/common/blob/b94ce625967581de78d0fc32d84c35b46aa5a075/messages/jsonschema/Pickle.json#L137-L175)): कुकुम्बर परिदृश्य वस्तु
+- `result` (`object`): परिणाम वस्तु जिसमें स्टेप परिणाम होते हैं
+- `result.passed` (`boolean`): यदि परिदृश्य पास हो गया है तो सच है
+- `esult.error` (`string`): परिदृश्य विफल होने पर त्रुटि स्टेक
+- `result.duration` (`number`): मिलीसेकंड में परिदृश्य की अवधि
+- `context` (`object`): कुकुम्बर विश्व ऑब्जेक्ट
