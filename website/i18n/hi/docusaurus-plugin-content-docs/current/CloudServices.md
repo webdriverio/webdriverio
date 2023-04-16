@@ -105,52 +105,52 @@ build: `myApp #${process.env.TRAVIS_BUILD_NUMBER}.${process.env.TRAVIS_JOB_NUMBE
 
 ## TestingBot
 
-The only requirement is to set the `user` and `key` in your config (either exported by `wdio.conf.js` or passed into `webdriverio.remote(...)`) to your [TestingBot](https://testingbot.com) username and secret key.
+केवल आवश्यकता यह है कि आप अपने कॉन्फ़िगरेशन में `user` और `key` सेट करें (या तो `wdio.conf.js` द्वारा निर्यात किया गया या `webdriverio.remote(...)`में पास किया गया) आपके [TestingBot](https://testingbot.com) उपयोगकर्ता नाम और सीक्रेट कुंजी।
 
-You can also pass in any optional [supported capabilities](https://testingbot.com/support/other/test-options) as a key/value in the capabilities for any browser.
+आप किसी भी वैकल्पिक [समर्थित क्षमता](https://testingbot.com/support/other/test-options) किसी भी ब्राउज़र की क्षमताओं में कुंजी/मान के रूप में पास कर सकते हैं।
 
-### Local Testing
+### लोकल टेस्टिंग
 
-If you want to run tests against a server that is not accessible to the Internet (like on `localhost`), then you need to use [Local Testing](https://testingbot.com/support/other/tunnel). TestingBot provides a Java-based tunnel to allow you to test websites not accessible from the internet.
+यदि आप किसी ऐसे सर्वर के खिलाफ परीक्षण चलाना चाहते हैं जो इंटरनेट तक पहुंच योग्य नहीं है (जैसे `localhost`पर), तो आपको [लोकल टेस्टिंग ](https://testingbot.com/support/other/tunnel)का उपयोग करने की आवश्यकता है। TestingBot एक जावा-आधारित सुरंग प्रदान करता है जिससे आप उन वेबसाइटों का परीक्षण कर सकते हैं जो इंटरनेट से सुलभ नहीं हैं।
 
-Their tunnel support page contains the information necessary to get this up and running.
+उनके टनल सपोर्ट पेज में इसे शुरू करने और चलाने के लिए आवश्यक जानकारी है।
 
-If you are using the WDIO testrunner, download and configure the [`@wdio/testingbot-service`](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-testingbot-service) in your `wdio.conf.js`. It helps get TestingBot running, and comes with additional features that better integrate your tests into the TestingBot service.
+यदि आप WDIO टेस्टरनर का उपयोग कर रहे हैं, तो अपने `wdio.conf.js`में [`@wdio/testingbot-service`](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-testingbot-service) को डाउनलोड और कॉन्फ़िगर करें। यह BrowserStack को चलाने में मदद करता है, और अतिरिक्त सुविधाओं के साथ आता है जो आपके परीक्षणों को BrowserStack सेवा में बेहतर ढंग से एकीकृत करता है।
 
 ## CrossBrowserTesting
 
-The only requirement is to set the `user` and `key` in your config (either exported by `wdio.conf.js` or passed into `webdriverio.remote(...)`) to your [CrossBrowserTesting](https://crossbrowsertesting.com/) username and authkey.
+एकमात्र आवश्यकता आपके कॉन्फ़िगरेशन में `user`और `key` सेट करना है (या तो `wdio.conf.js` द्वारा निर्यात किया जाता है या `webdriverio में पास किया जाता है).remote(...)`) आपके [CrossBrowserTesting](https://crossbrowsertesting.com/) यूज़रनेम और ऑथकी पर।
 
-You can also pass in any optional [supported capabilities](https://help.crossbrowsertesting.com/selenium-testing/getting-started/crossbrowsertesting-automation-capabilities/) as a key/value in the capabilities for any browser.
+आप किसी भी वैकल्पिक [समर्थित क्षमता](https://help.crossbrowsertesting.com/selenium-testing/getting-started/crossbrowsertesting-automation-capabilities/) किसी भी ब्राउज़र की क्षमताओं में कुंजी/मान के रूप में पास कर सकते हैं।
 
-### Local Testing
+### लोकल टेस्टिंग
 
-If you want to run tests against a server that is not accessible to the Internet (like on `localhost`), then you need to use [Local Testing](https://help.crossbrowsertesting.com/local-connection/general/local-tunnel-overview/). CrossBrowserTesting provides a tunnel to allow you to test websites not accessible from the internet.
+यदि आप किसी ऐसे सर्वर के खिलाफ परीक्षण चलाना चाहते हैं जो इंटरनेट तक पहुंच योग्य नहीं है (जैसे `localhost`पर), तो आपको [लोकल टेस्टिंग ](https://help.crossbrowsertesting.com/local-connection/general/local-tunnel-overview/)का उपयोग करने की आवश्यकता है। TestingBot एक जावा-आधारित टनल प्रदान करता है जिससे आप उन वेबसाइटों का परीक्षण कर सकते हैं जो इंटरनेट से सुलभ नहीं हैं।
 
-If you are using the WDIO testrunner, download and configure the [`@wdio/crossbrowsertesting-service`](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-crossbrowsertesting-service) in your `wdio.conf.js`. It helps get CrossBrowserTesting running and comes with additional features that better integrate your tests into the CrossBrowserTesting service.
+यदि आप WDIO टेस्टरनर का उपयोग कर रहे हैं, तो अपने `wdio.conf.js`में [`@wdio/browserstack-service`](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-crossbrowsertesting-service) को डाउनलोड और कॉन्फ़िगर करें। यह BrowserStack को चलाने में मदद करता है, और अतिरिक्त सुविधाओं के साथ आता है जो आपके परीक्षणों को BrowserStack सेवा में बेहतर ढंग से एकीकृत करता है।
 
-## LambdaTest
+## लैम्ब्डा टेस्ट
 
-[LambdaTest](https://www.lambdatest.com) integration is also built-in.
+[लैम्ब्डाटेस्ट](https://www.lambdatest.com) इंटीग्रेशन भी बिल्ट-इन है।
 
-The only requirement is to set the `user` and `key` in your config (either exported by `wdio.conf.js` or passed into `webdriverio.remote(...)`) to your LambdaTest account username and access key.
+केवल आवश्यकता यह है कि आप अपने कॉन्फिग में `user` और `key` सेट करें (या तो `wdio.conf.js` द्वारा निर्यात किया गया या `webdriverio.remote(...)`में पारित किया गया) आपके ब्राउज़रस्टैक स्वचालित उपयोगकर्ता नाम और एक्सेस कुंजी पर.
 
-You can also pass in any optional [supported capabilities](https://www.lambdatest.com/capabilities-generator/) as a key/value in the capabilities for any browser. If you set `visual` to `true` it will record a screencast of the session, which might be helpful.
+आप किसी भी वैकल्पिक [समर्थित क्षमता](https://www.lambdatest.com/capabilities-generator/) किसी भी ब्राउज़र की क्षमताओं में कुंजी/मान के रूप में पास कर सकते हैं। यदि आप `Browserstack. debug` से `True` सेट करते हैं तो यह सत्र का एक स्क्रीनकास्ट रिकॉर्ड करेगा, जो सहायक हो सकता है।
 
-### Tunnel for local testing
+### लोकल टेस्टिंग के लिए टनल
 
-If you want to run tests against a server that is not accessible to the Internet (like on `localhost`), then you need to use [Local Testing](https://www.lambdatest.com/support/docs/testing-locally-hosted-pages/).
+यदि आप किसी ऐसे सर्वर के खिलाफ परीक्षण चलाना चाहते हैं जो इंटरनेट तक पहुंच योग्य नहीं है (जैसे `localhost`पर), तो आपको [लोकल टेस्टिंग ](https://www.lambdatest.com/support/docs/testing-locally-hosted-pages/)का उपयोग करने की आवश्यकता है।
 
-It is out of the scope of WebdriverIO to support this, so you must start it by yourself.
+यह इसका समर्थन करने के लिए WebdriverIO के दायरे से बाहर है, इसलिए आपको इसे अपने आप से शुरू करना होगा।
 
-If you do use local, you should set `tunnel` to `true` in your capabilities.
+यदि आप लोकल का उपयोग करते हैं, तो आपको अपनी क्षमताओं में `` को `true` सेट करना चाहिए।
 
-If you are using the WDIO testrunner, download and configure the [`wdio-lambdatest-service`](https://github.com/LambdaTest/wdio-lambdatest-service) in your `wdio.conf.js`. It helps get LambdaTest running, and comes with additional features that better integrate your tests into the LambdaTest service.
-### With Travis CI
+यदि आप WDIO टेस्टरनर का उपयोग कर रहे हैं, तो अपने `wdio.conf.js`में [`@wdio/testingbot-service`](https://github.com/LambdaTest/wdio-lambdatest-service) को डाउनलोड और कॉन्फ़िगर करें। यह लैम्बडाटेस्ट को चलाने में मदद करता है, और अतिरिक्त सुविधाओं के साथ आता है जो आपके परीक्षणों को लैम्ब्डाटेस्ट सेवा में बेहतर ढंग से एकीकृत करता है।
+### Travis CI के साथ
 
-If you want to add Local Testing in Travis, you have to start it by yourself.
+यदि आप ट्रैविस में लोकल टेस्टिंग जोड़ना चाहते हैं, तो आपको इसे स्वयं ही प्रारंभ करना होगा।
 
-The following script will download and start it in the background. You should run this in Travis before starting the tests.
+निम्न स्क्रिप्ट बैकग्राउंड में इसे डाउनलोड और प्रारंभ करेगी। परीक्षण शुरू करने से पहले आपको इसे ट्रैविस में चलाना चाहिए।
 
 ```sh
 wget http://downloads.lambdatest.com/tunnel/linux/64bit/LT_Linux.zip
@@ -159,9 +159,9 @@ unzip LT_Linux.zip
 sleep 3
 ```
 
-Also, you might wish set the `build` to the Travis build number.
+साथ ही, आप `build` को ट्रैविस बिल्ड नंबर पर सेट करना चाह सकते हैं।
 
-Example `capabilities`:
+उदाहरण `capabilities`:
 
 ```javascript
 platform: 'Windows 10',
@@ -172,9 +172,9 @@ build: `myApp #${process.env.TRAVIS_BUILD_NUMBER}.${process.env.TRAVIS_JOB_NUMBE
 'visual': 'true'
 ```
 
-## Perfecto
+## बिल्कुल सही
 
-When using wdio with [`Perfecto`](https://www.perfecto.io), you need to create a security token for each user and add this in the capabilities structure (in addition to other capabilities), as follows:
+[`Perfecto`](https://www.perfecto.io)के साथ wdio का उपयोग करते समय, आपको प्रत्येक उपयोगकर्ता के लिए एक सुरक्षा टोकन बनाना होगा और इसे क्षमता संरचना (अन्य क्षमताओं के अतिरिक्त) में निम्नानुसार जोड़ना होगा:
 
 ```js
 export const config = {
@@ -184,7 +184,7 @@ export const config = {
   }],
 ```
 
-In addition, you need to add cloud configuration, as follows:
+इसके अलावा, आपको निम्नानुसार क्लाउड कॉन्फ़िगरेशन जोड़ने की आवश्यकता है:
 
 ```js
   hostname: "your_cloud_name.perfectomobile.com",
