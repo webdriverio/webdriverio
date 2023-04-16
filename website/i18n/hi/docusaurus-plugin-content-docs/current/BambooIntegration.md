@@ -1,11 +1,11 @@
 ---
 id: bamboo
-title: Bamboo
+title: बांस
 ---
 
-WebdriverIO offers a tight integration to CI systems like [Bamboo](https://www.atlassian.com/software/bamboo). With the [JUnit](https://webdriver.io/docs/junit-reporter.html) or [Allure](https://webdriver.io/docs/allure-reporter.html) reporter, you can easily debug your tests as well as keep track of your test results. The integration is pretty easy.
+WebdriverIO सीआई सिस्टम जैसे [बांस](https://www.atlassian.com/software/bamboo)के लिए एक सख्त एकीकरण प्रदान करता है। [JUnit](https://webdriver.io/docs/junit-reporter.html) या [Allure](https://webdriver.io/docs/allure-reporter.html) रिपोर्टर के साथ, आप आसानी से अपने परीक्षणों को डिबग कर सकते हैं और साथ ही अपने परीक्षा परिणामों पर नज़र रख सकते हैं। एकीकरण बहुत आसान है।
 
-1. Install the JUnit test reporter: `$ npm install @wdio/junit-reporter --save-dev`)
+1. JUnit परीक्षण रिपोर्टर इंस्टाल करें: `$ npm install @wdio/junit-reporter --save-dev`)
 1. अपने JUnit परिणामों को सहेजने के लिए अपनी कॉन्फ़िगरेशन अपडेट करें जहां बांस उन्हें ढूंढ सकता है, (और `junit` रिपोर्टर निर्दिष्ट करें):
 
 ```js
@@ -40,7 +40,7 @@ module.exports = {
 }
 ```
 
-The reports will be similar for all the frameworks and you can use anyone: Mocha, Jasmine or Cucumber.
+रिपोर्ट सभी फ्रेमवर्क के लिए समान होंगी और आप किसी का भी उपयोग कर सकते हैं: मोचा, जेसमीन या कुकुम्बर।
 
 By this time, we believe you have the tests written up and results are generated in `./testresults/` folder, and your Bamboo is up and running.
 
