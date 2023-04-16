@@ -42,43 +42,43 @@ module.exports = {
 
 रिपोर्ट सभी फ्रेमवर्क के लिए समान होंगी और आप किसी का भी उपयोग कर सकते हैं: मोचा, जेसमीन या कुकुम्बर।
 
-By this time, we believe you have the tests written up and results are generated in `./testresults/` folder, and your Bamboo is up and running.
+इस समय तक, हम मानते हैं कि आपके पास टेस्ट लिखे गए हैं और परिणाम `./testresults/` फ़ोल्डर मेंआते हैं, और आपका बम्बू ऊपर और चल रहा है।
 
-## Integrate your tests in Bamboo
+## बम्बू में अपने टेस्ट को एकीकृत करें
 
-1. Open your Bamboo project
+1. अपना बम्बू प्रोजेक्ट खोलें
 
-    > Create a new plan, link your repository (make sure it always points to newest version of your repository) and create your stages
+    > एक नई योजना बनाएं, अपने रिपॉजिटरी को लिंक करें (सुनिश्चित करें कि यह हमेशा आपके रिपॉजिटरी के नवीनतम संस्करण की ओर इशारा करता है) और अपने चरण बनाएं
 
-    ![Plan Details](/img/bamboo/plancreation.png "Plan Details")
+    ![योजना का विवरण](/img/bamboo/plancreation.png "योजना का विवरण")
 
-    I will go with the default stage and job. In your case, you can create your own stages and jobs
+    मैं डिफ़ॉल्ट स्टेज और जॉब के साथ जाऊंगा। आपके मामले में, आप अपने स्वयं के स्टेज और जॉब्स बना सकते हैं
 
-    ![Default Stage](/img/bamboo/defaultstage.png "Default Stage")
-2. Open your testing job and create tasks to run your tests in Bamboo
-> **Task 1:** Source Code Checkout
-> **Task 2:** Run your tests `npm i && npm run test`. You can use *Script* task and *Shell Interpreter* to run the above commands (This will generate the test results and save them in `./testresults/` folder)
+    ![डिफ़ॉल्ट स्टेज](/img/bamboo/defaultstage.png "डिफ़ॉल्ट स्टेज")
+2. अपना टेस्टिंग जॉब खोलें और बम्बू में अपने टेस्ट चलाने के लिए टास्क बनाएं
+> **टास्क 1:** सोर्स कोड चेकआउट
+> **टास्क 2:** अपने टेस्ट चलाएं `npm i && npm run test`. उपरोक्त कमांड को चलाने के लिए आप *स्क्रिप्ट*टास्क और *शैल इंटरप्रेटर* का उपयोग कर सकते हैं (यह परीक्षण के परिणाम उत्पन्न करेगा और उन्हें `./testresults/` फ़ोल्डर में सहेज लेगा)
 
-    ![Test Run](/img/bamboo/testrun.png "Test Run")
-> **Task: 3** Add *jUnit Parser* task to parse your saved test results. Please specify the test results directory here (you can use Ant style patterns as well)
+    ![टेस्ट रन](/img/bamboo/testrun.png "टेस्ट रन")
+> **टास्क: 3** अपने सहेजे गए परीक्षण परिणामों को पार्स करने के लिए *जूनिट पार्सर* टास्क जोड़ें। कृपया टेस्ट परिणाम निर्देशिका यहाँ निर्दिष्ट करें (आप चींटी शैली पैटर्न का भी उपयोग कर सकते हैं)
 
-    ![jUnit Parser](/img/bamboo/junitparser.png "jUnit Parser")
+    ![jUnit पार्सर](/img/bamboo/junitparser.png "jUnit पार्सर")
 
-    Note: *Make sure you are keeping the results parser task in *Final* section, so that it always get executed even if your test task is failed*
-> **Task: 4** (optional) In order to make sure that your test results are not messed up with old files, you can create a task to remove the `./testresults/` folder after a successful parse to Bamboo. You can add a shell script like `rm -f ./testresults/*.xml` to remove the results or `rm -r testresults` to remove the complete folder
+    नोट: *सुनिश्चित करें कि आप परिणाम पार्सर कार्य को *अंतिम* अनुभाग में रख रहे हैं, ताकि आपका टेस्ट टास्क विफल होने पर भी इसे हमेशा निष्पादित किया जा सके*
+> **टास्क: 4** (वैकल्पिक) यह सुनिश्चित करने के लिए कि आपके टेस्ट रिजल्ट पुरानी फ़ाइलों के साथ गड़बड़ नहीं हैं, आप बम्बू के सफल पार्स के बाद `./testresults/` फ़ोल्डर को हटाने के लिए एक कार्य बना सकते हैं। आप परिणामों को हटाने के लिए `rm -f ./testresults/*.xml` जैसी शेल स्क्रिप्ट जोड़ सकते हैं या पूर्ण फ़ोल्डर को हटाने के लिए `rm -r testresults` जोड़ सकते हैं
 
-Once the above *rocket science* is done, please enable the plan and run it. Your final output will be like:
+उपरोक्त *रॉकेट साइंस* हो जाने के बाद, कृपया योजना को सक्षम करें और इसे चलाएं। आपका अंतिम आउटपुट इस जैसा होगा:
 
-## Successful Test
+## सफल टेस्ट
 
-![Successful Test](/img/bamboo/successfulltest.png "Successful Test")
+![सफल टेस्ट](/img/bamboo/successfulltest.png "सफल टेस्ट")
 
-## Failed Test
+## विफल टेस्ट
 
-![Failed Test](/img/bamboo/failedtest.png "Failed Test")
+![विफल टेस्ट](/img/bamboo/failedtest.png "विफल टेस्ट")
 
-## Failed and Fixed
+## विफल और फिक्स
 
-![Failed and Fixed](/img/bamboo/failedandfixed.png "Failed and Fixed")
+![विफल और फिक्स](/img/bamboo/failedandfixed.png "विफल और फिक्स")
 
-Yay!! That's all. You have successfully integrated your WebdriverIO tests in Bamboo.
+येह!! बस इतना ही। आपने अपने WebdriverIO टेस्ट को बम्बू में सफलतापूर्वक एकीकृत कर लिया है।
