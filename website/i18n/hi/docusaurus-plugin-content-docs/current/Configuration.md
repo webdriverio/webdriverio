@@ -3,6 +3,8 @@ id: configuration
 title: Configuration
 ---
 
+Based on the [setup type](./SetupTypes.md) (e.g. using the raw protocol bindings, WebdriverIO as standalone package or the WDIO testrunner) there is a different set of options available to control the environment.
+
 ## WebDriver Options
 
 The following options are defined when using the [`webdriver`](https://www.npmjs.com/package/webdriver) protocol package:
@@ -23,37 +25,37 @@ Type: `String`<br /> Default: `localhost`
 
 Port your driver server is on.
 
-Type: `Number`<br /> Default: `4444`
+प्रकार: `Number`<br /> डिफ़ॉल्ट: `4444`
 
 ### path
 
-Path to driver server endpoint.
+ड्राइवर सर्वर समापन बिंदु का पथ।
 
 Type: `String`<br /> Default: `/`
 
 ### queryParams
 
-Query parameters that are propagated to the driver server.
+ड्राइवर सर्वर के लिए प्रचारित क्वेरी पैरामीटर।
 
 Type: `Object`<br /> Default: `null`
 
 ### user
 
-Your cloud service username (only works for [Sauce Labs](https://saucelabs.com), [Browserstack](https://www.browserstack.com), [TestingBot](https://testingbot.com), [CrossBrowserTesting](https://crossbrowsertesting.com) or [LambdaTest](https://www.lambdatest.com) accounts). If set, WebdriverIO will automatically set connection options for you. If you don't use a cloud provider this can be used to authenticate any other WebDriver backend.
+आपका क्लाउड सर्विस यूज़रनेम (केवल [सॉस लैब्स](https://saucelabs.com), [ब्राउज़रस्टैक](https://www.browserstack.com), [टेस्टिंगबॉट](https://testingbot.com), [क्रॉसब्रोसरटेस्टिंग](https://crossbrowsertesting.com) या [लैम्ब्डाटेस्ट](https://www.lambdatest.com) खातों के लिए काम करता है)। यदि सेट किया जाता है, तो WebdriverIO स्वचालित रूप से आपके लिए कनेक्शन विकल्प सेट कर देगा। यदि आप क्लाउड प्रदाता का उपयोग नहीं करते हैं तो इसका उपयोग किसी अन्य वेबड्राइवर बैकएंड को प्रमाणित करने के लिए किया जा सकता है।
 
 Type: `String`<br /> Default: `null`
 
 ### key
 
-Your cloud service access key or secret key (only works for [Sauce Labs](https://saucelabs.com), [Browserstack](https://www.browserstack.com), [TestingBot](https://testingbot.com), [CrossBrowserTesting](https://crossbrowsertesting.com) or [LambdaTest](https://www.lambdatest.com) accounts). If set, WebdriverIO will automatically set connection options for you. If you don't use a cloud provider this can be used to authenticate any other WebDriver backend.
+आपका क्लाउड सर्विस यूज़रनेम (केवल [सॉस लैब्स](https://saucelabs.com), [ब्राउज़रस्टैक](https://www.browserstack.com), [टेस्टिंगबॉट](https://testingbot.com), [क्रॉसब्रोसरटेस्टिंग](https://crossbrowsertesting.com) या [लैम्ब्डाटेस्ट](https://www.lambdatest.com) खातों के लिए काम करता है)। यदि सेट किया जाता है, तो WebdriverIO स्वचालित रूप से आपके लिए कनेक्शन विकल्प सेट कर देगा। यदि आप क्लाउड प्रदाता का उपयोग नहीं करते हैं तो इसका उपयोग किसी अन्य वेबड्राइवर बैकएंड को प्रमाणित करने के लिए किया जा सकता है।
 
 Type: `String`<br /> Default: `null`
 
 ### capabilities
 
-Defines the capabilities you want to run in your WebDriver session. Check out the [WebDriver Protocol](https://w3c.github.io/webdriver/#capabilities) for more details. If you run an older driver that doesn't support the WebDriver protocol, you’ll need to use the [JSONWireProtocol capabilities](https://github.com/SeleniumHQ/selenium/wiki/DesiredCapabilities) to successfully run a session.
+उन क्षमताओं को परिभाषित करता है जिन्हें आप अपने वेबड्राइवर सत्र में चलाना चाहते हैं। अधिक विवरण के लिए [वेबड्राइवर प्रोटोकॉल](https://w3c.github.io/webdriver/#capabilities) देखें। यदि आप एक पुराना ड्राइवर चलाते हैं जो वेबड्राइवर प्रोटोकॉल का समर्थन नहीं करता है, तो आपको सत्र को सफलतापूर्वक चलाने के लिए [JSONWireProtocol क्षमताओं](https://github.com/SeleniumHQ/selenium/wiki/DesiredCapabilities) का उपयोग करने की आवश्यकता होगी।
 
-Next to the WebDriver based capabilities you can apply browser and vendor specific options that allow deeper configuration to the remote browser or device. These are documented in the corresponding vendor docs, e.g.:
+वेबड्राइवर आधारित क्षमताओं के आगे आप ब्राउज़र और विक्रेता विशिष्ट विकल्प लागू कर सकते हैं जो दूरस्थ ब्राउज़र या डिवाइस के लिए गहन कॉन्फ़िगरेशन की अनुमति देते हैं। ये संबंधित विक्रेता डॉक्स में प्रलेखित हैं, उदाहरण के लिए:
 
 - `goog:chromeOptions`: for [Google Chrome](https://chromedriver.chromium.org/capabilities#h.p_ID_106)
 - `moz:firefoxOptions`: for [Mozilla Firefox](https://firefox-source-docs.mozilla.org/testing/geckodriver/Capabilities.html)
@@ -62,11 +64,11 @@ Next to the WebDriver based capabilities you can apply browser and vendor specif
 - `bstack:options`: for [BrowserStack](https://www.browserstack.com/automate/capabilities?tag=selenium-4#)
 - `selenoid:options`: for [Selenoid](https://github.com/aerokube/selenoid/blob/master/docs/special-capabilities.adoc)
 
-Additionally, a useful utility is the Sauce Labs [Automated Test Configurator](https://wiki.saucelabs.com/display/DOCS/Platform+Configurator#/), which helps you create this object by clicking together your desired capabilities.
+इसके अतिरिक्त, सॉस लैब्स [ऑटोमेटेड टेस्ट कॉन्फिगरेटर](https://wiki.saucelabs.com/display/DOCS/Platform+Configurator#/)एक उपयोगी उपयोगिता है, जो आपकी इच्छित क्षमताओं को एक साथ क्लिक करके इस ऑब्जेक्ट को बनाने में आपकी मदद करती है।
 
 Type: `Object`<br /> Default: `null`
 
-**Example:**
+**उदाहरण:**
 
 ```js
 {
@@ -76,37 +78,37 @@ Type: `Object`<br /> Default: `null`
 }
 ```
 
-If you’re running web or native tests on mobile devices, `capabilities` differs from the WebDriver protocol. See the [Appium Docs](http://appium.io/docs/en/writing-running-appium/caps/) for more details.
+यदि आप मोबाइल उपकरणों पर वेब या नेटिव परीक्षण चला रहे हैं, तो `capabilities` वेबड्राइवर प्रोटोकॉल से भिन्न है। अधिक विवरण के लिए [एपियम डॉक्स](http://appium.io/docs/en/writing-running-appium/caps/) देखें।
 
 ### logLevel
 
-Level of logging verbosity.
+लॉगिंग वेर्बोसिटी का स्तर।
 
 Type: `String`<br /> Default: `info`<br /> Options: `trace` | `debug` | `info` | `warn` | `error` | `silent`
 
 ### outputDir
 
-Directory to store all testrunner log files (including reporter logs and `wdio` logs). If not set, all logs are streamed to `stdout`. Since most reporters are made to log to `stdout`, it is recommended to only use this option for specific reporters where it makes more sense to push report into a file (like the `junit` reporter, for example).
+सभी परीक्षक लॉग फ़ाइलों को संग्रहीत करने के लिए निर्देशिका (रिपोर्टर लॉग और `wdio` लॉग सहित)। यदि सेट नहीं किया गया है, तो सभी लॉग `stdout`पर स्ट्रीम किए जाते हैं। चूंकि अधिकांश पत्रकारों को `stdout`पर लॉग इन करने के लिए बनाया जाता है, इसलिए केवल विशिष्ट पत्रकारों के लिए इस विकल्प का उपयोग करने की सिफारिश की जाती है, जहां रिपोर्ट को फ़ाइल में पुश करने के लिए अधिक समझ में आता है (जैसे `junit` रिपोर्टर, उदाहरण के लिए)।
 
-When running in standalone mode, the only log generated by WebdriverIO will be the `wdio` log.
+स्टैंडअलोन मोड में चलने पर, WebdriverIO द्वारा उत्पन्न एकमात्र लॉग `wdio` लॉग होगा।
 
 Type: `String`<br /> Default: `null`
 
 ### connectionRetryTimeout
 
-Timeout for any WebDriver request to a driver or grid.
+ड्राइवर या ग्रिड के लिए किसी भी वेबड्राइवर अनुरोध के लिए टाइमआउट।
 
 Type: `Number`<br /> Default: `120000`
 
 ### connectionRetryCount
 
-Maximum count of request retries to the Selenium server.
+अनुरोध की अधिकतम संख्या सेलेनियम सर्वर के लिए पुन: प्रयास करती है।
 
 Type: `Number`<br /> Default: `3`
 
 ### agent
 
-Allows you to use a custom`http`/`https`/`http2` [agent](https://www.npmjs.com/package/got#agent) to make requests.
+आपको कस्टम`http`/`https`/`http2` [एजेंट](https://www.npmjs.com/package/got#agent)अनुरोध करने के लिए इसका उपयोग करने की अनुमति देता है।
 
 Type: `Object`<br /> Default:
 
@@ -119,11 +121,11 @@ Type: `Object`<br /> Default:
 
 ### headers
 
-Specify custom `headers` to pass into every WebDriver request and when connect to browser through Puppeteer using CDP protocol.
+हर वेबड्राइवर अनुरोध में पास होने के लिए और सीडीपी प्रोटोकॉल का उपयोग करके पपटियर के माध्यम से ब्राउज़र से कनेक्ट करने के लिए कस्टम `headers` निर्दिष्ट करें।
 
 :::caution
 
-These headers __aren't__ passed into browser request. If you are looking for modifying request headers of browser requests, please get involved in [#6361](https://github.com/webdriverio/webdriverio/issues/6361)!
+ये शीर्षलेख __ब्राउज़र अनुरोध में__ पास नहीं हुए हैं। यदि आप ब्राउज़र अनुरोधों के अनुरोध शीर्षलेखों को संशोधित करना चाहते हैं, तो कृपया [#6361](https://github.com/webdriverio/webdriverio/issues/6361)में शामिल हों!
 
 :::
 
@@ -131,25 +133,25 @@ Type: `Object`<br /> Default: `{}`
 
 ### transformRequest
 
-Function intercepting [HTTP request options](https://github.com/sindresorhus/got#options) before a WebDriver request is made
+वेबड्राइवर अनुरोध किए जाने से पहले फ़ंक्शन इंटरसेप्टिंग [HTTP अनुरोध विकल्प](https://github.com/sindresorhus/got#options)
 
 Type: `(RequestOptions) => RequestOptions`<br /> Default: *none*
 
 ### transformResponse
 
-Function intercepting HTTP response objects after a WebDriver response has arrived. The function is passed the original response object as the first and the corresponding `RequestOptions` as the second argument.
+WebDriver प्रतिक्रिया आने के बाद फ़ंक्शन इंटरसेप्टिंग HTTP प्रतिक्रिया ऑब्जेक्ट। फ़ंक्शन को मूल प्रतिक्रिया ऑब्जेक्ट को पहले और संबंधित `RequestOptions` दूसरे तर्क के रूप में पास किया गया है।
 
 Type: `(Response, RequestOptions) => Response`<br /> Default: *none*
 
 ### strictSSL
 
-Whether it does not require SSL certificate to be valid. It can be set via an environment variables as `STRICT_SSL` or `strict_ssl`.
+क्या इसे वैध होने के लिए एसएसएल प्रमाणपत्र की आवश्यकता नहीं है। इसे पर्यावरण वेरिएबल के माध्यम से `STRICT_SSL` या `STRICT_SSL`के रूप में सेट किया जा सकता है।
 
 Type: `Boolean`<br /> Default: `true`
 
 ### enableDirectConnect
 
-Whether enable [Appium direct connection feature](https://appiumpro.com/editions/86-connecting-directly-to-appium-hosts-in-distributed-environments). It does nothing if the response did not have proper keys while the flag is enabled.
+चाहे [Appium डायरेक्ट कनेक्शन सुविधा](https://appiumpro.com/editions/86-connecting-directly-to-appium-hosts-in-distributed-environments) सक्षम करें। फ्लेग सक्षम होने पर प्रतिक्रिया में उचित कुंजी नहीं होने पर यह कुछ भी नहीं करता है।
 
 Type: `Boolean`<br /> Default: `true`
 
@@ -157,41 +159,41 @@ Type: `Boolean`<br /> Default: `true`
 
 ## WebdriverIO
 
-The following options (including the ones listed above) can be used with WebdriverIO in standalone:
+निम्नलिखित विकल्पों (ऊपर सूचीबद्ध वाले सहित) का उपयोग स्टैंडअलोन में WebdriverIO के साथ किया जा सकता है:
 
 ### automationProtocol
 
-Define the protocol you want to use for your browser automation. Currently only [`webdriver`](https://www.npmjs.com/package/webdriver) and [`devtools`](https://www.npmjs.com/package/devtools) are supported, as these are the main browser automation technologies available.
+उस प्रोटोकॉल को परिभाषित करें जिसे आप अपने ब्राउज़र स्वचालन के लिए उपयोग करना चाहते हैं। वर्तमान में केवल [`webdriver`](https://www.npmjs.com/package/webdriver) और [`devtools`](https://www.npmjs.com/package/devtools) समर्थित हैं, क्योंकि ये मुख्य ब्राउज़र स्वचालन तकनीकें उपलब्ध हैं।
 
-If you want to automate the browser using `devtools`, make sure you have the NPM package installed (`$ npm install --save-dev devtools`).
+यदि आप `devtools`का उपयोग करके ब्राउज़र को स्वचालित करना चाहते हैं, तो सुनिश्चित करें कि आपके पास NPM पैकेज इंस्टाल है (`$ npm install --save-dev devtools`)।
 
 Type: `String`<br /> Default: `webdriver`
 
 ### baseUrl
 
-Shorten `url` command calls by setting a base URL.
-- If your `url` parameter starts with `/`, then `baseUrl` is prepended (except the `baseUrl` path, if it has one).
-- If your `url` parameter starts without a scheme or `/` (like `some/path`), then the full `baseUrl` is prepended directly.
+बेस URL सेट करके `url` कमांड कॉल को छोटा करें।
+- अगर आपका `url` पैरामीटर `/`से शुरू होता है, तो `baseUrl` पहले से जोड़ा जाता है ( `baseUrl` पथ को छोड़कर, अगर इसमें एक है).
+- यदि आपका `url` पैरामीटर बिना किसी स्कीम या `(जैसे <code>some/path`) के बिना शुरू</code>है, तो पूरा `baseUrl` सीधे प्रीपेंडेड हो जाता है।
 
 Type: `String`<br /> Default: `null`
 
 ### waitforTimeout
 
-Default timeout for all `waitFor*` commands. (Note the lowercase `f` in the option name.) This timeout __only__ affects commands starting with `waitFor*` and their default wait time.
+सभी `WaitFor*` कमांड के लिए डिफ़ॉल्ट टाइमआउट। (विकल्प नाम में लोअरकेस `f` नोट करें।) यह टाइमआउट __केवल__ `waitFor*` से शुरू होने वाले कमांड और उनके डिफ़ॉल्ट प्रतीक्षा समय को प्रभावित करता है।
 
-To increase the timeout for a _test_, please see the framework docs.
+_टेस्ट_के लिए टाइमआउट बढ़ाने के लिए, कृपया फ्रेमवर्क डॉक्स देखें।
 
 Type: `Number`<br /> Default: `3000`
 
 ### waitforInterval
 
-Default interval for all `waitFor*` commands to check if an expected state (e.g., visibility) has been changed.
+सभी `WaitFor*` कमांड के लिए डिफ़ॉल्ट अंतराल यह जांचने के लिए कि क्या एक अपेक्षित स्थिति (जैसे, दृश्यता) बदल दी गई है।
 
 Type: `Number`<br /> Default: `500`
 
-### region
+### क्षेत्र
 
-If running on Sauce Labs, you can choose to run tests between different datacenters: US or EU. To change your region to EU, add `region: 'eu'` to your config.
+यदि सॉस लैब्स पर चल रहा है, तो आप विभिन्न डेटासेंटरों के बीच परीक्षण चलाना चुन सकते हैं: यूएस या ईयू। To change your region to EU, add `region: 'eu'` to your config.
 
 __Note:__ This only has an effect if you provide `user` and `key` options that are connected to your Sauce Labs account.
 
@@ -327,6 +329,8 @@ reporters: [
 
 ### reporterSyncInterval
 
+Determines in which interval the reporter should check if they are synchronized if they report their logs asynchronously (e.g. if logs are streamed to a 3rd party vendor).
+
 Type: `Number`<br /> Default: `100` (ms)
 
 ### reporterSyncTimeout
@@ -371,95 +375,99 @@ Type: `Object` Default: `{}`
 
 ## Hooks
 
-The WDIO testrunner allows you to set hooks to be triggered at specific times of the test lifecycle. This allows custom actions (e.g. take screenshot if a test fails).
+The WDIO testrunner allows you to set hooks to be triggered at specific times of the test lifecycle. यह कस्टम क्रियाओं की अनुमति देता है (उदाहरण के लिए यदि परीक्षण विफल हो जाता है तो स्क्रीनशॉट लें)।
 
-Every hook has as parameter specific information about the lifecycle (e.g. information about the test suite or test). Read more about all hook properties in [our example config](https://github.com/webdriverio/webdriverio/blob/master/examples/wdio.conf.js#L183-L326).
+प्रत्येक हुक में जीवनचक्र के बारे में पैरामीटर विशिष्ट जानकारी होती है (उदाहरण के लिए परीक्षण सूट या परीक्षण के बारे में जानकारी)। हमारे उदाहरण कॉन्फ़िगरेशन [ में सभी हुक गुणों के बारे में और पढ़ें।](https://github.com/webdriverio/webdriverio/blob/master/examples/wdio.conf.js#L183-L326).
 
-**Note:** Some hooks (`onPrepare`, `onWorkerStart`, `onWorkerEnd` and `onComplete`) are executed in a different process and therefore can not share any global data with the other hooks that live in the worker process.
+**नोट:** कुछ हुक (`onPrepare`, `onWorkerStart`, `onWorkerEnd` और `onComplete`) एक अलग प्रक्रिया में निष्पादित होते हैं और इसलिए वर्कर प्रक्रिया में रहने वाले अन्य हुक के साथ कोई वैश्विक डेटा साझा नहीं कर सकते हैं।
 
 ### onPrepare
 
-Gets executed once before all workers get launched.
+सभी श्रमिकों के लॉन्च होने से पहले एक बार निष्पादित हो जाता है।
 
-Parameters:
+पैरामीटर:
 
-- `config` (`object`): WebdriverIO configuration object
-- `param` (`object[]`): list of capabilities details
+- `config` (`object`): WebdriverIO कॉन्फ़िगरेशन ऑब्जेक्ट
+- `param` (`object[]`): क्षमताओं के विवरण की सूची
 
 ### onWorkerStart
 
-Gets executed before a worker process is spawned and can be used to initialize specific service for that worker as well as modify runtime environments in an async fashion.
+एक वर्कर प्रक्रिया शुरू होने से पहले निष्पादित हो जाती है और उस वर्कर के लिए विशिष्ट सेवा को आरंभ करने के साथ-साथ एक async फैशन में रनटाइम वातावरण को संशोधित करने के लिए उपयोग किया जा सकता है।
 
-Parameters:
+पैरामीटर:
 
-- `cid` (`string`): capability id (e.g 0-0)
-- `caps` (`object`): containing capabilities for session that will be spawn in the worker
-- `specs` (`string[]`): specs to be run in the worker process
-- `args` (`object`): object that will be merged with the main configuration once worker is initialized
-- `execArgv` (`string[]`): list of string arguments passed to the worker process
+- `cid` (`string`): क्षमता आईडी (जैसे 0-0)
+- `caps` (`object`): सत्र के लिए क्षमताएं शामिल हैं जो कार्यकर्ता में पैदा होंगी
+- `specs` (`string[]`): कार्यकर्ता प्रक्रिया में चलने के लिए स्पेक्स
+- `args` (`object`): ऑब्जेक्ट जो मुख्य कॉन्फ़िगरेशन के साथ मर्ज हो जाएगा, एक बार वर्कर इनिशियलाइज़ हो जाएगा
+- `execArgv` (`string[]`): कार्यकर्ता प्रक्रिया को पारित स्ट्रिंग तर्कों की सूची
 
 ### onWorkerEnd
 
-Gets executed just after a worker process has exited.
+वर्कर प्रक्रिया से बाहर निकलने के ठीक बाद निष्पादित हो जाता है।
 
-Parameters:
+पैरामीटर:
 
-- `cid` (`string`): capability id (e.g 0-0)
-- `exitCode` (`number`): 0 - success, 1 - fail
-- `specs` (`string[]`): specs to be run in the worker process
-- `retries` (`number`): number of retries used
+- `cid` (`string`): क्षमता आईडी (जैसे 0-0)
+- `exitCode` (`number`): 0 - सफलता, 1 - असफल
+- `specs` (`string[]`): कार्यकर्ता प्रक्रिया में चलने के लिए स्पेक्स
+- `retries` (`number`): प्रयुक्त पुनर्प्रयासों की संख्या
 
 ### beforeSession
 
-Gets executed just before initializing the webdriver session and test framework. It allows you to manipulate configurations depending on the capability or spec.
+वेबड्राइवर सत्र और परीक्षण ढांचे को प्रारंभ करने से ठीक पहले निष्पादित किया जाता है। यह आपको क्षमता या विशिष्टता के आधार पर कॉन्फ़िगरेशन में हेरफेर करने की अनुमति देता है।
 
-Parameters:
+पैरामीटर:
 
-- `config` (`object`): WebdriverIO configuration object
-- `caps` (`object`): containing capabilities for session that will be spawn in the worker
-- `specs` (`string[]`): specs to be run in the worker process
+- `config` (`object`): WebdriverIO कॉन्फ़िगरेशन ऑब्जेक्ट
+- `caps` (`object`): सत्र के लिए क्षमताएं शामिल हैं जो वर्कर में पैदा होंगी
+- `specs` (`string[]`): वर्कर प्रक्रिया में चलने के लिए स्पेक्स
 
 ### before
 
-Gets executed before test execution begins. At this point you can access to all global variables like `browser`. It is the perfect place to define custom commands.
+परीक्षण निष्पादन शुरू होने से पहले निष्पादित हो जाता है। इस बिंदु पर आप `browser`जैसे सभी वैश्विक वेरिएबल तक पहुंच सकते हैं। कस्टम कमांड को परिभाषित करने के लिए यह सही जगह है।
 
-Parameters:
+पैरामीटर:
 
-- `caps` (`object`): containing capabilities for session that will be spawn in the worker
-- `specs` (`string[]`): specs to be run in the worker process
-- `browser` (`object`): instance of created browser/device session
+- `caps` (`object`): सत्र के लिए क्षमताएं शामिल हैं जो वर्कर में पैदा होंगी
+- `specs` (`string[]`): वर्कर प्रक्रिया में चलने के लिए स्पेक्स
+- `browser` (`object`): बनाए गए ब्राउज़र/डिवाइस सत्र का उदाहरण
 
 ### beforeSuite
 
-Hook that gets executed before the suite starts
+हुक जो सुइट शुरू होने से पहले निष्पादित हो जाता है
 
-Parameters:
+पैरामीटर:
 
-- `suite` (`object`): suite details
+- `suite` (`object`): सुइट विवरण
 
 ### beforeHook
 
-Parameters:
+हुक जो सूट के भीतर *से पहले* निष्पादित हो जाता है, सूट शुरू होता है (उदाहरण के लिए मोचा में पहले कॉल करने से पहले चलता है)
 
-- `test` (`object`): test details
-- `context` (`object`): test context (represents World object in Cucumber)
+पैरामीटर:
+
+- `suite` (`object`): सुइट विवरण
+- `context` (`object`): परीक्षण संदर्भ (ककड़ी में विश्व वस्तु का प्रतिनिधित्व करता है)
 
 ### afterHook
 
-Parameters:
+हुक जो सूट के भीतर *से पहले* निष्पादित हो जाता है, सूट शुरू होता है (उदाहरण के लिए मोचा में पहले कॉल करने से पहले चलता है)
 
-- `test` (`object`): test details
-- `context` (`object`): test context (represents World object in Cucumber)
-- `result` (`object`): hook result (contains `error`, `result`, `duration`, `passed`, `retries` properties)
+पैरामीटर:
+
+- `suite` (`object`): सुइट विवरण
+- `context` (`object`): परीक्षण संदर्भ (कुकुम्बर में विश्व वस्तु का प्रतिनिधित्व करता है)
+- `result` (`object`): हुक परिणाम ( `error`, `result`, `duration`, `passed`, `गुणों को पुनः प्राप्त ` करता है)
 
 ### beforeTest
 
-Function to be executed before a test (in Mocha/Jasmine only).
+परीक्षण से पहले क्रियान्वित किया जाने वाला कार्य (केवल मोचा/जेसमीन में)।
 
-Parameters:
+पैरामीटर:
 
-- `test` (`object`): test details
-- `context` (`object`): scope object the test was executed with
+- `suite` (`object`): सुइट विवरण
+- `context` (`object`): स्कोप ऑब्जेक्ट परीक्षण के साथ निष्पादित किया गया था
 
 ### beforeCommand
 
@@ -493,7 +501,7 @@ Parameters:
 - `result.result` (`Any`): return object of test function
 - `result.duration` (`Number`): duration of test
 - `result.passed` (`Boolean`): true if test has passed, otherwise false
--
+- `result.retries` (`Object`): informations to spec related retries, e.g. `{ attempts: 0, limit: 0 }`
 - `result` (`object`): hook result (contains `error`, `result`, `duration`, `passed`, `retries` properties)
 
 ### afterSuite
@@ -557,38 +565,38 @@ Parameters:
 
 Runs after a Cucumber Feature.
 
-Parameters:
+पैरामीटर:
 
-- `uri` (`string`): path to feature file
-- `feature` ([`GherkinDocument.IFeature`](https://github.com/cucumber/common/blob/b94ce625967581de78d0fc32d84c35b46aa5a075/json-to-messages/javascript/src/cucumber-generic/JSONSchema.ts#L8-L17)): Cucumber feature object
+- `uri` (`string`): फीचर फ़ाइल का पथ
+- `feature` ([`GherkinDocument.IFeature`](https://github.com/cucumber/common/blob/b94ce625967581de78d0fc32d84c35b46aa5a075/json-to-messages/javascript/src/cucumber-generic/JSONSchema.ts#L8-L17)): कुकुम्बर फीचर ऑब्जेक्ट
 
 ### beforeScenario
 
-Runs before a Cucumber Scenario.
+कुकुम्बर परिदृश्य से पहले चलता है।
 
-Parameters:
+पैरामीटर:
 
-- `world` ([`ITestCaseHookParameter`](https://github.com/cucumber/cucumber-js/blob/ac124f7b2be5fa54d904c7feac077a2657b19440/src/support_code_library_builder/types.ts#L10-L15)): world object containing information on pickle and test step
-- `context` (`object`): Cucumber World object
+- `world` ([`ITestCaseHookParameter`](https://github.com/cucumber/cucumber-js/blob/ac124f7b2be5fa54d904c7feac077a2657b19440/src/support_code_library_builder/types.ts#L10-L15)): विश्व वस्तु जिसमें अचार और परीक्षण चरण की जानकारी है
+- `context` (`object`): कुकुम्बर विश्व वस्तु
 
 ### afterScenario
 
-Runs after a Cucumber Scenario.
+कुकुम्बर परिदृश्य से पहले चलता है।
 
-Parameters:
+पैरामीटर:
 
-- `world` ([`ITestCaseHookParameter`](https://github.com/cucumber/cucumber-js/blob/ac124f7b2be5fa54d904c7feac077a2657b19440/src/support_code_library_builder/types.ts#L10-L15)): world object containing information on pickle and test step
-- `result` (`object`): results object containing scenario results
-- `result.passed` (`boolean`): true if scenario has passed
-- `result.error` (`string`): error stack if scenario failed
-- `result.duration` (`number`): duration of scenario in milliseconds
-- `context` (`object`): Cucumber World object
+- `world` ([`ITestCaseHookParameter`](https://github.com/cucumber/cucumber-js/blob/ac124f7b2be5fa54d904c7feac077a2657b19440/src/support_code_library_builder/types.ts#L10-L15)): विश्व वस्तु जिसमें अचार और परीक्षण चरण की जानकारी है
+- `result` (`object`): परिदृश्य परिणाम वाली परिणाम वस्तु शामिल
+- `result.passed` (`बूलियन`): यदि परिदृश्य पास हो गया है तो सच है
+- `esult.error` (`string`): परिदृश्य विफल होने पर त्रुटि ढेर
+- `result.duration` (`number`): मिलीसेकंड में परिदृश्य की अवधि
+- `context` (`object`): कुकुम्बर विश्व वस्तु
 
 ### beforeStep
 
-Runs before a Cucumber Step.
+कुकुम्बर परिदृश्य से पहले चलता है।
 
-Parameters:
+पैरामीटर:
 
 - `step` ([`Pickle.IPickleStep`](https://github.com/cucumber/common/blob/b94ce625967581de78d0fc32d84c35b46aa5a075/messages/jsonschema/Pickle.json#L20-L49)): Cucumber step object
 - `scenario` ([`IPickle`](https://github.com/cucumber/common/blob/b94ce625967581de78d0fc32d84c35b46aa5a075/messages/jsonschema/Pickle.json#L137-L175)): Cucumber scenario object
