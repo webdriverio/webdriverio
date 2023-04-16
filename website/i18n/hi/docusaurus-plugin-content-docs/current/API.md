@@ -1,9 +1,9 @@
 ---
 id: api
-title: Introduction
+title: परिचय
 ---
 
-Welcome to the WebdriverIO API docs. These pages contain reference materials for all implemented protocol bindings and convenience commands. Protocol commands, including [WebDriver](/docs/api/webdriver), [WebDriver Bidi](/docs/api/webdriverBidi) or mobile commands like [Appium](http://appium.io) are commands that are directly send to the underlying driver backend. Convenience commands provided by the [`browser`](/docs/api/browser), [`element`](/docs/api/element) or [`mock`](/docs/api/mock) object offer higher level interactivity.
+वेबड्राईवरआईओ एपीआई डॉक्स में आपका स्वागत है। इन पेजों में सभी क्रियान्वित प्रोटोकॉल बाइंडिंग और सुविधा आदेशों के लिए रेफरेंस सामग्री शामिल है। प्रोटोकॉल कमांड, जिसमें [वेबड्राइवर](/docs/api/webdriver), [वेबड्राइवर बिडी](/docs/api/webdriverBidi) या [एपियम](http://appium.io) जैसे मोबाइल कमांड शामिल हैं, वे कमांड हैं जो सीधे अंतर्निहित ड्राइवर बैकएंड को भेजे जाते हैं। [`ब्राउज़र`](/docs/api/browser), [`एलिमेंट`](/docs/api/element) या [`मॉक`](/docs/api/mock) ऑब्जेक्ट द्वारा प्रदान किए गए सुविधा कमांड्स उच्च स्तरीय अन्तरक्रियाशीलता प्रदान करते हैं।
 
 :::info
 These are the docs for the latest version (__>=8.x__) of WebdriverIO. If you are still using an older version, please visit the [old documentation websites](/versions)!
