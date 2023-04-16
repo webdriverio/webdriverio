@@ -29,36 +29,36 @@ WebdriverIO के साथ, आप अपने E2E परीक्षणो�
 
 किसी भी तरह के मोबाइल ऑटोमेशन के लिए, आपको [एपियम](http://appium.io)को इंस्टॉल और सेटअप करना होगा। यह आपको उसी वेबड्राइवरआईओ सेटअप का उपयोग करके मोबाइल (आईओएस/एंड्रॉइड) या यहां तक कि डेस्कटॉप (मैकओएस/विंडोज) अनुप्रयोगों को स्वचालित करने की अनुमति देगा।
 
-ऐसी बहुत सी सेवाएँ भी हैं जो आपको उच्च स्तर पर क्लाउड में अपना स्वचालन परीक्षण चलाने की अनुमति देती हैं। Instead of having to setup all these drivers locally, you can just talk to these services (e.g. [Sauce Labs](https://saucelabs.com)) in the cloud and inspect the results on their platform. The communication between test script and automation environment will look as follows:
+ऐसी बहुत सी सेवाएँ भी हैं जो आपको उच्च स्तर पर क्लाउड में अपना स्वचालन परीक्षण चलाने की अनुमति देती हैं। इन सभी ड्राइवरों को स्थानीय रूप से सेटअप करने के बजाय, आप क्लाउड में इन सेवाओं (जैसे [सॉस लैब्स](https://saucelabs.com)) से बात कर सकते हैं और उनके प्लेटफॉर्म पर परिणामों का निरीक्षण कर सकते हैं। परीक्षण स्क्रिप्ट और स्वचालन वातावरण के बीच संचार इस प्रकार दिखाई देगा:
 
-![WebDriver Setup](/img/webdriver.png)
+![वेब ड्राइवर सेटअप](/img/webdriver.png)
 
-### Advantages
+### लाभ
 
-- Official W3C web standard, supported by all major browsers
-- Simplified protocol that covers common user interactions
-- Support for mobile automation (and even native desktop apps)
-- Can be used locally as well as in the cloud through services like [Sauce Labs](https://saucelabs.com)
+- आधिकारिक W3C वेब मानक, सभी प्रमुख ब्राउज़रों द्वारा समर्थित
+- सरलीकृत प्रोटोकॉल जो सामान्य उपयोगकर्ता इंटरैक्शन को कवर करता है
+- मोबाइल स्वचालन के लिए समर्थन (और यहां तक कि देशी डेस्कटॉप ऐप्स)
+- [सॉस लैब्स](https://saucelabs.com)जैसी सेवाओं के माध्यम से स्थानीय और साथ ही क्लाउड में उपयोग किया जा सकता है
 
-### Disadvantages
+### नुकसान
 
-- Not designed for in-depth browser analysis (e.g., tracing or intercepting network events)
-- Limited set of automation capabilities (e.g., no support to throttle CPU or network)
-- Additional effort to set up browser driver with selenium-standalone/chromedriver/etc
+- गहन ब्राउज़र विश्लेषण के लिए डिज़ाइन नहीं किया गया है (उदाहरण के लिए, नेटवर्क ईवेंट का पता लगाना या इंटरसेप्ट करना)
+- स्वचालन क्षमताओं का सीमित सेट (उदाहरण के लिए, सीपीयू या नेटवर्क को थ्रॉटल करने के लिए कोई समर्थन नहीं)
+- ब्राउज़र ड्राइवर को सेलेनियम-स्टैंडअलोन/क्रोमड्राइवर/आदि के साथ सेट करने के लिए अतिरिक्त प्रयास
 
-## DevTools Protocol
+## DevTools प्रोटोकॉल
 
-The DevTools interface is a native browser interface that is usually being used to debug the browser from a remote application (e.g., [Chrome DevTools](https://developers.google.com/web/tools/chrome-devtools/)). Next to its capabilities to inspect the browser in nearly all possible forms, it can also be used to control it.
+DevTools इंटरफ़ेस एक देशी ब्राउज़र इंटरफ़ेस है जिसका उपयोग आमतौर पर किसी दूरस्थ एप्लिकेशन (जैसे, [Chrome DevTools](https://developers.google.com/web/tools/chrome-devtools/)) से ब्राउज़र को डीबग करने के लिए किया जाता है। लगभग सभी संभावित रूपों में ब्राउज़र का निरीक्षण करने की अपनी क्षमताओं के आगे, इसका उपयोग इसे नियंत्रित करने के लिए भी किया जा सकता है।
 
-While every browser used to have its own internal DevTools interface that was not really exposed to the user, more and more browsers are now adopting the [Chrome DevTools Protocol](https://chromedevtools.github.io/devtools-protocol/). It is used to either debug a web application using Chrome DevTools or control Chrome using tools like [Puppeteer](https://pptr.dev).
+जबकि प्रत्येक ब्राउज़र का अपना आंतरिक DevTools इंटरफ़ेस हुआ करता था जो वास्तव में उपयोगकर्ता के लिए खुला नहीं था, अधिक से अधिक ब्राउज़र अब [Chrome DevTools प्रोटोकॉल](https://chromedevtools.github.io/devtools-protocol/)को अपना रहे हैं। इसका उपयोग या तो Chrome DevTools का उपयोग करके किसी वेब एप्लिकेशन को डीबग करने या [Puppeteer](https://pptr.dev)जैसे टूल का उपयोग करके क्रोम को नियंत्रित करने के लिए किया जाता है।
 
-The communication happens without any proxy, directly to the browser using WebSockets:
+संचार बिना किसी प्रॉक्सी के होता है, सीधे WebSockets का उपयोग करने वाले ब्राउज़र पर:
 
-![DevTools Setup](/img/devtools.png)
+![DevTools सेटअप](/img/devtools.png)
 
-WebdriverIO allows you to use the DevTools capabilities as an alternative automation technology for WebDriver if you have special requirements to automate the browser. With the [`devtools`](https://www.npmjs.com/package/devtools) NPM package, you can use the same commands that WebDriver provides, which then can be used by WebdriverIO and the WDIO testrunner to run its useful commands on top of that protocol. It uses Puppeteer to under the hood and allows you to run a sequence of commands with Puppeteer if needed.
+यदि आपके पास ब्राउज़र को स्वचालित करने के लिए विशेष आवश्यकताएं हैं, तो WebdriverIO आपको WebDriver के लिए एक वैकल्पिक स्वचालन तकनीक के रूप में DevTools क्षमताओं का उपयोग करने की अनुमति देता है। [`devtools`](https://www.npmjs.com/package/devtools) NPM पैकेज के साथ, आप उन्हीं कमांड का उपयोग कर सकते हैं जो WebDriver प्रदान करता है, जिसे तब WebdriverIO और WDIO टेस्टरनर द्वारा उस प्रोटोकॉल के शीर्ष पर उपयोगी कमांड चलाने के लिए उपयोग किया जा सकता है। यह हुड के नीचे कठपुतली का उपयोग करता है और यदि आवश्यक हो तो आपको कठपुतली के साथ कमांड का अनुक्रम चलाने की अनुमति देता है।
 
-To use DevTools as your automation protocol switch the `automationProtocol` flag to `devtools` in your configurations or just run WebdriverIO without a browser driver run in the background.
+अपने ऑटोमेशन प्रोटोकॉल के रूप में DevTools का उपयोग करने के लिए अपने कॉन्फ़िगरेशन में `automationProtocol` फ़्लैग को `devtools` पर स्विच करें या पृष्ठभूमि में चलाए जा रहे ब्राउज़र ड्राइवर के बिना WebdriverIO चलाएं।
 
 <Tabs
   defaultValue="testrunner"
@@ -110,7 +110,7 @@ describe('my test', () => {
 
 __Note:__ there is no need to have either `selenium-standalone` or `chromedriver` services installed.
 
-We recommend wrapping your Puppeteer calls within the `call` command, so that all calls are executed before WebdriverIO continues with the next WebDriver command.
+हम आपके कठपुतली कॉल को `कॉल` कमांड के भीतर व्रेप करने की सलाह देते हैं, ताकि अगले वेबड्राइवर कमांड के साथ WebdriverIO जारी रहने से पहले सभी कॉल निष्पादित हो जाएं।
 
 </TabItem>
 <TabItem value="standalone">
@@ -154,18 +154,18 @@ await browser.deleteSession()
 </TabItem>
 </Tabs>
 
-By accessing the Puppeteer interface, you have access to a variety of new capabilities to automate or inspect the browser and your application, e.g. intercepting network requests (see above), tracing the browser, throttle CPU or network capabilities, and much more.
+Puppeteer इंटरफ़ेस का उपयोग करके, आपके पास ब्राउज़र और आपके एप्लिकेशन को स्वचालित या निरीक्षण करने के लिए कई नई क्षमताओं तक पहुंच है, उदाहरण के लिए इंटरसेप्टिंग नेटवर्क अनुरोध (ऊपर देखें), ब्राउज़र का पता लगाना, CPU या नेटवर्क क्षमताओं को थ्रॉटल करना, और भी बहुत कुछ।
 
-### `wdio:devtoolsOptions` Capability
+### `wdio: devtoolsOptions` क्षमता
 
-If you run WebdriverIO tests through the DevTools package, you can apply [custom Puppeteer options](https://pptr.dev/#?product=Puppeteer&version=v8.0.0&show=api-puppeteerlaunchoptions). These options will be directly passed into the [`launch`](https://pptr.dev/#?product=Puppeteer&version=v8.0.0&show=api-puppeteerlaunchoptions) or [`connect`](https://pptr.dev/#?product=Puppeteer&version=v8.0.0&show=api-puppeteerconnectoptions) methods of Puppeteer. Other custom devtools options are the following:
+यदि आप DevTools पैकेज के माध्यम से WebdriverIO परीक्षण रन करते हैं, तो आप [कस्टम Puppeteer विकल्प](https://pptr.dev/#?product=Puppeteer&version=v8.0.0&show=api-puppeteerlaunchoptions)लागू कर सकते हैं। इन विकल्पों को सीधे Puppeteer के [`लॉन्च`](https://pptr.dev/#?product=Puppeteer&version=v8.0.0&show=api-puppeteerlaunchoptions) या [`connect`](https://pptr.dev/#?product=Puppeteer&version=v8.0.0&show=api-puppeteerconnectoptions) विधियों में पास किया जाएगा। अन्य कस्टम devtools विकल्प निम्नलिखित हैं:
 
 #### customPort
-Start Chrome on a custom port.
+क्रोम को कस्टम पोर्ट पर शुरू करें।
 
 Type: `number`<br /> Default: `9222` (default of Puppeteer)
 
-Note: if you pass in `goog:chromeOptions/debuggerAddress`, `wdio:devtoolsOptions/browserWSEndpoint` or `wdio:devtoolsOptions/browserURL` options, WebdriverIO will try to connect with given connection details rather than starting a browser. For example you can connect to Testingbots cloud via:
+ध्यान दें: अगर आप `goog:chromeOptions/debuggerAddress`, `wdio:devtoolsOptions/browserWSEndpoint` या `wdio:devtoolsOptions/browserURL` विकल्प पास करते हैं, तो WebdriverIO ब्राउज़र शुरू करने के बजाय दिए गए कनेक्शन विवरण से कनेक्ट करने का प्रयास करेगा। उदाहरण के लिए आप Testingbots क्लाउड से कनेक्ट कर सकते हैं:
 
 ```js
 import { format } from 'util'
@@ -193,12 +193,12 @@ import { remote } from 'webdriverio'
 })()
 ```
 
-### Advantages
+### लाभ
 
-- Access to more automation capabilities (e.g. network interception, tracing etc.)
-- No need to manage browser drivers
+- अधिक स्वचालन क्षमताओं तक पहुंच (जैसे नेटवर्क इंटरसेप्शन, ट्रेसिंग आदि)
+- ब्राउज़र ड्राइवरों को प्रबंधित करने की आवश्यकता नहीं है
 
-### Disadvantages
+### नुकसान
 
-- Only supports Chromium based browser (e.g. Chrome, Chromium Edge) and (partially) Firefox
-- Does __not__ support execution on cloud vendors such as Sauce Labs, BrowserStack etc.
+- केवल क्रोमियम आधारित ब्राउज़र (जैसे क्रोम, क्रोमियम एज) और (आंशिक रूप से) फ़ायरफ़ॉक्स का समर्थन करता है
+- सॉस लैब्स, ब्राउज़रस्टैक इत्यादि जैसे क्लाउड वेंडर पर एग्जिक्युसन का समर्थन __नहीं__ करता है
