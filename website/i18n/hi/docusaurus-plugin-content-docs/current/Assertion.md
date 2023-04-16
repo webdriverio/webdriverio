@@ -1,16 +1,16 @@
 ---
 id: assertion
-title: Assertion
+title: एसेर्शन
 ---
 
-The [WDIO testrunner](https://webdriver.io/docs/clioptions) comes with a built in assertion library that allows you to make powerful assertions on various aspects of the browser or elements within your (web) application. It extends [Jests Matchers](https://jestjs.io/docs/en/using-matchers) functionality with additional, for e2e testing optimized, matchers, e.g.:
+[WDIO टेस्टरनर](https://webdriver.io/docs/clioptions) एक बिल्ट इन एसेर्शन लाइब्रेरी के साथ आता है जो आपको अपने (वेब) एप्लिकेशन के भीतर ब्राउज़र या तत्वों के विभिन्न पहलुओं पर शक्तिशाली एसेर्शन करने की अनुमति देता है। यह e2e परीक्षण अनुकूलित, मैचर्स, अतिरिक्त के साथ [जेस्ट मैचर्स](https://jestjs.io/docs/en/using-matchers) कार्यक्षमता का विस्तार करता है: उदाहरण के लिए
 
 ```js
 const $button = await $('button')
 await expect($button).toBeDisplayed()
 ```
 
-or
+या
 
 ```js
 const selectOptions = await $$('form select>option')
@@ -19,11 +19,11 @@ const selectOptions = await $$('form select>option')
 await expect(selectOptions).toHaveChildren({ gte: 1 })
 ```
 
-For the full list, see the [expect API doc](/docs/api/expect-webdriverio).
+पूरी सूची के लिए, [अपेक्षित एपीआई दस्तावेज़](/docs/api/expect-webdriverio)देखें।
 
-## Migrating from Chai
+## चाई से पलायन
 
-[Chai](https://www.chaijs.com/) and [expect-webdriverio](https://github.com/webdriverio/expect-webdriverio#readme) can coexist, and with some minor adjustments a smooth transition to expect-webdriverio can be achieved. If you've upgraded to WebdriverIO v6 then by default you will have access to all the assertions from `expect-webdriverio` out of the box. This means that globally wherever you use `expect` you would call an `expect-webdriverio` assertion. That is, unless you you set [`injectGlobals`](/docs/configuration#injectglobals) to `false` or have explicitly overridden the global `expect` to use Chai. In this case you would not have access to any of the expect-webdriverio assertions without explicitly importing the expect-webdriverio package where you need it.
+[चाय](https://www.chaijs.com/) और [एक्सपेक्ट-वेबड्राइवरियो](https://github.com/webdriverio/expect-webdriverio#readme) सह-अस्तित्व में रह सकते हैं, और कुछ मामूली समायोजन के साथ एक्सपेक्ट-वेबड्राइवरियो में एक सहज ट्रांजीशन प्राप्त किया जा सकता है। यदि आपने WebdriverIO v6 में अपग्रेड किया है तो डिफ़ॉल्ट रूप से आपके पास बॉक्स से बाहर `एक्सपेक्ट-वेबड्राइवरियो` से सभी एसर्शन तक पहुंच होगी। इसका मतलब यह है कि विश्व स्तर पर जहां भी आप `expect` का उपयोग करते हैं, आप `expect-webdriverio` एसर्शन कहेंगे। That is, unless you you set [`injectGlobals`](/docs/configuration#injectglobals) to `false` or have explicitly overridden the global `expect` to use Chai. In this case you would not have access to any of the expect-webdriverio assertions without explicitly importing the expect-webdriverio package where you need it.
 
 This guide will show examples of how to migrate from Chai if it has been overridden locally and how to migrate from Chai if it has been overridden globally.
 
