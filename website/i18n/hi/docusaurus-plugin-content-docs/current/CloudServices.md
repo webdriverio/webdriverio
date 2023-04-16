@@ -63,25 +63,25 @@ You can change the [idle timeout](https://docs.saucelabs.com/dev/test-configurat
 
 WebdriverIO also has a [Browserstack](https://www.browserstack.com) integration built-in.
 
-The only requirement is to set the `user` and `key` in your config (either exported by `wdio.conf.js` or passed into `webdriverio.remote(...)`) to your Browserstack automate username and access key.
+केवल आवश्यकता यह है कि आप अपने कॉन्फिग में `user` और `key` सेट करें (या तो `wdio.conf.js` द्वारा निर्यात किया गया या `webdriverio.remote(...)`में पारित किया गया) आपके ब्राउज़रस्टैक स्वचालित उपयोगकर्ता नाम और एक्सेस कुंजी पर.
 
-You can also pass in any optional [supported capabilities](https://www.browserstack.com/automate/capabilities) as a key/value in the capabilities for any browser. If you set `browserstack.debug` to `true` it will record a screencast of the session, which might be helpful.
+आप किसी भी वैकल्पिक [समर्थित क्षमता](https://www.browserstack.com/automate/capabilities) किसी भी ब्राउज़र की क्षमताओं में कुंजी/मान के रूप में पास कर सकते हैं। यदि आप `Browserstack.debug` से `True` सेट करते हैं तो यह सत्र का एक स्क्रीनकास्ट रिकॉर्ड करेगा, जो सहायक हो सकता है।
 
-### Local Testing
+### लोकल टेस्टिंग
 
-If you want to run tests against a server that is not accessible to the Internet (like on `localhost`), then you need to use [Local Testing](https://www.browserstack.com/local-testing#command-line).
+यदि आप किसी ऐसे सर्वर के खिलाफ परीक्षण चलाना चाहते हैं जो इंटरनेट तक पहुंच योग्य नहीं है (जैसे `localhost`पर), तो आपको [लोकल टेस्टिंग ](https://www.browserstack.com/local-testing#command-line)का उपयोग करने की आवश्यकता है।
 
-It is out of the scope of WebdriverIO to support this, so you must start it by yourself.
+यह इसका समर्थन करने के लिए WebdriverIO के दायरे से बाहर है, इसलिए आपको इसे अपने आप से शुरू करना होगा।
 
-If you do use local, you should set `browserstack.local` to `true` in your capabilities.
+यदि आप लोकल का उपयोग करते हैं, तो आपको अपनी क्षमताओं में `browserstack.local` को `true` सेट करना चाहिए।
 
-If you are using the WDIO testrunner, download and configure the [`@wdio/browserstack-service`](https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-browserstack-service) in your `wdio.conf.js`. It helps get BrowserStack running, and comes with additional features that better integrate your tests into the BrowserStack service.
+यदि आप WDIO टेस्टरनर का उपयोग कर रहे हैं, तो अपने `wdio.conf.js`में [`@wdio/browserstack-service`](https://github.com/webdriverio/webdriverio/tree/master/packages/wdio-browserstack-service) को डाउनलोड और कॉन्फ़िगर करें। यह BrowserStack को चलाने में मदद करता है, और अतिरिक्त सुविधाओं के साथ आता है जो आपके परीक्षणों को BrowserStack सेवा में बेहतर ढंग से एकीकृत करता है।
 
-### With Travis CI
+### Travis CI के साथ
 
-If you want to add Local Testing in Travis, you have to start it by yourself.
+यदि आप ट्रैविस में लोकल टेस्टिंग जोड़ना चाहते हैं, तो आपको इसे स्वयं ही प्रारंभ करना होगा।
 
-The following script will download and start it in the background. You should run this in Travis before starting the tests.
+निम्न स्क्रिप्ट बैकग्राउंड में इसे डाउनलोड और प्रारंभ करेगी। परीक्षण शुरू करने से पहले आपको इसे ट्रैविस में चलाना चाहिए।
 
 ```sh
 wget https://www.browserstack.com/browserstack-local/BrowserStackLocal-linux-x64.zip
@@ -90,9 +90,9 @@ unzip BrowserStackLocal-linux-x64.zip
 sleep 3
 ```
 
-Also, you might wish set the `build` to the Travis build number.
+साथ ही, आप `build` को ट्रैविस बिल्ड नंबर पर सेट करना चाह सकते हैं।
 
-Example `capabilities`:
+उदाहरण `capabilities`:
 
 ```javascript
 browserName: 'chrome',
