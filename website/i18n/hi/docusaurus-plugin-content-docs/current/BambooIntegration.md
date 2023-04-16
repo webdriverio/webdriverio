@@ -6,7 +6,7 @@ title: Bamboo
 WebdriverIO offers a tight integration to CI systems like [Bamboo](https://www.atlassian.com/software/bamboo). With the [JUnit](https://webdriver.io/docs/junit-reporter.html) or [Allure](https://webdriver.io/docs/allure-reporter.html) reporter, you can easily debug your tests as well as keep track of your test results. The integration is pretty easy.
 
 1. Install the JUnit test reporter: `$ npm install @wdio/junit-reporter --save-dev`)
-1. Update your config to save your JUnit results where Bamboo can find them, (and specify the `junit` reporter):
+1. अपने JUnit परिणामों को सहेजने के लिए अपनी कॉन्फ़िगरेशन अपडेट करें जहां बांस उन्हें ढूंढ सकता है, (और `junit` रिपोर्टर निर्दिष्ट करें):
 
 ```js
 // wdio.conf.js
@@ -21,7 +21,7 @@ module.exports = {
     // ...
 }
 ```
-Note: *It's always a good standard to keep the test results in separate folder than in the root folder.*
+नोट: *परीक्षण परिणामों को रूट फ़ोल्डर की तुलना में अलग फ़ोल्डर में रखना हमेशा एक अच्छा मानक होता है।*
 
 ```js
 // wdio.conf.js - For tests running in parallel
