@@ -1,13 +1,13 @@
 ---
 id: autowait
-title: Auto-waiting
+title: स्वतः-प्रतीक्षा
 ---
 
-One of the most common reasons for flaky tests are interactions with elements that don't exist in your application at the time you want to interact with it. Modern web applications are very dynamic, elements show up and disappear. As a human we are waiting unconsciously for elements but in an automated script we don't consider this as an action. There are two ways to wait on an element to show up.
+फलेकी टेस्ट के सबसे सामान्य कारणों में से एक उन तत्वों के साथ सहभागिता है जो उस समय आपके एप्लिकेशन में मौजूद नहीं हैं जब आप इसके साथ इंटरैक्ट करना चाहते हैं। आधुनिक वेब एप्लिकेशन बहुत गतिशील हैं, एलिमेंट दिखाई देते हैं और गायब हो जाते हैं। एक इंसान के रूप में हम अनजाने में एलिमेंट की प्रतीक्षा कर रहे हैं लेकिन एक स्वचालित स्क्रिप्ट में हम इसे एक क्रिया नहीं मानते हैं। किसी एलिमेंट को दिखाने के लिए प्रतीक्षा करने के दो तरीके हैं।
 
-## Implicit vs. Explicit
+## अंतर्निहित बनाम स्पष्ट
 
-The WebDriver protocol offers [implicit timeouts](https://w3c.github.io/webdriver/#timeouts) that allow specify how long the driver is suppose to wait for an element to show up. By default this timeout is set to `0` and therefore makes the driver return with an `no such element` error immediately if an element could not be found on the page. Increasing this timeout using the [`setTimeout`](/docs/api/browser/setTimeout) would make the driver wait and increases the chances that the element shows up eventually.
+वेबड्राइवर प्रोटोकॉल [अंतर्निहित टाइमआउट](https://w3c.github.io/webdriver/#timeouts) प्रदान करता है जो यह निर्दिष्ट करने की अनुमति देता है कि ड्राइवर को किसी एलिमेंट को दिखाने के लिए कितने समय तक प्रतीक्षा करनी चाहिए। डिफ़ॉल्ट रूप से यह टाइमआउट `0` पर सेट होता है और इसलिए यदि पृष्ठ पर कोई तत्व नहीं पाया जा सकता है तो ड्राइवर तुरंत `no such element` त्रुटि के साथ वापस आ जाता है। Increasing this timeout using the [`setTimeout`](/docs/api/browser/setTimeout) would make the driver wait and increases the chances that the element shows up eventually.
 
 :::note
 
