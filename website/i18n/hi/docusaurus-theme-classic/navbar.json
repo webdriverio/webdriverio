@@ -1,22 +1,22 @@
 {
   "item.label.Docs": {
-    "message": "Docs",
+    "message": "डॉक्स",
     "description": "Navbar item with label Docs"
   },
   "item.label.API": {
-    "message": "API",
+    "message": "एपीआई",
     "description": "Navbar item with label API"
   },
   "item.label.Blog": {
-    "message": "Blog",
+    "message": "ब्लॉग",
     "description": "Navbar item with label Blog"
   },
   "item.label.Contribute": {
-    "message": "Contribute",
+    "message": "योगदान",
     "description": "Navbar item with label Contribute"
   },
   "item.label.Community": {
-    "message": "Community",
+    "message": "समुदाय",
     "description": "Navbar item with label Community"
   },
   "item.label.v8": {
