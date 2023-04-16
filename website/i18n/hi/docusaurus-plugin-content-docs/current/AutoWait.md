@@ -33,14 +33,14 @@ Both waiting mechanisms are incompatible with each other and can cause longer wa
 
 ## सीमाएं
 
-WebdriverIO केवल एलिमेंट की प्रतीक्षा कर सकता है जब वे निहित रूप से परिभाषित होते हैं। This is always the case when using the [`$`](/docs/api/browser/$) to fetch an element. It however is not supported when fetching a set of elements like this:
+WebdriverIO केवल एलिमेंट की प्रतीक्षा कर सकता है जब वे निहित रूप से परिभाषित होते हैं। एलिमेंट फेच करने के लिए [`$`](/docs/api/browser/$) का उपयोग करते समय हमेशा ऐसा होता है। हालांकि इस तरह के एलिमेंट का एक सेट फेच करते समय यह समर्थित नहीं है
 
 ```js
 const divs = await $$('div')
 await divs[2].click() // can throw "Cannot read property 'click' of undefined"
 ```
 
-It is an absolute legitimate action to fetch a set of elements and click on the nth element of that set. However WebdriverIO doesn't know how many elements you are expecting to show up. As [`$$`](/docs/api/browser/$$) returns an [array](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array) of WebdriverIO elements you have to manually check if the return value contains enough items. We recommend using [`waitUntil`](/docs/api/browser/waitUntil) for this, e.g.:
+एलिमेंट का एक सेट फेच करने और उस सेट के nवें एलिमेंट पर क्लिक करने के लिए यह एक पूर्ण वैध कार्रवाई है। हालाँकि WebdriverIO को यह नहीं पता है कि आप कितने एलिमेंट को दिखाने की उम्मीद कर रहे हैं। चूंकि [`$$`](/docs/api/browser/$$) WebdriverIO एलिमेंट की एक [सरणी](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array) लौटाता है, इसलिए आपको मैन्युअल रूप से जांचना होगा कि वापसी मूल्य में पर्याप्त आइटम हैं या नहीं। हम इसके लिए [`WaitUntil`](/docs/api/browser/waitUntil) का उपयोग करने की अनुशंसा करते हैं, उदाहरण के लिए:
 
 ```js
 const div = await browser.waitUntil(async () => {
