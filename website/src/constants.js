@@ -1,53 +1,54 @@
 import React from 'react'
+import Translate from '@docusaurus/Translate'
 
 export const features = [{
     icon: '🌎',
     title: 'Test in Real Environments',
     description: (
-        <>
+        <Translate>
             WebdriverIO allows you to test in actual browser or mobile devices used by your users.
-        </>
+        </Translate>
     ),
 },
 {
     icon: '🔩',
     title: 'Versatile and Feature Rich',
     description: (
-        <>
+        <Translate>
             Use WebdriverIO for full e2e or unit and component testing in the browser.
-        </>
+        </Translate>
     ),
 }, {
     icon: '💤',
     title: 'Auto Wait',
     description: (
-        <>
+        <Translate>
             WebdriverIO automatically waits for elements to appear before interacting with them.
-        </>
+        </Translate>
     ),
 }, {
     icon: '📒',
     title: 'Based on Web Standards',
     description: (
-        <>
+        <Translate>
             Cross browser support via automation through <a href="https://w3c.github.io/webdriver/">WebDriver</a> and <a href="https://w3c.github.io/webdriver-bidi/">WebDriver Bidi</a>.
-        </>
+        </Translate>
     ),
 }, {
     icon: '📱',
     title: 'Native Mobile Support',
     description: (
-        <>
+        <Translate>
             Run WebdriverIO on real mobile devices, smart TVs or other IoT devices through <a href="https://appium.io/">Appium</a>.
-        </>
+        </Translate>
     ),
 }, {
     icon: '🫂',
     title: 'Committed Community',
     description: (
-        <>
+        <Translate>
             Running a <a href="https://matrix.to/#/#webdriver.io:gitter.im">support channel</a> with over 8k members and a rich ecosystem of community maintained plugins.
-        </>
+        </Translate>
     ),
 }]
 
