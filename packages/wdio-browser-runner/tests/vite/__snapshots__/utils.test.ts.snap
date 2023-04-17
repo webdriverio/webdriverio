@@ -120,7 +120,7 @@ exports[`getTemplate > renders template correctly 1`] = `
             </script>
         </head>
         <body>
-            <mocha-framework spec=\\"/spec.js\\" minified></mocha-framework>
+            <mocha-framework spec=\\"/spec.js\\" style=\\"display: none\\"></mocha-framework>
             <script type=\\"module\\">
                 window.process.env = {\\"some\\":\\"env\\"}
             </script>
