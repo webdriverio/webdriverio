@@ -82,6 +82,9 @@ To use the Browser runner, you have to define a `runner` property within your `w
 // wdio.conf.js
 export const {
     // ...
+    runner: 'local',
+    // ...
+}
     runner: 'browser',
     // ...
 }
@@ -100,6 +103,11 @@ __Type:__ `vue` | `svelte` | `solid` | `react` | `preact`<br /> __Example:__
 ```js title="wdio.conf.js"
 export const {
     // ...
+    runner: ['browser', {
+        preset: 'svelte'
+    }],
+    // ...
+}
     runner: ['browser', {
         preset: 'svelte'
     }],
