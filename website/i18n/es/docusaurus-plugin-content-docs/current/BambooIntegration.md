@@ -82,4 +82,4 @@ Una vez que haya terminado la *ciencia del cohete* de arriba, habilite el plan y
 
 ![Fallida y corregida](/img/bamboo/failedandfixed.png "Fallida y corregida")
 
-¡Genial! ¡Genial! Es todo. Usted ha integrado con éxito sus pruebas de WebdriverIO en Bamboo.
+¡Genial! Es todo. Usted ha integrado con éxito sus pruebas de WebdriverIO en Bamboo.
