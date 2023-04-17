@@ -68,7 +68,7 @@
     "description": "The label for category Flowcharts in sidebar flowcharts"
   },
   "sidebar.docs.category.Web Extension Testing": {
-    "message": "Web Extension Testing",
+    "message": "वेब विस्तार टेस्टिंग",
     "description": "The label for category Web Extension Testing in sidebar docs"
   }
 }
