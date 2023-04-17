@@ -7,7 +7,7 @@ __Verlängerungen:__ [EventEmitter](https://nodejs.org/api/events.html#class-eve
 
 Das Browser-Objekt ist die Session-Instanz, mit der Sie den Browser oder das mobile Gerät steuern. Wenn Sie den WDIO Testrunner benutzen, kônnen Sie die globale Variable `browser` oder `driver` nutzen oder importieren sie die Variables vom [`@wdio/globals`](/docs/api/globals) Paket. Wenn Sie WebdriverIO im Standalone-Modus verwenden, wird das Browser-Objekt durch die [`remote`](/docs/api/modules#remoteoptions-modifier) Methode zurückgegeben.
 
-Die Session wird vom Testrunner initialisiert und die Instanz im globalen Scope registriert. Das Beenden der Session wird ebenfalls vom Testrunner übernommen.
+Das Beenden der Session wird ebenfalls vom Testrunner übernommen. Das Beenden der Session wird ebenfalls vom Testrunner übernommen.
 
 ## Eigenschaften
 
@@ -122,7 +122,13 @@ Dies ist ein Ereignis, um Operationen auf WebDriver Ebene zu messen. Immer wenn 
 
 Ein Beispielereignis:
 ```js
- 
+Object {
+  "durationMillisecond": 0.01770925521850586,
+  "error": [Error: Timeout],
+  "request": Object { ... },
+  "retryCount": 0,
+  "success": false,
+},
 ```
 
 ### Benutzerdefinierte Befehle
