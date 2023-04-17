@@ -309,4 +309,4 @@ mock('./some/module.ts', async () => {
 
 ## Netzwerk Requests
 
-Wenn Sie nach Austauschen von Netzwerkabfragen suchen, z. B. API-Aufrufe, gehen Sie zum Abschnitt [Request Mock and Spies](/docs/mocksandspies).
+API-Aufrufe, gehen Sie zum Abschnitt [Request Mock and Spies](/docs/mocksandspies).
