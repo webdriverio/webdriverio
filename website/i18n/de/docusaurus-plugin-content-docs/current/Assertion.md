@@ -29,7 +29,7 @@ Dieser Leitfaden zeigt Beispiele für die Migration von Chai, wenn es lokal übe
 
 ### Lokal
 
-Assume Chai was imported explicitly in a file, e.g.:
+Angenommen, Chai wurde explizit in eine Datei importiert, z.B.:
 
 ```js
 // myfile.js - original code
@@ -43,7 +43,7 @@ describe('Homepage', () => {
 })
 ```
 
-To migrate this code remove the Chai import and use the new expect-webdriverio assertion method `toHaveUrl` instead:
+Um diesen Code zu migrieren, entfernen Sie den Chai-Import und verwenden Sie stattdessen die neue Expect-Webdriverio-Assertion-Methode `toHaveUrl`:
 
 ```js
 // myfile.js - migrated code
@@ -55,7 +55,7 @@ describe('Homepage', () => {
 });
 ```
 
-If you wanted to use both Chai and expect-webdriverio in the same file you would keep the Chai import and `expect` would default to the expect-webdriverio assertion, e.g.:
+Wenn Sie sowohl Chai als auch Expect-Webdriverio in derselben Datei verwenden möchten, würden Sie den Chai-Import beibehalten und `expect` würde standardmäßig die Erwartungs-Webdriverio-Assertion verwenden, z.B.:
 
 ```js
 // myfile.js
@@ -78,7 +78,7 @@ describe('Other element', () => {
 
 ### Global
 
-Assume `expect` was globally overridden to use Chai. In order to use expect-webdriverio assertions we need to globally set a variable in the "before" hook, e.g.:
+Angenommen `erwartet, dass` global überschrieben wurde, um Chai zu verwenden. Um Expect-Webdriverio-Assertionen zu verwenden, müssen wir global eine Variable im „Before“-Hook setzen, z.B.:
 
 ```js
 // wdio.conf.js
@@ -90,7 +90,7 @@ before: async () => {
 }
 ```
 
-Now Chai and expect-webdriverio can be used alongside each other. In your code you would use Chai and expect-webdriverio assertions as follows, e.g.:
+Jetzt können Chai und Expect-WebdriverIO nebeneinander verwendet werden. In Ihrem Code würden Sie Chai- und Expect-Webdriverio-Assertionen wie folgt verwenden, z. B.:
 
 ```js
 // myfile.js
@@ -108,4 +108,4 @@ describe('Other element', () => {
 });
 ```
 
-To migrate you would slowly move each Chai assertion over to expect-webdriverio. Once all Chai assertions have been replaced throughout the code base the "before" hook can be deleted. A global find and replace to replace all instances of `wdioExpect` to `expect` will then finish off the migration.
+Um zu migrieren, würden Sie jede Chai-Assertion langsam zu „expect-webdriverio“ umschreiben. Sobald alle Chai-Assertionen in der gesamten Codebasis ersetzt wurden, kann der "Before"-Hook gelöscht werden. Ein globales Suchen und Ersetzen zum Ersetzen aller Instanzen von `wdioExpect` bis `erwartet` wird dann die Migration abschließen.
