@@ -12,6 +12,7 @@ const log = logger('@wdio/browser-runner')
 export async function getTemplate(options: WebdriverIO.BrowserRunnerOptions, env: Environment, spec: string, processEnv = process.env) {
     const root = options.rootDir || process.cwd()
     const rootFileUrl = url.pathToFileURL(root).href
+    const isHeadless = options.headless || Boolean(process.env.CI)
 
     let vueDeps = ''
     if (options.preset === 'vue') {
@@ -96,7 +97,7 @@ export async function getTemplate(options: WebdriverIO.BrowserRunnerOptions, env
             ${vueDeps}
         </head>
         <body>
-            <mocha-framework spec="${spec}" ${process.env.CI ? 'minified' : ''}></mocha-framework>
+            <mocha-framework spec="${spec}" ${isHeadless ? 'style="display: none"' : ''}></mocha-framework>
             <script type="module">
                 window.process.env = ${JSON.stringify(processEnv)}
             </script>

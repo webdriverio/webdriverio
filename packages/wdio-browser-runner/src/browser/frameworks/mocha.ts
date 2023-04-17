@@ -100,14 +100,16 @@ export class MochaFramework extends HTMLElement {
         setupEnv(cid, window.__wdioEnv__.args, beforeTest, beforeHook, afterTest, afterHook)
 
         const self = this
-        before(function () {
+        const mochaBeforeHook = globalThis.before || globalThis.suiteSetup
+        mochaBeforeHook(function () {
             self.#getHook('beforeSuite')({
                 ...this.test?.parent?.suites[0],
                 file,
             })
         })
 
-        after(function () {
+        const mochaAfterHook = globalThis.after || globalThis.suiteTeardown
+        mochaAfterHook(function () {
             self.#getHook('afterSuite')({
                 ...this.test?.parent?.suites[0],
                 file,
