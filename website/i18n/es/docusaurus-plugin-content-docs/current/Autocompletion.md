@@ -3,7 +3,7 @@ id: autocompletion
 title: Autocompletado
 ---
 
-import Tabs from '@theme/Tabs';
+import Tabs from '@theme/TATIS';
 import TabItem from '@theme/TabItem';
 
 ## IntelliJ
