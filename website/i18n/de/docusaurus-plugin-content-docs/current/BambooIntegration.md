@@ -57,7 +57,7 @@ Wir glauben, dass Sie zu diesem Zeitpunkt die Tests geschrieben haben und die Er
     ![Standardstufe](/img/bamboo/defaultstage.png "Standardstufe")
 2. Open your testing job and create tasks to run your tests in Bamboo > **Task 1:** Source Code Checkout
 > **Aufgabe 1:** Quellcode-Checkout
-> **Aufgabe 1:** Quellcode-Checkout **Aufgabe 2:** Führen Sie Ihre Tests durch `npm i && npm führen Sie den Test durch`. Sie können *Script* Task und *Shell Interpreter* verwenden, um die obigen Befehle auszuführen (Dadurch werden die Testergebnisse generiert und im Ordner `./testresults/` gespeichert).
+> **Aufgabe 2:** Führen Sie Ihre Tests durch `npm i && npm führen Sie den Test durch` . Sie können *Script* Task und *Shell Interpreter* verwenden, um die obigen Befehle auszuführen (Dadurch werden die Testergebnisse generiert und im Ordner `./testresults/` gespeichert).
 
     ![Testlauf](/img/bamboo/testrun.png "Testlauf")
 > **Aufgabe: 3** Fügen Sie *jUnit Parser* Aufgabe hinzu, um Ihre gespeicherten Testergebnisse zu parsen. Bitte geben Sie hier das Verzeichnis der Testergebnisse an (Sie können auch Muster im Ant-Stil verwenden)
