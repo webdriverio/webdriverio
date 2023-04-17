@@ -38,7 +38,7 @@ Boilerplate project to run WebdriverIO tests with Jasmine using Babel features a
     - Examples of multi browser and headless browser execution using - Chrome and Firefox
     - Cloud testing Integration with BrowserStack, Sauce Labs, LambdaTest
     - Examples of read/write data from MS-Excel for easy test data management from external data sources with examples
-    -
+    - Database support to any RDBMS (Oracle, MySql, TeraData, Vertica etc.), executing any queries / fetching result set etc. with examples for E2E testing
     - Multiple reporting (Spec, Xunit/Junit, Allure, JSON) and Hosting Allure and Xunit/Junit reporting on WebServer.
     - Examples with demo app https://search.yahoo.com/  and http://the-internet.herokuapp.com.
     - BrowserStack, Sauce Labs, LambdTest and Appium specific `.config` file (for playback on mobile device). For one click Appium setup on local machine for iOS and Android refer to [appium-setup-made-easy-OSX](https://github.com/amiya-pattnaik/appium-setup-made-easy-OSX).
@@ -53,7 +53,7 @@ Boilerplate project to run WebdriverIO tests with Jasmine using Babel features a
     -  Cloud testing Integration with BrowserStack, Sauce Labs, LambdaTest
     -  Multiple reporting (Spec, Xunit/Junit, Allure, JSON) and Hosting Allure and Xunit/Junit reporting on WebServer.
     -  Examples of read/write data from MS-Excel for easy test data management from external data sources with examples
-    -
+    -  Examples of DB connect to any RDBMS (Oracle, MySql, TeraData, Vertica etc.), any query execution / fetching result set etc. with examples for E2E testing
     -  BrowserStack, Sauce Labs, LambdTest and Appium specific `.config` file (for playback on mobile device). For one click Appium setup on local machine for iOS and Android refer to [appium-setup-made-easy-OSX](https://github.com/amiya-pattnaik/appium-setup-made-easy-OSX).
 
 ## [amiya-pattnaik/webdriverIO-with-jasmineBDD](https://github.com/amiya-pattnaik/webdriverIO-with-jasmineBDD)
@@ -66,7 +66,7 @@ Boilerplate project to run WebdriverIO tests with Jasmine using Babel features a
     -  Cloud testing Integration with BrowserStack, Sauce Labs, LambdaTest
     -  Multiple reporting (Spec, Xunit/Junit, Allure, JSON) and Hosting Allure and Xunit/Junit reporting on WebServer.
     -  Examples of read/write data from MS-Excel for easy test data management from external data sources with examples
-    -
+    -  Examples of DB connect to any RDBMS (Oracle, MySql, TeraData, Vertica etc.), any query execution / fetching result set etc. with examples for E2E testing
     -  BrowserStack, Sauce Labs, LambdTest and Appium specific `.config` file ( for playback on mobile device). For one click Appium setup on local machine for iOS and Android refer to [appium-setup-made-easy-OSX](https://github.com/amiya-pattnaik/appium-setup-made-easy-OSX).
 
 ## [webdriverio/klassijs-boilerplate](https://github.com/klassijs/klassi-example-test-suite.git)
@@ -236,14 +236,14 @@ Read more at: [Medium Blog](https://praveendavidmathew.medium.com/first-step-int
 
 ## [praveendvd/webdriverIO_winappdriver_boilerplate/](https://github.com/praveendvd/webdriverIO_winappdriver_boilerplate)
 
-This a template project to help you show how you can automate windows application using winappdriver and  WebdriverIO . This project intends to act as a baseline image that you can use to understand how to run windappdriver and WebdriverIO tests.
+This a template project to help you show how you can run webdriverio multiremote capability with latest WebdriverIO, and Jasmine framework. This project intends to act as a baseline image that you can use to understand how to run WebdriverIO tests in docker
 
 Read more at: [Medium Blog](https://praveendavidmathew.medium.com/winappdriver-first-step-into-windows-app-test-automation-using-webdriverio-and-winappdriver-46320d89570b)
 
 ## [praveendvd/appium-chromedriver-multiremote-wdio-boilerplate/](https://github.com/praveendvd/appium-chromedriver-multiremote-wdio-boilerplate)
 
 
-This a template project to help you show how you can run webdriverio multiremote capability with latest WebdriverIO, and Jasmine framework. This project intends to act as a baseline image that you can use to understand how to run WebdriverIO tests in docker
+This a template project to help you show how you can run webdriverio multiremote capability with latest WebdriverIO, and Jasmine framework. This a template project to help you show how you can automate windows application using winappdriver and  WebdriverIO . This project intends to act as a baseline image that you can use to understand how to run windappdriver and WebdriverIO tests.
 
 This project uses:
 
