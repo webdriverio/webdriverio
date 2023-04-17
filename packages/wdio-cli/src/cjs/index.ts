@@ -1,6 +1,6 @@
 import type { RunCommandArguments } from '../types.js'
 
-export class Launcher {
+class Launcher {
 
     #esmLauncher: any
 
@@ -21,7 +21,9 @@ export class Launcher {
     }
 }
 
-export async function run(): Promise<false | void> {
+async function run(): Promise<false | void> {
     const { run } = await import('../index.js')
     return run()
 }
+
+module.exports = { Launcher, run }
