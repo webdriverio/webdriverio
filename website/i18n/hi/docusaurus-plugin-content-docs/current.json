@@ -66,5 +66,9 @@
   "sidebar.flowcharts.category.Flowcharts": {
     "message": "फ़्लोचार्ट",
     "description": "The label for category Flowcharts in sidebar flowcharts"
+  },
+  "sidebar.docs.category.Web Extension Testing": {
+    "message": "Web Extension Testing",
+    "description": "The label for category Web Extension Testing in sidebar docs"
   }
 }
