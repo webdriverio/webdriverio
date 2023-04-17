@@ -1,5 +1,5 @@
 ---
-id: donate
+id: done
 title: Done
 ---
 
@@ -38,6 +38,6 @@ Si ha realizado trabajos de desarrollo en cualquiera de los repositorios de la o
 
 Si es usted miembro del [Technical Steering Committee team](https://github.com/webdriverio/webdriverio/blob/main/AUTHORS.md#tsc-technical-steering-committee), puede gastar los vuelos y el alojamiento en hotel para viajar a conferencias o reuniones como parte de una ponencia sobre WebdriverIO, no pagada por el propio evento ni por una empresa. Puede gastar hasta 500 $. Los requisitos para el reembolso de los gastos de viaje incluyen:
 
--
+- Debe enviar un post desde su cuenta principal de redes sociales (por ejemplo, Twitter, LinkedIn o blog personal) dando las gracias a todos los colaboradores del colectivo tras la celebración del evento.
 - Debe utilizar los fondos para gastos de viaje cualificados, como el transporte terrestre o aéreo al evento y el alojamiento en un hotel.
 - Debe presentar los recibos con su solicitud de reembolso.
