@@ -117,12 +117,24 @@ Con TypeScript, es fácil ampliar las interfaces WebdriverIO. Añade tipos a tus
 }>
 <TabItem value="modules">
 
- 
+```json title="tsconfig.json"
+{
+    "compilerOptions": { ... },
+    "include": [
+        "./test/**/*.ts",
+        "./src/types/**/*.ts"
+    ]
+}
+```
 
 </TabItem>
 <TabItem value="ambient">
 
- 
+```json title="tsconfig.json"
+{
+    "compilerOptions": { ... }
+}
+```
 
 </TabItem>
 </Tabs>
@@ -319,6 +331,8 @@ await browser.myNewCommand()
  *    ...
  */
 ```
+
+Llamando el comando correctamente, p. ej., `browser.myNewCommand('foo', 'bar')`, realiza correctamente una solicitud de WebDriver a p.e. `http://localhost:4444/session/7bae3c4c55c3bf82f54894ddc83c5f31/foobar/foo` con una carga como `{ foo: 'bar' }`.
 
 :::note
 El parámetro de url `:sessionId` será sustituido automáticamente por el id de sesión de la sesión WebDriver sesión. Se puede aplicar otro parámetro de url, pero debe definirse dentro de `variables`.
