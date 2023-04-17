@@ -445,14 +445,14 @@ export const config = {
      /**
       *
       * एक कुकुम्बर परिदृश्य से पहले चलता है।
-     * @param {ITestCaseHookParameter} world    world object containing information on pickle and test step
-     * @param {object}                 context  Cucumber World object
-     */
-    beforeScenario: function (world, context) {
-    },
-    /**
-     *
-     * Runs before a Cucumber Step.
+     * @param {ITestCaseHookParameter}    विश्व    विश्व ऑब्जेक्ट जिसमें अचार और टेस्ट स्टेप की जानकारी है
+      * @param {{object}}     संदर्भ कुकुम्बर विश्व वस्तु
+      */
+     परिदृश्य से पहले: फ़ंक्शन (दुनिया, संदर्भ) {
+     },
+     /**
+      *
+      * कुकुम्बर स्टेप से पहले रन करता है।
      * @param {Pickle.IPickleStep} step     step data
      * @param {IPickle}            scenario scenario pickle
      * @param {object}             context  Cucumber World object
