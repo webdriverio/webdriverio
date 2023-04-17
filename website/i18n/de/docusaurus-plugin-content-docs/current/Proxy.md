@@ -88,20 +88,6 @@ export const config = {
     }],
     // ...
 }
-    capabilities: [{
-        browserName: 'chrome',
-        // ...
-        proxy: {
-            proxyType: "manual",
-            httpProxy: "corporate.proxy:8080",
-            socksUsername: "codeceptjs",
-            socksPassword: "secret",
-            noProxy: "127.0.0.1,localhost"
-        },
-        // ...
-    }],
-    // ...
-}
 ```
 
 For more information, see the [WebDriver specification](https://w3c.github.io/webdriver/#proxy).
