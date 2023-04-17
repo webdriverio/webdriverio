@@ -82,9 +82,6 @@ To use the Browser runner, you have to define a `runner` property within your `w
 // wdio.conf.js
 export const {
     // ...
-    runner: 'local',
-    // ...
-}
     runner: 'browser',
     // ...
 }
