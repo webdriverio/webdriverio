@@ -155,7 +155,7 @@ await browser.deleteSession()
 </TabItem>
 </Tabs>
 
-Durch den Zugriff auf die Puppeteer-Oberfläche haben Sie Zugriff auf eine Vielzahl neuer Funktionen, um den Browser und Ihre Anwendung zu automatisieren oder zu inspizieren, z. B.
+Durch den Zugriff auf die Puppeteer-Oberfläche haben Sie Zugriff auf eine Vielzahl neuer Funktionen, um den Browser und Ihre Anwendung zu automatisieren oder zu inspizieren, z. B.: das Abfangen von Netzwerkanfragen (siehe oben), das Verfolgen des Browsers, das Drosseln von CPU- oder Netzwerkfunktionen und vieles mehr.
 
 ### `wdio:devtoolsOptions` Capability
 
