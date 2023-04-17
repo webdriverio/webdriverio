@@ -4,7 +4,6 @@ import Layout from '@theme/Layout'
 import CodeBlock from '@theme/CodeBlock'
 import Link from '@docusaurus/Link'
 import Translate, { translate } from '@docusaurus/Translate'
-import useDocusaurusContext from '@docusaurus/useDocusaurusContext'
 import useBaseUrl from '@docusaurus/useBaseUrl'
 
 import LogoCarousel from './components/LogoCarousel.js'
@@ -16,6 +15,11 @@ import CreateProjectAnimation from './components/CreateProjectAnimation.js'
 
 import styles from './styles.module.css'
 import { logos, features, LHIntregrationExample, SetupExample, ComponentTestingExample } from '../constants.js'
+
+const tagline = translate({
+    id: 'homepage.tagline',
+    message: 'Next-gen browser and mobile automation test framework for Node.js'
+})
 
 function Home() {
     const ref = useRef(null)
@@ -42,18 +46,18 @@ function Home() {
         })
     })
 
-    const context = useDocusaurusContext()
-    const { siteConfig = {} } = context
     return (
         <Layout
-            title={`${siteConfig.title} · ${siteConfig.tagline}`}
-            description={`${siteConfig.tagline}`}>
+            title={`WebdriverIO · ${tagline}`}
+            description={tagline}>
             <header className={clsx('hero hero--primary', styles.heroBanner)} ref={ref}>
                 <div className="container">
                     <h1 className="hero__title">
                         <Robot />
                     </h1>
-                    <p className="hero__subtitle">{siteConfig.tagline}</p>
+                    <p className="hero__subtitle">
+                        {tagline}
+                    </p>
                     <div className={styles.buttons}>
                         <Link
                             className={clsx(
@@ -105,17 +109,28 @@ function Home() {
                     text={
                         <>
                             <p>
-                                <Translate>
-                                    WebdriverIO is an <b>all in one</b> framework for your web app development. It enables you to run
-                                    small and lightweight component tests as well as running e2e test scenarios in the browser or on
-                                    a mobile device. This guarantees that you to do the testing in an environment <b>used by your users</b>.
+                                <Translate
+                                    id="homepage.componentTesting.para1"
+                                    values={{
+                                        allInOne: (<b>all in one</b>),
+                                        usedBy: (<b>used by your users</b>)
+                                    }}>
+                                    {
+                                        'WebdriverIO is an {allInOne} framework for your web app development. It enables you to run ' +
+                                        'small and lightweight component tests as well as running e2e test scenarios in the browser or on ' +
+                                        'a mobile device. This guarantees that you to do the testing in an environment {usedBy}.'
+                                    }
                                 </Translate>
                             </p>
                             <p>
-                                <Translate>
-                                    It comes with smart selector strategies that simplify interacting e.g. with <b>React components</b> or
-                                    running deep selector queries with nested shadow DOM trees. As interactions happen through a standardized
-                                    automation protocol it is guaranteed they behave natively and aren't just JavaScript emulated.
+                                <Translate
+                                    id="homepage.componentTesting.para1"
+                                    values={{ reactComponents: (<b>React components</b>) }}>
+                                    {
+                                        'It comes with smart selector strategies that simplify interacting e.g. with {reactComponents} or ' +
+                                        'running deep selector queries with nested shadow DOM trees. As interactions happen through a standardized ' +
+                                        'automation protocol it is guaranteed they behave natively and aren\'t just JavaScript emulated.'
+                                    }
                                 </Translate>
                             </p>
                             <div>
@@ -159,9 +174,20 @@ function Home() {
                                 <CodeBlock className="bash" children={SetupExample}></CodeBlock>
                             </div>
                             <p>
-                                <Translate>
-                                    Start learning more about WebdriverIO and how to get started
-                                    <a href="https://www.youtube.com/watch?v=GAc031zGWTM&list=PLPO0LFyCaSo3oedws079pCNtppXAZdjv6">on YouTube</a>.
+                                <Translate
+                                    id="homepage.highlight.getStartedOnYouTube"
+                                    values={{
+                                        youtubeLink: (
+                                            <Link to="https://www.youtube.com/watch?v=GAc031zGWTM&list=PLPO0LFyCaSo3oedws079pCNtppXAZdjv6">
+                                                <Translate
+                                                    id="homepage.highlight.getStartedOnYouTube.label;"
+                                                    description="The label for the link to my YouTube">
+                                                on YouTube
+                                                </Translate>
+                                            </Link>
+                                        )
+                                    }}>
+                                    {'Start learning more about WebdriverIO and how to get started {youtubeLink}.'}
                                 </Translate>
                             </p>
                         </>
@@ -186,20 +212,60 @@ function Home() {
                     text={
                         <>
                             <p>
-                                <Translate>
-                                    The community around WebdriverIO is actively speaking on various user groups or
-                                    conferences about specific topics around automated testing with WebdriverIO. Check out
-                                    this talk on <a href="https://www.youtube.com/watch?v=CHcjEI3YZ7Y">My favourite
-                                    features of WebdriverIO</a> by <a href="https://twitter.com/ailuj876">Julia Pottinger</a>
-                                    at <a href="https://openqualityconf.com/">Open Quality Conference</a>.
+                                <Translate
+                                    id="homepage.highlight.conferenceTalk"
+                                    values={{
+                                        youtubeLink: (
+                                            <Link to="https://www.youtube.com/watch?v=CHcjEI3YZ7Y">
+                                                <Translate
+                                                    id="homepage.highlight.conferenceTalk.label"
+                                                    description="The conference talk title">
+                                                My favourite features of WebdriverIO
+                                                </Translate>
+                                            </Link>
+                                        ),
+                                        videoAuthor: (
+                                            <Link to="https://twitter.com/ailuj876">
+                                                Julia Pottinger
+                                            </Link>
+                                        ),
+                                        conferenceLink: (
+                                            <Link to="https://openqualityconf.com/">
+                                                Open Quality Conference
+                                            </Link>
+                                        )
+                                    }}>
+                                    {
+                                        'The community around WebdriverIO is actively speaking on various user groups or ' +
+                                        'conferences about specific topics around automated testing with WebdriverIO. Check out ' +
+                                        'this talk on {youtubeLink} by {videoAuthor} at {conferenceLink}.'
+                                    }
                                 </Translate>
                             </p>
                             <p>
-                                <Translate>
-                                    There is also many YouTube Channels with useful tutorials by community members
-                                    such as <a href="https://www.youtube.com/user/medigerati/videos?flow=grid&sort=p&view=0">Klamping</a>,
-                                    <a href="https://www.youtube.com/channel/UCqaDA1xslraCbam2CxuKhUw">Seventeenth Sep</a>
-                                    or <a href="https://www.youtube.com/watch?v=e8goAKb6CC0&list=PL6AdzyjjD5HBbt9amjf3wIVMaobb28ZYN">Automation Bro</a>.
+                                <Translate
+                                    id="homepage.highlight.youtubeChannels"
+                                    values={{
+                                        channelOne: (
+                                            <Link to="https://www.youtube.com/user/medigerati/videos?flow=grid&sort=p&view=0">
+                                                Klamping
+                                            </Link>
+                                        ),
+                                        channelTwo: (
+                                            <Link to="https://www.youtube.com/channel/UCqaDA1xslraCbam2CxuKhUw">
+                                                Seventeenth Sep
+                                            </Link>
+                                        ),
+                                        channelThree: (
+                                            <Link to="https://www.youtube.com/watch?v=e8goAKb6CC0&list=PL6AdzyjjD5HBbt9amjf3wIVMaobb28ZYN">
+                                                Automation Bro
+                                            </Link>
+                                        )
+                                    }}>
+                                    {
+                                        'There is also many YouTube Channels with useful tutorials by community members ' +
+                                        'such as {channelOne}, {channelTwo} or {channelThree}.'
+                                    }
                                 </Translate>
                             </p>
                         </>
@@ -217,12 +283,32 @@ function Home() {
                     text={
                         <>
                             <p>
-                                <Translate>
-                                    WebdriverIO not only runs automation based on the WebDriver protocol, it also leverages
-                                    native browser APIs to enable integrations to popular developer tools such as <a href="https://chromedevtools.github.io/devtools-protocol/">Chrome DevTools</a> or
-                                    <a href="https://developers.google.com/web/tools/lighthouse">Google Lighthouse</a>. With the <Link to={useBaseUrl('/docs/devtools-service')}><code>@wdio/devtools-service</code></Link> plugin you have access to
-                                    commands for validating if you app is a valid PWA application as well as to commands for
-                                    capturing frontend performance metrics such as <code>speedIndex</code> and others.
+                                <Translate
+                                    id="homepage.highlight.devtools"
+                                    values={{
+                                        devtoolsLink: (
+                                            <Link to="https://chromedevtools.github.io/devtools-protocol/">
+                                                Chrome DevTools
+                                            </Link>
+                                        ),
+                                        lighthouseLink: (
+                                            <Link to="https://developers.google.com/web/tools/lighthouse">
+                                                Google Lighthouse
+                                            </Link>
+                                        ),
+                                        devtoolsServiceLink: (
+                                            <Link to={useBaseUrl('/docs/devtools-service')}>
+                                                <code>@wdio/devtools-service</code>
+                                            </Link>
+                                        )
+                                    }}>
+                                    {
+                                        'WebdriverIO not only runs automation based on the WebDriver protocol, it also leverages ' +
+                                        'native browser APIs to enable integrations to popular developer tools such as ' +
+                                        '{devtoolsLink} or {lighthouseLink}. With the {devtoolsServiceLink} plugin you have access to ' +
+                                        'commands for validating if you app is a valid PWA application as well as to commands for ' +
+                                        'capturing frontend performance metrics such as `speedIndex` and others.'
+                                    }
                                 </Translate>
                             </p>
                             <div>

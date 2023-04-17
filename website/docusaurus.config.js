@@ -21,6 +21,10 @@ module.exports = {
     customFields: {
         repoUrl
     },
+    i18n: {
+        defaultLocale: 'en',
+        locales: ['en', 'de', 'fr', 'es', 'hi'],
+    },
     themeConfig: {
         image: 'img/logo-webdriver-io.png',
         metadata: [{ name: 'twitter:card', content: 'summary' }],
@@ -75,6 +79,9 @@ module.exports = {
                 label: 'v8',
                 position: 'right',
                 to: '/versions'
+            }, {
+                type: 'localeDropdown',
+                position: 'right',
             }, {
                 href: repoUrl,
                 position: 'right',

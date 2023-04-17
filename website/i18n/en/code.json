@@ -434,12 +434,6 @@
   "WebdriverIO automatically waits for elements to appear before interacting with them.": {
     "message": "WebdriverIO automatically waits for elements to appear before interacting with them."
   },
-  ".": {
-    "message": "."
-  },
-  "with over 8k members and a rich ecosystem of community maintained plugins.": {
-    "message": "with over 8k members and a rich ecosystem of community maintained plugins."
-  },
   "Get Started": {
     "message": "Get Started"
   },
@@ -451,9 +445,6 @@
   },
   "Watch on YouTube": {
     "message": "Watch on YouTube"
-  },
-  "or running deep selector queries with nested shadow DOM trees. As interactions happen through a standardized automation protocol it is guaranteed they behave natively and aren't just JavaScript emulated.": {
-    "message": "or running deep selector queries with nested shadow DOM trees. As interactions happen through a standardized automation protocol it is guaranteed they behave natively and aren't just JavaScript emulated."
   },
   "Easy setup for web component testing with:": {
     "message": "Easy setup for web component testing with:"
@@ -472,9 +463,6 @@
   },
   "homepage.hightlight.lighthouse": {
     "message": "Google Lighthouse Integration"
-  },
-  "and others.": {
-    "message": "and others."
   },
   "Integration to developer tools such as:": {
     "message": "Integration to developer tools such as:"
@@ -520,5 +508,40 @@
   },
   "homepage.createBrowserAnimation": {
     "message": "Create WebdriverIO Demo"
+  },
+  "homepage.highlight.getStartedOnYouTube": {
+    "message": "Start learning more about WebdriverIO and how to get started {youtubeLink}."
+  },
+  "homepage.highlight.getStartedOnYouTube.label;": {
+    "message": "on YouTube",
+    "description": "The label for the link to my YouTube"
+  },
+  "homepage.highlight.conferenceTalk": {
+    "message": "The community around WebdriverIO is actively speaking on various user groups or conferences about specific topics around automated testing with WebdriverIO. Check out this talk on {youtubeLink} by {videoAuthor} at {conferenceLink}."
+  },
+  "homepage.highlight.conferenceTalk.label": {
+    "message": "My favourite features of WebdriverIO",
+    "description": "The conference talk title"
+  },
+  "homepage.highlight.youtubeChannels": {
+    "message": "There is also many YouTube Channels with useful tutorials by community members such as {channelOne}, {channelTwo} or {channelThree}."
+  },
+  "homepage.highlight.devtools": {
+    "message": "WebdriverIO not only runs automation based on the WebDriver protocol, it also leverages native browser APIs to enable integrations to popular developer tools such as {devtoolsLink} or {lighthouseLink}. With the {devtoolsServiceLink} plugin you have access to commands for validating if you app is a valid PWA application as well as to commands for capturing frontend performance metrics such as `speedIndex` and others."
+  },
+  "homepage.features.crossBrowser": {
+    "message": "Cross browser support via automation through {webdriverLink} and {bidiLink}."
+  },
+  "homepage.features.mobile": {
+    "message": "Run WebdriverIO on real mobile devices, smart TVs or other IoT devices through {appiumLink}."
+  },
+  "homepage.features.support": {
+    "message": "Running a {supportChannelLink} with over 8k members and a rich ecosystem of community maintained plugins."
+  },
+  "homepage.tagline": {
+    "message": "Next-gen browser and mobile automation test framework for Node.js"
+  },
+  "homepage.componentTesting.para1": {
+    "message": "It comes with smart selector strategies that simplify interacting e.g. with {reactComponents} or running deep selector queries with nested shadow DOM trees. As interactions happen through a standardized automation protocol it is guaranteed they behave natively and aren't just JavaScript emulated."
   }
 }
