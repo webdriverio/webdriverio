@@ -57,6 +57,7 @@ By this time, we believe you have the tests written up and results are generated
     ![Default Stage](/img/bamboo/defaultstage.png "Default Stage")
 2. Open your testing job and create tasks to run your tests in Bamboo
 > **Task 1:** Source Code Checkout
+
 > **Task 1:** Source Code Checkout **Task 2:** Run your tests `npm i && npm run test`. You can use *Script* task and *Shell Interpreter* to run the above commands (This will generate the test results and save them in `./testresults/` folder)
 
     ![Test Run](/img/bamboo/testrun.png "Test Run")
