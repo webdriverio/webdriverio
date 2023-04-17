@@ -63,6 +63,7 @@ export const config = {
 
     mochaOpts: {
         ui: 'bdd',
-        timeout: 150000
+        timeout: 150000,
+        require: ['./__fixtures__/setup.js']
     }
 }

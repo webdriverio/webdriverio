@@ -32,6 +32,7 @@ export class MochaFramework extends HTMLElement {
     #root: ShadowRoot
     #spec: string
     #socket?: WebSocket
+    #require: string[]
     #hookResolver = new Map<string, { resolve: Function, reject: Function }>()
     #runnerEvents: any[] = []
     #isMinified = false
@@ -40,6 +41,8 @@ export class MochaFramework extends HTMLElement {
         super()
         this.#root = this.attachShadow({ mode: 'open' })
         this.#spec = this.getAttribute('spec')!
+        this.#require = window.__wdioEnv__.args.require || []
+        delete window.__wdioEnv__.args.require
 
         if (!this.#spec) {
             throw new Error('"spec" attribute required but not set')
@@ -80,6 +83,10 @@ export class MochaFramework extends HTMLElement {
     }
 
     async run (socket: WebSocket) {
+        for (const r of this.#require) {
+            await import(r)
+        }
+
         /**
          * import test case (order is important here)
          */
