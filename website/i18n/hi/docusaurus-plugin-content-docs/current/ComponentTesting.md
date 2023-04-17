@@ -29,41 +29,41 @@ __नोट:__ WebdriverIO डिफ़ॉल्ट रूप से CI मे�
 
 :::
 
-At the end of this process you should find a `wdio.conf.js` that contains various WebdriverIO configurations, including a `runner` property, e.g.:
+इस प्रक्रिया के अंत में आपको एक `wdio.conf.js` मिलना चाहिए जिसमें विभिन्न WebdriverIO कॉन्फ़िगरेशन शामिल हैं, जिसमें `runner` प्रॉपर्टी शामिल है, उदाहरण के लिए:
 
 ```ts reference useHTTPS runmeRepository="git@github.com:webdriverio/example-recipes.git" runmeFileToOpen="component-testing%2FREADME.md"
 https://github.com/webdriverio/example-recipes/blob/fd54f94306ed8e7b40f967739164dfe4d6d76b41/wdio.comp.conf.js
 ```
 
-By defining different [capabilities](/docs/configuration#capabilities) you can run your tests in different browser, in parallel if desired.
+विभिन्न [क्षमताओं](/docs/configuration#capabilities) को परिभाषित करके आप अलग-अलग ब्राउज़र में अपने परीक्षण चला सकते हैं, यदि वांछित हो तो समानांतर में।
 
-## Test Harness
+## हर्नेस परिक्षण
 
-It is totally up to you what you want to run in your tests and how you like to render the components. However we recommend to use the [Testing Library](https://testing-library.com/) as utility framework as it provides plugins for various of component frameworks, such as React, Preact, Svelte and Vue. It is very useful for rendering components into the test page and it automatically cleans up these components after every test.
+यह पूरी तरह आप पर निर्भर है कि आप अपने परीक्षणों में क्या चलाना चाहते हैं और आप कॉम्पोनेन्ट को कैसे प्रस्तुत करना पसंद करते हैं। हालाँकि हम [टेस्टिंग लाइब्रेरी](https://testing-library.com/) को यूटिलिटी फ्रेमवर्क के रूप में उपयोग करने की सलाह देते हैं क्योंकि यह विभिन्न घटक फ्रेमवर्क के लिए प्लगइन्स प्रदान करता है, जैसे कि React, Preact, Svelte और Vue। परीक्षण पेज में कॉम्पोनेन्ट को प्रस्तुत करने के लिए यह बहुत उपयोगी है और यह प्रत्येक परीक्षण के बाद स्वचालित रूप से इन कॉम्पोनेन्ट को क्लीन करता है।
 
-You can mix Testing Library primitives with WebdriverIO commands as you wish, e.g.:
+आप अपनी इच्छानुसार WebdriverIO कमांड के साथ टेस्टिंग लाइब्रेरी प्रिमिटिव को मिला सकते हैं, जैसे:
 
 ```js reference useHTTPS
 https://github.com/webdriverio/example-recipes/blob/fd54f94306ed8e7b40f967739164dfe4d6d76b41/component-testing/svelte-example.js
 ```
 
-__Note:__ using render methods from Testing Library helps remove created components between the tests. If you don't use Testing Library ensure to attach your test components to a container that gets cleaned up between tests.
+__नोट:__ टेस्टिंग लाइब्रेरी से रेंडर विधियों का उपयोग करने से परीक्षणों के बीच बनाए गए कॉम्पोनेन्ट को हटाने में मदद मिलती है। यदि आप परीक्षण लाइब्रेरी का उपयोग नहीं करते हैं तो अपने परीक्षण कॉम्पोनेन्ट को एक ऐसे कंटेनर से जोड़ना सुनिश्चित करें जो परीक्षणों के क्लीन हो जाता है।
 
-## Watch Test and Application Files
+## परीक्षण और एप्लिकेशन फ़ाइलें देखें
 
-There are multiple ways how you can debug your browser tests. The easiest is to start the WebdriverIO testrunner with the `--watch` flag, e.g.:
+आप अपने ब्राउज़र परीक्षणों को डीबग करने के कई तरीके हैं। WebdriverIO टेस्टरनर को `--watch` फ़्लैग से शुरू करना सबसे आसान है, जैसे:
 
 ```sh
 $ npx wdio run ./wdio.conf.js --watch
 ```
 
-This will run through all tests initially and halt once all are run. You can then make changes to individual files which then will be rerun individually. If you set a [`filesToWatch`](/docs/configuration#filestowatch) pointing to your application files, it will re-run all tests when changes to your app are being made.
+यह शुरू में सभी परीक्षणों के माध्यम से चलेगा और सभी के चलने के बाद रुक जाएगा। फिर आप अलग-अलग फाइलों में बदलाव कर सकते हैं, जो फिर अलग-अलग फिर से चलाए जाएंगे। यदि आप अपनी एप्लिकेशन फ़ाइलों की ओर इशारा करते हुए [`filesToWatch`](/docs/configuration#filestowatch) सेट करते हैं, तो आपके ऐप में बदलाव किए जाने पर यह सभी परीक्षणों को फिर से चलाएगा।
 
-## Debugging
+## डीबग करना
 
-While it is not (yet) possible to set breakpoints in your IDE and have them being recognised by the remote browser, you can use the [`debug`](/docs/api/browser/debug) command to stop the test at any point. This allows you to open DevTools to then debug the test by setting breakpoints in the [sources tab](https://buddy.works/tutorials/debugging-javascript-efficiently-with-chrome-devtools).
+हालांकि आपके आईडीई में ब्रेकप्वाइंट सेट करना (अभी तक) संभव नहीं है और उन्हें दूरस्थ ब्राउज़र द्वारा पहचाना जा रहा है, आप किसी भी बिंदु पर परीक्षण को रोकने के लिए [`debug`](/docs/api/browser/debug) कमांड का उपयोग कर सकते हैं। यह आपको [स्रोत टैब](https://buddy.works/tutorials/debugging-javascript-efficiently-with-chrome-devtools)में ब्रेकप्वाइंट सेट करके परीक्षण को डीबग करने के लिए DevTools खोलने की अनुमति देता है।
 
-When the `debug` command is called, you will also get a Node.js repl interface in your terminal, saying:
+जब `debug` कमांड को कॉल किया जाता है, तो आपको अपने टर्मिनल में एक Node.js repl इंटरफ़ेस मिलेगा, जो कहेगा:
 
 ```
 The execution has stopped!
@@ -71,8 +71,8 @@ You can now go into the browser or use the command line as REPL
 (To exit, press ^C again or type .exit)
 ```
 
-Press `Ctrl` or `Command` + `c` or enter `.exit` to continue with the test.
+परीक्षण जारी रखने के लिए `Ctrl` या `Command` + `c` दबाएं या `exit` दबाएँ।
 
-## Examples
+## उदाहरण
 
-You can find various examples for testing components using popular component frameworks in our [example repository](https://github.com/webdriverio/component-testing-examples).
+आप हमारे [उदाहरण भंडार](https://github.com/webdriverio/component-testing-examples)में लोकप्रिय घटक ढांचे का उपयोग करके कॉम्पोनेन्ट के परीक्षण के लिए विभिन्न उदाहरण पा सकते हैं।
