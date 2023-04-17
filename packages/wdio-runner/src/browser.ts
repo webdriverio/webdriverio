@@ -86,7 +86,6 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
          * start tests
          */
         let failures = 0
-        let uid = 0
         for (const spec of this._specs) {
             log.info(`Run spec file ${spec} for cid ${this._cid}`)
 
@@ -188,14 +187,14 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
                 continue
             }
 
-            await this.#fetchEvents(browser, spec, ++uid)
+            await this.#fetchEvents(browser, spec)
             failures += state.failures || 0
         }
 
         return failures
     }
 
-    async #fetchEvents (browser: WebdriverIO.Browser, spec: string, uid: number) {
+    async #fetchEvents (browser: WebdriverIO.Browser, spec: string) {
         /**
          * populate events to the reporter
          */
@@ -207,7 +206,7 @@ export default class BrowserFramework implements Omit<TestFramework, 'init'> {
             this._reporter.emit(ev.type, {
                 ...ev,
                 file: spec,
-                uid: `${this._cid}-${uid}`,
+                uid: `${this._cid}-${Buffer.from(ev.fullTitle).toString('base64')}`,
                 cid: this._cid
             })
         }

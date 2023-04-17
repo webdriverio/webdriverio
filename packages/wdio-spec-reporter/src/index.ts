@@ -167,7 +167,7 @@ export default class SpecReporter extends WDIOReporter {
      */
     printReport(runner: RunnerStats) {
         // Don't print non failed tests
-        if (runner.failures === 0 && this._onlyFailures === true){
+        if (runner.failures === 0 && this._onlyFailures === true) {
             return
         }
 
