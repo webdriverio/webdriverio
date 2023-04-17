@@ -1,13 +1,13 @@
 ---
 id: enterprise
-title: WebdriverIO for Enterprise
+title: उद्यम के लिए WebdriverIO
 ---
 
-## Available as part of the Tidelift Subscription
+## टाइडलिफ्ट सब्सक्रिप्शन के हिस्से के रूप में उपलब्ध है
 
-Tidelift is working with the maintainers of WebdriverIO and thousands of other open source projects to deliver commercial support and maintenance for the open source dependencies you use to build your applications. Save time, reduce risk, and improve code health, while paying the maintainers of the exact dependencies you use.
+Tidelift WebdriverIO के अनुरक्षकों और हजारों अन्य ओपन सोर्स प्रोजेक्ट्स के साथ काम कर रहा है ताकि ओपन सोर्स निर्भरता के लिए वाणिज्यिक समर्थन और रखरखाव प्रदान किया जा सके जिसका उपयोग आप अपने एप्लिकेशन बनाने के लिए करते हैं। आपके द्वारा उपयोग की जाने वाली सटीक निर्भरताओं के रखरखावकर्ताओं को भुगतान करते समय समय बचाएं, जोखिम कम करें और कोड स्वास्थ्य में सुधार करें।
 
-#### Enterprise-ready open source software—managed for you
+#### एंटरप्राइज़-तैयार ओपन सोर्स सॉफ़्टवेयर—आपके लिए प्रबंधित
 The Tidelift Subscription is a managed open source subscription for application dependencies covering millions of open source projects across JavaScript, Python, Java, PHP, Ruby, .NET, and more.
 
 #### Your subscription includes:
