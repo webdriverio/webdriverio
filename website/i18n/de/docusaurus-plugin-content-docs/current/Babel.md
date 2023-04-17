@@ -1,19 +1,19 @@
 ---
 id: babel
-title: Babel Setup
+title: Babel-Setup
 ---
 
-To write tests using next-generation JavaScript features, you can use [Babel](https://babeljs.io) to compile your test files.
+Um Tests mit neuartigen JavaScript-Funktionen zu schreiben, können Sie [Babel](https://babeljs.io) verwenden, um Ihre Testdateien zu kompilieren.
 
-To do so, first install the necessary Babel dependencies:
+Installieren Sie dazu zunächst die notwendigen Babel-Abhängigkeiten:
 
 ```bash npm2yarn
 npm install --save-dev @babel/core @babel/cli @babel/preset-env @babel/register
 ```
 
-Make sure your [`babel.config.js`](https://babeljs.io/docs/en/config-files) is configured properly.
+Stellen Sie sicher, dass Ihre [`babel.config.js`](https://babeljs.io/docs/en/config-files) richtig konfiguriert ist.
 
-The simplest setup you can use is:
+Das einfachste Setup, das Sie verwenden können, ist:
 
 ```js title="babel.config.js"
 module.exports = {
@@ -27,6 +27,6 @@ module.exports = {
 }
 ```
 
-Once this is set up WebdriverIO will take care of the rest.
+Sobald dies eingerichtet ist, kümmert sich WebdriverIO um den Rest.
 
-Alternatively you can configure how @babel/register is run through the environment variables for [@babel/register](Babel.md) or using wdio config's [autoCompileOpts section](ConfigurationFile.md).
+Alternativ können Sie konfigurieren, wie @babel/register ausgeführt wird, über die Umgebungsvariablen für [@babel/register](Babel.md) oder mit wdio config's [autoCompileOpts section](ConfigurationFile.md).

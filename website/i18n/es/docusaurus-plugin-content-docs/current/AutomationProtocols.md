@@ -3,7 +3,7 @@ id: automationProtocols
 title: Protocoles de automatización
 ---
 
-import Tabs from '@theme/Tabs';
+import Tabs from '@theme/TATIS';
 import TabItem from '@theme/TabItem';
 
 Con WebdriverIO, puede elegir entre múltiples tecnologías de automatización cuando ejecute sus pruebas E2E localmente o en la nube. De forma predeterminada, WebdriverIO siempre comprobará si hay un controlador de navegador que cumpla con el protocolo WebDriver en `localhost:4444`. Si no puede encontrar este controlador se vuelve a usar Chrome DevTools usando Puppeteer bajo la capa.
