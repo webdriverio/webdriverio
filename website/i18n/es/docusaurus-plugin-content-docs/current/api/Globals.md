@@ -13,3 +13,5 @@ Los siguientes objetos globales son fijados si no se configuran de otra manera:
 - `$`: comando para obtener un elemento (ver más en [API docs](/docs/api/browser/$))
 - `$$`: comando para obtener elementos (ver más en [API docs](/docs/api/browser/$$))
 - `expect`: marco de aserción para WebdriverIO (consulte [API docs](/docs/api/expect-webdriverio))
+
+__Nota:__ WebdriverIO no tiene control sobre los marcos de trabajo utilizados (por ejemplo, Mocha o Jasmine) que establecen variables globales al arrancar su entorno.
