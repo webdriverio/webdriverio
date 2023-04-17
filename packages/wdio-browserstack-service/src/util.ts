@@ -3,6 +3,7 @@ import { promisify } from 'node:util'
 import http from 'node:http'
 import https from 'node:https'
 import path from 'node:path'
+import util from 'node:util'
 import { createRequire } from 'node:module'
 
 import type { Capabilities, Frameworks, Options } from '@wdio/types'
@@ -18,7 +19,6 @@ import type { UserConfig, UploadType, LaunchResponse, BrowserstackConfig } from 
 import type { ITestCaseHookParameter } from './cucumber-types.js'
 import { BROWSER_DESCRIPTION, DATA_ENDPOINT, DATA_EVENT_ENDPOINT, DATA_SCREENSHOT_ENDPOINT } from './constants.js'
 import RequestQueueHandler from './request-handler.js'
-import * as util from 'node:util'
 
 const require = createRequire(import.meta.url)
 const { version: bstackServiceVersion } = require('../package.json')
@@ -151,7 +151,7 @@ export function setConfigDetails(userConfig: Options.Testrunner, capabilities: C
     setCredentialsForCrashReportUpload(options, userConfig)
 }
 
-function processError(error: any, fn: Function, args: any) {
+function processError(error: any, fn: Function, args: any[]) {
     log.error(`Error in executing ${fn.name} with args ${args}: ${error}`)
     let argsString: string
     try {
@@ -178,7 +178,11 @@ function o11yErrorHandler(fn: Function) {
 }
 
 // https://tugayilik.medium.com/error-handling-via-try-catch-proxy-in-javascript-54116dbf783f
-type ClassType = { new(...args: any[]): any; };
+/*
+    A class wrapper for error handling. The wrapper wraps all the methods of the class with a error handler function.
+    If any exception occurs in any of the class method, that will get caught in the wrapper which logs and reports the error.
+ */
+type ClassType = { new(...args: any[]): any; }; // A generic type for a class
 export function o11yClassErrorHandler<T extends ClassType>(errorClass: T): T {
     const prototype = errorClass.prototype
 
