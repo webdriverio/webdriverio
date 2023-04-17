@@ -5,7 +5,7 @@ title: Primeros pasos
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
-import CreateProjectAnimation from '../src/pages/components/CreateProjectAnimation.js'
+import CreateProjectAnimation from '@site/src/pages/components/CreateProjectAnimation.js'
 
 Bienvenido a la página de documentación para WebdriverIO. Te ayudará a comenzar rápidamente. Si encuentras problemas puedes encontrar ayuda y respuestas en nuestro [Canal de Soporte Máximo](https://matrix.to/#/#webdriver.io:gitter.im) o puedes pulsarme en [Twitter](https://twitter.com/webdriverio).
 
