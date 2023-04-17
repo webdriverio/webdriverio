@@ -3,6 +3,8 @@ id: configuration
 title: Configuración
 ---
 
+Basado en el tipo de configuración [](./SetupTypes.md) (p. ej. usando los enlaces de protocolo crudo, WebdriverIO como paquete independiente o el testrunner WDIo) hay un conjunto diferente de opciones disponibles para controlar el entorno.
+
 ## Opciones de WebDriver
 
 Las siguientes opciones se definen al utilizar el paquete de protocolo [`webdriver`](https://www.npmjs.com/package/webdriver):
@@ -23,7 +25,7 @@ Tipo: `String`<br /> Predeterminado: `localhost`
 
 Puerto en el que está el servidor del conductor.
 
-Tipo: `String`<br /> Predeterminado: `localhost`
+Type: `Number`<br /> Default: `100` (ms)
 
 ### path
 
@@ -177,7 +179,7 @@ Type: `String`<br /> Default: `null`
 
 ### waitforTimeout
 
-Default timeout for all `waitFor*` commands. (Note the lowercase `f` in the option name.) This timeout __only__ affects commands starting with `waitFor*` and their default wait time.
+Default timeout for all `waitFor*` commands. (Note the lowercase `f` in the option name.) (Note the lowercase `f` in the option name.) This timeout __only__ affects commands starting with `waitFor*` and their default wait time.
 
 To increase the timeout for a _test_, please see the framework docs.
 
@@ -259,7 +261,7 @@ Type: `Boolean`<br /> Default: `true`
 
 ### bail
 
-If you want your test run to stop after a specific number of test failures, use `bail`. (It defaults to `0`, which runs all tests no matter what.) **Note:** Please be aware that when using a third party test runner (such as Mocha), additional configuration might be required.
+If you want your test run to stop after a specific number of test failures, use `bail`. (It defaults to `0`, which runs all tests no matter what.) (It defaults to `0`, which runs all tests no matter what.) **Note:** Please be aware that when using a third party test runner (such as Mocha), additional configuration might be required.
 
 Type: `Number`<br /> Default: `0` (don't bail; run all tests)
 
@@ -327,6 +329,8 @@ reporters: [
 
 ### reporterSyncInterval
 
+Determines in which interval the reporter should check if they are synchronized if they report their logs asynchronously (e.g. if logs are streamed to a 3rd party vendor).
+
 Type: `Number`<br /> Default: `100` (ms)
 
 ### reporterSyncTimeout
@@ -355,7 +359,7 @@ Compiler options when using WebdriverIO with TypeScript or Babel.
 
 If set to `true` the WDIO testrunner will automatically try to transpile the spec files.
 
-Type: `Boolean` Default: `true`
+Type: `Object` Default: `{ transpileOnly: true }`
 
 #### autoCompileOpts.tsNodeOpts
 
@@ -439,12 +443,16 @@ Parámetros:
 
 ### beforeHook
 
+Hook that gets executed *before* a hook within the suite starts (e.g. runs before calling beforeEach in Mocha)
+
 Parámetros:
 
 - `test` (`object`): test details
 - `context` (`object`): test context (represents World object in Cucumber)
 
 ### afterHook
+
+Hook that gets executed *after* a hook within the suite ends (e.g. runs after calling afterEach in Mocha)
 
 Parámetros:
 
@@ -493,7 +501,7 @@ Parámetros:
 - `result.result` (`Any`): return object of test function
 - `result.duration` (`Number`): duration of test
 - `result.passed` (`Boolean`): true if test has passed, otherwise false
--
+- `result.retries` (`Object`): informations to spec related retries, e.g. `{ attempts: 0, limit: 0 }`
 - `result` (`object`): hook result (contains `error`, `result`, `duration`, `passed`, `retries` properties)
 
 ### afterSuite
