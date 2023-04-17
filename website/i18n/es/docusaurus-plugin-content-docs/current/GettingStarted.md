@@ -5,12 +5,13 @@ title: Primeros pasos
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
-import CreateProjectAnimation from '@site/src/pages/components/CreateProjectAnimation.js'
+import CreateProjectAnimation from '../src/pages/components/CreateProjectAnimation.js'
 
 Bienvenido a la página de documentación para WebdriverIO. Te ayudará a comenzar rápidamente. Si encuentras problemas puedes encontrar ayuda y respuestas en nuestro [Canal de Soporte Máximo](https://matrix.to/#/#webdriver.io:gitter.im) o puedes pulsarme en [Twitter](https://twitter.com/webdriverio).
 
 :::info
 Estos son los documentos de la última versión (__>=8.x__) de WebdriverIO. Si todavía está utilizando una versión anterior, por favor visite los [antiguos sitios web de documentación](/versions)!
+:::
 :::
 
 ## Iniciar una configuración de WebdriverIO
@@ -23,10 +24,10 @@ Si se encuentra en el directorio raíz de un proyecto existente, ejecute:
   defaultValue="npm"
   values={[
     {label: 'NPM', value: 'npm'},
-    {label: 'Yarn', value: 'yarn'},
-    {label: 'pnpm', value: 'pnpm'}
-  ]}
->
+ {label: 'Yarn', value: 'yarn'},
+ {label: 'pnpm', value: 'pnpm'},
+ ]
+}>
 <TabItem value="npm">
 
 ```sh
@@ -57,13 +58,8 @@ npm init wdio ./path/to/new/project
 
 ```sh
 pnpm create wdio .
-```
-
-o si desea crear un nuevo proyecto:
-
 ```sh
-npm init wdio ./path/to/new/project
-```
+pnpm create wdio .
 
 </TabItem>
 </Tabs>
@@ -126,6 +122,8 @@ npx wdio run ./wdio.conf.js --suite exampleSuiteName
 ```
 
 ## Ejecutar en un script
+
+Si desea utilizar WebdriverIO como un motor de automatización en [Modo independiente](/docs/setuptypes#standalone-mode) dentro de un Nodo. Script S también puede instalar directamente WebdriverIO y usarlo como un paquete, por ejemplo, para generar una captura de pantalla de un sitio web:
 
 ```js reference useHTTPS
 https://github.com/webdriverio/example-recipes/blob/fc362f2f8dd823d294b9bb5f92bd5991339d4591/getting-started/run-in-script.js#L2-L19
