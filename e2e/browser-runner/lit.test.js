@@ -37,7 +37,8 @@ mock('@namespace/module')
 
 describe('Lit Component testing', () => {
     it('recognises require files', () => {
-        expect(window.globalSetupScriptExexuted).toBe(true)
+        expect(window.globalSetupScriptExecuted).toBe(true)
+        expect(window.mochaGlobalSetupExecuted).toBe(true)
     })
 
     it('should render component', async () => {

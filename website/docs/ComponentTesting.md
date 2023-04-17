@@ -73,10 +73,20 @@ For example, if you like to mock all [`fetch()`](https://developer.mozilla.org/e
 ```js ./fixtures/setup.js
 import { fn } from '@wdio/browser-runner'
 
+// run code before all tests are loaded
 window.fetch = fn()
+
+export const mochaGlobalSetup = () => {
+    // run code after test file is loaded
+}
+
+export const mochaGlobalTeardown = () => {
+    // run code after spec file was executed
+}
+
 ```
 
-Now in your tests you can provide custom response values for all browser requests.
+Now in your tests you can provide custom response values for all browser requests. Read more on global fixtures in the [Mocha docs](https://mochajs.org/#global-fixtures).
 
 ## Watch Test and Application Files
 

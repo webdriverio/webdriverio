@@ -83,8 +83,16 @@ export class MochaFramework extends HTMLElement {
     }
 
     async run (socket: WebSocket) {
+        const globalTeardownScripts: Function[] = []
+        const globalSetupScripts: Function[] = []
         for (const r of this.#require) {
-            await import(r)
+            const { mochaGlobalSetup, mochaGlobalTeardown } = (await import(r)) || {}
+            if (typeof mochaGlobalSetup === 'function') {
+                globalSetupScripts.push(mochaGlobalSetup)
+            }
+            if (typeof mochaGlobalTeardown === 'function') {
+                globalTeardownScripts.push(mochaGlobalTeardown)
+            }
         }
 
         /**
@@ -92,6 +100,13 @@ export class MochaFramework extends HTMLElement {
          */
         const file = this.#spec
         await import(file)
+
+        /**
+         * run setup scripts
+         */
+        for (const setupScript of globalSetupScripts) {
+            await setupScript()
+        }
 
         this.#socket = socket
         socket.addEventListener('message', this.#handleSocketMessage.bind(this))
@@ -124,7 +139,12 @@ export class MochaFramework extends HTMLElement {
             })
         })
 
-        const runner = mocha.run(this.#onFinish.bind(this))
+        const runner = mocha.run(async (failures) => {
+            await this.#onFinish(failures)
+            for (const teardownScript of globalTeardownScripts) {
+                await teardownScript()
+            }
+        })
         Object.entries(EVENTS).map(([mochaEvent, wdioEvent]) => runner.on(mochaEvent, (payload: any) => {
             this.#runnerEvents.push(formatMessage({ type: wdioEvent, payload, err: payload.err }))
         }))
