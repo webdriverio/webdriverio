@@ -574,82 +574,82 @@ Parameters:
 - `result.duration` (`Number`): मिलीसेकंड में परिदृश्य की अवधि
 - `result.passed` (`Boolean`): यदि परिदृश्य पास हो गया है तो सच है
 - `result.retries` (`Object`): विशिष्ट संबंधित पुनर्प्रयासों के लिए सूचना, उदाहरण के लिए `{ attempts: 0, limit: 0 }`
-- `result` (`object`): hook result (contains `error`, `result`, `duration`, `passed`, `retries` properties)
+- `result` (`object`): हुक परिणाम ( `error`, `result`, `duration`, `passed`, `retries ` गुणों को करता है)
 
 
 
 ### afterSuite
 
-Hook that gets executed after the suite has ended
+हुक जो सुइट शुरू होने से पहले निष्पादित हो जाता है
 
-Parameters:
+पैरामीटर:
 
-- `suite` (`object`): suite details
+- `suite` (`object`): सुइट विवरण
 
 
 
 ### after
 
-Gets executed after all tests are done. You still have access to all global variables from the test.
+सभी परीक्षण किए जाने के बाद निष्पादित हो जाता है। आपके पास अभी भी परीक्षण से सभी वैश्विक वेरिएबल तक पहुंच है।
 
-Parameters:
+पैरामीटर:
 
-- `result` (`number`): 0 - test pass, 1 - test fail
-- `caps` (`object`): containing capabilities for session that will be spawn in the worker
-- `specs` (`string[]`): specs to be run in the worker process
+- `exitCode` (`number`): 0 - टेस्ट सफलता, 1 - टेस्ट असफल
+- `caps` (`object`): सत्र के लिए क्षमताएं शामिल हैं जो वर्कर में पैदा होंगी
+- `specs` (`string[]`): वर्कर प्रक्रिया में चलने के लिए स्पेक्स
 
 
 
 ### afterSession
 
-Gets executed right after terminating the webdriver session.
+वेबड्राइवर सत्र समाप्त करने के ठीक बाद निष्पादित हो जाता है।
 
-Parameters:
+पैरामीटर:
 
-- `config` (`object`): WebdriverIO configuration object
-- `caps` (`object`): containing capabilities for session that will be spawn in the worker
-- `specs` (`string[]`): specs to be run in the worker process
+- `config` (`object`): WebdriverIO कॉन्फ़िगरेशन ऑब्जेक्ट
+- `caps` (`object`): सत्र के लिए क्षमताएं शामिल हैं जो वर्कर में पैदा होंगी
+- `specs` (`string[]`): वर्कर प्रक्रिया में चलने के लिए स्पेक्स
 
 
 
 ### onComplete
 
-Gets executed after all workers got shut down and the process is about to exit. An error thrown in the onComplete hook will result in the test run failing.
+सभी कर्मचारियों के बंद हो जाने के बाद निष्पादित हो जाता है और प्रक्रिया समाप्त होने वाली है। ऑनकंप्लीट हुक में त्रुटि के परिणामस्वरूप परीक्षण रन विफल हो जाएगा।
 
-Parameters:
+पैरामीटर:
 
-- `exitCode` (`number`): 0 - success, 1 - fail
-- `config` (`object`): WebdriverIO configuration object
-- `caps` (`object`): containing capabilities for session that will be spawn in the worker
-- `result` (`object`): results object containing test results
+- `exitCode` (`number`): 0 - सफलता, 1 - असफल
+- `config` (`object`): WebdriverIO कॉन्फ़िगरेशन ऑब्जेक्ट
+- `caps` (`object`): सत्र के लिए क्षमताएं शामिल हैं जो वर्कर में पैदा होंगी
+- `result` (`object`): परिणाम वस्तु जिसमें स्टेप परिणाम होते हैं
 
 
 
 ### onReload
 
-Gets executed when a refresh happens.
+रिफ्रेश होने पर निष्पादित हो जाता है।
 
-Parameters:
+पैरामीटर:
 
-- `oldSessionId` (`string`): session ID of the old session
-- `newSessionId` (`string`): session ID of the new session
+- `oldSessionId` (`string`): पुराने सत्र की सत्र आईडी
+- `newSessionId` (`string`): नए सत्र की सत्र आईडी
 
 
 
 ### beforeFeature
 
-Runs before a Cucumber Feature.
+कुकुम्बर फीचर से पहले चलता है।
 
-Parameters:
+पैरामीटर:
 
-- `uri` (`string`): path to feature file
-- `feature` ([`GherkinDocument.IFeature`](https://github.com/cucumber/common/blob/b94ce625967581de78d0fc32d84c35b46aa5a075/json-to-messages/javascript/src/cucumber-generic/JSONSchema.ts#L8-L17)): Cucumber feature object
+- `uri` (`string`): फीचर फ़ाइल का पथ
+- `feature` ([`GherkinDocument.IFeature`](https://github.com/cucumber/common/blob/b94ce625967581de78d0fc32d84c35b46aa5a075/json-to-messages/javascript/src/cucumber-generic/JSONSchema.ts#L8-L17)): कुकुम्बर फीचर ऑब्जेक्ट
 
 
 
 ### afterFeature
 
-Runs after a Cucumber Feature.
+कुकुम्बर फीचर से बाद चलता है।
 
 पैरामीटर:
 
