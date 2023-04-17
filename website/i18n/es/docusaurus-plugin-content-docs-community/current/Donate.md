@@ -1,5 +1,5 @@
 ---
-id: donate
+id: done
 title: Done
 ---
 
