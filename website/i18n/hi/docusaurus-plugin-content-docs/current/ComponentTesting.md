@@ -49,6 +49,45 @@ https://github.com/webdriverio/example-recipes/blob/fd54f94306ed8e7b40f967739164
 
 __नोट:__ टेस्टिंग लाइब्रेरी से रेंडर विधियों का उपयोग करने से परीक्षणों के बीच बनाए गए कॉम्पोनेन्ट को हटाने में मदद मिलती है। यदि आप परीक्षण लाइब्रेरी का उपयोग नहीं करते हैं तो अपने परीक्षण कॉम्पोनेन्ट को एक ऐसे कंटेनर से जोड़ना सुनिश्चित करें जो परीक्षणों के क्लीन हो जाता है।
 
+## Setup Scripts
+
+You can set up your tests by running arbitrary scripts in Node.js or in the browser, e.g. injecting styles, mocking browser APIs or connecting to a 3rd party service. The WebdriverIO [hooks](/docs/configuration#hooks) can be used to run code in Node.js while the [`mochaOpts.require`](/docs/frameworks#require) allows you to import scripts into the browser before tests are loaded, e.g.:
+
+```js wdio.conf.js
+export const config = {
+    // ...
+    mochaOpts: {
+        ui: 'tdd',
+        // provide a setup script to run in the browser
+        require: './__fixtures__/setup.js'
+    },
+    before: () => {
+        // set up test environment in Node.js
+    }
+    // ...
+}
+```
+
+For example, if you like to mock all [`fetch()`](https://developer.mozilla.org/en-US/docs/Web/API/fetch) calls in your test with the following set-up script:
+
+```js ./fixtures/setup.js
+import { fn } from '@wdio/browser-runner'
+
+// run code before all tests are loaded
+window.fetch = fn()
+
+export const mochaGlobalSetup = () => {
+    // run code after test file is loaded
+}
+
+export const mochaGlobalTeardown = () => {
+    // run code after spec file was executed
+}
+
+```
+
+Now in your tests you can provide custom response values for all browser requests. Read more on global fixtures in the [Mocha docs](https://mochajs.org/#global-fixtures).
+
 ## परीक्षण और एप्लिकेशन फ़ाइलें देखें
 
 आप अपने ब्राउज़र परीक्षणों को डीबग करने के कई तरीके हैं। WebdriverIO टेस्टरनर को `--watch` फ़्लैग से शुरू करना सबसे आसान है, जैसे:
