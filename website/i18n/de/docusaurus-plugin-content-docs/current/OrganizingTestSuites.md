@@ -88,6 +88,18 @@ export const config = {
     },
     // ...
 }
+    // define specific suites
+    suites: {
+        login: [
+            './test/specs/login.success.spec.js',
+            './test/specs/login.failure.spec.js'
+        ],
+        otherFeature: [
+            // ...
+        ]
+    },
+    // ...
+}
 ```
 
 Now, if you want to only run a single suite, you can pass the suite name as a CLI argument:

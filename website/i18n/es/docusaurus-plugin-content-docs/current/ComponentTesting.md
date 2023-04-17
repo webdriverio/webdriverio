@@ -3,7 +3,7 @@ id: component-testing
 title: Prueba de Componentes
 ---
 
-Con WebdriverIOs [Navegador Runner](/docs/runner#browser-runner) puede ejecutar pruebas dentro de un navegador de escritorio o móvil real mientras utiliza WebdriverIO y el protocolo WebDriver para automatizar e interactuar lo que se procesa en la página Este enfoque tiene [muchas ventajas](/docs/runner#browser-runner) en comparación con otros frameworks de prueba que sólo permiten probar contra [JSDOM](https://www.npmjs.com/package/jsdom).
+Con WebdriverIOs [Navegador Runner](/docs/runner#browser-runner) puede ejecutar pruebas dentro de un navegador de escritorio o móvil real mientras utiliza WebdriverIO y el protocolo WebDriver para automatizar e interactuar lo que se procesa en la página Este enfoque tiene [muchas ventajas](/docs/runner#browser-runner) en comparación con otros frameworks de prueba que sólo permiten probar contra [JSDOM](https://www.npmjs.com/package/jsdom). Este enfoque tiene [muchas ventajas](/docs/runner#browser-runner) en comparación con otros frameworks de prueba que sólo permiten probar contra [JSDOM](https://www.npmjs.com/package/jsdom).
 
 ## ¿Cómo funciona?
 

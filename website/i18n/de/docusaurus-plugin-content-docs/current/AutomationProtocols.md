@@ -18,6 +18,8 @@ Both have advantages and disadvantages, depending on your use case and environme
 
 The WebDriver protocol was designed to automate a browser from the user perspective, meaning that everything a user is able to do, you can do with the browser. It provides a set of commands that abstract away common interactions with an application (e.g., navigating, clicking, or reading the state of an element). Since it is a web standard, it is well supported across all major browser vendors, and also is being used as underlying protocol for mobile automation using [Appium](http://appium.io).
 
+To use this automation protocol, you need a proxy server that translates all commands and executes them in the target environment (i.e. the browser or the mobile app).
+
 For browser automation, the proxy server is usually the browser driver. There are drivers  available for all browsers:
 
 - Chrome – [ChromeDriver](http://chromedriver.chromium.org/downloads)
@@ -153,6 +155,8 @@ await browser.deleteSession()
 </TabItem>
 </Tabs>
 
+By accessing the Puppeteer interface, you have access to a variety of new capabilities to automate or inspect the browser and your application, e.g. intercepting network requests (see above), tracing the browser, throttle CPU or network capabilities, and much more.
+
 ### `wdio:devtoolsOptions` Capability
 
 If you run WebdriverIO tests through the DevTools package, you can apply [custom Puppeteer options](https://pptr.dev/#?product=Puppeteer&version=v8.0.0&show=api-puppeteerlaunchoptions). These options will be directly passed into the [`launch`](https://pptr.dev/#?product=Puppeteer&version=v8.0.0&show=api-puppeteerlaunchoptions) or [`connect`](https://pptr.dev/#?product=Puppeteer&version=v8.0.0&show=api-puppeteerconnectoptions) methods of Puppeteer. Other custom devtools options are the following:
@@ -192,10 +196,10 @@ import { remote } from 'webdriverio'
 
 ### Advantages
 
--
+- Access to more automation capabilities (e.g. network interception, tracing etc.)
 - No need to manage browser drivers
 
 ### Disadvantages
 
--
+- Only supports Chromium based browser (e.g. Chrome, Chromium Edge) and (partially) Firefox
 - Does __not__ support execution on cloud vendors such as Sauce Labs, BrowserStack etc.

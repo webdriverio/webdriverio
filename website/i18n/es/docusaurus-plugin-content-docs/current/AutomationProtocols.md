@@ -18,6 +18,8 @@ Ambas tienen ventajas y desventajas, dependiendo de su caso de uso y entorno.
 
 El protocolo WebDriver ha sido diseñado para automatizar un navegador desde la perspectiva del usuario, significa que todo lo que un usuario es capaz de hacer, puede hacer con el explorador. Proporciona un conjunto de comandos que abstraen interacciones comunes con una aplicación (por ejemplo, navegando, haciendo clic o leyendo el estado de un elemento). Dado que es un estándar web, está bien soportado en todos los principales proveedores de navegador, y también está siendo utilizado como protocolo subyacente para la automatización móvil usando [Appium](http://appium.io).
 
+Para utilizar este protocolo de automatización, necesita un servidor proxy que traduzca todos los comandos y los ejecuta en el entorno de destino (i. . navegador o aplicación móvil).
+
 Para la automatización del navegador, el servidor proxy suele ser el controlador del navegador. Hay conductores disponibles para todos los navegadores:
 
 - Chrome – [ChromeDriver](http://chromedriver.chromium.org/downloads)
@@ -153,6 +155,8 @@ await browser.deleteSession()
 </TabItem>
 </Tabs>
 
+Al acceder a la interfaz de Puppeteer, usted tiene acceso a una variedad de nuevas capacidades para automatizar o inspeccionar el navegador y la aplicación, e. , interceptando las peticiones de red (ver arriba), rastreando el navegador, las capacidades de CPU o de red y mucho más.
+
 ### `wdio:devtoolsOptions` Capacidades
 
 Si ejecuta pruebas WebdriverIO a través del paquete DevTools, puede aplicar [opciones de Puppeteer personalizadas](https://pptr.dev/#?product=Puppeteer&version=v8.0.0&show=api-puppeteerlaunchoptions). Estas opciones serán pasadas directamente al [`launch`](https://pptr.dev/#?product=Puppeteer&version=v8.0.0&show=api-puppeteerlaunchoptions) o [`connect`](https://pptr.dev/#?product=Puppeteer&version=v8.0.0&show=api-puppeteerconnectoptions) métodos de Puppeteer. Otras opciones de devtools personalizadas son las siguiente:
@@ -192,10 +196,10 @@ import { remote } from 'webdriverio'
 
 ### Ventajas
 
--
+- Acceso a más capacidades de automatización (por ejemplo, interceptación de red, seguimiento etc.)
 - No es necesario administrar los drivers del navegador
 
 ### Desventajas
 
--
+- Sólo soporta el navegador basado en Chromium (ej: Chrome, Chromium Edge) y (parcialmente) Firefox
 - __no__ soporta la ejecución en proveedores de nube como Sauce Labs, BrowserStack etc.

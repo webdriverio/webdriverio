@@ -66,8 +66,8 @@ export default class CustomWorkerService {
         // TODO: something before each Cucumber scenario run
     }
 
-    // other hooks or custom service methods ... }
-
+    // other hooks or custom service methods ...
+}
 ```
 
 It is recommended to store the browser object through the passed in parameter in the constructor. Lastly expose both types of workers as following:

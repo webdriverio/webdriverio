@@ -155,7 +155,7 @@ En este ejemplo, la instancia `myFirefoxBrowser` comenzará a esperar en un mens
 Multiremote hace que sea fácil y conveniente controlar múltiples navegadores, ya sea que quieran hacer lo mismo en paralelo, o cosas diferentes en concierto.
 
 ## Acceder a instancias del navegador usando cadenas a través del objeto del navegador
-Además de acceder a la instancia del navegador a través de sus variables globales (p. ej. `myChromeBrowser`, `myFirefoxBrowser`), también puede acceder a ellos a través del objeto `navegador`, e.. `navegador["myChromeBrowser"]` o `navegador["myFirefoxBrowser"]`. Puede obtener una lista de todas sus instancias a través de `browser.instances`. Esto es especialmente útil cuando se escriben pasos de prueba reutilizables que se pueden realizar en cualquiera de los dos navegadores, por ejemplo.:
+Además de acceder a la instancia del navegador a través de sus variables globales (p. ej. `myChromeBrowser`, `myFirefoxBrowser`), también puede acceder a ellos a través del objeto `navegador`, e.. Puede obtener una lista de todas sus instancias a través de `browser.instances`. Esto es especialmente útil cuando se escriben pasos de prueba reutilizables que se pueden realizar en cualquiera de los dos navegadores, por ejemplo.:
 
 wdio.conf.js:
 ```js
@@ -180,5 +180,8 @@ Archivo Cucumber:
 
 Archivo de definición de paso:
 ```js
- 
+When(/^User (.) types a message into the chat/, async (userId) => {
+    await browser.getInstance(`user${userId}`).$('#message').setValue('Hi, I am Chrome')
+    await browser.getInstance(`user${userId}`).$('#send').click()
+})
 ```

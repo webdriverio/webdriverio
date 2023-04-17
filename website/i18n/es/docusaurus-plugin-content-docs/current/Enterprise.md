@@ -8,7 +8,7 @@ title: WebdriverIO para Enterprise
 Tidelift está trabajando con los mantenedores de WebdriverIO y miles de otros proyectos de código abierto para proporcionar soporte comercial y mantenimiento para las dependencias de código abierto que utiliza para construir sus aplicaciones. Ahorre tiempo, reduzca el riesgo y mejore la salud del código, mientras paga a los mantenedores de las dependencias exactas que utilice.
 
 #### Software de código abierto listo para su empresa — administrado por usted
-La Suscripción Tidelift es una suscripción de código abierto administrada para dependencias de aplicaciones que cubre millones de proyectos de código abierto en JavaScript, Python, Java, PHP, Ruby, . ET y más.
+La Suscripción Tidelift es una suscripción de código abierto administrada para dependencias de aplicaciones que cubre millones de proyectos de código abierto en JavaScript, Python, Java, PHP, Ruby, .
 
 #### La suscripción incluye:
 

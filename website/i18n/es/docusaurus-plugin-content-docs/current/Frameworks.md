@@ -356,14 +356,16 @@ Aquí tienes algunos ejemplos de esta sintaxis:
 
 ### Importar ayuda de definición de pasos
 
+Para utilizar el ayudante de definición de pasos como `dado`, `Cuando` o `Luego` o ganchos, se supone que se importará desde `@cucumber/pepino`, e.. como esto:
+
 ```js
 import { Given, When, Then } from '@cucumber/cucumber'
 ```
 
-Ahora, si usted usa Cucumber para otros tipos de pruebas no relacionadas con WebdriverIO para la cual usted utiliza una versión específica que necesita para importar estos ayudantes en sus pruebas e2e del paquete WebdriverIO Cupeber, p.ej.:
+Esto asegura que usted utilice los ayudantes adecuados dentro del framework WebdriverIO y le permite usar una versión independiente de Cupeber para otros tipos de pruebas.
 
 ```js
 import { Given, When, Then } from '@wdio/cucumber-framework'
 ```
 
-Esto asegura que usted utilice los ayudantes adecuados dentro del framework WebdriverIO y le permite usar una versión independiente de Cupeber para otros tipos de pruebas.
+Ahora, si usted usa Cucumber para otros tipos de pruebas no relacionadas con WebdriverIO para la cual usted utiliza una versión específica que necesita para importar estos ayudantes en sus pruebas e2e del paquete WebdriverIO Cupeber, p.ej.:

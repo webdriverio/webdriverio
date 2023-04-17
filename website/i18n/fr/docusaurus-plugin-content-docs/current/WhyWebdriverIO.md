@@ -15,7 +15,7 @@ Vous pouvez utiliser WebdriverIO pour automatiser :
 
 - 🌐 <span>&nbsp;</span> __applications web modernes__ écrites en React, Vue, Angular, Svelte ou autres frameworks en frontend
 - 📱 <span>&nbsp;</span> __applications hybrides__ ou __applications mobiles natives__ exécutées dans un émulateur/simulateur ou sur un appareil réel
--
+- 💻 <span>&nbsp;</span> __applications de bureau natives__ (par exemple, écrites avec Electron.js)
 - 📦 <span>&nbsp;</span> __tests unitaires ou de composants__ de composants web dans le navigateur
 
 ## Basé sur les standards du Web

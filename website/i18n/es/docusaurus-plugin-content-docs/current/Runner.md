@@ -45,6 +45,8 @@ As opposed to the [Local Runner](https://www.npmjs.com/package/@wdio/local-runne
 
 While [JSDOM](https://www.npmjs.com/package/jsdom) is widely used for testing purposes, it is in the end not an actual browser nor can you emulate mobile environments with it. With this runner WebdriverIO enables you to easily run your tests in the browser and use WebDriver commands to interact with elements rendered on the page.
 
+Here is an overview of running tests within JSDOM vs. WebdriverIOs Browser Runner
+
 |    | JSDOM                                                                                                                                                           | WebdriverIO Browser Runner                                                                            |
 | -- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
 | 1. | Runs your tests within Node.js using a re-implementation of web standards, notably the WHATWG DOM and HTML Standards                                            | Executes your test in an actual browser and runs the code in an environment that your users use       |

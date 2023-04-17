@@ -100,6 +100,8 @@ describe('Lit Component testing', () => {
 
 WebdriverIO solo reexporta [`@vitest/spy`](https://www.npmjs.com/package/@vitest/spy) aquí que es una implementación de espía compatible con Jest ligera que puede ser usada con WebdriverIOs [`esperan`](/docs/api/expect-webdriverio) matchers. Puede encontrar más documentación sobre estas funciones simuladas en la página del proyecto [Vitest](https://vitest.dev/api/mock.html).
 
+Por supuesto, también puedes instalar e importar cualquier otro entorno espía, por ejemplo [SinonJS](https://sinonjs.org/), siempre y cuando sea compatible con el entorno del navegador.
+
 ## Módulos
 
 Simula módulos locales o observa bibliotecas de terceros, que se invocan en algún otro código, permitiendo probar argumentos, salida o incluso redeclarar su implementación.
@@ -247,7 +249,7 @@ describe('partial mock', () => {
 
 ## Mocks manuales
 
-Los mocks manuales se definen escribiendo un módulo en un subdirectorio de `__mocks__/` (ver también la opción `automockDir`). Si el módulo que está simulando es un módulo Node (p.ej. `lodash`), la simulación debe colocarse en el directorio `__mocks__` y se simulará automáticamente. No hay necesidad de llamar explícitamente a `mock('module_name')`.
+Cuando existe una simulación manual para un módulo determinado, WebdriverIO utilizará ese módulo cuando se llame explícitamente a `mock('nombreModulo')`. Sin embargo, cuando el automock está configurado en 'verdadero', la implementación simulada manual se utilizará en lugar de la simulación creada automáticamente, incluso si `mock('nombremódulo')` no es llamado. To opt out of this behavior you will need to explicitly call `unmock('moduleName')` in tests that should use the actual module implementation, e.g.:
 
 Los módulos con alcance (también conocidos como paquetes con ámbito de aplicación) pueden ser simulados creando un archivo en una estructura de directorios que coincida con el nombre del módulo con el alcance. Por ejemplo, para simular un módulo con ámbito llamado `@scope/project-name`, cree un archivo en `__mocks__/@scope/project-name. s`, creando el directorio `@scope/` en consecuencia.
 
@@ -263,7 +265,7 @@ Los módulos con alcance (también conocidos como paquetes con ámbito de aplica
 └── views
 ```
 
-Cuando existe una simulación manual para un módulo determinado, WebdriverIO utilizará ese módulo cuando se llame explícitamente a `mock('nombreModulo')`. Sin embargo, cuando el automock está configurado en 'verdadero', la implementación simulada manual se utilizará en lugar de la simulación creada automáticamente, incluso si `mock('nombremódulo')` no es llamado. To opt out of this behavior you will need to explicitly call `unmock('moduleName')` in tests that should use the actual module implementation, e.g.:
+Cuando existe una simulación manual para un módulo determinado, WebdriverIO utilizará ese módulo cuando se llame explícitamente a `mock('nombreModulo')`. Los mocks manuales se definen escribiendo un módulo en un subdirectorio de `__mocks__/` (ver también la opción `automockDir`). Si el módulo que está simulando es un módulo Node (p.ej. `lodash`), la simulación debe colocarse en el directorio `__mocks__` y se simulará automáticamente. No hay necesidad de llamar explícitamente a `mock('module_name')`. To opt out of this behavior you will need to explicitly call `unmock('moduleName')` in tests that should use the actual module implementation, e.g.:
 
 ```js
 import { unmock } from '@wdio/browser-runner'
@@ -306,3 +308,5 @@ mock('./some/module.ts', async () => {
 ```
 
 ## Solicitudes
+
+Si está buscando solicitudes de mocking del navegador, por ejemplo, llamadas API, diríjase a la sección [Solicitar Mock y Spies](/docs/mocksandspies).

@@ -48,13 +48,12 @@ export const config = {
 }
 ```
 
-Como se menciona en [Protocolos de automatización](/docs/automationProtocols) puede ejecutar WebdriverIO usando el protocolo WebDriver o Chrome DevTools. Si utiliza WebDriver asegúrese de que la versión de Chrome instalada en su imagen coincide con la versión de [Chromedriver](https://www.npmjs.com/package/chromedriver) que ha definido en su paquete `. son`.
+Como se menciona en [Protocolos de automatización](/docs/automationProtocols) puede ejecutar WebdriverIO usando el protocolo WebDriver o Chrome DevTools. Si utiliza WebDriver asegúrese de que la versión de Chrome instalada en su imagen coincide con la versión de [Chromedriver](https://www.npmjs.com/package/chromedriver) que ha definido en su paquete `.
 
-Para construir el contenedor Docker se puede ejecutar:
+<p spaces-before="0">Para construir el contenedor Docker se puede ejecutar:</p>
 
-```sh
-docker build -t mytest -f Dockerfile .
-```
+<pre><code class="sh">docker build -t mytest -f Dockerfile .
+`</pre>
 
 Luego para ejecutar las pruebas, ejecuta:
 

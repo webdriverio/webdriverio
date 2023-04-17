@@ -55,12 +55,12 @@
     "message": "Blog",
     "description": "The label of footer link with label=Blog linking to blog"
   },
-  "link.item.label.GitHub": {
-    "message": "GitHub",
-    "description": "The label of footer link with label=GitHub linking to https://github.com/webdriverio/webdriverio"
-  },
   "copyright": {
     "message": "Copyright ©️ 2023 OpenJS Foundation",
     "description": "The footer copyright"
+  },
+  "link.item.label.YouTube": {
+    "message": "YouTube",
+    "description": "The label of footer link with label=YouTube linking to https://youtube.com/@webdriverio"
   }
 }
