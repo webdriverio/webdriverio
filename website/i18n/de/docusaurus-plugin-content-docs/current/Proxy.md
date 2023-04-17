@@ -29,6 +29,7 @@ bootstrap();
 export const config = {
     // ...
 }
+}
 ```
 
 ### Set global-agent environment variables
@@ -73,6 +74,20 @@ The `proxy` parameters can be applied via the standard capabilities the followin
 ```js title="wdio.conf.js"
 export const config = {
     // ...
+    capabilities: [{
+        browserName: 'chrome',
+        // ...
+        proxy: {
+            proxyType: "manual",
+            httpProxy: "corporate.proxy:8080",
+            socksUsername: "codeceptjs",
+            socksPassword: "secret",
+            noProxy: "127.0.0.1,localhost"
+        },
+        // ...
+    }],
+    // ...
+}
     capabilities: [{
         browserName: 'chrome',
         // ...
