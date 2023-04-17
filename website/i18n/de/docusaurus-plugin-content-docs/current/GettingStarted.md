@@ -31,8 +31,6 @@ If you're in the root directory of an existing project, run:
 
 ```sh
 npm init wdio .
-```sh
-npm init wdio .
 ```
 
 or if you want to create a new project:
