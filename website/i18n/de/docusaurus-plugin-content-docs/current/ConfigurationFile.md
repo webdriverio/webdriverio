@@ -100,9 +100,10 @@ export const config = {
     // Or set a limit to run tests with a specific capability.
     maxInstancesPerCapability: 10,
     //
-    // Inserts WebdriverIO's globals (e.g. `browser`, `$` and `$$`) into the global environment. // If you set to `false`, you should import from `@wdio/globals`.
-    Note: WebdriverIO doesn't
-    // handle injection of test framework specific globals. //
+    // Inserts WebdriverIO's globals (e.g. `browser`, `$` and `$$`) into the global environment.
+    // If you set to `false`, you should import from `@wdio/globals`. Note: WebdriverIO doesn't
+    // handle injection of test framework specific globals.
+    //
     injectGlobals: true,
     //
     // If you have trouble getting all important capabilities together, check out the
@@ -125,10 +126,10 @@ export const config = {
         //    ignoreDefaultArgs: ['--disable-sync', '--disable-extensions'],
         // }
     }, {
-        // maxInstances can get overwritten per capability.
-    So if you have an in house Selenium
+        // maxInstances can get overwritten per capability. So if you have an in house Selenium
         // grid with only 5 firefox instance available you can make sure that not more than
-        // 5 instance gets started at a time. maxInstances: 5,
+        // 5 instance gets started at a time.
+        maxInstances: 5,
         browserName: 'firefox',
         specs: [
             'test/ffOnly/*'
@@ -169,11 +170,11 @@ export const config = {
     //
     // If you only want to run your tests until a specific amount of tests have failed use
     // bail (default is 0 - don't bail, run all tests).
-        bail: 0,
+    bail: 0,
     //
-    // Set a base URL in order to shorten `url()` command calls.
-    If your `url` parameter starts
-    // with `/`, the `baseUrl` is prepended, not including the path portion of `baseUrl`. //
+    // Set a base URL in order to shorten `url()` command calls. If your `url` parameter starts
+    // with `/`, the `baseUrl` is prepended, not including the path portion of `baseUrl`.
+    //
     // If your `url` parameter starts without a scheme or `/` (like `some/path`), the `baseUrl`
     // gets prepended directly.
     baseUrl: 'http://localhost:8080',
@@ -182,13 +183,14 @@ export const config = {
     waitforTimeout: 1000,
     //
     // Add files to watch (e.g. application code or page objects) when running `wdio` command
-    // with `--watch` flag.
-    Globbing is supported. filesToWatch: [
+    // with `--watch` flag. Globbing is supported.
+    filesToWatch: [
         // e.g. rerun tests if I change my application code
         // './app/**/*.js'
     ],
     //
-    // Framework you want to run your specs with. // The following are supported: 'mocha', 'jasmine', and 'cucumber'
+    // Framework you want to run your specs with.
+    // The following are supported: 'mocha', 'jasmine', and 'cucumber'
     // See also: https://webdriver.io/docs/frameworks.html
     //
     // Make sure you have the wdio adapter package for the specific framework installed before running any tests.
@@ -201,7 +203,8 @@ export const config = {
     // Whether or not retried specfiles should be retried immediately or deferred to the end of the queue
     specFileRetriesDeferred: false,
     //
-    // Test reporter for stdout. // The only one supported by default is 'dot'
+    // Test reporter for stdout.
+    // The only one supported by default is 'dot'
     // See also: https://webdriver.io/docs/dot-reporter.html , and click on "Reporters" in left column
     reporters: [
         'dot',
@@ -209,7 +212,7 @@ export const config = {
             //
             // If you are using the "allure" reporter you should define the directory where
             // WebdriverIO should save all allure reports.
-    outputDir: './'
+            outputDir: './'
         }]
     ],
     //
@@ -227,10 +230,9 @@ export const config = {
         defaultTimeoutInterval: 5000,
         //
         // The Jasmine framework allows it to intercept each assertion in order to log the state of the application
-        // or website depending on the result.
-            For example, it is pretty handy to take a screenshot every time
+        // or website depending on the result. For example, it is pretty handy to take a screenshot every time
         // an assertion fails.
-    expectationResultHandler: function(passed, assertion) {
+        expectationResultHandler: function(passed, assertion) {
             // do something
         },
         //
@@ -252,8 +254,9 @@ export const config = {
         strict: false,      // <boolean> fail if there are any undefined or pending steps
         tagExpression: '',  // <string> (expression) only execute the features or scenarios with tags matching the expression
         timeout: 20000,     // <number> timeout for step definitions
-        ignoreUndefinedDefinitions: false, // <boolean> Enable this config to treat undefined definitions as warnings. scenarioLevelReporter: false // Enable this to make webdriver.io behave as if scenarios and not steps were the tests.
-        },
+        ignoreUndefinedDefinitions: false, // <boolean> Enable this config to treat undefined definitions as warnings.
+        scenarioLevelReporter: false // Enable this to make webdriver.io behave as if scenarios and not steps were the tests.
+    },
     // For convenience, if ts-node or @babel/register modules are detected
     // they are automatically loaded for config parsing so that TypeScript and
     // future ES features can be used in wdio configs, and are also
@@ -262,15 +265,14 @@ export const config = {
     // Because this may not be ideal in every situation, the following options
     // may be used to customize the loading for test running, incase it has
     // other requirements.
-        autoCompileOpts: {
+    autoCompileOpts: {
         //
         // To disable auto-loading entirely set this to false.
-    autoCompile: true, // <boolean> Disable this to turn off autoloading.
-    Note: When disabling, you will need to handle calling any such libraries yourself.
-    //
+        autoCompile: true, // <boolean> Disable this to turn off autoloading. Note: When disabling, you will need to handle calling any such libraries yourself.
+        //
         // If you have ts-node installed, you can customize how options are passed to it here:
-        // Any valid ts-node config option is allowed.
-        Alternatively the ENV Vars could also be used instead of this. // See also: https://github.com/TypeStrong/ts-node#cli-and-programmatic-options
+        // Any valid ts-node config option is allowed. Alternatively the ENV Vars could also be used instead of this.
+        // See also: https://github.com/TypeStrong/ts-node#cli-and-programmatic-options
         // See also RegisterOptions in https://github.com/TypeStrong/ts-node/blob/master/src/index.ts
         tsNodeOpts: {
             transpileOnly: true,
@@ -289,19 +291,20 @@ export const config = {
     // =====
     // WebdriverIO provides a several hooks you can use to interfere the test process in order to enhance
     // it and build services around it. You can either apply a single function to it or an array of
-    // methods.
-        If one of them returns with a promise, WebdriverIO will wait until that promise is
+    // methods. If one of them returns with a promise, WebdriverIO will wait until that promise is
     // resolved to continue.
-        //
+    //
     /**
-     * Gets executed once before all workers get launched. * @param {object} config wdio configuration object
+     * Gets executed once before all workers get launched.
+     * @param {object} config wdio configuration object
      * @param {Array.<Object>} capabilities list of capabilities details
      */
     onPrepare: function (config, capabilities) {
     },
     /**
      * Gets executed before a worker process is spawned and can be used to initialize specific service
-     * for that worker as well as modify runtime environments in an async fashion. * @param  {string} cid      capability id (e.g 0-0)
+     * for that worker as well as modify runtime environments in an async fashion.
+     * @param  {string} cid      capability id (e.g 0-0)
      * @param  {object} caps     object containing capabilities for session that will be spawn in the worker
      * @param  {object} specs    specs to be run in the worker process
      * @param  {object} args     object that will be merged with the main configuration once worker is initialized
@@ -311,7 +314,7 @@ export const config = {
     },
     /**
      * Gets executed after a worker process has exited.
-    * @param  {string} cid      capability id (e.g 0-0)
+     * @param  {string} cid      capability id (e.g 0-0)
      * @param  {number} exitCode 0 - success, 1 - fail
      * @param  {object} specs    specs to be run in the worker process
      * @param  {number} retries  number of retries used
@@ -319,8 +322,7 @@ export const config = {
     onWorkerEnd: function (cid, exitCode, specs, retries) {
     },
     /**
-     * Gets executed before initializing the webdriver session and test framework.
-     It allows you
+     * Gets executed before initializing the webdriver session and test framework. It allows you
      * to manipulate configurations depending on the capability or spec.
      * @param {object} config wdio configuration object
      * @param {Array.<Object>} capabilities list of capabilities details
@@ -329,8 +331,7 @@ export const config = {
     beforeSession: function (config, capabilities, specs) {
     },
     /**
-     * Gets executed before test execution begins.
-     At this point you can access to all global
+     * Gets executed before test execution begins. At this point you can access to all global
      * variables like `browser`. It is the perfect place to define custom commands.
      * @param {Array.<Object>} capabilities list of capabilities details
      * @param {Array.<String>} specs        List of spec file paths that are to be run
@@ -339,13 +340,14 @@ export const config = {
     before: function (capabilities, specs, browser) {
     },
     /**
-     * Gets executed before the suite starts. * @param {object} suite suite details
+     * Gets executed before the suite starts.
+     * @param {object} suite suite details
      */
     beforeSuite: function (suite) {
     },
     /**
-     * This hook gets executed _before_ every hook within the suite starts. * (For example, this runs before calling `before`, `beforeEach`, `after`, `afterEach` in Mocha.).
-     In Cucumber `context` is the World object.
+     * This hook gets executed _before_ every hook within the suite starts.
+     * (For example, this runs before calling `before`, `beforeEach`, `after`, `afterEach` in Mocha.). In Cucumber `context` is the World object.
      *
      */
     beforeHook: function (test, context) {
@@ -392,13 +394,13 @@ export const config = {
     afterTest: function (test, context, { error, result, duration, passed, retries }) {
     },
     /**
-     * Hook that gets executed after the suite has ended. * @param {object} suite suite details
+     * Hook that gets executed after the suite has ended.
+     * @param {object} suite suite details
      */
     afterSuite: function (suite) {
     },
     /**
-     * Gets executed after all tests are done.
-     You still have access to all global variables from
+     * Gets executed after all tests are done. You still have access to all global variables from
      * the test.
      * @param {number} result 0 - test pass, 1 - test fail
      * @param {Array.<Object>} capabilities list of capabilities details
@@ -407,7 +409,8 @@ export const config = {
     after: function (result, capabilities, specs) {
     },
     /**
-     * Gets executed right after terminating the webdriver session. * @param {object} config wdio configuration object
+     * Gets executed right after terminating the webdriver session.
+     * @param {object} config wdio configuration object
      * @param {Array.<Object>} capabilities list of capabilities details
      * @param {Array.<String>} specs List of spec file paths that ran
      */
@@ -415,7 +418,8 @@ export const config = {
     },
     /**
      * Gets executed after all workers have shut down and the process is about to exit.
-     * An error thrown in the `onComplete` hook will result in the test run failing. * @param {object} exitCode 0 - success, 1 - fail
+     * An error thrown in the `onComplete` hook will result in the test run failing.
+     * @param {object} exitCode 0 - success, 1 - fail
      * @param {object} config wdio configuration object
      * @param {Array.<Object>} capabilities list of capabilities details
      * @param {<Object>} results object containing test results
@@ -424,31 +428,28 @@ export const config = {
     },
     /**
     * Gets executed when a refresh happens.
-     * @param {string} oldSessionId session ID of the old session
+    * @param {string} oldSessionId session ID of the old session
     * @param {string} newSessionId session ID of the new session
     */
     onReload: function(oldSessionId, newSessionId) {
     },
     /**
      * Cucumber Hooks
-     *
-     * Runs before a Cucumber Feature.
+     * * Runs before a Cucumber Feature.
      * @param {string}                   uri      path to feature file
      * @param {GherkinDocument.IFeature} feature  Cucumber feature object
      */
     beforeFeature: function (uri, feature) {
     },
     /**
-     *
-     * Runs before a Cucumber Scenario.
+     * * Runs before a Cucumber Scenario.
      * @param {ITestCaseHookParameter} world    world object containing information on pickle and test step
      * @param {object}                 context  Cucumber World object
      */
     beforeScenario: function (world, context) {
     },
     /**
-     *
-     * Runs before a Cucumber Step.
+     * * Runs before a Cucumber Step.
      * @param {Pickle.IPickleStep} step     step data
      * @param {IPickle}            scenario scenario pickle
      * @param {object}             context  Cucumber World object
@@ -456,9 +457,8 @@ export const config = {
     beforeStep: function (step, scenario, context) {
     },
     /**
-     *
-     * Runs after a Cucumber Step.
-    * @param {Pickle.IPickleStep} step             step data
+     * * Runs after a Cucumber Step.
+     * @param {Pickle.IPickleStep} step             step data
      * @param {IPickle}            scenario         scenario pickle
      * @param {object}             result           results object containing scenario results
      * @param {boolean}            result.passed    true if scenario has passed
@@ -469,8 +469,7 @@ export const config = {
     afterStep: function (step, scenario, result, context) {
     },
     /**
-     *
-     * Runs after a Cucumber Scenario.
+     * * Runs after a Cucumber Scenario.
      * @param {ITestCaseHookParameter} world            world object containing information on pickle and test step
      * @param {object}                 result           results object containing scenario results `{passed: boolean, error: string, duration: number}`
      * @param {boolean}                result.passed    true if scenario has passed
@@ -481,18 +480,13 @@ export const config = {
     afterScenario: function (world, result, context) {
     },
     /**
-     *
-     * Runs after a Cucumber Feature.
+     * * Runs after a Cucumber Feature.
      * @param {string}                   uri      path to feature file
      * @param {GherkinDocument.IFeature} feature  Cucumber feature object
      */
     afterFeature: function (uri, feature) {
     }
 }
-     
-     
-     
-     
 ```
 
 You can also find a file with all possible options and variations in the [example folder](https://github.com/webdriverio/webdriverio/blob/main/examples/wdio.conf.js).
