@@ -105,11 +105,6 @@ export const {
     }],
     // ...
 }
-    runner: ['browser', {
-        preset: 'svelte'
-    }],
-    // ...
-}
 ```
 
 #### `viteConfig`
