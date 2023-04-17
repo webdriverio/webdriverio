@@ -31,6 +31,8 @@ If you're in the root directory of an existing project, run:
 
 ```sh
 npm init wdio .
+```sh
+npm init wdio .
 ```
 
 or if you want to create a new project:
@@ -44,6 +46,8 @@ npm init wdio ./path/to/new/project
 
 ```sh
 yarn create wdio .
+```sh
+yarn create wdio .
 ```
 
 or if you want to create a new project:
@@ -55,6 +59,8 @@ yarn create wdio ./path/to/new/project
 </TabItem>
 <TabItem value="pnpm">
 
+```sh
+pnpm create wdio .
 ```sh
 pnpm create wdio .
 ```
@@ -126,6 +132,8 @@ npx wdio run ./wdio.conf.js --suite exampleSuiteName
 ```
 
 ## Run in a script
+
+If you would like to use WebdriverIO as an automation engine in [Standalone Mode](/docs/setuptypes#standalone-mode) within a Node.JS script you can also directly install WebdriverIO and use it as a package, e.g. to generate a screenshot of a website:
 
 ```js reference useHTTPS
 https://github.com/webdriverio/example-recipes/blob/fc362f2f8dd823d294b9bb5f92bd5991339d4591/getting-started/run-in-script.js#L2-L19
