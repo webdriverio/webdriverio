@@ -185,7 +185,7 @@ export const config = {
 
 ### Añadir Servicio Publicado a WDIO CLI y Docs
 
-Realmente apreciamos cada nuevo plugin que podría ayudar a otras personas a hacer mejores pruebas! Si has creado un plugin de este tipo, por favor considera añadirlo a nuestro CLI y documentos para que sea más fácil de encontrar.
+Realmente apreciamos cada nuevo plugin que podría ayudar a otras personas a hacer mejores pruebas! Si has creado un plugin de este tipo, por favor considera añadirlo a nuestro CLI y documentos para que sea más fácil de encontrar. Si has creado un plugin de este tipo, por favor considera añadirlo a nuestro CLI y documentos para que sea más fácil de encontrar.
 
 Por favor, envíe un pull request con los siguientes cambios:
 
