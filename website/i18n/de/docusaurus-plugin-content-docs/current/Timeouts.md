@@ -59,6 +59,9 @@ export const config = {
     waitforTimeout: 5000,
     // ...
 }
+    waitforTimeout: 5000,
+    // ...
+}
 ```
 
 In your tests, you now can do this:
