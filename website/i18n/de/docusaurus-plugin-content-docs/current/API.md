@@ -7,7 +7,6 @@ Willkommen zur WebdriverIO API Dokumentation. Diese Seiten enthalten Referenzmat
 
 :::info Dies sind die Dokumentation für die aktuelle Version (__v8.x__) von WebdriverIO. Wenn Sie noch eine ältere Version verwenden, besuchen Sie bitte die [alten Dokumentations-Webseiten](/versions)!
 :::
-:::
 
 ## Unterstützen Sie
 
