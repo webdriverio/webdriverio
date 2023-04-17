@@ -60,6 +60,7 @@ This will walk you through a couple of questions. For this migration scenario yo
 :::info Why Mocha?
 Even though you might have been using Protractor with Jasmine before, Mocha however provides better retry mechanisms. The choice is yours!
 :::
+:::
 
 After the little questionaire the wizard will install all necessary packages and stores them in your `package.json`.
 
