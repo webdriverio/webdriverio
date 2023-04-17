@@ -24,5 +24,5 @@ export const config = {
 ```
 
 :::info
-Trate de ejecutar pruebas en paralelo lo más posible Las pruebas de E2E son, por naturaleza, lentas. Volver a ejecutar pruebas sólo es útil si se puede mantener el tiempo de ejecución individual corto. Con el fin de ahorrar tiempo, el testrunner mantiene vivas las sesiones WebDriver mientras espera cambios en el archivo. Asegúrese de que su backend WebDriver puede ser modificado para que no cierre automáticamente la sesión si no se ejecutó ningún comando después de algún tiempo.
+Trate de ejecutar pruebas en paralelo lo más posible Las pruebas de E2E son, por naturaleza, lentas. Las pruebas de E2E son, por naturaleza, lentas. Volver a ejecutar pruebas sólo es útil si se puede mantener el tiempo de ejecución individual corto. Con el fin de ahorrar tiempo, el testrunner mantiene vivas las sesiones WebDriver mientras espera cambios en el archivo. Asegúrese de que su backend WebDriver puede ser modificado para que no cierre automáticamente la sesión si no se ejecutó ningún comando después de algún tiempo.
 :::
