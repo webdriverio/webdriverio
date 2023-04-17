@@ -9,11 +9,11 @@ With WebdriverIOs [Browser Runner](/docs/runner#browser-runner) you can run test
 
 The Browser Runner uses [Vite](https://vitejs.dev/) to render a test page and initialize a test framework to run your tests in the browser. Currently it only supports Mocha but Jasmine and Cucumber are [on the roadmap](https://github.com/orgs/webdriverio/projects/1). This allows to test any kind of components even for projects that don't use Vite.
 
-The Vite server is started by the WebdriverIO testrunner and configured so that you can use all reporter and services as you used to for normal e2e tests. Furthermore it initialises a [`browser`](/docs/api/browser) instance that allows you to access a subset of the [WebdriverIO API](/docs/api) to interact with the any elements on the page. Similar as e2e tests you can access that instance through the `browser` variable attached to the global scope or by importing it from `@wdio/globals` depending on how [`injectGlobals`](/docs/api/globals) is set.
+The Vite server is started by the WebdriverIO testrunner and configured so that you can use all reporter and services as you used to for normal e2e tests. Furthermore it initialises a [`browser`](/docs/api/browser) instance that allows you to access a subset of the [WebdriverIO API](/docs/api) to interact with the any elements on the page. E2e परीक्षणों के समान आप वैश्विक दायरे से जुड़े `browser` वेरिएबल के माध्यम से या `@wdio/globals` से आयात करके इस उदाहरण तक पहुंच सकते हैं, यह इस बात पर निर्भर करता है कि [`njectGlobals`](/docs/api/globals) कैसे सेट किया गया है।
 
-## Setup
+## सेटअप
 
-To set-up WebdriverIO for unit or component testing in the browser, initiate a new WebdriverIO project via:
+ब्राउज़र में यूनिट या घटक परीक्षण के लिए WebdriverIO सेट-अप करने के लिए, एक नया WebdriverIO प्रोजेक्ट आरंभ करें:
 
 ```bash
 npm init wdio@latest ./
@@ -21,11 +21,11 @@ npm init wdio@latest ./
 yarn create wdio ./
 ```
 
-Once the configuration wizard starts, pick `browser` for running unit and component testing and choose one of the presets if desired otherwise go with _"Other"_ if you only want to run basic unit tests. You can also configure a custom Vite configuration if you use Vite already in your project. For more information check out all [runner options](/docs/runner#runner-options).
+एक बार कॉन्फ़िगरेशन विज़ार्ड शुरू होने के बाद, यूनिट और कॉम्पोनेन्ट परीक्षण चलाने के लिए `browser` चुनें और यदि वांछित हो तो प्रीसेट में से एक चुनें अन्यथा _"अन्य"_ के साथ जाएं यदि आप केवल मूल यूनिट परीक्षण चलाना चाहते हैं। यदि आप अपने प्रोजेक्ट में पहले से ही Vite का उपयोग करते हैं, तो आप एक कस्टम Vite कॉन्फ़िगरेशन भी कॉन्फ़िगर कर सकते हैं। अधिक जानकारी के लिए सभी [रनर विकल्प](/docs/runner#runner-options)देखें।
 
 :::info
 
-__Note:__ WebdriverIO by default will run browser tests in CI headlessly, e.g. a `CI` environment variable is set to `'1'` or `'true'`. You can manually configure this behavior using the [`headless`](/docs/runner#headless) option for the runner.
+__नोट:__ WebdriverIO डिफ़ॉल्ट रूप से CI में ब्राउज़र परीक्षण चलाएगा, उदाहरण के लिए `CI` पर्यावरण चर `'1'` या `'true'`पर सेट है। आप रनर के लिए [`headless`](/docs/runner#headless) विकल्प का उपयोग करके मैन्युअल रूप से इस व्यवहार को कॉन्फ़िगर कर सकते हैं।
 
 :::
 
