@@ -51,6 +51,8 @@ There are of course always special cases where you need to pay a bit more attent
 
 ### ForEach Loops
 
+If you have a `forEach` loop, e.g. to iterate over elements, you need to make sure that the iterator callback is handled properly in an async manner, e.g.:
+
 ```js
 const elems = $$('div')
 elems.forEach((elem) => {
