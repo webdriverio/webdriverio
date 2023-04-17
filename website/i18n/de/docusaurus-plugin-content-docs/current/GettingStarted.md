@@ -59,8 +59,6 @@ yarn create wdio ./path/to/new/project
 
 ```sh
 pnpm create wdio .
-```sh
-pnpm create wdio .
 ```
 
 or if you want to create a new project:
