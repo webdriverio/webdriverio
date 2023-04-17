@@ -44,8 +44,6 @@ npm init wdio ./path/to/new/project
 
 ```sh
 yarn create wdio .
-```sh
-yarn create wdio .
 ```
 
 or if you want to create a new project:
