@@ -47,6 +47,14 @@ export default class BrowserRunner extends LocalRunner {
         this.#config = _config
         this.#coverageOptions = options.coverage || <CoverageOptions>{}
         this.#reportsDirectory = this.#coverageOptions.reportsDirectory || path.join(this.#config.rootDir!, DEFAULT_REPORTS_DIRECTORY)
+
+        /**
+         * transform mochaOpts require params so we can use it in the browser
+         */
+        if (this.#config.mochaOpts) {
+            this.#config.mochaOpts.require = (this.#config.mochaOpts.require || [])
+                .map((r) => path.join(this.#config.rootDir || process.cwd(), r))
+        }
     }
 
     /**

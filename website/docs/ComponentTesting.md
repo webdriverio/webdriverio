@@ -49,6 +49,35 @@ https://github.com/webdriverio/example-recipes/blob/fd54f94306ed8e7b40f967739164
 
 __Note:__ using render methods from Testing Library helps remove created components between the tests. If you don't use Testing Library ensure to attach your test components to a container that gets cleaned up between tests.
 
+## Setup Scripts
+
+You can set up your tests by running arbitrary scripts in Node.js or in the browser, e.g. injecting styles, mocking browser APIs or connecting to a 3rd party service. The WebdriverIO [hooks](/docs/configuration#hooks) can be used to run code in Node.js while the [`mochaOpts.require`](/docs/frameworks#require) allows you to import scripts into the browser before tests are loaded, e.g.:
+
+```js wdio.conf.js
+export const config = {
+    // ...
+    mochaOpts: {
+        ui: 'tdd',
+        // provide a setup script to run in the browser
+        require: './__fixtures__/setup.js'
+    },
+    before: () => {
+        // set up test environment in Node.js
+    }
+    // ...
+}
+```
+
+For example, if you like to mock all [`fetch()`](https://developer.mozilla.org/en-US/docs/Web/API/fetch) calls in your test with the following set-up script:
+
+```js ./fixtures/setup.js
+import { fn } from '@wdio/browser-runner'
+
+window.fetch = fn()
+```
+
+Now in your tests you can provide custom response values for all browser requests.
+
 ## Watch Test and Application Files
 
 There are multiple ways how you can debug your browser tests. The easiest is to start the WebdriverIO testrunner with the `--watch` flag, e.g.:
