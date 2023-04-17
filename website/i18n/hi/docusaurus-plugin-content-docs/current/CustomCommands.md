@@ -222,9 +222,9 @@ You can also overwrite native commands with `overwriteCommand`.
 
 It is not recommended to do this, because it may lead to unpredictable behavior of the framework!
 
-The overall approach is similar to `addCommand`, the only difference is that the first argument in the command function is the original function that you are about to overwrite. Please see some examples below.
+समग्र दृष्टिकोण `addCommand`के समान है, केवल अंतर यह है कि कमांड फ़ंक्शन में पहला तर्क मूल फ़ंक्शन है जिसे आप अधिलेखित करने वाले हैं। कृपया नीचे कुछ उदाहरण देखें।
 
-### Overwriting Browser Commands
+### ओवरराइटिंग ब्राउज़र कमांड
 
 ```js
 /**
@@ -242,9 +242,9 @@ browser.overwriteCommand('pause', async (origPauseFunction, ms) => {
 console.log(`was sleeping for ${await browser.pause(1000)}`)
 ```
 
-### Overwriting Element Commands
+### ओवरराइटिंग एलिमेंट कमांड
 
-Overwriting commands on element level is almost the same. Simply pass `true` as the third argument to `overwriteCommand`:
+एलिमेंट स्तर पर ओवरराइटिंग कमांड लगभग समान है। बस `True` तीसरे तर्क के रूप में `overwriteCommand`पास करें:
 
 ```js
 /**
@@ -287,9 +287,9 @@ await elem.click()
 await elem.click({ force: true })
 ```
 
-## Add More WebDriver Commands
+## अधिक वेबड्राइवर कमांड जोड़ें
 
-If you are using the WebDriver protocol and run tests on a platform that supports additional commands not defined by any of the protocol definitions in [`@wdio/protocols`](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-protocols/src/protocols) you can manually add them through the `addCommand` interface. The `webdriver` package offers a command wrapper that allows to register these new endpoints in the same way as other commands, providing the same parameter checks and error handling. To register this new endpoint import the command wrapper and register a new command with it as follows:
+यदि आप WebDriver प्रोटोकॉल का उपयोग कर रहे हैं और ऐसे प्लेटफ़ॉर्म पर परीक्षण चला रहे हैं जो [`@wdio/protocols`](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-protocols/src/protocols) में किसी भी प्रोटोकॉल परिभाषा द्वारा परिभाषित नहीं किए गए अतिरिक्त कमांड का समर्थन करता है, तो आप उन्हें `addCommand` इंटरफ़ेस के माध्यम से मैन्युअल रूप से जोड़ सकते हैं। `webdriver` पैकेज एक कमांड रैपर प्रदान करता है जो इन नए एंडपॉइंट्स को उसी तरह पंजीकृत करने की अनुमति देता है जैसे अन्य कमांड, समान पैरामीटर चेक और त्रुटि प्रबंधन प्रदान करते हैं। इस नए समापन बिंदु को पंजीकृत करने के लिए कमांड रैपर को इम्पोर्ट करें और इसके साथ एक नया कमांड निम्नानुसार पंजीकृत करें:
 
 ```js
 import { command } from 'webdriver'
@@ -311,7 +311,7 @@ browser.addCommand('myNewCommand', command('POST', '/session/:sessionId/foobar/:
 }))
 ```
 
-Calling this command with invalid parameters results in the same error handling as predefined protocol commands, e.g.:
+इस आदेश को अमान्य पैरामीटर के साथ कॉल करने से पूर्वनिर्धारित प्रोटोकॉल कमांड के समान त्रुटि प्रबंधन होता है, उदाहरण के लिए:
 
 ```js
 // call command without required url parameter and payload
@@ -332,10 +332,10 @@ await browser.myNewCommand()
  */
 ```
 
-Calling the command correctly, e.g. `browser.myNewCommand('foo', 'bar')`, correctly makes a WebDriver request to e.g. `http://localhost:4444/session/7bae3c4c55c3bf82f54894ddc83c5f31/foobar/foo` with a payload like `{ foo: 'bar' }`.
+कमांड को सही ढंग से कॉल करना, उदाहरण के लिए `browser.myNewCommand('foo', 'bar')`, सही ढंग से एक वेबड्राइवर अनुरोध बनाता है जैसे `http://localhost:4444/session/7bae3c4c55c3bf82f54894ddc83c5f31/foobar/foo` जैसे पेलोड के साथ `{ foo: 'bar' }`.
 
 :::note
-The `:sessionId` url parameter will be automatically substituted with the session id of the WebDriver session. Other url parameter can be applied but need to be defined within `variables`.
+`:sessionId` url पैरामीटर स्वचालित रूप से वेबड्राइवर सत्र की सत्र आईडी के साथ प्रतिस्थापित किया जाएगा। अन्य यूआरएल पैरामीटर लागू किए जा सकते हैं लेकिन उन्हें `variables`के भीतर परिभाषित करने की आवश्यकता है।
 :::
 
-See examples of how protocol commands can be defined in the [`@wdio/protocols`](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-protocols/src/protocols) package.
+[`@wdio/protocols`](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-protocols/src/protocols) पैकेज में प्रोटोकॉल कमांड को कैसे परिभाषित किया जा सकता है, इसके उदाहरण देखें।
