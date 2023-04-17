@@ -29,7 +29,6 @@ bootstrap();
 export const config = {
     // ...
 }
-}
 ```
 
 ### Set global-agent environment variables
