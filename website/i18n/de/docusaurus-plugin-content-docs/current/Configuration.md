@@ -179,9 +179,9 @@ Type: `String`<br /> Default: `null`
 
 ### waitforTimeout
 
-Default timeout for all `waitFor*` commands. (Note the lowercase `f` in the option name.) (Note the lowercase `f` in the option name.) (Note the lowercase `f` in the option name.) (Note the lowercase `f` in the option name.) This timeout __only__ affects commands starting with `waitFor*` and their default wait time.
+Standard-Timeout für alle `waitFor*` -Befehle. (Beachten Sie den Kleinbuchstaben `f` im Optionsnamen.) Diese Zeitüberschreitung __nur__ wirkt sich auf Befehle aus, die mit `waitFor*` und ihrer Standardwartezeit beginnen.
 
-To increase the timeout for a _test_, please see the framework docs.
+Informationen zum Erhöhen des Timeouts für einen _Test_finden Sie in der Framework-Dokumentation.
 
 Type: `Number`<br /> Default: `3000`
 
@@ -261,7 +261,7 @@ Type: `Boolean`<br /> Default: `true`
 
 ### bail
 
-If you want your test run to stop after a specific number of test failures, use `bail`. (It defaults to `0`, which runs all tests no matter what.) (It defaults to `0`, which runs all tests no matter what.) (It defaults to `0`, which runs all tests no matter what.) **Note:** Please be aware that when using a third party test runner (such as Mocha), additional configuration might be required.
+Wenn Sie möchten, dass Ihr Testlauf nach einer bestimmten Anzahl von Testfehlern beendet wird, verwenden Sie `bail`. (Der Standardwert ist `0`, wodurch alle Tests ausgeführt werden, egal was passiert.) **Hinweis:** Bitte beachten Sie, dass bei Verwendung eines Test-Runners eines Drittanbieters (z. B. Mocha) möglicherweise eine zusätzliche Konfiguration erforderlich ist.
 
 Type: `Number`<br /> Default: `0` (don't bail; run all tests)
 
