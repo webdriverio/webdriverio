@@ -38,6 +38,6 @@ Wenn Sie an einem der Repositories innerhalb der GitHub WebdriverIO Organisation
 
 Wenn Sie ein Mitgliend des [Technical Steering Committee Teams](https://github.com/webdriverio/webdriverio/blob/main/AUTHORS.md#tsc-technical-steering-committee) sind, dann sind Sie berechtigt Anspruch für die Abrechnung von Hotel oder anderen Reisekosten zu nehmen, solange diese im Zusammenhang mit einem Event stehen, bei den Sie über WebdriverIO sprechen. Sie können bis zu $500 Anspruch wahrnehmen. Erstattungsanforderungen für Reisekosten beinhalten:
 
--
+- Sie müssen einen Beitrag von Ihrem Haupt-Social Media Account (z. Twitter, LinkedIn oder persönliches Blog) teilen, bei dem Sie allen Mitwirkenden des OpenCollectives nach der Veranstaltung danken, nachdem das Event beendet ist.
 - Sie müssen das Geld für Reisekosten wie Boden- oder Lufttransport zu den Veranstaltungen und Hotelunterkünften verwenden.
 - Sie müssen Rechnungen mit Ihrer Rückerstattung einreichen.
