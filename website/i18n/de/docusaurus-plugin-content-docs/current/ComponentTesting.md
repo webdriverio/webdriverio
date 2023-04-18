@@ -56,6 +56,8 @@ You can set up your tests by running arbitrary scripts in Node.js or in the brow
 ```js wdio.conf.js
 export const config = {
     // ...
+    export const config = {
+    // ...
     mochaOpts: {
         ui: 'tdd',
         // provide a setup script to run in the browser
@@ -65,6 +67,7 @@ export const config = {
         // set up test environment in Node.js
     }
     // ...
+}
 }
 ```
 
