@@ -20,10 +20,10 @@ title: क्या आपको मदद की ज़रूरत है?
 
 ऐसे कई ऑनलाइन फ़ोरम हैं जो WebdriverIO सुविधाओं, समस्याओं और बगों के बारे में चर्चा करने के लिए एक बढ़िया स्थान हैं, जैसे:
 
-- [GitHub Discussions](https://github.com/webdriverio/webdriverio/discussions)
+- [गिटहब चर्चाएँ](https://github.com/webdriverio/webdriverio/discussions)
 - [Community Channel](https://discord.webdriver.io)
-- [#webdriverio Channel on SeleniumHQ Slack](https://join.slack.com/t/seleniumhq/shared_invite/zt-vv33sc0w-VKKQop3WDV_lfrLXGGHvDw)
+- [सेलेनियमएचक्यू स्लैक पर #webdriverio चैनल](https://join.slack.com/t/seleniumhq/shared_invite/zt-vv33sc0w-VKKQop3WDV_lfrLXGGHvDw)
 
-## News
+## समाचार
 
-For the latest news about WebdriverIO, [follow @webdriverio on Twitter](https://twitter.com/webdriverio) and the official [WebdriverIO blog](/blog) on this website.
+WebdriverIO के बारे में नवीनतम समाचारों के लिए, [@webdriverio को Twitter](https://twitter.com/webdriverio) पर और आधिकारिक [WebdriverIO ब्लॉग](/blog) को इस वेबसाइट पर फ़ॉलो करें।
