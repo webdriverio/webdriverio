@@ -61,8 +61,8 @@ Appium [प्रलेखन](https://appium.io/docs/en/about-appium/intro/?lan
 
 ## JSON Wire Protocol
 
-[JSON वायर प्रोटोकॉल](https://www.selenium.dev/documentation/legacy/json_wire_protocol/) वेबड्राइवर प्रोटोकॉल का पूर्व-पूर्ववर्ती है और आज ____ दिया गया है। While some commands might still be supported in certain environments, it is not recommended to use any of its commands.
+[JSON वायर प्रोटोकॉल](https://www.selenium.dev/documentation/legacy/json_wire_protocol/) वेबड्राइवर प्रोटोकॉल का पूर्व-पूर्ववर्ती है और आज ____ दिया गया है। जबकि कुछ कमांड अभी भी कुछ वातावरणों में समर्थित हो सकते हैं, इसकी किसी भी कमांड का उपयोग करने की अनुशंसा नहीं की जाती है।
 
 ## Mobile JSON Wire Protocol
 
-The [Mobile JSON Wire Protocol](https://github.com/SeleniumHQ/mobile-spec/blob/master/spec-draft.md) is a super set of mobile commands on top of the JSON Wire Protocol. Given this one is deprecated the Mobile JSON Wire Protocol also got __deprecated__. Appium might still support some of its commands but it is not recommended to use them.
+[मोबाइल JSON वायर प्रोटोकॉल](https://github.com/SeleniumHQ/mobile-spec/blob/master/spec-draft.md) JSON वायर प्रोटोकॉल के शीर्ष पर मोबाइल कमांड का सुपर सेट है। यह देखते हुए कि मोबाइल JSON वायर प्रोटोकॉल को पदावनत कर दिया गया है, को __पदावनत__भी मिला है। एपियम अभी भी इसके कुछ आदेशों का समर्थन कर सकता है लेकिन उनका उपयोग करने की अनुशंसा नहीं की जाती है।
