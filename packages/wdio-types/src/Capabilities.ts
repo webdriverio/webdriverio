@@ -700,6 +700,7 @@ export interface AppiumXCUITestCapabilities {
     'appium:simpleIsVisibleCheck'?: boolean;
     'appium:shouldUseSingletonTestManager'?: boolean;
     'appium:isHeadless'?: boolean;
+    'appium:autoGrantPermissions'?: boolean;
     'appium:useXctestrunFile'?: boolean;
     'appium:absoluteWebLocations'?: boolean;
     'appium:simulatorWindowCenter'?: string;
