@@ -3,11 +3,11 @@ id: vue
 title: Vue.js
 ---
 
-[Vue.js](https://vuejs.org/) is an approachable, performant and versatile framework for building web user interfaces. You can test Vue.js components directly in a real browser using WebdriverIO and its [browser runner](/docs/runner#browser-runner).
+[Vue.js](https://vuejs.org/) वेब यूजर इंटरफेस बनाने के लिए एक सुलभ, प्रदर्शनकारी और बहुमुखी ढांचा है। आप WebdriverIO और इसके [ब्राउज़र रनर](/docs/runner#browser-runner)का उपयोग करके सीधे वास्तविक ब्राउज़र में Vue.js घटकों का परीक्षण कर सकते हैं।
 
-## Setup
+## सेटअप
 
-To setup WebdriverIO within your Vue.js project, follow the [instructions](/docs/component-testing#set-up) in our component testing docs. Make sure to select `vue` as preset within your runner options, e.g.:
+अपने Vue.js प्रोजेक्ट में WebdriverIO सेटअप करने के लिए, हमारे कंपोनेंट टेस्टिंग डॉक्स में [निर्देशों](/docs/component-testing#set-up) का पालन करें। अपने रनर विकल्पों में `vue` प्रीसेट के रूप में चुनना सुनिश्चित करें, उदाहरण के लिए:
 
 ```js
 // wdio.conf.js
@@ -22,25 +22,25 @@ export const config = {
 
 :::info
 
-If you are already using [Vite](https://vitejs.dev/) as development server you can also just re-use your configuration in `vite.config.ts` within your WebdriverIO config. For more information, see `viteConfig` in [runner options](/docs/runner#runner-options).
+यदि आप पहले से ही विकास सर्वर के रूप में [Vite](https://vitejs.dev/) का उपयोग कर रहे हैं तो आप अपने WebdriverIO कॉन्फ़िगरेशन के भीतर `vite.config.ts` में अपने कॉन्फ़िगरेशन का पुन: उपयोग भी कर सकते हैं। अधिक जानकारी के लिए, `viteConfig` in [रनर विकल्प](/docs/runner#runner-options)देखें।
 
 :::
 
-The Vue preset requires `@vitejs/plugin-vue` to be installed. Also we recommend using [Testing Library](https://testing-library.com/) for rendering the component into the test page. Therefor you'll need to install the following additional dependencies:
+Vue प्रीसेट को स्थापित करने के लिए `@vitejs/plugin-vue` की आवश्यकता होती है। साथ ही हम परीक्षण पृष्ठ में घटक को प्रस्तुत करने के लिए [परीक्षण लाइब्रेरी](https://testing-library.com/) का उपयोग करने की अनुशंसा करते हैं। इसके लिए आपको निम्नलिखित अतिरिक्त निर्भरताओं को स्थापित करने की आवश्यकता होगी:
 
 ```sh npm2yarn
 npm install --save-dev @testing-library/vue @vitejs/plugin-vue
 ```
 
-You can then start the tests by running:
+फिर आप चलाकर परीक्षण शुरू कर सकते हैं:
 
 ```sh
 npx wdio run ./wdio.conf.js
 ```
 
-## Writing Tests
+## लेखन परीक्षण
 
-Given you have the following Vue.js component:
+यह देखते हुए कि आपके पास निम्नलिखित Vue.js घटक हैं:
 
 ```tsx title="./components/Component.vue"
 <template>
@@ -65,7 +65,7 @@ export default {
 </script>
 ```
 
-In your test use the `render` method from `@testing-library/vue` to attach the component to the test page. To interact with the component we recommend to use WebdriverIO commands as they behave more close to actual user interactions, e.g.:
+अपने परीक्षण में परीक्षण पृष्ठ पर घटक संलग्न करने के लिए `@testing-library/vue` से `render` विधि का उपयोग करें। घटक के साथ बातचीत करने के लिए हम WebdriverIO कमांड का उपयोग करने की अनुशंसा करते हैं क्योंकि वे वास्तविक उपयोगकर्ता इंटरैक्शन के अधिक निकट व्यवहार करते हैं, उदाहरण के लिए:
 
 ```ts title="vue.test.js"
 import { $, expect } from '@wdio/globals'
@@ -93,4 +93,4 @@ describe('Vue Component Testing', () => {
 })
 ```
 
-You can find a full example of a WebdriverIO component test suite for Vue.js in our [example repository](https://github.com/webdriverio/component-testing-examples/tree/main/vue-typescript-vite).
+आप हमारे [उदाहरण भंडार](https://github.com/webdriverio/component-testing-examples/tree/main/vue-typescript-vite)में Vue.js के लिए WebdriverIO घटक परीक्षण सूट का एक पूर्ण उदाहरण पा सकते हैं।
