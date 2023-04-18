@@ -3,9 +3,9 @@ id: jenkins
 title: Jenkins
 ---
 
-WebdriverIO offers a tight integration to CI systems like [Jenkins](https://jenkins-ci.org). With the `junit` reporter, you can easily debug your tests as well as keep track of your test results. The integration is pretty easy.
+WebdriverIO CI सिस्टम जैसे [Jenkins](https://jenkins-ci.org)के लिए एक सख्त एकीकरण प्रदान करता है। `junit` रिपोर्टर के साथ, आप अपने परीक्षणों को आसानी से डिबग कर सकते हैं और साथ ही अपने परीक्षा परिणामों पर नज़र रख सकते हैं। एकीकरण बहुत आसान है।
 
-1. Install the `junit` test reporter: `$ npm install @wdio/junit-reporter --save-dev`)
+1. `junit` टेस्ट रिपोर्टर स्थापित करें: `$ npm install @wdio/junit-reporter --save-dev`)
 1. Update your config to save your XUnit results where Jenkins can find them, (and specify the `junit` reporter):
 
 ```js
@@ -22,13 +22,13 @@ module.exports = {
 }
 ```
 
-It is up to you which framework to choose. The reports will be similar. For this tutorial, we’ll use Jasmine.
+यह आपके ऊपर है कि कौन सा ढांचा चुनना है। रिपोर्ट समान होंगी। इस ट्यूटोरियल के लिए, हम चमेली का प्रयोग करेंगे।
 
-After you have written couple of tests, you can setup a new Jenkins job. Give it a name and a description:
+आपके द्वारा कुछ परीक्षण लिखे जाने के बाद, आप एक नई जेनकींस जॉब सेटअप कर सकते हैं। इसे एक नाम और विवरण दें:
 
-![Name And Description](/img/jenkins/jobname.png "Name And Description")
+![नाम और विवरण](/img/jenkins/jobname.png "नाम और विवरण")
 
-Then make sure it grabs always the newest version of your repository:
+फिर सुनिश्चित करें कि यह आपके रिपॉजिटरी के हमेशा नवीनतम संस्करण को पकड़ लेता है:
 
 ![जेनकींस गिट सेटअप](/img/jenkins/gitsetup.png "जेनकींस गिट सेटअप")
 
