@@ -162,13 +162,13 @@ __Type:__ `boolean`<br /> __Default:__ `false`
 
 #### `include`
 
-List of files included in coverage as glob patterns.
+ग्लोब पैटर्न के रूप में कवरेज में शामिल फाइलों की सूची।
 
 __Type:__ `string[]`<br /> __Default:__ `[**]`
 
 #### `exclude`
 
-List of files excluded in coverage as glob patterns.
+ग्लोब पैटर्न के रूप में कवरेज में शामिल नहीं की गई फ़ाइलों की सूची।
 
 __Type:__ `string[]`<br /> __Default:__
 
@@ -191,65 +191,65 @@ __Type:__ `string[]`<br /> __Default:__
 
 #### `extension`
 
-List of file extensions the report should include.
+रिपोर्ट में शामिल होने वाले फ़ाइल एक्सटेंशन की सूची।
 
 __Type:__ `string | string[]`<br /> __Default:__ `['.js', '.cjs', '.mjs', '.ts', '.mts', '.cts', '.tsx', '.jsx', '.vue', '.svelte']`
 
 #### `reportsDirectory`
 
-Directory to write coverage report to.
+निर्देशिका को कवरेज रिपोर्ट लिखने के लिए।
 
 __Type:__ `string`<br /> __Default:__ `./coverage`
 
 #### `reporter`
 
-Coverage reporters to use. See [istanbul documentation](https://istanbul.js.org/docs/advanced/alternative-reporters/) for detailed list of all reporters.
+कवरेज पत्रकारों का उपयोग करने के लिए। सभी पत्रकारों की विस्तृत सूची के लिए [इस्तांबुल दस्तावेज़](https://istanbul.js.org/docs/advanced/alternative-reporters/) देखें।
 
 __Type:__ `string[]`<br /> __Default:__ `['text', 'html', 'clover', 'json-summary']`
 
 #### `perFile`
 
-Check thresholds per file. See `lines`, `functions`, `branches` and `statements` for the actual thresholds.
+प्रति फ़ाइल थ्रेसहोल्ड जांचें। वास्तविक थ्रेशोल्ड के लिए `lines`, `functions`, `branches` और `statements` देखें।
 
 __Type:__ `boolean`<br /> __Default:__ `false`
 
 #### `clean`
 
-Clean coverage results before running tests.
+परीक्षण चलाने से पहले स्वच्छ कवरेज परिणाम।
 
 __Type:__ `boolean`<br /> __Default:__ `true`
 
 #### `lines`
 
-Threshold for lines.
+लाइनों के लिए थ्रेशोल्ड।
 
 __Type:__ `number`<br /> __Default:__ `undefined`
 
 #### `functions`
 
-Threshold for functions.
+फंक्शन के लिए थ्रेशोल्ड।
 
 __Type:__ `number`<br /> __Default:__ `undefined`
 
 #### `branches`
 
-Threshold for branches.
+ब्रांच के लिए थ्रेशोल्ड।
 
 __Type:__ `number`<br /> __Default:__ `undefined`
 
 #### `statements`
 
-Threshold for statements.
+बयानों के लिए थ्रेशोल्ड।
 
 __Type:__ `number`<br /> __Default:__ `undefined`
 
-### Limitations
+### सीमाएं
 
-When using the WebdriverIO browser runner, it's important to note that thread blocking dialogs like `alert` or `confirm` cannot be used natively. This is because they block the web page, which means WebdriverIO cannot continue communicating with the page, causing the execution to hang.
+WebdriverIO ब्राउज़र रनर का उपयोग करते समय, यह ध्यान रखना महत्वपूर्ण है कि थ्रेड ब्लॉकिंग डायलॉग जैसे `alert` या `confirm` का मूल रूप से उपयोग नहीं किया जा सकता है। ऐसा इसलिए है क्योंकि वे वेब पेज को ब्लॉक करते हैं, जिसका अर्थ है कि WebdriverIO पेज के साथ संचार करना जारी नहीं रख सकता है, जिससे निष्पादन रुक जाता है।
 
-In such situations, WebdriverIO provides default mocks with default returned values for these APIs. This ensures that if the user accidentally uses synchronous popup web APIs, the execution would not hang. However, it's still recommended for the user to mock these web APIs for better experience. Read more in [Mocking](/docs/component-testing/mocking).
+ऐसी स्थितियों में, WebdriverIO इन API के लिए डिफ़ॉल्ट रूप से लौटाए गए मानों के साथ डिफ़ॉल्ट मॉक प्रदान करता है। यह सुनिश्चित करता है कि यदि उपयोगकर्ता गलती से सिंक्रोनस पॉपअप वेब एपीआई का उपयोग करता है, तो निष्पादन लटका नहीं रहेगा। हालांकि, अभी भी उपयोगकर्ता को बेहतर अनुभव के लिए इन वेब एपीआई का मज़ाक उड़ाने की सलाह दी जाती है। [मॉकिंग](/docs/component-testing/mocking)में और पढ़ें।
 
-### Examples
+### उदाहरण
 
-Make sure to check out the docs around [component testing](https://webdriver.io/docs/component-testing) and have a look into the [example repository](https://github.com/webdriverio/component-testing-examples) for examples using these and various other frameworks.
+[घटक परीक्षण](https://webdriver.io/docs/component-testing) के आस-पास दस्तावेज़ों को जांचना सुनिश्चित करें और इन और विभिन्न अन्य ढांचे का उपयोग करने वाले उदाहरणों के लिए [उदाहरण भंडार](https://github.com/webdriverio/component-testing-examples) देखें।
 
