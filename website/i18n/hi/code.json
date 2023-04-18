@@ -24,7 +24,7 @@
     "description": "The default label used for the Note admonition (:::note)"
   },
   "theme.admonition.tip": {
-    "message": "सुझाव",
+    "message": "बख्शीश",
     "description": "The default label used for the Tip admonition (:::tip)"
   },
   "theme.admonition.danger": {
