@@ -1,15 +1,17 @@
 ---
 id: tips-and-tricks
-title: Tips and Tricks
+title: सलाह व सुझाव
 ---
 
-This page contains a set useful tips and tricks that can be helpful when testing a web extension.
+इस पृष्ठ में उपयोगी टिप्स और ट्रिक्स का एक सेट है जो वेब एक्सटेंशन का परीक्षण करते समय सहायक हो सकता है।
 
-## Test Popup Modal in Chrome
+## क्रोम में टेस्ट पॉपअप मोडल
 
-If you define a `default_popup` browser action entry in your [extension manifest](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/manifest.json/browser_action) you can test that HTML page directly, since clicking on the extension icon in the browser top bar won't work. Instead, you have to open the popup html file directly.
+यदि आप अपने `default_popup` ब्राउज़र क्रिया प्रविष्टि प रिभाषित करते हैं, तो आप सीधे उस HTML पृष्ठ का परीक्षण कर सकते हैं, क्योंकि ब्राउज़र के शीर्ष बार में एक्सटेंशन आइकन पर क्लिक करने से काम नहीं चलेगा. इसके बजाय, आपको सीधे पॉपअप html फ़ाइल खोलनी होगी।</p> 
 
-In Chrome this works by retrieving the extension ID and opening the popup page through `browser.url('...')`. The behavior on that page will be the same as within the popup. To do so we recommend to write the following custom command:
+क्रोम में यह एक्सटेंशन आईडी को पुनः प्राप्त करके और `browser.url('...')`के माध्यम से पॉपअप पेज खोलकर काम करता है। उस पृष्ठ पर व्यवहार पॉपअप के समान ही होगा। ऐसा करने के लिए हम निम्नलिखित कस्टम कमांड लिखने की सलाह देते हैं:
+
+
 
 ```ts customCommand.ts
 export async function openExtensionPopup (this: WebdriverIO.Browser, extensionName: string, popupUrl = 'index.html') {
@@ -41,7 +43,10 @@ declare global {
 }
 ```
 
-In your `wdio.conf.js` you can import this file and register the custom command in your `before` hook, e.g.:
+
+आपके `wdio.conf.js` में आप इस फ़ाइल को इम्पोर्ट कर सकते हैं और कस्टम कमांड को अपने `before` हुक में रजिस्टर कर सकते हैं, जैसे:
+
+
 
 ```ts wdio.conf.ts
 import type { Options } from '@wdio/testrunner'
@@ -57,7 +62,10 @@ export const config: Options.Testrunner = {
 }
 ```
 
-Now, in your test, you can access the popup page via:
+
+अब, अपने परीक्षण में, आप पॉपअप पेज को इसके माध्यम से एक्सेस कर सकते हैं:
+
+
 
 ```ts
 await browser.openExtensionPopup('My Web Extension')
