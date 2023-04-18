@@ -1,4 +1,5 @@
 import fs from 'node:fs/promises'
+import url from 'node:url'
 import path from 'node:path'
 
 import logger from '@wdio/logger'
@@ -54,6 +55,7 @@ export default class BrowserRunner extends LocalRunner {
         if (this.#config.mochaOpts) {
             this.#config.mochaOpts.require = (this.#config.mochaOpts.require || [])
                 .map((r) => path.join(this.#config.rootDir || process.cwd(), r))
+                .map((r) => url.pathToFileURL(r).pathname)
         }
     }
 
