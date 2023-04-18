@@ -453,15 +453,15 @@ export const config = {
      /**
       *
       * कुकुम्बर स्टेप से पहले रन करता है।
-     * @param {Pickle.IPickleStep} step     step data
-     * @param {IPickle}            scenario scenario pickle
-     * @param {object}             context  Cucumber World object
-     */
-    beforeStep: function (step, scenario, context) {
-    },
-    /**
-     *
-     * Runs after a Cucumber Step.
+     * @param {Pickle.IPickleStep}    स्टेप    स्टेप डेटा
+      * @param {IPickle}    परिदृश्य    परिदृश्य पिकल 
+      * @param {{object}}   संदर्भ   कुकुम्बर विश्व वस्तु
+      */
+     स्टेप से पहले: फ़ंक्शन (चरण, परिदृश्य, संदर्भ) {
+     },
+     /**
+      *
+      * कुकुम्बर स्टेप के बाद रन करता है।
      * @param {Pickle.IPickleStep} स्टेप     स्टेप डेटा
       * @param {IPickle} परिदृश्य           परिदृश्य पिकल
       * @param {object}    परिणाम          परिणाम ऑब्जेक्ट जिसमें परिदृश्य परिणाम होते हैं
@@ -475,24 +475,24 @@ export const config = {
      /**
       *
       * एक कुकुम्बर परिदृश्य के बाद चलता है।
-     * @param {ITestCaseHookParameter} world            world object containing information on pickle and test step
-     * @param {object}                 result           results object containing scenario results `{passed: boolean, error: string, duration: number}`
-     * @param {boolean}                result.passed    true if scenario has passed
-     * @param {string}                 result.error     error stack if scenario failed
-     * @param {number}                 result.duration  duration of scenario in milliseconds
-     * @param {object}                 context          Cucumber World object
-     */
-    afterScenario: function (world, result, context) {
-    },
-    /**
-     *
-     * Runs after a Cucumber Feature.
-     * @param {string}                   uri      path to feature file
-     * @param {GherkinDocument.IFeature} feature  Cucumber feature object
-     */
-    afterFeature: function (uri, feature) {
-    }
+     * @param {ITestCaseHookParameter} विश्व   विश्व वस्तु जिसमें पिकल और टेस्ट स्टेप की जानकारी है
+      * @param {{object}}   परिणाम   परिणाम वस्तु जिसमें परिदृश्य परिणाम होते हैं ``{passed: boolean, error: string, duration: number}`
+      * @param {{boolean}} परिणाम। यदि परिदृश्य पारित हो गया है तो परिणाम सही है
+      * @param {string} result.error एरर स्टैक यदि परिदृश्य विफल हुआ
+      * @param {{number}} परिणाम।मिलीसेकंड में परिदृश्य की अवधि अवधि
+      * @param {{object}} संदर्भ कुकुम्बर विश्व वस्तु
+      */
+     आफ्टरसेनारियो: फ़ंक्शन (दुनिया, परिणाम, संदर्भ) {
+     },
+     /**
+      *
+      * कुकुम्बर की विशेषता के बाद चलता है।
+     * @param {string}   यूरी   पाथ टू फीचर फाइल
+      * @param {GherkinDocument.IFeature} फीचर    कुकुम्बर फीचर ऑब्जेक्ट
+      */
+     afterFeature: फ़ंक्शन (यूरी, फ़ीचर) {
+     }
 }
 ```
 
-You can also find a file with all possible options and variations in the [example folder](https://github.com/webdriverio/webdriverio/blob/main/examples/wdio.conf.js).
+आप [उदाहरण फ़ोल्डर](https://github.com/webdriverio/webdriverio/blob/main/examples/wdio.conf.js)में सभी संभावित विकल्पों और विविधताओं वाली फ़ाइल भी ढूंढ सकते हैं।
