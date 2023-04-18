@@ -1,21 +1,21 @@
 ---
 id: pageobjects
-title: Page Object Pattern
+title: पेज ऑब्जेक्ट पैटर्न
 ---
 
-Version 5 of WebdriverIO was designed with Page Object Pattern support in mind. By introducing the "elements as first class citizens" principle, it is now possible to build up large test suites using this pattern.
+WebdriverIO के संस्करण 5 को पेज ऑब्जेक्ट पैटर्न समर्थन को ध्यान में रखकर डिजाइन किया गया था। "तत्वों को प्रथम श्रेणी के नागरिकों के रूप में" सिद्धांत की शुरुआत करके, अब इस पैटर्न का उपयोग करके बड़े परीक्षण सूट बनाना संभव है।
 
-There are no additional packages required to create page objects. It turns out that clean, modern classes provide all necessary features we need:
+पेज ऑब्जेक्ट बनाने के लिए किसी अतिरिक्त पैकेज की आवश्यकता नहीं है। यह पता चला है कि स्वच्छ, आधुनिक कक्षाएं हमें आवश्यक सभी सुविधाएं प्रदान करती हैं:
 
-- inheritance between page objects
-- lazy loading of elements
-- encapsulation of methods and actions
+- पृष्ठ वस्तुओं के बीच वंशानुक्रम
+- तत्वों का आलसी लोडिंग
+- तरीकों और कार्यों का कैप्सूलीकरण
 
-The goal of using page objects is to abstract any page information away from the actual tests. Ideally, you should store all selectors or specific instructions that are unique for a certain page in a page object, so that you still can run your test after you've completely redesigned your page.
+पृष्ठ वस्तुओं का उपयोग करने का लक्ष्य किसी भी पृष्ठ की जानकारी को वास्तविक परीक्षणों से अलग करना है। आदर्श रूप से, आपको सभी चयनकर्ताओं या विशिष्ट निर्देशों को पृष्ठ ऑब्जेक्ट में संग्रहीत करना चाहिए जो किसी विशेष पृष्ठ के लिए अद्वितीय हैं, ताकि आप अपने पृष्ठ को पूरी तरह से फिर से डिज़ाइन करने के बाद भी अपना परीक्षण चला सकें।
 
-## Making A Page Object
+## पेज ऑब्जेक्ट बनाना
 
-First off, we need a main page object that we call `Page.js`. It will contain general selectors or methods which all page objects will inherit from.
+सबसे पहले, हमें एक मुख्य पेज ऑब्जेक्ट चाहिए जिसे हम `Page.js`कहते हैं। इसमें सामान्य चयनकर्ता या विधियाँ होंगी जो सभी पृष्ठ वस्तुओं से प्राप्त होंगी।
 
 ```js
 // Page.js
@@ -30,11 +30,11 @@ export default class Page {
 }
 ```
 
-We will always `export` an instance of a page object, and never create that instance in the test. Since we are writing end-to-end tests, we always consider the page as a stateless construct&mdash;just as each HTTP request is a stateless construct.
+हम हमेशा पृष्ठ ऑब्जेक्ट का एक उदाहरण `export` करेंगे, और उस उदाहरण को परीक्षण में कभी नहीं बनाएंगे। चूँकि हम एंड-टू-एंड टेस्ट लिख रहे हैं, हम हमेशा पेज को एक स्टेटलेस कंस्ट्रक्शन&mdash;के रूप में मानते हैं जैसे कि प्रत्येक HTTP रिक्वेस्ट एक स्टेटलेस कंस्ट्रक्शन है।
 
-Sure, the browser can carry session information and therefore can display different pages based on different sessions, but this shouldn't be reflected within a page object. These sorts of state changes should live in your actual tests.
+ज़रूर, ब्राउज़र सत्र की जानकारी ले सकता है और इसलिए अलग-अलग सत्रों के आधार पर अलग-अलग पृष्ठ प्रदर्शित कर सकता है, लेकिन यह पृष्ठ ऑब्जेक्ट के भीतर प्रदर्शित नहीं होना चाहिए। इस प्रकार के राज्य परिवर्तन आपके वास्तविक परीक्षणों में रहने चाहिए।
 
-Let's start testing the first page. डेमो उद्देश्यों के लिए, हम गिनी पिग के रूप में [एलिमेंटल सेलेनियम](http://elementalselenium.com) द्वारा [इंटरनेट](http://the-internet.herokuapp.com) वेबसाइट का उपयोग करते हैं। आइए [लॉगिन पेज](http://the-internet.herokuapp.com/login)के लिए पेज ऑब्जेक्ट उदाहरण बनाने का प्रयास करें।
+आइए पहले पन्ने का परीक्षण शुरू करें। डेमो उद्देश्यों के लिए, हम गिनी पिग के रूप में [एलिमेंटल सेलेनियम](http://elementalselenium.com) द्वारा [इंटरनेट](http://the-internet.herokuapp.com) वेबसाइट का उपयोग करते हैं। आइए [लॉगिन पेज](http://the-internet.herokuapp.com/login)के लिए पेज ऑब्जेक्ट उदाहरण बनाने का प्रयास करें।
 
 ## `Get` अपने चयनकर्ताओं को प्राप्त करें
 
