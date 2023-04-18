@@ -1,36 +1,36 @@
 ---
 id: customcommands
-title: Custom Commands
+title: कस्टम कमांड
 ---
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-If you want to extend the `browser` instance with your own set of commands, the browser method  `addCommand` is here for you. You can write your command in a asynchronous way, just as in your specs.
+यदि आप `browser` उदाहरण को अपने स्वयं के आदेशों के सेट के साथ विस्तारित करना चाहते हैं, तो ब्राउज़र विधि  `addCommand` यहां आपके लिए है। आप अपनी कमांड को एसिंक्रोनस तरीके से लिख सकते हैं, ठीक अपने स्पेक्स की तरह।
 
-## Parameters
+## पैरामीटर
 
-### Command Name
+### कमान का नाम
 
-A name that defines the command and will be attached to the browser or element scope.
+एक नाम जो कमांड को परिभाषित करता है और ब्राउजर या एलिमेंट स्कोप से जुड़ा होगा।
 
-Type: `String`
+प्रकार: `String`
 
-### Custom Function
+### कस्टम फंक्शन
 
-A function that is being executed when the command is called. The `this` scope is either [`WebdriverIO.Browser`](/docs/api/browser) or [`WebdriverIO.Element`](/docs/api/element) depending whether the command gets attached to the browser or element scope.
+एक फ़ंक्शन जिसे कमांड कहे जाने पर निष्पादित किया जा रहा है। `this` स्कोप या तो [`WebdriverIO.Browser`](/docs/api/browser) या [`WebdriverIO.Element`](/docs/api/element) है जो इस बात पर निर्भर करता है कि कमांड ब्राउज़र या एलिमेंट स्कोप से जुड़ी है या नहीं।
 
-Type: `Function`
+टाइप: `Function`
 
-### Target Scope
+### टारगेट स्कोप
 
-Flag to decide whether to attach the command to the browser or element scope. If set to `true` the command will be an element command.
+यह तय करने के लिए फ्लैग करें कि कमांड को ब्राउजर या एलिमेंट स्कोप से अटैच करना है या नहीं। अगर `true` पर सेट किया जाता है तो कमांड एक एलिमेंट कमांड होगी।
 
 Type: `Boolean`<br /> Default: `false`
 
-## Examples
+## उदाहरण
 
-This example shows how to add a new command that returns the current URL and title as one result. The scope (`this`) is a [`WebdriverIO.Browser`](/docs/api/browser) object.
+यह उदाहरण दिखाता है कि एक नया कमांड कैसे जोड़ा जाए जो वर्तमान यूआरएल और शीर्षक को एक परिणाम के रूप में लौटाता है। स्कोप (`this`) एक [`WebdriverIO.Browser`](/docs/api/browser) ऑब्जेक्ट है।
 
 ```js
 browser.addCommand('getUrlAndTitle', async function (customVar) {
@@ -43,7 +43,7 @@ browser.addCommand('getUrlAndTitle', async function (customVar) {
 })
 ```
 
-Additionally, you can extend the element instance with your own set of commands, by passing `true` as the final argument. The scope (`this`) in this case is a [`WebdriverIO.Element`](/docs/api/element) object.
+इसके अतिरिक्त, आप अंतिम तर्क के रूप में `true` पास करके, अपने स्वयं के कमांड के सेट के साथ तत्व उदाहरण का विस्तार कर सकते हैं। इस मामले में दायरा (`this`) एक [`WebdriverIO.Element`](/docs/api/element) ऑब्जेक्ट है।
 
 ```js
 browser.addCommand("waitAndClick", async function () {
@@ -53,9 +53,9 @@ browser.addCommand("waitAndClick", async function () {
 }, true)
 ```
 
-Custom commands give you the opportunity to bundle a specific sequence of commands you use frequently as a single call. You can define custom commands at any point in your test suite; just make sure that the command is defined *before* its first use. (The `before` hook in your `wdio.conf.js` is one good place to create them.)
+कस्टम कमांड आपको एक कॉल के रूप में अक्सर उपयोग किए जाने वाले कमांड के विशिष्ट अनुक्रम को बंडल करने का अवसर देते हैं। आप अपने टेस्ट सूट में किसी भी समय कस्टम कमांड को परिभाषित कर सकते हैं; बस यह सुनिश्चित कर लें कि कमांड को इसके पहले उपयोग के पहले *पहले* परिभाषित किया गया है। (आपके `wdio.conf.js` में `before`उन्हें बनाने के लिए एक अच्छी जगह है।)
 
-Once defined, you can use them as follows:
+एक बार परिभाषित करने के बाद, आप उन्हें निम्नानुसार उपयोग कर सकते हैं:
 
 ```js
 it('should use my custom command', async () => {
@@ -68,7 +68,7 @@ it('should use my custom command', async () => {
 })
 ```
 
-__Note:__ If you register a custom command to the `browser` scope, the command won't be accessible for elements. Likewise, if you register a command to the element scope, it won't be accessible in the `browser` scope:
+__Note:__ यदि आप `browser` स्कोप में एक कस्टम कमांड पंजीकृत करते हैं, तो कमांड तत्वों के लिए एक्सेस योग्य नहीं होगा। इसी तरह, यदि आप एलिमेंट स्कोप में कमांड रजिस्टर करते हैं, तो यह `browser` स्कोप में एक्सेस नहीं किया जा सकेगा:
 
 ```js
 browser.addCommand("myCustomBrowserCommand", () => { return 1 })
@@ -87,7 +87,7 @@ console.log(typeof browser.myCustomElementCommand2) // outputs "undefined"
 console.log(await elem3.myCustomElementCommand2('foobar')) // outputs "2"
 ```
 
-__Note:__ If you need to chain a custom command, the command should end with `$`,
+__Note:__ यदि आपको कस्टम कमांड को चेन करने की आवश्यकता है, तो कमांड `$`के साथ समाप्त होनी चाहिए,
 
 ```js
 browser.addCommand("user$", (locator) => { return ele })
@@ -95,18 +95,18 @@ browser.addCommand("user$", (locator) => { return ele }, true)
 await browser.user$('foo').user$('bar').click()
 ```
 
-Be careful to not overload the `browser` scope with too many custom commands.
+बहुत सारे कस्टम कमांड के साथ `browser` स्कोप को ओवरलोड न करने के लिए सावधान रहें।
 
-We recommend defining custom logic in [page objects](PageObjects.md), so they are bound to a specific page.
+हम [पेज ऑब्जेक्ट](PageObjects.md)में कस्टम लॉजिक को परिभाषित करने की सलाह देते हैं, ताकि वे एक विशिष्ट पेज से बंधे रहें।
 
-## Extend Type Definitions
+## प्रकार परिभाषाएँ बढ़ाएँ
 
-With TypeScript, it's easy to extend WebdriverIO interfaces. Add types to your custom commands like this:
+टाइपस्क्रिप्ट के साथ, WebdriverIO इंटरफेस का विस्तार करना आसान है। इस तरह अपने कस्टम कमांड में प्रकार जोड़ें:
 
-1. Create a type definition file (e.g., `./src/types/wdio.d.ts`)
-2. a. If using a module-style type definition file (using import/export and `declare global WebdriverIO` in the type definition file), make sure to include the file path in the `tsconfig.json` `include` property.
+1. एक प्रकार की परिभाषा फ़ाइल बनाएँ (उदाहरण के लिए, `./src/types/wdio.d.ts`)
+2. ए यदि मॉड्यूल-शैली प्रकार की परिभाषा फ़ाइल का उपयोग कर रहे हैं (आयात/निर्यात का उपयोग करके और `declare global WebdriverIO` करें), फ़ाइल पथ को `tsconfig.json` `include` संपत्ति में शामिल करना सुनिश्चित करें।
 
-   b.  If using ambient-style type definition files (no import/export in type definition files and `declare namespace WebdriverIO` for custom commands), make sure the `tsconfig.json` does *not* contain any `include` section, since this will cause all type definition files not listed in the `include` section to not be recognized by typescript.
+   बी।  यदि परिवेश-शैली प्रकार की परिभाषा फ़ाइलों का उपयोग कर रहे हैं (प्रकार परिभाषा फ़ाइलों में कोई आयात/निर्यात नहीं है और `declare namespace WebdriverIO`घोषित करें), सुनिश्चित करें कि `tsconfig.json` *नहीं* में कोई `include` है, क्योंकि यह होगा में सूचीबद्ध नहीं होने वाली सभी प्रकार की परिभाषा फ़ाइलों में अनुभाग `include` हैं जिन्हें टाइपस्क्रिप्ट द्वारा पहचाना नहीं जा सकता है।
 
 <Tabs
   defaultValue="modules"
@@ -139,7 +139,7 @@ With TypeScript, it's easy to extend WebdriverIO interfaces. Add types to your c
 </TabItem>
 </Tabs>
 
-3. Add definitions for your commands according to your execution mode.
+3. अपने निष्पादन मोड के अनुसार अपने कमांड के लिए परिभाषाएँ जोड़ें।
 
 <Tabs
   defaultValue="modules"
