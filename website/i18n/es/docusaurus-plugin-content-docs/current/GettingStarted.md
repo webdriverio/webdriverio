@@ -7,7 +7,7 @@ import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 import CreateProjectAnimation from '@site/src/pages/components/CreateProjectAnimation.js'
 
-Bienvenido a la página de documentación para WebdriverIO. Te ayudará a comenzar rápidamente. Si encuentras problemas puedes encontrar ayuda y respuestas en nuestro [Canal de Soporte Máximo](https://matrix.to/#/#webdriver.io:gitter.im) o puedes pulsarme en [Twitter](https://twitter.com/webdriverio).
+Bienvenido a la página de documentación para WebdriverIO. Te ayudará a comenzar rápidamente. Si encuentras problemas puedes encontrar ayuda y respuestas en nuestro [Servidor de soporte de Discord](https://discord.webdriver.io) o puedes pulsarme en [Twitter](https://twitter.com/webdriverio).
 
 :::info
 Estos son los documentos de la última versión (__>=8.x__) de WebdriverIO. Si todavía está utilizando una versión anterior, por favor visite los [antiguos sitios web de documentación](/versions)!

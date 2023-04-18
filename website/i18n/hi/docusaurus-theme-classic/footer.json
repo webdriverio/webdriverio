@@ -33,7 +33,7 @@
   },
   "link.item.label.Support Chat": {
     "message": "समर्थन चैट",
-    "description": "The label of footer link with label=Support Chat linking to https://matrix.to/#/#webdriver.io:gitter.im"
+    "description": "The label of footer link with label=Support Chat linking to https://discord.webdriver.io"
   },
   "link.item.label.Slack": {
     "message": "स्लैक",

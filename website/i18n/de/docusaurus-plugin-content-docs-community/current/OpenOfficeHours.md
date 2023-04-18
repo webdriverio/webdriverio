@@ -20,6 +20,6 @@ Danach können Sie jederzeit einen Termin buchen:
 
 [calendly.com/webdriverio/open-office-hours](https://calendly.com/webdriverio/open-office-hours)
 
-Alle Sitzungen werden über [Zoom](https://zoom.us/) oder [Google Hangouts](https://hangouts.google.com/) abgehalten, aber alternative Plattformen sind möglich. Bitte teilen Sie uns dies im Kommentarbereich mit. Bitte beachten Sie auch, dass dies kein Weg ist, individuelle Beratung für Ihre eigenen Projekte zu erhalten. Die Zeit kann nur dafür genutzt werden, um an WebdriverIO-bezogenen Fehlern oder -Funktionen zu arbeiten. Für Supportfragen bitten wir Sie unseren [Matrix Support Channel](https://matrix.to/#/#webdriver.io:gitter.im) zu benutzen.
+Alle Sitzungen werden über [Zoom](https://zoom.us/) oder [Google Hangouts](https://hangouts.google.com/) abgehalten, aber alternative Plattformen sind möglich. Bitte teilen Sie uns dies im Kommentarbereich mit. Bitte beachten Sie auch, dass dies kein Weg ist, individuelle Beratung für Ihre eigenen Projekte zu erhalten. Die Zeit kann nur dafür genutzt werden, um an WebdriverIO-bezogenen Fehlern oder -Funktionen zu arbeiten. Für Supportfragen bitten wir Sie unseren [Discord Support Server](https://discord.webdriver.io) zu benutzen.
 
 Wir freuen uns, Sie alle online kennen zu lernen und hoffen, weitere Contributor zu finden, die uns helfen, das Projekt voranzubringen!
