@@ -44,16 +44,26 @@ npm init wdio ./path/to/new/project
 
 ```sh
 yarn create wdio .
+```
+
+or if you want to create a new project:
+
 ```sh
-yarn create wdio .
+yarn create wdio ./path/to/new/project
+```
 
 </TabItem>
 <TabItem value="pnpm">
 
 ```sh
 pnpm create wdio .
+```
+
+or if you want to create a new project:
+
 ```sh
-pnpm create wdio .
+pnpm create wdio ./path/to/new/project
+```
 
 </TabItem>
 </Tabs>
@@ -62,7 +72,7 @@ Cette commande unique télécharge l'outil CLI WebdriverIO et exécute un assist
 
 <CreateProjectAnimation />
 
-L'assistant vous demandera une série de questions qui vous guideront à travers l'installation. Vous pouvez passer un paramètre `--yes` pour choisir une configuration par défaut qui utilisera Mocha avec Chrome en utilisant le modèle [Page Object](https://martinfowler.com/bliki/PageObject.html).
+L'assistant vous demandera une série de questions qui vous guideront à travers l'installation. You can pass a `--yes` parameter to pick a default set up which will use Mocha with Chrome using the \[Page Object\](https://martinfowler.com/bliki/PageObject.html) pattern.
 
 <Tabs
   defaultValue="npm"
