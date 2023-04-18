@@ -40,7 +40,7 @@ npx wdio run ./wdio.conf.js
 
 ## लेखन परीक्षण
 
-Given you have the following SolidJS component:
+यह देखते हुए कि आपके पास निम्नलिखित सॉलिडजेएस घटक हैं:
 
 ```html title="./components/Component.tsx"
 import { createSignal } from 'solid-js'
@@ -61,7 +61,7 @@ function App() {
 export default App
 ```
 
-In your test use the `render` method from `solid-js/web` to attach the component to the test page. To interact with the component we recommend to use WebdriverIO commands as they behave more close to actual user interactions, e.g.:
+परीक्षण पृष्ठ पर घटक संलग्न करने के लिए अपने परीक्षण में `solid-js/web` से `render` विधि का उपयोग करें। घटक के साथ बातचीत करने के लिए हम WebdriverIO कमांड का उपयोग करने की अनुशंसा करते हैं क्योंकि वे वास्तविक उपयोगकर्ता इंटरैक्शन के अधिक निकट व्यवहार करते हैं, उदाहरण के लिए:
 
 ```ts title="app.test.tsx"
 import { expect } from '@wdio/globals'
@@ -94,5 +94,5 @@ describe('React Component Testing', () => {
 })
 ```
 
-You can find a full example of a WebdriverIO component test suite for SolidJS in our [example repository](https://github.com/webdriverio/component-testing-examples/tree/main/solidjs-typescript-vite).
+आप हमारे [उदाहरण भंडार](https://github.com/webdriverio/component-testing-examples/tree/main/solidjs-typescript-vite)में सॉलिडजेएस के लिए वेबड्राइवर आईओ घटक परीक्षण सूट का एक पूर्ण उदाहरण पा सकते हैं।
 
