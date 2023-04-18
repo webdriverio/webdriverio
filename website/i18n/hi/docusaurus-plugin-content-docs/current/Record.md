@@ -1,38 +1,38 @@
 ---
 id: record
-title: Record Tests
+title: रिकॉर्ड परीक्षण
 ---
 
-Chrome DevTools has a _Recorder_ panel that allows users to record and playback automated steps within Chrome. These steps can be [exported into WebdriverIO tests with an extension](https://chrome.google.com/webstore/detail/webdriverio-chrome-record/pllimkccefnbmghgcikpjkmmcadeddfn?hl=en&authuser=1) making writing test very easy.
+क्रोम देवटूल में _रिकॉर्डर_ पैनल है जो उपयोगकर्ताओं को क्रोम के भीतर स्वचालित चरणों को रिकॉर्ड करने और प्लेबैक करने की अनुमति देता है। इन चरणों को [एक्सटेंशन](https://chrome.google.com/webstore/detail/webdriverio-chrome-record/pllimkccefnbmghgcikpjkmmcadeddfn?hl=en&authuser=1) के साथ WebdriverIO परीक्षणों में निर्यात किया जा सकता है, जिससे लेखन परीक्षण बहुत आसान हो जाता है।
 
-## What is Chrome DevTools Recorder
+## क्रोम देवटूल रिकॉर्डर क्या है
 
-The [Chrome DevTools Recorder](https://developer.chrome.com/docs/devtools/recorder/) is a tool which allows you to record and replay test actions directly in the browser and also export them as JSON (or export them in e2e test), as well as measure test performance.
+[Chrome DevTools Recorder](https://developer.chrome.com/docs/devtools/recorder/) एक ऐसा टूल है जो आपको परीक्षण क्रियाओं को सीधे ब्राउज़र में रिकॉर्ड करने और फिर से चलाने की अनुमति देता है और उन्हें JSON (या उन्हें e2e परीक्षण में निर्यात) के रूप में निर्यात भी करता है, साथ ही परीक्षण प्रदर्शन को मापता है।
 
-The tool is straightforward, and since it’s plugged into the browser, we have the convenience of not switching the context or dealing with any third-party tool.
+उपकरण सीधा है, और चूंकि यह ब्राउज़र में प्लग किया गया है, इसलिए हमारे पास संदर्भ बदलने या किसी तीसरे पक्ष के उपकरण से निपटने की सुविधा नहीं है।
 
-## How to Record a Test with Chrome DevTools Recorder
+## क्रोम DevTools Recorder से परीक्षण कैसे रिकॉर्ड करें
 
-If you have the latest Chrome you will have the Recorder already installed and available for you. Just open any website, do a Right-Click and select _"Inspect"_. Within DevTools you can open the Recorder by pressing `CMD/Control` + `Shift` + `p` and enter _"Show Recorder"_.
+यदि आपके पास नवीनतम क्रोम है तो आपके पास रिकॉर्डर पहले से स्थापित और आपके लिए उपलब्ध होगा। बस कोई भी वेबसाइट खोलें, राइट-क्लिक करें और _"निरीक्षण करें"_चुनें। DevTools के भीतर आप `CMD/Control` + `Shift` + `p` दबाकर रिकॉर्डर खोल सकते हैं और _"शो रिकॉर्डर"_दर्ज कर सकते हैं।
 
 ![Chrome DevTools Recorder](/img/recorder/recorder.png)
 
-To start recording a user journey, click on _"Start new recording"_, give your test a name and then use the browser to record your test:
+एक उपयोगकर्ता यात्रा की रिकॉर्डिंग शुरू करने के लिए, _"नई रिकॉर्डिंग शुरू करें"_पर क्लिक करें, अपने परीक्षण को एक नाम दें और फिर अपने परीक्षण को रिकॉर्ड करने के लिए ब्राउज़र का उपयोग करें:
 
 ![Chrome DevTools Recorder](/img/recorder/demo.gif)
 
-Next step, click on _"Replay"_ to check if the recording was successful and does what you wanted to do. If everything is ok, click on the [export](https://developer.chrome.com/docs/devtools/recorder/reference/#recorder-extension) icon and select _"Export as a WebdriverIO Test Script"_:
+अगला कदम, _"रिप्ले"_ पर क्लिक करके देखें कि रिकॉर्डिंग सफल रही या नहीं और आप जो करना चाहते थे वह कर पाए। यदि सब कुछ ठीक है, तो [निर्यात](https://developer.chrome.com/docs/devtools/recorder/reference/#recorder-extension) आइकन पर क्लिक करें और _"एक्सपोर्ट WebdriverIO Test Script"_चुनें:
 
-The _"Export as a WebdriverIO Test Script"_ option only available if you install the [WebdriverIO Chrome Recorder](https://chrome.google.com/webstore/detail/webdriverio-chrome-record/pllimkccefnbmghgcikpjkmmcadeddfn) extension.
+_"Export as a WebdriverIO Test Script"_ विकल्प केवल तभी उपलब्ध होता है जब आप [WebdriverIO Chrome Recorder](https://chrome.google.com/webstore/detail/webdriverio-chrome-record/pllimkccefnbmghgcikpjkmmcadeddfn) एक्सटेंशन इंस्टॉल करते हैं।
 
 
 ![Chrome DevTools Recorder](/img/recorder/export.gif)
 
-That's it!
+इतना ही!
 
-## Export Recording
+## एक्सपोर्ट रिकॉर्डिंग
 
-If you exported the flow as WebdriverIO test script, it should download script that you can copy&paste in your test suite. For example the above recording looks as follows:
+यदि आपने प्रवाह को WebdriverIO परीक्षण स्क्रिप्ट के रूप में निर्यात किया है, तो इसे स्क्रिप्ट डाउनलोड करनी चाहिए कि आप अपने परीक्षण सूट में&पेस्ट कॉपी कर सकते हैं। उदाहरण के लिए उपरोक्त रिकॉर्डिंग इस प्रकार दिखती है:
 
 ```ts
 describe("My WebdriverIO Test", function () {
@@ -50,13 +50,13 @@ describe("My WebdriverIO Test", function () {
 });
 ```
 
-Make sure you revisit some of the locators and replace them with more resilient [selector types](/docs/selectors) one if necessary. You can also export the flow as JSON file and use the [`@wdio/chrome-recorder`](https://github.com/webdriverio/chrome-recorder) package to transform it into an actual test script.
+सुनिश्चित करें कि आप कुछ लोकेटरों पर फिर से जाएँ और यदि आवश्यक हो तो उन्हें अधिक लचीला [चयनकर्ता प्रकार](/docs/selectors) से बदलें। आप प्रवाह को JSON फ़ाइल के रूप में भी निर्यात कर सकते हैं और इसे वास्तविक परीक्षण स्क्रिप्ट में बदलने के लिए [`@wdio/chrome-recorder`](https://github.com/webdriverio/chrome-recorder) पैकेज का उपयोग कर सकते हैं।
 
-## Next Steps
+## अगले चरण
 
-You can use this flow to easily create tests for your applications. The Chrome DevTools Recorder has various additional features, e.g.:
+आप अपने अनुप्रयोगों के लिए आसानी से परीक्षण बनाने के लिए इस प्रवाह का उपयोग कर सकते हैं। क्रोम DevTools रिकॉर्डर में कई अतिरिक्त सुविधाएं हैं, जैसे:
 
-- [Simulate slow network](https://developer.chrome.com/docs/devtools/recorder/#simulate-slow-network) or
-- [Measure performance of your tests](https://developer.chrome.com/docs/devtools/recorder/#measure)
+- [धीमे नेटवर्क](https://developer.chrome.com/docs/devtools/recorder/#simulate-slow-network) या अनुकरण करें
+- [अपने परीक्षणों के प्रदर्शन को मापें](https://developer.chrome.com/docs/devtools/recorder/#measure)
 
-Make sure to check out their [docs](https://developer.chrome.com/docs/devtools/recorder).
+उनके [डॉक्स](https://developer.chrome.com/docs/devtools/recorder)को देखना सुनिश्चित करें।
