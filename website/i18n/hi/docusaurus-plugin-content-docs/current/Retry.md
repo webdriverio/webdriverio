@@ -1,18 +1,17 @@
 ---
 id: retry
-title: Retry Flaky Tests
+title: फ्लेकी परीक्षण का पुनः प्रयास करें
 ---
 
-import Tabs from '@theme/Tabs';
-import TabItem from '@theme/TabItem';
+'@theme/Tabs'; से टैब आयात करें; @theme/TabItem'; से TabItem को आयात करें;
 
-You can rerun certain tests with the WebdriverIO testrunner that turn out to be unstable due to things like a flaky network or race conditions. (However, it is not recommended to simply increase the rerun rate if tests become unstable!)
+आप वेबड्राइवरआईओ टेस्टरनर के साथ कुछ परीक्षणों को फिर से चला सकते हैं जो परतदार नेटवर्क या दौड़ की स्थिति जैसी चीजों के कारण अस्थिर हो जाते हैं। (हालांकि, यदि परीक्षण अस्थिर हो जाते हैं तो केवल पुन: दौड़ दर बढ़ाने की अनुशंसा नहीं की जाती है!)
 
-## Rerun suites in Mocha
+## मोचा में सुइट्स फिर से चलाएं
 
-Since version 3 of Mocha, you can rerun whole test suites (everything inside an `describe` block). If you use Mocha you should favor this retry mechanism instead of the WebdriverIO implementation that only allows you to rerun certain test blocks (everything within an `it` block). In order to use the `this.retries()` method, the suite block `describe` must use an unbound function `function(){}` instead of a fat arrow function `() => {}`, as described in [Mocha docs](https://mochajs.org/#arrow-functions). Using Mocha you can also set a retry count for all specs using `mochaOpts.retries` in your `wdio.conf.js`.
+मोचा के संस्करण 3 के बाद से, आप पूरे टेस्ट सूट को फिर से चला सकते हैं (`describe`ब्लोक के अंदर सब कुछ का वर्णन करता है)। यदि आप मोचा का उपयोग करते हैं तो आपको WebdriverIO कार्यान्वयन के बजाय इस पुनर्प्रयास तंत्र का समर्थन करना चाहिए जो आपको केवल कुछ परीक्षण ब्लॉकों को फिर से चलाने की अनुमति देता है (सब कुछ `it` ब्लॉक के भीतर)। `this.retries()` विधि का उपयोग करने के लिए, सुइट ब्लॉक `describe` एक अनबाउंड फ़ंक्शन `function(){}` का उपयोग करना चाहिए, जैसा कि फैट एरो फ़ंक्शन `() => {}`में वर्णित है [मोचा डॉक्स](https://mochajs.org/#arrow-functions)। मोचा का उपयोग करके आप अपने `wdio.conf.js`में `mochaOpts.retries` उपयोग करके सभी विशिष्टताओं के लिए पुनः प्रयास संख्या भी सेट कर सकते हैं।
 
-Here is an example:
+यहाँ एक उदाहरण है:
 
 ```js
 describe('retries', function () {
