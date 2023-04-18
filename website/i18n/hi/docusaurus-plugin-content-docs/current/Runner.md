@@ -1,34 +1,34 @@
 ---
 id: runner
-title: Runner
+title: रनर
 ---
 
-import CodeBlock from '@theme/CodeBlock';
+'@theme/CodeBlock'; से कोडब्लॉक आयात करें;
 
-A runner in WebdriverIO orchestrates how and where tests are being run when using the testrunner. WebdriverIO currently supports two different types of runner: local and browser runner.
+WebdriverIO में एक रनर ऑर्केस्ट्रेट करता है कि टेस्टरनर का उपयोग करते समय परीक्षण कैसे और कहाँ चलाए जा रहे हैं। WebdriverIO वर्तमान में दो अलग-अलग प्रकार के रनर का समर्थन करता है: स्थानीय और ब्राउज़र रनर।
 
-## Local Runner
+## स्थानीय धावक
 
-The [Local Runner](https://www.npmjs.com/package/@wdio/local-runner) initiates your framework (e.g. Mocha, Jasmine or Cucumber) within worker a process and runs all your test files within your Node.js environment. Every test file is being run in a separate worker process per capability allowing for maximum concurrency. Every worker process uses a single browser instance and therefore runs its own browser session allowing for maximum isolation.
+[लोकल रनर](https://www.npmjs.com/package/@wdio/local-runner) आपके ढांचे (जैसे मोचा, जैस्मीन या ककड़ी) को कार्यकर्ता के भीतर एक प्रक्रिया शुरू करता है और आपकी सभी परीक्षण फ़ाइलों को आपके Node.js वातावरण में चलाता है। अधिकतम संगामिति के लिए अनुमति देने वाली क्षमता के अनुसार प्रत्येक परीक्षण फ़ाइल को एक अलग कार्यकर्ता प्रक्रिया में चलाया जा रहा है। प्रत्येक कार्यकर्ता प्रक्रिया एकल ब्राउज़र उदाहरण का उपयोग करती है और इसलिए अधिकतम अलगाव की अनुमति देते हुए अपना स्वयं का ब्राउज़र सत्र चलाती है।
 
-Given every test is run in its own isolated process, it is not possible to share data across test files. There are two ways to work around this:
+यह देखते हुए कि प्रत्येक परीक्षण अपनी पृथक प्रक्रिया में चलाया जाता है, परीक्षण फ़ाइलों में डेटा साझा करना संभव नहीं है। इसके आसपास काम करने के दो तरीके हैं:
 
-- use the [`@wdio/shared-store-service`](https://www.npmjs.com/package/@wdio/shared-store-service) to share data across all workers
-- group spec files (read more in [Organizing Test Suite](https://webdriver.io/docs/organizingsuites#grouping-test-specs-to-run-sequentially))
+- सभी कर्मचारियों के बीच डेटा साझा करने के लिए [`@wdio/shared-store-service`](https://www.npmjs.com/package/@wdio/shared-store-service) का उपयोग करें
+- समूह कल्पना फ़ाइलें ( [आयोजन टेस्ट सूट](https://webdriver.io/docs/organizingsuites#grouping-test-specs-to-run-sequentially)में और पढ़ें)
 
-If nothing else is defined in the `wdio.conf.js` the Local Runner is the default runner in WebdriverIO.
+यदि `wdio.conf.js` में और कुछ भी परिभाषित नहीं किया गया है तो स्थानीय रनर WebdriverIO में डिफ़ॉल्ट रनर है।
 
-### Install
+### इनस्टॉल
 
-To use the Local Runner you can install it via:
+स्थानीय धावक का उपयोग करने के लिए आप इसे इसके माध्यम से स्थापित कर सकते हैं:
 
 ```sh
 npm install --save-dev @wdio/local-runner
 ```
 
-### Setup
+### सेटअप
 
-The Local Runner is the default runner in WebdriverIO so there is no need to define it within your `wdio.conf.js`. If you want to explicitly set it, you can define it as follows:
+स्थानीय धावक WebdriverIO में डिफ़ॉल्ट धावक है इसलिए इसे आपके `wdio.conf.js`में परिभाषित करने की कोई आवश्यकता नहीं है। यदि आप इसे स्पष्ट रूप से सेट करना चाहते हैं, तो आप इसे निम्नानुसार परिभाषित कर सकते हैं:
 
 ```js
 // wdio.conf.js
@@ -39,7 +39,7 @@ export const {
 }
 ```
 
-## Browser Runner
+## ब्राउज़र रनर
 
 [लोकल रनर](https://www.npmjs.com/package/@wdio/local-runner) के विपरीत [ब्राउज़र रनर](https://www.npmjs.com/package/@wdio/browser-runner) ब्राउज़र के भीतर फ्रेमवर्क को आरंभ और निष्पादित करता है। यह आपको JSDOM के बजाय कई अन्य परीक्षण ढाँचों की तरह एक वास्तविक ब्राउज़र में इकाई परीक्षण या घटक परीक्षण चलाने की अनुमति देता है।
 
