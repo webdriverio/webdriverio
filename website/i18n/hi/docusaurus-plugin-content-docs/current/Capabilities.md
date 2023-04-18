@@ -20,32 +20,32 @@ import TabItem from '@theme/TabItem';
 
 ### ब्राउज़र विशिष्ट क्षमता एक्सटेंशन
 
-- `goog:chromeOptions`: [Chromedriver](https://chromedriver.chromium.org/capabilities) extensions, only applicable for testing in Chrome
-- `moz:firefoxOptions`: [Geckodriver](https://firefox-source-docs.mozilla.org/testing/geckodriver/Capabilities.html) extensions, only applicable for testing in Firefox
-- `ms:edgeOptions`: [EdgeOptions](https://learn.microsoft.com/en-us/microsoft-edge/webdriver-chromium/capabilities-edge-options) for specifying the environment when using EdgeDriver for testing Chromium Edge
+- `goog: chromeOptions`: [Chromedriver](https://chromedriver.chromium.org/capabilities) एक्सटेंशन, केवल क्रोम में परीक्षण के लिए लागू
+- `moz:firefoxOptions`: [Geckodriver](https://firefox-source-docs.mozilla.org/testing/geckodriver/Capabilities.html) एक्सटेंशन, केवल फायरफॉक्स में परीक्षण के लिए लागू
+- `ms:edgeOptions`: [EdgeOptions](https://learn.microsoft.com/en-us/microsoft-edge/webdriver-chromium/capabilities-edge-options) क्रोमियम एज के परीक्षण के लिए EdgeDriver का उपयोग करते समय परिवेश निर्दिष्ट करने के लिए
 
-### Cloud Vendor Capability Extensions
+### क्लाउड वेंडर क्षमता एक्सटेंशन
 
 - `sauce:options`: [Sauce Labs](https://docs.saucelabs.com/dev/test-configuration-options/#w3c-webdriver-browser-capabilities--optional)
 - `bstack:options`: [BrowserStack](https://www.browserstack.com/docs/automate/selenium/organize-tests)
 - `tb:options`: [TestingBot](https://testingbot.com/support/other/test-options)
-- and many more...
+- और भी कई...
 
-### Automation Engine Capability Extensions
+### स्वचालन इंजन क्षमता एक्सटेंशन
 
 - `appium:xxx`: [Appium](https://appium.io/docs/en/writing-running-appium/caps/)
 - `selenoid:xxx`: [Selenoid](https://github.com/aerokube/selenoid/blob/master/docs/special-capabilities.adoc)
-- and many more...
+- और भी कई...
 
-Have a look into WebdriverIOs [Capability TypeScript definition](https://github.com/aerokube/selenoid/blob/master/docs/special-capabilities.adoc) to find specific capabilities for your test. Note: not all of them are still valid and might not be supported anymore by the provider.
+अपने परीक्षण के लिए विशिष्ट क्षमताओं को खोजने के लिए WebdriverIOs [क्षमता TypeScript परिभाषा](https://github.com/aerokube/selenoid/blob/master/docs/special-capabilities.adoc) पर एक नज़र डालें। ध्यान दें: ये सभी अभी भी मान्य नहीं हैं और हो सकता है कि अब प्रदाता द्वारा समर्थित न हों।
 
-## Special Capabilities for Specific Use Cases
+## विशिष्ट उपयोग मामलों के लिए विशेष क्षमताएं
 
-This is a list of examples showing which capabilities need to be applied to achieve a certain use case.
+यह उदाहरणों की एक सूची है जो दिखाती है कि एक निश्चित उपयोग के मामले को प्राप्त करने के लिए किन क्षमताओं को लागू करने की आवश्यकता है।
 
-### Run Browser Headless
+### ब्राउजर हेडलेस चलाएं
 
-Running a headless browser means to run a browser instance without window or UI. This is mostly used within CI/CD environments where no display is used. To run a browser in headless mode, apply the following capabilities:
+हेडलेस ब्राउजर चलाने का मतलब विंडो या यूआई के बिना ब्राउजर इंस्टेंस चलाना है। यह ज्यादातर सीआई/सीडी परिवेशों में उपयोग किया जाता है जहां कोई डिस्प्ले उपयोग नहीं किया जाता है। ब्राउज़र को हेडलेस मोड में चलाने के लिए, निम्नलिखित क्षमताओं को लागू करें:
 
 <Tabs
   defaultValue="chrome"
@@ -90,7 +90,7 @@ Running a headless browser means to run a browser instance without window or UI.
 </TabItem>
 <TabItem value="safari">
 
-It seems that Safari [doesn't support](https://discussions.apple.com/thread/251837694) running in headless mode.
+ऐसा लगता है कि सफारी [समर्थन नहीं करता] (https://discussions.apple.com/thread/251837694) हेडलेस मोड में चल रहा है।
 
 </TabItem>
 </Tabs>
