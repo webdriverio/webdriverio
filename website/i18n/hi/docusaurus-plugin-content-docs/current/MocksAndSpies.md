@@ -157,16 +157,16 @@ console.log(await $$('#todo-list li label').map((el) => el.getText()))
 - BlockedByClient
 - BlockedByResponse
 
-This is very useful if you want to block 3rd party script from your page that have a negative influence on your functional test. You can abort a mock by just calling `abort` or `abortOnce`, e.g.:
+यह बहुत उपयोगी है यदि आप अपने पृष्ठ से तृतीय पक्ष स्क्रिप्ट को ब्लॉक करना चाहते हैं जो आपके कार्यात्मक परीक्षण पर नकारात्मक प्रभाव डालती है। आप केवल `abort` या `abortOnce`को कॉल करके एक नकली निरस्त कर सकते हैं, उदाहरण के लिए:
 
 ```js
 const mock = await browser.mock('https://www.google-analytics.com/**')
 mock.abort('Failed')
 ```
 
-## Spies
+## जासूस
 
-Every mock is automatically a spy that counts the amount of requests the browser made to that resource. If you don't apply a custom response or abort reason to the mock it continues with the default response you would normally receive. This allows you to check how many times the browser made the request, e.g. to a certain API endpoint.
+हर नकली स्वचालित रूप से एक जासूस है जो उस संसाधन के लिए ब्राउज़र द्वारा किए गए अनुरोधों की मात्रा को गिनता है। यदि आप मॉक के लिए कस्टम प्रतिक्रिया या निरस्त कारण लागू नहीं करते हैं तो यह सामान्य रूप से प्राप्त होने वाली डिफ़ॉल्ट प्रतिक्रिया के साथ जारी रहता है। यह आपको यह जांचने की अनुमति देता है कि ब्राउजर ने कितनी बार अनुरोध किया है, उदाहरण के लिए एक निश्चित एपीआई एंडपॉइंट के लिए।
 
 ```js
 const mock = await browser.mock('**/user', { method: 'post' })
