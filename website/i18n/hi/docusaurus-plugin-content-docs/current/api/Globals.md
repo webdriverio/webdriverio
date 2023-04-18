@@ -12,6 +12,6 @@ The following global objects are set if not configured otherwise:
 - `multiremotebrowser`: alias to `browser` or `driver` but only set for [Multiremote](/docs/multiremote) sessions
 - `$`: command to fetch an element (see more in [API docs](/docs/api/browser/$))
 - `$$`: command to fetch elements (see more in [API docs](/docs/api/browser/$$))
-- `expect`: assertion framework for WebdriverIO (see [API docs](/docs/api/expect-webdriverio))
+- `expect`: WebdriverIO के लिए अभिकथन ढांचा (देखें [एपीआई डॉक्स](/docs/api/expect-webdriverio))
 
-__Note:__ WebdriverIO has no control of used frameworks (e.g. Mocha or Jasmine) setting global variables when bootstrapping their environment.
+__नोट:__ WebdriverIO का उपयोग किए गए ढांचे (जैसे मोचा या जैस्मीन) का कोई नियंत्रण नहीं है, जब वे अपने पर्यावरण को बूटस्ट्रैप करते समय वैश्विक चर सेट करते हैं।
