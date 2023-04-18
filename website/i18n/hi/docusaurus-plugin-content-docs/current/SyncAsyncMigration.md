@@ -42,25 +42,24 @@ That's it. You can see the complete commit with all rewrite examples here:
 - _transform all step definitions_ [[af6625f]](https://github.com/webdriverio/cucumber-boilerplate/pull/481/commits/af6625fcd01dc087479e84562f237ecf38b3537d)
 
 :::info
-This transition is independent of whether you use TypeScript or not. If you use TypeScript just make sure that you eventually change the `types` property in your `tsconfig.json` from `webdriverio/sync` to `@wdio/globals/types`. Also make sure that your compile target is set to at least `ES2018`.
+This transition is independent of whether you use TypeScript or not. If you use TypeScript just make sure that you eventually change the `types` property in your `tsconfig.json` from `webdriverio/sync` to `@wdio/globals/types`. यह भी सुनिश्चित करें कि आपका संकलन लक्ष्य कम से कम `ES2018`पर सेट है।
 :::
 
-## Special Cases
+## विशेष स्थितियां
 
-There are of course always special cases where you need to pay a bit more attention.
+निश्चित रूप से हमेशा विशेष मामले होते हैं जहां आपको थोड़ा और ध्यान देने की आवश्यकता होती है।
 
-### ForEach Loops
+### प्रत्येक लूप के लिए
 
-If you have a `forEach` loop, e.g. to iterate over elements, you need to make sure that the iterator callback is handled properly in an async manner, e.g.:
+यदि आपके पास प्रत्येक</code>forEach` है, उदाहरण के लिए तत्वों पर पुनरावृति करने के लिए, आपको यह सुनिश्चित करने की आवश्यकता है कि इटरेटर कॉलबैक को एसिंक तरीके से ठीक से संभाला जाता है, उदाहरण के लिए:</p>
 
-```js
-const elems = $$('div')
+<pre><code class="js">const elems = $$('div')
 elems.forEach((elem) => {
     elem.click()
 })
-```
+`</pre>
 
-The function we pass into `forEach` is an iterator function. In a synchronous world it would click on all elements before it moves on. If we transform this into asynchronous code, we have to ensure that we wait for every iterator function to finish execution. By adding `async`/`await` these iterator functions will return a promise that we need to resolve. Now, `forEach` is then not ideal to iterate over the elements anymore because it doesn't return the result of the iterator function, the promise we need to wait for. Therefore we need to replace `forEach` with `map` which returns that promise. The `map` as well as all other iterator methods of Arrays like `find`, `every`, `reduce` and more are implemented via the [p-iteration](https://www.npmjs.com/package/p-iteration) package and are therefor simplified for using them in an async context. The above example looks transformed like this:
+प्रत्येक फ़ंक्शन को </code>forEach`में पास करते हैं, वह एक पुनरावर्तक फ़ंक्शन है। एक समकालिक दुनिया में यह आगे बढ़ने से पहले सभी तत्वों पर क्लिक करेगा। यदि हम इसे अतुल्यकालिक कोड में बदलते हैं, तो हमें यह सुनिश्चित करना होगा कि हम निष्पादन को पूरा करने के लिए प्रत्येक इटरेटर फ़ंक्शन की प्रतीक्षा करें। <code>async`await</code> जोड़कर ये पुनरावर्तक फ़ंक्शन एक वादा लौटाएंगे जिसे`हल करने की आवश्यकता है। अब, प्रत्येक`forEach`अब तत्वों पर पुनरावृति करने के लिए आदर्श नहीं है क्योंकि यह इटरेटर फ़ंक्शन के परिणाम को वापस नहीं करता है, जिस वादे के लिए हमें प्रतीक्षा करने की आवश्यकता है। इसलिए हमें <code>forEach` `map` से बदलने की आवश्यकता है जो उस वादे को वापस करता है। `map` के साथ-साथ Arrays के अन्य सभी पुनरावर्तक तरीके जैसे `find`, `every`, `reduce` और अधिक के माध्यम से कार्यान्वित किए जाते हैं। [p-पुनरावृति](https://www.npmjs.com/package/p-iteration) पैकेज और इसलिए async संदर्भ में उनका उपयोग करने के लिए सरलीकृत हैं। उपरोक्त उदाहरण इस तरह रूपांतरित दिखता है:
 
 ```js
 const elems = await $$('div')
@@ -69,7 +68,7 @@ await elems.forEach((elem) => {
 })
 ```
 
-For example in order to fetch all `<h3 />` elements and get their text content, you can run:
+उदाहरण के लिए सभी `<h3 />` तत्वों को लाने और उनकी टेक्स्ट सामग्री प्राप्त करने के लिए, आप चला सकते हैं:
 
 ```js
 await browser.url('https://webdriver.io')
@@ -91,7 +90,7 @@ console.log(h3Texts);
  */
 ```
 
-If this looks too complicated you might want to consider using simple for loops, e.g.:
+यदि यह बहुत जटिल लगता है तो आप लूप के लिए सरल उपयोग करने पर विचार कर सकते हैं, उदाहरण के लिए:
 
 ```js
 const elems = await $$('div')
@@ -100,7 +99,7 @@ for (const elem of elems) {
 }
 ```
 
-### WebdriverIO Assertions
+### WebdriverIO अभिकथन
 
 If you use the WebdriverIO assertion helper [`expect-webdriverio`](https://webdriver.io/docs/api/expect-webdriverio) make sure to set an `await` in front of every `expect` call, e.g.:
 
