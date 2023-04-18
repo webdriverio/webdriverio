@@ -190,11 +190,11 @@ declare namespace WebdriverIO {
 </TabItem>
 </Tabs>
 
-## Integrate 3rd Party Libraries
+## तृतीय पक्ष पुस्तकालयों को एकीकृत करें
 
-If you use external libraries (e.g., to do database calls) that support promises, a nice approach to integrate them is to wrap certain API methods with a custom command.
+यदि आप बाहरी पुस्तकालयों का उपयोग करते हैं (उदाहरण के लिए, डेटाबेस कॉल करने के लिए) जो वादों का समर्थन करते हैं, तो उन्हें एकीकृत करने का एक अच्छा तरीका कुछ एपीआई विधियों को एक कस्टम कमांड के साथ लपेटना है।
 
-When returning the promise, WebdriverIO ensures that it doesn't continue with the next command until the promise is resolved. If the promise gets rejected, the command will throw an error.
+वादे को वापस करते समय, WebdriverIO यह सुनिश्चित करता है कि जब तक वादा पूरा नहीं हो जाता तब तक यह अगले आदेश के साथ जारी नहीं रहेगा। अगर वादा खारिज हो जाता है, तो आदेश एक त्रुटि देगा।
 
 ```js
 import got from 'got'
@@ -204,7 +204,7 @@ browser.addCommand('makeRequest', async (url) => {
 })
 ```
 
-Then, just use it in your WDIO test specs:
+फिर, बस इसे अपने WDIO टेस्ट स्पेक्स में उपयोग करें:
 
 ```js
 it('execute external library in a sync way', async () => {
@@ -214,13 +214,13 @@ it('execute external library in a sync way', async () => {
 })
 ```
 
-**Note:** The result of your custom command is the result of the promise you return.
+**नोट:** आपके कस्टम कमांड का परिणाम आपके द्वारा लौटाए गए वादे का परिणाम है।
 
-## Overwriting Commands
+## ओवरराइटिंग कमांड
 
-You can also overwrite native commands with `overwriteCommand`.
+आप मूल आदेशों को `overwriteCommand`से भी अधिलेखित कर सकते हैं।
 
-It is not recommended to do this, because it may lead to unpredictable behavior of the framework!
+ऐसा करने की अनुशंसा नहीं की जाती है, क्योंकि इससे ढांचे का अप्रत्याशित व्यवहार हो सकता है!
 
 समग्र दृष्टिकोण `addCommand`के समान है, केवल अंतर यह है कि कमांड फ़ंक्शन में पहला तर्क मूल फ़ंक्शन है जिसे आप अधिलेखित करने वाले हैं। कृपया नीचे कुछ उदाहरण देखें।
 
