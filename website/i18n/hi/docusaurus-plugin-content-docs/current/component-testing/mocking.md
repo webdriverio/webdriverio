@@ -251,7 +251,7 @@ describe('partial mock', () => {
 
 मैनुअल मॉक को `__mocks__/` (भी देखें `automockDir`) उपनिर्देशिका में एक मॉड्यूल लिखकर परिभाषित किया गया है। यदि आप जिस मॉड्यूल का मज़ाक उड़ा रहे हैं वह एक नोड मॉड्यूल है (उदाहरण: `lodash`), नकली को `__mocks__` निर्देशिका में रखा जाना चाहिए और स्वचालित रूप से मज़ाक उड़ाया जाएगा। `mock('module_name')`स्पष्ट रूप से कॉल करने की कोई आवश्यकता नहीं है।
 
-स्कोप्ड मॉड्यूल (जिसे स्कोप्ड पैकेज के रूप में भी जाना जाता है) को एक डायरेक्टरी स्ट्रक्चर में फाइल बनाकर मॉक किया जा सकता है जो स्कोप्ड मॉड्यूल के नाम से मेल खाता है। For example, to mock a scoped module called `@scope/project-name`, create a file at `__mocks__/@scope/project-name.js`, creating the `@scope/` directory accordingly.
+स्कोप्ड मॉड्यूल (जिसे स्कोप्ड पैकेज के रूप में भी जाना जाता है) को एक डायरेक्टरी स्ट्रक्चर में फाइल बनाकर मॉक किया जा सकता है जो स्कोप्ड मॉड्यूल के नाम से मेल खाता है। उदाहरण के लिए, `@scope/project-name` नामक एक स्कोप्ड मॉड्यूल को मॉक करने के लिए, `__mocks__/@scope/project-name.js` पर एक फाइल बनाएं, तदनुसार `@scope/` डायरेक्टरी बनाएं।
 
 ```
 .
@@ -265,7 +265,7 @@ describe('partial mock', () => {
 └── views
 ```
 
-When a manual mock exists for a given module, WebdriverIO will use that module when explicitly calling `mock('moduleName')`. However, when automock is set to true, the manual mock implementation will be used instead of the automatically created mock, even if `mock('moduleName')` is not called. To opt out of this behavior you will need to explicitly call `unmock('moduleName')` in tests that should use the actual module implementation, e.g.:
+जब किसी दिए गए मॉड्यूल के लिए मैन्युअल मॉक मौजूद होता है, तो WebdriverIO `mock('moduleName')`को स्पष्ट रूप से कॉल करते समय उस मॉड्यूल का उपयोग करेगा। हालाँकि, जब ऑटोमॉक को सही पर सेट किया जाता है, तो स्वचालित रूप से बनाए गए मॉक के बजाय मैन्युअल मॉक कार्यान्वयन का उपयोग किया जाएगा, भले ही <`mock('moduleName')` को कॉल न किया गया हो। इस व्यवहार से बाहर निकलने के लिए आपको परीक्षणों में `unmock('moduleName')` को स्पष्ट रूप से कॉल करने की आवश्यकता होगी जो वास्तविक मॉड्यूल कार्यान्वयन का उपयोग करना चाहिए, उदाहरण के लिए:
 
 ```js
 import { unmock } from '@wdio/browser-runner'
@@ -275,7 +275,7 @@ unmock('lodash')
 
 ## Hoisting
 
-In order to get mocking to work in the browser, WebdriverIO rewrites the test files and hoists the mock calls above everything else (see also [this blog post](https://www.coolcomputerclub.com/posts/jest-hoist-await/) on the hoisting problem in Jest). This limits the way you can pass in variables into the mock resolver, e.g.:
+ब्राउज़र में काम करने के लिए मज़ाक करने के लिए, WebdriverIO परीक्षण फ़ाइलों को फिर से लिखता है और मॉक कॉल्स को बाकी सभी चीज़ों से ऊपर उठाता है (यह भी देखें [यह ब्लॉग पोस्ट](https://www.coolcomputerclub.com/posts/jest-hoist-await/) जेस्ट में उत्थापन समस्या पर)। यह आपके द्वारा मॉक रिज़ॉल्वर में वेरिएबल्स पास करने के तरीके को सीमित करता है, उदाहरण के लिए:
 
 ```js title=component.test.js
 import dep from 'dependency'
@@ -290,7 +290,7 @@ mock('./some/module.ts', () => ({
 }))
 ```
 
-To fix this you have to define all used variables inside the resolver, e.g.:
+इसे ठीक करने के लिए आपको रिज़ॉल्वर के अंदर उपयोग किए गए सभी वेरिएबल्स को परिभाषित करना होगा, जैसे:
 
 ```js title=component.test.js
 /**
@@ -307,6 +307,6 @@ mock('./some/module.ts', async () => {
 })
 ```
 
-## Requests
+## अनुरोध
 
-If you are looking for mocking browser requests, e.g. API calls, head over to the [Request Mock and Spies](/docs/mocksandspies) section.
+यदि आप नकली ब्राउज़र अनुरोधों की तलाश कर रहे हैं, उदाहरण के लिए एपीआई कॉल, तो [अनुरोध नकली और जासूस](/docs/mocksandspies) अनुभाग पर जाएं।
