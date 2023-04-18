@@ -1,15 +1,15 @@
 ---
 id: debugging
-title: Debugging
+title: डीबग करना
 ---
 
-Debugging is significantly more difficult when several processes spawn dozens of tests in multiple browsers.
+डिबगिंग काफी अधिक कठिन है जब कई प्रक्रियाएँ कई ब्राउज़रों में दर्जनों परीक्षण उत्पन्न करती हैं।
 
 <iframe width="560" height="315" src="https://www.youtube.com/embed/_bw_VWn5IzU" frameborder="0" allowFullScreen></iframe>
 
-For starters, it is extremely helpful to limit parallelism by setting `maxInstances` to `1`, and targeting only those specs and browsers that need to be debugged.
+शुरुआत करने वालों के लिए, `maxInstances` से `1`सेट करके और केवल उन विनिर्देशों और ब्राउज़रों को लक्षित करके समांतरता को सीमित करना बेहद सहायक होता है जिन्हें डीबग करने की आवश्यकता होती है।
 
-In `wdio.conf`:
+`wdio.conf`में:
 
 ```js
 export const config = {
@@ -25,9 +25,9 @@ export const config = {
 }
 ```
 
-## The Debug Command
+## डिबग कमांड
 
-In many cases, you can use [`browser.debug()`](/docs/api/browser/debug) to pause your test and inspect the browser.
+कई मामलों में, आप अपने परीक्षण को रोकने और ब्राउज़र का निरीक्षण करने के लिए [`browser.debug()`](/docs/api/browser/debug) का उपयोग कर सकते हैं।
 
 आपका कमांड लाइन इंटरफ़ेस भी आरईपीएल मोड में बदल जाएगा। यह मोड आपको पेज पर कमांड और एलिमेंट के साथ फिडल करने की अनुमति देता है। REPL मोड में, आप `browser` ऑब्जेक्ट&mdash;या `$` और `$$` फ़ंक्शंस&mdash;तक पहुँच सकते हैं जैसे आप अपने परीक्षणों में कर सकते हैं।
 
