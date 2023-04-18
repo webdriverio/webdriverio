@@ -4,7 +4,6 @@ import http from 'http'
 import https from 'https'
 import path from 'path'
 import util from 'util'
-import { createRequire } from 'module'
 
 import type { Browser, MultiRemoteBrowser } from 'webdriverio'
 import type { Capabilities, Frameworks, Options } from '@wdio/types'
@@ -127,53 +126,53 @@ function filterPII(userConfig: Options.Testrunner) {
 }
 
 function setCredentialsForCrashReportUpload(options: BrowserstackConfig & Options.Testrunner, config: Options.Testrunner) {
-  credentialsForCrashReportUpload = {
-      username: getObservabilityUser(options, config),
-      password: getObservabilityKey(options, config)
-  }
-  process.env.CREDENTIALS_FOR_CRASH_REPORTING = JSON.stringify(credentialsForCrashReportUpload)
+    credentialsForCrashReportUpload = {
+        username: getObservabilityUser(options, config),
+        password: getObservabilityKey(options, config)
+    }
+    process.env.CREDENTIALS_FOR_CRASH_REPORTING = JSON.stringify(credentialsForCrashReportUpload)
 }
 
 export function setConfigDetails(userConfig: Options.Testrunner, capabilities: Capabilities.RemoteCapability, options: BrowserstackConfig & Options.Testrunner) {
-  const configWithoutPII = filterPII(userConfig)
-  userConfigForReporting = {
-      framework: userConfig.framework,
-      services: configWithoutPII.services,
-      capabilities: capabilities,
-      env: {
-          'BROWSERSTACK_BUILD': process.env.BROWSERSTACK_BUILD,
-          'BROWSERSTACK_BUILD_NAME': process.env.BROWSERSTACK_BUILD_NAME,
-          'BUILD_TAG': process.env.BUILD_TAG
-      }
-  }
-  process.env.USER_CONFIG_FOR_REPORTING = JSON.stringify(userConfigForReporting)
-  setCredentialsForCrashReportUpload(options, userConfig)
+    const configWithoutPII = filterPII(userConfig)
+    userConfigForReporting = {
+        framework: userConfig.framework,
+        services: configWithoutPII.services,
+        capabilities: capabilities,
+        env: {
+            'BROWSERSTACK_BUILD': process.env.BROWSERSTACK_BUILD,
+            'BROWSERSTACK_BUILD_NAME': process.env.BROWSERSTACK_BUILD_NAME,
+            'BUILD_TAG': process.env.BUILD_TAG
+        }
+    }
+    process.env.USER_CONFIG_FOR_REPORTING = JSON.stringify(userConfigForReporting)
+    setCredentialsForCrashReportUpload(options, userConfig)
 }
 
 function processError(error: any, fn: Function, args: any[]) {
-  log.error(`Error in executing ${fn.name} with args ${args}: ${error}`)
-  let argsString: string
-  try {
-      argsString = JSON.stringify(args)
-  } catch (e) {
-      argsString = util.inspect(args, { depth: 2 })
-  }
-  uploadCrashReport(`Error in executing ${fn.name} with args ${argsString} : ${error}`, error && error.stack)
+    log.error(`Error in executing ${fn.name} with args ${args}: ${error}`)
+    let argsString: string
+    try {
+        argsString = JSON.stringify(args)
+    } catch (e) {
+        argsString = util.inspect(args, { depth: 2 })
+    }
+    uploadCrashReport(`Error in executing ${fn.name} with args ${argsString} : ${error}`, error && error.stack)
 }
 
 function o11yErrorHandler(fn: Function) {
-  return function (...args: any) {
-      try {
-          // @ts-ignore
-          const result = fn(...args)
-          if (result instanceof Promise) {
-              return result.catch(error => processError(error, fn, args))
-          }
-          return result
-      } catch (error) {
-          processError(error, fn, args)
-      }
-  }
+    return function (...args: any) {
+        try {
+            // @ts-ignore
+            const result = fn(...args)
+            if (result instanceof Promise) {
+                return result.catch(error => processError(error, fn, args))
+            }
+            return result
+        } catch (error) {
+            processError(error, fn, args)
+        }
+    }
 }
 
 // https://tugayilik.medium.com/error-handling-via-try-catch-proxy-in-javascript-54116dbf783f
@@ -223,7 +222,7 @@ export async function uploadCrashReport(exception: any, stackTrace: string) {
         return log.error(`[Crash_Report_Upload] Failed to parse user credentials while reporting crash due to ${error}`)
     }
     if (!credentialsForCrashReportUpload.username || !credentialsForCrashReportUpload.password) {
-      return log.error('[Crash_Report_Upload] Failed to parse user credentials while reporting crash')
+        return log.error('[Crash_Report_Upload] Failed to parse user credentials while reporting crash')
     }
 
     try {

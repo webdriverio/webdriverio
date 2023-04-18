@@ -9,12 +9,12 @@ import type { Pickle, Feature, ITestCaseHookParameter } from './cucumber-types'
 
 import InsightsHandler from './insights-handler'
 import {
-  getBrowserDescription,
-  getBrowserCapabilities,
-  isBrowserstackCapability,
-  getParentSuiteName,
-  isBrowserstackSession,
-  uploadCrashReport
+    getBrowserDescription,
+    getBrowserCapabilities,
+    isBrowserstackCapability,
+    getParentSuiteName,
+    isBrowserstackSession,
+    uploadCrashReport
 } from './util'
 import TestReporter from './reporter'
 

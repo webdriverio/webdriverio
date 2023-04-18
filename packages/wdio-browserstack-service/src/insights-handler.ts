@@ -7,19 +7,19 @@ import type { BeforeCommandArgs, AfterCommandArgs } from '@wdio/reporter'
 import { v4 as uuidv4 } from 'uuid'
 import type { Pickle, ITestCaseHookParameter } from './cucumber-types'
 
-import { 
-  getCloudProvider,
-  getGitMetaData,
-  getHookType,
-  getScenarioExamples,
-  getUniqueIdentifier,
-  getUniqueIdentifierForCucumber,
-  isBrowserstackSession,
-  isScreenshotCommand,
-  o11yClassErrorHandler,
-  removeAnsiColors,
-  sleep,
-  uploadEventData
+import {
+    getCloudProvider,
+    getGitMetaData,
+    getHookType,
+    getScenarioExamples,
+    getUniqueIdentifier,
+    getUniqueIdentifierForCucumber,
+    isBrowserstackSession,
+    isScreenshotCommand,
+    o11yClassErrorHandler,
+    removeAnsiColors,
+    sleep,
+    uploadEventData
 } from './util'
 import type { TestData, TestMeta, PlatformMeta, UploadType } from './types'
 import RequestQueueHandler from './request-handler'

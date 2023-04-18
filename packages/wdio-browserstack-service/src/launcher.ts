@@ -15,13 +15,13 @@ import type { Capabilities, Services, Options } from '@wdio/types'
 import { version as bstackServiceVersion } from '../package.json'
 import type { App, AppConfig, AppUploadResponse, BrowserstackConfig } from './types'
 import { VALID_APP_EXTENSION } from './constants'
-import { 
-  launchTestSession, 
-  shouldAddServiceVersion, 
-  stopBuildUpstream, 
-  getCiInfo, 
-  isBStackSession, 
-  setConfigDetails 
+import {
+    launchTestSession,
+    shouldAddServiceVersion,
+    stopBuildUpstream,
+    getCiInfo,
+    isBStackSession,
+    setConfigDetails
 } from './util'
 
 const log = logger('@wdio/browserstack-service')
