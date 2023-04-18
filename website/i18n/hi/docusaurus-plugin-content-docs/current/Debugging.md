@@ -29,9 +29,9 @@ export const config = {
 
 In many cases, you can use [`browser.debug()`](/docs/api/browser/debug) to pause your test and inspect the browser.
 
-Your command line interface will also switch into REPL mode. This mode allows you to fiddle around with commands and elements on the page. In REPL mode, you can access the `browser` object&mdash;or `$` and `$$` functions&mdash;like you can in your tests.
+आपका कमांड लाइन इंटरफ़ेस भी आरईपीएल मोड में बदल जाएगा। यह मोड आपको पेज पर कमांड और एलिमेंट के साथ फिडल करने की अनुमति देता है। REPL मोड में, आप `browser` ऑब्जेक्ट&mdash;या `$` और `$$` फ़ंक्शंस&mdash;तक पहुँच सकते हैं जैसे आप अपने परीक्षणों में कर सकते हैं।
 
-When using `browser.debug()`, you will likely need to increase the timeout of the test runner to prevent the test runner from failing the test for taking to long.  For example:
+`browser.debug()`का उपयोग करते समय, आपको टेस्ट रनर को लंबे समय तक परीक्षण में विफल होने से रोकने के लिए टेस्ट रनर के टाइमआउट को बढ़ाने की आवश्यकता होगी।  उदाहरण के लिए:
 
 In `wdio.conf`:
 
@@ -41,12 +41,12 @@ jasmineOpts: {
 }
 ```
 
-See [timeouts](Timeouts.md) for more information on how to do that using other frameworks.
+अन्य ढांचे का उपयोग करके इसे कैसे करें इस बारे में अधिक जानकारी के लिए [टाइमआउट](Timeouts.md) देखें।
 
-To proceed with the tests after debugging, in the shell use `^C` shortcut or the `.exit` command.
-## Dynamic configuration
+डिबगिंग के बाद परीक्षण जारी रखने के लिए, शेल में `^C` शॉर्टकट या `.exit` कमांड का उपयोग करें।
+## गतिशील विन्यास
 
-Note that `wdio.conf.js` can contain Javascript. चूंकि आप संभवत: अपने टाइमआउट मान को 1 दिन में स्थायी रूप से बदलना नहीं चाहते हैं, इसलिए पर्यावरण चर का उपयोग करके कमांड लाइन से इन सेटिंग्स को बदलना अक्सर मददगार हो सकता है।
+ध्यान दें कि `wdio.conf.js` में जावास्क्रिप्ट हो सकता है। चूंकि आप संभवत: अपने टाइमआउट मान को 1 दिन में स्थायी रूप से बदलना नहीं चाहते हैं, इसलिए पर्यावरण चर का उपयोग करके कमांड लाइन से इन सेटिंग्स को बदलना अक्सर मददगार हो सकता है।
 
 इस तकनीक का उपयोग करके, आप गतिशील रूप से कॉन्फ़िगरेशन को बदल सकते हैं:
 
