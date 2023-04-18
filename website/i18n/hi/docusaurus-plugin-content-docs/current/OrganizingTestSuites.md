@@ -201,69 +201,69 @@ wdio wdio.conf.js --exclude ./test/specs/e2e/login.js
 wdio wdio.conf.js --exclude ./test/specs/signup.js --exclude ./test/specs/forgot-password.js
 ```
 
-Or, exclude a spec file when filtering using a suite:
+या, एक सूट का उपयोग करते हुए फ़िल्टर करते समय एक विशिष्ट फ़ाइल को बाहर करें:
 
 ```sh
 wdio wdio.conf.js --suite login --exclude ./test/specs/e2e/login.js
 ```
 
-When the `--exclude` option is provided, it will override any patterns defined by the config or capability level's `exclude` parameter.
+जब `--exclude` विकल्प प्रदान किया जाता है, तो यह कॉन्फ़िगरेशन या क्षमता स्तर के `exclude` पैरामीटर द्वारा परिभाषित किसी भी पैटर्न को ओवरराइड कर देगा।
 
-## Run Suites and Test Specs
+## सूट और टेस्ट स्पेक्स चलाएं
 
-Run an entire suite along with individual specs.
+अलग-अलग विशिष्टताओं के साथ एक संपूर्ण सुइट चलाएं।
 
 ```sh
 wdio wdio.conf.js --suite login --spec ./test/specs/signup.js
 ```
 
-## Run Multiple, Specific Test Specs
+## एकाधिक, विशिष्ट परीक्षण विशिष्टताएँ चलाएँ
 
-It is sometimes necessary&mdash;in the context of continuous integration and otherwise&mdash;to specify multiple sets of specs to run. WebdriverIO's `wdio` command line utility accepts piped-in filenames (from `find`, `grep`, or others).
+निरंतर एकीकरण के संदर्भ में कभी-कभी&mdash;आवश्यक होता है और अन्यथा चलाने के लिए विशिष्टताओं के एकाधिक सेट निर्दिष्ट करने के लिए&mdash;होता है। WebdriverIO की `wdio` कमांड लाइन यूटिलिटी पाइप्ड-इन फ़ाइलनामों को स्वीकार करती है ( `find`, `grep`, या अन्य)।
 
-Piped-in filenames override the list of globs or filenames specified in the configuration's `spec` list.
+पाइप्ड-इन फ़ाइलनाम कॉन्फ़िगरेशन की `spec` सूची में निर्दिष्ट ग्लोब या फ़ाइल नामों की सूची को ओवरराइड करते हैं।
 
 ```sh
 grep -r -l --include "*.js" "myText" | wdio wdio.conf.js
 ```
 
-_**Note:** This will_ not _override the `--spec` flag for running a single spec._
+_**नोट:** यह_ नहीं _ `--spec` फ़्लैग को सिंगल स्पेक चलाने के लिए ओवरराइड करेगा।_
 
-## Running Specific Tests with MochaOpts
+## MochaOpts के साथ विशिष्ट परीक्षण चलाना
 
-You can also filter which specific `suite|describe` and/or `it|test` you want to run by passing a mocha specific argument: `--mochaOpts.grep` to the wdio CLI.
+आप यह भी फ़िल्टर कर सकते हैं कि कौन सा विशिष्ट `|suite|describe` और/या `test|` जिसे आप मोचा विशिष्ट तर्क पास करके चलाना चाहते हैं: `--mochaOpts.grep` wdio CLI को।
 
 ```sh
 wdio wdio.conf.js --mochaOpts.grep myText
 wdio wdio.conf.js --mochaOpts.grep "Text with spaces"
 ```
 
-_**Note:** Mocha will filter the tests after the WDIO test runner creates the instances, so you might see several instances being spawned but not actually executed._
+_**नोट:** मोचा WDIO टेस्ट रनर के इंस्टेंस बनाने के बाद परीक्षणों को फ़िल्टर करेगा, इसलिए आप कई इंस्टेंसेस को उत्पन्न होते हुए देख सकते हैं लेकिन वास्तव में निष्पादित नहीं होते हैं।_
 
-## Stop testing after failure
+## असफलता के बाद परीक्षण बंद करो
 
-With the `bail` option, you can tell WebdriverIO to stop testing after any test fails.
+`bail` विकल्प के साथ, आप किसी भी परीक्षण के विफल होने के बाद WebdriverIO को परीक्षण बंद करने के लिए कह सकते हैं।
 
-This is helpful with large test suites when you already know that your build will break, but you want to avoid the lengthy wait of a full testing run.
+यह बड़े परीक्षण सूट के साथ सहायक होता है जब आप पहले से ही जानते हैं कि आपका निर्माण टूट जाएगा, लेकिन आप एक पूर्ण परीक्षण चलाने की लंबी प्रतीक्षा से बचना चाहते हैं।
 
-The `bail` option expects a number, which specifies how many test failures can occur before WebDriver stop the entire testing run. The default is `0`, meaning that it always runs all tests specs it can find.
+`bail` विकल्प एक संख्या की अपेक्षा करता है, जो निर्दिष्ट करता है कि वेबड्राइवर द्वारा पूरे परीक्षण को रोकने से पहले कितने परीक्षण विफल हो सकते हैं। डिफ़ॉल्ट `0`है, जिसका अर्थ है कि यह हमेशा उन सभी परीक्षणों को चलाता है जो इसे मिल सकते हैं।
 
-Please see [Options Page](Configuration.md) for additional information on the bail configuration.
-## Run options hierarchy
+जमानत विन्यास पर अतिरिक्त जानकारी के लिए कृपया [विकल्प पृष्ठ](Configuration.md) देखें।
+## रन विकल्प पदानुक्रम
 
-When declaring what specs to run, there is a certain hierarchy defining what pattern will take precedence. Currently, this is how it works, from highest priority to lowest:
+यह घोषित करते समय कि कौन से स्पेक्स को चलाना है, एक निश्चित पदानुक्रम है जो यह परिभाषित करता है कि कौन सा पैटर्न पूर्वता लेगा। वर्तमान में, यह इस तरह काम करता है, सर्वोच्च प्राथमिकता से निम्नतम तक:
 
 > CLI `--spec` argument > capability `specs` pattern > config `specs` pattern CLI `--exclude` argument > config `exclude` pattern > capability `exclude` pattern
 
-If only the config parameter is given, it will be used for all capabilities. However, if defining the pattern at the capability level, it will be used instead of the config pattern. Finally, any spec pattern defined on the command line will override all other patterns given.
+यदि केवल कॉन्फ़िगरेशन पैरामीटर दिया गया है, तो इसका उपयोग सभी क्षमताओं के लिए किया जाएगा। हालाँकि, यदि पैटर्न को क्षमता स्तर पर परिभाषित किया जाता है, तो इसका उपयोग कॉन्फिग पैटर्न के बजाय किया जाएगा। अंत में, कमांड लाइन पर परिभाषित कोई भी विशिष्ट पैटर्न दिए गए अन्य सभी पैटर्न को ओवरराइड कर देगा।
 
-### Using capability-defined spec patterns
+### क्षमता-परिभाषित कल्पना पैटर्न का उपयोग करना
 
-When you define a spec pattern at the capability level, it will override any patterns defined at the config level. This is useful when needing to separate tests based on differentiating device capabilities. In cases like this, it is more useful to use a generic spec pattern at the config level, and more specific patterns at the capability level.
+जब आप क्षमता स्तर पर एक विशेष पैटर्न परिभाषित करते हैं, तो यह कॉन्फ़िगरेशन स्तर पर परिभाषित किसी भी पैटर्न को ओवरराइड कर देगा। विभेदक उपकरण क्षमताओं के आधार पर अलग-अलग परीक्षणों की आवश्यकता होने पर यह उपयोगी होता है। इस तरह के मामलों में, कॉन्फिग स्तर पर एक सामान्य स्पेक पैटर्न और क्षमता स्तर पर अधिक विशिष्ट पैटर्न का उपयोग करना अधिक उपयोगी होता है।
 
-For example, let's say you had two directories, with one for Android tests, and one for iOS tests.
+उदाहरण के लिए, मान लें कि आपके पास दो निर्देशिकाएं हैं, जिनमें से एक Android परीक्षण के लिए है, और एक iOS परीक्षण के लिए है।
 
-Your config file may define the pattern as such, for non-specific device tests:
+गैर-विशिष्ट उपकरण परीक्षणों के लिए आपकी कॉन्फ़िगरेशन फ़ाइल पैटर्न को इस प्रकार परिभाषित कर सकती है:
 
 ```js
 {
@@ -271,7 +271,7 @@ Your config file may define the pattern as such, for non-specific device tests:
 }
 ```
 
-but then, you will have different capabilities for your Android and iOS devices, where the patterns could look like such:
+लेकिन तब, आपके पास अपने Android और iOS उपकरणों के लिए अलग-अलग क्षमताएँ होंगी, जहाँ पैटर्न इस तरह दिख सकते हैं:
 
 ```json
 {
@@ -291,7 +291,7 @@ but then, you will have different capabilities for your Android and iOS devices,
 }
 ```
 
-If you require both of these capabilities in your config file, then the Android device will only run the tests under the "android" namespace, and the iOS tests will run only tests under the "ios" namespace!
+यदि आपको अपनी कॉन्फ़िगरेशन फ़ाइल में इन दोनों क्षमताओं की आवश्यकता है, तो एंड्रॉइड डिवाइस केवल "एंड्रॉइड" नामस्थान के तहत परीक्षण चलाएगा, और आईओएस परीक्षण केवल "आईओएस" नामस्थान के तहत परीक्षण चलाएगा!
 
 ```js
 //wdio.conf.js
