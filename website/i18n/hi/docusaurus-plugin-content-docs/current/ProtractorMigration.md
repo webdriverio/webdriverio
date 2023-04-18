@@ -1,29 +1,29 @@
 ---
 id: protractor-migration
-title: From Protractor
+title: कोणमापक से
 ---
 
-This tutorial is for people who are using Protractor and want to migrate their framework to WebdriverIO. It was initiated after the Angular team [has announced](https://github.com/angular/protractor/issues/5502) that Protractor won't be longer supported. WebdriverIO has been influenced by a lot of Protractors design decisions which is why it is probably the closest framework to migrate over. The WebdriverIO team appreciates the work of every single Protractor contributor and hopes that this tutorial makes the transition to WebdriverIO easy and straightforward.
+यह ट्यूटोरियल उन लोगों के लिए है जो कोणमापक का उपयोग कर रहे हैं और अपने ढांचे को WebdriverIO में माइग्रेट करना चाहते हैं। यह एंगुलर टीम [द्वारा](https://github.com/angular/protractor/issues/5502) घोषणा के बाद शुरू किया गया था कि प्रोटैक्टर अब समर्थित नहीं होगा। WebdriverIO बहुत सारे प्रोट्रैक्टर डिज़ाइन निर्णयों से प्रभावित रहा है, यही कारण है कि यह संभवतः माइग्रेट करने के लिए निकटतम ढांचा है। WebdriverIO टीम हर एक कोणमापक योगदानकर्ता के काम की सराहना करती है और आशा करती है कि यह ट्यूटोरियल WebdriverIO में संक्रमण को आसान और सीधा बनाता है।
 
-While we would love to have a fully automated process for this the reality looks different. Everyone has a different setup and uses Protractor in different ways. Every step should be seen as guidance and less like a step by step instruction. If you have issues with the migration, don't hesitate to [contact us](https://github.com/webdriverio/codemod/discussions/new).
+जबकि हम इसके लिए पूरी तरह से स्वचालित प्रक्रिया चाहते हैं, वास्तविकता अलग दिखती है। हर किसी का एक अलग सेटअप होता है और अलग-अलग तरीकों से प्रोटैक्टर का उपयोग करता है। हर कदम को मार्गदर्शन के रूप में देखा जाना चाहिए और कदम दर कदम निर्देश की तरह नहीं। अगर आपको माइग्रेशन से जुड़ी कोई समस्या है, तो बेझिझक [हमसे संपर्क करें](https://github.com/webdriverio/codemod/discussions/new).
 
-## Setup
+## सेटअप
 
-The Protractor and WebdriverIO API is actually very similar, to a point where the majority of commands can be rewritten in an automted way through a [codemod](https://github.com/webdriverio/codemod).
+प्रोट्रैक्टर और वेबड्राइवरआईओ एपीआई वास्तव में एक बिंदु पर बहुत समान हैं, जहां अधिकांश कमांड को [कोडमॉड](https://github.com/webdriverio/codemod)के माध्यम से स्वचालित तरीके से फिर से लिखा जा सकता है।
 
-To install the codemod, run:
+कोडमोड इंस्कोटाल करने के लिए, रन करें:
 
 ```sh
 npm install jscodeshift @wdio/codemod
 ```
 
-## Strategy
+## रणनीति
 
-There are many migration strategies. Depending on the size of your team, amount of test files and the urgency to migrate you can try to transform all tests at once or file by file. Given that Protractor will continued to be maintained until Angular version 15 (end of 2022) you still have enough time. You can have Protractor and WebdriverIO tests running at the same time and start writing new tests in WebdriverIO. Given your time budget you can then start migrating the important test cases first and work your way down to tests you might even can delete.
+कई प्रवासन रणनीतियाँ हैं। आपकी टीम के आकार, परीक्षण फ़ाइलों की मात्रा और माइग्रेट करने की अत्यावश्यकता के आधार पर आप एक बार में सभी परीक्षणों को बदलने या फ़ाइल द्वारा फ़ाइल करने का प्रयास कर सकते हैं। यह देखते हुए कि कोणीय संस्करण 15 (2022 के अंत) तक आपके पास अभी भी पर्याप्त समय है, तब तक कोणमापक को बनाए रखा जाएगा। आप एक ही समय में प्रोटेक्टर और WebdriverIO परीक्षण चला सकते हैं और WebdriverIO में नए परीक्षण लिखना शुरू कर सकते हैं। अपने समय के बजट को देखते हुए आप पहले महत्वपूर्ण परीक्षण मामलों को माइग्रेट करना शुरू कर सकते हैं और उन परीक्षणों पर अपना काम कर सकते हैं जिन्हें आप हटा भी सकते हैं।
 
-## First the Config File
+## सबसे पहले कॉन्फिग फाइल
 
-After we have installed the codemod we can start transforming the first file. Have a look first into [WebdriverIOs configuration options](Configuration.md). Config files can become very complex and it might make sense to only port the essential parts and see how the rest can be added once the corresponding tests that need certain options are being migrated.
+कोडमॉड स्थापित करने के बाद हम पहली फ़ाइल को बदलना शुरू कर सकते हैं। पहले [WebdriverIOs कॉन्फ़िगरेशन विकल्प](Configuration.md)में देखें। कॉन्फिग फाइलें बहुत जटिल हो सकती हैं और यह केवल आवश्यक भागों को पोर्ट करने के लिए समझ में आ सकता है और यह देख सकता है कि कुछ विकल्पों को माइग्रेट किए जाने वाले संबंधित परीक्षणों के बाद बाकी को कैसे जोड़ा जा सकता है।
 
 For the first migration we only transform the config file and run:
 
