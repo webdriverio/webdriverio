@@ -68,7 +68,7 @@ Este único comando descarga la herramienta CLI WebdriverIO y ejecuta un asisten
 
 <CreateProjectAnimation />
 
-El asistente le preguntará a una serie de preguntas que le guiarán a través de la configuración. Puedes pasar un parámetro `--yes` para elegir una configuración predeterminada que usará Mocha con Chrome usando el patrón [Page Object](https://martinfowler.com/bliki/PageObject.html).
+El asistente le preguntará a una serie de preguntas que le guiarán a través de la configuración. Puedes pasar un parámetro `--yes` para elegir una configuración predeterminada que usará Mocha con Chrome usando el patrón \[Page Object\](https://martinfowler.com/bliki/PageObject.html).
 
 <Tabs
   defaultValue="npm"
