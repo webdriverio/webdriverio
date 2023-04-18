@@ -31,41 +31,41 @@ We __do__ and __do not__ recommend the following selectors:
 | `$('button[data-testid="submit"]')`           | ✅ Good       | Requires additional attribute, not connected to a11y.       |
 | `$('aria/Submit')` or `$('button=Submit')`    | ✅ Always     | Best. Resembles how the user interacts with the page.       |
 
-## CSS Query Selector
+## सीएसएस क्वेरी चयनकर्ता
 
-If not indicated otherwise, WebdriverIO will query elements using the [CSS selector](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Selectors) pattern, e.g.:
+यदि अन्यथा इंगित नहीं किया गया है, तो WebdriverIO [CSS चयनकर्ता](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Selectors) पैटर्न का उपयोग करके तत्वों को क्वेरी करेगा, उदाहरण के लिए:
 
 ```js reference useHTTPS
 https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.js#L7-L8
 ```
 
-## Link Text
+## लिंक लेख
 
-To get an anchor element with a specific text in it, query the text starting with an equals (`=`) sign.
+इसमें एक विशिष्ट पाठ के साथ एंकर तत्व प्राप्त करने के लिए, टेक्स्ट को बराबर (`=`) चिह्न से प्रारंभ करें।
 
-For example:
+उदाहरण के लिए:
 
 ```html reference
 https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.html#L3
 ```
 
-You can query this element by calling:
+आप इस तत्व को कॉल करके पूछ सकते हैं:
 
 ```js reference useHTTPS
 https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.js#L16-L18
 ```
 
-## Partial Link Text
+## आंशिक लिंक लेख
 
-To find a anchor element whose visible text partially matches your search value, query it by using `*=` in front of the query string (e.g. `*=driver`).
+एक एंकर तत्व खोजने के लिए जिसका दृश्य पाठ आंशिक रूप से आपके खोज मूल्य से मेल खाता है, क्वेरी स्ट्रिंग के सामने `*=` का उपयोग करके क्वेरी करें (उदाहरण के लिए `*=driver`)।
 
-You can query the element from the example above by also calling:
+आप ऊपर दिए गए उदाहरण से तत्व को कॉल करके भी पूछ सकते हैं:
 
 ```js reference useHTTPS
 https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.js#L24-L26
 ```
 
-__Note:__ You can't mix multiple selector strategies in one selector. Use multiple chained element queries to reach the same goal, e.g.:
+__नोट:__ आप एक चयनकर्ता में एकाधिक चयनकर्ता रणनीतियों को मिश्रित नहीं कर सकते हैं। एक ही लक्ष्य तक पहुँचने के लिए कई श्रृंखलित तत्व प्रश्नों का उपयोग करें, उदाहरण के लिए:
 
 ```js
 const elem = await $('header h1*=Welcome') // doesn't work!!!
@@ -73,41 +73,41 @@ const elem = await $('header h1*=Welcome') // doesn't work!!!
 const elem = await $('header').$('*=driver')
 ```
 
-## Element with certain text
+## निश्चित लेख वाला तत्व
 
-The same technique can be applied to elements as well.
+उसी तकनीक को तत्वों पर भी लागू किया जा सकता है।
 
-For example, here's a query for a level 1 heading with the text "Welcome to my Page":
+उदाहरण के लिए, यहाँ "मेरे पृष्ठ में आपका स्वागत है" पाठ के साथ स्तर 1 शीर्षक के लिए एक प्रश्न है:
 
 ```html reference
 https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.html#L2
 ```
 
-You can query this element by calling:
+आप इस तत्व को कॉल करके पूछ सकते हैं:
 
 ```js reference useHTTPS
 https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.js#L35-L36
 ```
 
-Or using query partial text:
+या क्वेरी आंशिक पाठ का उपयोग करना:
 
 ```js reference useHTTPS
 https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.js#L42-L43
 ```
 
-The same works for `id` and `class` names:
+वही `id` और `class` नामों के लिए काम करता है:
 
 ```html reference
 https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.html#L4
 ```
 
-You can query this element by calling:
+आप इस तत्व को कॉल करके पूछ सकते हैं:
 
 ```js reference useHTTPS
 https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.js#L45-L55
 ```
 
-__Note:__ You can't mix multiple selector strategies in one selector. Use multiple chained element queries to reach the same goal, e.g.:
+__नोट:__ आप एक चयनकर्ता में एकाधिक चयनकर्ता रणनीतियों को मिश्रित नहीं कर सकते हैं। एक ही लक्ष्य तक पहुँचने के लिए कई श्रृंखलित तत्व प्रश्नों का उपयोग करें, उदाहरण के लिए:
 
 ```js
 const elem = await $('header h1*=Welcome') // doesn't work!!!
@@ -115,23 +115,23 @@ const elem = await $('header h1*=Welcome') // doesn't work!!!
 const elem = await $('header').$('h1*=Welcome')
 ```
 
-## Tag Name
+## टैग का नाम
 
-To query an element with a specific tag name, use `<tag>` or `<tag />`.
+किसी विशिष्ट टैग नाम वाले तत्व को क्वेरी करने के लिए, `<tag>` या `<tag />`का उपयोग करें।
 
 ```html reference
 https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.html#L5
 ```
 
-You can query this element by calling:
+आप इस तत्व को कॉल करके पूछ सकते हैं:
 
 ```js reference useHTTPS
 https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.js#L61-L62
 ```
 
-## Name Attribute
+## नाम गुण
 
-For querying elements with a specific name attribute you can either use a normal CSS3 selector or the provided name strategy from the [JSONWireProtocol](https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol) by passing something like [name="some-name"] as selector parameter:
+किसी विशिष्ट नाम विशेषता वाले तत्वों को क्वेरी करने के लिए आप या तो एक सामान्य CSS3 चयनकर्ता या [JSONWireProtocol](https://github.com/SeleniumHQ/selenium/wiki/JsonWireProtocol) से प्रदान की गई नाम रणनीति का उपयोग कर सकते हैं जैसे [नाम = "कुछ-नाम"] चयनकर्ता पैरामीटर के रूप में:
 
 ```html reference
 https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.html#L6
@@ -141,41 +141,41 @@ https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7ef
 https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.js#L68-L69
 ```
 
-__Note:__ This selector strategy it deprecated and only works in old browser that are run by the JSONWireProtocol protocol or by using Appium.
+__नोट:__ यह चयनकर्ता रणनीति इसे पदावनत करती है और केवल पुराने ब्राउज़र में काम करती है जो JSONWireProtocol प्रोटोकॉल द्वारा या Appium का उपयोग करके चलाए जाते हैं।
 
-## xPath
+## xपाथ
 
-It is also possible to query elements via a specific [xPath](https://developer.mozilla.org/en-US/docs/Web/XPath).
+विशिष्ट [xPath](https://developer.mozilla.org/en-US/docs/Web/XPath)के माध्यम से तत्वों को क्वेरी करना भी संभव है।
 
-An xPath selector has a format like `//body/div[6]/div[1]/span[1]`.
+एक xPath चयनकर्ता के पास `//body/div[6]/div[1]/span[1]`जैसा प्रारूप होता है।
 
 ```html reference
 https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/xpath.html
 ```
 
-You can query the second paragraph by calling:
+आप दूसरे पैराग्राफ को कॉल करके क्वेरी कर सकते हैं:
 
 ```js reference useHTTPS
 https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.js#L75-L76
 ```
 
-You can use xPath to also traverse up and down the DOM tree:
+आप DOM ट्री को ऊपर और नीचे करने के लिए भी xPath का उपयोग कर सकते हैं:
 
 ```js reference useHTTPS
 https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.js#L78-L79
 ```
 
-## Accessibility Name Selector
+## अभिगम्यता नाम चयनकर्ता
 
-Query elements by their accessible name. The accessible name is what is announced by a screen reader when that element receives focus. The value of the accessible name can be both visual content or hidden text alternatives.
+क्वेरी तत्वों को उनके सुलभ नाम से। एक्सेस करने योग्य नाम वह है जिसकी घोषणा स्क्रीन रीडर द्वारा की जाती है जब वह तत्व फोकस प्राप्त करता है। पहुँच योग्य नाम का मान दृश्य सामग्री या छिपे हुए पाठ विकल्प दोनों हो सकते हैं।
 
 :::info
 
-You can read more about this selector in our [release blog post](/blog/2022/09/05/accessibility-selector)
+आप इस चयनकर्ता के बारे में हमारे [रिलीज़ ब्लॉग पोस्ट](/blog/2022/09/05/accessibility-selector)में अधिक पढ़ सकते हैं
 
 :::
 
-### Fetch by `aria-label`
+### `aria-label`द्वारा प्राप्त करें
 
 ```html reference
 https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/aria.html#L1
@@ -185,7 +185,7 @@ https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7ef
 https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.js#L86-L87
 ```
 
-### Fetch by `aria-labelledby`
+### `aria-labelledby` फेच करें
 
 ```html reference
 https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/aria.html#L2-L3
@@ -195,7 +195,7 @@ https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7ef
 https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.js#L93-L94
 ```
 
-### Fetch by content
+### सामग्री द्वारा प्राप्त करें
 
 ```html reference
 https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/aria.html#L4
@@ -205,7 +205,7 @@ https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7ef
 https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.js#L100-L101
 ```
 
-### Fetch by title
+### शीर्षक से प्राप्त करें
 
 ```html reference
 https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/aria.html#L5
@@ -215,7 +215,7 @@ https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7ef
 https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.js#L107-L108
 ```
 
-### Fetch by `alt` property
+### `alt` प्रॉपर्टी द्वारा प्राप्त करें
 
 ```html reference
 https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/aria.html#L6
@@ -225,9 +225,9 @@ https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7ef
 https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.js#L114-L115
 ```
 
-## ARIA - Role Attribute
+## ARIA - भूमिका विशेषता
 
-For querying elements based on [ARIA roles](https://www.w3.org/TR/html-aria/#docconformance), you can directly specify role of the element like `[role=button]` as selector parameter:
+[ARIA भूमिका](https://www.w3.org/TR/html-aria/#docconformance)के आधार पर तत्वों को क्वेरी करने के लिए, आप चयनकर्ता पैरामीटर के रूप में `[role=button]` जैसे तत्व की भूमिका सीधे निर्दिष्ट कर सकते हैं:
 
 ```html reference
 https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/aria.html#L13
@@ -237,13 +237,13 @@ https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7ef
 https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.js#L131-L132
 ```
 
-## ID Attribute
+## आईडी विशेषता
 
-Locator strategy "id" is not supported in WebDriver protocol, one should use either CSS or xPath selector strategies instead to find elements using ID.
+लोकेटर रणनीति "आईडी" वेबड्राइवर प्रोटोकॉल में समर्थित नहीं है, किसी को आईडी का उपयोग करके तत्वों को खोजने के बजाय सीएसएस या xPath चयनकर्ता रणनीतियों का उपयोग करना चाहिए।
 
-However some drivers (e.g. [Appium You.i Engine Driver](https://github.com/YOU-i-Labs/appium-youiengine-driver#selector-strategies)) might still [support](https://github.com/YOU-i-Labs/appium-youiengine-driver#selector-strategies) this selector.
+हालाँकि कुछ ड्राइवर (जैसे [Appium You.i इंजन ड्राइवर](https://github.com/YOU-i-Labs/appium-youiengine-driver#selector-strategies)) अभी भी [इस चयनकर्ता](https://github.com/YOU-i-Labs/appium-youiengine-driver#selector-strategies) का समर्थन कर सकते हैं।
 
-Current supported selector syntaxes for ID are:
+आईडी के लिए वर्तमान समर्थित चयनकर्ता सिंटैक्स हैं:
 
 ```js
 //css locator
@@ -255,9 +255,9 @@ const button = await $('//*[@id="someid"]')
 const button = await $('id=resource-id/iosname')
 ```
 
-## JS Function
+## जेएस फंक्शन
 
-You can also use JavaScript functions to fetch elements using web native APIs. Of course, you can only do this inside a web context (e.g., `browser`, or web context in mobile).
+आप वेब नेटिव एपीआई का उपयोग करके तत्वों को लाने के लिए जावास्क्रिप्ट फ़ंक्शंस का भी उपयोग कर सकते हैं। बेशक, आप इसे केवल एक वेब संदर्भ (जैसे, `ब्राउज़र`या मोबाइल में वेब संदर्भ) के अंदर ही कर सकते हैं।
 
 Given the following HTML structure:
 
