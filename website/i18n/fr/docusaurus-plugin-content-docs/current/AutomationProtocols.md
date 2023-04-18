@@ -1,26 +1,26 @@
 ---
 id: automationProtocols
-title: Automation Protocols
+title: Protocoles d'automatisation
 ---
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-With WebdriverIO, you can choose between multiple automation technologies when running your E2E tests locally or in the cloud. By default WebdriverIO will always check for a browser driver that is compliant to the WebDriver protocol on `localhost:4444`. If it can't find such driver it falls back to use Chrome DevTools using Puppeteer under the hood.
+Avec WebdriverIO, vous pouvez choisir entre plusieurs technologies d'automatisation lors de l'exécution de vos tests bout en bout, localement ou dans le cloud. Par défaut, WebdriverIO recherchera toujours un pilote de navigateur conforme au protocole WebDriver sur `localhost:4444`. S'il ne trouve pas ce pilote, il utilisera Chrome DevTools en utilisant Puppeteer.
 
-Nearly all modern browsers that support [WebDriver](https://w3c.github.io/webdriver/) also support another native interface called [DevTools](https://chromedevtools.github.io/devtools-protocol/) that can be used for automation purposes.
+Presque tous les navigateurs modernes qui prennent en charge [WebDriver](https://w3c.github.io/webdriver/) prennent également en charge une autre interface native appelée [DevTools](https://chromedevtools.github.io/devtools-protocol/) qui peut être utilisée à des fins d'automatisation.
 
-Both have advantages and disadvantages, depending on your use case and environment.
+Les deux présentent des avantages et des inconvénients, en fonction de votre cas d'utilisation et de votre environnement.
 
-## WebDriver Protocol
+## Protocole WebDriver
 
-> [WebDriver](https://w3c.github.io/webdriver/) is a remote control interface that enables introspection and control of user agents. It provides a platform- and language-neutral wire protocol as a way for out-of-process programs to remotely instruct the behavior of web browsers.
+> [WebDriver](https://w3c.github.io/webdriver/) est une interface de contrôle à distance qui permet l'introspection et le contrôle des agents utilisateurs du navigateur. Il fournit un protocole indépendant de la plate-forme et du langage comme moyen pour les programmes hors processus d'instruire à distance le comportement des navigateurs Web.
 
-The WebDriver protocol was designed to automate a browser from the user perspective, meaning that everything a user is able to do, you can do with the browser. It provides a set of commands that abstract away common interactions with an application (e.g., navigating, clicking, or reading the state of an element). Since it is a web standard, it is well supported across all major browser vendors, and also is being used as underlying protocol for mobile automation using [Appium](http://appium.io).
+Le protocole WebDriver a été conçu pour automatiser un navigateur du point de vue de l'utilisateur, ce qui signifie que tout ce qu'un utilisateur est capable de faire, vous pouvez le faire avec le navigateur. Il fournit un ensemble de commandes qui résument les interactions courantes avec une application (par exemple, naviguer, cliquer ou lire l'état d'un élément). Puisqu'il s'agit d'un standard Web, il est bien pris en charge par tous les principaux fournisseurs de navigateurs et il est également utilisé comme protocole sous-jacent pour l'automatisation mobile à l'aide de [Appium](http://appium.io).
 
-To use this automation protocol, you need a proxy server that translates all commands and executes them in the target environment (i.e. the browser or the mobile app).
+Pour utiliser ce protocole d'automatisation, vous avez besoin d'un serveur proxy qui traduit toutes les commandes et les exécute dans l'environnement cible (c'est-à-dire le navigateur ou l'application mobile).
 
-For browser automation, the proxy server is usually the browser driver. There are drivers  available for all browsers:
+Pour l'automatisation du navigateur, le serveur proxy est généralement le pilote du navigateur. Il existe des pilotes disponibles pour tous les navigateurs :
 
 - Chrome – [ChromeDriver](http://chromedriver.chromium.org/downloads)
 - Firefox – [Geckodriver](https://github.com/mozilla/geckodriver/releases)
@@ -28,38 +28,38 @@ For browser automation, the proxy server is usually the browser driver. There ar
 - Internet Explorer – [InternetExplorerDriver](https://github.com/SeleniumHQ/selenium/wiki/InternetExplorerDriver)
 - Safari – [SafariDriver](https://developer.apple.com/documentation/webkit/testing_with_webdriver_in_safari)
 
-For any kind of mobile automation, you’ll need to install and setup [Appium](http://appium.io). It will allow you to automate mobile (iOS/Android) or even desktop (macOS/Windows) applications using the same WebdriverIO setup.
+Pour tout type d'automatisation mobile, vous devrez installer et configurer [Appium](http://appium.io). Il vous permettra d'automatiser des applications mobiles (iOS/Android) ou même de bureau (macOS/Windows) en utilisant la même configuration WebdriverIO.
 
-There are also plenty of services that allow you to run your automation test in the cloud at high scale. Instead of having to setup all these drivers locally, you can just talk to these services (e.g. [Sauce Labs](https://saucelabs.com)) in the cloud and inspect the results on their platform. The communication between test script and automation environment will look as follows:
+Il existe également de nombreux services qui vous permettent d'exécuter votre test d'automatisation dans le cloud à grande échelle. Au lieu d'avoir à configurer tous ces pilotes localement, vous pouvez simplement parler à ces services (par exemple [Sauce Labs](https://saucelabs.com)) dans le cloud et inspecter les résultats sur leur plate-forme. La communication entre le script de test et l'environnement d'automatisation se présentera comme suit :
 
-![WebDriver Setup](/img/webdriver.png)
+![Configuration du pilote Web](/img/webdriver.png)
 
-### Advantages
+### Avantages
 
-- Official W3C web standard, supported by all major browsers
-- Simplified protocol that covers common user interactions
-- Support for mobile automation (and even native desktop apps)
-- Can be used locally as well as in the cloud through services like [Sauce Labs](https://saucelabs.com)
+- Norme Web officielle du W3C, prise en charge par tous les principaux navigateurs
+- Protocole simplifié qui couvre les interactions courantes des utilisateurs
+- Prise en charge de l'automatisation mobile (et même des applications de bureau natives)
+- Peut être utilisé localement ainsi que dans le cloud grâce à des services tels que [Sauce Labs](https://saucelabs.com)
 
-### Disadvantages
+### Inconvénients
 
-- Not designed for in-depth browser analysis (e.g., tracing or intercepting network events)
-- Limited set of automation capabilities (e.g., no support to throttle CPU or network)
-- Additional effort to set up browser driver with selenium-standalone/chromedriver/etc
+- Non conçu pour une analyse approfondie du navigateur (par exemple, le traçage ou l'interception d'événements réseau)
+- Ensemble limité de capacités d'automatisation (par exemple, pas de prise en charge de la limitation du processeur ou du réseau)
+- Effort supplémentaire pour configurer le pilote du navigateur avec selenium-standalone/chromedriver/etc
 
-## DevTools Protocol
+## Protocole DevTools
 
-The DevTools interface is a native browser interface that is usually being used to debug the browser from a remote application (e.g., [Chrome DevTools](https://developers.google.com/web/tools/chrome-devtools/)). Next to its capabilities to inspect the browser in nearly all possible forms, it can also be used to control it.
+L'interface DevTools est une interface de navigateur native qui est généralement utilisée pour déboguer le navigateur à partir d'une application distante (par exemple, [Chrome DevTools](https://developers.google.com/web/tools/chrome-devtools/)). Outre ses capacités à inspecter le navigateur sous presque toutes les formes possibles, il peut également être utilisé pour le contrôler.
 
-While every browser used to have its own internal DevTools interface that was not really exposed to the user, more and more browsers are now adopting the [Chrome DevTools Protocol](https://chromedevtools.github.io/devtools-protocol/). It is used to either debug a web application using Chrome DevTools or control Chrome using tools like [Puppeteer](https://pptr.dev).
+Alors que chaque navigateur avait sa propre interface DevTools interne qui n'était pas vraiment exposée à l'utilisateur, de plus en plus de navigateurs adoptent désormais le [Chrome DevTools Protocol](https://chromedevtools.github.io/devtools-protocol/). Il est utilisé soit pour déboguer une application Web à l'aide de Chrome DevTools, soit pour contrôler Chrome à l'aide d'outils tels que [Puppeteer](https://pptr.dev).
 
-The communication happens without any proxy, directly to the browser using WebSockets:
+La communication se fait sans aucun proxy, directement vers le navigateur à l'aide de WebSockets :
 
-![DevTools Setup](/img/devtools.png)
+![Configuration des outils de développement](/img/devtools.png)
 
-WebdriverIO allows you to use the DevTools capabilities as an alternative automation technology for WebDriver if you have special requirements to automate the browser. With the [`devtools`](https://www.npmjs.com/package/devtools) NPM package, you can use the same commands that WebDriver provides, which then can be used by WebdriverIO and the WDIO testrunner to run its useful commands on top of that protocol. It uses Puppeteer to under the hood and allows you to run a sequence of commands with Puppeteer if needed.
+WebdriverIO vous permet d'utiliser les fonctionnalités de DevTools comme technologie d'automatisation alternative pour WebDriver si vous avez des exigences particulières pour automatiser le navigateur. Avec le package [`devtools`](https://www.npmjs.com/package/devtools) NPM, vous pouvez utiliser les mêmes commandes fournies par WebDriver, qui peuvent ensuite être utilisées par WebdriverIO et le testrunner WDIO pour exécuter ses commandes utiles en plus de ce protocole. Il utilise Puppeteer en arrière-plan et vous permet d'exécuter une séquence de commandes avec Puppeteer si nécessaire.
 
-To use DevTools as your automation protocol switch the `automationProtocol` flag to `devtools` in your configurations or just run WebdriverIO without a browser driver run in the background.
+Pour utiliser DevTools comme protocole d'automatisation, basculez l'indicateur `automationProtocol` sur `devtools` dans vos configurations ou exécutez simplement WebdriverIO sans qu'un pilote de navigateur ne s'exécute en arrière-plan.
 
 <Tabs
   defaultValue="testrunner"
@@ -111,7 +111,7 @@ describe('my test', () => {
 
 __Note:__ there is no need to have either `selenium-standalone` or `chromedriver` services installed.
 
-We recommend wrapping your Puppeteer calls within the `call` command, so that all calls are executed before WebdriverIO continues with the next WebDriver command.
+Nous vous recommandons d'encapsuler vos appels Puppeteer dans la commande `call`, afin que tous les appels soient exécutés avant que WebdriverIO ne continue avec la prochaine commande WebDriver.
 
 </TabItem>
 <TabItem value="standalone">
@@ -155,18 +155,18 @@ await browser.deleteSession()
 </TabItem>
 </Tabs>
 
-By accessing the Puppeteer interface, you have access to a variety of new capabilities to automate or inspect the browser and your application, e.g. intercepting network requests (see above), tracing the browser, throttle CPU or network capabilities, and much more.
+En accédant à l'interface Puppeteer, vous avez accès à une variété de nouvelles fonctionnalités pour automatiser ou inspecter le navigateur et votre application, par exemple l'interception des requêtes réseau (voir ci-dessus), le traçage du navigateur, la limitation des capacités CPU ou réseau, et bien plus encore.
 
-### `wdio:devtoolsOptions` Capability
+### `wdio:devtoolsOptions` Capacité
 
-If you run WebdriverIO tests through the DevTools package, you can apply [custom Puppeteer options](https://pptr.dev/#?product=Puppeteer&version=v8.0.0&show=api-puppeteerlaunchoptions). These options will be directly passed into the [`launch`](https://pptr.dev/#?product=Puppeteer&version=v8.0.0&show=api-puppeteerlaunchoptions) or [`connect`](https://pptr.dev/#?product=Puppeteer&version=v8.0.0&show=api-puppeteerconnectoptions) methods of Puppeteer. Other custom devtools options are the following:
+Si vous exécutez des tests WebdriverIO via le package DevTools, vous pouvez appliquer [options personnalisées de Puppeteer](https://pptr.dev/#?product=Puppeteer&version=v8.0.0&show=api-puppeteerlaunchoptions). Ces options seront directement transmises aux méthodes [`lancement`](https://pptr.dev/#?product=Puppeteer&version=v8.0.0&show=api-puppeteerlaunchoptions) ou [`connexion`](https://pptr.dev/#?product=Puppeteer&version=v8.0.0&show=api-puppeteerconnectoptions) de Puppeteer. Les autres options d'outils de développement personnalisés sont les suivantes :
 
 #### customPort
-Start Chrome on a custom port.
+Démarrez Chrome sur un port personnalisé.
 
 Type: `number`<br /> Default: `9222` (default of Puppeteer)
 
-Note: if you pass in `goog:chromeOptions/debuggerAddress`, `wdio:devtoolsOptions/browserWSEndpoint` or `wdio:devtoolsOptions/browserURL` options, WebdriverIO will try to connect with given connection details rather than starting a browser. For example you can connect to Testingbots cloud via:
+Remarque : si vous transmettez `goog:chromeOptions/debuggerAddress`, `wdio:devtoolsOptions/browserWSEndpoint` ou `wdio:devtoolsOptions/browserURL` options, WebdriverIO essaiera de se connecter avec les détails de connexion donnés plutôt que de démarrer un navigateur. Par exemple, vous pouvez vous connecter au cloud Testingbots via :
 
 ```js
 import { format } from 'util'
@@ -194,12 +194,12 @@ import { remote } from 'webdriverio'
 })()
 ```
 
-### Advantages
+### Avantages
 
-- Access to more automation capabilities (e.g. network interception, tracing etc.)
-- No need to manage browser drivers
+- Accès à plus de capacités d'automatisation (ex: interception du réseau, traçage, etc.)
+- Pas besoin de gérer les pilotes de navigateur
 
-### Disadvantages
+### Inconvénients
 
-- Only supports Chromium based browser (e.g. Chrome, Chromium Edge) and (partially) Firefox
-- Does __not__ support execution on cloud vendors such as Sauce Labs, BrowserStack etc.
+- Ne prend en charge que les navigateurs basés sur Chromium (par exemple, Chrome, Chromium Edge) et (partiellement) Firefox
+- __Ne__ prend pas en charge l'exécution avec des fournisseurs de cloud comme Sauce Labs, BrowserStack, etc.

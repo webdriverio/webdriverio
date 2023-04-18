@@ -1,23 +1,23 @@
 ---
 id: web-extension-testing
-title: Web Extension Testing
+title: वेब विस्तार परीक्षण
 ---
 
-WebdriverIO is the ideal tool to automate a browser. Web Extensions are a part of the browser and can be automated in the same way. Whenever your web extension uses content scripts to run JavaScript on websites or offer a popup modal, you can run an e2e test for that using WebdriverIO.
+WebdriverIO किसी ब्राउज़र को स्वचालित करने के लिए आदर्श टूल है। वेब एक्सटेंशन ब्राउज़र का एक हिस्सा हैं और उन्हें उसी तरह से स्वचालित किया जा सकता है। जब भी आपका वेब एक्सटेंशन वेबसाइटों पर जावास्क्रिप्ट चलाने के लिए सामग्री स्क्रिप्ट का उपयोग करता है या पॉपअप मोडल पेश करता है, तो आप WebdriverIO का उपयोग करके उसके लिए e2e परीक्षण चला सकते हैं।
 
 ## Loading a Web Extension into the Browser
 
-As a first step we have to load the extension under test into the browser as part of our session. This works differently for Chrome and Firefox.
+पहले चरण के रूप में हमें अपने सत्र के भाग के रूप में परीक्षण के तहत एक्सटेंशन को ब्राउज़र में लोड करना होगा। यह क्रोम और फ़ायरफ़ॉक्स के लिए अलग तरह से काम करता है।
 
 :::info
 
-These docs leave out Safari web extensions as their support for it is way behind and user demand not high. If you are building a web extension for Safari, please [raise an issue](https://github.com/webdriverio/webdriverio/issues/new?assignees=&labels=Docs+%F0%9F%93%96%2CNeeds+Triaging+%E2%8F%B3&template=documentation.yml&title=%5B%F0%9F%93%96+Docs%5D%3A+%3Ctitle%3E) and collaborate on including it here as well.
+ये डॉक्स सफारी वेब एक्सटेंशन को छोड़ देते हैं क्योंकि इसके लिए उनका समर्थन बहुत पीछे है और उपयोगकर्ता की मांग अधिक नहीं है। यदि आप सफारी के लिए एक वेब एक्सटेंशन बना रहे हैं, तो कृपया [raise an issue](https://github.com/webdriverio/webdriverio/issues/new?assignees=&labels=Docs+%F0%9F%93%96%2CNeeds+Triaging+%E2%8F%B3&template=documentation.yml&title=%5B%F0%9F%93%96+Docs%5D%3A+%3Ctitle%3E) उठाएं और इसे यहां भी शामिल करने में सहयोग करें।
 
 :::
 
 ### Chrome
 
-Loading a web extension in Chrome can be done through providing a `base64` encoded string of the `crx` file or by providing a path to the web extension folder. The easiest is just to do the latter by defining your Chrome capaiblities as following:
+क्रोम में एक वेब एक्सटेंशन को लोड करने के लिए `crx` फ़ाइल की `base64` एन्कोडेड स्ट्रिंग प्रदान करके या वेब एक्सटेंशन फ़ोल्डर को पथ प्रदान करके किया जा सकता है। अपनी क्रोम क्षमताओं को निम्नलिखित के रूप में परिभाषित करके बाद वाला करना सबसे आसान है:
 
 ```js wdio.conf.js
 import path from 'node:path'
@@ -40,11 +40,11 @@ export const config = {
 
 :::info
 
-If you automate a different browser than Chrome, e.g. Brave, Edge or Opera, chances are that the browser option match with the example above, just using a different capability name, e.g. `ms:edgeOptions`.
+यदि आप क्रोम की तुलना में किसी भिन्न ब्राउज़र को स्वचालित करते हैं, जैसे कि ब्रेव, एज या ओपेरा, तो संभावना है कि ब्राउज़र विकल्प उपरोक्त उदाहरण के साथ मेल खाता है, बस एक अलग क्षमता नाम का उपयोग करते हुए, उदाहरण के लिए `ms:edgeOptions`।
 
 :::
 
-If you compile your extension as `.crx` file using e.g. the [crx](https://www.npmjs.com/package/crx) NPM package, you can also inject the bundled extension via:
+यदि आप अपने एक्सटेंशन को `.crx` फ़ाइल के रूप में [crx](https://www.npmjs.com/package/crx) NPM पैकेज का उपयोग करके संकलित करते हैं, तो आप बंडल किए गए एक्सटेंशन को इसके माध्यम से इंजेक्ट कर सकते हैं:
 
 ```js wdio.conf.js
 import path from 'node:path'
@@ -67,7 +67,7 @@ export const config = {
 
 ### Firefox
 
-To create a Firefox profile that includes extensions you can use the [Firefox Profile Service](/docs/firefox-profile-service) to set up your session accordingly. However you might run into issues where your local developed extension can't be loaded due to signing issues. In this case you can also load an extension in the `before` hook via the [`installAddOn`](/docs/api/gecko#installaddon) command, e.g.:
+फ़ायरफ़ॉक्स प्रोफ़ाइल बनाने के लिए जिसमें एक्सटेंशन शामिल हैं, आप अपने सत्र को तदनुसार सेट करने के लिए [फ़ायरफ़ॉक्स प्रोफ़ाइल सेवा](/docs/firefox-profile-service) का उपयोग कर सकते हैं। हालाँकि आप उन समस्याओं का सामना कर सकते हैं जहाँ हस्ताक्षर संबंधी समस्याओं के कारण आपका स्थानीय विकसित एक्सटेंशन लोड नहीं किया जा सकता है। इस स्थिति में आप [`installAddOn`](/docs/api/gecko#installaddon) कमांड के माध्यम से `before` हुक में एक एक्सटेंशन लोड कर सकते हैं, उदाहरण के लिए:
 
 ```js wdio.conf.js
 import path from 'node:path'
@@ -88,7 +88,7 @@ export const config = {
 }
 ```
 
-In order to generate an `.xpi` file, it is recommended to use the [`web-ext`](https://www.npmjs.com/package/web-ext) NPM package. You can bundle your extension using the following example command:
+`.xpi` फ़ाइल उत्पन्न करने के लिए, [`web-ext`](https://www.npmjs.com/package/web-ext) NPM पैकेज का उपयोग करने की अनुशंसा की जाती है। आप निम्न उदाहरण कमांड का उपयोग करके अपने एक्सटेंशन को बंडल कर सकते हैं:
 
 ```sh
 npx web-ext build -s dist/ -a . -n web-extension-firefox.xpi

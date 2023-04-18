@@ -1,11 +1,11 @@
 ---
 id: cloudservices
-title: Using Cloud Services
+title: क्लाउड सेवाओं का उपयोग करना
 ---
 
-Using on-demand services like Sauce Labs, Browserstack, TestingBot, CrossBrowserTestin, LambdaTest or Perfecto with WebdriverIO is pretty simple. All you need to do is to set your service's `user` and `key` in your options.
+WebdriverIO के साथ सॉस लैब्स, ब्राउज़रस्टैक, टेस्टिंगबॉट, क्रॉसब्राउज़रटेस्टिन, लैम्ब्डाटेस्ट या परफेक्टो जैसी ऑन-डिमांड सेवाओं का उपयोग करना बहुत आसान है। आपको केवल अपनी सेवा के `user` और `key` को अपने विकल्पों में सेट करना है।
 
-Optionally, you can also parametrize your test by setting cloud-specific capabilities like `build`. If you only want to run cloud services in Travis, you can use the `CI` environment variable to check if you are in Travis and modify the config accordingly.
+वैकल्पिक रूप से, आप `build`जैसी क्लाउड-विशिष्ट क्षमताओं को सेट करके अपने परीक्षण को पैरामीट्रिज भी कर सकते हैं। यदि आप केवल ट्रैविस में क्लाउड सेवाएं चलाना चाहते हैं, तो आप ट्रैविस में हैं या नहीं यह जांचने के लिए `CI` पर्यावरण चर का उपयोग कर सकते हैं और तदनुसार कॉन्फ़िगरेशन को संशोधित कर सकते हैं।
 
 ```js
 // wdio.conf.js
@@ -18,31 +18,31 @@ if (process.env.CI) {
 
 ## Sauce Labs
 
-You can set up your tests to run remotely in [Sauce Labs](https://saucelabs.com).
+आप [सॉस लैब्स](https://saucelabs.com)में दूरस्थ रूप से चलाने के लिए अपने परीक्षण सेट अप कर सकते हैं।
 
-The only requirement is to set the `user` and `key` in your config (either exported by `wdio.conf.js` or passed into `webdriverio.remote(...)`) to your Sauce Labs username and access key.
+केवल आवश्यकता यह है कि आप अपने कॉन्फिग में `user` और `key` सेट करें (या तो `wdio.conf.js` द्वारा निर्यात किया गया या `webdriverio.remote(...)`में पारित किया गया) आपके ब्राउज़रस्टैक स्वचालित उपयोगकर्ता नाम और एक्सेस कुंजी पर.
 
-You can also pass in any optional [test configuration option](https://docs.saucelabs.com/dev/test-configuration-options/) as a key/value in the capabilities for any browser.
+आप किसी भी वैकल्पिक [समर्थित क्षमता](https://docs.saucelabs.com/dev/test-configuration-options/) किसी भी ब्राउज़र की क्षमताओं में कुंजी/मान के रूप में पास कर सकते हैं।
 
 ### Sauce Connect
 
-If you want to run tests against a server that is not accessible to the Internet (like on `localhost`), then you need to use [Sauce Connect](https://wiki.saucelabs.com/display/DOCS/Sauce+Connect+Proxy).
+यदि आप किसी ऐसे सर्वर के खिलाफ परीक्षण चलाना चाहते हैं जो इंटरनेट तक पहुंच योग्य नहीं है (जैसे `localhost`पर), तो आपको [लोकल टेस्टिंग ](https://wiki.saucelabs.com/display/DOCS/Sauce+Connect+Proxy)का उपयोग करने की आवश्यकता है।
 
-It is out of the scope of WebdriverIO to support this, so you'll have to start it by yourself.
+यह इसका समर्थन करने के लिए WebdriverIO के दायरे से बाहर है, इसलिए आपको इसे अपने आप से शुरू करना होगा।
 
-If you are using the WDIO testrunner download and configure the [`@wdio/sauce-service`](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-sauce-service) in your `wdio.conf.js`. It helps getting Sauce Connect running and comes with additional features that better integrate your tests into the Sauce service.
+यदि आप WDIO टेस्टरनर का उपयोग कर रहे हैं, तो अपने `wdio.conf.js`में [`@wdio/testingbot-service`](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-sauce-service) को डाउनलोड और कॉन्फ़िगर करें। यह सॉस कनेक्ट को चलाने में मदद करता है और अतिरिक्त सुविधाओं के साथ आता है जो आपके परीक्षणों को सॉस सेवा में बेहतर ढंग से एकीकृत करता है।
 
-### With Travis CI
+### Travis CI के साथ
 
-Travis CI, however, does [have support](http://docs.travis-ci.com/user/sauce-connect/#Setting-up-Sauce-Connect) for starting Sauce Connect before each test, so following their directions for that is an option.
+Travis CI, हालांकि, प्रत्येक परीक्षण से पहले सॉस कनेक्ट शुरू करने के लिए [के पास समर्थन](http://docs.travis-ci.com/user/sauce-connect/#Setting-up-Sauce-Connect) है, इसलिए उसके लिए उनके निर्देशों का पालन करना एक विकल्प है।
 
-If you do so, you must set the `tunnel-identifier` test configuration option in each browser's `capabilities`. Travis sets this to the `TRAVIS_JOB_NUMBER` environmental variable by default.
+यदि आप ऐसा करते हैं, तो आपको प्रत्येक ब्राउज़र की `capabilities`में `tunnel-identifier` परीक्षण कॉन्फ़िगरेशन विकल्प सेट करना होगा। ट्रैविस इसे डिफ़ॉल्ट रूप से `TRAVIS_JOB_NUMBER` पर्यावरण चर पर सेट करता है।
 
-Also, if you want to have Sauce Labs group your tests by build number, you can set the `build` to `TRAVIS_BUILD_NUMBER`.
+साथ ही, यदि आप चाहते हैं कि सॉस लैब्स आपके परीक्षणों को बिल्ड नंबर के आधार पर समूहित करें, तो आप `build` से `TRAVIS_BUILD_NUMBER`सेट कर सकते हैं।
 
-Lastly, if you set `name`, this changes the name of this test in Sauce Labs for this build. If you are using the WDIO testrunner combined with the [`@wdio/sauce-service`](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-sauce-service), WebdriverIO automatically sets a proper name for the test.
+अंत में, यदि आप `name`सेट करते हैं, तो यह इस निर्माण के लिए सॉस लैब्स में इस परीक्षण का नाम बदल देता है। यदि आप [`@wdio/sauce-service`](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-sauce-service) के साथ संयुक्त WDIO टेस्टरनर का उपयोग कर रहे हैं तो WebdriverIO स्वचालित रूप से परीक्षण के लिए उचित नाम सेट करता है।
 
-Example `capabilities`:
+उदाहरण `capabilities`:
 
 ```javascript
 browserName: 'chrome',
@@ -53,15 +53,15 @@ name: 'integration',
 build: process.env.TRAVIS_BUILD_NUMBER
 ```
 
-### Timeouts
+### समय समाप्त
 
-Since you are running your tests remotely, it might be necessary to increase some timeouts.
+चूंकि आप अपने परीक्षण रिमोट रूप से चला रहे हैं, इसलिए कुछ टाइमआउट बढ़ाना आवश्यक हो सकता है।
 
-You can change the [idle timeout](https://docs.saucelabs.com/dev/test-configuration-options/#idletimeout) by passing `idle-timeout` as a test configuration option. This controls how long Sauce will wait between commands before closing the connection.
+आप परीक्षण कॉन्फ़िगरेशन विकल्प के रूप में `idle-timeout` पास करके [निष्क्रिय टाइमआउट](https://docs.saucelabs.com/dev/test-configuration-options/#idletimeout) को बदल सकते हैं। यह नियंत्रित करता है कि कनेक्शन बंद करने से पहले सॉस कमांड के बीच कितनी देर प्रतीक्षा करेगा।
 
 ## BrowserStack
 
-WebdriverIO also has a [Browserstack](https://www.browserstack.com) integration built-in.
+WebdriverIO में [Browserstack](https://www.browserstack.com) इंटीग्रेशन बिल्ट-इन भी है।
 
 केवल आवश्यकता यह है कि आप अपने कॉन्फिग में `user` और `key` सेट करें (या तो `wdio.conf.js` द्वारा निर्यात किया गया या `webdriverio.remote(...)`में पारित किया गया) आपके ब्राउज़रस्टैक स्वचालित उपयोगकर्ता नाम और एक्सेस कुंजी पर.
 

@@ -1,26 +1,26 @@
 ---
 id: proxy
-title: Proxy Setup
+title: Proxy-Setup
 ---
 
-You can tunnel two different types of request through a proxy:
+Sie können zwei verschiedene Arten von Anfragen durch einen Proxy tunneln:
 
-- connection between your test script and the browser driver (or WebDriver endpoint)
-- connection between the browser and the internet
+- Verbindung zwischen Ihrem Testskript und dem Browsertreiber (oder WebDriver-Endpunkt)
+- Verbindung zwischen Browser und Internet
 
-## Proxy Between Driver And Test
+## Proxy zwischen Treiber und Test
 
-If your company has a corporate proxy (e.g. on `http://my.corp.proxy.com:9090`) for all outgoing requests, follow the below steps to install and configure [global-agent](https://github.com/gajus/global-agent).
+Wenn Ihr Unternehmen über einen Unternehmens-Proxy (z. B. auf `http://my.corp.proxy.com:9090`) für alle ausgehenden Anfragen verfügt, führen Sie die folgenden Schritte aus, um [global-agent](https://github.com/gajus/global-agent)zu installieren und zu konfigurieren.
 
-### Install global-agent
+### Global-Agent installieren
 
 ```bash npm2yarn
 npm install global-agent --save-dev
 ```
 
-### Add global-agent bootstrap to your config file
+### Fügen Sie Ihrer Konfigurationsdatei global-agent bootstrap hinzu
 
-Add the following require statement to the top of your config file.
+Fügen Sie die folgende require-Anweisung am Anfang Ihrer Konfigurationsdatei hinzu.
 
 ```js title="wdio.conf.js"
 import { bootstrap } from 'global-agent';
@@ -29,18 +29,19 @@ bootstrap();
 export const config = {
     // ...
 }
+}
 ```
 
-### Set global-agent environment variables
+### Legen Sie die Umgebungsvariablen des globalen Agenten fest
 
-Before you start the test, make sure you've exported the variable in the terminal, like so:
+Bevor Sie den Test starten, vergewissern Sie sich, dass Sie die Variable wie folgt in das Terminal exportiert haben:
 
 ```sh
 export GLOBAL_AGENT_HTTP_PROXY=http://my.corp.proxy.com:9090
 wdio wdio.conf.js
 ```
 
-You can exclude URLs from the proxy by exporting the variable, like so:
+Sie können URLs vom Proxy ausschließen, indem Sie die Variable wie folgt exportieren:
 
 ```sh
 export GLOBAL_AGENT_HTTP_PROXY=http://my.corp.proxy.com:9090
@@ -48,7 +49,7 @@ export GLOBAL_AGENT_NO_PROXY='.foo.com'
 wdio wdio.conf.js
 ```
 
-If necessary, you can specify `GLOBAL_AGENT_HTTPS_PROXY` to route HTTPS traffic through a different proxy than HTTP traffic.
+Bei Bedarf können Sie `GLOBAL_AGENT_HTTPS_PROXY` angeben, um HTTPS-Datenverkehr über einen anderen Proxy als HTTP-Datenverkehr zu leiten.
 
 ```sh
 export GLOBAL_AGENT_HTTP_PROXY=http://my.corp.proxy.com:9090
@@ -56,19 +57,19 @@ export GLOBAL_AGENT_HTTPS_PROXY=http://my.corp.proxy.com:9091
 wdio wdio.conf.js
 ```
 
-`GLOBAL_AGENT_HTTP_PROXY` is used for both HTTP and HTTPS requests if `GLOBAL_AGENT_HTTPS_PROXY` is not set.
+`GLOBAL_AGENT_HTTP_PROXY` wird sowohl für HTTP- als auch für HTTPS-Anforderungen verwendet, wenn `GLOBAL_AGENT_HTTPS_PROXY` nicht festgelegt ist.
 
-If you use [Sauce Connect Proxy](https://wiki.saucelabs.com/display/DOCS/Sauce+Connect+Proxy), start it via:
+Wenn Sie [Sauce Connect Proxy](https://wiki.saucelabs.com/display/DOCS/Sauce+Connect+Proxy)verwenden, starten Sie ihn über:
 
 ```sh
 sc -u $SAUCE_USERNAME -k $SAUCE_ACCESS_KEY --no-autodetect -p http://my.corp.proxy.com:9090
 ```
 
-## Proxy Between Browser And Internet
+## Proxy zwischen Browser und Internet
 
-In order to tunnel the connection between the browser and the internet, you can set up a proxy which can be useful to (for example) capture network information and other data with tools like [BrowserMob Proxy](https://github.com/lightbody/browsermob-proxy).
+Um die Verbindung zwischen dem Browser und dem Internet zu tunneln, können Sie einen Proxy einrichten, der nützlich sein kann, um (zum Beispiel) Netzwerkinformationen und andere Daten mit Tools wie [BrowserMob Proxy](https://github.com/lightbody/browsermob-proxy)zu erfassen.
 
-The `proxy` parameters can be applied via the standard capabilities the following way:
+Die `Proxy-` Parameter können wie folgt über die Standardfunktionen angewendet werden:
 
 ```js title="wdio.conf.js"
 export const config = {
@@ -87,6 +88,20 @@ export const config = {
     }],
     // ...
 }
+    capabilities: [{
+        browserName: 'chrome',
+        // ...
+        proxy: {
+            proxyType: "manual",
+            httpProxy: "corporate.proxy:8080",
+            socksUsername: "codeceptjs",
+            socksPassword: "secret",
+            noProxy: "127.0.0.1,localhost"
+        },
+        // ...
+    }],
+    // ...
+}
 ```
 
-For more information, see the [WebDriver specification](https://w3c.github.io/webdriver/#proxy).
+Weitere Informationen finden Sie in der [WebDriver-Spezifikation](https://w3c.github.io/webdriver/#proxy).

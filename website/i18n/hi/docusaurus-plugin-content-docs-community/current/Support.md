@@ -1,29 +1,29 @@
 ---
 id: support
-title: Need Help?
+title: क्या आपको मदद की ज़रूरत है?
 ---
 
-This project is maintained by a dedicated group of people.
+यह परियोजना लोगों के एक समर्पित समूह द्वारा बनाए रखी जाती है।
 
-If you're interested in making a contribution to the WebdriverIO project, check out [the free "Office Hours" program](/blog/2020/07/01/office-hours) to help you with your efforts.
+यदि आप WebdriverIO परियोजना में योगदान करने में रुचि रखते हैं, तो अपने प्रयासों में आपकी सहायता करने के लिए [निःशुल्क "कार्यालय समय" प्रोग्राम](/blog/2020/07/01/office-hours) देखें।
 
-If you're seeking immediate help with your own project, reach out to a trusted WebdriverIO expert:
+यदि आप अपने स्वयं के प्रोजेक्ट के लिए तत्काल सहायता चाहते हैं, तो किसी विश्वसनीय वेबड्राइवरआईओ विशेषज्ञ से संपर्क करें:
 
 - [Kevin Lamping](https://www.codementor.io/@kevinlamping)
-- [Add your name to this list](https://github.com/webdriverio/webdriverio/edit/master/website/docs/Support.md)
+- [इस सूची में अपना नाम जोड़ें](https://github.com/webdriverio/webdriverio/edit/master/website/docs/Support.md)
 
 ## Stack Overflow
 
-Stack Overflow is a popular forum to ask code-level questions or if you’re stuck with a specific error. Read through the [existing questions](https://stackoverflow.com/questions/tagged/webdriver-io) tagged with webdriver-io or [ask your own](https://stackoverflow.com/questions/ask?tags=webdriver-io)!
+स्टैक ओवरफ्लो कोड-स्तरीय प्रश्न पूछने या यदि आप किसी विशिष्ट त्रुटि के साथ फंस गए हैं, तो एक लोकप्रिय मंच है। [मौजूदा प्रश्नों के माध्यम से पढ़ें](https://stackoverflow.com/questions/tagged/webdriver-io) वेबड्राइवर-आईओ के साथ टैग किया गया या [अपने आप से पूछें](https://stackoverflow.com/questions/ask?tags=webdriver-io)!
 
-## Discussion Forums
+## चर्चा मंच
 
-There are many online forums which are a great place for discussion about WebdriverIO features, problems and bugs, e.g.:
+ऐसे कई ऑनलाइन फ़ोरम हैं जो WebdriverIO सुविधाओं, समस्याओं और बगों के बारे में चर्चा करने के लिए एक बढ़िया स्थान हैं, जैसे:
 
-- [GitHub Discussions](https://github.com/webdriverio/webdriverio/discussions)
+- [गिटहब चर्चाएँ](https://github.com/webdriverio/webdriverio/discussions)
 - [Community Channel](https://discord.webdriver.io)
-- [#webdriverio Channel on SeleniumHQ Slack](https://join.slack.com/t/seleniumhq/shared_invite/zt-vv33sc0w-VKKQop3WDV_lfrLXGGHvDw)
+- [सेलेनियमएचक्यू स्लैक पर #webdriverio चैनल](https://join.slack.com/t/seleniumhq/shared_invite/zt-vv33sc0w-VKKQop3WDV_lfrLXGGHvDw)
 
-## News
+## समाचार
 
-For the latest news about WebdriverIO, [follow @webdriverio on Twitter](https://twitter.com/webdriverio) and the official [WebdriverIO blog](/blog) on this website.
+WebdriverIO के बारे में नवीनतम समाचारों के लिए, [@webdriverio को Twitter](https://twitter.com/webdriverio) पर और आधिकारिक [WebdriverIO ब्लॉग](/blog) को इस वेबसाइट पर फ़ॉलो करें।

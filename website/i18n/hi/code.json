@@ -24,7 +24,7 @@
     "description": "The default label used for the Note admonition (:::note)"
   },
   "theme.admonition.tip": {
-    "message": "सुझाव",
+    "message": "बख्शीश",
     "description": "The default label used for the Tip admonition (:::tip)"
   },
   "theme.admonition.danger": {
@@ -199,19 +199,19 @@
     "description": "The copy button label on code blocks"
   },
   "theme.CodeBlock.wordWrapToggle": {
-    "message": "वर्ड व्रेप टॉगल करें",
+    "message": "शब्द लपेटना टॉगल करें",
     "description": "The title attribute for toggle word wrapping button of code block lines"
   },
   "theme.DocSidebarItem.toggleCollapsedCategoryAriaLabel": {
-    "message": "कोलाप्स होने वाली साइडबार केटेगरी '{label}' को टॉगल करें",
+    "message": "सिमटने वाली साइडबार श्रेणी '{label}' को टॉगल करें",
     "description": "The ARIA label to toggle the collapsible sidebar category"
   },
   "theme.TOCCollapsible.toggleButtonLabel": {
-    "message": "इस पेज पर",
+    "message": "इस पृष्ठ पर",
     "description": "The label used by the button on the collapsible TOC component"
   },
   "theme.blog.post.readMore": {
-    "message": "और अधिक पढ़ें",
+    "message": "और पढ़ें",
     "description": "The label used in blog post item excerpts to link to full blog posts"
   },
   "theme.blog.post.readMoreLabel": {
@@ -426,122 +426,122 @@
     "description": "The title of the tag list page"
   },
   "WebdriverIO allows you to test in actual browser or mobile devices used by your users.": {
-    "message": "WebdriverIO allows you to test in actual browser or mobile devices used by your users."
+    "message": "WebdriverIO आपको अपने उपयोगकर्ताओं द्वारा उपयोग किए जाने वाले वास्तविक ब्राउज़र या मोबाइल उपकरणों में परीक्षण करने की अनुमति देता है।"
   },
   "Use WebdriverIO for full e2e or unit and component testing in the browser.": {
-    "message": "Use WebdriverIO for full e2e or unit and component testing in the browser."
+    "message": "ब्राउज़र में पूर्ण e2e या इकाई और कॉम्पोनेन्ट परीक्षण के लिए WebdriverIO का उपयोग करें।"
   },
   "WebdriverIO automatically waits for elements to appear before interacting with them.": {
-    "message": "WebdriverIO automatically waits for elements to appear before interacting with them."
+    "message": "WebdriverIO स्वचालित रूप से एलिमेंट के साथ जुड़ने से पहले उनके प्रकट होने की प्रतीक्षा करता है।"
   },
   "Get Started": {
-    "message": "Get Started"
+    "message": "प्रारंभ करें"
   },
   "Why WebdriverIO?": {
-    "message": "Why WebdriverIO?"
+    "message": "WebdriverIO क्यों?"
   },
   "View on GitHub": {
-    "message": "View on GitHub"
+    "message": "गिटहब पर देखें"
   },
   "Watch on YouTube": {
-    "message": "Watch on YouTube"
+    "message": "यूट्यूब पर देखें"
   },
   "Easy setup for web component testing with:": {
-    "message": "Easy setup for web component testing with:"
+    "message": "वेब कॉम्पोनेन्ट परीक्षण के लिए आसान सेटअप:"
   },
   "homepage.hightlight.createProject": {
-    "message": "Get Started With WebdriverIO within Seconds"
+    "message": "सेकंड के भीतर WebdriverIO के साथ आरंभ करें"
   },
   "The WebdriverIO testrunner comes with a command line interface that provides a powerful configuration utility and helps you to create your test setup in less than a minute. It let's you pick from available test framework integrations and easily allows to add all supported reporter and service plugins!": {
-    "message": "The WebdriverIO testrunner comes with a command line interface that provides a powerful configuration utility and helps you to create your test setup in less than a minute. It let's you pick from available test framework integrations and easily allows to add all supported reporter and service plugins!"
+    "message": "WebdriverIO testrunner एक कमांड लाइन इंटरफ़ेस के साथ आता है जो एक शक्तिशाली कॉन्फ़िगरेशन उपयोगिता प्रदान करता है और आपको एक मिनट से भी कम समय में अपना परीक्षण सेटअप बनाने में मदद करता है। यह आपको उपलब्ध टेस्ट फ्रेमवर्क इंटीग्रेशन से चुनने देता है और आसानी से सभी समर्थित रिपोर्टर और सर्विस प्लगइन्स को जोड़ने की अनुमति देता है!"
   },
   "With just one simple command you can set up a complete test suite:": {
-    "message": "With just one simple command you can set up a complete test suite:"
+    "message": "केवल एक साधारण कमांड के साथ आप एक पूर्ण परीक्षण सूट सेट अप कर सकते हैं:"
   },
   "homepage.hightlight.watch": {
-    "message": "Watch Talks about WebdriverIO"
+    "message": "WebdriverIO के बारे में बातचीत देखें"
   },
   "homepage.hightlight.lighthouse": {
-    "message": "Google Lighthouse Integration"
+    "message": "गूगल प्रकाशस्तंभ एकीकरण"
   },
   "Integration to developer tools such as:": {
-    "message": "Integration to developer tools such as:"
+    "message": "डेवलपर टूल में एकीकरण जैसे:"
   },
   "until October 2023": {
-    "message": "until October 2023"
+    "message": "अक्टूबर 2023 तक"
   },
   "since February 2022": {
-    "message": "since February 2022"
+    "message": "फरवरी 2022 से"
   },
   "since January 2021": {
-    "message": "since January 2021"
+    "message": "फरवरी 2021 से"
   },
   "since December 2019": {
-    "message": "since December 2019"
+    "message": "दिसंबर 2019 से"
   },
   "versions.description": {
-    "message": "Docusaurus 2 Versions page listing all documented site versions"
+    "message": "Docusaurus 2 संस्करण पेज सभी प्रलेखित साइट संस्करणों को सूचीबद्ध करता है"
   },
   "WebdriverIO documentation versions": {
-    "message": "WebdriverIO documentation versions"
+    "message": "WebdriverIO प्रलेखन संस्करण"
   },
   "The project team releases new major versions roughly on a yearly cadence. LTS release status is \"long-term support\", which typically guarantees that critical bugs will be fixed for a total of 12 months until a new major release is made.": {
-    "message": "The project team releases new major versions roughly on a yearly cadence. LTS release status is \"long-term support\", which typically guarantees that critical bugs will be fixed for a total of 12 months until a new major release is made."
+    "message": "प्रोजेक्ट टीम मोटे तौर पर वार्षिक ताल पर नए प्रमुख संस्करण जारी करती है। एलटीएस रिलीज की स्थिति \"दीर्घकालिक समर्थन\" है, जो आम तौर पर गारंटी देती है कि महत्वपूर्ण बग कुल 12 महीनों के लिए तय किए जाएंगे जब तक कि एक नई बड़ी रिलीज नहीं हो जाती।"
   },
   "Current version (Stable)": {
-    "message": "Current version (Stable)"
+    "message": "वर्तमान संस्करण (स्थिर)"
   },
   "Here you can find the documentation for current released version.": {
-    "message": "Here you can find the documentation for current released version."
+    "message": "यहां आप वर्तमान रिलीज़ किए गए संस्करण के लिए दस्तावेज़ पा सकते हैं।"
   },
   "Documentation": {
-    "message": "Documentation"
+    "message": "दस्तावेज़ीकरण"
   },
   "Release Notes": {
-    "message": "Release Notes"
+    "message": "रिलीज नोट्स"
   },
   "Past versions": {
-    "message": "Past versions"
+    "message": "पिछले संस्करण"
   },
   "Here you can find documentation for previous versions of Docusaurus.": {
-    "message": "Here you can find documentation for previous versions of Docusaurus."
+    "message": "यहां आप डॉक्यूसॉरस के पिछले संस्करणों के लिए दस्तावेज़ीकरण प्राप्त कर सकते हैं।"
   },
   "homepage.createBrowserAnimation": {
-    "message": "Create WebdriverIO Demo"
+    "message": "WebdriverIO डेमो बनाएं"
   },
   "homepage.highlight.getStartedOnYouTube": {
-    "message": "Start learning more about WebdriverIO and how to get started {youtubeLink}."
+    "message": "WebdriverIO और आरंभ करने के तरीके के बारे में अधिक सीखना प्रारंभ करें {youtubeLink}।"
   },
   "homepage.highlight.getStartedOnYouTube.label;": {
-    "message": "on YouTube",
+    "message": "यूट्यूब पर",
     "description": "The label for the link to my YouTube"
   },
   "homepage.highlight.conferenceTalk": {
-    "message": "The community around WebdriverIO is actively speaking on various user groups or conferences about specific topics around automated testing with WebdriverIO. Check out this talk on {youtubeLink} by {videoAuthor} at {conferenceLink}."
+    "message": "WebdriverIO के आसपास का समुदाय सक्रिय रूप से विभिन्न उपयोगकर्ता समूहों या सम्मेलनों में WebdriverIO के साथ स्वचालित परीक्षण के आसपास के विशिष्ट विषयों पर बोल रहा है। इस वार्ता को {youtubeLink} पर {videoAuthor} द्वारा {conferenceLink} पर देखें।"
   },
   "homepage.highlight.conferenceTalk.label": {
-    "message": "My favourite features of WebdriverIO",
+    "message": "WebdriverIO की मेरी पसंदीदा विशेषताएं",
     "description": "The conference talk title"
   },
   "homepage.highlight.youtubeChannels": {
-    "message": "There is also many YouTube Channels with useful tutorials by community members such as {channelOne}, {channelTwo} or {channelThree}."
+    "message": "समुदाय के सदस्यों द्वारा उपयोगी ट्यूटोरियल जैसे {channelOne}, {channelTwo} या {channelThree} के साथ कई यूट्यूब चैनल भी हैं।"
   },
   "homepage.highlight.devtools": {
-    "message": "WebdriverIO not only runs automation based on the WebDriver protocol, it also leverages native browser APIs to enable integrations to popular developer tools such as {devtoolsLink} or {lighthouseLink}. With the {devtoolsServiceLink} plugin you have access to commands for validating if you app is a valid PWA application as well as to commands for capturing frontend performance metrics such as `speedIndex` and others."
+    "message": "WebdriverIO न केवल WebDriver प्रोटोकॉल के आधार पर स्वचालन रन करता है, बल्कि यह {devtoolsLink} या {lighthouseLink} जैसे लोकप्रिय डेवलपर टूल में एकीकरण को सक्षम करने के लिए मूल ब्राउज़र एपीआई का भी लाभ उठाता है। {devtoolsServiceLink} प्लगइन के साथ आपके पास यह सत्यापित करने के लिए कमांड तक पहुंच है कि क्या आपका ऐप एक वैध PWA एप्लिकेशन है और साथ ही `स्पीडइंडेक्स` और अन्य जैसे फ्रंटएंड परफॉर्मेंस मेट्रिक्स को कैप्चर करने के लिए कमांड है।"
   },
   "homepage.features.crossBrowser": {
-    "message": "Cross browser support via automation through {webdriverLink} and {bidiLink}."
+    "message": "{webdriverLink} और {bidiLink} के माध्यम से स्वचालन के माध्यम से क्रॉस ब्राउज़र समर्थन।"
   },
   "homepage.features.mobile": {
-    "message": "Run WebdriverIO on real mobile devices, smart TVs or other IoT devices through {appiumLink}."
+    "message": "{appiumLink} के माध्यम से वास्तविक मोबाइल उपकरणों, स्मार्ट टीवी या अन्य IoT उपकरणों पर WebdriverIO चलाएं।"
   },
   "homepage.features.support": {
-    "message": "Running a {supportChannelLink} with over 8k members and a rich ecosystem of community maintained plugins."
+    "message": "8k से अधिक सदस्यों के साथ {supportChannelLink} चला रहा है और समुदाय के एक समृद्ध इकोसिस्टम ने प्लगइन्स को बनाए रखा है।"
   },
   "homepage.tagline": {
-    "message": "Next-gen browser and mobile automation test framework for Node.js"
+    "message": "Node.js के लिए नेक्स्ट-जेन ब्राउज़र और मोबाइल ऑटोमेशन टेस्ट फ्रेमवर्क"
   },
   "homepage.componentTesting.para1": {
-    "message": "It comes with smart selector strategies that simplify interacting e.g. with {reactComponents} or running deep selector queries with nested shadow DOM trees. As interactions happen through a standardized automation protocol it is guaranteed they behave natively and aren't just JavaScript emulated."
+    "message": "यह स्मार्ट चयनकर्ता रणनीतियों के साथ आता है जो इंटरेक्शन को आसान बनाता है जैसे {reactComponents} के साथ या नेस्टेड शैडो डोम ट्री के साथ डीप सेलेक्टर क्वेरी चलाना। जैसा कि एक मानकीकृत स्वचालन प्रोटोकॉल के माध्यम से बातचीत होती है, यह गारंटी है कि वे मूल रूप से व्यवहार करते हैं और केवल जावास्क्रिप्ट अनुकरण नहीं करते हैं।"
   }
 }

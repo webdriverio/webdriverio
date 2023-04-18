@@ -1,17 +1,17 @@
 ---
 id: globals
-title: Globals
+title: वैश्विक
 ---
 
-In your test files, WebdriverIO puts each of these methods and objects into the global environment. You don't have to import anything to use them. However, if you prefer explicit imports, you can do `import { browser, $, $$, expect } from '@wdio/globals'` and set `injectGlobals: false` in your WDIO configuration.
+आपकी परीक्षण फ़ाइलों में, WebdriverIO इन विधियों और वस्तुओं में से प्रत्येक को वैश्विक वातावरण में रखता है। इनका उपयोग करने के लिए आपको कुछ भी आयात करने की आवश्यकता नहीं है। हालाँकि, यदि आप स्पष्ट आयात पसंद करते हैं, तो आप `import { browser, $, $$, expect } से '@wdio/globals'` और `injectGlobals: false` सेट कर सकते हैं।
 
-The following global objects are set if not configured otherwise:
+यदि अन्यथा कॉन्फ़िगर नहीं किया गया है तो निम्न वैश्विक ऑब्जेक्ट सेट हैं:
 
-- `browser`: WebdriverIO [Browser object](https://webdriver.io/docs/api/browser)
-- `driver`: alias to `browser` (used when running mobile tests)
-- `multiremotebrowser`: alias to `browser` or `driver` but only set for [Multiremote](/docs/multiremote) sessions
-- `$`: command to fetch an element (see more in [API docs](/docs/api/browser/$))
-- `$$`: command to fetch elements (see more in [API docs](/docs/api/browser/$$))
-- `expect`: assertion framework for WebdriverIO (see [API docs](/docs/api/expect-webdriverio))
+- `browser`: वेबड्राइवरआईओ [ब्राउज़र ऑब्जेक्ट](https://webdriver.io/docs/api/browser)
+- `driver`: उपनाम `browser` (मोबाइल परीक्षण चलाते समय उपयोग किया जाता है)
+- `multiremotebrowser`: `browser` या `driver` के लिए उपनाम लेकिन केवल [मल्टीरिमोट](/docs/multiremote) सत्रों के लिए सेट
+- `$`: एक तत्व लाने के लिए कमांड ( [एपीआई डॉक्स](/docs/api/browser/$)में और देखें)
+- `$`: एक तत्व लाने के लिए कमांड ( [एपीआई डॉक्स](/docs/api/browser/$$)में और देखें)
+- `expect`: WebdriverIO के लिए अभिकथन ढांचा (देखें [एपीआई डॉक्स](/docs/api/expect-webdriverio))
 
-__Note:__ WebdriverIO has no control of used frameworks (e.g. Mocha or Jasmine) setting global variables when bootstrapping their environment.
+__नोट:__ WebdriverIO का उपयोग किए गए ढांचे (जैसे मोचा या जैस्मीन) का कोई नियंत्रण नहीं है, जब वे अपने पर्यावरण को बूटस्ट्रैप करते समय वैश्विक चर सेट करते हैं।

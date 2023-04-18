@@ -49,6 +49,45 @@ https://github.com/webdriverio/example-recipes/blob/fd54f94306ed8e7b40f967739164
 
 __Nota:__ Utilizar métodos de renderizado de la Biblioteca de Pruebas ayuda a eliminar componentes creados entre las pruebas. Si no usa Testing Library, asegúrese de conectar sus componentes de prueba a un contenedor que se limpia entre pruebas.
 
+## Setup Scripts
+
+You can set up your tests by running arbitrary scripts in Node.js or in the browser, e.g. injecting styles, mocking browser APIs or connecting to a 3rd party service. The WebdriverIO [hooks](/docs/configuration#hooks) can be used to run code in Node.js while the [`mochaOpts.require`](/docs/frameworks#require) allows you to import scripts into the browser before tests are loaded, e.g.:
+
+```js wdio.conf.js
+export const config = {
+    // ...
+    mochaOpts: {
+        ui: 'tdd',
+        // provide a setup script to run in the browser
+        require: './__fixtures__/setup.js'
+    },
+    before: () => {
+        // set up test environment in Node.js
+    }
+    // ...
+}
+```
+
+For example, if you like to mock all [`fetch()`](https://developer.mozilla.org/en-US/docs/Web/API/fetch) calls in your test with the following set-up script:
+
+```js ./fixtures/setup.js
+import { fn } from '@wdio/browser-runner'
+
+// run code before all tests are loaded
+window.fetch = fn()
+
+export const mochaGlobalSetup = () => {
+    // run code after test file is loaded
+}
+
+export const mochaGlobalTeardown = () => {
+    // run code after spec file was executed
+}
+
+```
+
+Now in your tests you can provide custom response values for all browser requests. Read more on global fixtures in the [Mocha docs](https://mochajs.org/#global-fixtures).
+
 ## Ver los archivos de prueba y aplicación
 
 Hay múltiples formas de depurar las pruebas de su navegador. La más fácil es iniciar el testrunner WebdriverIO con el indicador `--watch` , por ejemplo:

@@ -1,23 +1,23 @@
 ---
 id: gettingstarted
-title: Getting Started
+title: शुरू करें
 ---
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 import CreateProjectAnimation from '../src/pages/components/CreateProjectAnimation.js'
 
-Welcome to the WebdriverIO documentation. It will help you to get started fast. If you run into problems, you can find help and answers on our [Discord Support Server](https://discord.webdriver.io) or you can hit me on [Twitter](https://twitter.com/webdriverio).
+WebdriverIO दस्तावेज़ीकरण में आपका स्वागत है। यह आपको तेजी से आरंभ करने में मदद करेगा। यदि आप समस्याओं में भाग लेते हैं, तो आप हमारे [डिसॉर्ड सपोर्ट सर्वर](https://discord.webdriver.io) पर सहायता और उत्तर पा सकते हैं या आप मुझे [ट्विटर](https://twitter.com/webdriverio)पर हिट कर सकते हैं।
 
 :::info
-These are the docs for the latest version (__>=8.x__) of WebdriverIO. If you are still using an older version, please visit the [old documentation websites](/versions)!
+ये WebdriverIO के नवीनतम संस्करण (__>=8.x__) के लिए दस्तावेज़ हैं। यदि आप अभी भी पुराने संस्करण का उपयोग कर रहे हैं, तो कृपया [पुरानी प्रलेखन वेबसाइटों पर जाएँ](/versions)!
 :::
 
-## Initiate a WebdriverIO Setup
+## एक WebdriverIO सेटअप आरंभ करें
 
-To add a full WebdriverIO setup to an existing or new project using the [WebdriverIO Starter Toolkit](https://www.npmjs.com/package/create-wdio), run:
+[WebdriverIO Starter Toolkit](https://www.npmjs.com/package/create-wdio)का उपयोग करके किसी मौजूदा या नए प्रोजेक्ट में पूर्ण WebdriverIO सेटअप जोड़ने के लिए, चलाएँ:
 
-If you're in the root directory of an existing project, run:
+यदि आप किसी मौजूदा प्रोजेक्ट की रूट डायरेक्टरी में हैं, तो दौड़ें:
 
 <Tabs
   defaultValue="npm"
@@ -68,11 +68,11 @@ pnpm create wdio ./path/to/new/project
 </TabItem>
 </Tabs>
 
-This single command downloads the WebdriverIO CLI tool and runs a configuration wizard that helps you to configure your test suite.
+यह एकल कमांड WebdriverIO CLI टूल को डाउनलोड करता है और एक कॉन्फ़िगरेशन विज़ार्ड चलाता है जो आपको अपने टेस्ट सूट को कॉन्फ़िगर करने में मदद करता है।
 
 <CreateProjectAnimation />
 
-The wizard will prompt a set questions that guides you through the setup. You can pass a `--yes` parameter to pick a default set up which will use Mocha with Chrome using the [Page Object](https://martinfowler.com/bliki/PageObject.html) pattern.
+विज़ार्ड एक सेट प्रश्न पूछेगा जो सेटअप के माध्यम से आपका मार्गदर्शन करता है। आप डिफ़ॉल्ट सेट अप चुनने के लिए `--yes` पैरामीटर पास कर सकते हैं जो [पेज ऑब्जेक्ट](https://martinfowler.com/bliki/PageObject.html) पैटर्न का उपयोग करके क्रोम के साथ मोचा का उपयोग करेगा।
 
 <Tabs
   defaultValue="npm"
@@ -105,45 +105,49 @@ pnpm create wdio . --yes
 </TabItem>
 </Tabs>
 
-## Run Test
+## चालू परीक्षण
 
-You can start your test suite by using the `run` command and pointing to the WebdriverIO config that you just created:
+आप `run` कमांड का उपयोग करके और आपके द्वारा अभी बनाए गए WebdriverIO कॉन्फ़िगरेशन की ओर इशारा करके अपना टेस्ट सूट शुरू कर सकते हैं:
 
 ```sh
 npx wdio run ./wdio.conf.js
 ```
 
-If you like to run specific test files you can add a `--spec` parameter:
+यदि आप विशिष्ट परीक्षण फ़ाइलें चलाना चाहते हैं तो आप `--spec` पैरामीटर जोड़ सकते हैं:
 
 ```sh
 npx wdio run ./wdio.conf.js --spec example.e2e.js
 ```
 
-or define suites in your config file and run just the test files defined by in a suite:
+या अपनी कॉन्फ़िगरेशन फ़ाइल में सुइट्स को परिभाषित करें और सूट में परिभाषित परीक्षण फ़ाइलों को चलाएं:
 
 ```sh
 npx wdio run ./wdio.conf.js --suite exampleSuiteName
 ```
 
-## Run in a script
+## एक स्क्रिप्ट में चलाएँ
 
-If you would like to use WebdriverIO as an automation engine in [Standalone Mode](/docs/setuptypes#standalone-mode) within a Node.JS script you can also directly install WebdriverIO and use it as a package, e.g. to generate a screenshot of a website:
+यदि आप Node.JS स्क्रिप्ट के भीतर [स्टैंडअलोन मोड](/docs/setuptypes#standalone-mode) में एक ऑटोमेशन इंजन के रूप में WebdriverIO का उपयोग करना चाहते हैं, तो आप सीधे WebdriverIO को भी इंस्टॉल कर सकते हैं और इसे पैकेज के रूप में उपयोग कर सकते हैं, उदाहरण के लिए वेबसाइट का स्क्रीनशॉट जनरेट करना:
 
 ```js reference useHTTPS
 https://github.com/webdriverio/example-recipes/blob/fc362f2f8dd823d294b9bb5f92bd5991339d4591/getting-started/run-in-script.js#L2-L19
 ```
 
-__Note:__ all WebdriverIO commands are asynchronous and need to be properly handled using [`async/await`](https://javascript.info/async-await).
+__नोट:__ सभी WebdriverIO कमांड अतुल्यकालिक हैं और [`async/wait`](https://javascript.info/async-await)का उपयोग करके ठीक से नियंत्रित करने की आवश्यकता है।
 
-## Record tests
+## रिकॉर्ड परीक्षण
 
-WebdriverIO provides tools to help you get started by recording your test actions on screen and generate WebdriverIO test scripts automatically. See [Recorder tests with Chrome DevTools Recorder](/docs/record) for more information.
+WebdriverIO स्क्रीन पर अपनी परीक्षण क्रियाओं को रिकॉर्ड करके आरंभ करने में आपकी मदद करने के लिए उपकरण प्रदान करता है और स्वचालित रूप से WebdriverIO परीक्षण स्क्रिप्ट उत्पन्न करता है। अधिक जानकारी के लिए Chrome DevTools Recorder</a> के साथ
 
-## System Requirements
+रिकॉर्डर परीक्षण देखें।</p> 
 
-You’ll need [Node.js](http://nodejs.org) installed.
 
-- Install at least v16.x or higher as this is the oldest active LTS version
-- Only releases that are or will become an LTS release are officially supported
 
-If Node is not currently installed on your system, we suggest utilizing a tool such as [NVM](https://github.com/creationix/nvm) or [Volta](https://volta.sh/) to assist in managing multiple active Node.js versions. NVM is a popular choice, while Volta is also a good alternative.
+## सिस्टम आवश्यकताएं
+
+आपको [Node.js](http://nodejs.org) स्थापित करने की आवश्यकता होगी।
+
+- कम से कम v16.x या उच्चतर स्थापित करें क्योंकि यह सबसे पुराना सक्रिय LTS संस्करण है
+- केवल वे रिलीज़ जो LTS रिलीज़ हैं या बन जाएँगी आधिकारिक रूप से समर्थित हैं
+
+यदि नोड वर्तमान में आपके सिस्टम पर स्थापित नहीं है, तो हम कई सक्रिय Node.js संस्करणों के प्रबंधन में सहायता के लिए [NVM](https://github.com/creationix/nvm) या [Volta](https://volta.sh/) जैसे टूल का उपयोग करने का सुझाव देते हैं। एनवीएम एक लोकप्रिय विकल्प है, जबकि वोल्टा भी एक अच्छा विकल्प है।

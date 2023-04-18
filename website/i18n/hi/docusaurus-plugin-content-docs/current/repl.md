@@ -1,38 +1,37 @@
 ---
 id: repl
-title: REPL interface
+title: आरईपीएल इंटरफ़ेस
 ---
 
-import Tabs from '@theme/Tabs';
-import TabItem from '@theme/TabItem';
+'@theme/Tabs'; से टैब आयात करें; @theme/TabItem'; से TabItem को आयात करें;
 
-With `v4.5.0`, WebdriverIO introduced a [REPL](https://en.wikipedia.org/wiki/Read%E2%80%93eval%E2%80%93print_loop) interface that helps you to not only learn the framework API, but also debug and inspect your tests. It can be used in multiple ways.
+`v4.5.0`के साथ, WebdriverIO ने एक [REPL](https://en.wikipedia.org/wiki/Read%E2%80%93eval%E2%80%93print_loop) इंटरफ़ेस पेश किया जो आपको न केवल फ्रेमवर्क एपीआई सीखने में मदद करता है, बल्कि आपके परीक्षणों को डिबग और निरीक्षण करने में भी मदद करता है। इसे कई तरह से इस्तेमाल किया जा सकता है।
 
-First you can use it as CLI command by installing `npm install -g @wdio/cli` and spawn a WebDriver session from the command line, e.g.
+सबसे पहले आप इसे `npm install -g @wdio/cli` इंस्टॉल करके सीएलआई कमांड के रूप में उपयोग कर सकते हैं और कमांड लाइन से वेबड्राइवर सत्र उत्पन्न कर सकते हैं, उदाहरण के लिए
 
 ```sh
 wdio repl chrome
 ```
 
-This would open a Chrome browser that you can control with the REPL interface. Make sure you have a browser driver running on port `4444` in order to initiate the session. If you have a [Sauce Labs](https://saucelabs.com) (or other cloud vendor) account, you can also directly run the browser on your command line in the cloud via:
+यह एक क्रोम ब्राउज़र खोलेगा जिसे आप REPL इंटरफ़ेस से नियंत्रित कर सकते हैं। सत्र आरंभ करने के लिए सुनिश्चित करें कि आपके पास पोर्ट `4444` पर एक ब्राउज़र ड्राइवर चल रहा है। यदि आपके पास [सॉस लैब्स](https://saucelabs.com) (या अन्य क्लाउड विक्रेता) खाता है, तो आप क्लाउड में अपनी कमांड लाइन पर सीधे ब्राउज़र चला सकते हैं:
 
 ```sh
 wdio repl chrome -u $SAUCE_USERNAME -k $SAUCE_ACCESS_KEY
 ```
 
-If driver is running on different port eg : 9515, it could passed with the command line argument --port or alias -p
+यदि ड्राइवर अलग-अलग पोर्ट पर चल रहा है जैसे: 9515, यह कमांड लाइन तर्क --port या उपनाम -p के साथ पास हो सकता है
 
 ```sh
 wdio repl chrome -u $SAUCE_USERNAME -k $SAUCE_ACCESS_KEY -p 9515
 ```
 
-Repl could also be ran using the capabilities from the webdriverIO config file. Wdio supports capabilities object; or ; multiremote capability list or object.
+Repl को webdriverIO कॉन्फ़िगरेशन फ़ाइल की क्षमताओं का उपयोग करके भी चलाया जा सकता है। Wdio क्षमताओं का समर्थन करता है वस्तु; या ; मल्टीरिमोट क्षमता सूची या वस्तु।
 
-If the config file uses capabilities object then just pass the path to config file, else if its a multiremote capability then, specify which capability to use from list or multiremote using the positional argument . Note: for list we consider zero based index.
+यदि कॉन्फ़िगरेशन फ़ाइल क्षमताओं ऑब्जेक्ट का उपयोग करती है तो कॉन्फ़िगरेशन फ़ाइल के पथ को पास करें, अन्यथा यदि यह एक बहु-दूरस्थ क्षमता है, तो निर्दिष्ट करें कि स्थितित्मक तर्क का उपयोग करके सूची या बहु-दूरस्थ से किस क्षमता का उपयोग करना है। नोट: सूची के लिए हम शून्य आधारित सूचकांक पर विचार करते हैं।
 
-### Example
+### उदाहरण
 
-WebdriverIO with capability array:
+क्षमता सरणी के साथ WebdriverIO:
 
 ```ts title="wdio.conf.ts example"
 export const config = {
@@ -49,7 +48,7 @@ export const config = {
 wdio repl "./path/to/wdio.config.js" 0 -p 9515
 ```
 
-WebdriverIO with [multiremote](https://webdriver.io/docs/multiremote/) capability object:
+WebdriverIO [मल्टीरिमोट](https://webdriver.io/docs/multiremote/) क्षमता वस्तु के साथ:
 
 ```ts title="wdio.conf.ts example"
 export const config = {
@@ -73,7 +72,7 @@ export const config = {
 wdio repl "./path/to/wdio.config.js" "myChromeBrowser" -p 9515
 ```
 
-Or if you want to run local mobile tests using Appium:
+या यदि आप एपियम का उपयोग करके स्थानीय मोबाइल परीक्षण चलाना चाहते हैं:
 
 <Tabs
   defaultValue="android"
@@ -98,21 +97,21 @@ wdio repl ios
 </TabItem>
 </Tabs>
 
-This would open Chrome/Safari session on connected device/emulator/simulator. Make sure Appium running on port `4444` in order to initiate the session.
+यह कनेक्टेड डिवाइस/एमुलेटर/सिम्युलेटर पर क्रोम/सफारी सत्र खोलेगा। सत्र आरंभ करने के लिए सुनिश्चित करें कि Appium पोर्ट `4444` पर चल रहा है।
 
 ```sh
 wdio repl './path/to/your_app.apk'
 ```
 
-This would open App session on connected device/emulator/simulator. Make sure Appium running on port `4444` in order to initiate the session.
+यह कनेक्टेड डिवाइस/एमुलेटर/सिम्युलेटर पर ऐप सेशन खोलेगा। सत्र आरंभ करने के लिए सुनिश्चित करें कि Appium पोर्ट `4444` पर चल रहा है।
 
-Capabilities for iOS device can be passed with arguments:
+आईओएस डिवाइस के लिए क्षमताओं को तर्कों के साथ पारित किया जा सकता है:
 
-* `-v`      - `platformVersion`: version of Android/iOS platform
-* `-d`      - `deviceName`: name of mobile device
-* `-u`      - `udid`: udid for real devices
+* `-v`      - `platformVersion`: Android/iOS प्लेटफ़ॉर्म का संस्करण
+* `-d`      - `deviceName`: मोबाइल डिवाइस का नाम
+* `-u`      - `udi`: वास्तविक उपकरणों के लिए udid
 
-Usage:
+युसेज
 
 <Tabs
   defaultValue="long"
@@ -137,8 +136,8 @@ wdio repl ios -v 11.3 -d 'iPhone 7' -u 123432abc
 </TabItem>
 </Tabs>
 
-You can apply any options (see `wdio repl --help`) available for your REPL session.
+आप अपने आरईपीएल सत्र के लिए उपलब्ध कोई भी विकल्प लागू कर सकते हैं ( `wdio repl --help`देखें)।
 
 ![WebdriverIO REPL](https://webdriver.io/img/repl.gif)
 
-Another way to use the REPL is in inside your tests via the [`debug`](/docs/api/browser/debug) command. This will stop the browser when called, and enables you to jump into the application (e.g. to the dev tools) or control the browser from the command line. This is helpful when some commands don't trigger a certain action as expected. With the REPL, you can then try out the commands to see which are working most reliably.
+आरईपीएल का उपयोग करने का दूसरा तरीका [`debug`](/docs/api/browser/debug) कमांड के माध्यम से आपके परीक्षणों के अंदर है। कॉल किए जाने पर यह ब्राउज़र को बंद कर देगा, और आपको एप्लिकेशन (जैसे देव उपकरण) में कूदने या कमांड लाइन से ब्राउज़र को नियंत्रित करने में सक्षम बनाता है। यह तब मददगार होता है जब कुछ कमांड अपेक्षित रूप से एक निश्चित क्रिया को ट्रिगर नहीं करते हैं। आरईपीएल के साथ, आप फिर यह देखने के लिए कमांड आज़मा सकते हैं कि कौन सबसे भरोसेमंद काम कर रहा है।

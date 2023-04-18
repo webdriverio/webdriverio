@@ -5,7 +5,8 @@ title: Einleitung
 
 Willkommen zur WebdriverIO API Dokumentation. Diese Seiten enthalten Referenzmaterialien für alle implementierten Protokoll und Helfer Befehle. Protokollbefehle, einschließlich [WebDriver](/docs/api/webdriver), [WebDriver Bidi](/docs/api/webdriverBidi) oder mobile Befehle wie [Appium](http://appium.io) sind Befehle, die direkt an das zugrunde liegende Automatisierungs-Backend gesendet werden. Helfer-Befehle des [`Browsers`](/docs/api/browser), [`Element`](/docs/api/element) oder [`Mock`](/docs/api/mock) Objektes bieten einfache Interaktionen basierend auf den Protokoll-Befehlen.
 
-:::info Dies sind die Dokumentation für die aktuelle Version (__v8.x__) von WebdriverIO. Wenn Sie noch eine ältere Version verwenden, besuchen Sie bitte die [alten Dokumentations-Webseiten](/versions)!
+:::info
+Dies sind die Dokumentation für die aktuelle Version (__v8.x__) von WebdriverIO. Wenn Sie noch eine ältere Version verwenden, besuchen Sie bitte die [alten Dokumentations-Webseiten](/versions)!  
 :::
 
 ## Unterstützen Sie

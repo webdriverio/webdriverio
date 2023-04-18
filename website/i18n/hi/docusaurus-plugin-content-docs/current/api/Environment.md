@@ -1,18 +1,18 @@
 ---
 id: environment
-title: Environment Variables
+title: पर्यावरण चर
 ---
 
-WebdriverIO sets the following environment variables within every worker:
+WebdriverIO प्रत्येक कार्यकर्ता के भीतर निम्नलिखित पर्यावरण चर सेट करता है:
 
 ## `NODE_ENV`
 
-Set to `'test'` if it's not already set to something else.
+`'test'` पर सेट करें यदि यह पहले से किसी और पर सेट नहीं है।
 
 ## `WDIO_LOG_LEVEL`
 
-Can be set to values `trace`, `debug`, `info`, `warn`, `error`, `silent` to write logs with corresponding details. Has priority over the passed `logLevel` value.
+संबंधित विवरण के साथ लॉग लिखने के लिए मान `trace`, `debug`, `info`, `warn`, `error`, `silent`पर सेट किया जा सकता है। पारित `logLevel` मान पर प्राथमिकता है।
 
 ## `WDIO_WORKER_ID`
 
-An unique id that helps identify the worker process. It has format of `{number}-{number}` where the first number identifies the capability and the second the spec file that capability is running, e.g. `0-5` indicates a worker the first running the 6th spec file for the first capability.
+एक विशिष्ट आईडी जो कार्यकर्ता प्रक्रिया की पहचान करने में मदद करती है। इसमें `{number}-{number}` का प्रारूप है जहां पहली संख्या क्षमता की पहचान करती है और दूसरी वह क्षमता फ़ाइल जो क्षमता चल रही है, उदाहरण के लिए `0-5` एक कार्यकर्ता को इंगित करता है जो पहली क्षमता के लिए 6वीं कल्पना फ़ाइल चला रहा है।

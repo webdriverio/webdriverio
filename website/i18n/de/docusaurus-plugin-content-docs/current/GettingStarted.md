@@ -31,6 +31,8 @@ If you're in the root directory of an existing project, run:
 
 ```sh
 npm init wdio .
+```sh
+npm init wdio .
 ```
 
 or if you want to create a new project:
@@ -44,6 +46,8 @@ npm init wdio ./path/to/new/project
 
 ```sh
 yarn create wdio .
+```sh
+yarn create wdio .
 ```
 
 or if you want to create a new project:
@@ -55,6 +59,8 @@ yarn create wdio ./path/to/new/project
 </TabItem>
 <TabItem value="pnpm">
 
+```sh
+pnpm create wdio .
 ```sh
 pnpm create wdio .
 ```

@@ -1,15 +1,15 @@
 ---
 id: debugging
-title: Debugging
+title: डीबग करना
 ---
 
-Debugging is significantly more difficult when several processes spawn dozens of tests in multiple browsers.
+डिबगिंग काफी अधिक कठिन है जब कई प्रक्रियाएँ कई ब्राउज़रों में दर्जनों परीक्षण उत्पन्न करती हैं।
 
 <iframe width="560" height="315" src="https://www.youtube.com/embed/_bw_VWn5IzU" frameborder="0" allowFullScreen></iframe>
 
-For starters, it is extremely helpful to limit parallelism by setting `maxInstances` to `1`, and targeting only those specs and browsers that need to be debugged.
+शुरुआत करने वालों के लिए, `maxInstances` से `1`सेट करके और केवल उन विनिर्देशों और ब्राउज़रों को लक्षित करके समांतरता को सीमित करना बेहद सहायक होता है जिन्हें डीबग करने की आवश्यकता होती है।
 
-In `wdio.conf`:
+`wdio.conf`में:
 
 ```js
 export const config = {
@@ -25,13 +25,13 @@ export const config = {
 }
 ```
 
-## The Debug Command
+## डिबग कमांड
 
-In many cases, you can use [`browser.debug()`](/docs/api/browser/debug) to pause your test and inspect the browser.
+कई मामलों में, आप अपने परीक्षण को रोकने और ब्राउज़र का निरीक्षण करने के लिए [`browser.debug()`](/docs/api/browser/debug) का उपयोग कर सकते हैं।
 
-Your command line interface will also switch into REPL mode. This mode allows you to fiddle around with commands and elements on the page. In REPL mode, you can access the `browser` object&mdash;or `$` and `$$` functions&mdash;like you can in your tests.
+आपका कमांड लाइन इंटरफ़ेस भी आरईपीएल मोड में बदल जाएगा। यह मोड आपको पेज पर कमांड और एलिमेंट के साथ फिडल करने की अनुमति देता है। REPL मोड में, आप `browser` ऑब्जेक्ट&mdash;या `$` और `$$` फ़ंक्शंस&mdash;तक पहुँच सकते हैं जैसे आप अपने परीक्षणों में कर सकते हैं।
 
-When using `browser.debug()`, you will likely need to increase the timeout of the test runner to prevent the test runner from failing the test for taking to long.  For example:
+`browser.debug()`का उपयोग करते समय, आपको टेस्ट रनर को लंबे समय तक परीक्षण में विफल होने से रोकने के लिए टेस्ट रनर के टाइमआउट को बढ़ाने की आवश्यकता होगी।  उदाहरण के लिए:
 
 In `wdio.conf`:
 
@@ -41,14 +41,14 @@ jasmineOpts: {
 }
 ```
 
-See [timeouts](Timeouts.md) for more information on how to do that using other frameworks.
+अन्य ढांचे का उपयोग करके इसे कैसे करें इस बारे में अधिक जानकारी के लिए [टाइमआउट](Timeouts.md) देखें।
 
-To proceed with the tests after debugging, in the shell use `^C` shortcut or the `.exit` command.
-## Dynamic configuration
+डिबगिंग के बाद परीक्षण जारी रखने के लिए, शेल में `^C` शॉर्टकट या `.exit` कमांड का उपयोग करें।
+## गतिशील विन्यास
 
-Note that `wdio.conf.js` can contain Javascript. Since you probably do not want to permanently change your timeout value to 1 day, it can be often helpful to change these settings from the command line using an environment variable.
+ध्यान दें कि `wdio.conf.js` में जावास्क्रिप्ट हो सकता है। चूंकि आप संभवत: अपने टाइमआउट मान को 1 दिन में स्थायी रूप से बदलना नहीं चाहते हैं, इसलिए पर्यावरण चर का उपयोग करके कमांड लाइन से इन सेटिंग्स को बदलना अक्सर मददगार हो सकता है।
 
-Using this technique, you can dynamically change the configuration:
+इस तकनीक का उपयोग करके, आप गतिशील रूप से कॉन्फ़िगरेशन को बदल सकते हैं:
 
 ```js
 const debug = process.env.DEBUG
@@ -68,23 +68,23 @@ export const config = {
 }
 ```
 
-You can then prefix the `wdio` command with the `debug` flag:
+फिर आप `wdio` कमांड को `debug` फ्लैग के साथ प्रीफिक्स कर सकते हैं:
 
 ```
 $ DEBUG=true npx wdio wdio.conf.js --spec ./tests/e2e/myspec.test.js
 ```
 
-...and debug your spec file with the DevTools!
+...और DevTools के साथ अपनी कल्पना फ़ाइल को डीबग करें!
 
-## Debugging with Visual Studio Code (VSCode)
+## विजुअल स्टूडियो कोड (VSCode) के साथ डिबगिंग
 
-If you want to debug your tests with breakpoints in latest VSCode, you have to install and enable the [nightly version of the JavaScript Debugger](https://marketplace.visualstudio.com/items?itemName=ms-vscode.js-debug-nightly).
+यदि आप नवीनतम VSCode में ब्रेकप्वाइंट के साथ अपने परीक्षणों को डीबग करना चाहते हैं, तो आपको जावास्क्रिप्ट डीबगर [रात्रिकालीन संस्करण को स्थापित और सक्षम करना होगा](https://marketplace.visualstudio.com/items?itemName=ms-vscode.js-debug-nightly)।
 
-> according to https://github.com/microsoft/vscode/issues/82523#issuecomment-609934308 this is only needed for windows and linux. mac os x is working without the nightly version.
+> https://github.com/microsoft/vscode/issues/82523#issuecomment-609934308 के अनुसार यह केवल विंडोज़ और लिनक्स के लिए आवश्यक है। मैक ओएस एक्स रात के संस्करण के बिना काम कर रहा है।
 
-Additional info: https://code.visualstudio.com/docs/nodejs/nodejs-debugging
+अतिरिक्त जानकारी: https://code.visualstudio.com/docs/nodejs/nodejs-debugging
 
-It's possible to run all or selected spec file(s). Debug configuration(s) have to be added to `.vscode/launch.json`, to debug selected spec add the following config:
+सभी या चयनित विशिष्ट फ़ाइल (फ़ाइलों) को चलाना संभव है। डीबग कॉन्फ़िगरेशन(ओं) को `.vscode/launch.json`में जोड़ा जाना चाहिए, चयनित युक्ति को डीबग करने के लिए निम्न कॉन्फ़िगरेशन जोड़ें:
 ```
 {
     "name": "run select spec",
@@ -103,13 +103,13 @@ It's possible to run all or selected spec file(s). Debug configuration(s) have t
 },
 ```
 
-To run all spec files remove `"--spec", "${file}"` from `"args"`
+सभी विशिष्ट फ़ाइलों को चलाने के लिए `"--spec", "${file}"` `"args"`से हटा दें
 
-Example: [.vscode/launch.json](https://github.com/mgrybyk/webdriverio-devtools/blob/master/.vscode/launch.json)
+उदाहरण: [.vscode/launch.json](https://github.com/mgrybyk/webdriverio-devtools/blob/master/.vscode/launch.json)
 
-## Dynamic Repl with Atom
+## एटम के साथ गतिशील उत्तर
 
-If you are an [Atom](https://atom.io/) hacker you can try [`wdio-repl`](https://github.com/kurtharriger/wdio-repl) by [@kurtharriger](https://github.com/kurtharriger) which is a dynamic repl that allows you to execute single code lines in Atom. Watch [this](https://www.youtube.com/watch?v=kdM05ChhLQE) YouTube video to see a demo.
+यदि आप [एटम](https://atom.io/) हैकर हैं तो आप [`wdio-repl`](https://github.com/kurtharriger/wdio-repl) by [@kurtharriger](https://github.com/kurtharriger) आज़मा सकते हैं जो एक गतिशील उत्तर है जो आपको एटम में एकल कोड लाइनों को निष्पादित करने की अनुमति देता है। डेमो देखने के लिए [यह](https://www.youtube.com/watch?v=kdM05ChhLQE) यू ट्यूब वीडियो देखें।
 
-## Debugging with WebStorm / Intellij
+## WebStorm / Intellij के साथ डिबगिंग
 You can create a node.js debug configuration like this: ![Screenshot from 2021-05-29 17-33-33](https://user-images.githubusercontent.com/18728354/120088460-81844c00-c0a5-11eb-916b-50f21c8472a8.png) Watch this [YouTube Video](https://www.youtube.com/watch?v=Qcqnmle6Wu8) for more information about how to make a configuration.

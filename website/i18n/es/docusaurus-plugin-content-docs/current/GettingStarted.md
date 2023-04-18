@@ -5,12 +5,13 @@ title: Primeros pasos
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
-import CreateProjectAnimation from '@site/src/pages/components/CreateProjectAnimation.js'
+import CreateProjectAnimation from '../src/pages/components/CreateProjectAnimation.js'
 
 Bienvenido a la página de documentación para WebdriverIO. Te ayudará a comenzar rápidamente. Si encuentras problemas puedes encontrar ayuda y respuestas en nuestro [Servidor de soporte de Discord](https://discord.webdriver.io) o puedes pulsarme en [Twitter](https://twitter.com/webdriverio).
 
 :::info
 Estos son los documentos de la última versión (__>=8.x__) de WebdriverIO. Si todavía está utilizando una versión anterior, por favor visite los [antiguos sitios web de documentación](/versions)!
+:::
 :::
 
 ## Iniciar una configuración de WebdriverIO
@@ -67,7 +68,7 @@ Este único comando descarga la herramienta CLI WebdriverIO y ejecuta un asisten
 
 <CreateProjectAnimation />
 
-El asistente le preguntará a una serie de preguntas que le guiarán a través de la configuración. Puedes pasar un parámetro `--yes` para elegir una configuración predeterminada que usará Mocha con Chrome usando el patrón [Page Object](https://martinfowler.com/bliki/PageObject.html).
+El asistente le preguntará a una serie de preguntas que le guiarán a través de la configuración. Puedes pasar un parámetro `--yes` para elegir una configuración predeterminada que usará Mocha con Chrome usando el patrón \[Page Object\](https://martinfowler.com/bliki/PageObject.html).
 
 <Tabs
   defaultValue="npm"

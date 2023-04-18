@@ -1,14 +1,14 @@
 ---
 id: flowchartsoverview
-title: Flowcharts
+title: फ़्लोचार्ट
 ---
 
-The flowcharts provide a high level overview of the WebdriverIO ecosystem and how the different packages interact with each other.
+फ़्लोचार्ट WebdriverIO पारिस्थितिकी तंत्र का एक उच्च स्तरीय अवलोकन प्रदान करते हैं और विभिन्न पैकेज एक दूसरे के साथ कैसे इंटरैक्ट करते हैं।
 
-[WDIO Commands](flowcharts/WDIOCommands.md) - Explains the wdio config, install and repl command workflows.
+[WDIO कमांड](flowcharts/WDIOCommands.md) - wdio कॉन्फिग, इंस्टाल और रिप्ल कमांड वर्कफ्लो की व्याख्या करता है।
 
-[Create local worker process](flowcharts/CreateLocalWorkerProcess.md) - Explains the interaction between the @wdio/cli, @wdio/local-runner and @wdio/runner packages and how a worker process is created.
+[स्थानीय कार्यकर्ता प्रक्रिया बनाएँ](flowcharts/CreateLocalWorkerProcess.md) - @wdio/cli, @wdio/local-runner और @wdio/runner पैकेज के बीच की बातचीत और एक कार्यकर्ता प्रक्रिया कैसे बनाई जाती है, इसकी व्याख्या करता है।
 
-[Test execution](flowcharts/TestExecution.md) - Overview of how the tests are run in the local runner worker process.
+[परीक्षण निष्पादन](flowcharts/TestExecution.md) - स्थानीय धावक कार्यकर्ता प्रक्रिया में परीक्षण कैसे चलाए जाते हैं इसका अवलोकन।
 
-[High level overview](flowcharts/HighLevelOverview.md) - Flow chart provides a high level overview of how the WebdriverIO ecosystem interacts with the core packages.
+[उच्च स्तरीय अवलोकन](flowcharts/HighLevelOverview.md) - फ्लो चार्ट एक उच्च स्तरीय अवलोकन प्रदान करता है कि कैसे WebdriverIO पारिस्थितिकी तंत्र मुख्य पैकेजों के साथ इंटरैक्ट करता है।

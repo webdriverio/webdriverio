@@ -1,32 +1,32 @@
 ---
 id: mock
-title: The Mock Object
+title: मोक ऑब्जेक्ट
 ---
 
-The mock object is an object that represents a network mock and contains information about requests that were matching given `url` and `filterOptions`. It can be received using the [`mock`](/docs/api/browser/mock) command.
+मॉक ऑब्जेक्ट एक ऐसी वस्तु है जो एक नेटवर्क मॉक का प्रतिनिधित्व करती है और इसमें उन अनुरोधों के बारे में जानकारी होती है जो दिए गए `url` और `filterOptions`से मेल खाते थे। इसे [`mock`](/docs/api/browser/mock) कमांड का उपयोग करके प्राप्त किया जा सकता है।
 
 :::info
 
-Note that using the `mock` command requires support for Chrome DevTools protocol. That support is given if you run tests locally in Chromium based browser or if you use a Selenium Grid v4 or higher. This command can __not__ be used when running automated tests in the cloud. Find out more in the [Automation Protocols](/docs/automationProtocols) section.
+ध्यान दें कि `mock` कमांड का उपयोग करने के लिए क्रोम देवटूल प्रोटोकॉल के लिए समर्थन की आवश्यकता होती है। यह समर्थन तब दिया जाता है जब आप क्रोमियम आधारित ब्राउज़र में स्थानीय रूप से परीक्षण चलाते हैं या यदि आप सेलेनियम ग्रिड v4 या उच्चतर का उपयोग करते हैं। क्लाउड में स्वचालित परीक्षण चलाते समय इस आदेश का उपयोग __नहीं__ किया जा सकता है। [स्वचालन प्रोटोकॉल](/docs/automationProtocols) अनुभाग में और जानें।
 
 :::
 
-You can read more about mocking requests and responses in WebdriverIO in our [Mocks and Spies](/docs/mocksandspies) guide.
+आप हमारे [मॉक और स्पाई](/docs/mocksandspies) गाइड में WebdriverIO में नकली अनुरोध और प्रतिक्रिया के बारे में अधिक पढ़ सकते हैं।
 
-## Properties
+## विशेषताएं
 
-A mock object contains the following properties:
+एक तत्व वस्तु में निम्नलिखित गुण होते हैं:
 
-| Name            | Type       | Details                                                                                                                                                                               |
-| --------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `url`           | `String`   | The url passed into the mock command                                                                                                                                                  |
-| `filterOptions` | `Object`   | The resource filter options passed into the mock command                                                                                                                              |
-| `browser`       | `Object`   | The [Browser Object](/docs/api/browser) used to get the mock object.                                                                                                                  |
-| `calls`         | `Object[]` | Information about matching browser requests, containing properties such as `url`, `method`, `headers`, `initialPriority`, `referrerPolic`, `statusCode`, `responseHeaders` and `body` |
+| नाम             | प्रकार     | विवरण                                                                                                                                                                    |
+| --------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `url`           | `String`   | Url मॉक कमांड में पास हो गया                                                                                                                                             |
+| `filterOptions` | `Object`   | संसाधन फ़िल्टर विकल्प मॉक कमांड में पारित किया गया                                                                                                                       |
+| `browser`       | `Object`   | मॉक ऑब्जेक्ट प्राप्त करने के लिए [ब्राउज़र ऑब्जेक्ट](/docs/api/browser) का उपयोग किया जाता है।                                                                           |
+| `calls`         | `Object[]` | मिलान करने वाले ब्राउज़र अनुरोधों के बारे में जानकारी, जिसमें `url`, `method`, `headers`, `initialPriority`, `referrerPolic`, `statusCode`, `responseHeaders` and `body` |
 
-## Methods
+## विधियां
 
-Mock objects provide various commands, listed in the `mock` section, that allow users to modify the behavior of the request or response.
+कृत्रिम वस्तुएँ विभिन्न आदेश प्रदान करती हैं, जो `mock` खंड में सूचीबद्ध हैं, जो उपयोगकर्ताओं को अनुरोध या प्रतिक्रिया के व्यवहार को संशोधित करने की अनुमति देती हैं।
 
 - [`abort`](/docs/api/mock/abort)
 - [`abortOnce`](/docs/api/mock/abortOnce)
@@ -35,17 +35,17 @@ Mock objects provide various commands, listed in the `mock` section, that allow 
 - [`respondOnce`](/docs/api/mock/respondOnce)
 - [`restore`](/docs/api/mock/restore)
 
-## Events
+## इवेंट
 
-The mock object is an EventEmitter and a couple of events are emitted for your use cases.
+ब्राउज़र ऑब्जेक्ट एक EventEmitter है और आपके उपयोग के मामलों के लिए कुछ ईवेंट उत्सर्जित होते हैं।
 
-Here is a list of events.
+यहाँ घटनाओं की एक सूची है।
 
 ### `request`
 
-This event is being emitted when launching a network request that matches mock patterns. Request is passed in event callback.
+मॉक पैटर्न से मेल खाने वाले नेटवर्क अनुरोध को लॉन्च करते समय यह ईवेंट उत्सर्जित किया जा रहा है। ईवेंट कॉलबैक में अनुरोध पारित किया गया है।
 
-Request interface:
+अनुरोध इंटरफ़ेस:
 ```ts
 interface RequestEvent {
     requestId: number
@@ -57,9 +57,9 @@ interface RequestEvent {
 
 ### `overwrite`
 
-This event is being emitted when network response is overwrited with [`respond`](/docs/api/mock/respond) or [`respondOnce`](/docs/api/mock/respondOnce). Response is passed in event callback.
+जब नेटवर्क प्रतिक्रिया [`respond`](/docs/api/mock/respond) या [`respondOnce`](/docs/api/mock/respondOnce)के साथ ओवरराइट की जाती है तो यह घटना उत्सर्जित हो रही है। ईवेंट कॉलबैक में अनुरोध पारित किया गया है।
 
-Response interface:
+अनुरोध इंटरफ़ेस:
 ```ts
 interface OverwriteEvent {
     requestId: number
@@ -71,9 +71,9 @@ interface OverwriteEvent {
 
 ### `fail`
 
-This event is being emitted when network request is aborted with [`abort`](/docs/api/mock/abort) or [`abortOnce`](/docs/api/mock/abortOnce). Fail is passed in event callback.
+जब नेटवर्क प्रतिक्रिया [`respond`](/docs/api/mock/abort) या [`respondOnce`](/docs/api/mock/abortOnce)के साथ ओवरराइट की जाती है तो यह घटना उत्सर्जित हो रही है। ईवेंट कॉलबैक में अनुरोध पारित किया गया है।
 
-Fail interface:
+विफल इंटरफ़ेस:
 ```ts
 interface FailEvent {
     requestId: number
@@ -83,9 +83,9 @@ interface FailEvent {
 
 ### `match`
 
-This event is being emitted when new match is added, before `continue` or `overwrite`. Match is passed in event callback.
+नया मैच जोड़े जाने पर यह घटना उत्सर्जित हो रही है, `continue` या `overwrite`जारी रखें। ईवेंट कॉलबैक में अनुरोध पारित किया गया है।
 
-Match interface:
+विफल इंटरफ़ेस:
 ```ts
 interface MatchEvent {
     url: string // Request URL (without fragment).
@@ -107,11 +107,11 @@ interface MatchEvent {
 
 ### `continue`
 
-This event is being emitted when the network response has neither been overwritten nor interrupted, or if response was already sent by another mock. `requestId` is passed in event callback.
+इस घटना को उत्सर्जित किया जा रहा है जब नेटवर्क प्रतिक्रिया को न तो ओवरराइट किया गया है और न ही बाधित किया गया है, या यदि प्रतिक्रिया पहले से ही किसी अन्य मॉक द्वारा भेजी गई है। ईवेंट कॉलबैक में `requestId` पारित किया गया है।
 
-## Examples
+## उदाहरण
 
-Getting a number of pending requests:
+कई लंबित अनुरोध प्राप्त करना:
 
 ```js
 let pendingRequests = 0
@@ -126,7 +126,7 @@ mock.on('match', ({url}) => {
 })
 ```
 
-Throwing an error on 404 network fail:
+404 नेटवर्क पर त्रुटि फेंकना विफल:
 
 ```js
 browser.addCommand('loadPageWithout404', (url, {selector, predicate}) => new Promise(async (resolve, reject) => {
@@ -155,7 +155,7 @@ browser.addCommand('loadPageWithout404', (url, {selector, predicate}) => new Pro
 await browser.loadPageWithout404(browser, 'some/url', { selector: 'main' })
 ```
 
-Determining if mock respond value was used:
+यह निर्धारित करना कि नकली प्रतिक्रिया मान का उपयोग किया गया था या नहीं:
 
 ```js
 const firstMock = await browser.mock('**/foo/**')
@@ -177,4 +177,4 @@ secondMock.on('continue', () => {
 })
 ```
 
-In this example, `firstMock` was defined first and has one `respondOnce` call, so the `secondMock` response value will not be used for the first request, but will be used for the rest of them.
+इस उदाहरण में, `firstMock` पहले परिभाषित किया गया था और इसमें एक `responseOnce` कॉल है, इसलिए `secondMock` प्रतिक्रिया मान का उपयोग पहले अनुरोध के लिए नहीं किया जाएगा, लेकिन बाकी के लिए उपयोग किया जाएगा।

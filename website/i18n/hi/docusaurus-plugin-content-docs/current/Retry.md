@@ -1,18 +1,17 @@
 ---
 id: retry
-title: Retry Flaky Tests
+title: फ्लेकी परीक्षण का पुनः प्रयास करें
 ---
 
-import Tabs from '@theme/Tabs';
-import TabItem from '@theme/TabItem';
+'@theme/Tabs'; से टैब आयात करें; @theme/TabItem'; से TabItem को आयात करें;
 
-You can rerun certain tests with the WebdriverIO testrunner that turn out to be unstable due to things like a flaky network or race conditions. (However, it is not recommended to simply increase the rerun rate if tests become unstable!)
+आप वेबड्राइवरआईओ टेस्टरनर के साथ कुछ परीक्षणों को फिर से चला सकते हैं जो परतदार नेटवर्क या दौड़ की स्थिति जैसी चीजों के कारण अस्थिर हो जाते हैं। (हालांकि, यदि परीक्षण अस्थिर हो जाते हैं तो केवल पुन: दौड़ दर बढ़ाने की अनुशंसा नहीं की जाती है!)
 
-## Rerun suites in Mocha
+## मोचा में सुइट्स फिर से चलाएं
 
-Since version 3 of Mocha, you can rerun whole test suites (everything inside an `describe` block). If you use Mocha you should favor this retry mechanism instead of the WebdriverIO implementation that only allows you to rerun certain test blocks (everything within an `it` block). In order to use the `this.retries()` method, the suite block `describe` must use an unbound function `function(){}` instead of a fat arrow function `() => {}`, as described in [Mocha docs](https://mochajs.org/#arrow-functions). Using Mocha you can also set a retry count for all specs using `mochaOpts.retries` in your `wdio.conf.js`.
+मोचा के संस्करण 3 के बाद से, आप पूरे टेस्ट सूट को फिर से चला सकते हैं (`describe`ब्लोक के अंदर सब कुछ का वर्णन करता है)। यदि आप मोचा का उपयोग करते हैं तो आपको WebdriverIO कार्यान्वयन के बजाय इस पुनर्प्रयास तंत्र का समर्थन करना चाहिए जो आपको केवल कुछ परीक्षण ब्लॉकों को फिर से चलाने की अनुमति देता है (सब कुछ `it` ब्लॉक के भीतर)। `this.retries()` विधि का उपयोग करने के लिए, सुइट ब्लॉक `describe` एक अनबाउंड फ़ंक्शन `function(){}` का उपयोग करना चाहिए, जैसा कि फैट एरो फ़ंक्शन `() => {}`में वर्णित है [मोचा डॉक्स](https://mochajs.org/#arrow-functions)। मोचा का उपयोग करके आप अपने `wdio.conf.js`में `mochaOpts.retries` उपयोग करके सभी विशिष्टताओं के लिए पुनः प्रयास संख्या भी सेट कर सकते हैं।
 
-Here is an example:
+यहाँ एक उदाहरण है:
 
 ```js
 describe('retries', function () {
@@ -32,9 +31,9 @@ describe('retries', function () {
 })
 ```
 
-## Rerun single tests in Jasmine or Mocha
+## चमेली या मोचा में एकल परीक्षण फिर से चलाएँ
 
-To rerun a certain test block you can just apply the number of reruns as last parameter after the test block function:
+एक निश्चित परीक्षण ब्लॉक को फिर से चलाने के लिए आप परीक्षण ब्लॉक फ़ंक्शन के बाद अंतिम पैरामीटर के रूप में फिर से दौड़ की संख्या लागू कर सकते हैं:
 
 <Tabs
   defaultValue="mocha"
@@ -102,22 +101,22 @@ describe('my flaky app', () => {
 })
 ```
 
-If you are using Jasmine, the second parameter is reserved for timeout. To apply a retry parameter you need to set the timeout to its default value `jasmine.DEFAULT_TIMEOUT_INTERVAL` and then apply your retry count.
+यदि आप जैस्मीन का उपयोग कर रहे हैं, तो दूसरा पैरामीटर टाइमआउट के लिए आरक्षित है। पुनर्प्रयास पैरामीटर लागू करने के लिए आपको टाइमआउट को इसके डिफ़ॉल्ट मान `jasmine.DEFAULT_TIMEOUT_INTERVAL` पर सेट करना होगा और फिर अपनी पुनःप्रयास संख्या लागू करनी होगी।
 
 </TabItem>
 </Tabs>
 
-This retry mechanism only allows to retry single hooks or test blocks. If your test is accompanied with a hook to set up your application, this hook is not being run. [Mocha offers](https://mochajs.org/#retry-tests) native test retries that provide this behavior while Jasmine doesn't. You can access the number of executed retries in the `afterTest` hook.
+यह पुनर्प्रयास तंत्र केवल एकल हुक या परीक्षण ब्लॉकों को पुन: प्रयास करने की अनुमति देता है। यदि आपका परीक्षण आपके आवेदन को स्थापित करने के लिए हुक के साथ है, तो यह हुक नहीं चल रहा है। [मोचा](https://mochajs.org/#retry-tests) मूल परीक्षण पुनर्प्रयास प्रदान करता है जो यह व्यवहार प्रदान करता है जबकि जैस्मीन ऐसा नहीं करती है। आप ` afterTest ` हुक में निष्पादित पुनर्प्रयासों की संख्या तक पहुँच सकते हैं।
 
-## Rerunning in Cucumber
+## ककड़ी में फिर से दौड़ना
 
-### Rerun full suites in Cucumber
+### ककड़ी में पूर्ण सुइट फिर से चलाएँ
 
-For cucumber >=6 you can provide the [`retry`](https://github.com/cucumber/cucumber-js/blob/master/docs/cli.md#retry-failing-tests) configuration option along with a `retryTagFilter` optional parameter to have all or some of your failing scenarios get additional retries until succeeded. For this feature to work you need to set the `scenarioLevelReporter` to `true`.
+ककड़ी के लिए >=6 yआप प्रदान कर सकते हैं [`retry`](https://github.com/cucumber/cucumber-js/blob/master/docs/cli.md#retry-failing-tests) विन्यास विकल्प के साथ एक`retryTagFilter` वैकल्पिक पैरामीटर प्रदान कर सकते हैं ताकि आपके सभी या कुछ असफल परिदृश्य सफल होने तक अतिरिक्त पुनर्प्रयास प्राप्त कर सकें। इस सुविधा के काम करने के लिए आपको `scenarioLevelReporter` to `true`. सेट करने की आवश्यकता है।
 
-### Rerun Step Definitions in Cucumber
+### ककड़ी में पुन: चलाएँ चरण परिभाषाएँ
 
-To define a rerun rate for a certain step definitions just apply a retry option to it, like:
+एक निश्चित कदम परिभाषा के लिए एक पुन: दौड़ दर को परिभाषित करने के लिए बस इसके लिए एक पुनः प्रयास विकल्प लागू करें, जैसे:
 
 ```js
 module.exports = function () {
@@ -131,15 +130,15 @@ module.exports = function () {
 })
 ```
 
-Reruns can only be defined in your step definitions file, never in your feature file.
+Reruns को केवल आपकी स्टेप डेफिनिशन फाइल में परिभाषित किया जा सकता है, आपकी फीचर फाइल में कभी नहीं।
 
-## Add retries on a per-specfile basis
+## प्रति-निर्दिष्ट फ़ाइल के आधार पर पुनर्प्रयास जोड़ें
 
-Previously, only test- and suite-level retries were available, which are fine in most cases.
+पहले, केवल परीक्षण- और सूट-स्तरीय पुनर्प्रयास उपलब्ध थे, जो ज्यादातर मामलों में ठीक हैं।
 
-But in any tests which involve state (such as on a server or in a database) the state may be left invalid after the first test failure. Any subsequent retries may have no chance of passing, due to the invalid state they would start with.
+लेकिन किसी भी परीक्षण में जिसमें राज्य शामिल है (जैसे कि सर्वर पर या डेटाबेस में) पहली परीक्षा विफलता के बाद राज्य को अमान्य छोड़ दिया जा सकता है। किसी भी बाद के पुनर्प्रयासों को अमान्य स्थिति के कारण पास होने का कोई मौका नहीं मिल सकता है।
 
-A new `browser` instance is created for each specfile, which makes this an ideal place to hook and setup any other states (server, databases). Retries on this level mean that the whole setup process will simply be repeated, just as if it were for a new specfile.
+प्रत्येक विशिष्ट फ़ाइल के लिए एक नया `browser` उदाहरण बनाया गया है, जो इसे किसी भी अन्य राज्यों (सर्वर, डेटाबेस) को हुक और सेटअप करने के लिए एक आदर्श स्थान बनाता है। इस स्तर पर पुनर्प्रयास का मतलब है कि पूरी सेटअप प्रक्रिया को बस दोहराया जाएगा, जैसे कि यह एक नई युक्ति के लिए हो।
 
 ```js
 module.exports = function () {
@@ -158,13 +157,13 @@ module.exports = function () {
 }
 ```
 
-## Run a specific test multiple times
+## एक विशिष्ट परीक्षण कई बार चलाएं
 
-This is to help prevent flaky tests from being introduced in a codebase. By adding the `--multi-run` cli option it will run the specified test(s) or suite(s) x number of times. When using this cli flag the `--spec` or `--suite` flag must also be specified.
+यह परतदार परीक्षणों को कोडबेस में पेश होने से रोकने में मदद करने के लिए है। `--multi-run` cli विकल्प जोड़कर यह निर्दिष्ट परीक्षण(ओं) या सुइट(रों) को x संख्या में चलाएगा। इस cli फ़्लैग का उपयोग करते समय `--spec` या `--suite` फ़्लैग को भी निर्दिष्ट किया जाना चाहिए।
 
-When adding new tests to a codebase, espically through a CI/CD process the tests could pass and get merged but become flakly later on. This flakiness could come from a number of things like network issues, server load, database size, etc. Using the `--multi-run` flag in your CD/CD process can help catch these flaky tests before they get merged to a main codebase.
+एक कोडबेस में नए परीक्षण जोड़ते समय, विशेष रूप से सीआई/सीडी प्रक्रिया के माध्यम से परीक्षण पारित हो सकते हैं और विलय हो सकते हैं लेकिन बाद में परतदार हो जाते हैं। यह चंचलता कई चीजों से आ सकती है जैसे नेटवर्क समस्याएँ, सर्वर लोड, डेटाबेस आकार, आदि। आपकी सीडी/सीडी प्रक्रिया में `--multi-run` फ़्लैग का उपयोग करने से इन परतदार परीक्षणों को पकड़ने में मदद मिल सकती है, इससे पहले कि वे एक मुख्य कोडबेस में विलय हो जाएँ।
 
-One strategy to use is run your tests like regular in your CI/CD process but if you're introducing a new test you can then run another set of tests with the new spec specifed in `--spec` along with `--multi-run` so it runs the new test x number of times. If the test fails any of those times then the test will not get merged and will need to be looked at why it failed.
+उपयोग करने की एक रणनीति आपके सीआई/सीडी प्रक्रिया में नियमित रूप से अपने परीक्षण चलाती है, लेकिन यदि आप एक नया परीक्षण शुरू कर रहे हैं तो आप `--spec` में `--multi के साथ निर्दिष्ट नए विनिर्देश के साथ परीक्षणों का एक और सेट चला सकते हैं। -run` तो यह नई परीक्षा x संख्या को कई बार चलाता है। यदि परीक्षण उनमें से किसी भी समय विफल रहता है तो परीक्षण विलय नहीं होगा और यह देखने की आवश्यकता होगी कि यह विफल क्यों हुआ।
 
 ```sh
 # This will run the example.e2e.js spec 5 times

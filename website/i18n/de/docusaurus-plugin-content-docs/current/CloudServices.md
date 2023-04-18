@@ -1,11 +1,11 @@
 ---
 id: cloudservices
-title: Using Cloud Services
+title: Verwenden von Cloud-Diensten
 ---
 
-Using on-demand services like Sauce Labs, Browserstack, TestingBot, CrossBrowserTestin, LambdaTest or Perfecto with WebdriverIO is pretty simple. All you need to do is to set your service's `user` and `key` in your options.
+Die Nutzung von On-Demand-Diensten wie Sauce Labs, Browserstack, TestingBot, CrossBrowserTesting, LambdaTest oder Perfecto mit WebdriverIO ist ziemlich einfach. Alles, was Sie tun müssen, ist `user` und `key` in Ihren Optionen zu setzen.
 
-Optionally, you can also parametrize your test by setting cloud-specific capabilities like `build`. If you only want to run cloud services in Travis, you can use the `CI` environment variable to check if you are in Travis and modify the config accordingly.
+Optional können Sie Ihren Test auch parametrisieren, indem Sie Cloud-spezifische Funktionen wie `build` Namen festlegen. Wenn Sie Cloud-Dienste nur in einer CI/CD Umgebung ausführen möchten, können Sie die Umgebungsvariable `CI` verwenden, um zu überprüfen, ob Sie sich in so einer Umgbeung befinden, und die Konfiguration entsprechend ändern.
 
 ```js
 // wdio.conf.js
@@ -18,15 +18,15 @@ if (process.env.CI) {
 
 ## Sauce Labs
 
-You can set up your tests to run remotely in [Sauce Labs](https://saucelabs.com).
+Sie können Ihre Tests so einrichten, dass sie in [Sauce Labs](https://saucelabs.com)remote ausgeführt werden.
 
-The only requirement is to set the `user` and `key` in your config (either exported by `wdio.conf.js` or passed into `webdriverio.remote(...)`) to your Sauce Labs username and access key.
+Die einzige Anforderung besteht darin, die `user` und `key` Parameter in Ihrer Konfiguration (entweder exportiert von `wdio.conf.js` oder übergeben an `webdriverio.remote(...)`) auf Ihren Sauce Labs Benutzernamen und Zugriffsschlüssel festzulegen .
 
-You can also pass in any optional [test configuration option](https://docs.saucelabs.com/dev/test-configuration-options/) as a key/value in the capabilities for any browser.
+Sie können auch jede optionale [Testkonfiguration](https://docs.saucelabs.com/dev/test-configuration-options/) als key/value für jeden Browser übergeben.
 
 ### Sauce Connect
 
-If you want to run tests against a server that is not accessible to the Internet (like on `localhost`), then you need to use [Sauce Connect](https://wiki.saucelabs.com/display/DOCS/Sauce+Connect+Proxy).
+Wenn Sie Tests auf einem Server ausführen möchten, auf den nicht über das Internet zugegriffen werden kann (z. B. auf `localhost`), müssen Sie [Sauce Connect](https://wiki.saucelabs.com/display/DOCS/Sauce+Connect+Proxy)verwenden.
 
 It is out of the scope of WebdriverIO to support this, so you'll have to start it by yourself.
 
