@@ -3,24 +3,24 @@ id: why-webdriverio
 title: WebdriverIO क्यों?
 ---
 
-WebdriverIO is a progressive automation framework built to automate modern web and mobile applications. It simplifies the interaction with your app and provides a set of plugins that help you create a scalable, robust and stable test suite.
+WebdriverIO आधुनिक वेब और मोबाइल एप्लिकेशन को स्वचालित करने के लिए बनाया गया एक प्रगतिशील स्वचालन ढांचा है। यह आपके ऐप के साथ सहभागिता को सरल करता है और प्लगइन्स का एक सेट प्रदान करता है जो आपको स्केलेबल, मजबूत और स्थिर परीक्षण सूट बनाने में मदद करता है।
 
-It is designed to be:
+यह होने के लिए डिज़ाइन किया गया है:
 
-- __Extendable__ - Adding helper functions, or more complicated sets and combinations of existing commands is __simple__ and __really useful__
-- __Compatible__ - WebdriverIO can be run on the [WebDriver Protocol](https://w3c.github.io/webdriver/) for __true cross-browser testing__ as well as [Chrome DevTools Protocol](https://chromedevtools.github.io/devtools-protocol/) for Chromium based automation using [Puppeteer](https://pptr.dev/).
-- __Feature Rich__ - The huge variety of built-in and community plugins allows you to __easily integrate__ and __extend__ your setup to fulfill your requirements.
+- __विस्तार योग्य__ - सहायक कार्य, या अधिक जटिल सेट और मौजूदा कमांड के संयोजन जोड़ना __सरल__ और __वास्तव में उपयोगी है__
+- __संगत__ - WebdriverIO को [वेबड्राइवर प्रोटोकॉल](https://w3c.github.io/webdriver/) पर __ट्रू क्रॉस-ब्राउज़र टेस्टिंग__ के साथ-साथ [क्रोमियम आधारित ऑटोमेशन के लिए [Puppeteer](https://pptr.dev/)का उपयोग करके चलाया जा सकता है](https://chromedevtools.github.io/devtools-protocol/)
+- __फ़ीचर रिच__ - बिल्ट-इन और कम्युनिटी प्लगइन्स की विशाल विविधता आपको __आसानी से एकीकृत करने की अनुमति देती है__ और __आपकी आवश्यकताओं को पूरा करने के लिए आपके सेटअप को__ करती है।
 
-You can use WebdriverIO to automate:
+आप स्वचालित करने के लिए WebdriverIO का उपयोग कर सकते हैं:
 
-- 🌐 <span>&nbsp;</span> __modern web applications__ written in React, Vue, Angular, Svelte or other frontend frameworks
-- 📱 <span>&nbsp;</span> __hybrid__ or __native mobile applications__ running in an emulator/simulator or on a real device
-- 💻 <span>&nbsp;</span> __native desktop applications__ (e.g. written with Electron.js)
-- 📦 <span>&nbsp;</span> __unit or component testing__ of web components in the browser
+- 🌐 <span>&nbsp;</span> __आधुनिक वेब एप्लिकेशन__ React, Vue, Angular, Svelte या अन्य फ्रंटएंड फ्रेमवर्क में लिखे गए हैं
+- 📱 <span>&nbsp;</span> __हाइब्रिड__ या __देशी मोबाइल एप्लिकेशन__ एक इम्यूलेटर/सिम्युलेटर में या वास्तविक डिवाइस पर चल रहा है
+- 💻 <span>&nbsp;</span> __देशी डेस्कटॉप अनुप्रयोग__ (उदाहरण के लिए इलेक्ट्रॉन.जेएस के साथ लिखा गया)
+- ब्राउज़र में वेब घटकों के 📦 <span>&nbsp;</span> __इकाई या घटक परीक्षण__
 
-## Based on Web Standards
+## वेब मानकों के आधार पर
 
-WebdriverIO leverages the power of the [WebDriver](https://w3c.github.io/webdriver/) and [WebDriver-BiDi](https://github.com/w3c/webdriver-bidi) protocol that is developed and supported by all browser vendors and guarantees a true cross-browser testing experience. While other automation tools require you to download modified browser engines that aren't used by actual users or emulate user behavior by injecting JavaScript, WebdriverIO relies on a common agreed standard for automation that is [properly tested](https://wpt.fyi/results/webdriver/tests?label=experimental&label=master&aligned) and ensures compatibility for decades to come.
+WebdriverIO [WebDriver](https://w3c.github.io/webdriver/) और [WebDriver-BiDi](https://github.com/w3c/webdriver-bidi) प्रोटोकॉल की शक्ति का लाभ उठाता है जो सभी ब्राउज़र विक्रेताओं द्वारा विकसित और समर्थित है और एक सच्चे क्रॉस-ब्राउज़र परीक्षण अनुभव की गारंटी देता है। While other automation tools require you to download modified browser engines that aren't used by actual users or emulate user behavior by injecting JavaScript, WebdriverIO relies on a common agreed standard for automation that is [properly tested](https://wpt.fyi/results/webdriver/tests?label=experimental&label=master&aligned) and ensures compatibility for decades to come.
 
 Furthermore WebdriverIO has also support for alternative, proparitary automation protocols like [Chrome DevTools](https://chromedevtools.github.io/devtools-protocol/) for debugging and introspection purposes. This allows the user to seamlessly switch between conventional commands based on WebDriver and powerful browser interactions through [Puppeteer](https://pptr.dev/).
 
