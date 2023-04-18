@@ -1,15 +1,15 @@
 ---
 id: watcher
-title: Watch Test Files
+title: परीक्षण फ़ाइलें देखें
 ---
 
-With the WDIO testrunner you can watch files while you are working on them. They automatically rerun if you change either something in your app or in your test files. By adding a `--watch` flag when calling the `wdio` command the testrunner will wait for file changes after it ran all tests, e.g.
+जब आप उन पर काम कर रहे हों तो WDIO टेस्टरनर के साथ आप फाइलों को देख सकते हैं। यदि आप या तो अपने ऐप में या अपनी परीक्षण फ़ाइलों में कुछ बदलते हैं तो वे स्वचालित रूप से पुन: चालू हो जाते हैं। `wdio` कमांड को कॉल करते समय `--watch` फ्लैग जोड़कर टेस्टरनर सभी परीक्षणों को चलाने के बाद फ़ाइल परिवर्तनों की प्रतीक्षा करेगा, उदाहरण के लिए
 
 ```sh
 wdio wdio.conf.js --watch
 ```
 
-By default it only watches for changes in your `specs` files. However by setting a `filesToWatch` property in your `wdio.conf.js` that contains a list of file paths (globbing supported) it will also watch for these files to be changed in order to rerun the whole suite. This is useful if you want to automatically rerun all your tests if you have changed your application code, e.g.
+डिफ़ॉल्ट रूप से यह केवल आपकी `specs` फ़ाइलों में परिवर्तनों को देखता है। हालाँकि आपके `wdio.conf.js` में एक `filesToWatch` संपत्ति सेट करके जिसमें फ़ाइल पथों की एक सूची है (ग्लोबिंग समर्थित) यह पूरे सुइट को फिर से चलाने के लिए इन फ़ाइलों को बदलने के लिए भी देखेगा। यह उपयोगी है यदि आप अपने सभी परीक्षणों को स्वचालित रूप से फिर से चलाना चाहते हैं यदि आपने अपना एप्लिकेशन कोड बदल दिया है, उदाहरण के लिए
 
 ```js
 // wdio.conf.js
@@ -23,6 +23,6 @@ export const config = {
 }
 ```
 
-:::info
-Try to run tests in parallel as much as possible. E2E tests are, by nature, slow. Rerunning tests is only useful if you can keep the individual test run time short. In order to save time, the testrunner keeps WebDriver sessions alive while waiting for file changes. Make sure your WebDriver backend can be modified so that it doesn't automatically close the session if no command was executed after some duration of time.
+:::जानकारी
+जितना संभव हो समानांतर में परीक्षण चलाने का प्रयास करें। E2E परीक्षण स्वभावतः धीमे होते हैं। परीक्षण फिर से चलाना केवल तभी उपयोगी होता है जब आप अलग-अलग परीक्षण चलाने का समय कम रख सकते हैं। समय बचाने के लिए, फ़ाइल परिवर्तनों की प्रतीक्षा करते समय परीक्षक वेबड्राइवर सत्र को जीवित रखता है। सुनिश्चित करें कि आपके वेबड्राइवर बैकएंड को संशोधित किया जा सकता है ताकि कुछ समय के बाद कोई आदेश निष्पादित नहीं होने पर सत्र स्वचालित रूप से बंद न हो।
 :::
