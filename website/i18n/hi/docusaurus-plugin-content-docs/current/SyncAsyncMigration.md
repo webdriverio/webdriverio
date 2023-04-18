@@ -101,21 +101,21 @@ for (const elem of elems) {
 
 ### WebdriverIO अभिकथन
 
-If you use the WebdriverIO assertion helper [`expect-webdriverio`](https://webdriver.io/docs/api/expect-webdriverio) make sure to set an `await` in front of every `expect` call, e.g.:
+यदि आप WebdriverIO अभिकथन हेल्पर [`expect-webdriverio`](https://webdriver.io/docs/api/expect-webdriverio) का उपयोग करते हैं, तो प्रत्येक `expect` कॉल के सामने `await` सेट करना सुनिश्चित करें, जैसे:
 
 ```ts
 expect($('input')).toHaveAttributeContaining('class', 'form')
 ```
 
-needs to be transformed to:
+में बदलने की जरूरत है:
 
 ```ts
 await expect($('input')).toHaveAttributeContaining('class', 'form')
 ```
 
-### Sync PageObject Methods and Async Tests
+### सिंक पेजऑब्जेक्ट मेथड्स और एसिंक्स टेस्ट
 
-If you have been writing PageObjects in your test suite in a synchronous way, you won't be able to use them in asynchronous tests anymore. If you need to use a PageObject method in both sync and async tests we recommend duplicating the method and offer them for both environments, e.g.:
+अगर आप अपने टेस्ट सूट में पेजऑब्जेक्ट्स को सिंक्रोनस तरीके से लिखते रहे हैं, तो अब आप एसिंक्रोनस टेस्ट में उनका इस्तेमाल नहीं कर पाएंगे। यदि आपको सिंक और एसिंक्स दोनों परीक्षणों में PageObject विधि का उपयोग करने की आवश्यकता है, तो हम विधि को डुप्लिकेट करने और उन्हें दोनों परिवेशों के लिए ऑफ़र करने की अनुशंसा करते हैं, उदा:
 
 ```js
 class MyPageObject extends Page {
@@ -135,9 +135,9 @@ class MyPageObject extends Page {
 }
 ```
 
-Once you've finished the migration you can remove the synchronous PageObject methods and clean up the naming.
+एक बार जब आप माइग्रेशन समाप्त कर लेते हैं तो आप सिंक्रोनस पेजऑब्जेक्ट विधियों को हटा सकते हैं और नामकरण को साफ कर सकते हैं।
 
-If you don't like to maintain two different version of a PageObject method you can also migrate the whole PageObject to async and use [`browser.call`](https://webdriver.io/docs/api/browser/call) to execute the method in a synchronous environment, e.g.:
+यदि आप किसी PageObject विधि के दो अलग-अलग संस्करणों को बनाए रखना पसंद नहीं करते हैं, तो आप संपूर्ण PageObject को async में माइग्रेट कर सकते हैं और [`ब्राउज़र कॉल `](https://webdriver.io/docs/api/browser/call) का उपयोग कर सकते हैं। समकालिक वातावरण में विधि को निष्पादित करने के लिए करें, उदाहरण के लिए:
 
 ```js
 // before:
@@ -146,8 +146,8 @@ If you don't like to maintain two different version of a PageObject method you c
 browser.call(() => MyPageObject.someMethod())
 ```
 
-The `call` command will make sure that the asynchronous `someMethod` is resolved before moving on to the next command.
+`call` कमांड सुनिश्चित करेगा कि एसिंक्रोनस `someMethod` अगले कमांड पर जाने से पहले हल हो गया है।
 
-## Conclusion
+## निष्कर्ष
 
-As you can see in the [resulting rewrite PR](https://github.com/webdriverio/cucumber-boilerplate/pull/481/files) the complexity of this rewrite is fairly easy. Remember you can rewrite one step-definition at the time. WebdriverIO is perfectly able to handle sync and async execution in a single framework.
+जैसा कि आप [परिणामी पुनर्लेखन पीआर](https://github.com/webdriverio/cucumber-boilerplate/pull/481/files) में देख सकते हैं, इस पुनर्लेखन की जटिलता काफी आसान है। याद रखें कि आप उस समय एक चरण-परिभाषा को फिर से लिख सकते हैं। WebdriverIO एक ही ढांचे में सिंक और एसिंक निष्पादन को संभालने में पूरी तरह से सक्षम है।
