@@ -199,19 +199,19 @@
     "description": "The copy button label on code blocks"
   },
   "theme.CodeBlock.wordWrapToggle": {
-    "message": "वर्ड व्रेप टॉगल करें",
+    "message": "शब्द लपेटना टॉगल करें",
     "description": "The title attribute for toggle word wrapping button of code block lines"
   },
   "theme.DocSidebarItem.toggleCollapsedCategoryAriaLabel": {
-    "message": "कोलाप्स होने वाली साइडबार केटेगरी '{label}' को टॉगल करें",
+    "message": "सिमटने वाली साइडबार श्रेणी '{label}' को टॉगल करें",
     "description": "The ARIA label to toggle the collapsible sidebar category"
   },
   "theme.TOCCollapsible.toggleButtonLabel": {
-    "message": "इस पेज पर",
+    "message": "इस पृष्ठ पर",
     "description": "The label used by the button on the collapsible TOC component"
   },
   "theme.blog.post.readMore": {
-    "message": "और अधिक पढ़ें",
+    "message": "और पढ़ें",
     "description": "The label used in blog post item excerpts to link to full blog posts"
   },
   "theme.blog.post.readMoreLabel": {
