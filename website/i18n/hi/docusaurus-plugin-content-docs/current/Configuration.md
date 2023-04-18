@@ -552,23 +552,23 @@ Parameters:
 
 Runs after a WebdriverIO command gets executed.
 
-Parameters:
+पैरामीटर:
 
-- `commandName` (`string`): command name
-- `args` (`*`): arguments that command would receive
-- `result` (`number`): 0 - command success, 1 - command error
-- `error` (`Error`): error object if any
+- `commandName` (`string`): कमांड नाम
+- `args` (`*`): तर्क जो कमांड प्राप्त करेंगे
+- `result` (`number`): 0 - कमांड सफलता, 1 - कमांड त्रुटि
+- `error` (`error`): त्रुटि ऑब्जेक्ट यदि कोई हो
 
 
 
 ### afterTest
 
-Function to be executed after a test (in Mocha/Jasmine) ends.
+एक परीक्षण (मोचा/जेसमीन में) समाप्त होने के बाद निष्पादित किया जाने वाला फंक्शन।
 
-Parameters:
+पैरामीटर:
 
-- `test` (`object`): test details
-- `context` (`object`): scope object the test was executed with
+- `test` (`object`): परीक्षण विवरण
+- `context` (`object`): स्कोप ऑब्जेक्ट परीक्षण के साथ निष्पादित किया गया था
 - `result.error` (`Error`): परीक्षण विफल होने की स्थिति में त्रुटि वस्तु, अन्यथा `undefined`
 - `result.result` (`Any`): परीक्षण फंक्शन की वापसी वस्तु
 - `result.duration` (`Number`): मिलीसेकंड में परिदृश्य की अवधि
