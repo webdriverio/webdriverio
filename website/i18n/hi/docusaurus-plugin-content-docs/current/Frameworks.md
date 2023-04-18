@@ -1,23 +1,23 @@
 ---
 id: frameworks
-title: Frameworks
+title: फ्रेमवर्क
 ---
 
-The WDIO runner currently supports [Mocha](http://mochajs.org/),  [Jasmine](http://jasmine.github.io/), and [Cucumber](https://cucumber.io/).
+WDIO रनर वर्तमान में [Mocha](http://mochajs.org/),  [Jasmine](http://jasmine.github.io/), और [कुकुम्बर](https://cucumber.io/)का समर्थन करता है।
 
-To integrate each framework with WebdriverIO, there are adapter packages on NPM which must be installed. You cannot install the adapters just anywhere; these packages must be installed in the same location WebdriverIO is installed. So, if you installed WebdriverIO globally, be sure to install the adapter package globally, too.
+WebdriverIO के साथ प्रत्येक ढांचे को एकीकृत करने के लिए, एनपीएम पर एडॉप्टर पैकेज हैं जिन्हें स्थापित किया जाना चाहिए। आप एडेप्टर को कहीं भी स्थापित नहीं कर सकते हैं; इन पैकेजों को उसी स्थान पर स्थापित किया जाना चाहिए जहाँ WebdriverIO स्थापित है। इसलिए, यदि आपने WebdriverIO को विश्व स्तर पर स्थापित किया है, तो विश्व स्तर पर एडेप्टर पैकेज को भी स्थापित करना सुनिश्चित करें।
 
-Within your spec files (or step definitions), you can access the WebDriver instance using the global variable `browser`. (You don't need to initiate or end the Selenium session. This is taken care of by the `wdio` testrunner.)
+आपकी विशिष्ट फ़ाइलों (या चरण परिभाषाओं) के भीतर, आप वैश्विक चर `browser`का उपयोग करके वेबड्राइवर उदाहरण तक पहुँच सकते हैं। आपको सेलेनियम सत्र आरंभ करने या समाप्त करने की आवश्यकता नहीं है। यह `wdio` परीक्षक द्वारा ध्यान रखा जाता है।)
 
-## Using Mocha
+## मोचा का उपयोग करना
 
-First, install the adapter package from NPM:
+सबसे पहले, एनपीएम से एडॉप्टर पैकेज इनस्टॉल करें:
 
 ```bash npm2yarn
-npm install @wdio/mocha-framework --save-dev
+एनपीएम इंस्टॉल @wdio/mocha-framework --save-dev
 ```
 
-By default WebdriverIO provides an [assertion library](Assertion.md) that is built-in which you can start right away:
+डिफ़ॉल्ट रूप से WebdriverIO एक [अभिकथन लाइब्रेरी](Assertion.md) प्रदान करता है जो अंतर्निहित है जिसमें आप तुरंत प्रारंभ कर सकते हैं:
 
 ```js
 describe('my awesome website', () => {
@@ -28,7 +28,7 @@ describe('my awesome website', () => {
 })
 ```
 
-WebdriverIO supports Mocha's `BDD` (default), `TDD`, and `QUnit` [interfaces](https://mochajs.org/#interfaces).
+WebdriverIO Mocha के `BDD` (डिफ़ॉल्ट), `TDD`और `QUnit` [इंटरफेस](https://mochajs.org/#interfaces)का समर्थन करता है।
 
 If you like to write your specs in TDD style, set the `ui` property in your `mochaOpts` config to `tdd`. Now your test files should be written like this:
 
@@ -208,45 +208,45 @@ Whether to cause specs to only have one expectation failure.
 Type: `boolean`<br /> Default: `false`
 
 #### specFilter
-Function to use to filter specs.
+स्पेक्स फ़िल्टर उपयोग करने के लिए फंक्शन।
 
 Type: `Function`<br /> Default: `(spec) => true`
 
 #### grep
-Only run tests matching this string or regexp. (Only applicable if no custom `specFilter` function is set)
+केवल इस स्ट्रिंग या regexp से मेल खाने वाले परीक्षण चलाएँ। (केवल तभी लागू होता है जब कोई कस्टम `specFilter` फ़ंक्शन सेट न हो)
 
 Type: `string|Regexp`<br /> Default: `null`
 
 #### invertGrep
-If true it inverts the matching tests and only runs tests that don't match with the expression used in `grep`. (Only applicable if no custom `specFilter` function is set)
+यदि सही है तो यह मेल खाने वाले परीक्षणों को उलट देता है और केवल ऐसे परीक्षण चलाता है जो `grep`में प्रयुक्त अभिव्यक्ति से मेल नहीं खाते हैं। (केवल तभी लागू होता है जब कोई कस्टम `specFilter` फ़ंक्शन सेट न हो)
 
 Type: `boolean`<br /> Default: `false`
 
-## Using Cucumber
+## कुकुम्बर का उपयोग
 
-First, install the adapter package from NPM:
+सबसे पहले, एनपीएम से एडॉप्टर पैकेज इनस्टॉल करें:
 
 ```bash npm2yarn
 npm install @wdio/cucumber-framework --save-dev
 ```
 
-If you want to use Cucumber, set the `framework` property to `cucumber` by adding `framework: 'cucumber'` to the [config file](ConfigurationFile.md).
+यदि आप कुकुम्बर का उपयोग करना चाहते हैं, तो `framework` प्रॉपर्टी को `cucumber` में `framework: 'cucumber'` जोड़कर [कॉन्फिग फाइल](ConfigurationFile.md)।
 
-Options for Cucumber can be given in the config file with `cucumberOpts`. Check out the whole list of options [here](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-cucumber-framework#cucumberopts-options).
+कुकुम्बर के लिए विकल्प कॉन्फ़िग फ़ाइल में `cucumberOpts`के साथ दिए जा सकते हैं। विकल्पों की पूरी सूची देखें [यहाँ](https://github.com/webdriverio/webdriverio/tree/main/packages/wdio-cucumber-framework#cucumberopts-options)।
 
-To get up and running quickly with Cucumber, have a look on our [`cucumber-boilerplate`](https://github.com/webdriverio/cucumber-boilerplate) project that comes with all the step definitions you need to get stared, and you'll be writing feature files right away.
+कुकुम्बर के साथ जल्दी उठने और दौड़ने के लिए, हमारे [`cucumber-boilerplate`](https://github.com/webdriverio/cucumber-boilerplate) प्रोजेक्ट पर एक नज़र डालें, जो उन सभी चरण परिभाषाओं के साथ आता है जिनकी आपको घूरने की ज़रूरत है, और आप तुरंत फ़ीचर फ़ाइलें लिख रहे होंगे।
 
-### Cucumber Options
+### कुकुम्बर विकल्प
 
-The following options can be applied in your `wdio.conf.js` to configure your Cucumber environment using the `cucumberOpts` property:
+निम्नलिखित विकल्पों को आपके `wdio.conf.js` में `cucumberOpts` गुण का उपयोग करके अपने खीरा वातावरण को कॉन्फ़िगर करने के लिए लागू किया जा सकता है:
 
 #### backtrace
-Show full backtrace for errors.
+त्रुटियों के लिए पूर्ण बैकट्रैक दिखाएं।
 
 Type: `Boolean`<br /> Default: `true`
 
 #### requireModule
-Require modules prior to requiring any support files.
+किसी भी समर्थन फ़ाइल की आवश्यकता से पहले मॉड्यूल की आवश्यकता होती है।
 
 Type: `string[]`<br /> Default: `[]`<br /> Example:
 
@@ -267,32 +267,32 @@ cucumberOpts: {
  ```
 
 #### failAmbiguousDefinitions
-Treat ambiguous definitions as errors. Please note that this is a `@wdio/cucumber-framework` specific option and not recognized by cucumber-js itself.
+अस्पष्ट परिभाषाओं को त्रुटियों के रूप में मानें। कृपया ध्यान दें कि यह `@wdio/cucumber-framework` विशिष्ट विकल्प है और इसे खीरा-js द्वारा ही पहचाना नहीं गया है।
 
 Type: `boolean`<br /> Default: `false`
 
 #### failFast
-Abort the run on first failure.
+पहली बार असफल होने पर रन होने को रोक दें।
 
 Type: `boolean`<br /> Default: `false`
 
 #### ignoreUndefinedDefinitions
-Treat undefined definitions as warnings. Please note that this is a @wdio/cucumber-framework specific option and not recognized by cucumber-js itself.
+अपरिभाषित परिभाषाओं को चेतावनियों के रूप में मानें। कृपया ध्यान दें कि यह @wdio/cucumber-framework विशिष्ट विकल्प है और इसे cucumber-js द्वारा ही पहचाना नहीं गया है।
 
 Type: `boolean`<br /> Default: `false`
 
 #### names
-Only execute the scenarios with name matching the expression (repeatable).
+केवल उन परिदृश्यों को निष्पादित करें जिनके नाम अभिव्यक्ति (दोहराने योग्य) से मेल खाते हैं।
 
 Type: `RegExp[]`<br /> Default: `[]`
 
 #### profile
-Specify the profile to use.
+उपयोग करने के लिए प्रोफ़ाइल निर्दिष्ट करें।
 
 Type: `string[]`<br /> Default: `[]`
 
 #### require
-Require files containing your step definitions before executing features. You can also specify a glob to your step definitions.
+सुविधाओं को निष्पादित करने से पहले आपकी चरण परिभाषाओं वाली फ़ाइलों की आवश्यकता होती है। आप अपनी चरण परिभाषाओं के लिए एक ग्लोब भी निर्दिष्ट कर सकते हैं।
 
 Type: `string[]`<br /> Default: `[]` Example:
 
@@ -303,49 +303,49 @@ cucumberOpts: {
 ```
 
 #### snippetSyntax
-Specify a custom snippet syntax.
+एक कस्टम स्निपेट सिंटैक्स निर्दिष्ट करें।
 
 Type: `string`<br /> Default: `null`
 
 #### snippets
-Hide step definition snippets for pending steps.
+लंबित चरणों के लिए चरण परिभाषा स्निपेट छुपाएं.
 
 Type: `boolean`<br /> Default: `true`
 
 #### source
-Hide source uris.
+स्रोत यूरी छुपाएं।
 
 Type: `boolean`<br /> Default: `true`
 
 #### strict
-Fail if there are any undefined or pending steps.
+कोई अपरिभाषित या लंबित चरण होने पर विफल।
 
 Type: `boolean`<br /> Default: `false`
 
 #### tagExpression
-Only execute the features or scenarios with tags matching the expression. Please see the [Cucumber documentation](https://docs.cucumber.io/cucumber/api/#tag-expressions) for more details.
+अभिव्यक्ति से मेल खाने वाले टैग के साथ केवल सुविधाओं या परिदृश्यों को निष्पादित करें। अधिक विवरण के लिए कृपया [कुकुम्बर दस्तावेज़](https://docs.cucumber.io/cucumber/api/#tag-expressions) देखें।
 
 Type: `string`<br /> Default: `null`
 
 #### tagsInTitle
-Add cucumber tags to feature or scenario name.
+फीचर या परिदृश्य नाम में कुकुम्बर टैग जोड़ें।
 
 Type: `boolean`<br /> Default: `false`
 
 #### timeout
-Timeout in milliseconds for step definitions.
+स्टेप परिभाषाओं के लिए मिलीसेकंड में टाइमआउट।
 
 Type: `number`<br /> Default: `30000`
 
-### Skipping tests in cucumber
+### कुकुम्बर में स्किपिंग परीक्षण
 
-Note that if you want to skip a test using regular cucumber test filtering capabilities available in `cucumberOpts`, you will do it for all the browsers and devices configured in the capabilities. In order to be able to skip scenarios only for specific capabilities combinations without having a session started if not necessary, webdriverio provides the following specific tag syntax for cucumber:
+ध्यान दें कि यदि आप `cucumberOpts`में उपलब्ध नियमित खीरा परीक्षण फ़िल्टरिंग क्षमताओं का उपयोग करके एक परीक्षण छोड़ना चाहते हैं, तो आप इसे क्षमताओं में कॉन्फ़िगर किए गए सभी ब्राउज़रों और उपकरणों के लिए करेंगे। यदि आवश्यक न हो तो सत्र शुरू किए बिना केवल विशिष्ट क्षमताओं के संयोजन के लिए परिदृश्यों को छोड़ने में सक्षम होने के लिए, वेबड्राइवरियो ककड़ी के लिए निम्नलिखित विशिष्ट टैग सिंटैक्स प्रदान करता है:
 
 `@skip([condition])`
 
-were condition is an optional combination of capabilities properties with their values that when **all** matched with cause the tagged scenario or feature to be skipped. Of course you can add several tags to scenarios and features to skip a tests under several different conditions.
+वेयर स्थिति उनके मानों के साथ क्षमताओं गुणों का एक वैकल्पिक संयोजन है, जब **सभी** से मेल खाते हैं, तो टैग किए गए परिदृश्य या सुविधा को छोड़ दिया जाता है। बेशक आप कई अलग-अलग परिस्थितियों में परीक्षण छोड़ने के लिए परिदृश्यों और सुविधाओं में कई टैग जोड़ सकते हैं।
 
-You can also use the '@skip' annotation to skip tests without changing `tagExpression'. In this case the skipped tests will be displayed in the test report.
+आप `टैगएक्सप्रेशन' को बदले बिना परीक्षण छोड़ने के लिए '@tagExpression' का भी उपयोग कर सकते हैं। In this case the skipped tests will be displayed in the test report.
 
 Here you have some examples of this syntax:
 - `@skip` or `@skip()`: will always skip the tagged item
