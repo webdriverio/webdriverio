@@ -49,44 +49,44 @@ https://github.com/webdriverio/example-recipes/blob/fd54f94306ed8e7b40f967739164
 
 __नोट:__ टेस्टिंग लाइब्रेरी से रेंडर विधियों का उपयोग करने से परीक्षणों के बीच बनाए गए कॉम्पोनेन्ट को हटाने में मदद मिलती है। यदि आप परीक्षण लाइब्रेरी का उपयोग नहीं करते हैं तो अपने परीक्षण कॉम्पोनेन्ट को एक ऐसे कंटेनर से जोड़ना सुनिश्चित करें जो परीक्षणों के क्लीन हो जाता है।
 
-## Setup Scripts
+## सेटअप स्क्रिप्ट
 
-You can set up your tests by running arbitrary scripts in Node.js or in the browser, e.g. injecting styles, mocking browser APIs or connecting to a 3rd party service. The WebdriverIO [hooks](/docs/configuration#hooks) can be used to run code in Node.js while the [`mochaOpts.require`](/docs/frameworks#require) allows you to import scripts into the browser before tests are loaded, e.g.:
+आप Node.js या ब्राउज़र में मनमानी स्क्रिप्ट चलाकर अपने परीक्षण सेट कर सकते हैं, उदाहरण के लिए शैलियों को इंजेक्ट करना, ब्राउज़र API का मज़ाक उड़ाना या किसी तृतीय पक्ष सेवा से कनेक्ट करना। WebdriverIO [हुक](/docs/configuration#hooks) का उपयोग Node.js में कोड चलाने के लिए किया जा सकता है जबकि [`mochaOpts.require`](/docs/frameworks#require) आपको परीक्षण लोड होने से पहले ब्राउज़र में स्क्रिप्ट आयात करने की अनुमति देता है, जैसे:
 
 ```js wdio.conf.js
-export const config = {
+एक्सपोर्ट const config = {
     // ...
-    mochaOpts: {
-        ui: 'tdd',
-        // provide a setup script to run in the browser
-        require: './__fixtures__/setup.js'
-    },
-    before: () => {
-        // set up test environment in Node.js
-    }
-    // ...
+    मोचाऑप्ट्स: {
+         यूआई: 'टीडीडी',
+         // ब्राउज़र में चलने के लिए एक सेटअप स्क्रिप्ट प्रदान करें
+         आवश्यकता: './__fixtures__/setup.js'
+     },
+     पहले: () => {
+         // Node.js में परीक्षण वातावरण सेट करें
+     }
+     // ...
 }
 ```
 
-For example, if you like to mock all [`fetch()`](https://developer.mozilla.org/en-US/docs/Web/API/fetch) calls in your test with the following set-up script:
+उदाहरण के लिए, यदि आप निम्न सेट-अप स्क्रिप्ट के साथ अपने परीक्षण में सभी [`fetch()`](https://developer.mozilla.org/en-US/docs/Web/API/fetch) कॉलों का मजाक उड़ाना पसंद करते हैं:
 
 ```js ./fixtures/setup.js
-import { fn } from '@wdio/browser-runner'
+'@wdio/browser-runner' से { fn } आयात करें
 
-// run code before all tests are loaded
-window.fetch = fn()
+// रन कोड सभी परीक्षण लोड होने से पहले
+विंडो.फ़ेच = fn ()
 
-export const mochaGlobalSetup = () => {
-    // run code after test file is loaded
+निर्यात const mochaGlobalSetup = () => {
+     // रन कोड परीक्षण फ़ाइल लोड होने के बाद
 }
 
-export const mochaGlobalTeardown = () => {
-    // run code after spec file was executed
+Export const mochaGlobalTeardown = () => {
+     // युक्ति फ़ाइल निष्पादित होने के बाद रन कोड
 }
 
 ```
 
-Now in your tests you can provide custom response values for all browser requests. Read more on global fixtures in the [Mocha docs](https://mochajs.org/#global-fixtures).
+अब अपने परीक्षणों में आप सभी ब्राउज़र अनुरोधों के लिए कस्टम प्रतिक्रिया मान प्रदान कर सकते हैं। [मोचा डॉक्स](https://mochajs.org/#global-fixtures)में वैश्विक फिक्स्चर पर अधिक पढ़ें।
 
 ## परीक्षण और एप्लिकेशन फ़ाइलें देखें
 
