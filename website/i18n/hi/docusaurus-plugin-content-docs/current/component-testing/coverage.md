@@ -35,7 +35,7 @@ There may be some sections of your codebase that you wish to purposefully exclud
 
 :::info
 
-It is recommended to exclude your test files from the coverage reporting as it could cause errors, e.g. when calling `execute` or `executeAsync` commands. If you like to keep them in your report, ensure your exclude instrumenting them via:
+It is recommended to exclude your test files from the coverage reporting as it could cause errors, e.g. when calling `execute` or `executeAsync` commands. यदि आप उन्हें अपनी रिपोर्ट में रखना चाहते हैं, तो सुनिश्चित करें कि आप निम्न के माध्यम से उनका उपकरण बहिष्कृत करें:
 
 ```ts
 await browser.execute(/* istanbul ignore next */() => {
