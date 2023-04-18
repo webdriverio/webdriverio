@@ -59,16 +59,16 @@ https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7ef
 
 ## WDIO टेस्टरनर
 
-हालाँकि, WebdriverIO का मुख्य उद्देश्य बड़े पैमाने पर एंड-टू-एंड परीक्षण है। We therefore implemented a test runner that helps you to build a reliable test suite that is easy to read and maintain.
+हालाँकि, WebdriverIO का मुख्य उद्देश्य बड़े पैमाने पर एंड-टू-एंड परीक्षण है। इसलिए हमने एक परीक्षण धावक लागू किया है जो आपको एक विश्वसनीय परीक्षण सूट बनाने में मदद करता है जो पढ़ने और बनाए रखने में आसान है।
 
-The test runner takes care of many problems that are common when working with plain automation libraries. For one, it organizes your test runs and splits up test specs so your tests can be executed with maximum concurrency. It also handles session management and provides lots of features to help you to debug problems and find errors in your tests.
+टेस्ट रनर कई समस्याओं का ध्यान रखता है जो प्लेन ऑटोमेशन लाइब्रेरी के साथ काम करते समय आम हैं। एक के लिए, यह आपके टेस्ट रन को व्यवस्थित करता है और टेस्ट स्पेक्स को विभाजित करता है ताकि आपके टेस्ट को अधिकतम समवर्ती के साथ निष्पादित किया जा सके। यह सत्र प्रबंधन को भी संभालता है और समस्याओं को डीबग करने और अपने परीक्षणों में त्रुटियां खोजने में आपकी मदद करने के लिए बहुत सारी सुविधाएँ प्रदान करता है।
 
-Here is the same example from above, written as a test spec and executed by WDIO:
+यहाँ ऊपर से एक ही उदाहरण दिया गया है, जिसे परीक्षण युक्ति के रूप में लिखा गया है और WDIO द्वारा निष्पादित किया गया है:
 
 ```js reference useHTTPS
 https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/setup/testrunner.js
 ```
 
-The test runner is an abstraction of popular test frameworks like Mocha, Jasmine, or Cucumber. To run your tests using the WDIO test runner, check out the [Getting Started](GettingStarted.md) section for more information.
+टेस्ट रनर मोचा, जैस्मीन या खीरा जैसे लोकप्रिय टेस्ट फ्रेमवर्क का एक सार है। WDIO परीक्षण रनर का उपयोग करके अपने परीक्षण चलाने के लिए, अधिक जानकारी के लिए [प्रारंभ करना](GettingStarted.md) अनुभाग देखें।
 
-For more information on the `@wdio/cli` testrunner package interface, see [Modules API](/docs/api/modules).
+`@wdio/cli` टेस्टरनर पैकेज इंटरफ़ेस पर अधिक जानकारी के लिए, [मॉड्यूल API](/docs/api/modules)देखें।
