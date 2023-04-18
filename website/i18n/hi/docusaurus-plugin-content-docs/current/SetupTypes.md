@@ -1,16 +1,16 @@
 ---
 id: setuptypes
-title: Setup Types
+title: सेटअप प्रकार
 ---
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-WebdriverIO can be used for various purposes. It implements the WebDriver protocol API and can run a browser in an automated way. The framework is designed to work in any arbitrary environment and for any kind of task. It is independent from any 3rd party frameworks and only requires Node.js to run.
+WebdriverIO का उपयोग विभिन्न उद्देश्यों के लिए किया जा सकता है। यह वेबड्राइवर प्रोटोकॉल एपीआई को लागू करता है और स्वचालित तरीके से ब्राउज़र चला सकता है। ढांचे को किसी भी मनमाने वातावरण में और किसी भी प्रकार के कार्य के लिए डिज़ाइन किया गया है। यह किसी भी तीसरे पक्ष के ढांचे से स्वतंत्र है और इसे चलाने के लिए केवल Node.js की आवश्यकता होती है।
 
-## Protocol Bindings
+## प्रोटोकॉल बाइंडिंग
 
-For basic interactions with the WebDriver and other automation protocols WebdriverIO uses its own protocol bindings based on the [`webdriver`](https://www.npmjs.com/package/webdriver) NPM package:
+WebDriver और अन्य ऑटोमेशन प्रोटोकॉल के साथ बुनियादी इंटरैक्शन के लिए WebdriverIO [`webdriver`](https://www.npmjs.com/package/webdriver) NPM पैकेज के आधार पर अपने स्वयं के प्रोटोकॉल बाइंडिंग का उपयोग करता है:
 
 <Tabs
   defaultValue="webdriver"
@@ -35,9 +35,9 @@ https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7ef
 </TabItem>
 </Tabs>
 
-All [protocol commands](./api/_webdriver.md) return the raw response from the automation driver. The package is very lightweight and there is __no__ smart logic like auto-waits to simplify the interaction with the protocol usage.
+सभी [प्रोटोकॉल कमांड](./api/_webdriver.md) ऑटोमेशन ड्राइवर से अपरिष्कृत प्रतिक्रिया लौटाते हैं। पैकेज बहुत हल्का है और प्रोटोकॉल उपयोग के साथ बातचीत को आसान बनाने के लिए ऑटो-वेट जैसे __नंबर__ स्मार्ट लॉजिक है।
 
-The protocol commands applied to the instance depend on the initial session response of the driver. For example if the response indicates that a mobile session was started, the package applies all Appium and Mobile JSON Wire protocol commands to the instance prototype.
+उदाहरण के लिए लागू प्रोटोकॉल आदेश ड्राइवर के प्रारंभिक सत्र की प्रतिक्रिया पर निर्भर करते हैं। For example if the response indicates that a mobile session was started, the package applies all Appium and Mobile JSON Wire protocol commands to the instance prototype.
 
 You can run the same set of commands (except mobile ones) using the Chrome DevTools protocol when importing the [`devtools`](https://www.npmjs.com/package/devtools) NPM package. It has the same interface as the `webdriver` package but runs its automation based on [Puppeteer](https://pptr.dev/).
 
