@@ -21,6 +21,16 @@ See [CHANGELOG - v7](https://github.com/webdriverio/webdriverio/blob/v7/CHANGELO
 
 ---
 
+## v8.8.5 (2023-04-18)
+
+#### :bug: Bug Fix
+* `wdio-browser-runner`
+  * [#10221](https://github.com/webdriverio/webdriverio/pull/10221) browser-runner: support global fixture through set up scripts ([@christian-bromann](https://github.com/christian-bromann))
+
+#### Committers: 1
+- Christian Bromann ([@christian-bromann](https://github.com/christian-bromann))
+
+
 ## v8.8.4 (2023-04-17)
 
 #### :bug: Bug Fix
