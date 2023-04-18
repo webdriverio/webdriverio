@@ -7,7 +7,7 @@ title: SolidJS
 
 ## Setup
 
-To setup WebdriverIO within your SolidJS project, follow the [instructions](/docs/component-testing#set-up) in our component testing docs. Make sure to select `solid` as preset within your runner options, e.g.:
+अपने सॉलिडजेएस प्रोजेक्ट के भीतर वेबड्राइवरियो को सेटअप करने के लिए, हमारे घटक परीक्षण डॉक्स में [निर्देशों](/docs/component-testing#set-up) का पालन करें। अपने रनर विकल्पों में `solid` प्रीसेट के रूप में चुनना सुनिश्चित करें, उदाहरण के लिए:solid
 
 ```js
 // wdio.conf.js
@@ -22,23 +22,23 @@ export const config = {
 
 :::info
 
-If you are already using [Vite](https://vitejs.dev/) as development server you can also just re-use your configuration in `vite.config.ts` within your WebdriverIO config. For more information, see `viteConfig` in [runner options](/docs/runner#runner-options).
+यदि आप पहले से ही विकास सर्वर के रूप में [Vite](https://vitejs.dev/) का उपयोग कर रहे हैं तो आप अपने WebdriverIO कॉन्फ़िगरेशन के भीतर `vite.config.ts` में अपने कॉन्फ़िगरेशन का पुन: उपयोग भी कर सकते हैं। अधिक जानकारी के लिए, `viteConfig` in [रनर विकल्प](/docs/runner#runner-options)देखें।
 
 :::
 
-The SolidJS preset requires `vite-plugin-solid` to be installed:
+सॉलिडजेएस प्रीसेट को स्थापित करने के लिए `vite-plugin-solid`की आवश्यकता होती है:
 
 ```sh npm2yarn
 npm install --save-dev vite-plugin-solid
 ```
 
-You can then start the tests by running:
+फिर आप चलाकर परीक्षण शुरू कर सकते हैं:
 
 ```sh
 npx wdio run ./wdio.conf.js
 ```
 
-## Writing Tests
+## लेखन परीक्षण
 
 Given you have the following SolidJS component:
 
