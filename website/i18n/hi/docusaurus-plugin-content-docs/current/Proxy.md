@@ -1,18 +1,18 @@
 ---
 id: proxy
-title: Proxy Setup
+title: प्रॉक्सी सेटअप
 ---
 
-You can tunnel two different types of request through a proxy:
+आप प्रॉक्सी के माध्यम से दो अलग-अलग प्रकार के अनुरोधों को टनल कर सकते हैं:
 
-- connection between your test script and the browser driver (or WebDriver endpoint)
-- connection between the browser and the internet
+- आपकी टेस्ट स्क्रिप्ट और ब्राउज़र ड्राइवर (या वेबड्राइवर एंडपॉइंट) के बीच कनेक्शन
+- ब्राउज़र और इंटरनेट के बीच संबंध
 
-## Proxy Between Driver And Test
+## ब्राउज़र और इंटरनेट के बीच प्रॉक्सी
 
-If your company has a corporate proxy (e.g. on `http://my.corp.proxy.com:9090`) for all outgoing requests, follow the below steps to install and configure [global-agent](https://github.com/gajus/global-agent).
+यदि आपकी कंपनी के पास सभी आउटगोइंग अनुरोधों के लिए कॉर्पोरेट प्रॉक्सी (उदाहरण के लिए `http://my.corp.proxy.com:9090`पर) है, तो [global-agent](https://github.com/gajus/global-agent)को स्थापित और कॉन्फ़िगर करने के लिए नीचे दिए गए चरणों का पालन करें।
 
-### Install global-agent
+### वैश्विक-एजेंट स्थापित करें
 
 ```bash npm2yarn
 npm install global-agent --save-dev
