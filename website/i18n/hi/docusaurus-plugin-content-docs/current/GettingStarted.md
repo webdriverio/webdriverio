@@ -1,6 +1,6 @@
 ---
 id: gettingstarted
-title: Getting Started
+title: शुरू करें
 ---
 
 import Tabs from '@theme/Tabs';
