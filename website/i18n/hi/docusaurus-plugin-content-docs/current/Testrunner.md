@@ -74,7 +74,7 @@ npx wdio wdio.conf.js
 wdio config
 ```
 
-Options:
+विकल्प:
 
 ```
 --help            prints WebdriverIO help menu                                [boolean]
@@ -83,17 +83,17 @@ Options:
 
 ### `wdio run`
 
-> This is the default command to run your configuration.
+> यह आपके कॉन्फ़िगरेशन को चलाने के लिए डिफ़ॉल्ट कमांड है।
 
-The `run` command initializes your WebdriverIO configuration file and runs your tests.
+`run` कमांड आपकी WebdriverIO कॉन्फ़िगरेशन फ़ाइल को इनिशियलाइज़ करता है और आपके परीक्षण चलाता है।
 
-Example:
+उदाहरण:
 
 ```sh
 wdio run ./wdio.conf.js --watch
 ```
 
-Options:
+विकल्प:
 
 ```
 --help                prints WebdriverIO help menu                   [boolean]
@@ -125,12 +125,12 @@ Options:
 --cucumberOpts        Cucumber options
 ```
 
-> Note: Autocompiling can be easily controlled with the appropriate library's ENV Vars. See also Test Runner's Auto Compilation functionality documented in [TypeScript (ts-node)](TypeScript.md) and [Babel (@babel/register)](Babel.md) pages.
+> नोट: स्वत: संकलन को उचित पुस्तकालय के ईएनवी वर्र्स के साथ आसानी से नियंत्रित किया जा सकता है। [TypeScript (ts-node)](TypeScript.md) और [Babel (@babel/register)](Babel.md) पेजों में प्रलेखित टेस्ट रनर की ऑटो कंपाइलेशन कार्यात्मकता को भी देखें।
 
 ### `wdio install`
-The `install` command allows you to add reporters and services to your WebdriverIO projects via the CLI.
+`install` कमांड आपको सीएलआई के माध्यम से अपने वेबड्राइवरआईओ प्रोजेक्ट में पत्रकारों और सेवाओं को जोड़ने की अनुमति देता है।
 
-Example:
+उदाहरण:
 
 ```sh
 wdio install service sauce # installs @wdio/sauce-service
@@ -138,19 +138,19 @@ wdio install reporter dot # installs @wdio/dot-reporter
 wdio install framework mocha # installs @wdio/mocha-framework
 ```
 
-If you want to install the packages using `yarn` instead, you can pass the `--yarn` flag to the command:
+यदि आप इसके बजाय `yarn` का उपयोग करके संकुल को स्थापित करना चाहते हैं, तो आप कमांड को `--yarn` फ्लैग पास कर सकते हैं:
 
 ```sh
 wdio install service sauce --yarn
 ```
 
-You could also pass a custom configuration path if your WDIO config file is not in the same folder you're working on:
+यदि आपकी WDIO कॉन्फ़िगरेशन फ़ाइल उसी फ़ोल्डर में नहीं है जिस पर आप काम कर रहे हैं, तो आप एक कस्टम कॉन्फ़िगरेशन पथ भी पास कर सकते हैं:
 
 ```sh
 wdio install service sauce --config="./path/to/wdio.conf.js"
 ```
 
-#### List of supported services
+#### समर्थित सेवाओं की सूची
 
 ```
 sauce
@@ -169,7 +169,7 @@ wiremock
 lambdatest
 ```
 
-#### List of supported reporters
+#### समर्थित पत्रकारों की सूची
 
 ```
 dot
@@ -186,7 +186,7 @@ mochawesome
 timeline
 ```
 
-#### List of supported frameworks
+#### समर्थित ढांचे की सूची
 
 ```
 mocha
@@ -196,18 +196,18 @@ cucumber
 
 ### `wdio repl`
 
-The repl command allows to start an interactive command line interface to run WebdriverIO commands. It can be used for testing purposes or to just quickly spin up WebdriverIO session.
+Repl कमांड WebdriverIO कमांड चलाने के लिए एक इंटरैक्टिव कमांड लाइन इंटरफ़ेस शुरू करने की अनुमति देता है। इसका उपयोग परीक्षण उद्देश्यों के लिए या WebdriverIO सत्र को जल्दी से स्पिन करने के लिए किया जा सकता है।
 
-Run tests in local chrome:
+स्थानीय क्रोम में परीक्षण चलाएं:
 
 ```sh
 wdio repl chrome
 ```
 
-or run tests on Sauce Labs:
+या सॉस लैब्स पर परीक्षण चलाएँ:
 
 ```sh
 wdio repl chrome -u $SAUCE_USERNAME -k $SAUCE_ACCESS_KEY
 ```
 
-You can apply the same arguments as you can in the [run command](#wdio-run).
+आप वही तर्क लागू कर सकते हैं जो आप [रन कमांड](#wdio-run)में कर सकते हैं।
