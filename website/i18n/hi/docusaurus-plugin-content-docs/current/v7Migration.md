@@ -41,9 +41,9 @@ npm i --save-dev @wdio/allure-reporter@7 @wdio/cli@7 @wdio/cucumber-framework@7 
 
 - _अद्यतन निर्भरताएँ_ [[7097ab6]](https://github.com/WarleyGabriel/demo-webdriverio-cucumber/pull/11/commits/7097ab6297ef9f37ead0a9c2ce9fce8d0765458d)
 
-## Transform Config File
+## कॉन्फ़िग फ़ाइल को रूपांतरित करें
 
-A good first step is to start with the config file. In WebdriverIO `v7` we don't require to manually register any of the compilers anymore. In fact they need to be removed. This can be done with the codemod full automatically:
+एक अच्छा पहला कदम कॉन्फिग फाइल के साथ शुरू करना है। WebdriverIO `v7` में हमें अब किसी भी कंपाइलर को मैन्युअल रूप से पंजीकृत करने की आवश्यकता नहीं है। असल में उन्हें हटाने की जरूरत है। यह स्वचालित रूप से पूर्ण कोडमोड के साथ किया जा सकता है:
 
 ```sh
 npx jscodeshift -t ./node_modules/@wdio/codemod/v7 ./wdio.conf.js
@@ -51,28 +51,28 @@ npx jscodeshift -t ./node_modules/@wdio/codemod/v7 ./wdio.conf.js
 
 :::caution
 
-The codemod doesn't yet support TypeScript projects. See [`@webdriverio/codemod#10`](https://github.com/webdriverio/codemod/issues/10). We are working to implement support for it soon. If you are using TypeScript please get involved!
+कोडमॉड अभी तक टाइपस्क्रिप्ट परियोजनाओं का समर्थन नहीं करता है। देखें [`@webdriverio/codemod#10`](https://github.com/webdriverio/codemod/issues/10)। हम जल्द ही इसके लिए समर्थन लागू करने के लिए काम कर रहे हैं। यदि आप टाइपस्क्रिप्ट का उपयोग कर रहे हैं तो कृपया शामिल हों!
 
 :::
 
-#### Commits:
+#### प्रतिबद्ध:
 
-- _transpile config file_ [[6015534]](https://github.com/WarleyGabriel/demo-webdriverio-cucumber/pull/11/commits/60155346a386380d8a77ae6d1107483043a43994)
+- _ट्रांसपाइल कॉन्फ़िगरेशन फ़ाइल_ [[6015534]](https://github.com/WarleyGabriel/demo-webdriverio-cucumber/pull/11/commits/60155346a386380d8a77ae6d1107483043a43994)
 
-## Update Step Definitions
+## अद्यतन चरण परिभाषाएँ
 
-If you are using Jasmine or Mocha, you are done here. The last step is to update the Cucumber.js imports from `cucumber` to `@cucumber/cucumber`. This can also be done via the codemod automatically:
+यदि आप चमेली या मोचा का उपयोग कर रहे हैं, तो आपका काम हो गया। अंतिम चरण Cucumber.js आयात को `cucumber` से `@cucumber/cucumber`अपडेट करना है। यह स्वचालित रूप से कोडमोड के माध्यम से भी किया जा सकता है:
 
 ```sh
 npx jscodeshift -t ./node_modules/@wdio/codemod/v7 ./src/e2e/*
 ```
 
-That's it! No more changes necessary 🎉
+इतना ही! कोई और परिवर्तन आवश्यक नहीं है 🎉
 
-#### Commits:
+#### प्रतिबद्ध:
 
-- _transpile step definitions_ [[8c97b90]](https://github.com/WarleyGabriel/demo-webdriverio-cucumber/pull/11/commits/8c97b90a8b9197c62dffe4e2954f7dad814753cc)
+- _ट्रांसपाइल चरण परिभाषाएँ_ [[8c97b90]](https://github.com/WarleyGabriel/demo-webdriverio-cucumber/pull/11/commits/8c97b90a8b9197c62dffe4e2954f7dad814753cc)
 
-## Conclusion
+## निष्कर्ष
 
-We hope this tutorial guides you a little bit through the migration process to WebdriverIO `v7`. The community continues to improve the codemod while testing it with various teams in various organisations. Don't hesitate to [raise an issue](https://github.com/webdriverio/codemod/issues/new) if you have feedback or [start a discussion](https://github.com/webdriverio/codemod/discussions/new) if you struggle during the migration process.
+हमें उम्मीद है कि यह ट्यूटोरियल WebdriverIO `v7`में माइग्रेशन प्रक्रिया के माध्यम से आपका थोड़ा सा मार्गदर्शन करेगा। समुदाय विभिन्न संगठनों में विभिन्न टीमों के साथ परीक्षण करते समय कोडमोड में सुधार करना जारी रखता है। कोई मुद्दा उठाने में संकोच न करें [यदि आपके पास फीडबैक है या [चर्चा शुरू](https://github.com/webdriverio/codemod/discussions/new)](https://github.com/webdriverio/codemod/issues/new) यदि आप माइग्रेशन प्रक्रिया के दौरान संघर्ष करते हैं।
