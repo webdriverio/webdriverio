@@ -1,19 +1,19 @@
 ---
 id: testrunner
-title: Testrunner
+title: टेस्टरनर
 ---
 
-WebdriverIO comes with its own test runner to help you start testing as quickly as possible. It is suppose to do all the work for you, allows integrate to 3rd party services, and helps you to run your tests as efficiently as possible.
+WebdriverIO आपको जल्द से जल्द परीक्षण शुरू करने में मदद करने के लिए अपने स्वयं के परीक्षण धावक के साथ आता है। ऐसा माना जाता है कि यह आपके लिए सभी काम करता है, तृतीय पक्ष सेवाओं को एकीकृत करने की अनुमति देता है, और आपके परीक्षणों को यथासंभव कुशलतापूर्वक चलाने में आपकी सहायता करता है।
 
-WebdriverIO's testrunner is bundled separately in the NPM package `@wdio/cli`.
+WebdriverIO के टेस्टरनर को NPM पैकेज `@wdio/cli`में अलग से बंडल किया गया है।
 
-Install it like this:
+इसे ऐसे इंस्टाल करें:
 
 ```sh npm2yarn
 npm install @wdio/cli
 ```
 
-To see the command line interface help, type the following command in your terminal:
+कमांड लाइन इंटरफ़ेस सहायता देखने के लिए, अपने टर्मिनल में निम्न आदेश टाइप करें:
 
 ```sh
 $ npx wdio --help
@@ -34,41 +34,41 @@ Options:
   --help     Show help                                                 [boolean]
 ```
 
-Sweet! Now you need to define a configuration file where all information about your tests, capabilities, and settings are set. Switch over to the [Configuration File](ConfigurationFile.md) section to see what that file should look like.
+बहुत अच्छा अब आपको कॉन्फ़िगरेशन फ़ाइल को परिभाषित करने की आवश्यकता है जहां आपके परीक्षणों, क्षमताओं और सेटिंग्स के बारे में सारी जानकारी सेट की गई है। यह देखने के लिए [कॉन्फ़िगरेशन फ़ाइल](ConfigurationFile.md) अनुभाग पर स्विच करें कि वह फ़ाइल कैसी दिखनी चाहिए।
 
-With the `wdio` configuration helper, it is super easy to generate your config file. Just run:
+`wdio` कॉन्फ़िगरेशन सहायक के साथ, अपनी कॉन्फ़िग फ़ाइल जनरेट करना बहुत आसान है। रन करे:
 
 ```sh
 $ npx wdio config
 ```
 
-...and it launches the helper utility.
+...और यह हेल्पर यूटिलिटी लॉन्च करता है।
 
-It will ask you questions and generate a config file for you in less than a minute.
+यह आपसे सवाल पूछेगा और एक मिनट से भी कम समय में आपके लिए एक कॉन्फिग फाइल जेनरेट करेगा।
 
-![WDIO configuration utility](/img/config-utility.gif)
+![WDIO कॉन्फ़िगरेशन उपयोगिता](/img/config-utility.gif)
 
-Once you have your configuration file set up, you can start your tests by running:
+एक बार जब आप अपनी कॉन्फ़िगरेशन फ़ाइल सेट कर लेते हैं, तो आप चलाकर अपने परीक्षण शुरू कर सकते हैं:
 
 ```sh
 npx wdio run wdio.conf.js
 ```
 
-You can also initialize your test run without the `run` command:
+आप `run` कमांड के बिना भी अपना टेस्ट रन इनिशियलाइज़ कर सकते हैं:
 
 ```sh
 npx wdio wdio.conf.js
 ```
 
-That's it! Now, you can access to the selenium instance via the global variable `browser`.
+इतना ही! अब, आप वैश्विक चर `browser`के माध्यम से सेलेनियम उदाहरण तक पहुंच सकते हैं।
 
-## Commands
+## कमांड
 
 ### `wdio config`
 
-The `config` command runs the WebdriverIO configuration helper. This helper will ask you a few questions about your WebdriverIO project and create a `wdio.conf.js` file based on your answers.
+`config` कमांड WebdriverIO कॉन्फ़िगरेशन हेल्पर चलाता है। यह सहायक आपसे आपके WebdriverIO प्रोजेक्ट के बारे में कुछ प्रश्न पूछेगा और आपके उत्तरों के आधार पर एक `wdio.conf.js` फ़ाइल बनाएगा।
 
-Example:
+उदाहरण:
 
 ```sh
 wdio config
