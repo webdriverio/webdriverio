@@ -1,15 +1,15 @@
 ---
 id: element
-title: The Element Object
+title: एलीमेंट ऑब्जेक्ट
 ---
 
-An Element Object is an object representing a Element on the remote user agent, e.g. a [DOM Node](https://developer.mozilla.org/en-US/docs/Web/API/Element) when running a session within a browser or [a mobile element](https://developer.apple.com/documentation/swift/sequence/element) for mobile. It can be received using one of the many element query commands, e.g. [`$`](/docs/api/element/$), [`custom$`](/docs/api/element/custom$), [`react$`](/docs/api/element/react$) or [`shadow$`](/docs/api/element/shadow$).
+एक एलिमेंट ऑब्जेक्ट एक ऑब्जेक्ट है जो रिमोट यूजर एजेंट पर एक एलिमेंट का प्रतिनिधित्व करता है, उदाहरण के लिए एक [DOM नोड](https://developer.mozilla.org/en-US/docs/Web/API/Element) जब एक ब्राउज़र के भीतर सत्र चल रहा हो या [ एक मोबाइल एलिमेंट](https://developer.apple.com/documentation/swift/sequence/element)मोबाइल के लिए। इसे कई एलिमेंट क्वेरी कमांड में से एक का उपयोग करके प्राप्त किया जा सकता है, उदाहरण के लिए [`$`](/docs/api/element/$), [`Custom$`](/docs/api/element/custom$), [`react$`](/docs/api/element/react$) या [`shadow$`](/docs/api/element/shadow$)।
 
-## Properties
+## विशेषताएं
 
-An element object has the following properties:
+एक तत्व वस्तु में निम्नलिखित गुण होते हैं:
 
-| Name        | Type     | Details                                                                                                                                                                                                                                       |
+| नाम         | प्रकार   | Details                                                                                                                                                                                                                                       |
 | ----------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `sessionId` | `String` | Session id assigned from the remote server.                                                                                                                                                                                                   |
 | `elementId` | `String` | Associated [web element reference](https://w3c.github.io/webdriver/#elements) that can be used to interact with the element on the protocol level                                                                                             |
