@@ -34,34 +34,34 @@ $('#lst-ib').getText()
 
 ## Appium
 
-[Appium](https://appium.io/) प्रोजेक्ट मोबाइल, डेस्कटॉप और अन्य सभी प्रकार के IoT उपकरणों को स्वचालित करने की क्षमता प्रदान करता है। जबकि वेबड्राइवर ब्राउज़र और वेब पर ध्यान केंद्रित करता है, एपियम की दृष्टि समान दृष्टिकोण का उपयोग करना है लेकिन किसी भी मनमाने उपकरण के लिए। वेबड्राइवर द्वारा परिभाषित आदेशों के अतिरिक्त, इसमें विशेष आदेश होते हैं जो अक्सर स्वचालित होने वाले रिमोट डिवाइस के लिए विशिष्ट होते हैं। For mobile testing scenarios this is ideal when you want to write and run the same tests for both Android and iOS applications.
+[Appium](https://appium.io/) प्रोजेक्ट मोबाइल, डेस्कटॉप और अन्य सभी प्रकार के IoT उपकरणों को स्वचालित करने की क्षमता प्रदान करता है। जबकि वेबड्राइवर ब्राउज़र और वेब पर ध्यान केंद्रित करता है, एपियम की दृष्टि समान दृष्टिकोण का उपयोग करना है लेकिन किसी भी मनमाने उपकरण के लिए। वेबड्राइवर द्वारा परिभाषित आदेशों के अतिरिक्त, इसमें विशेष आदेश होते हैं जो अक्सर स्वचालित होने वाले रिमोट डिवाइस के लिए विशिष्ट होते हैं। मोबाइल परीक्षण परिदृश्यों के लिए यह आदर्श है जब आप Android और iOS दोनों अनुप्रयोगों के लिए समान परीक्षण लिखना और चलाना चाहते हैं।
 
-According to Appium [documentation](https://appium.io/docs/en/about-appium/intro/?lang=en) it was designed to meet mobile automation needs according to a philosophy outlined by the following four tenets:
+Appium [प्रलेखन](https://appium.io/docs/en/about-appium/intro/?lang=en) के अनुसार इसे निम्नलिखित चार सिद्धांतों द्वारा उल्लिखित दर्शन के अनुसार मोबाइल स्वचालन आवश्यकताओं को पूरा करने के लिए डिज़ाइन किया गया था:
 
-- You shouldn't have to recompile your app or modify it in any way in order to automate it.
-- You shouldn't be locked into a specific language or framework to write and run your tests.
-- A mobile automation framework shouldn't reinvent the wheel when it comes to automation APIs.
-- A mobile automation framework should be open source, in spirit and practice as well as in name!
+- इसे स्वचालित करने के लिए आपको अपने ऐप को फिर से कंपाइल या किसी भी तरह से संशोधित नहीं करना चाहिए।
+- अपने परीक्षण लिखने और चलाने के लिए आपको किसी विशिष्ट भाषा या ढांचे में बंद नहीं किया जाना चाहिए।
+- जब ऑटोमेशन एपीआई की बात आती है तो एक मोबाइल ऑटोमेशन फ्रेमवर्क को व्हील को फिर से शुरू नहीं करना चाहिए।
+- एक मोबाइल ऑटोमेशन ढांचा खुला स्रोत होना चाहिए, आत्मा और अभ्यास के साथ-साथ नाम में भी!
 
 ## Chromium
 
-The Chromium protocol offers a super set of commands on top of the WebDriver protocol that is only supported when running automated session through [Chromedriver](https://chromedriver.chromium.org/chromedriver-canary).
+क्रोमियम प्रोटोकॉल वेबड्राइवर प्रोटोकॉल के शीर्ष पर आदेशों का एक सुपर सेट प्रदान करता है जो केवल [क्रोमड्राइवर](https://chromedriver.chromium.org/chromedriver-canary)के माध्यम से स्वचालित सत्र चलाते समय समर्थित होता है।
 
 ## Firefox
 
-The Firefox protocol offers a super set of commands on top of the WebDriver protocol that is only supported when running automated session through [Geckodriver](https://github.com/mozilla/geckodriver).
+फ़ायरफ़ॉक्स प्रोटोकॉल वेबड्राइवर प्रोटोकॉल के शीर्ष पर आदेशों का एक सुपर सेट प्रदान करता है जो केवल [गेकोड्राइवर](https://github.com/mozilla/geckodriver)के माध्यम से स्वचालित सत्र चलाने पर समर्थित होता है।
 
 ## Sauce Labs
 
-The [Sauce Labs](https://saucelabs.com/) protocol offers a super set of commands on top of the WebDriver protocol that is only supported when running automated session using the Sauce Labs cloud.
+[सॉस लैब्स](https://saucelabs.com/) प्रोटोकॉल वेबड्राइवर प्रोटोकॉल के शीर्ष पर आदेशों का एक सुपर सेट प्रदान करता है जो सॉस लैब्स क्लाउड का उपयोग करके स्वचालित सत्र चलाने पर ही समर्थित होता है।
 
 ## Selenium Standalone
 
-The [Selenium Standalone](https://www.selenium.dev/documentation/grid/advanced_features/endpoints/) protocol offers a super set of commands on top of the WebDriver protocol that is only supported when running automated session using the Selenium Grid.
+[सेलेनियम स्टैंडअलोन](https://www.selenium.dev/documentation/grid/advanced_features/endpoints/) प्रोटोकॉल वेबड्राइवर प्रोटोकॉल के शीर्ष पर आदेशों का एक सुपर सेट प्रदान करता है जो केवल सेलेनियम ग्रिड का उपयोग करके स्वचालित सत्र चलाते समय समर्थित होता है।
 
 ## JSON Wire Protocol
 
-The [JSON Wire Protocol](https://www.selenium.dev/documentation/legacy/json_wire_protocol/) is the pre-predecessor of the WebDriver protocol and __deprecated__ today. While some commands might still be supported in certain environments, it is not recommended to use any of its commands.
+[JSON वायर प्रोटोकॉल](https://www.selenium.dev/documentation/legacy/json_wire_protocol/) वेबड्राइवर प्रोटोकॉल का पूर्व-पूर्ववर्ती है और आज ____ दिया गया है। While some commands might still be supported in certain environments, it is not recommended to use any of its commands.
 
 ## Mobile JSON Wire Protocol
 
