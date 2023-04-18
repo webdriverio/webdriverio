@@ -32,7 +32,7 @@
     "description": "The label of footer link with label=Stack Overflow linking to https://stackoverflow.com/questions/tagged/webdriver-io"
   },
   "link.item.label.Support Chat": {
-    "message": "Support Chat",
+    "message": "Support-Chat",
     "description": "The label of footer link with label=Support Chat linking to https://discord.webdriver.io"
   },
   "link.item.label.Slack": {
