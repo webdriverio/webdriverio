@@ -1,11 +1,11 @@
 ---
 id: v6-migration
-title: From v5 to v6
+title: वी5 से वी6 तक
 ---
 
-This tutorial is for people who are still using `v5` of WebdriverIO and want to migrate to `v6` or to the latest version of WebdriverIO. As mentioned in our [release blog post](https://webdriver.io/blog/2020/03/26/webdriverio-v6-released) the changes for this version upgrade can be summarised as following:
+यह ट्यूटोरियल उन लोगों के लिए है जो अभी भी WebdriverIO के `v5` का उपयोग कर रहे हैं और `v6` या WebdriverIO के नवीनतम संस्करण में माइग्रेट करना चाहते हैं। जैसा कि हमारे [रिलीज़ ब्लॉग पोस्ट](https://webdriver.io/blog/2020/03/26/webdriverio-v6-released) में उल्लेख किया गया है, इस संस्करण के उन्नयन के लिए परिवर्तनों को निम्नानुसार सारांशित किया जा सकता है:
 
-- we consolidated the parameters for some commands (e.g. `newWindow`, `react$`, `react$$`, `waitUntil`, `dragAndDrop`, `moveTo`, `waitForDisplayed`, `waitForEnabled`, `waitForExist`) and moved all optional parameters into a single object, e.g.
+- हमने कुछ आदेशों के लिए पैरामीटर समेकित किए हैं (उदाहरन के लिए `newWindow`, `react$`, `react$$`, `waitUntil`, `dragAndDrop`, `moveTo`, `waitForDisplayed`, `waitForEnabled`, `waitForExist`) और चले गए एक वस्तु में सभी वैकल्पिक पैरामीटर, उदाहरण के लिए
 
     ```js
     // v5
@@ -21,7 +21,7 @@ This tutorial is for people who are still using `v5` of WebdriverIO and want to 
     })
     ```
 
-- configurations for services moved into the service list, e.g.
+- सेवा सूची में स्थानांतरित सेवाओं के लिए कॉन्फ़िगरेशन, उदाहरण के लिए
 
     ```js
     // v5
@@ -39,20 +39,20 @@ This tutorial is for people who are still using `v5` of WebdriverIO and want to 
     }
     ```
 
-- some service options were renamed for simplification purposes
-- we renamed command `launchApp` to `launchChromeApp` for Chrome WebDriver sessions
+- सरलीकरण उद्देश्यों के लिए कुछ सेवा विकल्पों का नाम बदला गया
+- हमने क्रोम वेबड्राइवर सत्रों के लिए कमांड `launchApp` से `launchChromeApp` का नाम बदल दिया
 
 :::info
 
-If you are using WebdriverIO `v4` or below, please upgrade to `v5` first.
+यदि आप WebdriverIO `v4` या नीचे का उपयोग कर रहे हैं, तो कृपया पहले `v5` में अपग्रेड करें।
 
 :::
 
-While we would love to have a fully automated process for this the reality looks different. Everyone has a different setup. Every step should be seen as guidance and less like a step by step instruction. If you have issues with the migration, don't hesitate to [contact us](https://github.com/webdriverio/codemod/discussions/new).
+जबकि हम इसके लिए पूरी तरह से स्वचालित प्रक्रिया चाहते हैं, वास्तविकता अलग दिखती है। हर किसी का अलग सेटअप होता है। हर कदम को मार्गदर्शन के रूप में देखा जाना चाहिए और कदम दर कदम निर्देश की तरह नहीं। अगर आपको माइग्रेशन से जुड़ी कोई समस्या है, तो बेझिझक [हमसे संपर्क करें](https://github.com/webdriverio/codemod/discussions/new).
 
-## Setup
+## सेटअप
 
-Similar to other migrations we can use the WebdriverIO [codemod](https://github.com/webdriverio/codemod). To install the codemod, run:
+अन्य माइग्रेशन के समान हम WebdriverIO [codemod](https://github.com/webdriverio/codemod)का उपयोग कर सकते हैं। कोडमोड को स्थापित करने के लिए, दौड़ें:
 
 ```sh
 npm install jscodeshift @wdio/codemod
