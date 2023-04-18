@@ -34,11 +34,11 @@ We will always `export` an instance of a page object, and never create that inst
 
 Sure, the browser can carry session information and therefore can display different pages based on different sessions, but this shouldn't be reflected within a page object. These sorts of state changes should live in your actual tests.
 
-Let's start testing the first page. For demo purposes, we use [The Internet](http://the-internet.herokuapp.com) website by [Elemental Selenium](http://elementalselenium.com) as guinea pig. Let's try to build a page object example for the [login page](http://the-internet.herokuapp.com/login).
+Let's start testing the first page. डेमो उद्देश्यों के लिए, हम गिनी पिग के रूप में [एलिमेंटल सेलेनियम](http://elementalselenium.com) द्वारा [इंटरनेट](http://the-internet.herokuapp.com) वेबसाइट का उपयोग करते हैं। आइए [लॉगिन पेज](http://the-internet.herokuapp.com/login)के लिए पेज ऑब्जेक्ट उदाहरण बनाने का प्रयास करें।
 
-## `Get` -ing Your Selectors
+## `Get` अपने चयनकर्ताओं को प्राप्त करें
 
-The first step is to write all important selectors that are required in our `login.page` object as getter functions:
+पहला कदम उन सभी महत्वपूर्ण चयनकर्ताओं को लिखना है जो हमारे `login.page` ऑब्जेक्ट में गेट्टर फ़ंक्शंस के रूप में आवश्यक हैं:
 
 ```js
 // login.page.js
@@ -65,32 +65,32 @@ class LoginPage extends Page {
 export default new LoginPage()
 ```
 
-Defining selectors in getter functions might look a little weird, but it’s really useful. These functions are evaluated _when you access the property_, not when you generate the object. With that you always request the element before you do an action on it.
+गेट्टर फ़ंक्शंस में चयनकर्ताओं को परिभाषित करना थोड़ा अजीब लग सकता है, लेकिन यह वास्तव में उपयोगी है। _जब आप संपत्ति का प्रयोग करते हैं _इन कार्यों का मूल्यांकन किया जाता है, जब आप ऑब्जेक्ट उत्पन्न नहीं करते हैं। इसके साथ आप उस पर कार्रवाई करने से पहले हमेशा तत्व का अनुरोध करते हैं।
 
-## Chaining Commands
+## चेनिंग कमांड
 
-WebdriverIO internally remembers the last result of a command. If you chain an element command with an action command, it finds the element from the previous command and uses the result to execute the action. With that you can remove the selector (first parameter) and the command looks as simple as:
+WebdriverIO आंतरिक रूप से कमांड के अंतिम परिणाम को याद रखता है। यदि आप एक एक्शन कमांड के साथ एक एलिमेंट कमांड को चेन करते हैं, तो यह पिछले कमांड से एलिमेंट ढूंढता है और एक्शन को निष्पादित करने के लिए परिणाम का उपयोग करता है। इसके साथ आप चयनकर्ता (पहला पैरामीटर) को हटा सकते हैं और आदेश उतना ही सरल दिखता है:
 
 ```js
 await LoginPage.username.setValue('Max Mustermann')
 ```
 
-Which is basically the same thing as:
+जो मूल रूप से वही है:
 
 ```js
 let elem = await $('#username')
 await elem.setValue('Max Mustermann')
 ```
 
-or
+या
 
 ```js
 await $('#username').setValue('Max Mustermann')
 ```
 
-## Using Page Objects In Your Tests
+## अपने परीक्षणों में पृष्ठ वस्तुओं का उपयोग करना
 
-After you've defined the necessary elements and methods for the page, you can start to write the test for it. All you need to do to use the page object is to `import` (or `require`) it. That's it!
+पृष्ठ के लिए आवश्यक तत्वों और विधियों को परिभाषित करने के बाद, आप इसके लिए परीक्षण लिखना शुरू कर सकते हैं। All you need to do to use the page object is to `import` (or `require`) it. That's it!
 
 Since you exported an already-created instance of the page object, importing it lets you start using it right away.
 
