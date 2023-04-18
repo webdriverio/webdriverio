@@ -1,45 +1,45 @@
 ---
 id: v7-migration
-title: From v6 to v7
+title: वी6 से वी7 तक
 ---
 
-This tutorial is for people who are still using `v6` of WebdriverIO and want to migrate to `v7`. As mentioned in our [release blog post](https://webdriver.io/blog/2021/02/09/webdriverio-v7-released) the changes are mostly under the hood and upgrading should be a straight forward process.
+यह ट्यूटोरियल उन लोगों के लिए है जो अभी भी WebdriverIO के `v6` का उपयोग कर रहे हैं और `v7`में माइग्रेट करना चाहते हैं। जैसा कि हमारे [रिलीज़ ब्लॉग पोस्ट](https://webdriver.io/blog/2021/02/09/webdriverio-v7-released) में उल्लेख किया गया है, परिवर्तन ज्यादातर हुड के अंतर्गत हैं और उन्नयन सीधे आगे की प्रक्रिया होनी चाहिए।
 
 :::info
 
-If you are using WebdriverIO `v5` or below, please upgrade to `v6` first. Please checkout our [v6 migration guide](v6-migration).
+यदि आप WebdriverIO `v5` या नीचे का उपयोग कर रहे हैं, तो कृपया पहले `v6` में अपग्रेड करें। कृपया हमारी [v6 माइग्रेशन गाइड](v6-migration)देखें।
 
 :::
 
-While we would love to have a fully automated process for this the reality looks different. Everyone has a different setup. Every step should be seen as guidance and less like a step by step instruction. If you have issues with the migration, don't hesitate to [contact us](https://github.com/webdriverio/codemod/discussions/new).
+जबकि हम इसके लिए पूरी तरह से स्वचालित प्रक्रिया चाहते हैं, वास्तविकता अलग दिखती है। हर किसी का अलग सेटअप होता है। हर कदम को मार्गदर्शन के रूप में देखा जाना चाहिए और कदम दर कदम निर्देश की तरह नहीं। अगर आपको माइग्रेशन से जुड़ी कोई समस्या है, तो बेझिझक [हमसे संपर्क करें](https://github.com/webdriverio/codemod/discussions/new).
 
 ## Setup
 
-Similar to other migrations we can use the WebdriverIO [codemod](https://github.com/webdriverio/codemod). For this tutorial we use a [boilerplate project](https://github.com/WarleyGabriel/demo-webdriverio-cucumber) submitted by a community member and fully migrate it from `v6` to `v7`.
+अन्य माइग्रेशन के समान हम WebdriverIO [codemod](https://github.com/webdriverio/codemod)का उपयोग कर सकते हैं। इस ट्यूटोरियल के लिए हम एक समुदाय के सदस्य द्वारा सबमिट किए गए [बॉयलरप्लेट प्रोजेक्ट](https://github.com/WarleyGabriel/demo-webdriverio-cucumber) का उपयोग करते हैं और इसे `v6` से `v7`में पूरी तरह माइग्रेट करते हैं।
 
-To install the codemod, run:
+कोडमोड को स्थापित करने के लिए, दौड़ें:
 
 ```sh
 npm install jscodeshift @wdio/codemod
 ```
 
-#### Commits:
+#### प्रतिबद्ध:
 
-- _install codemod deps_ [[6ec9e52]](https://github.com/WarleyGabriel/demo-webdriverio-cucumber/pull/11/commits/6ec9e52038f7e8cb1221753b67040b0f23a8f61a)
+- _कोडमॉड डिप्स_ [[6ec9e52]](https://github.com/WarleyGabriel/demo-webdriverio-cucumber/pull/11/commits/6ec9e52038f7e8cb1221753b67040b0f23a8f61a)स्थापित करें
 
-## Upgrade WebdriverIO Dependencies
+## WebdriverIO निर्भरता को अपग्रेड करें
 
-Given that all WebdriverIO versions are tight to each other it is the best to always upgrade to a specific tag, e.g. `latest`. To do so we copy all WebdriverIO related dependencies out of our `package.json` and re-install them via:
+यह देखते हुए कि सभी WebdriverIO संस्करण एक-दूसरे से तंग हैं, हमेशा एक विशिष्ट टैग में अपग्रेड करना सबसे अच्छा होता है, उदाहरण के लिए `latest`। ऐसा करने के लिए हम सभी WebdriverIO संबंधित निर्भरताओं को हमारे `package.json` से कॉपी करते हैं और उन्हें इसके माध्यम से पुनः इंस्टॉल करते हैं:
 
 ```sh
 npm i --save-dev @wdio/allure-reporter@7 @wdio/cli@7 @wdio/cucumber-framework@7 @wdio/local-runner@7 @wdio/spec-reporter@7 @wdio/sync@7 wdio-chromedriver-service@7 wdio-timeline-reporter@7 webdriverio@7
 ```
 
-Usually WebdriverIO dependencies are part of the dev dependencies, depending on your project this can vary though. After this your `package.json` and `package-lock.json` should be updated. __Note:__ these are the dependencies used by the [example project](https://github.com/WarleyGabriel/demo-webdriverio-cucumber), yours may differ.
+आमतौर पर WebdriverIO निर्भरताएँ देव निर्भरताओं का हिस्सा होती हैं, यह आपकी परियोजना के आधार पर भिन्न हो सकती है। इसके बाद आपका `package.json` और `package-lock.json` अपडेट होना चाहिए। __नोट:__ ये [उदाहरण प्रोजेक्ट](https://github.com/WarleyGabriel/demo-webdriverio-cucumber)द्वारा उपयोग की जाने वाली निर्भरताएं हैं, आपका भिन्न हो सकता है।
 
-#### Commits:
+#### प्रतिबद्ध:
 
-- _updated dependencies_ [[7097ab6]](https://github.com/WarleyGabriel/demo-webdriverio-cucumber/pull/11/commits/7097ab6297ef9f37ead0a9c2ce9fce8d0765458d)
+- _अद्यतन निर्भरताएँ_ [[7097ab6]](https://github.com/WarleyGabriel/demo-webdriverio-cucumber/pull/11/commits/7097ab6297ef9f37ead0a9c2ce9fce8d0765458d)
 
 ## Transform Config File
 
