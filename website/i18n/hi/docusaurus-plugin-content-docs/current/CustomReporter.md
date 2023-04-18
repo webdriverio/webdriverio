@@ -185,9 +185,9 @@ export const config = {
 
 ### WDIO CLI और डॉक्स में प्रकाशित सेवा जोड़ें
 
-We really appreciate every new plugin that could help other people run better tests! If you have created such a plugin, please consider adding it to our CLI and docs to make it easier to be found.
+हम वास्तव में हर नए प्लगइन की सराहना करते हैं जो अन्य लोगों को बेहतर परीक्षण करने में मदद कर सकता है! यदि आपने ऐसा कोई प्लगइन बनाया है, तो कृपया इसे हमारे सीएलआई और डॉक्स में जोड़ने पर विचार करें ताकि इसे ढूंढना आसान हो सके।
 
-Please raise a pull request with the following changes:
+कृपया निम्नलिखित परिवर्तनों के साथ एक पुल अनुरोध करें:
 
-- add your service to the list of [supported reporters](https://github.com/webdriverio/webdriverio/blob/main/packages/wdio-cli/src/constants.ts#L74-L91)) in the CLI module
-- enhance the [reporter list](https://github.com/webdriverio/webdriverio/blob/main/scripts/docs-generation/3rd-party/reporters.json) for adding your docs to the official Webdriver.io page
+- cLI मॉड्यूल में अपनी सेवा को [समर्थित रिपोर्टर](https://github.com/webdriverio/webdriverio/blob/main/packages/wdio-cli/src/constants.ts#L74-L91)) की सूची में जोड़ें
+- अपने डॉक्स को आधिकारिक Webdriver.io पेज पर जोड़ने के लिए [रिपोर्टर सूची](https://github.com/webdriverio/webdriverio/blob/main/scripts/docs-generation/3rd-party/reporters.json) को एन्हांस करें
