@@ -90,11 +90,11 @@ await $('#username').setValue('Max Mustermann')
 
 ## अपने परीक्षणों में पृष्ठ वस्तुओं का उपयोग करना
 
-पृष्ठ के लिए आवश्यक तत्वों और विधियों को परिभाषित करने के बाद, आप इसके लिए परीक्षण लिखना शुरू कर सकते हैं। All you need to do to use the page object is to `import` (or `require`) it. That's it!
+पृष्ठ के लिए आवश्यक तत्वों और विधियों को परिभाषित करने के बाद, आप इसके लिए परीक्षण लिखना शुरू कर सकते हैं। पेज ऑब्जेक्ट का उपयोग करने के लिए आपको केवल `import` (या `require`) करना है। इतना ही!
 
-Since you exported an already-created instance of the page object, importing it lets you start using it right away.
+चूंकि आपने पृष्ठ ऑब्जेक्ट का पहले से निर्मित उदाहरण निर्यात किया है, इसे आयात करने से आप तुरंत इसका उपयोग करना शुरू कर सकते हैं।
 
-If you use an assertion framework, your tests can be even more expressive:
+यदि आप अभिकथन ढांचे का उपयोग करते हैं, तो आपके परीक्षण और भी अभिव्यंजक हो सकते हैं:
 
 ```js
 // login.spec.js
@@ -121,10 +121,10 @@ describe('login form', () => {
 })
 ```
 
-From the structural side, it makes sense to separate spec files and page objects into different directories. Additionally you can give each page object the ending: `.page.js`. This makes it more clear that you import a page object.
+संरचनात्मक पक्ष से, यह अलग-अलग निर्देशिकाओं में विशिष्ट फ़ाइलों और पृष्ठ वस्तुओं को अलग करने के लिए समझ में आता है। इसके अतिरिक्त आप प्रत्येक पृष्ठ वस्तु को अंत: `.page.js`दे सकते हैं। इससे यह और स्पष्ट हो जाता है कि आप एक पेज ऑब्जेक्ट आयात करते हैं।
 
-## Going Further
+## आगे बढ़ना
 
-This is the basic principle of how to write page objects with WebdriverIO. But you can build up way more complex page object structures than this! For example, you might have specific page objects for modals, or split up a huge page object into different classes (each representing a different part of the overall web page) that inherit from the main page object. The pattern really provides a lot of opportunities to separate page information from your tests, which is important to keep your test suite structured and clear in times where the project and number of tests grows.
+यह WebdriverIO के साथ पेज ऑब्जेक्ट लिखने का मूल सिद्धांत है। लेकिन आप इससे कहीं अधिक जटिल पेज ऑब्जेक्ट स्ट्रक्चर बना सकते हैं! उदाहरण के लिए, आपके पास मोडल के लिए विशिष्ट पेज ऑब्जेक्ट हो सकते हैं, या एक विशाल पेज ऑब्जेक्ट को अलग-अलग वर्गों में विभाजित कर सकते हैं (प्रत्येक समग्र वेब पेज के एक अलग हिस्से का प्रतिनिधित्व करते हैं) जो मुख्य पेज ऑब्जेक्ट से प्राप्त होता है। पैटर्न वास्तव में आपके परीक्षणों से पृष्ठ की जानकारी को अलग करने के लिए बहुत सारे अवसर प्रदान करता है, जो आपके परीक्षण सूट को संरचित और ऐसे समय में स्पष्ट रखने के लिए महत्वपूर्ण है जब परियोजना और परीक्षणों की संख्या बढ़ती है।
 
-You can find this example (and even more page object examples) in the [`example` folder](https://github.com/webdriverio/webdriverio/tree/main/examples/pageobject) on GitHub.
+आप यह उदाहरण (और इससे भी अधिक पेज ऑब्जेक्ट उदाहरण) GitHub पर [`example` फ़ोल्डर](https://github.com/webdriverio/webdriverio/tree/main/examples/pageobject) में पा सकते हैं।
