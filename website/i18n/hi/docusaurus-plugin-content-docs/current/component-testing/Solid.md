@@ -3,9 +3,9 @@ id: solid
 title: SolidJS
 ---
 
-[SolidJS](https://www.solidjs.com/) is a framework to build user interfaces with simple and performant reactivity. You can test SolidJS components directly in a real browser using WebdriverIO and its [browser runner](/docs/runner#browser-runner).
+[सॉलिडजेएस](https://www.solidjs.com/) सरल और प्रदर्शनकारी प्रतिक्रियाशीलता के साथ यूजर इंटरफेस बनाने के लिए एक ढांचा है। आप WebdriverIO और इसके [ब्राउज़र रनर](/docs/runner#browser-runner)का उपयोग करके सीधे एक वास्तविक ब्राउज़र में सॉलिडजेएस घटकों का परीक्षण कर सकते हैं।
 
-## Setup
+## सेटअप
 
 अपने सॉलिडजेएस प्रोजेक्ट के भीतर वेबड्राइवरियो को सेटअप करने के लिए, हमारे घटक परीक्षण डॉक्स में [निर्देशों](/docs/component-testing#set-up) का पालन करें। अपने रनर विकल्पों में `solid` प्रीसेट के रूप में चुनना सुनिश्चित करें, उदाहरण के लिए:solid
 
