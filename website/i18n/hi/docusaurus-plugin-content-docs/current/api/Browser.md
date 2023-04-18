@@ -1,28 +1,28 @@
 ---
 id: browser
-title: The Browser Object
+title: ब्राउज़र वस्तु
 ---
 
-__Extends:__ [EventEmitter](https://nodejs.org/api/events.html#class-eventemitter)
+__विस्तार:__ [इवेंटएमिटर](https://nodejs.org/api/events.html#class-eventemitter)
 
-The browser object is the session instance you use to control the browser or mobile device with. If you use the WDIO test runner, you can access the WebDriver instance through the global `browser` or `driver` object or import it using [`@wdio/globals`](/docs/api/globals). If you use WebdriverIO in standalone mode the browser object is returned by the [`remote`](/docs/api/modules#remoteoptions-modifier) method.
+ब्राउज़र ऑब्जेक्ट वह सत्र उदाहरण है जिसका उपयोग आप ब्राउज़र या मोबाइल डिवाइस को नियंत्रित करने के लिए करते हैं। यदि आप WDIO टेस्ट रनर का उपयोग करते हैं, तो आप वैश्विक `browser` या `driver` ऑब्जेक्ट के माध्यम से वेबड्राइवर इंस्टेंस तक पहुंच सकते हैं या इसे [`@wdio/globals`](/docs/api/globals). का उपयोग करके आयात कर सकते हैं। यदि आप स्टैंडअलोन मोड में WebdriverIO का उपयोग करते हैं, तो ब्राउज़र ऑब्जेक्ट [`remote`](/docs/api/modules#remoteoptions-modifier) विधि द्वारा लौटाया जाता है।
 
-The session is initialized by the test runner. The same goes for ending the session. This is also done by the test runner process.
+सेशन को टेस्ट रनर द्वारा इनिशियलाइज़ किया जाता है। वही सत्र समाप्त करने के लिए जाता है। यह टेस्ट रनर प्रक्रिया द्वारा भी किया जाता है।
 
-## Properties
+## विशेषताएं
 
-A browser object has the following properties:
+ब्राउज़र ऑब्जेक्ट में निम्नलिखित गुण होते हैं:
 
-| Name                    | Type       | Details                                                                                                                               |
-| ----------------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| `capabilities`          | `Object`   | Assigned capabilitie from the remote server.<br /><b>Example:</b><pre>{<br />  acceptInsecureCerts: false,<br />  browserName: 'chrome',<br />  browserVersion: '105.0.5195.125',<br />  chrome: {<br />    chromedriverVersion: '105.0.5195.52 (412c95e518836d8a7d97250d62b29c2ae6a26a85-refs/branch-heads/5195@{#853})',<br />    userDataDir: '/var/folders/3_/pzc_f56j15vbd9z3r0j050sh0000gn/T/.com.google.Chrome.76HD3S'<br />  },<br />  'goog:chromeOptions': { debuggerAddress: 'localhost:64679' },<br />  networkConnectionEnabled: false,<br />  pageLoadStrategy: 'normal',<br />  platformName: 'mac os x',<br />  proxy: {},<br />  setWindowRect: true,<br />  strictFileInteractability: false,<br />  timeouts: { implicit: 0, pageLoad: 300000, script: 30000 },<br />  unhandledPromptBehavior: 'dismiss and notify',<br />  'webauthn:extension:credBlob': true,<br />  'webauthn:extension:largeBlob': true,<br />  'webauthn:virtualAuthenticators': true<br />}</pre>                            |
-| `requestedCapabilities` | `Object`   | Capabilities requested from the remote server.<br /><b>Example:</b><pre>{ browserName: 'chrome' }</pre>                          |
-| `sessionId`             | `String`   | Session id assigned from the remote server.                                                                                           |
-| `options`               | `Object`   | WebdriverIO [options](/docs/configuration) depending on how the browser object was created. See more [setup types](/docs/setuptypes). |
-| `commandList`           | `String[]` | A list of commands registered to the browser instance                                                                                 |
-| `isMobile`              | `Boolean`  | Indicates a mobile session. See more under [Mobile Flags](#mobile-flags).                                                             |
-| `isIOS`                 | `Boolean`  | Indicates an iOS session. [मोबाइल फ़्लैग्स](#mobile-flags)के अंतर्गत और देखें।                                                        |
-| `isAndroid`             | `Boolean`  | एक एंड्राइड सत्र का संकेत देता है। [मोबाइल फ़्लैग्स](#mobile-flags)के अंतर्गत और देखें।                                               |
+| नाम                 | प्रकार     | विवरण                                                                                                                                    |
+| ------------------- | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `क्षमताएं`          | `वस्तु`    | दूरस्थ सर्वर से सौंपी गई क्षमता।<br /><b>उदाहरण:</b><pre>{<br />  acceptInsecureCerts: false,<br />  browserName: 'chrome',<br />  browserVersion: '105.0.5195.125',<br />  chrome: {<br />    chromedriverVersion: '105.0.5195.52 (412c95e518836d8a7d97250d62b29c2ae6a26a85-refs/branch-heads/5195@{#853})',<br />    userDataDir: '/var/folders/3_/pzc_f56j15vbd9z3r0j050sh0000gn/T/.com.google.Chrome.76HD3S'<br />  },<br />  'goog:chromeOptions': { debuggerAddress: 'localhost:64679' },<br />  networkConnectionEnabled: false,<br />  pageLoadStrategy: 'normal',<br />  platformName: 'mac os x',<br />  proxy: {},<br />  setWindowRect: true,<br />  strictFileInteractability: false,<br />  timeouts: { implicit: 0, pageLoad: 300000, script: 30000 },<br />  unhandledPromptBehavior: 'dismiss and notify',<br />  'webauthn:extension:credBlob': true,<br />  'webauthn:extension:largeBlob': true,<br />  'webauthn:virtualAuthenticators': true<br />}</pre>                                           |
+| `अनुरोधित क्षमताएं` | `वस्तु`    | दूरस्थ सर्वर से अनुरोधित क्षमताएं।<br /><b>उदाहरण:</b><pre>{ browserName: 'chrome' }</pre>                                         |
+| `sessionId`         | `String`   | दूरस्थ सर्वर से निर्दिष्ट सत्र आईडी।                                                                                                     |
+| `options`           | `Object`   | WebdriverIO [विकल्प](/docs/configuration) ब्राउज़र ऑब्जेक्ट कैसे बनाया गया था इसके आधार पर। अधिक [सेटअप प्रकार देखें](/docs/setuptypes)। |
+| `commandList`       | `String[]` | ब्राउज़र उदाहरण के लिए पंजीकृत आदेशों की सूची                                                                                            |
+| `isMobile`          | `Boolean`  | एक मोबाइल सत्र का संकेत देता है। [मोबाइल फ़्लैग्स](#mobile-flags)के अंतर्गत और देखें।                                                    |
+| `isIOS`             | `Boolean`  | एक आईओएस सत्र इंगित करता है। [मोबाइल फ़्लैग्स](#mobile-flags)के अंतर्गत और देखें।                                                        |
+| `isAndroid`         | `Boolean`  | एक एंड्राइड सत्र का संकेत देता है। [मोबाइल फ़्लैग्स](#mobile-flags)के अंतर्गत और देखें।                                                  |
 
 ## विधियां
 
