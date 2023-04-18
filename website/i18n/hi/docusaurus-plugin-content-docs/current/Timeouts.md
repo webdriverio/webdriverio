@@ -1,20 +1,19 @@
 ---
 id: timeouts
-title: Timeouts
+title: समय समाप्त
 ---
 
-import Tabs from '@theme/Tabs';
-import TabItem from '@theme/TabItem';
+'@theme/Tabs'; से टैब आयात करें; @theme/TabItem'; से TabItem को आयात करें;
 
-Each command in WebdriverIO is an asynchronous operation. A request is fired to the Selenium server (or a cloud service like [Sauce Labs](https://saucelabs.com)), and its response contains the result once the action has completed or failed.
+WebdriverIO में प्रत्येक कमांड एक अतुल्यकालिक ऑपरेशन है। सेलेनियम सर्वर (या क्लाउड सेवा जैसे [सॉस लैब्स](https://saucelabs.com)) के लिए एक अनुरोध निकाल दिया गया है, और इसकी प्रतिक्रिया में कार्रवाई पूर्ण या विफल होने के बाद परिणाम होता है।
 
-Therefore, time is a crucial component in the whole testing process. When a certain action depends on the state of a different action, you need to make sure that they get executed in the right order. Timeouts play an important role when dealing with these issues.
+इसलिए, संपूर्ण परीक्षण प्रक्रिया में समय एक महत्वपूर्ण घटक है। जब एक निश्चित कार्रवाई एक अलग कार्रवाई की स्थिति पर निर्भर करती है, तो आपको यह सुनिश्चित करने की ज़रूरत है कि वे सही क्रम में निष्पादित हों। इन मुद्दों से निपटने के दौरान टाइमआउट एक महत्वपूर्ण भूमिका निभाते हैं।
 
-## Selenium timeouts
+## सेलेनियम टाइमआउट
 
-### Session Script Timeout
+### सत्र स्क्रिप्ट टाइमआउट
 
-A session has an associated session script timeout that specifies a time to wait for asynchronous scripts to run. Unless stated otherwise, it is 30 seconds. You can set this timeout like so:
+एक सत्र में एक संबद्ध सत्र स्क्रिप्ट टाइमआउट होता है जो एसिंक्रोनस स्क्रिप्ट के चलने के लिए प्रतीक्षा करने का समय निर्दिष्ट करता है। जब तक अन्यथा न कहा जाए, यह 30 सेकंड है। आप इस टाइमआउट को इस प्रकार सेट कर सकते हैं:
 
 ```js
 await browser.setTimeout({ 'script': 60000 })
@@ -24,33 +23,33 @@ await browser.executeAsync((done) => {
 })
 ```
 
-### Session Page Load Timeout
+### सत्र पृष्ठ लोड टाइमआउट
 
-A session has an associated session page load timeout that specifies a time to wait for the page loading to complete. Unless stated otherwise, it is 300,000 milliseconds.
+एक सत्र में एक संबद्ध सत्र पृष्ठ लोड टाइमआउट होता है जो पृष्ठ लोड होने के पूर्ण होने तक प्रतीक्षा करने का समय निर्दिष्ट करता है। जब तक अन्यथा न कहा जाए, यह 300,000 मिलीसेकंड है।
 
-You can set this timeout like so:
+आप इस टाइमआउट को इस प्रकार सेट कर सकते हैं:
 
 ```js
 await browser.setTimeout({ 'pageLoad': 10000 })
 ```
 
-> The `pageLoad` keyword is a part of the official WebDriver [specification](https://www.w3.org/TR/webdriver/#set-timeouts), but might not be [supported](https://github.com/seleniumhq/selenium-google-code-issue-archive/issues/687) for your browser (the previous name is `page load`).
+> `pageLoad` कीवर्ड आधिकारिक वेबड्राइवर [विनिर्देश](https://www.w3.org/TR/webdriver/#set-timeouts)का एक हिस्सा है, लेकिन आपके ब्राउज़र के लिए [समर्थित](https://github.com/seleniumhq/selenium-google-code-issue-archive/issues/687) नहीं हो सकता है (पिछला नाम `page load`है)।
 
-### Session Implicit Wait Timeout
+### सत्र अंतर्निहित प्रतीक्षा समयबाह्य
 
-A session has an associated session implicit wait timeout. This specifies the time to wait for the implicit element location strategy when locating elements using the [`findElement`](/docs/api/webdriver#findelement) or [`findElements`](/docs/api/webdriver#findelements) commands ([`$`](/docs/api/browser/$) or [`$$`](/docs/api/browser/$$), respectively, when running WebdriverIO with or without the WDIO testrunner). Unless stated otherwise, it is 0 milliseconds.
+एक सत्र में एक संबद्ध सत्र अंतर्निहित प्रतीक्षा समयबाह्य होता है। यह निहित तत्व स्थान रणनीति के लिए प्रतीक्षा करने का समय निर्दिष्ट करता है जब तत्वों का पता लगाने के लिए [`findElement`](/docs/api/webdriver#findelement) या [`findElements`](/docs/api/webdriver#findelements) कमांड ([`$`](/docs/api/browser/$) या [`$$`](/docs/api/browser/$$), क्रमशः, WebdriverIO को या के साथ चलाते समय WDIO टेस्टरनर के बिना)। जब तक अन्यथा न कहा जाए, यह 0 मिलीसेकंड है।
 
-You can set this timeout via:
+आप इस टाइमआउट को इसके माध्यम से सेट कर सकते हैं:
 
 ```js
 await browser.setTimeout({ 'implicit': 5000 })
 ```
 
-## WebdriverIO related timeouts
+## WebdriverIO संबंधित टाइमआउट
 
-### `WaitFor*` timeout
+### `WaitFor*` टाइमआउट
 
-WebdriverIO provides multiple commands to wait on elements to reach a certain state (e.g. enabled, visible, existing). These commands take a selector argument and a timeout number, which determines how long the instance should wait for that element to reach the state. The `waitforTimeout` option allows you to set the global timeout for all `waitFor*` commands, so you don't need to set the same timeout over and over again. _(Note the lowercase `f`!)_
+WebdriverIO एक निश्चित स्थिति (जैसे सक्षम, दृश्यमान, मौजूदा) तक पहुँचने के लिए तत्वों पर प्रतीक्षा करने के लिए कई कमांड प्रदान करता है। ये आदेश एक चयनकर्ता तर्क और एक टाइमआउट संख्या लेते हैं, जो यह निर्धारित करता है कि उस तत्व को राज्य तक पहुंचने के लिए कितनी देर तक प्रतीक्षा करनी चाहिए। `WaitforTimeout` विकल्प आपको सभी `WaitFor*` कमांड के लिए ग्लोबल टाइमआउट सेट करने की अनुमति देता है, इसलिए आपको बार-बार एक ही टाइमआउट सेट करने की आवश्यकता नहीं है। _(लोअरकेस `f`नोट करें!)_
 
 ```js
 // wdio.conf.js
@@ -61,7 +60,7 @@ export const config = {
 }
 ```
 
-In your tests, you now can do this:
+अपने परीक्षणों में, अब आप यह कर सकते हैं:
 
 ```js
 const myElem = await $('#myElem')
@@ -71,7 +70,7 @@ await myElem.waitForDisplayed()
 await myElem.waitForDisplayed({ timeout: 10000 })
 ```
 
-## Framework related timeouts
+## फ्रेमवर्क संबंधित टाइमआउट
 
 WebdriverIO के साथ आप जिस परीक्षण ढांचे का उपयोग कर रहे हैं, उसे टाइमआउट से निपटना है, खासकर जब से सब कुछ अतुल्यकालिक है। यह सुनिश्चित करता है कि कुछ गलत होने पर परीक्षण प्रक्रिया अटक न जाए।
 
