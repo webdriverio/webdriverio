@@ -30,6 +30,7 @@ export const config = {
     // ...
 }
 }
+}
 ```
 
 ### Legen Sie die Umgebungsvariablen des globalen Agenten fest
