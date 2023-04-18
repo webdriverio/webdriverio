@@ -240,7 +240,7 @@ Type: `Object`|`Object[]`<br /> Default: `[{ maxInstances: 5, browserName: 'fire
 
 कुल समानांतर चलने वाले श्रमिकों की अधिकतम संख्या।
 
-__Note:__ that it may be a number as high as `100`, when the tests are being performed on some external vendors such as Sauce Labs's machines. There, the tests are not tested on a single machine, but rather, on multiple VMs. If the tests are to be run on a local development machine, use a number that is more reasonable, such as `3`, `4`, or `5`. Essentially, this is the number of browsers that will be concurrently started and running your tests at the same time, so it depends on how much RAM there is on your machine, and how many other apps are running on your machine.
+__नोट:__ कि यह `100`तक की संख्या हो सकती है, जब कुछ बाहरी विक्रेताओं जैसे सॉस लैब्स की मशीनों पर परीक्षण किए जा रहे हों। वहां, परीक्षणों का परीक्षण एक मशीन पर नहीं, बल्कि कई वीएम पर किया जाता है। यदि परीक्षण स्थानीय विकास मशीन पर चलाना है, तो ऐसी संख्या का उपयोग करें जो अधिक उचित हो, जैसे `3`, `4`, या `5`। अनिवार्य रूप से, यह उन ब्राउज़रों की संख्या है जो समवर्ती रूप से शुरू होंगे और एक ही समय में आपके परीक्षण चलाएंगे, इसलिए यह इस बात पर निर्भर करता है कि आपकी मशीन पर कितनी रैम है, और आपकी मशीन पर कितने अन्य ऐप्स चल रहे हैं।
 
 Type: `Number`<br /> Default: `100`
 
@@ -248,7 +248,7 @@ Type: `Number`<br /> Default: `100`
 
 ### maxInstancesPerCapability
 
-Maximum number of total parallel running workers per capability.
+कुल समानांतर चलने वाले श्रमिकों की अधिकतम संख्या।
 
 Type: `Number`<br /> Default: `100`
 
@@ -256,7 +256,7 @@ Type: `Number`<br /> Default: `100`
 
 ### injectGlobals
 
-Inserts WebdriverIO's globals (e.g. `browser`, `$` and `$$`) into the global environment. If you set to `false`, you should import from `@wdio/globals`, e.g.:
+वैश्विक परिवेश में WebdriverIO के ग्लोबल्स (जैसे `browser`, `$` और `$$`) सम्मिलित करता है। यदि आप `false`पर सेट हैं, तो आपको `@wdio/globals`से आयात करना चाहिए, उदाहरण के लिए:
 
 
 
@@ -265,7 +265,7 @@ import { browser, $, $$, expect } from '@wdio/globals'
 ```
 
 
-Note: WebdriverIO doesn't handle injection of test framework specific globals.
+नोट: WebdriverIO टेस्ट फ्रेमवर्क विशिष्ट ग्लोबल्स के इंजेक्शन को हैंडल नहीं करता है।
 
 Type: `Boolean`<br /> Default: `true`
 
@@ -273,7 +273,7 @@ Type: `Boolean`<br /> Default: `true`
 
 ### bail
 
-If you want your test run to stop after a specific number of test failures, use `bail`. (It defaults to `0`, which runs all tests no matter what.) **Note:** Please be aware that when using a third party test runner (such as Mocha), additional configuration might be required.
+यदि आप चाहते हैं कि परीक्षण विफलताओं की एक विशिष्ट संख्या के बाद आपका परीक्षण बंद हो जाए, तो `bail`का उपयोग करें। (यह `0`के लिए डिफ़ॉल्ट है, जो सभी परीक्षणों को चलाता है चाहे कुछ भी हो।) **नोट:** कृपया ध्यान रखें कि तीसरे पक्ष के टेस्ट रनर (जैसे मोचा) का उपयोग करते समय, अतिरिक्त कॉन्फ़िगरेशन की आवश्यकता हो सकती है।
 
 Type: `Number`<br /> Default: `0` (don't bail; run all tests)
 
@@ -281,7 +281,7 @@ Type: `Number`<br /> Default: `0` (don't bail; run all tests)
 
 ### specFileRetries
 
-The number of times to retry an entire specfile when it fails as a whole.
+किसी संपूर्ण स्पेकफाइल के पूर्ण रूप से विफल होने पर पुनः प्रयास करने की संख्या।
 
 Type: `Number`<br /> Default: `0`
 
@@ -289,7 +289,7 @@ Type: `Number`<br /> Default: `0`
 
 ### specFileRetriesDelay
 
-Delay in seconds between the spec file retry attempts
+विशिष्ट फ़ाइल पुनर्प्रयास प्रयासों के बीच सेकंड में विलंब
 
 Type: `Number`<br /> Default: `0`
 
@@ -297,7 +297,7 @@ Type: `Number`<br /> Default: `0`
 
 ### specFileRetriesDeferred
 
-Whether or not retried specfiles should be retried immediately or deferred to the end of the queue.
+पुन: प्रयास किए गए विनिर्देशों को तुरंत पुनः प्रयास किया जाना चाहिए या कतार के अंत तक स्थगित कर दिया जाना चाहिए या नहीं।
 
 Type: `Boolean`<br /> Default: `true`
 
@@ -305,7 +305,7 @@ Type: `Boolean`<br /> Default: `true`
 
 ### services
 
-Services take over a specific job you don't want to take care of. They enhance your test setup with almost no effort.
+सेवाएँ एक विशिष्ट कार्य लेती हैं जिसकी आप देखभाल नहीं करना चाहते हैं। वे लगभग बिना किसी प्रयास के आपके परीक्षण सेटअप को बढ़ाते हैं।
 
 Type: `String[]|Object[]`<br /> Default: `[]`
 
@@ -313,7 +313,7 @@ Type: `String[]|Object[]`<br /> Default: `[]`
 
 ### framework
 
-Defines the test framework to be used by the WDIO testrunner.
+WDIO टेस्टरनर द्वारा उपयोग किए जाने वाले परीक्षण ढांचे को परिभाषित करता है।
 
 Type: `String`<br /> Default: `mocha`<br /> Options: `mocha` | `jasmine`
 
@@ -321,7 +321,7 @@ Type: `String`<br /> Default: `mocha`<br /> Options: `mocha` | `jasmine`
 
 ### mochaOpts, jasmineOpts and cucumberOpts
 
-Specific framework-related options. See the framework adapter documentation on which options are available. Read more on this in [Frameworks](./Frameworks.md).
+विशिष्ट ढांचे से संबंधित विकल्प। फ्रेमवर्क एडेप्टर दस्तावेज़ीकरण देखें, जिस पर विकल्प उपलब्ध हैं। इस पर [फ्रेमवर्क](./Frameworks.md)में और पढ़ें।
 
 Type: `Object`<br /> Default: `{ timeout: 10000 }`
 
@@ -329,19 +329,19 @@ Type: `Object`<br /> Default: `{ timeout: 10000 }`
 
 ### cucumberFeaturesWithLineNumbers
 
-List of cucumber features with line numbers (when [using cucumber framework](./Frameworks.md#using-cucumber)).
+लाइन नंबरों के साथ खीरे की विशेषताओं की सूची (जब [ककड़ी फ्रेमवर्क](./Frameworks.md#using-cucumber)का उपयोग कर रहा हो)।
 
 Type: `String[]` Default: `[]`
 
 
 
-### reporters
+### रिपोर्ट करने वाला
 
-List of reporters to use. A reporter can be either a string, or an array of `['reporterName', { /* reporter options */}]` where the first element is a string with the reporter name and the second element an object with reporter options.
+उपयोग करने के लिए पत्रकारों की सूची। रिपोर्टर या तो एक स्ट्रिंग या `['reporterName', { /* reporter options */}]`की एक सरणी हो सकता है, जहां पहला तत्व रिपोर्टर के नाम के साथ एक स्ट्रिंग है और दूसरा तत्व रिपोर्टर विकल्पों के साथ एक ऑब्जेक्ट है।
 
 Type: `String[]|Object[]`<br /> Default: `[]`
 
-Example:
+उदाहरण:
 
 
 
@@ -361,7 +361,7 @@ reporters: [
 
 ### reporterSyncInterval
 
-Determines in which interval the reporter should check if they are synchronized if they report their logs asynchronously (e.g. if logs are streamed to a 3rd party vendor).
+यह निर्धारित करता है कि रिपोर्टर को किस अंतराल में जाँच करनी चाहिए कि क्या वे सिंक्रनाइज़ हैं यदि वे अपने लॉग को एसिंक्रोनस रूप से रिपोर्ट करते हैं (उदाहरण के लिए यदि लॉग किसी तृतीय पक्ष विक्रेता को स्ट्रीम किए जाते हैं)।
 
 Type: `Number`<br /> Default: `100` (ms)
 
@@ -369,7 +369,7 @@ Type: `Number`<br /> Default: `100` (ms)
 
 ### reporterSyncTimeout
 
-Determines the maximum time reporters have to finish uploading all their logs until an error is being thrown by the testrunner.
+यह निर्धारित करता है कि रिपोर्टर को अपने सभी लॉग अपलोड करने का अधिकतम समय कब तक पूरा करना है जब तक कि टेस्टरनर द्वारा कोई त्रुटि नहीं डाली जा रही है।
 
 Type: `Number`<br /> Default: `5000` (ms)
 
@@ -377,7 +377,7 @@ Type: `Number`<br /> Default: `5000` (ms)
 
 ### execArgv
 
-Node arguments to specify when launching child processes.
+बाल प्रक्रियाओं को लॉन्च करते समय निर्दिष्ट करने के लिए नोड तर्क।
 
 Type: `String[]`<br /> Default: `null`
 
@@ -385,7 +385,7 @@ Type: `String[]`<br /> Default: `null`
 
 ### filesToWatch
 
-A list of glob supporting string patterns that tell the testrunner to have it additionally watch other files, e.g. application files, when running it with the `--watch` flag. By default the testrunner already watches all spec files.
+स्ट्रिंग पैटर्न का समर्थन करने वाले ग्लोब की एक सूची जो टेस्टरनर को बताती है कि इसे `- watch` फ़्लैग के साथ चलाते समय अन्य फ़ाइलों, जैसे एप्लिकेशन फ़ाइलों को अतिरिक्त रूप से देखने के लिए कहा जाता है। डिफ़ॉल्ट रूप से टेस्टरनर पहले से ही सभी विशेष फाइलों को देखता है।
 
 Type: `String[]`<br /> Default: `[]`
 
@@ -393,13 +393,13 @@ Type: `String[]`<br /> Default: `[]`
 
 ### autoCompileOpts
 
-Compiler options when using WebdriverIO with TypeScript or Babel.
+टाइपस्क्रिप्ट या बेबेल के साथ WebdriverIO का उपयोग करते समय संकलक विकल्प।
 
 
 
 #### autoCompileOpts.autoCompile
 
-If set to `true` the WDIO testrunner will automatically try to transpile the spec files.
+यदि `true` पर सेट किया जाता है तो WDIO टेस्टरनर स्वचालित रूप से कल्पना फ़ाइलों को ट्रांसपाइल करने का प्रयास करेगा।
 
 Type: `Boolean` Default: `true`
 
@@ -407,7 +407,7 @@ Type: `Boolean` Default: `true`
 
 #### autoCompileOpts.tsNodeOpts
 
-Configure how [`ts-node`](https://www.npmjs.com/package/ts-node) is suppose to transpile the files.
+कॉन्फ़िगर करें कि कैसे [`ts-node`](https://www.npmjs.com/package/ts-node) फ़ाइलों को ट्रांसपाइल करने के लिए माना जाता है।
 
 Type: `Object` Default: `{ transpileOnly: true }`
 
@@ -415,7 +415,7 @@ Type: `Object` Default: `{ transpileOnly: true }`
 
 #### autoCompileOpts.babelOpts
 
-Configure how [@babel/register](https://www.npmjs.com/package/@babel/register) is suppose to transpile the files.
+कॉन्फ़िगर करें कि कैसे [](https://www.npmjs.com/package/@babel/register)ts-node फ़ाइलों को ट्रांसपाइल करने के लिए माना जाता है।
 
 Type: `Object` Default: `{}`
 
@@ -423,7 +423,7 @@ Type: `Object` Default: `{}`
 
 ## Hooks
 
-The WDIO testrunner allows you to set hooks to be triggered at specific times of the test lifecycle. यह कस्टम क्रियाओं की अनुमति देता है (उदाहरण के लिए यदि परीक्षण विफल हो जाता है तो स्क्रीनशॉट लें)।
+WDIO टेस्टरनर आपको परीक्षण जीवनचक्र के विशिष्ट समय पर ट्रिगर होने के लिए हुक सेट करने की अनुमति देता है। यह कस्टम क्रियाओं की अनुमति देता है (उदाहरण के लिए यदि परीक्षण विफल हो जाता है तो स्क्रीनशॉट लें)।
 
 प्रत्येक हुक में जीवनचक्र के बारे में पैरामीटर विशिष्ट जानकारी होती है (उदाहरण के लिए परीक्षण सूट या परीक्षण के बारे में जानकारी)। हमारे उदाहरण कॉन्फ़िगरेशन [ में सभी हुक गुणों के बारे में और पढ़ें।](https://github.com/webdriverio/webdriverio/blob/master/examples/wdio.conf.js#L183-L326).
 
@@ -539,18 +539,18 @@ The WDIO testrunner allows you to set hooks to be triggered at specific times of
 
 ### beforeCommand
 
-Runs before a WebdriverIO command gets executed.
+WebdriverIO कमांड के निष्पादित होने से पहले चलता है।
 
-Parameters:
+पैरामीटर:
 
-- `commandName` (`string`): command name
-- `args` (`*`): arguments that command would receive
+- `commandName` (`string`): कमांड नाम
+- `args` (`*`): तर्क जो कमांड प्राप्त करेंगे
 
 
 
 ### afterCommand
 
-Runs after a WebdriverIO command gets executed.
+WebdriverIO कमांड के निष्पादित होने से पहले चलता है।
 
 पैरामीटर:
 
