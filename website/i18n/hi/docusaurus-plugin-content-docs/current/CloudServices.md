@@ -55,13 +55,13 @@ build: process.env.TRAVIS_BUILD_NUMBER
 
 ### समय समाप्त
 
-Since you are running your tests remotely, it might be necessary to increase some timeouts.
+चूंकि आप अपने परीक्षण रिमोट रूप से चला रहे हैं, इसलिए कुछ टाइमआउट बढ़ाना आवश्यक हो सकता है।
 
-You can change the [idle timeout](https://docs.saucelabs.com/dev/test-configuration-options/#idletimeout) by passing `idle-timeout` as a test configuration option. This controls how long Sauce will wait between commands before closing the connection.
+आप परीक्षण कॉन्फ़िगरेशन विकल्प के रूप में `idle-timeout` पास करके [निष्क्रिय टाइमआउट](https://docs.saucelabs.com/dev/test-configuration-options/#idletimeout) को बदल सकते हैं। यह नियंत्रित करता है कि कनेक्शन बंद करने से पहले सॉस कमांड के बीच कितनी देर प्रतीक्षा करेगा।
 
 ## BrowserStack
 
-WebdriverIO also has a [Browserstack](https://www.browserstack.com) integration built-in.
+WebdriverIO में [Browserstack](https://www.browserstack.com) इंटीग्रेशन बिल्ट-इन भी है।
 
 केवल आवश्यकता यह है कि आप अपने कॉन्फिग में `user` और `key` सेट करें (या तो `wdio.conf.js` द्वारा निर्यात किया गया या `webdriverio.remote(...)`में पारित किया गया) आपके ब्राउज़रस्टैक स्वचालित उपयोगकर्ता नाम और एक्सेस कुंजी पर.
 
