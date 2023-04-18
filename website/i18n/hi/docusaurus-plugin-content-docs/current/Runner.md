@@ -41,22 +41,22 @@ export const {
 
 ## Browser Runner
 
-As opposed to the [Local Runner](https://www.npmjs.com/package/@wdio/local-runner) the [Browser Runner](https://www.npmjs.com/package/@wdio/browser-runner) initiates and executes the framework within the browser. This allows you to run unit tests or component tests in an actual browser rather than in a JSDOM like many other test frameworks.
+[लोकल रनर](https://www.npmjs.com/package/@wdio/local-runner) के विपरीत [ब्राउज़र रनर](https://www.npmjs.com/package/@wdio/browser-runner) ब्राउज़र के भीतर फ्रेमवर्क को आरंभ और निष्पादित करता है। यह आपको JSDOM के बजाय कई अन्य परीक्षण ढाँचों की तरह एक वास्तविक ब्राउज़र में इकाई परीक्षण या घटक परीक्षण चलाने की अनुमति देता है।
 
-While [JSDOM](https://www.npmjs.com/package/jsdom) is widely used for testing purposes, it is in the end not an actual browser nor can you emulate mobile environments with it. With this runner WebdriverIO enables you to easily run your tests in the browser and use WebDriver commands to interact with elements rendered on the page.
+जबकि [JSDOM](https://www.npmjs.com/package/jsdom) व्यापक रूप से परीक्षण उद्देश्यों के लिए उपयोग किया जाता है, यह अंत में एक वास्तविक ब्राउज़र नहीं है और न ही आप इसके साथ मोबाइल वातावरण का अनुकरण कर सकते हैं। इस रनर के साथ WebdriverIO आपको ब्राउज़र में अपने परीक्षण आसानी से चलाने और पृष्ठ पर प्रदान किए गए तत्वों के साथ इंटरैक्ट करने के लिए WebDriver कमांड का उपयोग करने में सक्षम बनाता है।
 
-Here is an overview of running tests within JSDOM vs. WebdriverIOs Browser Runner
+यहाँ JSDOM बनाम WebdriverIOs ब्राउज़र रनर के भीतर चल रहे परीक्षणों का अवलोकन है
 
-|    | JSDOM                                                                                                                                                           | WebdriverIO Browser Runner                                                                            |
-| -- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
-| 1. | Runs your tests within Node.js using a re-implementation of web standards, notably the WHATWG DOM and HTML Standards                                            | Executes your test in an actual browser and runs the code in an environment that your users use       |
-| 2. | Interactions with components can only be imitated via JavaScript                                                                                                | You can use the [WebdriverIO API](api) to interact with elements through the WebDriver protocol       |
-| 3. | Canvas support requires [additional dependencies](https://www.npmjs.com/package/canvas) and [has limitations](https://github.com/Automattic/node-canvas/issues) | You have access to the real [Canvas API](https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API) |
-| 4. | JSDOM has some [caveats](https://github.com/jsdom/jsdom#caveats) and unsupported Web APIs                                                                       | All Web APIs are supported as test run in an actual browser                                           |
-| 5. | Impossible to detect errors cross browser                                                                                                                       | Support for all browsers including mobile browser                                                     |
-| 6. | Can __not__ test for element pseudo states                                                                                                                      | Support for pseudo states such as `:hover` or `:active`                                               |
+|    | जेएसडीओएम                                                                                                                                                                      | WebdriverIO ब्राउज़र रनर                                                                                                            |
+| -- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------- |
+| 1. | वेब मानकों, विशेष रूप से WHATWG DOM और HTML मानकों के पुन: कार्यान्वयन का उपयोग करके Node.js के भीतर अपने परीक्षण चलाता है                                                     | आपके परीक्षण को एक वास्तविक ब्राउज़र में निष्पादित करता है और आपके उपयोगकर्ताओं द्वारा उपयोग किए जाने वाले वातावरण में कोड चलाता है |
+| 2. | घटकों के साथ सहभागिता केवल जावास्क्रिप्ट के माध्यम से नकल की जा सकती है                                                                                                        | आप वेबड्राइवर प्रोटोकॉल के माध्यम से तत्वों के साथ इंटरैक्ट करने के लिए [WebdriverIO API](api) का उपयोग कर सकते हैं                 |
+| 3. | कैनवास समर्थन के लिए [अतिरिक्त निर्भरताओं की आवश्यकता होती है](https://www.npmjs.com/package/canvas) और [की सीमाएँ होती हैं](https://github.com/Automattic/node-canvas/issues) | आपके पास वास्तविक [कैनवस एपीआई](https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API)तक पहुंच है                             |
+| 4. | JSDOM में कुछ [चेतावनियाँ](https://github.com/jsdom/jsdom#caveats) और असमर्थित वेब API हैं                                                                                     | सभी वेब एपीआई एक वास्तविक ब्राउज़र में टेस्ट रन के रूप में समर्थित हैं                                                              |
+| 5. | ब्राउज़र में त्रुटियों का पता लगाना असंभव है                                                                                                                                   | मोबाइल ब्राउज़र सहित सभी ब्राउज़रों के लिए समर्थन                                                                                   |
+| 6. | तत्व छद्म राज्यों के लिए __नहीं__ परीक्षण कर सकते हैं                                                                                                                          | छद्म राज्यों के लिए समर्थन जैसे `: hover` या `: active`                                                                             |
 
-This runner uses [Vite](https://vitejs.dev/) to compile your test code and load it in the browser. It comes with presets for the following component frameworks:
+यह रनर आपके परीक्षण कोड को संकलित करने और इसे ब्राउज़र में लोड करने के लिए [Vite](https://vitejs.dev/) का उपयोग करता है। यह निम्नलिखित घटक ढांचे के लिए प्रीसेट के साथ आता है:
 
 - React
 - Preact
@@ -64,41 +64,41 @@ This runner uses [Vite](https://vitejs.dev/) to compile your test code and load 
 - Svelte
 - SolidJS
 
-Every test file / test file group runs within a single page which means that between each test the page is being reloaded to guarantee isolation between tests.
+प्रत्येक परीक्षण फ़ाइल / परीक्षण फ़ाइल समूह एक पृष्ठ के भीतर चलता है जिसका अर्थ है कि प्रत्येक परीक्षण के बीच पृष्ठ को परीक्षणों के बीच अलगाव की गारंटी देने के लिए पुनः लोड किया जा रहा है।
 
-### Install
+### इनस्टॉल
 
-To use the Browser Runner you can install it via:
+ब्राउज़र रनर का उपयोग करने के लिए आप इसे इसके माध्यम से इंस्टाल कर सकते हैं:
 
 ```sh
 npm install --save-dev @wdio/browser-runner
 ```
 
-### Setup
+### सेटअप
 
-To use the Browser runner, you have to define a `runner` property within your `wdio.conf.js` file, e.g.:
+ब्राउज़र रनर का उपयोग करने के लिए, आपको अपनी `wdio.conf.js` फ़ाइल में `runner` गुण परिभाषित करना होगा, उदाहरण के लिए:
 
 ```js
 // wdio.conf.js
-export const {
+निर्यात कॉन्स्ट कॉन्फ़िगरेशन = {
     // ...
     runner: 'browser',
     // ...
 }
 ```
 
-### Runner Options
+### रनर विकल्प
 
-The Browser runner allows following configurations:
+ब्राउज़र रनर निम्न कॉन्फ़िगरेशन की अनुमति देता है:
 
 #### `preset`
 
-If you test components using one of the mentioned frameworks above, you can define a preset that ensures everything is configured out of the box. This option can't be used together with `viteConfig`.
+यदि आप ऊपर उल्लिखित रूपरेखाओं में से किसी एक का उपयोग करके घटकों का परीक्षण करते हैं, तो आप एक पूर्व निर्धारित निर्धारित कर सकते हैं जो सुनिश्चित करता है कि सब कुछ बॉक्स से बाहर कॉन्फ़िगर किया गया है। इस विकल्प का उपयोग `viteConfig`के साथ नहीं किया जा सकता है।
 
 __Type:__ `vue` | `svelte` | `solid` | `react` | `preact`<br /> __Example:__
 
 ```js title="wdio.conf.js"
-export const {
+एक्सपोर्ट const {
     // ...
     runner: ['browser', {
         preset: 'svelte'
@@ -109,15 +109,15 @@ export const {
 
 #### `viteConfig`
 
-Define your own [Vite configuration](https://vitejs.dev/config/). You can either pass in a custom object or import an existing `vite.conf.ts` file if you use Vite.js for development. Note that WebdriverIO keeps custom Vite configurations to set up the test harness.
+अपने स्वयं के [Vite कॉन्फ़िगरेशन](https://vitejs.dev/config/)परिभाषित करें। यदि आप विकास के लिए Vite.js का उपयोग करते हैं तो आप या तो एक कस्टम ऑब्जेक्ट पास कर सकते हैं या मौजूदा `vite.conf.ts` फ़ाइल आयात कर सकते हैं। ध्यान दें कि WebdriverIO टेस्ट हार्नेस सेट करने के लिए कस्टम Vite कॉन्फ़िगरेशन रखता है।
 
 __Type:__ `string` or [`UserConfig`](https://github.com/vitejs/vite/blob/52e64eb43287d241f3fd547c332e16bd9e301e95/packages/vite/src/node/config.ts#L119-L272) or `(env: ConfigEnv) => UserConfig | Promise<UserConfig>`<br /> __Example:__
 
 ```js title="wdio.conf.ts"
-import viteConfig from '../vite.config.ts'
+'../vite.config.ts' से viteConfig आयात करें
 
-export const {
-    // ...
+निर्यात const {
+     // ...
     runner: ['browser', { viteConfig }],
     // or just:
     runner: ['browser', { viteConfig: '../vites.config.ts' }],
@@ -134,29 +134,29 @@ export const {
 
 #### `headless`
 
-If set to `true` the runner will update capabilities to run tests headless. By default this is enabled within CI environments where a `CI` environment variable is set to `'1'` or `'true'`.
+यदि `true` पर सेट किया जाता है तो रनर टेस्ट को हेडलेस चलाने के लिए क्षमताओं को अपडेट करेगा। डिफ़ॉल्ट रूप से यह सीआई वातावरण में सक्षम है जहां `CI` पर्यावरण चर `'1'` या `'true'`पर सेट है।
 
 __Type:__ `boolean`<br /> __Default:__ `false`, set to `true` if `CI` environment variable is set
 
 #### `rootDir`
 
-Project root directory.
+प्रोजेक्ट रूट डायरेक्टरी।
 
 __Type:__ `string`<br /> __Default:__ `process.cwd()`
 
 #### `coverage`
 
-WebdriverIO supports test coverage reporting through [`istanbul`](https://istanbul.js.org/). See [Coverage Options](#coverage-options) for more details.
+WebdriverIO [`इस्तांबुल`](https://istanbul.js.org/)के माध्यम से परीक्षण कवरेज रिपोर्टिंग का समर्थन करता है। अधिक विवरण के लिए [कवरेज विकल्प](#coverage-options) देखें।
 
 __Type:__ `object`<br /> __Default:__ `undefined`
 
-### Coverage Options
+### कवरेज विकल्प
 
-The following options allow to configure coverage reporting.
+निम्न विकल्प कवरेज रिपोर्टिंग को कॉन्फ़िगर करने की अनुमति देते हैं।
 
 #### `enabled`
 
-Enables coverage collection.
+कवरेज संग्रह सक्षम करता है।
 
 __Type:__ `boolean`<br /> __Default:__ `false`
 
