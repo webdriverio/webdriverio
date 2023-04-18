@@ -1,6 +1,6 @@
 ---
 id: createlocalworkerprocess
-title: Create worker process
+title: कार्यकर्ता प्रक्रिया बनाएँ
 ---
 
-This flowchart explains how a worker process is created.
+यह फ़्लोचार्ट बताता है कि वर्कर प्रोसेस कैसे बनाया जाता है।
