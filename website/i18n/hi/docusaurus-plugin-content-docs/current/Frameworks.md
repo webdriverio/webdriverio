@@ -30,7 +30,7 @@ describe('my awesome website', () => {
 
 WebdriverIO Mocha के `BDD` (डिफ़ॉल्ट), `TDD`और `QUnit` [इंटरफेस](https://mochajs.org/#interfaces)का समर्थन करता है।
 
-If you like to write your specs in TDD style, set the `ui` property in your `mochaOpts` config to `tdd`. Now your test files should be written like this:
+यदि आप अपने विनिर्देशों को TDD शैली में लिखना पसंद करते हैं, तो अपने `mochaOpts` कॉन्फ़िग में `ui` गुण को `tdd`पर सेट करें। अब आपकी टेस्ट फाइलें इस तरह लिखी जानी चाहिए:
 
 ```js
 suite('my awesome website', () => {
@@ -41,9 +41,9 @@ suite('my awesome website', () => {
 })
 ```
 
-If you want to define other Mocha-specific settings, you can do it with the `mochaOpts` key in your configuration file. A list of all options can be found on the [Mocha project website](https://mochajs.org/api/mocha).
+यदि आप अन्य मोचा-विशिष्ट सेटिंग्स को परिभाषित करना चाहते हैं, तो आप इसे अपनी कॉन्फ़िगरेशन फ़ाइल में `mochaOpts` कुंजी के साथ कर सकते हैं। सभी विकल्पों की सूची [मोचा परियोजना की वेबसाइट](https://mochajs.org/api/mocha)पर देखी जा सकती है।
 
-__Note:__ WebdriverIO does not support the deprecated usage of `done` callbacks in Mocha:
+__नोट:__ WebdriverIO मोचा में `done` कॉलबैक के बहिष्कृत उपयोग का समर्थन नहीं करता है:
 
 ```js
 it('should test something', (done) => {
@@ -51,11 +51,11 @@ it('should test something', (done) => {
 })
 ```
 
-If you want to run something asynchronously, you can either use the [`browser.call`](/docs/api/browser/call) command or [custom commands](CustomCommands.md).
+यदि आप कुछ एसिंक्रोनस रूप से चलाना चाहते हैं, तो आप या तो [`browser.call`](/docs/api/browser/call) कमांड या [कस्टम कमांड](CustomCommands.md)का उपयोग कर सकते हैं।
 
-### Mocha Options
+### मोचा विकल्प
 
-The following options can be applied in your `wdio.conf.js` to configure your Mocha environment. __Note:__ not all options are supported, e.g. applying the `parallel` option will cause an error as the WDIO testrunner has its own way to run tests in parallel. हालांकि निम्नलिखित विकल्प समर्थित हैं:
+आपके Mocha परिवेश को कॉन्फ़िगर करने के लिए आपके `wdio.conf.js` में निम्न विकल्प लागू किए जा सकते हैं। __नोट:__ सभी विकल्प समर्थित नहीं हैं, उदाहरण के लिए `parallel` विकल्प को लागू करने से त्रुटि होगी क्योंकि WDIO टेस्टरनर के पास समानांतर में परीक्षण चलाने का अपना तरीका है। हालांकि निम्नलिखित विकल्प समर्थित हैं:
 
 #### require
 जब आप कुछ बुनियादी कार्यक्षमता (वेबड्राइवरआईओ फ्रेमवर्क विकल्प) को जोड़ना या बढ़ाना चाहते हैं तो `require` विकल्प उपयोगी है।
@@ -63,92 +63,92 @@ The following options can be applied in your `wdio.conf.js` to configure your Mo
 Type: `string|string[]`<br /> Default: `[]`
 
 #### compilers
-Use the given module(s) to compile files. Compilers will be included before requires (WebdriverIO framework option).
+फ़ाइलों को संकलित करने के लिए दिए गए मॉड्यूल(s) का उपयोग करें। कंपाइलर्स को आवश्यकता से पहले शामिल किया जाएगा (WebdriverIO फ्रेमवर्क विकल्प)।
 
 Type: `string[]`<br /> Default: `[]`
 
 #### allowUncaught
-Propagate uncaught errors.
+अनकही त्रुटियों का प्रचार करें।
 
 Type: `boolean`<br /> Default: `false`
 
 #### bail
-Bail after first test failure.
+पहले टेस्ट में फेल होने के बाद बेल
 
 Type: `boolean`<br /> Default: `false`
 
 #### checkLeaks
-Check for global variable leaks.
+वैश्विक चर लीक के लिए जाँच करें।
 
 Type: `boolean`<br /> Default: `false`
 
 #### delay
-Delay root suite execution.
+देरी रूट सूट निष्पादन।
 
 Type: `boolean`<br /> Default: `false`
 
 #### fgrep
-Test filter given string.
+परीक्षण फ़िल्टर दिए गए स्ट्रिंग।
 
 Type: `string`<br /> Default: `null`
 
 #### forbidOnly
-Tests marked `only` fail the suite.
+परीक्षण `only` सुइट में विफल रहता है।
 
 Type: `boolean`<br /> Default: `false`
 
 #### forbidPending
-Pending tests fail the suite.
+लंबित परीक्षण सूट विफल।
 
 Type: `boolean`<br /> Default: `false`
 
 #### fullTrace
-Full stacktrace upon failure.
+विफलता पर पूर्ण स्टैकट्रेस।
 
 Type: `boolean`<br /> Default: `false`
 
 #### global
-Variables expected in global scope.
+वैश्विक दायरे में अपेक्षित चर।
 
 Type: `string[]`<br /> Default: `[]`
 
 #### grep
-Test filter given regular expression.
+टेस्ट फिल्टर रेगुलर एक्सप्रेशन दिया।
 
 Type: `RegExp|string`<br /> Default: `null`
 
 #### invert
-Invert test filter matches.
+उलटा परीक्षण फ़िल्टर मिलान करता है।
 
 Type: `boolean`<br /> Default: `false`
 
 #### retries
-Number of times to retry failed tests.
+असफल परीक्षणों का पुन: प्रयास करने की संख्या।
 
 Type: `number`<br /> Default: `0`
 
 #### timeout
-Timeout threshold value (in ms).
+टाइमआउट थ्रेशोल्ड मान (मिलीसेकंड में).
 
 Type: `number`<br /> Default: `30000`
 
-## Using Jasmine
+## जेसमीन का प्रयोग
 
-First, install the adapter package from NPM:
+सबसे पहले, एनपीएम से एडॉप्टर पैकेज इनस्टॉल करें:
 
 ```bash npm2yarn
 npm install @wdio/jasmine-framework --save-dev
 ```
 
-You can then configure your Jasmine environment by setting a `jasmineOpts` property in your config. A list of all options can be found on the [Jasmine project website](https://jasmine.github.io/api/3.5/Configuration.html).
+फिर आप अपने कॉन्फ़िगरेशन में `jasmineOpts` गुण सेट करके अपने Jasmine परिवेश को कॉन्फ़िगर कर सकते हैं. सभी विकल्पों की सूची [मोचा परियोजना की वेबसाइट](https://jasmine.github.io/api/3.5/Configuration.html)पर देखी जा सकती है।
 
-### Intercept Assertion
+### अवरोधन अभिकथन
 
-The Jasmine framework allows it to intercept each assertion in order to log the state of the application or website, depending on the result.
+जैस्मीन फ्रेमवर्क इसे परिणाम के आधार पर एप्लिकेशन या वेबसाइट की स्थिति को लॉग करने के लिए प्रत्येक अभिकथन को इंटरसेप्ट करने की अनुमति देता है।
 
-For example, it is pretty handy to take a screenshot every time an assertion fails. In your `jasmineOpts` you can add a property called `expectationResultHandler` that takes a function to execute. The function’s parameters provide information about the result of the assertion.
+उदाहरण के लिए, हर बार एक दावा विफल होने पर स्क्रीनशॉट लेना बहुत आसान होता है। आपके `jasmineOpts` में आप `expectationResultHandler` नामक एक संपत्ति जोड़ सकते हैं जो एक फ़ंक्शन को निष्पादित करने के लिए लेता है। फ़ंक्शन के पैरामीटर अभिकथन के परिणाम के बारे में जानकारी प्रदान करते हैं।
 
-The following example demonstrates how to take a screenshot if an assertion fails:
+निम्न उदाहरण दर्शाता है कि यदि कोई अभिकथन विफल हो जाता है तो स्क्रीनशॉट कैसे लिया जाए:
 
 ```js
 jasmineOpts: {
@@ -166,44 +166,44 @@ jasmineOpts: {
 },
 ```
 
-**Note:** You cannot stop test execution to do something async. It might happen that the command takes too much time and the website state has changed. (Though usually, after another 2 commands the screenshot is taken anyway, which still gives _some_ valuable information about the error.)
+**नोट:** आप कुछ async करने के लिए परीक्षण निष्पादन को रोक नहीं सकते। ऐसा हो सकता है कि कमांड में बहुत अधिक समय लगे और वेबसाइट की स्थिति बदल गई हो। (हालांकि आम तौर पर, अन्य 2 कमांड के बाद भी स्क्रीनशॉट लिया जाता है, जो अभी भी त्रुटि के बारे में _कुछ_ मूल्यवान जानकारी देता है।)
 
-### Jasmine Options
+### जेसमीन विकल्प
 
-The following options can be applied in your `wdio.conf.js` to configure your Jasmine environment using the `jasmineOpts` property. For more information on these configuration options, check out the [Jasmine docs](https://jasmine.github.io/api/edge/Configuration).
+निम्नलिखित विकल्पों को आपके `wdio.conf.js` में `cucumberOpts` गुण का उपयोग करके अपने खीरा वातावरण को कॉन्फ़िगर करने के लिए लागू किया जा सकता है: इन कॉन्फ़िगरेशन विकल्पों पर अधिक जानकारी के लिए, [जैस्मीन डॉक्स](https://jasmine.github.io/api/edge/Configuration)देखें।
 
 #### defaultTimeoutInterval
-Default Timeout Interval for Jasmine operations.
+जैस्मीन संचालन के लिए डिफ़ॉल्ट टाइमआउट अंतराल।
 
 Type: `number`<br /> Default: `60000`
 
 #### helpers
-Array of filepaths (and globs) relative to spec_dir to include before jasmine specs.
+चमेली चश्मा से पहले शामिल करने के लिए spec_dir के सापेक्ष फ़ाइलपथ (और ग्लोब) की सरणी।
 
 Type: `string[]`<br /> Default: `[]`
 
 #### requires
-The `requires` option is useful when you want to add or extend some basic functionality.
+जब आप कुछ बुनियादी कार्यक्षमता को जोड़ना या बढ़ाना चाहते हैं तो `require` विकल्प उपयोगी है।
 
 Type: `string[]`<br /> Default: `[]`
 
 #### random
-Whether to randomize spec execution order.
+क्या विशिष्ट निष्पादन आदेश को यादृच्छिक बनाना है.
 
 Type: `boolean`<br /> Default: `true`
 
 #### seed
-Seed to use as the basis of randomization. Null causes the seed to be determined randomly at the start of execution.
+यादृच्छिककरण के आधार के रूप में उपयोग करने के लिए सीड। निष्पादन की शुरुआत में बीज को बेतरतीब ढंग से निर्धारित करने के लिए नल का कारण बनता है।
 
 Type: `Function`<br /> Default: `null`
 
 #### failSpecWithNoExpectations
-Whether to fail the spec if it ran no expectations. By default a spec that ran no expectations is reported as passed. Setting this to true will report such spec as a failure.
+क्या स्पेक्स को विफल करना है यदि यह कोई अपेक्षा नहीं रखता है। डिफ़ॉल्ट रूप से एक युक्ति जो बिना किसी अपेक्षा के चलती है, को पारित होने के रूप में रिपोर्ट किया जाता है। इसे सही पर सेट करने से ऐसे विनिर्देश की विफलता के रूप में रिपोर्ट की जाएगी।
 
 Type: `boolean`<br /> Default: `false`
 
 #### oneFailurePerSpec
-Whether to cause specs to only have one expectation failure.
+क्या विशिष्टताओं को उत्पन्न करना है या नहीं, केवल एक अपेक्षा विफल है।
 
 Type: `boolean`<br /> Default: `false`
 
