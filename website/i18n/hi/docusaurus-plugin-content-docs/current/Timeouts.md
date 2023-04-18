@@ -73,11 +73,11 @@ await myElem.waitForDisplayed({ timeout: 10000 })
 
 ## Framework related timeouts
 
-The testing framework you’re using with WebdriverIO has to deal with timeouts, especially since everything is asynchronous. It ensures that the test process doesn't get stuck if something goes wrong.
+WebdriverIO के साथ आप जिस परीक्षण ढांचे का उपयोग कर रहे हैं, उसे टाइमआउट से निपटना है, खासकर जब से सब कुछ अतुल्यकालिक है। यह सुनिश्चित करता है कि कुछ गलत होने पर परीक्षण प्रक्रिया अटक न जाए।
 
-By default, the timeout is 10 seconds, which means that a single test should not take longer than that.
+डिफ़ॉल्ट रूप से, समय समाप्ति 10 सेकंड है, जिसका अर्थ है कि एक परीक्षण में इससे अधिक समय नहीं लगना चाहिए।
 
-A single test in Mocha looks like:
+मोचा में एक भी परीक्षण ऐसा दिखता है:
 
 ```js
 it('should login into the application', () => {
@@ -95,7 +95,7 @@ it('should login into the application', () => {
 })
 ```
 
-In Cucumber, the timeout applies to a single step definition. However, if you want to increase the timeout because your test takes longer than the default value, you need to set it in the framework options.
+ककड़ी में, टाइमआउट एकल चरण परिभाषा पर लागू होता है। हालाँकि, यदि आप टाइमआउट बढ़ाना चाहते हैं क्योंकि आपका परीक्षण डिफ़ॉल्ट मान से अधिक समय लेता है, तो आपको इसे फ्रेमवर्क विकल्पों में सेट करना होगा।
 
 <Tabs
   defaultValue="mocha"
