@@ -1,11 +1,11 @@
 ---
 id: selectors
-title: Selectors
+title: चयनकर्ताओं
 ---
 
-The [WebDriver Protocol](https://w3c.github.io/webdriver/) provides several selector strategies to query an element. WebdriverIO simplifies them to keep selecting elements simple. Please note that even though the command to query elements is called `$` and `$$`, they have nothing to do with jQuery or the [Sizzle Selector Engine](https://github.com/jquery/sizzle).
+[वेबड्राइवर प्रोटोकॉल](https://w3c.github.io/webdriver/) किसी तत्व को क्वेरी करने के लिए कई चयनकर्ता रणनीतियाँ प्रदान करता है। WebdriverIO तत्वों का चयन सरल रखने के लिए उन्हें सरल बनाता है। कृपया ध्यान दें कि भले ही तत्वों को क्वेरी करने के आदेश को `$` और `$$`कहा जाता है, उनका jQuery या [Sizzle Selector Engine](https://github.com/jquery/sizzle)से कोई लेना-देना नहीं है।
 
-While there are so many different selectors available, only a few of them provide a resilient way to find the right element. For example, given the following button:
+जबकि बहुत सारे अलग-अलग चयनकर्ता उपलब्ध हैं, उनमें से कुछ ही सही तत्व खोजने के लिए एक लचीला तरीका प्रदान करते हैं। उदाहरण के लिए, निम्न बटन दिया गया है:
 
 ```html
 <button
@@ -19,17 +19,17 @@ While there are so many different selectors available, only a few of them provid
 </button>
 ```
 
-We __do__ and __do not__ recommend the following selectors:
+हम __करते हैं__ और __नहीं__ निम्नलिखित चयनकर्ताओं की अनुशंसा करते हैं:
 
-| Selector                                      | Recommended  | Notes                                                       |
-| --------------------------------------------- | ------------ | ----------------------------------------------------------- |
-| `$('button')`                                 | 🚨 Never      | Worst - too generic, no context.                            |
-| `$('.btn.btn-large')`                         | 🚨 Never      | Bad. Coupled to styling. Highly subject to change.          |
-| `$('#main')`                                  | ⚠️ Sparingly | Better. But still coupled to styling or JS event listeners. |
-| `$(() => document.queryElement('button'))` | ⚠️ Sparingly | Effective querying, complex to write.                       |
-| `$('button[name="submission"]')`              | ⚠️ Sparingly | Coupled to the `name` attribute which has HTML semantics.   |
-| `$('button[data-testid="submit"]')`           | ✅ Good       | Requires additional attribute, not connected to a11y.       |
-| `$('aria/Submit')` or `$('button=Submit')`    | ✅ Always     | Best. Resembles how the user interacts with the page.       |
+| चयनकर्ताओं                                    | अनुशंसित   | नोट्स                                                                     |
+| --------------------------------------------- | ---------- | ------------------------------------------------------------------------- |
+| `$('button')`                                 | 🚨 कभी नहीं | सबसे खराब - बहुत सामान्य, कोई संदर्भ नहीं।                                |
+| `$('.btn.btn-large')`                         | 🚨 कभी नहीं | खराब। स्टाइल के साथ युग्मित। अत्यधिक परिवर्तन के अधीन।                    |
+| `$('#main')`                                  | ⚠️ संयम से | बेहतर। लेकिन अभी भी स्टाइलिंग या जेएस इवेंट श्रोताओं के साथ जुड़ा हुआ है। |
+| `$(() => document.queryElement('button'))` | ⚠️ संयम से | प्रभावी पूछताछ, लिखने के लिए जटिल।                                        |
+| `$('button[name="submission"]')`              | ⚠️ संयम से | `name` विशेषता के साथ जोड़ा गया जिसमें HTML शब्दार्थ है।                  |
+| `$('button[data-testid="submit"]')`           | ✅ अच्छा    | अतिरिक्त विशेषता की आवश्यकता है, a11y से कनेक्ट नहीं है।                  |
+| `$('aria/Submit')` or `$('button=Submit')`    | ✅ हमेशा    | श्रेष्ठ। यह दिखता है कि उपयोगकर्ता पेज के साथ कैसे इंटरैक्ट करता है।      |
 
 ## सीएसएस क्वेरी चयनकर्ता
 
@@ -398,9 +398,9 @@ await $('CYIPushButtonView').click()
 
 ## Chain Selectors
 
-If you want to be more specific in your query, you can chain selectors until you've found the right element. If you call `element` before your actual command, WebdriverIO starts the query from that element.
+यदि आप अपनी क्वेरी में अधिक विशिष्ट होना चाहते हैं, तो आप चयनकर्ताओं को तब तक चेन कर सकते हैं जब तक आपको सही तत्व नहीं मिल जाता। यदि आप अपने वास्तविक आदेश से पहले `element` को कॉल करते हैं, तो WebdriverIO उस तत्व से क्वेरी प्रारंभ करता है।
 
-For example, if you have a DOM structure like:
+उदाहरण के लिए, यदि आपके पास DOM संरचना है जैसे:
 
 ```html
 <div class="row">
@@ -422,40 +422,40 @@ For example, if you have a DOM structure like:
 </div>
 ```
 
-And you want to add product B to the cart, it would be difficult to do that just by using the CSS selector.
+और आप उत्पाद बी को कार्ट में जोड़ना चाहते हैं, केवल सीएसएस चयनकर्ता का उपयोग करके ऐसा करना मुश्किल होगा।
 
-With selector chaining, it's way easier. Simply narrow down the desired element step by step:
+चयनकर्ता श्रृंखलन के साथ, यह आसान है। वांछित तत्व को चरण दर चरण संक्षिप्त करें:
 
 ```js
 await $('.row .entry:nth-child(2)').$('button*=Add').click()
 ```
 
-### Appium Image Selector
+### एपियम छवि चयनकर्ता
 
-Using the  `-image` locator strategy, it is possible to send an Appium an image file representing an element you want to access.
+`image` लोकेटर रणनीति का उपयोग करके, एपियम को उस तत्व का प्रतिनिधित्व करने वाली एक छवि फ़ाइल भेजना संभव है जिसे आप एक्सेस करना चाहते हैं।
 
-Supported file formats `jpg,png,gif,bmp,svg`
+समर्थित फ़ाइल स्वरूप `jpg, png, gif, bmp, svg`
 
-Full reference can be found [here](https://github.com/appium/appium/blob/master/docs/en/advanced-concepts/image-elements.md)
+पूरा संदर्भ [यहां](https://github.com/appium/appium/blob/master/docs/en/advanced-concepts/image-elements.md)पाया जा सकता है
 
 ```js
 const elem = await $('./file/path/of/image/test.jpg')
 await elem.click()
 ```
 
-**Note**: The way how Appium works with this selector is that it will internally make a (app)screenshot and use the provided image selector to verify if the element can be found in that (app)screenshot.
+**नोट**: जिस तरह से ऐपियम इस चयनकर्ता के साथ काम करता है वह आंतरिक रूप से एक (ऐप) स्क्रीनशॉट बनाएगा और यह सत्यापित करने के लिए कि क्या तत्व उस (ऐप) स्क्रीनशॉट में पाया जा सकता है, प्रदान की गई छवि चयनकर्ता का उपयोग करेगा।
 
-Be aware of the fact that Appium might resize the taken (app)screenshot to make it match the CSS-size of your (app)screen (this will happen on iPhones but also on Mac machines with a Retina display because the DPR is bigger than 1). This will result in not finding a match because the provided image selector might have been taken from the original screenshot. You can fix this by updating the Appium Server settings, see the [Appium docs](https://github.com/appium/appium/blob/master/docs/en/advanced-concepts/image-elements.md#related-settings) for the settings and [this comment](https://github.com/webdriverio/webdriverio/issues/6097#issuecomment-726675579) on a detailed explanation.
+इस तथ्य से अवगत रहें कि एपियम आपके (एप) स्क्रीन के सीएसएस-आकार से मिलान करने के लिए लिए गए (एप) स्क्रीनशॉट का आकार बदल सकता है (यह आईफोन पर होगा लेकिन रेटिना डिस्प्ले वाली मैक मशीनों पर भी होगा क्योंकि डीपीआर बड़ा है 1 से अधिक)। इसके परिणामस्वरूप मिलान नहीं मिलेगा क्योंकि प्रदान किया गया छवि चयनकर्ता मूल स्क्रीनशॉट से लिया गया हो सकता है। आप ऐपियम सर्वर सेटिंग्स को अपडेट करके इसे ठीक कर सकते हैं, सेटिंग्स के लिए [ऐपियम डॉक्स](https://github.com/appium/appium/blob/master/docs/en/advanced-concepts/image-elements.md#related-settings) और विस्तृत विवरण पर [यह टिप्पणी](https://github.com/webdriverio/webdriverio/issues/6097#issuecomment-726675579) देखें।
 
-## React Selectors
+## प्रतिक्रिया चयनकर्ता
 
-WebdriverIO provides a way to select React components based on the component name. To do this, you have a choice of two commands: `react$` and `react$$`.
+WebdriverIO घटक नाम के आधार पर प्रतिक्रिया घटकों का चयन करने का एक तरीका प्रदान करता है। ऐसा करने के लिए, आपके पास दो आदेशों का विकल्प है: `react$` और `react$$`।
 
-These commands allow you to select components off the [React VirtualDOM](https://reactjs.org/docs/faq-internals.html) and return either a single WebdriverIO Element or an array of elements (depending on which function is used).
+ये आदेश आपको [रिएक्ट वर्चुअलडोम](https://reactjs.org/docs/faq-internals.html) से घटकों का चयन करने की अनुमति देते हैं और या तो एक WebdriverIO तत्व या तत्वों की एक सरणी (किस फ़ंक्शन का उपयोग किया जाता है) के आधार पर लौटाते हैं।
 
-**Note**: The commands `react$` and `react$$` are similar in functionality, except that `react$$` will return *all* matching instances as an array of WebdriverIO elements, and `react$` will return the first found instance.
+**नोट**: आदेश `react$` और `react$ $` कार्यक्षमता में समान हैं, सिवाय इसके कि `react$$` वेबड्राइवरियो तत्वों की एक सरणी के रूप में *सभी* मिलान उदाहरण लौटाएंगे, और `react$` वापस आ जाएगी पहला उदाहरण मिला।
 
-#### Basic example
+#### मूल उदाहरण
 
 ```jsx
 // index.jsx
@@ -477,19 +477,19 @@ function App() {
 ReactDOM.render(<App />, document.querySelector('#root'))
 ```
 
-In the above code there is a simple `MyComponent` instance inside the application, which React is rendering inside a HTML element with `id="root"`.
+उपरोक्त कोड में एप्लिकेशन के अंदर एक साधारण `MyComponent` उदाहरण है, जो रिएक्ट HTML तत्व के अंदर `id="root"`के साथ प्रस्तुत कर रहा है।
 
-With the `browser.react$` command, you can select an instance of `MyComponent`:
+`browser.react$` कमांड के साथ, आप `MyComponent`का एक उदाहरण चुन सकते हैं:
 
 ```js
 const myCmp = await browser.react$('MyComponent')
 ```
 
-Now that you have the WebdriverIO element stored in `myCmp` variable, you can execute element commands against it.
+अब जब आपके पास WebdriverIO तत्व `myCmp` चर में संग्रहीत है, तो आप इसके विरुद्ध तत्व आदेश निष्पादित कर सकते हैं।
 
-#### Filtering components
+#### फ़िल्टरिंग घटक
 
-The library that WebdriverIO uses internally allows to filter your selection by props and/or state of the component. To do so, you need to pass a second argument for props and/or a third argument for state to the browser command.
+लाइब्रेरी जो WebdriverIO आंतरिक रूप से उपयोग करती है, आपके चयन को प्रोप और/या घटक की स्थिति द्वारा फ़िल्टर करने की अनुमति देती है। ऐसा करने के लिए, आपको प्रॉप्स के लिए दूसरा तर्क और/या राज्य के लिए ब्राउज़र कमांड के लिए तीसरा तर्क पास करना होगा।
 
 ```jsx
 // index.jsx
@@ -516,7 +516,7 @@ function App() {
 ReactDOM.render(<App />, document.querySelector('#root'))
 ```
 
-If you want to select the instance of `MyComponent` that has a prop `name` as `WebdriverIO`, you can execute the command like so:
+यदि आप `MyComponent` का उदाहरण चुनना चाहते हैं जिसमें प्रोप `name` `WebdriverIO`के रूप में है, तो आप इस तरह से कमांड निष्पादित कर सकते हैं:
 
 ```js
 const myCmp = await browser.react$('MyComponent', {
@@ -524,7 +524,7 @@ const myCmp = await browser.react$('MyComponent', {
 })
 ```
 
-If you wanted to filter our selection by state, the `browser` command would looks something like so:
+यदि आप हमारे चयन को राज्य द्वारा फ़िल्टर करना चाहते हैं, तो `browser` कमांड कुछ ऐसा दिखाई देगा:
 
 ```js
 const myCmp = await browser.react$('MyComponent', {
@@ -532,9 +532,9 @@ const myCmp = await browser.react$('MyComponent', {
 })
 ```
 
-#### Dealing with `React.Fragment`
+#### `React.Fragment`से डील करना
 
-When using the `react$` command to select React [fragments](https://reactjs.org/docs/fragments.html), WebdriverIO will return the first child of that component as the component's node. If you use `react$$`, you will receive an array containing all the HTML nodes inside the fragments that match the selector.
+प्रतिक्रिया [टुकड़े](https://reactjs.org/docs/fragments.html)का चयन करने के लिए `react$` कमांड का उपयोग करते समय, WebdriverIO घटक के नोड के रूप में उस घटक के पहले बच्चे को वापस कर देगा। यदि आप `react$$`का उपयोग करते हैं, तो आपको चयनकर्ता से मेल खाने वाले टुकड़ों के अंदर सभी HTML नोड्स वाली एक सरणी प्राप्त होगी।
 
 ```jsx
 // index.jsx
@@ -561,18 +561,18 @@ function App() {
 ReactDOM.render(<App />, document.querySelector('#root'))
 ```
 
-Given the above example, this is how the commands would work:
+उपरोक्त उदाहरण को देखते हुए, आदेश इस प्रकार काम करेंगे:
 
 ```js
 await browser.react$('MyComponent') // returns the WebdriverIO Element for the first <div />
 await browser.react$$('MyComponent') // returns the WebdriverIO Elements for the array [<div />, <div />]
 ```
 
-**Note:** If you have multiple instances of `MyComponent` and you use `react$$` to select these fragment components, you will be returned an one-dimensional array of all the nodes. In other words, if you have 3 `<MyComponent />` instances, you will be returned an array with six WebdriverIO elements.
+**नोट:** यदि आपके पास `MyComponent` के कई उदाहरण हैं और आप इन खंड घटकों का चयन करने के लिए `react$$` का उपयोग करते हैं, तो आपको सभी नोड्स की एक आयामी सरणी वापस कर दी जाएगी। दूसरे शब्दों में, यदि आपके पास 3 `<MyComponent />` उदाहरण हैं, तो आपको छह WebdriverIO तत्वों के साथ एक सरणी वापस कर दी जाएगी।
 
-## Custom Selector Strategies
+## कस्टम चयनकर्ता रणनीतियाँ
 
-If your app requires a specific way to fetch elements you can define yourself a custom selector strategy that you can use with `custom$` and `custom$$`. For that register your strategy once in the beginning of the test:
+यदि आपके ऐप को तत्वों को लाने के लिए एक विशिष्ट तरीके की आवश्यकता है तो आप स्वयं को एक कस्टम चयनकर्ता रणनीति परिभाषित कर सकते हैं जिसका उपयोग आप `custom$` और `custom$$`के साथ कर सकते हैं। इसके लिए परीक्षण की शुरुआत में एक बार अपनी रणनीति दर्ज करें:
 
 ```js
 browser.addLocatorStrategy('myCustomStrategy', (selector, root) => {
@@ -585,7 +585,7 @@ browser.addLocatorStrategy('myCustomStrategy', (selector, root) => {
 })
 ```
 
-Given the following HTML snippet:
+निम्नलिखित HTML स्निपेट को देखते हुए:
 
 ```html
 <div class="foobar" id="first">
@@ -595,7 +595,7 @@ Given the following HTML snippet:
 </div>
 ```
 
-Then use it by calling:
+फिर कॉल करके इसका इस्तेमाल करें:
 
 ```js
 const elem = await browser.custom$('myCustomStrategy', '.foobar')
@@ -604,4 +604,4 @@ const nestedElem = await elem.custom$('myCustomStrategy', '.foobar')
 console.log(await elem.getAttribute('id')) // returns "second"
 ```
 
-**Note:** this only works in an web environment in which the [`execute`](/docs/api/browser/execute) command can be run.
+**नोट:** यह केवल एक वेब वातावरण में काम करता है जिसमें [`execute`](/docs/api/browser/execute) कमांड चलाया जा सकता है।
