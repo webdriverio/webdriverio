@@ -58,25 +58,25 @@ Similar to other migrations we can use the WebdriverIO [codemod](https://github.
 npm install jscodeshift @wdio/codemod
 ```
 
-## Upgrade WebdriverIO Dependencies
+## WebdriverIO निर्भरता को अपग्रेड करें
 
-Given that all WebdriverIO versions are tight to each other it is the best to always upgrade to a specific tag, e.g. `6.12.0`. If you decide to upgrade from `v5` directly to `v7` you can leave out the tag and install latest versions of all packages. To do so we copy all WebdriverIO related dependencies out of our `package.json` and re-install them via:
+यह देखते हुए कि सभी WebdriverIO संस्करण एक-दूसरे से तंग हैं, हमेशा एक विशिष्ट टैग में अपग्रेड करना सबसे अच्छा होता है, उदाहरण के लिए `6.12.0`। यदि आप `v5` से सीधे `v7` में अपग्रेड करने का निर्णय लेते हैं तो आप टैग को छोड़ सकते हैं और सभी पैकेजों के नवीनतम संस्करण स्थापित कर सकते हैं। ऐसा करने के लिए हम सभी WebdriverIO संबंधित निर्भरताओं को हमारे `package.json` से कॉपी करते हैं और उन्हें इसके माध्यम से पुनः इंस्टॉल करते हैं:
 
 ```sh
 npm i --save-dev @wdio/allure-reporter@6 @wdio/cli@6 @wdio/cucumber-framework@6 @wdio/local-runner@6 @wdio/spec-reporter@6 @wdio/sync@6 wdio-chromedriver-service@6 webdriverio@6
 ```
 
-Usually WebdriverIO dependencies are part of the dev dependencies, depending on your project this can vary though. After this your `package.json` and `package-lock.json` should be updated. __Note:__ these are example dependencies, yours may differ. Make sure you find the latest v6 version by calling, e.g.:
+आमतौर पर WebdriverIO निर्भरताएँ देव निर्भरताओं का हिस्सा होती हैं, यह आपकी परियोजना के आधार पर भिन्न हो सकती है। इसके बाद आपका `package.json` और `package-lock.json` अपडेट होना चाहिए। __नोट:__ ये निर्भरता के उदाहरण हैं, आपके भिन्न हो सकते हैं। कॉल करके सुनिश्चित करें कि आपको नवीनतम v6 संस्करण मिल गया है, जैसे:
 
 ```sh
 npm show webdriverio versions
 ```
 
-Try to install the latest version 6 available for all core WebdriverIO packages. For community packages this can differ from package to package. Here we recommend to check the changelog for information on which version is still compatible with v6.
+सभी कोर वेबड्राइवरआईओ पैकेज के लिए उपलब्ध नवीनतम संस्करण 6 को स्थापित करने का प्रयास करें। सामुदायिक पैकेजों के लिए यह एक पैकेज से दूसरे पैकेज में भिन्न हो सकता है। यहां हम जानकारी के लिए चेंजलॉग की जांच करने की सलाह देते हैं कि कौन सा संस्करण अभी भी v6 के साथ संगत है।
 
-## Transform Config File
+## कॉन्फ़िग फ़ाइल को रूपांतरित करें
 
-A good first step is to start with the config file. All breaking changes can be resolve using the codemod full automatically:
+एक अच्छा पहला कदम कॉन्फिग फाइल के साथ शुरू करना है। सभी ब्रेकिंग परिवर्तनों को स्वचालित रूप से कोडमॉड का उपयोग करके हल किया जा सकता है:
 
 ```sh
 npx jscodeshift -t ./node_modules/@wdio/codemod/v6 ./wdio.conf.js
@@ -84,22 +84,24 @@ npx jscodeshift -t ./node_modules/@wdio/codemod/v6 ./wdio.conf.js
 
 :::caution
 
-The codemod doesn't yet support TypeScript projects. See [`@webdriverio/codemod#10`](https://github.com/webdriverio/codemod/issues/10). We are working to implement support for it soon. If you are using TypeScript please get involved!
+कोडमॉड अभी तक टाइपस्क्रिप्ट परियोजनाओं का समर्थन नहीं करता है। देखें [`@webdriverio/codemod#10`](https://github.com/webdriverio/codemod/issues/10)। हम जल्द ही इसके लिए समर्थन लागू करने के लिए काम कर रहे हैं। यदि आप टाइपस्क्रिप्ट का उपयोग कर रहे हैं तो कृपया शामिल हों!
 
 :::
 
-## Update Spec Files and Page Objects
+## विशिष्ट फ़ाइलें और पृष्ठ ऑब्जेक्ट अपडेट करें
 
-In order to update all command changes run the codemod on all your e2e files that contain WebdriverIO commands, e.g.:
+सभी आदेश परिवर्तनों को अद्यतन करने के लिए अपनी सभी e2e फ़ाइलों पर कोडमॉड चलाएँ जिनमें WebdriverIO कमांड शामिल हैं, जैसे:
 
 ```sh
 npx jscodeshift -t ./node_modules/@wdio/codemod/v6 ./e2e/*
 ```
 
-That's it! No more changes necessary 🎉
+इतना ही! कोई और परिवर्तन आवश्यक नहीं है 🎉
 
-## Conclusion
+## निष्कर्ष
 
-We hope this tutorial guides you a little bit through the migration process to WebdriverIO `v6`. We strongly recommend to continue upgrading to the latest version given that updating to `v7` is trivial due to almost no breaking changes. Please check out the migration guide [to upgrade to v7](v7-migration).
+हम आशा करते हैं कि यह ट्यूटोरियल WebdriverIO `v6`में माइग्रेशन प्रक्रिया के माध्यम से आपका थोड़ा सा मार्गदर्शन करेगा। हम पुरजोर अनुशंसा करते हैं कि नवीनतम संस्करण में अपग्रेड करना जारी रखें क्योंकि लगभग कोई ब्रेकिंग बदलाव नहीं होने के कारण `v7` में अपडेट करना तुच्छ है। V7</a>में अपग्रेड करने के लिए कृपया माइग्रेशन गाइड
 
-The community continues to improve the codemod while testing it with various teams in various organisations. Don't hesitate to [raise an issue](https://github.com/webdriverio/codemod/issues/new) if you have feedback or [start a discussion](https://github.com/webdriverio/codemod/discussions/new) if you struggle during the migration process.
+देखें।</p> 
+
+समुदाय विभिन्न संगठनों में विभिन्न टीमों के साथ परीक्षण करते समय कोडमोड में सुधार करना जारी रखता है। कोई मुद्दा उठाने में संकोच न करें [यदि आपके पास फीडबैक है या [चर्चा शुरू](https://github.com/webdriverio/codemod/discussions/new)](https://github.com/webdriverio/codemod/issues/new) यदि आप माइग्रेशन प्रक्रिया के दौरान संघर्ष करते हैं।
