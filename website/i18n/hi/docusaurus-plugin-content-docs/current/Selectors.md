@@ -259,41 +259,41 @@ const button = await $('id=resource-id/iosname')
 
 आप वेब नेटिव एपीआई का उपयोग करके तत्वों को लाने के लिए जावास्क्रिप्ट फ़ंक्शंस का भी उपयोग कर सकते हैं। बेशक, आप इसे केवल एक वेब संदर्भ (जैसे, `ब्राउज़र`या मोबाइल में वेब संदर्भ) के अंदर ही कर सकते हैं।
 
-Given the following HTML structure:
+निम्नलिखित HTML स्निपेट को देखते हुए:
 
 ```html reference
 https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/js.html
 ```
 
-You can query the sibling element of `#elem` as follows:
+आप `#elem` के सहोदर तत्व को निम्नानुसार क्वेरी कर सकते हैं:
 
 ```js reference useHTTPS
 https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.js#L139-L143
 ```
 
-## Deep Selectors
+## गहरे चयनकर्ता
 
-Many frontend applications heavily rely on elements with [shadow DOM](https://developer.mozilla.org/en-US/docs/Web/Web_Components/Using_shadow_DOM). It is technically impossible to query elements within the shadow DOM without workarounds. The [`shadow$`](https://webdriver.io/docs/api/element/shadow$) and [`shadow$$`](https://webdriver.io/docs/api/element/shadow$$) have been such workarounds that had their [limitations](https://github.com/Georgegriff/query-selector-shadow-dom#how-is-this-different-to-shadow). With the deep selector you can now query all elements within any shadow DOM using the common query command.
+कई फ्रंटएंड एप्लिकेशन [शैडो डोम](https://developer.mozilla.org/en-US/docs/Web/Web_Components/Using_shadow_DOM)वाले तत्वों पर बहुत अधिक निर्भर करते हैं। वर्कअराउंड के बिना शैडो डोम के भीतर तत्वों को क्वेरी करना तकनीकी रूप से असंभव है। [`shadow$`](https://webdriver.io/docs/api/element/shadow$) और [`shadow$$`](https://webdriver.io/docs/api/element/shadow$$) ऐसे वर्कअराउंड रहे हैं जिनकी [सीमाएं](https://github.com/Georgegriff/query-selector-shadow-dom#how-is-this-different-to-shadow)थीं। गहरे चयनकर्ता के साथ अब आप सामान्य क्वेरी कमांड का उपयोग करके किसी भी शैडो डोम के भीतर सभी तत्वों को क्वेरी कर सकते हैं।
 
-Given we have an application with the following structure:
+देखते हुए हमारे पास निम्नलिखित संरचना के साथ एक आवेदन है:
 
-![Chrome Example](https://github.com/Georgegriff/query-selector-shadow-dom/raw/main/Chrome-example.png "Chrome Example")
+![क्रोम उदाहरण](https://github.com/Georgegriff/query-selector-shadow-dom/raw/main/Chrome-example.png "क्रोम उदाहरण")
 
-With this selector you can query the `<button />` element that is nested within another shadow DOM, e.g.:
+इस चयनकर्ता के साथ आप `<button />` तत्व को क्वेरी कर सकते हैं जो किसी अन्य छाया DOM में नेस्टेड है, उदाहरण के लिए:
 
 ```js reference useHTTPS
 https://github.com/webdriverio/example-recipes/blob/e8b147e88e7a38351b0918b4f7efbd9ae292201d/selectors/example.js#L147-L149
 ```
 
-## Mobile Selectors
+## मोबाइल चयनकर्ता
 
-For hybrid mobile testing, it's important that the automation server is in the correct *context* before executing commands. For automating gestures, the driver ideally should be set to native context. But to select elements from the DOM, the driver will need to be set to the platform's webview context. Only *then* can the methods mentioned above can be used.
+हाइब्रिड मोबाइल परीक्षण के लिए, यह महत्वपूर्ण है कि कमांड निष्पादित करने से पहले ऑटोमेशन सर्वर सही *संदर्भ* में हो। इशारों को स्वचालित करने के लिए, चालक को आदर्श रूप से मूल संदर्भ में सेट किया जाना चाहिए। लेकिन DOM से तत्वों का चयन करने के लिए, ड्राइवर को प्लेटफ़ॉर्म के वेबव्यू प्रसंग पर सेट करने की आवश्यकता होगी। केवल *तो* ऊपर वर्णित विधियों का उपयोग किया जा सकता है।
 
-For native mobile testing, there is no switching between contexts, as you have to use mobile strategies and use the underlying device automation technology directly. This is especially useful when a test needs some fine-grained control over finding elements.
+देशी मोबाइल परीक्षण के लिए, संदर्भों के बीच कोई स्विचिंग नहीं है, क्योंकि आपको मोबाइल रणनीतियों का उपयोग करना है और अंतर्निहित डिवाइस ऑटोमेशन तकनीक का सीधे उपयोग करना है। यह विशेष रूप से तब उपयोगी होता है जब किसी परीक्षण को तत्वों को खोजने पर कुछ सूक्ष्म नियंत्रण की आवश्यकता होती है।
 
 ### Android UiAutomator
 
-Android’s UI Automator framework provides a number of ways to find elements. You can use the [UI Automator API](https://developer.android.com/tools/testing-support-library/index.html#uia-apis), in particular the [UiSelector class](https://developer.android.com/reference/androidx/test/uiautomator/UiSelector) to locate elements. In Appium you send the Java code, as a string, to the server, which executes it in the application’s environment, returning the element or elements.
+एंड्रॉइड का यूआई ऑटोमेटर ढांचा तत्वों को खोजने के कई तरीके प्रदान करता है। आप तत्वों का पता लगाने के लिए [UI Automator API](https://developer.android.com/tools/testing-support-library/index.html#uia-apis)का उपयोग कर सकते हैं, विशेष रूप से [UiSelector वर्ग](https://developer.android.com/reference/androidx/test/uiautomator/UiSelector) का। एपियम में आप जावा कोड को एक स्ट्रिंग के रूप में सर्वर को भेजते हैं, जो इसे एप्लिकेशन के वातावरण में निष्पादित करता है, तत्व या तत्वों को वापस करता है।
 
 ```js
 const selector = 'new UiSelector().text("Cancel").className("android.widget.Button")'
@@ -301,9 +301,9 @@ const button = await $(`android=${selector}`)
 await button.click()
 ```
 
-### Android DataMatcher and ViewMatcher (Espresso only)
+### Android DataMatcher और ViewMatcher (केवल एस्प्रेसो)
 
-Android's DataMatcher strategy provides a way to find elements by [Data Matcher](https://developer.android.com/reference/android/support/test/espresso/DataInteraction)
+एंड्रॉइड की डेटामैचर रणनीति [डेटा मैचर](https://developer.android.com/reference/android/support/test/espresso/DataInteraction)द्वारा तत्वों को खोजने का एक तरीका प्रदान करती है
 
 ```js
 const menuItem = await $({
@@ -313,7 +313,7 @@ const menuItem = await $({
 await menuItem.click()
 ```
 
-And similarly [View Matcher](https://developer.android.com/reference/android/support/test/espresso/ViewInteraction)
+और इसी तरह [मैचर](https://developer.android.com/reference/android/support/test/espresso/ViewInteraction)देखें
 
 ```js
 const menuItem = await $({
@@ -324,9 +324,9 @@ const menuItem = await $({
 await menuItem.click()
 ```
 
-### Android View Tag (Espresso only)
+### Android दृश्य टैग (केवल एस्प्रेसो)
 
-The view tag strategy provides a convenient way to find elements by their [tag](https://developer.android.com/reference/android/support/test/espresso/matcher/ViewMatchers.html#withTagValue%28org.hamcrest.Matcher%3Cjava.lang.Object%3E%29).
+दृश्य टैग रणनीति तत्वों को उनके [टैग](https://developer.android.com/reference/android/support/test/espresso/matcher/ViewMatchers.html#withTagValue%28org.hamcrest.Matcher%3Cjava.lang.Object%3E%29)द्वारा खोजने का एक सुविधाजनक तरीका प्रदान करती है।
 
 ```js
 const elem = await $('-android viewtag:tag_identifier')
@@ -335,9 +335,9 @@ await elem.click()
 
 ### iOS UIAutomation
 
-When automating an iOS application, Apple’s [UI Automation framework](https://developer.apple.com/library/prerelease/tvos/documentation/DeveloperTools/Conceptual/InstrumentsUserGuide/UIAutomation.html) can be used to find elements.
+आईओएस एप्लिकेशन को स्वचालित करते समय, ऐप्पल के [यूआई ऑटोमेशन फ्रेमवर्क](https://developer.apple.com/library/prerelease/tvos/documentation/DeveloperTools/Conceptual/InstrumentsUserGuide/UIAutomation.html) का उपयोग तत्वों को खोजने के लिए किया जा सकता है।
 
-This JavaScript [API](https://developer.apple.com/library/ios/documentation/DeveloperTools/Reference/UIAutomationRef/index.html#//apple_ref/doc/uid/TP40009771) has methods to access to the view and everything on it.
+इस जावास्क्रिप्ट [एपीआई](https://developer.apple.com/library/ios/documentation/DeveloperTools/Reference/UIAutomationRef/index.html#//apple_ref/doc/uid/TP40009771) में दृश्य और उस पर सब कुछ तक पहुंचने के तरीके हैं।
 
 ```js
 const selector = 'UIATarget.localTarget().frontMostApp().mainWindow().buttons()[0]'
@@ -345,11 +345,11 @@ const button = await $(`ios=${selector}`)
 await button.click()
 ```
 
-You can also use predicate searching within iOS UI Automation in Appium to refine element selection even further. See [here](https://github.com/appium/appium/blob/master/docs/en/writing-running-appium/ios/ios-predicate.md) for details.
+आप आगे भी तत्व चयन को परिशोधित करने के लिए एपियम में आईओएस यूआई ऑटोमेशन के भीतर भविष्यवाणी खोज का उपयोग कर सकते हैं। विवरण के लिए [यहाँ](https://github.com/appium/appium/blob/master/docs/en/writing-running-appium/ios/ios-predicate.md) देखें।
 
-### iOS XCUITest predicate strings and class chains
+### iOS XCUITest विधेय स्ट्रिंग्स और क्लास चेन
 
-With iOS 10 and above (using the `XCUITest` driver), you can use [predicate strings](https://github.com/facebook/WebDriverAgent/wiki/Predicate-Queries-Construction-Rules):
+IOS 10 और इसके बाद के संस्करण ( `XCUITest` ड्राइवर का उपयोग करके) के साथ, आप [विधेय स्ट्रिंग्स](https://github.com/facebook/WebDriverAgent/wiki/Predicate-Queries-Construction-Rules)का उपयोग कर सकते हैं:
 
 ```js
 const selector = `type == 'XCUIElementTypeSwitch' && name CONTAINS 'Allow'`
@@ -357,7 +357,7 @@ const switch = await $(`-ios predicate string:${selector}`)
 await switch.click()
 ```
 
-And [class chains](https://github.com/facebook/WebDriverAgent/wiki/Class-Chain-Queries-Construction-Rules):
+और [क्लास चेन](https://github.com/facebook/WebDriverAgent/wiki/Class-Chain-Queries-Construction-Rules):
 
 ```js
 const selector = '**/XCUIElementTypeCell[`name BEGINSWITH "D"`]/**/XCUIElementTypeButton'
@@ -367,25 +367,25 @@ await button.click()
 
 ### Accessibility ID
 
-The `accessibility id` locator strategy is designed to read a unique identifier for a UI element. This has the benefit of not changing during localization or any other process that might change text. In addition, it can be an aid in creating cross-platform tests, if elements that are functionally the same have the same accessibility id.
+`accessibility id` लोकेटर रणनीति को यूआई तत्व के लिए एक विशिष्ट पहचानकर्ता को पढ़ने के लिए डिज़ाइन किया गया है। इसका स्थानीयकरण या किसी अन्य प्रक्रिया के दौरान नहीं बदलने का लाभ है जो पाठ को बदल सकता है। इसके अलावा, यह क्रॉस-प्लेटफ़ॉर्म परीक्षण बनाने में सहायता कर सकता है, यदि तत्व जो कार्यात्मक रूप से समान हैं, उनकी समान पहुंच आईडी है।
 
-- For iOS this is the `accessibility identifier` laid out by Apple [here](https://developer.apple.com/library/prerelease/ios/documentation/UIKit/Reference/UIAccessibilityIdentification_Protocol/index.html).
-- For Android the `accessibility id` maps to the `content-description` for the element, as described [here](https://developer.android.com/training/accessibility/accessible-app.html).
+- IOS के लिए यह `accessibility identifier` है जिसे Apple [यहाँ](https://developer.apple.com/library/prerelease/ios/documentation/UIKit/Reference/UIAccessibilityIdentification_Protocol/index.html)द्वारा निर्धारित किया गया है।
+- एंड्रॉइड के लिए `accessibility id` तत्व के लिए `content-description` पर मैप करता है, जैसा कि [यहां](https://developer.android.com/training/accessibility/accessible-app.html)वर्णित है।
 
-For both platforms, getting an element (or multiple elements) by their `accessibility id` is usually the best method. It is also the preferred way over the deprecated `name` strategy.
+दोनों प्लेटफार्मों के लिए, उनकी `accessibility id` द्वारा एक तत्व (या एकाधिक तत्व) प्राप्त करना आमतौर पर सबसे अच्छी विधि है। यह बहिष्कृत `name` रणनीति पर भी पसंदीदा तरीका है।
 
 ```js
 const elem = await $('~my_accessibility_identifier')
 await elem.click()
 ```
 
-### Class Name
+### कक्षा का नाम
 
-The `class name` strategy is a `string` representing a UI element on the current view.
+`class name` रणनीति एक `string` है जो वर्तमान दृश्य पर UI तत्व का प्रतिनिधित्व करती है।
 
-- For iOS it is the full name of a [UIAutomation class](https://developer.apple.com/library/prerelease/tvos/documentation/DeveloperTools/Conceptual/InstrumentsUserGuide/UIAutomation.html), and will begin with `UIA-`, such as `UIATextField` for a text field. A full reference can be found [here](https://developer.apple.com/library/ios/navigation/#section=Frameworks&topic=UIAutomation).
-- For Android it is the fully qualified name of a [UI Automator](https://developer.android.com/tools/testing-support-library/index.html#UIAutomator) [class](https://developer.android.com/reference/android/widget/package-summary.html), such `android.widget.EditText` for a text field. A full reference can be found [here](https://developer.android.com/reference/android/widget/package-summary.html).
-- For Youi.tv it is the full name of a Youi.tv class, and will being with `CYI-`, such as `CYIPushButtonView` for a push button element. A full reference can be found at [You.i Engine Driver's GitHub page](https://github.com/YOU-i-Labs/appium-youiengine-driver)
+- IOS के लिए यह [UIAutomation क्लास](https://developer.apple.com/library/prerelease/tvos/documentation/DeveloperTools/Conceptual/InstrumentsUserGuide/UIAutomation.html)का पूरा नाम है, और `UIA-`से शुरू होगा, जैसे टेक्स्ट फ़ील्ड के लिए `UIATextField`। पूरा संदर्भ [यहां](https://developer.apple.com/library/ios/navigation/#section=Frameworks&topic=UIAutomation)पाया जा सकता है
+- Android के लिए यह [UI Automator](https://developer.android.com/tools/testing-support-library/index.html#UIAutomator) [class](https://developer.android.com/reference/android/widget/package-summary.html)का पूरी तरह से योग्य नाम है, जैसे `android.widget.EditText` टेक्स्ट फ़ील्ड के लिए। पूरा संदर्भ [यहां](https://developer.android.com/reference/android/widget/package-summary.html)पाया जा सकता है
+- Youi.tv के लिए यह Youi.tv वर्ग का पूरा नाम है, और `CYI-`के साथ होगा, जैसे कि एक पुश बटन तत्व के लिए `CYIPushButtonView`। पूरा संदर्भ [You.i इंजन ड्राइवर के GitHub पेज](https://github.com/YOU-i-Labs/appium-youiengine-driver)पर पाया जा सकता है
 
 ```js
 // iOS example
@@ -396,7 +396,7 @@ await $('android.widget.DatePicker').click()
 await $('CYIPushButtonView').click()
 ```
 
-## Chain Selectors
+## चेन चयनकर्ता
 
 यदि आप अपनी क्वेरी में अधिक विशिष्ट होना चाहते हैं, तो आप चयनकर्ताओं को तब तक चेन कर सकते हैं जब तक आपको सही तत्व नहीं मिल जाता। यदि आप अपने वास्तविक आदेश से पहले `element` को कॉल करते हैं, तो WebdriverIO उस तत्व से क्वेरी प्रारंभ करता है।
 
