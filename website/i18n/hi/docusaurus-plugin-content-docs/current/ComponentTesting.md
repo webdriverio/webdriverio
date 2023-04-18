@@ -1,15 +1,15 @@
 ---
 id: component-testing
-title: Component Testing
+title: कॉम्पोनेन्ट टेस्टिंग
 ---
 
-With WebdriverIOs [Browser Runner](/docs/runner#browser-runner) you can run tests within an actual desktop or mobile browser while using WebdriverIO and the WebDriver protocol to automate and interact what gets rendered on the page. This approach has [many advantages](/docs/runner#browser-runner) compared to other test frameworks that only allow testing against [JSDOM](https://www.npmjs.com/package/jsdom).
+WebdriverIOs [Browser Runner](/docs/runner#browser-runner) के साथ आप WebdriverIO और WebDriver प्रोटोकॉल का उपयोग करते हुए एक वास्तविक डेस्कटॉप या मोबाइल ब्राउज़र के भीतर परीक्षण चला सकते हैं ताकि पेज पर जो प्रस्तुत किया जाता है उसे स्वचालित और इंटरैक्ट किया जा सके। इस दृष्टिकोण के अन्य परीक्षण ढांचे की तुलना में [कई फायदे](/docs/runner#browser-runner) हैं जो केवल [JSDOM](https://www.npmjs.com/package/jsdom)के खिलाफ परीक्षण की अनुमति देते हैं।
 
-## How does it Work?
+## यह कैसे काम करता है?
 
-The Browser Runner uses [Vite](https://vitejs.dev/) to render a test page and initialize a test framework to run your tests in the browser. Currently it only supports Mocha but Jasmine and Cucumber are [on the roadmap](https://github.com/orgs/webdriverio/projects/1). This allows to test any kind of components even for projects that don't use Vite.
+ब्राउज़र रनर एक परीक्षण पेज प्रस्तुत करने के लिए [Vite](https://vitejs.dev/) का उपयोग करता है और ब्राउज़र में आपके परीक्षण चलाने के लिए एक परीक्षण फ्रेमवर्क आरंभ करता है। वर्तमान में यह केवल मोचा का समर्थन करता है लेकिन जैस्मीन और कुकुम्बर [रोडमैप पर है](https://github.com/orgs/webdriverio/projects/1). यह उन परियोजनाओं के लिए भी किसी भी प्रकार के कॉम्पोनेन्ट का परीक्षण करने की अनुमति देता है जो Vite का उपयोग नहीं करते हैं।
 
-The Vite server is started by the WebdriverIO testrunner and configured so that you can use all reporter and services as you used to for normal e2e tests. Furthermore it initialises a [`browser`](/docs/api/browser) instance that allows you to access a subset of the [WebdriverIO API](/docs/api) to interact with the any elements on the page. E2e परीक्षणों के समान आप वैश्विक दायरे से जुड़े `browser` वेरिएबल के माध्यम से या `@wdio/globals` से आयात करके इस उदाहरण तक पहुंच सकते हैं, यह इस बात पर निर्भर करता है कि [`njectGlobals`](/docs/api/globals) कैसे सेट किया गया है।
+Vite सर्वर WebdriverIO टेस्टरनर द्वारा शुरू किया गया है और कॉन्फ़िगर किया गया है ताकि आप सभी रिपोर्टर और सेवाओं का उपयोग कर सकें जैसा कि आप सामान्य e2e परीक्षणों के लिए करते थे। इसके अलावा यह [`browser`](/docs/api/browser) इंस्टेंस को इनिशियलाइज़ करता है जो आपको पेज पर किसी भी तत्व के साथ इंटरैक्ट करने के लिए [WebdriverIO API](/docs/api) के एक सबसेट तक पहुँचने की अनुमति देता है। E2e परीक्षणों के समान आप वैश्विक दायरे से जुड़े `browser` वेरिएबल के माध्यम से या `@wdio/globals` से आयात करके इस उदाहरण तक पहुंच सकते हैं, यह इस बात पर निर्भर करता है कि [`njectGlobals`](/docs/api/globals) कैसे सेट किया गया है।
 
 ## सेटअप
 
