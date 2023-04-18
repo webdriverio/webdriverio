@@ -18,29 +18,29 @@ If your company has a corporate proxy (e.g. on `http://my.corp.proxy.com:9090`) 
 npm install global-agent --save-dev
 ```
 
-### Add global-agent bootstrap to your config file
+### अपनी कॉन्फ़िगरेशन फ़ाइल में ग्लोबल-एजेंट बूटस्ट्रैप जोड़ें
 
-Add the following require statement to the top of your config file.
+अपनी कॉन्फ़िगरेशन फ़ाइल के शीर्ष पर निम्न आवश्यक कथन जोड़ें।
 
 ```js title="wdio.conf.js"
-import { bootstrap } from 'global-agent';
-bootstrap();
+'ग्लोबल-एजेंट' से { bootstrap } आयात करें;
+बूटस्ट्रैप ();
 
-export const config = {
+एक्सपोर्ट कॉन्स्ट कॉन्फ़िगरेशन = {
     // ...
 }
 ```
 
-### Set global-agent environment variables
+### वैश्विक-एजेंट पर्यावरण चर सेट करें
 
-Before you start the test, make sure you've exported the variable in the terminal, like so:
+परीक्षण शुरू करने से पहले, सुनिश्चित करें कि आपने चर को टर्मिनल में निर्यात कर दिया है, जैसे:
 
 ```sh
 export GLOBAL_AGENT_HTTP_PROXY=http://my.corp.proxy.com:9090
 wdio wdio.conf.js
 ```
 
-You can exclude URLs from the proxy by exporting the variable, like so:
+आप चर को निर्यात करके URL को प्रॉक्सी से बाहर कर सकते हैं, जैसे:
 
 ```sh
 export GLOBAL_AGENT_HTTP_PROXY=http://my.corp.proxy.com:9090
@@ -48,7 +48,7 @@ export GLOBAL_AGENT_NO_PROXY='.foo.com'
 wdio wdio.conf.js
 ```
 
-If necessary, you can specify `GLOBAL_AGENT_HTTPS_PROXY` to route HTTPS traffic through a different proxy than HTTP traffic.
+यदि आवश्यक हो, तो आप HTTP ट्रैफ़िक की तुलना में किसी भिन्न प्रॉक्सी के माध्यम से HTTPS ट्रैफ़िक को रूट करने के लिए `GLOBAL_AGENT_HTTPS_PROXY` निर्दिष्ट कर सकते हैं।
 
 ```sh
 export GLOBAL_AGENT_HTTP_PROXY=http://my.corp.proxy.com:9090
@@ -56,22 +56,22 @@ export GLOBAL_AGENT_HTTPS_PROXY=http://my.corp.proxy.com:9091
 wdio wdio.conf.js
 ```
 
-`GLOBAL_AGENT_HTTP_PROXY` is used for both HTTP and HTTPS requests if `GLOBAL_AGENT_HTTPS_PROXY` is not set.
+`GLOBAL_AGENT_HTTP_PROXY` का उपयोग HTTP और HTTPS दोनों अनुरोधों के लिए किया जाता है यदि `GLOBAL_AGENT_HTTPS_PROXY` सेट नहीं है।
 
-If you use [Sauce Connect Proxy](https://wiki.saucelabs.com/display/DOCS/Sauce+Connect+Proxy), start it via:
+यदि आप [सॉस कनेक्ट प्रॉक्सी](https://wiki.saucelabs.com/display/DOCS/Sauce+Connect+Proxy)का उपयोग करते हैं, तो इसे इसके माध्यम से प्रारंभ करें:
 
 ```sh
 sc -u $SAUCE_USERNAME -k $SAUCE_ACCESS_KEY --no-autodetect -p http://my.corp.proxy.com:9090
 ```
 
-## Proxy Between Browser And Internet
+## ब्राउज़र और इंटरनेट के बीच प्रॉक्सी
 
-In order to tunnel the connection between the browser and the internet, you can set up a proxy which can be useful to (for example) capture network information and other data with tools like [BrowserMob Proxy](https://github.com/lightbody/browsermob-proxy).
+ब्राउज़र और इंटरनेट के बीच कनेक्शन को टनल करने के लिए, आप एक प्रॉक्सी सेट कर सकते हैं जो (उदाहरण के लिए) [BrowserMob Proxy](https://github.com/lightbody/browsermob-proxy)जैसे टूल के साथ नेटवर्क जानकारी और अन्य डेटा कैप्चर करने के लिए उपयोगी हो सकता है।
 
-The `proxy` parameters can be applied via the standard capabilities the following way:
+`proxy` पैरामीटर को मानक क्षमताओं के माध्यम से निम्न तरीके से लागू किया जा सकता है:
 
 ```js title="wdio.conf.js"
-export const config = {
+निर्यात स्थिरांक विन्यास = {
     // ...
     capabilities: [{
         browserName: 'chrome',
@@ -89,4 +89,4 @@ export const config = {
 }
 ```
 
-For more information, see the [WebDriver specification](https://w3c.github.io/webdriver/#proxy).
+अधिक जानकारी के लिए, [वेबड्राइवर विनिर्देश](https://w3c.github.io/webdriver/#proxy)देखें।
