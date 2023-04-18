@@ -345,27 +345,27 @@ Type: `number`<br /> Default: `30000`
 
 वेयर स्थिति उनके मानों के साथ क्षमताओं गुणों का एक वैकल्पिक संयोजन है, जब **सभी** से मेल खाते हैं, तो टैग किए गए परिदृश्य या सुविधा को छोड़ दिया जाता है। बेशक आप कई अलग-अलग परिस्थितियों में परीक्षण छोड़ने के लिए परिदृश्यों और सुविधाओं में कई टैग जोड़ सकते हैं।
 
-आप `टैगएक्सप्रेशन' को बदले बिना परीक्षण छोड़ने के लिए '@tagExpression' का भी उपयोग कर सकते हैं। In this case the skipped tests will be displayed in the test report.
+आप `टैगएक्सप्रेशन' को बदले बिना परीक्षण छोड़ने के लिए '@tagExpression' का भी उपयोग कर सकते हैं। इस मामले में छोड़े गए टेस्ट को टेस्ट रिपोर्ट में प्रदर्शित किए जाएंगे।
 
-Here you have some examples of this syntax:
-- `@skip` or `@skip()`: will always skip the tagged item
-- `@skip(browserName="chrome")`: the test will not be executed against chrome browsers.
-- `@skip(browserName="firefox";platformName="linux")`: will skip the test in firefox over linux executions.
-- `@skip(browserName=["chrome","firefox"])`: tagged items will be skipped for both chrome and firefox browsers.
-- `@skip(browserName=/i.*explorer/`: capabilities with browsers matching the regexp will be skipped (like `iexplorer`, `internet explorer`, `internet-explorer`, ...).
+यहाँ आपके पास इस सिंटैक्स के कुछ उदाहरण हैं:
+- `@skip` या `@skip()`: टैग किए गए आइटम को हमेशा छोड़ देगा
+- `@skip(browserName="chrome")`: क्रोम ब्राउज़र के विरुद्ध परीक्षण निष्पादित नहीं किया जाएगा।
+- `@skip(browserName="firefox";platformName="linux")`: लिनक्स निष्पादन पर फ़ायरफ़ॉक्स में परीक्षण को छोड़ देगा।
+- `@skip(browserName=["chrome","firefox"])`: टैग किए गए आइटम क्रोम और फ़ायरफ़ॉक्स दोनों ब्राउज़रों के लिए छोड़ दिए जाएंगे।
+- `@skip(browserName=/i.*explorer/`: regexp से मेल खाने वाले ब्राउज़र की क्षमताओं को छोड़ दिया जाएगा (जैसे `iexplorer`, `internet Explorer`, `internet-explorer`, ...)।
 
-### Import Step Definition Helper
+### इम्पोर्ट स्टेप डेफिनिशन हेल्पर
 
-In order to use step definition helper like `Given`, `When` or `Then` or hooks, you are suppose to import then from `@cucumber/cucumber`, e.g. like this:
+स्टेप डेफिनिशन हेल्पर जैसे `Given`, `When` या `Then` या हुक का उपयोग करने के लिए, आपको `@cucumber/cucumber`से आयात करने का अनुमान है, उदाहरण के लिए:
 
 ```js
 import { Given, When, Then } from '@cucumber/cucumber'
 ```
 
-Now, if you use Cucumber already for other types of tests unrelated to WebdriverIO for which you use a specific version you need to import these helpers in your e2e tests from the WebdriverIO Cucumber package, e.g.:
+अब, यदि आप WebdriverIO से असंबंधित अन्य प्रकार के परीक्षणों के लिए पहले से ही ककड़ी का उपयोग करते हैं, जिसके लिए आप एक विशिष्ट संस्करण का उपयोग करते हैं, तो आपको इन सहायकों को WebdriverIO ककड़ी पैकेज से अपने e2e परीक्षणों में आयात करने की आवश्यकता होती है, जैसे:
 
 ```js
 import { Given, When, Then } from '@wdio/cucumber-framework'
 ```
 
-This ensures that you use the right helpers within the WebdriverIO framework and allows you to use an independant Cucumber version for other types of testing.
+यह सुनिश्चित करता है कि आप WebdriverIO ढांचे के भीतर सही सहायकों का उपयोग करते हैं और आपको अन्य प्रकार के परीक्षण के लिए एक स्वतंत्र ककड़ी संस्करण का उपयोग करने की अनुमति देता है।
