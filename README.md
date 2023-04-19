@@ -29,6 +29,9 @@
     <a href="https://github.com/webdriverio/webdriverio/issues?q=is%3Aissue+is%3Aopen+sort%3Aupdated-desc">
         <img alt="Open issues" src="http://isitmaintained.com/badge/open/webdriverio/webdriverio.svg">
     </a>
+    <a title="Crowdin" target="_blank" href="https://translate.webdriver.io/project/webdriver-io">
+        <img src="https://badges.crowdin.net/webdriver-io/localized.svg">
+    </a>
 </p>
 
 ***
