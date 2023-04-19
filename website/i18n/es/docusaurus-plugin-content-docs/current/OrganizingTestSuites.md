@@ -1,19 +1,19 @@
 ---
 id: organizingsuites
-title: Organizing Test Suite
+title: Organización de la suite de pruebas
 ---
 
-As projects grow, inevitably more and more integration tests are added. This increases build time and slows productivity.
+A medida que crecen los proyectos, inevitablemente se agregan más y más pruebas de integración. Esto aumenta el tiempo de construcción y reduce la productividad.
 
-To prevent this, you should run your tests in parallel. WebdriverIO already tests each spec (or _feature file_ in Cucumber) in parallel within a single session. In general, try to test only a single feature per spec file. Try to not have too many or too few tests in one file. (However, there is no golden rule here.)
+Para evitar esto, debe ejecutar sus pruebas en paralelo. WebdriverIO ya prueba cada especificación (o _archivo de características_ en Cucumber) en paralelo dentro de una sola sesión. En general, intente probar solo una función por archivo de especificaciones. Intente no tener demasiadas o muy pocas pruebas en un solo archivo. (However, there is no golden rule here.)
 
-Once your tests have several spec files, you should start running your tests concurrently. To do so, adjust the `maxInstances` property in your config file. WebdriverIO allows you to run your tests with maximum concurrency—meaning that no matter how many files and tests you have, they can all run in parallel.  (This is still subject to certain limits, like your computer’s CPU, concurrency restrictions, etc.)
+Una vez que sus pruebas tengan varios archivos de especificaciones, debe comenzar a ejecutar sus pruebas al mismo tiempo. Para ello, ajuste la propiedad `maxInstances` en su archivo de configuración. WebdriverIO le permite ejecutar sus pruebas con la máxima concurrencia, lo que significa que no importa cuántos archivos y pruebas tenga, todos pueden ejecutarse en paralelo.  (Esto todavía está sujeto a ciertos límites, como la CPU de su computadora, restricciones de concurrencia, etc.)
 
-> Let's say you have 3 different capabilities (Chrome, Firefox, and Safari) and you have set `maxInstances` to `1`. The WDIO test runner will spawn 3 processes. Therefore, if you have 10 spec files and you set `maxInstances` to `10`, _all_ spec files will be tested simultaneously, and 30 processes will be spawned.
+> Supongamos que tiene 3 capacidades diferentes (Chrome, Firefox y Safari) y ha configurado `maxInstances` a `1`. El corredor de prueba WDIO generará 3 procesos. Por lo tanto, si tiene 10 archivos de especificaciones y configura `maxInstances` a `10`, _los_ archivos de especificaciones se probarán simultáneamente y se generarán 30 procesos.
 
-You can define the `maxInstances` property globally to set the attribute for all browsers.
+Puede definir globalmente la propiedad `maxInstances` para establecer el atributo para todos los navegadores.
 
-If you run your own WebDriver grid, you may (for example) have more capacity for one browser than another. In that case, you can _limit_ the `maxInstances` in your capability object:
+Si ejecuta su propia cuadrícula de WebDriver, puede (por ejemplo) tener más capacidad para un navegador que para otro. En ese caso, puedes _limitar_ el `maxInstances` en tu objeto de capacidad:
 
 ```js
 // wdio.conf.js
@@ -34,13 +34,13 @@ export const config = {
 }
 ```
 
-## Inherit From Main Config File
+## Heredar del archivo de configuración principal
 
-If you run your test suite in multiple environments (e.g., dev and integration) it may help to use multiple configuration files to keep things manageable.
+Si ejecuta su conjunto de pruebas en varios entornos (p. ej., desarrollo e integración), puede ser útil usar varios archivos de configuración para mantener las cosas manejables.
 
-Similar to the [page object concept](PageObjects.md), the first thing you’ll need is a main config file. It contains all configurations you share across environments.
+Similar al concepto de objeto de página [](PageObjects.md), lo primero que necesitará es un archivo de configuración principal. Contiene todas las configuraciones que comparte a través de entornos.
 
-Then create another config file for each environment, and supplement the the main config with the environment-specific ones:
+A continuación, cree otro archivo de configuración para cada entorno, y complemente la configuración principal con la específica del entorno:
 
 ```js
 // wdio.dev.config.js
@@ -64,11 +64,11 @@ export const config = deepmerge(wdioConf.config, {
 config.reporters.push('allure')
 ```
 
-## Grouping Test Specs In Suites
+## Grupación de pruebas en las suites
 
-You can group test specs in suites and run single specific suites instead of all of them.
+Puede agrupar especificaciones de prueba en suites y ejecutar suites individuales específicas en lugar de todas.
 
-First, define your suites in your WDIO config:
+Primero, defina sus suites en su configuración WDIO:
 
 ```js
 // wdio.conf.js
@@ -90,13 +90,13 @@ export const config = {
 }
 ```
 
-Now, if you want to only run a single suite, you can pass the suite name as a CLI argument:
+Ahora, si sólo quiere ejecutar una sola suite, puede pasar el nombre de la suite como un argumento CLI:
 
 ```sh
 wdio wdio.conf.js --suite login
 ```
 
-Or, run multiple suites at once:
+O, ejecutar múltiples suites a la vez:
 
 ```sh
 wdio wdio.conf.js --suite login --suite otherFeature
